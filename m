@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m623R70F016213
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 23:27:07 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.157])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m623Qr7D013447
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 23:26:54 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so87620fga.7
-	for <video4linux-list@redhat.com>; Tue, 01 Jul 2008 20:26:52 -0700 (PDT)
-Message-ID: <30353c3d0807012026n60815935g82a6746e5ca67b1a@mail.gmail.com>
-Date: Tue, 1 Jul 2008 23:26:52 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m69NvMAf011812
+	for <video4linux-list@redhat.com>; Wed, 9 Jul 2008 19:57:22 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m69NvBfp010527
+	for <video4linux-list@redhat.com>; Wed, 9 Jul 2008 19:57:11 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so1734846fga.7
+	for <video4linux-list@redhat.com>; Wed, 09 Jul 2008 16:57:11 -0700 (PDT)
+Message-ID: <30353c3d0807091657x26cbca3ev9ccbdcebb222135@mail.gmail.com>
+Date: Wed, 9 Jul 2008 19:57:10 -0400
 From: "David Ellingsworth" <david@identd.dyndns.org>
 To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
-In-Reply-To: <30353c3d0807011649n5b225ef7t11bbf36217427647@mail.gmail.com>
+In-Reply-To: <200807092327.59152.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 References: <30353c3d0807011346yccc6ad1yab269d0b47068f15@mail.gmail.com>
-	<200807012350.53604.laurent.pinchart@skynet.be>
-	<30353c3d0807011528v561d4de8ycb7c3f1d8afc82f9@mail.gmail.com>
-	<200807020104.52122.laurent.pinchart@skynet.be>
-	<30353c3d0807011649n5b225ef7t11bbf36217427647@mail.gmail.com>
+	<200807092135.38250.laurent.pinchart@skynet.be>
+	<30353c3d0807091315j2bcfe355hfc2c4a6445f9be9a@mail.gmail.com>
+	<200807092327.59152.laurent.pinchart@skynet.be>
 Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
 Subject: Re: [PATCH] videodev: fix sysfs kobj ref count
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
@@ -34,417 +33,76 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Jul 1, 2008 at 7:49 PM, David Ellingsworth
-<david@identd.dyndns.org> wrote:
-> On Tue, Jul 1, 2008 at 7:04 PM, Laurent Pinchart
-> <laurent.pinchart@skynet.be> wrote:
->> On Wednesday 02 July 2008, David Ellingsworth wrote:
->>> On Tue, Jul 1, 2008 at 5:50 PM, Laurent Pinchart
->>>
->>> <laurent.pinchart@skynet.be> wrote:
->>> > Hi David,
->>> >
->>> > On Tuesday 01 July 2008, David Ellingsworth wrote:
->>> >> This patch duplicates the behavior seen by char_dev in videodev.
->>> >> Please apply.
->>> >>
->>> >> char_dev handles the kobject reference count as follows:
->>> >>      1. Initializes it to 1 in device_register.
->>> >>      2. Increments it in chrdev_open
->>> >>      3. Decrements it in __fput(see fs/file_table.c) after the
->>> >> file_operations.release callback
->>> >>      4. Decrements it in device_unregister
->>> >>
->>> >> videodev currently handles the kobject reference count as follows:
->>> >>      1. Initializes it to 1 in device_register.
->>> >>      2. Decrements it in device_unregister.
->>> >>
->>> >> With this patch, videodev will handle the kobject reference count as
->>> >> follows: 1. Initialize it to 1 in device_register.
->>> >>      2. Increment it in video_open.
->>> >>      3. Decrement it in video_close.
->>> >>      4. Decrement it in device_unregister.
->>> >>
->>> >> This allows the following sequences of events before the kobject ref
->>> >> count reaches 0 and the sysfs release callback is called.
->>> >
->>> > I've just realised that by sysfs release callback you meant kobject
->>> > release callback. It might be less confusing, and might help others to
->>> > follow the discussion, if you talked about kobject, mentioning sysfs only
->>> > when you really mean to talk about sysfs filesystem.
->>> >
->>> >>      1. device_register
->>> >>      2. video_open
->>> >>      3. video_close
->>> >>      4. device_unregister
->>> >>
->>> >> - and -
->>> >>
->>> >>      1. device_register
->>> >>      2. video_open
->>> >>      3. device_unregister
->>> >>      4. video_close
->>> >>
->>> >> Once videodev has been converted to use the char_dev api,
->>> >
->>> > Is that planned ?
->>>
->>> Honestly, I don't know but I suspect that it is. videodev is a
->>> character device driver and video_open has been marked as Obsolete for
->>> some time.
->>>
->>> >> video_open
->>> >> and video_close may be removed. Until then they are needed to mimic
->>> >> char_dev's behavior and ensure that the sysfs callback occurs at the
->>> >> appropriate time.
->>> >>
->>> >> From 354f72d4ed5861813b1509d437e551c19f8a6aca Mon Sep 17 00:00:00 2001
->>> >> From: David Ellingsworth <david@identd.dyndns.org>
->>> >> Date: Tue, 1 Jul 2008 16:04:26 -0400
->>> >> Subject: [PATCH] videodev: fix sysfs kobj ref count
->>> >>
->>> >>
->>> >> Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
->>> >> ---
->>> >>  drivers/media/video/videodev.c |   52
->>> >> ++++++++++++++++++++++++++-------------- include/media/v4l2-dev.h
->>> >> | 1 +
->>> >>  2 files changed, 35 insertions(+), 18 deletions(-)
->>> >>
->>> >> diff --git a/drivers/media/video/videodev.c
->>> >> b/drivers/media/video/videodev.c index 0d52819..0ef51b8 100644
->>> >> --- a/drivers/media/video/videodev.c
->>> >> +++ b/drivers/media/video/videodev.c
->>> >> @@ -406,17 +406,23 @@ void video_device_release(struct video_device
->>> >> *vfd) }
->>> >>  EXPORT_SYMBOL(video_device_release);
->>> >>
->>> >> +/*
->>> >> + *   Active devices
->>> >> + */
->>> >> +
->>> >> +static struct video_device *video_device[VIDEO_NUM_DEVICES];
->>> >> +static DEFINE_MUTEX(videodev_lock);
->>> >> +
->>> >>  static void video_release(struct device *cd)
->>> >>  {
->>> >>       struct video_device *vfd = container_of(cd, struct video_device,
->>> >>
->>> >> class_dev);
->>> >>
->>> >> -#if 1
->>> >> -     /* needed until all drivers are fixed */
->>> >> -     if (!vfd->release)
->>> >> -             return;
->>> >> -#endif
->>> >> -     vfd->release(vfd);
->>> >> +     mutex_lock(&videodev_lock);
->>> >> +     if (vfd->release)
->>> >> +             vfd->release(vfd);
->>> >> +     video_device[vfd->minor] = NULL;
->>> >> +     mutex_unlock(&videodev_lock);
->>> >>  }
->>> >>
->>> >>  static struct device_attribute video_device_attrs[] = {
->>> >> @@ -431,19 +437,30 @@ static struct class video_class = {
->>> >>       .dev_release = video_release,
->>> >>  };
->>> >>
->>> >> -/*
->>> >> - *   Active devices
->>> >> - */
->>> >> -
->>> >> -static struct video_device *video_device[VIDEO_NUM_DEVICES];
->>> >> -static DEFINE_MUTEX(videodev_lock);
->>> >> -
->>> >>  struct video_device* video_devdata(struct file *file)
->>> >>  {
->>> >>       return video_device[iminor(file->f_path.dentry->d_inode)];
->>> >>  }
->>> >>  EXPORT_SYMBOL(video_devdata);
->>> >>
->>> >> +static int video_close(struct inode *inode, struct file *file)
->>> >> +{
->>> >> +     unsigned int minor = iminor(inode);
->>> >> +     int err = 0;
->>> >> +     struct video_device *vfl;
->>> >> +
->>> >> +     mutex_lock(&videodev_lock);
->>> >> +     vfl = video_device[minor];
->>> >> +
->>> >> +     if (vfl->fops && vfl->fops->release)
->>> >> +             err = vfl->fops->release(inode, file);
->>> >> +
->>> >> +     mutex_unlock(&videodev_lock);
->>> >> +     kobject_put(&vfl->class_dev.kobj);
->>> >> +
->>> >> +     return err;
->>> >> +}
->>> >> +
->>> >>  /*
->>> >>   *   Open a video device - FIXME: Obsoleted
->>> >>   */
->>> >> @@ -469,8 +486,8 @@ static int video_open(struct inode *inode, struct
->>> >> file *file) }
->>> >>       }
->>> >>       old_fops = file->f_op;
->>> >> -     file->f_op = fops_get(vfl->fops);
->>> >> -     if(file->f_op->open)
->>> >> +     file->f_op = fops_get(&vfl->priv_fops);
->>> >> +     if(file->f_op->open && kobject_get(&vfl->class_dev.kobj))
->>> >>               err = file->f_op->open(inode,file);
->>> >>       if (err) {
->>> >>               fops_put(file->f_op);
->>> >> @@ -2175,6 +2192,8 @@ int video_register_device_index(struct
->>> >> video_device *vfd, int type, int nr, }
->>> >>
->>> >>       vfd->index = ret;
->>> >> +     vfd->priv_fops = *vfd->fops;
->>> >> +     vfd->priv_fops.release = video_close;
->>> >>
->>> >>       mutex_unlock(&videodev_lock);
->>> >>       mutex_init(&vfd->lock);
->>> >> @@ -2221,13 +2240,10 @@ EXPORT_SYMBOL(video_register_device_index);
->>> >>
->>> >>  void video_unregister_device(struct video_device *vfd)
->>> >>  {
->>> >> -     mutex_lock(&videodev_lock);
->>> >>       if(video_device[vfd->minor]!=vfd)
->>> >>               panic("videodev: bad unregister");
->>> >>
->>> >> -     video_device[vfd->minor]=NULL;
->>> >>       device_unregister(&vfd->class_dev);
->>> >> -     mutex_unlock(&videodev_lock);
->>> >
->>> > Without locking the videodev_lock mutex you introduce a race condition.
->>> > video_open() can race device_unregister().
->>>
->>> Not true, video_open calls and checks the return of kobject_get which
->>> will not allow the open to proceed if the return is NULL. The release
->>> callback must first obtain the videodev_lock mutex before proceeding.
+On Wed, Jul 9, 2008 at 5:27 PM, Laurent Pinchart
+<laurent.pinchart@skynet.be> wrote:
+> Hi David,
+>
+> On Wednesday 09 July 2008, David Ellingsworth wrote:
+>> On Wed, Jul 9, 2008 at 3:35 PM, Laurent Pinchart
 >>
->> struct kobject *kobject_get(struct kobject *kobj)
->> {
->>        if (kobj)
->>                kref_get(&kobj->kref);
->>        return kobj;
->> }
+>> <laurent.pinchart@skynet.be> wrote:
+>> > On Wednesday 02 July 2008, David Ellingsworth wrote:
+>> >> On Tue, Jul 1, 2008 at 7:49 PM, David Ellingsworth
+>> >>
+>> >> I think I found a solution to the above issue. I removed the lock from
+>> >> video_release and the main portion of video_close and wrapped the two
+>> >> calls to kobject_put by the videodev_lock. Since video_close is called
+>> >> when the BKL is held the lock is not required around the main portion
+>> >> of video_close. Acquiring the lock around the calls to kobject_put
+>> >> insures video_release is always called while the lock is being held.
+>> >> This should fix the above race condition between device_unregister and
+>> >> video_open as well. Here is the corrected patch.
+>> >
+>> > The kernel is moving away from the BKL. We might not want to rely on it
+>> > in new code. Any opinion on this ?
 >>
->> The return value will be non-NULL if called with a non-NULL argument.
+>> To address this issue I think we should seriously consider converting
+>> videodev to use char_dev. Char_dev already exhibits the behavior
+>> provided by this patch and has already been rewritten with the
+>> elimination of the BKL in mind.
 >
-> Agreed.. it seems LDD3 is wrong and I quote:
+> That seems a good idea to me. I'll have to check the char_dev API in details.
 >
-> "A successful call to kobject_get increments the kobject's reference
-> counter and returns a pointer to the kobject. If, however, the kobject
-> is already in the process of
-> being destroyed, the operation fails, and kobject_get returns NULL.
-> This return value must always be tested, or no end of unpleasant race
-> conditions could result.", pg366 ch14
+>> In the mean time, this patch should
+>> allow developers to reap the benefits of kobject release callback
+>> ocuring at the proper time and prepare their drivers for the
+>> conversion of videodev. Once converted, we should be able to remove
+>> video_open and video_close entirely. However, unless we can remove
+>> video_ioctl2's use of the internal video_device array, we must
+>> continue to intercept the kobject release callback in order to update
+>> the video_device array appropriately.
 >
-> Unfortunately, I don't think wrapping the device_unregister call with
-> the lock would fix this race condition, as we'd have to remove the
-> lock from video_release as well as video_close. The following would
-> result in a deadlock otherwise:
+> Do you mean video_devdata() ? As long as we provide a way to map from a struct
+> file * to a struct video_dev * we shouldn't have any issue. This doesn't
+> necessarily require a global video_device array.
 >
-> video_close (acquire lock)
->  video_unregister_device (deadlock)
->
-> - and -
->
-> disconnect
->  video_unregister_device (acquire lock)
->     video_release (deadlock)
->
-> The above deadlock situations are why I did not try to acquire the
-> lock in video_unregister_device. I'm open for suggestions.
->
-> Regards,
->
-> David Ellingsworth
->
->>
->>> > CPU #1                                          CPU #2
->>> > -------------------------------------------------------------------------
->>> >---- disconnect callback
->>> >  video_unregister_device
->>> >    device_unregister -> put_device
->>> >      kobject_put -> kref_put
->>> >        kobject_release -> kobject_cleanup
->>> >          video_release
->>> >                                                video_open
->>> >                                                -> reference data
->>> > structures
->>> >
->>> >            driver release callback
->>> >            -> free data structures
->>> >
->>> >>  }
->>> >>  EXPORT_SYMBOL(video_unregister_device);
->>> >>
->>> >> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
->>> >> index 3c93414..d4fe617 100644
->>> >> --- a/include/media/v4l2-dev.h
->>> >> +++ b/include/media/v4l2-dev.h
->>> >> @@ -342,6 +342,7 @@ void *priv;
->>> >>       /* for videodev.c intenal usage -- please don't touch */
->>> >>       int users;                     /* video_exclusive_{open|close} ...
->>> >> */ struct mutex lock;             /* ... helper function uses these   */
->>> >> +     struct file_operations priv_fops; /* video_close */
->>> >>  };
->>> >>
->>> >>  /* Class-dev to video-device */
->>> >> --
->>> >> 1.5.5.1
->>> >
->>> > Best regards,
->>> >
->>> > Laurent Pinchart
->>>
->>> Regards,
->>>
->>> David Ellingsworth
->>
->>
->>
->
+Yes, in this case the use of video_devdata() which currently uses the
+global video_device array.
 
-I think I found a solution to the above issue. I removed the lock from
-video_release and the main portion of video_close and wrapped the two
-calls to kobject_put by the videodev_lock. Since video_close is called
-when the BKL is held the lock is not required around the main portion
-of video_close. Acquiring the lock around the calls to kobject_put
-insures video_release is always called while the lock is being held.
-This should fix the above race condition between device_unregister and
-video_open as well. Here is the corrected patch.
+> If I'm not mistaken, converting to char_dev means we can use inode->i_cdev to
+> store a pointer to a struct video_dev *, provided struct video_dev contains a
+> struct cdev instance.
+>
+This is a truely novel idea. I hadn't even considered it. Good call.
+
+> For the open(), release() and ioctl() handler we could then map from struct
+> inode * to struct video_dev * instead. For other operations we might need to
+> use file->private_data, but that field is currently used by driver to store
+> per-instance file information.
+>
+The only locations where video_devdata is currently relevant is during
+open(), close(), and ioctl(). All of which are locations where we
+could map to it using container_of the struct cdev once converted. No
+use of file->private_data required :-). Then the global video_device
+array could simply be used as an indication of what minor numbers are
+available. After all, once video_unregister_device has been called,
+there's no need to continue reserving that minor number until the
+associated video_device struct has been freed. It really should be put
+back in the pool.
 
 Regards,
 
 David Ellingsworth
-
-[PATCH] videodev: fix kobj ref count
-
-
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/video/videodev.c |   49 +++++++++++++++++++++++++++-------------
- include/media/v4l2-dev.h       |    1 +
- 2 files changed, 34 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/media/video/videodev.c b/drivers/media/video/videodev.c
-index 0d52819..fbe305f 100644
---- a/drivers/media/video/videodev.c
-+++ b/drivers/media/video/videodev.c
-@@ -406,17 +406,22 @@ void video_device_release(struct video_device *vfd)
- }
- EXPORT_SYMBOL(video_device_release);
-
-+/*
-+ *	Active devices
-+ */
-+
-+static struct video_device *video_device[VIDEO_NUM_DEVICES];
-+static DEFINE_MUTEX(videodev_lock);
-+
-+/* must be called with videodev_lock held */
- static void video_release(struct device *cd)
- {
- 	struct video_device *vfd = container_of(cd, struct video_device,
- 								class_dev);
-
--#if 1
--	/* needed until all drivers are fixed */
--	if (!vfd->release)
--		return;
--#endif
--	vfd->release(vfd);
-+	if (vfd->release)
-+		vfd->release(vfd);
-+	video_device[vfd->minor] = NULL;
- }
-
- static struct device_attribute video_device_attrs[] = {
-@@ -431,19 +436,30 @@ static struct class video_class = {
- 	.dev_release = video_release,
- };
-
--/*
-- *	Active devices
-- */
--
--static struct video_device *video_device[VIDEO_NUM_DEVICES];
--static DEFINE_MUTEX(videodev_lock);
--
- struct video_device* video_devdata(struct file *file)
- {
- 	return video_device[iminor(file->f_path.dentry->d_inode)];
- }
- EXPORT_SYMBOL(video_devdata);
-
-+static int video_close(struct inode *inode, struct file *file)
-+{
-+	unsigned int minor = iminor(inode);
-+	int err = 0;
-+	struct video_device *vfl;
-+
-+	vfl = video_device[minor];
-+
-+	if (vfl->fops && vfl->fops->release)
-+		err = vfl->fops->release(inode, file);
-+
-+	mutex_lock(&videodev_lock);
-+	kobject_put(&vfl->class_dev.kobj);
-+	mutex_unlock(&videodev_lock);
-+
-+	return err;
-+}
-+
- /*
-  *	Open a video device - FIXME: Obsoleted
-  */
-@@ -469,8 +485,8 @@ static int video_open(struct inode *inode, struct
-file *file)
- 		}
- 	}
- 	old_fops = file->f_op;
--	file->f_op = fops_get(vfl->fops);
--	if(file->f_op->open)
-+	file->f_op = fops_get(&vfl->priv_fops);
-+	if(file->f_op->open && kobject_get(&vfl->class_dev.kobj))
- 		err = file->f_op->open(inode,file);
- 	if (err) {
- 		fops_put(file->f_op);
-@@ -2175,6 +2191,8 @@ int video_register_device_index(struct
-video_device *vfd, int type, int nr,
- 	}
-
- 	vfd->index = ret;
-+	vfd->priv_fops = *vfd->fops;
-+	vfd->priv_fops.release = video_close;
-
- 	mutex_unlock(&videodev_lock);
- 	mutex_init(&vfd->lock);
-@@ -2225,7 +2243,6 @@ void video_unregister_device(struct video_device *vfd)
- 	if(video_device[vfd->minor]!=vfd)
- 		panic("videodev: bad unregister");
-
--	video_device[vfd->minor]=NULL;
- 	device_unregister(&vfd->class_dev);
- 	mutex_unlock(&videodev_lock);
- }
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 3c93414..d4fe617 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -342,6 +342,7 @@ void *priv;
- 	/* for videodev.c intenal usage -- please don't touch */
- 	int users;                     /* video_exclusive_{open|close} ... */
- 	struct mutex lock;             /* ... helper function uses these   */
-+	struct file_operations priv_fops; /* video_close */
- };
-
- /* Class-dev to video-device */
--- 
-1.5.5.1
 
 --
 video4linux-list mailing list
