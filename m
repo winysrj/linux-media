@@ -1,19 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m62AGJo2012011
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 06:16:19 -0400
-Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m62AG3O4012941
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 06:16:04 -0400
-Message-ID: <14440.62.70.2.252.1214993763.squirrel@webmail.xs4all.nl>
-Date: Wed, 2 Jul 2008 12:16:03 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6AL4ftj022580
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 17:04:41 -0400
+Received: from vsmtp3.tin.it (vsmtp3.tin.it [212.216.176.223])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6AL4TjK018929
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 17:04:30 -0400
+Received: from [192.168.3.11] (77.103.126.124) by vsmtp3.tin.it (8.0.016.5)
+	(authenticated as aodetti@tin.it)
+	id 4856608C016149CA for video4linux-list@redhat.com;
+	Thu, 10 Jul 2008 23:04:24 +0200
+Message-ID: <487678F6.50609@tiscali.it>
+Date: Thu, 10 Jul 2008 22:02:46 +0100
+From: Andrea <audetto@tiscali.it>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: uvc_driver.c compile error on 2.6.18
+To: video4linux-list@redhat.com
+References: <4873CBA9.1090603@tiscali.it> <4873E6D0.8050202@tiscali.it>
+In-Reply-To: <4873E6D0.8050202@tiscali.it>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Re: A question about VIDIOC_DQBUF
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,63 +30,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Hi Hans,
->
-> On Wednesday 02 July 2008, Hans Verkuil wrote:
->> Hi all,
+Is there anybody who could help my with the followin?
+I would like to know if my interpretation of VIDIOC_DQBUF is correct.
+
+Thanks
+
+
+Andrea wrote:
+> Andrea wrote:
+>> Hi,
 >>
->> The current v4l-dvb doesn't build anymore on 2.6.18:
+>> I would like to understand better the way VIDIOC_DQBUF works.
 >>
->>   CC [M]  /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.o
->> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c: In
->> function 'uvc_parse_control':
->> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1135: warning: implicit
->> declaration of function 'usb_endpoint_is_int_in'
->> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c: At top level:
->> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1918: error: unknown
->> field 'supports_autosuspend' specified in initializer
->> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1918: warning: missing
->> braces around initializer
->> /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1918: warning: (near
->> initialization for 'uvc_driver.driver.dynids')
->> make[3]: *** [/home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.o] Error 1
->> make[2]: *** [_module_/home/hans/work/src/v4l/v4l-dvb/v4l] Error 2
->> make[2]: Leaving directory `/home/hans/work/src/kernels/linux-2.6.18.8'
->> make[1]: *** [default] Error 2
->> make[1]: Leaving directory `/home/hans/work/src/v4l/v4l-dvb/v4l'
->> make: *** [all] Error 2
->
-> Mauro committed the uvcvideo driver to the v4l-dvb tree two days ago. The
-> patch he based his commit on was intended for submission to the main Linux
-> tree, and as such didn't contain any support for older kernels.
->
-> The uvcvideo driver supports kernels 2.6.15 upwards. The code can be found
-> in the SVN repository at svn://svn.berlios.de/linux-uvc/linux-uvc/trunk
->
-> Fixing the driver in the hg tree to build with 2.6.18 would be duplicating
-> work. As I explained in a mail to Mauro, I don't want to drop the SVN
-> repository before the driver hits the main kernel tree, as it would
-> confuse users.
->
-> What would be the best way to solve this issue ?
-
-I think the easiest short term solution is to figure out what the first
-kernel is that allows uvcvideo to build and then adjust v4l/versions.txt
-accordingly.
-
-When the compat stuff is merged with v4l-dvb later, then v4l/versions.txt
-can be adjusted again.
-
-Regards,
-
-      Hans
-
->
-> Regards,
->
-> Laurent Pinchart
->
-
+> ...
+>> Is the following correct?
+>>
+>> - First, an application queues a buffer, then it dequeues the buffer.
+>> - Then again, a buffer is queued and then dequeued.
+>> - Dequeuing a buffer blocks is the buffer is not ready (unless device 
+>> opened with O_NONBLOCK).
+>> - Trying to dequeue a buffer without queuing it first is an error, and 
+>> the ioctl VIDIOC_DQBUF should return -EINVAL.
+> 
+> Moreover:
+> 
+> - One can only VIDIOC_DQBUF after calling STREAMON. Before it should 
+> return -EINVAL? Block?
+> - After calling STREAMOFF, VIDIOC_DQBUF should return -EINVAL
+> 
+>>
+>> <- end of question ->
+>>
+>> Now, about pwc: (if the above is correct).
+>>
+>> 1) VIDIOC_DQBUF blocks always until a buffer is ready, regardless of 
+>> O_NONBLOCK.
+>> 2) VIDIOC_DQBUF does not check if a buffer has been previously queued. 
+>> Moreover VIDIOC_QBUF is almost a no-op. It has no way to check if a 
+>> buffer has been queued before VIDIOC_DQBUF.
+>>
+>> If I have understood correctly (very unlikely), this is the reason why 
+>> mplayer hangs while stopping the stream with pwc:
+>>
+>>         while (!ioctl(priv->video_fd, VIDIOC_DQBUF, &buf));
+>>
+> 
+> This code is not needed because STREAMOFF flushes the buffer queue. Does 
+> it not?
+> 
+>> This code should eventually return -EINVAL, while pwc just blocks 
+>> waiting for the next buffer (which never arrives because 
+>> VIDIOC_STREAMOFF has been called).
+> 
+> pwc should return -EINVAL to all ioctl calls after STREAMOFF?
+> 
+> Could someone please tell me where I am right and where I am wrong...
+> 
+> What is the reference implementation? vivi? em28xx?
+> 
+> Andrea
 
 --
 video4linux-list mailing list
