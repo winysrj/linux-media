@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n37.bullet.mail.ukl.yahoo.com ([87.248.110.170])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1KFXBl-0003sY-Pc
-	for linux-dvb@linuxtv.org; Sun, 06 Jul 2008 18:34:16 +0200
-Date: Sun, 06 Jul 2008 12:30:42 -0400
-From: manu <eallaud@yahoo.fr>
+Received: from mx06.syd.iprimus.net.au ([210.50.76.235])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mike_booth76@iprimus.com.au>) id 1KGldk-0000U0-W4
+	for linux-dvb@linuxtv.org; Thu, 10 Jul 2008 04:12:14 +0200
+From: Mike Booth <mike_booth76@iprimus.com.au>
 To: linux-dvb@linuxtv.org
-References: <4870C35D.8060405@server>
-In-Reply-To: <4870C35D.8060405@server> (from laasa@server on Sun Jul  6
-	09:06:37 2008)
-Message-Id: <1215361842l.16980l.0l@manu-laptop>
+Date: Thu, 10 Jul 2008 12:13:56 +1000
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] Re :  How to get 2 TT3650-CI working
+Message-Id: <200807101213.56910.mike_booth76@iprimus.com.au>
+Subject: Re: [linux-dvb]
+	=?iso-8859-1?q?Re_=3A_Re_=3A_How_to_solve_the_TT-S2-3?=
+	=?iso-8859-1?q?200_tuning_=A0=A0=A0=A0=A0=A0=A0=A0problems=3F?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,68 +19,31 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 06.07.2008 09:06:37, laasa a =E9crit=A0:
-> First of all thanks to Dominik and Manu for the great work.
-> =
 
-> I want to get working two connected TT3650-CI. Under WinXP it will be =
+>
+> In this thread there is a small patch posted. I am not into coding so it
+> dosen't say to much to me. But for those of you who are into coding might
+> get some ideas. Maybe could it be a step in the right direction to solve
+> our problems maybe?
 
-> running without problems on the same hardware, so the USB-ports =
+Has with tuning problems with TT-S2-3200 tried the patch suggested in 
+the link?
 
-> should
-> =
-
-> not be the problem.
-> =
-
-> Unter Linux with one connected TT3650 all is working succesfully. But =
-
-> with 2 connected TT3650 there are artefakts and dropouts on both =
-
-> cards
-> =
-
-> after some seconds.
->  I have try it under following conditions:
-> =
-
->     * Ubuntu 7.10 and Ubuntu 8.04
->     * actual multiproto-repository: http://jusst.de/hg/multiproto
->     * patch from dominik:
->       http://www.linuxtv.org/pipermail/linux-dvb/
-> attachments/20080606/cc54743f/attachment-0001.obj
->     * special in line 1075 of modul pctv452e.c to get TT3650-CI work
->       (set num_device_descs *=3D 2*, otherwise only TT3600 works).
->     * a special patched MythTV 0.21 (wich works with 2 TT3200
-> succesfully)
-
-Talking about the patch from dominik: is it normal that the registers =
-
-settings are different than those from TT-3200 (in budget-ci.c)? I mean =
-
-it is the same chips (stb0899/stb6100), so is it possible to use those =
-
-settings directly with a TT 3200; I have reception problems for some =
-
-transponders, and a lot of other users also, so if those settings are =
-
-OK to try I guess that's something I am ready to do to improve things.
-Also I saw that the patch touches stb0899/6100 files in the frontends =
-
-dir, so my question: are these changes there to improve tuning also or =
-
-just related to the support of the other cards?
-Thx
-Bye
-Manu =
+Mika
 
 
+Can't access the site.....can you?
+well can access the sit but not the patch
+
+
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
