@@ -1,28 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6DA3LVr019997
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 06:03:21 -0400
-Received: from fmmailgate02.web.de (fmmailgate02.web.de [217.72.192.227])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6DA2Gt8016785
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 06:02:21 -0400
-Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
-	by fmmailgate02.web.de (Postfix) with ESMTP id E1A59E59914F
-	for <video4linux-list@redhat.com>;
-	Sun, 13 Jul 2008 12:02:10 +0200 (CEST)
-Received: from [217.95.137.23] (helo=[192.168.1.40])
-	by smtp07.web.de with esmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.109 #226) id 1KHyPC-0000Ud-00
-	for video4linux-list@redhat.com; Sun, 13 Jul 2008 12:02:10 +0200
-Message-ID: <4879D2A2.4040907@web.de>
-Date: Sun, 13 Jul 2008 12:02:10 +0200
-From: Peter Schlaf <peter.schlaf@web.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6AHIT8F002093
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 13:18:29 -0400
+Received: from n7b.bullet.tw1.yahoo.com (n7b.bullet.tw1.yahoo.com
+	[119.160.244.202])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6AHICUJ025844
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 13:18:13 -0400
+Date: Thu, 10 Jul 2008 17:18:03 +0000 (GMT)
+From: Malsoaz James <jmalsoaz@yahoo.fr>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-References: <48793439.20700@web.de> <48793697.3080704@linuxtv.org>
-In-Reply-To: <48793697.3080704@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: smscoreapi.c:689: error: 'uintptr_t' undeclared
+Message-ID: <694825.25098.qm@web28404.mail.ukl.yahoo.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Subject: Own software to use a camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,57 +25,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hi,
-thank you for your reply.
-
-unfortunately there is no 'uintptr_t' in linux/types.h of my system 
-(openSuSE 10.3, kernel 2.6.22.18-0.2-bigsmp) or in other files it includes.
-
-a search for 'uintptr_t' under /usr/src/linux resulted in this:
-   drivers/net/sk98lin/h/skdrv1st.h:142:#define uintptr_t  unsigned long
-
-i put this define into smscoreapi.h and it worked.
-
-cu
-
-
-Michael Krufky schrieb:
-> Peter,
-> 
-> Peter Schlaf wrote:
->> to workaround this i edited v4l/Makefile.media and commented out
->>
->>   sms1xxx-objs := smscoreapi.o smsusb.o smsdvb.o sms-cards.o
->>
->>   obj-$(CONFIG_DVB_SIANO_SMS1XXX) += sms1xxx.o
->>
->>
->> after that, compiling all the other modules ended successfully.
-> 
-> 
-> Thank you for posting this error.  Here is a fix:
-> 
-> diff -r f6b65eef0c94 linux/drivers/media/dvb/siano/smscoreapi.h
-> --- a/linux/drivers/media/dvb/siano/smscoreapi.h	Fri Jul 11 20:37:08 2008 -0400
-> +++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Sat Jul 12 18:55:02 2008 -0400
-> @@ -27,6 +27,7 @@
->  #include <linux/list.h>
->  #include <linux/mm.h>
->  #include <linux/scatterlist.h>
-> +#include <linux/types.h>
->  #include <asm/page.h>
->  
->  #include "dmxdev.h"
-> 
-> 
-> I'll push this in now.
-> 
-> Regards,
-> 
-> Mike Krufky
-> 
-> 
-
+Hello,=0AI'm currently working with a camera and try to use it thanks to vi=
+deo=0Afor linux. I have good basics in programming but not with this librar=
+y=0Aand I want to make a simple software to take photos and videos with the=
+=0Acamera.=0AI have looked the help=0Afor v4l2 but it seems there is a lot =
+of things to do to use the camera=0A: open device, init, choose format, sta=
+ndard, ...=0A=0ACan someone=0Ahelp me by telling me the different steps I h=
+ave to follow to take a=0Apicture with the camera and save it in a current =
+format as jpeg ? Then=0AI will add some function to take picture automatica=
+ly, and to use video.=0A=0AI=0Ahave already made a part of the program : op=
+ening the device, checking=0Athe capabilities, but I'm quite lost because o=
+f the numbers of=0Apossibilities offer by v4l2. I don't really know what to=
+ do and when to=0Ado it...=0A=0ASome existing software such as motion seems=
+ interesting=0Afor me but there is too many options, so I prefer do my own =
+software=0Awith the function I need.=0A=0AI hope there is someone here to h=
+elp me=0AThanks, have a nice day=0AJames=0A=0A=0A      ____________________=
+_________________________________________________________ =0AEnvoyez avec Y=
+ahoo! Mail. Une boite mail plus intelligente http://mail.yahoo.fr
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
