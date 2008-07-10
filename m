@@ -1,22 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pih-relay05.plus.net ([212.159.14.132])
+Received: from smtp-out1.iol.cz ([194.228.2.86])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@adslpipe.co.uk>) id 1KE9Qw-0004wu-DK
-	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 23:00:13 +0200
-Received: from [84.92.25.126] (helo=[192.168.1.100])
-	by pih-relay05.plus.net with esmtp (Exim) id 1KE9Qp-00062Y-Rn
-	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 22:00:04 +0100
-Message-ID: <486BEC50.2080009@adslpipe.co.uk>
-Date: Wed, 02 Jul 2008 22:00:00 +0100
-From: Andy Burns <linux-dvb@adslpipe.co.uk>
+	(envelope-from <ajurik@quick.cz>) id 1KGpk8-0007Q6-5t
+	for linux-dvb@linuxtv.org; Thu, 10 Jul 2008 08:35:05 +0200
+Received: from ales-debian.local (unknown [88.103.120.47])
+	by smtp-out1.iol.cz (Postfix) with ESMTP id EF8E65C7EA
+	for <linux-dvb@linuxtv.org>; Thu, 10 Jul 2008 08:34:23 +0200 (CEST)
+From: Ales Jurik <ajurik@quick.cz>
+To: linux-dvb@linuxtv.org
+Date: Thu, 10 Jul 2008 08:34:23 +0200
+References: <loom.20080628T180915-166@post.gmane.org>
+	<loom.20080701T091940-412@post.gmane.org>
+	<Pine.LNX.4.64.0807100053310.6335@shogun.pilppa.org>
+In-Reply-To: <Pine.LNX.4.64.0807100053310.6335@shogun.pilppa.org>
 MIME-Version: 1.0
-To: Linux DVB List <linux-dvb@linuxtv.org>
-References: <486A6F0F.7090507@adslpipe.co.uk>	
-	<486B9630.1080100@adslpipe.co.uk>	<200807021712.53659.zzam@gentoo.org>	
-	<486BA03D.4040904@adslpipe.co.uk> <486BA3AE.1020808@adslpipe.co.uk>
-	<1215031175.2624.7.camel@pc10.localdom.local>
-In-Reply-To: <1215031175.2624.7.camel@pc10.localdom.local>
-Subject: Re: [linux-dvb] [PATCH] Shrink saa7134 mmio mapped size
+Content-Disposition: inline
+Message-Id: <200807100834.23532.ajurik@quick.cz>
+Subject: Re: [linux-dvb]
+	=?iso-8859-1?q?Re_=3A_Re_=3A_How_to_solve_the_TT-S2-3?=
+	=?iso-8859-1?q?200_tuning=09problems=3F?=
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,44 +33,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 02/07/2008 21:39, hermann pitton wrote:
+On Wednesday 09 of July 2008, Mika Laitio wrote:
+> > http://www.gossamer-threads.com/lists/engine?do=post_view_flat;post=33605
+> >3; page=2;sb=post_latest_reply;so=ASC;mh=25;list=mythtv
+> >
+> > In this thread there is a small patch posted. I am not into coding so it
+> > dosen't say to much to me. But for those of you who are into coding might
+> > get some ideas. Maybe could it be a step in the right direction to solve
+> > our problems maybe?
+>
+> Has with tuning problems with TT-S2-3200 tried the patch suggested in
+> the link?
+>
+> Mika
 
-> We have some recent remotes sampling from IRQs triggered by a gpio pin
-> without any additional IR chip.
-> 
-> There are some reports that "pollirq" makes them unusable, since
-> sensible timings are lost.
+Yes, but without big success - the patch is not applicable to my version of 
+multiproto (last from hg) - structure stb0899_internal doesn't have member 
+sub_range.
 
-Thanks for the info, not relevant for me though, the whole point of 
-virtualising my mythtv backend with xen is to stuff all the noisy bits 
-is a cupboard and have a separate frontend which does have a LiRC device.
+But BTW the patch is for dvb-s (QPSK) part of tuning procedure, but (for 
+example) my problems are with dvb-s2 and 8PSK.
 
-> No such reports from xen stuff yet, but the same might happen with
-> shared IRQs and "pollirq" there too.
-
-After I'd sorted the mmio mapping issue, the driver loaded under xen, 
-but crashed after 40 seconds or so due to shared interrupt routing, so I 
-added the pollirq, I understand this might cause performance issues as 
-IRQs have to be delivered to multiple drivers in different xen domains, 
-particularly one of my PCI slots shares with a PCI-X slot which has my 
-8xSATA card in it, so I've avoided that slot for now, but would like to 
-have dual tuner again.
-
-The driver is now working fairly well under xen, with a single tuner 
-mythbckend can record three concurrent streams from a mux, with under 
-10% CPU.
-
-I have one remaining issue, which I will try to track down, every now 
-and then I seem to get a DMA error causing a kernel panic, my feeling is 
-it happens when retuning;  perhaps some DMA transfer is in-flight when 
-something changes on the card and causes a problem? Or like the 
-ioremap() it might be something xen is more sensitive to than a 
-bare-metal machine.
-
-Do I need to send my patch direct to Harmut Hackmann, or will he pick it 
-up from the list if he likes it?
-
-
+Ales
 
 _______________________________________________
 linux-dvb mailing list
