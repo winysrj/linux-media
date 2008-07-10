@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6G7KWbZ009479
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 03:20:32 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6G7JdGt025789
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 03:19:39 -0400
-Date: Wed, 16 Jul 2008 09:19:44 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-In-Reply-To: <20080716064336.GK6739@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.0807160845450.11471@axis700.grange>
-References: <20080715135618.GE6739@pengutronix.de>
-	<20080715140141.GG6739@pengutronix.de>
-	<Pine.LNX.4.64.0807152224040.6361@axis700.grange>
-	<20080716054922.GI6739@pengutronix.de>
-	<20080716064336.GK6739@pengutronix.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ADQc2H018434
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 09:26:38 -0400
+Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.179])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ADQSNv002023
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 09:26:28 -0400
+Received: by py-out-1112.google.com with SMTP id a29so1783932pyi.0
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 06:26:28 -0700 (PDT)
+Message-ID: <d9def9db0807100626q22a679a3k5da17300e917c067@mail.gmail.com>
+Date: Thu, 10 Jul 2008 15:26:27 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Jean Delvare" <khali@linux-fr.org>
+In-Reply-To: <20080710151215.1b86a0e4@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: PATCH: soc-camera: use flag for colour / bw camera instead of
- module parameter
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <20080710132337.11ca4706@hyperion.delvare>
+	<d9def9db0807100533u4a765210k8cce4b5ce5bec703@mail.gmail.com>
+	<20080710151215.1b86a0e4@hyperion.delvare>
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] tvaudio: Stop I2C driver ID abuse
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,104 +33,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 16 Jul 2008, Sascha Hauer wrote:
+Hi,
 
-> On Tue, Jul 15, 2008 at 10:43:53PM +0200, Guennadi Liakhovetski wrote:
-> > On Tue, 15 Jul 2008, Sascha Hauer wrote:
-> > 
-> > > Use a flag in struct soc_camera_link for differentiation between
-> > > a black/white and a colour camera rather than a module parameter.
-> > > This allows for having colour and black/white cameras in the same
-> > > system.
-> > > Note that this one breaks the phytec pcm027 pxa board as it makes it
-> > > impossible to switch between cameras on the command line. I will send
-> > > an updated version of this patch once I know this patch is acceptable
-> > > this way.
-> > 
-> > Yes, we did discuss this on IRC and I did agree to use a platform-provided 
-> > parameter to specify camera properties like colour / monochrome, but now 
-> > as I see it, I think, it might not be a very good idea. Having it as a 
-> > parameter you can just reload the driver with a different parameter to 
-> > test your colour camera in b/w mode. With this change you would need a new 
-> > kernel.
-> 
-> I think it's a more common case to specify the correct camera on a
-> per-board basis than to test a colour camera in b/w mode. Only
-> developers want to do this and they know how to start a new kernel,
-> right? ;)
+On Thu, Jul 10, 2008 at 3:12 PM, Jean Delvare <khali@linux-fr.org> wrote:
+> Hi Markus,
+>
+> On Thu, 10 Jul 2008 14:33:29 +0200, Markus Rechberger wrote:
+>> On Thu, Jul 10, 2008 at 1:23 PM, Jean Delvare <khali@linux-fr.org> wrote:
+>> > The tvaudio driver is using "official" I2C device IDs for internal
+>> > purpose. There must be some historical reason behind this but anyway,
+>> > it shouldn't do that. As the stored values are never used, the easiest
+>> > way to fix the problem is simply to remove them altogether.
+>> >
+>> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+>>
+>> how would you identify what chip driver is attached in the
+>> attach_inform callback, using string compare to the name?
+>> using the ID was more comfortable actually, but I understand your
+>> point for removing it too.
+>
+> attach_inform doesn't know anything about struct CHIPDESC as defined by
+> the tvaudio driver, in which the IDs in question were stored. The
+> driver ID which attach_inform knows and cares about is
+> client->driver-id, which is properly set to I2C_DRIVERID_TVAUDIO by the
+> tvaudio driver. My patch doesn't change that.
+>
 
-Let me think: ker-nel... Yeah, I think, I've heard something about it 
-already...
+ah thanks, I mistaked that one.
 
-But I can also imagine cases when end-users would benefit from this module 
-parameter: think about a company producing two cameras - one with colour 
-and one with bw sensor. With the module parameter they only have to 
-load drivers / the kernel differently, with platform data they have to 
-maintain two kernel versions. Unless they are smart enough and put those 
-cameras on different i2c addresses. But, ok, the current trend seems 
-indeed to be to specify such information in the platform data, even though 
-not only ISA drivers use module-parameters for this. Anyway, I'm flexible 
-about this:-) Let's do it.
+Markus
 
-> Another thing that came to my mind is that this particular camera has an
-> internal PLL for pixel clock generation. It can use the pxa pixel clock
-> directly or the one from the PLL.
-
-Many CMOS cameras have this.
-
-> At the moment there is no way to
-> specify which clock to use, so we might even want to add a pointer to a
-> camera specific struct to soc_camera_link. This would be the right place
-> to put colour/bw flags aswell.
-
-There is one, and it is used during parameter negotiation. See 
-SOCAM_MASTER and its use in mt9v022.c and pxa_camera.c, mt9m001 can only 
-be a master (use internal clock), so, it is not including SOCAM_SLAVE in 
-its supported mode flags. Isn't this enough? Do you really have to enforce 
-the use of one or another clock, or is it enough to let the two drivers 
-choose a supported configuration?
-
-> Speaking of which, what's currently in pxa_camera_platform_data is
-> camera specific and not board specific (think of two cameras connected
-> to the pxa requiring two different clocks).
-
-Yes, someone already suggested to make .power and .reset per camera: 
-http://marc.info/?t=120974473900009&r=1&w=2 and 
-http://marc.info/?t=121007886200003&r=1&w=2, but this work is not finished 
-yet - he wanted to resubmit his patches when his camera driver is ready.
-
-> So soc_camera_link should
-> look something like:
-> 
-> struct soc_camera_link {
-> 	/* Camera bus id, used to match a camera and a bus */
-> 	int bus_id;
-> 	/* host specific data, i.e. struct pxa_camera_platform_data */
-> 	void *host_info;
-> 	/* camera specific info, i.e. struct mt9v022_data */
-> 	void *camera_info;
-> 	/* (de-)activate this camera. Can be left empty if only one camera is
-> 	 * connected to this bus. */
-> 	void (*activate)(struct soc_camera_link *, int);
-> };
-> 
-> I'm lucky, at the moment I have two identical cameras connected to my board
-> (besides the colour/bw thing)
-
-Well, soc_camera_link is indeed per-sensor and we can and shall use it to 
-specify camera-specific platform parameters. So, I'm fine with moving 
-.power and .reset into it. Then you won't need your .activate any more, 
-right? As for the rest - I don't like too many void pointers... This 
-struct is for the platform to configure camera drivers. So, it should 
-contain _data_, not pointers to camera- and host-specific structs. If we 
-need to specify a colour / monochrome sensor, let's do this directly. But 
-without void pointers, please.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+> Note that my patch is really only removing dead code. These IDs were
+> simply never used.
+>
+> Thanks,
+> --
+> Jean Delvare
+>
 
 --
 video4linux-list mailing list
