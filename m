@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64HXpit028180
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 13:33:51 -0400
-Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64HXbMf019305
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 13:33:38 -0400
-Message-ID: <486E5F68.80201@free.fr>
-Date: Fri, 04 Jul 2008 19:35:36 +0200
-From: Thierry Merle <thierry.merle@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ACXeVx008845
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 08:33:40 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.226])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ACXUSP029621
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 08:33:30 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so4080733rvb.51
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 05:33:29 -0700 (PDT)
+Message-ID: <d9def9db0807100533u4a765210k8cce4b5ce5bec703@mail.gmail.com>
+Date: Thu, 10 Jul 2008 14:33:29 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Jean Delvare" <khali@linux-fr.org>
+In-Reply-To: <20080710132337.11ca4706@hyperion.delvare>
 MIME-Version: 1.0
-To: Gregor Jasny <jasny@vidsoft.de>
-References: <20080704144036.GJ18818@vidsoft.de>
-In-Reply-To: <20080704144036.GJ18818@vidsoft.de>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, v4l2-library@linuxtv.org
-Subject: Re: PATCH: libv4l-fix-idct-inline-assembly.diff
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <20080710132337.11ca4706@hyperion.delvare>
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [v4l-dvb-maintainer] [PATCH] tvaudio: Stop I2C driver ID abuse
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,36 +31,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Gregor Jasny a écrit :
-> Hi,
->
-> This patch fixes the input constraint for the sar instruction. It allows only an
-> immediate or cl as shift width.
->
-> Thanks,
-> Gregor
->
-> Signed-off-by: Gregor Jasny <jasny@vidsoft.de>
->
-> diff -r 61deeffda900 v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c
-> --- a/v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c	Fri Jul 04 07:21:55 2008 +0200
-> +++ b/v4l2-apps/lib/libv4l/libv4lconvert/jidctflt.c	Fri Jul 04 16:24:33 2008 +0200
-> @@ -92,7 +92,7 @@ static inline unsigned char descale_and_
->        "\tcmpl %4,%1\n"
->        "\tcmovg %4,%1\n"
->        : "=r"(x)
-> -      : "0"(x), "Ir"(shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
-> +      : "0"(x), "Ic"((unsigned char)shift), "ir"(1UL<<(shift-1)), "r" (0xff), "r" (0)
->        );
->    return x;
->  }
->
->   
-Applied on http://www.linuxtv.org/hg/~tmerle/v4l2-library
+Hi Jean,
 
-Thanks,
+On Thu, Jul 10, 2008 at 1:23 PM, Jean Delvare <khali@linux-fr.org> wrote:
+> The tvaudio driver is using "official" I2C device IDs for internal
+> purpose. There must be some historical reason behind this but anyway,
+> it shouldn't do that. As the stored values are never used, the easiest
+> way to fix the problem is simply to remove them altogether.
+>
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+> This patch was already sent on:
+>  * 2008-05-07
+>
 
-Thierry
+how would you identify what chip driver is attached in the
+attach_inform callback, using string compare to the name?
+using the ID was more comfortable actually, but I understand your
+point for removing it too.
+
+thanks,
+Markus
 
 --
 video4linux-list mailing list
