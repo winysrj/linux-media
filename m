@@ -1,27 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HGGmgP028472
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 12:16:48 -0400
-Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HGGYuJ007182
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 12:16:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: mchehab@infradead.org
-Date: Thu, 17 Jul 2008 18:16:22 +0200
-References: <3dbf42455956d17b8aa6.1214002733@localhost>
-	<Pine.LNX.4.58.0806240032081.535@shell2.speakeasy.net>
-	<20080624225951.GF8831@plankton.ifup.org>
-In-Reply-To: <20080624225951.GF8831@plankton.ifup.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ANFB1D002517
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 19:15:11 -0400
+Received: from n28.bullet.mail.ukl.yahoo.com (n28.bullet.mail.ukl.yahoo.com
+	[87.248.110.145])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6ANEvMd031344
+	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 19:14:58 -0400
+Date: Thu, 10 Jul 2008 23:14:51 +0000 (GMT)
+From: Malsoaz James <jmalsoaz@yahoo.fr>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807171816.22303.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
-	Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [v4l-dvb-maintainer] [PATCH] [PATCH] v4l: Introduce "index"
-	attribute for?persistent video4linux device nodes
+Message-ID: <122708.39761.qm@web28403.mail.ukl.yahoo.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Subject: Re : Own software to use a camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,37 +25,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wednesday 25 June 2008 00:59:51 Brandon Philips wrote:
-> On 00:34 Tue 24 Jun 2008, Trent Piepho wrote:
-> > On Mon, 23 Jun 2008, Brandon Philips wrote:
-> > > +	for (i = 0; i < 32; i++) {
-> > > +		if (used & (1 << i))
-> > > +			continue;
-> > > +		return i;
-> > > +	}
-> >
-> > 	i = ffz(used);
-> > 	return i >= 32 ? -ENFILE : i;
->
-> Err. Right :D  Tested and pushed.
->
-> Mauro-
->
-> Updated http://ifup.org/hg/v4l-dvb to have Trent's improvement.
->
-> Cheers,
->
-> 	Brandon
-
-
-Hi Mauro,
-
-I think you missed this pull request from Brandon. Can you merge this?
-
-Thanks,
-
-	Hans
-
+Thank you for your help, I will have a look at that.=0A=0AHave you any docu=
+ment about the function present in this library ? I mean information on the=
+ arguments used in each function, list of the functions and their goal, ...=
+=0A=0AFor example, for v4l2_open, there is a char * =3D /dev/video0 and the=
+n a flag certainly O_RDWR, ...=0A=0A=0A----- Message d'origine ----=0ADe : =
+Thierry Merle <thierry.merle@free.fr>=0A=C3=80 : David Ellingsworth <david@=
+identd.dyndns.org>=0ACc : Malsoaz James <jmalsoaz@yahoo.fr>; video4linux-li=
+st@redhat.com=0AEnvoy=C3=A9 le : Jeudi, 10 Juillet 2008, 12h08mn 14s=0AObje=
+t : Re: Own software to use a camera=0A=0ADavid Ellingsworth a =C3=A9crit :=
+=0A> James,=0A>=0A> I suspect you may benefit from using the new v4l-librar=
+y. It should=0A> help simplify the conversion of whatever format the camera=
+ supports=0A> into whichever format your application desires. The current=
+=0A> development branch of the library is located here:=0A> http://linuxtv.=
+org/hg/~tmerle/v4l2-library/=0A>=0A> Regards,=0A>=0A> David Ellingsworth=0A=
+>  =0AAnd now this library is integrated in the current v4l-dvb branch=0Aht=
+tp://linuxtv.org/hg/v4l-dvb=0AYou will find the lib in v4l2-apps/lib/libv4l=
+..=0AAll this work was made by Hans de Goede.=0A=0ACheers,=0AThierry=0A=0A=
+=0A=0A      _______________________________________________________________=
+______________ =0AEnvoyez avec Yahoo! Mail. Une boite mail plus intelligent=
+e http://mail.yahoo.fr
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
