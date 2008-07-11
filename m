@@ -1,27 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6EFPqWS009248
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 11:25:52 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.168])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6EFPckK015143
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 11:25:39 -0400
-Received: by ug-out-1314.google.com with SMTP id s2so261686uge.6
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:25:38 -0700 (PDT)
-Date: Mon, 14 Jul 2008 17:25:50 +0200
-From: Domenico Andreoli <cavokz@gmail.com>
-To: Michael Buesch <mb@bu3sch.de>
-Message-ID: <20080714152550.GA32470@ska.dandreoli.com>
-References: <200807101914.10174.mb@bu3sch.de>
-	<200807132259.54360.david-b@pacbell.net>
-	<20080714072733.GA29908@ska.dandreoli.com>
-	<200807141558.29582.mb@bu3sch.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6BLXtop022604
+	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 17:33:55 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6BLXgCJ014979
+	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 17:33:43 -0400
+Date: Fri, 11 Jul 2008 23:33:36 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+In-Reply-To: <48737AA3.3080902@teltonika.lt>
+Message-ID: <Pine.LNX.4.64.0807112307570.26439@axis700.grange>
+References: <20080705025335.27137.98068.sendpatchset@rx1.opensource.se>
+	<20080705025405.27137.16206.sendpatchset@rx1.opensource.se>
+	<48737AA3.3080902@teltonika.lt>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200807141558.29582.mb@bu3sch.de>
-Cc: David Brownell <david-b@pacbell.net>, video4linux-list@redhat.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3] Add bt8xxgpio driver
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 03/04] videobuf: Add physically contiguous queue code V2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,45 +28,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Jul 14, 2008 at 03:58:29PM +0200, Michael Buesch wrote:
-> On Monday 14 July 2008 09:27:33 Domenico Andreoli wrote:
-> > +static u32 nr_to_mask(struct bttv_gpiolib_device *dev, unsigned nr)
-> > +{
-> > +	u32 io_mask = dev->in_mask | dev->out_mask;
-> > +	int shift = 0;
+On Tue, 8 Jul 2008, Paulius Zaleckas wrote:
+
+> Magnus Damm wrote:
+> > This is V2 of the physically contiguous videobuf queues patch.
+> > Useful for hardware such as the SuperH Mobile CEU which doesn't
+> > support scatter gatter bus mastering.
+
+[snip]
+
+> > +	/* Try to remap memory */
 > > +
-> > +	while(io_mask && nr) {
-> > +		nr -= io_mask & 1;
-> > +		io_mask >>= 1;
-> > +		shift++;
-> > +	}
+> > +	size = vma->vm_end - vma->vm_start;
+> > +	size = (size < mem->size) ? size : mem->size;
 > > +
-> > +	return 1 << shift;
-> > +}
+> > +	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+> > +	retval = remap_pfn_range(vma, vma->vm_start,
+> > +				 __pa(mem->vaddr) >> PAGE_SHIFT,
 > 
-> This loop is really really weird.
-> What the hell are you doing here?
-> You ususally convert GPIO numbers to masks by doing (1 << nr), only.
+> __pa(mem->vaddr) doesn't work on ARM architecture... It is a long story
+> about handling memory allocations and mapping for ARM (there is
+> dma_mmap_coherent to deal with this), but there is a workaround:
+> 
+> mem->dma_handle >> PAGE_SHIFT,
+> 
+> It is safe to do it this way and also saves some CPU instructions :)
 
-gpiolib does not allow holes in the number space of gpios. once you
-set chip.ngpio, you get a contiguous slice.
+Paulius, even if the story is so long, could you perhaps point us to some 
+ML-threads or elaborate a bit? I did find one example in 
+drivers/media/video/atmel-isi.c (not in mainline), just would be 
+interesting to find out more.
 
-should the board have some of its gpio connected to something private,
-they are not to be exported to gpiolib and to the user.
+Magnus, have you investigated this further?
 
-indeed once, as a user, I know to have a board which has n inputs and
-m output and z in/out, that's all, I do not want to know how many GPIOs
-actually are on the board and how are connected.
-
-nr_to_mask() hides those holes to the user, it maps a pin iff it is
-available for gpiolib fiddling.
-
-thanks,
-Domenico
-
------[ Domenico Andreoli, aka cavok
- --[ http://www.dandreoli.com/gpgkey.asc
-   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
