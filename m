@@ -1,22 +1,33 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
+Received: from mo-p00-ob.rzone.de ([81.169.146.162])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KKsHE-0005oO-Uq
-	for linux-dvb@linuxtv.org; Mon, 21 Jul 2008 12:05:57 +0200
-Date: Mon, 21 Jul 2008 14:13:00 +0400
-From: Goga777 <goga777@bk.ru>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080721141300.2ff0c582@bk.ru>
-In-Reply-To: <1216609233.2909.27.camel@pc10.localdom.local>
-References: <200807170023.57637.ajurik@quick.cz>
-	<3efb10970807170320w39377ae9p9db0081dda9c3f5f@mail.gmail.com>
-	<487F3365.4070306@chaosmedia.org>
-	<3efb10970807171311t46d075cdudef4b34cc069c265@mail.gmail.com>
-	<20080718112256.6da5bdf9@bk.ru> <1216382683l.8087l.2l@manu-laptop>
-	<1216609233.2909.27.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Re : szap - p - r options (was - T S2-3200 driver)
+	(envelope-from <postfix@au-79.de>) id 1KHKNI-00058Z-1x
+	for linux-dvb@linuxtv.org; Fri, 11 Jul 2008 17:17:33 +0200
+Received: from agathe (dslb-084-057-037-243.pools.arcor-ip.net [84.57.37.243])
+	by post.webmailer.de (klopstock mo27) (RZmta 16.47)
+	with ESMTP id k023f5k6BF9v3x for <linux-dvb@linuxtv.org>;
+	Fri, 11 Jul 2008 17:17:28 +0200 (MEST)
+	(envelope-from: <postfix@au-79.de>)
+Received: from localhost (agathe [127.0.0.1])
+	by agathe (Postfix) with ESMTP id D25891BBB8
+	for <linux-dvb@linuxtv.org>; Fri, 11 Jul 2008 17:17:27 +0200 (CEST)
+Received: from agathe ([127.0.0.1])
+	by localhost (agathe.au-79.intra [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Cwn4U8TCWQSX for <linux-dvb@linuxtv.org>;
+	Fri, 11 Jul 2008 17:17:27 +0200 (CEST)
+Received: from [192.168.23.45] (unknown [192.168.23.45])
+	by agathe (Postfix) with ESMTP id 766481BB76
+	for <linux-dvb@linuxtv.org>; Fri, 11 Jul 2008 17:17:27 +0200 (CEST)
+Message-ID: <4877798E.2030409@au-79.de>
+Date: Fri, 11 Jul 2008 17:17:34 +0200
+From: postfix@au-79.de
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+References: <4841663B.5080105@au-79.de>
+In-Reply-To: <4841663B.5080105@au-79.de>
+Subject: Re: [linux-dvb] Problems with WinTV Nova T by Hauppauge USB-stick
+ (id:	2040:7070)
+Reply-To: postfix@au-79.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,43 +41,213 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > > > > with szap2 you also can tune to FTA channels using the option "-
-> > > p"
-> > > and read
-> > > > > the stream from your frontend dvr (/dev/dvb/adapter0/dvr0) with
-> > > mplayer for
-> > > > > example..
-> > > 
-> > > 
-> > > btw, could someone explain me what's difference between szap - r and
-> > > szap - p options ?
-> > > 
-> > > when should I use -r options. when - p or both -r -p ???
-> > > 
-> > >   -r        : set up /dev/dvb/adapterX/dvr0 for TS recording
-> > >   -p        : add pat and pmt to TS recording (implies -r)
-> > 
-> > I would guess that -r will just enable the dvr0 output so that you can 
-> > record it by dumping it to a file, whereas -p will do the same plus pat 
-> > and pmt which means that the stream will contain the necessary tables 
-> > to select one of the channels (this pis probably needed by the app that 
-> > will record/play the stream).
-> > IOn brief try both and see whihc one works ;-)
-> > HTH
-> > Bye
-> > Manu
-> > 
-> > 
-> 
+Hi,
+
+a short summary after a few weeks testing:
+
+The internal EEprom seems to be broken. I returend the stick to the shop 
+and got my money back.
+
+
+Best regards
+
+Robert
+
+postfix@au-79.de schrieb:
 > Hi,
 > 
-> last time I tried -p did not work at all.
-
-how did you recognize it ? what should be happen with - p option ?
-did option -r work during you
-
-Goga
-
+> a view days ago I bought a dvb-USB stick from Hauppauge (WinTV Nova T). 
+> I want to use this stick with linux, but I sill have some trubble.
+> After a google-search it is clear, that the correct driver is dib0700, 
+> and the firmware to use is  dvb-usb-dib0700-1.10.fw (md5: 
+> 5878ebfcba2d8deb90b9120eb89b02da)
+> Kernel is 2.6.25
+> 
+> lsusb:
+> 2040:7070 Hauppauge
+> 
+> If I want to tune to a channel (e.g. with kaffine) the dmesg-log is 
+> overcrowed with "DiB0070 I2C write failed" and there is no sucessfull 
+> tuning. The output of kaffeine while searching a channel is:
+> 
+> Using DVB device 0:0 "DiBcom 7000PC"
+> tuning DVB-T to 402000000 Hz
+> inv:2 bw:0 fecH:9 fecL:9 mod:6 tm:2 gi:4 hier:4
+> . LOCKED.
+> Transponders: 1/63
+> 
+> Invalid section length or timeout: pid=17
+> 
+> Frontend closed
+> Using DVB device 0:0 "DiBcom 7000PC"
+> tuning DVB-T to 410000000 Hz
+> inv:2 bw:0 fecH:9 fecL:9 mod:6 tm:2 gi:4 hier:4
+> . LOCKED.
+> Transponders: 2/63
+> 
+> Invalid section length or timeout: pid=17
+> .... <and so on>
+> 
+> The output of dmesg while attaching the stick and searching with 
+> kaffeine and debug enabled is:
+> 
+> usb 1-6: new high speed USB device using ehci_hcd and address 6
+> usb 1-6: configuration #1 chosen from 1 choice
+> dvb-usb: found a 'Hauppauge Nova-T Stick' in cold state, will try to 
+> load a firmware
+> dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
+> dib0700: firmware started successfully.
+> dvb-usb: found a 'Hauppauge Nova-T Stick' in warm state.
+> i2c-adapter i2c-0: SMBus Quick command not supported, can't probe for chips
+> dvb-usb: will pass the complete MPEG2 transport stream to the software 
+> demuxer.
+> DVB: registering new adapter (Hauppauge Nova-T Stick)
+> i2c-adapter i2c-1: SMBus Quick command not supported, can't probe for chips
+> DVB: registering frontend 0 (DiBcom 7000PC)...
+> DiB0070: Revision: 3
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070: CTRL_LO5: 0x16a4
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070 I2C read failed
+> DiB0070 I2C write failed
+> DiB0070: WBDStart = 0 (Vargen) - FF = 0
+> DiB0070: successfully identified
+> input: IR-receiver inside an USB DVB receiver as /class/input/input11
+> dvb-usb: schedule remote query interval to 150 msecs.
+> dvb-usb: Hauppauge Nova-T Stick successfully initialized and connected.
+> usb 1-6: New USB device found, idVendor=2040, idProduct=7070
+> usb 1-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> usb 1-6: Product: Nova-T Stick
+> usb 1-6: Manufacturer: Hauppauge
+> usb 1-6: SerialNumber: 4030980792
+> DiB0070: Tuning for Band: 2 (402000 kHz)
+> DiB0070 I2C write failed
+> DiB0070 I2C read failed
+> DiB0070 I2C write failed
+> DiB0070: HFDIV code: 5
+> DiB0070: VCO = 1
+> DiB0070: VCOF in kHz: 4824000 ((6*402000) << 1))
+> DiB0070: REFDIV: 1, FREF: 12000
+> DiB0070: FBDIV: 67, Rest: 0
+> DiB0070: Num: 0, Den: 1, SD: 0
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070 I2C write failed
+> DiB0070 I2C read failed
+> DiB0070: CAPTRIM=64; ADC = 0 (ADC) & 0mV
+> DiB0070: CAPTRIM=64 is closer to target (400/3000)
+> DiB0070 I2C write failed
+> DiB0070 I2C read failed
+> DiB0070: CAPTRIM=96; ADC = 0 (ADC) & 0mV
+> <and so on...>
+> 
+> Here some more information about the stick:
+> 
+> lsusb -vvvv:
+> 
+> Bus 001 Device 006: ID 2040:7070 Hauppauge
+> Device Descriptor:
+>    bLength                18
+>    bDescriptorType         1
+>    bcdUSB               2.00
+>    bDeviceClass            0 (Defined at Interface level)
+>    bDeviceSubClass         0
+>    bDeviceProtocol         0
+>    bMaxPacketSize0        64
+>    idVendor           0x2040 Hauppauge
+>    idProduct          0x7070
+>    bcdDevice            1.00
+>    iManufacturer           1
+>    iProduct                2
+>    iSerial                 3
+>    bNumConfigurations      1
+>    Configuration Descriptor:
+>      bLength                 9
+>      bDescriptorType         2
+>      wTotalLength           46
+>      bNumInterfaces          1
+>      bConfigurationValue     1
+>      iConfiguration          0
+>      bmAttributes         0xa0
+>        (Bus Powered)
+>        Remote Wakeup
+>      MaxPower              500mA
+>      Interface Descriptor:
+>        bLength                 9
+>        bDescriptorType         4
+>        bInterfaceNumber        0
+>        bAlternateSetting       0
+>        bNumEndpoints           4
+>        bInterfaceClass       255 Vendor Specific Class
+>        bInterfaceSubClass      0
+>        bInterfaceProtocol      0
+>        iInterface              0
+>        Endpoint Descriptor:
+>          bLength                 7
+>          bDescriptorType         5
+>          bEndpointAddress     0x01  EP 1 OUT
+>          bmAttributes            2
+>            Transfer Type            Bulk
+>            Synch Type               None
+>            Usage Type               Data
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>          bInterval               1
+>        Endpoint Descriptor:
+>          bLength                 7
+>          bDescriptorType         5
+>          bEndpointAddress     0x81  EP 1 IN
+>          bmAttributes            2
+>            Transfer Type            Bulk
+>            Synch Type               None
+>            Usage Type               Data
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>          bInterval               1
+>        Endpoint Descriptor:
+>          bLength                 7
+>          bDescriptorType         5
+>          bEndpointAddress     0x82  EP 2 IN
+>          bmAttributes            2
+>            Transfer Type            Bulk
+>            Synch Type               None
+>            Usage Type               Data
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>          bInterval               1
+>        Endpoint Descriptor:
+>          bLength                 7
+>          bDescriptorType         5
+>          bEndpointAddress     0x83  EP 3 IN
+>          bmAttributes            2
+>            Transfer Type            Bulk
+>            Synch Type               None
+>            Usage Type               Data
+>          wMaxPacketSize     0x0200  1x 512 bytes
+>          bInterval               1
+> can't get device qualifier: Operation not permitted
+> can't get debug descriptor: Operation not permitted
+> cannot read device status, Operation not permitted (1)
+> 
+> 
+> Thanks for your assistance. If you need any further informations or 
+> tests, please let me know.
+> 
+> Best regards
+> 
+> Robert
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 _______________________________________________
 linux-dvb mailing list
