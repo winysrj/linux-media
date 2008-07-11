@@ -1,16 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6QN7gZY009977
-	for <video4linux-list@redhat.com>; Sat, 26 Jul 2008 19:07:42 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6B7jcu1003323
+	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 03:45:38 -0400
 Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6QN7VYl025281
-	for <video4linux-list@redhat.com>; Sat, 26 Jul 2008 19:07:31 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: video4linux-list@redhat.com
-Date: Sun, 27 Jul 2008 01:07:27 +0200
-Message-Id: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
-Cc: 
-Subject: [PATCH] Fix suspend/resume of pxa_camera driver
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6B7jQGc027397
+	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 03:45:26 -0400
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Andrea <audetto@tiscali.it>
+In-Reply-To: <487678F6.50609@tiscali.it>
+References: <4873CBA9.1090603@tiscali.it> <4873E6D0.8050202@tiscali.it>
+	<487678F6.50609@tiscali.it>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Fri, 11 Jul 2008 09:31:52 +0200
+Message-Id: <1215761512.1679.17.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: A question about VIDIOC_DQBUF
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,47 +28,79 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-PXA suspend switches off DMA core, which looses all context
-of previously assigned descriptors. As pxa_camera driver
-relies on DMA transfers, setup the lost descriptors on
-resume.
+On Thu, 2008-07-10 at 22:02 +0100, Andrea wrote:
+> Is there anybody who could help my with the followin?
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/video/pxa_camera.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+Not sure, but I'll try.
 
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index efb2d19..0cacf16 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -1017,6 +1017,16 @@ static struct soc_camera_host pxa_soc_camera_host = {
- 	.ops			= &pxa_soc_camera_host_ops,
- };
- 
-+static int pxa_camera_resume(struct platform_device *pdev)
-+{
-+	struct pxa_camera_dev *pcdev = platform_get_drvdata(pdev);
-+
-+	DRCMR68 = pcdev->dma_chans[0] | DRCMR_MAPVLD;
-+	DRCMR69 = pcdev->dma_chans[1] | DRCMR_MAPVLD;
-+	DRCMR70 = pcdev->dma_chans[2] | DRCMR_MAPVLD;
-+	return 0;
-+}
-+
- static int pxa_camera_probe(struct platform_device *pdev)
- {
- 	struct pxa_camera_dev *pcdev;
-@@ -1188,6 +1198,7 @@ static struct platform_driver pxa_camera_driver = {
- 	},
- 	.probe		= pxa_camera_probe,
- 	.remove		= __exit_p(pxa_camera_remove),
-+	.resume		= pxa_camera_resume,
- };
- 
- 
+> I would like to know if my interpretation of VIDIOC_DQBUF is correct.
+	[snip]
+> >> - First, an application queues a buffer, then it dequeues the buffer.
+> >> - Then again, a buffer is queued and then dequeued.
+> >> - Dequeuing a buffer blocks is the buffer is not ready (unless device 
+> >> opened with O_NONBLOCK).
+
+DQBUF blocks if _no_ buffer is ready.
+
+> >> - Trying to dequeue a buffer without queuing it first is an error, and 
+> >> the ioctl VIDIOC_DQBUF should return -EINVAL.
+
+You do not set a specific buffer at DQBUF call.
+
+> > - One can only VIDIOC_DQBUF after calling STREAMON. Before it should 
+> > return -EINVAL? Block?
+
+No, STREAMON may be done later by an other application.
+
+> > - After calling STREAMOFF, VIDIOC_DQBUF should return -EINVAL
+
+No, same reason as above.
+
+> >> Now, about pwc: (if the above is correct).
+> >>
+> >> 1) VIDIOC_DQBUF blocks always until a buffer is ready, regardless of 
+> >> O_NONBLOCK.
+
+Oh, bad guy!
+
+> >> 2) VIDIOC_DQBUF does not check if a buffer has been previously queued. 
+> >> Moreover VIDIOC_QBUF is almost a no-op. It has no way to check if a 
+> >> buffer has been queued before VIDIOC_DQBUF.
+
+Seems normal.
+
+> >> If I have understood correctly (very unlikely), this is the reason why 
+> >> mplayer hangs while stopping the stream with pwc:
+> >>
+> >>         while (!ioctl(priv->video_fd, VIDIOC_DQBUF, &buf));
+> >>
+> > 
+> > This code is not needed because STREAMOFF flushes the buffer queue. Does 
+> > it not?
+
+Correct.
+
+> >> This code should eventually return -EINVAL, while pwc just blocks 
+> >> waiting for the next buffer (which never arrives because 
+> >> VIDIOC_STREAMOFF has been called).
+> > 
+> > pwc should return -EINVAL to all ioctl calls after STREAMOFF?
+
+No.
+
+> > Could someone please tell me where I am right and where I am wrong...
+
+Done.
+
+It was a good idea to point me on these problems. I will update the
+gspca driver accordingly.
+
+Thank you.
+
 -- 
-1.5.5.3
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
 
 --
 video4linux-list mailing list
