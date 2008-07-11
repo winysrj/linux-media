@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6DBWmkd009929
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 07:32:48 -0400
-Received: from vsmtp21.tin.it (vsmtp21.tin.it [212.216.176.109])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6DBWZCY022261
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 07:32:36 -0400
-Message-ID: <4879E767.4000103@tiscali.it>
-Date: Sun, 13 Jul 2008 12:30:47 +0100
-From: Andrea <audetto@tiscali.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6BE7S3O002177
+	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 10:07:28 -0400
+Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6BE7F0P007616
+	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 10:07:15 -0400
+Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
+	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KHJHF-0005Y2-K9
+	for video4linux-list@redhat.com; Fri, 11 Jul 2008 16:07:13 +0200
+Message-ID: <487768EA.8080200@hhs.nl>
+Date: Fri, 11 Jul 2008 16:06:34 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: Hans de Goede <j.w.r.degoede@hhs.nl>, video4linux-list@redhat.com
-References: <487908CA.8000304@tiscali.it> <48790D29.1010404@hhs.nl>
-In-Reply-To: <48790D29.1010404@hhs.nl>
+To: Rainer Koenig <Rainer.Koenig@gmx.de>
+References: <200807101924.58802.Rainer.Koenig@gmx.de>
+In-Reply-To: <200807101924.58802.Rainer.Koenig@gmx.de>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: Re: prototype of a USB v4l2 driver? gspca?
+Cc: video4linux-list@redhat.com
+Subject: Re: Flipping the video from webcams
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,51 +30,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hans de Goede wrote:
-> Andrea wrote:
+Rainer Koenig wrote:
+> Hello,
 > 
-> What kind of device, I think that for webcams you;re best using gspca, 
-> (now merged in mecurial), that handles all the usb specific stuff, 
-> buffer management, etc. In general it makes it easy to write a webcam 
-> driver allowing you to focus on the interaction with the cam, rather 
-> then having to worry about looking, usb specifics, buffer management etc.
+> I've got a notebook with an integrated webcam and I got a driver (r5u870) that 
+> works fine with it, except that the camera images I get are all upside down. 
+> It seems that due to a desgin flaw the camera was assembled upside down and 
+> there is no easy way to turn it. So I need to rotate the picture with 
+> software, which practically means "flip X" and "flip Y". I even found some 
+> bits in the driver that look like they address this issue, but turning them 
+> to "1" (instead of 0) doesn't help at all. 
+> 
+> So I wonder: Is there a way to flip the picture that is coming from the camera 
+> by setting some options somewhere so that my IM client gets the picture in 
+> the right orientation?
 > 
 
-I've had a quick look at the structure of gspca, and it seems that any subdriver should just (easier 
-to say that to do) fill one of those structures
+Most of the time there are some bits in the sensor which will flip the 
+pixelscanorder and thus the image, what sensor does your cam use (OV66xx, 
+OV73xx, TAS7XX0, ? )
 
-struct sd_desc {
-/* information */
-	const char *name;	/* sub-driver name */
-/* controls */
-	const struct ctrl *ctrls;
-	int nctrls;
-/* operations */
-	cam_cf_op config;	/* called on probe */
-	cam_op open;		/* called on open */
-	cam_v_op start;		/* called on stream on */
-	cam_v_op stopN;		/* called on stream off - main alt */
-	cam_v_op stop0;		/* called on stream off - alt 0 */
-	cam_v_op close;		/* called on close */
-	cam_pkt_op pkt_scan;
-/* optional operations */
-	cam_v_op dq_callback;	/* called when a frame has been dequeued */
-	cam_jpg_op get_jcomp;
-	cam_jpg_op set_jcomp;
-	cam_qmnu_op querymenu;
-};
+Regards,
 
-1) providing ctrls (+ functions to handle settings)
-2) functions to open/stream/close etc...
-
-It does not seem too bad.
-
-The a natural question that comes to me:
-
-Shouldn't many more USB drivers be implemented as subdrivers of gspca?
-But I guess there is much more I don't know under the apparent easy interface.
-
-Andrea
+Hans
 
 --
 video4linux-list mailing list
