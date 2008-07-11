@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from dd6832.kasserver.com ([85.13.131.133])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KLLY2-000107-Fi
-	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 19:21:17 +0200
-Message-ID: <48861704.7080009@iki.fi>
-Date: Tue, 22 Jul 2008 20:21:08 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <xxx@muad-dib.net>) id 1KHKes-0006QQ-8m
+	for linux-dvb@linuxtv.org; Fri, 11 Jul 2008 17:35:44 +0200
+Received: from [192.168.0.90] (dslb-092-072-015-081.pools.arcor-ip.net
+	[92.72.15.81])
+	by dd6832.kasserver.com (Postfix) with ESMTP id A7108C875A
+	for <linux-dvb@linuxtv.org>; Fri, 11 Jul 2008 17:35:38 +0200 (CEST)
+Message-ID: <48777DC7.1020904@muad-dib.net>
+Date: Fri, 11 Jul 2008 17:35:35 +0200
+From: "xxx@muad-dib.net" <xxx@muad-dib.net>
 MIME-Version: 1.0
-To: Thomas Ickes <thomas@ickes-home.de>
-References: <0ML2xA-1KLLH52n5h-0003V7@mrelayeu.kundenserver.de>
-In-Reply-To: <0ML2xA-1KLLH52n5h-0003V7@mrelayeu.kundenserver.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with MSI Digivox Duo DVB-T USB, Ubuntu	8.04
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Problem with Terratec Cinergy T USB XXS Remote Control
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,62 +20,33 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-VGhvbWFzIElja2VzIHdyb3RlOgo+IEhlbGxvLAo+IAo+IGlzbid0IHRoZXJlIGFueW9uZSB3aG8g
-aGFzIHNvbWUgaGludHMgZm9yIG1lIHJlZ2FyZGluZyB0aGUgUElEIEZpbHRlciBQcm9ibGVtcz8K
-CkZvciBtZSBpdCBsb29rZWQgbGlrZSBhZjkwMTVfcGlkX2ZpbHRlcl9jdHJsKCkgd2FzIGZhaWxp
-bmcgYW5kIHRoYXRzIHdoeSAKZXJyb3JzLiBJIGRvbid0IGhhdmUgaWRlYSB3aHkgaXQgaXMgZmFp
-bGluZy4gQnV0IEkgZGlkIHNwZWNpYWwgYnVpbGQgZm9yIAp5b3UgdG8gdGVzdCBhZ2Fpbi4gTm93
-IHdob2xlIFBJRC1maWx0ZXIgaXMgZGlzYWJsZWQuCmh0dHA6Ly9saW51eHR2Lm9yZy9oZy9+YW50
-dGlwL2FmOTAxNV9kaXNhYmxlX3BpZF9maWx0ZXIvCgpQSUQtZmlsdGVyaW5nIGlzIG5lZWRlZCBp
-ZiB3ZSBoYXZlIG9ubHkgVVNCMS4xIHBvcnRzLiBQSUQtZmlsdGVyIHJlbW92ZXMgCiAgdW5uZWNl
-c3NhcnkgY2hhbm5lbHMgZnJvbSB0cmFuc3BvcnQgc3RyZWFtIHRoYXQgaXQgY2FuIGZpdCB0byBV
-U0IxLjEgCnNwZWVkLiBVU0IyLjAgZG9lcyBub3QgbmVlZCBQSUQtZmlsdGVyaW5nIGJlY2F1c2Ug
-aXQgaXMgY2FwYWJsZSBvZiAKdHJhbnNmZXIgd2hvbGUgc3RyZWFtIChNVVgpLgoKQW50dGkKPiAK
-PiBUaGFua3MKPiBUaG9tYXMKPiAKPiAtLS0tLVVyc3Byw7xuZ2xpY2hlIE5hY2hyaWNodC0tLS0t
-Cj4gVm9uOiBsaW51eC1kdmItYm91bmNlc0BsaW51eHR2Lm9yZyBbbWFpbHRvOmxpbnV4LWR2Yi1i
-b3VuY2VzQGxpbnV4dHYub3JnXSBJbSBBdWZ0cmFnIHZvbiB0b20KPiBHZXNlbmRldDogU29ubnRh
-ZywgMjAuIEp1bGkgMjAwOCAxNToxOQo+IEFuOiBBbnR0aSBQYWxvc2FhcmkKPiBDYzogbGludXgt
-ZHZiQGxpbnV4dHYub3JnCj4gQmV0cmVmZjogUmU6IFtsaW51eC1kdmJdIFByb2JsZW1zIHdpdGgg
-TVNJIERpZ2l2b3ggRHVvIERWQi1UIFVTQiwgVWJ1bnR1IDguMDQKPiAKPiBIZWxsbyBBbnR0aSwK
-PiAKPiBiYXNlZCBvbiB0aGUgdGVjaG4uIHNwZWMgb2YgbXkgbm90ZWJvb2sgKGNvbXBhcSBldm8g
-bjgwMHcpIHRoZXJlIGFyZSB1c2IKPiAyLjAgcG9ydHMuLi4KPiBJJ20gbG9zdCBpbiBzcGFjZSBy
-ZWdhcmRpbmcgdGhlIHBpZCBmaWx0ZXJzLCBJIGV2ZW4gZG9uJ3Qga25vdyB3aGF0IHRoZQo+IHBp
-ZCBmaWx0ZXIgaXMgOi0pLiBTb3JyeSwgYnV0IEknbSBub3QgdXNpbmcgbGludXggZm9yIHNvIGxv
-bmcuLi4KPiAKPiBNYXliZSBzb21lb25lIGVsc2UgaGF2ZSBhbiBpZGVhIHdoeSB0aGlzIGlzIG5v
-dCB3b3JraW5nLgo+IAo+IFRob21hcyAKPiAKPiBBbSBTb25udGFnLCBkZW4gMjAuMDcuMjAwOCwg
-MTU6NTYgKzAzMDAgc2NocmllYiBBbnR0aSBQYWxvc2Fhcmk6Cj4+IGhlbGxvIHRvbQo+Pgo+PiB0
-b20gd3JvdGU6Cj4+PiByZXN1bHRzIG9mIGxzbW9kIHwgZ3JlcCBkdmI6Cj4+Pgo+Pj4gZHZiX3Vz
-Yl9hZjkwMTUgICAgICAgICAyNDMzMiAgMCAKPj4+IGR2Yl91c2IgICAgICAgICAgICAgICAgMjI5
-MjQgIDEgZHZiX3VzYl9hZjkwMTUKPj4+IGR2Yl9jb3JlICAgICAgICAgICAgICAgODA2MzYgIDEg
-ZHZiX3VzYgo+Pj4gaTJjX2NvcmUgICAgICAgICAgICAgICAyNDgzMiAgNCBteGw1MDA1cyxhZjkw
-MTMsZHZiX3VzYl9hZjkwMTUsZHZiX3VzYgo+Pj4gdXNiY29yZSAgICAgICAgICAgICAgIDE0NjAy
-OAo+Pj4gNiDvu79kdmJfdXNiX2FmOTAxNSxkdmJfdXNiLHVzYmhpZCxlaGNpX2hjZCxvaGNpX2hj
-ZAo+Pj4KPj4+IFRob21hcwo+Pj4KPj4+Cj4+PiBBbSBTYW1zdGFnLCBkZW4gMTkuMDcuMjAwOCwg
-MTA6NTggKzAyMDAgc2NocmllYiB0b206Cj4+Pj4g77u/SGkgQW50dGksCj4+Pj4gSSBoYXZlIGlu
-c3RhbGxlZCB0aGUgZHJpdmVyLiBBZnRlciByZWJvb3QgZG1lc2cgZ2l2ZXMgdGhlIGZvbGxvd2lu
-Zy4KPj4+PiBbIDE1MzIuNTAyMzI4XSBkdmItdXNiOiBjb3VsZCBub3QgaGFuZGxlIHBpZF9wYXJz
-ZXIKPj4gSSBkb24ndCBrbm93IHdoYXRzIHdyb25nIGJ1dCBpdCBsb29rcyBsaWtlIGNvbWluZyBm
-cm9tIFBJRC1maWx0ZXIuIFlvdSAKPj4gaGF2ZSBvbmx5IFVTQjEuMSBwb3J0cz8KPj4KPj4gRHJp
-dmVyIHdpbGwgZGlzYWJsZSAybmQgdHVuZXIgLyBmcm9udGVuZCBpZiB0aGVyZSBpcyBvbmx5IFVT
-QjEuMSBiZWNhdXNlIAo+PiAgIEkgZG9uJ3Qga25vdyBpZiB0aGVyZSBpcyBhbnkgd2F5IHRvIHVz
-ZSBQSUQtZmlsdGVycyBmb3IgMm5kIGZyb250ZW5kLiAKPj4gQWxzbyBGRSMxIHBlcmZvcm1hbmNl
-IGlzIGJhZCBpbiBkdWFsIHR1bmVyIGRldmljZSBmb3IgdW5rbm93biByZWFzb24uIAo+PiBCdXQg
-SSBzdGlsbCBkb24ndCBzZWUgcmVhc29uIHdoeSB5b3VyIGRldmljZSBpcyBub3Qgd29ya2luZy4K
-Pj4KPj4gVGhhdHMgd2VpcmQgc2l0dWF0aW9uOgo+PiBkdWFsIG1vZGUgKDIgcmVjZWl2ZXJzKToK
-Pj4gRkUjMSBiYWQKPj4gRkUjMiBnb29kCj4+IHNpbmdsZSBtb2RlICgxIHJlY2VpdmVyKToKPj4g
-RkUjMSBnb29kCj4+Cj4gCj4gCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KPiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4gbGludXgtZHZiQGxpbnV4dHYu
-b3JnCj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGlu
-dXgtZHZiCj4gCj4gCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KPiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4gbGludXgtZHZiQGxpbnV4dHYub3JnCj4g
-aHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
-CgoKLS0gCmh0dHA6Ly9wYWxvc2FhcmkuZmkvCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51
-eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1kdmI=
+Everthing is running fine but I can't config the ir-remote, some keys 
+are working in VDR like: up, down, left, ok and the numberkeys.
+dmesg gives me something like this on the other ~33 keys.
+
+dib0700: Unknown remote controller key:  D 71  1  0
+dib0700: Unknown remote controller key:  9 40  1  0
+dib0700: Unknown remote controller key:  7 2C  1  0
+dib0700: Unknown remote controller key:  2  5  0  0
+
+The remote control looks like the one from Cinergy DT USB XS Diversity 
+and Cinergy T USB XS FM.
+I use the lates modules from http://linuxtv.org/hg/v4l-dvb and latest 
+kernel on my Gentoo system linux-2.6.26-rc8
+I think there are some entries missing in dib0700.devices.c, but i can 
+figure out how they must look like.
+
+Thanks very mucht for any help and for your good work :-)
+
+Greetings Sebastian
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
