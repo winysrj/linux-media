@@ -1,21 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6GD0QmF004173
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 09:00:26 -0400
-Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6GD0GYx013705
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 09:00:16 -0400
-Message-ID: <487DF0D8.5070102@linuxtv.org>
-Date: Wed, 16 Jul 2008 09:00:08 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6BLCHUp009578
+	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 17:12:17 -0400
+Received: from mailrelay007.isp.belgacom.be (mailrelay007.isp.belgacom.be
+	[195.238.6.173])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6BLC6A5002693
+	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 17:12:07 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: "David Ellingsworth" <david@identd.dyndns.org>
+Date: Fri, 11 Jul 2008 23:12:00 +0200
+References: <200807112132.16345.laurent.pinchart@skynet.be>
+	<30353c3d0807111306t1a6cca59k63f6a204ffc2f4fc@mail.gmail.com>
+In-Reply-To: <30353c3d0807111306t1a6cca59k63f6a204ffc2f4fc@mail.gmail.com>
 MIME-Version: 1.0
-To: Anthony Edwards <anthony@yoyo.org>
-References: <20080716125556.GA9609@yoyo.org>
-In-Reply-To: <20080716125556.GA9609@yoyo.org>
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: smscoreapi.c:689: error: 'uintptr_t' undeclared
+Content-Disposition: inline
+Message-Id: <200807112312.01322.laurent.pinchart@skynet.be>
+Cc: Romano Giannetti <romano@dea.icai.upcomillas.es>,
+	video4linux-list@redhat.com, Roland Dreier <roland@digitalvampire.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] uvcvideo: Fix possible AB-BA deadlock with
+	videodev_lock and open_mutex
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,31 +34,79 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Anthony Edwards wrote:
-> This appears to be an issue affecting a number of users, for example:
-> 
-> http://forum.linuxmce.org/index.php?action=profile;u=41878;sa=showPosts
-> 
-> I have experienced it too today after attempting to recompile drivers
-> for my Hauppauge Nova-T USB TV tuner following an Ubuntu kernel update.
-> 
-> After obtaining the latest source code using hg clone, I have found
-> that it will not successfully compile.  I am seeing the same make
-> errors as the poster in the posting referenced above.
-> 
-> Unfortunately, I lack the necessary programming knowledge to hack the
-> source code in order to make it work.
-> 
-> Is a fix in the pipeline?
-> 
+On Friday 11 July 2008, David Ellingsworth wrote:
+> On Fri, Jul 11, 2008 at 3:32 PM, Laurent Pinchart
+>
+> <laurent.pinchart@skynet.be> wrote:
+> > The uvcvideo driver's uvc_v4l2_open() method is called from videodev's
+> > video_open() function, which means it is called with the videodev_lock
+> > mutex held.  uvc_v4l2_open() then takes uvc_driver.open_mutex to check
+> > dev->state and avoid racing against a device disconnect, which means
+> > that open_mutex must nest inside videodev_lock.
+> >
+> > However uvc_disconnect() takes the open_mutex around setting
+> > dev->state and also around putting its device reference.  However, if
+> > uvc_disconnect() ends up dropping the last reference, it will call
+> > uvc_delete(), which calls into the videodev code to unregister its
+> > device, and this will end up taking videodev_lock.  This opens a
+> > (unlikely in practice) window for an AB-BA deadlock and also causes a
+> > lockdep warning because of the lock misordering.
+> >
+> > Fortunately there is no apparent reason to hold open_mutex when doing
+> > kref_put() in uvc_disconnect(): if uvc_v4l2_open() runs before the
+> > state is set to UVC_DEV_DISCONNECTED, then it will take another
+> > reference to the device and kref_put() won't call uvc_delete; if
+> > uvc_v4l2_open() runs after the state is set, it will run before
+> > uvc_delete(), see the state, and return immediately -- uvc_delete()
+> > does uvc_unregister_video() (and hence video_unregister_device(),
+> > which is synchronized with videodev_lock) as its first thing, so there
+> > is no risk of use-after-free in uvc_v4l2_open().
+> >
+> > Bug diagnosed based on a lockdep warning reported by Romano Giannetti
+> > <romano@dea.icai.upcomillas.es>.
+> >
+> > Signed-off-by: Roland Dreier <roland@digitalvampire.org>
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
+> > ---
+> >  drivers/media/video/uvc/uvc_driver.c |    9 ++++++---
+> >  1 files changed, 6 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/media/video/uvc/uvc_driver.c
+> > b/drivers/media/video/uvc/uvc_driver.c
+> > index 14b3839..d29d28d 100644
+> > --- a/drivers/media/video/uvc/uvc_driver.c
+> > +++ b/drivers/media/video/uvc/uvc_driver.c
+> > @@ -1633,13 +1633,16 @@ static void uvc_disconnect(struct usb_interface
+> > *intf) * reference to the uvc_device instance after uvc_v4l2_open()
+> > received * the pointer to the device (video_devdata) but before it got
+> > the * chance to increase the reference count (kref_get).
+> > +        *
+> > +        * Note that the reference can't be released with the lock held,
+> > +        * otherwise a AB-BA deadlock can occur with videodev_lock that
+> > +        * videodev acquires in videodev_open() and
+> > video_unregister_device(). */
+> >        mutex_lock(&uvc_driver.open_mutex);
+> > -
+> >        dev->state |= UVC_DEV_DISCONNECTED;
+> > -       kref_put(&dev->kref, uvc_delete);
+> > -
+> >        mutex_unlock(&uvc_driver.open_mutex);
+> > +
+> > +       kref_put(&dev->kref, uvc_delete);
+> >  }
+>
+> I haven't really examined the uvc driver, but I suspect the above
+> reference counting may be unnecessary once videodev has been corrected
+> to properly increment and decrement the kobject reference count during
+> open and close respectively. I suspect the uvc_delete method could be
+> called from the video_device release callback once this happens.
 
-The fix is here -- please feel free to test it:
+A little code shuffling will happen then, and the uvcvideo private reference 
+will be dropped.
 
-http://linuxtv.org/hg/~mkrufky/sms1xxx
+Best regards,
 
-I sent a pull request to Mauro a few days ago -- I don't know why it has not been merged yet.
-
--Mike
+Laurent Pinchart
 
 --
 video4linux-list mailing list
