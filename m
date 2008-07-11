@@ -1,26 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6JMdmth024038
-	for <video4linux-list@redhat.com>; Sat, 19 Jul 2008 18:39:49 -0400
-Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
-	[151.189.21.52])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6JMdXUE027348
-	for <video4linux-list@redhat.com>; Sat, 19 Jul 2008 18:39:33 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Per Baekgaard <baekgaard@b4net.dk>
-In-Reply-To: <487FC316.30306@b4net.dk>
-References: <487E7238.7030003@b4net.dk>
-	<1216252071.2669.56.camel@pc10.localdom.local>
-	<487EF54E.8040704@b4net.dk>
-	<1216317753.2659.85.camel@pc10.localdom.local>
-	<487FC316.30306@b4net.dk>
-Content-Type: text/plain
-Date: Sun, 20 Jul 2008 00:18:09 +0200
-Message-Id: <1216505889.4542.66.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6BK5gmR026134
+	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 16:05:42 -0400
+Received: from vsmtp12.tin.it (vsmtp12.tin.it [212.216.176.206])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6BK56kG027181
+	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 16:05:17 -0400
+Message-ID: <4877BC87.50801@tiscali.it>
+Date: Fri, 11 Jul 2008 21:03:19 +0100
+From: Andrea <audetto@tiscali.it>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+References: <4873CBA9.1090603@tiscali.it>
+	<4873E6D0.8050202@tiscali.it>	<487678F6.50609@tiscali.it>
+	<1215761512.1679.17.camel@localhost>
+In-Reply-To: <1215761512.1679.17.camel@localhost>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Seeking help for a 713x based card
+Subject: Re: A question about VIDIOC_DQBUF
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,170 +29,114 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Jean-Francois Moine wrote:
+> On Thu, 2008-07-10 at 22:02 +0100, Andrea wrote:
+>> Is there anybody who could help my with the followin?
+> 
+> Not sure, but I'll try.
+> 
+>> I would like to know if my interpretation of VIDIOC_DQBUF is correct.
+> 	[snip]
+>>>> - First, an application queues a buffer, then it dequeues the buffer.
+>>>> - Then again, a buffer is queued and then dequeued.
+>>>> - Dequeuing a buffer blocks is the buffer is not ready (unless device 
+>>>> opened with O_NONBLOCK).
+> 
+> DQBUF blocks if _no_ buffer is ready.
 
-Am Freitag, den 18.07.2008, 00:09 +0200 schrieb Per Baekgaard:
-> Thanks again -- quite a lot to digest.
-> 
-> I was working late yesterday, so unfortunately I was copying some 
-> incorrect lines from the 3xhybrid.inf file ;-(
-> 
-> The correct lines would be these ones, I think:
-> 
-> ;******** Mercur, Tiger,... ***
-> ;%PHILIPS_30.DeviceDesc% = 
-> PHILIPS_30.NTx86,PCI\VEN_1131&DEV_7130&SUBSYS_20181A7F
-> ;%PHILIPS_33.DeviceDesc% = 
-> PHILIPS_33.NTx86,PCI\VEN_1131&DEV_7133&SUBSYS_20181A7F
-> ;%PHILIPS_34.DeviceDesc% = 
-> PHILIPS_34.NTx86,PCI\VEN_1131&DEV_7134&SUBSYS_20181A7F
->  
-> ;******** Europa (1-3), Snake, Tough, Smart, Clever ***
-> %PHILIPS_30.DeviceDesc% = 
-> PHILIPS_30.NTx86,PCI\VEN_1131&DEV_7130&SUBSYS_20041A7F
-> %PHILIPS_33.DeviceDesc% = 
-> PHILIPS_33.NTx86,PCI\VEN_1131&DEV_7133&SUBSYS_20041A7F
-> %PHILIPS_34.DeviceDesc% = 
-> PHILIPS_34.NTx86,PCI\VEN_1131&DEV_7134&SUBSYS_20041A7F
+I think there is (should be) a difference between (but it is not 100% clear on documentation):
 
-not sure in any way, could be some Mini PCI stuff.
+1) buffers in the queue, but not yet ready
+2) no buffer in the queue
 
-> ;******** SAA7133 x32 ***
-> [PHILIPS_33.NTx86.CoInstallers]
-> CopyFiles     = SectionX32.CopyDll.NTx86
-> AddReg        = SectionX32.DllAddReg.NTx86
->  
-> [PHILIPS_33.NTx86]
-> Include       = ks.inf, wdmaudio.inf, kscaptur.inf, bda.inf
-> Needs         = KS.Registration.NT, WDMAUDIO.Registration.NT, 
-> KSCAPTUR.Registration.NT, BDA.Installation.NT
-> CopyFiles     = SectionX32.CopyDriver.NTx86, SectionX32.CopyDll.NTx86
-> AddReg        = SectionX32.AddReg.NTx86, PHILIPS_33.AddReg
->  
-> [PHILIPS_33.NTx86.Services]
-> AddService    = %SERVICE_NAME_X32%, 0x00000002, 
-> SectionX32.ServiceInstall.NTx86
-> 
-> ;******** General DLL Registry Entries ***
-> ;
->  
-> [SectionX32.DllAddReg.NTx86]
-> HKR,,CoInstallers32,0x00010000,"34CoInstaller.dll, CoInstallerEntry"
->  
-> 
-> ;
-> ;******** General Driver Registry Entries ***
-> ;
->  
-> [SectionX32.AddReg.NTx86]
->  
-> HKR,,DevLoader,,*NTKERN
-> HKR,,NTMPDriver,,3xHybrid.sys
->  
-> ; --- Registry Entries For Audio Capture ---
->  
-> HKR,,Driver,,3xHybrid.sys
-> HKR,,AssociatedFilters,,"wdmaud,swmidi,redbook"
->  
-> HKR,Drivers,SubClasses,,"wave,mixer"
-> HKR,Drivers\wave\wdmaud.drv,Driver,,wdmaud.drv
-> HKR,Drivers\mixer\wdmaud.drv,Driver,,wdmaud.drv
-> HKR,Drivers\wave\wdmaud.drv,Description,,%PHILIPS.AudioDeviceDesc%
-> HKR,Drivers\mixer\wdmaud.drv,Description,,%PHILIPS.AudioDeviceDesc%
->  
-> ; add audio input and output pinnames
-> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_ANLG_AUDIO_IN_PIN%,"Name",,"Analog 
-> Audioinput"
-> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_ANLG_AUDIO_OUT_PIN%,"Name",,"Audio" 
-> 
-> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_ANLG_VIDEO_ITU_PIN%,"Name",,"Analog 
-> ITU Video"
-> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_ANLG_AUDIO_I2S_PIN%,"Name",,"I2S 
-> Audio"
-> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_MPEG_AES_PIN%,"Name",,"MPEG 
-> Audio ES"
-> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_MPEG_VES_PIN%,"Name",,"MPEG 
-> Video ES"
-> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_MPEG_PS_PIN%,"Name",, 
-> "MPEG2 Program"
-> 
-> ;---- SAA7133 ----
-> [PHILIPS_33.AddReg]
->  
-> ; Prefix will be displayed in front of the device name on every filter
-> HKR, "Parameters","Prefix",,%PHILIPS_CUSTOM_TUNERNAME%
->  
-> ; Reduces second pair of video/audio inputs
-> HKR, "Parameters","SmallXBar",0x00010001,0x01
-> 
-> 
-> 
-> ... so much for trying to reduce the amount of data. Apologies.
-> 
-> The entire file is here:
-> 
->    http://www.b4net.dk/3xhybrid.inf
-> 
-> hermann pitton wrote:
-> > Hmm, subsystem 20041A7F not listed.
-> > From the eeprom the card looks like Philips TIGER hybrid.
-> > Some 3xHybrid.sys should be around then.
-> >   
-> Mea culpa. It is not a Proteus system but as you point out maybe a Tiger 
-> derivative of some sort "Snake, Tough, Smart, Clever" -- whatever that is!
-> 
-> > Is support for wireless network announced too?
-> >   
-> On the motherboard, yes, but not on the tuner as far as I can see.
-> > IIRC, it also comes with an USB remote, but I'm not sure.
-> >   
-> Yes, there is a remote, but not USB based, as far as I can tell.
-> > If you have saa7134-alsa loaded and you have a sound card/chip on the
-> > MB, something like sox can be used for testing.
-> > "sox -c 2 -s -w -r 32000 -t ossdsp /dev/dsp1 -t ossdsp -w -r 32000 /dev/dsp"
-> >   
-> I've tried something similar (arecord|aplay) but it doens't seem to 
-> capture any sound at all.
-> >   
-> > You might try with card=117 or card=96.
-> >   
-> Will do -- makes sense even if not a Proteus card (as I apparently 
-> copied some incorrect lines above)?
-> > Do you have two antenna input connectors or only one?
-> >   
-> One for this tuner only. There is a normal RCA video connector, a 
-> S-video of some sort and a mini-jack for sound input, I believe.
-> > Card=81 Philips Tiger would be better then.
-> >   
-> I'll try that too.
-> > That would be the tda10046 DVB-T demod.
-> >
-> >   
-> > Tuner=54 analog demod.
-> >   
-> So card 81 and tuner 54 would be a good quess then?
-> > Ah good, here we can see tuner address is 0x61.
-> > TV amux is for sure wrong on card=107.
-> >   
-> Yep... looks like it is ;-)
-> > If you have sometimes a flashing picture with card=81 or 78 on analog
-> > TV, or in case you get audio working and hear humming sound or you get
-> > DVB-T working, but unstable lock, such could indicate that it has a
-> > LowNoiseAmplifier that needs to be correctly configured, that is another
-> > story.
-> >   
-> I'll try and report back on my findings -- mainly card 81, 117 or 96 
-> then? Or are there other tiger based ones I should try?
-> 
-> 
-> -- Per.
-> 
+In the second case, all drivers I can try (em28xx, uvc, vivi) return -EINVAL. Only pwc blocks.
+This is easy tested with mplayer
 
-Most interesting should be next what you get on trying on DVB-T.
+mplayer -tv driver=v4l2:device=/dev/videoXXX tv://
 
-Cheers,
-Hermann
+If it hangs on quit (IMHO wrong), then the driver blocks; if it ends normally (IMHO correct), the 
+driver returns -EINVAL.
 
+> 
+>>>> - Trying to dequeue a buffer without queuing it first is an error, and 
+>>>> the ioctl VIDIOC_DQBUF should return -EINVAL.
+> 
+> You do not set a specific buffer at DQBUF call.
+
+You are right.
+
+> 
+>>> - One can only VIDIOC_DQBUF after calling STREAMON. Before it should 
+>>> return -EINVAL? Block?
+> 
+> No, STREAMON may be done later by an other application.
+
+Again, I agree with you. It is not a matter of "before or after", but if there are buffers in the 
+queue (regardless of the fact if they are ready)
+
+> 
+>>> - After calling STREAMOFF, VIDIOC_DQBUF should return -EINVAL
+> 
+> No, same reason as above.
+
+Again, I am not yet sure.
+IMHO: Immediately after STREAMOFF (which clears the queue) it should be -EINVAL.
+In case buffer are requeued, then it blocks.
+
+> 
+>>>> Now, about pwc: (if the above is correct).
+>>>>
+>>>> 1) VIDIOC_DQBUF blocks always until a buffer is ready, regardless of 
+>>>> O_NONBLOCK.
+> 
+> Oh, bad guy!
+> 
+>>>> 2) VIDIOC_DQBUF does not check if a buffer has been previously queued. 
+>>>> Moreover VIDIOC_QBUF is almost a no-op. It has no way to check if a 
+>>>> buffer has been queued before VIDIOC_DQBUF.
+> 
+> Seems normal.
+
+IMHO it should check the queue. What happens if it picks a buffer that it still being used by the my 
+application (which did not QBUF it)?
+
+> 
+>>>> If I have understood correctly (very unlikely), this is the reason why 
+>>>> mplayer hangs while stopping the stream with pwc:
+>>>>
+>>>>         while (!ioctl(priv->video_fd, VIDIOC_DQBUF, &buf));
+>>>>
+>>> This code is not needed because STREAMOFF flushes the buffer queue. Does 
+>>> it not?
+> 
+> Correct.
+
+Agree.
+
+> 
+>>>> This code should eventually return -EINVAL, while pwc just blocks 
+>>>> waiting for the next buffer (which never arrives because 
+>>>> VIDIOC_STREAMOFF has been called).
+>>> pwc should return -EINVAL to all ioctl calls after STREAMOFF?
+> 
+> No.
+
+In that case the drivers "em28xx", "vivi", "uvc" (and all the ones that work with mplayer) are all 
+wrong.
+
+> 
+>>> Could someone please tell me where I am right and where I am wrong...
+> 
+> Done.
+> 
+> It was a good idea to point me on these problems. I will update the
+> gspca driver accordingly.
+
+
+It seems to be a very corner-case of the documentation. And usually tests are done to check when it 
+should work, not when and how it should fail.
+
+Andrea
 
 --
 video4linux-list mailing list
