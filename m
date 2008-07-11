@@ -1,18 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.adamomail.se ([87.251.223.195] helo=adamomail.se)
+Received: from mail-in-05.arcor-online.net ([151.189.21.45])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sacha@hemmail.se>) id 1KMJJ0-0006Kp-HC
-	for linux-dvb@linuxtv.org; Fri, 25 Jul 2008 11:09:44 +0200
-Received: from [89.233.205.229] (HELO asrock)
-	by adamomail.se (CommuniGate Pro SMTP 4.2.10)
-	with ESMTP id 17068982 for linux-dvb@linuxtv.org;
-	Fri, 25 Jul 2008 11:09:35 +0200
-From: "Sacha" <sacha@hemmail.se>
-To: <linux-dvb@linuxtv.org>
-Date: Fri, 25 Jul 2008 11:09:34 +0200
-Message-ID: <000001c8ee36$28209dd0$0401a8c0@asrock>
+	(envelope-from <laasa@gmx.de>) id 1KHJXh-0002Aj-SN
+	for linux-dvb@linuxtv.org; Fri, 11 Jul 2008 16:24:14 +0200
+Received: from mail-in-11-z2.arcor-online.net (mail-in-11-z2.arcor-online.net
+	[151.189.8.28])
+	by mail-in-05.arcor-online.net (Postfix) with ESMTP id 27AEE1834F4
+	for <linux-dvb@linuxtv.org>; Fri, 11 Jul 2008 16:24:10 +0200 (CEST)
+Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net
+	[151.189.21.42])
+	by mail-in-11-z2.arcor-online.net (Postfix) with ESMTP id 14DF53465A8
+	for <linux-dvb@linuxtv.org>; Fri, 11 Jul 2008 16:24:10 +0200 (CEST)
+Received: from server2.zuhause.xx (dslb-088-072-250-232.pools.arcor-ip.net
+	[88.72.250.232])
+	by mail-in-02.arcor-online.net (Postfix) with ESMTP id DB8DB27ECB
+	for <linux-dvb@linuxtv.org>; Fri, 11 Jul 2008 16:24:09 +0200 (CEST)
+Received: from [192.168.1.32] (az.zuhause.xx [192.168.1.32])
+	by server2.zuhause.xx (Postfix) with ESMTP id 06B2AD6B25
+	for <linux-dvb@linuxtv.org>; Fri, 11 Jul 2008 16:24:19 +0200 (CEST)
+Message-ID: <48776CD9.1040502@server>
+Date: Fri, 11 Jul 2008 16:23:21 +0200
+From: laasa <laasa@server>
 MIME-Version: 1.0
-Subject: [linux-dvb] Twinhan VP-1041/Azurewave AD SP400
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb]  Re : Re : How to get 2 TT3650-CI working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,110 +31,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0226582150=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+> Talking about the patch from dominik: is it normal that the registers =
 
---===============0226582150==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0001_01C8EE46.EBA96DD0"
+> settings are different than those from TT-3200 (in budget-ci.c)? I mean =
 
-This is a multi-part message in MIME format.
+> it is the same chips (stb0899/stb6100), so is it possible to use those =
 
-------=_NextPart_000_0001_01C8EE46.EBA96DD0
-Content-Type: text/plain;
-	charset="x-user-defined"
-Content-Transfer-Encoding: 7bit
+> settings directly with a TT 3200; I have reception problems for some =
 
-Hello
- 
-I have 
-Twinhan VP-1041/Azurewave AD SP400 on Ubuntu 8. I spent a couple of
-month now to make it work without result.
-I red archive of this list and other websites. Tryed different patches
-but still no luck.
-I have now Mantis driver loaded, the card recognized but when I use scan
-I have "Invalid something" error.
-I have also Pinnacle PCTV SAT installed which works out of the box. Is
-there any conflict between the 2. I have seen some info about on other
-sites.
-Is there any drfinitive guide somewhere because to put together all
-parts find together is to hard for me been quite new to Linux?`
- 
-Do not blame me much if I am doing something wrong here as I am new to
-this list and to this way of communication.
- 
-KR
+> transponders, and a lot of other users also, so if those settings are =
 
-------=_NextPart_000_0001_01C8EE46.EBA96DD0
-Content-Type: text/html;
-	charset="x-user-defined"
-Content-Transfer-Encoding: quoted-printable
+> OK to try I guess that's something I am ready to do to improve things.
+> Also I saw that the patch touches stb0899/6100 files in the frontends =
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
-charset=3Dus-ascii">
-<TITLE>Meddelande</TITLE>
+> dir, so my question: are these changes there to improve tuning also or =
 
-<META content=3D"MSHTML 6.00.2900.3268" name=3DGENERATOR></HEAD>
-<BODY>
-<DIV><SPAN class=3D462285808-25072008><FONT =
-size=3D2>Hello</FONT></SPAN></DIV>
-<DIV><SPAN class=3D462285808-25072008><FONT =
-size=3D2></FONT></SPAN>&nbsp;</DIV>
-<DIV><SPAN class=3D462285808-25072008><FONT size=3D2>I have </FONT>
-<DIV><FONT size=3D2>Twinhan VP-1041/Azurewave AD SP400<SPAN=20
-class=3D462285808-25072008> on Ubuntu 8. I spent a couple of month =
-now&nbsp;to=20
-make it work without result.</SPAN></FONT></DIV>
-<DIV><FONT size=3D2><SPAN class=3D462285808-25072008>I red archive of =
-this list and=20
-other websites. Tryed different patches but still no =
-luck.</SPAN></FONT></DIV>
-<DIV><FONT size=3D2><SPAN class=3D462285808-25072008>I have now Mantis =
-driver=20
-loaded, the card recognized but when I use scan I have "Invalid =
-something"=20
-error.</SPAN></FONT></DIV>
-<DIV><FONT size=3D2><SPAN class=3D462285808-25072008>I have also =
-Pinnacle PCTV SAT=20
-installed which works out of the box. Is there any conflict between the =
-2. I=20
-have seen some info about on other sites.</SPAN></FONT></DIV>
-<DIV><FONT size=3D2><SPAN class=3D462285808-25072008>Is there any =
-drfinitive guide=20
-somewhere because to put together all parts find together&nbsp;is to =
-hard for me=20
-been quite new to Linux?`</SPAN></FONT></DIV>
-<DIV><FONT size=3D2><SPAN =
-class=3D462285808-25072008></SPAN></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2><SPAN class=3D462285808-25072008>Do not blame me =
-much if I am=20
-doing something wrong here as I am new to this list and to this way of=20
-communication.</SPAN></FONT></DIV>
-<DIV><FONT size=3D2><SPAN =
-class=3D462285808-25072008></SPAN></FONT>&nbsp;</DIV>
-<DIV><FONT size=3D2><SPAN=20
-class=3D462285808-25072008>KR</SPAN></FONT></DIV></SPAN></DIV></BODY></HT=
-ML>
-
-------=_NextPart_000_0001_01C8EE46.EBA96DD0--
+> just related to the support of the other cards?
+> Thx
+> Bye
+> Manu =
 
 
+I have test this week the locking of my tt3650ci with the hg from the end o=
+f last wheek (7215) plus pctv452e-patch.
+I cant see any locking problems but I have a very simple configuration (onl=
+y one satelite: ASTRA 19,2=B0E, most channels on horizontal high-band).
 
---===============0226582150==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Why the pctv452e-module use different settings for STB0899 and STB6100 I do=
+nt know, sorry.
+
+When I compare the actual driver with the driver I have used the last month=
+s (version from february) I think the locking is much faster.
+
+*But back to the problem in the headline:*
+When anyone have the same problem with 2 or more TT3600 or TT3650CI hopeful=
+ly the solution is to decrease the count of urb's (USB request block).
+When I change in line 1058 of file pctv452e.c from ".count =3D 7;" to ".cou=
+nt =3D 4" it works for me.
+
+Hopefully it helps other.
+
+Best regards,
+laasa.
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0226582150==--
