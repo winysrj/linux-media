@@ -1,20 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6IEChwG005961
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 10:12:43 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6IECUh1025372
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 10:12:31 -0400
-Date: Fri, 18 Jul 2008 16:12:44 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-In-Reply-To: <4880A22B.1050002@teltonika.lt>
-Message-ID: <Pine.LNX.4.64.0807181603250.14224@axis700.grange>
-References: <4880A22B.1050002@teltonika.lt>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6CFksY8010170
+	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 11:46:54 -0400
+Received: from fmmailgate03.web.de (fmmailgate03.web.de [217.72.192.234])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6CFkdJH026722
+	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 11:46:40 -0400
+Received: from smtp05.web.de (fmsmtp05.dlan.cinetic.de [172.20.4.166])
+	by fmmailgate03.web.de (Postfix) with ESMTP id 3FDB1E3857E6
+	for <video4linux-list@redhat.com>;
+	Sat, 12 Jul 2008 17:46:34 +0200 (CEST)
+Received: from [217.95.177.228] (helo=[192.168.1.40])
+	by smtp05.web.de with esmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.109 #226) id 1KHhIw-0002XR-00
+	for video4linux-list@redhat.com; Sat, 12 Jul 2008 17:46:34 +0200
+Message-ID: <4878D1D9.8020500@web.de>
+Date: Sat, 12 Jul 2008 17:46:33 +0200
+From: Peter Schlaf <peter.schlaf@web.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: [RFC] Rename soc_camera to camera_bus
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: saa7134-cards.c:6081: error: 'SAA7134_BOARD_ASUSTeK_TVFM35'
+	undeclared
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,28 +33,9 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 18 Jul 2008, Paulius Zaleckas wrote:
+imho it should be SAA7134_BOARD_ASUSTeK_TVFM7135
 
-> I suggest to rename soc_camera to camera_bus or something similar.
-> This should be done, because soc_camera framework can (IMHO should)
-> be used with USB webcams (not uvc), SoC camera interfaces, PCI device (like
-> cafe) and any other devices where it is possible to control camera
-> bus and i2c separately.
-
-It is not the first time this idea appears, I certainly would be pleased 
-if this interface could find wider application in USB- and PCI-camera 
-drivers, and I also think it should be quite possible. As for the name - 
-let's be pragmatic once again. Personally, I have nothing against any 
-other reasonable name, camera_bus sounds good too, but let's wait until 
-the first such (USB or PCI) driver appears, then we will politely ask the 
-submitter to prepare a patch to rename the interface and all internal 
-functions, structs, etc.:-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+cu
 
 --
 video4linux-list mailing list
