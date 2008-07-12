@@ -1,33 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m627Rabf013350
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 03:27:36 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m627ROtY019055
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 03:27:25 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1KDwkI-0003Ul-1y
-	for video4linux-list@redhat.com; Wed, 02 Jul 2008 07:27:18 +0000
-Received: from 82-135-208-232.static.zebra.lt ([82.135.208.232])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Wed, 02 Jul 2008 07:27:18 +0000
-Received: from paulius.zaleckas by 82-135-208-232.static.zebra.lt with local
-	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Wed, 02 Jul 2008 07:27:18 +0000
-To: video4linux-list@redhat.com
-From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Date: Wed, 02 Jul 2008 10:27:12 +0300
-Message-ID: <486B2DD0.7060903@teltonika.lt>
-References: <20080701124638.30446.81449.sendpatchset@rx1.opensource.se>
-	<20080701124657.30446.28078.sendpatchset@rx1.opensource.se>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6CJtIDp013275
+	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 15:55:18 -0400
+Received: from mail-in-05.arcor-online.net (mail-in-05.arcor-online.net
+	[151.189.21.45])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6CJsfL1020750
+	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 15:54:41 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Peter Schlaf <peter.schlaf@web.de>,
+	Mauro Carvalho Chehab <mchehab@infrafead.org.redhat.com>
+In-Reply-To: <4878D1D9.8020500@web.de>
+References: <4878D1D9.8020500@web.de>
+Content-Type: text/plain
+Date: Sat, 12 Jul 2008 21:50:47 +0200
+Message-Id: <1215892247.2987.11.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-In-Reply-To: <20080701124657.30446.28078.sendpatchset@rx1.opensource.se>
-Cc: linux-sh@vger.kernel.org
-Subject: Re: [PATCH 02/07] soc_camera: Let the host select videobuf_queue
- type
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: saa7134-cards.c:6081: error: 'SAA7134_BOARD_ASUSTeK_TVFM35'
+	undeclared
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,37 +30,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Magnus Damm wrote:
-> This patch makes it possible for hosts (soc_camera drivers for the soc)
-> to select a different videobuf queue than VIDEOBUF_DMA_SG. This is needed
-> by the SuperH Mobile CEU hardware which requires physically contiguous
-> buffers. While at it, rename the spinlock callbacks to file callbacks.
-> 
-> Signed-off-by: Magnus Damm <damm@igel.co.jp>
-> ---
-> 
->  drivers/media/video/Kconfig      |    4 ++--
->  drivers/media/video/pxa_camera.c |   15 ++++++++++++---
->  drivers/media/video/soc_camera.c |   27 +++++++--------------------
->  include/media/soc_camera.h       |    6 +++---
->  4 files changed, 24 insertions(+), 28 deletions(-)
-> 
-> --- 0001/drivers/media/video/Kconfig
-> +++ work/drivers/media/video/Kconfig	2008-07-01 13:05:48.000000000 +0900
-> @@ -901,8 +901,7 @@ endif # V4L_USB_DRIVERS
->  
->  config SOC_CAMERA
->  	tristate "SoC camera support"
-> -	depends on VIDEO_V4L2 && HAS_DMA
-> -	select VIDEOBUF_DMA_SG
-> +	depends on VIDEO_V4L2
+Hi,
 
-Bug here. You won't be able to compile soc_camera without host driver
-or host driver as module. SOC_CAMERA has to select VIDEOBUF_GEN!
+Am Samstag, den 12.07.2008, 17:46 +0200 schrieb Peter Schlaf:
+> imho it should be SAA7134_BOARD_ASUSTeK_TVFM7135
+> 
+> cu
+> 
 
->  	help
->  	  SoC Camera is a common API to several cameras, not connecting
->  	  over a bus like PCI or USB. For example some i2c camera connected
+yes, thanks.
+
+There was a later patch which had that corrected here.
+
+http://www.spinics.net/lists/vfl/msg37290.html
+
+Mauro, we need to fix the compilation.
+I'll prepare a patchlet or you just fix the board name based on the
+later patch.
+
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
