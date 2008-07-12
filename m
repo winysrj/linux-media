@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nebuchadnezzar.smejdil.cz ([195.122.194.203])
+Received: from an-out-0708.google.com ([209.85.132.248])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <cijoml@compare.cz>) id 1KFpo9-0004yi-V0
-	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 14:27:07 +0200
-References: <200807061744.31775.hftom@free.fr> <20080707160504.7771bae0@bk.ru>
-In-Reply-To: <20080707160504.7771bae0@bk.ru>
-From: "CIJOML" <cijoml@volny.cz>
-To: Goga777 <goga777@bk.ru>
-Date: Mon, 07 Jul 2008 14:26:56 +0200
-Mime-Version: 1.0
-Message-Id: <20080707122656.9EFD2B8D3@nebuchadnezzar.smejdil.cz>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Kaffeine 0.8.7 released
+	(envelope-from <darkdrgn2k@gmail.com>) id 1KHSs2-0004v1-LU
+	for linux-dvb@linuxtv.org; Sat, 12 Jul 2008 02:21:51 +0200
+Received: by an-out-0708.google.com with SMTP id c18so1390395anc.125
+	for <linux-dvb@linuxtv.org>; Fri, 11 Jul 2008 17:21:45 -0700 (PDT)
+Message-ID: <9b75db150807111721l6f80ea88q1b2bb83159dc0407@mail.gmail.com>
+Date: Fri, 11 Jul 2008 20:21:45 -0400
+From: "Dark Dragon" <darkdrgn2k@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Subject: [linux-dvb] Plextor_PX-HDTV500U
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,35 +18,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0524486596=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Better question when will be finally fixed that damned silly bug when I 
-watch channel 2 and press button 2 again, kaffeine retunes same channel 
-instead just showing info with channel name ;) 
+--===============0524486596==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_44001_19622211.1215822105719"
 
-Michal 
+------=_Part_44001_19622211.1215822105719
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Goga777 writes: 
+Ok guys..
+i have a Plextor_PX-HDTV500U but not support as per
+http://www.linuxtv.org/wiki/index.php?title=Plextor_PX-HDTV500U&action=edit
 
-> btw 
-> 
-> when Kaffeine  will support multiproto api  and h.264 ? 
-> 
->> http://kaffeine.kde.org 
->> 
-> Igor 
-> 
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+What can i do to help development?
+
+------=_Part_44001_19622211.1215822105719
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div>Ok guys..</div>
+<div>i have a Plextor_PX-HDTV500U but not support as per</div>
+<div><a href="http://www.linuxtv.org/wiki/index.php?title=Plextor_PX-HDTV500U&amp;action=edit">http://www.linuxtv.org/wiki/index.php?title=Plextor_PX-HDTV500U&amp;action=edit</a></div>
+<div>&nbsp;</div>
+<div>&nbsp;</div>
+<div>What can i do to help development?</div>
+
+------=_Part_44001_19622211.1215822105719--
+
+
+--===============0524486596==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0524486596==--
