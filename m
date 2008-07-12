@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6KEIar0019160
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 10:18:36 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6CMugvo025725
+	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 18:56:42 -0400
 Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6KEIOaR017191
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 10:18:24 -0400
-Message-ID: <48834928.6080207@linuxtv.org>
-Date: Sun, 20 Jul 2008 10:18:16 -0400
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6CMuUuj004003
+	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 18:56:30 -0400
+Message-ID: <48793697.3080704@linuxtv.org>
+Date: Sat, 12 Jul 2008 18:56:23 -0400
 From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-References: <200807181625.12619.hverkuil@xs4all.nl>
-	<200807201447.35659.hverkuil@xs4all.nl>
-In-Reply-To: <200807201447.35659.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+To: Peter Schlaf <peter.schlaf@web.de>
+References: <48793439.20700@web.de>
+In-Reply-To: <48793439.20700@web.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: An example for RFC: Add support to query and change connections
- inside a media device
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: smscoreapi.c:689: error: 'uintptr_t' undeclared
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,16 +27,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hans Verkuil wrote:
-> As usual, comments are welcome.
+Peter,
 
-Why /dev/v4l/foo and not /dev/media/foo?
+Peter Schlaf wrote:
+> to workaround this i edited v4l/Makefile.media and commented out
+> 
+>   sms1xxx-objs := smscoreapi.o smsusb.o smsdvb.o sms-cards.o
+> 
+>   obj-$(CONFIG_DVB_SIANO_SMS1XXX) += sms1xxx.o
+> 
+> 
+> after that, compiling all the other modules ended successfully.
 
-I think "v4l" is a poor choice -- v4l refers to video4linux, but Linux-DVB is it's own subsystem and its own branding.
 
-If you want to be all-encompassing, then I think that "media" is a much better choice than "v4l".
+Thank you for posting this error.  Here is a fix:
 
--Mike
+diff -r f6b65eef0c94 linux/drivers/media/dvb/siano/smscoreapi.h
+--- a/linux/drivers/media/dvb/siano/smscoreapi.h	Fri Jul 11 20:37:08 2008 -0400
++++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Sat Jul 12 18:55:02 2008 -0400
+@@ -27,6 +27,7 @@
+ #include <linux/list.h>
+ #include <linux/mm.h>
+ #include <linux/scatterlist.h>
++#include <linux/types.h>
+ #include <asm/page.h>
+ 
+ #include "dmxdev.h"
+
+
+I'll push this in now.
+
+Regards,
+
+Mike Krufky
 
 
 --
