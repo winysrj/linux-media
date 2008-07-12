@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outmailhost.telefonica.net ([213.4.149.242]
-	helo=ctsmtpout2.frontal.correo)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jareguero@telefonica.net>) id 1KOauR-0006MI-1q
-	for linux-dvb@linuxtv.org; Thu, 31 Jul 2008 18:21:48 +0200
-Received: from jar.dominio (80.25.230.35) by ctsmtpout2.frontal.correo
-	(7.2.056.6) (authenticated as jareguero$telefonica.net)
-	id 48916FE0000CF117 for linux-dvb@linuxtv.org;
-	Thu, 31 Jul 2008 18:21:11 +0200
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: linux-dvb@linuxtv.org
-Date: Thu, 31 Jul 2008 18:21:08 +0200
+Received: from n4.bullet.ukl.yahoo.com ([217.146.182.181])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1KHSsX-0004v4-DO
+	for linux-dvb@linuxtv.org; Sat, 12 Jul 2008 02:22:23 +0200
+Date: Fri, 11 Jul 2008 20:21:40 -0400
+From: manu <eallaud@yahoo.fr>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>, Discussion about mythtv
+	<mythtv-users@mythtv.org>
+Message-Id: <1215822101l.26120l.0l@manu-laptop>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_1ZekI8uiSdLbUzD"
-Message-Id: <200807311821.09325.jareguero@telefonica.net>
-Subject: [linux-dvb] Problem with avermedia Volar X and af9015 driver
+Content-Type: multipart/mixed; boundary="=-17hairn8cj7Ik9m5l9sT"
+Subject: [linux-dvb] (Crude) Patch to support latest multiproto drivers (as
+ of 2008-07-11
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,132 +23,156 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_1ZekI8uiSdLbUzD
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+--=-17hairn8cj7Ik9m5l9sT
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I have a Avermedia Volar X and when using 
-http://linuxtv.org/hg/~anttip/af9015-mxl500x/
-And add the pids as sugested in the list
-http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026834.html
-log2
-I can tune all channels and have a good reception.But if I use
-http://linuxtv.org/hg/~anttip/af9015/
-log1
-I can't tune to some transponders.
-Can I help to improve the reception with the new driver?
-
-Thanks.
-Jose Alberto
+	Hi all,
+subject says it all. This patch (that applies to trunk, but probably=20
+also for 0.21.fixes) allows myth to tune with the latest multiproto=20
+drivers.
+No DVB-S2 support here, its a crude patch, but it works for DVB-S.
+Bye
+Manu
 
 
+--=-17hairn8cj7Ik9m5l9sT
+Content-Type: text/x-patch; charset=us-ascii; name=mythtv-multiproto.patch
+Content-Disposition: attachment; filename=mythtv-multiproto.patch
+Content-Transfer-Encoding: quoted-printable
+
+--- ../../trunk/mythtv/libs/libmythtv/dvbchannel.cpp	2008-07-10 22:02:57.00=
+0000000 -0400
++++ libs/libmythtv/dvbchannel.cpp	2008-07-11 18:33:33.000000000 -0400
+@@ -211,8 +211,16 @@
+     }
+     VERBOSE(VB_IMPORTANT, LOC + "Getting additional DVBFE_GET_INFO informa=
+tion." + ENO);
+     dvbfe_info fe_info;
++    enum dvbfe_delsys delsys =3D DVBFE_DELSYS_DVBS;
+     bzero(&fe_info, sizeof(fe_info));
+-    fe_info.delivery =3D DVBFE_DELSYS_DVBS;
++    if (ioctl(fd_frontend, DVBFE_SET_DELSYS, &delsys)<0)
++    {
++        VERBOSE(VB_IMPORTANT, LOC_ERR + "Failed to set delivery system." +=
+ ENO);
++        close(fd_frontend);
++        fd_frontend =3D -1;
++    }
++       =20
++    //fe_info.delivery =3D DVBFE_DELSYS_DVBS;
+     if (ioctl(fd_frontend, DVBFE_GET_INFO, &fe_info) < 0)
+     {
+         VERBOSE(VB_IMPORTANT, LOC_ERR +
+@@ -773,42 +781,49 @@
+ 	// check for multiproto API
+ 	if ((DVB_API_VERSION =3D=3D 3) && (DVB_API_VERSION_MINOR =3D=3D 3)) {
+ 		struct dvbfe_params fe_params;
+-		unsigned int delsys =3D DVBFE_DELSYS_DVBS; //TODO: should come from conf=
+iguration/database
++		enum dvbfe_delsys delsys =3D DVBFE_DELSYS_DVBS; //TODO: should come from=
+ configuration/database
+=20
+ 		VERBOSE(VB_CHANNEL, LOC + "Tune(): " +
+                         QString("API minor version=3D%1, delivery system =
+=3D %2").arg(DVB_API_VERSION_MINOR).arg(delsys));
+=20
+ 		fe_params.frequency =3D params.frequency;
+-		fe_params.inversion =3D DVBFE_INVERSION_AUTO;
++		fe_params.inversion =3D INVERSION_AUTO;
+ 	=09
+ 		switch (delsys)=20
+ 		{
+-		case DVBFE_DELSYS_DVBS:
+-			fe_params.delsys.dvbs.symbol_rate =3D params.u.qpsk.symbol_rate;
+-			fe_params.delsys.dvbs.fec =3D DVBFE_FEC_AUTO;
+-			fe_params.delsys.dvbs.modulation =3D DVBFE_MOD_AUTO;
+-            		fe_params.delivery=3D DVBFE_DELSYS_DVBS;
+-			VERBOSE(VB_CHANNEL, LOC + "Tune(): " +
+-                        	QString("Frequency =3D %2, Srate =3D %3 (DVB-S)")=
+..arg(fe_params.frequency).arg(fe_params.delsys.dvbs.symbol_rate));
+-			break;
+-		case DVBFE_DELSYS_DVBS2:
+-			fe_params.delsys.dvbs2.symbol_rate =3D params.u.qpsk.symbol_rate; //TOD=
+O: should use the new symbol_rate type
+-			fe_params.delsys.dvbs2.fec =3D DVBFE_FEC_AUTO; //TODO: should use the n=
+ew FEC options
+-			fe_params.delsys.dvbs.modulation =3D DVBFE_MOD_AUTO;
+-            		fe_params.delivery=3D DVBFE_DELSYS_DVBS2;
+-			VERBOSE(VB_CHANNEL, LOC + "Tune(): " +
+-                        	QString("Frequency =3D %2, Srate =3D %3 (DVB-S2)"=
+).arg(fe_params.frequency).arg(fe_params.delsys.dvbs2.symbol_rate));
+-			break;
+-		default:
+-			return false;
++                                            case DVBFE_DELSYS_DVBS:
++                                                fe_params.delsys.dvbs.symb=
+ol_rate =3D params.u.qpsk.symbol_rate;
++                                                fe_params.delsys.dvbs.fec =
+=3D DVBFE_FEC_AUTO;
++                                                fe_params.delsys.dvbs.modu=
+lation =3D DVBFE_MOD_AUTO;
++                                                //fe_params.delivery=3D DV=
+BFE_DELSYS_DVBS;
++                                                VERBOSE(VB_CHANNEL, LOC + =
+"Tune(): " +
++                                                        QString("Frequency=
+ =3D %2, Srate =3D %3 (DVB-S)")
++                                                        .arg(fe_params.fre=
+quency).arg(fe_params.delsys.dvbs.symbol_rate));
++                                                break;
++                                            case DVBFE_DELSYS_DVBS2:
++                                                fe_params.delsys.dvbs2.sym=
+bol_rate =3D params.u.qpsk.symbol_rate; //TODO: should use the new symbol_r=
+ate type
++                                                fe_params.delsys.dvbs2.fec=
+ =3D DVBFE_FEC_AUTO; //TODO: should use the new FEC options
++                                                fe_params.delsys.dvbs.modu=
+lation =3D DVBFE_MOD_AUTO;
++                                                fe_params.delivery=3D DVBF=
+E_DELSYS_DVBS2;
++                                                VERBOSE(VB_CHANNEL, LOC + =
+"Tune(): " +
++                                                        QString("Frequency=
+ =3D %2, Srate =3D %3 (DVB-S2)")
++                                                        .arg(fe_params.fre=
+quency).arg(fe_params.delsys.dvbs2.symbol_rate));
++                                                break;
++                                            default:
++                                                return false;
+ 		}
+ 		VERBOSE(VB_CHANNEL, LOC + "Tune(): " +
+-                        QString("Frequency =3D %1, Srate =3D %2 (SET_PARAM=
+S)").arg(fe_params.frequency).arg(fe_params.delsys.dvbs.symbol_rate));
+-
++                                                QString("Frequency =3D %1,=
+ Srate =3D %2 (SET_PARAMS)").arg(fe_params.frequency).arg(fe_params.delsys.=
+dvbs.symbol_rate));
++                                       =20
++                                        if (ioctl(fd_frontend, DVBFE_SET_D=
+ELSYS, &delsys) < 0) {
++                                            VERBOSE(VB_IMPORTANT, LOC_ERR =
++
++                                                    "Tune(): " + "DVB_SET_=
+DELSYS failed");
++                                            return false;
++                                        }
+ 		if (ioctl(fd_frontend, DVBFE_SET_PARAMS, &fe_params) =3D=3D -1) {
+-			VERBOSE(VB_IMPORTANT, LOC_ERR + "Tune(): " +
+-                        	"DVBFE_SET_PARAMS failed");
+-			return false;
++                                            VERBOSE(VB_IMPORTANT, LOC_ERR =
++ "Tune(): " +
++                                                    "DVBFE_SET_PARAMS fail=
+ed");
++                                            return false;
+ 		}
+=20
+ 	}
 
 
-
-
-
---Boundary-00=_1ZekI8uiSdLbUzD
-Content-Type: text/plain;
-  charset="us-ascii";
-  name="log1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="log1"
-
-Jul 29 10:23:21 jar kernel: af9015_usb_probe: interface:0
-Jul 29 10:23:21 jar kernel: af9015_read_config: IR mode:1
-Jul 29 10:23:21 jar kernel: af9015_read_config: TS mode:0
-Jul 29 10:23:21 jar kernel: af9015_read_config: [0] xtal:2 set adc_clock:28000
-Jul 29 10:23:21 jar kernel: af9015_read_config: [0] IF1:4570
-Jul 29 10:23:21 jar kernel: af9015_read_config: [0] MT2060 IF1:0
-Jul 29 10:23:21 jar kernel: af9015_read_config: [0] tuner id:13
-Jul 29 10:23:21 jar kernel: af9015_identify_state: reply:02
-Jul 29 10:23:21 jar kernel: dvb-usb: found a 'AVerMedia AVerTV DVB-T Volar X' in warm state.
-Jul 29 10:23:21 jar kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-Jul 29 10:23:21 jar kernel: DVB: registering new adapter (AVerMedia AVerTV DVB-T Volar X)
-Jul 29 10:23:21 jar kernel: af9015_af9013_frontend_attach: init I2C
-Jul 29 10:23:21 jar kernel: af9015_i2c_init:
-Jul 29 10:23:21 jar kernel: 00: 2b 99 99 0b 00 00 00 00 ca 07 15 a8 00 02 01 02 
-Jul 29 10:23:21 jar kernel: 10: 03 80 00 fa fa 10 40 ef 01 30 31 30 31 31 31 30 
-Jul 29 10:23:21 jar kernel: 20: 31 30 36 30 30 30 30 31 ff ff ff ff ff ff ff ff 
-Jul 29 10:23:21 jar kernel: 30: 00 00 3a 01 00 08 02 00 da 11 00 00 0d ff ff ff 
-Jul 29 10:23:21 jar kernel: 40: ff ff ff ff ff 08 02 00 1d 8d c4 04 82 ff ff ff 
-Jul 29 10:23:21 jar kernel: 50: ff ff ff ff ff 24 00 00 04 03 09 04 14 03 41 00 
-Jul 29 10:23:21 jar kernel: 60: 56 00 65 00 72 00 4d 00 65 00 64 00 69 00 61 00 
-Jul 29 10:23:21 jar kernel: 70: 0a 03 41 00 38 00 31 00 35 00 20 03 33 00 30 00 
-Jul 29 10:23:22 jar kernel: 80: 30 00 38 00 35 00 36 00 32 00 30 00 32 00 38 00 
-Jul 29 10:23:22 jar kernel: 90: 38 00 36 00 30 00 30 00 30 00 00 ff ff ff ff ff 
-Jul 29 10:23:22 jar kernel: a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 29 10:23:22 jar kernel: b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 29 10:23:22 jar kernel: c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 29 10:23:22 jar kernel: d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 29 10:23:22 jar kernel: e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 29 10:23:22 jar kernel: f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 29 10:23:22 jar kernel: af9013: chip version:1 ROM version:1.0
-Jul 29 10:23:22 jar kernel: af9013: firmware version:4.95.0
-Jul 29 10:23:22 jar kernel: DVB: registering frontend 2 (Afatech AF9013 DVB-T)...
-Jul 29 10:23:22 jar kernel: af9015_tuner_attach: 
-Jul 29 10:23:22 jar kernel: MXL5005S: Attached at address 0xc6
-Jul 29 10:23:22 jar kernel: dvb-usb: AVerMedia AVerTV DVB-T Volar X successfully initialized and connected.
-Jul 29 10:23:22 jar kernel: af9015_init:
-Jul 29 10:23:22 jar kernel: af9015_init_endpoint: USB speed:3
-Jul 29 10:23:22 jar kernel: af9015_download_ir_table:
-Jul 29 10:23:22 jar kernel: input: AVerMedia A815 as /devices/pci0000:00/0000:00:10.4/usb1/1-3/1-3:1.1/input/input8
-Jul 29 10:23:22 jar kernel: input,hidraw2: USB HID v1.01 Keyboard [AVerMedia A815] on usb-0000:00:10.4-3
-
---Boundary-00=_1ZekI8uiSdLbUzD
-Content-Type: text/plain;
-  charset="us-ascii";
-  name="log2"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="log2"
-
-Jul 31 15:46:33 jar kernel: af9015_usb_probe: interface:0
-Jul 31 15:46:33 jar kernel: af9015_identify_state: reply:02
-Jul 31 15:46:33 jar kernel: dvb-usb: found a ' AverMedia DVB-T Volar X' in warm state.
-Jul 31 15:46:33 jar kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-Jul 31 15:46:33 jar kernel: DVB: registering new adapter ( AverMedia DVB-T Volar X)
-Jul 31 15:46:33 jar kernel: af9015_eeprom_dump:
-Jul 31 15:46:33 jar kernel: 00: 2b 99 99 0b 00 00 00 00 ca 07 15 a8 00 02 01 02 
-Jul 31 15:46:33 jar kernel: 10: 03 80 00 fa fa 10 40 ef 01 30 31 30 31 31 31 30 
-Jul 31 15:46:33 jar kernel: 20: 31 30 36 30 30 30 30 31 ff ff ff ff ff ff ff ff 
-Jul 31 15:46:33 jar kernel: 30: 00 00 3a 01 00 08 02 00 da 11 00 00 0d ff ff ff 
-Jul 31 15:46:33 jar kernel: 40: ff ff ff ff ff 08 02 00 1d 8d c4 04 82 ff ff ff 
-Jul 31 15:46:33 jar kernel: 50: ff ff ff ff ff 24 00 00 04 03 09 04 14 03 41 00 
-Jul 31 15:46:33 jar kernel: 60: 56 00 65 00 72 00 4d 00 65 00 64 00 69 00 61 00 
-Jul 31 15:46:33 jar kernel: 70: 0a 03 41 00 38 00 31 00 35 00 20 03 33 00 30 00 
-Jul 31 15:46:33 jar kernel: 80: 30 00 38 00 35 00 36 00 32 00 30 00 32 00 38 00 
-Jul 31 15:46:33 jar kernel: 90: 38 00 36 00 30 00 30 00 30 00 00 ff ff ff ff ff 
-Jul 31 15:46:33 jar kernel: a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 31 15:46:33 jar kernel: b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 31 15:46:33 jar kernel: c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 31 15:46:33 jar kernel: d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 31 15:46:33 jar kernel: e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 31 15:46:33 jar kernel: f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
-Jul 31 15:46:33 jar kernel: af9015_read_config: TS mode:0
-Jul 31 15:46:33 jar kernel: af9015_read_config: xtal:2 set adc_clock:28000
-Jul 31 15:46:33 jar kernel: af9015_read_config: IF1:4570
-Jul 31 15:46:33 jar kernel: af9015_read_config: MT2060 IF1:0
-Jul 31 15:46:33 jar kernel: af9015_read_config: tuner id1:13
-Jul 31 15:46:33 jar kernel: af9015_read_config: spectral inversion:0
-Jul 31 15:46:33 jar kernel: af9013: firmware version:4.95.0
-Jul 31 15:46:33 jar kernel: DVB: registering frontend 2 (Afatech AF9013 DVB-T)...
-Jul 31 15:46:33 jar kernel: af9015_tuner_attach: 
-Jul 31 15:46:33 jar kernel: mxl500x_attach: Attaching ...
-Jul 31 15:46:33 jar kernel: mxl500x_attach: MXL500x tuner succesfully attached
-Jul 31 15:46:33 jar kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-Jul 31 15:46:33 jar kernel: DVB: registering new adapter ( AverMedia DVB-T Volar X)
-Jul 31 15:46:33 jar kernel: dvb-usb: no frontend was attached by ' AverMedia DVB-T Volar X'
-Jul 31 15:46:33 jar kernel: dvb-usb:  AverMedia DVB-T Volar X successfully initialized and connected.
-Jul 31 15:46:33 jar kernel: af9015_init:
-Jul 31 15:46:33 jar kernel: af9015_init_endpoint: USB speed:3
-Jul 31 15:46:33 jar kernel: af9015_download_ir_table:
-Jul 31 15:46:33 jar kernel: input: AVerMedia A815 as /devices/pci0000:00/0000:00:10.4/usb1/1-8/1-8:1.1/input/input8
-
---Boundary-00=_1ZekI8uiSdLbUzD
+--=-17hairn8cj7Ik9m5l9sT
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -162,4 +182,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_1ZekI8uiSdLbUzD--
+--=-17hairn8cj7Ik9m5l9sT--
