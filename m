@@ -1,17 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from proxima.lp0.eu ([85.158.45.36] ident=exim)
+Received: from zeus.freepage.ro ([86.35.4.2] helo=freepage.ro)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon@fire.lp0.eu>) id 1KJoV8-0001TD-DG
-	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 13:51:55 +0200
-Message-ID: <38354.simon.1216381906@5ec7c279.invalid>
-In-Reply-To: <6dd519ae0807180428k30abd15eo60fd2856f7a43821@mail.gmail.com>
-References: <6dd519ae0807180428k30abd15eo60fd2856f7a43821@mail.gmail.com>
-Date: Fri, 18 Jul 2008 12:51:46 +0100
-From: "Simon Arlott" <simon@fire.lp0.eu>
-To: "Brian Marete" <bgmarete@gmail.com>
+	(envelope-from <aron@aron.ws>) id 1KHlUu-0000Lg-R7
+	for linux-dvb@linuxtv.org; Sat, 12 Jul 2008 22:15:13 +0200
+Received: from localhost (zeus.freepage.ro [127.0.0.1])
+	by freepage.ro (Postfix) with ESMTP id C5DE0794021
+	for <linux-dvb@linuxtv.org>; Sat, 12 Jul 2008 23:15:40 +0300 (EEST)
+Received: from freepage.ro ([127.0.0.1])
+	by localhost (zeus.freepage.ro [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id N78Q7F636kdn for <linux-dvb@linuxtv.org>;
+	Sat, 12 Jul 2008 23:15:32 +0300 (EEST)
+Received: from mail.aron.ws (aron.ws [195.70.62.6])
+	by freepage.ro (Postfix) with ESMTP id 4D57F794001
+	for <linux-dvb@linuxtv.org>; Sat, 12 Jul 2008 23:15:29 +0300 (EEST)
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [linux-dvb] [PATCH] V4L: Link tuner before saa7134
+Date: Sat, 12 Jul 2008 22:14:39 +0200
+From: <aron@aron.ws>
+To: linux-dvb@linuxtv.org
+Message-ID: <b41e8f3c4a9cb4d75911359c066dfd90@freepage.ro>
+Content-Type: multipart/mixed;
+	boundary="=_1058e8157b431b8ad412bf465e251ba9"
+Subject: Re: [linux-dvb] em28xx problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,66 +28,72 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--=_1058e8157b431b8ad412bf465e251ba9
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, July 18, 2008 12:28, Brian Marete wrote:
-> On Jul 14, 6:00 am, hermann pitton <hermann-pit...@arcor.de> wrote:
->>
->> #1 users can't set thetunertype anymore,
->>    but the few cases oftunerdetection from eeprom we have should
->>    work again for that price.
->
-> Hello,
->
-> Any patch yet for above issue? It seems to have made it into 2.6.26.
->
-> I use saa7134 with everything, including the tuner modules, compiled
-> as a module. My card is detected as a flyvideo2000. The default tuner
-> for that card (#37) allows me to tune into TV but not to FM Radio. I
-> can access both functions (TV and FM Radio) if I override with
-> tuner=69, which is what I usually do. That override does not work on
-> 2.6.26.
->
-> Any suggestions?
+Hi!
 
-Modify saa7134_board_init2 so that the manual tuner type setting isn't
-ignored. The first thing it does is to overwrite the current value
-(set earlier from module parameter) with the static values... even
-before trying to autodetect it.
+I've attached the patch that I've promised!
+This is my first patch to a software so if something is wrong please don'=
+t
+behead me!
 
-In saa7134-core.c saa7134_initdev:
- dev->tuner_type   = saa7134_boards[dev->board].tuner_type;
-+dev->tuner_addr   = saa7134_boards[dev->board].tuner_addr;
+:)
+Aron
 
-In saa7134-cards.c saa7134_board_init2:
--dev->tuner_type   = saa7134_boards[dev->board].tuner_type;
--dev->tuner_addr   = saa7134_boards[dev->board].tuner_addr;
+--=_1058e8157b431b8ad412bf465e251ba9
+Content-Transfer-Encoding: base64
+Content-Type: application/octet-stream; name="em28xx.h.diff"; charset="UTF-8"
+Content-Disposition: attachment; filename="em28xx.h.diff"
 
-I think that will fix it.
+LS0tIGxpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC5oCTIwMDgtMDctMDYg
+MDk6MjI6NDMuMDAwMDAwMDAwICswMjAwCisrKyBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2Vt
+Mjh4eC9lbTI4eHguaAkyMDA4LTA3LTA1IDIzOjI4OjQyLjAwMDAwMDAwMCArMDIwMApAQCAtNjEs
+NiArNjEsNyBAQAogI2RlZmluZSBFTTI4ODBfQk9BUkRfUElOTkFDTEVfUENUVl9IRF9QUk8JMTcK
+ICNkZWZpbmUgRU0yODgwX0JPQVJEX0hBVVBQQVVHRV9XSU5UVl9IVlJfOTAwX1IyCTE4CiAjZGVm
+aW5lIEVNMjg2MF9CT0FSRF9QT0lOVE5JWF9JTlRSQU9SQUxfQ0FNRVJBICAxOQorI2RlZmluZSBF
+TTI4MDBfQk9BUkRfR1JBQkJFRVhfVVNCMjgwMCAgICAgICAgICAgMjAKIAogLyogTGltaXRzIG1p
+bmltdW0gYW5kIGRlZmF1bHQgbnVtYmVyIG9mIGJ1ZmZlcnMgKi8KICNkZWZpbmUgRU0yOFhYX01J
+Tl9CVUYgNAo=
+--=_1058e8157b431b8ad412bf465e251ba9
+Content-Transfer-Encoding: base64
+Content-Type: application/octet-stream; name="em28xx-cards.c.diff"; charset="UTF-8"
+Content-Disposition: attachment; filename="em28xx-cards.c.diff"
 
->
-> Thanks,
->
-> --
-> B. Gitonga Marete
-> Tel: +254-722-151-590
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
->
-
-
--- 
-Simon Arlott
+LS0tIGxpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC1jYXJkcy5jCTIwMDgt
+MDctMDYgMDk6MjI6NDMuMDAwMDAwMDAwICswMjAwCisrKyBsaW51eC9kcml2ZXJzL21lZGlhL3Zp
+ZGVvL2VtMjh4eC9lbTI4eHgtY2FyZHMuYwkyMDA4LTA3LTA2IDA5OjMzOjAzLjAwMDAwMDAwMCAr
+MDIwMApAQCAtMzUwLDYgKzM1MCwyMSBAQAogCQkJLmFtdXggICAgID0gMSwKIAkJfSB9LAogCX0s
+CisJW0VNMjgwMF9CT0FSRF9HUkFCQkVFWF9VU0IyODAwXSA9IHsKKwkJLm5hbWUgICAgICAgICA9
+ICJlTVBJQSBUZWNobm9sb2d5LCBJbmMuIEdyYWJCZWVYKyBWaWRlbyBFbmNvZGVyIiwKKwkJLmlz
+X2VtMjgwMCAgICA9IDEsCisJCS52Y2hhbm5lbHMgICAgPSAyLAorCQkuZGVjb2RlciAgICAgID0g
+RU0yOFhYX1NBQTcxMTMsCisJCS5pbnB1dCAgICAgICAgICA9IHsgeworCQkJLnR5cGUgICAgID0g
+RU0yOFhYX1ZNVVhfQ09NUE9TSVRFMSwKKwkJCS52bXV4ICAgICA9IFNBQTcxMTVfQ09NUE9TSVRF
+MCwKKwkJCS5hbXV4ICAgICA9IDEsCisJCX0sIHsKKwkJCS50eXBlICAgICA9IEVNMjhYWF9WTVVY
+X1NWSURFTywKKwkJCS52bXV4ICAgICA9IFNBQTcxMTVfU1ZJREVPMywKKwkJCS5hbXV4ICAgICA9
+IDEsCisJCX0gfSwKKwl9LAogCVtFTTI4MDBfQk9BUkRfS1dPUkxEX1VTQjI4MDBdID0gewogCQku
+bmFtZSAgICAgICAgID0gIkt3b3JsZCBVU0IyODAwIiwKIAkJLmlzX2VtMjgwMCAgICA9IDEsCkBA
+IC00OTMsNiArNTA4LDggQEAKIAkJCS5kcml2ZXJfaW5mbyA9IEVNMjg4MF9CT0FSRF9URVJSQVRF
+Q19IWUJSSURfWFMgfSwKIAl7IFVTQl9ERVZJQ0UoMHgwY2NkLCAweDAwNDcpLAogCQkJLmRyaXZl
+cl9pbmZvID0gRU0yODgwX0JPQVJEX1RFUlJBVEVDX1BST0RJR1lfWFMgfSwKKwl7IFVTQl9ERVZJ
+Q0UoMHhlYjFhLCAweDI4MDEpLAorCQkJLmRyaXZlcl9pbmZvID0gRU0yODAwX0JPQVJEX0dSQUJC
+RUVYX1VTQjI4MDAgfSwKIAl7IH0sCiB9OwogTU9EVUxFX0RFVklDRV9UQUJMRSh1c2IsIGVtMjh4
+eF9pZF90YWJsZSk7CkBAIC04MTAsNiArODI3LDggQEAKIAkJYnJlYWs7CiAJY2FzZSAoRU0yODAw
+X0JPQVJEX0tXT1JMRF9VU0IyODAwKToKIAkJYnJlYWs7CisJY2FzZSAoRU0yODAwX0JPQVJEX0dS
+QUJCRUVYX1VTQjI4MDApOgorCQlicmVhazsKIAl9CiB9CiAK
+--=_1058e8157b431b8ad412bf465e251ba9
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--=_1058e8157b431b8ad412bf465e251ba9--
