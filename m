@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6NC8h99022900
-	for <video4linux-list@redhat.com>; Wed, 23 Jul 2008 08:08:43 -0400
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6NC88xi014706
-	for <video4linux-list@redhat.com>; Wed, 23 Jul 2008 08:08:09 -0400
-Message-ID: <48872112.8070205@hhs.nl>
-Date: Wed, 23 Jul 2008 14:16:18 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6DGeH0k029444
+	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 12:40:17 -0400
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.169])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6DGdgEM010571
+	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 12:39:42 -0400
+Received: by ug-out-1314.google.com with SMTP id s2so147734uge.6
+	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 09:39:42 -0700 (PDT)
+Date: Sun, 13 Jul 2008 18:39:52 +0200
+From: Domenico Andreoli <cavokz@gmail.com>
+To: Michael Buesch <mb@bu3sch.de>
+Message-ID: <20080713163952.GA32494@ska.dandreoli.com>
+References: <200807101914.10174.mb@bu3sch.de> <200807131215.12082.mb@bu3sch.de>
+	<20080713154333.GA32133@ska.dandreoli.com>
+	<200807131808.35599.mb@bu3sch.de>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: [PULL] libv4l 0.3.7 release,
-	add spca505/6 and spca508 format support
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200807131808.35599.mb@bu3sch.de>
+Cc: David Brownell <david-b@pacbell.net>, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3] Add bt8xxgpio driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,35 +32,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
+On Sun, Jul 13, 2008 at 06:08:35PM +0200, Michael Buesch wrote:
+> On Sunday 13 July 2008 17:43:33 Domenico Andreoli wrote:
+> > 
+> > Index: v4l-dvb.git/drivers/media/video/bt8xx/Makefile
+> > ===================================================================
+> > --- v4l-dvb.git.orig/drivers/media/video/bt8xx/Makefile	2008-07-13 15:52:08.000000000 +0200
+> > +++ v4l-dvb.git/drivers/media/video/bt8xx/Makefile	2008-07-13 17:11:27.000000000 +0200
+> > @@ -6,7 +6,11 @@
+> >  		       bttv-risc.o bttv-vbi.o bttv-i2c.o bttv-gpio.o \
+> >  		       bttv-input.o bttv-audio-hook.o
 
-The spca505/506/508 drivers still do some in kernel format conversion. JF Moine 
-  is planning on ripping those out and asked me to add support for converting 
-from the raw cam formats into something usefull to libv4l.
+[...]
 
-Thus I've just pushed a new libv4l to my tree, please pull from 
-http://linuxtv.org/hg/~hgoede/v4l-dvb/
-for this, note my tree also still contains 4 gspca-sonixb patches, as reported 
-before.
+> > +
+> > +static void __devexit bttv_gpiolib_remove(struct bttv_sub_device *sub)
+> > +{
+> > +	int ret;
+> > +	struct bttv_gpiolib_device *device = dev_get_drvdata(&sub->dev);
+> > +
+> > +	while((ret = gpiochip_remove(&device->chip)) != 0) {
+> > +		printk(KERN_INFO "error unregistering chip %s: %d\n", device->chip.label, ret);
+> > +		schedule();
+> > +	}
+> 
+> This loop is dangerous.
+> Simply try to unregister it and exit with an error message if it failed.
+> Looping is of no use.
+> In fact, I think gpiochip_remove should return void. Drivers cannot
+> do anything if it failed, anyway.
 
-changeset:   8435:902786b1451d
-gspca_sonixb sn9c103 + ov7630 autoexposure and cleanup
+Here the module is going to free device structure. Ignoring the error
+looks even more dangerous to me. I need to see if scheduling while
+unloading a module is allowed.
 
-changeset:   8436:80f6ae943cdf
-gspca_sonixb remove non working ovXXXX contrast, hue and saturation ctrls
+[...]
 
-changeset:   8437:b1a9e9edc9af
-gspca_sonixb remove some no longer needed sn9c103+ov7630 special cases
+> >
+> > Index: v4l-dvb.git/drivers/media/video/bt8xx/bttv.h
+> > ===================================================================
+> > --- v4l-dvb.git.orig/drivers/media/video/bt8xx/bttv.h	2008-07-13 15:52:08.000000000 +0200
+> > +++ v4l-dvb.git/drivers/media/video/bt8xx/bttv.h	2008-07-13 16:53:42.000000000 +0200
+> > @@ -249,6 +249,8 @@
+> >  	void (*audio_mode_gpio)(struct bttv *btv, struct v4l2_tuner *tuner, int set);
+> >  
+> >  	void (*muxsel_hook)(struct bttv *btv, unsigned int input);
+> > +
+> > +	unsigned int has_gpiolib:1;
+> 
+> :1 style bitfields generate ugly code and they make no sense most of
+> the time. better use "bool".
 
-changeset:   8438:58294e459717
-gspca_sonixb remove one more no longer needed special case from the code
+This is copied stuff from bt8xxgpio and dvb-bt8xx ;)
 
-changrset:   8439:e84b4fbc4322
-libv4l 0.3.7 release, add spca505/6 and spca508 format support
+Thanks,
+Domenico
 
-Regards,
-
-Hans
+-----[ Domenico Andreoli, aka cavok
+ --[ http://www.dandreoli.com/gpgkey.asc
+   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
 
 --
 video4linux-list mailing list
