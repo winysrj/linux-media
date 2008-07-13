@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ACXeVx008845
-	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 08:33:40 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.226])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ACXUSP029621
-	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 08:33:30 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so4080733rvb.51
-	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 05:33:29 -0700 (PDT)
-Message-ID: <d9def9db0807100533u4a765210k8cce4b5ce5bec703@mail.gmail.com>
-Date: Thu, 10 Jul 2008 14:33:29 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Jean Delvare" <khali@linux-fr.org>
-In-Reply-To: <20080710132337.11ca4706@hyperion.delvare>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6DJMace010693
+	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 15:22:36 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6DJLjw0002146
+	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 15:21:47 -0400
+Message-ID: <487A577F.8080300@hhs.nl>
+Date: Sun, 13 Jul 2008 21:29:03 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Andrea <audetto@tiscali.it>
+References: <487908CA.8000304@tiscali.it> <48790D29.1010404@hhs.nl>
+	<4879E767.4000103@tiscali.it>
+In-Reply-To: <4879E767.4000103@tiscali.it>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <20080710132337.11ca4706@hyperion.delvare>
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [v4l-dvb-maintainer] [PATCH] tvaudio: Stop I2C driver ID abuse
+Cc: video4linux-list@redhat.com
+Subject: Re: prototype of a USB v4l2 driver? gspca?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,27 +28,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Jean,
+Andrea wrote:
+> Hans de Goede wrote:
+>> Andrea wrote:
+>>
+>> What kind of device, I think that for webcams you;re best using gspca, 
+>> (now merged in mecurial), that handles all the usb specific stuff, 
+>> buffer management, etc. In general it makes it easy to write a webcam 
+>> driver allowing you to focus on the interaction with the cam, rather 
+>> then having to worry about looking, usb specifics, buffer management etc.
+>>
+> 
+> I've had a quick look at the structure of gspca, and it seems that any 
+> subdriver should just (easier to say that to do) fill one of those 
+> structures
+> 
 
-On Thu, Jul 10, 2008 at 1:23 PM, Jean Delvare <khali@linux-fr.org> wrote:
-> The tvaudio driver is using "official" I2C device IDs for internal
-> purpose. There must be some historical reason behind this but anyway,
-> it shouldn't do that. As the stored values are never used, the easiest
-> way to fix the problem is simply to remove them altogether.
->
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
-> This patch was already sent on:
->  * 2008-05-07
->
+Correct.
 
-how would you identify what chip driver is attached in the
-attach_inform callback, using string compare to the name?
-using the ID was more comfortable actually, but I understand your
-point for removing it too.
+> struct sd_desc {
+> /* information */
+>     const char *name;    /* sub-driver name */
+> /* controls */
+>     const struct ctrl *ctrls;
+>     int nctrls;
+> /* operations */
+>     cam_cf_op config;    /* called on probe */
+>     cam_op open;        /* called on open */
+>     cam_v_op start;        /* called on stream on */
+>     cam_v_op stopN;        /* called on stream off - main alt */
+>     cam_v_op stop0;        /* called on stream off - alt 0 */
+>     cam_v_op close;        /* called on close */
+>     cam_pkt_op pkt_scan;
+> /* optional operations */
+>     cam_v_op dq_callback;    /* called when a frame has been dequeued */
+>     cam_jpg_op get_jcomp;
+>     cam_jpg_op set_jcomp;
+>     cam_qmnu_op querymenu;
+> };
+> 
+> 1) providing ctrls (+ functions to handle settings)
+> 2) functions to open/stream/close etc...
+> 
+> It does not seem too bad.
+> 
 
-thanks,
-Markus
+It isn't.
+
+> The a natural question that comes to me:
+> 
+> Shouldn't many more USB drivers be implemented as subdrivers of gspca?
+
+Yes that would remove lots of code duplication, but allas they were written 
+before gspca (version 2, as you currently see in mercurial) was around.
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
