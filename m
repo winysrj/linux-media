@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from server30.ukservers.net ([217.10.138.207])
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@nzbaxters.com>) id 1KIHFl-0000np-5i
-	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 08:09:44 +0200
-Message-ID: <000301c8e578$1dbcd550$7501010a@ad.sytec.com>
-From: "Simon Baxter" <linuxtv@nzbaxters.com>
-To: "Arthur Konovalov" <artlov@gmail.com>, "linux-dvb" <linux-dvb@linuxtv.org>
-References: <20080615192300.90886244.SiestaGomez@web.de>	<4855F6B0.8060507@gmail.com><1213620050.6543.6.camel@pascal>	<20080616142616.75F9C3BC99@waldorfmail.homeip.net><1213626832.6543.23.camel@pascal>
-	<4856B6FD.1080906@gmail.com>
-Date: Mon, 14 Jul 2008 14:31:00 +1200
+	(envelope-from <mkrufky@linuxtv.org>) id 1KIFmk-0001wF-MU
+	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 06:35:42 +0200
+Message-ID: <487AD795.9030205@linuxtv.org>
+Date: Mon, 14 Jul 2008 00:35:33 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
+To: Johannes Weber <jowebe@web.de>
+References: <1068982688@web.de>
+In-Reply-To: <1068982688@web.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] problems with smscoreapi
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,45 +25,61 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Sigmund Augdal wrote:
->> Both transponders reported to not tune here has different symbolrates
->> from what I used for my testing. Maybe this is relevant in some way.
->> Could you please compare this with the channels that did tune to see if
->> there is a pattern?
->
-> From my side i can add that all frequency from local cable provider's
-> works with c-1501 except one:
-> 274
-> 282
-> 290
-> 298
-> 306
-> 314
-> 386 NO LOCK
-> 394
-> 402
-> 410
-> All channels QAM64 and SR 6875.
->
-> In the same PC I have second DVB-C card (KNC One DVB-C), which sharing
-> same cable with c-1501 and there no problem with reception and signal's
-> strength. This is reason why I did not discover current problem earlier. 
-> :(
->
-> Arthur
+Johannes Weber wrote:
+>  CC [M]  /root/v4l-dvb/v4l/smscoreapi.o
+> /root/v4l-dvb/v4l/smscoreapi.c: In function 'smscore_detect_mode':
+> /root/v4l-dvb/v4l/smscoreapi.c:689: error: 'uintptr_t' undeclared (first use in this function)
+> /root/v4l-dvb/v4l/smscoreapi.c:689: error: (Each undeclared identifier is reported only once
+> /root/v4l-dvb/v4l/smscoreapi.c:689: error: for each function it appears in.)
+> /root/v4l-dvb/v4l/smscoreapi.c: In function 'smscore_set_device_mode':
+> /root/v4l-dvb/v4l/smscoreapi.c:820: error: 'uintptr_t' undeclared (first use in this function)
+> make[5]: *** [/root/v4l-dvb/v4l/smscoreapi.o] Error 1
+> make[4]: *** [_module_/root/v4l-dvb/v4l] Error 2
+> make[3]: *** [modules] Error 2
+> make[2]: *** [modules] Error 2
+> make[2]: Leaving directory `/usr/src/linux-2.6.22.18-0.2-obj/i386/default'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/root/v4l-dvb/v4l'
+> make: *** [all] Error 2
 
-Did you have any luck tying this down?
 
-I have a few channels which show no signal strength and won't lock, but it 
-works on my other C-2300 and C-1500 cards.
+Please try this patch:
 
-Also, have a problem getting stable sound.  I switch to a new channel (with 
-VDR) and the sound cuts in/out/in/out/in - and occasionally just in/out (ie 
-no sound)
+# HG changeset patch
+# User Michael Krufky <mkrufky@linuxtv.org>
+# Date 1216010022 14400
+# Node ID 9ccf2533792a1e91988ae827190d1472f96e1ba4
+# Parent  d49b1e522b37ecdbe659b234f156788216216b11
+sms1xxx: fix compat for kernel 2.6.22 and earlier
 
-Have the current/latest changes been committed?  Or is there a latest patch 
-floating around for v4l-dvb?? 
+From: Michael Krufky <mkrufky@linuxtv.org>
 
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+
+diff -r d49b1e522b37 -r 9ccf2533792a linux/drivers/media/dvb/siano/smscoreapi.h
+--- a/linux/drivers/media/dvb/siano/smscoreapi.h	Sat Jul 12 18:58:24 2008 -0400
++++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Mon Jul 14 00:33:42 2008 -0400
+@@ -29,7 +29,7 @@
+ #include <linux/scatterlist.h>
+ #include <linux/types.h>
+ #include <asm/page.h>
+-
++#include "compat.h"
+ #include "dmxdev.h"
+ #include "dvbdev.h"
+ #include "dvb_demux.h"
+diff -r d49b1e522b37 -r 9ccf2533792a v4l/compat.h
+--- a/v4l/compat.h	Sat Jul 12 18:58:24 2008 -0400
++++ b/v4l/compat.h	Mon Jul 14 00:33:42 2008 -0400
+@@ -210,4 +210,8 @@ static inline struct proc_dir_entry *pro
+ 
+ #endif
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 23)
++typedef unsigned long uintptr_t;
+ #endif
++
++#endif
 
 _______________________________________________
 linux-dvb mailing list
