@@ -1,24 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6U3KYLO023377
-	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 23:20:34 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6U3KK3U000865
-	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 23:20:20 -0400
-Date: Wed, 30 Jul 2008 00:19:56 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080730001956.15c67493@gaivota>
-In-Reply-To: <1217385358.2671.28.camel@pc10.localdom.local>
-References: <20080711231113.13054808@hyperion.delvare>
-	<20080729121938.3d4668f4@gaivota>
-	<1217385358.2671.28.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Jean Delvare <khali@linux-fr.org>, v4l-dvb-maintainer@linuxtv.org,
-	video4linux-list@redhat.com
-Subject: Re: bt832 driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6EFj419025735
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 11:45:04 -0400
+Received: from mta1.srv.hcvlny.cv.net (mta1.srv.hcvlny.cv.net [167.206.4.196])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6EFir62028468
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 11:44:53 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K40005IZ6ENMG01@mta1.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Mon, 14 Jul 2008 11:44:47 -0400 (EDT)
+Date: Mon, 14 Jul 2008 11:44:46 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <E1KIPmW-000DK0-00.kr4v4-mail-ru@f116.mail.ru>
+To: kr4v4 <kr4v4@mail.ru>
+Message-id: <487B746E.5080100@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=windows-1251; format=flowed
+Content-transfer-encoding: 7BIT
+References: <E1KIPmW-000DK0-00.kr4v4-mail-ru@f116.mail.ru>
+Cc: video4linux-list@redhat.com
+Subject: Re: AVerMedia HC81R PCI-e Hybrid DVB-T
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,89 +33,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 30 Jul 2008 04:35:58 +0200
-hermann pitton <hermann-pitton@arcor.de> wrote:
+kr4v4 wrote:
+> I am try add support for AVerMedia HC81R PCI-e Hybrid DVB-T, but i am stuck. What i do wrong?
+>  
+> Additional information in attachments.
 
-> Hi,
-> 
-> Am Dienstag, den 29.07.2008, 12:19 -0300 schrieb Mauro Carvalho Chehab:
-> > Hi Jean,
-> > 
-> > On Fri, 11 Jul 2008 23:11:13 +0200
-> > Jean Delvare <khali@linux-fr.org> wrote:
-> > 
-> > > Hi Mauro,
-> > > 
-> > > As part of the next big i2c-core change, I must update all the legacy
-> > > i2c drivers. I was about to update the bt832 driver, but found that
-> > > there was no reference to it in the build system. After adding a
-> > > reference to force it to build, I found that it wouldn't actually
-> > > build, because the last change to the driver broke it and apparently
-> > > nobody noticed. Looking at the code, the driver doesn't appear to be
-> > > functional.
-> > > 
-> > > So rather than wasting my time fixing this broken driver nobody is
-> > > using, I believe that it would be better to delete it. If this is OK
-> > > with you, here's a patch doing that. Thanks.
-> > 
-> > I'm ok with this removal.
-> > 
-> > Since you did your patch against -git, it doesn't apply at -hg. So, I've
-> > re-generated it. Please check if everything is all right. I did a small
-> > additional cleanup at bttv driver, since you've kept a test that is not needed
-> > anymore.
-> > 
-> > Cheers,
-> > Mauro.
-> 
-> I'm not sure, if any of you is aware about the extend of contribution we
-> have from Gunther.
-> 
-> Mauro should at least be a little.
-> 
-> To remove it likely is fine, but there should be at least an attempt to
-> inform the author.
-> 
-> http://www.bttv-gallery.de
-> 
-> is only a minor part of his work, but is still without any even close to
-> it.
-> 
-> Else I'm talking about several hundreds crucial and substantial patches
-> he provided in the past, not to forget that he is a coauthor of tuner.
-> 
-> I don't like that style to proceed, without even trying to reach those
-> on whose back and work we still stand.
+The A/V core for your board may/may-not have some non-standard crystal 
+frequencies - as yet not understood by the cx25840 driver. This impacts 
+the A/V core timing and is currently unsupported for anything other than 
+NTSC on some specific Hauppauge boards.
 
+That probably explain example the risc timeouts.
 
-Hermann,
+This is the reason I haven't focused on PAL support with the cx23885 
+with any Hauppauge boards. (Amongst other things).
 
-There's nothing personal on it. 
+Try DVB-T, you may have better luck.
 
-The points are:
+Regards,
 
-- bt832 driver were written on 2002, according with the copyright message on
-the file (so, probably for some old bttv devices with a camera connection - are
-those devices still being used?);
-
-- the messages on bttv driver states that it is currently not working yet (when
-this message were written? Probably, when the driver were inserted on kernel);
-
-- the code that would load it or set it up on bttv is commented with #if 0;
-
-- the Makefile's don't compile this driver.
-
-I may be wrong, but it seems to me that this driver never worked.
-
-It is fine for me if Gunther or anyone else wants to fix the driver. However,
-the way it is, I can't see any sense on keeping it on kernel.
-
-Gunther,
-
-What's your opinion about this driver?
-
-Cheers,
-Mauro
+- Steve
 
 --
 video4linux-list mailing list
