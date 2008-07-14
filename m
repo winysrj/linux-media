@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m69Lhjo3029435
-	for <video4linux-list@redhat.com>; Wed, 9 Jul 2008 17:43:45 -0400
-Received: from mailrelay006.isp.belgacom.be (mailrelay006.isp.belgacom.be
-	[195.238.6.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m69LgqX6003718
-	for <video4linux-list@redhat.com>; Wed, 9 Jul 2008 17:42:52 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: "David Ellingsworth" <david@identd.dyndns.org>
-Date: Wed, 9 Jul 2008 23:42:51 +0200
-References: <30353c3d0807081923o6ba66d34oac44d5bb98fd0e3a@mail.gmail.com>
-In-Reply-To: <30353c3d0807081923o6ba66d34oac44d5bb98fd0e3a@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807092342.51633.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] videodev: fix kobj ref count
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6EC2cXp004443
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:02:38 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.227])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6EC17mD000689
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:02:28 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so5595802rvb.51
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 05:02:28 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
+To: video4linux-list@redhat.com
+Date: Mon, 14 Jul 2008 21:02:40 +0900
+Message-Id: <20080714120240.4806.15664.sendpatchset@rx1.opensource.se>
+In-Reply-To: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
+References: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
+Cc: paulius.zaleckas@teltonika.lt, linux-sh@vger.kernel.org,
+	mchehab@infradead.org, lethal@linux-sh.org,
+	akpm@linux-foundation.org, g.liakhovetski@gmx.de
+Subject: [PATCH 04/06] videobuf: Add physically contiguous queue code V3
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,210 +28,517 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi David,
+This is V3 of the physically contiguous videobuf queues patch.
+Useful for hardware such as the SuperH Mobile CEU which doesn't
+support scatter gatter bus mastering.
 
-On Wednesday 09 July 2008, David Ellingsworth wrote:
-> Mauro,
->
-> If Laurent approves, please apply the following patch to the devel
-> branch. I've been using it locally for the past five days or so
-> without issue.
->
-> This patch increments the kobject reference count during video_open
-> and decrements it during video_close. Doing so allows
-> video_unregister_device to be called during the disconnect callback of
-> usb and pci devices. It also ensures that the video_device struct is
-> not freed while it is still in use and that the kobject release
-> callback occurs at the appropriate time. With this patch, the
-> following sequence is now possible and no longer results in a crash.
->
-> video_open
->   disconnect
->     video_unregister_device
->       video_ioctl2 (crash was here)
->         video_close
->           video_release
->
-> Regards,
->
-> David Ellingsworth
->
-> Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
-> ---
->  drivers/media/video/videodev.c |   50
-> +++++++++++++++++++++++++++------------ include/media/v4l2-dev.h       |   
-> 1 +
->  2 files changed, 35 insertions(+), 16 deletions(-)
->
-> diff --git a/drivers/media/video/videodev.c
-> b/drivers/media/video/videodev.c index 0d52819..9922cd6 100644
-> --- a/drivers/media/video/videodev.c
-> +++ b/drivers/media/video/videodev.c
-> @@ -406,17 +406,22 @@ void video_device_release(struct video_device *vfd)
->  }
->  EXPORT_SYMBOL(video_device_release);
->
-> +/*
-> + *	Active devicesSigned-off-by: David Ellingsworth
-> <david@identd.dyndns.org> ---
->  drivers/media/video/videodev.c |   50
-> +++++++++++++++++++++++++++------------ include/media/v4l2-dev.h       |   
-> 1 +
->  2 files changed, 35 insertions(+), 16 deletions(-)
+Since it may be difficult to allocate large chunks of physically
+contiguous memory after some uptime due to fragmentation, this code
+allocates memory using dma_alloc_coherent(). Architectures supporting
+dma_declare_coherent_memory() can easily avoid fragmentation issues
+by using dma_declare_coherent_memory() to force dma_alloc_coherent()
+to allocate from a certain pre-allocated memory area.
 
-Copy & paste issue ?
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+---
 
-> diff --git a/drivers/media/video/videodev.c
-> b/drivers/media/video/videodev.c index 0d52819..9922cd6 100644
-> --- a/drivers/media/video/videodev.c
-> +++ b/drivers/media/video/videodev.c
-> @@ -406,17 +406,22 @@ void video_device_release(struct video_device *vfd)
->  }
->  EXPORT_SYMBOL(video_device_release);
->
-> +/*
-> + *	Active devices
-> + */
-> +
-> +static struct video_device *video_device[VIDEO_NUM_DEVICES];
-> +static DEFINE_MUTEX(videodev_lock);
-> +
-> +/* must be called with videodev_lock held */
->  static void video_release(struct device *cd)
->  {
->  	struct video_device *vfd = container_of(cd, struct video_device,
->  								class_dev);
->
-> -#if 1
-> -	/* needed until all drivers are fixed */
-> -	if (!vfd->release)
-> -		return;
-> -#endif
-> -	vfd->release(vfd);
-> +	if (vfd->release)
-> +		vfd->release(vfd);
-> +	video_device[vfd->minor] = NULL;
->  }
->
->  static struct device_attribute video_device_attrs[] = {
-> @@ -431,19 +436,30 @@ static struct class video_class = {
->  	.dev_release = video_release,
->  };
->
-> -/*
-> - *	Active devices
-> - */
-> -
-> -static struct video_device *video_device[VIDEO_NUM_DEVICES];
-> -static DEFINE_MUTEX(videodev_lock);
-> -
->  struct video_device* video_devdata(struct file *file)
->  {
->  	return video_device[iminor(file->f_path.dentry->d_inode)];
->  }
->  EXPORT_SYMBOL(video_devdata);
->
-> +static int video_close(struct inode *inode, struct file *file)
-> +{
-> +	unsigned int minor = iminor(inode);
-> +	int err = 0;
-> +	struct video_device *vfl;
-> +
-> +	vfl = video_device[minor];
-> +
-> +	if (vfl->fops && vfl->fops->release)
-> +		err = vfl->fops->release(inode, file);
-> +
-> +	mutex_lock(&videodev_lock);
-> +	kobject_put(&vfl->class_dev.kobj);
-> +	mutex_unlock(&videodev_lock);
-> +
-> +	return err;
-> +}
-> +
->  /*
->   *	Open a video device - FIXME: Obsoleted
->   */
-> @@ -469,10 +485,11 @@ static int video_open(struct inode *inode,
-> struct file *file)
->  		}
->  	}
->  	old_fops = file->f_op;
-> -	file->f_op = fops_get(vfl->fops);
-> -	if(file->f_op->open)
-> +	file->f_op = fops_get(&vfl->priv_fops);
-> +	if (file->f_op->open && kobject_get(&vfl->class_dev.kobj))
+ Changes since V2
+  - use dma_handle for physical address
+  - use "scatter gather" instead of "scatter gatter"
 
-Shouldn't kobject_get be called even if file->f_op->open is NULL ?
+ Changes since V1:
+  - use dev_err() instead of pr_err()
+  - remember size in struct videobuf_dma_contig_memory
+  - keep struct videobuf_dma_contig_memory in .c file
+  - let videobuf_to_dma_contig() return dma_addr_t
+  - implement __videobuf_sync()
+  - return statements, white space and other minor fixes
 
->  		err = file->f_op->open(inode,file);
->  	if (err) {
-> +		kobject_put(&vfl->class_dev.kobj);
->  		fops_put(file->f_op);
->  		file->f_op = fops_get(old_fops);
->  	}
-> @@ -2175,6 +2192,8 @@ int video_register_device_index(struct
-> video_device *vfd, int type, int nr,
->  	}
->
->  	vfd->index = ret;
-> +	vfd->priv_fops = *vfd->fops;
-> +	vfd->priv_fops.release = video_close;
->
->  	mutex_unlock(&videodev_lock);
->  	mutex_init(&vfd->lock);
-> @@ -2225,7 +2244,6 @@ void video_unregister_device(struct video_device
-> *vfd) if(video_device[vfd->minor]!=vfd)
->  		panic("videodev: bad unregister");
->
-> -	video_device[vfd->minor]=NULL;
->  	device_unregister(&vfd->class_dev);
->  	mutex_unlock(&videodev_lock);
->  }
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index 3c93414..d4fe617 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -342,6 +342,7 @@ void *priv;
->  	/* for videodev.c intenal usage -- please don't touch */
->  	int users;                     /* video_exclusive_{open|close} ... */
->  	struct mutex lock;             /* ... helper function uses these   */
-> +	struct file_operations priv_fops; /* video_close */
->  };
->
->  /* Class-dev to video-device */
+ drivers/media/video/Kconfig               |    5 
+ drivers/media/video/Makefile              |    1 
+ drivers/media/video/videobuf-dma-contig.c |  417 +++++++++++++++++++++++++++++
+ include/media/videobuf-dma-contig.h       |   32 ++
+ 4 files changed, 455 insertions(+)
 
-The rest looks ok to me. Just one last question, in a previous e-mail you 
-stated
-
-On Wednesday 02 July 2008, David Ellingsworth wrote:
-> I think I found a solution to the above issue. I removed the lock from
-> video_release and the main portion of video_close and wrapped the two
-> calls to kobject_put by the videodev_lock. Since video_close is called
-> when the BKL is held the lock is not required around the main portion
-> of video_close. Acquiring the lock around the calls to kobject_put
-> insures video_release is always called while the lock is being held.
-> This should fix the above race condition between device_unregister and
-> video_open as well. Here is the corrected patch.
-
-Could you elaborate as to why the lock would be required around the main 
-portion of video_close if it wasn't called with the BKL held ? I want to be 
-sure there is no race condition on SMP systems, where the BKL will only 
-prevent open() and close() from running concurrently but will not protect 
-from any other race condition.
-
-As we are dealing with tricky race conditions (the amount of mails exchanged 
-to prepare this patch proves the issue is not trivial) I think you should 
-include a comment in the code to explain the rationale behind the patch and 
-the design decisions/requirements to help other developers not to introduce 
-race conditions or dead locks when hacking on videodev.c.
-
-You also mentioned that videodev should be converted to char_dev. Would you 
-volunteer ? ;-)
-
-Best regards,
-
-Laurent Pinchart
+--- 0006/drivers/media/video/Kconfig
++++ work/drivers/media/video/Kconfig	2008-07-14 15:00:18.000000000 +0900
+@@ -24,6 +24,11 @@ config VIDEOBUF_VMALLOC
+ 	select VIDEOBUF_GEN
+ 	tristate
+ 
++config VIDEOBUF_DMA_CONTIG
++	depends on HAS_DMA
++	select VIDEOBUF_GEN
++	tristate
++
+ config VIDEOBUF_DVB
+ 	tristate
+ 	select VIDEOBUF_GEN
+--- 0001/drivers/media/video/Makefile
++++ work/drivers/media/video/Makefile	2008-07-14 15:00:18.000000000 +0900
+@@ -88,6 +88,7 @@ obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+ 
+ obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
+ obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
++obj-$(CONFIG_VIDEOBUF_DMA_CONTIG) += videobuf-dma-contig.o
+ obj-$(CONFIG_VIDEOBUF_VMALLOC) += videobuf-vmalloc.o
+ obj-$(CONFIG_VIDEOBUF_DVB) += videobuf-dvb.o
+ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
+--- /dev/null
++++ work/drivers/media/video/videobuf-dma-contig.c	2008-07-14 20:30:16.000000000 +0900
+@@ -0,0 +1,417 @@
++/*
++ * helper functions for physically contiguous capture buffers
++ *
++ * The functions support hardware lacking scatter gather support
++ * (i.e. the buffers must be linear in physical memory)
++ *
++ * Copyright (c) 2008 Magnus Damm
++ *
++ * Based on videobuf-vmalloc.c,
++ * (c) 2007 Mauro Carvalho Chehab, <mchehab@infradead.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/dma-mapping.h>
++#include <media/videobuf-dma-contig.h>
++
++struct videobuf_dma_contig_memory {
++	u32 magic;
++	void *vaddr;
++	dma_addr_t dma_handle;
++	unsigned long size;
++};
++
++#define MAGIC_DC_MEM 0x0733ac61
++#define MAGIC_CHECK(is, should)						\
++	if (unlikely((is) != (should)))	{				\
++		pr_err("magic mismatch: %x expected %x\n", is, should); \
++		BUG();							\
++	}
++
++static void
++videobuf_vm_open(struct vm_area_struct *vma)
++{
++	struct videobuf_mapping *map = vma->vm_private_data;
++
++	dev_dbg(map->q->dev, "vm_open %p [count=%u,vma=%08lx-%08lx]\n",
++		map, map->count, vma->vm_start, vma->vm_end);
++
++	map->count++;
++}
++
++static void videobuf_vm_close(struct vm_area_struct *vma)
++{
++	struct videobuf_mapping *map = vma->vm_private_data;
++	struct videobuf_queue *q = map->q;
++	int i;
++
++	dev_dbg(map->q->dev, "vm_close %p [count=%u,vma=%08lx-%08lx]\n",
++		map, map->count, vma->vm_start, vma->vm_end);
++
++	map->count--;
++	if (0 == map->count) {
++		struct videobuf_dma_contig_memory *mem;
++
++		dev_dbg(map->q->dev, "munmap %p q=%p\n", map, q);
++		mutex_lock(&q->vb_lock);
++
++		/* We need first to cancel streams, before unmapping */
++		if (q->streaming)
++			videobuf_queue_cancel(q);
++
++		for (i = 0; i < VIDEO_MAX_FRAME; i++) {
++			if (NULL == q->bufs[i])
++				continue;
++
++			if (q->bufs[i]->map != map)
++				continue;
++
++			mem = q->bufs[i]->priv;
++			if (mem) {
++				/* This callback is called only if kernel has
++				   allocated memory and this memory is mmapped.
++				   In this case, memory should be freed,
++				   in order to do memory unmap.
++				 */
++
++				MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
++
++				/* vfree is not atomic - can't be
++				   called with IRQ's disabled
++				 */
++				dev_dbg(map->q->dev, "buf[%d] freeing %p\n",
++					i, mem->vaddr);
++
++				dma_free_coherent(q->dev, mem->size,
++						  mem->vaddr, mem->dma_handle);
++				mem->vaddr = NULL;
++			}
++
++			q->bufs[i]->map   = NULL;
++			q->bufs[i]->baddr = 0;
++		}
++
++		kfree(map);
++
++		mutex_unlock(&q->vb_lock);
++	}
++}
++
++static struct vm_operations_struct videobuf_vm_ops = {
++	.open     = videobuf_vm_open,
++	.close    = videobuf_vm_close,
++};
++
++static void *__videobuf_alloc(size_t size)
++{
++	struct videobuf_dma_contig_memory *mem;
++	struct videobuf_buffer *vb;
++
++	vb = kzalloc(size + sizeof(*mem), GFP_KERNEL);
++	if (vb) {
++		mem = vb->priv = ((char *)vb) + size;
++		mem->magic = MAGIC_DC_MEM;
++	}
++
++	return vb;
++}
++
++static void *__videobuf_to_vmalloc(struct videobuf_buffer *buf)
++{
++	struct videobuf_dma_contig_memory *mem = buf->priv;
++
++	BUG_ON(!mem);
++	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
++
++	return mem->vaddr;
++}
++
++static int __videobuf_iolock(struct videobuf_queue *q,
++			     struct videobuf_buffer *vb,
++			     struct v4l2_framebuffer *fbuf)
++{
++	struct videobuf_dma_contig_memory *mem = vb->priv;
++
++	BUG_ON(!mem);
++	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
++
++	switch (vb->memory) {
++	case V4L2_MEMORY_MMAP:
++		dev_dbg(q->dev, "%s memory method MMAP\n", __func__);
++
++		/* All handling should be done by __videobuf_mmap_mapper() */
++		if (!mem->vaddr) {
++			dev_err(q->dev, "memory is not alloced/mmapped.\n");
++			return -EINVAL;
++		}
++		break;
++	case V4L2_MEMORY_USERPTR:
++		dev_dbg(q->dev, "%s memory method USERPTR\n", __func__);
++
++		/* The only USERPTR currently supported is the one needed for
++		   read() method.
++		 */
++		if (vb->baddr)
++			return -EINVAL;
++
++		mem->size = PAGE_ALIGN(vb->size);
++		mem->vaddr = dma_alloc_coherent(q->dev, mem->size,
++						&mem->dma_handle, GFP_KERNEL);
++		if (!mem->vaddr) {
++			dev_err(q->dev, "dma_alloc_coherent %ld failed\n",
++					 mem->size);
++			return -ENOMEM;
++		}
++
++		dev_dbg(q->dev, "dma_alloc_coherent data is at %p (%ld)\n",
++			mem->vaddr, mem->size);
++		break;
++	case V4L2_MEMORY_OVERLAY:
++	default:
++		dev_dbg(q->dev, "%s memory method OVERLAY/unknown\n",
++			__func__);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int __videobuf_sync(struct videobuf_queue *q,
++			   struct videobuf_buffer *buf)
++{
++	struct videobuf_dma_contig_memory *mem = buf->priv;
++
++	BUG_ON(!mem);
++	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
++
++	dma_sync_single_for_cpu(q->dev, mem->dma_handle, mem->size,
++				DMA_FROM_DEVICE);
++	return 0;
++}
++
++static int __videobuf_mmap_free(struct videobuf_queue *q)
++{
++	unsigned int i;
++
++	dev_dbg(q->dev, "%s\n", __func__);
++	for (i = 0; i < VIDEO_MAX_FRAME; i++) {
++		if (q->bufs[i] && q->bufs[i]->map)
++			return -EBUSY;
++	}
++
++	return 0;
++}
++
++static int __videobuf_mmap_mapper(struct videobuf_queue *q,
++				  struct vm_area_struct *vma)
++{
++	struct videobuf_dma_contig_memory *mem;
++	struct videobuf_mapping *map;
++	unsigned int first;
++	int retval;
++	unsigned long size, offset = vma->vm_pgoff << PAGE_SHIFT;
++
++	dev_dbg(q->dev, "%s\n", __func__);
++	if (!(vma->vm_flags & VM_WRITE) || !(vma->vm_flags & VM_SHARED))
++		return -EINVAL;
++
++	/* look for first buffer to map */
++	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
++		if (!q->bufs[first])
++			continue;
++
++		if (V4L2_MEMORY_MMAP != q->bufs[first]->memory)
++			continue;
++		if (q->bufs[first]->boff == offset)
++			break;
++	}
++	if (VIDEO_MAX_FRAME == first) {
++		dev_dbg(q->dev, "invalid user space offset [offset=0x%lx]\n",
++			offset);
++		return -EINVAL;
++	}
++
++	/* create mapping + update buffer list */
++	map = kzalloc(sizeof(struct videobuf_mapping), GFP_KERNEL);
++	if (!map)
++		return -ENOMEM;
++
++	q->bufs[first]->map = map;
++	map->start = vma->vm_start;
++	map->end = vma->vm_end;
++	map->q = q;
++
++	q->bufs[first]->baddr = vma->vm_start;
++
++	mem = q->bufs[first]->priv;
++	BUG_ON(!mem);
++	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
++
++	mem->size = PAGE_ALIGN(q->bufs[first]->bsize);
++	mem->vaddr = dma_alloc_coherent(q->dev, mem->size,
++					&mem->dma_handle, GFP_KERNEL);
++	if (!mem->vaddr) {
++		dev_err(q->dev, "dma_alloc_coherent size %ld failed\n",
++			mem->size);
++		goto error;
++	}
++	dev_dbg(q->dev, "dma_alloc_coherent data is at addr %p (size %ld)\n",
++		mem->vaddr, mem->size);
++
++	/* Try to remap memory */
++
++	size = vma->vm_end - vma->vm_start;
++	size = (size < mem->size) ? size : mem->size;
++
++	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++	retval = remap_pfn_range(vma, vma->vm_start,
++				 mem->dma_handle >> PAGE_SHIFT,
++				 size, vma->vm_page_prot);
++	if (retval) {
++		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
++		dma_free_coherent(q->dev, mem->size,
++				  mem->vaddr, mem->dma_handle);
++		goto error;
++	}
++
++	vma->vm_ops          = &videobuf_vm_ops;
++	vma->vm_flags       |= VM_DONTEXPAND;
++	vma->vm_private_data = map;
++
++	dev_dbg(q->dev, "mmap %p: q=%p %08lx-%08lx (%lx) pgoff %08lx buf %d\n",
++		map, q, vma->vm_start, vma->vm_end,
++		(long int) q->bufs[first]->bsize,
++		vma->vm_pgoff, first);
++
++	videobuf_vm_open(vma);
++
++	return 0;
++
++error:
++	kfree(map);
++	return -ENOMEM;
++}
++
++static int __videobuf_copy_to_user(struct videobuf_queue *q,
++				   char __user *data, size_t count,
++				   int nonblocking)
++{
++	struct videobuf_dma_contig_memory *mem = q->read_buf->priv;
++	void *vaddr;
++
++	BUG_ON(!mem);
++	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
++	BUG_ON(!mem->vaddr);
++
++	/* copy to userspace */
++	if (count > q->read_buf->size - q->read_off)
++		count = q->read_buf->size - q->read_off;
++
++	vaddr = mem->vaddr;
++
++	if (copy_to_user(data, vaddr + q->read_off, count))
++		return -EFAULT;
++
++	return count;
++}
++
++static int __videobuf_copy_stream(struct videobuf_queue *q,
++				  char __user *data, size_t count, size_t pos,
++				  int vbihack, int nonblocking)
++{
++	unsigned int  *fc;
++	struct videobuf_dma_contig_memory *mem = q->read_buf->priv;
++
++	BUG_ON(!mem);
++	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
++
++	if (vbihack) {
++		/* dirty, undocumented hack -- pass the frame counter
++			* within the last four bytes of each vbi data block.
++			* We need that one to maintain backward compatibility
++			* to all vbi decoding software out there ... */
++		fc = (unsigned int *)mem->vaddr;
++		fc += (q->read_buf->size >> 2) - 1;
++		*fc = q->read_buf->field_count >> 1;
++		dev_dbg(q->dev, "vbihack: %d\n", *fc);
++	}
++
++	/* copy stuff using the common method */
++	count = __videobuf_copy_to_user(q, data, count, nonblocking);
++
++	if ((count == -EFAULT) && (pos == 0))
++		return -EFAULT;
++
++	return count;
++}
++
++static struct videobuf_qtype_ops qops = {
++	.magic        = MAGIC_QTYPE_OPS,
++
++	.alloc        = __videobuf_alloc,
++	.iolock       = __videobuf_iolock,
++	.sync         = __videobuf_sync,
++	.mmap_free    = __videobuf_mmap_free,
++	.mmap_mapper  = __videobuf_mmap_mapper,
++	.video_copy_to_user = __videobuf_copy_to_user,
++	.copy_stream  = __videobuf_copy_stream,
++	.vmalloc      = __videobuf_to_vmalloc,
++};
++
++void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
++				    struct videobuf_queue_ops *ops,
++				    struct device *dev,
++				    spinlock_t *irqlock,
++				    enum v4l2_buf_type type,
++				    enum v4l2_field field,
++				    unsigned int msize,
++				    void *priv)
++{
++	videobuf_queue_core_init(q, ops, dev, irqlock, type, field, msize,
++				 priv, &qops);
++}
++EXPORT_SYMBOL_GPL(videobuf_queue_dma_contig_init);
++
++dma_addr_t videobuf_to_dma_contig(struct videobuf_buffer *buf)
++{
++	struct videobuf_dma_contig_memory *mem = buf->priv;
++
++	BUG_ON(!mem);
++	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
++
++	return mem->dma_handle;
++}
++EXPORT_SYMBOL_GPL(videobuf_to_dma_contig);
++
++void videobuf_dma_contig_free(struct videobuf_queue *q,
++			      struct videobuf_buffer *buf)
++{
++	struct videobuf_dma_contig_memory *mem = buf->priv;
++
++	/* mmapped memory can't be freed here, otherwise mmapped region
++	   would be released, while still needed. In this case, the memory
++	   release should happen inside videobuf_vm_close().
++	   So, it should free memory only if the memory were allocated for
++	   read() operation.
++	 */
++	if ((buf->memory != V4L2_MEMORY_USERPTR) || !buf->baddr)
++		return;
++
++	if (!mem)
++		return;
++
++	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
++
++	dma_free_coherent(q->dev, mem->size, mem->vaddr, mem->dma_handle);
++	mem->vaddr = NULL;
++}
++EXPORT_SYMBOL_GPL(videobuf_dma_contig_free);
++
++MODULE_DESCRIPTION("helper module to manage video4linux dma contig buffers");
++MODULE_AUTHOR("Magnus Damm");
++MODULE_LICENSE("GPL");
+--- /dev/null
++++ work/include/media/videobuf-dma-contig.h	2008-07-14 20:30:16.000000000 +0900
+@@ -0,0 +1,32 @@
++/*
++ * helper functions for physically contiguous capture buffers
++ *
++ * The functions support hardware lacking scatter gather support
++ * (i.e. the buffers must be linear in physical memory)
++ *
++ * Copyright (c) 2008 Magnus Damm
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2
++ */
++#ifndef _VIDEOBUF_DMA_CONTIG_H
++#define _VIDEOBUF_DMA_CONTIG_H
++
++#include <linux/dma-mapping.h>
++#include <media/videobuf-core.h>
++
++void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
++				    struct videobuf_queue_ops *ops,
++				    struct device *dev,
++				    spinlock_t *irqlock,
++				    enum v4l2_buf_type type,
++				    enum v4l2_field field,
++				    unsigned int msize,
++				    void *priv);
++
++dma_addr_t videobuf_to_dma_contig(struct videobuf_buffer *buf);
++void videobuf_dma_contig_free(struct videobuf_queue *q,
++			      struct videobuf_buffer *buf);
++
++#endif /* _VIDEOBUF_DMA_CONTIG_H */
 
 --
 video4linux-list mailing list
