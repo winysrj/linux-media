@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m68MGUbH026067
-	for <video4linux-list@redhat.com>; Tue, 8 Jul 2008 18:16:30 -0400
-Received: from vsmtp3.tin.it (vsmtp3.tin.it [212.216.176.223])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m68MGIhM011375
-	for <video4linux-list@redhat.com>; Tue, 8 Jul 2008 18:16:19 -0400
-Received: from [192.168.3.11] (77.103.126.124) by vsmtp3.tin.it (8.0.016.5)
-	(authenticated as aodetti@tin.it)
-	id 4856608C0141A7DE for video4linux-list@redhat.com;
-	Wed, 9 Jul 2008 00:16:13 +0200
-Message-ID: <4873E6D0.8050202@tiscali.it>
-Date: Tue, 08 Jul 2008 23:14:40 +0100
-From: Andrea <audetto@tiscali.it>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6EC232W003902
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:02:03 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.224])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6EC1XwS001053
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:01:52 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so5595959rvb.51
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 05:01:52 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
 To: video4linux-list@redhat.com
-References: <4873CBA9.1090603@tiscali.it>
-In-Reply-To: <4873CBA9.1090603@tiscali.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: A question about VIDIOC_DQBUF
+Date: Mon, 14 Jul 2008 21:02:04 +0900
+Message-Id: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
+Cc: paulius.zaleckas@teltonika.lt, linux-sh@vger.kernel.org,
+	mchehab@infradead.org, lethal@linux-sh.org,
+	akpm@linux-foundation.org, g.liakhovetski@gmx.de
+Subject: [PATCH 00/06] soc_camera: SuperH Mobile CEU patches V3
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,56 +26,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Andrea wrote:
-> Hi,
-> 
-> I would like to understand better the way VIDIOC_DQBUF works.
-> 
-...
-> Is the following correct?
-> 
-> - First, an application queues a buffer, then it dequeues the buffer.
-> - Then again, a buffer is queued and then dequeued.
-> - Dequeuing a buffer blocks is the buffer is not ready (unless device 
-> opened with O_NONBLOCK).
-> - Trying to dequeue a buffer without queuing it first is an error, and 
-> the ioctl VIDIOC_DQBUF should return -EINVAL.
+This is V3 of the SuperH Mobile CEU interface patches.
 
-Moreover:
+[PATCH 01/06] soc_camera: Move spinlocks
+[PATCH 02/06] soc_camera: Add 16-bit bus width support
+[PATCH 03/06] videobuf: Fix gather spelling
+[PATCH 04/06] videobuf: Add physically contiguous queue code V3
+[PATCH 05/06] sh_mobile_ceu_camera: Add SuperH Mobile CEU driver V3
+[PATCH 06/06] soc_camera_platform: Add SoC Camera Platform driver
 
-- One can only VIDIOC_DQBUF after calling STREAMON. Before it should return -EINVAL? Block?
-- After calling STREAMOFF, VIDIOC_DQBUF should return -EINVAL
+Changes since V2:
+ - use dma_handle for physical address for videobuf-dma-contig
+ - spell gather correctly
+ - remove SUPERH Kconfig dependency
+ - move sh_mobile_ceu.h to include/media
+ - add board callback support with enable_camera()/disable_camera()
+ - add support for declare_coherent_memory
+ - rework video memory limit
+ - more verbose error messages
+ - add soc_camera_platform driver for simple camera devices
 
-> 
-> <- end of question ->
-> 
-> Now, about pwc: (if the above is correct).
-> 
-> 1) VIDIOC_DQBUF blocks always until a buffer is ready, regardless of 
-> O_NONBLOCK.
-> 2) VIDIOC_DQBUF does not check if a buffer has been previously queued. 
-> Moreover VIDIOC_QBUF is almost a no-op. It has no way to check if a 
-> buffer has been queued before VIDIOC_DQBUF.
-> 
-> If I have understood correctly (very unlikely), this is the reason why 
-> mplayer hangs while stopping the stream with pwc:
-> 
->         while (!ioctl(priv->video_fd, VIDIOC_DQBUF, &buf));
-> 
+Changes since V1:
+ - dropped former V1 patches [01/07]->[04/07]
+ - rebased on top of [PATCH] soc_camera: make videobuf independent
+ - rewrote spinlock changes into the new [01/04] patch
+ - updated the videobuf-dma-contig code with feeback from Paulius Zaleckas
+ - fixed the CEU driver to work with the newly updated patches
 
-This code is not needed because STREAMOFF flushes the buffer queue. Does it not?
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+---
 
-> This code should eventually return -EINVAL, while pwc just blocks 
-> waiting for the next buffer (which never arrives because 
-> VIDIOC_STREAMOFF has been called).
-
-pwc should return -EINVAL to all ioctl calls after STREAMOFF?
-
-Could someone please tell me where I am right and where I am wrong...
-
-What is the reference implementation? vivi? em28xx?
-
-Andrea
+ drivers/media/video/Kconfig                |   19 
+ drivers/media/video/Makefile               |    3 
+ drivers/media/video/pxa_camera.c           |   17 
+ drivers/media/video/sh_mobile_ceu_camera.c |  657 ++++++++++++++++++++++++++++
+ drivers/media/video/soc_camera.c           |   39 -
+ drivers/media/video/soc_camera_platform.c  |  198 ++++++++
+ drivers/media/video/videobuf-dma-contig.c  |  417 +++++++++++++++++
+ drivers/media/video/videobuf-dma-sg.c      |    2 
+ drivers/media/video/videobuf-vmalloc.c     |    2 
+ include/media/sh_mobile_ceu.h              |   12 
+ include/media/soc_camera.h                 |   12 
+ include/media/soc_camera_platform.h        |   15 
+ include/media/videobuf-dma-contig.h        |   32 +
+ include/media/videobuf-dma-sg.h            |    2 
+ include/media/videobuf-vmalloc.h           |    2 
+ 15 files changed, 1368 insertions(+), 61 deletions(-)
 
 --
 video4linux-list mailing list
