@@ -1,28 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6INF0BX004561
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 19:15:00 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6INEm5K001251
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 19:14:49 -0400
-Date: Sat, 19 Jul 2008 00:14:42 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Paul Mundt <lethal@linux-sh.org>
-In-Reply-To: <20080718214644.GB21846@linux-sh.org>
-Message-ID: <Pine.LNX.4.64.0807190009550.32334@axis700.grange>
-References: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
-	<20080714120249.4806.66136.sendpatchset@rx1.opensource.se>
-	<Pine.LNX.4.64.0807180918160.13569@axis700.grange>
-	<aec7e5c30807180107g6d2f55fdh917da10963f3df20@mail.gmail.com>
-	<Pine.LNX.4.64.0807181015470.14224@axis700.grange>
-	<20080718214644.GB21846@linux-sh.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ENvpl8029846
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 19:57:51 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ENvevV003801
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 19:57:41 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so3289938fga.7
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 16:57:39 -0700 (PDT)
+Message-ID: <aad488990807141657p3048649bj8e727b6f2bb9bb4a@mail.gmail.com>
+Date: Mon, 14 Jul 2008 16:57:39 -0700
+From: "Simoes Vincent" <boelraty.altern@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com, linux-sh@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	paulius.zaleckas@teltonika.lt, akpm@linux-foundation.org
-Subject: Re: [PATCH 05/06] sh_mobile_ceu_camera: Add SuperH Mobile CEU driver
- V3
+Content-Type: multipart/mixed;
+	boundary="----=_Part_17869_5828734.1216079859456"
+Subject: Capture a picture
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,39 +26,128 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, 19 Jul 2008, Paul Mundt wrote:
+------=_Part_17869_5828734.1216079859456
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> On Fri, Jul 18, 2008 at 10:23:14AM +0200, Guennadi Liakhovetski wrote:
-> > On Fri, 18 Jul 2008, Magnus Damm wrote:
-> > > Regarding request_mem_region() - I used to add that here and there,
-> > > but I think the platform driver layer should handle that for us
-> > > automatically these days. I'm not 100% sure though. =)
-> > 
-> > I had a short look and didn't find anything like that there... So, you 
-> > might want to double-check and add if needed.
-> > 
-> It's a bit obscured, but it's certainly handled generically these days.
-> 
-> Look at drivers/base/platform.c:platform_device_add(). The resource type
-> is checked there and handed off to insert_resource().
-> platform_device_add() is likewise wrapped in to from
-> platform_device_register(), so everyone claims the resources
-> unconditionally.
+Hello everybody,
 
-Sorry, I still don't qite follow. _Resources_ get accounted with the 
-platform_device_add() / platform_device_del(), and are searched by 
-platform_get_resource(), but even this doesn't lock the resource like 
-some other "get" methods. I can see that. But we are talking not about 
-"struct resource" accounting, but about memory regions. And I don't see 
-this done anywhere in platform-device / resource handling.
+I'm currently working on a program to capture a picture with a camera and
+save it using v4l2. You will find it enclosed. It is just a part of it as
+I'm still working on it. My goal is to obtain a image in a no compressed
+format as bmp.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+However, I have few question to pursue my work.
+
+About the format of the data, I certainly need to define the "colorspace"
+but I don't know which one to use. Then I have to choose between RGB and
+YUV. For a BMP, RGB would be great, isn't it ? Nevertheless, it seems that
+YUV have more functions, maybe it is better to use this format ? As it is
+simple to pass from one format to an other one, I don't think that's really
+important here.
+
+About the buffers, I haven't specify a size. I think I need 3 (R, G, B or
+Y', U, V) * size of images , but I don't know exactly how it is working.
+Same thing with the number of buffer, ...
+
+Once I have started to capture, what I have to do before stopping it ?
+Counted a minimum of time to be sure to have the right information ?
+
+The last thing is about the way to save the file using the buffers, can
+somebody lighted me on this subject ?
+
+
+Thank you all for your help.
+Have a nice day
+Vincent
+
+------=_Part_17869_5828734.1216079859456
+Content-Type: text/x-csrc; name=camera.c
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_finqefio1
+Content-Disposition: attachment; filename=camera.c
+
+Ly9MaWJyYXJpZXMKI2luY2x1ZGUgPHN0ZGludC5oPgojaW5jbHVkZSA8c3RkaW8uaD4KI2luY2x1
+ZGUgPG1hdGguaD4gCiNpbmNsdWRlIDxzdGRsaWIuaD4KI2luY2x1ZGUgPGZjbnRsLmg+ICAgICAg
+ICAgICAgIAojaW5jbHVkZSA8ZXJybm8uaD4KI2luY2x1ZGUgPHN5cy9pb2N0bC5oPgojaW5jbHVk
+ZSA8bGludXgvdmlkZW9kZXYyLmg+CiNpbmNsdWRlIDxzdHJpbmcuaD4KI2luY2x1ZGUgPHN5cy9t
+bWFuLmg+IAojaW5jbHVkZSA8YXNzZXJ0Lmg+CgoKLy9EZXZpY2UgbmFtZQogICBzdGF0aWMgY2hh
+ciogZGV2aWNlX25hbWU9Ii9kZXYvdmlkZW8wIjsKLy9mZCByZXByZXNlbnRzIHRoZSBkZXZpY2UK
+ICAgc3RhdGljIGludCBmZD0tMTsKLy9zdHJ1Y3QgZm9yIGJ1ZmZlcgogICBzdHJ1Y3QgewogICAg
+ICB2b2lkICpzdGFydDsKICAgICAgc2l6ZV90IGxlbmd0aDsKICAgfSAqYnVmZmVyczsKCgovLy0t
+LS0tLS0tLS0tLS0tLS0tLW1haW4tLS0tLS0tLS0tLS0tLS0KLy8tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tCiAgICBtYWluICgpIHsKICAgCiAgIAogICAgICBzdHJ1Y3QgdjRs
+Ml9jYXBhYmlsaXR5IGNhcDsKICAgICAgc3RydWN0IHY0bDJfZm9ybWF0IGZtdDsKICAgICAgdjRs
+Ml9zdGRfaWQgc3RkX2lkOwogICAgICBzdHJ1Y3QgdjRsMl9yZXF1ZXN0YnVmZmVycyByZXFidWY7
+CiAgICAgIGludCBpLCBqOwogICAgICBGSUxFICpmcDsKICAgICAgY2hhciBjOwogICAKICAgICAg
+cHJpbnRmKCJPcGVuaW5nIHRoZSBkZXZpY2UgLi4uXG5cbiIpOwogICAgICBmZD1vcGVuKGRldmlj
+ZV9uYW1lLCBPX1JEV1IpOwogICAgICBpZihmZD09LTEpewogICAgICAgICBwZXJyb3IoIk9QRU4i
+KTsKICAgICAgICAgZXhpdCgtMSk7CiAgICAgIH0KICAgLy9jYXBhYmlsaXRpZXMKICAgICAgaWYg
+KGlvY3RsIChmZCwgVklESU9DX1FVRVJZQ0FQLCAmY2FwKSA9PSAtMSkgewogICAgICAgICBwZXJy
+b3IgKCJWSURJT0NfUVVFUllDQVAiKTsKICAgICAgICAgY2xvc2UgKGZkKTsKICAgICAgICAgZXhp
+dCAoLTEpOwogICAgICB9CiAgIAogICAgICBwcmludGYgKCJEcml2ZXI6ICVzXG4iLCBjYXAuZHJp
+dmVyKTsKICAgICAgcHJpbnRmICgiQ2FyZDogJXNcblxuIiwgY2FwLmNhcmQpOwogICAgICBwcmlu
+dGYgKCJDYXBhYmlsaXRpZXM6XG4iKTsKICAgICAgaWYgKGNhcC5jYXBhYmlsaXRpZXMgJiBWNEwy
+X0NBUF9WSURFT19DQVBUVVJFKSAgICBwcmludGYgKCJjYXB0dXJlXG4iKTsKICAgICAgaWYgKGNh
+cC5jYXBhYmlsaXRpZXMgJlY0TDJfQ0FQX1NUUkVBTUlORykgICAgcHJpbnRmICgic3RyZWFtaW5n
+XG4iKTsKICAgICAgaWYgKGNhcC5jYXBhYmlsaXRpZXMgJiBWNEwyX0NBUF9SRUFEV1JJVEUpICAg
+cHJpbnRmICgiUkVBRC9XUklURVxuXG4iKTsKICAgCiAgIC8vc2V0dGluZyB0aGUgZm9ybWF0CiAg
+ICAgIHByaW50ZigiU2V0dGluZyB0aGUgZm9ybWF0IC4uLlxuIik7CiAgICAgIG1lbXNldCAoJmZt
+dCwgMCwgc2l6ZW9mIChmbXQpKTsKICAgICAgZm10LnR5cGUgPSBWNEwyX0JVRl9UWVBFX1ZJREVP
+X0NBUFRVUkU7CiAgICAgIGZtdC5mbXQucGl4LndpZHRoID0gMTAyNDsKICAgICAgcHJpbnRmKCJ3
+aWR0aDogJWRcbiIsIGZtdC5mbXQucGl4LndpZHRoKTsKICAgICAgZm10LmZtdC5waXguaGVpZ2h0
+ID0gNzY4OwogICAgICBwcmludGYoImhlaWdodDogJWRcblxuIiwgZm10LmZtdC5waXguaGVpZ2h0
+KTsKICAgICAgZm10LmZtdC5waXgucGl4ZWxmb3JtYXQJPSBWNEwyX1BJWF9GTVRfWVVZVjsKICAg
+ICAgZm10LmZtdC5waXguZmllbGQJPSBWNEwyX0ZJRUxEX0lOVEVSTEFDRUQ7CiAgIAogICAgICBp
+ZiAoaW9jdGwgKGZkLCBWSURJT0NfU19GTVQsICZmbXQpID09IC0xKSB7CiAgICAgICAgIHBlcnJv
+ciAoIlZJRElPQ19TX0ZNVCIpOwogICAgICAgICBjbG9zZSAoZmQpOwogICAgICAgICBleGl0ICgt
+MSk7CiAgICAgIH0KICAgCiAgIC8vY2hvb3NlIHRoZSBzdGFuZGFyZAogICAgICBzdGRfaWQgPSBW
+NEwyX1NURF9OVFNDOwogICAgICAJCiAgICAgIGlmIChpb2N0bChmZCwgVklESU9DX1NfU1RELCAm
+c3RkX2lkKSA9PSAtMSkgewogICAgICAgICBwZXJyb3IgKCJWSURJT0NfU19TVEQiKTsKICAgICAg
+ICAgY2xvc2UoZmQpOwogICAgICB9CiAgICAgIGVsc2UgcHJpbnRmKCJWaWRlbyBzdGFuZGFyZDog
+TlRTQ1xuXG4iKTsKICAgCiAgIAogICAvL3JlcXVlc3RpbmcgYnVmZmVycwogICAgICBwcmludGYo
+IlJlcXVlc3RpbmcgdGhlIGJ1ZmZlciAuLi5cblxuIik7CiAgICAgIG1lbXNldCAoJnJlcWJ1Ziwg
+MCwgc2l6ZW9mIChyZXFidWYpKTsKICAgICAgcmVxYnVmLmNvdW50ID0gNDsKICAgICAgcmVxYnVm
+LnR5cGUJPSBWNEwyX0JVRl9UWVBFX1ZJREVPX0NBUFRVUkU7CiAgICAgIHJlcWJ1Zi5tZW1vcnkJ
+PSBWNEwyX01FTU9SWV9NTUFQOwogICAKICAgICAgaWYgKGlvY3RsIChmZCwgVklESU9DX1JFUUJV
+RlMsICZyZXFidWYpID09IC0xKSB7CiAgICAgICAgIHBlcnJvciAoIlZJRElPQ19SRVFCVUZTIik7
+CiAgICAgICAgIGNsb3NlKGZkKTsKICAgICAgICAgcmV0dXJuIC0xOwogICAgICB9CiAgICAgIAog
+ICAKICAgLy9tbWFwIGJ1ZmZlcnMKICAgICAgcHJpbnRmKCJDcmVhdGluZyB0aGUgYnVmZmVycyAu
+Li4gXG5cbiIpOwogICAgICAKICAgICAgYnVmZmVycyA9IGNhbGxvYyAocmVxYnVmLmNvdW50LCBz
+aXplb2YgKCpidWZmZXJzKSk7CiAgICAgIGFzc2VydCAoYnVmZmVycyAhPSBOVUxMKTsKICAgCiAg
+IAogICAgICBmb3IgKGkgPSAwOyBpIDwgcmVxYnVmLmNvdW50OyBpKyspIHsKICAgICAgICAgc3Ry
+dWN0IHY0bDJfYnVmZmVyIGJ1ZjsKICAgICAgICAgCiAgICAgICAgIG1lbXNldCAoJmJ1ZiwgMCwg
+c2l6ZW9mIChidWYpKTsKICAgICAgICAgYnVmLnR5cGUJPSBmbXQudHlwZTsKICAgICAgICAgYnVm
+Lm1lbW9yeQk9IFY0TDJfTUVNT1JZX01NQVA7CiAgICAgICAgIGJ1Zi5pbmRleAk9IGk7CiAgICAg
+ICAgIGlmIChpb2N0bCAoZmQsIFZJRElPQ19RVUVSWUJVRiwgJmJ1ZikgPT0gLTEpIHsKICAgICAg
+ICAgICAgcGVycm9yICgiVklESU9DX1FVRVJZQlVGIik7CiAgICAgICAgICAgIGNsb3NlKGZkKTsK
+ICAgICAgICAgICAgcmV0dXJuIC0xOwogICAgICAgICB9CiAgICAgICAgIGJ1ZmZlcnNbaV0ubGVu
+Z3RoID0gYnVmLmxlbmd0aDsKICAgICAgICAgYnVmZmVyc1tpXS5zdGFydCA9IG1tYXAgKE5VTEws
+IGJ1Zi5sZW5ndGgsIFBST1RfUkVBRCB8IFBST1RfV1JJVEUsIE1BUF9TSEFSRUQsIGZkLCBidWYu
+bS5vZmZzZXQpOwogICAgICAgICAKICAgICAgICAgaWYgKGlvY3RsIChmZCwgVklESU9DX1FCVUYs
+ICZidWYpID09IC0xKSB7CiAgICAgICAgICAgIHBlcnJvciAoIlZJRElPQ19RQlVGIik7CiAgICAg
+ICAgICAgIGNsb3NlKGZkKTsKICAgICAgICAgICAgcmV0dXJuIC0xOwogICAgICAgICB9IAogICAg
+ICB9ICAKICAgICAgCiAgIAkKICAgICAgcHJpbnRmKCJTdGFydCBjYXB0dXJpbmcgLi4uXG4iKTsK
+ICAgICAgaWYgKGlvY3RsIChmZCwgVklESU9DX1NUUkVBTU9OLCAmZm10LnR5cGUpID09IC0xKSB7
+CiAgICAgICAgIHBlcnJvciAoIlZJRElPQ19TVFJFQU1PTiIpOwogICAgICAgICBjbG9zZShmZCk7
+CiAgICAgICAgIHJldHVybiAtMTsKICAgICAgfQogICAKICAgLy8uLi4uCiAgIAogICAgICBwcmlu
+dGYoIlN0b3AgY2FwdHVyaW5nIC4uLlxuXG4iKTsKICAgICAgaW9jdGwgKGZkLCBWSURJT0NfU1RS
+RUFNT0ZGLCAmZm10LnR5cGUpOwogICAKICAgLy8tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLXdyaXRlCiAgICAgIGZwID0gZm9wZW4oImltYWdlLmJtcCIs
+ICJ3KyIpOwogICAgIC8vLi4uLgogICAgIAogICAgIAogICAgIC8vcmVzZXRpbmcgYnVmZmVyCiAg
+ICAgIGZvciAoaSA9IDA7IGkgPCByZXFidWYuY291bnQ7IGkrKykKICAgICAgICAgbXVubWFwIChi
+dWZmZXJzW2ldLnN0YXJ0LCBidWZmZXJzW2ldLmxlbmd0aCk7CiAgIAogICAKICAgICAgcHJpbnRm
+KCJDbG9zaW5nIHRoZSBkZXZpY2UgLi4uXG4iKTsKICAgICAgY2xvc2UoZmQpOwogICAKICAgfQo=
+
+------=_Part_17869_5828734.1216079859456
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_17869_5828734.1216079859456--
