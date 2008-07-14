@@ -1,24 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out1.iol.cz ([194.228.2.86])
+Received: from server30.ukservers.net ([217.10.138.207])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ajurik@quick.cz>) id 1KGsKT-00058R-Sq
-	for linux-dvb@linuxtv.org; Thu, 10 Jul 2008 11:20:46 +0200
-Received: from ales-debian.local (unknown [88.103.120.47])
-	by smtp-out1.iol.cz (Postfix) with ESMTP id EF73E5DDD4
-	for <linux-dvb@linuxtv.org>; Thu, 10 Jul 2008 11:15:10 +0200 (CEST)
-From: Ales Jurik <ajurik@quick.cz>
-To: linux-dvb@linuxtv.org
-Date: Thu, 10 Jul 2008 11:15:06 +0200
-References: <loom.20080628T180915-166@post.gmane.org>
-	<Pine.LNX.4.64.0807100053310.6335@shogun.pilppa.org>
-	<20080710121844.5c7e9502@bk.ru>
-In-Reply-To: <20080710121844.5c7e9502@bk.ru>
+	(envelope-from <linuxtv@nzbaxters.com>) id 1KIHFl-0000np-5i
+	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 08:09:44 +0200
+Message-ID: <000301c8e578$1dbcd550$7501010a@ad.sytec.com>
+From: "Simon Baxter" <linuxtv@nzbaxters.com>
+To: "Arthur Konovalov" <artlov@gmail.com>, "linux-dvb" <linux-dvb@linuxtv.org>
+References: <20080615192300.90886244.SiestaGomez@web.de>	<4855F6B0.8060507@gmail.com><1213620050.6543.6.camel@pascal>	<20080616142616.75F9C3BC99@waldorfmail.homeip.net><1213626832.6543.23.camel@pascal>
+	<4856B6FD.1080906@gmail.com>
+Date: Mon, 14 Jul 2008 14:31:00 +1200
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807101115.06323.ajurik@quick.cz>
-Subject: Re: [linux-dvb] Re : Re : How to solve the TT-S2-3200 tuning
-	problems?
-Reply-To: ajurik@quick.cz
+Subject: Re: [linux-dvb] [PATCH] experimental support for C-1501
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,23 +24,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 10 of July 2008, Goga777 wrote:
-> try please updated multiproto with some fixes
-> http://jusst.de/hg/multiproto/summary
+> Sigmund Augdal wrote:
+>> Both transponders reported to not tune here has different symbolrates
+>> from what I used for my testing. Maybe this is relevant in some way.
+>> Could you please compare this with the channels that did tune to see if
+>> there is a pattern?
+>
+> From my side i can add that all frequency from local cable provider's
+> works with c-1501 except one:
+> 274
+> 282
+> 290
+> 298
+> 306
+> 314
+> 386 NO LOCK
+> 394
+> 402
+> 410
+> All channels QAM64 and SR 6875.
+>
+> In the same PC I have second DVB-C card (KNC One DVB-C), which sharing
+> same cable with c-1501 and there no problem with reception and signal's
+> strength. This is reason why I did not discover current problem earlier. 
+> :(
+>
+> Arthur
 
-Hi,
+Did you have any luck tying this down?
 
-thanks for your hint.
+I have a few channels which show no signal strength and won't lock, but it 
+works on my other C-2300 and C-1500 cards.
 
-I've just tried. My opinion:
-- little more slowly when switching 
-- still no lock possible at some transponders when changing satellite
-- still no lock possible at some DVB-S2 8PSK channels (or after few minutes 
-and only for few seconds)
+Also, have a problem getting stable sound.  I switch to a new channel (with 
+VDR) and the sound cuts in/out/in/out/in - and occasionally just in/out (ie 
+no sound)
 
-BR,
-
-Ales
+Have the current/latest changes been committed?  Or is there a latest patch 
+floating around for v4l-dvb?? 
 
 
 _______________________________________________
