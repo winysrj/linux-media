@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m67LrsLc010525
-	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 17:53:54 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m67LrgTu012609
-	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 17:53:42 -0400
-Message-ID: <48729200.1090304@hhs.nl>
-Date: Tue, 08 Jul 2008 00:00:32 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6EJL6lY009984
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 15:21:06 -0400
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6EJKn3E023817
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 15:20:50 -0400
+Received: by ug-out-1314.google.com with SMTP id s2so293025uge.6
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 12:20:49 -0700 (PDT)
+Date: Mon, 14 Jul 2008 21:21:02 +0200
+From: Domenico Andreoli <cavokz@gmail.com>
+To: Michael Buesch <mb@bu3sch.de>
+Message-ID: <20080714192102.GA1487@ska.dandreoli.com>
+References: <200807101914.10174.mb@bu3sch.de> <200807141558.29582.mb@bu3sch.de>
+	<20080714152550.GA32470@ska.dandreoli.com>
+	<200807141951.39810.mb@bu3sch.de>
 MIME-Version: 1.0
-To: Gregor Jasny <jasny@vidsoft.de>
-References: <4867F380.1040803@hhs.nl> <20080703203623.GI18818@vidsoft.de>
-In-Reply-To: <20080703203623.GI18818@vidsoft.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>
-Subject: Re: Announcing libv4l 0.3.1 aka "the vlc release"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200807141951.39810.mb@bu3sch.de>
+Cc: David Brownell <david-b@pacbell.net>, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3] Add bt8xxgpio driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,46 +32,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Gregor Jasny wrote:
-> Hi,
+On Mon, Jul 14, 2008 at 07:51:39PM +0200, Michael Buesch wrote:
+> On Monday 14 July 2008 17:25:50 Domenico Andreoli wrote:
+> > On Mon, Jul 14, 2008 at 03:58:29PM +0200, Michael Buesch wrote:
+> > > On Monday 14 July 2008 09:27:33 Domenico Andreoli wrote:
+> > > > +static u32 nr_to_mask(struct bttv_gpiolib_device *dev, unsigned nr)
+> > > > +{
+> > > > +	u32 io_mask = dev->in_mask | dev->out_mask;
+> > > > +	int shift = 0;
+> > > > +
+> > > > +	while(io_mask && nr) {
+> > > > +		nr -= io_mask & 1;
+> > > > +		io_mask >>= 1;
+> > > > +		shift++;
+> > > > +	}
+> > > > +
+> > > > +	return 1 << shift;
+> > > > +}
+> > > 
+> > > This loop is really really weird.
+> > > What the hell are you doing here?
+> > > You ususally convert GPIO numbers to masks by doing (1 << nr), only.
+> > 
+> > gpiolib does not allow holes in the number space of gpios. once you
+> > set chip.ngpio, you get a contiguous slice.
+> > 
+> > should the board have some of its gpio connected to something private,
+> > they are not to be exported to gpiolib and to the user.
+> > 
+> > indeed once, as a user, I know to have a board which has n inputs and
+> > m output and z in/out, that's all, I do not want to know how many GPIOs
+> > actually are on the board and how are connected.
+> > 
+> > nr_to_mask() hides those holes to the user, it maps a pin iff it is
+> > available for gpiolib fiddling.
 > 
-> I've just included libv4l2 in our app. After after a short debugging
-> session I noticed the following:
-> 
-> In the man page the ioctl prototype is defined as
-> int ioctl(int d, int request, ...). To catch the EINTR case I wrote a
-> wrapper function:
-> 
-> int xioctl (int fd, int request, void *arg)
-> 
-> But as long as the request argument is int instead of unsigned long, the
-> request gets sign extended:
-> 
-> xioctl (fd, VIDIOC_TRY_FMT, &fmt)
-> (gdb) p/x request
-> $2 = 0xc0d05640
-> 
-> int v4l2_ioctl (int fd, unsigned long int request, ...);
-> (gdb) p/x request
-> $3 = 0xffffffffc0d05640
-> 
-> Maybe you should mention this "issue" in the FAQ or documentaion.
-> 
+> Ok, I see. However, I'd suggest to implement this with a lookup table
+> rather than this weird loop.
 
-Thanks for reporting this, this has saved me quite some time while debugging 
-issues with xawtv and kopete. I believe that the upper 32 bits added by this 
-(obviously wrong code) get thrown away somewhere down the path to the kernel on 
-64 bit archs, so I've modified libv4l to just ignore the upper 32 bits to match 
-this behavior.
+yes, of course. it was never meant to be definitive, all the patch was
+a prototype. thanks for the support.
 
-Regards,
+cheers,
+Domenico
 
-Hans
-
-> PS: Should I submit the sar-constraint patch to Thierry myself?
-
-Nope I was just being slow, just like with answering this. Thanks for the 
-testing and the patches!
+-----[ Domenico Andreoli, aka cavok
+ --[ http://www.dandreoli.com/gpgkey.asc
+   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
 
 --
 video4linux-list mailing list
