@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ICxtUr015433
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 08:59:55 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ICxelw009212
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 08:59:41 -0400
-Received: by ug-out-1314.google.com with SMTP id s2so54539uge.6
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 05:59:40 -0700 (PDT)
-Message-ID: <412bdbff0807180559j79e5a82y1624773e45a74f41@mail.gmail.com>
-Date: Fri, 18 Jul 2008 08:59:40 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "John Ortega" <jortega@listpropertiesnow.com>
-In-Reply-To: <EEEHJJMABEBDCNKAINKCKEMGCHAA.jortega@listpropertiesnow.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6EChQfH030358
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:43:26 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6EChE8L029341
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:43:15 -0400
+Date: Mon, 14 Jul 2008 14:43:21 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+In-Reply-To: <487B486A.7040403@teltonika.lt>
+Message-ID: <Pine.LNX.4.64.0807141443070.11348@axis700.grange>
+References: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
+	<20080714120213.4806.93867.sendpatchset@rx1.opensource.se>
+	<Pine.LNX.4.64.0807141427140.11348@axis700.grange>
+	<487B486A.7040403@teltonika.lt>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <487FC316.30306@b4net.dk>
-	<EEEHJJMABEBDCNKAINKCKEMGCHAA.jortega@listpropertiesnow.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Pinnacle PCTV Remote
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, linux-sh@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	lethal@linux-sh.org, akpm@linux-foundation.org
+Subject: Re: [PATCH 01/06] soc_camera: Move spinlocks
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,32 +31,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Jul 18, 2008 at 1:17 AM, John Ortega
-<jortega@listpropertiesnow.com> wrote:
-> Hello,
->
-> Does anyone have the remote working for the Pinnacle PCTV usb device. I've
-> got the TV working. But, the remote doesn't work at all.
->
-> Thanks,
-> John
+On Mon, 14 Jul 2008, Paulius Zaleckas wrote:
 
-If you're talking about the Pinnacle PCTV HD Pro Stick (800e), then I
-can tell you outright that the remote control support is not
-implemented.
+> Guennadi Liakhovetski wrote:
+> > On Mon, 14 Jul 2008, Magnus Damm wrote:
+> > 
+> > > This patch moves the spinlock handling from soc_camera.c to the actual
+> > > camera host driver. The spinlock alloc/free callbacks are replaced with
+> > > code in init_videobuf().
+> > 
+> > As merits of this move were not quite obvious to me (you lose the
+> > possibility to use default lock allocation / freeing in soc_camera.c), I
+> > extended your comment as follows:
+> > 
+> > This patch moves the spinlock handling from soc_camera.c to the actual
+> > camera host driver. The spinlock_alloc/free callbacks are replaced with
+> > code in init_videobuf(). So far all camera host drivers implement their
+> > own spinlock_alloc/free methods anyway, and videobuf_queue_core_init()
+> > BUGs on a NULL spinlock argument, so, new camera host drivers will not
+> > forget to provide a spinlock when initialising their videobug queues.
+>                                                        videobuf
 
-I have wrote some code for it but never got around to getting it fully
-debugged or checking it in.
+Thanks:-)
 
-I'm pretty sure Markus's em28xx driver does support it though
-(mcentral.de), although I've never tried it myself.
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
