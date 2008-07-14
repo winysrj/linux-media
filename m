@@ -1,78 +1,53 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6I2ec76032337
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 22:40:38 -0400
-Received: from exprod8og103.obsmtp.com (exprod8og103.obsmtp.com [64.18.3.86])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6I2eNIw000842
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 22:40:23 -0400
-Content-class: urn:content-classes:message
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from n39.bullet.mail.ukl.yahoo.com ([87.248.110.172])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1KITaL-0006WE-C5
+	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 21:19:48 +0200
+Date: Mon, 14 Jul 2008 15:16:18 -0400
+From: manu <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <646735.31020.qm@web23206.mail.ird.yahoo.com>
+	<20080714162659.6ae92e21@bk.ru> <1216043192l.7674l.0l@manu-laptop>
+	<20080714215156.2da2678c@bk.ru>
+In-Reply-To: <20080714215156.2da2678c@bk.ru> (from goga777@bk.ru on Mon Jul
+	14 13:51:56 2008)
+Message-Id: <1216062978l.7674l.1l@manu-laptop>
 MIME-Version: 1.0
-Date: Thu, 17 Jul 2008 19:38:55 -0700
-Message-ID: <1822849CB0478545ADCFB217EF4A3405F9E246@sedah.startrac.com>
-From: "Dan Taylor" <dtaylor@startrac.com>
-To: <video4linux-list@redhat.com>
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Disposition: inline
+Subject: [linux-dvb] Re : Re : problems with multiproto & dvb-s2 with high
+ SR, losing parts of stream
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-15"
 Content-Transfer-Encoding: quoted-printable
-Subject: AVerMedia A16D / DVB-T tuning problem
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-I have an AVerMedia A16D, running linux kernel 2.6.26 patched with v4l
-from yesterday (2008-07-16).
+Le 14.07.2008 13:51:56, Goga777 a =E9crit=A0:
+> > And you could retrieve the stream with no problemn even watch it?
+> =
 
-=20
+> do you mean H264/ffmpeg decoding problem ? Ah, I can't open these
+> encrypted channels =
 
-I can tune US cable, US broadcast, and European and Australian PAL
-analog broadcasts, but cannot get it to tune DVB-T (Berlin's set, for
-test purposes).  Mplayer reports "Not able to lock to the signal on the
-given frequency, timeout: 30".  I have checked the frequency from our
-signal generator with a frequency/signal strength meter and it is there,
-and have tried other frequencies including a known good frequency from
-the digital part of our local cable system (not that the A16D can decode
-the ATSC).
 
-=20
+Is it a card problem? I mean my TT-3200 has problems to tune on some =
 
-When I tried to use 50 MHz (default on our generator), the driver kernel
-message reported the tuner as capable of (174000000..862000000), so the
-560000000 we tried is supposed to be in the correct range.
+channels, but when it tunes the CI/CAM works perfectly (here almost =
 
-=20
+every channel is encrypted). Does HVR-4000 has a good CI?
+Thx
+Bye
+Manu
 
-We are using tuner "firmware" (with md5sum):
 
-=20
-
-293dc5e915d9a0f74a368f8a2ce3cc10
-/lib/firmware/2.6.26-MX945GME/xc3028-v27.fw
-
-=20
-
-A: does anyone have DVB-T running with the A16D?
-
-=20
-
-B: do we have the correct firmware, and, if not, what should we have and
-where can we get it?
-
-=20
-
-Any other suggestions?
-
-=20
-
-Thanks.
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
