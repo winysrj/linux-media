@@ -1,24 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HLDBBn020319
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 17:13:11 -0400
-Received: from vsmtp3.tin.it (vsmtp3.tin.it [212.216.176.223])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HLCvtG012697
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 17:12:58 -0400
-Message-ID: <487FB55C.6000506@tiscali.it>
-Date: Thu, 17 Jul 2008 22:10:52 +0100
-From: Andrea <audetto@tiscali.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6E4fh25021372
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 00:41:43 -0400
+Received: from s0be.servebeer.com (pool-71-115-163-54.gdrpmi.dsl-w.verizon.net
+	[71.115.163.54])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6E4fXQw017409
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 00:41:33 -0400
+Received: from [IPv6:2001:4978:142:0:290:f5ff:fe3a:c66d] (unknown
+	[IPv6:2001:4978:142:0:290:f5ff:fe3a:c66d])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by s0be.servebeer.com (Postfix) with ESMTP id 2FA36CFAA9
+	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 00:41:32 -0400 (EDT)
+Message-ID: <487AD8FA.2010103@erley.org>
+Date: Mon, 14 Jul 2008 00:41:30 -0400
+From: pat-lkml <pat-lkml@erley.org>
 MIME-Version: 1.0
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-References: <487908CA.8000304@tiscali.it> <48790D29.1010404@hhs.nl>	
-	<4879E767.4000103@tiscali.it> <487A577F.8080300@hhs.nl>
-	<d9def9db0807170831h4fb42ba2v5a7ff38c762092f5@mail.gmail.com>
-	<487F6676.1080403@hhs.nl>
-In-Reply-To: <487F6676.1080403@hhs.nl>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+References: <487AD82A.20801@erley.org>
+In-Reply-To: <487AD82A.20801@erley.org>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: prototype of a USB v4l2 driver? gspca?
+Subject: Re: [PATCH] uvcvideo: RESET_ON_TIMOUT Quirk [Against HG]
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,35 +33,9 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hans de Goede wrote:
-> Markus Rechberger wrote:
->> On Sun, Jul 13, 2008 at 9:29 PM, Hans de Goede <j.w.r.degoede@hhs.nl> 
->>
->> I guess quite a few drivers have extra features which might be missing
->> in other usb based ones. Best is probably to have a look at all
->> available ones and cherry pick the best ideas and easiest to
->> understand parts.
->> I think they are all on a certain level of quality right now.
->>
->> * gspca
->> * uvcvideo
->> * em28xx from mcentral.de
->>
-> 
-> Well these 3 drivers (in case of gscpa driver group) target different 
-> classes of hardware:
-> gspca:     pre uvc webcams (and nothing more then that)
-> uvcvideo:  uvc devices
-> em28xx:    em28xx based devices, which can be dvd, analogtv, webcam, 
-> etc, etc.
-> 
+Wrong patch posted, this one will not build.  Correct patch follows shortly.
 
-I think my task is pretty limited to a webcam.
-So I will start from gspca and try to work my way through it.
-I am a bit scared by the size of em28xx, which seems to profide too many features for my level of 
-understanding.
-
-Andrea
+Pat Erley
 
 --
 video4linux-list mailing list
