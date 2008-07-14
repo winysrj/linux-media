@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28])
+Received: from susik.kapsa.cz ([212.24.154.100])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ianm_97@fastmail.fm>) id 1KIdcO-0001Yb-UE
-	for linux-dvb@linuxtv.org; Tue, 15 Jul 2008 08:02:35 +0200
-Received: from compute1.internal (compute1.internal [10.202.2.41])
-	by out1.messagingengine.com (Postfix) with ESMTP id ACAC013980B
-	for <linux-dvb@linuxtv.org>; Tue, 15 Jul 2008 02:02:28 -0400 (EDT)
-Received: from [192.168.1.101] (123-243-199-51.static.tpgi.com.au
-	[123.243.199.51])
-	by mail.messagingengine.com (Postfix) with ESMTPA id C9366F506
-	for <linux-dvb@linuxtv.org>; Tue, 15 Jul 2008 02:02:27 -0400 (EDT)
-Message-ID: <487C3D71.1000409@fastmail.fm>
-Date: Tue, 15 Jul 2008 16:02:25 +1000
-From: Ian MacKinnell <ianm_97@fastmail.fm>
-MIME-Version: 1.0
+	(envelope-from <tomasb@kapsa.cz>) id 1KIIM7-0004ls-2t
+	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 09:20:19 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by susik.kapsa.cz (Postfix) with ESMTP id BA0AB6036
+	for <linux-dvb@linuxtv.org>; Mon, 14 Jul 2008 09:20:15 +0200 (CEST)
+Date: Mon, 14 Jul 2008 09:20:15 +0200 (CEST)
+From: Tomas Blaha <tomasb@kapsa.cz>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] dvbscan initial file DVB-T Australia/Sydney
+In-Reply-To: <mailman.1.1216017558.829.linux-dvb@linuxtv.org>
+Message-ID: <Pine.LNX.4.61.0807140906410.18200@susik.kapsa.cz>
+References: <mailman.1.1216017558.829.linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="416572570-879104232-1216020015=:18200"
+Subject: Re: [linux-dvb] Scan issues on Pinnacle 2001e DAUL Diversity
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,40 +22,77 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Using the file au-Sydney_North_Shore that comes with dvb_utils in
-Debian/Ubuntu 
-(/usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Sydney_North_Shore),
-the scan utility does not find any of the Seven-Network channels,
-although it finds all the other digital TV and radio channels in Sydney.
+--416572570-879104232-1216020015=:18200
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-After some experimenting with the scan utility, I changed the file
-/usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Sydney_North_Shore as
-follows:
+On Mon, 14 Jul 2008 linux-dvb-request@linuxtv.org wrote:
 
-# Seven VHF6
--T 177500000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
-+T 177500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+> I am working on DVB-T for the first time. I am using a Pinnacle PCTV 2001=
+e
+> USB DVB-T dongle.In that the device dri vers are getting registered and t=
+he
+> device is getting detected.I am using a 2.6.23.15 kernel.
+>=20
+> [...]
+>=20
+> But, after that when i am trying to run any scan application , it is show=
+ing
+> "scan failed".
+>=20
+> the dmesg after running scan application is,
+>=20
+> [...]
+>
+> >>> tune to:
+> 474166000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMIS=
+SION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+>
+> [...]
+>=20
+> Can Anyone Please tell me if you have faced a similar problem or what is
+> happening ?
+> Do i have to add something to the kernel?
 
-and scan now identifies all the Channel Seven network stations
-perfectly, as well as all the other Sydney channels found earlier.
+Hello,
 
-Please change the Channel Seven entry in the au-Sydney_North_Shore file
-accordingly and also can you remove the redundant au-sydney_north_shore
-file - it is an older, obsolete version.
+I have the same tuner and this output is what I have, when there is a low=
+=20
+or none signal. Dvbscan needs a quite good signal to proceed. Try to=20
+obtain channels.conf on the internet insteed of scanning, then try to zap=
+=20
+to some channel and see signal level and error rate from tzap application=
+=20
+while moving antena around.
 
-NB: all the other VHF TV channels in Sydney have 3/4 as the 4th field -
-I simply changed Channel Seven to be the same as them, and that worked.
+I have solved this way my problem with one multiplex, which I couldn't=20
+scan for months. I have found, that placing antena horizontally on one=20
+place of my window gives me sufficcient signal to receive :-)
 
+
+--
+
+Tom=C3=A1=C5=A1 Bl=C3=A1ha
+
+e-mail:   tomas.blaha at kapsa.cz
+JabberID: tomiiik at jabber.cz
+ICQ:      76239430
+--416572570-879104232-1216020015=:18200
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--416572570-879104232-1216020015=:18200--
