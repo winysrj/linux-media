@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.158])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1KLbot-0003R4-P8
-	for linux-dvb@linuxtv.org; Wed, 23 Jul 2008 12:43:45 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so1350565fga.25
-	for <linux-dvb@linuxtv.org>; Wed, 23 Jul 2008 03:43:38 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Wed, 23 Jul 2008 12:43:32 +0200
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_UtwhIFeytd72EyW"
-Message-Id: <200807231243.32944.christophpfister@gmail.com>
-Subject: [linux-dvb] Fwd: technotrend rc5 keymap
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Simon Arlott <simon@fire.lp0.eu>
+In-Reply-To: <487A4A3D.9040809@simon.arlott.org.uk>
+References: <4878F314.6090608@simon.arlott.org.uk>
+	<1215919227.2662.3.camel@pc10.localdom.local>
+	<487A4A3D.9040809@simon.arlott.org.uk>
+Date: Mon, 14 Jul 2008 04:48:30 +0200
+Message-Id: <1216003710.2649.24.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: v4l-dvb-maintainer@linuxtv.org, Linux DVB <linux-dvb@linuxtv.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [linux-dvb] [PATCH] V4L: Link tuner before saa7134
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,61 +18,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_UtwhIFeytd72EyW
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-----------  Weitergeleitete Nachricht  ----------
+Am Sonntag, den 13.07.2008, 19:32 +0100 schrieb Simon Arlott:
+> >From cde790c56ffe76f3d0bf6f38d89f4e671a5218c6 Mon Sep 17 00:00:00 2001
+> From: Simon Arlott <simon@redrum.invalid>
+> Date: Sun, 13 Jul 2008 19:24:53 +0100
+> Subject: [PATCH] V4L: Link tuner before saa7134
+> 
+> If saa7134_init is run before v4l2_i2c_drv_init (tuner),
+> then saa7134_board_init2 will try to set the tuner type
+> for devices that don't exist yet. This moves tuner to
+> before all of the device-specific drivers so that it's
+> loaded early enough on boot.
+> 
+> Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+> ---
+>  drivers/media/video/Makefile |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index ecbbfaa..6b0af12 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -18,6 +18,8 @@ ifeq ($(CONFIG_VIDEO_V4L1_COMPAT),y)
+>    obj-$(CONFIG_VIDEO_DEV) += v4l1-compat.o
+>  endif
+>  
+> +obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+> +
+>  obj-$(CONFIG_VIDEO_BT848) += bt8xx/
+>  obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+>  obj-$(CONFIG_VIDEO_TVAUDIO) += tvaudio.o
+> @@ -84,8 +86,6 @@ obj-$(CONFIG_VIDEO_HEXIUM_GEMINI) += hexium_gemini.o
+>  obj-$(CONFIG_VIDEO_DPC) += dpc7146.o
+>  obj-$(CONFIG_TUNER_3036) += tuner-3036.o
+>  
+> -obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+> -
+>  obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
+>  obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
+>  obj-$(CONFIG_VIDEOBUF_VMALLOC) += videobuf-vmalloc.o
+> -- 
+> 1.5.6.2
+> 
 
-Betreff: technotrend rc5 keymap
-Datum: Samstag 19 Juli 2008
-Von: Ronny Kornexl <ronny.kornexl@t-online.de>
-An: pfister@linuxtv.org
+Thanks a lot for working on it!
 
-Hello
+I must admit that I have not tested it yet.
 
-Can you add ../av7110_loadkeys/technotrend.rc5 to dvb-apps?
+Remaining issues are.
 
-Orginal Remote for "Technotrend S2300"
+#1 users can't set the tuner type anymore,
+   but the few cases of tuner detection from eeprom we have should
+   work again for that price.
 
-http://img511.imageshack.us/my.php?image=fbtv2.jpg
+#2 We still don't have any sufficient HDTV support in the kernel ;)
 
-Many Thanks
+#0 On 2.6.25, without dedicated TV subnorm selection possible anymore
+   and known auto detection flaws, fixed now, folks should have 
+   complained about it.
 
-Regards Ronny
+   Interestingly nothing like that happened.
+ 
+   What could that mean?
 
--------------------------------------------------------
+Cheers,
+Hermann
 
---Boundary-00=_UtwhIFeytd72EyW
-Content-Type: application/x-tbz;
-  name="technotrend-rc5.tar.bz2"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="technotrend-rc5.tar.bz2"
 
-QlpoOTFBWSZTWfTYaDcAAa5/hMiQEEBAAf/iP+/f5P9Nn2AAAIAIMAGaWMwNCBG1U/TVPTSfok0B
-kNAaDR6QABpPUYop5JoyZGAhkMmIMBMmJoIqaiJ6MpjU0aDRoAAAMgHlPUu/HJSVQTM6rRfFUxbG
-OugpGu/PLXKnAORkoAhAadOq9J6HzWUp324RHF1z6D1dWjJkqy8yxecCenbeBgXwSFspSlKU3/LZ
-U6pM+fFUxNWsrfEV48c7GTkafMSO6oDqqgB7NXpmQtlfkRtEpq4hggxSiRMSHQI3QCDwqLUbGYoI
-0JbEohyUgSBRJpqS9IdAQ7FWgCFCM7SZijwELPaLAdWeYSlGQJopkqn+DRUKVJMfv21D387M4GjE
-H9YRWS7cuZxtg8+SE6z0l5s6BAIPhLazEa61brd38JAgKRWB20gGXOM1DDsmD3g3ax/qMu66VlpS
-KytTBnuMQXGEcntHM1ua2RMNVwaFvNxkd6eEQzbqIZyGWfRaan3L0/GxGn1ia32PnxJ72Giwmn7d
-JlKrLTANY48bZi2WxuLmgfp24ucJW5UQrKVA/xdyRThQkPTYaDc=
-
---Boundary-00=_UtwhIFeytd72EyW
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_UtwhIFeytd72EyW--
