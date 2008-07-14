@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.153])
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1KJwqP-0000ze-2Z
-	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 22:46:26 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so227300fga.25
-	for <linux-dvb@linuxtv.org>; Fri, 18 Jul 2008 13:46:21 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
+	(envelope-from <goga777@bk.ru>) id 1KIN2q-00020u-0u
+	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 14:20:45 +0200
+Date: Mon, 14 Jul 2008 16:26:59 +0400
+From: Goga777 <goga777@bk.ru>
 To: linux-dvb@linuxtv.org
-Date: Fri, 18 Jul 2008 22:46:17 +0200
-References: <g5llos$b75$1@ger.gmane.org>
-In-Reply-To: <g5llos$b75$1@ger.gmane.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807182246.17897.christophpfister@gmail.com>
-Cc: Andrea <mariofutire@googlemail.com>
-Subject: Re: [linux-dvb] [PATCH] 2 patches for dvb-apps gnutv
+Message-ID: <20080714162659.6ae92e21@bk.ru>
+In-Reply-To: <646735.31020.qm@web23206.mail.ird.yahoo.com>
+References: <646735.31020.qm@web23206.mail.ird.yahoo.com>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] problems with multiproto & dvb-s2 with high SR,
+ losing parts of stream
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,46 +19,44 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Mittwoch 16 Juli 2008 22:28:33 schrieb Andrea:
-> Hi,
->
-> I would like to repost 2 patches for gnutv, part of dvb-apps.
->
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027177.html
->
-> They both try to make gnutv more robust when the system/destination file
-> system are temporary slow.
->
-> 1) http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027176.html
-> Once the dvb ringbuffer overflows, it is pointless to stop gnutv. I think
-> it should continue and get the rest of the signal.
-> What has been lost has been lost, let's not loose the future stream
->
-> 2) http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027177.html
-> Allow to set a bigger (than default = 2MB) dvb ringbuffer to cope with
-> temporary bottlenecks.
->
-> Is anybody interested in reviewing them?
-
-Guess no.
-
-But I'll rework the first patch a bit (the sequence of revents <--> errno 
-check is already bogus) and commit them. And I really suggest you to use an 
-application like dvbstream which does its own buffering (at least I hope 
-so ;) - because it has never happened to me yet that the ringbuffer 
-overflowed (and it shouldn't with sane applications).
-
-> Andrea
-
-Christoph
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+PiBJbSB1c2luZyBUVCBTMi0zMjAwIHdpdGggcmVjZW50IG11bHRpcHJvdG8gZHJpdmVyICsgdmRy
+LTEuNy4wLgo+IAo+IFRoZXNlIHRyYW5zcG9uZGVycyBhcmVuJ3Qgd29ya2luZyBwcm9wZXJseToK
+PiAKPiBIaXNwYXNhdCwgMzCcV2VzdDogMTIwMTJILCAzMDAwMCwgOHBzaywgKDMvNCBhdXMgTklU
+KQo+IAo+IEhpc3Bhc2F0LCAzMJxXZXN0OiAxMjA1MkgsIDMwMDAwLCA4cHNrLCAoMy80IGF1cyBO
+SVQpCj4gCj4gSGlzcGFzYXQsIDMwnFdlc3Q6IDEyMDkySCwgMzAwMDAsIDhwc2ssICgzLzQgYXVz
+IE5JVCkKPiAKPiBUaG9yLCAwLDicV2VzdDogMTIwMTVILCAzMDAwMCwgMy80LCA4UFNLIAo+IAo+
+IFRob3IsIDAsOJxXZXN0OiAxMjEyOEgsIDMwMDAwLCAzLzQsIDhQU0sKPiAKPiBmaXJzdCB0aGV5
+IGRpZG4ndCBsb2NrLCBidXQgdGhlbiBJIHRyaWVkIHRvIGNoYW5nZSBTUiB0byAyOTk5OCBhbmQg
+dGhleSBkaWQuLgo+IAo+IEJVVCBub3cgcGFydCBvZiB0aGUgc3RyZWFtIGdldHMgbG9zdC4gVkRS
+cyBpbnRlcm5hbCBjaGFubmVsc2VhcmNoIGNhbid0IHJlYWQgdHYgY2hhbm5lbHMgZnJvbSB0aGF0
+IHRyYW5zcG9uZGVyLiBXaGVuCj4gc2V0dGluZyBWUGlkIG1hbnVhbGx5IEkgZ2V0IGEgZGF0YXJh
+dGUgb2YganVzdCA1IE1iaXQvcyAoaW5zdGVhZCBvZiAxMiBNYml0L3MpLgo+IAo+IEFyZSB0aGVz
+ZSB0cmFuc3BvbmRlcnMgd29ya2luZyBmb3IgeW91PyE/CgppdCdzIGtub3duIHByb2JsZW0gb2Yg
+c3RiMDg5OSBmb3IgaGlnaCBTUiBmb3IgZHZiLXMyCmNvdWxkIHlvdSBsb29rIGF0IFtsaW51eC1k
+dmJdIFJlIDogUmUgOiBIb3cgdG8gc29sdmUgdGhlIFRULVMyLTMyMDAgdHVuaW5nIHByb2JsZW1z
+PwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL3BpcGVybWFpbC9saW51eC1kdmIvMjAwOC1KdW5lLzAy
+Njk4Ni5odG1sCgpmb3IgeW91IGluZm9ybWF0aW9uIG9uIHZkciAxNzAgKyBodnI0MDAwIGNhcmQg
+KGN4MjQxMTYgZGVtb2Qgd2l0aCBsZWdhY3k9MCBvcHRpb24pIEkgY291bGQgbG9jayB0aGVzZSBj
+aGFubmVscwoKWUxFIFBla2luZyBIRDtUZWxlbm9yOjEyMDE1OmhDMzRNNU8wUzE6UzYwLjBFOjMw
+MDAwOjUxNDo2NDg9c3ZlOjA6MDo0MTAzOjcwOjQxOjAKRXVyb3Nwb3J0IEhEO1RlbGVub3I6MTIw
+MTU6aEMzNE01TzBTMTpTNjAuMEU6MzAwMDA6NTEyOjY0MT1zdmUsNjQwPW5vciw2NDI9ZGFuLDY0
+Mz1maW46MDowOjQxMDE6NzA6NDE6MApUVjQgSEQ7VGVsZW5vcjoxMjEzMDpoQzM0TTVPMFMxOlM2
+MC4wRTozMDAwMDo1MTI6MDs2NDE9c3ZlOjA6QjAwOjE0MDU6NzA6NDI6MCAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAggQpTaWx2ZXIgSEQ7VGVsZW5vcjoxMjEzMDpo
+QzM0TTVPMFMxOlM2MC4wRTozMDAwMDo1MTM6NjQ0PWVuZzs2NDU9ZW5nOjA6QjAwOjQyMDE6NzA6
+NDI6MApIaXN0b3J5IENobmwgSEQ7VGVsZW5vcjoxMjEzMDpoQzM0TTVPMFMxOlM2MC4wRTozMDAw
+MDo1MTQrODE5MDo2NDg9ZW5nOjA6QjAwOjQyMDI6NzA6NDI6MApDQU5BTCsgU1BPUlQgSEQ7VGVs
+ZW5vcjoxMTQyMTpoQzM0TTVPMFMxOlM2MC4wRToyNTAwMDo1MTQ6NjQ4PXN2ZSw2NDk9bm9yOjA6
+QjAwOjE0MDQ6NzA6MTQ6MApTVlQgSEQ7VGVsZW5vcjoxMTQyMTpoQzM0TTVPMFMxOlM2MC4wRToy
+NTAwMDo1MTI6NjQwPXN2ZTs2NDE9c3ZlOjA6QjAwOjM4MDE6NzA6MTQ6MApDQU5BTCsgRklMTSBI
+RDtUZWxlbm9yOjExNDIxOmhDMzRNNU8wUzE6UzYwLjBFOjI1MDAwOjUxMzo2NDQ9ZW5nOzY0NT1l
+bmc6MDpCMDA6MzMwNjo3MDoxNDowCgoKCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4
+dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xp
+bnV4LWR2Yg==
