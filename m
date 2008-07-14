@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KIN2q-00020u-0u
-	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 14:20:45 +0200
-Date: Mon, 14 Jul 2008 16:26:59 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080714162659.6ae92e21@bk.ru>
-In-Reply-To: <646735.31020.qm@web23206.mail.ird.yahoo.com>
-References: <646735.31020.qm@web23206.mail.ird.yahoo.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] problems with multiproto & dvb-s2 with high SR,
- losing parts of stream
+Received: from gateway09.websitewelcome.com ([64.5.52.12])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <skerit@kipdola.com>) id 1KIQdh-0005ty-Vq
+	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 18:11:03 +0200
+Message-ID: <487B7AE8.30006@kipdola.com>
+Date: Mon, 14 Jul 2008 18:12:24 +0200
+From: Jelle De Loecker <skerit@kipdola.com>
+MIME-Version: 1.0
+To: manu <eallaud@yahoo.fr>, linux-dvb@linuxtv.org
+References: <1215822101l.26120l.0l@manu-laptop>
+In-Reply-To: <1215822101l.26120l.0l@manu-laptop>
+Subject: Re: [linux-dvb] (Crude) Patch to support latest multiproto drivers
+ (as of 2008-07-11
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,44 +19,104 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============1295681822=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-PiBJbSB1c2luZyBUVCBTMi0zMjAwIHdpdGggcmVjZW50IG11bHRpcHJvdG8gZHJpdmVyICsgdmRy
-LTEuNy4wLgo+IAo+IFRoZXNlIHRyYW5zcG9uZGVycyBhcmVuJ3Qgd29ya2luZyBwcm9wZXJseToK
-PiAKPiBIaXNwYXNhdCwgMzCcV2VzdDogMTIwMTJILCAzMDAwMCwgOHBzaywgKDMvNCBhdXMgTklU
-KQo+IAo+IEhpc3Bhc2F0LCAzMJxXZXN0OiAxMjA1MkgsIDMwMDAwLCA4cHNrLCAoMy80IGF1cyBO
-SVQpCj4gCj4gSGlzcGFzYXQsIDMwnFdlc3Q6IDEyMDkySCwgMzAwMDAsIDhwc2ssICgzLzQgYXVz
-IE5JVCkKPiAKPiBUaG9yLCAwLDicV2VzdDogMTIwMTVILCAzMDAwMCwgMy80LCA4UFNLIAo+IAo+
-IFRob3IsIDAsOJxXZXN0OiAxMjEyOEgsIDMwMDAwLCAzLzQsIDhQU0sKPiAKPiBmaXJzdCB0aGV5
-IGRpZG4ndCBsb2NrLCBidXQgdGhlbiBJIHRyaWVkIHRvIGNoYW5nZSBTUiB0byAyOTk5OCBhbmQg
-dGhleSBkaWQuLgo+IAo+IEJVVCBub3cgcGFydCBvZiB0aGUgc3RyZWFtIGdldHMgbG9zdC4gVkRS
-cyBpbnRlcm5hbCBjaGFubmVsc2VhcmNoIGNhbid0IHJlYWQgdHYgY2hhbm5lbHMgZnJvbSB0aGF0
-IHRyYW5zcG9uZGVyLiBXaGVuCj4gc2V0dGluZyBWUGlkIG1hbnVhbGx5IEkgZ2V0IGEgZGF0YXJh
-dGUgb2YganVzdCA1IE1iaXQvcyAoaW5zdGVhZCBvZiAxMiBNYml0L3MpLgo+IAo+IEFyZSB0aGVz
-ZSB0cmFuc3BvbmRlcnMgd29ya2luZyBmb3IgeW91PyE/CgppdCdzIGtub3duIHByb2JsZW0gb2Yg
-c3RiMDg5OSBmb3IgaGlnaCBTUiBmb3IgZHZiLXMyCmNvdWxkIHlvdSBsb29rIGF0IFtsaW51eC1k
-dmJdIFJlIDogUmUgOiBIb3cgdG8gc29sdmUgdGhlIFRULVMyLTMyMDAgdHVuaW5nIHByb2JsZW1z
-PwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL3BpcGVybWFpbC9saW51eC1kdmIvMjAwOC1KdW5lLzAy
-Njk4Ni5odG1sCgpmb3IgeW91IGluZm9ybWF0aW9uIG9uIHZkciAxNzAgKyBodnI0MDAwIGNhcmQg
-KGN4MjQxMTYgZGVtb2Qgd2l0aCBsZWdhY3k9MCBvcHRpb24pIEkgY291bGQgbG9jayB0aGVzZSBj
-aGFubmVscwoKWUxFIFBla2luZyBIRDtUZWxlbm9yOjEyMDE1OmhDMzRNNU8wUzE6UzYwLjBFOjMw
-MDAwOjUxNDo2NDg9c3ZlOjA6MDo0MTAzOjcwOjQxOjAKRXVyb3Nwb3J0IEhEO1RlbGVub3I6MTIw
-MTU6aEMzNE01TzBTMTpTNjAuMEU6MzAwMDA6NTEyOjY0MT1zdmUsNjQwPW5vciw2NDI9ZGFuLDY0
-Mz1maW46MDowOjQxMDE6NzA6NDE6MApUVjQgSEQ7VGVsZW5vcjoxMjEzMDpoQzM0TTVPMFMxOlM2
-MC4wRTozMDAwMDo1MTI6MDs2NDE9c3ZlOjA6QjAwOjE0MDU6NzA6NDI6MCAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAggQpTaWx2ZXIgSEQ7VGVsZW5vcjoxMjEzMDpo
-QzM0TTVPMFMxOlM2MC4wRTozMDAwMDo1MTM6NjQ0PWVuZzs2NDU9ZW5nOjA6QjAwOjQyMDE6NzA6
-NDI6MApIaXN0b3J5IENobmwgSEQ7VGVsZW5vcjoxMjEzMDpoQzM0TTVPMFMxOlM2MC4wRTozMDAw
-MDo1MTQrODE5MDo2NDg9ZW5nOjA6QjAwOjQyMDI6NzA6NDI6MApDQU5BTCsgU1BPUlQgSEQ7VGVs
-ZW5vcjoxMTQyMTpoQzM0TTVPMFMxOlM2MC4wRToyNTAwMDo1MTQ6NjQ4PXN2ZSw2NDk9bm9yOjA6
-QjAwOjE0MDQ6NzA6MTQ6MApTVlQgSEQ7VGVsZW5vcjoxMTQyMTpoQzM0TTVPMFMxOlM2MC4wRToy
-NTAwMDo1MTI6NjQwPXN2ZTs2NDE9c3ZlOjA6QjAwOjM4MDE6NzA6MTQ6MApDQU5BTCsgRklMTSBI
-RDtUZWxlbm9yOjExNDIxOmhDMzRNNU8wUzE6UzYwLjBFOjI1MDAwOjUxMzo2NDQ9ZW5nOzY0NT1l
-bmc6MDpCMDA6MzMwNjo3MDoxNDowCgoKCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4
-dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LWR2Yg==
+This is a multi-part message in MIME format.
+--===============1295681822==
+Content-Type: multipart/alternative;
+ boundary="------------000508040803020706040903"
+
+This is a multi-part message in MIME format.
+--------------000508040803020706040903
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+
+manu schreef:
+> 	Hi all,
+> subject says it all. This patch (that applies to trunk, but probably 
+> also for 0.21.fixes) allows myth to tune with the latest multiproto 
+> drivers.
+> No DVB-S2 support here, its a crude patch, but it works for DVB-S.
+> Bye
+> Manu
+>   
+As ridiculous as it might seem, I still have difficulties applying 
+patches. I know, shoot me! I never seem to get when to use the -p1 or 
+-p0 option, or whatever! Here's my output.
+
+patch -p0 < mythtv*.patch
+patching file libs/libmythtv/dvbchannel.cpp
+Hunk #1 FAILED at 211.
+Hunk #2 FAILED at 781.
+2 out of 2 hunks FAILED -- saving rejects to file 
+libs/libmythtv/dvbchannel.cpp.rej
+
+
+/Met vriendelijke groeten,/
+
+*Jelle De Loecker*
+Kipdola Studios - Tomberg
+
+--------------000508040803020706040903
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<br>
+manu schreef:
+<blockquote cite="mid:1215822101l.26120l.0l@manu-laptop" type="cite">
+  <pre wrap="">	Hi all,
+subject says it all. This patch (that applies to trunk, but probably 
+also for 0.21.fixes) allows myth to tune with the latest multiproto 
+drivers.
+No DVB-S2 support here, its a crude patch, but it works for DVB-S.
+Bye
+Manu
+  </pre>
+</blockquote>
+As ridiculous as it might seem, I still have difficulties applying
+patches. I know, shoot me! I never seem to get when to use the -p1 or
+-p0 option, or whatever! Here's my output.<br>
+<br>
+patch -p0 &lt; mythtv*.patch<br>
+patching file libs/libmythtv/dvbchannel.cpp<br>
+Hunk #1 FAILED at 211.<br>
+Hunk #2 FAILED at 781.<br>
+2 out of 2 hunks FAILED -- saving rejects to file
+libs/libmythtv/dvbchannel.cpp.rej<br>
+<br>
+<div class="moz-signature"><br>
+<em>Met vriendelijke groeten,</em>
+<br>
+<br>
+<strong>Jelle De Loecker</strong>
+<br>
+Kipdola Studios - Tomberg <br>
+</div>
+</body>
+</html>
+
+--------------000508040803020706040903--
+
+
+--===============1295681822==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1295681822==--
