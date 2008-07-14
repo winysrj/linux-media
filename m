@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dd6832.kasserver.com ([85.13.131.133])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <xxx@muad-dib.net>) id 1KJr8Q-0002pb-BV
-	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 16:40:39 +0200
-Received: from [192.168.0.90] (dslb-092-072-000-255.pools.arcor-ip.net
-	[92.72.0.255])
-	by dd6832.kasserver.com (Postfix) with ESMTP id 978A71F13A2
-	for <linux-dvb@linuxtv.org>; Fri, 18 Jul 2008 16:40:32 +0200 (CEST)
-Message-ID: <4880AB5E.60602@muad-dib.net>
-Date: Fri, 18 Jul 2008 16:40:30 +0200
-From: "xxx@muad-dib.net" <xxx@muad-dib.net>
-MIME-Version: 1.0
+Received: from n7a.bullet.ukl.yahoo.com ([217.146.183.155])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1KIOOV-0006KL-GA
+	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 15:47:12 +0200
+Date: Mon, 14 Jul 2008 09:46:32 -0400
+From: manu <eallaud@yahoo.fr>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Terratec Cinergy T USB XXS and the remote control
+References: <646735.31020.qm@web23206.mail.ird.yahoo.com>
+	<20080714162659.6ae92e21@bk.ru>
+In-Reply-To: <20080714162659.6ae92e21@bk.ru> (from goga777@bk.ru on Mon Jul
+	14 08:26:59 2008)
+Message-Id: <1216043192l.7674l.0l@manu-laptop>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Re :  problems with multiproto & dvb-s2 with high SR,
+ losing parts of stream
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,36 +22,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Is there no one who got the same problem?
-
-Everthing is running fine but I can't config the ir-remote, some keys
-are working in VDR like: up, down, left, ok and the numberkeys.
-dmesg gives me something like this on the other ~33 keys.
-
-dib0700: Unknown remote controller key:  D 71  1  0
-dib0700: Unknown remote controller key:  9 40  1  0
-dib0700: Unknown remote controller key:  7 2C  1  0
-dib0700: Unknown remote controller key:  2  5  0  0
-
-The remote control looks like the one from Cinergy DT USB XS Diversity
-and Cinergy T USB XS FM.
-I use the lates modules from http://linuxtv.org/hg/v4l-dvb and latest
-kernel from kernel.org (2.6.26)
-I think there are some entries missing in dib0700.devices.c, but i can
-figure out how they must look like.
-
-Thanks very mucht for any help and for your good work :-)
-
-Greetings Sebastian
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+TGUgMTQuMDcuMjAwOCAwODoyNjo1OSwgR29nYTc3NyBhIMOpY3JpdMKgOgo+ID4gSW0gdXNpbmcg
+VFQgUzItMzIwMCB3aXRoIHJlY2VudCBtdWx0aXByb3RvIGRyaXZlciArIHZkci0xLjcuMC4KPiA+
+IAo+ID4gVGhlc2UgdHJhbnNwb25kZXJzIGFyZW4ndCB3b3JraW5nIHByb3Blcmx5Ogo+ID4gCj4g
+PiBIaXNwYXNhdCwgMzDCsFdlc3Q6IDEyMDEySCwgMzAwMDAsIDhwc2ssICgzLzQgYXVzIE5JVCkK
+PiA+IAo+ID4gSGlzcGFzYXQsIDMwwrBXZXN0OiAxMjA1MkgsIDMwMDAwLCA4cHNrLCAoMy80IGF1
+cyBOSVQpCj4gPiAKPiA+IEhpc3Bhc2F0LCAzMMKwV2VzdDogMTIwOTJILCAzMDAwMCwgOHBzaywg
+KDMvNCBhdXMgTklUKQo+ID4gCj4gPiBUaG9yLCAwLDjCsFdlc3Q6IDEyMDE1SCwgMzAwMDAsIDMv
+NCwgOFBTSyAKPiA+IAo+ID4gVGhvciwgMCw4wrBXZXN0OiAxMjEyOEgsIDMwMDAwLCAzLzQsIDhQ
+U0sKPiA+IAo+ID4gZmlyc3QgdGhleSBkaWRuJ3QgbG9jaywgYnV0IHRoZW4gSSB0cmllZCB0byBj
+aGFuZ2UgU1IgdG8gMjk5OTggYW5kCj4gdGhleSBkaWQuLgo+ID4gCj4gPiBCVVQgbm93IHBhcnQg
+b2YgdGhlIHN0cmVhbSBnZXRzIGxvc3QuIFZEUnMgaW50ZXJuYWwgY2hhbm5lbHNlYXJjaAo+IGNh
+bid0IHJlYWQgdHYgY2hhbm5lbHMgZnJvbSB0aGF0IHRyYW5zcG9uZGVyLiBXaGVuCj4gPiBzZXR0
+aW5nIFZQaWQgbWFudWFsbHkgSSBnZXQgYSBkYXRhcmF0ZSBvZiBqdXN0IDUgTWJpdC9zIChpbnN0
+ZWFkIG9mCj4gMTIgTWJpdC9zKS4KPiA+IAo+ID4gQXJlIHRoZXNlIHRyYW5zcG9uZGVycyB3b3Jr
+aW5nIGZvciB5b3U/IT8KPiAKPiBpdCdzIGtub3duIHByb2JsZW0gb2Ygc3RiMDg5OSBmb3IgaGln
+aCBTUiBmb3IgZHZiLXMyCj4gY291bGQgeW91IGxvb2sgYXQgW2xpbnV4LWR2Yl0gUmUgOiBSZSA6
+IEhvdyB0byBzb2x2ZSB0aGUgVFQtUzItMzIwMAo+IHR1bmluZyBwcm9ibGVtcz8KPiBodHRwOi8v
+d3d3LmxpbnV4dHYub3JnL3BpcGVybWFpbC9saW51eC1kdmIvMjAwOC1KdW5lLzAyNjk4Ni5odG1s
+Cj4gCj4gZm9yIHlvdSBpbmZvcm1hdGlvbiBvbiB2ZHIgMTcwICsgaHZyNDAwMCBjYXJkIChjeDI0
+MTE2IGRlbW9kIHdpdGgKPiBsZWdhY3k9MCBvcHRpb24pIEkgY291bGQgbG9jayB0aGVzZSBjaGFu
+bmVscwo+IAo+IFlMRSBQZWtpbmcgCj4gSEQ7VGVsZW5vcjoxMjAxNTpoQzM0TTVPMFMxOlM2MC4w
+RTozMDAwMDo1MTQ6NjQ4PXN2ZTowOjA6NDEwMzo3MDo0MTowCj4gRXVyb3Nwb3J0IAo+IEhEO1Rl
+bGVub3I6MTIwMTU6aEMzNE01TzBTMTpTNjAuMEU6MzAwMDA6NTEyOjY0MT1zdmUsNjQwPW5vciw2
+NDI9ZGFuLDY0Mz1maW46MDowOjQxMDE6NzA6NDE6MAo+IFRWNCAKPiBIRDtUZWxlbm9yOjEyMTMw
+OmhDMzRNNU8wUzE6UzYwLjBFOjMwMDAwOjUxMjowOzY0MT1zdmU6MDpCMDA6MTQwNTo3MDo0Mjow
+Cj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIOKUggo+IFNpbHZl
+ciAKPiBIRDtUZWxlbm9yOjEyMTMwOmhDMzRNNU8wUzE6UzYwLjBFOjMwMDAwOjUxMzo2NDQ9ZW5n
+OzY0NT1lbmc6MDpCMDA6NDIwMTo3MDo0MjowCj4gSGlzdG9yeSBDaG5sIEhEO1RlbGVub3I6MTIx
+MzA6aEMzNE01TzBTMTpTNjAuMEU6MzAwMDA6NTE0Cj4gKzgxOTA6NjQ4PWVuZzowOkIwMDo0MjAy
+OjcwOjQyOjAKPiBDQU5BTCsgU1BPUlQgCj4gSEQ7VGVsZW5vcjoxMTQyMTpoQzM0TTVPMFMxOlM2
+MC4wRToyNTAwMDo1MTQ6NjQ4PXN2ZSw2NDk9bm9yOjA6QjAwOjE0MDQ6NzA6MTQ6MAo+IFNWVCAK
+PiBIRDtUZWxlbm9yOjExNDIxOmhDMzRNNU8wUzE6UzYwLjBFOjI1MDAwOjUxMjo2NDA9c3ZlOzY0
+MT1zdmU6MDpCMDA6MzgwMTo3MDoxNDowCj4gQ0FOQUwrIEZJTE0gCj4gSEQ7VGVsZW5vcjoxMTQy
+MTpoQzM0TTVPMFMxOlM2MC4wRToyNTAwMDo1MTM6NjQ0PWVuZzs2NDU9ZW5nOjA6QjAwOjMzMDY6
+NzA6MTQ6MAoKQW5kIHlvdSBjb3VsZCByZXRyaWV2ZSB0aGUgc3RyZWFtIHdpdGggbm8gcHJvYmxl
+bW4gZXZlbiB3YXRjaCBpdD8KVGh4CkJ5ZQpNYW51LCBnZXR0aW5nIHRpcmVkIG9mIHR1bmluZyBw
+cm9ibGVtcyB3aXRoIGl0cyBUVC0zMjAwLi4uIDooCgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJA
+bGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGlu
+Zm8vbGludXgtZHZi
