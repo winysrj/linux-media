@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]
-	helo=shogun.pilppa.org) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lamikr@pilppa.org>) id 1KLmJB-0005jQ-AF
-	for linux-dvb@linuxtv.org; Wed, 23 Jul 2008 23:55:41 +0200
-Date: Thu, 24 Jul 2008 00:55:36 +0300 (EEST)
-From: Mika Laitio <lamikr@pilppa.org>
-To: linux-dvb@linuxtv.org
-Message-ID: <Pine.LNX.4.64.0807240030280.20479@shogun.pilppa.org>
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <crope@iki.fi>) id 1KInXJ-0003Tn-EO
+	for linux-dvb@linuxtv.org; Tue, 15 Jul 2008 18:38:00 +0200
+Message-ID: <487CD260.80102@iki.fi>
+Date: Tue, 15 Jul 2008 19:37:52 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Subject: [linux-dvb] latest hvr-4000 driver patches
+To: Robert Goldner <robert@au-79.de>
+References: <20080715064346.01ACC1BC39@agathe> <487C85ED.8060303@iki.fi>
+In-Reply-To: <487C85ED.8060303@iki.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] unknown dvbt device 1ae7:0381 Xtensions 380U
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,22 +25,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I optained the hvr-4000 and would like to set things up 
-with less error prone way in the beginning as I will also need to setup 
-and direct the dish toward the satellite for the first time as well.
+Antti Palosaari wrote:
+>> http://www.x-tensions.net/support.php?lang=de&view=solo&prod_num=XD-380
+>> But be carefull with the driver on this page. It differs a lot against the 
+>> driver included at the CD delivered with the stick.
+>>
+>> I had a look into the windows driver (on the CD) and found nothing what
+>> could give an information which linux-driver is the right one (in my eyes). 
+>> If it is useful, I can put the windows driver to the www.
+>>
+>> Is there any realistic hope, to get this device work with linux? I will
+>> test any patches and try any hints etc.
 
-Are the single frontend drivers from 
-http://dev.kewl.org/hauppauge/ the safest way to try in the beginning even if using new 2.6.26 kernels
-even though the patch in there does not anymore apply to dvb-kernel head? 
-I assume with that I could just use standard dvb-tools without any 
-patching.
+Device USB-IDs are now added to the driver. Please test:
+http://linuxtv.org/hg/~anttip/af9015
 
-And what about vdr-1.7.0, is the multi frontend driver install 
-procedure mentioned in wiki ok for that one? 
-(http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000#Drivers) 
-or is there awailable some other patch set for that?
+> 
+> Looks like rebranded KWorld PlusTV 380U. Device is AF9015 chipset based. 
+> I can add support for this later today.
 
-Mika
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
