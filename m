@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+7f5e78da585ec6b49928+1784+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1KHeFk-0007gY-Cj
-	for linux-dvb@linuxtv.org; Sat, 12 Jul 2008 14:31:04 +0200
-Date: Sat, 12 Jul 2008 09:29:31 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080712092931.0099413a@gaivota>
-In-Reply-To: <1213562075.2683.79.camel@pc10.localdom.local>
-References: <1634623854.65471.1213524197148.JavaMail.apache@mail71.abv.bg>
-	<1213562075.2683.79.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>, linux-dvb@linuxtv.org,
-	video4linuxlist@redhat.com, Bozhan Boiadzhiev <bozhan@abv.bg>
-Subject: Re: [linux-dvb] ASUS My-Cinema remote patch
+Message-ID: <487D1964.7050607@simon.arlott.org.uk>
+Date: Tue, 15 Jul 2008 22:40:52 +0100
+From: Simon Arlott <simon@fire.lp0.eu>
+MIME-Version: 1.0
+To: v4l-dvb-maintainer@linuxtv.org
+References: <4878F314.6090608@simon.arlott.org.uk>
+	<1215919227.2662.3.camel@pc10.localdom.local>
+In-Reply-To: <1215919227.2662.3.camel@pc10.localdom.local>
+Cc: Linux DVB <linux-dvb@linuxtv.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [linux-dvb] [PATCH] V4L: Link tuner before saa7134
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,29 +23,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 15 Jun 2008 22:34:35 +0200
-hermann pitton <hermann-pitton@arcor.de> wrote:
+If saa7134_init is run before v4l2_i2c_drv_init (tuner),
+then saa7134_board_init2 will try to set the tuner type
+for devices that don't exist yet. This moves tuner to
+before all of the device-specific drivers so that it's
+loaded early enough on boot.
 
-> Hi,
-> 
-> Am Sonntag, den 15.06.2008, 13:03 +0300 schrieb Bozhan Boiadzhiev:
-> > 
-> > ok i'll test patch later.
-> > thanks
-> > :)
-> 
-> here is an updated version after latest changes by Matthias and Tim on
-> saa7134. Should work.
-> 
-> Can't do much more on it. 
-> 
-> Hartmut, Mauro, the eeprom detection is very basic, but should work. I
-> sign off so far. Also attached.
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+---
+Resend... I accidentally left the git-send-email headers in.
 
-Patch applied. I had to manually fix a conflict with a previously applied one. Please check.
+Mailman appears to be easily confused too: 
+http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027205.html
 
-Cheers,
-Mauro
+ drivers/media/video/Makefile |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index ecbbfaa..6b0af12 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -18,6 +18,8 @@ ifeq ($(CONFIG_VIDEO_V4L1_COMPAT),y)
+   obj-$(CONFIG_VIDEO_DEV) += v4l1-compat.o
+ endif
+ 
++obj-$(CONFIG_VIDEO_TUNER) += tuner.o
++
+ obj-$(CONFIG_VIDEO_BT848) += bt8xx/
+ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+ obj-$(CONFIG_VIDEO_TVAUDIO) += tvaudio.o
+@@ -84,8 +86,6 @@ obj-$(CONFIG_VIDEO_HEXIUM_GEMINI) += hexium_gemini.o
+ obj-$(CONFIG_VIDEO_DPC) += dpc7146.o
+ obj-$(CONFIG_TUNER_3036) += tuner-3036.o
+ 
+-obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+-
+ obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
+ obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
+ obj-$(CONFIG_VIDEOBUF_VMALLOC) += videobuf-vmalloc.o
+-- 
+1.5.6.2
+
+-- 
+Simon Arlott
+
 
 _______________________________________________
 linux-dvb mailing list
