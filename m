@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gateway09.websitewelcome.com ([64.5.52.12])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <skerit@kipdola.com>) id 1KIQdh-0005ty-Vq
-	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 18:11:03 +0200
-Message-ID: <487B7AE8.30006@kipdola.com>
-Date: Mon, 14 Jul 2008 18:12:24 +0200
-From: Jelle De Loecker <skerit@kipdola.com>
-MIME-Version: 1.0
-To: manu <eallaud@yahoo.fr>, linux-dvb@linuxtv.org
-References: <1215822101l.26120l.0l@manu-laptop>
-In-Reply-To: <1215822101l.26120l.0l@manu-laptop>
-Subject: Re: [linux-dvb] (Crude) Patch to support latest multiproto drivers
- (as of 2008-07-11
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <goga777@bk.ru>) id 1KIeHq-0004He-7d
+	for linux-dvb@linuxtv.org; Tue, 15 Jul 2008 08:45:23 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id 1F8B319E66C6
+	for <linux-dvb@linuxtv.org>; Tue, 15 Jul 2008 10:44:48 +0400 (MSD)
+Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id CC46C19E65AF
+	for <linux-dvb@linuxtv.org>; Tue, 15 Jul 2008 10:44:47 +0400 (MSD)
+Date: Tue, 15 Jul 2008 10:51:47 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080715105147.7b661467@bk.ru>
+In-Reply-To: <1216091871.5048.11.camel@pc10.localdom.local>
+References: <36ADB82E-9B62-4847-BB60-0AD1AB572391@krastelcom.ru>
+	<1216091871.5048.11.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Express AM2 11044 H 45 MSps
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,104 +25,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1295681822=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============1295681822==
-Content-Type: multipart/alternative;
- boundary="------------000508040803020706040903"
+Hi
 
-This is a multi-part message in MIME format.
---------------000508040803020706040903
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+I have the same problem as Vladimir. I have the hvr4000 and tt2300 SS1 cards and I couldn't lock this package with
+extremely high SR . My dreambox 7000 can lock this package without any problem. 
 
+> > I have recently realized that none of the available cards are able to  
+> > properly lock on Express AM2 11044H 45 MSps . The only one that can is  
+> > TT-S1401 with buf[5] register corrections.
+> > 
+> > I have tried:
+> > 
+> > TT S-1500
+> > TT S2-3200
+> > Skystar 2.6
+> > TT S-1401 with non-modified drivers.
+> > 
+> > Regards,
+> > Vladimir
+> > 
+> 
+> do you mean that, what Hartmut, Manu and Oliver worked out for it for
+> dynamic bandwidth cutoff adjustment, 
 
-manu schreef:
-> 	Hi all,
-> subject says it all. This patch (that applies to trunk, but probably 
-> also for 0.21.fixes) allows myth to tune with the latest multiproto 
-> drivers.
-> No DVB-S2 support here, its a crude patch, but it works for DVB-S.
-> Bye
-> Manu
->   
-As ridiculous as it might seem, I still have difficulties applying 
-patches. I know, shoot me! I never seem to get when to use the -p1 or 
--p0 option, or whatever! Here's my output.
+sorry, what do you mean ? 
 
-patch -p0 < mythtv*.patch
-patching file libs/libmythtv/dvbchannel.cpp
-Hunk #1 FAILED at 211.
-Hunk #2 FAILED at 781.
-2 out of 2 hunks FAILED -- saving rejects to file 
-libs/libmythtv/dvbchannel.cpp.rej
+Goga
 
-
-/Met vriendelijke groeten,/
-
-*Jelle De Loecker*
-Kipdola Studios - Tomberg
-
---------------000508040803020706040903
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-</head>
-<body bgcolor="#ffffff" text="#000000">
-<br>
-manu schreef:
-<blockquote cite="mid:1215822101l.26120l.0l@manu-laptop" type="cite">
-  <pre wrap="">	Hi all,
-subject says it all. This patch (that applies to trunk, but probably 
-also for 0.21.fixes) allows myth to tune with the latest multiproto 
-drivers.
-No DVB-S2 support here, its a crude patch, but it works for DVB-S.
-Bye
-Manu
-  </pre>
-</blockquote>
-As ridiculous as it might seem, I still have difficulties applying
-patches. I know, shoot me! I never seem to get when to use the -p1 or
--p0 option, or whatever! Here's my output.<br>
-<br>
-patch -p0 &lt; mythtv*.patch<br>
-patching file libs/libmythtv/dvbchannel.cpp<br>
-Hunk #1 FAILED at 211.<br>
-Hunk #2 FAILED at 781.<br>
-2 out of 2 hunks FAILED -- saving rejects to file
-libs/libmythtv/dvbchannel.cpp.rej<br>
-<br>
-<div class="moz-signature"><br>
-<em>Met vriendelijke groeten,</em>
-<br>
-<br>
-<strong>Jelle De Loecker</strong>
-<br>
-Kipdola Studios - Tomberg <br>
-</div>
-</body>
-</html>
-
---------------000508040803020706040903--
+>which is in mercurial v4l-dvb, or
+> do you still try something different with better results?
+> 
+> Can you make that clear please?
 
 
---===============1295681822==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1295681822==--
