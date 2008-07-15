@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
+Received: from smtp-out.neti.ee ([194.126.126.37])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <timf@iinet.net.au>) id 1KEe7I-0004qU-Mm
-	for linux-dvb@linuxtv.org; Fri, 04 Jul 2008 07:46:00 +0200
-Message-ID: <486DB90D.2030200@iinet.net.au>
-Date: Fri, 04 Jul 2008 13:45:49 +0800
-From: timf <timf@iinet.net.au>
+	(envelope-from <ed.lau@mail.ee>) id 1KIpsY-0002Rk-Cm
+	for linux-dvb@linuxtv.org; Tue, 15 Jul 2008 21:08:03 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by MXR-13.estpak.ee (Postfix) with ESMTP id 6045F26FA8
+	for <linux-dvb@linuxtv.org>; Tue, 15 Jul 2008 22:07:54 +0300 (EEST)
+Received: from smtp-out.neti.ee ([127.0.0.1])
+	by localhost (MXR-1.estpak.ee [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Ph0jntXm6w-p for <linux-dvb@linuxtv.org>;
+	Tue, 15 Jul 2008 22:07:51 +0300 (EEST)
+Received: from Relayhost2.neti.ee (Relayhost2 [88.196.174.142])
+	by MXR-13.estpak.ee (Postfix) with ESMTP id 9C6E227182
+	for <linux-dvb@linuxtv.org>; Tue, 15 Jul 2008 22:07:51 +0300 (EEST)
+Message-ID: <487CF58A.1040009@mail.ee>
+Date: Tue, 15 Jul 2008 22:07:54 +0300
+From: Edmund Laugasson <ed.lau@mail.ee>
 MIME-Version: 1.0
-To: "George, Tom \(RTIO\)" <Tom.George@riotinto.com>
-References: <C74607610AB6D64794BA3820A9567DA705A6C81A@sbscpex06.corp.riotinto.org>
-In-Reply-To: <C74607610AB6D64794BA3820A9567DA705A6C81A@sbscpex06.corp.riotinto.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dvb_usb_dib0700 tuning problems?
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Gigabyte U8000-RH linux support?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,67 +26,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-George, Tom (RTIO) wrote:
-<snip>
->
->
-> root@jaws:/home/tom# scan -a 1 =
+Hi
 
-> /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Perth
->
-> Anyone got an idea what is going on here???????
->
-> CHeers,
->
-> Tom
->
-> Tom George
->
-> RTIO WA Demand Coordinator =96 Office of the CIO
->
-> Rio Tinto
->
-> Central Park, 152 - 158 St Georges Terrace, Perth, 6000, Western Australia
->
-> T: +61 (9) 8 94247251 M: +61 (0) 417940173 F: +61 (0) 8 9327 2456
->
-> Tom.george@riotinto.com http://www.riotinto.com
->
-> This email (including all attachments) is the sole property of Rio =
+I would like to ask, does Gigabyte U8000-RH work under Linux? If yes, which module does it use and 
+which device will it use?
 
-> Tinto Limited and may be confidential. If you are not the intended =
+I looked at http://www.linuxtv.org/wiki/index.php/DVB-T_USB_Devices#DiBcom_DVB-T because it seems 
+like it using Dibcom chipset. But which chipset exactly - does anybody know?
 
-> recipient, you must not use or forward the information contained in =
+Some advices, how to configure and test this device would be also appreciated.
 
-> it. This message may not be reproduced or otherwise republished =
+This device is not in my PC but I got some outputs over Skype from my friend.
 
-> without the written consent of the sender. If you have received this =
+Some outputs:
+#  lsusb
+Bus 005 Device 004: ID 1044:7002 Chu Yuen Enterprise Co., Ltd
 
-> message in error, please delete the e-mail and notify the sender.
-> ------------------------------------------------------------------------
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-Hi Tom,
+# ls /dev/usbdev*
+/dev/usbdev1.1_ep00  /dev/usbdev2.1_ep81  /dev/usbdev4.1_ep00  /dev/usbdev5.1_ep81  /dev/usbdev5.8_ep81
+/dev/usbdev1.1_ep81  /dev/usbdev3.1_ep00  /dev/usbdev4.1_ep81  /dev/usbdev5.8_ep00  /dev/usbdev5.8_ep82
+/dev/usbdev2.1_ep00  /dev/usbdev3.1_ep81  /dev/usbdev5.1_ep00  /dev/usbdev5.8_ep01  /dev/usbdev5.8_ep83
 
-I just tried:
+# ls /dev/usbdev*
+/dev/usbdev1.1_ep00  /dev/usbdev2.1_ep00  /dev/usbdev3.1_ep00  /dev/usbdev4.1_ep00  /dev/usbdev5.1_ep00
+/dev/usbdev1.1_ep81  /dev/usbdev2.1_ep81  /dev/usbdev3.1_ep81  /dev/usbdev4.1_ep81  /dev/usbdev5.1_ep81
 
-scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Perth
+# lsmod | grep dvb
+dvb_usb_dib0700        32648  0
+dvb_usb                22924  1 dvb_usb_dib0700
+dvb_core               81148  1 dvb_usb
+dib7000m               16516  1 dvb_usb_dib0700
+dib7000p               17672  1 dvb_usb_dib0700
+dib3000mc              13960  1 dvb_usb_dib0700
+dib0070                 9092  1 dvb_usb_dib0700
+i2c_core               24832  75 
+dvb_usb_dib0700,dvb_usb,dib7000m,dib7000p,dib3000mc,adv7175,sp887x,bt856,adv7170,s5h1409,mt2266,tea6415c,tda10023,tua6100,mt20xx,tda18271,cx22702,tda10086,tea5767,mt312,qt1010,tda1004x,tda9875,nxt200x,ves1820,bcm3510,vpx3220,saa6588,drx397xD,sp8870,tda8290,bt819,saa7110,l64781,cx24110,tda827x,tda10048,tda826x,s5h1411,ves1x93,stv0297,dib3000mb,saa7185,tda8083,lnbp21,ks0127,dibx000_common,saa7114,tda9887,isl6421,mt2060,zl10353,tda10021,cx22700,s5h1420,mt352,isl6405,xc5000,tea5761,mxl5005s,au8522,tda9840,mt2131,ovcamchip,tveeprom,saa7111,saa7191,bt866,tea6420,cx24123,dib0070,nxt6000,itd1000,i2c_algo_bit,i2c_viapro
+usbcore               146028  6 dvb_usb_dib0700,dvb_usb,dabusb,ehci_hcd,uhci_hcd
 
-and scan without -a 1 works fine.
+If to replug device, then device number increases:
+  /dev/usbdev5.11_ep82 ---> /dev/usbdev5.12_ep82
 
-(Tuned all channels)
+Ubuntu 8.04.1 LTS is used and all updates are made.
 
-Regards,
-Tim
+Thanks,
+Edmund
 
 _______________________________________________
 linux-dvb mailing list
