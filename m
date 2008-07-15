@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ptb-relay01.plus.net ([212.159.14.212])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@adslpipe.co.uk>) id 1KE3hm-00017j-0X
-	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 16:53:10 +0200
-Received: from [84.92.25.126] (helo=[192.168.1.100])
-	by ptb-relay01.plus.net with esmtp (Exim) id 1KE3hD-0003H6-QV
-	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 15:52:36 +0100
-Message-ID: <486B9630.1080100@adslpipe.co.uk>
-Date: Wed, 02 Jul 2008 15:52:32 +0100
-From: Andy Burns <linux-dvb@adslpipe.co.uk>
+Received: from n7.bullet.ukl.yahoo.com ([217.146.182.187])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1KIolm-0007nO-Cx
+	for linux-dvb@linuxtv.org; Tue, 15 Jul 2008 19:57:02 +0200
+Date: Tue, 15 Jul 2008 13:55:56 -0400
+From: manu <eallaud@yahoo.fr>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <1215822101l.26120l.0l@manu-laptop> <487B7AE8.30006@kipdola.com>
+In-Reply-To: <487B7AE8.30006@kipdola.com> (from skerit@kipdola.com on Mon
+	Jul 14 12:12:24 2008)
+Message-Id: <1216144556l.7736l.1l@manu-laptop>
 MIME-Version: 1.0
-To: Linux DVB List <linux-dvb@linuxtv.org>
-References: <486A6F0F.7090507@adslpipe.co.uk>
-In-Reply-To: <486A6F0F.7090507@adslpipe.co.uk>
-Subject: [linux-dvb] [PATCH] Shrink saa7134 mmio mapped size
+Content-Disposition: inline
+Subject: [linux-dvb] Re : (Crude) Patch to support latest multiproto drivers
+ (as of 2008-07-11
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,28 +27,11 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-The saa7134 driver attempts to map 4K starting from the base address of 
-its mmio area, although lspci shows the size of the area is only 1K. The 
-excessive mapping goes un-noticed on bare-metal, but is detected and 
-denied when the card is used with pci passthrough to a xen domU. If 
-shared IRQ is used the "pollirq" kernel option may be required in dom0.
-
-Signed-off-by: Andy Burns <andy@burns.net>
---- drivers/media/video/saa7134/saa7134-core.c.orig     2008-07-01 
-16:46:49.000000000 +0100
-+++ drivers/media/video/saa7134/saa7134-core.c  2008-07-01 
-16:47:10.000000000 +0100
-@@ -908,7 +908,7 @@
-                        dev->name,(unsigned long 
-long)pci_resource_start(pci_dev,0));
-                 goto fail1;
-         }
--       dev->lmmio = ioremap(pci_resource_start(pci_dev,0), 0x1000);
-+       dev->lmmio = ioremap(pci_resource_start(pci_dev,0), 0x400);
-         dev->bmmio = (__u8 __iomem *)dev->lmmio;
-         if (NULL == dev->lmmio) {
-                 err = -EIO;
-
+Could you try this patch? I checked this is against 17783.
+For this one, go into your mythtv directory and use patch -p2.
+HTH
+Bye
+Manu
 
 
 _______________________________________________
