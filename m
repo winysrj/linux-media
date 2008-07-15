@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [88.151.248.2] (helo=mail.krastelcom.ru)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vpr@krastelcom.ru>) id 1KIeRG-00058v-Jq
-	for linux-dvb@linuxtv.org; Tue, 15 Jul 2008 08:55:08 +0200
-Message-Id: <609E03B1-0E1A-4FB9-BC5D-B9777BDE2A1C@krastelcom.ru>
-From: Vladimir Prudnikov <vpr@krastelcom.ru>
-To: Goga777 <goga777@bk.ru>
-In-Reply-To: <20080715105147.7b661467@bk.ru>
-Mime-Version: 1.0 (Apple Message framework v926)
-Date: Tue, 15 Jul 2008 10:55:02 +0400
-References: <36ADB82E-9B62-4847-BB60-0AD1AB572391@krastelcom.ru>
-	<1216091871.5048.11.camel@pc10.localdom.local>
-	<20080715105147.7b661467@bk.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Express AM2 11044 H 45 MSps
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Simon Arlott <simon@fire.lp0.eu>,
+	Hartmut Hackmann <hartmut.hackmann@t-online.de>
+In-Reply-To: <487D1964.7050607@simon.arlott.org.uk>
+References: <4878F314.6090608@simon.arlott.org.uk>
+	<1215919227.2662.3.camel@pc10.localdom.local>
+	<487D1964.7050607@simon.arlott.org.uk>
+Date: Wed, 16 Jul 2008 01:12:16 +0200
+Message-Id: <1216163536.4290.17.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: v4l-dvb-maintainer@linuxtv.org, Linux DVB <linux-dvb@linuxtv.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [linux-dvb] [PATCH] V4L: Link tuner before saa7134
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,59 +25,64 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-To be honest, TT S-1500 is able to lock on both transponders with no  
-problems if signal quality is extremely good. But not the rest.
+Hi Simon,
 
-P.S. to ibz@ibz.ru I can't answer to your e-mail because your server  
-does not accept it from me.
+Am Dienstag, den 15.07.2008, 22:40 +0100 schrieb Simon Arlott:
+> If saa7134_init is run before v4l2_i2c_drv_init (tuner),
+> then saa7134_board_init2 will try to set the tuner type
+> for devices that don't exist yet. This moves tuner to
+> before all of the device-specific drivers so that it's
+> loaded early enough on boot.
+> 
+> Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+> ---
+> Resend... I accidentally left the git-send-email headers in.
+> 
+> Mailman appears to be easily confused too: 
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027205.html
 
-Regards,
-Vladimir
+the saa713x maintainer after Gerd is actually Hartmut.
 
-On Jul 15, 2008, at 10:51 AM, Goga777 wrote:
+He might not have always the time for it immediately, but should have a
+copy of what is going on.
 
-> Hi
->
-> I have the same problem as Vladimir. I have the hvr4000 and tt2300  
-> SS1 cards and I couldn't lock this package with
-> extremely high SR . My dreambox 7000 can lock this package without  
-> any problem.
->
->>> I have recently realized that none of the available cards are able  
->>> to
->>> properly lock on Express AM2 11044H 45 MSps . The only one that  
->>> can is
->>> TT-S1401 with buf[5] register corrections.
->>>
->>> I have tried:
->>>
->>> TT S-1500
->>> TT S2-3200
->>> Skystar 2.6
->>> TT S-1401 with non-modified drivers.
->>>
->>> Regards,
->>> Vladimir
->>>
->>
->> do you mean that, what Hartmut, Manu and Oliver worked out for it for
->> dynamic bandwidth cutoff adjustment,
->
-> sorry, what do you mean ?
->
-> Goga
->
->> which is in mercurial v4l-dvb, or
->> do you still try something different with better results?
->>
->> Can you make that clear please?
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Actually, these problems are within the build system and should not even
+come down to a driver maintainer.
+
+The crowd here is used to have some trouble concerning the build, best
+was when guys like Trent did watch out for it before we had some impact.
+
+Cheers,
+Hermann
+
+>  drivers/media/video/Makefile |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index ecbbfaa..6b0af12 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -18,6 +18,8 @@ ifeq ($(CONFIG_VIDEO_V4L1_COMPAT),y)
+>    obj-$(CONFIG_VIDEO_DEV) += v4l1-compat.o
+>  endif
+>  
+> +obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+> +
+>  obj-$(CONFIG_VIDEO_BT848) += bt8xx/
+>  obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+>  obj-$(CONFIG_VIDEO_TVAUDIO) += tvaudio.o
+> @@ -84,8 +86,6 @@ obj-$(CONFIG_VIDEO_HEXIUM_GEMINI) += hexium_gemini.o
+>  obj-$(CONFIG_VIDEO_DPC) += dpc7146.o
+>  obj-$(CONFIG_TUNER_3036) += tuner-3036.o
+>  
+> -obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+> -
+>  obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
+>  obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
+>  obj-$(CONFIG_VIDEOBUF_VMALLOC) += videobuf-vmalloc.o
+> -- 
+> 1.5.6.2
+> 
 
 
 _______________________________________________
