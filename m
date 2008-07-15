@@ -1,28 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6RFLcnR021210
-	for <video4linux-list@redhat.com>; Sun, 27 Jul 2008 11:21:38 -0400
-Received: from smtp-out4.blueyonder.co.uk (smtp-out4.blueyonder.co.uk
-	[195.188.213.7])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6RFL2Sf014139
-	for <video4linux-list@redhat.com>; Sun, 27 Jul 2008 11:21:02 -0400
-Received: from [172.23.170.141] (helo=anti-virus02-08)
-	by smtp-out4.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1KN83R-0000Rp-C0
-	for video4linux-list@redhat.com; Sun, 27 Jul 2008 16:21:01 +0100
-Received: from [82.46.193.134] (helo=[82.46.193.134])
-	by asmtp-out4.blueyonder.co.uk with esmtpa (Exim 4.52)
-	id 1KN83Q-00050h-J7
-	for video4linux-list@redhat.com; Sun, 27 Jul 2008 16:21:00 +0100
-Message-ID: <488C9266.7010108@blueyonder.co.uk>
-Date: Sun, 27 Jul 2008 16:21:10 +0100
-From: Ian Davidson <id012c3076@blueyonder.co.uk>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6FDu3wL017635
+	for <video4linux-list@redhat.com>; Tue, 15 Jul 2008 09:56:03 -0400
+Received: from metis.extern.pengutronix.de (metis.extern.pengutronix.de
+	[83.236.181.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6FDtqK2027771
+	for <video4linux-list@redhat.com>; Tue, 15 Jul 2008 09:55:52 -0400
+Received: from kiwi.ptxnet.pengutronix.de ([10.1.0.84])
+	by metis.extern.pengutronix.de with esmtp (Exim 4.63)
+	(envelope-from <sha@pengutronix.de>) id 1KIl0M-000141-Tx
+	for video4linux-list@redhat.com; Tue, 15 Jul 2008 15:55:46 +0200
+Received: from sha by kiwi.ptxnet.pengutronix.de with local (Exim 4.69)
+	(envelope-from <sha@pengutronix.de>) id 1KIl65-0002W2-Bc
+	for video4linux-list@redhat.com; Tue, 15 Jul 2008 16:01:41 +0200
+Date: Tue, 15 Jul 2008 16:01:41 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: video4linux-list@redhat.com
+Message-ID: <20080715140141.GG6739@pengutronix.de>
+References: <20080715135618.GE6739@pengutronix.de>
 MIME-Version: 1.0
-To: Video 4 Linux <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: xawtv - no picture
-Reply-To: Ian.Davidson@bigfoot.com
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20080715135618.GE6739@pengutronix.de>
+Subject: Re: PATCH: soc-camera: use flag for colour / bw camera instead of
+	module parameter
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,122 +35,84 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I am trying to run xawtv (or actually streamer) to capture video - but 
-at the moment, it is not working.
 
-For details of my system, please see 
-http://www.smolts.org/client/show_all/pub_86fd06ee-583b-40d2-b23b-92749309023b
+Also in -p1 fashion:
 
-I have a K-World DVB-T 210SE card which I hope will allow me to capture 
-the video (although that is not very evident in the above link)
 
-Here is a section of the dmesg output
-Linux video capture interface: v2.00
-saa7130/34: v4l2 driver version 0.2.14 loaded
-ACPI: PCI Interrupt 0000:04:02.0[A] -> GSI 18 (level, low) -> IRQ 18
-saa7133[0]: found at 0000:04:02.0, rev: 209, irq: 18, latency: 64, mmio: 
-0xfebff800
-saa7133[0]: subsystem: 17de:7253, board: UNKNOWN/GENERIC 
-[card=0,autodetected]
-saa7133[0]: board init: gpio is 100
-parport_pc 00:07: reported by Plug and Play ACPI
-parport0: PC-style at 0x378, irq 7 [PCSPP,TRISTATE]
-saa7133[0]: i2c eeprom 00: de 17 53 72 ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: registered device video0 [v4l2]
-saa7133[0]: registered device vbi0
-ppdev: user-space parallel port driver
+Use a flag in struct soc_camera_link for differentiation between
+a black/white and a colour camera rather than a module parameter.
+This allows for having colour and black/white cameras in the same
+system.
+Note that this one breaks the phytec pcm027 pxa board as it makes it
+impossible to switch between cameras on the command line. I will send
+an updated version of this patch once I know this patch is acceptable
+this way.
 
-When I try to run xawtv, this is what I get
-[Ian@localhost ~]$ xawtv
-This is xawtv-3.95, running on Linux/i686 (2.6.25.10-86.fc9.i686)
-xinerama 0: 1440x900+0+0
-WARNING: No DGA support available for this display.
-WARNING: couldn't find framebuffer base address, try manual
-         configuration ("v4l-conf -a <addr>")
-ioctl: 
-VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: 
-VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
-ioctl: 
-VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: 
-VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
-ioctl: 
-VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: 
-VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
-ioctl: 
-VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: 
-VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
-ioctl: 
-VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: 
-VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
-ioctl: 
-VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: 
-VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
-ioctl: 
-VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: 
-VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
-Invalid argument
-ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
-[Ian@localhost ~]$
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 
-Also, the screen is black, although the camera was turned on.
+---
+ drivers/media/video/mt9v022.c |    7 +------
+ include/media/soc_camera.h    |    8 ++++++++
+ 2 files changed, 9 insertions(+), 6 deletions(-)
 
-I feel that it is trying to tell me something - but I do not understand 
-what it is saying.  Is there any hope?
-
-Ian
+Index: linux-2.6/include/media/soc_camera.h
+===================================================================
+--- linux-2.6.orig/include/media/soc_camera.h
++++ linux-2.6/include/media/soc_camera.h
+@@ -80,6 +80,12 @@ struct soc_camera_host_ops {
+ 	void (*spinlock_free)(spinlock_t *);
+ };
+ 
++/* There are several cameras out there which come in a black/white
++ * and a colour variant. They are logically the same cameras and thus
++ * can't be detected in software
++ */
++#define SOCAM_LINK_COLOUR	(1 << 0)
++
+ struct soc_camera_link {
+ 	/* Camera bus id, used to match a camera and a bus */
+ 	int bus_id;
+@@ -88,6 +94,8 @@ struct soc_camera_link {
+ 	/* (de-)activate this camera. Can be left empty if only one camera is
+ 	 * connected to this bus. */
+ 	void (*activate)(struct soc_camera_link *, int);
++
++	unsigned long flags;
+ };
+ 
+ static inline struct soc_camera_device *to_soc_camera_dev(struct device *dev)
+Index: linux-2.6/drivers/media/video/mt9v022.c
+===================================================================
+--- linux-2.6.orig/drivers/media/video/mt9v022.c
++++ linux-2.6/drivers/media/video/mt9v022.c
+@@ -23,10 +23,6 @@
+  * The platform has to define i2c_board_info
+  * and call i2c_register_board_info() */
+ 
+-static char *sensor_type;
+-module_param(sensor_type, charp, S_IRUGO);
+-MODULE_PARM_DESC(sensor_type, "Sensor type: \"colour\" or \"monochrome\"\n");
+-
+ /* mt9v022 selected register addresses */
+ #define MT9V022_CHIP_VERSION		0x00
+ #define MT9V022_COLUMN_START		0x01
+@@ -698,8 +694,7 @@ static int mt9v022_video_probe(struct so
+ 	}
+ 
+ 	/* Set monochrome or colour sensor type */
+-	if (sensor_type && (!strcmp("colour", sensor_type) ||
+-			    !strcmp("color", sensor_type))) {
++	if (icd->link->flags & SOCAM_LINK_COLOUR) {
+ 		ret = reg_write(icd, MT9V022_PIXEL_OPERATION_MODE, 4 | 0x11);
+ 		mt9v022->model = V4L2_IDENT_MT9V022IX7ATC;
+ 		icd->formats = mt9v022_colour_formats;
 
 -- 
-Ian Davidson
-239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
 -- 
-Facts used in this message may or may not reflect an underlying objective reality. 
-Facts are supplied for personal use only. 
-Recipients quoting supplied information do so at their own risk. 
-Facts supplied may vary in whole or part from widely accepted standards. 
-While painstakingly researched, facts may or may not be indicative of actually occurring events or natural phenomena. 
-The author accepts no responsibility for personal loss or injury resulting from memorisation and subsequent use.
-
+ Pengutronix - Linux Solutions for Science and Industry
+   Handelsregister:  Amtsgericht Hildesheim, HRA 2686
+     Hannoversche Str. 2, 31134 Hildesheim, Germany
+   Phone: +49-5121-206917-0 |  Fax: +49-5121-206917-9
 
 --
 video4linux-list mailing list
