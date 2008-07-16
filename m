@@ -1,14 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web55107.mail.re4.yahoo.com ([206.190.58.156])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <mat2ag@yahoo.com>) id 1KGB8L-0002cl-FL
-	for linux-dvb@linuxtv.org; Tue, 08 Jul 2008 13:13:22 +0200
-Date: Tue, 8 Jul 2008 04:12:43 -0700 (PDT)
-From: alireza ghahremanian <mat2ag@yahoo.com>
-To: linux-dvb@linuxtv.org
+Received: from smtp-out.neti.ee ([194.126.126.37])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ed.lau@mail.ee>) id 1KJ3AD-0006Nr-R5
+	for linux-dvb@linuxtv.org; Wed, 16 Jul 2008 11:19:13 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by MXR-5.estpak.ee (Postfix) with ESMTP id EC9771DE62D
+	for <linux-dvb@linuxtv.org>; Wed, 16 Jul 2008 12:19:05 +0300 (EEST)
+Received: from smtp-out.neti.ee ([127.0.0.1])
+	by localhost (MXR-5.estpak.ee [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id or0PPhFDPG6t for <linux-dvb@linuxtv.org>;
+	Wed, 16 Jul 2008 12:19:03 +0300 (EEST)
+Received: from Relayhost2.neti.ee (Relayhost2 [88.196.174.142])
+	by MXR-5.estpak.ee (Postfix) with ESMTP id BF25C1DF1F3
+	for <linux-dvb@linuxtv.org>; Wed, 16 Jul 2008 12:19:03 +0300 (EEST)
+Message-ID: <487DBD0C.7050306@mail.ee>
+Date: Wed, 16 Jul 2008 12:19:08 +0300
+From: Edmund Laugasson <ed.lau@mail.ee>
 MIME-Version: 1.0
-Message-ID: <674171.70688.qm@web55107.mail.re4.yahoo.com>
-Subject: [linux-dvb] Fw:  cx24113 - SkyStar2 Rev2.8
+To: linux-dvb@linuxtv.org
+References: <487CF58A.1040009@mail.ee>
+In-Reply-To: <487CF58A.1040009@mail.ee>
+Subject: Re: [linux-dvb] Gigabyte U8000-RH linux support?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,38 +34,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All 
-Where is this driver? how we can test it?
+> I would like to ask, does Gigabyte U8000-RH work under Linux? 
 
+I added some additional log files:
+/var/log/udev - http://www.scribd.com/doc/3962028/DVBT-Gigabyte-U8000RH-udev
+/var/log/kern.log - http://www.scribd.com/doc/3962025/DVBT-Gigabyte-U8000RH-kernlog
+/var/log/dmesg - http://www.scribd.com/doc/3962023/DVBT-Gigabyte-U8000RH-dmesg
+/var/log/debug - http://www.scribd.com/doc/3962021/DVBT-Gigabyte-U8000RH-debug
+and also lsusb -v output - http://www.scribd.com/doc/3962026/DVBT-Gigabyte-U8000RH-lsusb-v
 
+There they are viewable as flash and downloadable as PDF and TXT file.
 
------ Forwarded Message ----
-From: Robert Grozea <robert@itsystems.ro>
-To: linux-dvb@linuxtv.org
-Sent: Tuesday, July 8, 2008 12:03:53 PM
-Subject: [linux-dvb] cx24113 - SkyStar2 Rev2.8
-
-Hi All,
-
-I managed to make the binary driver work. The whole ideea is that the 
-only distribution which fitted was Fedora.
-It seems that the driver has been written in Fedora and it includes some 
-function calls which are only available in Fedora.
-Since I do not appreciate this kind of proprietary thinking I still wait 
-for a new version of driver which will work on other distros.
-
-Best regards,
-
-Robert
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
-
-      
+DVB-T_Gigabyte-U8000-RH_log-files.zip (75,8 KiB) were added to this letter but it seems like mailman 
+does not allow more than 60 KiB, so I put those files also to the internet.
 
 _______________________________________________
 linux-dvb mailing list
