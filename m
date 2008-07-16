@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]
-	helo=shogun.pilppa.org) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lamikr@pilppa.org>) id 1KNvsC-00009p-Di
-	for linux-dvb@linuxtv.org; Tue, 29 Jul 2008 22:32:46 +0200
-Date: Tue, 29 Jul 2008 23:31:47 +0300 (EEST)
-From: Mika Laitio <lamikr@pilppa.org>
-To: Goga777 <goga777@bk.ru>
-In-Reply-To: <20080724132047.10c6688d@bk.ru>
-Message-ID: <Pine.LNX.4.64.0807292330020.15498@shogun.pilppa.org>
-References: <Pine.LNX.4.64.0807240030280.20479@shogun.pilppa.org>
-	<20080724132047.10c6688d@bk.ru>
+Received: from smtp-out1.iol.cz ([194.228.2.86])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ajurik@quick.cz>) id 1KJFVT-0001CZ-9k
+	for linux-dvb@linuxtv.org; Thu, 17 Jul 2008 00:29:56 +0200
+Received: from ales-debian.local (unknown [88.103.120.47])
+	by smtp-out1.iol.cz (Postfix) with ESMTP id BBEA15EE78
+	for <linux-dvb@linuxtv.org>; Thu, 17 Jul 2008 00:24:01 +0200 (CEST)
+From: Ales Jurik <ajurik@quick.cz>
+To: linux-dvb@linuxtv.org
+Date: Thu, 17 Jul 2008 00:23:57 +0200
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] latest hvr-4000 driver patches
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_9TnfIkiZaNuAnlK"
+Message-Id: <200807170023.57637.ajurik@quick.cz>
+Subject: [linux-dvb] TT S2-3200 driver
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,37 +22,71 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I have vdr 170 , hvr4000 and fresh drivers form "Igor M. Liplianin's repo (repo includes hg multiproto + hvr4000 patch +
-> some fixes)
-> http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
-> It works well. I recommend it for your case
-> Of course it's not multifrontend drivers
+--Boundary-00=_9TnfIkiZaNuAnlK
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I build and installed the drivers from Liplianin's repository to 2.6.26
-kernel. I think driver loads now ok and dvb-s is used by default. (at
-least that is reported by the kaffeine and scan from dvb-apps)
+Hi,
 
-Should the dvb-apps/util/scan/scan from dvb-apps repository head work with
-the Liplianin's driver?
+please try attached patch. With this patch I'm able to get lock on channels 
+before it was impossible. But not at all problematic channels and the 
+reception is not without errors. Also it seems to me that channel switching is 
+quicklier.
 
-I think I found at least some satellite according to cheap peeper hardware 
-I have used while rotating dish. Command
-"./scan dvb-s/Hotbird-13.0E" does not find any channels for me.
+Within investigating I've found some problems, I've tried to compare data with 
+data sent by BDA drivers under Windows (by monitoring i2c bus between stb0899 
+and stb6100):
 
-And could I use the util/femon indicate some non-zero values if I run 
-that alone for the debugging purposes, when some satellite gives good 
-signal?
+- under Windows stb6100 reports not so wide bandwith. (23-31MHz, 21-22MHz and 
+so on).
+- under Windows the gain is set by 1 or 2 higher.
 
-Mika
+When setting those parameters constantly to values used under Windows nothing 
+change. So maybe some cooperation with stb0899 part of driver is necessary. 
 
+Also it is interesting that clock speed of i2c bus is 278kHz, not 400kHz 
+(measured with digital oscilloscope). But this should not have any influence.
+
+Maybe somebody will be so capable to continue?
+
+BR,
+
+Ales
+
+--Boundary-00=_9TnfIkiZaNuAnlK
+Content-Type: application/x-zip;
+  charset="us-ascii";
+  name="stb6100.c.diff.zip"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="stb6100.c.diff.zip"
+
+UEsDBBQAAAAIAPsC8Tito2525wEAAO4EAAAOAAAAc3RiNjEwMC5jLmRpZmatU01v2kAUPJtfMacI
+sA27NoEalwrZJDmUElT6oapCyMAWWXFstHaUHtL+9r61cYghVEWqD+v1W72ZebNj0zSRZssuZ6y1
+aiUy3GgWY29M1jOZA4v3Wa9vOS1WPtAZndd0Xd+3PXfwLiy7b/f6neOO4RCm3bGNLnT14jaGwxo0
+bSlFcOfS7lcNNV2TYpN+n33yFPJiNPbmGID9HPkunbWbTYzCNFhGAuPp1QTN9mGHKs9xMcDvl5V8
+cakf0/EYUZJssS5w1pqmQAgm/IF6Xa6IbjfX4lGGmVgo+HqaBZkwoPaNBt6CNaiDmLMHGUOuSBwN
+QPBekIplEK+xCcK4paCRA6eS+vFuAH5ZmNJQo2+IzHGBdhvQO1h7hUmOYzj0zboG54VJSnjyKCQe
+ti3koK8M/TRAZebZt8lUe6rWbmf+FAc1j6zJrb9PIyG2davh7lSfYwcqdhzB/YPe4zsS8f6K/qqo
+FPQSr5BX5XxdrDK9w7tGj0y3Lg3OCtPP4Pvi3x7QUeUE24EX177/vhpYVckXSkb+kCXj6TW8r1hF
+yepuH12yxTxHpgI90JnTP0eagvhf8SgFJUicyPsgCtNdgvLouPlvd4ptIYN4I0rOi5yGzw3wvYDJ
+5w8fr25mMGGfyiHKHNqM+P4AUEsBAhQDFAAAAAgA+wLxOK2jbnbnAQAA7gQAAA4ACQAAAAAAAAAA
+AKSBAAAAAHN0YjYxMDAuYy5kaWZmVVQFAAf7dH5IUEsFBgAAAAABAAEARQAAABMCAAAAAA==
+
+--Boundary-00=_9TnfIkiZaNuAnlK
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_9TnfIkiZaNuAnlK--
