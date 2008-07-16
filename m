@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from aa012msr.fastwebnet.it ([85.18.95.72])
+Received: from nskntmtas02p.mx.bigpond.com ([61.9.168.140])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kaboom@tiscalinet.it>) id 1KO7mB-0002UV-46
-	for linux-dvb@linuxtv.org; Wed, 30 Jul 2008 11:15:19 +0200
-Message-ID: <489030E4.1060403@tiscalinet.it>
-Date: Wed, 30 Jul 2008 11:14:12 +0200
-From: Francesco Schiavarelli <kaboom@tiscalinet.it>
+	(envelope-from <mickhowe@bigpond.net.au>) id 1KJ0P8-00072o-FW
+	for linux-dvb@linuxtv.org; Wed, 16 Jul 2008 08:22:23 +0200
+Received: from nskntotgx03p.mx.bigpond.com ([124.187.40.245])
+	by nskntmtas02p.mx.bigpond.com with ESMTP id
+	<20080716062143.RAMB26601.nskntmtas02p.mx.bigpond.com@nskntotgx03p.mx.bigpond.com>
+	for <linux-dvb@linuxtv.org>; Wed, 16 Jul 2008 06:21:43 +0000
+Received: from fini.bareclan ([124.187.40.245])
+	by nskntotgx03p.mx.bigpond.com with ESMTP
+	id <20080716062143.KOKZ2630.nskntotgx03p.mx.bigpond.com@fini.bareclan>
+	for <linux-dvb@linuxtv.org>; Wed, 16 Jul 2008 06:21:43 +0000
+From: mick <mickhowe@bigpond.net.au>
+To: linux-dvb@linuxtv.org
+Date: Wed, 16 Jul 2008 16:21:41 +1000
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Joaquin_Mu=F1oz_Lucavechi?= <joaquinm@cenit.gob.ve>
-References: <487B9B0C.5010503@cenit.gob.ve>
-In-Reply-To: <487B9B0C.5010503@cenit.gob.ve>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [Fwd: Two-way satellite communication system]
+Content-Disposition: inline
+Message-Id: <200807161621.42016.mickhowe@bigpond.net.au>
+Subject: [linux-dvb] Leadtek DTV2000H rev J - no digital tv,
+	no sound but I have got analog vision
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,32 +26,22 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Joaquin Mu=F1oz Lucavechi wrote:
-> Hi all again,
-> =
+A couple of days ago I finally managed to get the latest source for v4l-dvb to 
+d/l & build and then add a patch (from a croatian contributor - lost the 
+link) for my Leadtek DTV2000H rev J.
 
-> =
+I now have picture on analog using either motv or tvtime applications but can 
+get no sound or digital tv.
 
-> Does anybody knows any two-way pci satellite modem?
-> =
+Where can I turn next?
 
-It's not a pci card, but it's a external ethernet router modem, the =
-
-service is provided by ses-astra:
-
-http://www.ses-astra.com/consumer/en/astra-broadband/astra2connect/index.php
-
-I've tried it for two days and seemed good, the ping time was just =
-
-around 500ms and IIRC they gave you a public IP address.
-
-Francesco
+/]/]ik
 
 _______________________________________________
 linux-dvb mailing list
