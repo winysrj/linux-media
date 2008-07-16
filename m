@@ -1,27 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6VFEB91001579
-	for <video4linux-list@redhat.com>; Thu, 31 Jul 2008 11:14:12 -0400
-Received: from mta3.srv.hcvlny.cv.net (mta3.srv.hcvlny.cv.net [167.206.4.198])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6VFE0t1002510
-	for <video4linux-list@redhat.com>; Thu, 31 Jul 2008 11:14:00 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K4V00GP1MB6J0Y0@mta3.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Thu, 31 Jul 2008 11:13:54 -0400 (EDT)
-Date: Thu, 31 Jul 2008 11:13:53 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <840865.6007.qm@web63010.mail.re1.yahoo.com>
-To: frtzkatz@yahoo.com
-Message-id: <4891D6B1.8060202@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <840865.6007.qm@web63010.mail.re1.yahoo.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: What info does V-4-L expect to be in the "Identifier EEprom"?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6GD0QmF004173
+	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 09:00:26 -0400
+Received: from mail.hauppauge.com (mail.hauppauge.com [167.206.143.4])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6GD0GYx013705
+	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 09:00:16 -0400
+Message-ID: <487DF0D8.5070102@linuxtv.org>
+Date: Wed, 16 Jul 2008 09:00:08 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Anthony Edwards <anthony@yoyo.org>
+References: <20080716125556.GA9609@yoyo.org>
+In-Reply-To: <20080716125556.GA9609@yoyo.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: smscoreapi.c:689: error: 'uintptr_t' undeclared
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,21 +27,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Fritz Katz wrote:
-> I'm a consultant for a company that wishes to produce a video cards that will run Video-4-Linux applications. The company currently produces tuners and video capture cards for Microsoft Windows.
+Anthony Edwards wrote:
+> This appears to be an issue affecting a number of users, for example:
 > 
-> The company wishes to include an "Identifier EEprom" on the board so V4L will 
-> recognize the card and load appropriate drivers at boot-up.
+> http://forum.linuxmce.org/index.php?action=profile;u=41878;sa=showPosts
 > 
-> Please point me in the direction of documentation for the info V4L expects to 
-> be found in the ID eeprom.
+> I have experienced it too today after attempting to recompile drivers
+> for my Hauppauge Nova-T USB TV tuner following an Ubuntu kernel update.
+> 
+> After obtaining the latest source code using hg clone, I have found
+> that it will not successfully compile.  I am seeing the same make
+> errors as the poster in the posting referenced above.
+> 
+> Unfortunately, I lack the necessary programming knowledge to hack the
+> source code in order to make it work.
+> 
+> Is a fix in the pipeline?
 > 
 
-Congratulations, another company starting to see the light. :)
+The fix is here -- please feel free to test it:
 
- From the thread is sounds like you have a fairly regular 713x board.
+http://linuxtv.org/hg/~mkrufky/sms1xxx
 
-- Steve
+I sent a pull request to Mauro a few days ago -- I don't know why it has not been merged yet.
+
+-Mike
 
 --
 video4linux-list mailing list
