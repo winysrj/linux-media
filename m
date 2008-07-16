@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m62CInlo022282
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 08:18:49 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m62CIauD026143
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 08:18:36 -0400
-Date: Wed, 2 Jul 2008 09:18:19 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Message-ID: <20080702091819.031ea3ad@gaivota>
-In-Reply-To: <20080630175605.445b7672@gaivota>
-References: <20080630175605.445b7672@gaivota>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Brandon Philips <bphilips@suse.de>,
-	Greg KH <gregkh@suse.de>, linux-kernel@vger.kernel.org,
-	linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [GIT PATCH for 2.6.26] V4L/DVB: Addition of UVC driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6G7KWbZ009479
+	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 03:20:32 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6G7JdGt025789
+	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 03:19:39 -0400
+Date: Wed, 16 Jul 2008 09:19:44 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+In-Reply-To: <20080716064336.GK6739@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.0807160845450.11471@axis700.grange>
+References: <20080715135618.GE6739@pengutronix.de>
+	<20080715140141.GG6739@pengutronix.de>
+	<Pine.LNX.4.64.0807152224040.6361@axis700.grange>
+	<20080716054922.GI6739@pengutronix.de>
+	<20080716064336.GK6739@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: PATCH: soc-camera: use flag for colour / bw camera instead of
+ module parameter
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,72 +31,104 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 30 Jun 2008 17:56:05 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+On Wed, 16 Jul 2008, Sascha Hauer wrote:
 
-> Linus,
+> On Tue, Jul 15, 2008 at 10:43:53PM +0200, Guennadi Liakhovetski wrote:
+> > On Tue, 15 Jul 2008, Sascha Hauer wrote:
+> > 
+> > > Use a flag in struct soc_camera_link for differentiation between
+> > > a black/white and a colour camera rather than a module parameter.
+> > > This allows for having colour and black/white cameras in the same
+> > > system.
+> > > Note that this one breaks the phytec pcm027 pxa board as it makes it
+> > > impossible to switch between cameras on the command line. I will send
+> > > an updated version of this patch once I know this patch is acceptable
+> > > this way.
+> > 
+> > Yes, we did discuss this on IRC and I did agree to use a platform-provided 
+> > parameter to specify camera properties like colour / monochrome, but now 
+> > as I see it, I think, it might not be a very good idea. Having it as a 
+> > parameter you can just reload the driver with a different parameter to 
+> > test your colour camera in b/w mode. With this change you would need a new 
+> > kernel.
 > 
-> Please pull from:
->         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
+> I think it's a more common case to specify the correct camera on a
+> per-board basis than to test a colour camera in b/w mode. Only
+> developers want to do this and they know how to start a new kernel,
+> right? ;)
+
+Let me think: ker-nel... Yeah, I think, I've heard something about it 
+already...
+
+But I can also imagine cases when end-users would benefit from this module 
+parameter: think about a company producing two cameras - one with colour 
+and one with bw sensor. With the module parameter they only have to 
+load drivers / the kernel differently, with platform data they have to 
+maintain two kernel versions. Unless they are smart enough and put those 
+cameras on different i2c addresses. But, ok, the current trend seems 
+indeed to be to specify such information in the platform data, even though 
+not only ISA drivers use module-parameters for this. Anyway, I'm flexible 
+about this:-) Let's do it.
+
+> Another thing that came to my mind is that this particular camera has an
+> internal PLL for pixel clock generation. It can use the pxa pixel clock
+> directly or the one from the PLL.
+
+Many CMOS cameras have this.
+
+> At the moment there is no way to
+> specify which clock to use, so we might even want to add a pointer to a
+> camera specific struct to soc_camera_link. This would be the right place
+> to put colour/bw flags aswell.
+
+There is one, and it is used during parameter negotiation. See 
+SOCAM_MASTER and its use in mt9v022.c and pxa_camera.c, mt9m001 can only 
+be a master (use internal clock), so, it is not including SOCAM_SLAVE in 
+its supported mode flags. Isn't this enough? Do you really have to enforce 
+the use of one or another clock, or is it enough to let the two drivers 
+choose a supported configuration?
+
+> Speaking of which, what's currently in pxa_camera_platform_data is
+> camera specific and not board specific (think of two cameras connected
+> to the pxa requiring two different clocks).
+
+Yes, someone already suggested to make .power and .reset per camera: 
+http://marc.info/?t=120974473900009&r=1&w=2 and 
+http://marc.info/?t=121007886200003&r=1&w=2, but this work is not finished 
+yet - he wanted to resubmit his patches when his camera driver is ready.
+
+> So soc_camera_link should
+> look something like:
 > 
-> For USB Video Class (UVC) driver.
+> struct soc_camera_link {
+> 	/* Camera bus id, used to match a camera and a bus */
+> 	int bus_id;
+> 	/* host specific data, i.e. struct pxa_camera_platform_data */
+> 	void *host_info;
+> 	/* camera specific info, i.e. struct mt9v022_data */
+> 	void *camera_info;
+> 	/* (de-)activate this camera. Can be left empty if only one camera is
+> 	 * connected to this bus. */
+> 	void (*activate)(struct soc_camera_link *, int);
+> };
 > 
-> I know that we are very late on 2.6.26 cycle. However,
-> 	1) most of modern webcams are based on USB Video Class (UVC). So, this
-> driver is important to suport those cams.
-> 	2) This is a driver-only addition. There aren't any changes at V4L/DVB
-> core. No risk of causing regressions on the already supported devices;
-> 	3) The driver were already reviewed by V4L and USB people;
-> 	4) The driver is already widely used, since it is merged as an
-> out-of-tree driver on several distros. 
-> 
-> So, on my opinion, we should merge it for 2.6.26.
+> I'm lucky, at the moment I have two identical cameras connected to my board
+> (besides the colour/bw thing)
 
-I got a small but relevant bug at uvc Makefile.
+Well, soc_camera_link is indeed per-sensor and we can and shall use it to 
+specify camera-specific platform parameters. So, I'm fine with moving 
+.power and .reset into it. Then you won't need your .activate any more, 
+right? As for the rest - I don't like too many void pointers... This 
+struct is for the platform to configure camera drivers. So, it should 
+contain _data_, not pointers to camera- and host-specific structs. If we 
+need to specify a colour / monochrome sensor, let's do this directly. But 
+without void pointers, please.
 
-If you decide to apply it, please merge those two patches:
-
-   - USB Video Class driver
-   - uvc: Fix compilation breakage for the other drivers, if uvc is selected
-
-So, please pull from:
-        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
-
- MAINTAINERS                          |    8 +
- drivers/media/video/Kconfig          |    8 +
- drivers/media/video/Makefile         |    2 +
- drivers/media/video/uvc/Makefile     |    3 +
- drivers/media/video/uvc/uvc_ctrl.c   | 1256 ++++++++++++++++++++++
- drivers/media/video/uvc/uvc_driver.c | 1955 ++++++++++++++++++++++++++++++++++
- drivers/media/video/uvc/uvc_isight.c |  134 +++
- drivers/media/video/uvc/uvc_queue.c  |  477 +++++++++
- drivers/media/video/uvc/uvc_status.c |  207 ++++
- drivers/media/video/uvc/uvc_v4l2.c   | 1105 +++++++++++++++++++
- drivers/media/video/uvc/uvc_video.c  |  934 ++++++++++++++++
- drivers/media/video/uvc/uvcvideo.h   |  796 ++++++++++++++
- 12 files changed, 6885 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/uvc/Makefile
- create mode 100644 drivers/media/video/uvc/uvc_ctrl.c
- create mode 100644 drivers/media/video/uvc/uvc_driver.c
- create mode 100644 drivers/media/video/uvc/uvc_isight.c
- create mode 100644 drivers/media/video/uvc/uvc_queue.c
- create mode 100644 drivers/media/video/uvc/uvc_status.c
- create mode 100644 drivers/media/video/uvc/uvc_v4l2.c
- create mode 100644 drivers/media/video/uvc/uvc_video.c
- create mode 100644 drivers/media/video/uvc/uvcvideo.h
-
-Laurent Pinchart (1):
-      V4L/DVB (8145a): USB Video Class driver
-
-Mauro Carvalho Chehab (1):
-      V4L/DVB (8178): uvc: Fix compilation breakage for the other drivers, if uvc is selected
-
----------------------------------------------------
-V4L/DVB development is hosted at http://linuxtv.org
-
-
-Cheers,
-Mauro
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
