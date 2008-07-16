@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6GFnDJh025122
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 11:49:13 -0400
-Received: from jem.yoyo.org (jem.yoyo.org [193.110.91.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6GFmvp2005451
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 11:48:57 -0400
-Date: Wed, 16 Jul 2008 16:48:56 +0100
-From: Anthony Edwards <anthony@yoyo.org>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Message-ID: <20080716154855.GA2833@yoyo.org>
-References: <20080716125556.GA9609@yoyo.org> <487DF0C6.6080209@krufky.com>
-	<20080716132833.GB9609@yoyo.org> <487DF81C.5010908@krufky.com>
-	<20080716134307.GC9609@yoyo.org> <487DFD19.3040205@linuxtv.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6G5iAH5003308
+	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 01:44:10 -0400
+Received: from metis.extern.pengutronix.de (metis.extern.pengutronix.de
+	[83.236.181.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6G5hV0Q014779
+	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 01:43:31 -0400
+Date: Wed, 16 Jul 2008 07:49:22 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <20080716054922.GI6739@pengutronix.de>
+References: <20080715135618.GE6739@pengutronix.de>
+	<20080715140141.GG6739@pengutronix.de>
+	<Pine.LNX.4.64.0807152224040.6361@axis700.grange>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <487DFD19.3040205@linuxtv.org>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: smscoreapi.c:689: error: 'uintptr_t' undeclared
+In-Reply-To: <Pine.LNX.4.64.0807152224040.6361@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: PATCH: soc-camera: use flag for colour / bw camera instead of
+	module parameter
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,134 +31,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Jul 16, 2008 at 09:52:25AM -0400, Michael Krufky wrote:
-> Anthony Edwards wrote:
-> > On Wed, Jul 16, 2008 at 09:31:08AM -0400, Michael Krufky wrote:
-> >> Anthony Edwards wrote:
-> >>> On Wed, Jul 16, 2008 at 08:59:50AM -0400, Michael Krufky wrote:
-> >>>> Anthony Edwards wrote:
-> >>>>> This appears to be an issue affecting a number of users, for example:
-> >>>>>
-> >>>>> http://forum.linuxmce.org/index.php?action=profile;u=41878;sa=showPosts
-> >>>>>
-> >>>>> I have experienced it too today after attempting to recompile drivers
-> >>>>> for my Hauppauge Nova-T USB TV tuner following an Ubuntu kernel update.
-> >>>>>
-> >>>>> After obtaining the latest source code using hg clone, I have found
-> >>>>> that it will not successfully compile.  I am seeing the same make
-> >>>>> errors as the poster in the posting referenced above.
-> >>>>>
-> >>>>> Unfortunately, I lack the necessary programming knowledge to hack the
-> >>>>> source code in order to make it work.
-> >>>>>
-> >>>>> Is a fix in the pipeline?
-> >>>>>
-> >>>> The fix is here -- please feel free to test it:
-> >>>>
-> >>>> http://linuxtv.org/hg/~mkrufky/sms1xxx
-> >>>>
-> >>>> I sent a pull request to Mauro a few days ago -- I don't know why it has not been merged yet.
-> >>> Unfortunately I lack programming knowledge or experience so am not
-> >>> entirely certain of my understanding of what is meant by the above,
-> >>> however I have edited:
-> >>>
-> >>> linux/drivers/media/dvb/siano/smscoreapi.h
-> >>>
-> >>> So that instead of reading, lines 25 - 30:
-> >>>
-> >>> #include <linux/version.h>
-> >>> #include <linux/device.h>
-> >>> #include <linux/list.h>
-> >>> #include <linux/mm.h>
-> >>> #include <linux/scatterlist.h>
-> >>> #include <asm/page.h>
-> >>>
-> >>> It now reads, lines 25 - 31:
-> >>>
-> >>> #include <linux/version.h>
-> >>> #include <linux/device.h>
-> >>> #include <linux/list.h>
-> >>> #include <linux/mm.h>
-> >>> #include <linux/scatterlist.h>
-> >>> #include <linux/types.h>
-> >>> #include <asm/page.h>
-> >>>
-> >>> That hasn't had the desired effect though, since compilation attempts
-> >>> are still failing as follows:
-> >>>
-> >>> /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c: In function 'smscore_detect_mode':
-> >>> /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:689: error: 'uintptr_t' undeclared (first use in this function)
-> >>> /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:689: error: (Each undeclared identifier is reported only once
-> >>> /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:689: error: for each function it appears in.)
-> >>> /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c: In function 'smscore_set_device_mode':
-> >>> /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:820: error: 'uintptr_t' undeclared (first use in this function)
-> >>> make[3]: *** [/home/anthony/Software/v4l-dvb/v4l/smscoreapi.o] Error 1
-> >>> make[2]: *** [_module_/home/anthony/Software/v4l-dvb/v4l] Error 2
-> >>> make[2]: Leaving directory `/usr/src/linux-headers-2.6.22-15-generic'
-> >>> make[1]: *** [default] Error 2
-> >>> make[1]: Leaving directory `/home/anthony/Software/v4l-dvb/v4l'
-> >>> make: *** [all] Error 2
-> >>>
-> >>> Presumably, if I have understood your instructions and followed them
-> >>> correctly, something more is additionally needed?
-> >>>
-> >>
-> >> Yes.  The fix is in the tree that I pointed to in my previous email.
-> >>
-> >> -Mike
-> > 
-> > Can you provide more detail please?
-> > 
-> > When I visit the URL that you referenced:
-> > 
-> > http://linuxtv.org/hg/~mkrufky/sms1xxx
-> > 
-> > I see a web page with multiple, different changes listed.
-> > 
-> > The only one that appears relevant to the issue that is the subject of
-> > this thread is:
-> > 
-> > http://linuxtv.org/hg/~mkrufky/sms1xxx/rev/d49b1e522b37
-> > 
-> > I have, to the best of my knowledge, followed the instructions in
-> > that link, and they do not appear to have worked.
-> > 
-> > What do you recommend that I do next?
-> > 
+On Tue, Jul 15, 2008 at 10:43:53PM +0200, Guennadi Liakhovetski wrote:
+> On Tue, 15 Jul 2008, Sascha Hauer wrote:
 > 
-> Anthony,
-
-Hi Mike
-
-> You don't think "sms1xxx: fix compat for kernel 2.6.23 and earlier" sounds like it might have something to do with a fix for a build problem on your 2.6.22-15-generic kernel?
+> > Use a flag in struct soc_camera_link for differentiation between
+> > a black/white and a colour camera rather than a module parameter.
+> > This allows for having colour and black/white cameras in the same
+> > system.
+> > Note that this one breaks the phytec pcm027 pxa board as it makes it
+> > impossible to switch between cameras on the command line. I will send
+> > an updated version of this patch once I know this patch is acceptable
+> > this way.
 > 
-> I put up a fix, and I requested a merge.  That's what I did.  You can do one of the following:
-> 
-> 1) Wait for the fix to be merged
-> 
-> 2) Just disable the sms1xxx driver, since you don't need it anyway.
-> 
-> 3) Use the tree that I pointed you to that has the fix
-> 
-> 4) cherry pick the fix from the tree that I pointed
+> Yes, we did discuss this on IRC and I did agree to use a platform-provided 
+> parameter to specify camera properties like colour / monochrome, but now 
+> as I see it, I think, it might not be a very good idea. Having it as a 
+> parameter you can just reload the driver with a different parameter to 
+> test your colour camera in b/w mode. With this change you would need a new 
+> kernel.
 
-As previously mentioned, I have little or no programming knowledge or
-experience, so didn't really understand how to action "2.", "3." or
-"4." above.
+I think it's a more common case to specify the correct camera on a
+per-board basis than to test a colour camera in b/w mode. Only
+developers want to do this and they know how to start a new kernel,
+right? ;)
+Another thing that came to my mind is that this particular camera has an
+internal PLL for pixel clock generation. It can use the pxa pixel clock
+directly or the one from the PLL. At the moment there is no way to
+specify which clock to use, so we might even want to add a pointer to a
+camera specific struct to soc_camera_link. This would be the right place
+to put colour/bw flags aswell.
 
-However, I took a guess at it and downloaded:
+> What about an array of module parameters? Specifying flags on the 
+> command line is too weird, so, maybe colo(u)r=0,2 where numbers are 
+> camera-IDs? Or even 0:0 with bus-IDs. Yes, you would have to add optional 
+> camera-ID to the link struct.
 
-http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.gz
+I don't like module parameters for specifying my hardware. It
+reminds me of the ISA days where you had to specify iobase/irq this way.
 
-Now unpacked, compiled successfully and installed, and working well.
-
-> Have a nice day.
-
-You too.
+Sascha
 
 -- 
-Anthony Edwards
-anthony@yoyo.org
+ Pengutronix - Linux Solutions for Science and Industry
+   Handelsregister:  Amtsgericht Hildesheim, HRA 2686
+     Hannoversche Str. 2, 31134 Hildesheim, Germany
+   Phone: +49-5121-206917-0 |  Fax: +49-5121-206917-9
 
 --
 video4linux-list mailing list
