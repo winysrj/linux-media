@@ -1,18 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Alan Cox <alan@redhat.com>
-In-Reply-To: <20080701080655.GA3602@devserv.devel.redhat.com>
-References: <1214873062.2623.51.camel@pc10.localdom.local>
-	<869807.56113.qm@web63010.mail.re1.yahoo.com>
-	<20080701080655.GA3602@devserv.devel.redhat.com>
-Content-Type: text/plain
-Date: Thu, 03 Jul 2008 01:26:56 +0200
-Message-Id: <1215041216.2638.12.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Fritz Katz <frtzkatz@yahoo.com>
-Subject: Re: Sabrent Philips7130 PCI TV Tuner -&- Yes, the USA is going
-	digital.
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6GNBGXf019109
+	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 19:11:16 -0400
+Received: from n23c.bullet.mail.mud.yahoo.com (n23c.bullet.mail.mud.yahoo.com
+	[68.142.206.39])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6GNB2OU007221
+	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 19:11:03 -0400
+Date: Wed, 16 Jul 2008 16:10:57 -0700 (PDT)
+From: Krish K <rtos_q@yahoo.com>
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Message-ID: <264168.24331.qm@web59602.mail.ac4.yahoo.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Subject: Question on V4L2 VBI operation
+Reply-To: rtos_q@yahoo.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,29 +26,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-Am Dienstag, den 01.07.2008, 04:06 -0400 schrieb Alan Cox:
-> On Mon, Jun 30, 2008 at 10:30:18PM -0700, Fritz Katz wrote:
-> >  The US Government is giving everyone with old TVs $40 (about 25 Euros) for each TV in their home to buy ATSC converter boxes:
-> > 
-> >   https://www.dtv2009.gov/
-> 
-> So stockpile second hand junk TVs ?
-> 
-> Alan
-> 
-
-A second thought was also about the enormous lead warnings within the
-soldering materials which now appear. Decades without any.
-
-I guess someone must be licking on it every day within salty beach
-conditions for years to get in trouble, but for those exposed to the
-soldering fumes on that old chips it is likely a very serious issue.
-
-Cheers,
-Hermann
+Hello
 
 
+
+I am new to V4L2 and have a question on how V4L2 expects=20
+
+VBI data to be provided.
+
+
+
+It is not clear to me if the VBI data (CC, WSS, etc) can be=20
+
+embedded in the frame? If the video capture device does=20
+
+not provide the VBI data separately, should the driver=20
+
+extract it from the frame? Is this what drivers usually do?
+
+If the device provides VBI data separately (either in some
+
+registers or FIFO),=A0 then the driver should obtain this from=20
+
+the device for each frame?
+
+
+
+Thanks
+
+Krish
+
+
+
+=0A=0A=0A      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
