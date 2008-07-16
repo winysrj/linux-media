@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6EC2NRa004218
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:02:23 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.230])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6EC2AlO001490
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:02:10 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so5596142rvb.51
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 05:02:10 -0700 (PDT)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: video4linux-list@redhat.com
-Date: Mon, 14 Jul 2008 21:02:22 +0900
-Message-Id: <20080714120222.4806.24019.sendpatchset@rx1.opensource.se>
-In-Reply-To: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
-References: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
-Cc: paulius.zaleckas@teltonika.lt, linux-sh@vger.kernel.org,
-	mchehab@infradead.org, lethal@linux-sh.org,
-	akpm@linux-foundation.org, g.liakhovetski@gmx.de
-Subject: [PATCH 02/06] soc_camera: Add 16-bit bus width support
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6GNqOF7002867
+	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 19:52:24 -0400
+Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
+	[151.189.21.43])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6GNqB2q025985
+	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 19:52:12 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Per Baekgaard <baekgaard@b4net.dk>
+In-Reply-To: <487E7238.7030003@b4net.dk>
+References: <487E7238.7030003@b4net.dk>
+Content-Type: text/plain
+Date: Thu, 17 Jul 2008 01:47:51 +0200
+Message-Id: <1216252071.2669.56.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Seeking help for a 713x based card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,33 +28,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-The SuperH Mobile CEU hardware supports 16-bit width bus,
-so extend the soc_camera code with SOCAM_DATAWIDTH_16.
+Hi Per,
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
----
+Am Donnerstag, den 17.07.2008, 00:12 +0200 schrieb Per Baekgaard:
+> I have a card of unknown (to me) brand that identifies itself as a 
+> 1131:7133 (chipset) with 1a7f:2004 rev d1 as the subsystem ID/revision.
 
- include/media/soc_camera.h |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+1131:7133 in .dk means a saa7135 or more likely a recent saa7131e.
+The subvendor 1a7f seems to be seen the first time here, subdevice 2004
+is only known on some Philips reference designs.
 
---- 0008/include/media/soc_camera.h
-+++ work/include/media/soc_camera.h	2008-07-01 14:38:34.000000000 +0900
-@@ -153,11 +153,12 @@ static inline struct v4l2_queryctrl cons
- #define SOCAM_DATAWIDTH_8		(1 << 6)
- #define SOCAM_DATAWIDTH_9		(1 << 7)
- #define SOCAM_DATAWIDTH_10		(1 << 8)
--#define SOCAM_PCLK_SAMPLE_RISING	(1 << 9)
--#define SOCAM_PCLK_SAMPLE_FALLING	(1 << 10)
-+#define SOCAM_DATAWIDTH_16		(1 << 9)
-+#define SOCAM_PCLK_SAMPLE_RISING	(1 << 10)
-+#define SOCAM_PCLK_SAMPLE_FALLING	(1 << 11)
- 
- #define SOCAM_DATAWIDTH_MASK (SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_9 | \
--			      SOCAM_DATAWIDTH_10)
-+			      SOCAM_DATAWIDTH_10 | SOCAM_DATAWIDTH_16)
- 
- static inline unsigned long soc_camera_bus_param_compatible(
- 			unsigned long camera_flags, unsigned long bus_flags)
+> The card is unfortunately glued (!) inside a LCD enclosure, and I am not 
+> able to see any further identifications on it.
+
+;) what to say.
+
+> Google'ing the SVID/SSID hints that it could be a PAL derivative of an 
+> Encore ENLTV-FM card. When asked, Encore basically just said that the 
+> closest match would appear to be ENLTV-FM and that there is no support 
+> for linux and asked me to look at sourceforge.net ;-)
+
+They are likely right to send you out into the deserts.
+
+> I am able to get it partially running by using "options saa7134 card=107 
+> tuner=54" (or card 3), but it appears that changing channel via tvtime 
+> or myth  fails roughly half the time and simply causes it to return an 
+> invalid (or empty) video stream. Indeed, in myth, it sometimes crashes 
+> the application.
+
+If channel change sometimes works it is some tuner=54, but might need
+some card specific calibration or your signal is weak.
+
+Is DVB-T or DVB-S announced too or only analog TV?
+
+> I am also not able to capture any sound from the card, although 
+> saa7134_alsa gets loaded as expected.
+
+Most of the recent cards don't have analog sound output to the sound
+card anymore. The chips do provide it, but manufacturers decide against
+to provide the connector.
+
+The saa7134-alsa must be properly used and does not work automagically,
+also if a gpio switched sound mux chip is on the card, it needs to be
+configured correctly for sound switching. This is not visible in the
+logs.
+
+> How do I debug this, and get the driver to recognise the card properly?
+> 
+> Or any good hints at what the card may be? Would the i2c reveal any 
+> further hints?
+
+To set up an invisible device is a bit odd,
+but copy and paste "dmesg" output after loading the driver with
+i2c_scan=1 enabled ("modinfo saa7134") might help on some further
+guessing.
+
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
