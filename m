@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from qw-out-2122.google.com ([74.125.92.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KLMUe-0004tq-Ms
-	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 20:21:51 +0200
-Message-ID: <48862536.9070906@iki.fi>
-Date: Tue, 22 Jul 2008 21:21:42 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <l.pinguin@gmail.com>) id 1KJVDL-0005nE-Sv
+	for linux-dvb@linuxtv.org; Thu, 17 Jul 2008 17:16:18 +0200
+Received: by qw-out-2122.google.com with SMTP id 9so498204qwb.17
+	for <linux-dvb@linuxtv.org>; Thu, 17 Jul 2008 08:16:11 -0700 (PDT)
+Message-ID: <3efb10970807170816lfd65580i60d30819bfeb67b7@mail.gmail.com>
+Date: Thu, 17 Jul 2008 17:16:11 +0200
+From: "Remy Bohmer" <linux@bohmer.net>
+To: ajurik@quick.cz
+In-Reply-To: <200807171337.30023.ajurik@quick.cz>
 MIME-Version: 1.0
-To: tom <thomas@ickes-home.de>
-References: <0MKxQS-1KLM2V1c9L-0001hx@mrelayeu.kundenserver.de>
-	<1216750591.6624.3.camel@super-klappi>
-In-Reply-To: <1216750591.6624.3.camel@super-klappi>
+Content-Disposition: inline
+References: <200807170023.57637.ajurik@quick.cz>
+	<3efb10970807170320w39377ae9p9db0081dda9c3f5f@mail.gmail.com>
+	<200807171337.30023.ajurik@quick.cz>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] WG:  Problems with MSI Digivox Duo DVB-T USB,
- Ubuntu 8.04
+Subject: Re: [linux-dvb] TT S2-3200 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,75 +24,24 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-dG9tIHdyb3RlOgo+IHRoYW5rcyBmb3IgdGhlIHF1aWNrIHJlcGx5IGFuZCBwcm92aWRpbmcgdGhl
-IHRlc3QhIQo+IAo+IFNob3VsZCBJIHVzZSAnbWFrZSBybWluc3RhbGwnIGJlZm9yZSBJIGluc3Rh
-bCB0aGUgdGVzdD8KPiBBbmQgZm9yIGluc3RhbGxpbmcgdGhlIHRlc3QsIHNob3VsZCBJIHVzZSB0
-aGUgJ21ha2UgYWxsJz8KCm1ha2UKbWFrZSBpbnN0YWxsCm1ha2Ugcm1tb2QKcmVwbHVnIHN0aWNr
-Cgo+IAo+IFRob21hcwo+IAo+IEFtIERpZW5zdGFnLCBkZW4gMjIuMDcuMjAwOCwgMTk6NTIgKzAy
-MDAgc2NocmllYiBUaG9tYXMgSWNrZXM6Cj4+IC0tLS0tVXJzcHLDvG5nbGljaGUgTmFjaHJpY2h0
-LS0tLS0KPj4gVm9uOiBBbnR0aSBQYWxvc2FhcmkgW21haWx0bzpjcm9wZUBpa2kuZmldIAo+PiBH
-ZXNlbmRldDogRGllbnN0YWcsIDIyLiBKdWxpIDIwMDggMTk6MjEKPj4gQW46IFRob21hcyBJY2tl
-cwo+PiBDYzogbGludXgtZHZiQGxpbnV4dHYub3JnCj4+IEJldHJlZmY6IFJlOiBbbGludXgtZHZi
-XSBQcm9ibGVtcyB3aXRoIE1TSSBEaWdpdm94IER1byBEVkItVCBVU0IsIFVidW50dSA4LjA0Cj4+
-Cj4+IFRob21hcyBJY2tlcyB3cm90ZToKPj4+IEhlbGxvLAo+Pj4KPj4+IGlzbid0IHRoZXJlIGFu
-eW9uZSB3aG8gaGFzIHNvbWUgaGludHMgZm9yIG1lIHJlZ2FyZGluZyB0aGUgUElEIEZpbHRlciBQ
-cm9ibGVtcz8KPj4gRm9yIG1lIGl0IGxvb2tlZCBsaWtlIGFmOTAxNV9waWRfZmlsdGVyX2N0cmwo
-KSB3YXMgZmFpbGluZyBhbmQgdGhhdHMgd2h5IAo+PiBlcnJvcnMuIEkgZG9uJ3QgaGF2ZSBpZGVh
-IHdoeSBpdCBpcyBmYWlsaW5nLiBCdXQgSSBkaWQgc3BlY2lhbCBidWlsZCBmb3IgCj4+IHlvdSB0
-byB0ZXN0IGFnYWluLiBOb3cgd2hvbGUgUElELWZpbHRlciBpcyBkaXNhYmxlZC4KPj4gaHR0cDov
-L2xpbnV4dHYub3JnL2hnL35hbnR0aXAvYWY5MDE1X2Rpc2FibGVfcGlkX2ZpbHRlci8KPj4KPj4g
-UElELWZpbHRlcmluZyBpcyBuZWVkZWQgaWYgd2UgaGF2ZSBvbmx5IFVTQjEuMSBwb3J0cy4gUElE
-LWZpbHRlciByZW1vdmVzIAo+PiAgIHVubmVjZXNzYXJ5IGNoYW5uZWxzIGZyb20gdHJhbnNwb3J0
-IHN0cmVhbSB0aGF0IGl0IGNhbiBmaXQgdG8gVVNCMS4xIAo+PiBzcGVlZC4gVVNCMi4wIGRvZXMg
-bm90IG5lZWQgUElELWZpbHRlcmluZyBiZWNhdXNlIGl0IGlzIGNhcGFibGUgb2YgCj4+IHRyYW5z
-ZmVyIHdob2xlIHN0cmVhbSAoTVVYKS4KPj4KPj4gQW50dGkKPj4+IFRoYW5rcwo+Pj4gVGhvbWFz
-Cj4+Pgo+Pj4gLS0tLS1VcnNwcsO8bmdsaWNoZSBOYWNocmljaHQtLS0tLQo+Pj4gVm9uOiBsaW51
-eC1kdmItYm91bmNlc0BsaW51eHR2Lm9yZyBbbWFpbHRvOmxpbnV4LWR2Yi1ib3VuY2VzQGxpbnV4
-dHYub3JnXSBJbSBBdWZ0cmFnIHZvbiB0b20KPj4+IEdlc2VuZGV0OiBTb25udGFnLCAyMC4gSnVs
-aSAyMDA4IDE1OjE5Cj4+PiBBbjogQW50dGkgUGFsb3NhYXJpCj4+PiBDYzogbGludXgtZHZiQGxp
-bnV4dHYub3JnCj4+PiBCZXRyZWZmOiBSZTogW2xpbnV4LWR2Yl0gUHJvYmxlbXMgd2l0aCBNU0kg
-RGlnaXZveCBEdW8gRFZCLVQgVVNCLCBVYnVudHUgOC4wNAo+Pj4KPj4+IEhlbGxvIEFudHRpLAo+
-Pj4KPj4+IGJhc2VkIG9uIHRoZSB0ZWNobi4gc3BlYyBvZiBteSBub3RlYm9vayAoY29tcGFxIGV2
-byBuODAwdykgdGhlcmUgYXJlIHVzYgo+Pj4gMi4wIHBvcnRzLi4uCj4+PiBJJ20gbG9zdCBpbiBz
-cGFjZSByZWdhcmRpbmcgdGhlIHBpZCBmaWx0ZXJzLCBJIGV2ZW4gZG9uJ3Qga25vdyB3aGF0IHRo
-ZQo+Pj4gcGlkIGZpbHRlciBpcyA6LSkuIFNvcnJ5LCBidXQgSSdtIG5vdCB1c2luZyBsaW51eCBm
-b3Igc28gbG9uZy4uLgo+Pj4KPj4+IE1heWJlIHNvbWVvbmUgZWxzZSBoYXZlIGFuIGlkZWEgd2h5
-IHRoaXMgaXMgbm90IHdvcmtpbmcuCj4+Pgo+Pj4gVGhvbWFzIAo+Pj4KPj4+IEFtIFNvbm50YWcs
-IGRlbiAyMC4wNy4yMDA4LCAxNTo1NiArMDMwMCBzY2hyaWViIEFudHRpIFBhbG9zYWFyaToKPj4+
-PiBoZWxsbyB0b20KPj4+Pgo+Pj4+IHRvbSB3cm90ZToKPj4+Pj4gcmVzdWx0cyBvZiBsc21vZCB8
-IGdyZXAgZHZiOgo+Pj4+Pgo+Pj4+PiBkdmJfdXNiX2FmOTAxNSAgICAgICAgIDI0MzMyICAwIAo+
-Pj4+PiBkdmJfdXNiICAgICAgICAgICAgICAgIDIyOTI0ICAxIGR2Yl91c2JfYWY5MDE1Cj4+Pj4+
-IGR2Yl9jb3JlICAgICAgICAgICAgICAgODA2MzYgIDEgZHZiX3VzYgo+Pj4+PiBpMmNfY29yZSAg
-ICAgICAgICAgICAgIDI0ODMyICA0IG14bDUwMDVzLGFmOTAxMyxkdmJfdXNiX2FmOTAxNSxkdmJf
-dXNiCj4+Pj4+IHVzYmNvcmUgICAgICAgICAgICAgICAxNDYwMjgKPj4+Pj4gNiDvu79kdmJfdXNi
-X2FmOTAxNSxkdmJfdXNiLHVzYmhpZCxlaGNpX2hjZCxvaGNpX2hjZAo+Pj4+Pgo+Pj4+PiBUaG9t
-YXMKPj4+Pj4KPj4+Pj4KPj4+Pj4gQW0gU2Ftc3RhZywgZGVuIDE5LjA3LjIwMDgsIDEwOjU4ICsw
-MjAwIHNjaHJpZWIgdG9tOgo+Pj4+Pj4g77u/SGkgQW50dGksCj4+Pj4+PiBJIGhhdmUgaW5zdGFs
-bGVkIHRoZSBkcml2ZXIuIEFmdGVyIHJlYm9vdCBkbWVzZyBnaXZlcyB0aGUgZm9sbG93aW5nLgo+
-Pj4+Pj4gWyAxNTMyLjUwMjMyOF0gZHZiLXVzYjogY291bGQgbm90IGhhbmRsZSBwaWRfcGFyc2Vy
-Cj4+Pj4gSSBkb24ndCBrbm93IHdoYXRzIHdyb25nIGJ1dCBpdCBsb29rcyBsaWtlIGNvbWluZyBm
-cm9tIFBJRC1maWx0ZXIuIFlvdSAKPj4+PiBoYXZlIG9ubHkgVVNCMS4xIHBvcnRzPwo+Pj4+Cj4+
-Pj4gRHJpdmVyIHdpbGwgZGlzYWJsZSAybmQgdHVuZXIgLyBmcm9udGVuZCBpZiB0aGVyZSBpcyBv
-bmx5IFVTQjEuMSBiZWNhdXNlIAo+Pj4+ICAgSSBkb24ndCBrbm93IGlmIHRoZXJlIGlzIGFueSB3
-YXkgdG8gdXNlIFBJRC1maWx0ZXJzIGZvciAybmQgZnJvbnRlbmQuIAo+Pj4+IEFsc28gRkUjMSBw
-ZXJmb3JtYW5jZSBpcyBiYWQgaW4gZHVhbCB0dW5lciBkZXZpY2UgZm9yIHVua25vd24gcmVhc29u
-LiAKPj4+PiBCdXQgSSBzdGlsbCBkb24ndCBzZWUgcmVhc29uIHdoeSB5b3VyIGRldmljZSBpcyBu
-b3Qgd29ya2luZy4KPj4+Pgo+Pj4+IFRoYXRzIHdlaXJkIHNpdHVhdGlvbjoKPj4+PiBkdWFsIG1v
-ZGUgKDIgcmVjZWl2ZXJzKToKPj4+PiBGRSMxIGJhZAo+Pj4+IEZFIzIgZ29vZAo+Pj4+IHNpbmds
-ZSBtb2RlICgxIHJlY2VpdmVyKToKPj4+PiBGRSMxIGdvb2QKPj4+Pgo+Pj4KPj4+IF9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4+PiBsaW51eC1kdmIgbWFp
-bGluZyBsaXN0Cj4+PiBsaW51eC1kdmJAbGludXh0di5vcmcKPj4+IGh0dHA6Ly93d3cubGludXh0
-di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Ygo+Pj4KPj4+Cj4+PiBfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+Pj4gbGludXgtZHZi
-IG1haWxpbmcgbGlzdAo+Pj4gbGludXgtZHZiQGxpbnV4dHYub3JnCj4+PiBodHRwOi8vd3d3Lmxp
-bnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmIKPj4KPiAKCgotLSAK
-aHR0cDovL3BhbG9zYWFyaS5maS8KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3Jn
-Cmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2
-Yg==
+Hello Ales,
+
+> I've used last one, multiproto-2a911b8f9910.tar.bz2.
+
+Against which kernel version do you compile this multiproto set?
+2.6.24 (fc8), 26.25.11, 2.6.26 all gave build errors...
+
+Kind Regards,
+
+Remy
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
