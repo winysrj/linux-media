@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vds2011.yellis.net ([79.170.233.11])
+Received: from an-out-0708.google.com ([209.85.132.244])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <frederic.cand@anevia.com>) id 1KNrnb-0002ks-4P
-	for linux-dvb@linuxtv.org; Tue, 29 Jul 2008 18:11:43 +0200
-Message-ID: <488F4135.1070505@anevia.com>
-Date: Tue, 29 Jul 2008 18:11:33 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
+	(envelope-from <chvaja@gmail.com>) id 1KJbYn-0005Mf-D4
+	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 00:02:51 +0200
+Received: by an-out-0708.google.com with SMTP id c18so208156anc.125
+	for <linux-dvb@linuxtv.org>; Thu, 17 Jul 2008 15:02:44 -0700 (PDT)
+Message-ID: <8bd940380807171502j2fb0bf36yec4612d4be1056b6@mail.gmail.com>
+Date: Fri, 18 Jul 2008 00:02:44 +0200
+From: "Adam Chvaja" <chvaja@seznam.cz>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <8bd940380807161152i4e394967p8090f28042752571@mail.gmail.com>
 MIME-Version: 1.0
-To: Nico Sabbi <Nicola.Sabbi@poste.it>
-References: <3a665c760807290538i76303879pfc3cbd5171c1c3a4@mail.gmail.com>	<d9def9db0807290601w343469e4h5e33e7fe7924ca77@mail.gmail.com>
-	<200807291516.38452.Nicola.Sabbi@poste.it>
-In-Reply-To: <200807291516.38452.Nicola.Sabbi@poste.it>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Where I can get the open sofware to play TS file?
+Content-Disposition: inline
+References: <8bd940380807161150h246fe623nf3e3e5a43eb00a38@mail.gmail.com>
+	<8bd940380807161152i4e394967p8090f28042752571@mail.gmail.com>
+Subject: Re: [linux-dvb] SkyStar HD2 not initializing frontend
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,53 +22,101 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Nico Sabbi a =E9crit :
-> On Tuesday 29 July 2008 15:01:39 Markus Rechberger wrote:
->> On Tue, Jul 29, 2008 at 2:38 PM, loody <miloody@gmail.com> wrote:
->>> Dear all:
->>> I study 13818-1 recently, but I cannot understand the whole flow
->>> of PCR, PTS and DTS.
->>> Would someone please tell me where I can get any open TS-player
->>> or part of source code which can help me to figure this part out?
->>> ps:I have check ffmpeg and vcl, and both of them seem cannot play
->>> TS directly.
->> you could use mplayer.
-> =
-
-> it's the most messy player around and also the least academical ;)
-> ffmpeg is much cleaner, but it doesn't expose how to use
-> PCR wrt to DTS and PTS. =
-
-> To make it short: you can consider the PCR your "wallclock",
-> the DTS and the PTS are then timestamps when you should
-> begin to decode and display, respectively.
-> In a stream the DTS and PTS are always > PCR, thus you
-> have to buffer packets (PES payloads) and dispatch each packet whose
-> [PD]TS is <=3D last PCR seen to the respective decoder/player
-> =
-
-
-Btw if vlc can't play a TS file then there's a problem in your computer =
-
-since I've been using it for a very long time and it works perfectly =
-
-fine to me (able to read a full TS from DVB-S, Demux it, presents the =
-
-list of the services within the stream on the top menu, a.s.o.)
-
--- =
-
-CAND Frederic
-Product Manager
-ANEVIA
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+UGxlYXNlLCBhbGwgeW91IGtub3dsZWRnYWJsZSBwZW9wbGUgb3V0IHRoZXJlISBJcyB0aGVyZSBy
+ZWFsbHkgbm8tb25lCndobyBjYW4gaGVscCBtZSB3aXRoIG15IHByb2JsZW0/IEkgc3BlbnQgYWxs
+IG15IG1vbmV5IGZvciBzYXRlbGxpdGUKZGlzaCBhbmQgZXF1aXBtZW50LCBhbmQgbm93IEkgY2Fu
+IHRocm93IGl0IGFsbCBhd2F5LCBiZWNhdXNlIG15IGNhcmQKZG9lc24ndCB3b3JrIHVuZGVyIExp
+bnV4LiBJJ3YgYmVlbiB1c2luZyBMaW51eCBmb3Igc2V2ZXJhbCB5ZWFycyBub3cKYW5kIEkgd291
+bGQgcmVhbGx5IGRpc2xpa2UgdG8gaW5zdGFsbCBXaW5kb3plIGFnYWluLgoKSSB3b3VsZCBiZSB2
+ZXJ5IGdsYWQgZm9yIGFueSBjb21tZW50cyBvciBoaW50cy4KClRoYW5rIHlvdQoKQWRhbQoKCjIw
+MDgvNy8xNiwgQWRhbSBDaHZhamEgPGNodmFqYUBzZXpuYW0uY3o+Ogo+Cj4KPiBBZnRlciBpbnN0
+YWxsaW5nIG1hbnRpcyBkcml2ZXJzIGFuZCBtb2Rwcm9iaW5nIHRoZW0sIG15IFNreVN0YXIgSEQy
+IGRvZXNuJ3QKPiBnZXQgZnVsbHkgaW5pdGlhbGl6ZWQsIG5vIGZyb250ZW5kIGRyaXZlciBpcyBs
+b2FkZWQuCj4KPiBJIG5vdGljZWQgdGhlIGNhcmQgaGFzIGEgc2xpZ2h0bHkgZGlmZmVyZW50IHN1
+YnN5c3RlbSBudW1iZXIgdGhhbiB0aGUgb25lcwo+IG1lbnRpb25lZCBpbiBvdGhlciBwb3N0cyBo
+ZXJlICgxYWU0OjAwMDMsIHNlZSBiZWxvdykuIENvdWxkIHRoYXQgYmUgdGhlCj4gcHJvYmxlbT8K
+Pgo+IE9yIHdoZXJlIGFtIEkgZG9pbmcgYSBtaXN0YWtlPyBBY2NvcmRpbmcgdG8gaW5mb3JtYXRp
+b24gYXQgbGludXh0di5vcmcsIHRoaXMKPiBjYXJkIHNob3VsZCBiZSBzdXBwb3J0ZWQuCj4KPiBU
+aGFuayB5b3UgZm9yIGFueSBoaW50cwo+Cj4gQWRhbQo+Cj4gPT09PT09PT09PT09PT09Cj4KPiBk
+bWVzZwo+Cj4gLi4uCj4KPiBmb3VuZCBhIFVOS05PV04gUENJIFVOS05PV04gZGV2aWNlIG9uICgw
+MDowNy4wKSwKPiAgIE1hbnRpcyBSZXYgMSBbMWFlNDowMDAzXSwgaXJxOiAyMSwgbGF0ZW5jeTog
+MzIKPiAgIG1lbW9yeTogMHhkZGRmZjAwMCwgbW1pbzogMHhmOGQzYzAwMAo+ICAgTUFDIEFkZHJl
+c3M9WzAwOjA4OmM5OmUwOjI4OjllXQo+IG1hbnRpc19hbGxvY19idWZmZXJzICgwKTogRE1BPTB4
+MzVkMTAwMDAgY3B1PTB4ZjVkMTAwMDAgc2l6ZT02NTUzNgo+ICBtYW50aXNfYWxsb2NfYnVmZmVy
+cyAoMCk6IFJJU0M9MHgzNWVlZjAwMCBjcHU9MHhmNWVlZjAwMCBzaXplPTEwMDAKPiBEVkI6IHJl
+Z2lzdGVyaW5nIG5ldyBhZGFwdGVyIChNYW50aXMgZHZiIGFkYXB0ZXIpCj4gbWFudGlzX2NhX2lu
+aXQgKDApOiBSZWdpc3RlcmluZyBFTjUwMjIxIGRldmljZQo+IG1hbnRpc19jYV9pbml0ICgwKTog
+UmVnaXN0ZXJlZCBFTjUwMjIxIGRldmljZQo+ICBtYW50aXNfaGlmX2luaXQgKDApOiBBZGFwdGVy
+KDApIEluaXRpYWxpemluZyBNYW50aXMgSG9zdCBJbnRlcmZhY2UKPgo+IGxzIC1sIC9kZXYvZHZi
+L2FkYXB0ZXIwCj4KPiBjZWxrZW0gMAo+IGNydy1ydy0tLS0gMSByb290IHZpZGVvIDIxMiwgNiAx
+Ni4gxI1lYyAxOC40NCBjYTAKPiBjcnctcnctLS0tIDEgcm9vdCB2aWRlbyAyMTIsIDQgMTYuIMSN
+ZWMgMTguNDQgZGVtdXgwCj4gIGNydy1ydy0tLS0gMSByb290IHZpZGVvIDIxMiwgNSAxNi4gxI1l
+YyAxOC40NCBkdnIwCj4gY3J3LXJ3LS0tLSAxIHJvb3QgdmlkZW8gMjEyLCA3IDE2LiDEjWVjIDE4
+LjQ0IG5ldDAKPgo+IGxzbW9kCj4KPiBNb2R1bGUgU2l6ZSBVc2VkIGJ5Cj4gbWFudGlzIDM1MTQw
+IDAKPiBsbmJwMjEgMTUzNiAxIG1hbnRpcwo+IG1iODZhMTYgMTc1MzYgMSBtYW50aXMKPiBzdGI2
+MTAwIDY1OTYgMSBtYW50aXMKPiAgdGRhMTAwMjEgNTI1MiAxIG1hbnRpcwo+IHRkYTEwMDIzIDUx
+ODggMSBtYW50aXMKPiBzdGIwODk5IDMyMDAwIDEgbWFudGlzCj4gc3R2MDI5OSA4NTIwIDEgbWFu
+dGlzCj4gZHZiX2NvcmUgNzExNjQgMiBtYW50aXMsc3R2MDI5OQo+IHc4MzYyN2hmIDE4MDA0IDAK
+PiBod21vbl92aWQgMjE3NiAxIHc4MzYyN2hmCj4gc25kX3NlcV9taWRpIDU2MDAgMAo+IHNuZF9l
+bXUxMGsxX3N5bnRoIDU2MzIgMAo+ICBzbmRfZW11eF9zeW50aCAyODAzMiAxIHNuZF9lbXUxMGsx
+X3N5bnRoCj4gc25kX3NlcV92aXJtaWRpIDQ2MDggMSBzbmRfZW11eF9zeW50aAo+IHNuZF9zZXFf
+bWlkaV9lbXVsIDQ4MDAgMSBzbmRfZW11eF9zeW50aAo+IHNuZF9wY21fb3NzIDMzMzEyIDAKPiBz
+bmRfbWl4ZXJfb3NzIDEyNTQ0IDEgc25kX3BjbV9vc3MKPiBzbmRfc2VxX29zcyAyNTM0NCAwCj4g
+c25kX3NlcV9taWRpX2V2ZW50IDU1MDQgMwo+IHNuZF9zZXFfbWlkaSxzbmRfc2VxX3Zpcm1pZGks
+c25kX3NlcV9vc3MKPiAgc25kX3NlcSAzOTU2OCA4Cj4gc25kX3NlcV9taWRpLHNuZF9lbXV4X3N5
+bnRoLHNuZF9zZXFfdmlybWlkaSxzbmRfc2VxX21pZGlfZW11bCxzbmRfc2VxX29zcyxzbmRfc2Vx
+X21pZGlfZXZlbnQKPiBhZl9wYWNrZXQgMTQ0NjggMAo+IHNnIDI0MTYwIDAKPiBzZF9tb2QgMTg3
+NjggMAo+IHVzYmhpZCAyMzYxNiAwCj4gdXNibW91c2UgMzcxMiAwCj4gbG05MCAxMTc1MiAwCj4g
+IHViIDE0NDMyIDAKPiB1c2Jfc3RvcmFnZSAzMjk2MCAwCj4gc2NzaV9tb2QgODEwOTYgMyBzZyxz
+ZF9tb2QsdXNiX3N0b3JhZ2UKPiBvaGNpMTM5NCAyNTcxMiAwCj4gaWVlZTEzOTQgNzE1NDQgMSBv
+aGNpMTM5NAo+IHNuZF9lbXUxMGsxIDExNzI0OCAzIHNuZF9lbXUxMGsxX3N5bnRoCj4gc25kX3Jh
+d21pZGkgMTY5OTIgMwo+IHNuZF9zZXFfbWlkaSxzbmRfc2VxX3Zpcm1pZGksc25kX2VtdTEwazEK
+PiAgZmlybXdhcmVfY2xhc3MgNjU5MiAxIHNuZF9lbXUxMGsxCj4gc25kX2FjOTdfY29kZWMgODcw
+NzIgMSBzbmRfZW11MTBrMQo+IGFjOTdfYnVzIDE2MDAgMSBzbmRfYWM5N19jb2RlYwo+IHNuZF9w
+Y20gNTkzMzYgMyBzbmRfcGNtX29zcyxzbmRfZW11MTBrMSxzbmRfYWM5N19jb2RlYwo+IHNuZF9z
+ZXFfZGV2aWNlIDU3MDggNwo+IHNuZF9zZXFfbWlkaSxzbmRfZW11MTBrMV9zeW50aCxzbmRfZW11
+eF9zeW50aCxzbmRfc2VxX29zcyxzbmRfc2VxLHNuZF9lbXUxMGsxLHNuZF9yYXdtaWRpCj4gIHBh
+cnBvcnRfcGMgMTk5NDAgMAo+IHNuZF90aW1lciAxNjMyNCAzIHNuZF9zZXEsc25kX2VtdTEwazEs
+c25kX3BjbQo+IHBhcnBvcnQgMTkwMDggMSBwYXJwb3J0X3BjCj4gbnZpZGlhIDQ3MDI5NjAgMjIK
+PiBzbmRfcGFnZV9hbGxvYyA2OTg0IDIgc25kX2VtdTEwazEsc25kX3BjbQo+IGVoY2lfaGNkIDI1
+NDg0IDAKPiB1aGNpX2hjZCAxOTIxMiAwCj4gc25kX3V0aWxfbWVtIDMwNzIgMiBzbmRfZW11eF9z
+eW50aCxzbmRfZW11MTBrMQo+ICBzbmRfaHdkZXAgNjAyMCAyIHNuZF9lbXV4X3N5bnRoLHNuZF9l
+bXUxMGsxCj4gc25kIDM4NTY0IDE3Cj4gc25kX2VtdXhfc3ludGgsc25kX3NlcV92aXJtaWRpLHNu
+ZF9wY21fb3NzLHNuZF9taXhlcl9vc3Msc25kX3NlcV9vc3Msc25kX3NlcSxzbmRfZW11MTBrMSxz
+bmRfcmF3bWlkaSxzbmRfYWM5N19jb2RlYyxzbmRfcGNtLHNuZF9zZXFfZGV2aWNlLHNuZF90aW1l
+cixzbmRfaHdkZXAKPiAgdXNiY29yZSAxMDgyMDQgNwo+IHVzYmhpZCx1c2Jtb3VzZSx1Yix1c2Jf
+c3RvcmFnZSxlaGNpX2hjZCx1aGNpX2hjZAo+IGkyY192aWFwcm8gNjQ4NCAwCj4gdmlhX3JoaW5l
+IDE3OTkyIDAKPiBydGMgOTYyOCAwCj4gbWlpIDQxNjAgMSB2aWFfcmhpbmUKPiBwY3Nwa3IgMjEx
+MiAwCj4gaWRlX2NkIDMxMjAwIDAKPiBzb3VuZGNvcmUgNTQwOCAxIHNuZAo+IGNkcm9tIDI5MzQ0
+IDEgaWRlX2NkCj4gIGFncGdhcnQgMjQxMTIgMSBudmlkaWEKPiBldmRldiA3NjgwIDAKPgo+Cj4g
+bHNwY2kgLXYKPgo+IC4uLgo+Cj4KPgo+IDAwOjA3LjAgTXVsdGltZWRpYSBjb250cm9sbGVyOiBU
+d2luaGFuIFRlY2hub2xvZ3kgQ28uIEx0ZCBNYW50aXMgRFRWIFBDSQo+IEJyaWRnZSBDb250cm9s
+bGVyIFtWZXIgMS4wXSAocmV2IDAxKQo+Cj4gU3Vic3lzdGVtOiBVbmtub3duIGRldmljZSAxYWU0
+OjAwMDMKPgo+IEZsYWdzOiBidXMgbWFzdGVyLCBtZWRpdW0gZGV2c2VsLCBsYXRlbmN5IDMyLCBJ
+UlEgMjEKPgo+IE1lbW9yeSBhdCBkZGRmZjAwMCAoMzItYml0LCBwcmVmZXRjaGFibGUpIFtzaXpl
+PTRLXQo+Cj4gS2VybmVsIGRyaXZlciBpbiB1c2U6IE1hbnRpcwo+Cj4gS2VybmVsIG1vZHVsZXM6
+IG1hbnRpcwo+Cj4gIC4uLgo+Cj4gbHNwY2kgLXZuCj4KPiAuLi4KPgo+IDAwOjA3LjAgMDQ4MDog
+MTgyMjo0ZTM1IChyZXYgMDEpCj4gICBTdWJzeXN0ZW06IDFhZTQ6MDAwMwo+ICAgRmxhZ3M6IGJ1
+cyBtYXN0ZXIsIG1lZGl1bSBkZXZzZWwsIGxhdGVuY3kgMzIsIElSUSAyMQo+ICAgTWVtb3J5IGF0
+IGRkZGZmMDAwICgzMi1iaXQsIHByZWZldGNoYWJsZSkgW3NpemU9NEtdCj4gICBLZXJuZWwgZHJp
+dmVyIGluIHVzZTogTWFudGlzCj4gICAgS2VybmVsIG1vZHVsZXM6IG1hbnRpcwo+Cj4gLi4uCj4g
+bHNwY2kgLXZ2Cj4gMDA6MDcuMCBNdWx0aW1lZGlhIGNvbnRyb2xsZXI6IFR3aW5oYW4gVGVjaG5v
+bG9neSBDby4gTHRkIE1hbnRpcyBEVFYgUENJCj4gQnJpZGdlIENvbnRyb2xsZXIgW1ZlciAxLjBd
+IChyZXYgMDEpCj4gICBTdWJzeXN0ZW06IFVua25vd24gZGV2aWNlIDFhZTQ6MDAwMwo+ICAgQ29u
+dHJvbDogSS9PLSBNZW0rIEJ1c01hc3RlcisgU3BlY0N5Y2xlLSBNZW1XSU5WLSBWR0FTbm9vcC0g
+UGFyRXJyLQo+IFN0ZXBwaW5nLSBTRVJSLSBGYXN0QjJCLSBEaXNJTlR4LQo+ICAgIFN0YXR1czog
+Q2FwLSA2Nk1Iei0gVURGLSBGYXN0QjJCLSBQYXJFcnItIERFVlNFTD1tZWRpdW0gPlRBYm9ydC0g
+PFRBYm9ydC0KPiA8TUFib3J0LSA+U0VSUi0gPFBFUlItIElOVHgtCj4gICBMYXRlbmN5OiAzMiAo
+MjAwMG5zIG1pbiwgNjM3NTBucyBtYXgpCj4gICBJbnRlcnJ1cHQ6IHBpbiBBIHJvdXRlZCB0byBJ
+UlEgMjEKPiAgIFJlZ2lvbiAwOiBNZW1vcnkgYXQgZGRkZmYwMDAgKDMyLWJpdCwgcHJlZmV0Y2hh
+YmxlKSBbc2l6ZT00S10KPiAgICBLZXJuZWwgZHJpdmVyIGluIHVzZTogTWFudGlzCj4gICBLZXJu
+ZWwgbW9kdWxlczogbWFudGlzCj4KPgo+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYu
+b3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LWR2Yg==
