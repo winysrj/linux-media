@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6GFBH5F021025
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 11:11:17 -0400
-Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6GFB444010182
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 11:11:04 -0400
-Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
-	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KJ8em-0003BW-2q
-	for video4linux-list@redhat.com; Wed, 16 Jul 2008 17:11:04 +0200
-Message-ID: <487E0F5E.8070801@hhs.nl>
-Date: Wed, 16 Jul 2008 17:10:22 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HFRAx2017880
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 11:27:10 -0400
+Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.178])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HFR0Zb027111
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 11:27:00 -0400
+Received: by py-out-1112.google.com with SMTP id a29so3442175pyi.0
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 08:27:00 -0700 (PDT)
+Message-ID: <d9def9db0807170826r210f7880s42af20d2149a13bc@mail.gmail.com>
+Date: Thu, 17 Jul 2008 17:26:59 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: rtos_q@yahoo.com
+In-Reply-To: <264168.24331.qm@web59602.mail.ac4.yahoo.com>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: multipart/mixed; boundary="------------080406090608060101030504"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <264168.24331.qm@web59602.mail.ac4.yahoo.com>
 Cc: video4linux-list@redhat.com
-Subject: PAtch: gspca-sonixb-ov6650-expo-clamp.patch
+Subject: Re: Question on V4L2 VBI operation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,75 +30,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------080406090608060101030504
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
 Hi,
 
-This patches fixing oscilating in daylight with clouds with the sonixb driver
-in combination with the ov6650 sensor.
+On Thu, Jul 17, 2008 at 1:10 AM, Krish K <rtos_q@yahoo.com> wrote:
+> Hello
+>
+>
+>
+> I am new to V4L2 and have a question on how V4L2 expects
+>
+> VBI data to be provided.
+>
+>
+>
+> It is not clear to me if the VBI data (CC, WSS, etc) can be
+>
+> embedded in the frame? If the video capture device does
+>
+> not provide the VBI data separately, should the driver
+>
+> extract it from the frame? Is this what drivers usually do?
+>
+> If the device provides VBI data separately (either in some
+>
+> registers or FIFO),  then the driver should obtain this from
+>
+> the device for each frame?
+>
 
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+as usual this depends on the device. It is possible that eg. the raw
+vbi data is seen ontop of the analog TV frames, with USB devices this
+leads to some interesting thoughts.
+For example if mmap is used with the vbi device and all usb buffers
+are dequeued, the transfer mechanism still has to take care that the
+incoming vbi data gets stripped off of the frame otherwise it might
+show up in the video which is not too nice.
 
-Regards,
+Also depending on the device if the video gets scaled, it can easily
+be that the VBI data remains at the full vbi data capture size.
+I think a few drivers don't handle VBI correctly because it's not used
+that widely, best is to stick with zvbi and documentation around it, I
+tested alevt a while ago and it doesn't work with all devices whereas
+libzvbi/zapping has a better chance.
 
-Hans
-
---------------080406090608060101030504
-Content-Type: text/plain;
- name="gspca-sonixb-ov6650-expo-clamp.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="gspca-sonixb-ov6650-expo-clamp.patch"
-
-This patches fixing oscilating in daylight with clouds with the sonixb driver
-in combination with the ov6650 sensor.
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-diff -r 086f909be17c linux/drivers/media/video/gspca/sonixb.c
---- a/linux/drivers/media/video/gspca/sonixb.c	Wed Jul 16 15:29:31 2008 +0200
-+++ b/linux/drivers/media/video/gspca/sonixb.c	Wed Jul 16 17:07:37 2008 +0200
-@@ -712,8 +712,13 @@
- 		/* frame exposure time in ms = 1000 * reg11 / 30    ->
- 		reg10 = sd->exposure * 2 * reg10_max / (1000 * reg11 / 30) */
- 		reg10 = (sd->exposure * 60 * reg10_max) / (1000 * reg11);
--		if (reg10 < 1) /* 0 is a valid value, but is very _black_ */
--			reg10 = 1;
-+		
-+		/* Don't allow this to get below 10 when using autogain, the
-+		   steps become very large (relatively) when below 10 causing
-+		   the image to oscilate from much too dark, to much too bright
-+		   and back again. */
-+		if (sd->autogain && reg10 < 10)
-+			reg10 = 10;
- 		else if (reg10 > reg10_max)
- 			reg10 = reg10_max;
- 
-@@ -796,8 +801,11 @@
- 		sd->autogain_ignore_frames--;
- 	else if (gspca_auto_gain_n_exposure(gspca_dev, avg_lum,
- 			sd->brightness * DESIRED_AVG_LUM / 127,
--			AUTOGAIN_DEADZONE, GAIN_KNEE, EXPOSURE_KNEE))
-+			AUTOGAIN_DEADZONE, GAIN_KNEE, EXPOSURE_KNEE)) {
-+		PDEBUG(D_FRAM, "autogain: gain changed: gain: %d expo: %d\n",
-+			(int)sd->gain, (int)sd->exposure);
- 		sd->autogain_ignore_frames = AUTOGAIN_IGNORE_FRAMES;
-+	}
- }
- 
- /* this function is called at probe time */
-
---------------080406090608060101030504
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Markus
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------080406090608060101030504--
