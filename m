@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt3.poste.it ([62.241.4.129])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1KLxWN-00038R-82
-	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 11:54:03 +0200
-Received: from nico2.od.loc (89.97.249.170) by relay-pt3.poste.it (7.3.122)
-	(authenticated as Nicola.Sabbi@poste.it)
-	id 4887B87100002B21 for linux-dvb@linuxtv.org;
-	Thu, 24 Jul 2008 11:53:57 +0200
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-Date: Thu, 24 Jul 2008 11:53:55 +0200
-References: <3a665c760807240246x7bb3d442lac2b407dd138accf@mail.gmail.com>
-In-Reply-To: <3a665c760807240246x7bb3d442lac2b407dd138accf@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807241153.55596.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] question about definition of section in PSI of
-	Transport stream
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+71100c87998243c258cf+1789+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1KJcNs-0000OZ-SS
+	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 00:55:36 +0200
+Date: Thu, 17 Jul 2008 19:55:18 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080717195518.503c5824@gaivota>
+In-Reply-To: <1215897249.2987.28.camel@pc10.localdom.local>
+References: <1634623854.65471.1213524197148.JavaMail.apache@mail71.abv.bg>
+	<1213562075.2683.79.camel@pc10.localdom.local>
+	<20080712092931.0099413a@gaivota>
+	<1215897249.2987.28.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>, linux-dvb@linuxtv.org,
+	video4linuxlist@redhat.com, Bozhan Boiadzhiev <bozhan@abv.bg>
+Subject: Re: [linux-dvb] ASUS My-Cinema remote patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,22 +30,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 24 July 2008 11:46:48 loody wrote:
-> Dear all:
-> I am reading iso13818-1 right now.
-> But I cannot figure out what the section mean in PSI.
->
-> In PAT, there is a N loop tell us how many programs in this TS and
-> the corresponding pid of PMT.
-> Is section equivalent to program?
+On Sat, 12 Jul 2008 23:14:09 +0200
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
-each item identifies a program and a pid
+> Latest questions on it are in the same thread.
+> 
+> Mauro, almost all my tabs were lost, maybe it works better with
+> attachments.
+> 
+> Cheers,
+> Hermann
+> 
+> saa7134: update the Asustek P7131 Analog patch to latest
+>          version and also try to replace lost tabs.
 
-> Suppose there is 10 loop in PAT, and there will be 10 sections,
-> right?
+The patch seems to have whitespaces mangled. I'm fixing the original patch at
+-git and applying a patch, based on yours, fixing this issue.
 
-no, the section is only needed to split overly long PATs and / or PMTs
-in smaller pieces
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
