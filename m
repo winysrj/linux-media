@@ -1,32 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6F8SNKm025443
-	for <video4linux-list@redhat.com>; Tue, 15 Jul 2008 04:28:23 -0400
-Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.183])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6F8SCVg027442
-	for <video4linux-list@redhat.com>; Tue, 15 Jul 2008 04:28:12 -0400
-Received: by py-out-1112.google.com with SMTP id a29so2820479pyi.0
-	for <video4linux-list@redhat.com>; Tue, 15 Jul 2008 01:28:12 -0700 (PDT)
-Message-ID: <aec7e5c30807150128p4a4d3ec6v64bf7e98af6b0469@mail.gmail.com>
-Date: Tue, 15 Jul 2008 17:28:12 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Paul Mundt" <lethal@linux-sh.org>, "Magnus Damm" <magnus.damm@gmail.com>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"Paulius Zaleckas" <paulius.zaleckas@teltonika.lt>,
-	video4linux-list@redhat.com, linux-sh@vger.kernel.org
-In-Reply-To: <20080715034850.GA3722@linux-sh.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HGJScK029977
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 12:19:29 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.224])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HGJF3H008687
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 12:19:16 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so6924146rvb.51
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 09:19:15 -0700 (PDT)
+Message-ID: <d9def9db0807170919s516643cdl9ef2112f6be2d6f0@mail.gmail.com>
+Date: Thu, 17 Jul 2008 18:19:15 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Hans de Goede" <j.w.r.degoede@hhs.nl>
+In-Reply-To: <487F6676.1080403@hhs.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <20080705025335.27137.98068.sendpatchset@rx1.opensource.se>
-	<20080705025405.27137.16206.sendpatchset@rx1.opensource.se>
-	<48737AA3.3080902@teltonika.lt>
-	<Pine.LNX.4.64.0807112307570.26439@axis700.grange>
-	<aec7e5c30807132051r16e51d71w177e410063ccefb@mail.gmail.com>
-	<20080715034850.GA3722@linux-sh.org>
-Cc: 
-Subject: Re: [PATCH 03/04] videobuf: Add physically contiguous queue code V2
+References: <487908CA.8000304@tiscali.it> <48790D29.1010404@hhs.nl>
+	<4879E767.4000103@tiscali.it> <487A577F.8080300@hhs.nl>
+	<d9def9db0807170831h4fb42ba2v5a7ff38c762092f5@mail.gmail.com>
+	<487F6676.1080403@hhs.nl>
+Cc: Andrea <audetto@tiscali.it>, video4linux-list@redhat.com
+Subject: Re: prototype of a USB v4l2 driver? gspca?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,38 +33,98 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Jul 15, 2008 at 12:48 PM, Paul Mundt <lethal@linux-sh.org> wrote:
-> On Mon, Jul 14, 2008 at 12:51:55PM +0900, Magnus Damm wrote:
->> Both (__pa(mem->vaddr) >> PAGE_SHIFT) and (mem->dma_handle >>
->> PAGE_SHIFT) work well with the current dma_alloc_coherent()
->> implementation on SuperH. I do however lean towards using
->> __pa(mem->vaddr) over mem->dma_handle, since I suspect that
->> mem->dma_handle doesn't have to be a physical address.
->>
->> Paul, any thoughts about this? Can we assume that the dma_handle
->> returned from dma_alloc_coherent() is a physical address, or is it
->> better to use __pa() on the virtual address to get the pfn?
->>
-> It's a physical address as far as the dma_handle users are concerned, how
-> that actually translates across the bus is another matter. (The corner
-> cases end up being things like Cell that DMA in to virtual addresses via
-> IOMMU translations).
+On 7/17/08, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
+> Markus Rechberger wrote:
+> > On Sun, Jul 13, 2008 at 9:29 PM, Hans de Goede <j.w.r.degoede@hhs.nl>
+> wrote:
+> >
+> > > Andrea wrote:
+> > >
+> > > > Hans de Goede wrote:
+> > > >
+> > > > > Andrea wrote:
+> > > > >
+> > > > > What kind of device, I think that for webcams you;re best using
+> gspca,
+> > > > > (now merged in mecurial), that handles all the usb specific stuff,
+> buffer
+> > > > > management, etc. In general it makes it easy to write a webcam
+> driver
+> > > > > allowing you to focus on the interaction with the cam, rather then
+> having to
+> > > > > worry about looking, usb specifics, buffer management etc.
+> > > > >
+> > > > >
+> > > > I've had a quick look at the structure of gspca, and it seems that any
+> > > > subdriver should just (easier to say that to do) fill one of those
+> > > > structures
+> > > >
+> > > >
+> > > Correct.
+> > >
+> > >
+> > > > struct sd_desc {
+> > > > /* information */
+> > > >   const char *name;    /* sub-driver name */
+> > > > /* controls */
+> > > >   const struct ctrl *ctrls;
+> > > >   int nctrls;
+> > > > /* operations */
+> > > >   cam_cf_op config;    /* called on probe */
+> > > >   cam_op open;        /* called on open */
+> > > >   cam_v_op start;        /* called on stream on */
+> > > >   cam_v_op stopN;        /* called on stream off - main alt */
+> > > >   cam_v_op stop0;        /* called on stream off - alt 0 */
+> > > >   cam_v_op close;        /* called on close */
+> > > >   cam_pkt_op pkt_scan;
+> > > > /* optional operations */
+> > > >   cam_v_op dq_callback;    /* called when a frame has been dequeued */
+> > > >   cam_jpg_op get_jcomp;
+> > > >   cam_jpg_op set_jcomp;
+> > > >   cam_qmnu_op querymenu;
+> > > > };
+> > > >
+> > > > 1) providing ctrls (+ functions to handle settings)
+> > > > 2) functions to open/stream/close etc...
+> > > >
+> > > > It does not seem too bad.
+> > > >
+> > > >
+> > > It isn't.
+> > >
+> > >
+> > > > The a natural question that comes to me:
+> > > >
+> > > > Shouldn't many more USB drivers be implemented as subdrivers of gspca?
+> > > >
+> > > Yes that would remove lots of code duplication, but allas they were
+> written
+> > > before gspca (version 2, as you currently see in mercurial) was around.
+> > >
+> > >
+> >
+> > I guess quite a few drivers have extra features which might be missing
+> > in other usb based ones. Best is probably to have a look at all
+> > available ones and cherry pick the best ideas and easiest to
+> > understand parts.
+> > I think they are all on a certain level of quality right now.
+> >
+> > * gspca
+> > * uvcvideo
+> > * em28xx from mcentral.de
+> >
+> >
 >
-> Documentation/DMA-API.txt simply states:
->
->        This routine allocates a region of <size> bytes of consistent memory.
->        It also returns a <dma_handle> which may be cast to an unsigned
->        integer the same width as the bus and used as the physical address
->        base of the region.
->
-> so as far as we are concerned, using dma_handle is saner than going the __pa()
-> route.
+> Well these 3 drivers (in case of gscpa driver group) target different
+> classes of hardware:
+> gspca:     pre uvc webcams (and nothing more then that)
+> uvcvideo:  uvc devices
+> em28xx:    em28xx based devices, which can be dvd, analogtv, webcam, etc,
 
-Ok, thanks for the clarification. V3 should be correct already then. I
-guess I mixed up the regular dma handle with the bus address of
-dma_declare_coherent_memory(). =)
+dvd should be DVB, also VBI (v4l1-vbi read, v4l2-vbi-read,
+v4l2-vbi-mmap) (videotext) and usb digital audio.
 
-/ magnus
+Markus
 
 --
 video4linux-list mailing list
