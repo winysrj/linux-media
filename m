@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m68FpA53009488
-	for <video4linux-list@redhat.com>; Tue, 8 Jul 2008 11:51:10 -0400
-Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m68Fognn029179
-	for <video4linux-list@redhat.com>; Tue, 8 Jul 2008 11:50:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>
-Date: Tue, 8 Jul 2008 17:50:39 +0200
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HHhRKY024122
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 13:43:27 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HHhFcp031586
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 13:43:15 -0400
+Date: Thu, 17 Jul 2008 13:43:12 -0400 (EDT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200807171940.38608.hverkuil@xs4all.nl>
+Message-ID: <alpine.LFD.1.10.0807171342030.20641@bombadil.infradead.org>
+References: <3dbf42455956d17b8aa6.1214002733@localhost>
+	<200807171910.01863.hverkuil@xs4all.nl>
+	<alpine.LFD.1.10.0807171320160.20641@bombadil.infradead.org>
+	<200807171940.38608.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807081750.39305.hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Propose removal of the PLANB driver
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: Re: [v4l-dvb-maintainer] [PATCH] [PATCH] v4l: Introduce "index"
+ attribute for?persistent video4linux device nodes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,15 +30,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+On Thu, 17 Jul 2008, Hans Verkuil wrote:
 
-The PlanB driver ("PlanB Video-In on PowerMac") has been marked as 
-broken for ages. No one seems to care about it. I propose to mark this 
-driver for removal in 2.6.28 as well.
+> Mauro,
+>
+> I'll merge Brandon's patch and add a #define and comments afterwards.
+> It's a bit overkill IMHO but discussing this takes longer than just
+> putting in the code :-)
 
-Comments?
+Seems fine to me.
 
-	Hans
+As videodev is the core for V4L devices, it is never an overkill to make 
+the code as readable as possible.
+
+-- 
+Cheers,
+Mauro Carvalho Chehab
+http://linuxtv.org
+mchehab@infradead.org
 
 --
 video4linux-list mailing list
