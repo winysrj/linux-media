@@ -1,30 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6KClnhM027708
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 08:47:49 -0400
-Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6KClb3B018692
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 08:47:37 -0400
-Received: from tschai.lan (cm-84.208.85.194.getinternet.no [84.208.85.194])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id m6KCla9l025225
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>;
-	Sun, 20 Jul 2008 14:47:36 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Sun, 20 Jul 2008 14:47:35 +0200
-References: <200807181625.12619.hverkuil@xs4all.nl>
-In-Reply-To: <200807181625.12619.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HLxfJm017859
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 17:59:41 -0400
+Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
+	[151.189.21.54])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HLxSRO007402
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 17:59:28 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Carlos Bessa <carlos.bessa@gmail.com>
+In-Reply-To: <f56b605d0807170840x3d6a0116hc817caff4760c5ec@mail.gmail.com>
+References: <f56b605d0807170840x3d6a0116hc817caff4760c5ec@mail.gmail.com>
+Content-Type: text/plain
+Date: Thu, 17 Jul 2008 23:54:49 +0200
+Message-Id: <1216331689.2659.102.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807201447.35659.hverkuil@xs4all.nl>
-Subject: An example for RFC: Add support to query and change connections
-	inside a media device
+Cc: video4linux-list@redhat.com
+Subject: Re: TV card Lifeview DVB-T Hybrid (saa7134) not working. Wrong
+	tuner.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,117 +29,151 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I've been playing around with a simple controller device and udev to see 
-how to make this work.
 
-While it is not difficult to create a controller device and allow 
-application to query which v4l2, alsa, etc. devices there are, it is 
-another matter on how to setup a /dev/v4l hierarchy so that the user 
-knows which /dev device to open when the application returns 
-dvb0.demux0 or video0 or fb1 or something like that.
+Am Donnerstag, den 17.07.2008, 18:40 +0300 schrieb Carlos Bessa:
+> This was tested on openSuSE 11 (64bit).
+> The card in question is a DVB-T card from Targa, that came with my laptop (also
+> from Targa). It is the same as the LifeView DVB-T Hybrid Cardbus. The problem
+> is that is mis-identifies it self as being a LifeView DVB-T Dual Cardbus so i
+> have to configure it manually.
+> 
+> When using openSuSE 10.3 i could do that through cli, by specifing the
+> correct card and tuner:
+> rmmod saa7134_dvb
+> rmmod saa7134
+> modprobe saa7134 card=94 tuner=54
+> 
+> Start up kaffeine/dvb-t and it would work perfectly. In openSuSE 11
+> that does not
+> work anymore. The autodetection is still wrong unfortunately:
+> 
+> #dmesg
+> pccard: CardBus card inserted into slot 1
+> saa7130/34: v4l2 driver version 0.2.14 loaded
+> PCI: Enabling device 0000:04:00.0 (0000 -> 0002)
+> ACPI: PCI Interrupt 0000:04:00.0[A] -> GSI 20 (level, low) -> IRQ 20
+> saa7133[0]: found at 0000:04:00.0, rev: 240, irq: 20, latency: 0, mmio:
+> 0x98000000
+> PCI: Setting latency timer of device 0000:04:00.0 to 64
+> saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo
+> Cardbus [card=60,autodetected]
+> saa7133[0]: board init: gpio is 210000
+> saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> saa7133[0]: i2c eeprom 10: 00 00 62 08 ff 20 ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 e4 ff ff ff ff
+> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 40: ff 24 00 c2 96 10 05 01 01 16 32 15 ff ff ff ff
+> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tuner' 1-004b: chip found @ 0x96 (saa7133[0])
+> tda8290 1-004b: setting tuner address to 61
+> tda8290 1-004b: type set to tda8290+75
+> saa7133[0]: registered device video1 [v4l2]
+> saa7133[0]: registered device vbi0
+> saa7133[0]: registered device radio0
+> DVB: registering new adapter (saa7133[0])
+> DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+> tda1004x: setting up plls for 48MHz sampling clock
+> tda1004x: found firmware revision ff -- invalid
+> tda1004x: trying to boot from eeprom
+> tda1004x: found firmware revision ff -- invalid
+> tda1004x: waiting for firmware upload...
+> tda1004x: no firmware upload (timeout or file not found?)
+> tda1004x: firmware upload failed
+> tda827x_probe_version: could not read from tuner at addr: 0xc0
+> 
+> 
+> But loading the saa7134 module with the correct card and tuner parameters does
+> not work either:
+> 
+> #dmesg
+> saa7130/34: v4l2 driver version 0.2.14 loaded
+> saa7133[0]: found at 0000:04:00.0, rev: 240, irq: 20, latency: 64, mmio:
+> 0x98000000
+> saa7133[0]: subsystem: 5168:0502, board: LifeView FlyDVB-T Hybrid Cardbus/MSI
+> TV @nywhere A/D NB [card=94,insmod option]
+> saa7133[0]: board init: gpio is 10000
+> tuner' 1-004b: chip found @ 0x96 (saa7133[0])
+> tda8290 1-004b: setting tuner address to 61
+> tda8290 1-004b: type set to tda8290+75
+> saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> saa7133[0]: i2c eeprom 10: 00 00 62 08 ff 20 ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 e4 ff ff ff ff
+> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 40: ff 24 00 c2 96 10 05 01 01 16 32 15 ff ff ff ff
+> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: registered device video1 [v4l2]
+> saa7133[0]: registered device vbi0
+> saa7133[0]: registered device radio0
+> DVB: registering new adapter (saa7133[0])
+> DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+> tda1004x: setting up plls for 48MHz sampling clock
+> tda1004x: found firmware revision ff -- invalid
+> tda1004x: trying to boot from eeprom
+> tda1004x: found firmware revision ff -- invalid
+> tda1004x: waiting for firmware upload...
+> tda1004x: no firmware upload (timeout or file not found?)
+> tda1004x: firmware upload failed
+> tda827x_probe_version: could not read from tuner at addr: 0xc2
+> 
+> 
+> The problem seems to be that even though i specify the correct tuner parameter
+> (54) another is used (61). The card is correct though (94).
+> 
+> I tested this with the 32bit version of openSuSE 11 (kernel 2.6.25)
+> and 32bit version of
+> Kubuntu 8.04 (kernel 2.6.24), using live cds, and it also does not work.
+> Re-tested on openSuSE 10.3 32/64bit (kernel 2.6.22.5) and Kubuntu 7.10
+> (kernel 2.6.22-14), also using live cds, and
+> it works perfectly. So i guess something changed in the saa7134 driver(?) in
+> the newer kernel versions(?) ?
+> 
+> Thanks for any help!
+> I'll be happy to provide any other info, or test any solution.
+> 
+> regards,
+> Carlos Bessa
+> 
 
-After some experimentation I found that the following works quite well, 
-and it's easy to implement too.
+Hi Carlos,
 
-After a driver creates a media controller device, all other devices it 
-creates will have the media controller as their parent device. As far 
-as I can tell this works in all cases, also for alsa drivers like 
-cx88-alsa.
+thanks for the report.
 
-With a few simple additional rules in udev I can contruct the following:
+It is a known issue, since the initial v4l submit for 2.6.26,
+that was for the price of fixing the eeprom detection for some tuners,
+pointed out by me, but users can't set the tuner anymore by will.
 
-$ l /dev/v4l/ -lR
-/dev/v4l/:
-total 0
-drwxr-xr-x 2 root root    140 Jul 20 14:03 controller0/
-drwxr-xr-x 2 root root    160 Jul 20 14:03 controller1/
-crw-rw---- 1 root root 81,  0 Jul 20 14:03 video0
-crw-rw---- 1 root root 81, 24 Jul 20 14:03 video24
-crw-rw---- 1 root root 81, 32 Jul 20 14:03 video32
+Nobody to blame so far, since tuner eeprom detection was already broken
+previously, but for sure this needs to be addressed.
 
-/dev/v4l/controller0:
-total 0
-crw-rw---- 1 root root 81, 200 Jul 20 14:03 controller
-lrwxrwxrwx 1 root root      11 Jul 20 14:03 i2c-4 -> ../../i2c-4
-lrwxrwxrwx 1 root root       9 Jul 20 14:03 video0 -> ../video0
-lrwxrwxrwx 1 root root      10 Jul 20 14:03 video24 -> ../video24
-lrwxrwxrwx 1 root root      10 Jul 20 14:03 video32 -> ../video32
+Currently there is no other way for lots of affected devices, I was
+joking on it recently on LKML that we still don't have a single report,
+than to set the correct tuner in the source code and recompile ...
 
-/dev/v4l/controller1:
-total 0
-crw-rw---- 1 root root 81, 201 Jul 20 14:03 controller
-lrwxrwxrwx 1 root root      17 Jul 20 14:03 
-dvb0.demux0 -> ../../dvb0.demux0
-lrwxrwxrwx 1 root root      15 Jul 20 14:03 dvb0.dvr0 -> ../../dvb0.dvr0
-lrwxrwxrwx 1 root root      20 Jul 20 14:03 
-dvb0.frontend0 -> ../../dvb0.frontend0
-lrwxrwxrwx 1 root root      15 Jul 20 14:03 dvb0.net0 -> ../../dvb0.net0
-lrwxrwxrwx 1 root root      11 Jul 20 14:03 i2c-5 -> ../../i2c-5
+Cheers,
+Hermann
 
-This is for the cx18 driver that I hacked. It has two controllers 
-(artificial separation, normally cx18 will have one controller only. 
-But ivtv will have two, one for the encoder, one for the decoder).
 
-For each controller a subdirectory is made and inside that there is the 
-controller device itself and links to all the child devices. I've even 
-added the i2c bus here, although I think that might be overkill.
 
-Since all these devices are children of the mediacontroller it is likely 
-that for most existing drivers the mediacontroller part can just 
-iterate over its children and return the relevant data. It would be 
-very nice if this can be done, since that will make it very easy to add 
-media controller support to existing drivers.
-
-And applications can just open a controller device, read the names of 
-available devices (e.g. video1) and open the device 
-(/dev/v4l/controller0/video1). This method should adapt automatically 
-if the udev rules change and, say, the alsa devices are suddenly in a 
-non-standard directory. As long as the application has the path to the 
-controller it can find the other devices by substituting 'controller' 
-with 'video0' or 'dvb0.dvr0', etc.
-
-Also note that no changes are made to the existing device nodes. It's 
-just the addition of controller directories and their contents. So it 
-remains fully backwards compatible (as it should be).
-
-One reason why I am working on reducing videodev.c to a module that just 
-does v4l device registration is that having a 'lean and mean' videodev 
-module makes it possible for other media-related subsystems (alsa and 
-dvb spring to mind) to also create a controller device. They would not 
-want the overhead of the video4linux ioctl stuff, but just a controller 
-device for applications to use.
-
-It will probably only matter for drivers that use several subsystems. A 
-purely dvb or alsa driver should not need it.
-
-For those who are interested: the udev rules I've added are:
-
-SUBSYSTEM=="video4linux", PROGRAM="v4l_controller", SYMLINK+="%c"
-SUBSYSTEM=="dvb", PROGRAM="v4l_controller", SYMLINK+="%c"
-SUBSYSTEM=="i2c*", PROGRAM="v4l_controller", SYMLINK+="%c"
-
-and here is the magic v4l_controller script:
-
-#!/bin/sh
-shopt -s nullglob
-dev=${DEVPATH##*/}
-controller=`echo -n /sys/$PHYSDEVPATH/video4linux:controller*`
-if [ -n "$controller" ]; then
-        ctrl=`echo /sys/$PHYSDEVPATH/video4linux:controller*/*:$dev`
-        ctrl=${ctrl#*video4linux:}
-        ctrl=${ctrl%%/*}
-        echo v4l/$ctrl/$dev
-fi
-
-Basically it checks if the device has one or more controllers, then it 
-finds out which controller is the parent and returns the corresponding 
-link.
-
-As usual, comments are welcome.
-
-Regards,
-
-	Hans
 
 --
 video4linux-list mailing list
