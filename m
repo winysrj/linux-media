@@ -1,25 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+b62fe65aec208862d7d2+1778+infradead.org+dwmw2@bombadil.srs.infradead.org>)
-	id 1KFVa3-0006jT-Hp
-	for linux-dvb@linuxtv.org; Sun, 06 Jul 2008 16:51:11 +0200
-From: David Woodhouse <dwmw2@infradead.org>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0807060729o639f98b1s383d146856feb6da@mail.gmail.com>
-References: <1214139259.2994.8.camel@jaswinder.satnam>
-	<200807060315.51736@orion.escape-edv.de> <48708BBF.9050400@cadsoft.de>
-	<1215343022.10393.945.camel@pmac.infradead.org>
-	<412bdbff0807060729o639f98b1s383d146856feb6da@mail.gmail.com>
-Date: Sun, 06 Jul 2008 15:48:02 +0100
-Message-Id: <1215355682.3189.101.camel@shinybook.infradead.org>
-Mime-Version: 1.0
-Cc: kernelnewbies <kernelnewbies@nl.linux.org>, linux-dvb@linuxtv.org,
-	kernel-janitors <kernel-janitors@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Jaswinder Singh <jaswinder@infradead.org>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [linux-dvb] [PATCH] Remove fdump tool for av7110 firmware
+Received: from web55601.mail.re4.yahoo.com ([206.190.58.225])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o_lucian@yahoo.com>) id 1KJRni-0002ka-4t
+	for linux-dvb@linuxtv.org; Thu, 17 Jul 2008 13:37:50 +0200
+Date: Thu, 17 Jul 2008 04:36:44 -0700 (PDT)
+From: lucian orasanu <o_lucian@yahoo.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Message-ID: <504359.55232.qm@web55601.mail.re4.yahoo.com>
+Subject: [linux-dvb] TT S2-3200 driver
+Reply-To: o_lucian@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,30 +23,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 2008-07-06 at 10:29 -0400, Devin Heitmueller wrote:
-> Correct me if I'm wrong, but doesn't this also affect those
-> distributions that consider kernels with binary firmware blobs to not
-> be free software?  Those distributions take the stance that the
-> firmware must be loadable by userland, in which case the proposed
-> patch removes this capability.
+Hy 
 
-No, it doesn't remove that capability.
+for Remy Bohmer , here ar some links to help you
+http://www.vdr-wiki.de/wiki/index.php/OpenSUSE_VDR_DVB-S2_-_Teil2:_DVB_Treiber
 
-We're just observing that the trick which fdump.c uses to turn firmware
-into a hex array in C source is obsoleted by the generic ability to
-include firmware blobs into the kernel using CONFIG_EXTRA_FIRMWARE. If
-we just use the generic method, then the conditional code in the driver
-can go away, as can the fdump tool.
+http://dev.kewl.org/hvr4000/utils/szap2.tgz
 
-Yes, that does mean that it's either in the _kernel_ or in userspace,
-rather than being in the .ko file -- but if you want modularity and are
-already depending on having a functional userspace, it doesn't seem to
-make a lot of sense to have this reimplementation of generic
-functionality, just so that you can keep the two parts in _one_ file.
+Cheers Lucian.
 
--- 
-dwmw2
 
+      
 
 _______________________________________________
 linux-dvb mailing list
