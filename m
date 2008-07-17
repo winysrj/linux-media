@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from ti-out-0910.google.com ([209.85.142.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KInXJ-0003Tn-EO
-	for linux-dvb@linuxtv.org; Tue, 15 Jul 2008 18:38:00 +0200
-Message-ID: <487CD260.80102@iki.fi>
-Date: Tue, 15 Jul 2008 19:37:52 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <l.pinguin@gmail.com>) id 1KJZpa-0000H1-Dc
+	for linux-dvb@linuxtv.org; Thu, 17 Jul 2008 22:12:03 +0200
+Received: by ti-out-0910.google.com with SMTP id w7so71777tib.13
+	for <linux-dvb@linuxtv.org>; Thu, 17 Jul 2008 13:11:57 -0700 (PDT)
+Message-ID: <3efb10970807171311t46d075cdudef4b34cc069c265@mail.gmail.com>
+Date: Thu, 17 Jul 2008 22:11:55 +0200
+From: "Remy Bohmer" <linux@bohmer.net>
+To: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
+In-Reply-To: <487F3365.4070306@chaosmedia.org>
 MIME-Version: 1.0
-To: Robert Goldner <robert@au-79.de>
-References: <20080715064346.01ACC1BC39@agathe> <487C85ED.8060303@iki.fi>
-In-Reply-To: <487C85ED.8060303@iki.fi>
+Content-Disposition: inline
+References: <200807170023.57637.ajurik@quick.cz>
+	<3efb10970807170320w39377ae9p9db0081dda9c3f5f@mail.gmail.com>
+	<487F3365.4070306@chaosmedia.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] unknown dvbt device 1ae7:0381 Xtensions 380U
+Subject: Re: [linux-dvb] TT S2-3200 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,29 +30,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Antti Palosaari wrote:
->> http://www.x-tensions.net/support.php?lang=de&view=solo&prod_num=XD-380
->> But be carefull with the driver on this page. It differs a lot against the 
->> driver included at the CD delivered with the stick.
->>
->> I had a look into the windows driver (on the CD) and found nothing what
->> could give an information which linux-driver is the right one (in my eyes). 
->> If it is useful, I can put the windows driver to the www.
->>
->> Is there any realistic hope, to get this device work with linux? I will
->> test any patches and try any hints etc.
+Hello Marc and Ales,
 
-Device USB-IDs are now added to the driver. Please test:
-http://linuxtv.org/hg/~anttip/af9015
+Good news: I have the tools up and running and can tune into several
+channels :-))
+I even have a patched 'scan' tool that works to be able to generate a
+channels.conf file from scratch.
+Scanning channels works fine, it generates a proper channels.conf file.
 
-> 
-> Looks like rebranded KWorld PlusTV 380U. Device is AF9015 chipset based. 
-> I can add support for this later today.
+So, while using szap2 to tune to a channel. I noticed some things:
+* On a standard FTA channel (DVB-S) on Astra 19.2E, I see some
+distortion during watching the channel. After some time (say 10-30
+seconds) the link get lost, and I do not receive any data anymore
+until the next tune-request with szap2. Sometimes the lock comes
+quick, sometimes szap2 keeps retrying until it times out.
+* On DVB-S2/HD channels (e.g. Arte HD) I only get sound, but that is
+probably because I use the wrong tools (tools not supporting DVB-S2)
+to read data from /dev/dvb/adapter0/dvr0.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+> with szap2 you also can tune to FTA channels using the option "-p" and read
+> the stream from your frontend dvr (/dev/dvb/adapter0/dvr0) with mplayer for
+> example..
+
+Can you please tell me how to do this with mplayer? Because I did not
+manage that with mplayer directly.
+Here mplayer blocks on the stream, and no audio/video is displayed.
+
+
+Kind Regards,
+
+Remy
 
 _______________________________________________
 linux-dvb mailing list
