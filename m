@@ -1,34 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m62AjaoF029616
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 06:45:36 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m62Aj7LS030063
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 06:45:09 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1KDzpe-0003xM-IM
-	for video4linux-list@redhat.com; Wed, 02 Jul 2008 10:45:02 +0000
-Received: from 82-135-208-232.static.zebra.lt ([82.135.208.232])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Wed, 02 Jul 2008 10:45:02 +0000
-Received: from paulius.zaleckas by 82-135-208-232.static.zebra.lt with local
-	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Wed, 02 Jul 2008 10:45:02 +0000
-To: video4linux-list@redhat.com
-From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Date: Wed, 02 Jul 2008 13:42:14 +0300
-Message-ID: <486B5B86.5070807@teltonika.lt>
-References: <20080701124638.30446.81449.sendpatchset@rx1.opensource.se>	
-	<20080701124735.30446.89320.sendpatchset@rx1.opensource.se>	
-	<486B3197.5000100@teltonika.lt>
-	<aec7e5c30807020232j1181ba9s43bc0e6920b18733@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <aec7e5c30807020232j1181ba9s43bc0e6920b18733@mail.gmail.com>
-Cc: video4linux-list@redhat.com, linux-sh@vger.kernel.org
-Subject: Re: [PATCH 06/07] videobuf: Add physically contiguous queue code
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HGf9o5013674
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 12:41:09 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HGetOu023583
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 12:40:56 -0400
+Date: Thu, 17 Jul 2008 12:40:47 -0400 (EDT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200807171816.22303.hverkuil@xs4all.nl>
+Message-ID: <alpine.LFD.1.10.0807171238080.20641@bombadil.infradead.org>
+References: <3dbf42455956d17b8aa6.1214002733@localhost>
+	<Pine.LNX.4.58.0806240032081.535@shell2.speakeasy.net>
+	<20080624225951.GF8831@plankton.ifup.org>
+	<200807171816.22303.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
+	Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [v4l-dvb-maintainer] [PATCH] [PATCH] v4l: Introduce "index"
+ attribute for?persistent video4linux device nodes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,37 +31,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Magnus Damm wrote:
-> On Wed, Jul 2, 2008 at 4:43 PM, Paulius Zaleckas
-> <paulius.zaleckas@teltonika.lt> wrote:
->> Heh. I have written almost identical videobuf driver also :)
->> You should run checkpatch.pl on this patch to correct some style
->> problems. Since your version is a little bit more generic than mine:
+On Thu, 17 Jul 2008, Hans Verkuil wrote:
+
+> On Wednesday 25 June 2008 00:59:51 Brandon Philips wrote:
+>> On 00:34 Tue 24 Jun 2008, Trent Piepho wrote:
+>>> On Mon, 23 Jun 2008, Brandon Philips wrote:
+>>>> +	for (i = 0; i < 32; i++) {
+>>>> +		if (used & (1 << i))
+>>>> +			continue;
+>>>> +		return i;
+>>>> +	}
+>>>
+>>> 	i = ffz(used);
+>>> 	return i >= 32 ? -ENFILE : i;
 >>
->> Acked-by: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-> 
-> Thanks for your ack. Just curious, which checkpatch version are you
-> using? From the linux-next tree? I've checked my patches with the less
-> agressive checkpatch included in the linux-2.6 tree. =)
+>> Err. Right :D  Tested and pushed.
+>>
+>> Mauro-
+>>
+>> Updated http://ifup.org/hg/v4l-dvb to have Trent's improvement.
+>>
+>> Cheers,
+>>
+>> 	Brandon
+>
+>
+> Hi Mauro,
+>
+> I think you missed this pull request from Brandon. Can you merge this?
 
-Strange why checkpatch.pl didn't catch this:
+Yes, I missed that one.
 
-+static void *__videobuf_alloc(size_t size)
-+{
-+	struct videobuf_dma_contig_memory *mem;
-+	struct videobuf_buffer *vb;
+Yet, I didn't like the usage of "32" magic numbers on those parts:
+
+-       if (num >= VIDEO_NUM_DEVICES)
 +
-+	vb = kzalloc(size + sizeof(*mem), GFP_KERNEL);
-+	if (vb) {
-+		mem = vb->priv = ((char *)vb)+size;
++       if (num >= 32) {
++               printk(KERN_ERR "videodev: %s num is too large\n", __func__);
 
-Should be	mem = vb->priv = ((char *)vb) + size;
++       return i >= 32 ? -ENFILE : i;
 
-+		mem->magic = MAGIC_DC_MEM;
-+	}
-+
-+	return vb;
-+}
+
+It seems better to use VIDEO_NUM_DEVICES as the maximum limit on both 
+usages of "32".
+
+Brandon,
+
+Could you fix and re-send me a pull request?
+
+-- 
+Cheers,
+Mauro Carvalho Chehab
+http://linuxtv.org
+mchehab@infradead.org
 
 --
 video4linux-list mailing list
