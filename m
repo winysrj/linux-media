@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [212.57.247.218] (helo=mail.glcweb.co.uk)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <michael.curtis@glcweb.co.uk>) id 1KKgNj-0005AE-9y
-	for linux-dvb@linuxtv.org; Sun, 20 Jul 2008 23:23:55 +0200
-From: "Michael J. Curtis" <michael.curtis@glcweb.co.uk>
-To: Goga777 <goga777@bk.ru>, "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Date: Sun, 20 Jul 2008 22:23:12 +0100
-Message-ID: <3C276393607085468A28782D978BA5EE6ED36D11E8@w2k8svr1.glcdomain8.local>
-References: <3C276393607085468A28782D978BA5EE6ED36D11E6@w2k8svr1.glcdomain8.local>
-	<20080719182757.6dae9184@bk.ru>
-In-Reply-To: <20080719182757.6dae9184@bk.ru>
-Content-Language: en-US
+Received: from n76.bullet.mail.sp1.yahoo.com ([98.136.44.48])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KJWaf-0000rq-Qa
+	for linux-dvb@linuxtv.org; Thu, 17 Jul 2008 18:44:27 +0200
+Date: Thu, 17 Jul 2008 09:43:51 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] Latest TT3200 Status
+Message-ID: <442414.53319.qm@web46110.mail.sp1.yahoo.com>
+Subject: [linux-dvb] Anatomy of the TerraTec Cinergy HTC USB XS HD stick
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,49 +17,94 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-TWFueSB0aGFuayBmb3IgdGhlIGFzc2lzdGFuY2UgYWx0aG91Z2ggSSBoYXZlIGNvbWUgdXAgd2l0
-aCB0aGUgYmVsb3cgaXNzdWUgd2hlbiBjb21waWxpbmcgdGhlIE11bHRpcHJvdG8gZHJpdmVycw0K
-DQpLZXJuZWwgaXM6IDIuNi4yNS4xMC00Ny5mYzgNCg0KTXVsdGlwcm90byB2ZXJzaW9uIGlzOg0K
-DQpbcm9vdEBteXRoaG9zdCBtdWx0aXByb3RvXSMgaGcgdGlwDQpjaGFuZ2VzZXQ6ICAgNzIxODoy
-YTkxMWI4Zjk5MTANCnRhZzogICAgICAgICB0aXANCnVzZXI6ICAgICAgICBNYW51IEFicmFoYW0g
-PG1hbnVAbGludXh0di5vcmc+DQpkYXRlOiAgICAgICAgV2VkIEp1bCAwOSAyMzowNzoyOSAyMDA4
-ICswNDAwDQpzdW1tYXJ5OiAgICAgRml4IEFUU0MgY29udmVyc2lvbiBpbiBvbGRkcnZfdG9fbmV3
-YXBpDQoNCkVycm9ycyBhcmU6DQoNCkNDIFtNXSAgL29wdC9kdmIvbXVsdGlwcm90by92NGwvY3gy
-Mzg4NS1pMmMubw0KICBDQyBbTV0gIC9vcHQvZHZiL211bHRpcHJvdG8vdjRsL2N4MjM4ODUtZHZi
-Lm8NCiAgQ0MgW01dICAvb3B0L2R2Yi9tdWx0aXByb3RvL3Y0bC9jeDI1ODQwLWNvcmUubw0KL29w
-dC9kdmIvbXVsdGlwcm90by92NGwvY3gyNTg0MC1jb3JlLmM6NzE6IGVycm9yOiBjb25mbGljdGlu
-ZyB0eXBlIHF1YWxpZmllcnMgZm9yICdhZGRyX2RhdGEnDQovb3B0L2R2Yi9tdWx0aXByb3RvL3Y0
-bC8uLi9saW51eC9pbmNsdWRlL21lZGlhL3Y0bDItaTJjLWRydi1sZWdhY3kuaDo0MTogZXJyb3I6
-IHByZXZpb3VzIGRlY2xhcmF0aW9uIG9mICdhZGRyX2RhdGEnIHdhcyBoZXJlDQptYWtlWzNdOiAq
-KiogWy9vcHQvZHZiL211bHRpcHJvdG8vdjRsL2N4MjU4NDAtY29yZS5vXSBFcnJvciAxDQptYWtl
-WzJdOiAqKiogW19tb2R1bGVfL29wdC9kdmIvbXVsdGlwcm90by92NGxdIEVycm9yIDINCg0KDQpT
-ZWVtcyBpdCBoYXMgYSBwcm9ibGVtIHdpdGggY29tcGlsaW5nIGN4MjU4NDAueA0KDQpJcyB0aGVy
-ZSBhIHNvbHV0aW9uIGZvciB0aGlzPw0KDQpSZWdhcmRzDQoNCk1pa2UgQ3VydGlzDQoNCg0KDQoN
-Cg0KDQoNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IEdvZ2E3NzcgW21haWx0
-bzpnb2dhNzc3QGJrLnJ1XQ0KU2VudDogMTkgSnVseSAyMDA4IDE1OjI4DQpUbzogTWljaGFlbCBK
-LiBDdXJ0aXMNCkNjOiBsaW51eC1kdmJAbGludXh0di5vcmcNClN1YmplY3Q6IFJlOiBbbGludXgt
-ZHZiXSBMYXRlc3QgVFQzMjAwIFN0YXR1cw0KDQp5b3UgY2FuIHRyeSB0aGUgbGF0ZXN0IG11bHRp
-cHJvdG8NCmh0dHA6Ly9qdXNzdC5kZS9oZy9tdWx0aXByb3RvL2FyY2hpdmUvdGlwLnRhci5iejIN
-Cg0KKw0KDQpwYXRjaCBmcm9tICBBbGVzIEp1cmlrDQpodHRwOi8vd3d3LmxpbnV4dHYub3JnL3Bp
-cGVybWFpbC9saW51eC1kdmIvMjAwOC1KdWx5LzAyNzI2NC5odG1sDQoNCnN6YXAyIHdpdGggZHZi
-LXMyIHN1cHBvcnQgeW91IGNhbiBpbnN0YWxsIGZyb20gdGVzdCBkaXJlY3Rvcnkgb2YgZHZiLWFw
-cHMNCmh0dHA6Ly9saW51eHR2Lm9yZy9oZy9kdmItYXBwcy9maWxlLzkxMzQ3MzZjMGJlYS90ZXN0
-Lw0KDQpmb3Igc2NhbiB5b3UgaGF2ZSB0byBpbnN0YWxsIHRoZSBkdmItczIgcGF0Y2ggZnJvbSBK
-ZW5zIEtyZWhiaWVsLUdyw6R0aGVyDQpodHRwOi8vd3d3LmxpbnV4dHYub3JnL3BpcGVybWFpbC9s
-aW51eC1kdmIvMjAwOC1KdW5lLzAyNjQyMy5odG1sDQoNCmZvciByZWd1bGFyIHN6YXAgdGhpcyBw
-YXRjaCBzaG91bGQgd29yayB0b28NCg0KR29nYQ0KDQo+IEkgaGF2ZSBiZWVuIGF3YXkgZnJvbSB0
-aGUgbGlzdCBmb3IgYSB3aGlsZSBhbmQgaGF2ZSBub3cgbm90aWNlZCBzb21lIGluY3JlYXNlZCBh
-Y3Rpdml0eSByZWdhcmRpbmcgdGhlIGFib3ZlIGNhcmQNCj4NCj4gVGhlcmUgc2VlbXMgdG8gYmUg
-YSBsb3Qgb2YgcGF0Y2hlcyB0byBhcHBseSEhDQo+DQo+IENhbiBhbnkgb2YgeW91IGdvb2QgZm9s
-a3MgcHVibGlzaCBmb3IgdGhlIGdvb2Qgb2YgYWxsIFRUMzIwMCB1c2VycywgcXVpY2sgaG93dG8g
-dG8gZ2V0IHRoZSBjYXJkIHRvIHdvcmsNCj4NCj4gVGhhdCBpcyB0aGUgTXVsdGlwcm90byB2ZXJz
-aW9uLCBrZXJuZWwsIHdoYXQgcGF0Y2hlcyBhcmUgcmVxdWlyZWQgYW5kIHdoZXJlIGZyb20/DQoN
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2
-YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5v
-cmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Hey kids, even *you* can take apart daddy's new toy, so get your
+jewellers screwdrivers ready!
+
+First off is the grey plastic that covers three of the four sides
+of the stick, by gently prying it up from the ends -- lift it
+slightly straight out from each side and it separates cleanly
+from the white box without that satisfying snap.
+
+Revealed are four sets of the smallest crosshead screws that
+you will want to see.  Remove *one* from each pair; they simply
+attach to a metal plate which holds the case together, lest you,
+like me, not only lose most of the screws, but the plates as well.
+
+Now the white box separates without effort into its two halves.
+The meat of the box is still attached with two more screws to
+one of those halves, and it pays to remove those screws, safely
+placing them in a spot where you'll accidentally set them flying
+from your workspace into your heavy shag carpet.
+
+At this point, you see that the device consists of two circuit
+boards, connected with spacers, that look as if they should be a
+socket and plug pair, but don't seem to want to act that way.
+You know the sound of a snapping circuit board does wonders for
+science, so I'm not sure why I couldn't convince myself of that.
+
+There is one `empia' chip to be seen within the nether regions
+between the boards.  The outer side labelled `TOP' has little
+of interest -- the IR sensor and LED and other discrete
+components.  It also has the RF connector and tuner attached
+sandwiched between the boards, but there is a metal housing
+that appears to be well attached to the board, hiding its innards
+from discovery.
+
+The part number of the Empia chip is virtually impossible to make
+out with just eyeballs and a weak light, but I'd almost want to
+claim it's EM2884.  If there's another chip on that side, I'm
+not able to see it.
+
+On the side of the package labelled `BOT' are seen two Micronas
+ships, a DRX 3926KA1, and an AVF 4910BA1.  There's also an 8-pin
+ACE24C32, which should be the EEPROM.  The DRX series appears to
+be Analog or DVB or ATSC demod/decoding, while the AVF chip
+should be an analog/composite/S-video decoder.
+
+Now that I look more closely, it appears that the metal case
+of the tuner actually consists of a top that should pop off and
+is not itself soldered to the circuit board, but that first
+requires separating the sandwich, and I'm too much a wuss to
+have passed that point (this stick isn't cheap in comparison
+with many others).  The connectors holding it together mock me
+and stubbornly refuse to be separated.
+
+If I can trust my hacking on code which I haven't bothered to
+understand, claiming that the tuner is an XC5000 fails to
+attach a tuner, while claiming it's an XC3028 fails to fail to
+attach, but doesn't say anything more.
+
+Admittedly, I want it to be an XC5000 as if I've read properly,
+that supports 256QAM for DVB-C, which the XC3028 does not, and
+if that's true, then this stick won't be the DVB-C USB solution
+I hoped for...  But there may be something else there entirely.
+
+
+Armed with this knowledge, I could think about posting initial
+hacks to identify this device at plugin.
+
+
+Say kids, wasn't that fun?  Now be sure to hide all the little
+pieces where daddy won't find them, including all those SMD
+components you knocked off when your screwdriver slipped, and
+be sure to keep it a secret, okay?  And next week we're gonna
+do something even *more* exciting, so get your powertools ready!
+
+
+Yours &c. &c.,
+Uncle Drunkard
+
+
+      
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
