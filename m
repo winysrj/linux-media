@@ -1,20 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.186])
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KL38Y-0005Ve-Nc
-	for linux-dvb@linuxtv.org; Mon, 21 Jul 2008 23:41:45 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so592545nfb.11
-	for <linux-dvb@linuxtv.org>; Mon, 21 Jul 2008 14:41:37 -0700 (PDT)
-Message-ID: <412bdbff0807211441q4cf3357am79f806e0f4b0d361@mail.gmail.com>
-Date: Mon, 21 Jul 2008 17:41:36 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Michael Durket" <durket@rlucier-home2.stanford.edu>
-In-Reply-To: <3AF47543-7149-4CC1-928B-F6704715FB6A@rlucier-home2.stanford.edu>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <3AF47543-7149-4CC1-928B-F6704715FB6A@rlucier-home2.stanford.edu>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to obtain an HVR-4000 in the U.S.?
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KJTPo-0000Pj-FM
+	for linux-dvb@linuxtv.org; Thu, 17 Jul 2008 15:21:00 +0200
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1KJTPk-0007tX-Uz
+	for linux-dvb@linuxtv.org; Thu, 17 Jul 2008 13:20:56 +0000
+Received: from h30n2fls32o1121.telia.com ([217.211.84.30])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Thu, 17 Jul 2008 13:20:56 +0000
+Received: from dvenion by h30n2fls32o1121.telia.com with local (Gmexim 0.1
+	(Debian)) id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Thu, 17 Jul 2008 13:20:56 +0000
+To: linux-dvb@linuxtv.org
+From: Daniel =?utf-8?b?SGVsbHN0csO2bQ==?= <dvenion@hotmail.com>
+Date: Thu, 17 Jul 2008 13:20:48 +0000 (UTC)
+Message-ID: <loom.20080717T130310-111@post.gmane.org>
+References: <200807170023.57637.ajurik@quick.cz>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] TT S2-3200 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,41 +33,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-It's possible that Hauppauge never went through the FCC approval
-process for the device, so it wouldn't be legal to sell it in the U.S.
+Ales Jurik <ajurik <at> quick.cz> writes:
 
-I'm not saying it would cause interference or not work from a
-technical standpoint, but rather there could be regulatory issues that
-prohibit it's sale.
+> 
+> Hi,
+> 
+> please try attached patch. With this patch I'm able to get lock on channels 
+> before it was impossible. But not at all problematic channels and the 
+> reception is not without errors. Also it seems to me that channel switching is 
+> quicklier.
+> 
+> 
+> BR,
+> 
+> Ales
 
-Devin
-
-On Mon, Jul 21, 2008 at 5:28 PM, Michael Durket
-<durket@rlucier-home2.stanford.edu> wrote:
-> Does anyone on this list know of a supplier for the HVR-4000 that will
-> send them
-> to U.S. addresses (or sells them in the U.S.)? Every vendor I've
-> contacted overseas
-> won't ship them to the U.S. I've contacted Hauppauge's corporate
-> headquarters
-> and they said there's no reason U.S. customers can't own them - they
-> just don't
-> sell them here.
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+I have tested your patch now, and now I get lock right away, all the time on the
+DVB-S2, 8PSK, 3/4, 25000 channels that I can get on Thor 0.8W Still need to test
+Eurosport that has the same settings but higher SR.
+But there is receptionproblems and I get artifacts in the picture, like you've
+seem to have experienced too.
 
 
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+
+
 
 _______________________________________________
 linux-dvb mailing list
