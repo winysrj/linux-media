@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6VJvYIx021689
-	for <video4linux-list@redhat.com>; Thu, 31 Jul 2008 15:57:34 -0400
-Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6VJvMIQ026441
-	for <video4linux-list@redhat.com>; Thu, 31 Jul 2008 15:57:22 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0807270155020.29126@axis700.grange>
-	<878wvnkd8n.fsf@free.fr>
-	<Pine.LNX.4.64.0807271337270.1604@axis700.grange>
-	<87tze997uu.fsf@free.fr>
-	<Pine.LNX.4.64.0807291902200.17188@axis700.grange>
-	<87iqun2ge3.fsf@free.fr>
-	<Pine.LNX.4.64.0807310008190.26534@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Thu, 31 Jul 2008 21:57:15 +0200
-In-Reply-To: <Pine.LNX.4.64.0807310008190.26534@axis700.grange> (Guennadi
-	Liakhovetski's message of "Thu\,
-	31 Jul 2008 00\:19\:26 +0200 \(CEST\)")
-Message-ID: <87tze53jz8.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HFeKvt030594
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 11:40:20 -0400
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HFeAlC009338
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 11:40:10 -0400
+Received: by rn-out-0910.google.com with SMTP id k32so2329002rnd.7
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 08:40:05 -0700 (PDT)
+Message-ID: <f56b605d0807170840x3d6a0116hc817caff4760c5ec@mail.gmail.com>
+Date: Thu, 17 Jul 2008 18:40:04 +0300
+From: "Carlos Bessa" <carlos.bessa@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Subject: TV card Lifeview DVB-T Hybrid (saa7134) not working. Wrong tuner.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,38 +27,127 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+This was tested on openSuSE 11 (64bit).
+The card in question is a DVB-T card from Targa, that came with my laptop (also
+from Targa). It is the same as the LifeView DVB-T Hybrid Cardbus. The problem
+is that is mis-identifies it self as being a LifeView DVB-T Dual Cardbus so i
+have to configure it manually.
 
-> Ok, you're suggesting to add suspend() and resume() to 
-> soc_camera_bus_type, right? But are we sure that its resume will be called 
-> after both camera (so far i2c) and host (so far platform, can also be PCI 
-> or USB...) busses are resumed? If not, we might have to do something 
-> similar to scan_add_host() / scan_add_device() - accept signals from the 
-> host and the camera and when both are ready actually resume them...
+When using openSuSE 10.3 i could do that through cli, by specifing the
+correct card and tuner:
+rmmod saa7134_dvb
+rmmod saa7134
+modprobe saa7134 card=94 tuner=54
 
-As far as my comprehension goes for resume order :
- - mt9m111 is an i2c client, and so it will always be resumed after i2c bus
- driver
- - mt9m111 registers itself to the soc_camera bus, so soc_camera_bus will be
- resumed after mt9m111
- - pxa27-camera registers to soc_camera_host, so soc_camera_host will be resumed
- after pxa27-camera
- - I didn't check the link between soc_camera_host and soc_camera_bus, but if
- there is one, soc_camera bus is resumed last.
+Start up kaffeine/dvb-t and it would work perfectly. In openSuSE 11
+that does not
+work anymore. The autodetection is still wrong unfortunately:
 
-So, if I have it sorted out correctly, soc_camera_bus should hold the suspend()
-and resume() functions, which will call icd->ops->suspend() and
-icd->ops->resume().
+#dmesg
+pccard: CardBus card inserted into slot 1
+saa7130/34: v4l2 driver version 0.2.14 loaded
+PCI: Enabling device 0000:04:00.0 (0000 -> 0002)
+ACPI: PCI Interrupt 0000:04:00.0[A] -> GSI 20 (level, low) -> IRQ 20
+saa7133[0]: found at 0000:04:00.0, rev: 240, irq: 20, latency: 0, mmio:
+0x98000000
+PCI: Setting latency timer of device 0000:04:00.0 to 64
+saa7133[0]: subsystem: 5168:0502, board: LifeView/Typhoon/Genius FlyDVB-T Duo
+Cardbus [card=60,autodetected]
+saa7133[0]: board init: gpio is 210000
+saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[0]: i2c eeprom 10: 00 00 62 08 ff 20 ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 e4 ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff 24 00 c2 96 10 05 01 01 16 32 15 ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+tuner' 1-004b: chip found @ 0x96 (saa7133[0])
+tda8290 1-004b: setting tuner address to 61
+tda8290 1-004b: type set to tda8290+75
+saa7133[0]: registered device video1 [v4l2]
+saa7133[0]: registered device vbi0
+saa7133[0]: registered device radio0
+DVB: registering new adapter (saa7133[0])
+DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision ff -- invalid
+tda1004x: trying to boot from eeprom
+tda1004x: found firmware revision ff -- invalid
+tda1004x: waiting for firmware upload...
+tda1004x: no firmware upload (timeout or file not found?)
+tda1004x: firmware upload failed
+tda827x_probe_version: could not read from tuner at addr: 0xc0
 
-I'm still investigating these points (under test ATM). It does work, but I still
-haven't got the formal proof of the ordering ...
 
-Would you by any chance have a little ascii art of all
-camera/camera_host/camera_bus ... device graph ? A thing that could easily be
-pushed into Documentation/video4linux/... ?
+But loading the saa7134 module with the correct card and tuner parameters does
+not work either:
 
---
-Robert
+#dmesg
+saa7130/34: v4l2 driver version 0.2.14 loaded
+saa7133[0]: found at 0000:04:00.0, rev: 240, irq: 20, latency: 64, mmio:
+0x98000000
+saa7133[0]: subsystem: 5168:0502, board: LifeView FlyDVB-T Hybrid Cardbus/MSI
+TV @nywhere A/D NB [card=94,insmod option]
+saa7133[0]: board init: gpio is 10000
+tuner' 1-004b: chip found @ 0x96 (saa7133[0])
+tda8290 1-004b: setting tuner address to 61
+tda8290 1-004b: type set to tda8290+75
+saa7133[0]: i2c eeprom 00: 68 51 02 05 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[0]: i2c eeprom 10: 00 00 62 08 ff 20 ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 e4 ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff 24 00 c2 96 10 05 01 01 16 32 15 ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: registered device video1 [v4l2]
+saa7133[0]: registered device vbi0
+saa7133[0]: registered device radio0
+DVB: registering new adapter (saa7133[0])
+DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision ff -- invalid
+tda1004x: trying to boot from eeprom
+tda1004x: found firmware revision ff -- invalid
+tda1004x: waiting for firmware upload...
+tda1004x: no firmware upload (timeout or file not found?)
+tda1004x: firmware upload failed
+tda827x_probe_version: could not read from tuner at addr: 0xc2
+
+
+The problem seems to be that even though i specify the correct tuner parameter
+(54) another is used (61). The card is correct though (94).
+
+I tested this with the 32bit version of openSuSE 11 (kernel 2.6.25)
+and 32bit version of
+Kubuntu 8.04 (kernel 2.6.24), using live cds, and it also does not work.
+Re-tested on openSuSE 10.3 32/64bit (kernel 2.6.22.5) and Kubuntu 7.10
+(kernel 2.6.22-14), also using live cds, and
+it works perfectly. So i guess something changed in the saa7134 driver(?) in
+the newer kernel versions(?) ?
+
+Thanks for any help!
+I'll be happy to provide any other info, or test any solution.
+
+regards,
+Carlos Bessa
 
 --
 video4linux-list mailing list
