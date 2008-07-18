@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64Mc138003442
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 18:38:01 -0400
-Received: from mrqout2.tiscali.it (mrqout2a.tiscali.it [195.130.225.14])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64Mbg5O015787
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 18:37:42 -0400
-Received: from ps11 (10.39.75.81) by mail-9.mail.tiscali.sys (8.0.016)
-	id 4816F145001528D0 for video4linux-list@redhat.com;
-	Sat, 5 Jul 2008 00:37:35 +0200
-Message-ID: <16342448.1215211055980.JavaMail.root@ps11>
-Date: Sat, 5 Jul 2008 00:37:35 +0200 (CEST)
-From: "audetto@tiscali.it" <audetto@tiscali.it>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ILTQRb022228
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 17:29:26 -0400
+Received: from smtp-vbr9.xs4all.nl (smtp-vbr9.xs4all.nl [194.109.24.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ILTEKV018188
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 17:29:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Date: Fri, 18 Jul 2008 23:29:13 +0200
+References: <200807171237.38433.laurent.pinchart@skynet.be>
+	<200807171303.33026.hverkuil@xs4all.nl>
+	<200807182311.17606.laurent.pinchart@skynet.be>
+In-Reply-To: <200807182311.17606.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Subject: An issue with: pwc, v4l2, VIDIOC_DQBUF and mplayer
-Reply-To: "audetto@tiscali.it" <audetto@tiscali.it>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200807182329.13328.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] uvcvideo: Return sensible min and max values when
+	querying a boolean control.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,55 +32,81 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Sorry if the message arrives twice, but when sending from gmail I 
-always get
-"Message has a suspicious header"
-=====================================================
+On Friday 18 July 2008 23:11:17 Laurent Pinchart wrote:
+> Hi Hans,
+>
+> On Thursday 17 July 2008, Hans Verkuil wrote:
+> > On Thursday 17 July 2008 12:37:37 Laurent Pinchart wrote:
+> > > Although the V4L2 spec states that the minimum and maximum fields
+> > > may not be valid for control types other than
+> > > V4L2_CTRL_TYPE_INTEGER, it makes sense to set the bounds to 0 and
+> > > 1 for boolean controls instead of returning uninitialized values.
+> >
+> > Hi Laurent,
+> >
+> > Are you aware of the control support functions in v4l2-common.c? In
+> > my opinion it would be a good idea if you would try to use those.
+> > In particular adding the control definitions for the standard
+> > camera controls to v4l2-common.c so that every driver that uses
+> > those will get the same control strings and data.
+>
+> I suppose you're referring to the v4l2_ctrl_* functions. I wasn't
+> aware of them.
+>
+> Some of them, such as v4l2_ctrl_get_menu() and
+> v4l2_ctrl_query_fill(), are interesting to share control names across
+> drivers, although they could make the kernel larger than necessary
+> when only a single (or very few) V4L2 driver is compiled in.
+>
+> Most of the other functions don't make much sense for the uvcvideo
+> driver. For instance, the uvcvideo driver needs to associate private
+> data with each menu item, so a static list of names isn't the best
+> solution. Filling control information with standard minimum, maximum,
+> step and default values is also not an option, as that information
+> varies between UVC devices and is reported by the hardware directly.
 
-Hi,
+I suspected as much, but see if there is some way to have a central 
+place to keep the standard camera control descriptions. The reason for 
+creating the functions in v4l2-common.c in the first place was to 
+attempt to limit the wild variations in namings that were (are) in use.
 
-I have a Logitech QuickCam 4000 Pro USB and I am trying to use mplayer 
-to play the video.
-This is the command I use
+> > I also do not see any support for the V4L2_CID_CAMERA_CLASS
+> > control: it should return a description of the camera control
+> > class. It is used in e.g. v4l2-ctl --list-ctrls:
+> >
+> > User Controls
+> >
+> >                      brightness (int)  : min=0 max=255 step=1...
+> >
+> > where the string "User Controls" comes from the
+> > V4L2_CID_USER_CLASS.
+>
+> What's the point of having a control that actually controls nothing ?
 
-mplayer -tv width=640:height=480:driver=v4l2 -fps 15 tv://
+Try qv4l2: it's used as the caption for the control panels, or as the 
+caption in v4l2-ctl --list-ctrls. It's a user interface element. The 
+point it to let applications create control panel like GUIs. And for 
+that they need to know how to group them and what to call those groups.
 
-But when I quit mplayer hangs in the following line, while shutting 
-down the video
+> > I want to prevent having different driver present different control
+> > query results to the user, even though it's the same control.
+>
+> Names should be standard, but boundaries can vary between devices.
 
-        /* unqueue all remaining buffers */
-        memset(&buf,0,sizeof(buf));
-        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        buf.memory = V4L2_MEMORY_MMAP;
-        while (!ioctl(priv->video_fd, VIDIOC_DQBUF, &buf));
+True, that's why v4l2_ctrl_query_fill was made: boundaries are passed to 
+the function, but the description and type info is filled in for you.
 
-Which is more or less at line 1111 of stream/tvi_v4l2.c.
+> > Testing with v4l2-ctl is a good way to verify that it is all
+> > working as it should. Also qv4l2 is a useful tool to see if the
+> > controls use the correct GUI elements. Note that this currently
+> > only builds for qt3. Mauro made a patch to allow it to build for
+> > qt4, but I haven't gotten around to testing that (sorry Mauro).
+>
+> Thanks for the information, I'll try those applications.
 
-The problem is that the ioctl call VIDIOC_DQBUF never returns.
-Reading the doc for VIDIOC_DQBUF
-http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec/r8849.
-htm
+Regards,
 
-The function should stop if there is no block to unqueue, unless it 
-has been opened with O_NONBLOCK.
-mplayer DOES NOT use O_NONBLOCK, so the call is allowed to block.
-
-The problems are 2
-
-1) I've tried to open with O_NONBLOCK and the ioctl blocks anyway.
-pwc-v4l.c at line 1120 does not check for O_NONBLOCK.
-Is this a bug?
-
-2) should mplayer handle the situation in a different way? is there a 
-way to check if there are queued blocks?
-
-Andrea
-
-
-
-_________________________________________________________________
-Tiscali Family: Adsl e Telefono senza limiti e senza scatto alla risposta. PER TE CON LO SCONTO DEL 25% FINO AL 2010. In più il software parental control Magic Desktop Basic è GRATIS! Attiva entro il 10/07/08. http://abbonati.tiscali.it/promo/tuttoincluso/ 
-
+	Hans
 
 --
 video4linux-list mailing list
