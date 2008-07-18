@@ -1,22 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6B7jcu1003323
-	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 03:45:38 -0400
-Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6B7jQGc027397
-	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 03:45:26 -0400
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Andrea <audetto@tiscali.it>
-In-Reply-To: <487678F6.50609@tiscali.it>
-References: <4873CBA9.1090603@tiscali.it> <4873E6D0.8050202@tiscali.it>
-	<487678F6.50609@tiscali.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ICxtUr015433
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 08:59:55 -0400
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.173])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ICxelw009212
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 08:59:41 -0400
+Received: by ug-out-1314.google.com with SMTP id s2so54539uge.6
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 05:59:40 -0700 (PDT)
+Message-ID: <412bdbff0807180559j79e5a82y1624773e45a74f41@mail.gmail.com>
+Date: Fri, 18 Jul 2008 08:59:40 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "John Ortega" <jortega@listpropertiesnow.com>
+In-Reply-To: <EEEHJJMABEBDCNKAINKCKEMGCHAA.jortega@listpropertiesnow.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Date: Fri, 11 Jul 2008 09:31:52 +0200
-Message-Id: <1215761512.1679.17.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <487FC316.30306@b4net.dk>
+	<EEEHJJMABEBDCNKAINKCKEMGCHAA.jortega@listpropertiesnow.com>
 Cc: video4linux-list@redhat.com
-Subject: Re: A question about VIDIOC_DQBUF
+Subject: Re: Pinnacle PCTV Remote
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,79 +31,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 2008-07-10 at 22:02 +0100, Andrea wrote:
-> Is there anybody who could help my with the followin?
+On Fri, Jul 18, 2008 at 1:17 AM, John Ortega
+<jortega@listpropertiesnow.com> wrote:
+> Hello,
+>
+> Does anyone have the remote working for the Pinnacle PCTV usb device. I've
+> got the TV working. But, the remote doesn't work at all.
+>
+> Thanks,
+> John
 
-Not sure, but I'll try.
+If you're talking about the Pinnacle PCTV HD Pro Stick (800e), then I
+can tell you outright that the remote control support is not
+implemented.
 
-> I would like to know if my interpretation of VIDIOC_DQBUF is correct.
-	[snip]
-> >> - First, an application queues a buffer, then it dequeues the buffer.
-> >> - Then again, a buffer is queued and then dequeued.
-> >> - Dequeuing a buffer blocks is the buffer is not ready (unless device 
-> >> opened with O_NONBLOCK).
+I have wrote some code for it but never got around to getting it fully
+debugged or checking it in.
 
-DQBUF blocks if _no_ buffer is ready.
+I'm pretty sure Markus's em28xx driver does support it though
+(mcentral.de), although I've never tried it myself.
 
-> >> - Trying to dequeue a buffer without queuing it first is an error, and 
-> >> the ioctl VIDIOC_DQBUF should return -EINVAL.
-
-You do not set a specific buffer at DQBUF call.
-
-> > - One can only VIDIOC_DQBUF after calling STREAMON. Before it should 
-> > return -EINVAL? Block?
-
-No, STREAMON may be done later by an other application.
-
-> > - After calling STREAMOFF, VIDIOC_DQBUF should return -EINVAL
-
-No, same reason as above.
-
-> >> Now, about pwc: (if the above is correct).
-> >>
-> >> 1) VIDIOC_DQBUF blocks always until a buffer is ready, regardless of 
-> >> O_NONBLOCK.
-
-Oh, bad guy!
-
-> >> 2) VIDIOC_DQBUF does not check if a buffer has been previously queued. 
-> >> Moreover VIDIOC_QBUF is almost a no-op. It has no way to check if a 
-> >> buffer has been queued before VIDIOC_DQBUF.
-
-Seems normal.
-
-> >> If I have understood correctly (very unlikely), this is the reason why 
-> >> mplayer hangs while stopping the stream with pwc:
-> >>
-> >>         while (!ioctl(priv->video_fd, VIDIOC_DQBUF, &buf));
-> >>
-> > 
-> > This code is not needed because STREAMOFF flushes the buffer queue. Does 
-> > it not?
-
-Correct.
-
-> >> This code should eventually return -EINVAL, while pwc just blocks 
-> >> waiting for the next buffer (which never arrives because 
-> >> VIDIOC_STREAMOFF has been called).
-> > 
-> > pwc should return -EINVAL to all ioctl calls after STREAMOFF?
-
-No.
-
-> > Could someone please tell me where I am right and where I am wrong...
-
-Done.
-
-It was a good idea to point me on these problems. I will update the
-gspca driver accordingly.
-
-Thank you.
+Devin
 
 -- 
-Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-Jef             |               http://moinejf.free.fr/
-
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
