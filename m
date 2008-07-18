@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m63Kaccx008674
-	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 16:36:38 -0400
-Received: from aragorn.vidconference.de (dns.vs-node3.de [87.106.12.105])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m63KaQra008183
-	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 16:36:26 -0400
-Date: Thu, 3 Jul 2008 22:36:23 +0200
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Message-ID: <20080703203623.GI18818@vidsoft.de>
-References: <4867F380.1040803@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6IB7tgC018050
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 07:07:55 -0400
+Received: from outbound.icp-qv1-irony-out4.iinet.net.au
+	(outbound.icp-qv1-irony-out4.iinet.net.au [203.59.1.150])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6IB7Z7D014572
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 07:07:42 -0400
+Message-ID: <48807976.2070705@iinet.net.au>
+Date: Fri, 18 Jul 2008 19:07:34 +0800
+From: Tim Farrington <timf@iinet.net.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4867F380.1040803@hhs.nl>
-From: Gregor Jasny <jasny@vidsoft.de>
-Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>
-Subject: Re: Announcing libv4l 0.3.1 aka "the vlc release"
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+References: <4880694A.3060002@iinet.net.au> <488069EC.7080207@hhs.nl>
+In-Reply-To: <488069EC.7080207@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org, mchehab@infradead.org
+Subject: Re: problem with latest v4l-dvb hg - videodev
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,34 +28,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hans de Goede wrote:
+> Tim Farrington wrote:
+>> Hi Mauro, Hans,
+>>
+>> I've just attempted a new install of ubuntu, then downloaded via hg 
+>> the current v4l-dvb,
+>> and installed it.
+>>
+>> Upon reboot, the boot stalled just after loading the firmware at 
+>> something about incorrect
+>> videodev count.
+>>
+>> It would not boot any further, and I was unable to save the dmesg to 
+>> a file (read only access)
+>>
+>> I've had to reinstall ubuntu to be able to send this message.
+>>
+>
+> I've just hit the same problem and just committed a fix for this to my 
+> tree (and send a pull request to Mauro) if you do a hg clone from:
+> http://linuxtv.org/hg/~hgoede/v4l-dvb
+>
+> You will get the latest v4l-dbd with my fix included.
+>
+> Regards,
+>
+> Hans
+>
+OK, Yay! Both fixes seem the same, Used Hans de Goede's, all works fine now!
 
-I've just included libv4l2 in our app. After after a short debugging
-session I noticed the following:
-
-In the man page the ioctl prototype is defined as
-int ioctl(int d, int request, ...). To catch the EINTR case I wrote a
-wrapper function:
-
-int xioctl (int fd, int request, void *arg)
-
-But as long as the request argument is int instead of unsigned long, the
-request gets sign extended:
-
-xioctl (fd, VIDIOC_TRY_FMT, &fmt)
-(gdb) p/x request
-$2 = 0xc0d05640
-
-int v4l2_ioctl (int fd, unsigned long int request, ...);
-(gdb) p/x request
-$3 = 0xffffffffc0d05640
-
-Maybe you should mention this "issue" in the FAQ or documentaion.
-
-Cheers,
-Gregor
-
-PS: Should I submit the sar-constraint patch to Thierry myself?
+Many thanks,
+Timf
 
 --
 video4linux-list mailing list
