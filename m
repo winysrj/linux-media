@@ -1,18 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6QJSZiv017769
-	for <video4linux-list@redhat.com>; Sat, 26 Jul 2008 15:28:35 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6QJSN3l007055
-	for <video4linux-list@redhat.com>; Sat, 26 Jul 2008 15:28:23 -0400
-Message-ID: <488B7AD1.1040106@gmx.net>
-Date: Sat, 26 Jul 2008 21:28:17 +0200
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6I5I6Xb022779
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 01:18:06 -0400
+Received: from omta0102.mta.everyone.net (sitemail2.everyone.net
+	[216.200.145.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6I5HuCK031680
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 01:17:56 -0400
+Received: from dm20.mta.everyone.net (sj1-slb03-gw2 [172.16.1.96])
+	by omta0102.mta.everyone.net (Postfix) with ESMTP id BF5346C21A6
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 22:17:55 -0700 (PDT)
+Received: by dm20.mta.everyone.net (EON-AUTHRELAY2 - c199b27f) id
+	dm20.487f5672.136f8
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 22:17:55 -0700
+From: "John Ortega" <jortega@listpropertiesnow.com>
+To: <video4linux-list@redhat.com>
+Date: Fri, 18 Jul 2008 01:17:56 -0400
+Message-ID: <EEEHJJMABEBDCNKAINKCKEMGCHAA.jortega@listpropertiesnow.com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Subject: saa7134-alsa  appears to be broken
+In-Reply-To: <487FC316.30306@b4net.dk>
+Subject: Pinnacle PCTV Remote
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,39 +33,13 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On my Asus P7131 (DVB-T+analog+radio) I can't listen to FM radio anymore 
-with a recent v4l-dvb or multiproto. If I go back to the v4l-dvb that 
-comes with the kernel (2.6.24-19) I do get sound. Not completely without 
-problems, have to restart aplay/arecord now and then but at least it 
-works. With the recent v4l-dvb/multiproto it doesn't work at all.
+Hello,
 
-dmesg has something to say (took out the interesting part):
+Does anyone have the remote working for the Pinnacle PCTV usb device. I've
+got the TV working. But, the remote doesn't work at all.
 
-[   31.155028] saa7133[0]: registered device video0 [v4l2]
-[   31.155043] saa7133[0]: registered device vbi0
-[   31.155055] saa7133[0]: registered device radio0
-[   31.247453] saa7134_alsa: disagrees about version of symbol 
-saa7134_tvaudio_setmute
-[   31.247457] saa7134_alsa: Unknown symbol saa7134_tvaudio_setmute
-[   31.247542] saa7134_alsa: disagrees about version of symbol 
-saa_dsp_writel
-[   31.247544] saa7134_alsa: Unknown symbol saa_dsp_writel
-[   31.247808] saa7134_alsa: disagrees about version of symbol 
-saa7134_dmasound_init
-[   31.247809] saa7134_alsa: Unknown symbol saa7134_dmasound_init
-[   31.247884] saa7134_alsa: disagrees about version of symbol 
-saa7134_dmasound_exit
-[   31.247886] saa7134_alsa: Unknown symbol saa7134_dmasound_exit
-[   31.248165] saa7134_alsa: disagrees about version of symbol 
-saa7134_set_dmabits
-[   31.248167] saa7134_alsa: Unknown symbol saa7134_set_dmabits
-[   31.320315] DVB: registering new adapter (saa7133[0])
-
-I don't know if this also causes my problem but it possibly does. The 
-saa7134 audio device is not recognized at all.
-
-And yes, I have the firmware (required for DVB-T so irrelevant but 
-anyway) installed.
+Thanks,
+John
 
 --
 video4linux-list mailing list
