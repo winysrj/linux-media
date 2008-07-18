@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6AJxN2I031893
-	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 15:59:23 -0400
-Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6AJwq5J008299
-	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 15:58:58 -0400
-Message-ID: <48766A75.7060903@free.fr>
-Date: Thu, 10 Jul 2008 22:00:53 +0200
-From: Thierry Merle <thierry.merle@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6I7ZUee006181
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 03:35:30 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.236])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6I7ZC2f023653
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 03:35:12 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so250462rvb.51
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 00:35:11 -0700 (PDT)
+Message-ID: <d9def9db0807180035p7edf4dc1me46de4fba4c24246@mail.gmail.com>
+Date: Fri, 18 Jul 2008 09:35:11 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+In-Reply-To: <200807171833.00972.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Rainer Koenig <Rainer.Koenig@gmx.de>
-References: <200807101924.58802.Rainer.Koenig@gmx.de>
-In-Reply-To: <200807101924.58802.Rainer.Koenig@gmx.de>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <566157.38298.qm@web59602.mail.ac4.yahoo.com>
+	<200807171833.00972.hverkuil@xs4all.nl>
 Cc: video4linux-list@redhat.com
-Subject: Re: Flipping the video from webcams
+Subject: Re: Question on V4L2 VBI operation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,34 +31,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello Rainer,
-Rainer Koenig a écrit :
-> Hello,
+On Thu, Jul 17, 2008 at 6:33 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Thursday 17 July 2008 18:25:07 Krish K wrote:
+>> Thanks for the response.  I am trying to implement a video driver and
+>> looking for information on how V4L2 expects the driver to provide
+>> VBI: separately or embedded in the frame data. I have looked at the
+>> V4L2 doucmentation; which is very good, but doesn't seem to
+>> explicitly address this aspect.
 >
-> I've got a notebook with an integrated webcam and I got a driver (r5u870) that 
-> works fine with it, except that the camera images I get are all upside down. 
-> It seems that due to a desgin flaw the camera was assembled upside down and 
-> there is no easy way to turn it. So I need to rotate the picture with 
-> software, which practically means "flip X" and "flip Y". I even found some 
-> bits in the driver that look like they address this issue, but turning them 
-> to "1" (instead of 0) doesn't help at all. 
+> Hi Krish,
 >
-> So I wonder: Is there a way to flip the picture that is coming from the camera 
-> by setting some options somewhere so that my IM client gets the picture in 
-> the right orientation?
+> Applications expect the VBI to come through the /dev/vbiX device and
+> never as part of a video frame. While it is technically possible to
+> deliver a video frame that includes the VBI data that preceeds it, in
+> practice this is never used and I'm not even sure whether there is a
+> driver that can do it.
 >
-> TIA
-> Rainer
->   
-You may put the laptop upside down :)
-Seriously, Andreas Demmer reported success on image flipping using
-vloopback+camsource.
-I think on his blog you will find the information:
-http://www.andreas-demmer.de/weblog/beitrag229/
-but I don't understand German sadly...
 
-Cheers,
-Thierry
+it is the em28xx driver on mcentral.de does that actually.
+http://img402.imageshack.us/my.php?image=00000008zd8.png
+
+the driver cuts off the heading VBI data and delivers it to /dev/vbi[n]
+
+Markus
 
 --
 video4linux-list mailing list
