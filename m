@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6UMJhZR011927
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 18:19:43 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6UMJV9u019189
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 18:19:32 -0400
-Date: Thu, 31 Jul 2008 00:19:26 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <87iqun2ge3.fsf@free.fr>
-Message-ID: <Pine.LNX.4.64.0807310008190.26534@axis700.grange>
-References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0807270155020.29126@axis700.grange>
-	<878wvnkd8n.fsf@free.fr>
-	<Pine.LNX.4.64.0807271337270.1604@axis700.grange>
-	<87tze997uu.fsf@free.fr>
-	<Pine.LNX.4.64.0807291902200.17188@axis700.grange>
-	<87iqun2ge3.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6IHj5PX009367
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 13:45:05 -0400
+Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6IHinVD010573
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 13:44:49 -0400
+From: "Jalori, Mohit" <mjalori@ti.com>
+To: John <john.maximus@gmail.com>
+Date: Fri, 18 Jul 2008 12:44:16 -0500
+Message-ID: <8AA5EFF14ED6C44DB31DA963D1E78F0DAFAB1E5A@dlee02.ent.ti.com>
+References: <d695c0780807120311y55c3ef15q6528a6144aeb8c12@mail.gmail.com>
+	<8AA5EFF14ED6C44DB31DA963D1E78F0DAF97A08F@dlee02.ent.ti.com>
+	<3634de740807160906k133ded89yd91b33b00162fc68@mail.gmail.com>
+In-Reply-To: <3634de740807160906k133ded89yd91b33b00162fc68@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: RE: omap3 camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,55 +30,204 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 30 Jul 2008, Robert Jarzmik wrote:
 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> 
-> >> >> For the camera part, by now, I'm using standard suspend/resume functions of the
-> >> >> platform driver (mt9m111.c). It does work, but it's not clean ATM. The chaining
-> >> >> between the driver resume function and the availability of the I2C bus are not
-> >> >> properly chained. I'm still working on it.
-> >> >
-> >> > Yes, we have to clarify this too.
-> All right, I have my mind clarified, let's discuss now.
-> 
-> >>  - I cook up a clean suspend/resume (unless you did it first of course :)
-> Well, let's expose what we're facing here :
->  - our video chip driver (ex: mt9m111) is an i2c driver
->   => its resume function is called when i2c bus is resumed, so all is fine here
-> 
->  - our video chip needs an external clock to work
->   => example: mt9m111 needs a clock from pxa camera interface to have its i2c
->   unit enabled
->   => the mt9m111 driver resume function is unusable, as pxa_camera is resumed
->   _after_ mt9m111, and thus mt9m111's i2c unit is not available at that moment
-> 
->  - a working suspend/resume restores fully the video chip state
->   => restores width/height/bpp
->   => restores autoexposure, brightness, etc ...
->   => all that insures userland is not impacted by suspend/resume
-> 
-> So, the only way I see to have suspend/resume working is :
->  - modify soc_camera_ops to add suspend and resume functions
->  - add suspend and resume functions in each chip driver (mt9m001, mt9m111, ...)
->  - modify soc_camera.c (or pxa_camera.c ?) to call icd->ops->suspend() and
->  icd->ops->resume()
->  - modify pxa_camera.c (the patch I sent before)
-> 
-> Would you find that acceptable, or is there a better way ?
 
-Ok, you're suggesting to add suspend() and resume() to 
-soc_camera_bus_type, right? But are we sure that its resume will be called 
-after both camera (so far i2c) and host (so far platform, can also be PCI 
-or USB...) busses are resumed? If not, we might have to do something 
-similar to scan_add_host() / scan_add_device() - accept signals from the 
-host and the camera and when both are ready actually resume them...
+> -----Original Message-----
+> From: John [mailto:john.maximus@gmail.com]
+> Sent: Wednesday, July 16, 2008 11:06 AM
+> To: Jalori, Mohit
+> Cc: video4linux-list@redhat.com
+> Subject: Re: omap3 camera driver
+>
+> Hi Mohit,
+> This patch is fails to apply against the labrador kernel 2.6.22.
+>
+> Kindly provide details of the kernel against which this patch is
+> generated and tested.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+
+The patch was generated against 2.6.26-rc6 version of the kernel. We will be posting sensor driver and lens driver that works with this camera driver next week.
+
+>
+> Regards,
+>
+> John
+>
+>
+>
+> On Sat, Jul 12, 2008 at 8:40 PM, Jalori, Mohit <mjalori@ti.com> wrote:
+> > Yes it was failing for this for us as well.
+> >
+> > I kept the same formatting since other formats were defined that
+> way.
+> > Should I modify all formats with the space in between or keep it
+> this way?
+> >
+> >
+> >
+> >> -----Original Message-----
+> >> From: John Smith [mailto:john.v4l2@gmail.com]
+> >> Sent: Saturday, July 12, 2008 5:12 AM
+> >> To: video4linux-list@redhat.com; Jalori, Mohit
+> >> Subject: omap3 camera driver
+> >>
+> >> Hi Mohit,
+> >> I was just looking to your patch and the first observation I could
+> get
+> >> immediately is, checkpatch.pl script is failing on some of patches.
+> I
+> >> am not sure, was that missed or intentional? Below is checkpatch
+> >> output for the one which I have tired -
+> >>
+> >>
+> >>
+> >> ./scripts/checkpatch.pl
+> >> scripts/camera_patches/004_v4l2_sgrbg10_format.patch
+> >> need space after that ',' (ctx:VxV)
+> >> #19: FILE: include/linux/videodev2.h:312:
+> >> +#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B','A','1','0') /* 10bit
+> >> raw bayer  */
+> >>                                              ^
+> >>
+> >> need space after that ',' (ctx:VxV)
+> >> #19: FILE: include/linux/videodev2.h:312:
+> >> +#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B','A','1','0') /* 10bit
+> >> raw bayer  */
+> >>                                                  ^
+> >>
+> >> need space after that ',' (ctx:VxV)
+> >> #19: FILE: include/linux/videodev2.h:312:
+> >> +#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B','A','1','0') /* 10bit
+> >> raw bayer  */
+> >>                                                      ^
+> >>
+> >> Your patch has style problems, please review.  If any of these
+> errors
+> >> are false positives report them to the maintainer, see
+> >> CHECKPATCH in MAINTAINERS.
+> >>
+> >> #------------------------------------------------------------------
+> ---
+> >> -------------
+> >>
+> >> ./scripts/checkpatch.pl
+> >> scripts/camera_patches/007_v4l2_sgrbg10dpcm8_format.patch
+> >> line over 80 characters
+> >> #20: FILE: include/linux/videodev2.h:313:
+> >> +#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B','D','1','0') /*
+> >> 10bit raw bayer DPCM compressed to 8 bits */
+> >>
+> >> need space after that ',' (ctx:VxV)
+> >> #20: FILE: include/linux/videodev2.h:313:
+> >> +#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B','D','1','0') /*
+> >> 10bit raw bayer DPCM compressed to 8 bits */
+> >>                                                   ^
+> >>
+> >> need space after that ',' (ctx:VxV)
+> >> #20: FILE: include/linux/videodev2.h:313:
+> >> +#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B','D','1','0') /*
+> >> 10bit raw bayer DPCM compressed to 8 bits */
+> >>                                                       ^
+> >>
+> >> need space after that ',' (ctx:VxV)
+> >> #20: FILE: include/linux/videodev2.h:313:
+> >> +#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B','D','1','0') /*
+> >> 10bit raw bayer DPCM compressed to 8 bits */
+> >>                                                           ^
+> >>
+> >> Your patch has style problems, please review.  If any of these
+> errors
+> >> are false positives report them to the maintainer, see
+> >> CHECKPATCH in MAINTAINERS.
+> >>
+> >>
+> >> #------------------------------------------------------------------
+> ---
+> >> -------------
+> >>
+> >> ./scripts/checkpatch.pl
+> >>
+> scripts/camera_patches/010_omap_34xx_camera_driver_isp_basic_blocks.pa
+> >> tch
+> >> struct mutex definition without comment
+> >> #1762: FILE: drivers/media/video/omap34xxcam.h:97:
+> >> +       struct mutex mutex;
+> >>
+> >> struct mutex definition without comment
+> >> #1816: FILE: drivers/media/video/omap34xxcam.h:151:
+> >> +       struct mutex mutex;
+> >>
+> >> spinlock_t definition without comment
+> >> #1846: FILE: drivers/media/video/omap34xxcam.h:181:
+> >> +       spinlock_t vbq_lock;
+> >>
+> >> Use #include <linux/irq.h> instead of <asm/irq.h>
+> >> #1901: FILE: drivers/media/video/isp/isp.c:33:
+> >> +#include <asm/irq.h>
+> >>
+> >> spinlock_t definition without comment
+> >> #1979: FILE: drivers/media/video/isp/isp.c:111:
+> >> +       spinlock_t lock;
+> >>
+> >> spinlock_t definition without comment
+> >> #1980: FILE: drivers/media/video/isp/isp.c:112:
+> >> +       spinlock_t isp_temp_buf_lock;
+> >>
+> >> struct mutex definition without comment
+> >> #1981: FILE: drivers/media/video/isp/isp.c:113:
+> >> +       struct mutex isp_mutex;
+> >>
+> >> need consistent spacing around '/' (ctx:WxV)
+> >> #3760: FILE: drivers/media/video/isp/isp.h:87:
+> >> +#define NUM_ISP_CAPTURE_FORMATS        (sizeof(isp_formats) /\
+> >>                                                              ^
+> >>
+> >> do not add new typedefs
+> >> #3763: FILE: drivers/media/video/isp/isp.h:90:
+> >> +typedef int (*isp_vbq_callback_ptr) (struct videobuf_buffer *vb);
+> >>
+> >> do not add new typedefs
+> >> #3764: FILE: drivers/media/video/isp/isp.h:91:
+> >> +typedef void (*isp_callback_t) (unsigned long status,
+> >>
+> >> spinlock_t definition without comment
+> >> #3836: FILE: drivers/media/video/isp/isp.h:163:
+> >> +       spinlock_t lock;
+> >>
+> >> struct mutex definition without comment
+> >> #4085: FILE: drivers/media/video/isp/ispccdc.c:83:
+> >> +       struct mutex mutexlock;
+> >>
+> >> Use #include <linux/irq.h> instead of <asm/irq.h>
+> >> #5544: FILE: drivers/media/video/isp/ispmmu.c:38:
+> >> +#include <asm/irq.h>
+> >>
+> >> #if 0 -- if this code redundant remove it
+> >> #6397: FILE: drivers/media/video/isp/ispreg.h:26:
+> >> +#if 0
+> >>
+> >> Your patch has style problems, please review.  If any of these
+> errors
+> >> are false positives report them to the maintainer, see
+> >> CHECKPATCH in MAINTAINERS.
+> >>
+> >> #------------------------------------------------------------------
+> ---
+> >> ----------------------
+> >>
+> >>
+> >> I would like to understand the design actually, will take some
+> time.
+> >>
+> >> Thanks,
+> >> John
+> >
+> > --
+> > video4linux-list mailing list
+> > Unsubscribe mailto:video4linux-list-
+> request@redhat.com?subject=unsubscribe
+> > https://www.redhat.com/mailman/listinfo/video4linux-list
+> >
 
 --
 video4linux-list mailing list
