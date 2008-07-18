@@ -1,19 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from moutng.kundenserver.de ([212.227.126.177])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KKYSH-0000sm-Ep
-	for linux-dvb@linuxtv.org; Sun, 20 Jul 2008 14:56:02 +0200
-Message-ID: <488335FB.7030104@iki.fi>
-Date: Sun, 20 Jul 2008 15:56:27 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: tom <thomas@ickes-home.de>
-References: <1216403709.10841.20.camel@super-klappi>	<4880DF35.8040505@iki.fi>
-	<488101C8.9070408@iki.fi>	<1216457896.6463.4.camel@super-klappi>
-	<1216469634.6463.9.camel@super-klappi>
-In-Reply-To: <1216469634.6463.9.camel@super-klappi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with MSI Digivox Duo DVB-T USB, Ubuntu	8.04
+	(envelope-from <thomas@ickes-home.de>) id 1KJuHC-0007bP-U3
+	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 20:01:58 +0200
+From: tom <thomas@ickes-home.de>
+To: linux-dvb@linuxtv.org
+Date: Fri, 18 Jul 2008 19:55:09 +0200
+Message-Id: <1216403709.10841.20.camel@super-klappi>
+Mime-Version: 1.0
+Subject: [linux-dvb] Problems with MSI Digivox Duo DVB-T USB, Ubuntu 8.04
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,31 +16,108 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-aGVsbG8gdG9tCgp0b20gd3JvdGU6Cj4gcmVzdWx0cyBvZiBsc21vZCB8IGdyZXAgZHZiOgo+IAo+
-IGR2Yl91c2JfYWY5MDE1ICAgICAgICAgMjQzMzIgIDAgCj4gZHZiX3VzYiAgICAgICAgICAgICAg
-ICAyMjkyNCAgMSBkdmJfdXNiX2FmOTAxNQo+IGR2Yl9jb3JlICAgICAgICAgICAgICAgODA2MzYg
-IDEgZHZiX3VzYgo+IGkyY19jb3JlICAgICAgICAgICAgICAgMjQ4MzIgIDQgbXhsNTAwNXMsYWY5
-MDEzLGR2Yl91c2JfYWY5MDE1LGR2Yl91c2IKPiB1c2Jjb3JlICAgICAgICAgICAgICAgMTQ2MDI4
-Cj4gNiDvu79kdmJfdXNiX2FmOTAxNSxkdmJfdXNiLHVzYmhpZCxlaGNpX2hjZCxvaGNpX2hjZAo+
-IAo+IFRob21hcwo+IAo+IAo+IEFtIFNhbXN0YWcsIGRlbiAxOS4wNy4yMDA4LCAxMDo1OCArMDIw
-MCBzY2hyaWViIHRvbToKPj4g77u/SGkgQW50dGksCj4+IEkgaGF2ZSBpbnN0YWxsZWQgdGhlIGRy
-aXZlci4gQWZ0ZXIgcmVib290IGRtZXNnIGdpdmVzIHRoZSBmb2xsb3dpbmcuCgo+PiBbIDE1MzIu
-NTAyMzI4XSBkdmItdXNiOiBjb3VsZCBub3QgaGFuZGxlIHBpZF9wYXJzZXIKCkkgZG9uJ3Qga25v
-dyB3aGF0cyB3cm9uZyBidXQgaXQgbG9va3MgbGlrZSBjb21pbmcgZnJvbSBQSUQtZmlsdGVyLiBZ
-b3UgCmhhdmUgb25seSBVU0IxLjEgcG9ydHM/CgpEcml2ZXIgd2lsbCBkaXNhYmxlIDJuZCB0dW5l
-ciAvIGZyb250ZW5kIGlmIHRoZXJlIGlzIG9ubHkgVVNCMS4xIGJlY2F1c2UgCiAgSSBkb24ndCBr
-bm93IGlmIHRoZXJlIGlzIGFueSB3YXkgdG8gdXNlIFBJRC1maWx0ZXJzIGZvciAybmQgZnJvbnRl
-bmQuIApBbHNvIEZFIzEgcGVyZm9ybWFuY2UgaXMgYmFkIGluIGR1YWwgdHVuZXIgZGV2aWNlIGZv
-ciB1bmtub3duIHJlYXNvbi4gCkJ1dCBJIHN0aWxsIGRvbid0IHNlZSByZWFzb24gd2h5IHlvdXIg
-ZGV2aWNlIGlzIG5vdCB3b3JraW5nLgoKVGhhdHMgd2VpcmQgc2l0dWF0aW9uOgpkdWFsIG1vZGUg
-KDIgcmVjZWl2ZXJzKToKRkUjMSBiYWQKRkUjMiBnb29kCnNpbmdsZSBtb2RlICgxIHJlY2VpdmVy
-KToKRkUjMSBnb29kCgotLSAKaHR0cDovL3BhbG9zYWFyaS5maS8KCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGlu
-dXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Hello,
+since a few days I'm trying hard make this stick running. One basic problem is that I'm not able to find out which chipset is in this
+stick.
+I have tried af9015 driver and firmware, but it doesn't work.
+Does anybody have the same problem or even solved it?
+
+dmesg | grep usb:
+
+[19614.849918] usb 3-3: USB disconnect, address 5
+[19618.108978] usb 3-3: new high speed USB device using ehci_hcd and address 6
+[19618.244872] usb 3-3: configuration #1 chosen from 1 choice
+
+
+lsusb -v :
+
+Bus 003 Device 005: ID 1462:8801 Micro Star International 
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0        64
+  idVendor           0x1462 Micro Star International
+  idProduct          0x8801 
+  bcdDevice            2.00
+  iManufacturer           1 Afatech
+  iProduct                2 DVB-T 2
+  iSerial                 0 
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           46
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0 
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           4
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0 
+      bInterfaceProtocol      0 
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x02  EP 2 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x85  EP 5 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+
+Thomas
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
