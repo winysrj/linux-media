@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from epistola.iperbole.bologna.it ([213.174.176.146])
+Received: from fg-out-1718.google.com ([72.14.220.153])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.venturi@avalpa.com>) id 1KN94Z-00065o-Rs
-	for linux-dvb@linuxtv.org; Sun, 27 Jul 2008 18:26:18 +0200
-Received: from obelix.iperbole.bologna.it (unknown [213.174.176.167])
-	by epistola.iperbole.bologna.it (Postfix) with ESMTP id 15523408BD6
-	for <linux-dvb@linuxtv.org>; Sun, 27 Jul 2008 18:25:42 +0200 (CEST)
-Message-ID: <1217175868.488ca13cca2b2@webmail.iperbole.bologna.it>
-Date: Sun, 27 Jul 2008 18:24:28 +0200
-From: Andrea Venturi <a.venturi@avalpa.com>
+	(envelope-from <christophpfister@gmail.com>) id 1KJwqP-0000ze-2Z
+	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 22:46:26 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so227300fga.25
+	for <linux-dvb@linuxtv.org>; Fri, 18 Jul 2008 13:46:21 -0700 (PDT)
+From: Christoph Pfister <christophpfister@gmail.com>
 To: linux-dvb@linuxtv.org
+Date: Fri, 18 Jul 2008 22:46:17 +0200
+References: <g5llos$b75$1@ger.gmane.org>
+In-Reply-To: <g5llos$b75$1@ger.gmane.org>
 MIME-Version: 1.0
-Subject: [linux-dvb] saa7162 linux driver docs or development?
+Content-Disposition: inline
+Message-Id: <200807182246.17897.christophpfister@gmail.com>
+Cc: Andrea <mariofutire@googlemail.com>
+Subject: Re: [linux-dvb] [PATCH] 2 patches for dvb-apps gnutv
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,59 +22,44 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi,
+Am Mittwoch 16 Juli 2008 22:28:33 schrieb Andrea:
+> Hi,
+>
+> I would like to repost 2 patches for gnutv, part of dvb-apps.
+>
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027177.html
+>
+> They both try to make gnutv more robust when the system/destination file
+> system are temporary slow.
+>
+> 1) http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027176.html
+> Once the dvb ringbuffer overflows, it is pointless to stop gnutv. I think
+> it should continue and get the rest of the signal.
+> What has been lost has been lost, let's not loose the future stream
+>
+> 2) http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027177.html
+> Allow to set a bigger (than default = 2MB) dvb ringbuffer to cope with
+> temporary bottlenecks.
+>
+> Is anybody interested in reviewing them?
 
-i've puschased a new DVB-T adapter made by lifeview:
+Guess no.
 
-it's called flytv express m5 mst t2a2
+But I'll rework the first patch a bit (the sequence of revents <--> errno 
+check is already bogus) and commit them. And I really suggest you to use an 
+application like dvbstream which does its own buffering (at least I hope 
+so ;) - because it has never happened to me yet that the ringbuffer 
+overflowed (and it shouldn't with sane applications).
 
-http://www.lifeview.com.tw/html/products/external_tv/flytv_express_m5_mst_t=
-2a2.htm
+> Andrea
 
-it has a saa7162 pci-express bridge, here it's described:
-
-  http://www.linuxtv.org/v4lwiki/index.php/Saa7162_devices
-
-my card, an external ExpressCard is missing, maybe i'll fill the wiki with a
-description.
-
-anyway i see that linux support of this multimedia chip has been surfacing =
-in
-May 2007:
-
-  http://www.linuxtv.org/pipermail/linux-dvb/2007-May/017856.html
-
-but then it was never heard again..
-
-is there something i can do to test the "GPL-like" driver released by =F9ph=
-ilips
-or some real datasheet about this chip.
-
-on nexperia/nxp site this product has been discontinued! so not so hot, it
-seems..
-
-http://www.nxp.com/#/pip/pip=3D[pip=3DSAA7162E_SDS_2]|pp=3D[t=3Dpip,i=3DSAA=
-7162E_SDS_2]
-
-BTW that card doesn't go at all with the latest manufacturer driver on wind=
-ows
-Vista (the other OS on this new laptop..) so it's very difficult to make re=
-verse
-engineering at all..
-
-bye
-
-andrea venturi
-
-
-
-
+Christoph
 
 _______________________________________________
 linux-dvb mailing list
