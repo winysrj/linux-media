@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6SMGgkq017251
-	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 18:16:42 -0400
-Received: from aragorn.vidconference.de (dns.vs-node3.de [87.106.12.105])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6SMGUOD009063
-	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 18:16:30 -0400
-Date: Tue, 29 Jul 2008 00:16:28 +0200
-To: Jiri Slaby <jirislaby@gmail.com>
-Message-ID: <20080728221628.GB21280@vidsoft.de>
-References: <488721F2.5000509@hhs.nl> <20080728214927.GA21280@vidsoft.de>
-	<488E4090.5020600@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6IA25v1018234
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 06:02:05 -0400
+Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6IA1eQ5009744
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 06:01:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Tim Farrington <timf@iinet.net.au>
+Date: Fri, 18 Jul 2008 12:01:21 +0200
+References: <4880694A.3060002@iinet.net.au>
+In-Reply-To: <4880694A.3060002@iinet.net.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <488E4090.5020600@gmail.com>
-From: Gregor Jasny <jasny@vidsoft.de>
-Cc: video4linux-list@redhat.com, SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>,
-	v4l2 library <v4l2-library@linuxtv.org>, Brandon Philips <bphilips@suse.de>
-Subject: Re: [V4l2-library] Messed up syscall return value
+Message-Id: <200807181201.22000.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org, mchehab@infradead.org
+Subject: Re: problem with latest v4l-dvb hg - videodev
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,42 +29,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Jul 28, 2008 at 11:56:32PM +0200, Jiri Slaby wrote:
-> On 07/28/2008 11:49 PM, Gregor Jasny wrote:
-> >I've observed strange behavior in the REQBUFS ioctl for the non-emulated
-> >case.
-> >
-> >I've debugged the problem to the line:
-> >result = syscall(SYS_ioctl, devices[index].fd, VIDIOC_REQBUFS, req);
-> >
-> >Here the value 2 get stored into result, although the kernel driver
-> >returned success (at least it does not complain loudly in the logs).
-> >
-> strace and ltrace will help in this case I guess. Could you provide them for
-> your testcases?
+On Friday 18 July 2008 11:58:34 Tim Farrington wrote:
+> Hi Mauro, Hans,
+>
+> I've just attempted a new install of ubuntu, then downloaded via hg
+> the current v4l-dvb,
+> and installed it.
+>
+> Upon reboot, the boot stalled just after loading the firmware at
+> something about incorrect
+> videodev count.
+>
+> It would not boot any further, and I was unable to save the dmesg to
+> a file (read only access)
+>
+> I've had to reinstall ubuntu to be able to send this message.
+>
+> Regards,
+> Timf
 
-Sure:
 
-ioctl(3, VIDIOC_QUERYCAP or VT_OPENQRY, 0x7fffbfd9fdd0) = 0
-ioctl(3, VIDIOC_G_FMT or VT_SENDSIG, 0x7fffbfd9fd00) = 0
-ioctl(3, VIDIOC_ENUM_FMT or VT_SETMODE, 0x7fffbfd9fc40) = 0
-ioctl(3, VIDIOC_ENUM_FMT or VT_SETMODE, 0x7fffbfd9fc40) = -1 EINVAL (Invalid argument)
-ioctl(3, VIDIOC_TRY_FMT, 0x7fffbfda0080) = 0
-ioctl(3, VIDIOC_S_FMT or VT_RELDISP, 0x7fffbfd9fd40) = 0
-ioctl(3, VIDIOC_REQBUFS or VT_DISALLOCATE, 0x7fffbfda0060) = 2
+Hi Tim,
 
-Huh? Something evils seems to be going on in V4L2 land.
-I've spotted the following lines in videobuf-core.c:videobuf_reqbufs
+Yes, I discovered the same. A fix is in my tree 
+(www.linuxtv.org/hg/~hverkuil/v4l-dvb) waiting for Mauro to merge.
 
-        req->count = retval;
+Regards,
 
- done:
-        mutex_unlock(&q->vb_lock);
-        return retval;
-
-That would explain the retval '2'. It seems a retval = 0; statement is missing here for the success case.
-
-Gregor
+	Hans
 
 --
 video4linux-list mailing list
