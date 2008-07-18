@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8] ident=root)
+Received: from rn-out-0910.google.com ([64.233.170.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stefan@lucke.in-berlin.de>) id 1KKdXa-0004vL-7p
-	for linux-dvb@linuxtv.org; Sun, 20 Jul 2008 20:21:50 +0200
-Received: from jarada.farpoint.de (p57BB4CCE.dip.t-dialin.net [87.187.76.206])
-	(authenticated bits=0)
-	by einhorn.in-berlin.de (8.13.6/8.13.6/Debian-1) with ESMTP id
-	m6KILgQ0007170
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-dvb@linuxtv.org>; Sun, 20 Jul 2008 20:21:42 +0200
-From: Stefan Lucke <stefan@lucke.in-berlin.de>
-To: linux-dvb@linuxtv.org
-Date: Sun, 20 Jul 2008 20:21:40 +0200
-References: <0202365bcadaf441ee4f74d6fe6f315a@81.116.196.113>
-In-Reply-To: <0202365bcadaf441ee4f74d6fe6f315a@81.116.196.113>
+	(envelope-from <bokola@gmail.com>) id 1KJrJi-0003jz-K4
+	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 16:52:19 +0200
+Received: by rn-out-0910.google.com with SMTP id m36so141063rnd.2
+	for <linux-dvb@linuxtv.org>; Fri, 18 Jul 2008 07:52:13 -0700 (PDT)
+Message-ID: <854d46170807180752p2fcc6653occb590199eb28e0b@mail.gmail.com>
+Date: Fri, 18 Jul 2008 16:52:12 +0200
+From: "Faruk A" <fa@elwak.com>
+To: alain@satfans.be
+In-Reply-To: <78fbccd765c111c5f53504a4f5b1fc45@localhost>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200807202021.41130.stefan@lucke.in-berlin.de>
-Subject: Re: [linux-dvb] win TV Nova T hauppauge on eeepc 701
+References: <78fbccd765c111c5f53504a4f5b1fc45@localhost>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Technotrend TT3650 S2 USB and multiproto
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,20 +28,83 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Friday 18 July 2008, - Aladar65 - wrote:
-> someone has never installed the win TV Nova T hauppauge on eeepc 701 with
-> xandros?
+Hi!
 
-If you are talking about the small usb device with usbid 2040:7070 , the
-answer is yes.
+You don't have to compile every modules in multiproto just compile
+what you need for S2-3650_CI
+cd to multiproto/v4l
+and create a file name .config
+add:
 
-If you are trying to get it run with vdr package shiped from asus you'll
-need some additional kernel modules and some binary editing of vdr
-with khexedit (changing from asus usb ids to hauppauge usbids).
+CONFIG_INPUT=y
+CONFIG_USB=y
+CONFIG_PARPORT=m
+CONFIG_FW_LOADER=m
+CONFIG_NET=y
+CONFIG_SND_AC97_CODEC=m
+CONFIG_I2C=m
+CONFIG_STANDALONE=y
+CONFIG_SND_MPU401_UART=m
+CONFIG_SND=m
+CONFIG_MODULES=y
+CONFIG_HAS_IOMEM=y
+CONFIG_PROC_FS=y
+CONFIG_I2C_ALGOBIT=m
+CONFIG_INET=y
+CONFIG_CRC32=m
+CONFIG_FB=y
+CONFIG_SYSFS=y
+CONFIG_PCI=y
+CONFIG_SND_PCM=m
+CONFIG_PARPORT_1284=y
+CONFIG_EXPERIMENTAL=y
+CONFIG_VIRT_TO_BUS=y
+CONFIG_DVB_CORE=m
+CONFIG_DVB_CAPTURE_DRIVERS=y
+CONFIG_DVB_PLL=m
+CONFIG_DVB_USB=m
+CONFIG_DVB_USB_PCTV452E=m
+CONFIG_DVB_STB0899=m
+CONFIG_DVB_STB6100=m
+CONFIG_DVB_LNBP22=m
+
+Faruk
 
 
--- 
-Stefan Lucke
+2008/7/18  <alain@satfans.be>:
+> Hi,
+>
+> I'm trying to use my DVB S2 USB with Ubuntu8.04 and MyTheatre.
+> I found an how to
+> [url]http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI[/url]
+> But I get stuck with the fail of the make.
+> It claims about the audio driver?
+> [QUOTE]make[2]: Entering directory
+> `/usr/src/linux-headers-2.6.24-19-generic'
+>   CC [M]  /home/alain/3650/multiproto/v4l/em28xx-audio.o
+> In file included from /home/alain/3650/multiproto/v4l/em28xx-audio.c:39:
+> include/sound/core.h:281: error: 'SNDRV_CARDS' undeclared here (not in a
+> function)
+> /home/alain/3650/multiproto/v4l/em28xx-audio.c:58: error: array index in
+> initializer not of integer type
+> /home/alain/3650/multiproto/v4l/em28xx-audio.c:58: error: (near
+> initialization for 'index')
+> make[3]: *** [/home/alain/3650/multiproto/v4l/em28xx-audio.o] Error 1
+> [/QUOTE]
+>
+> Did someone succeed?
+> I suppose it's due to the constant changing of the multiproto drive?
+>
+> Hope someone have a solution or I will have to forget Linux and decide that
+> it still can't replace Windows.
+>
+> Thanks.
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
