@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.178])
+Received: from mta-out.inet.fi ([195.156.147.13] helo=kirsi2.rokki.sonera.fi)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mark.carbonaro@gmail.com>) id 1KE20W-0003Am-2f
-	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 15:04:26 +0200
-Received: by py-out-1112.google.com with SMTP id a29so171173pyi.0
-	for <linux-dvb@linuxtv.org>; Wed, 02 Jul 2008 06:04:19 -0700 (PDT)
-Message-ID: <963c69e10807020604o5d031624g7803b78f85907275@mail.gmail.com>
-Date: Wed, 2 Jul 2008 23:04:18 +1000
-From: "Mark Carbonaro" <mark.carbonaro@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <crope@iki.fi>) id 1KJuaS-0000Vp-83
+	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 20:21:49 +0200
+Message-ID: <4880DF35.8040505@iki.fi>
+Date: Fri, 18 Jul 2008 21:21:41 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Leadtek Winfast PxDVR 3200 H
+To: tom <thomas@ickes-home.de>
+References: <1216403709.10841.20.camel@super-klappi>
+In-Reply-To: <1216403709.10841.20.camel@super-klappi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Problems with MSI Digivox Duo DVB-T USB, Ubuntu 8.04
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,19 +25,120 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+tom wrote:
+> Hello,
+> since a few days I'm trying hard make this stick running. One basic problem is that I'm not able to find out which chipset is in this
+> stick.
+> I have tried af9015 driver and firmware, but it doesn't work.
 
-I have a Leadtek Winfast PxDVR 3200 H and I would like to assist in
-getting this card working, I bought the card knowing it wouldn't work
-but on the hope that it may help getting it supported.  Unfortunately
-I don't have any programming skills that would help (I haven't touched
-C in around 12 years) but if I can be of any use getting information
-out of the card, testing patches or just hitting the card with a
-hammer please let me know.  I have added some additional information
-into the wiki (just some lspci info).
+It looks like AF9015 dual design. I think problem you have is missing 
+device USB-IDs. I will add those in a next few hours and you can test 
+then again.
 
-Regards,
-Mark
+> Does anybody have the same problem or even solved it?
+:)
+
+regards
+Antti Palosaari
+
+> 
+> dmesg | grep usb:
+> 
+> [19614.849918] usb 3-3: USB disconnect, address 5
+> [19618.108978] usb 3-3: new high speed USB device using ehci_hcd and address 6
+> [19618.244872] usb 3-3: configuration #1 chosen from 1 choice
+> 
+> 
+> lsusb -v :
+> 
+> Bus 003 Device 005: ID 1462:8801 Micro Star International 
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0 
+>   bDeviceProtocol         0 
+>   bMaxPacketSize0        64
+>   idVendor           0x1462 Micro Star International
+>   idProduct          0x8801 
+>   bcdDevice            2.00
+>   iManufacturer           1 Afatech
+>   iProduct                2 DVB-T 2
+>   iSerial                 0 
+>   bNumConfigurations      1
+>   Configuration Descriptor:
+>     bLength                 9
+>     bDescriptorType         2
+>     wTotalLength           46
+>     bNumInterfaces          1
+>     bConfigurationValue     1
+>     iConfiguration          0 
+>     bmAttributes         0x80
+>       (Bus Powered)
+>     MaxPower              500mA
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       0
+>       bNumEndpoints           4
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0 
+>       bInterfaceProtocol      0 
+>       iInterface              0 
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x02  EP 2 OUT
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x85  EP 5 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+> 
+> Thomas
+> 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+-- 
+http://palosaari.fi
 
 _______________________________________________
 linux-dvb mailing list
