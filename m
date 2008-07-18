@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m625v6YP006283
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 01:57:06 -0400
-Received: from smtp-vbr7.xs4all.nl (smtp-vbr7.xs4all.nl [194.109.24.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m625usEE010909
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 01:56:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>
-Date: Wed, 2 Jul 2008 07:56:53 +0200
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6I5FdsF022228
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 01:15:39 -0400
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6I5FTxD030696
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 01:15:29 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so46130ywb.81
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 22:15:29 -0700 (PDT)
+Message-ID: <3634de740807172215v52a624ga09449e81bb684fe@mail.gmail.com>
+Date: Fri, 18 Jul 2008 10:45:29 +0530
+From: John <john.maximus@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200807020756.53438.hverkuil@xs4all.nl>
-Cc: 
-Subject: uvc_driver.c compile error on 2.6.18
+Subject: omap3 camera patches
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,32 +27,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+Hello,
+   looking at the OMAP3 camera patches posted sometime back.
+   I manually applied these patches on a existing OMAP3 2.6.22 kernel.
+   am trying to port an existing SOC micron driver to OMAP3 on a custom board.
+   am not seeing any interrupts.
 
-The current v4l-dvb doesn't build anymore on 2.6.18:
+  Is anyone using the current camera patches for OMAP3. Is this working?
 
-  CC [M]  /home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.o
-/home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c: In 
-function 'uvc_parse_control':
-/home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1135: warning: implicit 
-declaration of function 'usb_endpoint_is_int_in'
-/home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c: At top level:
-/home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1918: error: unknown 
-field 'supports_autosuspend' specified in initializer
-/home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1918: warning: missing 
-braces around initializer
-/home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.c:1918: warning: (near 
-initialization for 'uvc_driver.driver.dynids')
-make[3]: *** [/home/hans/work/src/v4l/v4l-dvb/v4l/uvc_driver.o] Error 1
-make[2]: *** [_module_/home/hans/work/src/v4l/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/home/hans/work/src/kernels/linux-2.6.18.8'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/hans/work/src/v4l/v4l-dvb/v4l'
-make: *** [all] Error 2
+  Are there any existing sensor drivers that use these patches. I find
+there are no sensor
+  driver for OMAP3.
+
 
 Regards,
 
-	Hans
+John
 
 --
 video4linux-list mailing list
