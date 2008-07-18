@@ -1,27 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6GMCRaC025681
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 18:12:27 -0400
-Received: from cicero1.cybercity.dk (cicero1.cybercity.dk [212.242.40.4])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6GMCFXw010628
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 18:12:16 -0400
-Received: from jakob.b4net.dk (port157.ds1-taa.adsl.cybercity.dk
-	[212.242.111.226])
-	by cicero1.cybercity.dk (Postfix) with ESMTP id 12B82427D9F
-	for <video4linux-list@redhat.com>;
-	Thu, 17 Jul 2008 00:12:14 +0200 (CEST)
-Received: from [10.0.0.16] (unknown [10.0.0.16])
-	by jakob.b4net.dk (Postfix) with ESMTP id 89871131800E
-	for <video4linux-list@redhat.com>;
-	Thu, 17 Jul 2008 00:12:08 +0200 (CEST)
-Message-ID: <487E7238.7030003@b4net.dk>
-Date: Thu, 17 Jul 2008 00:12:08 +0200
-From: Per Baekgaard <baekgaard@b4net.dk>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6I2ec76032337
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 22:40:38 -0400
+Received: from exprod8og103.obsmtp.com (exprod8og103.obsmtp.com [64.18.3.86])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6I2eNIw000842
+	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 22:40:23 -0400
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Seeking help for a 713x based card
+Date: Thu, 17 Jul 2008 19:38:55 -0700
+Message-ID: <1822849CB0478545ADCFB217EF4A3405F9E246@sedah.startrac.com>
+From: "Dan Taylor" <dtaylor@startrac.com>
+To: <video4linux-list@redhat.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Subject: AVerMedia A16D / DVB-T tuning problem
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,37 +26,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I have a card of unknown (to me) brand that identifies itself as a 
-1131:7133 (chipset) with 1a7f:2004 rev d1 as the subsystem ID/revision.
+I have an AVerMedia A16D, running linux kernel 2.6.26 patched with v4l
+from yesterday (2008-07-16).
 
-The card is unfortunately glued (!) inside a LCD enclosure, and I am not 
-able to see any further identifications on it.
+=20
 
-Google'ing the SVID/SSID hints that it could be a PAL derivative of an 
-Encore ENLTV-FM card. When asked, Encore basically just said that the 
-closest match would appear to be ENLTV-FM and that there is no support 
-for linux and asked me to look at sourceforge.net ;-)
+I can tune US cable, US broadcast, and European and Australian PAL
+analog broadcasts, but cannot get it to tune DVB-T (Berlin's set, for
+test purposes).  Mplayer reports "Not able to lock to the signal on the
+given frequency, timeout: 30".  I have checked the frequency from our
+signal generator with a frequency/signal strength meter and it is there,
+and have tried other frequencies including a known good frequency from
+the digital part of our local cable system (not that the A16D can decode
+the ATSC).
 
-I am able to get it partially running by using "options saa7134 card=107 
-tuner=54" (or card 3), but it appears that changing channel via tvtime 
-or myth  fails roughly half the time and simply causes it to return an 
-invalid (or empty) video stream. Indeed, in myth, it sometimes crashes 
-the application.
+=20
 
-I am also not able to capture any sound from the card, although 
-saa7134_alsa gets loaded as expected.
+When I tried to use 50 MHz (default on our generator), the driver kernel
+message reported the tuner as capable of (174000000..862000000), so the
+560000000 we tried is supposed to be in the correct range.
 
+=20
 
-How do I debug this, and get the driver to recognise the card properly?
+We are using tuner "firmware" (with md5sum):
 
-Or any good hints at what the card may be? Would the i2c reveal any 
-further hints?
+=20
 
+293dc5e915d9a0f74a368f8a2ce3cc10
+/lib/firmware/2.6.26-MX945GME/xc3028-v27.fw
 
-Thanks in advance,
+=20
 
+A: does anyone have DVB-T running with the A16D?
 
--- Per.
+=20
+
+B: do we have the correct firmware, and, if not, what should we have and
+where can we get it?
+
+=20
+
+Any other suggestions?
+
+=20
+
+Thanks.
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
