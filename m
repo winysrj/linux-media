@@ -1,28 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6BLCHUp009578
-	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 17:12:17 -0400
-Received: from mailrelay007.isp.belgacom.be (mailrelay007.isp.belgacom.be
-	[195.238.6.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6BLC6A5002693
-	for <video4linux-list@redhat.com>; Fri, 11 Jul 2008 17:12:07 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: "David Ellingsworth" <david@identd.dyndns.org>
-Date: Fri, 11 Jul 2008 23:12:00 +0200
-References: <200807112132.16345.laurent.pinchart@skynet.be>
-	<30353c3d0807111306t1a6cca59k63f6a204ffc2f4fc@mail.gmail.com>
-In-Reply-To: <30353c3d0807111306t1a6cca59k63f6a204ffc2f4fc@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6IAfQQi004813
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 06:41:26 -0400
+Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6IAfD4g031312
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 06:41:13 -0400
+Received: from smtp6-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp6-g19.free.fr (Postfix) with ESMTP id BD0D55FE2A
+	for <video4linux-list@redhat.com>;
+	Fri, 18 Jul 2008 12:41:12 +0200 (CEST)
+Received: from velvet (mur31-2-82-243-122-54.fbx.proxad.net [82.243.122.54])
+	by smtp6-g19.free.fr (Postfix) with ESMTP id 7BE475FD5D
+	for <video4linux-list@redhat.com>;
+	Fri, 18 Jul 2008 12:41:12 +0200 (CEST)
+To: video4linux-list@redhat.com
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Fri, 18 Jul 2008 12:41:11 +0200
+Message-ID: <87wsjj79vc.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807112312.01322.laurent.pinchart@skynet.be>
-Cc: Romano Giannetti <romano@dea.icai.upcomillas.es>,
-	video4linux-list@redhat.com, Roland Dreier <roland@digitalvampire.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] uvcvideo: Fix possible AB-BA deadlock with
-	videodev_lock and open_mutex
+Content-Type: text/plain; charset=us-ascii
+Subject: Micron mt9m111 chip
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,79 +31,16 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 11 July 2008, David Ellingsworth wrote:
-> On Fri, Jul 11, 2008 at 3:32 PM, Laurent Pinchart
->
-> <laurent.pinchart@skynet.be> wrote:
-> > The uvcvideo driver's uvc_v4l2_open() method is called from videodev's
-> > video_open() function, which means it is called with the videodev_lock
-> > mutex held.  uvc_v4l2_open() then takes uvc_driver.open_mutex to check
-> > dev->state and avoid racing against a device disconnect, which means
-> > that open_mutex must nest inside videodev_lock.
-> >
-> > However uvc_disconnect() takes the open_mutex around setting
-> > dev->state and also around putting its device reference.  However, if
-> > uvc_disconnect() ends up dropping the last reference, it will call
-> > uvc_delete(), which calls into the videodev code to unregister its
-> > device, and this will end up taking videodev_lock.  This opens a
-> > (unlikely in practice) window for an AB-BA deadlock and also causes a
-> > lockdep warning because of the lock misordering.
-> >
-> > Fortunately there is no apparent reason to hold open_mutex when doing
-> > kref_put() in uvc_disconnect(): if uvc_v4l2_open() runs before the
-> > state is set to UVC_DEV_DISCONNECTED, then it will take another
-> > reference to the device and kref_put() won't call uvc_delete; if
-> > uvc_v4l2_open() runs after the state is set, it will run before
-> > uvc_delete(), see the state, and return immediately -- uvc_delete()
-> > does uvc_unregister_video() (and hence video_unregister_device(),
-> > which is synchronized with videodev_lock) as its first thing, so there
-> > is no risk of use-after-free in uvc_v4l2_open().
-> >
-> > Bug diagnosed based on a lockdep warning reported by Romano Giannetti
-> > <romano@dea.icai.upcomillas.es>.
-> >
-> > Signed-off-by: Roland Dreier <roland@digitalvampire.org>
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
-> > ---
-> >  drivers/media/video/uvc/uvc_driver.c |    9 ++++++---
-> >  1 files changed, 6 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/media/video/uvc/uvc_driver.c
-> > b/drivers/media/video/uvc/uvc_driver.c
-> > index 14b3839..d29d28d 100644
-> > --- a/drivers/media/video/uvc/uvc_driver.c
-> > +++ b/drivers/media/video/uvc/uvc_driver.c
-> > @@ -1633,13 +1633,16 @@ static void uvc_disconnect(struct usb_interface
-> > *intf) * reference to the uvc_device instance after uvc_v4l2_open()
-> > received * the pointer to the device (video_devdata) but before it got
-> > the * chance to increase the reference count (kref_get).
-> > +        *
-> > +        * Note that the reference can't be released with the lock held,
-> > +        * otherwise a AB-BA deadlock can occur with videodev_lock that
-> > +        * videodev acquires in videodev_open() and
-> > video_unregister_device(). */
-> >        mutex_lock(&uvc_driver.open_mutex);
-> > -
-> >        dev->state |= UVC_DEV_DISCONNECTED;
-> > -       kref_put(&dev->kref, uvc_delete);
-> > -
-> >        mutex_unlock(&uvc_driver.open_mutex);
-> > +
-> > +       kref_put(&dev->kref, uvc_delete);
-> >  }
->
-> I haven't really examined the uvc driver, but I suspect the above
-> reference counting may be unnecessary once videodev has been corrected
-> to properly increment and decrement the kobject reference count during
-> open and close respectively. I suspect the uvc_delete method could be
-> called from the video_device release callback once this happens.
+Hello,
 
-A little code shuffling will happen then, and the uvcvideo private reference 
-will be dropped.
+Is anyone actively developping a kernel driver for Micron's mt9m111 chip ? If
+not, I'll take that job. If yes, would somebody tell me where is the source and
+what is its state please ?
 
-Best regards,
+Regards.
 
-Laurent Pinchart
+--
+Robert
 
 --
 video4linux-list mailing list
