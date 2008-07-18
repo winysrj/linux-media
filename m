@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gv-out-0910.google.com ([216.239.58.185])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <moosylog@gmail.com>) id 1KFqif-0008JD-Ab
-	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 15:25:30 +0200
-Received: by gv-out-0910.google.com with SMTP id n29so370559gve.16
-	for <linux-dvb@linuxtv.org>; Mon, 07 Jul 2008 06:25:25 -0700 (PDT)
-Message-ID: <2ff0d0e20807070625y10019060h98f4e0974ccb3681@mail.gmail.com>
-Date: Mon, 7 Jul 2008 15:25:24 +0200
-From: "Moosy Log" <moosylog@gmail.com>
+Received: from n32.bullet.mail.ukl.yahoo.com ([87.248.110.149])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1KKkmF-0007T2-53
+	for linux-dvb@linuxtv.org; Mon, 21 Jul 2008 04:05:28 +0200
+Date: Fri, 18 Jul 2008 08:04:43 -0400
+From: manu <eallaud@yahoo.fr>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <486D5789.7050006@iki.fi>
+References: <200807170023.57637.ajurik@quick.cz>
+	<3efb10970807170320w39377ae9p9db0081dda9c3f5f@mail.gmail.com>
+	<487F3365.4070306@chaosmedia.org>
+	<3efb10970807171311t46d075cdudef4b34cc069c265@mail.gmail.com>
+	<20080718112256.6da5bdf9@bk.ru>
+In-Reply-To: <20080718112256.6da5bdf9@bk.ru> (from goga777@bk.ru on Fri Jul
+	18 03:22:56 2008)
+Message-Id: <1216382683l.8087l.2l@manu-laptop>
 MIME-Version: 1.0
-References: <2ff0d0e20807031250s7fd0386ch9f9551f46ff771d2@mail.gmail.com>
-	<486D5789.7050006@iki.fi>
-Subject: Re: [linux-dvb] DUTV005 (CE9500B1) DVB-T USB Dongle
+Content-Disposition: inline
+Subject: [linux-dvb] Re :  szap - p - r options (was - T S2-3200 driver)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,46 +24,50 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0165508469=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0165508469==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_10371_11073763.1215437124761"
+Le 18.07.2008 03:22:56, Goga777 a =E9crit=A0:
+> > > with szap2 you also can tune to FTA channels using the option "-
+> p"
+> and read
+> > > the stream from your frontend dvr (/dev/dvb/adapter0/dvr0) with
+> mplayer for
+> > > example..
+> =
 
-------=_Part_10371_11073763.1215437124761
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> =
 
-I'm collecting all information about the dutv005, including some snoopypro
-logfiles on the following page:
-http://sites.google.com/site/moosyresearch/dutv005
+> btw, could someone explain me what's difference between szap - r and
+> szap - p options ?
+> =
 
-hope someone else will pick up
+> when should I use -r options. when - p or both -r -p ???
+> =
 
-------=_Part_10371_11073763.1215437124761
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>   -r        : set up /dev/dvb/adapterX/dvr0 for TS recording
+>   -p        : add pat and pmt to TS recording (implies -r)
 
-I&#39;m collecting all information about the dutv005, including some snoopypro logfiles on the following page:<br><a href="http://sites.google.com/site/moosyresearch/dutv005">http://sites.google.com/site/moosyresearch/dutv005</a><br>
-<br>hope someone else will pick up<br>
+I would guess that -r will just enable the dvr0 output so that you can =
 
-------=_Part_10371_11073763.1215437124761--
+record it by dumping it to a file, whereas -p will do the same plus pat =
+
+and pmt which means that the stream will contain the necessary tables =
+
+to select one of the channels (this pis probably needed by the app that =
+
+will record/play the stream).
+IOn brief try both and see whihc one works ;-)
+HTH
+Bye
+Manu
 
 
---===============0165508469==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0165508469==--
