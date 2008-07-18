@@ -1,36 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6143ai6029122
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:03:36 -0400
-Received: from soda.ext.ti.com (soda.ext.ti.com [198.47.26.145])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6143AwI013622
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 00:03:10 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by soda.ext.ti.com (8.13.7/8.13.7) with ESMTP id m61430cP014488
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:03:05 -0500
-Received: from legion.dal.design.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id m61430i1001189
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:03:00 -0500 (CDT)
-Received: from dirac.dal.design.ti.com (dirac.dal.design.ti.com
-	[128.247.25.123])
-	by legion.dal.design.ti.com (8.11.7p1+Sun/8.11.7) with ESMTP id
-	m6142xG19464
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:02:59 -0500 (CDT)
-Received: from dirac.dal.design.ti.com (localhost.localdomain [127.0.0.1])
-	by dirac.dal.design.ti.com (8.12.11/8.12.11) with ESMTP id
-	m6142x85003735
-	for <video4linux-list@redhat.com>; Mon, 30 Jun 2008 23:02:59 -0500
-Received: (from a0270762@localhost)
-	by dirac.dal.design.ti.com (8.12.11/8.12.11/Submit) id m6142xbV003694
-	for video4linux-list@redhat.com; Mon, 30 Jun 2008 23:02:59 -0500
-Date: Mon, 30 Jun 2008 23:02:59 -0500
-From: Mohit Jalori <mjalori@ti.com>
-To: video4linux-list@redhat.com
-Message-ID: <20080701040259.GA3677@dirac.dal.design.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Subject: [Patch 4/16] OMAP3 camera driver V4L2 RAW10
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6IMmPCC025214
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 18:48:25 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6IMmDNI022072
+	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 18:48:13 -0400
+Date: Sat, 19 Jul 2008 00:48:08 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Paul Mundt <lethal@linux-sh.org>
+In-Reply-To: <20080718222713.GA18822@linux-sh.org>
+Message-ID: <Pine.LNX.4.64.0807190046260.32334@axis700.grange>
+References: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
+	<20080714120249.4806.66136.sendpatchset@rx1.opensource.se>
+	<Pine.LNX.4.64.0807180918160.13569@axis700.grange>
+	<aec7e5c30807180107g6d2f55fdh917da10963f3df20@mail.gmail.com>
+	<Pine.LNX.4.64.0807181015470.14224@axis700.grange>
+	<20080718214644.GB21846@linux-sh.org>
+	<Pine.LNX.4.64.0807190009550.32334@axis700.grange>
+	<20080718222713.GA18822@linux-sh.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, linux-sh@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	paulius.zaleckas@teltonika.lt, akpm@linux-foundation.org
+Subject: Re: [PATCH 05/06] sh_mobile_ceu_camera: Add SuperH Mobile CEU driver
+ V3
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -42,30 +36,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
->From 5059759d433bcdb2a51afeefe8c174e243fd58b1 Mon Sep 17 00:00:00 2001
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Date: Thu, 29 May 2008 13:16:49 +0300
-Subject: [PATCH] Adding 10-bit RAW Bayer format.
+On Sat, 19 Jul 2008, Paul Mundt wrote:
 
-Signed-off-by: Mohit Jalori <mjalori@ti.com>
+> If you have an IORESOURCE_MEM resource in your platform device, the
+> iomem_resource pointer gets referenced, just as with
+> request_mem_region(), and they both go through __request_region(). The
+> only difference is that request_mem_region() doesn't permit nesting,
+> while insert_resource() does. There's nothing else going on here.
+
+Indeed, I was so used to request_mem_region() that I didn't think about it 
+in terms of "struct resource" management. I stand corrected.
+
+Thanks
+Guennadi
 ---
- include/linux/videodev2.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index c141118..29a3e25 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -309,6 +309,7 @@ struct v4l2_pix_format
- 
- /* see http://www.siliconimaging.com/RGB%20Bayer.htm */
- #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B','A','8','1') /*  8  BGBG.. GRGR.. */
-+#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B','A','1','0') /* 10bit raw bayer  */
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B','Y','R','2') /* 16  BGBG.. GRGR.. */
- 
- /* compressed formats */
--- 
-1.5.5.1
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
