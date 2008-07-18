@@ -1,25 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out02.email.it ([212.97.34.22])
+Received: from fg-out-1718.google.com ([72.14.220.157])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <aladar65@email.it>) id 1KJrV0-0004xp-OX
-	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 17:04:02 +0200
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by smtp-out02.email.it (Postfix) with ESMTP id C30AE2C02A
-	for <linux-dvb@linuxtv.org>; Fri, 18 Jul 2008 17:03:52 +0200 (CEST)
-Received: from smtp-out02.email.it ([127.0.0.1])
-	by localhost (smtp-out02.email.it [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id iAjIr9BAmzdi for <linux-dvb@linuxtv.org>;
-	Fri, 18 Jul 2008 17:03:52 +0200 (CEST)
-Received: from 81.116.196.113 (wm9.email.it [212.97.34.52])
-	by smtp-out02.email.it (Postfix) with ESMTP id 9C6D32C009
-	for <linux-dvb@linuxtv.org>; Fri, 18 Jul 2008 17:03:52 +0200 (CEST)
-Date: Fri, 18 Jul 2008 16:44:19 +0200
+	(envelope-from <christophpfister@gmail.com>) id 1KJwVl-000825-BA
+	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 22:25:06 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so223807fga.25
+	for <linux-dvb@linuxtv.org>; Fri, 18 Jul 2008 13:25:01 -0700 (PDT)
+From: Christoph Pfister <christophpfister@gmail.com>
 To: linux-dvb@linuxtv.org
-From: - Aladar65 - <aladar65@email.it>
-Message-ID: <0202365bcadaf441ee4f74d6fe6f315a@81.116.196.113>
+Date: Fri, 18 Jul 2008 22:24:57 +0200
+References: <200807101609.23942.christophpfister@gmail.com>
+	<20080710201349.25f216c0@bk.ru>
+In-Reply-To: <20080710201349.25f216c0@bk.ru>
 MIME-Version: 1.0
-Subject: [linux-dvb] win TV Nova T hauppauge on eeepc 701
-Reply-To: - Aladar65 - <aladar65@email.it>
+Content-Disposition: inline
+Message-Id: <200807182224.57566.christophpfister@gmail.com>
+Subject: Re: [linux-dvb] updated transponder list & channels.conf (was -Fwd:
+	Turksat 1C Lists)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,44 +23,26 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-someone has never installed the win TV Nova T hauppauge on eeepc 701 with
-xandros?
+Hi,
 
-I'm sorry for my english ;-)
--- =
+Am Donnerstag 10 Juli 2008 18:13:49 schrieb Goga777:
+> You can find daily updated  transponder list for many satellite position
+> here http://upload.sat-universum.de/down/channels/CLyngsatSP_003b.tar.bz2
 
- .*. - Alad@r65 - Linux User #437894
- /V
-(/ )
-... le predizioni sono molto difficili, specialmente per il futuro...
+And who creates that file based on which data? I won't mass-update the files 
+without knowing its sources nor having some kind of okay ...
 
-There are 10 types of people in the world: Those who understand binary,
-and those who don't.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-| GNU/Debian Linux Sid/Unstable user                                  |
-| Please avoid sending me Word or PowerPoint attachments              |
-| http://www.gnu.org/philosophy/no-word-attachments.html              |
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-"questo non =E8 volare: questo =E8 cadere con stile!!!" =
+> and here - updated channels.conf for some satellites
+> http://upload.sat-universum.de/index.php?path=down%2Fchannels/
+<snip>
 
- --
- Email.it, the professional e-mail, gratis per te: http://www.email.it/f
- =
-
- Sponsor:
- "Tu e Lui inseparabili" grande concorso Cesar!				=
-
-Vinci speciali premi per te e tanti prodotti Cesar per il tuo cane!
-Partecipa ora!
- Clicca qui: http://adv.email.it/cgi-bin/foclick.cgi?mid=3D8116&d=3D20080718
-
-
+Christoph
 
 _______________________________________________
 linux-dvb mailing list
