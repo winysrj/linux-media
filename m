@@ -1,22 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n37.bullet.mail.ukl.yahoo.com ([87.248.110.170])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1KIibI-0003CL-Po
-	for linux-dvb@linuxtv.org; Tue, 15 Jul 2008 13:21:45 +0200
-Date: Mon, 14 Jul 2008 22:55:36 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-References: <646735.31020.qm@web23206.mail.ird.yahoo.com>
-	<20080714162659.6ae92e21@bk.ru> <1216043192l.7674l.0l@manu-laptop>
-	<20080714215156.2da2678c@bk.ru> <1216062978l.7674l.1l@manu-laptop>
-	<20080715001416.34c5d564@bk.ru>
-In-Reply-To: <20080715001416.34c5d564@bk.ru> (from goga777@bk.ru on Mon Jul
-	14 16:14:16 2008)
-Message-Id: <1216090536l.1474l.2l@manu-laptop>
+Received: from ti-out-0910.google.com ([209.85.142.186])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tobetter@gmail.com>) id 1KK6aa-0006U0-9T
+	for linux-dvb@linuxtv.org; Sat, 19 Jul 2008 09:10:45 +0200
+Received: by ti-out-0910.google.com with SMTP id w7so463634tib.13
+	for <linux-dvb@linuxtv.org>; Sat, 19 Jul 2008 00:10:37 -0700 (PDT)
+Message-ID: <552c685c0807190010l73e662e9re1795ec69b963ba0@mail.gmail.com>
+Date: Sat, 19 Jul 2008 16:10:37 +0900
+From: "Dongjin Kim" <tobetter@gmail.com>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re : Re : Re : problems with multiproto & dvb-s2 with
- high SR, losing parts of stream
+Subject: [linux-dvb] About KeyFly CAM module.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,48 +18,79 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============1691718303=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 14.07.2008 16:14:16, Goga777 a =E9crit=A0:
-> > > > And you could retrieve the stream with no problemn even watch
-> it?
-> > > =
+--===============1691718303==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_29060_20880806.1216451437444"
 
-> > > do you mean H264/ffmpeg decoding problem ? Ah, I can't open these
-> > > encrypted channels =
+------=_Part_29060_20880806.1216451437444
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> > =
+Hi,
 
-> > Is it a card problem? I mean my TT-3200 has problems to tune on =
+Is there somebody who had activated the CAM module 'KeyFly' of SIDSA?
 
-> some
-> =
+http://www.sidsa.com/c/portal/layout?p_l_id=PUB.1.33
 
-> > channels, but when it tunes the CI/CAM works perfectly (here almost =
+According the specification it is compliant of EN50221, I hoped it works
+with the linux driver.
 
-> > every channel is encrypted). Does HVR-4000 has a good CI?
-> =
+But it failed while negotiating internal buffer size of CAM.
 
-> I don't have the card, that's why I can't open these channels. We =
+Also it always show me the flag 'RE' bit of status register as '1' whenever
+I read it.
 
-> have
-> spoken about LOCK :)
+Is there somebody who has experience to handle this CAM module?
 
-Hmm OK I understand now ;-)
-I was just trying to see if someone around here has found a good dvb-S2 =
+Does the CAM module has some problem?
 
-card with perfect recpetion and good cam support...
-Thx
-Bye
-Manu
+Regards.
+tobetter wrote.
+
+------=_Part_29060_20880806.1216451437444
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div>Hi,</div>
+<div>&nbsp;</div>
+<div>Is there somebody who had activated the CAM module &#39;KeyFly&#39; of SIDSA?</div>
+<div>&nbsp;</div>
+<div><a href="http://www.sidsa.com/c/portal/layout?p_l_id=PUB.1.33">http://www.sidsa.com/c/portal/layout?p_l_id=PUB.1.33</a></div>
+<div>&nbsp;</div>
+<div>According the specification it is compliant of EN50221, I hoped it works with the linux driver.</div>
+<div>&nbsp;</div>
+<div>But it failed while negotiating internal buffer size of CAM.</div>
+<div>&nbsp;</div>
+<div>Also it always show me the flag &#39;RE&#39; bit of status register as &#39;1&#39; whenever I read it.</div>
+<div>&nbsp;</div>
+<div>Is there somebody who has experience to handle this CAM module?</div>
+<div>&nbsp;</div>
+<div>Does the CAM module has some problem?</div>
+<div>&nbsp;</div>
+<div>Regards.</div>
+<div>tobetter wrote.</div>
+<div>&nbsp;</div>
+<div>&nbsp;</div>
+
+------=_Part_29060_20880806.1216451437444--
 
 
+--===============1691718303==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1691718303==--
