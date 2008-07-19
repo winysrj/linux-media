@@ -1,20 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m652raKp001047
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 22:53:36 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m652rOOB024013
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 22:53:24 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so1337595wfc.6
-	for <video4linux-list@redhat.com>; Fri, 04 Jul 2008 19:53:23 -0700 (PDT)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: video4linux-list@redhat.com
-Date: Sat, 05 Jul 2008 11:53:35 +0900
-Message-Id: <20080705025335.27137.98068.sendpatchset@rx1.opensource.se>
-Cc: paulius.zaleckas@teltonika.lt, linux-sh@vger.kernel.org,
-	mchehab@infradead.org, lethal@linux-sh.org,
-	akpm@linux-foundation.org, g.liakhovetski@gmx.de
-Subject: [PATCH 00/04] soc_camera: SuperH Mobile CEU support V2
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6JJ9RZj032703
+	for <video4linux-list@redhat.com>; Sat, 19 Jul 2008 15:09:27 -0400
+Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6JJ9Bwk031808
+	for <video4linux-list@redhat.com>; Sat, 19 Jul 2008 15:09:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date: Sat, 19 Jul 2008 21:08:14 +0200
+References: <1216308014.1146.22.camel@melchior>
+	<200807171758.19702.hverkuil@xs4all.nl>
+	<1216336451.1146.41.camel@melchior>
+In-Reply-To: <1216336451.1146.41.camel@melchior>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200807192108.14376.hverkuil@xs4all.nl>
+Cc: Video4Linux ML <video4linux-list@redhat.com>,
+	Linux Kernel list <linux-kernel@vger.kernel.org>,
+	ivtv-devel ML <ivtv-devel@ivtvdriver.org>
+Subject: Re: [ivtv-devel] [PATCH AVAIL.]ivtv:Crash 2.6.26 with KUROTOSIKOU
+	CX23416-STVLP
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,36 +34,93 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is V2 of the SuperH Mobile CEU interface patches.
+On Friday 18 July 2008 01:13:45 Kyuma Ohta wrote:
+> Dear Hans,
+> Thanx for reply.
 
-[PATCH 01/04] soc_camera: Move spinlocks
-[PATCH 02/04] soc_camera: Add 16-bit bus width support
-[PATCH 03/04] videobuf: Add physically contiguous queue code V2
-[PATCH 04/04] sh_mobile_ceu_camera: Add SuperH Mobile CEU driver V2
+Hi Ohta,
 
-Changes since V1:
- - dropped former V1 patches [01/07]->[04/07]
- - rebased on top of [PATCH] soc_camera: make videobuf independent
- - rewrote spinlock changes into the new [01/04] patch
- - updated the videobuf-dma-contig code with feeback from Paulius Zaleckas
- - fixed the CEU driver to work with the newly updated patches
+I've decided to wait until I have access to my own card with upd64083 
+and upd64031a devices. I'll be back in the Netherlands in about two 
+weeks from now, and then I can pick it up and bring it back with me to 
+Oslo where I can test it and fix the problem.
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
----
+The backtrace doesn't really help me, I think I need to do a bit of 
+debugging myself.
 
- Applies on top of 2.6.26-rc8-next-20080703 together with
- "[PATCH] soc_camera: make videobuf independent".
+A bit of a shame that I didn't bring it with me a week ago. It was on my 
+list of things to take with me, but my suitcase was already pretty full 
+so I decided against it. Next time I'll make sure I have it :-)
 
- drivers/media/video/Kconfig                |   13 
- drivers/media/video/Makefile               |    2 
- drivers/media/video/pxa_camera.c           |   17 
- drivers/media/video/sh_mobile_ceu_camera.c |  623 ++++++++++++++++++++++++++++
- drivers/media/video/soc_camera.c           |   39 -
- drivers/media/video/videobuf-dma-contig.c  |  417 ++++++++++++++++++
- include/asm-sh/sh_mobile_ceu.h             |   10 
- include/media/soc_camera.h                 |   12 
- include/media/videobuf-dma-contig.h        |   32 +
- 9 files changed, 1108 insertions(+), 57 deletions(-)
+For now just use your workaround. It can't do any harm, but it is not 
+the right solution. That will have to wait until I can test it myself.
+
+Regards,
+
+	Hans
+
+> Hans Verkuil wrote:
+> > On Thursday 17 July 2008 17:20:14 Kyuma Ohta wrote:
+> > > Hi,
+> > > I'm testing 2.6.26/amd64 with Athlon64 x2 Box with
+> > > KUROTOSIKOU CX23416-STVLP,always crash ivtv driver
+> > > when loading upd64083 driver.
+> > > I checked crash dump,this issue cause of loading
+> > > upd64083.ko with i2c_probed_new_device().
+> > > So,I fixed ivtv-i2c.c of 2.6.26 vanilla,and
+> > > fixed *pretty* differnce memory allocation,structure
+> > > of upd64083.c.
+> > > I'm running patched 2.6.26 vanilla with below attached
+> > > patches over 24hrs,and over 10hrs recording from ivtv,
+> > > not happend anything;-)
+> > > Please apply below to 2.6.26.x..
+> > >
+> > > Best regards,
+> > > Ohta.
+> >
+> > Hi Ohta,
+> >
+> > Thanks for the patches. If I'm not mistaken there are several
+> > variants of this card: without upd* devices, only with upd64083 and
+> > with both upd devices. Which one do you have?
+> >
+> > Can you also show the dmesg output when ivtv loads?
+> >
+> > Looking at the four patches, I would say that the only relevant
+> > patch is the fix-probing patch. If you try it with only that one
+> > applied, does it still work correct for you? Note that this patch
+> > will not work with a KUROTOSIKOU card that has no upd* devices at
+> > all.
+> >
+> > Can you also give me the kernel backtrace when you load ivtv with
+> > the vanilla 2.6.26? I do not quite understand why it should crash.
+> >
+> > Regards,
+> >
+> > 	Hans
+>
+> I have a ivtv card with *both* upd64083 and upd64031a.
+> I don't still try testing apply only one of patch,only
+> apply all of...
+>
+> I attach compressed logs when loading ivtv at boottime,
+> parallel probing saa7134 v4l2 device,
+> both applied (successed) ,not applied (failed).
+>
+> Best regards,
+> Ohta
+>
+>
+>
+> E-Mail: whatisthis.sowhat@gmail.com (Public)
+> Home Page: http://d.hatena.ne.jp/artane/
+>   (Sorry,not maintaining,and written in Japanese only...)
+> Twitter: Artanejp (Mainly Japanese)
+> ICQ: 366538955
+> KEYID: 6B79F95F
+> FINGERPRINT:
+> 9AB3 8569 6033 FDBE 352B  CB6D DBFA B9E2 6B79 F95F
+
 
 --
 video4linux-list mailing list
