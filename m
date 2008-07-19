@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6P7bVf9020355
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 03:37:31 -0400
-Received: from akbkhome.com (246-113.netfront.net [202.81.246.113])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6P7bGTa021758
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 03:37:17 -0400
-Received: from awork064158.netvigator.com ([203.198.249.158]
-	helo=[192.168.1.96])
-	by akbkhome.com with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69) (envelope-from <alan@akbkhome.com>) id 1KMHrb-0002Gy-Bh
-	for video4linux-list@redhat.com; Fri, 25 Jul 2008 15:37:19 +0800
-Message-ID: <48898289.2070305@akbkhome.com>
-Date: Fri, 25 Jul 2008 15:36:41 +0800
-From: Alan Knowles <alan@akbkhome.com>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6JMdmth024038
+	for <video4linux-list@redhat.com>; Sat, 19 Jul 2008 18:39:49 -0400
+Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
+	[151.189.21.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6JMdXUE027348
+	for <video4linux-list@redhat.com>; Sat, 19 Jul 2008 18:39:33 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Per Baekgaard <baekgaard@b4net.dk>
+In-Reply-To: <487FC316.30306@b4net.dk>
+References: <487E7238.7030003@b4net.dk>
+	<1216252071.2669.56.camel@pc10.localdom.local>
+	<487EF54E.8040704@b4net.dk>
+	<1216317753.2659.85.camel@pc10.localdom.local>
+	<487FC316.30306@b4net.dk>
+Content-Type: text/plain
+Date: Sun, 20 Jul 2008 00:18:09 +0200
+Message-Id: <1216505889.4542.66.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: ASUS  My Cinema-U3100Mini/DMB-TH  (Legend Slilicon 8934)
+Cc: video4linux-list@redhat.com
+Subject: Re: Seeking help for a 713x based card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,67 +32,170 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I've been looking at the drivers for  My Cinema-U3100Mini/DMB-TH
+Hi,
 
-The source is available directly from ASUS now. 
-http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/source_code.zip
+Am Freitag, den 18.07.2008, 00:09 +0200 schrieb Per Baekgaard:
+> Thanks again -- quite a lot to digest.
+> 
+> I was working late yesterday, so unfortunately I was copying some 
+> incorrect lines from the 3xhybrid.inf file ;-(
+> 
+> The correct lines would be these ones, I think:
+> 
+> ;******** Mercur, Tiger,... ***
+> ;%PHILIPS_30.DeviceDesc% = 
+> PHILIPS_30.NTx86,PCI\VEN_1131&DEV_7130&SUBSYS_20181A7F
+> ;%PHILIPS_33.DeviceDesc% = 
+> PHILIPS_33.NTx86,PCI\VEN_1131&DEV_7133&SUBSYS_20181A7F
+> ;%PHILIPS_34.DeviceDesc% = 
+> PHILIPS_34.NTx86,PCI\VEN_1131&DEV_7134&SUBSYS_20181A7F
+>  
+> ;******** Europa (1-3), Snake, Tough, Smart, Clever ***
+> %PHILIPS_30.DeviceDesc% = 
+> PHILIPS_30.NTx86,PCI\VEN_1131&DEV_7130&SUBSYS_20041A7F
+> %PHILIPS_33.DeviceDesc% = 
+> PHILIPS_33.NTx86,PCI\VEN_1131&DEV_7133&SUBSYS_20041A7F
+> %PHILIPS_34.DeviceDesc% = 
+> PHILIPS_34.NTx86,PCI\VEN_1131&DEV_7134&SUBSYS_20041A7F
 
-I've diffed it to the version they have used, and applied it, and fixed 
-it against the current source
-http://www.akbkhome.com/svn/asus_dvb_driver/v4l-dvb-diff-from-current.diff
+not sure in any way, could be some Mini PCI stuff.
 
-In addition there are the drivers for the ADI MTV102 silicon tuner driver
-http://www.akbkhome.com/svn/asus_dvb_driver/frontends/
-(all the adimtv* files)
+> ;******** SAA7133 x32 ***
+> [PHILIPS_33.NTx86.CoInstallers]
+> CopyFiles     = SectionX32.CopyDll.NTx86
+> AddReg        = SectionX32.DllAddReg.NTx86
+>  
+> [PHILIPS_33.NTx86]
+> Include       = ks.inf, wdmaudio.inf, kscaptur.inf, bda.inf
+> Needs         = KS.Registration.NT, WDMAUDIO.Registration.NT, 
+> KSCAPTUR.Registration.NT, BDA.Installation.NT
+> CopyFiles     = SectionX32.CopyDriver.NTx86, SectionX32.CopyDll.NTx86
+> AddReg        = SectionX32.AddReg.NTx86, PHILIPS_33.AddReg
+>  
+> [PHILIPS_33.NTx86.Services]
+> AddService    = %SERVICE_NAME_X32%, 0x00000002, 
+> SectionX32.ServiceInstall.NTx86
+> 
+> ;******** General DLL Registry Entries ***
+> ;
+>  
+> [SectionX32.DllAddReg.NTx86]
+> HKR,,CoInstallers32,0x00010000,"34CoInstaller.dll, CoInstallerEntry"
+>  
+> 
+> ;
+> ;******** General Driver Registry Entries ***
+> ;
+>  
+> [SectionX32.AddReg.NTx86]
+>  
+> HKR,,DevLoader,,*NTKERN
+> HKR,,NTMPDriver,,3xHybrid.sys
+>  
+> ; --- Registry Entries For Audio Capture ---
+>  
+> HKR,,Driver,,3xHybrid.sys
+> HKR,,AssociatedFilters,,"wdmaud,swmidi,redbook"
+>  
+> HKR,Drivers,SubClasses,,"wave,mixer"
+> HKR,Drivers\wave\wdmaud.drv,Driver,,wdmaud.drv
+> HKR,Drivers\mixer\wdmaud.drv,Driver,,wdmaud.drv
+> HKR,Drivers\wave\wdmaud.drv,Description,,%PHILIPS.AudioDeviceDesc%
+> HKR,Drivers\mixer\wdmaud.drv,Description,,%PHILIPS.AudioDeviceDesc%
+>  
+> ; add audio input and output pinnames
+> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_ANLG_AUDIO_IN_PIN%,"Name",,"Analog 
+> Audioinput"
+> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_ANLG_AUDIO_OUT_PIN%,"Name",,"Audio" 
+> 
+> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_ANLG_VIDEO_ITU_PIN%,"Name",,"Analog 
+> ITU Video"
+> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_ANLG_AUDIO_I2S_PIN%,"Name",,"I2S 
+> Audio"
+> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_MPEG_AES_PIN%,"Name",,"MPEG 
+> Audio ES"
+> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_MPEG_VES_PIN%,"Name",,"MPEG 
+> Video ES"
+> HKLM,SYSTEM\CurrentControlSet\Control\MediaCategories\%AVSTREAM_MPEG_PS_PIN%,"Name",, 
+> "MPEG2 Program"
+> 
+> ;---- SAA7133 ----
+> [PHILIPS_33.AddReg]
+>  
+> ; Prefix will be displayed in front of the device name on every filter
+> HKR, "Parameters","Prefix",,%PHILIPS_CUSTOM_TUNERNAME%
+>  
+> ; Reduces second pair of video/audio inputs
+> HKR, "Parameters","SmallXBar",0x00010001,0x01
+> 
+> 
+> 
+> ... so much for trying to reduce the amount of data. Apologies.
+> 
+> The entire file is here:
+> 
+>    http://www.b4net.dk/3xhybrid.inf
+> 
+> hermann pitton wrote:
+> > Hmm, subsystem 20041A7F not listed.
+> > From the eeprom the card looks like Philips TIGER hybrid.
+> > Some 3xHybrid.sys should be around then.
+> >   
+> Mea culpa. It is not a Proteus system but as you point out maybe a Tiger 
+> derivative of some sort "Snake, Tough, Smart, Clever" -- whatever that is!
+> 
+> > Is support for wireless network announced too?
+> >   
+> On the motherboard, yes, but not on the tuner as far as I can see.
+> > IIRC, it also comes with an USB remote, but I'm not sure.
+> >   
+> Yes, there is a remote, but not USB based, as far as I can tell.
+> > If you have saa7134-alsa loaded and you have a sound card/chip on the
+> > MB, something like sox can be used for testing.
+> > "sox -c 2 -s -w -r 32000 -t ossdsp /dev/dsp1 -t ossdsp -w -r 32000 /dev/dsp"
+> >   
+> I've tried something similar (arecord|aplay) but it doens't seem to 
+> capture any sound at all.
+> >   
+> > You might try with card=117 or card=96.
+> >   
+> Will do -- makes sense even if not a Proteus card (as I apparently 
+> copied some incorrect lines above)?
+> > Do you have two antenna input connectors or only one?
+> >   
+> One for this tuner only. There is a normal RCA video connector, a 
+> S-video of some sort and a mini-jack for sound input, I believe.
+> > Card=81 Philips Tiger would be better then.
+> >   
+> I'll try that too.
+> > That would be the tda10046 DVB-T demod.
+> >
+> >   
+> > Tuner=54 analog demod.
+> >   
+> So card 81 and tuner 54 would be a good quess then?
+> > Ah good, here we can see tuner address is 0x61.
+> > TV amux is for sure wrong on card=107.
+> >   
+> Yep... looks like it is ;-)
+> > If you have sometimes a flashing picture with card=81 or 78 on analog
+> > TV, or in case you get audio working and hear humming sound or you get
+> > DVB-T working, but unstable lock, such could indicate that it has a
+> > LowNoiseAmplifier that needs to be correctly configured, that is another
+> > story.
+> >   
+> I'll try and report back on my findings -- mainly card 81, 117 or 96 
+> then? Or are there other tiger based ones I should try?
+> 
+> 
+> -- Per.
+> 
 
-The source code appears to use a slightly differ usb stick to the one's 
-I have.
-0x1748  (cold)  / 0x1749 (warm)
-where as I've got
-0x1721(cold) /  0x1722 (warm)
+Most interesting should be next what you get on trying on DVB-T.
 
-It looks like they hacked up dib3000mc.c, rather than writing a new driver
+Cheers,
+Hermann
 
-I've got to the point where it builds, firmware installs etc. (firmware 
-is available inside the deb packages)
-http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/asus-dmbth-20080528_tar.zip
-
-The driver initializes correctly when plugged in.
- [302520.686782] dvb-usb: ASUSTeK DMB-TH successfully deinitialized and 
-disconnected.
-[302530.550018] dvb-usb: found a 'ASUSTeK DMB-TH' in warm state.
-[353408.577741] dvb-usb: will pass the complete MPEG2 transport stream 
-to the software demuxer.
-[353408.680977] DVB: registering new adapter (ASUSTeK DMB-TH)
-[302530.670387]  Cannot find LGS8934
-[302530.670596] DVB: registering frontend 0 (Legend Slilicon 8934)...
-[302530.670668] adimtv102_readreg 0x00
-[302530.676090] adimtv102_readreg 0x01
-[302530.681578] adimtv102_readreg 0x02
-[302530.687077] adimtv102: successfully identified (ff ff ff)
-[302530.688577] dvb-usb: ASUSTeK DMB-TH successfully initialized and 
-connected.
-[302530.688624] usbcore: registered new interface driver dvb_usb_dibusb_mc
-[353413.776593] adimtv102_init
-
-when w_scan is run, it outputs activity...
-[353416.533576] lgs8934_SetAutoMode!
-[353416.553928] lgs8934_auto_detect!
-[353418.285686] lgs8934_auto_detect, lock 0
-[353418.285686] adimtv102_set_params freq=184500
-[353418.378803] MTV102>>tp->freq=184 PLLF=d8000 PLLFREQ=1472000  
-MTV10x_REFCLK=16384 !
-......
-
-however fails to pick up any channels...
-
-I'm trying to connect to these -
-http://en.wikipedia.org/wiki/Digital_television_in_Hong_Kong
-
-Any ideas welcome..
-
-Regards
-Alan
 
 --
 video4linux-list mailing list
