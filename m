@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp.ispdone.com ([69.39.47.46] helo=smtp-auth0.ispdone.com)
+Received: from moutng.kundenserver.de ([212.227.126.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <purevw@wtxs.net>) id 1KGHzg-00052f-Gj
-	for linux-dvb@linuxtv.org; Tue, 08 Jul 2008 20:32:55 +0200
-Received: from [192.168.123.110] (net-69-39-58-36.texascom.net [69.39.58.36]
-	(may be forged)) (authenticated bits=0)
-	by smtp-auth0.ispdone.com (8.13.1/8.13.1) with ESMTP id m68NWboK023015
-	for <linux-dvb@linuxtv.org>; Tue, 8 Jul 2008 18:32:44 -0500
-From: Ronnie Bailey <purevw@wtxs.net>
-To: linux-dvb@linuxtv.org
-Date: Tue, 08 Jul 2008 13:32:37 -0500
-Message-Id: <1215541957.4797.21.camel@Opto.Bailey>
+	(envelope-from <thomas@ickes-home.de>) id 1KK8Hc-0004VE-Hd
+	for linux-dvb@linuxtv.org; Sat, 19 Jul 2008 10:59:17 +0200
+From: tom <thomas@ickes-home.de>
+To: Antti Palosaari <crope@iki.fi>
+In-Reply-To: <488101C8.9070408@iki.fi>
+References: <1216403709.10841.20.camel@super-klappi>
+	<4880DF35.8040505@iki.fi>  <488101C8.9070408@iki.fi>
+Date: Sat, 19 Jul 2008 10:58:16 +0200
+Message-Id: <1216457896.6463.4.camel@super-klappi>
 Mime-Version: 1.0
-Subject: [linux-dvb] Problems with ATI USB Hybrid
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Problems with MSI Digivox Duo DVB-T USB, Ubuntu	8.04
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,227 +20,159 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1764379794=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
---===============1764379794==
-Content-Type: multipart/alternative; boundary="=-uSSfUC9nm54Onf5w2XQF"
-
-
---=-uSSfUC9nm54Onf5w2XQF
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-Hi All,
-    I am trying to install an ATI TV Wonder HD 600 USB card and not
-having any luck. No matter what I try, there is no /dev/video  and also
-no /dev/dvb.  The module seems to load OK, but the card is not found.
-Yast sees the card, but only identifies it as a USB device and not a TV
-card. I'll include what info I have. I would appreciate any help
-offered. I am trying my best to eliminate Microsoft from my systems.
-This driver problem is one of the last major headaches. I'm not sure if
-this matters, but I need to set it up as NTSC-M with us cable. Channel 3
-will be the only channel used.
-
-Yast Hardware information states:
-
-  102: udi =
-'/org/freedesktop/Hal/devices/usb_device_438_b002_660729005035'
-  info.subsystem = 'usb_device'
-  usb_device.vendor = 'Advanced Micro Devices, Inc.'
-  usb_device.bus_number = 2 (0x2)
-  linux.subsystem = 'usb'
-  info.linux.driver = 'usb'
-  usb_device.product = 'ATI TV Wonder 600 USB 2.0'
-  info.product = 'ATI TV Wonder 600 USB 2.0'
-  linux.device_file = '/dev/bus/usb/002/008'
-  usb_device.linux.sysfs_path =
-'/sys/devices/pci0000:00/0000:00:02.1/usb2/2-1/2-1.7'
-  usb_device.device_revision_bcd = 272 (0x110)
-  info.udi =
-'/org/freedesktop/Hal/devices/usb_device_438_b002_660729005035'
-  usb_device.configuration_value = 1 (0x1)
-  usb_device.max_power = 500 (0x1f4)
-  usb_device.num_configurations = 1 (0x1)
-  usb_device.num_ports = 0 (0x0)
-  usb_device.num_interfaces = 1 (0x1)
-  usb_device.linux.device_number = 8 (0x8)
-  usb_device.device_class = 0 (0x0)
-  usb_device.serial = '660729005035'
-  linux.sysfs_path =
-'/sys/devices/pci0000:00/0000:00:02.1/usb2/2-1/2-1.7'
-  usb_device.device_subclass = 0 (0x0)
-  info.vendor = 'Advanced Micro Devices, Inc.'
-  usb_device.speed = 480.000
-  info.parent =
-'/org/freedesktop/Hal/devices/usb_device_50d_237_noserial'
-  usb_device.device_protocol = 0 (0x0)
-  usb_device.version = 2.00000
-  usb_device.vendor_id = 1080 (0x438)
-  usb_device.is_self_powered = false
-  usb_device.product_id = 45058 (0xb002)
-  usb_device.can_wake_up = false
-  linux.hotplug_type = 2 (0x2)
-
-Pertinent lsmod info:
-
-Module                Size            Used By
-em28xx_dvb           26884          0
-dvb_core              109348          1 em28xx_dvb
-em28xx                   81836          1 em28xx_dvb
-compat_ioctl32        25856          1 em28xx
-videodev                  55040          2 em28xx,compat_ioctl32
-v4l1_compat            31620          1 videodev
-videobuf_vmalloc       25476          1 em28xx
-videobuf_core          38788          2 em28xx,videobuf_vmalloc
-ir_common              60932          2 ir_kbd_i2c,em28xx
-v4l2_common            29824          1 em28xx
-tveeprom               30724              1 em28xx
-
-lsusb gives me this:
-
-Bus 002 Device 008: ID 0438:b002 Advanced Micro Devices, Inc.
-
-dmesg shows:
-
-fuse init (API version 7.9)
-Linux video capture interface: v2.00
-em28xx v4l2 driver version 0.1.0 loaded
-usbcore: registered new interface driver em28xx
-Em28xx: Initialized (Em28xx dvb Extension) extension
-
-Xine posted a couple of warning messages:
-
-Jul 8 12:26:44 Opto xinetd[3495]: No such internal service: chargen/raw
-- DISABLING
-
-Jul 8 12:26:45 Opto xinetd[3495]: Port not specified and can't find
-service: netstat with getservbyname
-
-Jul 8 12:26:45 Opto xinetd[3495]: No such internal service:
-servers/stream - DISABLING
-
-Jul 8 12:26:45 Opto xinetd[3495]: No such internal service:
-services/stream - DISABLING
-
-When I open Xine and try to connect to DVB. it simply states:
-
-Input plugin failed to open mrl 'Sorry, No DVB input device found
-
-Thanks in advance,
-Ronnie Bailey
-
---=-uSSfUC9nm54Onf5w2XQF
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
-<HTML>
-<HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/3.18.1">
-</HEAD>
-<BODY>
-Hi All,<BR>
-&nbsp;&nbsp;&nbsp; I am trying to install an ATI TV Wonder HD 600 USB card and not having any luck. No matter what I try, there is no /dev/video&nbsp; and also no /dev/dvb.&nbsp; The module seems to load OK, but the card is not found. Yast sees the card, but only identifies it as a USB device and not a TV card. I'll include what info I have. I would appreciate any help offered. I am trying my best to eliminate Microsoft from my systems. This driver problem is one of the last major headaches. I'm not sure if this matters, but I need to set it up as NTSC-M with us cable. Channel 3 will be the only channel used.<BR>
-<BR>
-<B>Yast Hardware information states:</B><BR>
-<BR>
-&nbsp; 102: udi = '/org/freedesktop/Hal/devices/usb_device_438_b002_660729005035'<BR>
-&nbsp; info.subsystem = 'usb_device'<BR>
-&nbsp; usb_device.vendor = 'Advanced Micro Devices, Inc.'<BR>
-&nbsp; usb_device.bus_number = 2 (0x2)<BR>
-&nbsp; linux.subsystem = 'usb'<BR>
-&nbsp; info.linux.driver = 'usb'<BR>
-&nbsp; usb_device.product = 'ATI TV Wonder 600 USB 2.0'<BR>
-&nbsp; info.product = 'ATI TV Wonder 600 USB 2.0'<BR>
-&nbsp; linux.device_file = '/dev/bus/usb/002/008'<BR>
-&nbsp; usb_device.linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.1/usb2/2-1/2-1.7'<BR>
-&nbsp; usb_device.device_revision_bcd = 272 (0x110)<BR>
-&nbsp; info.udi = '/org/freedesktop/Hal/devices/usb_device_438_b002_660729005035'<BR>
-&nbsp; usb_device.configuration_value = 1 (0x1)<BR>
-&nbsp; usb_device.max_power = 500 (0x1f4)<BR>
-&nbsp; usb_device.num_configurations = 1 (0x1)<BR>
-&nbsp; usb_device.num_ports = 0 (0x0)<BR>
-&nbsp; usb_device.num_interfaces = 1 (0x1)<BR>
-&nbsp; usb_device.linux.device_number = 8 (0x8)<BR>
-&nbsp; usb_device.device_class = 0 (0x0)<BR>
-&nbsp; usb_device.serial = '660729005035'<BR>
-&nbsp; linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.1/usb2/2-1/2-1.7'<BR>
-&nbsp; usb_device.device_subclass = 0 (0x0)<BR>
-&nbsp; info.vendor = 'Advanced Micro Devices, Inc.'<BR>
-&nbsp; usb_device.speed = 480.000<BR>
-&nbsp; info.parent = '/org/freedesktop/Hal/devices/usb_device_50d_237_noserial'<BR>
-&nbsp; usb_device.device_protocol = 0 (0x0)<BR>
-&nbsp; usb_device.version = 2.00000<BR>
-&nbsp; usb_device.vendor_id = 1080 (0x438)<BR>
-&nbsp; usb_device.is_self_powered = false<BR>
-&nbsp; usb_device.product_id = 45058 (0xb002)<BR>
-&nbsp; usb_device.can_wake_up = false<BR>
-&nbsp; linux.hotplug_type = 2 (0x2)<BR>
-<BR>
-<B>Pertinent lsmod info:</B><BR>
-<BR>
-<B>Module&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Size&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Used By</B><BR>
-em28xx_dvb&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 26884&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 0<BR>
-dvb_core&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 109348&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 em28xx_dvb<BR>
-em28xx&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 81836&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 em28xx_dvb<BR>
-compat_ioctl32&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 25856&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 em28xx<BR>
-videodev&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 55040&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2 em28xx,compat_ioctl32<BR>
-v4l1_compat&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 31620&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 videodev<BR>
-videobuf_vmalloc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 25476&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 em28xx<BR>
-videobuf_core&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 38788&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2 em28xx,videobuf_vmalloc<BR>
-ir_common&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 60932&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2 ir_kbd_i2c,em28xx<BR>
-v4l2_common&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 29824&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 em28xx<BR>
-tveeprom&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 30724&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1 em28xx<BR>
-<BR>
-<B>lsusb gives me this:</B><BR>
-<BR>
-Bus 002 Device 008: ID 0438:b002 Advanced Micro Devices, Inc.<BR>
-<BR>
-<B>dmesg shows:</B><BR>
-<BR>
-fuse init (API version 7.9)<BR>
-Linux video capture interface: v2.00<BR>
-em28xx v4l2 driver version 0.1.0 loaded<BR>
-usbcore: registered new interface driver em28xx<BR>
-Em28xx: Initialized (Em28xx dvb Extension) extension<BR>
-<BR>
-<B>Xine posted a couple of warning messages:</B><BR>
-<BR>
-Jul 8 12:26:44 Opto xinetd[3495]: No such internal service: chargen/raw - DISABLING<BR>
-<BR>
-Jul 8 12:26:45 Opto xinetd[3495]: Port not specified and can't find service: netstat with getservbyname<BR>
-<BR>
-Jul 8 12:26:45 Opto xinetd[3495]: No such internal service: servers/stream - DISABLING<BR>
-<BR>
-Jul 8 12:26:45 Opto xinetd[3495]: No such internal service: services/stream - DISABLING<BR>
-<BR>
-<B>When I open Xine and try to connect to DVB. it simply states:</B><BR>
-<BR>
-Input plugin failed to open mrl 'Sorry, No DVB input device found<BR>
-<BR>
-Thanks in advance,<BR>
-Ronnie Bailey
-</BODY>
-</HTML>
-
---=-uSSfUC9nm54Onf5w2XQF--
-
-
-
---===============1764379794==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1764379794==--
+77u/SGkgQW50dGksCkkgaGF2ZSBpbnN0YWxsZWQgdGhlIGRyaXZlci4gQWZ0ZXIgcmVib290IGRt
+ZXNnIGdpdmVzIHRoZSBmb2xsb3dpbmcuCgpkbWVzZyB8IGdyZXAgZHZiOgoKWyAxMzg3LjI4MTkx
+M10gZHZiLXVzYjogTVNJIERJR0lWT1ggRHVvIHN1Y2Nlc3NmdWxseSBkZWluaXRpYWxpemVkIGFu
+ZApkaXNjb25uZWN0ZWQuClsgMTM5Ny4wMjk4MzZdIGR2Yi11c2I6IGZvdW5kIGEgJ01TSSBESUdJ
+Vk9YIER1bycgaW4gY29sZCBzdGF0ZSwgd2lsbAp0cnkgdG8gbG9hZCBhIGZpcm13YXJlClsgMTM5
+Ny4wNjI1MDNdIGR2Yi11c2I6IGRvd25sb2FkaW5nIGZpcm13YXJlIGZyb20gZmlsZQonZHZiLXVz
+Yi1hZjkwMTUuZncnClsgIDc2MC41OTA4NTVdIGR2Yi11c2I6IGdlbmVyaWMgRFZCLVVTQiBtb2R1
+bGUgc3VjY2Vzc2Z1bGx5CmRlaW5pdGlhbGl6ZWQgYW5kIGRpc2Nvbm5lY3RlZC4KWyAxMzk3Ljc5
+NjQ5M10gZHZiLXVzYjogZm91bmQgYSAnTVNJIERJR0lWT1ggRHVvJyBpbiB3YXJtIHN0YXRlLgpb
+IDEzOTcuNzk2NjAyXSBkdmItdXNiOiB3aWxsIHBhc3MgdGhlIGNvbXBsZXRlIE1QRUcyIHRyYW5z
+cG9ydCBzdHJlYW0gdG8KdGhlIHNvZnR3YXJlIGRlbXV4ZXIuClsgMTM5OC41NDgzNjBdIGR2Yi11
+c2I6IHdpbGwgcGFzcyB0aGUgY29tcGxldGUgTVBFRzIgdHJhbnNwb3J0IHN0cmVhbSB0bwp0aGUg
+c29mdHdhcmUgZGVtdXhlci4KWyAxMzk5LjUxNzQyMl0gZHZiLXVzYjogTVNJIERJR0lWT1ggRHVv
+IHN1Y2Nlc3NmdWxseSBpbml0aWFsaXplZCBhbmQKY29ubmVjdGVkLgpbIDE1MTAuNTA2MjMyXSBk
+dmItdXNiOiBjb3VsZCBub3QgaGFuZGxlIHBpZF9wYXJzZXIKWyAxNTMyLjUwMjMyOF0gZHZiLXVz
+YjogY291bGQgbm90IGhhbmRsZSBwaWRfcGFyc2VyClsgMTU1NS4xMjUyMDNdIGR2Yi11c2I6IGNv
+dWxkIG5vdCBoYW5kbGUgcGlkX3BhcnNlcgpbIDE1NzcuNDY0MjQ0XSBkdmItdXNiOiBjb3VsZCBu
+b3QgaGFuZGxlIHBpZF9wYXJzZXIKWyAxNjAwLjQ5NjE0OV0gZHZiLXVzYjogY291bGQgbm90IGhh
+bmRsZSBwaWRfcGFyc2VyClsgMTYyMi40OTYzOTFdIGR2Yi11c2I6IGNvdWxkIG5vdCBoYW5kbGUg
+cGlkX3BhcnNlcgpbIDIzMjQuODM2ODI0XSBkdmItdXNiOiBjb3VsZCBub3QgaGFuZGxlIHBpZF9w
+YXJzZXIKWyAyMzQ3LjY1MDcyMF0gZHZiLXVzYjogY291bGQgbm90IGhhbmRsZSBwaWRfcGFyc2Vy
+ClsgMjM3MS4xMzM3OTJdIGR2Yi11c2I6IGNvdWxkIG5vdCBoYW5kbGUgcGlkX3BhcnNlcgpbIDIz
+OTMuNzUyNjE2XSBkdmItdXNiOiBjb3VsZCBub3QgaGFuZGxlIHBpZF9wYXJzZXIKWyAyNDE1Ljg5
+NTcyOF0gZHZiLXVzYjogY291bGQgbm90IGhhbmRsZSBwaWRfcGFyc2VyClsgMjQzNy44OTE4MjRd
+IGR2Yi11c2I6IGNvdWxkIG5vdCBoYW5kbGUgcGlkX3BhcnNlcgoKQSBjaGFubmVsIHNjYW4gd2l0
+aCBLYWZmZWluZSB3YXMgbm90IHN1Y2Nlc3NmdWxsLiBIZXJlIHRoZSByZXN1bHRzOgoKa2J1aWxk
+c3ljb2NhIHJ1bm5pbmcuLi4KUmV1c2luZyBleGlzdGluZyBrc3ljb2NhCi9kZXYvZHZiL2FkYXB0
+ZXIwL2Zyb250ZW5kMCA6IG9wZW5lZCAoIEFmYXRlY2ggQUY5MDEzIERWQi1UICkKL2Rldi9kdmIv
+YWRhcHRlcjEvZnJvbnRlbmQwIDogb3BlbmVkICggQWZhdGVjaCBBRjkwMTMgRFZCLVQgKQowIEVQ
+RyBwbHVnaW5zIGxvYWRlZCBmb3IgZGV2aWNlIDA6MC4KMCBFUEcgcGx1Z2lucyBsb2FkZWQgZm9y
+IGRldmljZSAxOjAuCkxvYWRlZCBlcGcgZGF0YSA6IDAgZXZlbnRzICgwIG1zZWNzKQpraW8gKEtN
+aW1lVHlwZSk6IFdBUk5JTkc6IEtTZXJ2aWNlVHlwZTo6b2ZmZXJzIDogc2VydmljZXR5cGUKVGh1
+bWJDcmVhdG9yIG5vdCBmb3VuZApraW8gKEtNaW1lVHlwZSk6IFdBUk5JTkc6IEtTZXJ2aWNlVHlw
+ZTo6b2ZmZXJzIDogc2VydmljZXR5cGUKVGh1bWJDcmVhdG9yIG5vdCBmb3VuZAp0b21Ac3VwZXIt
+a2xhcHBpOn4kIER2YkNhbTo6cHJvYmUoKTogL2Rldi9kdmIvYWRhcHRlcjAvY2EwOiA6IE5vIHN1
+Y2gKZmlsZSBvciBkaXJlY3RvcnkKVXNpbmcgRFZCIGRldmljZSAwOjAgIkFmYXRlY2ggQUY5MDEz
+IERWQi1UIgp0dW5pbmcgRFZCLVQgdG8gNDAyMDAwMDAwIEh6CmludjoyIGJ3OjAgZmVjSDo5IGZl
+Y0w6OSBtb2Q6NiB0bToyIGdpOjQgaGllcjo0Ci5GRV9SRUFEX1NUQVRVUzogUmVtb3RlIEkvTyBl
+cnJvcgoKVHJhbnNwb25kZXJzOiAxLzYzCgpJbnZhbGlkIHNlY3Rpb24gbGVuZ3RoIG9yIHRpbWVv
+dXQ6IHBpZD0xNwoKRnJvbnRlbmQgY2xvc2VkCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBi
+dXN5CmR2YnNpOiBDYW50IHR1bmUgRFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5
+CmR2YnNpOiBDYW50IHR1bmUgRFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2
+YnNpOiBDYW50IHR1bmUgRFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNp
+OiBDYW50IHR1bmUgRFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBD
+YW50IHR1bmUgRFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50
+IHR1bmUgRFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1
+bmUgRFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUg
+RFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZC
+Cm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZCClVz
+aW5nIERWQiBkZXZpY2UgMDowICJBZmF0ZWNoIEFGOTAxMyBEVkItVCIKdHVuaW5nIERWQi1UIHRv
+IDQ5MDAwMDAwMCBIegppbnY6MiBidzowIGZlY0g6OSBmZWNMOjkgbW9kOjYgdG06MiBnaTo0IGhp
+ZXI6NAouRkVfUkVBRF9TVEFUVVM6IFJlbW90ZSBJL08gZXJyb3IKClRyYW5zcG9uZGVyczogMTIv
+NjMKCkludmFsaWQgc2VjdGlvbiBsZW5ndGggb3IgdGltZW91dDogcGlkPTE3CgpGcm9udGVuZCBj
+bG9zZWQKb3BlbkZlOjogRGV2aWNlIG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBE
+VkIKb3BlbkZlOjogRGV2aWNlIG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIK
+VXNpbmcgRFZCIGRldmljZSAwOjAgIkFmYXRlY2ggQUY5MDEzIERWQi1UIgp0dW5pbmcgRFZCLVQg
+dG8gNTE0MDAwMDAwIEh6CmludjoyIGJ3OjAgZmVjSDo5IGZlY0w6OSBtb2Q6NiB0bToyIGdpOjQg
+aGllcjo0Ci5GRV9SRUFEX1NUQVRVUzogUmVtb3RlIEkvTyBlcnJvcgoKVHJhbnNwb25kZXJzOiAx
+NS82MwoKSW52YWxpZCBzZWN0aW9uIGxlbmd0aCBvciB0aW1lb3V0OiBwaWQ9MTcKCkZyb250ZW5k
+IGNsb3NlZApvcGVuRmU6OiBEZXZpY2Ugb3IgcmVzb3VyY2UgYnVzeQpkdmJzaTogQ2FudCB0dW5l
+IERWQgpvcGVuRmU6OiBEZXZpY2Ugb3IgcmVzb3VyY2UgYnVzeQpkdmJzaTogQ2FudCB0dW5lIERW
+QgpVc2luZyBEVkIgZGV2aWNlIDA6MCAiQWZhdGVjaCBBRjkwMTMgRFZCLVQiCnR1bmluZyBEVkIt
+VCB0byA1MzgwMDAwMDAgSHoKaW52OjIgYnc6MCBmZWNIOjkgZmVjTDo5IG1vZDo2IHRtOjIgZ2k6
+NCBoaWVyOjQKLkZFX1JFQURfU1RBVFVTOiBSZW1vdGUgSS9PIGVycm9yCgpUcmFuc3BvbmRlcnM6
+IDE4LzYzCgpJbnZhbGlkIHNlY3Rpb24gbGVuZ3RoIG9yIHRpbWVvdXQ6IHBpZD0xNwoKRnJvbnRl
+bmQgY2xvc2VkCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1
+bmUgRFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUg
+RFZCClVzaW5nIERWQiBkZXZpY2UgMDowICJBZmF0ZWNoIEFGOTAxMyBEVkItVCIKdHVuaW5nIERW
+Qi1UIHRvIDU2MjAwMDAwMCBIegppbnY6MiBidzowIGZlY0g6OSBmZWNMOjkgbW9kOjYgdG06MiBn
+aTo0IGhpZXI6NAouRkVfUkVBRF9TVEFUVVM6IFJlbW90ZSBJL08gZXJyb3IKClRyYW5zcG9uZGVy
+czogMjEvNjMKCkludmFsaWQgc2VjdGlvbiBsZW5ndGggb3IgdGltZW91dDogcGlkPTE3CgpGcm9u
+dGVuZCBjbG9zZWQKb3BlbkZlOjogRGV2aWNlIG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQg
+dHVuZSBEVkIKb3BlbkZlOjogRGV2aWNlIG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVu
+ZSBEVkIKVXNpbmcgRFZCIGRldmljZSAwOjAgIkFmYXRlY2ggQUY5MDEzIERWQi1UIgp0dW5pbmcg
+RFZCLVQgdG8gNTg2MDAwMDAwIEh6CmludjoyIGJ3OjAgZmVjSDo5IGZlY0w6OSBtb2Q6NiB0bToy
+IGdpOjQgaGllcjo0Ci5GRV9SRUFEX1NUQVRVUzogUmVtb3RlIEkvTyBlcnJvcgoKVHJhbnNwb25k
+ZXJzOiAyNC82MwoKSW52YWxpZCBzZWN0aW9uIGxlbmd0aCBvciB0aW1lb3V0OiBwaWQ9MTcKCkZy
+b250ZW5kIGNsb3NlZApvcGVuRmU6OiBEZXZpY2Ugb3IgcmVzb3VyY2UgYnVzeQpkdmJzaTogQ2Fu
+dCB0dW5lIERWQgpvcGVuRmU6OiBEZXZpY2Ugb3IgcmVzb3VyY2UgYnVzeQpkdmJzaTogQ2FudCB0
+dW5lIERWQgpVc2luZyBEVkIgZGV2aWNlIDA6MCAiQWZhdGVjaCBBRjkwMTMgRFZCLVQiCnR1bmlu
+ZyBEVkItVCB0byA2MTAwMDAwMDAgSHoKaW52OjIgYnc6MCBmZWNIOjkgZmVjTDo5IG1vZDo2IHRt
+OjIgZ2k6NCBoaWVyOjQKLkZFX1JFQURfU1RBVFVTOiBSZW1vdGUgSS9PIGVycm9yCgpUcmFuc3Bv
+bmRlcnM6IDI3LzYzCgpJbnZhbGlkIHNlY3Rpb24gbGVuZ3RoIG9yIHRpbWVvdXQ6IHBpZD0xNwoK
+RnJvbnRlbmQgY2xvc2VkCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBD
+YW50IHR1bmUgRFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50
+IHR1bmUgRFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1
+bmUgRFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUg
+RFZCCm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZC
+Cm9wZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZCCm9w
+ZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZCCm9wZW5G
+ZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZCCm9wZW5GZTo6
+IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZCCm9wZW5GZTo6IERl
+dmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZCClVzaW5nIERWQiBkZXZp
+Y2UgMDowICJBZmF0ZWNoIEFGOTAxMyBEVkItVCIKdHVuaW5nIERWQi1UIHRvIDY5ODAwMDAwMCBI
+egppbnY6MiBidzowIGZlY0g6OSBmZWNMOjkgbW9kOjYgdG06MiBnaTo0IGhpZXI6NAouRkVfUkVB
+RF9TVEFUVVM6IFJlbW90ZSBJL08gZXJyb3IKClRyYW5zcG9uZGVyczogMzgvNjMKCkludmFsaWQg
+c2VjdGlvbiBsZW5ndGggb3IgdGltZW91dDogcGlkPTE3CgpGcm9udGVuZCBjbG9zZWQKb3BlbkZl
+OjogRGV2aWNlIG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKb3BlbkZlOjog
+RGV2aWNlIG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKVXNpbmcgRFZCIGRl
+dmljZSAwOjAgIkFmYXRlY2ggQUY5MDEzIERWQi1UIgp0dW5pbmcgRFZCLVQgdG8gNzIyMDAwMDAw
+IEh6CmludjoyIGJ3OjAgZmVjSDo5IGZlY0w6OSBtb2Q6NiB0bToyIGdpOjQgaGllcjo0Ci5GRV9S
+RUFEX1NUQVRVUzogUmVtb3RlIEkvTyBlcnJvcgoKVHJhbnNwb25kZXJzOiA0MS82MwoKSW52YWxp
+ZCBzZWN0aW9uIGxlbmd0aCBvciB0aW1lb3V0OiBwaWQ9MTcKCkZyb250ZW5kIGNsb3NlZApvcGVu
+RmU6OiBEZXZpY2Ugb3IgcmVzb3VyY2UgYnVzeQpkdmJzaTogQ2FudCB0dW5lIERWQgpvcGVuRmU6
+OiBEZXZpY2Ugb3IgcmVzb3VyY2UgYnVzeQpkdmJzaTogQ2FudCB0dW5lIERWQgpVc2luZyBEVkIg
+ZGV2aWNlIDA6MCAiQWZhdGVjaCBBRjkwMTMgRFZCLVQiCnR1bmluZyBEVkItVCB0byA3NDYwMDAw
+MDAgSHoKaW52OjIgYnc6MCBmZWNIOjkgZmVjTDo5IG1vZDo2IHRtOjIgZ2k6NCBoaWVyOjQKLkZF
+X1JFQURfU1RBVFVTOiBSZW1vdGUgSS9PIGVycm9yCgpUcmFuc3BvbmRlcnM6IDQ0LzYzCgpJbnZh
+bGlkIHNlY3Rpb24gbGVuZ3RoIG9yIHRpbWVvdXQ6IHBpZD0xNwoKRnJvbnRlbmQgY2xvc2VkCm9w
+ZW5GZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZCCm9wZW5G
+ZTo6IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZCClVzaW5nIERW
+QiBkZXZpY2UgMDowICJBZmF0ZWNoIEFGOTAxMyBEVkItVCIKdHVuaW5nIERWQi1UIHRvIDc3MDAw
+MDAwMCBIegppbnY6MiBidzowIGZlY0g6OSBmZWNMOjkgbW9kOjYgdG06MiBnaTo0IGhpZXI6NAou
+RkVfUkVBRF9TVEFUVVM6IFJlbW90ZSBJL08gZXJyb3IKClRyYW5zcG9uZGVyczogNDcvNjMKCklu
+dmFsaWQgc2VjdGlvbiBsZW5ndGggb3IgdGltZW91dDogcGlkPTE3CgpGcm9udGVuZCBjbG9zZWQK
+b3BlbkZlOjogRGV2aWNlIG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKb3Bl
+bkZlOjogRGV2aWNlIG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKb3BlbkZl
+OjogRGV2aWNlIG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKb3BlbkZlOjog
+RGV2aWNlIG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKb3BlbkZlOjogRGV2
+aWNlIG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKb3BlbkZlOjogRGV2aWNl
+IG9yIHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKb3BlbkZlOjogRGV2aWNlIG9y
+IHJlc291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKb3BlbkZlOjogRGV2aWNlIG9yIHJl
+c291cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKb3BlbkZlOjogRGV2aWNlIG9yIHJlc291
+cmNlIGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKb3BlbkZlOjogRGV2aWNlIG9yIHJlc291cmNl
+IGJ1c3kKZHZic2k6IENhbnQgdHVuZSBEVkIKVXNpbmcgRFZCIGRldmljZSAwOjAgIkFmYXRlY2gg
+QUY5MDEzIERWQi1UIgp0dW5pbmcgRFZCLVQgdG8gODU4MDAwMDAwIEh6CmludjoyIGJ3OjAgZmVj
+SDo5IGZlY0w6OSBtb2Q6NiB0bToyIGdpOjQgaGllcjo0Ci5GRV9SRUFEX1NUQVRVUzogUmVtb3Rl
+IEkvTyBlcnJvcgoKVHJhbnNwb25kZXJzOiA1OC82MwoKSW52YWxpZCBzZWN0aW9uIGxlbmd0aCBv
+ciB0aW1lb3V0OiBwaWQ9MTcKCkZyb250ZW5kIGNsb3NlZApvcGVuRmU6OiBEZXZpY2Ugb3IgcmVz
+b3VyY2UgYnVzeQpkdmJzaTogQ2FudCB0dW5lIERWQgpvcGVuRmU6OiBEZXZpY2Ugb3IgcmVzb3Vy
+Y2UgYnVzeQpkdmJzaTogQ2FudCB0dW5lIERWQgpVc2luZyBEVkIgZGV2aWNlIDA6MCAiQWZhdGVj
+aCBBRjkwMTMgRFZCLVQiCnR1bmluZyBEVkItVCB0byA4ODIwMDAwMDAgSHoKaW52OjIgYnc6MCBm
+ZWNIOjkgZmVjTDo5IG1vZDo2IHRtOjIgZ2k6NCBoaWVyOjQKRVJST1IgdHVuaW5nIAo6IEludmFs
+aWQgYXJndW1lbnQKRnJvbnRlbmQgY2xvc2VkCmR2YnNpOiBDYW50IHR1bmUgRFZCCm9wZW5GZTo6
+IERldmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZCCm9wZW5GZTo6IERl
+dmljZSBvciByZXNvdXJjZSBidXN5CmR2YnNpOiBDYW50IHR1bmUgRFZCClRyYW5zcG9uZGVyczog
+NjMKZHZic2k6IFRoZSBlbmQgOikKQ2hhbm5lbHMgZm91bmQ6IDAKClRob21hcwoKCkFtIEZyZWl0
+YWcsIGRlbiAxOC4wNy4yMDA4LCAyMzo0OSArMDMwMCBzY2hyaWViIEFudHRpIFBhbG9zYWFyaToK
+PiBBbnR0aSBQYWxvc2Fhcmkgd3JvdGU6Cj4gPiB0b20gd3JvdGU6Cj4gPj4gSGVsbG8sCj4gPj4g
+c2luY2UgYSBmZXcgZGF5cyBJJ20gdHJ5aW5nIGhhcmQgbWFrZSB0aGlzIHN0aWNrIHJ1bm5pbmcu
+IE9uZSBiYXNpYyBwcm9ibGVtIGlzIHRoYXQgSSdtIG5vdCBhYmxlIHRvIGZpbmQgb3V0IHdoaWNo
+IGNoaXBzZXQgaXMgaW4gdGhpcwo+ID4+IHN0aWNrLgo+ID4+IEkgaGF2ZSB0cmllZCBhZjkwMTUg
+ZHJpdmVyIGFuZCBmaXJtd2FyZSwgYnV0IGl0IGRvZXNuJ3Qgd29yay4KPiA+IAo+ID4gSXQgbG9v
+a3MgbGlrZSBBRjkwMTUgZHVhbCBkZXNpZ24uIEkgdGhpbmsgcHJvYmxlbSB5b3UgaGF2ZSBpcyBt
+aXNzaW5nIAo+ID4gZGV2aWNlIFVTQi1JRHMuIEkgd2lsbCBhZGQgdGhvc2UgaW4gYSBuZXh0IGZl
+dyBob3VycyBhbmQgeW91IGNhbiB0ZXN0IAo+ID4gdGhlbiBhZ2Fpbi4KPiAKPiBOb3cgaXQgaXMg
+cmVhZHkgZm9yIHRoZSB0ZXN0Lgo+IGh0dHA6Ly9saW51eHR2Lm9yZy9oZy9+YW50dGlwL2FmOTAx
+NS8KPiAKPiBBbnR0aQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6
+Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
