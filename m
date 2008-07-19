@@ -1,14 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wp025.webpack.hosteurope.de ([80.237.132.32])
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <julian@summer06.de>) id 1KEL1S-0003eZ-ME
-	for linux-dvb@linuxtv.org; Thu, 03 Jul 2008 11:22:41 +0200
-Message-ID: <486C9A32.3010904@summer06.de>
-Date: Thu, 03 Jul 2008 11:21:54 +0200
-From: Julian Picht <julian@summer06.de>
-MIME-Version: 1.0
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KKJiC-0002QS-IK
+	for linux-dvb@linuxtv.org; Sat, 19 Jul 2008 23:11:29 +0200
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1KKJi6-00077Y-UP
+	for linux-dvb@linuxtv.org; Sat, 19 Jul 2008 21:11:22 +0000
+Received: from 77-103-126-124.cable.ubr10.dals.blueyonder.co.uk
+	([77.103.126.124]) by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sat, 19 Jul 2008 21:11:22 +0000
+Received: from mariofutire by 77-103-126-124.cable.ubr10.dals.blueyonder.co.uk
+	with local (Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sat, 19 Jul 2008 21:11:22 +0000
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Terratec Cinergy S PCI
+From: Andrea <mariofutire@googlemail.com>
+Date: Sat, 19 Jul 2008 22:09:23 +0100
+Message-ID: <48825803.6080801@googlemail.com>
+References: <g5llos$b75$1@ger.gmane.org>
+	<200807182246.17897.christophpfister@gmail.com>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+In-Reply-To: <200807182246.17897.christophpfister@gmail.com>
+Subject: Re: [linux-dvb] [PATCH] 2 patches for dvb-apps gnutv
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,83 +36,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi List.
+Christoph Pfister wrote:
+> Am Mittwoch 16 Juli 2008 22:28:33 schrieb Andrea:
+> 
+> But I'll rework the first patch a bit (the sequence of revents <--> errno 
+> check is already bogus) and commit them. And I really suggest you to use an 
+> application like dvbstream which does its own buffering (at least I hope 
+> so ;) - because it has never happened to me yet that the ringbuffer 
 
-I recently bought a Terratec Cinergy S PCI which uses a Conexant CX2388x 
-chip as it's PCI Interface and a Fujitsu MB86A16 as it's frontend.
+I've read the code of dvbstream and it does not use an other buffer,
+it writes immediately to the output file, the same as gnutv.
 
-I modified the cx88 files to recognize this card. Now I need a some 
-pointers how to attach the MB86A16 frontend (which is included in mantis 
-source, i think) to the cx88 and how to obtain the right i2c adresses etc.
+> overflowed (and it shouldn't with sane applications).
+> 
 
-Is there any documentation on how to do that?
-I would be very happy to contribute to the great work you do and already 
-did.
+It can happen to me when the output file is on a NAS via wireless network.
+gnutv is very easy to use, lightweight, command line and saves subtitles too.
 
---------------------------------------
-# lspci -vvnn
-04:01.0 Multimedia video controller [0400]: Conexant CX23880/1/2/3 PCI 
-Video and Audio Decoder [14f1:8800] (rev 05)
-   Subsystem: TERRATEC Electronic GmbH Device [153b:117a]
-   Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- 
-Stepping- SERR- FastB2B- DisINTx-
-   Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-   Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
-   Interrupt: pin A routed to IRQ 22
-   Region 0: Memory at fb000000 (32-bit, non-prefetchable) [size=16M]
-   Capabilities: <access denied>
-   Kernel driver in use: cx8800
-   Kernel modules: cx8800
+> 
+> Christoph
 
-04:01.2 Multimedia controller [0480]: Conexant CX23880/1/2/3 PCI Video 
-and Audio Decoder [MPEG Port] [14f1:8802] (rev 05)
-   Subsystem: TERRATEC Electronic GmbH Device [153b:117a]
-   Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- 
-Stepping- SERR- FastB2B- DisINTx-
-   Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-   Latency: 32 (1500ns min, 22000ns max), Cache Line Size: 32 bytes
-   Interrupt: pin A routed to IRQ 5
-   Region 0: Memory at fc000000 (32-bit, non-prefetchable) [size=16M]
-   Capabilities: <access denied>
-   Kernel modules: cx8802
+Cheers
 
-04:01.4 Multimedia controller [0480]: Conexant CX23880/1/2/3 PCI Video 
-and Audio Decoder [IR Port] [14f1:8804] (rev 05)
-   Subsystem: TERRATEC Electronic GmbH Device [153b:117a]
-   Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr- 
-Stepping- SERR- FastB2B- DisINTx-
-   Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-   Latency: 32 (1500ns min, 63750ns max), Cache Line Size: 32 bytes
-   Interrupt: pin A routed to IRQ 5
-   Region 0: Memory at fd000000 (32-bit, non-prefetchable) [size=16M]
-   Capabilities: <access denied>
+Andrea
 
---------------------------------------
-# i2cdetect -l
-i2c-0    smbus         SMBus I801 adapter at 0400          SMBus adapter
-i2c-1    i2c           cx88[0]                             I2C adapter
-# i2cdetect 1
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-1.
-I will probe address range 0x03-0x77.
-Continue? [Y/n]
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          -- -- -- -- -- 08 -- -- -- -- -- -- --
-10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-50: UU -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-70: -- -- -- -- -- -- -- --
---------------------------------------
-
-Thanks in advance! Any help appreciated!
-
-Julian Picht
 
 _______________________________________________
 linux-dvb mailing list
