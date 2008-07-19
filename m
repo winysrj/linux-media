@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6HHaUXN019565
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 13:36:30 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6HHZxka026713
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 13:36:01 -0400
-Date: Thu, 17 Jul 2008 13:35:55 -0400 (EDT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200807171910.01863.hverkuil@xs4all.nl>
-Message-ID: <alpine.LFD.1.10.0807171320160.20641@bombadil.infradead.org>
-References: <3dbf42455956d17b8aa6.1214002733@localhost>
-	<200807171848.51033.hverkuil@xs4all.nl>
-	<alpine.LFD.1.10.0807171254060.20641@bombadil.infradead.org>
-	<200807171910.01863.hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6JM5G6G015005
+	for <video4linux-list@redhat.com>; Sat, 19 Jul 2008 18:05:16 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.236])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6JM50wg015470
+	for <video4linux-list@redhat.com>; Sat, 19 Jul 2008 18:05:01 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so878599rvb.51
+	for <video4linux-list@redhat.com>; Sat, 19 Jul 2008 15:05:00 -0700 (PDT)
+Message-ID: <d9def9db0807191505s300b06cdr94c94e81a3e8d57f@mail.gmail.com>
+Date: Sun, 20 Jul 2008 00:05:00 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: interpont@interpont.hu
+In-Reply-To: <40552.89.135.34.134.1216498656.squirrel@webmail.interpont.hu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: Re: [v4l-dvb-maintainer] [PATCH] [PATCH] v4l: Introduce "index"
- attribute for?persistent video4linux device nodes
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <40552.89.135.34.134.1216498656.squirrel@webmail.interpont.hu>
+Cc: video4linux-list@redhat.com
+Subject: Re: New em2821 based tv tuner ... how will it work?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,115 +30,204 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 17 Jul 2008, Hans Verkuil wrote:
+Hi,
 
-> On Thursday 17 July 2008 18:57:49 Mauro Carvalho Chehab wrote:
->> On Thu, 17 Jul 2008, Hans Verkuil wrote:
->>> On Thursday 17 July 2008 18:44:23 Hans Verkuil wrote:
->>>> On Thursday 17 July 2008 18:40:47 Mauro Carvalho Chehab wrote:
->>>>> On Thu, 17 Jul 2008, Hans Verkuil wrote:
->>>>>> On Wednesday 25 June 2008 00:59:51 Brandon Philips wrote:
->>>>>>> On 00:34 Tue 24 Jun 2008, Trent Piepho wrote:
->>>>>>>> On Mon, 23 Jun 2008, Brandon Philips wrote:
->>>>>>>>> +	for (i = 0; i < 32; i++) {
->>>>>>>>> +		if (used & (1 << i))
->>>>>>>>> +			continue;
->>>>>>>>> +		return i;
->>>>>>>>> +	}
->>>>>>>>
->>>>>>>> 	i = ffz(used);
->>>>>>>> 	return i >= 32 ? -ENFILE : i;
->>>>>>>
->>>>>>> Err. Right :D  Tested and pushed.
->>>>>>>
->>>>>>> Mauro-
->>>>>>>
->>>>>>> Updated http://ifup.org/hg/v4l-dvb to have Trent's improvement.
->>>>>>>
->>>>>>> Cheers,
->>>>>>>
->>>>>>> 	Brandon
->>>>>>
->>>>>> Hi Mauro,
->>>>>>
->>>>>> I think you missed this pull request from Brandon. Can you merge
->>>>>> this?
->>>>>
->>>>> Yes, I missed that one.
->>>>>
->>>>> Yet, I didn't like the usage of "32" magic numbers on those
->>>>> parts:
->>>>>
->>>>> -       if (num >= VIDEO_NUM_DEVICES)
->>>>> +
->>>>> +       if (num >= 32) {
->>>>> +               printk(KERN_ERR "videodev: %s num is too
->>>>> large\n", __func__);
->>>>>
->>>>> +       return i >= 32 ? -ENFILE : i;
->>>>>
->>>>>
->>>>> It seems better to use VIDEO_NUM_DEVICES as the maximum limit on
->>>>> both usages of "32".
->>>>>
->>>>> Brandon,
->>>>>
->>>>> Could you fix and re-send me a pull request?
->>>>
->>>> Mauro, Brandon,
->>>>
->>>> If you do not mind, then I'll do this. I'm working on videodev.c
->>>> anyway (making it compatible with kernels <2.6.19) so it's easy
->>>> for me to do merge this and make the necessary adjustment. And I
->>>> can test it with a 2.6.18 kernel at the same time.
->>
->> For me, it is OK if you want to touch on it.
->>
->>> Correction, the 32 refers to the number of bits in an u32, not to
->>> VIDEO_NUM_DEVICES. So I think you can just merge this patch as is.
->>> It does not conflict with my videodev.c changes (amazingly), so it
->>> is no problem if you merge this change.
->>
->> Hmm... If I understood the patch, if you change VIDEO_NUM_DEVICES to
->> a higher number, you'll still be limited on 32 max devices, right?
+On 7/19/08, interpont@interpont.hu <interpont@interpont.hu> wrote:
 >
-> No. The value of 32 refers to the maximum number of devices
-> (/dev/vbiX, /dev/videoX, etc) created for ONE driver instance. E.g. my
-> first ivtv card can create up to 32 devices, my second bttv card can
-> create up to 32 devices, etc. etc.
-
-So, IMO, the better would be to do something like this:
- 	sizeof(u32) * 8
-
-Instead of a magic number. I would also add some comments about this.
+>
+> Hi,
+>
+>
+>
+> I have installed V4L CVS according to this page:
+>
+> http://linuxtv.org/v4lwiki/index.php/How_to_build_from_Mercurial
+>
 
 >
-> The maximum currently in use is probably ivtv with 9 devices for a
-> PVR-350 card. So we are safe with 32.
 >
-> VIDEO_NUM_DEVICES refers to the TOTAL number of video4linux devices
-> created. I have some future plans to enlarge that and possibly also
-> getting rid of how the minor numbers are allocated. Currently this is
-> very unfair with a range of 64 for radio devices and an equal number of
-> video devices, although each ivtv card creates 3 video devices against
-> one radio device (and 5 for a PVR-350 card!). Much better to just pick
-> the first free minor number.
+> I have an "ADS Tech Instant TV USB" device. See website:
 >
-> Regards,
->
-> 	Hans
->
->> If I'm right, then, IMO,  we should use VIDEO_NUM_DEVICES and put a
->> notice that increasing this number will require changing some static
->> var from u32 to u64.
+> http://www.adstech.com/support/productsupport.asp?productId=USBAV-704&productName=Instant%20TV%20USB
 >
 >
 
--- 
-Cheers,
-Mauro Carvalho Chehab
-http://linuxtv.org
-mchehab@infradead.org
+please try the code from mcentral.de for now. I'll get some further
+information next week.
+
+>
+> # lsusb
+>
+> Bus 007 Device 001: ID 0000:0000
+>
+> Bus 006 Device 001: ID 0000:0000
+>
+> Bus 005 Device 001: ID 0000:0000
+>
+> Bus 002 Device 001: ID 0000:0000
+>
+> Bus 001 Device 001: ID 0000:0000
+>
+> Bus 004 Device 002: ID eb1a:2821 eMPIA Technology, Inc.
+>
+> Bus 004 Device 001: ID 0000:0000
+>
+> Bus 003 Device 001: ID 0000:0000
+>
+>
+>
+> # dmesg | grep em28
+>
+> [   69.073149] em28xx v4l2 driver version 0.1.0 loaded
+>
+> [   69.073222] em28xx new video device (eb1a:2821): interface 0, class
+> 255
+>
+> [   69.073290] em28xx Has usb audio class
+>
+> [   69.073293] em28xx #0: Alternate settings: 8
+>
+> [   69.073297] em28xx #0: Alternate setting 0, max size= 0
+>
+> [   69.073301] em28xx #0: Alternate setting 1, max size= 1024
+>
+> [   69.073306] em28xx #0: Alternate setting 2, max size= 1448
+>
+> [   69.073309] em28xx #0: Alternate setting 3, max size= 2048
+>
+> [   69.073313] em28xx #0: Alternate setting 4, max size= 2304
+>
+> [   69.073317] em28xx #0: Alternate setting 5, max size= 2580
+>
+> [   69.073321] em28xx #0: Alternate setting 6, max size= 2892
+>
+> [   69.073325] em28xx #0: Alternate setting 7, max size= 3072
+>
+> [   69.076079] em28xx #0: em28xx chip ID = 18
+>
+> [   69.317350] em28xx #0: found i2c device @ 0x4a [saa7113h]
+>
+> [   69.321464] em28xx #0: found i2c device @ 0x60 [remote IR sensor]
+>
+> [   69.328594] em28xx #0: found i2c device @ 0x86 [tda9887]
+>
+> [   69.340589] em28xx #0: found i2c device @ 0xc6 [tuner (analog)]
+>
+> [   69.351086] em28xx #0: Your board has no unique USB ID and thus need a
+> hint to be detected.
+>
+> [   69.351148] em28xx #0: You may try to use card=<n> insmod option
+> to workaround that.
+>
+> [   69.351217] em28xx #0: Please send an email with this log to:
+>
+> [   69.351281] em28xx #0: 	V4L Mailing List
+> <video4linux-list@redhat.com>
+>
+> [   69.351345] em28xx #0: Board eeprom hash is 0x00000000
+>
+> [   69.351410] em28xx #0: Board i2c devicelist hash is 0x8cad00a0
+>
+> [   69.351474] em28xx #0: Here is a list of valid choices for the
+> card=<n> insmod option:
+>
+> [   69.351555] em28xx #0:     card=0 -> Unknown EM2800 video grabber
+>
+> [   69.351620] em28xx #0:     card=1 -> Unknown EM2750/28xx video
+> grabber
+>
+> [   69.351686] em28xx #0:     card=2 -> Terratec Cinergy 250 USB
+>
+> [   69.351750] em28xx #0:     card=3 -> Pinnacle PCTV USB 2
+>
+> [   69.351812] em28xx #0:     card=4 -> Hauppauge WinTV USB 2
+>
+> [   69.351875] em28xx #0:     card=5 -> MSI VOX USB 2.0
+>
+> [   69.351937] em28xx #0:     card=6 -> Terratec Cinergy 200 USB
+>
+> [   69.352000] em28xx #0:     card=7 -> Leadtek Winfast USB II
+>
+> [   69.352063] em28xx #0:     card=8 -> Kworld USB2800
+>
+> [   69.352126] em28xx #0:     card=9 -> Pinnacle Dazzle DVC 90/DVC
+> 100
+>
+> [   69.352190] em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
+>
+> [   69.352254] em28xx #0:     card=11 -> Terratec Hybrid XS
+>
+> [   69.352316] em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
+>
+> [   69.352379] em28xx #0:     card=13 -> Terratec Prodigy XS
+>
+> [   69.352441] em28xx #0:     card=14 -> Pixelview Prolink PlayTV USB
+> 2.0
+>
+> [   69.352507] em28xx #0:     card=15 -> V-Gear PocketTV
+>
+> [   69.352568] em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
+>
+> [   69.352633] em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
+>
+> [   69.352697] em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
+>
+> [   69.352762] em28xx #0:     card=19 -> PointNix Intra-Oral Camera
+>
+
+great that there are non functional entries in that driver.
+
+
+> [   69.886366] em28xx #0: V4L2 device registered as /dev/video0 and
+> /dev/vbi0
+>
+> [   69.886379] em28xx #0: Found Unknown EM2750/28xx video grabber
+>
+> [   69.886418] em28xx audio device (eb1a:2821): interface 1, class 1
+>
+> [   69.886504] em28xx audio device (eb1a:2821): interface 2, class 1
+>
+> [   69.886597] usbcore: registered new interface driver em28xx
+>
+>
+>
+> Television standard for my country (Hungary): PAL (same as in Austria and
+> Germany)
+>
+>
+>
+> The problem:
+>
+> In the dmesg it tells that "V4L2 device registered as /dev/video0 and
+> /dev/vbi0" but actually there is no /dev/video0 or similar. I tried
+> to open /dev/video0 with vlc and tvtime.
+>
+>
+>
+> For example tvtime-scanner reports:
+>
+> Reading configuration: /etc/tvtime/tvtime.xml
+>
+> Reading configuration: /root/.tvtime/tvtime.xml
+>
+> Scanning with PAL norms.
+>
+> /root/.tvtime/stationlist.xml: No existing PAL station list
+> "Custom".
+>
+> videoinput: No inputs available on video4linux2 device '/dev/video0'.
+>
+>
+>
+>
+>
+> Please help... what to do next?
+>
+>
+
+try the other thing for now (although I need to check back with Empia)
+
+Markus
 
 --
 video4linux-list mailing list
