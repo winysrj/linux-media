@@ -1,22 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
+Received: from wf-out-1314.google.com ([209.85.200.169])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KLwt1-00004s-SZ
-	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 11:13:24 +0200
-Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
-	by cherep.quantum.ru (Postfix) with SMTP id BA51119E6C0B
-	for <linux-dvb@linuxtv.org>; Thu, 24 Jul 2008 13:12:49 +0400 (MSD)
-Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
-	by ns.chp.ru (Postfix) with ESMTP id 7D46419E6B6B
-	for <linux-dvb@linuxtv.org>; Thu, 24 Jul 2008 13:12:49 +0400 (MSD)
-Date: Thu, 24 Jul 2008 13:20:47 +0400
-From: Goga777 <goga777@bk.ru>
+	(envelope-from <mo.ucina@gmail.com>) id 1KKV8l-0008Or-Uz
+	for linux-dvb@linuxtv.org; Sun, 20 Jul 2008 11:23:40 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so592360wfd.17
+	for <linux-dvb@linuxtv.org>; Sun, 20 Jul 2008 02:23:34 -0700 (PDT)
+Message-ID: <48830413.1070906@gmail.com>
+Date: Sun, 20 Jul 2008 19:23:31 +1000
+From: O&M Ugarcina <mo.ucina@gmail.com>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Message-ID: <20080724132047.10c6688d@bk.ru>
-In-Reply-To: <Pine.LNX.4.64.0807240030280.20479@shogun.pilppa.org>
-References: <Pine.LNX.4.64.0807240030280.20479@shogun.pilppa.org>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] latest hvr-4000 driver patches
+Subject: [linux-dvb] Which is best supported DVB-S HD PCI card in Linux
+Reply-To: mo.ucina@gmail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,19 +25,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> And what about vdr-1.7.0, is the multi frontend driver install 
-> procedure mentioned in wiki ok for that one? 
-> (http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000#Drivers) 
-> or is there awailable some other patch set for that?
+Hello Guys,
 
-I have vdr 170 , hvr4000 and fresh drivers form "Igor M. Liplianin's repo (repo includes hg multiproto + hvr4000 patch +
-some fixes)
-http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
-It works well. I recommend it for your case
-Of course it's not multifrontend drivers
+I am thinking of getting a DVB-S (or for that matter S2) HD card for my 
+fedora based mythtv box . Recently some High Definition channels have 
+started appearing on our Satellites and I would not mind checking them 
+out . So please , which of the HD Sat cards based on the PCI bus have 
+the best linux support at the moment ? All information very welcome .
 
-Goga
 
+Best Regards
+
+Milorad
 
 _______________________________________________
 linux-dvb mailing list
