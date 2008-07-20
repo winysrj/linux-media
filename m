@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.182])
+Received: from [212.57.247.218] (helo=mail.glcweb.co.uk)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ian.bonham@gmail.com>) id 1KKK93-0004OL-UI
-	for linux-dvb@linuxtv.org; Sat, 19 Jul 2008 23:39:14 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so398565wag.13
-	for <linux-dvb@linuxtv.org>; Sat, 19 Jul 2008 14:39:08 -0700 (PDT)
-Message-ID: <2f8cbffc0807191439m7be38838hc83a808844e779f@mail.gmail.com>
-Date: Sat, 19 Jul 2008 23:39:08 +0200
-From: "Ian Bonham" <ian.bonham@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <michael.curtis@glcweb.co.uk>) id 1KKgPD-0005dz-Kz
+	for linux-dvb@linuxtv.org; Sun, 20 Jul 2008 23:25:24 +0200
+From: "Michael J. Curtis" <michael.curtis@glcweb.co.uk>
+To: Goga777 <goga777@bk.ru>, "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Date: Sun, 20 Jul 2008 22:24:48 +0100
+Message-ID: <3C276393607085468A28782D978BA5EE6ED36D11E9@w2k8svr1.glcdomain8.local>
+References: <3C276393607085468A28782D978BA5EE6ED36D11E6@w2k8svr1.glcdomain8.local>
+	<20080719182757.6dae9184@bk.ru>
+In-Reply-To: <20080719182757.6dae9184@bk.ru>
+Content-Language: en-US
 MIME-Version: 1.0
-Subject: [linux-dvb] a few questions!
+Subject: Re: [linux-dvb] Latest TT3200 Status
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,56 +20,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1316214768=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1316214768==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_86316_31294038.1216503548754"
-
-------=_Part_86316_31294038.1216503548754
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi All,
-
-I have a few questions I need some help on please, as I'm getting so stuck
-now!!
-
-1) Hauppauges USB CAM reader, does it work for Sky in the UK yet?
-2) Does said USB box decode 1 channel at a time, or all I might subscribe
-to?
-3) Has anyone sussed out how to use the FM Radio on an HVR4000 yet?
-4) Am I going to cause disaster by trying to use GSPCA drivers with the
-V4L-DVB Mercurial?
-
-Any help WELCOMED!
-
-Bon
-
-------=_Part_86316_31294038.1216503548754
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">Hi All,<br><br>I have a few questions I need some help on please, as I&#39;m getting so stuck now!! <br><br>1) Hauppauges USB CAM reader, does it work for Sky in the UK yet?<br>2) Does said USB box decode 1 channel at a time, or all I might subscribe to?<br>
-3) Has anyone sussed out how to use the FM Radio on an HVR4000 yet?<br>4) Am I going to cause disaster by trying to use GSPCA drivers with the V4L-DVB Mercurial?<br><br>Any help WELCOMED!<br><br>Bon<br><br></div>
-
-------=_Part_86316_31294038.1216503548754--
-
-
---===============1316214768==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1316214768==--
+TWFueSB0aGFuayBmb3IgdGhlIGFzc2lzdGFuY2UgYWx0aG91Z2ggSSBoYXZlIGNvbWUgdXAgd2l0
+aCB0aGUgYmVsb3cgaXNzdWUgd2hlbiBjb21waWxpbmcgdGhlIE11bHRpcHJvdG8gZHJpdmVycw0K
+DQpLZXJuZWwgaXM6IDIuNi4yNS4xMC00Ny5mYzgNCg0KTXVsdGlwcm90byB2ZXJzaW9uIGlzOg0K
+DQpbcm9vdEBteXRoaG9zdCBtdWx0aXByb3RvXSMgaGcgdGlwDQpjaGFuZ2VzZXQ6ICAgNzIxODoy
+YTkxMWI4Zjk5MTANCnRhZzogICAgICAgICB0aXANCnVzZXI6ICAgICAgICBNYW51IEFicmFoYW0g
+PG1hbnVAbGludXh0di5vcmc+DQpkYXRlOiAgICAgICAgV2VkIEp1bCAwOSAyMzowNzoyOSAyMDA4
+ICswNDAwDQpzdW1tYXJ5OiAgICAgRml4IEFUU0MgY29udmVyc2lvbiBpbiBvbGRkcnZfdG9fbmV3
+YXBpDQoNCkVycm9ycyBhcmU6DQoNCkNDIFtNXSAgL29wdC9kdmIvbXVsdGlwcm90by92NGwvY3gy
+Mzg4NS1pMmMubw0KICBDQyBbTV0gIC9vcHQvZHZiL211bHRpcHJvdG8vdjRsL2N4MjM4ODUtZHZi
+Lm8NCiAgQ0MgW01dICAvb3B0L2R2Yi9tdWx0aXByb3RvL3Y0bC9jeDI1ODQwLWNvcmUubw0KL29w
+dC9kdmIvbXVsdGlwcm90by92NGwvY3gyNTg0MC1jb3JlLmM6NzE6IGVycm9yOiBjb25mbGljdGlu
+ZyB0eXBlIHF1YWxpZmllcnMgZm9yICdhZGRyX2RhdGEnDQovb3B0L2R2Yi9tdWx0aXByb3RvL3Y0
+bC8uLi9saW51eC9pbmNsdWRlL21lZGlhL3Y0bDItaTJjLWRydi1sZWdhY3kuaDo0MTogZXJyb3I6
+IHByZXZpb3VzIGRlY2xhcmF0aW9uIG9mICdhZGRyX2RhdGEnIHdhcyBoZXJlDQptYWtlWzNdOiAq
+KiogWy9vcHQvZHZiL211bHRpcHJvdG8vdjRsL2N4MjU4NDAtY29yZS5vXSBFcnJvciAxDQptYWtl
+WzJdOiAqKiogW19tb2R1bGVfL29wdC9kdmIvbXVsdGlwcm90by92NGxdIEVycm9yIDINCg0KDQpT
+ZWVtcyBpdCBoYXMgYSBwcm9ibGVtIHdpdGggY29tcGlsaW5nIGN4MjU4NDAueA0KDQpJcyB0aGVy
+ZSBhIHNvbHV0aW9uIGZvciB0aGlzPw0KDQpSZWdhcmRzDQoNCk1pa2UgQ3VydGlzDQoNCg0KDQoN
+Cg0KDQoNCg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IEdvZ2E3NzcgW21haWx0
+bzpnb2dhNzc3QGJrLnJ1XQ0KU2VudDogMTkgSnVseSAyMDA4IDE1OjI4DQpUbzogTWljaGFlbCBK
+LiBDdXJ0aXMNCkNjOiBsaW51eC1kdmJAbGludXh0di5vcmcNClN1YmplY3Q6IFJlOiBbbGludXgt
+ZHZiXSBMYXRlc3QgVFQzMjAwIFN0YXR1cw0KDQp5b3UgY2FuIHRyeSB0aGUgbGF0ZXN0IG11bHRp
+cHJvdG8NCmh0dHA6Ly9qdXNzdC5kZS9oZy9tdWx0aXByb3RvL2FyY2hpdmUvdGlwLnRhci5iejIN
+Cg0KKw0KDQpwYXRjaCBmcm9tICBBbGVzIEp1cmlrDQpodHRwOi8vd3d3LmxpbnV4dHYub3JnL3Bp
+cGVybWFpbC9saW51eC1kdmIvMjAwOC1KdWx5LzAyNzI2NC5odG1sDQoNCnN6YXAyIHdpdGggZHZi
+LXMyIHN1cHBvcnQgeW91IGNhbiBpbnN0YWxsIGZyb20gdGVzdCBkaXJlY3Rvcnkgb2YgZHZiLWFw
+cHMNCmh0dHA6Ly9saW51eHR2Lm9yZy9oZy9kdmItYXBwcy9maWxlLzkxMzQ3MzZjMGJlYS90ZXN0
+Lw0KDQpmb3Igc2NhbiB5b3UgaGF2ZSB0byBpbnN0YWxsIHRoZSBkdmItczIgcGF0Y2ggZnJvbSBK
+ZW5zIEtyZWhiaWVsLUdyw6R0aGVyDQpodHRwOi8vd3d3LmxpbnV4dHYub3JnL3BpcGVybWFpbC9s
+aW51eC1kdmIvMjAwOC1KdW5lLzAyNjQyMy5odG1sDQoNCmZvciByZWd1bGFyIHN6YXAgdGhpcyBw
+YXRjaCBzaG91bGQgd29yayB0b28NCg0KR29nYQ0KDQo+IEkgaGF2ZSBiZWVuIGF3YXkgZnJvbSB0
+aGUgbGlzdCBmb3IgYSB3aGlsZSBhbmQgaGF2ZSBub3cgbm90aWNlZCBzb21lIGluY3JlYXNlZCBh
+Y3Rpdml0eSByZWdhcmRpbmcgdGhlIGFib3ZlIGNhcmQNCj4NCj4gVGhlcmUgc2VlbXMgdG8gYmUg
+YSBsb3Qgb2YgcGF0Y2hlcyB0byBhcHBseSEhDQo+DQo+IENhbiBhbnkgb2YgeW91IGdvb2QgZm9s
+a3MgcHVibGlzaCBmb3IgdGhlIGdvb2Qgb2YgYWxsIFRUMzIwMCB1c2VycywgcXVpY2sgaG93dG8g
+dG8gZ2V0IHRoZSBjYXJkIHRvIHdvcmsNCj4NCj4gVGhhdCBpcyB0aGUgTXVsdGlwcm90byB2ZXJz
+aW9uLCBrZXJuZWwsIHdoYXQgcGF0Y2hlcyBhcmUgcmVxdWlyZWQgYW5kIHdoZXJlIGZyb20/DQoN
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2
+YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5v
+cmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
