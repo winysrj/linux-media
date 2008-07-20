@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from server30.ukservers.net ([217.10.138.207])
+Received: from einhorn.in-berlin.de ([192.109.42.8] ident=root)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@nzbaxters.com>) id 1KLFJ4-0006i8-S3
-	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 12:41:24 +0200
-Received: from sy7608 (skycity-akl-nz.getin2net.com [125.236.48.2])
-	by server30.ukservers.net (Postfix smtp) with SMTP id 4E68959C230
-	for <linux-dvb@linuxtv.org>; Tue, 22 Jul 2008 11:41:43 +0100 (BST)
-Message-ID: <00a901c8ebe7$64fffd50$450011ac@ad.sytec.com>
-From: "Simon Baxter" <linuxtv@nzbaxters.com>
-To: <linux-dvb@linuxtv.org>
-References: <008401c8ebe5$4e09ea90$450011ac@ad.sytec.com>
-Date: Tue, 22 Jul 2008 22:40:42 +1200
+	(envelope-from <stefan@lucke.in-berlin.de>) id 1KKdXa-0004vL-7p
+	for linux-dvb@linuxtv.org; Sun, 20 Jul 2008 20:21:50 +0200
+Received: from jarada.farpoint.de (p57BB4CCE.dip.t-dialin.net [87.187.76.206])
+	(authenticated bits=0)
+	by einhorn.in-berlin.de (8.13.6/8.13.6/Debian-1) with ESMTP id
+	m6KILgQ0007170
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <linux-dvb@linuxtv.org>; Sun, 20 Jul 2008 20:21:42 +0200
+From: Stefan Lucke <stefan@lucke.in-berlin.de>
+To: linux-dvb@linuxtv.org
+Date: Sun, 20 Jul 2008 20:21:40 +0200
+References: <0202365bcadaf441ee4f74d6fe6f315a@81.116.196.113>
+In-Reply-To: <0202365bcadaf441ee4f74d6fe6f315a@81.116.196.113>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] 682Mhz problem with TT-1501 driver in v4l-dvb
+Content-Disposition: inline
+Message-Id: <200807202021.41130.stefan@lucke.in-berlin.de>
+Subject: Re: [linux-dvb] win TV Nova T hauppauge on eeepc 701
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,147 +31,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Not sure if it's related, but have noticed 618Mhz (which works / has 
-channels on my TT-1500-C and TT-2300-C) gives:
-[root@freddy scan]# ./scan -A 2 test
-scanning test
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 618000000 6900000 9 3
->>> tune to: 618000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64
-WARNING: >>> tuning failed!!!
->>> tune to: 618000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64 (tuning 
->>> failed)
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
+On Friday 18 July 2008, - Aladar65 - wrote:
+> someone has never installed the win TV Nova T hauppauge on eeepc 701 with
+> xandros?
 
-same for 650Mhz and 658Mhz.
+If you are talking about the small usb device with usbid 2040:7070 , the
+answer is yes.
 
-But 690Mhz gives:
-[root@freddy scan]# ./scan -A 2 test
-scanning test
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 690000000 6900000 9 3
->>> tune to: 690000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
-dumping lists (0 services)
-Done.
-
-------------------> which is what I'd expect, as I have no channels at 690.
+If you are trying to get it run with vdr package shiped from asus you'll
+need some additional kernel modules and some binary editing of vdr
+with khexedit (changing from asus usb ids to hauppauge usbids).
 
 
-Is there something as simple as a maths problem somewhere???
-
-
-
-> Hi - please help!!!!
->
-> I have patched the v4l-dvb driver with Sigmund Augdal's changes to support
-> C-1501.  I can't get channels to work on all but one frequency - 682Mhz.
-> Frequencies which work:  578, 586, 594, 602, 610, 626, 634, 642, 666, 674
-> Mhz.
->
-> I have some channels at 674Mhz and at 682Mhz.  My initial is:
-> # Initial Testing
-> # freq sr fec mod
-> # freq sr fec mod
-> C 674000000 6900000 AUTO QAM64
-> C 682000000 6900000 AUTO QAM64
->
->
-> Scanning gives me:
-> ./scan -A 2 test_initial
-> initial transponder 674000000 6900000 9 3
-> initial transponder 682000000 6900000 9 3
->>>> tune to: 674000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64
-> 0x0000 0x0321: pmt_pid 0x0029 T -- Sky Movies (running, scrambled)
-> 0x0000 0x0322: pmt_pid 0x002a T -- Sky Movies Greats (running, scrambled)
-> 0x0000 0x0323: pmt_pid 0x002b T -- Trackside (running, scrambled)
->>>> tune to: 682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64
-> WARNING: filter timeout pid 0x0011
-> WARNING: filter timeout pid 0x0030
-> WARNING: filter timeout pid 0x002d
-> WARNING: filter timeout pid 0x0029
-> WARNING: filter timeout pid 0x002f
-> WARNING: filter timeout pid 0x002a
->
-> -------------->>  What does this pid timeout mean??
->
->
->
-> I end up with channels:
->
-> Living
-> Channel:674000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:1309:1409:809
-> UKTV:674000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:1310:1410:810
-> The Cheese:674000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:1420:820
-> [0385]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:0:901
-> [0386]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:0:902
-> [0387]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:1303:1403:903
-> [0388]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:0:904
-> [0389]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:0:905
->
->
-> -------------->>  Has picked up the pids, but missing information??
->
->
->
-> When I try and czap them, I get:
->
-> [root@freddy scan]# czap -c ~/.channels.conf.tmp TV3
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file '/root/.channels.conf.tmp'
->  2 TV3:578000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:1303:1403:1003
->  2 TV3: f 578000000, s 6900000, i 2, fec 9, qam 3, v 0x517, a 0x57b
-> status 00 | signal 9090 | snr b9b9 | ber 000fffff | unc 00000032 |
-> status 1f | signal e1e1 | snr f2f2 | ber 000005e8 | unc 000001ec |
-> FE_HAS_LOCK
-> status 1f | signal e1e1 | snr f2f2 | ber 00000000 | unc 00000000 |
-> FE_HAS_LOCK
-> status 1f | signal e1e1 | snr f2f2 | ber 00000000 | unc 00000000 |
-> FE_HAS_LOCK
-> status 1f | signal e1e1 | snr f3f3 | ber 00000000 | unc 00000000 |
-> FE_HAS_LOCK
-> status 1f | signal e1e1 | snr f2f2 | ber 00000000 | unc 00000000 |
-> FE_HAS_LOCK
->
->
-> but with 682Mhz, I get a lock but loads of errors:
->
-> [root@freddy scan]# czap -c ~/.channels.conf.tmp [0385]
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file '/root/.channels.conf.tmp'
->  1 [0385]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:0:901
->  1 [0385]: f 682000000, s 6900000, i 2, fec 9, qam 3, v 0, a 0
-> status 03 | signal 8f8f | snr b9b9 | ber 000fffff | unc 00000032 |
-> status 1f | signal cfcf | snr dcdc | ber 000005e8 | unc 000061a7 |
-> FE_HAS_LOCK
-> status 1f | signal cfcf | snr dcdc | ber 000005e8 | unc 000061e8 |
-> FE_HAS_LOCK
-> status 1f | signal cfcf | snr dede | ber 000006c0 | unc 00006234 |
-> FE_HAS_LOCK
-> status 1f | signal cfcf | snr e0e0 | ber 000006a9 | unc 0000627f |
-> FE_HAS_LOCK
-> status 1f | signal cfcf | snr dbdb | ber 000006a5 | unc 000062b6 |
-> FE_HAS_LOCK
->
->
->
-> Any ideas???
->
-
-
---------------------------------------------------------------------------------
-
-
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb 
-
+-- 
+Stefan Lucke
 
 _______________________________________________
 linux-dvb mailing list
