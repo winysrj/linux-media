@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.186])
+Received: from [212.57.247.218] (helo=mail.glcweb.co.uk)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tobetter@gmail.com>) id 1KK6aa-0006U0-9T
-	for linux-dvb@linuxtv.org; Sat, 19 Jul 2008 09:10:45 +0200
-Received: by ti-out-0910.google.com with SMTP id w7so463634tib.13
-	for <linux-dvb@linuxtv.org>; Sat, 19 Jul 2008 00:10:37 -0700 (PDT)
-Message-ID: <552c685c0807190010l73e662e9re1795ec69b963ba0@mail.gmail.com>
-Date: Sat, 19 Jul 2008 16:10:37 +0900
-From: "Dongjin Kim" <tobetter@gmail.com>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+	(envelope-from <michael.curtis@glcweb.co.uk>) id 1KKuEz-0001Qg-5Z
+	for linux-dvb@linuxtv.org; Mon, 21 Jul 2008 14:11:49 +0200
+From: "Michael J. Curtis" <michael.curtis@glcweb.co.uk>
+To: Goga777 <goga777@bk.ru>, "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Date: Mon, 21 Jul 2008 13:11:08 +0100
+Message-ID: <3C276393607085468A28782D978BA5EE6ED36D11EA@w2k8svr1.glcdomain8.local>
+References: <3C276393607085468A28782D978BA5EE6ED36D11E6@w2k8svr1.glcdomain8.local>
+	<20080719182757.6dae9184@bk.ru>
+In-Reply-To: <20080719182757.6dae9184@bk.ru>
+Content-Language: en-US
 MIME-Version: 1.0
-Subject: [linux-dvb] About KeyFly CAM module.
+Subject: Re: [linux-dvb] Latest TT3200 Status
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,79 +20,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1691718303=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1691718303==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_29060_20880806.1216451437444"
-
-------=_Part_29060_20880806.1216451437444
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi,
-
-Is there somebody who had activated the CAM module 'KeyFly' of SIDSA?
-
-http://www.sidsa.com/c/portal/layout?p_l_id=PUB.1.33
-
-According the specification it is compliant of EN50221, I hoped it works
-with the linux driver.
-
-But it failed while negotiating internal buffer size of CAM.
-
-Also it always show me the flag 'RE' bit of status register as '1' whenever
-I read it.
-
-Is there somebody who has experience to handle this CAM module?
-
-Does the CAM module has some problem?
-
-Regards.
-tobetter wrote.
-
-------=_Part_29060_20880806.1216451437444
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div>Hi,</div>
-<div>&nbsp;</div>
-<div>Is there somebody who had activated the CAM module &#39;KeyFly&#39; of SIDSA?</div>
-<div>&nbsp;</div>
-<div><a href="http://www.sidsa.com/c/portal/layout?p_l_id=PUB.1.33">http://www.sidsa.com/c/portal/layout?p_l_id=PUB.1.33</a></div>
-<div>&nbsp;</div>
-<div>According the specification it is compliant of EN50221, I hoped it works with the linux driver.</div>
-<div>&nbsp;</div>
-<div>But it failed while negotiating internal buffer size of CAM.</div>
-<div>&nbsp;</div>
-<div>Also it always show me the flag &#39;RE&#39; bit of status register as &#39;1&#39; whenever I read it.</div>
-<div>&nbsp;</div>
-<div>Is there somebody who has experience to handle this CAM module?</div>
-<div>&nbsp;</div>
-<div>Does the CAM module has some problem?</div>
-<div>&nbsp;</div>
-<div>Regards.</div>
-<div>tobetter wrote.</div>
-<div>&nbsp;</div>
-<div>&nbsp;</div>
-
-------=_Part_29060_20880806.1216451437444--
-
-
---===============1691718303==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1691718303==--
+TWFueSB0aGFua3MgZm9yIHlvdXIgYXNzaXN0YW5jZSBzbyBmYXINCg0KSSBoYXZlIGNvbXBpbGVk
+IGFuZCBpbnN0YWxsZWQgdGhlIG1vZHVsZXMgKHdpdGggc29tZSBwcm9ibGVtcykgYnV0IG5vdyBJ
+IG5lZWQgdGhlIChwYXRjaF9zY2Ffc3phcC5kaWZmKSBmaWxlDQoNClVuZm9ydHVuYXRlbHkgYWxs
+IHJlZmVyZW5jZXMgdG8gdGhlIGFyY2hpdmUgYXJlIGZvciBhdHRhY2htZW50cyB0aGF0IEkgY2Fu
+bm90IG9wZW4gKCBJIGRvIG5vdCBoYXZlIHRoZSBvcmlnaW5hbCBmcm9tIHRoZSBsaW51eC1kdmIg
+bGlzdCBmcm9tIGVhcmx5IEp1bmUpIGNvdWxkIHNvbWVvbmUgcGxlYXNlIHNlbmQgbWUgdGhlIGZp
+bGU/DQoNClJlZ2FyZHMgdG8gYWxsDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9t
+OiBHb2dhNzc3IFttYWlsdG86Z29nYTc3N0Biay5ydV0NClNlbnQ6IDE5IEp1bHkgMjAwOCAxNToy
+OA0KVG86IE1pY2hhZWwgSi4gQ3VydGlzDQpDYzogbGludXgtZHZiQGxpbnV4dHYub3JnDQpTdWJq
+ZWN0OiBSZTogW2xpbnV4LWR2Yl0gTGF0ZXN0IFRUMzIwMCBTdGF0dXMNCg0KeW91IGNhbiB0cnkg
+dGhlIGxhdGVzdCBtdWx0aXByb3RvDQpodHRwOi8vanVzc3QuZGUvaGcvbXVsdGlwcm90by9hcmNo
+aXZlL3RpcC50YXIuYnoyDQoNCisNCg0KcGF0Y2ggZnJvbSAgQWxlcyBKdXJpaw0KaHR0cDovL3d3
+dy5saW51eHR2Lm9yZy9waXBlcm1haWwvbGludXgtZHZiLzIwMDgtSnVseS8wMjcyNjQuaHRtbA0K
+DQpzemFwMiB3aXRoIGR2Yi1zMiBzdXBwb3J0IHlvdSBjYW4gaW5zdGFsbCBmcm9tIHRlc3QgZGly
+ZWN0b3J5IG9mIGR2Yi1hcHBzDQpodHRwOi8vbGludXh0di5vcmcvaGcvZHZiLWFwcHMvZmlsZS85
+MTM0NzM2YzBiZWEvdGVzdC8NCg0KZm9yIHNjYW4geW91IGhhdmUgdG8gaW5zdGFsbCB0aGUgZHZi
+LXMyIHBhdGNoIGZyb20gSmVucyBLcmVoYmllbC1HcsOkdGhlcg0KaHR0cDovL3d3dy5saW51eHR2
+Lm9yZy9waXBlcm1haWwvbGludXgtZHZiLzIwMDgtSnVuZS8wMjY0MjMuaHRtbA0KDQpmb3IgcmVn
+dWxhciBzemFwIHRoaXMgcGF0Y2ggc2hvdWxkIHdvcmsgdG9vDQoNCkdvZ2ENCg0KPiBJIGhhdmUg
+YmVlbiBhd2F5IGZyb20gdGhlIGxpc3QgZm9yIGEgd2hpbGUgYW5kIGhhdmUgbm93IG5vdGljZWQg
+c29tZSBpbmNyZWFzZWQgYWN0aXZpdHkgcmVnYXJkaW5nIHRoZSBhYm92ZSBjYXJkDQo+DQo+IFRo
+ZXJlIHNlZW1zIHRvIGJlIGEgbG90IG9mIHBhdGNoZXMgdG8gYXBwbHkhIQ0KPg0KPiBDYW4gYW55
+IG9mIHlvdSBnb29kIGZvbGtzIHB1Ymxpc2ggZm9yIHRoZSBnb29kIG9mIGFsbCBUVDMyMDAgdXNl
+cnMsIHF1aWNrIGhvd3RvIHRvIGdldCB0aGUgY2FyZCB0byB3b3JrDQo+DQo+IFRoYXQgaXMgdGhl
+IE11bHRpcHJvdG8gdmVyc2lvbiwga2VybmVsLCB3aGF0IHBhdGNoZXMgYXJlIHJlcXVpcmVkIGFu
+ZCB3aGVyZSBmcm9tPw0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRw
+Oi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
