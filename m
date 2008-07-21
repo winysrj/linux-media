@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from smtpq2.tilbu1.nb.home.nl ([213.51.146.201])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KEXcb-0000P5-Bb
-	for linux-dvb@linuxtv.org; Fri, 04 Jul 2008 00:49:50 +0200
-Message-ID: <486D5789.7050006@iki.fi>
-Date: Fri, 04 Jul 2008 01:49:45 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <korgull@home.nl>) id 1KKyCr-0001yn-8d
+	for linux-dvb@linuxtv.org; Mon, 21 Jul 2008 18:25:52 +0200
+Received: from [213.51.146.190] (port=41652 helo=smtp1.tilbu1.nb.home.nl)
+	by smtpq2.tilbu1.nb.home.nl with esmtp (Exim 4.60)
+	(envelope-from <korgull@home.nl>) id 1KKyCn-0003ON-Ly
+	for linux-dvb@linuxtv.org; Mon, 21 Jul 2008 18:25:45 +0200
+Received: from cp31197-b.landg1.lb.home.nl ([84.25.119.9]:62984
+	helo=[192.168.0.4]) by smtp1.tilbu1.nb.home.nl with esmtp (Exim 4.60)
+	(envelope-from <korgull@home.nl>) id 1KKyCn-0004RN-EF
+	for linux-dvb@linuxtv.org; Mon, 21 Jul 2008 18:25:45 +0200
+From: Marcel Janssen <korgull@home.nl>
+To: linux-dvb@linuxtv.org
+Date: Mon, 21 Jul 2008 18:25:34 +0200
 MIME-Version: 1.0
-To: Moosy Log <moosylog@gmail.com>
-References: <2ff0d0e20807031250s7fd0386ch9f9551f46ff771d2@mail.gmail.com>
-In-Reply-To: <2ff0d0e20807031250s7fd0386ch9f9551f46ff771d2@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DUTV005 (CE9500B1) DVB-T USB Dongle
+Content-Disposition: inline
+Message-Id: <200807211825.34660.korgull@home.nl>
+Subject: [linux-dvb] KNC DVB-C card using kernel 2.6.25
+Reply-To: korgull@home.nl
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,33 +32,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi,
-about Intel CE9500B1...
+Hi,
 
-Moosy Log wrote:
-> Got myself a cheap USB dvb-t receiver - Are there any drivers for this 
-> device?
-> I tried the dvb_usb_af9015, no luck.
+Yesterday I've updated my Fedora8 mythtv box to the 2.6.25 kernel and since, 
+my DVB-C card doesn't work any more. When switching back to kernel 2.6.24 it 
+works well, so I expect something wrong with the drivers in kernel 2.6.25.
 
-different chipset.
+The drivers get inserted and I do see this in dmesg :
+saa7146: register extension 'budget dvb'.
+saa7146: register extension 'budget_av'.
 
-> usb 2-4: New USB device found, idVendor=8086, idProduct=9500
-> usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> usb 2-4: Product: CE9500B1
-> usb 2-4: Manufacturer: Intel Corporation (UK) Ltd
-> 
-> Full specs: 
-> http://plone.lucidsolutions.co.nz/dvb/t/usb/forward-video-dutv005
-> 
-> Thanks
-I have seen some discussion earlier in ML with some Intel chipset, 
-probably just the same one. Just look ML archives month or two back. 
-There is not driver to this chipset, and I think no one is working with 
-this yet.
+But, that's about all I see. There are no devices created in /dev/dvb and I do 
+see no other messages either in dmesg or /var/log/messages.
 
-Antti
--- 
-http://palosaari.fi/
+Any idea how to get my card working with this kernel ?
+
+regards,
+Marcel Janssen
 
 _______________________________________________
 linux-dvb mailing list
