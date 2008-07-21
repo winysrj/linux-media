@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from tr14.bluewin.ch ([195.186.19.82])
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <krt@krt.com.au>) id 1KEI8J-0004Dg-61
-	for linux-dvb@linuxtv.org; Thu, 03 Jul 2008 08:17:31 +0200
-Received: from [192.168.1.35] (85.0.130.198) by tr14.bluewin.ch (Bluewin
-	7.3.122) (authenticated as kingsley.turner)
-	id 480CA5BE01115231 for linux-dvb@linuxtv.org;
-	Thu, 3 Jul 2008 06:14:04 +0000
-Message-ID: <486C6ED4.4080502@krt.com.au>
-Date: Thu, 03 Jul 2008 08:16:52 +0200
-From: Kingsley Turner <krt@krt.com.au>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] DVB-T Channel configuration for Switzerland / Basel
+	(envelope-from <stoth@linuxtv.org>) id 1KL3wV-0007VE-E7
+	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 00:33:20 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K4D0085JNYI76P0@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 21 Jul 2008 18:32:44 -0400 (EDT)
+Date: Mon, 21 Jul 2008 18:32:42 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <412bdbff0807211441q4cf3357am79f806e0f4b0d361@mail.gmail.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Message-id: <48850E8A.4050306@linuxtv.org>
+MIME-version: 1.0
+References: <3AF47543-7149-4CC1-928B-F6704715FB6A@rlucier-home2.stanford.edu>
+	<412bdbff0807211441q4cf3357am79f806e0f4b0d361@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How to obtain an HVR-4000 in the U.S.?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,24 +32,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Devin Heitmueller wrote:
+> It's possible that Hauppauge never went through the FCC approval
+> process for the device, so it wouldn't be legal to sell it in the U.S.
+> 
+> I'm not saying it would cause interference or not work from a
+> technical standpoint, but rather there could be regulatory issues that
+> prohibit it's sale.
 
-I've got some DVB-T channel "channel.conf" data for Europe / Basel 
-(Switzerland).
+Call the NY office and ask to buy one over the phone.
 
-Do I just post it to this list, or how to I get it incorporated into the 
-repository.
-
-
-cheers,
--kt
-
-
-sf1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:160:81:81
-sfzwei:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:163:92:93
-tsr1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:161:84:85
-tsi1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:162:88:89
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
