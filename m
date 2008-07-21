@@ -1,30 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ffm.saftware.de ([83.141.3.46])
+Received: from wx-out-0506.google.com ([66.249.82.235])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <obi@linuxtv.org>) id 1KMNlc-0001aj-Lz
-	for linux-dvb@linuxtv.org; Fri, 25 Jul 2008 15:55:34 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by ffm.saftware.de (Postfix) with ESMTP id DD478E6AA0
-	for <linux-dvb@linuxtv.org>; Fri, 25 Jul 2008 15:55:28 +0200 (CEST)
-Received: from ffm.saftware.de ([83.141.3.46])
-	by localhost (pinky.saftware.org [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id sJAcB8GQlZC6 for <linux-dvb@linuxtv.org>;
-	Fri, 25 Jul 2008 15:55:28 +0200 (CEST)
-Received: from [172.22.22.60] (ip-81-210-158-210.hsi.iesy.net [81.210.158.210])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by ffm.saftware.de (Postfix) with ESMTPSA id 44136E6A99
-	for <linux-dvb@linuxtv.org>; Fri, 25 Jul 2008 15:55:28 +0200 (CEST)
-Message-ID: <4889DB50.7040809@linuxtv.org>
-Date: Fri, 25 Jul 2008 15:55:28 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
+	(envelope-from <oscarfernando.perez@gmail.com>) id 1KKwHB-00066S-Lv
+	for linux-dvb@linuxtv.org; Mon, 21 Jul 2008 16:22:10 +0200
+Received: by wx-out-0506.google.com with SMTP id h27so427697wxd.17
+	for <linux-dvb@linuxtv.org>; Mon, 21 Jul 2008 07:22:04 -0700 (PDT)
+Message-ID: <9ab95cb80807210722l41a2fe1bm9df0a38ef3194fbd@mail.gmail.com>
+Date: Mon, 21 Jul 2008 17:22:03 +0300
+From: "oscar perez" <oscarfernando.perez@gmail.com>
 To: linux-dvb@linuxtv.org
-References: <3a665c760807240246x7bb3d442lac2b407dd138accf@mail.gmail.com>	<200807241153.55596.Nicola.Sabbi@poste.it>	<3a665c760807250212i1902e4fdud47da351262c140f@mail.gmail.com>	<200807251116.54407.Nicola.Sabbi@poste.it>
-	<4889D176.1030702@gmx.de>
-In-Reply-To: <4889D176.1030702@gmx.de>
-Subject: Re: [linux-dvb] question about definition of section in PSI
- of	Transport stream
+MIME-Version: 1.0
+Subject: [linux-dvb] TerraTec Cinergy C DVB-C PCI and the driver mantis
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,27 +18,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1389706255=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Andreas Regel wrote:
-> PMTs are always just one section. PATs could have more than one but that 
-> would normally need more than 250 programmes on one TS, so it's not that 
-> easy to find a TS with multi section PATs. Other tables, like NIT or SDT 
-> often are bigger than 1024 bytes and split over several sections.
+--===============1389706255==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_9507_9607621.1216650123670"
 
-IIRC there were some radio channels called "Les Radios" sharing one PMT
-PID with the same service id on Astra 19.2E some years ago. I think
-they're now called Canalsat Radios. Maybe they still have PMTs with
-multiple sections. See http://www.satindex.de/paytv/cs-france/ .
+------=_Part_9507_9607621.1216650123670
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Regards,
-Andreas
+Hi there!
+Is the latest driver mantis working fine for the card terratec cinergy C
+DVB-C PCI. ??
+According to the linuxtv wiki it seems that the issue with scan freezing is
+solved in the latest release..:
+
+http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C
+
+I am using kernel 2.6.24-19 with the latest mantis driver and I am able to
+install the driver with modprobe. However, when I start scanning for
+channels it freezes and I get the problem about "Slave RACK fail".
+Anybody has got it? and more importantly. Any solution to this? :)
+Thanks!
+oscar
+
+------=_Part_9507_9607621.1216650123670
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">Hi there!<br>Is the latest driver mantis working fine for the card terratec cinergy C DVB-C PCI. ?? <br>According to the linuxtv wiki it seems that the issue with scan freezing is solved in the latest release..:<br>
+<br><a href="http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C">http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C</a><br><br>I am using kernel 2.6.24-19 with the latest mantis driver and I am able to install the driver with modprobe. However, when I start scanning for channels it freezes and I get the problem about &quot;Slave RACK fail&quot;.<br>
+Anybody has got it? and more importantly. Any solution to this? :)<br>Thanks!<br>oscar<br></div>
+
+------=_Part_9507_9607621.1216650123670--
+
+
+--===============1389706255==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1389706255==--
