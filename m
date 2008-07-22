@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.188])
+Received: from server30.ukservers.net ([217.10.138.207])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <websdaleandrew@googlemail.com>) id 1KE0jX-00066T-6X
-	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 13:42:48 +0200
-Received: by fk-out-0910.google.com with SMTP id f40so333854fka.1
-	for <linux-dvb@linuxtv.org>; Wed, 02 Jul 2008 04:42:43 -0700 (PDT)
-Message-ID: <e37d7f810807020442q13107177n5a90b11faf51194d@mail.gmail.com>
-Date: Wed, 2 Jul 2008 12:42:42 +0100
-From: "Andrew Websdale" <websdaleandrew@googlemail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <linuxtv@nzbaxters.com>) id 1KLFJ4-0006i8-S3
+	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 12:41:24 +0200
+Received: from sy7608 (skycity-akl-nz.getin2net.com [125.236.48.2])
+	by server30.ukservers.net (Postfix smtp) with SMTP id 4E68959C230
+	for <linux-dvb@linuxtv.org>; Tue, 22 Jul 2008 11:41:43 +0100 (BST)
+Message-ID: <00a901c8ebe7$64fffd50$450011ac@ad.sytec.com>
+From: "Simon Baxter" <linuxtv@nzbaxters.com>
+To: <linux-dvb@linuxtv.org>
+References: <008401c8ebe5$4e09ea90$450011ac@ad.sytec.com>
+Date: Tue, 22 Jul 2008 22:40:42 +1200
 MIME-Version: 1.0
-Subject: [linux-dvb] Dposh DVB-T USB2.0(ULi M9207) initialising OK but no
-	response from scan
+Subject: Re: [linux-dvb] 682Mhz problem with TT-1501 driver in v4l-dvb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,74 +20,155 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1553169831=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1553169831==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_1308_20433267.1214998963137"
+Not sure if it's related, but have noticed 618Mhz (which works / has 
+channels on my TT-1500-C and TT-2300-C) gives:
+[root@freddy scan]# ./scan -A 2 test
+scanning test
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 618000000 6900000 9 3
+>>> tune to: 618000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64
+WARNING: >>> tuning failed!!!
+>>> tune to: 618000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64 (tuning 
+>>> failed)
+WARNING: >>> tuning failed!!!
+ERROR: initial tuning failed
+dumping lists (0 services)
+Done.
 
-------=_Part_1308_20433267.1214998963137
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+same for 650Mhz and 658Mhz.
 
-Hi All,
+But 690Mhz gives:
+[root@freddy scan]# ./scan -A 2 test
+scanning test
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 690000000 6900000 9 3
+>>> tune to: 690000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64
+WARNING: filter timeout pid 0x0011
+WARNING: filter timeout pid 0x0000
+WARNING: filter timeout pid 0x0010
+dumping lists (0 services)
+Done.
 
-I've been trying to amend the M920x driver to cope with the MT2060 tuner. My
-dmesg output looks encouraging :
-usb 5-1: new high speed USB device using ehci_hcd and address 5
-usb 5-1: configuration #1 chosen from 1 choice
-Probing for m920x device at interface 0
-dvb-usb: found a 'Dposh(mt2060 tuner) DVB-T USB2.0' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software
-demuxer.
-DVB: registering new adapter (Dposh(mt2060 tuner) DVB-T USB2.0)
-m920x_mt352_frontend_attach
-DVB: registering frontend 0 (Zarlink MT352 DVB-T)...
-m920x_mt2060_tuner_attach
-MT2060: successfully identified (IF1 = 1220)
-dvb-usb: Dposh(mt2060 tuner) DVB-T USB2.0 successfully initialized and
-connected.
-
-but scanning produces no result. I thought it might be the firmware so I
-used USBSnoop ( ver 2.0 from
-here<http://www.pcausa.com/Utilities/UsbSnoop/SniffUSB-x86-2.0.0006.zip>
-, I think its slightly easier to use than the original) and extracted a new
-firmware file (attached) . The firmware loaded without complaint, but still
-no scan result. I'm a bit stuck now, anyone got any suggestions as to how I
-should proceed?
-
-regards Andrew
-
-------=_Part_1308_20433267.1214998963137
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi All,<br><br>I&#39;ve been trying to amend the M920x driver to cope with the MT2060 tuner. My dmesg output looks encouraging :<br>usb 5-1: new high speed USB device using ehci_hcd and address 5<br>usb 5-1: configuration #1 chosen from 1 choice<br>
-Probing for m920x device at interface 0<br>
-dvb-usb: found a &#39;Dposh(mt2060 tuner) DVB-T USB2.0&#39; in warm state.<br>dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.<br>DVB: registering new adapter (Dposh(mt2060 tuner) DVB-T USB2.0)<br>
-
-m920x_mt352_frontend_attach<br>DVB: registering frontend 0 (Zarlink MT352 DVB-T)...<br>m920x_mt2060_tuner_attach<br>MT2060: successfully identified (IF1 = 1220) <br>dvb-usb: Dposh(mt2060 tuner) DVB-T USB2.0 successfully initialized and connected.<br>
-&nbsp;&nbsp;
-<br>but scanning produces no result. I thought it might be the firmware so I used USBSnoop ( ver 2.0 from&nbsp;<a href="http://www.pcausa.com/Utilities/UsbSnoop/SniffUSB-x86-2.0.0006.zip">here</a>&nbsp; , I think its slightly easier to use than the original) and extracted a new firmware file (attached) . The firmware loaded without complaint, but still no scan result. I&#39;m a bit stuck now, anyone got any suggestions as to how I should proceed?<br>
-<br>regards Andrew<br>
-
-------=_Part_1308_20433267.1214998963137--
+------------------> which is what I'd expect, as I have no channels at 690.
 
 
---===============1553169831==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Is there something as simple as a maths problem somewhere???
+
+
+
+> Hi - please help!!!!
+>
+> I have patched the v4l-dvb driver with Sigmund Augdal's changes to support
+> C-1501.  I can't get channels to work on all but one frequency - 682Mhz.
+> Frequencies which work:  578, 586, 594, 602, 610, 626, 634, 642, 666, 674
+> Mhz.
+>
+> I have some channels at 674Mhz and at 682Mhz.  My initial is:
+> # Initial Testing
+> # freq sr fec mod
+> # freq sr fec mod
+> C 674000000 6900000 AUTO QAM64
+> C 682000000 6900000 AUTO QAM64
+>
+>
+> Scanning gives me:
+> ./scan -A 2 test_initial
+> initial transponder 674000000 6900000 9 3
+> initial transponder 682000000 6900000 9 3
+>>>> tune to: 674000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64
+> 0x0000 0x0321: pmt_pid 0x0029 T -- Sky Movies (running, scrambled)
+> 0x0000 0x0322: pmt_pid 0x002a T -- Sky Movies Greats (running, scrambled)
+> 0x0000 0x0323: pmt_pid 0x002b T -- Trackside (running, scrambled)
+>>>> tune to: 682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0030
+> WARNING: filter timeout pid 0x002d
+> WARNING: filter timeout pid 0x0029
+> WARNING: filter timeout pid 0x002f
+> WARNING: filter timeout pid 0x002a
+>
+> -------------->>  What does this pid timeout mean??
+>
+>
+>
+> I end up with channels:
+>
+> Living
+> Channel:674000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:1309:1409:809
+> UKTV:674000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:1310:1410:810
+> The Cheese:674000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:1420:820
+> [0385]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:0:901
+> [0386]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:0:902
+> [0387]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:1303:1403:903
+> [0388]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:0:904
+> [0389]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:0:905
+>
+>
+> -------------->>  Has picked up the pids, but missing information??
+>
+>
+>
+> When I try and czap them, I get:
+>
+> [root@freddy scan]# czap -c ~/.channels.conf.tmp TV3
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> reading channels from file '/root/.channels.conf.tmp'
+>  2 TV3:578000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:1303:1403:1003
+>  2 TV3: f 578000000, s 6900000, i 2, fec 9, qam 3, v 0x517, a 0x57b
+> status 00 | signal 9090 | snr b9b9 | ber 000fffff | unc 00000032 |
+> status 1f | signal e1e1 | snr f2f2 | ber 000005e8 | unc 000001ec |
+> FE_HAS_LOCK
+> status 1f | signal e1e1 | snr f2f2 | ber 00000000 | unc 00000000 |
+> FE_HAS_LOCK
+> status 1f | signal e1e1 | snr f2f2 | ber 00000000 | unc 00000000 |
+> FE_HAS_LOCK
+> status 1f | signal e1e1 | snr f3f3 | ber 00000000 | unc 00000000 |
+> FE_HAS_LOCK
+> status 1f | signal e1e1 | snr f2f2 | ber 00000000 | unc 00000000 |
+> FE_HAS_LOCK
+>
+>
+> but with 682Mhz, I get a lock but loads of errors:
+>
+> [root@freddy scan]# czap -c ~/.channels.conf.tmp [0385]
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> reading channels from file '/root/.channels.conf.tmp'
+>  1 [0385]:682000000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:0:0:901
+>  1 [0385]: f 682000000, s 6900000, i 2, fec 9, qam 3, v 0, a 0
+> status 03 | signal 8f8f | snr b9b9 | ber 000fffff | unc 00000032 |
+> status 1f | signal cfcf | snr dcdc | ber 000005e8 | unc 000061a7 |
+> FE_HAS_LOCK
+> status 1f | signal cfcf | snr dcdc | ber 000005e8 | unc 000061e8 |
+> FE_HAS_LOCK
+> status 1f | signal cfcf | snr dede | ber 000006c0 | unc 00006234 |
+> FE_HAS_LOCK
+> status 1f | signal cfcf | snr e0e0 | ber 000006a9 | unc 0000627f |
+> FE_HAS_LOCK
+> status 1f | signal cfcf | snr dbdb | ber 000006a5 | unc 000062b6 |
+> FE_HAS_LOCK
+>
+>
+>
+> Any ideas???
+>
+
+
+--------------------------------------------------------------------------------
+
+
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb 
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1553169831==--
