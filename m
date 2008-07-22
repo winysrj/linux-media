@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6GDTkI2026686
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 09:29:46 -0400
-Received: from jem.yoyo.org (jem.yoyo.org [193.110.91.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6GDSdfV032426
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 09:28:55 -0400
-Date: Wed, 16 Jul 2008 14:28:33 +0100
-From: Anthony Edwards <anthony@yoyo.org>
-To: Michael Krufky <mike@krufky.com>
-Message-ID: <20080716132833.GB9609@yoyo.org>
-References: <20080716125556.GA9609@yoyo.org> <487DF0C6.6080209@krufky.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6MAhoHP012239
+	for <video4linux-list@redhat.com>; Tue, 22 Jul 2008 06:43:50 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6MAha5Z028060
+	for <video4linux-list@redhat.com>; Tue, 22 Jul 2008 06:43:37 -0400
+Message-ID: <4885BBBA.2040600@hhs.nl>
+Date: Tue, 22 Jul 2008 12:51:38 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <487DF0C6.6080209@krufky.com>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: smscoreapi.c:689: error: 'uintptr_t' undeclared
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: [PULL] gspca sonixb improvements
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,78 +26,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Jul 16, 2008 at 08:59:50AM -0400, Michael Krufky wrote:
-> Anthony Edwards wrote:
-> > This appears to be an issue affecting a number of users, for example:
-> > 
-> > http://forum.linuxmce.org/index.php?action=profile;u=41878;sa=showPosts
-> > 
-> > I have experienced it too today after attempting to recompile drivers
-> > for my Hauppauge Nova-T USB TV tuner following an Ubuntu kernel update.
-> > 
-> > After obtaining the latest source code using hg clone, I have found
-> > that it will not successfully compile.  I am seeing the same make
-> > errors as the poster in the posting referenced above.
-> > 
-> > Unfortunately, I lack the necessary programming knowledge to hack the
-> > source code in order to make it work.
-> > 
-> > Is a fix in the pipeline?
-> > 
-> 
-> The fix is here -- please feel free to test it:
-> 
-> http://linuxtv.org/hg/~mkrufky/sms1xxx
-> 
-> I sent a pull request to Mauro a few days ago -- I don't know why it has not been merged yet.
+Hi Mauro,
 
-Unfortunately I lack programming knowledge or experience so am not
-entirely certain of my understanding of what is meant by the above,
-however I have edited:
+As discussed before I've taken over maintainer ship of the sonixb (and spca501 
+and spca561) gspca subdrivers.
 
-linux/drivers/media/dvb/siano/smscoreapi.h
+Please pull from http://linuxtv.org/hg/~hgoede/v4l-dvb/
+for:
 
-So that instead of reading, lines 25 - 30:
+changeset:   8435:902786b1451d
+gspca_sonixb sn9c103 + ov7630 autoexposure and cleanup
 
-#include <linux/version.h>
-#include <linux/device.h>
-#include <linux/list.h>
-#include <linux/mm.h>
-#include <linux/scatterlist.h>
-#include <asm/page.h>
+changeset:   8436:80f6ae943cdf
+gspca_sonixb remove non working ovXXXX contrast, hue and saturation ctrls
 
-It now reads, lines 25 - 31:
+Regards,
 
-#include <linux/version.h>
-#include <linux/device.h>
-#include <linux/list.h>
-#include <linux/mm.h>
-#include <linux/scatterlist.h>
-#include <linux/types.h>
-#include <asm/page.h>
-
-That hasn't had the desired effect though, since compilation attempts
-are still failing as follows:
-
-/home/anthony/Software/v4l-dvb/v4l/smscoreapi.c: In function 'smscore_detect_mode':
-/home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:689: error: 'uintptr_t' undeclared (first use in this function)
-/home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:689: error: (Each undeclared identifier is reported only once
-/home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:689: error: for each function it appears in.)
-/home/anthony/Software/v4l-dvb/v4l/smscoreapi.c: In function 'smscore_set_device_mode':
-/home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:820: error: 'uintptr_t' undeclared (first use in this function)
-make[3]: *** [/home/anthony/Software/v4l-dvb/v4l/smscoreapi.o] Error 1
-make[2]: *** [_module_/home/anthony/Software/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.22-15-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/anthony/Software/v4l-dvb/v4l'
-make: *** [all] Error 2
-
-Presumably, if I have understood your instructions and followed them
-correctly, something more is additionally needed?
-
--- 
-Anthony Edwards
-anthony@yoyo.org
+Hans
 
 --
 video4linux-list mailing list
