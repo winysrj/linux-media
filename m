@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n24.bullet.mail.ukl.yahoo.com ([87.248.110.141])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <newspaperman_germany@yahoo.com>) id 1KIiwf-0004va-Hb
-	for linux-dvb@linuxtv.org; Tue, 15 Jul 2008 13:43:53 +0200
-Date: Tue, 15 Jul 2008 11:43:14 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <20080715001416.34c5d564@bk.ru>
+Received: from moutng.kundenserver.de ([212.227.126.174])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <thomas@ickes-home.de>) id 1KLLHd-0008I1-RL
+	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 19:04:19 +0200
+From: "Thomas Ickes" <thomas@ickes-home.de>
+To: "'tom'" <thomas@ickes-home.de>
+Date: Tue, 22 Jul 2008 19:03:43 +0200
 MIME-Version: 1.0
-Message-ID: <925345.83839.qm@web23201.mail.ird.yahoo.com>
-Subject: [linux-dvb]   problems with multiproto & dvb-s2 with high SR,
-	losing parts of stream
-Reply-To: newspaperman_germany@yahoo.com
+In-Reply-To: <1216559944.6582.6.camel@super-klappi>
+Message-Id: <0ML2xA-1KLLH52n5h-0003V7@mrelayeu.kundenserver.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Problems with MSI Digivox Duo DVB-T USB, Ubuntu	8.04
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,101 +18,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0884118489=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0884118489==
-Content-Type: multipart/alternative; boundary="0-1240625453-1216122194=:83839"
-
---0-1240625453-1216122194=:83839
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-with femon I can see that data rates. Which datarate can you see at
-12130 H 30000 3/4 "TV 4"? (Not the on on 11341 V 25000 3/4, this one is
-working fine)
-Me getting only 5 Mbit/s at 12130 H although the channel has about 12 Mbit/=
-s.
-
-how can you set " (cx24116 demod with legacy=3D0 option)"?
-
-regards=20
-
-Newsy
---- Goga777 <goga777@bk.ru> schrieb am Mo, 14.7.2008:
-Von: Goga777 <goga777@bk.ru>
-Betreff: Re: [linux-dvb] Re : Re : problems with multiproto & dvb-s2 with h=
-igh SR, losing parts of stream
-An: linux-dvb@linuxtv.org
-Datum: Montag, 14. Juli 2008, 22:14
-
-> > > And you could retrieve the stream with no problemn even watch it?
-> >=20
-> > do you mean H264/ffmpeg decoding problem ? Ah, I can't open these
-> > encrypted channels=20
->=20
-> Is it a card problem? I mean my TT-3200 has problems to tune on some=20
-> channels, but when it tunes the CI/CAM works perfectly (here almost=20
-> every channel is encrypted). Does HVR-4000 has a good CI?
-
-I don't have the card, that's why I can't open these channels. We
-have spoken about LOCK :)
-
-Goga
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb=0A=0A=0A      ___=
-_______________________________________________________=0AGesendet von Yaho=
-o! Mail.=0ADem pfiffigeren Posteingang.=0Ahttp://de.overview.mail.yahoo.com
---0-1240625453-1216122194=:83839
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-<table cellspacing=3D'0' cellpadding=3D'0' border=3D'0' ><tr><td valign=3D'=
-top' style=3D'font: inherit;'>with femon I can see that data rates. Which d=
-atarate can you see at
-12130 H 30000 3/4 "TV 4"? (Not the on on 11341 V 25000 3/4, this one is
-working fine)<br>Me getting only 5 Mbit/s at 12130 H although the channel h=
-as about 12 Mbit/s.<br><br>how can you set " (cx24116 demod with legacy=3D0=
- option)"?<br><br>regards <br><br>Newsy<br>--- Goga777 <i>&lt;goga777@bk.ru=
-&gt;</i> schrieb am <b>Mo, 14.7.2008:<br></b><blockquote style=3D"border-le=
-ft: 2px solid rgb(16, 16, 255); margin-left: 5px; padding-left: 5px;"><b>Vo=
-n: Goga777 &lt;goga777@bk.ru&gt;<br>Betreff: Re: [linux-dvb] Re : Re : prob=
-lems with multiproto &amp; dvb-s2 with high SR, losing parts of stream<br>A=
-n: linux-dvb@linuxtv.org<br>Datum: Montag, 14. Juli 2008, 22:14<br><br></b>=
-<pre><b>&gt; &gt; &gt; And you could retrieve the stream with no problemn e=
-ven watch it?<br>&gt; &gt; <br>&gt; &gt; do you mean H264/ffmpeg decoding p=
-roblem ? Ah, I can't open these<br>&gt; &gt; encrypted channels <br>&gt; <b=
-r>&gt; Is it a card problem? I mean my TT-3200 has problems to tune on some=
- <br>&gt; channels, but when it tunes the CI/CAM works perfectly (here
- almost <br>&gt; every channel is encrypted). Does HVR-4000 has a good CI?<=
-br><br>I don't have the card, that's why I can't open these channels. We<br=
->have spoken about LOCK :)<br><br>Goga<br><br><br><br>_____________________=
-__________________________<br>linux-dvb mailing list<br>linux-dvb@linuxtv.o=
-rg<br>http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</b></pre></=
-blockquote></td></tr></table><br>=0A=0A=0A=0A      <hr size=3D1>=0AGesendet=
- von <a  =0Ahref=3D"http://us.rd.yahoo.com/mailuk/taglines/isp/control/*htt=
-p://us.rd.yahoo.com/evt=3D52427/*http://de.overview.mail.yahoo.com" target=
-=3D_blank>Yahoo! Mail</a>.=0A<br>=0ADem pfiffigeren Posteingang.
---0-1240625453-1216122194=:83839--
-
-
-
---===============0884118489==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0884118489==--
+SGVsbG8sCgppc24ndCB0aGVyZSBhbnlvbmUgd2hvIGhhcyBzb21lIGhpbnRzIGZvciBtZSByZWdh
+cmRpbmcgdGhlIFBJRCBGaWx0ZXIgUHJvYmxlbXM/CgpUaGFua3MKVGhvbWFzCgotLS0tLVVyc3By
+w7xuZ2xpY2hlIE5hY2hyaWNodC0tLS0tClZvbjogbGludXgtZHZiLWJvdW5jZXNAbGludXh0di5v
+cmcgW21haWx0bzpsaW51eC1kdmItYm91bmNlc0BsaW51eHR2Lm9yZ10gSW0gQXVmdHJhZyB2b24g
+dG9tCkdlc2VuZGV0OiBTb25udGFnLCAyMC4gSnVsaSAyMDA4IDE1OjE5CkFuOiBBbnR0aSBQYWxv
+c2FhcmkKQ2M6IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwpCZXRyZWZmOiBSZTogW2xpbnV4LWR2Yl0g
+UHJvYmxlbXMgd2l0aCBNU0kgRGlnaXZveCBEdW8gRFZCLVQgVVNCLCBVYnVudHUgOC4wNAoKSGVs
+bG8gQW50dGksCgpiYXNlZCBvbiB0aGUgdGVjaG4uIHNwZWMgb2YgbXkgbm90ZWJvb2sgKGNvbXBh
+cSBldm8gbjgwMHcpIHRoZXJlIGFyZSB1c2IKMi4wIHBvcnRzLi4uCkknbSBsb3N0IGluIHNwYWNl
+IHJlZ2FyZGluZyB0aGUgcGlkIGZpbHRlcnMsIEkgZXZlbiBkb24ndCBrbm93IHdoYXQgdGhlCnBp
+ZCBmaWx0ZXIgaXMgOi0pLiBTb3JyeSwgYnV0IEknbSBub3QgdXNpbmcgbGludXggZm9yIHNvIGxv
+bmcuLi4KCk1heWJlIHNvbWVvbmUgZWxzZSBoYXZlIGFuIGlkZWEgd2h5IHRoaXMgaXMgbm90IHdv
+cmtpbmcuCgpUaG9tYXMgCgpBbSBTb25udGFnLCBkZW4gMjAuMDcuMjAwOCwgMTU6NTYgKzAzMDAg
+c2NocmllYiBBbnR0aSBQYWxvc2Fhcmk6Cj4gaGVsbG8gdG9tCj4gCj4gdG9tIHdyb3RlOgo+ID4g
+cmVzdWx0cyBvZiBsc21vZCB8IGdyZXAgZHZiOgo+ID4gCj4gPiBkdmJfdXNiX2FmOTAxNSAgICAg
+ICAgIDI0MzMyICAwIAo+ID4gZHZiX3VzYiAgICAgICAgICAgICAgICAyMjkyNCAgMSBkdmJfdXNi
+X2FmOTAxNQo+ID4gZHZiX2NvcmUgICAgICAgICAgICAgICA4MDYzNiAgMSBkdmJfdXNiCj4gPiBp
+MmNfY29yZSAgICAgICAgICAgICAgIDI0ODMyICA0IG14bDUwMDVzLGFmOTAxMyxkdmJfdXNiX2Fm
+OTAxNSxkdmJfdXNiCj4gPiB1c2Jjb3JlICAgICAgICAgICAgICAgMTQ2MDI4Cj4gPiA2IO+7v2R2
+Yl91c2JfYWY5MDE1LGR2Yl91c2IsdXNiaGlkLGVoY2lfaGNkLG9oY2lfaGNkCj4gPiAKPiA+IFRo
+b21hcwo+ID4gCj4gPiAKPiA+IEFtIFNhbXN0YWcsIGRlbiAxOS4wNy4yMDA4LCAxMDo1OCArMDIw
+MCBzY2hyaWViIHRvbToKPiA+PiDvu79IaSBBbnR0aSwKPiA+PiBJIGhhdmUgaW5zdGFsbGVkIHRo
+ZSBkcml2ZXIuIEFmdGVyIHJlYm9vdCBkbWVzZyBnaXZlcyB0aGUgZm9sbG93aW5nLgo+IAo+ID4+
+IFsgMTUzMi41MDIzMjhdIGR2Yi11c2I6IGNvdWxkIG5vdCBoYW5kbGUgcGlkX3BhcnNlcgo+IAo+
+IEkgZG9uJ3Qga25vdyB3aGF0cyB3cm9uZyBidXQgaXQgbG9va3MgbGlrZSBjb21pbmcgZnJvbSBQ
+SUQtZmlsdGVyLiBZb3UgCj4gaGF2ZSBvbmx5IFVTQjEuMSBwb3J0cz8KPiAKPiBEcml2ZXIgd2ls
+bCBkaXNhYmxlIDJuZCB0dW5lciAvIGZyb250ZW5kIGlmIHRoZXJlIGlzIG9ubHkgVVNCMS4xIGJl
+Y2F1c2UgCj4gICBJIGRvbid0IGtub3cgaWYgdGhlcmUgaXMgYW55IHdheSB0byB1c2UgUElELWZp
+bHRlcnMgZm9yIDJuZCBmcm9udGVuZC4gCj4gQWxzbyBGRSMxIHBlcmZvcm1hbmNlIGlzIGJhZCBp
+biBkdWFsIHR1bmVyIGRldmljZSBmb3IgdW5rbm93biByZWFzb24uIAo+IEJ1dCBJIHN0aWxsIGRv
+bid0IHNlZSByZWFzb24gd2h5IHlvdXIgZGV2aWNlIGlzIG5vdCB3b3JraW5nLgo+IAo+IFRoYXRz
+IHdlaXJkIHNpdHVhdGlvbjoKPiBkdWFsIG1vZGUgKDIgcmVjZWl2ZXJzKToKPiBGRSMxIGJhZAo+
+IEZFIzIgZ29vZAo+IHNpbmdsZSBtb2RlICgxIHJlY2VpdmVyKToKPiBGRSMxIGdvb2QKPiAKCgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIg
+bWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3Jn
+L2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmIKCgpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4
+LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1kdmI=
