@@ -1,22 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6TIEV3j012557
-	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 14:14:31 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6TIEIsG015006
-	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 14:14:19 -0400
-Message-ID: <488F5FFF.8030306@hhs.nl>
-Date: Tue, 29 Jul 2008 20:22:55 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-References: <20092.62.70.2.252.1217333416.squirrel@webmail.xs4all.nl>
-	<1217353033.1692.14.camel@localhost>
-In-Reply-To: <1217353033.1692.14.camel@localhost>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6MFSXsf021398
+	for <video4linux-list@redhat.com>; Tue, 22 Jul 2008 11:28:33 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.190])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6MFSML2015708
+	for <video4linux-list@redhat.com>; Tue, 22 Jul 2008 11:28:22 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so688821nfc.21
+	for <video4linux-list@redhat.com>; Tue, 22 Jul 2008 08:28:21 -0700 (PDT)
+From: Jaime Velasco Juan <jsagarribay@gmail.com>
+To: mchehab@infradead.org
+Date: Tue, 22 Jul 2008 16:28:36 +0100
+Message-Id: <1216740516-4223-1-git-send-email-jsagarribay@gmail.com>
 Cc: video4linux-list@redhat.com
-Subject: Re: CONFIG_VIDEO_ADV_DEBUG question
+Subject: [PATCH resend] stkwebcam: Always reuse last queued buffer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,33 +24,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Jean-Francois Moine wrote:
-> On Tue, 2008-07-29 at 14:10 +0200, Hans Verkuil wrote:
->> Hans de Goede wrote:
->>> CONFIG_VIDEO_ADV_DEBUG enables additional debugging output in the gscpa
->>> driver, which then becomes "active" when a module option gets passed. So
->> 	[snip]
->> But the way gspca uses it is not correct. I would remove the test on
->> CONFIG_VIDEO_ADV_DEBUG there altogether, or replace it with a test of a
-> 
-> Hello Hans and Hans,
-> 
-> OK. So I see 3 options:
-> 1) add a new kernel config option, say CONFIG_GSPCA_DEBUG,
-> 2) always set an internal compile option GSPCA_DEBUG,
-> 3) have the option GSPCA_DEBUG, but unset by default.
-> 
-> Which is the best for you, Hans (de Goede)?
-> 
+This change keeps the video stream going on when the application
+is slow queuing buffers, instead of spamming dmesg and hanging.
 
-My vote goes to 2, so that when users using distro kernels (which will soon 
-have gspca v2, Fedora's development kernel already has it) we can tell them to 
-add the necessary module option and get debug output from them without them 
-having to rebuild a kernel (module).
+Fixes a problem with aMSN reported by Samed Beyribey <beyribey@gmail.com>
+
+Signed-off-by: Jaime Velasco Juan <jsagarribay@gmail.com>
+---
+
+Hi, this is the third time I send this patch, is there any problem with it?
 
 Regards,
+Jaime
 
-Hans
+ drivers/media/video/stk-webcam.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
+index f308c38..fce5d63 100644
+--- a/drivers/media/video/stk-webcam.c
++++ b/drivers/media/video/stk-webcam.c
+@@ -442,18 +442,19 @@ static void stk_isoc_handler(struct urb *urb)
+ 				fb->v4lbuf.bytesused = 0;
+ 				fill = fb->buffer;
+ 			} else if (fb->v4lbuf.bytesused == dev->frame_size) {
+-				list_move_tail(dev->sio_avail.next,
+-					&dev->sio_full);
+-				wake_up(&dev->wait_frame);
+-				if (list_empty(&dev->sio_avail)) {
+-					(void) (printk_ratelimit() &&
+-					STK_ERROR("No buffer available\n"));
+-					goto resubmit;
++				if (list_is_singular(&dev->sio_avail)) {
++					/* Always reuse the last buffer */
++					fb->v4lbuf.bytesused = 0;
++					fill = fb->buffer;
++				} else {
++					list_move_tail(dev->sio_avail.next,
++						&dev->sio_full);
++					wake_up(&dev->wait_frame);
++					fb = list_first_entry(&dev->sio_avail,
++						struct stk_sio_buffer, list);
++					fb->v4lbuf.bytesused = 0;
++					fill = fb->buffer;
+ 				}
+-				fb = list_first_entry(&dev->sio_avail,
+-					struct stk_sio_buffer, list);
+-				fb->v4lbuf.bytesused = 0;
+-				fill = fb->buffer;
+ 			}
+ 		} else {
+ 			framelen -= 4;
+-- 
+1.5.6.2
 
 --
 video4linux-list mailing list
