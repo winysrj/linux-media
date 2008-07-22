@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from moutng.kundenserver.de ([212.227.126.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KEXZC-0008Gt-Rc
-	for linux-dvb@linuxtv.org; Fri, 04 Jul 2008 00:46:19 +0200
-Message-ID: <486D56B6.6010807@iki.fi>
-Date: Fri, 04 Jul 2008 01:46:14 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Alistair M <tlli@hotmail.com>
-References: <BAY136-W51AE9A3EF97CBB5CEA6E0ED29E0@phx.gbl>	<486B3617.3070702@iki.fi>
-	<BAY136-W33BDD7C9C5D3A806143D41D2980@phx.gbl>	<486CB3D2.3000702@iki.fi>
-	<BAY136-W3875504CF84B7D3DF87BDFD2980@phx.gbl>	<486CCF9E.7070109@iki.fi>
-	<BAY136-W13F407BF8A0BCA5BB251F6D2980@phx.gbl>	<486CDC62.5060605@iki.fi>
-	<BAY136-W4A1D1267A59B878FF68C7D2980@phx.gbl>	<486CE911.8090808@iki.fi>
-	<BAY136-W177E19D1A9E2B82C462594D2980@phx.gbl>
-In-Reply-To: <BAY136-W177E19D1A9E2B82C462594D2980@phx.gbl>
+	(envelope-from <thomas@ickes-home.de>) id 1KLMQX-0004Fg-Nn
+	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 20:17:36 +0200
+From: tom <thomas@ickes-home.de>
+To: crope@iki.fi
+In-Reply-To: <0MKxQS-1KLM2V1c9L-0001hx@mrelayeu.kundenserver.de>
+References: <0MKxQS-1KLM2V1c9L-0001hx@mrelayeu.kundenserver.de>
+Date: Tue, 22 Jul 2008 20:16:31 +0200
+Message-Id: <1216750591.6624.3.camel@super-klappi>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Leadtek WinFast DTV Dongle Gold Remote issues
+Subject: Re: [linux-dvb] WG:  Problems with MSI Digivox Duo DVB-T USB,
+	Ubuntu	8.04
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,48 +20,73 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Alistair M wrote:
-> Hi Antii,
-> 
-> I'm sorry, its still doing it. I'm doing the following:
-> # hg clone http://linuxtv.org/hg/~anttip/af9015-new
-> # cd af9015-new
-> # make
-> # make install
-> reboot
-
-that's ok
-
-
-> I then open terminal, with the usb stick plugged in, i hit the number 5 
-> on the remote, then 5 gets printed on the terminal screen, and is 
-> repeated continuously, eg. 5555555555555555555555555555.... until i hit 
-> another key. If i use the number 5 from the keyboard when i type 
-> something, it will do the same again, 55555555555555555555555555555555.....
-
-:(
-
-> This happens for what ever number i press on the remote, it will then do 
-> on my laptop keyboard, etc.
-
-Don't know what's wrong. I will think that more in day or two or tree...
-
-> 
-> Thanks Antii,
-> Alistair
-
-regards
-Antti
--- 
-http://palosaari.fi/
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+dGhhbmtzIGZvciB0aGUgcXVpY2sgcmVwbHkgYW5kIHByb3ZpZGluZyB0aGUgdGVzdCEhCgpTaG91
+bGQgSSB1c2UgJ21ha2Ugcm1pbnN0YWxsJyBiZWZvcmUgSSBpbnN0YWwgdGhlIHRlc3Q/CkFuZCBm
+b3IgaW5zdGFsbGluZyB0aGUgdGVzdCwgc2hvdWxkIEkgdXNlIHRoZSAnbWFrZSBhbGwnPwoKVGhv
+bWFzCgpBbSBEaWVuc3RhZywgZGVuIDIyLjA3LjIwMDgsIDE5OjUyICswMjAwIHNjaHJpZWIgVGhv
+bWFzIElja2VzOgo+IAo+IC0tLS0tVXJzcHLDvG5nbGljaGUgTmFjaHJpY2h0LS0tLS0KPiBWb246
+IEFudHRpIFBhbG9zYWFyaSBbbWFpbHRvOmNyb3BlQGlraS5maV0gCj4gR2VzZW5kZXQ6IERpZW5z
+dGFnLCAyMi4gSnVsaSAyMDA4IDE5OjIxCj4gQW46IFRob21hcyBJY2tlcwo+IENjOiBsaW51eC1k
+dmJAbGludXh0di5vcmcKPiBCZXRyZWZmOiBSZTogW2xpbnV4LWR2Yl0gUHJvYmxlbXMgd2l0aCBN
+U0kgRGlnaXZveCBEdW8gRFZCLVQgVVNCLCBVYnVudHUgOC4wNAo+IAo+IFRob21hcyBJY2tlcyB3
+cm90ZToKPiA+IEhlbGxvLAo+ID4gCj4gPiBpc24ndCB0aGVyZSBhbnlvbmUgd2hvIGhhcyBzb21l
+IGhpbnRzIGZvciBtZSByZWdhcmRpbmcgdGhlIFBJRCBGaWx0ZXIgUHJvYmxlbXM/Cj4gCj4gRm9y
+IG1lIGl0IGxvb2tlZCBsaWtlIGFmOTAxNV9waWRfZmlsdGVyX2N0cmwoKSB3YXMgZmFpbGluZyBh
+bmQgdGhhdHMgd2h5IAo+IGVycm9ycy4gSSBkb24ndCBoYXZlIGlkZWEgd2h5IGl0IGlzIGZhaWxp
+bmcuIEJ1dCBJIGRpZCBzcGVjaWFsIGJ1aWxkIGZvciAKPiB5b3UgdG8gdGVzdCBhZ2Fpbi4gTm93
+IHdob2xlIFBJRC1maWx0ZXIgaXMgZGlzYWJsZWQuCj4gaHR0cDovL2xpbnV4dHYub3JnL2hnL35h
+bnR0aXAvYWY5MDE1X2Rpc2FibGVfcGlkX2ZpbHRlci8KPiAKPiBQSUQtZmlsdGVyaW5nIGlzIG5l
+ZWRlZCBpZiB3ZSBoYXZlIG9ubHkgVVNCMS4xIHBvcnRzLiBQSUQtZmlsdGVyIHJlbW92ZXMgCj4g
+ICB1bm5lY2Vzc2FyeSBjaGFubmVscyBmcm9tIHRyYW5zcG9ydCBzdHJlYW0gdGhhdCBpdCBjYW4g
+Zml0IHRvIFVTQjEuMSAKPiBzcGVlZC4gVVNCMi4wIGRvZXMgbm90IG5lZWQgUElELWZpbHRlcmlu
+ZyBiZWNhdXNlIGl0IGlzIGNhcGFibGUgb2YgCj4gdHJhbnNmZXIgd2hvbGUgc3RyZWFtIChNVVgp
+Lgo+IAo+IEFudHRpCj4gPiAKPiA+IFRoYW5rcwo+ID4gVGhvbWFzCj4gPiAKPiA+IC0tLS0tVXJz
+cHLDvG5nbGljaGUgTmFjaHJpY2h0LS0tLS0KPiA+IFZvbjogbGludXgtZHZiLWJvdW5jZXNAbGlu
+dXh0di5vcmcgW21haWx0bzpsaW51eC1kdmItYm91bmNlc0BsaW51eHR2Lm9yZ10gSW0gQXVmdHJh
+ZyB2b24gdG9tCj4gPiBHZXNlbmRldDogU29ubnRhZywgMjAuIEp1bGkgMjAwOCAxNToxOQo+ID4g
+QW46IEFudHRpIFBhbG9zYWFyaQo+ID4gQ2M6IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+ID4gQmV0
+cmVmZjogUmU6IFtsaW51eC1kdmJdIFByb2JsZW1zIHdpdGggTVNJIERpZ2l2b3ggRHVvIERWQi1U
+IFVTQiwgVWJ1bnR1IDguMDQKPiA+IAo+ID4gSGVsbG8gQW50dGksCj4gPiAKPiA+IGJhc2VkIG9u
+IHRoZSB0ZWNobi4gc3BlYyBvZiBteSBub3RlYm9vayAoY29tcGFxIGV2byBuODAwdykgdGhlcmUg
+YXJlIHVzYgo+ID4gMi4wIHBvcnRzLi4uCj4gPiBJJ20gbG9zdCBpbiBzcGFjZSByZWdhcmRpbmcg
+dGhlIHBpZCBmaWx0ZXJzLCBJIGV2ZW4gZG9uJ3Qga25vdyB3aGF0IHRoZQo+ID4gcGlkIGZpbHRl
+ciBpcyA6LSkuIFNvcnJ5LCBidXQgSSdtIG5vdCB1c2luZyBsaW51eCBmb3Igc28gbG9uZy4uLgo+
+ID4gCj4gPiBNYXliZSBzb21lb25lIGVsc2UgaGF2ZSBhbiBpZGVhIHdoeSB0aGlzIGlzIG5vdCB3
+b3JraW5nLgo+ID4gCj4gPiBUaG9tYXMgCj4gPiAKPiA+IEFtIFNvbm50YWcsIGRlbiAyMC4wNy4y
+MDA4LCAxNTo1NiArMDMwMCBzY2hyaWViIEFudHRpIFBhbG9zYWFyaToKPiA+PiBoZWxsbyB0b20K
+PiA+Pgo+ID4+IHRvbSB3cm90ZToKPiA+Pj4gcmVzdWx0cyBvZiBsc21vZCB8IGdyZXAgZHZiOgo+
+ID4+Pgo+ID4+PiBkdmJfdXNiX2FmOTAxNSAgICAgICAgIDI0MzMyICAwIAo+ID4+PiBkdmJfdXNi
+ICAgICAgICAgICAgICAgIDIyOTI0ICAxIGR2Yl91c2JfYWY5MDE1Cj4gPj4+IGR2Yl9jb3JlICAg
+ICAgICAgICAgICAgODA2MzYgIDEgZHZiX3VzYgo+ID4+PiBpMmNfY29yZSAgICAgICAgICAgICAg
+IDI0ODMyICA0IG14bDUwMDVzLGFmOTAxMyxkdmJfdXNiX2FmOTAxNSxkdmJfdXNiCj4gPj4+IHVz
+YmNvcmUgICAgICAgICAgICAgICAxNDYwMjgKPiA+Pj4gNiDvu79kdmJfdXNiX2FmOTAxNSxkdmJf
+dXNiLHVzYmhpZCxlaGNpX2hjZCxvaGNpX2hjZAo+ID4+Pgo+ID4+PiBUaG9tYXMKPiA+Pj4KPiA+
+Pj4KPiA+Pj4gQW0gU2Ftc3RhZywgZGVuIDE5LjA3LjIwMDgsIDEwOjU4ICswMjAwIHNjaHJpZWIg
+dG9tOgo+ID4+Pj4g77u/SGkgQW50dGksCj4gPj4+PiBJIGhhdmUgaW5zdGFsbGVkIHRoZSBkcml2
+ZXIuIEFmdGVyIHJlYm9vdCBkbWVzZyBnaXZlcyB0aGUgZm9sbG93aW5nLgo+ID4+Pj4gWyAxNTMy
+LjUwMjMyOF0gZHZiLXVzYjogY291bGQgbm90IGhhbmRsZSBwaWRfcGFyc2VyCj4gPj4gSSBkb24n
+dCBrbm93IHdoYXRzIHdyb25nIGJ1dCBpdCBsb29rcyBsaWtlIGNvbWluZyBmcm9tIFBJRC1maWx0
+ZXIuIFlvdSAKPiA+PiBoYXZlIG9ubHkgVVNCMS4xIHBvcnRzPwo+ID4+Cj4gPj4gRHJpdmVyIHdp
+bGwgZGlzYWJsZSAybmQgdHVuZXIgLyBmcm9udGVuZCBpZiB0aGVyZSBpcyBvbmx5IFVTQjEuMSBi
+ZWNhdXNlIAo+ID4+ICAgSSBkb24ndCBrbm93IGlmIHRoZXJlIGlzIGFueSB3YXkgdG8gdXNlIFBJ
+RC1maWx0ZXJzIGZvciAybmQgZnJvbnRlbmQuIAo+ID4+IEFsc28gRkUjMSBwZXJmb3JtYW5jZSBp
+cyBiYWQgaW4gZHVhbCB0dW5lciBkZXZpY2UgZm9yIHVua25vd24gcmVhc29uLiAKPiA+PiBCdXQg
+SSBzdGlsbCBkb24ndCBzZWUgcmVhc29uIHdoeSB5b3VyIGRldmljZSBpcyBub3Qgd29ya2luZy4K
+PiA+Pgo+ID4+IFRoYXRzIHdlaXJkIHNpdHVhdGlvbjoKPiA+PiBkdWFsIG1vZGUgKDIgcmVjZWl2
+ZXJzKToKPiA+PiBGRSMxIGJhZAo+ID4+IEZFIzIgZ29vZAo+ID4+IHNpbmdsZSBtb2RlICgxIHJl
+Y2VpdmVyKToKPiA+PiBGRSMxIGdvb2QKPiA+Pgo+ID4gCj4gPiAKPiA+IF9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gPiBsaW51eC1kdmIgbWFpbGluZyBs
+aXN0Cj4gPiBsaW51eC1kdmJAbGludXh0di5vcmcKPiA+IGh0dHA6Ly93d3cubGludXh0di5vcmcv
+Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Ygo+ID4gCj4gPiAKPiA+IF9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gPiBsaW51eC1kdmIgbWFp
+bGluZyBsaXN0Cj4gPiBsaW51eC1kdmJAbGludXh0di5vcmcKPiA+IGh0dHA6Ly93d3cubGludXh0
+di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Ygo+IAo+IAoKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5n
+IGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJp
+bi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
