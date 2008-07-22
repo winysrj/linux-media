@@ -1,21 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.28])
+Received: from moutng.kundenserver.de ([212.227.126.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1KEY9y-0003TW-B4
-	for linux-dvb@linuxtv.org; Fri, 04 Jul 2008 01:24:19 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so416461ywj.41
-	for <linux-dvb@linuxtv.org>; Thu, 03 Jul 2008 16:24:11 -0700 (PDT)
-Message-ID: <37219a840807031624j67a284aeqfe3dbbce71155420@mail.gmail.com>
-Date: Thu, 3 Jul 2008 19:24:11 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Andrew McLean" <mcleanandrew@yahoo.com>
-In-Reply-To: <639576.43086.qm@web43136.mail.sp1.yahoo.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <639576.43086.qm@web43136.mail.sp1.yahoo.com>
+	(envelope-from <thomas@ickes-home.de>) id 1KLOXI-0000ZQ-3x
+	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 22:32:40 +0200
+From: tom <thomas@ickes-home.de>
+To: Antti Palosaari <crope@iki.fi>
+In-Reply-To: <48863E02.9080803@iki.fi>
+References: <0MKxQS-1KLM2V1c9L-0001hx@mrelayeu.kundenserver.de>
+	<1216750591.6624.3.camel@super-klappi>  <48862536.9070906@iki.fi>
+	<1216752077.6686.4.camel@super-klappi>  <48862B02.1030304@iki.fi>
+	<1216754067.6686.7.camel@super-klappi>  <48863349.3090507@iki.fi>
+	<1216754778.6686.9.camel@super-klappi>  <48863629.8070706@iki.fi>
+	<1216755359.6686.11.camel@super-klappi>
+	<1216756294.6686.16.camel@super-klappi>
+	<1216756855.6686.19.camel@super-klappi>  <48863E02.9080803@iki.fi>
+Date: Tue, 22 Jul 2008 22:31:22 +0200
+Message-Id: <1216758682.14975.3.camel@super-klappi>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] New Nova-TD-Stick (USB) with new IDs is making
-	problems / is not running
+Subject: Re: [linux-dvb] WG:  Problems with	MSI	Digivox	Duo	DVB-T	USB,
+	Ubuntu 8.04
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,60 +33,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Jul 3, 2008 at 4:38 PM, Andrew McLean <mcleanandrew@yahoo.com> wrote:
-> Hi folks,
->
-> I recently bought a "Hauppauge Nova-TD USB-Stick" for
-> DVB-T.
-> The stick was recommended by another linux-user, so I
-> thought, it would work.
->
-> But now I figured out, that the stick has new
-> settings, I mean a new ID and it is not recognized by
-> the recent kernel-versions (2.6.24 and 2.6.25).
->
-> The (new) stick comes up with this:
-> idVendor=2040, idProduct=5200
-> At the back of the stick, there is a label showing
-> this:
-> 52009 LF Rev B1F4, Assembled in Indonesia
->
-> The old and working Nova-TD version comes up with
-> this:
-> idVendor=2040, idProduct=9580
-> (comes from Taiwan)
->
-> I also installed the latest version of v4l to check,
-> if it is working, but it doesnt.
->
-> In this kernel modules, the a.m. ID is not listet
-> here:
-> Kernel 2.6.24:
-> http://git.kernel.org/?p=linux/kernel/git/stable/linux-2.6.24.y.git;a=blob;f=drivers/media/dvb/dvb-usb/dvb-usb-ids.h;h=4fa3e895028a0596c7a792cb5e451aadceddc634;hb=HEAD
->
-> Kernel 2.6.25:
-> http://git.kernel.org/?p=linux/kernel/git/stable/linux-2.6.25.y.git;a=blob;f=drivers/media/dvb/dvb-usb/dvb-usb-ids.h;h=49a44f249ab0e99f4fd96d0ec725d224420ab3fd;hb=HEAD
->
-> This is the first time, I'm posting to a mailing list
-> like that, so please advise me, what more information
-> you need. Perhaps you can speed up the development
-> with this information.
->
-> I have posted several log-files and tests with the
-> a.m. kernel versions on the german debian board here:
-> http://www.debianforum.de/forum/viewtopic.php?f=25&t=100676&start=15&st=0&sk=t&sd=a
-> (written in German)
->
-> So, I would be really happy, if one of you guys up
-> here can tell me what I can try next to get the new
-> Nova-TD-stick working.
+yes, problem was old firmware...very stupid :)
 
-Thanks for your email -- I just got this stick working -- I will post
-a URL in a few minutes.
+I will try out both tuners and let you know. at the moment I'm happy and
+try to tune some channels (puh)
 
-Regards,
+which player do you use?
 
-Mike
+Thomas
+
+Am Dienstag, den 22.07.2008, 23:07 +0300 schrieb Antti Palosaari:
+> tom wrote:
+> > !!SUCCESS!!
+> :)
+> > 
+> > Scan has found channels and everything works!
+> 
+> Problem was coming from too old firmware?
+> 
+> Try both tuners. I have AzureWave which is rather similar and I have 
+> problem that first tuner performance is bad (it goes bad immediately 
+> when second receiver is enabled). Some noise, mosaic pixels, in picture 
+> :o I wonder if you have same problem...
+> 
+> > Antti, many thanks for your support and especially for your patience!
+> > 
+> > Thomas
+> 
+> Antti
+
 
 _______________________________________________
 linux-dvb mailing list
