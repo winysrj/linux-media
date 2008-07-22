@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.186])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@me.by>) id 1KDyF2-0006Ei-RI
-	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 11:03:09 +0200
-Received: by fk-out-0910.google.com with SMTP id f40so281884fka.1
-	for <linux-dvb@linuxtv.org>; Wed, 02 Jul 2008 02:03:05 -0700 (PDT)
-Content-Disposition: inline
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: linux-dvb@linuxtv.org
-Date: Wed, 2 Jul 2008 12:02:06 +0300
+	(envelope-from <crope@iki.fi>) id 1KLNcb-0003gU-Et
+	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 21:34:09 +0200
+Message-ID: <48863629.8070706@iki.fi>
+Date: Tue, 22 Jul 2008 22:34:01 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Message-Id: <200807021202.06217.liplianin@me.by>
-Subject: Re: [linux-dvb] Start Working on Silicon Laboratories Si2107, 2108,
-	2109, 2110 Driver
+To: tom <thomas@ickes-home.de>
+References: <0MKxQS-1KLM2V1c9L-0001hx@mrelayeu.kundenserver.de>	
+	<1216750591.6624.3.camel@super-klappi> <48862536.9070906@iki.fi>	
+	<1216752077.6686.4.camel@super-klappi> <48862B02.1030304@iki.fi>	
+	<1216754067.6686.7.camel@super-klappi> <48863349.3090507@iki.fi>
+	<1216754778.6686.9.camel@super-klappi>
+In-Reply-To: <1216754778.6686.9.camel@super-klappi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] WG:  Problems with MSI Digivox	Duo	DVB-T	USB,
+ Ubuntu 8.04
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,9 +30,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Now I am proud, that  driver for Silicon Laboratories Si2109,2110 works well.
- 
-Igor M. Liplianin
+tom wrote:
+> ah, ok. can I found to firmware on linuxtv?
+
+nope, It is at the same location where you have downloaded current one:
+http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
+
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
