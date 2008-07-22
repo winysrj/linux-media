@@ -1,16 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Yusik Kim <yusikk@gmail.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Date: Sat, 26 Jul 2008 19:37:34 -0700
-References: <200807260353.23359.yusikk@gmail.com>
-	<200807261725.51913.yusikk@gmail.com>
-	<488BD07B.1030403@linuxtv.org>
-In-Reply-To: <488BD07B.1030403@linuxtv.org>
+Date: Tue, 22 Jul 2008 08:28:24 -0400 (EDT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Eddi De Pieri <eddi@depieri.net>
+In-Reply-To: <1216716678.7270.15.camel@localhost>
+Message-ID: <alpine.LFD.1.10.0807220823090.24182@bombadil.infradead.org>
+References: <d350e5180804290541q6455c0b3s63aafbbc17e424e2@mail.gmail.com>
+	<48171AA0.2060203@linuxtv.org> <1216716678.7270.15.camel@localhost>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807261937.34585.yusikk@gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1950 digital part
+Subject: Re: [linux-dvb] hauppauge HVR 900H
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,114 +22,83 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Saturday 26 July 2008 18:33:47 Michael Krufky wrote:
-> Yusik Kim wrote:
-> > On Saturday 26 July 2008 13:40:36 Mike Isely wrote:
-> >> On Sat, 26 Jul 2008, Yusik Kim wrote:
-> >>> On Saturday 26 July 2008 08:39:16 Steven Toth wrote:
-> >>>> Yusik Kim wrote:
-> >>>>> Hi,
-> >>>>>
-> >>>>> Has anyone got the digital part of this device to work properly?
-> >>>>>
-> >>>>> Modules are compiled from the latest (7/26) v4l-dvb snapshot with a
-> >>>>> 2.6.25.4 kernel. The modules seem to load properly and the analog
-> >>>>> part works in mythtv. The digital part kind of works.
-> >>>>> The problems I can observe are:
-> >>>>> 1. Can only scan 3 digital channels using both the command line scan
-> >>>>> and mythtv. My other PCI TV card scans 36 of them.
-> >>>>> 2. Only occasionally locks in to a channel.
-> >>>>> 3. Takes 5 minutes to lock in to a channel when it actually does
-> >>>>> succeed.
-> >>>>>
-> >>>>> I saw from another mailing list that people were trying to get the
-> >>>>> remote control to work so I'm guessing the core of the device
-> >>>>> functions properly. If this is the current state of support, I'd be
-> >>>>> glad to help testing.
-> >>>>
-> >>>> What steps did you take to prove your hardware is function properly,
-> >>>> or your digital cable feed is reliable?
-> >>>>
-> >>>> The drivers works for me, it sounds like you have an environmental
-> >>>> issue.
-> >>>>
-> >>>> - Steve
-> >>>
-> >>> Thank you for replying Steve.
-> >>> I have a windows partition on the same machine and it works perfectly
-> >>> there. So I don't think there is a problem with the cable feed or
-> >>> hardware itself.
-> >>>
-> >>> Not sure if it has any relevance but I noticed in windows, the red LED
-> >>> light in the front is always on whereas in linux, it only turns on
-> >>> right before it tries to lock in to a channel.
-> >>
-> >> While I can't vouch for what the Windows driver is doing, the Linux
-> >> driver (pvrusb2) for this device deliberately only lights the LED when
-> >> actual streaming is being attempted.  Basically the LED becomes a "busy"
-> >> indicator.  It's a feature not a bug :-)
-> >>
-> >>> I should add that the 3 channels that were successfully scaned do not
-> >>> always get picked up in subsequent attempts. It seems like it has
-> >>> trouble tuning. At least it's good to know it's a problem on my end.
-> >>> Just have to find a way to fix it.
-> >>
-> >> Sounds a lot like there's a significant tuning problem.  Unfortunately
-> >> I'm not seeing the issue here :-(
-> >>
-> >>   -Mike
-> >
-> > Thanks Mike.
-> > Nobody else seems to have the same problem. What's driving me crazy is
-> > that I have 2 laptops where I can test (c2d 1.06GHz/ Pentium-M
-> > 1.4GHz(backend only);both Debian testing) and both have the exact same
-> > problem so it's most likely not machine specific. It works on a windows
-> > partition of the c2d machine so it's not hardware related nor is it
-> > because of a bad signal source.  So the only thing that stands between me
-> > and all the other people who are happily using it can be narrowed down to
-> > kernel options or the distro.  Are there any known kernel options/modules
-> > that may interfere with the tuning?
-> >
-> > Another interesting thing is that in mythtv-setup, I have no option to
-> > choose ATSC. Only NTSC, NTSC-JP, SECAM, etc. but no ATSC. It doesn't even
-> > allow me the option to manually create an ATSC channel. The only way I
-> > get an ATSC channel is through active scan (which most of the time
-> > doesn't work). I can select ATSC on my desktop with a pci capture card. I
-> > can't use the desktop to test it because it's USB1.1.
-> >
-> > It looks like a dead end for now. Thanks to everyone who tried to help.
+Hi Eddi,
+
+I'm working on this driver. I have one HVR900H. Unfortunately, I've been 
+too busy those days, since I'm responsible for the entire subsystem 
+maintainership and I have a job that it is unrelated to V4L. So, I can 
+work on it only on my spare time.
+
+The HVR uses a tm6010 chip. The commands for this is slicely different 
+than the ones for tm6000. The driver has some support for it, but some 
+adjustments are needed.
+
+The firmware file is for xc3028XL variant.
+
+The current tree is broken (the urb decoding code is causing some OOPS 
+during IRQ, causing kernel panic). I'm debugging it.
+
+About i2c discover, don't trust on their results. The normal procedure for 
+detecting i2c devices doesn't seem to work with tm6000.
+
+Cheers,
+Mauro
+
+
+On Tue, 22 Jul 2008, Eddi De Pieri wrote:
+
+> Hi Steven,
 >
-> To use ATSC in mythtv, set the device up as a DVB device, not a video4linux
-> device.  You set up two devices, one video4linux for the analog encoding,
-> the other "DVB" for ATSC.
-My device is set up as DVB (s5h1411/ATSC). In fact, I don't have the analog 
-tuner set up since I know it is working. What I am saying is that in 
-mythtv-setup -> General -> Locale Settings -> TV Format
-I don't have an option to choose ATSC where my other pci tuner does give me 
-that option. Also when I try to manually create a new channel from the 
-channel editor there is no ATSC option for the "tv format" but the 
-pre-scanned channels do display  "ATSC". I didn't know if this was normal 
-behavior. 
-
-Probably no one will be interested at this point but I also noticed after 
-taking 5 minutes to lock to a signal, it can quickly lock to the channels 
-that are near by (e.g. 7_1, 7_2, 7_3) but when changing the channel to 
-something like 9_1, it takes another 5 minutes to lock to it. 
-
+> Il giorno mar, 29/04/2008 alle 08.54 -0400, Steven Toth ha scritto:
+>>> Before I sink many more hours into this, has any made any progress with
+>>> this card or can point me in the right direction ?
+>>
+>> Mauro (tm6000 maintainer) already has one of these units, and I thought
+>> he had it partially working (I could be wrong).
+>>
+>> He's certainly the right person to discuss the firmware tool with.
 >
-> I also suggest that you try adding a signal amplifier and see if that helps
-> the reception.
-My antenna is the type that has a small built in amplifier but I'll try it out 
-at a friend's house with cable.
-
-Thanks!
-
+> Hi Steven,
+>
+> I bought HVR-900 since i know it has good linux support.
+> When I opened the box I discovered it was the HVR-900H.
+> (I was stupid since on the bow hauppauge wrote HVR-900-HD)
+>
+> Since I don't see any progress about this card I tried to make it
+> working under linux.
+>
+> I removed the card plastic cover, ant i seen the TM6xxx chip (but a
+> sticker deny me to read the full chipset model).
+>
+> Since the demodulator and the tuner is under an heatsink soldered to the
+> PCB I can't get confirmation about the model of the chips.
+>
+> I tried compiling tm6010 mercurial but it refuse to load xc3028 firmware
+> extracted from HVR-1200 driver.
+>
+> After some i2cdiscover/i2cdump over the whale i2c address I found:
+> 80 0x50 ok  a0 >>1  eeprom
+> 82 0x52     a4 >>1  ??
+> 87 0x57     ae >>1  ??
+> 97 0x61 ok  c2 >>1  tuner
+>
+> So I suspect that demodulator and infrared are on 0x52 and 0x57 i2c
+> address, but that address in quite uncommon and never used in any other
+> card.
+>
+> Can you give some additional information about the chip used in this usb
+> stick (without desoldering)?
 >
 > Regards,
+> Eddi
 >
-> Mike
+>
 
-
+-- 
+Cheers,
+Mauro Carvalho Chehab
+http://linuxtv.org
+mchehab@infradead.org
 
 _______________________________________________
 linux-dvb mailing list
