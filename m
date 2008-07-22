@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 25.mail-out.ovh.net ([91.121.27.228])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <alain@satfans.be>) id 1KJvAv-00037R-Ri
-	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 20:59:30 +0200
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Date: Fri, 18 Jul 2008 20:59:27 +0200
-From: <alain@satfans.be>
-In-Reply-To: <mailman.95.1216393443.829.linux-dvb@linuxtv.org>
-References: <mailman.95.1216393443.829.linux-dvb@linuxtv.org>
-Message-ID: <1e5614ef18e9000783d66e7bbd9586fd@localhost>
-Subject: Re: [linux-dvb]
- =?utf-8?q?Technotrend_TT3650_S2_USB_and_multiproto_?=
- =?utf-8?q?=28Daniel_Hellstr=3Fm=29?=
+Received: from moutng.kundenserver.de ([212.227.126.187])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <thomas@ickes-home.de>) id 1KLNW9-0002qa-7B
+	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 21:27:25 +0200
+From: tom <thomas@ickes-home.de>
+To: Antti Palosaari <crope@iki.fi>
+In-Reply-To: <48863349.3090507@iki.fi>
+References: <0MKxQS-1KLM2V1c9L-0001hx@mrelayeu.kundenserver.de>
+	<1216750591.6624.3.camel@super-klappi>  <48862536.9070906@iki.fi>
+	<1216752077.6686.4.camel@super-klappi>  <48862B02.1030304@iki.fi>
+	<1216754067.6686.7.camel@super-klappi>  <48863349.3090507@iki.fi>
+Date: Tue, 22 Jul 2008 21:26:18 +0200
+Message-Id: <1216754778.6686.9.camel@super-klappi>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] WG:  Problems with MSI Digivox	Duo	DVB-T	USB,
+	Ubuntu 8.04
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,126 +29,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+ah, ok. can I found to firmware on linuxtv?
 
-Tjanks Daniel.
-
-
-
-So I succeeded with the make and I'm here now:
-
-
-
-
-
-On Fri, 18 Jul 2008 17:04:03 +0200, linux-dvb-request@linuxtv.org wrote:
-
-> Send linux-dvb mailing list submissions to
-
-> 	linux-dvb@linuxtv.org
-
+Am Dienstag, den 22.07.2008, 22:21 +0300 schrieb Antti Palosaari:
+> tom wrote:
+> > have attached a message file, hope this helps. let me know if more is
+> > required.
 > 
-
-> To subscribe or unsubscribe via the World Wide Web, visit
-
-> 	http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-> or, via email, send a message with subject or body 'help' to
-
-> 	linux-dvb-request@linuxtv.org
-
+> yes, it hangs when tuner is accessed. I have still no idea why. Could 
+> you try newer firmware? Latest firmware is 4.95.0 and you are using very 
+> old one 4.65.0.
 > 
-
-> You can reach the person managing the list at
-
-> 	linux-dvb-owner@linuxtv.org
-
 > 
-
-> When replying, please edit your Subject line so it is more specific
-
-> than "Re: Contents of linux-dvb digest..."
-
+> > 
+> > Am Dienstag, den 22.07.2008, 21:46 +0300 schrieb Antti Palosaari:
+> >> tom wrote:
+> >>> .FE_READ_STATUS: Remote I/O error
+> >>>
+> >>> Transponders: 1/63
+> >>>
+> >>> Invalid section length or timeout: pid=17
+> >>>
+> >>> Frontend closed
+> >>>
+> >>> Any further ideas or informations which I can provide?
+> >> Looks like it almost immediately hangs when tuning is tried.
+> >> Could report what it prints to the debug (/var/log/debug probably).
+> >>
+> >> Antti
 > 
-
 > 
-
-> ------------------------------
-
-> 
-
-> Message: 8
-
-> Date: Fri, 18 Jul 2008 14:22:39 +0000 (UTC)
-
-> From: Daniel Hellstr?m <dvenion@hotmail.com>
-
-> Subject: Re: [linux-dvb] Technotrend TT3650 S2 USB and multiproto
-
-> To: linux-dvb@linuxtv.org
-
-> Message-ID: <loom.20080718T141911-959@post.gmane.org>
-
-> Content-Type: text/plain; charset=utf-8
-
-> 
-
->  <alain <at> satfans.be> writes:
-
-> 
-
->>
-
->>
-
->>
-
->> Hi,
-
->> I'm trying to use my DVB S2 USB with Ubuntu8.04 and MyTheatre.
-
->> I found an how to
-
->
-
-[url]http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI[/url]
-
->> But I get stuck with the fail of the make.
-
->> It claims about the audio driver?
-
->> [QUOTE]make[2]: Entering directory
-
-> `/usr/src/linux-headers-2.6.24-19-generic'
-
->> ? CC [M]? /home/alain/3650/multiproto/v4l/em28xx-audio.o
-
-> 
-
-> 
-
-> Just add the line "#include <sound/driver.h>" above the line that says
-
-> "#include
-
-> <sound/core.h> in the em28xx-audio.c file and run make again and it
-
-should
-
-> succed. It solved the problem for me on heron.
-
-> 
-
-> 
-
-> 
-
-> 
-
-> 
-
-> 
-
-
 
 
 _______________________________________________
