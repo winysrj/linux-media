@@ -1,23 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from qmta09.emeryville.ca.mail.comcast.net ([76.96.30.96])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KIPT0-0002Cq-Uj
-	for linux-dvb@linuxtv.org; Mon, 14 Jul 2008 16:55:59 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K4000D60440ZU80@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 14 Jul 2008 10:55:13 -0400 (EDT)
-Date: Mon, 14 Jul 2008 10:55:11 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <95E78F07A332444A983AF898B6DFFBED74048E@GLKMS2106.GREENLNK.NET>
-To: "Puttick, Louis (UK)" <Louis.Puttick@baesystems.com>
-Message-id: <487B68CF.5090708@linuxtv.org>
-MIME-version: 1.0
-References: <95E78F07A332444A983AF898B6DFFBED74048E@GLKMS2106.GREENLNK.NET>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] PCTV DVB-T PCI (250i)
+	(envelope-from <quielb@ecst.csuchico.edu>) id 1KLWda-0007yZ-K2
+	for linux-dvb@linuxtv.org; Wed, 23 Jul 2008 07:11:47 +0200
+Message-ID: <4886BD7D.3080905@ecst.csuchico.edu>
+Date: Tue, 22 Jul 2008 22:11:25 -0700
+From: Barry Quiel <quielb@ecst.csuchico.edu>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] HVR-1800 firmware error
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,22 +22,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Puttick, Louis (UK) wrote:
-> I have this card and have moved from windows to Ubuntu 8.04 and it does 
-> not work.
-> 
->  
-> 
-> What can I do to help get this card working for me and others?
+I seem to be getting some firmware errors on my HVR-1800.  From syslog:
 
-Start by searching the mailing lists and reading the wiki's at linuxtv.org.
+Jul 22 20:19:36 myth-mbe kernel: Firmware and/or mailbox pointer not 
+initialized or corrupted, signature = 0xffffffff, cmd = SET_OUTPUT_PORT
+Jul 22 20:19:36 myth-mbe kernel: Firmware and/or mailbox pointer not 
+initialized or corrupted, signature = 0xffffffff, cmd = SET_OUTPUT_PORT
+Jul 22 20:19:36 myth-mbe kernel: Firmware and/or mailbox pointer not 
+initialized or corrupted, signature = 0xffffffff, cmd = SET_OUTPUT_PORT
+Jul 22 20:19:36 myth-mbe kernel: Firmware and/or mailbox pointer not 
+initialized or corrupted, signature = 0xffffffff, cmd = SET_OUTPUT_PORT
+Jul 22 20:19:36 myth-mbe kernel: Firmware and/or mailbox pointer not 
+initialized or corrupted, signature = 0xffffffff, cmd = SET_AUDIO_PROPERTIES
+Jul 22 20:19:36 myth-mbe kernel: Firmware and/or mailbox pointer not 
+initialized or corrupted, signature = 0xffffffff, cmd = SET_OUTPUT_PORT
+Jul 22 20:19:36 myth-mbe kernel: Firmware and/or mailbox pointer not 
+initialized or corrupted, signature = 0xffffffff, cmd = SET_BIT_RATE
+Jul 22 20:19:36 myth-mbe kernel: Firmware and/or mailbox pointer not 
+initialized or corrupted, signature = 0xffffffff, cmd = SET_OUTPUT_PORT
+Jul 22 20:19:36 myth-mbe kernel: Firmware and/or mailbox pointer not 
+initialized or corrupted, signature = 0xffffffff, cmd = SET_BIT_RATE
+Jul 22 20:19:36 myth-mbe kernel: Firmware and/or mailbox pointer not 
+initialized or corrupted, signature = 0xffffffff, cmd = SET_OUTPUT_PORT
+Jul 22 20:19:37 myth-mbe kernel: Firmware and/or mailbox pointer not 
+initialized or corrupted, signature = 0xffffffff, cmd = PING_FW
 
-Do your research then post a message detailing it to the mailing list. 
-Describe your findings and make an assessment.
+The errors show up if I try to use the card in MythTV, or do a cat 
+/dev/video1.  The capture file has no picture, but there is a bit of 
+sound, but lots of static.
 
-That would help other people.
-
-- Steve
+I just downloaded the latest dvb tree, so that's up to date.  My kernel 
+is 2.6.25.9-76.fc9.x86_64.  I also refreshed the firmware from 
+http://steventoth.net/linux/hvr1800 to be sure the files weren't corrupt.
 
 _______________________________________________
 linux-dvb mailing list
