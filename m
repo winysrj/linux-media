@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <timf@iinet.net.au>) id 1KLzZ4-00089x-00
-	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 14:05:01 +0200
-Message-ID: <48886FF0.5080206@iinet.net.au>
-Date: Thu, 24 Jul 2008 20:05:04 +0800
-From: Tim Farrington <timf@iinet.net.au>
+Received: from gateway06.websitewelcome.com ([67.18.21.22])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <skerit@kipdola.com>) id 1KLcQf-0006Fs-7Q
+	for linux-dvb@linuxtv.org; Wed, 23 Jul 2008 13:22:48 +0200
+Received: from [77.109.104.69] (port=55570 helo=[127.0.0.1])
+	by gator143.hostgator.com with esmtpa (Exim 4.68)
+	(envelope-from <skerit@kipdola.com>) id 1KLcQY-0008KW-Bg
+	for linux-dvb@linuxtv.org; Wed, 23 Jul 2008 06:22:38 -0500
+Message-ID: <4887147E.1060203@kipdola.com>
+Date: Wed, 23 Jul 2008 13:22:38 +0200
+From: Jelle De Loecker <skerit@kipdola.com>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------060609050809080201090901"
-Subject: [linux-dvb] [Fwd: Re:  dvb mpeg2?]
+Subject: [linux-dvb] Checkinstall multiproto?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,104 +20,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------060609050809080201090901
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello again,
 
+I'm trying to install the multiproto drivers using checkinstall. I'm =
 
+currently trying lots of different drivers through each other, and make =
 
---------------060609050809080201090901
-Content-Type: message/rfc822;
- name="Re: [linux-dvb] dvb mpeg2?.eml"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="Re: [linux-dvb] dvb mpeg2?.eml"
+rminstall or make distclean never get ALL of the files out, so I want to =
 
-X-Mozilla-Keys: 
-Message-ID: <48886D1D.20305@iinet.net.au>
-Date: Thu, 24 Jul 2008 19:53:01 +0800
-From: Tim Farrington <timf@iinet.net.au>
-User-Agent: Thunderbird 2.0.0.14 (X11/20080505)
-MIME-Version: 1.0
-To: tobi@to-st.de
-Subject: Re: [linux-dvb] dvb mpeg2?
-References: <488860FE.5020500@iinet.net.au> <4888623F.5000108@to-st.de> <488863EF.8000402@iinet.net.au> <4888694F.3000509@to-st.de>
-In-Reply-To: <4888694F.3000509@to-st.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+make a debian out of them to keep my system clean.
 
-Tobias Stoeber wrote:
-> Hi Tim,
->
-> well if its an TS it should look similiar like this (saying something 
-> like "TS demuxer" etc.
->
-> Playing /tmp/ProSieben_13.10.07-04.32.27.mpeg.
-> Cache fill:  0.00% (0 bytes)    TS file format detected.
-> DEMUX OPEN, AUDIO_ID: -1, VIDEO_ID: -1, SUBTITLE_ID: -1,
-> PROBING UP TO 2000000, PROG: 0
-> VIDEO MPEG2(pid=305)AUDIO MPA(pid=306) NO SUBS (yet)!  PROGRAM N. 0
-> Opened TS demuxer, audio: 50(pid 306), video: 10000002(pid 
-> 305)...POS=23688
-> VIDEO:  MPEG2  720x576  (aspect 2)  25.000 fps  15000.0 kbps (1875.0 
-> kbyte/s)
-> ========================================================================== 
->
-> Trying to force audio codec driver family libmad...
-> Opening audio decoder: [libmad] libmad mpeg audio decoder
-> AUDIO: 48000 Hz, 2 ch, s16le, 192.0 kbit/12.50% (ratio: 24000->192000)
-> Selected audio codec: [mad] afm:libmad (libMAD MPEG layer 1-2-3)
-> ========================================================================== 
->
-> ID_FILENAME=/tmp/ProSieben_13.10.07-04.32.27.mpeg
-> ID_VIDEO_FORMAT=0x10000002
-> ID_VIDEO_BITRATE=15000000
-> ID_VIDEO_WIDTH=720
-> ID_VIDEO_HEIGHT=576
-> ID_VIDEO_FPS=25.000
-> ID_VIDEO_ASPECT=1.3333
-> ID_AUDIO_CODEC=mad
-> ID_AUDIO_FORMAT=80
-> ID_AUDIO_BITRATE=192000
-> ID_AUDIO_RATE=48000
-> ID_AUDIO_NCH=2
-> ID_LENGTH=2
->
-> Cheers, Tobias
->
-Hi Tobias,
+Making the deb is no problem.
+Unfortunately, these drivers need to overwrite a certain file =
 
-Yes, that first one worked fine (even with all the frame data).
-I can see that it's:
-VIDEO MPEG2(pid=305)AUDIO MPA(pid=306) NO SUBS (yet)!  PROGRAM N. 0
-Opened TS demuxer, audio: 50(pid 306), video: 10000002(pid 305)...POS=23688
-VIDEO:  MPEG2  720x576  (aspect 2)  25.000 fps  15000.0 kbps (1875.0 
-kbyte/s)
+(ir-common.ko) which is already in another, important, package =
 
-in mine, so that must mean that all is ok through the system - it is a 
-MPEG2-TS stream
-being dumped to file.
+(linux-image-2.6.24-20-generic)
 
-Now to figure out how to install replex!
+Could someone give any pointers how I could fix this?
 
-Very many thanks for your help,
-Tim Farrington
+root@HTPC-MYTH:/opt/dvb/multiproto# dpkg -i *.deb
+(Database inlezen ... 137231 bestanden en mappen ge=EFnstalleerd.)
+Uitpakken van multiproto (uit multiproto_7207-1_i386.deb) ...
+dpkg: fout bij afhandelen van multiproto_7207-1_i386.deb (--install):
+poging tot overschrijven van =
 
+`/lib/modules/2.6.24-20-generic/kernel/drivers/media/common/ir-common.ko', =
 
-
---------------060609050809080201090901
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+wat ook in pakket linux-image-2.6.24-20-generic zit
+dpkg-deb: subproces paste werd gedood door signaal (Gebroken pijp)
+Fouten gevonden tijdens behandelen van:
+multiproto_7207-1_i386.deb
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------060609050809080201090901--
