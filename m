@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KE21c-0003eP-7z
-	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 15:05:33 +0200
-Message-ID: <486B7D17.4020807@iki.fi>
-Date: Wed, 02 Jul 2008 16:05:27 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]
+	helo=shogun.pilppa.org) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lamikr@pilppa.org>) id 1KLmn8-00081W-Iu
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 00:26:40 +0200
+Date: Thu, 24 Jul 2008 01:26:31 +0300 (EEST)
+From: Mika Laitio <lamikr@pilppa.org>
+To: "Michael J. Curtis" <michael.curtis@glcweb.co.uk>
+In-Reply-To: <3C276393607085468A28782D978BA5EE6ED36D11EA@w2k8svr1.glcdomain8.local>
+Message-ID: <Pine.LNX.4.64.0807240125420.20479@shogun.pilppa.org>
+References: <3C276393607085468A28782D978BA5EE6ED36D11E6@w2k8svr1.glcdomain8.local>
+	<20080719182757.6dae9184@bk.ru>
+	<3C276393607085468A28782D978BA5EE6ED36D11EA@w2k8svr1.glcdomain8.local>
 MIME-Version: 1.0
-To: Andrew Websdale <websdaleandrew@googlemail.com>
-References: <e37d7f810807020442q13107177n5a90b11faf51194d@mail.gmail.com>	<486B6BB2.7060708@iki.fi>
-	<e37d7f810807020528h6542dcf9ge439b972efff57e2@mail.gmail.com>
-In-Reply-To: <e37d7f810807020528h6542dcf9ge439b972efff57e2@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Dposh DVB-T USB2.0(ULi M9207) initialising OK but
- no response from scan
+Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Latest TT3200 Status
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,80 +27,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Andrew Websdale wrote:
-> 2008/7/2 Antti Palosaari <crope@iki.fi <mailto:crope@iki.fi>>:
-> 
->     terve Andrew,
->     Andrew Websdale wrote:
-> 
->         Hi All,
-> 
->         I've been trying to amend the M920x driver to cope with the
->         MT2060 tuner. My dmesg output looks encouraging :
->         usb 5-1: new high speed USB device using ehci_hcd and address 5
->         usb 5-1: configuration #1 chosen from 1 choice
->         Probing for m920x device at interface 0
->         dvb-usb: found a 'Dposh(mt2060 tuner) DVB-T USB2.0' in warm state.
->         dvb-usb: will pass the complete MPEG2 transport stream to the
->         software demuxer.
->         DVB: registering new adapter (Dposh(mt2060 tuner) DVB-T USB2.0)
->         m920x_mt352_frontend_attach
->         DVB: registering frontend 0 (Zarlink MT352 DVB-T)...
->         m920x_mt2060_tuner_attach
->         MT2060: successfully identified (IF1 = 1220)
->         dvb-usb: Dposh(mt2060 tuner) DVB-T USB2.0 successfully
->         initialized and connected.
->          but scanning produces no result. I thought it might be the
->         firmware so I used USBSnoop ( ver 2.0 from here
->         <http://www.pcausa.com/Utilities/UsbSnoop/SniffUSB-x86-2.0.0006.zip>
->          , I think its slightly easier to use than the original) and
->         extracted a new firmware file (attached) . The firmware loaded
->         without complaint, but still no scan result. I'm a bit stuck
->         now, anyone got any suggestions as to how I should proceed?
-> 
-> 
->     I have following list to check:
->     1) firmware (you tested this one already)
->     2) demodulator (it is MT352 I think, but configuration / settings
->     could be wrong)
->     3) wrong endpoint used for mpeg ts
-> 
->     I can help if you take sniffs with usbsnoop, but hopefully you will
->     find error yourself.
->     http://benoit.papillault.free.fr/usbsnoop/
-> 
->     regards
->     Antti
->     -- 
->     http://palosaari.fi/
-> 
-> 
-> 
-> 
-> 
-> 1)Sorry, forgot to attach firmware I made from usbsnoop(here it is)
+On Mon, 21 Jul 2008, Michael J. Curtis wrote:
 
-> 2)The front end is MT352 - which configs/settings may need tweaking?
+> Many thanks for your assistance so far
+>
+> I have compiled and installed the modules (with some problems) but now I need the (patch_sca_szap.diff) file
+>
+> Unfortunately all references to the archive are for attachments that I cannot open ( I do not have the original from the linux-dvb list from early June) could someone please send me the file?
 
-static int m920x_mt352_demod_init(struct dvb_frontend *fe)
+How about adding the patch to wiki if it can not be added to dbv-apps 
+repository?
 
-Probably you need examine windows sniffs to see correct values.
-
-> 3)Whereabouts is the mpeg ts endpoint defined/set?
-
-struct dvb_usb_device_properties. You can see endpoints using lsusb 
-command. And from usbsniffs from Windows you can see also endpoints.
-
-> 
-> I'll have another go with usbsnoop later & post the log if I don't get 
-> anywhere
-> 
-> regards Andrew
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Mika
 
 _______________________________________________
 linux-dvb mailing list
