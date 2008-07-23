@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6M4q12u006821
-	for <video4linux-list@redhat.com>; Tue, 22 Jul 2008 00:52:01 -0400
-Received: from smtp-vbr11.xs4all.nl (smtp-vbr11.xs4all.nl [194.109.24.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6M4pojs023039
-	for <video4linux-list@redhat.com>; Tue, 22 Jul 2008 00:51:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: roel kluin <roel.kluin@gmail.com>
-Date: Tue, 22 Jul 2008 06:50:43 +0200
-References: <488529D4.10007@gmail.com>
-In-Reply-To: <488529D4.10007@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6N9xegc015645
+	for <video4linux-list@redhat.com>; Wed, 23 Jul 2008 05:59:40 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6N9xQce030642
+	for <video4linux-list@redhat.com>; Wed, 23 Jul 2008 05:59:27 -0400
+Message-ID: <488702E6.2010702@hhs.nl>
+Date: Wed, 23 Jul 2008 12:07:34 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807220650.43684.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org
-Subject: Re: [PATCH 3/9] ivtv: test below 0 on unsigned has_ir
+Cc: v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: [PULL] gspca sonixb improvements (3th revision)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,64 +26,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 22 July 2008 02:29:08 roel kluin wrote:
-> u32 has_ir, member of struct tveeprom is unsigned,
-> so assignment of -1 and subsequent tests fail
+Hi Mauro,
 
-Thank you for this report, but I'm going to NAK this patch. I will take 
-a closer look at this tonight and I will make a new patch for this. 
-First to take care of the FIXME that's just before the first change 
-below and secondly I'll see if it isn't better to change has_ir to an 
-int: I don't like using ~0 like this.
+As discussed before I've taken over maintainer ship of the sonixb (and spca501
+and spca561) gspca subdrivers.
 
-So expect to see a new patch later today.
+One more special work around in the driver is no longer needed and bites the 
+dust :)
+
+Please pull from http://linuxtv.org/hg/~hgoede/v4l-dvb/
+for:
+
+changeset:   8435:902786b1451d
+gspca_sonixb sn9c103 + ov7630 autoexposure and cleanup
+
+changeset:   8436:80f6ae943cdf
+gspca_sonixb remove non working ovXXXX contrast, hue and saturation ctrls
+
+changeset:   8437:b1a9e9edc9af
+gspca_sonixb remove some no longer needed sn9c103+ov7630 special cases
+
+changeset:   8438:58294e459717
+gspca_sonixb remove one more no longer needed special case from the code
+
 
 Regards,
 
-	Hans
-
->
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> ---
->
-> diff --git a/drivers/media/video/ivtv/ivtv-driver.c
-> b/drivers/media/video/ivtv/ivtv-driver.c index 797e636..7d909f9
-> 100644
-> --- a/drivers/media/video/ivtv/ivtv-driver.c
-> +++ b/drivers/media/video/ivtv/ivtv-driver.c
-> @@ -465,7 +465,7 @@ static void ivtv_process_eeprom(struct ivtv *itv)
->  		itv->options.radio = (tv.has_radio != 0);
->  	/* only enable newi2c if an IR blaster is present */
->  	/* FIXME: for 2.6.20 the test against 2 should be removed */
-> -	if (itv->options.newi2c == -1 && tv.has_ir != -1 && tv.has_ir != 2)
-> { +	if (itv->options.newi2c == -1 && tv.has_ir != ~0 && tv.has_ir !=
-> 2) { itv->options.newi2c = (tv.has_ir & 2) ? 1 : 0;
->  		if (itv->options.newi2c) {
->  		    IVTV_INFO("Reopen i2c bus for IR-blaster support\n");
-> diff --git a/drivers/media/video/tveeprom.c
-> b/drivers/media/video/tveeprom.c index 9da0e18..41c22a7 100644
-> --- a/drivers/media/video/tveeprom.c
-> +++ b/drivers/media/video/tveeprom.c
-> @@ -483,7 +483,7 @@ void tveeprom_hauppauge_analog(struct i2c_client
-> *c, struct tveeprom *tvee, tvee->has_radio = eeprom_data[i+len-1];
->  			/* old style tag, don't know how to detect
->  			IR presence, mark as unknown. */
-> -			tvee->has_ir = -1;
-> +			tvee->has_ir = ~0;
->  			tvee->model =
->  				eeprom_data[i+8] +
->  				(eeprom_data[i+9] << 8);
-> @@ -703,7 +703,7 @@ void tveeprom_hauppauge_analog(struct i2c_client
-> *c, struct tveeprom *tvee, tveeprom_info("decoder processor is %s
-> (idx %d)\n",
->  			STRM(decoderIC, tvee->decoder_processor),
->  			tvee->decoder_processor);
-> -	if (tvee->has_ir == -1)
-> +	if (tvee->has_ir == ~0)
->  		tveeprom_info("has %sradio\n",
->  				tvee->has_radio ? "" : "no ");
->  	else
-
+Hans
 
 --
 video4linux-list mailing list
