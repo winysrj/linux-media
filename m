@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6TIBH0G010657
-	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 14:11:17 -0400
-Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6TIB5lX013072
-	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 14:11:05 -0400
-Received: from smtp8-g19.free.fr (localhost [127.0.0.1])
-	by smtp8-g19.free.fr (Postfix) with ESMTP id B34CD32A836
-	for <video4linux-list@redhat.com>;
-	Tue, 29 Jul 2008 20:11:01 +0200 (CEST)
-Received: from [192.168.0.13] (lns-bzn-45-82-65-147-136.adsl.proxad.net
-	[82.65.147.136])
-	by smtp8-g19.free.fr (Postfix) with ESMTP id 70D8C32A7D7
-	for <video4linux-list@redhat.com>;
-	Tue, 29 Jul 2008 20:11:01 +0200 (CEST)
-From: Jean-Francois Moine <moinejf@free.fr>
-To: video4linux-list@redhat.com
-In-Reply-To: <20092.62.70.2.252.1217333416.squirrel@webmail.xs4all.nl>
-References: <20092.62.70.2.252.1217333416.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Date: Tue, 29 Jul 2008 19:37:13 +0200
-Message-Id: <1217353033.1692.14.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: CONFIG_VIDEO_ADV_DEBUG question
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6NCC6lW025226
+	for <video4linux-list@redhat.com>; Wed, 23 Jul 2008 08:12:06 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6NCBrFC017472
+	for <video4linux-list@redhat.com>; Wed, 23 Jul 2008 08:11:53 -0400
+Message-ID: <488721F2.5000509@hhs.nl>
+Date: Wed, 23 Jul 2008 14:20:02 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: v4l2 library <v4l2-library@linuxtv.org>, video4linux-list@redhat.com,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: Announcing libv4l 0.3.7
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,29 +27,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 2008-07-29 at 14:10 +0200, Hans Verkuil wrote:
-> Hans de Goede wrote:
-> > CONFIG_VIDEO_ADV_DEBUG enables additional debugging output in the gscpa
-> > driver, which then becomes "active" when a module option gets passed. So
-> 	[snip]
-> But the way gspca uses it is not correct. I would remove the test on
-> CONFIG_VIDEO_ADV_DEBUG there altogether, or replace it with a test of a
+Hi All,
 
-Hello Hans and Hans,
+Here is release 0.3.7 nothing special really, just adding a few more cam 
+specific formats to libv4lconvert.
 
-OK. So I see 3 options:
-1) add a new kernel config option, say CONFIG_GSPCA_DEBUG,
-2) always set an internal compile option GSPCA_DEBUG,
-3) have the option GSPCA_DEBUG, but unset by default.
+This release has the following changes:
 
-Which is the best for you, Hans (de Goede)?
+libv4l-0.3.7
+------------
+* Add spca505/6 and spca508 cam specific formats (YUYV per line variations)
 
-Cheers.
+Go grab it here:
+http://people.atrpms.net/~hdegoede/libv4l-0.3.7.tar.gz
 
--- 
-Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-Jef             |               http://moinejf.free.fr/
 
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
