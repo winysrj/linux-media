@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ptb-relay01.plus.net ([212.159.14.212])
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@adslpipe.co.uk>) id 1KE4NF-0003eq-Sk
-	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 17:36:02 +0200
-Received: from [84.92.25.126] (helo=[192.168.1.100])
-	by ptb-relay01.plus.net with esmtp (Exim) id 1KE4Mi-0006bk-9A
-	for linux-dvb@linuxtv.org; Wed, 02 Jul 2008 16:35:28 +0100
-Message-ID: <486BA03D.4040904@adslpipe.co.uk>
-Date: Wed, 02 Jul 2008 16:35:25 +0100
-From: Andy Burns <linux-dvb@adslpipe.co.uk>
-MIME-Version: 1.0
-To: Linux DVB List <linux-dvb@linuxtv.org>
-References: <486A6F0F.7090507@adslpipe.co.uk> <486B9630.1080100@adslpipe.co.uk>
-	<200807021712.53659.zzam@gentoo.org>
-In-Reply-To: <200807021712.53659.zzam@gentoo.org>
-Subject: Re: [linux-dvb] [PATCH] Shrink saa7134 mmio mapped size
+	(envelope-from <goga777@bk.ru>) id 1KLib3-0005QE-D2
+	for linux-dvb@linuxtv.org; Wed, 23 Jul 2008 19:57:54 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id BC83E19E60AC
+	for <linux-dvb@linuxtv.org>; Wed, 23 Jul 2008 21:57:19 +0400 (MSD)
+Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id 8567219E6086
+	for <linux-dvb@linuxtv.org>; Wed, 23 Jul 2008 21:57:19 +0400 (MSD)
+Date: Wed, 23 Jul 2008 22:05:13 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080723220513.373bbb9e@bk.ru>
+In-Reply-To: <200807231452.00033.igor@liplianin.net>
+References: <3AF47543-7149-4CC1-928B-F6704715FB6A@rlucier-home2.stanford.edu>
+	<200807231452.00033.igor@liplianin.net>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] How to obtain an HVR-4000 in the U.S.?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,15 +31,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 02/07/2008 16:12, Matthias Schwarzott wrote:
+> I seem HVR-4000 very overrated. 
 
-> I have no real insight into the saa7134 core, but at least my card does have a 
-> memory region of 2K.
+yes. it's true :)
 
-Thanks, I only have one type of card, I'll try to investigate the best 
-way to programatically determine the size of the memory region and use 
-that instead of a hard-coded value, then resubmit a new patch.
+>There is a lot of cx24116 cards in the modern 
+> world. For example TeVii S650 & S460, Dvbworld 2104 & 2004C. 
+> Currently S460 & S650 supported by me.
+> http://liplianindvb.sourceforge.net/hg
 
+great work !
+with your drivers my hvr4000 works well too ,  I could receive the dbn-s streams with extremely high SR = 44950 from
+Express AM2 
+
+Goga
 
 
 _______________________________________________
