@@ -1,15 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <487A4A3D.9040809@simon.arlott.org.uk>
-Date: Sun, 13 Jul 2008 19:32:29 +0100
-From: Simon Arlott <simon@fire.lp0.eu>
-MIME-Version: 1.0
-To: v4l-dvb-maintainer@linuxtv.org
-References: <4878F314.6090608@simon.arlott.org.uk>
-	<1215919227.2662.3.camel@pc10.localdom.local>
-In-Reply-To: <1215919227.2662.3.camel@pc10.localdom.local>
-Cc: Linux DVB <linux-dvb@linuxtv.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [linux-dvb] [PATCH] V4L: Link tuner before saa7134
+Received: from 203.161.84.42.static.amnet.net.au ([203.161.84.42]
+	helo=goeng.com.au) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tom@goeng.com.au>) id 1KLhpP-0002fh-F0
+	for linux-dvb@linuxtv.org; Wed, 23 Jul 2008 19:08:40 +0200
+Date: Thu, 24 Jul 2008 01:03:42 +0800
+To: linux-dvb@linuxtv.org
+Message-ID: <20080723170342.GA5025@codon.goeng.com.au>
+Mime-Version: 1.0
+Content-Disposition: inline
+From: Thomas Goerke <tom@goeng.com.au>
+Subject: [linux-dvb] Compro E800F Hybrid D/A HW2 PCIe card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,49 +23,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->From cde790c56ffe76f3d0bf6f38d89f4e671a5218c6 Mon Sep 17 00:00:00 2001
-From: Simon Arlott <simon@redrum.invalid>
-Date: Sun, 13 Jul 2008 19:24:53 +0100
-Subject: [PATCH] V4L: Link tuner before saa7134
+I have purchased a Compro E800F Hybrid D/A HW2 PCIe card.  The chips on the card include:
+        Conexant PCIe A/V decoder: CX23885-132
+        Conexant MPEG II A/V/Encoder CX23417-11Z
+        Zarlink ZL10353 Demodulator
+        Xceiver XC3008ACQ Video Tuner
+I have tried a number of solutions including building the latest copy of v4l-dvb and using the cx23885 module with card=4 option.
+The problem I am having is that the lgdt330x module is being loaded with the cx23885, however my demodulator is the zarlink ZL10353.  I am not sure on how to proceed.  Please see below for output of lspci -vvnn.
 
-If saa7134_init is run before v4l2_i2c_drv_init (tuner),
-then saa7134_board_init2 will try to set the tuner type
-for devices that don't exist yet. This moves tuner to
-before all of the device-specific drivers so that it's
-loaded early enough on boot.
+03:00.0 Multimedia video controller [0400]: Conexant Unknown device [14f1:8852] (rev 02)
+        Subsystem: Compro Technology, Inc. Unknown device [185b:e800]
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+        Latency: 0, Cache Line Size: 32 bytes
+        Interrupt: pin A routed to IRQ 17
+        Region 0: Memory at fe800000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: [40] Express Endpoint IRQ 0
+                Device: Supported: MaxPayload 128 bytes, PhantFunc 0, ExtTag-
+                Device: Latency L0s <64ns, L1 <1us
+                Device: AtnBtn- AtnInd- PwrInd-
+                Device: Errors: Correctable- Non-Fatal- Fatal- Unsupported-
+                Device: RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                Device: MaxPayload 128 bytes, MaxReadReq 512 bytes
+                Link: Supported Speed 2.5Gb/s, Width x1, ASPM L0s L1, Port 0
+                Link: Latency L0s <2us, L1 <4us
+                Link: ASPM Disabled RCB 64 bytes CommClk+ ExtSynch-
+                Link: Speed 2.5Gb/s, Width x1
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data
+        Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ Queue=0/0 Enable-
+                Address: 0000000000000000  Data: 0000
 
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
----
- drivers/media/video/Makefile |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Any help appreciated.
 
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index ecbbfaa..6b0af12 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -18,6 +18,8 @@ ifeq ($(CONFIG_VIDEO_V4L1_COMPAT),y)
-   obj-$(CONFIG_VIDEO_DEV) += v4l1-compat.o
- endif
- 
-+obj-$(CONFIG_VIDEO_TUNER) += tuner.o
-+
- obj-$(CONFIG_VIDEO_BT848) += bt8xx/
- obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
- obj-$(CONFIG_VIDEO_TVAUDIO) += tvaudio.o
-@@ -84,8 +86,6 @@ obj-$(CONFIG_VIDEO_HEXIUM_GEMINI) += hexium_gemini.o
- obj-$(CONFIG_VIDEO_DPC) += dpc7146.o
- obj-$(CONFIG_TUNER_3036) += tuner-3036.o
- 
--obj-$(CONFIG_VIDEO_TUNER) += tuner.o
--
- obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
- obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
- obj-$(CONFIG_VIDEOBUF_VMALLOC) += videobuf-vmalloc.o
--- 
-1.5.6.2
+Thanks
 
--- 
-Simon Arlott
 
 _______________________________________________
 linux-dvb mailing list
