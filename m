@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gv-out-0910.google.com ([216.239.58.190])
+Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KGIMG-0006m4-VD
-	for linux-dvb@linuxtv.org; Tue, 08 Jul 2008 20:56:14 +0200
-Received: by gv-out-0910.google.com with SMTP id n29so527109gve.16
-	for <linux-dvb@linuxtv.org>; Tue, 08 Jul 2008 11:55:48 -0700 (PDT)
-Message-ID: <412bdbff0807081155u6c06e3c0hb3d02b3c55c6f8b0@mail.gmail.com>
-Date: Tue, 8 Jul 2008 14:55:47 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Ronnie Bailey" <purevw@wtxs.net>
-In-Reply-To: <1215541957.4797.21.camel@Opto.Bailey>
+	(envelope-from <timf@iinet.net.au>) id 1KLzZ4-00089x-00
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 14:05:01 +0200
+Message-ID: <48886FF0.5080206@iinet.net.au>
+Date: Thu, 24 Jul 2008 20:05:04 +0800
+From: Tim Farrington <timf@iinet.net.au>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <1215541957.4797.21.camel@Opto.Bailey>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with ATI USB Hybrid
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="------------060609050809080201090901"
+Subject: [linux-dvb] [Fwd: Re:  dvb mpeg2?]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,127 +17,104 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+This is a multi-part message in MIME format.
+--------------060609050809080201090901
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-2008/7/8 Ronnie Bailey <purevw@wtxs.net>:
-> Hi All,
->     I am trying to install an ATI TV Wonder HD 600 USB card and not having
-> any luck. No matter what I try, there is no /dev/video  and also no
-> /dev/dvb.  The module seems to load OK, but the card is not found. Yast sees
-> the card, but only identifies it as a USB device and not a TV card. I'll
-> include what info I have. I would appreciate any help offered. I am trying
-> my best to eliminate Microsoft from my systems. This driver problem is one
-> of the last major headaches. I'm not sure if this matters, but I need to set
-> it up as NTSC-M with us cable. Channel 3 will be the only channel used.
->
-> Yast Hardware information states:
->
->   102: udi = '/org/freedesktop/Hal/devices/usb_device_438_b002_660729005035'
->   info.subsystem = 'usb_device'
->   usb_device.vendor = 'Advanced Micro Devices, Inc.'
->   usb_device.bus_number = 2 (0x2)
->   linux.subsystem = 'usb'
->   info.linux.driver = 'usb'
->   usb_device.product = 'ATI TV Wonder 600 USB 2.0'
->   info.product = 'ATI TV Wonder 600 USB 2.0'
->   linux.device_file = '/dev/bus/usb/002/008'
->   usb_device.linux.sysfs_path =
-> '/sys/devices/pci0000:00/0000:00:02.1/usb2/2-1/2-1.7'
->   usb_device.device_revision_bcd = 272 (0x110)
->   info.udi = '/org/freedesktop/Hal/devices/usb_device_438_b002_660729005035'
->   usb_device.configuration_value = 1 (0x1)
->   usb_device.max_power = 500 (0x1f4)
->   usb_device.num_configurations = 1 (0x1)
->   usb_device.num_ports = 0 (0x0)
->   usb_device.num_interfaces = 1 (0x1)
->   usb_device.linux.device_number = 8 (0x8)
->   usb_device.device_class = 0 (0x0)
->   usb_device.serial = '660729005035'
->   linux.sysfs_path = '/sys/devices/pci0000:00/0000:00:02.1/usb2/2-1/2-1.7'
->   usb_device.device_subclass = 0 (0x0)
->   info.vendor = 'Advanced Micro Devices, Inc.'
->   usb_device.speed = 480.000
->   info.parent = '/org/freedesktop/Hal/devices/usb_device_50d_237_noserial'
->   usb_device.device_protocol = 0 (0x0)
->   usb_device.version = 2.00000
->   usb_device.vendor_id = 1080 (0x438)
->   usb_device.is_self_powered = false
->   usb_device.product_id = 45058 (0xb002)
->   usb_device.can_wake_up = false
->   linux.hotplug_type = 2 (0x2)
->
-> Pertinent lsmod info:
->
-> Module                Size            Used By
-> em28xx_dvb           26884          0
-> dvb_core              109348          1 em28xx_dvb
-> em28xx                   81836          1 em28xx_dvb
-> compat_ioctl32        25856          1 em28xx
-> videodev                  55040          2 em28xx,compat_ioctl32
-> v4l1_compat            31620          1 videodev
-> videobuf_vmalloc       25476          1 em28xx
-> videobuf_core          38788          2 em28xx,videobuf_vmalloc
-> ir_common              60932          2 ir_kbd_i2c,em28xx
-> v4l2_common            29824          1 em28xx
-> tveeprom               30724              1 em28xx
->
-> lsusb gives me this:
->
-> Bus 002 Device 008: ID 0438:b002 Advanced Micro Devices, Inc.
->
-> dmesg shows:
->
-> fuse init (API version 7.9)
-> Linux video capture interface: v2.00
-> em28xx v4l2 driver version 0.1.0 loaded
-> usbcore: registered new interface driver em28xx
-> Em28xx: Initialized (Em28xx dvb Extension) extension
->
-> Xine posted a couple of warning messages:
->
-> Jul 8 12:26:44 Opto xinetd[3495]: No such internal service: chargen/raw -
-> DISABLING
->
-> Jul 8 12:26:45 Opto xinetd[3495]: Port not specified and can't find service:
-> netstat with getservbyname
->
-> Jul 8 12:26:45 Opto xinetd[3495]: No such internal service: servers/stream -
-> DISABLING
->
-> Jul 8 12:26:45 Opto xinetd[3495]: No such internal service: services/stream
-> - DISABLING
->
-> When I open Xine and try to connect to DVB. it simply states:
->
-> Input plugin failed to open mrl 'Sorry, No DVB input device found
->
-> Thanks in advance,
-> Ronnie Bailey
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
 
-I'm wondering why it tried to load the em28xx driver.  Do you have
-some other device in the system that is em28xx based?
 
-Could you please provide the output of "lsusb -v" for the device in question.
+--------------060609050809080201090901
+Content-Type: message/rfc822;
+ name="Re: [linux-dvb] dvb mpeg2?.eml"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="Re: [linux-dvb] dvb mpeg2?.eml"
 
-Thanks,
+X-Mozilla-Keys: 
+Message-ID: <48886D1D.20305@iinet.net.au>
+Date: Thu, 24 Jul 2008 19:53:01 +0800
+From: Tim Farrington <timf@iinet.net.au>
+User-Agent: Thunderbird 2.0.0.14 (X11/20080505)
+MIME-Version: 1.0
+To: tobi@to-st.de
+Subject: Re: [linux-dvb] dvb mpeg2?
+References: <488860FE.5020500@iinet.net.au> <4888623F.5000108@to-st.de> <488863EF.8000402@iinet.net.au> <4888694F.3000509@to-st.de>
+In-Reply-To: <4888694F.3000509@to-st.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Tobias Stoeber wrote:
+> Hi Tim,
+>
+> well if its an TS it should look similiar like this (saying something 
+> like "TS demuxer" etc.
+>
+> Playing /tmp/ProSieben_13.10.07-04.32.27.mpeg.
+> Cache fill:  0.00% (0 bytes)    TS file format detected.
+> DEMUX OPEN, AUDIO_ID: -1, VIDEO_ID: -1, SUBTITLE_ID: -1,
+> PROBING UP TO 2000000, PROG: 0
+> VIDEO MPEG2(pid=305)AUDIO MPA(pid=306) NO SUBS (yet)!  PROGRAM N. 0
+> Opened TS demuxer, audio: 50(pid 306), video: 10000002(pid 
+> 305)...POS=23688
+> VIDEO:  MPEG2  720x576  (aspect 2)  25.000 fps  15000.0 kbps (1875.0 
+> kbyte/s)
+> ========================================================================== 
+>
+> Trying to force audio codec driver family libmad...
+> Opening audio decoder: [libmad] libmad mpeg audio decoder
+> AUDIO: 48000 Hz, 2 ch, s16le, 192.0 kbit/12.50% (ratio: 24000->192000)
+> Selected audio codec: [mad] afm:libmad (libMAD MPEG layer 1-2-3)
+> ========================================================================== 
+>
+> ID_FILENAME=/tmp/ProSieben_13.10.07-04.32.27.mpeg
+> ID_VIDEO_FORMAT=0x10000002
+> ID_VIDEO_BITRATE=15000000
+> ID_VIDEO_WIDTH=720
+> ID_VIDEO_HEIGHT=576
+> ID_VIDEO_FPS=25.000
+> ID_VIDEO_ASPECT=1.3333
+> ID_AUDIO_CODEC=mad
+> ID_AUDIO_FORMAT=80
+> ID_AUDIO_BITRATE=192000
+> ID_AUDIO_RATE=48000
+> ID_AUDIO_NCH=2
+> ID_LENGTH=2
+>
+> Cheers, Tobias
+>
+Hi Tobias,
+
+Yes, that first one worked fine (even with all the frame data).
+I can see that it's:
+VIDEO MPEG2(pid=305)AUDIO MPA(pid=306) NO SUBS (yet)!  PROGRAM N. 0
+Opened TS demuxer, audio: 50(pid 306), video: 10000002(pid 305)...POS=23688
+VIDEO:  MPEG2  720x576  (aspect 2)  25.000 fps  15000.0 kbps (1875.0 
+kbyte/s)
+
+in mine, so that must mean that all is ok through the system - it is a 
+MPEG2-TS stream
+being dumped to file.
+
+Now to figure out how to install replex!
+
+Very many thanks for your help,
+Tim Farrington
+
+
+
+--------------060609050809080201090901
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------060609050809080201090901--
