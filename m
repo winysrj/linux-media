@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from beefcafe.de ([217.172.188.96] helo=hamburg096.server4you.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KLMsZ-00081E-Tp
-	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 20:46:32 +0200
-Message-ID: <48862B02.1030304@iki.fi>
-Date: Tue, 22 Jul 2008 21:46:26 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <markus@beefcafe.de>) id 1KM5uZ-00068B-Ua
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 20:51:36 +0200
+Received: from dslb-084-063-061-083.pools.arcor-ip.net ([84.63.61.83]
+	helo=[192.168.1.100]) by hamburg096.server4you.de with esmtpsa
+	(TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32) (Exim 4.63)
+	(envelope-from <markus@beefcafe.de>) id 1KM5uS-0004Fg-Ef
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 20:51:31 +0200
+Message-ID: <4888CF31.4010203@beefcafe.de>
+Date: Thu, 24 Jul 2008 20:51:29 +0200
+From: Markus Schneider <markus@beefcafe.de>
 MIME-Version: 1.0
-To: tom <thomas@ickes-home.de>
-References: <0MKxQS-1KLM2V1c9L-0001hx@mrelayeu.kundenserver.de>	<1216750591.6624.3.camel@super-klappi>
-	<48862536.9070906@iki.fi> <1216752077.6686.4.camel@super-klappi>
-In-Reply-To: <1216752077.6686.4.camel@super-klappi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] WG:  Problems with MSI Digivox Duo DVB-T	USB,
- Ubuntu 8.04
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TerraTec Cinergy C DVB-C / Twinhan AD-CP400
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,23 +27,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-tom wrote:
-> .FE_READ_STATUS: Remote I/O error
-> 
-> Transponders: 1/63
-> 
-> Invalid section length or timeout: pid=17
-> 
-> Frontend closed
-> 
-> Any further ideas or informations which I can provide?
+Hello Marko,
 
-Looks like it almost immediately hangs when tuning is tried.
-Could report what it prints to the debug (/var/log/debug probably).
+I am also experiencing freezes that are caused by my TerraTec Cinergy
+DVB-C. On my box this only happens during channel scanning, not when
+viewing or switching channels. Still, it's quite annoying as scanning
+crashes very often and I never managed to get a full channel list  :-( 
 
-Antti
--- 
-http://palosaari.fi/
+It's good to see that someone is working on the instabilities. I applied
+you're patch, but unfortunately it didn't work for me  :-( 
+
+Is there anything else that I can try? Do you have any ideas how to find
+the reason for the crashes?
+
+Best regards,
+Markus
+
+
+> > Here is a patch that implements the mentioned DMA transfer improvements.
+> > I hope that these contain also the needed fix for you.
+> > You can apply it into jusst.de/mantis Mercurial branch.
+> > It modifies linux/drivers/media/dvb/mantis/mantis_dma.c only.
+> > I have compiled the patch against 2.6.25.9-76.fc9.x86_64.
+> >
+> > cd mantis
+> > patch -p1 < mantis_dma.c.aligned_dma_trs.patch
+> >
+> > Please tell us whether my patch helps you or not: if it helps, some of 
+> > my patch might get into jusst.de as
+> > a fix for your problem.
+> >
+> >
+> >   
+>   
+
 
 _______________________________________________
 linux-dvb mailing list
