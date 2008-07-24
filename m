@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KJwsx-0001Pm-RX
-	for linux-dvb@linuxtv.org; Fri, 18 Jul 2008 22:49:05 +0200
-Message-ID: <488101C8.9070408@iki.fi>
-Date: Fri, 18 Jul 2008 23:49:12 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: tom <thomas@ickes-home.de>
-References: <1216403709.10841.20.camel@super-klappi> <4880DF35.8040505@iki.fi>
-In-Reply-To: <4880DF35.8040505@iki.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problems with MSI Digivox Duo DVB-T USB, Ubuntu 8.04
+	(envelope-from <goga777@bk.ru>) id 1KLwt1-00004s-SZ
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 11:13:24 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id BA51119E6C0B
+	for <linux-dvb@linuxtv.org>; Thu, 24 Jul 2008 13:12:49 +0400 (MSD)
+Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id 7D46419E6B6B
+	for <linux-dvb@linuxtv.org>; Thu, 24 Jul 2008 13:12:49 +0400 (MSD)
+Date: Thu, 24 Jul 2008 13:20:47 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080724132047.10c6688d@bk.ru>
+In-Reply-To: <Pine.LNX.4.64.0807240030280.20479@shogun.pilppa.org>
+References: <Pine.LNX.4.64.0807240030280.20479@shogun.pilppa.org>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] latest hvr-4000 driver patches
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,23 +30,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Antti Palosaari wrote:
-> tom wrote:
->> Hello,
->> since a few days I'm trying hard make this stick running. One basic problem is that I'm not able to find out which chipset is in this
->> stick.
->> I have tried af9015 driver and firmware, but it doesn't work.
-> 
-> It looks like AF9015 dual design. I think problem you have is missing 
-> device USB-IDs. I will add those in a next few hours and you can test 
-> then again.
+> And what about vdr-1.7.0, is the multi frontend driver install 
+> procedure mentioned in wiki ok for that one? 
+> (http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000#Drivers) 
+> or is there awailable some other patch set for that?
 
-Now it is ready for the test.
-http://linuxtv.org/hg/~anttip/af9015/
+I have vdr 170 , hvr4000 and fresh drivers form "Igor M. Liplianin's repo (repo includes hg multiproto + hvr4000 patch +
+some fixes)
+http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
+It works well. I recommend it for your case
+Of course it's not multifrontend drivers
 
-Antti
--- 
-http://palosaari.fi/
+Goga
+
 
 _______________________________________________
 linux-dvb mailing list
