@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n61.bullet.mail.sp1.yahoo.com ([98.136.44.37])
+Received: from n25.bullet.mail.ukl.yahoo.com ([87.248.110.142])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KGEov-0004UY-8t
-	for linux-dvb@linuxtv.org; Tue, 08 Jul 2008 17:09:34 +0200
-Date: Tue, 8 Jul 2008 08:08:50 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: linux-dvb@linuxtv.org, Mark Fraser <linuxtv@mfraz74.orangehome.co.uk>
-In-Reply-To: <200807081130.38188.linuxtv@mfraz74.orangehome.co.uk>
+	(envelope-from <newspaperman_germany@yahoo.com>) id 1KLyMi-0006M7-NT
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 12:48:11 +0200
+Date: Thu, 24 Jul 2008 10:06:39 +0000 (GMT)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <200807170023.57637.ajurik@quick.cz>
 MIME-Version: 1.0
-Message-ID: <162160.58094.qm@web46116.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] Kaffeine 0.8.7 released
-Reply-To: free_beer_for_all@yahoo.com
+Message-ID: <903564.39081.qm@web23201.mail.ird.yahoo.com>
+Subject: Re: [linux-dvb] TT S2-3200 driver
+Reply-To: newspaperman_germany@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,58 +24,64 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Tue, 7/8/08, Mark Fraser <linuxtv@mfraz74.orangehome.co.uk> wrote:
+Any idea why there are still parts of stream lost on DVB-s2 transponders with SR 30000 7/8? Is it a problem of HW Pid filters or SW Pid filters?
 
-> > > I would also like to have some easy way of
-> sorting the channels and
-> > > support for the FreeSat EPG.
+kind regards
 
-> > Isn't FreeSat EPG standard epg ?
-
-> Don't think so, all I get at the moment with Kaffeine
-> is Now/Next information.
-
-Correct.  On the standard EIT PID (18/0x12) you only receive this.
-And at the moment, the FTA Channel 4 has neither this nor a proper
-channel name on the usual PIDs.  For Radio, you only get Now info.
-
-There is a completely different set of PIDs with corrrect EIT,
-NIT, TDT, etc. info from PID 3101 upwards as follows, in order
-not to interfere with the BSkyB data or that sent on the standard
-PIDS:
-PID 3101 -- NIT
-PID 3102 -- SDT/BAT
-PID 3103 -- EIT
-PID 3104 -- ?
-PID 3105 -- TDT/TOT, and this is accurate, no less
-(info from `dvbsnoop')
-
-In addition to the non-standard PID of 3103, the data is usually
-sent in compressed format for the title/description (occasionally
-the data is uncompressed where there is no savings to compress,
-such as a title of `News').
-
-The full EIT is sent on one specific transponder, while the tuned
-transponder will deliver a partial EIT (but more than now/next)
-as above across the entire Freesat family, much like the standard
-PIDs EIT info from the german ARD family includes all their
-channels over several transponders for seven days.
-
-Code to handle (at least some) decompression of the non-standard
-EIT data has been added to, I believe, MythTV (can't check now
-as I'm not online and not sure where to look in my code repository,
-as that SCS appears to require online access to retrieve logs),
-based on reverse-engineering.  The EPG data is *not* scrambled,
-regardless of what others have written, but the spec is presently
-not available publicly, and so the tables in the reverse-engineered
-code may not be complete.
+Newsy
 
 
+--- Ales Jurik <ajurik@quick.cz> schrieb am Do, 17.7.2008:
 
-barry bouwsma
+> Von: Ales Jurik <ajurik@quick.cz>
+> Betreff: [linux-dvb] TT S2-3200 driver
+> An: linux-dvb@linuxtv.org
+> Datum: Donnerstag, 17. Juli 2008, 0:23
+> Hi,
+> 
+> please try attached patch. With this patch I'm able to
+> get lock on channels 
+> before it was impossible. But not at all problematic
+> channels and the 
+> reception is not without errors. Also it seems to me that
+> channel switching is 
+> quicklier.
+> 
+> Within investigating I've found some problems, I've
+> tried to compare data with 
+> data sent by BDA drivers under Windows (by monitoring i2c
+> bus between stb0899 
+> and stb6100):
+> 
+> - under Windows stb6100 reports not so wide bandwith.
+> (23-31MHz, 21-22MHz and 
+> so on).
+> - under Windows the gain is set by 1 or 2 higher.
+> 
+> When setting those parameters constantly to values used
+> under Windows nothing 
+> change. So maybe some cooperation with stb0899 part of
+> driver is necessary. 
+> 
+> Also it is interesting that clock speed of i2c bus is
+> 278kHz, not 400kHz 
+> (measured with digital oscilloscope). But this should not
+> have any influence.
+> 
+> Maybe somebody will be so capable to continue?
+> 
+> BR,
+> 
+> Ales_______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
-      
+      __________________________________________________________
+Gesendet von Yahoo! Mail.
+Dem pfiffigeren Posteingang.
+http://de.overview.mail.yahoo.com
 
 
 _______________________________________________
