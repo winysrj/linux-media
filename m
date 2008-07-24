@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.157])
+Received: from relay-pt3.poste.it ([62.241.4.129])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1KF9Mu-0001zC-8U
-	for linux-dvb@linuxtv.org; Sat, 05 Jul 2008 17:08:09 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so596077fga.25
-	for <linux-dvb@linuxtv.org>; Sat, 05 Jul 2008 08:08:03 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1KLxWN-00038R-82
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 11:54:03 +0200
+Received: from nico2.od.loc (89.97.249.170) by relay-pt3.poste.it (7.3.122)
+	(authenticated as Nicola.Sabbi@poste.it)
+	id 4887B87100002B21 for linux-dvb@linuxtv.org;
+	Thu, 24 Jul 2008 11:53:57 +0200
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
 To: linux-dvb@linuxtv.org
-Date: Sat, 5 Jul 2008 17:08:00 +0200
-References: <486C6ED4.4080502@krt.com.au>
-In-Reply-To: <486C6ED4.4080502@krt.com.au>
+Date: Thu, 24 Jul 2008 11:53:55 +0200
+References: <3a665c760807240246x7bb3d442lac2b407dd138accf@mail.gmail.com>
+In-Reply-To: <3a665c760807240246x7bb3d442lac2b407dd138accf@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200807051708.01041.christophpfister@gmail.com>
-Subject: Re: [linux-dvb] DVB-T Channel configuration for Switzerland / Basel
+Message-Id: <200807241153.55596.Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] question about definition of section in PSI of
+	Transport stream
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,37 +30,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-Am Donnerstag 03 Juli 2008 08:16:52 schrieb Kingsley Turner:
-> Hi,
+On Thursday 24 July 2008 11:46:48 loody wrote:
+> Dear all:
+> I am reading iso13818-1 right now.
+> But I cannot figure out what the section mean in PSI.
 >
-> I've got some DVB-T channel "channel.conf" data for Europe / Basel
-> (Switzerland).
->
-> Do I just post it to this list, or how to I get it incorporated into the
-> repository.
+> In PAT, there is a N loop tell us how many programs in this TS and
+> the corresponding pid of PMT.
+> Is section equivalent to program?
 
-There's already a scan file including your transmitter [1].
+each item identifies a program and a pid
 
-> cheers,
-> -kt
+> Suppose there is 10 loop in PAT, and there will be 10 sections,
+> right?
 
-Christoph
-
-
-> sf1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANSM
->ISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:160:81:81
-> sfzwei:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRA
->NSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:163:92:93
-> tsr1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANS
->MISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:161:84:85
-> tsi1:554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_NONE:QAM_16:TRANS
->MISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_4:162:88:89
-
-^ srg ssr says that the fec is 5/6 (except maybe in the mfn areas).
-
-[1] http://linuxtv.org/hg/dvb-apps/file/73b910014d07/util/scan/dvb-t/ch-All
+no, the section is only needed to split overly long PATs and / or PMTs
+in smaller pieces
 
 _______________________________________________
 linux-dvb mailing list
