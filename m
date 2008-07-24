@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1KFJZH-00025W-Dy
-	for linux-dvb@linuxtv.org; Sun, 06 Jul 2008 04:01:37 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Sun, 6 Jul 2008 03:54:52 +0200
-References: <485F8A72.5010305@magic.fr> <485FB15F.8050000@magic.fr>
-	<485FEB01.60809@magic.fr>
-In-Reply-To: <485FEB01.60809@magic.fr>
+Received: from fg-out-1718.google.com ([72.14.220.154])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <e9hack@googlemail.com>) id 1KM6iy-0001Lj-OJ
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 21:43:42 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so1776044fga.25
+	for <linux-dvb@linuxtv.org>; Thu, 24 Jul 2008 12:43:37 -0700 (PDT)
+Message-ID: <4888DB67.6060103@gmail.com>
+Date: Thu, 24 Jul 2008 21:43:35 +0200
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807060354.53328@orion.escape-edv.de>
-Subject: Re: [linux-dvb] S-1401: low signal (szap)
-Reply-To: linux-dvb@linuxtv.org
+To: linux-dvb@linuxtv.org
+References: <1216926778.7984.2.camel@Opto.Bailey>
+In-Reply-To: <1216926778.7984.2.camel@Opto.Bailey>
+From: e9hack <e9hack@googlemail.com>
+Subject: Re: [linux-dvb] Problem with newest download?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,32 +26,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Alexandre Conrad wrote:
-> Alexandre Conrad wrote:
-> > Alexandre Conrad wrote:
-> >>I just recieved a new DVB card TT S-1401 as remplacement for the 
-> >>Skystar2 2.8A which no longer works under linux.
-> >>
-> >>As I was afraid of, I have a low signal strength when I use szap. What 
-> >>could be the cause and what's the fix if there's one?
-> > 
-> > Let me add that the usual signal strenght I get is around "e246" with 
-> > the TT S-1500 and I'm getting around "8585" with the TT S-1401.
-> 
-> Any clues anyone? I haven't found any obvious ressources anywhere...
+Ronnie Bailey schrieb:
+> Hi all,
+>    I tried to install the newest v4l-dvb this morning and I come up with
+> an error during "make". I was just curious if there is a problem with
+> the downloaded files.
 
-Do you have any reception problems?
+Search for '#if LINUX_VERSION_CODE => KERNEL_VERSION(2,6,27)' and replace it with '#if 
+LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,27)'. '=>' is a typo.
 
-Please note that you must not compare signal strength values from
-different tuner types. The values reported are very inaccurate.
+-Hartmut
 
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
