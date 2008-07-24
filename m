@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from srv6.sysproserver.de ([78.47.47.66])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <m740@wagner-budenheim.de>) id 1KMLlS-0001V4-3r
-	for linux-dvb@linuxtv.org; Fri, 25 Jul 2008 13:47:14 +0200
-Received: from smtp.mx6-sysproserver.de
-	(static.67.47.47.78.clients.your-server.de [78.47.47.67])
-	by srv6.sysproserver.de (Postfix) with ESMTP id ADEB5400F52
-	for <linux-dvb@linuxtv.org>; Fri, 25 Jul 2008 13:47:10 +0200 (CEST)
-Message-ID: <20080725134710.jrc5uk81dwk4k4ck@wagner-budenheim.de>
-Date: Fri, 25 Jul 2008 13:47:10 +0200
-From: "Dirk E. Wagner" <m740@wagner-budenheim.de>
-To: linux-dvb@linuxtv.org
+Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]
+	helo=shogun.pilppa.org) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lamikr@pilppa.org>) id 1KLxUq-0002eM-U4
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 11:52:29 +0200
+Date: Thu, 24 Jul 2008 12:52:17 +0300 (EEST)
+From: Mika Laitio <lamikr@pilppa.org>
+To: Goga777 <goga777@bk.ru>
+In-Reply-To: <20080724132047.10c6688d@bk.ru>
+Message-ID: <Pine.LNX.4.64.0807241246570.18781@shogun.pilppa.org>
+References: <Pine.LNX.4.64.0807240030280.20479@shogun.pilppa.org>
+	<20080724132047.10c6688d@bk.ru>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Transponder tuning problems with Nova-TD and Nova-T 500
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] latest hvr-4000 driver patches
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,28 +26,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello there,
+Thanks I will try that once I get back to home.
+Before leaving I was just shotyly testing by applying the patch
 
-I have the following problem with my Nova-TD USB stick:
+http://dev.kewl.org/hauppauge/v4l-dvb-hg-sfe-latest.diff
+to
+revision 7285 of vnl-dvb. Build of that against the 2.6.26 kernel headers
+had some compile problems due to changed structures and after the boot the 
+driver recogniced the card but then crashed for some buffer error.
 
-I'm using vdr 1.6.0 with kernel 2.6.26. If I start a recording on 1 tuner
-and at the same time on the other tuner there is a transponder change by
-vdr's epgscan, I get:
+Any idea whether some of these drivers (single frontend, multifrontend, 
+multiproto) will be applied to v4l-dvb in near future?
 
-syslog:Jul 13 07:46:17 etch-server vdr: [5395] PES packet shortened to
-3286 bytes (expected: 3470 bytes)
+If help is needed, I could try to help.
 
-This happens also when I start vdr with only 1 tuner, starting 1
-recording on this tuner and starting a
-channelscan with w_scan via command line.
-
-It seems that changing the transponder disturb the other tuner with
-the running recording.
-
-I tested this with a Nova-TD and Nova-T 500, 3 different MoBos and a
-Laptop, Kernel 2.6.25 and 2.6.26.
+Mika
 
 
+>> And what about vdr-1.7.0, is the multi frontend driver install
+>> procedure mentioned in wiki ok for that one?
+>> (http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000#Drivers)
+>> or is there awailable some other patch set for that?
+>
+> I have vdr 170 , hvr4000 and fresh drivers form "Igor M. Liplianin's repo (repo includes hg multiproto + hvr4000 patch +
+> some fixes)
+> http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
+> It works well. I recommend it for your case
+> Of course it's not multifrontend drivers
+>
+> Goga
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
