@@ -1,27 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from yw-out-2324.google.com ([74.125.46.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KJVgN-00071e-Ff
-	for linux-dvb@linuxtv.org; Thu, 17 Jul 2008 17:46:33 +0200
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1KJVfU-0006C7-5r
-	for linux-dvb@linuxtv.org; Thu, 17 Jul 2008 15:45:20 +0000
-Received: from h30n2fls32o1121.telia.com ([217.211.84.30])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Thu, 17 Jul 2008 15:45:20 +0000
-Received: from dvenion by h30n2fls32o1121.telia.com with local (Gmexim 0.1
-	(Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Thu, 17 Jul 2008 15:45:20 +0000
+	(envelope-from <cedric@not2.be>) id 1KM2Fj-000307-H8
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 16:57:12 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so1141791ywj.41
+	for <linux-dvb@linuxtv.org>; Thu, 24 Jul 2008 07:57:07 -0700 (PDT)
+Message-ID: <c165c41c0807240757n28fffd4sbf78b70851d7c714@mail.gmail.com>
+Date: Thu, 24 Jul 2008 15:57:06 +0100
+From: "Cedric Scott" <cedric@not2.be>
 To: linux-dvb@linuxtv.org
-From: Daniel =?utf-8?b?SGVsbHN0csO2bQ==?= <dvenion@hotmail.com>
-Date: Thu, 17 Jul 2008 15:45:09 +0000 (UTC)
-Message-ID: <loom.20080717T154146-799@post.gmane.org>
-References: <200807170023.57637.ajurik@quick.cz>
-	<3efb10970807170320w39377ae9p9db0081dda9c3f5f@mail.gmail.com>
-	<1216295683l.6831l.1l@manu-laptop>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Re :  TT S2-3200 driver
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Help with firmware for Yakumo QuickStick TV easy
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,26 +25,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-manu <eallaud <at> yahoo.fr> writes:
+I bought one of these a few days ago without realising the
+significance of the word 'easy'.
 
-> If you want to use myth you can try the attached patch (against trunk).
-> Make sure that the includes in /usr/include/linux/dvb/ are the one from 
-> your multiproto tree (check for a DVBFE_SET_DELSYS define in the 
-> frontend.h source).
-> Bye
-> Manu
-> 
+Nevertheless I've made some progress. I downloaded the drivers from
+http://linuxtv.org/hg/~mchehab/tm6010/
+compiled and loaded them and they do communicate with the device.
+(I'm running debian lenny, linux 2.6.24 on an EEE PC)
 
-I use the patch on this site to add multiprotosupport to MythTV
+I'm now stuck because there's no tridvid.sys on the installation CD
+and I haven't been able to extract it from any of the .cab, .hdr or
+.exe files using unzip, cabextract, orange or unshield.
 
-http://svn.mythtv.org/trac/ticket/5403
+Is there any kind soul out there who can send me a copy of either the
+firmware files xc3028-v27.fw and tm6000-xc3028.fw or the tridvid.sys
+file?
 
-It also modifies the channelscanning section in mythtv-setup so you can set the
-modulationtype for the transport.
+Yes - I know it would save me a lot of time if I just went out and
+bought another DVB-T USB device but this one has brought out my
+stubborn streak and I'm not prepared to give up just yet.
 
-
-
-
+Cedric
 
 _______________________________________________
 linux-dvb mailing list
