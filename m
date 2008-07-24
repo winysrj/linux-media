@@ -1,16 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.185])
+Received: from relay-pt3.poste.it ([62.241.4.129])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <moosylog@gmail.com>) id 1KEUpD-0002kK-Qj
-	for linux-dvb@linuxtv.org; Thu, 03 Jul 2008 21:50:42 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so318303nfb.11
-	for <linux-dvb@linuxtv.org>; Thu, 03 Jul 2008 12:50:36 -0700 (PDT)
-Message-ID: <2ff0d0e20807031250s7fd0386ch9f9551f46ff771d2@mail.gmail.com>
-Date: Thu, 3 Jul 2008 21:50:29 +0200
-From: "Moosy Log" <moosylog@gmail.com>
+	(envelope-from <Nicola.Sabbi@poste.it>) id 1KM1ie-0000CZ-B9
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 16:23:06 +0200
+Received: from nico2.od.loc (89.97.249.170) by relay-pt3.poste.it (7.3.122)
+	(authenticated as Nicola.Sabbi@poste.it)
+	id 4887B87100004BD5 for linux-dvb@linuxtv.org;
+	Thu, 24 Jul 2008 16:22:26 +0200
+From: Nico Sabbi <Nicola.Sabbi@poste.it>
 To: linux-dvb@linuxtv.org
+Date: Thu, 24 Jul 2008 16:22:25 +0200
+References: <48888700.6030105@iinet.net.au>
+	<200807241601.14850.Nicola.Sabbi@poste.it>
+	<48888E02.60009@iinet.net.au>
+In-Reply-To: <48888E02.60009@iinet.net.au>
 MIME-Version: 1.0
-Subject: [linux-dvb] DUTV005 (CE9500B1) DVB-T USB Dongle
+Content-Disposition: inline
+Message-Id: <200807241622.25951.Nicola.Sabbi@poste.it>
+Subject: Re: [linux-dvb] dvb mpeg2?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,55 +25,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0778068184=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0778068184==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_4332_12645731.1215114629503"
+On Thursday 24 July 2008 16:13:22 Tim Farrington wrote:
 
-------=_Part_4332_12645731.1215114629503
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> Hi Nico,
+> Yes I wondered about corrupt streams, so I watched projectx in
+> action carefully.
+> I need to understand it a bit more, but it found many corrupt
+> timestamps while demuxing, and repaired on the run. Time will tell,
+> however I have some progress,
+> and I can't fault the process yet!
+>
+> I intend to try all of everybody's suggestions. One question - with
+> mencoder why format=dvd?
+>
+> Regards,
+> Timf
 
-Got myself a cheap USB dvb-t receiver - Are there any drivers for this
-device?
-I tried the dvb_usb_af9015, no luck.
-
-usb 2-4: New USB device found, idVendor=8086, idProduct=9500
-usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 2-4: Product: CE9500B1
-usb 2-4: Manufacturer: Intel Corporation (UK) Ltd
-
-Full specs:
-http://plone.lucidsolutions.co.nz/dvb/t/usb/forward-video-dutv005
-
-Thanks
-
-------=_Part_4332_12645731.1215114629503
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Got myself a cheap USB dvb-t receiver - Are there any drivers for this device?<br>I tried the dvb_usb_af9015, no luck.<br><br>usb 2-4: New USB device found, idVendor=8086, idProduct=9500<br>usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3<br>
-usb 2-4: Product: CE9500B1               <br>usb 2-4: Manufacturer: Intel Corporation (UK) Ltd<br><br>Full specs: <a href="http://plone.lucidsolutions.co.nz/dvb/t/usb/forward-video-dutv005">http://plone.lucidsolutions.co.nz/dvb/t/usb/forward-video-dutv005</a><br>
-<br>Thanks<br>
-
-------=_Part_4332_12645731.1215114629503--
-
-
---===============0778068184==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+because the default is mpeg2, with too many restrictions on the
+ muxrate and because sooner or later you will want to burn to dvd.
+The muxrate is a bit higher, but who cares? :)
+Otherwise you can use -of mpeg -mpegopts format=mpeg2:muxrate=10800
+or something like that
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0778068184==--
