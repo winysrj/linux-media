@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.179])
+Received: from rayleigh.systella.fr ([213.41.184.253])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thomas@ickes-home.de>) id 1KLNfY-0004EI-RM
-	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 21:37:09 +0200
-From: tom <thomas@ickes-home.de>
-To: Antti Palosaari <crope@iki.fi>
-In-Reply-To: <48863629.8070706@iki.fi>
-References: <0MKxQS-1KLM2V1c9L-0001hx@mrelayeu.kundenserver.de>
-	<1216750591.6624.3.camel@super-klappi>  <48862536.9070906@iki.fi>
-	<1216752077.6686.4.camel@super-klappi>  <48862B02.1030304@iki.fi>
-	<1216754067.6686.7.camel@super-klappi>  <48863349.3090507@iki.fi>
-	<1216754778.6686.9.camel@super-klappi>  <48863629.8070706@iki.fi>
-Date: Tue, 22 Jul 2008 21:35:59 +0200
-Message-Id: <1216755359.6686.11.camel@super-klappi>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] WG:  Problems with MSI	Digivox	Duo	DVB-T	USB,
-	Ubuntu 8.04
+	(envelope-from <bertrand@systella.fr>) id 1KLzMJ-0006BI-5Q
+	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 13:51:49 +0200
+Received: from [192.168.0.4] (bertrand@cauchy.systella.fr [192.168.0.4])
+	(authenticated bits=0)
+	by rayleigh.systella.fr (8.14.3/8.14.3/Debian-5) with ESMTP id
+	m6OBoxOX028351
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <linux-dvb@linuxtv.org>; Thu, 24 Jul 2008 13:51:01 +0200
+Message-ID: <48886CA3.4000603@systella.fr>
+Date: Thu, 24 Jul 2008 13:50:59 +0200
+From: =?UTF-8?B?QkVSVFJBTkQgSm/Dq2w=?= <bertrand@systella.fr>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+References: <4885B35B.1080006@systella.fr>
+In-Reply-To: <4885B35B.1080006@systella.fr>
+Subject: Re: [linux-dvb] AverMedia Hybrid Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,26 +24,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-ok, will download it and try it with the test driver and the previous
-version.
-
-Am Dienstag, den 22.07.2008, 22:34 +0300 schrieb Antti Palosaari:
-> tom wrote:
-> > ah, ok. can I found to firmware on linuxtv?
-> 
-> nope, It is at the same location where you have downloaded current one:
-> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
-> 
-> Antti
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+QkVSVFJBTkQgSm/Dq2wgYSDDqWNyaXQgOgo+IAlIZWxsbywKPiAKPiAJSSdtIHRyeWluZyB0byBj
+b25maWd1cmUgYW4gQXZlclRWIEh5YnJpZCBFeHByZXNzIGNhcmQuIEkndmUgcHJvYmFibHkKPiBk
+b25lIGEgbWlzdGFrZS4uLgo+IAo+IERpc3RyaWJ1dGlvbiA6IExpbnV4IERlYmlhbiBsZW5ueSAo
+a2VybmVsIDIuNi4yNiBmcm9tIGtlcm5lbC5vcmcpLgo+IAo+IGNhdWNoeTpbL2V0Yy9tb2Rwcm9i
+ZS5kXSA+IGxzcGNpCj4gLi4uCj4gMDI6MDAuMCBNdWx0aW1lZGlhIHZpZGVvIGNvbnRyb2xsZXI6
+IENvbmV4YW50IERldmljZSA4ODUyIChyZXYgMDIpCj4gLi4uCj4gY2F1Y2h5OlsvZXRjL21vZHBy
+b2JlLmRdID4gbHNwY2kgLW52Cj4gLi4uCj4gMDI6MDAuMCAwNDAwOiAxNGYxOjg4NTIgKHJldiAw
+MikKPiAgICAgICAgICBTdWJzeXN0ZW06IDE0NjE6YzAzOQo+ICAgICAgICAgIEZsYWdzOiBidXMg
+bWFzdGVyLCBmYXN0IGRldnNlbCwgbGF0ZW5jeSAwLCBJUlEgMTYKPiAgICAgICAgICBNZW1vcnkg
+YXQgZjAwMDAwMDAgKDY0LWJpdCwgbm9uLXByZWZldGNoYWJsZSkgW3NpemU9Mk1dCj4gICAgICAg
+ICAgQ2FwYWJpbGl0aWVzOiBbNDBdIEV4cHJlc3MgRW5kcG9pbnQsIE1TSSAwMAo+ICAgICAgICAg
+IENhcGFiaWxpdGllczogWzgwXSBQb3dlciBNYW5hZ2VtZW50IHZlcnNpb24gMgo+ICAgICAgICAg
+IENhcGFiaWxpdGllczogWzkwXSBWaXRhbCBQcm9kdWN0IERhdGEgPD8+Cj4gICAgICAgICAgQ2Fw
+YWJpbGl0aWVzOiBbYTBdIE1lc3NhZ2UgU2lnbmFsbGVkIEludGVycnVwdHM6IE1hc2stIDY0Yml0
+Kwo+IFF1ZXVlPTAvMCBFbmFibGUtCj4gICAgICAgICAgQ2FwYWJpbGl0aWVzOiBbMTAwXSBBZHZh
+bmNlZCBFcnJvciBSZXBvcnRpbmcgPD8+Cj4gICAgICAgICAgQ2FwYWJpbGl0aWVzOiBbMjAwXSBW
+aXJ0dWFsIENoYW5uZWwgPD8+Cj4gICAgICAgICAgS2VybmVsIGRyaXZlciBpbiB1c2U6IGN4MjM4
+ODUKPiAgICAgICAgICBLZXJuZWwgbW9kdWxlczogY3gyMzg4NQo+IC4uLgo+IAo+IAlJIGhhdmUg
+c2VlbiB0aGF0IHRoaXMgY2FyZCBzaG91bGQgd29yayB3aXRoIGN4MjM4ODUuCj4gIEZyb20gZG1l
+c2cgOgo+IAo+IENPUkUgY3gyMzg4NVswXTogc3Vic3lzdGVtOiAxNDYxOmMwMzksIGJvYXJkOiBE
+VmlDTyBGdXNpb25IRFRWNSBFeHByZXNzCj4gW2NhcmQ9NCxpbnNtb2Qgb3B0aW9uXQo+IGN4MjM4
+ODVbMF06IGkyYyBidXMgMCByZWdpc3RlcmVkCj4gY3gyMzg4NVswXTogaTJjIGJ1cyAxIHJlZ2lz
+dGVyZWQKPiBjeDI1ODQwJyAzLTAwNDQ6IGN4MjUgIDAtMjEgZm91bmQgQCAweDg4IChjeDIzODg1
+WzBdKQo+IGN4MjM4ODVbMF06IGkyYyBidXMgMiByZWdpc3RlcmVkCj4gY3gyMzg4NVswXTogY3gy
+Mzg4NSBiYXNlZCBkdmIgY2FyZAo+IHR1bmVyLXNpbXBsZSAxLTAwNjE6IGNyZWF0aW5nIG5ldyBp
+bnN0YW5jZQo+IHR1bmVyLXNpbXBsZSAxLTAwNjE6IHR5cGUgc2V0IHRvIDY0IChMRyBURFZTLUgw
+NnhGKQo+IERWQjogcmVnaXN0ZXJpbmcgbmV3IGFkYXB0ZXIgKGN4MjM4ODVbMF0pCj4gRFZCOiBy
+ZWdpc3RlcmluZyBmcm9udGVuZCAwIChMRyBFbGVjdHJvbmljcyBMR0RUMzMwMyBWU0IvUUFNIEZy
+b250ZW5kKS4uLgo+IGN4MjM4ODVfZGV2X2NoZWNrcmV2aXNpb24oKSBIYXJkd2FyZSByZXZpc2lv
+biA9IDB4YjAKPiBjeDIzODg1WzBdLzA6IGZvdW5kIGF0IDAwMDA6MDI6MDAuMCwgcmV2OiAyLCBp
+cnE6IDE2LCBsYXRlbmN5OiAwLCBtbWlvOgo+IDB4ZjAwMDAwMDAKPiAKPiAJSSBoYXZlIHRvIGFk
+ZCBjYXJkPTQgb3B0aW9uLiBXaXRoIGFsbCBvdGhlcnMgY2FyZCwgZHZiIGRldmljZXMgYXJlIG5v
+dAo+IGNyZWF0ZWQuIENhcmQgc2VlbXMgdG8gYmUgdXNhYmxlIDoKPiBSb290IGNhdWNoeTpbL3N5
+cy9jbGFzcy9kdmJdID4gbHMgLWFsCj4gdG90YWwgMAo+IGRyd3hyLXhyLXggIDYgcm9vdCByb290
+IDAganVpIDIxIDE5OjI0IC4KPiBkcnd4ci14ci14IDM1IHJvb3Qgcm9vdCAwIGp1aSAyMSAxOToy
+MSAuLgo+IGRyd3hyLXhyLXggIDMgcm9vdCByb290IDAganVpIDIxIDE5OjI0IGR2YjAuZGVtdXgw
+Cj4gZHJ3eHIteHIteCAgMyByb290IHJvb3QgMCBqdWkgMjEgMTk6MjQgZHZiMC5kdnIwCj4gZHJ3
+eHIteHIteCAgMyByb290IHJvb3QgMCBqdWkgMjEgMTk6MjQgZHZiMC5mcm9udGVuZDAKPiBkcnd4
+ci14ci14ICAzIHJvb3Qgcm9vdCAwIGp1aSAyMSAxOToyNCBkdmIwLm5ldDAKPiBSb290IGNhdWNo
+eTpbL3N5cy9jbGFzcy9kdmJdID4gbHMgL2Rldi9kdmIvCj4gYWRhcHRlcjAKPiBSb290IGNhdWNo
+eTpbL3N5cy9jbGFzcy9kdmJdID4gbHMgL2Rldi9kdmIvYWRhcHRlcjAvKgo+IC9kZXYvZHZiL2Fk
+YXB0ZXIwL2RlbXV4MCAgL2Rldi9kdmIvYWRhcHRlcjAvZnJvbnRlbmQwCj4gL2Rldi9kdmIvYWRh
+cHRlcjAvZHZyMCAgICAvZGV2L2R2Yi9hZGFwdGVyMC9uZXQwCj4gUm9vdCBjYXVjaHk6Wy9zeXMv
+Y2xhc3MvZHZiXSA+Cj4gCj4gCUJ1dCBJJ20gbm90IGFibGUgdG8gY29udGludWUuLi4KPiAKPiBS
+b290IGNhdWNoeTpbfl0gPiBkdmJzY2FuIC1vdXQgcmF3IHRlc3QgL3Vzci9zaGFyZS9kdmIvZHZi
+LXQvZnItUGFyaXMKPiAKPiAJVGhpcyBsYXN0IGNvbW1hbmQgZG9lcyBub3QgY3Jhc2gsIGJ1dCBk
+b2VzIG5vdGhpbmcuLi4KPiAKPiAgIDE1OTkgcm9vdCAgICAgIDIwICAgMCAxNDA5MiAgNDkyICAz
+NjggUiAgMTAwICAwLjAgIDI4OjE2LjYxIGR2YnNjYW4KCglEb2VzIHNvbWVvbmUgdXNlIHRoaXMg
+YWRhcHRlciA/IEkgaGF2ZSBpbnZlc3RpZ2F0ZWQgYW5kIGJ1aWxkIHRoZSBsYXN0CnY0bC1kdmIg
+dHJlZSAoYWdhaW5zdCAyLjYuMjYgbGludXgga2VybmVsKSB3aXRob3V0IGFueSBzdWNjZXNzLiAg
+S2VybmVsCmxvYWRzIG1vZHVsZXMgKGN4MjM4ODUsIHR2ZWVwcm9tLCB2aWRlb2J1Zl9kdmIsIHZp
+ZGVvYnVmX2RtYV9zZywKdmlkZW9idWZfY29yZSBhbmQgbGdkdDMzMHgpIHdpdGhvdXQgZXJyb3Iu
+CgoJUmVnYXJkcywKCglKS0IKCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3Jn
+Cmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2
+Yg==
