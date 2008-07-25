@@ -1,23 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KLib3-0005QE-D2
-	for linux-dvb@linuxtv.org; Wed, 23 Jul 2008 19:57:54 +0200
-Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
-	by cherep.quantum.ru (Postfix) with SMTP id BC83E19E60AC
-	for <linux-dvb@linuxtv.org>; Wed, 23 Jul 2008 21:57:19 +0400 (MSD)
-Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
-	by ns.chp.ru (Postfix) with ESMTP id 8567219E6086
-	for <linux-dvb@linuxtv.org>; Wed, 23 Jul 2008 21:57:19 +0400 (MSD)
-Date: Wed, 23 Jul 2008 22:05:13 +0400
-From: Goga777 <goga777@bk.ru>
+Received: from n9a.bullet.ukl.yahoo.com ([217.146.183.157])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1KMKyD-0005pT-T1
+	for linux-dvb@linuxtv.org; Fri, 25 Jul 2008 12:56:22 +0200
+Date: Fri, 25 Jul 2008 06:52:44 -0400
+From: manu <eallaud@yahoo.fr>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080723220513.373bbb9e@bk.ru>
-In-Reply-To: <200807231452.00033.igor@liplianin.net>
-References: <3AF47543-7149-4CC1-928B-F6704715FB6A@rlucier-home2.stanford.edu>
-	<200807231452.00033.igor@liplianin.net>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] How to obtain an HVR-4000 in the U.S.?
+References: <3a665c760807240246x7bb3d442lac2b407dd138accf@mail.gmail.com>
+	<200807241153.55596.Nicola.Sabbi@poste.it>
+	<3a665c760807250212i1902e4fdud47da351262c140f@mail.gmail.com>
+In-Reply-To: <3a665c760807250212i1902e4fdud47da351262c140f@mail.gmail.com>
+	(from miloody@gmail.com on Fri Jul 25 05:12:53 2008)
+Message-Id: <1216983164l.6000l.0l@manu-laptop>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Re : question about definition of section in PSI of
+ Transport stream
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,26 +23,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I seem HVR-4000 very overrated. 
+Le 25.07.2008 05:12:53, loody a =E9crit=A0:
+> Hi:
+> thanks for your explanation.
+> BTW, I find all my Ts only have one section, section_number and
+> last_section_number are both 0.
+> =
 
-yes. it's true :)
+> Would you please tell me where I can get multi-sections TS for
+> tracing?
+> =
 
->There is a lot of cx24116 cards in the modern 
-> world. For example TeVii S650 & S460, Dvbworld 2104 & 2004C. 
-> Currently S460 & S650 supported by me.
-> http://liplianindvb.sourceforge.net/hg
+> appreciate your help,
+> miloody
+> =
 
-great work !
-with your drivers my hvr4000 works well too ,  I could receive the dbn-s streams with extremely high SR = 44950 from
-Express AM2 
+> =
 
-Goga
+> 2008/7/24 Nico Sabbi <Nicola.Sabbi@poste.it>:
+> > On Thursday 24 July 2008 11:46:48 loody wrote:
+> >> Dear all:
+> >> I am reading iso13818-1 right now.
+> >> But I cannot figure out what the section mean in PSI.
+> >>
+> >> In PAT, there is a N loop tell us how many programs in this TS and
+> >> the corresponding pid of PMT.
+> >> Is section equivalent to program?
+> >
+> > each item identifies a program and a pid
+> >
+> >> Suppose there is 10 loop in PAT, and there will be 10 sections,
+> >> right?
+> >
+> > no, the section is only needed to split overly long PATs and / or
+> PMTs
+> > in smaller pieces
+> >
+> > _______________________________________________
+> > linux-dvb mailing list
+> > linux-dvb@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >
+
+Other tables like EIT are split over several sections (pid is 0x12 =
+
+IIRC)
+Bye
+Manu
 
 
 _______________________________________________
