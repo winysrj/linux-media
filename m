@@ -1,23 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nschwmtas06p.mx.bigpond.com ([61.9.189.152])
+Received: from ffm.saftware.de ([83.141.3.46])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mickhowe@bigpond.net.au>) id 1KGOBo-0000Mb-LZ
-	for linux-dvb@linuxtv.org; Wed, 09 Jul 2008 03:09:53 +0200
-Received: from nschwotgx03p.mx.bigpond.com ([121.223.37.61])
-	by nschwmtas06p.mx.bigpond.com with ESMTP id
-	<20080709010909.ZAWU20306.nschwmtas06p.mx.bigpond.com@nschwotgx03p.mx.bigpond.com>
-	for <linux-dvb@linuxtv.org>; Wed, 9 Jul 2008 01:09:09 +0000
-Received: from fini.bareclan ([121.223.37.61])
-	by nschwotgx03p.mx.bigpond.com with ESMTP
-	id <20080709010908.TTVE26538.nschwotgx03p.mx.bigpond.com@fini.bareclan>
-	for <linux-dvb@linuxtv.org>; Wed, 9 Jul 2008 01:09:08 +0000
-From: mick <mickhowe@bigpond.net.au>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Date: Wed, 9 Jul 2008 11:09:07 +1000
+	(envelope-from <obi@linuxtv.org>) id 1KMNlc-0001aj-Lz
+	for linux-dvb@linuxtv.org; Fri, 25 Jul 2008 15:55:34 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by ffm.saftware.de (Postfix) with ESMTP id DD478E6AA0
+	for <linux-dvb@linuxtv.org>; Fri, 25 Jul 2008 15:55:28 +0200 (CEST)
+Received: from ffm.saftware.de ([83.141.3.46])
+	by localhost (pinky.saftware.org [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id sJAcB8GQlZC6 for <linux-dvb@linuxtv.org>;
+	Fri, 25 Jul 2008 15:55:28 +0200 (CEST)
+Received: from [172.22.22.60] (ip-81-210-158-210.hsi.iesy.net [81.210.158.210])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by ffm.saftware.de (Postfix) with ESMTPSA id 44136E6A99
+	for <linux-dvb@linuxtv.org>; Fri, 25 Jul 2008 15:55:28 +0200 (CEST)
+Message-ID: <4889DB50.7040809@linuxtv.org>
+Date: Fri, 25 Jul 2008 15:55:28 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807091109.07963.mickhowe@bigpond.net.au>
-Subject: [linux-dvb] Leadtek DTV2000H rev J
+To: linux-dvb@linuxtv.org
+References: <3a665c760807240246x7bb3d442lac2b407dd138accf@mail.gmail.com>	<200807241153.55596.Nicola.Sabbi@poste.it>	<3a665c760807250212i1902e4fdud47da351262c140f@mail.gmail.com>	<200807251116.54407.Nicola.Sabbi@poste.it>
+	<4889D176.1030702@gmx.de>
+In-Reply-To: <4889D176.1030702@gmx.de>
+Subject: Re: [linux-dvb] question about definition of section in PSI
+ of	Transport stream
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,19 +38,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have been struggling to get my Leadtek DTV2000H rev J card working under 
-kubuntu 8.04 for many weeks with mixed success for a couple of months.
+Andreas Regel wrote:
+> PMTs are always just one section. PATs could have more than one but that 
+> would normally need more than 250 programmes on one TS, so it's not that 
+> easy to find a TS with multi section PATs. Other tables, like NIT or SDT 
+> often are bigger than 1024 bytes and split over several sections.
 
-At 1 point I managed to get picture without sound on digital tv and at another 
-time I had picture only on analog using various patches but have been unable 
-to reproduce these results at will.
+IIRC there were some radio channels called "Les Radios" sharing one PMT
+PID with the same service id on Astra 19.2E some years ago. I think
+they're now called Canalsat Radios. Maybe they still have PMTs with
+multiple sections. See http://www.satindex.de/paytv/cs-france/ .
 
-I've been watching the list through this period but have seen no references 
-that stood out as being the answer I need.
-
-Where can I turn next? Is there anything I can do to assist?
-
-Mick
+Regards,
+Andreas
 
 _______________________________________________
 linux-dvb mailing list
