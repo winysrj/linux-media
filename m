@@ -1,20 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m616TDhF026507
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 02:29:13 -0400
-Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m616SSge015250
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 02:28:28 -0400
-Message-ID: <14576.62.70.2.252.1214893706.squirrel@webmail.xs4all.nl>
-Date: Tue, 1 Jul 2008 08:28:26 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: dwainegarden@rogers.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6PB70wq000381
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 07:07:00 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.227])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6PB6k5d009787
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 07:06:46 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so4113274rvb.51
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 04:06:45 -0700 (PDT)
+Message-ID: <d9def9db0807250406h6e2afeb1u614b8ba2ef8bebd3@mail.gmail.com>
+Date: Fri, 25 Jul 2008 13:06:45 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Alan Knowles" <alan@akbkhome.com>
+In-Reply-To: <d9def9db0807250403r3638449fl2cc5f69b29634214@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: v4l <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Can we remove saa711x.c?
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <48898289.2070305@akbkhome.com> <4889AA61.8040006@akbkhome.com>
+	<d9def9db0807250403r3638449fl2cc5f69b29634214@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: ASUS My Cinema-U3100Mini/DMB-TH (Legend Slilicon 8934)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,52 +31,149 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Sounds good to me.  What about the other saa711().c modules?   Have all
-> the drivers moved over to the saa7115.c?
+On Fri, Jul 25, 2008 at 1:03 PM, Markus Rechberger
+<mrechberger@gmail.com> wrote:
+> Hi,
+>
+> On Fri, Jul 25, 2008 at 12:26 PM, Alan Knowles <alan@akbkhome.com> wrote:
+>> Just a small update on this - I suspect ASUS released the wrong tarball for
+>> this device - as comparing the output from 'strings dib3000mc.ko' to the
+>> source code finds quite a few things missing..
+>>
+>> Waiting on a response from ASUS now.
+>>
+>
+> after a first look over it the code seems to be a bit "inconsitent"
+>
+> eg.:
+>
+> +static struct mt2060_config stk3000p_adimtv102_config = {
+> +       (0xC2>>1)
+> +};
+>
+> ...
+>
+> +       if (dvb_attach(adimtv102_attach, adap->fe, tun_i2c,
+> &stk3000p_adimtv102_config, if1) == NULL) {
+> ----
+>
+> whereas:
+> mt2060.h:
+>
+> (the size of the struct is the same but the purpose of the elements
+> are probably not)
+> struct mt2060_config {
+>        u8 i2c_address;
+>        u8 clock_out; /* 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1 */
+> };
+>
+> adimtv102.h:
+>
+> struct adimtv102_config {
+>        u8 i2c_address;
+>        u8 is_through_asic;
+> };
+> #if defined(CONFIG_DVB_TUNER_ADIMTV102) ||
+> (defined(CONFIG_DVB_TUNER_ADIMTV102_MODULE) && defined(MODULE))
+> extern struct dvb_frontend * adimtv102_attach(struct dvb_frontend *fe,
+> struct i2c_adapter *i2c, struct adimtv102_config *cfg, u16 if1);
+> #else
+> static inline struct dvb_frontend * adimtv102_attach(struct
+> dvb_frontend *fe, struct i2c_adapter *i2c, struct adimtv102_config
+> *cfg, u16 if1)
+> {
+>        printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __FUNCTION__);
+>        return NULL;
+> }
+>
+> within the whole code if1 isn't needed (the adimtv102.h header is just
+> copied from mt2060) some cleanup still seems to be required there but
+> it's already a good start.
+>
 
-saa7111 is still used by zoran and mxb.
-saa7114 is still used by zoran as well.
+The lgs8934 implementation should also not depend on the dibcom module
+(which can be seen in your diff).
 
-I can test the zoran with the saa7111 (I'm fairly certain my iomega Buz
-has a saa7111), and I've contacted the mxb maintainer in the hope that he
-has one (it's been unmaintained for two years or so, so it might be
-difficult to find someone with that hardware).
-
-I'm hoping someone might have a zoran device with a saa7114, but if not
-then I wonder whether we shouldn't just replace it and cross our fingers.
-
-Regards,
-
-        Hans
-
+> Markus
 >
-> ------Original Message------
-> From: Hans Verkuil
-> Sender:
-> To: v4l
-> Cc: Mauro Carvalho Chehab
-> Subject: Can we remove saa711x.c?
-> Sent: Jun 30, 2008 4:51 PM
+>> Regards
+>> Alan
+>>
+>> Alan Knowles wrote:
+>>>
+>>> I've been looking at the drivers for  My Cinema-U3100Mini/DMB-TH
+>>>
+>>> The source is available directly from ASUS now.
+>>> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/source_code.zip
+>>>
+>>> I've diffed it to the version they have used, and applied it, and fixed it
+>>> against the current source
+>>> http://www.akbkhome.com/svn/asus_dvb_driver/v4l-dvb-diff-from-current.diff
+>>>
+>>> In addition there are the drivers for the ADI MTV102 silicon tuner driver
+>>> http://www.akbkhome.com/svn/asus_dvb_driver/frontends/
+>>> (all the adimtv* files)
+>>>
+>>> The source code appears to use a slightly differ usb stick to the one's I
+>>> have.
+>>> 0x1748  (cold)  / 0x1749 (warm)
+>>> where as I've got
+>>> 0x1721(cold) /  0x1722 (warm)
+>>>
+>>> It looks like they hacked up dib3000mc.c, rather than writing a new driver
+>>>
+>>> I've got to the point where it builds, firmware installs etc. (firmware is
+>>> available inside the deb packages)
+>>> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/asus-dmbth-20080528_tar.zip
+>>>
+>>> The driver initializes correctly when plugged in.
+>>> [302520.686782] dvb-usb: ASUSTeK DMB-TH successfully deinitialized and
+>>> disconnected.
+>>> [302530.550018] dvb-usb: found a 'ASUSTeK DMB-TH' in warm state.
+>>> [353408.577741] dvb-usb: will pass the complete MPEG2 transport stream to
+>>> the software demuxer.
+>>> [353408.680977] DVB: registering new adapter (ASUSTeK DMB-TH)
+>>> [302530.670387]  Cannot find LGS8934
+>>> [302530.670596] DVB: registering frontend 0 (Legend Slilicon 8934)...
+>>> [302530.670668] adimtv102_readreg 0x00
+>>> [302530.676090] adimtv102_readreg 0x01
+>>> [302530.681578] adimtv102_readreg 0x02
+>>> [302530.687077] adimtv102: successfully identified (ff ff ff)
+>>> [302530.688577] dvb-usb: ASUSTeK DMB-TH successfully initialized and
+>>> connected.
+>>> [302530.688624] usbcore: registered new interface driver dvb_usb_dibusb_mc
+>>> [353413.776593] adimtv102_init
+>>>
+>>> when w_scan is run, it outputs activity...
+>>> [353416.533576] lgs8934_SetAutoMode!
+>>> [353416.553928] lgs8934_auto_detect!
+>>> [353418.285686] lgs8934_auto_detect, lock 0
+>>> [353418.285686] adimtv102_set_params freq=184500
+>>> [353418.378803] MTV102>>tp->freq=184 PLLF=d8000 PLLFREQ=1472000
+>>>  MTV10x_REFCLK=16384 !
+>>> ......
+>>>
+>>> however fails to pick up any channels...
+>>>
+>>> I'm trying to connect to these -
+>>> http://en.wikipedia.org/wiki/Digital_television_in_Hong_Kong
+>>>
+>>> Any ideas welcome..
+>>>
+>>> Regards
+>>> Alan
+>>>
+>>> --
+>>> video4linux-list mailing list
+>>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>
+>> --
+>> video4linux-list mailing list
+>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>
 >
-> Hi all,
->
-> It looks like the saa711x module is unused right now. Unless I'm missing
-> something I propose we remove it before the 2.6.27 window opens.
->
-> Regards,
->
-> 	Hans
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
->
-> Sent from my BlackBerry device on the Rogers Wireless Network
->
->
-
 
 --
 video4linux-list mailing list
