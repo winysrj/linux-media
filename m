@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6VLqnGg032026
-	for <video4linux-list@redhat.com>; Thu, 31 Jul 2008 17:52:49 -0400
-Received: from smtp1-g19.free.fr (smtp1-g19.free.fr [212.27.42.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6VLpDrh001039
-	for <video4linux-list@redhat.com>; Thu, 31 Jul 2008 17:51:14 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0807270155020.29126@axis700.grange>
-	<878wvnkd8n.fsf@free.fr>
-	<Pine.LNX.4.64.0807271337270.1604@axis700.grange>
-	<87tze997uu.fsf@free.fr>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Thu, 31 Jul 2008 23:51:12 +0200
-In-Reply-To: <87tze997uu.fsf@free.fr> (Robert Jarzmik's message of "Mon\,
-	28 Jul 2008 20\:33\:29 +0200")
-Message-ID: <87y73h204v.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6PG728A023838
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 12:07:02 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.228])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6PG60ex008144
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 12:06:47 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so4320973rvb.51
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 09:06:47 -0700 (PDT)
+Message-ID: <d9def9db0807250906q4918121awceb6e0f938088e6d@mail.gmail.com>
+Date: Fri, 25 Jul 2008 18:06:47 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Alan Knowles" <alan@akbkhome.com>
+In-Reply-To: <48898289.2070305@akbkhome.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <48898289.2070305@akbkhome.com>
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
+Subject: Re: ASUS My Cinema-U3100Mini/DMB-TH (Legend Slilicon 8934)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,114 +30,77 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> So, to sum up :
->  - I finish the mt9m111 driver
->  - I submit it
->  - I cook up a clean suspend/resume (unless you did it first of course :)
+On Fri, Jul 25, 2008 at 9:36 AM, Alan Knowles <alan@akbkhome.com> wrote:
+> I've been looking at the drivers for  My Cinema-U3100Mini/DMB-TH
+>
+> The source is available directly from ASUS now.
+> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/source_code.zip
+>
+> I've diffed it to the version they have used, and applied it, and fixed it
+> against the current source
+> http://www.akbkhome.com/svn/asus_dvb_driver/v4l-dvb-diff-from-current.diff
+>
+> In addition there are the drivers for the ADI MTV102 silicon tuner driver
+> http://www.akbkhome.com/svn/asus_dvb_driver/frontends/
+> (all the adimtv* files)
+>
+> The source code appears to use a slightly differ usb stick to the one's I
+> have.
+> 0x1748  (cold)  / 0x1749 (warm)
+> where as I've got
+> 0x1721(cold) /  0x1722 (warm)
+>
+> It looks like they hacked up dib3000mc.c, rather than writing a new driver
+>
+> I've got to the point where it builds, firmware installs etc. (firmware is
+> available inside the deb packages)
+> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/asus-dmbth-20080528_tar.zip
+>
+> The driver initializes correctly when plugged in.
+> [302520.686782] dvb-usb: ASUSTeK DMB-TH successfully deinitialized and
+> disconnected.
+> [302530.550018] dvb-usb: found a 'ASUSTeK DMB-TH' in warm state.
+> [353408.577741] dvb-usb: will pass the complete MPEG2 transport stream to
+> the software demuxer.
+> [353408.680977] DVB: registering new adapter (ASUSTeK DMB-TH)
+> [302530.670387]  Cannot find LGS8934
 
-All right, I finished the pxa_camera part. The suspend/resume does work with a
-opened video stream. The capture begins before the suspend and finished after
-the resume.
+this is basically the problem here.
 
-I post the patch here attached for information. I'll submit later with the
-complete suspend/resume serie. This is just for preliminary comments. Of course,
-this patch superseeds the origin patch posted in this thread, which didn't work
-for an opened video stream.
-
---
-Robert
-
->From fb38f10c233a5b4e13f5ad42cf1c381ecc4215e9 Mon Sep 17 00:00:00 2001
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Sun, 27 Jul 2008 00:52:22 +0200
-Subject: [PATCH] Fix suspend/resume of pxa_camera driver
-
-PXA suspend switches off DMA core, which looses all context
-of previously assigned descriptors. As pxa_camera driver
-relies on DMA transfers, setup the lost descriptors on
-resume and retrigger frame acquisition if needed.
-
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/video/pxa_camera.c |   49 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 49 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index efb2d19..f00844c 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -128,6 +128,8 @@ struct pxa_camera_dev {
- 
- 	struct pxa_buffer	*active;
- 	struct pxa_dma_desc	*sg_tail[3];
-+
-+	u32			save_CICR[5];
- };
- 
- static const char *pxa_cam_driver_description = "PXA_Camera";
-@@ -1017,6 +1019,51 @@ static struct soc_camera_host pxa_soc_camera_host = {
- 	.ops			= &pxa_soc_camera_host_ops,
- };
- 
-+static int pxa_camera_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	struct pxa_camera_dev *pcdev = platform_get_drvdata(pdev);
-+	int i = 0;
-+
-+	pcdev->save_CICR[i++] = CICR0;
-+	pcdev->save_CICR[i++] = CICR1;
-+	pcdev->save_CICR[i++] = CICR2;
-+	pcdev->save_CICR[i++] = CICR3;
-+	pcdev->save_CICR[i++] = CICR4;
-+
-+	return 0;
-+}
-+
-+static int pxa_camera_resume(struct platform_device *pdev)
-+{
-+	struct pxa_camera_dev *pcdev = platform_get_drvdata(pdev);
-+	int i = 0;
-+
-+	DRCMR68 = pcdev->dma_chans[0] | DRCMR_MAPVLD;
-+	DRCMR69 = pcdev->dma_chans[1] | DRCMR_MAPVLD;
-+	DRCMR70 = pcdev->dma_chans[2] | DRCMR_MAPVLD;
-+
-+	CICR0 = pcdev->save_CICR[i++] & ~CICR0_ENB;
-+	CICR1 = pcdev->save_CICR[i++];
-+	CICR2 = pcdev->save_CICR[i++];
-+	CICR3 = pcdev->save_CICR[i++];
-+	CICR4 = pcdev->save_CICR[i++];
-+
-+	if ((pcdev->icd) && (pcdev->icd->ops->resume))
-+		pcdev->icd->ops->resume(pcdev->icd);
-+
-+	/* Restart frame capture if active buffer exists */
-+	if (pcdev->active) {
-+		/* Reset the FIFOs */
-+		CIFR |= CIFR_RESET_F;
-+		/* Enable End-Of-Frame Interrupt */
-+		CICR0 &= ~CICR0_EOFM;
-+		/* Restart the Capture Interface */
-+		CICR0 |= CICR0_ENB;
-+	}
-+
-+	return 0;
-+}
-+
- static int pxa_camera_probe(struct platform_device *pdev)
- {
- 	struct pxa_camera_dev *pcdev;
-@@ -1188,6 +1235,8 @@ static struct platform_driver pxa_camera_driver = {
- 	},
- 	.probe		= pxa_camera_probe,
- 	.remove		= __exit_p(pxa_camera_remove),
-+	.suspend	= pxa_camera_suspend,
-+	.resume		= pxa_camera_resume,
- };
- 
- 
--- 
-1.5.5.3
+> [302530.670596] DVB: registering frontend 0 (Legend Slilicon 8934)...
+> [302530.670668] adimtv102_readreg 0x00
+> [302530.676090] adimtv102_readreg 0x01
+> [302530.681578] adimtv102_readreg 0x02
+> [302530.687077] adimtv102: successfully identified (ff ff ff)
+> [302530.688577] dvb-usb: ASUSTeK DMB-TH successfully initialized and
+> connected.
+> [302530.688624] usbcore: registered new interface driver dvb_usb_dibusb_mc
+> [353413.776593] adimtv102_init
+>
+> when w_scan is run, it outputs activity...
+> [353416.533576] lgs8934_SetAutoMode!
+> [353416.553928] lgs8934_auto_detect!
+> [353418.285686] lgs8934_auto_detect, lock 0
+> [353418.285686] adimtv102_set_params freq=184500
+> [353418.378803] MTV102>>tp->freq=184 PLLF=d8000 PLLFREQ=1472000
+>  MTV10x_REFCLK=16384 !
+> ......
+>
+> however fails to pick up any channels...
+>
+> I'm trying to connect to these -
+> http://en.wikipedia.org/wiki/Digital_television_in_Hong_Kong
+>
+> Any ideas welcome..
+>
+> Regards
+> Alan
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
 --
 video4linux-list mailing list
