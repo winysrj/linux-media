@@ -1,20 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6AHPxQa009000
-	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 13:25:59 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6AHP5OU030899
-	for <video4linux-list@redhat.com>; Thu, 10 Jul 2008 13:25:13 -0400
-From: Rainer Koenig <Rainer.Koenig@gmx.de>
-To: video4linux-list@redhat.com
-Date: Thu, 10 Jul 2008 19:24:58 +0200
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6PFnNBs007007
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 11:49:23 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.230])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6PFn9aU029631
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 11:49:09 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so4302829rvb.51
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 08:49:08 -0700 (PDT)
+Message-ID: <d9def9db0807250849k5f8c35b0x8e27b2c00071eb87@mail.gmail.com>
+Date: Fri, 25 Jul 2008 17:49:07 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Alan Knowles" <alan@akbkhome.com>
+In-Reply-To: <4889EEBB.9000307@akbkhome.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200807101924.58802.Rainer.Koenig@gmx.de>
-Subject: Flipping the video from webcams
+References: <48898289.2070305@akbkhome.com> <4889AA61.8040006@akbkhome.com>
+	<d9def9db0807250403r3638449fl2cc5f69b29634214@mail.gmail.com>
+	<d9def9db0807250406h6e2afeb1u614b8ba2ef8bebd3@mail.gmail.com>
+	<4889EEBB.9000307@akbkhome.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: ASUS My Cinema-U3100Mini/DMB-TH (Legend Slilicon 8934)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,24 +33,204 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+Hi,
 
-I've got a notebook with an integrated webcam and I got a driver (r5u870) that 
-works fine with it, except that the camera images I get are all upside down. 
-It seems that due to a desgin flaw the camera was assembled upside down and 
-there is no easy way to turn it. So I need to rotate the picture with 
-software, which practically means "flip X" and "flip Y". I even found some 
-bits in the driver that look like they address this issue, but turning them 
-to "1" (instead of 0) doesn't help at all. 
+On Fri, Jul 25, 2008 at 5:18 PM, Alan Knowles <alan@akbkhome.com> wrote:
+> I'm pretty certain this is the wrong code for my device, I'm guessing it's
+> the code for a My Cinema-U3100Mini/DVBT  rather than the DMB-TH card.
+>
 
-So I wonder: Is there a way to flip the picture that is coming from the camera 
-by setting some options somewhere so that my IM client gets the picture in 
-the right orientation?
+When looking at it and the component names it is DMB-TH. Some parts
+might not be correct and that's probably the problem you face there.
 
-TIA
-Rainer
--- 
-Rainer Koenig, Diplom-Informatiker (FH), Augsburg, Germany
+> Since I can't test the code, I'll leave that in the mailing list so if
+> someone want's to tidy it up to merge with v4l, then it should save them a
+> bit of work.
+>
+
+I'm trying to verify the code and split it up as far as I can.
+
+-Markus
+
+> I presume it was written in-house or by a contract engineer, so they cut a
+> few corners to get the job done.
+>
+> Regards
+> Alan
+>
+>
+>
+> Markus Rechberger wrote:
+>>
+>> On Fri, Jul 25, 2008 at 1:03 PM, Markus Rechberger
+>> <mrechberger@gmail.com> wrote:
+>>
+>>>
+>>> Hi,
+>>>
+>>> On Fri, Jul 25, 2008 at 12:26 PM, Alan Knowles <alan@akbkhome.com> wrote:
+>>>
+>>>>
+>>>> Just a small update on this - I suspect ASUS released the wrong tarball
+>>>> for
+>>>> this device - as comparing the output from 'strings dib3000mc.ko' to the
+>>>> source code finds quite a few things missing..
+>>>>
+>>>> Waiting on a response from ASUS now.
+>>>>
+>>>>
+>>>
+>>> after a first look over it the code seems to be a bit "inconsitent"
+>>>
+>>> eg.:
+>>>
+>>> +static struct mt2060_config stk3000p_adimtv102_config = {
+>>> +       (0xC2>>1)
+>>> +};
+>>>
+>>> ...
+>>>
+>>> +       if (dvb_attach(adimtv102_attach, adap->fe, tun_i2c,
+>>> &stk3000p_adimtv102_config, if1) == NULL) {
+>>> ----
+>>>
+>>> whereas:
+>>> mt2060.h:
+>>>
+>>> (the size of the struct is the same but the purpose of the elements
+>>> are probably not)
+>>> struct mt2060_config {
+>>>       u8 i2c_address;
+>>>       u8 clock_out; /* 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1 */
+>>> };
+>>>
+>>> adimtv102.h:
+>>>
+>>> struct adimtv102_config {
+>>>       u8 i2c_address;
+>>>       u8 is_through_asic;
+>>> };
+>>> #if defined(CONFIG_DVB_TUNER_ADIMTV102) ||
+>>> (defined(CONFIG_DVB_TUNER_ADIMTV102_MODULE) && defined(MODULE))
+>>> extern struct dvb_frontend * adimtv102_attach(struct dvb_frontend *fe,
+>>> struct i2c_adapter *i2c, struct adimtv102_config *cfg, u16 if1);
+>>> #else
+>>> static inline struct dvb_frontend * adimtv102_attach(struct
+>>> dvb_frontend *fe, struct i2c_adapter *i2c, struct adimtv102_config
+>>> *cfg, u16 if1)
+>>> {
+>>>       printk(KERN_WARNING "%s: driver disabled by Kconfig\n",
+>>> __FUNCTION__);
+>>>       return NULL;
+>>> }
+>>>
+>>> within the whole code if1 isn't needed (the adimtv102.h header is just
+>>> copied from mt2060) some cleanup still seems to be required there but
+>>> it's already a good start.
+>>>
+>>>
+>>
+>> The lgs8934 implementation should also not depend on the dibcom module
+>> (which can be seen in your diff).
+>>
+>>
+>>>
+>>> Markus
+>>>
+>>>
+>>>>
+>>>> Regards
+>>>> Alan
+>>>>
+>>>> Alan Knowles wrote:
+>>>>
+>>>>>
+>>>>> I've been looking at the drivers for  My Cinema-U3100Mini/DMB-TH
+>>>>>
+>>>>> The source is available directly from ASUS now.
+>>>>> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/source_code.zip
+>>>>>
+>>>>> I've diffed it to the version they have used, and applied it, and fixed
+>>>>> it
+>>>>> against the current source
+>>>>>
+>>>>> http://www.akbkhome.com/svn/asus_dvb_driver/v4l-dvb-diff-from-current.diff
+>>>>>
+>>>>> In addition there are the drivers for the ADI MTV102 silicon tuner
+>>>>> driver
+>>>>> http://www.akbkhome.com/svn/asus_dvb_driver/frontends/
+>>>>> (all the adimtv* files)
+>>>>>
+>>>>> The source code appears to use a slightly differ usb stick to the one's
+>>>>> I
+>>>>> have.
+>>>>> 0x1748  (cold)  / 0x1749 (warm)
+>>>>> where as I've got
+>>>>> 0x1721(cold) /  0x1722 (warm)
+>>>>>
+>>>>> It looks like they hacked up dib3000mc.c, rather than writing a new
+>>>>> driver
+>>>>>
+>>>>> I've got to the point where it builds, firmware installs etc. (firmware
+>>>>> is
+>>>>> available inside the deb packages)
+>>>>>
+>>>>> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/asus-dmbth-20080528_tar.zip
+>>>>>
+>>>>> The driver initializes correctly when plugged in.
+>>>>> [302520.686782] dvb-usb: ASUSTeK DMB-TH successfully deinitialized and
+>>>>> disconnected.
+>>>>> [302530.550018] dvb-usb: found a 'ASUSTeK DMB-TH' in warm state.
+>>>>> [353408.577741] dvb-usb: will pass the complete MPEG2 transport stream
+>>>>> to
+>>>>> the software demuxer.
+>>>>> [353408.680977] DVB: registering new adapter (ASUSTeK DMB-TH)
+>>>>> [302530.670387]  Cannot find LGS8934
+>>>>> [302530.670596] DVB: registering frontend 0 (Legend Slilicon 8934)...
+>>>>> [302530.670668] adimtv102_readreg 0x00
+>>>>> [302530.676090] adimtv102_readreg 0x01
+>>>>> [302530.681578] adimtv102_readreg 0x02
+>>>>> [302530.687077] adimtv102: successfully identified (ff ff ff)
+>>>>> [302530.688577] dvb-usb: ASUSTeK DMB-TH successfully initialized and
+>>>>> connected.
+>>>>> [302530.688624] usbcore: registered new interface driver
+>>>>> dvb_usb_dibusb_mc
+>>>>> [353413.776593] adimtv102_init
+>>>>>
+>>>>> when w_scan is run, it outputs activity...
+>>>>> [353416.533576] lgs8934_SetAutoMode!
+>>>>> [353416.553928] lgs8934_auto_detect!
+>>>>> [353418.285686] lgs8934_auto_detect, lock 0
+>>>>> [353418.285686] adimtv102_set_params freq=184500
+>>>>> [353418.378803] MTV102>>tp->freq=184 PLLF=d8000 PLLFREQ=1472000
+>>>>>  MTV10x_REFCLK=16384 !
+>>>>> ......
+>>>>>
+>>>>> however fails to pick up any channels...
+>>>>>
+>>>>> I'm trying to connect to these -
+>>>>> http://en.wikipedia.org/wiki/Digital_television_in_Hong_Kong
+>>>>>
+>>>>> Any ideas welcome..
+>>>>>
+>>>>> Regards
+>>>>> Alan
+>>>>>
+>>>>> --
+>>>>> video4linux-list mailing list
+>>>>> Unsubscribe
+>>>>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>>>>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>>>>
+>>>>
+>>>> --
+>>>> video4linux-list mailing list
+>>>> Unsubscribe
+>>>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>>>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>>>
+>>>>
+>
 
 --
 video4linux-list mailing list
