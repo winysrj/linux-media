@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6IIh1Zh013027
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 14:43:02 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6IIgoWV015443
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 14:42:50 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so114268ywb.81
-	for <video4linux-list@redhat.com>; Fri, 18 Jul 2008 11:42:50 -0700 (PDT)
-Message-ID: <4880E425.8080100@gmail.com>
-Date: Fri, 18 Jul 2008 20:42:45 +0200
-From: Jos <namjos@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6PGwUk8003961
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 12:58:30 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6PGwI84008390
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 12:58:18 -0400
+Message-ID: <488A081C.1090207@hhs.nl>
+Date: Fri, 25 Jul 2008 19:06:36 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: jortega@listpropertiesnow.com
+References: <20080725092147.4D3D3776@resin17.mta.everyone.net>
+In-Reply-To: <20080725092147.4D3D3776@resin17.mta.everyone.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Cinergy 400 USB
+Cc: video4linux-list@redhat.com
+Subject: Re: Video Card Linux
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,14 +27,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi there,
+jortega@listpropertiesnow.com wrote:
+> Hello everyone,
+> 
+> Does anyone have an idea what is the best non-conflicting video card for Linux that I can buy off of the shelf?
+> 
 
-I would like to known if there is a plan to support Terratec Cinergy TV 
-400 USB (0ccd:003b). Actually Cinergy TV 250 USB is supported but not 
-Cinergy 400 USB.
-I can run some tests if you don't have the hardware
 
-Thanks for your answer :)
+Define non-conflicting, if that means with opensource drivers for 2d and 3d and 
+supported by the vendor, I currently would advice an ati x1950pro, you need a 
+very recent cutting edge distro for this (like Fedora 9 + updates) but then it 
+works well. and 100 % FOSS
+
+Regards,
+
+Hans
+
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
 
 --
 video4linux-list mailing list
