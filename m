@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt1.poste.it ([62.241.4.164])
+Received: from mail.adamomail.se ([87.251.223.195] helo=adamomail.se)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1KM0Ar-0000Up-2T
-	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 14:44:03 +0200
-Received: from nico2.od.loc (89.97.249.170) by relay-pt1.poste.it (7.3.122)
-	(authenticated as Nicola.Sabbi@poste.it)
-	id 4887C68100004FBF for linux-dvb@linuxtv.org;
-	Thu, 24 Jul 2008 14:43:57 +0200
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-Date: Thu, 24 Jul 2008 14:43:56 +0200
-References: <48886FF0.5080206@iinet.net.au>
-In-Reply-To: <48886FF0.5080206@iinet.net.au>
+	(envelope-from <sacha@hemmail.se>) id 1KMJJ0-0006Kp-HC
+	for linux-dvb@linuxtv.org; Fri, 25 Jul 2008 11:09:44 +0200
+Received: from [89.233.205.229] (HELO asrock)
+	by adamomail.se (CommuniGate Pro SMTP 4.2.10)
+	with ESMTP id 17068982 for linux-dvb@linuxtv.org;
+	Fri, 25 Jul 2008 11:09:35 +0200
+From: "Sacha" <sacha@hemmail.se>
+To: <linux-dvb@linuxtv.org>
+Date: Fri, 25 Jul 2008 11:09:34 +0200
+Message-ID: <000001c8ee36$28209dd0$0401a8c0@asrock>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807241443.56441.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] [Fwd: Re:  dvb mpeg2?]
+Subject: [linux-dvb] Twinhan VP-1041/Azurewave AD SP400
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,36 +20,110 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0226582150=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 24 July 2008 14:05:04 Tim Farrington wrote:
+This is a multi-part message in MIME format.
 
->
-> Yes, that first one worked fine (even with all the frame data).
-> I can see that it's:
-> VIDEO MPEG2(pid=3D305)AUDIO MPA(pid=3D306) NO SUBS (yet)! =A0PROGRAM N. 0
-> Opened TS demuxer, audio: 50(pid 306), video: 10000002(pid
-> 305)...POS=3D23688 VIDEO: =A0MPEG2 =A0720x576 =A0(aspect 2) =A025.000 fps
-> =A015000.0 kbps (1875.0 kbyte/s)
->
-> in mine, so that must mean that all is ok through the system - it
-> is a MPEG2-TS stream
-> being dumped to file.
->
-> Now to figure out how to install replex!
->
-> Very many thanks for your help,
-> Tim Farrington
+--===============0226582150==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0001_01C8EE46.EBA96DD0"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0001_01C8EE46.EBA96DD0
+Content-Type: text/plain;
+	charset="x-user-defined"
+Content-Transfer-Encoding: 7bit
+
+Hello
+ 
+I have 
+Twinhan VP-1041/Azurewave AD SP400 on Ubuntu 8. I spent a couple of
+month now to make it work without result.
+I red archive of this list and other websites. Tryed different patches
+but still no luck.
+I have now Mantis driver loaded, the card recognized but when I use scan
+I have "Invalid something" error.
+I have also Pinnacle PCTV SAT installed which works out of the box. Is
+there any conflict between the 2. I have seen some info about on other
+sites.
+Is there any drfinitive guide somewhere because to put together all
+parts find together is to hard for me been quite new to Linux?`
+ 
+Do not blame me much if I am doing something wrong here as I am new to
+this list and to this way of communication.
+ 
+KR
+
+------=_NextPart_000_0001_01C8EE46.EBA96DD0
+Content-Type: text/html;
+	charset="x-user-defined"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; =
+charset=3Dus-ascii">
+<TITLE>Meddelande</TITLE>
+
+<META content=3D"MSHTML 6.00.2900.3268" name=3DGENERATOR></HEAD>
+<BODY>
+<DIV><SPAN class=3D462285808-25072008><FONT =
+size=3D2>Hello</FONT></SPAN></DIV>
+<DIV><SPAN class=3D462285808-25072008><FONT =
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D462285808-25072008><FONT size=3D2>I have </FONT>
+<DIV><FONT size=3D2>Twinhan VP-1041/Azurewave AD SP400<SPAN=20
+class=3D462285808-25072008> on Ubuntu 8. I spent a couple of month =
+now&nbsp;to=20
+make it work without result.</SPAN></FONT></DIV>
+<DIV><FONT size=3D2><SPAN class=3D462285808-25072008>I red archive of =
+this list and=20
+other websites. Tryed different patches but still no =
+luck.</SPAN></FONT></DIV>
+<DIV><FONT size=3D2><SPAN class=3D462285808-25072008>I have now Mantis =
+driver=20
+loaded, the card recognized but when I use scan I have "Invalid =
+something"=20
+error.</SPAN></FONT></DIV>
+<DIV><FONT size=3D2><SPAN class=3D462285808-25072008>I have also =
+Pinnacle PCTV SAT=20
+installed which works out of the box. Is there any conflict between the =
+2. I=20
+have seen some info about on other sites.</SPAN></FONT></DIV>
+<DIV><FONT size=3D2><SPAN class=3D462285808-25072008>Is there any =
+drfinitive guide=20
+somewhere because to put together all parts find together&nbsp;is to =
+hard for me=20
+been quite new to Linux?`</SPAN></FONT></DIV>
+<DIV><FONT size=3D2><SPAN =
+class=3D462285808-25072008></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT size=3D2><SPAN class=3D462285808-25072008>Do not blame me =
+much if I am=20
+doing something wrong here as I am new to this list and to this way of=20
+communication.</SPAN></FONT></DIV>
+<DIV><FONT size=3D2><SPAN =
+class=3D462285808-25072008></SPAN></FONT>&nbsp;</DIV>
+<DIV><FONT size=3D2><SPAN=20
+class=3D462285808-25072008>KR</SPAN></FONT></DIV></SPAN></DIV></BODY></HT=
+ML>
+
+------=_NextPart_000_0001_01C8EE46.EBA96DD0--
 
 
-the more stuff you insert in your pipeline the higher the chance
-of breaking something (especially sync)
+
+--===============0226582150==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0226582150==--
