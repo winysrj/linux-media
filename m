@@ -1,27 +1,43 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6PFnNBs007007
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 11:49:23 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.230])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6PFn9aU029631
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 11:49:09 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so4302829rvb.51
-	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 08:49:08 -0700 (PDT)
-Message-ID: <d9def9db0807250849k5f8c35b0x8e27b2c00071eb87@mail.gmail.com>
-Date: Fri, 25 Jul 2008 17:49:07 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Alan Knowles" <alan@akbkhome.com>
-In-Reply-To: <4889EEBB.9000307@akbkhome.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6PHWSvM005232
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 13:32:28 -0400
+Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
+	[151.189.21.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6PHW33G029845
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 13:32:04 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>
+In-Reply-To: <20080725223700.03d532cf@glory.loctelecom.ru>
+References: <20080414114746.3955c089@glory.loctelecom.ru>
+	<20080415122524.3455e060@gaivota>
+	<20080422175422.3d7e4448@glory.loctelecom.ru>
+	<20080422130644.7bfe3b2d@gaivota>
+	<20080423124157.1a8eda0a@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804222254350.20809@bombadil.infradead.org>
+	<20080423160505.36064bf7@glory.loctelecom.ru>
+	<20080423113739.7f314663@gaivota>
+	<20080424093259.7880795b@glory.loctelecom.ru>
+	<Pine.LNX.4.64.0804232237450.31358@bombadil.infradead.org>
+	<20080512201114.3bd41ee5@glory.loctelecom.ru>
+	<1210719122.26311.37.camel@pc10.localdom.local>
+	<20080520152426.5540ee7f@glory.loctelecom.ru>
+	<1211331167.4235.26.camel@pc10.localdom.local>
+	<20080612194426.0e33d92c@glory.loctelecom.ru>
+	<2a93ca18e1d9bc5726b7f1fd60da1852.squirrel@webmail.hccnet.nl>
+	<20080613180516.211a27a9@glory.loctelecom.ru>
+	<1213388868.2758.78.camel@pc10.localdom.local>
+	<20080618091650.0bd7e2ae@glory.loctelecom.ru>
+	<1213842219.2554.16.camel@pc10.localdom.local>
+	<20080725223700.03d532cf@glory.loctelecom.ru>
+Content-Type: text/plain
+Date: Fri, 25 Jul 2008 19:25:33 +0200
+Message-Id: <1217006733.3393.14.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <48898289.2070305@akbkhome.com> <4889AA61.8040006@akbkhome.com>
-	<d9def9db0807250403r3638449fl2cc5f69b29634214@mail.gmail.com>
-	<d9def9db0807250406h6e2afeb1u614b8ba2ef8bebd3@mail.gmail.com>
-	<4889EEBB.9000307@akbkhome.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: ASUS My Cinema-U3100Mini/DMB-TH (Legend Slilicon 8934)
+Cc: video4linux-list@redhat.com, gert.vervoort@hccnet.nl,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Beholder card M6 with MPEG2 coder
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,202 +51,39 @@ List-ID: <video4linux-list@redhat.com>
 
 Hi,
 
-On Fri, Jul 25, 2008 at 5:18 PM, Alan Knowles <alan@akbkhome.com> wrote:
-> I'm pretty certain this is the wrong code for my device, I'm guessing it's
-> the code for a My Cinema-U3100Mini/DVBT  rather than the DMB-TH card.
->
+Am Freitag, den 25.07.2008, 22:37 +1000 schrieb Dmitri Belimov:
+> Hi All
+> 
+> I discover next problem with saa7134 module.
+> When the saa7134 send planar data in YUV format it capture 3 DMA slice. The DMA slice 5 captured too.
+> The MPEG stream use the DMA slice 5 for send data to host. At the same time we can`t use planar data in YUV and MPEG stream.
+> 
+> When I start cat /dev/video0 > raw.dat and cat /dev/video1 > mpeg.dat
+> In the mpeg.dat I have raw V channel of YUV.
+> 
+> I think more correct when read /dev/video0 lock /dev/video1
+> When read /dev/video1 lock /dev/video0
+> 
+> With my best regards, Dmitry.
+> 
 
-When looking at it and the component names it is DMB-TH. Some parts
-might not be correct and that's probably the problem you face there.
+yes, that is a very well known restriction.
 
-> Since I can't test the code, I'll leave that in the mailing list so if
-> someone want's to tidy it up to merge with v4l, then it should save them a
-> bit of work.
->
+If mpeg is in use, either for DVB or an encoder, only packed formats can
+pass at once too.
 
-I'm trying to verify the code and split it up as far as I can.
+Hartmut was once thinking about to disallow planar formats,
+but best solution would be only to disallow them, when the mpeg/TS
+interface is in use.
 
--Markus
+Not implemented yet, so the user must take care.
 
-> I presume it was written in-house or by a contract engineer, so they cut a
-> few corners to get the job done.
->
-> Regards
-> Alan
->
->
->
-> Markus Rechberger wrote:
->>
->> On Fri, Jul 25, 2008 at 1:03 PM, Markus Rechberger
->> <mrechberger@gmail.com> wrote:
->>
->>>
->>> Hi,
->>>
->>> On Fri, Jul 25, 2008 at 12:26 PM, Alan Knowles <alan@akbkhome.com> wrote:
->>>
->>>>
->>>> Just a small update on this - I suspect ASUS released the wrong tarball
->>>> for
->>>> this device - as comparing the output from 'strings dib3000mc.ko' to the
->>>> source code finds quite a few things missing..
->>>>
->>>> Waiting on a response from ASUS now.
->>>>
->>>>
->>>
->>> after a first look over it the code seems to be a bit "inconsitent"
->>>
->>> eg.:
->>>
->>> +static struct mt2060_config stk3000p_adimtv102_config = {
->>> +       (0xC2>>1)
->>> +};
->>>
->>> ...
->>>
->>> +       if (dvb_attach(adimtv102_attach, adap->fe, tun_i2c,
->>> &stk3000p_adimtv102_config, if1) == NULL) {
->>> ----
->>>
->>> whereas:
->>> mt2060.h:
->>>
->>> (the size of the struct is the same but the purpose of the elements
->>> are probably not)
->>> struct mt2060_config {
->>>       u8 i2c_address;
->>>       u8 clock_out; /* 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1 */
->>> };
->>>
->>> adimtv102.h:
->>>
->>> struct adimtv102_config {
->>>       u8 i2c_address;
->>>       u8 is_through_asic;
->>> };
->>> #if defined(CONFIG_DVB_TUNER_ADIMTV102) ||
->>> (defined(CONFIG_DVB_TUNER_ADIMTV102_MODULE) && defined(MODULE))
->>> extern struct dvb_frontend * adimtv102_attach(struct dvb_frontend *fe,
->>> struct i2c_adapter *i2c, struct adimtv102_config *cfg, u16 if1);
->>> #else
->>> static inline struct dvb_frontend * adimtv102_attach(struct
->>> dvb_frontend *fe, struct i2c_adapter *i2c, struct adimtv102_config
->>> *cfg, u16 if1)
->>> {
->>>       printk(KERN_WARNING "%s: driver disabled by Kconfig\n",
->>> __FUNCTION__);
->>>       return NULL;
->>> }
->>>
->>> within the whole code if1 isn't needed (the adimtv102.h header is just
->>> copied from mt2060) some cleanup still seems to be required there but
->>> it's already a good start.
->>>
->>>
->>
->> The lgs8934 implementation should also not depend on the dibcom module
->> (which can be seen in your diff).
->>
->>
->>>
->>> Markus
->>>
->>>
->>>>
->>>> Regards
->>>> Alan
->>>>
->>>> Alan Knowles wrote:
->>>>
->>>>>
->>>>> I've been looking at the drivers for  My Cinema-U3100Mini/DMB-TH
->>>>>
->>>>> The source is available directly from ASUS now.
->>>>> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/source_code.zip
->>>>>
->>>>> I've diffed it to the version they have used, and applied it, and fixed
->>>>> it
->>>>> against the current source
->>>>>
->>>>> http://www.akbkhome.com/svn/asus_dvb_driver/v4l-dvb-diff-from-current.diff
->>>>>
->>>>> In addition there are the drivers for the ADI MTV102 silicon tuner
->>>>> driver
->>>>> http://www.akbkhome.com/svn/asus_dvb_driver/frontends/
->>>>> (all the adimtv* files)
->>>>>
->>>>> The source code appears to use a slightly differ usb stick to the one's
->>>>> I
->>>>> have.
->>>>> 0x1748  (cold)  / 0x1749 (warm)
->>>>> where as I've got
->>>>> 0x1721(cold) /  0x1722 (warm)
->>>>>
->>>>> It looks like they hacked up dib3000mc.c, rather than writing a new
->>>>> driver
->>>>>
->>>>> I've got to the point where it builds, firmware installs etc. (firmware
->>>>> is
->>>>> available inside the deb packages)
->>>>>
->>>>> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/asus-dmbth-20080528_tar.zip
->>>>>
->>>>> The driver initializes correctly when plugged in.
->>>>> [302520.686782] dvb-usb: ASUSTeK DMB-TH successfully deinitialized and
->>>>> disconnected.
->>>>> [302530.550018] dvb-usb: found a 'ASUSTeK DMB-TH' in warm state.
->>>>> [353408.577741] dvb-usb: will pass the complete MPEG2 transport stream
->>>>> to
->>>>> the software demuxer.
->>>>> [353408.680977] DVB: registering new adapter (ASUSTeK DMB-TH)
->>>>> [302530.670387]  Cannot find LGS8934
->>>>> [302530.670596] DVB: registering frontend 0 (Legend Slilicon 8934)...
->>>>> [302530.670668] adimtv102_readreg 0x00
->>>>> [302530.676090] adimtv102_readreg 0x01
->>>>> [302530.681578] adimtv102_readreg 0x02
->>>>> [302530.687077] adimtv102: successfully identified (ff ff ff)
->>>>> [302530.688577] dvb-usb: ASUSTeK DMB-TH successfully initialized and
->>>>> connected.
->>>>> [302530.688624] usbcore: registered new interface driver
->>>>> dvb_usb_dibusb_mc
->>>>> [353413.776593] adimtv102_init
->>>>>
->>>>> when w_scan is run, it outputs activity...
->>>>> [353416.533576] lgs8934_SetAutoMode!
->>>>> [353416.553928] lgs8934_auto_detect!
->>>>> [353418.285686] lgs8934_auto_detect, lock 0
->>>>> [353418.285686] adimtv102_set_params freq=184500
->>>>> [353418.378803] MTV102>>tp->freq=184 PLLF=d8000 PLLFREQ=1472000
->>>>>  MTV10x_REFCLK=16384 !
->>>>> ......
->>>>>
->>>>> however fails to pick up any channels...
->>>>>
->>>>> I'm trying to connect to these -
->>>>> http://en.wikipedia.org/wiki/Digital_television_in_Hong_Kong
->>>>>
->>>>> Any ideas welcome..
->>>>>
->>>>> Regards
->>>>> Alan
->>>>>
->>>>> --
->>>>> video4linux-list mailing list
->>>>> Unsubscribe
->>>>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>>>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>>>
->>>>
->>>> --
->>>> video4linux-list mailing list
->>>> Unsubscribe
->>>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>>
->>>>
->
+I will be mostly out of houses next time, summer else is soon gone
+again. Responses might be delayed.
+
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
