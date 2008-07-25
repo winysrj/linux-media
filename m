@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6CFBShe032130
-	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 11:11:28 -0400
-Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6CFAnNi009150
-	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 11:10:49 -0400
-From: "Jalori, Mohit" <mjalori@ti.com>
-To: John Smith <john.v4l2@gmail.com>, "video4linux-list@redhat.com"
-	<video4linux-list@redhat.com>
-Date: Sat, 12 Jul 2008 10:10:34 -0500
-Message-ID: <8AA5EFF14ED6C44DB31DA963D1E78F0DAF97A08F@dlee02.ent.ti.com>
-References: <d695c0780807120311y55c3ef15q6528a6144aeb8c12@mail.gmail.com>
-In-Reply-To: <d695c0780807120311y55c3ef15q6528a6144aeb8c12@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6PARekM014090
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 06:27:40 -0400
+Received: from akbkhome.com (246-113.netfront.net [202.81.246.113])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6PARGB8019836
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 06:27:16 -0400
+Received: from awork064158.netvigator.com ([203.198.249.158]
+	helo=[192.168.1.96])
+	by akbkhome.com with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69) (envelope-from <alan@akbkhome.com>) id 1KMKW9-0003L0-PM
+	for video4linux-list@redhat.com; Fri, 25 Jul 2008 18:27:22 +0800
+Message-ID: <4889AA61.8040006@akbkhome.com>
+Date: Fri, 25 Jul 2008 18:26:41 +0800
+From: Alan Knowles <alan@akbkhome.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: RE: omap3 camera driver
+To: video4linux-list@redhat.com
+References: <48898289.2070305@akbkhome.com>
+In-Reply-To: <48898289.2070305@akbkhome.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Re: ASUS  My Cinema-U3100Mini/DMB-TH  (Legend Slilicon 8934)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,159 +31,86 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Yes it was failing for this for us as well.
+Just a small update on this - I suspect ASUS released the wrong tarball 
+for this device - as comparing the output from 'strings dib3000mc.ko' to 
+the source code finds quite a few things missing..
 
-I kept the same formatting since other formats were defined that way.
-Should I modify all formats with the space in between or keep it this way?
+Waiting on a response from ASUS now.
 
+Regards
+Alan
 
-
-> -----Original Message-----
-> From: John Smith [mailto:john.v4l2@gmail.com]
-> Sent: Saturday, July 12, 2008 5:12 AM
-> To: video4linux-list@redhat.com; Jalori, Mohit
-> Subject: omap3 camera driver
+Alan Knowles wrote:
+> I've been looking at the drivers for  My Cinema-U3100Mini/DMB-TH
 >
-> Hi Mohit,
-> I was just looking to your patch and the first observation I could get
-> immediately is, checkpatch.pl script is failing on some of patches. I
-> am not sure, was that missed or intentional? Below is checkpatch
-> output for the one which I have tired -
+> The source is available directly from ASUS now. 
+> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/source_code.zip
+>
+> I've diffed it to the version they have used, and applied it, and 
+> fixed it against the current source
+> http://www.akbkhome.com/svn/asus_dvb_driver/v4l-dvb-diff-from-current.diff 
 >
 >
+> In addition there are the drivers for the ADI MTV102 silicon tuner driver
+> http://www.akbkhome.com/svn/asus_dvb_driver/frontends/
+> (all the adimtv* files)
 >
-> ./scripts/checkpatch.pl
-> scripts/camera_patches/004_v4l2_sgrbg10_format.patch
-> need space after that ',' (ctx:VxV)
-> #19: FILE: include/linux/videodev2.h:312:
-> +#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B','A','1','0') /* 10bit
-> raw bayer  */
->                                              ^
+> The source code appears to use a slightly differ usb stick to the 
+> one's I have.
+> 0x1748  (cold)  / 0x1749 (warm)
+> where as I've got
+> 0x1721(cold) /  0x1722 (warm)
 >
-> need space after that ',' (ctx:VxV)
-> #19: FILE: include/linux/videodev2.h:312:
-> +#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B','A','1','0') /* 10bit
-> raw bayer  */
->                                                  ^
+> It looks like they hacked up dib3000mc.c, rather than writing a new 
+> driver
 >
-> need space after that ',' (ctx:VxV)
-> #19: FILE: include/linux/videodev2.h:312:
-> +#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B','A','1','0') /* 10bit
-> raw bayer  */
->                                                      ^
+> I've got to the point where it builds, firmware installs etc. 
+> (firmware is available inside the deb packages)
+> http://dlcdnet.asus.com/pub/ASUS/vga/tvtuner/asus-dmbth-20080528_tar.zip
 >
-> Your patch has style problems, please review.  If any of these errors
-> are false positives report them to the maintainer, see
-> CHECKPATCH in MAINTAINERS.
+> The driver initializes correctly when plugged in.
+> [302520.686782] dvb-usb: ASUSTeK DMB-TH successfully deinitialized and 
+> disconnected.
+> [302530.550018] dvb-usb: found a 'ASUSTeK DMB-TH' in warm state.
+> [353408.577741] dvb-usb: will pass the complete MPEG2 transport stream 
+> to the software demuxer.
+> [353408.680977] DVB: registering new adapter (ASUSTeK DMB-TH)
+> [302530.670387]  Cannot find LGS8934
+> [302530.670596] DVB: registering frontend 0 (Legend Slilicon 8934)...
+> [302530.670668] adimtv102_readreg 0x00
+> [302530.676090] adimtv102_readreg 0x01
+> [302530.681578] adimtv102_readreg 0x02
+> [302530.687077] adimtv102: successfully identified (ff ff ff)
+> [302530.688577] dvb-usb: ASUSTeK DMB-TH successfully initialized and 
+> connected.
+> [302530.688624] usbcore: registered new interface driver 
+> dvb_usb_dibusb_mc
+> [353413.776593] adimtv102_init
 >
-> #---------------------------------------------------------------------
-> -------------
+> when w_scan is run, it outputs activity...
+> [353416.533576] lgs8934_SetAutoMode!
+> [353416.553928] lgs8934_auto_detect!
+> [353418.285686] lgs8934_auto_detect, lock 0
+> [353418.285686] adimtv102_set_params freq=184500
+> [353418.378803] MTV102>>tp->freq=184 PLLF=d8000 PLLFREQ=1472000  
+> MTV10x_REFCLK=16384 !
+> ......
 >
-> ./scripts/checkpatch.pl
-> scripts/camera_patches/007_v4l2_sgrbg10dpcm8_format.patch
-> line over 80 characters
-> #20: FILE: include/linux/videodev2.h:313:
-> +#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B','D','1','0') /*
-> 10bit raw bayer DPCM compressed to 8 bits */
+> however fails to pick up any channels...
 >
-> need space after that ',' (ctx:VxV)
-> #20: FILE: include/linux/videodev2.h:313:
-> +#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B','D','1','0') /*
-> 10bit raw bayer DPCM compressed to 8 bits */
->                                                   ^
+> I'm trying to connect to these -
+> http://en.wikipedia.org/wiki/Digital_television_in_Hong_Kong
 >
-> need space after that ',' (ctx:VxV)
-> #20: FILE: include/linux/videodev2.h:313:
-> +#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B','D','1','0') /*
-> 10bit raw bayer DPCM compressed to 8 bits */
->                                                       ^
+> Any ideas welcome..
 >
-> need space after that ',' (ctx:VxV)
-> #20: FILE: include/linux/videodev2.h:313:
-> +#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B','D','1','0') /*
-> 10bit raw bayer DPCM compressed to 8 bits */
->                                                           ^
+> Regards
+> Alan
 >
-> Your patch has style problems, please review.  If any of these errors
-> are false positives report them to the maintainer, see
-> CHECKPATCH in MAINTAINERS.
->
->
-> #---------------------------------------------------------------------
-> -------------
->
-> ./scripts/checkpatch.pl
-> scripts/camera_patches/010_omap_34xx_camera_driver_isp_basic_blocks.pa
-> tch
-> struct mutex definition without comment
-> #1762: FILE: drivers/media/video/omap34xxcam.h:97:
-> +       struct mutex mutex;
->
-> struct mutex definition without comment
-> #1816: FILE: drivers/media/video/omap34xxcam.h:151:
-> +       struct mutex mutex;
->
-> spinlock_t definition without comment
-> #1846: FILE: drivers/media/video/omap34xxcam.h:181:
-> +       spinlock_t vbq_lock;
->
-> Use #include <linux/irq.h> instead of <asm/irq.h>
-> #1901: FILE: drivers/media/video/isp/isp.c:33:
-> +#include <asm/irq.h>
->
-> spinlock_t definition without comment
-> #1979: FILE: drivers/media/video/isp/isp.c:111:
-> +       spinlock_t lock;
->
-> spinlock_t definition without comment
-> #1980: FILE: drivers/media/video/isp/isp.c:112:
-> +       spinlock_t isp_temp_buf_lock;
->
-> struct mutex definition without comment
-> #1981: FILE: drivers/media/video/isp/isp.c:113:
-> +       struct mutex isp_mutex;
->
-> need consistent spacing around '/' (ctx:WxV)
-> #3760: FILE: drivers/media/video/isp/isp.h:87:
-> +#define NUM_ISP_CAPTURE_FORMATS        (sizeof(isp_formats) /\
->                                                              ^
->
-> do not add new typedefs
-> #3763: FILE: drivers/media/video/isp/isp.h:90:
-> +typedef int (*isp_vbq_callback_ptr) (struct videobuf_buffer *vb);
->
-> do not add new typedefs
-> #3764: FILE: drivers/media/video/isp/isp.h:91:
-> +typedef void (*isp_callback_t) (unsigned long status,
->
-> spinlock_t definition without comment
-> #3836: FILE: drivers/media/video/isp/isp.h:163:
-> +       spinlock_t lock;
->
-> struct mutex definition without comment
-> #4085: FILE: drivers/media/video/isp/ispccdc.c:83:
-> +       struct mutex mutexlock;
->
-> Use #include <linux/irq.h> instead of <asm/irq.h>
-> #5544: FILE: drivers/media/video/isp/ispmmu.c:38:
-> +#include <asm/irq.h>
->
-> #if 0 -- if this code redundant remove it
-> #6397: FILE: drivers/media/video/isp/ispreg.h:26:
-> +#if 0
->
-> Your patch has style problems, please review.  If any of these errors
-> are false positives report them to the maintainer, see
-> CHECKPATCH in MAINTAINERS.
->
-> #---------------------------------------------------------------------
-> ----------------------
->
->
-> I would like to understand the design actually, will take some time.
->
-> Thanks,
-> John
+> -- 
+> video4linux-list mailing list
+> Unsubscribe 
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
 --
 video4linux-list mailing list
