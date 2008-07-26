@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6E5Q95G004308
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 01:26:09 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.175])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6E5PkOH006221
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 01:25:46 -0400
-Received: by ug-out-1314.google.com with SMTP id s2so196037uge.6
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 22:25:45 -0700 (PDT)
-Date: Mon, 14 Jul 2008 07:25:56 +0200
-From: Domenico Andreoli <cavokz@gmail.com>
-To: David Brownell <david-b@pacbell.net>
-Message-ID: <20080714052556.GA3470@ska.dandreoli.com>
-References: <200807101914.10174.mb@bu3sch.de> <200807131215.12082.mb@bu3sch.de>
-	<20080713154333.GA32133@ska.dandreoli.com>
-	<200807131300.35126.david-b@pacbell.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6Q0mWjT029751
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 20:48:32 -0400
+Received: from omta0101.mta.everyone.net (sitemail3.everyone.net
+	[216.200.145.37])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6Q0mM82025027
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 20:48:22 -0400
+From: "John Ortega" <jortega@listpropertiesnow.com>
+To: "Hans de Goede" <j.w.r.degoede@hhs.nl>
+Date: Fri, 25 Jul 2008 20:48:19 -0400
+Message-ID: <EEEHJJMABEBDCNKAINKCGENECHAA.jortega@listpropertiesnow.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200807131300.35126.david-b@pacbell.net>
-Cc: video4linux-list@redhat.com, Michael Buesch <mb@bu3sch.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3] Add bt8xxgpio driver
+Content-Type: text/plain;
+	charset="utf-8"
+In-Reply-To: <488A081C.1090207@hhs.nl>
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: RE: Video Card Linux
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,36 +28,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Jul 13, 2008 at 01:00:34PM -0700, David Brownell wrote:
-> On Sunday 13 July 2008, Domenico Andreoli wrote:
-> > Something respecting these conditions clearly conflicts with bttv
-> > and looks like your bt8xxgpio driver. Indeed I do not see the need of
-> > dropping it.
-> > 
-> > Currently my patch requires the bttv functionality, since it is done
-> > to work toghether with bttv. Surely one must be able to use bttv only,
-> > without gpiolib.
+Hi Hans,
+
+Thanks for the advice. When I say non/conflicting I'm referring to devices that work out of the box. I mean I install the card and the v4l library and it begins working, remote included. I don't want to have to spend weeks of banging my head and recompiling source to get it to work. I've seen a lot of wintv and/or Hauppauge cards for sale but I want to be sure that the device works with the remote in Linux.
+
+Thanks,
+John
+
+
+> Hello everyone,
 > 
-> Just an idea ... I tend to agree that Michael's GPIO-only scenario
-> is atypical for these chips.
+> Does anyone have an idea what is the best non-conflicting video card for Linux that I can buy off of the shelf?
+> 
 
-I am facing another atipical scenario (I am writing the initialization
-of bttv gpiolib sub-driver).
 
-Say that a given card has 4 relays attached to its GPIOs. Only the
-card's driver may know about these relays and only the driver should
-be able to set those GPIO directions. Moreover, driver should prevent
-direction change for them, which are intended for output only.
+Define non-conflicting, if that means with opensource drivers for 2d and 3d and 
+supported by the vendor, I currently would advice an ati x1950pro, you need a 
+very recent cutting edge distro for this (like Fedora 9 + updates) but then it 
+works well. and 100 % FOSS
 
-While I figure out how to prevent user direction tampering, how about
-making gpiolib know which are the initial directions?
+Regards,
 
-cheers,
-Domenico
+Hans
 
------[ Domenico Andreoli, aka cavok
- --[ http://www.dandreoli.com/gpgkey.asc
-   ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
+
+
 
 --
 video4linux-list mailing list
