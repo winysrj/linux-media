@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt2.poste.it ([62.241.5.253])
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nicola.sabbi@poste.it>) id 1KMNOi-0008KY-HJ
-	for linux-dvb@linuxtv.org; Fri, 25 Jul 2008 15:31:53 +0200
-Received: from [192.168.1.116] (79.42.63.191) by relay-pt2.poste.it (7.3.122)
-	(authenticated as nicola.sabbi@poste.it)
-	id 488909EF00005E63 for linux-dvb@linuxtv.org;
-	Fri, 25 Jul 2008 15:31:48 +0200
-From: Nico Sabbi <nicola.sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <4889D176.1030702@gmx.de>
-References: <3a665c760807240246x7bb3d442lac2b407dd138accf@mail.gmail.com>
-	<200807241153.55596.Nicola.Sabbi@poste.it>
-	<3a665c760807250212i1902e4fdud47da351262c140f@mail.gmail.com>
-	<200807251116.54407.Nicola.Sabbi@poste.it>  <4889D176.1030702@gmx.de>
-Date: Fri, 25 Jul 2008 15:35:23 +0200
-Message-Id: <1216992923.3726.1.camel@suse.site>
+	(envelope-from <goga777@bk.ru>) id 1KMpAO-0005QI-NY
+	for linux-dvb@linuxtv.org; Sat, 26 Jul 2008 21:10:57 +0200
+Date: Sat, 26 Jul 2008 23:18:29 +0400
+From: Goga777 <goga777@bk.ru>
+To: mo.ucina@gmail.com
+Message-ID: <20080726231829.0252388f@bk.ru>
+In-Reply-To: <4889A170.1020701@gmail.com>
+References: <48830413.1070906@gmail.com> <20080720144213.5eb29d55@bk.ru>
+	<4889A170.1020701@gmail.com>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] question about definition of section in
-	PSI	of	Transport stream
-Reply-To: nicola.sabbi@poste.it
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Which is best supported DVB-S HD PCI card in Linux
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,36 +26,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Il giorno ven, 25/07/2008 alle 15.13 +0200, Andreas Regel ha scritto:
-> Nico Sabbi wrote:
-> > On Friday 25 July 2008 11:12:53 you wrote:
-> >> Hi:
-> >> thanks for your explanation.
-> >> BTW, I find all my Ts only have one section, section_number and
-> >> last_section_number are both 0.
-> > 
-> > yes, there's only one section
-> > 
-> >> Would you please tell me where I can get multi-sections TS for
-> >> tracing?
-> >>
-> >> appreciate your help,
-> >> miloody
-> > 
-> > Please,  don't top-post.
-> > Some satellite transponder with many programs surely has multi-section
-> > PMTs, but I never found any
-> 
-> PMTs are always just one section. PATs could have more than one but that 
-> would normally need more than 250 programmes on one TS, so it's not that 
-> easy to find a TS with multi section PATs. Other tables, like NIT or SDT 
-> often are bigger than 1024 bytes and split over several sections.
-> 
-> Regards
-> Andreas
-> 
 
-yes, but in theory even PMTs can be sectioned
+> Thanks for your reply , I will be looking at HVR4000 , what about the TT 
+> S2-3200 How do you guys feel about this one ?
+
+with TT 3200 there's some problems with lock of dvb-s2 8psk channels with high SR=30000
+you can find in archive od linux-dvb list the messages about this issues
+
+Goga
+
+> I have cx24116 based card HVR4000 and I satisfied it. I can receive 
+> dvb-s/s2 channels on vdr 170 without any problem.
+> 
+> 
+> I am thinking of getting a DVB-S (or for that matter S2) HD card for my
+> fedora based mythtv box . Recently some High Definition channels have
+> started appearing on our Satellites and I would not mind checking them
+> out . So please , which of the HD Sat cards based on the PCI bus have
+> the best linux support at the moment ? All information very welcome .
 
 
 _______________________________________________
