@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt3.poste.it ([62.241.4.129])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1KM1Jf-00067x-73
-	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 15:57:12 +0200
-Received: from nico2.od.loc (89.97.249.170) by relay-pt3.poste.it (7.3.122)
-	(authenticated as Nicola.Sabbi@poste.it)
-	id 4887B871000048E0 for linux-dvb@linuxtv.org;
-	Thu, 24 Jul 2008 15:57:07 +0200
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-Date: Thu, 24 Jul 2008 15:57:06 +0200
-References: <48888700.6030105@iinet.net.au>
-In-Reply-To: <48888700.6030105@iinet.net.au>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807241557.06705.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] dvb mpeg2?
+Date: Sat, 26 Jul 2008 15:40:36 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Yusik Kim <yusikk@gmail.com>
+In-Reply-To: <200807261130.39977.yusikk@gmail.com>
+Message-ID: <Pine.LNX.4.64.0807261538040.28819@cnc.isely.net>
+References: <200807260353.23359.yusikk@gmail.com>
+	<488B4524.5070203@linuxtv.org>
+	<200807261130.39977.yusikk@gmail.com>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1950 digital part
+Reply-To: Mike Isely <isely@pobox.com>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,46 +24,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 24 July 2008 15:43:28 Tim Farrington wrote:
-> Hi all,
->
-> Got there:
->
-> Filetype is MPEG2-TS (generic PES Container)
->
-> Need to use mplayer, projectx to ascertain this.
->
-> This is what I have just done to achieve an a/v sync perfect,
-> edited, recorded dvb file:
->
-> 1. Run file through project-x; divides files into *.mp2 (MPEG audio
-> stream), *.m2v (video stream),
->    (plus for HDTV *.ac3 (for Dolby Digital aka AC3 stream))
-> projectx rec-file.mpeg => rec-file.m2v rec-file.mp2
->
-> 2. Run *.mp2 *.m2v through mplex to recombine into PS format
-> mplex -f 8 -o rec-file-a.mpeg rec-file.m2v rec-file.mp2 =>
-> rec-file-a.mpeg
->
-> 3. Edit resultant file with avidemux on I-Frames while retaining
-> a/v sync => rec-file-a-a.mpeg
->
-> And it produces a perfect new file!
->
-> My huge thanks to you all for your assistance.
->
-> Regards,
-> Tim Farrington
+On Sat, 26 Jul 2008, Yusik Kim wrote:
+
+> On Saturday 26 July 2008 08:39:16 Steven Toth wrote:
+> > Yusik Kim wrote:
+> > > Hi,
+> > >
+> > > Has anyone got the digital part of this device to work properly?
+> > >
+> > > Modules are compiled from the latest (7/26) v4l-dvb snapshot with a
+> > > 2.6.25.4 kernel. The modules seem to load properly and the analog part
+> > > works in mythtv. The digital part kind of works.
+> > > The problems I can observe are:
+> > > 1. Can only scan 3 digital channels using both the command line scan and
+> > > mythtv. My other PCI TV card scans 36 of them.
+> > > 2. Only occasionally locks in to a channel.
+> > > 3. Takes 5 minutes to lock in to a channel when it actually does succeed.
+> > >
+> > > I saw from another mailing list that people were trying to get the remote
+> > > control to work so I'm guessing the core of the device functions
+> > > properly. If this is the current state of support, I'd be glad to help
+> > > testing.
+> >
+> > What steps did you take to prove your hardware is function properly, or
+> > your digital cable feed is reliable?
+> >
+> > The drivers works for me, it sounds like you have an environmental issue.
+> >
+> > - Steve
+> 
+> Thank you for replying Steve.
+> I have a windows partition on the same machine and it works perfectly there. 
+> So I don't think there is a problem with the cable feed or hardware itself. 
+> 
+> Not sure if it has any relevance but I noticed in windows, the red LED light 
+> in the front is always on whereas in linux, it only turns on right before it 
+> tries to lock in to a channel. 
+
+While I can't vouch for what the Windows driver is doing, the Linux 
+driver (pvrusb2) for this device deliberately only lights the LED when 
+actual streaming is being attempted.  Basically the LED becomes a "busy" 
+indicator.  It's a feature not a bug :-)
 
 
-be aware that demuxing the TS in its elementary streams implicitly
-drops all timestamps (that are recorded in the PES headers), thus
-recombining the audio and video streams will produce a desynchronized
-output, unless you are lucky.
-There simply aren't enough informations to keep synchrony without
-timestamps. With your method if a stream is corrupt
-you will likely see a desynchronization from the first breakage
-onward, while working on the TS the muxer has a chance to recover
+> 
+> I should add that the 3 channels that were successfully scaned do not always 
+> get picked up in subsequent attempts. It seems like it has trouble tuning. At 
+> least it's good to know it's a problem on my end. Just have to find a way to 
+> fix it.
+> 
+
+Sounds a lot like there's a significant tuning problem.  Unfortunately 
+I'm not seeing the issue here :-(
+
+  -Mike
+
+
+-- 
+
+Mike Isely
+isely @ pobox (dot) com
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
 
 _______________________________________________
 linux-dvb mailing list
