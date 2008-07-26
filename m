@@ -1,19 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6I2ZtjR030597
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 22:35:55 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6I2Ziqt031433
-	for <video4linux-list@redhat.com>; Thu, 17 Jul 2008 22:35:44 -0400
-From: Andy Walls <awalls@radix.net>
-To: ivtv-devel@ivtvdriver.org, video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Thu, 17 Jul 2008 22:30:30 -0400
-Message-Id: <1216348230.2942.31.camel@morgan.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6Q2pD1i032298
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 22:51:13 -0400
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6Q2p1oJ000957
+	for <video4linux-list@redhat.com>; Fri, 25 Jul 2008 22:51:01 -0400
+From: "Jalori, Mohit" <mjalori@ti.com>
+To: John <john.maximus@gmail.com>, "video4linux-list@redhat.com"
+	<video4linux-list@redhat.com>
+Date: Fri, 25 Jul 2008 21:50:50 -0500
+Message-ID: <8AA5EFF14ED6C44DB31DA963D1E78F0DB58C686C@dlee02.ent.ti.com>
+References: <3634de740807172215v52a624ga09449e81bb684fe@mail.gmail.com>
+In-Reply-To: <3634de740807172215v52a624ga09449e81bb684fe@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Cc: 
-Subject: videodev related (?) modprobe hang with latest v4l-dvb
+Subject: RE: omap3 camera patches
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,41 +29,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-With a repo I have that I just merged from v4l-dvb, I get a modprobe
-ivtv to hang on my 64 bit machine.
+> -----Original Message-----
+> From: John [mailto:john.maximus@gmail.com]
+> Sent: Friday, July 18, 2008 12:15 AM
+> To: video4linux-list@redhat.com
+> Subject: omap3 camera patches
+>
+> Hello,
+>    looking at the OMAP3 camera patches posted sometime back.
+>    I manually applied these patches on a existing OMAP3 2.6.22 kernel.
+>    am trying to port an existing SOC micron driver to OMAP3 on a
+> custom board.
+>    am not seeing any interrupts.
+>
+>   Is anyone using the current camera patches for OMAP3. Is this
+> working?
+>
+>   Are there any existing sensor drivers that use these patches. I find
+> there are no sensor
+>   driver for OMAP3.
 
-$ uname -a
-Linux morgan.walls.org 2.6.25-14.fc9.x86_64 #1 SMP Thu May 1 06:06:21
-EDT 2008 x86_64 x86_64 x86_64 GNU/Linux
+I have sent the sensor and lens driver patches. They are also based on 2.6.26. I verified these by applying the original 16 patches and then these 4 new ones.
 
-Here's the dmesg.  The last few lines show videodev errors:
-
--Andy
-
-ivtv:  Start initialization, version 1.3.0
-ivtv0: Initializing card #0
-ivtv0: Autodetected Hauppauge card (cx23416 based)
-ACPI: PCI Interrupt 0000:03:02.0[A] -> GSI 20 (level, low) -> IRQ 20
-tveeprom 0-0050: Hauppauge model 26552, rev B268, serial# 8768144
-tveeprom 0-0050: tuner model is LG TAPE H001F MK3 (idx 68, type 47)
-tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
-tveeprom 0-0050: audio processor is CX25843 (idx 37)
-tveeprom 0-0050: decoder processor is CX25843 (idx 30)
-tveeprom 0-0050: has radio, has no IR receiver, has no IR transmitter
-ivtv0: Autodetected Hauppauge WinTV PVR-150
-cx25840 0-0044: cx25843-23 found @ 0x88 (ivtv i2c driver #0)
-tuner 0-0043: chip found @ 0x86 (ivtv i2c driver #0)
-tda9887 0-0043: creating new instance
-tda9887 0-0043: tda988[5/6/7] found
-tuner 0-0061: chip found @ 0xc2 (ivtv i2c driver #0)
-wm8775 0-001b: chip found @ 0x36 (ivtv i2c driver #0)
-tuner-simple 0-0061: creating new instance
-tuner-simple 0-0061: type set to 47 (LG NTSC (TAPE series))
-cx25840 0-0044: loaded v4l-cx25840.fw firmware (16382 bytes)
-videodev: get_index num is too large
-video_register_device_index: get_index failed
-
-
+>
+>
+> Regards,
+>
+> John
 
 --
 video4linux-list mailing list
