@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6CJtIDp013275
-	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 15:55:18 -0400
-Received: from mail-in-05.arcor-online.net (mail-in-05.arcor-online.net
-	[151.189.21.45])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6CJsfL1020750
-	for <video4linux-list@redhat.com>; Sat, 12 Jul 2008 15:54:41 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Peter Schlaf <peter.schlaf@web.de>,
-	Mauro Carvalho Chehab <mchehab@infrafead.org.redhat.com>
-In-Reply-To: <4878D1D9.8020500@web.de>
-References: <4878D1D9.8020500@web.de>
-Content-Type: text/plain
-Date: Sat, 12 Jul 2008 21:50:47 +0200
-Message-Id: <1215892247.2987.11.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6QEF3aL030994
+	for <video4linux-list@redhat.com>; Sat, 26 Jul 2008 10:15:03 -0400
+Received: from nlpi053.prodigy.net (nlpi053.sbcis.sbc.com [207.115.36.82])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6QEEqIa028389
+	for <video4linux-list@redhat.com>; Sat, 26 Jul 2008 10:14:52 -0400
+Message-ID: <488B3155.3060109@xnet.com>
+Date: Sat, 26 Jul 2008 09:14:45 -0500
+From: stuart <stuart@xnet.com>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+References: <488B3012.3080004@xnet.com>
+In-Reply-To: <488B3012.3080004@xnet.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: Re: saa7134-cards.c:6081: error: 'SAA7134_BOARD_ASUSTeK_TVFM35'
-	undeclared
+Subject: Re: IR remote control support for kworld 120???
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,27 +26,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
 
-Am Samstag, den 12.07.2008, 17:46 +0200 schrieb Peter Schlaf:
-> imho it should be SAA7134_BOARD_ASUSTeK_TVFM7135
+
+stuart wrote:
+> Hi...
 > 
-> cu
+> I understand the new kworld 120 (replacement for the kworld 115 and 110) 
+> is not supported w.r.t. IR remote control.
 > 
+> So...
+> 
+> Was digging through the v4l code (staging from last week) and happened 
+> upon a "fixme note" w.r.t. the cx23885 chip.  At about line 550 in 
+> cx23885-cards.c there appears to be an unimplemented IR method for 
+> initializing the cx23885.  Does that mean there is no IR remote control 
+> support for any cx2388 based board?  I was hoping to find that all that 
+> was needed to get the kworld 120's IR remote working was the right 
+> connections into such IR methods.  (Yeah, I know, if it was that easy 
+> then the original kworld 120 author (thank you to him) would have done it.)
 
-yes, thanks.
+I meant that as a sincere thank you as in:
 
-There was a later patch which had that corrected here.
+"...thank you, I appreciate all the hard work you put into the kworld 
+120 driver...",
 
-http://www.spinics.net/lists/vfl/msg37290.html
+just to be clear.
 
-Mauro, we need to fix the compilation.
-I'll prepare a patchlet or you just fix the board name based on the
-later patch.
-
-Cheers,
-Hermann
-
+> ...thanks
+> 
 
 --
 video4linux-list mailing list
