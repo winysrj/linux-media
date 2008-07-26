@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n9a.bullet.ukl.yahoo.com ([217.146.183.157])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1KMKyD-0005pT-T1
-	for linux-dvb@linuxtv.org; Fri, 25 Jul 2008 12:56:22 +0200
-Date: Fri, 25 Jul 2008 06:52:44 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-References: <3a665c760807240246x7bb3d442lac2b407dd138accf@mail.gmail.com>
-	<200807241153.55596.Nicola.Sabbi@poste.it>
-	<3a665c760807250212i1902e4fdud47da351262c140f@mail.gmail.com>
-In-Reply-To: <3a665c760807250212i1902e4fdud47da351262c140f@mail.gmail.com>
-	(from miloody@gmail.com on Fri Jul 25 05:12:53 2008)
-Message-Id: <1216983164l.6000l.0l@manu-laptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re : question about definition of section in PSI of
- Transport stream
+Date: Sat, 26 Jul 2008 15:43:35 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Yusik Kim <yusikk@gmail.com>
+In-Reply-To: <200807261229.42608.yusikk@gmail.com>
+Message-ID: <Pine.LNX.4.64.0807261540420.28819@cnc.isely.net>
+References: <200807260353.23359.yusikk@gmail.com>
+	<488B4524.5070203@linuxtv.org>
+	<200807261130.39977.yusikk@gmail.com>
+	<200807261229.42608.yusikk@gmail.com>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1950 digital part
+Reply-To: Mike Isely <isely@pobox.com>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,60 +19,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 25.07.2008 05:12:53, loody a =E9crit=A0:
-> Hi:
-> thanks for your explanation.
-> BTW, I find all my Ts only have one section, section_number and
-> last_section_number are both 0.
-> =
+On Sat, 26 Jul 2008, Yusik Kim wrote:
 
-> Would you please tell me where I can get multi-sections TS for
-> tracing?
-> =
+> On Saturday 26 July 2008 11:30:39 Yusik Kim wrote:
 
-> appreciate your help,
-> miloody
-> =
+   [...]
 
-> =
+> 
+> Also, I tried re-extracting the firmware with the perl script
+> http://www.isely.net/downloads/fwextract.pl
+> I downloaded today and used it on the installation CD to get the following 
+> files
+> 376836 2008-07-26 11:59 v4l-cx2341x-enc.fw
+>   12559 2008-07-26 11:59 v4l-cx25840.fw
+>     8192 2008-07-26 11:59 v4l-pvrusb2-29xxx-01.fw
+>     8192 2008-07-26 11:59 v4l-pvrusb2-73xxx-01.fw
+> but still no luck. By the way, the filesize for the old v4l-cx25840.fw was 
+> 16382. Everything else the same.
 
-> 2008/7/24 Nico Sabbi <Nicola.Sabbi@poste.it>:
-> > On Thursday 24 July 2008 11:46:48 loody wrote:
-> >> Dear all:
-> >> I am reading iso13818-1 right now.
-> >> But I cannot figure out what the section mean in PSI.
-> >>
-> >> In PAT, there is a N loop tell us how many programs in this TS and
-> >> the corresponding pid of PMT.
-> >> Is section equivalent to program?
-> >
-> > each item identifies a program and a pid
-> >
-> >> Suppose there is 10 loop in PAT, and there will be 10 sections,
-> >> right?
-> >
-> > no, the section is only needed to split overly long PATs and / or
-> PMTs
-> > in smaller pieces
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >
+The extraction script uses MD5 sums to verify it has correctly extracted 
+the data.  If you're getting firmware files back out, then those files 
+are definitely correct.
 
-Other tables like EIT are split over several sections (pid is 0x12 =
+However with that said, there are multiple versions of some of the 
+firmware floating around.  In particular I have come across 4-5 
+different cx25840 firmware versions.  All should work however, for what 
+you are trying to do.  (Also, if this is a digital mode tuning problem, 
+then the cx25840 part is not relevant to the problem.)
 
-IIRC)
-Bye
-Manu
+  -Mike
 
+
+-- 
+
+Mike Isely
+isely @ pobox (dot) com
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
 
 _______________________________________________
 linux-dvb mailing list
