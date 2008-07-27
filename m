@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <debalance@arcor.de>) id 1KEkmS-0002pO-C4
-	for linux-dvb@linuxtv.org; Fri, 04 Jul 2008 14:52:55 +0200
-Message-ID: <486E1D1E.6030403@arcor.de>
-Date: Fri, 04 Jul 2008 14:52:46 +0200
-From: =?KOI8-R?Q?Philipp_Hu=22bner?= <debalance@arcor.de>
+From: Yusik Kim <yusikk@gmail.com>
+To: Mike Isely <isely@pobox.com>
+Date: Sat, 26 Jul 2008 17:25:51 -0700
+References: <200807260353.23359.yusikk@gmail.com>
+	<200807261130.39977.yusikk@gmail.com>
+	<Pine.LNX.4.64.0807261538040.28819@cnc.isely.net>
+In-Reply-To: <Pine.LNX.4.64.0807261538040.28819@cnc.isely.net>
 MIME-Version: 1.0
-To: Goga777 <goga777@bk.ru>
-References: <48664867.9060507@arcor.de>
-	<E1KCx5p-000Bpw-00.goga777-bk-ru@f37.mail.ru>
-In-Reply-To: <E1KCx5p-000Bpw-00.goga777-bk-ru@f37.mail.ru>
+Content-Disposition: inline
+Message-Id: <200807261725.51913.yusikk@gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy S2 PCI HD
+Subject: Re: [linux-dvb] Hauppauge HVR-1950 digital part
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,75 +24,80 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Saturday 26 July 2008 13:40:36 Mike Isely wrote:
+> On Sat, 26 Jul 2008, Yusik Kim wrote:
+> > On Saturday 26 July 2008 08:39:16 Steven Toth wrote:
+> > > Yusik Kim wrote:
+> > > > Hi,
+> > > >
+> > > > Has anyone got the digital part of this device to work properly?
+> > > >
+> > > > Modules are compiled from the latest (7/26) v4l-dvb snapshot with a
+> > > > 2.6.25.4 kernel. The modules seem to load properly and the analog
+> > > > part works in mythtv. The digital part kind of works.
+> > > > The problems I can observe are:
+> > > > 1. Can only scan 3 digital channels using both the command line scan
+> > > > and mythtv. My other PCI TV card scans 36 of them.
+> > > > 2. Only occasionally locks in to a channel.
+> > > > 3. Takes 5 minutes to lock in to a channel when it actually does
+> > > > succeed.
+> > > >
+> > > > I saw from another mailing list that people were trying to get the
+> > > > remote control to work so I'm guessing the core of the device
+> > > > functions properly. If this is the current state of support, I'd be
+> > > > glad to help testing.
+> > >
+> > > What steps did you take to prove your hardware is function properly, or
+> > > your digital cable feed is reliable?
+> > >
+> > > The drivers works for me, it sounds like you have an environmental
+> > > issue.
+> > >
+> > > - Steve
+> >
+> > Thank you for replying Steve.
+> > I have a windows partition on the same machine and it works perfectly
+> > there. So I don't think there is a problem with the cable feed or
+> > hardware itself.
+> >
+> > Not sure if it has any relevance but I noticed in windows, the red LED
+> > light in the front is always on whereas in linux, it only turns on right
+> > before it tries to lock in to a channel.
+>
+> While I can't vouch for what the Windows driver is doing, the Linux
+> driver (pvrusb2) for this device deliberately only lights the LED when
+> actual streaming is being attempted.  Basically the LED becomes a "busy"
+> indicator.  It's a feature not a bug :-)
+>
+> > I should add that the 3 channels that were successfully scaned do not
+> > always get picked up in subsequent attempts. It seems like it has trouble
+> > tuning. At least it's good to know it's a problem on my end. Just have to
+> > find a way to fix it.
+>
+> Sounds a lot like there's a significant tuning problem.  Unfortunately
+> I'm not seeing the issue here :-(
+>
+>   -Mike
 
-Hey all,
+Thanks Mike.
+Nobody else seems to have the same problem. What's driving me crazy is that I 
+have 2 laptops where I can test (c2d 1.06GHz/ Pentium-M 1.4GHz(backend 
+only);both Debian testing) and both have the exact same problem so it's most 
+likely not machine specific. It works on a windows partition of the c2d 
+machine so it's not hardware related nor is it because of a bad signal 
+source.  So the only thing that stands between me and all the other people 
+who are happily using it can be narrowed down to kernel options or the 
+distro.  Are there any known kernel options/modules that may interfere with 
+the tuning? 
 
-Goga777 schrieb:
-> you should use szap2 from test directory of dvb-apps
-> http://linuxtv.org/hg/dvb-apps/file/77e3c7baa1e4/test/szap2.c
+Another interesting thing is that in mythtv-setup, I have no option to choose 
+ATSC. Only NTSC, NTSC-JP, SECAM, etc. but no ATSC. It doesn't even allow me 
+the option to manually create an ATSC channel. The only way I get an ATSC 
+channel is through active scan (which most of the time doesn't work). I can 
+select ATSC on my desktop with a pci capture card. I can't use the desktop to 
+test it because it's USB1.1.
 
-scan works now, szap2 works now:
-
-szap2 -rxn 001
-reading channels from file '/home/der_schakal/.szap/channels.conf'
-zapping to 1 'ASTRA SDT':
-sat 0, frequency = 12551 MHz V, symbolrate 22000000, vpid = 0x1fff, apid
-= 0x1fff sid = 0x000c
-Delivery system=DVB-S
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-
-do_tune: API version=3, delivery system = 0
-do_tune: Frequency = 1951000, Srate = 22000000
-do_tune: Frequency = 1951000, Srate = 22000000
-
-
-status 00 | signal 22e0 | snr b7fa | ber 00000000 | unc fffffffe |
-status 1e | signal 014f | snr 007b | ber 00000000 | unc fffffffe |
-FE_HAS_LOCK
-
-
-But mplayer /dev/dvb/adapter0/dvr0 doesn't work:
-ls /dev/dvb/adapter0/
-ca0  demux0  dvr0  frontend0  net0
-
- mplayer /dev/dvb/adapter0/dvr0
-MPlayer dev-SVN-r26940
-CPU: Intel(R) Pentium(R) 4 CPU 3.00GHz (Family: 15, Model: 4, Stepping: 3)
-CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
-Compiled with runtime CPU detection.
-Can't open joystick device /dev/input/js0: No such file or directory
-Can't init input joystick
-mplayer: could not open config files /home/der_schakal/.lircrc and
-/etc/lirc//lircrc
-mplayer: No such file or directory
-Failed to read LIRC config file ~/.lircrc.
-
-Playing /dev/dvb/adapter0/dvr0.
-
-[CTRL+C]
-MPlayer interrupted by signal 2 in module: demux_open
-
-[CTRL+C]
-MPlayer interrupted by signal 2 in module: demux_open
-
-
-How can I actually watch some channel?
-
-Furthermore I'd like to use kaffeine, is this possible with this card?
-At the moment kaffeine fails to scan for channels because tuning fails.
-Is there some workaround?
-
-Thanks in advance,
-Philipp
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFIbh0eFhl05MJZ4OgRAqN6AJwLO4/rhMpctg6HO85M8lLzjPR5ugCfcAXu
-YGpOeG+PNXJFY+O7ckIJs6Q=
-=Gkr1
------END PGP SIGNATURE-----
+It looks like a dead end for now. Thanks to everyone who tried to help.
 
 _______________________________________________
 linux-dvb mailing list
