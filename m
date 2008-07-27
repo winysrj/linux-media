@@ -1,14 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n45.bullet.mail.ukl.yahoo.com ([87.248.110.178])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <newspaperman_germany@yahoo.com>) id 1KLxhP-0004H8-8x
-	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 12:05:33 +0200
-Date: Thu, 24 Jul 2008 10:02:48 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-To: linux-dvb@linuxtv.org
+Received: from nf-out-0910.google.com ([64.233.182.189])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <artlov@gmail.com>) id 1KN4N1-0006Kz-Cp
+	for linux-dvb@linuxtv.org; Sun, 27 Jul 2008 13:25:01 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so2403603nfb.11
+	for <linux-dvb@linuxtv.org>; Sun, 27 Jul 2008 04:24:55 -0700 (PDT)
+Message-ID: <488C5B02.4080506@gmail.com>
+Date: Sun, 27 Jul 2008 14:24:50 +0300
+From: Arthur Konovalov <artlov@gmail.com>
 MIME-Version: 1.0
-Message-ID: <594532.9081.qm@web23204.mail.ird.yahoo.com>
-Subject: [linux-dvb] DVB Newtech (TNT France) capable programme
+To: linux-dvb@linuxtv.org
+References: <008401c8ebe5$4e09ea90$450011ac@ad.sytec.com>	<003001c8ecb2$57b93af0$7501010a@ad.sytec.com>
+	<003401c8ee3d$7f98b870$7501010a@ad.sytec.com>
+In-Reply-To: <003401c8ee3d$7f98b870$7501010a@ad.sytec.com>
+Subject: Re: [linux-dvb] Please - anyone at all?? 682Mhz problem with
+ TT-1501 driver inv4l-dvb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,26 +28,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi!
+Simon Baxter wrote:
+> Hi
+> I'm getting no responses from any help lists - can anyone offer any advice 
+> or comment please???
+> 
 
-I found this page http://www.google.de/url?sa=t&ct=res&cd=1&url=http%3A%2F%2Fwww.tvnt.net%2Fforum%2Fviewtopic.php%3Fp%3D211000%26sid%3D23b05ac84a32320db870735b09a42641&ei=ZFKISKHyIozW7QWh9djUBw&usg=AFQjCNHey7iYcwiVcv40I1TJDNgzt0iztw&sig2=T3QAi5IRSa2WUMenlKmguw
+>>> I have patched the v4l-dvb driver with Sigmund Augdal's changes to 
+>>> support
+>>> C-1501.  I can't get channels to work on all but one frequency - 682Mhz.
+>>> Frequencies which work:  578, 586, 594, 602, 610, 626, 634, 642, 666, 674
+>>> Mhz.
 
-and guess what, it's really working. You need szap(2), tntdemux (from link) and vlc. Working fine here for the dvb-s transponder.
+You are not alone with this problem.
+I haven't signal on two more frequencies: 322 and 386 MHz
 
-Unfortunately I can't get a lock on 11137 V 26707 2/3 DVB-S2.
-
-Can anyone get a lock on this frequency? Perhaps SR is wrong.
-
-
-regards
-
-Newsy
-
-
-      __________________________________________________________
-Gesendet von Yahoo! Mail.
-Dem pfiffigeren Posteingang.
-http://de.overview.mail.yahoo.com
+AK
 
 
 _______________________________________________
