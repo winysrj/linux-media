@@ -1,14 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.itsystems.ro ([89.35.193.200])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <robert@itsystems.ro>) id 1KG8eH-00087S-Jb
-	for linux-dvb@linuxtv.org; Tue, 08 Jul 2008 10:34:10 +0200
-Message-ID: <48732671.2070900@itsystems.ro>
-Date: Tue, 08 Jul 2008 11:33:53 +0300
-From: Robert Grozea <robert@itsystems.ro>
-MIME-Version: 1.0
+Received: from web23208.mail.ird.yahoo.com ([217.146.189.63])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <newspaperman_germany@yahoo.com>) id 1KNF1h-0000pb-3k
+	for linux-dvb@linuxtv.org; Mon, 28 Jul 2008 00:47:42 +0200
+Date: Sun, 27 Jul 2008 22:46:00 +0000 (GMT)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] cx24113 - SkyStar2 Rev2.8
+In-Reply-To: <BAY102-W517C29F3CDEEDB203A1C38BC800@phx.gbl>
+MIME-Version: 1.0
+Message-ID: <791712.99414.qm@web23208.mail.ird.yahoo.com>
+Subject: Re: [linux-dvb] TT S2-3200 lock question
+Reply-To: newspaperman_germany@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,26 +18,36 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All,
-
-I managed to make the binary driver work. The whole ideea is that the 
-only distribution which fitted was Fedora.
-It seems that the driver has been written in Fedora and it includes some 
-function calls which are only available in Fedora.
-Since I do not appreciate this kind of proprietary thinking I still wait 
-for a new version of driver which will work on other distros.
-
-Best regards,
-
-Robert
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+CgoKLS0tIHRveSBvdGEgPG90YTE5OThAaG90bWFpbC5jb20+IHNjaHJpZWIgYW0gU28sIDI3Ljcu
+MjAwODoKCj4gVm9uOiB0b3kgb3RhIDxvdGExOTk4QGhvdG1haWwuY29tPgo+IEJldHJlZmY6IFts
+aW51eC1kdmJdIFRUIFMyLTMyMDAgbG9jayBxdWVzdGlvbgo+IEFuOiBsaW51eC1kdmJAbGludXh0
+di5vcmcKPiBEYXR1bTogU29ubnRhZywgMjcuIEp1bGkgMjAwOCwgMjA6MTkKPiBIZWxsbywKPiAK
+PiBUaGVyZSBhcmUgb24gQXRsYW50aWNCaXJkMyAyIFRQcyB1c2VkIHRvIGJyb2FkY2FzdCBzaWdu
+YWwKPiB0b3dhcmRzIFROVCBlbWl0dGVycy4gKDIgVE5UcyBtdXggYXJlIHB1dCB0b2dldGhlciBp
+biAxCj4gVFApLgo+IEkgY2FuIGdldCBhIGxvY2sgb24gQUIzIDExNjM2ViBEVkItUyBidXQgbm90
+IG9uIDExMTM5Vgo+IERWQi1TMi4KPiBNeSBxdWVzdGlvbjogY2FyZC9kcml2ZXIgZXhwZWN0IHdo
+YXQgdG8gZGVjbGFyZSB0aGF0IGxvY2sKPiBpcyBhY3F1aXJlZCA/Cj4gRG9lcyBkcml2ZXIgc2F5
+cyAibm8gbG9jayIgaWYgaGUgY2FuJ3QKPiByZWNvZ25pemUgRFZCIGZyYW1lcyA/IERvZXMgYSB2
+YWxpZCBQTVQgb3Igc29tZXRoaW5nIGVsc2UKPiBpcyBleHBlY3RlZCA/Cj4gT3IgaGUgc2F5cyAi
+bG9jayBvayIgd2hlbiBoZSBjYW4gcmVhZCBhIHN0cmVhbSBvZgo+IHVuZm9ybWF0dGVkIGJpdHMg
+Pwo+IEkgd291bGQgbGlrZSB0byBjYXB0dXJlIGJpdHMgZXZlbiBpZiB0aGVyZSBhcmUgbm90IERW
+Qgo+IGNvbXBsaWFudC4KPiAKPiBUaGFua3MuCj4gCj4gUFM6IGl0J3MgYSBzaGFtZSB0aGF0IHRo
+ZXJlIGlzIG5vIGRvYy4gYXZhaWxhYmxlIGFib3V0Cj4gU1RCMDg5OS4gCj4gCj4gCj4gX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KPiBFbXBvcnRleiB2b3MgYW1pcyBldCB2b3MgZW1haWxzIHBhcnRvdXTigKYgQSBsYSBjw7R0
+ZSwgZW4KPiB2aWxsZSBvdSBkYW5zIGxlIGZpbiBmb25kIGRlcyBBcmRlbm5lcyAhCj4gaHR0cDov
+L3dpbmRvd3NsaXZlbW9iaWxlLm1zbi5jb20vP2xhbmc9ZnItQkVfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IGxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKPiBs
+aW51eC1kdmJAbGludXh0di5vcmcKPiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFp
+bG1hbi9saXN0aW5mby9saW51eC1kdmIKCgogICAgICBfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkdlc2VuZGV0IHZvbiBZYWhvbyEgTWFp
+bC4KRGVtIHBmaWZmaWdlcmVuIFBvc3RlaW5nYW5nLgpodHRwOi8vZGUub3ZlcnZpZXcubWFpbC55
+YWhvby5jb20KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cu
+bGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
