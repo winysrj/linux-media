@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 203.161.84.42.static.amnet.net.au ([203.161.84.42]
-	helo=goeng.com.au) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tom@goeng.com.au>) id 1KLhpP-0002fh-F0
-	for linux-dvb@linuxtv.org; Wed, 23 Jul 2008 19:08:40 +0200
-Date: Thu, 24 Jul 2008 01:03:42 +0800
-To: linux-dvb@linuxtv.org
-Message-ID: <20080723170342.GA5025@codon.goeng.com.au>
-Mime-Version: 1.0
-Content-Disposition: inline
-From: Thomas Goerke <tom@goeng.com.au>
-Subject: [linux-dvb] Compro E800F Hybrid D/A HW2 PCIe card
+Received: from mail.work.de ([212.12.32.20])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1KN9UO-0007rE-6X
+	for linux-dvb@linuxtv.org; Sun, 27 Jul 2008 18:52:58 +0200
+Message-ID: <488CA7DF.2030705@gmail.com>
+Date: Sun, 27 Jul 2008 20:52:47 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: Andrea Venturi <a.venturi@avalpa.com>
+References: <1217175868.488ca13cca2b2@webmail.iperbole.bologna.it>
+In-Reply-To: <1217175868.488ca13cca2b2@webmail.iperbole.bologna.it>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] saa7162 linux driver docs or development?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,42 +25,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have purchased a Compro E800F Hybrid D/A HW2 PCIe card.  The chips on the card include:
-        Conexant PCIe A/V decoder: CX23885-132
-        Conexant MPEG II A/V/Encoder CX23417-11Z
-        Zarlink ZL10353 Demodulator
-        Xceiver XC3008ACQ Video Tuner
-I have tried a number of solutions including building the latest copy of v4l-dvb and using the cx23885 module with card=4 option.
-The problem I am having is that the lgdt330x module is being loaded with the cx23885, however my demodulator is the zarlink ZL10353.  I am not sure on how to proceed.  Please see below for output of lspci -vvnn.
+Andrea Venturi wrote:
+> hi,
+> 
+> i've puschased a new DVB-T adapter made by lifeview:
+> 
+> it's called flytv express m5 mst t2a2
+> 
+> http://www.lifeview.com.tw/html/products/external_tv/flytv_express_m5_mst_t2a2.htm
+> 
+> it has a saa7162 pci-express bridge, here it's described:
+> 
+>   http://www.linuxtv.org/v4lwiki/index.php/Saa7162_devices
+> 
+> my card, an external ExpressCard is missing, maybe i'll fill the wiki with a
+> description.
+> 
+> anyway i see that linux support of this multimedia chip has been surfacing in
+> May 2007:
+> 
+>   http://www.linuxtv.org/pipermail/linux-dvb/2007-May/017856.html
+> 
+> but then it was never heard again..
+> 
 
-03:00.0 Multimedia video controller [0400]: Conexant Unknown device [14f1:8852] (rev 02)
-        Subsystem: Compro Technology, Inc. Unknown device [185b:e800]
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 0, Cache Line Size: 32 bytes
-        Interrupt: pin A routed to IRQ 17
-        Region 0: Memory at fe800000 (64-bit, non-prefetchable) [size=2M]
-        Capabilities: [40] Express Endpoint IRQ 0
-                Device: Supported: MaxPayload 128 bytes, PhantFunc 0, ExtTag-
-                Device: Latency L0s <64ns, L1 <1us
-                Device: AtnBtn- AtnInd- PwrInd-
-                Device: Errors: Correctable- Non-Fatal- Fatal- Unsupported-
-                Device: RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
-                Device: MaxPayload 128 bytes, MaxReadReq 512 bytes
-                Link: Supported Speed 2.5Gb/s, Width x1, ASPM L0s L1, Port 0
-                Link: Latency L0s <2us, L1 <4us
-                Link: ASPM Disabled RCB 64 bytes CommClk+ ExtSynch-
-                Link: Speed 2.5Gb/s, Width x1
-        Capabilities: [80] Power Management version 2
-                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
-                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-        Capabilities: [90] Vital Product Data
-        Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ Queue=0/0 Enable-
-                Address: 0000000000000000  Data: 0000
+The SAA716x development tree is hosted here: http://jusst.de/hg/saa716x/
+We've have quite some support from NXP officially. The driver is not
+really functional yet though.
 
-Any help appreciated.
-
-Thanks
+Regards,
+Manu
 
 
 _______________________________________________
