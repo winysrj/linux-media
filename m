@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6EKlYlX015674
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 16:47:34 -0400
-Received: from smtp5.pp.htv.fi (smtp5.pp.htv.fi [213.243.153.39])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6EKlJX3017080
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 16:47:19 -0400
-Date: Mon, 14 Jul 2008 23:45:50 +0300
-From: Adrian Bunk <bunk@kernel.org>
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Message-ID: <20080714204550.GE31553@cs181140183.pp.htv.fi>
-References: <200807081750.39305.hverkuil@xs4all.nl>
-	<20080709100008.GA6458@cs181140183.pp.htv.fi>
-	<1215634133.8970.379.camel@pasglop>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6S1p20L010050
+	for <video4linux-list@redhat.com>; Sun, 27 Jul 2008 21:51:02 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.236])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6S1oHT8029440
+	for <video4linux-list@redhat.com>; Sun, 27 Jul 2008 21:50:17 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so6501405rvb.51
+	for <video4linux-list@redhat.com>; Sun, 27 Jul 2008 18:50:17 -0700 (PDT)
+Message-ID: <d9def9db0807271850x4d5ea2bag9ef23ca8e29fb86b@mail.gmail.com>
+Date: Mon, 28 Jul 2008 03:50:16 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+In-Reply-To: <20080727224104.78b8298d@gaivota>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <1215634133.8970.379.camel@pasglop>
-Cc: v4l <video4linux-list@redhat.com>, mlan@cpu.lu,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [2.6 patch] remove the broken planb driver
+References: <20080727224104.78b8298d@gaivota>
+Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: Re: [v4l-dvb-maintainer] [GIT PATCHES for 2.6.27] V4L/DVB updates
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,2649 +32,408 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Jul 10, 2008 at 06:08:53AM +1000, Benjamin Herrenschmidt wrote:
-> On Wed, 2008-07-09 at 13:00 +0300, Adrian Bunk wrote:
-> > On Tue, Jul 08, 2008 at 05:50:39PM +0200, Hans Verkuil wrote:
-> > > Hi all,
-> > > 
-> > > The PlanB driver ("PlanB Video-In on PowerMac") has been marked as 
-> > > broken for ages. No one seems to care about it. I propose to mark this 
-> > > driver for removal in 2.6.28 as well.
-> > 
-> > It's broken for ages, and if there's agreement about the removal there's 
-> > no need to wait for 2.6.28.
-> > 
-> > > Comments?
-> > 
-> > When I proposed removing removing it last year Benjamin Herrenschmidt 
-> > (Cc'ed) said he'll have a look. [1]
-> > 
-> > Benjamin?
-> 
-> Hrm... I hate removing things ;-)
-
-I love removing things...  ;-)
-
-> Oh well, I suppose you can. I never found time to look into it,
-> but I still -do- have a machine somewhere with that HW (though whether
-> it still boots is to be verified).
-> 
-> Remove it for now, It's broken anyway. I can always re-submit it if I
-> ever fix it.
-
-Thanks, patch below.
-
+On Mon, Jul 28, 2008 at 3:41 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Linus,
+>
+> Please pull from:
+>        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git for_linus
+>
+> For the following:
+>
+>   - API internal improvements on V4L;
+>   - Two new drivers: dw2102, mxl5007t;
+>   - removal of the long time broken PlanB driver;
+>   - added two very old boards to be removed, at feature-removal-schedule;
+>   - several fixes and new board support and cleanups on drivers: cx18, gspca,
+>     uvcvideo, cs5345, cx2885, pvrusb2, em28xx, s2255drv, stkwebcam, mt20xx, anysee,
+>     zr36067, saa7134, saa7134-empress, saa7146, ivtv and tveeprom and pwc;
+>   - Some cleanups at V4L core.
+>
 > Cheers,
-> Ben.
+> Mauro.
+>
+> ---
+>
+>  Documentation/feature-removal-schedule.txt      |   24 +
+>  Documentation/video4linux/CARDLIST.au0828       |    1 +
+>  Documentation/video4linux/CARDLIST.em28xx       |   45 +-
+>  Documentation/video4linux/gspca.txt             |    2 +-
+>  MAINTAINERS                                     |    6 +
+>  drivers/media/common/saa7146_fops.c             |    2 +-
+>  drivers/media/common/saa7146_video.c            |   19 +-
+>  drivers/media/common/tuners/Kconfig             |   16 +-
+>  drivers/media/common/tuners/Makefile            |    1 +
+>  drivers/media/common/tuners/mt20xx.c            |    3 +-
+>  drivers/media/common/tuners/mxl5007t.c          | 1030 ++++++++++
+>  drivers/media/common/tuners/mxl5007t.h          |  104 +
+>  drivers/media/common/tuners/tda9887.c           |    2 +-
+>  drivers/media/common/tuners/tuner-simple.c      |    2 +-
+>  drivers/media/dvb/bt8xx/Kconfig                 |    2 -
+>  drivers/media/dvb/dvb-usb/Kconfig               |   10 +-
+>  drivers/media/dvb/dvb-usb/Makefile              |    3 +
+>  drivers/media/dvb/dvb-usb/anysee.c              |    2 +-
+>  drivers/media/dvb/dvb-usb/dvb-usb-ids.h         |    1 +
+>  drivers/media/dvb/dvb-usb/dw2102.c              |  425 +++++
+>  drivers/media/dvb/dvb-usb/dw2102.h              |    9 +
+>  drivers/media/dvb/frontends/Kconfig             |   24 +-
+>  drivers/media/dvb/frontends/z0194a.h            |   97 +
+>  drivers/media/dvb/siano/smscoreapi.c            |   14 +-
+>  drivers/media/dvb/siano/smsdvb.c                |    4 +-
+>  drivers/media/dvb/ttpci/Kconfig                 |    4 -
+>  drivers/media/dvb/ttusb-dec/Kconfig             |    2 -
+>  drivers/media/radio/dsbr100.c                   |   18 +-
+>  drivers/media/radio/miropcm20-radio.c           |    3 +-
+>  drivers/media/radio/radio-aimslab.c             |   14 +-
+>  drivers/media/radio/radio-aztech.c              |   14 +-
+>  drivers/media/radio/radio-cadet.c               |   14 +-
+>  drivers/media/radio/radio-gemtek-pci.c          |   13 +-
+>  drivers/media/radio/radio-gemtek.c              |   13 +-
+>  drivers/media/radio/radio-maestro.c             |   12 +-
+>  drivers/media/radio/radio-maxiradio.c           |   15 +-
+>  drivers/media/radio/radio-rtrack2.c             |   14 +-
+>  drivers/media/radio/radio-sf16fmi.c             |   14 +-
+>  drivers/media/radio/radio-sf16fmr2.c            |   14 +-
+>  drivers/media/radio/radio-si470x.c              |   22 +-
+>  drivers/media/radio/radio-terratec.c            |   14 +-
+>  drivers/media/radio/radio-trust.c               |   14 +-
+>  drivers/media/radio/radio-typhoon.c             |   14 +-
+>  drivers/media/radio/radio-zoltrix.c             |   14 +-
+>  drivers/media/video/Kconfig                     |   19 +-
+>  drivers/media/video/Makefile                    |    3 +-
+>  drivers/media/video/arv.c                       |    1 -
+>  drivers/media/video/au0828/Kconfig              |    1 +
+>  drivers/media/video/au0828/au0828-cards.c       |   12 +
+>  drivers/media/video/au0828/au0828-cards.h       |    1 +
+>  drivers/media/video/au0828/au0828-dvb.c         |   15 +
+>  drivers/media/video/bt8xx/Kconfig               |    2 -
+>  drivers/media/video/bt8xx/bttv-driver.c         |   58 +-
+>  drivers/media/video/bt8xx/bttv-risc.c           |    1 +
+>  drivers/media/video/bt8xx/bttv-vbi.c            |    1 +
+>  drivers/media/video/bw-qcam.c                   |    3 +-
+>  drivers/media/video/c-qcam.c                    |    3 +-
+>  drivers/media/video/cafe_ccic.c                 |   26 +-
+>  drivers/media/video/compat_ioctl32.c            |    2 +-
+>  drivers/media/video/cpia.c                      |    2 -
+>  drivers/media/video/cpia.h                      |    1 +
+>  drivers/media/video/cpia2/cpia2_core.c          |    1 +
+>  drivers/media/video/cpia2/cpia2_v4l.c           |    5 +-
+>  drivers/media/video/cs5345.c                    |    2 +-
+>  drivers/media/video/cs53l32a.c                  |    2 +-
+>  drivers/media/video/cx18/Kconfig                |    2 -
+>  drivers/media/video/cx18/cx18-av-audio.c        |  111 +-
+>  drivers/media/video/cx18/cx18-driver.h          |    1 +
+>  drivers/media/video/cx18/cx18-firmware.c        |   54 +-
+>  drivers/media/video/cx18/cx18-ioctl.c           |   92 +-
+>  drivers/media/video/cx18/cx18-streams.c         |    5 +-
+>  drivers/media/video/cx23885/Kconfig             |    2 -
+>  drivers/media/video/cx23885/cx23885-417.c       |   19 +-
+>  drivers/media/video/cx23885/cx23885-cards.c     |   54 +-
+>  drivers/media/video/cx23885/cx23885-core.c      |  147 ++-
+>  drivers/media/video/cx23885/cx23885-video.c     |   19 +-
+>  drivers/media/video/cx25840/Kconfig             |    2 -
+>  drivers/media/video/cx25840/cx25840-core.c      |    2 +-
+>  drivers/media/video/cx25840/cx25840-core.h      |    2 -
+>  drivers/media/video/cx88/Kconfig                |    3 +-
+>  drivers/media/video/cx88/cx88-blackbird.c       |   15 +-
+>  drivers/media/video/cx88/cx88-cards.c           |    2 +-
+>  drivers/media/video/cx88/cx88-core.c            |    3 +-
+>  drivers/media/video/cx88/cx88-video.c           |   37 +-
+>  drivers/media/video/cx88/cx88.h                 |    4 +-
+>  drivers/media/video/em28xx/em28xx-cards.c       |  977 ++++++++++-
+>  drivers/media/video/em28xx/em28xx-dvb.c         |   13 +-
+>  drivers/media/video/em28xx/em28xx-video.c       |   61 +-
+>  drivers/media/video/em28xx/em28xx.h             |   49 +-
+>  drivers/media/video/et61x251/et61x251_core.c    |    5 +-
+>  drivers/media/video/gspca/conex.c               |    9 +-
+>  drivers/media/video/gspca/etoms.c               |   30 +-
+>  drivers/media/video/gspca/gspca.c               |   43 +-
+>  drivers/media/video/gspca/mars.c                |    9 +-
+>  drivers/media/video/gspca/ov519.c               |   33 +-
+>  drivers/media/video/gspca/pac207.c              |   29 +-
+>  drivers/media/video/gspca/pac7311.c             |   22 +-
+>  drivers/media/video/gspca/sonixb.c              |  484 ++----
+>  drivers/media/video/gspca/sonixj.c              |  492 ++----
+>  drivers/media/video/gspca/spca500.c             |  139 +--
+>  drivers/media/video/gspca/spca501.c             |   75 +-
+>  drivers/media/video/gspca/spca505.c             |  140 +--
+>  drivers/media/video/gspca/spca506.c             |  121 +-
+>  drivers/media/video/gspca/spca508.c             |  164 +--
+>  drivers/media/video/gspca/spca561.c             |   62 +-
+>  drivers/media/video/gspca/stk014.c              |    9 +-
+>  drivers/media/video/gspca/sunplus.c             |  355 +---
+>  drivers/media/video/gspca/t613.c                |   26 +-
+>  drivers/media/video/gspca/tv8532.c              |   17 +-
+>  drivers/media/video/gspca/vc032x.c              |   44 +-
+>  drivers/media/video/gspca/zc3xx.c               |  486 +++---
+>  drivers/media/video/ivtv/Kconfig                |    2 -
+>  drivers/media/video/ivtv/ivtv-driver.c          |    5 +-
+>  drivers/media/video/ivtv/ivtv-driver.h          |    1 +
+>  drivers/media/video/ivtv/ivtv-ioctl.c           |  130 +-
+>  drivers/media/video/ivtv/ivtv-streams.c         |    7 +-
+>  drivers/media/video/m52790.c                    |    2 +-
+>  drivers/media/video/meye.c                      |   19 +-
+>  drivers/media/video/msp3400-driver.c            |    2 +-
+>  drivers/media/video/msp3400-kthreads.c          |    1 -
+>  drivers/media/video/mt9m001.c                   |    2 +-
+>  drivers/media/video/ov511.c                     |   38 +-
+>  drivers/media/video/ov511.h                     |    1 +
+>  drivers/media/video/planb.c                     | 2309 -----------------------
+>  drivers/media/video/planb.h                     |  232 ---
+>  drivers/media/video/pms.c                       |    3 +-
+>  drivers/media/video/pvrusb2/Kconfig             |    2 -
+>  drivers/media/video/pvrusb2/pvrusb2-context.h   |    4 +-
+>  drivers/media/video/pvrusb2/pvrusb2-devattr.c   |   11 +-
+>  drivers/media/video/pvrusb2/pvrusb2-devattr.h   |   26 +-
+>  drivers/media/video/pvrusb2/pvrusb2-fx2-cmd.h   |    2 +
+>  drivers/media/video/pvrusb2/pvrusb2-hdw.c       |    9 +
+>  drivers/media/video/pvrusb2/pvrusb2-i2c-core.c  |    4 +-
+>  drivers/media/video/pvrusb2/pvrusb2-v4l2.c      |    6 +-
+>  drivers/media/video/pwc/pwc-if.c                |   16 +-
+>  drivers/media/video/pwc/pwc.h                   |    2 +
+>  drivers/media/video/s2255drv.c                  |  130 +-
+>  drivers/media/video/saa5246a.c                  |    3 +-
+>  drivers/media/video/saa5249.c                   |    3 +-
+>  drivers/media/video/saa7134/Kconfig             |    2 -
+>  drivers/media/video/saa7134/saa7134-cards.c     |    3 -
+>  drivers/media/video/saa7134/saa7134-core.c      |   16 +-
+>  drivers/media/video/saa7134/saa7134-empress.c   |   54 +-
+>  drivers/media/video/saa7134/saa7134-video.c     |   98 +-
+>  drivers/media/video/saa7134/saa7134.h           |    7 +-
+>  drivers/media/video/saa717x.c                   |    1 -
+>  drivers/media/video/saa7196.h                   |  117 --
+>  drivers/media/video/se401.c                     |    2 -
+>  drivers/media/video/se401.h                     |    1 +
+>  drivers/media/video/sh_mobile_ceu_camera.c      |    1 +
+>  drivers/media/video/sn9c102/sn9c102.h           |    1 +
+>  drivers/media/video/sn9c102/sn9c102_core.c      |   62 +-
+>  drivers/media/video/soc_camera.c                |   68 +-
+>  drivers/media/video/stk-webcam.c                |   69 +-
+>  drivers/media/video/stradis.c                   |    2 +-
+>  drivers/media/video/stv680.c                    |   52 +-
+>  drivers/media/video/tda7432.c                   |    3 +-
+>  drivers/media/video/tda9875.c                   |    2 +-
+>  drivers/media/video/tlv320aic23b.c              |    2 +-
+>  drivers/media/video/tuner-core.c                |    1 +
+>  drivers/media/video/tveeprom.c                  |  122 +-
+>  drivers/media/video/tvp5150.c                   |    2 +-
+>  drivers/media/video/usbvideo/usbvideo.c         |    4 +-
+>  drivers/media/video/usbvideo/usbvideo.h         |    1 +
+>  drivers/media/video/usbvideo/vicam.c            |    3 +-
+>  drivers/media/video/usbvision/usbvision-core.c  |    2 -
+>  drivers/media/video/usbvision/usbvision-video.c |  113 +-
+>  drivers/media/video/uvc/uvc_ctrl.c              |   15 +-
+>  drivers/media/video/uvc/uvc_driver.c            |    4 +-
+>  drivers/media/video/uvc/uvc_v4l2.c              |    1 +
+>  drivers/media/video/v4l1-compat.c               |    1 +
+>  drivers/media/video/v4l2-common.c               |    2 +-
+>  drivers/media/video/v4l2-dev.c                  |  422 +++++
+>  drivers/media/video/v4l2-ioctl.c                | 1875 ++++++++++++++++++
+>  drivers/media/video/videobuf-dma-contig.c       |    8 +-
+>  drivers/media/video/videobuf-vmalloc.c          |    2 +-
+>  drivers/media/video/videodev.c                  | 2262 ----------------------
+>  drivers/media/video/vino.c                      |    4 +-
+>  drivers/media/video/vivi.c                      |   18 +-
+>  drivers/media/video/vp27smpx.c                  |    2 +-
+>  drivers/media/video/w9966.c                     |    5 +-
+>  drivers/media/video/w9968cf.c                   |    5 +-
+>  drivers/media/video/w9968cf.h                   |    2 +-
+>  drivers/media/video/wm8739.c                    |    2 +-
+>  drivers/media/video/wm8775.c                    |    2 +-
+>  drivers/media/video/zc0301/zc0301.h             |    1 +
+>  drivers/media/video/zc0301/zc0301_core.c        |    2 -
+>  drivers/media/video/zoran_card.c                |   42 +-
+>  drivers/media/video/zoran_card.h                |    2 +-
+>  drivers/media/video/zoran_driver.c              |    7 +-
+>  drivers/media/video/zr364xx.c                   |   18 +-
+>  include/linux/videodev.h                        |   15 +
+>  include/linux/videodev2.h                       |  386 ++---
+>  include/linux/videotext.h                       |   16 +-
+>  include/media/audiochip.h                       |   26 -
+>  include/media/saa7146_vv.h                      |    1 +
+>  include/media/tveeprom.h                        |    7 +-
+>  include/media/v4l2-chip-ident.h                 |    7 +-
+>  include/media/v4l2-common.h                     |   33 +-
+>  include/media/v4l2-dev.h                        |  325 +---
+>  include/media/v4l2-ioctl.h                      |  301 +++
+>  sound/i2c/other/tea575x-tuner.c                 |    2 -
+>  202 files changed, 7798 insertions(+), 8529 deletions(-)
+>  create mode 100644 drivers/media/common/tuners/mxl5007t.c
+>  create mode 100644 drivers/media/common/tuners/mxl5007t.h
+>  create mode 100644 drivers/media/dvb/dvb-usb/dw2102.c
+>  create mode 100644 drivers/media/dvb/dvb-usb/dw2102.h
+>  create mode 100644 drivers/media/dvb/frontends/z0194a.h
+>  create mode 100644 drivers/media/video/v4l2-dev.c
+>  create mode 100644 drivers/media/video/v4l2-ioctl.c
+>  create mode 100644 include/media/v4l2-ioctl.h
+>
+> Adrian Bunk (6):
+>      V4L/DVB (8440): gspca: Makes some needlessly global functions static.
+>      V4L/DVB (8453): sms1xxx: dvb/siano/: cleanups
+>      V4L/DVB (8485): v4l-dvb: remove broken PlanB driver
+>      V4L/DVB (8494): make cx25840_debug static
+>      V4L/DVB (8495): usb/anysee.c: make struct anysee_usb_mutex static
+>      V4L/DVB (8534): remove select's of FW_LOADER
+>
+> Andoni Zubimendi (1):
+>      V4L/DVB (8457): gspca_sonixb remove some no longer needed sn9c103+ov7630 special cases
+>
+> Andy Walls (2):
+>      V4L/DVB (8461): cx18: Fix 32 kHz audio sample output rate for analog tuner SIF input
+>      V4L/DVB (8462): cx18: Lock the aux PLL to the video pixle rate for analog captures
+>
+> Aron Szabo (1):
+>      V4L/DVB (8538): em28xx-cards: Add GrabBeeX+ USB2800 model
+>
+> Dean Anderson (1):
+>      V4L/DVB (8490): s2255drv Sensoray 2255 driver fixes
+>
+> Devin Heitmueller (1):
+>      V4L/DVB (8492): Add support for the ATI TV Wonder HD 600
+>
+> Douglas Schilling Landgraf (1):
+>      V4L/DVB (8539): em28xx-cards: New supported IDs for analog models
+>
 
-cu
-Adrian
+I am against this patch since it just extracts the vendor ids and
+product ids for some devices from _my_ repository, devices aren't
+tested and some of them will very likely not work.
 
+we have a repository which has tested support for more devices,
+although exactly this part which Douglas extracted initially were
+reverse engineered from my side, since I'm doing the driver officially
+for Empiatech I have correct information how to fix up that part.
 
-<--  snip  -->
+The repository can be found:
+http://mcentral.de/hg/~mrec/em28xx-new/shortlog
 
+Markus
 
-This patch removes the planb driver that had a dependency on BROKEN 
-since May 2004.
-
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-
----
-
- drivers/media/video/Kconfig  |   11 
- drivers/media/video/Makefile |    1 
- drivers/media/video/planb.c  | 2309 -----------------------------------
- drivers/media/video/planb.h  |  232 ---
- 4 files changed, 2553 deletions(-)
-
-e8ab9440efddeb9348c036db51d8f7254005c3ad 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 5ccb0ae..8e362e4 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -474,17 +474,6 @@ config VIDEO_PMS
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called pms.
- 
--config VIDEO_PLANB
--	tristate "PlanB Video-In on PowerMac"
--	depends on PPC_PMAC && VIDEO_V4L1 && BROKEN
--	help
--	  PlanB is the V4L driver for the PowerMac 7x00/8x00 series video
--	  input hardware. If you want to experiment with this, say Y.
--	  Otherwise, or if you don't understand a word, say N. See
--	  <http://www.cpu.lu/~mlan/linux/dev/planb.html> for more info.
--
--	  Saying M will compile this driver as a module (planb).
--
- config VIDEO_BWQCAM
- 	tristate "Quickcam BW Video For Linux"
- 	depends on PARPORT && VIDEO_V4L1
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index ecbbfaa..6805468 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -55,7 +55,6 @@ obj-$(CONFIG_VIDEO_ZORAN_DC30) += zr36050.o zr36016.o
- obj-$(CONFIG_VIDEO_ZORAN_ZR36060) += zr36060.o
- 
- obj-$(CONFIG_VIDEO_PMS) += pms.o
--obj-$(CONFIG_VIDEO_PLANB) += planb.o
- obj-$(CONFIG_VIDEO_VINO) += vino.o indycam.o
- obj-$(CONFIG_VIDEO_STRADIS) += stradis.o
- obj-$(CONFIG_VIDEO_CPIA) += cpia.o
-diff --git a/drivers/media/video/planb.c b/drivers/media/video/planb.c
-deleted file mode 100644
-index 36047d4..0000000
---- a/drivers/media/video/planb.c
-+++ /dev/null
-@@ -1,2309 +0,0 @@
--/*
--    planb - PlanB frame grabber driver
--
--    PlanB is used in the 7x00/8x00 series of PowerMacintosh
--    Computers as video input DMA controller.
--
--    Copyright (C) 1998 Michel Lanners (mlan@cpu.lu)
--
--    Based largely on the bttv driver by Ralph Metzler (rjkm@thp.uni-koeln.de)
--
--    Additional debugging and coding by Takashi Oe (toe@unlserve.unl.edu)
--
--    This program is free software; you can redistribute it and/or modify
--    it under the terms of the GNU General Public License as published by
--    the Free Software Foundation; either version 2 of the License, or
--    (at your option) any later version.
--
--    This program is distributed in the hope that it will be useful,
--    but WITHOUT ANY WARRANTY; without even the implied warranty of
--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--    GNU General Public License for more details.
--
--    You should have received a copy of the GNU General Public License
--    along with this program; if not, write to the Free Software
--    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--*/
--
--/* $Id: planb.c,v 1.18 1999/05/02 17:36:34 mlan Exp $ */
--
--#include <linux/init.h>
--#include <linux/errno.h>
--#include <linux/module.h>
--#include <linux/kernel.h>
--#include <linux/major.h>
--#include <linux/slab.h>
--#include <linux/types.h>
--#include <linux/pci.h>
--#include <linux/delay.h>
--#include <linux/vmalloc.h>
--#include <linux/mm.h>
--#include <linux/sched.h>
--#include <linux/videodev.h>
--#include <media/v4l2-common.h>
--#include <linux/wait.h>
--#include <asm/uaccess.h>
--#include <asm/io.h>
--#include <asm/prom.h>
--#include <asm/dbdma.h>
--#include <asm/pgtable.h>
--#include <asm/page.h>
--#include <asm/irq.h>
--#include <linux/mutex.h>
--
--#include "planb.h"
--#include "saa7196.h"
--
--/* Would you mind for some ugly debugging? */
--#if 0
--#define DEBUG(x...) printk(KERN_DEBUG ## x) /* Debug driver */
--#else
--#define DEBUG(x...) 		/* Don't debug driver */
--#endif
--
--#if 0
--#define IDEBUG(x...) printk(KERN_DEBUG ## x) /* Debug interrupt part */
--#else
--#define IDEBUG(x...) 		/* Don't debug interrupt part */
--#endif
--
--/* Ever seen a Mac with more than 1 of these? */
--#define PLANB_MAX 1
--
--static int planb_num;
--static struct planb planbs[PLANB_MAX];
--static volatile struct planb_registers *planb_regs;
--
--static int def_norm = PLANB_DEF_NORM;	/* default norm */
--static int video_nr = -1;
--
--module_param(def_norm, int, 0);
--MODULE_PARM_DESC(def_norm, "Default startup norm (0=PAL, 1=NTSC, 2=SECAM)");
--module_param(video_nr, int, 0);
--MODULE_LICENSE("GPL");
--
--
--/* ------------------ PlanB Exported Functions ------------------ */
--static long planb_write(struct video_device *, const char *, unsigned long, int);
--static long planb_read(struct video_device *, char *, unsigned long, int);
--static int planb_open(struct video_device *, int);
--static void planb_close(struct video_device *);
--static int planb_ioctl(struct video_device *, unsigned int, void *);
--static int planb_init_done(struct video_device *);
--static int planb_mmap(struct video_device *, const char *, unsigned long);
--static void release_planb(void);
--int init_planbs(struct video_init *);
--
--/* ------------------ PlanB Internal Functions ------------------ */
--static int planb_prepare_open(struct planb *);
--static void planb_prepare_close(struct planb *);
--static void saa_write_reg(unsigned char, unsigned char);
--static unsigned char saa_status(int, struct planb *);
--static void saa_set(unsigned char, unsigned char, struct planb *);
--static void saa_init_regs(struct planb *);
--static int grabbuf_alloc(struct planb *);
--static int vgrab(struct planb *, struct video_mmap *);
--static void add_clip(struct planb *, struct video_clip *);
--static void fill_cmd_buff(struct planb *);
--static void cmd_buff(struct planb *);
--static volatile struct dbdma_cmd *setup_grab_cmd(int, struct planb *);
--static void overlay_start(struct planb *);
--static void overlay_stop(struct planb *);
--static inline void tab_cmd_dbdma(volatile struct dbdma_cmd *, unsigned short,
--	unsigned int);
--static inline void tab_cmd_store(volatile struct dbdma_cmd *, unsigned int,
--	unsigned int);
--static inline void tab_cmd_gen(volatile struct dbdma_cmd *, unsigned short,
--	unsigned short, unsigned int, unsigned int);
--static int init_planb(struct planb *);
--static int find_planb(void);
--static void planb_pre_capture(int, int, struct planb *);
--static volatile struct dbdma_cmd *cmd_geo_setup(volatile struct dbdma_cmd *,
--					int, int, int, int, int, struct planb *);
--static inline void planb_dbdma_stop(volatile struct dbdma_regs *);
--static unsigned int saa_geo_setup(int, int, int, int, struct planb *);
--static inline int overlay_is_active(struct planb *);
--
--/*******************************/
--/* Memory management functions */
--/*******************************/
--
--static int grabbuf_alloc(struct planb *pb)
--{
--	int i, npage;
--
--	npage = MAX_GBUFFERS * ((PLANB_MAX_FBUF / PAGE_SIZE + 1)
--#ifndef PLANB_GSCANLINE
--		+ MAX_LNUM
--#endif /* PLANB_GSCANLINE */
--		);
--	if ((pb->rawbuf = kmalloc(npage
--				* sizeof(unsigned long), GFP_KERNEL)) == 0)
--		return -ENOMEM;
--	for (i = 0; i < npage; i++) {
--		pb->rawbuf[i] = (unsigned char *)__get_free_pages(GFP_KERNEL
--								|GFP_DMA, 0);
--		if (!pb->rawbuf[i])
--			break;
--		SetPageReserved(virt_to_page(pb->rawbuf[i]));
--	}
--	if (i-- < npage) {
--		printk(KERN_DEBUG "PlanB: init_grab: grab buffer not allocated\n");
--		for (; i > 0; i--) {
--			ClearPageReserved(virt_to_page(pb->rawbuf[i]));
--			free_pages((unsigned long)pb->rawbuf[i], 0);
--		}
--		kfree(pb->rawbuf);
--		return -ENOBUFS;
--	}
--	pb->rawbuf_size = npage;
--	return 0;
--}
--
--/*****************************/
--/* Hardware access functions */
--/*****************************/
--
--static void saa_write_reg(unsigned char addr, unsigned char val)
--{
--	planb_regs->saa_addr = addr; eieio();
--	planb_regs->saa_regval = val; eieio();
--	return;
--}
--
--/* return  status byte 0 or 1: */
--static unsigned char saa_status(int byte, struct planb *pb)
--{
--	saa_regs[pb->win.norm][SAA7196_STDC] =
--		(saa_regs[pb->win.norm][SAA7196_STDC] & ~2) | ((byte & 1) << 1);
--	saa_write_reg (SAA7196_STDC, saa_regs[pb->win.norm][SAA7196_STDC]);
--
--	/* Let's wait 30msec for this one */
--	msleep_interruptible(30);
--
--	return (unsigned char)in_8 (&planb_regs->saa_status);
--}
--
--static void saa_set(unsigned char addr, unsigned char val, struct planb *pb)
--{
--	if(saa_regs[pb->win.norm][addr] != val) {
--		saa_regs[pb->win.norm][addr] = val;
--		saa_write_reg (addr, val);
--	}
--	return;
--}
--
--static void saa_init_regs(struct planb *pb)
--{
--	int i;
--
--	for (i = 0; i < SAA7196_NUMREGS; i++)
--		saa_write_reg (i, saa_regs[pb->win.norm][i]);
--}
--
--static unsigned int saa_geo_setup(int width, int height, int interlace, int bpp,
--	struct planb *pb)
--{
--	int ht, norm = pb->win.norm;
--
--	switch(bpp) {
--	case 2:
--		/* RGB555+a 1x16-bit + 16-bit transparent */
--		saa_regs[norm][SAA7196_FMTS] &= ~0x3;
--		break;
--	case 1:
--	case 4:
--		/* RGB888 1x24-bit + 8-bit transparent */
--		saa_regs[norm][SAA7196_FMTS] &= ~0x1;
--		saa_regs[norm][SAA7196_FMTS] |= 0x2;
--		break;
--	default:
--		return -EINVAL;
--	}
--	ht = (interlace ? height / 2 : height);
--	saa_regs[norm][SAA7196_OUTPIX] = (unsigned char) (width & 0x00ff);
--	saa_regs[norm][SAA7196_HFILT] = (saa_regs[norm][SAA7196_HFILT] & ~0x3)
--						| (width >> 8 & 0x3);
--	saa_regs[norm][SAA7196_OUTLINE] = (unsigned char) (ht & 0xff);
--	saa_regs[norm][SAA7196_VYP] = (saa_regs[norm][SAA7196_VYP] & ~0x3)
--						| (ht >> 8 & 0x3);
--	/* feed both fields if interlaced, or else feed only even fields */
--	saa_regs[norm][SAA7196_FMTS] = (interlace) ?
--					(saa_regs[norm][SAA7196_FMTS] & ~0x60)
--					: (saa_regs[norm][SAA7196_FMTS] | 0x60);
--	/* transparent mode; extended format enabled */
--	saa_regs[norm][SAA7196_DPATH] |= 0x3;
--
--	return 0;
--}
--
--/***************************/
--/* DBDMA support functions */
--/***************************/
--
--static inline void planb_dbdma_restart(volatile struct dbdma_regs *ch)
--{
--	out_le32(&ch->control, PLANB_CLR(RUN));
--	out_le32(&ch->control, PLANB_SET(RUN|WAKE) | PLANB_CLR(PAUSE));
--}
--
--static inline void planb_dbdma_stop(volatile struct dbdma_regs *ch)
--{
--	int i = 0;
--
--	out_le32(&ch->control, PLANB_CLR(RUN) | PLANB_SET(FLUSH));
--	while((in_le32(&ch->status) == (ACTIVE | FLUSH)) && (i < 999)) {
--		IDEBUG("PlanB: waiting for DMA to stop\n");
--		i++;
--	}
--}
--
--static inline void tab_cmd_dbdma(volatile struct dbdma_cmd *ch,
--	unsigned short command, unsigned int cmd_dep)
--{
--	st_le16(&ch->command, command);
--	st_le32(&ch->cmd_dep, cmd_dep);
--}
--
--static inline void tab_cmd_store(volatile struct dbdma_cmd *ch,
--	unsigned int phy_addr, unsigned int cmd_dep)
--{
--	st_le16(&ch->command, STORE_WORD | KEY_SYSTEM);
--	st_le16(&ch->req_count, 4);
--	st_le32(&ch->phy_addr, phy_addr);
--	st_le32(&ch->cmd_dep, cmd_dep);
--}
--
--static inline void tab_cmd_gen(volatile struct dbdma_cmd *ch,
--	unsigned short command, unsigned short req_count,
--	unsigned int phy_addr, unsigned int cmd_dep)
--{
--	st_le16(&ch->command, command);
--	st_le16(&ch->req_count, req_count);
--	st_le32(&ch->phy_addr, phy_addr);
--	st_le32(&ch->cmd_dep, cmd_dep);
--}
--
--static volatile struct dbdma_cmd *cmd_geo_setup(
--	volatile struct dbdma_cmd *c1, int width, int height, int interlace,
--	int bpp, int clip, struct planb *pb)
--{
--	int norm = pb->win.norm;
--
--	if((saa_geo_setup(width, height, interlace, bpp, pb)) != 0)
--		return (volatile struct dbdma_cmd *)NULL;
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_addr),
--							SAA7196_FMTS);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_regval),
--					saa_regs[norm][SAA7196_FMTS]);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_addr),
--							SAA7196_DPATH);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_regval),
--					saa_regs[norm][SAA7196_DPATH]);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->even),
--					bpp | ((clip)? PLANB_CLIPMASK: 0));
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->odd),
--					bpp | ((clip)? PLANB_CLIPMASK: 0));
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_addr),
--							SAA7196_OUTPIX);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_regval),
--					saa_regs[norm][SAA7196_OUTPIX]);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_addr),
--							SAA7196_HFILT);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_regval),
--					saa_regs[norm][SAA7196_HFILT]);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_addr),
--							SAA7196_OUTLINE);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_regval),
--					saa_regs[norm][SAA7196_OUTLINE]);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_addr),
--							SAA7196_VYP);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->saa_regval),
--					saa_regs[norm][SAA7196_VYP]);
--	return c1;
--}
--
--/******************************/
--/* misc. supporting functions */
--/******************************/
--
--static inline void planb_lock(struct planb *pb)
--{
--	mutex_lock(&pb->lock);
--}
--
--static inline void planb_unlock(struct planb *pb)
--{
--	mutex_unlock(&pb->lock);
--}
--
--/***************/
--/* Driver Core */
--/***************/
--
--static int planb_prepare_open(struct planb *pb)
--{
--	int	i, size;
--
--	/* allocate memory for two plus alpha command buffers (size: max lines,
--	   plus 40 commands handling, plus 1 alignment), plus dummy command buf,
--	   plus clipmask buffer, plus frame grabbing status */
--	size = (pb->tab_size*(2+MAX_GBUFFERS*TAB_FACTOR)+1+MAX_GBUFFERS
--		* PLANB_DUMMY)*sizeof(struct dbdma_cmd)
--		+(PLANB_MAXLINES*((PLANB_MAXPIXELS+7)& ~7))/8
--		+MAX_GBUFFERS*sizeof(unsigned int);
--	if ((pb->priv_space = kzalloc (size, GFP_KERNEL)) == 0)
--		return -ENOMEM;
--	pb->overlay_last1 = pb->ch1_cmd = (volatile struct dbdma_cmd *)
--						DBDMA_ALIGN (pb->priv_space);
--	pb->overlay_last2 = pb->ch2_cmd = pb->ch1_cmd + pb->tab_size;
--	pb->ch1_cmd_phys = virt_to_bus(pb->ch1_cmd);
--	pb->cap_cmd[0] = pb->ch2_cmd + pb->tab_size;
--	pb->pre_cmd[0] = pb->cap_cmd[0] + pb->tab_size * TAB_FACTOR;
--	for (i = 1; i < MAX_GBUFFERS; i++) {
--		pb->cap_cmd[i] = pb->pre_cmd[i-1] + PLANB_DUMMY;
--		pb->pre_cmd[i] = pb->cap_cmd[i] + pb->tab_size * TAB_FACTOR;
--	}
--	pb->frame_stat=(volatile unsigned int *)(pb->pre_cmd[MAX_GBUFFERS-1]
--						+ PLANB_DUMMY);
--	pb->mask = (unsigned char *)(pb->frame_stat+MAX_GBUFFERS);
--
--	pb->rawbuf = NULL;
--	pb->rawbuf_size = 0;
--	pb->grabbing = 0;
--	for (i = 0; i < MAX_GBUFFERS; i++) {
--		pb->frame_stat[i] = GBUFFER_UNUSED;
--		pb->gwidth[i] = 0;
--		pb->gheight[i] = 0;
--		pb->gfmt[i] = 0;
--		pb->gnorm_switch[i] = 0;
--#ifndef PLANB_GSCANLINE
--		pb->lsize[i] = 0;
--		pb->lnum[i] = 0;
--#endif /* PLANB_GSCANLINE */
--	}
--	pb->gcount = 0;
--	pb->suspend = 0;
--	pb->last_fr = -999;
--	pb->prev_last_fr = -999;
--
--	/* Reset DMA controllers */
--	planb_dbdma_stop(&pb->planb_base->ch2);
--	planb_dbdma_stop(&pb->planb_base->ch1);
--
--	return 0;
--}
--
--static void planb_prepare_close(struct planb *pb)
--{
--	int i;
--
--	/* make sure the dma's are idle */
--	planb_dbdma_stop(&pb->planb_base->ch2);
--	planb_dbdma_stop(&pb->planb_base->ch1);
--	/* free kernel memory of command buffers */
--	if(pb->priv_space != 0) {
--		kfree (pb->priv_space);
--		pb->priv_space = 0;
--		pb->cmd_buff_inited = 0;
--	}
--	if(pb->rawbuf) {
--		for (i = 0; i < pb->rawbuf_size; i++) {
--			ClearPageReserved(virt_to_page(pb->rawbuf[i]));
--			free_pages((unsigned long)pb->rawbuf[i], 0);
--		}
--		kfree(pb->rawbuf);
--	}
--	pb->rawbuf = NULL;
--}
--
--/*****************************/
--/* overlay support functions */
--/*****************************/
--
--static inline int overlay_is_active(struct planb *pb)
--{
--	unsigned int size = pb->tab_size * sizeof(struct dbdma_cmd);
--	unsigned int caddr = (unsigned)in_le32(&pb->planb_base->ch1.cmdptr);
--
--	return (in_le32(&pb->overlay_last1->cmd_dep) == pb->ch1_cmd_phys)
--			&& (caddr < (pb->ch1_cmd_phys + size))
--			&& (caddr >= (unsigned)pb->ch1_cmd_phys);
--}
--
--static void overlay_start(struct planb *pb)
--{
--
--	DEBUG("PlanB: overlay_start()\n");
--
--	if(ACTIVE & in_le32(&pb->planb_base->ch1.status)) {
--
--		DEBUG("PlanB: presumably, grabbing is in progress...\n");
--
--		planb_dbdma_stop(&pb->planb_base->ch2);
--		out_le32 (&pb->planb_base->ch2.cmdptr,
--						virt_to_bus(pb->ch2_cmd));
--		planb_dbdma_restart(&pb->planb_base->ch2);
--		st_le16 (&pb->ch1_cmd->command, DBDMA_NOP);
--		tab_cmd_dbdma(pb->last_cmd[pb->last_fr],
--					DBDMA_NOP | BR_ALWAYS,
--					virt_to_bus(pb->ch1_cmd));
--		eieio();
--		pb->prev_last_fr = pb->last_fr;
--		pb->last_fr = -2;
--		if(!(ACTIVE & in_le32(&pb->planb_base->ch1.status))) {
--			IDEBUG("PlanB: became inactive "
--				"in the mean time... reactivating\n");
--			planb_dbdma_stop(&pb->planb_base->ch1);
--			out_le32 (&pb->planb_base->ch1.cmdptr,
--						virt_to_bus(pb->ch1_cmd));
--			planb_dbdma_restart(&pb->planb_base->ch1);
--		}
--	} else {
--
--		DEBUG("PlanB: currently idle, so can do whatever\n");
--
--		planb_dbdma_stop(&pb->planb_base->ch2);
--		planb_dbdma_stop(&pb->planb_base->ch1);
--		st_le32 (&pb->planb_base->ch2.cmdptr,
--						virt_to_bus(pb->ch2_cmd));
--		st_le32 (&pb->planb_base->ch1.cmdptr,
--						virt_to_bus(pb->ch1_cmd));
--		out_le16 (&pb->ch1_cmd->command, DBDMA_NOP);
--		planb_dbdma_restart(&pb->planb_base->ch2);
--		planb_dbdma_restart(&pb->planb_base->ch1);
--		pb->last_fr = -1;
--	}
--	return;
--}
--
--static void overlay_stop(struct planb *pb)
--{
--	DEBUG("PlanB: overlay_stop()\n");
--
--	if(pb->last_fr == -1) {
--
--		DEBUG("PlanB: no grabbing, it seems...\n");
--
--		planb_dbdma_stop(&pb->planb_base->ch2);
--		planb_dbdma_stop(&pb->planb_base->ch1);
--		pb->last_fr = -999;
--	} else if(pb->last_fr == -2) {
--		unsigned int cmd_dep;
--		tab_cmd_dbdma(pb->cap_cmd[pb->prev_last_fr], DBDMA_STOP, 0);
--		eieio();
--		cmd_dep = (unsigned int)in_le32(&pb->overlay_last1->cmd_dep);
--		if(overlay_is_active(pb)) {
--
--			DEBUG("PlanB: overlay is currently active\n");
--
--			planb_dbdma_stop(&pb->planb_base->ch2);
--			planb_dbdma_stop(&pb->planb_base->ch1);
--			if(cmd_dep != pb->ch1_cmd_phys) {
--				out_le32(&pb->planb_base->ch1.cmdptr,
--						virt_to_bus(pb->overlay_last1));
--				planb_dbdma_restart(&pb->planb_base->ch1);
--			}
--		}
--		pb->last_fr = pb->prev_last_fr;
--		pb->prev_last_fr = -999;
--	}
--	return;
--}
--
--static void suspend_overlay(struct planb *pb)
--{
--	int fr = -1;
--	struct dbdma_cmd last;
--
--	DEBUG("PlanB: suspend_overlay: %d\n", pb->suspend);
--
--	if(pb->suspend++)
--		return;
--	if(ACTIVE & in_le32(&pb->planb_base->ch1.status)) {
--		if(pb->last_fr == -2) {
--			fr = pb->prev_last_fr;
--			memcpy(&last, (void*)pb->last_cmd[fr], sizeof(last));
--			tab_cmd_dbdma(pb->last_cmd[fr], DBDMA_STOP, 0);
--		}
--		if(overlay_is_active(pb)) {
--			planb_dbdma_stop(&pb->planb_base->ch2);
--			planb_dbdma_stop(&pb->planb_base->ch1);
--			pb->suspended.overlay = 1;
--			pb->suspended.frame = fr;
--			memcpy(&pb->suspended.cmd, &last, sizeof(last));
--			return;
--		}
--	}
--	pb->suspended.overlay = 0;
--	pb->suspended.frame = fr;
--	memcpy(&pb->suspended.cmd, &last, sizeof(last));
--	return;
--}
--
--static void resume_overlay(struct planb *pb)
--{
--
--	DEBUG("PlanB: resume_overlay: %d\n", pb->suspend);
--
--	if(pb->suspend > 1)
--		return;
--	if(pb->suspended.frame != -1) {
--		memcpy((void*)pb->last_cmd[pb->suspended.frame],
--				&pb->suspended.cmd, sizeof(pb->suspended.cmd));
--	}
--	if(ACTIVE & in_le32(&pb->planb_base->ch1.status)) {
--		goto finish;
--	}
--	if(pb->suspended.overlay) {
--
--		DEBUG("PlanB: overlay being resumed\n");
--
--		st_le16 (&pb->ch1_cmd->command, DBDMA_NOP);
--		st_le16 (&pb->ch2_cmd->command, DBDMA_NOP);
--		/* Set command buffer addresses */
--		st_le32(&pb->planb_base->ch1.cmdptr,
--					virt_to_bus(pb->overlay_last1));
--		out_le32(&pb->planb_base->ch2.cmdptr,
--					virt_to_bus(pb->overlay_last2));
--		/* Start the DMA controller */
--		out_le32 (&pb->planb_base->ch2.control,
--				PLANB_CLR(PAUSE) | PLANB_SET(RUN|WAKE));
--		out_le32 (&pb->planb_base->ch1.control,
--				PLANB_CLR(PAUSE) | PLANB_SET(RUN|WAKE));
--	} else if(pb->suspended.frame != -1) {
--		out_le32(&pb->planb_base->ch1.cmdptr,
--				virt_to_bus(pb->last_cmd[pb->suspended.frame]));
--		out_le32 (&pb->planb_base->ch1.control,
--				PLANB_CLR(PAUSE) | PLANB_SET(RUN|WAKE));
--	}
--
--finish:
--	pb->suspend--;
--	wake_up_interruptible(&pb->suspendq);
--}
--
--static void add_clip(struct planb *pb, struct video_clip *clip)
--{
--	volatile unsigned char	*base;
--	int	xc = clip->x, yc = clip->y;
--	int	wc = clip->width, hc = clip->height;
--	int	ww = pb->win.width, hw = pb->win.height;
--	int	x, y, xtmp1, xtmp2;
--
--	DEBUG("PlanB: clip %dx%d+%d+%d\n", wc, hc, xc, yc);
--
--	if(xc < 0) {
--		wc += xc;
--		xc = 0;
--	}
--	if(yc < 0) {
--		hc += yc;
--		yc = 0;
--	}
--	if(xc + wc > ww)
--		wc = ww - xc;
--	if(wc <= 0) /* Nothing to do */
--		return;
--	if(yc + hc > hw)
--		hc = hw - yc;
--
--	for (y = yc; y < yc+hc; y++) {
--		xtmp1=xc>>3;
--		xtmp2=(xc+wc)>>3;
--		base = pb->mask + y*96;
--		if(xc != 0 || wc >= 8)
--			*(base + xtmp1) &= (unsigned char)(0x00ff &
--				(0xff00 >> (xc&7)));
--		for (x = xtmp1 + 1; x < xtmp2; x++) {
--			*(base + x) = 0;
--		}
--		if(xc < (ww & ~0x7))
--			*(base + xtmp2) &= (unsigned char)(0x00ff >>
--				((xc+wc) & 7));
--	}
--
--	return;
--}
--
--static void fill_cmd_buff(struct planb *pb)
--{
--	int restore = 0;
--	volatile struct dbdma_cmd last;
--
--	DEBUG("PlanB: fill_cmd_buff()\n");
--
--	if(pb->overlay_last1 != pb->ch1_cmd) {
--		restore = 1;
--		last = *(pb->overlay_last1);
--	}
--	memset ((void *) pb->ch1_cmd, 0, 2 * pb->tab_size
--					* sizeof(struct dbdma_cmd));
--	cmd_buff (pb);
--	if(restore)
--		*(pb->overlay_last1) = last;
--	if(pb->suspended.overlay) {
--		unsigned long jump_addr = in_le32(&pb->overlay_last1->cmd_dep);
--		if(jump_addr != pb->ch1_cmd_phys) {
--			int i;
--
--			DEBUG("PlanB: adjusting ch1's jump address\n");
--
--			for(i = 0; i < MAX_GBUFFERS; i++) {
--				if(pb->need_pre_capture[i]) {
--				    if(jump_addr == virt_to_bus(pb->pre_cmd[i]))
--					goto found;
--				} else {
--				    if(jump_addr == virt_to_bus(pb->cap_cmd[i]))
--					goto found;
--				}
--			}
--
--			DEBUG("PlanB: not found...\n");
--
--			goto out;
--found:
--			if(pb->need_pre_capture[i])
--				out_le32(&pb->pre_cmd[i]->phy_addr,
--						virt_to_bus(pb->overlay_last1));
--			else
--				out_le32(&pb->cap_cmd[i]->phy_addr,
--						virt_to_bus(pb->overlay_last1));
--		}
--	}
--out:
--	pb->cmd_buff_inited = 1;
--
--	return;
--}
--
--static void cmd_buff(struct planb *pb)
--{
--	int		i, bpp, count, nlines, stepsize, interlace;
--	unsigned long	base, jump, addr_com, addr_dep;
--	volatile struct dbdma_cmd *c1 = pb->ch1_cmd;
--	volatile struct dbdma_cmd *c2 = pb->ch2_cmd;
--
--	interlace = pb->win.interlace;
--	bpp = pb->win.bpp;
--	count = (bpp * ((pb->win.x + pb->win.width > pb->win.swidth) ?
--		(pb->win.swidth - pb->win.x) : pb->win.width));
--	nlines = ((pb->win.y + pb->win.height > pb->win.sheight) ?
--		(pb->win.sheight - pb->win.y) : pb->win.height);
--
--	/* Do video in: */
--
--	/* Preamble commands: */
--	addr_com = virt_to_bus(c1);
--	addr_dep = virt_to_bus(&c1->cmd_dep);
--	tab_cmd_dbdma(c1++, DBDMA_NOP, 0);
--	jump = virt_to_bus(c1+16); /* 14 by cmd_geo_setup() and 2 for padding */
--	if((c1 = cmd_geo_setup(c1, pb->win.width, pb->win.height, interlace,
--					bpp, 1, pb)) == NULL) {
--		printk(KERN_WARNING "PlanB: encountered serious problems\n");
--		tab_cmd_dbdma(pb->ch1_cmd + 1, DBDMA_STOP, 0);
--		tab_cmd_dbdma(pb->ch2_cmd + 1, DBDMA_STOP, 0);
--		return;
--	}
--	tab_cmd_store(c1++, addr_com, (unsigned)(DBDMA_NOP | BR_ALWAYS) << 16);
--	tab_cmd_store(c1++, addr_dep, jump);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.wait_sel),
--							PLANB_SET(FIELD_SYNC));
--		/* (1) wait for field sync to be set */
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFCLR, 0);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--							PLANB_SET(ODD_FIELD));
--		/* wait for field sync to be cleared */
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFSET, 0);
--		/* if not odd field, wait until field sync is set again */
--	tab_cmd_dbdma(c1, DBDMA_NOP | BR_IFSET, virt_to_bus(c1-3)); c1++;
--		/* assert ch_sync to ch2 */
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch2.control),
--							PLANB_SET(CH_SYNC));
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--							PLANB_SET(DMA_ABORT));
--
--	base = (pb->frame_buffer_phys + pb->offset + pb->win.y * (pb->win.bpl
--					+ pb->win.pad) + pb->win.x * bpp);
--
--	if (interlace) {
--		stepsize = 2;
--		jump = virt_to_bus(c1 + (nlines + 1) / 2);
--	} else {
--		stepsize = 1;
--		jump = virt_to_bus(c1 + nlines);
--	}
--
--	/* even field data: */
--	for (i=0; i < nlines; i += stepsize, c1++)
--		tab_cmd_gen(c1, INPUT_MORE | KEY_STREAM0 | BR_IFSET,
--			count, base + i * (pb->win.bpl + pb->win.pad), jump);
--
--	/* For non-interlaced, we use even fields only */
--	if (!interlace)
--		goto cmd_tab_data_end;
--
--	/* Resync to odd field */
--		/* (2) wait for field sync to be set */
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFCLR, 0);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--							PLANB_SET(ODD_FIELD));
--		/* wait for field sync to be cleared */
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFSET, 0);
--		/* if not odd field, wait until field sync is set again */
--	tab_cmd_dbdma(c1, DBDMA_NOP | BR_IFCLR, virt_to_bus(c1-3)); c1++;
--		/* assert ch_sync to ch2 */
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch2.control),
--							PLANB_SET(CH_SYNC));
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--							PLANB_SET(DMA_ABORT));
--
--	/* odd field data: */
--	jump = virt_to_bus(c1 + nlines / 2);
--	for (i=1; i < nlines; i += stepsize, c1++)
--		tab_cmd_gen(c1, INPUT_MORE | KEY_STREAM0 | BR_IFSET, count,
--			base + i * (pb->win.bpl + pb->win.pad), jump);
--
--	/* And jump back to the start */
--cmd_tab_data_end:
--	pb->overlay_last1 = c1;	/* keep a pointer to the last command */
--	tab_cmd_dbdma(c1, DBDMA_NOP | BR_ALWAYS, virt_to_bus(pb->ch1_cmd));
--
--	/* Clipmask command buffer */
--
--	/* Preamble commands: */
--	tab_cmd_dbdma(c2++, DBDMA_NOP, 0);
--	tab_cmd_store(c2++, (unsigned)(&pb->planb_base_phys->ch2.wait_sel),
--							PLANB_SET(CH_SYNC));
--		/* wait until ch1 asserts ch_sync */
--	tab_cmd_dbdma(c2++, DBDMA_NOP | WAIT_IFCLR, 0);
--		/* clear ch_sync asserted by ch1 */
--	tab_cmd_store(c2++, (unsigned)(&pb->planb_base_phys->ch2.control),
--							PLANB_CLR(CH_SYNC));
--	tab_cmd_store(c2++, (unsigned)(&pb->planb_base_phys->ch2.wait_sel),
--							PLANB_SET(FIELD_SYNC));
--	tab_cmd_store(c2++, (unsigned)(&pb->planb_base_phys->ch2.br_sel),
--							PLANB_SET(ODD_FIELD));
--
--	/* jump to end of even field if appropriate */
--	/* this points to (interlace)? pos. C: pos. B */
--	jump = (interlace) ? virt_to_bus(c2 + (nlines + 1) / 2 + 2):
--						virt_to_bus(c2 + nlines + 2);
--		/* if odd field, skip over to odd field clipmasking */
--	tab_cmd_dbdma(c2++, DBDMA_NOP | BR_IFSET, jump);
--
--	/* even field mask: */
--	tab_cmd_store(c2++, (unsigned)(&pb->planb_base_phys->ch2.br_sel),
--							PLANB_SET(DMA_ABORT));
--	/* this points to pos. B */
--	jump = (interlace) ? virt_to_bus(c2 + nlines + 1):
--						virt_to_bus(c2 + nlines);
--	base = virt_to_bus(pb->mask);
--	for (i=0; i < nlines; i += stepsize, c2++)
--		tab_cmd_gen(c2, OUTPUT_MORE | KEY_STREAM0 | BR_IFSET, 96,
--			base + i * 96, jump);
--
--	/* For non-interlaced, we use only even fields */
--	if(!interlace)
--		goto cmd_tab_mask_end;
--
--	/* odd field mask: */
--/* C */	tab_cmd_store(c2++, (unsigned)(&pb->planb_base_phys->ch2.br_sel),
--							PLANB_SET(DMA_ABORT));
--	/* this points to pos. B */
--	jump = virt_to_bus(c2 + nlines / 2);
--	base = virt_to_bus(pb->mask);
--	for (i=1; i < nlines; i += 2, c2++)     /* abort if set */
--		tab_cmd_gen(c2, OUTPUT_MORE | KEY_STREAM0 | BR_IFSET, 96,
--			base + i * 96, jump);
--
--	/* Inform channel 1 and jump back to start */
--cmd_tab_mask_end:
--	/* ok, I just realized this is kind of flawed. */
--	/* this part is reached only after odd field clipmasking. */
--	/* wanna clean up? */
--		/* wait for field sync to be set */
--		/* corresponds to fsync (1) of ch1 */
--/* B */	tab_cmd_dbdma(c2++, DBDMA_NOP | WAIT_IFCLR, 0);
--		/* restart ch1, meant to clear any dead bit or something */
--	tab_cmd_store(c2++, (unsigned)(&pb->planb_base_phys->ch1.control),
--							PLANB_CLR(RUN));
--	tab_cmd_store(c2++, (unsigned)(&pb->planb_base_phys->ch1.control),
--							PLANB_SET(RUN));
--	pb->overlay_last2 = c2;	/* keep a pointer to the last command */
--		/* start over even field clipmasking */
--	tab_cmd_dbdma(c2, DBDMA_NOP | BR_ALWAYS, virt_to_bus(pb->ch2_cmd));
--
--	eieio();
--	return;
--}
--
--/*********************************/
--/* grabdisplay support functions */
--/*********************************/
--
--static int palette2fmt[] = {
--	0,
--	PLANB_GRAY,
--	0,
--	0,
--	0,
--	PLANB_COLOUR32,
--	PLANB_COLOUR15,
--	0,
--	0,
--	0,
--	0,
--	0,
--	0,
--	0,
--	0,
--};
--
--#define PLANB_PALETTE_MAX 15
--
--static int vgrab(struct planb *pb, struct video_mmap *mp)
--{
--	unsigned int fr = mp->frame;
--	unsigned int format;
--
--	if(pb->rawbuf==NULL) {
--		int err;
--		if((err=grabbuf_alloc(pb)))
--			return err;
--	}
--
--	IDEBUG("PlanB: grab %d: %dx%d(%u)\n", pb->grabbing,
--						mp->width, mp->height, fr);
--
--	if(pb->grabbing >= MAX_GBUFFERS)
--		return -ENOBUFS;
--	if(fr > (MAX_GBUFFERS - 1) || fr < 0)
--		return -EINVAL;
--	if(mp->height <= 0 || mp->width <= 0)
--		return -EINVAL;
--	if(mp->format < 0 || mp->format >= PLANB_PALETTE_MAX)
--		return -EINVAL;
--	if((format = palette2fmt[mp->format]) == 0)
--		return -EINVAL;
--	if (mp->height * mp->width * format > PLANB_MAX_FBUF) /* format = bpp */
--		return -EINVAL;
--
--	planb_lock(pb);
--	if(mp->width != pb->gwidth[fr] || mp->height != pb->gheight[fr] ||
--			format != pb->gfmt[fr] || (pb->gnorm_switch[fr])) {
--		int i;
--#ifndef PLANB_GSCANLINE
--		unsigned int osize = pb->gwidth[fr] * pb->gheight[fr]
--								* pb->gfmt[fr];
--		unsigned int nsize = mp->width * mp->height * format;
--#endif
--
--		IDEBUG("PlanB: gwidth = %d, gheight = %d, mp->format = %u\n",
--					mp->width, mp->height, mp->format);
--
--#ifndef PLANB_GSCANLINE
--		if(pb->gnorm_switch[fr])
--			nsize = 0;
--		if (nsize < osize) {
--			for(i = pb->gbuf_idx[fr]; osize > 0; i++) {
--				memset((void *)pb->rawbuf[i], 0, PAGE_SIZE);
--				osize -= PAGE_SIZE;
--			}
--		}
--		for(i = pb->l_fr_addr_idx[fr]; i < pb->l_fr_addr_idx[fr]
--							+ pb->lnum[fr]; i++)
--			memset((void *)pb->rawbuf[i], 0, PAGE_SIZE);
--#else
--/* XXX TODO */
--/*
--		if(pb->gnorm_switch[fr])
--			memset((void *)pb->gbuffer[fr], 0,
--					pb->gbytes_per_line * pb->gheight[fr]);
--		else {
--			if(mp->
--			for(i = 0; i < pb->gheight[fr]; i++) {
--				memset((void *)(pb->gbuffer[fr]
--					+ pb->gbytes_per_line * i
--			}
--		}
--*/
--#endif
--		pb->gwidth[fr] = mp->width;
--		pb->gheight[fr] = mp->height;
--		pb->gfmt[fr] = format;
--		pb->last_cmd[fr] = setup_grab_cmd(fr, pb);
--		planb_pre_capture(fr, pb->gfmt[fr], pb); /* gfmt = bpp */
--		pb->need_pre_capture[fr] = 1;
--		pb->gnorm_switch[fr] = 0;
--	} else
--		pb->need_pre_capture[fr] = 0;
--	pb->frame_stat[fr] = GBUFFER_GRABBING;
--	if(!(ACTIVE & in_le32(&pb->planb_base->ch1.status))) {
--
--		IDEBUG("PlanB: ch1 inactive, initiating grabbing\n");
--
--		planb_dbdma_stop(&pb->planb_base->ch1);
--		if(pb->need_pre_capture[fr]) {
--
--			IDEBUG("PlanB: padding pre-capture sequence\n");
--
--			out_le32 (&pb->planb_base->ch1.cmdptr,
--						virt_to_bus(pb->pre_cmd[fr]));
--		} else {
--			tab_cmd_dbdma(pb->last_cmd[fr], DBDMA_STOP, 0);
--			tab_cmd_dbdma(pb->cap_cmd[fr], DBDMA_NOP, 0);
--		/* let's be on the safe side. here is not timing critical. */
--			tab_cmd_dbdma((pb->cap_cmd[fr] + 1), DBDMA_NOP, 0);
--			out_le32 (&pb->planb_base->ch1.cmdptr,
--						virt_to_bus(pb->cap_cmd[fr]));
--		}
--		planb_dbdma_restart(&pb->planb_base->ch1);
--		pb->last_fr = fr;
--	} else {
--		int i;
--
--		IDEBUG("PlanB: ch1 active, grabbing being queued\n");
--
--		if((pb->last_fr == -1) || ((pb->last_fr == -2) &&
--						overlay_is_active(pb))) {
--
--			IDEBUG("PlanB: overlay is active, grabbing defered\n");
--
--			tab_cmd_dbdma(pb->last_cmd[fr],
--					DBDMA_NOP | BR_ALWAYS,
--					virt_to_bus(pb->ch1_cmd));
--			if(pb->need_pre_capture[fr]) {
--
--				IDEBUG("PlanB: padding pre-capture sequence\n");
--
--				tab_cmd_store(pb->pre_cmd[fr],
--				    virt_to_bus(&pb->overlay_last1->cmd_dep),
--						virt_to_bus(pb->ch1_cmd));
--				eieio();
--				out_le32 (&pb->overlay_last1->cmd_dep,
--						virt_to_bus(pb->pre_cmd[fr]));
--			} else {
--				tab_cmd_store(pb->cap_cmd[fr],
--				    virt_to_bus(&pb->overlay_last1->cmd_dep),
--						virt_to_bus(pb->ch1_cmd));
--				tab_cmd_dbdma((pb->cap_cmd[fr] + 1),
--								DBDMA_NOP, 0);
--				eieio();
--				out_le32 (&pb->overlay_last1->cmd_dep,
--						virt_to_bus(pb->cap_cmd[fr]));
--			}
--			for(i = 0; overlay_is_active(pb) && i < 999; i++)
--				IDEBUG("PlanB: waiting for overlay done\n");
--			tab_cmd_dbdma(pb->ch1_cmd, DBDMA_NOP, 0);
--			pb->prev_last_fr = fr;
--			pb->last_fr = -2;
--		} else if(pb->last_fr == -2) {
--
--			IDEBUG("PlanB: mixed mode detected, grabbing"
--				" will be done before activating overlay\n");
--
--			tab_cmd_dbdma(pb->ch1_cmd, DBDMA_NOP, 0);
--			if(pb->need_pre_capture[fr]) {
--
--				IDEBUG("PlanB: padding pre-capture sequence\n");
--
--				tab_cmd_dbdma(pb->last_cmd[pb->prev_last_fr],
--						DBDMA_NOP | BR_ALWAYS,
--						virt_to_bus(pb->pre_cmd[fr]));
--				eieio();
--			} else {
--				tab_cmd_dbdma(pb->cap_cmd[fr], DBDMA_NOP, 0);
--				if(pb->gwidth[pb->prev_last_fr] !=
--								pb->gwidth[fr]
--					|| pb->gheight[pb->prev_last_fr] !=
--								pb->gheight[fr]
--					|| pb->gfmt[pb->prev_last_fr] !=
--								pb->gfmt[fr])
--					tab_cmd_dbdma((pb->cap_cmd[fr] + 1),
--								DBDMA_NOP, 0);
--				else
--					tab_cmd_dbdma((pb->cap_cmd[fr] + 1),
--					    DBDMA_NOP | BR_ALWAYS,
--					    virt_to_bus(pb->cap_cmd[fr] + 16));
--				tab_cmd_dbdma(pb->last_cmd[pb->prev_last_fr],
--						DBDMA_NOP | BR_ALWAYS,
--						virt_to_bus(pb->cap_cmd[fr]));
--				eieio();
--			}
--			tab_cmd_dbdma(pb->last_cmd[fr],
--					DBDMA_NOP | BR_ALWAYS,
--					virt_to_bus(pb->ch1_cmd));
--			eieio();
--			pb->prev_last_fr = fr;
--			pb->last_fr = -2;
--		} else {
--
--			IDEBUG("PlanB: active grabbing session detected\n");
--
--			if(pb->need_pre_capture[fr]) {
--
--				IDEBUG("PlanB: padding pre-capture sequence\n");
--
--				tab_cmd_dbdma(pb->last_cmd[pb->last_fr],
--						DBDMA_NOP | BR_ALWAYS,
--						virt_to_bus(pb->pre_cmd[fr]));
--				eieio();
--			} else {
--				tab_cmd_dbdma(pb->last_cmd[fr], DBDMA_STOP, 0);
--				tab_cmd_dbdma(pb->cap_cmd[fr], DBDMA_NOP, 0);
--				if(pb->gwidth[pb->last_fr] != pb->gwidth[fr]
--					|| pb->gheight[pb->last_fr] !=
--								pb->gheight[fr]
--					|| pb->gfmt[pb->last_fr] !=
--								pb->gfmt[fr])
--					tab_cmd_dbdma((pb->cap_cmd[fr] + 1),
--								DBDMA_NOP, 0);
--				else
--					tab_cmd_dbdma((pb->cap_cmd[fr] + 1),
--					    DBDMA_NOP | BR_ALWAYS,
--					    virt_to_bus(pb->cap_cmd[fr] + 16));
--				tab_cmd_dbdma(pb->last_cmd[pb->last_fr],
--						DBDMA_NOP | BR_ALWAYS,
--						virt_to_bus(pb->cap_cmd[fr]));
--				eieio();
--			}
--			pb->last_fr = fr;
--		}
--		if(!(ACTIVE & in_le32(&pb->planb_base->ch1.status))) {
--
--			IDEBUG("PlanB: became inactive in the mean time..."
--				"reactivating\n");
--
--			planb_dbdma_stop(&pb->planb_base->ch1);
--			out_le32 (&pb->planb_base->ch1.cmdptr,
--						virt_to_bus(pb->cap_cmd[fr]));
--			planb_dbdma_restart(&pb->planb_base->ch1);
--		}
--	}
--	pb->grabbing++;
--	planb_unlock(pb);
--
--	return 0;
--}
--
--static void planb_pre_capture(int fr, int bpp, struct planb *pb)
--{
--	volatile struct dbdma_cmd *c1 = pb->pre_cmd[fr];
--	int interlace = (pb->gheight[fr] > pb->maxlines/2)? 1: 0;
--
--	tab_cmd_dbdma(c1++, DBDMA_NOP, 0);
--	if((c1 = cmd_geo_setup(c1, pb->gwidth[fr], pb->gheight[fr], interlace,
--						bpp, 0, pb)) == NULL) {
--		printk(KERN_WARNING "PlanB: encountered some problems\n");
--		tab_cmd_dbdma(pb->pre_cmd[fr] + 1, DBDMA_STOP, 0);
--		return;
--	}
--	/* Sync to even field */
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.wait_sel),
--		PLANB_SET(FIELD_SYNC));
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFCLR, 0);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--		PLANB_SET(ODD_FIELD));
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFSET, 0);
--	tab_cmd_dbdma(c1, DBDMA_NOP | BR_IFSET, virt_to_bus(c1-3)); c1++;
--	tab_cmd_dbdma(c1++, DBDMA_NOP | INTR_ALWAYS, 0);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--		PLANB_SET(DMA_ABORT));
--	/* For non-interlaced, we use even fields only */
--	if (pb->gheight[fr] <= pb->maxlines/2)
--		goto cmd_tab_data_end;
--	/* Sync to odd field */
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFCLR, 0);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--		PLANB_SET(ODD_FIELD));
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFSET, 0);
--	tab_cmd_dbdma(c1, DBDMA_NOP | BR_IFCLR, virt_to_bus(c1-3)); c1++;
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--		PLANB_SET(DMA_ABORT));
--cmd_tab_data_end:
--	tab_cmd_dbdma(c1, DBDMA_NOP | BR_ALWAYS, virt_to_bus(pb->cap_cmd[fr]));
--
--	eieio();
--}
--
--static volatile struct dbdma_cmd *setup_grab_cmd(int fr, struct planb *pb)
--{
--	int		i, bpp, count, nlines, stepsize, interlace;
--#ifdef PLANB_GSCANLINE
--	int		scanline;
--#else
--	int		nlpp, leftover1;
--	unsigned long	base;
--#endif
--	unsigned long	jump;
--	int		pagei;
--	volatile struct dbdma_cmd *c1;
--	volatile struct dbdma_cmd *jump_addr;
--
--	c1 = pb->cap_cmd[fr];
--	interlace = (pb->gheight[fr] > pb->maxlines/2)? 1: 0;
--	bpp = pb->gfmt[fr];	/* gfmt = bpp */
--	count = bpp * pb->gwidth[fr];
--	nlines = pb->gheight[fr];
--#ifdef PLANB_GSCANLINE
--	scanline = pb->gbytes_per_line;
--#else
--	pb->lsize[fr] = count;
--	pb->lnum[fr] = 0;
--#endif
--
--	/* Do video in: */
--
--	/* Preamble commands: */
--	tab_cmd_dbdma(c1++, DBDMA_NOP, 0);
--	tab_cmd_dbdma(c1, DBDMA_NOP | BR_ALWAYS, virt_to_bus(c1 + 16)); c1++;
--	if((c1 = cmd_geo_setup(c1, pb->gwidth[fr], pb->gheight[fr], interlace,
--						bpp, 0, pb)) == NULL) {
--		printk(KERN_WARNING "PlanB: encountered serious problems\n");
--		tab_cmd_dbdma(pb->cap_cmd[fr] + 1, DBDMA_STOP, 0);
--		return (pb->cap_cmd[fr] + 2);
--	}
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.wait_sel),
--		PLANB_SET(FIELD_SYNC));
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFCLR, 0);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--		PLANB_SET(ODD_FIELD));
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFSET, 0);
--	tab_cmd_dbdma(c1, DBDMA_NOP | BR_IFSET, virt_to_bus(c1-3)); c1++;
--	tab_cmd_dbdma(c1++, DBDMA_NOP | INTR_ALWAYS, 0);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--		PLANB_SET(DMA_ABORT));
--
--	if (interlace) {
--		stepsize = 2;
--		jump_addr = c1 + TAB_FACTOR * (nlines + 1) / 2;
--	} else {
--		stepsize = 1;
--		jump_addr = c1 + TAB_FACTOR * nlines;
--	}
--	jump = virt_to_bus(jump_addr);
--
--	/* even field data: */
--
--	pagei = pb->gbuf_idx[fr];
--#ifdef PLANB_GSCANLINE
--	for (i = 0; i < nlines; i += stepsize) {
--		tab_cmd_gen(c1++, INPUT_MORE | BR_IFSET, count,
--					virt_to_bus(pb->rawbuf[pagei
--					+ i * scanline / PAGE_SIZE]), jump);
--	}
--#else
--	i = 0;
--	leftover1 = 0;
--	do {
--	    int j;
--
--	    base = virt_to_bus(pb->rawbuf[pagei]);
--	    nlpp = (PAGE_SIZE - leftover1) / count / stepsize;
--	    for(j = 0; j < nlpp && i < nlines; j++, i += stepsize, c1++)
--		tab_cmd_gen(c1, INPUT_MORE | KEY_STREAM0 | BR_IFSET,
--			  count, base + count * j * stepsize + leftover1, jump);
--	    if(i < nlines) {
--		int lov0 = PAGE_SIZE - count * nlpp * stepsize - leftover1;
--
--		if(lov0 == 0)
--		    leftover1 = 0;
--		else {
--		    if(lov0 >= count) {
--			tab_cmd_gen(c1++, INPUT_MORE | BR_IFSET, count, base
--				+ count * nlpp * stepsize + leftover1, jump);
--		    } else {
--			pb->l_to_addr[fr][pb->lnum[fr]] = pb->rawbuf[pagei]
--					+ count * nlpp * stepsize + leftover1;
--			pb->l_to_next_idx[fr][pb->lnum[fr]] = pagei + 1;
--			pb->l_to_next_size[fr][pb->lnum[fr]] = count - lov0;
--			tab_cmd_gen(c1++, INPUT_MORE | BR_IFSET, count,
--				virt_to_bus(pb->rawbuf[pb->l_fr_addr_idx[fr]
--						+ pb->lnum[fr]]), jump);
--			if(++pb->lnum[fr] > MAX_LNUM)
--				pb->lnum[fr]--;
--		    }
--		    leftover1 = count * stepsize - lov0;
--		    i += stepsize;
--		}
--	    }
--	    pagei++;
--	} while(i < nlines);
--	tab_cmd_dbdma(c1, DBDMA_NOP | BR_ALWAYS, jump);
--	c1 = jump_addr;
--#endif /* PLANB_GSCANLINE */
--
--	/* For non-interlaced, we use even fields only */
--	if (!interlace)
--		goto cmd_tab_data_end;
--
--	/* Sync to odd field */
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFCLR, 0);
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--		PLANB_SET(ODD_FIELD));
--	tab_cmd_dbdma(c1++, DBDMA_NOP | WAIT_IFSET, 0);
--	tab_cmd_dbdma(c1, DBDMA_NOP | BR_IFCLR, virt_to_bus(c1-3)); c1++;
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->ch1.br_sel),
--		PLANB_SET(DMA_ABORT));
--
--	/* odd field data: */
--	jump_addr = c1 + TAB_FACTOR * nlines / 2;
--	jump = virt_to_bus(jump_addr);
--#ifdef PLANB_GSCANLINE
--	for (i = 1; i < nlines; i += stepsize) {
--		tab_cmd_gen(c1++, INPUT_MORE | BR_IFSET, count,
--					virt_to_bus(pb->rawbuf[pagei
--					+ i * scanline / PAGE_SIZE]), jump);
--	}
--#else
--	i = 1;
--	leftover1 = 0;
--	pagei = pb->gbuf_idx[fr];
--	if(nlines <= 1)
--	    goto skip;
--	do {
--	    int j;
--
--	    base = virt_to_bus(pb->rawbuf[pagei]);
--	    nlpp = (PAGE_SIZE - leftover1) / count / stepsize;
--	    if(leftover1 >= count) {
--		tab_cmd_gen(c1++, INPUT_MORE | KEY_STREAM0 | BR_IFSET, count,
--						base + leftover1 - count, jump);
--		i += stepsize;
--	    }
--	    for(j = 0; j < nlpp && i < nlines; j++, i += stepsize, c1++)
--		tab_cmd_gen(c1, INPUT_MORE | KEY_STREAM0 | BR_IFSET, count,
--			base + count * (j * stepsize + 1) + leftover1, jump);
--	    if(i < nlines) {
--		int lov0 = PAGE_SIZE - count * nlpp * stepsize - leftover1;
--
--		if(lov0 == 0)
--		    leftover1 = 0;
--		else {
--		    if(lov0 > count) {
--			pb->l_to_addr[fr][pb->lnum[fr]] = pb->rawbuf[pagei]
--				+ count * (nlpp * stepsize + 1) + leftover1;
--			pb->l_to_next_idx[fr][pb->lnum[fr]] = pagei + 1;
--			pb->l_to_next_size[fr][pb->lnum[fr]] = count * stepsize
--									- lov0;
--			tab_cmd_gen(c1++, INPUT_MORE | BR_IFSET, count,
--				virt_to_bus(pb->rawbuf[pb->l_fr_addr_idx[fr]
--							+ pb->lnum[fr]]), jump);
--			if(++pb->lnum[fr] > MAX_LNUM)
--				pb->lnum[fr]--;
--			i += stepsize;
--		    }
--		    leftover1 = count * stepsize - lov0;
--		}
--	    }
--	    pagei++;
--	} while(i < nlines);
--skip:
--	tab_cmd_dbdma(c1, DBDMA_NOP | BR_ALWAYS, jump);
--	c1 = jump_addr;
--#endif /* PLANB_GSCANLINE */
--
--cmd_tab_data_end:
--	tab_cmd_store(c1++, (unsigned)(&pb->planb_base_phys->intr_stat),
--			(fr << 9) | PLANB_FRM_IRQ | PLANB_GEN_IRQ);
--	/* stop it */
--	tab_cmd_dbdma(c1, DBDMA_STOP, 0);
--
--	eieio();
--	return c1;
--}
--
--static irqreturn_t planb_irq(int irq, void *dev_id)
--{
--	unsigned int stat, astat;
--	struct planb *pb = (struct planb *)dev_id;
--
--	IDEBUG("PlanB: planb_irq()\n");
--
--	/* get/clear interrupt status bits */
--	eieio();
--	stat = in_le32(&pb->planb_base->intr_stat);
--	astat = stat & pb->intr_mask;
--	out_le32(&pb->planb_base->intr_stat, PLANB_FRM_IRQ
--					& ~astat & stat & ~PLANB_GEN_IRQ);
--	IDEBUG("PlanB: stat = %X, astat = %X\n", stat, astat);
--
--	if(astat & PLANB_FRM_IRQ) {
--		unsigned int fr = stat >> 9;
--#ifndef PLANB_GSCANLINE
--		int i;
--#endif
--		IDEBUG("PlanB: PLANB_FRM_IRQ\n");
--
--		pb->gcount++;
--
--		IDEBUG("PlanB: grab %d: fr = %d, gcount = %d\n",
--				pb->grabbing, fr, pb->gcount);
--#ifndef PLANB_GSCANLINE
--		IDEBUG("PlanB: %d * %d bytes are being copied over\n",
--				pb->lnum[fr], pb->lsize[fr]);
--		for(i = 0; i < pb->lnum[fr]; i++) {
--			int first = pb->lsize[fr] - pb->l_to_next_size[fr][i];
--
--			memcpy(pb->l_to_addr[fr][i],
--				pb->rawbuf[pb->l_fr_addr_idx[fr] + i],
--				first);
--			memcpy(pb->rawbuf[pb->l_to_next_idx[fr][i]],
--				pb->rawbuf[pb->l_fr_addr_idx[fr] + i] + first,
--						pb->l_to_next_size[fr][i]);
--		}
--#endif
--		pb->frame_stat[fr] = GBUFFER_DONE;
--		pb->grabbing--;
--		wake_up_interruptible(&pb->capq);
--		return IRQ_HANDLED;
--	}
--	/* incorrect interrupts? */
--	pb->intr_mask = PLANB_CLR_IRQ;
--	out_le32(&pb->planb_base->intr_stat, PLANB_CLR_IRQ);
--	printk(KERN_ERR "PlanB: IRQ lockup, cleared intrrupts"
--							" unconditionally\n");
--	return IRQ_HANDLED;
--}
--
--/*******************************
-- * Device Operations functions *
-- *******************************/
--
--static int planb_open(struct video_device *dev, int mode)
--{
--	struct planb *pb = (struct planb *)dev;
--
--	if (pb->user == 0) {
--		int err;
--		if((err = planb_prepare_open(pb)) != 0)
--			return err;
--	}
--	pb->user++;
--
--	DEBUG("PlanB: device opened\n");
--	return 0;
--}
--
--static void planb_close(struct video_device *dev)
--{
--	struct planb *pb = (struct planb *)dev;
--
--	if(pb->user < 1) /* ??? */
--		return;
--	planb_lock(pb);
--	if (pb->user == 1) {
--		if (pb->overlay) {
--			planb_dbdma_stop(&pb->planb_base->ch2);
--			planb_dbdma_stop(&pb->planb_base->ch1);
--			pb->overlay = 0;
--		}
--		planb_prepare_close(pb);
--	}
--	pb->user--;
--	planb_unlock(pb);
--
--	DEBUG("PlanB: device closed\n");
--}
--
--static long planb_read(struct video_device *v, char *buf, unsigned long count,
--				int nonblock)
--{
--	DEBUG("planb: read request\n");
--	return -EINVAL;
--}
--
--static long planb_write(struct video_device *v, const char *buf,
--				unsigned long count, int nonblock)
--{
--	DEBUG("planb: write request\n");
--	return -EINVAL;
--}
--
--static int planb_ioctl(struct video_device *dev, unsigned int cmd, void *arg)
--{
--	struct planb *pb=(struct planb *)dev;
--
--	switch (cmd)
--	{
--		case VIDIOCGCAP:
--		{
--			struct video_capability b;
--
--			DEBUG("PlanB: IOCTL VIDIOCGCAP\n");
--
--			strcpy (b.name, pb->video_dev.name);
--			b.type = VID_TYPE_OVERLAY | VID_TYPE_CLIPPING |
--				 VID_TYPE_FRAMERAM | VID_TYPE_SCALES |
--				 VID_TYPE_CAPTURE;
--			b.channels = 2;	/* composite & svhs */
--			b.audios = 0;
--			b.maxwidth = PLANB_MAXPIXELS;
--			b.maxheight = PLANB_MAXLINES;
--			b.minwidth = 32; /* wild guess */
--			b.minheight = 32;
--			if (copy_to_user(arg,&b,sizeof(b)))
--				return -EFAULT;
--			return 0;
--		}
--		case VIDIOCSFBUF:
--		{
--			struct video_buffer v;
--			unsigned short bpp;
--			unsigned int fmt;
--
--			DEBUG("PlanB: IOCTL VIDIOCSFBUF\n");
--
--			if (!capable(CAP_SYS_ADMIN)
--			|| !capable(CAP_SYS_RAWIO))
--				return -EPERM;
--			if (copy_from_user(&v, arg,sizeof(v)))
--				return -EFAULT;
--			planb_lock(pb);
--			switch(v.depth) {
--			case 8:
--				bpp = 1;
--				fmt = PLANB_GRAY;
--				break;
--			case 15:
--			case 16:
--				bpp = 2;
--				fmt = PLANB_COLOUR15;
--				break;
--			case 24:
--			case 32:
--				bpp = 4;
--				fmt = PLANB_COLOUR32;
--				break;
--			default:
--				planb_unlock(pb);
--				return -EINVAL;
--			}
--			if (bpp * v.width > v.bytesperline) {
--				planb_unlock(pb);
--				return -EINVAL;
--			}
--			pb->win.bpp = bpp;
--			pb->win.color_fmt = fmt;
--			pb->frame_buffer_phys = (unsigned long) v.base;
--			pb->win.sheight = v.height;
--			pb->win.swidth = v.width;
--			pb->picture.depth = pb->win.depth = v.depth;
--			pb->win.bpl = pb->win.bpp * pb->win.swidth;
--			pb->win.pad = v.bytesperline - pb->win.bpl;
--
--			DEBUG("PlanB: Display at %p is %d by %d, bytedepth %d,"
--				" bpl %d (+ %d)\n", v.base, v.width,v.height,
--				pb->win.bpp, pb->win.bpl, pb->win.pad);
--
--			pb->cmd_buff_inited = 0;
--			if(pb->overlay) {
--				suspend_overlay(pb);
--				fill_cmd_buff(pb);
--				resume_overlay(pb);
--			}
--			planb_unlock(pb);
--			return 0;
--		}
--		case VIDIOCGFBUF:
--		{
--			struct video_buffer v;
--
--			DEBUG("PlanB: IOCTL VIDIOCGFBUF\n");
--
--			v.base = (void *)pb->frame_buffer_phys;
--			v.height = pb->win.sheight;
--			v.width = pb->win.swidth;
--			v.depth = pb->win.depth;
--			v.bytesperline = pb->win.bpl + pb->win.pad;
--			if (copy_to_user(arg, &v, sizeof(v)))
--				return -EFAULT;
--			return 0;
--		}
--		case VIDIOCCAPTURE:
--		{
--			int i;
--
--			if(copy_from_user(&i, arg, sizeof(i)))
--				return -EFAULT;
--			if(i==0) {
--				DEBUG("PlanB: IOCTL VIDIOCCAPTURE Stop\n");
--
--				if (!(pb->overlay))
--					return 0;
--				planb_lock(pb);
--				pb->overlay = 0;
--				overlay_stop(pb);
--				planb_unlock(pb);
--			} else {
--				DEBUG("PlanB: IOCTL VIDIOCCAPTURE Start\n");
--
--				if (pb->frame_buffer_phys == 0 ||
--					  pb->win.width == 0 ||
--					  pb->win.height == 0)
--					return -EINVAL;
--				if (pb->overlay)
--					return 0;
--				planb_lock(pb);
--				pb->overlay = 1;
--				if(!(pb->cmd_buff_inited))
--					fill_cmd_buff(pb);
--				overlay_start(pb);
--				planb_unlock(pb);
--			}
--			return 0;
--		}
--		case VIDIOCGCHAN:
--		{
--			struct video_channel v;
--
--			DEBUG("PlanB: IOCTL VIDIOCGCHAN\n");
--
--			if(copy_from_user(&v, arg,sizeof(v)))
--				return -EFAULT;
--			v.flags = 0;
--			v.tuners = 0;
--			v.type = VIDEO_TYPE_CAMERA;
--			v.norm = pb->win.norm;
--			switch(v.channel)
--			{
--			case 0:
--				strcpy(v.name,"Composite");
--				break;
--			case 1:
--				strcpy(v.name,"SVHS");
--				break;
--			default:
--				return -EINVAL;
--				break;
--			}
--			if(copy_to_user(arg,&v,sizeof(v)))
--				return -EFAULT;
--
--			return 0;
--		}
--		case VIDIOCSCHAN:
--		{
--			struct video_channel v;
--
--			DEBUG("PlanB: IOCTL VIDIOCSCHAN\n");
--
--			if(copy_from_user(&v, arg, sizeof(v)))
--				return -EFAULT;
--
--			if (v.norm != pb->win.norm) {
--				int i, maxlines;
--
--				switch (v.norm)
--				{
--				case VIDEO_MODE_PAL:
--				case VIDEO_MODE_SECAM:
--					maxlines = PLANB_MAXLINES;
--					break;
--				case VIDEO_MODE_NTSC:
--					maxlines = PLANB_NTSC_MAXLINES;
--					break;
--				default:
--					return -EINVAL;
--					break;
--				}
--				planb_lock(pb);
--				/* empty the grabbing queue */
--				wait_event(pb->capq, !pb->grabbing);
--				pb->maxlines = maxlines;
--				pb->win.norm = v.norm;
--				/* Stop overlay if running */
--				suspend_overlay(pb);
--				for(i = 0; i < MAX_GBUFFERS; i++)
--					pb->gnorm_switch[i] = 1;
--				/* I know it's an overkill, but.... */
--				fill_cmd_buff(pb);
--				/* ok, now init it accordingly */
--				saa_init_regs (pb);
--				/* restart overlay if it was running */
--				resume_overlay(pb);
--				planb_unlock(pb);
--			}
--
--			switch(v.channel)
--			{
--			case 0:	/* Composite	*/
--				saa_set (SAA7196_IOCC,
--					((saa_regs[pb->win.norm][SAA7196_IOCC] &
--					  ~7) | 3), pb);
--				break;
--			case 1:	/* SVHS		*/
--				saa_set (SAA7196_IOCC,
--					((saa_regs[pb->win.norm][SAA7196_IOCC] &
--					  ~7) | 4), pb);
--				break;
--			default:
--				return -EINVAL;
--				break;
--			}
--
--			return 0;
--		}
--		case VIDIOCGPICT:
--		{
--			struct video_picture vp = pb->picture;
--
--			DEBUG("PlanB: IOCTL VIDIOCGPICT\n");
--
--			switch(pb->win.color_fmt) {
--			case PLANB_GRAY:
--				vp.palette = VIDEO_PALETTE_GREY;
--			case PLANB_COLOUR15:
--				vp.palette = VIDEO_PALETTE_RGB555;
--				break;
--			case PLANB_COLOUR32:
--				vp.palette = VIDEO_PALETTE_RGB32;
--				break;
--			default:
--				vp.palette = 0;
--				break;
--			}
--
--			if(copy_to_user(arg,&vp,sizeof(vp)))
--				return -EFAULT;
--			return 0;
--		}
--		case VIDIOCSPICT:
--		{
--			struct video_picture vp;
--
--			DEBUG("PlanB: IOCTL VIDIOCSPICT\n");
--
--			if(copy_from_user(&vp,arg,sizeof(vp)))
--				return -EFAULT;
--			pb->picture = vp;
--			/* Should we do sanity checks here? */
--			saa_set (SAA7196_BRIG, (unsigned char)
--			    ((pb->picture.brightness) >> 8), pb);
--			saa_set (SAA7196_HUEC, (unsigned char)
--			    ((pb->picture.hue) >> 8) ^ 0x80, pb);
--			saa_set (SAA7196_CSAT, (unsigned char)
--			    ((pb->picture.colour) >> 9), pb);
--			saa_set (SAA7196_CONT, (unsigned char)
--			    ((pb->picture.contrast) >> 9), pb);
--
--			return 0;
--		}
--		case VIDIOCSWIN:
--		{
--			struct video_window	vw;
--			struct video_clip	clip;
--			int 			i;
--
--			DEBUG("PlanB: IOCTL VIDIOCSWIN\n");
--
--			if(copy_from_user(&vw,arg,sizeof(vw)))
--				return -EFAULT;
--
--			planb_lock(pb);
--			/* Stop overlay if running */
--			suspend_overlay(pb);
--			pb->win.interlace = (vw.height > pb->maxlines/2)? 1: 0;
--			if (pb->win.x != vw.x ||
--			    pb->win.y != vw.y ||
--			    pb->win.width != vw.width ||
--			    pb->win.height != vw.height ||
--			    !pb->cmd_buff_inited) {
--				pb->win.x = vw.x;
--				pb->win.y = vw.y;
--				pb->win.width = vw.width;
--				pb->win.height = vw.height;
--				fill_cmd_buff(pb);
--			}
--			/* Reset clip mask */
--			memset ((void *) pb->mask, 0xff, (pb->maxlines
--					* ((PLANB_MAXPIXELS + 7) & ~7)) / 8);
--			/* Add any clip rects */
--			for (i = 0; i < vw.clipcount; i++) {
--				if (copy_from_user(&clip, vw.clips + i,
--						sizeof(struct video_clip)))
--					return -EFAULT;
--				add_clip(pb, &clip);
--			}
--			/* restart overlay if it was running */
--			resume_overlay(pb);
--			planb_unlock(pb);
--			return 0;
--		}
--		case VIDIOCGWIN:
--		{
--			struct video_window vw;
--
--			DEBUG("PlanB: IOCTL VIDIOCGWIN\n");
--
--			vw.x=pb->win.x;
--			vw.y=pb->win.y;
--			vw.width=pb->win.width;
--			vw.height=pb->win.height;
--			vw.chromakey=0;
--			vw.flags=0;
--			if(pb->win.interlace)
--				vw.flags|=VIDEO_WINDOW_INTERLACE;
--			if(copy_to_user(arg,&vw,sizeof(vw)))
--				return -EFAULT;
--			return 0;
--		}
--		case VIDIOCSYNC: {
--			int i;
--
--			IDEBUG("PlanB: IOCTL VIDIOCSYNC\n");
--
--			if(copy_from_user((void *)&i,arg,sizeof(int)))
--				return -EFAULT;
--
--			IDEBUG("PlanB: sync to frame %d\n", i);
--
--			if(i > (MAX_GBUFFERS - 1) || i < 0)
--				return -EINVAL;
--chk_grab:
--			switch (pb->frame_stat[i]) {
--			case GBUFFER_UNUSED:
--				return -EINVAL;
--			case GBUFFER_GRABBING:
--				IDEBUG("PlanB: waiting for grab"
--							" done (%d)\n", i);
--				interruptible_sleep_on(&pb->capq);
--				if(signal_pending(current))
--					return -EINTR;
--				goto chk_grab;
--			case GBUFFER_DONE:
--				pb->frame_stat[i] = GBUFFER_UNUSED;
--				break;
--			}
--			return 0;
--		}
--
--		case VIDIOCMCAPTURE:
--		{
--			struct video_mmap vm;
--			volatile unsigned int status;
--
--			IDEBUG("PlanB: IOCTL VIDIOCMCAPTURE\n");
--
--			if(copy_from_user((void *) &vm,(void *)arg,sizeof(vm)))
--				return -EFAULT;
--			status = pb->frame_stat[vm.frame];
--			if (status != GBUFFER_UNUSED)
--				return -EBUSY;
--
--			return vgrab(pb, &vm);
--		}
--
--		case VIDIOCGMBUF:
--		{
--			int i;
--			struct video_mbuf vm;
--
--			DEBUG("PlanB: IOCTL VIDIOCGMBUF\n");
--
--			memset(&vm, 0 , sizeof(vm));
--			vm.size = PLANB_MAX_FBUF * MAX_GBUFFERS;
--			vm.frames = MAX_GBUFFERS;
--			for(i = 0; i<MAX_GBUFFERS; i++)
--				vm.offsets[i] = PLANB_MAX_FBUF * i;
--			if(copy_to_user((void *)arg, (void *)&vm, sizeof(vm)))
--				return -EFAULT;
--			return 0;
--		}
--
--		case PLANBIOCGSAAREGS:
--		{
--			struct planb_saa_regs preg;
--
--			DEBUG("PlanB: IOCTL PLANBIOCGSAAREGS\n");
--
--			if(copy_from_user(&preg, arg, sizeof(preg)))
--				return -EFAULT;
--			if(preg.addr >= SAA7196_NUMREGS)
--				return -EINVAL;
--			preg.val = saa_regs[pb->win.norm][preg.addr];
--			if(copy_to_user((void *)arg, (void *)&preg,
--								sizeof(preg)))
--				return -EFAULT;
--			return 0;
--		}
--
--		case PLANBIOCSSAAREGS:
--		{
--			struct planb_saa_regs preg;
--
--			DEBUG("PlanB: IOCTL PLANBIOCSSAAREGS\n");
--
--			if(copy_from_user(&preg, arg, sizeof(preg)))
--				return -EFAULT;
--			if(preg.addr >= SAA7196_NUMREGS)
--				return -EINVAL;
--			saa_set (preg.addr, preg.val, pb);
--			return 0;
--		}
--
--		case PLANBIOCGSTAT:
--		{
--			struct planb_stat_regs pstat;
--
--			DEBUG("PlanB: IOCTL PLANBIOCGSTAT\n");
--
--			pstat.ch1_stat = in_le32(&pb->planb_base->ch1.status);
--			pstat.ch2_stat = in_le32(&pb->planb_base->ch2.status);
--			pstat.saa_stat0 = saa_status(0, pb);
--			pstat.saa_stat1 = saa_status(1, pb);
--
--			if(copy_to_user((void *)arg, (void *)&pstat,
--							sizeof(pstat)))
--				return -EFAULT;
--			return 0;
--		}
--
--		case PLANBIOCSMODE: {
--			int v;
--
--			DEBUG("PlanB: IOCTL PLANBIOCSMODE\n");
--
--			if(copy_from_user(&v, arg, sizeof(v)))
--				return -EFAULT;
--
--			switch(v)
--			{
--			case PLANB_TV_MODE:
--				saa_set (SAA7196_STDC,
--					(saa_regs[pb->win.norm][SAA7196_STDC] &
--					  0x7f), pb);
--				break;
--			case PLANB_VTR_MODE:
--				saa_set (SAA7196_STDC,
--					(saa_regs[pb->win.norm][SAA7196_STDC] |
--					  0x80), pb);
--				break;
--			default:
--				return -EINVAL;
--				break;
--			}
--			pb->win.mode = v;
--			return 0;
--		}
--		case PLANBIOCGMODE: {
--			int v=pb->win.mode;
--
--			DEBUG("PlanB: IOCTL PLANBIOCGMODE\n");
--
--			if(copy_to_user(arg,&v,sizeof(v)))
--				return -EFAULT;
--			return 0;
--		}
--#ifdef PLANB_GSCANLINE
--		case PLANBG_GRAB_BPL: {
--			int v=pb->gbytes_per_line;
--
--			DEBUG("PlanB: IOCTL PLANBG_GRAB_BPL\n");
--
--			if(copy_to_user(arg,&v,sizeof(v)))
--				return -EFAULT;
--			return 0;
--		}
--#endif /* PLANB_GSCANLINE */
--		case PLANB_INTR_DEBUG: {
--			int i;
--
--			DEBUG("PlanB: IOCTL PLANB_INTR_DEBUG\n");
--
--			if(copy_from_user(&i, arg, sizeof(i)))
--				return -EFAULT;
--
--			/* avoid hang ups all together */
--			for (i = 0; i < MAX_GBUFFERS; i++) {
--				if(pb->frame_stat[i] == GBUFFER_GRABBING) {
--					pb->frame_stat[i] = GBUFFER_DONE;
--				}
--			}
--			if(pb->grabbing)
--				pb->grabbing--;
--			wake_up_interruptible(&pb->capq);
--			return 0;
--		}
--		case PLANB_INV_REGS: {
--			int i;
--			struct planb_any_regs any;
--
--			DEBUG("PlanB: IOCTL PLANB_INV_REGS\n");
--
--			if(copy_from_user(&any, arg, sizeof(any)))
--				return -EFAULT;
--			if(any.offset < 0 || any.offset + any.bytes > 0x400)
--				return -EINVAL;
--			if(any.bytes > 128)
--				return -EINVAL;
--			for (i = 0; i < any.bytes; i++) {
--				any.data[i] =
--					in_8((unsigned char *)pb->planb_base
--							+ any.offset + i);
--			}
--			if(copy_to_user(arg,&any,sizeof(any)))
--				return -EFAULT;
--			return 0;
--		}
--		default:
--		{
--			DEBUG("PlanB: Unimplemented IOCTL\n");
--			return -ENOIOCTLCMD;
--		}
--	/* Some IOCTLs are currently unsupported on PlanB */
--		case VIDIOCGTUNER: {
--		DEBUG("PlanB: IOCTL VIDIOCGTUNER\n");
--			goto unimplemented; }
--		case VIDIOCSTUNER: {
--		DEBUG("PlanB: IOCTL VIDIOCSTUNER\n");
--			goto unimplemented; }
--		case VIDIOCSFREQ: {
--		DEBUG("PlanB: IOCTL VIDIOCSFREQ\n");
--			goto unimplemented; }
--		case VIDIOCGFREQ: {
--		DEBUG("PlanB: IOCTL VIDIOCGFREQ\n");
--			goto unimplemented; }
--		case VIDIOCKEY: {
--		DEBUG("PlanB: IOCTL VIDIOCKEY\n");
--			goto unimplemented; }
--		case VIDIOCSAUDIO: {
--		DEBUG("PlanB: IOCTL VIDIOCSAUDIO\n");
--			goto unimplemented; }
--		case VIDIOCGAUDIO: {
--		DEBUG("PlanB: IOCTL VIDIOCGAUDIO\n");
--			goto unimplemented; }
--unimplemented:
--		DEBUG("       Unimplemented\n");
--			return -ENOIOCTLCMD;
--	}
--	return 0;
--}
--
--static int planb_mmap(struct vm_area_struct *vma, struct video_device *dev, const char *adr, unsigned long size)
--{
--	int i;
--	struct planb *pb = (struct planb *)dev;
--	unsigned long start = (unsigned long)adr;
--
--	if (size > MAX_GBUFFERS * PLANB_MAX_FBUF)
--		return -EINVAL;
--	if (!pb->rawbuf) {
--		int err;
--		if((err=grabbuf_alloc(pb)))
--			return err;
--	}
--	for (i = 0; i < pb->rawbuf_size; i++) {
--		unsigned long pfn;
--
--		pfn = virt_to_phys((void *)pb->rawbuf[i]) >> PAGE_SHIFT;
--		if (remap_pfn_range(vma, start, pfn, PAGE_SIZE, PAGE_SHARED))
--			return -EAGAIN;
--		start += PAGE_SIZE;
--		if (size <= PAGE_SIZE)
--			break;
--		size -= PAGE_SIZE;
--	}
--	return 0;
--}
--
--static struct video_device planb_template=
--{
--	.owner		= THIS_MODULE,
--	.name		= PLANB_DEVICE_NAME,
--	.type		= VID_TYPE_OVERLAY,
--	.open		= planb_open,
--	.close		= planb_close,
--	.read		= planb_read,
--	.write		= planb_write,
--	.ioctl		= planb_ioctl,
--	.mmap		= planb_mmap,	/* mmap? */
--};
--
--static int init_planb(struct planb *pb)
--{
--	unsigned char saa_rev;
--	int i, result;
--
--	memset ((void *) &pb->win, 0, sizeof (struct planb_window));
--	/* Simple sanity check */
--	if(def_norm >= NUM_SUPPORTED_NORM || def_norm < 0) {
--		printk(KERN_ERR "PlanB: Option(s) invalid\n");
--		return -2;
--	}
--	pb->win.norm = def_norm;
--	pb->win.mode = PLANB_TV_MODE;	/* TV mode */
--	pb->win.interlace=1;
--	pb->win.x=0;
--	pb->win.y=0;
--	pb->win.width=768; /* 640 */
--	pb->win.height=576; /* 480 */
--	pb->maxlines=576;
--#if 0
--	btv->win.cropwidth=768; /* 640 */
--	btv->win.cropheight=576; /* 480 */
--	btv->win.cropx=0;
--	btv->win.cropy=0;
--#endif
--	pb->win.pad=0;
--	pb->win.bpp=4;
--	pb->win.depth=32;
--	pb->win.color_fmt=PLANB_COLOUR32;
--	pb->win.bpl=1024*pb->win.bpp;
--	pb->win.swidth=1024;
--	pb->win.sheight=768;
--#ifdef PLANB_GSCANLINE
--	if((pb->gbytes_per_line = PLANB_MAXPIXELS * 4) > PAGE_SIZE
--				|| (pb->gbytes_per_line <= 0))
--		return -3;
--	else {
--		/* page align pb->gbytes_per_line for DMA purpose */
--		for(i = PAGE_SIZE; pb->gbytes_per_line < (i>>1);)
--			i>>=1;
--		pb->gbytes_per_line = i;
--	}
--#endif
--	pb->tab_size = PLANB_MAXLINES + 40;
--	pb->suspend = 0;
--	mutex_init(&pb->lock);
--	pb->ch1_cmd = 0;
--	pb->ch2_cmd = 0;
--	pb->mask = 0;
--	pb->priv_space = 0;
--	pb->offset = 0;
--	pb->user = 0;
--	pb->overlay = 0;
--	init_waitqueue_head(&pb->suspendq);
--	pb->cmd_buff_inited = 0;
--	pb->frame_buffer_phys = 0;
--
--	/* Reset DMA controllers */
--	planb_dbdma_stop(&pb->planb_base->ch2);
--	planb_dbdma_stop(&pb->planb_base->ch1);
--
--	saa_rev =  (saa_status(0, pb) & 0xf0) >> 4;
--	printk(KERN_INFO "PlanB: SAA7196 video processor rev. %d\n", saa_rev);
--	/* Initialize the SAA registers in memory and on chip */
--	saa_init_regs (pb);
--
--	/* clear interrupt mask */
--	pb->intr_mask = PLANB_CLR_IRQ;
--
--	result = request_irq(pb->irq, planb_irq, 0, "PlanB", pb);
--	if (result < 0) {
--		if (result==-EINVAL)
--			printk(KERN_ERR "PlanB: Bad irq number (%d) "
--						"or handler\n", (int)pb->irq);
--		else if (result==-EBUSY)
--			printk(KERN_ERR "PlanB: I don't know why, "
--					"but IRQ %d is busy\n", (int)pb->irq);
--		return result;
--	}
--	disable_irq(pb->irq);
--
--	/* Now add the template and register the device unit. */
--	memcpy(&pb->video_dev,&planb_template,sizeof(planb_template));
--
--	pb->picture.brightness=0x90<<8;
--	pb->picture.contrast = 0x70 << 8;
--	pb->picture.colour = 0x70<<8;
--	pb->picture.hue = 0x8000;
--	pb->picture.whiteness = 0;
--	pb->picture.depth = pb->win.depth;
--
--	pb->frame_stat=NULL;
--	init_waitqueue_head(&pb->capq);
--	for(i=0; i<MAX_GBUFFERS; i++) {
--		pb->gbuf_idx[i] = PLANB_MAX_FBUF * i / PAGE_SIZE;
--		pb->gwidth[i]=0;
--		pb->gheight[i]=0;
--		pb->gfmt[i]=0;
--		pb->cap_cmd[i]=NULL;
--#ifndef PLANB_GSCANLINE
--		pb->l_fr_addr_idx[i] = MAX_GBUFFERS * (PLANB_MAX_FBUF
--						/ PAGE_SIZE + 1) + MAX_LNUM * i;
--		pb->lsize[i] = 0;
--		pb->lnum[i] = 0;
--#endif
--	}
--	pb->rawbuf=NULL;
--	pb->grabbing=0;
--
--	/* enable interrupts */
--	out_le32(&pb->planb_base->intr_stat, PLANB_CLR_IRQ);
--	pb->intr_mask = PLANB_FRM_IRQ;
--	enable_irq(pb->irq);
--
--	if(video_register_device(&pb->video_dev, VFL_TYPE_GRABBER, video_nr)<0)
--		return -1;
--
--	return 0;
--}
--
--/*
-- *	Scan for a PlanB controller, request the irq and map the io memory
-- */
--
--static int find_planb(void)
--{
--	struct planb		*pb;
--	struct device_node	*planb_devices;
--	unsigned char		dev_fn, confreg, bus;
--	unsigned int		old_base, new_base;
--	unsigned int		irq;
--	struct pci_dev 		*pdev;
--	int rc;
--
--	if (!machine_is(powermac))
--		return 0;
--
--	planb_devices = of_find_node_by_name(NULL, "planb");
--	if (planb_devices == 0) {
--		planb_num=0;
--		printk(KERN_WARNING "PlanB: no device found!\n");
--		return planb_num;
--	}
--
--	if (planb_devices->next != NULL)
--		printk(KERN_ERR "Warning: only using first PlanB device!\n");
--	pb = &planbs[0];
--	planb_num = 1;
--
--	if (planb_devices->n_addrs != 1) {
--		printk (KERN_WARNING "PlanB: expecting 1 address for planb "
--			"(got %d)", planb_devices->n_addrs);
--		of_node_put(planb_devices);
--		return 0;
--	}
--
--	if (planb_devices->n_intrs == 0) {
--		printk(KERN_WARNING "PlanB: no intrs for device %s\n",
--		       planb_devices->full_name);
--		of_node_put(planb_devices);
--		return 0;
--	} else {
--		irq = planb_devices->intrs[0].line;
--	}
--
--	/* Initialize PlanB's PCI registers */
--
--	/* There is a bug with the way OF assigns addresses
--	   to the devices behind the chaos bridge.
--	   control needs only 0x1000 of space, but decodes only
--	   the upper 16 bits. It therefore occupies a full 64K.
--	   OF assigns the planb controller memory within this space;
--	   so we need to change that here in order to access planb. */
--
--	/* We remap to 0xf1000000 in hope that nobody uses it ! */
--
--	bus = (planb_devices->addrs[0].space >> 16) & 0xff;
--	dev_fn = (planb_devices->addrs[0].space >> 8) & 0xff;
--	confreg = planb_devices->addrs[0].space & 0xff;
--	old_base = planb_devices->addrs[0].address;
--	new_base = 0xf1000000;
--	of_node_put(planb_devices);
--
--	DEBUG("PlanB: Found on bus %d, dev %d, func %d, "
--		"membase 0x%x (base reg. 0x%x)\n",
--		bus, PCI_SLOT(dev_fn), PCI_FUNC(dev_fn), old_base, confreg);
--
--	pdev = pci_get_bus_and_slot(bus, dev_fn);
--	if (!pdev) {
--		printk(KERN_ERR "planb: cannot find slot\n");
--		goto err_out;
--	}
--
--	/* Enable response in memory space, bus mastering,
--	   use memory write and invalidate */
--	rc = pci_enable_device(pdev);
--	if (rc) {
--		printk(KERN_ERR "planb: cannot enable PCI device %s\n",
--		       pci_name(pdev));
--		goto err_out;
--	}
--	rc = pci_set_mwi(pdev);
--	if (rc) {
--		printk(KERN_ERR "planb: cannot enable MWI on PCI device %s\n",
--		       pci_name(pdev));
--		goto err_out_disable;
--	}
--	pci_set_master(pdev);
--
--	/* Set the new base address */
--	pci_write_config_dword (pdev, confreg, new_base);
--
--	planb_regs = (volatile struct planb_registers *)
--						ioremap (new_base, 0x400);
--	pb->planb_base = planb_regs;
--	pb->planb_base_phys = (struct planb_registers *)new_base;
--	pb->irq	= irq;
--	pb->dev = pdev;
--
--	return planb_num;
--
--err_out_disable:
--	pci_disable_device(pdev);
--err_out:
--	/* FIXME handle error */   /* comment moved from pci_find_slot, above */
--	pci_dev_put(pdev);
--	return 0;
--}
--
--static void release_planb(void)
--{
--	int i;
--	struct planb *pb;
--
--	for (i=0;i<planb_num; i++)
--	{
--		pb=&planbs[i];
--
--		/* stop and flash DMAs unconditionally */
--		planb_dbdma_stop(&pb->planb_base->ch2);
--		planb_dbdma_stop(&pb->planb_base->ch1);
--
--		/* clear and free interrupts */
--		pb->intr_mask = PLANB_CLR_IRQ;
--		out_le32 (&pb->planb_base->intr_stat, PLANB_CLR_IRQ);
--		free_irq(pb->irq, pb);
--
--		/* make sure all allocated memory are freed */
--		planb_prepare_close(pb);
--
--		printk(KERN_INFO "PlanB: unregistering with v4l\n");
--		video_unregister_device(&pb->video_dev);
--
--		pci_dev_put(pb->dev);
--
--		/* note that iounmap() does nothing on the PPC right now */
--		iounmap ((void *)pb->planb_base);
--	}
--}
--
--static int __init init_planbs(void)
--{
--	int i;
--
--	if (find_planb()<=0)
--		return -EIO;
--
--	for (i=0; i<planb_num; i++) {
--		if (init_planb(&planbs[i])<0) {
--			printk(KERN_ERR "PlanB: error registering device %d"
--							" with v4l\n", i);
--			release_planb();
--			return -EIO;
--		}
--		printk(KERN_INFO "PlanB: registered device %d with v4l\n", i);
--	}
--	return 0;
--}
--
--static void __exit exit_planbs(void)
--{
--	release_planb();
--}
--
--module_init(init_planbs);
--module_exit(exit_planbs);
-diff --git a/drivers/media/video/planb.h b/drivers/media/video/planb.h
-deleted file mode 100644
-index e21b573..0000000
---- a/drivers/media/video/planb.h
-+++ /dev/null
-@@ -1,232 +0,0 @@
--/*
--    planb - PlanB frame grabber driver
--
--    PlanB is used in the 7x00/8x00 series of PowerMacintosh
--    Computers as video input DMA controller.
--
--    Copyright (C) 1998 Michel Lanners (mlan@cpu.lu)
--
--    Based largely on the bttv driver by Ralph Metzler (rjkm@thp.uni-koeln.de)
--
--    Additional debugging and coding by Takashi Oe (toe@unlserve.unl.edu)
--
--
--    This program is free software; you can redistribute it and/or modify
--    it under the terms of the GNU General Public License as published by
--    the Free Software Foundation; either version 2 of the License, or
--    (at your option) any later version.
--
--    This program is distributed in the hope that it will be useful,
--    but WITHOUT ANY WARRANTY; without even the implied warranty of
--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--    GNU General Public License for more details.
--
--    You should have received a copy of the GNU General Public License
--    along with this program; if not, write to the Free Software
--    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
--*/
--
--/* $Id: planb.h,v 1.13 1999/05/03 19:28:56 mlan Exp $ */
--
--#ifndef _PLANB_H_
--#define _PLANB_H_
--
--#ifdef __KERNEL__
--#include <asm/dbdma.h>
--#include "saa7196.h"
--#endif /* __KERNEL__ */
--
--#define PLANB_DEVICE_NAME	"Apple PlanB Video-In"
--#define PLANB_REV		"1.0"
--
--#ifdef __KERNEL__
--//#define PLANB_GSCANLINE	/* use this if apps have the notion of */
--				/* grab buffer scanline */
--/* This should be safe for both PAL and NTSC */
--#define PLANB_MAXPIXELS 768
--#define PLANB_MAXLINES 576
--#define PLANB_NTSC_MAXLINES 480
--
--/* Uncomment your preferred norm ;-) */
--#define PLANB_DEF_NORM VIDEO_MODE_PAL
--//#define PLANB_DEF_NORM VIDEO_MODE_NTSC
--//#define PLANB_DEF_NORM VIDEO_MODE_SECAM
--
--/* fields settings */
--#define PLANB_GRAY	0x1	/*  8-bit mono? */
--#define PLANB_COLOUR15	0x2	/* 16-bit mode */
--#define PLANB_COLOUR32	0x4	/* 32-bit mode */
--#define PLANB_CLIPMASK	0x8	/* hardware clipmasking */
--
--/* misc. flags for PlanB DMA operation */
--#define	CH_SYNC		0x1	/* synchronize channels (set by ch1;
--				   cleared by ch2) */
--#define FIELD_SYNC	0x2     /* used for the start of each field
--				   (0 -> 1 -> 0 for ch1; 0 -> 1 for ch2) */
--#define EVEN_FIELD	0x0	/* even field is detected if unset */
--#define DMA_ABORT	0x2	/* error or just out of sync if set */
--#define ODD_FIELD	0x4	/* odd field is detected if set */
--
--/* for capture operations */
--#define MAX_GBUFFERS	2
--/* note PLANB_MAX_FBUF must be divisible by PAGE_SIZE */
--#ifdef PLANB_GSCANLINE
--#define PLANB_MAX_FBUF	0x240000	/* 576 * 1024 * 4 */
--#define TAB_FACTOR	(1)
--#else
--#define PLANB_MAX_FBUF	0x1b0000	/* 576 * 768 * 4 */
--#define TAB_FACTOR	(2)
--#endif
--#endif /* __KERNEL__ */
--
--struct planb_saa_regs {
--	unsigned char addr;
--	unsigned char val;
--};
--
--struct planb_stat_regs {
--	unsigned int ch1_stat;
--	unsigned int ch2_stat;
--	unsigned char saa_stat0;
--	unsigned char saa_stat1;
--};
--
--struct planb_any_regs {
--	unsigned int offset;
--	unsigned int bytes;
--	unsigned char data[128];
--};
--
--/* planb private ioctls */
--#define PLANBIOCGSAAREGS	_IOWR('v', BASE_VIDIOCPRIVATE, struct planb_saa_regs)	/* Read a saa7196 reg value */
--#define PLANBIOCSSAAREGS	_IOW('v', BASE_VIDIOCPRIVATE + 1, struct planb_saa_regs)	/* Set a saa7196 reg value */
--#define PLANBIOCGSTAT		_IOR('v', BASE_VIDIOCPRIVATE + 2, struct planb_stat_regs)	/* Read planb status */
--#define PLANB_TV_MODE		1
--#define PLANB_VTR_MODE		2
--#define PLANBIOCGMODE		_IOR('v', BASE_VIDIOCPRIVATE + 3, int)	/* Get TV/VTR mode */
--#define PLANBIOCSMODE		_IOW('v', BASE_VIDIOCPRIVATE + 4, int)	/* Set TV/VTR mode */
--
--#ifdef PLANB_GSCANLINE
--#define PLANBG_GRAB_BPL		_IOR('v', BASE_VIDIOCPRIVATE + 5, int)	/* # of bytes per scanline in grab buffer */
--#endif
--
--/* call wake_up_interruptible() with appropriate actions */
--#define PLANB_INTR_DEBUG	_IOW('v', BASE_VIDIOCPRIVATE + 20, int)
--/* investigate which reg does what */
--#define PLANB_INV_REGS		_IOWR('v', BASE_VIDIOCPRIVATE + 21, struct planb_any_regs)
--
--#ifdef __KERNEL__
--
--/* Potentially useful macros */
--#define PLANB_SET(x)	((x) << 16 | (x))
--#define PLANB_CLR(x)	((x) << 16)
--
--/* This represents the physical register layout */
--struct planb_registers {
--	volatile struct dbdma_regs	ch1;		/* 0x00: video in */
--	volatile unsigned int		even;		/* 0x40: even field setting */
--	volatile unsigned int		odd;		/* 0x44; odd field setting */
--	unsigned int			pad1[14];	/* empty? */
--	volatile struct dbdma_regs	ch2;		/* 0x80: clipmask out */
--	unsigned int			pad2[16];	/* 0xc0: empty? */
--	volatile unsigned int		reg3;		/* 0x100: ???? */
--	volatile unsigned int		intr_stat;	/* 0x104: irq status */
--#define PLANB_CLR_IRQ		0x00		/* clear Plan B interrupt */
--#define PLANB_GEN_IRQ		0x01		/* assert Plan B interrupt */
--#define PLANB_FRM_IRQ		0x0100		/* end of frame */
--	unsigned int			pad3[1];	/* empty? */
--	volatile unsigned int		reg5;		/* 0x10c: ??? */
--	unsigned int			pad4[60];	/* empty? */
--	volatile unsigned char		saa_addr;	/* 0x200: SAA subadr */
--	char				pad5[3];
--	volatile unsigned char		saa_regval;	/* SAA7196 write reg. val */
--	char				pad6[3];
--	volatile unsigned char		saa_status;	/* SAA7196 status byte */
--	/* There is more unused stuff here */
--};
--
--struct planb_window {
--	int	x, y;
--	ushort	width, height;
--	ushort	bpp, bpl, depth, pad;
--	ushort	swidth, sheight;
--	int	norm;
--	int	interlace;
--	u32	color_fmt;
--	int	chromakey;
--	int	mode;		/* used to switch between TV/VTR modes */
--};
--
--struct planb_suspend {
--	int overlay;
--	int frame;
--	struct dbdma_cmd cmd;
--};
--
--struct planb {
--	struct	video_device video_dev;
--	struct	video_picture picture;		/* Current picture params */
--	struct	video_audio audio_dev;		/* Current audio params */
--
--	volatile struct planb_registers *planb_base;	/* virt base of planb */
--	struct planb_registers *planb_base_phys;	/* phys base of planb */
--	void	*priv_space;			/* Org. alloc. mem for kfree */
--	int	user;
--	unsigned int tab_size;
--	int     maxlines;
--	struct mutex lock;
--	unsigned int	irq;			/* interrupt number */
--	volatile unsigned int intr_mask;
--	struct pci_dev *dev;			/* Our PCI device */
--
--	int	overlay;			/* overlay running? */
--	struct	planb_window win;
--	unsigned long frame_buffer_phys;	/* We need phys for DMA */
--	int	offset;				/* offset of pixel 1 */
--	volatile struct dbdma_cmd *ch1_cmd;	/* Video In DMA cmd buffer */
--	volatile struct dbdma_cmd *ch2_cmd;	/* Clip Out DMA cmd buffer */
--	volatile struct dbdma_cmd *overlay_last1;
--	volatile struct dbdma_cmd *overlay_last2;
--	unsigned long ch1_cmd_phys;
--	volatile unsigned char *mask;		/* Clipmask buffer */
--	int suspend;
--	wait_queue_head_t suspendq;
--	struct planb_suspend suspended;
--	int	cmd_buff_inited;		/* cmd buffer inited? */
--
--	int grabbing;
--	unsigned int gcount;
--	wait_queue_head_t capq;
--	int last_fr;
--	int prev_last_fr;
--	unsigned char **rawbuf;
--	int rawbuf_size;
--	int gbuf_idx[MAX_GBUFFERS];
--	volatile struct dbdma_cmd *cap_cmd[MAX_GBUFFERS];
--	volatile struct dbdma_cmd *last_cmd[MAX_GBUFFERS];
--	volatile struct dbdma_cmd *pre_cmd[MAX_GBUFFERS];
--	int need_pre_capture[MAX_GBUFFERS];
--#define PLANB_DUMMY 40	/* # of command buf's allocated for pre-capture seq. */
--	int gwidth[MAX_GBUFFERS], gheight[MAX_GBUFFERS];
--	unsigned int gfmt[MAX_GBUFFERS];
--	int gnorm_switch[MAX_GBUFFERS];
--	volatile unsigned int *frame_stat;
--#define GBUFFER_UNUSED       0x00U
--#define GBUFFER_GRABBING     0x01U
--#define GBUFFER_DONE         0x02U
--#ifdef PLANB_GSCANLINE
--	int gbytes_per_line;
--#else
--#define MAX_LNUM 431	/* change this if PLANB_MAXLINES or */
--			/* PLANB_MAXPIXELS changes */
--	int l_fr_addr_idx[MAX_GBUFFERS];
--	unsigned char *l_to_addr[MAX_GBUFFERS][MAX_LNUM];
--	int l_to_next_idx[MAX_GBUFFERS][MAX_LNUM];
--	int l_to_next_size[MAX_GBUFFERS][MAX_LNUM];
--	int lsize[MAX_GBUFFERS], lnum[MAX_GBUFFERS];
--#endif
--};
--
--#endif /* __KERNEL__ */
--
--#endif /* _PLANB_H_ */
+> Guennadi Liakhovetski (2):
+>      V4L/DVB (8425): v4l: fix checkpatch errors introduced by recent commits
+>      V4L/DVB (8488a): Add myself as a maintainer of the soc-camera subsystem
+>
+> Hans Verkuil (22):
+>      V4L/DVB (8423): cx18: remove firmware size check
+>      V4L/DVB (8427): videodev: split off the ioctl handling into v4l2-ioctl.c
+>      V4L/DVB (8428): videodev: rename 'dev' to 'parent'
+>      V4L/DVB (8429): videodev: renamed 'class_dev' to 'dev'
+>      V4L/DVB (8430): videodev: move some functions from v4l2-dev.h to v4l2-common.h or v4l2-ioctl.h
+>      V4L/DVB (8422): cs5345: fix incorrect mask with VIDIOC_DBG_S_REGISTER
+>      V4L/DVB (8477): v4l: remove obsolete audiochip.h
+>      V4L/DVB (8479): tveeprom/ivtv: fix usage of has_ir field
+>      V4L/DVB (8482): videodev: move all ioctl callbacks to a new v4l2_ioctl_ops struct
+>      V4L/DVB (8483): Remove obsolete owner field from video_device struct.
+>      V4L/DVB (8484): videodev: missed two more usages of the removed 'owner' field.
+>      V4L/DVB (8487): videodev: replace videodev.h includes by videodev2.h where possible
+>      V4L/DVB (8488): videodev: remove some CONFIG_VIDEO_V4L1_COMPAT code from v4l2-dev.h
+>      V4L/DVB (8504): s2255drv: add missing header
+>      V4L/DVB (8505): saa7134-empress.c: fix deadlock
+>      V4L/DVB (8506): empress: fix control handling oops
+>      V4L/DVB (8523): v4l2-dev: remove unused type and type2 field from video_device
+>      V4L/DVB (8524): videodev: copy the VID_TYPE defines to videodev.h
+>      V4L/DVB (8525): fix a few assorted spelling mistakes.
+>      V4L/DVB (8526): saa7146: fix VIDIOC_ENUM_FMT
+>      V4L/DVB (8546): saa7146: fix read from uninitialized memory
+>      V4L/DVB (8546): add tuner-3036 and dpc7146 drivers to feature-removal-schedule.txt
+>
+> Hans de Goede (3):
+>      V4L/DVB (8455): gspca_sonixb sn9c103 + ov7630 autoexposure and cleanup
+>      V4L/DVB (8456): gspca_sonixb remove non working ovXXXX contrast, hue and saturation ctrls
+>      V4L/DVB (8458): gspca_sonixb remove one more no longer needed special case from the code
+>
+> Igor M Liplianin (1):
+>      V4L/DVB (8421): Adds support for Dvbworld DVB-S 2102 USB card
+>
+> Jaime Velasco Juan (1):
+>      V4L/DVB (8491): stkwebcam: Always reuse last queued buffer
+>
+> Jean Delvare (1):
+>      V4L/DVB (8499): zr36067: Rework device memory allocation
+>
+> Jean-Francois Moine (14):
+>      V4L/DVB (8435): gspca: Delay after reset for ov7660 and USB traces in sonixj.
+>      V4L/DVB (8436): gspca: Version number only in the main driver.
+>      V4L/DVB (8438): gspca: Lack of matrix for zc3xx - tas5130c (vf0250).
+>      V4L/DVB (8441): gspca: Bad handling of start of frames in sonixj.
+>      V4L/DVB (8442): gspca: Remove the version from the subdrivers.
+>      V4L/DVB (8511): gspca: Get the card name of QUERYCAP from the usb product name.
+>      V4L/DVB (8512): gspca: Do not use the driver_info field of usb_device_id.
+>      V4L/DVB (8513): gspca: Set the specific per webcam information in driver_info.
+>      V4L/DVB (8515): gspca: Webcam 0c45:6143 added in sonixj.
+>      V4L/DVB (8517): gspca: Bad sensor for some webcams in zc3xx since 28b8203a830e.
+>      V4L/DVB (8518): gspca: Remove the remaining frame decoding functions from the subdrivers.
+>      V4L/DVB (8519): gspca: Set the specific per webcam information in driver_info for sonixb.
+>      V4L/DVB (8520): gspca: Bad webcam information in some modules since 28b8203a830e.
+>      V4L/DVB (8521): gspca: Webcams with Sonix bridge and sensor ov7630 are VGA.
+>
+> Laurent Pinchart (2):
+>      V4L/DVB (8497): uvcvideo: Make the auto-exposure menu control V4L2 compliant
+>      V4L/DVB (8498): uvcvideo: Return sensible min and max values when querying a boolean control.
+>
+> Martin Samuelsson (1):
+>      V4L/DVB (8500): zr36067: Load the avs6eyes chip drivers automatically
+>
+> Mauro Carvalho Chehab (12):
+>      V4L/DVB (8433): Fix macro name at z0194a.h
+>      V4L/DVB (8434): Fix x86_64 compilation and move some macros to v4l2-ioctl.h
+>      V4L/DVB (8234a): uvcvideo: Fix build for uvc input
+>      V4L/DVB (8451): dw2102: fix in-kernel compilation
+>      V4L/DVB (8500a): videotext.h: whitespace cleanup
+>      V4L/DVB (8502): videodev2.h: CodingStyle cleanups
+>      V4L/DVB (8522): videodev2: Fix merge conflict
+>      V4L/DVB (8541): em28xx: HVR-950 entry is duplicated.
+>      V4L/DVB (8542): em28xx: AMD ATI TV Wonder HD 600 entry at cards struct is duplicated
+>      V4L/DVB (8543): em28xx: Rename #define for Compro VideoMate ForYou/Stereo
+>      V4L/DVB (8548): pwc: Fix compilation
+>      V4L/DVB (8549): mxl5007: Fix an error at include file
+>
+> Michael Krufky (6):
+>      V4L/DVB (8509): pvrusb2: fix device descriptions for HVR-1900 & HVR-1950
+>      V4L/DVB (8528): add support for MaxLinear MxL5007T silicon tuner
+>      V4L/DVB (8529): mxl5007t: enable _init and _sleep power management functionality
+>      V4L/DVB (8530): au0828: add support for new revision of HVR950Q
+>      V4L/DVB (8531): mxl5007t: move i2c gate handling outside of mutex protected code blocks
+>      V4L/DVB (8532): mxl5007t: remove excessive locks
+>
+> Mike Isely (2):
+>      V4L/DVB (8474): pvrusb2: Enable IR chip on HVR-1900 class devices
+>      V4L/DVB (8475): pvrusb2: Cosmetic macro fix (benign)
+>
+> Oliver Neukum (1):
+>      V4L/DVB (8544): gspca: probe/open race.
+>
+> Simon Arlott (1):
+>      V4L/DVB (8496): saa7134: Copy tuner data earlier in init to avoid overwriting manual tuner type
+>
+> Steven Toth (9):
+>      V4L/DVB (8464): cx23885: Bugfix for concurrent use of /dev/video0 and /dev/video1
+>      V4L/DVB (8465): cx23885: Ensure PAD_CTRL is always reset to a sensible default
+>      V4L/DVB (8466): cx23885: Bugfix - DVB Transport cards using DVB port VIDB/TS1 did not stream.
+>      V4L/DVB (8467): cx23885: Minor cleanup to the debuging output for a specific register.
+>      V4L/DVB (8468): cx23885: Ensure the second transport port is enabled for streaming.
+>      V4L/DVB (8469): cx23885: FusionHDTV7 Dual Express toggle reset.
+>      V4L/DVB (8470): cx23885: Add DViCO HDTV7 Dual Express tuner callback support.
+>      V4L/DVB (8471): cx23885: Reallocated the sram to avoid concurrent VIDB/C issues.
+>      V4L/DVB (8472): cx23885: SRAM changes for the 885 and 887 silicon parts.
+>
+> Vitaly Wool (1):
+>      V4L/DVB (8540): em28xx-cards: Add Compro VideoMate ForYou/Stereo model
+>
+> reinhard schwab (1):
+>      V4L/DVB (8489): add dvb-t support for terratec cinergy hybrid T usb xs
+>
+> roel kluin (1):
+>      V4L/DVB (8493): mt20xx: test below 0 on unsigned lo1a and lo2a
+>
+> ---------------------------------------------------
+> V4L/DVB development is hosted at http://linuxtv.org
+>
+> _______________________________________________
+> v4l-dvb-maintainer mailing list
+> v4l-dvb-maintainer@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/v4l-dvb-maintainer
+>
 
 --
 video4linux-list mailing list
