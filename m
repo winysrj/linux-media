@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6TCASWN004837
-	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 08:10:28 -0400
-Received: from smtp-vbr6.xs4all.nl (smtp-vbr6.xs4all.nl [194.109.24.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6TCAGHc028106
-	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 08:10:17 -0400
-Received: from webmail.xs4all.nl (dovemail6.xs4all.nl [194.109.26.8])
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id m6TCAG0q028706
-	for <video4linux-list@redhat.com>;
-	Tue, 29 Jul 2008 14:10:16 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Message-ID: <20092.62.70.2.252.1217333416.squirrel@webmail.xs4all.nl>
-Date: Tue, 29 Jul 2008 14:10:16 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6S7944j029711
+	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 03:09:04 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6S78bgx032548
+	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 03:08:42 -0400
+Date: Mon, 28 Jul 2008 03:08:27 -0400 (EDT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+In-Reply-To: <20080727204256.bba5eaf6.randy.dunlap@oracle.com>
+Message-ID: <alpine.LFD.1.10.0807280303110.18581@bombadil.infradead.org>
+References: <20080727224104.78b8298d@gaivota>
+	<20080727204256.bba5eaf6.randy.dunlap@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Subject: Re: CONFIG_VIDEO_ADV_DEBUG question
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: Re: [GIT PATCHES for 2.6.27] V4L/DVB updates
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,39 +29,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Hi All,
+Hi Randy,
+
+> I'd really like to get this patch that I mailed to you 2008-July-21 merged...
+
+Your patch looks OK to me. However, this function were moved to 
+v4l2-dev.c, by the V4L core changes (the changes broke videodev into two 
+different files, and did some improvements there).
+
+Do you mind to rebase your patch?
+
 >
-> CONFIG_VIDEO_ADV_DEBUG enables additional debugging output in the gscpa
-> driver, which then becomes "active" when a module option gets passed. So
-> in the gspca case it normally only results in a larger driver without
-> causing additional debug unless module option is passed.
+> ---
 >
-> I've been asking the Fedora kernel maintainers to enable this option by
-> default for the Fedora development version atleast, and thus I wonder
-> how this option affects other drivers, are there other drivers which
-> become very chatty with this option, or do they all need a module option
-> to truely enable all the debug spew like gspca?
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+>
+> Add kernel-doc for parameter @index:
+>
+> Warning(linhead//drivers/media/video/videodev.c:2090): No description found for parameter 'index'
+>
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> ---
+> drivers/media/video/videodev.c |    2 ++
+> 1 file changed, 2 insertions(+)
+>
+> --- linhead.orig/drivers/media/video/videodev.c
+> +++ linhead/drivers/media/video/videodev.c
+> @@ -2066,6 +2066,8 @@ EXPORT_SYMBOL(video_register_device);
+>  *	@type: type of device to register
+>  *	@nr:   which device number (0 == /dev/video0, 1 == /dev/video1, ...
+>  *             -1 == first free)
+> + *	@index: stream number based on parent device;
+> + *		-1 if auto assign, requested number otherwise
+>  *
+>  *	The registration code assigns minor numbers based on the type
+>  *	requested. -ENFILE is returned in all the device slots for this
+>
 
-The verbosity level is done through some sort of debug module option. This
-CONFIG is only used AFAIK to enable the VIDIOC_DBG_G/S_REGISTER ioctls
-which allows you to program the video device(s) directly by
-setting/getting registers.
-
-I see that a few drivers use it to expose extra information through sysfs.
-
-But the way gspca uses it is not correct. I would remove the test on
-CONFIG_VIDEO_ADV_DEBUG there altogether, or replace it with a test of a
-new gspca-specific config option. The ADV_DEBUG option is really about
-allowing the root user access to low-level driver registers through the
-v4l2-dbg utility. It's not about enabling additional debugging output.
-
-This is also the reason by it is disabled by most (?) distros: it's a bit
-dangerous to allow the user to mess with that. But it is ideal to test
-different register values on the fly.
-
-Regards,
-
-         Hans
+-- 
+Cheers,
+Mauro Carvalho Chehab
+http://linuxtv.org
+mchehab@infradead.org
 
 --
 video4linux-list mailing list
