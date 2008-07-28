@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6KEAOaP017231
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 10:10:24 -0400
-Received: from ik-out-1112.google.com (ik-out-1112.google.com [66.249.90.177])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6KEADKU014467
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 10:10:13 -0400
-Received: by ik-out-1112.google.com with SMTP id c30so789559ika.3
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 07:10:12 -0700 (PDT)
-Message-ID: <de8cad4d0807200710xde576bfpb495ae5dbbd0b394@mail.gmail.com>
-Date: Sun, 20 Jul 2008 10:10:12 -0400
-From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6SJx01r028093
+	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 15:59:00 -0400
+Received: from smtp5.pp.htv.fi (smtp5.pp.htv.fi [213.243.153.39])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6SJwmaW025098
+	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 15:58:48 -0400
+Date: Mon, 28 Jul 2008 22:58:05 +0300
+From: Adrian Bunk <bunk@kernel.org>
+To: mchehab@infradead.org
+Message-ID: <20080728195805.GA7713@cs181140183.pp.htv.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Subject: compat_ioctl32.o: Error compiling latest HG clone of v4l-dvb
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: [2.6 patch] DVB_DRX397XD: remove FW_LOADER select
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,24 +25,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Greetings,
+Also for the new DVB_DRX397XD driver the FW_LOADER select and the 
+corresponding dependency on HOTPLUG can be removed.
 
-Snippet below.
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 
-Thanks!
-
-Brandon
-
-CC [M]  /root/v4l-dvb/v4l/compat_ioctl32.o
-/root/v4l-dvb/v4l/compat_ioctl32.c: In function 'v4l_compat_ioctl32':
-/root/v4l-dvb/v4l/compat_ioctl32.c:985: error: implicit declaration of
-function 'v4l_printk_ioctl'
-make[3]: *** [/root/v4l-dvb/v4l/compat_ioctl32.o] Error 1
-make[2]: *** [_module_/root/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-2.6.26'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/root/v4l-dvb/v4l'
-make: *** [all] Error 2
+---
+16b93b65909268a6236971de1dbc882bc90b62bf 
+diff --git a/drivers/media/dvb/frontends/Kconfig b/drivers/media/dvb/frontends/Kconfig
+index 574dffe..7dbb4a2 100644
+--- a/drivers/media/dvb/frontends/Kconfig
++++ b/drivers/media/dvb/frontends/Kconfig
+@@ -135,9 +135,8 @@ config DVB_CX22702
+ 
+ config DVB_DRX397XD
+ 	tristate "Micronas DRX3975D/DRX3977D based"
+-	depends on DVB_CORE && I2C && HOTPLUG
++	depends on DVB_CORE && I2C
+ 	default m if DVB_FE_CUSTOMISE
+-	select FW_LOADER
+ 	help
+ 	  A DVB-T tuner module. Say Y when you want to support this frontend.
+ 
 
 --
 video4linux-list mailing list
