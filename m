@@ -1,18 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m67LgBWg004698
-	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 17:42:11 -0400
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m67Lfc4a006757
-	for <video4linux-list@redhat.com>; Mon, 7 Jul 2008 17:41:38 -0400
-Message-ID: <48728F2C.4000600@hhs.nl>
-Date: Mon, 07 Jul 2008 23:48:28 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6SIXi17029251
+	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 14:33:44 -0400
+Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6SIXW6E032423
+	for <video4linux-list@redhat.com>; Mon, 28 Jul 2008 14:33:32 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0807270155020.29126@axis700.grange>
+	<878wvnkd8n.fsf@free.fr>
+	<Pine.LNX.4.64.0807271337270.1604@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Mon, 28 Jul 2008 20:33:29 +0200
+In-Reply-To: <Pine.LNX.4.64.0807271337270.1604@axis700.grange> (Guennadi
+	Liakhovetski's message of "Sun\,
+	27 Jul 2008 21\:11\:43 +0200 \(CEST\)")
+Message-ID: <87tze997uu.fsf@free.fr>
 MIME-Version: 1.0
-To: Thierry Merle <thierry.merle@free.fr>
-Content-Type: multipart/mixed; boundary="------------050105040406020509040005"
-Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>
-Subject: PATCH: libv4l-really-sync-with-0.3.4.patch
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com, linux-pm@lists.linux-foundation.org
+Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,122 +31,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------050105040406020509040005
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Hi,
+> On Sun, 27 Jul 2008, Robert Jarzmik wrote:
+>
+> Yes, this is the difference. The sensor is attached to the camera host 
+> only on open. In fact, I am not sure, how video applications should behave 
+> during a suspend / resume cycle. If you suspend, while, say, recording 
+> from your camera, should you directly continue recording after a wake up? 
+> How do currect drivers implement this? Or, in general, for example with 
+> audio - if you suspend while listening to a stream over the net, or to a 
+> CD, or to a mp3-file on your local disk, should the sound resume after a 
+> wake up? I added linux-pm for some authoritative answers:-)
+AFAIK, on resume, sound streams continues. So the normal behaviour would be to
+continue video stream too (as done in ALSA). This supposes the whole video chip
+state is saved on suspend and restored on resume, of course.
 
-This patch _really_ syncs mercurial with the 0.3.4 tarbal I've just released,
-at the last minute I got a bugreport that kopete was not working with the 
-wrapper leading to the following changes:
+> If you know how a v4l2 device should handle suspend/resume, or when we get 
+> some answers, let's try to do it completely-
+Of course. In a week or two, my mt9m111 driver will be ready for submission, and
+in the review process I'll post a submission for complete suspend/resume.
 
-* Some apps (xawtv, kopete) use an ioctl wrapper internally for various
-   reasons. This wrappers request argument is an int, but the real ioctl's
-   request argument is an unsigned long. Passing the VIDIOC_xxx defines through
-   to the wrapper, and then to the real ioctl, causes the request to get sign
-   extended on 64 bit args. The kernel seems to ignore the upper 32 bits,
-   causing the sign extension to not make a difference. libv4l now also
-   ignores the upper 32 bits of the libv4lx_ioctl request argument on 64 bit
-   archs
-* Add a bugfix patch for kopete in the appl-patches dir, currently it assumes
-   that it got the width and height it asked for when doing a S_FMT, which is a
-   wrong assumption
+>> For the camera part, by now, I'm using standard suspend/resume functions of the
+>> platform driver (mt9m111.c). It does work, but it's not clean ATM. The chaining
+>> between the driver resume function and the availability of the I2C bus are not
+>> properly chained. I'm still working on it.
+>
+> Yes, we have to clarify this too.
+Yes.
 
-Note that this applies on top of my previous 0.3.4 sync patch, and note that it 
-adds a file under appl-patches !
+So, to sum up :
+ - I finish the mt9m111 driver
+ - I submit it
+ - I cook up a clean suspend/resume (unless you did it first of course :)
 
-Thanks & Regards,
-
-Hans
-
-
-
-
---------------050105040406020509040005
-Content-Type: text/x-patch;
- name="libv4l-really-sync-with-0.3.4.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="libv4l-really-sync-with-0.3.4.patch"
-
-diff -r b727e145976f v4l2-apps/lib/libv4l/ChangeLog
---- a/v4l2-apps/lib/libv4l/ChangeLog	Mon Jul 07 23:35:40 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/ChangeLog	Mon Jul 07 23:37:40 2008 +0200
-@@ -3,6 +3,17 @@
- * The mmap64 support in 0.3.3, has caused a bug in libv4l1 when running on
-   32 bit systems (who uses those now a days?), this bug caused v4l1
-   compatibility to not work at all, this release fixes this
-+* Some apps (xawtv, kopete) use an ioctl wrapper internally for various
-+  reasons. This wrappers request argument is an int, but the real ioctl's
-+  request argument is an unsigned long. Passing the VIDIOC_xxx defines through
-+  to the wrapper, and then to the real ioctl, causes the request to get sign
-+  extended on 64 bit args. The kernel seems to ignore the upper 32 bits,
-+  causing the sign extension to not make a difference. libv4l now also
-+  ignores the upper 32 bits of the libv4lx_ioctl request argument on 64 bit
-+  archs
-+* Add a bugfix patch for kopete in the appl-patches dir, currently it assumes
-+  that it got the width and height it asked for when doing a S_FMT, which is a
-+  wrong assumption
- 
- 
- libv4l-0.3.3
-diff -r b727e145976f v4l2-apps/lib/libv4l/appl-patches/kdenetwork-4.0.85-kopete.patch
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/v4l2-apps/lib/libv4l/appl-patches/kdenetwork-4.0.85-kopete.patch	Mon Jul 07 23:37:40 2008 +0200
-@@ -0,0 +1,12 @@
-+diff -up kdenetwork-4.0.85/kopete/libkopete/avdevice/videodevice.cpp~ kdenetwork-4.0.85/kopete/libkopete/avdevice/videodevice.cpp
-+--- kdenetwork-4.0.85/kopete/libkopete/avdevice/videodevice.cpp~	2008-07-07 22:40:56.000000000 +0200
-++++ kdenetwork-4.0.85/kopete/libkopete/avdevice/videodevice.cpp	2008-07-07 22:40:56.000000000 +0200
-+@@ -679,6 +679,8 @@ kDebug() << "VIDIOC_S_FMT worked (" << e
-+ 					if (fmt.fmt.pix.sizeimage < min)
-+ 						fmt.fmt.pix.sizeimage = min;
-+ 					m_buffer_size=fmt.fmt.pix.sizeimage ;
-++					currentwidth = fmt.fmt.pix.width;
-++					currentheight = fmt.fmt.pix.height;
-+ 				}
-+ 				break;
-+ #endif
-diff -r b727e145976f v4l2-apps/lib/libv4l/libv4l1/libv4l1.c
---- a/v4l2-apps/lib/libv4l/libv4l1/libv4l1.c	Mon Jul 07 23:35:40 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/libv4l1/libv4l1.c	Mon Jul 07 23:37:40 2008 +0200
-@@ -453,6 +453,11 @@
- 
-   if ((index = v4l1_get_index(fd)) == -1)
-     return syscall(SYS_ioctl, fd, request, arg);
-+
-+  /* Appearantly the kernel and / or glibc ignore the 32 most significant bits
-+     when long = 64 bits, and some applications pass an int holding the req to
-+     ioctl, causing it to get sign extended, depending upon this behavior */
-+  request = (unsigned int)request;
- 
-   /* do we need to take the stream lock for this ioctl? */
-   switch (request) {
-diff -r b727e145976f v4l2-apps/lib/libv4l/libv4l2/libv4l2.c
---- a/v4l2-apps/lib/libv4l/libv4l2/libv4l2.c	Mon Jul 07 23:35:40 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/libv4l2/libv4l2.c	Mon Jul 07 23:37:40 2008 +0200
-@@ -541,6 +541,11 @@
-   if ((index = v4l2_get_index(fd)) == -1)
-     return syscall(SYS_ioctl, fd, request, arg);
- 
-+  /* Appearantly the kernel and / or glibc ignore the 32 most significant bits
-+     when long = 64 bits, and some applications pass an int holding the req to
-+     ioctl, causing it to get sign extended, depending upon this behavior */
-+  request = (unsigned int)request;
-+
-   /* Is this a capture request and do we need to take the stream lock? */
-   switch (request) {
-     case VIDIOC_ENUM_FMT:
-
---------------050105040406020509040005
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--
+Robert
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------050105040406020509040005--
