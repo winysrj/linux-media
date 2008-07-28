@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m61ClXrq005733
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 08:47:33 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.234])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m61CjU9q021241
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 08:47:22 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so2164027rvb.51
-	for <video4linux-list@redhat.com>; Tue, 01 Jul 2008 05:47:22 -0700 (PDT)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: video4linux-list@redhat.com
-Date: Tue, 01 Jul 2008 21:47:35 +0900
-Message-Id: <20080701124735.30446.89320.sendpatchset@rx1.opensource.se>
-In-Reply-To: <20080701124638.30446.81449.sendpatchset@rx1.opensource.se>
-References: <20080701124638.30446.81449.sendpatchset@rx1.opensource.se>
-Cc: akpm@linux-foundation.org, lethal@linux-sh.org, mchehab@infradead.org,
-	linux-sh@vger.kernel.org
-Subject: [PATCH 06/07] videobuf: Add physically contiguous queue code
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6S1ffeZ006910
+	for <video4linux-list@redhat.com>; Sun, 27 Jul 2008 21:41:41 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6S1fRXg025950
+	for <video4linux-list@redhat.com>; Sun, 27 Jul 2008 21:41:27 -0400
+Date: Sun, 27 Jul 2008 22:41:04 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Message-ID: <20080727224104.78b8298d@gaivota>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>,
+	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
+Subject: [GIT PATCHES for 2.6.27] V4L/DVB updates
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,507 +26,385 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This patch adds support for videobuf queues made from physically
-contiguous memory. Useful for hardware such as the SuperH Mobile CEU
-which doesn't support scatter gatter bus mastering.
+Linus,
 
-Since it may be difficult to allocate large chunks of physically
-contiguous memory after some uptime due to fragmentation, this code
-allocates memory using dma_alloc_coherent(). Architectures supporting
-dma_declare_coherent_memory() can easily avoid fragmentation issues
-by using dma_declare_coherent_memory() to force dma_alloc_coherent()
-to allocate from a certain pre-allocated memory area.
+Please pull from:
+        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git for_linus
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
+For the following:
+
+   - API internal improvements on V4L;
+   - Two new drivers: dw2102, mxl5007t;
+   - removal of the long time broken PlanB driver;
+   - added two very old boards to be removed, at feature-removal-schedule;
+   - several fixes and new board support and cleanups on drivers: cx18, gspca,
+     uvcvideo, cs5345, cx2885, pvrusb2, em28xx, s2255drv, stkwebcam, mt20xx, anysee,
+     zr36067, saa7134, saa7134-empress, saa7146, ivtv and tveeprom and pwc;
+   - Some cleanups at V4L core.
+
+Cheers,
+Mauro.
+
 ---
 
- drivers/media/video/Kconfig               |    4 
- drivers/media/video/Makefile              |    1 
- drivers/media/video/videobuf-dma-contig.c |  413 +++++++++++++++++++++++++++++
- include/media/videobuf-dma-contig.h       |   39 ++
- 4 files changed, 457 insertions(+)
+ Documentation/feature-removal-schedule.txt      |   24 +
+ Documentation/video4linux/CARDLIST.au0828       |    1 +
+ Documentation/video4linux/CARDLIST.em28xx       |   45 +-
+ Documentation/video4linux/gspca.txt             |    2 +-
+ MAINTAINERS                                     |    6 +
+ drivers/media/common/saa7146_fops.c             |    2 +-
+ drivers/media/common/saa7146_video.c            |   19 +-
+ drivers/media/common/tuners/Kconfig             |   16 +-
+ drivers/media/common/tuners/Makefile            |    1 +
+ drivers/media/common/tuners/mt20xx.c            |    3 +-
+ drivers/media/common/tuners/mxl5007t.c          | 1030 ++++++++++
+ drivers/media/common/tuners/mxl5007t.h          |  104 +
+ drivers/media/common/tuners/tda9887.c           |    2 +-
+ drivers/media/common/tuners/tuner-simple.c      |    2 +-
+ drivers/media/dvb/bt8xx/Kconfig                 |    2 -
+ drivers/media/dvb/dvb-usb/Kconfig               |   10 +-
+ drivers/media/dvb/dvb-usb/Makefile              |    3 +
+ drivers/media/dvb/dvb-usb/anysee.c              |    2 +-
+ drivers/media/dvb/dvb-usb/dvb-usb-ids.h         |    1 +
+ drivers/media/dvb/dvb-usb/dw2102.c              |  425 +++++
+ drivers/media/dvb/dvb-usb/dw2102.h              |    9 +
+ drivers/media/dvb/frontends/Kconfig             |   24 +-
+ drivers/media/dvb/frontends/z0194a.h            |   97 +
+ drivers/media/dvb/siano/smscoreapi.c            |   14 +-
+ drivers/media/dvb/siano/smsdvb.c                |    4 +-
+ drivers/media/dvb/ttpci/Kconfig                 |    4 -
+ drivers/media/dvb/ttusb-dec/Kconfig             |    2 -
+ drivers/media/radio/dsbr100.c                   |   18 +-
+ drivers/media/radio/miropcm20-radio.c           |    3 +-
+ drivers/media/radio/radio-aimslab.c             |   14 +-
+ drivers/media/radio/radio-aztech.c              |   14 +-
+ drivers/media/radio/radio-cadet.c               |   14 +-
+ drivers/media/radio/radio-gemtek-pci.c          |   13 +-
+ drivers/media/radio/radio-gemtek.c              |   13 +-
+ drivers/media/radio/radio-maestro.c             |   12 +-
+ drivers/media/radio/radio-maxiradio.c           |   15 +-
+ drivers/media/radio/radio-rtrack2.c             |   14 +-
+ drivers/media/radio/radio-sf16fmi.c             |   14 +-
+ drivers/media/radio/radio-sf16fmr2.c            |   14 +-
+ drivers/media/radio/radio-si470x.c              |   22 +-
+ drivers/media/radio/radio-terratec.c            |   14 +-
+ drivers/media/radio/radio-trust.c               |   14 +-
+ drivers/media/radio/radio-typhoon.c             |   14 +-
+ drivers/media/radio/radio-zoltrix.c             |   14 +-
+ drivers/media/video/Kconfig                     |   19 +-
+ drivers/media/video/Makefile                    |    3 +-
+ drivers/media/video/arv.c                       |    1 -
+ drivers/media/video/au0828/Kconfig              |    1 +
+ drivers/media/video/au0828/au0828-cards.c       |   12 +
+ drivers/media/video/au0828/au0828-cards.h       |    1 +
+ drivers/media/video/au0828/au0828-dvb.c         |   15 +
+ drivers/media/video/bt8xx/Kconfig               |    2 -
+ drivers/media/video/bt8xx/bttv-driver.c         |   58 +-
+ drivers/media/video/bt8xx/bttv-risc.c           |    1 +
+ drivers/media/video/bt8xx/bttv-vbi.c            |    1 +
+ drivers/media/video/bw-qcam.c                   |    3 +-
+ drivers/media/video/c-qcam.c                    |    3 +-
+ drivers/media/video/cafe_ccic.c                 |   26 +-
+ drivers/media/video/compat_ioctl32.c            |    2 +-
+ drivers/media/video/cpia.c                      |    2 -
+ drivers/media/video/cpia.h                      |    1 +
+ drivers/media/video/cpia2/cpia2_core.c          |    1 +
+ drivers/media/video/cpia2/cpia2_v4l.c           |    5 +-
+ drivers/media/video/cs5345.c                    |    2 +-
+ drivers/media/video/cs53l32a.c                  |    2 +-
+ drivers/media/video/cx18/Kconfig                |    2 -
+ drivers/media/video/cx18/cx18-av-audio.c        |  111 +-
+ drivers/media/video/cx18/cx18-driver.h          |    1 +
+ drivers/media/video/cx18/cx18-firmware.c        |   54 +-
+ drivers/media/video/cx18/cx18-ioctl.c           |   92 +-
+ drivers/media/video/cx18/cx18-streams.c         |    5 +-
+ drivers/media/video/cx23885/Kconfig             |    2 -
+ drivers/media/video/cx23885/cx23885-417.c       |   19 +-
+ drivers/media/video/cx23885/cx23885-cards.c     |   54 +-
+ drivers/media/video/cx23885/cx23885-core.c      |  147 ++-
+ drivers/media/video/cx23885/cx23885-video.c     |   19 +-
+ drivers/media/video/cx25840/Kconfig             |    2 -
+ drivers/media/video/cx25840/cx25840-core.c      |    2 +-
+ drivers/media/video/cx25840/cx25840-core.h      |    2 -
+ drivers/media/video/cx88/Kconfig                |    3 +-
+ drivers/media/video/cx88/cx88-blackbird.c       |   15 +-
+ drivers/media/video/cx88/cx88-cards.c           |    2 +-
+ drivers/media/video/cx88/cx88-core.c            |    3 +-
+ drivers/media/video/cx88/cx88-video.c           |   37 +-
+ drivers/media/video/cx88/cx88.h                 |    4 +-
+ drivers/media/video/em28xx/em28xx-cards.c       |  977 ++++++++++-
+ drivers/media/video/em28xx/em28xx-dvb.c         |   13 +-
+ drivers/media/video/em28xx/em28xx-video.c       |   61 +-
+ drivers/media/video/em28xx/em28xx.h             |   49 +-
+ drivers/media/video/et61x251/et61x251_core.c    |    5 +-
+ drivers/media/video/gspca/conex.c               |    9 +-
+ drivers/media/video/gspca/etoms.c               |   30 +-
+ drivers/media/video/gspca/gspca.c               |   43 +-
+ drivers/media/video/gspca/mars.c                |    9 +-
+ drivers/media/video/gspca/ov519.c               |   33 +-
+ drivers/media/video/gspca/pac207.c              |   29 +-
+ drivers/media/video/gspca/pac7311.c             |   22 +-
+ drivers/media/video/gspca/sonixb.c              |  484 ++----
+ drivers/media/video/gspca/sonixj.c              |  492 ++----
+ drivers/media/video/gspca/spca500.c             |  139 +--
+ drivers/media/video/gspca/spca501.c             |   75 +-
+ drivers/media/video/gspca/spca505.c             |  140 +--
+ drivers/media/video/gspca/spca506.c             |  121 +-
+ drivers/media/video/gspca/spca508.c             |  164 +--
+ drivers/media/video/gspca/spca561.c             |   62 +-
+ drivers/media/video/gspca/stk014.c              |    9 +-
+ drivers/media/video/gspca/sunplus.c             |  355 +---
+ drivers/media/video/gspca/t613.c                |   26 +-
+ drivers/media/video/gspca/tv8532.c              |   17 +-
+ drivers/media/video/gspca/vc032x.c              |   44 +-
+ drivers/media/video/gspca/zc3xx.c               |  486 +++---
+ drivers/media/video/ivtv/Kconfig                |    2 -
+ drivers/media/video/ivtv/ivtv-driver.c          |    5 +-
+ drivers/media/video/ivtv/ivtv-driver.h          |    1 +
+ drivers/media/video/ivtv/ivtv-ioctl.c           |  130 +-
+ drivers/media/video/ivtv/ivtv-streams.c         |    7 +-
+ drivers/media/video/m52790.c                    |    2 +-
+ drivers/media/video/meye.c                      |   19 +-
+ drivers/media/video/msp3400-driver.c            |    2 +-
+ drivers/media/video/msp3400-kthreads.c          |    1 -
+ drivers/media/video/mt9m001.c                   |    2 +-
+ drivers/media/video/ov511.c                     |   38 +-
+ drivers/media/video/ov511.h                     |    1 +
+ drivers/media/video/planb.c                     | 2309 -----------------------
+ drivers/media/video/planb.h                     |  232 ---
+ drivers/media/video/pms.c                       |    3 +-
+ drivers/media/video/pvrusb2/Kconfig             |    2 -
+ drivers/media/video/pvrusb2/pvrusb2-context.h   |    4 +-
+ drivers/media/video/pvrusb2/pvrusb2-devattr.c   |   11 +-
+ drivers/media/video/pvrusb2/pvrusb2-devattr.h   |   26 +-
+ drivers/media/video/pvrusb2/pvrusb2-fx2-cmd.h   |    2 +
+ drivers/media/video/pvrusb2/pvrusb2-hdw.c       |    9 +
+ drivers/media/video/pvrusb2/pvrusb2-i2c-core.c  |    4 +-
+ drivers/media/video/pvrusb2/pvrusb2-v4l2.c      |    6 +-
+ drivers/media/video/pwc/pwc-if.c                |   16 +-
+ drivers/media/video/pwc/pwc.h                   |    2 +
+ drivers/media/video/s2255drv.c                  |  130 +-
+ drivers/media/video/saa5246a.c                  |    3 +-
+ drivers/media/video/saa5249.c                   |    3 +-
+ drivers/media/video/saa7134/Kconfig             |    2 -
+ drivers/media/video/saa7134/saa7134-cards.c     |    3 -
+ drivers/media/video/saa7134/saa7134-core.c      |   16 +-
+ drivers/media/video/saa7134/saa7134-empress.c   |   54 +-
+ drivers/media/video/saa7134/saa7134-video.c     |   98 +-
+ drivers/media/video/saa7134/saa7134.h           |    7 +-
+ drivers/media/video/saa717x.c                   |    1 -
+ drivers/media/video/saa7196.h                   |  117 --
+ drivers/media/video/se401.c                     |    2 -
+ drivers/media/video/se401.h                     |    1 +
+ drivers/media/video/sh_mobile_ceu_camera.c      |    1 +
+ drivers/media/video/sn9c102/sn9c102.h           |    1 +
+ drivers/media/video/sn9c102/sn9c102_core.c      |   62 +-
+ drivers/media/video/soc_camera.c                |   68 +-
+ drivers/media/video/stk-webcam.c                |   69 +-
+ drivers/media/video/stradis.c                   |    2 +-
+ drivers/media/video/stv680.c                    |   52 +-
+ drivers/media/video/tda7432.c                   |    3 +-
+ drivers/media/video/tda9875.c                   |    2 +-
+ drivers/media/video/tlv320aic23b.c              |    2 +-
+ drivers/media/video/tuner-core.c                |    1 +
+ drivers/media/video/tveeprom.c                  |  122 +-
+ drivers/media/video/tvp5150.c                   |    2 +-
+ drivers/media/video/usbvideo/usbvideo.c         |    4 +-
+ drivers/media/video/usbvideo/usbvideo.h         |    1 +
+ drivers/media/video/usbvideo/vicam.c            |    3 +-
+ drivers/media/video/usbvision/usbvision-core.c  |    2 -
+ drivers/media/video/usbvision/usbvision-video.c |  113 +-
+ drivers/media/video/uvc/uvc_ctrl.c              |   15 +-
+ drivers/media/video/uvc/uvc_driver.c            |    4 +-
+ drivers/media/video/uvc/uvc_v4l2.c              |    1 +
+ drivers/media/video/v4l1-compat.c               |    1 +
+ drivers/media/video/v4l2-common.c               |    2 +-
+ drivers/media/video/v4l2-dev.c                  |  422 +++++
+ drivers/media/video/v4l2-ioctl.c                | 1875 ++++++++++++++++++
+ drivers/media/video/videobuf-dma-contig.c       |    8 +-
+ drivers/media/video/videobuf-vmalloc.c          |    2 +-
+ drivers/media/video/videodev.c                  | 2262 ----------------------
+ drivers/media/video/vino.c                      |    4 +-
+ drivers/media/video/vivi.c                      |   18 +-
+ drivers/media/video/vp27smpx.c                  |    2 +-
+ drivers/media/video/w9966.c                     |    5 +-
+ drivers/media/video/w9968cf.c                   |    5 +-
+ drivers/media/video/w9968cf.h                   |    2 +-
+ drivers/media/video/wm8739.c                    |    2 +-
+ drivers/media/video/wm8775.c                    |    2 +-
+ drivers/media/video/zc0301/zc0301.h             |    1 +
+ drivers/media/video/zc0301/zc0301_core.c        |    2 -
+ drivers/media/video/zoran_card.c                |   42 +-
+ drivers/media/video/zoran_card.h                |    2 +-
+ drivers/media/video/zoran_driver.c              |    7 +-
+ drivers/media/video/zr364xx.c                   |   18 +-
+ include/linux/videodev.h                        |   15 +
+ include/linux/videodev2.h                       |  386 ++---
+ include/linux/videotext.h                       |   16 +-
+ include/media/audiochip.h                       |   26 -
+ include/media/saa7146_vv.h                      |    1 +
+ include/media/tveeprom.h                        |    7 +-
+ include/media/v4l2-chip-ident.h                 |    7 +-
+ include/media/v4l2-common.h                     |   33 +-
+ include/media/v4l2-dev.h                        |  325 +---
+ include/media/v4l2-ioctl.h                      |  301 +++
+ sound/i2c/other/tea575x-tuner.c                 |    2 -
+ 202 files changed, 7798 insertions(+), 8529 deletions(-)
+ create mode 100644 drivers/media/common/tuners/mxl5007t.c
+ create mode 100644 drivers/media/common/tuners/mxl5007t.h
+ create mode 100644 drivers/media/dvb/dvb-usb/dw2102.c
+ create mode 100644 drivers/media/dvb/dvb-usb/dw2102.h
+ create mode 100644 drivers/media/dvb/frontends/z0194a.h
+ create mode 100644 drivers/media/video/v4l2-dev.c
+ create mode 100644 drivers/media/video/v4l2-ioctl.c
+ create mode 100644 include/media/v4l2-ioctl.h
 
---- 0006/drivers/media/video/Kconfig
-+++ work/drivers/media/video/Kconfig	2008-06-30 15:30:35.000000000 +0900
-@@ -24,6 +24,10 @@ config VIDEOBUF_VMALLOC
- 	select VIDEOBUF_GEN
- 	tristate
- 
-+config VIDEOBUF_DMA_CONTIG
-+	select VIDEOBUF_GEN
-+	tristate
-+
- config VIDEOBUF_DVB
- 	tristate
- 	select VIDEOBUF_GEN
---- 0001/drivers/media/video/Makefile
-+++ work/drivers/media/video/Makefile	2008-06-30 15:30:35.000000000 +0900
-@@ -88,6 +88,7 @@ obj-$(CONFIG_VIDEO_TUNER) += tuner.o
- 
- obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
- obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
-+obj-$(CONFIG_VIDEOBUF_DMA_CONTIG) += videobuf-dma-contig.o
- obj-$(CONFIG_VIDEOBUF_VMALLOC) += videobuf-vmalloc.o
- obj-$(CONFIG_VIDEOBUF_DVB) += videobuf-dvb.o
- obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
---- /dev/null
-+++ work/drivers/media/video/videobuf-dma-contig.c	2008-06-30 15:36:13.000000000 +0900
-@@ -0,0 +1,413 @@
-+/*
-+ * helper functions for physically contiguous capture buffers
-+ *
-+ * The functions support hardware lacking scatter gatter support
-+ * (i.e. the buffers must be linear in physical memory)
-+ *
-+ * Copyright (c) 2008 Magnus Damm
-+ *
-+ * Based on videobuf-vmalloc.c,
-+ * (c) 2007 Mauro Carvalho Chehab, <mchehab@infradead.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/dma-mapping.h>
-+#include <media/videobuf-dma-contig.h>
-+
-+#define MAGIC_DC_MEM 0x0733ac61
-+#define MAGIC_CHECK(is, should)						\
-+	if (unlikely((is) != (should)))	{				\
-+		pr_err("magic mismatch: %x expected %x\n", is, should); \
-+		BUG();							\
-+	}
-+
-+static void
-+videobuf_vm_open(struct vm_area_struct *vma)
-+{
-+	struct videobuf_mapping *map = vma->vm_private_data;
-+
-+	dev_dbg(map->q->dev, "vm_open %p [count=%u,vma=%08lx-%08lx]\n",
-+		map, map->count, vma->vm_start, vma->vm_end);
-+
-+	map->count++;
-+}
-+
-+static void videobuf_vm_close(struct vm_area_struct *vma)
-+{
-+	struct videobuf_mapping *map = vma->vm_private_data;
-+	struct videobuf_queue *q = map->q;
-+	int i, datasize;
-+
-+	dev_dbg(map->q->dev, "vm_close %p [count=%u,vma=%08lx-%08lx]\n",
-+		map, map->count, vma->vm_start, vma->vm_end);
-+
-+	map->count--;
-+	if (0 == map->count) {
-+		struct videobuf_dma_contig_memory *mem;
-+
-+		dev_dbg(map->q->dev, "munmap %p q=%p\n", map, q);
-+		mutex_lock(&q->vb_lock);
-+
-+		/* We need first to cancel streams, before unmapping */
-+		if (q->streaming)
-+			videobuf_queue_cancel(q);
-+
-+		for (i = 0; i < VIDEO_MAX_FRAME; i++) {
-+			if (NULL == q->bufs[i])
-+				continue;
-+
-+			if (q->bufs[i]->map != map)
-+				continue;
-+
-+			mem = q->bufs[i]->priv;
-+			if (mem) {
-+				/* This callback is called only if kernel has
-+				   allocated memory and this memory is mmapped.
-+				   In this case, memory should be freed,
-+				   in order to do memory unmap.
-+				 */
-+
-+				MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
-+
-+				/* vfree is not atomic - can't be
-+				   called with IRQ's disabled
-+				 */
-+				dev_dbg(map->q->dev, "buf[%d] freeing %p\n",
-+					i, mem->vaddr);
-+
-+				datasize = PAGE_ALIGN(q->bufs[i]->size);
-+				dma_free_coherent(q->dev, datasize,
-+						  mem->vaddr, mem->dma_handle);
-+				mem->vaddr = NULL;
-+			}
-+
-+			q->bufs[i]->map   = NULL;
-+			q->bufs[i]->baddr = 0;
-+		}
-+
-+		kfree(map);
-+
-+		mutex_unlock(&q->vb_lock);
-+	}
-+
-+	return;
-+}
-+
-+static struct vm_operations_struct videobuf_vm_ops = {
-+	.open     = videobuf_vm_open,
-+	.close    = videobuf_vm_close,
-+};
-+
-+static void *__videobuf_alloc(size_t size)
-+{
-+	struct videobuf_dma_contig_memory *mem;
-+	struct videobuf_buffer *vb;
-+
-+	vb = kzalloc(size + sizeof(*mem), GFP_KERNEL);
-+	if (vb) {
-+		mem = vb->priv = ((char *)vb)+size;
-+		mem->magic = MAGIC_DC_MEM;
-+	}
-+
-+	return vb;
-+}
-+
-+static void *__videobuf_to_vmalloc(struct videobuf_buffer *buf)
-+{
-+	struct videobuf_dma_contig_memory *mem = buf->priv;
-+
-+	BUG_ON(!mem);
-+	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
-+
-+	return mem->vaddr;
-+}
-+
-+static int __videobuf_iolock(struct videobuf_queue *q,
-+			     struct videobuf_buffer *vb,
-+			     struct v4l2_framebuffer *fbuf)
-+{
-+	struct videobuf_dma_contig_memory *mem = vb->priv;
-+	int datasize;
-+
-+	BUG_ON(!mem);
-+	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
-+
-+	switch (vb->memory) {
-+	case V4L2_MEMORY_MMAP:
-+		dev_dbg(q->dev, "%s memory method MMAP\n", __func__);
-+
-+		/* All handling should be done by __videobuf_mmap_mapper() */
-+		if (!mem->vaddr) {
-+			pr_err("memory is not alloced/mmapped.\n");
-+			return -EINVAL;
-+		}
-+		break;
-+	case V4L2_MEMORY_USERPTR:
-+		dev_dbg(q->dev, "%s memory method USERPTR\n", __func__);
-+
-+		/* The only USERPTR currently supported is the one needed for
-+		   read() method.
-+		 */
-+		if (vb->baddr)
-+			return -EINVAL;
-+
-+		datasize = PAGE_ALIGN(vb->size);
-+		mem->vaddr = dma_alloc_coherent(q->dev, datasize,
-+						&mem->dma_handle, GFP_KERNEL);
-+		if (!mem->vaddr) {
-+			pr_err("dma_alloc_coherent %d failed\n", datasize);
-+			return -ENOMEM;
-+		}
-+
-+		dev_dbg(q->dev, "dma_alloc_coherent data is at %p (%d)\n",
-+			mem->vaddr, datasize);
-+		break;
-+	case V4L2_MEMORY_OVERLAY:
-+	default:
-+		dev_dbg(q->dev, "%s memory method OVERLAY/unknown\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __videobuf_sync(struct videobuf_queue *q,
-+			   struct videobuf_buffer *buf)
-+{
-+	return 0;
-+}
-+
-+static int __videobuf_mmap_free(struct videobuf_queue *q)
-+{
-+	unsigned int i;
-+
-+	dev_dbg(q->dev, "%s\n", __func__);
-+	for (i = 0; i < VIDEO_MAX_FRAME; i++) {
-+		if (q->bufs[i]) {
-+			if (q->bufs[i]->map)
-+				return -EBUSY;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int __videobuf_mmap_mapper(struct videobuf_queue *q,
-+				  struct vm_area_struct *vma)
-+{
-+	struct videobuf_dma_contig_memory *mem;
-+	struct videobuf_mapping *map;
-+	unsigned int first;
-+	int retval, datasize;
-+	unsigned long size, offset = vma->vm_pgoff << PAGE_SHIFT;
-+
-+	dev_dbg(q->dev, "%s\n", __func__);
-+	if (!(vma->vm_flags & VM_WRITE) || !(vma->vm_flags & VM_SHARED))
-+		return -EINVAL;
-+
-+	/* look for first buffer to map */
-+	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
-+		if (NULL == q->bufs[first])
-+			continue;
-+
-+		if (V4L2_MEMORY_MMAP != q->bufs[first]->memory)
-+			continue;
-+		if (q->bufs[first]->boff == offset)
-+			break;
-+	}
-+	if (VIDEO_MAX_FRAME == first) {
-+		dev_dbg(q->dev, "invalid user space offset [offset=0x%lx]\n",
-+			(vma->vm_pgoff << PAGE_SHIFT));
-+		return -EINVAL;
-+	}
-+
-+	/* create mapping + update buffer list */
-+	map = kzalloc(sizeof(struct videobuf_mapping), GFP_KERNEL);
-+	if (NULL == map)
-+		return -ENOMEM;
-+
-+	q->bufs[first]->map = map;
-+	map->start = vma->vm_start;
-+	map->end = vma->vm_end;
-+	map->q = q;
-+
-+	q->bufs[first]->baddr = vma->vm_start;
-+
-+	mem = q->bufs[first]->priv;
-+	BUG_ON(!mem);
-+	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
-+
-+	datasize = PAGE_ALIGN(q->bufs[first]->bsize);
-+	mem->vaddr = dma_alloc_coherent(q->dev, datasize,
-+					&mem->dma_handle, GFP_KERNEL);
-+	if (!mem->vaddr) {
-+		pr_err("dma_alloc_coherent size %d failed\n", datasize);
-+		goto error;
-+	}
-+	dev_dbg(q->dev, "dma_alloc_coherent data is at addr %p (size %d)\n",
-+		mem->vaddr, datasize);
-+
-+	/* Try to remap memory */
-+
-+	size = vma->vm_end - vma->vm_start;
-+	size = (size < datasize) ? size : datasize;
-+
-+	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+	retval = remap_pfn_range(vma, vma->vm_start,
-+				 __pa(mem->vaddr) >> PAGE_SHIFT,
-+				 size, vma->vm_page_prot);
-+	if (retval < 0) {
-+		pr_err("mmap: remap failed with error %d. ", retval);
-+		dma_free_coherent(q->dev, datasize,
-+				  mem->vaddr, mem->dma_handle);
-+		goto error;
-+	}
-+
-+	vma->vm_ops          = &videobuf_vm_ops;
-+	vma->vm_flags       |= VM_DONTEXPAND;
-+	vma->vm_private_data = map;
-+
-+	dev_dbg(q->dev, "mmap %p: q=%p %08lx-%08lx (%lx) pgoff %08lx buf %d\n",
-+		map, q, vma->vm_start, vma->vm_end,
-+		(long int) q->bufs[first]->bsize,
-+		vma->vm_pgoff, first);
-+
-+	videobuf_vm_open(vma);
-+
-+	return 0;
-+
-+error:
-+	kfree(map);
-+	return -ENOMEM;
-+}
-+
-+static int __videobuf_copy_to_user(struct videobuf_queue *q,
-+				   char __user *data, size_t count,
-+				   int nonblocking)
-+{
-+	struct videobuf_dma_contig_memory *mem = q->read_buf->priv;
-+	void *vaddr;
-+
-+	BUG_ON(!mem);
-+	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
-+	BUG_ON(!mem->vaddr);
-+
-+	/* copy to userspace */
-+	if (count > q->read_buf->size - q->read_off)
-+		count = q->read_buf->size - q->read_off;
-+
-+	vaddr = mem->vaddr;
-+
-+	if (copy_to_user(data, vaddr + q->read_off, count))
-+		return -EFAULT;
-+
-+	return count;
-+}
-+
-+static int __videobuf_copy_stream(struct videobuf_queue *q,
-+				  char __user *data, size_t count, size_t pos,
-+				  int vbihack, int nonblocking)
-+{
-+	unsigned int  *fc;
-+	struct videobuf_dma_contig_memory *mem = q->read_buf->priv;
-+
-+	BUG_ON(!mem);
-+	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
-+
-+	if (vbihack) {
-+		/* dirty, undocumented hack -- pass the frame counter
-+			* within the last four bytes of each vbi data block.
-+			* We need that one to maintain backward compatibility
-+			* to all vbi decoding software out there ... */
-+		fc = (unsigned int *)mem->vaddr;
-+		fc += (q->read_buf->size >> 2) - 1;
-+		*fc = q->read_buf->field_count >> 1;
-+		dev_dbg(q->dev, "vbihack: %d\n", *fc);
-+	}
-+
-+	/* copy stuff using the common method */
-+	count = __videobuf_copy_to_user(q, data, count, nonblocking);
-+
-+	if ((count == -EFAULT) && (pos == 0))
-+		return -EFAULT;
-+
-+	return count;
-+}
-+
-+static struct videobuf_qtype_ops qops = {
-+	.magic        = MAGIC_QTYPE_OPS,
-+
-+	.alloc        = __videobuf_alloc,
-+	.iolock       = __videobuf_iolock,
-+	.sync         = __videobuf_sync,
-+	.mmap_free    = __videobuf_mmap_free,
-+	.mmap_mapper  = __videobuf_mmap_mapper,
-+	.video_copy_to_user = __videobuf_copy_to_user,
-+	.copy_stream  = __videobuf_copy_stream,
-+	.vmalloc      = __videobuf_to_vmalloc,
-+};
-+
-+void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
-+				    struct videobuf_queue_ops *ops,
-+				    struct device *dev,
-+				    spinlock_t *irqlock,
-+				    enum v4l2_buf_type type,
-+				    enum v4l2_field field,
-+				    unsigned int msize,
-+				    void *priv)
-+{
-+	videobuf_queue_core_init(q, ops, dev, irqlock, type, field, msize,
-+				 priv, &qops);
-+}
-+EXPORT_SYMBOL_GPL(videobuf_queue_dma_contig_init);
-+
-+struct videobuf_dma_contig_memory *
-+videobuf_to_dma_contig(struct videobuf_buffer *buf)
-+{
-+	struct videobuf_dma_contig_memory *mem = buf->priv;
-+
-+	BUG_ON(!mem);
-+	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
-+
-+	return mem;
-+}
-+EXPORT_SYMBOL_GPL(videobuf_to_dma_contig);
-+
-+void videobuf_dma_contig_free(struct videobuf_queue *q,
-+			      struct videobuf_buffer *buf)
-+{
-+	struct videobuf_dma_contig_memory *mem = buf->priv;
-+	int datasize;
-+
-+	/* mmapped memory can't be freed here, otherwise mmapped region
-+	   would be released, while still needed. In this case, the memory
-+	   release should happen inside videobuf_vm_close().
-+	   So, it should free memory only if the memory were allocated for
-+	   read() operation.
-+	 */
-+	if ((buf->memory != V4L2_MEMORY_USERPTR) || (buf->baddr == 0))
-+		return;
-+
-+	if (!mem)
-+		return;
-+
-+	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
-+
-+	datasize = PAGE_ALIGN(buf->size);
-+	dma_free_coherent(q->dev, datasize, mem->vaddr, mem->dma_handle);
-+	mem->vaddr = NULL;
-+
-+	return;
-+}
-+EXPORT_SYMBOL_GPL(videobuf_dma_contig_free);
-+
-+MODULE_DESCRIPTION("helper module to manage video4linux dma contig buffers");
-+MODULE_AUTHOR("Magnus Damm");
-+MODULE_LICENSE("GPL");
-+
---- /dev/null
-+++ work/include/media/videobuf-dma-contig.h	2008-06-30 15:30:35.000000000 +0900
-@@ -0,0 +1,39 @@
-+/*
-+ * helper functions for physically contiguous capture buffers
-+ *
-+ * The functions support hardware lacking scatter gatter support
-+ * (i.e. the buffers must be linear in physical memory)
-+ *
-+ * Copyright (c) 2008 Magnus Damm
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2
-+ */
-+#ifndef _VIDEOBUF_DMA_CONTIG_H
-+#define _VIDEOBUF_DMA_CONTIG_H
-+
-+#include <linux/dma-mapping.h>
-+#include <media/videobuf-core.h>
-+
-+struct videobuf_dma_contig_memory {
-+	u32 magic;
-+	void *vaddr;
-+	dma_addr_t dma_handle;
-+};
-+
-+void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
-+				    struct videobuf_queue_ops *ops,
-+				    struct device *dev,
-+				    spinlock_t *irqlock,
-+				    enum v4l2_buf_type type,
-+				    enum v4l2_field field,
-+				    unsigned int msize,
-+				    void *priv);
-+
-+struct videobuf_dma_contig_memory *
-+videobuf_to_dma_contig(struct videobuf_buffer *buf);
-+void videobuf_dma_contig_free(struct videobuf_queue *q,
-+			      struct videobuf_buffer *buf);
-+
-+#endif /* _VIDEOBUF_DMA_CONTIG_H */
+Adrian Bunk (6):
+      V4L/DVB (8440): gspca: Makes some needlessly global functions static.
+      V4L/DVB (8453): sms1xxx: dvb/siano/: cleanups
+      V4L/DVB (8485): v4l-dvb: remove broken PlanB driver
+      V4L/DVB (8494): make cx25840_debug static
+      V4L/DVB (8495): usb/anysee.c: make struct anysee_usb_mutex static
+      V4L/DVB (8534): remove select's of FW_LOADER
+
+Andoni Zubimendi (1):
+      V4L/DVB (8457): gspca_sonixb remove some no longer needed sn9c103+ov7630 special cases
+
+Andy Walls (2):
+      V4L/DVB (8461): cx18: Fix 32 kHz audio sample output rate for analog tuner SIF input
+      V4L/DVB (8462): cx18: Lock the aux PLL to the video pixle rate for analog captures
+
+Aron Szabo (1):
+      V4L/DVB (8538): em28xx-cards: Add GrabBeeX+ USB2800 model
+
+Dean Anderson (1):
+      V4L/DVB (8490): s2255drv Sensoray 2255 driver fixes
+
+Devin Heitmueller (1):
+      V4L/DVB (8492): Add support for the ATI TV Wonder HD 600
+
+Douglas Schilling Landgraf (1):
+      V4L/DVB (8539): em28xx-cards: New supported IDs for analog models
+
+Guennadi Liakhovetski (2):
+      V4L/DVB (8425): v4l: fix checkpatch errors introduced by recent commits
+      V4L/DVB (8488a): Add myself as a maintainer of the soc-camera subsystem
+
+Hans Verkuil (22):
+      V4L/DVB (8423): cx18: remove firmware size check
+      V4L/DVB (8427): videodev: split off the ioctl handling into v4l2-ioctl.c
+      V4L/DVB (8428): videodev: rename 'dev' to 'parent'
+      V4L/DVB (8429): videodev: renamed 'class_dev' to 'dev'
+      V4L/DVB (8430): videodev: move some functions from v4l2-dev.h to v4l2-common.h or v4l2-ioctl.h
+      V4L/DVB (8422): cs5345: fix incorrect mask with VIDIOC_DBG_S_REGISTER
+      V4L/DVB (8477): v4l: remove obsolete audiochip.h
+      V4L/DVB (8479): tveeprom/ivtv: fix usage of has_ir field
+      V4L/DVB (8482): videodev: move all ioctl callbacks to a new v4l2_ioctl_ops struct
+      V4L/DVB (8483): Remove obsolete owner field from video_device struct.
+      V4L/DVB (8484): videodev: missed two more usages of the removed 'owner' field.
+      V4L/DVB (8487): videodev: replace videodev.h includes by videodev2.h where possible
+      V4L/DVB (8488): videodev: remove some CONFIG_VIDEO_V4L1_COMPAT code from v4l2-dev.h
+      V4L/DVB (8504): s2255drv: add missing header
+      V4L/DVB (8505): saa7134-empress.c: fix deadlock
+      V4L/DVB (8506): empress: fix control handling oops
+      V4L/DVB (8523): v4l2-dev: remove unused type and type2 field from video_device
+      V4L/DVB (8524): videodev: copy the VID_TYPE defines to videodev.h
+      V4L/DVB (8525): fix a few assorted spelling mistakes.
+      V4L/DVB (8526): saa7146: fix VIDIOC_ENUM_FMT
+      V4L/DVB (8546): saa7146: fix read from uninitialized memory
+      V4L/DVB (8546): add tuner-3036 and dpc7146 drivers to feature-removal-schedule.txt
+
+Hans de Goede (3):
+      V4L/DVB (8455): gspca_sonixb sn9c103 + ov7630 autoexposure and cleanup
+      V4L/DVB (8456): gspca_sonixb remove non working ovXXXX contrast, hue and saturation ctrls
+      V4L/DVB (8458): gspca_sonixb remove one more no longer needed special case from the code
+
+Igor M Liplianin (1):
+      V4L/DVB (8421): Adds support for Dvbworld DVB-S 2102 USB card
+
+Jaime Velasco Juan (1):
+      V4L/DVB (8491): stkwebcam: Always reuse last queued buffer
+
+Jean Delvare (1):
+      V4L/DVB (8499): zr36067: Rework device memory allocation
+
+Jean-Francois Moine (14):
+      V4L/DVB (8435): gspca: Delay after reset for ov7660 and USB traces in sonixj.
+      V4L/DVB (8436): gspca: Version number only in the main driver.
+      V4L/DVB (8438): gspca: Lack of matrix for zc3xx - tas5130c (vf0250).
+      V4L/DVB (8441): gspca: Bad handling of start of frames in sonixj.
+      V4L/DVB (8442): gspca: Remove the version from the subdrivers.
+      V4L/DVB (8511): gspca: Get the card name of QUERYCAP from the usb product name.
+      V4L/DVB (8512): gspca: Do not use the driver_info field of usb_device_id.
+      V4L/DVB (8513): gspca: Set the specific per webcam information in driver_info.
+      V4L/DVB (8515): gspca: Webcam 0c45:6143 added in sonixj.
+      V4L/DVB (8517): gspca: Bad sensor for some webcams in zc3xx since 28b8203a830e.
+      V4L/DVB (8518): gspca: Remove the remaining frame decoding functions from the subdrivers.
+      V4L/DVB (8519): gspca: Set the specific per webcam information in driver_info for sonixb.
+      V4L/DVB (8520): gspca: Bad webcam information in some modules since 28b8203a830e.
+      V4L/DVB (8521): gspca: Webcams with Sonix bridge and sensor ov7630 are VGA.
+
+Laurent Pinchart (2):
+      V4L/DVB (8497): uvcvideo: Make the auto-exposure menu control V4L2 compliant
+      V4L/DVB (8498): uvcvideo: Return sensible min and max values when querying a boolean control.
+
+Martin Samuelsson (1):
+      V4L/DVB (8500): zr36067: Load the avs6eyes chip drivers automatically
+
+Mauro Carvalho Chehab (12):
+      V4L/DVB (8433): Fix macro name at z0194a.h
+      V4L/DVB (8434): Fix x86_64 compilation and move some macros to v4l2-ioctl.h
+      V4L/DVB (8234a): uvcvideo: Fix build for uvc input
+      V4L/DVB (8451): dw2102: fix in-kernel compilation
+      V4L/DVB (8500a): videotext.h: whitespace cleanup
+      V4L/DVB (8502): videodev2.h: CodingStyle cleanups
+      V4L/DVB (8522): videodev2: Fix merge conflict
+      V4L/DVB (8541): em28xx: HVR-950 entry is duplicated.
+      V4L/DVB (8542): em28xx: AMD ATI TV Wonder HD 600 entry at cards struct is duplicated
+      V4L/DVB (8543): em28xx: Rename #define for Compro VideoMate ForYou/Stereo
+      V4L/DVB (8548): pwc: Fix compilation
+      V4L/DVB (8549): mxl5007: Fix an error at include file
+
+Michael Krufky (6):
+      V4L/DVB (8509): pvrusb2: fix device descriptions for HVR-1900 & HVR-1950
+      V4L/DVB (8528): add support for MaxLinear MxL5007T silicon tuner
+      V4L/DVB (8529): mxl5007t: enable _init and _sleep power management functionality
+      V4L/DVB (8530): au0828: add support for new revision of HVR950Q
+      V4L/DVB (8531): mxl5007t: move i2c gate handling outside of mutex protected code blocks
+      V4L/DVB (8532): mxl5007t: remove excessive locks
+
+Mike Isely (2):
+      V4L/DVB (8474): pvrusb2: Enable IR chip on HVR-1900 class devices
+      V4L/DVB (8475): pvrusb2: Cosmetic macro fix (benign)
+
+Oliver Neukum (1):
+      V4L/DVB (8544): gspca: probe/open race.
+
+Simon Arlott (1):
+      V4L/DVB (8496): saa7134: Copy tuner data earlier in init to avoid overwriting manual tuner type
+
+Steven Toth (9):
+      V4L/DVB (8464): cx23885: Bugfix for concurrent use of /dev/video0 and /dev/video1
+      V4L/DVB (8465): cx23885: Ensure PAD_CTRL is always reset to a sensible default
+      V4L/DVB (8466): cx23885: Bugfix - DVB Transport cards using DVB port VIDB/TS1 did not stream.
+      V4L/DVB (8467): cx23885: Minor cleanup to the debuging output for a specific register.
+      V4L/DVB (8468): cx23885: Ensure the second transport port is enabled for streaming.
+      V4L/DVB (8469): cx23885: FusionHDTV7 Dual Express toggle reset.
+      V4L/DVB (8470): cx23885: Add DViCO HDTV7 Dual Express tuner callback support.
+      V4L/DVB (8471): cx23885: Reallocated the sram to avoid concurrent VIDB/C issues.
+      V4L/DVB (8472): cx23885: SRAM changes for the 885 and 887 silicon parts.
+
+Vitaly Wool (1):
+      V4L/DVB (8540): em28xx-cards: Add Compro VideoMate ForYou/Stereo model
+
+reinhard schwab (1):
+      V4L/DVB (8489): add dvb-t support for terratec cinergy hybrid T usb xs
+
+roel kluin (1):
+      V4L/DVB (8493): mt20xx: test below 0 on unsigned lo1a and lo2a
+
+---------------------------------------------------
+V4L/DVB development is hosted at http://linuxtv.org
 
 --
 video4linux-list mailing list
