@@ -1,28 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6E3qBGc003328
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 23:52:11 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6E3q0aS026565
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 23:52:00 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so2027063ywb.81
-	for <video4linux-list@redhat.com>; Sun, 13 Jul 2008 20:51:55 -0700 (PDT)
-Message-ID: <aec7e5c30807132051r16e51d71w177e410063ccefb@mail.gmail.com>
-Date: Mon, 14 Jul 2008 12:51:55 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0807112307570.26439@axis700.grange>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6TIBH0G010657
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 14:11:17 -0400
+Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6TIB5lX013072
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 14:11:05 -0400
+Received: from smtp8-g19.free.fr (localhost [127.0.0.1])
+	by smtp8-g19.free.fr (Postfix) with ESMTP id B34CD32A836
+	for <video4linux-list@redhat.com>;
+	Tue, 29 Jul 2008 20:11:01 +0200 (CEST)
+Received: from [192.168.0.13] (lns-bzn-45-82-65-147-136.adsl.proxad.net
+	[82.65.147.136])
+	by smtp8-g19.free.fr (Postfix) with ESMTP id 70D8C32A7D7
+	for <video4linux-list@redhat.com>;
+	Tue, 29 Jul 2008 20:11:01 +0200 (CEST)
+From: Jean-Francois Moine <moinejf@free.fr>
+To: video4linux-list@redhat.com
+In-Reply-To: <20092.62.70.2.252.1217333416.squirrel@webmail.xs4all.nl>
+References: <20092.62.70.2.252.1217333416.squirrel@webmail.xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <20080705025335.27137.98068.sendpatchset@rx1.opensource.se>
-	<20080705025405.27137.16206.sendpatchset@rx1.opensource.se>
-	<48737AA3.3080902@teltonika.lt>
-	<Pine.LNX.4.64.0807112307570.26439@axis700.grange>
-Cc: video4linux-list@redhat.com,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>, linux-sh@vger.kernel.org
-Subject: Re: [PATCH 03/04] videobuf: Add physically contiguous queue code V2
+Date: Tue, 29 Jul 2008 19:37:13 +0200
+Message-Id: <1217353033.1692.14.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: CONFIG_VIDEO_ADV_DEBUG question
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,54 +35,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Jul 12, 2008 at 6:33 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Tue, 8 Jul 2008, Paulius Zaleckas wrote:
->
->> Magnus Damm wrote:
->> > This is V2 of the physically contiguous videobuf queues patch.
->> > Useful for hardware such as the SuperH Mobile CEU which doesn't
->> > support scatter gatter bus mastering.
->
-> [snip]
->
->> > +   /* Try to remap memory */
->> > +
->> > +   size = vma->vm_end - vma->vm_start;
->> > +   size = (size < mem->size) ? size : mem->size;
->> > +
->> > +   vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
->> > +   retval = remap_pfn_range(vma, vma->vm_start,
->> > +                            __pa(mem->vaddr) >> PAGE_SHIFT,
->>
->> __pa(mem->vaddr) doesn't work on ARM architecture... It is a long story
->> about handling memory allocations and mapping for ARM (there is
->> dma_mmap_coherent to deal with this), but there is a workaround:
->>
->> mem->dma_handle >> PAGE_SHIFT,
->>
->> It is safe to do it this way and also saves some CPU instructions :)
->
-> Paulius, even if the story is so long, could you perhaps point us to some
-> ML-threads or elaborate a bit? I did find one example in
-> drivers/media/video/atmel-isi.c (not in mainline), just would be
-> interesting to find out more.
->
-> Magnus, have you investigated this further?
+On Tue, 2008-07-29 at 14:10 +0200, Hans Verkuil wrote:
+> Hans de Goede wrote:
+> > CONFIG_VIDEO_ADV_DEBUG enables additional debugging output in the gscpa
+> > driver, which then becomes "active" when a module option gets passed. So
+> 	[snip]
+> But the way gspca uses it is not correct. I would remove the test on
+> CONFIG_VIDEO_ADV_DEBUG there altogether, or replace it with a test of a
 
-Both (__pa(mem->vaddr) >> PAGE_SHIFT) and (mem->dma_handle >>
-PAGE_SHIFT) work well with the current dma_alloc_coherent()
-implementation on SuperH. I do however lean towards using
-__pa(mem->vaddr) over mem->dma_handle, since I suspect that
-mem->dma_handle doesn't have to be a physical address.
+Hello Hans and Hans,
 
-Paul, any thoughts about this? Can we assume that the dma_handle
-returned from dma_alloc_coherent() is a physical address, or is it
-better to use __pa() on the virtual address to get the pfn?
+OK. So I see 3 options:
+1) add a new kernel config option, say CONFIG_GSPCA_DEBUG,
+2) always set an internal compile option GSPCA_DEBUG,
+3) have the option GSPCA_DEBUG, but unset by default.
 
-Thanks,
+Which is the best for you, Hans (de Goede)?
 
-/ magnus
+Cheers.
+
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
 
 --
 video4linux-list mailing list
