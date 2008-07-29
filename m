@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.189])
+Received: from ik-out-1112.google.com ([66.249.90.180])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artlov@gmail.com>) id 1KN4N1-0006Kz-Cp
-	for linux-dvb@linuxtv.org; Sun, 27 Jul 2008 13:25:01 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so2403603nfb.11
-	for <linux-dvb@linuxtv.org>; Sun, 27 Jul 2008 04:24:55 -0700 (PDT)
-Message-ID: <488C5B02.4080506@gmail.com>
-Date: Sun, 27 Jul 2008 14:24:50 +0300
-From: Arthur Konovalov <artlov@gmail.com>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KNnhV-00070N-IG
+	for linux-dvb@linuxtv.org; Tue, 29 Jul 2008 13:49:11 +0200
+Received: by ik-out-1112.google.com with SMTP id c21so5790899ika.1
+	for <linux-dvb@linuxtv.org>; Tue, 29 Jul 2008 04:49:05 -0700 (PDT)
+Message-ID: <412bdbff0807290449q5a225f32tecc1551b42f59046@mail.gmail.com>
+Date: Tue, 29 Jul 2008 07:49:04 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0807282259q548991cfuc5ceebd5e0aee63e@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <008401c8ebe5$4e09ea90$450011ac@ad.sytec.com>	<003001c8ecb2$57b93af0$7501010a@ad.sytec.com>
-	<003401c8ee3d$7f98b870$7501010a@ad.sytec.com>
-In-Reply-To: <003401c8ee3d$7f98b870$7501010a@ad.sytec.com>
-Subject: Re: [linux-dvb] Please - anyone at all?? 682Mhz problem with
- TT-1501 driver inv4l-dvb
+Content-Disposition: inline
+References: <16121.64.213.30.2.1216781835.squirrel@webmail.exetel.com.au>
+	<d9def9db0807282259q548991cfuc5ceebd5e0aee63e@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVICO firmware compatibility between v4l-dvb and
+	in-tree kernel drivers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,23 +30,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Simon Baxter wrote:
-> Hi
-> I'm getting no responses from any help lists - can anyone offer any advice 
-> or comment please???
-> 
+Hello Markus,
 
->>> I have patched the v4l-dvb driver with Sigmund Augdal's changes to 
->>> support
->>> C-1501.  I can't get channels to work on all but one frequency - 682Mhz.
->>> Frequencies which work:  578, 586, 594, 602, 610, 626, 634, 642, 666, 674
->>> Mhz.
+On Tue, Jul 29, 2008 at 1:59 AM, Markus Rechberger
+> I'm just curious is there an xc3028L used within that device or the normal one?
 
-You are not alone with this problem.
-I haven't signal on two more frequencies: 322 and 386 MHz
+I know the XC3028L is pin compatible with the XC3028, but did they
+change the revision number of the part as returned in register 0x04?
+I haven't had a chance to look at any devices with the 3028L, but If
+they did change the revision (such as from v1.0 to 1.1), then it would
+be very easy to change the tuner_dbg() line to report it as an XC3028L
+as opposed to just an XC3028 (making it easier for users to tell us in
+the future).
 
-AK
+Regards,
 
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
