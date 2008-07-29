@@ -1,30 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m62FeVku006449
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 11:40:31 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m62FdxB1027352
-	for <video4linux-list@redhat.com>; Wed, 2 Jul 2008 11:40:00 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so209097fga.7
-	for <video4linux-list@redhat.com>; Wed, 02 Jul 2008 08:39:59 -0700 (PDT)
-Message-ID: <30353c3d0807020839r6e18978dqc0b38f6c8d9c177@mail.gmail.com>
-Date: Wed, 2 Jul 2008 11:39:58 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
-In-Reply-To: <30353c3d0807012115i6f53cf2l3bf615e526a3a3c@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6TKnLUT027492
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 16:49:21 -0400
+Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
+	[151.189.21.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6TKn67i014528
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 16:49:07 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Ian.Davidson@bigfoot.com
+In-Reply-To: <488C9266.7010108@blueyonder.co.uk>
+References: <488C9266.7010108@blueyonder.co.uk>
+Content-Type: text/plain
+Date: Tue, 29 Jul 2008 22:42:58 +0200
+Message-Id: <1217364178.2699.17.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <30353c3d0807011346yccc6ad1yab269d0b47068f15@mail.gmail.com>
-	<200807012350.53604.laurent.pinchart@skynet.be>
-	<30353c3d0807011528v561d4de8ycb7c3f1d8afc82f9@mail.gmail.com>
-	<200807020104.52122.laurent.pinchart@skynet.be>
-	<30353c3d0807011649n5b225ef7t11bbf36217427647@mail.gmail.com>
-	<30353c3d0807012026n60815935g82a6746e5ca67b1a@mail.gmail.com>
-	<30353c3d0807012115i6f53cf2l3bf615e526a3a3c@mail.gmail.com>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] videodev: fix sysfs kobj ref count
+Cc: Video 4 Linux <video4linux-list@redhat.com>
+Subject: Re: xawtv - no picture
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,141 +28,143 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Fix fail open condition. When the open fails, kobject_put needs to be
-called to ensure the kobject ref count is restored. Did I miss
-anything else?
+Hi Ian,
 
-Regards,
+Am Sonntag, den 27.07.2008, 16:21 +0100 schrieb Ian Davidson:
+> I am trying to run xawtv (or actually streamer) to capture video - but 
+> at the moment, it is not working.
+> 
+> For details of my system, please see 
+> http://www.smolts.org/client/show_all/pub_86fd06ee-583b-40d2-b23b-92749309023b
+> 
+> I have a K-World DVB-T 210SE card which I hope will allow me to capture 
+> the video (although that is not very evident in the above link)
+> 
+> Here is a section of the dmesg output
+> Linux video capture interface: v2.00
+> saa7130/34: v4l2 driver version 0.2.14 loaded
+> ACPI: PCI Interrupt 0000:04:02.0[A] -> GSI 18 (level, low) -> IRQ 18
+> saa7133[0]: found at 0000:04:02.0, rev: 209, irq: 18, latency: 64, mmio: 
+> 0xfebff800
+> saa7133[0]: subsystem: 17de:7253, board: UNKNOWN/GENERIC 
 
-David Ellingsworth
+that board seems to be not reported yet.
 
-[PATCH] videodev: fix kobj ref count
+> [card=0,autodetected]
 
+That card=0 has only input on videomux 0 enabled.
+This is on most boards composite over the s-video connector.
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/video/videodev.c |   50 +++++++++++++++++++++++++++------------
- include/media/v4l2-dev.h       |    1 +
- 2 files changed, 35 insertions(+), 16 deletions(-)
+On KWORLD_DVBT_210 card=114, which is likely close to it or even fully
+compatible, the composite over s-video connector is not enabled yet.
 
-diff --git a/drivers/media/video/videodev.c b/drivers/media/video/videodev.c
-index 0d52819..9922cd6 100644
---- a/drivers/media/video/videodev.c
-+++ b/drivers/media/video/videodev.c
-@@ -406,17 +406,22 @@ void video_device_release(struct video_device *vfd)
- }
- EXPORT_SYMBOL(video_device_release);
+Only composite on vmux = 3 and s-video on vmux = 8. Depending on how
+composite is connected through the breakout cable, we might need a
+section with composite2 vmux = 0 in saa7134-cards.c.
 
-+/*
-+ *	Active devices
-+ */
-+
-+static struct video_device *video_device[VIDEO_NUM_DEVICES];
-+static DEFINE_MUTEX(videodev_lock);
-+
-+/* must be called with videodev_lock held */
- static void video_release(struct device *cd)
- {
- 	struct video_device *vfd = container_of(cd, struct video_device,
- 								class_dev);
+> saa7133[0]: board init: gpio is 100
+> parport_pc 00:07: reported by Plug and Play ACPI
+> parport0: PC-style at 0x378, irq 7 [PCSPP,TRISTATE]
+> saa7133[0]: i2c eeprom 00: de 17 53 72 ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: registered device video0 [v4l2]
+> saa7133[0]: registered device vbi0
+> ppdev: user-space parallel port driver
+> 
+> When I try to run xawtv, this is what I get
+> [Ian@localhost ~]$ xawtv
+> This is xawtv-3.95, running on Linux/i686 (2.6.25.10-86.fc9.i686)
+> xinerama 0: 1440x900+0+0
+> WARNING: No DGA support available for this display.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
--#if 1
--	/* needed until all drivers are fixed */
--	if (!vfd->release)
--		return;
--#endif
--	vfd->release(vfd);
-+	if (vfd->release)
-+		vfd->release(vfd);
-+	video_device[vfd->minor] = NULL;
- }
+> WARNING: couldn't find framebuffer base address, try manual
+>          configuration ("v4l-conf -a <addr>")
+> ioctl: 
+> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: 
+> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+> ioctl: 
+> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: 
+> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+> ioctl: 
+> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: 
+> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+> ioctl: 
+> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: 
+> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+> ioctl: 
+> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: 
+> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+> ioctl: 
+> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: 
+> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+> ioctl: 
+> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: 
+> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
+> Invalid argument
+> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+> [Ian@localhost ~]$
+> 
+> Also, the screen is black, although the camera was turned on.
+> 
+> I feel that it is trying to tell me something - but I do not understand 
+> what it is saying.  Is there any hope?
+> 
+> Ian
+> 
 
- static struct device_attribute video_device_attrs[] = {
-@@ -431,19 +436,30 @@ static struct class video_class = {
- 	.dev_release = video_release,
- };
+On most binary video-card drivers you can't set overlay preview mode
+anymore.
 
--/*
-- *	Active devices
-- */
--
--static struct video_device *video_device[VIDEO_NUM_DEVICES];
--static DEFINE_MUTEX(videodev_lock);
--
- struct video_device* video_devdata(struct file *file)
- {
- 	return video_device[iminor(file->f_path.dentry->d_inode)];
- }
- EXPORT_SYMBOL(video_devdata);
+You might try to force xawtv -remote -nodga -c /dev/video0 on card=114
+to have it in mmap/grabdisplay mode.
 
-+static int video_close(struct inode *inode, struct file *file)
-+{
-+	unsigned int minor = iminor(inode);
-+	int err = 0;
-+	struct video_device *vfl;
-+
-+	vfl = video_device[minor];
-+
-+	if (vfl->fops && vfl->fops->release)
-+		err = vfl->fops->release(inode, file);
-+
-+	mutex_lock(&videodev_lock);
-+	kobject_put(&vfl->class_dev.kobj);
-+	mutex_unlock(&videodev_lock);
-+
-+	return err;
-+}
-+
- /*
-  *	Open a video device - FIXME: Obsoleted
-  */
-@@ -469,10 +485,11 @@ static int video_open(struct inode *inode,
-struct file *file)
- 		}
- 	}
- 	old_fops = file->f_op;
--	file->f_op = fops_get(vfl->fops);
--	if(file->f_op->open)
-+	file->f_op = fops_get(&vfl->priv_fops);
-+	if (file->f_op->open && kobject_get(&vfl->class_dev.kobj))
- 		err = file->f_op->open(inode,file);
- 	if (err) {
-+		kobject_put(&vfl->class_dev.kobj);
- 		fops_put(file->f_op);
- 		file->f_op = fops_get(old_fops);
- 	}
-@@ -2175,6 +2192,8 @@ int video_register_device_index(struct
-video_device *vfd, int type, int nr,
- 	}
+Please test whatever you can that we might add the card to auto
+detection.
 
- 	vfd->index = ret;
-+	vfd->priv_fops = *vfd->fops;
-+	vfd->priv_fops.release = video_close;
+Cheers,
+Hermann
 
- 	mutex_unlock(&videodev_lock);
- 	mutex_init(&vfd->lock);
-@@ -2225,7 +2244,6 @@ void video_unregister_device(struct video_device *vfd)
- 	if(video_device[vfd->minor]!=vfd)
- 		panic("videodev: bad unregister");
-
--	video_device[vfd->minor]=NULL;
- 	device_unregister(&vfd->class_dev);
- 	mutex_unlock(&videodev_lock);
- }
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 3c93414..d4fe617 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -342,6 +342,7 @@ void *priv;
- 	/* for videodev.c intenal usage -- please don't touch */
- 	int users;                     /* video_exclusive_{open|close} ... */
- 	struct mutex lock;             /* ... helper function uses these   */
-+	struct file_operations priv_fops; /* video_close */
- };
-
- /* Class-dev to video-device */
--- 
-1.5.5.1
 
 --
 video4linux-list mailing list
