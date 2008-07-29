@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.108])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <timf@iinet.net.au>) id 1KEeZv-0006L1-6i
-	for linux-dvb@linuxtv.org; Fri, 04 Jul 2008 08:15:32 +0200
-Message-ID: <486DBFFD.5040209@iinet.net.au>
-Date: Fri, 04 Jul 2008 14:15:25 +0800
-From: timf <timf@iinet.net.au>
+Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]
+	helo=shogun.pilppa.org) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lamikr@pilppa.org>) id 1KNvsC-00009p-Di
+	for linux-dvb@linuxtv.org; Tue, 29 Jul 2008 22:32:46 +0200
+Date: Tue, 29 Jul 2008 23:31:47 +0300 (EEST)
+From: Mika Laitio <lamikr@pilppa.org>
+To: Goga777 <goga777@bk.ru>
+In-Reply-To: <20080724132047.10c6688d@bk.ru>
+Message-ID: <Pine.LNX.4.64.0807292330020.15498@shogun.pilppa.org>
+References: <Pine.LNX.4.64.0807240030280.20479@shogun.pilppa.org>
+	<20080724132047.10c6688d@bk.ru>
 MIME-Version: 1.0
-To: "George, Tom \(RTIO\)" <Tom.George@riotinto.com>,
- linux-dvb@linuxtv.org
-References: <C74607610AB6D64794BA3820A9567DA705A6C81A@sbscpex06.corp.riotinto.org>
-	<486DB90D.2030200@iinet.net.au>
-	<C74607610AB6D64794BA3820A9567DA705A6C967@sbscpex06.corp.riotinto.org>
-In-Reply-To: <C74607610AB6D64794BA3820A9567DA705A6C967@sbscpex06.corp.riotinto.org>
-Subject: Re: [linux-dvb] dvb_usb_dib0700 tuning problems?
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] latest hvr-4000 driver patches
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,111 +26,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-George, Tom (RTIO) wrote:
-> Thanks Tim,
->
-> I take it you're perth based then? :)
->
-> Yeah, the -a 1 is just to point it to my device which for some reason
-> chose to be device 1 not device 0 - due to me unplugging and moving the
-> usb port while the pc was in suspend... normally it is device 0 though
-> and I still have the same issues....
->
-> Cheers,
->
-> Tom 
->
-> -----Original Message-----
-> From: timf [mailto:timf@iinet.net.au] 
-> Sent: Friday, 4 July 2008 1:46 PM
-> To: George, Tom (RTIO)
-> Cc: linux-dvb@linuxtv.org
-> Subject: Re: [linux-dvb] dvb_usb_dib0700 tuning problems?
->
-> George, Tom (RTIO) wrote:
-> <snip>
->   
->> root@jaws:/home/tom# scan -a 1 
->> /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Perth
->>
->> Anyone got an idea what is going on here???????
->>
->> CHeers,
->>
->> Tom
->>
->> Tom George
->>
->> RTIO WA Demand Coordinator - Office of the CIO
->>
->> Rio Tinto
->>
->> Central Park, 152 - 158 St Georges Terrace, Perth, 6000, Western
->>     
-> Australia
->   
->> T: +61 (9) 8 94247251 M: +61 (0) 417940173 F: +61 (0) 8 9327 2456
->>
->> Tom.george@riotinto.com http://www.riotinto.com
->>
->> This email (including all attachments) is the sole property of Rio 
->> Tinto Limited and may be confidential. If you are not the intended 
->> recipient, you must not use or forward the information contained in 
->> it. This message may not be reproduced or otherwise republished 
->> without the written consent of the sender. If you have received this 
->> message in error, please delete the e-mail and notify the sender.
->>
->>     
-> ------------------------------------------------------------------------
->   
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>     
-> Hi Tom,
->
-> I just tried:
->
-> scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Perth
->
-> and scan without -a 1 works fine.
->
-> (Tuned all channels)
->
-> Regards,
-> Tim 
->  
-> This email (including all attachments) is the sole property of Rio Tinto Limited and may be confidential.  If you are not the intended recipient, you must not use or forward the information contained in it.  This message may not be reproduced or otherwise republished without the written consent of the sender.  If you have received this message in error, please delete the e-mail and notify the sender.
->
->   
-Hi Tom,
-Yes, in fact I am closer to the Roleystone translator, so I had to 
-construct a whole new au-Perth_Roleystone, which will be included with 
-newer kernels and Kaffeine.
-However, I can still scan Bickley transmitter.
-I have a box with 2 tv cards in it, and I just tried:
+> I have vdr 170 , hvr4000 and fresh drivers form "Igor M. Liplianin's repo (repo includes hg multiproto + hvr4000 patch +
+> some fixes)
+> http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
+> It works well. I recommend it for your case
+> Of course it's not multifrontend drivers
 
-scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Perth
+I build and installed the drivers from Liplianin's repository to 2.6.26
+kernel. I think driver loads now ok and dvb-s is used by default. (at
+least that is reported by the kaffeine and scan from dvb-apps)
 
-scan -a 0 /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Perth
+Should the dvb-apps/util/scan/scan from dvb-apps repository head work with
+the Liplianin's driver?
 
-scan -a 1 /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-Perth
+I think I found at least some satellite according to cheap peeper hardware 
+I have used while rotating dish. Command
+"./scan dvb-s/Hotbird-13.0E" does not find any channels for me.
 
-and all scanned fine.
+And could I use the util/femon indicate some non-zero values if I run 
+that alone for the debugging purposes, when some satellite gives good 
+signal?
 
-This would perhaps indicate some error from earlier than scan in your case.
-I do recall with ubuntu that one needs to be careful when removing usb 
-devices while in suspend mode.
-Any chance of rebooting without the stick attached, then plugging it in, 
-then try scan? (on its own without -a N)
+Mika
 
-If you have already tried that, the changing of channels is generally an 
-instruction controlled by the firmware,
-however, you appear to have the correct firmware.
-
-Regards,
-Tim
 
 _______________________________________________
 linux-dvb mailing list
