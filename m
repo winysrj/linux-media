@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m63BXvGp025217
-	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 07:33:57 -0400
-Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m63BXe5N031044
-	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 07:33:41 -0400
-Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
-	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KEN4E-0004mK-Tf
-	for video4linux-list@redhat.com; Thu, 03 Jul 2008 13:33:39 +0200
-Message-ID: <486CB8F1.2060701@hhs.nl>
-Date: Thu, 03 Jul 2008 13:33:05 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Thierry Merle <thierry.merle@free.fr>
-Content-Type: multipart/mixed; boundary="------------010801060403060800070707"
-Cc: video4linux-list@redhat.com
-Subject: PATCH: libv4l: update mercurial tree to latest 0.3.1 release
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6TFKt3k020243
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 11:20:55 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6TFJvFh030709
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 11:19:58 -0400
+Date: Tue, 29 Jul 2008 12:19:38 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jean Delvare <khali@linux-fr.org>
+Message-ID: <20080729121938.3d4668f4@gaivota>
+In-Reply-To: <20080711231113.13054808@hyperion.delvare>
+References: <20080711231113.13054808@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: Re: bt832 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,743 +27,740 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------010801060403060800070707
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Jean,
 
-Hi,
+On Fri, 11 Jul 2008 23:11:13 +0200
+Jean Delvare <khali@linux-fr.org> wrote:
 
-This patch syncs (updates) the libv4l in mercurial with (to) the latest 0.3.1
-release.
+> Hi Mauro,
+> 
+> As part of the next big i2c-core change, I must update all the legacy
+> i2c drivers. I was about to update the bt832 driver, but found that
+> there was no reference to it in the build system. After adding a
+> reference to force it to build, I found that it wouldn't actually
+> build, because the last change to the driver broke it and apparently
+> nobody noticed. Looking at the code, the driver doesn't appear to be
+> functional.
+> 
+> So rather than wasting my time fixing this broken driver nobody is
+> using, I believe that it would be better to delete it. If this is OK
+> with you, here's a patch doing that. Thanks.
 
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+I'm ok with this removal.
 
-Regards,
+Since you did your patch against -git, it doesn't apply at -hg. So, I've
+re-generated it. Please check if everything is all right. I did a small
+additional cleanup at bttv driver, since you've kept a test that is not needed
+anymore.
 
-Hans
-
---------------010801060403060800070707
-Content-Type: text/plain;
- name="libv4l-mecurial-0.3.1.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="libv4l-mecurial-0.3.1.patch"
-
-This patch syncs (updates) the libv4l in mercurial with (to) the latest 0.3.1
-release.
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-diff -r 6169e79de2d2 v4l2-apps/lib/libv4l/ChangeLog
---- a/v4l2-apps/lib/libv4l/ChangeLog	Tue Jul 01 21:18:23 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/ChangeLog	Thu Jul 03 13:29:13 2008 +0200
-@@ -1,3 +1,20 @@
-+libv4l-0.3.1
-+------------
-+* Only serialize V4L2_BUF_TYPE_VIDEO_CAPTURE type ioctls
-+* Do not return an uninitialized variable as result code for GPICT
-+  (fixes vlc, but see below)
-+* Add an apps-patches directory which includes:
-+  * vlc-0.8.6-libv4l1.patch, modify vlc's v4l1 plugin to directly call into
-+    libv4l1, in the end we want all apps todo this as its better then
-+    LD_PRELOAD tricks, but for vlc this is needed as vlc's plugin system
-+    causes LD_PRELOAD to not work on symbols in the plugins
-+  * camorama-0.19-fixes.patch, small bugfixes to camorama's v4l1 support,
-+    this patch only fixes _real_ bugs in camorama and does not change it to
-+    work with v4l1compat. Although it does work better with these bugs fixed
-+    :) With this patch and LD_PRELOAD=<path>/v4l1compat.so it works
-+    flawless. 
-+
-+
- libv4l-0.3
- ----------
- * add extern "C" magic to public header files for c++ usage (Gregor Jasny)
-diff -r 6169e79de2d2 v4l2-apps/lib/libv4l/apps-patches/camorama-0.19-fixes.patch
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/v4l2-apps/lib/libv4l/apps-patches/camorama-0.19-fixes.patch	Thu Jul 03 13:29:13 2008 +0200
-@@ -0,0 +1,90 @@
-+--- camorama-0.19/src/callbacks.c	2007-09-16 15:36:55.000000000 +0200
-++++ camorama-0.19.new/src/callbacks.c	2008-06-29 22:22:44.000000000 +0200
-+@@ -387,9 +387,6 @@
-+         }
-+     }
-+ 
-+-    cam->pixmap = gdk_pixmap_new (NULL, cam->x, cam->y, cam->desk_depth);
-+-    gtk_widget_set_size_request (glade_xml_get_widget (cam->xml, "da"),
-+-                                 cam->x, cam->y);
-+ 
-+     /*
-+      * if(cam->read == FALSE) {
-+@@ -441,6 +438,11 @@
-+      * * } 
-+      */
-+     get_win_info (cam);
-++
-++    cam->pixmap = gdk_pixmap_new (NULL, cam->x, cam->y, cam->desk_depth);
-++    gtk_widget_set_size_request (glade_xml_get_widget (cam->xml, "da"),
-++                                 cam->x, cam->y);
-++
-+     frame = 0;
-+     gtk_window_resize (GTK_WINDOW
-+                        (glade_xml_get_widget (cam->xml, "main_window")), 320,
-+@@ -520,8 +522,14 @@
-+     gtk_widget_show (about);
-+ }
-+ 
-++void
-++camorama_filter_color_filter(void* filter, guchar *image, int x, int y, int depth);
-++
-+ static void
-+ apply_filters(cam* cam) {
-++	/* v4l has reverse rgb order from what camora expect so call the color
-++	   filter to fix things up before running the user selected filters */
-++	camorama_filter_color_filter(NULL, cam->pic_buf, cam->x, cam->y, cam->depth);
-+ 	camorama_filter_chain_apply(cam->filter_chain, cam->pic_buf, cam->x, cam->y, cam->depth);
-+ #warning "FIXME: enable the threshold channel filter"
-+ //	if((effect_mask & CAMORAMA_FILTER_THRESHOLD_CHANNEL)  != 0) 
-+--- camorama-0.19/src/filter.c	2007-09-16 14:48:50.000000000 +0200
-++++ camorama-0.19.new/src/filter.c	2008-06-29 22:11:42.000000000 +0200
-+@@ -151,12 +151,12 @@
-+ static void
-+ camorama_filter_color_init(CamoramaFilterColor* self) {}
-+ 
-+-static void
-++void
-+ camorama_filter_color_filter(CamoramaFilterColor* filter, guchar *image, int x, int y, int depth) {
-+ 	int i;
-+ 	char tmp;
-+ 	i = x * y;
-+-	while (--i) {
-++	while (i--) {
-+ 		tmp = image[0];
-+ 		image[0] = image[2];
-+ 		image[2] = tmp;
-+--- camorama-0.19/src/main.c	2007-09-16 15:36:55.000000000 +0200
-++++ camorama-0.19.new/src/main.c	2008-06-29 22:20:04.000000000 +0200
-+@@ -224,8 +224,7 @@
-+ 
-+     /* get picture attributes */
-+     get_pic_info (cam);
-+-//	set_pic_info(cam);
-+-    /* set_pic_info(cam); */
-++    set_pic_info (cam);
-+     cam->contrast = cam->vid_pic.contrast;
-+     cam->brightness = cam->vid_pic.brightness;
-+     cam->colour = cam->vid_pic.colour;
-+--- camorama-0.19/src/v4l.c	2007-09-16 14:48:05.000000000 +0200
-++++ camorama-0.19.new/src/v4l.c	2008-06-29 22:20:23.000000000 +0200
-+@@ -158,8 +158,8 @@
-+ 	if(cam->debug) {
-+ 		g_message("SET PIC");
-+ 	}
-+-	//cam->vid_pic.palette = VIDEO_PALETTE_RGB24;
-+-	//cam->vid_pic.depth = 24;
-++	cam->vid_pic.palette = VIDEO_PALETTE_RGB24;
-++	cam->vid_pic.depth = 24;
-+ 	//cam->vid_pic.palette = VIDEO_PALETTE_YUV420P;
-+ 	if(ioctl(cam->dev, VIDIOCSPICT, &cam->vid_pic) == -1) {
-+ 		if(cam->debug) {
-+@@ -232,6 +232,8 @@
-+       exit(0);
-+    }
-+ 
-++   cam->x = cam->vid_win.width;
-++   cam->y = cam->vid_win.height;
-+ }
-+ 
-+ void set_buffer(cam * cam)
-diff -r 6169e79de2d2 v4l2-apps/lib/libv4l/apps-patches/vlc-0.8.6-libv4l1.patch
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/v4l2-apps/lib/libv4l/apps-patches/vlc-0.8.6-libv4l1.patch	Thu Jul 03 13:29:13 2008 +0200
-@@ -0,0 +1,319 @@
-+diff -up vlc-0.8.6f/modules/access/v4l/Makefile.am~ vlc-0.8.6f/modules/access/v4l/Makefile.am
-+--- vlc-0.8.6f/modules/access/v4l/Makefile.am~	2008-06-29 17:14:11.000000000 +0200
-++++ vlc-0.8.6f/modules/access/v4l/Makefile.am	2008-06-29 17:16:39.000000000 +0200
-+@@ -100,7 +100,7 @@ libv4l_plugin_la_CXXFLAGS = `$(VLC_CONFI
-+ libv4l_plugin_la_OBJCFLAGS = `$(VLC_CONFIG) --objcflags plugin v4l`
-+ libv4l_plugin_la_LDFLAGS = `$(VLC_CONFIG) --libs plugin v4l` \
-+ 	-rpath '$(libvlcdir)' -avoid-version -module -shrext $(LIBEXT)
-+-libv4l_plugin_la_LIBADD = $(LTLIBVLC)
-++libv4l_plugin_la_LIBADD = $(LTLIBVLC) -lv4l1
-+ 
-+ libv4l_a_SOURCES = $(SOURCES_v4l)
-+ libv4l_builtin_la_SOURCES = $(SOURCES_v4l)
-+diff -up vlc-0.8.6f/modules/access/v4l/Makefile.in~ vlc-0.8.6f/modules/access/v4l/Makefile.in
-+--- vlc-0.8.6f/modules/access/v4l/Makefile.in~	2008-06-29 17:16:22.000000000 +0200
-++++ vlc-0.8.6f/modules/access/v4l/Makefile.in	2008-06-29 17:16:42.000000000 +0200
-+@@ -390,7 +390,7 @@ libv4l_plugin_la_OBJCFLAGS = `$(VLC_CONF
-+ libv4l_plugin_la_LDFLAGS = `$(VLC_CONFIG) --libs plugin v4l` \
-+ 	-rpath '$(libvlcdir)' -avoid-version -module -shrext $(LIBEXT)
-+ 
-+-libv4l_plugin_la_LIBADD = $(LTLIBVLC)
-++libv4l_plugin_la_LIBADD = $(LTLIBVLC) -lv4l1
-+ libv4l_a_SOURCES = $(SOURCES_v4l)
-+ libv4l_builtin_la_SOURCES = $(SOURCES_v4l)
-+ libv4l_a_CFLAGS = `$(VLC_CONFIG) --cflags builtin pic v4l`
-+diff -up vlc-0.8.6f/modules/access/v4l/v4l.c~ vlc-0.8.6f/modules/access/v4l/v4l.c
-+--- vlc-0.8.6f/modules/access/v4l/v4l.c~	2008-06-29 17:13:30.000000000 +0200
-++++ vlc-0.8.6f/modules/access/v4l/v4l.c	2008-06-29 17:13:30.000000000 +0200
-+@@ -64,6 +64,9 @@
-+ 
-+ #include <sys/soundcard.h>
-+ 
-++#include <libv4l1.h>
-++
-++
-+ /*****************************************************************************
-+  * Module descriptior
-+  *****************************************************************************/
-+@@ -546,23 +549,23 @@ static void Close( vlc_object_t *p_this 
-+     if( p_sys->psz_device ) free( p_sys->psz_device );
-+     if( p_sys->psz_vdev )   free( p_sys->psz_vdev );
-+     if( p_sys->psz_adev )   free( p_sys->psz_adev );
-+-    if( p_sys->fd_video >= 0 ) close( p_sys->fd_video );
-++    if( p_sys->fd_video >= 0 ) v4l1_close( p_sys->fd_video );
-+     if( p_sys->fd_audio >= 0 ) close( p_sys->fd_audio );
-+     if( p_sys->p_block_audio ) block_Release( p_sys->p_block_audio );
-+ 
-+     if( p_sys->b_mjpeg )
-+     {
-+         int i_noframe = -1;
-+-        ioctl( p_sys->fd_video, MJPIOC_QBUF_CAPT, &i_noframe );
-++        v4l1_ioctl( p_sys->fd_video, MJPIOC_QBUF_CAPT, &i_noframe );
-+     }
-+ 
-+     if( p_sys->p_video_mmap && p_sys->p_video_mmap != MAP_FAILED )
-+     {
-+         if( p_sys->b_mjpeg )
-+-            munmap( p_sys->p_video_mmap, p_sys->mjpeg_buffers.size *
-++            v4l1_munmap( p_sys->p_video_mmap, p_sys->mjpeg_buffers.size *
-+                     p_sys->mjpeg_buffers.count );
-+         else
-+-            munmap( p_sys->p_video_mmap, p_sys->vid_mbuf.size );
-++            v4l1_munmap( p_sys->p_video_mmap, p_sys->vid_mbuf.size );
-+     }
-+ 
-+     free( p_sys );
-+@@ -875,13 +878,13 @@ static int OpenVideoDev( demux_t *p_demu
-+     struct mjpeg_params mjpeg;
-+     int i;
-+ 
-+-    if( ( i_fd = open( psz_device, O_RDWR ) ) < 0 )
-++    if( ( i_fd = v4l1_open( psz_device, O_RDWR ) ) < 0 )
-+     {
-+         msg_Err( p_demux, "cannot open device (%s)", strerror( errno ) );
-+         goto vdev_failed;
-+     }
-+ 
-+-    if( ioctl( i_fd, VIDIOCGCAP, &p_sys->vid_cap ) < 0 )
-++    if( v4l1_ioctl( i_fd, VIDIOCGCAP, &p_sys->vid_cap ) < 0 )
-+     {
-+         msg_Err( p_demux, "cannot get capabilities (%s)", strerror( errno ) );
-+         goto vdev_failed;
-+@@ -926,7 +929,7 @@ static int OpenVideoDev( demux_t *p_demu
-+     }
-+ 
-+     vid_channel.channel = p_sys->i_channel;
-+-    if( ioctl( i_fd, VIDIOCGCHAN, &vid_channel ) < 0 )
-++    if( v4l1_ioctl( i_fd, VIDIOCGCHAN, &vid_channel ) < 0 )
-+     {
-+         msg_Err( p_demux, "cannot get channel infos (%s)",
-+                           strerror( errno ) );
-+@@ -944,7 +947,7 @@ static int OpenVideoDev( demux_t *p_demu
-+     }
-+ 
-+     vid_channel.norm = p_sys->i_norm;
-+-    if( ioctl( i_fd, VIDIOCSCHAN, &vid_channel ) < 0 )
-++    if( v4l1_ioctl( i_fd, VIDIOCSCHAN, &vid_channel ) < 0 )
-+     {
-+         msg_Err( p_demux, "cannot set channel (%s)", strerror( errno ) );
-+         goto vdev_failed;
-+@@ -959,7 +962,7 @@ static int OpenVideoDev( demux_t *p_demu
-+         if( p_sys->i_tuner >= 0 )
-+         {
-+             vid_tuner.tuner = p_sys->i_tuner;
-+-            if( ioctl( i_fd, VIDIOCGTUNER, &vid_tuner ) < 0 )
-++            if( v4l1_ioctl( i_fd, VIDIOCGTUNER, &vid_tuner ) < 0 )
-+             {
-+                 msg_Err( p_demux, "cannot get tuner (%s)", strerror( errno ) );
-+                 goto vdev_failed;
-+@@ -974,7 +977,7 @@ static int OpenVideoDev( demux_t *p_demu
-+ 
-+             /* FIXME FIXME to be checked FIXME FIXME */
-+             //vid_tuner.mode = p_sys->i_norm;
-+-            if( ioctl( i_fd, VIDIOCSTUNER, &vid_tuner ) < 0 )
-++            if( v4l1_ioctl( i_fd, VIDIOCSTUNER, &vid_tuner ) < 0 )
-+             {
-+                 msg_Err( p_demux, "cannot set tuner (%s)", strerror( errno ) );
-+                 goto vdev_failed;
-+@@ -990,7 +993,7 @@ static int OpenVideoDev( demux_t *p_demu
-+         if( p_sys->i_frequency >= 0 )
-+         {
-+             int driver_frequency = p_sys->i_frequency * 16 /1000;
-+-            if( ioctl( i_fd, VIDIOCSFREQ, &driver_frequency ) < 0 )
-++            if( v4l1_ioctl( i_fd, VIDIOCSFREQ, &driver_frequency ) < 0 )
-+             {
-+                 msg_Err( p_demux, "cannot set frequency (%s)",
-+                                   strerror( errno ) );
-+@@ -1010,7 +1013,7 @@ static int OpenVideoDev( demux_t *p_demu
-+         if( p_sys->i_audio >= 0 )
-+         {
-+             vid_audio.audio = p_sys->i_audio;
-+-            if( ioctl( i_fd, VIDIOCGAUDIO, &vid_audio ) < 0 )
-++            if( v4l1_ioctl( i_fd, VIDIOCGAUDIO, &vid_audio ) < 0 )
-+             {
-+                 msg_Err( p_demux, "cannot get audio (%s)", strerror( errno ) );
-+                 goto vdev_failed;
-+@@ -1019,7 +1022,7 @@ static int OpenVideoDev( demux_t *p_demu
-+             /* unmute audio */
-+             vid_audio.flags &= ~VIDEO_AUDIO_MUTE;
-+ 
-+-            if( ioctl( i_fd, VIDIOCSAUDIO, &vid_audio ) < 0 )
-++            if( v4l1_ioctl( i_fd, VIDIOCSAUDIO, &vid_audio ) < 0 )
-+             {
-+                 msg_Err( p_demux, "cannot set audio (%s)", strerror( errno ) );
-+                 goto vdev_failed;
-+@@ -1035,7 +1038,7 @@ static int OpenVideoDev( demux_t *p_demu
-+         struct quicktime_mjpeg_app1 *p_app1;
-+         int32_t i_offset;
-+ 
-+-        if( ioctl( i_fd, MJPIOC_G_PARAMS, &mjpeg ) < 0 )
-++        if( v4l1_ioctl( i_fd, MJPIOC_G_PARAMS, &mjpeg ) < 0 )
-+         {
-+             msg_Err( p_demux, "cannot get mjpeg params (%s)",
-+                               strerror( errno ) );
-+@@ -1086,7 +1089,7 @@ static int OpenVideoDev( demux_t *p_demu
-+          * optional.  They will be present in the output. */
-+         mjpeg.jpeg_markers = JPEG_MARKER_DHT | JPEG_MARKER_DQT;
-+ 
-+-        if( ioctl( i_fd, MJPIOC_S_PARAMS, &mjpeg ) < 0 )
-++        if( v4l1_ioctl( i_fd, MJPIOC_S_PARAMS, &mjpeg ) < 0 )
-+         {
-+             msg_Err( p_demux, "cannot set mjpeg params (%s)",
-+                               strerror( errno ) );
-+@@ -1103,7 +1106,7 @@ static int OpenVideoDev( demux_t *p_demu
-+     {
-+         struct video_window vid_win;
-+ 
-+-        if( ioctl( i_fd, VIDIOCGWIN, &vid_win ) < 0 )
-++        if( v4l1_ioctl( i_fd, VIDIOCGWIN, &vid_win ) < 0 )
-+         {
-+             msg_Err( p_demux, "cannot get win (%s)", strerror( errno ) );
-+             goto vdev_failed;
-+@@ -1130,7 +1133,7 @@ static int OpenVideoDev( demux_t *p_demu
-+     if( !p_sys->b_mjpeg )
-+     {
-+         /* set hue/color/.. */
-+-        if( ioctl( i_fd, VIDIOCGPICT, &p_sys->vid_picture ) == 0 )
-++        if( v4l1_ioctl( i_fd, VIDIOCGPICT, &p_sys->vid_picture ) == 0 )
-+         {
-+             struct video_picture vid_picture = p_sys->vid_picture;
-+ 
-+@@ -1150,7 +1153,7 @@ static int OpenVideoDev( demux_t *p_demu
-+             {
-+                 vid_picture.contrast = p_sys->i_contrast;
-+             }
-+-            if( ioctl( i_fd, VIDIOCSPICT, &vid_picture ) == 0 )
-++            if( v4l1_ioctl( i_fd, VIDIOCSPICT, &vid_picture ) == 0 )
-+             {
-+                 msg_Dbg( p_demux, "v4l device uses brightness: %d",
-+                          vid_picture.brightness );
-+@@ -1164,7 +1167,7 @@ static int OpenVideoDev( demux_t *p_demu
-+         }
-+ 
-+         /* Find out video format used by device */
-+-        if( ioctl( i_fd, VIDIOCGPICT, &p_sys->vid_picture ) == 0 )
-++        if( v4l1_ioctl( i_fd, VIDIOCGPICT, &p_sys->vid_picture ) == 0 )
-+         {
-+             struct video_picture vid_picture = p_sys->vid_picture;
-+             char *psz;
-+@@ -1191,7 +1194,7 @@ static int OpenVideoDev( demux_t *p_demu
-+             free( psz );
-+ 
-+             if( vid_picture.palette &&
-+-                !ioctl( i_fd, VIDIOCSPICT, &vid_picture ) )
-++                !v4l1_ioctl( i_fd, VIDIOCSPICT, &vid_picture ) )
-+             {
-+                 p_sys->vid_picture = vid_picture;
-+             }
-+@@ -1199,14 +1202,14 @@ static int OpenVideoDev( demux_t *p_demu
-+             {
-+                 /* Try to set the format to something easy to encode */
-+                 vid_picture.palette = VIDEO_PALETTE_YUV420P;
-+-                if( ioctl( i_fd, VIDIOCSPICT, &vid_picture ) == 0 )
-++                if( v4l1_ioctl( i_fd, VIDIOCSPICT, &vid_picture ) == 0 )
-+                 {
-+                     p_sys->vid_picture = vid_picture;
-+                 }
-+                 else
-+                 {
-+                     vid_picture.palette = VIDEO_PALETTE_YUV422P;
-+-                    if( ioctl( i_fd, VIDIOCSPICT, &vid_picture ) == 0 )
-++                    if( v4l1_ioctl( i_fd, VIDIOCSPICT, &vid_picture ) == 0 )
-+                     {
-+                         p_sys->vid_picture = vid_picture;
-+                     }
-+@@ -1237,13 +1240,13 @@ static int OpenVideoDev( demux_t *p_demu
-+         p_sys->mjpeg_buffers.count = 8;
-+         p_sys->mjpeg_buffers.size = MJPEG_BUFFER_SIZE;
-+ 
-+-        if( ioctl( i_fd, MJPIOC_REQBUFS, &p_sys->mjpeg_buffers ) < 0 )
-++        if( v4l1_ioctl( i_fd, MJPIOC_REQBUFS, &p_sys->mjpeg_buffers ) < 0 )
-+         {
-+             msg_Err( p_demux, "mmap unsupported" );
-+             goto vdev_failed;
-+         }
-+ 
-+-        p_sys->p_video_mmap = mmap( 0,
-++        p_sys->p_video_mmap = v4l1_mmap( 0,
-+                 p_sys->mjpeg_buffers.size * p_sys->mjpeg_buffers.count,
-+                 PROT_READ | PROT_WRITE, MAP_SHARED, i_fd, 0 );
-+         if( p_sys->p_video_mmap == MAP_FAILED )
-+@@ -1258,7 +1261,7 @@ static int OpenVideoDev( demux_t *p_demu
-+         /* queue up all the frames */
-+         for( i = 0; i < (int)p_sys->mjpeg_buffers.count; i++ )
-+         {
-+-            if( ioctl( i_fd, MJPIOC_QBUF_CAPT, &i ) < 0 )
-++            if( v4l1_ioctl( i_fd, MJPIOC_QBUF_CAPT, &i ) < 0 )
-+             {
-+                 msg_Err( p_demux, "unable to queue frame" );
-+                 goto vdev_failed;
-+@@ -1289,13 +1292,13 @@ static int OpenVideoDev( demux_t *p_demu
-+                 (char*)&p_sys->i_fourcc );
-+ 
-+         /* Allocate mmap buffer */
-+-        if( ioctl( i_fd, VIDIOCGMBUF, &p_sys->vid_mbuf ) < 0 )
-++        if( v4l1_ioctl( i_fd, VIDIOCGMBUF, &p_sys->vid_mbuf ) < 0 )
-+         {
-+             msg_Err( p_demux, "mmap unsupported" );
-+             goto vdev_failed;
-+         }
-+ 
-+-        p_sys->p_video_mmap = mmap( 0, p_sys->vid_mbuf.size,
-++        p_sys->p_video_mmap = v4l1_mmap( 0, p_sys->vid_mbuf.size,
-+                                     PROT_READ|PROT_WRITE, MAP_SHARED,
-+                                     i_fd, 0 );
-+         if( p_sys->p_video_mmap == MAP_FAILED )
-+@@ -1310,7 +1313,7 @@ static int OpenVideoDev( demux_t *p_demu
-+         p_sys->vid_mmap.width  = p_sys->i_width;
-+         p_sys->vid_mmap.height = p_sys->i_height;
-+         p_sys->vid_mmap.format = p_sys->vid_picture.palette;
-+-        if( ioctl( i_fd, VIDIOCMCAPTURE, &p_sys->vid_mmap ) < 0 )
-++        if( v4l1_ioctl( i_fd, VIDIOCMCAPTURE, &p_sys->vid_mmap ) < 0 )
-+         {
-+             msg_Warn( p_demux, "%4.4s refused", (char*)&p_sys->i_fourcc );
-+             msg_Err( p_demux, "chroma selection failed" );
-+@@ -1321,7 +1324,7 @@ static int OpenVideoDev( demux_t *p_demu
-+ 
-+ vdev_failed:
-+ 
-+-    if( i_fd >= 0 ) close( i_fd );
-++    if( i_fd >= 0 ) v4l1_close( i_fd );
-+     return -1;
-+ }
-+ 
-+@@ -1431,7 +1434,7 @@ static uint8_t *GrabCapture( demux_t *p_
-+ 
-+     p_sys->vid_mmap.frame = (p_sys->i_frame_pos + 1) % p_sys->vid_mbuf.frames;
-+ 
-+-    while( ioctl( p_sys->fd_video, VIDIOCMCAPTURE, &p_sys->vid_mmap ) < 0 )
-++    while( v4l1_ioctl( p_sys->fd_video, VIDIOCMCAPTURE, &p_sys->vid_mmap ) < 0 )
-+     {
-+         if( errno != EAGAIN )
-+         {
-+@@ -1447,7 +1450,7 @@ static uint8_t *GrabCapture( demux_t *p_
-+         msg_Dbg( p_demux, "grab failed, trying again" );
-+     }
-+ 
-+-    while( ioctl(p_sys->fd_video, VIDIOCSYNC, &p_sys->i_frame_pos) < 0 )
-++    while( v4l1_ioctl(p_sys->fd_video, VIDIOCSYNC, &p_sys->i_frame_pos) < 0 )
-+     {
-+         if( errno != EAGAIN && errno != EINTR )    
-+         {
-+@@ -1473,7 +1476,7 @@ static uint8_t *GrabMJPEG( demux_t *p_de
-+     /* re-queue the last frame we sync'd */
-+     if( p_sys->i_frame_pos != -1 )
-+     {
-+-        while( ioctl( p_sys->fd_video, MJPIOC_QBUF_CAPT,
-++        while( v4l1_ioctl( p_sys->fd_video, MJPIOC_QBUF_CAPT,
-+                                        &p_sys->i_frame_pos ) < 0 )
-+         {
-+             if( errno != EAGAIN && errno != EINTR )
-+@@ -1485,7 +1488,7 @@ static uint8_t *GrabMJPEG( demux_t *p_de
-+     }
-+ 
-+     /* sync on the next frame */
-+-    while( ioctl( p_sys->fd_video, MJPIOC_SYNC, &sync ) < 0 )
-++    while( v4l1_ioctl( p_sys->fd_video, MJPIOC_SYNC, &sync ) < 0 )
-+     {
-+         if( errno != EAGAIN && errno != EINTR )    
-+         {
-diff -r 6169e79de2d2 v4l2-apps/lib/libv4l/libv4l1/libv4l1.c
---- a/v4l2-apps/lib/libv4l/libv4l1/libv4l1.c	Tue Jul 01 21:18:23 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/libv4l1/libv4l1.c	Thu Jul 03 13:29:13 2008 +0200
-@@ -532,6 +532,8 @@
- 					   V4L2_CID_WHITENESS);
- 	pic->brightness = v4l2_get_control(devices[index].fd,
- 					   V4L2_CID_BRIGHTNESS);
-+
-+        result = 0;
-       }
-       break;
+Cheers,
+Mauro.
  
-diff -r 6169e79de2d2 v4l2-apps/lib/libv4l/libv4l2/libv4l2.c
---- a/v4l2-apps/lib/libv4l/libv4l2/libv4l2.c	Tue Jul 01 21:18:23 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/libv4l2/libv4l2.c	Thu Jul 03 13:29:13 2008 +0200
-@@ -527,31 +527,13 @@
-   return fd;
+> * * * * *
+> 
+> Subject: Delete broken bt832 driver
+> 
+> The bt832 driver was added to the kernel tree in January 2003, but it
+> was never integrated in the build system. According to the header
+> comments, it doesn't actually work (which a quick inspection of the
+> code seems to confirm.) In fact, it doesn't even build at the moment.
+> To lower the maintenance cost, I propose that we delete this driver
+> now.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+
+diff -r 02bfc69e3849 linux/drivers/media/video/bt8xx/bt832.c
+--- a/linux/drivers/media/video/bt8xx/bt832.c	Mon Jul 28 18:07:35 2008 -0300
++++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
+@@ -1,287 +0,0 @@
+-/* Driver for Bt832 CMOS Camera Video Processor
+-    i2c-addresses: 0x88 or 0x8a
+-
+-  The BT832 interfaces to a Quartzsight Digital Camera (352x288, 25 or 30 fps)
+-  via a 9 pin connector ( 4-wire SDATA, 2-wire i2c, SCLK, VCC, GND).
+-  It outputs an 8-bit 4:2:2 YUV or YCrCb video signal which can be directly
+-  connected to bt848/bt878 GPIO pins on this purpose.
+-  (see: VLSI Vision Ltd. www.vvl.co.uk for camera datasheets)
+-
+-  Supported Cards:
+-  -  Pixelview Rev.4E: 0x8a
+-		GPIO 0x400000 toggles Bt832 RESET, and the chip changes to i2c 0x88 !
+-
+-  (c) Gunther Mayer, 2002
+-
+-  STATUS:
+-  - detect chip and hexdump
+-  - reset chip and leave low power mode
+-  - detect camera present
+-
+-  TODO:
+-  - make it work (find correct setup for Bt832 and Bt878)
+-*/
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/i2c.h>
+-#include <linux/types.h>
+-#include "compat.h"
+-#include <linux/videodev.h>
+-#include <linux/init.h>
+-#include <linux/errno.h>
+-#include <linux/slab.h>
+-#include <media/v4l2-common.h>
+-
+-#include "bttv.h"
+-#include "bt832.h"
+-
+-MODULE_LICENSE("GPL");
+-
+-/* Addresses to scan */
+-static unsigned short normal_i2c[] = { I2C_ADDR_BT832_ALT1>>1, I2C_ADDR_BT832_ALT2>>1,
+-				       I2C_CLIENT_END };
+-I2C_CLIENT_INSMOD;
+-
+-int debug;    /* debug output */
+-module_param(debug,            int, 0644);
+-
+-/* ---------------------------------------------------------------------- */
+-
+-static int bt832_detach(struct i2c_client *client);
+-
+-
+-static struct i2c_driver driver;
+-static struct i2c_client client_template;
+-
+-struct bt832 {
+-	struct i2c_client client;
+-};
+-
+-int bt832_hexdump(struct i2c_client *i2c_client_s, unsigned char *buf)
+-{
+-	int i,rc;
+-	buf[0]=0x80; // start at register 0 with auto-increment
+-	if (1 != (rc = i2c_master_send(i2c_client_s,buf,1)))
+-		v4l_err(i2c_client_s,"i2c i/o error: rc == %d (should be 1)\n",rc);
+-
+-	for(i=0;i<65;i++)
+-		buf[i]=0;
+-	if (65 != (rc=i2c_master_recv(i2c_client_s,buf,65)))
+-		v4l_err(i2c_client_s,"i2c i/o error: rc == %d (should be 65)\n",rc);
+-
+-	// Note: On READ the first byte is the current index
+-	//  (e.g. 0x80, what we just wrote)
+-
+-	if(debug>1) {
+-		int i;
+-		v4l_dbg(2, debug,i2c_client_s,"hexdump:");
+-		for(i=1;i<65;i++) {
+-			if(i!=1) {
+-				if(((i-1)%8)==0) printk(" ");
+-				if(((i-1)%16)==0) {
+-					printk("\n");
+-					v4l_dbg(2, debug,i2c_client_s,"hexdump:");
+-				}
+-			}
+-			printk(" %02x",buf[i]);
+-		}
+-		printk("\n");
+-	}
+-	return 0;
+-}
+-
+-// Return: 1 (is a bt832), 0 (No bt832 here)
+-int bt832_init(struct i2c_client *i2c_client_s)
+-{
+-	unsigned char *buf;
+-	int rc;
+-
+-	buf=kmalloc(65,GFP_KERNEL);
+-	if (!buf) {
+-		v4l_err(&t->client,
+-			"Unable to allocate memory. Detaching.\n");
+-		return 0;
+-	}
+-	bt832_hexdump(i2c_client_s,buf);
+-
+-	if(buf[0x40] != 0x31) {
+-		v4l_err(i2c_client_s,"This i2c chip is no bt832 (id=%02x). Detaching.\n",buf[0x40]);
+-		kfree(buf);
+-		return 0;
+-	}
+-
+-	v4l_err(i2c_client_s,"Write 0 tp VPSTATUS\n");
+-	buf[0]=BT832_VP_STATUS; // Reg.52
+-	buf[1]= 0x00;
+-	if (2 != (rc = i2c_master_send(i2c_client_s,buf,2)))
+-		v4l_err(i2c_client_s,"i2c i/o error VPS: rc == %d (should be 2)\n",rc);
+-
+-	bt832_hexdump(i2c_client_s,buf);
+-
+-
+-	// Leave low power mode:
+-	v4l_err(i2c_client_s,"leave low power mode.\n");
+-	buf[0]=BT832_CAM_SETUP0; //0x39 57
+-	buf[1]=0x08;
+-	if (2 != (rc = i2c_master_send(i2c_client_s,buf,2)))
+-		v4l_err(i2c_client_s,"i2c i/o error LLPM: rc == %d (should be 2)\n",rc);
+-
+-	bt832_hexdump(i2c_client_s,buf);
+-
+-	v4l_info(i2c_client_s,"Write 0 tp VPSTATUS\n");
+-	buf[0]=BT832_VP_STATUS; // Reg.52
+-	buf[1]= 0x00;
+-	if (2 != (rc = i2c_master_send(i2c_client_s,buf,2)))
+-		v4l_err(i2c_client_s,"i2c i/o error VPS: rc == %d (should be 2)\n",rc);
+-
+-	bt832_hexdump(i2c_client_s,buf);
+-
+-
+-	// Enable Output
+-	v4l_info(i2c_client_s,"Enable Output\n");
+-	buf[0]=BT832_VP_CONTROL1; // Reg.40
+-	buf[1]= 0x27 & (~0x01); // Default | !skip
+-	if (2 != (rc = i2c_master_send(i2c_client_s,buf,2)))
+-		v4l_err(i2c_client_s,"i2c i/o error EO: rc == %d (should be 2)\n",rc);
+-
+-	bt832_hexdump(i2c_client_s,buf);
+-
+-#if 0
+-	// Full 30/25 Frame rate
+-	v4l_err(i2c_client_s,"Full 30/25 Frame rate\n");
+-	buf[0]=BT832_VP_CONTROL0; // Reg.39
+-	buf[1]= 0x00;
+-	if (2 != (rc = i2c_master_send(i2c_client_s,buf,2)))
+-		v4l_err(i2c_client_s,"i2c i/o error FFR: rc == %d (should be 2)\n",rc);
+-
+-	bt832_hexdump(i2c_client_s,buf);
+-#endif
+-
+-#if 1
+-	// for testing (even works when no camera attached)
+-	v4l_info(i2c_client_s,"*** Generate NTSC M Bars *****\n");
+-	buf[0]=BT832_VP_TESTCONTROL0; // Reg. 42
+-	buf[1]=3; // Generate NTSC System M bars, Generate Frame timing internally
+-	if (2 != (rc = i2c_master_send(i2c_client_s,buf,2)))
+-		v4l_info(i2c_client_s,"i2c i/o error MBAR: rc == %d (should be 2)\n",rc);
+-#endif
+-
+-	v4l_info(i2c_client_s,"Camera Present: %s\n",
+-		(buf[1+BT832_CAM_STATUS] & BT832_56_CAMERA_PRESENT) ? "yes":"no");
+-
+-	bt832_hexdump(i2c_client_s,buf);
+-	kfree(buf);
+-	return 1;
+-}
+-
+-
+-
+-static int bt832_attach(struct i2c_adapter *adap, int addr, int kind)
+-{
+-	struct bt832 *t;
+-
+-	client_template.adapter = adap;
+-	client_template.addr    = addr;
+-
+-	if (NULL == (t = kzalloc(sizeof(*t), GFP_KERNEL)))
+-		return -ENOMEM;
+-	t->client = client_template;
+-	i2c_set_clientdata(&t->client, t);
+-	i2c_attach_client(&t->client);
+-
+-	v4l_info(&t->client,"chip found @ 0x%x\n", addr<<1);
+-
+-	if(! bt832_init(&t->client)) {
+-		bt832_detach(&t->client);
+-		return -1;
+-	}
+-
+-	return 0;
+-}
+-
+-static int bt832_probe(struct i2c_adapter *adap)
+-{
+-	if (adap->class & I2C_CLASS_TV_ANALOG)
+-		return i2c_probe(adap, &addr_data, bt832_attach);
+-	return 0;
+-}
+-
+-static int bt832_detach(struct i2c_client *client)
+-{
+-	struct bt832 *t = i2c_get_clientdata(client);
+-
+-	v4l_info(&t->client,"dettach\n");
+-	i2c_detach_client(client);
+-	kfree(t);
+-	return 0;
+-}
+-
+-static int
+-bt832_command(struct i2c_client *client, unsigned int cmd, void *arg)
+-{
+-	struct bt832 *t = i2c_get_clientdata(client);
+-
+-	if (debug>1)
+-		v4l_i2c_print_ioctl(&t->client,cmd);
+-
+-	switch (cmd) {
+-		case BT832_HEXDUMP: {
+-			unsigned char *buf;
+-			buf = kmalloc(65, GFP_KERNEL);
+-			if (!buf) {
+-				v4l_err(&t->client,
+-					"Unable to allocate memory\n");
+-				break;
+-			}
+-			bt832_hexdump(&t->client,buf);
+-			kfree(buf);
+-		}
+-		break;
+-		case BT832_REATTACH:
+-			v4l_info(&t->client,"re-attach\n");
+-			i2c_del_driver(&driver);
+-			i2c_add_driver(&driver);
+-		break;
+-	}
+-	return 0;
+-}
+-
+-/* ----------------------------------------------------------------------- */
+-
+-static struct i2c_driver driver = {
+-	.driver = {
+-		.name   = "bt832",
+-	},
+-	.id             = 0, /* FIXME */
+-	.attach_adapter = bt832_probe,
+-	.detach_client  = bt832_detach,
+-	.command        = bt832_command,
+-};
+-static struct i2c_client client_template =
+-{
+-	.name       = "bt832",
+-	.driver     = &driver,
+-};
+-
+-
+-static int __init bt832_init_module(void)
+-{
+-	return i2c_add_driver(&driver);
+-}
+-
+-static void __exit bt832_cleanup_module(void)
+-{
+-	i2c_del_driver(&driver);
+-}
+-
+-module_init(bt832_init_module);
+-module_exit(bt832_cleanup_module);
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-basic-offset: 8
+- * End:
+- */
+diff -r 02bfc69e3849 linux/drivers/media/video/bt8xx/bt832.h
+--- a/linux/drivers/media/video/bt8xx/bt832.h	Mon Jul 28 18:07:35 2008 -0300
++++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
+@@ -1,305 +0,0 @@
+-/* Bt832 CMOS Camera Video Processor (VP)
+-
+- The Bt832 CMOS Camera Video Processor chip connects a Quartsight CMOS
+-  color digital camera directly to video capture devices via an 8-bit,
+-  4:2:2 YUV or YCrCb video interface.
+-
+- i2c addresses: 0x88 or 0x8a
+- */
+-
+-/* The 64 registers: */
+-
+-// Input Processor
+-#define BT832_OFFSET 0
+-#define BT832_RCOMP	1
+-#define BT832_G1COMP	2
+-#define BT832_G2COMP	3
+-#define BT832_BCOMP	4
+-// Exposures:
+-#define BT832_FINEH	5
+-#define BT832_FINEL	6
+-#define BT832_COARSEH	7
+-#define BT832_COARSEL   8
+-#define BT832_CAMGAIN	9
+-// Main Processor:
+-#define BT832_M00	10
+-#define BT832_M01	11
+-#define BT832_M02	12
+-#define BT832_M10	13
+-#define BT832_M11	14
+-#define BT832_M12	15
+-#define BT832_M20	16
+-#define BT832_M21	17
+-#define BT832_M22	18
+-#define BT832_APCOR	19
+-#define BT832_GAMCOR	20
+-// Level Accumulator Inputs
+-#define BT832_VPCONTROL2	21
+-#define BT832_ZONECODE0	22
+-#define BT832_ZONECODE1	23
+-#define BT832_ZONECODE2	24
+-#define BT832_ZONECODE3	25
+-// Level Accumulator Outputs:
+-#define BT832_RACC	26
+-#define BT832_GACC	27
+-#define BT832_BACC	28
+-#define BT832_BLACKACC	29
+-#define BT832_EXP_AGC	30
+-#define BT832_LACC0	31
+-#define BT832_LACC1	32
+-#define BT832_LACC2	33
+-#define BT832_LACC3	34
+-#define BT832_LACC4	35
+-#define BT832_LACC5	36
+-#define BT832_LACC6	37
+-#define BT832_LACC7	38
+-// System:
+-#define BT832_VP_CONTROL0	39
+-#define BT832_VP_CONTROL1	40
+-#define BT832_THRESH	41
+-#define BT832_VP_TESTCONTROL0	42
+-#define BT832_VP_DMCODE	43
+-#define BT832_ACB_CONFIG	44
+-#define BT832_ACB_GNBASE	45
+-#define BT832_ACB_MU	46
+-#define BT832_CAM_TEST0	47
+-#define BT832_AEC_CONFIG	48
+-#define BT832_AEC_TL	49
+-#define BT832_AEC_TC	50
+-#define BT832_AEC_TH	51
+-// Status:
+-#define BT832_VP_STATUS	52
+-#define BT832_VP_LINECOUNT	53
+-#define BT832_CAM_DEVICEL	54 // e.g. 0x19
+-#define BT832_CAM_DEVICEH	55 // e.g. 0x40  == 0x194 Mask0, 0x194 = 404 decimal (VVL-404 camera)
+-#define BT832_CAM_STATUS		56
+- #define BT832_56_CAMERA_PRESENT 0x20
+-//Camera Setups:
+-#define BT832_CAM_SETUP0	57
+-#define BT832_CAM_SETUP1	58
+-#define BT832_CAM_SETUP2	59
+-#define BT832_CAM_SETUP3	60
+-// System:
+-#define BT832_DEFCOR		61
+-#define BT832_VP_TESTCONTROL1	62
+-#define BT832_DEVICE_ID		63
+-# define BT832_DEVICE_ID__31		0x31 // Bt832 has ID 0x31
+-
+-/* STMicroelectronivcs VV5404 camera module
+-   i2c: 0x20: sensor address
+-   i2c: 0xa0: eeprom for ccd defect map
+- */
+-#define VV5404_device_h		0x00  // 0x19
+-#define VV5404_device_l		0x01  // 0x40
+-#define VV5404_status0		0x02
+-#define VV5404_linecountc	0x03 // current line counter
+-#define VV5404_linecountl	0x04
+-#define VV5404_setup0		0x10
+-#define VV5404_setup1		0x11
+-#define VV5404_setup2		0x12
+-#define VV5404_setup4		0x14
+-#define VV5404_setup5		0x15
+-#define VV5404_fine_h		0x20  // fine exposure
+-#define VV5404_fine_l		0x21
+-#define VV5404_coarse_h		0x22  //coarse exposure
+-#define VV5404_coarse_l		0x23
+-#define VV5404_gain		0x24 // ADC pre-amp gain setting
+-#define VV5404_clk_div		0x25
+-#define VV5404_cr		0x76 // control register
+-#define VV5404_as0		0x77 // ADC setup register
+-
+-
+-// IOCTL
+-#define BT832_HEXDUMP   _IOR('b',1,int)
+-#define BT832_REATTACH	_IOR('b',2,int)
+-
+-/* from BT8x8VXD/capdrv/dialogs.cpp */
+-
+-/*
+-typedef enum { SVI, Logitech, Rockwell } CAMERA;
+-
+-static COMBOBOX_ENTRY gwCameraOptions[] =
+-{
+-   { SVI,      "Silicon Vision 512N" },
+-   { Logitech, "Logitech VideoMan 1.3"  },
+-   { Rockwell, "Rockwell QuartzSight PCI 1.0"   }
+-};
+-
+-// SRAM table values
+-//===========================================================================
+-typedef enum { TGB_NTSC624, TGB_NTSC780, TGB_NTSC858, TGB_NTSC392 } TimeGenByte;
+-
+-BYTE SRAMTable[][ 60 ] =
+-{
+-   // TGB_NTSC624
+-   {
+-      0x33, // size of table = 51
+-      0x0E, 0xC0, 0x00, 0x00, 0x90, 0x02, 0x03, 0x10, 0x03, 0x06,
+-      0x10, 0x04, 0x12, 0x12, 0x05, 0x02, 0x13, 0x04, 0x19, 0x00,
+-      0x04, 0x39, 0x00, 0x06, 0x59, 0x08, 0x03, 0x85, 0x08, 0x07,
+-      0x03, 0x50, 0x00, 0x91, 0x40, 0x00, 0x11, 0x01, 0x01, 0x4D,
+-      0x0D, 0x02, 0x03, 0x11, 0x01, 0x05, 0x37, 0x00, 0x37, 0x21, 0x00
+-   },
+-   // TGB_NTSC780
+-   {
+-      0x33, // size of table = 51
+-      0x0e, 0xc0, 0x00, 0x00, 0x90, 0xe2, 0x03, 0x10, 0x03, 0x06,
+-      0x10, 0x34, 0x12, 0x12, 0x65, 0x02, 0x13, 0x24, 0x19, 0x00,
+-      0x24, 0x39, 0x00, 0x96, 0x59, 0x08, 0x93, 0x85, 0x08, 0x97,
+-      0x03, 0x50, 0x50, 0xaf, 0x40, 0x30, 0x5f, 0x01, 0xf1, 0x7f,
+-      0x0d, 0xf2, 0x03, 0x11, 0xf1, 0x05, 0x37, 0x30, 0x85, 0x21, 0x50
+-   },
+-   // TGB_NTSC858
+-   {
+-      0x33, // size of table = 51
+-      0x0c, 0xc0, 0x00, 0x00, 0x90, 0xc2, 0x03, 0x10, 0x03, 0x06,
+-      0x10, 0x34, 0x12, 0x12, 0x65, 0x02, 0x13, 0x24, 0x19, 0x00,
+-      0x24, 0x39, 0x00, 0x96, 0x59, 0x08, 0x93, 0x83, 0x08, 0x97,
+-      0x03, 0x50, 0x30, 0xc0, 0x40, 0x30, 0x86, 0x01, 0x01, 0xa6,
+-      0x0d, 0x62, 0x03, 0x11, 0x61, 0x05, 0x37, 0x30, 0xac, 0x21, 0x50
+-   },
+-   // TGB_NTSC392
+-   // This table has been modified to be used for Fusion Rev D
+-   {
+-      0x2A, // size of table = 42
+-      0x06, 0x08, 0x04, 0x0a, 0xc0, 0x00, 0x18, 0x08, 0x03, 0x24,
+-      0x08, 0x07, 0x02, 0x90, 0x02, 0x08, 0x10, 0x04, 0x0c, 0x10,
+-      0x05, 0x2c, 0x11, 0x04, 0x55, 0x48, 0x00, 0x05, 0x50, 0x00,
+-      0xbf, 0x0c, 0x02, 0x2f, 0x3d, 0x00, 0x2f, 0x3f, 0x00, 0xc3,
+-      0x20, 0x00
+-   }
+-};
+-
+-//===========================================================================
+-// This is the structure of the camera specifications
+-//===========================================================================
+-typedef struct tag_cameraSpec
+-{
+-   SignalFormat signal;       // which digital signal format the camera has
+-   VideoFormat  vidFormat;    // video standard
+-   SyncVideoRef syncRef;      // which sync video reference is used
+-   State        syncOutput;   // enable sync output for sync video input?
+-   DecInputClk  iClk;         // which input clock is used
+-   TimeGenByte  tgb;          // which timing generator byte does the camera use
+-   int          HReset;       // select 64, 48, 32, or 16 CLKx1 for HReset
+-   PLLFreq      pllFreq;      // what synthesized frequency to set PLL to
+-   VSIZEPARMS   vSize;        // video size the camera produces
+-   int          lineCount;    // expected total number of half-line per frame - 1
+-   BOOL         interlace;    // interlace signal?
+-} CameraSpec;
+-
+-//===========================================================================
+-// <UPDATE REQUIRED>
+-// Camera specifications database. Update this table whenever camera spec
+-// has been changed or added/deleted supported camera models
+-//===========================================================================
+-static CameraSpec dbCameraSpec[ N_CAMERAOPTIONS ] =
+-{  // Silicon Vision 512N
+-   { Signal_CCIR656, VFormat_NTSC, VRef_alignedCb, Off, DecClk_GPCLK, TGB_NTSC624, 64, KHz19636,
+-      // Clkx1_HACTIVE, Clkx1_HDELAY, VActive, VDelay, linesPerField; lineCount, Interlace
+-   {         512,           0x64,       480,    0x13,      240 },         0,       TRUE
+-   },
+-   // Logitech VideoMan 1.3
+-   { Signal_CCIR656, VFormat_NTSC, VRef_alignedCb, Off, DecClk_GPCLK, TGB_NTSC780, 64, KHz24545,
+-      // Clkx1_HACTIVE, Clkx1_HDELAY, VActive, VDelay, linesPerField; lineCount, Interlace
+-      {      640,           0x80,       480,    0x1A,      240 },         0,       TRUE
+-   },
+-   // Rockwell QuartzSight
+-   // Note: Fusion Rev D (rev ID 0x02) and later supports 16 pixels for HReset which is preferable.
+-   //       Use 32 for earlier version of hardware. Clkx1_HDELAY also changed from 0x27 to 0x20.
+-   { Signal_CCIR656, VFormat_NTSC, VRef_alignedCb, Off, DecClk_GPCLK, TGB_NTSC392, 16, KHz28636,
+-      // Clkx1_HACTIVE, Clkx1_HDELAY, VActive, VDelay, linesPerField; lineCount, Interlace
+-      {      352,           0x20,       576,    0x08,      288 },       607,       FALSE
+-   }
+-};
+-*/
+-
+-/*
+-The corresponding APIs required to be invoked are:
+-SetConnector( ConCamera, TRUE/FALSE );
+-SetSignalFormat( spec.signal );
+-SetVideoFormat( spec.vidFormat );
+-SetSyncVideoRef( spec.syncRef );
+-SetEnableSyncOutput( spec.syncOutput );
+-SetTimGenByte( SRAMTable[ spec.tgb ], SRAMTableSize[ spec.tgb ] );
+-SetHReset( spec.HReset );
+-SetPLL( spec.pllFreq );
+-SetDecInputClock( spec.iClk );
+-SetVideoInfo( spec.vSize );
+-SetTotalLineCount( spec.lineCount );
+-SetInterlaceMode( spec.interlace );
+-*/
+-
+-/* from web:
+- Video Sampling
+-Digital video is a sampled form of analog video. The most common sampling schemes in use today are:
+-		  Pixel Clock   Horiz    Horiz    Vert
+-		   Rate         Total    Active
+-NTSC square pixel  12.27 MHz    780      640      525
+-NTSC CCIR-601      13.5  MHz    858      720      525
+-NTSC 4FSc          14.32 MHz    910      768      525
+-PAL  square pixel  14.75 MHz    944      768      625
+-PAL  CCIR-601      13.5  MHz    864      720      625
+-PAL  4FSc          17.72 MHz   1135      948      625
+-
+-For the CCIR-601 standards, the sampling is based on a static orthogonal sampling grid. The luminance component (Y) is sampled at 13.5 MHz, while the two color difference signals, Cr and Cb are sampled at half that, or 6.75 MHz. The Cr and Cb samples are colocated with alternate Y samples, and they are taken at the same position on each line, such that one sample is coincident with the 50% point of the falling edge of analog sync. The samples are coded to either 8 or 10 bits per component.
+-*/
+-
+-/* from DScaler:*/
+-/*
+-//===========================================================================
+-// CCIR656 Digital Input Support: The tables were taken from DScaler proyect
+-//
+-// 13 Dec 2000 - Michael Eskin, Conexant Systems - Initial version
+-//
+-
+-//===========================================================================
+-// Timing generator SRAM table values for CCIR601 720x480 NTSC
+-//===========================================================================
+-// For NTSC CCIR656
+-BYTE BtCard::SRAMTable_NTSC[] =
+-{
+-    // SRAM Timing Table for NTSC
+-    0x0c, 0xc0, 0x00,
+-    0x00, 0x90, 0xc2,
+-    0x03, 0x10, 0x03,
+-    0x06, 0x10, 0x34,
+-    0x12, 0x12, 0x65,
+-    0x02, 0x13, 0x24,
+-    0x19, 0x00, 0x24,
+-    0x39, 0x00, 0x96,
+-    0x59, 0x08, 0x93,
+-    0x83, 0x08, 0x97,
+-    0x03, 0x50, 0x30,
+-    0xc0, 0x40, 0x30,
+-    0x86, 0x01, 0x01,
+-    0xa6, 0x0d, 0x62,
+-    0x03, 0x11, 0x61,
+-    0x05, 0x37, 0x30,
+-    0xac, 0x21, 0x50
+-};
+-
+-//===========================================================================
+-// Timing generator SRAM table values for CCIR601 720x576 NTSC
+-//===========================================================================
+-// For PAL CCIR656
+-BYTE BtCard::SRAMTable_PAL[] =
+-{
+-    // SRAM Timing Table for PAL
+-    0x36, 0x11, 0x01,
+-    0x00, 0x90, 0x02,
+-    0x05, 0x10, 0x04,
+-    0x16, 0x14, 0x05,
+-    0x11, 0x00, 0x04,
+-    0x12, 0xc0, 0x00,
+-    0x31, 0x00, 0x06,
+-    0x51, 0x08, 0x03,
+-    0x89, 0x08, 0x07,
+-    0xc0, 0x44, 0x00,
+-    0x81, 0x01, 0x01,
+-    0xa9, 0x0d, 0x02,
+-    0x02, 0x50, 0x03,
+-    0x37, 0x3d, 0x00,
+-    0xaf, 0x21, 0x00,
+-};
+-*/
+diff -r 02bfc69e3849 linux/drivers/media/video/bt8xx/bttv-cards.c
+--- a/linux/drivers/media/video/bt8xx/bttv-cards.c	Mon Jul 28 18:07:35 2008 -0300
++++ b/linux/drivers/media/video/bt8xx/bttv-cards.c	Tue Jul 29 12:16:22 2008 -0300
+@@ -41,14 +41,10 @@
+ #include "bttvp.h"
+ #include <media/v4l2-common.h>
+ #include <media/tvaudio.h>
+-#if 0 /* not working yet */
+-#include "bt832.h"
+-#endif
+ #include "bttv-audio-hook.h"
+ 
+ /* fwd decl */
+ static void boot_msp34xx(struct bttv *btv, int pin);
+-static void boot_bt832(struct bttv *btv);
+ static void hauppauge_eeprom(struct bttv *btv);
+ static void avermedia_eeprom(struct bttv *btv);
+ static void osprey_eeprom(struct bttv *btv, const u8 ee[256]);
+@@ -3679,13 +3675,6 @@
+ 	if (bttv_tvcards[btv->c.type].audio_mode_gpio)
+ 		btv->audio_mode_gpio=bttv_tvcards[btv->c.type].audio_mode_gpio;
+ 
+-	if (bttv_tvcards[btv->c.type].digital_mode == DIGITAL_MODE_CAMERA) {
+-		/* detect Bt832 chip for quartzsight digital camera */
+-		if ((bttv_I2CRead(btv, I2C_ADDR_BT832_ALT1, "Bt832") >=0) ||
+-		    (bttv_I2CRead(btv, I2C_ADDR_BT832_ALT2, "Bt832") >=0))
+-			boot_bt832(btv);
+-	}
+-
+ 	if (!autoload)
+ 		return;
+ 
+@@ -4086,40 +4075,6 @@
+ 	if (bttv_verbose)
+ 		printk(KERN_INFO "bttv%d: Hauppauge/Voodoo msp34xx: reset line "
+ 		       "init [%d]\n", btv->c.nr, pin);
+-}
+-
+-static void __devinit boot_bt832(struct bttv *btv)
+-{
+-#if 0 /* not working yet */
+-	int resetbit=0;
+-
+-	switch (btv->c.type) {
+-	case BTTV_BOARD_PXELVWPLTVPAK:
+-		resetbit = 0x400000;
+-		break;
+-	case BTTV_BOARD_MODTEC_205:
+-		resetbit = 1<<9;
+-		break;
+-	default:
+-		BUG();
+-	}
+-
+-	request_module("bt832");
+-	bttv_call_i2c_clients(btv, BT832_HEXDUMP, NULL);
+-
+-	printk("bttv%d: Reset Bt832 [line=0x%x]\n",btv->c.nr,resetbit);
+-	gpio_write(0);
+-	gpio_inout(resetbit, resetbit);
+-	udelay(5);
+-	gpio_bits(resetbit, resetbit);
+-	udelay(5);
+-	gpio_bits(resetbit, 0);
+-	udelay(5);
+-
+-	/* bt832 on pixelview changes from i2c 0x8a to 0x88 after
+-	 * being reset as above. So we must follow by this: */
+-	bttv_call_i2c_clients(btv, BT832_REATTACH, NULL);
+-#endif
  }
  
--static int v4l2_buf_ioctl_pre_check(int index, unsigned long int request,
--  struct v4l2_buffer *buf, int *result)
--{
--  if (buf->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--    *result = syscall(SYS_ioctl, devices[index].fd, request, buf);
--    return 1;
--  }
--
--  /* IMPROVEME (maybe?) add support for userptr's? */
--  if (devices[index].io != v4l2_io_mmap ||
--      buf->memory != V4L2_MEMORY_MMAP ||
--      buf->index  >= devices[index].no_frames) {
--    errno = EINVAL;
--    *result = -1;
--    return 1;
--  }
--
--  return 0;
--}
- 
- int v4l2_ioctl (int fd, unsigned long int request, ...)
- {
-   void *arg;
-   va_list ap;
--  int result, converting, index, saved_err, stream_locked = 0;
-+  int result, converting, index, saved_err;
-+  int is_capture_request = 0, stream_needs_locking = 0;
- 
-   va_start (ap, request);
-   arg = va_arg (ap, void *);
-@@ -560,19 +542,52 @@
-   if ((index = v4l2_get_index(fd)) == -1)
-     return syscall(SYS_ioctl, fd, request, arg);
- 
--  /* do we need to take the stream lock for this ioctl? */
-+  /* Is this a capture request and do we need to take the stream lock? */
-   switch (request) {
-+    case VIDIOC_ENUM_FMT:
-+      if (((struct v4l2_fmtdesc *)arg)->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+	is_capture_request = 1;
-+      break;
-+    case VIDIOC_TRY_FMT:
-+      if (((struct v4l2_format *)arg)->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+	is_capture_request = 1;
-+      break;
-     case VIDIOC_S_FMT:
-     case VIDIOC_G_FMT:
--    case VIDIOC_REQBUFS:
-+      if (((struct v4l2_format *)arg)->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-+	is_capture_request = 1;
-+	stream_needs_locking = 1;
-+      }
-+      break;
-+    case VIDIOC_REQBUFS: 
-+      if (((struct v4l2_requestbuffers *)arg)->type == 
-+	  V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-+	is_capture_request = 1;
-+	stream_needs_locking = 1;
-+      }
-+      break;
-     case VIDIOC_QUERYBUF:
-     case VIDIOC_QBUF:
-     case VIDIOC_DQBUF:
-+      if (((struct v4l2_buffer *)arg)->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-+	is_capture_request = 1;
-+	stream_needs_locking = 1;
-+      }
-+      break;
-     case VIDIOC_STREAMON:
-     case VIDIOC_STREAMOFF:
--      pthread_mutex_lock(&devices[index].stream_lock);
--      stream_locked = 1;
-+      if (*((enum v4l2_buf_type *)arg) == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-+	is_capture_request = 1;
-+	stream_needs_locking = 1;
-+      }
-   }
-+
-+  if (!is_capture_request)
-+    return syscall(SYS_ioctl, fd, request, arg);
-+
-+
-+  if (stream_needs_locking)
-+    pthread_mutex_lock(&devices[index].stream_lock);
- 
-   converting = devices[index].src_fmt.fmt.pix.pixelformat !=
- 	       devices[index].dest_fmt.fmt.pix.pixelformat;
-@@ -580,40 +595,16 @@
- 
-   switch (request) {
-     case VIDIOC_ENUM_FMT:
--      {
--	struct v4l2_fmtdesc *fmtdesc = arg;
--
--	if (fmtdesc->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
--	    !(devices[index].flags & V4L2_ENABLE_ENUM_FMT_EMULATION))
--	  result = syscall(SYS_ioctl, devices[index].fd, request, arg);
--	else
--	  result = v4lconvert_enum_fmt(devices[index].convert, fmtdesc);
--      }
-+      result = v4lconvert_enum_fmt(devices[index].convert, arg);
-       break;
- 
-     case VIDIOC_TRY_FMT:
--      {
--	struct v4l2_format *fmt = arg;
--
--	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
--	    (devices[index].flags & V4L2_DISABLE_CONVERSION)) {
--	  result = syscall(SYS_ioctl, devices[index].fd, VIDIOC_TRY_FMT, fmt);
--	  break;
--	}
--
--	result = v4lconvert_try_format(devices[index].convert, fmt, NULL);
--      }
-+      result = v4lconvert_try_format(devices[index].convert, arg, NULL);
-       break;
- 
-     case VIDIOC_S_FMT:
-       {
- 	struct v4l2_format src_fmt, *dest_fmt = arg;
--
--	if (dest_fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--	  result = syscall(SYS_ioctl, devices[index].fd, VIDIOC_S_FMT,
--			   dest_fmt);
--	  break;
--	}
- 
- 	if (!memcmp(&devices[index].dest_fmt, dest_fmt, sizeof(*dest_fmt))) {
- 	  result = 0;
-@@ -658,7 +649,7 @@
- 	    if (v4l2_activate_read_stream(index))
- 	      V4L2_LOG_ERR(
- 		"reactivating stream after deactivate failure (AAIIEEEE)\n");
--	    return result;
-+	    break;
- 	  }
- 	}
- 
-@@ -681,11 +672,6 @@
-       {
- 	struct v4l2_format* fmt = arg;
- 
--	if (fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--	  result = syscall(SYS_ioctl, devices[index].fd, VIDIOC_G_FMT, fmt);
--	  break;
--	}
--
- 	*fmt = devices[index].dest_fmt;
- 	result = 0;
-       }
-@@ -694,11 +680,6 @@
-     case VIDIOC_REQBUFS:
-       {
- 	struct v4l2_requestbuffers *req = arg;
--
--	if (req->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--	  result = syscall(SYS_ioctl, devices[index].fd, request, arg);
--	  return 1;
--	}
- 
- 	/* Don't allow mixing read / mmap io, either we control the buffers
- 	   (read based io), or the app does */
-@@ -753,9 +734,6 @@
-       {
- 	struct v4l2_buffer *buf = arg;
- 
--	if (v4l2_buf_ioctl_pre_check(index, request, buf, &result))
--	  break;
--
- 	/* Do a real query even when converting to let the driver fill in
- 	   things like buf->field */
- 	result = syscall(SYS_ioctl, devices[index].fd, VIDIOC_QUERYBUF, buf);
-@@ -768,22 +746,12 @@
-       break;
- 
-     case VIDIOC_QBUF:
--      {
--	struct v4l2_buffer *buf = arg;
--
--	if (v4l2_buf_ioctl_pre_check(index, request, buf, &result))
--	  break;
--
--	result = syscall(SYS_ioctl, devices[index].fd, VIDIOC_QBUF, buf);
--      }
-+      result = syscall(SYS_ioctl, devices[index].fd, VIDIOC_QBUF, arg);
-       break;
- 
-     case VIDIOC_DQBUF:
-       {
- 	struct v4l2_buffer *buf = arg;
--
--	if (v4l2_buf_ioctl_pre_check(index, request, buf, &result))
--	  break;
- 
- 	result = syscall(SYS_ioctl, devices[index].fd, VIDIOC_DQBUF, buf);
- 	if (result || !converting)
-@@ -832,32 +800,23 @@
- 
-     case VIDIOC_STREAMON:
-     case VIDIOC_STREAMOFF:
--      {
--	enum v4l2_buf_type *type = arg;
-+      if (devices[index].io != v4l2_io_mmap) {
-+	errno = EINVAL;
-+	result = -1;
-+	break;
-+      }
- 
--	if (*type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--	  result = syscall(SYS_ioctl, devices[index].fd, request, type);
--	  break;
--	}
--
--	if (devices[index].io != v4l2_io_mmap) {
--	  errno = EINVAL;
--	  result = -1;
--	  break;
--	}
--
--	if (request == VIDIOC_STREAMON)
--	  result = v4l2_streamon(index);
--	else
--	  result = v4l2_streamoff(index);
--      }
-+      if (request == VIDIOC_STREAMON)
-+	result = v4l2_streamon(index);
-+      else
-+	result = v4l2_streamoff(index);
-       break;
- 
-     default:
-       result = syscall(SYS_ioctl, fd, request, arg);
-   }
- 
--  if (stream_locked)
-+  if (stream_needs_locking)
-     pthread_mutex_unlock(&devices[index].stream_lock);
- 
-   saved_err = errno;
+ /* ----------------------------------------------------------------------- */
+diff -r 02bfc69e3849 linux/include/media/i2c-addr.h
+--- a/linux/include/media/i2c-addr.h	Mon Jul 28 18:07:35 2008 -0300
++++ b/linux/include/media/i2c-addr.h	Tue Jul 29 12:16:22 2008 -0300
+@@ -12,8 +12,6 @@
+ /* bttv address list */
+ #define I2C_ADDR_TSA5522	0xc2
+ #define I2C_ADDR_TDA7432	0x8a
+-#define I2C_ADDR_BT832_ALT1	0x88
+-#define I2C_ADDR_BT832_ALT2	0x8a // alternate setting
+ #define I2C_ADDR_TDA8425	0x82
+ #define I2C_ADDR_TDA9840	0x84
+ #define I2C_ADDR_TDA9850	0xb6 /* also used by 9855,9873 */
 
---------------010801060403060800070707
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------010801060403060800070707--
