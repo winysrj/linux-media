@@ -1,21 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6P2NWFl028900
-	for <video4linux-list@redhat.com>; Thu, 24 Jul 2008 22:23:32 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6P2NJQJ024957
-	for <video4linux-list@redhat.com>; Thu, 24 Jul 2008 22:23:19 -0400
-From: Andy Walls <awalls@radix.net>
-To: mpapet@yahoo.com
-In-Reply-To: <160827.10154.qm@web62007.mail.re1.yahoo.com>
-References: <160827.10154.qm@web62007.mail.re1.yahoo.com>
-Content-Type: text/plain
-Date: Thu, 24 Jul 2008 22:22:17 -0400
-Message-Id: <1216952537.2710.43.camel@morgan.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6THEAoT027992
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 13:14:10 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6THDwK8010012
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 13:13:58 -0400
+Date: Tue, 29 Jul 2008 19:14:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+In-Reply-To: <481F0BFA.7010306@hni.uni-paderborn.de>
+Message-ID: <Pine.LNX.4.64.0807291909510.17188@axis700.grange>
+References: <48030F6F.1040007@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0804142224570.5332@axis700.grange>
+	<480477BD.5090900@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0804151228370.5159@axis700.grange>
+	<481ADED1.8050201@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0805021143250.4920@axis700.grange>
+	<481AF6CA.9030505@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0805021314510.4920@axis700.grange>
+	<481AFB30.5070508@hni.uni-paderborn.de>
+	<481B3D2F.80203@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0805022059090.31894@axis700.grange>
+	<481F0BFA.7010306@hni.uni-paderborn.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: video4linux-list@redhat.com
-Subject: Re: cx18 Newbie Question
+Subject: Re: [PATCH] Some suggestions for the soc_camera interface
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,62 +37,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 2008-07-24 at 18:11 -0700, Michael Papet wrote:
-> Hi,
-> 
-> I've got a Hauppauge hvr-1600 tuner card.  It has an NTSC and an ATSC
-> tuner. I am having an issue with the cx18 module that may be obvious
-> to some, but not to me.
-> 
-> Depending on where I got the cx18 sources from mercurial,
-> (http://www.linuxtv.org/hg/)  either the hdtv tuner works or the NTSC
-> tuner works. 
+Hi Stefan,
 
-You should really only pull from the 
+On Mon, 5 May 2008, Stefan Herbrechtsmeier wrote:
 
-http://www.linuxtv.org/hg/v4l-dvb
+> Guennadi Liakhovetski schrieb:
+> > 
+> > So, I would say, patches 1 and 3 look useful to me. Please fix formatting
+> > issues, add your Signed-off-by and submit in two separate emails.
+> >   
+> At the moment I update my system to the 2.6.25 kernel. When everything works
+> fine, I submit the reworked
+> patches the next days.
 
-repo for the cx18 driver.  All other repos will be historical or changed
-in some way for testing specific problems or changes.  Unless a dev has
-asked you specifically to use some other repo, it's sanest for everyone
-involved to report bugs against the v4l-dvb repo. 
+How is this going? Do you have your patches ready? We have a few patches 
+brewing from sveral people, that touch the same code as yours, so, it 
+would be good to have your "move .power, .reset to camera-link" patch 
+applied, then we could move on with the others.
 
-
->  Both devices (/dev/video0 and /dev/dvb/xxyyzz) are created and there
-> are no errors when tuning with the debug flag set.  
-> 
-> When using the functioning NTSC version, I have a fully functioning
-> NTSC mythtv setup that cannot find any ATSC channels.  When using the
-> ATSC I have a fully functioning ATSC mythtv setup with no NTSC
-> channels detected on /dev/video0.
-
-What versions are these?
-
-Users have reported that since the cx18 driver started using the
-mxl5005s module instead of the mxl500x module, scanning ATSC QAM
-channels doesn't work well.  ATSC 8-VSB scanning or tuning doesn't seem
-to be a problem, nor is actually tuning to known ATSC QAM channels.
-
-If you are experiencing this DVB tuning problem, please report to the
-linux-dvb list.  Steve Toth did the port of the mxl5005s code to linux,
-and I have no data or QAM channels to help debug the problem.
-
-
-> Is it the case that the driver simply isn't ready or is there a bug
-> report I can submit?
-
-If you have bugs with DVB report to the linux-dvb list.  If you have
-problems with analog capture, report to video4linux-list.  You can also
-report to the ivtv-users or ivtv-devel lists.  A lot of cx18 specific
-posts end up on the ivtv list since it has its origins from that driver.
-
-Regards,
-Andy
-
-> Any advice is welcome.
-> 
-> Michael
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
