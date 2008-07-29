@@ -1,16 +1,12 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx1.renzel.net ([195.243.213.130] helo=nijmegen.renzel.net)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mws@linuxtv.org>) id 1KNreq-0001Yh-GS
-	for linux-dvb@linuxtv.org; Tue, 29 Jul 2008 18:02:41 +0200
-Message-ID: <488F3F0B.3000209@linuxtv.org>
-Date: Tue, 29 Jul 2008 18:02:19 +0200
-From: Marcel Siegert <mws@linuxtv.org>
+Message-ID: <488F40A0.8080201@anevia.com>
+Date: Tue, 29 Jul 2008 18:09:04 +0200
+From: Frederic CAND <frederic.cand@anevia.com>
 MIME-Version: 1.0
-To: Frederic CAND <frederic.cand@anevia.com>
+To: Marcel Siegert <mws@linuxtv.org>
 References: <f3ebb34d0807290258i68f62f57w451a9741ad362b0d@mail.gmail.com>		<488EEA80.4060908@anevia.com>	<f3ebb34d0807290420l6c943e15jc1e27878963a7206@mail.gmail.com>
-	<488F3E32.1010102@anevia.com>
-In-Reply-To: <488F3E32.1010102@anevia.com>
+	<488F3E32.1010102@anevia.com> <488F3F0B.3000209@linuxtv.org>
+In-Reply-To: <488F3F0B.3000209@linuxtv.org>
 Cc: linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] How to record whole TS?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
@@ -26,15 +22,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-aGlobywKCkZyZWRlcmljIENBTkQgc2NocmllYjoKPiBrdXJ0IHh1ZSBhIMOpY3JpdCA6Cj4+IEhp
-IENBTkQsCj4+Cj4+IFRoYW5rcyBmb3IgeW91ciByZXBseSwgeW91IGFyZSByaWdodC4gV2hlbiBJ
-IHNldCBwaWQgMHgyMDAwLCB0aGUgZGVtdXggCj4+IGdpdmVzIHdob2xlIHN0cmVhbS4gWW91IGFy
-ZSBzbyBnb29kLCBtYXliZSB0aGlzIHNob3VsZCBiZSBtZW50aW9uZWQgaW4gCj4+IHRoZSBhcGkg
-ZG9jIDopLiBUaGFua3MhCj4+Cj4gCj4gSSBndWVzcyB0aGF0IHNob3VsZCBiZSB0aGUgY2FzZSAo
-Zm9yIHRoZSBkb2MpLgo+IEhvd2V2ZXIsIHRha2UgY2FyZSA6IGhhbmRsaW5nIGEgZnVsbCBNUFRT
-IHRha2VzIG11Y2ggbW9yZSBDUFUgdGhhbiBqdXN0IAo+IHNvbWUgUElEcyAuLi4KPiBSZWdhcmRT
-LgoKCnRoYXQgZGVwZW5kcyBvbiB0aGUgZGV2aWNlIHlvdSdyZSB1c2luZyBmb3IgcmVjb3JkaW5n
-LCBkb2Vzbid0IGl0PyA6KQoKcmVnYXJkcyAKbWFyY2VsCgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2
-YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0
-aW5mby9saW51eC1kdmI=
+TWFyY2VsIFNpZWdlcnQgYSDDqWNyaXQgOgo+IGhpaG8sCj4gCj4gRnJlZGVyaWMgQ0FORCBzY2hy
+aWViOgo+PiBrdXJ0IHh1ZSBhIMOpY3JpdCA6Cj4+PiBIaSBDQU5ELAo+Pj4KPj4+IFRoYW5rcyBm
+b3IgeW91ciByZXBseSwgeW91IGFyZSByaWdodC4gV2hlbiBJIHNldCBwaWQgMHgyMDAwLCB0aGUg
+Cj4+PiBkZW11eCBnaXZlcyB3aG9sZSBzdHJlYW0uIFlvdSBhcmUgc28gZ29vZCwgbWF5YmUgdGhp
+cyBzaG91bGQgYmUgCj4+PiBtZW50aW9uZWQgaW4gdGhlIGFwaSBkb2MgOikuIFRoYW5rcyEKPj4+
+Cj4+Cj4+IEkgZ3Vlc3MgdGhhdCBzaG91bGQgYmUgdGhlIGNhc2UgKGZvciB0aGUgZG9jKS4KPj4g
+SG93ZXZlciwgdGFrZSBjYXJlIDogaGFuZGxpbmcgYSBmdWxsIE1QVFMgdGFrZXMgbXVjaCBtb3Jl
+IENQVSB0aGFuIAo+PiBqdXN0IHNvbWUgUElEcyAuLi4KPj4gUmVnYXJkUy4KPiAKPiAKPiB0aGF0
+IGRlcGVuZHMgb24gdGhlIGRldmljZSB5b3UncmUgdXNpbmcgZm9yIHJlY29yZGluZywgZG9lc24n
+dCBpdD8gOikKPiAKPiByZWdhcmRzIG1hcmNlbAo+IAoKTXkgaWRlYSB3YXMsIGhhbmRsaW5nIDMg
+TWJwcyBjb250YWluaW5nIG9uZSBWaWRlbyBQSUQgKyBvbmUgQXVkaW8gUElEICsgCnNvbWUgU0kv
+UFNJIFRhYmxlcyBzZWVtcyB0byBtZSBjb3N0LWVmZmVjdGl2ZSBjb21wYXJlZCB0byBoYW5kbGlu
+ZyAKNDBNYnBzIG9mIGEgRFZCIFN0cmVhbSAodGhhdCdzIHdoYXQgd2FzIG15IGV4YW1wbGUgLi4u
+IERWQi1TIFN0cmVhbXMuLi4pCgotLSAKQ0FORCBGcmVkZXJpYwpQcm9kdWN0IE1hbmFnZXIKQU5F
+VklBCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
+eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4
+dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
