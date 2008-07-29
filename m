@@ -1,28 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6JJ9RZj032703
-	for <video4linux-list@redhat.com>; Sat, 19 Jul 2008 15:09:27 -0400
-Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6JJ9Bwk031808
-	for <video4linux-list@redhat.com>; Sat, 19 Jul 2008 15:09:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Kyuma Ohta <whatisthis.sowhat@gmail.com>
-Date: Sat, 19 Jul 2008 21:08:14 +0200
-References: <1216308014.1146.22.camel@melchior>
-	<200807171758.19702.hverkuil@xs4all.nl>
-	<1216336451.1146.41.camel@melchior>
-In-Reply-To: <1216336451.1146.41.camel@melchior>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6TCASWN004837
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 08:10:28 -0400
+Received: from smtp-vbr6.xs4all.nl (smtp-vbr6.xs4all.nl [194.109.24.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6TCAGHc028106
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 08:10:17 -0400
+Received: from webmail.xs4all.nl (dovemail6.xs4all.nl [194.109.26.8])
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id m6TCAG0q028706
+	for <video4linux-list@redhat.com>;
+	Tue, 29 Jul 2008 14:10:16 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Message-ID: <20092.62.70.2.252.1217333416.squirrel@webmail.xs4all.nl>
+Date: Tue, 29 Jul 2008 14:10:16 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807192108.14376.hverkuil@xs4all.nl>
-Cc: Video4Linux ML <video4linux-list@redhat.com>,
-	Linux Kernel list <linux-kernel@vger.kernel.org>,
-	ivtv-devel ML <ivtv-devel@ivtvdriver.org>
-Subject: Re: [ivtv-devel] [PATCH AVAIL.]ivtv:Crash 2.6.26 with KUROTOSIKOU
-	CX23416-STVLP
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Subject: Re: CONFIG_VIDEO_ADV_DEBUG question
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,93 +29,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 18 July 2008 01:13:45 Kyuma Ohta wrote:
-> Dear Hans,
-> Thanx for reply.
+> Hi All,
+>
+> CONFIG_VIDEO_ADV_DEBUG enables additional debugging output in the gscpa
+> driver, which then becomes "active" when a module option gets passed. So
+> in the gspca case it normally only results in a larger driver without
+> causing additional debug unless module option is passed.
+>
+> I've been asking the Fedora kernel maintainers to enable this option by
+> default for the Fedora development version atleast, and thus I wonder
+> how this option affects other drivers, are there other drivers which
+> become very chatty with this option, or do they all need a module option
+> to truely enable all the debug spew like gspca?
 
-Hi Ohta,
+The verbosity level is done through some sort of debug module option. This
+CONFIG is only used AFAIK to enable the VIDIOC_DBG_G/S_REGISTER ioctls
+which allows you to program the video device(s) directly by
+setting/getting registers.
 
-I've decided to wait until I have access to my own card with upd64083 
-and upd64031a devices. I'll be back in the Netherlands in about two 
-weeks from now, and then I can pick it up and bring it back with me to 
-Oslo where I can test it and fix the problem.
+I see that a few drivers use it to expose extra information through sysfs.
 
-The backtrace doesn't really help me, I think I need to do a bit of 
-debugging myself.
+But the way gspca uses it is not correct. I would remove the test on
+CONFIG_VIDEO_ADV_DEBUG there altogether, or replace it with a test of a
+new gspca-specific config option. The ADV_DEBUG option is really about
+allowing the root user access to low-level driver registers through the
+v4l2-dbg utility. It's not about enabling additional debugging output.
 
-A bit of a shame that I didn't bring it with me a week ago. It was on my 
-list of things to take with me, but my suitcase was already pretty full 
-so I decided against it. Next time I'll make sure I have it :-)
-
-For now just use your workaround. It can't do any harm, but it is not 
-the right solution. That will have to wait until I can test it myself.
+This is also the reason by it is disabled by most (?) distros: it's a bit
+dangerous to allow the user to mess with that. But it is ideal to test
+different register values on the fly.
 
 Regards,
 
-	Hans
-
-> Hans Verkuil wrote:
-> > On Thursday 17 July 2008 17:20:14 Kyuma Ohta wrote:
-> > > Hi,
-> > > I'm testing 2.6.26/amd64 with Athlon64 x2 Box with
-> > > KUROTOSIKOU CX23416-STVLP,always crash ivtv driver
-> > > when loading upd64083 driver.
-> > > I checked crash dump,this issue cause of loading
-> > > upd64083.ko with i2c_probed_new_device().
-> > > So,I fixed ivtv-i2c.c of 2.6.26 vanilla,and
-> > > fixed *pretty* differnce memory allocation,structure
-> > > of upd64083.c.
-> > > I'm running patched 2.6.26 vanilla with below attached
-> > > patches over 24hrs,and over 10hrs recording from ivtv,
-> > > not happend anything;-)
-> > > Please apply below to 2.6.26.x..
-> > >
-> > > Best regards,
-> > > Ohta.
-> >
-> > Hi Ohta,
-> >
-> > Thanks for the patches. If I'm not mistaken there are several
-> > variants of this card: without upd* devices, only with upd64083 and
-> > with both upd devices. Which one do you have?
-> >
-> > Can you also show the dmesg output when ivtv loads?
-> >
-> > Looking at the four patches, I would say that the only relevant
-> > patch is the fix-probing patch. If you try it with only that one
-> > applied, does it still work correct for you? Note that this patch
-> > will not work with a KUROTOSIKOU card that has no upd* devices at
-> > all.
-> >
-> > Can you also give me the kernel backtrace when you load ivtv with
-> > the vanilla 2.6.26? I do not quite understand why it should crash.
-> >
-> > Regards,
-> >
-> > 	Hans
->
-> I have a ivtv card with *both* upd64083 and upd64031a.
-> I don't still try testing apply only one of patch,only
-> apply all of...
->
-> I attach compressed logs when loading ivtv at boottime,
-> parallel probing saa7134 v4l2 device,
-> both applied (successed) ,not applied (failed).
->
-> Best regards,
-> Ohta
->
->
->
-> E-Mail: whatisthis.sowhat@gmail.com (Public)
-> Home Page: http://d.hatena.ne.jp/artane/
->   (Sorry,not maintaining,and written in Japanese only...)
-> Twitter: Artanejp (Mainly Japanese)
-> ICQ: 366538955
-> KEYID: 6B79F95F
-> FINGERPRINT:
-> 9AB3 8569 6033 FDBE 352B  CB6D DBFA B9E2 6B79 F95F
-
+         Hans
 
 --
 video4linux-list mailing list
