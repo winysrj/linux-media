@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.162])
+Received: from acorn.exetel.com.au ([220.233.0.21])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <robert@au-79.de>) id 1KIeGQ-0003qg-8X
-	for linux-dvb@linuxtv.org; Tue, 15 Jul 2008 08:43:55 +0200
-From: "Robert Goldner" <robert@au-79.de>
-To: linux-dvb@linuxtv.org
-Date: Tue, 15 Jul 2008 08:43:45 +0200
-Mime-Version: 1.0
-Message-Id: <20080715064346.01ACC1BC39@agathe>
-Subject: [linux-dvb] unknown dvbt device 1ae7:0381 Xtensions 380U
+	(envelope-from <rglowery@exemail.com.au>) id 1KNj5r-0004bZ-Kr
+	for linux-dvb@linuxtv.org; Tue, 29 Jul 2008 08:54:01 +0200
+Message-ID: <40987.64.213.30.2.1217314430.squirrel@webmail.exetel.com.au>
+In-Reply-To: <d9def9db0807282259q548991cfuc5ceebd5e0aee63e@mail.gmail.com>
+References: <16121.64.213.30.2.1216781835.squirrel@webmail.exetel.com.au>
+	<d9def9db0807282259q548991cfuc5ceebd5e0aee63e@mail.gmail.com>
+Date: Tue, 29 Jul 2008 16:53:50 +1000 (EST)
+From: "Robert Lowery" <rglowery@exemail.com.au>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+MIME-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVICO firmware compatibility between v4l-dvb and
+ in-tree kernel drivers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,119 +27,156 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+> Hi,
+>
+> On Wed, Jul 23, 2008 at 4:57 AM, Robert Lowery <rglowery@exemail.com.au>
+> wrote:
+>> Hi Folks,
+>>
+>> I've been successfully using the experimental v4l-dvb tree DVICO Dual
+>> Digital 4 drivers for a number of months.  Today I decided to try an use
+>> the official 2.6.26 kernel drivers, but they are triggering an OOPS at
+>> firmware load time (see below).  Can someone please confirm if the
+>> xc3028-dvico-au-01.fw  firmware is still compatible with 2.6.26? or are
+>> there any other known issues in this space?
+>>
+>
+> I'm just curious is there an xc3028L used within that device or the normal
+> one?
 
-has anyone ever tryed to get the Xtensions 380 working with linux?
+Any way I can tell without taking the card out of the case?
 
-url:
+My dmesg reports "xc2028 1-0061: Device is Xceive 3028 version 1.0,
+firmware version 2.7"
 
-http://www.x-tensions.net/support.php?lang=de&view=solo&prod_num=XD-380
-But be carefull with the driver on this page. It differs a lot against the 
-driver included at the CD delivered with the stick.
+lsusb reports "Bus 008 Device 003: ID 0fe9:db78 DVICO"
 
-I had a look into the windows driver (on the CD) and found nothing what
-could give an information which linux-driver is the right one (in my eyes). 
-If it is useful, I can put the windows driver to the www.
+HTH
 
-Is there any realistic hope, to get this device work with linux? I will
-test any patches and try any hints etc.
+-Rob
 
-lsusb:
-1ae7:0381
+>
+> cheers,
+> Markus
+>
+>> Thanks
+>>
+>> -Rob
+>>
+>> [  103.974543] xc2028 1-0061: Loading 3 firmware images from
+>> xc3028-dvico-au-01.fw, type: DViCO DualDig4/Nano2 (Australia), ver 2.7
+>> [  103.984657] BUG: unable to handle kernel NULL pointer dereference at
+>> 00000000
+>>
+>> [  103.984690] IP: [<c0361a85>]
+>> __mutex_lock_interruptible_slowpath+0x35/0xe0
+>> [  103.984716] *pde = 00000000
+>> [  103.984731] Oops: 0002 [#1] SMP
+>> [  103.984742] Modules linked in: nfsd auth_rpcgss exportfs
+>> speedstep_lib
+>> cpufre
+>> q_conservative cpufreq_powersave cpufreq_userspace cpufreq_ondemand
+>> cpufreq_stat
+>> s freq_table container video output sbs sbshc battery nfs lockd nfs_acl
+>> sunrpc i
+>> ptable_filter ip_tables x_tables xfs ac lp tuner_xc2028 zl10353
+>> dvb_usb_cxusb dv
+>> b_usb snd_maestro3 dvb_core snd_ac97_codec serio_raw ac97_bus
+>> snd_seq_dummy psmo
+>> use snd_seq_oss snd_seq_midi snd_pcsp snd_rawmidi snd_pcm_oss
+>> snd_mixer_oss snd_
+>> pcm snd_seq_midi_event snd_seq snd_page_alloc snd_timer snd_seq_device
+>> snd
+>> butto
+>> n i2c_viapro soundcore i2c_core shpchp pci_hotplug via686a via_agp
+>> parport_pc pa
+>> rport agpgart ipv6 evdev ext3 jbd mbcache sg sr_mod cdrom sd_mod
+>> pata_acpi
+>> flopp
+>> y pata_sil680 sym53c8xx ehci_hcd e100 uhci_hcd pata_via ata_generic mii
+>> usbcore
+>> scsi_transport_spi libata scsi_mod dock thermal processor fan fbcon
+>> tileblit fon
+>> t bitblit softcursor uvesafb cn fuse
+>> [  103.984962]
+>> [  103.984971] Pid: 6492, comm: kdvb-fe-0 Not tainted (2.6.26-4-generic
+>> #1)
+>> [  103.984981] EIP: 0060:[<c0361a85>] EFLAGS: 00010246 CPU: 1
+>> [  103.984998] EIP is at __mutex_lock_interruptible_slowpath+0x35/0xe0
+>> [  103.985009] EAX: f6783d30 EBX: f7aa0c5c ECX: f7aa0c64 EDX: 00000000
+>> [  103.985020] ESI: f670d400 EDI: f7aa0c60 EBP: f6783d90 ESP: f6783d2c
+>> [  103.985031]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+>> [  103.985040] Process kdvb-fe-0 (pid: 6492, ti=f6782000 task=f670d400
+>> task.ti=f
+>> 6782000)
+>> [  103.985050] Stack: f7aa0c64 f7aa0c64 00000000 c029e80f f6783d90
+>> 00000003 f7aa
+>> 0720 f6783d90
+>> [  103.985074]        f8b43b79 f6755d55 00000030 f8cbbaa5 f8cbdb14
+>> 0001d729 f7aa
+>> 0c5c 00000061
+>> [  103.985094]        f6783d90 f6783dcf f6783d93 f6783db8 f8b84251
+>> f6783dcf 0000
+>> 0001 00000000
+>> [  103.985114] Call Trace:
+>> [  103.985129]  [<c029e80f>] release_firmware+0xf/0x20
+>> [  103.985165]  [<f8b43b79>] dvb_usb_generic_rw+0x69/0x190 [dvb_usb]
+>> [  103.985202]  [<f8cbbaa5>] load_all_firmwares+0x415/0x740
+>> [tuner_xc2028]
+>> [  103.985244]  [<f8b84251>] cxusb_ctrl_msg+0xa1/0xd0 [dvb_usb_cxusb]
+>> [  103.985296]  [<f8b84737>] cxusb_bluebird_gpio_rw+0x37/0x50
+>> [dvb_usb_cxusb]
+>> [  103.985321]  [<f8b852a6>] cxusb_bluebird_gpio_pulse+0x56/0x70
+>> [dvb_usb_cxusb]
+>>
+>> [  103.985347]  [<f8b85443>] dvico_bluebird_xc2028_callback+0x13/0x30
+>> [dvb_usb_c
+>> xusb]
+>> [  103.985363]  [<f8cbc058>] check_firmware+0x288/0x880 [tuner_xc2028]
+>> [  103.985389]  [<f8b84251>] cxusb_ctrl_msg+0xa1/0xd0 [dvb_usb_cxusb]
+>> [  103.985440]  [<f8b8449f>] cxusb_i2c_xfer+0x21f/0x3c0 [dvb_usb_cxusb]
+>> [  103.985463]  [<f8cbc6b6>] generic_set_freq+0x66/0x500 [tuner_xc2028]
+>> [  103.985495]  [<c01049c7>] common_interrupt+0x23/0x28
+>> [  103.985526]  [<f89f439f>] i2c_transfer+0x6f/0xa0 [i2c_core]
+>> [  103.985572]  [<f8cbce64>] xc2028_set_params+0xf4/0x230 [tuner_xc2028]
+>> [  103.985604]  [<f8b06c95>] zl10353_set_parameters+0x505/0x660
+>> [zl10353]
+>> [  103.985634]  [<c03610c4>] schedule+0x284/0x520
+>> [  103.985698]  [<f8b745b1>] dvb_frontend_swzigzag_autotune+0xc1/0x240
+>> [dvb_core
+>> ]
+>> [  103.985769]  [<c01353b0>] process_timeout+0x0/0x10
+>> [  103.985806]  [<f8b74cd9>] dvb_frontend_swzigzag+0x179/0x270
+>> [dvb_core]
+>> [  103.985837]  [<f8b755af>] dvb_frontend_thread+0x38f/0x430 [dvb_core]
+>> [  103.985862]  [<c011d783>] __wake_up_common+0x43/0x70
+>> [  103.985894]  [<c013fe00>] autoremove_wake_function+0x0/0x50
+>> [  103.985925]  [<f8b75220>] dvb_frontend_thread+0x0/0x430 [dvb_core]
+>> [  103.985941]  [<c013faf9>] kthread+0x39/0x70
+>> [  103.985941]  [<c013fac0>] kthread+0x0/0x70
+>> [  103.985941]  [<c0104bd3>] kernel_thread_helper+0x7/0x14
+>> [  103.985941]  =======================
+>> [  103.985941] Code: ec 10 89 f8 64 8b 35 00 80 4d c0 e8 16 0e 00 00 8d
+>> 43
+>> 08 89
+>>  04 24 8d 44 24 04 8b 53 0c 89 43 0c 8b 0c 24 89 54 24 08 89 4c 24 04
+>> <89>
+>> 02 ba
+>>  ff ff ff ff 89 74 24 0c 89 d0 87 03 83 e8 01 74 5f 87
+>> [  103.985941] EIP:
+>> [<c0361a85>]__mutex_lock_interruptible_slowpath+0x35/0xe0 SS:ESP
+>> 0068:f6783d2c
+>> [  103.985941] ---[ end trace 9e886fbc373acdcc ]---
+>>
+>>
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>
 
-lsusb -vvv:
-
-Bus 001 Device 007: ID 1ae7:0381
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x1ae7
-  idProduct          0x0381
-  bcdDevice            2.00
-  iManufacturer           1 Afatech
-  iProduct                2 DVB-T 2
-  iSerial                 0
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
-
-Best regards
-
-Robert
 
 
 _______________________________________________
