@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt2.poste.it ([62.241.5.253])
+Received: from mail.adamomail.se ([87.251.223.195] helo=adamomail.se)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1KO61m-0004hv-LM
-	for linux-dvb@linuxtv.org; Wed, 30 Jul 2008 09:23:19 +0200
-Received: from nico2.od.loc (89.97.249.170) by relay-pt2.poste.it (7.3.122)
-	(authenticated as Nicola.Sabbi@poste.it)
-	id 488FA13900002328 for linux-dvb@linuxtv.org;
-	Wed, 30 Jul 2008 09:23:15 +0200
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
+	(envelope-from <sacha@hemmail.se>) id 1KNpbg-0004nk-LD
+	for linux-dvb@linuxtv.org; Tue, 29 Jul 2008 15:51:16 +0200
+Received: from [89.233.205.229] (account sacha@hemmail.se HELO [192.168.1.6])
+	by adamomail.se (CommuniGate Pro SMTP 4.2.10)
+	with ESMTP id 17124991 for linux-dvb@linuxtv.org;
+	Tue, 29 Jul 2008 15:51:09 +0200
+From: sacha <sacha@hemmail.se>
 To: linux-dvb@linuxtv.org
-Date: Wed, 30 Jul 2008 09:23:47 +0200
-References: <f3ebb34d0807290258i68f62f57w451a9741ad362b0d@mail.gmail.com>
-	<488F40A0.8080201@anevia.com>
-	<f29eff0e0807292203r61dde4cdh841e3326ca84202f@mail.gmail.com>
-In-Reply-To: <f29eff0e0807292203r61dde4cdh841e3326ca84202f@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807300923.47440.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] How to record whole TS?
+Date: Tue, 29 Jul 2008 15:51:09 +0200
+Message-Id: <1217339469.6975.16.camel@lanbox>
+Mime-Version: 1.0
+Subject: [linux-dvb] How to fix Unsupported delivery system error
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,28 +26,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wednesday 30 July 2008 07:03:33 vijet m wrote:
-> Hi,
->
-> Sorry to interrupt your discussion but I have a question regarding
-> recording of MPEG2 streams.
-> As Kurt said, if you set pesfilter with output as DMX_OUT_TS_TAP
-> and pass the pid, it will record the streams corresponding
-> to that pid. So, if I pass audio and video pid, then it will record
-> only the audio and video streams.
-> I wanted to know how to record the DVB SI/PSI tables corresponding
-> to the streams I'm recording.
-> Do I have to pass the pids of the tables I want to record or is
-> there some other way?
-> Right now, I'm using the pid value 0x2000 for setting pes filter
-> which is proving to be computationally intensive and consuming lot
-> of CPU. Please help.
->
-> Thanks in advance,
->        Vijet M
+Hi
 
-using dvbstream from the CVS repository in dvbtools.sf.net:
-$ dvbstream -prog -f .... -o:dump.ts "Program name"
+I have Twinhan SP400 card with on Ubuntu8 64-bit. Mantis driver seems
+loaded corectly but I cannot scan any channels. Scan give me
+"ioctl DVBFE_GET_INFO failed: Invalid argument" error
+dmesg shows "Usupported delivery system" error for stb0899.
+
+I saw many posts here about this but still does not understand how to
+fix it.
+
+Please help.
+KR
+
 
 _______________________________________________
 linux-dvb mailing list
