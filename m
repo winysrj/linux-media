@@ -1,19 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Tue, 8 Jul 2008 21:30:20 +0300
-From: Adrian Bunk <bunk@kernel.org>
-To: Johannes Berg <johannes@sipsolutions.net>
-Message-ID: <20080708183019.GA11954@cs181140183.pp.htv.fi>
-References: <20080708170015.470877000@sipsolutions.net>
-	<20080708170044.262684000@sipsolutions.net>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6TAkAKd024453
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 06:46:10 -0400
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6TAjwCA012513
+	for <video4linux-list@redhat.com>; Tue, 29 Jul 2008 06:45:58 -0400
+Message-ID: <488EF032.4080802@hhs.nl>
+Date: Tue, 29 Jul 2008 12:25:54 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20080708170044.262684000@sipsolutions.net>
-Cc: video4linux-list@redhat.com, linux-ppp@vger.kernel.org,
-	Rusty Russell <rusty@rustcorp.com.au>, linux-kernel@vger.kernel.org,
-	Christoph Hellwig <hch@infradead.org>, dm-devel@redhat.com,
-	David Woodhouse <dwmw2@infradead.org>
-Subject: Re: [RFC 04/11] remove CONFIG_KMOD from drivers
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: CONFIG_VIDEO_ADV_DEBUG question
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,33 +24,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Jul 08, 2008 at 07:00:19PM +0200, Johannes Berg wrote:
->...
-> --- everything.orig/drivers/md/md.c	2008-07-08 18:46:21.000000000 +0200
-> +++ everything/drivers/md/md.c	2008-07-08 18:49:10.000000000 +0200
->...
-> @@ -3410,7 +3405,7 @@ static int do_md_run(mddev_t * mddev)
->  		}
->  	}
->  
-> -#ifdef CONFIG_KMOD
-> +#ifdef CONFIG_MODULES
->  	if (mddev->level != LEVEL_NONE)
->  		request_module("md-level-%d", mddev->level);
->  	else if (mddev->clevel[0])
->...
+Hi All,
 
-You can remove the #ifdef
+CONFIG_VIDEO_ADV_DEBUG enables additional debugging output in the gscpa 
+driver, which then becomes "active" when a module option gets passed. So 
+in the gspca case it normally only results in a larger driver without 
+causing additional debug unless module option is passed.
 
-cu
-Adrian
+I've been asking the Fedora kernel maintainers to enable this option by 
+default for the Fedora development version atleast, and thus I wonder 
+how this option affects other drivers, are there other drivers which 
+become very chatty with this option, or do they all need a module option 
+to truely enable all the debug spew like gspca?
 
--- 
+Regards,
 
-       "Is there not promise of rain?" Ling Tan asked suddenly out
-        of the darkness. There had been need of rain for many days.
-       "Only a promise," Lao Er said.
-                                       Pearl S. Buck - Dragon Seed
+Hans
 
 --
 video4linux-list mailing list
