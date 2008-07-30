@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6U9YVrE031745
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 05:34:31 -0400
-Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6U9Xqpu025510
-	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 05:33:53 -0400
-Message-ID: <4890357C.7050306@hni.uni-paderborn.de>
-Date: Wed, 30 Jul 2008 11:33:48 +0200
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6UIc4bI005783
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 14:38:04 -0400
+Received: from web63003.mail.re1.yahoo.com (web63003.mail.re1.yahoo.com
+	[69.147.96.214])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6UIbPl1006381
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 14:37:25 -0400
+Date: Wed, 30 Jul 2008 11:37:19 -0700 (PDT)
+From: Fritz Katz <frtzkatz@yahoo.com>
+To: video4linux-list@redhat.com, Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200807301813.30670.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <48030F6F.1040007@hni.uni-paderborn.de>	<Pine.LNX.4.64.0804142224570.5332@axis700.grange>	<480477BD.5090900@hni.uni-paderborn.de>	<Pine.LNX.4.64.0804151228370.5159@axis700.grange>	<481ADED1.8050201@hni.uni-paderborn.de>	<Pine.LNX.4.64.0805021143250.4920@axis700.grange>	<481AF6CA.9030505@hni.uni-paderborn.de>	<Pine.LNX.4.64.0805021314510.4920@axis700.grange>	<481AFB30.5070508@hni.uni-paderborn.de>	<481B3D2F.80203@hni.uni-paderborn.de>	<Pine.LNX.4.64.0805022059090.31894@axis700.grange>	<481F0BFA.7010306@hni.uni-paderborn.de>	<Pine.LNX.4.64.0807291909510.17188@axis700.grange>	<48902011.7020609@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0807301005520.26534@axis700.grange>
-	<48902CFF.9020204@teltonika.lt>
-In-Reply-To: <48902CFF.9020204@teltonika.lt>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Subject: Re: [PATCH] Some suggestions for the soc_camera interface
+Content-Type: text/plain; charset=us-ascii
+Message-ID: <505955.90581.qm@web63003.mail.re1.yahoo.com>
+Cc: 
+Subject: Re: What info does V-4-L expect to be in the "Identifier EEprom"?
+Reply-To: frtzkatz@yahoo.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,97 +27,134 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Paulius Zaleckas schrieb:
-> Guennadi Liakhovetski wrote:
->> Hi Stefan,
->>
->> On Wed, 30 Jul 2008, Stefan Herbrechtsmeier wrote:
->>
->>> Guennadi Liakhovetski schrieb:
->>>> On Mon, 5 May 2008, Stefan Herbrechtsmeier wrote:
->>>>  
->>>>> Guennadi Liakhovetski schrieb:
->>>>>    
->>>>>> So, I would say, patches 1 and 3 look useful to me. Please fix
->>>>>> formatting
->>>>>> issues, add your Signed-off-by and submit in two separate emails.
->>>>>>         
->>>>> At the moment I update my system to the 2.6.25 kernel. When 
->>>>> everything
->>>>> works
->>>>> fine, I submit the reworked
->>>>> patches the next days.
->>>> How is this going? Do you have your patches ready? We have a few 
->>>> patches
->>>> brewing from sveral people, that touch the same code as yours, so, 
->>>> it would
->>>> be good to have your "move .power, .reset to camera-link" patch 
->>>> applied,
->>>> then we could move on with the others.
->>>>   
->>> Sorry for the long delay. I’m waiting for some answer form 
->>> OmniVision if I’m
->>> allowed to publish my current version of the OV9655 driver or whether
->>> something violent the NDA.
->>
->> Yes, this is an interesting question...
->>
->>> Should I resend my "move .power, .reset to camera-link" patch 
->>> without the
->>> driver or waiting until I can send my OV9655 driver? At the moment 
->>> there is no
->>> driver which uses this.
->>
->> I think, yes, it would be useful to move .reset and .power now, as I 
->> said, I keep telling people "please keep in mind these fields are 
->> going to move", so, we shall really finally move them:-)
->
-> I am waiting for this also! Add me to the list :)
-> Currently I have mclk parameter for camera host driver... And I have to
-> set it frequently since I am playing with couple different sensors...
-My current version only touch the soc_camera files. Should I change the 
-mt9m001 and mt9v022 sensor to use the new functions?
->
->
->>> I have also implement some simple timeperframe configuration 
->>> (vidioc_s_parm)
->>> via clock PLL and divider configuration in OV9655 driver, but only 
->>> with a fix
->>> mclk_10khz of 2600.
->>
->> Good! If this is ov9655-specific, let's wait until you're allowed to 
->> submit your patch:-)
->>
->> Thanks
->> Guennadi
->> ---
->> Guennadi Liakhovetski, Ph.D.
->> Freelance Open-Source Software Developer
->>
->> -- 
->> video4linux-list mailing list
->> Unsubscribe 
->> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
 
--- 
-Dipl.-Ing. Stefan Herbrechtsmeier
+--- On Wed, 7/30/08, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+> It is likely you will choose your own format, but it is
+> very useful if the eeprom has information like:
+> 
+> - model number/type of the card
+> - what tuner chip(s) is/are used (tuners tend to be 
+>     swapped for different models quite often).
+> - whether there is a radio supported
+> - IR support (none, just a receiver, both receiver 
+>     and transmitter)
+> - Any encoder/decoder chips (unless that can be derived
+>   from the model number).
+> 
+> In general: anything you need to determine which chips are
+> on the board and on which i2c address. And how external 
+> connectors are hooked up to those chips (if that can vary).
+> 
 
-Heinz Nixdorf Institute
-University of Paderborn 
-System and Circuit Technology 
-Fürstenallee 11
-D-33102 Paderborn (Germany)
+  So it would be sufficient to just include an ASCII string containing the above information?  
 
-office : F0.415
-phone  : + 49 5251 - 60 6342
-fax    : + 49 5251 - 60 6351
+Then I could send it to this list, and the board could be recognized in the next release of V-4-L?
 
-mailto : hbmeier@hni.upb.de
+> Of course, if all this can be directly determined by the
+> PCI (sub)vendor/device IDs, then there is no need for an
+> eeprom. 
 
-www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
+I'm assuming that the list of PCI (sub)vendor/device IDs is here:
 
+http://www.pcidatabase.com/pci_c_header.php
+
+and that the Video-4-Linux references pcihdr.h:
+"PCI_DEVTABLE	PciDevTable [] = {..."
+to determine the vendor/device ID.
+
+Should those two hex numbers should be the first 32 bytes in the EEPROM?
+
+Unfortunately, the company I'm consulting for is not in the list. I suppose we can submit an unused vendor ID to the site.
+
+> Sadly, my experience is that the PCI IDs tend to be insufficient 
+> or plain wrong, especially by cheap cards based on a reference 
+> design from another company. 
+
+Here's my sad story attempting to bring the board up on Linux:
+
+____________
+
+When I install one of the pci cards in the Linux box, and boot, an 
+actual 'rant' appears in the dmesg:
+
+	saa7130/34: v4l2 driver version 0.2.14 loaded
+	phy0: hwaddr 00:40:f4:f8:83:e4, RTL8185vD + rtl8225z2
+	ACPI: PCI Interrupt 0000:00:09.0[A] -> GSI 17 (level, low) -> IRQ 17
+	saa7130[0]: found at 0000:00:09.0, rev: 1, irq: 17, latency: 32, mmio: 0xe2000000
+	saa7134: <rant>
+	saa7134:  Congratulations!  Your TV card vendor saved a few
+	saa7134:  cents for a eeprom, thus your pci board has no
+	saa7134:  subsystem ID and I can't identify it automatically
+	saa7134: </rant>
+
+and, when it sees the Philips decoder chip it says:
+
+	saa7130[0]: Huh, no eeprom present (err=-5)?
+
+I suppose the 5 line <rant> is useful if it shames companies 
+into including the ID eeprom. But the <rant> then goes on to 
+spew into dmesg and /var/log/messages a list 144 different 
+cards. A more helpful suggestion might be to print a URL 
+to a trouble-shooting webpage to help people determine 
+which card they have. I have found this page to be helpful:
+
+http://www.de.gentoo-wiki.com/HARDWARE_saa7134
+
+Apparently it's necessary to cycle through rmmod/modprobe/watchTV 
+to see which combo works. Here's the simple script:
+ -----------------------
+ #/bin/sh
+ MAXCARD=144
+ MAXTUNER=69
+ for i in $(seq 0 $MAXCARD);
+ do
+   for j in $(seq 0 $MAXTUNER);
+   do
+     rmmod tuner saa7134
+     modprobe saa7134 card=$i tuner=$j
+     echo "Is TVtime working with card=" $i " and tuner=" $j " ? "
+     sleep 1 # make sure /dev/video is registered when tvtime starts
+     tvtime
+   done
+ done
+ -----------------------
+
+There are over 144 card and 69 tuner combos = 9936.  
+GAAACK!, takes a long time.
+
+Also, from hard experience, I've found it's necessary to do a:
+
+# tail -f /var/log/messages
+
+in another shell to make sure the card is still responding 
+to commands. Some tuner numbers apparently lock up the card, 
+reboot required, and you won't know that anything is 
+wrong -- while you spend hours testing combos that should 
+have worked.
+
+I finally found a card/tuner combo. Using tvtime, the video 
+output doesn't appear on the 'Television' output. Instead 
+it appears on 'Composite2' output. You can only tune 
+channels by using 'Input Configuration', switching to a 
+blue-screen 'Television' and then switching back to 
+'Composite2' to view it.
+
+Sometimes the board tunes fine. Sometimes after re-boot 
+it may be necessary to do fine-tuning to receive stations. 
+I suppose since the board is not recognized by V-4-L, the 
+tuner section may not be initialized properly?
+
+Regards,
+-- Fritz Katz.
+
+
+
+
+
+
+
+      
 
 --
 video4linux-list mailing list
