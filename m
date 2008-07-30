@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KJTPo-0000Pj-FM
-	for linux-dvb@linuxtv.org; Thu, 17 Jul 2008 15:21:00 +0200
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1KJTPk-0007tX-Uz
-	for linux-dvb@linuxtv.org; Thu, 17 Jul 2008 13:20:56 +0000
-Received: from h30n2fls32o1121.telia.com ([217.211.84.30])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Thu, 17 Jul 2008 13:20:56 +0000
-Received: from dvenion by h30n2fls32o1121.telia.com with local (Gmexim 0.1
-	(Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Thu, 17 Jul 2008 13:20:56 +0000
-To: linux-dvb@linuxtv.org
-From: Daniel =?utf-8?b?SGVsbHN0csO2bQ==?= <dvenion@hotmail.com>
-Date: Thu, 17 Jul 2008 13:20:48 +0000 (UTC)
-Message-ID: <loom.20080717T130310-111@post.gmane.org>
-References: <200807170023.57637.ajurik@quick.cz>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] TT S2-3200 driver
+	(envelope-from <mkrufky@linuxtv.org>) id 1KOC0M-0004Z1-GW
+	for linux-dvb@linuxtv.org; Wed, 30 Jul 2008 15:46:15 +0200
+Message-ID: <489070A1.6060600@linuxtv.org>
+Date: Wed, 30 Jul 2008 09:46:09 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: TANGAo Khaled <ktangao-neli@orange.fr>
+References: <48906DCF.6020300@orange.fr>
+In-Reply-To: <48906DCF.6020300@orange.fr>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] the function " int ioctl(int fd, int request =
+ FE_READ_SNR, int16_t *snr); "
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,31 +26,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ales Jurik <ajurik <at> quick.cz> writes:
-
+TANGAo Khaled wrote:
+> Hello.
 > 
-> Hi,
+>    I am working to design a software and i am using Frontend APIs. But I 
+> still have a big problem witch, i do not understand. I want to know the 
+> unit (linear or dB) of the value returned by this function:
 > 
-> please try attached patch. With this patch I'm able to get lock on channels 
-> before it was impossible. But not at all problematic channels and the 
-> reception is not without errors. Also it seems to me that channel switching is 
-> quicklier.
+> int ioctl(int fd, int request = FE_READ_SNR, int16_t *snr);
 > 
+>  I would like to display an information to the user of my program,about 
+> the quality of the signal his antenna picked up. To do this, i think the 
+> best way is to display a graphic representing a percentage. But the 
+> current value I read, (-258) is unusable like this. So can you please, 
+> give me the unit of the value or give me a link to find what i am seeking?
 > 
-> BR,
+> Thank you
 > 
-> Ales
 
-I have tested your patch now, and now I get lock right away, all the time on the
-DVB-S2, 8PSK, 3/4, 25000 channels that I can get on Thor 0.8W Still need to test
-Eurosport that has the same settings but higher SR.
-But there is receptionproblems and I get artifacts in the picture, like you've
-seem to have experienced too.
+Unfortunately, there is no *standard* unit of measure being used across all drivers.
 
+It would be nice to clean this up and standardize the SNR reporting across every demod driver, but this will require some time & effort.  It will also require datasheets for all the demodulators so that we can find out what unit of measure is reported by the silicon, itself, so that it may be standardized across all drivers.
 
+In the demodulator drivers that Steve Toth and I have been working on lately, we report the SNR in dB.  Again, not all drivers use the same units, so you cannot rely on this.
 
+Sorry for the bad news.
 
+HTH,
 
+Mike
 
 _______________________________________________
 linux-dvb mailing list
