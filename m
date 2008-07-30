@@ -1,24 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.187])
+Received: from nf-out-0910.google.com ([64.233.182.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thomas@ickes-home.de>) id 1KLO3o-0006N3-9R
-	for linux-dvb@linuxtv.org; Tue, 22 Jul 2008 22:02:13 +0200
-From: tom <thomas@ickes-home.de>
-To: Antti Palosaari <crope@iki.fi>
-In-Reply-To: <1216756294.6686.16.camel@super-klappi>
-References: <0MKxQS-1KLM2V1c9L-0001hx@mrelayeu.kundenserver.de>
-	<1216750591.6624.3.camel@super-klappi>  <48862536.9070906@iki.fi>
-	<1216752077.6686.4.camel@super-klappi>  <48862B02.1030304@iki.fi>
-	<1216754067.6686.7.camel@super-klappi>  <48863349.3090507@iki.fi>
-	<1216754778.6686.9.camel@super-klappi>  <48863629.8070706@iki.fi>
-	<1216755359.6686.11.camel@super-klappi>
-	<1216756294.6686.16.camel@super-klappi>
-Date: Tue, 22 Jul 2008 22:00:55 +0200
-Message-Id: <1216756855.6686.19.camel@super-klappi>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] WG:  Problems with MSI	Digivox	Duo	DVB-T	USB,
-	Ubuntu 8.04
+	(envelope-from <guebby@gmail.com>) id 1KO2Ht-0002nS-MR
+	for linux-dvb@linuxtv.org; Wed, 30 Jul 2008 05:23:42 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so191511nfb.11
+	for <linux-dvb@linuxtv.org>; Tue, 29 Jul 2008 20:23:37 -0700 (PDT)
+From: Jose Osvaldo <guebby@gmail.com>
+To: linux-dvb@linuxtv.org
+Date: Wed, 30 Jul 2008 05:16:12 +0200
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200807300516.13142.guebby@gmail.com>
+Subject: [linux-dvb] lower SNR
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,42 +25,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-!!SUCCESS!!
+I have an AVerMedia AverTV Hybrid+FM PCI A16D (saa7135h+xc3028+mt352) and it 
+works fine, but with the new driver (kernel 2.6.26) it has lower SNR than 
+with the Markus Rechberger's driver. I have measured it with "dvbtune" and it 
+is not only a number; in fact there are some channels that I could hardly 
+tune but looked ok, which have now some MPEG artifacts. The SNR fall is from 
+29000 dB to 26000 dB approximately in this channel.
 
-Scan has found channels and everything works!
-
-Antti, many thanks for your support and especially for your patience!
-
-Thomas
-
-
-Am Dienstag, den 22.07.2008, 21:51 +0200 schrieb tom:
-> test driver
-> - actual firmware stored in /lib/firmware
-> - stick unpluged
-> - channel scan runs :-)
-> 
-> will try with it with pervious driver
-> 
-> Am Dienstag, den 22.07.2008, 21:35 +0200 schrieb tom:
-> > ok, will download it and try it with the test driver and the previous
-> > version.
-> > 
-> > Am Dienstag, den 22.07.2008, 22:34 +0300 schrieb Antti Palosaari:
-> > > tom wrote:
-> > > > ah, ok. can I found to firmware on linuxtv?
-> > > 
-> > > nope, It is at the same location where you have downloaded current one:
-> > > http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
-> > > 
-> > > Antti
-> > 
-> > 
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
+Thanks.
 
 _______________________________________________
 linux-dvb mailing list
