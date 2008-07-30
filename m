@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6KIHadJ021299
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 14:17:36 -0400
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.189])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6KIHMVW013244
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 14:17:23 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so354409nfc.21
-	for <video4linux-list@redhat.com>; Sun, 20 Jul 2008 11:17:22 -0700 (PDT)
-Message-ID: <de8cad4d0807201117x1949ea7ax6485a128a17ce9ea@mail.gmail.com>
-Date: Sun, 20 Jul 2008 14:17:21 -0400
-From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-In-Reply-To: <200807201612.33032.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6UDS9Ws018331
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 09:28:09 -0400
+Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
+	[151.189.21.56])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6UDRs20003742
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 09:27:55 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20080730001956.15c67493@gaivota>
+References: <20080711231113.13054808@hyperion.delvare>
+	<20080729121938.3d4668f4@gaivota>
+	<1217385358.2671.28.camel@pc10.localdom.local>
+	<20080730001956.15c67493@gaivota>
+Content-Type: text/plain
+Date: Wed, 30 Jul 2008 15:21:08 +0200
+Message-Id: <1217424068.3085.13.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <de8cad4d0807200710xde576bfpb495ae5dbbd0b394@mail.gmail.com>
-	<200807201612.33032.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com
-Subject: Re: compat_ioctl32.o: Error compiling latest HG clone of v4l-dvb
+Cc: Jean Delvare <khali@linux-fr.org>, v4l-dvb-maintainer@linuxtv.org,
+	video4linux-list@redhat.com
+Subject: Re: bt832 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,51 +32,111 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Jul 20, 2008 at 10:12 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Sunday 20 July 2008 16:10:12 Brandon Jenkins wrote:
->> Greetings,
->>
->> Snippet below.
->>
->> Thanks!
->
-> Working on it...
->
->        Hans
->
->>
->> Brandon
->>
->> CC [M]  /root/v4l-dvb/v4l/compat_ioctl32.o
->> /root/v4l-dvb/v4l/compat_ioctl32.c: In function 'v4l_compat_ioctl32':
->> /root/v4l-dvb/v4l/compat_ioctl32.c:985: error: implicit declaration
->> of function 'v4l_printk_ioctl'
->> make[3]: *** [/root/v4l-dvb/v4l/compat_ioctl32.o] Error 1
->> make[2]: *** [_module_/root/v4l-dvb/v4l] Error 2
->> make[2]: Leaving directory `/usr/src/linux-2.6.26'
->> make[1]: *** [default] Error 2
->> make[1]: Leaving directory `/root/v4l-dvb/v4l'
->> make: *** [all] Error 2
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe
->> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
 
-Hans,
+Am Mittwoch, den 30.07.2008, 00:19 -0300 schrieb Mauro Carvalho Chehab:
+> On Wed, 30 Jul 2008 04:35:58 +0200
+> hermann pitton <hermann-pitton@arcor.de> wrote:
+> 
+> > Hi,
+> > 
+> > Am Dienstag, den 29.07.2008, 12:19 -0300 schrieb Mauro Carvalho Chehab:
+> > > Hi Jean,
+> > > 
+> > > On Fri, 11 Jul 2008 23:11:13 +0200
+> > > Jean Delvare <khali@linux-fr.org> wrote:
+> > > 
+> > > > Hi Mauro,
+> > > > 
+> > > > As part of the next big i2c-core change, I must update all the legacy
+> > > > i2c drivers. I was about to update the bt832 driver, but found that
+> > > > there was no reference to it in the build system. After adding a
+> > > > reference to force it to build, I found that it wouldn't actually
+> > > > build, because the last change to the driver broke it and apparently
+> > > > nobody noticed. Looking at the code, the driver doesn't appear to be
+> > > > functional.
+> > > > 
+> > > > So rather than wasting my time fixing this broken driver nobody is
+> > > > using, I believe that it would be better to delete it. If this is OK
+> > > > with you, here's a patch doing that. Thanks.
+> > > 
+> > > I'm ok with this removal.
+> > > 
+> > > Since you did your patch against -git, it doesn't apply at -hg. So, I've
+> > > re-generated it. Please check if everything is all right. I did a small
+> > > additional cleanup at bttv driver, since you've kept a test that is not needed
+> > > anymore.
+> > > 
+> > > Cheers,
+> > > Mauro.
+> > 
+> > I'm not sure, if any of you is aware about the extend of contribution we
+> > have from Gunther.
+> > 
+> > Mauro should at least be a little.
+> > 
+> > To remove it likely is fine, but there should be at least an attempt to
+> > inform the author.
+> > 
+> > http://www.bttv-gallery.de
+> > 
+> > is only a minor part of his work, but is still without any even close to
+> > it.
+> > 
+> > Else I'm talking about several hundreds crucial and substantial patches
+> > he provided in the past, not to forget that he is a coauthor of tuner.
+> > 
+> > I don't like that style to proceed, without even trying to reach those
+> > on whose back and work we still stand.
+> 
+> 
+> Hermann,
+> 
+> There's nothing personal on it. 
+> 
+> The points are:
+> 
+> - bt832 driver were written on 2002, according with the copyright message on
+> the file (so, probably for some old bttv devices with a camera connection - are
+> those devices still being used?);
+> 
+> - the messages on bttv driver states that it is currently not working yet (when
+> this message were written? Probably, when the driver were inserted on kernel);
+> 
+> - the code that would load it or set it up on bttv is commented with #if 0;
+> 
+> - the Makefile's don't compile this driver.
+> 
+> I may be wrong, but it seems to me that this driver never worked.
+> 
+> It is fine for me if Gunther or anyone else wants to fix the driver. However,
+> the way it is, I can't see any sense on keeping it on kernel.
+> 
+> Gunther,
+> 
+> What's your opinion about this driver?
+> 
+> Cheers,
+> Mauro
 
-Pull from http://linuxtv.org/hg/~hverkuil/v4l-dvb/ resolved
-compilation issues. Thanks!
+Mauro,
 
-Brandon
+I know there is nothing meant personal and the technical arguments seem
+to be all correct.
+
+Just, if we have some last known email address, we try to inform the
+author, reachable or not, directly too.
+
+This happened now and I think you can proceed.
+
+An answer from Gunther, who is not around on the lists since a while,
+would of course be even better.
+
+I also would like to send him documentation about some new cards,
+but also don't know if mails really come through currently.
+
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
