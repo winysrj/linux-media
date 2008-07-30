@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m63LrNlh014380
-	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 17:53:23 -0400
-Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m63Lr5K6014728
-	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 17:53:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>, linux-dvb@linuxtv.org,
-	"v4l-dvb maintainer list" <v4l-dvb-maintainer@linuxtv.org>
-Date: Thu, 3 Jul 2008 23:52:54 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6UDoeV8007014
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 09:50:40 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6UDoTHX017742
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 09:50:29 -0400
+Date: Wed, 30 Jul 2008 10:49:55 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080730104955.377dfce5@gaivota>
+In-Reply-To: <1217424068.3085.13.camel@pc10.localdom.local>
+References: <20080711231113.13054808@hyperion.delvare>
+	<20080729121938.3d4668f4@gaivota>
+	<1217385358.2671.28.camel@pc10.localdom.local>
+	<20080730001956.15c67493@gaivota>
+	<1217424068.3085.13.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807032352.54746.hverkuil@xs4all.nl>
-Cc: 
-Subject: RFC: remove support from v4l-dvb for kernels < 2.6.16
+Cc: Jean Delvare <khali@linux-fr.org>, v4l-dvb-maintainer@linuxtv.org,
+	video4linux-list@redhat.com
+Subject: Re: bt832 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,56 +32,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-RFC: remove support from v4l-dvb for kernels < 2.6.16
 
-After spending some time trying to get v4l-dvb to compile on older 
-kernels I discovered that:
+> I know there is nothing meant personal and the technical arguments seem
+> to be all correct.
+> 
+> Just, if we have some last known email address, we try to inform the
+> author, reachable or not, directly too.
+> 
+> This happened now and I think you can proceed.
+> 
+> An answer from Gunther, who is not around on the lists since a while,
+> would of course be even better.
+> 
+> I also would like to send him documentation about some new cards,
+> but also don't know if mails really come through currently.
 
-- it is OK for kernels >= 2.6.19
+Ok. Let's wait some days to give him a chance to read this and send us an
+answer. It seems better to wait until the end of the next week, since we might
+be in vacations during July.
 
-- it does not compile at the moment for kernels >= 2.6.16 and < 2.6.19, 
-but that this can be fixed.
-
-- that it can be made to compile for kernels >= 2.6.12 and < 2.6.16, 
-although quite a few drivers had to be disabled and looking at the type 
-of compile warnings emitted the result would likely crash, especially 
-the closer one gets to 2.6.12.
-
-- that I no longer can compile against older kernels since gcc-4.1.2 no 
-longer accepts some constructions used in those kernel sources.
-
-I propose that we remove the support for kernels < 2.6.16. Kernel 2.6.16 
-is the kernel that's being maintained long-term, so that makes it a 
-good starting point. I know that I get the occasional question about 
-kernel 2v4l/em28xx-audio.c.6.18, so that definitely has to be supported 
-by v4l-dvb, and the differences between 2.6.18 and 2.6.16 are minor, so 
-extending the support to 2.6.16 is not a problem.
-
-I did a few scans and of the approximately 932 KERNEL_VERSION checks 
-only 268 remain if we drop support for anything below 2.6.26. That's a 
-major cleanup.
-
-Since it is now simply broken for anything below 2.6.19 I think it is a 
-good solution to on the one hand do a major cleanup at the expense of 
-making it unlikely that we will ever support kernels below 2.6.16, and 
-on the other hand at least start to support 2.6.16 and up.
-
-I can set up a test build to periodically test if v4l-dvb still compiles 
-on these older kernels (although currently I can only test on a 32 bit 
-Intel platform).
-
-I'm also willing to do the clean up (I've always liked throwing away 
-code!).
-
-In the long term we should probably review the minimum kernel 
-requirements on a yearly basis and see if we should move it up. 
-Especially major changes in the way the kernel handles device structs 
-can be a big pain to maintain. That's currently the main reason for the 
-breakage of kernels < 2.6.19.
-
-Regards,
-
-	Hans Verkuil
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
