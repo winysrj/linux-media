@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt3.poste.it ([62.241.4.129])
+Received: from an-out-0708.google.com ([209.85.132.243])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Nicola.Sabbi@poste.it>) id 1KM1ie-0000CZ-B9
-	for linux-dvb@linuxtv.org; Thu, 24 Jul 2008 16:23:06 +0200
-Received: from nico2.od.loc (89.97.249.170) by relay-pt3.poste.it (7.3.122)
-	(authenticated as Nicola.Sabbi@poste.it)
-	id 4887B87100004BD5 for linux-dvb@linuxtv.org;
-	Thu, 24 Jul 2008 16:22:26 +0200
-From: Nico Sabbi <Nicola.Sabbi@poste.it>
+	(envelope-from <javier.galvez.guerrero@gmail.com>)
+	id 1KO69K-0005fK-Gh
+	for linux-dvb@linuxtv.org; Wed, 30 Jul 2008 09:31:07 +0200
+Received: by an-out-0708.google.com with SMTP id c18so71553anc.125
+	for <linux-dvb@linuxtv.org>; Wed, 30 Jul 2008 00:31:01 -0700 (PDT)
+Message-ID: <145d4e1a0807300031i460f9f85p160328523eb00e33@mail.gmail.com>
+Date: Wed, 30 Jul 2008 09:31:01 +0200
+From: "=?ISO-8859-1?Q?Javier_G=E1lvez_Guerrero?="
+	<javier.galvez.guerrero@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Thu, 24 Jul 2008 16:22:25 +0200
-References: <48888700.6030105@iinet.net.au>
-	<200807241601.14850.Nicola.Sabbi@poste.it>
-	<48888E02.60009@iinet.net.au>
-In-Reply-To: <48888E02.60009@iinet.net.au>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200807241622.25951.Nicola.Sabbi@poste.it>
-Subject: Re: [linux-dvb] dvb mpeg2?
+Subject: [linux-dvb] DVB-H support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,35 +20,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1434226547=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 24 July 2008 16:13:22 Tim Farrington wrote:
+--===============1434226547==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_41780_3911799.1217403061145"
 
-> Hi Nico,
-> Yes I wondered about corrupt streams, so I watched projectx in
-> action carefully.
-> I need to understand it a bit more, but it found many corrupt
-> timestamps while demuxing, and repaired on the run. Time will tell,
-> however I have some progress,
-> and I can't fault the process yet!
->
-> I intend to try all of everybody's suggestions. One question - with
-> mencoder why format=dvd?
->
-> Regards,
-> Timf
+------=_Part_41780_3911799.1217403061145
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-because the default is mpeg2, with too many restrictions on the
- muxrate and because sooner or later you will want to burn to dvd.
-The muxrate is a bit higher, but who cares? :)
-Otherwise you can use -of mpeg -mpegopts format=mpeg2:muxrate=10800
-or something like that
+Hi all,
+
+I would like to know if LinuxTV's DVB API does support getting DVB-H
+data/video/audio (streams) as it does with others DVB streams. If yes, which
+DVB hardware should I use? Any experience with this standard and a specific
+DVB device?
+
+
+Thank you for your support. Your help is much appreciated,
+Javi
+
+------=_Part_41780_3911799.1217403061145
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">Hi all,<br><br>I would like to know if LinuxTV&#39;s DVB API does support getting DVB-H data/video/audio (streams) as it does with others DVB streams. If yes, which DVB hardware should I use? Any experience with this standard and a specific DVB device?<br>
+<br><br>Thank you for your support. Your help is much appreciated,<br>Javi<br></div>
+
+------=_Part_41780_3911799.1217403061145--
+
+
+--===============1434226547==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1434226547==--
