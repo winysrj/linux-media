@@ -1,18 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6665rdI009816
-	for <video4linux-list@redhat.com>; Sun, 6 Jul 2008 02:05:53 -0400
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6665fSG031288
-	for <video4linux-list@redhat.com>; Sun, 6 Jul 2008 02:05:41 -0400
-Message-ID: <48706247.8080500@hhs.nl>
-Date: Sun, 06 Jul 2008 08:12:23 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6UKifgt017776
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 16:44:41 -0400
+Received: from web63010.mail.re1.yahoo.com (web63010.mail.re1.yahoo.com
+	[69.147.96.221])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6UKiRAY031019
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 16:44:27 -0400
+Date: Wed, 30 Jul 2008 13:44:21 -0700 (PDT)
+From: Fritz Katz <frtzkatz@yahoo.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200807302104.07478.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: multipart/mixed; boundary="------------020301090406070206000000"
+Content-Type: text/plain; charset=us-ascii
+Message-ID: <902301.97749.qm@web63010.mail.re1.yahoo.com>
 Cc: video4linux-list@redhat.com
-Subject: PATCH: gspca-pac207-framesize.patch
+Subject: Re: What info does V-4-L expect to be in the "Identifier EEprom"?
+Reply-To: frtzkatz@yahoo.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,62 +27,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------020301090406070206000000
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Hi,
+Thank you Hans, 
 
-The pac207 only does compression when the usb bandwidth mandates it, so when
-in full ress mode but doing low framerates (high exposure) setting it does not
-compress. Adjust full res bufsize for this, otherwise things stop working when
-the framerate gets too low.
+  I need to correct my own mis-information.
+  Vendor ID assignments are given out by an industry group PCISIG.
+  Membership costs $3000 and has other benefits:
 
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+    http://www.pcisig.com/membership/join_pci_sig/
 
-Regards,
+_________________________________________
+--- On Wed, 7/30/08, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >
+> > Should those two hex numbers should be the first 32
+> > bytes in the EEPROM?
+> 
+> No, PCI IDs are stored by the PCI hardware (I'm no
+> expert on this). The boards already have PCI IDs since 
+> they are mandated by the PCI standard. You can find them 
+> with 'lspci -vn'.
+> 
+> > Unfortunately, the company I'm consulting for is
+> > not in the list. I suppose we can submit an unused 
+> > vendor ID to the site.
+> 
+> No! The cards already have
+> vendor/device/subvendor/subdevice IDs. Ask 
+> the engineers, they should have all the details on this.
+> 
 
-Hans
 
 
---------------020301090406070206000000
-Content-Type: text/x-patch;
- name="gspca-pac207-framesize.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="gspca-pac207-framesize.patch"
-
-The pac207 only does compression when the usb bandwidth mandates it, so when
-in full ress mode but doing low framerates (high exposure) setting it does not
-compress. Adjust full res bufsize for this, otherwise things stop working when
-the framerate gets too low.
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-diff -r 3bbf8991628b linux/drivers/media/video/gspca/pac207.c
---- a/linux/drivers/media/video/gspca/pac207.c	Sat Jul 05 13:49:20 2008 +0200
-+++ b/linux/drivers/media/video/gspca/pac207.c	Sun Jul 06 08:08:19 2008 +0200
-@@ -166,7 +166,9 @@
- 		.priv = 1},
- 	{352, 288, V4L2_PIX_FMT_PAC207, V4L2_FIELD_NONE,
- 		.bytesperline = 352,
--		.sizeimage = 352 * 288 / 2,	/* compressed */
-+			/* compressed, but only when needed (not compressed
-+			   when the framerate is low) */
-+		.sizeimage = (352 + 2) * 288,
- 		.colorspace = V4L2_COLORSPACE_SRGB,
- 		.priv = 0},
- };
-
---------------020301090406070206000000
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+      
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------020301090406070206000000--
