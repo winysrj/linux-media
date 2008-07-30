@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m61LpH70007910
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 17:51:17 -0400
-Received: from mailrelay007.isp.belgacom.be (mailrelay007.isp.belgacom.be
-	[195.238.6.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m61LotNq030949
-	for <video4linux-list@redhat.com>; Tue, 1 Jul 2008 17:50:55 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: video4linux-list@redhat.com
-Date: Tue, 1 Jul 2008 23:50:53 +0200
-References: <30353c3d0807011346yccc6ad1yab269d0b47068f15@mail.gmail.com>
-In-Reply-To: <30353c3d0807011346yccc6ad1yab269d0b47068f15@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6UMJhZR011927
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 18:19:43 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6UMJV9u019189
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 18:19:32 -0400
+Date: Thu, 31 Jul 2008 00:19:26 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87iqun2ge3.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0807310008190.26534@axis700.grange>
+References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0807270155020.29126@axis700.grange>
+	<878wvnkd8n.fsf@free.fr>
+	<Pine.LNX.4.64.0807271337270.1604@axis700.grange>
+	<87tze997uu.fsf@free.fr>
+	<Pine.LNX.4.64.0807291902200.17188@axis700.grange>
+	<87iqun2ge3.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200807012350.53604.laurent.pinchart@skynet.be>
-Cc: David Ellingsworth <david@identd.dyndns.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] videodev: fix sysfs kobj ref count
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,213 +32,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi David,
+On Wed, 30 Jul 2008, Robert Jarzmik wrote:
 
-On Tuesday 01 July 2008, David Ellingsworth wrote:
-> This patch duplicates the behavior seen by char_dev in videodev.
-> Please apply.
->
-> char_dev handles the kobject reference count as follows:
->      1. Initializes it to 1 in device_register.
->      2. Increments it in chrdev_open
->      3. Decrements it in __fput(see fs/file_table.c) after the
-> file_operations.release callback
->      4. Decrements it in device_unregister
->
-> videodev currently handles the kobject reference count as follows:
->      1. Initializes it to 1 in device_register.
->      2. Decrements it in device_unregister.
->
-> With this patch, videodev will handle the kobject reference count as
-> follows: 1. Initialize it to 1 in device_register.
->      2. Increment it in video_open.
->      3. Decrement it in video_close.
->      4. Decrement it in device_unregister.
->
-> This allows the following sequences of events before the kobject ref
-> count reaches 0 and the sysfs release callback is called.
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> >> >> For the camera part, by now, I'm using standard suspend/resume functions of the
+> >> >> platform driver (mt9m111.c). It does work, but it's not clean ATM. The chaining
+> >> >> between the driver resume function and the availability of the I2C bus are not
+> >> >> properly chained. I'm still working on it.
+> >> >
+> >> > Yes, we have to clarify this too.
+> All right, I have my mind clarified, let's discuss now.
+> 
+> >>  - I cook up a clean suspend/resume (unless you did it first of course :)
+> Well, let's expose what we're facing here :
+>  - our video chip driver (ex: mt9m111) is an i2c driver
+>   => its resume function is called when i2c bus is resumed, so all is fine here
+> 
+>  - our video chip needs an external clock to work
+>   => example: mt9m111 needs a clock from pxa camera interface to have its i2c
+>   unit enabled
+>   => the mt9m111 driver resume function is unusable, as pxa_camera is resumed
+>   _after_ mt9m111, and thus mt9m111's i2c unit is not available at that moment
+> 
+>  - a working suspend/resume restores fully the video chip state
+>   => restores width/height/bpp
+>   => restores autoexposure, brightness, etc ...
+>   => all that insures userland is not impacted by suspend/resume
+> 
+> So, the only way I see to have suspend/resume working is :
+>  - modify soc_camera_ops to add suspend and resume functions
+>  - add suspend and resume functions in each chip driver (mt9m001, mt9m111, ...)
+>  - modify soc_camera.c (or pxa_camera.c ?) to call icd->ops->suspend() and
+>  icd->ops->resume()
+>  - modify pxa_camera.c (the patch I sent before)
+> 
+> Would you find that acceptable, or is there a better way ?
 
-I've just realised that by sysfs release callback you meant kobject release 
-callback. It might be less confusing, and might help others to follow the 
-discussion, if you talked about kobject, mentioning sysfs only when you 
-really mean to talk about sysfs filesystem.
+Ok, you're suggesting to add suspend() and resume() to 
+soc_camera_bus_type, right? But are we sure that its resume will be called 
+after both camera (so far i2c) and host (so far platform, can also be PCI 
+or USB...) busses are resumed? If not, we might have to do something 
+similar to scan_add_host() / scan_add_device() - accept signals from the 
+host and the camera and when both are ready actually resume them...
 
->      1. device_register
->      2. video_open
->      3. video_close
->      4. device_unregister
->
-> - and -
->
->      1. device_register
->      2. video_open
->      3. device_unregister
->      4. video_close
->
-> Once videodev has been converted to use the char_dev api,
-
-Is that planned ?
-
-> video_open 
-> and video_close may be removed. Until then they are needed to mimic
-> char_dev's behavior and ensure that the sysfs callback occurs at the
-> appropriate time.
-
-> From 354f72d4ed5861813b1509d437e551c19f8a6aca Mon Sep 17 00:00:00 2001
-> From: David Ellingsworth <david@identd.dyndns.org>
-> Date: Tue, 1 Jul 2008 16:04:26 -0400
-> Subject: [PATCH] videodev: fix sysfs kobj ref count
->
->
-> Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
-> ---
->  drivers/media/video/videodev.c |   52
-> ++++++++++++++++++++++++++-------------- include/media/v4l2-dev.h       |  
->  1 +
->  2 files changed, 35 insertions(+), 18 deletions(-)
->
-> diff --git a/drivers/media/video/videodev.c
-> b/drivers/media/video/videodev.c index 0d52819..0ef51b8 100644
-> --- a/drivers/media/video/videodev.c
-> +++ b/drivers/media/video/videodev.c
-> @@ -406,17 +406,23 @@ void video_device_release(struct video_device *vfd)
->  }
->  EXPORT_SYMBOL(video_device_release);
->
-> +/*
-> + *	Active devices
-> + */
-> +
-> +static struct video_device *video_device[VIDEO_NUM_DEVICES];
-> +static DEFINE_MUTEX(videodev_lock);
-> +
->  static void video_release(struct device *cd)
->  {
->  	struct video_device *vfd = container_of(cd, struct video_device,
->  								class_dev);
->
-> -#if 1
-> -	/* needed until all drivers are fixed */
-> -	if (!vfd->release)
-> -		return;
-> -#endif
-> -	vfd->release(vfd);
-> +	mutex_lock(&videodev_lock);
-> +	if (vfd->release)
-> +		vfd->release(vfd);
-> +	video_device[vfd->minor] = NULL;
-> +	mutex_unlock(&videodev_lock);
->  }
->
->  static struct device_attribute video_device_attrs[] = {
-> @@ -431,19 +437,30 @@ static struct class video_class = {
->  	.dev_release = video_release,
->  };
->
-> -/*
-> - *	Active devices
-> - */
-> -
-> -static struct video_device *video_device[VIDEO_NUM_DEVICES];
-> -static DEFINE_MUTEX(videodev_lock);
-> -
->  struct video_device* video_devdata(struct file *file)
->  {
->  	return video_device[iminor(file->f_path.dentry->d_inode)];
->  }
->  EXPORT_SYMBOL(video_devdata);
->
-> +static int video_close(struct inode *inode, struct file *file)
-> +{
-> +	unsigned int minor = iminor(inode);
-> +	int err = 0;
-> +	struct video_device *vfl;
-> +
-> +	mutex_lock(&videodev_lock);
-> +	vfl = video_device[minor];
-> +
-> +	if (vfl->fops && vfl->fops->release)
-> +		err = vfl->fops->release(inode, file);
-> +
-> +	mutex_unlock(&videodev_lock);
-> +	kobject_put(&vfl->class_dev.kobj);
-> +
-> +	return err;
-> +}
-> +
->  /*
->   *	Open a video device - FIXME: Obsoleted
->   */
-> @@ -469,8 +486,8 @@ static int video_open(struct inode *inode, struct file
-> *file) }
->  	}
->  	old_fops = file->f_op;
-> -	file->f_op = fops_get(vfl->fops);
-> -	if(file->f_op->open)
-> +	file->f_op = fops_get(&vfl->priv_fops);
-> +	if(file->f_op->open && kobject_get(&vfl->class_dev.kobj))
->  		err = file->f_op->open(inode,file);
->  	if (err) {
->  		fops_put(file->f_op);
-> @@ -2175,6 +2192,8 @@ int video_register_device_index(struct video_device
-> *vfd, int type, int nr, }
->
->  	vfd->index = ret;
-> +	vfd->priv_fops = *vfd->fops;
-> +	vfd->priv_fops.release = video_close;
->
->  	mutex_unlock(&videodev_lock);
->  	mutex_init(&vfd->lock);
-> @@ -2221,13 +2240,10 @@ EXPORT_SYMBOL(video_register_device_index);
->
->  void video_unregister_device(struct video_device *vfd)
->  {
-> -	mutex_lock(&videodev_lock);
->  	if(video_device[vfd->minor]!=vfd)
->  		panic("videodev: bad unregister");
->
-> -	video_device[vfd->minor]=NULL;
->  	device_unregister(&vfd->class_dev);
-> -	mutex_unlock(&videodev_lock);
-
-Without locking the videodev_lock mutex you introduce a race condition. 
-video_open() can race device_unregister().
-
-CPU #1						CPU #2
------------------------------------------------------------------------------
-disconnect callback
-  video_unregister_device
-    device_unregister -> put_device
-      kobject_put -> kref_put
-        kobject_release -> kobject_cleanup
-          video_release
-						video_open
-						-> reference data structures
-
-            driver release callback
-            -> free data structures
-
->  }
->  EXPORT_SYMBOL(video_unregister_device);
->
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index 3c93414..d4fe617 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -342,6 +342,7 @@ void *priv;
->  	/* for videodev.c intenal usage -- please don't touch */
->  	int users;                     /* video_exclusive_{open|close} ... */
->  	struct mutex lock;             /* ... helper function uses these   */
-> +	struct file_operations priv_fops; /* video_close */
->  };
->
->  /* Class-dev to video-device */
-> --
-> 1.5.5.1
-
-Best regards,
-
-Laurent Pinchart
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
