@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6GDhu9A005625
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 09:43:56 -0400
-Received: from jem.yoyo.org (jem.yoyo.org [193.110.91.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6GDhCLZ010237
-	for <video4linux-list@redhat.com>; Wed, 16 Jul 2008 09:43:12 -0400
-Date: Wed, 16 Jul 2008 14:43:07 +0100
-From: Anthony Edwards <anthony@yoyo.org>
-To: Michael Krufky <mike@krufky.com>
-Message-ID: <20080716134307.GC9609@yoyo.org>
-References: <20080716125556.GA9609@yoyo.org> <487DF0C6.6080209@krufky.com>
-	<20080716132833.GB9609@yoyo.org> <487DF81C.5010908@krufky.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6UJ7Hb9028396
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 15:07:17 -0400
+Received: from smtp-out5.blueyonder.co.uk (smtp-out5.blueyonder.co.uk
+	[195.188.213.8])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6UJ735p026325
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 15:07:04 -0400
+Message-ID: <4890BBE8.8000901@blueyonder.co.uk>
+Date: Wed, 30 Jul 2008 20:07:20 +0100
+From: Ian Davidson <id012c3076@blueyonder.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <487DF81C.5010908@krufky.com>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: smscoreapi.c:689: error: 'uintptr_t' undeclared
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <488C9266.7010108@blueyonder.co.uk>
+	<1217364178.2699.17.camel@pc10.localdom.local>
+In-Reply-To: <1217364178.2699.17.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Video 4 Linux <video4linux-list@redhat.com>
+Subject: Re: xawtv - no picture
+Reply-To: Ian.Davidson@bigfoot.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,103 +30,479 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Jul 16, 2008 at 09:31:08AM -0400, Michael Krufky wrote:
-> Anthony Edwards wrote:
-> > On Wed, Jul 16, 2008 at 08:59:50AM -0400, Michael Krufky wrote:
-> >> Anthony Edwards wrote:
-> >>> This appears to be an issue affecting a number of users, for example:
-> >>>
-> >>> http://forum.linuxmce.org/index.php?action=profile;u=41878;sa=showPosts
-> >>>
-> >>> I have experienced it too today after attempting to recompile drivers
-> >>> for my Hauppauge Nova-T USB TV tuner following an Ubuntu kernel update.
-> >>>
-> >>> After obtaining the latest source code using hg clone, I have found
-> >>> that it will not successfully compile.  I am seeing the same make
-> >>> errors as the poster in the posting referenced above.
-> >>>
-> >>> Unfortunately, I lack the necessary programming knowledge to hack the
-> >>> source code in order to make it work.
-> >>>
-> >>> Is a fix in the pipeline?
-> >>>
-> >> The fix is here -- please feel free to test it:
-> >>
-> >> http://linuxtv.org/hg/~mkrufky/sms1xxx
-> >>
-> >> I sent a pull request to Mauro a few days ago -- I don't know why it has not been merged yet.
-> > 
-> > Unfortunately I lack programming knowledge or experience so am not
-> > entirely certain of my understanding of what is meant by the above,
-> > however I have edited:
-> > 
-> > linux/drivers/media/dvb/siano/smscoreapi.h
-> > 
-> > So that instead of reading, lines 25 - 30:
-> > 
-> > #include <linux/version.h>
-> > #include <linux/device.h>
-> > #include <linux/list.h>
-> > #include <linux/mm.h>
-> > #include <linux/scatterlist.h>
-> > #include <asm/page.h>
-> > 
-> > It now reads, lines 25 - 31:
-> > 
-> > #include <linux/version.h>
-> > #include <linux/device.h>
-> > #include <linux/list.h>
-> > #include <linux/mm.h>
-> > #include <linux/scatterlist.h>
-> > #include <linux/types.h>
-> > #include <asm/page.h>
-> > 
-> > That hasn't had the desired effect though, since compilation attempts
-> > are still failing as follows:
-> > 
-> > /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c: In function 'smscore_detect_mode':
-> > /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:689: error: 'uintptr_t' undeclared (first use in this function)
-> > /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:689: error: (Each undeclared identifier is reported only once
-> > /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:689: error: for each function it appears in.)
-> > /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c: In function 'smscore_set_device_mode':
-> > /home/anthony/Software/v4l-dvb/v4l/smscoreapi.c:820: error: 'uintptr_t' undeclared (first use in this function)
-> > make[3]: *** [/home/anthony/Software/v4l-dvb/v4l/smscoreapi.o] Error 1
-> > make[2]: *** [_module_/home/anthony/Software/v4l-dvb/v4l] Error 2
-> > make[2]: Leaving directory `/usr/src/linux-headers-2.6.22-15-generic'
-> > make[1]: *** [default] Error 2
-> > make[1]: Leaving directory `/home/anthony/Software/v4l-dvb/v4l'
-> > make: *** [all] Error 2
-> > 
-> > Presumably, if I have understood your instructions and followed them
-> > correctly, something more is additionally needed?
-> > 
-> 
-> 
-> Yes.  The fix is in the tree that I pointed to in my previous email.
-> 
-> -Mike
+The card has 4 sockets on the back
+- FM Antenna
+- UHF/VHF antenna
+- S-Video
+- Remote sensor.
 
-Can you provide more detail please?
+This time, I tried plugging the camera into the S-Video (rather than the 
+FM antenna - oops!) but it didn't help - still a black screen.
 
-When I visit the URL that you referenced:
+I ran xawtv with the -v 1 option and got this
 
-http://linuxtv.org/hg/~mkrufky/sms1xxx
+[Ian@localhost ~]$ xawtv -remote -nodga -c /dev/video on card=114 -v 1
+This is xawtv-3.95, running on Linux/i686 (2.6.25.11-97.fc9.i686)
+visual: id=0x21 class=4 (TrueColor), depth=24
+visual: id=0x22 class=5 (DirectColor), depth=24
+visual: id=0x5b class=4 (TrueColor), depth=32
+x11: color depth: 24 bits, 3 bytes - pixmap: 4 bytes
+x11: color masks: red=0x00ff0000 green=0x0000ff00 blue=0x000000ff
+x11: server byte order: little endian
+x11: client byte order: little endian
+main: dga extention...
+main: xinerama extention...
+xinerama 0: 1440x900+0+0
+main: xvideo extention [video]...
+main: xvideo extention [image]...
+main: init main window...
+main: install signal handlers...
+main thread [pid=2619]
+main: open grabber device...
+x11: remote display (overlay disabled)
+vid-open: trying: v4l2-old...
+vid-open: failed: v4l2-old
+vid-open: trying: v4l2...
+v4l2: open
+v4l2: device info:
+  saa7134 0.2.14 / UNKNOWN/GENERIC @ PCI:0000:04:02.0
+vid-open: ok: v4l2
+main: checking wm...
+wmhooks: netwm state above
+wmhooks: netwm state fullscreen
+main: creating windows ...
+main: init frequency tables ...
+freq: reading /usr/share/xawtv/Index.map
+main: read config file ...
+xt: checking for randr extention ...
+xrandr: 1440x900 1400x1050 1280x1024 1280x960 1152x864 1024x768 832x624 
+800x600 640x480 720x400
+xt: checking for vidmode extention ...
+xt: checking for lirc ...
+lirc: not enabled at compile time
+xt: checking for joystick ...
+xt: checking for midi ...
+xt: adding kbd hooks ...
+main: mapping main window ...
+main: initialize hardware ...
+main: parse channels from config file ...
+xt: handle_pending:  start ...
+gd: init
+blit: init
+blit: gl: init
+blit: gl: DRI=Yes
+blit: gl: texture max size: 2048
+blit: resize 384x288
+gd: config 384x288 win=3c00060
+blit: gl: extention GL_EXT_bgra is available
+blit: gl: extention GL_EXT_bgra is available
+v4l2: new capture params (384x288, BGR3, 331776 byte)
+setformat: 24 bit TrueColor (LE: bgr) (384x288): ok
+grabdisplay: using "24 bit TrueColor (LE: bgr)"
+xt: handle_pending:  ... done
+cmd: "setfreqtab" "europe-west"
+freq: newtab 5
+freq: reading /usr/share/xawtv/europe-west.list
+freq: reading /usr/share/xawtv/ccir-i-iii.list
+freq: reading /usr/share/xawtv/ccir-sl-sh.list
+freq: reading /usr/share/xawtv/ccir-h.list
+freq: reading /usr/share/xawtv/uhf.list
+cmd: "capture" "overlay"
+gd: start [7]
+v4l2: new capture params (384x288, BGR3, 331776 byte)
+setformat: 24 bit TrueColor (LE: bgr) (384x288): ok
+ioctl: VIDIOC_REQBUFS(count=2;type=VIDEO_CAPTURE;memory=MMAP): Success
+v4l2: buf 0: video-cap 0x0+331776, used 0
+v4l2: buf 1: video-cap 0x51000+331776, used 0
+main: setting defaults
+xt: enter main event loop...
+v4l2: start ts=1217446410590289000
+blit: gl: extention GL_EXT_bgra is available
+blit: gl: frame=384x288, texture=512x512
+blit: 384x288/[24 bit TrueColor (LE: bgr)] => OpenGL
+expose count=4
+expose count=3
+expose count=2
+expose count=1
+expose count=0
+keypad: timeout
+cmd: "capture" "off"
+gd: stop
+v4l2: buf 0: video-cap 0x0+331776, used 331776
+v4l2: buf 1: video-cap 0x51000+331776, used 331776
+v4l2: new capture params (384x288, BGR4, 442368 byte)
+setformat: 32 bit TrueColor (LE: bgr-) (384x288): ok
+v4l2: new capture params (384x288, BGR4, 442368 byte)
+v4l2: close
+[Ian@localhost ~]$
 
-I see a web page with multiple, different changes listed.
+-
+I have been writing programs for almost 44 years - but I blunder round 
+linux like a newbie.  I appreciate all the help you can give me.  Please 
+let me know what else I can do to get this working.
 
-The only one that appears relevant to the issue that is the subject of
-this thread is:
+Ian
 
-http://linuxtv.org/hg/~mkrufky/sms1xxx/rev/d49b1e522b37
-
-I have, to the best of my knowledge, followed the instructions in
-that link, and they do not appear to have worked.
-
-What do you recommend that I do next?
+hermann pitton wrote:
+> Hi Ian,
+>
+> Am Sonntag, den 27.07.2008, 16:21 +0100 schrieb Ian Davidson:
+>   
+>> I am trying to run xawtv (or actually streamer) to capture video - but 
+>> at the moment, it is not working.
+>>
+>> For details of my system, please see 
+>> http://www.smolts.org/client/show_all/pub_86fd06ee-583b-40d2-b23b-92749309023b
+>>
+>> I have a K-World DVB-T 210SE card which I hope will allow me to capture 
+>> the video (although that is not very evident in the above link)
+>>
+>> Here is a section of the dmesg output
+>> Linux video capture interface: v2.00
+>> saa7130/34: v4l2 driver version 0.2.14 loaded
+>> ACPI: PCI Interrupt 0000:04:02.0[A] -> GSI 18 (level, low) -> IRQ 18
+>> saa7133[0]: found at 0000:04:02.0, rev: 209, irq: 18, latency: 64, mmio: 
+>> 0xfebff800
+>> saa7133[0]: subsystem: 17de:7253, board: UNKNOWN/GENERIC 
+>>     
+>
+> that board seems to be not reported yet.
+>
+>   
+>> [card=0,autodetected]
+>>     
+>
+> That card=0 has only input on videomux 0 enabled.
+> This is on most boards composite over the s-video connector.
+>
+> On KWORLD_DVBT_210 card=114, which is likely close to it or even fully
+> compatible, the composite over s-video connector is not enabled yet.
+>
+> Only composite on vmux = 3 and s-video on vmux = 8. Depending on how
+> composite is connected through the breakout cable, we might need a
+> section with composite2 vmux = 0 in saa7134-cards.c.
+>
+>   
+>> saa7133[0]: board init: gpio is 100
+>> parport_pc 00:07: reported by Plug and Play ACPI
+>> parport0: PC-style at 0x378, irq 7 [PCSPP,TRISTATE]
+>> saa7133[0]: i2c eeprom 00: de 17 53 72 ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> saa7133[0]: registered device video0 [v4l2]
+>> saa7133[0]: registered device vbi0
+>> ppdev: user-space parallel port driver
+>>
+>> When I try to run xawtv, this is what I get
+>> [Ian@localhost ~]$ xawtv
+>> This is xawtv-3.95, running on Linux/i686 (2.6.25.10-86.fc9.i686)
+>> xinerama 0: 1440x900+0+0
+>> WARNING: No DGA support available for this display.
+>>     
+> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>
+>   
+>> WARNING: couldn't find framebuffer base address, try manual
+>>          configuration ("v4l-conf -a <addr>")
+>> ioctl: 
+>> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: 
+>> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+>> ioctl: 
+>> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: 
+>> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+>> ioctl: 
+>> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: 
+>> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+>> ioctl: 
+>> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: 
+>> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+>> ioctl: 
+>> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: 
+>> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+>> ioctl: 
+>> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: 
+>> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+>> ioctl: 
+>> VIDIOC_TRY_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=(nil);fmt.win.clipcount=0;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: 
+>> VIDIOC_S_FMT(type=VIDEO_OVERLAY;fmt.win.w.left=3;fmt.win.w.top=48;fmt.win.w.width=384;fmt.win.w.height=288;fmt.win.field=ANY;fmt.win.chromakey=0;fmt.win.clips=0x9414cb4;fmt.win.clipcount=1;fmt.win.bitmap=(nil)): 
+>> Invalid argument
+>> ioctl: VIDIOC_OVERLAY(int=0): Invalid argument
+>> [Ian@localhost ~]$
+>>
+>> Also, the screen is black, although the camera was turned on.
+>>
+>> I feel that it is trying to tell me something - but I do not understand 
+>> what it is saying.  Is there any hope?
+>>
+>> Ian
+>>
+>>     
+>
+> On most binary video-card drivers you can't set overlay preview mode
+> anymore.
+>
+> You might try to force xawtv -remote -nodga -c /dev/video0 on card=114
+> to have it in mmap/grabdisplay mode.
+>
+> Please test whatever you can that we might add the card to auto
+> detection.
+>
+> Cheers,
+> Hermann
+>
+>
+>
+>  
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>   
 
 -- 
-Anthony Edwards
-anthony@yoyo.org
+Ian Davidson
+239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
+-- 
+Facts used in this message may or may not reflect an underlying objective reality. 
+Facts are supplied for personal use only. 
+Recipients quoting supplied information do so at their own risk. 
+Facts supplied may vary in whole or part from widely accepted standards. 
+While painstakingly researched, facts may or may not be indicative of actually occurring events or natural phenomena. 
+The author accepts no responsibility for personal loss or injury resulting from memorisation and subsequent use.
 
 --
 video4linux-list mailing list
