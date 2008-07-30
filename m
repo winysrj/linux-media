@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
+Received: from smtp2e.orange.fr ([80.12.242.112])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KHSvW-0005jV-Cv
-	for linux-dvb@linuxtv.org; Sat, 12 Jul 2008 02:25:27 +0200
-Message-ID: <4877F9F0.2090306@linuxtv.org>
-Date: Fri, 11 Jul 2008 20:25:20 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <ktangao-neli@orange.fr>) id 1KOBp9-0003lu-K9
+	for linux-dvb@linuxtv.org; Wed, 30 Jul 2008 15:34:40 +0200
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2e11.orange.fr (SMTP Server) with ESMTP id 689B57000094
+	for <linux-dvb@linuxtv.org>; Wed, 30 Jul 2008 15:34:06 +0200 (CEST)
+Received: from [192.168.1.107] (ARennes-252-1-16-238.w83-195.abo.wanadoo.fr
+	[83.195.167.238])
+	by mwinf2e11.orange.fr (SMTP Server) with ESMTP id 46610700008B
+	for <linux-dvb@linuxtv.org>; Wed, 30 Jul 2008 15:34:06 +0200 (CEST)
+Message-ID: <48906DCF.6020300@orange.fr>
+Date: Wed, 30 Jul 2008 15:34:07 +0200
+From: TANGAo Khaled <ktangao-neli@orange.fr>
 MIME-Version: 1.0
-To: Dark Dragon <darkdrgn2k@gmail.com>
-References: <9b75db150807111721l6f80ea88q1b2bb83159dc0407@mail.gmail.com>
-In-Reply-To: <9b75db150807111721l6f80ea88q1b2bb83159dc0407@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Plextor_PX-HDTV500U
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] the function " int ioctl(int fd, int request =
+ FE_READ_SNR, int16_t *snr); "
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,18 +30,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dark Dragon wrote:
-> Ok guys..
-> i have a Plextor_PX-HDTV500U but not support as per
-> http://www.linuxtv.org/wiki/index.php?title=Plextor_PX-HDTV500U&action=edit
-> 
-> 
-> What can i do to help development?
+Hello.
 
+   I am working to design a software and i am using Frontend APIs. But I 
+still have a big problem witch, i do not understand. I want to know the 
+unit (linear or dB) of the value returned by this function:
 
-Can you take it apart and tell us what silicon is inside?
+int ioctl(int fd, int request = FE_READ_SNR, int16_t *snr);
 
--Mike
+ I would like to display an information to the user of my program,about 
+the quality of the signal his antenna picked up. To do this, i think the 
+best way is to display a graphic representing a percentage. But the 
+current value I read, (-258) is unusable like this. So can you please, 
+give me the unit of the value or give me a link to find what i am seeking?
+
+Thank you
+
+-- 
+Khaled TANGAO
+
 
 _______________________________________________
 linux-dvb mailing list
