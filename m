@@ -1,19 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m63KWKoT006606
-	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 16:32:20 -0400
-Received: from smtp100.biz.mail.re2.yahoo.com (smtp100.biz.mail.re2.yahoo.com
-	[206.190.52.46])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m63KW5Mh005890
-	for <video4linux-list@redhat.com>; Thu, 3 Jul 2008 16:32:07 -0400
-Message-ID: <486D3754.1090500@embeddedalley.com>
-Date: Fri, 04 Jul 2008 00:32:20 +0400
-From: Vitaly Wool <vital@embeddedalley.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6ULm2k9026959
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 17:48:02 -0400
+Received: from smtp7-g19.free.fr (smtp7-g19.free.fr [212.27.42.64])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6ULlovL002648
+	for <video4linux-list@redhat.com>; Wed, 30 Jul 2008 17:47:50 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0807270155020.29126@axis700.grange>
+	<878wvnkd8n.fsf@free.fr>
+	<Pine.LNX.4.64.0807271337270.1604@axis700.grange>
+	<87tze997uu.fsf@free.fr>
+	<Pine.LNX.4.64.0807291902200.17188@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Wed, 30 Jul 2008 23:47:48 +0200
+In-Reply-To: <Pine.LNX.4.64.0807291902200.17188@axis700.grange> (Guennadi
+	Liakhovetski's message of "Tue\,
+	29 Jul 2008 19\:16\:24 +0200 \(CEST\)")
+Message-ID: <87iqun2ge3.fsf@free.fr>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Subject: [PATCH/resend] em28xx: add Compro Video Mate support
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,86 +33,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Hi guys,
+>> >> For the camera part, by now, I'm using standard suspend/resume functions of the
+>> >> platform driver (mt9m111.c). It does work, but it's not clean ATM. The chaining
+>> >> between the driver resume function and the availability of the I2C bus are not
+>> >> properly chained. I'm still working on it.
+>> >
+>> > Yes, we have to clarify this too.
+All right, I have my mind clarified, let's discuss now.
 
-resending as the original message seems to have gotten lost somewhere...
+>>  - I cook up a clean suspend/resume (unless you did it first of course :)
+Well, let's expose what we're facing here :
+ - our video chip driver (ex: mt9m111) is an i2c driver
+  => its resume function is called when i2c bus is resumed, so all is fine here
 
-So at some point I got the idea of enabling my good old Compro VideoMate
-For You USB TV box, and below what I've done to make it working, to some
-extent.
+ - our video chip needs an external clock to work
+  => example: mt9m111 needs a clock from pxa camera interface to have its i2c
+  unit enabled
+  => the mt9m111 driver resume function is unusable, as pxa_camera is resumed
+  _after_ mt9m111, and thus mt9m111's i2c unit is not available at that moment
 
-The TV tuner is now recognized fine and TV apps work well with it,
-including channels surfing etc., but I can't get the sound working. It's
-not coming off the TV tuner. As far as I understand, the tuner has the
-old 2820 chip with USB audio class but it's not detected b/c of the data
-read from the I2C flash chip.
+ - a working suspend/resume restores fully the video chip state
+  => restores width/height/bpp
+  => restores autoexposure, brightness, etc ...
+  => all that insures userland is not impacted by suspend/resume
 
- drivers/media/video/em28xx/em28xx-cards.c |   19 +++++++++++++++++++
- drivers/media/video/em28xx/em28xx.h       |    1 +
- 2 files changed, 20 insertions(+)
+So, the only way I see to have suspend/resume working is :
+ - modify soc_camera_ops to add suspend and resume functions
+ - add suspend and resume functions in each chip driver (mt9m001, mt9m111, ...)
+ - modify soc_camera.c (or pxa_camera.c ?) to call icd->ops->suspend() and
+ icd->ops->resume()
+ - modify pxa_camera.c (the patch I sent before)
 
-Index: linux-next/drivers/media/video/em28xx/em28xx-cards.c
-===================================================================
-- --- linux-next.orig/drivers/media/video/em28xx/em28xx-cards.c
-+++ linux-next/drivers/media/video/em28xx/em28xx-cards.c
-@@ -439,6 +439,23 @@ struct em28xx_board em28xx_boards[] = {
- 			.amux     = 0,
- 		} },
- 	},
-+	[EM2820_BOARD_COMPRO_VIDEO_MATE] = {
-+		.name         = "Compro VideoMate ForYou/Stereo",
-+		.vchannels    = 2,
-+		.tuner_type   = TUNER_LG_PAL_NEW_TAPC,
-+		.tda9887_conf = TDA9887_PRESENT,
-+		.decoder      = EM28XX_TVP5150,
-+		.input          = { {
-+			.type     = EM28XX_VMUX_TELEVISION,
-+			.vmux     = TVP5150_COMPOSITE0,
-+			.amux     = EM28XX_AMUX_LINE_IN,
-+		}, {
-+			.type     = EM28XX_VMUX_SVIDEO,
-+			.vmux     = TVP5150_SVIDEO,
-+			.amux     = EM28XX_AMUX_LINE_IN,
-+		} },
-+	},
-+
- };
- const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
+Would you find that acceptable, or is there a better way ?
 
-@@ -492,6 +509,8 @@ struct usb_device_id em28xx_id_table []
- 			.driver_info = EM2880_BOARD_TERRATEC_HYBRID_XS },
- 	{ USB_DEVICE(0x0ccd, 0x0047),
- 			.driver_info = EM2880_BOARD_TERRATEC_PRODIGY_XS },
-+	{ USB_DEVICE(0x185b, 0x2041),
-+			.driver_info = EM2820_BOARD_COMPRO_VIDEO_MATE },
- 	{ },
- };
- MODULE_DEVICE_TABLE(usb, em28xx_id_table);
-Index: linux-next/drivers/media/video/em28xx/em28xx.h
-===================================================================
-- --- linux-next.orig/drivers/media/video/em28xx/em28xx.h
-+++ linux-next/drivers/media/video/em28xx/em28xx.h
-@@ -58,6 +58,7 @@
- #define EM2880_BOARD_PINNACLE_PCTV_HD_PRO	17
- #define EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900_R2	18
- #define EM2860_BOARD_POINTNIX_INTRAORAL_CAMERA  19
-+#define EM2820_BOARD_COMPRO_VIDEO_MATE		20
-
- /* Limits minimum and default number of buffers */
- #define EM28XX_MIN_BUF 4
-
-Vitaly
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-Comment: Using GnuPG with SUSE - http://enigmail.mozdev.org
-
-iEYEARECAAYFAkhtN1QACgkQhA9O4GSDNst68QCfRZVmQSSUe5bHLTIG8QwUhWrs
-DKkAniWdpAHnKt8WTYZUmlEPkay5Bp0C
-=kV5h
------END PGP SIGNATURE-----
+--
+Robert
 
 --
 video4linux-list mailing list
