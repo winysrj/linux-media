@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-04.arcor-online.net ([151.189.21.44])
+Received: from wa-out-1112.google.com ([209.85.146.179])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1KKlj7-0000tj-UJ
-	for linux-dvb@linuxtv.org; Mon, 21 Jul 2008 05:06:18 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: manu <eallaud@yahoo.fr>
-In-Reply-To: <1216382683l.8087l.2l@manu-laptop>
-References: <200807170023.57637.ajurik@quick.cz>
-	<3efb10970807170320w39377ae9p9db0081dda9c3f5f@mail.gmail.com>
-	<487F3365.4070306@chaosmedia.org>
-	<3efb10970807171311t46d075cdudef4b34cc069c265@mail.gmail.com>
-	<20080718112256.6da5bdf9@bk.ru>  <1216382683l.8087l.2l@manu-laptop>
-Date: Mon, 21 Jul 2008 05:00:33 +0200
-Message-Id: <1216609233.2909.27.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Re : szap - p - r options (was - T S2-3200 driver)
+	(envelope-from <miloody@gmail.com>) id 1KOZ0z-0000MU-7l
+	for linux-dvb@linuxtv.org; Thu, 31 Jul 2008 16:20:26 +0200
+Received: by wa-out-1112.google.com with SMTP id n7so313415wag.13
+	for <linux-dvb@linuxtv.org>; Thu, 31 Jul 2008 07:20:20 -0700 (PDT)
+Message-ID: <3a665c760807310720w8397a0ey8ff748df3a23df5@mail.gmail.com>
+Date: Thu, 31 Jul 2008 22:20:20 +0800
+From: loody <miloody@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb]  Question about SAA7131e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,42 +19,23 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CkFtIEZyZWl0YWcsIGRlbiAxOC4wNy4yMDA4LCAwODowNCAtMDQwMCBzY2hyaWViIG1hbnU6Cj4g
-TGUgMTguMDcuMjAwOCAwMzoyMjo1NiwgR29nYTc3NyBhIMOpY3JpdCA6Cj4gPiA+ID4gd2l0aCBz
-emFwMiB5b3UgYWxzbyBjYW4gdHVuZSB0byBGVEEgY2hhbm5lbHMgdXNpbmcgdGhlIG9wdGlvbiAi
-LQo+ID4gcCIKPiA+IGFuZCByZWFkCj4gPiA+ID4gdGhlIHN0cmVhbSBmcm9tIHlvdXIgZnJvbnRl
-bmQgZHZyICgvZGV2L2R2Yi9hZGFwdGVyMC9kdnIwKSB3aXRoCj4gPiBtcGxheWVyIGZvcgo+ID4g
-PiA+IGV4YW1wbGUuLgo+ID4gCj4gPiAKPiA+IGJ0dywgY291bGQgc29tZW9uZSBleHBsYWluIG1l
-IHdoYXQncyBkaWZmZXJlbmNlIGJldHdlZW4gc3phcCAtIHIgYW5kCj4gPiBzemFwIC0gcCBvcHRp
-b25zID8KPiA+IAo+ID4gd2hlbiBzaG91bGQgSSB1c2UgLXIgb3B0aW9ucy4gd2hlbiAtIHAgb3Ig
-Ym90aCAtciAtcCA/Pz8KPiA+IAo+ID4gICAtciAgICAgICAgOiBzZXQgdXAgL2Rldi9kdmIvYWRh
-cHRlclgvZHZyMCBmb3IgVFMgcmVjb3JkaW5nCj4gPiAgIC1wICAgICAgICA6IGFkZCBwYXQgYW5k
-IHBtdCB0byBUUyByZWNvcmRpbmcgKGltcGxpZXMgLXIpCj4gCj4gSSB3b3VsZCBndWVzcyB0aGF0
-IC1yIHdpbGwganVzdCBlbmFibGUgdGhlIGR2cjAgb3V0cHV0IHNvIHRoYXQgeW91IGNhbiAKPiBy
-ZWNvcmQgaXQgYnkgZHVtcGluZyBpdCB0byBhIGZpbGUsIHdoZXJlYXMgLXAgd2lsbCBkbyB0aGUg
-c2FtZSBwbHVzIHBhdCAKPiBhbmQgcG10IHdoaWNoIG1lYW5zIHRoYXQgdGhlIHN0cmVhbSB3aWxs
-IGNvbnRhaW4gdGhlIG5lY2Vzc2FyeSB0YWJsZXMgCj4gdG8gc2VsZWN0IG9uZSBvZiB0aGUgY2hh
-bm5lbHMgKHRoaXMgcGlzIHByb2JhYmx5IG5lZWRlZCBieSB0aGUgYXBwIHRoYXQgCj4gd2lsbCBy
-ZWNvcmQvcGxheSB0aGUgc3RyZWFtKS4KPiBJT24gYnJpZWYgdHJ5IGJvdGggYW5kIHNlZSB3aGlo
-YyBvbmUgd29ya3MgOy0pCj4gSFRICj4gQnllCj4gTWFudQo+IAo+IAoKSGksCgpsYXN0IHRpbWUg
-SSB0cmllZCAtcCBkaWQgbm90IHdvcmsgYXQgYWxsLgoKWW91IGFyZSBtdWNoIGJldHRlciBvZmYs
-IGVzcGVjaWFsbHkgZm9yIG5vbmUgUzIgSERUViwgc2VyaW91cwpicm9hZGNhc3RlcnMgc3RpbGwg
-d2F0Y2ggdGhlIHNjZW5lIGZyb20gdGhlcmUsICB3aXRoIHdoYXQgTmljbwpyZWNvbW1lbmRzIGZv
-ciBtcGxheWVyIGguMjY0L0FWQy4KCkJ1dCwgdG8gYmUgaG9uZXN0LCBkb2N1bWVudGF0aW9uIGlz
-IGxvdXN5IHNvIGZhciA7KQoKVGhpcyBpcyBub3QgYXQgYWxsIGNhdXNlZCBieSBtcGxheWVyLCBi
-dXQgd2UgaGF2ZSBhIG5pY2UgbWl4dHVyZSBoZXJlCmFueXdheSA7KQoKRm9yIHRoZSBzYWE3MTN4
-IGRyaXZlciBJJ20gcXVpdGUgc3VyZSBub3csIGl0IGlzIG5vdCBhIGRyaXZlciBpc3N1ZSBpZgpC
-QkMgSEQgaGFzIHRyb3VibGVzLiBJIGRvIHNheSB3ZSBhcmUgb3V0IG9mIGl0LiBEb3VidHMgYXJl
-IHdlbGNvbWUuCgpXYXN0ZWQgc29tZSBtb25leSwgYnV0IG0kIGFuZCBsaW51eCBEVkItUyBzY2Fu
-cyBhcmUgYWxtb3N0IGlkZW50aWNhbGx5LgoKVGhlIGFsbCBzbyBtdWNoIGFzc3VtZWQgYmV0dGVy
-IHRkYTgyNnggc3R1ZmYgb24gbSQgaXMgbm90IHRoZXJlIGF0IGFsbC4KCk1lc3NpbmcgYXJvdW5k
-IGFib3V0IGl0IGlzIHZlcnkgd2VsY29tZSA7KQoKQ2hlZXJzLApIZXJtYW5uCgoKCgoKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWls
-aW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dp
-LWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Dear all:
+I got a DTV card without knowing manufacturer's name but with the
+chip's name as saa7131e.
+I have check http://www.linuxtv.org/wiki/index.php/DVB-T_PCI_Cards and
+there is a MSI TV card which also use saa7131e.
+Does that mean all cards with saa7131e will be supported or there is
+something except chip name that I have to take care?
+thanks for your help,
+miloody
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
