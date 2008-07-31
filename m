@@ -1,20 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6EC232W003902
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:02:03 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.224])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6EC1XwS001053
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 08:01:52 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so5595959rvb.51
-	for <video4linux-list@redhat.com>; Mon, 14 Jul 2008 05:01:52 -0700 (PDT)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: video4linux-list@redhat.com
-Date: Mon, 14 Jul 2008 21:02:04 +0900
-Message-Id: <20080714120204.4806.87287.sendpatchset@rx1.opensource.se>
-Cc: paulius.zaleckas@teltonika.lt, linux-sh@vger.kernel.org,
-	mchehab@infradead.org, lethal@linux-sh.org,
-	akpm@linux-foundation.org, g.liakhovetski@gmx.de
-Subject: [PATCH 00/06] soc_camera: SuperH Mobile CEU patches V3
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6VLqnGg032026
+	for <video4linux-list@redhat.com>; Thu, 31 Jul 2008 17:52:49 -0400
+Received: from smtp1-g19.free.fr (smtp1-g19.free.fr [212.27.42.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m6VLpDrh001039
+	for <video4linux-list@redhat.com>; Thu, 31 Jul 2008 17:51:14 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0807270155020.29126@axis700.grange>
+	<878wvnkd8n.fsf@free.fr>
+	<Pine.LNX.4.64.0807271337270.1604@axis700.grange>
+	<87tze997uu.fsf@free.fr>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Thu, 31 Jul 2008 23:51:12 +0200
+In-Reply-To: <87tze997uu.fsf@free.fr> (Robert Jarzmik's message of "Mon\,
+	28 Jul 2008 20\:33\:29 +0200")
+Message-ID: <87y73h204v.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,52 +31,114 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is V3 of the SuperH Mobile CEU interface patches.
+> So, to sum up :
+>  - I finish the mt9m111 driver
+>  - I submit it
+>  - I cook up a clean suspend/resume (unless you did it first of course :)
 
-[PATCH 01/06] soc_camera: Move spinlocks
-[PATCH 02/06] soc_camera: Add 16-bit bus width support
-[PATCH 03/06] videobuf: Fix gather spelling
-[PATCH 04/06] videobuf: Add physically contiguous queue code V3
-[PATCH 05/06] sh_mobile_ceu_camera: Add SuperH Mobile CEU driver V3
-[PATCH 06/06] soc_camera_platform: Add SoC Camera Platform driver
+All right, I finished the pxa_camera part. The suspend/resume does work with a
+opened video stream. The capture begins before the suspend and finished after
+the resume.
 
-Changes since V2:
- - use dma_handle for physical address for videobuf-dma-contig
- - spell gather correctly
- - remove SUPERH Kconfig dependency
- - move sh_mobile_ceu.h to include/media
- - add board callback support with enable_camera()/disable_camera()
- - add support for declare_coherent_memory
- - rework video memory limit
- - more verbose error messages
- - add soc_camera_platform driver for simple camera devices
+I post the patch here attached for information. I'll submit later with the
+complete suspend/resume serie. This is just for preliminary comments. Of course,
+this patch superseeds the origin patch posted in this thread, which didn't work
+for an opened video stream.
 
-Changes since V1:
- - dropped former V1 patches [01/07]->[04/07]
- - rebased on top of [PATCH] soc_camera: make videobuf independent
- - rewrote spinlock changes into the new [01/04] patch
- - updated the videobuf-dma-contig code with feeback from Paulius Zaleckas
- - fixed the CEU driver to work with the newly updated patches
+--
+Robert
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
+>From fb38f10c233a5b4e13f5ad42cf1c381ecc4215e9 Mon Sep 17 00:00:00 2001
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sun, 27 Jul 2008 00:52:22 +0200
+Subject: [PATCH] Fix suspend/resume of pxa_camera driver
+
+PXA suspend switches off DMA core, which looses all context
+of previously assigned descriptors. As pxa_camera driver
+relies on DMA transfers, setup the lost descriptors on
+resume and retrigger frame acquisition if needed.
+
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 ---
+ drivers/media/video/pxa_camera.c |   49 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 49 insertions(+), 0 deletions(-)
 
- drivers/media/video/Kconfig                |   19 
- drivers/media/video/Makefile               |    3 
- drivers/media/video/pxa_camera.c           |   17 
- drivers/media/video/sh_mobile_ceu_camera.c |  657 ++++++++++++++++++++++++++++
- drivers/media/video/soc_camera.c           |   39 -
- drivers/media/video/soc_camera_platform.c  |  198 ++++++++
- drivers/media/video/videobuf-dma-contig.c  |  417 +++++++++++++++++
- drivers/media/video/videobuf-dma-sg.c      |    2 
- drivers/media/video/videobuf-vmalloc.c     |    2 
- include/media/sh_mobile_ceu.h              |   12 
- include/media/soc_camera.h                 |   12 
- include/media/soc_camera_platform.h        |   15 
- include/media/videobuf-dma-contig.h        |   32 +
- include/media/videobuf-dma-sg.h            |    2 
- include/media/videobuf-vmalloc.h           |    2 
- 15 files changed, 1368 insertions(+), 61 deletions(-)
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index efb2d19..f00844c 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -128,6 +128,8 @@ struct pxa_camera_dev {
+ 
+ 	struct pxa_buffer	*active;
+ 	struct pxa_dma_desc	*sg_tail[3];
++
++	u32			save_CICR[5];
+ };
+ 
+ static const char *pxa_cam_driver_description = "PXA_Camera";
+@@ -1017,6 +1019,51 @@ static struct soc_camera_host pxa_soc_camera_host = {
+ 	.ops			= &pxa_soc_camera_host_ops,
+ };
+ 
++static int pxa_camera_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	struct pxa_camera_dev *pcdev = platform_get_drvdata(pdev);
++	int i = 0;
++
++	pcdev->save_CICR[i++] = CICR0;
++	pcdev->save_CICR[i++] = CICR1;
++	pcdev->save_CICR[i++] = CICR2;
++	pcdev->save_CICR[i++] = CICR3;
++	pcdev->save_CICR[i++] = CICR4;
++
++	return 0;
++}
++
++static int pxa_camera_resume(struct platform_device *pdev)
++{
++	struct pxa_camera_dev *pcdev = platform_get_drvdata(pdev);
++	int i = 0;
++
++	DRCMR68 = pcdev->dma_chans[0] | DRCMR_MAPVLD;
++	DRCMR69 = pcdev->dma_chans[1] | DRCMR_MAPVLD;
++	DRCMR70 = pcdev->dma_chans[2] | DRCMR_MAPVLD;
++
++	CICR0 = pcdev->save_CICR[i++] & ~CICR0_ENB;
++	CICR1 = pcdev->save_CICR[i++];
++	CICR2 = pcdev->save_CICR[i++];
++	CICR3 = pcdev->save_CICR[i++];
++	CICR4 = pcdev->save_CICR[i++];
++
++	if ((pcdev->icd) && (pcdev->icd->ops->resume))
++		pcdev->icd->ops->resume(pcdev->icd);
++
++	/* Restart frame capture if active buffer exists */
++	if (pcdev->active) {
++		/* Reset the FIFOs */
++		CIFR |= CIFR_RESET_F;
++		/* Enable End-Of-Frame Interrupt */
++		CICR0 &= ~CICR0_EOFM;
++		/* Restart the Capture Interface */
++		CICR0 |= CICR0_ENB;
++	}
++
++	return 0;
++}
++
+ static int pxa_camera_probe(struct platform_device *pdev)
+ {
+ 	struct pxa_camera_dev *pcdev;
+@@ -1188,6 +1235,8 @@ static struct platform_driver pxa_camera_driver = {
+ 	},
+ 	.probe		= pxa_camera_probe,
+ 	.remove		= __exit_p(pxa_camera_remove),
++	.suspend	= pxa_camera_suspend,
++	.resume		= pxa_camera_resume,
+ };
+ 
+ 
+-- 
+1.5.5.3
 
 --
 video4linux-list mailing list
