@@ -1,21 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m64CCl6b004252
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 08:12:47 -0400
-Received: from frosty.hhs.nl (frosty.hhs.nl [145.52.2.15])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m64CCT01012627
-	for <video4linux-list@redhat.com>; Fri, 4 Jul 2008 08:12:30 -0400
-Received: from exim (helo=frosty) by frosty.hhs.nl with local-smtp (Exim 4.62)
-	(envelope-from <j.w.r.degoede@hhs.nl>) id 1KEk9N-0008Ex-1w
-	for video4linux-list@redhat.com; Fri, 04 Jul 2008 14:12:29 +0200
-Message-ID: <486E1388.2060602@hhs.nl>
-Date: Fri, 04 Jul 2008 14:11:52 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m6VLnsYw029977
+	for <video4linux-list@redhat.com>; Thu, 31 Jul 2008 17:49:54 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m6VLngrZ032436
+	for <video4linux-list@redhat.com>; Thu, 31 Jul 2008 17:49:42 -0400
+Date: Thu, 31 Jul 2008 23:49:37 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87tze53jz8.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0807312328100.4832@axis700.grange>
+References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0807270155020.29126@axis700.grange>
+	<878wvnkd8n.fsf@free.fr>
+	<Pine.LNX.4.64.0807271337270.1604@axis700.grange>
+	<87tze997uu.fsf@free.fr>
+	<Pine.LNX.4.64.0807291902200.17188@axis700.grange>
+	<87iqun2ge3.fsf@free.fr>
+	<Pine.LNX.4.64.0807310008190.26534@axis700.grange>
+	<87tze53jz8.fsf@free.fr>
 MIME-Version: 1.0
-To: Thierry Merle <thierry.merle@free.fr>
-Content-Type: multipart/mixed; boundary="------------030403000102060805080401"
-Cc: video4linux-list@redhat.com, v4l2 library <v4l2-library@linuxtv.org>
-Subject: PATCH: libv4l-makefile-improvements.patch
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,204 +34,84 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------030403000102060805080401
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thu, 31 Jul 2008, Robert Jarzmik wrote:
 
-Hi,
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> > Ok, you're suggesting to add suspend() and resume() to 
+> > soc_camera_bus_type, right? But are we sure that its resume will be called 
+> > after both camera (so far i2c) and host (so far platform, can also be PCI 
+> > or USB...) busses are resumed? If not, we might have to do something 
+> > similar to scan_add_host() / scan_add_device() - accept signals from the 
+> > host and the camera and when both are ready actually resume them...
+> 
+> As far as my comprehension goes for resume order :
+>  - mt9m111 is an i2c client, and so it will always be resumed after i2c bus
+>  driver
+>  - mt9m111 registers itself to the soc_camera bus, so soc_camera_bus will be
+>  resumed after mt9m111
+>  - pxa27-camera registers to soc_camera_host, so soc_camera_host will be resumed
+>  after pxa27-camera
+>  - I didn't check the link between soc_camera_host and soc_camera_bus, but if
+>  there is one, soc_camera bus is resumed last.
 
-Makefile improvements:
-* Split DESTDIR into DESTDIR and PREFIX as used in most makefiles out there
-* Add LIBDIR variable to allow installation in <prefix>/lib64 for example
-* Install the wrappers in <libdir>/libv4l instead of directly under libdir,
-   as they are not libraries meant for linking
-* preserve timestamps of header files when installing them
+I thought devices get woken up after busses they are on and after their 
+parents, am I wrong? If I am right, the last one to be woken up were the 
+camera device.
 
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+> So, if I have it sorted out correctly, soc_camera_bus should hold the suspend()
+> and resume() functions, which will call icd->ops->suspend() and
+> icd->ops->resume().
+> 
+> I'm still investigating these points (under test ATM). It does work, but I still
+> haven't got the formal proof of the ordering ...
+> 
+> Would you by any chance have a little ascii art of all
+> camera/camera_host/camera_bus ... device graph ? A thing that could easily be
+> pushed into Documentation/video4linux/... ?
 
-Regards,
+I started documenting the API, honestly:-) But ATM I have no time for that 
+again... As for the device hierarchy, the device embedded into the camera 
+device object (struct soc_camera_device) is registered on the soc-camera 
+bus (soc_camera_bus_type), and has the device from the camera host object 
+as parent. In case of the pxa-camera driver that device object in turn has 
+the platform device as a parent. From my system:
 
-Hans
+# This is the camera device
+~ ls -l /sys/bus/soc-camera/devices/
+lrwxrwxrwx    1 root     root            0 Jan  1 00:01 0-0 -> ../../../devices/platform/pxa27x-camera.0/camera_host0/0-0
 
+# It is linked with the "control" link with the respective i2c device and 
+# provides the video0 device
+~ ls -l /sys/bus/soc-camera/devices/0-0/
+lrwxrwxrwx    1 root     root            0 Jan  1 00:01 bus -> ../../../../../bus/soc-camera
+lrwxrwxrwx    1 root     root            0 Jan  1 00:01 control -> ../../../../../class/i2c-adapter/i2c-0/0-0048
+lrwxrwxrwx    1 root     root            0 Jan  1 00:01 driver -> ../../../../../bus/soc-camera/drivers/camera
+lrwxrwxrwx    1 root     root            0 Jan  1 00:01 subsystem -> ../../../../../bus/soc-camera
+-rw-r--r--    1 root     root         4096 Jan  1 00:01 uevent
+lrwxrwxrwx    1 root     root            0 Jan  1 00:01 video4linux:video0 -> ../../../../../class/video4linux/video0
 
+# As a parent it has the camera host device
+~ ls -l /sys/bus/platform/devices/pxa27x-camera.0/
+lrwxrwxrwx    1 root     root            0 Jan  1 00:01 bus -> ../../../bus/platform
+drwxr-xr-x    3 root     root            0 Jan  1 00:01 camera_host0
+lrwxrwxrwx    1 root     root            0 Jan  1 00:01 driver -> ../../../bus/platform/drivers/pxa27x-camera
+-r--r--r--    1 root     root         4096 Jan  1 00:01 modalias
+lrwxrwxrwx    1 root     root            0 Jan  1 00:01 subsystem -> ../../../bus/platform
+-rw-r--r--    1 root     root         4096 Jan  1 00:00 uevent
 
---------------030403000102060805080401
-Content-Type: text/plain;
- name="libv4l-makefile-improvements.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="libv4l-makefile-improvements.patch"
+# And here's again the child of the camera host device
+~ ls -l /sys/bus/platform/devices/pxa27x-camera.0/camera_host0/
+drwxr-xr-x    2 root     root            0 Jan  1 00:01 0-0
+-rw-r--r--    1 root     root         4096 Jan  1 00:01 uevent
 
-Makefile improvements:
-* Split DESTDIR into DESTDIR and PREFIX as used in most makefiles out there
-* Add LIBDIR variable to allow installation in <prefix>/lib64 for example
-* Install the wrappers in <libdir>/libv4l instead of directly under libdir,
-  as they are not libraries meant for linking
-* preserve timestamps of header files when installing them
-
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-
-diff -r d4e241f9a06c v4l2-apps/lib/libv4l/README
---- a/v4l2-apps/lib/libv4l/README	Fri Jul 04 13:21:38 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/README	Fri Jul 04 13:52:07 2008 +0200
-@@ -59,11 +59,12 @@
- counterparts.
- 
- The preloadable libv4l1 wrapper which adds v4l2 device compatibility to v4l1
--applications is called v4l1compat.so. The preloadable libv4l1 wrapper which
--adds v4l2 device compatibility to v4l1 applications is called v4l2convert.so
-+applications is called v4l1compat.so. The preloadable libv4l2 wrapper which
-+adds support for various pixelformats to v4l2 applications is called
-+v4l2convert.so.
- 
- Example usage (after install in default location):
--$ export LD_PRELOAD=/usr/local/lib/v4l1compat.so
-+$ export LD_PRELOAD=/usr/local/lib/libv4l/v4l1compat.so
- $ camorama
- 
- 
-@@ -71,9 +72,12 @@
- -------------------------
- 
- Simple type the following commands from the libv4l-x.y.z directory
--(adjusting DESTDIR as desired):
-+(adjusting PREFIX as desired):
- make
--make install DESTDIR=/usr/local
-+make install PREFIX=/usr/local
-+
-+Note: make install also supports the DESTDIR=... paramter for installation
-+into chroots.
- 
- 
- FAQ
-diff -r d4e241f9a06c v4l2-apps/lib/libv4l/libv4l1/Makefile
---- a/v4l2-apps/lib/libv4l/libv4l1/Makefile	Fri Jul 04 13:21:38 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/libv4l1/Makefile	Fri Jul 04 13:52:07 2008 +0200
-@@ -19,8 +19,12 @@
- LIB_RELEASE = 0
- endif
- 
--ifeq ($(DESTDIR),)
--DESTDIR = /usr/local
-+ifeq ($(PREFIX),)
-+PREFIX = /usr/local
-+endif
-+
-+ifeq ($(LIBDIR),)
-+LIBDIR = $(PREFIX)/lib
- endif
- 
- all: $(TARGETS)
-@@ -31,15 +35,14 @@
- $(V4L1COMPAT): $(V4L1COMPAT_O) $(V4L1_LIB)
- 
- install: all
--	mkdir -p $(DESTDIR)/include
--	cp $(INCLUDES) $(DESTDIR)/include
--	mkdir -p $(DESTDIR)/lib
--	cp $(V4L1_LIB).$(LIB_RELEASE) $(DESTDIR)/lib
--	cd $(DESTDIR)/lib && \
-+	mkdir -p $(DESTDIR)$(PREFIX)/include
-+	install -p -m 644 $(INCLUDES) $(DESTDIR)$(PREFIX)/include
-+	mkdir -p $(DESTDIR)$(LIBDIR)/libv4l
-+	install -m 755 $(V4L1_LIB).$(LIB_RELEASE) $(DESTDIR)$(LIBDIR)
-+	cd $(DESTDIR)$(LIBDIR) && \
- 	  ln -f -s $(V4L1_LIB).$(LIB_RELEASE) $(V4L1_LIB)
--	cp $(V4L1COMPAT).$(LIB_RELEASE) $(DESTDIR)/lib
--	cd $(DESTDIR)/lib && \
--	  ln -f -s $(V4L1COMPAT).$(LIB_RELEASE) $(V4L1COMPAT)
-+	install -m 755 $(V4L1COMPAT).$(LIB_RELEASE) \
-+	  $(DESTDIR)$(LIBDIR)/libv4l/$(V4L1COMPAT)
- 
- clean::
- 	rm -f *.so* *.o log *~
-diff -r d4e241f9a06c v4l2-apps/lib/libv4l/libv4l2/Makefile
---- a/v4l2-apps/lib/libv4l/libv4l2/Makefile	Fri Jul 04 13:21:38 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/libv4l2/Makefile	Fri Jul 04 13:52:07 2008 +0200
-@@ -19,8 +19,12 @@
- LIB_RELEASE = 0
- endif
- 
--ifeq ($(DESTDIR),)
--DESTDIR = /usr/local
-+ifeq ($(PREFIX),)
-+PREFIX = /usr/local
-+endif
-+
-+ifeq ($(LIBDIR),)
-+LIBDIR = $(PREFIX)/lib
- endif
- 
- all: $(TARGETS)
-@@ -30,15 +34,14 @@
- $(V4L2CONVERT): $(V4L2CONVERT_O) $(V4L2_LIB)
- 
- install: all
--	mkdir -p $(DESTDIR)/include
--	cp $(INCLUDES) $(DESTDIR)/include
--	mkdir -p $(DESTDIR)/lib
--	cp $(V4L2_LIB).$(LIB_RELEASE) $(DESTDIR)/lib
--	cd $(DESTDIR)/lib && \
-+	mkdir -p $(DESTDIR)$(PREFIX)/include
-+	install -p -m 644 $(INCLUDES) $(DESTDIR)$(PREFIX)/include
-+	mkdir -p $(DESTDIR)$(LIBDIR)/libv4l
-+	install -m 755 $(V4L2_LIB).$(LIB_RELEASE) $(DESTDIR)$(LIBDIR)
-+	cd $(DESTDIR)$(LIBDIR) && \
- 	  ln -f -s $(V4L2_LIB).$(LIB_RELEASE) $(V4L2_LIB)
--	cp $(V4L2CONVERT).$(LIB_RELEASE) $(DESTDIR)/lib
--	cd $(DESTDIR)/lib && \
--	  ln -f -s $(V4L2CONVERT).$(LIB_RELEASE) $(V4L2CONVERT)
-+	install -m 755 $(V4L2CONVERT).$(LIB_RELEASE) \
-+	  $(DESTDIR)$(LIBDIR)/libv4l/$(V4L2CONVERT)
- 
- clean::
- 	rm -f *.so* *.o log *~
-diff -r d4e241f9a06c v4l2-apps/lib/libv4l/libv4lconvert/Makefile
---- a/v4l2-apps/lib/libv4l/libv4lconvert/Makefile	Fri Jul 04 13:21:38 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/libv4lconvert/Makefile	Fri Jul 04 13:52:07 2008 +0200
-@@ -18,8 +18,12 @@
- LIB_RELEASE = 0
- endif
- 
--ifeq ($(DESTDIR),)
--DESTDIR = /usr/local
-+ifeq ($(PREFIX),)
-+PREFIX = /usr/local
-+endif
-+
-+ifeq ($(LIBDIR),)
-+LIBDIR = $(PREFIX)/lib
- endif
- 
- all: $(TARGETS)
-@@ -27,11 +31,11 @@
- $(CONVERT_LIB): $(CONVERT_OBJS)
- 
- install: all
--	mkdir -p $(DESTDIR)/include
--	cp $(INCLUDES) $(DESTDIR)/include
--	mkdir -p $(DESTDIR)/lib
--	cp $(CONVERT_LIB).$(LIB_RELEASE) $(DESTDIR)/lib
--	cd $(DESTDIR)/lib && \
-+	mkdir -p $(DESTDIR)$(PREFIX)/include
-+	install -p -m 644 $(INCLUDES) $(DESTDIR)$(PREFIX)/include
-+	mkdir -p $(DESTDIR)$(LIBDIR)
-+	install -m 755 $(CONVERT_LIB).$(LIB_RELEASE) $(DESTDIR)$(LIBDIR)
-+	cd $(DESTDIR)$(LIBDIR) && \
- 	  ln -f -s $(CONVERT_LIB).$(LIB_RELEASE) $(CONVERT_LIB)
- 
- clean::
-
---------------030403000102060805080401
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+HTH
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------030403000102060805080401--
