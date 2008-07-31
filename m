@@ -1,24 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+158cd650765be5afa30f+1779+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1KFxrA-0001cW-Np
-	for linux-dvb@linuxtv.org; Mon, 07 Jul 2008 23:02:44 +0200
-Date: Mon, 7 Jul 2008 18:02:22 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Oliver Endriss <o.endriss@gmx.de>
-Message-ID: <20080707180222.4b4a53a9@gaivota>
-In-Reply-To: <200807060315.51736@orion.escape-edv.de>
-References: <1214139259.2994.8.camel@jaswinder.satnam>
-	<200807060315.51736@orion.escape-edv.de>
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <goga777@bk.ru>) id 1KOcBG-00010E-I7
+	for linux-dvb@linuxtv.org; Thu, 31 Jul 2008 19:43:15 +0200
+Date: Thu, 31 Jul 2008 21:50:32 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080731215032.687f32a3@bk.ru>
+In-Reply-To: <11920.130.36.62.139.1217489885.squirrel@webmail.xs4all.nl>
+References: <11920.130.36.62.139.1217489885.squirrel@webmail.xs4all.nl>
 Mime-Version: 1.0
-Cc: kernelnewbies <kernelnewbies@nl.linux.org>,
-	David Woodhouse <dwmw2@infradead.org>,
-	kernel-janitors <kernel-janitors@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Jaswinder Singh <jaswinder@infradead.org>, linux-dvb@linuxtv.org,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [linux-dvb] [PATCH] Remove fdump tool for av7110 firmware
+Subject: Re: [linux-dvb] latest hvr-4000 driver patches
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,37 +24,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Oliver,
+> Has something changed to the remote functionality in the Igor repo? The
+> pull I did from last friday, did work with the vdr-remote plugin and my
+> remote.
+> 
+> > http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
+> > It works well. I recommend it for your case
+> > Of course it's not multifrontend drivers
+> >
+> 
+> I can agree, the Igor repo works very good! No more pulls from different
+> sources and add patches which breaks with newer multiproto revisions :)
+> 
 
-> @Mauro:
-> Is there a way to strip this stuff from Kconfig/Makefile/av7110*.[ch]
-> for submission to the kernel? Basically I don't care whether and how
-> they cripple the driver in the kernel. But I would like to keep the code
-> 'as is' in the linuxtv repositories.
+exactly !
+there you can fin patched for dvb-s2 really working szap2
+http://liplianindvb.sourceforge.net/hg/
 
-Having a binary firmware inside a GPL'd file seems to be (at least for some
-people) a GPL violation, since the firmware source code should also be released
-with GPL (please read [1] for a good article about this).
+Goga
 
-This seems to be one of the reasons for moving all firmwares that are still in
-kernel into a separate dir. A latter step seems to move those files to a cousin
-tree, hosted together with kernel tree, and clearly stating that those
-firmwares are not GPL, but are allowed to be used with Linux. 
-
-IANAL, but, if the firmware is violating GPL at Kernel, the same violation also
-affects our tree. So, from legal POV, I think we ought to do the same thing at
-V4L/DVB. 
-
-Probably, it is safe to keep the firmware files into a separate dir,
-if we state clearly that the firmwares are not GPL.
-
-Anyway, let's see how we can handle it after having those patches merged at
-mainstream.
-
-[1] http://lwn.net/Articles/284932/
-
-Cheers,
-Mauro
 
 _______________________________________________
 linux-dvb mailing list
