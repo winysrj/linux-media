@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7I8rfxu020414
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 04:53:41 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7I8rSNC027868
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 04:53:29 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so1553462fga.7
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 01:53:28 -0700 (PDT)
-Message-ID: <6f18c5ee0808180153h7d25999bh6c5dba01127aace7@mail.gmail.com>
-Date: Mon, 18 Aug 2008 11:53:28 +0300
-From: "Henri Tuomola" <htuomola@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m716PKeT007032
+	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 02:25:20 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m716P8Th000845
+	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 02:25:09 -0400
+Date: Fri, 1 Aug 2008 08:25:12 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+In-Reply-To: <4892A90B.7080309@hni.uni-paderborn.de>
+Message-ID: <Pine.LNX.4.64.0808010820560.14927@axis700.grange>
+References: <294f0a37c4feadf87bf8.1217484144@carolinen.hni.uni-paderborn.de>
+	<48917CB5.6000304@teltonika.lt> <4892A90B.7080309@hni.uni-paderborn.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: Terratec Cinergy DT XS Diversity new version
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Subject: Re: [PATCH] Move .power and .reset from soc_camera platform to
+ sensor driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,29 +29,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Fri, 1 Aug 2008, Stefan Herbrechtsmeier wrote:
 
-I just got the Terratec Cinergy DT XS Diversity stick, the newer one that is
-mentioned in here:
-http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_DT_USB_XS_Diversity#Identification,
-with usb id 0ccd:0081. As suggested, I tried to patch the current hg-version
-with this patch:
-http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026911.html. However,
-the patch fails, apparently because contents of the dib0700_devices.c have
-changed since the diff was created. I think I figured out the syntax in
-there and made some modifications so that it should be fine. After this I
-ran "make" and then "modprobe dvb_usb_dib0700".
+> Paulius Zaleckas schrieb:
+> > Stefan Herbrechtsmeier wrote:
+> > > Move .power (enable_camera, disable_camera) and .reset from soc_camera
+> > > platform driver (pxa_camera_platform_data, sh_mobile_ceu_info) to sensor
+> > > driver (soc_camera_link) and add .init and .release to request and free
+> > > gpios.
+> > > 
+> > > Signed-off-by: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+> > 
+> > While I agree that it is good to move .power and .reset to
+> > soc_camera_link... IMHO controlling of these should be left in
+> > host driver.
+> How should we deal with the register based version of this functions (soft
+> reset)?
+> At the moment we reset the sensors twice, if we use a hardware reset (.reset).
 
-In dmesg I only get this:
-dib0700: loaded with support for 7 different device-types
-usbcore: registered new interface driver dvb_usb_dib0700
+Paulius, can you give any specific reason why you think, calling those 
+functions from the host driver would be better?
 
-Seems that the card isn't detected? Any tips?
+As for calling either platform-provided reset or internal one. Actually, 
+whyt about making platform reset (and power too) return an error code, and 
+if it failed call th internal one? And as a parameter wouldn't it make 
+more sense to pass the soc_camera_link to the platform functions instead 
+of the struct device from the i2c device?
 
-I'm running gentoo-sources-2.6.24-r8 with the v4l hg sources.
+I'll have a better look at your patch this WE, so, you don't have to be in 
+a hurry with a new version:-) I probably will have some more comments. 
+These are just a couple to think about.
 
-best regards,
-Henri
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
