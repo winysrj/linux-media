@@ -1,32 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7IAa389006599
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 06:36:03 -0400
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7IAZkdU014179
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 06:35:46 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so1108436nfc.21
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 03:35:45 -0700 (PDT)
-Message-ID: <de8cad4d0808180335l7a6f9377m97c3eff844e187ee@mail.gmail.com>
-Date: Mon, 18 Aug 2008 06:35:45 -0400
-From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
-To: "Andy Walls" <awalls@radix.net>
-In-Reply-To: <1218939204.3591.25.camel@morgan.walls.org>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m71Il8e3020871
+	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 14:47:08 -0400
+Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m71IkvCh007340
+	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 14:46:57 -0400
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <de8cad4d0808051804l13d1b66cs9df26cc43ba6cfd6@mail.gmail.com>
-	<1217986174.5252.7.camel@morgan.walls.org>
-	<de8cad4d0808060357r4849d935k2e61caf03953d366@mail.gmail.com>
-	<1218070521.2689.15.camel@morgan.walls.org>
-	<de8cad4d0808070636q4045b788s6773a4e168cca2cc@mail.gmail.com>
-	<1218205108.3003.44.camel@morgan.walls.org>
-	<de8cad4d0808111433y4620b726wc664a06d7422e883@mail.gmail.com>
-	<1218939204.3591.25.camel@morgan.walls.org>
-Cc: Waffle Head <narflex@gmail.com>, video4linux-list@redhat.com,
-	linux-dvb@linuxtv.org, ivtv-devel@ivtvdriver.org
-Subject: Re: CX18 Oops
+Date: Fri, 01 Aug 2008 20:09:03 +0200
+Message-Id: <1217614143.1686.12.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: Video 4 Linux <video4linux-list@redhat.com>
+Subject: [PATCH] libv4l decoding to rgb24
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,71 +25,263 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Aug 16, 2008 at 10:13 PM, Andy Walls <awalls@radix.net> wrote:
-> On Mon, 2008-08-11 at 17:33 -0400, Brandon Jenkins wrote:
->> On Fri, Aug 8, 2008 at 10:18 AM, Andy Walls <awalls@radix.net> wrote:
->> > Brandon,
->> >
->> > I have checked in a fix to defend against the Ooops we both encountered.
->> > The fix will also generate a WARN dump and some queue stats when it runs
->> > across the cause, but will otherwise try to clean up as best it can to
->> > allow further operation.
->> >
->> > The band-aid fix is the latest change at
->> >
->> > http://linuxtv.org/hg/~awalls/v4l-dvb
->> >
->> > Please provide the extra debug that happens if you encounter the warning
->> > in your logs.  I have only encountered the problem twice over a several
->> > month period, so its hard to get insight into the root cause buffer
->> > accounting error at that rate.
->>
->> Andy,
->>
->> I had an oops today, first one in a few days
->>
->> Brandon
->
-> Brandon & Jeff,
->
-> I have updated my repo at
->
-> http://linuxtv.org/hg/~awalls/v4l-dvb
->
-> with 3 changes:
->
-> 1. Back out the original band aid fix
-> 2. Simplify the queue flush routines (you will not see that oops again)
-> 3. Fix the interrupt handler to obtain a queue lock (prevents queue
-> corruption)
->
-> >From most of the output you provided, it was pretty obvious that q_full
-> was always claiming to have more buffers that it actually did.  I
-> hypothesized this could come about at the end of a capture when the
-> encoder hadn't really stopped transferring buffers yet (after we told it
-> to stop) and then we try to clear q_full while the interrupt handler is
-> still trying to add buffers.  This could happen because the interrupt
-> handler never (ever) properly obtained a lock for manipulating the
-> queues.  This could have been causing the queue corruption.
->
-> Please test.  I need feedback that I haven't introduced a deadlock.
->
-> It also appears that the last change requiring the interrupt handler to
-> obtain a lock, completely mitigates me having to use the "-cache 8192"
-> option to mplayer for digital captures, and greatly reduces the amount
-> of cache I need to have mplayer use for analog captures.
->
-[snip]
+The RGB24 pixel format is often used in X11 applications.
+This patch adds it to the V4L library.
 
-Andy,
+Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
 
-I have update to the new code. Interestingly now I am getting audio
-noises (chirping) while watching TV. Is there anything which has been
-done that could affect sound?
+--
 
-Otherwise no issues thus far.
+diff -r cfa0097c9e85 v4l2-apps/lib/libv4l/libv4lconvert/bayer.c
+--- a/v4l2-apps/lib/libv4l/libv4lconvert/bayer.c	Fri Aug 01 18:23:15 2008 +0200
++++ b/v4l2-apps/lib/libv4l/libv4lconvert/bayer.c	Fri Aug 01 19:57:00 2008 +0200
+@@ -163,14 +163,10 @@
+ }
+ 
+ /* From libdc1394, which on turn was based on OpenCV's Bayer decoding */
+-void v4lconvert_bayer_to_bgr24(const unsigned char *bayer,
+-  unsigned char *bgr, int width, int height, unsigned int pixfmt)
++static void bayer_to_rgbbgr24(const unsigned char *bayer,
++  unsigned char *bgr, int width, int height, unsigned int pixfmt,
++	int start_with_green, int blue_line)
+ {
+-    int blue_line = pixfmt == V4L2_PIX_FMT_SBGGR8
+-	|| pixfmt == V4L2_PIX_FMT_SGBRG8;
+-    int start_with_green = pixfmt == V4L2_PIX_FMT_SGBRG8
+-	|| pixfmt == V4L2_PIX_FMT_SGRBG8;
+-
+     /* render the first line */
+     v4lconvert_border_bayer_line_to_bgr24(bayer, bayer + width, bgr, width,
+       start_with_green, blue_line);
+@@ -315,6 +311,26 @@
+     /* render the last line */
+     v4lconvert_border_bayer_line_to_bgr24(bayer + width, bayer, bgr, width,
+       !start_with_green, !blue_line);
++}
++
++void v4lconvert_bayer_to_rgb24(const unsigned char *bayer,
++  unsigned char *bgr, int width, int height, unsigned int pixfmt)
++{
++	bayer_to_rgbbgr24(bayer, bgr, width, height, pixfmt,
++		pixfmt == V4L2_PIX_FMT_SGBRG8		/* start with green */
++			|| pixfmt == V4L2_PIX_FMT_SGRBG8,
++		pixfmt != V4L2_PIX_FMT_SBGGR8		/* blue line */
++			&& pixfmt != V4L2_PIX_FMT_SGBRG8);
++}
++
++void v4lconvert_bayer_to_bgr24(const unsigned char *bayer,
++  unsigned char *bgr, int width, int height, unsigned int pixfmt)
++{
++	bayer_to_rgbbgr24(bayer, bgr, width, height, pixfmt,
++		pixfmt == V4L2_PIX_FMT_SGBRG8		/* start with green */
++			|| pixfmt == V4L2_PIX_FMT_SGRBG8,
++		pixfmt == V4L2_PIX_FMT_SBGGR8		/* blue line */
++			|| pixfmt == V4L2_PIX_FMT_SGBRG8);
+ }
+ 
+ static void v4lconvert_border_bayer_line_to_y(
+diff -r cfa0097c9e85 v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert-priv.h
+--- a/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert-priv.h	Fri Aug 01 18:23:15 2008 +0200
++++ b/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert-priv.h	Fri Aug 01 19:57:00 2008 +0200
+@@ -71,6 +71,9 @@
+ };
+ 
+ 
++void v4lconvert_yuv420_to_rgb24(const unsigned char *src, unsigned char *dst,
++  int width, int height);
++
+ void v4lconvert_yuv420_to_bgr24(const unsigned char *src, unsigned char *dst,
+   int width, int height);
+ 
+@@ -92,6 +95,9 @@
+ void v4lconvert_decode_pac207(const unsigned char *src, unsigned char *dst,
+   int width, int height);
+ 
++void v4lconvert_bayer_to_rgb24(const unsigned char *bayer,
++  unsigned char *rgb, int width, int height, unsigned int pixfmt);
++
+ void v4lconvert_bayer_to_bgr24(const unsigned char *bayer,
+   unsigned char *rgb, int width, int height, unsigned int pixfmt);
+ 
+diff -r cfa0097c9e85 v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c
+--- a/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	Fri Aug 01 18:23:15 2008 +0200
++++ b/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	Fri Aug 01 19:57:00 2008 +0200
+@@ -30,6 +30,7 @@
+ /* Note for proper functioning of v4lconvert_enum_fmt the first entries in
+   supported_src_pixfmts must match with the entries in supported_dst_pixfmts */
+ #define SUPPORTED_DST_PIXFMTS \
++  V4L2_PIX_FMT_RGB24, \
+   V4L2_PIX_FMT_BGR24, \
+   V4L2_PIX_FMT_YUV420
+ 
+@@ -191,6 +192,7 @@
+   if (closest_fmt.fmt.pix.pixelformat != desired_pixfmt) {
+     dest_fmt->fmt.pix.pixelformat = desired_pixfmt;
+     switch (dest_fmt->fmt.pix.pixelformat) {
++      case V4L2_PIX_FMT_RGB24:
+       case V4L2_PIX_FMT_BGR24:
+ 	dest_fmt->fmt.pix.bytesperline = dest_fmt->fmt.pix.width * 3;
+ 	dest_fmt->fmt.pix.sizeimage = dest_fmt->fmt.pix.width *
+@@ -228,6 +230,7 @@
+ 
+   /* sanity check, is the dest buffer large enough? */
+   switch (dest_fmt->fmt.pix.pixelformat) {
++    case V4L2_PIX_FMT_RGB24:
+     case V4L2_PIX_FMT_BGR24:
+       needed = dest_fmt->fmt.pix.width * dest_fmt->fmt.pix.height * 3;
+       break;
+@@ -283,12 +286,19 @@
+       components[2] = components[1] + (dest_fmt->fmt.pix.width *
+ 				       dest_fmt->fmt.pix.height) / 4;
+ 
+-      if (dest_fmt->fmt.pix.pixelformat == V4L2_PIX_FMT_BGR24) {
++      switch (dest_fmt->fmt.pix.pixelformat) {
++      case V4L2_PIX_FMT_RGB24:
++	tinyjpeg_set_components(data->jdec, components, 1);
++	result = tinyjpeg_decode(data->jdec, TINYJPEG_FMT_RGB24);
++	break;
++      case V4L2_PIX_FMT_BGR24:
+ 	tinyjpeg_set_components(data->jdec, components, 1);
+ 	result = tinyjpeg_decode(data->jdec, TINYJPEG_FMT_BGR24);
+-      } else {
++	break;
++      default:
+ 	tinyjpeg_set_components(data->jdec, components, 3);
+ 	result = tinyjpeg_decode(data->jdec, TINYJPEG_FMT_YUV420P);
++	break;
+       }
+ 
+       /* If the JPEG header checked out ok and we get an error during actual
+@@ -304,12 +314,20 @@
+     case V4L2_PIX_FMT_SGBRG8:
+     case V4L2_PIX_FMT_SGRBG8:
+     case V4L2_PIX_FMT_SRGGB8:
+-      if (dest_fmt->fmt.pix.pixelformat == V4L2_PIX_FMT_BGR24)
++      switch (dest_fmt->fmt.pix.pixelformat) {
++      case V4L2_PIX_FMT_RGB24:
++	v4lconvert_bayer_to_rgb24(src, dest, dest_fmt->fmt.pix.width,
++		    dest_fmt->fmt.pix.height, src_fmt->fmt.pix.pixelformat);
++        break;
++      case V4L2_PIX_FMT_BGR24:
+ 	v4lconvert_bayer_to_bgr24(src, dest, dest_fmt->fmt.pix.width,
+ 		    dest_fmt->fmt.pix.height, src_fmt->fmt.pix.pixelformat);
+-      else
++        break;
++      default:
+ 	v4lconvert_bayer_to_yuv420(src, dest, dest_fmt->fmt.pix.width,
+ 		    dest_fmt->fmt.pix.height, src_fmt->fmt.pix.pixelformat);
++        break;
++      }
+       break;
+ 
+     /* YUYV line by line formats */
+@@ -319,8 +337,8 @@
+     {
+       unsigned char tmpbuf[dest_fmt->fmt.pix.width * dest_fmt->fmt.pix.height *
+ 			   3 / 2];
+-      unsigned char *my_dst = (dest_fmt->fmt.pix.pixelformat ==
+-			       V4L2_PIX_FMT_BGR24) ? tmpbuf : dest;
++      unsigned char *my_dst = (dest_fmt->fmt.pix.pixelformat !=
++			       V4L2_PIX_FMT_YUV420) ? tmpbuf : dest;
+ 
+       switch (src_fmt->fmt.pix.pixelformat) {
+ 	case V4L2_PIX_FMT_SPCA501:
+@@ -337,10 +355,16 @@
+ 	  break;
+       }
+ 
+-      if (dest_fmt->fmt.pix.pixelformat == V4L2_PIX_FMT_BGR24)
++      switch (dest_fmt->fmt.pix.pixelformat) {
++      case V4L2_PIX_FMT_RGB24:
++	v4lconvert_yuv420_to_rgb24(tmpbuf, dest, dest_fmt->fmt.pix.width,
++				   dest_fmt->fmt.pix.height);
++	break;
++      case V4L2_PIX_FMT_BGR24:
+ 	v4lconvert_yuv420_to_bgr24(tmpbuf, dest, dest_fmt->fmt.pix.width,
+ 				   dest_fmt->fmt.pix.height);
+-
++	break;
++      }
+       break;
+     }
+ 
+@@ -370,12 +394,20 @@
+ 	  break;
+       }
+ 
+-      if (dest_fmt->fmt.pix.pixelformat == V4L2_PIX_FMT_BGR24)
++      switch (dest_fmt->fmt.pix.pixelformat) {
++      case V4L2_PIX_FMT_RGB24:
++	v4lconvert_bayer_to_rgb24(tmpbuf, dest, dest_fmt->fmt.pix.width,
++		    dest_fmt->fmt.pix.height, bayer_fmt);
++        break;
++      case V4L2_PIX_FMT_BGR24:
+ 	v4lconvert_bayer_to_bgr24(tmpbuf, dest, dest_fmt->fmt.pix.width,
+ 		    dest_fmt->fmt.pix.height, bayer_fmt);
+-      else
++        break;
++      default:
+ 	v4lconvert_bayer_to_yuv420(tmpbuf, dest, dest_fmt->fmt.pix.width,
+ 		    dest_fmt->fmt.pix.height, bayer_fmt);
++        break;
++      }
+       break;
+     }
+ 
+diff -r cfa0097c9e85 v4l2-apps/lib/libv4l/libv4lconvert/rgbyuv.c
+--- a/v4l2-apps/lib/libv4l/libv4lconvert/rgbyuv.c	Fri Aug 01 18:23:15 2008 +0200
++++ b/v4l2-apps/lib/libv4l/libv4lconvert/rgbyuv.c	Fri Aug 01 19:57:00 2008 +0200
+@@ -34,14 +34,24 @@
+ 
+ #define CLIP(color) (unsigned char)(((color)>0xFF)?0xff:(((color)<0)?0:(color)))
+ 
+-void v4lconvert_yuv420_to_bgr24(const unsigned char *src, unsigned char *dest,
+-  int width, int height)
++static void yuv420_to_rgbbgr24(const unsigned char *src,
++				unsigned char *dest,
++				int width, int height,
++				int bgr)
+ {
+   int i,j;
+ 
+   const unsigned char *ysrc = src;
+-  const unsigned char *usrc = src + width * height;
+-  const unsigned char *vsrc = usrc + (width * height) / 4;
++  const unsigned char *usrc;
++  const unsigned char *vsrc;
++
++	if (bgr) {
++		vsrc = src + width * height;
++		usrc = vsrc + (width * height) / 4;
++	} else {
++		usrc = src + width * height;
++		vsrc = usrc + (width * height) / 4;
++	}
+ 
+   for (i = 0; i < height; i++) {
+     for (j = 0; j < width; j += 2) {
+@@ -80,3 +90,15 @@
+     }
+   }
+ }
++
++void v4lconvert_yuv420_to_rgb24(const unsigned char *src, unsigned char *dest,
++  int width, int height)
++{
++	yuv420_to_rgbbgr24(src, dest, width, height, 0);
++}
++
++void v4lconvert_yuv420_to_bgr24(const unsigned char *src, unsigned char *dest,
++  int width, int height)
++{
++	yuv420_to_rgbbgr24(src, dest, width, height, 1);
++}
 
-Brandon
+
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
 
 --
 video4linux-list mailing list
