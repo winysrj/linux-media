@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m75EfZES010391
-	for <video4linux-list@redhat.com>; Tue, 5 Aug 2008 10:41:46 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m75EfAh1021670
-	for <video4linux-list@redhat.com>; Tue, 5 Aug 2008 10:41:11 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so2278563wfc.6
-	for <video4linux-list@redhat.com>; Tue, 05 Aug 2008 07:41:09 -0700 (PDT)
-Date: Tue, 5 Aug 2008 07:31:51 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080805143151.GG3853@potty.ifup.org>
-References: <20080804212204.GA3853@potty.ifup.org>
-	<1217899361.4980.20.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m71HKn1v013820
+	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 13:20:49 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m71HKaJN022108
+	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 13:20:37 -0400
+Message-ID: <489347F6.60606@hhs.nl>
+Date: Fri, 01 Aug 2008 19:29:26 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1217899361.4980.20.camel@pc10.localdom.local>
-Cc: "Andrey J. Melnikov" <temnota@kmv.ru>, Igor Kuznetsov <igk72@yandex.ru>,
-	v4l <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: BeholdTV 505FM Input Causing Repeating Zeros
+To: Jean-Francois Moine <moinejf@free.fr>
+References: <1217502148.1710.14.camel@localhost>
+In-Reply-To: <1217502148.1710.14.camel@localhost>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Video 4 Linux <video4linux-list@redhat.com>
+Subject: Re: libv4l - decode to RGB24
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,33 +27,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 03:22 Tue 05 Aug 2008, hermann pitton wrote:
-> Am Montag, den 04.08.2008, 14:22 -0700 schrieb Brandon Philips:
-> > Hello All-
-> > 
-> > I have received a bug report[1] from a user who's card used to work as a
-> > SAA7134_BOARD_UNKNOWN before the patch[2] that added support for
-> > SAA7134_BOARD_BEHOLD_505FM.
+Jean-Francois Moine wrote:
+> Hello Hans,
 > 
-> how far something detected as SAA7134_BOARD_UNKNOWN can "work" is
-> another issue and not related.
+> May you add frame decoding to RGB24, this is the common pixelformat
+> format of gtk and other graphical interfaces.
+> 
 
-It turns out that he wasn't telling the whole story here:
+Yes adding RGB24 support has crossed my mind, the problem is that each 
+additional output format needs to be added to all convert routines, or we need 
+to use an intermediate buffer, which is slow for no good reason.
 
-On 03:22 Tue 05 Aug 2008,  Sergey Lukashevich wrote:
-> My TV card is actually AverMedia 503 or the like. I cannot recall it
-> exactly.  Before I used AverMedia software to watch TV.  But their
-> software sucks and recently I found a way to make my card look like
-> Beholder to run Beholder software. I had to patch the ROM of the card
-> using info found in a forum. Could it be the source of THIS bug?
+So eventually I'll probably do this but atm I've other priorities. Patches welcome.
 
-https://bugzilla.novell.com/show_bug.cgi?id=403904#c10
+Regards,
 
-There isn't really a bug here.  Sorry for the noise.
-
-Cheers,
-
-	Brandon
+Hans
 
 --
 video4linux-list mailing list
