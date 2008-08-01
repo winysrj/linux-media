@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 203.161.84.42.static.amnet.net.au ([203.161.84.42]
-	helo=goeng.com.au) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tom@goeng.com.au>) id 1KYsFO-0005T8-5k
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 02:53:57 +0200
-From: "Thomas Goerke" <tom@goeng.com.au>
-To: "'Devin Heitmueller'" <devin.heitmueller@gmail.com>,
-	"'Patrick Boettcher'" <patrick.boettcher@desy.de>
-References: <004f01c90921$248fe2b0$6dafa810$@com.au>	
-	<412bdbff0808280824s288de72el297dda0556d6ca4d@mail.gmail.com>	
-	<007f01c90965$344da360$9ce8ea20$@com.au>	
-	<412bdbff0808281638h7e911b37n4d5043bf40b42d65@mail.gmail.com>	
-	<008001c9096a$f315df10$d9419d30$@com.au>
-	<412bdbff0808281731t7641e4d1kf86058e071c7d5fb@mail.gmail.com>
-In-Reply-To: <412bdbff0808281731t7641e4d1kf86058e071c7d5fb@mail.gmail.com>
-Date: Fri, 29 Aug 2008 08:54:23 +0800
-Message-ID: <008101c90971$ca7e5080$5f7af180$@com.au>
+Date: Fri, 1 Aug 2008 12:13:07 +1000
+From: Anton Blanchard <anton@samba.org>
+To: Steven Toth <stoth@linuxtv.org>
+Message-ID: <20080801021307.GF7094@kryten>
+References: <20080630235654.CCD891CE833@ws1-6.us4.outblaze.com>
+	<20080731042433.GA21788@kryten> <4891D557.10901@linuxtv.org>
+	<20080801012138.GA7094@kryten> <48926F11.7090508@linuxtv.org>
 MIME-Version: 1.0
-Content-Language: en-au
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge WinTV-NOVA-T-500 New Firmware
-	(dvb-usb-dib0700-1.20.fw) causes problems
+Content-Disposition: inline
+In-Reply-To: <48926F11.7090508@linuxtv.org>
+Cc: linux-dvb@linuxtv.org, "stev391@email.com" <stev391@email.com>,
+	linuxdvb@itee.uq.edu.au
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO
+	FusionHDTV	DVB-T Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,70 +26,106 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> 
-> Wow, that's so early in the loading process for the device, it's hard
-> to see how that can have anything to do with my i2c changes.
-> 
-> Patrick, do you have any changelogs that describe the differences
-> between 1.10 and 1.20 other than the addition of the new i2c API?
-> 
-> Devin
-> 
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
 
-Devin,
+Hi,
 
-I have applied the latest patch, swapped back to the .20firmware and now get
-the following output from dmesg:
+> Either I'm missing patch 1/4, or the patches don't build.
+>
+> I have 2,3,4 so I guess I'm missing something.
 
-[   32.161603] Linux video capture interface: v2.00
---
-[   32.407733] dib0700: loaded with support for 7 different device-types
-[   32.408042] dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in cold
-state, will try to load a firmware
-[   32.451939] dvb-usb: downloading firmware from file
-'dvb-usb-dib0700-1.20.fw'
-[   32.654066] dib0700: firmware started successfully.
-[   33.157310] dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in warm
-state.
-[   33.157342] dvb-usb: will pass the complete MPEG2 transport stream to the
-software demuxer.
-[   33.157430] DVB: registering new adapter (Hauppauge Nova-T 500 Dual
-DVB-T)
-[   33.221594] dib0700: i2c write error (status = -32)
-[   33.221595]
-[   33.225841] dib0700: i2c write error (status = -32)
-[   33.225841]
-[   33.237332] DVB: registering frontend 0 (DiBcom 3000MC/P)...
-[   33.237582] dib0700: i2c write error (status = -32)
-[   33.237582]
-[   33.282556] dib0700: i2c write error (status = -32)
-[   33.282557]
-[   33.282559] mt2060 I2C read failed
-[   33.282587] dvb-usb: will pass the complete MPEG2 transport stream to the
-software demuxer.
-[   33.282867] DVB: registering new adapter (Hauppauge Nova-T 500 Dual
-DVB-T)
-[   33.284802] DVB: registering frontend 1 (DiBcom 3000MC/P)...
-[   33.285055] dib0700: i2c write error (status = -32)
-[   33.285056]
-[   33.286178] dib0700: i2c write error (status = -32)
-[   33.286179]
-[   33.286180] mt2060 I2C read failed
-[   33.286242] input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:1e.0/0000:05:00.2/usb6/6-1/input/input6
-[   33.333182] dvb-usb: schedule remote query interval to 150 msecs.
-[   33.333186] dvb-usb: Hauppauge Nova-T 500 Dual DVB-T successfully
-initialized and connected.
-[   33.333286] usbcore: registered new interface driver dvb_usb_dib0700
+It looks like 1/4 got delayed for some reason, it only just hit the
+mailing list. Here it is again:
 
-Please note that the tuners are available within MythTV but are unable to
-tune to any channel.
 
-Tom
+
+Tuners currently hook different things to the private pointer in their
+callback function. Longer term we should make that private pointer
+consistent, but for now separate out the guts of the cx23885 tuner callback
+so we can reuse it.
+
+Signed-off-by: Anton Blanchard <anton@samba.org>
+---
+
+Index: v4l-dvb/linux/drivers/media/video/cx23885/cx23885-cards.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/video/cx23885/cx23885-cards.c	2008-08-01 09:14:25.000000000 +1000
++++ v4l-dvb/linux/drivers/media/video/cx23885/cx23885-cards.c	2008-08-01 10:31:39.000000000 +1000
+@@ -320,13 +320,9 @@
+ 			dev->name, tv.model);
+ }
+ 
+-/* Tuner callback function for cx23885 boards. Currently only needed
+- * for HVR1500Q, which has an xc5000 tuner.
+- */
+-int cx23885_tuner_callback(void *priv, int command, int arg)
++static int cx23885_tuner_callback(struct cx23885_dev *dev, int port,
++				  int command, int arg)
+ {
+-	struct cx23885_i2c *bus = priv;
+-	struct cx23885_dev *dev = bus->dev;
+ 	u32 bitmask = 0;
+ 
+ 	if (command != 0) {
+@@ -346,9 +342,9 @@
+ 
+ 			/* Two identical tuners on two different i2c buses,
+ 			 * we need to reset the correct gpio. */
+-			if (bus->nr == 0)
++			if (port == 0)
+ 				bitmask = 0x01;
+-			else if (bus->nr == 1)
++			else if (port == 1)
+ 				bitmask = 0x04;
+ 		}
+ 		break;
+@@ -364,6 +360,14 @@
+ 	return 0;
+ }
+ 
++int cx23885_xc5000_tuner_callback(void *priv, int command, int arg)
++{
++	struct cx23885_i2c *bus = priv;
++	struct cx23885_dev *dev = bus->dev;
++
++	return cx23885_tuner_callback(dev, bus->nr, command, arg);
++}
++
+ void cx23885_gpio_setup(struct cx23885_dev *dev)
+ {
+ 	switch(dev->board) {
+Index: v4l-dvb/linux/drivers/media/video/cx23885/cx23885-dvb.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/video/cx23885/cx23885-dvb.c	2008-08-01 09:14:25.000000000 +1000
++++ v4l-dvb/linux/drivers/media/video/cx23885/cx23885-dvb.c	2008-08-01 10:31:39.000000000 +1000
+@@ -189,13 +189,13 @@
+ static struct xc5000_config hauppauge_hvr1500q_tunerconfig = {
+ 	.i2c_address      = 0x61,
+ 	.if_khz           = 5380,
+-	.tuner_callback   = cx23885_tuner_callback
++	.tuner_callback   = cx23885_xc5000_tuner_callback,
+ };
+ 
+ static struct xc5000_config dvico_xc5000_tunerconfig = {
+ 	.i2c_address      = 0x64,
+ 	.if_khz           = 5380,
+-	.tuner_callback   = cx23885_tuner_callback
++	.tuner_callback   = cx23885_xc5000_tuner_callback,
+ };
+ 
+ static struct tda829x_config tda829x_no_probe = {
+Index: v4l-dvb/linux/drivers/media/video/cx23885/cx23885.h
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/video/cx23885/cx23885.h	2008-08-01 09:14:25.000000000 +1000
++++ v4l-dvb/linux/drivers/media/video/cx23885/cx23885.h	2008-08-01 10:31:39.000000000 +1000
+@@ -410,7 +410,7 @@
+ extern struct cx23885_subid cx23885_subids[];
+ extern const unsigned int cx23885_idcount;
+ 
+-extern int cx23885_tuner_callback(void *priv, int command, int arg);
++extern int cx23885_xc5000_tuner_callback(void *priv, int command, int arg);
+ extern void cx23885_card_list(struct cx23885_dev *dev);
+ extern int  cx23885_ir_init(struct cx23885_dev *dev);
+ extern void cx23885_gpio_setup(struct cx23885_dev *dev);
 
 
 _______________________________________________
