@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m788xggk027785
-	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 04:59:42 -0400
-Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
-	[151.189.21.50])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m788wx9g005978
-	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 04:58:59 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>
-In-Reply-To: <20080808064029.67a42946@dimon-PC.ttk.local>
-References: <20080804212204.GA3853@potty.ifup.org>
-	<20080808064029.67a42946@dimon-PC.ttk.local>
-Content-Type: text/plain
-Date: Fri, 08 Aug 2008 10:51:54 +0200
-Message-Id: <1218185514.2678.22.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: Igor Kuznetsov <igk72@yandex.ru>, v4l <video4linux-list@redhat.com>,
-	"Andrey J. Melnikov" <temnota@kmv.ru>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: BeholdTV 505FM Input Causing Repeating Zeros
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m71KGRBG016743
+	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 16:16:27 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m71KGF5V025869
+	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 16:16:16 -0400
+Date: Fri, 1 Aug 2008 22:16:07 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87y73h204v.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0808012135300.14927@axis700.grange>
+References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0807270155020.29126@axis700.grange>
+	<878wvnkd8n.fsf@free.fr>
+	<Pine.LNX.4.64.0807271337270.1604@axis700.grange>
+	<87tze997uu.fsf@free.fr> <87y73h204v.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, linux-pm@lists.linux-foundation.org
+Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,66 +30,145 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Thu, 31 Jul 2008, Robert Jarzmik wrote:
 
-Am Freitag, den 08.08.2008, 06:40 +1000 schrieb Dmitri Belimov:
-> Hello All.
+> > So, to sum up :
+> >  - I finish the mt9m111 driver
+> >  - I submit it
+> >  - I cook up a clean suspend/resume (unless you did it first of course :)
 > 
-> The Beholder company don't support hacked tuners of other vendors.
-> A 3 month a go I made complex patch and fix all Beholder's gpio mask to correct. Please look:
+> All right, I finished the pxa_camera part. The suspend/resume does work with a
+> opened video stream. The capture begins before the suspend and finished after
+> the resume.
 > 
-> saa7134-input.c
-> changeset 7677	50835af51a9d
+> I post the patch here attached for information. I'll submit later with the
+> complete suspend/resume serie. This is just for preliminary comments. Of course,
+> this patch superseeds the origin patch posted in this thread, which didn't work
+> for an opened video stream.
+
+Ok, some preliminary comments.
+
+> >From fb38f10c233a5b4e13f5ad42cf1c381ecc4215e9 Mon Sep 17 00:00:00 2001
+> From: Robert Jarzmik <robert.jarzmik@free.fr>
+> Date: Sun, 27 Jul 2008 00:52:22 +0200
+> Subject: [PATCH] Fix suspend/resume of pxa_camera driver
 > 
-> http://linuxtv.org/hg/v4l-dvb/rev/50835af51a9d
+> PXA suspend switches off DMA core, which looses all context
+
+I think, you mean "loses" - with one "o".
+
+> of previously assigned descriptors. As pxa_camera driver
+> relies on DMA transfers, setup the lost descriptors on
+> resume and retrigger frame acquisition if needed.
 > 
-> As I see user who send this bug is russian readable. You can send him to
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+>  drivers/media/video/pxa_camera.c |   49 ++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 49 insertions(+), 0 deletions(-)
 > 
-> http://www.beholder.ru/bb/viewforum.php?f=11
-> for reading and patching his kernel.
+> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+> index efb2d19..f00844c 100644
+> --- a/drivers/media/video/pxa_camera.c
+> +++ b/drivers/media/video/pxa_camera.c
+> @@ -128,6 +128,8 @@ struct pxa_camera_dev {
+>  
+>  	struct pxa_buffer	*active;
+>  	struct pxa_dma_desc	*sg_tail[3];
+> +
+> +	u32			save_CICR[5];
 
-Dmitry,
+I think, it would look better in  plane lowercase, just name it "cicr" or 
+even "save_cicr" if you prefer.
 
-Brandon already discovered, that we were victims of a false bug report,
-caused by an user faking that Beholder card by manipulating the PCI
-subsystem in the eeprom.
+>  };
+>  
+>  static const char *pxa_cam_driver_description = "PXA_Camera";
+> @@ -1017,6 +1019,51 @@ static struct soc_camera_host pxa_soc_camera_host = {
+>  	.ops			= &pxa_soc_camera_host_ops,
+>  };
+>  
+> +static int pxa_camera_suspend(struct platform_device *pdev, pm_message_t state)
+> +{
+> +	struct pxa_camera_dev *pcdev = platform_get_drvdata(pdev);
+> +	int i = 0;
+> +
+> +	pcdev->save_CICR[i++] = CICR0;
+> +	pcdev->save_CICR[i++] = CICR1;
+> +	pcdev->save_CICR[i++] = CICR2;
+> +	pcdev->save_CICR[i++] = CICR3;
+> +	pcdev->save_CICR[i++] = CICR4;
+> +
+> +	return 0;
+> +}
+> +
+> +static int pxa_camera_resume(struct platform_device *pdev)
+> +{
+> +	struct pxa_camera_dev *pcdev = platform_get_drvdata(pdev);
+> +	int i = 0;
+> +
+> +	DRCMR68 = pcdev->dma_chans[0] | DRCMR_MAPVLD;
+> +	DRCMR69 = pcdev->dma_chans[1] | DRCMR_MAPVLD;
+> +	DRCMR70 = pcdev->dma_chans[2] | DRCMR_MAPVLD;
+> +
+> +	CICR0 = pcdev->save_CICR[i++] & ~CICR0_ENB;
+> +	CICR1 = pcdev->save_CICR[i++];
+> +	CICR2 = pcdev->save_CICR[i++];
+> +	CICR3 = pcdev->save_CICR[i++];
+> +	CICR4 = pcdev->save_CICR[i++];
+> +
+> +	if ((pcdev->icd) && (pcdev->icd->ops->resume))
+> +		pcdev->icd->ops->resume(pcdev->icd);
 
-There is no need for any further action from your side, if the eeprom is
-write protected by default.
+Are we sure, that i2c has been woken up by now?... I am sorry, I wasn't 
+quite convinced by your argumentation in a previous email regarding in 
+which order the drivers will be resumed. So, I re-added pm to the cc:-) As 
+far as I understood, devices get resumed simply in the order they got 
+registered. This does guarantee, that children are resumed after parents, 
+but otherwise there are no guarantees. I guess, you load pxa-camera after 
+i2c-pxa, right? What if you first load pxa-camera and then i2c-pxa? I'm 
+almost prepared to bet, your resume will not work then:-)
 
-Since I thought you might be in vacation, trying to help to look it up
-remembered me, that we not even have the eeprom dumps for all Beholder
-cards.
+I think, I have an idea. Our soc_camera_device is registered the last - it 
+is registered after the respective i2c device (at least in all drivers so 
+far, and future drivers better keep it this way), and after the camera 
+host it is on (see soc_camera.c::device_register_link()). So, all we have 
+to do is add a suspend and a resume to soc_camera_bus_type and to 
+soc_camera_ops and to soc_camera_host_ops. Then just call the latter two 
+from soc_camera_bus_type .resume and .suspend. Now this should work, what 
+do you think?
 
-Maybe such could have helped to identify that sort of case earlier,
-but can't say for sure.
+> +
+> +	/* Restart frame capture if active buffer exists */
+> +	if (pcdev->active) {
+> +		/* Reset the FIFOs */
+> +		CIFR |= CIFR_RESET_F;
+> +		/* Enable End-Of-Frame Interrupt */
+> +		CICR0 &= ~CICR0_EOFM;
+> +		/* Restart the Capture Interface */
+> +		CICR0 |= CICR0_ENB;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  static int pxa_camera_probe(struct platform_device *pdev)
+>  {
+>  	struct pxa_camera_dev *pcdev;
+> @@ -1188,6 +1235,8 @@ static struct platform_driver pxa_camera_driver = {
+>  	},
+>  	.probe		= pxa_camera_probe,
+>  	.remove		= __exit_p(pxa_camera_remove),
+> +	.suspend	= pxa_camera_suspend,
+> +	.resume		= pxa_camera_resume,
+>  };
 
+If we agree on the above just move these two to pxa_soc_camera_host_ops.
 
-> > I have received a bug report[1] from a user who's card used to work
-> > as a SAA7134_BOARD_UNKNOWN before the patch[2] that added support for
-> > SAA7134_BOARD_BEHOLD_505FM.
-> > 
-> > The IR input isn't setup properly and the driver is writing an
-> > infinite number of zeros to the users terminal.
-> > 
-> > Is there a way to figure out the correct mask_keycode and mask_keyup
-> > for this card?  Otherwise I recommend that we don't report has_remote
-> > for this card.
-> > 
-> > Thanks,
-> > 
-> > 	Brandon
-> > 
-> > 
-> > [1] https://bugzilla.novell.com/show_bug.cgi?id=403904
-> > [2] http://linuxtv.org/hg/v4l-dvb/rev/8bdb58e63ea1
-> 
-> With my best regards, Dmitry.
-> 
-
-Cheers,
-Hermann
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
