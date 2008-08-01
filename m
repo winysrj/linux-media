@@ -1,18 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1KWIZi-0001YD-4z
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 00:24:15 +0200
-Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
-	[84.70.212.195])
-	by mail.youplala.net (Postfix) with ESMTP id 311A2D880A4
-	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 00:23:21 +0200 (CEST)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-Date: Thu, 21 Aug 2008 23:23:19 +0100
-Message-Id: <1219357399.6770.12.camel@youkaida>
-Mime-Version: 1.0
-Subject: [linux-dvb] New firmware for dib0700 (Nova-T-500 and others)
+	(envelope-from <stoth@linuxtv.org>) id 1KOk0S-0001BU-OE
+	for linux-dvb@linuxtv.org; Fri, 01 Aug 2008 04:04:39 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K4W00FXFGEQTYM0@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Thu, 31 Jul 2008 22:04:02 -0400 (EDT)
+Date: Thu, 31 Jul 2008 22:04:01 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080801012138.GA7094@kryten>
+To: Anton Blanchard <anton@samba.org>
+Message-id: <48926F11.7090508@linuxtv.org>
+MIME-version: 1.0
+References: <20080630235654.CCD891CE833@ws1-6.us4.outblaze.com>
+	<20080731042433.GA21788@kryten> <4891D557.10901@linuxtv.org>
+	<20080801012138.GA7094@kryten>
+Cc: linux-dvb@linuxtv.org, "stev391@email.com" <stev391@email.com>,
+	linuxdvb@itee.uq.edu.au
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
+ DVB-T Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,20 +35,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-All,
+Anton Blanchard wrote:
+> Hi,
+> 
+>> Please try to confirm to the callback cx23885_tuner_callback, we don't  
+>> want/need a dvico specific callback.:
+>>
+>> http://linuxtv.org/hg/~stoth/v4l-dvb/rev/2d925110d38a
+> 
+> Good idea, a series will follow that does this. I think the tuner
+> callbacks could do with some cleaning up (as you will see in the patch
+> series), but I think what I have now is a step in the right direction.
 
-There is a new firmware file fixing the last cause for i2c errors and
-disconnects and providing a new, more modular i2c request formatting.
+Either I'm missing patch 1/4, or the patches don't build.
 
-The wiki pages for the relevant devices needing it have been updated (if
-they use the proper template).
+I have 2,3,4 so I guess I'm missing something.
 
-For example:
-
-http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500
-
-Nico
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
