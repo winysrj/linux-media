@@ -1,20 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
+Received: from nschwmtas04p.mx.bigpond.com ([61.9.189.146])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jw@raven.inka.de>) id 1KY5xW-00075d-MQ
-	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 23:20:20 +0200
-Date: Tue, 26 Aug 2008 23:19:41 +0200
-From: Josef Wolf <jw@raven.inka.de>
+	(envelope-from <mickhowe@bigpond.net.au>) id 1KOm3P-0008BY-7O
+	for linux-dvb@linuxtv.org; Fri, 01 Aug 2008 06:15:49 +0200
+Received: from nschwotgx03p.mx.bigpond.com ([58.165.93.19])
+	by nschwmtas04p.mx.bigpond.com with ESMTP id
+	<20080801041507.QKVB19703.nschwmtas04p.mx.bigpond.com@nschwotgx03p.mx.bigpond.com>
+	for <linux-dvb@linuxtv.org>; Fri, 1 Aug 2008 04:15:07 +0000
+Received: from fini.bareclan ([58.165.93.19])
+	by nschwotgx03p.mx.bigpond.com with ESMTP
+	id <20080801041507.EWZH9085.nschwotgx03p.mx.bigpond.com@fini.bareclan>
+	for <linux-dvb@linuxtv.org>; Fri, 1 Aug 2008 04:15:07 +0000
+From: mick <mickhowe@bigpond.net.au>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080826211941.GJ32022@raven.wolf.lan>
-References: <20080821211437.GE32022@raven.wolf.lan>
-	<!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAOaJZETzR8EqzWu9A9o/UpwEAAAAA@tv-numeric.com>
-	<20080825195547.GI32022@raven.wolf.lan>
-	<1219733413.3846.10.camel@suse.site>
-Mime-Version: 1.0
+Date: Fri, 1 Aug 2008 14:15:05 +1000
+References: <200807161621.42016.mickhowe@bigpond.net.au>
+	<1216232348.2669.35.camel@pc10.localdom.local>
+	<200807301244.17219.mickhowe@bigpond.net.au>
+In-Reply-To: <200807301244.17219.mickhowe@bigpond.net.au>
+MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <1219733413.3846.10.camel@suse.site>
-Subject: Re: [linux-dvb] RE : How to convert MPEG-TS to MPEG-PS on the fly?
+Message-Id: <200808011415.06162.mickhowe@bigpond.net.au>
+Subject: Re: [linux-dvb] Leadtek DTV2000H rev J - no digital tv,
+	no sound but I have got analog vision
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,17 +36,81 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Aug 26, 2008 at 08:50:13AM +0200, Nico Sabbi wrote:
+On Wed, 30 Jul 2008 12:44:16 mick wrote:
+> On Thu, 17 Jul 2008 04:19:08 you wrote:
+> > Hi Mick,
+> >
+> > Am Mittwoch, den 16.07.2008, 16:21 +1000 schrieb mick:
+> > > A couple of days ago I finally managed to get the latest source for
+> > > v4l-dvb to d/l & build and then add a patch (from a croatian
+> > > contributor - lost the link) for my Leadtek DTV2000H rev J.
+> > >
+> > > I now have picture on analog using either motv or tvtime applications
+> > > but can get no sound or digital tv.
+> > >
+> > > Where can I turn next?
+> > >
+> > > /]/]ik
+> >
+> > have a look at the patch here and further messages.
+> > http://www.spinics.net/lists/vfl/msg37257.html
+>
+> I downloaded the latest v4l-dvb and this patch (which contains a patch to
+> cx88-mpeg.c that wasn't in the patch I had), applied it and got the
+> following error trying to build.
+>
+> root@cave:~/v4l-dvb# make
+> make -C /root/v4l-dvb/v4l
+> make[1]: Entering directory `/root/v4l-dvb/v4l'
+> creating symbolic links...
+> Kernel build directory is /lib/modules/2.6.26cave1/build
+> make -C /lib/modules/2.6.26cave1/build SUBDIRS=/root/v4l-dvb/v4l  modules
+> make[2]: Entering directory `/usr/src/linux-2.6.26'
+>   CC [M]  /root/v4l-dvb/v4l/cx88-video.o
+>   CC [M]  /root/v4l-dvb/v4l/cx88-vbi.o
+>   CC [M]  /root/v4l-dvb/v4l/cx88-mpeg.o
+> /root/v4l-dvb/v4l/cx88-mpeg.c: In function 'cx8802_start_dma':
+> /root/v4l-dvb/v4l/cx88-mpeg.c:108: error: invalid operands to binary ==
+> make[3]: *** [/root/v4l-dvb/v4l/cx88-mpeg.o] Error 1
+> make[2]: *** [_module_/root/v4l-dvb/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/linux-2.6.26'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/root/v4l-dvb/v4l'
+> make: *** [all] Error 2
+> root@cave:~/v4l-dvb#
+>
+> The failing code is
+> ...
+> 	/* FIXME: this needs a review.
+> 	 * also: move to cx88-blackbird + cx88-dvb source files? */
+> /*****/
+> 	if ((core->board) == CX88_BOARD_WINFAST_DTV2000H_J)
+>                   cx_write(MO_GP0_IO, 0x00017300);
+> /******/         /*switch signal input to antena*/
+>
+I think I have found the problem with that bit of code;
+replacing Zbynek Hrabovsky's patch of cx88-mpeg.c with:
+diff -Naur /usr/src/linux/drivers/media/video/cx88/cx88-mpeg.c /usr/src/linux/drivers/media/video/cx88-patched/cx88-mpeg.c
+--- /usr/src/linux/drivers/media/video/cx88/cx88-mpeg.c	2007-10-09 
+22:31:38.000000000 +0200
++++ /usr/src/linux/drivers/media/video/cx88-patched/cx88-mpeg.c	2008-01-07 
+23:28:29.000000000 +0100
+@@ -103,6 +103,7 @@
+ 	/* FIXME: this needs a review.
+ 	 * also: move to cx88-blackbird + cx88-dvb source files? */
+ 
++	if ((core->boardnr) == CX88_BOARD_WINFAST_DTV2000H_2)
++                 cx_write(MO_GP0_IO, 0x00017300);
++             /*switch signal input to antena*/
+ 	dprintk( 1, "core->active_type_id = 0x%08x\n", core->active_type_id);
+ 
+ 	if ( (core->active_type_id == CX88_MPEG_DVB) &&
 
-> > I now have tried to convert via ffmpeg.  The command I used was
-> >   ffmpeg -vcodec copy -acodec copy z.ps.mp2 -i z.ts
-> 
-> give the output a .dvd extension
+compiles successfully.
 
-Thanks for the hint, Nico!  Though the ffmpeg FAQ explicitly states
-that file types should _not_ be recognized by extensions, this did
-the trick.
+still can't get the a tv app to find channels
 
+mick
 
 _______________________________________________
 linux-dvb mailing list
