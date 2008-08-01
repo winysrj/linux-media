@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7VJEI6X031654
-	for <video4linux-list@redhat.com>; Sun, 31 Aug 2008 15:14:18 -0400
-Received: from mail-in-06.arcor-online.net (mail-in-06.arcor-online.net
-	[151.189.21.46])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7VJE3E2003225
-	for <video4linux-list@redhat.com>; Sun, 31 Aug 2008 15:14:04 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Lee Alkureishi <lee_alkureishi@hotmail.com>
-In-Reply-To: <BAY126-W51445FEADC96EC0484E7ABE35D0@phx.gbl>
-References: <BAY126-W51445FEADC96EC0484E7ABE35D0@phx.gbl>
-Content-Type: text/plain
-Date: Sun, 31 Aug 2008 21:12:10 +0200
-Message-Id: <1220209930.2669.9.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, alkureishi.lee@gmail.com
-Subject: Re: em2820, Tena TNF-9533 and V4L
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m71LR1lx018398
+	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 17:27:01 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m71LQlL3030717
+	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 17:26:47 -0400
+Date: Fri, 1 Aug 2008 23:26:40 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87ljzgfo4s.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0808012305080.14927@axis700.grange>
+References: <1217113647-20638-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0807270155020.29126@axis700.grange>
+	<878wvnkd8n.fsf@free.fr>
+	<Pine.LNX.4.64.0807271337270.1604@axis700.grange>
+	<87tze997uu.fsf@free.fr> <87y73h204v.fsf@free.fr>
+	<Pine.LNX.4.64.0808012135300.14927@axis700.grange>
+	<87ljzgfo4s.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, linux-pm@lists.linux-foundation.org
+Subject: Re: [PATCH] Fix suspend/resume of pxa_camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,97 +32,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Lee,
+On Fri, 1 Aug 2008, Robert Jarzmik wrote:
 
-Am Sonntag, den 31.08.2008, 19:26 +0100 schrieb Lee Alkureishi:
-> Hi all,
+> Ah, I didn't thought of soc_camera_host_ops ... But I agree, it may be better to
+> call soc_camera_host_ops->suspend() rather than pxa-camera::suspend(). Which
+> brings me to another question, in which order :
+>  a) soc_camera_ops->suspend() then soc_camera_hosts->suspend()
+>  b) soc_camera_hosts->suspend() then soc_camera_ops->suspend()
 > 
-> Hoping someone on this list can help me with this frustrating problem:
-> 
-> I'm running Mythbuntu 8.04, fully updated. I'm trying to set up a USB TV tuner box, and have made progress but haven't quite got it working. 
-> 
-> The USB box is a Kworld PVR TV 2800 RF. It uses a Empia em2820 chipset, and a Tena TNF-9533-D/IF tuner. Other chips I found under the casing are:
-> RM-KUB03 04AEAAC6, HEF4052BT, TEA5767, SAA7113H. 
-> 
-> The PCB has the following printed on it: EM2800TV_KW Ver:F
-> 
-> I followed the instructions to install v4l using mercurial, and have got it to the point where dmesg shows that the card is recognised and initialised:
-> ------
-> dmesg:
-> [ 1844.847318] usb 5-1: new high speed USB device using ehci_hcd and address 3
-> [ 1844.979744] usb 5-1: configuration #1 chosen from 1 choice
-> [ 1844.980718] em28xx new video device (eb1a:2820): interface 0, class 255
-> [ 1844.980727] em28xx: device is attached to a USB 2.0 bus
-> [ 1844.980730] em28xx: you're using the experimental/unstable tree from mcentral.de
-> [ 1844.980732] em28xx: there's also a stable tree available but which is limited to
-> [ 1844.980734] em28xx: linux <=2.6.19.2
-> [ 1844.980736] em28xx: it's fine to use this driver but keep in mind that it will move
-> [ 1844.980738] em28xx: to http://mcentral.de/hg/~mrec/v4l-dvb-kernel as soon as it's
-> [ 1844.980740] em28xx: proved to be stable
-> [ 1844.980743] em28xx #0: Alternate settings: 8
-> [ 1844.980746] em28xx #0: Alternate setting 0, max size= 0
-> [ 1844.980748] em28xx #0: Alternate setting 1, max size= 1024
-> [ 1844.980750] em28xx #0: Alternate setting 2, max size= 1448
-> [ 1844.980752] em28xx #0: Alternate setting 3, max size= 2048
-> [ 1844.980754] em28xx #0: Alternate setting 4, max size= 2304
-> [ 1844.980756] em28xx #0: Alternate setting 5, max size= 2580
-> [ 1844.980758] em28xx #0: Alternate setting 6, max size= 2892
-> [ 1844.980760] em28xx #0: Alternate setting 7, max size= 3072
-> [ 1845.271190] tuner 1-0060: TEA5767 detected.
-> [ 1845.271199] tuner 1-0060: chip found @ 0xc0 (em28xx #0)
-> [ 1845.271254] attach inform (default): detected I2C address c0
-> [ 1845.271260] tuner 0x60: Configuration acknowledged
-> [ 1845.271266] tuner 1-0060: type set to 61 (Tena TNF9533-D/IF/TNF9533-B/DF)
-> [ 1845.272189] tuner 1-0061: chip found @ 0xc2 (em28xx #0)
-> [ 1845.272215] attach inform (default): detected I2C address c2
-> [ 1845.272219] tuner 0x61: Configuration acknowledged
-> [ 1845.272223] tuner 1-0061: type set to 61 (Tena TNF9533-D/IF/TNF9533-B/DF)
-> [ 1845.302962] saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-> [ 1845.332719] attach_inform: saa7113 detected.
-> [ 1845.346159] em28xx #0: V4L2 device registered as /dev/video0
-> [ 1845.346173] em28xx #0: Found Kworld PVR TV 2800 RF
-> ----------
-> 
-> (I had to manally tell modprobe to set the card type (18) and tuner type (61), as it does not have an EPROM. Took me forever to figure that out!
-> 
-> The problem arises when I try to do anything with it, though: I've tried a few programs, including mythTV, tvtime and xawtv. I can't find a way to select the TUNER as the input source. The only options are "composite1" or "s-video1". I've got a cheap antenna attached to the antenna connector, and a DTV set-top box attached to the composite input. I can't seem to get any sort of picture to come up on either input, though... Tvtime just gives a black screen, and lets me cycle between composite/s-video. MythTV just dumps me back to the main menu when I try to watch TV. Scanning for channels brings up nothing in Myth setup. 
-> 
-> I tried tvtime-scanner, but it fails:
-> 
-> leeko@leeko-media:~$ tvtime-scanner &
-> Reading configuration from /etc/tvtime/tvtime.xml
-> Scanning using TV standard NTSC.
-> [1] 6918
-> leeko@leeko-media:~$ 
->     No tuner found on input 0.  If you have a tuner, please
->     select a different input using --input=<num>.
-> [1]+  Exit 1                  tvtime-scanner
-> 
-> I tried cycling through input=1 through 4, but they didn't work either (2 through 4 give an error about the card not being able to set its input).
-> 
-> Am I doing something wrong? Surely I should see an option to choose the tuner as an input? As far as I can tell, it looks like it should be working!
-> 
-> The only thing I can think of, is that the tuner may actually have originated outside the USA (i.e. the UK). Would that stop it from working with NTSC channels? And even so, should the composite input not still work? (And why can't I even select the tuner!?).
-> 
-> If I do "ls /dev/video*", the only entry is /dev/video0. 
-> 
-> Thanks in advance for ANY help you can offer. This is driving me nuts! I've been learning as I go along, but I've hit a brick wall now :(
-> 
-> Best regards,
-> 
-> Lee 
->  
+> For me, the only working order can be (a), because I need
+> soc_camera_host->resume() first to enable QIF Clock, so that i2c interface is
+> usable on Micron chip, so that soc_camera->resume() can send i2c commands to the
+> camera. Do you think the same ?
 
-just for the information about the tuner for now, I made that tuner
-entry once for a Kworld/Tevion saa7134 card in the UK.
+On resume we have to do this exactly as you have done it in your last 
+patch: first restore general parameters on the host, then resume the 
+camera, and then continue with the FIFOs and activating the DMA. So, I 
+think, we have no choice but to only call host's resume, passing it the 
+camera device as a parameter, and let it decide when it wants to resume 
+the camera. Similar on suspend. This will also be consistent with how 
+pxa_camera_add_device() calls icd->ops->init(icd) and 
+pxa_camera_remove_device() calls icd->ops->release(icd).
 
-It also came with a separate tea5767 silicon radio tuner.
-
-Your doubts seem to be correct, the TV tuner won't work for NTSC. Sorry.
-
-Cheers,
-Hermann
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
