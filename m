@@ -1,19 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gateway05.websitewelcome.com ([67.18.125.8])
+Received: from web34403.mail.mud.yahoo.com ([66.163.178.152])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <skerit@kipdola.com>) id 1KSTc3-00031b-Nj
-	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 11:22:53 +0200
-Message-ID: <48A004E3.2090006@kipdola.com>
-Date: Mon, 11 Aug 2008 11:22:43 +0200
-From: Jelle De Loecker <skerit@kipdola.com>
+	(envelope-from <muppetman4662@yahoo.com>) id 1KP4Xs-0007L0-Pg
+	for linux-dvb@linuxtv.org; Sat, 02 Aug 2008 02:00:29 +0200
+Date: Fri, 1 Aug 2008 16:59:52 -0700 (PDT)
+From: Muppet Man <muppetman4662@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Christophe Thommeret <hftom@free.fr>,
-	LinuxTV DVB Mailing <linux-dvb@linuxtv.org>
-References: <f3ebb34d0808040958x2182bd3crde88559e685725fe@mail.gmail.com>
-	<200808041904.48093.hftom@free.fr>
-In-Reply-To: <200808041904.48093.hftom@free.fr>
-Subject: Re: [linux-dvb] Is it possible to descramble signal from
-	2	frontends?
+Message-ID: <595821.21214.qm@web34403.mail.mud.yahoo.com>
+Subject: [linux-dvb] Error message trying to compile v4l with Fedora 9
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,61 +16,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0553664231=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Christophe Thommeret schreef:
-> Le Monday 04 August 2008 18:58:17 kurt xue, vous avez =E9crit :
->   =
+--===============0553664231==
+Content-Type: multipart/alternative; boundary="0-468723820-1217635192=:21214"
 
->> Hi,
->>
->> I have two TechnoTrend DVB-C PCI card and 1 CAM, is it possible to use t=
-his
->> CAM to descramble signal from frontends of both DVB card?
->>
->> Thanks in advance for any reply!
->> Kurt
->>     =
+--0-468723820-1217635192=:21214
+Content-Type: text/plain; charset=us-ascii
 
-> No.
->   =
+Greetings all,
+I am attempting to compile the v4l-dvb drivers via the instructions on the website, but when I go into root to "make" I get this error.
 
-That isn't a very helpful answer to his problem, is it?
-He might have wanted any reply, but trying to be friendly wouldn't have =
+[root@localhost ~]# cd /home/ed/v4l-dvb/
+[root@localhost v4l-dvb]# make
+make -C /home/ed/v4l-dvb/v4l 
+make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
+No version yet, using 2.6.25.11-97.fc9.i686
+make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
+make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
+scripts/make_makefile.pl
+Updating/Creating .config
+Preparing to compile for kernel version 2.6.25
+File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config at ./scripts/make_kconfig.pl line 32, <IN> line 4.
+make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
+make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
+Updating/Creating .config
+Preparing to compile for kernel version 2.6.25
+File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config at ./scripts/make_kconfig.pl line 32, <IN> line 4.
+make[1]: *** No rule to make target `.myconfig', needed by `config-compat.h'.  Stop.
+make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
+make: *** [all] Error 2
 
-killed you.
+I have searched around trying to find any answers but I found nothing.  Any help would be greatly appreciated.
+Thanks
 
-I'll give this a go:
 
-There is a way, called "cardsharing", to decode multiple streams with 1 cam.
-Do note, however, that some people think this is illegal, but that's =
 
-because cardsharing has a bad name. There are people who perform this =
+      
+--0-468723820-1217635192=:21214
+Content-Type: text/html; charset=us-ascii
 
-"cardsharing" with other people over the internet, which IS illegal.
+<html><head><style type="text/css"><!-- DIV {margin:0px;} --></style></head><body><div style="font-family:times new roman,new york,times,serif;font-size:12pt"><div>Greetings all,<br>I am attempting to compile the v4l-dvb drivers via the instructions on the website, but when I go into root to "make" I get this error.<br><br>[root@localhost ~]# cd /home/ed/v4l-dvb/<br>[root@localhost v4l-dvb]# make<br>make -C /home/ed/v4l-dvb/v4l <br>make[1]: Entering directory `/home/ed/v4l-dvb/v4l'<br>No version yet, using 2.6.25.11-97.fc9.i686<br>make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'<br>make[1]: Entering directory `/home/ed/v4l-dvb/v4l'<br>scripts/make_makefile.pl<br>Updating/Creating .config<br>Preparing to compile for kernel version 2.6.25<br>File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config at ./scripts/make_kconfig.pl line 32, &lt;IN&gt; line 4.<br>make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'<br>make[1]: Entering directory
+ `/home/ed/v4l-dvb/v4l'<br>Updating/Creating .config<br>Preparing to compile for kernel version 2.6.25<br>File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config at ./scripts/make_kconfig.pl line 32, &lt;IN&gt; line 4.<br>make[1]: *** No rule to make target `.myconfig', needed by `config-compat.h'.&nbsp; Stop.<br>make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'<br>make: *** [all] Error 2<br><br>I have searched around trying to find any answers but I found nothing.&nbsp; Any help would be greatly appreciated.<br>Thanks<br></div></div><br>
 
-Because of this most people don't want us to talk about *any *kind of =
+      </body></html>
+--0-468723820-1217635192=:21214--
 
-cardsharing, just to be on the safe side.
-I can follow their reasoning but it still resembles some kind of =
 
-illogical censor which we should not tollerate!
-But I digress ...
-
-Because this local cardsharing is not illegal (at least not where I'm =
-
-from), some set top boxes you buy in the store also have multiple =
-
-(working) tuners, so they perform some kind of internal cardsharing as well.
-
-Please correct me if I'm wrong or being ignorant ...
-
+--===============0553664231==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0553664231==--
