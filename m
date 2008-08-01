@@ -1,27 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from mail.cooptel.qc.ca ([216.144.115.12] helo=amy.cooptel.qc.ca)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KZ8o5-0005Ov-AG
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 20:34:51 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6D008GHKWXS8G0@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 29 Aug 2008 14:34:10 -0400 (EDT)
-Date: Fri, 29 Aug 2008 14:34:09 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080829182618.74790@gmx.net>
-To: Hans Werner <HWerner4@gmx.de>
-Message-id: <48B84121.8090400@linuxtv.org>
-MIME-version: 1.0
-References: <20080821173909.114260@gmx.net> <20080823200531.246370@gmx.net>
-	<48B78AE6.1060205@gmx.net> <48B7A60C.4050600@kipdola.com>
-	<48B802D8.7010806@linuxtv.org> <20080829154342.74800@gmx.net>
-	<37219a840808290852k4cafb891tbf35162d3add6d60@mail.gmail.com>
-	<48B81DB6.9030206@linuxtv.org> <20080829182618.74790@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Future of DVB-S2
+	(envelope-from <rlemieu@cooptel.qc.ca>) id 1KOtlx-0001ZX-6c
+	for linux-dvb@linuxtv.org; Fri, 01 Aug 2008 14:30:18 +0200
+Message-ID: <489301B6.3070706@cooptel.qc.ca>
+Date: Fri, 01 Aug 2008 08:29:42 -0400
+From: Richard Lemieux <rlemieu@cooptel.qc.ca>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] dvbscan won't tune any channel while kaffeine does
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,15 +22,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> 
->> ... as I say, the wheels are turning so keep watching this mailing list.
-> 
-> Tantalising.... Do you mean you and Darron are working on something? Or you 
-> know of something else specific?
+Hi,
 
-You should of seen a bigger DVB-S2 multiproto statement on list ML by now.
+I am not a developper so please forgive me for asking this question on this
+list.
 
-- Steve
+I just got a TBS8920 dvb-s2 PCI card that is based on the cx24116 chip.
+The card came with a v4l driver that I compiled and installed.  The
+kernel modules load and the card is recognized.
+
+I have installe Kaffeine and the Kaffeine scan will find stations and
+I can watch those stations.
+
+I also compiled and installed dvb-apps-73b910014d07.tar.bz2 from which I
+get 'dvbscan'
+
+The problem is that 'dvbscan' won't find any channel. I used the command
+'dvbscan /opt/dvb-apps-73b910014d07/util/scan/dvb-s/Galaxy3C-95w'
+since I live in North-America and the dish points on that satellite.
+
+Would anyone have a clue?  Why dvbscan does not find any station
+while kaffeine does?
+
+Thank's very much.
 
 _______________________________________________
 linux-dvb mailing list
