@@ -1,23 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m72NcusM020589
-	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 19:38:56 -0400
-Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m72NciES010722
-	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 19:38:44 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <87hca34ra0.fsf@free.fr>
-	<Pine.LNX.4.64.0808022146090.27474@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Sun, 03 Aug 2008 01:38:42 +0200
-In-Reply-To: <Pine.LNX.4.64.0808022146090.27474@axis700.grange> (Guennadi
-	Liakhovetski's message of "Sat\,
-	2 Aug 2008 22\:09\:50 +0200 \(CEST\)")
-Message-ID: <873alnt2bh.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m72BwaS6016936
+	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 07:58:36 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.185])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m72BwNRh018127
+	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 07:58:24 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so543014nfc.21
+	for <video4linux-list@redhat.com>; Sat, 02 Aug 2008 04:58:23 -0700 (PDT)
+To: video4linux-list@redhat.com
+Date: Sat, 2 Aug 2008 14:57:42 +0300
+References: <200709302032.22508.linux@janfrey.de>
+	<Pine.LNX.4.58.0710291147230.16052@shell4.speakeasy.net>
+	<472B5A16.2080707@foks.8m.com>
+In-Reply-To: <472B5A16.2080707@foks.8m.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [RFC] soc_camera: endianness between camera and its host
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200808021457.42478.igor@liplianin.net>
+From: "Igor M. Liplianin" <liplianin@me.by>
+Cc: v4l-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org
+Subject: [PATCH] Add to .hgignore v4l/oss and v4l/modules.order
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,50 +33,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+It really annoys me always delete v4l/oss and
+v4l/modules.order before 'hg addremove'. So I propose
+patch to avoid that.
+May be it will be useful.
+-----------------------------------------
+Add to .hgignore v4l/oss and v4l/modules.order
 
-> On Sat, 2 Aug 2008, Robert Jarzmik wrote:
->
->> Modern camera chips provide ways to invert their data output, as well in colors
->> swap as in byte order. To be more precise, the one I know (mt9m111) enables :
->
-> To me these look like just different pixel formats:
-Ah, they look like, but there aren't.
+From: Igor M. Liplianin <liplianin@me.by>
 
-Let me explain the subtle part of it by an example on mio a701 phone :
- - mt9m111 is connected to a pxa272 cpu through an 8bit bus
- - when I select RGB565 as a pixel format, the pxa cpu expects the bits in a
- very precise order :
-   - have a look at PXA Developper Manual, chapter 27.4.5.2.1, table 27-10. The
-   order the bytes are comming on the bus is important, because of the
-   "interpretation" the PXA does, to reorder and store them in memory.
-   => the chip must send the bytes in that order
-   - if you pay attention closely, you'll notice the pxa doesn't expect RGB but
-   inverted BGR.
-   - have a look at Micron MT9M111 specification, table 5, page 14. You'll see
-   what they consider as RGB565.
+Add to .hgignore v4l/oss and v4l/modules.order
 
->>  - swapping first and second byte in RGB formats
->
-> hm, no idea about this one
-Explanation above. Have a look at the 2 specification, and the tables I
-mentionned. It will be far more clearer.
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
 
-> So, I don't see at first any relation to host's endianness. You just 
-> define respective formats in cameras array of struct 
-> soc_camera_data_format.
-That would be true if the host didn't interpret and reorder the bytes, which pxa
-does.
-
-> Isn't using the existing pixel format negotiation procedure eough?
-If you still think that after looking at the tables, well .. we'll discuss
-further. Maybe there's something I don't see ... You tell me your opinion once
-you had looked at the tables.
-
-You have all my code now, so you know what I'm facing here :)
-
---
-Robert
+--- a/.hgignore	Sat Aug 02 13:49:06 2008 +0300
++++ b/.hgignore	Sat Aug 02 14:04:44 2008 +0300
+@@ -20,8 +20,10 @@
+ v4l/.kconfig.dep$
+ v4l/Makefile.media$
+ v4l/ivtv
++v4l/oss
+ v4l/Modules.symvers$
+ v4l/Module.symvers$
++v4l/modules.order$
+ v4l/config-compat.h$
+ v4l/.myconfig$
+ v4l/.snapshot$
 
 --
 video4linux-list mailing list
