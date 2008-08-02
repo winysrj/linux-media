@@ -1,26 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7F65nDL030590
-	for <video4linux-list@redhat.com>; Fri, 15 Aug 2008 02:05:49 -0400
-Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7F65ZuA008997
-	for <video4linux-list@redhat.com>; Fri, 15 Aug 2008 02:05:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m72B2EYA021558
+	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 07:02:14 -0400
+Received: from n8a.bullet.tw1.yahoo.com (n8a.bullet.tw1.yahoo.com
+	[119.160.244.195])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m72B1wPo027482
+	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 07:01:59 -0400
+From: Lars Oliver Hansen <lolh@ymail.com>
 To: video4linux-list@redhat.com
-Date: Fri, 15 Aug 2008 08:05:20 +0200
-References: <20080814093320.49265ec1@glory.loctelecom.ru>
-	<48A4763D.8030509@hccnet.nl>
-	<20080815115954.0be6c5ba@glory.loctelecom.ru>
-In-Reply-To: <20080815115954.0be6c5ba@glory.loctelecom.ru>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200808150805.20459.hverkuil@xs4all.nl>
-Cc: Mauro@xs4all.nl, Gert Vervoort <gert.vervoort@hccnet.nl>,
-	Chehab <mchehab@infradead.org>
-Subject: Re: MPEG stream work
+Date: Sat, 02 Aug 2008 13:01:21 +0200
+Message-Id: <1217674881.7839.2.camel@lars-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: no video device with saa7134 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,56 +25,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 15 August 2008 03:59:54 Dmitri Belimov wrote:
-> Hi All
->
-> I found problem in v4l2-ctl. This programm can't set correct TV norm.
-> After my hack TV norm was set correct.
+Hello,
 
-???
+I have problems getting a video device under Ubuntu 8.04. I compiled and
+installed the experimental saa7134 driver according to
+http://mcentral.de/wiki/index.php5/AverMedia_Cardbus_Hybrid_TV_FM_E506R
+and it shows up like this:
 
-$ v4l2-ctl -s secam-dk
-Standard set to 00320000
-
-v4l2-ctl works fine for me!
-
-Are you using the latest v4l2-ctl version from v4l-dvb? I did fix a bug 
-in SetStandard some time ago (although I think that bug didn't affect 
-this particular situation either).
-
-Regards,
-
-	Hans
-
->
-> diff -r 42e3970c09aa v4l2-apps/util/v4l2-ctl.cpp
-> --- a/v4l2-apps/util/v4l2-ctl.cpp	Sun Jul 27 19:30:46 2008 -0300
-> +++ b/v4l2-apps/util/v4l2-ctl.cpp	Fri Aug 15 05:53:38 2008 +1000
-> @@ -1572,6 +1572,7 @@
->  	}
->
->  	if (options[OptSetStandard]) {
-> +	  std = 0x320000; // durty hack for SECAM-DK
->  		if (std & (1ULL << 63)) {
->  			vs.index = std & 0xffff;
->  			if (ioctl(fd, VIDIOC_ENUMSTD, &vs) >= 0) {
->
-> I have MPEG stream with CORRECT TV data.
-> See link:
->
-> http://debian.oshec.org/binary/tmp/mpeg02.dat
->
-> Yahooooo!
->
-> With my best regards, Dmitry.
->
-> --
-> video4linux-list mailing list
-> Unsubscribe
-> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
+﻿Module                  Size  Used by
+saa7134               150484  0 
+video_buf              30212  1 saa7134
+compat_ioctl32         11136  1 saa7134
+ir_kbd_i2c             11664  1 saa7134
+ir_common              43908  2 saa7134,ir_kbd_i2c
+videodev               31360  1 saa7134
+v4l2_common            21888  3 saa7134,compat_ioctl32,videodev
+v4l1_compat            15492  2 saa7134,videodev
 
 
+Yet there is no video device video0 listed under dev/. Any advice? I'm
+using that AVer E506R Hybrid Cardbus card. And thanks people for your
+development efforts!! Without this there would be no TV card support!
+
+Lars
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
