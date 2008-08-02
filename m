@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7L8oN60029702
-	for <video4linux-list@redhat.com>; Thu, 21 Aug 2008 04:50:23 -0400
-Received: from mail1.sea5.speakeasy.net (mail1.sea5.speakeasy.net
-	[69.17.117.3])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7L8oBvL027070
-	for <video4linux-list@redhat.com>; Thu, 21 Aug 2008 04:50:11 -0400
-Date: Thu, 21 Aug 2008 01:50:05 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Jean Delvare <jdelvare@suse.de>
-In-Reply-To: <200808202334.20872.jdelvare@suse.de>
-Message-ID: <Pine.LNX.4.58.0808210107110.23833@shell4.speakeasy.net>
-References: <200808181918.05975.jdelvare@suse.de>
-	<Pine.LNX.4.58.0808181054150.23833@shell4.speakeasy.net>
-	<200808202334.20872.jdelvare@suse.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m72EnVOM030664
+	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 10:49:31 -0400
+Received: from n35.bullet.mail.ukl.yahoo.com (n35.bullet.mail.ukl.yahoo.com
+	[87.248.110.168])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m72EnGV6023565
+	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 10:49:17 -0400
+From: Lars Oliver Hansen <lolh@ymail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <1217674881.7839.2.camel@lars-laptop>
+References: <1217674881.7839.2.camel@lars-laptop>
+Date: Sat, 02 Aug 2008 16:49:09 +0200
+Message-Id: <1217688549.6605.5.camel@lars-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: bttv driver errors
+Subject: Re: no video device with saa7134 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,53 +27,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 20 Aug 2008, Jean Delvare wrote:
+Am Samstag, den 02.08.2008, 13:01 +0200 schrieb Lars Oliver Hansen:
 
-> Hi Trent,
->
-> Le lundi 18 août 2008, Trent Piepho a écrit :
-> > What's more, yuv420 works by sending one line at 2 bytes/pixel and the next
-> > line at 1 byte/pixel.  If the bt878 had a large fifo, the bit rate might
-> > average out, but it doesn't.  It's something microscopic like 128 bytes.
->
-> You're right, it's (in practice) 128 bytes.
->
-> While reading the BT878 datasheet to try to better understand how
-> this all happens, I came to wonder how the chip can actually handle
-> planar formats with vertical subsampling.
->
-> To do vertical subsampling, you obviously need to handle several
-> lines together (2 in the case of yuv420). However, the FIFO is too
+> Hello,
+> 
+> I have problems getting a video device under Ubuntu 8.04. I compiled and
+> installed the experimental saa7134 driver according to
+> http://mcentral.de/wiki/index.php5/AverMedia_Cardbus_Hybrid_TV_FM_E506R
+> and it shows up like this:
+> 
+> ï»¿Module                  Size  Used by
 
-2 is needed for simple averaging.  Higher quality requires even more lines
-for a multi-tap FIR filter for some kind.
+....
 
-> small to contain a complete line of data, and there doesn't seem to
-> be any RISC instruction for fetching chroma information back from
-> memory either. This suggests that the BT878 is cheating on vertical
-> subsampling, and instead of averaging on 2 lines (2x2 chroma
-> subsampling), it averages on 1 line (2x1 chroma subsampling) and just
-> skips the chroma information of the next line. Can you please confirm
-> or infirm this? If I'm wrong then I would be grateful if you could
-> explain how the BT878 achieves vertical subsampling.
+> 
+> 
+> Yet there is no video device video0 listed under dev/. Any advice? I'm
+> using that AVer E506R Hybrid Cardbus card.
 
-4:2:0 YUV is achieved by setting the chip to 4:2:2 mode and then dropping
-"every other" chroma line with RISC DMA program.
 
-Note that every other line means something totally different if you are
-talking about fields vs frames.  Historically bttv got this wrong for field
-capture, and didn't take field dominance into account for frame capture.  I
-don't know if it's been fixed or not.
+Hello again,
 
-I suppose one could drop the just the U samples for one line, then drop
-just the V for the next line, to get a better average bit rate.
+this problem is solved: if I plugin the card, do a modprobe saa7134,
+reboot, the card gets turned on and there is a dev/video0. This order is
+different than the last few steps in the link provided above. The reason
+I never got the card to work was probably that plugging in after the
+reboot doesn't turn it on and on another reboot the driver isn't loaded
+anymore. I now load it by etc/modules and the card works. Thanks for
+your work!
 
-A better question would be how does the bt878 do horizontal and vertical
-scaling?  If you look at the description of ultralock and the number of
-taps avaiable for the vertical scaling filters, the chip must have some
-kind of multi-line buffer before the scaler.  But this buffer, and the
-delay it must introduce, is never mentioned in the datasheet.
-
+Lars
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
