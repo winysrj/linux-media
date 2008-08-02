@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.27])
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dschollmeyer@gmail.com>) id 1KYMvO-0000Hk-K5
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 17:27:12 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so515703eya.17
-	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 08:27:07 -0700 (PDT)
-Message-ID: <ed347ce40808270827g5c0aaf3em2157d40cfed8a779@mail.gmail.com>
-Date: Wed, 27 Aug 2008 08:27:06 -0700
-From: "David Schollmeyer" <dschollmeyer@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <48B4FD13.9030703@linuxtv.org>
+	(envelope-from <mkrufky@linuxtv.org>) id 1KPI3u-0006Uu-HI
+	for linux-dvb@linuxtv.org; Sat, 02 Aug 2008 16:26:27 +0200
+Message-ID: <48946E85.3070108@linuxtv.org>
+Date: Sat, 02 Aug 2008 10:26:13 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <ed347ce40808262255s6bfc4f58ne2c8c00f56f95e44@mail.gmail.com>
-	<48B4FD13.9030703@linuxtv.org>
+To: Robert Lowery <rglowery@exemail.com.au>
+References: <489398B5.6020409@linuxtv.org>
+	<60933.220.233.174.242.1217662169.squirrel@webmail.exetel.com.au>
+In-Reply-To: <60933.220.233.174.242.1217662169.squirrel@webmail.exetel.com.au>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1800 DVB Configuration
+Subject: Re: [linux-dvb] DVICO firmware compatibility between v4l-dvb and
+ in-tree kernel drivers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,22 +27,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Aug 27, 2008 at 12:06 AM, Steven Toth <stoth@linuxtv.org> wrote:
->
-> I assume the channel names, pid values and service numbers in your
-> channels.conf are accurate. Did this come as a result of running the scan
-> app, or something else?
->
-> - Steve
->
+Robert Lowery wrote:
+>> I'm glad to hear it -- I need you to provide a sign-off, in order to apply your patch.
+>>
+>> What do you mean by sign off?  I have fully built your tree and confirmed
+>> my patch is in it and works.
+Please see http://linuxtv.org/hg/v4l-dvb/file/tip/README.patches
 
-I used the values from a mythtv-users posting from a couple of years
-ago so I'm not sure if it is up-to-date. I also tried ascan but the
-output from that did not have any channel names (they were all of the
-format "[000x]") so I'm not sure if that worked correctly. The
-mythtv-users posting said that Cox does not transmit pids.
+specifically this section:
 
-David
+e) All patches shall have a Developers Certificate of Origin
+
+
+
+Regards,
+Mike
 
 _______________________________________________
 linux-dvb mailing list
