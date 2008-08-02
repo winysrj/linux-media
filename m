@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7HEVp17024610
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 10:31:51 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.175])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7HEVO0S021833
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 10:31:25 -0400
-Received: by ug-out-1314.google.com with SMTP id m2so89451uge.13
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 07:31:24 -0700 (PDT)
-Message-ID: <48A83643.4070509@gmail.com>
-Date: Sun, 17 Aug 2008 10:31:31 -0400
-From: rob <susegebr@gmail.com>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m72NdqbV021098
+	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 19:39:52 -0400
+Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net
+	[151.189.21.44])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m72NdbMj010951
+	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 19:39:37 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Lars Oliver Hansen <lolh@ymail.com>
+In-Reply-To: <1217690263.6605.25.camel@lars-laptop>
+References: <1217690263.6605.25.camel@lars-laptop>
+Content-Type: text/plain
+Date: Sun, 03 Aug 2008 01:32:25 +0200
+Message-Id: <1217719945.2676.6.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: Webcam MSI  StarCam 0xc45 0x60fc   trouble
+Cc: video4linux-list@redhat.com
+Subject: Re: saa7134-alsa  appears to be broken
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,34 +28,74 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello all
+Hi Lars,
 
-This is my first post to this list
+Am Samstag, den 02.08.2008, 17:17 +0200 schrieb Lars Oliver Hansen:
+> Hi,
+> 
+> I experience the same problem: the sound part of the saa7134 driver
+> doesn't load.
+> 
+> Ususally I get such symbol errors with MadWiFis snapshot driver after
+> every application installation which configured some kernel stuff. I
+> then unload the MadWiFi driver and do a clean install according to their
+> description.
+> 
+> I'm new to Linux and thus don't know the options I have for and how to
+> make a clean install in general. Hermann suggested to do a make
+> rminstall in his response. Could anyone help me here as how to do this
+> with the saa7134 experimental driver (it's cloning the relevant
+> Mercurial repository) or what else I could try?
+> 
+> As I installed the sound driver after make-ing the TV card driver I
+> guess an update of some dependancies may be necessary. I don't know
+> anything about the relations there at all. Would someone shed some light
+> on this? Thanks for taking time for this issue and for a possible answer
+> in advance!
+> 
+> Kind Regards,
+> 
+> Lars
+> 
 
+please report this again from a 2.6.26.1 or every other vanilla kernel
+of you choice.
 
-i have troubles with my webcam and kernel 2.6.27.rc3  (Opensuse)
-there are modules loaded gspca  sonic sn9s102 
-but no program sees the webcam
-The webcam is   Msi StarCam  0xc45 0x60fc   sn9c105  hv7131r   with mic
+We had some minor issues, but I refuse to investigate what others
+deliberately add.
 
+Cheers,
+Hermann
 
-With the gspcav1 drivers compiled on kernel 2.6.25.11-0.1 (opensuse)
-the webcam is seen as a v4L1 webcam see  log below
+BTW: in kernel drivers follow the kernel versions since ever.
 
-his is the outcome from the gspca compiled  by me:  om kernel 2.6.25.11
-/home/rob/gspcav1-20071224/gspca_core.c: USB GSPCA camera found. SONIX
-JPEG (sn9c1xx)
-/home/rob/gspcav1-20071224/gspca_core.c: [spca5xx_probe:4275] Camera
-type JPEG
-/home/rob/gspcav1-20071224/gspca_core.c: [spca5xx_getcapability:1249]
-maxw 640 maxh 480 minw 160 minh 120
-usbcore: registered new interface driver gspca
-/home/rob/gspcav1-20071224/gspca_core.c: gspca driver 01.00.20 registered
-/home/rob/gspcav1-20071224/gspca_core.c: [spca5xx_set_light_freq:1932]
-Sensor currently not support light frequency banding filters.
-/home/rob/gspcav1-20071224/gspca_core.c: [gspca_set_isoc_ep:945] ISO
-EndPoint found 0x81 AlternateSet 8
-
+> P.s.: here's the dmesg output again:
+> 
+> [    0.000000] saa7134_alsa: disagrees about version of symbol
+> saa7134_tvaudio_setmute
+> [    0.000000] saa7134_alsa: Unknown symbol saa7134_tvaudio_setmute
+> [    0.000000] saa7134_alsa: disagrees about version of symbol
+> saa_dsp_writel
+> [    0.000000] saa7134_alsa: Unknown symbol saa_dsp_writel
+> [    0.000000] saa7134_alsa: disagrees about version of symbol
+> saa7134_pgtable_alloc
+> [    0.000000] saa7134_alsa: Unknown symbol saa7134_pgtable_alloc
+> [    0.000000] saa7134_alsa: disagrees about version of symbol
+> saa7134_pgtable_build
+> [    0.000000] saa7134_alsa: Unknown symbol saa7134_pgtable_build
+> [    0.000000] saa7134_alsa: disagrees about version of symbol
+> saa7134_pgtable_free
+> [    0.000000] saa7134_alsa: Unknown symbol saa7134_pgtable_free
+> [    0.000000] saa7134_alsa: disagrees about version of symbol
+> saa7134_dmasound_init
+> [    0.000000] saa7134_alsa: Unknown symbol saa7134_dmasound_init
+> [    0.000000] saa7134_alsa: disagrees about version of symbol
+> saa7134_dmasound_exit
+> [    0.000000] saa7134_alsa: Unknown symbol saa7134_dmasound_exit
+> [    0.000000] saa7134_alsa: disagrees about version of symbol
+> saa7134_set_dmabits
+> [    0.000000] saa7134_alsa: Unknown symbol saa7134_set_dmabits
+> 
 
 
 --
