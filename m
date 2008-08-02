@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+Received: from server42.ukservers.net ([217.10.138.242])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KZUQq-0002It-6O
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 19:40:17 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6F00A4LD25DZ90@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sat, 30 Aug 2008 13:39:42 -0400 (EDT)
-Date: Sat, 30 Aug 2008 13:39:41 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080830200613.48c66ee6@bk.ru>
-To: Goga777 <goga777@bk.ru>
-Message-id: <48B985DD.7030402@linuxtv.org>
-MIME-version: 1.0
-References: <48B8400A.9030409@linuxtv.org>
-	<20080830150844.GQ7830@moelleritberatung.de>
-	<48B963D1.3060908@linuxtv.org> <20080830200613.48c66ee6@bk.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+	(envelope-from <linuxtv@nzbaxters.com>) id 1KP8zY-00047p-3A
+	for linux-dvb@linuxtv.org; Sat, 02 Aug 2008 06:45:20 +0200
+Message-ID: <005901c8f45a$7b869270$7501010a@ad.sytec.com>
+From: "Simon Baxter" <linuxtv@nzbaxters.com>
+To: "Arthur Konovalov" <artlov@gmail.com>,
+	<linux-dvb@linuxtv.org>
+References: <008401c8ebe5$4e09ea90$450011ac@ad.sytec.com>	<003001c8ecb2$57b93af0$7501010a@ad.sytec.com><003401c8ee3d$7f98b870$7501010a@ad.sytec.com>
+	<488C5B02.4080506@gmail.com>
+Date: Sat, 2 Aug 2008 16:44:40 +1200
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] Please - anyone at all?? 682Mhz problem with
+	TT-1501 driver inv4l-dvb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,32 +26,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Goga777 wrote:
-> Hi, Steven
-> 
-> - if new api will be approve, who will update the drivers for stb0899 based cards ?
+>> Hi
+>> I'm getting no responses from any help lists - can anyone offer any 
+>> advice
+>> or comment please???
+>>
+>
+>>>> I have patched the v4l-dvb driver with Sigmund Augdal's changes to
+>>>> support
+>>>> C-1501.  I can't get channels to work on all but one frequency - 
+>>>> 682Mhz.
+>>>> Frequencies which work:  578, 586, 594, 602, 610, 626, 634, 642, 666, 
+>>>> 674
+>>>> Mhz.
+>
+> You are not alone with this problem.
+> I haven't signal on two more frequencies: 322 and 386 MHz
+>
+> AK
 
-
-I suspect Manu has included the stb0899 driver in his recent pull 
-request, which by definition will have his sign-off. So, people are free 
-to derive new drivers form his work providing they follow his licensing 
-rules.
-
-I have one of those boards. Assuming the stb0899 TT-3200 drivers are GPL 
-- and signed-off for release, if nobody else offers to do this then I will.
-
-> - if new api will be approve, how long time need for first release of updated dvb-s2 drivers for cx24116/stb0899 cards ?
-
-If the API is approved then HVR4000 support will also be included with 
-that merge.
-
-I don't know the stb0899 driver specifically so I can't say whether it 
-would be part of the initial merge, but I would expect it to follow 
-shortly afterwards.
-
-Regards,
-
-- Steve
+Is this a hardware problem?  Has anyone tried it on a Windows machine?? 
 
 
 _______________________________________________
