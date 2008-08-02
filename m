@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from emh07.mail.saunalahti.fi ([62.142.5.117])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marko.ristola@kolumbus.fi>) id 1KQQXT-00005Z-AI
-	for linux-dvb@linuxtv.org; Tue, 05 Aug 2008 19:41:43 +0200
-Message-ID: <489890CD.8040508@kolumbus.fi>
-Date: Tue, 05 Aug 2008 20:41:33 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+Received: from mail.sub.ru ([88.212.205.2])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <mr@ramendik.ru>) id 1KPPRL-0001XX-Qv
+	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 00:19:08 +0200
+From: Mikhail Ramendik <mr@ramendik.ru>
+To: linux-dvb@linuxtv.org
+Date: Sat, 2 Aug 2008 23:22:43 +0100
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Mika_B=E5tsman?= <mika.batsman@gmail.com>
-References: <3b52bc790807101342o12f6f879n9c68704cd6b96e22@mail.gmail.com>	<4879FA31.2080803@kolumbus.fi>	<4A2CCDB3-57B0-4121-A94D-59F985FCDE2B@oberste-berghaus.de>	<487BB17D.8080707@kolumbus.fi>	<D5C41D41-A72D-4603-9AD1-67A8C5E73289@oberste-berghaus.de>
-	<488CAE63.9070204@kolumbus.fi> <488F0D80.7010607@gmail.com>
-	<489766A4.7070907@kolumbus.fi> <48981245.2050900@gmail.com>
-In-Reply-To: <48981245.2050900@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy C DVB-C / Twinhan AD-CP400
- (VP-2040) &	mantis driver
+Content-Disposition: inline
+Message-Id: <200808022322.43750.mr@ramendik.ru>
+Subject: [linux-dvb] Which DVB-S card to get in Ireland?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,183 +17,36 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hello,
 
-Maybe I should try with Manu's jusst.de version, if it works for me now
-Better exclude the driver differences away.
-I don't have a CAM module and I haven't tested with two equal cards.
+I am in Ireland, and run Linux (Debian etch, kernel 2.6.18, but I can get a 
+leter kernel if required). I would like to install a DVB-S card and watch 
+satellite TV. Ideally I'd like DVB-T as well but I can do without it.
 
-Our problems seem to be similar though.
+There are a number of cards on the market but I would like to know which are 
+supported in Linux before buying any. I would be very thankful for replies on 
+whether any of the following cards will work:
 
-Marko
+Hauppauge WinTV-HVR3000 (PCI, DVB-S+DVB-T)
+Hauppauge WinTV-HVR4000 (PCI, DVB-S+DVB-T)
+AVerMedia A700 DVB-S Pro (PCI)
+Hauppauge! WinTV-NOVA-HD-S2 (PCI)
+Hauppauge! WinTV-NOVA-S-USB2 (USB)
+TerraTec Cinergy S DVB-S (USB) 
+TerraTec Cinergy S2 PCI HD, DVB-S/S2 (PCI)
 
-Mika B=E5tsman kirjoitti:
-> Marko Ristola wrote:
->> Mika B=E5tsman kirjoitti:
->>> Hi,
->>> I also tried your patch because I've had freezes since I got these =
+Also, is there a way to receive channels encrypted with Viaccess? I am ready 
+to pay for the access of course. I would prefer not to buy the expensive CAM 
+but if the CAM is required I can consider it. 
 
->>> cards. Unfortunately it didn't help me. Got a whooping 5min uptime =
-
->>> before it all went wrong again. I have 2x Cinergy C + 2.6.24-19 + =
-
->>> vdr 1.6.
->>>
->> Do you have a heat problem? Have you checked your motherboard sensors?
->> Have you checked that your memory is okay? Air flows easilly?
->
-> Memory was the first thing I suspected but memtest went through 10+ =
-
-> times without a fail. Heat shouldn't be a problem either. There's a =
-
-> big efficient, noisy fan in the back of the case.
->
-> The machine works fine when dvb is watched with dvbyell =
-
-> http://www.dvbyell.org/ which has cards set to fixed frequency ie. =
-
-> card1 -> 152Mhz and card2 -> 290Mhz. At least for me the problem =
-
-> occurs only with apps like mythtv and vdr which change the frequency =
-
-> of the tuner.
->
-> -Mika
->
->>> I did:
->>> hg clone http://jusst.de/hg/mantis
->>> replaced mantis_dma.c with the one you attached, renamed =
-
->>> MANTIS_GPIF_RDWRN -> MANTIS_GPIF_HIFRDWRN
->>> make && make install && reboot
->>>
->>> Am I missing something? It seemed to compile and install fine.
->>>
->>> You said that the mantis_dma.c in jusst.de mantis head is not the =
-
->>> latest version. Where can it be found then?
->> I have my own driver version which I have given for Finnish people =
-
->> for easy installation with remote control support for Twinhan 2033.
->> (Personally I'm not pleased with the card: now after some years of =
-
->> development the card works well enough for me finally).
->>
->> So the most important feature of my driver for Finnish people has =
-
->> been the easy compile and install and that the driver ("release") is =
-
->> tested for Twinhan 2033.
->> Secondly I have given for some Finnish people the Twinhan 2033 remote =
-
->> control support included.
->> Maybe somebody from Finland would be interested with the DMA transfer =
-
->> fixes, if they have unsolved quality problems. That's a fact that =
-
->> those tweaks helped me although the root cause is a bit uncertain. =
-
->> Other features of my driver version like suspend/resume aren't very =
-
->> important.
->>
->> Regards,
->> Marko Ristola
->>
->>>
->>> Regards,
->>> Mika B=E5tsman
->>>
->>> Marko Ristola wrote:
->>>>
->>>> Hi,
->>>>
->>>> Unfortunately I have been busy.
->>>>
->>>> The patch you tried was against jusst.de Mantis Mercurial branch head.
->>>> Your version of mantis_dma.c is not the latest version and thus the =
-
->>>> patch didn't
->>>> apply cleanly.
->>>>
->>>> Here is the version that I use currently. It doesn't compile =
-
->>>> straight against jusst.de/mantis head.
->>>> It might work for you because MANTIS_GPIF_RDWRN is not renamed as =
-
->>>> MANTIS_GPIF_HIFRDWRN.
->>>>
->>>> If it doesn't compile please rename MANTIS_GPIF_RDWRN occurrences =
-
->>>> into MANTIS_GPIF_HIFRDWRN on that file.
->>>> Otherwise the file should work as it is.
->>>>
->>>> Best regards,
->>>> Marko Ristola
->>>>
->>>> Leif Oberste-Berghaus kirjoitti:
->>>>> Hi Marko,
->>>>>
->>>>> I tried to patch the driver but I'm getting an error message:
->>>>>
->>>>> root@mediapc:/usr/local/src/test/mantis-0b04be0c088a# patch -p1 < =
-
->>>>> mantis_dma.c.aligned_dma_trs.patch
->>>>> patching file linux/drivers/media/dvb/mantis/mantis_dma.c
->>>>> patch: **** malformed patch at line 22: int mantis_dma_exit(struct =
-
->>>>> mantis_pci *mantis)
->>>>>
->>>>> Any ideas?
->>>>>
->>>>> Regards
->>>>> Leif
->>>>>
->>>>>
->>>>> Am 14.07.2008 um 22:05 schrieb Marko Ristola:
->>>>>
->>>>>> Hi Leif,
->>>>>>
->>>>>> Here is a patch that implements the mentioned DMA transfer =
-
->>>>>> improvements.
->>>>>> I hope that these contain also the needed fix for you.
->>>>>> You can apply it into jusst.de/mantis Mercurial branch.
->>>>>> It modifies linux/drivers/media/dvb/mantis/mantis_dma.c only.
->>>>>> I have compiled the patch against 2.6.25.9-76.fc9.x86_64.
->>>>>>
->>>>>> cd mantis
->>>>>> patch -p1 < mantis_dma.c.aligned_dma_trs.patch
->>>>>>
->>>>>> Please tell us whether my patch helps you or not: if it helps, =
-
->>>>>> some of my patch might get into jusst.de as
->>>>>> a fix for your problem.
->>>>>>
->>>>>> Best Regards,
->>>>>> Marko
->>>>>
->>>>>
->>>>
->>>> ----------------------------------------------------------------------=
--- =
-
->>>>
->>>>
->>>> _______________________________________________
->>>> linux-dvb mailing list
->>>> linux-dvb@linuxtv.org
->>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>
->>
->
->
-
+-- 
+Yours, Mikhail Ramendik
 
 _______________________________________________
 linux-dvb mailing list
