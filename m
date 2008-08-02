@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n35.bullet.mail.ukl.yahoo.com ([87.248.110.168])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1KUAXH-0008M5-Mr
-	for linux-dvb@linuxtv.org; Sat, 16 Aug 2008 03:24:56 +0200
-Date: Fri, 15 Aug 2008 21:24:17 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-References: <468178.93567.qm@web36102.mail.mud.yahoo.com>
-In-Reply-To: <468178.93567.qm@web36102.mail.mud.yahoo.com> (from
-	knueffle@yahoo.com on Fri Aug 15 14:39:56 2008)
-Message-Id: <1218849857l.17885l.0l@manu-laptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re :  how to save epg data directly from dvb device?
+Received: from mail-in-10.arcor-online.net ([151.189.21.50])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hermann-pitton@arcor.de>) id 1KP5K8-0001tl-MN
+	for linux-dvb@linuxtv.org; Sat, 02 Aug 2008 02:50:21 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Muppet Man <muppetman4662@yahoo.com>
+In-Reply-To: <595821.21214.qm@web34403.mail.mud.yahoo.com>
+References: <595821.21214.qm@web34403.mail.mud.yahoo.com>
+Date: Sat, 02 Aug 2008 02:43:16 +0200
+Message-Id: <1217637796.2678.1.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Error message trying to compile v4l with Fedora 9
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,39 +19,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 15.08.2008 14:39:56, Jody Gugelhupf a =E9crit=A0:
-> Hi there, =
+Hi,
 
-> i got a dvb-s pci card, I want to get all the epg data available from
-> several satellites, all the channels they got. I got two questions.
-> =
+Am Freitag, den 01.08.2008, 16:59 -0700 schrieb Muppet Man:
+> Greetings all,
+> I am attempting to compile the v4l-dvb drivers via the instructions on
+> the website, but when I go into root to "make" I get this error.
+> 
+> [root@localhost ~]# cd /home/ed/v4l-dvb/
+> [root@localhost v4l-dvb]# make
+> make -C /home/ed/v4l-dvb/v4l 
+> make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
+> No version yet, using 2.6.25.11-97.fc9.i686
+> make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
+> make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
+> scripts/make_makefile.pl
+> Updating/Creating .config
+> Preparing to compile for kernel version 2.6.25
+> File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config
+> at ./scripts/make_kconfig.pl line 32, <IN> line 4.
+> make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
+> make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
+> Updating/Creating .config
+> Preparing to compile for kernel version 2.6.25
+> File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config
+> at ./scripts/make_kconfig.pl line 32, <IN> line 4.
+> make[1]: *** No rule to make target `.myconfig', needed by
+> `config-compat.h'.  Stop.
+> make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
+> make: *** [all] Error 2
+> 
+> I have searched around trying to find any answers but I found nothing.
+> Any help would be greatly appreciated.
+> Thanks
 
-> 1. Is it possible using dvbstream to save the raw epg data in a file?
->   1.1 if yes, how?
->   1.2 if no, how can i save the raw epg data from dvb-s?
-> 2. What kind of converters are there already, that convert raw epg
-> data into any usable format e.g. xml ? and which ones are those?
-> =
+eventually,
 
-> thx for any help and please any hints tips are welcome :)
-> jody :D
+"yum install kernel-devel" ?
 
-You can probably use dvbsnoop on the correct pid (dont remember now but =
+Cheers,
+Hermann
 
-easy to find I guess) and set the filters correctly to get the eit =
 
-tables only. Use -b to get the raw stream (without it dvbsnoop will =
-
-decode it for you that might help you in the process).
-HTH
-Bye
-Manu
 
 
 _______________________________________________
