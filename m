@@ -1,20 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m78C6Rse031602
-	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 08:06:27 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m78C67tI010330
-	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 08:06:07 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so565303fga.7
-	for <video4linux-list@redhat.com>; Fri, 08 Aug 2008 05:06:07 -0700 (PDT)
-Message-ID: <489C36A3.4060603@gmail.com>
-Date: Fri, 08 Aug 2008 13:05:55 +0100
-From: zePh7r <zeph7r@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m724YPfu028455
+	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 00:34:25 -0400
+Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.183])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m724YCth028476
+	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 00:34:12 -0400
+Received: by py-out-1112.google.com with SMTP id a29so640752pyi.0
+	for <video4linux-list@redhat.com>; Fri, 01 Aug 2008 21:34:11 -0700 (PDT)
+Message-ID: <4893E3AE.4000204@gmail.com>
+Date: Sat, 02 Aug 2008 00:33:50 -0400
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <200807302324.15221.hverkuil@xs4all.nl>
+In-Reply-To: <200807302324.15221.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Support for Asus My-Cinema U3000Hybrid?
+From: David Ellingsworth <david@identd.dyndns.org>
+Cc: v4l <video4linux-list@redhat.com>, linux-kernel@vger.kernel.org
+Subject: Re: V4L2 & request_module("char-major-...")
+Reply-To: david@identd.dyndns.org
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,145 +30,124 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Sometime ago, I bought this usb hybrid tv tuner with FM radio, an Asus 
-My-Cinema U3000Hybrid, which considering some Googling I've made on the 
-subject seems to be a tuner primarily marketed to eastern and southern 
-Europe markets.
+Hans Verkuil wrote:
+> Hi all,
+>
+> I'm in the process of converting v4l2-dev.c (2.6.27, in earlier kernels 
+> it was called videodev.c) from using register_chrdev() to using 
+> register_chrdev_region() and cdev_add().
+>
+> The problem I have is that register_chrdev provides a file_operations 
+> struct. The video_open() function in there performs this piece of code 
+> when a video device is opened:
+>
+>         vfl = video_device[minor];
+>         if (vfl == NULL) {
+>                 mutex_unlock(&videodev_lock);
+>                 request_module("char-major-%d-%d", VIDEO_MAJOR, minor);
+>                 mutex_lock(&videodev_lock);
+>                 vfl = video_device[minor];
+>                 if (vfl == NULL) {
+>                         mutex_unlock(&videodev_lock);
+>                         unlock_kernel();
+>                         return -ENODEV;
+>                 }
+>         }
+>
+> It checks if a V4L2 driver registered this particular minor, if not then 
+> it tries to load the appropriate module with a char-major-x-x alias. If 
+> still no luck, then we bail out.
+>
+> Now, as I understand it this can only happen if someone used mknod to 
+> create device nodes and is not using udev. It's not clear to me however 
+> how this can ever work: the char-major alias relies on the fact that 
+> someone has to link the minor number with an actual V4L driver, but you 
+> do not generally know what minor number will be used by a specific 
+> driver (depends on load order, etc). Or am I missing something?
+>
+> My questions are:
+>
+> 1) is this code still relevant?
+>   
+The code is relevant as long as v4l2-dev allocs and associates a block 
+of minor number with it's fops.
+> 2) if so, how can I replace this code when I switch to cdev since in 
+> that case there is no longer a video_open() that can be used for this.
+>   
+It's interesting that you mention this, I've examined this same problem. 
+Essentially, if v4l2-dev only calls cdev_add on minor numbers which have 
+been used, there is no need to keep the request_module call in 
+video_open. Since v4l2-dev currently calls register_chrdev in 
+videodev_init, cdev_add is always called on the entire block. If 
+register_chrdev_region is used instead, cdev_add can be called during 
+video_register_device_index and the call to request_module can be removed.
+> 3) I also saw after some googling this proposed patch: 
+> http://linux.derkeiler.com/Mailing-Lists/Kernel/2003-09/2925.html
+> It adds a MODULE_ALIAS_CHARDEV_MAJOR line for videodev.c. Either this 
+> patch was never applied or quickly removed in videodev.c since it's not 
+> there. I'm not sure how this relates to the request_module in the 
+> current code and whether it should be added after all or not.
+>   
+I haven't reviewed this patch, but converting v4l2-dev to use 
+register_chrdev_region is rather trivial. However, removing video_open 
+can't be done without a) patching char_dev or b) reference counting the 
+video_device struct. v4l2-dev currently uses a static fops which 
+references video_open. The dependency on v4l2-dev's fops can be removed 
+if the cdev struct passed to cdev_add is initialized with the the fops 
+provided by drivers which use v4l2-dev. This means a cdev struct would 
+be needed for every video_device struct created. Embedding the cdev 
+struct in the video_device struct and using cdev_init would surely solve 
+this problem, but it exposes another problem.
 
-Asus is very scarce concerning information related to the device 
-specifications. "Official" information is here 
-http://www.asus.com/products.aspx?modelmenu=2&model=1639&l1=18&l2=84&l3=254&l4=0
+The problem results from how the cdev struct is reference counted. 
+Taking a close look at char_dev you'll see that the reference count of 
+the kobject in the cdev struct is initialized during cdev_init or 
+cdev_alloc, incremented during cdev_open, and decremented during 
+cdev_del and __fputs(file_table.c) using cdev_get and cdev_put. Once 
+cdev's kobject reference count reaches 0, cdev_default_release or 
+cdev_dynamic_release will be called to cleanup or free the struct 
+depending on how it was initialized. Unfortunately, cdev_default_release 
+nor cdev_dynamic_release provide a way to synchronize freeing of the 
+containing struct. Thus, if a cdev struct is embedded into the 
+video_device struct, the video_device struct must be reference counted 
+in the same way which essentially ensures keeping video_open and the 
+addition of video_close. The alternative is to add an optional release 
+callback to the cdev struct and call that function during 
+cdev_default_release and cdev_dynamic_release so that the containing 
+video_device struct may be freed properly.
 
-and here  
-http://www.asus.com.au/products.aspx?l1=18&l2=84&l3=254&l4=0&model=1639&modelmenu=2
+In addition to the above problem, there is the issue of sysfs. The 
+video_device struct has a release callback, but it's use is far from 
+correct. Currently this callback _always_ occurs in 
+video_unregister_device when unregister_device is called. If a cdev 
+struct is embedded in the video_device struct, this would certainly 
+result in the freeing of the cdev struct at an inappropriate time. Some 
+thought will have to be given about how to handle this properly. 
+Personally, I believe the kobject callback (video_release) should only 
+free sysfs related structures and not the entire video_device struct, 
+like soo many drivers currently do.
 
-why the second link mentions a so-called "IXCEIVE" tv tuner and the 
-first one omits it beats me completely.
+I have some patches which address all of the above issues, but I have 
+not had time to thoroughly test them and have therefore not yet 
+submitted them. I'd be willing to send them to you if you're interested.
 
-The device seems unsupported out-of-the-box in my OpenSUSE 11.0 
-(2.6.25.11 kernel) and when I tried googling about linux support I found 
-a complete vacuum concerning it. The official support page (forum) has 
-some questions related to linux support, all left unanswered. Also, I 
-tried inquiring the direct email help support from asus, getting 
-non-clear answers (all the operator told me was that "the specification 
-of TV Tuner is Philips"). I was also surprised to see that this device 
-is not mentioned in the mailing lists.
+Regards,
 
-my lsusb:
-Bus 007 Device 002: ID 04f3:0210 Elan Microelectronics Corp. AM-400 Hama 
-Optical Mouse
-Bus 007 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 006 Device 003: ID 12d1:1003 Huawei Technologies Co., Ltd. E220 
-HSDPA Modem / E270 HSDPA/HSUPA Modem
-Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 001 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 004 Device 007: ID 0b05:1736 ASUSTek Computer, Inc.
-Bus 004 Device 005: ID 064e:a101 Suyin Corp. HP Pavilion dv9640us WebCam
-Bus 004 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-
-
-and my lsusb -v concerning only to the asus device:
-
-Bus 004 Device 007: ID 0b05:1736 ASUSTek Computer, Inc.
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x0b05 ASUSTek Computer, Inc.
-  idProduct          0x1736
-  bcdDevice            1.00
-  iManufacturer           1
-  iProduct                2
-  iSerial                 3
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0xa0
-      (Bus Powered)
-      Remote Wakeup
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol      0
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-can't get device qualifier: Operation not permitted
-can't get debug descriptor: Operation not permitted
-cannot read device status, Operation not permitted (1)
-
-I think there is some confusion in the available information concerning 
-the chips used in this device. According to other resource I found: 
-http://www.senorg.ro/tv-tunere/asus , a Philips chipset seems to be used 
-in older models, some analog only. In the other hand I since xceive 
-tuners seem to do the job on both the analog and digital sides, I don't 
-see the need to add a a DibCom chipset as well... As so I'm a little 
-sceptical about the information available. I was thinking about trying 
-the xc3028 or the other members of the xceive family of drivers but I 
-was not sure as to em28xx would be an important part to add as well or 
-what would be its role in it...
-
-I could think of opening the encased device but I'd preferably rather 
-not, as it normally turns out to be irreversible...
-
-Thanks in advance,
---zePh7r
+David Ellingsworth
+> I had a hard time finding any useful information about this, so I hope 
+> someone can shed some light on this. It's the last piece of the puzzle 
+> that I need before I can drag the old and venerable v4l2-dev.c formerly 
+> known as videodev.c into the 21st century :-)
+>
+> Regards,
+>
+> 	Hans
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>   
 
 --
 video4linux-list mailing list
