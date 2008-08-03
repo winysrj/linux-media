@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dd15922.kasserver.com ([85.13.137.18])
+Received: from yw-out-2324.google.com ([74.125.46.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mldvb@mortal-soul.de>) id 1KVBJ7-0006vR-0x
-	for linux-dvb@linuxtv.org; Mon, 18 Aug 2008 22:26:32 +0200
-From: Matthias Dahl <mldvb@mortal-soul.de>
-To: Oliver Endriss <o.endriss@gmx.de>
-Date: Mon, 18 Aug 2008 22:26:19 +0200
-References: <200808121443.27020.mldvb@mortal-soul.de>
-	<200808160631.23359@orion.escape-edv.de>
-In-Reply-To: <200808160631.23359@orion.escape-edv.de>
+	(envelope-from <steele.brian@gmail.com>) id 1KPhiG-0007UM-RW
+	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 19:49:49 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so811328ywj.41
+	for <linux-dvb@linuxtv.org>; Sun, 03 Aug 2008 10:49:44 -0700 (PDT)
+Message-ID: <5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
+Date: Sun, 3 Aug 2008 10:49:43 -0700
+From: "Brian Steele" <steele.brian@gmail.com>
+To: "Andy Walls" <awalls@radix.net>
+In-Reply-To: <1217728894.5348.72.camel@morgan.walls.org>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_trdqI9rWqCBaQwA"
-Message-Id: <200808182226.21705.mldvb@mortal-soul.de>
+Content-Disposition: inline
+References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
+	<1217728894.5348.72.camel@morgan.walls.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Possible SMP problems with budget_av/saa7134
+Subject: Re: [linux-dvb] HVR-1600 - No audio
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,283 +23,69 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_trdqI9rWqCBaQwA
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Sat, Aug 2, 2008 at 7:01 PM, Andy Walls <awalls@radix.net> wrote:
+> On Tue, 2008-07-29 at 19:34 -0700, Brian Steele wrote:
+>
+>
+>> cx18-0: VIDIOC_QUERYCTRL id=0x980909, type=2, name=Mute, min/max=0/1,
+>> step=1, default=0, flags=0x00000000
+>> cx18-0: VIDIOC_QUERYCTRL id=0x98090a, type=2, name=Mute, min/max=0/1,
+>> step=1, default=0, flags=0x00000001
+>> cx18-0: VIDIOC_QUERYCTRL id=0x99096d, type=2, name=Audio Mute,
+>> min/max=0/1, step=1, default=0, flags=0x00000000
+>>
+> IIRC, one mute is for the audio processing paths in the cx18-av-core,
+> the other mute is for muting the audio in the MPEG encoder.
 
-Hello Oliver.
+Looking at the code it looks like the one named "Audio Mute" is for
+the MPEG encoder and the one named "Mute" is for cx18-av-core.  As you
+can see there are three mutes with different ids in my output.  This
+seems very odd to me.
 
-On Saturday 16 August 2008 06:31:21 Oliver Endriss wrote:
+>> I'm using v4l-dvb pulled from hg about 2 hours ago.  Does anybody have
+>> any ideas what else I can do to debug this or how to fix it?
+>
+> First make sure that line in audio from a portable DVD player or VCR
+> still works.  Just to make sure that in fact tuner audio is the only
+> problem.
 
-> Please test the attached patch 
+I plugged a camcorder into S-Video1 and successfully captured audio
+when I did playback from the camcorder.  I think this confirms that
+tuner audio is the only problem.
 
-So far everything is looking very good- haven't had a single failure in almost 
-2 days now. So all my work on the en50221 implementation was pretty much 
-wasted, at least I understand now how things work. :-) Tomorrow I'll start 
-testing with vdr no longer bound to one cpu core and see how this goes.
+> Then with tuner video & audio, you need to try to get the system to a
+> state where the audio microcontroller in the cx18-av-core actually
+> detects a sound standard in the SIF audio coming from the tuner.  Try
+> changing channels and see if there is any channel that gives you sound -
+> or at least shows that the microcontroller has detected a sound
+> standard.
+>
+> If that doesn't work, I look into how you can manually have the MPEG
+> encoder fall back to using Tuner AF (mono) instead of Tuner SIF audio.
+> Then we can make sure at least determine if the chips in the tuner are
+> demodulating the sound carrier properly.
 
-By the way, I hope you don't mind but I've extended your patch a bit to close 
-the few remaining locking holes which could cause a race condition. You find 
-it attached to this mail. Basically I've expanded the locking for the reset 
-function and added locking for the remaining relevant functions. It's still 
-untested because my system is currently busy but I'll have it properly tested 
-tomorrow. Just wanted to already get some feedback on it.
+I tried about 7 different channels.  None of them showed a detected
+audio standard and none of them had any sound when I did test
+captures.  All my test captures have good video.
 
-Thanks for taking the time by the way, it's really appreciated!
+> (Also note that the first analog capture after modprobe cx18 will not
+> work right: it will have no audio or choppy audio.  Every subsequent
+> capture should work fine.)
 
-So long,
-matthias.
+Yes, I've seen this.  I continue to have no audio from the tuner after
+numerous captures.
 
---Boundary-00=_trdqI9rWqCBaQwA
-Content-Type: text/x-diff;
-  charset="iso-8859-15";
-  name="budget-av_camlock_2.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="budget-av_camlock_2.diff"
-
---- budget-av.c.orig	2008-07-13 23:51:29.000000000 +0200
-+++ budget-av.c	2008-08-18 21:53:10.000000000 +0200
-@@ -65,10 +65,11 @@ struct budget_av {
- 	struct tasklet_struct ciintf_irq_tasklet;
- 	int slot_status;
- 	struct dvb_ca_en50221 ca;
-+	struct mutex camlock;
- 	u8 reinitialise_demod:1;
- };
- 
--static int ciintf_slot_shutdown(struct dvb_ca_en50221 *ca, int slot);
-+static int ciintf_unlocked_slot_shutdown(struct dvb_ca_en50221 *ca, int slot);
- 
- 
- /* GPIO Connections:
-@@ -128,7 +129,7 @@ static int i2c_writereg(struct i2c_adapt
- 	return i2c_transfer(i2c, &msgs, 1);
- }
- 
--static int ciintf_read_attribute_mem(struct dvb_ca_en50221 *ca, int slot, int address)
-+static int ciintf_unlocked_read_attribute_mem(struct dvb_ca_en50221 *ca, int slot, int address)
- {
- 	struct budget_av *budget_av = (struct budget_av *) ca->data;
- 	int result;
-@@ -141,9 +142,22 @@ static int ciintf_read_attribute_mem(str
- 
- 	result = ttpci_budget_debiread(&budget_av->budget, DEBICICAM, address & 0xfff, 1, 0, 1);
- 	if (result == -ETIMEDOUT) {
--		ciintf_slot_shutdown(ca, slot);
-+		ciintf_unlocked_slot_shutdown(ca, slot);
- 		printk(KERN_INFO "budget-av: cam ejected 1\n");
- 	}
-+
-+	return result;
-+}
-+
-+static int ciintf_read_attribute_mem(struct dvb_ca_en50221 *ca, int slot, int address)
-+{
-+	struct budget_av *budget_av = (struct budget_av *) ca->data;
-+	int result;
-+
-+	mutex_lock(&budget_av->camlock);
-+	result = ciintf_unlocked_read_attribute_mem(ca, slot, address);
-+	mutex_unlock(&budget_av->camlock);
-+
- 	return result;
- }
- 
-@@ -155,14 +169,19 @@ static int ciintf_write_attribute_mem(st
- 	if (slot != 0)
- 		return -EINVAL;
- 
-+	mutex_lock(&budget_av->camlock);
-+
- 	saa7146_setgpio(budget_av->budget.dev, 1, SAA7146_GPIO_OUTHI);
- 	udelay(1);
- 
- 	result = ttpci_budget_debiwrite(&budget_av->budget, DEBICICAM, address & 0xfff, 1, value, 0, 1);
- 	if (result == -ETIMEDOUT) {
--		ciintf_slot_shutdown(ca, slot);
-+		ciintf_unlocked_slot_shutdown(ca, slot);
- 		printk(KERN_INFO "budget-av: cam ejected 2\n");
- 	}
-+
-+	mutex_unlock(&budget_av->camlock);
-+
- 	return result;
- }
- 
-@@ -174,15 +193,19 @@ static int ciintf_read_cam_control(struc
- 	if (slot != 0)
- 		return -EINVAL;
- 
-+	mutex_lock(&budget_av->camlock);
-+
- 	saa7146_setgpio(budget_av->budget.dev, 1, SAA7146_GPIO_OUTLO);
- 	udelay(1);
- 
- 	result = ttpci_budget_debiread(&budget_av->budget, DEBICICAM, address & 3, 1, 0, 0);
- 	if (result == -ETIMEDOUT) {
--		ciintf_slot_shutdown(ca, slot);
-+		ciintf_unlocked_slot_shutdown(ca, slot);
- 		printk(KERN_INFO "budget-av: cam ejected 3\n");
--		return -ETIMEDOUT;
- 	}
-+
-+	mutex_unlock(&budget_av->camlock);
-+
- 	return result;
- }
- 
-@@ -194,14 +217,19 @@ static int ciintf_write_cam_control(stru
- 	if (slot != 0)
- 		return -EINVAL;
- 
-+	mutex_lock(&budget_av->camlock);
-+
- 	saa7146_setgpio(budget_av->budget.dev, 1, SAA7146_GPIO_OUTLO);
- 	udelay(1);
- 
- 	result = ttpci_budget_debiwrite(&budget_av->budget, DEBICICAM, address & 3, 1, value, 0, 0);
- 	if (result == -ETIMEDOUT) {
--		ciintf_slot_shutdown(ca, slot);
-+		ciintf_unlocked_slot_shutdown(ca, slot);
- 		printk(KERN_INFO "budget-av: cam ejected 5\n");
- 	}
-+
-+	mutex_unlock(&budget_av->camlock);
-+
- 	return result;
- }
- 
-@@ -213,6 +241,8 @@ static int ciintf_slot_reset(struct dvb_
- 	if (slot != 0)
- 		return -EINVAL;
- 
-+	mutex_lock(&budget_av->camlock);
-+
- 	dprintk(1, "ciintf_slot_reset\n");
- 	budget_av->slot_status = SLOTSTATUS_RESET;
- 
-@@ -231,10 +261,12 @@ static int ciintf_slot_reset(struct dvb_
- 	if (budget_av->reinitialise_demod)
- 		dvb_frontend_reinitialise(budget_av->budget.dvb_frontend);
- 
-+	mutex_unlock(&budget_av->camlock);
-+
- 	return 0;
- }
- 
--static int ciintf_slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
-+static int ciintf_unlocked_slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
- {
- 	struct budget_av *budget_av = (struct budget_av *) ca->data;
- 	struct saa7146_dev *saa = budget_av->budget.dev;
-@@ -250,6 +282,18 @@ static int ciintf_slot_shutdown(struct d
- 	return 0;
- }
- 
-+static int ciintf_slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
-+{
-+	struct budget_av *budget_av = (struct budget_av *) ca->data;
-+	int result;
-+
-+	mutex_lock(&budget_av->camlock);
-+	result = ciintf_unlocked_slot_shutdown(ca, slot);
-+	mutex_unlock(&budget_av->camlock);
-+
-+	return result;
-+}
-+
- static int ciintf_slot_ts_enable(struct dvb_ca_en50221 *ca, int slot)
- {
- 	struct budget_av *budget_av = (struct budget_av *) ca->data;
-@@ -258,10 +302,13 @@ static int ciintf_slot_ts_enable(struct 
- 	if (slot != 0)
- 		return -EINVAL;
- 
--	dprintk(1, "ciintf_slot_ts_enable: %d\n", budget_av->slot_status);
-+	mutex_lock(&budget_av->camlock);
- 
-+	dprintk(1, "ciintf_slot_ts_enable: %d\n", budget_av->slot_status);
- 	ttpci_budget_set_video_port(saa, BUDGET_VIDEO_PORTA);
- 
-+	mutex_unlock(&budget_av->camlock);
-+
- 	return 0;
- }
- 
-@@ -274,6 +321,8 @@ static int ciintf_poll_slot_status(struc
- 	if (slot != 0)
- 		return -EINVAL;
- 
-+	mutex_lock(&budget_av->camlock);
-+
- 	/* test the card detect line - needs to be done carefully
- 	 * since it never goes high for some CAMs on this interface (e.g. topuptv) */
- 	if (budget_av->slot_status == SLOTSTATUS_NONE) {
-@@ -302,8 +351,9 @@ static int ciintf_poll_slot_status(struc
- 			printk(KERN_INFO "budget-av: cam inserted B\n");
- 		} else if (result < 0) {
- 			if (budget_av->slot_status != SLOTSTATUS_NONE) {
--				ciintf_slot_shutdown(ca, slot);
-+				ciintf_unlocked_slot_shutdown(ca, slot);
- 				printk(KERN_INFO "budget-av: cam ejected 5\n");
-+				mutex_unlock(&budget_av->camlock);
- 				return 0;
- 			}
- 		}
-@@ -311,20 +361,23 @@ static int ciintf_poll_slot_status(struc
- 
- 	/* read from attribute memory in reset/ready state to know when the CAM is ready */
- 	if (budget_av->slot_status == SLOTSTATUS_RESET) {
--		result = ciintf_read_attribute_mem(ca, slot, 0);
-+		result = ciintf_unlocked_read_attribute_mem(ca, slot, 0);
- 		if (result == 0x1d) {
- 			budget_av->slot_status = SLOTSTATUS_READY;
- 		}
- 	}
- 
- 	/* work out correct return code */
-+	result = 0;
- 	if (budget_av->slot_status != SLOTSTATUS_NONE) {
--		if (budget_av->slot_status & SLOTSTATUS_READY) {
--			return DVB_CA_EN50221_POLL_CAM_PRESENT | DVB_CA_EN50221_POLL_CAM_READY;
--		}
--		return DVB_CA_EN50221_POLL_CAM_PRESENT;
-+		result = DVB_CA_EN50221_POLL_CAM_PRESENT;
-+		if (budget_av->slot_status & SLOTSTATUS_READY)
-+			result |= DVB_CA_EN50221_POLL_CAM_READY;
- 	}
--	return 0;
-+
-+	mutex_unlock(&budget_av->camlock);
-+
-+	return result;
- }
- 
- static int ciintf_init(struct budget_av *budget_av)
-@@ -332,6 +385,7 @@ static int ciintf_init(struct budget_av 
- 	struct saa7146_dev *saa = budget_av->budget.dev;
- 	int result;
- 
-+	mutex_init(&budget_av->camlock);
- 	memset(&budget_av->ca, 0, sizeof(struct dvb_ca_en50221));
- 
- 	saa7146_setgpio(saa, 0, SAA7146_GPIO_OUTLO);
-
---Boundary-00=_trdqI9rWqCBaQwA
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+Brian
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_trdqI9rWqCBaQwA--
