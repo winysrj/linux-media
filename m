@@ -1,22 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from yw-out-2324.google.com ([74.125.46.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1KTBKN-00087d-Te
-	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 10:03:33 +0200
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	58AC2180058D
-	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 08:02:05 +0000 (GMT)
-Content-Disposition: inline
+	(envelope-from <steele.brian@gmail.com>) id 1KPn9Q-00013J-6c
+	for linux-dvb@linuxtv.org; Mon, 04 Aug 2008 01:38:12 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so845716ywj.41
+	for <linux-dvb@linuxtv.org>; Sun, 03 Aug 2008 16:38:08 -0700 (PDT)
+Message-ID: <5f8558830808031638i33caaa3se8b1870240b37c53@mail.gmail.com>
+Date: Sun, 3 Aug 2008 16:38:08 -0700
+From: "Brian Steele" <steele.brian@gmail.com>
+To: "Andy Walls" <awalls@radix.net>
+In-Reply-To: <1217791214.2690.31.camel@morgan.walls.org>
 MIME-Version: 1.0
-From: stev391@email.com
-To: "Steven Toth" <stoth@linuxtv.org>
-Date: Wed, 13 Aug 2008 18:02:05 +1000
-Message-Id: <20080813080205.30823164293@ws1-4.us4.outblaze.com>
+Content-Disposition: inline
+References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
+	<1217728894.5348.72.camel@morgan.walls.org>
+	<5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
+	<1217791214.2690.31.camel@morgan.walls.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200
- H - DVB Only support
+Subject: Re: [linux-dvb] HVR-1600 - No audio
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,49 +31,8 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-> ----- Original Message -----
-> From: "Steven Toth" <stoth@linuxtv.org>
-> To: stev391@email.com
-> Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200 H - DVB Only support
-> Date: Tue, 12 Aug 2008 12:33:53 -0400
-> 
-> 
-> 
-> > ---------Leadtek_Winfast_PxDVR3200_H_Signed_Off.diff---------
-> > cx23885: Add DVB support for Leadtek Winfast PxDVR3200 H
-> >
-> > ---------cx23885_callback_tidyup.diff---------
-> > cx23885: Remove Redundant if statements in tuner callback
-> 
-> Thanks.
-> 
-> Pull this tree and run a quick test again (I had an odd whitespace merge issue - likely 
-> thunderbirds fault - that I have to cleanup):
-> 
-> http://linuxtv.org/hg/~stoth/v4l-dvb/
-> 
-> If everything is working then I'll issue the pull request for final merge.
-> 
-> - Steve
-
-Steve,
-
-I have tested this tree and all (DVB related items) are working with the Leadtek card.
-
-Thanks for your assistance and time in including this driver into your tree.
-
-Now I have to read up on analog support and see if I can get the mpeg encoder going...
-
-Regards,
-Stephen
-
-
--- 
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
-
+Quick update: I tried testing the card on another machine running
+Windows and I was getting good audio through the tuner
 
 _______________________________________________
 linux-dvb mailing list
