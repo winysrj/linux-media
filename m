@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from ti-out-0910.google.com ([209.85.142.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1KUE7u-0000TO-Do
-	for linux-dvb@linuxtv.org; Sat, 16 Aug 2008 07:14:59 +0200
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	4BFF91800F60
-	for <linux-dvb@linuxtv.org>; Sat, 16 Aug 2008 05:14:23 +0000 (GMT)
-Content-Disposition: inline
+	(envelope-from <kurtxue@gmail.com>) id 1KPhec-0006te-B1
+	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 19:46:05 +0200
+Received: by ti-out-0910.google.com with SMTP id w7so505897tib.13
+	for <linux-dvb@linuxtv.org>; Sun, 03 Aug 2008 10:45:55 -0700 (PDT)
+Message-ID: <f3ebb34d0808031045n15e1550bofd673c1ab1893e3@mail.gmail.com>
+Date: Sun, 3 Aug 2008 19:45:55 +0200
+From: "kurt xue" <kurtxue@gmail.com>
+To: loody <miloody@gmail.com>
+In-Reply-To: <3a665c760808022337m627a9562q1d47df062dfc67e0@mail.gmail.com>
 MIME-Version: 1.0
-From: stev391@email.com
-To: "Robert Golding" <robert.golding@gmail.com>
-Date: Sat, 16 Aug 2008 15:14:23 +1000
-Message-Id: <20080816051423.3B19911581F@ws1-7.us4.outblaze.com>
-Cc: linux dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200
- H - DVB Only support
+References: <3a665c760808022337m627a9562q1d47df062dfc67e0@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] About SI tables HOWTO
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,78 +21,80 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1183611261=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============1183611261==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_78209_12348963.1217785555303"
 
-> ----- Original Message -----
-> From: "Robert Golding" <robert.golding@gmail.com>
-> To: stev391@email.com
-> Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200 H - DVB Only support
-> Date: Sat, 16 Aug 2008 13:43:06 +0930
-> 
-> 
-> I have finally got the modules to load the PxDVR 3200 H I bought,
-> however, now I am getting "Failed to lock channel" error messages from
-> MeTV.
-> The 'channels.conf' file is correct as I used for my Dvico DVB-T.
-> 
->   I have replaced the Dvico with the Leadtek because I wanted to be
-> able to get local radio and also use the PCI-e channel since I have
-> many of them and only one PCI slot.
-> 
-> The card is auto-recognised and loads all dvb modules, including fw
-> and frontends.
-> 
-> One other thing, I attached an MS drive and tried it in windows [that
-> is another wholly different story :-) ] and it worked very well.  I
-> had occation to compare the channels info to each other and the Linux
-> version is OK.
-> 
-> Any information, no matter how small, to show how I might fix this
-> would be greatly apprecited
-> 
-> --
-> Regards,	Robert
-> 
-> ..... Some people can tell what time it is by looking at the sun, but
-> I have never been able to make out the numbers.
-> ---
-> Errata: Spelling mistakes are not intentional, however, I don't use
-> spell checkers because it's too easy to allow the spell checker to
-> make the decisions and use words that are out of context for that
-> being written, i.e. their/there, your/you're, threw/through and even
-> accept/except, not to mention foreign (I'm Australian) English
-> spelling, i.e. colour/color, socks/sox, etc,.
+------=_Part_78209_12348963.1217785555303
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Robert,
+Dear Miloody
 
-First things first.
-What errors are in the dmesg output? 
-(i.e. provide a dmesg output from the line loading the cx23885 driver onwards, ensure that you have tried to tune channels before doing this)
+Did you try linux-tv wiki ? I think you can find some general acknowledge
+about the tables there...
 
-Does it work in Windows on the same computer with the same antenna?
+regards,
+Kurt
 
-What does the dvb scan program give you when you try to scan for channels?
+On Sun, Aug 3, 2008 at 8:37 AM, loody <miloody@gmail.com> wrote:
 
-You said that the fw loads, is it the correct one (there are multiple copies of firmware running around for this tuner, it should state that it loaded 80 images in the dmesg)?
+> Dear all:
+> I know there are a lot of specs describing each si tables explicitly.
+> But I find I really need some book or information to tell me what are
+> these tables used for and when, how I need them.
+> If someone knows any article or book introduces the whole
+> relationships between different si tables, please let me know.
+>
+> thanks a lot,
+> miloody
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-Regards
+------=_Part_78209_12348963.1217785555303
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Stephen
+<div dir="ltr">Dear Miloody<br><br>Did you try linux-tv wiki ? I think you can find some general acknowledge about the tables there...<br><br>regards,<br>Kurt<br><br><div class="gmail_quote">On Sun, Aug 3, 2008 at 8:37 AM, loody <span dir="ltr">&lt;<a href="mailto:miloody@gmail.com">miloody@gmail.com</a>&gt;</span> wrote:<br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Dear all:<br>
+I know there are a lot of specs describing each si tables explicitly.<br>
+But I find I really need some book or information to tell me what are<br>
+these tables used for and when, how I need them.<br>
+If someone knows any article or book introduces the whole<br>
+relationships between different si tables, please let me know.<br>
+<br>
+thanks a lot,<br>
+miloody<br>
+<br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</blockquote></div><br></div>
 
-P.S. If you have gotten my email from the linux dvb list, please include it in the cc field in the email. So that others can learn from the problems and hopefully save me from typing the same response over and over. (By the way have checked the mailing list and tried the other solutions to problems people have encountered with this card?).
+------=_Part_78209_12348963.1217785555303--
 
--- 
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
 
+--===============1183611261==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1183611261==--
