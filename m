@@ -1,40 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7QNHx9A024585
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 19:18:00 -0400
-Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
-	[151.189.21.54])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7QNHk7A028485
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 19:17:46 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: ian.davidson@bigfoot.com
-In-Reply-To: <48B44CDF.60903@blueyonder.co.uk>
-References: <488C9266.7010108@blueyonder.co.uk>
-	<1217364178.2699.17.camel@pc10.localdom.local>
-	<4890BBE8.8000901@blueyonder.co.uk>
-	<1217457895.4433.52.camel@pc10.localdom.local>
-	<48921FF9.8040504@blueyonder.co.uk>
-	<1217542190.3272.106.camel@pc10.localdom.local>
-	<48942E42.5040207@blueyonder.co.uk>
-	<1217679767.3304.30.camel@pc10.localdom.local>
-	<4895D741.1020906@blueyonder.co.uk>
-	<1217798899.2676.148.camel@pc10.localdom.local>
-	<4898C258.4040004@blueyonder.co.uk> <489A0B01.8020901@blueyonder.co.uk>
-	<1218059636.4157.21.camel@pc10.localdom.local>
-	<489B6E1B.301@blueyonder.co.uk>
-	<1218153337.8481.30.camel@pc10.localdom.local>
-	<489D7781.8030007@blueyonder.co.uk>
-	<1218474259.2676.42.camel@pc10.localdom.local>
-	<48A8892F.1010900@blueyonder.co.uk>
-	<1219024648.2677.20.camel@pc10.localdom.local>
-	<48B44CDF.60903@blueyonder.co.uk>
-Content-Type: text/plain
-Date: Wed, 27 Aug 2008 01:15:46 +0200
-Message-Id: <1219792546.2669.17.camel@pc10.localdom.local>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m739DXo5014305
+	for <video4linux-list@redhat.com>; Sun, 3 Aug 2008 05:13:33 -0400
+Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m739DL0W002875
+	for <video4linux-list@redhat.com>; Sun, 3 Aug 2008 05:13:21 -0400
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Brian Rogers <brian_rogers@comcast.net>
+In-Reply-To: <48954612.7000906@comcast.net>
+References: <48954612.7000906@comcast.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Sun, 03 Aug 2008 10:33:51 +0200
+Message-Id: <1217752431.1714.11.camel@localhost>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: KWorld DVB-T 210SE - Capture only in Black/White
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: gspca "scheduling while atomic" crash
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -46,102 +27,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Ian,
-
-Am Dienstag, den 26.08.2008, 19:35 +0100 schrieb Ian Davidson:
-> Arrrrgh!
+On Sat, 2008-08-02 at 22:45 -0700, Brian Rogers wrote:
+> I have the following device:
+> Bus 007 Device 002: ID 0c45:60fc Microdia PC Camera with Mic (SN9C105)
 > 
-> My capture has gone back to Black and White.
+> Whether I build 2.6.27-rc1 or merge the stable branch of 
+> git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git 
+> into my Intrepid kernel (2.6.26), the system will lock up when I try to 
+> get video from my webcam.
 > 
-> Since being able to capture video in colour, I have been attempting to
-> install mjpegtools.  Today, having been pointed at the livna
-> repository, I have succeeded.  When I tried a video capture (for
-> regression testing purposes), I found that it was, once again, Black
-> and White.
+> To see the kernel output, I do this in the console:
+> mplayer -ao aa -tv device=v4l2:width=640:height=480:fps=30 tv://
 > 
-> Having said that, I get occasional glimpses of colour - and when I do,
-> it is the real colour of whatever the camera is pointing at.  Having
-> made a brief study, it would seem that occasional frames get colour at
-> the top half of the picture.  I have checked (broken and reconnected)
-> the connections between the camera and the computer, but is does not
-> seem to make any difference.
+> The result is a rapid stream of two alternating messages:
+> BUG: scheduling while atomic: swapper/0/0x8001???? (didn't get it all)
+> bad: scheduling from the idle thread!
 > 
-> Any ideas where I go from here?
-> 
-> Ian
-> 
+> During this the system doesn't respond to anything. It's a Core2 Duo 
+> running 64-bit Ubuntu Intrepid with 4GB of RAM. What other info should I 
+> provide to investigate this problem?
 
-please excuse, but you are on some limit for random issues.
+Hello Brian,
 
-We have, within what is hidden, about two hundreds saa713x cards.
+I think I saw the problem: usb_control_msg() is called at interrupt
+level..
 
-I'll pull some of my analog stuff out of the trash bin once more and
-check, but I don't like it to do it again and it will not happen
-endlessly.
+I hope to have a patch this morning.
 
-You will need some companions claiming still having the same after it.
+Cheers.
 
-If you have a chance to test on the Philips/NXP m$ driver, fine there ?
-
-I don't know what more to debug here and gave already all hints in all
-directions i can think about.
-
-Maybe they have done something really not recommended, but I can't tell.
-
-Cheers,
-Hermann
-
-
-
-
-
-> 
-> 
-> 
-> hermann pitton wrote: 
-> > Hi Ian,
-> > 
-> > Am Sonntag, den 17.08.2008, 21:25 +0100 schrieb Ian Davidson:
-> >   
-> > > Hi Hermann,
-> > > 
-> > > Success.  I did nothing of any significance.  What I did do was to add 
-> > > some more lines to saa7134-cards.c (to add vmux 5, 6 and 7) - and then 
-> > > went through the make process again.
-> > > 
-> > > Then, I ran xawtv and started by selecting Composite1 - and I got a 
-> > > colour image.
-> > > 
-> > > I also ran streamer to capture the video signal (using Composite1) and 
-> > > that also captured a colour image.
-> > > 
-> > > I hope it stays that way.
-> > > 
-> > > One other question - but this is probably not the correct place to ask. 
-> > > In the 'help' for streamer, it describes the use of 'lav2wav' to strip 
-> > > the audio out of a video file (that is, to create a separate WAV file 
-> > > using the audio in a particular AVI file).  I do not seem to have 
-> > > lav2wav on my system - and it does not appear to be something that yum 
-> > > acknowledges (using Fedora repositories).  Where might I find lav2wav or 
-> > > something similar?
-> > > 
-> > > Ian
-> > > 
-> > >     
-> > 
-> > as I told you previously already, please stay on the lists.
-> > 
-> > I don't even have a minimum consense about how to submit 5 to 7 patches
-> > currently within a kernel release cycle, but I'm very sure about that I
-> > don't like to be included in 24/7 games and would expect at least kernel
-> > level agreements for contributions still valid. Mauro?
-> > 
-> > So, you are on your own to get it in and further, but people on the
-> > lists are always helpful.
-> > 
-> > Cheers,
-> > Hermannn
-> > 
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
 
 
 --
