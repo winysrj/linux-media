@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7OE8ewp031721
-	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 10:08:40 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.237])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7OE8Tp5011182
-	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 10:08:29 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so1967438rvb.51
-	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 07:08:29 -0700 (PDT)
-Message-ID: <d9def9db0808240708p7fa3c012q57408d09db090a13@mail.gmail.com>
-Date: Sun, 24 Aug 2008 16:08:29 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: hansfong@zonnet.nl
-In-Reply-To: <20080824152931.hbojr7or58oggosc@webmail.versatel.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m73Ananh027576
+	for <video4linux-list@redhat.com>; Sun, 3 Aug 2008 06:49:36 -0400
+Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m73AnPRf001763
+	for <video4linux-list@redhat.com>; Sun, 3 Aug 2008 06:49:25 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <87d4krv0rd.fsf@free.fr>
+	<1217694634-32756-1-git-send-email-robert.jarzmik@free.fr>
+	<1217694634-32756-2-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0808022224490.27474@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sun, 03 Aug 2008 12:49:23 +0200
+In-Reply-To: <Pine.LNX.4.64.0808022224490.27474@axis700.grange> (Guennadi
+	Liakhovetski's message of "Sat\,
+	2 Aug 2008 22\:44\:03 +0200 \(CEST\)")
+Message-ID: <87vdyipe4s.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <20080824152931.hbojr7or58oggosc@webmail.versatel.nl>
+Content-Type: text/plain; charset=us-ascii
 Cc: video4linux-list@redhat.com
-Subject: Re: Low profile TV card
+Subject: Re: [PATCH 2/2] Add support for Micron MT9M111 camera.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,38 +31,80 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Aug 24, 2008 at 3:29 PM,  <hansfong@zonnet.nl> wrote:
-> I'm building a new system with a barebone AOpen/Intel Atom PC.  Problem is
-> that is can only fit one low profile PCI card. My 8 year old Pinnacle PCTV
-> pro doesn't fit, so....
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+
+> Nice! Not knowing this specific camera, I can only provide a couple of 
+> nitpicks:
+> Please reformat this comment to
+>
+> /*
+>  * mt9m111 i2c address is 0x5d or 0x48 (depending on SAddr pin)
+>  * The platform has to define i2c_board_info
+>  * and call i2c_register_board_info()
+>  */
+OK for next submit.
+
+>> +#define MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr	(1<<0)
+>
+> Please, add spaces around the "<<" in all defines above (except where they 
+> are already there, of course:-))
+OK for next submit.
 >
 
-ever thought about USB solutions? My impression is since they aren't
-directly connected with the motherboard and not influenced by the
-electronic fields in the PC the quality is usually better with a lower
-signal strength. I have an Asus DigiMatrix with Saa7134 and clearly
-notice that a stronger signal is required.
+>> +static const struct soc_camera_data_format mt9m111_colour_formats[] = {
+>> +	COL_FMT("YCrYCb 8 bit", 8, V4L2_PIX_FMT_YUYV, V4L2_COLORSPACE_JPEG),
+>> +	RGB_FMT("RGB 565", 16, V4L2_PIX_FMT_RGB565),
+>> +	RGB_FMT("RGB 555", 16, V4L2_PIX_FMT_RGB555),
+>> +	RGB_FMT("Bayer (sRGB) 10 bit", 10, V4L2_PIX_FMT_SBGGR16),
+>> +	RGB_FMT("Bayer (sRGB) 8 bit", 8, V4L2_PIX_FMT_SBGGR8),
+>> +};
+>
+> This is where you would add all those swapped pixel formats.
+Let's finish the dicussion in the other thread "[RFC] soc-camera: endianness
+between camera and its host".
 
-Do you mean PCI or miniPCI with low profile PCI card?
+> Is it really a good idea to keep the camera active all the time? Maybe 
+> only call enable / disable here, not on init / release?
+Well, I think so.
 
-Markus
+The idea here is the camera evaluates its environment to adjust its internal
+gain values. This a kind of PLL which provides Automatic White Balance,
+Automatic Gamma, Automatic Defect Correction.
+So, my idea is that once a user opens /dev/videoX, the camera gets activated and
+calculates the values. In that case, when he submits buffers to the V4L2 stack,
+the camera is really ready.
 
-> - what low profile PCI TV cards are out there that work well with Linux? I
-> need a simple analog card with composite and s-video inputs. Alternatively a
-> video capture card will fit the bill too.
-> - the latest line of Pinnacle cards seem low profile, but... I can't find
-> any info on a) if they are really low profile cards and come with the
-> appropriate bracket, b) the chipset they use . Does anyone know?
+But I can change that to activate the camera only on capture, I'm not very set
+on this. The user can start capturing, and then wait a couple of seconds for the
+camera to settle. So what do you think, should I move camera activation into
+start_capture / stop_capture ?
+>> +		.maximum	= 63*2*2,
+>> +		.step		= 1,
+>> +		.default_value	= 32,
+>> +		.flags		= V4L2_CTRL_FLAG_SLIDER,
 >
-> Cheers,
+> Come on, be generous, add a couple of spaces around that multiplication 
+> above.
+OK for next submit.
+
 >
-> Hans
+> [snip]
+>> +	if ((gain >= 64*2) && (gain < 63*2*2))
+>> +		val = (1 << 10) | (1 << 9) | (gain / 4);
+>> +	else if ((gain >= 64) && (gain < 64*2))
+> And here too, please.
+OK for next submit.
 >
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
+> [snip]
 >
+>> +/* Interface active, can use i2c. If it fails, it can indeed mean, that
+>> + * this wasn't our capture interface, so, we wait for the right one */
+>
+> Reformat the comment, please.
+OK for next submit.
+
+--
+Robert
 
 --
 video4linux-list mailing list
