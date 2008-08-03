@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.29])
+Received: from nf-out-0910.google.com ([64.233.182.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <beth.null@gmail.com>) id 1KVS2i-0005cz-Jl
-	for linux-dvb@linuxtv.org; Tue, 19 Aug 2008 16:18:41 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so1219748yxg.41
-	for <linux-dvb@linuxtv.org>; Tue, 19 Aug 2008 07:18:36 -0700 (PDT)
-Message-ID: <7641eb8f0808190718j272d3f49gabe4f33f00154668@mail.gmail.com>
-Date: Tue, 19 Aug 2008 16:18:35 +0200
-From: Beth <beth.null@gmail.com>
+	(envelope-from <liplianin@me.by>) id 1KPbBF-0006ij-81
+	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 12:51:19 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so1664241nfb.11
+	for <linux-dvb@linuxtv.org>; Sun, 03 Aug 2008 03:51:13 -0700 (PDT)
 To: linux-dvb@linuxtv.org
-In-Reply-To: <63574.203.82.187.131.1219140832.squirrel@webmail.planb.net.au>
+Date: Sun, 3 Aug 2008 13:50:31 +0300
+References: <20080803030118.DF8FF164293@ws1-4.us4.outblaze.com>
+In-Reply-To: <20080803030118.DF8FF164293@ws1-4.us4.outblaze.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <7641eb8f0808180228y3446ca36y9ed9f770a3c2ec54@mail.gmail.com>
-	<7641eb8f0808190220r53c8e214r54e3d568dbfb454c@mail.gmail.com>
-	<63574.203.82.187.131.1219140832.squirrel@webmail.planb.net.au>
-Subject: Re: [linux-dvb] Skystar HD2 (device don't stream data).
+Message-Id: <200808031350.31928.igor@liplianin.net>
+From: "Igor M. Liplianin" <liplianin@me.by>
+Subject: [linux-dvb] TerraTec Cinergy S USB patch needs testing
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,42 +27,85 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Kevin, thanks for your help, I am still trying to interpret the
-information given by dvbsnoop, but all seems to be ok, oops, this make
-things worst because some must be wrong :). The problem is that I
-don't know what I am looking for, so yes, I get pid lists on the
-stream, data from an VID, but I really don't know what I am doing, or
-doing wrong.
+> Hi Igor,
+>
+> I just gut the Terratec Cinergy S USB (not the mac-edition) to work. I just
+> changed the product-id to 0064 und the vendor-id to 0ccd. Here in Germany
+> this USB-box is quite popular. Maybe you want to add these values to your
+> driver.
+>
+> best regards
+>
+> Thorsten Leupold
 
-Thanks for your kind help, regards.
+TerraTec Cinergy S USB patch. 
+I am asking all to test it.
+-----------------------------------------------------
+Add TerraTec Cinergy S USB support
 
-2008/8/19 Kevin Sheehan <ks@ephedrine.net>:
-> dvbsnoop is your friend.
->
-> http://dvbsnoop.sourceforge.net/
->
->
->> Last night I had the thing running and here are the results:
->>
->>
->> time dd if=/dev/dvb/adapter0/dvr0 of=test_100M.ts bs=1M count=100
->> 100+0 records in
->> 100+0 records out
->> 104857600 bytes (105 MB) copied, 35327.8 s, 3.0 kB/s
->>
->> real  588m47.813s
->> user  0m0.000s
->> sys   0m1.020s
->>
->>
->> Hey ten hours for a 100Mb file, definitively it's a turtle.
->>
->> What can I do with that file? as mplayer and similar doesn't plays it.
->>
->> Can I turn on something for debugging?
->>
->> Thats all (for today) thanks and kind regards.
->>
+From: Igor M. Liplianin <liplianin@me.by>
+
+Add TerraTec Cinergy S USB support
+
+Signed-off-by: Igor M. Liplianin <liplianin@me.by> 
+
+diff -Naur a/linux/drivers/media/dvb/dvb-usb/dw2102.c b/linux/drivers/media/dvb/dvb-usb/dw2102.c
+--- a/linux/drivers/media/dvb/dvb-usb/dw2102.c	2008-07-21 23:51:10.000000000 +0300
++++ b/linux/drivers/media/dvb/dvb-usb/dw2102.c	2008-08-03 13:33:42.000000000 +0300
+@@ -16,6 +16,9 @@
+ #ifndef USB_PID_DW2102
+ #define USB_PID_DW2102 0x2102
+ #endif
++#ifndef USB_PID_CINERGY_S
++#define USB_PID_CINERGY_S 0x0064
++#endif
+ 
+ #define DW2102_READ_MSG 0
+ #define DW2102_WRITE_MSG 1
+@@ -249,6 +252,7 @@
+ static struct usb_device_id dw2102_table[] = {
+ 	{USB_DEVICE(USB_VID_CYPRESS, USB_PID_DW2102)},
+ 	{USB_DEVICE(USB_VID_CYPRESS, 0x2101)},
++	{USB_DEVICE(USB_VID_TERRATEC, USB_PID_CINERGY_S)},
+ 	{ }
+ };
+ 
+@@ -273,6 +277,7 @@
+ 			return ret;
+ 		}
+ 		break;
++	case USB_PID_CINERGY_S:
+ 	case USB_PID_DW2102:
+ 		fw = frmwr;
+ 		break;
+@@ -313,6 +318,7 @@
+ 		}
+ 		/* init registers */
+ 		switch (dev->descriptor.idProduct) {
++		case USB_PID_CINERGY_S:
+ 		case USB_PID_DW2102:
+ 			dw2102_op_rw
+ 				(dev, 0xbf, 0x0040, &reset, 0,
+@@ -375,7 +381,7 @@
+ 			},
+ 		}
+ 	},
+-	.num_device_descs = 2,
++	.num_device_descs = 3,
+ 	.devices = {
+ 		{"DVBWorld DVB-S 2102 USB2.0",
+ 			{&dw2102_table[0], NULL},
+@@ -385,6 +391,10 @@
+ 			{&dw2102_table[1], NULL},
+ 			{NULL},
+ 		},
++		{"TerraTec Cinergy S USB",
++			{&dw2102_table[2], NULL},
++			{NULL},
++		},
+ 	}
+ };
+ 
 
 _______________________________________________
 linux-dvb mailing list
