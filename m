@@ -1,22 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from highwire.stanford.edu ([171.66.121.166])
+Received: from wx-out-0506.google.com ([66.249.82.224])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <durket@rlucier-home2.stanford.edu>)
-	id 1KRZrk-0003u0-IR
-	for linux-dvb@linuxtv.org; Fri, 08 Aug 2008 23:51:21 +0200
-Received: from rlucier-home2.stanford.edu (rlucier-home2.Stanford.EDU
-	[171.66.222.187])
-	by highwire.stanford.edu (Postfix) with ESMTP id AEF468DEB
-	for <linux-dvb@linuxtv.org>; Fri,  8 Aug 2008 14:51:14 -0700 (PDT)
-Received: from [192.168.3.201] (unknown [192.168.3.201])
-	by rlucier-home2.stanford.edu (Postfix) with ESMTP id 3AADD27779F
-	for <linux-dvb@linuxtv.org>; Fri,  8 Aug 2008 14:51:14 -0700 (PDT)
-Message-Id: <AF5547B3-455C-46B9-AF13-0AB7952FA2B3@rlucier-home2.stanford.edu>
-From: Michael Durket <durket@rlucier-home2.stanford.edu>
-To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Mime-Version: 1.0 (Apple Message framework v926)
-Date: Fri, 8 Aug 2008 14:51:13 -0700
-Subject: [linux-dvb] Twinhan/Azurewave DVB-S2 board
+	(envelope-from <miloody@gmail.com>) id 1KPXDd-0006J9-Rp
+	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 08:37:31 +0200
+Received: by wx-out-0506.google.com with SMTP id h27so545422wxd.17
+	for <linux-dvb@linuxtv.org>; Sat, 02 Aug 2008 23:37:25 -0700 (PDT)
+Message-ID: <3a665c760808022337m627a9562q1d47df062dfc67e0@mail.gmail.com>
+Date: Sun, 3 Aug 2008 14:37:24 +0800
+From: loody <miloody@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb]  About SI tables HOWTO
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,16 +25,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I was wondering if anyone out there has the Twinhan/Azurewave DVB-S2  
-board
-running with the Twinhan drivers under Linux? If so, do you have any  
-reception
-problems for DVB-S2 signals that people with other boards (like the TT- 
-S3200,
-etc) seem to be reporting or does the Twinhan board generally work  
-well with
-all DVB-S2 signals.
+Dear all:
+I know there are a lot of specs describing each si tables explicitly.
+But I find I really need some book or information to tell me what are
+these tables used for and when, how I need them.
+If someone knows any article or book introduces the whole
+relationships between different si tables, please let me know.
 
+thanks a lot,
+miloody
 
 _______________________________________________
 linux-dvb mailing list
