@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from berter.planb.net.au ([202.138.65.24])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@ephedrine.net>) id 1KWL8C-0005xo-Uu
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 03:08:02 +0200
-Message-ID: <52113.203.82.187.131.1219367267.squirrel@webmail.planb.net.au>
-In-Reply-To: <20080821174512.GC32022@raven.wolf.lan>
-References: <20080820214814.GB32022@raven.wolf.lan><369347.83967.qm@web46113.mail.sp1.yahoo.com>
-	<20080821174512.GC32022@raven.wolf.lan>
-Date: Fri, 22 Aug 2008 11:07:47 +1000 (EST)
-From: "Kevin Sheehan" <linux-dvb@ephedrine.net>
-To: "Josef Wolf" <jw@raven.inka.de>
-MIME-Version: 1.0
+	(envelope-from <awalls@radix.net>) id 1KPScC-00044Y-T4
+	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 03:42:36 +0200
+From: Andy Walls <awalls@radix.net>
+To: mpapet@yahoo.com
+In-Reply-To: <454501.55957.qm@web62012.mail.re1.yahoo.com>
+References: <454501.55957.qm@web62012.mail.re1.yahoo.com>
+Date: Sat, 02 Aug 2008 21:42:22 -0400
+Message-Id: <1217727742.5348.55.camel@morgan.walls.org>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
+Subject: Re: [linux-dvb] cx18 hvr-1600 update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,128 +25,142 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Josef,
+On Tue, 2008-07-29 at 09:26 -0700, Michael Papet wrote:
+> Andy,
+> 
+> Thanks again for your help on this.  
+> 
+> 1. I tried your test procedure and got an mpeg file full of snow.
+> Maybe this is not related to the problem, but an NTSC channel scan in
+> mythtv picks up all of the NTSC channels just fine.  It's the fact
+> that watching is all snow.  I've verified the cable/antenna connection
+> to the card is good by connecting it to the TV and watching TV/tuning
+> channels.
 
-Barry was right on the money with the ts2ps suggestion below.  It's part
-of the libdvb package.  You don't have to use the dvb-mpegtools app, you
-can just use the lib in yours - no pipes, etc.
+So what you are saying is that no matter what channel you try to tune
+to, mythtv and mplayer always show snow, right?
 
-rgs
+After you change channels in MythTV, what does "v4l2-ctl --log-status"
+show for "Frequency" and for "Video Signal"? 
 
-> Thank you for the extensive answer, Barry!
->
-> On Thu, Aug 21, 2008 at 05:10:10AM -0700, barry bouwsma wrote:
->> --- On Wed, 8/20/08, Josef Wolf <jw@raven.inka.de> wrote:
->>
->> > > >I'd like to convert live mpeg-ts streams from DVB-S on the fly into
->> > > >a mpeg-ps stream.  I know that (for example)
->> >
->> > In principle, yes.  But there is a big drawback to such a solution:
->> > the pipes (and demuxing/muxing in a different process) will introduce
->> > lots of context switches.  Since I want to convert four full
->> > transponders at the same time (about 25 channels), this will certainly
->> > kill my 450MHz PII machine.  Let alone the 25 additional mencoder
->> > processes all running in parallel.
->>
->> Can I ask for more details?  As I'm using a 200MHz and similar
->> machines for full- and partial-TS work from 4 DVB cards, I have
->> some concerns, that may or may not be a problem.
->>
->> What sort of cards are you using -- internal PCI or external USB?
->
-> Technotrends internal PCI budget cards.
->
->> When I'm handling a high bandwidth (BBC-HD) program on my internal
->> PCI card, not even a full transport stream, I start to feel the
->> CPU pinch, which will be far worse for USB streams.
->
-> I am not interested in HD (yet).  But surely this will change at
-> some point in time.
->
->> Given about
->> 36Mbit/sec per transponder, you'll be schlepping quite a bit of
->> data, which may give you concern.  Keep an eye on idle time.
->
-> Grabbing 18 TV TS streams from 3 transponders gives 60% idle at the
-> moment. (my fourth card has died and I have not bought a replacement
-> yet.  AFAIK they have stopped manufacturing the cards :-(( )
->
->> Of course, my machine is only an MMX Pentium, and only 32MB RAM,
->> so will by far reach its capacity well before yours; mine seems to
->> max out with a 15Mbit/sec HD stream (internal PCI), a full 16Mbit/
->> sec transport stream via USB of DVB-T, and two filtered USB1 partial
->> radio streams, doing nothing but writing files to internal disks.
->
-> Watch out for a catch when writing to internal (ext3) disks: When
-> the commit-interval is reached and the journal is flushed, write(2)
-> blocks for a significant time.  You risk buffer overruns on the
-> incoming TS if you are reading in the same thread.  I had this problem
-> a long time ago when I did my first experiments with DVB drivers.
->
->> Are you intending to use the PSen in real-time like it seems you
->> describe, or will you/can you be recording for later use?
->
-> Both.  But the recording would probably be by grabbing the already
-> converted real-time stream via
->
->   wget http://dvb.local:1234/zdf.ps
->
-> or something.  Decoupling recording from demuxing saves me from the
-> above mentioned catch.  In addition, recording can be done on every
-> host in my network.  I could even roll a script based on LWP to get
-> the start/end time of the recording correct.
->
->> It sounds like you may, given your example of ZDF, be streaming
->> the oeffis from 10744 (arte & Co), 11836 (ARD & Co), ZDF, and some
->> Dritte programs at 12110.
->
-> 11836 + 11954 + 12188 + 12545.  Unfortunately, they have moved arte
-> from 12188 and a fifth card is not supported by the drivers :-(
->
->> If I'm not mistaken, your program stream should include the video PID
->> data, plus an audio PID (only one, I'll assume the primary mp2 audio,
->> though you may choose the AC3 where present) from each channel, so no
->> worry about second/alternative audio, teletext, or additional program
->> tables sent in the full stream.
->
-> No, I want to get all the streams so I can select language on the client
-> (vlc or something).
->
->> The program `ts2ps', part of the dvb-mpegtools suite, or something
->> similar from those programs, can be used to repack the data into
->> PS, and should be a lot more lightweight than mencoder.
->
-> This would still need the pipes.  Introducing pipes would introduce
-> significant context switching since pipes are (AFAIR) only 8kbytes.
-> So, assuming 500kbytes/sec, I would get 240 context switches per
-> second for every program.  This gives a total of 6000 context switches
-> every second.  You need _really_ big iron to cope with this.
->
->> Timing data is partially within each PID, so you should be able to
->> get a usable PS from just the two PIDs.
->
-> Yes, timing is within the PID.  But there are lots of times there:
->  - PCR, OPCR, DTS_next_AU from the adaptation field
->  - PTS, DTS, ESCR_base, ECSR_extension, ES_rate from the PES header
->  - there's the possibility that the PCR is carried in a different
->    PID (indicated by the PCR_PID field in the PMT)
->
-> Which one do I have to use to create the PS header?  I guess I have to
-> use the PTS from the PES, but I fail to deduce this from the iso-13818-1.
->
->> Given the amount of data you'll be handling on your 450MHz machine,
->> you may see lost packets and thus corruption at full load, so test
->> by working your way from a single functioning transponder up to the
->> full workload.
->
-> I don't have lost packets, but still artefacts in the video.  Looks like
-> the additional stream_id's on the video-PID disturbs vlc's decoder.
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+> 
+> 2. In an attempt to eliminate auto config problems, I'm forcing cx18
+> options.  options cx18 debug=3 radio=0 tuner=57 cardtype=1 ntsc=M
+> Changing the tuner model didn't do anything different.  
+
+You may want to set the "debug" option for the "tuner" module
+in /etc/modprobe.conf, and you may also want to set the I2C debugging
+flag for the cx18 module as well.  If the messages to the tuner never
+make it over the I2C bus, then the tuner will never change freqs.
+
+
+
+> 3. I sent the wrong lspci -v.  I'm sorry to waste your time on dumb
+> mistakes.  Here's the correct one
+> 
+> 00:00.0 Host bridge: Intel Corporation 82845G/GL[Brookdale-G]/GE/PE DRAM Controller/Host-Hub Interface (rev 01)                                                                                     
+>         Flags: bus master, fast devsel, latency 0                                                 
+>         Memory at e8000000 (32-bit, prefetchable) [size=128M]                                     
+>         Capabilities: [e4] Vendor Specific Information                                            
+> 
+> 00:02.0 VGA compatible controller: Intel Corporation 82845G/GL[Brookdale-G]/GE Chipset Integrated Graphics Device (rev 01) (prog-if 00 [VGA])                                                       
+>         Subsystem: Compaq Computer Corporation Evo D510 SFF                                       
+>         Flags: bus master, fast devsel, latency 0, IRQ 16                                         
+>         Memory at f0000000 (32-bit, prefetchable) [size=128M]                                     
+>         Memory at f8400000 (32-bit, non-prefetchable) [size=512K]                                 
+>         Capabilities: [d0] Power Management version 1                                             
+> 
+> 00:1d.0 USB Controller: Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #1 (rev 01) (prog-if 00 [UHCI])                                                                  
+>         Subsystem: Compaq Computer Corporation Unknown device 00b9                                
+>         Flags: bus master, medium devsel, latency 0, IRQ 16                                       
+>         I/O ports at 2440 [size=32]                                                               
+> 
+> 00:1d.1 USB Controller: Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #2 (rev 01) (prog-if 00 [UHCI])                                                                  
+>         Subsystem: Compaq Computer Corporation Unknown device 00b9                                
+>         Flags: bus master, medium devsel, latency 0, IRQ 19                                       
+>         I/O ports at 2460 [size=32]                                                               
+> 
+> 00:1d.7 USB Controller: Intel Corporation 82801DB/DBM (ICH4/ICH4-M) USB2 EHCI Controller (rev 01) (prog-if 20 [EHCI])                                                                               
+>         Subsystem: Compaq Computer Corporation Unknown device 00b9                                
+>         Flags: bus master, medium devsel, latency 0, IRQ 23                                       
+>         Memory at f8480000 (32-bit, non-prefetchable) [size=1K]                                   
+>         Capabilities: [50] Power Management version 2                                             
+>         Capabilities: [58] Debug port                                                             
+> 
+> 00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev 81) (prog-if 00 [Normal decode])
+>         Flags: bus master, fast devsel, latency 0                                           
+>         Bus: primary=00, secondary=05, subordinate=05, sec-latency=64                       
+>         I/O behind bridge: 00001000-00001fff                                                
+>         Memory behind bridge: e3d00000-e7ffffff                                             
+> 
+> 00:1f.0 ISA bridge: Intel Corporation 82801DB/DBL (ICH4/ICH4-L) LPC Interface Bridge (rev 01)
+>         Flags: bus master, medium devsel, latency 0                                          
+> 
+> 00:1f.1 IDE interface: Intel Corporation 82801DB (ICH4) IDE Controller (rev 01) (prog-if 8a [Master SecP PriP])                                                                                     
+>         Subsystem: Compaq Computer Corporation Unknown device 00b9                                
+>         Flags: bus master, medium devsel, latency 0, IRQ 18                                       
+>         I/O ports at 01f0 [size=8]                                                                
+>         I/O ports at 03f4 [size=1]                                                                
+>         I/O ports at 0170 [size=8]                                                                
+>         I/O ports at 0374 [size=1]                                                                
+>         I/O ports at 24a0 [size=16]
+>         Memory at 20000000 (32-bit, non-prefetchable) [size=1K]
+> 
+> 05:04.0 Multimedia audio controller: C-Media Electronics Inc CM8738 (rev 10)
+>         Subsystem: C-Media Electronics Inc CMI8738/C3DX PCI Audio Device
+>         Flags: bus master, medium devsel, latency 66, IRQ 16
+>         I/O ports at 1000 [size=256]
+>         Capabilities: [c0] Power Management version 2
+> 
+> 05:08.0 Ethernet controller: Intel Corporation 82801DB PRO/100 VM (LOM) Ethernet Controller (rev 81)
+>         Subsystem: Compaq Computer Corporation Unknown device 0012
+>         Flags: bus master, medium devsel, latency 66, IRQ 20
+>         Memory at e3d00000 (32-bit, non-prefetchable) [size=4K]
+>         I/O ports at 1400 [size=64]
+>         Capabilities: [dc] Power Management version 2
+> 
+> 05:09.0 Multimedia video controller: Conexant Unknown device 5b7a
+>         Subsystem: Hauppauge computer works Inc. Unknown device 7444
+>         Flags: bus master, medium devsel, latency 66, IRQ 18
+>         Memory at e4000000 (32-bit, non-prefetchable) [size=64M]
+>         Capabilities: [44] Vital Product Data
+>         Capabilities: [4c] Power Management version 2
+
+
+You have a PCI v2.2 chipset - the Intel 82801DB ICH4.  I suspect the
+HVR-1600/CX23418 (a PCI v2.3 device) may have a problem with PCI v2.2
+and earlier chipsets under linux.
+
+I don't know what to do about that problem at the moment (or if it's a
+real problem).  To verify if you have the problem that Gerhard Wittreich
+and Matt Loomis have with hardware registers providing back bogus values
+over the PCI bus, use the cx18 driver from this repo:
+
+http://linuxtv.org/hg/~awalls/cx18-i2c/
+
+Specifically this change from that repo:
+
+http://linuxtv.org/hg/~awalls/cx18-i2c/rev/a8a56fe6f67d
+
+with high volume I2C debugging turned on in the cx18 driver.  This will
+show you if the values being written to the I2C control registers of the
+CX23418 are the same values being read back immediately.  If the high
+bytes of the values don't match, then you have the problem.  
+
+
+
+As a stab in the dark, you can try normalizing the latency timers one
+the devices where they are set to 66 to numbers that are a multiple of 8
+(64 or 72) with setpci.  I doubt this will have any effect.
+
+I'd also suggest trying the board under linux in a machine that has a
+PCI v2.3 or newer chipset if you can.
+
+You may also want to try the card under Windows XP to rule out a bad
+card.
+
+Regards,
+Andy
 
 
 _______________________________________________
