@@ -1,27 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7U0BbF1001859
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 20:11:38 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7U0BESM017621
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 20:11:14 -0400
-Date: Sat, 30 Aug 2008 02:10:38 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Message-ID: <20080830001038.GA609@daniel.bse>
-References: <200808251445.22005.jdelvare@suse.de>
-	<1219711251.2796.47.camel@morgan.walls.org>
-	<200808281658.28151.jdelvare@suse.de>
-	<1220011778.3174.19.camel@morgan.walls.org>
-	<Pine.LNX.4.58.0808291517030.24305@shell4.speakeasy.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0808291517030.24305@shell4.speakeasy.net>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
-	Jean Delvare <jdelvare@suse.de>
-Subject: Re: [v4l-dvb-maintainer] bttv driver questions
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m735jL8k010237
+	for <video4linux-list@redhat.com>; Sun, 3 Aug 2008 01:45:21 -0400
+Received: from QMTA09.emeryville.ca.mail.comcast.net
+	(qmta09.emeryville.ca.mail.comcast.net [76.96.30.96])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m735j8Vv006645
+	for <video4linux-list@redhat.com>; Sun, 3 Aug 2008 01:45:08 -0400
+Message-ID: <48954612.7000906@comcast.net>
+Date: Sat, 02 Aug 2008 22:45:54 -0700
+From: Brian Rogers <brian_rogers@comcast.net>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: gspca "scheduling while atomic" crash
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,20 +25,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Aug 29, 2008 at 03:23:16PM -0700, Trent Piepho wrote:
-> Or get something like viewcast's multi-bttv cards that use a PCI to PCI-E
-> bridge.
+I have the following device:
+Bus 007 Device 002: ID 0c45:60fc Microdia PC Camera with Mic (SN9C105)
 
-The DVC-5215 card Jean mentioned in his first post is a PCIe card.
-The bridge visible on the card must be a TI XIO2000A with external
-PCI arbiter. It allows to tweak some QoS parameters for PCIe traffic
-that might be helpful.
+Whether I build 2.6.27-rc1 or merge the stable branch of 
+git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git 
+into my Intrepid kernel (2.6.26), the system will lock up when I try to 
+get video from my webcam.
 
-Btw., for cards with PCI-PCI bridge the latency counter of the bridge
-on the main bus should be set to a high value to give it an advantage
-to flush its buffers.
+To see the kernel output, I do this in the console:
+mplayer -ao aa -tv device=v4l2:width=640:height=480:fps=30 tv://
 
-  Daniel
+The result is a rapid stream of two alternating messages:
+BUG: scheduling while atomic: swapper/0/0x8001???? (didn't get it all)
+bad: scheduling from the idle thread!
+
+During this the system doesn't respond to anything. It's a Core2 Duo 
+running 64-bit Ubuntu Intrepid with 4GB of RAM. What other info should I 
+provide to investigate this problem?
 
 --
 video4linux-list mailing list
