@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7HKDpmm027673
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 16:13:51 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.233])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7HKDhbJ013445
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 16:13:43 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so3848211rvb.51
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 13:13:42 -0700 (PDT)
-Message-ID: <6f278f100808171313j2764641ase8076781993f9a8e@mail.gmail.com>
-Date: Sun, 17 Aug 2008 22:13:42 +0200
-From: "Theou Jean-Baptiste" <jbtheou@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <6f278f100808171258r609757a0r1a605ffd9ddee0f1@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m74IFrp8025426
+	for <video4linux-list@redhat.com>; Mon, 4 Aug 2008 14:16:03 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m74IFBrP010819
+	for <video4linux-list@redhat.com>; Mon, 4 Aug 2008 14:15:17 -0400
+Message-ID: <4897494B.1010307@hhs.nl>
+Date: Mon, 04 Aug 2008 20:24:11 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-References: <6f278f100808171248s53633e27xce36cbbf123c5e0a@mail.gmail.com>
-	<6f278f100808171258r609757a0r1a605ffd9ddee0f1@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-Subject: Re: [PATCH] Add support for OmniVision OV534 based USB cameras.
+To: Linux and Kernel Video <video4linux-list@redhat.com>,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: 2.6.27rc1 installs a broken /usr/include/linux/videodev2.h
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,53 +26,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-One more thing again ......
-It seems to be "dev->vfd->minor" (line 1339) who return '-1'
-If this info can help you .....
+Hi All,
 
-2008/8/17 Theou Jean-Baptiste <jbtheou@gmail.com>
+When doing "make headers_install" 2.6.27rc1 install a broken 
+/usr/include/linux/videodev2.h
 
-> One more thing, when he halt in her system, the halt "freeze", and when h=
-e
-> unplugged her webcam, he observe that :
->
-> /dev/video-1 released
->
-> 2008/8/17 Theou Jean-Baptiste <jbtheou@gmail.com>
->
-> Hi. I'm the EasyCam Dev, a ubuntu software who make the webcam install
->> easier ( I hope )
->> I use this patch in my software. One user had try this patch, and after
->> install, he observe in dmesg output :
->>
->> [21222.334007] usb 1-2: new high speed USB device using ehci_hcd and
->> address 9
->> [21222.395446] usb 1-2: configuration #1 chosen from 1 choice
->> [21222.399771] /usr/share/EasyCam2/drivers/ov534/v4l/ov534.c: OmniVision
->> OV534 compatible webcam detected
->> [21222.399778] /usr/share/EasyCam2/drivers/ov534/v4l/ov534.c: 06f8:3002
->> Hercules Blog Webcam found
->> [21222.438333] /usr/share/EasyCam2/drivers/ov534/v4l/ov534.c: ov534
->> controlling video device -1
->>
->> Thanks you very much for your job
->>
->> Best regards, and sorry for my bad english
->>
->> --
->> Jean-Baptiste Th=E9ou
->>
->
->
->
-> --
-> Jean-Baptiste Th=E9ou
->
+The problem are the 2 userspace lines of the following part of videodev2.h:
 
+#ifdef __KERNEL__
+#include <linux/time.h>     /* need struct timeval */
+#include <linux/compiler.h> /* need __user */
+#else
+#define __user
+#include <sys/time.h>
+#endif
 
+2.6.27rc1 seems to handle __user usage in userspace itself now, simply by 
+removing __user + whitespace after it resulting in the following in userspace 
+for the 2 lines in the userspace of the if else above:
 
---=20
-Jean-Baptiste Th=E9ou
+#define #include <sys/time.h>
+
+The fix for 2/6/27rc1 is to simply remove the "#define __user" line, but I 
+wonder how that will effect our usage with older kernels?
+
+Regards,
+
+Hans
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
