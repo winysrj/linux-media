@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.30])
+Received: from emh07.mail.saunalahti.fi ([62.142.5.117])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1KTdkS-0006a5-U6
-	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 16:24:22 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so302182yxg.41
-	for <linux-dvb@linuxtv.org>; Thu, 14 Aug 2008 07:24:16 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Thu, 14 Aug 2008 16:24:13 +0200
+	(envelope-from <marko.ristola@kolumbus.fi>) id 1KQ6gU-00060x-Ls
+	for linux-dvb@linuxtv.org; Mon, 04 Aug 2008 22:29:39 +0200
+Message-ID: <489766A4.7070907@kolumbus.fi>
+Date: Mon, 04 Aug 2008 23:29:24 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_NAEpII33hFL7+GD"
-Message-Id: <200808141624.13917.christophpfister@gmail.com>
-Subject: [linux-dvb] Fwd: fr-Cluses frequencies
+To: =?ISO-8859-1?Q?Mika_B=E5tsman?= <mika.batsman@gmail.com>
+References: <3b52bc790807101342o12f6f879n9c68704cd6b96e22@mail.gmail.com>	<4879FA31.2080803@kolumbus.fi>	<4A2CCDB3-57B0-4121-A94D-59F985FCDE2B@oberste-berghaus.de>	<487BB17D.8080707@kolumbus.fi>	<D5C41D41-A72D-4603-9AD1-67A8C5E73289@oberste-berghaus.de>
+	<488CAE63.9070204@kolumbus.fi> <488F0D80.7010607@gmail.com>
+In-Reply-To: <488F0D80.7010607@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TerraTec Cinergy C DVB-C / Twinhan AD-CP400
+ (VP-2040) &	mantis driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,62 +21,147 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Mika B=E5tsman kirjoitti:
+> Hi,
+> I also tried your patch because I've had freezes since I got these =
 
---Boundary-00=_NAEpII33hFL7+GD
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+> cards. Unfortunately it didn't help me. Got a whooping 5min uptime =
 
-=46rom a kaffeine user ...
+> before it all went wrong again. I have 2x Cinergy C + 2.6.24-19 + vdr =
 
-Christoph
+> 1.6.
+>
+Do you have a heat problem? Have you checked your motherboard sensors?
+Have you checked that your memory is okay? Air flows easilly?
+> I did:
+> hg clone http://jusst.de/hg/mantis
+> replaced mantis_dma.c with the one you attached, renamed =
 
---Boundary-00=_NAEpII33hFL7+GD
-Content-Type: text/plain;
-  charset="utf-8";
-  name="fr-Cluses"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="fr-Cluses"
+> MANTIS_GPIF_RDWRN -> MANTIS_GPIF_HIFRDWRN
+> make && make install && reboot
+>
+> Am I missing something? It seemed to compile and install fine.
+>
+> You said that the mantis_dma.c in jusst.de mantis head is not the =
 
-# Cluses - France (DVB-T transmitter of Cluses ( St Sigismond ) )
-# Cluses - France (signal DVB-T transmis depuis l'=C3=A9metteur de St Sigis=
-mond )
-#
-# ATTENTION ! Ce fichier a ete construit automatiquement a partir
-# des frequences obtenues sur : http://www.tvnt.net/multiplex_frequences.htm
-# en Avril 2006. Si vous constatez des problemes et voulez apporter des
-# modifications au fichier, envoyez le fichier modifie a
-# l'adresse linux-dvb@linuxtv.org (depot des fichiers d'init dvb)
-# ou a l'auteur du fichier :
-# Nicolas Estre <n_estre@yahoo.fr>
-#
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-#### Cluses - Nond=C3=A9fini ####
-#R1
-T 490000000 8MHz AUTO NONE QAM64 8k AUTO NONE
-#R2
-T 514000000 8MHz AUTO NONE QAM64 8k AUTO NONE
-#R3
-T 538000000 8MHz AUTO NONE QAM64 8k AUTO NONE
-#R4
-T 586000000 8MHz AUTO NONE QAM64 8k AUTO NONE
-#R5
-T 618000000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> latest version. Where can it be found then?
+I have my own driver version which I have given for Finnish people for =
 
---Boundary-00=_NAEpII33hFL7+GD
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+easy installation with remote control support for Twinhan 2033.
+(Personally I'm not pleased with the card: now after some years of =
+
+development the card works well enough for me finally).
+
+So the most important feature of my driver for Finnish people has been =
+
+the easy compile and install and that the driver ("release") is tested =
+
+for Twinhan 2033.
+Secondly I have given for some Finnish people the Twinhan 2033 remote =
+
+control support included.
+Maybe somebody from Finland would be interested with the DMA transfer =
+
+fixes, if they have unsolved quality problems. That's a fact that those =
+
+tweaks helped me although the root cause is a bit uncertain. Other =
+
+features of my driver version like suspend/resume aren't very important.
+
+Regards,
+Marko Ristola
+
+>
+> Regards,
+> Mika B=E5tsman
+>
+> Marko Ristola wrote:
+>>
+>> Hi,
+>>
+>> Unfortunately I have been busy.
+>>
+>> The patch you tried was against jusst.de Mantis Mercurial branch head.
+>> Your version of mantis_dma.c is not the latest version and thus the =
+
+>> patch didn't
+>> apply cleanly.
+>>
+>> Here is the version that I use currently. It doesn't compile straight =
+
+>> against jusst.de/mantis head.
+>> It might work for you because MANTIS_GPIF_RDWRN is not renamed as =
+
+>> MANTIS_GPIF_HIFRDWRN.
+>>
+>> If it doesn't compile please rename MANTIS_GPIF_RDWRN occurrences =
+
+>> into MANTIS_GPIF_HIFRDWRN on that file.
+>> Otherwise the file should work as it is.
+>>
+>> Best regards,
+>> Marko Ristola
+>>
+>> Leif Oberste-Berghaus kirjoitti:
+>>> Hi Marko,
+>>>
+>>> I tried to patch the driver but I'm getting an error message:
+>>>
+>>> root@mediapc:/usr/local/src/test/mantis-0b04be0c088a# patch -p1 < =
+
+>>> mantis_dma.c.aligned_dma_trs.patch
+>>> patching file linux/drivers/media/dvb/mantis/mantis_dma.c
+>>> patch: **** malformed patch at line 22: int mantis_dma_exit(struct =
+
+>>> mantis_pci *mantis)
+>>>
+>>> Any ideas?
+>>>
+>>> Regards
+>>> Leif
+>>>
+>>>
+>>> Am 14.07.2008 um 22:05 schrieb Marko Ristola:
+>>>
+>>>> Hi Leif,
+>>>>
+>>>> Here is a patch that implements the mentioned DMA transfer =
+
+>>>> improvements.
+>>>> I hope that these contain also the needed fix for you.
+>>>> You can apply it into jusst.de/mantis Mercurial branch.
+>>>> It modifies linux/drivers/media/dvb/mantis/mantis_dma.c only.
+>>>> I have compiled the patch against 2.6.25.9-76.fc9.x86_64.
+>>>>
+>>>> cd mantis
+>>>> patch -p1 < mantis_dma.c.aligned_dma_trs.patch
+>>>>
+>>>> Please tell us whether my patch helps you or not: if it helps, some =
+
+>>>> of my patch might get into jusst.de as
+>>>> a fix for your problem.
+>>>>
+>>>> Best Regards,
+>>>> Marko
+>>>
+>>>
+>>
+>> ------------------------------------------------------------------------
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_NAEpII33hFL7+GD--
