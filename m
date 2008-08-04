@@ -1,26 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KYF0e-0004l7-NB
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 09:00:06 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K68000S7ZF590A1@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 27 Aug 2008 02:59:30 -0400 (EDT)
-Date: Wed, 27 Aug 2008 02:59:28 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48B48F62.7090100@gmail.com>
-To: Mijhail Moreyra <mijhail.moreyra@gmail.com>
-Message-id: <48B4FB50.3020200@linuxtv.org>
-MIME-version: 1.0
-References: <48B4687D.8070205@gmail.com> <48B46D46.2020800@linuxtv.org>
-	<48B46F9D.105@gmail.com> <48B47D2C.3010005@linuxtv.org>
-	<48B48F62.7090100@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
- HVR-1500
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <markus.o.hahn@gmx.de>) id 1KQ1yJ-0001cP-Bt
+	for linux-dvb@linuxtv.org; Mon, 04 Aug 2008 17:27:45 +0200
+Date: Mon, 04 Aug 2008 17:27:10 +0200
+From: "Markus Oliver Hahn" <markus.o.hahn@gmx.de>
+Message-ID: <20080804152710.70780@gmx.net>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Fwd: Re: How to fix ioctl DVBFE_GET_INFO failed error?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,46 +16,77 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mijhail Moreyra wrote:
-> Steven Toth wrote:
->> Can you give me your sign-off for the patch?
->>
->> Thanks.
->>
->> - Steve
-> 
-> I was waiting some testing and comments first but anyway
-> the patch I sent before is
-> 
-> Signed-off-by: Mijhail Moreyra <mijhail.moreyra@gmail.com>
-> 
-> Regards.
-> Mijhail Moreyra
+-------- Original-Nachricht --------
+Datum: Mon, 04 Aug 2008 17:24:40 +0200
+Von: "Markus Oliver Hahn" <markus.o.hahn@gmx.de>
+An: sacha <sacha@hemmail.se>
+Betreff: Re: [linux-dvb] How to fix ioctl DVBFE_GET_INFO failed error?
 
-Mijhail,
+yes it is a shame,  this half-way new frontend mess. =
 
-http://linuxtv.org/hg/~stoth/cx23885-audio
 
-This tree contains your patch with some minor whitespace cleanups and 
-fixes for HUNK related merge issues due to the patch wrapping at 80 cols.
+You have to use oldstyle fe_status_t =
 
-Please build this tree and retest in your environment to ensure I did 
-not break anything. Does this tree still work OK for you?
+I`m on the way to rewrite scan  without this pity #ifdef VERSIONS =
 
-After this I will apply some other minor cleanups then invite a few 
-other HVR1500 owners to begin testing.
+But I belive there`s a lot to do with this multiproto drivers =
 
-Thanks again.
 
-Regards,
+regards  markus =
 
-Steve
+
+
+
+-------- Original-Nachricht --------
+> Datum: Fri, 01 Aug 2008 11:10:35 +0200
+> Von: sacha <sacha@hemmail.se>
+> An: linux-dvb@linuxtv.org
+> Betreff: [linux-dvb] How to fix ioctl DVBFE_GET_INFO failed error?
+
+> Hello
+> =
+
+> I am struggling with my Twinhan1041 card for a while now. I am on my way
+> to give up.
+> I hope someone give me a last chance.
+> =
+
+> I have this error when I try to scan "ioctl DVBFE_GET_INFO failed"
+> =
+
+> How to fix it? =
+
+> Is there the most up to date instructions for this card somewhere?
+> =
+
+> KR
+> =
+
+> =
+
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+-- =
+
+GMX startet ShortView.de. Hier findest Du Leute mit Deinen Interessen!
+Jetzt dabei sein: http://www.shortview.de/wasistshortview.php?mc=3Dsv_ext_m=
+f@gmx
+
+-- =
+
+GMX Kostenlose Spiele: Einfach online spielen und Spa=DF haben mit Pastry P=
+assion!
+http://games.entertainment.gmx.net/de/entertainment/games/free/puzzle/61691=
+96
 
 _______________________________________________
 linux-dvb mailing list
