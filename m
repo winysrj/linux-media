@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m79L4Y7W021046
-	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 17:04:34 -0400
-Received: from lxorguk.ukuu.org.uk (earthlight.etchedpixels.co.uk
-	[81.2.110.250])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m79L4O7V000511
-	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 17:04:24 -0400
-Date: Sat, 9 Aug 2008 21:46:57 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Rene Herman <rene.herman@keyaccess.nl>
-Message-ID: <20080809214657.3b5318d1@lxorguk.ukuu.org.uk>
-In-Reply-To: <489DE890.1090103@keyaccess.nl>
-References: <489DE890.1090103@keyaccess.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m751TRuL022532
+	for <video4linux-list@redhat.com>; Mon, 4 Aug 2008 21:29:27 -0400
+Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
+	[151.189.21.56])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m751TOvj032253
+	for <video4linux-list@redhat.com>; Mon, 4 Aug 2008 21:29:25 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Brandon Philips <brandon@ifup.org>
+In-Reply-To: <20080804212204.GA3853@potty.ifup.org>
+References: <20080804212204.GA3853@potty.ifup.org>
+Content-Type: text/plain
+Date: Tue, 05 Aug 2008 03:22:41 +0200
+Message-Id: <1217899361.4980.20.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@osdl.org>, Ingo Molnar <mingo@elte.hu>,
-	video4linux-list@redhat.com, Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] V4L1: make PMS not auto-grab port 0x250
+Cc: "Andrey J. Melnikov" <temnota@kmv.ru>, Igor Kuznetsov <igk72@yandex.ru>,
+	v4l <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: BeholdTV 505FM Input Causing Repeating Zeros
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,23 +30,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I have a PMS card. It was the hot technology of 199x about the same time
-as doom came out. I'm probably the only person who still has one ;)
+Hi,
 
-I'm going to NAK this however because passing in a port is a really dumb
-interface. The PMS card can only be at port 0x250 so if you load it there
-is no doubt and confusion involved.
+Am Montag, den 04.08.2008, 14:22 -0700 schrieb Brandon Philips:
+> Hello All-
+> 
+> I have received a bug report[1] from a user who's card used to work as a
+> SAA7134_BOARD_UNKNOWN before the patch[2] that added support for
+> SAA7134_BOARD_BEHOLD_505FM.
 
-The code is fine, the behaviour is correct. Ingo should fix his config
-stuff.
+how far something detected as SAA7134_BOARD_UNKNOWN can "work" is
+another issue and not related.
 
-Just apply a tiny bit of rational thought here. There is exactly ONE
-Ingo. He's a smart cookie and can add exception lists to his tester.
-There are millions of users some of whom are brilliant, others are not
-computer wizards. The code should be optimised for them not for Ingo -
-Ingo is an optimisation for the special case not the normal workload!
+> The IR input isn't setup properly and the driver is writing an infinite
+> number of zeros to the users terminal.
+> 
+> Is there a way to figure out the correct mask_keycode and mask_keyup for
+> this card?  Otherwise I recommend that we don't report has_remote for
+> this card.
 
-Alan
+We should of course wait for a response for a short while, seems Dmitri
+has such board, but maybe is in vacation and the bug seems to be really
+annoying.
+
+Don't hesitate to take out the IR support until someone with such a
+board has time to look at it.
+
+To put it in again after review should not be a problem at all.
+
+The card identification per PCI subsystem seems to be very safe in this
+case, I did took out some ambiguous stuff previously and subvendor
+0x0000 on other cards is still not that great, but for this one just GO.
+
+If you don't mind, since you pointed first again to known Compro auto
+detection flaws and since calls to the lists had no results and the
+initial contributor does not have the card anymore, also that time only
+with an eeprom dump for some first bytes, not sufficient to come closer
+to the tuner encoding, which might eventually allow detection from
+eeprom, please take this out too for now too.
+
+We have already another report about the obvious on LKML,
+but no patch came back ;)
+
+Cheers,
+Hermann
+
+
 
 --
 video4linux-list mailing list
