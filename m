@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7UFD6kC027074
-	for <video4linux-list@redhat.com>; Sat, 30 Aug 2008 11:13:07 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7UFCswN025465
-	for <video4linux-list@redhat.com>; Sat, 30 Aug 2008 11:12:55 -0400
-Date: Sat, 30 Aug 2008 17:12:33 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Jean Delvare <jdelvare@suse.de>
-Message-ID: <20080830151233.GA221@daniel.bse>
-References: <200808251445.22005.jdelvare@suse.de>
-	<200808281611.38241.jdelvare@suse.de>
-	<20080828202043.GB824@daniel.bse>
-	<200808301201.47561.jdelvare@suse.de>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m75EfZES010391
+	for <video4linux-list@redhat.com>; Tue, 5 Aug 2008 10:41:46 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m75EfAh1021670
+	for <video4linux-list@redhat.com>; Tue, 5 Aug 2008 10:41:11 -0400
+Received: by wf-out-1314.google.com with SMTP id 25so2278563wfc.6
+	for <video4linux-list@redhat.com>; Tue, 05 Aug 2008 07:41:09 -0700 (PDT)
+Date: Tue, 5 Aug 2008 07:31:51 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080805143151.GG3853@potty.ifup.org>
+References: <20080804212204.GA3853@potty.ifup.org>
+	<1217899361.4980.20.camel@pc10.localdom.local>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <200808301201.47561.jdelvare@suse.de>
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org
-Subject: Re: bttv driver questions
+In-Reply-To: <1217899361.4980.20.camel@pc10.localdom.local>
+Cc: "Andrey J. Melnikov" <temnota@kmv.ru>, Igor Kuznetsov <igk72@yandex.ru>,
+	v4l <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: BeholdTV 505FM Input Causing Repeating Zeros
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,66 +32,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Aug 30, 2008 at 12:01:47PM +0200, Jean Delvare wrote:
-> My assumption that there was a
-> VBI interrupt was wrong, probably because my video source is a VCR
-> and it doesn't send any information during VBI?
-
-When there is an application requesting VBI capture, there will be a
-VBI interrupt, regardless of the content in those lines.
-
-> > There is only one program with jumps that are patched at runtime to
-> > point to the program fragments for capture.
+On 03:22 Tue 05 Aug 2008, hermann pitton wrote:
+> Am Montag, den 04.08.2008, 14:22 -0700 schrieb Brandon Philips:
+> > Hello All-
+> > 
+> > I have received a bug report[1] from a user who's card used to work as a
+> > SAA7134_BOARD_UNKNOWN before the patch[2] that added support for
+> > SAA7134_BOARD_BEHOLD_505FM.
 > 
-> And this all happens magically inside the BT878 without the bttv
-> driver having to care? Wow! Tricky.
+> how far something detected as SAA7134_BOARD_UNKNOWN can "work" is
+> another issue and not related.
 
-No, this is how bttv does it.
-Other implementations may use a single loop without jumps.
+It turns out that he wasn't telling the whole story here:
 
-> In my case there's a PCI Express-to-PCI bridge on the path, so I
-> presume that this acts as the target. I suppose that the board was
-> designed that way precisely to make sure that no extra latency would
-> happen on the PCI bus due to the host being slow/busy. If the bridge
-> has large enough buffers, it should be easy for it to send the data
-> down to the host bridge, given that PCI Express x1 is much faster
-> than PCI.
+On 03:22 Tue 05 Aug 2008,  Sergey Lukashevich wrote:
+> My TV card is actually AverMedia 503 or the like. I cannot recall it
+> exactly.  Before I used AverMedia software to watch TV.  But their
+> software sucks and recently I found a way to make my card look like
+> Beholder to run Beholder software. I had to patch the ROM of the card
+> using info found in a forum. Could it be the source of THIS bug?
 
-It's not that much faster. Of the 250MB/s a lot is lost to overhead,
-especially when there are mostly short packets. And there may be other
-bottlenecks before the data reaches the RAM.
+https://bugzilla.novell.com/show_bug.cgi?id=403904#c10
 
-> > I think for competing Bt878s the smallest trigger point in combination
-> > with a high latency counter should perform best.
-> 
-> I don't quite follow you here. Care to explain how you reached this
-> conclusion?
+There isn't really a bug here.  Sorry for the noise.
 
-A smaller trigger point will make the PCI bus less idle but the average
-FIFO fill will be lower.
+Cheers,
 
-Yesterday I wrote a small program that simulates a number of PCI masters
-with constant data rate filling their FIFOs. There is a simple round
-robin arbiter and neither the target nor the master needs wait cycles.
-
-For 5 masters with 24.2MB/s each (peak data rate of YUY2 640x480 NTSC),
-a latency counter of 254, and a FIFO trigger of 4, the bus is never idle.
-The maximum FIFO fill is 16 DWords. With a latency counter below 20,
-the FIFO fill rises infinitely.
-
-With a FIFO trigger of 32 and a latency counter of 254, the maximum fill
-is 33 DWords and the bus is 4.5% idle.
-
-Those 17 less FIFO entries in the 4-entry-trigger case can buffer for 93
-PCI cycles. The 4.5% idle cycles in the 32-entry-trigger case are wasted
-if there is no other master on the bus, as is the case when the Bt878s are
-behind a bridge.
-
-In reality there are always idle phases during syncs and additional
-traffic will be generated to fetch RISC instructions and to access
-registers.
-
-  Daniel
+	Brandon
 
 --
 video4linux-list mailing list
