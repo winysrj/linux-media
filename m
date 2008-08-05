@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from emh07.mail.saunalahti.fi ([62.142.5.117])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1KOlVl-0006kO-UJ
-	for linux-dvb@linuxtv.org; Fri, 01 Aug 2008 05:41:02 +0200
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	0D9961802113
-	for <linux-dvb@linuxtv.org>; Fri,  1 Aug 2008 03:40:26 +0000 (GMT)
+	(envelope-from <marko.ristola@kolumbus.fi>) id 1KQQXT-00005Z-AI
+	for linux-dvb@linuxtv.org; Tue, 05 Aug 2008 19:41:43 +0200
+Message-ID: <489890CD.8040508@kolumbus.fi>
+Date: Tue, 05 Aug 2008 20:41:33 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-From: stev391@email.com
-To: "Anton Blanchard" <anton@samba.org>,
-	"Steven Toth" <stoth@linuxtv.org>
-Date: Fri, 1 Aug 2008 13:40:25 +1000
-Message-Id: <20080801034025.C0EC947808F@ws1-5.us4.outblaze.com>
-Cc: linux-dvb@linuxtv.org, "stev391@email.com" <stev391@email.com>,
-	linuxdvb@itee.uq.edu.au
-Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
- DVB-T Dual Express
+To: =?ISO-8859-1?Q?Mika_B=E5tsman?= <mika.batsman@gmail.com>
+References: <3b52bc790807101342o12f6f879n9c68704cd6b96e22@mail.gmail.com>	<4879FA31.2080803@kolumbus.fi>	<4A2CCDB3-57B0-4121-A94D-59F985FCDE2B@oberste-berghaus.de>	<487BB17D.8080707@kolumbus.fi>	<D5C41D41-A72D-4603-9AD1-67A8C5E73289@oberste-berghaus.de>
+	<488CAE63.9070204@kolumbus.fi> <488F0D80.7010607@gmail.com>
+	<489766A4.7070907@kolumbus.fi> <48981245.2050900@gmail.com>
+In-Reply-To: <48981245.2050900@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TerraTec Cinergy C DVB-C / Twinhan AD-CP400
+ (VP-2040) &	mantis driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,131 +22,185 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0584379749=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
 
---===============0584379749==
-Content-Transfer-Encoding: 7bit
-Content-Type: multipart/alternative; boundary="_----------=_1217562025317640"
+Maybe I should try with Manu's jusst.de version, if it works for me now
+Better exclude the driver differences away.
+I don't have a CAM module and I haven't tested with two equal cards.
 
-This is a multi-part message in MIME format.
+Our problems seem to be similar though.
 
---_----------=_1217562025317640
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Marko
 
- Anton,
+Mika B=E5tsman kirjoitti:
+> Marko Ristola wrote:
+>> Mika B=E5tsman kirjoitti:
+>>> Hi,
+>>> I also tried your patch because I've had freezes since I got these =
 
-Thankyou for cleaning this code up (and you as well Steven).
+>>> cards. Unfortunately it didn't help me. Got a whooping 5min uptime =
 
-I have been meaning to do some more work on this lately, but you have
-taken it to were I was hoping to go.
+>>> before it all went wrong again. I have 2x Cinergy C + 2.6.24-19 + =
 
-Steven, I can test your cleaned up code as well, just drop me an email
-and I will run it on my machines (I have several that I have access to
-with these cards in them, with various other cards).
+>>> vdr 1.6.
+>>>
+>> Do you have a heat problem? Have you checked your motherboard sensors?
+>> Have you checked that your memory is okay? Air flows easilly?
+>
+> Memory was the first thing I suspected but memtest went through 10+ =
 
-Regards,
+> times without a fail. Heat shouldn't be a problem either. There's a =
 
-Stephen.
+> big efficient, noisy fan in the back of the case.
+>
+> The machine works fine when dvb is watched with dvbyell =
 
-  ----- Original Message -----
-  From: "Anton Blanchard"
-  To: "Steven Toth"
-  Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO
-  FusionHDTV DVB-T Dual Express
-  Date: Fri, 1 Aug 2008 12:55:13 +1000
+> http://www.dvbyell.org/ which has cards set to fixed frequency ie. =
 
+> card1 -> 152Mhz and card2 -> 290Mhz. At least for me the problem =
 
+> occurs only with apps like mythtv and vdr which change the frequency =
 
-  Hi,
+> of the tuner.
+>
+> -Mika
+>
+>>> I did:
+>>> hg clone http://jusst.de/hg/mantis
+>>> replaced mantis_dma.c with the one you attached, renamed =
 
-  > At this stage I think I can add a final patch to get back to a
-  > single callback directly, regardless of tuner type. (this
-  > weekend)
+>>> MANTIS_GPIF_RDWRN -> MANTIS_GPIF_HIFRDWRN
+>>> make && make install && reboot
+>>>
+>>> Am I missing something? It seemed to compile and install fine.
+>>>
+>>> You said that the mantis_dma.c in jusst.de mantis head is not the =
 
-  Great!
+>>> latest version. Where can it be found then?
+>> I have my own driver version which I have given for Finnish people =
 
-  > I don't have your specific DViCO card, I assume you're willing to
-  > re-test with my cleanup patch?
+>> for easy installation with remote control support for Twinhan 2033.
+>> (Personally I'm not pleased with the card: now after some years of =
 
-  Yep I have the card and will re-test.
+>> development the card works well enough for me finally).
+>>
+>> So the most important feature of my driver for Finnish people has =
 
-  Anton
+>> been the easy compile and install and that the driver ("release") is =
 
---=20
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
+>> tested for Twinhan 2033.
+>> Secondly I have given for some Finnish people the Twinhan 2033 remote =
 
+>> control support included.
+>> Maybe somebody from Finland would be interested with the DMA transfer =
 
---_----------=_1217562025317640
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html; charset="iso-8859-1"
+>> fixes, if they have unsolved quality problems. That's a fact that =
 
+>> those tweaks helped me although the root cause is a bit uncertain. =
 
-<div>
-Anton,<br><br>Thankyou for cleaning this code up (and you as well Steven).<=
-br><br>I have been meaning to do some more work on this lately, but you hav=
-e taken it to were I was hoping to go.<br><br>Steven, I can test your clean=
-ed up code as well, just drop me an email and I will run it on my machines =
-(I have several that I have access to with these cards in them, with variou=
-s other cards).<br><br>Regards,<br><br>Stephen.<br>
-<br>
-<blockquote style=3D"border-left: 2px solid rgb(16, 16, 255); margin-left: =
-5px; padding-left: 5px;">----- Original Message -----<br>
-From: "Anton Blanchard" <anton@samba.org><br>
-To: "Steven Toth" <stoth@linuxtv.org><br>
-Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV	D=
-VB-T Dual Express<br>
-Date: Fri, 1 Aug 2008 12:55:13 +1000<br>
-<br>
+>> Other features of my driver version like suspend/resume aren't very =
 
-<br>
-<br>
-Hi,<br>
-<br>
-&gt; At this stage I think I can add a final patch to get back to a <br>
-&gt; single  callback directly, regardless of tuner type. (this <br>
-&gt; weekend)<br>
-<br>
-Great!<br>
-<br>
-&gt; I don't have your specific DViCO card, I assume you're willing to <br>
-&gt;  re-test with my cleanup patch?<br>
-<br>
-Yep I have the card and will re-test.<br>
-<br>
-Anton<br>
-</stoth@linuxtv.org></anton@samba.org></blockquote>
-</div>
-<BR>
+>> important.
+>>
+>> Regards,
+>> Marko Ristola
+>>
+>>>
+>>> Regards,
+>>> Mika B=E5tsman
+>>>
+>>> Marko Ristola wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> Unfortunately I have been busy.
+>>>>
+>>>> The patch you tried was against jusst.de Mantis Mercurial branch head.
+>>>> Your version of mantis_dma.c is not the latest version and thus the =
 
---=20
-<div> Be Yourself @ mail.com!<br>
-Choose From 200+ Email Addresses<br>
-Get a <b>Free</b> Account at <a href=3D"http://www.mail.com/Product.aspx" t=
-arget=3D"_blank">www.mail.com</a>!</div>
+>>>> patch didn't
+>>>> apply cleanly.
+>>>>
+>>>> Here is the version that I use currently. It doesn't compile =
 
---_----------=_1217562025317640--
+>>>> straight against jusst.de/mantis head.
+>>>> It might work for you because MANTIS_GPIF_RDWRN is not renamed as =
 
+>>>> MANTIS_GPIF_HIFRDWRN.
+>>>>
+>>>> If it doesn't compile please rename MANTIS_GPIF_RDWRN occurrences =
 
+>>>> into MANTIS_GPIF_HIFRDWRN on that file.
+>>>> Otherwise the file should work as it is.
+>>>>
+>>>> Best regards,
+>>>> Marko Ristola
+>>>>
+>>>> Leif Oberste-Berghaus kirjoitti:
+>>>>> Hi Marko,
+>>>>>
+>>>>> I tried to patch the driver but I'm getting an error message:
+>>>>>
+>>>>> root@mediapc:/usr/local/src/test/mantis-0b04be0c088a# patch -p1 < =
 
---===============0584379749==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>>>>> mantis_dma.c.aligned_dma_trs.patch
+>>>>> patching file linux/drivers/media/dvb/mantis/mantis_dma.c
+>>>>> patch: **** malformed patch at line 22: int mantis_dma_exit(struct =
+
+>>>>> mantis_pci *mantis)
+>>>>>
+>>>>> Any ideas?
+>>>>>
+>>>>> Regards
+>>>>> Leif
+>>>>>
+>>>>>
+>>>>> Am 14.07.2008 um 22:05 schrieb Marko Ristola:
+>>>>>
+>>>>>> Hi Leif,
+>>>>>>
+>>>>>> Here is a patch that implements the mentioned DMA transfer =
+
+>>>>>> improvements.
+>>>>>> I hope that these contain also the needed fix for you.
+>>>>>> You can apply it into jusst.de/mantis Mercurial branch.
+>>>>>> It modifies linux/drivers/media/dvb/mantis/mantis_dma.c only.
+>>>>>> I have compiled the patch against 2.6.25.9-76.fc9.x86_64.
+>>>>>>
+>>>>>> cd mantis
+>>>>>> patch -p1 < mantis_dma.c.aligned_dma_trs.patch
+>>>>>>
+>>>>>> Please tell us whether my patch helps you or not: if it helps, =
+
+>>>>>> some of my patch might get into jusst.de as
+>>>>>> a fix for your problem.
+>>>>>>
+>>>>>> Best Regards,
+>>>>>> Marko
+>>>>>
+>>>>>
+>>>>
+>>>> ----------------------------------------------------------------------=
+-- =
+
+>>>>
+>>>>
+>>>> _______________________________________________
+>>>> linux-dvb mailing list
+>>>> linux-dvb@linuxtv.org
+>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>>
+>>
+>
+>
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0584379749==--
