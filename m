@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.30])
+Received: from fk-out-0910.google.com ([209.85.128.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1KZSMT-0000DT-Ra
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 17:27:40 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so641797yxg.41
-	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 08:27:33 -0700 (PDT)
-Message-ID: <78aae6eb0808300827if4cf6d3y688f3d634c60501@mail.gmail.com>
-Date: Sat, 30 Aug 2008 17:27:33 +0200
-From: "=?ISO-8859-1?Q?Gr=E9goire_FAVRE?=" <gregoire.favre@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <48B9360D.7030303@gmail.com>
+	(envelope-from <liplianin@me.by>) id 1KQNfj-00075c-8g
+	for linux-dvb@linuxtv.org; Tue, 05 Aug 2008 16:38:00 +0200
+Received: by fk-out-0910.google.com with SMTP id f40so2442645fka.1
+	for <linux-dvb@linuxtv.org>; Tue, 05 Aug 2008 07:37:56 -0700 (PDT)
+To: linux-dvb@linuxtv.org
+Date: Tue, 5 Aug 2008 17:37:02 +0300
+References: <619be8660808040629r1d523e6cn843ee52a5325e19b@mail.gmail.com>
+In-Reply-To: <619be8660808040629r1d523e6cn843ee52a5325e19b@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <48B9360D.7030303@gmail.com>
-Subject: Re: [linux-dvb] Merge multiproto tree
+Message-Id: <200808051737.02514.igor@liplianin.net>
+From: "Igor M. Liplianin" <liplianin@me.by>
+Subject: Re: [linux-dvb] Problems using DISEQC with TBS 8920 DVB-S2 card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,33 +21,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, Aug 30, 2008 at 1:59 PM, Manu Abraham <abraham.manu@gmail.com> wrot=
-e:
-> Hello Mauro,
->
-> Please pull from http://jusst.de/hg/multiproto_api_merge/
-> to merge the following Changesets from the multiproto tree.
-
-Is it a complete up to date tree (like lipliandvb which contains a
-real working solution for HVR-4000) ?
-
-Even with limited support, multiproto is good to finally have in
-kernel :-)
--- =
-
-Gr=E9goire FAVRE
-http://picasaweb.google.com/Gregoire.Favre
-http://gregoire.favre.googlepages.com/
-http://fr.wikipedia.org/wiki/N%C3%A9tiquette
-http://en.wikipedia.org/wiki/Netiquette
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+9yDTz8/C3cXOyckgz9QgNCBBdWd1c3QgMjAwOCAxNjoyOToyMSBKb2hhbm5lcyBNaWNobGVyIM7B
+0MnTwcwowSk6Cj4gSGksCj4KPiBJIHJlY2VudGx5IGdvdCBhbiBUQlMgODkyMCBEVkItUzIgY2Fy
+ZCBhbmQgSSdtIG5vdyB0cnlpbmcgdG8gZ2V0IGl0IHdvcmsKPiB1c2luZyBVYnVudHUgOC4wNC4K
+PiBTaW5jZSB0aGUgY2FyZCB3YXNuJ3QgYXV0b21hdGNpYWxseSBkZXRlY3RlZCBhbmQgdGhlIGxp
+c3QgYXBwZWFyaW5nIHdoZW4KPiBsb2FkaW5nIHRoZSBjeDg4eHggZHJpdmVyIGRvZXNuJ3QgY29u
+dGFpbiB0aGUgY2FyZCBJIGRvd25sb2FkZWQgdGhlIGRyaXZlcnMKPiBmcm9tIGhlcmU6IGh0dHA6
+Ly93d3cudGJzZHR2LmNvbS9lbmdsaXNoL3Byb2R1Y3QvUENJRFZCUzIuaHRtbAo+IEkgY29tcGls
+ZWQgYW5kIGluc3RhbGxlZCB0aGUgZHJpdmVycyBhcyBkZXNjcmlwdGVkLCBhbmQgYWZ0ZXIgYSBy
+ZWJvb3QgdGhlCj4gY2FyZCB3YXMgcHJvcGVseSBkZXRlY3RlZC4KPiBNeSBzYXRlbGl0dGUgY29u
+ZmlndXJhdGlvbiBpcyBhcyBmb2xsb3dzOiBJJ3ZlIGdvdCBhIG1vbm9ibG9jayBMTkIsIHdpdGgK
+PiBIb3RiaXJkMTMgb24gIkEiIGFuZCBBc3RyYTE5IG9uICJCIgo+IGRvaW5nIGEgInNjYW4gL3Vz
+ci9zaGFyZS9kb2MvZHZiLXV0aWxzL2V4YW1wbGVzL3NjYW4vZHZiLXMvSG90YmlyZCIgcmVwb3J0
+cwo+IG1lIGEgbG90IG9mIGNoYW5uZWxzLiBCdXQgdGhlIGRpc2VxIHNpZ25hbCBpcyBiZWluZyBp
+Z25vcmVkLCB3aGVuIGRvaW5nCj4gInNjYW4gLXMgMSBIb3RiaXJkIiBJIGdldCB0aGUgc2FtZSBj
+aGFubmVscyBhbmQgZG9pbmcgInNjYW4gLXMgMSBBc3RyYSIKPiBnaXZlcyBtZSBubyBjaGFubmVs
+cyAoc2NhbiBpcyBhYm9ydGVkIGFmdGVyIGEgdmlldyBzZWNvbmRzLCBzYXlpbmcgaXQKPiBjYW5u
+b3QgZG8gaW5pdGlhbCB0dW5pbmcpCj4gZG1lc2cgdGVsbHMgc29tZXRpbmcgYWJvdXQgc2VuZGlu
+ZyAxOFYgYW5kIDEzViwgYnV0IHRoaXMgc2VlbXMgdG8gYmUKPiBpbmZvcm1hdGl2ZSBtZXNzYWdl
+cyBvbmx5Lgo+IERpZCBzb21lb25lIGhlcmUgc3VjY2VlZCBpbiBnZXR0aW5nIHRoaXMgY2FyZCB0
+byB3b3JrPyBPciBpcyB0aGVyZSBhbm90aGVyCj4gY2FyZCB3aGljaCBpcyAiZXF1YWwiIHRvIHRo
+aXMgY2FyZC4gSSBkb24ndCBub3cgdW5mb3J0dW5hdGVseSB3aGF0IFRCUwo+IGNoYW5nZWQgaW4g
+dGhlcmUgbGludXggZHJpdmVyLCB0aGlzIGRvZXNuJ3Qgc2VlbSB0byBiZSBkb2N1bWVudGVkLiBU
+aGUKPiBjeDg4LWNhcmRzLmggZW50cnkgZm9yIG15IGNhcmQgaXMgYXMgZm9sbG93czoKPgo+Cj4g
+W0NYODhfQk9BUkRfVEJTODkyMF0gPSB7Cj4KPiAubmFtZSA9ICJUQlMgRFZCLVMvUzIiLAo+Cj4g
+LnR1bmVyX3R5cGUgPSBUVU5FUl9BQlNFTlQsCj4KPiAucmFkaW9fdHlwZSA9IFVOU0VULAo+Cj4g
+LnR1bmVyX2FkZHIgPSBBRERSX1VOU0VULAo+Cj4gLnJhZGlvX2FkZHIgPSBBRERSX1VOU0VULAo+
+Cj4gLmlucHV0ID0ge3sKPgo+IC50eXBlID0gQ1g4OF9WTVVYX0RWQiwKPgo+IC52bXV4ID0gMCwK
+Pgo+IH0sewo+Cj4gLnR5cGUgPSBDWDg4X1ZNVVhfQ09NUE9TSVRFMSwKPgo+IC52bXV4ID0gMSwK
+Pgo+IH19LAo+Cj4gLm1wZWcgPSBDWDg4X01QRUdfRFZCLAo+Cj4gfSwKPgo+IEFueSBoZWxwIHdv
+dWxkIGJlIGFwcHJlY2lhdGVkLAo+Cj4gYmVzdCByZWdhcmRzCj4gSm9oYW5uZXMKSGkKClNlYXJj
+aCB0aGUgcHJvYmxlbSBpbiBjeDI0MTE2IG1vZHVsZSwgbm90IGluIGN4ODgtZHZiLgoKYmVzdCBy
+ZWdhcmRzCklnb3IKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93
+d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
