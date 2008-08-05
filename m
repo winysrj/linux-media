@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from scing.com ([217.160.110.58])
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <janne-dvb@grunau.be>) id 1KVlvy-000393-J3
-	for linux-dvb@linuxtv.org; Wed, 20 Aug 2008 13:33:03 +0200
-From: Janne Grunau <janne-dvb@grunau.be>
-To: linux-dvb@linuxtv.org
-Date: Wed, 20 Aug 2008 13:32:55 +0200
-References: <48ABF856.504@ost-linux.co.uk>
-In-Reply-To: <48ABF856.504@ost-linux.co.uk>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200808201332.55834.janne-dvb@grunau.be>
-Subject: Re: [linux-dvb] Max DVB frontends
+	(envelope-from <stoth@linuxtv.org>) id 1KQTtx-0003jg-5e
+	for linux-dvb@linuxtv.org; Tue, 05 Aug 2008 23:17:06 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K55005BDCFAF811@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 05 Aug 2008 17:16:24 -0400 (EDT)
+Date: Tue, 05 Aug 2008 17:16:21 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <1217969890.6864.11.camel@bonnie>
+To: Chris Proctor <chrisp_42@bigpond.com>
+Message-id: <4898C325.9090207@linuxtv.org>
+MIME-version: 1.0
+References: <20080801034025.C0EC947808F@ws1-5.us4.outblaze.com>
+	<4897AC24.3040006@linuxtv.org> <1217969890.6864.11.camel@bonnie>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
+ DVB-T Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,17 +33,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wednesday 20 August 2008 12:56:22 John Brown wrote:
-> Is the a maximum number of dvb frontends.  As I can't get more the 8
-> to register, all the devices work separately but after the 8th device
-> registers calls to dvb_register_adapter() fail with errno -23.  If
-> there is a set limit is there away to change it a run time, or is it
-> a matter of altering some defines and rebuilding the kernel.
+Chris Proctor wrote:
+> On Mon, 2008-08-04 at 21:25 -0400, Steven Toth wrote:
+>> Stephen / Anton,
+>>
+>> http://linuxtv.org/hg/~stoth/v4l-dvb
+>>
+>> This has Anton's patches and a subsequent cleanup patch to merge the 
+>> single tune callback functions into a single entity. A much better 
+>> solution all-round.
+>>
+>> I've tested with the HVR1500Q (xc5000 based) and I'm happy with the 
+>> results. Can you both try the DViCO board?
+>>
+>> Thanks,
+>>
+>> Steve
+>>
+> 
+> Steven,
+> 
+> I have tested this in a machine with two DViCOs and all appears to work
+> well.
+> 
+> I have been running these cards with a slightly modified version of the
+> other Stephen's patches.  It will be good to finally get this driver
+> into the tree.
 
-Source code change and recompile. The maximal number is defined as 
-MAX_DVB_ADAPTERS in drivers/media/dvb/dvb-core/dvbdev.h.
+Noted.
 
-HTH Janne
+Thanks Chris.
+
+- Steve
+
 
 _______________________________________________
 linux-dvb mailing list
