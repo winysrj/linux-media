@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1KT0ld-0001Rh-Jk
-	for linux-dvb@linuxtv.org; Tue, 12 Aug 2008 22:46:59 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: John Chajecki <John.Chajecki@leicester.gov.uk>
-In-Reply-To: <48A1A78A0200005F00018038@vs-internet.council.leicester.gov.uk>
-References: <48A1A78A0200005F00018038@vs-internet.council.leicester.gov.uk>
-Date: Tue, 12 Aug 2008 22:39:22 +0200
-Message-Id: <1218573562.14931.8.camel@pc10.localdom.local>
+	(envelope-from <awalls@radix.net>) id 1KQBnf-0007OS-QB
+	for linux-dvb@linuxtv.org; Tue, 05 Aug 2008 03:57:28 +0200
+From: Andy Walls <awalls@radix.net>
+To: hermann pitton <hermann-pitton@arcor.de>
+In-Reply-To: <1217873263.2671.27.camel@pc10.localdom.local>
+References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
+	<1217728894.5348.72.camel@morgan.walls.org>
+	<5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
+	<1217791214.2690.31.camel@morgan.walls.org>
+	<1217810697.2673.8.camel@pc10.localdom.local>
+	<1217817352.23133.64.camel@palomino.walls.org>
+	<1217873263.2671.27.camel@pc10.localdom.local>
+Date: Mon, 04 Aug 2008 21:57:05 -0400
+Message-Id: <1217901425.2695.32.camel@morgan.walls.org>
 Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Saa7134 with Avermedia M1155 hybrid card on
-	Ubuntu	8.04
+Subject: Re: [linux-dvb] HVR-1600 - No audio
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,77 +25,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
-
-Am Dienstag, den 12.08.2008, 15:08 +0100 schrieb John Chajecki:
-> Hi, I'm trying to get an Avermedia M1155 Hybrid Aalogue/DVB tuner card to work with my Ubuntu Linux 8.04 (hardy) installation on a Sony VGX-TP1E media centre PC. In dmesg the card is identified as a Philips saa1733/1735:
-> 
->   
-> [17205.851529] saa7130/34: v4l2 driver version 0.2.14 loaded
-> [17205.851785] saa7133[0]: found at 0000:04:05.0, rev: 209, irq: 20, latency: 32
-> , mmio: 0xf0207800
-> [17205.851830] saa7133[0]: subsystem: 1461:e836, board: UNKNOWN/GENERIC [card=0,
-> insmod option]
-> [17205.851845] saa7133[0]: board init: gpio is effffff
-> [17206.006586] saa7133[0]: i2c eeprom 00: 61 14 36 e8 00 00 00 00 00 00 00 00 00
->  00 00 00
-> [17206.006611] saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff ff ff ff
->  ff ff ff
-> [17206.006629] saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff 00 00 ff
->  ff ff ff
-> etc
-
-the etc can hold some information, better don't drop parts of the eeprom
-dump.
-
-> However the board is shown as GENERIC, board=0. lsmod shows this:
-> 
-> Module                  Size  Used by
-> tuner                  28872  0
-> saa7134               147924  0
-> ir_common              42244  1 saa7134
-> compat_ioctl32          2304  1 saa7134
-> videobuf_dma_sg        14980  1 saa7134
-> videobuf_core          19716  2 saa7134,videobuf_dma_sg
-> tveeprom               13444  1 saa7134
-> mt352                   7684  0
-> videodev               36864  2 tuner,saa7134
-> v4l1_compat            15748  1 videodev
-> v4l2_common            12672  2 tuner,saa7134
-> i2c_core               24832  5 tuner,saa7134,tveeprom,mt352,v4l2_common
-> 
-> 
-> I've had a look at the supported board list at http://gentoo-wiki.com/HARDWARE_saa7134#i2c_Scan but my card does not seem to be present.
-> 
-> The saa1734 driver is loading, but there is no /dev/dvb or /dev//v4l directory.
-> 
-> Is this card not supported yet, or does it need to be manually loaded with the appropriate parameters?
-> 
-> I am quite willing to help with development and testing.
-
-The card is not yet supported, but was seen previously on some Sony Vaio
-stuff.
-
-We have no reports for any details on it, but there is a slight chance
-that it is very similar to card=138, the AVERMEDIA_M115.
-
-There is no DVB-T support yet and you would need recent XCeive firmware
-in /lib/firmware if my guessing is right.
-
-Are you sure DVB-T for this one is announced at all?
-
-Cheers,
-Hermann
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+T24gTW9uLCAyMDA4LTA4LTA0IGF0IDIwOjA3ICswMjAwLCBoZXJtYW5uIHBpdHRvbiB3cm90ZToK
+PiBBbSBTb25udGFnLCBkZW4gMDMuMDguMjAwOCwgMjI6MzUgLTA0MDAgc2NocmllYiBBbmR5IFdh
+bGxzOgo+ID4gT24gTW9uLCAyMDA4LTA4LTA0IGF0IDAyOjQ0ICswMjAwLCBoZXJtYW5uIHBpdHRv
+biB3cm90ZToKPiA+ID4gQW0gU29ubnRhZywgZGVuIDAzLjA4LjIwMDgsIDE1OjIwIC0wNDAwIHNj
+aHJpZWIgQW5keSBXYWxsczoKPiA+ID4gPiBPbiBTdW4sIDIwMDgtMDgtMDMgYXQgMTA6NDkgLTA3
+MDAsIEJyaWFuIFN0ZWVsZSB3cm90ZToKIAo+ID4gSSBoYXZlIHR3byBIVlItMTYwMCdzOiBvbmUg
+d2l0aCByYWRpbyBhbmQgb25lIHdpdGhvdXQuICBJIGNhbid0IGNoZWNrCj4gPiB0aGUgb25lIHdp
+dGhvdXQgcmFkaW8gcmlnaHQgbm93ICh0aGF0IGNvbXB1dGVyIGlzIGRvd24gZm9yIG90aGVyCj4g
+PiBleHBlcmltZW50cykuCgpCcmlhbiwKCkkgaGF2ZSBiZWVuIGFibGUgdG8gdGVzdCBteSBIVlIt
+MTYwMCB0aGF0IGhhcyBhIFRDTCBNMjUyMy4gIEZvciB0aGUKcmVjb3JkLCB1c2luZyB0dW5lciB0
+eXBlIDUwLCB0aGUgdHVuZXIgYXVkaW8gZm9yIGFuYWxvZyBjYXB0dXJlcyB3b3Jrcwpmb3IgbWUg
+d2l0aCB0aGUgbGF0ZXN0IHY0bC1kdmIuCgpIZXJlJ3MgaG93IHRoZSBpbml0aWFsaXphdGlvbiBs
+b29rcyB3aXRob3V0IGFueSBkZWJ1ZyB0dXJuZWQgb24uCgpjeDE4OiAgU3RhcnQgaW5pdGlhbGl6
+YXRpb24sIHZlcnNpb24gMS4wLjAKY3gxOC0wOiBJbml0aWFsaXppbmcgY2FyZCAjMApjeDE4LTA6
+IEF1dG9kZXRlY3RlZCBIYXVwcGF1Z2UgY2FyZApBQ1BJOiBQQ0kgSW50ZXJydXB0IDAwMDA6MDM6
+MDMuMFtBXSAtPiBHU0kgMjEgKGxldmVsLCBsb3cpIC0+IElSUSAyMQpjeDE4LTA6IGN4MjM0MTgg
+cmV2aXNpb24gMDEwMTAwMDAgKEIpCnR2ZWVwcm9tIDEtMDA1MDogSGF1cHBhdWdlIG1vZGVsIDc0
+MDQxLCByZXYgQzVCMiwgc2VyaWFsIyA4OTEzNTEKdHZlZXByb20gMS0wMDUwOiBNQUMgYWRkcmVz
+cyBpcyAwMC0wRC1GRS0wRC05OS1ENwp0dmVlcHJvbSAxLTAwNTA6IHR1bmVyIG1vZGVsIGlzIFRD
+TCBNMjUyM181Tl9FIChpZHggMTEyLCB0eXBlIDUwKQp0dmVlcHJvbSAxLTAwNTA6IFRWIHN0YW5k
+YXJkcyBOVFNDKE0pIChlZXByb20gMHgwOCkKdHZlZXByb20gMS0wMDUwOiBhdWRpbyBwcm9jZXNz
+b3IgaXMgQ1gyMzQxOCAoaWR4IDM4KQp0dmVlcHJvbSAxLTAwNTA6IGRlY29kZXIgcHJvY2Vzc29y
+IGlzIENYMjM0MTggKGlkeCAzMSkKdHZlZXByb20gMS0wMDUwOiBoYXMgbm8gcmFkaW8sIGhhcyBJ
+UiByZWNlaXZlciwgaGFzIElSIHRyYW5zbWl0dGVyCmN4MTgtMDogQXV0b2RldGVjdGVkIEhhdXBw
+YXVnZSBIVlItMTYwMApjeDE4LTA6IFZCSSBpcyBub3QgeWV0IHN1cHBvcnRlZAp0dW5lciAyLTAw
+NjE6IGNoaXAgZm91bmQgQCAweGMyIChjeDE4IGkyYyBkcml2ZXIgIzAtMSkKY3M1MzQ1IDEtMDA0
+YzogY2hpcCBmb3VuZCBAIDB4OTggKGN4MTggaTJjIGRyaXZlciAjMC0wKQp0dW5lci1zaW1wbGUg
+Mi0wMDYxOiBjcmVhdGluZyBuZXcgaW5zdGFuY2UKdHVuZXItc2ltcGxlIDItMDA2MTogdHlwZSBz
+ZXQgdG8gNTAgKFRDTCAyMDAyTikKY3gxOC0wOiBEaXNhYmxlZCBlbmNvZGVyIElEWCBkZXZpY2UK
+Y3gxOC0wOiBSZWdpc3RlcmVkIGRldmljZSB2aWRlbzAgZm9yIGVuY29kZXIgTVBFRyAoMiBNQikK
+RFZCOiByZWdpc3RlcmluZyBuZXcgYWRhcHRlciAoY3gxOCkKY3gxOC0wOiBsb2FkZWQgdjRsLWN4
+MjM0MTgtYXB1LmZ3IGZpcm13YXJlIFYwMDEyMDAwMCAoMTQxMjAwIGJ5dGVzKQpNWEw1MDA1Uzog
+QXR0YWNoZWQgYXQgYWRkcmVzcyAweDYzCkRWQjogcmVnaXN0ZXJpbmcgZnJvbnRlbmQgMCAoU2Ft
+c3VuZyBTNUgxNDA5IFFBTS84VlNCIEZyb250ZW5kKS4uLgpjeDE4LTA6IERWQiBGcm9udGVuZCBy
+ZWdpc3RlcmVkCmN4MTgtMDogbG9hZGVkIHY0bC1jeDIzNDE4LWNwdS5mdyBmaXJtd2FyZSAoMTU4
+MzMyIGJ5dGVzKQpjeDE4LTA6IEZXIHZlcnNpb246IDAuMC43NC4wIChSZWxlYXNlIDIwMDcvMDMv
+MTIpCmN4MTgtMDogbG9hZGVkIHY0bC1jeDIzNDE4LWRpZy5mdyBmaXJtd2FyZSAoMTYzODIgYnl0
+ZXMpCmN4MTgtMDogUmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8zMiBmb3IgZW5jb2RlciBZVVYgKDIg
+TUIpCmN4MTgtMDogUmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8yNCBmb3IgZW5jb2RlciBQQ00gYXVk
+aW8gKDEgTUIpCmN4MTgtMDogSW5pdGlhbGl6ZWQgY2FyZCAjMDogSGF1cHBhdWdlIEhWUi0xNjAw
+CmN4MTg6ICBFbmQgaW5pdGlhbGl6YXRpb24KCgpXaGVuIHdlIGluaXRpYWxseSBoYWQgYSBwcm9i
+bGVtIHdpdGggdGhlIGN4LTE4IG5vdCBwcm9kdWNpbmcgYW55IGF1ZGlvCmZyb20gdGhlIHR1bmVy
+LCBpdCB3YXMgYmVjYXVzZSB0aGVyZSB3YXMgZXJyb3JzIGluIHRoZSBtaWNyb2NvbnRyb2xsZXIK
+ZmlybXdhcmUgbG9hZC4gIEhhbnMnIG1hZGUgYSBmaXggdG8gbWFrZSB0aGUgZmlybXdhcmUgbG9h
+ZCBtb3JlIHJvYnVzdAphbmQgdGhpbmdzIHN0YXJ0ZWQgd29ya2luZy4gIElmIHlvdXIgdHVuZXIg
+bG9va3MgbGlrZSBpdCdzIGdldHRpbmcKY29tbWFuZGVkIHByb3Blcmx5LCB3ZSdsbCBpbnZlc3Rp
+Z2F0ZSBtaWNyb2NvbnRyb2xsZXIgZmlybXdhcmUgbG9hZApuZXh0LgoKCgogCj4gPiBEb2VzIGEg
+VENMIE0yNTIzXzVOX0UgaGF2ZSBhIFREQTk4OHg/ICBJIGtub3cgdGhlIFREQTk4ODcgY2FuCj4g
+PiBkZW1vZHVsYXRlIEZNIHJhZGlvLiBCcmlhbidzIEhWUi0xNjAwIGRvZXNuJ3QgaGF2ZSBGTSBy
+YWRpbyBhY2NvcmRpbmcgdG8KPiA+IHR2ZWVlcHJvbSwgc28gYXJlIHlvdSB0aGlua2luZyBhIFRE
+QTk4OFs1Nl0gaXMgaW4gdGhlIFRDTCBNMjUyMyA1TiBFPyAKPiAKPiBObywgdGhlcmVmb3JlIHRo
+ZSB3YXJuaW5nIHRoYXQgSSBkaWQgbm90IGxvb2sgYW55IGNsb3NlciB5ZXQuCj4gCj4gaHR0cDov
+L3d3dy50Y2xyZi5jb20vRW5nbGlzaC9odG1sL2VuZXdzcHJvb3Blbi5hc3A/cHJvbmFtZT0xMDIm
+dXJsPXByb2R1Y3QKCkhlcm1hbm0sCgpUaGFuayB5b3UgZm9yIHRoZSBsaW5rLiAgRnJvbSB0aGUg
+bGluayB5b3UgZ2F2ZToKCsK3SUMgdHlwZTogU043NjE2NzggJiBUREE5ODAxVAoKU28gYSBUREE5
+ODAxIGlzIHRoZSBkZW1vZHVsYXRvci1QTEwgY2hpcCBvbiB0aGlzIFRDTCB0dW5lci4gIFRoYW5r
+cy4KCgo+ID4gInN0cnVjdCB0dW5lcl9wYXJhbXMgdHVuZXJfdGNsXzIwMDJuX3BhcmFtc1tdIiBp
+bgo+ID4gdjRsLWR2Yi9saW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdHVuZXItdHlw
+ZXMuYwo+ID4gZG9lc24ndCBoYXZlICIuaGFzX3RkYTk4ODcgPSAxIiBzZXQuCj4gCj4gSSBhc3N1
+bWVkIGEgTUs0IHR1bmVyPTU3IG9uIGl0IGxpa2UgaXQgaXMgYWxzbyBvbiBQVlItMTUwIGFuZCBQ
+VlItNTAwLgo+IFRoZXkgYWxzbyBoYXZlIG5vIHJhZGlvLCBidXQgd2l0aG91dCB0ZGE5ODg3LCBp
+bmNsdWRlcyB0ZGE5ODg1IGFuZAo+IHRkYTk4ODYsIHlvdSB3b24ndCBnZXQgYW55dGhpbmcgdXNl
+ZnVsIG91dCBvZiB0aGVtLgoKTXkgUFZSLTE1ME1DRSBoYXMgYW4gTEcgVEFQRSBIMDAxRiAodHlw
+ZSA0NykuICBUaGUgdGFwZSBpcyBhIHJlYnJhbmRlZApQaGlsbGlwcyBGTTEyMzYgTUszICh0eXBl
+IDQzKSBhbmQgaXQgZG9lcyBoYXZlIGEgdGRhOTg4eC4gIEkgZmlndXJlZCBvdXQKYSBmZXcgeWVh
+cnMgYWdvIGhvdyB0byBnZXQgdGhlIEZNIHJhZGlvIHdvcmtpbmcgcmlnaHQgZm9yIHRoZSBUQVBF
+CkgwMDFGLCBhbmQgSGFucycgaGVscGVkIG1lIGZpZ3VyZSB0aGF0IHRoZSBUQVBFIEgwMDFGIHdh
+cyBhIGNsb25lIG9mIHRoZQpGTTEyMzYgTUszLgoKCgo+IFRoZW4gZXhhY3RseSB0aGUgYWJvdmUg
+bWlzc2luZyAuaGFzX3RkYTk4ODcgPSAxIGZvciBfdGhhdCBvbmVfIGNvdWxkCj4gY2F1c2Ugc3Vj
+aCBwcm9ibGVtcy4KPiAKCj4gSXQganVzdCBjYW1lIGluIG1pbmQgaXQgbWlnaHQgYmUgcmVsYXRl
+ZCB0byB0aGUgbWlzc2luZyB0ZGE5ODg3IGZvcgo+IHR1bmVyPTU3LCBidXQgeW91IG9idmlvdXNs
+eSBkZWFsIHdpdGggb3RoZXIgdHVuZXJzLgoKTm93IEkgdW5kZXJzdGFuZCB5b3Ugb3JpZ2luYWwg
+bWVhbmluZy4gT0suCgoKPiBIb3dldmVyLCB0aGUgbWlzc2luZyB0ZGE5ODg3IGZvciB0aGUgRlEx
+MjM2QSBzZWVtcyB0byBiZSBhdCBsZWFzdCBhCj4gaW5jb25zaXN0ZW5jeSBpbiB0dW5lci10eXBl
+cy5jIGZvciBtZS4KCkZvciB0aGUgRlExMjM2QSBNSzQgSXQgbG9va3MgaW5jb25zaXN0ZW50IHRv
+IG1lIHRvby4gIFlvdSdyZSBwcm9iYWJseQpyaWdodC4gIEkgZG9uJ3QgaGF2ZSBhIFBWUiBjYXJk
+IHdpdGggdGhhdCB0dW5lciB0byB0ZXN0IHRob3VnaCwgYW5kIEkKY2FuJ3QgZmluZCBhIGRhdGFz
+aGVldCBmb3IgdGhlIEZRMTIzNkEgTUs0IHRvIHZlcmlmeSB5b3VyIG9ic2VydmF0aW9uLiAKCgpS
+ZWdhcmRzLApBbmR5Cgo+ID5Gcm9tIGxvZ3Mgb2YgdGhlIFBWUi01MDAgYW5kIFBWUi0xNTAgb25l
+IGNhbiBzZWUgdGhleSBuZWVkIHRoZSB0ZGE5ODg3Cj4gbW9kdWxlIGFuZCBpdCBpcyBhdCAweDQz
+LzB4ODYuCj4gCj4gQ2hlZXJzLAo+IEhlcm1hbm4KCgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJA
+bGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGlu
+Zm8vbGludXgtZHZi
