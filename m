@@ -1,22 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.153])
+Received: from mail-in-01.arcor-online.net ([151.189.21.41])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1KSdXT-0003Ib-Oi
-	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 21:58:49 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so1077896fga.25
-	for <linux-dvb@linuxtv.org>; Mon, 11 Aug 2008 12:58:44 -0700 (PDT)
-Message-ID: <37219a840808111258u23651495o6a7fba478214ef2c@mail.gmail.com>
-Date: Mon, 11 Aug 2008 15:58:44 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: mark.paulus@verizonbusiness.com
-In-Reply-To: <48A09672.2060707@verizonbusiness.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <48A05F58.8090405@verizonbusiness.com>
-	<37219a840808111057w5945ecc6wd200c624168a196a@mail.gmail.com>
-	<48A09672.2060707@verizonbusiness.com>
+	(envelope-from <hermann-pitton@arcor.de>) id 1KQCWZ-0000bt-Q7
+	for linux-dvb@linuxtv.org; Tue, 05 Aug 2008 04:43:49 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+In-Reply-To: <1217901425.2695.32.camel@morgan.walls.org>
+References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
+	<1217728894.5348.72.camel@morgan.walls.org>
+	<5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
+	<1217791214.2690.31.camel@morgan.walls.org>
+	<1217810697.2673.8.camel@pc10.localdom.local>
+	<1217817352.23133.64.camel@palomino.walls.org>
+	<1217873263.2671.27.camel@pc10.localdom.local>
+	<1217901425.2695.32.camel@morgan.walls.org>
+Date: Tue, 05 Aug 2008 04:36:21 +0200
+Message-Id: <1217903781.2673.10.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [Fwd: Help with recent DVB/QAM problem please.]
+Subject: Re: [linux-dvb] HVR-1600 - No audio
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,116 +26,106 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Aug 11, 2008 at 3:43 PM, Mark Paulus
-<mark.paulus@verizonbusiness.com> wrote:
->
->
-> Michael Krufky wrote:
->>
->> 2008/8/11 Mark Paulus <mark.paulus@verizonbusiness.com>:
->>>
->>> Redirecting to linux-dvb on suggestion from
->>> Video4Linux user.
->>>
->>> -------- Original Message --------
->>> Subject: Help with recent DVB/QAM problem please.
->>>
->>> Hi all,
->>>
->>> Background:
->>> I have a machine in my basement with:
->>> Hauppauge PVR-150 (connected to DCT2524)
->>> Air2PC ATSC/OTA card (connected to antenna in attic)
->>> Avermedia A180 (connected to comcast cable)
->>> Dvico FusionHDTV RT 5 Lite (connectec comcast cable)
->>> Debian using 2.6.24-x64 kernel
->>>
->>> Situation:
->>> Up until a week ago, I was able to use azap to tune in
->>> a bunch of mplexids, and get good locks on both the A180 and the Dvico
->>> card.
->>>  However, starting on Monday,
->>> I am not able to get locks on either of my DVB cards.
->>> I have been able, and am still able to get good locks
->>> on my air2pc OTA card.
->>>
->>> Can anyone help me figure out why I can't seem to see
->>> anything from my 2 QAM cards?  I've tried running a
->>> dvbscan and neither card can make a good lock.  What
->>> other debugging tools can I use to try to find any QAM
->>> signals?  I've also tried doing a VSB-8 scan on the cable
->>> cards, and also don't get any locks.
->>
->> Mark,
->>
->> It's good that you've moved the thread to the correct mailing list.
->> However, I did already answer you and asked you some questions, to
->> which you have not yet responded....
->>
->> Quoting myself:
->>
->> What variables have changed in your test environment since last Monday?
->>
->> If the answer is "nothing" , then the problem is more than likely due
->> to your cable company moving services around.
->>
->> First, you should confirm that you still have clear QAM available...
->> assuming yes, then I recommend scanning for channels again, using each
->> card.
->>
->> Regards,
->>
->> Mike
->>
->
-> As far as I know, no variables have changed.  The only thing that might
-> have been of note is that there seemed to have been a wierd Power Blip, and
-> my linux machine was off when I was not expecting it.
-> After turning it on, I noticed the problem.  However, it seems wierd
-> to me that a power blip would blow both QAM cards, and yet leave the ATSC
-> and the PVR-150 alone.  (I also have a PVR-150 attached to a Motorola
-> DCT-2524 in that machine).
->
-> My biggest problem I have right now is determining if there is even
-> any clear QAM available.  I did a dtvscan -q from both cards, and neither
-> card is able to lock anything.  Before last week, I was
-> able to get locks on many multiplexes, even those populated completely with
-> encrypted PIDs.  (I would do an azap in one window
-> to lock a multiplex, then I could do a dvbstream in another window, and run
-> tsreader on my winxp box to actually look at a stream.  Encrypted streams
-> would show up as read w/nothing to look at.
-> Clear streams could be clicked, and would play in VLC, so I could
-> see what it is.)
->
-> I will run another dtvscan to make sure things aren't there, but is
-> there any other means of determining the state of things QAM?  Somehow my
-> Motorola DCT-2524 seems to still see channels and
-> work fine, so if Comcast did change something, then they did
-> it so that it doesn't affect their STBs.
-
-This is my point, exactly.  Since your provider has provided your STB,
-they also have an interface into the STB that allows them to update
-software and / or encryption keys, etc.
-
-It is more than likely that your provider has changed the
-characteristics of the services on their cable.
-
-You may want to contact your provider directly and ask them what has
-changed with your service within the past two weeks.
-
-I've heard similar complaints from other users of your service provider.
-
-Good Luck,
-
-Mike
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+CkFtIE1vbnRhZywgZGVuIDA0LjA4LjIwMDgsIDIxOjU3IC0wNDAwIHNjaHJpZWIgQW5keSBXYWxs
+czoKPiBPbiBNb24sIDIwMDgtMDgtMDQgYXQgMjA6MDcgKzAyMDAsIGhlcm1hbm4gcGl0dG9uIHdy
+b3RlOgo+ID4gQW0gU29ubnRhZywgZGVuIDAzLjA4LjIwMDgsIDIyOjM1IC0wNDAwIHNjaHJpZWIg
+QW5keSBXYWxsczoKPiA+ID4gT24gTW9uLCAyMDA4LTA4LTA0IGF0IDAyOjQ0ICswMjAwLCBoZXJt
+YW5uIHBpdHRvbiB3cm90ZToKPiA+ID4gPiBBbSBTb25udGFnLCBkZW4gMDMuMDguMjAwOCwgMTU6
+MjAgLTA0MDAgc2NocmllYiBBbmR5IFdhbGxzOgo+ID4gPiA+ID4gT24gU3VuLCAyMDA4LTA4LTAz
+IGF0IDEwOjQ5IC0wNzAwLCBCcmlhbiBTdGVlbGUgd3JvdGU6Cj4gIAo+ID4gPiBJIGhhdmUgdHdv
+IEhWUi0xNjAwJ3M6IG9uZSB3aXRoIHJhZGlvIGFuZCBvbmUgd2l0aG91dC4gIEkgY2FuJ3QgY2hl
+Y2sKPiA+ID4gdGhlIG9uZSB3aXRob3V0IHJhZGlvIHJpZ2h0IG5vdyAodGhhdCBjb21wdXRlciBp
+cyBkb3duIGZvciBvdGhlcgo+ID4gPiBleHBlcmltZW50cykuCj4gCj4gQnJpYW4sCj4gCj4gSSBo
+YXZlIGJlZW4gYWJsZSB0byB0ZXN0IG15IEhWUi0xNjAwIHRoYXQgaGFzIGEgVENMIE0yNTIzLiAg
+Rm9yIHRoZQo+IHJlY29yZCwgdXNpbmcgdHVuZXIgdHlwZSA1MCwgdGhlIHR1bmVyIGF1ZGlvIGZv
+ciBhbmFsb2cgY2FwdHVyZXMgd29ya3MKPiBmb3IgbWUgd2l0aCB0aGUgbGF0ZXN0IHY0bC1kdmIu
+Cj4gCj4gSGVyZSdzIGhvdyB0aGUgaW5pdGlhbGl6YXRpb24gbG9va3Mgd2l0aG91dCBhbnkgZGVi
+dWcgdHVybmVkIG9uLgo+IAo+IGN4MTg6ICBTdGFydCBpbml0aWFsaXphdGlvbiwgdmVyc2lvbiAx
+LjAuMAo+IGN4MTgtMDogSW5pdGlhbGl6aW5nIGNhcmQgIzAKPiBjeDE4LTA6IEF1dG9kZXRlY3Rl
+ZCBIYXVwcGF1Z2UgY2FyZAo+IEFDUEk6IFBDSSBJbnRlcnJ1cHQgMDAwMDowMzowMy4wW0FdIC0+
+IEdTSSAyMSAobGV2ZWwsIGxvdykgLT4gSVJRIDIxCj4gY3gxOC0wOiBjeDIzNDE4IHJldmlzaW9u
+IDAxMDEwMDAwIChCKQo+IHR2ZWVwcm9tIDEtMDA1MDogSGF1cHBhdWdlIG1vZGVsIDc0MDQxLCBy
+ZXYgQzVCMiwgc2VyaWFsIyA4OTEzNTEKPiB0dmVlcHJvbSAxLTAwNTA6IE1BQyBhZGRyZXNzIGlz
+IDAwLTBELUZFLTBELTk5LUQ3Cj4gdHZlZXByb20gMS0wMDUwOiB0dW5lciBtb2RlbCBpcyBUQ0wg
+TTI1MjNfNU5fRSAoaWR4IDExMiwgdHlwZSA1MCkKPiB0dmVlcHJvbSAxLTAwNTA6IFRWIHN0YW5k
+YXJkcyBOVFNDKE0pIChlZXByb20gMHgwOCkKPiB0dmVlcHJvbSAxLTAwNTA6IGF1ZGlvIHByb2Nl
+c3NvciBpcyBDWDIzNDE4IChpZHggMzgpCj4gdHZlZXByb20gMS0wMDUwOiBkZWNvZGVyIHByb2Nl
+c3NvciBpcyBDWDIzNDE4IChpZHggMzEpCj4gdHZlZXByb20gMS0wMDUwOiBoYXMgbm8gcmFkaW8s
+IGhhcyBJUiByZWNlaXZlciwgaGFzIElSIHRyYW5zbWl0dGVyCj4gY3gxOC0wOiBBdXRvZGV0ZWN0
+ZWQgSGF1cHBhdWdlIEhWUi0xNjAwCj4gY3gxOC0wOiBWQkkgaXMgbm90IHlldCBzdXBwb3J0ZWQK
+PiB0dW5lciAyLTAwNjE6IGNoaXAgZm91bmQgQCAweGMyIChjeDE4IGkyYyBkcml2ZXIgIzAtMSkK
+PiBjczUzNDUgMS0wMDRjOiBjaGlwIGZvdW5kIEAgMHg5OCAoY3gxOCBpMmMgZHJpdmVyICMwLTAp
+Cj4gdHVuZXItc2ltcGxlIDItMDA2MTogY3JlYXRpbmcgbmV3IGluc3RhbmNlCj4gdHVuZXItc2lt
+cGxlIDItMDA2MTogdHlwZSBzZXQgdG8gNTAgKFRDTCAyMDAyTikKPiBjeDE4LTA6IERpc2FibGVk
+IGVuY29kZXIgSURYIGRldmljZQo+IGN4MTgtMDogUmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8wIGZv
+ciBlbmNvZGVyIE1QRUcgKDIgTUIpCj4gRFZCOiByZWdpc3RlcmluZyBuZXcgYWRhcHRlciAoY3gx
+OCkKPiBjeDE4LTA6IGxvYWRlZCB2NGwtY3gyMzQxOC1hcHUuZncgZmlybXdhcmUgVjAwMTIwMDAw
+ICgxNDEyMDAgYnl0ZXMpCj4gTVhMNTAwNVM6IEF0dGFjaGVkIGF0IGFkZHJlc3MgMHg2Mwo+IERW
+QjogcmVnaXN0ZXJpbmcgZnJvbnRlbmQgMCAoU2Ftc3VuZyBTNUgxNDA5IFFBTS84VlNCIEZyb250
+ZW5kKS4uLgo+IGN4MTgtMDogRFZCIEZyb250ZW5kIHJlZ2lzdGVyZWQKPiBjeDE4LTA6IGxvYWRl
+ZCB2NGwtY3gyMzQxOC1jcHUuZncgZmlybXdhcmUgKDE1ODMzMiBieXRlcykKPiBjeDE4LTA6IEZX
+IHZlcnNpb246IDAuMC43NC4wIChSZWxlYXNlIDIwMDcvMDMvMTIpCj4gY3gxOC0wOiBsb2FkZWQg
+djRsLWN4MjM0MTgtZGlnLmZ3IGZpcm13YXJlICgxNjM4MiBieXRlcykKPiBjeDE4LTA6IFJlZ2lz
+dGVyZWQgZGV2aWNlIHZpZGVvMzIgZm9yIGVuY29kZXIgWVVWICgyIE1CKQo+IGN4MTgtMDogUmVn
+aXN0ZXJlZCBkZXZpY2UgdmlkZW8yNCBmb3IgZW5jb2RlciBQQ00gYXVkaW8gKDEgTUIpCj4gY3gx
+OC0wOiBJbml0aWFsaXplZCBjYXJkICMwOiBIYXVwcGF1Z2UgSFZSLTE2MDAKPiBjeDE4OiAgRW5k
+IGluaXRpYWxpemF0aW9uCj4gCj4gCj4gV2hlbiB3ZSBpbml0aWFsbHkgaGFkIGEgcHJvYmxlbSB3
+aXRoIHRoZSBjeC0xOCBub3QgcHJvZHVjaW5nIGFueSBhdWRpbwo+IGZyb20gdGhlIHR1bmVyLCBp
+dCB3YXMgYmVjYXVzZSB0aGVyZSB3YXMgZXJyb3JzIGluIHRoZSBtaWNyb2NvbnRyb2xsZXIKPiBm
+aXJtd2FyZSBsb2FkLiAgSGFucycgbWFkZSBhIGZpeCB0byBtYWtlIHRoZSBmaXJtd2FyZSBsb2Fk
+IG1vcmUgcm9idXN0Cj4gYW5kIHRoaW5ncyBzdGFydGVkIHdvcmtpbmcuICBJZiB5b3VyIHR1bmVy
+IGxvb2tzIGxpa2UgaXQncyBnZXR0aW5nCj4gY29tbWFuZGVkIHByb3Blcmx5LCB3ZSdsbCBpbnZl
+c3RpZ2F0ZSBtaWNyb2NvbnRyb2xsZXIgZmlybXdhcmUgbG9hZAo+IG5leHQuCj4gCj4gCj4gCj4g
+IAo+ID4gPiBEb2VzIGEgVENMIE0yNTIzXzVOX0UgaGF2ZSBhIFREQTk4OHg/ICBJIGtub3cgdGhl
+IFREQTk4ODcgY2FuCj4gPiA+IGRlbW9kdWxhdGUgRk0gcmFkaW8uIEJyaWFuJ3MgSFZSLTE2MDAg
+ZG9lc24ndCBoYXZlIEZNIHJhZGlvIGFjY29yZGluZyB0bwo+ID4gPiB0dmVlZXByb20sIHNvIGFy
+ZSB5b3UgdGhpbmtpbmcgYSBUREE5ODhbNTZdIGlzIGluIHRoZSBUQ0wgTTI1MjMgNU4gRT8gCj4g
+PiAKPiA+IE5vLCB0aGVyZWZvcmUgdGhlIHdhcm5pbmcgdGhhdCBJIGRpZCBub3QgbG9vayBhbnkg
+Y2xvc2VyIHlldC4KPiA+IAo+ID4gaHR0cDovL3d3dy50Y2xyZi5jb20vRW5nbGlzaC9odG1sL2Vu
+ZXdzcHJvb3Blbi5hc3A/cHJvbmFtZT0xMDImdXJsPXByb2R1Y3QKPiAKPiBIZXJtYW5tLAo+IAo+
+IFRoYW5rIHlvdSBmb3IgdGhlIGxpbmsuICBGcm9tIHRoZSBsaW5rIHlvdSBnYXZlOgo+IAo+IMK3
+SUMgdHlwZTogU043NjE2NzggJiBUREE5ODAxVAo+IAo+IFNvIGEgVERBOTgwMSBpcyB0aGUgZGVt
+b2R1bGF0b3ItUExMIGNoaXAgb24gdGhpcyBUQ0wgdHVuZXIuICBUaGFua3MuCj4gCj4gCj4gPiA+
+ICJzdHJ1Y3QgdHVuZXJfcGFyYW1zIHR1bmVyX3RjbF8yMDAybl9wYXJhbXNbXSIgaW4KPiA+ID4g
+djRsLWR2Yi9saW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdHVuZXItdHlwZXMuYwo+
+ID4gPiBkb2Vzbid0IGhhdmUgIi5oYXNfdGRhOTg4NyA9IDEiIHNldC4KPiA+IAo+ID4gSSBhc3N1
+bWVkIGEgTUs0IHR1bmVyPTU3IG9uIGl0IGxpa2UgaXQgaXMgYWxzbyBvbiBQVlItMTUwIGFuZCBQ
+VlItNTAwLgo+ID4gVGhleSBhbHNvIGhhdmUgbm8gcmFkaW8sIGJ1dCB3aXRob3V0IHRkYTk4ODcs
+IGluY2x1ZGVzIHRkYTk4ODUgYW5kCj4gPiB0ZGE5ODg2LCB5b3Ugd29uJ3QgZ2V0IGFueXRoaW5n
+IHVzZWZ1bCBvdXQgb2YgdGhlbS4KPiAKPiBNeSBQVlItMTUwTUNFIGhhcyBhbiBMRyBUQVBFIEgw
+MDFGICh0eXBlIDQ3KS4gIFRoZSB0YXBlIGlzIGEgcmVicmFuZGVkCj4gUGhpbGxpcHMgRk0xMjM2
+IE1LMyAodHlwZSA0MykgYW5kIGl0IGRvZXMgaGF2ZSBhIHRkYTk4OHguICBJIGZpZ3VyZWQgb3V0
+Cj4gYSBmZXcgeWVhcnMgYWdvIGhvdyB0byBnZXQgdGhlIEZNIHJhZGlvIHdvcmtpbmcgcmlnaHQg
+Zm9yIHRoZSBUQVBFCj4gSDAwMUYsIGFuZCBIYW5zJyBoZWxwZWQgbWUgZmlndXJlIHRoYXQgdGhl
+IFRBUEUgSDAwMUYgd2FzIGEgY2xvbmUgb2YgdGhlCj4gRk0xMjM2IE1LMy4KPiAKPiAKPiAKPiA+
+IFRoZW4gZXhhY3RseSB0aGUgYWJvdmUgbWlzc2luZyAuaGFzX3RkYTk4ODcgPSAxIGZvciBfdGhh
+dCBvbmVfIGNvdWxkCj4gPiBjYXVzZSBzdWNoIHByb2JsZW1zLgo+ID4gCj4gCj4gPiBJdCBqdXN0
+IGNhbWUgaW4gbWluZCBpdCBtaWdodCBiZSByZWxhdGVkIHRvIHRoZSBtaXNzaW5nIHRkYTk4ODcg
+Zm9yCj4gPiB0dW5lcj01NywgYnV0IHlvdSBvYnZpb3VzbHkgZGVhbCB3aXRoIG90aGVyIHR1bmVy
+cy4KPiAKPiBOb3cgSSB1bmRlcnN0YW5kIHlvdSBvcmlnaW5hbCBtZWFuaW5nLiBPSy4KPiAKPiAK
+PiA+IEhvd2V2ZXIsIHRoZSBtaXNzaW5nIHRkYTk4ODcgZm9yIHRoZSBGUTEyMzZBIHNlZW1zIHRv
+IGJlIGF0IGxlYXN0IGEKPiA+IGluY29uc2lzdGVuY3kgaW4gdHVuZXItdHlwZXMuYyBmb3IgbWUu
+Cj4gCj4gRm9yIHRoZSBGUTEyMzZBIE1LNCBJdCBsb29rcyBpbmNvbnNpc3RlbnQgdG8gbWUgdG9v
+LiAgWW91J3JlIHByb2JhYmx5Cj4gcmlnaHQuICBJIGRvbid0IGhhdmUgYSBQVlIgY2FyZCB3aXRo
+IHRoYXQgdHVuZXIgdG8gdGVzdCB0aG91Z2gsIGFuZCBJCj4gY2FuJ3QgZmluZCBhIGRhdGFzaGVl
+dCBmb3IgdGhlIEZRMTIzNkEgTUs0IHRvIHZlcmlmeSB5b3VyIG9ic2VydmF0aW9uLiAKCldlIGFy
+ZSBpbiB0aGUgZGFtbmVkIHNhbWUgYm9hdCBoZXJlIQoKSGFucywgd2hhdCBkbyB5b3Ugc2F5PwoK
+PiAKPiBSZWdhcmRzLAo+IEFuZHkKPiAKPiA+ID5Gcm9tIGxvZ3Mgb2YgdGhlIFBWUi01MDAgYW5k
+IFBWUi0xNTAgb25lIGNhbiBzZWUgdGhleSBuZWVkIHRoZSB0ZGE5ODg3Cj4gPiBtb2R1bGUgYW5k
+IGl0IGlzIGF0IDB4NDMvMHg4Ni4KCkkgZXZlbiBzdGFydGVkIHRvIGJlbGlldmUsIHRoYXQgdGhp
+cyBjb3VsZCBiZSBhIHZhcmlhbnQgaGF2aW5nIHRoZQp0ZGE5OHh4IHN0dWZmIHN0cmFwcGVkIHRv
+IGJlIGhhcmR3aXJlZCBmb3IgU3lzdGVtLU0sIGhhcmQgdG8gYmVsaWV2ZSBhbmQKSSB3YXMgZXZl
+biBpbnZvbHZlZCBwcmV2aW91c2x5IHRvIGdldCBzb21ldGhpbmcgb3V0IG9mIHRoZW0gYXQgYWxs
+IC4uLgoKVGhpcyBjb3VsZCBiZSBwb3NzaWJsZSwgYnV0IGl0IHdhcyBhbGwgYnVsbHNoaXQgZXZl
+biB0byB0aGluayBhYm91dCBpdC4KCldoeSB0aGF0IEZRMTIzNkEgaGFzIG5vIHN1cHBvcnQgZm9y
+IHRkYTk4ODcgaW4gdHVuZXItdHlwZXMuYyA/CgpJIGRvbid0IGV2ZW4gYXNrIGl0IHRoZSBmaXJz
+dCB0aW1lIC4uLi4KCkNoZWVycywKSGVybWFubgoKCgoKCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZi
+QGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3Rp
+bmZvL2xpbnV4LWR2Yg==
