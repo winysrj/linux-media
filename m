@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail3.atlantis.sk ([80.94.52.52] helo=ocean.atlantis.sk)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hajduk@francetech.sk>) id 1KXWNQ-0005zx-U4
-	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 09:20:38 +0200
-From: "Marek Hajduk" <hajduk@francetech.sk>
-To: "'Goga777'" <goga777@bk.ru>
-Date: Mon, 25 Aug 2008 09:20:09 +0200
+Date: Wed, 6 Aug 2008 07:55:18 +1000
+From: Anton Blanchard <anton@samba.org>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Message-ID: <20080805215518.GB7314@kryten>
+References: <20080804131051.GA7241@kryten>
+	<37219a840808040935o3cf613bdvd644bb0e592c8430@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <E1KW595-00086r-00.goga777-bk-ru@f61.mail.ru>
+Content-Disposition: inline
+In-Reply-To: <37219a840808040935o3cf613bdvd644bb0e592c8430@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for VDR
-	1.7.0
+Subject: Re: [linux-dvb] [PATCH] DViCO FusionHDTV DVB-T Dual Digital 4
+	(rev	2)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,86 +21,49 @@ List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
-Message-Id: <E1KXWNX-00067q-Ti@www.linuxtv.org>
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 
+Hi Mike,
 
------Original Message-----
-From: Goga777 [mailto:goga777@bk.ru] 
-Sent: Thursday, August 21, 2008 10:04 AM
-To: Ing.Marek Hajduk-Francetech s.r.o
-Cc: linux-dvb@linuxtv.org
-Subject: [?? Probable Spam] Re: [linux-dvb] HVR 4000 recomneded driver and
-firmware for VDR 1.7.0
+Thanks for the review! I will incorporate your suggestions and get a new
+patch out in a day or so.
 
- Could somebody recomend me which driver and firmware is working without
-> problem
+> > Index: v4l-dvb/linux/drivers/media/dvb/frontends/dib7000p.c
+> > ===================================================================
+> > --- v4l-dvb.orig/linux/drivers/media/dvb/frontends/dib7000p.c   2008-08-04 18:10:30.000000000 +1000
+> > +++ v4l-dvb/linux/drivers/media/dvb/frontends/dib7000p.c        2008-08-04 18:10:46.000000000 +1000
+> > @@ -1359,7 +1359,8 @@
+> >        /* Ensure the output mode remains at the previous default if it's
+> >         * not specifically set by the caller.
+> >         */
+> > -       if (st->cfg.output_mode != OUTMODE_MPEG2_SERIAL)
+> > +       if ((st->cfg.output_mode != OUTMODE_MPEG2_SERIAL) &&
+> > +           (st->cfg.output_mode != OUTMODE_MPEG2_PAR_GATED_CLK))
+> >                st->cfg.output_mode = OUTMODE_MPEG2_FIFO;
 > 
-> with vdr 1.7.0 and reelbox extension eHD?
+> 
+> 
+> There doesnt look to be anything wrong with this, but I don't know
+> very much about this -- why is this needed?  Have you tested on other
+> devices that use dib7000p to confirm that it doesn't break anything?
 
-szap2 and drivers from 
-http://liplianindvb.sourceforge.net/hg/
+This got introduced with the patch to allow the output mode to be
+configured:
 
-firmware from
-http://steventoth.net/linux/cx24116/
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=a38d6e37c0bc073bae5eff37c939978974ea9712
 
-> With liplianindvb I didnt have any Picture.
+It looks to be making sure the patch didnt regress anything at the time.
+Unfortunately it means we always set it to OUTMODE_MPEG2_FIFO. The patch
+above just allows both OUTMODE_MPEG2_FIFO and
+OUTMODE_MPEG2_PAR_GATED_CLK to be set.
 
+We could shuffle the output modes around and make 0 the default
+(OUTMODE_MPEG2_FIFO), or just go in and add initialise the output_mode
+field in all dib7000p based drivers.
 
-at first you have to try szap2 from http://liplianindvb.sourceforge.net/hg/
-
-
-I have vdr 170 + h.264 patch + http://liplianindvb.sourceforge.net/hg/ +
-hvr4000 and I can see any dvb-s/dvb-s2 channels without any problem
-
-Goga
-
-Thank You Goga for Your help, but it doesn't work in my case.
-I don't know why, but with liplianindvb driver I don't have lock on any
-channels at all.
-
-Only what works for me is multiproto_plus driver and patch from 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-May/025844.html
-
-Maybe I have card with different revision then You.
-
-Here is dmesg list of cx88
-
-[    9.190869] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6
-loaded
-[    9.191815] cx88[0]: subsystem: 0070:6902, board: Hauppauge
-WinTV-HVR4000 DVB-S/S2/T/Hybrid [card=68,autodetected]
-[    9.191818] cx88[0]: TV tuner type 63, Radio tuner type -1
-[    9.208483] cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-[    9.456267] tuner' 0-0043: chip found @ 0x86 (cx88[0])
-[    9.460285] tuner' 0-0061: chip found @ 0xc2 (cx88[0])
-[    9.465687] tuner' 0-0063: chip found @ 0xc6 (cx88[0])
-[    9.512864] cx88[0]: hauppauge eeprom: model=69009
-[    9.512924] input: cx88 IR (Hauppauge WinTV-HVR400
-as /class/input/input7
-[    9.555713] cx88[0]/2: cx2388x 8802 Driver Manager
-[    9.555713] cx88[0]/2: found at 0000:01:06.2, rev: 5, irq: 19,
-latency: 248, mmio: 0xdd000000
-[    9.555713] cx88[0]/0: found at 0000:01:06.0, rev: 5, irq: 19,
-latency: 248, mmio: 0xdf000000
-[    9.555713] cx88[0]/0: registered device video0 [v4l2]
-[    9.555713] cx88[0]/0: registered device vbi0
-[    9.555713] cx88[0]/0: registered device radio0
-[    9.555713] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
-[    9.747601] cx88/2: cx2388x dvb driver version 0.0.6 loaded
-[    9.747601] cx88/2: registering cx8802 driver, type: dvb access:
-shared
-[    9.747601] cx88[0]/2: subsystem: 0070:6902, board: Hauppauge
-WinTV-HVR4000 DVB-S/S2/T/Hybrid [card=68]
-[    9.747601] cx88[0]/2: cx2388x based DVB/ATSC card
-[   10.065783] DVB: registering new adapter (cx88[0])
-
-Best Regards
-
-Marky
-
+Anton
 
 _______________________________________________
 linux-dvb mailing list
