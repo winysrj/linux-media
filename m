@@ -1,23 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1005.centrum.cz ([90.183.38.135])
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hoppik@centrum.cz>) id 1KZkrm-0000pU-De
-	for linux-dvb@linuxtv.org; Sun, 31 Aug 2008 13:13:12 +0200
-Received: by mail1005.centrum.cz id S738385945AbYHaLNG convert
-	rfc822-to-quoted-printable (ORCPT <rfc822;linux-dvb@linuxtv.org>);
-	Sun, 31 Aug 2008 13:13:06 +0200
-Date: Sun, 31 Aug 2008 13:13:06 +0200
-From: " =?UTF-8?Q?SKO=C4=8CDOPOLE?= =?UTF-8?Q?=20Tom=C3=A1=C5=A1?="
-	<hoppik@centrum.cz>
-To: <linux-dvb@linuxtv.org>
+	(envelope-from <stev391@email.com>) id 1KQquM-0000YB-Pw
+	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 23:51:03 +0200
+Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
+	[192.168.8.242])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
+	6C5AF1801800
+	for <linux-dvb@linuxtv.org>; Wed,  6 Aug 2008 21:49:40 +0000 (GMT)
 MIME-Version: 1.0
-Message-ID: <200808311313.7520@centrum.cz>
-References: <200808311224.13193@centrum.cz> <200808311231.13902@centrum.cz>
-	<200808311232.11677@centrum.cz>
-	<200808311350.17752.liplianin@me.by>
-In-Reply-To: <200808311350.17752.liplianin@me.by>
-Cc: liplianin@me.by
-Subject: Re: [linux-dvb] Drivers for TT S2-3200
+From: stev391@email.com
+To: rvf16 <rvf16@yahoo.gr>
+Date: Thu, 7 Aug 2008 07:49:40 +1000
+Message-Id: <20080806214940.4024447808F@ws1-5.us4.outblaze.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] CX23885 based AVerMedia AVerTV Hybrid Express Slim
+ tv card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,34 +23,118 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============1791297125=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-T0ssIEkgaGF2ZSBzb21lIGZyZWV0aW1lIGF0IHRodWVyc2RheSwgc28gaSB3aWxsIHRyeSB5b3Ug
-ZHJpdmVycy4KCkkgd2FudCB0byBhc2sgeW91IGFib3V0IGR2Yi1hcHBzIHV0aWxpdGllcyBzemFw
-IGFuZCBzY2FuOiB3b3JrIHRoZXkgd2l0aCB5b3UgZHJpdmVycz8KCk9yIEkgbmVlZCBzb21lIHBh
-dGNoZXMuCgpSZWdhcmRzIFRvbWFzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IE9kOiBsaXBsaWFuaW5AbWUuYnkKPiBLb211
-OiBsaW51eC1kdmJAbGludXh0di5vcmcKPiBDQzogJnF1b3Q7IFNLT8SMRE9QT0xFICBUb23DocWh
-JnF1b3Q7IDxob3BwaWtAY2VudHJ1bS5jej4KPiBEYXR1bTogMzEuMDguMjAwOCAxMjo1MAo+IFDF
-mWVkbcSbdDogUmU6IFtsaW51eC1kdmJdIERyaXZlcnMgZm9yIFRUIFMyLTMyMDAKPgo+0JIg0YHQ
-vtC+0LHRidC10L3QuNC4INC+0YIgMzEgQXVndXN0IDIwMDggMTM6MzI6MzMgU0tPxIxET1BPTEUg
-VG9tw6HFoSDQvdCw0L/QuNGB0LDQuyjQsCk6Cj4+IGhpLAo+Pgo+PiBJIHdhbnQgdG8gYXNrIHlv
-dSwgd2hhdCBkcml2ZXJzIGkgY2FuIHVzZSBmb3IgVFQgUzItMzIwMCB3aXRoIGJlc3Qgc3VwcG9y
-dAo+PiBmb3IgdmRyLCBzemFwLCBzY2FuIGV0Yy4KPj4KPj4gSSdtIGFjdHVhbGx5IHVzaW5nIG11
-bHRpcHJvdG8gZHJpdmVycyBodHRwOi8vanVzc3QuZGUvaGcvbXVsdGlwcm90byB3aXRoCj4+IGNo
-YW5uZWwgbG9jayBwYXRjaC4gSSByZWFkIGhlcmUgYWJvdXQgSWdvciBNLiBMaXBsaWFuaW5zIGRy
-aXZlcnMsIGJ1dCBJCj4+IGtub3cgYW55dGhpbmcgYWJvdXQgaXQuCj4+Cj4+IFRoYW5rIHlvdSEK
-Pj4KPj4gUmVnYXJkcyBUb21hcwo+Pgo+Pgo+PiBfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwo+PiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4+IGxpbnV4LWR2
-YkBsaW51eHR2Lm9yZwo+PiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9s
-aXN0aW5mby9saW51eC1kdmIKPkhpLAo+Cj5Zb3UgY2FuIHRyeSBpdC4KPmh0dHA6Ly9saXBsaWFu
-aW5kdmIuc291cmNlZm9yZ2UubmV0L2hnLwo+QWN0dWFsbHkgSSBhc2sgeW91IGFuZCBvdGhlciBw
-ZW9wbGVzIHRvIGZlZWRiYWNrLCB3aGV0aGVyIGl0IHdvcmtzIHByb3Blcmx5LCAKPm9yIG5vdC4K
-PkJlc3QgUmVnYXJkcwo+IAo+SWdvciBNLiBMaXBsaWFuaW4KPgoKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGlu
-dXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LWR2Yg==
+This is a multi-part message in MIME format.
+
+--===============1791297125==
+Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative; boundary="_----------=_121805938038700"
+
+This is a multi-part message in MIME format.
+
+--_----------=_121805938038700
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
+
+I just had a quick look in the .inf file that is installed=20
+
+
+by the drivers from Avermedia.
+
+It appears that your card uses a TDA18271 tuner.  I'm not=20
+sure what demod it is using though, just thought this might=20
+help you a bit.
+
+Maybe you could try using one of the cards already in the=20
+cx23885 driver, some of these are using this tuner...
+
+As Steve said the best way to find out what is in the tuner=20
+is to physically open the case and identify all chips and=20
+related devices.
+
+Maybe perform an i2cdetect on the three i2c interfaces of=20
+the cx23885 and include this on the wiki page (if there=20
+isn't a wiki page create it and include your regspy logs,=20
+photos and key components, link to product page, etc)
+
+Good luck.
+
+Stephen
+
+rvf16 wrote:
+> Thanks for the reply but how am i going to do all these?
+>
+> Are there any howtos for identifying tuner and demodulator?
+> Where do i find the patches to add support for my device?
+> Submit my patches? what do you mean? After reading several mails in=20
+> this mailing list i did the regspy task but now i am completely=20
+> blind .
+> Thank you.
+>
+>> Start by identifying the tuner and demodulator, then patch the=20
+>> cx23885 tree - adding support for these devices - and submit your=20
+>> patches here for review.
+
+--=20
+Be Yourself @ mail.com!
+Choose From 200+ Email Addresses
+Get a Free Account at www.mail.com
+
+
+--_----------=_121805938038700
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="iso-8859-1"
+
+<span id=3D"obmessage"><pre>I just had a quick look in the .inf file that i=
+s installed <br>by the drivers from Avermedia.<br><br>It appears that your =
+card uses a TDA18271 tuner.  I'm not <br>sure what demod it is using though=
+, just thought this might <br>help you a bit.<br><br>Maybe you could try us=
+ing one of the cards already in the <br>cx23885 driver, some of these are u=
+sing this tuner...<br><br>As Steve said the best way to find out what is in=
+ the tuner <br>is to physically open the case and identify all chips and <b=
+r>related devices.<br><br>Maybe perform an i2cdetect on the three i2c inter=
+faces of <br>the cx23885 and include this on the wiki page (if there <br>is=
+n't a wiki page create it and include your regspy logs, <br>photos and key =
+components, link to product page, etc)<br><br>Good luck.<br><br>Stephen<br>=
+<br>rvf16 wrote:<br>&gt; Thanks for the reply but how am i going to do all =
+these?<br>&gt;<br>&gt; Are there any howtos for identifying tuner and demod=
+ulator?<br>&gt; Where do i find the patches to add support for my device?<b=
+r>&gt; Submit my patches? what do you mean? After reading several mails in =
+<br>&gt; this mailing list i did the regspy task but now i am completely <b=
+r>&gt; blind .<br>&gt; Thank you.<br>&gt;<br>&gt;&gt; Start by identifying =
+the tuner and demodulator, then patch the <br>&gt;&gt; cx23885 tree - addin=
+g support for these devices - and submit your <br>&gt;&gt; patches here for=
+ review.<br><br></pre></span>
+<div>
+
+</div>
+<BR>
+
+--=20
+<div> Be Yourself @ mail.com!<br>
+Choose From 200+ Email Addresses<br>
+Get a <b>Free</b> Account at <a href=3D"http://www.mail.com/Product.aspx" t=
+arget=3D"_blank">www.mail.com</a>!</div>
+
+--_----------=_121805938038700--
+
+
+
+--===============1791297125==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1791297125==--
