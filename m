@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <48B7218D.7020201@glidos.net>
-Date: Thu, 28 Aug 2008 23:07:09 +0100
-From: Paul Gardiner <lists@glidos.net>
+Received: from smtp-out3.tiscali.nl ([195.241.79.178])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mythdev@telfort.nl>) id 1KQnT3-0005zc-4g
+	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 20:10:39 +0200
+Received: from [82.170.13.196] (helo=daan.geda)
+	by smtp-out3.tiscali.nl with esmtp id 1KQnSz-0003fI-TV
+	for <linux-dvb@linuxtv.org>; Wed, 06 Aug 2008 20:10:33 +0200
+To: linux-dvb@linuxtv.org
+Content-Disposition: inline
+From: Daan de Beer <mythdev@telfort.nl>
+Date: Wed, 6 Aug 2008 20:10:33 +0200
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>
-References: <48B5D5CF.3060401@glidos.net> <48B6083B.5000803@linuxtv.org>	
-	<48B64690.4060205@glidos.net>	
-	<37219a840808280556q2ee85291o7ad1afb75a7ed6f6@mail.gmail.com>	
-	<37219a840808280825i4c867c03u3c2d48888f51dde4@mail.gmail.com>	
-	<48B6CDEB.2060305@glidos.net>	
-	<37219a840808280921g3e602acco6697c4f4af43ec74@mail.gmail.com>	
-	<48B6E525.7070306@glidos.net> <48B6EFE1.3040009@glidos.net>
-	<37219a840808281214r18d90a95s389c1f5d3234bf9f@mail.gmail.com>
-In-Reply-To: <37219a840808281214r18d90a95s389c1f5d3234bf9f@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Looks like there's a new unsupported WinTV Nova T
- 500 out there
+Message-Id: <200808062010.33375.mythdev@telfort.nl>
+Subject: Re: [linux-dvb] TerraTec Cinergy C DVB-C PCI and the driver mantis
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,33 +26,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> On Thu, Aug 28, 2008 at 2:35 PM, Paul Gardiner <lists@glidos.net> wrote:
->> Paul Gardiner wrote:
->> Anyway, thanks for all the friendly advice. I'll let you
->> know how I get on with the replacement, when it arrives.
-> 
-> You can fix it yourself if you want.... or you can get a replacement
-> -- it's up to you.
-> 
-> Based on the information in your dmesg, I can see that the eeprom on
-> your device has gotten erased or corrupted.  Some informative links:
-> 
-> http://article.gmane.org/gmane.linux.drivers.dvb/36609
-> 
-> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg26676.html
+> Date: 2008-07-21 21:15:38 GMT (2 weeks, 1 day, 20 hours and 47 minutes ago)
+>
+> oscar perez wrote:
+> > Hi there!
+> > Is the latest driver mantis working fine for the card terratec cinergy
+> > C DVB-C PCI. ??
+> > According to the linuxtv wiki it seems that the issue with scan
+> > freezing is solved in the latest release..:
+> >
+> > http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C
+> >
+> > I am using kernel 2.6.24-19 with the latest mantis driver and I am
+> > able to install the driver with modprobe. However, when I start
+> > scanning for channels it freezes and I get the problem about "Slave
+> > RACK fail".
+> > Anybody has got it? and more importantly. Any solution to this? :)
+>
+> Yea, I get those as well. It just sits there for some seconds and there
+> will be a few of these lines, but in the end the card works nice.
+>
+> Philipp
 
-That's amazing. I now have a populated /dev/dvb!!
+Hello all,
 
-I'm guessing this isn't a great long term solution. Probably
-best if the card goes back, but now I get to have my first
-play with MythTV over the weekend.
+I also have the TerraTec Cinergy C and it works like a charm, without the CAM 
+module. With the cam module I also get the "slave RACK fail" message. The 
+system becomes sort of unusable until I do a rmmod mantis. That takes very, 
+very long, but it succeeds.
 
-Thanks again.
+I use 2.6.25-gentoo-r7 as kernel on a AMD64. I tried the latest driver.
 
-Cheers,
-	Paul.
+What can I do to help debug this?
 
+Thank you!
+
+Regards,
+
+Daan de Beer
 
 _______________________________________________
 linux-dvb mailing list
