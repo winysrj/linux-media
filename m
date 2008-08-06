@@ -1,24 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from nf-out-0910.google.com ([64.233.182.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jaymode@gmail.com>) id 1KVZb0-0003Wd-Ph
-	for linux-dvb@linuxtv.org; Wed, 20 Aug 2008 00:22:35 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so119181fga.25
-	for <linux-dvb@linuxtv.org>; Tue, 19 Aug 2008 15:22:31 -0700 (PDT)
-Message-ID: <6664ae760808191522m1997bb12r7e2be880b92f83e6@mail.gmail.com>
-Date: Tue, 19 Aug 2008 18:22:31 -0400
-From: "Jay Modi" <jaymode@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <48AB3DE3.7030406@linuxtv.org>
+	(envelope-from <mika.batsman@gmail.com>) id 1KQct1-00069u-Lv
+	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 08:52:45 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so2834910nfb.11
+	for <linux-dvb@linuxtv.org>; Tue, 05 Aug 2008 23:52:40 -0700 (PDT)
+Message-ID: <48994A33.30302@gmail.com>
+Date: Wed, 06 Aug 2008 09:52:35 +0300
+From: =?ISO-8859-1?Q?Mika_B=E5tsman?= <mika.batsman@gmail.com>
 MIME-Version: 1.0
-References: <6664ae760808181614g47d65c7atf71d564d815934a8@mail.gmail.com>
-	<48AAF9FB.6010108@ecst.csuchico.edu>
-	<6664ae760808191345y3a0c5bd8odd4f5f7ca969b3b@mail.gmail.com>
-	<48AB3507.8030302@linuxtv.org>
-	<6664ae760808191423u1147789eve2cae5ea6dbdad80@mail.gmail.com>
-	<48AB3DE3.7030406@linuxtv.org>
+To: Marko Ristola <marko.ristola@kolumbus.fi>
+References: <3b52bc790807101342o12f6f879n9c68704cd6b96e22@mail.gmail.com>	<4879FA31.2080803@kolumbus.fi>	<4A2CCDB3-57B0-4121-A94D-59F985FCDE2B@oberste-berghaus.de>	<487BB17D.8080707@kolumbus.fi>	<D5C41D41-A72D-4603-9AD1-67A8C5E73289@oberste-berghaus.de>
+	<488CAE63.9070204@kolumbus.fi> <488F0D80.7010607@gmail.com>
+	<489766A4.7070907@kolumbus.fi> <48981245.2050900@gmail.com>
+	<489890CD.8040508@kolumbus.fi>
+In-Reply-To: <489890CD.8040508@kolumbus.fi>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1800 Analog issues
+Subject: Re: [linux-dvb] TerraTec Cinergy C DVB-C / Twinhan AD-CP400
+ (VP-2040) &	mantis driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,64 +25,195 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2137780256=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2137780256==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_114299_6314258.1219184551505"
+If you can give me a link or mail me your driver I could give it a try too.
 
-------=_Part_114299_6314258.1219184551505
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-Mika
 
-Steven Toth wrote:
+Marko Ristola wrote:
+> =
 
-> Remove all other video drivers (with make unload) and try again.
->
-> If the HVR1800 is the only capture in the system then it will be registered
-> as /dev/video0 and /dev/video1.
->
-> If you have to, try physically removing the other card and re-run the test.
->
+> Maybe I should try with Manu's jusst.de version, if it works for me now
+> Better exclude the driver differences away.
+> I don't have a CAM module and I haven't tested with two equal cards.
+> =
 
+> Our problems seem to be similar though.
+> =
 
-I take it that means I will need to download the latest linux dvb drivers to
-do the make unload?
+> Marko
+> =
 
-I also have an IVTV card, an Adaptec AVC-2410, installed in my system. I
-will have to do this a little later this week when I have time to remove it
-and play around more.
+> Mika B=E5tsman kirjoitti:
+>> Marko Ristola wrote:
+>>> Mika B=E5tsman kirjoitti:
+>>>> Hi,
+>>>> I also tried your patch because I've had freezes since I got these =
 
-------=_Part_114299_6314258.1219184551505
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>>>> cards. Unfortunately it didn't help me. Got a whooping 5min uptime =
 
-<div dir="ltr">Steven Toth<span dir="ltr"></span> wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Remove all other video drivers (with make unload) and try again.<br>
+>>>> before it all went wrong again. I have 2x Cinergy C + 2.6.24-19 + =
 
-<br>
-If the HVR1800 is the only capture in the system then it will be registered as /dev/video0 and /dev/video1.<br>
-<br>
-If you have to, try physically removing the other card and re-run the test.<br>
-</blockquote><div><br><br>I take it that means I will need to download the latest linux dvb drivers to do the make unload?<br><br>I also have an IVTV card, an Adaptec AVC-2410, installed in my system. I will have to do this a little later this week when I have time to remove it and play around more. <br>
-</div></div><br></div>
+>>>> vdr 1.6.
+>>>>
+>>> Do you have a heat problem? Have you checked your motherboard sensors?
+>>> Have you checked that your memory is okay? Air flows easilly?
+>>
+>> Memory was the first thing I suspected but memtest went through 10+ =
 
-------=_Part_114299_6314258.1219184551505--
+>> times without a fail. Heat shouldn't be a problem either. There's a =
 
+>> big efficient, noisy fan in the back of the case.
+>>
+>> The machine works fine when dvb is watched with dvbyell =
 
---===============2137780256==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>> http://www.dvbyell.org/ which has cards set to fixed frequency ie. =
+
+>> card1 -> 152Mhz and card2 -> 290Mhz. At least for me the problem =
+
+>> occurs only with apps like mythtv and vdr which change the frequency =
+
+>> of the tuner.
+>>
+>> -Mika
+>>
+>>>> I did:
+>>>> hg clone http://jusst.de/hg/mantis
+>>>> replaced mantis_dma.c with the one you attached, renamed =
+
+>>>> MANTIS_GPIF_RDWRN -> MANTIS_GPIF_HIFRDWRN
+>>>> make && make install && reboot
+>>>>
+>>>> Am I missing something? It seemed to compile and install fine.
+>>>>
+>>>> You said that the mantis_dma.c in jusst.de mantis head is not the =
+
+>>>> latest version. Where can it be found then?
+>>> I have my own driver version which I have given for Finnish people =
+
+>>> for easy installation with remote control support for Twinhan 2033.
+>>> (Personally I'm not pleased with the card: now after some years of =
+
+>>> development the card works well enough for me finally).
+>>>
+>>> So the most important feature of my driver for Finnish people has =
+
+>>> been the easy compile and install and that the driver ("release") is =
+
+>>> tested for Twinhan 2033.
+>>> Secondly I have given for some Finnish people the Twinhan 2033 remote =
+
+>>> control support included.
+>>> Maybe somebody from Finland would be interested with the DMA transfer =
+
+>>> fixes, if they have unsolved quality problems. That's a fact that =
+
+>>> those tweaks helped me although the root cause is a bit uncertain. =
+
+>>> Other features of my driver version like suspend/resume aren't very =
+
+>>> important.
+>>>
+>>> Regards,
+>>> Marko Ristola
+>>>
+>>>>
+>>>> Regards,
+>>>> Mika B=E5tsman
+>>>>
+>>>> Marko Ristola wrote:
+>>>>>
+>>>>> Hi,
+>>>>>
+>>>>> Unfortunately I have been busy.
+>>>>>
+>>>>> The patch you tried was against jusst.de Mantis Mercurial branch head.
+>>>>> Your version of mantis_dma.c is not the latest version and thus the =
+
+>>>>> patch didn't
+>>>>> apply cleanly.
+>>>>>
+>>>>> Here is the version that I use currently. It doesn't compile =
+
+>>>>> straight against jusst.de/mantis head.
+>>>>> It might work for you because MANTIS_GPIF_RDWRN is not renamed as =
+
+>>>>> MANTIS_GPIF_HIFRDWRN.
+>>>>>
+>>>>> If it doesn't compile please rename MANTIS_GPIF_RDWRN occurrences =
+
+>>>>> into MANTIS_GPIF_HIFRDWRN on that file.
+>>>>> Otherwise the file should work as it is.
+>>>>>
+>>>>> Best regards,
+>>>>> Marko Ristola
+>>>>>
+>>>>> Leif Oberste-Berghaus kirjoitti:
+>>>>>> Hi Marko,
+>>>>>>
+>>>>>> I tried to patch the driver but I'm getting an error message:
+>>>>>>
+>>>>>> root@mediapc:/usr/local/src/test/mantis-0b04be0c088a# patch -p1 < =
+
+>>>>>> mantis_dma.c.aligned_dma_trs.patch
+>>>>>> patching file linux/drivers/media/dvb/mantis/mantis_dma.c
+>>>>>> patch: **** malformed patch at line 22: int mantis_dma_exit(struct =
+
+>>>>>> mantis_pci *mantis)
+>>>>>>
+>>>>>> Any ideas?
+>>>>>>
+>>>>>> Regards
+>>>>>> Leif
+>>>>>>
+>>>>>>
+>>>>>> Am 14.07.2008 um 22:05 schrieb Marko Ristola:
+>>>>>>
+>>>>>>> Hi Leif,
+>>>>>>>
+>>>>>>> Here is a patch that implements the mentioned DMA transfer =
+
+>>>>>>> improvements.
+>>>>>>> I hope that these contain also the needed fix for you.
+>>>>>>> You can apply it into jusst.de/mantis Mercurial branch.
+>>>>>>> It modifies linux/drivers/media/dvb/mantis/mantis_dma.c only.
+>>>>>>> I have compiled the patch against 2.6.25.9-76.fc9.x86_64.
+>>>>>>>
+>>>>>>> cd mantis
+>>>>>>> patch -p1 < mantis_dma.c.aligned_dma_trs.patch
+>>>>>>>
+>>>>>>> Please tell us whether my patch helps you or not: if it helps, =
+
+>>>>>>> some of my patch might get into jusst.de as
+>>>>>>> a fix for your problem.
+>>>>>>>
+>>>>>>> Best Regards,
+>>>>>>> Marko
+>>>>>>
+>>>>>>
+>>>>>
+>>>>> ---------------------------------------------------------------------=
+--- =
+
+>>>>>
+>>>>>
+>>>>> _______________________________________________
+>>>>> linux-dvb mailing list
+>>>>> linux-dvb@linuxtv.org
+>>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>>>
+>>>
+>>
+>>
+> =
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2137780256==--
