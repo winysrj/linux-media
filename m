@@ -1,29 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7DGcWNx011130
-	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 12:38:32 -0400
-Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7DGcKBW017352
-	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 12:38:21 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <87hca34ra0.fsf@free.fr>
-	<Pine.LNX.4.64.0808022146090.27474@axis700.grange>
-	<873alnt2bh.fsf@free.fr>
-	<Pine.LNX.4.64.0808121612330.8089@axis700.grange>
-	<1218616667.48a29d5bcb7ea@imp.free.fr>
-	<Pine.LNX.4.64.0808131105020.3884@axis700.grange>
-	<1218621820.48a2b17c963cd@imp.free.fr>
-	<Pine.LNX.4.64.0808131322340.3884@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 13 Aug 2008 18:38:18 +0200
-In-Reply-To: <Pine.LNX.4.64.0808131322340.3884@axis700.grange> (Guennadi
-	Liakhovetski's message of "Wed\,
-	13 Aug 2008 13\:35\:19 +0200 \(CEST\)")
-Message-ID: <87skt86fb9.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] mt9m111: style cleanup
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7637DhF031370
+	for <video4linux-list@redhat.com>; Tue, 5 Aug 2008 23:07:13 -0400
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.185])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7636wOG032334
+	for <video4linux-list@redhat.com>; Tue, 5 Aug 2008 23:06:59 -0400
+Received: by ti-out-0910.google.com with SMTP id 24so1343942tim.7
+	for <video4linux-list@redhat.com>; Tue, 05 Aug 2008 20:06:57 -0700 (PDT)
+From: Worik <worik.stanton@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <1205053694.6188.312.camel@gloria.red.sld.cu>
+References: <1205053694.6188.312.camel@gloria.red.sld.cu>
+Content-Type: text/plain
+Date: Wed, 06 Aug 2008 15:06:48 +1200
+Message-Id: <1217992008.8094.17.camel@kupe>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: Setting up a Xceive XC2028
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,43 +28,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+On Sun, 2008-03-09 at 05:08 -0400, Maykel Moya wrote:
+> device: Sabrent Mini Stick USB 2.0 TV Tuner (TV-USBST)
+> url: http://www.sabrent.com/products/specs/TV-USBST.htm
+> id: 6000:0001
+> chip: TM5600
 
-> Fix a typo in Kconfig, simplify error checking, further minor cleanup.
->
-> Signed-off-by: Guennadi Liakhovetski <g.iakhovetski@gmx.de>
-Tested-by: Robert Jarzmik <robert.jarzmik@free.fr>
+I have a USB TV-Tuner with the same USB ID as this.
 
-But ...
+The person who sold it to me said it is a "Xceive XC2028 silicon tuner".
 
-> @@ -778,15 +776,13 @@ static int mt9m111_init(struct soc_camera_device *icd)
->  
->  	mt9m111->context = HIGHPOWER;
->  	ret = mt9m111_enable(icd);
-> -	if (ret >= 0)
-> +	if (!ret) {
->  		mt9m111_reset(icd);
-> -	if (ret >= 0)
->  		mt9m111_set_context(icd, mt9m111->context);
-> -	if (ret >= 0)
->  		mt9m111_set_autoexposure(icd, mt9m111->autoexposure);
-> -	if (ret < 0)
-> +	} else
->  		dev_err(&icd->dev, "mt9m111 init failed: %d\n", ret);
-> -	return ret ? -EIO : 0;
-> +	return ret;
->  }
-You changed the fault path here : you don't check if every call succeeds. I
-don't think it's very important though ... I certainly don't care that much.
+There is nothing helpful on the box.
 
-Plus one style issue : IIRC, if there are braces on the if statement, there must
-be braces on the else statement, even if it's a one line else block =>
-+	} else {
- 		dev_err(&icd->dev, "mt9m111 init failed: %d\n", ret);
-+	}
+Poking around the driver disc I can find lots of information in .inf
+files that I have no idea what it means.
 
---
-Robert
+
+
+I found this in mail to this list with subject:
+Re: Problems setting up Sabrent Mini Stick USB 2.0 TV Tuner (TV-USBST)
+6000:0001
+
+
+> And lsusb -d 6000:0001 -v output is attached.
+> 
+> I have a stock Debian 2.6.24 kernel. This is what I did:
+> 
+> 1. hg clone http://.../v4l-dvb v4l-dvb-upstream
+> 2. hg clone http://.../tm6010 tm6010-upstream
+> 3. hg clone v4l-dvb-upstream v4l-dvb
+> 4. cd v4l-dvb
+> 5. hg fetch ../tm6010-upstream
+>    (some minor issues with file 
+>     linux/drivers/media/video/tuner-xc2028.c during merge)
+> 6. make && sudo make install
+> 7. cd ../tm6010-upstream
+> 8. copy /from/install/cd/the/right/tridvid.sys .
+> 9. perl get_firmware.pl
+
+I do not know what "mercurial" is, but I tried this.  Line 2 fails.
+
+worik@kupe:~/src/v4l-dvb$ hg clone http://linuxtv.org/hg/tm6010
+tm6010-upstream 
+abort: 'http://linuxtv.org/hg/tm6010' does not appear to be an hg
+repository!
+
+I would be grateful to be shown where to start.
+
+
+cheers
+Worik
+
+-- 
+The ladder of dreams was broken by the logic of many men, it was lynched
+and burnt. Torn and hurt... The Lord of Dreams was angry.
 
 --
 video4linux-list mailing list
