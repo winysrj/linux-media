@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7CF1E5j005402
-	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 11:01:14 -0400
-Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.224])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7CF14ci012945
-	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 11:01:04 -0400
-Received: by wr-out-0506.google.com with SMTP id c49so1840380wra.19
-	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 08:00:59 -0700 (PDT)
-Message-ID: <ea4209750808120800x4b7c50bfra7101145dbad6b06@mail.gmail.com>
-Date: Tue, 12 Aug 2008 17:00:59 +0200
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m76Jq7Mi004285
+	for <video4linux-list@redhat.com>; Wed, 6 Aug 2008 15:52:07 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.154])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m76JpqRk014888
+	for <video4linux-list@redhat.com>; Wed, 6 Aug 2008 15:51:53 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so47909fga.7
+	for <video4linux-list@redhat.com>; Wed, 06 Aug 2008 12:51:51 -0700 (PDT)
+From: Eddi De Pieri <eddi@depieri.net>
+To: Worik <worik.stanton@gmail.com>
+In-Reply-To: <1217992008.8094.17.camel@kupe>
+References: <1205053694.6188.312.camel@gloria.red.sld.cu>
+	<1217992008.8094.17.camel@kupe>
+Content-Type: text/plain
+Date: Wed, 06 Aug 2008 21:51:44 +0200
+Message-Id: <1218052304.7377.1.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: DIBCOM devices
+Cc: video4linux-list@redhat.com
+Subject: Re: Setting up a Xceive XC2028
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,16 +30,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all, I've been a long time working on some pinnacle hybrid card. I
-managed to get working the dvb-t part (thanks to the linux-dvb mailing list
-help), but now I'm trying the analogue. For this reason I switched to the
-v4linux mailing list. I've been looking at the code under
-drivers/media/video folder and sincerely I have no idea on where to start.
-The device has a dibcom 7700 bridge with a conexant CX25843 demodulator and
-xc3028 tuner. It's my impression or there is nothing done on using the
-dibcom usb bridge for analogue?
+> worik@kupe:~/src/v4l-dvb$ hg clone http://linuxtv.org/hg/tm6010
+> tm6010-upstream 
+> abort: 'http://linuxtv.org/hg/tm6010' does not appear to be an hg
+> repository!
 
-Albert
+The right url should be http://linuxtv.org/hg/~mchehab/tm6010/
+
+However good luck
+
+Eddi
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
