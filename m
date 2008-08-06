@@ -1,19 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound-va3.frontbridge.com ([216.32.180.16]
-	helo=VA3EHSOBE006.bigfish.com)
+Received: from mail.cooptel.qc.ca ([216.144.115.12] helo=amy.cooptel.qc.ca)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <quielb@ecst.csuchico.edu>) id 1KTKp9-0004Z7-QA
-	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 20:11:59 +0200
-Message-ID: <48A323B0.1090309@ecst.csuchico.edu>
-Date: Wed, 13 Aug 2008 11:10:56 -0700
-From: Barry Quiel <quielb@ecst.csuchico.edu>
+	(envelope-from <rlemieu@cooptel.qc.ca>) id 1KQXcQ-00028O-Br
+	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 03:15:16 +0200
+Message-ID: <4898FAFC.4030403@cooptel.qc.ca>
+Date: Tue, 05 Aug 2008 21:14:36 -0400
+From: Richard Lemieux <rlemieu@cooptel.qc.ca>
 MIME-Version: 1.0
-To: Brian Steele <steele.brian@gmail.com>
-References: <9A560F1988F700499D7636F15A62E436A06CCD@exchange02.Nsighttel.com>
-	<5f8558830808130951i4cf657a0y134d9d61923686f0@mail.gmail.com>
-In-Reply-To: <5f8558830808130951i4cf657a0y134d9d61923686f0@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] WinTV-HVR-1800
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Problems using DISEQC with TBS 8920 DVB-S2 card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,39 +24,49 @@ List-ID: <linux-dvb@linuxtv.org>
 
 
 
-Brian Steele wrote:
-> 2008/8/13 Mark A Jenks <Mark.Jenks@nsighttel.com>:
->> I am looking at purchasing a few 1800's for a new Myth box that I am setting
->> up.
->>
->> Should I get the ones with the IR's, or not?   Is the IR support on linux?
->>
->> I can't find anything searching around.
->>
->> -Mark
+
+
+Johannes Michler wrote:
+> Hi,
+>  
+> I recently got an TBS 8920 DVB-S2 card and I'm now trying to get it work 
+> using Ubuntu 8.04.
+> Since the card wasn't automatcially detected and the list appearing when 
+> loading the cx88xx driver doesn't contain the card I downloaded the 
+> drivers from here: http://www.tbsdtv.com/english/product/PCIDVBS2.html
+> I compiled and installed the drivers as descripted, and after a reboot 
+> the card was propely detected.
 > 
+I also installed the 8920 a couple of weeks ago.  I installed
+the driver from the dvd that comes with the card.
 
-The IR that comes with the 1800 is a USB receiver.  I only use the IR 
-receive portion and not the blaster portion.  LIRC has no problems with 
-the IR receiver.
+The driver file from the web is named the same as the one on
+the distribution DVD: v4l-dvb-0776e4801991.tar.gz
 
-> If you want to do analog recording using the 1800's on Myth, you might
-> want to consider another card or wait until the drivers improve.  I
-> have a 1800 in my system and the digital tuner works great, but the
-> analog doesn't work consistently in Myth.  I got it working once, but
-> the next time I rebooted I was getting a fuzzy picture again.  Even
-> when it was working correctly, the recording length Myth reported was
-> never correct (1 hour 14 minutes for a 1 hour recording).
+The driver works fine and the card scans properly with Kaffeine.  I
+scanned Galaxy3C and Galaxy25 and I can tune all non-encrypted channels
+on those satellites.
+
+However 'scan' from both the latest version of dvb-apps and and
+from version 1.1.1 won't find any channel.  I get "tuning failed".
+I use a single Universal LNB.
+
+I was surprised that you at least got a channel list from "A". So,
+there might be a bug in the TBS driver.  But how is it that Kaffeine
+succeeds?
+
+My satelitte configuration is as follows: I've got a monoblock LNB, with
+> Hotbird13 on "A" and Astra19 on "B"
+> doing a "scan /usr/share/doc/dvb-utils/examples/scan/dvb-s/Hotbird" 
+> reports me a lot of channels. But the diseq signal is being ignored, 
+> when doing "scan -s 1 Hotbird" I get the same channels and doing "scan 
+> -s 1 Astra" gives me no channels (scan is aborted after a view seconds, 
+> saying it cannot do initial tuning)
+...
+>  
+> best regards
+> Johannes
 > 
-> The analog tuner seems to work much better if you use tvtime or
-> capture directly from the hardware.  I think Myth is expecting the
-> driver to work exactly like the ivtv driver and it certainly doesn't
-> do that yet.
-> 
-
-You are farther along getting the analog piece working then I am.  I 
-can't even cat /dev/video1.
-
 
 
 
