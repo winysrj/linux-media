@@ -1,20 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f110.mail.ru ([194.67.57.230])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KQMOl-0007r4-Vu
-	for linux-dvb@linuxtv.org; Tue, 05 Aug 2008 15:16:26 +0200
-From: Goga777 <goga777@bk.ru>
-To: alex <alexandre.lissy@smartjog.com>
-Mime-Version: 1.0
-Date: Tue, 05 Aug 2008 17:15:44 +0400
-In-Reply-To: <g79bv2$8u8$1@webmisc.dmz-ext.rep.sj>
-References: <g79bv2$8u8$1@webmisc.dmz-ext.rep.sj>
-Message-Id: <E1KQMO8-000CmA-00.goga777-bk-ru@f110.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] =?koi8-r?b?bmV3IGR2Yi1zMi1saXBsaWFuaW5kdmItcmVwbyAo?=
-	=?koi8-r?b?d2FzIC0gUmVbMl06ICBsYXRlc3QgaHZyLTQwMDAgZHJpdmVyIHBh?=
-	=?koi8-r?b?dGNoZXMp?=
-Reply-To: Goga777 <goga777@bk.ru>
+Received: from web55101.mail.re4.yahoo.com ([206.190.58.150])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <mat2ag@yahoo.com>) id 1KQhS6-0000bK-US
+	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 13:45:16 +0200
+Date: Wed, 6 Aug 2008 04:43:54 -0700 (PDT)
+From: alireza ghahremanian <mat2ag@yahoo.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Message-ID: <843722.4463.qm@web55101.mail.re4.yahoo.com>
+Subject: [linux-dvb] skystar 2.8
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,61 +22,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
- 
-> >>>> http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
-> >>>> It works well. I recommend it for your case
-> >>>> Of course it's not multifrontend drivers
-> > 
-> > If I use this driver for dvb-s, can I use the normal szap and scan utils
-> > from dvb-apps repository or should download the szap2 and scan2 from
-> > somewhere?
-> > 
-> > Mika
-> 
-> Considering this driver is using multiproto, you need userland which is able
-> to use multiproto, so use szap2 from the same repository :)
+Hello All
 
-yes, you're right - you should use dvb-application with multiproto support - vdr 170, szap2 from that repo.
-But old application should work correctly with this driver too, but only with dvb-s.
-
-> I've just updated my working copy of this repository, and got a
-> WINTV-NOVA-HD-S2 to work, or at least, to some point where it looks like it
-> works with DVB-S2. I tested it with some conf :
-> more Astra-19.2E.conf
-> Anixe HD:12722:h:1:22000:1023:1027:10203
-> Astra HD Promo:11914:h:1:27500:1279:1283:131
-> 
-> before the commit from last sunday :
-> szap2 -a 2 -x -S 1 -c ./Astra-19.2E.conf "Anixe HD"
-> reading channels from file './Astra-19.2E.conf'
-> zapping to 1 'Anixe HD':
-> API ver 3, delivery DVB-S2, modulation QPSK
-> sat 1, frequency 12722 MHz H, symbolrate 22000000, coderate auto, rolloff
-> 0.35
-> vpid 0x03ff, apid 0x0403, sid 0x27db
-> using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
-> ioctl DVBFE_SET_DELSYS failed or not supported: Invalid argument
-> status 01 | signal c440 | snr 0000 | ber 00000000 | unc 00000000 |
-> ^C
-> 
-> after :
-> szap2 -a 2 -x -S 1 -c ./Astra-19.2E.conf "Anixe HD"
-> reading channels from file './Astra-19.2E.conf'
-> zapping to 1 'Anixe HD':
-> API ver 3, delivery DVB-S2, modulation QPSK
-> sat 1, frequency 12722 MHz H, symbolrate 22000000, coderate auto, rolloff
-> 0.35
-> vpid 0x03ff, apid 0x0403, sid 0x27db
-> using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
-> status 00 | signal c040 | snr 0000 | ber 00000000 | unc 00000000 |
-> status 00 | signal c040 | snr 0000 | ber 00000000 | unc 00000000 |
-> status 00 | signal c040 | snr 0000 | ber 00000000 | unc 00000000 |
+It seems that skystar 2.8 driver is  not compatible with current utilities, e.g. kaffeine. Because when kaffeine has been lucked  on a channel but, it shows signal strength near  1% , szap also behave like this too.
 
 
-with scan2 you should use -C and -M parameters too !
+with special thanks
 
-Goga
 
+
+      
 
 _______________________________________________
 linux-dvb mailing list
