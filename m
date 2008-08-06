@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.181])
+Received: from yw-out-2324.google.com ([74.125.46.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <beth.null@gmail.com>) id 1KWKNW-0003qJ-Rt
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 02:19:48 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so73300wag.13
-	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 17:19:41 -0700 (PDT)
-Message-ID: <7641eb8f0808211719l520f781aj9e916317edb8506e@mail.gmail.com>
-Date: Fri, 22 Aug 2008 02:19:41 +0200
-From: Beth <beth.null@gmail.com>
-To: free_beer_for_all@yahoo.com
-In-Reply-To: <917476.27404.qm@web46113.mail.sp1.yahoo.com>
+	(envelope-from <gujs.lists@gmail.com>) id 1KQeis-00029T-Nv
+	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 10:50:23 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so1397977ywj.41
+	for <linux-dvb@linuxtv.org>; Wed, 06 Aug 2008 01:50:17 -0700 (PDT)
+Message-ID: <23be820f0808060150l6d5c21e5ped3c07dcf59bdc60@mail.gmail.com>
+Date: Wed, 6 Aug 2008 10:50:17 +0200
+From: "Gregor Fuis" <gujs.lists@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <7641eb8f0808210745j6c99b53boe55dcc580a5875b1@mail.gmail.com>
-	<917476.27404.qm@web46113.mail.sp1.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Skystar HD2 (device don't stream data).
+Subject: [linux-dvb] KNC One DVB-S2 symbol rate problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,119 +18,137 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0666087866=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ummmmmmmmmmmmm, that's incredible.
+--===============0666087866==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_12380_28150607.1218012617451"
 
-By two things, first for a silly stupid and more stupid thing, there
-are a lot of  channels with 0:0 at its vid and aid, I assume that if
-scan was finding channels it is doing on the correct way. This
-afternoon I was doing tests on xp and I found that for that channel
-the are 167 for video and 108 for audio, as yours (I smile when I saw
-yours).
+------=_Part_12380_28150607.1218012617451
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-The second, I had learned a lot, a lot about dvb, I need to learn much
-more but it is a funny way of learning.
+Hello,
 
-Well, and the big question, why scan didn't found the vid and aid for
-a lot of channels?
+I have Rohde & Schwarz SFU signal generator until 11.8.2008 at work so I run
+some tests on my KNC DVB-S2 card to se if it also has problems with symbol
+rates everybody complains.
 
-> You might want to look through your scan file and verify that most
-> entries have other-than-0 for the PIDs.  Other than a few data or
-> inactive channels, most should have at least audio, and for TV, a
-> video PID as well.  My scan results from one card sometimes miss the
-> PIDs, which I haven't traced further.
->
+I have got these results with frequency set to 12303000MHz and changing
+symbol rate and FEC CODE RATE. I just measured upper setting of symbol rate
+when problems started. When I tried lower sybmol rates from 1000000 and up I
+did not get any problems. All this is measured in DVB-S2 standard.
 
-538 channels with 0:0 at vid:aid, of 1353, I dont know if that is
-normal or if I must to re-scan.
+Constellation QPSK - FEC 2/3
+Symbol rate    Result
+29600000    LOCK
+29700000    NO LOCK
 
->
-> Anyway, I'm not sure if the programs you use are capable of dynamically
-> determining the relevant PIDs based on the service number (30222) --
-> I know mine don't, so if a channel changes PIDs (as those at 28E do
-> rather frequently), I no longer receive the correct data; and I've
-> read, but not acted upon, that there are updated user programs that do
-> adjust dynamically...
+Constellation 8PSK - FEC 2/3
+Symbol rate    Result
+30000000    LOCK
+30100000    NO LOCK
 
-I really don't know if this is possible.
 
->
-> That explains why your files are so small -- you don't have the video
-> and audio PIDs; only PID 0 and a few other random IDs (one is a bit of
-> video, but the audio PID 108 is missing completely).
->
-> Probably, if you manually change the video and audio PIDs from 0 to
-> the values I have, you'll receive the data you need.
->
->
+Constellation QPSK - FEC 3/4
+Symbol rate    Result
+22200000    LOCK
+22300000    LOCK for 1 second - Then loses LOCK
 
-Is the first thing I made, and yessss, I get video&audio :)
+Constellation 8PSK - FEC 3/4
+Symbol rate    Result
+30000000    LOCK
+30100000    LOCK for 1 second - Then loses LOCK
 
->
->> me. There is
->> something that I don't understand, if I tune a channel
->> with szap2, why
->> the stream has so many pids?, and which pids the programs
->> take to
->> reproduce the video?, or the programs don't know
->
-> I suspect the additional PIDs you see from `tspids' are accidental,
-> or corruptions in the data stream.
->
-> Within PID 0, your known service ID 30222 is mapped to be found under
-> PID 1053 as you quoted in an earlier message from mplayer:
->   PROG: 30222 (10-th of 16), PMT: 1053
-> Then mplayer goes on to look at PID 1053 and finds not only the video
-> and audio PIDs, but several others, that I'll need to look at with
-> dvbsnoop...  One moment...
-> PID 53 is teletext;
-> the remaining 11 PIDs appear to be data that you can ignore.
-> These are 208, 222, 309, 392, 213, 253, 307, 356, 761, 888, 623.
-> They can be seen in PID 1053 (dvbsnoop -s ts -tssubdecode -if ... 1053)
->
->
->
-> I'm not sure why you didn't get at least this channel during your
-> scan with the above valid audio and video PIDs.  Perhaps you can
-> look through your scan file to see if there are many others like this.
 
-At this point I am a bit lost, I must to re-read things a bit ;).
+Constellation QPSK - FEC 4/5
+Symbol rate    Result
+22200000    LOCK
+22300000    LOCK for 1 second - Then loses LOCK
 
-> On the transponders used by Canal+ Espana (or whatever it is), there
-> will be a few channels with 0 for PIDs as above, but not too many.
 
-(yes Canal+ Espa=F1a), in the entire scan I get 538 (but this is for all
-the scan range)
+Constellation QPSK - FEC 5/6
+Symbol rate    Result
+22200000    LOCK
+22300000    LOCK for 1 second - Then loses LOCK
 
-> Over the entire Astra 19E satellite, the most such ``channels'' will
-> be data channels at 12603, or perhaps on the german Premiere transponders,
-> so if you are finding a lot more than that, then you are seeing a
-> problem somewhere in parsing your scan properly.
->
+Constellation 8PSK - FEC 5/6
+Symbol rate    Result
+30000000    LOCK
+30100000    LOCK for 1 second - Then loses LOCK
 
-I am going to take a eye on the "scan" program, to see what is doing wrong.
 
->
-> Hope this is helpful!
->
-> barry bouwsma
->
+Constellation QPSK - FEC 8/9
+Symbol rate    Result
+22200000    LOCK
+22300000    LOCK for 1 second - Then loses LOCK
 
-Helpful? you are my hero, man.
+Constellation 8PSK - FEC 8/9
+Symbol rate    Result
+24000000    LOCK
+24100000    Unstable LOCK, this means that it gets LOCK, then loses LOCK,
+then this is repeating
+--------all between Unstable LOCK
+26500000    Unstable LOCK
+26600000    NO LOCK
 
-I don't know if tomorrow I will have free time at home, but as soon as
-I can do it I am going to re-scan, re-check all, and inform you as
-soon as I can.
 
-Barry, a lot of thanks, thanks for your support, see you and kind
-regards from Spain.
+Constellation QPSK - FEC 9/10
+Symbol rate    Result
+22200000    LOCK
+22300000    LOCK for 1 second - Then loses LOCK
+
+Constellation 8PSK - FEC 9/10
+Symbol rate    Result
+20000000    LOCK
+20100000    Unstable LOCK, this means that it gets LOCK, then loses LOCK,
+then this is repeating
+--------all between Unstable LOCK
+24900000    Unstable LOCK
+25000000    NO LOCK
+
+
+If someone have some patches which could solve the problems I will gladly
+test it for him, but as I said before I have this SFU generator just to
+11.8.2008.
+
+Best Regards,
+Gregor Fuis
+
+------=_Part_12380_28150607.1218012617451
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr"><div>Hello,<br><br>I have Rohde &amp; Schwarz SFU signal generator until 11.8.2008 at work so I run some tests on my KNC DVB-S2 card to se if it also has problems with symbol rates everybody complains.<br><br>
+
+I have got these results with frequency set to 12303000MHz and changing symbol rate and FEC CODE RATE. I just measured upper setting of symbol rate when problems started. When I tried lower sybmol rates from 1000000 and up I did not get any problems. All this is measured in DVB-S2 standard. <br>
+<br></div>Constellation QPSK - FEC 2/3<br>Symbol rate&nbsp;&nbsp;&nbsp; Result<br>29600000&nbsp;&nbsp;&nbsp; LOCK<br>29700000&nbsp;&nbsp;&nbsp; NO LOCK<br><br>Constellation 8PSK - FEC 2/3<br>Symbol rate&nbsp;&nbsp;&nbsp; Result<br>30000000&nbsp;&nbsp;&nbsp; LOCK<br>30100000&nbsp;&nbsp;&nbsp; NO LOCK<br><br><br>
+Constellation QPSK - FEC 3/4<br>Symbol rate&nbsp;&nbsp;&nbsp; Result<br>22200000&nbsp;&nbsp;&nbsp; LOCK<br>22300000&nbsp;&nbsp;&nbsp; LOCK for 1 second - Then loses LOCK<br><br>Constellation 8PSK - FEC 3/4<br>Symbol rate&nbsp;&nbsp;&nbsp; Result<br>30000000&nbsp;&nbsp;&nbsp; LOCK<br>30100000&nbsp;&nbsp;&nbsp; LOCK for 1 second - Then loses LOCK<br>
+<br><br>Constellation QPSK - FEC 4/5<br>Symbol rate&nbsp;&nbsp;&nbsp; Result<br>22200000&nbsp;&nbsp;&nbsp; LOCK<br>22300000&nbsp;&nbsp;&nbsp; LOCK for 1 second - Then loses LOCK<br><br><br>Constellation QPSK - FEC 5/6<br>Symbol rate&nbsp;&nbsp;&nbsp; Result<br>22200000&nbsp;&nbsp;&nbsp; LOCK<br>
+22300000&nbsp;&nbsp;&nbsp; LOCK for 1 second - Then loses LOCK<br><br>Constellation 8PSK - FEC 5/6<br>Symbol rate&nbsp;&nbsp;&nbsp; Result<br>30000000&nbsp;&nbsp;&nbsp; LOCK<br>30100000&nbsp;&nbsp;&nbsp; LOCK for 1 second - Then loses LOCK<br><br><br>Constellation QPSK - FEC 8/9<br>
+Symbol rate&nbsp;&nbsp;&nbsp; Result<br>22200000&nbsp;&nbsp;&nbsp; LOCK<br>22300000&nbsp;&nbsp;&nbsp; LOCK for 1 second - Then loses LOCK<br><br>Constellation 8PSK - FEC 8/9<br>Symbol rate&nbsp;&nbsp;&nbsp; Result<br>24000000&nbsp;&nbsp;&nbsp; LOCK<br>24100000&nbsp;&nbsp;&nbsp; Unstable LOCK, this means that it gets LOCK, then loses LOCK, then this is repeating<br>
+--------all between Unstable LOCK<br>26500000&nbsp;&nbsp;&nbsp; Unstable LOCK<br>26600000&nbsp;&nbsp;&nbsp; NO LOCK<br><br><br>Constellation QPSK - FEC 9/10<br>Symbol rate&nbsp;&nbsp;&nbsp; Result<br>22200000&nbsp;&nbsp;&nbsp; LOCK<br>22300000&nbsp;&nbsp;&nbsp; LOCK for 1 second - Then loses LOCK<br>
+<br>Constellation 8PSK - FEC 9/10<br>Symbol rate&nbsp;&nbsp;&nbsp; Result<br>20000000&nbsp;&nbsp;&nbsp; LOCK<br>20100000&nbsp;&nbsp;&nbsp; Unstable LOCK, this means that it gets LOCK, then loses LOCK, then this is repeating<br>--------all between Unstable LOCK<br>24900000&nbsp;&nbsp;&nbsp; Unstable LOCK<br>
+25000000&nbsp;&nbsp;&nbsp; NO LOCK<br><br><br>If someone have some patches which could solve the problems I will gladly test it for him, but as I said before I have this SFU generator just to 11.8.2008.<br><br>Best Regards,<br>Gregor Fuis<br>
+</div>
+
+------=_Part_12380_28150607.1218012617451--
+
+
+--===============0666087866==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0666087866==--
