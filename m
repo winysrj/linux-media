@@ -1,30 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.24])
+Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KYut6-00064d-6P
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 05:43:05 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so196391eya.17
-	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 20:43:00 -0700 (PDT)
-Message-ID: <412bdbff0808282043y572a74b4o69fdc71a956131f0@mail.gmail.com>
-Date: Thu, 28 Aug 2008 23:43:00 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Thomas Goerke" <tom@goeng.com.au>
-In-Reply-To: <008301c90987$866b3e60$9341bb20$@com.au>
+	(envelope-from <dvb-t@iinet.com.au>) id 1KQe5s-0000Sz-10
+	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 10:10:07 +0200
+Message-ID: <41A3723BDBA947399F2CBD960E4AFB94@mce>
+From: "David Porter" <dvb-t@iinet.com.au>
+To: <linux-dvb@linuxtv.org>
+References: <20080801034025.C0EC947808F@ws1-5.us4.outblaze.com><4897AC24.3040006@linuxtv.org>
+	<20080805214339.GA7314@kryten><20080805234129.GD11008@brainz.yelavich.home>
+	<4899020C.50000@linuxtv.org>
+Date: Wed, 6 Aug 2008 18:09:53 +1000
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <004f01c90921$248fe2b0$6dafa810$@com.au>
-	<007f01c90965$344da360$9ce8ea20$@com.au>
-	<412bdbff0808281638h7e911b37n4d5043bf40b42d65@mail.gmail.com>
-	<008001c9096a$f315df10$d9419d30$@com.au>
-	<412bdbff0808281731t7641e4d1kf86058e071c7d5fb@mail.gmail.com>
-	<008101c90971$ca7e5080$5f7af180$@com.au>
-	<412bdbff0808281905w1a76f8eald99de203fd0c18be@mail.gmail.com>
-	<008201c90980$9b7ffd10$d27ff730$@com.au>
-	<412bdbff0808281950r48f40835w3f81f506c32eaff3@mail.gmail.com>
-	<008301c90987$866b3e60$9341bb20$@com.au>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge WinTV-NOVA-T-500 New Firmware
-	(dvb-usb-dib0700-1.20.fw) causes problems
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
+	DVB-T Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,26 +26,92 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 28, 2008 at 11:29 PM, Thomas Goerke <tom@goeng.com.au> wrote:
-> See below for dmesg o/p with i2c errors.
+Hi
 
-Thanks for doing this test.  I've done some additional reading which
-suggests the mt2060 has an extended history of flaky i2c behavior.
-Given that I don't have the hardware, I don't think I'm going to be
-able to debug it further.  I'm going to submit to have that device
-fall back to the legacy interface, so it shouldn't be any worse with
-1.20, but at least it won't block other devices that use 1.20 from
-being committed.
+I have one of these, saw Stevens post and thought i would give it a go.
 
-Thanks,
+I built from : http://linuxtv.org/hg/~stoth/v4l-dvb
+All seemed to go well with no errors.
 
-Devin
+dmesg reads:
+
+[   31.964424] CORE cx23885[0]: subsystem: 18ac:db78, board: DViCO 
+FusionHDTV DVB-T Dual Express [card=11,autodetected]
+[   32.104767] cx23885[0]: i2c bus 0 registered
+[   32.104781] cx23885[0]: i2c bus 1 registered
+[   32.104794] cx23885[0]: i2c bus 2 registered
+[   32.164385] input: i2c IR (FusionHDTV) as /devices/virtual/input/input8
+[   32.422764] ir-kbd-i2c: i2c IR (FusionHDTV) detected at i2c-1/1-006b/ir0 
+[cx23885[0]]
+[   32.423135] cx23885[0]: cx23885 based dvb card
+[   32.492021] xc2028 1-0061: creating new instance
+[   32.492027] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[   32.492036] DVB: registering new adapter (cx23885[0])
+[   32.492040] DVB: registering frontend 0 (Zarlink ZL10353 DVB-T)...
+[   32.492386] cx23885[0]: cx23885 based dvb card
+[   32.492924] xc2028 2-0061: creating new instance
+[   32.492926] xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
+[   32.492928] DVB: registering new adapter (cx23885[0])
+[   32.492930] DVB: registering frontend 1 (Zarlink ZL10353 DVB-T)...
+[   32.493228] cx23885_dev_checkrevision() Hardware revision = 0xb0
+[   32.493236] cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16, 
+latency: 0, mmio: 0xfe800000
+
+But scanning, returns :
+
+[ 1381.214624] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+[ 1382.220858] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+[ 1382.260825] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+[ 1383.267724] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+[ 1383.276680] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+
+I checked  /lib/firmware/ but xc3028-v27.fw is not in the directory ?
+
+Must have messed it up somewhere! Any help appreciated.
+
+Thanks
+David
+
+----- Original Message ----- 
+From: "Steven Toth" <stoth@linuxtv.org>
+To: "Luke Yelavich" <themuso@themuso.com>
+Cc: <linux-dvb@linuxtv.org>
+Sent: Wednesday, August 06, 2008 11:44 AM
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV 
+DVB-T Dual Express
 
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+>
+>>>> I've tested with the HVR1500Q (xc5000 based) and I'm happy with the
+>>>> results. Can you both try the DViCO board?
+>>> It tests fine and I like how simpler things have got.
+>>
+>> I pulled the above linked tree, and compiled the modules. It seems at the 
+>> moment for the dual express, that I have to pass the parameter card=11 to 
+>> the driver, for it to correctly find the card and make use of all 
+>> adapters. Without any module parameters, dmsg complains that the card 
+>> couldn't be identified, yet two adapters are shown. I have two of these 
+>> cards.
+>>
+>> Hope this helps some.
+>
+> .. And they're both the same model?
+>
+> If so, insert one at a time and run the 'lspci -vn' command, save the
+> output for each card.
+>
+> Post the output here.
+>
+> Assuming you load the driver with card=11, does each card work correctly
+> after that?
+>
+> - Steve
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
 _______________________________________________
 linux-dvb mailing list
