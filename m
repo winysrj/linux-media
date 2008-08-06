@@ -1,22 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jw@raven.inka.de>) id 1KY7Cx-0002n7-1T
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 00:40:17 +0200
-Date: Wed, 27 Aug 2008 00:31:40 +0200
-From: Josef Wolf <jw@raven.inka.de>
+Received: from n9a.bullet.mail.mud.yahoo.com ([209.191.87.108])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <rvf16@yahoo.gr>) id 1KQfj1-0005AP-Mh
+	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 11:54:37 +0200
+Message-ID: <48997483.2010803@yahoo.gr>
+Date: Wed, 06 Aug 2008 12:53:07 +0300
+From: rvf16 <rvf16@yahoo.gr>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Message-ID: <20080826223140.GK32022@raven.wolf.lan>
-References: <20080821174512.GC32022@raven.wolf.lan>
-	<52113.203.82.187.131.1219367267.squirrel@webmail.planb.net.au>
-	<20080822144448.GF32022@raven.wolf.lan>
-	<F4917AA8-6EA3-40A7-855B-AEB774B26C58@recoil.org>
-	<20080825190241.GH32022@raven.wolf.lan>
-	<1219733348.3846.8.camel@suse.site>
-Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1219733348.3846.8.camel@suse.site>
-Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
+References: 4898DB39.6020606@yahoo.gr
+Subject: [linux-dvb] CX23885 based AVerMedia AVerTV Hybrid Express Slim tv
+ card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,49 +18,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gVHVlLCBBdWcgMjYsIDIwMDggYXQgMDg6NDk6MDhBTSArMDIwMCwgTmljbyBTYWJiaSB3cm90
-ZToKClRoYW5rcyBmb3IgeW91ciBhbnN3ZXIsIE5pY28hCgo+ID4gSWYgSSByZW1vdmUgdGhlIFBT
-IHBhY2sgaGVhZGVyIGFuZCB0aGUgUFMgc3lzdGVtIGhlYWRlciAoc3RyZWFtLWlkIDB4YmEKPiA+
-IGFuZCAweGJiKSB0aGVuIGJvdGggcGxheSB0aGUgc3RyZWFtLCBidXQgbm8gU1RCIHBsYXlzIGl0
-IDotKAo+IFlvdSBtdXN0IGhhdmUgY29ycnVwdGVkIHNvbWUgaGVhZGVyIGluIHlvdXIgYXBwbGlj
-YXRpb24gOikKCkkgaGF2ZSB0cmltbWVkIG15IGFwcGxpY2F0aW9uIHRvIGNyZWF0ZSBleGFjdGx5
-IHRoZSBzYW1lIG91dHB1dCBhcwp0czJwcyBkb2VzLiAgQnV0IHlvdSBhcmUgY29ycmVjdDogSSBz
-aG91bGQgaGF2ZSBjaGVja2VkIHRzMnBzIG91dHB1dApiZWZvcmUgYWRvcHRpbmcgOi0vCgo+IO+7
-v3JlcGxleCBuZXZlciB3b3JrZWQgd2l0aCBhdCBsZWFzdCA2MCUgb2YgdGhlIFRTcyBJIGZlZCBp
-dCB3aXRoLAo+IHRoYXQgbGVmdCBtZSBubyBvdGhlciBjaG9pc2UgdGhhbiB0byBmaXggbWVuY29k
-ZXIncyBtdXhlciwgYXMgbG9uZwo+IGFzIHNvbWV0aGluZyBhcyBob3JyaWJseSBjcmlwcGxlZCBh
-bmQgYnJva2VuIGxpa2UgbWVuY29kZXIgY2FuIGJlCj4gZml4ZWQgKHRoYXQgbWF5IG5vdCB3b3Jr
-IGlmIHlvdSBnaXZlIGl0IDEwMCUgY29ycmVjdCB0aW1lc3RhbXBzCj4gZm9yIGV2ZXJ5IHNpbmds
-ZSBmcmFtZSkKCkkgYWdyZWUgdGhhdCBtZW5jb2RlciByZWFsbHkgbmVlZHMgYSBpbmRlbnQgcnVu
-LiAgQnV0IGF0IGxlYXN0IGl0CnByb2R1Y2VzIG91dHB1dCB0aGF0IGNhbiBiZSBwbGF5ZWQgb24g
-YSB3aWRlIHZhcmlldHkgb2YgcGxheWVycy9kZXZpY2VzLgoKPiA+IEl0IHNlZW1zIHRvIGJlIGEg
-bWVzcy4gIE5vbmUgb2YgdGhlIHByb2dyYW1zIHNlZW0gdG8gcHJvZHVjZSBwcm9wZXIKPiA+IHN0
-cmVhbXMuICBPbmx5IG1lbmNvZGVyIHNlZW1zIHRvIGdlbmVyYXRlIGEgcHJvcGVyIHN0cmVhbS4g
-IEJ1dCBBRkFJQ1MsCj4gPiBtZW5jb2RlciBjb21wbGV0ZWx5IGRlY29kZXMgdGhlIHN0cmVhbSBh
-bmQgcmUtZW5jb2RlcyBpdCBhZ2FpbiwgZWF0aW5nCj4gPiB1cCBhbGwgdGhlIENQVS4KPiAKPiBp
-dCBkb2Vzbid0IGRlY29kZTogaXQganVzdCBkZW11eGVzLCBhbHRob3VnaCBwYXJzaW5nIGF1ZGlv
-IGFuZCB2aWRlbwo+IGZyYW1lIGhlYWRlcnMgaXMgcHJvYmFibHkgZWF0aW5nIHVwIGEgZ29vZCAl
-IG9mIHlvdXIgY3B1Lgo+IElmIHlvdSB3YW50IHRvIG1ha2UgaXQgbGlnaHRlciBlaXRoZXIKPiAt
-IHVzZSBmZm1wZWcsIGl0IGNhbiBiZSBzdXJlbHkgdXNlZCB0byBnZW5lcmF0ZSBtYW55IFBTIGZy
-b20gYSBzaW5nbGUgVFMKPiAgIGFsdGhvdWdoIGl0cyBjb21tYW5kIGxpbmUgaXMgcmVhbGx5IGNo
-YWxsZW5naW5nCgpUaGUgcHJvYmxlbSBpcyB0aGF0IEkgaGF2ZSBtdWx0aXBsZSBUUyB3aGljaCBh
-cmUgdG8gYmUgcmVtdXhlZCBpbnRvCm11bHRpcGxlIFBTIChvbmUtdG8tb25lKS4KCj4gLSB1c2Ug
-LWRlbXV4ZXIgbGF2ZiBhbmQgZml4IGxpYm1wZGVtdXgvbXV4ZXJfbXBlZy5jIHNvIHRoYXQgZnJh
-bWVzIGFyZQo+ICAgbm90IGFuYWx5emVkIHdpdGhpbiB0aGUgbXV4ZXIgaXRzZWxmLCBidXQganVz
-dCBjb3BpZWQgdmVyYmF0aW0gaW4KPiAgIHRlaCBjb3JyZXNwb25kaW5nIG1wZWdfZnJhbWVfdFtd
-IGFycmF5CgpIbW0sIEkgYW0gbm90IHJlYWxseSBzdXJlIEkgdW5kZXJzdGFuZCB3aGF0IHlvdSBh
-cmUgdHJ5aW5nIHRvIHNheSB0byBtZS4KCj4gPiBBbnkgbW9yZSBpZGVhcyBob3cgdG8gZG8gdGhl
-IGNvbnZlcnNpb24/Cj4gPiAKPiA+IEJUVzogQ2FuIGFueWJvZHkgcmVjb21tZW5kIGEgZ29vZCBi
-b29rIG9uIHRoZSB0b3BpYz8KPiAKPiBub25lIHRoYXQgSSBrbm93IG9mLCBidXQgbXV4aW5nIG1w
-ZWctcHMgaXMgbW9yZSB0cml2aWFsIHRoYW4gaXQgbG9va3MKPiBsaWtlIHdoZW4gcmVhZGluZyB0
-aGUgc3BlY3MKClVnaCwgSSBhbSBub3QgcmVhbGx5IHN1cmUgYWJvdXQgdGhpcywgZ2l2ZW4gdGhh
-dCBtYW55IGFwcGxpY2F0aW9ucyBmYWlsCmJhZGx5IG9uIHRoaXMuCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0Cmxp
-bnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1h
-bi9saXN0aW5mby9saW51eC1kdmI=
+Thanks for the reply but how am i going to do all these?
+
+Are there any howtos for identifying tuner and demodulator?
+Where do i find the patches to add support for my device?
+Submit my patches? what do you mean? 
+
+After reading several mails in this mailing list i did the regspy task but now i am completely blind .
+Thank you.
+
+> Start by identifying the tuner and demodulator, then patch the cx23885 
+> tree - adding support for these devices - and submit your patches here 
+> for review.
+>
+> Regards,
+>
+> - Steve
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
