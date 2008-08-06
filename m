@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.227])
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stephen.hocking@gmail.com>) id 1KZHno-00038z-Ox
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 06:11:11 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so1116693rvf.41
-	for <linux-dvb@linuxtv.org>; Fri, 29 Aug 2008 21:11:03 -0700 (PDT)
-Message-ID: <6300771b0808292111i3e460c73ob0e5f9b9883cf1de@mail.gmail.com>
-Date: Sat, 30 Aug 2008 14:11:03 +1000
-From: "Stephen Hocking" <stephen.hocking@gmail.com>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Asus U 3000 (dib0700) only tuning to UHF frequencies
+	(envelope-from <stoth@linuxtv.org>) id 1KQjg3-00067O-MF
+	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 16:07:48 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K5600KFLN80GH60@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 06 Aug 2008 10:07:13 -0400 (EDT)
+Date: Wed, 06 Aug 2008 10:07:12 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48997483.2010803@yahoo.gr>
+To: rvf16 <rvf16@yahoo.gr>
+Message-id: <4899B010.70604@linuxtv.org>
+MIME-version: 1.0
+References: "4898DB39.6020606@yahoo.gr" <48997483.2010803@yahoo.gr>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] CX23885 based AVerMedia AVerTV Hybrid Express Slim
+ tv card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,35 +32,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+rvf16 wrote:
+> Thanks for the reply but how am i going to do all these?
+> 
+> Are there any howtos for identifying tuner and demodulator?
+> Where do i find the patches to add support for my device?
+> Submit my patches? what do you mean? 
+> 
+> After reading several mails in this mailing list i did the regspy task but now i am completely blind .
+> Thank you.
+> 
+>> Start by identifying the tuner and demodulator, then patch the cx23885 
+>> tree - adding support for these devices - and submit your patches here 
+>> for review.
 
-Recent updates (not sure how long ago, but I suspect a couple of
-months) have broken the U3000's ability to tune to VHF frequencies. I
-see messages like this :
+Read the wiki's at linuxtv.org.
 
-shocking@pilgrim:~$ dmesg | grep -i dvb
-[  322.174042] dvb-usb: found a 'ASUS My Cinema U3000 Mini DVBT Tuner'
-in cold state, will try to load a firmware
-[  322.184665] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
-[  322.892190] dvb-usb: found a 'ASUS My Cinema U3000 Mini DVBT Tuner'
-in warm state.
-[  322.892328] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[  322.894108] DVB: registering new adapter (ASUS My Cinema U3000 Mini
-DVBT Tuner)
-[  323.151985] DVB: registering frontend 0 (DiBcom 7000PC)...
-[  323.420811] dvb-usb: ASUS My Cinema U3000 Mini DVBT Tuner
-successfully initialized and connected.
-[  323.421763] usbcore: registered new interface driver dvb_usb_dib0700
-[  405.279877] DVB: frontend 0 frequency 205625000 out of range
-(470000000..860000000)
-[  719.878759] DVB: frontend 0 frequency 205625000 out of range
-(470000000..860000000)
+You may need to open the device if google or anyone else can't help with 
+identifying the tuner and demod.
 
-Any ideas?
-
-
-    Stephen
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
