@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.adamomail.se ([87.251.223.195] helo=adamomail.se)
+Received: from nf-out-0910.google.com ([64.233.182.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sacha@hemmail.se>) id 1KWpGL-0006YI-EI
-	for linux-dvb@linuxtv.org; Sat, 23 Aug 2008 11:18:27 +0200
-Received: from [89.233.192.163] (account sacha@hemmail.se HELO [192.168.1.6])
-	by adamomail.se (CommuniGate Pro SMTP 4.2.10)
-	with ESMTP id 17572333 for linux-dvb@linuxtv.org;
-	Sat, 23 Aug 2008 11:18:18 +0200
-From: sacha <sacha@hemmail.se>
+	(envelope-from <bcjenkins@tvwhere.com>) id 1KQXhL-0002l4-SL
+	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 03:20:20 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so2748202nfb.11
+	for <linux-dvb@linuxtv.org>; Tue, 05 Aug 2008 18:20:16 -0700 (PDT)
+Message-ID: <de8cad4d0808051820r464d4f9fp7b749e6b5bfd5624@mail.gmail.com>
+Date: Tue, 5 Aug 2008 21:20:15 -0400
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
 To: linux-dvb@linuxtv.org
-Date: Sat, 23 Aug 2008 11:18:18 +0200
-Message-Id: <1219483098.6740.2.camel@lanbox>
-Mime-Version: 1.0
-Subject: [linux-dvb] Error loading mantis.
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] CX18 Oops
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,20 +25,71 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello
+Hi All
 
-Can anyone help me to understand the cause of the error below:
+I am running kernel 2.6.26 on  Ubuntu 8.04. Any thoughts?
 
-[   57.631053] mantis: disagrees about version of symbol
-dvb_unregister_frontend
-[   57.631054] mantis: Unknown symbol dvb_unregister_frontend
-[   57.631168] mantis: disagrees about version of symbol
-dvb_register_frontend
-[   57.631169] mantis: Unknown symbol dvb_register_frontend
+Thanks in advance
 
-KR
+Brandon
 
-
+[35037.080230] BUG: unable to handle kernel NULL pointer dereference
+at 0000000000000000
+[35037.080258] IP: [<ffffffffa01e4180>] :cx18:cx18_queue_move_buf+0x0/0xa0
+[35037.080284] PGD 21b9e9067 PUD 218c12067 PMD 0
+[35037.080298] Oops: 0000 [1] PREEMPT SMP
+[35037.080311] CPU 1
+[35037.080320] Modules linked in: binfmt_misc iptable_filter ip_tables
+x_tables xfs loop mxl5005s s5h1409 tuner_simple ipv6 tuner_types
+cs5345 tuner usbhid cx18 dvb_core hid compat_ioctl32 videodev
+v4l1_compat i2c_algo_bit cx2341x v4l2_common tveeprom psmouse i2c_core
+button ext3 jbd mbcache sd_mod ahci libata scsi_mod iTCO_wdt dock
+r8169 ehci_hcd uhci_hcd usbcore raid10 raid456 async_xor async_memcpy
+async_tx xor raid1 raid0 multipath linear md_mod dm_mirror dm_log
+dm_snapshot dm_mod thermal processor fan fuse
+[35037.080488] Pid: 15894, comm: java Not tainted 2.6.26-server-sagetv #1
+[35037.080499] RIP: 0010:[<ffffffffa01e4180>]  [<ffffffffa01e4180>]
+:cx18:cx18_queue_move_buf+0x0/0xa0
+[35037.080521] RSP: 0018:ffff810217c4be50  EFLAGS: 00010046
+[35037.080530] RAX: 00000000003d0000 RBX: 0000000000000000 RCX: 0000000000000001
+[35037.080541] RDX: ffff81021d9a81f8 RSI: 0000000000000000 RDI: ffff81021d9a8188
+[35037.080552] RBP: ffff81021d9a81f8 R08: 0000000000000000 R09: 000000000009d548
+[35037.080563] R10: 000000000009d547 R11: 0000000000000002 R12: 0000000000000001
+[35037.080574] R13: 0000000000020000 R14: 0000000000000000 R15: ffff81021d9a8188
+[35037.080585] FS:  0000000000000000(0000) GS:ffff81021fc06580(0063)
+knlGS:00000000c9efbb90
+[35037.080601] CS:  0010 DS: 002b ES: 002b CR0: 000000008005003b
+[35037.080611] CR2: 0000000000000000 CR3: 00000002179b8000 CR4: 00000000000006a0
+[35037.080622] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[35037.080633] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[35037.080644] Process java (pid: 15894, threadinfo ffff810217c4a000,
+task ffff81020ad6c620)
+[35037.080659] Stack:  ffffffffa01e42c2 00000000003d0000
+ffff81021d9a81b0 0000000000000292
+[35037.080682]  000000011d9a81f8 ffff8102003d0000 ffff81021d9a8188
+ffff81021d9a8000
+[35037.080703]  ffff81021d9a8188 ffff81021d9a8128 ffff81021fd15600
+0000000000000000
+[35037.080719] Call Trace:
+[35037.080736]  [<ffffffffa01e42c2>] ? :cx18:cx18_queue_move+0xa2/0x160
+[35037.080752]  [<ffffffffa01e58e8>] ? :cx18:cx18_release_stream+0x78/0xc0
+[35037.080767]  [<ffffffffa01e5d86>] ? :cx18:cx18_v4l2_close+0xb6/0x150
+[35037.080781]  [<ffffffff802a88d1>] ? __fput+0xb1/0x1d0
+[35037.080792]  [<ffffffff802a5404>] ? filp_close+0x54/0x90
+[35037.080803]  [<ffffffff802a6c1f>] ? sys_close+0x9f/0x110
+[35037.080815]  [<ffffffff80226c02>] ? sysenter_do_call+0x1b/0x66
+[35037.080826]  [<ffffffff80315060>] ? dummy_file_free_security+0x0/0x10
+[35037.080839]
+[35037.080845]
+[35037.080852] Code: 74 22 31 c9 0f 1f 80 00 00 00 00 48 89 c8 48 03
+47 28 8b 10 0f ca 89 10 8d 41 04 48 83 c1 04 39 47 30 77 e7 f3 c3 0f
+1f 44 00 00 <4c> 8b 0e 49 89 d2 49 8b 41 08 49 8b 11 48 89 42 08 48 89
+10 49
+[35037.080976] RIP  [<ffffffffa01e4180>] :cx18:cx18_queue_move_buf+0x0/0xa0
+[35037.080992]  RSP <ffff810217c4be50>
+[35037.081000] CR2: 0000000000000000
+[35037.081192] ---[ end trace 10100555b3a0d104 ]---
+[35037.090147] note: java[15894] exited with preempt_count 1
 
 _______________________________________________
 linux-dvb mailing list
