@@ -1,28 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KZARy-0007Bj-Bd
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 22:20:07 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6D00K9NPSISM10@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 29 Aug 2008 16:19:32 -0400 (EDT)
-Date: Fri, 29 Aug 2008 16:19:30 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48B85958.7010809@gmail.com>
-To: Mijhail Moreyra <mijhail.moreyra@gmail.com>
-Message-id: <48B859D2.1060609@linuxtv.org>
-MIME-version: 1.0
-References: <48B4687D.8070205@gmail.com> <48B46D46.2020800@linuxtv.org>
-	<48B46F9D.105@gmail.com> <48B47D2C.3010005@linuxtv.org>
-	<48B48F62.7090100@gmail.com> <48B4FB50.3020200@linuxtv.org>
-	<48B85361.6020508@gmail.com> <48B85449.4010506@linuxtv.org>
-	<48B85958.7010809@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
- HVR-1500
+Message-ID: <489AA9AF.2060803@iinet.net.au>
+Date: Thu, 07 Aug 2008 15:52:15 +0800
+From: Tim Farrington <timf@iinet.net.au>
+MIME-Version: 1.0
+To: David <dvb-t@iinet.com.au>
+References: <20080801034025.C0EC947808F@ws1-5.us4.outblaze.com><4897AC24.3040006@linuxtv.org>	<20080805214339.GA7314@kryten><20080805234129.GD11008@brainz.yelavich.home>	<4899020C.50000@linuxtv.org>	<41A3723BDBA947399F2CBD960E4AFB94@mce>	<48996623.4010703@iinet.net.au>	<0BBC9497950E4ECA878D1D018B090B61@mce>	<489A7B4A.4080206@iinet.net.au>
+	<C5551D141EAB485E8EB2F1D8E43B6676@mce>
+	<489A9D74.5090501@iinet.net.au>
+	<42DDE4283DB94F2580D473D5B1954CB5@mce>
+In-Reply-To: <42DDE4283DB94F2580D473D5B1954CB5@mce>
+Cc: patrick.claven@manildra.com.au, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
+ DVB-T Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,82 +25,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mijhail Moreyra wrote:
-> Steven Toth wrote:
->> Mijhail Moreyra wrote:
->>> Steven Toth wrote:
->>>> Mijhail,
->>>>
->>>> http://linuxtv.org/hg/~stoth/cx23885-audio
->>>>
->>>> This tree contains your patch with some minor whitespace cleanups 
->>>> and fixes for HUNK related merge issues due to the patch wrapping at 
->>>> 80 cols.
->>>>
->>>> Please build this tree and retest in your environment to ensure I 
->>>> did not break anything. Does this tree still work OK for you?
->>>>
->>>> After this I will apply some other minor cleanups then invite a few 
->>>> other HVR1500 owners to begin testing.
->>>>
->>>> Thanks again.
->>>>
->>>> Regards,
->>>>
->>>> Steve
->>>
->>> Hi, sorry for the delay.
->>>
->>> I've tested the http://linuxtv.org/hg/~stoth/cx23885-audio tree and 
->>> it doesn't work well.
->>>
->>> You seem to have removed a piece from my patch that avoids some register
->>> modification in cx25840-core.c:cx23885_initialize()
->>>
->>> -       cx25840_write(client, 0x2, 0x76);
->>> +       if (state->rev != 0x0000) /* FIXME: How to detect the bridge 
->>> type ??? */
->>> +               /* This causes image distortion on a true cx23885 
->>> board */
->>> +               cx25840_write(client, 0x2, 0x76);
->>>
->>> As the patch says that register write causes a horrible image distortion
->>> on my HVR-1500 which has a real cx23885 (not 23887, 23888, etc) board.
->>>
->>> I don't know if it's really required for any bridge as everything seems
->>> to be auto-configured by default, maybe it can be simply dropped.
->>>
->>> Other than that the cx23885-audio tree works well.
->>>
->>> WRT the whitespaces, 80 cols, etc; most are also in the sources I took
->>> as basis, so I didn't think they were a problem.
->>
->> That's a mistake, I'll add that later tonight, thanks for finding 
->> this. I must of missed it when I had to tear apart your email because 
->> of HUNK issues caused by patch line wrapping.
->>
->> Apart from this, is everything working as you expect?
->>
->> Regards,
->>
->> Steve
->>
->>
-> 
-> OK.
-> 
-> And sorry about the patch, I didn't know it was going to be broken that
-> way by being sent by email.
-> 
->  >> Other than that the cx23885-audio tree works well.
-> 
 
-Great, thanks for confirming.
+The point is that the developers are trying to incorporate Chris's work 
+into the
+main v4l-dvb driver.
+
+Chris's original firmware requirements were:
+dvb-usb-bluebird-01.fw xc3028-dvico-au-01.fw dvb-usb-bluebird-02.fw
+
+whereas now it needs:
+xc3028-v27.fw
+
+It seems that the "new" firmware doesn't work as of yet for Australia, 
+for this device.
+
+IIRC, Chris had an "offset" for Australia.
 
 Regards,
-
-Steve
-
+Timf
 
 _______________________________________________
 linux-dvb mailing list
