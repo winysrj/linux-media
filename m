@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.173])
+Received: from outbound.icp-qv1-irony-out4.iinet.net.au ([203.59.1.150])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kosio.dimitrov@gmail.com>) id 1KTGXN-0008QF-N4
-	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 15:37:21 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so2611304wfd.17
-	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 06:37:12 -0700 (PDT)
-Message-ID: <8103ad500808130637v50e9a64eg6eb1fbdd32071971@mail.gmail.com>
-Date: Wed, 13 Aug 2008 16:37:11 +0300
-From: "Konstantin Dimitrov" <kosio.dimitrov@gmail.com>
-To: "Guy Martin" <gmsoft@tuxicoman.be>
-In-Reply-To: <20080813123241.0f7cffca@bleh.bxl.tuxicoman.be>
+	(envelope-from <timf@iinet.net.au>) id 1KQxCc-00036e-Pr
+	for linux-dvb@linuxtv.org; Thu, 07 Aug 2008 06:34:31 +0200
+Message-ID: <489A7B4A.4080206@iinet.net.au>
+Date: Thu, 07 Aug 2008 12:34:18 +0800
+From: Tim Farrington <timf@iinet.net.au>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20080813123241.0f7cffca@bleh.bxl.tuxicoman.be>
+To: David <dvb-t@iinet.com.au>
+References: <20080801034025.C0EC947808F@ws1-5.us4.outblaze.com><4897AC24.3040006@linuxtv.org>	<20080805214339.GA7314@kryten><20080805234129.GD11008@brainz.yelavich.home>	<4899020C.50000@linuxtv.org>
+	<41A3723BDBA947399F2CBD960E4AFB94@mce>
+	<48996623.4010703@iinet.net.au>
+	<0BBC9497950E4ECA878D1D018B090B61@mce>
+In-Reply-To: <0BBC9497950E4ECA878D1D018B090B61@mce>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] CT-3650 driver effort
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
+ DVB-T Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,56 +29,169 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi Guy,
+David wrote:
+> Hi Tim
+>
+> Thanks for information.
+>
+> I obtained the driver, extracted the firmware to lib/firmware and 
+> tried to scan.
+> I cannot get a lock on anything.
+>
+> dmesg shows it is loading the firmware but nothing more:
+>
+> [  192.596627] xc2028 1-0061: Loading 3 firmware images from 
+> xc3028-v27.fw, type: DViCO DualDig4/Nano2 (Australia), ver 2.7
+> [  192.796658] xc2028 1-0061: Loading firmware for type=BASE F8MHZ 
+> (3), id 0000000000000000.
+> [  193.965865] xc2028 1-0061: Loading firmware for type=D2620 DTV7 
+> (88), id 0000000000000000.
+> [  265.268818] xc2028 2-0061: Loading 3 firmware images from 
+> xc3028-v27.fw, type: DViCO DualDig4/Nano2 (Australia), ver 2.7
+> [  265.468693] xc2028 2-0061: Loading firmware for type=BASE F8MHZ 
+> (3), id 0000000000000000.
+> [  266.633170] xc2028 2-0061: Loading firmware for type=D2620 DTV7 
+> (88), id 0000000000000000.
+>
+>
+> Regards
+> David
+>
+>
+>
+> ----- Original Message ----- From: "Tim Farrington" <timf@iinet.net.au>
+> To: "David Porter" <dvb-t@iinet.com.au>
+> Cc: <linux-dvb@linuxtv.org>
+> Sent: Wednesday, August 06, 2008 6:51 PM
+> Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO 
+> FusionHDTV DVB-T Dual Express
+>
+>
+>> David Porter wrote:
+>>> Hi
+>>>
+>>> I have one of these, saw Stevens post and thought i would give it a go.
+>>>
+>>> I built from : http://linuxtv.org/hg/~stoth/v4l-dvb
+>>> All seemed to go well with no errors.
+>>>
+>>> dmesg reads:
+>>>
+>>> [   31.964424] CORE cx23885[0]: subsystem: 18ac:db78, board: DViCO 
+>>> FusionHDTV DVB-T Dual Express [card=11,autodetected]
+>>> [   32.104767] cx23885[0]: i2c bus 0 registered
+>>> [   32.104781] cx23885[0]: i2c bus 1 registered
+>>> [   32.104794] cx23885[0]: i2c bus 2 registered
+>>> [   32.164385] input: i2c IR (FusionHDTV) as 
+>>> /devices/virtual/input/input8
+>>> [   32.422764] ir-kbd-i2c: i2c IR (FusionHDTV) detected at 
+>>> i2c-1/1-006b/ir0 [cx23885[0]]
+>>> [   32.423135] cx23885[0]: cx23885 based dvb card
+>>> [   32.492021] xc2028 1-0061: creating new instance
+>>> [   32.492027] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+>>> [   32.492036] DVB: registering new adapter (cx23885[0])
+>>> [   32.492040] DVB: registering frontend 0 (Zarlink ZL10353 DVB-T)...
+>>> [   32.492386] cx23885[0]: cx23885 based dvb card
+>>> [   32.492924] xc2028 2-0061: creating new instance
+>>> [   32.492926] xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
+>>> [   32.492928] DVB: registering new adapter (cx23885[0])
+>>> [   32.492930] DVB: registering frontend 1 (Zarlink ZL10353 DVB-T)...
+>>> [   32.493228] cx23885_dev_checkrevision() Hardware revision = 0xb0
+>>> [   32.493236] cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16, 
+>>> latency: 0, mmio: 0xfe800000
+>>>
+>>> But scanning, returns :
+>>>
+>>> [ 1381.214624] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+>>> [ 1382.220858] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+>>> [ 1382.260825] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+>>> [ 1383.267724] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+>>> [ 1383.276680] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+>>>
+>>> I checked  /lib/firmware/ but xc3028-v27.fw is not in the directory ?
+>>>
+>>> Must have messed it up somewhere! Any help appreciated.
+>>>
+>>> Thanks
+>>> David
+>>>
+>>> ----- Original Message ----- From: "Steven Toth" <stoth@linuxtv.org>
+>>> To: "Luke Yelavich" <themuso@themuso.com>
+>>> Cc: <linux-dvb@linuxtv.org>
+>>> Sent: Wednesday, August 06, 2008 11:44 AM
+>>> Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO 
+>>> FusionHDTV DVB-T Dual Express
+>>>
+>>>
+>>>
+>>>>>>> I've tested with the HVR1500Q (xc5000 based) and I'm happy with the
+>>>>>>> results. Can you both try the DViCO board?
+>>>>>>>
+>>>>>> It tests fine and I like how simpler things have got.
+>>>>>>
+>>>>> I pulled the above linked tree, and compiled the modules. It seems 
+>>>>> at the moment for the dual express, that I have to pass the 
+>>>>> parameter card=11 to the driver, for it to correctly find the card 
+>>>>> and make use of all adapters. Without any module parameters, dmsg 
+>>>>> complains that the card couldn't be identified, yet two adapters 
+>>>>> are shown. I have two of these cards.
+>>>>>
+>>>>> Hope this helps some.
+>>>>>
+>>>> .. And they're both the same model?
+>>>>
+>>>> If so, insert one at a time and run the 'lspci -vn' command, save the
+>>>> output for each card.
+>>>>
+>>>> Post the output here.
+>>>>
+>>>> Assuming you load the driver with card=11, does each card work 
+>>>> correctly
+>>>> after that?
+>>>>
+>>>> - Steve
+>>>>
+>>>> _______________________________________________
+>>>> linux-dvb mailing list
+>>>> linux-dvb@linuxtv.org
+>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>>>
+>>>>
+>>>
+>>> _______________________________________________
+>>> linux-dvb mailing list
+>>> linux-dvb@linuxtv.org
+>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>>
+>>>
+>>
+>> To obtain xc3028-v27.fw
+>>
+>> see ~/v4l-dvb/linux/Documentation/video4linux/extract_xc3028.pl
+>>
+>> Regards,
+>> Timf 
+>
+Try not to top post.
 
-you can easily get (extract) the TDA10048 firmware from the
-Technotrend CT-3650 Windows drivers:
+Best to post the results of tzap here:
 
-1) wget http://technotrend-online.com/download/software/bda/usb2driver//ttusb2bda_1.0.2.20.zip
+In Ubuntu, Debian;
+sudo apt-get install dvb-utils
+(other distros use dvb-apps)
 
-2) unzip -jo ttusb2bda_1.0.2.20.zip ttusb2bda_1.0.2.20/ttusb2bda.sys
+Find the scan file appropriate for your area (au-*) in:
+/usr/share/doc/dvb-utils/examples/scan/dvb-t
 
-3) dd if=ttusb2bda.sys of=dvb-fe-tda10048-1.0.fw bs=1 skip=532560 count=24878
+sudo -s -H
+mkdir /root/.tzap
+scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/au-* > 
+/root/.tzap/channels.conf
 
-best wishes,
-konstantin
+Post the output of scan to this list.
 
-2008/8/13 Guy Martin <gmsoft@tuxicoman.be>:
->
-> Hi all,
->
-> I'm currently trying to get the CT-3650 working.
-> It has the following chips :
->  - TDA8264 (tuner)
->  - TDA10023 (DVB-C demod)
->  - TDA10048 (DVB-T demod)
->
->
-> I'm able to get the DVB-C frontend working using the attached patch.
-> However I can't test the DVB-T nor the CI.
->
-> To test the DVB-T frontend, I'm missing dvb-fe-tda10048-1.0.fw which I
-> can't find anywhere.
->
-> Regarding the CI, I'm only watching FTA so I won't be able to test that.
->
->
-> Please review the attached patch. If I'm given the tda10048 firmware I
-> should probably get it to work.
->
->
-> Regards,
->  Guy
->
-> --
-> Guy Martin
-> Gentoo Linux - HPPA port lead
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Regards,
+Timf
 
 _______________________________________________
 linux-dvb mailing list
