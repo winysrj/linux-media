@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KXJ1X-0001bY-16
-	for linux-dvb@linuxtv.org; Sun, 24 Aug 2008 19:05:08 +0200
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1KXJ1S-00018j-Pw
-	for linux-dvb@linuxtv.org; Sun, 24 Aug 2008 17:05:02 +0000
-Received: from pool-71-164-182-254.dllstx.fios.verizon.net ([71.164.182.254])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sun, 24 Aug 2008 17:05:02 +0000
-Received: from kevinww by pool-71-164-182-254.dllstx.fios.verizon.net with
-	local (Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sun, 24 Aug 2008 17:05:02 +0000
-To: linux-dvb@linuxtv.org
-From: Kevin Wambsganz <kevinww@verizon.net>
-Date: Sun, 24 Aug 2008 16:21:13 +0000 (UTC)
-Message-ID: <loom.20080824T155738-572@post.gmane.org>
-Mime-Version: 1.0
-Subject: [linux-dvb] SuSE 11.00 and DVB PCHDTV-5500 driver problem
+	(envelope-from <dvb-t@iinet.com.au>) id 1KQwDe-0000BO-OK
+	for linux-dvb@linuxtv.org; Thu, 07 Aug 2008 05:31:21 +0200
+Message-ID: <0BBC9497950E4ECA878D1D018B090B61@mce>
+From: "David" <dvb-t@iinet.com.au>
+To: "Tim Farrington" <timf@iinet.net.au>
+References: <20080801034025.C0EC947808F@ws1-5.us4.outblaze.com><4897AC24.3040006@linuxtv.org>	<20080805214339.GA7314@kryten><20080805234129.GD11008@brainz.yelavich.home>	<4899020C.50000@linuxtv.org>
+	<41A3723BDBA947399F2CBD960E4AFB94@mce>
+	<48996623.4010703@iinet.net.au>
+Date: Thu, 7 Aug 2008 13:31:10 +1000
+MIME-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
+	DVB-T Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,124 +27,148 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Hi Tim
 
-I built the DVB repository using "hg clone http://hg.jannau.net/hdpvr/" 
-because it contains the driver for the Hauppauge HD-PVR. I also used the 
-stable version of DVB w/o HD-PVR and I have the same problem.
+Thanks for information.
 
-I'm using SuSE 11.0 from opensuse.com, kernel is "Linux wambs-server 2.6.25.11-
-0.1-pae #1 SMP 2008-07-13 20:48:28 +0200 i686 i686 i386 GNU/Linux"
+I obtained the driver, extracted the firmware to lib/firmware and tried to 
+scan.
+I cannot get a lock on anything.
 
-I have two PCHDTV-HD500 cards installed and one HD-PVR connected to USB. 
-The driver builds and installs fine, but when I load the driver or restart the 
-server I get the following driver error.
+dmesg shows it is loading the firmware but nothing more:
 
-Here's a partial dump of messages, please help!!
+[  192.596627] xc2028 1-0061: Loading 3 firmware images from xc3028-v27.fw, 
+type: DViCO DualDig4/Nano2 (Australia), ver 2.7
+[  192.796658] xc2028 1-0061: Loading firmware for type=BASE F8MHZ (3), id 
+0000000000000000.
+[  193.965865] xc2028 1-0061: Loading firmware for type=D2620 DTV7 (88), id 
+0000000000000000.
+[  265.268818] xc2028 2-0061: Loading 3 firmware images from xc3028-v27.fw, 
+type: DViCO DualDig4/Nano2 (Australia), ver 2.7
+[  265.468693] xc2028 2-0061: Loading firmware for type=BASE F8MHZ (3), id 
+0000000000000000.
+[  266.633170] xc2028 2-0061: Loading firmware for type=D2620 DTV7 (88), id 
+0000000000000000.
 
-Can someone let me know what's going on with this? Is this specific to the 
-SuSe 11.0 built. Should I rebuild the kernel and remove the installed DVB from 
-it? Any other ideas?
 
-Aug 23 19:14:33 wambs-server kernel: ACPI: PCI interrupt for device 
-0000:01:01.2 disabled
-Aug 23 19:14:33 wambs-server kernel: ACPI: PCI interrupt for device 
-0000:01:00.2 disabled
-Aug 23 19:14:38 wambs-server kernel: ACPI: PCI interrupt for device 
-0000:01:01.0 disabled
-Aug 23 19:14:38 wambs-server kernel: ACPI: PCI interrupt for device 
-0000:01:00.0 disabled
-Aug 23 19:15:00 wambs-server kernel: usbcore: registered new interface driver 
-hdpvr
-Aug 23 19:16:06 wambs-server kernel: cx88/0: cx2388x v4l2 driver version 0.0.6 
-loaded
-Aug 23 19:16:06 wambs-server kernel: ACPI: PCI Interrupt 0000:01:00.0[A] -> 
-GSI 21 (level, low) -> IRQ 21
-Aug 23 19:16:06 wambs-server kernel: cx88[0]: subsystem: 7063:5500, board: 
-pcHDTV HD5500 HDTV [card=47,insmod option]
-Aug 23 19:16:06 wambs-server kernel: cx88[0]: TV tuner type 64, Radio tuner 
-type -1
-Aug 23 19:16:06 wambs-server kernel: cx88[0]: Test OK
-Aug 23 19:16:06 wambs-server modprobe: WARNING: module 'tda8290' is unsupported
-Aug 23 19:16:06 wambs-server kernel: TUNER: Unable to find symbol tda829x_probe
-()
-Aug 23 19:16:06 wambs-server kernel: tuner' 1-0043: chip found @ 0x86 (cx88[0])
-Aug 23 19:16:06 wambs-server modprobe: WARNING: module 'tda9887' is unsupported
-Aug 23 19:16:06 wambs-server kernel: DVB: Unable to find symbol tda9887_attach
-()
-Aug 23 19:16:06 wambs-server kernel: tuner' 1-0061: chip found @ 0xc2 (cx88[0])
-Aug 23 19:16:06 wambs-server modprobe: WARNING: module 'tuner_simple' is 
-unsupported
-Aug 23 19:16:06 wambs-server kernel: DVB: Unable to find symbol 
-simple_tuner_attach()
-Aug 23 19:16:06 wambs-server kernel: cx88[0]/0: found at 0000:01:00.0, rev: 5, 
-irq: 21, latency: 64, mmio: 0xeb000000
-Aug 23 19:16:06 wambs-server kernel: cx88[0]/0: registered device video0 [v4l2]
-Aug 23 19:16:06 wambs-server kernel: cx88[0]/0: registered device vbi0
-Aug 23 19:16:06 wambs-server kernel: tuner' 1-0061: Tuner has no way to set tv 
-freq
-Aug 23 19:16:06 wambs-server kernel: ACPI: PCI Interrupt 0000:01:01.0[A] -> 
-GSI 22 (level, low) -> IRQ 22
-Aug 23 19:16:06 wambs-server kernel: cx88[1]: subsystem: 7063:5500, board: 
-pcHDTV HD5500 HDTV [card=47,insmod option]
-Aug 23 19:16:06 wambs-server kernel: cx88[1]: TV tuner type 64, Radio tuner 
-type -1
-Aug 23 19:16:07 wambs-server kernel: cx88[1]: Test OK
-Aug 23 19:16:07 wambs-server modprobe: WARNING: module 'tda8290' is unsupported
-Aug 23 19:16:07 wambs-server kernel: TUNER: Unable to find symbol tda829x_probe
-()
-Aug 23 19:16:07 wambs-server kernel: tuner' 2-0043: chip found @ 0x86 (cx88[1])
-Aug 23 19:16:07 wambs-server modprobe: WARNING: module 'tda9887' is unsupported
-Aug 23 19:16:07 wambs-server kernel: DVB: Unable to find symbol tda9887_attach
-()
-Aug 23 19:16:07 wambs-server kernel: tuner' 2-0061: chip found @ 0xc2 (cx88[1])
-Aug 23 19:16:07 wambs-server modprobe: WARNING: module 'tuner_simple' is 
-unsupported
-Aug 23 19:16:07 wambs-server kernel: DVB: Unable to find symbol 
-simple_tuner_attach()
-Aug 23 19:16:07 wambs-server kernel: cx88[1]/0: found at 0000:01:01.0, rev: 5, 
-irq: 22, latency: 64, mmio: 0xe7000000
-Aug 23 19:16:07 wambs-server kernel: cx88[1]/0: registered device video1 [v4l2]
-Aug 23 19:16:07 wambs-server kernel: cx88[1]/0: registered device vbi1
-Aug 23 19:16:07 wambs-server kernel: tuner' 2-0061: Tuner has no way to set tv 
-freq
-Aug 23 19:16:27 wambs-server kernel: cx88/2: cx2388x MPEG-TS Driver Manager 
-version 0.0.6 loaded
-Aug 23 19:16:27 wambs-server kernel: cx88[0]/2: cx2388x 8802 Driver Manager
-Aug 23 19:16:27 wambs-server kernel: ACPI: PCI Interrupt 0000:01:00.2[A] -> 
-GSI 21 (level, low) -> IRQ 21
-Aug 23 19:16:27 wambs-server kernel: cx88[0]/2: found at 0000:01:00.2, rev: 5, 
-irq: 21, latency: 64, mmio: 0xed000000
-Aug 23 19:16:27 wambs-server kernel: cx88[1]/2: cx2388x 8802 Driver Manager
-Aug 23 19:16:27 wambs-server kernel: ACPI: PCI Interrupt 0000:01:01.2[A] -> 
-GSI 22 (level, low) -> IRQ 22
-Aug 23 19:16:27 wambs-server kernel: cx88[1]/2: found at 0000:01:01.2, rev: 5, 
-irq: 22, latency: 64, mmio: 0xe9000000
-Aug 23 19:16:27 wambs-server kernel: cx88/2: cx2388x dvb driver version 0.0.6 
-loaded
-Aug 23 19:16:27 wambs-server kernel: cx88/2: registering cx8802 driver, type: 
-dvb access: shared
-Aug 23 19:16:27 wambs-server kernel: cx88[0]/2: subsystem: 7063:5500, board: 
-pcHDTV HD5500 HDTV [card=47]
-Aug 23 19:16:27 wambs-server kernel: cx88[0]/2: cx2388x based DVB/ATSC card
-Aug 23 19:16:27 wambs-server modprobe: WARNING: module 'tuner_simple' is 
-unsupported
-Aug 23 19:16:27 wambs-server kernel: DVB: Unable to find symbol 
-simple_tuner_attach()
-Aug 23 19:16:27 wambs-server kernel: cx88[0]/2: dvb_register failed (err = -22)
-Aug 23 19:16:27 wambs-server kernel: cx88[0]/2: cx8802 probe failed, err = -22
-Aug 23 19:16:27 wambs-server kernel: cx88[1]/2: subsystem: 7063:5500, board: 
-pcHDTV HD5500 HDTV [card=47]
-Aug 23 19:16:27 wambs-server kernel: cx88[1]/2: cx2388x based DVB/ATSC card
-Aug 23 19:16:27 wambs-server modprobe: WARNING: module 'tuner_simple' is 
-unsupported
-Aug 23 19:16:27 wambs-server kernel: DVB: Unable to find symbol 
-simple_tuner_attach()
-Aug 23 19:16:27 wambs-server kernel: cx88[1]/2: dvb_register failed (err = -22)
-                                                                               
-               
- 
+Regards
+David
 
+
+
+----- Original Message ----- 
+From: "Tim Farrington" <timf@iinet.net.au>
+To: "David Porter" <dvb-t@iinet.com.au>
+Cc: <linux-dvb@linuxtv.org>
+Sent: Wednesday, August 06, 2008 6:51 PM
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV 
+DVB-T Dual Express
+
+
+> David Porter wrote:
+>> Hi
+>>
+>> I have one of these, saw Stevens post and thought i would give it a go.
+>>
+>> I built from : http://linuxtv.org/hg/~stoth/v4l-dvb
+>> All seemed to go well with no errors.
+>>
+>> dmesg reads:
+>>
+>> [   31.964424] CORE cx23885[0]: subsystem: 18ac:db78, board: DViCO 
+>> FusionHDTV DVB-T Dual Express [card=11,autodetected]
+>> [   32.104767] cx23885[0]: i2c bus 0 registered
+>> [   32.104781] cx23885[0]: i2c bus 1 registered
+>> [   32.104794] cx23885[0]: i2c bus 2 registered
+>> [   32.164385] input: i2c IR (FusionHDTV) as 
+>> /devices/virtual/input/input8
+>> [   32.422764] ir-kbd-i2c: i2c IR (FusionHDTV) detected at 
+>> i2c-1/1-006b/ir0 [cx23885[0]]
+>> [   32.423135] cx23885[0]: cx23885 based dvb card
+>> [   32.492021] xc2028 1-0061: creating new instance
+>> [   32.492027] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+>> [   32.492036] DVB: registering new adapter (cx23885[0])
+>> [   32.492040] DVB: registering frontend 0 (Zarlink ZL10353 DVB-T)...
+>> [   32.492386] cx23885[0]: cx23885 based dvb card
+>> [   32.492924] xc2028 2-0061: creating new instance
+>> [   32.492926] xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
+>> [   32.492928] DVB: registering new adapter (cx23885[0])
+>> [   32.492930] DVB: registering frontend 1 (Zarlink ZL10353 DVB-T)...
+>> [   32.493228] cx23885_dev_checkrevision() Hardware revision = 0xb0
+>> [   32.493236] cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16, 
+>> latency: 0, mmio: 0xfe800000
+>>
+>> But scanning, returns :
+>>
+>> [ 1381.214624] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+>> [ 1382.220858] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+>> [ 1382.260825] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+>> [ 1383.267724] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+>> [ 1383.276680] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
+>>
+>> I checked  /lib/firmware/ but xc3028-v27.fw is not in the directory ?
+>>
+>> Must have messed it up somewhere! Any help appreciated.
+>>
+>> Thanks
+>> David
+>>
+>> ----- Original Message ----- 
+>> From: "Steven Toth" <stoth@linuxtv.org>
+>> To: "Luke Yelavich" <themuso@themuso.com>
+>> Cc: <linux-dvb@linuxtv.org>
+>> Sent: Wednesday, August 06, 2008 11:44 AM
+>> Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV 
+>> DVB-T Dual Express
+>>
+>>
+>>
+>>>>>> I've tested with the HVR1500Q (xc5000 based) and I'm happy with the
+>>>>>> results. Can you both try the DViCO board?
+>>>>>>
+>>>>> It tests fine and I like how simpler things have got.
+>>>>>
+>>>> I pulled the above linked tree, and compiled the modules. It seems at 
+>>>> the moment for the dual express, that I have to pass the parameter 
+>>>> card=11 to the driver, for it to correctly find the card and make use 
+>>>> of all adapters. Without any module parameters, dmsg complains that the 
+>>>> card couldn't be identified, yet two adapters are shown. I have two of 
+>>>> these cards.
+>>>>
+>>>> Hope this helps some.
+>>>>
+>>> .. And they're both the same model?
+>>>
+>>> If so, insert one at a time and run the 'lspci -vn' command, save the
+>>> output for each card.
+>>>
+>>> Post the output here.
+>>>
+>>> Assuming you load the driver with card=11, does each card work correctly
+>>> after that?
+>>>
+>>> - Steve
+>>>
+>>> _______________________________________________
+>>> linux-dvb mailing list
+>>> linux-dvb@linuxtv.org
+>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>>
+>>>
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>>
+>
+> To obtain xc3028-v27.fw
+>
+> see ~/v4l-dvb/linux/Documentation/video4linux/extract_xc3028.pl
+>
+> Regards,
+> Timf 
 
 _______________________________________________
 linux-dvb mailing list
