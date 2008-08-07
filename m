@@ -1,26 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7IG0b6X024681
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 12:00:37 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.157])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7IFxm5V026984
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 11:59:49 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so1645882fga.7
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 08:59:48 -0700 (PDT)
-From: "Henri Tuomola" <htuomola@gmail.com>
-To: "'Albert Comerma'" <albert.comerma@gmail.com>
-References: <6f18c5ee0808180153h7d25999bh6c5dba01127aace7@mail.gmail.com>
-	<ea4209750808180253g426b3b91m5eebf56876ba722c@mail.gmail.com>
-In-Reply-To: <ea4209750808180253g426b3b91m5eebf56876ba722c@mail.gmail.com>
-Date: Mon, 18 Aug 2008 18:59:28 +0300
-Message-ID: <000c01c9014b$667ca6f0$3375f4d0$@com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m77ACqUZ007167
+	for <video4linux-list@redhat.com>; Thu, 7 Aug 2008 06:12:52 -0400
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m77ACe1j011960
+	for <video4linux-list@redhat.com>; Thu, 7 Aug 2008 06:12:40 -0400
+Message-ID: <489ACCC5.1050109@hhs.nl>
+Date: Thu, 07 Aug 2008 12:21:57 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Language: fi
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: [solved] RE: Terratec Cinergy DT XS Diversity new version
+To: Jean-Francois Moine <moinejf@free.fr>
+Content-Type: multipart/mixed; boundary="------------050300070900030505010606"
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Subject: Patch: gspca-zc3xx-pas106b-detect.patch 
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,81 +26,83 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
-
- 
-
-Thanks for the quick reply. However, my modifications might've been correct,
-I think I just missed "make install". J So, I've been (re)loading the old,
-non-patched drivers whole yesterday.. No wonder it didn't work.
-
- 
-
-Now I've got this: 
-
-dib0700: loaded with support for 7 different device-types
-
-dvb-usb: found a 'Terratec Cinergy DT USB XS Diversity' in warm state.
-
- 
-
-and 2 frontends.
-
- 
-
-thanks,
-
-Henri
-
- 
-
-From: Albert Comerma [mailto:albert.comerma@gmail.com] 
-Sent: 18. elokuuta 2008 12:53
-To: Henri Tuomola
-Cc: video4linux-list@redhat.com
-Subject: Re: Terratec Cinergy DT XS Diversity new version
-
- 
-
-Hi Henry, perhaps you forgot to modify something... I send you a patch for
-the current hg version.
-
-Albert
-
-2008/8/18 Henri Tuomola <htuomola@gmail.com>
+This is a multi-part message in MIME format.
+--------------050300070900030505010606
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
 Hi,
 
-I just got the Terratec Cinergy DT XS Diversity stick, the newer one that is
-mentioned in here:
-http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_DT_USB_XS_Diversity#Ident
-ification,
-with usb id 0ccd:0081. As suggested, I tried to patch the current hg-version
-with this patch:
-http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026911.html. However,
-the patch fails, apparently because contents of the dib0700_devices.c have
-changed since the diff was created. I think I figured out the syntax in
-there and made some modifications so that it should be fine. After this I
-ran "make" and then "modprobe dvb_usb_dib0700".
+This patch moves the detection of the 2wr SIF pas106b sensor to before detecing
+other 2 wire sensors (as it was done with gspcav1) without this the pas106b
+gets misdetected as an HDCS2020b.
 
-In dmesg I only get this:
-dib0700: loaded with support for 7 different device-types
-usbcore: registered new interface driver dvb_usb_dib0700
+This makes my Philips SPC 200NC cam work, but unfortunately the picture is
+upside down (same with gspcav1). While experimenting to try to fix this I've
+found the meaning of one pas106b register and a comment now documents this.
 
-Seems that the card isn't detected? Any tips?
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
-I'm running gentoo-sources-2.6.24-r8 with the v4l hg sources.
+Regards,
 
-best regards,
-Henri
+Hans
+
+--------------050300070900030505010606
+Content-Type: text/x-patch;
+ name="gspca-zc3xx-pas106b-detect.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="gspca-zc3xx-pas106b-detect.patch"
+
+This patch moves the detection of the 2wr SIF pas106b sensor to before detecing
+other 2 wire sensors (as it was done with gspcav1) without this the pas106b
+gets misdetected as an HDCS2020b.
+
+This makes my Philips SPC 200NC cam work, but unfortunately the picture is
+upside down (same with gspcav1). While experimenting to try to fix this I've
+found the meaning of one pas106b register and a comment now documents this.
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+diff -r 380c5715fd90 linux/drivers/media/video/gspca/zc3xx.c
+--- a/linux/drivers/media/video/gspca/zc3xx.c	Wed Aug 06 10:49:16 2008 +0200
++++ b/linux/drivers/media/video/gspca/zc3xx.c	Thu Aug 07 12:18:01 2008 +0200
+@@ -4134,6 +4134,7 @@
+ 	{0xaa, 0x0c, 0x0005},
+ 	{0xaa, 0x0d, 0x0000},
+ 	{0xaa, 0x0e, 0x0002},
++/*	{0xaa, 0x11, 0x0000}, seems to control exposure (0 = max exp) */
+ 	{0xaa, 0x14, 0x0081},
+ 
+ /* Other registors */
+@@ -6972,6 +6973,10 @@
+ 				/* may probe but with write in reg 0x0010 */
+ 		return -1;		/* don't probe */
+ 	}
++	sensor = sif_probe(gspca_dev);
++	if (sensor >= 0)
++		return sensor;
++
+ 	sensor = vga_2wr_probe(gspca_dev);
+ 	if (sensor >= 0) {
+ 		if (sensor < 0x7600)
+@@ -6984,7 +6989,7 @@
+ 			return sensor;
+ 		return sensor2;
+ 	}
+-	return sif_probe(gspca_dev);
++	return -1;
+ }
+ 
+ /* this function is called at probe time */
+
+--------------050300070900030505010606
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-
- 
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------050300070900030505010606--
