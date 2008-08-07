@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7PIKmfL015195
-	for <video4linux-list@redhat.com>; Mon, 25 Aug 2008 14:20:49 -0400
-Received: from fmmailgate02.web.de (fmmailgate02.web.de [217.72.192.227])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7PIKZoE018702
-	for <video4linux-list@redhat.com>; Mon, 25 Aug 2008 14:20:35 -0400
-Message-ID: <48B2F7E0.8010006@web.de>
-Date: Mon, 25 Aug 2008 20:20:16 +0200
-From: Stefan Lange <sailer22@web.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m77BaKui016746
+	for <video4linux-list@redhat.com>; Thu, 7 Aug 2008 07:36:20 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m77BZrca022039
+	for <video4linux-list@redhat.com>; Thu, 7 Aug 2008 07:35:54 -0400
+Message-ID: <489AE048.70708@hhs.nl>
+Date: Thu, 07 Aug 2008 13:45:12 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: Marco Crociani - Tyrael <marco.crociani@gmail.com>
-References: <751285356@web.de>	
-	<d9def9db0808130339t588c6bf9y3f68bf1005212d6b@mail.gmail.com>
-	<2f11466b0808250651n58f192b9o8859732b684292ed@mail.gmail.com>
-In-Reply-To: <2f11466b0808250651n58f192b9o8859732b684292ed@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+References: <489AD045.7030404@hhs.nl>
+	<200808071237.47230.laurent.pinchart@skynet.be>
+In-Reply-To: <200808071237.47230.laurent.pinchart@skynet.be>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, em28xx@mcentral.de
-Subject: Re: [Em28xx] Terratec Cinergy XS unsupported Device
+Cc: video4linux-list@redhat.com
+Subject: Re: RFC: adding a flag to indicate a webcam sensor is installed
+ upside down
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,44 +29,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Marco,
+Laurent Pinchart wrote:
+> On Thursday 07 August 2008, Hans de Goede wrote:
+>> Hi all,
+>>
+>> I have this Philips SPC 200NC webcam, which has its sensor installed upside 
+>> down and the sensor does not seem to support flipping the image. So I
+>> believe the windows drivers fix this little problem in software.
+>>
+>> I would like to add a flag somewhere to indicate this to userspace (and then 
+>> add flipping code to libv4l).
+>>
+>> I think the best place for this would the flags field of the v4l2_fmtdesc 
+>> struct. Any other ideas / objections to this?
+> 
+> More often than sensors being mounted upside down in a webcam, what I've noticed frequently is webcam modules being mounted upside down in a laptop screen. There is no way that I'm aware of to check the module orientation based on the USB descriptors only. We will need a pure userspace solution.
+> 
 
-i cant move the changes from v4l to the em28xx-new. I am just a newbie 
-and an End User.
+Interesting, still in my case it can be told from just the usb id (philips 
+luckily uses its own id's instead of generic id's). So I think in cases were we 
+can tell it at the kernel level we should set a flag somewhere (and I believe 
+the flags field of the v4l2_fmtdesc is the best place) to share this knowledge 
+with userspace.
 
-So i am just waiting if some would implement the Cinergy XS in the 
-em28xx-new.
+Then for laptops we will need a detection mechanism probably based on DMI 
+strings (I feel hal is going to play a role here) and then check for flipx and 
+y v4l2_ctrl's and if those are not present use software flipping (which I'm 
+going to implement today for my philips cam).
 
-Sorry.
+Hmm, thinking more about the laptop problem, ideally hal would just do the 
+v4l-ctrl calls itself, so that this happens only once (on plugin) and users can 
+later override this. And then we would need some kinda hal boolean which libv4l 
+can query called something like "needs software flip" for the other cases.
 
-Stefan
+Regards,
 
-Marco Crociani - Tyrael wrote:
-> On Wed, Aug 13, 2008 at 12:39 PM, Markus Rechberger 
-> <mrechberger@gmail.com <mailto:mrechberger@gmail.com>> wrote:
->
->     On Wed, Aug 13, 2008 at 12:36 PM, Stefan Lange <sailer22@web.de
->     <mailto:sailer22@web.de>> wrote:
->     > So i have to wait for your next release right ? Or can i do it
->     by myself ?
->     >
->
->     yes you have to wait a bit for it... you can try to move the changes
->     from v4l-dvb-experimental to em28xx-new on mcentral.de
->     <http://mcentral.de>, there are
->     still a few things missing in the latest repository; although I'm
->     trying to take care that no other drivers will break with any updates.
->
->     Markus
->
->  
-> Hi Stefan,
-> have you tried to move the changes from v4l-dvb-experimental to 
-> em28xx-new?
->
-> -- 
-> Marco Lorenzo Crociani,
-> marco.crociani@gmail.com <mailto:marco.crociani@gmail.com>
+Hans
+
+
+p.s.
+
+If someone can ship me a laptop which an upside down mounted cam I'll happily 
+work on this issue :)
 
 --
 video4linux-list mailing list
