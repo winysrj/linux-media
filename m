@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <489F2B71.4060607@linuxtv.org>
-Date: Sun, 10 Aug 2008 13:54:57 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.108])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <dvb-t@iinet.com.au>) id 1KR1AF-0000Kl-CY
+	for linux-dvb@linuxtv.org; Thu, 07 Aug 2008 10:48:08 +0200
+Message-ID: <37109BA97D5848A396220552404AD028@mce>
+From: "David" <dvb-t@iinet.com.au>
+To: "Tim Farrington" <timf@iinet.net.au>
+References: <20080801034025.C0EC947808F@ws1-5.us4.outblaze.com><4897AC24.3040006@linuxtv.org>	<20080805214339.GA7314@kryten><20080805234129.GD11008@brainz.yelavich.home>	<4899020C.50000@linuxtv.org>	<41A3723BDBA947399F2CBD960E4AFB94@mce>	<48996623.4010703@iinet.net.au>	<0BBC9497950E4ECA878D1D018B090B61@mce>	<489A7B4A.4080206@iinet.net.au>
+	<C5551D141EAB485E8EB2F1D8E43B6676@mce>
+	<489A9D74.5090501@iinet.net.au>
+	<42DDE4283DB94F2580D473D5B1954CB5@mce>
+	<489AA9AF.2060803@iinet.net.au>
+Date: Thu, 7 Aug 2008 18:47:57 +1000
 MIME-Version: 1.0
-To: Anton Blanchard <anton@samba.org>
-References: <20080804131051.GA7241@kryten>
-	<37219a840808040935o3cf613bdvd644bb0e592c8430@mail.gmail.com>
-	<20080809041847.GA5045@kryten>
-In-Reply-To: <20080809041847.GA5045@kryten>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] DViCO FusionHDTV DVB-T Dual Digital 4 (rev
-	2)
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
+	DVB-T Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,53 +29,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Anton Blanchard wrote:
-> Add support for revision 2 of the DViCO FusionHDTV DVB-T Dual Digital 4
-> which has new tuners and demodulators (2 x DIB7070p). With this patch
-> both DVB reception and IR works.
+
+----- Original Message ----- 
+From: "Tim Farrington" <timf@iinet.net.au>
+To: "David" <dvb-t@iinet.com.au>
+Cc: <linux-dvb@linuxtv.org>; <stoth@linuxtv.org>; 
+<patrick.claven@manildra.com.au>
+Sent: Thursday, August 07, 2008 5:52 PM
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV 
+DVB-T Dual Express
+
+
 >
-> The dib7000p driver currently hardwires the output mode to
-> OUTMODE_MPEG2_SERIAL regardless of what we ask for. Modify it to allow
-> OUTMODE_MPEG2_PAR_GATED_CLK to be set. Longer term we should remove the
-> check completely and set the output mode correctly in all the callers.
+> The point is that the developers are trying to incorporate Chris's work 
+> into the
+> main v4l-dvb driver.
 >
-> Add Kconfig bits to ensure the dib7000p and dib0070 modules are enabled.
-> It would be nice to only do this for the !DVB_FE_CUSTOMISE case, but
-> this is what the other DIB7070 module does (there are a number of
-> module dependencies in the attach code).
+> Chris's original firmware requirements were:
+> dvb-usb-bluebird-01.fw xc3028-dvico-au-01.fw dvb-usb-bluebird-02.fw
 >
-> Signed-off-by: Anton Blanchard <anton@samba.org>
-Anton,
+> whereas now it needs:
+> xc3028-v27.fw
+>
+> It seems that the "new" firmware doesn't work as of yet for Australia, for 
+> this device.
+>
+> IIRC, Chris had an "offset" for Australia.
+>
+> Regards,
+> Timf
+>
 
-I've applied your patch to my cxusb tree, with slight modifications. 
-Please test the tree and confirm proper operation before I request a
-merge into the master branch.
+Just a thought....
+There has been a lot of information posted on the lead up to announcement of 
+initial support for the card.
+The information that I used to build the drivers was gleaned from a number 
+of these and was a bit fragmented.
+If anyone has been successful in getting the card to work with the new 
+drivers, a brief step by step, how to would be greatly appreciated.
 
-http://linuxtv.org/hg/~mkrufky/cxusb
-
-You'll notice that I fixed the dib0070.h and dib7000p.h headers to allow
-cxusb the option of using DVB_FE_CUSTOMIZE, but when these modules are
-selected, dvb-usb-cxusb is still static linked to them.
-
-Perhaps we could put all of the dib7070p common setup into a dib7070p
-module, to centralize the duplicated code between dib0700 and cxusb. 
-This could also help to remove the static links described above.
-
-I started playing around with this idea -- If I make any progress, I'll
-post the tree and ask for testers.
-
-I don't think that the static links are enough of a reason to hold this
-patch back from a merge.  Hopefully we can find a solution before
-2.6.28, but if we don't , it's no real harm done.
-
-If you have any additional fixes / changes to make before this is merged
-into master, please generate them against this cxusb tree.
-
-Regards,
-
-Mike
-
-
+Regards
+David 
 
 _______________________________________________
 linux-dvb mailing list
