@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m72EnVOM030664
-	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 10:49:31 -0400
-Received: from n35.bullet.mail.ukl.yahoo.com (n35.bullet.mail.ukl.yahoo.com
-	[87.248.110.168])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m72EnGV6023565
-	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 10:49:17 -0400
-From: Lars Oliver Hansen <lolh@ymail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m77Ac5Rh019873
+	for <video4linux-list@redhat.com>; Thu, 7 Aug 2008 06:38:05 -0400
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m77AbrZq024831
+	for <video4linux-list@redhat.com>; Thu, 7 Aug 2008 06:37:54 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
 To: video4linux-list@redhat.com
-In-Reply-To: <1217674881.7839.2.camel@lars-laptop>
-References: <1217674881.7839.2.camel@lars-laptop>
-Date: Sat, 02 Aug 2008 16:49:09 +0200
-Message-Id: <1217688549.6605.5.camel@lars-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: no video device with saa7134 driver
+Date: Thu, 7 Aug 2008 12:37:46 +0200
+References: <489AD045.7030404@hhs.nl>
+In-Reply-To: <489AD045.7030404@hhs.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200808071237.47230.laurent.pinchart@skynet.be>
+Cc: 
+Subject: Re: RFC: adding a flag to indicate a webcam sensor is installed
+	upside down
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,36 +31,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Am Samstag, den 02.08.2008, 13:01 +0200 schrieb Lars Oliver Hansen:
-
-> Hello,
+On Thursday 07 August 2008, Hans de Goede wrote:
+> Hi all,
 > 
-> I have problems getting a video device under Ubuntu 8.04. I compiled and
-> installed the experimental saa7134 driver according to
-> http://mcentral.de/wiki/index.php5/AverMedia_Cardbus_Hybrid_TV_FM_E506R
-> and it shows up like this:
+> I have this Philips SPC 200NC webcam, which has its sensor installed upside 
+> down and the sensor does not seem to support flipping the image. So I
+> believe the windows drivers fix this little problem in software.
 > 
-> ﻿Module                  Size  Used by
-
-....
-
+> I would like to add a flag somewhere to indicate this to userspace (and then 
+> add flipping code to libv4l).
 > 
-> 
-> Yet there is no video device video0 listed under dev/. Any advice? I'm
-> using that AVer E506R Hybrid Cardbus card.
+> I think the best place for this would the flags field of the v4l2_fmtdesc 
+> struct. Any other ideas / objections to this?
 
+More often than sensors being mounted upside down in a webcam, what I've noticed frequently is webcam modules being mounted upside down in a laptop screen. There is no way that I'm aware of to check the module orientation based on the USB descriptors only. We will need a pure userspace solution.
 
-Hello again,
+Best regards,
 
-this problem is solved: if I plugin the card, do a modprobe saa7134,
-reboot, the card gets turned on and there is a dev/video0. This order is
-different than the last few steps in the link provided above. The reason
-I never got the card to work was probably that plugging in after the
-reboot doesn't turn it on and on another reboot the driver isn't loaded
-anymore. I now load it by etc/modules and the card works. Thanks for
-your work!
+Laurent Pinchart
 
-Lars
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
