@@ -1,22 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.157])
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1KZ6HI-0000aM-3U
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 17:52:49 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so575258fga.25
-	for <linux-dvb@linuxtv.org>; Fri, 29 Aug 2008 08:52:44 -0700 (PDT)
-Message-ID: <37219a840808290852k4cafb891tbf35162d3add6d60@mail.gmail.com>
-Date: Fri, 29 Aug 2008 11:52:44 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <20080829154342.74800@gmx.net>
+	(envelope-from <stev391@email.com>) id 1KR3DI-0006uu-IW
+	for linux-dvb@linuxtv.org; Thu, 07 Aug 2008 12:59:26 +0200
+Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
+	[192.168.8.242])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
+	38CC51801562
+	for <linux-dvb@linuxtv.org>; Thu,  7 Aug 2008 10:58:49 +0000 (GMT)
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20080821173909.114260@gmx.net> <20080823200531.246370@gmx.net>
-	<48B78AE6.1060205@gmx.net> <48B7A60C.4050600@kipdola.com>
-	<48B802D8.7010806@linuxtv.org> <20080829154342.74800@gmx.net>
-Cc: linux-dvb@linuxtv.org, skerit@kipdola.com
-Subject: Re: [linux-dvb] [PATCH] Future of DVB-S2
+From: stev391@email.com
+To: "Tim Farrington" <timf@iinet.net.au>, David <dvb-t@iinet.com.au>
+Date: Thu, 7 Aug 2008 20:58:49 +1000
+Message-Id: <20080807105849.22997BE4078@ws1-9.us4.outblaze.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
+ DVB-T Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,64 +23,160 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1101115767=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Aug 29, 2008 at 11:43 AM, Hans Werner <HWerner4@gmx.de> wrote:
->> ... and yes, many people understand you.
->
-> :) Thanks to everyone who replied so far. I am glad people care about this.
->
->> > We know all about the "coding in your free time" and we can only have
->> > the highest respect for that, but the drivers are completely abandonded,
->> > and that's how we feel, too.
->>
->> No, and that's my HVR4000 code you're talking about (and the good work
->> of Darron Broad, which was then picked up by Igor). The driver is
->> marginalized, it's not abandoned.
->
-> I hope your and Darron's drivers (http://dev.kewl.org/hauppauge) are not seen as
-> marginalized. The multifrontend (MFE) patch by you and Darron is the driver that I
-> actually *use* for watching TV. It works nicely with Kaffeine without modification. And I,
-> for one, appreciate your sane approach and the simplicity of the techniques you used to
-> add DVB-S2 support (using sysctls for the SFE driver, and wrapping two ioctls to pull in
-> extra parameters for the MFE driver). If the kernel API is changed sensibly it should be
-> easy and quick to adapt your drivers to fit in.
->
->> The HVR4000 situation is under review, the wheels are slowly turning....
-> If you are able to say anything about that I would be very interested.
->
-> Now, to show how simple I think all this could be, here is a PATCH implementing what
-> I think is the *minimal* API required to support DVB-S2.
->
-> Notes:
->
-> * same API structure, I just added some new enums and variables, nothing removed
-> * no changes required to any existing drivers (v4l-dvb still compiles)
-> * no changes required to existing applications (just need to be recompiled)
-> * no drivers, but I think the HVR4000 MFE patch could be easily adapted
->
-> I added the fe_caps2 enum because we're running out of bits in the capabilities bitfield.
-> More elegant would be to have separate bitfields for FEC capabilities and modulation
-> capabilities but that would require (easy) changes to (a lot of) drivers and applications.
->
-> Why should we not merge something simple like this immediately? This could have been done
-> years ago. If it takes several rounds of API upgrades to reach all the feature people want then
-> so be it, but a long journey begins with one step.
+This is a multi-part message in MIME format.
 
-This will break binary compatibility with existing apps.  You're right
--- those apps will work with a recompile, but I believe that as a
-whole, the linux-dvb kernel and userspace developers alike are looking
-to avoid breaking binary compatibility.
+--===============1101115767==
+Content-Transfer-Encoding: 7bit
+Content-Type: multipart/alternative; boundary="_----------=_1218106729181430"
+
+This is a multi-part message in MIME format.
+
+--_----------=_1218106729181430
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
+
+Tim, David,
+
+
+
+I like top posting, then I don't have to scroll too far for the main=20
+information.
+
+The firmware file is incorrect, if it states only 3 firmware images=20
+loaded then it is wrong (it should be 80). Here is what that line=20
+should read:
+[  154.867137] xc2028 3-0061: Loading 80 firmware images from xc3028-v27.fw=
+, type: xc2028 firmware, ver 2.7
+
+Make sure you are using the correct extract script and follow the=20
+instructions in the header (script is in the linux/Documentation/video4linu=
+x)
+
+Also, the "new" firmware does work in Australia as this is where I=20
+live... (Melbourne, and it has been tested against 3 different=20
+transmitters here [1 of which is Mt Dandenong], with varying reception leve=
+ls.=20
+The card has really good sensitivity however it can easily be drowned out i=
+f=20
+you have an amplifier).
+
+If you still have trouble load the following modules with debug =3D 1:
+cx23885
+zl10353
+tuner_xc2028
 
 Regards,
 
-Mike
+Stephen.
+
+
+----Original Message----
+Message: 1
+Date: Thu, 07 Aug 2008 15:52:15 +0800
+From: Tim Farrington <timf@iinet.net.au>
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO
+        FusionHDTV DVB-T Dual Express
+To: David <dvb-t@iinet.com.au>
+Cc: patrick.claven@manildra.com.au, linux-dvb@linuxtv.org
+Message-ID: <489AA9AF.2060803@iinet.net.au>
+Content-Type: text/plain; charset=3DISO-8859-1; format=3Dflowed
+
+
+The point is that the developers are trying to incorporate Chris's work
+into the
+main v4l-dvb driver.
+
+Chris's original firmware requirements were:
+dvb-usb-bluebird-01.fw xc3028-dvico-au-01.fw dvb-usb-bluebird-02.fw
+
+whereas now it needs:
+xc3028-v27.fw
+
+It seems that the "new" firmware doesn't work as of yet for Australia,
+for this device.
+
+IIRC, Chris had an "offset" for Australia.
+
+Regards,
+Timf
+
+--=20
+Be Yourself @ mail.com!
+Choose From 200+ Email Addresses
+Get a Free Account at www.mail.com
+
+
+--_----------=_1218106729181430
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="iso-8859-1"
+
+<span id=3D"obmessage"><pre>Tim, David,<br><br>I like top posting, then I d=
+on't have to scroll too far for the main <br>information.<br><br>The firmwa=
+re file is incorrect, if it states only 3 firmware images <br>loaded then i=
+t is wrong (it should be 80). Here is what that line <br>should read:<br>[ =
+ 154.867137] xc2028 3-0061: Loading 80 firmware images from xc3028-v27.fw, =
+type: xc2028 firmware, ver 2.7<br><br>Make sure you are using the correct e=
+xtract script and follow the <br>instructions in the header (script is in t=
+he linux/Documentation/video4linux)<br><br>Also, the "new" firmware does wo=
+rk in Australia as this is where I <br>live... (Melbourne, and it has been =
+tested against 3 different <br>transmitters here [1 of which is Mt Dandenon=
+g], with varying reception levels. <br>The card has really good sensitivity=
+ however it can easily be drowned out if <br>you have an amplifier).<br><br=
+>If you still have trouble load the following modules with debug =3D 1:<br>=
+cx23885<br>zl10353<br>tuner_xc2028<br><br>Regards,<br><br>Stephen.<br><br><=
+br>----Original Message----<br>Message: 1<br>Date: Thu, 07 Aug 2008 15:52:1=
+5 +0800<br>From: Tim Farrington &lt;<a href=3D"compose.mail?compose=3D1&amp=
+;.ob=3D91b1d7a80344cde0ca8699ab10b419c4e6025abb&amp;composeto=3Dtimf%40iine=
+t.net.au">timf@iinet.net.au</a>&gt;<br>Subject: Re: [linux-dvb] [PATCH] Add=
+ initial support for DViCO<br>	FusionHDTV DVB-T Dual Express<br>To: David &=
+lt;<a href=3D"compose.mail?compose=3D1&amp;.ob=3D91b1d7a80344cde0ca8699ab10=
+b419c4e6025abb&amp;composeto=3Ddvb-t%40iinet.com.au">dvb-t@iinet.com.au</a>=
+&gt;<br>Cc: <a href=3D"compose.mail?compose=3D1&amp;.ob=3D91b1d7a80344cde0c=
+a8699ab10b419c4e6025abb&amp;composeto=3Dpatrick.claven%40manildra.com.au">p=
+atrick.claven@manildra.com.au</a>, <a href=3D"compose.mail?compose=3D1&amp;=
+.ob=3D91b1d7a80344cde0ca8699ab10b419c4e6025abb&amp;composeto=3Dlinux-dvb%40=
+linuxtv.org">linux-dvb@linuxtv.org</a><br>Message-ID: &lt;<a href=3D"compos=
+e.mail?compose=3D1&amp;.ob=3D91b1d7a80344cde0ca8699ab10b419c4e6025abb&amp;c=
+omposeto=3D489AA9AF.2060803%40iinet.net.au">489AA9AF.2060803@iinet.net.au</=
+a>&gt;<br>Content-Type: text/plain; charset=3DISO-8859-1; format=3Dflowed<b=
+r><br><br>The point is that the developers are trying to incorporate Chris'=
+s work<br>into the<br>main v4l-dvb driver.<br><br>Chris's original firmware=
+ requirements were:<br>dvb-usb-bluebird-01.fw xc3028-dvico-au-01.fw dvb-usb=
+-bluebird-02.fw<br><br>whereas now it needs:<br>xc3028-v27.fw<br><br>It see=
+ms that the "new" firmware doesn't work as of yet for Australia,<br>for thi=
+s device.<br><br>IIRC, Chris had an "offset" for Australia.<br><br>Regards,=
+<br>Timf<br><br><br></pre></span>
+<div>
+
+</div>
+<BR>
+
+--=20
+<div> Be Yourself @ mail.com!<br>
+Choose From 200+ Email Addresses<br>
+Get a <b>Free</b> Account at <a href=3D"http://www.mail.com/Product.aspx" t=
+arget=3D"_blank">www.mail.com</a>!</div>
+
+--_----------=_1218106729181430--
+
+
+
+--===============1101115767==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1101115767==--
