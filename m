@@ -1,18 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7THOiQp027984
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 13:24:44 -0400
-Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7THNGNn010372
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 13:23:16 -0400
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Content-Type: multipart/mixed; boundary="=-Z9SlvSOp7sm81mjTHxV0"
-Date: Fri, 29 Aug 2008 18:57:54 +0200
-Message-Id: <1220029074.1730.8.camel@localhost>
-Mime-Version: 1.0
-Cc: Video 4 Linux <video4linux-list@redhat.com>
-Subject: [PATCH] YVYU decoding
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m789TGlE010568
+	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 05:29:16 -0400
+Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m789T4W8021323
+	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 05:29:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Fri, 8 Aug 2008 11:29:02 +0200
+References: <489AD045.7030404@hhs.nl>
+	<200808071237.47230.laurent.pinchart@skynet.be>
+	<1218186636.1734.13.camel@localhost>
+In-Reply-To: <1218186636.1734.13.camel@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200808081129.02118.hverkuil@xs4all.nl>
+Cc: 
+Subject: Re: RFC: adding a flag to indicate a webcam sensor is installed
+	upside down
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,157 +32,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Friday 08 August 2008 11:10:36 Jean-Francois Moine wrote:
+> On Thu, 2008-08-07 at 12:37 +0200, Laurent Pinchart wrote:
+> > On Thursday 07 August 2008, Hans de Goede wrote:
+> > > Hi all,
+> > >
+> > > I have this Philips SPC 200NC webcam, which has its sensor
+> > > installed upside down and the sensor does not seem to support
+> > > flipping the image. So I believe the windows drivers fix this
+> > > little problem in software.
+> > >
+> > > I would like to add a flag somewhere to indicate this to
+> > > userspace (and then add flipping code to libv4l).
+> > >
+> > > I think the best place for this would the flags field of the
+> > > v4l2_fmtdesc struct. Any other ideas / objections to this?
+> >
+> > More often than sensors being mounted upside down in a webcam, what
+> > I've noticed frequently is webcam modules being mounted upside down
+> > in a laptop screen. There is no way that I'm aware of to check the
+> > module orientation based on the USB descriptors only. We will need
+> > a pure userspace solution.
+>
+> Agree.
+>
+> Having a horizontal or vertical inversion may exist in any webcam
+> (and tuner?), and may be the fact of wire inversion when assembling
+> the device. So, having a flag in the driver could not work with
+> hardware error.
+>
+> If the sensor (or bridge?) may do H or V flip, we are done. If not,
+> this may be done by software, but in the userspace, i.e. at decoding
+> time.
+>
+> What I propose is to add a check of the control commands
+> V4L2_CID_HFLIP and V4L2_CID_VFLIP in the v4l library: if the driver
+> does not have these controls, the library silenctly adds them and
+> handles their requests. Then, at frame decoding time, the hflip and
+> vflip may be given to the decoding functions.
+>
+> How do you feel it, Hans?
 
---=-Z9SlvSOp7sm81mjTHxV0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+I'm a different Hans :-), but I was thinking along the same lines. 
+Having the v4l lib implement HFLIP/VFLIP if the driver doesn't seems 
+like a good idea.
 
-Hi Hans,
+I also think that the UPSIDEDOWN flag doesn't belong to v4l2_fmtdesc 
+since this is a global property, not specific to a format. I would 
+suggest adding it to v4l2_capability instead: 
+V4L2_CAP_SENSOR_UPSIDE_DOWN. It should only be set if you know that the 
+sensor is always upside down for that specific device and if there is 
+no VFLIP capability (because if there is, then you can VFLIP by default 
+for that device).
 
-Here is a patch for decoding the YVYU frames of the vc0321.
+Regards,
 
-Cheers.
-
--- 
-Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-Jef             |               http://moinejf.free.fr/
-
-
---=-Z9SlvSOp7sm81mjTHxV0
-Content-Disposition: attachment; filename=yvyu.pat
-Content-Type: text/plain; name=yvyu.pat; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-This patch adds the decoding of YVYU images generated by vc0321.
-
-Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
-
---- v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert-priv.h.orig	2008-08-29 14:00:57.000000000 +0200
-+++ v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert-priv.h	2008-08-29 18:24:40.000000000 +0200
-@@ -59,6 +59,10 @@
- #define V4L2_PIX_FMT_SRGGB8 v4l2_fourcc('R','G','G','B')
- #endif
- 
-+#ifndef V4L2_PIX_FMT_YVYU
-+#define V4L2_PIX_FMT_YVYU v4l2_fourcc('Y', 'V', 'Y', 'U')
-+#endif
-+
- #define V4LCONVERT_ERROR_MSG_SIZE 256
- 
- #define V4LCONVERT_ERR(...) \
-@@ -87,6 +91,12 @@
- void v4lconvert_yuv420_to_bgr24(const unsigned char *src, unsigned char *dst,
-   int width, int height);
- 
-+void v4lconvert_yvyu_to_rgb24(const unsigned char *src, unsigned char *dst,
-+  int width, int height);
-+
-+void v4lconvert_yvyu_to_bgr24(const unsigned char *src, unsigned char *dst,
-+  int width, int height);
-+
- void v4lconvert_swap_rgb(const unsigned char *src, unsigned char *dst,
-   int width, int height);
- 
---- v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c.orig	2008-08-29 14:00:57.000000000 +0200
-+++ v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	2008-08-29 18:22:10.000000000 +0200
-@@ -49,6 +49,7 @@
-   V4L2_PIX_FMT_SN9C10X,
-   V4L2_PIX_FMT_PAC207,
-   V4L2_PIX_FMT_PJPG,
-+  V4L2_PIX_FMT_YVYU,
- };
- 
- static const unsigned int supported_dst_pixfmts[] = {
-@@ -518,6 +519,19 @@
-       }
-       break;
- 
-+    case V4L2_PIX_FMT_YVYU:
-+      switch (dest_fmt->fmt.pix.pixelformat) {
-+      case V4L2_PIX_FMT_RGB24:
-+	v4lconvert_yvyu_to_rgb24(src, dest, dest_fmt->fmt.pix.width,
-+				   dest_fmt->fmt.pix.height);
-+	break;
-+      case V4L2_PIX_FMT_BGR24:
-+	v4lconvert_yvyu_to_bgr24(src, dest, dest_fmt->fmt.pix.width,
-+				   dest_fmt->fmt.pix.height);
-+	break;
-+      }
-+      break;
-+
-     default:
-       V4LCONVERT_ERR("Unknown src format in conversion\n");
-       errno = EINVAL;
---- v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/rgbyuv.c.orig	2008-08-29 14:00:57.000000000 +0200
-+++ v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/rgbyuv.c	2008-08-29 18:40:08.000000000 +0200
-@@ -130,6 +130,58 @@
-   }
- }
- 
-+void v4lconvert_yvyu_to_bgr24(const unsigned char *src, unsigned char *dest,
-+  int width, int height)
-+{
-+  int j;
-+
-+  while (--height >= 0) {
-+    for (j = 0; j < width; j += 2) {
-+      int u = src[3];
-+      int v = src[1];
-+      int u1 = (((u - 128) << 7) +  (u - 128)) >> 6;
-+      int rg = (((u - 128) << 1) +  (u - 128) +
-+		((v - 128) << 2) + ((v - 128) << 1)) >> 3;
-+      int v1 = (((v - 128) << 1) +  (v - 128)) >> 1;
-+
-+      *dest++ = CLIP(*src + u1);
-+      *dest++ = CLIP(*src - rg);
-+      *dest++ = CLIP(*src + v1);
-+
-+      *dest++ = CLIP(src[2] + u1);
-+      *dest++ = CLIP(src[2] - rg);
-+      *dest++ = CLIP(src[2] + v1);
-+      src += 4;
-+    }
-+  }
-+}
-+
-+void v4lconvert_yvyu_to_rgb24(const unsigned char *src, unsigned char *dest,
-+  int width, int height)
-+{
-+  int j;
-+
-+  while (--height >= 0) {
-+    for (j = 0; j < width; j += 2) {
-+      int u = src[3];
-+      int v = src[1];
-+      int u1 = (((u - 128) << 7) +  (u - 128)) >> 6;
-+      int rg = (((u - 128) << 1) +  (u - 128) +
-+		((v - 128) << 2) + ((v - 128) << 1)) >> 3;
-+      int v1 = (((v - 128) << 1) +  (v - 128)) >> 1;
-+
-+      *dest++ = CLIP(*src + v1);
-+      *dest++ = CLIP(*src - rg);
-+      *dest++ = CLIP(*src + u1);
-+
-+      *dest++ = CLIP(src[2] + v1);
-+      *dest++ = CLIP(src[2] - rg);
-+      *dest++ = CLIP(src[2] + u1);
-+      src += 4;
-+    }
-+  }
-+}
-+
- void v4lconvert_swap_rgb(const unsigned char *src, unsigned char *dst,
-   int width, int height)
- {
-
---=-Z9SlvSOp7sm81mjTHxV0
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+	Hans
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---=-Z9SlvSOp7sm81mjTHxV0--
