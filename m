@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TCBAO8016746
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 08:11:10 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7TCAr4l016590
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 08:10:54 -0400
-From: Andy Walls <awalls@radix.net>
-To: Jean Delvare <jdelvare@suse.de>
-In-Reply-To: <200808281658.28151.jdelvare@suse.de>
-References: <200808251445.22005.jdelvare@suse.de>
-	<1219711251.2796.47.camel@morgan.walls.org>
-	<200808281658.28151.jdelvare@suse.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m788xggk027785
+	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 04:59:42 -0400
+Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
+	[151.189.21.50])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m788wx9g005978
+	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 04:58:59 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>
+In-Reply-To: <20080808064029.67a42946@dimon-PC.ttk.local>
+References: <20080804212204.GA3853@potty.ifup.org>
+	<20080808064029.67a42946@dimon-PC.ttk.local>
 Content-Type: text/plain
-Date: Fri, 29 Aug 2008 08:09:38 -0400
-Message-Id: <1220011778.3174.19.camel@morgan.walls.org>
+Date: Fri, 08 Aug 2008 10:51:54 +0200
+Message-Id: <1218185514.2678.22.camel@pc10.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
+Cc: Igor Kuznetsov <igk72@yandex.ru>, v4l <video4linux-list@redhat.com>,
+	"Andrey J. Melnikov" <temnota@kmv.ru>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [v4l-dvb-maintainer] bttv driver questions
+Subject: Re: BeholdTV 505FM Input Causing Repeating Zeros
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,53 +31,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 2008-08-28 at 16:58 +0200, Jean Delvare wrote:
-> Hi Andy,
+Hi,
 
-> In the specific case I am studying, there are 8 BT878 chips, so each
-> one definitely can't be considered the only "high bandwith card in
-> the system". And it seems to me that latency matters as much as
-> bandwith here... A high latency timer on one card will hurt bus
-> latency at least as much as bus banwidth as I understand it.
+Am Freitag, den 08.08.2008, 06:40 +1000 schrieb Dmitri Belimov:
+> Hello All.
 > 
-> > Setting latency timers for a system is a balancing act between the needs
-> > of individual devices and the system's need for the shared PCI bus to
-> > support the maximum anticipated burst or sustained activity on the bus
-> > by all the devices that could be active at once.
+> The Beholder company don't support hacked tuners of other vendors.
+> A 3 month a go I made complex patch and fix all Beholder's gpio mask to correct. Please look:
 > 
-> We agree on that. With 8 BT878 chips, the problem is that both bus
-> latency and bus bandwidth are potentially problematic. So the balance
-> isn't an easy one to find. Which is exactly why I am asking all these
-> questions.
+> saa7134-input.c
+> changeset 7677	50835af51a9d
+> 
+> http://linuxtv.org/hg/v4l-dvb/rev/50835af51a9d
+> 
+> As I see user who send this bug is russian readable. You can send him to
+> 
+> http://www.beholder.ru/bb/viewforum.php?f=11
+> for reading and patching his kernel.
 
-No it probably isn't easy.  With a static analysis (spreadheet),
-assuming worst case conditions, you will likely end up with the
-conclusion that the PCI bus can't handle the worst case load, so you'll
-need to model with higher fidelity and different assumptions than worst
-case.
+Dmitry,
 
-Consistently meeting the real-time communications needs of the 8 BT878's
-and the disks on the PCI bus could well be impossible with (the very
-common) round robin arbiters.
+Brandon already discovered, that we were victims of a false bug report,
+caused by an user faking that Beholder card by manipulating the PCI
+subsystem in the eeprom.
 
-You may find this thesis paper interesting:
+There is no need for any further action from your side, if the eeprom is
+write protected by default.
 
-http://os.inf.tu-dresden.de/papers_ps/schoenberg-phd.pdf
+Since I thought you might be in vacation, trying to help to look it up
+remembered me, that we not even have the eeprom dumps for all Beholder
+cards.
 
-Which addresses the problem by proposing a different arbiter.
-
-
-This, much shorter paper:
-
-http://www.irisa.fr/manifestations/2004/wcet2004/Papers/Stohr.pdf
-
-proposes that the Master Enable bit of devices be switched on and off to
-ensure deterministic times across the bus.  (I'm not sure if I'd want to
-do that though...)
+Maybe such could have helped to identify that sort of case earlier,
+but can't say for sure.
 
 
-Regards,
-Andy
+> > I have received a bug report[1] from a user who's card used to work
+> > as a SAA7134_BOARD_UNKNOWN before the patch[2] that added support for
+> > SAA7134_BOARD_BEHOLD_505FM.
+> > 
+> > The IR input isn't setup properly and the driver is writing an
+> > infinite number of zeros to the users terminal.
+> > 
+> > Is there a way to figure out the correct mask_keycode and mask_keyup
+> > for this card?  Otherwise I recommend that we don't report has_remote
+> > for this card.
+> > 
+> > Thanks,
+> > 
+> > 	Brandon
+> > 
+> > 
+> > [1] https://bugzilla.novell.com/show_bug.cgi?id=403904
+> > [2] http://linuxtv.org/hg/v4l-dvb/rev/8bdb58e63ea1
+> 
+> With my best regards, Dmitry.
+> 
+
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
