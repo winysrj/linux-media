@@ -1,26 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.189])
+Received: from nf-out-0910.google.com ([64.233.182.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KWIII-0007yK-HU
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 00:06:17 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so210837nfb.11
-	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 15:06:11 -0700 (PDT)
-Message-ID: <412bdbff0808211506i6c6c96f6t7285848f2d79b5f0@mail.gmail.com>
-Date: Thu, 21 Aug 2008 18:06:11 -0400
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KRZyV-0004hb-1j
+	for linux-dvb@linuxtv.org; Fri, 08 Aug 2008 23:58:20 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so1111473nfb.11
+	for <linux-dvb@linuxtv.org>; Fri, 08 Aug 2008 14:58:15 -0700 (PDT)
+Message-ID: <412bdbff0808081458v418449c4q6db215cf83e3ead0@mail.gmail.com>
+Date: Fri, 8 Aug 2008 17:58:15 -0400
 From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Patrick Boettcher" <patrick.boettcher@desy.de>
-In-Reply-To: <alpine.LRH.1.10.0808220000340.21606@pub5.ifh.de>
+To: Xaero <kknull0@gmail.com>
+In-Reply-To: <57ed08da0808081449m598af353n7edf908551753318@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <1219330331.15825.2.camel@dark> <48ADCC81.5000407@nafik.cz>
-	<37219a840808211321k34590d38v7ada0fb9655e5dfe@mail.gmail.com>
-	<412bdbff0808211325h64d454d5m3353d8756b9eb737@mail.gmail.com>
-	<37219a840808211329j697556fcj760057bb1c7b58a8@mail.gmail.com>
-	<alpine.LRH.1.10.0808212337070.21606@pub5.ifh.de>
-	<1219355890.6770.2.camel@youkaida>
-	<alpine.LRH.1.10.0808220000340.21606@pub5.ifh.de>
+References: <57ed08da0808081449m598af353n7edf908551753318@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dib0700 and analog broadcasting
+Subject: Re: [linux-dvb] Pinnacle pctv hybrid pro stick 340e support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,57 +28,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Yes, I am doing the i2c work before anything else (hopefully tonight).
+2008/8/8 Xaero <kknull0@gmail.com>:
+> Hi,
+> I'm trying to make the 340e card work. (This is a reply to Gerard post, I've
+> just subscribed to this list and I didn't know how to reply, sorry :D)
+> I have the same lsusb output as Gerard. but I can't get more information
+> from dmesg:
+> I get only
+>
+> usb 6-8: new high speed USB device using ehci_hcd and address 8
+> usb 6-8: configuration #1 chosen from 1 choice
+>
+> when the card is plugged. (maybe I have to configure some kernel options?)
+>
+> Btw, I tried the dib0770 modules (following Albert's instructions) , and no
+> dvb devices are created, so i don't think they'rer the right drivers (I'm
+> not sure again, dmesg doesn't write anything)...
+> Suggestion?
+
+I'm not sure how similar the 340e is to the "Pinnacle PCTV HD Pro USB"
+stick that's available in the United States, but it's possible they're
+similar devices:
+
+http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_(801e)
+
+Why don't you open it up and see if it's got the same components?
+
+I have been working on it for the last few days, and I'm pretty close
+to having it working.  Once I do, adding another USB ID would be
+pretty simple.  I should have a patch for digital support toward the
+end of next week (I will be out of town until then).
+
+If it's not the same device, you should create a page in the Wiki
+comparable to the one above, containing all of the chips that the
+device includes (so at least people will know definitively that it's
+not supported and what it is composed of).
 
 Devin
-
-On Thu, Aug 21, 2008 at 6:02 PM, Patrick Boettcher
-<patrick.boettcher@desy.de> wrote:
-> Nicolas,
->
-> 1) The firmware alone should fix the i2c problems, even with the currently
-> used requests.
-> 2) The new requests are necessary to have the xc5000 running correctly, if
-> I understand everything correctly. So yes, it will be done first - I
-> think.
->
-> Patrick.
->
->
-> On Thu, 21 Aug 2008, Nicolas Will wrote:
->
->> On Thu, 2008-08-21 at 23:38 +0200, Patrick Boettcher wrote:
->>> On Thu, 21 Aug 2008, Michael Krufky wrote:
->>>> Lets sync up when you get to that point -- I have a good chunk of
->>> code
->>>> written that will add analog support to the dvb-usb framework as an
->>>> optional additional adapter type.
->>>
->>> Wow wow wow. That sounds like music in my ears. Great direction!!!
->>>
->>
->> hmmm, Devin, Patrick, let me be selfish a little bit, that's what I do
->> best most of the time, so you can beat me up for it.
->>
->> Can the new i2c request code for the new firmware be done first?
->>
->> Nico
->>
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
-
 
 -- 
 Devin J. Heitmueller
