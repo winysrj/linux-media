@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.184])
+Received: from highwire.stanford.edu ([171.66.121.166])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KPH59-0002l7-2M
-	for linux-dvb@linuxtv.org; Sat, 02 Aug 2008 15:23:39 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so1422585nfb.11
-	for <linux-dvb@linuxtv.org>; Sat, 02 Aug 2008 06:23:35 -0700 (PDT)
-Message-ID: <412bdbff0808020623i51f06490xf712706c5f932960@mail.gmail.com>
-Date: Sat, 2 Aug 2008 09:23:35 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: deloptes@yahoo.com
-In-Reply-To: <262763.82849.qm@web53204.mail.re2.yahoo.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <mailman.61.1217648208.25488.linux-dvb@linuxtv.org>
-	<262763.82849.qm@web53204.mail.re2.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] kernel 2.6.26 em28xx_dvb wrong firmware or other
-	issue with HVR-900 rev A
+	(envelope-from <durket@rlucier-home2.stanford.edu>)
+	id 1KRZrk-0003u0-IR
+	for linux-dvb@linuxtv.org; Fri, 08 Aug 2008 23:51:21 +0200
+Received: from rlucier-home2.stanford.edu (rlucier-home2.Stanford.EDU
+	[171.66.222.187])
+	by highwire.stanford.edu (Postfix) with ESMTP id AEF468DEB
+	for <linux-dvb@linuxtv.org>; Fri,  8 Aug 2008 14:51:14 -0700 (PDT)
+Received: from [192.168.3.201] (unknown [192.168.3.201])
+	by rlucier-home2.stanford.edu (Postfix) with ESMTP id 3AADD27779F
+	for <linux-dvb@linuxtv.org>; Fri,  8 Aug 2008 14:51:14 -0700 (PDT)
+Message-Id: <AF5547B3-455C-46B9-AF13-0AB7952FA2B3@rlucier-home2.stanford.edu>
+From: Michael Durket <durket@rlucier-home2.stanford.edu>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Mime-Version: 1.0 (Apple Message framework v926)
+Date: Fri, 8 Aug 2008 14:51:13 -0700
+Subject: [linux-dvb] Twinhan/Azurewave DVB-S2 board
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,49 +30,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-HVR-900 support is now part of the standard v4ll-dvb codebase.
+I was wondering if anyone out there has the Twinhan/Azurewave DVB-S2  
+board
+running with the Twinhan drivers under Linux? If so, do you have any  
+reception
+problems for DVB-S2 signals that people with other boards (like the TT- 
+S3200,
+etc) seem to be reporting or does the Twinhan board generally work  
+well with
+all DVB-S2 signals.
 
-To get xc3027-v27.fw, just follow these directions:
-
-http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028#How_to_Obtain_the_Firmware
-
-Alternatively, as Markus pointed out, you can also use his codebase.
-
-Devin
-
-On Sat, Aug 2, 2008 at 3:34 AM, Emanoil Kotsev <deloptes@yahoo.com> wrote:
-> Hello everybody,
->
-> I wanted to try kernel 2.6.26 but couldn't start DVB tv - the error was
->
-> firmware: requesting xc3028-v27.fw
-> xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
->
-> I read this firmware is related to HVR-950 but I have HVR-900 rev A which was fine with the v4l-dvb-experimental tree that I have been using with kenrel 2.6.20 and 2.6.24.
->
-> Now I can not compile the v4l-dvb-experimental anymore.
->
-> Could you help solve the issue please and thanks in advance
->
->
->
-> regards
->
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
-
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
