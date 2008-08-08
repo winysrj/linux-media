@@ -1,25 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7R307BY009345
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 23:00:07 -0400
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7R2xtmj010842
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 22:59:55 -0400
-Received: by yx-out-2324.google.com with SMTP id 31so1153538yxl.81
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 19:59:55 -0700 (PDT)
-Message-ID: <48B4C328.2040502@gmail.com>
-Date: Tue, 26 Aug 2008 22:59:52 -0400
-From: Robert William Fuller <hydrologiccycle@gmail.com>
-MIME-Version: 1.0
-To: Trent Piepho <xyzzy@speakeasy.org>
-References: <200808251445.22005.jdelvare@suse.de>	<1219711251.2796.47.camel@morgan.walls.org>	<20080826232913.GA2145@daniel.bse>
-	<Pine.LNX.4.58.0808261911000.2423@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0808261911000.2423@shell2.speakeasy.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
-	Jean Delvare <jdelvare@suse.de>
-Subject: Re: [v4l-dvb-maintainer] bttv driver questions
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m78LTZ4J021055
+	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 17:29:35 -0400
+Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
+	[151.189.21.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m78LTNIr003994
+	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 17:29:23 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: id012c3076@blueyonder.co.uk
+In-Reply-To: <489C984E.70300@blueyonder.co.uk>
+References: <488C9266.7010108@blueyonder.co.uk>
+	<1217364178.2699.17.camel@pc10.localdom.local>
+	<4890BBE8.8000901@blueyonder.co.uk>
+	<1217457895.4433.52.camel@pc10.localdom.local>
+	<48921FF9.8040504@blueyonder.co.uk>
+	<1217542190.3272.106.camel@pc10.localdom.local>
+	<48942E42.5040207@blueyonder.co.uk>
+	<1217679767.3304.30.camel@pc10.localdom.local>
+	<4895D741.1020906@blueyonder.co.uk>
+	<1217798899.2676.148.camel@pc10.localdom.local>
+	<4898C258.4040004@blueyonder.co.uk> <489A0B01.8020901@blueyonder.co.uk>
+	<1218059636.4157.21.camel@pc10.localdom.local>
+	<489B6E1B.301@blueyonder.co.uk>
+	<1218153337.8481.30.camel@pc10.localdom.local>
+	<489C984E.70300@blueyonder.co.uk>
+Content-Type: text/plain
+Date: Fri, 08 Aug 2008 23:21:36 +0200
+Message-Id: <1218230496.2865.2.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: KWorld DVB-T 210SE - Capture only in Black/White
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,25 +42,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Trent Piepho wrote:
-> On Wed, 27 Aug 2008, Daniel [iso-8859-1] Gl�ckner wrote:
->> On Mon, Aug 25, 2008 at 08:40:51PM -0400, Andy Walls wrote:
->>> On Mon, 2008-08-25 at 14:45 +0200, Jean Delvare wrote:
+Hi Ian,
 
-<snipped>
-
->> The driver fills buffers with instructions for the DMA engine, one buffer
->> for the top field and one for the bottom field. These instructions tell
->> the engine where to write a specific pixel. For interlaced video the
->> instructions for the top field write to line 0, 2, 4, ... in memory and for
->> the bottom field to line 1, 3, 5, ... .
+Am Freitag, den 08.08.2008, 20:02 +0100 schrieb Ian Davidson:
+> Hi Hermann,
 > 
-> Keep in mind that _either_ field can be transmitted first.  I.e., in some
-> cases one first writes lines 1,3,5 then lines 0,2,4.  I'm not sure if bttv
-> supports both field dominances or not, but I think it does.
+> I got errors in the 'make' (see below).  Presumably, there is something 
+> else I need to install/download?
+> 
+> Ian
+> 
+> [Ian@localhost ~]$ cd v4l-dvb/
+> [Ian@localhost v4l-dvb]$ make
+> make -C /home/Ian/v4l-dvb/v4l
+> make[1]: Entering directory `/home/Ian/v4l-dvb/v4l'
+> No version yet, using 2.6.25.11-97.fc9.i686
+> make[1]: Leaving directory `/home/Ian/v4l-dvb/v4l'
+> make[1]: Entering directory `/home/Ian/v4l-dvb/v4l'
+> scripts/make_makefile.pl
+> Updating/Creating .config
+> Preparing to compile for kernel version 2.6.25
+> File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config at 
+> ./scripts/make_kconfig.pl line 32, <IN> line 4.
+> make[1]: Leaving directory `/home/Ian/v4l-dvb/v4l'
+> make[1]: Entering directory `/home/Ian/v4l-dvb/v4l'
+> Updating/Creating .config
+> Preparing to compile for kernel version 2.6.25
+> File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config at 
+> ./scripts/make_kconfig.pl line 32, <IN> line 4.
+> make[1]: *** No rule to make target `.myconfig', needed by 
+> `config-compat.h'.  Stop.
+> make[1]: Leaving directory `/home/Ian/v4l-dvb/v4l'
+> make: *** [all] Error 2
+> [Ian@localhost v4l-dvb]$
+> 
 
-My particular board always returns top field first on capture.  I don't 
-know if that helps.
+yes, you need at least the exported object tree to compile or configured
+custom kernel source if not on a vanilla kernel.
+
+Try "yum install kernel-devel".
+
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
