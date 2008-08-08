@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.24])
+Received: from smtp.thanes.org ([64.79.219.36] helo=thanes.org)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KYLOu-0001W3-P1
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 15:49:33 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so502807eya.17
-	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 06:49:29 -0700 (PDT)
-Message-ID: <412bdbff0808270649t69b07207x92bb9754396ab800@mail.gmail.com>
-Date: Wed, 27 Aug 2008 09:49:29 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Eduard Huguet" <eduardhc@gmail.com>
-In-Reply-To: <617be8890808270212m192b2951x4d5e8313cd788557@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <617be8890808270010j640f4cb7je46e74c7234b978b@mail.gmail.com>
-	<alpine.LRH.1.10.0808271021040.18085@pub6.ifh.de>
-	<617be8890808270212m192b2951x4d5e8313cd788557@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dib0700 new i2c implementation
+	(envelope-from <grendel@twistedcode.net>) id 1KRYz8-0007iV-VS
+	for linux-dvb@linuxtv.org; Fri, 08 Aug 2008 22:54:57 +0200
+Received: from twistedcode.net (77-253-24-61.adsl.inetia.pl [77.253.24.61])
+	by thanes.org (Postfix) with ESMTPSA id 0CC412241275
+	for <linux-dvb@linuxtv.org>; Fri,  8 Aug 2008 22:54:47 +0200 (CEST)
+Date: Fri, 8 Aug 2008 22:54:43 +0200
+From: Marek Habersack <grendel@twistedcode.net>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080808225443.73bdd51a@twistedcode.net>
+Mime-Version: 1.0
+Subject: [linux-dvb] Leadtek WinFast Dongle H device support?
+Reply-To: grendel@twistedcode.net
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,40 +26,109 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello Eduard,
+Hello everybody,
 
-2008/8/27 Eduard Huguet <eduardhc@gmail.com>:
-> Well, regarding the Nova-T 500 I must say that, using the current HG driver
-> code and 1.10 firmware, it's pretty rock solid. I've had no USB disconnects
-> nor hangs of any time since a long time ago (since lastest patches for this
-> card were merged).
->
-> That's the reason I'm very reluctant to use the new firmware, specially if
-> the effect seems to be a constantly rebooting machine, as Nicolas Will
-> described ;-). However, if the above patche solves the problems then I'll be
-> very pleased to test it.
+	I've just gotten the device mentioned in the subject
+(http://www.leadtek.com/eng/tv_tuner/overview.asp?lineid=6&pronameid=403) and
+discovered that it's not yet supported under Linux. I tried adding its ID to both
+dib0700 and af9015 drivers, but the hardware doesn't work with those. I don't want
+to open the device to check what chipset it is built on (I might just return it if
+there's no way it can work under Linux) - perhaps someone played with it already and
+it's known what's inside? If yes, is there any Linux driver for the dongle? If no,
+what can I do to help? Here's the output of lsusb for the device:
 
-It seems that Nicholas's problems had to do with having random copies
-of 1.10 in /lib/firmware.
+Bus 001 Device 003: ID 0413:60f6 Leadtek Research, Inc. 
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0        64
+  idVendor           0x0413 Leadtek Research, Inc.
+  idProduct          0x60f6 
+  bcdDevice            0.01
+  iManufacturer           1 Leadtek
+  iProduct                2 DTV Dongle H
+  iSerial                 3 1
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           46
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0 
+    bmAttributes         0xa0
+      (Bus Powered)
+      Remote Wakeup
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           4
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0 
+      bInterfaceProtocol      0 
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x83  EP 3 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
 
-This is about more than "does it fix my problem".  The patch I am
-submitting could cause potential breakage with other devices, so I
-need people who have a stable environment to test the change and make
-sure it doesn't cause breakage.
+thanks in advance,
 
-Otherwise, it just gets pushed in, you do an "hg update" and all of a
-sudden your environment is broken.
-
-The patch is known to fix several problems required to get the xc5000
-working with the dib0700, but I want to be sure people with a working
-environment don't start seeing problems.
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+marek
 
 _______________________________________________
 linux-dvb mailing list
