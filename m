@@ -1,21 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f106.mail.ru ([194.67.57.205])
+Received: from mailout10.t-online.de ([194.25.134.21])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KZjOD-0003X4-Nn
-	for linux-dvb@linuxtv.org; Sun, 31 Aug 2008 11:38:34 +0200
-Received: from mail by f106.mail.ru with local id 1KZjNf-000GHD-00
-	for linux-dvb@linuxtv.org; Sun, 31 Aug 2008 13:37:59 +0400
-From: Goga777 <goga777@bk.ru>
-To: LinuxTV DVB Mailing <linux-dvb@linuxtv.org>
-Mime-Version: 1.0
-Date: Sun, 31 Aug 2008 13:37:59 +0400
-In-Reply-To: <48BA6019.10705@chaosmedia.org>
-References: <48BA6019.10705@chaosmedia.org>
-Message-Id: <E1KZjNf-000GHD-00.goga777-bk-ru@f106.mail.ru>
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?Y2F0OiAvZGV2L2R2Yi9hZGFwdGVyMC9kdnIwOiBW?=
-	=?koi8-r?b?YWx1ZSB0b28gbGFyZ2UgZm9yZGVmaW5lZCBkYXRhIHR5cGU=?=
-Reply-To: Goga777 <goga777@bk.ru>
+	(envelope-from <rdwebert@t-online.de>) id 1KRq1w-0001Nz-1n
+	for linux-dvb@linuxtv.org; Sat, 09 Aug 2008 17:06:58 +0200
+From: "D. Webert" <rdwebert@t-online.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 9 Aug 2008 17:06:35 +0200
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200808091706.35601.rdwebert@t-online.de>
+Subject: [linux-dvb] configuration of Cinergy DT USB XS
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,27 +23,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > env LANG=C cat /dev/dvb/adapter0/dvr0 | ffplay - 
-> >
-> >   
-> > "cat: /dev/dvb/adapter0/dvr0: Value too large for defined data type"
-> >
-> > is it possible to fix it ?
-> >
-> >   
-> i usually have better results with dd
-> 
-> i don't remember the exact command line but it should be something like :
-> 
-> dd id=/dev/dvb/adapter0/dvr0 conv=noerror | mplayer -
-> 
-> but it's not perfect and also suffer buffer problem, i know you can set some buffer sizes with dd but i couldn't get something working flawlessly
-> 
-> try googling "dd dvr0 mplayer" you may find some more clues..
+Using the guide 
+at 'http://www.linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers ' 
+to compile the v4l-dvb source code with 'make'  I get the following error 
+message:
+make -C /home/v4l-dvb/v4l
+make[1]: Entering directory `/home/v4l-dvb/v4l'
+creating symbolic links...
+Kernel build directory is /lib/modules/2.6.25.11-0.1-pae/build
+make -C /lib/modules/2.6.25.11-0.1-pae/build SUBDIRS=/home/v4l-dvb/v4l  
+modules
+make: Entering an unknown directory
+make: *** /lib/modules/2.6.25.11-0.1-pae/build: No such file or directory.  
+Stop.
+make: Leaving an unknown directory
+make[1]: *** [default] Fehler 2
+make[1]: Leaving directory `/home//v4l-dvb/v4l'
+make: *** [all] Fehler 2
 
-seems to me it's temporary solutiuon. How to fix this bug if I will use the software like VDR , not szap2 & MPlayer ?
-
-Goga
+Is that a known item or did I something wrong?
 
 _______________________________________________
 linux-dvb mailing list
