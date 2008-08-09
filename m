@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7U7mjiq013151
-	for <video4linux-list@redhat.com>; Sat, 30 Aug 2008 03:48:45 -0400
-Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7U7mX5C001287
-	for <video4linux-list@redhat.com>; Sat, 30 Aug 2008 03:48:33 -0400
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080829183420.1fcbfc11@mchehab.chehab.org>
-References: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>
-	<200808282058.26623.hverkuil@xs4all.nl> <48B7E8C4.5060605@nokia.com>
-	<200808291543.27863.hverkuil@xs4all.nl>
-	<20080829183420.1fcbfc11@mchehab.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Date: Sat, 30 Aug 2008 09:22:44 +0200
-Message-Id: <1220080964.1736.55.camel@localhost>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m79MCbmL006790
+	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 18:12:37 -0400
+Received: from lxorguk.ukuu.org.uk (earthlight.etchedpixels.co.uk
+	[81.2.110.250])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m79MCQdJ026985
+	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 18:12:27 -0400
+Date: Sat, 9 Aug 2008 22:55:02 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Rene Herman <rene.herman@keyaccess.nl>
+Message-ID: <20080809225502.27b38a9d@lxorguk.ukuu.org.uk>
+In-Reply-To: <489E13C0.4010807@keyaccess.nl>
+References: <489DE890.1090103@keyaccess.nl>
+	<20080809214657.3b5318d1@lxorguk.ukuu.org.uk>
+	<489E13C0.4010807@keyaccess.nl>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, Sakari Ailus <sakari.ailus@nokia.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v2] soc-camera: add API documentation
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Andrew Morton <akpm@osdl.org>, Ingo Molnar <mingo@elte.hu>,
+	video4linux-list@redhat.com, Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] V4L1: make PMS not auto-grab port 0x250
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,35 +31,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 2008-08-29 at 18:34 -0300, Mauro Carvalho Chehab wrote:
-	[split]
-> At the other side of the coin, we have lots of drivers that don't use any API
-> to split sensors from the bridge drivers, being GSPCA the newest example. I
-> believe that splitting sensors from bridge drivers will benefit to reduce the
-> amount of coding size on such drivers, and help to fix bugs that are common to
-> several webcams. Of course, such conversion would be a huge task.
+> > Just apply a tiny bit of rational thought here. There is exactly ONE 
+> > Ingo.
+> 
+> And as you say yourself -- close to exactly 1 person who still has this 
+> hardware and closer still to 0 who use it. Really, you contradict yourself:
 
-I think this subject was already discussed.
+Consider the posibility that I might be talking about the general case
+here. And if there are two people with the PMS card thats the general
+case 8)
 
-If you look at the gspca code, you will see that many sensors are used
-by different bridges. Indeed, some values are closed from each other,
-but what to do with the differences? (the initial values of the sensor
-registers seem to be tied to the physical wires, signal levels and
-capabilities of the bridges)
+> We know this driver breaks the boot during useful kernel work. We know 
+> that changing it has about a 0.0001% percent change of mattering to 
+> anyone and then only as long as all those person can't be bothered to 
+> setup a value in his modprobe.conf.
 
-Also, the way to load the sensor registers is very different from one
-bridge to an other one (direct write, with one or many values in one
-write, paging, bridge packets with different headers/tails..).
+It never breaks anything for anyone as a module, only compiled in. Which
+despite your moans about 'factual' things is a fact.
 
-Eventually, looking again at the code, you will see that the sensor
-exchanges are only a small part of the code.
+Can I suggest a rather more elegant solution would be to add a
+"CONFIG_UNSAFE_PROBES" tristate (so you can decide if you want no unsafe
+probing devices, unsafe probing devices only as modules, or anything goes)
 
-Cheers.
-
--- 
-Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-Jef             |               http://moinejf.free.fr/
-
+Alan
 
 --
 video4linux-list mailing list
