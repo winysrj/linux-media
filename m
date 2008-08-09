@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx-02.fra.se ([194.18.169.36])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <ola.ekedahl@fra.se>) id 1KW4Qi-0005N5-SC
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 09:18:01 +0200
-Message-ID: <48AD16A1.5040703@fra.se>
-Date: Thu, 21 Aug 2008 09:17:53 +0200
-From: Ola Ekedahl <ola.ekedahl@fra.se>
+Received: from fg-out-1718.google.com ([72.14.220.157])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <christophpfister@gmail.com>) id 1KRkhf-0001Xh-Nw
+	for linux-dvb@linuxtv.org; Sat, 09 Aug 2008 11:25:40 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so678141fga.25
+	for <linux-dvb@linuxtv.org>; Sat, 09 Aug 2008 02:25:36 -0700 (PDT)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: linux-dvb@linuxtv.org
+Date: Sat, 9 Aug 2008 11:25:30 +0200
 MIME-Version: 1.0
-To: Gregoire Favre <gregoire.favre@gmail.com>
-References: <48ABB045.5050301@fra.se> <20080820082010.GA5582@gmail.com>
-In-Reply-To: <20080820082010.GA5582@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto, multiproto_plus & mantis
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_KKWnIAFdRrfYlxb"
+Message-Id: <200808091125.30497.christophpfister@gmail.com>
+Subject: [linux-dvb] Fwd: Eurobird9-9.0E
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,49 +20,53 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Gregoire Favre skrev:
-> On Wed, Aug 20, 2008 at 07:48:53AM +0200, Ola Ekedahl wrote:
->   
->> Hi,
->>
->> I have been trying to compile the three different trees in Fedora 7, but 
->> all fails with alot of warnings and errors. What are the recomended 
->> specification for the kernel, wont it compile with the kernel in Fedora 7?
->>     
->
-> AFAIK the only actively maintened tree is :
-> http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
->
-> Wanny try this one ?
->   
-I tried to compile the driver, but it failed too. I got the following 
-error after quite some time:
+--Boundary-00=_KKWnIAFdRrfYlxb
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-  LD [M]  /home/kurt/Desktop/liplianindvb/v4l/sms1xxx.o
-  CC [M]  /home/kurt/Desktop/liplianindvb/v4l/s400.o
-/home/kurt/Desktop/liplianindvb/v4l/s400.c: In function 's400_ir_init':
-/home/kurt/Desktop/liplianindvb/v4l/s400.c:508: error: 'struct 
-input_dev' has no member named 'dev'
-make[3]: *** [/home/kurt/Desktop/liplianindvb/v4l/s400.o] Error 1
-make[2]: *** [_module_/home/kurt/Desktop/liplianindvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/kernels/2.6.21-1.3194.fc7-i686'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/kurt/Desktop/liplianindvb/v4l'
-make: *** [all] Error 2
+=46rom a kaffeine user (slightly fixed by me).
 
+Christoph
 
+--Boundary-00=_KKWnIAFdRrfYlxb
+Content-Type: text/plain;
+  charset="iso 8859-15";
+  name="Eurobird9-9.0E"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="Eurobird9-9.0E"
 
-Anyone have any idea? Is it because of the dist Im running?
+# Eurobird 9.0E
+# freq pol sr fec
+S 11727000 V 27500000 5/6
+S 11747000 H 27500000 3/4
+S 11766000 V 27500000 5/6
+S 11785000 H 27500000 3/4
+S 11804000 V 27500000 3/4
+S 11823000 H 27500000 3/4
+S 11843000 V 27500000 3/4
+S 11881000 V 26700000 3/4
+S 11919000 V 27500000 5/6
+S 11938000 H 27500000 3/4
+S 11977000 H 27500000 3/4
+S 11996000 V 27500000 3/4
+S 12054000 H 27500000 3/4
+S 12092000 H 27500000 3/4
 
-Best regards
+--Boundary-00=_KKWnIAFdRrfYlxb
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_KKWnIAFdRrfYlxb--
