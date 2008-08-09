@@ -1,18 +1,37 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m73LFf0O007510
-	for <video4linux-list@redhat.com>; Sun, 3 Aug 2008 17:15:41 -0400
-Received: from ws5-1.us4.outblaze.com (ws5-1.us4.outblaze.com [205.158.62.131])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m73LFQrc013073
-	for <video4linux-list@redhat.com>; Sun, 3 Aug 2008 17:15:27 -0400
-Message-ID: <48961FED.4040909@linuxmail.org>
-Date: Sun, 03 Aug 2008 16:15:25 -0500
-From: Perry Gilfillan <perrye@linuxmail.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m79At7LI009301
+	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 06:55:07 -0400
+Received: from smtp-out4.blueyonder.co.uk (smtp-out4.blueyonder.co.uk
+	[195.188.213.7])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m79AstfH009930
+	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 06:54:55 -0400
+Message-ID: <489D7781.8030007@blueyonder.co.uk>
+Date: Sat, 09 Aug 2008 11:54:57 +0100
+From: Ian Davidson <id012c3076@blueyonder.co.uk>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <488C9266.7010108@blueyonder.co.uk>	
+	<1217364178.2699.17.camel@pc10.localdom.local>	
+	<4890BBE8.8000901@blueyonder.co.uk>	
+	<1217457895.4433.52.camel@pc10.localdom.local>	
+	<48921FF9.8040504@blueyonder.co.uk>	
+	<1217542190.3272.106.camel@pc10.localdom.local>	
+	<48942E42.5040207@blueyonder.co.uk>	
+	<1217679767.3304.30.camel@pc10.localdom.local>	
+	<4895D741.1020906@blueyonder.co.uk>	
+	<1217798899.2676.148.camel@pc10.localdom.local>	
+	<4898C258.4040004@blueyonder.co.uk>
+	<489A0B01.8020901@blueyonder.co.uk>	
+	<1218059636.4157.21.camel@pc10.localdom.local>	
+	<489B6E1B.301@blueyonder.co.uk>
+	<1218153337.8481.30.camel@pc10.localdom.local>
+In-Reply-To: <1218153337.8481.30.camel@pc10.localdom.local>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Howto select one of 16 inputs on Digi-Flower boards?
+Cc: video4linux-list@redhat.com
+Subject: Re: KWorld DVB-T 210SE - Capture only in Black/White
+Reply-To: id012c3076@blueyonder.co.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,88 +43,141 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I've recently laid hands on a few Digi-Flower capture cards and 
-found no indication that anyone has ever taken the time to poke at 
-these cards with a digital multi-meter to discover how they are laid 
-out.
+Hi Hermann,
 
-I have two versions, the DVR2000B-R02, and the DVR2510-MP2.  The 
-DVR2000B has four Fusion 878A decoders, while the DVR2510 has two. 
-I'm going to concentrate on the DVR2000B since the second should for 
-the most part be identical.
+I thought I had had success - but no.
 
-They both can support 16 composite inputs that are multiplexed 
-through pairs of 74HC4051A Analog Multiplexer/Demutiplexers.  Which 
-of the 16 inputs is routed to any of the four 878A's is controlled 
-by GPIO pins.
+I did the makes as you described - no difference, so I made the changes 
+to the code.
+I left Composite1 as vmux=3 and assigned Composite and Composite 2-4 to 
+the other vmux values and 'maked' again.  When I went into xawtv, I 
+thought that I saw colour (true colour, not false colour) - but next 
+time I looked, it saw only Black and White.  The changes certainly were 
+applied correctly, because I could choose from all 5 Composite choices - 
+but only Composite1 showed me any picture.
 
-Each 878A device controls a pair of M/D'ers:
+What is gpio? Does it have anything to do with the colour?
 
-       GPIO[0,1,2] => M/D[1][A,B,C] (select pins)
-       GPIO[18]    => M/D[1][Enable]
+Below is some extracts from the .inf file on the Windows driver disk.  I 
+see (from the third line) that my card is "3xHybridQ" - based on the 4 
+bytes being reported from the eeprom .  Based on that, certain values 
+would be loaded into the registry - but I have no idea what those values 
+represent.  I don't know if it is of any help.
 
-       GPIO[0,1,2] => M/D[2][A,B,C] (select pins)
-       GPIO[20]    => M/D[2][Enable]
+You will get some peace from me for a week.  I will be away on business.
 
-When an input has been routed the signal is split between the 878A's 
-MUX0 and a 4581CS Sync Separator.  As far as I can tell the only 
-output of the 4581CS that is used is the Odd/Even field output that 
-is routed to GPIO[15] on the respective 878A
+Ian
 
 
-                       74HC4051A
-Comp-In (1-8)  => M/D[1] (X0-7) -> (Output) \   [ L/C/R ](inductor/
-                                              |= [network] capacitor/
-Comp-In (9-16) => M/D[2] (X0-7) -> (Output) /             resistor)
 
-                4581CS Sync Separator
-    L/C/R     /  Comp-In -> Odd/Even  => GPIO[15]
-  [network] =|
-              \ 878A: MUX0
+%Hybrid.DeviceDescSilicon% 
+=3xHybridP.NTx86,PCI\VEN_1131&DEV_7133&SUBSYS_735117DE
 
-I think this pretty much describes what would be needed to implement 
-these cards, but the actual doing begins to exceed my limited 
-abilities.  If those of you that are familiar with the 150 some odd 
-cards that do work, and which of them might be similar in 
-implementation to these cards, and can point out the relevant parts, 
-I'll have a go at it.
+%Hybrid.DeviceDescSilicon% 
+=3xHybridO.NTx86,PCI\VEN_1131&DEV_7133&SUBSYS_735217DE
 
-There is also a fifth pair of Mux/Demux chips that are used to send 
-one of 16 inputs to an RCA jack via a 6db video amp.  This routing 
-function is controlled by an Atmel AT89C2051 (8051 family) micro 
-controller.  I have not determined how to talk to the micro 
-controller at this time.
-
-There is also a set of 8 external device I/O ports to send or 
-receive On/Off signals from motion detectors or drive alarm 
-circuits, and an on board WatchDog relay output.  These are 
-controlled by GPIO[3-10,12-13] of the first 878A.  More details later.
-
-More information on the Digi-Flower DVR2000B (DVR2510 is not listed 
-here) cards made by Anko: http://www.anko-tech.com/products/df2000.htm
+%Hybrid.DeviceDescSilicon% 
+=3xHybridQ.NTx86,PCI\VEN_1131&DEV_7133&SUBSYS_725317DE
 
 
-lspci data for the DVR2000B ( these numbers seem very generic.. how 
-can the specific card be known?)
+[3xHybridO.AddReg]
 
-02:00.0 PCI bridge [0604]: Hint Corp HB6 Universal PCI-PCI bridge 
-(non-transparent mode) [3388:0021] (rev 11)
-03:0c.0 Multimedia video controller [0400]: Brooktree Corporation 
-Bt878 Video Capture [109e:036e] (rev 11)
-03:0c.1 Multimedia controller [0480]: Brooktree Corporation Bt878 
-Audio Capture [109e:0878] (rev 11)
-03:0d.0 Multimedia video controller [0400]: Brooktree Corporation 
-Bt878 Video Capture [109e:036e] (rev 11)
-03:0d.1 Multimedia controller [0480]: Brooktree Corporation Bt878 
-Audio Capture [109e:0878] (rev 11)
-03:0e.0 Multimedia video controller [0400]: Brooktree Corporation 
-Bt878 Video Capture [109e:036e] (rev 11)
-03:0e.1 Multimedia controller [0480]: Brooktree Corporation Bt878 
-Audio Capture [109e:0878] (rev 11)
-03:0f.0 Multimedia video controller [0400]: Brooktree Corporation 
-Bt878 Video Capture [109e:036e] (rev 11)
-03:0f.1 Multimedia controller [0480]: Brooktree Corporation Bt878 
-Audio Capture [109e:0878] (rev 11)
+HKR, "I2C Devices", "Device 0, Data1",0x00010001,0x18,0x00,0x00,0x00 ; 
+Tuner ID
+
+HKR, "I2C Devices", "Device 0, Data2",0x00010001,0xC2,0x00,0x00,0x00 ; 
+Tuner slave addr.
+
+HKR, "I2C Devices", "Device 0, Data3",0x00010001,0x86,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data4",0x00010001,0x00,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data5",0x00010001,0xFF,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data6",0x00010001,0x55,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data7",0x00010001,0x55,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data8",0x00010001,0x55,0x00,0x00,0x00 ; 
+FM radio mode.
+
+HKR, "AudioDecoder", "CVBS Channel",0x00010001,3
+
+HKR, "AudioDecoder", "SVHS Channel",0x00010001,3
+
+HKR, "AudioDecoder", "FM Radio Channel",0x00010001,1
+
+
+[3xHybridP.AddReg]
+
+HKR, "I2C Devices", "Device 0, Data1",0x00010001,0x18,0x00,0x00,0x00 ; 
+Tuner ID
+
+HKR, "I2C Devices", "Device 0, Data2",0x00010001,0xC2,0x00,0x00,0x00 ; 
+Tuner slave addr.
+
+HKR, "I2C Devices", "Device 0, Data3",0x00010001,0x86,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data4",0x00010001,0x00,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data5",0x00010001,0x03,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data6",0x00010001,0x21,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data7",0x00010001,0x00,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data8",0x00010001,0x00,0x00,0x00,0x00 ; 
+FM radio mode.
+
+HKR, "AudioDecoder", "CVBS Channel",0x00010001,3
+
+HKR, "AudioDecoder", "SVHS Channel",0x00010001,3
+
+HKR, "AudioDecoder", "FM Radio Channel",0x00010001,1
+
+
+[3xHybridQ.AddReg]
+
+HKR, "I2C Devices", "Device 0, Data1",0x00010001,0x21,0x00,0x00,0x00 ; 
+Tuner ID
+
+HKR, "I2C Devices", "Device 0, Data2",0x00010001,0xC2,0x00,0x00,0x00 ; 
+Tuner slave addr.
+
+HKR, "I2C Devices", "Device 0, Data3",0x00010001,0x96,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data4",0x00010001,0x10,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data5",0x00010001,0x03,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data6",0x00010001,0x32,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data7",0x00010001,0x15,0x00,0x00,0x00 ; 
+Tuner IF PLL slave addr.
+
+HKR, "I2C Devices", "Device 0, Data8",0x00010001,0x50,0x00,0x00,0x00 ; 
+FM radio mode.
+
+HKR, "AudioDecoder", "CVBS Channel",0x00010001,3
+
+HKR, "AudioDecoder", "SVHS Channel",0x00010001,3
+
+HKR, "AudioDecoder", "FM Radio Channel",0x00010001,1
+
 
 
 --
