@@ -1,17 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp.thanes.org ([64.79.219.36] helo=thanes.org)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <grendel@twistedcode.net>) id 1KRZGI-0000lw-U8
-	for linux-dvb@linuxtv.org; Fri, 08 Aug 2008 23:13:15 +0200
-Date: Fri, 8 Aug 2008 23:12:28 +0200
-From: Marek Habersack <grendel@twistedcode.net>
-To: grendel@twistedcode.net
-Message-ID: <20080808231228.15c4fe6e@twistedcode.net>
-In-Reply-To: <20080808225443.73bdd51a@twistedcode.net>
-References: <20080808225443.73bdd51a@twistedcode.net>
+From: Jonathan Brandmeyer <jbrandmeyer@earthlink.net>
+To: hermann pitton <hermann-pitton@arcor.de>
+In-Reply-To: <1218248080.2670.14.camel@pc10.localdom.local>
+References: <1218239652.9331.6.camel@pheonix> <489CF205.9080409@linuxtv.org>
+	<1218247210.9331.7.camel@pheonix>
+	<1218248080.2670.14.camel@pc10.localdom.local>
+Date: Fri, 08 Aug 2008 22:55:32 -0400
+Message-Id: <1218250532.9331.21.camel@pheonix>
 Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Leadtek WinFast Dongle H device support?
+Subject: Re: [linux-dvb] Hauppauge HVR-1250 IR support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,122 +23,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 8 Aug 2008 22:54:43 +0200
-Marek Habersack <grendel@twistedcode.net> wrote:
-
-> Hello everybody,
-I'm sorry for replying to myself, but I've just taken a look at the Windows driver
-CD for the hardware. The inf files there suggest it's based on DIB7700C1+XC3028L:
-
-[WINFAST]
-%MOD7000.DeviceDesc%    = MOD7000.Device,USB\VID_0413&PID_60F6          ;
-LR602C(DIB7700C1+XC3028L)
-
-Hope it helps,
-
-marek
-
-[snip]
-> Bus 001 Device 003: ID 0413:60f6 Leadtek Research, Inc. 
-> Device Descriptor:
->   bLength                18
->   bDescriptorType         1
->   bcdUSB               2.00
->   bDeviceClass            0 (Defined at Interface level)
->   bDeviceSubClass         0 
->   bDeviceProtocol         0 
->   bMaxPacketSize0        64
->   idVendor           0x0413 Leadtek Research, Inc.
->   idProduct          0x60f6 
->   bcdDevice            0.01
->   iManufacturer           1 Leadtek
->   iProduct                2 DTV Dongle H
->   iSerial                 3 1
->   bNumConfigurations      1
->   Configuration Descriptor:
->     bLength                 9
->     bDescriptorType         2
->     wTotalLength           46
->     bNumInterfaces          1
->     bConfigurationValue     1
->     iConfiguration          0 
->     bmAttributes         0xa0
->       (Bus Powered)
->       Remote Wakeup
->     MaxPower              500mA
->     Interface Descriptor:
->       bLength                 9
->       bDescriptorType         4
->       bInterfaceNumber        0
->       bAlternateSetting       0
->       bNumEndpoints           4
->       bInterfaceClass       255 Vendor Specific Class
->       bInterfaceSubClass      0 
->       bInterfaceProtocol      0 
->       iInterface              0 
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x01  EP 1 OUT
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               1
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x81  EP 1 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               1
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x82  EP 2 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               1
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x83  EP 3 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               1
-> Device Qualifier (for other device speed):
->   bLength                10
->   bDescriptorType         6
->   bcdUSB               2.00
->   bDeviceClass            0 (Defined at Interface level)
->   bDeviceSubClass         0 
->   bDeviceProtocol         0 
->   bMaxPacketSize0        64
->   bNumConfigurations      1
-> Device Status:     0x0000
->   (Bus Powered)
+On Sat, 2008-08-09 at 04:14 +0200, hermann pitton wrote:
+> Am Freitag, den 08.08.2008, 22:00 -0400 schrieb Jonathan Brandmeyer:
+> > On Fri, 2008-08-08 at 21:25 -0400, Steven Toth wrote:
+> > > Jonathan Brandmeyer wrote:
+> > > > A few months ago, Steven Toth mentioned that it would "be a while"
+> > > > before he could get around to getting the IR to work on the HVR-1250.
+> > > > Has he made progress on that front?  I've done some kernel programming
+> > > > in the past and would be willing to work on it if someone would be kind
+> > > > enough to point me in the right direction.
+> > > 
+> > > I have not worked on IR, it's not a priority for me.
+> > 
+> > What would it take to get it working?  Is there proper documentation for
+> > it?
+> > 
+> > -Jonathan
+> > 
 > 
-> thanks in advance,
+> Don't get it wrong,
 > 
-> marek
+> but don't you realize, that you are somehow off ...?
 > 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> You always ask, tell me how it works and then I make it work ...
 > 
-> !DSPAM:2,489cb2ab139351809011352!
+> If it would be such simple, you won't have to ask at all.
 > 
+> Please stop or report at least what you tried already.
+
+I read the source for cx23885_ir_init().  The line /* FIXME: Implement
+me */ was a useful hint.  Beyond that, I've searched on the conexant
+website and various permutations of googling for cx23885, datasheet,
+specification, documentation, etc.
+
+-Jonathan
+
 
 _______________________________________________
 linux-dvb mailing list
