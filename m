@@ -1,24 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1KWIBR-0006jK-BR
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 23:59:11 +0200
-Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
-	[84.70.212.195])
-	by mail.youplala.net (Postfix) with ESMTP id 49563D880A4
-	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 23:58:16 +0200 (CEST)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <alpine.LRH.1.10.0808212337070.21606@pub5.ifh.de>
-References: <1219330331.15825.2.camel@dark> <48ADCC81.5000407@nafik.cz>
-	<37219a840808211321k34590d38v7ada0fb9655e5dfe@mail.gmail.com>
-	<412bdbff0808211325h64d454d5m3353d8756b9eb737@mail.gmail.com>
-	<37219a840808211329j697556fcj760057bb1c7b58a8@mail.gmail.com>
-	<alpine.LRH.1.10.0808212337070.21606@pub5.ifh.de>
-Date: Thu, 21 Aug 2008 22:58:10 +0100
-Message-Id: <1219355890.6770.2.camel@youkaida>
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Jonathan Brandmeyer <jbrandmeyer@earthlink.net>
+In-Reply-To: <1218247210.9331.7.camel@pheonix>
+References: <1218239652.9331.6.camel@pheonix> <489CF205.9080409@linuxtv.org>
+	<1218247210.9331.7.camel@pheonix>
+Date: Sat, 09 Aug 2008 04:14:40 +0200
+Message-Id: <1218248080.2670.14.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] dib0700 and analog broadcasting
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1250 IR support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,22 +22,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 2008-08-21 at 23:38 +0200, Patrick Boettcher wrote:
-> On Thu, 21 Aug 2008, Michael Krufky wrote:
-> > Lets sync up when you get to that point -- I have a good chunk of
-> code
-> > written that will add analog support to the dvb-usb framework as an
-> > optional additional adapter type.
+
+Am Freitag, den 08.08.2008, 22:00 -0400 schrieb Jonathan Brandmeyer:
+> On Fri, 2008-08-08 at 21:25 -0400, Steven Toth wrote:
+> > Jonathan Brandmeyer wrote:
+> > > A few months ago, Steven Toth mentioned that it would "be a while"
+> > > before he could get around to getting the IR to work on the HVR-1250.
+> > > Has he made progress on that front?  I've done some kernel programming
+> > > in the past and would be willing to work on it if someone would be kind
+> > > enough to point me in the right direction.
+> > 
+> > I have not worked on IR, it's not a priority for me.
 > 
-> Wow wow wow. That sounds like music in my ears. Great direction!!!
+> What would it take to get it working?  Is there proper documentation for
+> it?
+> 
+> -Jonathan
 > 
 
-hmmm, Devin, Patrick, let me be selfish a little bit, that's what I do
-best most of the time, so you can beat me up for it.
+Don't get it wrong,
 
-Can the new i2c request code for the new firmware be done first?
+but don't you realize, that you are somehow off ...?
 
-Nico
+You always ask, tell me how it works and then I make it work ...
+
+If it would be such simple, you won't have to ask at all.
+
+Please stop or report at least what you tried already.
+
+Cheers,
+Hermann
+
 
 
 _______________________________________________
