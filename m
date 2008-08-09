@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.191])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KRZyV-0004hb-1j
-	for linux-dvb@linuxtv.org; Fri, 08 Aug 2008 23:58:20 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so1111473nfb.11
-	for <linux-dvb@linuxtv.org>; Fri, 08 Aug 2008 14:58:15 -0700 (PDT)
-Message-ID: <412bdbff0808081458v418449c4q6db215cf83e3ead0@mail.gmail.com>
-Date: Fri, 8 Aug 2008 17:58:15 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: Xaero <kknull0@gmail.com>
-In-Reply-To: <57ed08da0808081449m598af353n7edf908551753318@mail.gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <57ed08da0808081449m598af353n7edf908551753318@mail.gmail.com>
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Jonathan Brandmeyer <jbrandmeyer@earthlink.net>
+In-Reply-To: <1218250532.9331.21.camel@pheonix>
+References: <1218239652.9331.6.camel@pheonix> <489CF205.9080409@linuxtv.org>
+	<1218247210.9331.7.camel@pheonix>
+	<1218248080.2670.14.camel@pc10.localdom.local>
+	<1218250532.9331.21.camel@pheonix>
+Date: Sat, 09 Aug 2008 05:20:02 +0200
+Message-Id: <1218252002.2670.24.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Pinnacle pctv hybrid pro stick 340e support
+Subject: Re: [linux-dvb] Hauppauge HVR-1250 IR support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,48 +24,54 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/8/8 Xaero <kknull0@gmail.com>:
-> Hi,
-> I'm trying to make the 340e card work. (This is a reply to Gerard post, I've
-> just subscribed to this list and I didn't know how to reply, sorry :D)
-> I have the same lsusb output as Gerard. but I can't get more information
-> from dmesg:
-> I get only
->
-> usb 6-8: new high speed USB device using ehci_hcd and address 8
-> usb 6-8: configuration #1 chosen from 1 choice
->
-> when the card is plugged. (maybe I have to configure some kernel options?)
->
-> Btw, I tried the dib0770 modules (following Albert's instructions) , and no
-> dvb devices are created, so i don't think they'rer the right drivers (I'm
-> not sure again, dmesg doesn't write anything)...
-> Suggestion?
 
-I'm not sure how similar the 340e is to the "Pinnacle PCTV HD Pro USB"
-stick that's available in the United States, but it's possible they're
-similar devices:
+Am Freitag, den 08.08.2008, 22:55 -0400 schrieb Jonathan Brandmeyer:
+> On Sat, 2008-08-09 at 04:14 +0200, hermann pitton wrote:
+> > Am Freitag, den 08.08.2008, 22:00 -0400 schrieb Jonathan Brandmeyer:
+> > > On Fri, 2008-08-08 at 21:25 -0400, Steven Toth wrote:
+> > > > Jonathan Brandmeyer wrote:
+> > > > > A few months ago, Steven Toth mentioned that it would "be a while"
+> > > > > before he could get around to getting the IR to work on the HVR-1250.
+> > > > > Has he made progress on that front?  I've done some kernel programming
+> > > > > in the past and would be willing to work on it if someone would be kind
+> > > > > enough to point me in the right direction.
+> > > > 
+> > > > I have not worked on IR, it's not a priority for me.
+> > > 
+> > > What would it take to get it working?  Is there proper documentation for
+> > > it?
+> > > 
+> > > -Jonathan
+> > > 
+> > 
+> > Don't get it wrong,
+> > 
+> > but don't you realize, that you are somehow off ...?
+> > 
+> > You always ask, tell me how it works and then I make it work ...
+> > 
+> > If it would be such simple, you won't have to ask at all.
+> > 
+> > Please stop or report at least what you tried already.
+> 
+> I read the source for cx23885_ir_init().  The line /* FIXME: Implement
+> me */ was a useful hint.  Beyond that, I've searched on the conexant
+> website and various permutations of googling for cx23885, datasheet,
+> specification, documentation, etc.
+> 
+> -Jonathan
+> 
 
-http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_(801e)
+OK.
 
-Why don't you open it up and see if it's got the same components?
+Should be _really_ enough for a first try.
 
-I have been working on it for the last few days, and I'm pretty close
-to having it working.  Once I do, adding another USB ID would be
-pretty simple.  I should have a patch for digital support toward the
-end of next week (I will be out of town until then).
+All other further (un)known limitations are not on your bill then.
 
-If it's not the same device, you should create a page in the Wiki
-comparable to the one above, containing all of the chips that the
-device includes (so at least people will know definitively that it's
-not supported and what it is composed of).
+Thanks,
+Hermann
 
-Devin
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
