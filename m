@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50])
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1KP5K8-0001tl-MN
-	for linux-dvb@linuxtv.org; Sat, 02 Aug 2008 02:50:21 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Muppet Man <muppetman4662@yahoo.com>
-In-Reply-To: <595821.21214.qm@web34403.mail.mud.yahoo.com>
-References: <595821.21214.qm@web34403.mail.mud.yahoo.com>
-Date: Sat, 02 Aug 2008 02:43:16 +0200
-Message-Id: <1217637796.2678.1.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	(envelope-from <mkrufky@linuxtv.org>) id 1KSFFa-0002EP-72
+	for linux-dvb@linuxtv.org; Sun, 10 Aug 2008 20:02:42 +0200
+Message-ID: <489F2D3C.6000002@linuxtv.org>
+Date: Sun, 10 Aug 2008 14:02:36 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Timothy Lee <timothy.lee@siriushk.com>
+References: <489C16EF.5030004@siriushk.com>
+	<489C4056.9080804@linuxtv.org>	<489D4D5D.2020700@siriushk.com>
+	<489F2C4A.4070908@linuxtv.org>
+In-Reply-To: <489F2C4A.4070908@linuxtv.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Error message trying to compile v4l with Fedora 9
+Subject: Re: [linux-dvb] [PATCH] Support for Magic-Pro DMB-TH usb stick
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,49 +27,71 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-Am Freitag, den 01.08.2008, 16:59 -0700 schrieb Muppet Man:
-> Greetings all,
-> I am attempting to compile the v4l-dvb drivers via the instructions on
-> the website, but when I go into root to "make" I get this error.
+Michael Krufky wrote:
+> Timothy Lee wrote:
+>> Michael Krufky wrote:
+>>> Timothy Lee wrote:
+>>>  
+>>>> Attached is a patch against v4l-dvb repository to add support for
+>>>> Magic-Pro DMB-TH usb stick.  DMB-TH is the HDTV broadcast standard used
+>>>> in Hong Kong and China.
+>>>>
+>>>> Regards,
+>>>> Timothy Lee
+>>>>     
+>>> Timothy,
+>>>
+>>> In order for your patch to be applied to the kernel, a sign-off is
+>>> required.
+>>>
+>>> Please respond to this email with your sign-off, as described here:
+>>>
+>>> http://linuxtv.org/hg/v4l-dvb/file/tip/README.patches
+>>>
+>>> e) All patches shall have a Developers Certificate of Origin
+>>>
+>>>
+>>> Also, what software can people use with your device & driver to tune
+>>> to DMB-TH services?
+>>>
+>>> How do users scan for services?
+>>>   
+>> Dear Michael,
+>>
+>> Thanks for your hint on getting the patch accepted.  I've now cleaned
+>> up the patch to pass checkpatch.pl, and signed it off.
+>>
+>> I've also attached a second patch against the dvb-apps repository
+>> which adds a DMB-TH scan file for Hong Kong.  Since the ProHDTV stick
+>> contains a DMB-TH decoder (lgs8gl5) onboard, it outputs MPEG-TS to the
+>> PC.
+>>
+>> I've been using mplayer to test the driver.  But since I'm using
+>> dvb-usb's generic video streaming mechanism, I imagine the driver
+>> should be compatible with other DVB software. 
+> Timothy,
 > 
-> [root@localhost ~]# cd /home/ed/v4l-dvb/
-> [root@localhost v4l-dvb]# make
-> make -C /home/ed/v4l-dvb/v4l 
-> make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
-> No version yet, using 2.6.25.11-97.fc9.i686
-> make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
-> make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
-> scripts/make_makefile.pl
-> Updating/Creating .config
-> Preparing to compile for kernel version 2.6.25
-> File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config
-> at ./scripts/make_kconfig.pl line 32, <IN> line 4.
-> make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
-> make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
-> Updating/Creating .config
-> Preparing to compile for kernel version 2.6.25
-> File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config
-> at ./scripts/make_kconfig.pl line 32, <IN> line 4.
-> make[1]: *** No rule to make target `.myconfig', needed by
-> `config-compat.h'.  Stop.
-> make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
-> make: *** [all] Error 2
+> I've applied your patch to my cxusb tree, with slight modifications, in
+> order to coincide with another patch to the same code.  Please test the
+> tree and confirm proper operation before I request a merge into the
+> master branch.
 > 
-> I have searched around trying to find any answers but I found nothing.
-> Any help would be greatly appreciated.
-> Thanks
+> http://linuxtv.org/hg/~mkrufky/cxusb
+> 
+> I'll push the Hong Kong scan file to dvb-apps after this tree is merged
+> into the master branch.
+> 
+> If you have any additional fixes / changes to make before this is merged
+> into master, please generate them against this cxusb tree.
 
-eventually,
+I also have a question--
 
-"yum install kernel-devel" ?
+If the device is called, "Magic-Pro DMB-TH usb stick" then I think that we
+should change its name from "Conexant DMB-TH Stick" to "Magic-Pro DMB-TH usb stick"
 
-Cheers,
-Hermann
+Which is the correct name?
 
-
-
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
