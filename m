@@ -1,18 +1,32 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n30.bullet.mail.ukl.yahoo.com ([87.248.110.147])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1KZ8tY-0006Da-V5
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 20:40:31 +0200
-Date: Fri, 29 Aug 2008 14:39:47 -0400
-From: manu <eallaud@yahoo.fr>
+Received: from ashesmtp01.verizonbusiness.com ([198.4.8.163])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mark.paulus@verizonbusiness.com>) id 1KSZgB-0005MD-5w
+	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 17:51:36 +0200
+Received: from pmismtp05.wcomnet.com ([166.37.158.165])
+	by firewall.verizonbusiness.com
+	(Sun Java(tm) System Messaging Server 6.3-5.02 (built Oct 12 2007;
+	32bit))
+	with ESMTP id <0K5G007B01CFHU00@firewall.verizonbusiness.com> for
+	linux-dvb@linuxtv.org; Mon, 11 Aug 2008 15:50:39 +0000 (GMT)
+Received: from pmismtp05.wcomnet.com ([127.0.0.1])
+	by pmismtp05.mcilink.com (iPlanet Messaging Server 5.2 HotFix 2.08
+	(built Sep
+	22 2005)) with SMTP id <0K5G005RO1CETC@pmismtp05.mcilink.com> for
+	linux-dvb@linuxtv.org; Mon, 11 Aug 2008 15:50:38 +0000 (GMT)
+Received: from [127.0.0.1] ([166.34.132.9])
+	by pmismtp05.mcilink.com (iPlanet Messaging Server 5.2 HotFix 2.08
+	(built Sep
+	22 2005)) with ESMTP id <0K5G0059P1913Q@pmismtp05.mcilink.com> for
+	linux-dvb@linuxtv.org; Mon, 11 Aug 2008 15:50:38 +0000 (GMT)
+Date: Mon, 11 Aug 2008 09:48:40 -0600
+From: Mark Paulus <mark.paulus@verizonbusiness.com>
 To: linux-dvb@linuxtv.org
-References: <E1KZ3gT-000Ivd-00.goga777-bk-ru@f129.mail.ru>
-In-Reply-To: <E1KZ3gT-000Ivd-00.goga777-bk-ru@f129.mail.ru> (from
-	goga777@bk.ru on Fri Aug 29 09:06:37 2008)
-Message-Id: <1220035187l.8981l.1l@manu-laptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re :  updating of LiplianinDVB - please, test
+Message-id: <48A05F58.8090405@verizonbusiness.com>
+MIME-version: 1.0
+Content-type: multipart/mixed; boundary=------------080306010309090409070307
+Subject: [linux-dvb] [Fwd: Help with recent DVB/QAM problem please.]
+Reply-To: mark.paulus@verizonbusiness.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,41 +34,71 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 29.08.2008 09:06:37, Goga777 a =E9crit=A0:
-> Hi
-> =
+This is a multi-part message in MIME format.
+--------------080306010309090409070307
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> Igor has updated his repo =
+Redirecting to linux-dvb on suggestion from
+Video4Linux user.
 
-> http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/
-> liplianindvb/
-> =
+-------- Original Message --------
+Subject: Help with recent DVB/QAM problem please.
 
-> please, test it =
+Hi all,
 
-> =
+Background:
+I have a machine in my basement with:
+Hauppauge PVR-150 (connected to DCT2524)
+Air2PC ATSC/OTA card (connected to antenna in attic)
+Avermedia A180 (connected to comcast cable)
+Dvico FusionHDTV RT 5 Lite (connectec comcast cable)
+Debian using 2.6.24-x64 kernel
 
-> you can send the reports in this mail-list or in Igor's topic
-> http://allrussian.info/thread.php?threadid=3D99733
-> =
+Situation:
+Up until a week ago, I was able to use azap to tune in
+a bunch of mplexids, and get good locks on both the 
+A180 and the Dvico card.  However, starting on Monday,
+I am not able to get locks on either of my DVB cards.
+I have been able, and am still able to get good locks
+on my air2pc OTA card.
 
-> Goga
+Can anyone help me figure out why I can't seem to see
+anything from my 2 QAM cards?  I've tried running a
+dvbscan and neither card can make a good lock.  What
+other debugging tools can I use to try to find any QAM
+signals?  I've also tried doing a VSB-8 scan on the cable
+cards, and also don't get any locks.
 
-Stupid question: is there any fixes to stb0899 locking problems in this =
+Thanks.
 
-(for TT 3200)?
-Thx
-Bye
-Manu
 
+
+--------------080306010309090409070307
+Content-Type: text/x-vcard; charset=utf-8;
+ name="mark_paulus.vcf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="mark_paulus.vcf"
+
+YmVnaW46dmNhcmQNCmZuOk1hcmsgUGF1bHVzDQpuOlBhdWx1cztNYXJrDQpvcmc6TUNJO0xl
+YyBJbnRlcmZhY2VzIC8gNDA0MTkNCmFkcjtkb206OzsyNDI0IEdhcmRlbiBvZiB0aGUgR29k
+cyBSZDtDb2xvcmFkbyBTcHJpbmdzO0NPOzgwOTE5DQplbWFpbDtpbnRlcm5ldDptYXJrLnBh
+dWx1c0B2ZXJpem9uYnVzaW5lc3MuY29tDQp0aXRsZTpNYXJrIFBhdWx1cw0KdGVsO3dvcms6
+NzE5LTUzNS01NTc4DQp0ZWw7cGFnZXI6ODAwLXBhZ2VtY2kgLyAxNDA2MDUyDQp0ZWw7aG9t
+ZTp2NjIyLTU1NzgNCnZlcnNpb246Mi4xDQplbmQ6dmNhcmQNCg0K
+--------------080306010309090409070307
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------080306010309090409070307--
