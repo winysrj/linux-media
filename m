@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ag-out-0708.google.com ([72.14.246.249])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mijhail.moreyra@gmail.com>) id 1KZUvL-0005F0-Co
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 20:11:48 +0200
-Received: by ag-out-0708.google.com with SMTP id 8so3423196agc.0
-	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 11:11:43 -0700 (PDT)
-Message-ID: <48B98D47.9020209@gmail.com>
-Date: Sat, 30 Aug 2008 13:11:19 -0500
-From: Mijhail Moreyra <mijhail.moreyra@gmail.com>
+Received: from gateway04.websitewelcome.com ([67.18.16.76])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <skerit@kipdola.com>) id 1KSTP3-00026L-77
+	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 11:09:26 +0200
+Message-ID: <48A001BD.80000@kipdola.com>
+Date: Mon, 11 Aug 2008 11:09:17 +0200
+From: Jelle De Loecker <skerit@kipdola.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <e32e0e5d0808291401x39932ab6q6086882e81547f84@mail.gmail.com>
-	<48B87085.6050800@linuxtv.org> <48B8972A.3020501@linuxtv.org>
-In-Reply-To: <48B8972A.3020501@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
-	HVR-1500
+To: Artem Makhutov <artem@makhutov.org>,
+	LinuxTV DVB Mailing <linux-dvb@linuxtv.org>
+References: <20080728095826.GB19605@moelleritberatung.de>
+In-Reply-To: <20080728095826.GB19605@moelleritberatung.de>
+Subject: Re: [linux-dvb] Update multiproto to recent kernel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,23 +25,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Steven Toth wrote:
-> Mijhail, if you could download and compile the cx23885-audio tree one 
-> more time I would be grateful.
-> 
-> Regards,
-> 
-> Steve
+Artem Makhutov schreef:
+> Hi,
+>
+> the HG in http://www.jusst.de/hg/multiproto/ is quite outdated.
+> Is it possible to merge the tree with a current kernel tree (like
+> 2.6.26), to make it compile without problems and additional pathing?
+>
+> Thanks, Artem
+>   
 
-Hi,
+You're making lots of sense but (unfortunately) I don't see it happen 
+anytime soon.
 
-I've tested the corrected cx23885-audio tree and it works well, all the
-changes from my patch are included and I can confirm that analog TV and
-audio work for my HVR-1500 with that tree.
+How does one get these patches integrated in the source repository, anyway?
 
-Regards,
+Is the multiproto driver really a one-man project? Is there no way to 
+help him out, the one who mantains the drivers?
 
-Mijhail Moreyra
 
 _______________________________________________
 linux-dvb mailing list
