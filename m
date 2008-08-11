@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ag-out-0708.google.com ([72.14.246.244])
+Received: from mail-in-16.arcor-online.net ([151.189.21.56])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mijhail.moreyra@gmail.com>) id 1KZAPs-0006gK-LB
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 22:17:58 +0200
-Received: by ag-out-0708.google.com with SMTP id 8so2672647agc.0
-	for <linux-dvb@linuxtv.org>; Fri, 29 Aug 2008 13:17:52 -0700 (PDT)
-Message-ID: <48B85958.7010809@gmail.com>
-Date: Fri, 29 Aug 2008 15:17:28 -0500
-From: Mijhail Moreyra <mijhail.moreyra@gmail.com>
-MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <48B4687D.8070205@gmail.com> <48B46D46.2020800@linuxtv.org>
-	<48B46F9D.105@gmail.com> <48B47D2C.3010005@linuxtv.org>
-	<48B48F62.7090100@gmail.com> <48B4FB50.3020200@linuxtv.org>
-	<48B85361.6020508@gmail.com> <48B85449.4010506@linuxtv.org>
-In-Reply-To: <48B85449.4010506@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
-	HVR-1500
+	(envelope-from <hermann-pitton@arcor.de>) id 1KSfFw-0002Bw-17
+	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 23:48:49 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Antti Palosaari <crope@iki.fi>
+In-Reply-To: <48A08201.6070505@iki.fi>
+References: <48A08201.6070505@iki.fi>
+Date: Mon, 11 Aug 2008 23:41:27 +0200
+Message-Id: <1218490887.2676.73.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DVB-C / DVB-T combo device multi mode driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,77 +25,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Steven Toth wrote:
-> Mijhail Moreyra wrote:
->> Steven Toth wrote:
->>> Mijhail,
->>>
->>> http://linuxtv.org/hg/~stoth/cx23885-audio
->>>
->>> This tree contains your patch with some minor whitespace cleanups and 
->>> fixes for HUNK related merge issues due to the patch wrapping at 80 
->>> cols.
->>>
->>> Please build this tree and retest in your environment to ensure I did 
->>> not break anything. Does this tree still work OK for you?
->>>
->>> After this I will apply some other minor cleanups then invite a few 
->>> other HVR1500 owners to begin testing.
->>>
->>> Thanks again.
->>>
->>> Regards,
->>>
->>> Steve
->>
->> Hi, sorry for the delay.
->>
->> I've tested the http://linuxtv.org/hg/~stoth/cx23885-audio tree and it 
->> doesn't work well.
->>
->> You seem to have removed a piece from my patch that avoids some register
->> modification in cx25840-core.c:cx23885_initialize()
->>
->> -       cx25840_write(client, 0x2, 0x76);
->> +       if (state->rev != 0x0000) /* FIXME: How to detect the bridge 
->> type ??? */
->> +               /* This causes image distortion on a true cx23885 
->> board */
->> +               cx25840_write(client, 0x2, 0x76);
->>
->> As the patch says that register write causes a horrible image distortion
->> on my HVR-1500 which has a real cx23885 (not 23887, 23888, etc) board.
->>
->> I don't know if it's really required for any bridge as everything seems
->> to be auto-configured by default, maybe it can be simply dropped.
->>
->> Other than that the cx23885-audio tree works well.
->>
->> WRT the whitespaces, 80 cols, etc; most are also in the sources I took
->> as basis, so I didn't think they were a problem.
-> 
-> That's a mistake, I'll add that later tonight, thanks for finding this. 
-> I must of missed it when I had to tear apart your email because of HUNK 
-> issues caused by patch line wrapping.
-> 
-> Apart from this, is everything working as you expect?
-> 
-> Regards,
-> 
-> Steve
-> 
-> 
+Hi,
 
-OK.
+Am Montag, den 11.08.2008, 21:16 +0300 schrieb Antti Palosaari:
+> hello
+> I have a brand new Anysee E30 Combo Plus device. Device does have 
+> ZL10353 DVB-T demodulator and TDA10023 DVB-C demodulator sharing one 
+> Samsung tuner module. How I can handle this king of hardware? I see some 
+>   possibilities;
+> 1) add module param for mode select
+> 2) make driver register two adapters
+> 3) use multiproto
+> 
+> I have already done first choice and it is working, but it is not very 
+> user friendly. I tried second one but didn't found way to lock tuner. 
+> Multiproto sounds like good decision but it is not ready yet. So what to 
+> do? Implement as 1) and wait for 3). Implementation of 2) is not 
+> possible without hacking current dvb-usb-framework?
+> 
+> Any ideas?
+> 
+> regards
+> Antti
 
-And sorry about the patch, I didn't know it was going to be broken that
-way by being sent by email.
+to keep it as simple as possible seems to me currently the best.
 
- >> Other than that the cx23885-audio tree works well.
+This way it should be less work to make it flow later with multiproto or
+any other suitable for all solution coming in, instead everybody now
+starts working on his own solution to make it more user friendly.
 
-Regards,
+We have some dual frontend cards on the saa7134 driver and it is fairly
+easy to deal with them.
 
-Mijhail Moreyra
+Even the Medion Quad CTX944 with two saa7131e, two tda8275ac1 hybrid
+DVB-T and analog TV tuners, two tda10046a for DVB-T and on the DVB-S
+side two tda8263 and two tda10086 is fairly easy to handle.
+
+The shared dual isl6405 LNB supply has some issues with the second DVB-S
+frontend voltage settings, but this is the same on the m$ drivers and
+out of range for these questions currently.
+
+My two cents.
+
+Cheers,
+Hermann
+
+
+
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
