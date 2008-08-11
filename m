@@ -1,23 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7I0iVQ6004309
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 20:44:31 -0400
-Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.237])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7I0hkqk001427
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 20:43:46 -0400
-Received: by wx-out-0506.google.com with SMTP id i27so907830wxd.6
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 17:43:46 -0700 (PDT)
-Date: Sun, 17 Aug 2008 19:34:48 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7BAS4Z4028547
+	for <video4linux-list@redhat.com>; Mon, 11 Aug 2008 06:28:04 -0400
+Received: from web33204.mail.mud.yahoo.com (web33204.mail.mud.yahoo.com
+	[209.191.69.152])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7BARqHK032564
+	for <video4linux-list@redhat.com>; Mon, 11 Aug 2008 06:27:52 -0400
+Date: Mon, 11 Aug 2008 03:27:46 -0700 (PDT)
+From: Arif Azeem <arifazeemindia@yahoo.com>
 To: video4linux-list@redhat.com
-Message-ID: <20080818003448.GB22438@pippin.gateway.2wire.net>
-References: <6f278f100808171248s53633e27xce36cbbf123c5e0a@mail.gmail.com>
-	<6f278f100808171258r609757a0r1a605ffd9ddee0f1@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6f278f100808171258r609757a0r1a605ffd9ddee0f1@mail.gmail.com>
-From: Mark Ferrell <majortrips@gmail.com>
-Subject: Re: [PATCH] Add support for OmniVision OV534 based USB cameras.
+Message-ID: <161752.13394.qm@web33204.mail.mud.yahoo.com>
+Subject: Cx88 New Capture card - Sky TV2 (from Korea)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,25 +24,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Aug 17, 2008 at 09:58:12PM +0200, Theou Jean-Baptiste wrote:
-> One more thing, when he halt in her system, the halt "freeze", and when he
-> unplugged her webcam, he observe that :
+Hello,
 
-Was the camera running during the halt?  While trying to fix up the
-CONFIG_PM code as requested I ran across similar issues while the camera
-was running.  Suspending the system and unplugging the camera while an
-application is streaming did indeed lock the system.  Working on fixing
-these. I have not had a system lock during any shutdown.
+I bought this TV capture card (packaging says, mpeg1/2) from Korea last week. After installing it in the system, it is recognized as UNKNOWN type by Cx88x driver.
 
-> 
-> /dev/video-1 released
+This card also support "IMON" IR remote controller which is not detected at all.
 
-The device file would still be related to the vfd->minor being -1, which
-it shouldn't be.  I have not experienced this with any of the cams I
-have here.
+Could somebody please guide me on how to support this card under Linux (Ubuntu 8.04)?
 
--- 
-Mark
+If needed I can write driver code but I am new to V4L space, so I don't want to start in wrong direction.
+
+Regards
+A
+
+
+
+      
 
 --
 video4linux-list mailing list
