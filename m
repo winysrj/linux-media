@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7GGnMF9004516
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 12:49:23 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7GGnAo5011312
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 12:49:10 -0400
-Date: Sat, 16 Aug 2008 18:48:49 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Nakarin Lamangthong <lnakarin@gmail.com>
-Message-ID: <20080816164849.GA386@daniel.bse>
-References: <443ddfb30808141632l30b6fbefgda1bb2a1f6bbe028@mail.gmail.com>
-	<20080815000205.GA1359@daniel.bse>
-	<443ddfb30808142020n4694e927r6a14fd095585604a@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <443ddfb30808142020n4694e927r6a14fd095585604a@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Commell MP-878D first time error
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7BJvpPb011145
+	for <video4linux-list@redhat.com>; Mon, 11 Aug 2008 15:57:51 -0400
+Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.228])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7BJvosD030789
+	for <video4linux-list@redhat.com>; Mon, 11 Aug 2008 15:57:50 -0400
+Received: by wr-out-0506.google.com with SMTP id c49so1437113wra.19
+	for <video4linux-list@redhat.com>; Mon, 11 Aug 2008 12:57:50 -0700 (PDT)
+Message-ID: <48A099B3.60604@gmail.com>
+Date: Mon, 11 Aug 2008 14:57:39 -0500
+From: Mijhail Moreyra <mijhail.moreyra@gmail.com>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: About cx23885 analog TV support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,22 +26,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Aug 15, 2008 at 10:20:54AM +0700, Nakarin Lamangthong wrote:
-> >As your card can't be detected, you need to load the bttv module
-> >with pll=28 to be able to decode PAL signals.
-> 
-> How can i do that?  Please tell me the step that fix it.
+Hi,
 
-It's been some time since I last tried Debian, but I think you can
-do this with modconf as mentioned in
-http://www.debian.org/doc/FAQ/ch-kernel.en.html#s-modules
+I've been trying to adapt the analog TV support from the HVR-1800 to my
+HVR-1500 which has a cx23885 and a xc3028 tuner, so far I've been able
+to make the tuner work and changing channels works, but the image is
+too distorted and there's no sound.
 
-Alternatively you can manually add the line
-options bttv pll=28
-to a new file in /etc/modprobe.d/ as explained in
-http://www.mail-archive.com/debian-alpha@lists.debian.org/msg24367.html
+I'd like to know how complete is the analog TV support for the cx23885
+and how much different is the HVR-1500 with respect to the HVR-1800
+so maybe I could make it work well.
 
-  Daniel
+There's no digital TV in my country so analog TV support is what I need.
+
+Best regards.
+
+Mijhail Moreyra
 
 --
 video4linux-list mailing list
