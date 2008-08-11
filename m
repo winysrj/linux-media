@@ -1,16 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.30])
+Received: from fk-out-0910.google.com ([209.85.128.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <orgler@gmail.com>) id 1KQ07q-0005xB-GK
-	for linux-dvb@linuxtv.org; Mon, 04 Aug 2008 15:29:29 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so114133yxg.41
-	for <linux-dvb@linuxtv.org>; Mon, 04 Aug 2008 06:29:21 -0700 (PDT)
-Message-ID: <619be8660808040629r1d523e6cn843ee52a5325e19b@mail.gmail.com>
-Date: Mon, 4 Aug 2008 15:29:21 +0200
-From: "Johannes Michler" <orgler@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <zeph7r@gmail.com>) id 1KSZKI-0003fZ-PL
+	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 17:28:55 +0200
+Received: by fk-out-0910.google.com with SMTP id f40so1993539fka.1
+	for <linux-dvb@linuxtv.org>; Mon, 11 Aug 2008 08:28:51 -0700 (PDT)
+Message-ID: <48A05AB4.6050602@gmail.com>
+Date: Mon, 11 Aug 2008 16:28:52 +0100
+From: zePh7r <zeph7r@gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] Problems using DISEQC with TBS 8920 DVB-S2 card
+To: Albert Comerma <albert.comerma@gmail.com>
+References: <ea4209750808080532h950d84fud047c135551e1ff1@mail.gmail.com>	
+	<489CCD82.5030406@gmail.com>	
+	<ea4209750808100251j3d027cable1e5cd81ceb4995@mail.gmail.com>	
+	<48A032F4.6000602@gmail.com>
+	<ea4209750808110629oa80b224if6e070be61156109@mail.gmail.com>
+In-Reply-To: <ea4209750808110629oa80b224if6e070be61156109@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Support for Asus My-Cinema U3000Hybrid?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,123 +25,157 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0082902188=="
+Content-Type: multipart/mixed; boundary="===============1579931894=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0082902188==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_36781_12435448.1217856561151"
-
-------=_Part_36781_12435448.1217856561151
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi,
-
-I recently got an TBS 8920 DVB-S2 card and I'm now trying to get it work
-using Ubuntu 8.04.
-Since the card wasn't automatcially detected and the list appearing when
-loading the cx88xx driver doesn't contain the card I downloaded the drivers
-from here: http://www.tbsdtv.com/english/product/PCIDVBS2.html
-I compiled and installed the drivers as descripted, and after a reboot the
-card was propely detected.
-My satelitte configuration is as follows: I've got a monoblock LNB, with
-Hotbird13 on "A" and Astra19 on "B"
-doing a "scan /usr/share/doc/dvb-utils/examples/scan/dvb-s/Hotbird" reports
-me a lot of channels. But the diseq signal is being ignored, when doing
-"scan -s 1 Hotbird" I get the same channels and doing "scan -s 1 Astra"
-gives me no channels (scan is aborted after a view seconds, saying it cannot
-do initial tuning)
-dmesg tells someting about sending 18V and 13V, but this seems to be
-informative messages only.
-Did someone here succeed in getting this card to work? Or is there another
-card which is "equal" to this card. I don't now unfortunately what TBS
-changed in there linux driver, this doesn't seem to be documented. The
-cx88-cards.h entry for my card is as follows:
-
-
-[CX88_BOARD_TBS8920] = {
-
-.name = "TBS DVB-S/S2",
-
-.tuner_type = TUNER_ABSENT,
-
-.radio_type = UNSET,
-
-.tuner_addr = ADDR_UNSET,
-
-.radio_addr = ADDR_UNSET,
-
-.input = {{
-
-.type = CX88_VMUX_DVB,
-
-.vmux = 0,
-
-},{
-
-.type = CX88_VMUX_COMPOSITE1,
-
-.vmux = 1,
-
-}},
-
-.mpeg = CX88_MPEG_DVB,
-
-},
-
-Any help would be appreciated,
-
-best regards
-Johannes
-
-------=_Part_36781_12435448.1217856561151
+--===============1579931894==
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-<div dir="ltr"><div>Hi,</div>
-<div>&nbsp;</div>
-<div>I recently got an TBS 8920 DVB-S2 card and I&#39;m now trying to get it work using Ubuntu 8.04.</div>
-<div>Since the card wasn&#39;t automatcially detected and the list appearing when loading the cx88xx driver doesn&#39;t contain the card I downloaded the drivers from here: <a href="http://www.tbsdtv.com/english/product/PCIDVBS2.html">http://www.tbsdtv.com/english/product/PCIDVBS2.html</a></div>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Albert Comerma escreveu:
+<blockquote
+ cite="mid:ea4209750808110629oa80b224if6e070be61156109@mail.gmail.com"
+ type="cite">
+  <div dir="ltr">If you look around line 1082 of dib0700_devices.c you
+will find the table of the cards, which refers to the id's you added on
+dvb-usb-ids.h. So you must add an entry to that table. I send you the
+modified files, so you can see. I also send you a .config file you must
+copy on v4l-dvb/v4l/ folder. Then go into v4l-dvb and just type make,
+and then as root make install. That should work without problems. To
+try all of this you need the dibcom and xceive firmware at /lib/firmware<br>
+  <br>
+Albert<br>
+  <br>
+  <div class="gmail_quote">2008/8/11 zePh7r <span dir="ltr">&lt;<a
+ moz-do-not-send="true" href="mailto:zeph7r@gmail.com">zeph7r@gmail.com</a>&gt;</span><br>
+  <blockquote class="gmail_quote"
+ style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Albert
+Comerma escreveu:<br>
+    <blockquote class="gmail_quote"
+ style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+      <div class="Ih2E3d">Sorry, I didn't explained much... it also
+took some time to me to understand how it's working... Since xc2028 is
+the tunner it has no Id information on the code. The id's are on the
+usb bridge code. You should add your deviece id's at;<br>
+/v4l-dvb/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h and then insert
+your device at<br>
+/v4l-dvb/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c &nbsp; &nbsp;first the
+device descriptors (at arround line 1120) and then the device itself, I
+would try it around line 1418. This last file, has already the include
+to the xc2028 code and calls the tunner funcions. Looking the code
+around this lines I guess you will understand how it works.<br>
+      <br>
+Albert<br>
+      <br>
+      </div>
+2008/8/9 zePh7r &lt;<a moz-do-not-send="true"
+ href="mailto:zeph7r@gmail.com" target="_blank">zeph7r@gmail.com</a>
+&lt;mailto:<a moz-do-not-send="true" href="mailto:zeph7r@gmail.com"
+ target="_blank">zeph7r@gmail.com</a>&gt;&gt;
+      <div class="Ih2E3d"><br>
+      <br>
+&nbsp; &nbsp;Albert Comerma escreveu:<br>
+      <br>
+&nbsp; &nbsp; &nbsp; &nbsp;Just to clarify things...<br>
+      <br>
+&nbsp; &nbsp; &nbsp; &nbsp;Xceive chips are just tunners, RF chips, mostly analogue with<br>
+&nbsp; &nbsp; &nbsp; &nbsp;some digital interface, they don't do anything with usb or<br>
+&nbsp; &nbsp; &nbsp; &nbsp;comunication with the computer, for this reason you need the<br>
+&nbsp; &nbsp; &nbsp; &nbsp;dibcom chip, it's a usb bridge + decoder + something else...<br>
+&nbsp; &nbsp; &nbsp; &nbsp;To start to develop something you must first be sure of what<br>
+&nbsp; &nbsp; &nbsp; &nbsp;chips it's using.<br>
+&nbsp; &nbsp; &nbsp; &nbsp;If not you can try blindly if modifying the code for the<br>
+&nbsp; &nbsp; &nbsp; &nbsp;U3000-Mini works or Pinnacle 320cx (dibcom 7700 + xceive2028)<br>
+&nbsp; &nbsp; &nbsp; &nbsp;work (you just need to add your device usb id's).<br>
+      <br>
+&nbsp; &nbsp; &nbsp; &nbsp;Albert<br>
+      <br>
+&nbsp; &nbsp;Thank you for replying Albert.<br>
+&nbsp; &nbsp;I've been exploring the files downloaded through the mercurial<br>
+&nbsp; &nbsp;repository and though I have found files which seem like they<br>
+&nbsp; &nbsp;relate to that purpose in<br>
+&nbsp; &nbsp;/v4l-dvb/linux/drivers/media/common/tuners (which are<br>
+&nbsp; &nbsp;tuner-xc2028.c , tuner-xc2028.h and tuner-xc2028-types.h) I can't<br>
+&nbsp; &nbsp;find any section in the above files with some sort of list of<br>
+&nbsp; &nbsp;device ID's so as to resemble them. There should be something like<br>
+&nbsp; &nbsp;an xc2028-cards.c right?<br>
+&nbsp; &nbsp;This must seem a noob question but this whole process looks like<br>
+&nbsp; &nbsp;something someone who's not deeply into this project couldn't do<br>
+&nbsp; &nbsp;easily..<br>
+      <br>
+      <br>
+      </div>
+    </blockquote>
+When I try to compile the drivers I get this:<br>
+    <br>
+zeph7r@zeph7r-laptop:~/v4l/v4l-dvb&gt; make all<br>
+make -C /home/zeph7r/v4l/v4l-dvb/v4l all<br>
+make[1]: Entering directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+Updating/Creating .config<br>
+Preparing to compile for kernel version 2.6.25<br>
+File not found: /lib/modules/2.6.25.11-0.1-default/build/.config at
+./scripts/make_kconfig.pl line 32, &lt;IN&gt; line 4.<br>
+make[1]: *** No rule to make target `.myconfig', needed by
+`config-compat.h'. &nbsp;Stop.<br>
+make[1]: Leaving directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+make: *** [all] Error 2<br>
+    <br>
+any hints on what might be causing this? I went look at that dir and
+found a makedumpfile.config , perhaps I should edit config-compat.h and
+set it to go look for that file instead..<br>
+  </blockquote>
+  </div>
+  <br>
+  </div>
+</blockquote>
+<br>
+<br>
+Even after I putted .config in v4l-dvb/v4l it is still not compiling:<br>
+<br>
+zeph7r@zeph7r-laptop:~/v4l/v4l-dvb&gt; make<br>
+make -C /home/zeph7r/v4l/v4l-dvb/v4l<br>
+make[1]: Entering directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+No version yet, using 2.6.25.11-0.1-default<br>
+make[1]: Leaving directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+make[1]: Entering directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+scripts/make_makefile.pl<br>
+Updating/Creating .config<br>
+./scripts/make_kconfig.pl /lib/modules/2.6.25.11-0.1-default/build
+/lib/modules/2.6.25.11-0.1-default/build<br>
+Preparing to compile for kernel version 2.6.25<br>
+File not found: /lib/modules/2.6.25.11-0.1-default/build/.config at
+./scripts/make_kconfig.pl line 32, &lt;IN&gt; line 4.<br>
+make[1]: Leaving directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+make[1]: Entering directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+./scripts/make_kconfig.pl /lib/modules/2.6.25.11-0.1-default/build
+/lib/modules/2.6.25.11-0.1-default/build<br>
+Preparing to compile for kernel version 2.6.25<br>
+File not found: /lib/modules/2.6.25.11-0.1-default/build/.config at
+./scripts/make_kconfig.pl line 32, &lt;IN&gt; line 4.<br>
+make[1]: *** No rule to make target `.myconfig', needed by
+`config-compat.h'.&nbsp; Stop.<br>
+make[1]: Leaving directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+make: *** [all] Error 2<br>
+zeph7r@zeph7r-laptop:~/v4l/v4l-dvb&gt;<br>
+<br>
+I even tried copying .config to
+/lib/modules/2.6.25.11-0.1-default/build
+/lib/modules/2.6.25.11-0.1-default/build but some other error came up
+as well<br>
+</body>
+</html>
 
-<div>I compiled and installed the drivers as descripted, and after a reboot the card was propely detected.</div>
-<div>My satelitte configuration is as follows: I&#39;ve got a monoblock LNB, with Hotbird13 on &quot;A&quot; and Astra19 on &quot;B&quot;</div>
-<div>doing a &quot;scan /usr/share/doc/dvb-utils/examples/scan/dvb-s/Hotbird&quot; reports me a lot of channels. But the diseq signal is being ignored, when doing &quot;scan -s 1 Hotbird&quot; I get the same channels and doing &quot;scan -s 1 Astra&quot; gives me no channels (scan is aborted after a view seconds, saying it cannot do initial tuning)</div>
 
-<div>dmesg tells someting about sending 18V and 13V, but this seems to be informative messages only.</div>
-<div>Did someone here succeed in getting this card to work? Or is there another card which is &quot;equal&quot; to this card. I don&#39;t now unfortunately what TBS changed in there linux driver, this doesn&#39;t seem to be documented. The cx88-cards.h entry for my card is as follows:</div>
-
-<div>&nbsp;</div><span lang="DE">
-<p>[CX88_BOARD_TBS8920] = {</p>
-<p>.name = &quot;TBS DVB-S/S2&quot;,</p>
-<p>.tuner_type = TUNER_ABSENT,</p>
-<p>.radio_type = UNSET,</p>
-<p>.tuner_addr = ADDR_UNSET,</p>
-<p>.radio_addr = ADDR_UNSET,</p>
-<p>.input = {{</p>
-<p>.type = CX88_VMUX_DVB,</p>
-<p>.vmux = 0,</p>
-<p>},{</p>
-<p>.type = CX88_VMUX_COMPOSITE1,</p>
-<p>.vmux = 1,</p>
-<p>}},</p>
-<p>.mpeg = CX88_MPEG_DVB,</p>
-<p>},</p></span>
-<div>&nbsp;</div>
-<div>Any help would be appreciated,</div>
-<div>&nbsp;</div>
-<div>best regards</div>
-<div>Johannes</div></div>
-
-------=_Part_36781_12435448.1217856561151--
-
-
---===============0082902188==
+--===============1579931894==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -144,4 +185,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0082902188==--
+--===============1579931894==--
