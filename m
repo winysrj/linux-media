@@ -1,21 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7ENWXa2012707
-	for <video4linux-list@redhat.com>; Thu, 14 Aug 2008 19:32:33 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7ENWMeZ025897
-	for <video4linux-list@redhat.com>; Thu, 14 Aug 2008 19:32:22 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so627517wfc.6
-	for <video4linux-list@redhat.com>; Thu, 14 Aug 2008 16:32:22 -0700 (PDT)
-Message-ID: <443ddfb30808141632l30b6fbefgda1bb2a1f6bbe028@mail.gmail.com>
-Date: Fri, 15 Aug 2008 06:32:21 +0700
-From: "Nakarin Lamangthong" <lnakarin@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7BDF7do029083
+	for <video4linux-list@redhat.com>; Mon, 11 Aug 2008 09:15:07 -0400
+Received: from mail.farba.eu.org ([81.219.10.162])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7BDF3Ya003279
+	for <video4linux-list@redhat.com>; Mon, 11 Aug 2008 09:15:04 -0400
+Received: from localhost (agimoja.farba.eu.org [127.0.0.1])
+	by mail.farba.eu.org (Postfix) with ESMTP id B3E15195B62
+	for <video4linux-list@redhat.com>;
+	Mon, 11 Aug 2008 15:15:01 +0200 (CEST)
+Received: from mail.farba.eu.org ([127.0.0.1])
+	by localhost (mail.farba.eu.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id lIiXmLXyTPnP for <video4linux-list@redhat.com>;
+	Mon, 11 Aug 2008 15:14:55 +0200 (CEST)
+Received: from repro.in.papagayo.com.pl (host-05.papagayo.com.pl
+	[213.134.141.76])
+	by mail.farba.eu.org (Postfix) with ESMTP id 66742195B61
+	for <video4linux-list@redhat.com>;
+	Mon, 11 Aug 2008 15:14:55 +0200 (CEST)
+Message-ID: <48A03B42.3080301@farba.eu.org>
+Date: Mon, 11 Aug 2008 15:14:42 +0200
+From: Wieslaw Kierbedz <w.kier@farba.eu.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: Commell MP-878D first time error
+Subject: Double thread. DVB H.264. PCTV 7010ix.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,69 +37,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,All
-I'm newbie for LinuxTV, I have a Capture Mini-pci Card form Commell MP-878D
-and install on my Debian Etch.
+Helo.
 
-#dmesg
-bttv: driver version 0.9.17 loaded
-bttv: using 8 buffers with 2080k (520 pages) each for capture
-bttv: Bt8xx card found (0).
-bttv0: Bt878 (rev 17) at 0000:00:0e.0, irq: 10, latency: 16, mmio:
-0xefffe000
-bttv0: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
-bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
-tveeprom 0-0050: Huh, no eeprom present (err=-121)?
-bttv0: tuner type unset
-bttv0: i2c: checking for MSP34xx @ 0x80... not found
-bttv0: i2c: checking for TDA9875 @ 0xb0... not found
-bttv0: i2c: checking for TDA7432 @ 0x8a... not found
-bttv0: registered device video0
-bttv0: registered device vbi0
-bt878: AUDIO driver version 0.0.0 loaded
-bt878: Bt878 AUDIO function found (0).
-bt878_probe: card id=[0x0], Unknown card.
-Exiting..
-bt878: probe of 0000:00:0e.1 failed with error -22
+First is the question.
+Does anybody have any experiences about decoding DVB-T H.264 streams 
+with v4l?
+Does it works? How?
 
-#lspci -vvnn
-00:0e.0 Multimedia video controller [0400]: Brooktree Corporation Bt878
-Video Capture [109e:036e] (rev 11)
-   Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B-
-   Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
-<MAbort- >SERR- <PERR-
-   Latency: 16 (4000ns min, 10000ns max)
-   Interrupt: pin A routed to IRQ 10
-   Region 0: Memory at efffe000 (32-bit, prefetchable) [size=4K]
-   Capabilities: [44] Vital Product Data
-   Capabilities: [4c] Power Management version 2
-      Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-      Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+Second is quasi offer.
+I've got Pinnacle PCTV 7010ix.
+I fount, that some skeleton driver for saa7162 already exist.
+If some developers need tests or user cooperation - welcome.
+Regards
+-- 
+Wieslaw Kierbedz
 
-00:0e.1 Multimedia controller [0480]: Brooktree Corporation Bt878 Audio
-Capture [109e:0878] (rev 11)
-   Control: I/O- Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B-
-   Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
-<MAbort- >SERR- <PERR-
-   Interrupt: pin A routed to IRQ 10
-   Region 0: Memory at efffd000 (32-bit, prefetchable) [size=4K]
-   Capabilities: [44] Vital Product Data
-   Capabilities: [4c] Power Management version 2
-      Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-      Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-How do i fix this error?
-
-bt878_probe: card id=[0x0], Unknown card.
-Exiting..
-bt878: probe of 0000:00:0e.1 failed with error -22
-
-Thanks.
-Lnakarin
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
