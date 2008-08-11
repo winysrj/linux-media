@@ -1,26 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from fg-out-1718.google.com ([72.14.220.158])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KZv2c-0000wy-7S
-	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 00:05:04 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6H00A5HJZFG1E0@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sun, 31 Aug 2008 18:04:28 -0400 (EDT)
-Date: Sun, 31 Aug 2008 18:04:27 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <e32e0e5d0808301456v4b5ca363l5a121b426438bd64@mail.gmail.com>
-To: Tim Lucas <lucastim@gmail.com>, linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <48BB156B.4070609@linuxtv.org>
-MIME-version: 1.0
-References: <e32e0e5d0808291401x39932ab6q6086882e81547f84@mail.gmail.com>
-	<48B87085.6050800@linuxtv.org> <48B8972A.3020501@linuxtv.org>
-	<e32e0e5d0808301411w1ae01563y65ce27d6c43e2beb@mail.gmail.com>
-	<e32e0e5d0808301456v4b5ca363l5a121b426438bd64@mail.gmail.com>
-Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
- HVR-1500
+	(envelope-from <zeph7r@gmail.com>) id 1KScLs-00073T-6T
+	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 20:42:44 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so1059359fga.25
+	for <linux-dvb@linuxtv.org>; Mon, 11 Aug 2008 11:42:40 -0700 (PDT)
+Message-ID: <48A08821.6090701@gmail.com>
+Date: Mon, 11 Aug 2008 19:42:41 +0100
+From: zePh7r <zeph7r@gmail.com>
+MIME-Version: 1.0
+To: Albert Comerma <albert.comerma@gmail.com>
+References: <ea4209750808080532h950d84fud047c135551e1ff1@mail.gmail.com>	
+	<489CCD82.5030406@gmail.com>	
+	<ea4209750808100251j3d027cable1e5cd81ceb4995@mail.gmail.com>	
+	<48A032F4.6000602@gmail.com>	
+	<ea4209750808110629oa80b224if6e070be61156109@mail.gmail.com>	
+	<48A05AB4.6050602@gmail.com>
+	<ea4209750808110840t2da36229ob5a59ed7e0cc4059@mail.gmail.com>
+In-Reply-To: <ea4209750808110840t2da36229ob5a59ed7e0cc4059@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Support for Asus My-Cinema U3000Hybrid?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,189 +27,249 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0124117541=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Tim Lucas wrote:
-> On Sat, Aug 30, 2008 at 2:11 PM, Tim Lucas <lucastim@gmail.com 
-> <mailto:lucastim@gmail.com>> wrote:
-> 
->     On Fri, Aug 29, 2008 at 5:41 PM, Steven Toth <stoth@linuxtv.org
->     <mailto:stoth@linuxtv.org>> wrote:
-> 
->         Steven Toth wrote:
-> 
->             Tim Lucas wrote:
-> 
->                 Mijhail Moreyra wrote:
->                  > Steven Toth wrote:
->                  >> Mijhail Moreyra wrote:
->                  >>> Steven Toth wrote:
->                  >>>> Mijhail,
->                  >>>>
->                  >>>> http://linuxtv.org/hg/~stoth/cx23885-audio
->                 <http://linuxtv.org/hg/%7Estoth/cx23885-audio>
->                  >>>>
->                  >>>> This tree contains your patch with some minor
->                 whitespace cleanups
->                  >>>> and fixes for HUNK related merge issues due to the
->                 patch wrapping at
->                  >>>> 80 cols.
->                  >>>>
->                  >>>> Please build this tree and retest in your
->                 environment to ensure I
->                  >>>> did not break anything. Does this tree still work
->                 OK for you?
->                  >>>>
->                  >>>> After this I will apply some other minor cleanups
->                 then invite a few
->                  >>>> other HVR1500 owners to begin testing.
->                  >>>>
->                  >>>> Thanks again.
->                  >>>>
->                  >>>> Regards,
->                  >>>>
->                  >>>> Steve
->                  >>>
->                  >>> Hi, sorry for the delay.
->                  >>>
->                  >>> I've tested the
->                 http://linuxtv.org/hg/~stoth/cx23885-audio
->                 <http://linuxtv.org/hg/%7Estoth/cx23885-audio> tree and
->                  >>> it doesn't work well.
->                  >>>
->                  >>> You seem to have removed a piece from my patch that
->                 avoids some register
->                  >>> modification in cx25840-core.c:cx23885_
->                 initialize()
->                  >>>
->                  >>> -       cx25840_write(client, 0x2, 0x76);
->                  >>> +       if (state->rev != 0x0000) /* FIXME: How to
->                 detect the bridge
->                  >>> type ??? */
->                  >>> +               /* This causes image distortion on
->                 a true cx23885
->                  >>> board */
->                  >>> +               cx25840_write(client, 0x2, 0x76);
->                  >>>
->                  >>> As the patch says that register write causes a
->                 horrible image distortion
->                  >>> on my HVR-1500 which has a real cx23885 (not 23887,
->                 23888, etc) board.
->                  >>>
->                  >>> I don't know if it's really required for any bridge
->                 as everything seems
->                  >>> to be auto-configured by default, maybe it can be
->                 simply dropped.
->                  >>>
->                  >>> Other than that the cx23885-audio tree works well.
->                  >>>
->                  >>> WRT the whitespaces, 80 cols, etc; most are also in
->                 the sources I took
->                  >>> as basis, so I didn't think they were a problem.
->                  >>
->                  >> That's a mistake, I'll add that later tonight,
->                 thanks for finding
->                  >> this. I must of missed it when I had to tear apart
->                 your email because
->                  >> of HUNK issues caused by patch line wrapping.
->                  >>
->                  >> Apart from this, is everything working as you expect?
->                  >>
->                  >> Regards,
->                  >>
->                  >> Steve
->                  >>
->                  >>
->                  >
->                  > OK.
->                  >
->                  > And sorry about the patch, I didn't know it was going
->                 to be broken that
->                  > way by being sent by email.
->                  >
->                  >  >> Other than that the cx23885-audio tree works well.
->                  >
-> 
->                  > Great, thanks for confirming.
-> 
->                  > Regards,
-> 
->                  > Steve
-> 
->                 I'll try asking again since my replies in gmail were not
->                 including the correct subject heading.
->                 Can this code for cx23885 analog support be adapted for
->                 the DViCO Fusion HDTV7 Dual Express which also uses the
->                 cx23885?  Currently the driver for that card is digital
->                 only and I am stuck with a free antiquated large
->                 satellite system that is analog only in my apartment. I
->                 am willing to put in the work if someone can point me in
->                 the right direction.  Thank you,
-> 
-> 
->             Wait until I get a chance to merge the cx25840 fix late
->             tonight. Watch the stoth/cx23885-audio tree for a cx25840
->             fix appearing, then test the driver. Look in the driver,
->             find the correct card=N option for the HVR1500 and load the
->             driver on your system with that option .... then try analog.
-> 
-> 
->         Tim,
-> 
->         The audio fix has now been applied to
->         http://linuxtv.org/hg/~stoth/cx23885-audio.
-> 
->         Try loading the card as the HVR1500 and see what happens.
-> 
->         Mijhail, if you could download and compile the cx23885-audio
->         tree one more time I would be grateful.
-> 
->         Regards,
-> 
->         Steve
-> 
-> 
->     OK, this may seem silly, but I'm not sure how to load the driver for
->     that card.  I think I need to edit /etc/modprobe.d/options and add
->     the line cx23885 card=6, but it still autodetected my dvico card.
->      Is there something else I need to do?  Thanks for your help.
-> 
->          --Tim
-> 
-> 
-> I forgot the word options in front of cx23385 card=6.  Now I get the 
-> following when I run dmesg
-> 
-> 30.865821] CORE cx23885[0]: subsystem: 18ac:d618, board: Hauppauge 
-> WinTV-HVR1500 [card=6,insmod option]
-> [   31.130230] cx23885[0]: i2c bus 0 registered
-> [   31.130250] cx23885[0]: i2c bus 1 registered
-> [   31.130269] cx23885[0]: i2c bus 2 registered
-> [   31.156635] tveeprom 2-0050: Encountered bad packet header [ff]. 
-> Corrupt or not a Hauppauge eeprom.
-> [   31.156637] cx23885[0]: warning: unknown hauppauge model #0
-> [   31.156639] cx23885[0]: hauppauge eeprom: model=0
-> [   31.305018] cx23885[0]: cx23885 based dvb card
-> [   31.345882] cx23885[0]: frontend initialization failed
-> [   31.345884] cx23885_dvb_register() dvb_register failed err = -1
-> [   31.345886] cx23885_dev_setup() Failed to register dvb on VID_C
-> [   31.345889] cx23885_dev_checkrevision() Hardware revision = 0xb0
-> [   31.345895] cx23885[0]/0: found at 0000:08:00.0, rev: 2, irq: 21, 
-> latency: 0, mmio: 0xfd800000
-> 
-> I suppose I need to do something else to get the driver to load correctly.
+--===============0124117541==
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-No, that's loaded fine.
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Albert Comerma escreveu:
+<blockquote
+ cite="mid:ea4209750808110840t2da36229ob5a59ed7e0cc4059@mail.gmail.com"
+ type="cite">
+  <div dir="ltr">That's something related to your distribution, so I
+can't help much. Just verify you have gcc and linux-headers and all the
+stuff needed installed.<br>
+  <br>
+Albert<br>
+  <br>
+  <div class="gmail_quote">2008/8/11 zePh7r <span dir="ltr">&lt;<a
+ moz-do-not-send="true" href="mailto:zeph7r@gmail.com">zeph7r@gmail.com</a>&gt;</span><br>
+  <blockquote class="gmail_quote"
+ style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+    <div bgcolor="#ffffff" text="#000000">
+Albert Comerma escreveu:
+    <div>
+    <div class="Wj3C7c">
+    <blockquote type="cite">
+      <div dir="ltr">If you look around line 1082 of dib0700_devices.c
+you
+will find the table of the cards, which refers to the id's you added on
+dvb-usb-ids.h. So you must add an entry to that table. I send you the
+modified files, so you can see. I also send you a .config file you must
+copy on v4l-dvb/v4l/ folder. Then go into v4l-dvb and just type make,
+and then as root make install. That should work without problems. To
+try all of this you need the dibcom and xceive firmware at /lib/firmware<br>
+      <br>
+Albert<br>
+      <br>
+      <div class="gmail_quote">2008/8/11 zePh7r <span dir="ltr">&lt;<a
+ moz-do-not-send="true" href="mailto:zeph7r@gmail.com" target="_blank">zeph7r@gmail.com</a>&gt;</span><br>
+      <blockquote class="gmail_quote"
+ style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Albert
+Comerma escreveu:<br>
+        <blockquote class="gmail_quote"
+ style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+          <div>Sorry, I didn't explained much... it also
+took some time to me to understand how it's working... Since xc2028 is
+the tunner it has no Id information on the code. The id's are on the
+usb bridge code. You should add your deviece id's at;<br>
+/v4l-dvb/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h and then insert
+your device at<br>
+/v4l-dvb/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c &nbsp; &nbsp;first the
+device descriptors (at arround line 1120) and then the device itself, I
+would try it around line 1418. This last file, has already the include
+to the xc2028 code and calls the tunner funcions. Looking the code
+around this lines I guess you will understand how it works.<br>
+          <br>
+Albert<br>
+          <br>
+          </div>
+2008/8/9 zePh7r &lt;<a moz-do-not-send="true"
+ href="mailto:zeph7r@gmail.com" target="_blank">zeph7r@gmail.com</a>
+&lt;mailto:<a moz-do-not-send="true" href="mailto:zeph7r@gmail.com"
+ target="_blank">zeph7r@gmail.com</a>&gt;&gt;
+          <div><br>
+          <br>
+&nbsp; &nbsp;Albert Comerma escreveu:<br>
+          <br>
+&nbsp; &nbsp; &nbsp; &nbsp;Just to clarify things...<br>
+          <br>
+&nbsp; &nbsp; &nbsp; &nbsp;Xceive chips are just tunners, RF chips, mostly analogue with<br>
+&nbsp; &nbsp; &nbsp; &nbsp;some digital interface, they don't do anything with usb or<br>
+&nbsp; &nbsp; &nbsp; &nbsp;comunication with the computer, for this reason you need the<br>
+&nbsp; &nbsp; &nbsp; &nbsp;dibcom chip, it's a usb bridge + decoder + something else...<br>
+&nbsp; &nbsp; &nbsp; &nbsp;To start to develop something you must first be sure of what<br>
+&nbsp; &nbsp; &nbsp; &nbsp;chips it's using.<br>
+&nbsp; &nbsp; &nbsp; &nbsp;If not you can try blindly if modifying the code for the<br>
+&nbsp; &nbsp; &nbsp; &nbsp;U3000-Mini works or Pinnacle 320cx (dibcom 7700 + xceive2028)<br>
+&nbsp; &nbsp; &nbsp; &nbsp;work (you just need to add your device usb id's).<br>
+          <br>
+&nbsp; &nbsp; &nbsp; &nbsp;Albert<br>
+          <br>
+&nbsp; &nbsp;Thank you for replying Albert.<br>
+&nbsp; &nbsp;I've been exploring the files downloaded through the mercurial<br>
+&nbsp; &nbsp;repository and though I have found files which seem like they<br>
+&nbsp; &nbsp;relate to that purpose in<br>
+&nbsp; &nbsp;/v4l-dvb/linux/drivers/media/common/tuners (which are<br>
+&nbsp; &nbsp;tuner-xc2028.c , tuner-xc2028.h and tuner-xc2028-types.h) I can't<br>
+&nbsp; &nbsp;find any section in the above files with some sort of list of<br>
+&nbsp; &nbsp;device ID's so as to resemble them. There should be something like<br>
+&nbsp; &nbsp;an xc2028-cards.c right?<br>
+&nbsp; &nbsp;This must seem a noob question but this whole process looks like<br>
+&nbsp; &nbsp;something someone who's not deeply into this project couldn't do<br>
+&nbsp; &nbsp;easily..<br>
+          <br>
+          <br>
+          </div>
+        </blockquote>
+When I try to compile the drivers I get this:<br>
+        <br>
+zeph7r@zeph7r-laptop:~/v4l/v4l-dvb&gt; make all<br>
+make -C /home/zeph7r/v4l/v4l-dvb/v4l all<br>
+make[1]: Entering directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+Updating/Creating .config<br>
+Preparing to compile for kernel version 2.6.25<br>
+File not found: /lib/modules/2.6.25.11-0.1-default/build/.config at
+./scripts/make_kconfig.pl line 32, &lt;IN&gt; line 4.<br>
+make[1]: *** No rule to make target `.myconfig', needed by
+`config-compat.h'. &nbsp;Stop.<br>
+make[1]: Leaving directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+make: *** [all] Error 2<br>
+        <br>
+any hints on what might be causing this? I went look at that dir and
+found a makedumpfile.config , perhaps I should edit config-compat.h and
+set it to go look for that file instead..<br>
+      </blockquote>
+      </div>
+      <br>
+      </div>
+    </blockquote>
+    <br>
+    <br>
+    </div>
+    </div>
+Even after I putted .config in v4l-dvb/v4l it is still not compiling:
+    <div class="Ih2E3d"><br>
+    <br>
+zeph7r@zeph7r-laptop:~/v4l/v4l-dvb&gt; make<br>
+    </div>
+    <div class="Ih2E3d">make -C /home/zeph7r/v4l/v4l-dvb/v4l<br>
+    </div>
+    <div class="Ih2E3d">make[1]: Entering directory
+`/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+    </div>
+No version yet, using 2.6.25.11-0.1-default
+    <div class="Ih2E3d"><br>
+make[1]: Leaving directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+    </div>
+    <div class="Ih2E3d">make[1]: Entering directory
+`/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+    </div>
+scripts/make_makefile.pl<br>
+Updating/Creating .config<br>
+./scripts/make_kconfig.pl /lib/modules/2.6.25.11-0.1-default/build
+/lib/modules/2.6.25.11-0.1-default/build
+    <div class="Ih2E3d"><br>
+Preparing to compile for kernel version 2.6.25<br>
+File not found: /lib/modules/2.6.25.11-0.1-default/build/.config at
+./scripts/make_kconfig.pl line 32, &lt;IN&gt; line 4.<br>
+    </div>
+    <div class="Ih2E3d">make[1]: Leaving directory
+`/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+    </div>
+    <div class="Ih2E3d">make[1]: Entering directory
+`/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+    </div>
+./scripts/make_kconfig.pl /lib/modules/2.6.25.11-0.1-default/build
+/lib/modules/2.6.25.11-0.1-default/build
+    <div class="Ih2E3d"><br>
+Preparing to compile for kernel version 2.6.25<br>
+File not found: /lib/modules/2.6.25.11-0.1-default/build/.config at
+./scripts/make_kconfig.pl line 32, &lt;IN&gt; line 4.<br>
+make[1]: *** No rule to make target `.myconfig', needed by
+`config-compat.h'.&nbsp; Stop.<br>
+make[1]: Leaving directory `/home/zeph7r/v4l/v4l-dvb/v4l'<br>
+make: *** [all] Error 2<br>
+    </div>
+    <div class="Ih2E3d">zeph7r@zeph7r-laptop:~/v4l/v4l-dvb&gt;<br>
+    <br>
+    </div>
+I even tried copying .config to
+/lib/modules/2.6.25.11-0.1-default/build
+/lib/modules/2.6.25.11-0.1-default/build but some other error came up
+as well<br>
+    </div>
+  </blockquote>
+  </div>
+  </div>
+</blockquote>
+<br>
+After some more searching I found I only had
+installed kernel headers and missed kernel-source (both are needed).
+After installing it I was finally able to build the drivers.<br>
+<br>
+I think finally we might be getting somewhere: after installing the
+new-built drivers, I connected the device to my laptop and in dmesg
+there was this info:<br>
+<br>
+<meta name="qrichtext" content="1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+p, li { white-space: pre-wrap; }
+</style>
+<p style="margin: 0px; text-indent: 0px;"><!--StartFragment-->Aug 11
+19:28:45 zeph7r-laptop kernel: usb 4-3: new high speed USB device using
+ehci_hcd and address 5</p>
+<p style="margin: 0px; text-indent: 0px;">Aug 11 19:28:46 zeph7r-laptop
+kernel: usb 4-3: configuration #1 chosen from 1 choice</p>
+<p style="margin: 0px; text-indent: 0px;">Aug 11 19:28:46 zeph7r-laptop
+kernel: dvb-usb: found a 'Asus My Cinema-U3000Hybrid' in cold state,
+will try to load a firmware</p>
+<p style="margin: 0px; text-indent: 0px;">Aug 11 19:28:46 zeph7r-laptop
+kernel: dvb-usb: did not find the firmware file.
+(dvb-usb-dib0700-1.10.fw) Please see linux/Documentation/dvb/ for more
+details on firmware-problems. (-2)</p>
+<p style="margin: 0px; text-indent: 0px;">Aug 11 19:28:46 zeph7r-laptop
+kernel: usb 4-3: New USB device found, idVendor=0b05, idProduct=1736</p>
+<p style="margin: 0px; text-indent: 0px;">Aug 11 19:28:46 zeph7r-laptop
+kernel: usb 4-3: New USB device strings: Mfr=1, Product=2,
+SerialNumber=3</p>
+<p style="margin: 0px; text-indent: 0px;">Aug 11 19:28:46 zeph7r-laptop
+kernel: usb 4-3: Product: U3000 Hybrid</p>
+<p style="margin: 0px; text-indent: 0px;">Aug 11 19:28:46 zeph7r-laptop
+kernel: usb 4-3: Manufacturer: ASUSTeK</p>
+<p style="margin: 0px; text-indent: 0px;">Aug 11 19:28:46 zeph7r-laptop
+kernel: usb 4-3: SerialNumber: 8110400333</p>
+<p style="margin: 0px; text-indent: 0px;">Aug 11 19:28:46 zeph7r-laptop
+firmware.sh[18811]: Cannot find firmware file 'dvb-usb-dib0700-1.10.fw'<!--EndFragment--></p>
+<br>
+I couldn't fully understand what you said earlier about firmware
+because I thought it was supposed to be built along with the rest of
+the driver but now it seems it is not... how should I do to provide the
+firmware?<br>
+</body>
+</html>
 
-Ignore the digital VIDC attach errors. How is analog TV working?
 
-- Steve
+--===============0124117541==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0124117541==--
