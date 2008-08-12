@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 203.161.84.42.static.amnet.net.au ([203.161.84.42]
-	helo=goeng.com.au) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tom@goeng.com.au>) id 1KZHEq-0000j4-Da
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 05:35:01 +0200
-From: "Thomas Goerke" <tom@goeng.com.au>
-To: stev391@email.com, "'jackden'" <jackden@gmail.com>
-References: <20080830012407.BCB0247808F@ws1-5.us4.outblaze.com>
-In-Reply-To: <20080830012407.BCB0247808F@ws1-5.us4.outblaze.com>
-Date: Sat, 30 Aug 2008 11:35:23 +0800
-Message-ID: <000901c90a51$72e44100$58acc300$@com.au>
+Received: from 213.159.238.198.iptelecom.net.ua ([213.159.238.198]
+	helo=mail.trirema.kiev.ua) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <a3df@trirema.kiev.ua>) id 1KSwgJ-0001nm-Vl
+	for linux-dvb@linuxtv.org; Tue, 12 Aug 2008 18:25:16 +0200
+Received: from [10.0.1.222] (unknown [10.0.1.222])
+	by mail.trirema.kiev.ua (Postfix) with ESMTP id 24C762E5FF
+	for <linux-dvb@linuxtv.org>; Tue, 12 Aug 2008 20:14:01 +0300 (EEST)
+Message-ID: <48A1B861.30602@trirema.kiev.ua>
+Date: Tue, 12 Aug 2008 19:20:49 +0300
+From: Alexander Sotnikov <a3df@trirema.kiev.ua>
 MIME-Version: 1.0
-Content-Language: en-au
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
-	TV/FM capture card
+To: linux-dvb@linuxtv.org
+References: <48A1B304.9010707@trirema.kiev.ua>
+In-Reply-To: <48A1B304.9010707@trirema.kiev.ua>
+Subject: Re: [linux-dvb] ULE big somewhere : NPA+BRIDGED_FRAME+VLAN =
+ Hardlock w/o any oops
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,67 +28,82 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Tom,
-> (Jackden please try first patch and provide feedback, if that doesn't
-> work for your card, then try this and provide feedback)
-> 
-> The second dmesg (with debugging) didn't show me what I was looking
-> for, but from past experience I will try something else.  I was looking
-> for some dma errors from the cx23885 driver, these usually occured
-> while streaming is being attempted.
-> 
-> Attached to this email is another patch.  The difference between the
-> first one and the second one is that I load an extra module (cx25840),
-> which normally is not required for DVB as it is part of the analog side
-> of this card.  This does NOT mean analog will be supported.
-> 
-> As of today the main v4l-dvb can be used with this patch and this means
-> that the cx23885-leadtek tree will soon disappear. So step 2 above has
-> been modified to: "Check out the latest v4l-dvb source".
-> 
-> Other then that step 4 has a different file name for the patch.
-> 
-> Steps that need to be completed are: 2, 3, 4, 5, 7, 9, 10 & 11. (As you
-> have completed the missing steps already).
-> 
-> If the patch works, please do not stop communicating, as I have to
-> perform one more patch to prove that cx25840 is required and my
-> assumptions are correct. Once this is completed I will send it to
-> Steven Toth for inclusion in his test tree. This will need to be tested
-> by you again, and if all is working well after a week or more it will
-> be included into the main tree.
-> 
-> Regards,
-> Stephen
-> 
-> 
-> --
-> Nothing says Labor Day like 500hp of American muscle Visit OnCars.com
-> today.
-Stephen,
+Alexander Sotnikov wrote:
 
-I downloaded latest version of v4l-dvb (30/08/08:11:30am WST), applied patch
-(which passed) and then tried a make.  This is the output:
 
--- snip --
-include/asm/io_32.h: In function 'memcpy_fromio':
-include/asm/io_32.h:211: warning: passing argument 2 of '__memcpy' discards
-qualifiers from pointer target type
-  CC [M]  /home/tom/source/v4l-dvb/v4l/stradis.o
-  CC [M]  /home/tom/source/v4l-dvb/v4l/cpia.o
-/home/tom/source/v4l-dvb/v4l/cpia.c: In function 'cpia_open':
-/home/tom/source/v4l-dvb/v4l/cpia.c:3205: error: implicit declaration of
-function 'current_uid'
-make[3]: *** [/home/tom/source/v4l-dvb/v4l/cpia.o] Error 1
-make[2]: *** [_module_/home/tom/source/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/tom/source/v4l-dvb/v4l'
-make: *** [all] Error 2
+some quick update and  previous message beautification
+changed  DVB card for other brand and got BUG call this time
 
-I then tried make clean, make and the same error occurred.
+[  668.944003] BUG: soft lockup - CPU#0 stuck for 61s! [cx88[0] dvb:1252]
+[  668.944003] Modules linked in: af_packet dvb_bt8xx dst bt878 bttv
+firmware_class compat_ioctl32 v4l2_common cx88_dvb cx88_vp3054_i2c
+cx8802 cx88xx videodev v4l1_compat ir_common i2c_algo_bit tveeprom
+btcx_risc videobuf_dma_sg videobuf_dvb videobuf_core cx24123 i2c_core
+dvb_core unix ipv6
+[  668.944003]
+[  668.944003] Pid: 1252, comm: cx88[0] dvb Not tainted (2.6.26.1 #6)
+[  668.944003] EIP: 0060:[<dc84c643>] EFLAGS: 00000246 CPU: 0
+[  668.944003] EIP is at dvb_net_ts_callback+0x973/0xbf0 [dvb_core]
+[  668.944003] EAX: 00000001 EBX: 00000000 ECX: dbba2d80 EDX: dc84cbf0
+[  668.944003] ESI: 00000000 EDI: dbba2946 EBP: daccdf44 ESP: daccdec8
+[  668.944003]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
+[  668.944003] CR0: 8005003b CR2: 083c1808 CR3: 1b89b000 CR4: 00000690
+[  668.944003] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
+[  668.944003] DR6: ffff0ff0 DR7: 00000400
+[  668.944003]  [<dc84568d>] dvb_dmx_swfilter_packet+0x32d/0x370 [dvb_core]
+[  668.944003]  [<dc846589>] dvb_dmx_swfilter+0xc9/0x140 [dvb_core]
+[  668.944003]  [<dc81f450>] videobuf_dvb_thread+0xf0/0x160 [videobuf_dvb]
+[  668.944003]  [<c011a4b6>] ? complete+0x46/0x60
+[  668.944003]  [<dc81f360>] ? videobuf_dvb_thread+0x0/0x160 [videobuf_dvb]
+[  668.944003]  [<c01370d2>] kthread+0x42/0x70
+[  668.944003]  [<c0137090>] ? kthread+0x0/0x70
+[  668.944003]  [<c0104247>] kernel_thread_helper+0x7/0x10
+[  668.944003]  =======================
 
-Tom
+
+
+> Hi all
+>
+> while creating ULE  encapsulation driver for our in house DVB modulator
+> i found out   that i can hard lock DVB receiver    with  following packet
+>
+> //normal arp request in  Vlan 4
+> 0xff 0xff 0xff 0xff 0xff 0xff 0x00 0xff 0x9e 0x00 0x75 0xfa 0x81 0x00 0x00 0x04
+> 0x08 0x06 0x00 0x01 0x08 0x00 0x06 0x04 0x00 0x01 0x00 0xff 0x9e 0x00 0x75 0xfa
+> 0x0a 0x00 0x01 0x10 0xff 0xff 0xff 0xff 0xff 0xff 0x01 0x01 0x01 0x01
+>
+> //same encapsulated in ULE headers with NPA <0x02 0x00 0x00 0x00 0x00 0x01>
+>
+> 0x00 0x38 0x00 0x01 0x02 0x00 0x00 0x00 0x00 0x01 0xff 0xff 0xff 0xff 0xff 0xff
+> 0x00 0xff 0x9e 0x00 0x75 0xfa 0x81 0x00 0x00 0x04 0x08 0x06 0x00 0x01 0x08 0x00
+> 0x06 0x04 0x00 0x01 0x00 0xff 0x9e 0x00 0x75 0xfa 0x0a 0x00 0x01 0x10 0xff 0xff
+> 0xff 0xff 0xff 0xff 0x01 0x01 0x01 0x01 0x76 0x42 0x10 0x42
+>
+>
+> //all above  in  188 B   TS frame
+>
+> TSD START -------------------
+> 0x47 0x51 0x11 0x13 0x00 0x00 0x38 0x00 0x01 0x02 0x00 0x00 0x00 0x00 0x01 0xff
+> 0xff 0xff 0xff 0xff 0xff 0x00 0xff 0x9e 0x00 0x75 0xfa 0x81 0x00 0x00 0x04 0x08
+> 0x06 0x00 0x01 0x08 0x00 0x06 0x04 0x00 0x01 0x00 0xff 0x9e 0x00 0x75 0xfa 0x0a
+> 0x00 0x01 0x10 0xff 0xff 0xff 0xff 0xff 0xff 0x01 0x01 0x01 0x01 0x76 0x42 0x10
+> 0x42 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+> TSD END ---------------------
+>
+>
+> packets w/o  VLAN tag  or   w/o  NPA  set  work perfectly   (kernel
+> version 2.6.26.1  stock drivers)
+> any pointers where to look for problem  are welcome
+>
+> Alexander
+>   
 
 
 _______________________________________________
