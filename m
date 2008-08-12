@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from yw-out-2324.google.com ([74.125.46.29])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KZRo1-0004s4-UW
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 16:52:04 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6F004SM59R1C20@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sat, 30 Aug 2008 10:51:28 -0400 (EDT)
-Date: Sat, 30 Aug 2008 10:51:27 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <g9ba7k$o72$1@ger.gmane.org>
-To: Christian Tramnitz <chris.ace@gmx.net>
-Message-id: <48B95E6F.2040509@linuxtv.org>
-MIME-version: 1.0
-References: <48B8400A.9030409@linuxtv.org> <g9ba7k$o72$1@ger.gmane.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+	(envelope-from <sparkmaul@gmail.com>) id 1KSolp-00081l-4s
+	for linux-dvb@linuxtv.org; Tue, 12 Aug 2008 09:58:23 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so670619ywj.41
+	for <linux-dvb@linuxtv.org>; Tue, 12 Aug 2008 00:58:16 -0700 (PDT)
+Message-ID: <8e5b27790808120058o52c4c6bcw21152364b2613c39@mail.gmail.com>
+Date: Tue, 12 Aug 2008 00:58:16 -0700
+From: "Paul Marks" <paul@pmarks.net>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] FusionHDTV5 IR not working.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,38 +25,63 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Christian Tramnitz wrote:
-> Steven Toth wrote:
->> Regarding the multiproto situation:
->>
->> [...]
->> If you feel that you want to support our movement then please help us by
->> acking this email.
->>
->> Regards - Steve, Mike, Patrick and Mauro.
->> [...]
-> 
-> Full ACK!
-> 
-> While appreciating Manu's work and actually using Multiproto without 
-> major issues for some time now, I see that it will never move forward 
-> this way. We have to get S2 support into the vanilla kernel <full-stop>
-> 
-> My main concern is the multiproto work that has already been done for 
-> vdr (specifically 1.7.0), so while not being a programmer at all I'd 
-> like to express my support in offering resources: If any of the core 
-> programmers working on the new API needs something (test VM with DVB-S2 
-> cards actually hooked up to multiple satellites, webspace, bandwidth, 
-> ...) please let me know!
+I have a DViCO FusionHDTV5 RT Gold, with an IR sensor that connects to
+the back of the card.  The remote is a "Fusion Remote MCE".  The video
+capture stuff works just fine, but I've had no such luck with the
+remote.
 
-Christian, thank you for your support.
+According to this commit, it looks like my setup is supposed to work:
+http://linuxtv.org/hg/v4l-dvb/rev/d16b5cd5a283
 
-We'll be working hard to get suport in all applications.
+When I enabled debug output for ir_kb2_i2c, this line caught my eye:
+ir-kbd-i2c: probe 0x6b @ cx88[0]: no
 
-Regards,
+I also enabled i2c_scan in the cx88xx module, and saw this:
 
-Steve
+cx88[0]: i2c register ok
+cx88[0]: i2c scan: found device @ 0x1c  [lgdt330x]
+cx88[0]: i2c scan: found device @ 0x86  [tda9887/cx22702]
+cx88[0]: i2c scan: found device @ 0xa0  [eeprom]
+cx88[0]: i2c scan: found device @ 0xa2  [???]
+cx88[0]: i2c scan: found device @ 0xa4  [???]
+cx88[0]: i2c scan: found device @ 0xa6  [???]
+cx88[0]: i2c scan: found device @ 0xa8  [???]
+cx88[0]: i2c scan: found device @ 0xaa  [???]
+cx88[0]: i2c scan: found device @ 0xac  [???]
+cx88[0]: i2c scan: found device @ 0xae  [???]
+cx88[0]: i2c scan: found device @ 0xc2  [tuner (analog/dvb)]
+cx88[0]: i2c scan: found device @ 0xde  [???]
 
+lspci -v says:
+
+01:06.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video
+and Audio Decoder (rev 05)
+        Subsystem: DViCO Corporation FusionHDTV 5 Gold
+        Flags: medium devsel, IRQ 18
+        Memory at fa000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: [44] Vital Product Data <?>
+        Capabilities: [4c] Power Management version 2
+        Kernel modules: cx8800
+
+01:06.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and
+Audio Decoder [Audio Port] (rev 05)
+        Subsystem: DViCO Corporation Device d500
+        Flags: bus master, medium devsel, latency 4, IRQ 7
+        Memory at f9000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: [4c] Power Management version 2
+
+01:06.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and
+Audio Decoder [MPEG Port] (rev 05)
+        Subsystem: DViCO Corporation DViCO FusionHDTV5 Gold
+        Flags: bus master, medium devsel, latency 64, IRQ 18
+        Memory at f8000000 (32-bit, non-prefetchable) [size=16M]
+        Capabilities: [4c] Power Management version 2
+        Kernel driver in use: cx88-mpeg driver manager
+        Kernel modules: cx8802
+
+
+Does anyone know how to hack up this driver to determine where the
+remote is hiding?  Let me know if any further info is needed.
 
 _______________________________________________
 linux-dvb mailing list
