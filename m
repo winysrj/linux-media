@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1KZOS4-00068P-Mb
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 13:17:11 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
+Received: from yx-out-2324.google.com ([74.125.44.28])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <kknull0@gmail.com>) id 1KShdY-0000dD-4A
+	for linux-dvb@linuxtv.org; Tue, 12 Aug 2008 02:21:22 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so717242yxg.41
+	for <linux-dvb@linuxtv.org>; Mon, 11 Aug 2008 17:21:15 -0700 (PDT)
+Message-ID: <57ed08da0808111721v2d152865t5feee0c81cfaaf5c@mail.gmail.com>
+Date: Tue, 12 Aug 2008 02:21:15 +0200
+From: Xaero <kknull0@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Sat, 30 Aug 2008 13:16:05 +0200
-References: <48B8400A.9030409@linuxtv.org>
-In-Reply-To: <48B8400A.9030409@linuxtv.org>
+In-Reply-To: <57ed08da0808111720j5514e218o2f4a17d2f4a954b7@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200808301316.05526@orion.escape-edv.de>
-Cc: VDR mailing list <vdr@linuxtv.org>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
-Reply-To: linux-dvb@linuxtv.org
+References: <57ed08da0808081449m598af353n7edf908551753318@mail.gmail.com>
+	<412bdbff0808081458v418449c4q6db215cf83e3ead0@mail.gmail.com>
+	<57ed08da0808111720j5514e218o2f4a17d2f4a954b7@mail.gmail.com>
+Subject: Re: [linux-dvb] Pinnacle pctv hybrid pro stick 340e support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,106 +22,154 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1759871412=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Steven Toth wrote:
-> Regarding the multiproto situation:
-> 
-> A number of developers, maintainers and users are unhappy with the
-> multiproto situation, actually they've been unhappy for a considerable
-> amount of time. The linuxtv developer community (to some degree) is seen
-> as a joke and a bunch in-fighting people. Multiproto is a great
-> demonstration of this. [1] The multiproto project has gone too far, for
-> too long and no longer has any credibility in the eyes of many people.
-> 
-> In response, a number developers have agreed that "enough is enough" and
-> "it's time to take a new direction", for these developers the technical,
-> political and personal cost of multiproto is too high. These developers
-> have decided to make an announcement.
-> 
-> Mauro Chehab, Michael Krufky, Patrick Boettcher and myself are hereby
-> announcing that we no longer support multiproto and are forming a
-> smaller dedicated project group which is focusing on adding next
-> generation S2/ISDB-T/DVB-H/DVB-T2/DVB-SH support to the kernel through a 
-> different and simpler API.
+--===============1759871412==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_75038_26345442.1218500475402"
+
+------=_Part_75038_26345442.1218500475402
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+ok,
+I've opened the card. The component are similar to 801e but they're not the
+same..
+
+-DibCom 700C1 - ACXXa-G
+ USB 2.0 DVB QHGG0
+ 03M95.1
+ 0809 - 1100 - C
+- XCeive 4000ACQ
+  DP5579
+  0805TWE3
+- Conexant CX25843 - 24Z
+  81038424
+  0804 KOREA
+- Cirrus 5340CZZ
+  0744
+
+
+2008/8/8 Devin Heitmueller <devin.heitmueller@gmail.com>
+
+2008/8/8 Xaero <kknull0@gmail.com>:
+> > Hi,
+> > I'm trying to make the 340e card work. (This is a reply to Gerard post,
+> I've
+> > just subscribed to this list and I didn't know how to reply, sorry :D)
+> > I have the same lsusb output as Gerard. but I can't get more information
+> > from dmesg:
+> > I get only
+> >
+> > usb 6-8: new high speed USB device using ehci_hcd and address 8
+> > usb 6-8: configuration #1 chosen from 1 choice
+> >
+> > when the card is plugged. (maybe I have to configure some kernel
+> options?)
+> >
+> > Btw, I tried the dib0770 modules (following Albert's instructions) , and
+> no
+> > dvb devices are created, so i don't think they'rer the right drivers (I'm
+> > not sure again, dmesg doesn't write anything)...
+> > Suggestion?
 >
-> Basic patches and demo code for this API is currently available here.
-> 
-> http://www.steventoth.net/linux/s2
-> 
-> Does it even work? Yes
-> Is this new API complete? No
-> Is it perfect? No, we've already had feedback on structural and
-> namingspace changes that people would like to see.
-> Does it have bugs? Of course, we have a list of things we already know
-> we want to fix.
-> 
-> but ...
-> 
-> Is the new approach flexible? Yes, we're moving away from passing fixed
-> modulation structures into the kernel.
-> Can we add to it without breaking the future ABI when unforseen
-> modulations types occur? Yes
-> Does it preserve backwards compatibility? Yes
-> Importantly, is the overall direction correct? Yes
-> Does it impact existing frontend drivers? No.
-> What's the impact to dvb-core? Small.
-> What's the impact to application developers? None, unless an application 
-> developer wants to support the new standards - binary compatibility!
-> 
-> We want feedback and we want progress, we aim to achieve it.
-> 
-> Importantly, this project group seeks your support.
-> 
-> If you also feel frustrated by the multiproto situation and agree in
-> principle with this new approach, and the overall direction of the API
-> changes, then we welcome you and ask you to help us.
-> 
-> Growing the list of supporting names by 100%, and allowing us to publish
-> your name on the public mailing list, would show the non-maintainer
-> development community that we recognize the problem and we're taking
-> steps to correct the problem. We want to make LinuxTV a perfect platform
-> for S2, ISDB-T and other advanced modulation types, without using the
-> multiproto patches.
-> 
-> We're not asking you for technical help, although we'd like that  :) ,
-> we're just asking for your encouragement to move away from multiproto.
-> 
-> If you feel that you want to support our movement then please help us by
-> acking this email.
-> 
-> Regards - Steve, Mike, Patrick and Mauro.
-> 
-> Acked-by: Patrick Boettcher <pb@linuxtv.org>
-> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
-> Acked-by: Steven Toth <stoth@linuxtv.org>
-> Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-> 
-> * [1]. Rather than point out the issues with multiproto here, take a
-> look at the patches and/or read the comments on the mailing lists.
+> I'm not sure how similar the 340e is to the "Pinnacle PCTV HD Pro USB"
+> stick that's available in the United States, but it's possible they're
+> similar devices:
+>
+> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_(801e)<http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_%28801e%29>
+>
+> Why don't you open it up and see if it's got the same components?
+>
+> I have been working on it for the last few days, and I'm pretty close
+> to having it working.  Once I do, adding another USB ID would be
+> pretty simple.  I should have a patch for digital support toward the
+> end of next week (I will be out of town until then).
+>
+> If it's not the same device, you should create a page in the Wiki
+> comparable to the one above, containing all of the chips that the
+> device includes (so at least people will know definitively that it's
+> not supported and what it is composed of).
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
 
-Guys, I don't like the way you do this. ;-(
+------=_Part_75038_26345442.1218500475402
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Why didn't you propose this API when we reviewed multiproto?
-Meanwhile there are applications (vdr, others?) which implement the
-multiproto API.
+<div dir="ltr"><br><div class="gmail_quote"><div dir="ltr">ok, <br>I&#39;ve opened the card. The component are similar to 801e but they&#39;re not the same..<br><br>-DibCom 700C1 - ACXXa-G<br>&nbsp;USB 2.0 DVB QHGG0<br>&nbsp;03M95.1<br>
+&nbsp;0809 - 1100 - C<br>- XCeive 4000ACQ <br>
+&nbsp; DP5579<br>&nbsp; 0805TWE3<br>- Conexant CX25843 - 24Z<br>&nbsp; 81038424<br>&nbsp; 0804 KOREA<br>- Cirrus 5340CZZ<br>&nbsp; 0744<br><br><br><div class="gmail_quote">2008/8/8 Devin Heitmueller <span dir="ltr">&lt;<a href="mailto:devin.heitmueller@gmail.com" target="_blank">devin.heitmueller@gmail.com</a>&gt;</span><div>
+<div></div><div class="Wj3C7c"><br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">2008/8/8 Xaero &lt;<a href="mailto:kknull0@gmail.com" target="_blank">kknull0@gmail.com</a>&gt;:<br>
 
-As I am not willing to spend a single minute of my time with API wars,
-I will ack this API only if the multiproto developer and the users agree
-with this approach.
+<div><div></div><div>&gt; Hi,<br>
+&gt; I&#39;m trying to make the 340e card work. (This is a reply to Gerard post, I&#39;ve<br>
+&gt; just subscribed to this list and I didn&#39;t know how to reply, sorry :D)<br>
+&gt; I have the same lsusb output as Gerard. but I can&#39;t get more information<br>
+&gt; from dmesg:<br>
+&gt; I get only<br>
+&gt;<br>
+&gt; usb 6-8: new high speed USB device using ehci_hcd and address 8<br>
+&gt; usb 6-8: configuration #1 chosen from 1 choice<br>
+&gt;<br>
+&gt; when the card is plugged. (maybe I have to configure some kernel options?)<br>
+&gt;<br>
+&gt; Btw, I tried the dib0770 modules (following Albert&#39;s instructions) , and no<br>
+&gt; dvb devices are created, so i don&#39;t think they&#39;rer the right drivers (I&#39;m<br>
+&gt; not sure again, dmesg doesn&#39;t write anything)...<br>
+&gt; Suggestion?<br>
+<br>
+</div></div>I&#39;m not sure how similar the 340e is to the &quot;Pinnacle PCTV HD Pro USB&quot;<br>
+stick that&#39;s available in the United States, but it&#39;s possible they&#39;re<br>
+similar devices:<br>
+<br>
+<a href="http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_%28801e%29" target="_blank">http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_(801e)</a><br>
+<br>
+Why don&#39;t you open it up and see if it&#39;s got the same components?<br>
+<br>
+I have been working on it for the last few days, and I&#39;m pretty close<br>
+to having it working. &nbsp;Once I do, adding another USB ID would be<br>
+pretty simple. &nbsp;I should have a patch for digital support toward the<br>
+end of next week (I will be out of town until then).<br>
+<br>
+If it&#39;s not the same device, you should create a page in the Wiki<br>
+comparable to the one above, containing all of the chips that the<br>
+device includes (so at least people will know definitively that it&#39;s<br>
+not supported and what it is composed of).<br>
+<br>
+Devin<br>
+<font color="#888888"><br>
+--<br>
+Devin J. Heitmueller<br>
+<a href="http://www.devinheitmueller.com" target="_blank">http://www.devinheitmueller.com</a><br>
+AIM: devinheitmueller<br>
+</font></blockquote></div></div></div><br></div>
+</div><br></div>
 
-Oliver
+------=_Part_75038_26345442.1218500475402--
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+
+--===============1759871412==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1759871412==--
