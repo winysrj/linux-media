@@ -1,27 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from mail-relay1.leicester.gov.uk ([212.50.184.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KTQFF-0001OT-Qy
-	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 01:59:15 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K5K000BID9PX1V0@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 13 Aug 2008 19:58:38 -0400 (EDT)
-Date: Wed, 13 Aug 2008 19:58:37 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <412bdbff0808131644p2d5f02bcqdd37ed800a5a13bc@mail.gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Message-id: <48A3752D.3020709@linuxtv.org>
-MIME-version: 1.0
-References: <57ed08da0808081449m598af353n7edf908551753318@mail.gmail.com>
-	<412bdbff0808081458v418449c4q6db215cf83e3ead0@mail.gmail.com>
-	<57ed08da0808111720j5514e218o2f4a17d2f4a954b7@mail.gmail.com>
-	<57ed08da0808111721v2d152865t5feee0c81cfaaf5c@mail.gmail.com>
-	<412bdbff0808131644p2d5f02bcqdd37ed800a5a13bc@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Pinnacle pctv hybrid pro stick 340e support
+	(envelope-from <John.Chajecki@leicester.gov.uk>) id 1KSvAF-0004sQ-OQ
+	for linux-dvb@linuxtv.org; Tue, 12 Aug 2008 16:48:00 +0200
+Message-Id: <48A1B0820200005F00018042@vs-internet.council.leicester.gov.uk>
+Date: Tue, 12 Aug 2008 15:47:14 +0100
+From: "John Chajecki" <John.Chajecki@leicester.gov.uk>
+To: <linux-dvb@linuxtv.org>
+Mime-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Attempting to compile the saa7134-alsa module
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,48 +23,65 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Devin Heitmueller wrote:
-> Hello,
-> 
-> 2008/8/11 Xaero <kknull0@gmail.com>:
->> ok,
->> I've opened the card. The component are similar to 801e but they're not the
->> same..
->>
->> -DibCom 700C1 - ACXXa-G
->>  USB 2.0 DVB QHGG0
->>  03M95.1
->>  0809 - 1100 - C
->> - XCeive 4000ACQ
->>   DP5579
->>   0805TWE3
->> - Conexant CX25843 - 24Z
->>   81038424
->>   0804 KOREA
->> - Cirrus 5340CZZ
->>   0744
-> 
-> This is really useful information.  In particular, the fact that the
-> device uses an xc4000 instead of an xc5000 could be a problem.  The
-> V4L codebase has support for the xc2028, xc3028, and xc5000, but the
-> xc4000 is a (from what I understand) a reduced cost version of the
-> xc5000 that there is not currently support for.
-> 
-> Could you please take a few minutes and create a page on the Linux dvb
-> wiki for the device including the chipset information and the fact
-> that the device is not supported, so at least we have all the relevant
-> information.  You can use the 801e page as a starting point:
-> 
-> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_(801e)
-> 
-> Perhaps the xc5000 maintainer he knows more about the xc4000 and how
-> significant the differences are.
+I'm trying to compile the saa7134-alsa module that comes with the v4l-dvb drivers. In order to get it to compile I've had to tag it to the end of the saa7134-onjs list in the Makefile resident in the saa7134 direcorty like this:
 
-It requires a different tuner driver, this I know for sure.
+saa7134-objs := saa7134-cards.o saa7134-core.o saa7134-i2c.o    \
+                saa7134-ts.o saa7134-tvaudio.o saa7134-vbi.o    \
+                saa7134-video.o saa7134-input.o saa7134-alsa.o
 
-It's on my todo list (low down).
+I'm running make, I'm getting the folowing error:
 
-- Steve
+root@tinman:/home/john/Src/v4l-dvb# make
+make -C /home/john/Src/v4l-dvb/v4l
+make[1]: Entering directory `/home/john/Src/v4l-dvb/v4l'
+creating symbolic links...
+Kernel build directory is /lib/modules/2.6.24-19-generic/build
+make -C /lib/modules/2.6.24-19-generic/build SUBDIRS=/home/john/Src/v4l-dvb/v4l  modules
+make[2]: Entering directory `/usr/src/linux-headers-2.6.24-19-generic'
+  LD [M]  /home/john/Src/v4l-dvb/v4l/saa7134.o
+/home/john/Src/v4l-dvb/v4l/saa7134-alsa.o: In function `saa7134_alsa_init':
+/home/john/Src/v4l-dvb/v4l/saa7134-alsa.c:1083: multiple definition of `init_module'
+/home/john/Src/v4l-dvb/v4l/saa7134-core.o:/home/john/Src/v4l-dvb/v4l/saa7134-core.c:1346: first defined here
+/home/john/Src/v4l-dvb/v4l/saa7134-alsa.o: In function `saa7134_alsa_exit':
+/home/john/Src/v4l-dvb/v4l/saa7134-alsa.c:1109: multiple definition of `cleanup_module'
+/home/john/Src/v4l-dvb/v4l/saa7134-core.o:/home/john/Src/v4l-dvb/v4l/saa7134-core.c:1361: first defined here
+make[3]: *** [/home/john/Src/v4l-dvb/v4l/saa7134.o] Error 1
+make[2]: *** [_module_/home/john/Src/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/john/Src/v4l-dvb/v4l'
+make: *** [all] Error 2
+
+I'm tring to get the saa7134-alsa compiled because, although the other modules are compiling, the alsa module is not so when I'm doing a modproble saa7134 I'm getting as follows in dmesg:
+
+[108767.374805] saa7133[0]: registered device video0 [v4l2]
+[108767.374831] saa7133[0]: registered device vbi0
+[108767.396356] saa7134_alsa: disagrees about version of symbol saa7134_tvaudio_setmute
+[108767.396363] saa7134_alsa: Unknown symbol saa7134_tvaudio_setmute
+[108767.396512] saa7134_alsa: disagrees about version of symbol saa_dsp_writel
+[108767.396515] saa7134_alsa: Unknown symbol saa_dsp_writel
+[108767.396684] saa7134_alsa: disagrees about version of symbol videobuf_dma_free
+[108767.396686] saa7134_alsa: Unknown symbol videobuf_dma_free
+[108767.396884] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_alloc
+[108767.396887] saa7134_alsa: Unknown symbol saa7134_pgtable_alloc
+[108767.396934] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_build
+[108767.396937] saa7134_alsa: Unknown symbol saa7134_pgtable_build
+[108767.396975] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_free
+[108767.396978] saa7134_alsa: Unknown symbol saa7134_pgtable_free
+[108767.397016] saa7134_alsa: disagrees about version of symbol saa7134_dmasound_init
+[108767.397019] saa7134_alsa: Unknown symbol saa7134_dmasound_init
+[108767.397154] saa7134_alsa: disagrees about version of symbol saa7134_dmasound_exit
+[108767.397156] saa7134_alsa: Unknown symbol saa7134_dmasound_exit
+[108767.397252] saa7134_alsa: disagrees about version of symbol videobuf_dma_init
+[108767.397255] saa7134_alsa: Unknown symbol videobuf_dma_init
+[108767.397399] saa7134_alsa: disagrees about version of symbol videobuf_dma_init_kernel
+[108767.397402] saa7134_alsa: Unknown symbol videobuf_dma_init_kernel
+[108767.397518] saa7134_alsa: Unknown symbol videobuf_pci_dma_unmap
+[108767.397661] saa7134_alsa: Unknown symbol videobuf_pci_dma_map
+[108767.397706] saa7134_alsa: disagrees about version of symbol saa7134_set_dmabits
+[108767.397709] saa7134_alsa: Unknown symbol saa7134_set_dmabits
+[108767.411034] saa7133[0]/dvb: Huh? unknown DVB card?
+[108767.411040] saa7133[0]/dvb: frontend initialization failed
 
 
 _______________________________________________
