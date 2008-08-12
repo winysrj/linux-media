@@ -1,28 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m718FtIv024080
-	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 04:15:55 -0400
-Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m718Ffd1022112
-	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 04:15:41 -0400
-Message-ID: <4892C629.5000208@hni.uni-paderborn.de>
-Date: Fri, 01 Aug 2008 10:15:37 +0200
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7CGRhAq022243
+	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 12:27:43 -0400
+Received: from mu-out-0910.google.com (mu-out-0910.google.com [209.85.134.185])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7CGRfkk017834
+	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 12:27:41 -0400
+Received: by mu-out-0910.google.com with SMTP id w8so4496380mue.1
+	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 09:27:41 -0700 (PDT)
+Message-ID: <48A1B9F4.3070506@gmail.com>
+Date: Tue, 12 Aug 2008 17:27:32 +0100
+From: zePh7r <zeph7r@gmail.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <294f0a37c4feadf87bf8.1217484144@carolinen.hni.uni-paderborn.de>
-	<48917CB5.6000304@teltonika.lt>
-	<4892A90B.7080309@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0808010820560.14927@axis700.grange>
-	<4892BCD8.4010102@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0808010940400.14927@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0808010940400.14927@axis700.grange>
+To: Albert Comerma <albert.comerma@gmail.com>, video4linux-list@redhat.com,
+	linux-dvb@linuxtv.org
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Subject: Re: [PATCH] Move .power and .reset from soc_camera platform to
- sensor driver
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: Re: Support for Asus My-Cinema U3000Hybrid?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,67 +28,72 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski schrieb:
-> On Fri, 1 Aug 2008, Stefan Herbrechtsmeier wrote:
->
->   
->> Guennadi Liakhovetski schrieb:
->>     
->>> As for calling either platform-provided reset or internal one. Actually,
->>> whyt about making platform reset (and power too) return an error code, and
->>> if it failed call th internal one? 
->>>       
->> At the moment I assume that reset and power will work, if they are defined,
->> but we can change it.
->>     
->
-> I'd rather preserve the possibility to use "soft" reset / poweroff also 
-> when a platform function is defined. In fact, it might be even better to 
-> do a soft power-off first and then call platform-provided one. Don't think 
-> it would make much sense for reset though.
->   
-You are right, I'll change it with the next version.
->   
->>> And as a parameter wouldn't it make more sense to pass the soc_camera_link
->>> to the platform functions instead of the struct device from the i2c device?
->>>   
->>>       
->> I have simple make the function similar to other platform_data functions on my
->> system.
->> At the moment I use the parameter only for printing messages via dev_err.
->>     
->
-> You have to be able to trace which camera has to be resetted / powered on 
-> or off in your platform code, and the camera_link structure is the object 
-> that identifies a specific camera, ot, at least, it can be. Whereas the 
-> device pointer doesn't easily tell you which camera you want to operate 
-> upon.
->   
-If you use the same function for different sensors (camera_links), you 
-are right,
-but you can get the camera_link from the dev pointer (.platform_data) if you
-need it.
+This is looking good. It seems to load the firmware well. I even ran
+kaffeine and it detected my card instantly. However, as there's no dvb-t
+service where I live (there's still no dvb-t in Portugal) I can't test
+it in full. However I tried to do a channel scan and the signal bar
+showed high strength signals multiple times during scan -- which I
+interpret as a) the tuner is working, and b) the card is being able to
+find signal but unable to decode it since it's not a digital signal. I'm
+getting this output in dmesg just for plugging the device into the usb port:
 
-Regards
-    Stefan
+Aug 12 14:29:29 zeph7r-laptop kernel: usb 4-1: new high speed USB device
+using ehci_hcd and address 12
+Aug 12 14:29:29 zeph7r-laptop kernel: usb 4-1: configuration #1 chosen
+from 1 choice
+Aug 12 14:29:29 zeph7r-laptop kernel: dvb-usb: found a 'Asus My
+Cinema-U3000Hybrid' in cold state, will try to load a firmware
+Aug 12 14:29:29 zeph7r-laptop kernel: dvb-usb: downloading firmware from
+file 'dvb-usb-dib0700-1.10.fw'
+Aug 12 14:29:29 zeph7r-laptop kernel: dib0700: firmware started
+successfully.
+Aug 12 14:29:30 zeph7r-laptop kernel: dvb-usb: found a 'Asus My
+Cinema-U3000Hybrid' in warm state.
+Aug 12 14:29:30 zeph7r-laptop kernel: dvb-usb: will pass the complete
+MPEG2 transport stream to the software demuxer.
+Aug 12 14:29:30 zeph7r-laptop kernel: DVB: registering new adapter (Asus
+My Cinema-U3000Hybrid)
+Aug 12 14:29:30 zeph7r-laptop kernel: DVB: registering frontend 0
+(DiBcom 7000PC)...
+Aug 12 14:29:30 zeph7r-laptop kernel: xc2028 2-0061: creating new instance
+Aug 12 14:29:30 zeph7r-laptop kernel: xc2028 2-0061: type set to XCeive
+xc2028/xc3028 tuner
+Aug 12 14:29:30 zeph7r-laptop kernel: input: IR-receiver inside an USB
+DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb4/4-1/input/input13
+Aug 12 14:29:30 zeph7r-laptop kernel: dvb-usb: schedule remote query
+interval to 150 msecs.
+Aug 12 14:29:30 zeph7r-laptop kernel: dvb-usb: Asus My
+Cinema-U3000Hybrid successfully initialized and connected.
+Aug 12 14:29:30 zeph7r-laptop kernel: usb 4-1: New USB device found,
+idVendor=0b05, idProduct=1736
+Aug 12 14:29:30 zeph7r-laptop kernel: usb 4-1: New USB device strings:
+Mfr=1, Product=2, SerialNumber=3
+Aug 12 14:29:30 zeph7r-laptop kernel: usb 4-1: Product: U3000 Hybrid
+Aug 12 14:29:30 zeph7r-laptop kernel: usb 4-1: Manufacturer: ASUSTeK
+Aug 12 14:29:30 zeph7r-laptop kernel: usb 4-1: SerialNumber: 8110400333
+Aug 12 14:29:36 zeph7r-laptop syslog-ng[1724]: STATS: dropped 0
 
--- 
-Dipl.-Ing. Stefan Herbrechtsmeier
 
-Heinz Nixdorf Institute
-University of Paderborn 
-System and Circuit Technology 
-Fürstenallee 11
-D-33102 Paderborn (Germany)
+and after starting kaffeine there's still this more:
 
-office : F0.415
-phone  : + 49 5251 - 60 6342
-fax    : + 49 5251 - 60 6351
+Aug 12 14:41:31 zeph7r-laptop kernel: xc2028 2-0061: Loading 80 firmware
+images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+Aug 12 14:41:31 zeph7r-laptop kernel: xc2028 2-0061: Loading firmware
+for type=BASE F8MHZ (3), id 0000000000000000.
+Aug 12 14:41:38 zeph7r-laptop kernel: xc2028 2-0061: Loading firmware
+for type=D2620 DTV7 (88), id 0000000000000000.
+Aug 12 14:41:38 zeph7r-laptop kernel: xc2028 2-0061: Loading SCODE for
+type=DTV8 SCODE HAS_IF_5400 (60000200), id 0000000000000000.
+Aug 12 14:42:04 zeph7r-laptop kernel: xc2028 2-0061: Loading firmware
+for type=D2620 DTV78 (108), id 0000000000000000.
+Aug 12 14:42:04 zeph7r-laptop kernel: xc2028 2-0061: Loading SCODE for
+type=DTV8 SCODE HAS_IF_5400 (60000200), id 0000000000000000.
 
-mailto : hbmeier@hni.upb.de
 
-www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
-
+However I also tried kdetv and the card didn't seem to be recognized
+here. In the device list there is still only my webcam to choose from.
+If I try to run it from a terminal no significant output is shown. How
+can go further in testing and getting the analog tv part to work?
 
 --
 video4linux-list mailing list
