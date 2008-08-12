@@ -1,31 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7DGsQ0k024669
-	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 12:54:26 -0400
-Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7DGsCt3029204
-	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 12:54:13 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <87hca34ra0.fsf@free.fr>
-	<Pine.LNX.4.64.0808022146090.27474@axis700.grange>
-	<873alnt2bh.fsf@free.fr>
-	<Pine.LNX.4.64.0808121612330.8089@axis700.grange>
-	<1218616667.48a29d5bcb7ea@imp.free.fr>
-	<Pine.LNX.4.64.0808131105020.3884@axis700.grange>
-	<1218621820.48a2b17c963cd@imp.free.fr>
-	<Pine.LNX.4.64.0808131322340.3884@axis700.grange>
-	<87skt86fb9.fsf@free.fr>
-	<Pine.LNX.4.64.0808131845200.7458@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 13 Aug 2008 18:54:11 +0200
-In-Reply-To: <Pine.LNX.4.64.0808131845200.7458@axis700.grange> (Guennadi
-	Liakhovetski's message of "Wed\,
-	13 Aug 2008 18\:47\:48 +0200 \(CEST\)")
-Message-ID: <87hc9o6eks.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7CGeuCO000752
+	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 12:40:57 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7CGekC2028167
+	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 12:40:46 -0400
+Received: by wf-out-1314.google.com with SMTP id 25so2237171wfc.6
+	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 09:40:46 -0700 (PDT)
+Message-ID: <191a06830808120940n7acb2beey926d2a11ca9cebba@mail.gmail.com>
+Date: Tue, 12 Aug 2008 10:40:45 -0600
+From: "Cody Pisto" <cpisto+v4l@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] mt9m111: style cleanup
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Subject: compat_ioctl32.c
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,55 +27,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+Hi,
 
->> > @@ -778,15 +776,13 @@ static int mt9m111_init(struct soc_camera_device *icd)
->> >  
->> >  	mt9m111->context = HIGHPOWER;
->> >  	ret = mt9m111_enable(icd);
->> > -	if (ret >= 0)
->> > +	if (!ret) {
->> >  		mt9m111_reset(icd);
->> > -	if (ret >= 0)
->> >  		mt9m111_set_context(icd, mt9m111->context);
->> > -	if (ret >= 0)
->> >  		mt9m111_set_autoexposure(icd, mt9m111->autoexposure);
->> > -	if (ret < 0)
->> > +	} else
->> >  		dev_err(&icd->dev, "mt9m111 init failed: %d\n", ret);
->> > -	return ret ? -EIO : 0;
->> > +	return ret;
->> >  }
->> You changed the fault path here : you don't check if every call succeeds. I
->> don't think it's very important though ... I certainly don't care that much.
->
-> Sorry, don't understand, you don't set "ret" in the above calls, so, I 
-> don't think I changed anything.
-That is because I'm a fool :)
-The correct behaviour would be something like :
+I'm attempting to add support for 3 ioctls to compat_ioctl32.c so that
+the 32 bit version of SageTV works properly on 64 bit kernels.
 
-@@ -778,15 +776,13 @@ static int mt9m111_init(struct soc_camera_device *icd)
- 
- 	mt9m111->context = HIGHPOWER;
- 	ret = mt9m111_enable(icd);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = mt9m111_reset(icd);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = mt9m111_set_context(icd, mt9m111->context);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = mt9m111_set_autoexposure(icd, mt9m111->autoexposure);
--	if (ret < 0)
-+	if (ret)
- 		dev_err(&icd->dev, "mt9m111 init failed: %d\n", ret);
--	return ret ? -EIO : 0;
-+	return ret;
- }
+The 3 ioctls are:
 
---
-Robert
+VIDIOC_ENCODER_CMD
+VIDIOC_S_AUDIO
+VIDIOC_S_EXT_CTRLS
+
+I *think* I have successfully added VIDIOC_ENCODER_CMD and
+VIDIOC_S_AUDIO by simply adding them to the big switch statement in
+v4l_compat_ioctl32() because the structures they pass as arguments
+don't contain any pointers or otherwise non 32bit types. (struct
+v4l2_encoder_cmd and struct v4l2_audio respectively)
+
+However VIDIOC_S_EXT_CTRLS doesn't look to be so simple. The structure
+it passes (struct v4l2_ext_controls) contains a pointer to another
+structure (struct v4l2_ext_control) that contains an __s64 and another
+pointer (void *). So after trying to wrap my head around whats going
+on in compat_ioctl32.c, it looks like I will need to define both a
+struct v4l2_ext_controls32 and struct v4l2_ext_control32, and also
+VIDIOC_S_EXT_CTRLS32. My question is, do I need to implement some kind
+of get/put_ext_controls32 and/or get/put_ext_control32 like many of
+the existing compatible ioctls have, or should things just work with
+the native_ioctl() ? Any pointers on how to implement those get/put
+functions if needed would be greatly appreciated.
+
+Im guessing the structures should look like this:
+
+struct v4l2_ext_control32 {
+        __u32 id;
+        __u32 reserved2[2];
+        union {
+                __s32 value;
+#ifndef CONFIG_X86_64
+                __s64 value64;
+#endif
+                compat_caddr_t reserved; /* actually void * */
+        };
+} __attribute__ ((packed));
+
+struct v4l2_ext_controls32 {
+        __u32 ctrl_class;
+        __u32 count;
+        __u32 error_idx;
+        __u32 reserved[2];
+        compat_caddr_t controls; /* actually struct v4l2_ext_control32 * */
+};
+
+And I figure I will have to implement something like the while loop in
+get_v4l2_window32 that iterates over the controls and copy_in_user()'s
+them?
+
+
+Thanks
 
 --
 video4linux-list mailing list
