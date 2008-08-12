@@ -1,19 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Fri, 29 Aug 2008 19:32:27 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: David Howells <dhowells@redhat.com>
-Message-ID: <20080829193227.1494de9b@mchehab.chehab.org>
-In-Reply-To: <20080827134638.19980.39537.stgit@warthog.procyon.org.uk>
-References: <20080827134541.19980.61042.stgit@warthog.procyon.org.uk>
-	<20080827134638.19980.39537.stgit@warthog.procyon.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7CF1E5j005402
+	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 11:01:14 -0400
+Received: from wr-out-0506.google.com (wr-out-0506.google.com [64.233.184.224])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7CF14ci012945
+	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 11:01:04 -0400
+Received: by wr-out-0506.google.com with SMTP id c49so1840380wra.19
+	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 08:00:59 -0700 (PDT)
+Message-ID: <ea4209750808120800x4b7c50bfra7101145dbad6b06@mail.gmail.com>
+Date: Tue, 12 Aug 2008 17:00:59 +0200
+From: "Albert Comerma" <albert.comerma@gmail.com>
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: David Howells <dhowells@redhat.com>, Serge Hallyn <serue@us.ibm.com>,
-	linux-security-module@vger.kernel.org,
-	video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 11/59] CRED: Wrap task credential accesses in video
- input drivers
+Content-Disposition: inline
+Subject: DIBCOM devices
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,30 +27,16 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 27 Aug 2008 14:46:39 +0100
-David Howells <dhowells@redhat.com> wrote:
+Hi all, I've been a long time working on some pinnacle hybrid card. I
+managed to get working the dvb-t part (thanks to the linux-dvb mailing list
+help), but now I'm trying the analogue. For this reason I switched to the
+v4linux mailing list. I've been looking at the code under
+drivers/media/video folder and sincerely I have no idea on where to start.
+The device has a dibcom 7700 bridge with a conexant CX25843 demodulator and
+xc3028 tuner. It's my impression or there is nothing done on using the
+dibcom usb bridge for analogue?
 
-> Wrap access to task credentials so that they can be separated more easily from
-> the task_struct during the introduction of COW creds.
-> 
-> Change most current->(|e|s|fs)[ug]id to current_(|e|s|fs)[ug]id().
-> 
-> Change some task->e?[ug]id to task_e?[ug]id().  In some places it makes more
-> sense to use RCU directly rather than a convenient wrapper; these will be
-> addressed by later patches.
-> 
-> Signed-off-by: David Howells <dhowells@redhat.com>
-> Reviewed-by: James Morris <jmorris@namei.org>
-> Acked-by: Serge Hallyn <serue@us.ibm.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-
-Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-
-I'll add it on my tree and keep it for linux-next.
-
-Cheers,
-Mauro
-
+Albert
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
