@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 216.14.233.220.exetel.com.au ([220.233.14.216]
-	helo=mail.carbonaro.org) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mark@carbonaro.org>) id 1KPFHB-0005De-7G
-	for linux-dvb@linuxtv.org; Sat, 02 Aug 2008 13:27:58 +0200
-Date: Sat, 2 Aug 2008 21:21:21 +1000 (EST)
-From: Mark Carbonaro <mark@carbonaro.org>
-To: Jonathan Hummel <jhhummel@bigpond.com>
-Message-ID: <24636158.81217676433289.JavaMail.mark@trogdor.carbonaro.org>
-In-Reply-To: <9678479.61217676240039.JavaMail.mark@trogdor.carbonaro.org>
+Received: from 213.159.238.198.iptelecom.net.ua ([213.159.238.198]
+	helo=mail.trirema.kiev.ua) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <a3df@trirema.kiev.ua>) id 1KSwKR-0000DA-CN
+	for linux-dvb@linuxtv.org; Tue, 12 Aug 2008 18:02:37 +0200
+Received: from [10.0.1.222] (unknown [10.0.1.222])
+	by mail.trirema.kiev.ua (Postfix) with ESMTP id 91C5938F7B
+	for <linux-dvb@linuxtv.org>; Tue, 12 Aug 2008 19:51:08 +0300 (EEST)
+Message-ID: <48A1B304.9010707@trirema.kiev.ua>
+Date: Tue, 12 Aug 2008 18:57:56 +0300
+From: Alexander Sotnikov <a3df@trirema.kiev.ua>
 MIME-Version: 1.0
-Cc: linux dvb mailing list <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Leadtek Winfast PxDVR 3200 H
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] ULE big somewhere : NPA+BRIDGED_FRAME+VLAN = Hardlock
+ w/o any oops
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,118 +26,63 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Jon,
+Hi all
 
-I just added some photos to the wiki that I took of my 3200 about a month ago, it's just some close ups of the chips.  I forgot all about them until you posted this message, figured I should probably pull my finger out and upload them.
+while creating ULE  encapsulation driver for our in house DVB modulator
+i found out   that i can hard lock DVB receiver    with  following packet
 
-I haven't taken the shielding off the card, I can only assume there is a tuner in there, I will crack it open on of these days and take note (and photos) of what is inside.
+//normal arp request in  Vlan 4
+0xff 0xff 0xff 0xff 0xff 0xff 0x00 0xff 0x9e 0x00 0x75 0xfa 0x81 0x00
+0x00 0x04
+0x08 0x06 0x00 0x01 0x08 0x00 0x06 0x04 0x00 0x01 0x00 0xff 0x9e 0x00
+0x75 0xfa
+0x0a 0x00 0x01 0x10 0xff 0xff 0xff 0xff 0xff 0xff 0x01 0x01 0x01 0x01
 
-Mark
+//same encapsulated in ULE headers with NPA <0x02 0x00 0x00 0x00 0x00 0x01>
 
------ Original Message -----
-From: "Jonathan Hummel" <jhhummel@bigpond.com>
-To: stev391@email.com
-Cc: "linux dvb mailing list" <linux-dvb@linuxtv.org>
-Sent: Saturday, 2 August, 2008 5:43:45 PM (GMT+1000) Auto-Detected
-Subject: Re: [linux-dvb] Leadtek Winfast PxDVR 3200 H
-
-Hi Stephen
-
-There was already a page of sorts:
-http://www.linuxtv.org/wiki/index.php/Leadtek_Winfast_PxDVR_3200_H
-I've added to it. I don't have winodws on that machine, but it apears
-someone has done that for me already.
-I have some more photos, of even higher res is you want them, but won't
-clutter up everyone's inbox if not need/ wanted.
-
-Cheers
-
-Jon
+0x00 0x38 0x00 0x01 0x02 0x00 0x00 0x00 0x00 0x01 0xff 0xff 0xff 0xff
+0xff 0xff
+0x00 0xff 0x9e 0x00 0x75 0xfa 0x81 0x00 0x00 0x04 0x08 0x06 0x00 0x01
+0x08 0x00
+0x06 0x04 0x00 0x01 0x00 0xff 0x9e 0x00 0x75 0xfa 0x0a 0x00 0x01 0x10
+0xff 0xff
+0xff 0xff 0xff 0xff 0x01 0x01 0x01 0x01 0x76 0x42 0x10 0x42
 
 
+//all above  in  188 B   TS frame
 
-On Mon, 2008-07-28 at 08:55 +1000, stev391@email.com wrote:
-> Jon,
-> 
-> It appears that this card uses the CX23885 PCIe controller.
-> 
-> From initial research on the Leadtek site it appears that this card
-> utilises the following main chips:
-> Conexant CX23885 - PCIe Interface
-> Conexant CX23417 - Analog Video to MPEG2 Encoder
-> Intel CE6353 - Digital TV Demodulator (Formerly known as Zarlink
-> 10353)
-> Xceive ????? - Digital TV Tuner,
-> 
-> All of the above that I have identified have drivers in linux in
-> various stages of development.
-> 
-> Can you take a high res photo of the card showing all chip IDs?
-> Can you identify which tuner from Xceive it is?
-> Do you have a partition set up with windows and the card working?
->    If so can you use regspy (Google "Dscaler Regspy" to find the
-> correct program), and record what the values are for:
->       - Card sitting idle straight after bootup
->       - Watching Digital TV
->       - Watching Analog TV
->       - Sitting idle after watching TV
-> 
-> What is the output of `lspci -vnn` when in linux regarding this card?
-> 
-> What does `dmesg | grep cx23885` give you?
-> 
-> It might also be useful for others who have this card if you make an
-> entry the linuxtv wiki for this card, with all of the information that
-> I have requested linked to or included.
-> 
-> I may be able to knock up a driver that you can use for the digital TV
-> side as this seems similar to other existing cards, I'm not familiar
-> with the Analog side though. 
-> (No gurantees, but it should be relatively simple to achieve).
-> 
-> Regards,
-> 
-> Stephen.
-> 
-> 
-> --- Original Message ---
-> Hi,
-> 
->          I was wondering if anyone could help me get this card up and
->          working in
->          kubuntu 8.04. I've tried setting it up much like a Leadtek
->          DTV2000H,
->          version J, as per instructions here:
->          http://wiki.linuxmce.org/index.php/Leadtek_DTV2000H
->          (I've been using that card for a while in another box)
-> 
->          System:
->          Gibagyte moher board (all in one) GA-MA78GM-S2H
->          AMD Athlon X2 6000 (2 core, 3GHz)
->          4G ram, heaps of hard disk
->          64bit KDE 4 kubuntu, kernel: 2.6.24-20 generic
-> 
->          http://www.linuxtv.org/wiki/index.php/DVB-T_PCIe_Cards
->          suggested I email this address.
-> 
-> 
->          cheers
-> 
->          Jon
-> 
-> 
-> 
-> 
-> -- 
-> Be Yourself @ mail.com!
-> Choose From 200+ Email Addresses
-> Get a Free Account at www.mail.com!
+TSD START -------------------
+0x47 0x51 0x11 0x13 0x00 0x00 0x38 0x00 0x01 0x02 0x00 0x00 0x00 0x00
+0x01 0xff
+0xff 0xff 0xff 0xff 0xff 0x00 0xff 0x9e 0x00 0x75 0xfa 0x81 0x00 0x00
+0x04 0x08
+0x06 0x00 0x01 0x08 0x00 0x06 0x04 0x00 0x01 0x00 0xff 0x9e 0x00 0x75
+0xfa 0x0a
+0x00 0x01 0x10 0xff 0xff 0xff 0xff 0xff 0xff 0x01 0x01 0x01 0x01 0x76
+0x42 0x10
+0x42 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+0xff 0xff
+0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+0xff 0xff
+0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+0xff 0xff
+0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+0xff 0xff
+0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+0xff 0xff
+0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+0xff 0xff
+0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+0xff 0xff
+0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
+TSD END ---------------------
 
 
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+packets w/o  VLAN tag  or   w/o  NPA  set  work perfectly   (kernel
+version 2.6.26.1  stock drivers)
+any pointers where to look for problem  are welcome
+
+Alexander
 
 _______________________________________________
 linux-dvb mailing list
