@@ -1,22 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from pslib.cesnet.cz ([195.178.64.118] helo=neptun.pslib.cz)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1KWIEn-0007Ky-UC
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 00:02:39 +0200
-Date: Fri, 22 Aug 2008 00:02:00 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Nicolas Will <nico@youplala.net>
-In-Reply-To: <1219355890.6770.2.camel@youkaida>
-Message-ID: <alpine.LRH.1.10.0808220000340.21606@pub5.ifh.de>
-References: <1219330331.15825.2.camel@dark> <48ADCC81.5000407@nafik.cz>
-	<37219a840808211321k34590d38v7ada0fb9655e5dfe@mail.gmail.com>
-	<412bdbff0808211325h64d454d5m3353d8756b9eb737@mail.gmail.com>
-	<37219a840808211329j697556fcj760057bb1c7b58a8@mail.gmail.com>
-	<alpine.LRH.1.10.0808212337070.21606@pub5.ifh.de>
-	<1219355890.6770.2.camel@youkaida>
+	(envelope-from <petr.cvek@pslib.cz>) id 1KTJnh-0007Sb-M6
+	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 19:06:22 +0200
+Received: from opteron.pslib.cz (opteron.pslib.cz [10.200.0.18])
+	by neptun.pslib.cz (8.13.1/8.13.1) with ESMTP id m7DH6HMA011043
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 19:06:17 +0200
+Received: from pslib.cz (localhost.localdomain [127.0.0.1])
+	by opteron.pslib.cz (8.13.8/8.13.8) with ESMTP id m7DH6HaI027370
+	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 19:06:17 +0200
+From: "Petr Cvek" <petr.cvek@pslib.cz>
+To: linux-dvb@linuxtv.org
+Date: Wed, 13 Aug 2008 19:06:17 +0200
+Message-Id: <20080813170508.M39801@pslib.cz>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dib0700 and analog broadcasting
+Subject: [linux-dvb] Leadtek Winfast Dongle H (hybrid)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,43 +29,68 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Nicolas,
+Hello everyone, I was asked by my friend to help him with his DVB USB card 
+(based on STK7700PH): 
 
-1) The firmware alone should fix the i2c problems, even with the currently 
-used requests.
-2) The new requests are necessary to have the xc5000 running correctly, if 
-I understand everything correctly. So yes, it will be done first - I 
-think.
+Bus 008 Device 005: ID 0413:60f6 Leadtek Research, Inc.
 
-Patrick.
+...and I found, that card isn't yet supported, but there is all code for it 
+now. 
+So I add new device into list:
 
+diff -Naur old/dib0700_devices.c new/dib0700_devices.c
+--- old/dib0700_devices.c	2008-08-13 18:55:35.000000000 +0200
++++ new/dib0700_devices.c	2008-08-13 18:26:27.000000000 +0200
+@@ -1117,7 +1117,8 @@
+ 	{ USB_DEVICE(USB_VID_TERRATEC,	
+USB_PID_TERRATEC_CINERGY_HT_EXPRESS) },
+ 	{ USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_T_XXS) },
+ 	{ USB_DEVICE(USB_VID_LEADTEK,   
+USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
+-	{ USB_DEVICE(USB_VID_HAUPPAUGE, 
+USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
++/* 35 */{ USB_DEVICE(USB_VID_HAUPPAUGE, 
+USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
++	{ USB_DEVICE(USB_VID_LEADTEK,   USB_PID_WINFAST_DTV_DONGLE_HYBRID) },
+ 	{ 0 }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+@@ -1403,7 +1404,7 @@
+ 			},
+ 		},
+ 
+-		.num_device_descs = 3,
++		.num_device_descs = 4,
+ 		.devices = {
+ 			{   "Terratec Cinergy HT USB XE",
+ 				{ &dib0700_usb_id_table[27], NULL },
+@@ -1417,6 +1418,10 @@
+ 				{ &dib0700_usb_id_table[32], NULL },
+ 				{ NULL },
+ 			},
++			{   "Leadtek Winfast Dongle Hybrid",
++				{ &dib0700_usb_id_table[36], NULL },
++				{ NULL },
++			},
+ 		},
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = dib0700_rc_keys,
+diff -Naur old/dvb-usb-ids.h new/dvb-usb-ids.h
+--- old/dvb-usb-ids.h	2008-08-13 18:55:39.000000000 +0200
++++ new/dvb-usb-ids.h	2008-08-13 18:24:55.000000000 +0200
+@@ -189,6 +189,7 @@
+ #define USB_PID_WINFAST_DTV_DONGLE_WARM			0x6026
+ #define USB_PID_WINFAST_DTV_DONGLE_STK7700P		0x6f00
+ #define USB_PID_WINFAST_DTV_DONGLE_STK7700P_2		0x6f01
++#define USB_PID_WINFAST_DTV_DONGLE_HYBRID		0x60f6
+ #define USB_PID_GENPIX_8PSK_REV_1_COLD			0x0200
+ #define USB_PID_GENPIX_8PSK_REV_1_WARM			0x0201
+ #define USB_PID_GENPIX_8PSK_REV_2			0x0202
 
-On Thu, 21 Aug 2008, Nicolas Will wrote:
-
-> On Thu, 2008-08-21 at 23:38 +0200, Patrick Boettcher wrote:
->> On Thu, 21 Aug 2008, Michael Krufky wrote:
->>> Lets sync up when you get to that point -- I have a good chunk of
->> code
->>> written that will add analog support to the dvb-usb framework as an
->>> optional additional adapter type.
->>
->> Wow wow wow. That sounds like music in my ears. Great direction!!!
->>
->
-> hmmm, Devin, Patrick, let me be selfish a little bit, that's what I do
-> best most of the time, so you can beat me up for it.
->
-> Can the new i2c request code for the new firmware be done first?
->
-> Nico
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
+After patching, card works as DVB-T reciever (confirmed by someone other with 
+this card and with DVB-T signal). This card can receive analog TV too, it has 
+cx25843 (cx25840 compatible) chip for it, but there is not any connection 
+between this subsystems.
 
 _______________________________________________
 linux-dvb mailing list
