@@ -1,27 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7SLiRpC003062
-	for <video4linux-list@redhat.com>; Thu, 28 Aug 2008 17:44:27 -0400
-Received: from mail-in-07.arcor-online.net (mail-in-07.arcor-online.net
-	[151.189.21.47])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7SLiE6D018793
-	for <video4linux-list@redhat.com>; Thu, 28 Aug 2008 17:44:14 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Daniel =?ISO-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-In-Reply-To: <20080828202043.GB824@daniel.bse>
-References: <200808251445.22005.jdelvare@suse.de>
-	<1219711251.2796.47.camel@morgan.walls.org>
-	<20080826232913.GA2145@daniel.bse>
-	<200808281611.38241.jdelvare@suse.de>
-	<20080828202043.GB824@daniel.bse>
-Content-Type: text/plain; charset=utf-8
-Date: Thu, 28 Aug 2008 23:42:28 +0200
-Message-Id: <1219959748.4731.21.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
-	Jean Delvare <jdelvare@suse.de>
-Subject: Re: bttv driver questions
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7D9AjP7001792
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 05:10:45 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7D9AXR0031881
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 05:10:34 -0400
+Date: Wed, 13 Aug 2008 11:10:42 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <1218616667.48a29d5bcb7ea@imp.free.fr>
+Message-ID: <Pine.LNX.4.64.0808131105020.3884@axis700.grange>
+References: <87hca34ra0.fsf@free.fr>
+	<Pine.LNX.4.64.0808022146090.27474@axis700.grange>
+	<873alnt2bh.fsf@free.fr>
+	<Pine.LNX.4.64.0808121612330.8089@axis700.grange>
+	<1218616667.48a29d5bcb7ea@imp.free.fr>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [RFC] soc_camera: endianness between camera and its host
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,104 +30,57 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+On Wed, 13 Aug 2008, robert.jarzmik@free.fr wrote:
 
-Am Donnerstag, den 28.08.2008, 22:20 +0200 schrieb Daniel Glöckner:
-> On Thu, Aug 28, 2008 at 04:11:38PM +0200, Jean Delvare wrote:
-> > What determines whether fields are captured independently?
+> Selon Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
 > 
-> Right now I can only think of V4L2_FIELD_ALTERNATE causing this.
+> > So, when a user enumerates supported formats, we should report rgb 565
+> > swapped, but not report rgb 565. If you connect a mt9m111 to another host,
+> > maybe the non-swapped rgb 565 will be supported. So, mt9m111 should report
+> > both. The problem currently is, soc-camera doesn't ask the host controller
+> > whether it supports a specific pixel format. It only has a chance to fail
+> > an attempted VIDIOC_S_FMT, which is a bit too late. So, would adding pixel
+> > format negotiation with the camera host driver sufficiently fix the
+> > problem for you? One of us could try to cook a patch then.
 > 
-> > My tests with a SECAM
-> > source show a rate of 74-78 interrupts/second, which would be 3
-> > interrupts per frame. So I guess I a missing a 3rd cause of
-> > interrupts. Any idea?
-> 
-> I checked the code. As soon as the device is opened, the VSYNC interrupt
-> is unmasked to count the fields. These interrupts are in addition to the
-> interrupts generated for queued buffers.
-> 
-> > I thought that there was only one RISC program
-> > loaded at any given time and that it had to be changed twice per
-> > frame, which would have taken one additional interrupt.
-> 
-> There is only one program with jumps that are patched at runtime to
-> point to the program fragments for capture.
-> 
-> > The BT878 has a hint which suggests that the fastest model described
-> > by Daniel is probably almost the right one.
-> 
-> The setup cycles mentioned by Andy and me depend on the target (the host
-> bridge). The master must assert IRDY within 8 cycles in all data phases.
-> 
-> As a single Bt878 is able to capture PAL in BGR32 at 4*Fsc (70937900 byte/s
-> peak), there must be less than one wait cycle per data phase on average.
-> 
-> > Apparently the bttv driver sets them to relatively large values,
-> > instead of the small hardware default (4). This makes sense to me,
-> > 4 was very small and would cause the BT878 to request control of the
-> > PCI bus every now and then, significantly reducing the available PCI
-> > bus bandwidth.
-> 
-> I think for competing Bt878s the smallest trigger point in combination
-> with a high latency counter should perform best.
-> 
-> > > The master may request extended/another grant before its timer expires.
-> > 
-> > Do you happen to know if the BT878 does that? Couldn't find any
-> > mention in the datasheet.
-> 
-> Well, if they give us a bit to turn it off, I assume it is done.
-> Read the section about the 430FX Compatibility Mode.
-> 
-> > > Jean, is v4l-dvb-maintainer the right place to discuss these things?
-> > 
-> > I thought so. At least I received pertinent answers to my questions,
-> > so it seems that I have reached the right persons. But if you think I
-> > am abusing this list, I don't want to make anyone angry, so we can
-> > either continue this discussion in private, or on another list you
-> > think would be more appropriate.
-> 
-> Trent started CCing video4linux-list and from linux/MAINTAINERS I read
-> that v4l-dvb-maintainer is mainly for patches..
-> I'm only subscribed to video4linux-list, so I don't know what is customary
-> on the maintainer list.
-> 
->   Daniel
-> 
+> Yes, pixel format negotiation is the key, that's the clean solution.
+> It will have impacts on existing camera drivers, like mt9m001, ..., and camera
+> hosts, but you must already be aware of it and ready to pay the price :)
 
-for me it seems all lists are right and even linux-dvb should be added.
+Yes, fortunately, there are not too many yet:-)
 
-We had quite a lot of reports during the last years concerning bttv
-throughput on certain hardware and often there was no quick solution.
+> Now, let's talk schedule. Until the end of the week, I'll be a bit busy. If I
+> don't see a patch you submitted by then, I'll cook one up. I only need to know
+> at which point you wish the format negociation should be performed, and on which
+> ground.
 
-It is nice to see how many are still aware of the driver's details.
+Hm, I would just do this during format-enumeration... I'll try to sketch 
+something maybe today.
 
-Such a thing even caused the foundation of the v4l wiki, since David
-Liontooth was on some affected bttv hardware mix times back and had to
-dig into on which hardware best to start for his upcoming teaching.
+> [RFC]
+> Would that be something like :
+>  - all begins which the binding of both a camera driver and host driver
+>  - soc_camera asks host controller which format it provides
+>  - soc_camera asks camera driver which format it supports
+>  - soc_camera make a table of possible pixel formats (which would be the common
+> subset of host and camera pixel formats)
+>  - soc_camera uses that table for format enumeration
+>  - soc_camera uses that table for preliminary check on VIDIOC_S_FMT
 
-Unrelated not yet working saa713x NTSC closed captions were fixed in
-following attempts too.
+I think, we might manage to get it a bit simpler.
 
-But it sheds also a light on the saa713x restrictions, when DVB-T and/or
-DVB-S on hybrid cards is in use already and why in such a case analog
-video can only use packed formats at once, but no planar.
+As for your mt9m111 patch - unfortunately, during my first quick review I 
+missed a few more minor formatting issues, so, because it is kinda my 
+fault, my plan is to apply your patch as it is, and then I can just post 
+for your ack a clean-up patch. And then, as we get format negotiation in 
+place, you can extend it with further supported formats. What do you 
+think?
 
-A user friendly solution still needs to be found and this here seems to
-be a good point to start.
-
-Cheers,
-Hermann
-
-
-
-
-
-
-
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
