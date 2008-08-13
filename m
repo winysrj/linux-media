@@ -1,21 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.191])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zeph7r@gmail.com>) id 1KSWgB-00045H-AD
-	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 14:39:22 +0200
-Received: by fk-out-0910.google.com with SMTP id f40so1926583fka.1
-	for <linux-dvb@linuxtv.org>; Mon, 11 Aug 2008 05:39:16 -0700 (PDT)
-Message-ID: <48A032F4.6000602@gmail.com>
-Date: Mon, 11 Aug 2008 13:39:16 +0100
-From: zePh7r <zeph7r@gmail.com>
+Received: from n76.bullet.mail.sp1.yahoo.com ([98.136.44.48])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KTAx2-0006my-DI
+	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 09:39:26 +0200
+Date: Wed, 13 Aug 2008 00:38:47 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Albert Comerma <albert.comerma@gmail.com>
-References: <ea4209750808080532h950d84fud047c135551e1ff1@mail.gmail.com>	
-	<489CCD82.5030406@gmail.com>
-	<ea4209750808100251j3d027cable1e5cd81ceb4995@mail.gmail.com>
-In-Reply-To: <ea4209750808100251j3d027cable1e5cd81ceb4995@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Support for Asus My-Cinema U3000Hybrid?
+Message-ID: <874239.94389.qm@web46116.mail.sp1.yahoo.com>
+Subject: [linux-dvb] Fix for ttusb-dec
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,70 +23,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Albert Comerma escreveu:
-> Sorry, I didn't explained much... it also took some time to me to 
-> understand how it's working... Since xc2028 is the tunner it has no Id 
-> information on the code. The id's are on the usb bridge code. You 
-> should add your deviece id's at;
-> /v4l-dvb/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h and then insert 
-> your device at
-> /v4l-dvb/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c    first 
-> the device descriptors (at arround line 1120) and then the device 
-> itself, I would try it around line 1418. This last file, has already 
-> the include to the xc2028 code and calls the tunner funcions. Looking 
-> the code around this lines I guess you will understand how it works.
->
-> Albert
->
-> 2008/8/9 zePh7r <zeph7r@gmail.com <mailto:zeph7r@gmail.com>>
->
->     Albert Comerma escreveu:
->
->         Just to clarify things...
->
->         Xceive chips are just tunners, RF chips, mostly analogue with
->         some digital interface, they don't do anything with usb or
->         comunication with the computer, for this reason you need the
->         dibcom chip, it's a usb bridge + decoder + something else...
->         To start to develop something you must first be sure of what
->         chips it's using.
->         If not you can try blindly if modifying the code for the
->         U3000-Mini works or Pinnacle 320cx (dibcom 7700 + xceive2028)
->         work (you just need to add your device usb id's).
->
->         Albert
->
->     Thank you for replying Albert.
->     I've been exploring the files downloaded through the mercurial
->     repository and though I have found files which seem like they
->     relate to that purpose in
->     /v4l-dvb/linux/drivers/media/common/tuners (which are
->     tuner-xc2028.c , tuner-xc2028.h and tuner-xc2028-types.h) I can't
->     find any section in the above files with some sort of list of
->     device ID's so as to resemble them. There should be something like
->     an xc2028-cards.c right?
->     This must seem a noob question but this whole process looks like
->     something someone who's not deeply into this project couldn't do
->     easily..
->
->
-When I try to compile the drivers I get this:
+Moin moin,
 
-zeph7r@zeph7r-laptop:~/v4l/v4l-dvb> make all
-make -C /home/zeph7r/v4l/v4l-dvb/v4l all
-make[1]: Entering directory `/home/zeph7r/v4l/v4l-dvb/v4l'
-Updating/Creating .config
-Preparing to compile for kernel version 2.6.25
-File not found: /lib/modules/2.6.25.11-0.1-default/build/.config at 
-./scripts/make_kconfig.pl line 32, <IN> line 4.
-make[1]: *** No rule to make target `.myconfig', needed by 
-`config-compat.h'.  Stop.
-make[1]: Leaving directory `/home/zeph7r/v4l/v4l-dvb/v4l'
-make: *** [all] Error 2
+Can I beg and plead for someone to add to the v4l-dvb repository,
+in order to get it eventually into the kernel, the patch or
+something comparable, which was posted to the linux-kernel mailing
+list on 23.Jun 2008 with Message-ID <485FB75E.4030606@gmx.net>
+and which can be found at, for example,
+http://lkml.org/lkml/2008/6/23/197
 
-any hints on what might be causing this? I went look at that dir and 
-found a makedumpfile.config , perhaps I should edit config-compat.h and 
-set it to go look for that file instead..
+Without this, I need to add a local custom patch, else my DEC3000-S
+does not work at all with the latest kernels.
+
+
+thanks!
+barry bouwsma
+
+
+      
+
 
 _______________________________________________
 linux-dvb mailing list
