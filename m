@@ -1,29 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7GDTFtQ004101
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 09:29:15 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7GDT0iu012061
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 09:29:01 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so1083150fga.7
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 06:29:00 -0700 (PDT)
-Message-ID: <48A6D617.8040007@gmail.com>
-Date: Sat, 16 Aug 2008 14:28:55 +0100
-From: zePh7r <zeph7r@gmail.com>
-To: Markus Rechberger <mrechberger@gmail.com>, video4linux-list@redhat.com,
-	linux-dvb <linux-dvb@linuxtv.org>
-References: <48A1B85E.5070800@net.novis.pt>	
-	<ea4209750808121230o7324d64ei3dcd19e9c8eed860@mail.gmail.com>	
-	<48A1EF36.5030909@gmail.com>	
-	<ea4209750808130229j502aabfcofeb42172b1ed338d@mail.gmail.com>	
-	<48A34DB5.7060809@gmail.com>
-	<d9def9db0808131417t168bc1abvfb3b08101980405d@mail.gmail.com>
-In-Reply-To: <d9def9db0808131417t168bc1abvfb3b08101980405d@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7E026OX021953
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 20:02:06 -0400
+Received: from mail-in-08.arcor-online.net (mail-in-08.arcor-online.net
+	[151.189.21.48])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7E01sls008050
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 20:01:54 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>
+In-Reply-To: <20080813135255.5af83623@glory.loctelecom.ru>
+References: <20080813135255.5af83623@glory.loctelecom.ru>
+Content-Type: text/plain
+Date: Thu, 14 Aug 2008 01:53:31 +0200
+Message-Id: <1218671611.2696.30.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Cc: 
-Subject: Re: [linux-dvb] Support for Asus My-Cinema U3000Hybrid?
+Cc: video4linux-list@redhat.com, gert.vervoort@hccnet.nl,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: TS packet??
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,6 +28,39 @@ List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
+
+Hi,
+
+Am Mittwoch, den 13.08.2008, 13:52 +1000 schrieb Dmitri Belimov:
+> Hi All
+> 
+> After long time plaing with MPEG encoder I read test data. See attachment.
+> Is it correct TS packet??
+
+all known apps dealing with .ts streams say no.
+
+As I at the very beginning tried to point to, after realizing a total
+mess happened, Frederic has some last known spot working and can also
+report about how far he can come with the recent attempts.
+
+I'm still without any such hardware even close to be functional for the
+empress encoder.
+
+But at least others have/had stuff proved once to be functional, like
+Frederic and Gert and Mans previously and Hans is around too.
+
+Looks like you have by default the mpeg encoder more or less active and
+I can only say, that I don't have the slightest problems for analog
+TV ;), to get the tda9887 sharp early enough is likely still something
+very simple, and DVB-T and on radio only the well known minor, what to
+say, fuzz for autoscanning ;)
+
+How to switch from DVB-T to the mpeg encoder, I don't know ...
+
+Cheers,
+Hermann
+
+
 
 
 --
