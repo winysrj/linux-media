@@ -1,23 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp239.poczta.interia.pl ([217.74.64.239])
+Received: from wr-out-0506.google.com ([64.233.184.237])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mincho@interia.pl>) id 1KYPXh-0001MV-IO
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 20:14:54 +0200
-Received: from poczta.interia.pl (mi03.poczta.interia.pl [10.217.12.3])
-	by smtp239.poczta.interia.pl (INTERIA.PL) with ESMTP id 09FAB3989F9
-	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 20:14:48 +0200 (CEST)
-Received: from [10.68.0.121] (unknown [81.219.10.162])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by poczta.interia.pl (INTERIA.PL) with ESMTP id 7B3283C3DF
-	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 20:14:47 +0200 (CEST)
-Message-ID: <48B59989.4080004@interia.pl>
-Date: Wed, 27 Aug 2008 20:14:33 +0200
-From: mincho@interia.pl
+	(envelope-from <czhang1974@gmail.com>) id 1KTIqy-0000m3-Ka
+	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 18:05:41 +0200
+Received: by wr-out-0506.google.com with SMTP id 50so46394wra.13
+	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 09:05:35 -0700 (PDT)
+Message-ID: <bd41c5f0808130905y30efc79m84bdcf5128c425a@mail.gmail.com>
+Date: Wed, 13 Aug 2008 16:05:35 +0000
+From: "Chaogui Zhang" <czhang1974@gmail.com>
+To: "Paul Marks" <paul@pmarks.net>
+In-Reply-To: <8e5b27790808122233r539e6404y777e2bade7c78b47@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] saa7162. Aver saa7135 cards. User stupid questions.
-	More or less.
+Content-Disposition: inline
+References: <8e5b27790808120058o52c4c6bcw21152364b2613c39@mail.gmail.com>
+	<8e5b27790808122233r539e6404y777e2bade7c78b47@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] FusionHDTV5 IR not working.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,30 +29,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi.
-saa7162
-Maybe thats really stupid question, but I greped and googled very 
-intensive and I am not sure.
-What is recent status of saa7162 driver?
-Am I wrong - work is frozen due to missing specs?
-So should I assume - that schmeltz will not work under linux for long 
-time more?
+On Wed, Aug 13, 2008 at 5:33 AM, Paul Marks <paul@pmarks.net> wrote:
+> On Tue, Aug 12, 2008 at 12:58 AM, Paul Marks <paul@pmarks.net> wrote:
+>> I have a DViCO FusionHDTV5 RT Gold, with an IR sensor that connects to
+>> the back of the card.  The remote is a "Fusion Remote MCE".  The video
+>> capture stuff works just fine, but I've had no such luck with the
+>> remote.
+>
+> Just to confirm some things:
+> - The remote control works using DViCO's software on Windows Vista x64.
+> - The remote is not detected in Ubuntu 8.04.1
+>
+> I normally run Gentoo with kernel 2.6.26, but I tested with an Ubuntu
+> Live CD, to be sure I wasn't forgetting some trivial kernel module.
+>
 
-Aver DVB-T Hybrid+FM PCI A16D.
-I found (on wiki page), that this card is poor supported.
-But I did not found 777 A16A-C at all.
-I have A16A-C and it works excellent.
-What is recent status for Hybrid+FM PCI A16D?
+Do the following and see if it works:
 
-Regards
+Power off your system (don't just reboot), then unplug power, wait for
+20 seconds and plug it back in then start your Ubuntu.
+
+If this works, that means the IR receiver got messed up somehow and
+only a complete power cut can reset it. I have seen this happening
+tons of times when I tried to get the IR on my HDTV5 RT Gold to work
+last summer.
+
 -- 
-Wieslaw Kirbedz
-
-
-----------------------------------------------------------------------
-Nie szukam kochanka!
->> http://link.interia.pl/f1eeb
-
+Chaogui Zhang
 
 _______________________________________________
 linux-dvb mailing list
