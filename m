@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.188])
+Received: from mail-gx0-f20.google.com ([209.85.217.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KWcJz-0000gY-AJ
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 21:29:20 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so632300nfb.11
-	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 12:29:16 -0700 (PDT)
-Message-ID: <412bdbff0808221229l3cd3bdf9u5d4739dae2b5bbec@mail.gmail.com>
-Date: Fri, 22 Aug 2008 15:29:15 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: mailgk@xs4all.nl
-In-Reply-To: <1219433126.3724.37.camel@gk-sem3.gkall.nl>
+	(envelope-from <sparkmaul@gmail.com>) id 1KTJOi-0004Fp-Or
+	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 18:40:36 +0200
+Received: by gxk13 with SMTP id 13so1668176gxk.17
+	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 09:39:57 -0700 (PDT)
+Message-ID: <8e5b27790808130939m43918485kb81128ccbe782621@mail.gmail.com>
+Date: Wed, 13 Aug 2008 09:39:57 -0700
+From: "Paul Marks" <paul@pmarks.net>
+To: "Chaogui Zhang" <czhang1974@gmail.com>
+In-Reply-To: <bd41c5f0808130905y30efc79m84bdcf5128c425a@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <1219433126.3724.37.camel@gk-sem3.gkall.nl>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] dib0700_devices.c patched for xc5000
+References: <8e5b27790808120058o52c4c6bcw21152364b2613c39@mail.gmail.com>
+	<8e5b27790808122233r539e6404y777e2bade7c78b47@mail.gmail.com>
+	<bd41c5f0808130905y30efc79m84bdcf5128c425a@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] FusionHDTV5 IR not working.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,42 +30,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I am actively working on the Pinnacle 801e, which uses the xc5000 on
-the dib0700.  I have been working through issues with Steven Toth (the
-xc5000) maintainer as well as Patrick Boettcher (the dib0700
-maintainer).
-
-As soon as I have code that works I will post it.  Firmware loading is
-working but I am dealing with various i2c related issues.
-
-Devin
-
-On Fri, Aug 22, 2008 at 3:25 PM, Gerard <mailgk@xs4all.nl> wrote:
-> Hello,
+On Wed, Aug 13, 2008 at 9:05 AM, Chaogui Zhang <czhang1974@gmail.com> wrote:
 >
-> Question is if somebody has done already some updates/patches to the
-> dib0700_devices.c file for interface with the xc5000.
+> Do the following and see if it works:
 >
-> I am interrested to use it for testing the Pinnacle 340e (with xc4000).
->
-> --
-> --------
-> m.vr.gr.
-> Gerard Klaver
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+> Power off your system (don't just reboot), then unplug power, wait for
+> 20 seconds and plug it back in then start your Ubuntu.
 
+Hey, you're right!  Thanks.  The remote is working perfectly on Gentoo
+now.  0x6b is also visible in i2cdetect.
 
+On Wed, Aug 13, 2008 at 9:11 AM, Steven Toth <stoth@linuxtv.org> wrote:
+>
+> If this is true, and the IR device reset line is wired to the bridge, we
+> should try to identify the GPIO and force a device reset on driver load.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+If you can't figure out how to reset it, then at least put a comment
+in the kernel code mentioning the need to power off.  It might save
+someone a lot of effort in the future.
 
 _______________________________________________
 linux-dvb mailing list
