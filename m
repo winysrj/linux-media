@@ -1,12 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Fri, 1 Aug 2008 11:23:19 +1000
-From: Anton Blanchard <anton@samba.org>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080801012319.GB7094@kryten>
-MIME-Version: 1.0
-Content-Disposition: inline
-Cc: linuxdvb@itee.uq.edu.au, stev391@email.com
-Subject: [linux-dvb] [PATCH 1/4] Factor out common cx23885 tuner callback
+Received: from cable-85.28.84.48.coditel.net ([85.28.84.48]
+	helo=ibiza.bxl.tuxicoman.be)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <gmsoft@tuxicoman.be>) id 1KTOcJ-0003OR-4s
+	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 00:14:55 +0200
+Date: Thu, 14 Aug 2008 00:14:19 +0200
+From: Guy Martin <gmsoft@tuxicoman.be>
+To: "Konstantin Dimitrov" <kosio.dimitrov@gmail.com>
+Message-ID: <20080814001419.618d60a2@bleh.bxl.tuxicoman.be>
+In-Reply-To: <8103ad500808131244l1bb786e9mf519e3d7e93d76b7@mail.gmail.com>
+References: <20080813123241.0f7cffca@bleh.bxl.tuxicoman.be>
+	<8103ad500808130637v50e9a64eg6eb1fbdd32071971@mail.gmail.com>
+	<20080813210018.465bbef4@bleh.bxl.tuxicoman.be>
+	<8103ad500808131244l1bb786e9mf519e3d7e93d76b7@mail.gmail.com>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] CT-3650 driver effort
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,94 +30,132 @@ Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 
-Tuners currently hook different things to the private pointer in their
-callback function. Longer term we should make that private pointer
-consistent, but for now separate out the guts of the cx23885 tuner callback
-so we can reuse it.
 
-Signed-off-by: Anton Blanchard <anton@samba.org>
----
+Hi Konstantin,
 
-Index: v4l-dvb/linux/drivers/media/video/cx23885/cx23885-cards.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/video/cx23885/cx23885-cards.c	2008-08-01 09:14:25.000000000 +1000
-+++ v4l-dvb/linux/drivers/media/video/cx23885/cx23885-cards.c	2008-08-01 10:31:39.000000000 +1000
-@@ -320,13 +320,9 @@
- 			dev->name, tv.model);
- }
- 
--/* Tuner callback function for cx23885 boards. Currently only needed
-- * for HVR1500Q, which has an xc5000 tuner.
-- */
--int cx23885_tuner_callback(void *priv, int command, int arg)
-+static int cx23885_tuner_callback(struct cx23885_dev *dev, int port,
-+				  int command, int arg)
- {
--	struct cx23885_i2c *bus = priv;
--	struct cx23885_dev *dev = bus->dev;
- 	u32 bitmask = 0;
- 
- 	if (command != 0) {
-@@ -346,9 +342,9 @@
- 
- 			/* Two identical tuners on two different i2c buses,
- 			 * we need to reset the correct gpio. */
--			if (bus->nr == 0)
-+			if (port == 0)
- 				bitmask = 0x01;
--			else if (bus->nr == 1)
-+			else if (port == 1)
- 				bitmask = 0x04;
- 		}
- 		break;
-@@ -364,6 +360,14 @@
- 	return 0;
- }
- 
-+int cx23885_xc5000_tuner_callback(void *priv, int command, int arg)
-+{
-+	struct cx23885_i2c *bus = priv;
-+	struct cx23885_dev *dev = bus->dev;
-+
-+	return cx23885_tuner_callback(dev, bus->nr, command, arg);
-+}
-+
- void cx23885_gpio_setup(struct cx23885_dev *dev)
- {
- 	switch(dev->board) {
-Index: v4l-dvb/linux/drivers/media/video/cx23885/cx23885-dvb.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/video/cx23885/cx23885-dvb.c	2008-08-01 09:14:25.000000000 +1000
-+++ v4l-dvb/linux/drivers/media/video/cx23885/cx23885-dvb.c	2008-08-01 10:31:39.000000000 +1000
-@@ -189,13 +189,13 @@
- static struct xc5000_config hauppauge_hvr1500q_tunerconfig = {
- 	.i2c_address      = 0x61,
- 	.if_khz           = 5380,
--	.tuner_callback   = cx23885_tuner_callback
-+	.tuner_callback   = cx23885_xc5000_tuner_callback,
- };
- 
- static struct xc5000_config dvico_xc5000_tunerconfig = {
- 	.i2c_address      = 0x64,
- 	.if_khz           = 5380,
--	.tuner_callback   = cx23885_tuner_callback
-+	.tuner_callback   = cx23885_xc5000_tuner_callback,
- };
- 
- static struct tda829x_config tda829x_no_probe = {
-Index: v4l-dvb/linux/drivers/media/video/cx23885/cx23885.h
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/video/cx23885/cx23885.h	2008-08-01 09:14:25.000000000 +1000
-+++ v4l-dvb/linux/drivers/media/video/cx23885/cx23885.h	2008-08-01 10:31:39.000000000 +1000
-@@ -410,7 +410,7 @@
- extern struct cx23885_subid cx23885_subids[];
- extern const unsigned int cx23885_idcount;
- 
--extern int cx23885_tuner_callback(void *priv, int command, int arg);
-+extern int cx23885_xc5000_tuner_callback(void *priv, int command, int arg);
- extern void cx23885_card_list(struct cx23885_dev *dev);
- extern int  cx23885_ir_init(struct cx23885_dev *dev);
- extern void cx23885_gpio_setup(struct cx23885_dev *dev);
+It seems that you are right. The tuner is actually TDA8274, not
+TDA8264. Sorry for the typo.
+
+Looking at other drivers like the saa7134 one, it seems that there may
+be more work to do to get the TDA10048 to work. Also, the demod
+TDA10046 has special code to work with this tuner. I'm wondering if the
+same applies for TDA10048.
+
+Unfortunately, I'm kinda stuck right now. Maybe the next step would be
+to sniff what the windows driver sends via USB but I don't have any
+windows install to try with.
+
+
+Any suggestions ?
+
+
+Regards,
+  Guy
+
+
+
+On Wed, 13 Aug 2008 22:44:48 +0300
+"Konstantin Dimitrov" <kosio.dimitrov@gmail.com> wrote:
+
+> hi again Guy,
+> 
+> sorry, but i don't know what tuner is used in CT-3650. in you first
+> mail you said that the tuner in CT-3650 is TDA8264 and it works with
+> DVB-C. under "tuner" i mean PLL (Phase Locked Loop) integrated
+> circuit. personally, i'm not an expert, but i doubt that there are
+> different PLLs for DVB-C and DVB-T. i assume there is one PLL: TDA8264
+> for both DVB-T and DVB-C and two demodulator one for DVB-T: TDA10048
+> and one for DVB-C: TDA10023. so, maybe you can't attach to the tuner,
+> because you've already attached to that tuner in the DVB-C code. or
+> maybe if there is separate (second) tuner for DVB-T you are using
+> wrong I2C device address when you try to attach. i hope that will help
+> you.
+> 
+> regards,
+> konstantin
+> 
+> On Wed, Aug 13, 2008 at 10:00 PM, Guy Martin <gmsoft@tuxicoman.be>
+> wrote:
+> >
+> > Hi Konstantin,
+> >
+> > Thanks for that. I'm now able to get the firmware uploaded.
+> >
+> > However I can't attach the DVB-T tuner. I guess it has a TDA18211
+> > but I'm not 100% sure about this. Is there another way to find out
+> > rather than unsoldering the tuner ?
+> >
+> > Thanks,
+> >  Guy
+> >
+> > On Wed, 13 Aug 2008 16:37:11 +0300
+> > "Konstantin Dimitrov" <kosio.dimitrov@gmail.com> wrote:
+> >
+> >> hi Guy,
+> >>
+> >> you can easily get (extract) the TDA10048 firmware from the
+> >> Technotrend CT-3650 Windows drivers:
+> >>
+> >> 1) wget
+> >> http://technotrend-online.com/download/software/bda/usb2driver//ttusb2bda_1.0.2.20.zip
+> >>
+> >> 2) unzip -jo ttusb2bda_1.0.2.20.zip
+> >> ttusb2bda_1.0.2.20/ttusb2bda.sys
+> >>
+> >> 3) dd if=ttusb2bda.sys of=dvb-fe-tda10048-1.0.fw bs=1 skip=532560
+> >> count=24878
+> >>
+> >> best wishes,
+> >> konstantin
+> >>
+> >> 2008/8/13 Guy Martin <gmsoft@tuxicoman.be>:
+> >> >
+> >> > Hi all,
+> >> >
+> >> > I'm currently trying to get the CT-3650 working.
+> >> > It has the following chips :
+> >> >  - TDA8264 (tuner)
+> >> >  - TDA10023 (DVB-C demod)
+> >> >  - TDA10048 (DVB-T demod)
+> >> >
+> >> >
+> >> > I'm able to get the DVB-C frontend working using the attached
+> >> > patch. However I can't test the DVB-T nor the CI.
+> >> >
+> >> > To test the DVB-T frontend, I'm missing dvb-fe-tda10048-1.0.fw
+> >> > which I can't find anywhere.
+> >> >
+> >> > Regarding the CI, I'm only watching FTA so I won't be able to
+> >> > test that.
+> >> >
+> >> >
+> >> > Please review the attached patch. If I'm given the tda10048
+> >> > firmware I should probably get it to work.
+> >> >
+> >> >
+> >> > Regards,
+> >> >  Guy
+> >> >
+> >> > --
+> >> > Guy Martin
+> >> > Gentoo Linux - HPPA port lead
+> >> >
+> >> > _______________________________________________
+> >> > linux-dvb mailing list
+> >> > linux-dvb@linuxtv.org
+> >> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >> >
+> >
+> >
+> > --
+> > Guy Martin
+> > Gentoo Linux - HPPA port lead
+> >
+
+
+-- 
+Guy Martin
+Gentoo Linux - HPPA port lead
 
 _______________________________________________
 linux-dvb mailing list
