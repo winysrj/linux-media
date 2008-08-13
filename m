@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TCGMEJ018652
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 08:16:23 -0400
-Received: from mgw-mx09.nokia.com (smtp.nokia.com [192.100.105.134])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7TCGEHn019757
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 08:16:14 -0400
-Message-ID: <48B7E8C4.5060605@nokia.com>
-Date: Fri, 29 Aug 2008 15:17:08 +0300
-From: Sakari Ailus <sakari.ailus@nokia.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7DCt56Z006961
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 08:55:05 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7DCsfcQ002352
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 08:54:41 -0400
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>) id 1KTFsM-0001W3-KJ
+	for video4linux-list@redhat.com; Wed, 13 Aug 2008 14:54:54 +0200
+Date: Wed, 13 Aug 2008 14:54:54 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: video4linux-list@redhat.com
+Message-ID: <Pine.LNX.4.64.0808131453300.5389@axis700.grange>
 MIME-Version: 1.0
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-References: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>	<20080824115725.GG10168@pengutronix.de>	<Pine.LNX.4.64.0808281646420.6514@axis700.grange>
-	<200808282058.26623.hverkuil@xs4all.nl>
-In-Reply-To: <200808282058.26623.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2] soc-camera: add API documentation
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCH] mt9m001, mt9v022: Simplify return code checking
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,177 +27,157 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+i2c_smbus_write_word_data() returns 0 or a negative error, hence no need to
+check for "> 0".
 
-(I'm adding Mohit Jalori at TI to Cc:.)
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-ext Hans Verkuil wrote:
-> This is not really a comment on this patch, but more on sensor APIs in 
-> general. I'm beginning to be concerned about the many different 
-> approaches. We have soc-camera, v4l2-int-device.h which some of the 
-> omap drivers want to use, gspca which basically sees the bridge driver 
-> and sensor as one unit, and probably other attempts that I do not know 
-> about.
+I'm going to pull this through my hg-tree. Here for reference / review.
 
-I agree. Although I didn't know about the rest beyond SoC camera and 
-v4l2-int-if.
+ drivers/media/video/mt9m001.c |   24 ++++++++++++------------
+ drivers/media/video/mt9v022.c |   28 ++++++++++++++--------------
+ 2 files changed, 26 insertions(+), 26 deletions(-)
 
-I'm kind of responsible for the v4l2-int-device stuff. At the time there 
-was no SoC camera and it was my attempt to break the connection between 
-the camera controller and the sensor. It also aims to be usable outside 
-camera V4L devices.
-
-Guennadi published SoC camera before he knew about v4l2-int-if and so we 
-had two approaches. Lately I haven't had time to pay attention to new 
-developments which I'm a bit sorry for.
-
-> I am strongly in favor of discussing this situation during the Portland 
-> Linux Plumbers Conference where at least Mauro, Hans de Goede, Manju 
-> from TI and myself will be present.
-
-I'm unlikely to be able to participate. :I
-
-> Lately I've been experimenting with improving the V4L2 framework. 
-> Prototyping code can be found in my hg/~hverkuil/v4l-dvb-ng/ tree. It 
-> provides a new generic 'ops' structure (see media/v4l2-client.h) that 
-> can be used both by i2c drivers and non-i2c driver alike, that is easy 
-> to extend and that will work for all client drivers, not just sensors. 
-> And it can be implemented in existing i2c drivers without requiring 
-> that the current PCI/USB drivers that use them need to be converted at 
-> the same time.
-> 
-> The client ops structure is this:
-> 
-> struct v4l2_client_ops {
->         const struct v4l2_client_core_ops  *core;
->         const struct v4l2_client_tuner_ops *tuner;
->         const struct v4l2_client_audio_ops *audio;
->         const struct v4l2_client_video_ops *video;
-> };
-> 
-> Basically it's a bunch of (possibly NULL) pointers to other ops 
-> structures. The pointers can by NULL so that client drivers that are 
-> video only do not need to implement e.g. audio ops. It is easy to 
-> extend this with other ops structs like a sensor_ops. It probably fits 
-> fairly well with soc_camera which does something similar, except that 
-> this approach is general.
-
-The major diff to v4l2-int-if is that this defines device types. I guess 
-this way it's easier to define what kind of ioctls are expected to work 
-for clients. Although I didn't want to define such list as I wasn't 
-quite sure I could come up with a definite one at the time. So now it's 
-actually defined by what the master expects but the size of the 
-structure holding the slave function calls does not grow even if the 
-slave calls themselves change or more calls are added. It was due to 
-this argument that ioctl-like interface was selected for v4l2-int-if 
-instead. Think of all the ioctls supported by V4L2.
-
-struct v4l2_client_ops should at least be a union. But this should not 
-be a problem as long as the clients have a type.
-
-> Remember, it is only prototyping code, but I consider it to be a very 
-> promising approach. There is a serious lack of V4L2 core support which 
-> means that drivers tend to re-invent the wheel and all to often that 
-> wheel looks suspiciously square to me.
-
-It is not completely obvious to me, at least, what are the calls that 
-are requred to be implemented by the sensor driver. The current sensors 
-that are supported by Linux (at least the ones I know) are so-called 
-smart sensors. All the control algorithms (AE, AWB and possibly AF) are 
-run directly on the microcontroller inside the sensor module itself.
-
-The direction, as far as I see, is towards separating the sensor from 
-the image processing. An example of this is the OMAP 3 ISP. The OMAP 3 
-camera driver is able to work with smart sensors, too, but it's meant to 
-be used with raw sensors that just produce raw bayer matrix.
-
-The bayer matrix input is converted (to YUV422, for example) and scaled 
-based on user requirements.
-
-The ISP with a raw bayer sensor does not implement the same 
-functionality that smart sensors offer. It only produces statistics 
-(OMAP 3 ISP, for example) that are useful for the actual control 
-algorithms (AE, AWB and AF). One of the consequences are that the 
-algorithms are run on host system and these algorithms require 
-additional information, something that used to be handled only inside 
-the smart sensor. It's not that much different, though.
-
-> Sorry for the 'rant' about the state the V4L2 sub-system is in, it's not 
-> a reflection on your patch, it only provided the trigger for this 
-> outburst of mine.
-
-:)
-
-I've been thinking it could make sense to unify v4l2-int-if and SoC 
-camera efforts in longer term.
-
-Although the approach in SoC camera is somewhat different than in 
-v4l2-int-if they share some similarities. V4l2-int-if tries to define 
-common set of commands for commanding different hardware devices that 
-make one V4L2 device, e.g. /dev/video0. SoC camera, OTOH, is a 
-hardware-independent camera driver that can interface with different 
-camera controllers and image sensors.
-
-Interestingly, the concepts used in v4l2-int-if and SoC camera are quite
-similar. Roughly equivalent pieces can be found easily:
-
-v4l2-int-if + OMAP 3 camera		SoC camera
-
-OMAP 3 camera driver (int if master)	SoC camera driver
-OMAP 3 ISP driver			host
-sensor (int if slave)            	device
-lens (int if slave)
-flash (int if slave)
-
-Control flow:
-
-SoC camera
-|    \
-|     \
-|      \
-|       \
-host    device
-
-OMAP 3 camera driver
-|    |        |   \
-|    |        |    \
-|    |        |     \
-|    |        |      \
-|    sensor   lens    flash
-|    |
-|    |
-|    machine/platform specific code
-|      /
-|     /
-|    /
-|   /
-|  /
-ISP
-
-Additionally both can employ the use of machine specific glue code if
-needed. It might be that direct OMAP 3 camera driver -> ISP control
-path should go away. There are only a few places where this is done at
-the moment.
-
-(Please correct me if I'm mistaken somewhere above. And otherwise, too. :))
-
-I think few hardware-specific things are ending up in the OMAP 3 camera 
-driver. On that side it seems we could perhaps even make OMAP 3 camera 
-driver a generic camera driver that could support lens and flash devices 
-as well.
-
-Making the ISP driver a v4l2-int-if slave would help a lot --- this
-would remove the camera driver -> ISP driver dependency. The ISP driver
-would be the fourth slave for the camera driver in that case. But it 
-required a standard interface, too. In this case it might make sense to 
-separate image processing capabilities from the bare sensor hw interface 
-(i.e. CCP2 receiver).
-
-Best regards,
-
+diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+index 554d229..3531f93 100644
+--- a/drivers/media/video/mt9m001.c
++++ b/drivers/media/video/mt9m001.c
+@@ -119,16 +119,16 @@ static int mt9m001_init(struct soc_camera_device *icd)
+ {
+ 	int ret;
+ 
+-	/* Disable chip, synchronous option update */
+ 	dev_dbg(icd->vdev->parent, "%s\n", __func__);
+ 
+ 	ret = reg_write(icd, MT9M001_RESET, 1);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9M001_RESET, 0);
+-	if (ret >= 0)
++	/* Disable chip, synchronous option update */
++	if (!ret)
+ 		ret = reg_write(icd, MT9M001_OUTPUT_CONTROL, 0);
+ 
+-	return ret >= 0 ? 0 : -EIO;
++	return ret;
+ }
+ 
+ static int mt9m001_release(struct soc_camera_device *icd)
+@@ -267,24 +267,24 @@ static int mt9m001_set_fmt_cap(struct soc_camera_device *icd,
+ 
+ 	/* Blanking and start values - default... */
+ 	ret = reg_write(icd, MT9M001_HORIZONTAL_BLANKING, hblank);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9M001_VERTICAL_BLANKING, vblank);
+ 
+ 	/* The caller provides a supported format, as verified per
+ 	 * call to icd->try_fmt_cap() */
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9M001_COLUMN_START, rect->left);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9M001_ROW_START, rect->top);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9M001_WINDOW_WIDTH, rect->width - 1);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9M001_WINDOW_HEIGHT,
+ 				rect->height + icd->y_skip_top - 1);
+-	if (ret >= 0 && mt9m001->autoexposure) {
++	if (!ret && mt9m001->autoexposure) {
+ 		ret = reg_write(icd, MT9M001_SHUTTER_WIDTH,
+ 				rect->height + icd->y_skip_top + vblank);
+-		if (ret >= 0) {
++		if (!ret) {
+ 			const struct v4l2_queryctrl *qctrl =
+ 				soc_camera_find_qctrl(icd->ops,
+ 						      V4L2_CID_EXPOSURE);
+@@ -295,7 +295,7 @@ static int mt9m001_set_fmt_cap(struct soc_camera_device *icd,
+ 		}
+ 	}
+ 
+-	return ret < 0 ? ret : 0;
++	return ret;
+ }
+ 
+ static int mt9m001_try_fmt_cap(struct soc_camera_device *icd,
+diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+index 56808cd..0f4b204 100644
+--- a/drivers/media/video/mt9v022.c
++++ b/drivers/media/video/mt9v022.c
+@@ -141,22 +141,22 @@ static int mt9v022_init(struct soc_camera_device *icd)
+ 	 * plus snapshot mode to disable scan for now */
+ 	mt9v022->chip_control |= 0x10;
+ 	ret = reg_write(icd, MT9V022_CHIP_CONTROL, mt9v022->chip_control);
+-	if (ret >= 0)
+-		reg_write(icd, MT9V022_READ_MODE, 0x300);
++	if (!ret)
++		ret = reg_write(icd, MT9V022_READ_MODE, 0x300);
+ 
+ 	/* All defaults */
+-	if (ret >= 0)
++	if (!ret)
+ 		/* AEC, AGC on */
+ 		ret = reg_set(icd, MT9V022_AEC_AGC_ENABLE, 0x3);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
+-	if (ret >= 0)
++	if (!ret)
+ 		/* default - auto */
+ 		ret = reg_clear(icd, MT9V022_BLACK_LEVEL_CALIB_CTRL, 1);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9V022_DIGITAL_TEST_PATTERN, 0);
+ 
+-	return ret >= 0 ? 0 : -EIO;
++	return ret;
+ }
+ 
+ static int mt9v022_release(struct soc_camera_device *icd)
+@@ -352,21 +352,21 @@ static int mt9v022_set_fmt_cap(struct soc_camera_device *icd,
+ 					rect->height + icd->y_skip_top + 43);
+ 	}
+ 	/* Setup frame format: defaults apart from width and height */
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9V022_COLUMN_START, rect->left);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9V022_ROW_START, rect->top);
+-	if (ret >= 0)
++	if (!ret)
+ 		/* Default 94, Phytec driver says:
+ 		 * "width + horizontal blank >= 660" */
+ 		ret = reg_write(icd, MT9V022_HORIZONTAL_BLANKING,
+ 				rect->width > 660 - 43 ? 43 :
+ 				660 - rect->width);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9V022_VERTICAL_BLANKING, 45);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9V022_WINDOW_WIDTH, rect->width);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(icd, MT9V022_WINDOW_HEIGHT,
+ 				rect->height + icd->y_skip_top);
+ 
+@@ -717,7 +717,7 @@ static int mt9v022_video_probe(struct soc_camera_device *icd)
+ 			icd->num_formats = 1;
+ 	}
+ 
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = soc_camera_video_start(icd);
+ 	if (ret < 0)
+ 		goto eisis;
 -- 
-Sakari Ailus
-sakari.ailus@nokia.com
+1.5.4
 
 --
 video4linux-list mailing list
