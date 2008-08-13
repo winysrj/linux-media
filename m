@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7IG9ZjF001219
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 12:09:35 -0400
-Received: from atfichtner.de (atfichtner.de [88.198.24.37])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7IG9NcJ003349
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 12:09:23 -0400
-Received: from [192.168.2.20] (pD9EAEBCB.dip.t-dialin.net [217.234.235.203])
-	by atfichtner.de (Postfix) with ESMTP id ECDEE8A825C
-	for <video4linux-list@redhat.com>;
-	Mon, 18 Aug 2008 18:11:16 +0200 (CEST)
-Message-ID: <48A99EB1.3030707@atfichtner.de>
-Date: Mon, 18 Aug 2008 18:09:21 +0200
-From: "A. Fichtner" <anfichtner@atfichtner.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7D8cCx8015232
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 04:38:12 -0400
+Received: from wmproxy1-g27.free.fr (wmproxy1-g27.free.fr [212.27.42.91])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7D8c1ao014509
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 04:38:01 -0400
+Message-ID: <1218616667.48a29d5bcb7ea@imp.free.fr>
+Date: Wed, 13 Aug 2008 10:37:47 +0200
+From: robert.jarzmik@free.fr
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <87hca34ra0.fsf@free.fr>
+	<Pine.LNX.4.64.0808022146090.27474@axis700.grange>
+	<873alnt2bh.fsf@free.fr>
+	<Pine.LNX.4.64.0808121612330.8089@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0808121612330.8089@axis700.grange>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: noname PCMCIA TV-Tuner Card - no tv ?
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [RFC] soc_camera: endianness between camera and its host
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,174 +30,58 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello!
+Selon Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
 
-I have some trouble to get my new TV-Card installed.
+> Sorry for a late reply. Looking at your mt9m111 patch, I realised we
+> didn't finish this discussion:-)
+No problem.
 
-The documentation says it has a philips *tda8275a, tda8290 new silicon 
-tuner*
-google means that it is a hybrid card.
+> Ok, I looked at them, I really did:-) Still, doesn't the following
+> describe the situation:
+>
+> mt9m111 supported formats:
+> rgb 565				(as specified in mt9m111 manual)
+> rgb 565 swapped			(ditto swapped to match pxa270)
+> ...
+>
+> pxa270 supports formats
+> rgb 565 swapped			(pxa manual doesn't call it swapped)
+> ...
+Yes, that's exactly my point of view.
 
-dmesg says the following:
-[ 8847.678136] pccard: CardBus card inserted into slot 0
-[ 8847.678260] yenta EnE: chaning testregister 0xC9, 44 -> 44
-[ 3538.107500] saa7130/34: v4l2 driver version 0.2.14 loaded
-[ 3538.107990] PCI: Enabling device 0000:02:00.0 (0000 -> 0002)
-[ 3538.108259] ACPI: PCI Interrupt 0000:02:00.0[A] -> Link [LNKB] -> GSI 
-11 (level, low) -> IRQ 11
-[ 3538.108273] saa7133[0]: found at 0000:02:00.0, rev: 16, irq: 11, 
-latency: 0, mmio: 0x34000000
-[ 3538.108282] PCI: Setting latency timer of device 0000:02:00.0 to 64
-[ 3538.108288] saa7133[0]: subsystem: 1132:2004, board: UNKNOWN/GENERIC 
-[card=0,autodetected]
-[ 3538.108301] saa7133[0]: board init: gpio is 0
-[ 3538.108310] saa7133[0]: gpio: mode=0x0000000 in=0x0000000 
-out=0x0000000 [pre-init]
-[ 3538.210612] saa7133[0]: i2c xfer: < 20 ERROR: NO_DEVICE
-[ 3538.211153] saa7133[0]: i2c xfer: < 84 ERROR: NO_DEVICE
-[ 3538.211474] saa7133[0]: i2c xfer: < 86 ERROR: NO_DEVICE
-[ 3538.211791] saa7133[0]: i2c xfer: < 94 ERROR: NO_DEVICE
-[ 3538.212160] saa7133[0]: i2c xfer: < 96 >
-[ 3538.218890] saa7133[0]: i2c xfer: < 96 00 >
-[ 3538.226599] saa7133[0]: i2c xfer: < 97 =01 =01 =00 =11 =01 =04 =01 =85 >
-[ 3538.234599] saa7133[0]: i2c xfer: < 96 1f >
-[ 3538.242589] saa7133[0]: i2c xfer: < 97 =89 >
-[ 3538.250532] tuner' 2-004b: chip found @ 0x96 (saa7133[0])
-[ 3538.250812] tuner' i2c attach [addr=0x4b,client=tuner']
-[ 3538.250986] saa7133[0]: i2c xfer: < c0 ERROR: NO_DEVICE
-.
-.
-.
-[ 3538.255805] saa7133[0]: i2c xfer: < de ERROR: NO_DEVICE
-[ 3538.256145] saa7133[0]: i2c xfer: < a0 00 >
-[ 3538.262577] saa7133[0]: i2c xfer: < a1 =32 =11 =04 =20 =54 =20 =1c 
-=00 =43 =43 =a9 =1c =55 =d2 =b2 =92 =00 =00 =f0 =0f =ff =20 =ff =ff =ff 
-=ff =ff =ff =ff =ff =ff =ff =01 =40 =01 =02 =02 =01 =01 =03 =08 =ff =00 
-=1d =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff 
-=ff =ff =ff =ff =22 =00 =c2 =96 =ff =02 =30 =15 =ff =ff =ff =ff =ff =ff 
-=ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff 
-=ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff 
-=ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =00 =00 =00 =00 =00 
-=00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 
-=00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 
-=00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 
-=00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 
-=00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 
-=00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 
-=00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 =00 >
-[ 3538.302466] saa7133[0]: i2c eeprom 00: 32 11 04 20 54 20 1c 00 43 43 
-a9 1c 55 d2 b2 92
-[ 3538.302478] saa7133[0]: i2c eeprom 10: 00 00 f0 0f ff 20 ff ff ff ff 
-ff ff ff ff ff ff
-[ 3538.302486] saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff 
-00 1d ff ff ff ff
-[ 3538.302494] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff 
-ff ff ff ff ff ff
-[ 3538.302502] saa7133[0]: i2c eeprom 40: ff 22 00 c2 96 ff 02 30 15 ff 
-ff ff ff ff ff ff
-[ 3538.302510] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff 
-ff ff ff ff ff ff
-[ 3538.302518] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff 
-ff ff ff ff ff ff
-[ 3538.302525] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff 
-ff ff ff ff ff ff
-[ 3538.302533] saa7133[0]: i2c eeprom 80: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[ 3538.302541] saa7133[0]: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[ 3538.302548] saa7133[0]: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[ 3538.302555] saa7133[0]: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[ 3538.302563] saa7133[0]: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[ 3538.302570] saa7133[0]: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[ 3538.302578] saa7133[0]: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[ 3538.302585] saa7133[0]: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 00
-[ 3538.305263] saa7133[0]: i2c xfer: < 01 ERROR: NO_DEVICE
-.
-.
-.
-[ 3538.328512] saa7133[0]: i2c xfer: < 95 ERROR: NO_DEVICE
-[ 3538.328825] saa7133[0]: i2c xfer: < 97 >
-[ 3538.334431] saa7133[0]: i2c scan: found device @ 0x96  [???]
-[ 3538.334681] saa7133[0]: i2c xfer: < 99 ERROR: NO_DEVICE
-[ 3538.334996] saa7133[0]: i2c xfer: < 9b ERROR: NO_DEVICE
-[ 3538.335307] saa7133[0]: i2c xfer: < 9d ERROR: NO_DEVICE
-[ 3538.335620] saa7133[0]: i2c xfer: < 9f ERROR: NO_DEVICE
-[ 3538.335932] saa7133[0]: i2c xfer: < a1 >
-[ 3538.342422] saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
-[ 3538.342645] saa7133[0]: i2c xfer: < a3 ERROR: NO_DEVICE
-.
-.
-.
-[ 3538.357086] saa7133[0]: i2c xfer: < ff ERROR: NO_DEVICE
-[ 3538.357656] saa7133[0]/audio: sound IF not in use, skipping scan
-[ 3538.382884] saa7133[0]: registered device video0 [v4l2]
-[ 3538.383483] saa7133[0]: registered device vbi0
-[ 3538.474259] saa7134_alsa: disagrees about version of symbol 
-saa7134_tvaudio_setmute
-[ 3538.474273] saa7134_alsa: Unknown symbol saa7134_tvaudio_setmute
-[ 3538.474550] saa7134_alsa: disagrees about version of symbol 
-saa_dsp_writel
-[ 3538.474554] saa7134_alsa: Unknown symbol saa_dsp_writel
-[ 3538.474739] saa7134_alsa: disagrees about version of symbol 
-videobuf_dma_free
-[ 3538.474742] saa7134_alsa: Unknown symbol videobuf_dma_free
-[ 3538.474945] saa7134_alsa: disagrees about version of symbol 
-saa7134_pgtable_alloc
-[ 3538.474948] saa7134_alsa: Unknown symbol saa7134_pgtable_alloc
-[ 3538.474992] saa7134_alsa: disagrees about version of symbol 
-saa7134_pgtable_build
-[ 3538.474994] saa7134_alsa: Unknown symbol saa7134_pgtable_build
-[ 3538.475031] saa7134_alsa: disagrees about version of symbol 
-saa7134_pgtable_free
-[ 3538.475035] saa7134_alsa: Unknown symbol saa7134_pgtable_free
-[ 3538.475072] saa7134_alsa: disagrees about version of symbol 
-saa7134_dmasound_init
-[ 3538.475075] saa7134_alsa: Unknown symbol saa7134_dmasound_init
-[ 3538.475221] saa7134_alsa: disagrees about version of symbol 
-saa7134_dmasound_exit
-[ 3538.475224] saa7134_alsa: Unknown symbol saa7134_dmasound_exit
-[ 3538.475327] saa7134_alsa: disagrees about version of symbol 
-videobuf_dma_init
-[ 3538.475330] saa7134_alsa: Unknown symbol videobuf_dma_init
-[ 3538.475488] saa7134_alsa: disagrees about version of symbol 
-videobuf_dma_init_kernel
-[ 3538.475491] saa7134_alsa: Unknown symbol videobuf_dma_init_kernel
-[ 3538.475646] saa7134_alsa: Unknown symbol videobuf_pci_dma_unmap
-[ 3538.475810] saa7134_alsa: Unknown symbol videobuf_pci_dma_map
-[ 3538.475854] saa7134_alsa: disagrees about version of symbol 
-saa7134_set_dmabits
-[ 3538.475857] saa7134_alsa: Unknown symbol saa7134_set_dmabits
+> So, when a user enumerates supported formats, we should report rgb 565
+> swapped, but not report rgb 565. If you connect a mt9m111 to another host,
+> maybe the non-swapped rgb 565 will be supported. So, mt9m111 should report
+> both. The problem currently is, soc-camera doesn't ask the host controller
+> whether it supports a specific pixel format. It only has a chance to fail
+> an attempted VIDIOC_S_FMT, which is a bit too late. So, would adding pixel
+> format negotiation with the camera host driver sufficiently fix the
+> problem for you? One of us could try to cook a patch then.
 
+Yes, pixel format negotiation is the key, that's the clean solution.
+It will have impacts on existing camera drivers, like mt9m001, ..., and camera
+hosts, but you must already be aware of it and ready to pay the price :)
 
-"lsmod |grep saa" says the following:
+Now, let's talk schedule. Until the end of the week, I'll be a bit busy. If I
+don't see a patch you submitted by then, I'll cook one up. I only need to know
+at which point you wish the format negociation should be performed, and on which
+ground.
 
-saa7134               148052  0
-tveeprom               13444  1 saa7134
-ir_common              42244  1 saa7134
-videodev               36864  2 saa7134,tuner
-compat_ioctl32          2304  1 saa7134
-v4l2_common            13952  2 saa7134,tuner
-videobuf_dma_sg        14980  1 saa7134
-videobuf_core          19716  3 saa7134,videobuf_dvb,videobuf_dma_sg
-i2c_core               24832  11 
-saa7134,tda1004x,tda827x,tda8290,tveeprom,tuner_simple,tuner,v4l2_common,i2c_viapro,i2c_prosavage,i2c_algo_bit
+[RFC]
+Would that be something like :
+ - all begins which the binding of both a camera driver and host driver
+ - soc_camera asks host controller which format it provides
+ - soc_camera asks camera driver which format it supports
+ - soc_camera make a table of possible pixel formats (which would be the common
+subset of host and camera pixel formats)
+ - soc_camera uses that table for format enumeration
+ - soc_camera uses that table for preliminary check on VIDIOC_S_FMT
 
+--
+Robert
 
-Windows-Driver:
-Named as "Philips SAA713x BDA Capture Driver"
-
-Can anyone give me a suggestion what drivers i need to load? What card= 
-- insmod options can work?
-
-Thank you.
-
-A. Fichtner
+PS: I use an awfull web based mailer this morning, which I never use. Sorry if
+it messes up linebreaks ...
 
 --
 video4linux-list mailing list
