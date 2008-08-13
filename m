@@ -1,21 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7DCt56Z006961
-	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 08:55:05 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7DHvYgR010701
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 13:57:34 -0400
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7DCsfcQ002352
-	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 08:54:41 -0400
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>) id 1KTFsM-0001W3-KJ
-	for video4linux-list@redhat.com; Wed, 13 Aug 2008 14:54:54 +0200
-Date: Wed, 13 Aug 2008 14:54:54 +0200 (CEST)
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7DHvMYd008067
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 13:57:22 -0400
+Date: Wed, 13 Aug 2008 19:57:41 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: video4linux-list@redhat.com
-Message-ID: <Pine.LNX.4.64.0808131453300.5389@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0808131956020.7713@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Subject: [PATCH] mt9m001, mt9v022: Simplify return code checking
+Cc: 
+Subject: [PATCH v2] mt9m111: style cleanup
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,157 +24,276 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-i2c_smbus_write_word_data() returns 0 or a negative error, hence no need to
-check for "> 0".
+Fix a typo in Kconfig, simplify error checking, further minor cleanup.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Guennadi Liakhovetski <g.iakhovetski@gmx.de>
 ---
 
-I'm going to pull this through my hg-tree. Here for reference / review.
+Robert, looks ok now?
 
- drivers/media/video/mt9m001.c |   24 ++++++++++++------------
- drivers/media/video/mt9v022.c |   28 ++++++++++++++--------------
- 2 files changed, 26 insertions(+), 26 deletions(-)
+ drivers/media/video/Kconfig   |    2 +-
+ drivers/media/video/mt9m111.c |   74 +++++++++++++++++++---------------------
+ 2 files changed, 36 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
-index 554d229..3531f93 100644
---- a/drivers/media/video/mt9m001.c
-+++ b/drivers/media/video/mt9m001.c
-@@ -119,16 +119,16 @@ static int mt9m001_init(struct soc_camera_device *icd)
- {
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 68e7e90..68d5810 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -939,7 +939,7 @@ config MT9M001_PCA9536_SWITCH
+ 	  extender to switch between 8 and 10 bit datawidth modes
+ 
+ config SOC_CAMERA_MT9M111
+-	tristate "mt9m001 support"
++	tristate "mt9m111 support"
+ 	depends on SOC_CAMERA && I2C
+ 	help
+ 	  This driver supports MT9M111 cameras from Micron
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 0c88e5d..d999326 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -173,7 +173,7 @@ static int reg_page_map_set(struct i2c_client *client, const u16 reg)
+ 		return -EINVAL;
+ 
+ 	ret = i2c_smbus_write_word_data(client, MT9M111_PAGE_MAP, swab16(page));
+-	if (ret >= 0)
++	if (!ret)
+ 		lastpage = page;
+ 	return ret;
+ }
+@@ -200,7 +200,7 @@ static int mt9m111_reg_write(struct soc_camera_device *icd, const u16 reg,
  	int ret;
  
--	/* Disable chip, synchronous option update */
- 	dev_dbg(icd->vdev->parent, "%s\n", __func__);
+ 	ret = reg_page_map_set(client, reg);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = i2c_smbus_write_word_data(mt9m111->client, (reg & 0xff),
+ 						swab16(data));
+ 	dev_dbg(&icd->dev, "write reg.%03x = %04x -> %d\n", reg, data, ret);
+@@ -246,7 +246,7 @@ static int mt9m111_set_context(struct soc_camera_device *icd,
+ static int mt9m111_setup_rect(struct soc_camera_device *icd)
+ {
+ 	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
+-	int ret = 0, is_raw_format;
++	int ret, is_raw_format;
+ 	int width = mt9m111->width;
+ 	int height = mt9m111->height;
  
- 	ret = reg_write(icd, MT9M001_RESET, 1);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9M001_RESET, 0);
--	if (ret >= 0)
-+	/* Disable chip, synchronous option update */
-+	if (!ret)
- 		ret = reg_write(icd, MT9M001_OUTPUT_CONTROL, 0);
+@@ -256,32 +256,31 @@ static int mt9m111_setup_rect(struct soc_camera_device *icd)
+ 	else
+ 		is_raw_format = 0;
  
--	return ret >= 0 ? 0 : -EIO;
-+	return ret;
- }
+-	if (ret >= 0)
+-		ret = reg_write(COLUMN_START, mt9m111->left);
+-	if (ret >= 0)
++	ret = reg_write(COLUMN_START, mt9m111->left);
++	if (!ret)
+ 		ret = reg_write(ROW_START, mt9m111->top);
  
- static int mt9m001_release(struct soc_camera_device *icd)
-@@ -267,24 +267,24 @@ static int mt9m001_set_fmt_cap(struct soc_camera_device *icd,
- 
- 	/* Blanking and start values - default... */
- 	ret = reg_write(icd, MT9M001_HORIZONTAL_BLANKING, hblank);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9M001_VERTICAL_BLANKING, vblank);
- 
- 	/* The caller provides a supported format, as verified per
- 	 * call to icd->try_fmt_cap() */
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9M001_COLUMN_START, rect->left);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9M001_ROW_START, rect->top);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9M001_WINDOW_WIDTH, rect->width - 1);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9M001_WINDOW_HEIGHT,
- 				rect->height + icd->y_skip_top - 1);
--	if (ret >= 0 && mt9m001->autoexposure) {
-+	if (!ret && mt9m001->autoexposure) {
- 		ret = reg_write(icd, MT9M001_SHUTTER_WIDTH,
- 				rect->height + icd->y_skip_top + vblank);
--		if (ret >= 0) {
-+		if (!ret) {
- 			const struct v4l2_queryctrl *qctrl =
- 				soc_camera_find_qctrl(icd->ops,
- 						      V4L2_CID_EXPOSURE);
-@@ -295,7 +295,7 @@ static int mt9m001_set_fmt_cap(struct soc_camera_device *icd,
- 		}
+ 	if (is_raw_format) {
+-		if (ret >= 0)
++		if (!ret)
+ 			ret = reg_write(WINDOW_WIDTH, width);
+-		if (ret >= 0)
++		if (!ret)
+ 			ret = reg_write(WINDOW_HEIGHT, height);
+ 	} else {
+-		if (ret >= 0)
++		if (!ret)
+ 			ret = reg_write(REDUCER_XZOOM_B, MT9M111_MAX_WIDTH);
+-		if (ret >= 0)
++		if (!ret)
+ 			ret = reg_write(REDUCER_YZOOM_B, MT9M111_MAX_HEIGHT);
+-		if (ret >= 0)
++		if (!ret)
+ 			ret = reg_write(REDUCER_XSIZE_B, width);
+-		if (ret >= 0)
++		if (!ret)
+ 			ret = reg_write(REDUCER_YSIZE_B, height);
+-		if (ret >= 0)
++		if (!ret)
+ 			ret = reg_write(REDUCER_XZOOM_A, MT9M111_MAX_WIDTH);
+-		if (ret >= 0)
++		if (!ret)
+ 			ret = reg_write(REDUCER_YZOOM_A, MT9M111_MAX_HEIGHT);
+-		if (ret >= 0)
++		if (!ret)
+ 			ret = reg_write(REDUCER_XSIZE_A, width);
+-		if (ret >= 0)
++		if (!ret)
+ 			ret = reg_write(REDUCER_YSIZE_A, height);
  	}
  
+@@ -293,7 +292,7 @@ static int mt9m111_setup_pixfmt(struct soc_camera_device *icd, u16 outfmt)
+ 	int ret;
+ 
+ 	ret = reg_write(OUTPUT_FORMAT_CTRL2_A, outfmt);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_write(OUTPUT_FORMAT_CTRL2_B, outfmt);
+ 	return ret;
+ }
+@@ -305,7 +304,6 @@ static int mt9m111_setfmt_bayer8(struct soc_camera_device *icd)
+ 
+ static int mt9m111_setfmt_bayer10(struct soc_camera_device *icd)
+ {
+-
+ 	return mt9m111_setup_pixfmt(icd, MT9M111_OUTFMT_BYPASS_IFP);
+ }
+ 
+@@ -356,7 +354,7 @@ static int mt9m111_enable(struct soc_camera_device *icd)
+ 	int ret;
+ 
+ 	ret = reg_set(RESET, MT9M111_RESET_CHIP_ENABLE);
+-	if (ret >= 0)
++	if (!ret)
+ 		mt9m111->powered = 1;
+ 	return ret;
+ }
+@@ -367,7 +365,7 @@ static int mt9m111_disable(struct soc_camera_device *icd)
+ 	int ret;
+ 
+ 	ret = reg_clear(RESET, MT9M111_RESET_CHIP_ENABLE);
+-	if (ret >= 0)
++	if (!ret)
+ 		mt9m111->powered = 0;
+ 	return ret;
+ }
+@@ -377,9 +375,9 @@ static int mt9m111_reset(struct soc_camera_device *icd)
+ 	int ret;
+ 
+ 	ret = reg_set(RESET, MT9M111_RESET_RESET_MODE);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_set(RESET, MT9M111_RESET_RESET_SOC);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = reg_clear(RESET, MT9M111_RESET_RESET_MODE
+ 				| MT9M111_RESET_RESET_SOC);
+ 	return ret;
+@@ -410,7 +408,7 @@ static int mt9m111_set_bus_param(struct soc_camera_device *icd, unsigned long f)
+ static int mt9m111_set_pixfmt(struct soc_camera_device *icd, u32 pixfmt)
+ {
+ 	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
+-	int ret = 0;
++	int ret;
+ 
+ 	switch (pixfmt) {
+ 	case V4L2_PIX_FMT_SBGGR8:
+@@ -433,7 +431,7 @@ static int mt9m111_set_pixfmt(struct soc_camera_device *icd, u32 pixfmt)
+ 		ret = -EINVAL;
+ 	}
+ 
+-	if (ret >= 0)
++	if (!ret)
+ 		mt9m111->pixfmt = pixfmt;
+ 
+ 	return ret;
+@@ -443,7 +441,7 @@ static int mt9m111_set_fmt_cap(struct soc_camera_device *icd,
+ 			       __u32 pixfmt, struct v4l2_rect *rect)
+ {
+ 	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
+-	int ret = 0;
++	int ret;
+ 
+ 	mt9m111->left = rect->left;
+ 	mt9m111->top = rect->top;
+@@ -455,9 +453,9 @@ static int mt9m111_set_fmt_cap(struct soc_camera_device *icd,
+ 		mt9m111->height);
+ 
+ 	ret = mt9m111_setup_rect(icd);
+-	if (ret >= 0)
++	if (!ret)
+ 		ret = mt9m111_set_pixfmt(icd, pixfmt);
 -	return ret < 0 ? ret : 0;
 +	return ret;
  }
  
- static int mt9m001_try_fmt_cap(struct soc_camera_device *icd,
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index 56808cd..0f4b204 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -141,22 +141,22 @@ static int mt9v022_init(struct soc_camera_device *icd)
- 	 * plus snapshot mode to disable scan for now */
- 	mt9v022->chip_control |= 0x10;
- 	ret = reg_write(icd, MT9V022_CHIP_CONTROL, mt9v022->chip_control);
--	if (ret >= 0)
--		reg_write(icd, MT9V022_READ_MODE, 0x300);
-+	if (!ret)
-+		ret = reg_write(icd, MT9V022_READ_MODE, 0x300);
+ static int mt9m111_try_fmt_cap(struct soc_camera_device *icd,
+@@ -644,7 +642,7 @@ static int mt9m111_set_global_gain(struct soc_camera_device *icd, int gain)
+ 	if ((gain >= 64 * 2) && (gain < 63 * 2 * 2))
+ 		val = (1 << 10) | (1 << 9) | (gain / 4);
+ 	else if ((gain >= 64) && (gain < 64 * 2))
+-		val = (1<<9) | (gain / 2);
++		val = (1 << 9) | (gain / 2);
+ 	else
+ 		val = gain;
  
- 	/* All defaults */
--	if (ret >= 0)
-+	if (!ret)
- 		/* AEC, AGC on */
- 		ret = reg_set(icd, MT9V022_AEC_AGC_ENABLE, 0x3);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9V022_MAX_TOTAL_SHUTTER_WIDTH, 480);
--	if (ret >= 0)
-+	if (!ret)
- 		/* default - auto */
- 		ret = reg_clear(icd, MT9V022_BLACK_LEVEL_CALIB_CTRL, 1);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9V022_DIGITAL_TEST_PATTERN, 0);
+@@ -661,7 +659,7 @@ static int mt9m111_set_autoexposure(struct soc_camera_device *icd, int on)
+ 	else
+ 		ret = reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
  
--	return ret >= 0 ? 0 : -EIO;
+-	if (ret >= 0)
++	if (!ret)
+ 		mt9m111->autoexposure = on;
+ 
+ 	return ret;
+@@ -711,7 +709,7 @@ static int mt9m111_set_control(struct soc_camera_device *icd,
+ {
+ 	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
+ 	const struct v4l2_queryctrl *qctrl;
+-	int ret = 0;
++	int ret;
+ 
+ 	qctrl = soc_camera_find_qctrl(&mt9m111_ops, ctrl->id);
+ 
+@@ -739,7 +737,7 @@ static int mt9m111_set_control(struct soc_camera_device *icd,
+ 		ret = -EINVAL;
+ 	}
+ 
+-	return ret < 0 ? -EIO : 0;
 +	return ret;
  }
  
- static int mt9v022_release(struct soc_camera_device *icd)
-@@ -352,21 +352,21 @@ static int mt9v022_set_fmt_cap(struct soc_camera_device *icd,
- 					rect->height + icd->y_skip_top + 43);
- 	}
- 	/* Setup frame format: defaults apart from width and height */
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9V022_COLUMN_START, rect->left);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9V022_ROW_START, rect->top);
--	if (ret >= 0)
-+	if (!ret)
- 		/* Default 94, Phytec driver says:
- 		 * "width + horizontal blank >= 660" */
- 		ret = reg_write(icd, MT9V022_HORIZONTAL_BLANKING,
- 				rect->width > 660 - 43 ? 43 :
- 				660 - rect->width);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9V022_VERTICAL_BLANKING, 45);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9V022_WINDOW_WIDTH, rect->width);
--	if (ret >= 0)
-+	if (!ret)
- 		ret = reg_write(icd, MT9V022_WINDOW_HEIGHT,
- 				rect->height + icd->y_skip_top);
+ int mt9m111_restore_state(struct soc_camera_device *icd)
+@@ -763,10 +761,10 @@ static int mt9m111_resume(struct soc_camera_device *icd)
  
-@@ -717,7 +717,7 @@ static int mt9v022_video_probe(struct soc_camera_device *icd)
- 			icd->num_formats = 1;
+ 	if (mt9m111->powered) {
+ 		ret = mt9m111_enable(icd);
+-		if (ret >= 0)
+-			mt9m111_reset(icd);
+-		if (ret >= 0)
+-			mt9m111_restore_state(icd);
++		if (!ret)
++			ret = mt9m111_reset(icd);
++		if (!ret)
++			ret = mt9m111_restore_state(icd);
  	}
+ 	return ret;
+ }
+@@ -778,15 +776,15 @@ static int mt9m111_init(struct soc_camera_device *icd)
  
+ 	mt9m111->context = HIGHPOWER;
+ 	ret = mt9m111_enable(icd);
 -	if (ret >= 0)
+-		mt9m111_reset(icd);
+-	if (ret >= 0)
+-		mt9m111_set_context(icd, mt9m111->context);
+-	if (ret >= 0)
+-		mt9m111_set_autoexposure(icd, mt9m111->autoexposure);
+-	if (ret < 0)
 +	if (!ret)
- 		ret = soc_camera_video_start(icd);
++		ret = mt9m111_reset(icd);
++	if (!ret)
++		ret = mt9m111_set_context(icd, mt9m111->context);
++	if (!ret)
++		ret = mt9m111_set_autoexposure(icd, mt9m111->autoexposure);
++	if (ret)
+ 		dev_err(&icd->dev, "mt9m111 init failed: %d\n", ret);
+-	return ret ? -EIO : 0;
++	return ret;
+ }
+ 
+ static int mt9m111_release(struct soc_camera_device *icd)
+@@ -797,7 +795,7 @@ static int mt9m111_release(struct soc_camera_device *icd)
  	if (ret < 0)
- 		goto eisis;
--- 
-1.5.4
+ 		dev_err(&icd->dev, "mt9m111 release failed: %d\n", ret);
+ 
+-	return ret ? -EIO : 0;
++	return ret;
+ }
+ 
+ /*
 
 --
 video4linux-list mailing list
