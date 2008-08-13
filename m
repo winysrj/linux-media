@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n36.bullet.mail.ukl.yahoo.com ([87.248.110.169])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1KYVIc-0000re-Bb
-	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 02:23:43 +0200
-Date: Wed, 27 Aug 2008 20:23:03 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-References: <BAY137-W489CF3F8D962EC11AB96CD90610@phx.gbl>
-	<20080827212413.GI7830@moelleritberatung.de>
-	<20080827230726.271670@gmx.net>
-In-Reply-To: <20080827230726.271670@gmx.net> (from HWerner4@gmx.de on Wed
-	Aug 27 19:07:26 2008)
-Message-Id: <1219882983l.9440l.0l@manu-laptop>
-MIME-Version: 1.0
+Received: from mail-relay1.leicester.gov.uk ([212.50.184.188])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <John.Chajecki@leicester.gov.uk>) id 1KTGiw-0000vn-GL
+	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 15:49:15 +0200
+Message-Id: <48A2EF6A.23BC.005F.0@leicester.gov.uk>
+Date: Wed, 13 Aug 2008 14:27:48 +0100
+From: "John Chajecki" <John.Chajecki@leicester.gov.uk>
+To: <hermann-pitton@arcor.de>
+Mime-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] Re :  Inclusion of STB0899 support in kernel
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Attempting to compile the saa7134-alsa module
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,135 +18,91 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 27.08.2008 19:07:26, Hans Werner a =E9crit=A0:
-> > Hi,
-> > =
+Herman,
 
-> > On Wed, Aug 27, 2008 at 10:19:06PM +0200, johan vdp wrote:
-> > > =
+Thanks again. It was suggested to me to use Ubuntu because apparently it is good for multimedia apps. I had googled saa7134-alsa prior to posting and saw a few reports of the problem but no solution. This does seem to be a Ubuntu issue and in one of the reports I looked at (https://bugs.launchpad.net/ubuntu/+source/linux-ubuntu-modules-2.6.24/+bug/212271) it states that the problem does not occurr on a 'stock kernel' from kernel.org.
 
-> > > What happened to STB0899 support?
-> > > Building a kernel, patching it (with some luck), building
-> applications
-> > with patches to match the driver, it is simply too much work.
-> > > (It might be fun once, but starts to be annoying when automatic
-> package
-> > updates start to fail, the next day.)
-> > > Having support in the kernel, will lead to applications that
-> > 'automatically' start to support it.
-> > >  =
+Now I'm womdoering whether I shpuld use another Linux distro? If so, which distro do others use?
 
-> > > Back in the days that 'multiproto' development was still alive =
+>>> hermann pitton <hermann-pitton@arcor.de> 08/12/08 9:51 PM >>>
+Hi again,
 
-> and
-> > buzzing. The STB0899 cards looked like having the best support.
-> > > I have followed these lists for some time and opted to buy a
-> STB0899
-> > based DVB-S2 tuner card because the outlook for support was good;
-> THEN.
-> > > NOW it must have been two years, and it is still not merged into
-> the
-> > kernel.
-> > =
+Am Dienstag, den 12.08.2008, 15:47 +0100 schrieb John Chajecki:
+> I'm trying to compile the saa7134-alsa module that comes with the v4l-dvb drivers. In order to get it to compile I've had to tag it to the end of the saa7134-onjs list in the Makefile resident in the saa7134 direcorty like this:
+> 
+> saa7134-objs := saa7134-cards.o saa7134-core.o saa7134-i2c.o    \
+>                 saa7134-ts.o saa7134-tvaudio.o saa7134-vbi.o    \
+>                 saa7134-video.o saa7134-input.o saa7134-alsa.o
+> 
+> I'm running make, I'm getting the folowing error:
+> 
+> root@tinman:/home/john/Src/v4l-dvb# make
+> make -C /home/john/Src/v4l-dvb/v4l
+> make[1]: Entering directory `/home/john/Src/v4l-dvb/v4l'
+> creating symbolic links...
+> Kernel build directory is /lib/modules/2.6.24-19-generic/build
+> make -C /lib/modules/2.6.24-19-generic/build SUBDIRS=/home/john/Src/v4l-dvb/v4l  modules
+> make[2]: Entering directory `/usr/src/linux-headers-2.6.24-19-generic'
+>   LD [M]  /home/john/Src/v4l-dvb/v4l/saa7134.o
+> /home/john/Src/v4l-dvb/v4l/saa7134-alsa.o: In function `saa7134_alsa_init':
+> /home/john/Src/v4l-dvb/v4l/saa7134-alsa.c:1083: multiple definition of `init_module'
+> /home/john/Src/v4l-dvb/v4l/saa7134-core.o:/home/john/Src/v4l-dvb/v4l/saa7134-core.c:1346: first defined here
+> /home/john/Src/v4l-dvb/v4l/saa7134-alsa.o: In function `saa7134_alsa_exit':
+> /home/john/Src/v4l-dvb/v4l/saa7134-alsa.c:1109: multiple definition of `cleanup_module'
+> /home/john/Src/v4l-dvb/v4l/saa7134-core.o:/home/john/Src/v4l-dvb/v4l/saa7134-core.c:1361: first defined here
+> make[3]: *** [/home/john/Src/v4l-dvb/v4l/saa7134.o] Error 1
+> make[2]: *** [_module_/home/john/Src/v4l-dvb/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/home/john/Src/v4l-dvb/v4l'
+> make: *** [all] Error 2
+> 
+> I'm tring to get the saa7134-alsa compiled because, although the other modules are compiling, the alsa module is not so when I'm doing a modproble saa7134 I'm getting as follows in dmesg:
+> 
+> [108767.374805] saa7133[0]: registered device video0 [v4l2]
+> [108767.374831] saa7133[0]: registered device vbi0
+> [108767.396356] saa7134_alsa: disagrees about version of symbol saa7134_tvaudio_setmute
+> [108767.396363] saa7134_alsa: Unknown symbol saa7134_tvaudio_setmute
+> [108767.396512] saa7134_alsa: disagrees about version of symbol saa_dsp_writel
+> [108767.396515] saa7134_alsa: Unknown symbol saa_dsp_writel
+> [108767.396684] saa7134_alsa: disagrees about version of symbol videobuf_dma_free
+> [108767.396686] saa7134_alsa: Unknown symbol videobuf_dma_free
+> [108767.396884] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_alloc
+> [108767.396887] saa7134_alsa: Unknown symbol saa7134_pgtable_alloc
+> [108767.396934] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_build
+> [108767.396937] saa7134_alsa: Unknown symbol saa7134_pgtable_build
+> [108767.396975] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_free
+> [108767.396978] saa7134_alsa: Unknown symbol saa7134_pgtable_free
+> [108767.397016] saa7134_alsa: disagrees about version of symbol saa7134_dmasound_init
+> [108767.397019] saa7134_alsa: Unknown symbol saa7134_dmasound_init
+> [108767.397154] saa7134_alsa: disagrees about version of symbol saa7134_dmasound_exit
+> [108767.397156] saa7134_alsa: Unknown symbol saa7134_dmasound_exit
+> [108767.397252] saa7134_alsa: disagrees about version of symbol videobuf_dma_init
+> [108767.397255] saa7134_alsa: Unknown symbol videobuf_dma_init
+> [108767.397399] saa7134_alsa: disagrees about version of symbol videobuf_dma_init_kernel
+> [108767.397402] saa7134_alsa: Unknown symbol videobuf_dma_init_kernel
+> [108767.397518] saa7134_alsa: Unknown symbol videobuf_pci_dma_unmap
+> [108767.397661] saa7134_alsa: Unknown symbol videobuf_pci_dma_map
+> [108767.397706] saa7134_alsa: disagrees about version of symbol saa7134_set_dmabits
+> [108767.397709] saa7134_alsa: Unknown symbol saa7134_set_dmabits
+> [108767.411034] saa7133[0]/dvb: Huh? unknown DVB card?
+> [108767.411040] saa7133[0]/dvb: frontend initialization failed
 
-> > Same here. I am using multiproto for a long time now. Personally =
+vanilla kernel compatibility on recent Ubuntu is broken in various ways,
+especially for alsa.
 
-> for
-> me
-> > it works great, but it is really bad, that it is still not included
-> in
-> > the kernel.
-> > =
+Try to google for "ubuntu saa7134-alsa" and/or check the lists.
 
-> > Manu Abrahams hg tree is "out of date" and it is impossible to
-> compile
-> > it with a recent kernel without patching it.
-> > =
+It is not caused by v4l-dvb.
 
-> > Hopefully Igor M. Liplianin has created an hg tree, which merges =
-
-> all
-> the
-> > different dvb-trees in one single tree
-> > (http://liplianindvb.sourceforge.net/hg/liplianindvb).
-> > This really helps in compiling multiproto, but this is not the
-> solution.
-> > =
-
-> > What is required to get multiproto into the kernel?
-> > Where are the problems?
-> > =
-
-> > Regards, Artem
-> =
-
-> I absolutely agree. Please see the messages I sent on this recently
-> http://linuxtv.org/pipermail/linux-dvb/2008-August/028084.html
-> =
-
-> For the reasons mentioned above it is a terrible waste of effort to
-> maintain
-> code outside the kernel. Because multiproto (or equivalent code) has
-> not
-> been merged into the kernel (after 2 years and 4.5 months in
-> development) there
-> is a *lot* of out-of-kernel code supporting DVB-S2 cards, which of
-> course are
-> amongst the most popular, capable and important cards on the market.
-> It is =
-
-> not OK to expect everyone (including end users) to clone hg trees and
-> update
-> and patch them repeatedly. All driver code should be heading towards
-> the kernel,
-> preferably sooner than later. Anything else is pointless.
-> =
-
-> I think Linux DVB is in a state of unacknowledged crisis.  =
-
-> =
-
-> The code works, but the kernel merging of multiproto or another way =
-
-> of
-> supporting
-> DVB-S2 cards seems to be completely paralysed.  What is required to
-> get it done?
-> It must eventually be accomplished.
-> =
-
-> OT, even the simplest userspace code is sorely lacking. Simple yet
-> important tools such
-> as szap, and scan don't even have version numbers. Distros don't =
-
-> agree
-> on whether
-> the package is called dvb-apps or dvb-utils and have had to create
-> their own code
-> versioning. How many szap patches are floating around?
-
-May I add that the support of certain cards (especially TT 3200) has =
-
-some issues and that this state of affairs just makes it even harder to =
-
-fix (see my numerous posts about it).
-I would love to hear from the maintainers about what needs to be done =
-
-(and please forget the history so that we can probably avoid another =
-
-long and sterile flamewar), things must go forward from now.
-Hope that someone who can do something about this can explain to us how =
-
-we can help.
-Bye
-Manu
-
+Cheers,
+Hermann
 
 
 
