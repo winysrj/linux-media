@@ -1,27 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7JHDMNW020957
-	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 13:13:22 -0400
-Received: from gv-out-0910.google.com (gv-out-0910.google.com [216.239.58.184])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7JHD9kM013176
-	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 13:13:09 -0400
-Received: by gv-out-0910.google.com with SMTP id n8so28402gve.13
-	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 10:13:08 -0700 (PDT)
-From: "Henri Tuomola" <htuomola@gmail.com>
-To: <video4linux-list@redhat.com>
-References: <6f18c5ee0808180153h7d25999bh6c5dba01127aace7@mail.gmail.com>
-	<ea4209750808180253g426b3b91m5eebf56876ba722c@mail.gmail.com>
-	<000c01c9014b$667ca6f0$3375f4d0$@com>
-	<003101c90219$bd1aadd0$37500970$@com>
-In-Reply-To: <003101c90219$bd1aadd0$37500970$@com>
-Date: Tue, 19 Aug 2008 20:12:46 +0300
-Message-ID: <003901c9021e$cdc1bbb0$69453310$@com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7DDUslG005480
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 09:30:54 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7DDUiBn028023
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 09:30:44 -0400
+Date: Wed, 13 Aug 2008 15:30:57 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+In-Reply-To: <4892C629.5000208@hni.uni-paderborn.de>
+Message-ID: <Pine.LNX.4.64.0808131456140.5389@axis700.grange>
+References: <294f0a37c4feadf87bf8.1217484144@carolinen.hni.uni-paderborn.de>
+	<48917CB5.6000304@teltonika.lt> <4892A90B.7080309@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0808010820560.14927@axis700.grange>
+	<4892BCD8.4010102@hni.uni-paderborn.de>
+	<Pine.LNX.4.64.0808010940400.14927@axis700.grange>
+	<4892C629.5000208@hni.uni-paderborn.de>
 MIME-Version: 1.0
-Content-Language: fi
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Subject: RE: Terratec Cinergy DT XS Diversity new version
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Subject: [PATCH] soc-camera: Move .power and .reset from soc_camera host to
+ sensor driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,146 +33,313 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi again,
+Make .power and .reset callbacks per camera instead of per host, also move 
+their invocation to camera drivers.
 
+Signed-off-by: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+---
+
+Robert and Stefan, please, read comments below, well, and the patch too:-)
+
+This patch applies on the top of other my patches today.
+
+Robert, please, have a look if you agree with the hunk for mt9m111. I so 
+far added ->power calls to your enable and disable functions, not sure if 
+this is the best place. BTW, why do you call enable from video_probe 
+again? Is it really necessary? And you might want to call disable at 
+suspend? Which would then also power the camera down, if supported by the 
+platform.
+
+Stefan,
+
+On Fri, 1 Aug 2008, Stefan Herbrechtsmeier wrote:
+
+> Guennadi Liakhovetski schrieb:
+> > 
+> > I'd rather preserve the possibility to use "soft" reset / poweroff also when
+> > a platform function is defined. In fact, it might be even better to do a
+> > soft power-off first and then call platform-provided one. Don't think it
+> > would make much sense for reset though.
+> >   
+> You are right, I'll change it with the next version.
+
+How about the version below? I didn't understand why you need extra .init 
+and .release calls, so, I removed them for now. I think, .init per host 
+and power-on / off per camera should be enough for all init / release 
+needs, don't you think so?
+
+> > > > And as a parameter wouldn't it make more sense to pass the
+> > > > soc_camera_link
+> > > > to the platform functions instead of the struct device from the i2c
+> > > > device?
+> > > >         
+> > > I have simple make the function similar to other platform_data functions
+> > > on my
+> > > system.
+> > > At the moment I use the parameter only for printing messages via dev_err.
+> > >     
+> > 
+> > You have to be able to trace which camera has to be resetted / powered on or
+> > off in your platform code, and the camera_link structure is the object that
+> > identifies a specific camera, ot, at least, it can be. Whereas the device
+> > pointer doesn't easily tell you which camera you want to operate upon.
+> >   
+> If you use the same function for different sensors (camera_links), you are
+> right,
+> but you can get the camera_link from the dev pointer (.platform_data) if you
+> need it.
+
+Agree, I kept your version with struct device pointer.
+
+diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+index 3531f93..0c52437 100644
+--- a/drivers/media/video/mt9m001.c
++++ b/drivers/media/video/mt9m001.c
+@@ -117,13 +117,33 @@ static int reg_clear(struct soc_camera_device *icd, const u8 reg,
  
-
-It seems that the patch was missing the IR receiver part. At least it was
-now detected after I added the following part to dib0700_devices.c:1395.
-
+ static int mt9m001_init(struct soc_camera_device *icd)
+ {
++	struct mt9m001 *mt9m001 = container_of(icd, struct mt9m001, icd);
++	struct soc_camera_link *icl = mt9m001->client->dev.platform_data;
+ 	int ret;
  
-
-.rc_interval      = DEFAULT_RC_INTERVAL,
-
-.rc_key_map       = dib0700_rc_keys,
-
-.rc_key_map_size  = ARRAY_SIZE(dib0700_rc_keys),
-
-.rc_query         = dib0700_rc_query
-
+ 	dev_dbg(icd->vdev->parent, "%s\n", __func__);
  
-
-I can send the patch later if this seems to work. Thanks for good tips
-received in IRC.
-
+-	ret = reg_write(icd, MT9M001_RESET, 1);
+-	if (!ret)
+-		ret = reg_write(icd, MT9M001_RESET, 0);
++	if (icl->power) {
++		ret = icl->power(&mt9m001->client->dev, 1);
++		if (ret < 0) {
++			dev_err(icd->vdev->parent,
++				"Platform failed to power-on the camera.\n");
++			return ret;
++		}
++	}
++
++	/* The camera could have been already on, we reset it additionally */
++	if (icl->reset)
++		ret = icl->reset(&mt9m001->client->dev);
++	else
++		ret = -ENODEV;
++
++	if (ret < 0) {
++		/* Either no platform reset, or platform reset failed */
++		ret = reg_write(icd, MT9M001_RESET, 1);
++		if (!ret)
++			ret = reg_write(icd, MT9M001_RESET, 0);
++	}
+ 	/* Disable chip, synchronous option update */
+ 	if (!ret)
+ 		ret = reg_write(icd, MT9M001_OUTPUT_CONTROL, 0);
+@@ -133,8 +153,15 @@ static int mt9m001_init(struct soc_camera_device *icd)
  
-
--henri
-
+ static int mt9m001_release(struct soc_camera_device *icd)
+ {
++	struct mt9m001 *mt9m001 = container_of(icd, struct mt9m001, icd);
++	struct soc_camera_link *icl = mt9m001->client->dev.platform_data;
++
+ 	/* Disable the chip */
+ 	reg_write(icd, MT9M001_OUTPUT_CONTROL, 0);
++
++	if (icl->power)
++		icl->power(&mt9m001->client->dev, 0);
++
+ 	return 0;
+ }
  
-
-From: Henri Tuomola [mailto:htuomola@gmail.com] 
-Sent: 19. elokuuta 2008 19:36
-To: video4linux-list@redhat.com
-Subject: RE: Terratec Cinergy DT XS Diversity new version
-
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 537cff0..8c532ac 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -351,8 +351,18 @@ static int mt9m111_setfmt_yuv(struct soc_camera_device *icd)
+ static int mt9m111_enable(struct soc_camera_device *icd)
+ {
+ 	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
++	struct soc_camera_link *icl = mt9m111->client->dev.platform_data;
+ 	int ret;
  
-
-Hi,
-
++	if (icl->power) {
++		ret = icl->power(&mt9m111->client->dev, 1);
++		if (ret < 0) {
++			dev_err(icd->vdev->parent,
++				"Platform failed to power-on the camera.\n");
++			return ret;
++		}
++	}
++
+ 	ret = reg_set(RESET, MT9M111_RESET_CHIP_ENABLE);
+ 	if (!ret)
+ 		mt9m111->powered = 1;
+@@ -362,11 +372,16 @@ static int mt9m111_enable(struct soc_camera_device *icd)
+ static int mt9m111_disable(struct soc_camera_device *icd)
+ {
+ 	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
++	struct soc_camera_link *icl = mt9m111->client->dev.platform_data;
+ 	int ret;
  
-
-From: Henri Tuomola [mailto:htuomola@gmail.com] 
-Sent: 18. elokuuta 2008 18:59
-To: 'Albert Comerma'
-Cc: video4linux-list@redhat.com
-Subject: [solved] RE: Terratec Cinergy DT XS Diversity new version
-
+ 	ret = reg_clear(RESET, MT9M111_RESET_CHIP_ENABLE);
+ 	if (!ret)
+ 		mt9m111->powered = 0;
++
++	if (icl->power)
++		icl->power(&mt9m111->client->dev, 0);
++
+ 	return ret;
+ }
  
-
-Now I've got this: 
-
-dib0700: loaded with support for 7 different device-types
-
-dvb-usb: found a 'Terratec Cinergy DT USB XS Diversity' in warm state.
-
+diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+index 0f4b204..2584201 100644
+--- a/drivers/media/video/mt9v022.c
++++ b/drivers/media/video/mt9v022.c
+@@ -134,8 +134,25 @@ static int reg_clear(struct soc_camera_device *icd, const u8 reg,
+ static int mt9v022_init(struct soc_camera_device *icd)
+ {
+ 	struct mt9v022 *mt9v022 = container_of(icd, struct mt9v022, icd);
++	struct soc_camera_link *icl = mt9v022->client->dev.platform_data;
+ 	int ret;
  
-
-and 2 frontends.
-
++	if (icl->power) {
++		ret = icl->power(&mt9v022->client->dev, 1);
++		if (ret < 0) {
++			dev_err(icd->vdev->parent,
++				"Platform failed to power-on the camera.\n");
++			return ret;
++		}
++	}
++
++	/*
++	 * The camera could have been already on, we hard-reset it additionally,
++	 * if available. Soft reset is done in video_probe().
++	 */
++	if (icl->reset)
++		icl->reset(&mt9v022->client->dev);
++
+ 	/* Almost the default mode: master, parallel, simultaneous, and an
+ 	 * undocumented bit 0x200, which is present in table 7, but not in 8,
+ 	 * plus snapshot mode to disable scan for now */
+@@ -161,7 +178,12 @@ static int mt9v022_init(struct soc_camera_device *icd)
  
-
-thanks,
-
-Henri
-
+ static int mt9v022_release(struct soc_camera_device *icd)
+ {
+-	/* Nothing? */
++	struct mt9v022 *mt9v022 = container_of(icd, struct mt9v022, icd);
++	struct soc_camera_link *icl = mt9v022->client->dev.platform_data;
++
++	if (icl->power)
++		icl->power(&mt9v022->client->dev, 0);
++
+ 	return 0;
+ }
  
-
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 85f545d..6df2aee 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -629,17 +629,6 @@ static void pxa_camera_activate(struct pxa_camera_dev *pcdev)
+ 		pdata->init(pcdev->dev);
+ 	}
  
-
-There is still one thing, the remote control is not detected. There's no
-"input: IR receiver .." as was mentioned in
-http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_DT_USB_XS_Diversity. 
-
+-	if (pdata && pdata->power) {
+-		dev_dbg(pcdev->dev, "%s: Power on camera\n", __func__);
+-		pdata->power(pcdev->dev, 1);
+-	}
+-
+-	if (pdata && pdata->reset) {
+-		dev_dbg(pcdev->dev, "%s: Releasing camera reset\n",
+-			__func__);
+-		pdata->reset(pcdev->dev, 1);
+-	}
+-
+ 	CICR0 = 0x3FF;   /* disable all interrupts */
  
-
-Could this be a problem with the drivers somehow?
-
+ 	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
+@@ -660,20 +649,7 @@ static void pxa_camera_activate(struct pxa_camera_dev *pcdev)
  
-
-Running udevmonitor shows this:
-
+ static void pxa_camera_deactivate(struct pxa_camera_dev *pcdev)
+ {
+-	struct pxacamera_platform_data *board = pcdev->pdata;
+-
+ 	clk_disable(pcdev->clk);
+-
+-	if (board && board->reset) {
+-		dev_dbg(pcdev->dev, "%s: Asserting camera reset\n",
+-			__func__);
+-		board->reset(pcdev->dev, 0);
+-	}
+-
+-	if (board && board->power) {
+-		dev_dbg(pcdev->dev, "%s: Power off camera\n", __func__);
+-		board->power(pcdev->dev, 0);
+-	}
+ }
  
-
-UEVENT[1219163559.170764] add      /module/dvb_usb_dib0700 (module)
-
-UDEV  [1219163559.171729] add      /module/dvb_usb_dib0700 (module)
-
-UEVENT[1219163559.172097] add      /bus/usb/drivers/dvb_usb_dib0700
-(drivers)
-
-UEVENT[1219163559.172312] add      /class/i2c-adapter/i2c-0 (i2c-adapter)
-
-UEVENT[1219163559.172868] add      /class/dvb/dvb0.demux0 (dvb)
-
-UEVENT[1219163559.172888] add      /class/dvb/dvb0.dvr0 (dvb)
-
-UEVENT[1219163559.172897] add      /class/dvb/dvb0.net0 (dvb)
-
-UDEV  [1219163559.173953] add      /bus/usb/drivers/dvb_usb_dib0700
-(drivers)
-
-UDEV  [1219163559.174962] add      /class/i2c-adapter/i2c-0 (i2c-adapter)
-
-UDEV  [1219163559.187748] add      /class/dvb/dvb0.demux0 (dvb)
-
-UDEV  [1219163559.194984] add      /class/dvb/dvb0.net0 (dvb)
-
-UDEV  [1219163559.195435] add      /class/dvb/dvb0.dvr0 (dvb)
-
-UEVENT[1219163559.262301] add      /class/i2c-adapter/i2c-1 (i2c-adapter)
-
-UDEV  [1219163559.263142] add      /class/i2c-adapter/i2c-1 (i2c-adapter)
-
-UEVENT[1219163559.423124] add      /class/dvb/dvb0.frontend0 (dvb)
-
-UDEV  [1219163559.429791] add      /class/dvb/dvb0.frontend0 (dvb)
-
-UEVENT[1219163559.609570] add      /class/dvb/dvb1.demux0 (dvb)
-
-UEVENT[1219163559.609608] add      /class/dvb/dvb1.dvr0 (dvb)
-
-UEVENT[1219163559.609617] add      /class/dvb/dvb1.net0 (dvb)
-
-UEVENT[1219163559.612643] add      /class/i2c-adapter/i2c-2 (i2c-adapter)
-
-UDEV  [1219163559.621145] add      /class/dvb/dvb1.demux0 (dvb)
-
-UDEV  [1219163559.630683] add      /class/dvb/dvb1.net0 (dvb)
-
-UDEV  [1219163559.631328] add      /class/dvb/dvb1.dvr0 (dvb)
-
-UDEV  [1219163559.631497] add      /class/i2c-adapter/i2c-2 (i2c-adapter)
-
-UEVENT[1219163559.773190] add      /class/dvb/dvb1.frontend0 (dvb)
-
-UDEV  [1219163559.780011] add      /class/dvb/dvb1.frontend0 (dvb)
-
+ static irqreturn_t pxa_camera_irq(int irq, void *data)
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index f7ca3cb..f6cec44 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -304,9 +304,6 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+ 		 "SuperH Mobile CEU driver attached to camera %d\n",
+ 		 icd->devnum);
  
-
+-	if (pcdev->pdata->enable_camera)
+-		pcdev->pdata->enable_camera();
+-
+ 	ret = icd->ops->init(icd);
+ 	if (ret)
+ 		goto err;
+@@ -333,8 +330,6 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
+ 	ceu_write(pcdev, CEIER, 0);
+ 	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
+ 	icd->ops->release(icd);
+-	if (pcdev->pdata->disable_camera)
+-		pcdev->pdata->disable_camera();
  
-
--henri
+ 	dev_info(&icd->dev,
+ 		 "SuperH Mobile CEU driver detached from camera %d\n",
+diff --git a/include/asm-arm/arch-pxa/camera.h b/include/asm-arm/arch-pxa/camera.h
+index 39516ce..31abe6d 100644
+--- a/include/asm-arm/arch-pxa/camera.h
++++ b/include/asm-arm/arch-pxa/camera.h
+@@ -36,8 +36,6 @@
+ 
+ struct pxacamera_platform_data {
+ 	int (*init)(struct device *);
+-	int (*power)(struct device *, int);
+-	int (*reset)(struct device *, int);
+ 
+ 	unsigned long flags;
+ 	unsigned long mclk_10khz;
+diff --git a/include/media/sh_mobile_ceu.h b/include/media/sh_mobile_ceu.h
+index 234a471..b5dbefe 100644
+--- a/include/media/sh_mobile_ceu.h
++++ b/include/media/sh_mobile_ceu.h
+@@ -5,8 +5,6 @@
+ 
+ struct sh_mobile_ceu_info {
+ 	unsigned long flags; /* SOCAM_... */
+-	void (*enable_camera)(void);
+-	void (*disable_camera)(void);
+ };
+ 
+ #endif /* __ASM_SH_MOBILE_CEU_H__ */
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index d548de3..c5de7bb 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -83,6 +83,9 @@ struct soc_camera_link {
+ 	int bus_id;
+ 	/* GPIO number to switch between 8 and 10 bit modes */
+ 	unsigned int gpio;
++	/* Optional callbacks to power on or off and reset the sensor */
++	int (*power)(struct device *, int);
++	int (*reset)(struct device *);
+ };
+ 
+ static inline struct soc_camera_device *to_soc_camera_dev(struct device *dev)
 
 --
 video4linux-list mailing list
