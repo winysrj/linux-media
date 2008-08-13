@@ -1,18 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7O9aIRB019355
-	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 05:36:18 -0400
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7O9a6kn017621
-	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 05:36:06 -0400
-Message-ID: <48B12E11.5000500@hhs.nl>
-Date: Sun, 24 Aug 2008 11:46:57 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7D6D7ke010671
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 02:13:07 -0400
+Received: from web33203.mail.mud.yahoo.com (web33203.mail.mud.yahoo.com
+	[209.191.69.151])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7D6CrfC032758
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 02:12:55 -0400
+Date: Tue, 12 Aug 2008 23:12:48 -0700 (PDT)
+From: Arif Azeem <arifazeemindia@yahoo.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: multipart/mixed; boundary="------------070007070608080002030305"
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: PATCH: gspca-sonixb-led-off.patch
+Content-Type: text/plain; charset=us-ascii
+Message-ID: <327777.4755.qm@web33203.mail.mud.yahoo.com>
+Subject: Re: Cx88 New Capture card - Sky TV2 (from Korea)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,78 +24,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------070007070608080002030305
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Hi,
 
-* Turn the led of the cam off after plugging in the cam
-* Move the probe code from open to config, so that if the probe fails
-   we never register
+Hello,
 
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
-Regards,
+I bought this TV capture card (packaging says, mpeg1/2) from Korea last week. After installing it in the system, it is recognized as UNKNOWN type by Cx88x driver.
 
-Hans
+This card also support "IMON" IR remote controller which is not detected at all.
 
---------------070007070608080002030305
-Content-Type: text/plain;
- name="gspca-sonixb-led-off.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="gspca-sonixb-led-off.patch"
+Could somebody please guide me on how to support this card under Linux (Ubuntu 8.04)?
 
-* Turn the led of the cam off after plugging in the cam
-* Move the probe code from open to config, so that if the probe fails
-  we never register
+If needed I can write driver code but I am new to V4L space, so I don't want to start in wrong direction.
 
-Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
-diff -r a392efb75b57 linux/drivers/media/video/gspca/sonixb.c
---- a/linux/drivers/media/video/gspca/sonixb.c	Sun Aug 24 11:37:43 2008 +0200
-+++ b/linux/drivers/media/video/gspca/sonixb.c	Sun Aug 24 11:40:27 2008 +0200
-@@ -789,6 +789,11 @@
- 	struct sd *sd = (struct sd *) gspca_dev;
- 	struct cam *cam;
- 	int sif = 0;
-+	const __u8 stop = 0x09; /* Disable stream turn of LED */
-+
-+	reg_r(gspca_dev, 0x00);
-+	if (gspca_dev->usb_buf[0] != 0x10)
-+		return -ENODEV;
- 
- 	/* copy the webcam info from the device id */
- 	sd->sensor = (id->driver_info >> 24) & 0xff;
-@@ -821,15 +826,15 @@
- 		sd->autogain = AUTOGAIN_DEF;
- 	sd->freq = FREQ_DEF;
- 
-+	/* Disable stream turn of LED */
-+	reg_w(gspca_dev, 0x01, &stop, 1);
-+
- 	return 0;
- }
- 
- /* this function is called at open time */
- static int sd_open(struct gspca_dev *gspca_dev)
- {
--	reg_r(gspca_dev, 0x00);
--	if (gspca_dev->usb_buf[0] != 0x10)
--		return -ENODEV;
- 	return 0;
- }
- 
+Regards
+A
 
---------------070007070608080002030305
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+      
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------070007070608080002030305--
