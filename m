@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from py-out-1112.google.com ([64.233.166.182])
+Received: from wf-out-1314.google.com ([209.85.200.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KZTmM-0005mr-Lb
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 18:58:28 +0200
-Received: by py-out-1112.google.com with SMTP id a29so798812pyi.0
-	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 09:58:22 -0700 (PDT)
-Message-ID: <1a297b360808300958k6bcd7e90q43e0e1e951eca8cc@mail.gmail.com>
-Date: Sat, 30 Aug 2008 20:58:22 +0400
-From: "Manu Abraham" <abraham.manu@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <48B963D1.3060908@linuxtv.org>
+	(envelope-from <kosio.dimitrov@gmail.com>) id 1KTGXN-0008QF-N4
+	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 15:37:21 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so2611304wfd.17
+	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 06:37:12 -0700 (PDT)
+Message-ID: <8103ad500808130637v50e9a64eg6eb1fbdd32071971@mail.gmail.com>
+Date: Wed, 13 Aug 2008 16:37:11 +0300
+From: "Konstantin Dimitrov" <kosio.dimitrov@gmail.com>
+To: "Guy Martin" <gmsoft@tuxicoman.be>
+In-Reply-To: <20080813123241.0f7cffca@bleh.bxl.tuxicoman.be>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <48B8400A.9030409@linuxtv.org>
-	<20080830150844.GQ7830@moelleritberatung.de>
-	<48B963D1.3060908@linuxtv.org>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+References: <20080813123241.0f7cffca@bleh.bxl.tuxicoman.be>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] CT-3650 driver effort
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,47 +28,56 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, Aug 30, 2008 at 7:14 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> Artem Makhutov wrote:
->> Hi,
->>
->> On Fri, Aug 29, 2008 at 02:29:30PM -0400, Steven Toth wrote:
->>> Regarding the multiproto situation:
->>>
+hi Guy,
 
->>
->> Can you please explain me what you do not like in multiproto?
+you can easily get (extract) the TDA10048 firmware from the
+Technotrend CT-3650 Windows drivers:
+
+1) wget http://technotrend-online.com/download/software/bda/usb2driver//ttusb2bda_1.0.2.20.zip
+
+2) unzip -jo ttusb2bda_1.0.2.20.zip ttusb2bda_1.0.2.20/ttusb2bda.sys
+
+3) dd if=ttusb2bda.sys of=dvb-fe-tda10048-1.0.fw bs=1 skip=532560 count=24878
+
+best wishes,
+konstantin
+
+2008/8/13 Guy Martin <gmsoft@tuxicoman.be>:
+>
+> Hi all,
+>
+> I'm currently trying to get the CT-3650 working.
+> It has the following chips :
+>  - TDA8264 (tuner)
+>  - TDA10023 (DVB-C demod)
+>  - TDA10048 (DVB-T demod)
 >
 >
-> 1. Where is the support for ISDB-T/ATSC-MH/CMMB/DVB-H/DBM-T/H and other
-> modulation types. If we're going to make a massive kernel change then
-> why aren't we accommodating these new modulation types?
-
-Adding a new modulation is just as good as adding in a new definition,
-nothing more than that.
-
-> If we don't
-> added now then we'll have the rev the kernel ABI again in 2 months....
-
-There is more than enough space in the enumeration for anything to be added.
-Just adding more definitions without supported hardware is purely pointless.
-
-> that isn't a forward looking future proof API.
-
-The future doesn't lie in terms of some just basic modulation definitions alone.
-
-> 2. It's too big, too risky, too late. It doesn't add enough new fatures
-> to the kernel to justify the massive code change.
-
-In fact in legacy mode, it is just as large as the existing API. In non-legacy
-mode it is even still lighter. It's quite absurd to state that it is too big.
-
-Also you need custom algorithm support for many of the newer demodulators
-(Eg: stb0899 and others) which the existing API doesn't support. Well this
-is also supported by the multiproto tree.
-
-
-Manu
+> I'm able to get the DVB-C frontend working using the attached patch.
+> However I can't test the DVB-T nor the CI.
+>
+> To test the DVB-T frontend, I'm missing dvb-fe-tda10048-1.0.fw which I
+> can't find anywhere.
+>
+> Regarding the CI, I'm only watching FTA so I won't be able to test that.
+>
+>
+> Please review the attached patch. If I'm given the tda10048 firmware I
+> should probably get it to work.
+>
+>
+> Regards,
+>  Guy
+>
+> --
+> Guy Martin
+> Gentoo Linux - HPPA port lead
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
