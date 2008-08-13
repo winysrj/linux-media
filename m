@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7RM33ic002333
-	for <video4linux-list@redhat.com>; Wed, 27 Aug 2008 18:03:03 -0400
-Received: from smtp5.pp.htv.fi (smtp5.pp.htv.fi [213.243.153.39])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7RM2o8Y002033
-	for <video4linux-list@redhat.com>; Wed, 27 Aug 2008 18:02:51 -0400
-Date: Thu, 28 Aug 2008 01:01:57 +0300
-From: Adrian Bunk <bunk@kernel.org>
-To: Carl Karsten <carl@personnelware.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	v4l-dvb-maintainer@linuxtv.org
-Message-ID: <20080827220157.GJ11734@cs181140183.pp.htv.fi>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7DAac9R018560
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 06:36:38 -0400
+Received: from fmmailgate09.web.de (fmmailgate09.web.de [217.72.192.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7DAaRHL012368
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 06:36:27 -0400
+Date: Wed, 13 Aug 2008 12:36:21 +0200
+Message-Id: <751285356@web.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Cc: video4linux-list@redhat.com
-Subject: [2.6 patch] vivi_release(): fix use-after-free
+From: Stefan Lange <sailer22@web.de>
+To: Markus Rechberger <mrechberger@gmail.com>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, em28xx@mcentral.de
+Subject: Re: Terratec Cinergy XS unsupported Device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,38 +25,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-video_device_release() does kfree(), which made the following printk() 
-doing a use-after-free.
+So i have to wait for your next release right ? Or can i do it by myself ?
 
-printk() first and release then.
+Thank you
+Stefan
 
-Reported-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+> -----Ursprüngliche Nachricht-----
+> Von: "Markus Rechberger" <mrechberger@gmail.com>
+> Gesendet: 13.08.08 11:20:29
+> An: "Stefan Lange" <sailer22@web.de>
+> CC: video4linux-list@redhat.com, em28xx@mcentral.de
+> Betreff: Re: Terratec Cinergy XS unsupported Device
 
----
-c2fc2b28db99432313aab1f86937f204f8bd4c9b 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 3518af0..35ffd28 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -1021,13 +1021,13 @@ static int vivi_release(void)
- 		dev = list_entry(list, struct vivi_dev, vivi_devlist);
- 
- 		if (-1 != dev->vfd->minor) {
--			video_unregister_device(dev->vfd);
--			printk(KERN_INFO "%s: /dev/video%d unregistered.\n",
-+			printk(KERN_INFO "%s: unregistering /dev/video%d\n",
- 				VIVI_MODULE_NAME, dev->vfd->minor);
-+			video_unregister_device(dev->vfd);
- 		} else {
--			video_device_release(dev->vfd);
--			printk(KERN_INFO "%s: /dev/video%d released.\n",
-+			printk(KERN_INFO "%s: releasing /dev/video%d\n",
- 				VIVI_MODULE_NAME, dev->vfd->minor);
-+			video_device_release(dev->vfd);
- 		}
- 
- 		kfree(dev);
+
+> On Wed, Aug 13, 2008 at 11:15 AM, Stefan Lange <sailer22@web.de> wrote:
+> > He guys,
+> >
+> > i am using Terratec Cinergy XS with the new em28xx modules.
+> >
+> > I have now cleared the old v4l stuff.
+> >
+> > But i get the following messages.
+> >
+> > [  791.731021] em28xx: new video device (0ccd:0043): interface 0, class 255
+> > [  791.731027] em28xx: device is attached to a USB 2.0 bus
+> > [  791.731038] em28xx #0: Alternate settings: 8
+> > [  791.731042] em28xx #0: Alternate setting 0, max size= 0
+> > [  791.731045] em28xx #0: Alternate setting 1, max size= 0
+> > [  791.731049] em28xx #0: Alternate setting 2, max size= 1448
+> > [  791.731053] em28xx #0: Alternate setting 3, max size= 2048
+> > [  791.731056] em28xx #0: Alternate setting 4, max size= 2304
+> > [  791.731060] em28xx #0: Alternate setting 5, max size= 2580
+> > [  791.731063] em28xx #0: Alternate setting 6, max size= 2892
+> > [  791.731067] em28xx #0: Alternate setting 7, max size= 3072
+> > [  792.172113] em2880-dvb.c: DVB Init
+> > [  792.274627] em2880-dvb.c: unsupported device
+> > [  792.274634] em28xx #0: Found Terratec Cinergy T XS (MT2060)
+> >
+> 
+> The mt2060 support needs to be ported from the old repository to the
+> latest em28xx driver.
+> 
+> Markus
+> 
+
+
 
 --
 video4linux-list mailing list
