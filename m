@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f129.mail.ru ([194.67.57.111])
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KZ3h1-0000iw-1y
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 15:07:11 +0200
-Received: from mail by f129.mail.ru with local id 1KZ3gT-000Ivd-00
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 17:06:37 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Mime-Version: 1.0
-Date: Fri, 29 Aug 2008 17:06:37 +0400
-Message-Id: <E1KZ3gT-000Ivd-00.goga777-bk-ru@f129.mail.ru>
-Subject: [linux-dvb] updating of LiplianinDVB - please, test
-Reply-To: Goga777 <goga777@bk.ru>
+	(envelope-from <stoth@linuxtv.org>) id 1KTJG0-0003LL-Cm
+	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 18:31:33 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K5J000MOSJJOI70@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 13 Aug 2008 12:30:58 -0400 (EDT)
+Date: Wed, 13 Aug 2008 12:30:55 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <9A560F1988F700499D7636F15A62E436A06CCD@exchange02.Nsighttel.com>
+To: Mark A Jenks <Mark.Jenks@nsighttel.com>
+Message-id: <48A30C3F.9040600@linuxtv.org>
+MIME-version: 1.0
+References: <9A560F1988F700499D7636F15A62E436A06CCD@exchange02.Nsighttel.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] WinTV-HVR-1800
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,17 +31,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+Mark A Jenks wrote:
+> I am looking at purchasing a few 1800's for a new Myth box that I am 
+> setting up.
+>  
+> Should I get the ones with the IR's, or not?   Is the IR support on linux?
+>  
+> I can't find anything searching around.
 
-Igor has updated his repo 
-http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
+Native IR receive via the cx23885 isn't supported in Linux. I don't 
+remember whether Hauppauge ship a Zilog enabled version (blaster 
+support), if they do then that could be made to work.
 
-please, test it 
+Assume worst case.
 
-you can send the reports in this mail-list or in Igor's topic
-http://allrussian.info/thread.php?threadid=99733
-
-Goga
+- Steve
 
 
 _______________________________________________
