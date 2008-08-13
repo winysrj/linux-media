@@ -1,27 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TNeKjC028182
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 19:40:21 -0400
-Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7TNeIRP004061
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 19:40:18 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7TNeCeC007568
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 18:40:17 -0500
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7TNeC5R021516
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 18:40:12 -0500 (CDT)
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Fri, 29 Aug 2008 18:40:11 -0500
-Message-ID: <A24693684029E5489D1D202277BE89441191E33E@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: [PATCH 7/15] OMAP3 camera driver: V4L2: Export symbols to ease
- building as modules.
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7D1HnaL032260
+	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 21:17:49 -0400
+Received: from mail-in-10.arcor-online.net (mail-in-10.arcor-online.net
+	[151.189.21.50])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7D1Hbsc029419
+	for <video4linux-list@redhat.com>; Tue, 12 Aug 2008 21:17:38 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>,
+	Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	video4linux-list@redhat.com, linux-dvb@linuxtv.org
+In-Reply-To: <20080813090637.1def4bca@glory.loctelecom.ru>
+References: <20080813090637.1def4bca@glory.loctelecom.ru>
+Content-Type: text/plain
+Date: Wed, 13 Aug 2008 03:09:18 +0200
+Message-Id: <1218589758.2672.3.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: Re: format of data
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,32 +30,57 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
----
- drivers/media/video/v4l2-int-device.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Hi Dmitry,
 
-diff --git a/drivers/media/video/v4l2-int-device.c b/drivers/media/video/v4l2-int-device.c
-index 45086ea..a935bae 100644
---- a/drivers/media/video/v4l2-int-device.c
-+++ b/drivers/media/video/v4l2-int-device.c
-@@ -145,6 +145,7 @@ int v4l2_int_ioctl_0(struct v4l2_int_device *d, int cmd)
- 		find_ioctl(d->u.slave, cmd,
- 			   (v4l2_int_ioctl_func *)no_such_ioctl_0))(d);
- }
-+EXPORT_SYMBOL_GPL(v4l2_int_ioctl_0);
- 
- static int no_such_ioctl_1(struct v4l2_int_device *d, void *arg)
- {
-@@ -157,5 +158,6 @@ int v4l2_int_ioctl_1(struct v4l2_int_device *d, int cmd, void *arg)
- 		find_ioctl(d->u.slave, cmd,
- 			   (v4l2_int_ioctl_func *)no_such_ioctl_1))(d, arg);
- }
-+EXPORT_SYMBOL_GPL(v4l2_int_ioctl_1);
- 
- MODULE_LICENSE("GPL");
--- 
-1.5.0.6
+Am Mittwoch, den 13.08.2008, 09:06 +1000 schrieb Dmitri Belimov:
+> Hi Hermann
+> 
+> A few days a go I wrote message about lock /dev/video0 when /dev/video1 is busy.
+> I discuss with our main programmer about this. His answer is:
+> When TV card send RAW YUV data we can't read from MPEG device. But when TV
+> card send data in YUY2, UYVY, RGB we can work with MPEG device.
+> 
+> Linux kernel's module of saa7134 can work with this type of data??
+> How to I can control this? 
+> We can rework saa7134 modules for set different types of data and lock MPEG device only for YUV format.
+> 
+> With my best regards, Dmitry.
+
+just read some last mails before going to sleep,
+but how to deal with it is likely more difficult than to wake up next
+morning and have a solution.
+
+I'm only a relict of all the initial attempts with Gerd Knorr to get all
+such saa713x stuff on the run, mostly not even tortured on top by such
+questions, but by undocumented tuners.
+
+Hartmut did know about this limitation first. If the mpeg/TS interface
+is in use, only packed formats can pass at once the dma engines for
+analog, doesn't matter if from a second tuner or external video inputs.
+
+How to control this in the current framework, given cards with up to six
+mixed dvb/analog streams at once, which need proper usage, is not such a
+simple question. Either can analog planar disallow mpeg, if first, or
+should mpeg always have the priority, and if in use already, analog is
+damned to have packed formats only.
+
+There are simply no rules yet, where to start and what should have some
+priority.
+
+We could try to reach everyone we can think of, or simply post it to the
+lists and hope from there something comes back.
+
+Whatever you decide to further proceed is fine with me.
+
+Cheers,
+Hermann
+
+
+
+
+
+
+
 
 --
 video4linux-list mailing list
