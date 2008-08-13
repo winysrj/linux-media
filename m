@@ -1,26 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TNbWHb027560
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 19:37:33 -0400
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7TNbI6R002228
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 19:37:18 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7TNbDsI023429
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 18:37:18 -0500
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7TNbCGb020498
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 18:37:12 -0500 (CDT)
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Fri, 29 Aug 2008 18:37:11 -0500
-Message-ID: <A24693684029E5489D1D202277BE89441191E339@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7DHCbme007230
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 13:12:37 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7DHCOuk009618
+	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 13:12:25 -0400
+Date: Wed, 13 Aug 2008 19:12:43 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87hc9o6eks.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0808131911330.7713@axis700.grange>
+References: <87hca34ra0.fsf@free.fr>
+	<Pine.LNX.4.64.0808022146090.27474@axis700.grange>
+	<873alnt2bh.fsf@free.fr>
+	<Pine.LNX.4.64.0808121612330.8089@axis700.grange>
+	<1218616667.48a29d5bcb7ea@imp.free.fr>
+	<Pine.LNX.4.64.0808131105020.3884@axis700.grange>
+	<1218621820.48a2b17c963cd@imp.free.fr>
+	<Pine.LNX.4.64.0808131322340.3884@axis700.grange>
+	<87skt86fb9.fsf@free.fr>
+	<Pine.LNX.4.64.0808131845200.7458@axis700.grange>
+	<87hc9o6eks.fsf@free.fr>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: [PATCH 2/15] OMAP3 camera driver: V4L2: Adding internal IOCTLs for
- crop.
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] mt9m111: style cleanup
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,42 +36,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Sameer Venkatraman <sameerv@ti.com>
+On Wed, 13 Aug 2008, Robert Jarzmik wrote:
 
-V4L2: Adding internal IOCTLs for crop.
+> The correct behaviour would be something like :
+> 
+> @@ -778,15 +776,13 @@ static int mt9m111_init(struct soc_camera_device *icd)
+>  
+>  	mt9m111->context = HIGHPOWER;
+>  	ret = mt9m111_enable(icd);
+> -	if (ret >= 0)
+> +	if (!ret)
+>  		ret = mt9m111_reset(icd);
+> -	if (ret >= 0)
+> +	if (!ret)
+>  		ret = mt9m111_set_context(icd, mt9m111->context);
+> -	if (ret >= 0)
+> +	if (!ret)
+>  		ret = mt9m111_set_autoexposure(icd, mt9m111->autoexposure);
+> -	if (ret < 0)
+> +	if (ret)
+>  		dev_err(&icd->dev, "mt9m111 init failed: %d\n", ret);
+> -	return ret ? -EIO : 0;
+> +	return ret;
+>  }
 
-Adding internal IOCTLs for crop.
+And in mt9m111_resume()? Do you want to check return codes of each 
+function there too?
 
-Signed-off-by: Sameer Venkatraman <sameerv@ti.com>
-Signed-off-by: Mohit Jalori <mjalori@ti.com>
+Thanks
+Guennadi
 ---
- include/media/v4l2-int-device.h |    6 ++++++
- 1 file changed, 6 insertions(+)
-
-Index: linux-omap-2.6/include/media/v4l2-int-device.h
-===================================================================
---- linux-omap-2.6.orig/include/media/v4l2-int-device.h	2008-08-25 12:19:09.000000000 -0500
-+++ linux-omap-2.6/include/media/v4l2-int-device.h	2008-08-25 12:19:10.000000000 -0500
-@@ -170,6 +170,9 @@
- 	vidioc_int_queryctrl_num,
- 	vidioc_int_g_ctrl_num,
- 	vidioc_int_s_ctrl_num,
-+	vidioc_int_cropcap_num,
-+	vidioc_int_g_crop_num,
-+	vidioc_int_s_crop_num,
- 	vidioc_int_g_parm_num,
- 	vidioc_int_s_parm_num,
- 
-@@ -266,6 +269,9 @@
- V4L2_INT_WRAPPER_1(queryctrl, struct v4l2_queryctrl, *);
- V4L2_INT_WRAPPER_1(g_ctrl, struct v4l2_control, *);
- V4L2_INT_WRAPPER_1(s_ctrl, struct v4l2_control, *);
-+V4L2_INT_WRAPPER_1(cropcap, struct v4l2_cropcap, *);
-+V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
-+V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
- V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
- V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
