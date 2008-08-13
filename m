@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.169])
+Received: from wf-out-1314.google.com ([209.85.200.171])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jaakko.tuomainen@gmail.com>) id 1KTwD4-0000yr-66
-	for linux-dvb@linuxtv.org; Fri, 15 Aug 2008 12:07:07 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so844455wfd.17
-	for <linux-dvb@linuxtv.org>; Fri, 15 Aug 2008 03:07:00 -0700 (PDT)
-Message-ID: <9e849af80808150307y369adb9fuf6ce50a1ac65435f@mail.gmail.com>
-Date: Fri, 15 Aug 2008 13:07:00 +0300
-From: "jaakko tuomainen" <jaakko.tuomainen@gmail.com>
+	(envelope-from <sparkmaul@gmail.com>) id 1KT8z1-0000MV-ES
+	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 07:33:20 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so2472756wfd.17
+	for <linux-dvb@linuxtv.org>; Tue, 12 Aug 2008 22:33:14 -0700 (PDT)
+Message-ID: <8e5b27790808122233r539e6404y777e2bade7c78b47@mail.gmail.com>
+Date: Tue, 12 Aug 2008 22:33:14 -0700
+From: "Paul Marks" <paul@pmarks.net>
 To: linux-dvb@linuxtv.org
+In-Reply-To: <8e5b27790808120058o52c4c6bcw21152364b2613c39@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] [UNKNOWN CARD]Activy dvb-t (TDHD1- tuner,
-	datasheet available)
+References: <8e5b27790808120058o52c4c6bcw21152364b2613c39@mail.gmail.com>
+Subject: Re: [linux-dvb] FusionHDTV5 IR not working.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,46 +27,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Tue, Aug 12, 2008 at 12:58 AM, Paul Marks <paul@pmarks.net> wrote:
+> I have a DViCO FusionHDTV5 RT Gold, with an IR sensor that connects to
+> the back of the card.  The remote is a "Fusion Remote MCE".  The video
+> capture stuff works just fine, but I've had no such luck with the
+> remote.
 
-I have two Activy DVB-T cards in my Fujitsu Siemens htpc, both have
-the Alps TDHD1-204A
-tuner, which is not yet supported. I contacted alps for tuner's
-datasheet and they sent it to me for linux driver development. I can
-send email with the datasheet and pictures of my
-card if someone is intrested in adding the support for my card. I
-would like to contribute too but I lack the programming skills needed.
-According to the datasheet, my own card and
-this post "http://www.linuxtv.org/pipermail/linux-dvb/2008-August/027735.html"
-the main chips are SAA7146AH and TDA10046 so I think it's possible to
-add support
-because those chips already have drivers.
+Just to confirm some things:
+- The remote control works using DViCO's software on Windows Vista x64.
+- The remote is not detected in Ubuntu 8.04.1
 
-Jaakko Tuomainen
+I normally run Gentoo with kernel 2.6.26, but I tested with an Ubuntu
+Live CD, to be sure I wasn't forgetting some trivial kernel module.
 
-
-lspci tells us following
-
-01:04.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-    Subsystem: Philips Semiconductors Device 5f60
-    Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-    Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-    Latency: 32 (3750ns min, 9500ns max)
-    Interrupt: pin A routed to IRQ 15
-    Region 0: Memory at fddff000 (32-bit, non-prefetchable) [size=512]
-
-
-01:0b.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-    Subsystem: Philips Semiconductors Device 5f60
-    Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-    Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-    Latency: 32 (3750ns min, 9500ns max)
-    Interrupt: pin A routed to IRQ 10
-    Region 0: Memory at fddfc000 (32-bit, non-prefetchable) [size=512]
+Is there anything I can run in Windows to determine how the driver is
+communicating with the IR sensor?  I managed to get Dscaler's
+RegSpy.exe running, and it did show a bit of activity, but nothing
+that correlated with my remote button presses.
 
 _______________________________________________
 linux-dvb mailing list
