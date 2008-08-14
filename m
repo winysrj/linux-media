@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f22.mail.ru ([194.67.57.55])
+Received: from wa-out-1112.google.com ([209.85.146.177])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KZiXi-0008AZ-N3
-	for linux-dvb@linuxtv.org; Sun, 31 Aug 2008 10:44:19 +0200
-Received: from mail by f22.mail.ru with local id 1KZiXA-00027R-00
-	for linux-dvb@linuxtv.org; Sun, 31 Aug 2008 12:43:44 +0400
-From: Goga777 <goga777@bk.ru>
+	(envelope-from <owen.townend@gmail.com>) id 1KTQlt-0004PY-0y
+	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 02:32:59 +0200
+Received: by wa-out-1112.google.com with SMTP id n7so120745wag.13
+	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 17:32:51 -0700 (PDT)
+Message-ID: <bb72339d0808131732l686f034ft9b4fcbedd73dae73@mail.gmail.com>
+Date: Thu, 14 Aug 2008 10:32:51 +1000
+From: "Owen Townend" <owen.townend@gmail.com>
 To: linux-dvb@linuxtv.org
-Mime-Version: 1.0
-Date: Sun, 31 Aug 2008 12:43:44 +0400
-In-Reply-To: <195222.73778.qm@web46109.mail.sp1.yahoo.com>
-References: <195222.73778.qm@web46109.mail.sp1.yahoo.com>
-Message-Id: <E1KZiXA-00027R-00.goga777-bk-ru@f22.mail.ru>
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?Y2F0OiAvZGV2L2R2Yi9hZGFwdGVyMC9kdnIwOiBW?=
-	=?koi8-r?b?YWx1ZSB0b28gbGFyZ2UgZm9yIGRlZmluZWQgZGF0YSB0eXBl?=
-Reply-To: Goga777 <goga777@bk.ru>
+In-Reply-To: <1218672730.2696.48.camel@pc10.localdom.local>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <48A2EF6A.23BC.005F.0@leicester.gov.uk>
+	<1218672730.2696.48.camel@pc10.localdom.local>
+Subject: Re: [linux-dvb] Attempting to compile the saa7134-alsa module
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,51 +28,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > "cat: /dev/dvb/adapter0/dvr0: Value too large for
-> > defined data type"
-> > 
-> > is it possible to fix it ?
-> 
-> This is a result of error EOVERFLOW.
-> 
-> I found mention of this in some very old documentation I have
-> but which doesn't appear to be present in the very limited
-> searching I've done on the existing source repositories.
-> 
-> I also can't find a particular pointer I read years back, which
-> led me to tweak the value of DVB_BUFFER_SIZE in dvb-core/dmxdev.h
-> so solve some problem I can't remember.
-> 
-> The documentation points to DMX_SET_BUFFER_SIZE.  Programs like
-> `szap' seem to set this to 64k.
-> 
-> Hope that gets you started in the right direction...
+2008/8/14 hermann pitton <hermann-pitton@arcor.de>:
+> Am Mittwoch, den 13.08.2008, 14:27 +0100 schrieb John Chajecki:
+>> Herman,
+>>
+>> Thanks again. It was suggested to me to use Ubuntu because apparently it is good for multimedia apps. I had googled saa7134-alsa prior to posting and saw a few reports of the problem but no solution. This does seem to be a Ubuntu issue and in one of the reports I looked at (https://bugs.launchpad.net/ubuntu/+source/linux-ubuntu-modules-2.6.24/+bug/212271) it states that the problem does not occurr on a 'stock kernel' from kernel.org.
+>>
+>> Now I'm womdoering whether I shpuld use another Linux distro? If so, which distro do others use?
+>
+> There have been not any problems previously with Ubuntu, unfortunately
+> they seem something to try now, others have been through during 2.6.5
+> development and better should let it.
+>
+> I don't have recommendations what to try else, but looking back over
+> years, some are continuously contributing new stuff at high rates and
+> others try to become famous for being very stable :)))
+>
+> If a distribution does not stand a vanilla kernel anymore, what I would
+> not expect in this case, use the trash bin.
+>
+> Cheers,
+> Hermann
+>
 
+Hey,
 
+  If you were using MythBuntu and are looking for a similar experience
+using a different distro then have a look into MythDora or KnopMyth
+for the RedHat and Knoppix takes on the theme.
 
-so, google has found this link
-http://panteltje.com/panteltje/dvd/
-
-======================================================
-Attention,
-if you do cat /dev/dvb/adapter0/dvr0 > file.ts and get error 'Value too large for defined data type', 
-then this indicates a buffer overflow in the DVB driver! 
-In this case modify dmxdev.h in the DVB driver so it reads: 
-#define DVR_BUFFER_SIZE (100*188*1024) // was 10*188*1024 
-You can do this if you have a kernel source >= 2.6 in the driver (check with uname -a): 
-/usr/src/linux/drivers/media/dvb/dvb-core/dmxdev.h 
-then recompile (make modules?). 
-======================================================
-
-
-I have corrected /usr/src/liplianindvb/linux/drivers/media/dvb/dvb-core/dmxdev.h
-
-#define DVR_BUFFER_SIZE (100*188*1024)
-
-but it didn't help me and after re-compilation I have the same problem
-
-Goga
-
+cheers,
+Owen.
 
 _______________________________________________
 linux-dvb mailing list
