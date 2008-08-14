@@ -1,23 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.168])
+Received: from mail-gx0-f20.google.com ([209.85.217.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KWZs3-00068C-5x
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 18:52:21 +0200
-Received: by ug-out-1314.google.com with SMTP id q7so213260uge.16
-	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 09:52:15 -0700 (PDT)
-Message-ID: <412bdbff0808220952y16d36f3by646f0000991de4d3@mail.gmail.com>
-Date: Fri, 22 Aug 2008 12:52:15 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Nicolas Will" <nico@youplala.net>
-In-Reply-To: <1219423493.29624.9.camel@youkaida>
+	(envelope-from <orbus42@gmail.com>) id 1KTRpQ-0007uu-Dn
+	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 03:41:09 +0200
+Received: by gxk13 with SMTP id 13so2483752gxk.17
+	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 18:40:06 -0700 (PDT)
+Message-ID: <8fcafd2c0808131840u4fe27c7dq84953bd34d24e0b1@mail.gmail.com>
+Date: Wed, 13 Aug 2008 20:40:06 -0500
+From: "James Lucas" <orbus42@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <8fcafd2c0808131806l1fcc7563v121715d937d39a5d@mail.gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <1219330331.15825.2.camel@dark> <48ADF515.6080401@nafik.cz>
-	<1219360304.6770.34.camel@youkaida>
-	<1219423326.29624.8.camel@youkaida>
-	<1219423493.29624.9.camel@youkaida>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dib0700 and analog broadcasting
+References: <8fcafd2c0808131723l21031daej9e9ae3eeabfa57f7@mail.gmail.com>
+	<48A37D44.7090808@linuxtv.org>
+	<8fcafd2c0808131806l1fcc7563v121715d937d39a5d@mail.gmail.com>
+Subject: Re: [linux-dvb] Digital tuning failing on Pinnacle 800i with dmesg
+	output
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,45 +23,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0622523043=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Aug 22, 2008 at 12:44 PM, Nicolas Will <nico@youplala.net> wrote:
-> In /etc/modprobe.d/options, I have:
-> # Load DVB-T before DVB-S
-> install cx88-dvb /sbin/modprobe dvb-usb-dib0700; /sbin/modprobe
-> --ignore-install cx88-dvb
+--===============0622523043==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_96432_13817723.1218678006162"
+
+------=_Part_96432_13817723.1218678006162
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+On Wed, Aug 13, 2008 at 8:06 PM, James Lucas <orbus42@gmail.com> wrote:
+
+> Thanks.
 >
-> # Hauppauge WinTV NOVA-T-500
-> options dvb-usb-dib0700 force_lna_activation=1
-> options usbcore autosuspend=-1
+> No idea if it works on windows - opened the card and popped it directly
+> into the linux box.  I've got a windows machine I guess I could stick it in
+> and try it out.  Might be too slow for proper HD decoding...  Anything in
+> particular I should be looking for, or just see if it works?
+>
+> James
+>
 
-Interesting.  I installed the firmware, and although it hasn't helped
-my particular issue (and it's behaving identically to 1.10), it hasn't
-crashed my environment.  On the other hand, my failures occur fairly
-early in the initialization so the problem may be further into startup
-than I have gotten with my device.  I am running 8.04 with the latest
-kernel and v4l-dvb code.
+Whoops - looks like I might have sent my last reply directly to Steven.
+Sorry about that.
 
-Does it happen right after you plug the device in, or does it not
-occur until you start a video application?
+Anyway, update.  Installed in the windows machine, and got the drivers
+installed successfully, but the player software that comes with the card
+requires windows xp, and the newest version of windows I have is 2000.  I
+know analog capture is pretty well supported in windows by things like
+virtualdub and media player classic, but do you know of any apps I can use
+to test the HD functionality?
 
-If it occurs immediately on connect, perhaps you could jump out of X11
-to the console before plugging it in, to see if there is any panic
-output prior to the reboot.
+While I had the card out, got the following from visual inspection:
 
-Also, I can't think of why this would happen, but could you send the
-md5sum of your firmware file so we can make sure it wasn't corrupted?
+Printed on the PCB:
+pctv 800i rev 1.1
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+There were two large visible chips on the card:
+Samsung C649 S5H1409X01-T0  N079X
+
+Conexant Broadcast Decoder  CX23883-39  72013496  0729 Korea
+
+I imagine the tuner chip is hidden under the metal box (shielding?).
+
+James
+
+------=_Part_96432_13817723.1218678006162
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">On Wed, Aug 13, 2008 at 8:06 PM, James Lucas <span dir="ltr">&lt;<a href="mailto:orbus42@gmail.com">orbus42@gmail.com</a>&gt;</span> wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<div dir="ltr">Thanks.<br><br>No idea if it works on windows - opened the card and popped it directly into the linux box.&nbsp; I&#39;ve got a windows machine I guess I could stick it in and try it out.&nbsp; Might be too slow for proper HD decoding...&nbsp; Anything in particular I should be looking for, or just see if it works?<br>
+
+<br>James<br></div>
+</blockquote></div><br>Whoops - looks like I might have sent my last reply directly to Steven.&nbsp; Sorry about that.<br><br>Anyway, update.&nbsp; Installed in the windows machine, and got the drivers installed successfully, but the player software that comes with the card requires windows xp, and the newest version of windows I have is 2000.&nbsp; I know analog capture is pretty well supported in windows by things like virtualdub and media player classic, but do you know of any apps I can use to test the HD functionality?<br>
+<br>While I had the card out, got the following from visual inspection:<br><br>Printed on the PCB:<br>pctv 800i rev 1.1<br><br>There were two large visible chips on the card:<br>Samsung C649 S5H1409X01-T0&nbsp; N079X<br><br>Conexant Broadcast Decoder&nbsp; CX23883-39&nbsp; 72013496&nbsp; 0729 Korea<br>
+<br>I imagine the tuner chip is hidden under the metal box (shielding?).<br><br>James<br></div>
+
+------=_Part_96432_13817723.1218678006162--
+
+
+--===============0622523043==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0622523043==--
