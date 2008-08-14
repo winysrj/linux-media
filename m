@@ -1,21 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KWCUn-0003o9-9e
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 17:54:46 +0200
-Date: Thu, 21 Aug 2008 17:54:12 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <d9def9db0808210800g6cc8c106jb609009c5d44699f@mail.gmail.com>
-Message-ID: <20080821155412.114260@gmx.net>
+Received: from mo-p00-ob.rzone.de ([81.169.146.162])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <thomas@boerkel.de>) id 1KTYls-0005iI-P7
+	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 11:05:29 +0200
+Received: from backend.localdomain
+	(p54A30832.dip0.t-ipconnect.de [84.163.8.50])
+	by post.webmailer.de (klopstock mo56) (RZmta 16.47)
+	with ESMTP id 501279k7E7EqtW for <linux-dvb@linuxtv.org>;
+	Thu, 14 Aug 2008 11:05:25 +0200 (MEST)
+	(envelope-from: <thomas@boerkel.de>)
+Received: from [10.1.81.46] (unknown [195.243.151.195])
+	by backend.localdomain (Postfix) with ESMTP id 12977245BC8
+	for <linux-dvb@linuxtv.org>; Thu, 14 Aug 2008 11:05:25 +0200 (CEST)
+Message-ID: <48A3F54E.40709@boerkel.de>
+Date: Thu, 14 Aug 2008 11:05:18 +0200
+From: =?ISO-8859-1?Q?Thomas_B=F6rkel?= <thomas@boerkel.de>
 MIME-Version: 1.0
-References: <20080821124658.549ced6c@ask-gnewsense>
-	<d9def9db0808210507pa76088cx28a955b1840e2147@mail.gmail.com>
-	<20080821154705.0ab3f854@ask-gnewsense>
-	<d9def9db0808210756y277f21a3wd6fe16f0bc52f9ad@mail.gmail.com>
-	<d9def9db0808210800g6cc8c106jb609009c5d44699f@mail.gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-T USB Device which doesn't require
-	non-free	software
+Subject: [linux-dvb] Nova-S Plus questions
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,58 +25,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+HI!
 
--------- Original-Nachricht --------
-> Datum: Thu, 21 Aug 2008 17:00:06 +0200
-> Von: "Markus Rechberger" <mrechberger@gmail.com>
-> An: "Alex Speed Kjeldsen" <alex.kjeldsen@gmail.com>
-> CC: linux-dvb@linuxtv.org
-> Betreff: Re: [linux-dvb] DVB-T USB Device which doesn\'t require non-free=
-	software
+I exchanged my TT 1500 cards for Nova-S Plus cards because of glitches 
+in recordings every now and then.
 
-> On Thu, Aug 21, 2008 at 4:56 PM, Markus Rechberger
-> <mrechberger@gmail.com> wrote:
-> > On Thu, Aug 21, 2008 at 3:47 PM, Alex Speed Kjeldsen
-> > <alex.kjeldsen@gmail.com> wrote:
-> >> Just to clarify I have two questions:
-> >>
-> >> 1) If I understand you correctly the Terratec Hybrid XS FM should work
-> without any non-free drivers and firmware. Is this the case?
-> >>
-> =
+The Novas seem to work fine, however there are some strange things:
 
-> the firmware is included in the available driver (so you won't have to
-> bother about where to find the firmware or where to parse it from).
-> The device itself also additionally to the tuner has a small firmware
-> for the Empia chip.
+The cards report signal strength 98% and snr 99%. This can't be right.
 
-Markus I suspect what you are suggesting is not what Alex is looking for.
+UNC reporting apparently does not work.
 
-Alex is concerned about which licenses these drivers and firmwares are rele=
-ased
-under. He is using gNewSense so he clearly cares that they are free as in f=
-ree beer *and* free
-as in free speech. You say there are two pieces of firmware. Could you clar=
-ify (1) which
-files you are talking about, (2) who holds the copyrights and (3) whether t=
-he driver =
+dvbsnoop -s signal also does not work (unsupported or adapter in use).
 
-and firmware source codes are available and under what licenses.
+I am using kernel 2.6.23.
 
-Binaries coded in ascii are still binaries.
+Any hints/info on these issues would be greatly appreciated.
 
--- =
+Thanks!
 
-Release early, release often.
-
-Psssst! Schon das coole Video vom GMX MultiMessenger gesehen?
-Der Eine f=FCr Alle: http://www.gmx.net/de/go/messenger03
+Thomas
 
 _______________________________________________
 linux-dvb mailing list
