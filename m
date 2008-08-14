@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.188])
+Received: from mail-in-07.arcor-online.net ([151.189.21.47])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <oobe.trouble@gmail.com>) id 1KXtNB-0006FR-Ve
-	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 09:53:56 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so1379128nfb.11
-	for <linux-dvb@linuxtv.org>; Tue, 26 Aug 2008 00:53:50 -0700 (PDT)
-Message-ID: <21aab41d0808260053p366c03cub5af88359cadbe8f@mail.gmail.com>
-Date: Tue, 26 Aug 2008 17:53:50 +1000
-From: "Kemble Wagner" <oobe.trouble@gmail.com>
-To: "Bonne Eggleston" <b.eggleston@gmail.com>
-In-Reply-To: <d16b033e0808241845h39beb8c6x4d9c99692ff909f3@mail.gmail.com>
-MIME-Version: 1.0
-References: <d16b033e0808201810wca140d8ob33dd6bae2dfcf8b@mail.gmail.com>
-	<ee0ad0230808201844s512f8658pb2459c192cfa21d6@mail.gmail.com>
-	<48ACC98A.4090201@linuxtv.org>
-	<d16b033e0808201942h56e9b370x778faa7098cf5d41@mail.gmail.com>
-	<48ACDB07.8080801@linuxtv.org>
-	<21aab41d0808220726x79486a7fp25bd79f081f2d965@mail.gmail.com>
-	<d16b033e0808241845h39beb8c6x4d9c99692ff909f3@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] Recommended repository for Dvico Dual Digital 4 rev1
+	(envelope-from <hermann-pitton@arcor.de>) id 1KTQZo-000364-17
+	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 02:20:29 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: John Chajecki <John.Chajecki@leicester.gov.uk>
+In-Reply-To: <48A2EF6A.23BC.005F.0@leicester.gov.uk>
+References: <48A2EF6A.23BC.005F.0@leicester.gov.uk>
+Date: Thu, 14 Aug 2008 02:12:10 +0200
+Message-Id: <1218672730.2696.48.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Attempting to compile the saa7134-alsa module
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,67 +19,113 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0500949905=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0500949905==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_1020_32008941.1219737230448"
+Am Mittwoch, den 13.08.2008, 14:27 +0100 schrieb John Chajecki:
+> Herman,
+> 
+> Thanks again. It was suggested to me to use Ubuntu because apparently it is good for multimedia apps. I had googled saa7134-alsa prior to posting and saw a few reports of the problem but no solution. This does seem to be a Ubuntu issue and in one of the reports I looked at (https://bugs.launchpad.net/ubuntu/+source/linux-ubuntu-modules-2.6.24/+bug/212271) it states that the problem does not occurr on a 'stock kernel' from kernel.org.
+> 
+> Now I'm womdoering whether I shpuld use another Linux distro? If so, which distro do others use?
 
-------=_Part_1020_32008941.1219737230448
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+There have been not any problems previously with Ubuntu, unfortunately
+they seem something to try now, others have been through during 2.6.5
+development and better should let it.
 
-no i used the script that extracts it from the haupage drivers even though
-it comes from haupage drivers it it still works for the dd4
-and is what we are looking for i just updated nmy tutorial on the dd4 i left
-links to firmware and my lirc files
-here http://ubuntuforums.org/showthread.php?t=616103
+I don't have recommendations what to try else, but looking back over
+years, some are continuously contributing new stuff at high rates and
+others try to become famous for being very stable :)))
 
-On Mon, Aug 25, 2008 at 11:45 AM, Bonne Eggleston <b.eggleston@gmail.com>wrote:
+If a distribution does not stand a vanilla kernel anymore, what I would
+not expect in this case, use the trash bin.
 
-> On Sat, Aug 23, 2008 at 12:26 AM, Kemble Wagner <oobe.trouble@gmail.com>
-> wrote:
-> > attached is the firmware file for the new drivers i have been using since
-> > released and have had no problems
-> Thanks. Can I ask where you downloaded it from? Is there an official
-> place to get this?
->
-> Bonne
->
-
-------=_Part_1020_32008941.1219737230448
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">no i used the script that extracts it from the haupage drivers even though it comes from haupage drivers it it still works for the dd4 <br>and is what we are looking for i just updated nmy tutorial on the dd4 i left links to firmware and my lirc files <br>
-here <a href="http://ubuntuforums.org/showthread.php?t=616103">http://ubuntuforums.org/showthread.php?t=616103</a><br><br><div class="gmail_quote">On Mon, Aug 25, 2008 at 11:45 AM, Bonne Eggleston <span dir="ltr">&lt;<a href="mailto:b.eggleston@gmail.com">b.eggleston@gmail.com</a>&gt;</span> wrote:<br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div class="Ih2E3d">On Sat, Aug 23, 2008 at 12:26 AM, Kemble Wagner &lt;<a href="mailto:oobe.trouble@gmail.com">oobe.trouble@gmail.com</a>&gt; wrote:<br>
-
-</div><div class="Ih2E3d">&gt; attached is the firmware file for the new drivers i have been using since<br>
-&gt; released and have had no problems<br>
-</div>Thanks. Can I ask where you downloaded it from? Is there an official<br>
-place to get this?<br>
-<font color="#888888"><br>
-Bonne<br>
-</font></blockquote></div><br></div>
-
-------=_Part_1020_32008941.1219737230448--
+Cheers,
+Hermann
 
 
---===============0500949905==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> 
+> >>> hermann pitton <hermann-pitton@arcor.de> 08/12/08 9:51 PM >>>
+> Hi again,
+> 
+> Am Dienstag, den 12.08.2008, 15:47 +0100 schrieb John Chajecki:
+> > I'm trying to compile the saa7134-alsa module that comes with the v4l-dvb drivers. In order to get it to compile I've had to tag it to the end of the saa7134-onjs list in the Makefile resident in the saa7134 direcorty like this:
+> > 
+> > saa7134-objs := saa7134-cards.o saa7134-core.o saa7134-i2c.o    \
+> >                 saa7134-ts.o saa7134-tvaudio.o saa7134-vbi.o    \
+> >                 saa7134-video.o saa7134-input.o saa7134-alsa.o
+> > 
+> > I'm running make, I'm getting the folowing error:
+> > 
+> > root@tinman:/home/john/Src/v4l-dvb# make
+> > make -C /home/john/Src/v4l-dvb/v4l
+> > make[1]: Entering directory `/home/john/Src/v4l-dvb/v4l'
+> > creating symbolic links...
+> > Kernel build directory is /lib/modules/2.6.24-19-generic/build
+> > make -C /lib/modules/2.6.24-19-generic/build SUBDIRS=/home/john/Src/v4l-dvb/v4l  modules
+> > make[2]: Entering directory `/usr/src/linux-headers-2.6.24-19-generic'
+> >   LD [M]  /home/john/Src/v4l-dvb/v4l/saa7134.o
+> > /home/john/Src/v4l-dvb/v4l/saa7134-alsa.o: In function `saa7134_alsa_init':
+> > /home/john/Src/v4l-dvb/v4l/saa7134-alsa.c:1083: multiple definition of `init_module'
+> > /home/john/Src/v4l-dvb/v4l/saa7134-core.o:/home/john/Src/v4l-dvb/v4l/saa7134-core.c:1346: first defined here
+> > /home/john/Src/v4l-dvb/v4l/saa7134-alsa.o: In function `saa7134_alsa_exit':
+> > /home/john/Src/v4l-dvb/v4l/saa7134-alsa.c:1109: multiple definition of `cleanup_module'
+> > /home/john/Src/v4l-dvb/v4l/saa7134-core.o:/home/john/Src/v4l-dvb/v4l/saa7134-core.c:1361: first defined here
+> > make[3]: *** [/home/john/Src/v4l-dvb/v4l/saa7134.o] Error 1
+> > make[2]: *** [_module_/home/john/Src/v4l-dvb/v4l] Error 2
+> > make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
+> > make[1]: *** [default] Error 2
+> > make[1]: Leaving directory `/home/john/Src/v4l-dvb/v4l'
+> > make: *** [all] Error 2
+> > 
+> > I'm tring to get the saa7134-alsa compiled because, although the other modules are compiling, the alsa module is not so when I'm doing a modproble saa7134 I'm getting as follows in dmesg:
+> > 
+> > [108767.374805] saa7133[0]: registered device video0 [v4l2]
+> > [108767.374831] saa7133[0]: registered device vbi0
+> > [108767.396356] saa7134_alsa: disagrees about version of symbol saa7134_tvaudio_setmute
+> > [108767.396363] saa7134_alsa: Unknown symbol saa7134_tvaudio_setmute
+> > [108767.396512] saa7134_alsa: disagrees about version of symbol saa_dsp_writel
+> > [108767.396515] saa7134_alsa: Unknown symbol saa_dsp_writel
+> > [108767.396684] saa7134_alsa: disagrees about version of symbol videobuf_dma_free
+> > [108767.396686] saa7134_alsa: Unknown symbol videobuf_dma_free
+> > [108767.396884] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_alloc
+> > [108767.396887] saa7134_alsa: Unknown symbol saa7134_pgtable_alloc
+> > [108767.396934] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_build
+> > [108767.396937] saa7134_alsa: Unknown symbol saa7134_pgtable_build
+> > [108767.396975] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_free
+> > [108767.396978] saa7134_alsa: Unknown symbol saa7134_pgtable_free
+> > [108767.397016] saa7134_alsa: disagrees about version of symbol saa7134_dmasound_init
+> > [108767.397019] saa7134_alsa: Unknown symbol saa7134_dmasound_init
+> > [108767.397154] saa7134_alsa: disagrees about version of symbol saa7134_dmasound_exit
+> > [108767.397156] saa7134_alsa: Unknown symbol saa7134_dmasound_exit
+> > [108767.397252] saa7134_alsa: disagrees about version of symbol videobuf_dma_init
+> > [108767.397255] saa7134_alsa: Unknown symbol videobuf_dma_init
+> > [108767.397399] saa7134_alsa: disagrees about version of symbol videobuf_dma_init_kernel
+> > [108767.397402] saa7134_alsa: Unknown symbol videobuf_dma_init_kernel
+> > [108767.397518] saa7134_alsa: Unknown symbol videobuf_pci_dma_unmap
+> > [108767.397661] saa7134_alsa: Unknown symbol videobuf_pci_dma_map
+> > [108767.397706] saa7134_alsa: disagrees about version of symbol saa7134_set_dmabits
+> > [108767.397709] saa7134_alsa: Unknown symbol saa7134_set_dmabits
+> > [108767.411034] saa7133[0]/dvb: Huh? unknown DVB card?
+> > [108767.411040] saa7133[0]/dvb: frontend initialization failed
+> 
+> vanilla kernel compatibility on recent Ubuntu is broken in various ways,
+> especially for alsa.
+> 
+> Try to google for "ubuntu saa7134-alsa" and/or check the lists.
+> 
+> It is not caused by v4l-dvb.
+> 
+> Cheers,
+> Hermann
+> 
+> 
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0500949905==--
