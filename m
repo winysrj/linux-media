@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
+Received: from fg-out-1718.google.com ([72.14.220.152])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jw@raven.inka.de>) id 1KWFhv-0005Na-DR
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 21:20:33 +0200
-Date: Thu, 21 Aug 2008 21:17:58 +0200
-From: Josef Wolf <jw@raven.inka.de>
+	(envelope-from <christophpfister@gmail.com>) id 1KTdmG-0007As-21
+	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 16:26:13 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so379636fga.25
+	for <linux-dvb@linuxtv.org>; Thu, 14 Aug 2008 07:26:08 -0700 (PDT)
+From: Christoph Pfister <christophpfister@gmail.com>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080821191758.GD32022@raven.wolf.lan>
-References: <20080820211005.GA32022@raven.wolf.lan>
-Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20080820211005.GA32022@raven.wolf.lan>
-Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
+Date: Thu, 14 Aug 2008 16:26:07 +0200
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_/BEpIub5jbKnBbY"
+Message-Id: <200808141626.07196.christophpfister@gmail.com>
+Subject: [linux-dvb] Fwd: DVB channel list
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,34 +20,71 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Aug 20, 2008 at 11:10:06PM +0200, Josef Wolf wrote:
+--Boundary-00=_/BEpIub5jbKnBbY
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
->   jw@dvb1:~$ dvbsnoop -s pes -if zdf.test|grep Stream_id|head -40
->   Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2 video stream]
->   Stream_id: 0 (0x00)  [= picture_start_code]
->   Stream_id: 181 (0xb5)  [= extension_start_code]
->   Stream_id: 1 (0x01)  [= slice_start_code]
->   Stream_id: 2 (0x02)  [= slice_start_code]
->   [ consecutive lines deleted ]
->   Stream_id: 34 (0x22)  [= slice_start_code]
->   Stream_id: 35 (0x23)  [= slice_start_code]
->   [ here the list of stream ids start over again and repeats ]
+=46rom a kaffeine user ...
 
-Table 2-18 in iso-13818-1 don't list any stream_id's below 0xBC.
-Anybody knows what those stream_id's 0x00..0x23 and 0xB5 are for
-and whether they could be the reason for the artefacts?
+Christoph
 
-> Maybe I should discard some of those to get a proper PES?
 
-Hmm, guess I should give it a try.
+=2D---------  Weitergeleitete Nachricht  ----------
+
+Betreff: [kaffeine-user] DVB channel list
+Datum: Donnerstag 14 August 2008
+Von: "S-Stefano" <s-stefano@email.it>
+An: kaffeine-user@lists.sf.net
+
+List for Santo Sfeano al mare in Liguria
+
+=2D------------------------------------------------------
+
+--Boundary-00=_/BEpIub5jbKnBbY
+Content-Type: text/plain;
+  charset="iso 8859-15";
+  name="it-S-Stefano_al_mare"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="it-S-Stefano_al_mare"
+
+#DVB Santo Stefano al mare (IM)
+#Aggiornato al 10/08/2008
+#Fonte: DGTVI.it
+#s-stefano@email.it
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+#MUX-A RAI
+T 586000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
+#MUX-B RAI
+T 666000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
+#MUX MEDIASET 1
+T 570000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
+#T 818000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
+#MUX MEDIASET 2
+T 482000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
+#T 794000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
+#MUX MBONE
+T 522000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
+#T 706000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
+#MUX DFREE
+T 650000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
+#MUX TIMB 1
+T 594000000 8MHz 2/3 1/2 QAM64 8k 1/32 NONE
+
+--Boundary-00=_/BEpIub5jbKnBbY
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_/BEpIub5jbKnBbY--
