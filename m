@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.240])
+Received: from mail-gx0-f20.google.com ([209.85.217.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1KPewz-0007xj-US
-	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 16:52:57 +0200
-Received: by an-out-0708.google.com with SMTP id c18so446447anc.125
-	for <linux-dvb@linuxtv.org>; Sun, 03 Aug 2008 07:52:42 -0700 (PDT)
-Message-ID: <ea4209750808030752j355b1359gc2ec76f37759a8a9@mail.gmail.com>
-Date: Sun, 3 Aug 2008 16:52:40 +0200
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: mailgk@xs4all.nl
-In-Reply-To: <1217763477.3847.14.camel@gk-sem3.gkall.nl>
+	(envelope-from <kknull0@gmail.com>) id 1KTdHI-00047L-Qy
+	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 15:54:14 +0200
+Received: by gxk13 with SMTP id 13so3260933gxk.17
+	for <linux-dvb@linuxtv.org>; Thu, 14 Aug 2008 06:53:37 -0700 (PDT)
+Message-ID: <57ed08da0808140653k66d810b6r9c08b4141bf80d75@mail.gmail.com>
+Date: Thu, 14 Aug 2008 15:53:37 +0200
+From: Xaero <kknull0@gmail.com>
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+In-Reply-To: <412bdbff0808131642m6652340l5cf283a648d09e1f@mail.gmail.com>
 MIME-Version: 1.0
-References: <1217763477.3847.14.camel@gk-sem3.gkall.nl>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
+References: <57ed08da0808081449m598af353n7edf908551753318@mail.gmail.com>
+	<412bdbff0808081458v418449c4q6db215cf83e3ead0@mail.gmail.com>
+	<57ed08da0808111720j5514e218o2f4a17d2f4a954b7@mail.gmail.com>
+	<412bdbff0808131642m6652340l5cf283a648d09e1f@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] Pinnacle pctv hybrid pro stick 340e support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,138 +24,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0781177090=="
+Content-Type: multipart/mixed; boundary="===============0167068347=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0781177090==
+--===============0167068347==
 Content-Type: multipart/alternative;
-	boundary="----=_Part_14679_31465386.1217775160173"
+	boundary="----=_Part_105174_5145793.1218722017693"
 
-------=_Part_14679_31465386.1217775160173
+------=_Part_105174_5145793.1218722017693
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hi Gerard, to try if it's a dibcom7700 based device you can try adding your
-device descriptor to the v4l drivers. I think that would be the fastest. You
-need the firmware and recompile with the modifications. If you don't know
-how I can send you the modified files, but it's easy, basically add your
-descriptor at v4l-dvb/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h and add
-your device on v4l-dvb/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c ,
-you can try on Pinnacle 320cx section.
+ok, this is the wiki page
 
-Albert
+http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_Hybrid_Pro_Stick_340e
 
-2008/8/3 Gerard <mailgk@xs4all.nl>:
+2008/8/14 Devin Heitmueller <devin.heitmueller@gmail.com>
 
 > Hello,
 >
-> Just bought and searched for support for the Pinnacle pctv hybrid pro
-> stick 340e, not found.
+> This is really useful information.  In particular, the fact that the
+> device uses an xc4000 instead of an xc5000 could be a problem.  The
+> V4L codebase has support for the xc2028, xc3028, and xc5000, but the
+> xc4000 is a (from what I understand) a reduced cost version of the
+> xc5000 that there is not currently support for.
 >
-> I have placed the lsusb -v output on
-> http://www.gkall.nl/pinnacle-pctv-hybrid-pro-stick-340e.html
+> Could you please take a few minutes and create a page on the Linux dvb
+> wiki for the device including the chipset information and the fact
+> that the device is not supported, so at least we have all the relevant
+> information.  You can use the 801e page as a starting point:
 >
-> information is in pinnacle-pctv-hybrid-pro-stick-340e.txt
+> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_(801e)<http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_%28801e%29>
 >
+> I'll email the xc5000 maintainer and see if he knows anything about the
+> xc4000.
 >
-> output from kernel.log
+> Cheers,
 >
-> Aug  2 16:48:25 gk-sem3 kernel: [26398.325169] usb 2-3: new high speed
-> USB device using ehci_hcd and address 7
-> Aug  2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: configuration #1
-> chosen from 1 choice
-> Aug  2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: New USB device
-> found, idVendor=2304, idProduct=023d
-> Aug  2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: New USB device
-> strings: Mfr=1, Product=2, SerialNumber=3
-> Aug  2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: Product: PCTV
-> 340e
-> Aug  2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: Manufacturer:
-> YUANRD
-> Aug  2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: SerialNumber:
-> 060096D0F0
->
-> I can do some test, intention is to get it working on a acer aspire one
-> netbook.
->
-> According to an other lsusb -v output it could be a dibcom chip??
->
-> Question is if there is already some driver information?
+> Devin
 >
 > --
-> --------
-> m.vr.gr.
-> Gerard Klaver
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
 >
 
-------=_Part_14679_31465386.1217775160173
+------=_Part_105174_5145793.1218722017693
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-<div dir="ltr">Hi Gerard, to try if it&#39;s a dibcom7700 based device you can try adding your device descriptor to the v4l drivers. I think that would be the fastest. You need the firmware and recompile with the modifications. If you don&#39;t know how I can send you the modified files, but it&#39;s easy, basically add your descriptor at v4l-dvb/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h and add your device on v4l-dvb/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c , you can try on Pinnacle 320cx section.<br>
-<br>Albert<br><br><div class="gmail_quote">2008/8/3 Gerard &lt;<a href="mailto:mailgk@xs4all.nl">mailgk@xs4all.nl</a>&gt;:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<div dir="ltr">ok, this is the wiki page<br><br><span class="HcCDpe"><a href="http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_Hybrid_Pro_Stick_340e">http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_Hybrid_Pro_Stick_340e</a></span><br>
+<br><div class="gmail_quote">2008/8/14 Devin Heitmueller <span dir="ltr">&lt;<a href="mailto:devin.heitmueller@gmail.com">devin.heitmueller@gmail.com</a>&gt;</span><br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
 Hello,<br>
 <br>
-Just bought and searched for support for the Pinnacle pctv hybrid pro<br>
-stick 340e, not found.<br>
+This is really useful information. &nbsp;In particular, the fact that the<br>
+device uses an xc4000 instead of an xc5000 could be a problem. &nbsp;The<br>
+V4L codebase has support for the xc2028, xc3028, and xc5000, but the<br>
+xc4000 is a (from what I understand) a reduced cost version of the<br>
+xc5000 that there is not currently support for.<br>
 <br>
-I have placed the lsusb -v output on<br>
-<a href="http://www.gkall.nl/pinnacle-pctv-hybrid-pro-stick-340e.html" target="_blank">http://www.gkall.nl/pinnacle-pctv-hybrid-pro-stick-340e.html</a><br>
+Could you please take a few minutes and create a page on the Linux dvb<br>
+wiki for the device including the chipset information and the fact<br>
+that the device is not supported, so at least we have all the relevant<br>
+information. &nbsp;You can use the 801e page as a starting point:<br>
+<div class="Ih2E3d"><br>
+<a href="http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_%28801e%29" target="_blank">http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_(801e)</a><br>
 <br>
-information is in pinnacle-pctv-hybrid-pro-stick-340e.txt<br>
+</div>I&#39;ll email the xc5000 maintainer and see if he knows anything about the xc4000.<br>
 <br>
-<br>
-output from kernel.log<br>
-<br>
-Aug &nbsp;2 16:48:25 gk-sem3 kernel: [26398.325169] usb 2-3: new high speed<br>
-USB device using ehci_hcd and address 7<br>
-Aug &nbsp;2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: configuration #1<br>
-chosen from 1 choice<br>
-Aug &nbsp;2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: New USB device<br>
-found, idVendor=2304, idProduct=023d<br>
-Aug &nbsp;2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: New USB device<br>
-strings: Mfr=1, Product=2, SerialNumber=3<br>
-Aug &nbsp;2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: Product: PCTV<br>
-340e<br>
-Aug &nbsp;2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: Manufacturer:<br>
-YUANRD<br>
-Aug &nbsp;2 16:48:25 gk-sem3 kernel: [26398.482055] usb 2-3: SerialNumber:<br>
-060096D0F0<br>
-<br>
-I can do some test, intention is to get it working on a acer aspire one<br>
-netbook.<br>
-<br>
-According to an other lsusb -v output it could be a dibcom chip??<br>
-<br>
-Question is if there is already some driver information?<br>
+Cheers,<br>
+<div><div></div><div class="Wj3C7c"><br>
+Devin<br>
 <br>
 --<br>
---------<br>
-<a href="http://m.vr.gr" target="_blank">m.vr.gr</a>.<br>
-Gerard Klaver<br>
-<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</blockquote></div><br></div>
+Devin J. Heitmueller<br>
+<a href="http://www.devinheitmueller.com" target="_blank">http://www.devinheitmueller.com</a><br>
+AIM: devinheitmueller<br>
+</div></div></blockquote></div><br></div>
 
-------=_Part_14679_31465386.1217775160173--
+------=_Part_105174_5145793.1218722017693--
 
 
---===============0781177090==
+--===============0167068347==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -162,4 +120,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0781177090==--
+--===============0167068347==--
