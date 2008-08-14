@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KW0Si-0006Yr-PG
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 05:03:49 +0200
-Message-ID: <48ACDB07.8080801@linuxtv.org>
-Date: Wed, 20 Aug 2008 23:03:35 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: Bonne Eggleston <b.eggleston@gmail.com>
-References: <d16b033e0808201810wca140d8ob33dd6bae2dfcf8b@mail.gmail.com>	
-	<ee0ad0230808201844s512f8658pb2459c192cfa21d6@mail.gmail.com>	
-	<48ACC98A.4090201@linuxtv.org>
-	<d16b033e0808201942h56e9b370x778faa7098cf5d41@mail.gmail.com>
-In-Reply-To: <d16b033e0808201942h56e9b370x778faa7098cf5d41@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Recommended repository for Dvico Dual Digital 4 rev1
+	(envelope-from <nico@youplala.net>) id 1KTiyI-0000S6-9n
+	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 21:58:59 +0200
+Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
+	[84.70.212.195])
+	by mail.youplala.net (Postfix) with ESMTP id DE234D880A4
+	for <linux-dvb@linuxtv.org>; Thu, 14 Aug 2008 21:57:47 +0200 (CEST)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <412bdbff0808141157t241748b4n5d82b15fcbc18d4a@mail.gmail.com>
+References: <412bdbff0808141157t241748b4n5d82b15fcbc18d4a@mail.gmail.com>
+Date: Thu, 14 Aug 2008 20:57:46 +0100
+Message-Id: <1218743866.8654.2.camel@youkaida>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Possible bug in dib0700_core.c i2c transfer	function
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,63 +28,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Bonne Eggleston wrote:
-> On Thu, Aug 21, 2008 at 11:48 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->   
->> On Thu, Aug 21, 2008 at 11:10 AM, Bonne Eggleston
->> <b.eggleston@gmail.com>wrote:
->>     
->>>> Hi all,
->>>> I have a working Dvico Dual Digital 4 rev1 using some older drivers
->>>> (from http://linuxtv.org/hg/~pascoe/xc-test/<http://linuxtv.org/hg/%7Epascoe/xc-test/>
->>>> ).
->>>> I'm looking to upgrade my kernel from 2.6.18 to 2.6.25 or 26 and
->>>> thought I should get the most up to date dvb driver too.
->>>> What's the current recommended driver and firmware for this card?
->>>>
->>>>
->>>>         
->> Damien Morrissey wrote:
->>     
->>> Be warned that there seems to be a funky thing with the firmware (in
->>> australia at least). I needed no less than three different firmware files to
->>> get my DVico Dual Digital 4 (rev1) to be recognised AND to successfully lock
->>> on a channel. Check for dmesg warnings. I am using mythbuntu 8.04.
->>>
->>>       
->> Please be advised that the posting policy on this mailing list is to
->> post your reply BELOW the quote.
->>
->> It's irritating that I have to tell this to people repeatedly, and I'm
->> sure its even more irritating for others that have to constantly read my
->> complaints about it.
->>
->> Nothing against you -- please don't top-post in the future.
->>
->> Anyway, Damien....  Please try the latest driver in the v4l-dvb master
->> branch -- recent changesets have improved driver performance, and you
->> should not have the problems anymore that you have described, above.
->>     
-> So that's the mercurial repository here:  http://linuxtv.org/hg/v4l-dvb ?
->   
+On Thu, 2008-08-14 at 14:57 -0400, Devin Heitmueller wrote:
+> Sent this to Patrick Boettcher last week and didn't hear anything
+> back.  Figured it might be worth sending to the list to see if anyone
+> else had any ideas:
+> 
+> ---
+> 
+> I have been doing some work on the Pinnacle PCTV HD Pro USB Stick,
+> which uses the dib0700/s5h1411/xc5000 combination.  I'm making good
+> progress but I think I might have run into a bug.
+> 
+> The dib0700_i2c_xfer() function appears to have a problem where it
+> converts i2c read calls into i2c write calls in certain cases.  In
+> particular, if you send a single i2c read message, the function always
+> treats it as a write request.
 
-correct.
+I, for one, am very interested in this.
 
->   
->> The AU-specific firmware images have been deprecated, in favor of a much
->> better driver that works regardless of location.  Standard firmware is
->> not used, instead.
->>     
-> Do you mean standard firmware *is* used instead? Where do I get the
-> standard firmware from? Is it just the dvb-usb-bluebird-01.fw  from
-> http://www.linuxtv.org/downloads/firmware/ ?
->   
+I cannot code or really understand the details, but could this explain
+the more or less regular i2c read failures or even write failures
+eventually leading to device lock-ups that we are still experiencing if
+we are a bit too agressive?
 
-Use the same bluebird firmware you would have used before.  Now, the
-standard xc3028-v27.fw is used instead of the AU-specific one.  My bad
--- I should have specified that earlier.
+Nico
 
--Mike
 
 _______________________________________________
 linux-dvb mailing list
