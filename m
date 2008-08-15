@@ -1,21 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from nf-out-0910.google.com ([64.233.182.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zeph7r@gmail.com>) id 1KSVUF-0000Xk-Gn
-	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 13:22:56 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so956699fga.25
-	for <linux-dvb@linuxtv.org>; Mon, 11 Aug 2008 04:22:51 -0700 (PDT)
-Message-ID: <48A020FD.6000400@gmail.com>
-Date: Mon, 11 Aug 2008 12:22:37 +0100
-From: zePh7r <zeph7r@gmail.com>
+	(envelope-from <bcjenkins@tvwhere.com>) id 1KTnxo-0006Si-Hg
+	for linux-dvb@linuxtv.org; Fri, 15 Aug 2008 03:18:54 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so963259nfb.11
+	for <linux-dvb@linuxtv.org>; Thu, 14 Aug 2008 18:18:45 -0700 (PDT)
+Message-ID: <de8cad4d0808141818i1d0b9c56m648457941248a68e@mail.gmail.com>
+Date: Thu, 14 Aug 2008 21:18:44 -0400
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <48A4C9DE.5060503@linuxtv.org>
 MIME-Version: 1.0
-To: Albert Comerma <albert.comerma@gmail.com>
-References: <ea4209750808080532h950d84fud047c135551e1ff1@mail.gmail.com>	
-	<489CCD82.5030406@gmail.com>
-	<ea4209750808100251j3d027cable1e5cd81ceb4995@mail.gmail.com>
-In-Reply-To: <ea4209750808100251j3d027cable1e5cd81ceb4995@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Support for Asus My-Cinema U3000Hybrid?
+Content-Disposition: inline
+References: <de8cad4d0808140908r7b1e7a04xc3d907da69fd3549@mail.gmail.com>
+	<48A4C9DE.5060503@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1600 - mxl5005s - QAM scanning
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,63 +29,91 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Albert Comerma escreveu:
-> Sorry, I didn't explained much... it also took some time to me to 
-> understand how it's working... Since xc2028 is the tunner it has no Id 
-> information on the code. The id's are on the usb bridge code. You 
-> should add your deviece id's at;
-> /v4l-dvb/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h and then insert 
-> your device at
-> /v4l-dvb/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c    first 
-> the device descriptors (at arround line 1120) and then the device 
-> itself, I would try it around line 1418. This last file, has already 
-> the include to the xc2028 code and calls the tunner funcions. Looking 
-> the code around this lines I guess you will understand how it works.
+On Thu, Aug 14, 2008 at 8:12 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> Brandon Jenkins wrote:
+>> Greetings all,
+>>
+>> The last time I tried scanning for QAM it didn't work. If I recall, it
+>> would be a while before the driver could be looked at. Has there been
+>> any change in status worth testing out again?
 >
-> Albert
+> I have an HVR1600 model 74041 -- When I scan for QAM channels, I find the same channels that I find when I scan using any other QAM256-capable device.
 >
-> 2008/8/9 zePh7r <zeph7r@gmail.com <mailto:zeph7r@gmail.com>>
+> So yes, it's worth testing again.
 >
->     Albert Comerma escreveu:
+> You wrote that email at noon, and now is eight hours later -- did you test it yet?
 >
->         Just to clarify things...
+> -Mike
 >
->         Xceive chips are just tunners, RF chips, mostly analogue with
->         some digital interface, they don't do anything with usb or
->         comunication with the computer, for this reason you need the
->         dibcom chip, it's a usb bridge + decoder + something else...
->         To start to develop something you must first be sure of what
->         chips it's using.
->         If not you can try blindly if modifying the code for the
->         U3000-Mini works or Pinnacle 320cx (dibcom 7700 + xceive2028)
->         work (you just need to add your device usb id's).
->
->         Albert
->
->     Thank you for replying Albert.
->     I've been exploring the files downloaded through the mercurial
->     repository and though I have found files which seem like they
->     relate to that purpose in
->     /v4l-dvb/linux/drivers/media/common/tuners (which are
->     tuner-xc2028.c , tuner-xc2028.h and tuner-xc2028-types.h) I can't
->     find any section in the above files with some sort of list of
->     device ID's so as to resemble them. There should be something like
->     an xc2028-cards.c right?
->     This must seem a noob question but this whole process looks like
->     something someone who's not deeply into this project couldn't do
->     easily..
->
->
-Thank you for being assisting me on this task Albert.
-I've been exploring the files you mentioned and I'm a bit puzzled about 
-this specific string: &dib0700_usb_id_table[32] (where 32 is the value 
-for one of the cards). I couldn't find any correlation envolved with it. 
-Is there any special place I should look at to get the proper value for 
-this string?
-Also, the last section seemed  the right one to add the entry for my 
-device. Do you agree?
 
-Thanks..
+Actually I did. Unfortunately, no change for usable scans. For me
+there was a change in the scan results when the driver went from
+mxl500x to mxl5005s back in May. (I think it was May) Since then I
+have been using my roof top antenna. However, now that VZ has moved to
+all digitlal channels I would like to see what I actually get via QAM
+again.
+
+I did find 40 services during a scan, but there were no associated
+PIDs. When it functioned, I was getting 80+ services.
+
+dumping lists (40 services)
+[01d6]:411000000:QAM_256:2031:2030:470
+[0078]:411000000:QAM_256:2058:2057:120
+[009a]:411000000:QAM_256:2044:2043:154
+[0105]:411000000:QAM_256:2035:2034:261
+[0064]:411000000:QAM_256:2062:2061:100
+[0091]:411000000:QAM_256:2053:2052:145
+[0097]:411000000:QAM_256:2049:2047:151
+[00c3]:411000000:QAM_256:2039:2038:195
+[00d9]:417000000:QAM_256:2000:1999:217
+[00a6]:417000000:QAM_256:2012:2011:166
+[008d]:417000000:QAM_256:2017:2016:141
+[00cd]:417000000:QAM_256:2004:2003:205
+[00a8]:417000000:QAM_256:2008:2007:168
+[0070]:417000000:QAM_256:2022:2021:112
+[0110]:417000000:QAM_256:1992:1991:272
+[0068]:417000000:QAM_256:2027:2026:104
+[00dd]:417000000:QAM_256:1996:1995:221
+[01d7]:423000000:QAM_256:2042:2041:471
+[007c]:423000000:QAM_256:2062:2061:124
+[00eb]:423000000:QAM_256:2055:2054:235
+[0140]:423000000:QAM_256:2050:2049:320
+[00d5]:423000000:QAM_256:2059:2058:213
+[0142]:423000000:QAM_256:2047:2046:322
+[0104]:423000000:QAM_256:2038:2037:260
+[006e]:429000000:QAM_256:2034:2033:110
+[00ee]:429000000:QAM_256:2013:2012:238
+[00ba]:429000000:QAM_256:2022:2021:186
+[00e5]:429000000:QAM_256:2017:2016:229
+[00f2]:429000000:QAM_256:2009:2008:242
+[0087]:429000000:QAM_256:2027:2026:135
+[00ae]:435000000:QAM_256:1629:1628:174
+[008f]:435000000:QAM_256:1639:1638:143
+[00b4]:435000000:QAM_256:1625:1624:180
+[00d3]:435000000:QAM_256:1613:1612:211
+[0095]:435000000:QAM_256:1634:1633:149
+[00df]:435000000:QAM_256:1608:1607:223
+[00c1]:435000000:QAM_256:1621:1620:193
+[00c7]:435000000:QAM_256:1617:1616:199
+[0266]:711000000:QAM_256:6141:6142:614
+[026a]:711000000:QAM_256:6181:6182:618
+
+Subsequent scan in SageTV only turned up 1 SD channel.
+
+During the scan, the following appears in dmesg:
+
+[52241.432909] DVB: frontend 0 frequency 4294967295 out of range
+(54000000..858000000)
+[52241.543936] DVB: frontend 0 frequency 4294967295 out of range
+(54000000..858000000)
+[52254.018384] DVB: frontend 0 frequency 53000000 out of range
+(54000000..858000000)
+
+FTR - This was tested on Hauppauge model 74041, rev C5B2
+
+Thanks,
+
+Brandon
 
 _______________________________________________
 linux-dvb mailing list
