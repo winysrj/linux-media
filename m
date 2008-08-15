@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7MJqdKK025242
-	for <video4linux-list@redhat.com>; Fri, 22 Aug 2008 15:52:39 -0400
-Received: from smtp-vbr11.xs4all.nl (smtp-vbr11.xs4all.nl [194.109.24.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7MJqQt1029180
-	for <video4linux-list@redhat.com>; Fri, 22 Aug 2008 15:52:27 -0400
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7F65nDL030590
+	for <video4linux-list@redhat.com>; Fri, 15 Aug 2008 02:05:49 -0400
+Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7F65ZuA008997
+	for <video4linux-list@redhat.com>; Fri, 15 Aug 2008 02:05:35 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: video4linux-list@redhat.com
-Date: Fri, 22 Aug 2008 21:52:17 +0200
-References: <1219432070.2897.35.camel@morgan.walls.org>
-In-Reply-To: <1219432070.2897.35.camel@morgan.walls.org>
+Date: Fri, 15 Aug 2008 08:05:20 +0200
+References: <20080814093320.49265ec1@glory.loctelecom.ru>
+	<48A4763D.8030509@hccnet.nl>
+	<20080815115954.0be6c5ba@glory.loctelecom.ru>
+In-Reply-To: <20080815115954.0be6c5ba@glory.loctelecom.ru>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200808222152.17739.hverkuil@xs4all.nl>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: mt9m111.c in latest v4l-dvb doesn't compile under
-	2.6.25.10-86.fc9.x86_64
+Message-Id: <200808150805.20459.hverkuil@xs4all.nl>
+Cc: Mauro@xs4all.nl, Gert Vervoort <gert.vervoort@hccnet.nl>,
+	Chehab <mchehab@infradead.org>
+Subject: Re: MPEG stream work
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,60 +32,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 22 August 2008 21:07:50 Andy Walls wrote:
-> [andy@morgan v4l-dvb]$ make
-> make -C /home/andy/cx18dev/v4l-dvb/v4l
-> make[1]: Entering directory `/home/andy/cx18dev/v4l-dvb/v4l'
-> creating symbolic links...
-> Kernel build directory is /lib/modules/2.6.25.10-86.fc9.x86_64/build
-> make -C /lib/modules/2.6.25.10-86.fc9.x86_64/build
-> SUBDIRS=/home/andy/cx18dev/v4l-dvb/v4l  modules make[2]: Entering
-> directory `/usr/src/kernels/2.6.25.10-86.fc9.x86_64' CC [M] 
-> /home/andy/cx18dev/v4l-dvb/v4l/mt9m111.o
-> /home/andy/cx18dev/v4l-dvb/v4l/mt9m111.c:943: error: array type has
-> incomplete element type /home/andy/cx18dev/v4l-dvb/v4l/mt9m111.c:953:
-> warning: initialization from incompatible pointer type
-> /home/andy/cx18dev/v4l-dvb/v4l/mt9m111.c:955: error: unknown field
-> 'id_table' specified in initializer make[3]: ***
-> [/home/andy/cx18dev/v4l-dvb/v4l/mt9m111.o] Error 1 make[2]: ***
-> [_module_/home/andy/cx18dev/v4l-dvb/v4l] Error 2 make[2]: Leaving
-> directory `/usr/src/kernels/2.6.25.10-86.fc9.x86_64' make[1]: ***
-> [default] Error 2
-> make[1]: Leaving directory `/home/andy/cx18dev/v4l-dvb/v4l'
-> make: *** [all] Error 2
+On Friday 15 August 2008 03:59:54 Dmitri Belimov wrote:
+> Hi All
 >
->
-> The offending code is this:
-> 943 static const struct i2c_device_id mt9m111_id[] = {
-> 944         { "mt9m111", 0 },
-> 945         { }
-> 946 };
-> 947 MODULE_DEVICE_TABLE(i2c, mt9m111_id);
-> 948
-> 949 static struct i2c_driver mt9m111_i2c_driver = {
-> 950         .driver = {
-> 951                 .name = "mt9m111",
-> 952         },
-> 953         .probe          = mt9m111_probe,
-> 954         .remove         = mt9m111_remove,
-> 955         .id_table       = mt9m111_id,
-> 956 };
->
-> My tags files for the kernel source and v4l-dvb don't have "struct
-> i2c_device_id" in them.  My kernel's i2c_driver structure has a
-> different declaration for probe [int (*probe)(struct i2c_client *);]
-> than what mt9m111_probe uses, and it doesn't have an id_table member.
->
->
-> Could someone add some kernel version compatibility checks?  I could
-> make a swag at it, but I don't think I'll get it right.
+> I found problem in v4l2-ctl. This programm can't set correct TV norm.
+> After my hack TV norm was set correct.
 
-I've fixed it in my v4l-dvb tree. I'll go through some of the other 
-warnings as well and post a pull request when I'm done.
+???
+
+$ v4l2-ctl -s secam-dk
+Standard set to 00320000
+
+v4l2-ctl works fine for me!
+
+Are you using the latest v4l2-ctl version from v4l-dvb? I did fix a bug 
+in SetStandard some time ago (although I think that bug didn't affect 
+this particular situation either).
 
 Regards,
 
 	Hans
+
+>
+> diff -r 42e3970c09aa v4l2-apps/util/v4l2-ctl.cpp
+> --- a/v4l2-apps/util/v4l2-ctl.cpp	Sun Jul 27 19:30:46 2008 -0300
+> +++ b/v4l2-apps/util/v4l2-ctl.cpp	Fri Aug 15 05:53:38 2008 +1000
+> @@ -1572,6 +1572,7 @@
+>  	}
+>
+>  	if (options[OptSetStandard]) {
+> +	  std = 0x320000; // durty hack for SECAM-DK
+>  		if (std & (1ULL << 63)) {
+>  			vs.index = std & 0xffff;
+>  			if (ioctl(fd, VIDIOC_ENUMSTD, &vs) >= 0) {
+>
+> I have MPEG stream with CORRECT TV data.
+> See link:
+>
+> http://debian.oshec.org/binary/tmp/mpeg02.dat
+>
+> Yahooooo!
+>
+> With my best regards, Dmitry.
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+
 
 --
 video4linux-list mailing list
