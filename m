@@ -1,17 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f20.google.com ([209.85.217.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <orbus42@gmail.com>) id 1KTQdD-0003db-Ol
-	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 02:24:01 +0200
-Received: by gxk13 with SMTP id 13so2365328gxk.17
-	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 17:23:24 -0700 (PDT)
-Message-ID: <8fcafd2c0808131723l21031daej9e9ae3eeabfa57f7@mail.gmail.com>
-Date: Wed, 13 Aug 2008 19:23:24 -0500
-From: "James Lucas" <orbus42@gmail.com>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Subject: [linux-dvb] Digital tuning failing on Pinnacle 800i with dmesg
-	output
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+In-Reply-To: <de8cad4d0808141818i1d0b9c56m648457941248a68e@mail.gmail.com>
+References: <de8cad4d0808140908r7b1e7a04xc3d907da69fd3549@mail.gmail.com>
+	<48A4C9DE.5060503@linuxtv.org>
+	<de8cad4d0808141818i1d0b9c56m648457941248a68e@mail.gmail.com>
+Date: Fri, 15 Aug 2008 03:43:17 +0200
+Message-Id: <1218764597.2669.6.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [linux-dvb] HVR-1600 - mxl5005s - QAM scanning
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,208 +17,113 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1570025029=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1570025029==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_95985_12219181.1218673404590"
 
-------=_Part_95985_12219181.1218673404590
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Am Donnerstag, den 14.08.2008, 21:18 -0400 schrieb Brandon Jenkins:
+> On Thu, Aug 14, 2008 at 8:12 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> > Brandon Jenkins wrote:
+> >> Greetings all,
+> >>
+> >> The last time I tried scanning for QAM it didn't work. If I recall, it
+> >> would be a while before the driver could be looked at. Has there been
+> >> any change in status worth testing out again?
+> >
+> > I have an HVR1600 model 74041 -- When I scan for QAM channels, I find the same channels that I find when I scan using any other QAM256-capable device.
+> >
+> > So yes, it's worth testing again.
+> >
+> > You wrote that email at noon, and now is eight hours later -- did you test it yet?
+> >
+> > -Mike
+> >
+> 
+> Actually I did. Unfortunately, no change for usable scans. For me
+> there was a change in the scan results when the driver went from
+> mxl500x to mxl5005s back in May. (I think it was May) Since then I
+> have been using my roof top antenna. However, now that VZ has moved to
+> all digitlal channels I would like to see what I actually get via QAM
+> again.
+> 
+> I did find 40 services during a scan, but there were no associated
+> PIDs. When it functioned, I was getting 80+ services.
+> 
+> dumping lists (40 services)
+> [01d6]:411000000:QAM_256:2031:2030:470
+> [0078]:411000000:QAM_256:2058:2057:120
+> [009a]:411000000:QAM_256:2044:2043:154
+> [0105]:411000000:QAM_256:2035:2034:261
+> [0064]:411000000:QAM_256:2062:2061:100
+> [0091]:411000000:QAM_256:2053:2052:145
+> [0097]:411000000:QAM_256:2049:2047:151
+> [00c3]:411000000:QAM_256:2039:2038:195
+> [00d9]:417000000:QAM_256:2000:1999:217
+> [00a6]:417000000:QAM_256:2012:2011:166
+> [008d]:417000000:QAM_256:2017:2016:141
+> [00cd]:417000000:QAM_256:2004:2003:205
+> [00a8]:417000000:QAM_256:2008:2007:168
+> [0070]:417000000:QAM_256:2022:2021:112
+> [0110]:417000000:QAM_256:1992:1991:272
+> [0068]:417000000:QAM_256:2027:2026:104
+> [00dd]:417000000:QAM_256:1996:1995:221
+> [01d7]:423000000:QAM_256:2042:2041:471
+> [007c]:423000000:QAM_256:2062:2061:124
+> [00eb]:423000000:QAM_256:2055:2054:235
+> [0140]:423000000:QAM_256:2050:2049:320
+> [00d5]:423000000:QAM_256:2059:2058:213
+> [0142]:423000000:QAM_256:2047:2046:322
+> [0104]:423000000:QAM_256:2038:2037:260
+> [006e]:429000000:QAM_256:2034:2033:110
+> [00ee]:429000000:QAM_256:2013:2012:238
+> [00ba]:429000000:QAM_256:2022:2021:186
+> [00e5]:429000000:QAM_256:2017:2016:229
+> [00f2]:429000000:QAM_256:2009:2008:242
+> [0087]:429000000:QAM_256:2027:2026:135
+> [00ae]:435000000:QAM_256:1629:1628:174
+> [008f]:435000000:QAM_256:1639:1638:143
+> [00b4]:435000000:QAM_256:1625:1624:180
+> [00d3]:435000000:QAM_256:1613:1612:211
+> [0095]:435000000:QAM_256:1634:1633:149
+> [00df]:435000000:QAM_256:1608:1607:223
+> [00c1]:435000000:QAM_256:1621:1620:193
+> [00c7]:435000000:QAM_256:1617:1616:199
+> [0266]:711000000:QAM_256:6141:6142:614
+> [026a]:711000000:QAM_256:6181:6182:618
+> 
+> Subsequent scan in SageTV only turned up 1 SD channel.
+> 
+> During the scan, the following appears in dmesg:
+> 
+> [52241.432909] DVB: frontend 0 frequency 4294967295 out of range
+> (54000000..858000000)
+> [52241.543936] DVB: frontend 0 frequency 4294967295 out of range
+> (54000000..858000000)
+> [52254.018384] DVB: frontend 0 frequency 53000000 out of range
+> (54000000..858000000)
+> 
+> FTR - This was tested on Hauppauge model 74041, rev C5B2
+> 
+> Thanks,
+> 
+> Brandon
+> 
 
- Hello - first time poster here.  I'm running Ubuntu Hardy, stock kernel
-2.6.24-19-generic.  Compiled the v4l tree from repository and installed the
-modules.  Also grabbed firmware found on the dvb-wiki page  Analog tuning
-works.  Trying to run dvbscan or scan results in either no channels found or
-a hang on the attempt to tune the first channel.
+I guess only Ronald Reagan knows the answer.
 
-Output of dmesg contains errors like this:
+He had a great speech in Berlin once, about Goethe and east and west ...
 
-[  576.298553] i2c-adapter i2c-2: sendbytes: error - bailout.
-[  577.098249] xc5000: I2C write failed (len=4)
-[  577.098259] xc5000: Unable to initialise tuner
-[  583.499754] s5h1409_writereg: writereg error (reg == 0xf3, val == 0x0000,
-ret == -121)
-[  589.897260] s5h1409_writereg: writereg error (reg == 0xf5, val == 0x0000,
-ret == -121)
-[  596.294758] s5h1409_writereg: writereg error (reg == 0xf5, val == 0x0001,
-ret == -121)
-[  602.692260] s5h1409_writereg: writereg error (reg == 0xf4, val == 0x0001,
-ret == -121)
-[  609.089760] s5h1409_writereg: writereg error (reg == 0x85, val == 0x0110,
-ret == -121)
-[  615.487264] s5h1409_writereg: writereg error (reg == 0xf5, val == 0x0000,
-ret == -121)
-[  621.884765] s5h1409_writereg: writereg error (reg == 0xf5, val == 0x0001,
-ret == -121)
-[  628.386227] s5h1409_writereg: writereg error (reg == 0xf3, val == 0x0001,
-ret == -121)
+Sorry, can't let it ;)
 
-
-
-Here's the relevant lspci -vvnn output for the card:
-
-00:0f.0 Multimedia video controller [0400]: Conexant CX23880/1/2/3 PCI Video
-and Audio Decoder [14f1:8800] (rev 05)
-       Subsystem: Pinnacle Systems Inc. Unknown device [11bd:0051]
-       Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr-
-Stepping- SERR+ FastB2B-
-       Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR-
-       Latency: 64 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
-       Interrupt: pin A routed to IRQ 5
-       Region 0: Memory at ca000000 (32-bit, non-prefetchable) [size=16M]
-       Capabilities: [44] Vital Product Data
-       Capabilities: [4c] Power Management version 2
-               Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-               Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-00:0f.1 Multimedia controller [0480]: Conexant CX23880/1/2/3 PCI Video and
-Audio Decoder [Audio Port] [14f1:8801] (rev 05)
-       Subsystem: Pinnacle Systems Inc. Unknown device [11bd:0051]
-       Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr-
-Stepping- SERR+ FastB2B-
-       Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR-
-       Latency: 64 (1000ns min, 63750ns max), Cache Line Size: 32 bytes
-       Interrupt: pin A routed to IRQ 5
-       Region 0: Memory at cb000000 (32-bit, non-prefetchable) [size=16M]
-       Capabilities: [4c] Power Management version 2
-               Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-               Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-00:0f.2 Multimedia controller [0480]: Conexant CX23880/1/2/3 PCI Video and
-Audio Decoder [MPEG Port] [14f1:8802] (rev 05)
-       Subsystem: Pinnacle Systems Inc. Unknown device [11bd:0051]
-       Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- ParErr-
-Stepping- SERR+ FastB2B-
-       Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR-
-       Latency: 64 (1500ns min, 22000ns max), Cache Line Size: 32 bytes
-       Interrupt: pin A routed to IRQ 5
-       Region 0: Memory at cc000000 (32-bit, non-prefetchable) [size=16M]
-       Capabilities: [4c] Power Management version 2
-               Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-               Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-
-
-I've got Time Warner cable, so I'm trying to pick up the QAM stations.  So
-far no luck.  If anyone can shed any light, it would be most appreciated.
-Thanks in advance!
-
-James
-
-------=_Part_95985_12219181.1218673404590
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">
-<div class="moz-text-flowed" style="font-family: -moz-fixed; font-size: 13px;" lang="x-western">Hello - first time poster here.&nbsp; I&#39;m running Ubuntu Hardy, stock kernel 
-2.6.24-19-generic.&nbsp; Compiled the v4l tree from repository and installed 
-the modules.&nbsp; Also grabbed firmware found on the dvb-wiki page&nbsp; Analog 
-tuning works.&nbsp; Trying to run dvbscan or scan results in either no 
-channels found or a hang on the attempt to tune the first channel.
-<br>
-<br>Output of dmesg contains errors like this:
-<br>
-<br>[&nbsp; 576.298553] i2c-adapter i2c-2: sendbytes: error - bailout.
-<br>[&nbsp; 577.098249] xc5000: I2C write failed (len=4)
-<br>[&nbsp; 577.098259] xc5000: Unable to initialise tuner
-<br>[&nbsp; 583.499754] s5h1409_writereg: writereg error (reg == 0xf3, val == 
-0x0000, ret == -121)
-<br>[&nbsp; 589.897260] s5h1409_writereg: writereg error (reg == 0xf5, val == 
-0x0000, ret == -121)
-<br>[&nbsp; 596.294758] s5h1409_writereg: writereg error (reg == 0xf5, val == 
-0x0001, ret == -121)
-<br>[&nbsp; 602.692260] s5h1409_writereg: writereg error (reg == 0xf4, val == 
-0x0001, ret == -121)
-<br>[&nbsp; 609.089760] s5h1409_writereg: writereg error (reg == 0x85, val == 
-0x0110, ret == -121)
-<br>[&nbsp; 615.487264] s5h1409_writereg: writereg error (reg == 0xf5, val == 
-0x0000, ret == -121)
-<br>[&nbsp; 621.884765] s5h1409_writereg: writereg error (reg == 0xf5, val == 
-0x0001, ret == -121)
-<br>[&nbsp; 628.386227] s5h1409_writereg: writereg error (reg == 0xf3, val == 
-0x0001, ret == -121)
-<br>
-<br>
-<br>
-<br>Here&#39;s the relevant lspci -vvnn output for the card:
-<br>
-<br>00:0f.0 Multimedia video controller [0400]: Conexant CX23880/1/2/3 PCI 
-Video and Audio Decoder [14f1:8800] (rev 05)
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Subsystem: Pinnacle Systems Inc. Unknown device [11bd:0051]
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- 
-ParErr- Stepping- SERR+ FastB2B-
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort- 
-&lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR-
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Latency: 64 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Interrupt: pin A routed to IRQ 5
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Region 0: Memory at ca000000 (32-bit, non-prefetchable) [size=16M]
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Capabilities: [44] Vital Product Data
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Capabilities: [4c] Power Management version 2
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA 
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-<br>
-<br>00:0f.1 Multimedia controller [0480]: Conexant CX23880/1/2/3 PCI Video 
-and Audio Decoder [Audio Port] [14f1:8801] (rev 05)
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Subsystem: Pinnacle Systems Inc. Unknown device [11bd:0051]
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- 
-ParErr- Stepping- SERR+ FastB2B-
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort- 
-&lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR-
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Latency: 64 (1000ns min, 63750ns max), Cache Line Size: 32 bytes
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Interrupt: pin A routed to IRQ 5
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Region 0: Memory at cb000000 (32-bit, non-prefetchable) [size=16M]
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Capabilities: [4c] Power Management version 2
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA 
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-<br>
-<br>00:0f.2 Multimedia controller [0480]: Conexant CX23880/1/2/3 PCI Video 
-and Audio Decoder [MPEG Port] [14f1:8802] (rev 05)
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Subsystem: Pinnacle Systems Inc. Unknown device [11bd:0051]
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop- 
-ParErr- Stepping- SERR+ FastB2B-
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium &gt;TAbort- 
-&lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR-
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Latency: 64 (1500ns min, 22000ns max), Cache Line Size: 32 bytes
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Interrupt: pin A routed to IRQ 5
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Region 0: Memory at cc000000 (32-bit, non-prefetchable) [size=16M]
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Capabilities: [4c] Power Management version 2
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA 
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-<br>
-<br>
-<br>I&#39;ve got Time Warner cable, so I&#39;m trying to pick up the QAM stations.&nbsp; 
-So far no luck.&nbsp; If anyone can shed any light, it would be most 
-appreciated.&nbsp; Thanks in advance!
-<br>
-<br>James<br></div></div>
-
-------=_Part_95985_12219181.1218673404590--
+Cheers,
+Hermann
 
 
---===============1570025029==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1570025029==--
