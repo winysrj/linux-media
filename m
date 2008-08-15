@@ -1,20 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m74IFrp8025426
-	for <video4linux-list@redhat.com>; Mon, 4 Aug 2008 14:16:03 -0400
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m74IFBrP010819
-	for <video4linux-list@redhat.com>; Mon, 4 Aug 2008 14:15:17 -0400
-Message-ID: <4897494B.1010307@hhs.nl>
-Date: Mon, 04 Aug 2008 20:24:11 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>,
-	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7F2QhvJ017236
+	for <video4linux-list@redhat.com>; Thu, 14 Aug 2008 22:26:43 -0400
+Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
+	[151.189.21.56])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7F2QSV9009892
+	for <video4linux-list@redhat.com>; Thu, 14 Aug 2008 22:26:28 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>
+In-Reply-To: <20080815115954.0be6c5ba@glory.loctelecom.ru>
+References: <20080814093320.49265ec1@glory.loctelecom.ru>
+	<48A4763D.8030509@hccnet.nl>
+	<20080815115954.0be6c5ba@glory.loctelecom.ru>
+Content-Type: text/plain
+Date: Fri, 15 Aug 2008 04:18:41 +0200
+Message-Id: <1218766721.2669.15.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: 2.6.27rc1 installs a broken /usr/include/linux/videodev2.h
+Cc: video4linux-list@redhat.com, Gert Vervoort <gert.vervoort@hccnet.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: MPEG stream work
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,33 +31,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All,
 
-When doing "make headers_install" 2.6.27rc1 install a broken 
-/usr/include/linux/videodev2.h
+Am Freitag, den 15.08.2008, 11:59 +1000 schrieb Dmitri Belimov:
+> Hi All
+> 
+> I found problem in v4l2-ctl. This programm can't set correct TV norm. After my hack TV norm was set correct.
+> 
+> diff -r 42e3970c09aa v4l2-apps/util/v4l2-ctl.cpp
+> --- a/v4l2-apps/util/v4l2-ctl.cpp	Sun Jul 27 19:30:46 2008 -0300
+> +++ b/v4l2-apps/util/v4l2-ctl.cpp	Fri Aug 15 05:53:38 2008 +1000
+> @@ -1572,6 +1572,7 @@
+>  	}
+>  
+>  	if (options[OptSetStandard]) {
+> +	  std = 0x320000; // durty hack for SECAM-DK
+>  		if (std & (1ULL << 63)) {
+>  			vs.index = std & 0xffff;
+>  			if (ioctl(fd, VIDIOC_ENUMSTD, &vs) >= 0) {
+> 
+> I have MPEG stream with CORRECT TV data.
+> See link:
+> 
+> http://debian.oshec.org/binary/tmp/mpeg02.dat
+> 
+> Yahooooo!
+> 
+> With my best regards, Dmitry.
 
-The problem are the 2 userspace lines of the following part of videodev2.h:
+Hi Dimitry,
 
-#ifdef __KERNEL__
-#include <linux/time.h>     /* need struct timeval */
-#include <linux/compiler.h> /* need __user */
-#else
-#define __user
-#include <sys/time.h>
-#endif
+looks fine!
 
-2.6.27rc1 seems to handle __user usage in userspace itself now, simply by 
-removing __user + whitespace after it resulting in the following in userspace 
-for the 2 lines in the userspace of the if else above:
+Thanks for all your efforts and excuse to have been thrown in such a
+real cruel mess, totally undocumented..
 
-#define #include <sys/time.h>
+Thanks again, for not giving up!
 
-The fix for 2/6/27rc1 is to simply remove the "#define __user" line, but I 
-wonder how that will effect our usage with older kernels?
+Cheers,
+Hermann
 
-Regards,
 
-Hans
+
 
 --
 video4linux-list mailing list
