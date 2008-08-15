@@ -1,21 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1KWZjC-0004kn-Df
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 18:43:11 +0200
-Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
-	[84.70.212.195])
-	by mail.youplala.net (Postfix) with ESMTP id ACE1DD880A4
-	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 18:42:08 +0200 (CEST)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1219360304.6770.34.camel@youkaida>
-References: <1219330331.15825.2.camel@dark>  <48ADF515.6080401@nafik.cz>
-	<1219360304.6770.34.camel@youkaida>
-Date: Fri, 22 Aug 2008 17:42:06 +0100
-Message-Id: <1219423326.29624.8.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] dib0700 and analog broadcasting
+	(envelope-from <stoth@linuxtv.org>) id 1KU0J4-0005KO-5M
+	for linux-dvb@linuxtv.org; Fri, 15 Aug 2008 16:29:35 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K5N00MOUC89X0A1@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 15 Aug 2008 10:28:58 -0400 (EDT)
+Date: Fri, 15 Aug 2008 10:28:57 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080815090728.GA3431@gmail.com>
+To: Gregoire Favre <gregoire.favre@gmail.com>
+Message-id: <48A592A9.5060002@linuxtv.org>
+MIME-version: 1.0
+References: <812952.69507.qm@web28416.mail.ukl.yahoo.com>
+	<200808150855.27616.cpwp@w3z.co.uk> <20080815090728.GA3431@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-4000 and Mythtv with latest version of	mythbuntu
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,43 +32,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 2008-08-22 at 00:11 +0100, Nicolas Will wrote:
-> On Fri, 2008-08-22 at 01:07 +0200, gothic nafik wrote:
-> > i have just tried to load that new firmware and i don't have any 
-> > problems with that...
-> > no unexpected reboot and it mounts devices into /dev/dvb/*
+Gregoire Favre wrote:
+> On Fri, Aug 15, 2008 at 08:55:27AM +0100, Charles Price wrote:
+>> Aren't the multiproto drivers supposed to support DVB-S/DVB-T without all 
+>> this?
+>>
+>> I'm using the multiproto repo from 
+>> http://liplianindvb.sourceforge.net/hg/liplianindvb with my HVR-4000 but I 
+>> haven't tried DVB-T support yet.
 > 
-> Chances are that I've done my testing a bit too late in the night
-> considering the week I've had.
-> 
-> I've reverted to 1.10 and will redo the 1.20 from scratch tomorrow.
-> 
+> AFAIK the card has an harware limitation : no simulatenous use of DVB-S
+> and DVB-T.
 
-I've tried again, fully awake. With full power downs, soft link or full
-rename, etc...
+That's correct.
 
-Same thing. Self-reboot, no device, no message.
-
-I downloaded the firmware again, same thing.
-
-The md5sum I have is the following for the firmware file:
-f42f86e2971fd994003186a055813237  dvb-usb-dib0700-1.20.fw
-
-Reverting to 1.10 fw makes it work again.
-
-dmesg, lspci, lsusb, lsmod available here, more can be provided on
-demand:
-http://www.youplala.net/~will/htpc/Hardware/lsmod.txt
-
-Ubuntu 8.04 box with security, backports, updates, medibuntu and
-mythbuntu-fixes, 64-bit. 2.6.24 kernel. NVIDIA blob. Nova-T 500 and
-KWorld DVB-S100 cards.
-
-Full description of the system here:
-http://www.youplala.net/linux/home-theater-pc
-
-Nico
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
