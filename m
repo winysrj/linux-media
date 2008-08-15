@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1KQuvx-0004mp-2L
-	for linux-dvb@linuxtv.org; Thu, 07 Aug 2008 04:08:58 +0200
-From: Andy Walls <awalls@radix.net>
-To: Brian Steele <steele.brian@gmail.com>
-In-Reply-To: <5f8558830808051733w5960fb03p169ae2aa6d893ce8@mail.gmail.com>
-References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
-	<1217728894.5348.72.camel@morgan.walls.org>
-	<5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
-	<1217791214.2690.31.camel@morgan.walls.org>
-	<5f8558830808031428u3c9a8191tcd1705b27087f992@mail.gmail.com>
-	<1217814427.23133.24.camel@palomino.walls.org>
-	<5f8558830808051733w5960fb03p169ae2aa6d893ce8@mail.gmail.com>
-Date: Wed, 06 Aug 2008 22:07:48 -0400
-Message-Id: <1218074868.2689.34.camel@morgan.walls.org>
-Mime-Version: 1.0
+	(envelope-from <mkrufky@linuxtv.org>) id 1KToXB-0000ti-TW
+	for linux-dvb@linuxtv.org; Fri, 15 Aug 2008 03:55:27 +0200
+Message-ID: <48A4E1FB.3050700@linuxtv.org>
+Date: Thu, 14 Aug 2008 21:55:07 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+References: <de8cad4d0808140908r7b1e7a04xc3d907da69fd3549@mail.gmail.com>	
+	<48A4C9DE.5060503@linuxtv.org>
+	<de8cad4d0808141818i1d0b9c56m648457941248a68e@mail.gmail.com>
+In-Reply-To: <de8cad4d0808141818i1d0b9c56m648457941248a68e@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1600 - No audio
+Subject: Re: [linux-dvb] HVR-1600 - mxl5005s - QAM scanning
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,96 +27,102 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 2008-08-05 at 17:33 -0700, Brian Steele wrote:
-> On Sun, Aug 3, 2008 at 6:47 PM, Andy Walls <awalls@radix.net> wrote:
-> > Well, let's collect some debug data about how the tuner is getting set
-> > up and what happens on channel change.  (Because it's either tuner
-> > commands not working, or cx18-av setup or register changes not working.)
-> >
-> > Add lines like these to /etc/modprobe.conf
-> >
-> > options tuner show_i2c=1 debug=2
-> > options tuner-simple debug=1
-> > options tda8290 debug=1
-> > options tda9887 debug=2
-> >
-> >   (and/or debug options for whatever other tuner modules your
-> >    system loads for the cx18)
-> >
-> > Then do
-> >
-> > # modprobe -r cx18 tda9887 tda8290 tuner-simple tuner
-> > # modprobe cx18 debug=83      (<---- warn, info, i2c, ioctl)
-> >
-> > I'd be interested in all the messages when the cx18 module initializes
-> > (not just the ones prefixed with "cx18") and the messages that occur
-> > when you change channels.
-> 
-> Andy,
-> 
-> I pulled the latest from Hg, recompiled, executed the commands above,
-> then did ivtv-tune -c <channel> twice.  Here is the output in dmesg:
-> Linux video capture interface: v2.00
-> cx18:  Start initialization, version 1.0.0
-> cx18-0: Initializing card #0
-> cx18-0: Autodetected Hauppauge card
+Brandon Jenkins wrote:
+> On Thu, Aug 14, 2008 at 8:12 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>   
+>> Brandon Jenkins wrote:
+>>     
+>>> Greetings all,
+>>>
+>>> The last time I tried scanning for QAM it didn't work. If I recall, it
+>>> would be a while before the driver could be looked at. Has there been
+>>> any change in status worth testing out again?
+>>>       
+>> I have an HVR1600 model 74041 -- When I scan for QAM channels, I find the same channels that I find when I scan using any other QAM256-capable device.
+>>
+>> So yes, it's worth testing again.
+>>
+>> You wrote that email at noon, and now is eight hours later -- did you test it yet?
+>>
+>> -Mike
+>>
+>>     
+>
+> Actually I did. Unfortunately, no change for usable scans. For me
+> there was a change in the scan results when the driver went from
+> mxl500x to mxl5005s back in May. (I think it was May) Since then I
+> have been using my roof top antenna. However, now that VZ has moved to
+> all digitlal channels I would like to see what I actually get via QAM
+> again.
+>
+> I did find 40 services during a scan, but there were no associated
+> PIDs. When it functioned, I was getting 80+ services.
+>
+> dumping lists (40 services)
+> [01d6]:411000000:QAM_256:2031:2030:470
+> [0078]:411000000:QAM_256:2058:2057:120
+> [009a]:411000000:QAM_256:2044:2043:154
+> [0105]:411000000:QAM_256:2035:2034:261
+> [0064]:411000000:QAM_256:2062:2061:100
+> [0091]:411000000:QAM_256:2053:2052:145
+> [0097]:411000000:QAM_256:2049:2047:151
+> [00c3]:411000000:QAM_256:2039:2038:195
+> [00d9]:417000000:QAM_256:2000:1999:217
+> [00a6]:417000000:QAM_256:2012:2011:166
+> [008d]:417000000:QAM_256:2017:2016:141
+> [00cd]:417000000:QAM_256:2004:2003:205
+> [00a8]:417000000:QAM_256:2008:2007:168
+> [0070]:417000000:QAM_256:2022:2021:112
+> [0110]:417000000:QAM_256:1992:1991:272
+> [0068]:417000000:QAM_256:2027:2026:104
+> [00dd]:417000000:QAM_256:1996:1995:221
+> [01d7]:423000000:QAM_256:2042:2041:471
+> [007c]:423000000:QAM_256:2062:2061:124
+> [00eb]:423000000:QAM_256:2055:2054:235
+> [0140]:423000000:QAM_256:2050:2049:320
+> [00d5]:423000000:QAM_256:2059:2058:213
+> [0142]:423000000:QAM_256:2047:2046:322
+> [0104]:423000000:QAM_256:2038:2037:260
+> [006e]:429000000:QAM_256:2034:2033:110
+> [00ee]:429000000:QAM_256:2013:2012:238
+> [00ba]:429000000:QAM_256:2022:2021:186
+> [00e5]:429000000:QAM_256:2017:2016:229
+> [00f2]:429000000:QAM_256:2009:2008:242
+> [0087]:429000000:QAM_256:2027:2026:135
+> [00ae]:435000000:QAM_256:1629:1628:174
+> [008f]:435000000:QAM_256:1639:1638:143
+> [00b4]:435000000:QAM_256:1625:1624:180
+> [00d3]:435000000:QAM_256:1613:1612:211
+> [0095]:435000000:QAM_256:1634:1633:149
+> [00df]:435000000:QAM_256:1608:1607:223
+> [00c1]:435000000:QAM_256:1621:1620:193
+> [00c7]:435000000:QAM_256:1617:1616:199
+> [0266]:711000000:QAM_256:6141:6142:614
+> [026a]:711000000:QAM_256:6181:6182:618
+>
+> Subsequent scan in SageTV only turned up 1 SD channel.
+>   
+This does not look like a tuning issue -- Unfortunately, it seems that
+there isn't much "in the clear" on yourdigital cable  provider.
 
+Are you able to see any additional channels in the clear using some
+other product?
 
-OK.  All of the tuner setup command you sent match the setup being sent
-to my card switching to the same frequencies.  Since the video is
-switching to the proper channel for you, that means the commands are
-getting to the tuner over the I2C bus.  For now, I'd say a tuner problem
-is highly unlikely.
+> During the scan, the following appears in dmesg:
+>
+> [52241.432909] DVB: frontend 0 frequency 4294967295 out of range
+> (54000000..858000000)
+> [52241.543936] DVB: frontend 0 frequency 4294967295 out of range
+> (54000000..858000000)
+> [52254.018384] DVB: frontend 0 frequency 53000000 out of range
+> (54000000..858000000)
+>
+> FTR - This was tested on Hauppauge model 74041, rev C5B2
+>   
+Those first two look like application bugs.  The driver knows better
+than to try to tune a number out of range like that.
 
-
-That leaves the microcontroller in the AV core as the culprit or routing
-of the I2S audio from the AV core to the MPEG encoder as the problem.
-
-Some thing to try:
-
-Start an analog video capture and tune to the channel that you want to
-watch.  If/When you have video and no sound, switch to line in 1 and
-then back to tuner with v4l2-ctl.  This switching  should reset the
-audio standard detection microcontroller (twice).  This switching should
-also set the I2S routing input for the MPEG encoder to the line in and
-then back to the tuner.
-
-Hopefully that works as a work-around.
-
-
-With an analog tuner capture running could you please send me the
-complete output of 
-
-# v4l-dvb/v4l2-apps/util/v4l2-dbg -R type=host
-ioctl: VIDIOC_DBG_G_REGISTER
-
-                00       04       08       0C       10       14       18       1C
-02c40000: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 
-[...]
-02c409a0: 00000000 00000000 00000001 80000005 00000001 80000000 00000000 00000368 
-02c409c0: 004400b4 0000000a 
-
-
-For the cx18 driver, this command will default to dumping the register
-of the AV core inside the CX23418.  (It must be run as root.)  I want to
-inspect the register settings to make sure they are OK.
-
-
-I'll look at adding some verbose debug and improvements to the digitizer
-firmware load tomorrow night.  I think a problem with the firmware load
-has the highest likelyhood of being the problem.
-
-The function that loads the firmware is in
-cx18-av-firmware.c:cx18_av_loadfw() if you care to inspect what it
-does.  
-
-Regards,
-Andy
-
-> Thanks for all your help so far.
-> Brian
-
-
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
