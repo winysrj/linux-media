@@ -1,19 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m72FItmT025526
-	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 11:18:55 -0400
-Received: from n6.bullet.ukl.yahoo.com (n6.bullet.ukl.yahoo.com
-	[217.146.182.183])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m72FHreo003678
-	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 11:17:53 -0400
-From: Lars Oliver Hansen <lolh@ymail.com>
-To: video4linux-list@redhat.com
-Date: Sat, 02 Aug 2008 17:17:43 +0200
-Message-Id: <1217690263.6605.25.camel@lars-laptop>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7GGnMF9004516
+	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 12:49:23 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7GGnAo5011312
+	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 12:49:10 -0400
+Date: Sat, 16 Aug 2008 18:48:49 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Nakarin Lamangthong <lnakarin@gmail.com>
+Message-ID: <20080816164849.GA386@daniel.bse>
+References: <443ddfb30808141632l30b6fbefgda1bb2a1f6bbe028@mail.gmail.com>
+	<20080815000205.GA1359@daniel.bse>
+	<443ddfb30808142020n4694e927r6a14fd095585604a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Subject: Re: saa7134-alsa  appears to be broken
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <443ddfb30808142020n4694e927r6a14fd095585604a@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Commell MP-878D first time error
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,59 +29,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Fri, Aug 15, 2008 at 10:20:54AM +0700, Nakarin Lamangthong wrote:
+> >As your card can't be detected, you need to load the bttv module
+> >with pll=28 to be able to decode PAL signals.
+> 
+> How can i do that?  Please tell me the step that fix it.
 
-I experience the same problem: the sound part of the saa7134 driver
-doesn't load.
+It's been some time since I last tried Debian, but I think you can
+do this with modconf as mentioned in
+http://www.debian.org/doc/FAQ/ch-kernel.en.html#s-modules
 
-Ususally I get such symbol errors with MadWiFis snapshot driver after
-every application installation which configured some kernel stuff. I
-then unload the MadWiFi driver and do a clean install according to their
-description.
+Alternatively you can manually add the line
+options bttv pll=28
+to a new file in /etc/modprobe.d/ as explained in
+http://www.mail-archive.com/debian-alpha@lists.debian.org/msg24367.html
 
-I'm new to Linux and thus don't know the options I have for and how to
-make a clean install in general. Hermann suggested to do a make
-rminstall in his response. Could anyone help me here as how to do this
-with the saa7134 experimental driver (it's cloning the relevant
-Mercurial repository) or what else I could try?
-
-As I installed the sound driver after make-ing the TV card driver I
-guess an update of some dependancies may be necessary. I don't know
-anything about the relations there at all. Would someone shed some light
-on this? Thanks for taking time for this issue and for a possible answer
-in advance!
-
-Kind Regards,
-
-Lars
-
-
-P.s.: here's the dmesg output again:
-
-[    0.000000] saa7134_alsa: disagrees about version of symbol
-saa7134_tvaudio_setmute
-[    0.000000] saa7134_alsa: Unknown symbol saa7134_tvaudio_setmute
-[    0.000000] saa7134_alsa: disagrees about version of symbol
-saa_dsp_writel
-[    0.000000] saa7134_alsa: Unknown symbol saa_dsp_writel
-[    0.000000] saa7134_alsa: disagrees about version of symbol
-saa7134_pgtable_alloc
-[    0.000000] saa7134_alsa: Unknown symbol saa7134_pgtable_alloc
-[    0.000000] saa7134_alsa: disagrees about version of symbol
-saa7134_pgtable_build
-[    0.000000] saa7134_alsa: Unknown symbol saa7134_pgtable_build
-[    0.000000] saa7134_alsa: disagrees about version of symbol
-saa7134_pgtable_free
-[    0.000000] saa7134_alsa: Unknown symbol saa7134_pgtable_free
-[    0.000000] saa7134_alsa: disagrees about version of symbol
-saa7134_dmasound_init
-[    0.000000] saa7134_alsa: Unknown symbol saa7134_dmasound_init
-[    0.000000] saa7134_alsa: disagrees about version of symbol
-saa7134_dmasound_exit
-[    0.000000] saa7134_alsa: Unknown symbol saa7134_dmasound_exit
-[    0.000000] saa7134_alsa: disagrees about version of symbol
-saa7134_set_dmabits
-[    0.000000] saa7134_alsa: Unknown symbol saa7134_set_dmabits
+  Daniel
 
 --
 video4linux-list mailing list
