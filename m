@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TIHi5S019951
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 14:17:44 -0400
-Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7TIH4d8011168
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 14:17:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date: Fri, 29 Aug 2008 20:16:48 +0200
-References: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>
-	<200808282058.26623.hverkuil@xs4all.nl>
-	<Pine.LNX.4.64.0808292013120.3521@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0808292013120.3521@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7GCDlNU030024
+	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 08:13:47 -0400
+Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.182])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7GCDb3m011676
+	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 08:13:38 -0400
+Received: by wa-out-1112.google.com with SMTP id j32so2303855waf.7
+	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 05:13:37 -0700 (PDT)
+Message-ID: <7813ee860808160513g2f0e3602q9f3aed45d66ef165@mail.gmail.com>
+Date: Sat, 16 Aug 2008 07:13:37 -0500
+From: "Mark Ferrell" <majortrips@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <20080816083613.51071257@mchehab.chehab.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200808292016.48647.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v3] soc-camera: add API documentation
+References: <20080816050023.GB30725@thumper>
+	<20080816083613.51071257@mchehab.chehab.org>
+Subject: Re: [PATCH] Add support for OmniVision OV534 based USB cameras.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,154 +30,105 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 29 August 2008 20:16:31 Guennadi Liakhovetski wrote:
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+On Sat, Aug 16, 2008 at 6:36 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
 >
-> ---
+> Hi Mark,
 >
-> Ok, more comments addressed, thanks to all again, we might even get
-> it in for 2.6.27? It certainly will not cause any regressions:-)
-
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-And apologies for hijacking your post for me rant :-)
-
-Regards,
-
-	Hans
-
+> First of all, please review your patch with checkpatch.pl. I've seen a few
+> non-compliances.
 >
-> diff -u /dev/null b/Documentation/video4linux/soc-camera.txt
-> --- /dev/null	2008-08-29 08:10:06.483001029 +0200
-> +++ b/Documentation/video4linux/soc-camera.txt	2008-08-29
-> 19:56:41.000000000 +0200 @@ -0,0 +1,120 @@
-> +			Soc-Camera Subsystem
-> +			====================
-> +
-> +Terminology
-> +-----------
-> +
-> +The following terms are used in this document:
-> + - camera / camera device / camera sensor - a video-camera sensor
-> chip, capable +   of connecting to a variety of systems and
-> interfaces, typically uses i2c for +   control and configuration, and
-> a parallel or a serial bus for data. + - camera host - an interface,
-> to which a camera is connected. Typically a +   specialised
-> interface, present on many SoCs, e.g., PXA27x and PXA3xx, SuperH, +  
-> AVR32, i.MX27, i.MX31.
-> + - camera host bus - a connection between a camera host and a
-> camera. Can be +   parallel or serial, consists of data and control
-> lines, e.g., clock, vertical +   and horizontal synchronization
-> signals.
-> +
-> +Purpose of the soc-camera subsystem
-> +-----------------------------------
-> +
-> +The soc-camera subsystem provides a unified API between camera host
-> drivers and +camera sensor drivers. It implements a V4L2 interface to
-> the user, currently +only the mmap method is supported.
-> +
-> +This subsystem has been written to connect drivers for
-> System-on-Chip (SoC) +video capture interfaces with drivers for CMOS
-> camera sensor chips to enable +the reuse of sensor drivers with
-> various hosts. The subsystem has been designed +to support multiple
-> camera host interfaces and multiple cameras per interface, +although
-> most applications have only one camera sensor.
-> +
-> +Existing drivers
-> +----------------
-> +
-> +As of 2.6.27-rc4 there are two host drivers in the mainline:
-> pxa_camera.c for +PXA27x SoCs and sh_mobile_ceu_camera.c for SuperH
-> SoCs, and four sensor drivers: +mt9m001.c, mt9m111.c, mt9v022.c and a
-> generic soc_camera_platform.c driver. This +list is not supposed to
-> be updated, look for more examples in your tree. +
-> +Camera host API
-> +---------------
-> +
-> +A host camera driver is registered using the
-> +
-> +soc_camera_host_register(struct soc_camera_host *);
-> +
-> +function. The host object can be initialized as follows:
-> +
-> +static struct soc_camera_host pxa_soc_camera_host = {
-> +	.drv_name	= PXA_CAM_DRV_NAME,
-> +	.ops		= &pxa_soc_camera_host_ops,
-> +};
-> +
-> +All camera host methods are passed in a struct soc_camera_host_ops:
-> +
-> +static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
-> +	.owner		= THIS_MODULE,
-> +	.add		= pxa_camera_add_device,
-> +	.remove		= pxa_camera_remove_device,
-> +	.suspend	= pxa_camera_suspend,
-> +	.resume		= pxa_camera_resume,
-> +	.set_fmt_cap	= pxa_camera_set_fmt_cap,
-> +	.try_fmt_cap	= pxa_camera_try_fmt_cap,
-> +	.init_videobuf	= pxa_camera_init_videobuf,
-> +	.reqbufs	= pxa_camera_reqbufs,
-> +	.poll		= pxa_camera_poll,
-> +	.querycap	= pxa_camera_querycap,
-> +	.try_bus_param	= pxa_camera_try_bus_param,
-> +	.set_bus_param	= pxa_camera_set_bus_param,
-> +};
-> +
-> +.add and .remove methods are called when a sensor is attached to or
-> detached +from the host, apart from performing host-internal tasks
-> they shall also call +sensor driver's .init and .release methods
-> respectively. .suspend and .resume +methods implement host's
-> power-management functionality and its their +responsibility to call
-> respective sensor's methods. .try_bus_param and +.set_bus_param are
-> used to negotiate physical connection parameters between the +host
-> and the sensor. .init_videobuf is called by soc-camera core when a
-> +video-device is opened, further video-buffer management is
-> implemented completely +by the specific camera host driver. The rest
-> of the methods are called from +respective V4L2 operations.
-> +
-> +Camera API
-> +----------
-> +
-> +Sensor drivers can use struct soc_camera_link, typically provided by
-> the +platform, and used to specify to which camera host bus the
-> sensor is connected, +and arbitrarily provide platform .power and
-> .reset methods for the camera. +soc_camera_device_register() and
-> soc_camera_device_unregister() functions are +used to add a sensor
-> driver to or remove one from the system. The registration +function
-> takes a pointer to struct soc_camera_device as the only parameter.
-> +This struct can be initialized as follows:
-> +
-> +	/* link to driver operations */
-> +	icd->ops	= &mt9m001_ops;
-> +	/* link to the underlying physical (e.g., i2c) device */
-> +	icd->control	= &client->dev;
-> +	/* window geometry */
-> +	icd->x_min	= 20;
-> +	icd->y_min	= 12;
-> +	icd->x_current	= 20;
-> +	icd->y_current	= 12;
-> +	icd->width_min	= 48;
-> +	icd->width_max	= 1280;
-> +	icd->height_min	= 32;
-> +	icd->height_max	= 1024;
-> +	icd->y_skip_top	= 1;
-> +	/* camera bus ID, typically obtained from platform data */
-> +	icd->iface	= icl->bus_id;
-> +
-> +struct soc_camera_ops provides .probe and .remove methods, which are
-> called by +the soc-camera core, when a camera is matched against or
-> removed from a camera +host bus, .init, .release, .suspend, and
-> .resume are called from the camera host +driver as discussed above.
-> Other members of this struct provide respective V4L2 +functionality.
-> +
-> +struct soc_camera_device also links to an array of struct
-> soc_camera_data_format, +listing pixel formats, supported by the
-> camera.
-> +
-> +--
-> +Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> If you're using -hg tree, this is as simple as doing: make
+> checkpatch. Otherwise, you can use v4l/scripts/checkpatch.pl <my patch>
 
+Thanks, ran make checkpatch and fixed the issues reported.
+
+> I have also a few other comments:
+>
+> > +             switch (data & 0xFF) {
+>
+> The better is that all hexadecimal values to be on lowercase.
+
+Agreed and corrected.
+
+> > +static void ov534_setup(struct usb_device *udev)
+> > +{
+> > +     ov534_reg_verify_write(udev, 0xe7, 0x3a);
+> > +
+> > +     ov534_reg_write(udev, OV534_REG_ADDRESS, 0x60);
+> > +     ov534_reg_write(udev, OV534_REG_ADDRESS, 0x60);
+> > +     ov534_reg_write(udev, OV534_REG_ADDRESS, 0x60);
+>
+>        Hmm... three times the same write?
+
+Supposedly it requires 3 writes of 0x60 followed by a write of 0x42 to
+initialize the sensor.  That particularly register sequence at one
+point existed as ov534_sccb_init(), but it was only ever called once
+and so it got moved into the general init.  It may need to get split
+out again once more is known about configuring the camera.  Outside of
+initialization all that is known is how to toggle the led and how to
+get images from the camera.  Setting up the output modes and
+controlling the sensor is still unknown unfortunately.
+
+> > +     ov534_reg_write(udev, OV534_REG_ADDRESS, 0x42);
+> > +
+> > +     ov534_reg_verify_write(udev, 0xc2,0x0c);
+>        ...
+> > +     ov534_reg_verify_write(udev, 0xe7,0x3e);
+>
+> It is generally better and smaller to have a table instead of those long init sequences.
+
+Will do.
+
+> > +static void ov534_fillbuff(struct ov534_dev *dev, struct ov534_buffer *buf)
+> > +{
+>
+> > +     tmpbuf = kmalloc(size + 4, GFP_ATOMIC);
+> > +     if (!tmpbuf)
+> > +             return;
+>
+> It would be better if you allocate the buffer at videobuf prep routines, instead of doing this for every buffer fill. Is there any reason why you just don't use vbuf instead of doing double buffering?
+
+Attempting to bulk transfer directly to the vbuf resulted in a
+deadlock.  I went back to the tmpbuf until I could figure out a better
+solution as I am not partial to the double buffering at all.
+
+> > +     /* Updates stream time */
+> > +
+> > +     dev->ms += jiffies_to_msecs(jiffies-dev->jiffies);
+> > +     dev->jiffies = jiffies;
+> > +     if (dev->ms >= 1000) {
+> > +             dev->ms -= 1000;
+> > +             dev->s++;
+> > +             if (dev->s >= 60) {
+> > +                     dev->s -= 60;
+> > +                     dev->m++;
+> > +                     if (dev->m > 60) {
+> > +                             dev->m -= 60;
+> > +                             dev->h++;
+> > +                             if (dev->h > 24)
+> > +                                     dev->h -= 24;
+> > +                     }
+> > +             }
+> > +     }
+> > +     sprintf(dev->timestr, "%02d:%02d:%02d:%03d",
+> > +                     dev->h, dev->m, dev->s, dev->ms);
+>
+> You don't need the above. This is at vivi just because we want to print a
+> timestamp at the video. Just remove it and timestr from dev.
+
+Done
+
+> I also didn't see any code to provide S1/S3 hibernation. This is probably not
+> needed at vivi (since there's no hardware registers to be saved/restored - yet
+> - I never tried to do suspend/resume with vivi working), but for sure this is
+> needed for real devices ;) I suggest you to take a look, for example, at
+> cafe_ccic, for its implementation (it is inside #ifdef CONFIG_PM).
+
+Will do
+
+--
+Mark
 
 --
 video4linux-list mailing list
