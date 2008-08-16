@@ -1,23 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m74LMbkS002572
-	for <video4linux-list@redhat.com>; Mon, 4 Aug 2008 17:22:37 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m74LMH47001237
-	for <video4linux-list@redhat.com>; Mon, 4 Aug 2008 17:22:18 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so4833552rvb.51
-	for <video4linux-list@redhat.com>; Mon, 04 Aug 2008 14:22:17 -0700 (PDT)
-Date: Mon, 4 Aug 2008 14:22:04 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: d.belimov@gmail.com, Igor Kuznetsov <igk72@yandex.ru>,
-	"Andrey J. Melnikov" <temnota@kmv.ru>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <20080804212204.GA3853@potty.ifup.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Cc: v4l <video4linux-list@redhat.com>
-Subject: BeholdTV 505FM Input Causing Repeating Zeros
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7G8dr7E026605
+	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 04:39:53 -0400
+Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
+	[151.189.21.51])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7G8dbvl019115
+	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 04:39:38 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>
+In-Reply-To: <20080816134720.37ad63e2@glory.loctelecom.ru>
+References: <20080814093320.49265ec1@glory.loctelecom.ru>
+	<48A4763D.8030509@hccnet.nl>
+	<20080815115954.0be6c5ba@glory.loctelecom.ru>
+	<200808150805.20459.hverkuil@xs4all.nl>
+	<20080816134720.37ad63e2@glory.loctelecom.ru>
+Content-Type: text/plain
+Date: Sat, 16 Aug 2008 10:30:12 +0200
+Message-Id: <1218875412.2668.20.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Mauro@xs4all.nl,
+	Gert Vervoort <gert.vervoort@hccnet.nl>, Chehab <mchehab@infradead.org>
+Subject: Re: MPEG stream work
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,26 +33,88 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello All-
+Hi,
 
-I have received a bug report[1] from a user who's card used to work as a
-SAA7134_BOARD_UNKNOWN before the patch[2] that added support for
-SAA7134_BOARD_BEHOLD_505FM.
+Am Samstag, den 16.08.2008, 13:47 +1000 schrieb Dmitri Belimov:
+> Hi Hans
+> 
+> > > I found problem in v4l2-ctl. This programm can't set correct TV
+> > > norm. After my hack TV norm was set correct.
+> > 
+> > ???
+> > 
+> > $ v4l2-ctl -s secam-dk
+> > Standard set to 00320000
+> > 
+> > v4l2-ctl works fine for me!
+> > 
+> > Are you using the latest v4l2-ctl version from v4l-dvb? I did fix a
+> > bug in SetStandard some time ago (although I think that bug didn't
+> > affect this particular situation either).
+> 
+> This is my error. I run
+> 
+> v4l2-ctl -s=secam-dk -d /dev/video0
+> 
+> It response set TV norm to 0x0b000
+> 
+> When I run
+> 
+> v4l2-ctl -s secam-dk -d /dev/video0
+> 
+> All is OK.
+> 
+> With my best regards, Dmitry.
 
-The IR input isn't setup properly and the driver is writing an infinite
-number of zeros to the users terminal.
+yes, sorry.
 
-Is there a way to figure out the correct mask_keycode and mask_keyup for
-this card?  Otherwise I recommend that we don't report has_remote for
-this card.
+This does explain at least the NTSC-M seen after it and lowers confusion
+on this, after all, amazing and successful story.
 
-Thanks,
+However, using v4l2-ctl for setting the correct norm still results in
+losing picture and sound immediately on all FMD1216ME/I MK3 and all
+tda8275a tuners in this machine here.
 
-	Brandon
+The same happens with old "v4lctl setnorm PAL-BG".
+The tda8275a is known for not playing nicely with all apps, the FMD1216
+is famous for other issues, but not those.
 
+Eventually I might have a chance in the evening to play with some very
+old tuners to look out for any difference, for now I still say, I can't
+set the norm neither with v4l2-ctl nor v4lctl on all four cards I have
+here and this was my latest contribution to help to debug it.
 
-[1] https://bugzilla.novell.com/show_bug.cgi?id=403904
-[2] http://linuxtv.org/hg/v4l-dvb/rev/8bdb58e63ea1
+Cheers,
+Hermann
+
+>  
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > >
+> > > diff -r 42e3970c09aa v4l2-apps/util/v4l2-ctl.cpp
+> > > --- a/v4l2-apps/util/v4l2-ctl.cpp	Sun Jul 27 19:30:46 2008
+> > > -0300 +++ b/v4l2-apps/util/v4l2-ctl.cpp	Fri Aug 15 05:53:38
+> > > 2008 +1000 @@ -1572,6 +1572,7 @@
+> > >  	}
+> > >
+> > >  	if (options[OptSetStandard]) {
+> > > +	  std = 0x320000; // durty hack for SECAM-DK
+> > >  		if (std & (1ULL << 63)) {
+> > >  			vs.index = std & 0xffff;
+> > >  			if (ioctl(fd, VIDIOC_ENUMSTD, &vs) >= 0) {
+> > >
+> > > I have MPEG stream with CORRECT TV data.
+> > > See link:
+> > >
+> > > http://debian.oshec.org/binary/tmp/mpeg02.dat
+> > >
+> > > Yahooooo!
+> > >
+> > > With my best regards, Dmitry.
+> > >
+
 
 --
 video4linux-list mailing list
