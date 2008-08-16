@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TIBKuf016131
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 14:11:21 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7TIB8Ea007039
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 14:11:09 -0400
-Date: Fri, 29 Aug 2008 20:16:31 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>,
-	Robert Schwebel <r.schwebel@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200808282058.26623.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0808292013120.3521@axis700.grange>
-References: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>
-	<20080824115725.GG10168@pengutronix.de>
-	<Pine.LNX.4.64.0808281646420.6514@axis700.grange>
-	<200808282058.26623.hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7G9m3N1029112
+	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 05:48:04 -0400
+Received: from smtp-vbr14.xs4all.nl (smtp-vbr14.xs4all.nl [194.109.24.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7G9lARD017146
+	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 05:47:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Sat, 16 Aug 2008 11:46:57 +0200
+References: <20080814093320.49265ec1@glory.loctelecom.ru>
+	<20080816134720.37ad63e2@glory.loctelecom.ru>
+	<1218875412.2668.20.camel@pc10.localdom.local>
+In-Reply-To: <1218875412.2668.20.camel@pc10.localdom.local>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3] soc-camera: add API documentation
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200808161146.57545.hverkuil@xs4all.nl>
+Cc: Gert Vervoort <gert.vervoort@hccnet.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: MPEG stream work
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,137 +32,112 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Hi Hermann,
 
----
+On Saturday 16 August 2008 10:30:12 hermann pitton wrote:
+> Hi,
+>
+> Am Samstag, den 16.08.2008, 13:47 +1000 schrieb Dmitri Belimov:
+> > Hi Hans
+> >
+> > > > I found problem in v4l2-ctl. This programm can't set correct TV
+> > > > norm. After my hack TV norm was set correct.
+> > >
+> > > ???
+> > >
+> > > $ v4l2-ctl -s secam-dk
+> > > Standard set to 00320000
+> > >
+> > > v4l2-ctl works fine for me!
+> > >
+> > > Are you using the latest v4l2-ctl version from v4l-dvb? I did fix
+> > > a bug in SetStandard some time ago (although I think that bug
+> > > didn't affect this particular situation either).
+> >
+> > This is my error. I run
+> >
+> > v4l2-ctl -s=secam-dk -d /dev/video0
+> >
+> > It response set TV norm to 0x0b000
+> >
+> > When I run
+> >
+> > v4l2-ctl -s secam-dk -d /dev/video0
+> >
+> > All is OK.
+> >
+> > With my best regards, Dmitry.
+>
+> yes, sorry.
+>
+> This does explain at least the NTSC-M seen after it and lowers
+> confusion on this, after all, amazing and successful story.
+>
+> However, using v4l2-ctl for setting the correct norm still results in
+> losing picture and sound immediately on all FMD1216ME/I MK3 and all
+> tda8275a tuners in this machine here.
 
-Ok, more comments addressed, thanks to all again, we might even get it in 
-for 2.6.27? It certainly will not cause any regressions:-)
+Are you changing the norm while a capture is in progress, or before 
+starting a capture? And if you capture, do you capture from the MPEG 
+device or from the framegrabber?
 
-diff -u /dev/null b/Documentation/video4linux/soc-camera.txt
---- /dev/null	2008-08-29 08:10:06.483001029 +0200
-+++ b/Documentation/video4linux/soc-camera.txt	2008-08-29 19:56:41.000000000 +0200
-@@ -0,0 +1,120 @@
-+			Soc-Camera Subsystem
-+			====================
-+
-+Terminology
-+-----------
-+
-+The following terms are used in this document:
-+ - camera / camera device / camera sensor - a video-camera sensor chip, capable
-+   of connecting to a variety of systems and interfaces, typically uses i2c for
-+   control and configuration, and a parallel or a serial bus for data.
-+ - camera host - an interface, to which a camera is connected. Typically a
-+   specialised interface, present on many SoCs, e.g., PXA27x and PXA3xx, SuperH,
-+   AVR32, i.MX27, i.MX31.
-+ - camera host bus - a connection between a camera host and a camera. Can be
-+   parallel or serial, consists of data and control lines, e.g., clock, vertical
-+   and horizontal synchronization signals.
-+
-+Purpose of the soc-camera subsystem
-+-----------------------------------
-+
-+The soc-camera subsystem provides a unified API between camera host drivers and
-+camera sensor drivers. It implements a V4L2 interface to the user, currently
-+only the mmap method is supported.
-+
-+This subsystem has been written to connect drivers for System-on-Chip (SoC)
-+video capture interfaces with drivers for CMOS camera sensor chips to enable
-+the reuse of sensor drivers with various hosts. The subsystem has been designed
-+to support multiple camera host interfaces and multiple cameras per interface,
-+although most applications have only one camera sensor.
-+
-+Existing drivers
-+----------------
-+
-+As of 2.6.27-rc4 there are two host drivers in the mainline: pxa_camera.c for
-+PXA27x SoCs and sh_mobile_ceu_camera.c for SuperH SoCs, and four sensor drivers:
-+mt9m001.c, mt9m111.c, mt9v022.c and a generic soc_camera_platform.c driver. This
-+list is not supposed to be updated, look for more examples in your tree.
-+
-+Camera host API
-+---------------
-+
-+A host camera driver is registered using the
-+
-+soc_camera_host_register(struct soc_camera_host *);
-+
-+function. The host object can be initialized as follows:
-+
-+static struct soc_camera_host pxa_soc_camera_host = {
-+	.drv_name	= PXA_CAM_DRV_NAME,
-+	.ops		= &pxa_soc_camera_host_ops,
-+};
-+
-+All camera host methods are passed in a struct soc_camera_host_ops:
-+
-+static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
-+	.owner		= THIS_MODULE,
-+	.add		= pxa_camera_add_device,
-+	.remove		= pxa_camera_remove_device,
-+	.suspend	= pxa_camera_suspend,
-+	.resume		= pxa_camera_resume,
-+	.set_fmt_cap	= pxa_camera_set_fmt_cap,
-+	.try_fmt_cap	= pxa_camera_try_fmt_cap,
-+	.init_videobuf	= pxa_camera_init_videobuf,
-+	.reqbufs	= pxa_camera_reqbufs,
-+	.poll		= pxa_camera_poll,
-+	.querycap	= pxa_camera_querycap,
-+	.try_bus_param	= pxa_camera_try_bus_param,
-+	.set_bus_param	= pxa_camera_set_bus_param,
-+};
-+
-+.add and .remove methods are called when a sensor is attached to or detached
-+from the host, apart from performing host-internal tasks they shall also call
-+sensor driver's .init and .release methods respectively. .suspend and .resume
-+methods implement host's power-management functionality and its their
-+responsibility to call respective sensor's methods. .try_bus_param and
-+.set_bus_param are used to negotiate physical connection parameters between the
-+host and the sensor. .init_videobuf is called by soc-camera core when a
-+video-device is opened, further video-buffer management is implemented completely
-+by the specific camera host driver. The rest of the methods are called from
-+respective V4L2 operations.
-+
-+Camera API
-+----------
-+
-+Sensor drivers can use struct soc_camera_link, typically provided by the
-+platform, and used to specify to which camera host bus the sensor is connected,
-+and arbitrarily provide platform .power and .reset methods for the camera.
-+soc_camera_device_register() and soc_camera_device_unregister() functions are
-+used to add a sensor driver to or remove one from the system. The registration
-+function takes a pointer to struct soc_camera_device as the only parameter.
-+This struct can be initialized as follows:
-+
-+	/* link to driver operations */
-+	icd->ops	= &mt9m001_ops;
-+	/* link to the underlying physical (e.g., i2c) device */
-+	icd->control	= &client->dev;
-+	/* window geometry */
-+	icd->x_min	= 20;
-+	icd->y_min	= 12;
-+	icd->x_current	= 20;
-+	icd->y_current	= 12;
-+	icd->width_min	= 48;
-+	icd->width_max	= 1280;
-+	icd->height_min	= 32;
-+	icd->height_max	= 1024;
-+	icd->y_skip_top	= 1;
-+	/* camera bus ID, typically obtained from platform data */
-+	icd->iface	= icl->bus_id;
-+
-+struct soc_camera_ops provides .probe and .remove methods, which are called by
-+the soc-camera core, when a camera is matched against or removed from a camera
-+host bus, .init, .release, .suspend, and .resume are called from the camera host
-+driver as discussed above. Other members of this struct provide respective V4L2
-+functionality.
-+
-+struct soc_camera_device also links to an array of struct soc_camera_data_format,
-+listing pixel formats, supported by the camera.
-+
-+--
-+Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+At least for the ivtv/cx18 driver changing the norm in midcapture will 
+not work at all since the cx2341x chip usually just loses sync with the 
+video encoder chip. So trying to change the norm while a capture is in 
+progress will result in an EBUSY error for ivtv and cx18.
+
+Of course, if this worked fine in the past for the saa7134 driver, then 
+clearly something broke.
+
+Regards,
+
+	Hans
+
+>
+> The same happens with old "v4lctl setnorm PAL-BG".
+> The tda8275a is known for not playing nicely with all apps, the
+> FMD1216 is famous for other issues, but not those.
+>
+> Eventually I might have a chance in the evening to play with some
+> very old tuners to look out for any difference, for now I still say,
+> I can't set the norm neither with v4l2-ctl nor v4lctl on all four
+> cards I have here and this was my latest contribution to help to
+> debug it.
+>
+> Cheers,
+> Hermann
+>
+> > > Regards,
+> > >
+> > > 	Hans
+> > >
+> > > > diff -r 42e3970c09aa v4l2-apps/util/v4l2-ctl.cpp
+> > > > --- a/v4l2-apps/util/v4l2-ctl.cpp	Sun Jul 27 19:30:46 2008
+> > > > -0300 +++ b/v4l2-apps/util/v4l2-ctl.cpp	Fri Aug 15 05:53:38
+> > > > 2008 +1000 @@ -1572,6 +1572,7 @@
+> > > >  	}
+> > > >
+> > > >  	if (options[OptSetStandard]) {
+> > > > +	  std = 0x320000; // durty hack for SECAM-DK
+> > > >  		if (std & (1ULL << 63)) {
+> > > >  			vs.index = std & 0xffff;
+> > > >  			if (ioctl(fd, VIDIOC_ENUMSTD, &vs) >= 0) {
+> > > >
+> > > > I have MPEG stream with CORRECT TV data.
+> > > > See link:
+> > > >
+> > > > http://debian.oshec.org/binary/tmp/mpeg02.dat
+> > > >
+> > > > Yahooooo!
+> > > >
+> > > > With my best regards, Dmitry.
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+
 
 --
 video4linux-list mailing list
