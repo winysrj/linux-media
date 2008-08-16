@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: "Thomas Goerke" <tom@goeng.com.au>
-To: "'Steven Toth'" <stoth@linuxtv.org>
-References: <20080827061320.298E2104F0@ws1-3.us4.outblaze.com>
-	<003201c9082d$4b7fff80$e27ffe80$@com.au>
-	<48B55F8D.9090005@linuxtv.org>
-In-Reply-To: <48B55F8D.9090005@linuxtv.org>
-Date: Thu, 28 Aug 2008 08:40:21 +0800
-Message-ID: <000701c908a6$aba6f9d0$02f4ed70$@com.au>
-MIME-Version: 1.0
-Content-Language: en-au
-Cc: linux-dvb@linuxtv.org, stev391@email.com
-Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
-	TV/FM capture card
+Received: from nschwmtas05p.mx.bigpond.com ([61.9.189.149])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jhhummel@bigpond.com>) id 1KUJJP-0000j9-Vr
+	for linux-dvb@linuxtv.org; Sat, 16 Aug 2008 12:47:13 +0200
+From: Jonathan Hummel <jhhummel@bigpond.com>
+To: Robert Golding <robert.golding@gmail.com>
+In-Reply-To: <ae5231870808152114j273efbd4g2ce0b25ffce251e6@mail.gmail.com>
+References: <20080816013510.AF253104F0@ws1-3.us4.outblaze.com>
+	<ae5231870808152114j273efbd4g2ce0b25ffce251e6@mail.gmail.com>
+Date: Sat, 16 Aug 2008 20:46:30 +1000
+Message-Id: <1218883590.16051.6.camel@mistress>
+Mime-Version: 1.0
+Cc: LinuxTV DVB list <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR	3200
+	H - DVB Only support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,27 +27,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Sat, 2008-08-16 at 13:44 +0930, Robert Golding wrote:
+> Whoops, sent to wrong place this sent to mail list, sorry
 > 
-> http://steventoth.net/ReverseEngineering/PCI/
+> I have finally got the modules to load the PxDVR 3200 H I bought,
+> however, now I am getting "Failed to lock channel" error messages from
+> MeTV.
+> The 'channels.conf' file is correct as I used for my Dvico DVB-T.
 > 
-> This was the version I originally added cx23885/7/8 support to.
+>  I have replaced the Dvico with the Leadtek because I wanted to be
+> able to get local radio and also use the PCI-e channel since I have
+> many of them and only one PCI slot.
 > 
-> It assumes dscaler is installed.
+> The card is auto-recognised and loads all dvb modules, including fw
+> and frontends.
 > 
-> - Steve
-I have updated http://linuxtv.org/wiki/index.php/Compro_VideoMate_E800F to
-include the Register dumps. Note that I was unable to get the Compro FM
-Tuner Application to work correctly even after several reboots.  For some
-reason the FM tuner application starts, scans through all the channels and
-then hangs.  I have included the register dump for this state but cannot
-guarantee that the register values are correct.  Analog and Digital TV work
-fine.
+> One other thing, I attached an MS drive and tried it in windows [that
+> is another wholly different story :-) ] and it worked very well.  I
+> had occation to compare the channels info to each other and the Linux
+> version is OK.
+> 
+> Any information, no matter how small, to show how I might fix this
+> would be greatly apprecited
+> 
 
-Let me know if you need anything else.
+Rob
 
-Thanks
+I've been using Me-TV for a while now on a DTV2000H Card, and recently
+set up the 3200H card as well, with a lot (and I mean a lot) of help
+from Stephen. In my experience, you only really get this message when
+the card is getting no reception. Other similar errors which relate to
+accessing the card itself happen when another TV programme, such as Myth
+is already loaded and locked onto the card.
 
-Tom
+I'm not sure radio works on these cards without a lot of effort and
+stuffing around each and every time you want to use it. I've never
+gotten the 2000H to work on radio, so didn't even bother with the 3200H
+though.
+
+As Stephen said, this card is a bit sensitive to firmware and drivers,
+as the patch to allow this card is relatively new (days old).
+
+cheers
+
+Jon
 
 
 _______________________________________________
