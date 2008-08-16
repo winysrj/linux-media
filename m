@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m716BiHa001985
-	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 02:11:44 -0400
-Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m716BTCp026750
-	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 02:11:30 -0400
-Message-ID: <4892A90B.7080309@hni.uni-paderborn.de>
-Date: Fri, 01 Aug 2008 08:11:23 +0200
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-MIME-Version: 1.0
-To: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-References: <294f0a37c4feadf87bf8.1217484144@carolinen.hni.uni-paderborn.de>
-	<48917CB5.6000304@teltonika.lt>
-In-Reply-To: <48917CB5.6000304@teltonika.lt>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] Move .power and .reset from soc_camera platform to
- sensor driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7G0r2Rg031619
+	for <video4linux-list@redhat.com>; Fri, 15 Aug 2008 20:53:02 -0400
+Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
+	[151.189.21.43])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7G0qmpQ019002
+	for <video4linux-list@redhat.com>; Fri, 15 Aug 2008 20:52:48 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200808150805.20459.hverkuil@xs4all.nl>
+References: <20080814093320.49265ec1@glory.loctelecom.ru>
+	<48A4763D.8030509@hccnet.nl>
+	<20080815115954.0be6c5ba@glory.loctelecom.ru>
+	<200808150805.20459.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sat, 16 Aug 2008 02:44:03 +0200
+Message-Id: <1218847443.2671.30.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Chehab <mchehab@infradead.org>,
+	Gert Vervoort <gert.vervoort@hccnet.nl>, Mauro@xs4all.nl
+Subject: Re: MPEG stream work
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,39 +32,88 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Paulius Zaleckas schrieb:
-> Stefan Herbrechtsmeier wrote:
->> Move .power (enable_camera, disable_camera) and .reset from soc_camera
->> platform driver (pxa_camera_platform_data, sh_mobile_ceu_info) to sensor
->> driver (soc_camera_link) and add .init and .release to request and free
->> gpios.
->>
->> Signed-off-by: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
->
-> While I agree that it is good to move .power and .reset to
-> soc_camera_link... IMHO controlling of these should be left in
-> host driver.
-How should we deal with the register based version of this functions 
-(soft reset)?
-At the moment we reset the sensors twice, if we use a hardware reset 
-(.reset).
+Hans,
 
--- 
-Dipl.-Ing. Stefan Herbrechtsmeier
+Am Freitag, den 15.08.2008, 08:05 +0200 schrieb Hans Verkuil:
+> On Friday 15 August 2008 03:59:54 Dmitri Belimov wrote:
+> > Hi All
+> >
+> > I found problem in v4l2-ctl. This programm can't set correct TV norm.
+> > After my hack TV norm was set correct.
 
-Heinz Nixdorf Institute
-University of Paderborn 
-System and Circuit Technology 
-Fürstenallee 11
-D-33102 Paderborn (Germany)
+I'm the first time grumpy here.
 
-office : F0.415
-phone  : + 49 5251 - 60 6342
-fax    : + 49 5251 - 60 6351
+> ???
+> 
+> $ v4l2-ctl -s secam-dk
+> Standard set to 00320000
+> 
+> v4l2-ctl works fine for me!
+> 
+> Are you using the latest v4l2-ctl version from v4l-dvb? I did fix a bug 
+> in SetStandard some time ago (although I think that bug didn't affect 
+> this particular situation either).
 
-mailto : hbmeier@hni.upb.de
+We don't make jokes, but seriously report what we see.
 
-www    : http://wwwhni.upb.de/sct/mitarbeiter/hbmeier
+For Dmitry this is a since months during Odyssey, only caused by us, but
+he is expected to work for what he is paid for. An impossible task in
+the beginning.
+
+I did spent time too on it, the broken empress encoder first happens,
+then vivid sub-norm setting on 2.6.25 was not possible anymore after
+ioctl2 conversion on the saa7134, Mauro has hardware from me, and the
+next was on 2.6.26 not to be able to set the tuner anymore, another
+serious issue, after having a hot fix for the tuner eeprom detection at
+least.
+
+Always pointed to it from my side, as far I have hardware, but it made
+it straight into released kernels and I'm tired to have to rumble there,
+since previously all fuses ready, did not trigger.
+
+Now, after facing such stuff around over months, it also makes it much
+more difficult to settle the state of new cards around, not to talk
+about ubuntu pleasures, you drop me from the list you might want to
+reply in this case, after previously I did include you as maybe
+interested?
+
+Why?
+
+Hermann
+
+
+
+
+
+
+
+
+> Regards,
+> 
+> 	Hans
+> 
+> >
+> > diff -r 42e3970c09aa v4l2-apps/util/v4l2-ctl.cpp
+> > --- a/v4l2-apps/util/v4l2-ctl.cpp	Sun Jul 27 19:30:46 2008 -0300
+> > +++ b/v4l2-apps/util/v4l2-ctl.cpp	Fri Aug 15 05:53:38 2008 +1000
+> > @@ -1572,6 +1572,7 @@
+> >  	}
+> >
+> >  	if (options[OptSetStandard]) {
+> > +	  std = 0x320000; // durty hack for SECAM-DK
+> >  		if (std & (1ULL << 63)) {
+> >  			vs.index = std & 0xffff;
+> >  			if (ioctl(fd, VIDIOC_ENUMSTD, &vs) >= 0) {
+> >
+> > I have MPEG stream with CORRECT TV data.
+> > See link:
+> >
+> > http://debian.oshec.org/binary/tmp/mpeg02.dat
+> >
+> > Yahooooo!
+> >
+> > With my best regards, Dmitry.
+> >
 
 
 --
