@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out2.iol.cz ([194.228.2.87])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ajurik@quick.cz>) id 1KV3w6-0007mQ-Ug
-	for linux-dvb@linuxtv.org; Mon, 18 Aug 2008 14:34:16 +0200
-Received: from ales-debian.local (unknown [88.103.120.47])
-	by smtp-out2.iol.cz (Postfix) with ESMTP id 3EB649C092
-	for <linux-dvb@linuxtv.org>; Mon, 18 Aug 2008 14:27:39 +0200 (CEST)
-From: Ales Jurik <ajurik@quick.cz>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1KUDUg-0006S3-7f
+	for linux-dvb@linuxtv.org; Sat, 16 Aug 2008 06:34:40 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
 To: linux-dvb@linuxtv.org
-Date: Mon, 18 Aug 2008 14:27:36 +0200
+Date: Sat, 16 Aug 2008 06:31:21 +0200
+References: <200808121443.27020.mldvb@mortal-soul.de>
+In-Reply-To: <200808121443.27020.mldvb@mortal-soul.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200808181427.36988.ajurik@quick.cz>
-Subject: [linux-dvb] HVR-4000 driver problems - i2c error
-Reply-To: ajurik@quick.cz
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_bglpIAlWTrBkFa4"
+Message-Id: <200808160631.23359@orion.escape-edv.de>
+Cc: VDR mailing list <vdr@linuxtv.org>
+Subject: Re: [linux-dvb] Possible SMP problems with budget_av/saa7134
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,158 +22,237 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+--Boundary-00=_bglpIAlWTrBkFa4
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I've got a HVR-4000, but I have now some very strange problems.
-I have Debian Leeny with 2.6.25-2 kernel and multiproto from Igor Lipianin =
-hg =
+Matthias Dahl wrote:
+> Hello all.
+> 
+> I am resending the following message because I didn't get any response so far 
+> and in addition I am putting it on cc' to the vdr devel list. I'd look into 
+> this issue myself, yet I don't have the necessary time to dive into the DVB 
+> tree. So please, if anyone knows how to debug this or has any hint where the 
+> problem could be located... I'd be more than grateful to hear about it.
+> 
+> By the way, just today after a few minutes of uptime with vdr 1.7.0, I got 
+> those (increased the CAM check interval to 5 seconds btw):
+> 
+> vdr: [3280] ERROR: can't write to CI adapter on device 0: Input/output error
+> vdr: [3280] ERROR: can't write to CI adapter on device 0: Invalid argument
+> 
+> And the CAM stopped working until I restarted vdr. In one forum post someone 
+> reported about similar problems with MythTV, so it's becoming more and more 
+> likely that this is indeed a problem within the dvb tree. And if it's a SMP 
+> problem, it should get fixed because multicore systems will be everywhere 
+> pretty soon.
+> 
+> Thanks again.
+> 
+> ----------------------------------------------------------------------------------
+> 
+> Hello all.
+> 
+> After minutes or hours or days of running vdr 1.4.7, I get the following 
+> messages in my syslog: 
+> 
+>    dvb_ca adapter 0: CAM tried to send a buffer larger than the ecount size!
+>    dvb_ca adapter 0: DVB CAM link initialisation failed :(
+> 
+> When running vdr 1.6.x, the problems are even more frequent/worse and I get
+> those:
+> 
+>   dvb_ca adapter 0: CAM tried to send a buffer larger than the link buffer
+>   size (192 > 128)!
+>   vdr: [3140] ERROR: can't write to CI adapter on device 0: Input/output error
+>   dvb_ca adapter 0: CAM tried to send a buffer larger than the ecount size!
+>   dvb_ca adapter 0: DVB CAM link initialisation failed :(
+> 
+> The result is always the same, the CAM stops decrypting and I have to restart 
+> vdr. After a lot of searching around, I've learnt that I am not the only one 
+> with those problems and they seem to be related to multi core systems. I read 
+> that pining vdr down to one CPU core might help... and indeed it did.
+> 
+> This cannot be a hardware related issue because...
+> 
+>  1) meanwhile I switched from a NForce 590 SLI to a X48 chipset and thus also
+>     from an AMD64 X2 5600+ (Winchester) to an Intel Core2Duo E8400 (Wolfdale)
+> 
+>  2) I swapped my KNC One DVB-C Plus for a new one
+> 
+> And the problems persist.
+> 
+> I've already written a report to the vdr list which was unfortunately ignored 
+> and besides it looks more like a dvb issue itself.
+> 
+> I was unable to test the kernel with nosmp or similar (which was reported by 
+> others to work just fine) because I need this machine to work on.
+> 
+> I've attached detailed informations about my system and I'd be more than happy 
+> to help fix this once and for all, so one can savely rely on vdr again.
+> 
+> Last but not least, I am using a AlphaCrypt Light module with 3.15 firmware.
+> 
+> Thanks a lot in advance for every help.
+> 
+> Best regards,
+> Matthias Dahl
 
-running at Athlon64 X2 2700+ and Asus M2N-DVI mobo. =
+Please test the attached patch (untested because I do not own this kind
+of hardware). Please save your work before loading the patched driver,
+since a locking bug might crash your machine...
 
-Whole multiproto tree compiled without any problem.
+CU
+Oliver
 
-- when starting system I got this message:
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
-[ =A0 24.658572] tda9887 0-0043: i2c i/o error: rc =3D=3D -121 (should be 4)
-[ =A0 24.659047] tuner-simple 0-0061: i2c i/o error: rc =3D=3D -121 (should=
- be 4)
-[ =A0 23.609971] tda9887 0-0043: i2c i/o error: rc =3D=3D -121 (should be 4)
+--Boundary-00=_bglpIAlWTrBkFa4
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="budget-av_camlock_1.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="budget-av_camlock_1.diff"
 
-- the firmware is loaded into the card at first time the card is opened - i=
-t =
+diff -r cbfa05ad2711 linux/drivers/media/dvb/ttpci/budget-av.c
+--- a/linux/drivers/media/dvb/ttpci/budget-av.c	Fri Aug 01 08:23:41 2008 -0300
++++ b/linux/drivers/media/dvb/ttpci/budget-av.c	Sat Aug 16 06:21:58 2008 +0200
+@@ -65,6 +65,7 @@ struct budget_av {
+ 	struct tasklet_struct ciintf_irq_tasklet;
+ 	int slot_status;
+ 	struct dvb_ca_en50221 ca;
++	struct mutex camlock;
+ 	u8 reinitialise_demod:1;
+ };
+ 
+@@ -136,6 +137,8 @@ static int ciintf_read_attribute_mem(str
+ 	if (slot != 0)
+ 		return -EINVAL;
+ 
++	mutex_lock(&budget_av->camlock);
++
+ 	saa7146_setgpio(budget_av->budget.dev, 1, SAA7146_GPIO_OUTHI);
+ 	udelay(1);
+ 
+@@ -144,6 +147,9 @@ static int ciintf_read_attribute_mem(str
+ 		ciintf_slot_shutdown(ca, slot);
+ 		printk(KERN_INFO "budget-av: cam ejected 1\n");
+ 	}
++
++	mutex_unlock(&budget_av->camlock);
++
+ 	return result;
+ }
+ 
+@@ -155,6 +161,8 @@ static int ciintf_write_attribute_mem(st
+ 	if (slot != 0)
+ 		return -EINVAL;
+ 
++	mutex_lock(&budget_av->camlock);
++
+ 	saa7146_setgpio(budget_av->budget.dev, 1, SAA7146_GPIO_OUTHI);
+ 	udelay(1);
+ 
+@@ -163,6 +171,9 @@ static int ciintf_write_attribute_mem(st
+ 		ciintf_slot_shutdown(ca, slot);
+ 		printk(KERN_INFO "budget-av: cam ejected 2\n");
+ 	}
++
++	mutex_unlock(&budget_av->camlock);
++
+ 	return result;
+ }
+ 
+@@ -174,6 +185,8 @@ static int ciintf_read_cam_control(struc
+ 	if (slot != 0)
+ 		return -EINVAL;
+ 
++	mutex_lock(&budget_av->camlock);
++
+ 	saa7146_setgpio(budget_av->budget.dev, 1, SAA7146_GPIO_OUTLO);
+ 	udelay(1);
+ 
+@@ -181,8 +194,10 @@ static int ciintf_read_cam_control(struc
+ 	if (result == -ETIMEDOUT) {
+ 		ciintf_slot_shutdown(ca, slot);
+ 		printk(KERN_INFO "budget-av: cam ejected 3\n");
+-		return -ETIMEDOUT;
+ 	}
++
++	mutex_unlock(&budget_av->camlock);
++
+ 	return result;
+ }
+ 
+@@ -194,6 +209,8 @@ static int ciintf_write_cam_control(stru
+ 	if (slot != 0)
+ 		return -EINVAL;
+ 
++	mutex_lock(&budget_av->camlock);
++
+ 	saa7146_setgpio(budget_av->budget.dev, 1, SAA7146_GPIO_OUTLO);
+ 	udelay(1);
+ 
+@@ -202,6 +219,9 @@ static int ciintf_write_cam_control(stru
+ 		ciintf_slot_shutdown(ca, slot);
+ 		printk(KERN_INFO "budget-av: cam ejected 5\n");
+ 	}
++
++	mutex_unlock(&budget_av->camlock);
++
+ 	return result;
+ }
+ 
+@@ -274,6 +294,8 @@ static int ciintf_poll_slot_status(struc
+ 	if (slot != 0)
+ 		return -EINVAL;
+ 
++	mutex_lock(&budget_av->camlock);
++
+ 	/* test the card detect line - needs to be done carefully
+ 	 * since it never goes high for some CAMs on this interface (e.g. topuptv) */
+ 	if (budget_av->slot_status == SLOTSTATUS_NONE) {
+@@ -304,10 +326,13 @@ static int ciintf_poll_slot_status(struc
+ 			if (budget_av->slot_status != SLOTSTATUS_NONE) {
+ 				ciintf_slot_shutdown(ca, slot);
+ 				printk(KERN_INFO "budget-av: cam ejected 5\n");
++				mutex_unlock(&budget_av->camlock);
+ 				return 0;
+ 			}
+ 		}
+ 	}
++
++	mutex_unlock(&budget_av->camlock);
+ 
+ 	/* read from attribute memory in reset/ready state to know when the CAM is ready */
+ 	if (budget_av->slot_status == SLOTSTATUS_RESET) {
+@@ -332,6 +357,7 @@ static int ciintf_init(struct budget_av 
+ 	struct saa7146_dev *saa = budget_av->budget.dev;
+ 	int result;
+ 
++	mutex_init(&budget_av->camlock);
+ 	memset(&budget_av->ca, 0, sizeof(struct dvb_ca_en50221));
+ 
+ 	saa7146_setgpio(saa, 0, SAA7146_GPIO_OUTLO);
 
-is okay?
-
-[ =A0917.660620] cx24116_firmware_ondemand: Waiting for firmware upload =
-
-(dvb-fe-cx24116.fw)...
-[ =A0917.703010] cx24116_firmware_ondemand: Waiting for firmware upload(2).=
-..
-[ =A0922.703870] cx24116_load_firmware: FW version 1.22.82.0
-[ =A0922.703889] cx24116_firmware_ondemand: Firmware upload complete
-
-The result is that only for some channels it is possible to get lock with =
-
-szap2. VDR is hanging (or starting) when trying to tune to initial channel, =
-
-even when this channel is set to channel at which is szap2 successfull. I'm =
-
-not able to say criteria which channels are possible to lock.
-
-Any hints are appreciated.
-
-BR,
-
-Ales
-
-[ =A0 =A09.343037] Linux video capture interface: v2.00
-...
-[ =A0 =A09.465617] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loa=
-ded
-[ =A0 =A09.466569] cx88[0]: subsystem: 0070:6902, board: Hauppauge WinTV-HV=
-R4000 =
-
-DVB-S/S2/T/Hybrid [card=3D68,autodetected]
-[ =A0 =A09.466622] cx88[0]: TV tuner type 63, Radio tuner type -1
-...
-[ =A0 =A09.497778] cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-[ =A0 =A09.539221] cx2388x alsa driver version 0.0.6 loaded
-[ =A0 =A09.596629] cx88[0]: i2c init: enabling analog demod on HVR1300/3000=
-/4000 =
-
-tuner
-[ =A0 =A09.672364] tuner' 0-0043: chip found @ 0x86 (cx88[0])
-[ =A0 =A09.701019] tda9887 0-0043: creating new instance
-[ =A0 =A09.701019] tda9887 0-0043: tda988[5/6/7] found
-[ =A0 =A09.704336] tuner' 0-0061: chip found @ 0xc2 (cx88[0])
-[ =A0 =A09.705311] tuner' 0-0063: chip found @ 0xc6 (cx88[0])
-[ =A0 =A09.750913] tveeprom 0-0050: Hauppauge model 69009, rev B2D3, serial=
-# =
-
-3326338
-[ =A0 =A09.750954] tveeprom 0-0050: MAC address is 00-0D-FE-32-C1-82
-[ =A0 =A09.750991] tveeprom 0-0050: tuner model is Philips FMD1216MEX (idx =
-133, =
-
-type 63)
-[ =A0 =A09.751041] tveeprom 0-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L'=
-) =
-
-PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)
-[ =A0 =A09.751093] tveeprom 0-0050: audio processor is CX882 (idx 33)
-[ =A0 =A09.751131] tveeprom 0-0050: decoder processor is CX882 (idx 25)
-[ =A0 =A09.751169] tveeprom 0-0050: has radio, has IR receiver, has no IR =
-
-transmitter
-[ =A0 =A09.751218] cx88[0]: hauppauge eeprom: model=3D69009
-[ =A0 =A09.802610] tuner-simple 0-0061: creating new instance
-[ =A0 =A09.802610] tuner-simple 0-0061: type set to 63 (Philips FMD1216ME M=
-K3 =
-
-Hybrid Tuner)
-[ =A0 =A09.805659] input: cx88 IR (Hauppauge WinTV-HVR400 as /class/input/i=
-nput6
-[ =A0 =A09.850619] cx88[0]/2: cx2388x 8802 Driver Manager
-[ =A0 =A09.850619] ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 19
-[ =A0 =A09.850619] ACPI: PCI Interrupt 0000:01:06.2[A] -> Link [LNKA] -> GS=
-I 19 =
-
-(level, low) -> IRQ 19
-[ =A0 =A09.850619] cx88[0]/2: found at 0000:01:06.2, rev: 5, irq: 19, laten=
-cy: 64, =
-
-mmio: 0xfb000000
-[ =A0 =A09.849788] ACPI: PCI Interrupt Link [LNEA] enabled at IRQ 18
-[ =A0 =A09.849840] ACPI: PCI Interrupt 0000:04:00.0[A] -> <6>ACPI: PCI Inte=
-rrupt =
-
-0000:01:06.1[A] -> Link [LNKA] -> GSI 19 (level, low) -> IRQ 19
-[ =A0 =A09.850619] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
-[ =A0 =A09.849841] Link [LNEA] -> GSI 18 (level, low) -> IRQ 18
-...
-[ =A0 =A09.901424] cx88/2: cx2388x dvb driver version 0.0.6 loaded
-[ =A0 =A09.901465] cx88/2: registering cx8802 driver, type: dvb access: sha=
-red
-[ =A0 =A09.901505] cx88[0]/2: subsystem: 0070:6902, board: Hauppauge WinTV-=
-HVR4000 =
-
-DVB-S/S2/T/Hybrid [card=3D68]
-[ =A0 =A09.901557] cx88[0]/2: cx2388x based DVB/ATSC card
-...
-[ =A0 =A09.976606] DVB: registering new adapter (cx88[0])
-[ =A0 =A09.976648] DVB: registering frontend 0 (Conexant CX24116/CX24118)...
-[ =A0 10.053023] ACPI: PCI Interrupt 0000:01:06.0[A] -> Link [LNKA] -> GSI =
-19 =
-
-(level, low) -> IRQ 19
-[ =A0 10.053123] cx88[0]/0: found at 0000:01:06.0, rev: 5, irq: 19, latency=
-: 64, =
-
-mmio: 0xfd000000
-[ =A0 10.053216] cx88[0]/0: registered device video0 [v4l2]
-[ =A0 10.053270] cx88[0]/0: registered device vbi0
-[ =A0 10.053321] cx88[0]/0: registered device radio0
-...
-[ =A0 24.658572] tda9887 0-0043: i2c i/o error: rc =3D=3D -121 (should be 4)
-[ =A0 24.659047] tuner-simple 0-0061: i2c i/o error: rc =3D=3D -121 (should=
- be 4)
-[ =A0 23.609971] tda9887 0-0043: i2c i/o error: rc =3D=3D -121 (should be 4)
-...
-[ =A0917.660620] cx24116_firmware_ondemand: Waiting for firmware upload =
-
-(dvb-fe-cx24116.fw)...
-[ =A0917.703010] cx24116_firmware_ondemand: Waiting for firmware upload(2).=
-..
-[ =A0922.703870] cx24116_load_firmware: FW version 1.22.82.0
-[ =A0922.703889] cx24116_firmware_ondemand: Firmware upload complete
+--Boundary-00=_bglpIAlWTrBkFa4
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_bglpIAlWTrBkFa4--
