@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KW0OZ-00060O-7B
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 04:59:33 +0200
-Message-ID: <48ACDA05.2070108@linuxtv.org>
-Date: Wed, 20 Aug 2008 22:59:17 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <dvb-t@iinet.com.au>) id 1KUDPG-0006IZ-AA
+	for linux-dvb@linuxtv.org; Sat, 16 Aug 2008 06:29:03 +0200
+Message-ID: <2E13932B9AB84E5CAE2F4B2707C95EC8@mce>
+From: "David" <dvb-t@iinet.com.au>
+To: <stev391@email.com>
+References: <20080807105849.22997BE4078@ws1-9.us4.outblaze.com>
+Date: Sat, 16 Aug 2008 14:28:42 +1000
 MIME-Version: 1.0
-To: Damien Morrissey <damien@damienandlaurel.com>
-References: <d16b033e0808201810wca140d8ob33dd6bae2dfcf8b@mail.gmail.com>	
-	<ee0ad0230808201844s512f8658pb2459c192cfa21d6@mail.gmail.com>	
-	<48ACC98A.4090201@linuxtv.org>
-	<ee0ad0230808201920p1bd21d1cpeb66c7c803c73333@mail.gmail.com>
-In-Reply-To: <ee0ad0230808201920p1bd21d1cpeb66c7c803c73333@mail.gmail.com>
-Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Recommended repository for Dvico Dual Digital 4 rev1
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
+	DVB-T Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,61 +19,179 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0897475451=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Damien Morrissey wrote:
-> On Thu, Aug 21, 2008 at 11:48 AM, Michael Krufky <mkrufky@linuxtv.org>wrote:
->> On Thu, Aug 21, 2008 at 11:10 AM, Bonne Eggleston
->> <b.eggleston@gmail.com>wrote:
->>     
->>>> Hi all,
->>>> I have a working Dvico Dual Digital 4 rev1 using some older drivers
->>>> (from http://linuxtv.org/hg/~pascoe/xc-test/<http://linuxtv.org/hg/%7Epascoe/xc-test/>
->>>>         
->> <http://linuxtv.org/hg/%7Epascoe/xc-test/>
->>     
->>>> ).
->>>> I'm looking to upgrade my kernel from 2.6.18 to 2.6.25 or 26 and
->>>> thought I should get the most up to date dvb driver too.
->>>> What's the current recommended driver and firmware for this card?
->>>>         
->> Damien Morrissey wrote:
->>     
->>> Be warned that there seems to be a funky thing with the firmware (in
->>> australia at least). I needed no less than three different firmware files to
->>>       
->>> get my DVico Dual Digital 4 (rev1) to be recognised AND to successfully lock
->>>       
->>> on a channel. Check for dmesg warnings. I am using mythbuntu 8.04.
->>>
->>>       
->> Anyway, Damien....  Please try the latest driver in the v4l-dvb master
->> branch -- recent changesets have improved driver performance, and you
->> should not have the problems anymore that you have described, above.
->>
->> The AU-specific firmware images have been deprecated, in favor of a much
->> better driver that works regardless of location.  Standard firmware is
->> not used, instead.
->>
->> -Mike
->>
->>
->>     
-> I thought I was using the latest driver in the v4l-dvb master branch
-> already... it's working now, but next release of mythbuntu I may clean the
-> system out and I will report any issues then.
-Unless somebody files a bug on launchpad, the fix won't be in Ubuntu
-until Intrepid.  I think that comes out in a few months.
+This is a multi-part message in MIME format.
 
--Mike
+--===============0897475451==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_005B_01C8FFAC.62309CF0"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_005B_01C8FFAC.62309CF0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+From: stev391@email.com=20
+  To: Tim Farrington ; David=20
+  Cc: linux-dvb@linuxtv.org=20
+  Sent: Thursday, August 07, 2008 8:58 PM
+  Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO =
+FusionHDTV DVB-T Dual Express
+
+  The firmware file is incorrect, if it states only 3 firmware images=20
+  loaded then it is wrong (it should be 80). Here is what that line=20
+  should read:
+  [  154.867137] xc2028 3-0061: Loading 80 firmware images from =
+xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+
+  Make sure you are using the correct extract script and follow the=20
+  instructions in the header (script is in the =
+linux/Documentation/video4linux)
+
+  Also, the "new" firmware does work in Australia as this is where I=20
+  live... (Melbourne, and it has been tested against 3 different=20
+  transmitters here [1 of which is Mt Dandenong], with varying reception =
+levels.=20
+  The card has really good sensitivity however it can easily be drowned =
+out if=20
+  you have an amplifier).
+
+  If you still have trouble load the following modules with debug =3D 1:
+  cx23885
+  zl10353
+  tuner_xc2028
+
+  Regards,
+
+  Stephen.
 
 
+  Hi Steve
+
+  Just got the first chance to revisit this today.
+  Extracted the firmware again and this time all images were present.
+  Tested with tzap and locked all Brisbane channels.
+  Fired up MythTV and tested dual tuner operation with the HD channels.
+  I'm currently happily tuned to 7HD for the afternoon's Olympic events =
+and the performance is simply stunning.
+
+  Many thanks to you, Steven, Chris and all the developers for doing =
+such a great job.
+
+  Regards
+  David=20
+
+
+
+
+------=_NextPart_000_005B_01C8FFAC.62309CF0
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.6000.16608" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><B>From:</B> <A title=3Dstev391@email.com=20
+href=3D"mailto:stev391@email.com">stev391@email.com</A> </DIV>
+<BLOCKQUOTE dir=3Dltr=20
+style=3D"PADDING-RIGHT: 0px; PADDING-LEFT: 5px; MARGIN-LEFT: 5px; =
+BORDER-LEFT: #000000 2px solid; MARGIN-RIGHT: 0px">
+  <DIV style=3D"FONT: 10pt arial"><B>To:</B> <A =
+title=3Dtimf@iinet.net.au=20
+  href=3D"mailto:timf@iinet.net.au">Tim Farrington</A> ; <A=20
+  title=3Ddvb-t@iinet.com.au =
+href=3D"mailto:dvb-t@iinet.com.au">David</A> </DIV>
+  <DIV style=3D"FONT: 10pt arial"><B>Cc:</B> <A =
+title=3Dlinux-dvb@linuxtv.org=20
+  href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A> </DIV>
+  <DIV style=3D"FONT: 10pt arial"><B>Sent:</B> Thursday, August 07, 2008 =
+8:58=20
+  PM</DIV>
+  <DIV style=3D"FONT: 10pt arial"><B>Subject:</B> Re: [linux-dvb] =
+[PATCH] Add=20
+  initial support for DViCO FusionHDTV DVB-T Dual Express</DIV><SPAN=20
+  id=3Dobmessage><FONT face=3DArial size=3D2></FONT>
+  <DIV><BR>The firmware file is incorrect, if it states only 3 firmware =
+images=20
+  <BR>loaded then it is wrong (it should be 80). Here is what that line=20
+  <BR>should read:<BR>[&nbsp; 154.867137] xc2028 3-0061: Loading 80 =
+firmware=20
+  images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7<BR><BR>Make =
+sure you=20
+  are using the correct extract script and follow the <BR>instructions =
+in the=20
+  header (script is in the linux/Documentation/video4linux)<BR><BR>Also, =
+the=20
+  "new" firmware does work in Australia as this is where I <BR>live...=20
+  (Melbourne, and it has been tested against 3 different =
+<BR>transmitters here=20
+  [1 of which is Mt Dandenong], with varying reception levels. <BR>The =
+card has=20
+  really good sensitivity however it can easily be drowned out if =
+<BR>you have=20
+  an amplifier).<BR><BR>If you still have trouble load the following =
+modules=20
+  with debug =3D=20
+  =
+1:<BR>cx23885<BR>zl10353<BR>tuner_xc2028<BR><BR>Regards,<BR><BR>Stephen.<=
+BR></DIV>
+  <DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></SPAN>
+  <DIV><SPAN><FONT face=3DArial size=3D2>Hi Steve</FONT></SPAN></DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2></FONT></SPAN>&nbsp;</DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2>Just got the first chance to =
+revisit this=20
+  today.</FONT></SPAN></DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2>Extracted the firmware again =
+and this time=20
+  all images were present.</FONT></SPAN></DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2>Tested with&nbsp;tzap and =
+locked all=20
+  Brisbane channels.</FONT></SPAN></DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2>Fired up&nbsp;MythTV and tested =
+dual tuner=20
+  operation with the HD channels.</FONT></SPAN></DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2>I'm currently happily tuned to =
+7HD for the=20
+  afternoon's&nbsp;Olympic events and the performance is simply=20
+  stunning.</FONT></SPAN></DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2></FONT></SPAN>&nbsp;</DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2>Many thanks to you, Steven,=20
+  Chris&nbsp;and&nbsp;all the&nbsp;developers for doing&nbsp;such a =
+great=20
+  job.</FONT></SPAN></DIV>
+  <DIV><SPAN></SPAN>&nbsp;</DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2>Regards</FONT></SPAN></DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2>David</FONT>&nbsp;</SPAN></DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2></FONT></SPAN>&nbsp;</DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2></FONT></SPAN>&nbsp;</DIV>
+  <DIV><SPAN><FONT face=3DArial size=3D2></FONT></SPAN>&nbsp;</DIV>
+  <DIV><SPAN><FONT face=3DArial=20
+size=3D2></FONT>&nbsp;</DIV></SPAN></BLOCKQUOTE></BODY></HTML>
+
+------=_NextPart_000_005B_01C8FFAC.62309CF0--
+
+
+--===============0897475451==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0897475451==--
