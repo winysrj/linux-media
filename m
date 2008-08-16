@@ -1,26 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.227])
+Received: from dd15922.kasserver.com ([85.13.137.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <czhang1974@gmail.com>) id 1KTe5J-0001O2-7M
-	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 16:45:56 +0200
-Received: by wr-out-0506.google.com with SMTP id 50so588543wra.13
-	for <linux-dvb@linuxtv.org>; Thu, 14 Aug 2008 07:45:48 -0700 (PDT)
-Message-ID: <bd41c5f0808140745q7ac4cc31tbddfb7525d29a799@mail.gmail.com>
-Date: Thu, 14 Aug 2008 14:45:48 +0000
-From: "Chaogui Zhang" <czhang1974@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <48A43DF3.6000705@linuxtv.org>
+	(envelope-from <mldvb@mortal-soul.de>) id 1KUFhy-0004f7-UH
+	for linux-dvb@linuxtv.org; Sat, 16 Aug 2008 08:56:20 +0200
+From: Matthias Dahl <mldvb@mortal-soul.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 16 Aug 2008 08:56:12 +0200
+References: <200808121443.27020.mldvb@mortal-soul.de>
+	<200808160631.23359@orion.escape-edv.de>
+In-Reply-To: <200808160631.23359@orion.escape-edv.de>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <8fcafd2c0808131723l21031daej9e9ae3eeabfa57f7@mail.gmail.com>
-	<48A37D44.7090808@linuxtv.org>
-	<8fcafd2c0808131806l1fcc7563v121715d937d39a5d@mail.gmail.com>
-	<8fcafd2c0808131840u4fe27c7dq84953bd34d24e0b1@mail.gmail.com>
-	<8fcafd2c0808132039h4d0ada9xef21a8502e495b9d@mail.gmail.com>
-	<48A43DF3.6000705@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Digital tuning failing on Pinnacle 800i with dmesg
-	output
+Message-Id: <200808160856.13167.mldvb@mortal-soul.de>
+Subject: Re: [linux-dvb] Possible SMP problems with budget_av/saa7134
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,64 +26,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 14, 2008 at 2:15 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> James Lucas wrote:
->> On Wed, Aug 13, 2008 at 8:40 PM, James Lucas <orbus42@gmail.com
->> <mailto:orbus42@gmail.com>> wrote:
->>
->>     Anyway, update.  Installed in the windows machine, and got the
->>     drivers installed successfully, but the player software that comes
->>     with the card requires windows xp, and the newest version of windows
->>     I have is 2000.  I know analog capture is pretty well supported in
->>     windows by things like virtualdub and media player classic, but do
->>     you know of any apps I can use to test the HD functionality?
->>
->>     While I had the card out, got the following from visual inspection:
->>
->>     Printed on the PCB:
->>     pctv 800i rev 1.1
->>
->>     There were two large visible chips on the card:
->>     Samsung C649 S5H1409X01-T0  N079X
->>
->>     Conexant Broadcast Decoder  CX23883-39  72013496  0729 Korea
->>
->>     I imagine the tuner chip is hidden under the metal box (shielding?).
->>
->>     James
->>
->>
->>
->> Another update - I spoke too soon.  One of the windows drivers is
->> refusing to load properly.  I don't know if the signifies a bad card or
->> just that the driver doesn't work on anything less than xp.  I don't
->> have any way to test at the moment.  I'm happy to try anything you want
->> in the way of diagnosis under linux though.
->
-> I don't think anyone else is reporting i2c issues on that board, so it's
-> possible you just have a bad unit.
+Hello Oliver,
 
-I saw similar i2c error messages back when we were trying to add
-support for the card (I never posted on the list about it because that
-happened when I was fiddling with the code). I do not remember the
-specifics, but it went away later on as the code matured. It might
-have something to do with multiple instances of the driver being
-attached to the xc5000, but we certainly cannot rule out the
-possibility of a bad unit.
+and thanks for your reply.
 
->
-> It goes without saying, try to bring up the baord on a supported windows
-> platform to verify it... or perhaps take it to a neighbours house a
-> wreck his xp install ;)
->
-> If you get to the point of it working in windows but not on Linux then
-> we'll be able to make progress.
->
-> - Steve
->
+On Saturday 16 August 2008 06:31:21 Oliver Endriss wrote:
 
--- 
-Chaogui Zhang
+> Please test the attached patch (untested because I do not own this kind
+> of hardware). Please save your work before loading the patched driver,
+> since a locking bug might crash your machine...
+
+I will give it a try and let you know as soon as I have some results. Testing 
+changes or getting more debugging output (see below) is quite time consuming 
+because you have no idea how long it takes till you'll hit the problem again. 
+Yesterday it happened several times across the day- and unfortunately over 
+night (when I was testing changes in the en50221 implementation), everything 
+was rock stable. :-(
+
+By the way, I spent the last few days hacking on dvb_ca_en50221.c, putting a 
+lot more debugging output in it and thus trying to narrow the problem down. 
+There are a few corner cases which IMHO could have been triggered and have 
+caused this. I'll try to confirm or disprove those and according to this try 
+to fix those if necessary.
+
+One more thing: the en50221 "driver" assumes that setting bit 7 of the command 
+register enables/disables irq signaling. According to the en50221 standard 
+those bits are reserved and shall be always zero. Do you know where I can 
+find more informations on this...?
+
+Thanks again and have a nice weekend,
+Matthias
+
+PS. For now, I am keepking this off the vdr mailing list because I've reviewed
+    the vdr cicam handling code and everything looks fine- except for maybe
+    the error handling which could be a bit more flexible. I guess due to the
+    continued cam monitoring implemented in vdr 1.5.x, the bug just happens to
+    be triggered more easily/frequently.
 
 _______________________________________________
 linux-dvb mailing list
