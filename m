@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 213.159.238.198.iptelecom.net.ua ([213.159.238.198]
-	helo=mail.trirema.kiev.ua) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a3df@trirema.kiev.ua>) id 1KSwgJ-0001nm-Vl
-	for linux-dvb@linuxtv.org; Tue, 12 Aug 2008 18:25:16 +0200
-Received: from [10.0.1.222] (unknown [10.0.1.222])
-	by mail.trirema.kiev.ua (Postfix) with ESMTP id 24C762E5FF
-	for <linux-dvb@linuxtv.org>; Tue, 12 Aug 2008 20:14:01 +0300 (EEST)
-Message-ID: <48A1B861.30602@trirema.kiev.ua>
-Date: Tue, 12 Aug 2008 19:20:49 +0300
-From: Alexander Sotnikov <a3df@trirema.kiev.ua>
+Received: from n24.bullet.mail.mud.yahoo.com ([68.142.206.163])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <rvf16@yahoo.gr>) id 1KUKuu-0006Pf-70
+	for linux-dvb@linuxtv.org; Sat, 16 Aug 2008 14:30:02 +0200
+Message-ID: <48A6C80E.7050001@yahoo.gr>
+Date: Sat, 16 Aug 2008 15:29:02 +0300
+From: rvf16 <rvf16@yahoo.gr>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <48A1B304.9010707@trirema.kiev.ua>
-In-Reply-To: <48A1B304.9010707@trirema.kiev.ua>
-Subject: Re: [linux-dvb] ULE big somewhere : NPA+BRIDGED_FRAME+VLAN =
- Hardlock w/o any oops
+Subject: [linux-dvb] CX23885 based AVerMedia AVerTV Hybrid Express Slim tv
+ card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,82 +23,48 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Alexander Sotnikov wrote:
+Hello again.
+No one seems to be interested in my attempts so i must be doing 
+something wrong.
+I find hard to locate where i can add a wiki about this card, and a 
+simple howto for trying to make this card work.
+It may be my mistake but i find all that i have red insufficient to 
+understand how to continue.
 
+Anyway after thorough examination of the vista driver i ended up in this 
+section :
+;-----------------------------------------------
+; XC3028 + Afa9013
+;-----------------------------------------------
+%CX23885.HC81R%=CX23885.HC81_C,          
+PCI\VEN_14F1&DEV_8852&SUBSYS_D9391461    ;PCI-e     XCeive_L+FM+Afa9013
+(this is my model : AVer Media AVerTV Hybrid Express Slim HC81R HC81_C)
 
-some quick update and  previous message beautification
-changed  DVB card for other brand and got BUG call this time
+After googling around i found the following :
+CX23885 = PCI Express Video and Broadcast Audio Decoder
+http://www.conexant.com/products/entry.jsp?id=393
+http://www.conexant.com/servlets/DownloadServlet/PBR-200865-004.pdf?docid=866&revid=4
 
-[  668.944003] BUG: soft lockup - CPU#0 stuck for 61s! [cx88[0] dvb:1252]
-[  668.944003] Modules linked in: af_packet dvb_bt8xx dst bt878 bttv
-firmware_class compat_ioctl32 v4l2_common cx88_dvb cx88_vp3054_i2c
-cx8802 cx88xx videodev v4l1_compat ir_common i2c_algo_bit tveeprom
-btcx_risc videobuf_dma_sg videobuf_dvb videobuf_core cx24123 i2c_core
-dvb_core unix ipv6
-[  668.944003]
-[  668.944003] Pid: 1252, comm: cx88[0] dvb Not tainted (2.6.26.1 #6)
-[  668.944003] EIP: 0060:[<dc84c643>] EFLAGS: 00000246 CPU: 0
-[  668.944003] EIP is at dvb_net_ts_callback+0x973/0xbf0 [dvb_core]
-[  668.944003] EAX: 00000001 EBX: 00000000 ECX: dbba2d80 EDX: dc84cbf0
-[  668.944003] ESI: 00000000 EDI: dbba2946 EBP: daccdf44 ESP: daccdec8
-[  668.944003]  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-[  668.944003] CR0: 8005003b CR2: 083c1808 CR3: 1b89b000 CR4: 00000690
-[  668.944003] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-[  668.944003] DR6: ffff0ff0 DR7: 00000400
-[  668.944003]  [<dc84568d>] dvb_dmx_swfilter_packet+0x32d/0x370 [dvb_core]
-[  668.944003]  [<dc846589>] dvb_dmx_swfilter+0xc9/0x140 [dvb_core]
-[  668.944003]  [<dc81f450>] videobuf_dvb_thread+0xf0/0x160 [videobuf_dvb]
-[  668.944003]  [<c011a4b6>] ? complete+0x46/0x60
-[  668.944003]  [<dc81f360>] ? videobuf_dvb_thread+0x0/0x160 [videobuf_dvb]
-[  668.944003]  [<c01370d2>] kthread+0x42/0x70
-[  668.944003]  [<c0137090>] ? kthread+0x0/0x70
-[  668.944003]  [<c0104247>] kernel_thread_helper+0x7/0x10
-[  668.944003]  =======================
+XC3028 = Hybrid tuner
+http://www.xceive.com/technology_XC3028.htm
+http://www.xceive.com/docs/XC3028_prodbrief.pdf
+I have the L model which is same as standard just with "L"ower energy  
+consumption)
 
+Afa9013 = Demodulator
 
+from linux lspci -n :
+0c:00.0 0400: 14f1:8852 (rev 02)
+        Subsystem: 1461:d939
 
-> Hi all
->
-> while creating ULE  encapsulation driver for our in house DVB modulator
-> i found out   that i can hard lock DVB receiver    with  following packet
->
-> //normal arp request in  Vlan 4
-> 0xff 0xff 0xff 0xff 0xff 0xff 0x00 0xff 0x9e 0x00 0x75 0xfa 0x81 0x00 0x00 0x04
-> 0x08 0x06 0x00 0x01 0x08 0x00 0x06 0x04 0x00 0x01 0x00 0xff 0x9e 0x00 0x75 0xfa
-> 0x0a 0x00 0x01 0x10 0xff 0xff 0xff 0xff 0xff 0xff 0x01 0x01 0x01 0x01
->
-> //same encapsulated in ULE headers with NPA <0x02 0x00 0x00 0x00 0x00 0x01>
->
-> 0x00 0x38 0x00 0x01 0x02 0x00 0x00 0x00 0x00 0x01 0xff 0xff 0xff 0xff 0xff 0xff
-> 0x00 0xff 0x9e 0x00 0x75 0xfa 0x81 0x00 0x00 0x04 0x08 0x06 0x00 0x01 0x08 0x00
-> 0x06 0x04 0x00 0x01 0x00 0xff 0x9e 0x00 0x75 0xfa 0x0a 0x00 0x01 0x10 0xff 0xff
-> 0xff 0xff 0xff 0xff 0x01 0x01 0x01 0x01 0x76 0x42 0x10 0x42
->
->
-> //all above  in  188 B   TS frame
->
-> TSD START -------------------
-> 0x47 0x51 0x11 0x13 0x00 0x00 0x38 0x00 0x01 0x02 0x00 0x00 0x00 0x00 0x01 0xff
-> 0xff 0xff 0xff 0xff 0xff 0x00 0xff 0x9e 0x00 0x75 0xfa 0x81 0x00 0x00 0x04 0x08
-> 0x06 0x00 0x01 0x08 0x00 0x06 0x04 0x00 0x01 0x00 0xff 0x9e 0x00 0x75 0xfa 0x0a
-> 0x00 0x01 0x10 0xff 0xff 0xff 0xff 0xff 0xff 0x01 0x01 0x01 0x01 0x76 0x42 0x10
-> 0x42 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
-> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
-> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
-> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
-> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
-> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
-> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
-> 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
-> TSD END ---------------------
->
->
-> packets w/o  VLAN tag  or   w/o  NPA  set  work perfectly   (kernel
-> version 2.6.26.1  stock drivers)
-> any pointers where to look for problem  are welcome
->
-> Alexander
->   
+I can find no xc3028 module in the v4l tree and absolutely nothing on 
+the Afa9013.
+Please confirm the above are tuner and demodulator chips respectively 
+and show me where i can create a wiki with the above info, my dmesg info 
+and my card pictures.
+
+Thank you.
+Regards.
 
 
 _______________________________________________
