@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from rouge.crans.org ([138.231.136.3])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1KUsBd-0002cy-Av
-	for linux-dvb@linuxtv.org; Mon, 18 Aug 2008 02:01:30 +0200
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	8B32C180030C
-	for <linux-dvb@linuxtv.org>; Mon, 18 Aug 2008 00:00:53 +0000 (GMT)
-Content-Disposition: inline
+	(envelope-from <braice@braice.net>) id 1KUHnZ-0003km-JV
+	for linux-dvb@linuxtv.org; Sat, 16 Aug 2008 11:10:14 +0200
+Message-ID: <48A69970.4040706@braice.net>
+Date: Sat, 16 Aug 2008 11:10:08 +0200
+From: Brice DUBOST <braice@braice.net>
 MIME-Version: 1.0
-From: stev391@email.com
-To: "Robert Golding" <robert.golding@gmail.com>
-Date: Mon, 18 Aug 2008 10:00:53 +1000
-Message-Id: <20080818000053.793B8BE4078@ws1-9.us4.outblaze.com>
-Cc: linux dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200
- H - DVB Only support
+To: "Ali H.M. Hoseini" <alihmh@gmail.com>
+References: <66caf1560808160130w714d1b1r4339ccd4577447aa@mail.gmail.com>	
+	<48A690B7.9090602@braice.net>
+	<66caf1560808160142g7446425co164b36cce747c600@mail.gmail.com>
+In-Reply-To: <66caf1560808160142g7446425co164b36cce747c600@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] how to prevent scan utility from scaning other
+	transponders?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,73 +22,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Ali H.M. Hoseini a =E9crit :
+> =
 
-> It seems that kernel 2.6.27 (what I was using) is different enough
-> that the modules and fw from Stephens downloads won't work properly.
+> =
 
-> I went back to 2.6.25 and it worked there, so I tried 2.6.26 and it
-> worked there as well.
+> On Sat, Aug 16, 2008 at 12:02 PM, Brice DUBOST <braice@braice.net
+> <mailto:braice@braice.net>> wrote:
+> =
 
-> These are the steps I had to do so it would load properly;
-> 1) Compile kernel WITHOUT 'multimedia'
-> i.e. #
-> # Multimedia devices
-> #
-> 
-> #
-> # Multimedia core support
-> #
-> # CONFIG_VIDEO_DEV is not set
-> # CONFIG_DVB_CORE is not set
-> # CONFIG_VIDEO_MEDIA is not set
+>     Ali H.M. Hoseini a =E9crit :
+>     > Hi all,
+>     >
+>     > When I use scan utility to scan a transponder, in some freq. scan
+>     > continues to scan other transponders (I think find them in NIT
+>     tables),
+>     > and that mean I should wait 2-3 minutes for scan to complete it's
+>     work,
+>     > and list all the transponders it found.
+>     >
+>     > how should I prevent scan utility from scaning other transponders? =
+And
+>     > force it to scan just the transponder I want?
+>     >
+>     >
+>     > Thanks.
+>     >
+>     > Ali.
+>     >
+> =
 
-> #
-> # Multimedia drivers
-> #
-> # CONFIG_DAB is not set
+>     Hello
+> =
 
-> & reboot with new kernel (if it was the kernel you were already booted
-> too, don't bother)
+>     Lock on the transponder
+> =
 
-> 2) Download Stephens latest media patches
-> #> wget http://linuxtv.org/hg/~stoth/v4l-dvb/archive/tip.tar.bz2
-> extract to current dir, then;
-> #> make all
-> #> make install
+>     and use scan -c
+> =
 
-> 3) Download Stephens firmware and follow instructions in
-> /Documentation/video4linux/extract_xc3028.pl
+>     Regards
+> =
 
-> 4) Reboot machine to load all the correct modules and fw, then open
-> favourite tuner prog (I use Me-TV) and enjoy the viewing.
+> =
 
-> --
-> Regards,	Robert
+> Hi ,
+> =
 
-Robert,
+> Thanks Brice,  But I'm trying to find a way to do this just with scan.
+> Because if I want to tune to freq. with szap, first I should create an
+> channels.conf file. This is the hen and egg problem, because I should
+> first scan that freq. to create channels.conf.
+> =
 
-I'm glad you got it working.
+> Does anybody knows a solution for this?
+> =
 
-The v4l-dvb drivers will not work against a kernel that has the video/multimedia drivers compiled in to the kernel.  
-When you compile your kernel you select the above options, which you disabled, as modules and this will also allow the v4l-dvb drivers to be compiled as modules and overwrite the older drivers.
-
-If the kernel you were using, that it didn't work against, was part of a distro, perhaps a bug report to them about their kernel config should be sent...
-
-Regards,
-
-Stephen.
+> Regard.
+> =
 
 
--- 
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
+Hello
+
+Use dvbtune
+
+Regards
+
+-- =
+
+Brice
 
 
 _______________________________________________
