@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7LMq0bK025341
-	for <video4linux-list@redhat.com>; Thu, 21 Aug 2008 18:52:00 -0400
-Received: from mail5.sea5.speakeasy.net (mail5.sea5.speakeasy.net
-	[69.17.117.7])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7LMp5lJ004038
-	for <video4linux-list@redhat.com>; Thu, 21 Aug 2008 18:51:05 -0400
-Date: Thu, 21 Aug 2008 15:50:59 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Jean Delvare <jdelvare@suse.de>
-In-Reply-To: <200808211114.27290.jdelvare@suse.de>
-Message-ID: <Pine.LNX.4.58.0808211445230.23833@shell4.speakeasy.net>
-References: <200808181918.05975.jdelvare@suse.de>
-	<200808202334.20872.jdelvare@suse.de>
-	<Pine.LNX.4.58.0808210107110.23833@shell4.speakeasy.net>
-	<200808211114.27290.jdelvare@suse.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7HJmCYs010711
+	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 15:48:12 -0400
+Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7HJm1lr000568
+	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 15:48:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Sun, 17 Aug 2008 21:46:45 +0200
+References: <200808171709.51258.hverkuil@xs4all.nl> <48A86E3B.4060105@hhs.nl>
+In-Reply-To: <48A86E3B.4060105@hhs.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
-Content-Transfer-Encoding: 8bit
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200808172146.45683.hverkuil@xs4all.nl>
+Cc: Mike Isely <isely@isely.net>, v4l <video4linux-list@redhat.com>,
+	david@identd.dyndns.org, linux-kernel@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: bttv driver errors
+Subject: Re: V4L2: switch to register_chrdev_region: needs testing/review of
+	release() handling
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,70 +32,106 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 21 Aug 2008, Jean Delvare wrote:
-> Le jeudi 21 août 2008, Trent Piepho a écrit :
-> > On Wed, 20 Aug 2008, Jean Delvare wrote:
-> > > While reading the BT878 datasheet to try to better understand how
-> > > this all happens, I came to wonder how the chip can actually handle
-> > > planar formats with vertical subsampling.
-> > >
-> > > To do vertical subsampling, you obviously need to handle several
-> > > lines together (2 in the case of yuv420). However, the FIFO is too
+Hi Hans,
+
+On Sunday 17 August 2008 20:30:19 Hans de Goede wrote:
+> Hans Verkuil wrote:
+> > Hi all,
 > >
-> > 2 is needed for simple averaging.  Higher quality requires even more lines
-> > for a multi-tap FIR filter for some kind.
-> >
-> > > small to contain a complete line of data, and there doesn't seem to
-> > > be any RISC instruction for fetching chroma information back from
-> > > memory either. This suggests that the BT878 is cheating on vertical
-> > > subsampling, and instead of averaging on 2 lines (2x2 chroma
-> > > subsampling), it averages on 1 line (2x1 chroma subsampling) and just
-> > > skips the chroma information of the next line. Can you please confirm
-> > > or infirm this? If I'm wrong then I would be grateful if you could
-> > > explain how the BT878 achieves vertical subsampling.
-> >
-> > 4:2:0 YUV is achieved by setting the chip to 4:2:2 mode and then dropping
-> > "every other" chroma line with RISC DMA program.
+> > As part of my ongoing cleanup of the v4l subsystem I've been
+> > looking into converting v4l from register_chrdev to
+> > register_chrdev_region. The latter is more flexible and allows for
+> > a larger range of minor numbers. In addition it allows us to
+> > intercept the release callback when the char device's refcount
+> > reaches 0.
 >
-> OK. So you agree with me that this is approximative and not "real"
-> vertical subsampling. I'm curious if more recent video chips are
-
-Depends on what you mean by "real".  Think of the top line of the chroma as
-x(0), the line below it as x(1), the next line x(2) and so on.  The line
-above would be x(-1), then x(-2), etc.
-
-It sounds like you think the formula for the subsampled chroma should be:
-0.5 * x(0) + 0.5 * x(1)
-
-And this is a pretty common way to do it.  The formula the bt878 uses is:
-1.0 * x(0)
-
-That's also a perfectly valid and real formula to use, though not a
-particularly good one.  You could also use something like:
-0.125 * x(-1) + 0.375 * x(0) + 0.375 * x(1) + 0.125 * x(2)
-
-> > I suppose one could drop the just the U samples for one line, then drop
-> > just the V for the next line, to get a better average bit rate.
+> Hans,
 >
-> This would make some sense indeed, but I suspect that the BT878
-> doesn't actually do this. Looking at the available RISC instructions,
-> I see an instruction copying Y data from FIFO to RAM and skipping U
-> and V data, and another instruction copying all of Y, U and V data
-> from FIFO to RAM. But no instruction copying Y and U or Y and V. So
+> Thanks for doing this! You rock! 
 
-You're right, I forgot about that.  There is only WRITE123 and WRITE1S23,
-no WRITE12S3.
+Thanks! :-)
 
-You might try switching to packed mode instead of planar.  In that mode the
-three FIFOs are merged.  Another thing I've heard about is using shorter
-write commands.  When the bt878 processes a WRITE123, it doesn't write one
-pixel of Y, one pixel of U, one pixel of V, then the next Y, the next V,
-etc.  What it does is write all the Y, then all the U, then all the V.  So
-while all the Y data is getting written, the U and V FIFOs are still
-getting filled.  What that means is the latency for the V FIFO is the time
-it took the bt878 to be granted bus access, plus the time it takes to empty
-the Y FIFO (or finish the current RISC instruction), plus the time it takes
-to empty the U FIFO.
+> I've been planning on cleaning up 
+> gspca's somewhat archaic disconnect handling for a while now and I
+> was sorta waiting for something like this :) But I guess that that
+> cleanup might be 2.6.28 material.
+>
+> Anyways I've reviewed your patch and in general I like it, I only see
+> one problem:
+>
+> @@ -99,7 +130,8 @@ static void video_release(struct device
+> {
+> struct video_device *vfd = container_of(cd, struct video_device,
+> dev); -#if 1 /* keep */
+> + return;
+> +#if 1 /* keep */
+> /* needed until all drivers are fixed */
+> if (!vfd->release)
+> return;
+> @@ -107,6 +139,7 @@ static void video_release(struct device
+> vfd->release(vfd);
+> }
+> +
+> static struct class video_class = {
+> .name = VIDEO_NAME,
+> #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
+>
+>
+> Here you basicly make the release callback of the video class device
+> a no-op. First of all I think it would be better to just delete it
+> then to add a return, which sort of hides its an empty function now.
+
+I thought so as well, but without a release function the low-level class 
+code in the kernel starts complaining about the missing release.
+
+> More importantly, its wrong to make this a no-op. When a driver
+> unregisters a v4l device, and all cdev usage has stopped there can
+> still be open references to sysfs files of the video class device,
+> but in this case currently the video_unregister_device call will lead
+> to the vfd->release callback getting called freeing the vfd struct,
+> which contains the class device.
+
+You might have gotten confused here: video_release() didn't call the 
+main release callback: there was a return in front. I'd forgotten to 
+remove that test code.
+
+I've also tested what happens when you keep a sysfs file open: it seems 
+to work OK in that video_release is called even though the sysfs file 
+is still open. That said, I've moved the cdev_del call from 
+video_unregister_device() to the video_release() function. It makes 
+sense not to delete the char device until that callback is called.
+
+This patch is here: 
+http://linuxtv.org/hg/~hverkuil/v4l-dvb-cdev2/rev/575997018499
+
+> I believe the way to fix this is todo a get on the kobj contained in
+> the cdev in video_register_device before registering the class
+> device, and then in the class device release callback do a put on
+> this kobj.
+
+There is no need to do an additional get: cdev_init does that already, 
+so the char dev stays alive at least until the cdev_del (longer if apps 
+still keep it open).
+
+> Other then that it looks good!
+
+Thanks, I've been wanting to do this for some time now and I finally had 
+the time today to go in and dig through all the refcounting and how 
+chardev handles things so that I could come up with a proper solution. 
+What's nice is that this approach works also fine in older kernels 
+(well, it compiles, I guess I need to do a real test on an older kernel 
+before I can commit it in v4l-dvb). And that is very nice since the 
+v4l-dvb repository is supposed to support any kernel >= 2.6.16.
+
+I would be very curious to hear how well it works with the gspca driver. 
+In particular if you can indeed reconnect while an application still 
+has a char device open from before the disconnect. Currently the gspca 
+own locking seems to disallow that (the new device doesn't appear until 
+all applications stopped using the old one).
+
+Regards,
+
+	Hans
 
 --
 video4linux-list mailing list
