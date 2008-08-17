@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KZ8gO-0004Af-BW
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 20:26:54 +0200
-Date: Fri, 29 Aug 2008 20:26:18 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <48B81DB6.9030206@linuxtv.org>
-Message-ID: <20080829182618.74790@gmx.net>
+Received: from wf-out-1314.google.com ([209.85.200.172])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <johan.vanderkolk@gmail.com>) id 1KUmfs-0003yn-HS
+	for linux-dvb@linuxtv.org; Sun, 17 Aug 2008 20:08:21 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so1669070wfd.17
+	for <linux-dvb@linuxtv.org>; Sun, 17 Aug 2008 11:08:15 -0700 (PDT)
+Message-ID: <57030da00808171108x41547032i20f59bd88ee5bc44@mail.gmail.com>
+Date: Sun, 17 Aug 2008 20:08:15 +0200
+From: "Johan van der Kolk" <johan.vanderkolk@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-References: <20080821173909.114260@gmx.net> <20080823200531.246370@gmx.net>
-	<48B78AE6.1060205@gmx.net> <48B7A60C.4050600@kipdola.com>
-	<48B802D8.7010806@linuxtv.org> <20080829154342.74800@gmx.net>
-	<37219a840808290852k4cafb891tbf35162d3add6d60@mail.gmail.com>
-	<48B81DB6.9030206@linuxtv.org>
-To: Steven Toth <stoth@linuxtv.org>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Future of DVB-S2
+Subject: [linux-dvb] dvb-ttpci errors only on certain satellite channels
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,98 +18,143 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2059643195=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> >> I hope your and Darron's drivers (http://dev.kewl.org/hauppauge) are
-> not seen as
-> >> marginalized. The multifrontend (MFE) patch by you and Darron is the
-> driver that I
-> >> actually *use* for watching TV. It works nicely with Kaffeine without
-> modification. And I,
-> >> for one, appreciate your sane approach and the simplicity of the
-> techniques you used to
-> >> add DVB-S2 support (using sysctls for the SFE driver, and wrapping two
-> ioctls to pull in
-> >> extra parameters for the MFE driver). If the kernel API is changed
-> sensibly it should be
-> >> easy and quick to adapt your drivers to fit in.
-> >>
-> >>> The HVR4000 situation is under review, the wheels are slowly
-> turning....
-> >> If you are able to say anything about that I would be very interested.
-> >>
-> >> Now, to show how simple I think all this could be, here is a PATCH
-> implementing what
-> >> I think is the *minimal* API required to support DVB-S2.
-> >>
-> >> Notes:
-> >>
-> >> * same API structure, I just added some new enums and variables,
-> nothing removed
-> >> * no changes required to any existing drivers (v4l-dvb still compiles)
-> >> * no changes required to existing applications (just need to be
-> recompiled)
-> >> * no drivers, but I think the HVR4000 MFE patch could be easily adapted
-> >>
+--===============2059643195==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_100045_31993214.1218996495292"
 
-> >>
-> >> Why should we not merge something simple like this immediately? This
-> could have been done
-> >> years ago. If it takes several rounds of API upgrades to reach all the
-> feature people want then
-> >> so be it, but a long journey begins with one step.
-> > 
-> > This will break binary compatibility with existing apps.  You're right
-> > -- those apps will work with a recompile, but I believe that as a
-> > whole, the linux-dvb kernel and userspace developers alike are looking
-> > to avoid breaking binary compatibility.
-> 
+------=_Part_100045_31993214.1218996495292
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> Hans, thanks for your kind words.
+Hi
 
-You're welcome.
+I am getting this error, only when watching or recording certain
+(unfortunately most of the dutch) satellite channels.
 
-> I've seen patches similar to this from a number of people
+The receiver card is a FF 2.1 Hauppauge (Nexus-s)
 
-Good, it was faster to write it than search for someone else's.
+ dmesg |tail
+[ 8683.364276] dvb-ttpci: StartHWFilter error  buf 0b07 0010 08cf b96a
+ret 0  handle ffff
+[ 8684.401584] dvb-ttpci: StartHWFilter error  buf 0b07 0010 08d4 b96a
+ret 0  handle ffff
+[ 8685.436105] dvb-ttpci: StartHWFilter error  buf 0b07 0010 08d5 b96a
+ret 0  handle ffff
+[ 8686.470599] dvb-ttpci: StartHWFilter error  buf 0b07 0010 08d6 b96a
+ret 0  handle ffff
+[ 8687.506259] dvb-ttpci: StartHWFilter error  buf 0b07 0010 08de b96a
+ret 0  handle ffff
+[ 8688.547456] dvb-ttpci: StartHWFilter error  buf 0b07 0010 08df b96a
+ret 0  handle ffff
+[ 8689.581923] dvb-ttpci: StartHWFilter error  buf 0b07 0010 08e0 b96a
+ret 0  handle ffff
+[ 8690.621384] dvb-ttpci: StartHWFilter error  buf 0b07 0010 08e8 b96a
+ret 0  handle ffff
+[ 8691.662852] dvb-ttpci: StartHWFilter error  buf 0b07 0010 08ed b96a
+ret 0  handle ffff
+[ 8692.697318] dvb-ttpci: StartHWFilter error  buf 0b07 0010 08f7 b96a
+ret 0  handle ffff
 
-> but this only 
-> solves today's problem, it doesn't help with ISDB-T, DVB-H, CMMB, 
-> ATSC-MH etc.
 
-I think today's problem (really yesterday's) is large enough to justify being solved 
--- DVB-S2 hardware is now very common amongst end users and popular and drivers
-are written and working. It would allow most of the out-of-kernel drivers to be merged
-wouldn't it?
+I tried to eliminate common factors between working and erroneous
+channels.
+So far I think I ruled out....Symbol rate, FEC, frequency, transponder,
+provider.
 
-Of course it would be nicer to support lots of other hardware but so far nobody has
-merged the more capable multiproto API. It seems to be too big a pill to swallow.
+In most cases the sequence repeats itself, sometimes after 2 errors,
+sometimes
+after more errors. Judging from the display quality, also the
+signalstrength is good. (except from a thin horizontal line where the screen
+seems to split)
+I tried firmware versions d and f and use the latest v4l-dvb drivers
 
-Even if a more capable API were merged today, it would be unwise to consider the API 
-fixed forever. It will need to continue to change as new hardware standards are developed.
-Three of the four standards you mentioned are not even explicitly supported in multiproto
-(is ATSC-M/H even final?). Anyway, perhaps by concentrating on solving the current problems
-we can create an example and precedent of how to complete API upgrades successfully
-without going off the rails for years.
+dvb_core               81404  2 stv0299,dvb_ttpci
+saa7146_vv             50304  1 dvb_ttpci
+saa7146                20360  2 dvb_ttpci,saa7146_vv
 
-> ... as I say, the wheels are turning so keep watching this mailing list.
+Since this happens every second, its filling up my logs quite well...I
+cant even troubleshoot something else..
 
-Tantalising.... Do you mean you and Darron are working on something? Or you 
-know of something else specific?
+Any help is greatly appreciated, even a suggestion for a good replacement
+receiver card, if this is a problem with my card. It has to support 2 CI
+interfaces though.
 
-Hans
+Johan
 
--- 
-Release early, release often. Really, you should.
+------=_Part_100045_31993214.1218996495292
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-GMX startet ShortView.de. Hier findest Du Leute mit Deinen Interessen!
-Jetzt dabei sein: http://www.shortview.de/wasistshortview.php?mc=sv_ext_mf@gmx
+<div dir="ltr">Hi<br>
+<br>
+I am getting this error, only when watching or recording certain<br>
+(unfortunately most of the dutch) satellite channels.<br>
+<br>
+The receiver card is a FF 2.1 Hauppauge (Nexus-s)<br>
+<br>
+&nbsp;dmesg |tail<br>
+[ 8683.364276] dvb-ttpci: StartHWFilter error &nbsp;buf 0b07 0010 08cf b96a<br>
+ret 0 &nbsp;handle ffff<br>
+[ 8684.401584] dvb-ttpci: StartHWFilter error &nbsp;buf 0b07 0010 08d4 b96a<br>
+ret 0 &nbsp;handle ffff<br>
+[ 8685.436105] dvb-ttpci: StartHWFilter error &nbsp;buf 0b07 0010 08d5 b96a<br>
+ret 0 &nbsp;handle ffff<br>
+[ 8686.470599] dvb-ttpci: StartHWFilter error &nbsp;buf 0b07 0010 08d6 b96a<br>
+ret 0 &nbsp;handle ffff<br>
+[ 8687.506259] dvb-ttpci: StartHWFilter error &nbsp;buf 0b07 0010 08de b96a<br>
+ret 0 &nbsp;handle ffff<br>
+[ 8688.547456] dvb-ttpci: StartHWFilter error &nbsp;buf 0b07 0010 08df b96a<br>
+ret 0 &nbsp;handle ffff<br>
+[ 8689.581923] dvb-ttpci: StartHWFilter error &nbsp;buf 0b07 0010 08e0 b96a<br>
+ret 0 &nbsp;handle ffff<br>
+[ 8690.621384] dvb-ttpci: StartHWFilter error &nbsp;buf 0b07 0010 08e8 b96a<br>
+ret 0 &nbsp;handle ffff<br>
+[ 8691.662852] dvb-ttpci: StartHWFilter error &nbsp;buf 0b07 0010 08ed b96a<br>
+ret 0 &nbsp;handle ffff<br>
+[ 8692.697318] dvb-ttpci: StartHWFilter error &nbsp;buf 0b07 0010 08f7 b96a<br>
+ret 0 &nbsp;handle ffff<br>
+<br>
+<br>
+I tried to eliminate common factors between working and erroneous<br>
+channels.<br>
+So far I think I ruled out....Symbol rate, FEC, frequency, transponder,<br>
+provider.<br>
+<br>
+In most cases the sequence repeats itself, sometimes after 2 errors, sometimes<br>
+after more errors. Judging from the display quality, also the<br>
+signalstrength is good. (except from a thin horizontal line where the screen seems to split)<br>
+I tried firmware versions d and f and use the latest v4l-dvb drivers<br>
+<br>
+dvb_core &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 81404 &nbsp;2 stv0299,dvb_ttpci<br>
+saa7146_vv &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 50304 &nbsp;1 dvb_ttpci<br>
+saa7146 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;20360 &nbsp;2 dvb_ttpci,saa7146_vv<br>
+<br>
+Since this happens every second, its filling up my logs quite well...I<br>
+cant even troubleshoot something else..<br>
+<br>
+Any help is greatly appreciated, even a suggestion for a good replacement receiver card, if this is a problem with my card. It has to support 2 CI interfaces though.<br>
+<br>
+Johan</div>
+
+------=_Part_100045_31993214.1218996495292--
+
+
+--===============2059643195==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2059643195==--
