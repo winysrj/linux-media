@@ -1,22 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7LMgms9022729
-	for <video4linux-list@redhat.com>; Thu, 21 Aug 2008 18:42:49 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7LMgal8031839
-	for <video4linux-list@redhat.com>; Thu, 21 Aug 2008 18:42:37 -0400
-Date: Thu, 21 Aug 2008 19:42:25 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Dean A." <dean@sensoray.com>
-Message-ID: <20080821194225.6ef1af35@mchehab.chehab.org>
-In-Reply-To: <tkrat.e703f589e6ff1d88@sensoray.com>
-References: <tkrat.e703f589e6ff1d88@sensoray.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7HCvI5N007727
+	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 08:57:18 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7HCuq4g007109
+	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 08:56:52 -0400
+Message-ID: <48A81B11.3080308@hhs.nl>
+Date: Sun, 17 Aug 2008 14:35:29 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <489AD045.7030404@hhs.nl>
+	<200808071237.47230.laurent.pinchart@skynet.be>
+	<1218186636.1734.13.camel@localhost>
+	<200808081129.02118.hverkuil@xs4all.nl>
+In-Reply-To: <200808081129.02118.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: greg@kroah.com, video4linux-list@redhat.com, dean@sensoray.com
-Subject: Re: [PATCH] s2255drv for 2.6.27-rc2: firmware loading improved,
- kfree bug fixed
+Cc: video4linux-list@redhat.com
+Subject: Re: RFC: adding a flag to indicate a webcam sensor is installed
+ upside down
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,82 +31,120 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Dean,
-
-On Thu, 7 Aug 2008 16:21:34 -0700 (PDT)
-"Dean A." <dean@sensoray.com> wrote:
-
-> From: Dean Anderson <dean@sensoray.com>
+Hans Verkuil wrote:
+> On Friday 08 August 2008 11:10:36 Jean-Francois Moine wrote:
+>> On Thu, 2008-08-07 at 12:37 +0200, Laurent Pinchart wrote:
+>>> On Thursday 07 August 2008, Hans de Goede wrote:
+>>>> Hi all,
+>>>>
+>>>> I have this Philips SPC 200NC webcam, which has its sensor
+>>>> installed upside down and the sensor does not seem to support
+>>>> flipping the image. So I believe the windows drivers fix this
+>>>> little problem in software.
+>>>>
+>>>> I would like to add a flag somewhere to indicate this to
+>>>> userspace (and then add flipping code to libv4l).
+>>>>
+>>>> I think the best place for this would the flags field of the
+>>>> v4l2_fmtdesc struct. Any other ideas / objections to this?
+>>> More often than sensors being mounted upside down in a webcam, what
+>>> I've noticed frequently is webcam modules being mounted upside down
+>>> in a laptop screen. There is no way that I'm aware of to check the
+>>> module orientation based on the USB descriptors only. We will need
+>>> a pure userspace solution.
+>> Agree.
+>>
+>> Having a horizontal or vertical inversion may exist in any webcam
+>> (and tuner?), and may be the fact of wire inversion when assembling
+>> the device. So, having a flag in the driver could not work with
+>> hardware error.
+>>
+>> If the sensor (or bridge?) may do H or V flip, we are done. If not,
+>> this may be done by software, but in the userspace, i.e. at decoding
+>> time.
+>>
+>> What I propose is to add a check of the control commands
+>> V4L2_CID_HFLIP and V4L2_CID_VFLIP in the v4l library: if the driver
+>> does not have these controls, the library silenctly adds them and
+>> handles their requests. Then, at frame decoding time, the hflip and
+>> vflip may be given to the decoding functions.
+>>
+>> How do you feel it, Hans?
 > 
-> This patch fixes timer issues in driver disconnect.
-> It also removes the restriction of one user per channel at a time.
-> Adds handshaking with USB firmware to confirm proper loading.
+> I'm a different Hans :-), but I was thinking along the same lines. 
+> Having the v4l lib implement HFLIP/VFLIP if the driver doesn't seems 
+> like a good idea.
 > 
+> I also think that the UPSIDEDOWN flag doesn't belong to v4l2_fmtdesc 
+> since this is a global property, not specific to a format. I would 
+> suggest adding it to v4l2_capability instead: 
+> V4L2_CAP_SENSOR_UPSIDE_DOWN. It should only be set if you know that the 
+> sensor is always upside down for that specific device and if there is 
+> no VFLIP capability (because if there is, then you can VFLIP by default 
+> for that device).
 > 
-> Signed-off-by: Dean Anderson <dean@sensoray.com>
-
-There's something wrong with your patch (tested on both Linus tree and devel
-tree). It seems that some changes were applied by a previous patch. Also,
-please generate it against the latest devel tree, since some API changes
-happened there. The devel tree is at:
-	http://linuxtv.org/hg/v4l-dvb
 
 
-patching file drivers/media/video/s2255drv.c
-Hunk #1 succeeded at 67 (offset 3 lines).
-Hunk #3 succeeded at 155 (offset 3 lines).
-Hunk #4 FAILED at 187.
-Hunk #5 succeeded at 200 (offset 1 line).
-Hunk #6 succeeded at 248 (offset 3 lines).
-Hunk #7 FAILED at 280.
-Hunk #8 FAILED at 289.
-Hunk #9 succeeded at 312 (offset -5 lines).
-Hunk #10 succeeded at 422 (offset 3 lines).
-Hunk #11 FAILED at 492.
-Hunk #12 FAILED at 512.
-Hunk #13 succeeded at 552 (offset -1 lines).
-Hunk #14 succeeded at 588 (offset 3 lines).
-Hunk #15 succeeded at 618 (offset -1 lines).
-Hunk #16 succeeded at 650 (offset 3 lines).
-Hunk #17 succeeded at 659 (offset -1 lines).
-Hunk #18 FAILED at 790.
-Hunk #19 FAILED at 801.
-Hunk #20 succeeded at 1035 (offset 13 lines).
-Hunk #21 succeeded at 1082 (offset -1 lines).
-Hunk #22 succeeded at 1158 (offset 13 lines).
-Hunk #23 succeeded at 1190 (offset -1 lines).
-Hunk #24 succeeded at 1219 (offset 13 lines).
-Hunk #25 succeeded at 1214 (offset -1 lines).
-Hunk #26 FAILED at 1257.
-Hunk #27 succeeded at 1297 (offset 13 lines).
-Hunk #28 FAILED at 1327.
-Hunk #29 FAILED at 1483.
-Hunk #30 FAILED at 1500.
-Hunk #31 succeeded at 1588 (offset 4 lines).
-Hunk #32 FAILED at 1613.
-Hunk #33 FAILED at 1636.
-Hunk #34 FAILED at 1686.
-Hunk #35 succeeded at 1743 (offset 24 lines).
-Hunk #36 succeeded at 1810 (offset 7 lines).
-Hunk #37 succeeded at 1846 (offset 24 lines).
-Hunk #38 succeeded at 1954 (offset 7 lines).
-Hunk #39 succeeded at 1993 (offset 24 lines).
-Hunk #40 succeeded at 2001 (offset 7 lines).
-Hunk #41 succeeded at 2102 (offset 24 lines).
-Hunk #42 succeeded at 2122 (offset 7 lines).
-Hunk #43 succeeded at 2314 (offset 24 lines).
-Hunk #44 succeeded at 2307 (offset 7 lines).
-Hunk #45 succeeded at 2356 (offset 24 lines).
-Hunk #46 succeeded at 2409 (offset 7 lines).
-Hunk #47 succeeded at 2452 (offset 24 lines).
-Hunk #48 succeeded at 2465 (offset 7 lines).
-Hunk #49 succeeded at 2503 (offset 24 lines).
-Hunk #50 succeeded at 2519 (offset 7 lines).
-14 out of 50 hunks FAILED -- saving rejects to file drivers/media/video/s2255drv.c.rej
+I agree that this is a per device thing, and that the flag thus should 
+be moved to v4l2_capability. I'll redo a new patch against the gspca 
+zc3xx driver with the flag moved to v4l2_capability.
 
 
-Cheers,
-Mauro
+About adding fake controls for HFLIP VFLIP to libv4l for devices which 
+don't do this natively. This might be good to have, but my current patch 
+for the upside down issue only supports. 180 degree rotation so, both 
+vflip and hflip in one go.
+
+Adding support for doing just vflip or just hflip is possible, but will 
+take some time.
+
+Also faking v4l2 controls currently is not done yet in libv4l, so doing 
+this requires adding some infrastructure. All doable, but not at the top 
+of my todo list at the moment.
+
+
+As I see it there are 3 kind of upsidedown problems:
+
+1) The sensor is upside down, and we can easily detect in the driver (by
+usb id for example) and the driver does not support vflip and/or
+hflip in the hardware. Solution: set a capability flag indicating this 
+(and then in libv4l flip the image back in software, I've already 
+written support for this).
+(Note when h and vflip are supported the driver should invert the 
+meaning of the ctrl's so that the image ends up the right way up).
+
+2) The sensor is upside down, and we can not easily detect this in the 
+driver, but we can detect it in userspace. For example a sensor mounted 
+upside down in the screen bevel of a laptop, which we can detect be 
+determining the model of laptop from dmi strings as hal already does for 
+things like setting up bindings of special keyb keys and for enabling 
+suspend / resume problem workarounds.
+
+Proposed solution: Give userspace (hal) a way to tell the kernel that 
+the sensor is upside down, I'm thinking about a sysfs file for each 
+video device here myself. and then let the kernel behave as scenario 1.
+
+3) There is no way to tell the sensor is upside down. Proposed solution 
+write a videodev preferences gui, where this can be indicated and then 
+use the sysfs file mentioned in 2) to tell the kernel about the sensor 
+being upside down. Note that currently no practical examples of this 
+version of the problem are known.
+
+
+I'm currently focussing on 1)  as I actually have a cam which has its 
+sensor upside down and has a unique device id. I'll submit a new patch 
+against gspca adding a capability flag to indicate the image is upside 
+down and adjust my libv4l patches to check for this flag and do flipping 
+in sw when its set.
+
+When this is in place adding a sysfs entry which allows userspace to set 
+this flag should be easy.
+
+Regards,
+
+Hans
+
+
 
 --
 video4linux-list mailing list
