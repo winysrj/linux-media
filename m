@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TKbtxc011155
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 16:37:56 -0400
-Received: from mailrelay012.isp.belgacom.be (mailrelay012.isp.belgacom.be
-	[195.238.6.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7TKbi0N001716
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 16:37:45 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7HKDpmm027673
+	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 16:13:51 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.233])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7HKDhbJ013445
+	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 16:13:43 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so3848211rvb.51
+	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 13:13:42 -0700 (PDT)
+Message-ID: <6f278f100808171313j2764641ase8076781993f9a8e@mail.gmail.com>
+Date: Sun, 17 Aug 2008 22:13:42 +0200
+From: "Theou Jean-Baptiste" <jbtheou@gmail.com>
 To: video4linux-list@redhat.com
-Date: Fri, 29 Aug 2008 22:37:44 +0200
+In-Reply-To: <6f278f100808171258r609757a0r1a605ffd9ddee0f1@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+References: <6f278f100808171248s53633e27xce36cbbf123c5e0a@mail.gmail.com>
+	<6f278f100808171258r609757a0r1a605ffd9ddee0f1@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
-Message-Id: <200808292237.44875.laurent.pinchart@skynet.be>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] uvcvideo: Supress spurious "EOF in empty payload" trace
-	message
+Subject: Re: [PATCH] Add support for OmniVision OV534 based USB cameras.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,40 +30,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Pass the payload size instead of the header size to uvc_video_decode_end() to
-avoid generating an extra trace message for each frame.
+One more thing again ......
+It seems to be "dev->vfd->minor" (line 1339) who return '-1'
+If this info can help you .....
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
----
- drivers/media/video/uvc/uvc_video.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+2008/8/17 Theou Jean-Baptiste <jbtheou@gmail.com>
 
-diff --git a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
-index 6854ac7..0b7fc5d 100644
---- a/drivers/media/video/uvc/uvc_video.c
-+++ b/drivers/media/video/uvc/uvc_video.c
-@@ -455,7 +455,8 @@ static void uvc_video_decode_isoc(struct urb *urb,
- 			urb->iso_frame_desc[i].actual_length - ret);
- 
- 		/* Process the header again. */
--		uvc_video_decode_end(video, buf, mem, ret);
-+		uvc_video_decode_end(video, buf, mem,
-+			urb->iso_frame_desc[i].actual_length);
- 
- 		if (buf->state == UVC_BUF_STATE_DONE ||
- 		    buf->state == UVC_BUF_STATE_ERROR)
-@@ -512,7 +513,7 @@ static void uvc_video_decode_bulk(struct urb *urb,
- 	    video->bulk.payload_size >= video->bulk.max_payload_size) {
- 		if (!video->bulk.skip_payload && buf != NULL) {
- 			uvc_video_decode_end(video, buf, video->bulk.header,
--				video->bulk.header_size);
-+				video->bulk.payload_size);
- 			if (buf->state == UVC_BUF_STATE_DONE ||
- 			    buf->state == UVC_BUF_STATE_ERROR)
- 				buf = uvc_queue_next_buffer(&video->queue, buf);
--- 
-1.5.6.4
+> One more thing, when he halt in her system, the halt "freeze", and when h=
+e
+> unplugged her webcam, he observe that :
+>
+> /dev/video-1 released
+>
+> 2008/8/17 Theou Jean-Baptiste <jbtheou@gmail.com>
+>
+> Hi. I'm the EasyCam Dev, a ubuntu software who make the webcam install
+>> easier ( I hope )
+>> I use this patch in my software. One user had try this patch, and after
+>> install, he observe in dmesg output :
+>>
+>> [21222.334007] usb 1-2: new high speed USB device using ehci_hcd and
+>> address 9
+>> [21222.395446] usb 1-2: configuration #1 chosen from 1 choice
+>> [21222.399771] /usr/share/EasyCam2/drivers/ov534/v4l/ov534.c: OmniVision
+>> OV534 compatible webcam detected
+>> [21222.399778] /usr/share/EasyCam2/drivers/ov534/v4l/ov534.c: 06f8:3002
+>> Hercules Blog Webcam found
+>> [21222.438333] /usr/share/EasyCam2/drivers/ov534/v4l/ov534.c: ov534
+>> controlling video device -1
+>>
+>> Thanks you very much for your job
+>>
+>> Best regards, and sorry for my bad english
+>>
+>> --
+>> Jean-Baptiste Th=E9ou
+>>
+>
+>
+>
+> --
+> Jean-Baptiste Th=E9ou
+>
 
+
+
+--=20
+Jean-Baptiste Th=E9ou
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
