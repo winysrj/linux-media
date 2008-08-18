@@ -1,25 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7R3kaHr018365
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 23:46:37 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7R3kMFH032568
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 23:46:22 -0400
-From: Andy Walls <awalls@radix.net>
-To: Trent Piepho <xyzzy@speakeasy.org>
-In-Reply-To: <Pine.LNX.4.58.0808261911000.2423@shell2.speakeasy.net>
-References: <200808251445.22005.jdelvare@suse.de>
-	<1219711251.2796.47.camel@morgan.walls.org>
-	<20080826232913.GA2145@daniel.bse>
-	<Pine.LNX.4.58.0808261911000.2423@shell2.speakeasy.net>
-Content-Type: text/plain
-Date: Tue, 26 Aug 2008 23:45:10 -0400
-Message-Id: <1219808710.2929.8.camel@morgan.walls.org>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7IHHhI9020662
+	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 13:17:44 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.189])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7IHHJ75019670
+	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 13:17:20 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1202894nfc.21
+	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 10:17:19 -0700 (PDT)
+Message-ID: <de8cad4d0808181017q1c2467c2g74973deb1c70db97@mail.gmail.com>
+Date: Mon, 18 Aug 2008 13:17:18 -0400
+From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
+To: "Andy Walls" <awalls@radix.net>
+In-Reply-To: <de8cad4d0808180335l7a6f9377m97c3eff844e187ee@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
-	Jean Delvare <jdelvare@suse.de>
-Subject: Re: [v4l-dvb-maintainer] bttv driver questions
+Content-Disposition: inline
+References: <de8cad4d0808051804l13d1b66cs9df26cc43ba6cfd6@mail.gmail.com>
+	<1217986174.5252.7.camel@morgan.walls.org>
+	<de8cad4d0808060357r4849d935k2e61caf03953d366@mail.gmail.com>
+	<1218070521.2689.15.camel@morgan.walls.org>
+	<de8cad4d0808070636q4045b788s6773a4e168cca2cc@mail.gmail.com>
+	<1218205108.3003.44.camel@morgan.walls.org>
+	<de8cad4d0808111433y4620b726wc664a06d7422e883@mail.gmail.com>
+	<1218939204.3591.25.camel@morgan.walls.org>
+	<de8cad4d0808180335l7a6f9377m97c3eff844e187ee@mail.gmail.com>
+Cc: Waffle Head <narflex@gmail.com>, video4linux-list@redhat.com,
+	linux-dvb@linuxtv.org, ivtv-devel@ivtvdriver.org
+Subject: Re: CX18 Oops
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,20 +39,91 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 2008-08-26 at 19:20 -0700, Trent Piepho wrote:
-> On Wed, 27 Aug 2008, Daniel [iso-8859-1] Glckner wrote:
+On Mon, Aug 18, 2008 at 6:35 AM, Brandon Jenkins <bcjenkins@tvwhere.com> wrote:
+> On Sat, Aug 16, 2008 at 10:13 PM, Andy Walls <awalls@radix.net> wrote:
+>> On Mon, 2008-08-11 at 17:33 -0400, Brandon Jenkins wrote:
+>>> On Fri, Aug 8, 2008 at 10:18 AM, Andy Walls <awalls@radix.net> wrote:
+>>> > Brandon,
+>>> >
+>>> > I have checked in a fix to defend against the Ooops we both encountered.
+>>> > The fix will also generate a WARN dump and some queue stats when it runs
+>>> > across the cause, but will otherwise try to clean up as best it can to
+>>> > allow further operation.
+>>> >
+>>> > The band-aid fix is the latest change at
+>>> >
+>>> > http://linuxtv.org/hg/~awalls/v4l-dvb
+>>> >
+>>> > Please provide the extra debug that happens if you encounter the warning
+>>> > in your logs.  I have only encountered the problem twice over a several
+>>> > month period, so its hard to get insight into the root cause buffer
+>>> > accounting error at that rate.
+>>>
+>>> Andy,
+>>>
+>>> I had an oops today, first one in a few days
+>>>
+>>> Brandon
+>>
+>> Brandon & Jeff,
+>>
+>> I have updated my repo at
+>>
+>> http://linuxtv.org/hg/~awalls/v4l-dvb
+>>
+>> with 3 changes:
+>>
+>> 1. Back out the original band aid fix
+>> 2. Simplify the queue flush routines (you will not see that oops again)
+>> 3. Fix the interrupt handler to obtain a queue lock (prevents queue
+>> corruption)
+>>
+>> >From most of the output you provided, it was pretty obvious that q_full
+>> was always claiming to have more buffers that it actually did.  I
+>> hypothesized this could come about at the end of a capture when the
+>> encoder hadn't really stopped transferring buffers yet (after we told it
+>> to stop) and then we try to clear q_full while the interrupt handler is
+>> still trying to add buffers.  This could happen because the interrupt
+>> handler never (ever) properly obtained a lock for manipulating the
+>> queues.  This could have been causing the queue corruption.
+>>
+>> Please test.  I need feedback that I haven't introduced a deadlock.
+>>
+>> It also appears that the last change requiring the interrupt handler to
+>> obtain a lock, completely mitigates me having to use the "-cache 8192"
+>> option to mplayer for digital captures, and greatly reduces the amount
+>> of cache I need to have mplayer use for analog captures.
+>>
+> [snip]
+>
+> Andy,
+>
+> I have update to the new code. Interestingly now I am getting audio
+> noises (chirping) while watching TV. Is there anything which has been
+> done that could affect sound?
+>
+> Otherwise no issues thus far.
+>
+> Brandon
+>
+Andy,
 
-> Isn't the latency timer in units of 250 ns, not PCI cycles?
+I also seeing these messages in dmesg:
 
-Latency timer is in PCI clock cycles.  Most devices ignore the 3 least
-significant bits of the setting (as allowed/suggested by the PCI spec),
-making most latency timers as multiple of 8 PCI clock cycles.  
+[65288.817420] cx18-0: Cannot find buffer 58 for stream TS
+[65288.817440] cx18-0: Could not find buf 58 for stream TS
+[65840.130797] cx18-0: Cannot find buffer 17 for stream TS
+[65840.130797] cx18-0: Could not find buf 17 for stream TS
+[65861.882721] cx18-0: Cannot find buffer 48 for stream TS
+[65861.882741] cx18-0: Could not find buf 48 for stream TS
+[66151.627392] cx18-0: Cannot find buffer 107 for stream encoder MPEG
+[66151.627392] cx18-0: Could not find buf 107 for stream encoder MPEG
+[67632.953680] cx18-0: Cannot find buffer 99 for stream encoder MPEG
+[67632.953680] cx18-0: Could not find buf 99 for stream encoder MPEG
+[67795.527911] cx18-0: Cannot find buffer 106 for stream encoder MPEG
+[67795.527911] cx18-0: Could not find buf 106 for stream encoder MPEG
 
-MIN_GNT and MAX_LAT are in units of 250 ns according to the PCI spec.
-I'm assuming it's no coincidence that 8 PCI clock cycles = 8/33 MHZ =
-242.4 ns or approximately 250 ns.
-
--Andy
+Brandon
 
 --
 video4linux-list mailing list
