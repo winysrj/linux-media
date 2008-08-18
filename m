@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.169])
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ma3oxuct@gmail.com>) id 1KPiAC-0001B3-UH
-	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 20:18:42 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so1559453wfd.17
-	for <linux-dvb@linuxtv.org>; Sun, 03 Aug 2008 11:18:35 -0700 (PDT)
-Message-ID: <350fc7cf0808031118p2ded004dk5c3d160775abc272@mail.gmail.com>
-Date: Sun, 3 Aug 2008 11:18:35 -0700
-From: "Andrey Falko" <ma3oxuct@gmail.com>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
+	(envelope-from <stev391@email.com>) id 1KUsBd-0002cy-Av
+	for linux-dvb@linuxtv.org; Mon, 18 Aug 2008 02:01:30 +0200
+Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
+	[192.168.8.242])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
+	8B32C180030C
+	for <linux-dvb@linuxtv.org>; Mon, 18 Aug 2008 00:00:53 +0000 (GMT)
 Content-Disposition: inline
-Subject: [linux-dvb] Need advice for HVR-1800
+MIME-Version: 1.0
+From: stev391@email.com
+To: "Robert Golding" <robert.golding@gmail.com>
+Date: Mon, 18 Aug 2008 10:00:53 +1000
+Message-Id: <20080818000053.793B8BE4078@ws1-9.us4.outblaze.com>
+Cc: linux dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200
+ H - DVB Only support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,61 +30,68 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-I suspect that my HVR-1800 has a hardware defect where, it can't get
-signals via ATSC or NTSC. Before I send it back, I'd like to know if
-I'm doing something wrong or if I'm missing something. I've never had
-or played with a tuner card.
+> It seems that kernel 2.6.27 (what I was using) is different enough
+> that the modules and fw from Stephens downloads won't work properly.
 
-First, I get my kernel to support the card by compiling the cx23885
-module. After modprobing cx23885, I get /dev/dvb/adapter0/ folder as
-well as a /dev/v4l folder containing video0 and video1.
+> I went back to 2.6.25 and it worked there, so I tried 2.6.26 and it
+> worked there as well.
 
-The next thing I did was try dvbscan
-/usr/share/dvb/atsc/us-CA-SF-Bay-Area . I am located in the Bay Area.
-I tried some other files in that directory, but none of them was able
-to tune to a frequency.
+> These are the steps I had to do so it would load properly;
+> 1) Compile kernel WITHOUT 'multimedia'
+> i.e. #
+> # Multimedia devices
+> #
+> 
+> #
+> # Multimedia core support
+> #
+> # CONFIG_VIDEO_DEV is not set
+> # CONFIG_DVB_CORE is not set
+> # CONFIG_VIDEO_MEDIA is not set
 
-Next, I tried running w_scan -a 0, this gave me the following output:
+> #
+> # Multimedia drivers
+> #
+> # CONFIG_DAB is not set
 
-w_scan version 20060902
--_-_-_-_ Getting frontend capabilities-_-_-_-_
--_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-ERROR: Sorry - i couldn't get any working frequency/transponder
- Nothing to scan!!
-dumping lists (0 services)
-Done.
+> & reboot with new kernel (if it was the kernel you were already booted
+> too, don't bother)
 
-I then tried dtvsignal from pcHDTV, it gave me this output:
+> 2) Download Stephens latest media patches
+> #> wget http://linuxtv.org/hg/~stoth/v4l-dvb/archive/tip.tar.bz2
+> extract to current dir, then;
+> #> make all
+> #> make install
 
-# ./dtvsignal -dvb 0
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 57000000 Hz
-video pid 0x0021, audio pid 0x0024
-dtvsignal ver 1.0.7 - by Jack Kelliher (c) 2002-2007
-channel = 2 freq = 57000000Hz
- 30db       0%         25%         50%         75%        100%
-Signal:     |     .     :     .     |     ._____:_____._____|
-Signal: 000 .
+> 3) Download Stephens firmware and follow instructions in
+> /Documentation/video4linux/extract_xc3028.pl
 
-The HVR-1800 had two ports, an ATSC and TV Cable. I tried both w_scan
-and dtvsignal over both ports. I also tried to different cables with
-each.
+> 4) Reboot machine to load all the correct modules and fw, then open
+> favourite tuner prog (I use Me-TV) and enjoy the viewing.
 
-If I tell mplayer to use analog tv, I get a green screen. VLC gives me
-static. Without channels.conf mplayer should not play dtv. VLC
-reported that it could not tune.
+> --
+> Regards,	Robert
 
-Unfortunately for debugging purposes I don't have either a Windows OS
-nor a TV that I can hook up.
+Robert,
 
-Should I buy an antenna? Return this card? Or is there something else
-I can try or something that I am missing?
+I'm glad you got it working.
 
-Thank you in advance for any help.
+The v4l-dvb drivers will not work against a kernel that has the video/multimedia drivers compiled in to the kernel.  
+When you compile your kernel you select the above options, which you disabled, as modules and this will also allow the v4l-dvb drivers to be compiled as modules and overwrite the older drivers.
 
--Andrey
+If the kernel you were using, that it didn't work against, was part of a distro, perhaps a bug report to them about their kernel config should be sent...
+
+Regards,
+
+Stephen.
+
+
+-- 
+Be Yourself @ mail.com!
+Choose From 200+ Email Addresses
+Get a Free Account at www.mail.com
+
 
 _______________________________________________
 linux-dvb mailing list
