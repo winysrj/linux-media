@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n66.bullet.mail.sp1.yahoo.com ([98.136.44.50])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KYZ4A-0002pN-0h
-	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 06:25:06 +0200
-Date: Wed, 27 Aug 2008 21:24:26 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: linux-dvb@linuxtv.org, Hans Werner <HWerner4@gmx.de>
-In-Reply-To: <20080827204250.271660@gmx.net>
+Received: from wa-out-1112.google.com ([209.85.146.181])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <beth.null@gmail.com>) id 1KV6wb-00089j-Vd
+	for linux-dvb@linuxtv.org; Mon, 18 Aug 2008 17:46:59 +0200
+Received: by wa-out-1112.google.com with SMTP id n7so1373819wag.13
+	for <linux-dvb@linuxtv.org>; Mon, 18 Aug 2008 08:46:53 -0700 (PDT)
+Message-ID: <7641eb8f0808180846r146a12f5ue4b33cae4a6b096a@mail.gmail.com>
+Date: Mon, 18 Aug 2008 17:46:53 +0200
+From: Beth <beth.null@gmail.com>
+To: sacha <sacha@hemmail.se>
+In-Reply-To: <1219063006.13296.21.camel@lanbox>
 MIME-Version: 1.0
-Message-ID: <613687.9380.qm@web46107.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for VDR
-	1.7.0
-Reply-To: free_beer_for_all@yahoo.com
+Content-Disposition: inline
+References: <1219058838.13296.16.camel@lanbox>
+	<7641eb8f0808180440t15a4ebb8m4da81a6a1acb2770@mail.gmail.com>
+	<1219063006.13296.21.camel@lanbox>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Precompiled dvb-apps package for AMD64 Ubuntu Hardy?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,98 +24,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Wed, 8/27/08, Hans Werner <HWerner4@gmx.de> wrote:
+Hi sacha, I didn't see the 64 bits requirement :( (what a mess), I am
+using a 32 bits system, maybe this will be the problem I don't know,
+if you are interested in the 32bits one I will send them to you.
 
-> Barry, thanks for your messge. You didn't say whether you tried what
-> I did with HVR4000+liplianindvb+szap2 (-p option). 
+Bye.
 
-First, my apologies -- I've only been half-reading all the
-messages, without really paying attention to things that do
-not immediately concern me, and I probably should have kept
-quiet.
-
-Second, I don't have any DVB-S2 hardware yet, though the HVR4000
-has been on my Interest-O-Meter -- nor is my machine fast enough
-to play any streams in realtime, so I'm always writing a file
-(which takes little CPU power) for playback later; in the case
-of H.264 1080i video, I see at best part of one, two, or maybe
-three full frames per second, which actually gives me time to
-judge the quality of the video compression.
-
-So, no, I haven't tried that, but I'm confused -- based on your
-posted debug output, it looked as though you were playing a
-recorded file, testfile_anixe.ts ...
-
-
-The output you gave reminded me of that of ITV-HD, which uses
-some (PAFF?) encoding for which mplayer recently got support,
-so I posted, in case you had a distro-supplied player.
-
-
-> I regularly update mplayer from SVN and recompile too.  I
-> have tried the following:
-> 
-> MPlayer dev-SVN-r27489-4.1.2  (today!): runs but video very
-> slow and out of sync, audio ok.
-> MPlayer dev-SVN-r27341-4.1.2  (about 1 month old): crashes
-> in <1s
-
-Good to know, and thanks for making me look like a fool, and
-I'm happy for it.  No, really.  It's not just worth it for its
-own sake, but if it helps others, that's even better.
-
-
-> And I have some sample TS files for Astra HD+ made with
-> another card which all the
-> mplayers play perfectly so I know h264 is working.
-
-I am going to plead ignorance of what does, and what does not
-work for you.  Please correct me where I ass-u-me wrong:
-
-arte HD plays fine for you, both from a recorded TS file, and
-live from szap2.
-
-Anixe HD / Astra HD+ play fine from recorded files from another
-machine.
-
-Anixe HD played from your anixe.ts file crashed?
-Anixe HD played from szap2 crashed?
+2008/8/18 sacha <sacha@hemmail.se>:
+> Hi
+>
+> I followed the same instructions several time now without success.
+> I have always compilation errors.
+> Maybe you can send me your binary for scan, szap and szap2?
+>
+> KR
+> On Mon, 2008-08-18 at 13:40 +0200, Beth wrote:
+>> Hi I had followed the instructions on
+>> http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_S2_PCI_HD_CI#Install_=
+dvb-apps_.28scan.2Fszap2_based_on_DVB_API_3.3.29_.28Testing_based_on_revisi=
+on_1200.29
+>> and I successfully compiled the dvb-apps, I have the same kernel and
+>> ubuntu version.
+>>
+>> Bye.
+>>
+>> 2008/8/18 sacha <sacha@hemmail.se>:
+>> > Hello
+>> >
+>> > I cannot get it work Twinhan VP-1041/Azurewave AD SP400  on Ubuntu 8.04
+>> > Linux 2.6.24-19-generic #1 SMP Wed Jun 18 14:15:37 UTC 2008 x86_64
+>> > GNU/Linux.
+>> > Driver seems OK but standard dvb-apps do not work. Compilation of the
+>> > alternative scan and szap fails for me.
+>> > I thank you everybody who tried to help me!
+>> > I spent quite a time with that now and feels that cannot fix it self.
+>> > I wonder if maybe someone can provide me with working dvb-apps package
+>> > for my system?
+>> >
+>> > KR
+>> >
+>> >
+>> > _______________________________________________
+>> > linux-dvb mailing list
+>> > linux-dvb@linuxtv.org
+>> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>> >
+>>
+>>
+>>
+>
+>
 
 
-I pointed out the different debug output from BBC-HD/ITV-HD to
-show that of ITV matched your errors, and that's using an encoding
-for which support has only within the last month or two appeared
-in mplayer, and will not be as mature as the support used by
-other streams.
 
+-- =
 
-Just a thought, if you cannot play a realtime stream, is that the
-decoder needs to do seeking within the stream, which it could do
-within a file, but the support is not yet mature enough to be able
-to do the same within a stream.  I could be completely wrong...
+---------------------------------------------------
+Jos=E9 Antonio Robles
 
+beth.null@gmail.com
 
-If you have short examples of recorded files that crash, and others
-from the same source that play properly, I'd be interested to be
-able to download them and look for obvious problems.
+661 960 119
 
-And likewise, if I'm not understanding where you have success and
-failures with mplayer, please correct me, if you think it's worth
-it, as I don't have the hardware to test on my own.
-
-
-thanks,
-barry bouwsma
-
-
-      
-
+Sometimes something happens ...
+---------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
