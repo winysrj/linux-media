@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7JHGnO9023750
-	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 13:16:49 -0400
-Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.182])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7JHGdLe015574
-	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 13:16:39 -0400
-Received: by py-out-1112.google.com with SMTP id a29so37738pyi.0
-	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 10:16:39 -0700 (PDT)
-Message-ID: <2df568dc0808191016w4c45f3a9lf70ef62a80198e2e@mail.gmail.com>
-Date: Tue, 19 Aug 2008 11:16:38 -0600
-From: "Gordon Smith" <spider.karma+video4linux-list@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <1219112190.4107.5.camel@pc10.localdom.local>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7I87rDV024166
+	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 04:07:55 -0400
+Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7I87FxE004156
+	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 04:07:15 -0400
+From: Jean-Francois Moine <moinejf@free.fr>
+To: rob <susegebr@gmail.com>
+In-Reply-To: <48A8ACFB.4070506@gmail.com>
+References: <48A8ACFB.4070506@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <2df568dc0808181516g49377e0fj73c104696d8616d4@mail.gmail.com>
-	<1219112190.4107.5.camel@pc10.localdom.local>
-Subject: Re: saa7134_empress hang on close()
+Date: Mon, 18 Aug 2008 09:54:36 +0200
+Message-Id: <1219046076.1707.30.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: troubles with my webcam and kernel 2.6.27.rc3  Msi StarCam
+	0xc45 0x60fc   sn9c105  hv7131r   with mic
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,64 +28,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Aug 18, 2008 at 8:16 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
->
-> Hi Gordon,
->
-> Am Montag, den 18.08.2008, 16:16 -0600 schrieb Gordon Smith:
-> > Hello -
-> >
-> > I have a saa7134 based video capture card running in kernel
-> > 2.6.24.4(gentoo). I can view raw and compressed video on both channels
-> > of the card
-> > using xawtv and mplayer.
-> >
-> > However, any program reading a compressed stream that attempts to exit,
-> > hangs and is unkillable. This includes cat, mplayer, and the example V4L2
-> > program capture.c.
-> >
-> > I removed capture code from capture.c (because, unlike mplayer, it doesn't
-> > capture) and left only open() and close() and found that it hangs on
-> > close().
-> >
-> > Any thoughts on how I might solve this problem?
-> >
->
-> you might have seen the ongoing debugging and improvements to get the
-> saa7134-empress back and better.
+On Sun, 2008-08-17 at 18:58 -0400, rob wrote:
+> Hello all
 
-I have seen some recent activity, but didn't know it was altogether
-broken, if that is what you are saying. Is there a searchable archive
-of this list? I've been unable to find one.
+Hello rob,
 
->
-> Are you using a known card, which is assumed to be supported and which
-> tuner is on it?
+> This is my first post to this list
 
-I have a RTD Technologies VFG7350 that has been supported for some
-time. I don't think there is a tuner, we use camera feeds for input.
+No, it is the second one ;)
 
->
-> Did you try the recent v4l-dvb and maybe use qv4l2 to control the
-> devices?
+> i have troubles with my webcam and kernel 2.6.27.rc3  (Opensuse)
+> there are modules loaded gspca  sonic sn9s102 
+> but no program sees the webcam
+> The webcam is   Msi StarCam  0xc45 0x60fc   sn9c105  hv7131r   with mic
 
-I'm not up to speed on DVB, but this card isn't on the supported
-hardware list and as far as I can guess, it never will be since it
-does not have digital input?
+This webcam is handled by both the sn9c102 and gspca drivers. If the
+driver sn9c102 is generated, gspca does not handle it.
 
-I can see if qv4l2 functions with this card.
+> With the gspcav1 drivers compiled on kernel 2.6.25.11-0.1 (opensuse)
+> the webcam is seen as a v4L1 webcam see  log below
+	[snip]
 
->
-> Cheers,
-> Hermann
->
->
->
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
+If your webcam worked with gspca v1, it should work with gspca v2. So,
+remove the driver sn9c102, get the last gspca v2 from
+
+	http://linuxtv.org/hg/~jfrancois/gspca/
+
+and look at the gspca_README.txt in my page for generation and usage.
+
+Cheers.
+
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
 
 --
 video4linux-list mailing list
