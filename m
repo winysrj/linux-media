@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
+Received: from smtp-out2.iol.cz ([194.228.2.87])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jw@raven.inka.de>) id 1KYT41-0007Uh-8x
-	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 00:00:30 +0200
-Date: Thu, 28 Aug 2008 00:00:20 +0200
-From: Josef Wolf <jw@raven.inka.de>
+	(envelope-from <ajurik@quick.cz>) id 1KV3w6-0007mQ-Ug
+	for linux-dvb@linuxtv.org; Mon, 18 Aug 2008 14:34:16 +0200
+Received: from ales-debian.local (unknown [88.103.120.47])
+	by smtp-out2.iol.cz (Postfix) with ESMTP id 3EB649C092
+	for <linux-dvb@linuxtv.org>; Mon, 18 Aug 2008 14:27:39 +0200 (CEST)
+From: Ales Jurik <ajurik@quick.cz>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080827220019.GM32022@raven.wolf.lan>
-References: <20080826224519.GL32022@raven.wolf.lan>
-	<949376.11164.qm@web46110.mail.sp1.yahoo.com>
-Mime-Version: 1.0
+Date: Mon, 18 Aug 2008 14:27:36 +0200
+MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <949376.11164.qm@web46110.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
+Message-Id: <200808181427.36988.ajurik@quick.cz>
+Subject: [linux-dvb] HVR-4000 driver problems - i2c error
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,138 +21,156 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Aug 27, 2008 at 12:26:00AM -0700, barry bouwsma wrote:
-[ ... ]
+Hi,
 
-Thanks for your patience and your efforts, Barry!
+I've got a HVR-4000, but I have now some very strange problems.
+I have Debian Leeny with 2.6.25-2 kernel and multiproto from Igor Lipianin =
+hg =
 
-Inspired by your detailed description, I decided to hack together an
-quick-n-dirty script to analyze dvbsnoop's timing output.  I attach
-the script at the end of this mail.  First, I'd like to present some
-of the results.  Given a file containing TS (z.ts), I ran those commands:
+running at Athlon64 X2 2700+ and Asus M2N-DVI mobo. =
 
-  $ rm z.mpg
-  $ ffmpeg -f dvd -acodec copy -vcodec copy -i  z.ts  z.mpg
-  $  ./parsesnoop z.mpg   20
-   pkt-nr   id   len        PTS           DTS          ESCR         SCR
-  00000001 0xba 0x000c                                           14:05:04.5660
-  00000005 0xba 0x000c                                           14:05:04.7942
-  00000007 0xe0 0x0800 22:35:16.0619               13:44:30.5997
-  00000008 0xe0 0x0800 26:05:52.7719 19:59:24.0657
-  00000009 0xe0 0x0800 25:29:04.5040               11:43:55.6654
-  00000010 0xe0 0x0800                             25:09:57.5575  4:39:52.5434
-  00000011 0xe0 0x0800                                            1:42:31.9742
-  00000012 0xe0 0x0800 11:05:40.9000  6:14:46.3895 14:34:14.3564
-  00000014 0xe0 0x0800 26:22:35.1851  5:58:32.8467  9:35:17.3297
-  00000015 0xe0 0x0800  0:27:29.7839 23:55:23.4698
-  00000016 0xe0 0x0800  0:31:07.6702
-  00000017 0xe0 0x0800                             25:25:02.1821
-  00000018 0xe0 0x0800                                           22:08:07.7717
-  00000019 0xe0 0x0800                             25:42:03.2501
-  00000020 0xe0 0x0800  4:08:35.6544 11:21:31.4357 23:12:35.3037
-  00000022 0xe0 0x0800                             25:34:24.0965
-  00000023 0xe0 0x0800                             12:24:51.4790
-  00000024 0xe0 0x0800                             16:35:12.6386  9:34:01.5197
-  00000025 0xe0 0x0800  1:17:22.1240 20:05:57.9732
-  00000026 0xe0 0x0800                             23:02:50.3471 13:38:26.3393
-  00000027 0xe0 0x0800 24:19:14.5942  7:04:21.1562
+Whole multiproto tree compiled without any problem.
 
-All of those times look pretty much wired to me.  There seem to be no
-consistency at all.  Just some random numbers.  But this stream plays
-very good on all the players I tried.
+- when starting system I got this message:
 
-Then I tried:
+[ =A0 24.658572] tda9887 0-0043: i2c i/o error: rc =3D=3D -121 (should be 4)
+[ =A0 24.659047] tuner-simple 0-0061: i2c i/o error: rc =3D=3D -121 (should=
+ be 4)
+[ =A0 23.609971] tda9887 0-0043: i2c i/o error: rc =3D=3D -121 (should be 4)
 
-  $ libdvb-0.5.5.1/dvb-mpegtools/ts2ps 120 110 <z.ts >z.ts2ps
-  $ ./parsesnoop z.ts2ps 20
-   pkt-nr   id   len        PTS           DTS          ESCR         SCR
-  00000001 0xba 0x000e                                            4:42:57.2304
-  00000003 0xe0 0x0800 17:58:19.1292 17:58:19.0092
-  00000033 0xe0 0x0800 17:58:19.0492
-  00000042 0xe0 0x0800 17:58:19.0892
-  00000052 0xe0 0x0800 17:58:19.2492 17:58:19.1292
-  00000055 0xba 0x000e                                            4:42:56.9789
-  00000056 0xc0 0x0800 17:58:18.8777
-  00000079 0xe0 0x0800 17:58:19.1692
-  00000091 0xe0 0x0800 17:58:19.2092
-  00000100 0xe0 0x0800 17:58:19.3692 17:58:19.2492
-  00000121 0xe0 0x0800 17:58:19.2892
-  00000122 0xba 0x000e                                            4:42:57.1469
-  00000123 0xc0 0x0800 17:58:19.0457
-  00000132 0xe0 0x0800 17:58:19.3292
-  00000141 0xe0 0x0800 17:58:19.4892 17:58:19.3692
-  00000161 0xe0 0x0800 17:58:19.4092
-  00000174 0xe0 0x0800 17:58:19.4492
-  00000183 0xe0 0x0800 17:58:19.6092 17:58:19.4892
-  00000188 0xba 0x000e                                            4:42:57.3149
-  00000189 0xc0 0x0800 17:58:19.2137
-  00000204 0xe0 0x0800 17:58:19.5292
-  $
+- the firmware is loaded into the card at first time the card is opened - i=
+t =
 
-This looks much more consistent.  The only strange thing is that ESCR
-is missing.  But all the players I tried (except mplayer) fail to play
-this stream in one way or another.
+is okay?
 
-Please note that both streams were created from identical input.  I can
-see ts2ps timestamps in the original stream.  But I can fine none of
-the ffpeg timestamps in the original stream.  Strange enough, the
-ts2ps stream (the one that preserves original timestamps) does not play
-on any player (except mplayer) and the stream with fantasy-timestamps
-plays virtually anywhere.
+[ =A0917.660620] cx24116_firmware_ondemand: Waiting for firmware upload =
 
-> And now, I'm wondering just how `replex' is arriving at these
-> timestamps from the TS file.
+(dvb-fe-cx24116.fw)...
+[ =A0917.703010] cx24116_firmware_ondemand: Waiting for firmware upload(2).=
+..
+[ =A0922.703870] cx24116_load_firmware: FW version 1.22.82.0
+[ =A0922.703889] cx24116_firmware_ondemand: Firmware upload complete
 
-Same question for ffmpeg...
+The result is that only for some channels it is possible to get lock with =
 
-> Anyway, it's not all that relevant, no?  I'm just muttering to
-> myself out loud, yes?  I'm not slowly going insane, right?
-> I'll be off in my corner, rocking back and forth
+szap2. VDR is hanging (or starting) when trying to tune to initial channel, =
 
-Oh, you start feeling like me ;-)
+even when this channel is set to channel at which is szap2 successfull. I'm =
 
-Please, can somebody recommend a _good_ book explaining all this mess?
+not able to say criteria which channels are possible to lock.
 
-Here's the script that I used to generate the output listed above:
+Any hints are appreciated.
 
-#! /usr/bin/perl
+BR,
 
-use strict;
-use warnings;
+Ales
 
-my ($infile, $packets) = (shift, shift);
+[ =A0 =A09.343037] Linux video capture interface: v2.00
+...
+[ =A0 =A09.465617] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loa=
+ded
+[ =A0 =A09.466569] cx88[0]: subsystem: 0070:6902, board: Hauppauge WinTV-HV=
+R4000 =
 
-my $dvbsnoop = "dvbsnoop-1.4.50/src/dvbsnoop -s ps -ph 0 -nohexdumpbuffer";
-open (my $snoop, "$dvbsnoop -if '$infile'|") or die;
+DVB-S/S2/T/Hybrid [card=3D68,autodetected]
+[ =A0 =A09.466622] cx88[0]: TV tuner type 63, Radio tuner type -1
+...
+[ =A0 =A09.497778] cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+[ =A0 =A09.539221] cx2388x alsa driver version 0.0.6 loaded
+[ =A0 =A09.596629] cx88[0]: i2c init: enabling analog demod on HVR1300/3000=
+/4000 =
 
-print " pkt-nr   id   len        PTS           DTS          ESCR         SCR\n";
-my ($nr, $len, $sid, %ts);
-while (my $line = <$snoop>) {
-    $line =~ s/system_clock_reference_base/SCR_base/;
+tuner
+[ =A0 =A09.672364] tuner' 0-0043: chip found @ 0x86 (cx88[0])
+[ =A0 =A09.701019] tda9887 0-0043: creating new instance
+[ =A0 =A09.701019] tda9887 0-0043: tda988[5/6/7] found
+[ =A0 =A09.704336] tuner' 0-0061: chip found @ 0xc2 (cx88[0])
+[ =A0 =A09.705311] tuner' 0-0063: chip found @ 0xc6 (cx88[0])
+[ =A0 =A09.750913] tveeprom 0-0050: Hauppauge model 69009, rev B2D3, serial=
+# =
 
-    $nr=$1, $len=$2 if $line =~ /^PS-Packet: (\d+).*Length: \d+ \(([0-9a-fx]+)\)/;
-    $sid=$1 if $line =~ /^Stream_id: \d+ \(([0-9a-fx]+)\)/;
-    $ts{$1}=$2 if $line =~ /(PTS|DTS|E?SCR).*Timestamp: ([\d\:\.]+)/;
-    
-    next unless $line =~ /=========/;
-    next unless keys %ts;
+3326338
+[ =A0 =A09.750954] tveeprom 0-0050: MAC address is 00-0D-FE-32-C1-82
+[ =A0 =A09.750991] tveeprom 0-0050: tuner model is Philips FMD1216MEX (idx =
+133, =
 
-    print join (" ", $nr, $sid, $len,
-                map {
-                    sprintf ("%13s", exists $ts{$_} ? $ts{$_} : "");
-                } qw(PTS DTS ESCR SCR)), "\n";
+type 63)
+[ =A0 =A09.751041] tveeprom 0-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L'=
+) =
 
-    $sid=undef;
-    %ts=();
+PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)
+[ =A0 =A09.751093] tveeprom 0-0050: audio processor is CX882 (idx 33)
+[ =A0 =A09.751131] tveeprom 0-0050: decoder processor is CX882 (idx 25)
+[ =A0 =A09.751169] tveeprom 0-0050: has radio, has IR receiver, has no IR =
 
-    last if --$packets<0;
-}
+transmitter
+[ =A0 =A09.751218] cx88[0]: hauppauge eeprom: model=3D69009
+[ =A0 =A09.802610] tuner-simple 0-0061: creating new instance
+[ =A0 =A09.802610] tuner-simple 0-0061: type set to 63 (Philips FMD1216ME M=
+K3 =
+
+Hybrid Tuner)
+[ =A0 =A09.805659] input: cx88 IR (Hauppauge WinTV-HVR400 as /class/input/i=
+nput6
+[ =A0 =A09.850619] cx88[0]/2: cx2388x 8802 Driver Manager
+[ =A0 =A09.850619] ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 19
+[ =A0 =A09.850619] ACPI: PCI Interrupt 0000:01:06.2[A] -> Link [LNKA] -> GS=
+I 19 =
+
+(level, low) -> IRQ 19
+[ =A0 =A09.850619] cx88[0]/2: found at 0000:01:06.2, rev: 5, irq: 19, laten=
+cy: 64, =
+
+mmio: 0xfb000000
+[ =A0 =A09.849788] ACPI: PCI Interrupt Link [LNEA] enabled at IRQ 18
+[ =A0 =A09.849840] ACPI: PCI Interrupt 0000:04:00.0[A] -> <6>ACPI: PCI Inte=
+rrupt =
+
+0000:01:06.1[A] -> Link [LNKA] -> GSI 19 (level, low) -> IRQ 19
+[ =A0 =A09.850619] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+[ =A0 =A09.849841] Link [LNEA] -> GSI 18 (level, low) -> IRQ 18
+...
+[ =A0 =A09.901424] cx88/2: cx2388x dvb driver version 0.0.6 loaded
+[ =A0 =A09.901465] cx88/2: registering cx8802 driver, type: dvb access: sha=
+red
+[ =A0 =A09.901505] cx88[0]/2: subsystem: 0070:6902, board: Hauppauge WinTV-=
+HVR4000 =
+
+DVB-S/S2/T/Hybrid [card=3D68]
+[ =A0 =A09.901557] cx88[0]/2: cx2388x based DVB/ATSC card
+...
+[ =A0 =A09.976606] DVB: registering new adapter (cx88[0])
+[ =A0 =A09.976648] DVB: registering frontend 0 (Conexant CX24116/CX24118)...
+[ =A0 10.053023] ACPI: PCI Interrupt 0000:01:06.0[A] -> Link [LNKA] -> GSI =
+19 =
+
+(level, low) -> IRQ 19
+[ =A0 10.053123] cx88[0]/0: found at 0000:01:06.0, rev: 5, irq: 19, latency=
+: 64, =
+
+mmio: 0xfd000000
+[ =A0 10.053216] cx88[0]/0: registered device video0 [v4l2]
+[ =A0 10.053270] cx88[0]/0: registered device vbi0
+[ =A0 10.053321] cx88[0]/0: registered device radio0
+...
+[ =A0 24.658572] tda9887 0-0043: i2c i/o error: rc =3D=3D -121 (should be 4)
+[ =A0 24.659047] tuner-simple 0-0061: i2c i/o error: rc =3D=3D -121 (should=
+ be 4)
+[ =A0 23.609971] tda9887 0-0043: i2c i/o error: rc =3D=3D -121 (should be 4)
+...
+[ =A0917.660620] cx24116_firmware_ondemand: Waiting for firmware upload =
+
+(dvb-fe-cx24116.fw)...
+[ =A0917.703010] cx24116_firmware_ondemand: Waiting for firmware upload(2).=
+..
+[ =A0922.703870] cx24116_load_firmware: FW version 1.22.82.0
+[ =A0922.703889] cx24116_firmware_ondemand: Firmware upload complete
 
 _______________________________________________
 linux-dvb mailing list
