@@ -1,19 +1,38 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from omzesmtp01a.verizonbusiness.com ([199.249.25.195])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KToXB-0000ti-TW
-	for linux-dvb@linuxtv.org; Fri, 15 Aug 2008 03:55:27 +0200
-Message-ID: <48A4E1FB.3050700@linuxtv.org>
-Date: Thu, 14 Aug 2008 21:55:07 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: Brandon Jenkins <bcjenkins@tvwhere.com>
-References: <de8cad4d0808140908r7b1e7a04xc3d907da69fd3549@mail.gmail.com>	
-	<48A4C9DE.5060503@linuxtv.org>
-	<de8cad4d0808141818i1d0b9c56m648457941248a68e@mail.gmail.com>
-In-Reply-To: <de8cad4d0808141818i1d0b9c56m648457941248a68e@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1600 - mxl5005s - QAM scanning
+	(envelope-from <mark.paulus@verizonbusiness.com>) id 1KV57a-0002kv-Gl
+	for linux-dvb@linuxtv.org; Mon, 18 Aug 2008 15:50:13 +0200
+Received: from pmismtp03.mcilink.com ([166.37.158.163])
+	by firewall.verizonbusiness.com
+	(Sun Java(tm) System Messaging Server 6.3-5.02 (built Oct 12 2007;
+	32bit))
+	with ESMTP id <0K5S0062MUEM6L00@firewall.verizonbusiness.com> for
+	linux-dvb@linuxtv.org; Mon, 18 Aug 2008 13:49:34 +0000 (GMT)
+Received: from pmismtp03.mcilink.com ([127.0.0.1])
+	by pmismtp03.mcilink.com (iPlanet Messaging Server 5.2 HotFix 2.08
+	(built Sep
+	22 2005)) with SMTP id <0K5S007FQUELYI@pmismtp03.mcilink.com> for
+	linux-dvb@linuxtv.org; Mon, 18 Aug 2008 13:49:34 +0000 (GMT)
+Received: from [127.0.0.1] ([166.34.132.9])
+	by pmismtp03.mcilink.com (iPlanet Messaging Server 5.2 HotFix 2.08
+	(built Sep
+	22 2005)) with ESMTP id <0K5S00920UEKLQ@pmismtp03.mcilink.com> for
+	linux-dvb@linuxtv.org; Mon, 18 Aug 2008 13:49:33 +0000 (GMT)
+Date: Mon, 18 Aug 2008 07:49:40 -0600
+From: Mark Paulus <mark.paulus@verizonbusiness.com>
+In-reply-to: <37219a840808111258u23651495o6a7fba478214ef2c@mail.gmail.com>
+To: linux-dvb@linuxtv.org
+Message-id: <48A97DF4.4040804@verizonbusiness.com>
+MIME-version: 1.0
+Content-type: multipart/mixed; boundary=------------040903040502080001030302
+References: <48A05F58.8090405@verizonbusiness.com>
+	<37219a840808111057w5945ecc6wd200c624168a196a@mail.gmail.com>
+	<48A09672.2060707@verizonbusiness.com>
+	<37219a840808111258u23651495o6a7fba478214ef2c@mail.gmail.com>
+Subject: Re: [linux-dvb] [Fwd: Help with recent DVB/QAM problem please.] -
+ RESOLVED!
+Reply-To: mark.paulus@verizonbusiness.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,110 +40,154 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Brandon Jenkins wrote:
-> On Thu, Aug 14, 2008 at 8:12 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->   
->> Brandon Jenkins wrote:
->>     
->>> Greetings all,
+This is a multi-part message in MIME format.
+--------------040903040502080001030302
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+
+
+Michael Krufky wrote:
+> On Mon, Aug 11, 2008 at 3:43 PM, Mark Paulus
+> <mark.paulus@verizonbusiness.com> wrote:
+>>
+>> Michael Krufky wrote:
+>>> 2008/8/11 Mark Paulus <mark.paulus@verizonbusiness.com>:
+>>>> Redirecting to linux-dvb on suggestion from
+>>>> Video4Linux user.
+>>>>
+>>>> -------- Original Message --------
+>>>> Subject: Help with recent DVB/QAM problem please.
+>>>>
+>>>> Hi all,
+>>>>
+>>>> Background:
+>>>> I have a machine in my basement with:
+>>>> Hauppauge PVR-150 (connected to DCT2524)
+>>>> Air2PC ATSC/OTA card (connected to antenna in attic)
+>>>> Avermedia A180 (connected to comcast cable)
+>>>> Dvico FusionHDTV RT 5 Lite (connectec comcast cable)
+>>>> Debian using 2.6.24-x64 kernel
+>>>>
+>>>> Situation:
+>>>> Up until a week ago, I was able to use azap to tune in
+>>>> a bunch of mplexids, and get good locks on both the A180 and the Dvico
+>>>> card.
+>>>>  However, starting on Monday,
+>>>> I am not able to get locks on either of my DVB cards.
+>>>> I have been able, and am still able to get good locks
+>>>> on my air2pc OTA card.
+>>>>
+>>>> Can anyone help me figure out why I can't seem to see
+>>>> anything from my 2 QAM cards?  I've tried running a
+>>>> dvbscan and neither card can make a good lock.  What
+>>>> other debugging tools can I use to try to find any QAM
+>>>> signals?  I've also tried doing a VSB-8 scan on the cable
+>>>> cards, and also don't get any locks.
+>>> Mark,
 >>>
->>> The last time I tried scanning for QAM it didn't work. If I recall, it
->>> would be a while before the driver could be looked at. Has there been
->>> any change in status worth testing out again?
->>>       
->> I have an HVR1600 model 74041 -- When I scan for QAM channels, I find the same channels that I find when I scan using any other QAM256-capable device.
+>>> It's good that you've moved the thread to the correct mailing list.
+>>> However, I did already answer you and asked you some questions, to
+>>> which you have not yet responded....
+>>>
+>>> Quoting myself:
+>>>
+>>> What variables have changed in your test environment since last Monday?
+>>>
+>>> If the answer is "nothing" , then the problem is more than likely due
+>>> to your cable company moving services around.
+>>>
+>>> First, you should confirm that you still have clear QAM available...
+>>> assuming yes, then I recommend scanning for channels again, using each
+>>> card.
+>>>
+>>> Regards,
+>>>
+>>> Mike
+>>>
+>> As far as I know, no variables have changed.  The only thing that might
+>> have been of note is that there seemed to have been a wierd Power Blip, and
+>> my linux machine was off when I was not expecting it.
+>> After turning it on, I noticed the problem.  However, it seems wierd
+>> to me that a power blip would blow both QAM cards, and yet leave the ATSC
+>> and the PVR-150 alone.  (I also have a PVR-150 attached to a Motorola
+>> DCT-2524 in that machine).
 >>
->> So yes, it's worth testing again.
+>> My biggest problem I have right now is determining if there is even
+>> any clear QAM available.  I did a dtvscan -q from both cards, and neither
+>> card is able to lock anything.  Before last week, I was
+>> able to get locks on many multiplexes, even those populated completely with
+>> encrypted PIDs.  (I would do an azap in one window
+>> to lock a multiplex, then I could do a dvbstream in another window, and run
+>> tsreader on my winxp box to actually look at a stream.  Encrypted streams
+>> would show up as read w/nothing to look at.
+>> Clear streams could be clicked, and would play in VLC, so I could
+>> see what it is.)
 >>
->> You wrote that email at noon, and now is eight hours later -- did you test it yet?
->>
->> -Mike
->>
->>     
->
-> Actually I did. Unfortunately, no change for usable scans. For me
-> there was a change in the scan results when the driver went from
-> mxl500x to mxl5005s back in May. (I think it was May) Since then I
-> have been using my roof top antenna. However, now that VZ has moved to
-> all digitlal channels I would like to see what I actually get via QAM
-> again.
->
-> I did find 40 services during a scan, but there were no associated
-> PIDs. When it functioned, I was getting 80+ services.
->
-> dumping lists (40 services)
-> [01d6]:411000000:QAM_256:2031:2030:470
-> [0078]:411000000:QAM_256:2058:2057:120
-> [009a]:411000000:QAM_256:2044:2043:154
-> [0105]:411000000:QAM_256:2035:2034:261
-> [0064]:411000000:QAM_256:2062:2061:100
-> [0091]:411000000:QAM_256:2053:2052:145
-> [0097]:411000000:QAM_256:2049:2047:151
-> [00c3]:411000000:QAM_256:2039:2038:195
-> [00d9]:417000000:QAM_256:2000:1999:217
-> [00a6]:417000000:QAM_256:2012:2011:166
-> [008d]:417000000:QAM_256:2017:2016:141
-> [00cd]:417000000:QAM_256:2004:2003:205
-> [00a8]:417000000:QAM_256:2008:2007:168
-> [0070]:417000000:QAM_256:2022:2021:112
-> [0110]:417000000:QAM_256:1992:1991:272
-> [0068]:417000000:QAM_256:2027:2026:104
-> [00dd]:417000000:QAM_256:1996:1995:221
-> [01d7]:423000000:QAM_256:2042:2041:471
-> [007c]:423000000:QAM_256:2062:2061:124
-> [00eb]:423000000:QAM_256:2055:2054:235
-> [0140]:423000000:QAM_256:2050:2049:320
-> [00d5]:423000000:QAM_256:2059:2058:213
-> [0142]:423000000:QAM_256:2047:2046:322
-> [0104]:423000000:QAM_256:2038:2037:260
-> [006e]:429000000:QAM_256:2034:2033:110
-> [00ee]:429000000:QAM_256:2013:2012:238
-> [00ba]:429000000:QAM_256:2022:2021:186
-> [00e5]:429000000:QAM_256:2017:2016:229
-> [00f2]:429000000:QAM_256:2009:2008:242
-> [0087]:429000000:QAM_256:2027:2026:135
-> [00ae]:435000000:QAM_256:1629:1628:174
-> [008f]:435000000:QAM_256:1639:1638:143
-> [00b4]:435000000:QAM_256:1625:1624:180
-> [00d3]:435000000:QAM_256:1613:1612:211
-> [0095]:435000000:QAM_256:1634:1633:149
-> [00df]:435000000:QAM_256:1608:1607:223
-> [00c1]:435000000:QAM_256:1621:1620:193
-> [00c7]:435000000:QAM_256:1617:1616:199
-> [0266]:711000000:QAM_256:6141:6142:614
-> [026a]:711000000:QAM_256:6181:6182:618
->
-> Subsequent scan in SageTV only turned up 1 SD channel.
->   
-This does not look like a tuning issue -- Unfortunately, it seems that
-there isn't much "in the clear" on yourdigital cable  provider.
+>> I will run another dtvscan to make sure things aren't there, but is
+>> there any other means of determining the state of things QAM?  Somehow my
+>> Motorola DCT-2524 seems to still see channels and
+>> work fine, so if Comcast did change something, then they did
+>> it so that it doesn't affect their STBs.
+> 
+> This is my point, exactly.  Since your provider has provided your STB,
+> they also have an interface into the STB that allows them to update
+> software and / or encryption keys, etc.
+> 
+> It is more than likely that your provider has changed the
+> characteristics of the services on their cable.
+> 
+> You may want to contact your provider directly and ask them what has
+> changed with your service within the past two weeks.
+> 
+> I've heard similar complaints from other users of your service provider.
+> 
+> Good Luck,
+> 
+> Mike
+> 
 
-Are you able to see any additional channels in the clear using some
-other product?
+Well, I just wanted to post the fact that I have a resolution, so that
+others might see this.  I know I've seen this solution before, at least
+in the ivtv side, but wanted to reiterate once again.
 
-> During the scan, the following appears in dmesg:
->
-> [52241.432909] DVB: frontend 0 frequency 4294967295 out of range
-> (54000000..858000000)
-> [52241.543936] DVB: frontend 0 frequency 4294967295 out of range
-> (54000000..858000000)
-> [52254.018384] DVB: frontend 0 frequency 53000000 out of range
-> (54000000..858000000)
->
-> FTR - This was tested on Hauppauge model 74041, rev C5B2
->   
-Those first two look like application bugs.  The driver knows better
-than to try to tune a number out of range like that.
+Apparently the issue was caused by a failing power supply.  I came home
+on Friday to the machine being off, and not wanting to power on at all.
+Put a Power Supply tester on the Power Supply, and it still didn't want
+to fire up.  So, I changed out the Antec 400W PSU with a spare Cooler
+Master 500W PSU I have, and walla, everything is working again.  
 
--Mike
+Apparently the tuners on these DVB cards really require lots of juice,
+and a failing PSU just couldn't supply it.  So, the lack of tuning was
+the warning sign that the PSU was about to fail.
+
+
+
+--------------040903040502080001030302
+Content-Type: text/x-vcard; charset=utf-8;
+ name="mark_paulus.vcf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="mark_paulus.vcf"
+
+YmVnaW46dmNhcmQNCmZuOk1hcmsgUGF1bHVzDQpuOlBhdWx1cztNYXJrDQpvcmc6TUNJO0xl
+YyBJbnRlcmZhY2VzIC8gNDA0MTkNCmFkcjtkb206OzsyNDI0IEdhcmRlbiBvZiB0aGUgR29k
+cyBSZDtDb2xvcmFkbyBTcHJpbmdzO0NPOzgwOTE5DQplbWFpbDtpbnRlcm5ldDptYXJrLnBh
+dWx1c0B2ZXJpem9uYnVzaW5lc3MuY29tDQp0aXRsZTpNYXJrIFBhdWx1cw0KdGVsO3dvcms6
+NzE5LTUzNS01NTc4DQp0ZWw7cGFnZXI6ODAwLXBhZ2VtY2kgLyAxNDA2MDUyDQp0ZWw7aG9t
+ZTp2NjIyLTU1NzgNCnZlcnNpb246Mi4xDQplbmQ6dmNhcmQNCg0K
+--------------040903040502080001030302
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------040903040502080001030302--
