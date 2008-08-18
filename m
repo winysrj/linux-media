@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7HIKEp1005315
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 14:20:14 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7HIK2Xu027175
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 14:20:02 -0400
-Message-ID: <48A86E3B.4060105@hhs.nl>
-Date: Sun, 17 Aug 2008 20:30:19 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7I2xIH1010896
+	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 22:59:18 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7I2x7Ud025283
+	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 22:59:07 -0400
+From: Andy Walls <awalls@radix.net>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-References: <200808171709.51258.hverkuil@xs4all.nl>
-In-Reply-To: <200808171709.51258.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+In-Reply-To: <200808172201.57105.hverkuil@xs4all.nl>
+References: <de8cad4d0808051804l13d1b66cs9df26cc43ba6cfd6@mail.gmail.com>
+	<200808171141.05619.hverkuil@xs4all.nl>
+	<1219000370.3747.76.camel@morgan.walls.org>
+	<200808172201.57105.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sun, 17 Aug 2008 22:53:58 -0400
+Message-Id: <1219028038.2700.40.camel@morgan.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: Mike Isely <isely@isely.net>, v4l <video4linux-list@redhat.com>,
-	david@identd.dyndns.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: V4L2: switch to register_chrdev_region: needs testing/review
- of release() handling
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	ivtv-devel@ivtvdriver.org
+Subject: Re: CX18 Oops
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,61 +31,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hans Verkuil wrote:
-> Hi all,
+On Sun, 2008-08-17 at 22:01 +0200, Hans Verkuil wrote:
+> On Sunday 17 August 2008 21:12:50 Andy Walls wrote:
+> > On Sun, 2008-08-17 at 11:41 +0200, Hans Verkuil wrote:
+> > > On Sunday 17 August 2008 04:13:24 Andy Walls wrote:
+> > > > On Mon, 2008-08-11 at 17:33 -0400, Brandon Jenkins wrote:
+> > > > > On Fri, Aug 8, 2008 at 10:18 AM, Andy Walls <awalls@radix.net>
+
+
+> > See my concern above.  In brief, AFAICT, a system call on one
+> > processor concurrent with interrupt service on another processor
+> > requires the irq handler to obtain the proper lock before mucking
+> > with the shared data structure.
 > 
-> As part of my ongoing cleanup of the v4l subsystem I've been looking 
-> into converting v4l from register_chrdev to register_chrdev_region. The 
-> latter is more flexible and allows for a larger range of minor numbers. 
-> In addition it allows us to intercept the release callback when the 
-> char device's refcount reaches 0.
+> You are completely right and I stand corrected. cx18_queue_find_buf (aka 
+> cx18_queue_get_buf_irq) must have a spin_lock. So that spin_lock in 
+> ivtv wasn't bogus either :-)
 > 
+> Damn, it's so easy to get confused with locking, even you've implemented 
+> it several times already.
 
-Hans,
+Yup.  And I found that "reading the code" without any sort of design
+paperwork, design description, or reference textbooks makes locking
+problems hard to spot.
 
-Thanks for doing this! You rock! I've been planning on cleaning up gspca's 
-somewhat archaic disconnect handling for a while now and I was sorta waiting 
-for something like this :) But I guess that that cleanup might be 2.6.28 material.
-
-Anyways I've reviewed your patch and in general I like it, I only see one problem:
-
-@@ -99,7 +130,8 @@ static void video_release(struct device
-{
-struct video_device *vfd = container_of(cd, struct video_device, dev);
--#if 1 /* keep */
-+ return;
-+#if 1 /* keep */
-/* needed until all drivers are fixed */
-if (!vfd->release)
-return;
-@@ -107,6 +139,7 @@ static void video_release(struct device
-vfd->release(vfd);
-}
-+
-static struct class video_class = {
-.name = VIDEO_NAME,
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
+I spent ~6 years on $BIG_PROJECT on a team maintaining highly
+multithreaded applications that ran on an SMP machine.  The apps used
+spinlocks, mutexes (with and without condition variables), semaphores,
+rendezvous, etc.  A peer review of any significant code change usually
+revealed at least one locking problem.
 
 
-Here you basicly make the release callback of the video class device a no-op. 
-First of all I think it would be better to just delete it then to add a return, 
-which sort of hides its an empty function now.
+> That's a serious bug which needs to go into 2.6.27 (and probably to the 
+> 2.6.26 stable series as well).
+> 
+> Andy, can you make a patch that adds the spin_lock to 
+> cx18_queue_find_buf(). It's better to do it there rather than in the 
+> interrupt routine.
+> 
+> Then that patch can go into v4l-dvb and from there to 2.6.27. The other 
+> changes can come later.
 
-More importantly, its wrong to make this a no-op. When a driver unregisters a 
-v4l device, and all cdev usage has stopped there can still be open references 
-to sysfs files of the video class device, but in this case currently the 
-video_unregister_device call will lead to the vfd->release callback getting 
-called freeing the vfd struct, which contains the class device.
+Done.  Pull request submitted.
 
-I believe the way to fix this is todo a get on the kobj contained in the cdev 
-in video_register_device before registering the class device, and then in the 
-class device release callback do a put on this kobj.
 
-Other then that it looks good!
+> Apologies for probably confusing you. I certainly confused myself.
+
+No big deal.  I wasn't confused, but I did think I had missed something.
+
 
 Regards,
+Andy
 
-Hans
+> Regards,
+> 
+> 	Hans
+> 
 
 --
 video4linux-list mailing list
