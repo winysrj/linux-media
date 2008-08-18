@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47])
+Received: from rv-out-0506.google.com ([209.85.198.231])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1KTQZo-000364-17
-	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 02:20:29 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: John Chajecki <John.Chajecki@leicester.gov.uk>
-In-Reply-To: <48A2EF6A.23BC.005F.0@leicester.gov.uk>
-References: <48A2EF6A.23BC.005F.0@leicester.gov.uk>
-Date: Thu, 14 Aug 2008 02:12:10 +0200
-Message-Id: <1218672730.2696.48.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	(envelope-from <beth.null@gmail.com>) id 1KV36D-0005Nr-IS
+	for linux-dvb@linuxtv.org; Mon, 18 Aug 2008 13:40:39 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so2123722rvf.41
+	for <linux-dvb@linuxtv.org>; Mon, 18 Aug 2008 04:40:33 -0700 (PDT)
+Message-ID: <7641eb8f0808180440t15a4ebb8m4da81a6a1acb2770@mail.gmail.com>
+Date: Mon, 18 Aug 2008 13:40:32 +0200
+From: Beth <beth.null@gmail.com>
+To: sacha <sacha@hemmail.se>
+In-Reply-To: <1219058838.13296.16.camel@lanbox>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <1219058838.13296.16.camel@lanbox>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Attempting to compile the saa7134-alsa module
+Subject: Re: [linux-dvb] Precompiled dvb-apps package for AMD64 Ubuntu Hardy?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,111 +22,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Mittwoch, den 13.08.2008, 14:27 +0100 schrieb John Chajecki:
-> Herman,
-> 
-> Thanks again. It was suggested to me to use Ubuntu because apparently it is good for multimedia apps. I had googled saa7134-alsa prior to posting and saw a few reports of the problem but no solution. This does seem to be a Ubuntu issue and in one of the reports I looked at (https://bugs.launchpad.net/ubuntu/+source/linux-ubuntu-modules-2.6.24/+bug/212271) it states that the problem does not occurr on a 'stock kernel' from kernel.org.
-> 
-> Now I'm womdoering whether I shpuld use another Linux distro? If so, which distro do others use?
+Hi I had followed the instructions on
+http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_S2_PCI_HD_CI#Install_dvb=
+-apps_.28scan.2Fszap2_based_on_DVB_API_3.3.29_.28Testing_based_on_revision_=
+1200.29
+and I successfully compiled the dvb-apps, I have the same kernel and
+ubuntu version.
 
-There have been not any problems previously with Ubuntu, unfortunately
-they seem something to try now, others have been through during 2.6.5
-development and better should let it.
+Bye.
 
-I don't have recommendations what to try else, but looking back over
-years, some are continuously contributing new stuff at high rates and
-others try to become famous for being very stable :)))
+2008/8/18 sacha <sacha@hemmail.se>:
+> Hello
+>
+> I cannot get it work Twinhan VP-1041/Azurewave AD SP400  on Ubuntu 8.04
+> Linux 2.6.24-19-generic #1 SMP Wed Jun 18 14:15:37 UTC 2008 x86_64
+> GNU/Linux.
+> Driver seems OK but standard dvb-apps do not work. Compilation of the
+> alternative scan and szap fails for me.
+> I thank you everybody who tried to help me!
+> I spent quite a time with that now and feels that cannot fix it self.
+> I wonder if maybe someone can provide me with working dvb-apps package
+> for my system?
+>
+> KR
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-If a distribution does not stand a vanilla kernel anymore, what I would
-not expect in this case, use the trash bin.
-
-Cheers,
-Hermann
 
 
-> 
-> >>> hermann pitton <hermann-pitton@arcor.de> 08/12/08 9:51 PM >>>
-> Hi again,
-> 
-> Am Dienstag, den 12.08.2008, 15:47 +0100 schrieb John Chajecki:
-> > I'm trying to compile the saa7134-alsa module that comes with the v4l-dvb drivers. In order to get it to compile I've had to tag it to the end of the saa7134-onjs list in the Makefile resident in the saa7134 direcorty like this:
-> > 
-> > saa7134-objs := saa7134-cards.o saa7134-core.o saa7134-i2c.o    \
-> >                 saa7134-ts.o saa7134-tvaudio.o saa7134-vbi.o    \
-> >                 saa7134-video.o saa7134-input.o saa7134-alsa.o
-> > 
-> > I'm running make, I'm getting the folowing error:
-> > 
-> > root@tinman:/home/john/Src/v4l-dvb# make
-> > make -C /home/john/Src/v4l-dvb/v4l
-> > make[1]: Entering directory `/home/john/Src/v4l-dvb/v4l'
-> > creating symbolic links...
-> > Kernel build directory is /lib/modules/2.6.24-19-generic/build
-> > make -C /lib/modules/2.6.24-19-generic/build SUBDIRS=/home/john/Src/v4l-dvb/v4l  modules
-> > make[2]: Entering directory `/usr/src/linux-headers-2.6.24-19-generic'
-> >   LD [M]  /home/john/Src/v4l-dvb/v4l/saa7134.o
-> > /home/john/Src/v4l-dvb/v4l/saa7134-alsa.o: In function `saa7134_alsa_init':
-> > /home/john/Src/v4l-dvb/v4l/saa7134-alsa.c:1083: multiple definition of `init_module'
-> > /home/john/Src/v4l-dvb/v4l/saa7134-core.o:/home/john/Src/v4l-dvb/v4l/saa7134-core.c:1346: first defined here
-> > /home/john/Src/v4l-dvb/v4l/saa7134-alsa.o: In function `saa7134_alsa_exit':
-> > /home/john/Src/v4l-dvb/v4l/saa7134-alsa.c:1109: multiple definition of `cleanup_module'
-> > /home/john/Src/v4l-dvb/v4l/saa7134-core.o:/home/john/Src/v4l-dvb/v4l/saa7134-core.c:1361: first defined here
-> > make[3]: *** [/home/john/Src/v4l-dvb/v4l/saa7134.o] Error 1
-> > make[2]: *** [_module_/home/john/Src/v4l-dvb/v4l] Error 2
-> > make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
-> > make[1]: *** [default] Error 2
-> > make[1]: Leaving directory `/home/john/Src/v4l-dvb/v4l'
-> > make: *** [all] Error 2
-> > 
-> > I'm tring to get the saa7134-alsa compiled because, although the other modules are compiling, the alsa module is not so when I'm doing a modproble saa7134 I'm getting as follows in dmesg:
-> > 
-> > [108767.374805] saa7133[0]: registered device video0 [v4l2]
-> > [108767.374831] saa7133[0]: registered device vbi0
-> > [108767.396356] saa7134_alsa: disagrees about version of symbol saa7134_tvaudio_setmute
-> > [108767.396363] saa7134_alsa: Unknown symbol saa7134_tvaudio_setmute
-> > [108767.396512] saa7134_alsa: disagrees about version of symbol saa_dsp_writel
-> > [108767.396515] saa7134_alsa: Unknown symbol saa_dsp_writel
-> > [108767.396684] saa7134_alsa: disagrees about version of symbol videobuf_dma_free
-> > [108767.396686] saa7134_alsa: Unknown symbol videobuf_dma_free
-> > [108767.396884] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_alloc
-> > [108767.396887] saa7134_alsa: Unknown symbol saa7134_pgtable_alloc
-> > [108767.396934] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_build
-> > [108767.396937] saa7134_alsa: Unknown symbol saa7134_pgtable_build
-> > [108767.396975] saa7134_alsa: disagrees about version of symbol saa7134_pgtable_free
-> > [108767.396978] saa7134_alsa: Unknown symbol saa7134_pgtable_free
-> > [108767.397016] saa7134_alsa: disagrees about version of symbol saa7134_dmasound_init
-> > [108767.397019] saa7134_alsa: Unknown symbol saa7134_dmasound_init
-> > [108767.397154] saa7134_alsa: disagrees about version of symbol saa7134_dmasound_exit
-> > [108767.397156] saa7134_alsa: Unknown symbol saa7134_dmasound_exit
-> > [108767.397252] saa7134_alsa: disagrees about version of symbol videobuf_dma_init
-> > [108767.397255] saa7134_alsa: Unknown symbol videobuf_dma_init
-> > [108767.397399] saa7134_alsa: disagrees about version of symbol videobuf_dma_init_kernel
-> > [108767.397402] saa7134_alsa: Unknown symbol videobuf_dma_init_kernel
-> > [108767.397518] saa7134_alsa: Unknown symbol videobuf_pci_dma_unmap
-> > [108767.397661] saa7134_alsa: Unknown symbol videobuf_pci_dma_map
-> > [108767.397706] saa7134_alsa: disagrees about version of symbol saa7134_set_dmabits
-> > [108767.397709] saa7134_alsa: Unknown symbol saa7134_set_dmabits
-> > [108767.411034] saa7133[0]/dvb: Huh? unknown DVB card?
-> > [108767.411040] saa7133[0]/dvb: frontend initialization failed
-> 
-> vanilla kernel compatibility on recent Ubuntu is broken in various ways,
-> especially for alsa.
-> 
-> Try to google for "ubuntu saa7134-alsa" and/or check the lists.
-> 
-> It is not caused by v4l-dvb.
-> 
-> Cheers,
-> Hermann
-> 
-> 
+-- =
 
+---------------------------------------------------
+Jos=E9 Antonio Robles
+
+beth.null@gmail.com
+
+661 960 119
+
+Sometimes something happens ...
+---------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
