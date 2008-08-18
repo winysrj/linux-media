@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bar.sig21.net ([88.198.146.85])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <js@sig21.net>) id 1KYok0-0002T1-7W
-	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 23:09:18 +0200
-Date: Thu, 28 Aug 2008 23:09:56 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Josef Wolf <jw@raven.inka.de>
-Message-ID: <20080828210956.GA6453@linuxtv.org>
-References: <20080826224519.GL32022@raven.wolf.lan>
-	<949376.11164.qm@web46110.mail.sp1.yahoo.com>
-	<20080827220019.GM32022@raven.wolf.lan>
-	<20080828144050.GA9065@linuxtv.org>
-	<20080828193405.GN32022@raven.wolf.lan>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20080828193405.GN32022@raven.wolf.lan>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
+Received: from bld-mail11.adl2.internode.on.net ([203.16.214.75]
+	helo=mail.internode.on.net) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <robin.perkins@internode.on.net>) id 1KV0sd-0005I3-4e
+	for linux-dvb@linuxtv.org; Mon, 18 Aug 2008 11:18:28 +0200
+Received: from [10.1.1.101] (unverified [203.217.42.127])
+	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id
+	27156825-1927428
+	for <linux-dvb@linuxtv.org>; Mon, 18 Aug 2008 18:47:45 +0930 (CST)
+Message-Id: <83BE936B-B85D-40CE-9469-0240EC1D656D@internode.on.net>
+From: Robin Perkins <robin.perkins@internode.on.net>
+To: linux-dvb@linuxtv.org
+Mime-Version: 1.0 (Apple Message framework v926)
+Date: Mon, 18 Aug 2008 19:17:43 +1000
+Subject: [linux-dvb] MT352 Design Manual & QT1010 datasheet or design manual
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,40 +26,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 28, 2008 at 09:34:05PM +0200, Josef Wolf wrote:
-> On Thu, Aug 28, 2008 at 04:40:50PM +0200, Johannes Stezenbach wrote:
-> 
-> > Have you tried iso13818ps from http://www.scara.com/~schirmer/o/mplex13818/ ?
-> 
-> Thanks for the link.  Description looks promising.  But neither mplayer
-> nor vlc plays the output created by
-> 
->   mplex13818-1.1.1/iso13818ps --ts z.ts >z.iso.ps
+Hello all,
 
-I think the idea is to select _one_ of the services from the TS
-by giving the service_id to iso13818ps. And maybe even select
-a subset of the PES streams by giving their ids, too. But I have
-to admit I never used iso13818ps. At Convergence we used iso13818ts
-so that one is know to work.
+I am currently trying to get my Compro VideoMate DVB-T220 card working  
+but am having difficultly locating the MT352 Design Manual and the  
+QT1010 datasheet or design manual. If anyone has a copy of these handy  
+could they please send them my way?
 
-> Mplayer gives no audio and 8x8 (or 16x16?) squares which keep changing
-> colors.  vlc gives black video and no audio.
-> 
-> The output of my parsing script looks like this:
-
-seems screwed up
-
-> > Try to feed the original
-> > TS to iso13818ps (not your filtered one), it should handle it correctly.
-> 
-> I _am_ feeding the original TS (including adaptation-only packets).  As
-> you can see in my previous mail, I am capturing the TS into a file and
-> feed this file as input to any of the test candidates.  Whether I ignore
-> adaptation should not affect the other candidates in any way.
-
-How do you capture the TS, and does it play OK in vlc?
-
-Johannes
+Thanks,
+Rob
 
 _______________________________________________
 linux-dvb mailing list
