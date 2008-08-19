@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.sub.ru ([88.212.205.2])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <mr@ramendik.ru>) id 1KRpEP-0007CF-Gq
-	for linux-dvb@linuxtv.org; Sat, 09 Aug 2008 16:15:46 +0200
-Message-ID: <5994.193.120.116.180.1218291341.squirrel@mail-new.sub.ru>
-Date: Sat, 9 Aug 2008 18:15:41 +0400 (MSD)
-From: mr@ramendik.ru
+Received: from rv-out-0506.google.com ([209.85.198.225])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <beth.null@gmail.com>) id 1KVNOC-0005xc-Eo
+	for linux-dvb@linuxtv.org; Tue, 19 Aug 2008 11:20:33 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so2572263rvf.41
+	for <linux-dvb@linuxtv.org>; Tue, 19 Aug 2008 02:20:28 -0700 (PDT)
+Message-ID: <7641eb8f0808190220r53c8e214r54e3d568dbfb454c@mail.gmail.com>
+Date: Tue, 19 Aug 2008 11:20:27 +0200
+From: Beth <beth.null@gmail.com>
 To: linux-dvb@linuxtv.org
+In-Reply-To: <7641eb8f0808180228y3446ca36y9ed9f770a3c2ec54@mail.gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] DVB-S2
+Content-Disposition: inline
+References: <7641eb8f0808180228y3446ca36y9ed9f770a3c2ec54@mail.gmail.com>
+Subject: Re: [linux-dvb] Skystar HD2 (device don't stream data).
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,16 +27,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Last night I had the thing running and here are the results:
 
-Are there any DVB-S2 cards that would be supported? Preferrably in stock
-2.6.25, but I can apply patches if necessary.
 
-Infrared is not an issue - I am only interested in the DVB-S, DVB-S2, and
-(possibly) analog inputs.
+time dd if=/dev/dvb/adapter0/dvr0 of=test_100M.ts bs=1M count=100
+100+0 records in
+100+0 records out
+104857600 bytes (105 MB) copied, 35327.8 s, 3.0 kB/s
 
-Yours, Mikhail Ramendik
+real	588m47.813s
+user	0m0.000s
+sys	0m1.020s
 
+
+Hey ten hours for a 100Mb file, definitively it's a turtle.
+
+What can I do with that file? as mplayer and similar doesn't plays it.
+
+Can I turn on something for debugging?
+
+Thats all (for today) thanks and kind regards.
 
 _______________________________________________
 linux-dvb mailing list
