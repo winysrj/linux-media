@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.157])
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <picholicho@gmail.com>) id 1KXOLr-0008S7-6O
-	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 00:46:28 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so784657fga.25
-	for <linux-dvb@linuxtv.org>; Sun, 24 Aug 2008 15:46:23 -0700 (PDT)
-Message-ID: <7b1b1f8d0808241546p1dcb850du5a2450008d1d7ebd@mail.gmail.com>
-Date: Mon, 25 Aug 2008 01:46:22 +0300
-From: "Ilia Penev" <picholicho@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <mkrufky@linuxtv.org>) id 1KVQxq-0000ts-Fs
+	for linux-dvb@linuxtv.org; Tue, 19 Aug 2008 15:09:37 +0200
+Message-ID: <48AAC5E7.1050703@linuxtv.org>
+Date: Tue, 19 Aug 2008 09:08:55 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Subject: [linux-dvb] finally working solution for Gigabyte U8000-RH
+To: stev391@email.com
+References: <20080819065632.293BA11581F@ws1-7.us4.outblaze.com>
+In-Reply-To: <20080819065632.293BA11581F@ws1-7.us4.outblaze.com>
+Cc: Tim Lucas <lucastim@gmail.com>, linux dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DViCO Fusion HDTV7 Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,121 +19,209 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0587438104=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0587438104==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_65051_10444414.1219617982947"
 
-------=_Part_65051_10444414.1219617982947
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>> Tim,
+>>
+>> The support that I added in was for a the DViCO DVB-T Dual Express, not the
+>> FusionHDTV7.
+>>
+>> However there may be good news for you...
+>> If your card is the FusionHDTV7 Dual Express there is support for this card
+>> in the main tree (only one DVB tuner at the moment). This may not help you
+>> as you stated that you needed analog support.
+>>
+>> The easiest way for you to get the newest DVB drivers is to go to this
+>> webpage:
+>> http://martinpitt.wordpress.com/2008/06/10/packaged-dvb-t-drivers-for-ubuntu
+>> -804/
+>>
+>> You may need to install some firmware as well (you can tell if you need to
+>> get the firmware by an error message in the syslog [accessed by typing
+>> "dmesg" in a terminal], this error will only show up after you try to scan
+>> or tune to a channel.  If you need firmware goto:
+>> http://www.steventoth.net/linux/xc5000/
+>> and follow the instructions inside the files (extract.sh and readme.txt).
+>>
+>> Give that a go then come back, with any issues to the mailing list.
+>>
+>> Perhaps you could create a wiki page on: http://linuxtv.org/wiki/index.php
+>> with all the relevant information on it, for an example checkout:
+>> http://linuxtv.org/wiki/index.php/DViCO_FusionHDTV_DVB-T_Dual_Express
+>> And if you do make the page, update this page while you are at it:
+>> http://linuxtv.org/wiki/index.php/DViCO
+>> and also: http://linuxtv.org/wiki/index.php/ATSC_PCIe_Cards
+>>
+>> Regards,
+>>
+>> Stephen.
+>>
+>>
+>> On Mon, Aug 18, 2008 at 8:37 PM, Tim Lucas <lucastim@gmail.com> wrote:
+>>
+>>     
+>>> Thank you for the help.  I am familiar with mercurial, so I should be able
+>>> to figure it out.
+>>>
+>>>
+>>> On Mon, Aug 18, 2008 at 8:13 PM, Michael Krufky <mkrufky@linuxtv.org>wrote:
+>>>
+>>>       
+>>>> Tim Lucas wrote:
+>>>>         
+>>>>> I apologize if this is outside the scope of the list and would
+>>>>>           
+>>>> appreciate
+>>>>         
+>>>>> any help I could get offline if that makes more sense.
+>>>>> I have been searching online for support for this card and it looks
+>>>>>           
+>>>> there
+>>>>         
+>>>>> may be support now or coming soon. I am running mythbuntu 8.04 which
+>>>>>           
+>>>> does
+>>>>         
+>>>>> not yet include support for this card.  I am a linux novice so I was
+>>>>> wondering if you could help me add the appropriate files that will add
+>>>>> support for the card.  I am a linux novice (I'm good at apt-get install,
+>>>>>           
+>>>> but
+>>>>         
+>>>>> no so much at building my own kernel) so I may need a little bit of hand
+>>>>> holding.  Any help
+>>>>> you could provide would be appreciated.
+>>>>>
+>>>>>
+>>>>>
+>>>>> Side question.  I thought I might have seen something about only support
+>>>>>           
+>>>> for
+>>>>         
+>>>>> digital on this card, not analog.  I am in an apartment complex that
+>>>>>           
+>>>> uses an
+>>>>         
+>>>>> antiquated (very large) satellite system.  It is listed with schedules
+>>>>> direct, but I am not sure if it is digital or analog.
+>>>>>           
+>>>> is setting up the wrong demodulators for this card
+>>>> FusionHDTV7 Dual Express is supported in the v4l-dvb mercurial tree,
+>>>> hosted on linuxtv.org.
+>>>> See http://linuxtv.org/repo for info about installing the driver into
+>>>> your running kernel.
+>>>>
+>>>> Support for the card will be available out-of-the-box in the unreleased
+>>>> kernel 2.6.27
+>>>>
+>>>> -Mike
+>>>>
+>>>>         
+>>>       
 
-hello there i have Gigabyte U8000-RH. it's hybrid tuner.
-inside chips are XC3028ACQ, CX25843-24Z and DIB7700 or DIB7700C. actually
-device will work like Terratec Cinergy HT USB XE
 
-first you need to downlaod latest sources.
-get the firmware
-http://www.wi-bw.tfh-wildau.de/~pboettch/home/linux-dvb-firmware/dvb-usb-dib0700-03-pre1.fw<http://www.wi-bw.tfh-wildau.de/%7Epboettch/home/linux-dvb-firmware/dvb-usb-dib0700-03-pre1.fw>
-save it in /lib/firmware under the name dvb-usb-dib0700-1.10.fw
-get firmware for xc3028 http://habbit.net/uploads/xc3028-v27.fw again put it
-in /lib/firmware
-
-in dvb-usb-ids.h
-change terratec id to 0x1044, and gigabyte id to 1045 for example.
-#define USB_VID_TERRATEC            0x1044
-#define USB_VID_GIGABYTE            0x1045
-change #define USB_PID_TERRATEC_CINERGY_HT_USB_XE      with 7002
-#define USB_PID_TERRATEC_CINERGY_HT_USB_XE   0x7002
-
-
-compile and plug the stick. that's it.
-
-here is the channel list for Sofia, Bulgaria.
-#Generated by Kaffeine 0.5
-TV|Channel
-1|256(2)|257,|0|1|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|2|||1|
-TV|Channel
-2|272(2)|273,|0|2|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|3|||1|
-TV|Channel
-3|288(2)|289,|0|3|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|4|||1|
-TV|Channel
-4|304(2)|305,|0|4|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|5|||1|
-TV|Channel
-5|320(2)|321,|0|5|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|6|||1|
-TV|Channel
-6|336(2)|337,|0|6|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|7|||1|
-RA|HORIZONT|0|33,|0|9|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|8|||1|
-RA|Hr.BOTEV|0|35,|0|10|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|1|||1|
-
-And dmesg output
-
-usb 2-3: new high speed USB device using ehci_hcd and address 3
-usb 2-3: configuration #1 chosen from 1 choice
-usb 2-3: New USB device found, idVendor=1044, idProduct=7002
-usb 2-3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 2-3: Product: U8000
-usb 2-3: Manufacturer: GIGABYTE
-usb 2-3: SerialNumber: 000G83000200912
-dib0700: loaded with support for 7 different device-types
-dvb-usb: found a 'Terratec Cinergy HT USB XE' in cold state, will try to
-load a firmware
-dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
-dib0700: firmware started successfully.
-dvb-usb: found a 'Terratec Cinergy HT USB XE' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software
-demuxer.
-DVB: registering new adapter (Terratec Cinergy HT USB XE)
-DVB: registering frontend 0 (DiBcom 7000PC)...
-xc2028 2-0061: creating new instance
-xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
-input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:1d.7/usb2/2-3/input/input11
-dvb-usb: schedule remote query interval to 150 msecs.
-dvb-usb: Terratec Cinergy HT USB XE successfully initialized and connected.
-usbcore: registered new interface driver dvb_usb_dib0700
-
-------=_Part_65051_10444414.1219617982947
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">hello there i have Gigabyte U8000-RH. it&#39;s hybrid tuner.<br>inside chips are XC3028ACQ, CX25843-24Z and DIB7700 or DIB7700C. actually device will work like Terratec Cinergy HT USB XE<br><br>first you need to downlaod latest sources. <br>
-get the firmware<br><a href="http://www.wi-bw.tfh-wildau.de/%7Epboettch/home/linux-dvb-firmware/dvb-usb-dib0700-03-pre1.fw" target="_blank">http://www.wi-bw.tfh-wildau.de/~pboettch/home/linux-dvb-firmware/dvb-usb-dib0700-03-pre1.fw</a><br>
-
-save it in /lib/firmware under the name dvb-usb-dib0700-1.10.fw<br>get firmware for xc3028 <a href="http://habbit.net/uploads/xc3028-v27.fw" target="_blank">http://habbit.net/uploads/xc3028-v27.fw</a> again put it in /lib/firmware<br>
-<br>
-in dvb-usb-ids.h<br>change terratec id to 0x1044, and gigabyte id to 1045 for example.<br>#define USB_VID_TERRATEC&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; 0x1044<br>#define USB_VID_GIGABYTE&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; 0x1045<br>change #define USB_PID_TERRATEC_CINERGY_HT_USB_XE&nbsp;&nbsp;&nbsp; &nbsp; with 7002<br>
-#define USB_PID_TERRATEC_CINERGY_HT_USB_XE&nbsp;&nbsp; 0x7002<br><br><br>compile and plug the stick. that&#39;s it. <br>
-<br>here is the channel list for Sofia, Bulgaria. <br>#Generated by Kaffeine 0.5<br>TV|Channel 1|256(2)|257,|0|1|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|2|||1|<br>TV|Channel 2|272(2)|273,|0|2|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|3|||1|<br>
-
-TV|Channel 3|288(2)|289,|0|3|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|4|||1|<br>TV|Channel 4|304(2)|305,|0|4|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|5|||1|<br>TV|Channel 5|320(2)|321,|0|5|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|6|||1|<br>
-
-TV|Channel 6|336(2)|337,|0|6|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|7|||1|<br>RA|HORIZONT|0|33,|0|9|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|8|||1|<br>RA|Hr.BOTEV|0|35,|0|10|1|Terrestrial|818000|0|v|-1|-1|-1|-1|8|-1|-1|-1|1|||1|<br>
-
-<br>And dmesg output<br><br>usb 2-3: new high speed USB device using ehci_hcd and address 3<br>usb 2-3: configuration #1 chosen from 1 choice<br>usb 2-3: New USB device found, idVendor=1044, idProduct=7002<br>usb 2-3: New USB device strings: Mfr=1, Product=2, SerialNumber=3<br>
-usb 2-3: Product: U8000<br>usb 2-3: Manufacturer: GIGABYTE<br>usb 2-3: SerialNumber: 000G83000200912<br>dib0700: loaded with support for 7 different device-types<br>dvb-usb: found a &#39;Terratec Cinergy HT USB XE&#39; in cold state, will try to load a firmware<br>
-dvb-usb: downloading firmware from file &#39;dvb-usb-dib0700-1.10.fw&#39;<br>dib0700: firmware started successfully.<br>dvb-usb: found a &#39;Terratec Cinergy HT USB XE&#39; in warm state.<br>dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.<br>
-DVB: registering new adapter (Terratec Cinergy HT USB XE)<br>DVB: registering frontend 0 (DiBcom 7000PC)...<br>xc2028 2-0061: creating new instance<br>xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner<br>input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb2/2-3/input/input11<br>
-dvb-usb: schedule remote query interval to 150 msecs.<br>dvb-usb: Terratec Cinergy HT USB XE successfully initialized and connected.<br>usbcore: registered new interface driver dvb_usb_dib0700<br><br><br><br></div>
-
-------=_Part_65051_10444414.1219617982947--
+stev391@email.com wrote:
+>> ----- Original Message -----
+>> From: "Tim Lucas" <lucastim@gmail.com>
+>> To: "Michael Krufky" <mkrufky@linuxtv.org>, stev391@email.com, "linux
+dvb" <linux-dvb@linuxtv.org>
+>> Subject: Re: [linux-dvb] DViCO Fusion HDTV7 Dual Express
+>> Date: Mon, 18 Aug 2008 23:11:58 -0700
+>>
+>>
+>> I tried the advice of both of the replies that I got below.  I get the
+>> following in dmesg.
+>>
+>> [   31.078478] cx23885 driver version 0.0.1 loaded
+>> [   31.078777] ACPI: PCI Interrupt Link [APC6] enabled at IRQ 16
+>> [   31.078782] ACPI: PCI Interrupt 0000:08:00.0[A] -> Link [APC6] ->
+GSI 16
+>> (level, low) -> IRQ 21
+>> [   31.078795] CORE cx23885[0]: subsystem: 18ac:d618, board: DViCO
+>> FusionHDTV7 Dual Express [card=10,autodetected]
+>> [   31.180458] cx23885[0]: i2c bus 0 registered
+>> [   31.180480] cx23885[0]: i2c bus 1 registered
+>> [   31.180499] cx23885[0]: i2c bus 2 registered
+>> [   31.207377] cx23885[0]: cx23885 based dvb card
+>> [   31.243077] cx23885[0]: frontend initialization failed
+>> [   31.243080] cx23885_dvb_register() dvb_register failed err = -1
+>> [   31.243081] cx23885_dev_setup() Failed to register dvb on VID_C
+>> [   31.243085] cx23885_dev_checkrevision() Hardware revision = 0xb0
+>> [   31.243091] cx23885[0]/0: found at 0000:08:00.0, rev: 2, irq: 21,
+>> latency: 0, mmio: 0xfd800000
+>>
+>> Originally a friend helped me by getting setting up the system to
+look for
+>> the old dvico fusion 5 card.
+>> I put
+>>
+>> options cx23885 card=4
+>>
+>> in /etc/modprobe.d/options.  The system would recognize that I had a card
+>> with two feeds, but I could get channels on the scan.  I commented
+out this
+>> line and then tried installing the deb package, but lost support of the
+>> card.
+>> I tried installing from source, but that didn't help.  I tried installing
+>> the firmware as recommended, but it still didn't help.
+>> At some point it recognized only one feed, still couldn't get channels on
+>> the scan.  Then I lost the card completely.  I admit that I just started
+>> trying suggestions and was probably not systematic enough.  I may need to
+>> scrap the install and start over.  Since the box is new, that is not
+a big
+>> deal.  It probably wouldn't take very long to reinstall.
+>>
+>> I have some questions.  Will there be support for both tuners?  The old
+>> driver seemed to support 2, so I would hope the new one would too.  Will
+>> this card not work with analog channels or has support just not been
+written
+>> yet?  If I do have analog channels, what should the settings be? 
+Would one
+>> of those digital converter boxes make it a digital signal? (That is
+probably
+>> a dumb question, but this is not really my area.)
+>>
+>> Thanks for all of your help.
+>>
+>>       --Tim
+>>
+>>
+----------------------------------------------------------------------------------------------------------------------------------------------
 
 
---===============0587438104==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+> Tim,
+>
+> Can you take a high resolution photo of the card and create a wiki page with this card?
+> Also provide a list of the chips (as on the card), for example cx23885.  I mainly want to now the demodulators that are in use on the card as the driver has two possible paths in the code depending on which demodulator is installed. Which one is it: S5H1411 or S5H1409 or something else? From the low resolution photos on the DViCO site there should be two of these chips roughly in the middle of the card side by side.
+>   
+
+It doesnt matter -- I have both versions of this board, the 1409 and the
+1411 version.
+
+The boards are identical, other than the newer demodulator.
+
+Both boards are supported.  Both frontend paths are supported.
+
+You need to use the v4l-dvb mercurial *tip* for full support.  Older
+revisions will only support one tuner.
+
+You also need the xc5000 firmware placed into the correct location
+(usually /lib/firmware)
+
+I added support for these boards and they are both running fine in my
+mythtv-backend for digital atsc and qam recordings.
+
+Regards,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0587438104==--
