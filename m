@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7UF35GX025248
-	for <video4linux-list@redhat.com>; Sat, 30 Aug 2008 11:03:06 -0400
-Received: from mta3.srv.hcvlny.cv.net (mta3.srv.hcvlny.cv.net [167.206.4.198])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7UF2aoZ020518
-	for <video4linux-list@redhat.com>; Sat, 30 Aug 2008 11:02:36 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6F001RE5SB5YK0@mta3.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Sat, 30 Aug 2008 11:02:36 -0400 (EDT)
-Date: Sat, 30 Aug 2008 11:02:35 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48B95BB6.3070200@linuxtv.org>
-To: Linux and Kernel Video <video4linux-list@redhat.com>,
-	linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <48B9610B.3010806@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <48B95BB6.3070200@linuxtv.org>
-Cc: 
-Subject: Re: HVR2250 / HVR2200 / SAA7164 status
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7JHGnO9023750
+	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 13:16:49 -0400
+Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.182])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7JHGdLe015574
+	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 13:16:39 -0400
+Received: by py-out-1112.google.com with SMTP id a29so37738pyi.0
+	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 10:16:39 -0700 (PDT)
+Message-ID: <2df568dc0808191016w4c45f3a9lf70ef62a80198e2e@mail.gmail.com>
+Date: Tue, 19 Aug 2008 11:16:38 -0600
+From: "Gordon Smith" <spider.karma+video4linux-list@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <1219112190.4107.5.camel@pc10.localdom.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <2df568dc0808181516g49377e0fj73c104696d8616d4@mail.gmail.com>
+	<1219112190.4107.5.camel@pc10.localdom.local>
+Subject: Re: saa7134_empress hang on close()
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,37 +30,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Steven Toth wrote:
-> As you know, I'm writing a driver for the SAA7164 chipset, for the 
-> HVR2200 DVB-T and HVR2250 ATSC/QAM products.
-> 
-> People have been asking for status, here's where I am.
-> 
-> Do I have anything to share with people yet? Not yet.
-> 
-> The basic driver framework is done. Firmware is loading, I can talking 
-> to the silicon through the proprietary PCIe ring buffer interface. I2C 
-> is working, eeprom and tuner/demod access is done.
-> 
-> The HVR2250 is responding to azap commands, the tuners and demods are 
-> locking, snr looks pretty good... it's going to be a popular board for 
-> people.
-> 
-> The HVR2200 (DVB-T Version) should also worked with tzap, it's untested 
-> and I can't comment on SNR at this stage.
-> 
-> I need to add the DMA/buffering code, this is the missing pieces before 
-> a first public release.
-> 
-> When I have anything to share I'll put up a tree and post a 'testers 
-> required' message here.
+On Mon, Aug 18, 2008 at 8:16 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
+>
+> Hi Gordon,
+>
+> Am Montag, den 18.08.2008, 16:16 -0600 schrieb Gordon Smith:
+> > Hello -
+> >
+> > I have a saa7134 based video capture card running in kernel
+> > 2.6.24.4(gentoo). I can view raw and compressed video on both channels
+> > of the card
+> > using xawtv and mplayer.
+> >
+> > However, any program reading a compressed stream that attempts to exit,
+> > hangs and is unkillable. This includes cat, mplayer, and the example V4L2
+> > program capture.c.
+> >
+> > I removed capture code from capture.c (because, unlike mplayer, it doesn't
+> > capture) and left only open() and close() and found that it hangs on
+> > close().
+> >
+> > Any thoughts on how I might solve this problem?
+> >
+>
+> you might have seen the ongoing debugging and improvements to get the
+> saa7134-empress back and better.
 
-Joe, my private reply to your email address bounced. This email was 
-triggered by your status request.
+I have seen some recent activity, but didn't know it was altogether
+broken, if that is what you are saying. Is there a searchable archive
+of this list? I've been unable to find one.
 
-... don't assume I'm ignoring you ;)
+>
+> Are you using a known card, which is assumed to be supported and which
+> tuner is on it?
 
-- Steve
+I have a RTD Technologies VFG7350 that has been supported for some
+time. I don't think there is a tuner, we use camera feeds for input.
+
+>
+> Did you try the recent v4l-dvb and maybe use qv4l2 to control the
+> devices?
+
+I'm not up to speed on DVB, but this card isn't on the supported
+hardware list and as far as I can guess, it never will be since it
+does not have digital input?
+
+I can see if qv4l2 functions with this card.
+
+>
+> Cheers,
+> Hermann
+>
+>
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
 --
 video4linux-list mailing list
