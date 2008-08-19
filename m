@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1KX7pD-0007T9-Nk
-	for linux-dvb@linuxtv.org; Sun, 24 Aug 2008 07:07:45 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Sun, 24 Aug 2008 07:06:13 +0200
-References: <9e849af80808170229i4d79e160ibb8a928b2434f59b@mail.gmail.com>
-	<200808172336.51407@orion.escape-edv.de>
-In-Reply-To: <200808172336.51407@orion.escape-edv.de>
+Received: from host06.hostingexpert.com ([216.80.70.60])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mkrufky@linuxtv.org>) id 1KVHec-0008Ua-AJ
+	for linux-dvb@linuxtv.org; Tue, 19 Aug 2008 05:13:07 +0200
+Message-ID: <48AA3A3C.2050906@linuxtv.org>
+Date: Mon, 18 Aug 2008 23:13:00 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200808240706.14898@orion.escape-edv.de>
-Subject: Re: [linux-dvb] activy dvb-t ALPS tdhd1-204A support?
-Reply-To: linux-dvb@linuxtv.org
+To: Tim Lucas <lucastim@gmail.com>
+References: <e32e0e5d0808181946w7e852dc7tef2df349b2f538f0@mail.gmail.com>
+In-Reply-To: <e32e0e5d0808181946w7e852dc7tef2df349b2f538f0@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DViCO Fusion HDTV7 Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,37 +25,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Oliver Endriss wrote:
-> jaakko tuomainen wrote:
-> > Hi,
-> > 
-> > Thanks for the patch, now I can tune to any free-to-air
-> > channel with Kaffeine (i don't have pay-tv to test it).
-> > Is there need for some kind of "fine tuning" of the driver
-> > now when the cards are detected and work ok?
+Tim Lucas wrote:
+> I apologize if this is outside the scope of the list and would appreciate
+> any help I could get offline if that makes more sense.
+> I have been searching online for support for this card and it looks there
+> may be support now or coming soon. I am running mythbuntu 8.04 which does
+> not yet include support for this card.  I am a linux novice so I was
+> wondering if you could help me add the appropriate files that will add
+> support for the card.  I am a linux novice (I'm good at apt-get install, but
+> no so much at building my own kernel) so I may need a little bit of hand
+> holding.  Any help
+> you could provide would be appreciated.
 > 
-> Great. I am a bit surprised that it works, since most of the parameters
-> in 'struct tda1004x_config' are just an educated guess. ;-)
 > 
-> If there are no problems we can leave the parameters 'as is'.
-> Fine tuning - if necessary - must be done by people who own the card
-> and are able to compare behaviour with the windows driver.
 > 
-> Let's test the patch until next weekend, then I will commit it to HG.
+> Side question.  I thought I might have seen something about only support for
+> digital on this card, not analog.  I am in an apartment complex that uses an
+> 
+> antiquated (very large) satellite system.  It is listed with schedules
+> direct, but I am not sure if it is digital or analog.
 
-Could you please post a log which contains the driver messages after a
-coldstart (poweroff the machine).
+FusionHDTV7 Dual Express is supported in the v4l-dvb mercurial tree, hosted on linuxtv.org.
+See http://linuxtv.org/repo for info about installing the driver into your running kernel.
 
-I'd like to know whether the TDHD1 has an internal eeprom for the
-tda10046 firmware. If yes, we do not need the request_firmware stuff.
+Support for the card will be available out-of-the-box in the unreleased kernel 2.6.27
 
-Thanks,
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
