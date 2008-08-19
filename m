@@ -1,24 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hugin.unit.liu.se ([130.236.230.178])
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mraspaud@free.fr>) id 1KYh8Z-0002zj-1c
-	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 15:02:09 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by hugin.unit.liu.se (Postfix) with ESMTP id 33EC4281B0A
-	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 15:01:33 +0200 (CEST)
-Received: from hugin.unit.liu.se ([127.0.0.1])
-	by localhost (hugin.unit.liu.se [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id cpaxjWgdR4eL for <linux-dvb@linuxtv.org>;
-	Thu, 28 Aug 2008 15:01:32 +0200 (CEST)
-Received: from k5717-marra.staff.itn.liu.se (unknown [130.236.136.254])
-	by hugin.unit.liu.se (Postfix) with ESMTP id 6A5E728196E
-	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 15:01:32 +0200 (CEST)
-Message-ID: <48B6A1AB.2010703@free.fr>
-Date: Thu, 28 Aug 2008 15:01:31 +0200
-From: Martin Raspaud <mraspaud@free.fr>
+	(envelope-from <stev391@email.com>) id 1KVIJ3-0001hc-Nu
+	for linux-dvb@linuxtv.org; Tue, 19 Aug 2008 05:54:54 +0200
+Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
+	[192.168.8.242])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
+	C0096180193F
+	for <linux-dvb@linuxtv.org>; Tue, 19 Aug 2008 03:54:18 +0000 (GMT)
+Content-Disposition: inline
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] v4l-experimental and kernel 2.6.26
+From: stev391@email.com
+Cc: "linux dvb" <linux-dvb@linuxtv.org>
+Date: Tue, 19 Aug 2008 13:54:18 +1000
+Message-Id: <20080819035418.B3DD747808F@ws1-5.us4.outblaze.com>
+Subject: Re: [linux-dvb] DViCO FusionHDTV7 Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,109 +28,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Hi,
+> ----- Original Message -----
+> From: "Tim Lucas" 
+> To: stev391 at email.com
+> Subject: DViCO FusionHDTV7 Express
+> Date: Mon, 18 Aug 2008 22:33:40 -0400 (EDT)
+> 
+> 
+> I have been searching online for support for this card and it looks like you have written some 
+> stuff for it.  I am running mythbuntu 8.04 which does not yet include support for this card.  I 
+> am a linux novice so I was wondering if you could help me add the appropriate files that will 
+> add support for the card.  I am a linux novice (I'm good at apt-get install, but no so much at 
+> building my own kernel) so I need a little bit of hand holding.  Any help you could provide 
+> would be appreciated.
+> 
+> Side question.  I thought I might have seen something about only support for digital on this 
+> card, not analog.  I am in an apartment complex that uses an antiquated (very large) satellite 
+> system.  It is listed with schedules direct, but I am not sure if it is digital or analog.
+> 
+> 	--Tim
 
-I just noticed that v4l-experimental does not compile anymore against
-kernel 2.6.26. It seems the support of device_class has been removed,
-and apparently v4l-experimental still makes use of it.
+Tim,
 
-I use the experimental branch on debian sid for an avermedia E506R
-(hybrid cardbus analog+dvb-t)
+The support that I added in was for a the DViCO DVB-T Dual Express, not the FusionHDTV7.
 
-Does anyone know a workaround ?
+However there may be good news for you...
+If your card is the FusionHDTV7 Dual Express there is support for this card in the main tree (only one DVB tuner at the moment). This may not help you as you stated that you needed analog support.
 
-Here is what I get when running make:
+The easiest way for you to get the newest DVB drivers is to go to this webpage:
+http://martinpitt.wordpress.com/2008/06/10/packaged-dvb-t-drivers-for-ubuntu-804/
 
-/usr/src/v4l-dvb-experimental/v4l# make
-perl scripts/make_config_compat.pl /lib/modules/2.6.26-1-686/build
-./.myconfig ./config-compat.h
-creating symbolic links...
-make -C /lib/modules/2.6.26-1-686/build
-SUBDIRS=/usr/src/v4l-dvb-experimental/v4l  modules
-make[1]: Entering directory `/usr/src/linux-headers-2.6.26-1-686'
-  CC [M]  /usr/src/v4l-dvb-experimental/v4l/flexcop-pci.o
-  CC [M]  /usr/src/v4l-dvb-experimental/v4l/flexcop-usb.o
-  CC [M]  /usr/src/v4l-dvb-experimental/v4l/flexcop.o
-  CC [M]  /usr/src/v4l-dvb-experimental/v4l/flexcop-fe-tuner.o
-  CC [M]  /usr/src/v4l-dvb-experimental/v4l/flexcop-i2c.o
-  CC [M]  /usr/src/v4l-dvb-experimental/v4l/flexcop-sram.o
-  CC [M]  /usr/src/v4l-dvb-experimental/v4l/flexcop-eeprom.o
-  CC [M]  /usr/src/v4l-dvb-experimental/v4l/flexcop-misc.o
-  CC [M]  /usr/src/v4l-dvb-experimental/v4l/flexcop-hw-filter.o
-  CC [M]  /usr/src/v4l-dvb-experimental/v4l/flexcop-dma.o
-  CC [M]  /usr/src/v4l-dvb-experimental/v4l/bttv-driver.o
-In file included from
-/usr/src/v4l-dvb-experimental/v4l/../linux/include/media/v4l2-common.h:29,
-                 from /usr/src/v4l-dvb-experimental/v4l/bttvp.h:37,
-                 from /usr/src/v4l-dvb-experimental/v4l/bttv-driver.c:41:
-/usr/src/v4l-dvb-experimental/v4l/../linux/include/media/v4l2-dev.h:365:
-error: field 'class_dev' has incomplete type
-In file included from
-/usr/src/v4l-dvb-experimental/v4l/../linux/include/media/v4l2-common.h:29,
-                 from /usr/src/v4l-dvb-experimental/v4l/bttvp.h:37,
-                 from /usr/src/v4l-dvb-experimental/v4l/bttv-driver.c:41:
-/usr/src/v4l-dvb-experimental/v4l/../linux/include/media/v4l2-dev.h:394:
-warning: 'struct class_device_attribute' declared inside parameter list
-/usr/src/v4l-dvb-experimental/v4l/../linux/include/media/v4l2-dev.h:394:
-warning: its scope is only this definition or declaration, which is
-probably not what you want
-/usr/src/v4l-dvb-experimental/v4l/../linux/include/media/v4l2-dev.h: In
-function 'video_device_create_file':
-/usr/src/v4l-dvb-experimental/v4l/../linux/include/media/v4l2-dev.h:396:
-error: implicit declaration of function 'class_device_create_file'
-/usr/src/v4l-dvb-experimental/v4l/../linux/include/media/v4l2-dev.h: At
-top level:
-/usr/src/v4l-dvb-experimental/v4l/../linux/include/media/v4l2-dev.h:403:
-warning: 'struct class_device_attribute' declared inside parameter list
-/usr/src/v4l-dvb-experimental/v4l/../linux/include/media/v4l2-dev.h: In
-function 'video_device_remove_file':
-/usr/src/v4l-dvb-experimental/v4l/../linux/include/media/v4l2-dev.h:405:
-error: implicit declaration of function 'class_device_remove_file'
-In file included from /usr/src/v4l-dvb-experimental/v4l/bttv-driver.c:41:
-/usr/src/v4l-dvb-experimental/v4l/bttvp.h:94:1: warning: "clamp" redefined
-In file included from include/asm/system.h:10,
-                 from include/asm/processor.h:17,
-                 from include/linux/prefetch.h:14,
-                 from include/linux/list.h:6,
-                 from include/linux/module.h:9,
-                 from /usr/src/v4l-dvb-experimental/v4l/bttv-driver.c:32:
-include/linux/kernel.h:379:1: warning: this is the location of the
-previous definition
-/usr/src/v4l-dvb-experimental/v4l/bttv-driver.c: In function 'show_card':
-/usr/src/v4l-dvb-experimental/v4l/bttv-driver.c:172: warning: type
-defaults to 'int' in declaration of '__mptr'
-/usr/src/v4l-dvb-experimental/v4l/bttv-driver.c:172: warning:
-initialization from incompatible pointer type
-/usr/src/v4l-dvb-experimental/v4l/bttv-driver.c: At top level:
-/usr/src/v4l-dvb-experimental/v4l/bttv-driver.c:176: error: expected ')'
-before '(' token
-/usr/src/v4l-dvb-experimental/v4l/bttv-driver.c: In function
-'bttv_register_video':
-/usr/src/v4l-dvb-experimental/v4l/bttv-driver.c:4637: error:
-'class_device_attr_card' undeclared (first use in this function)
-/usr/src/v4l-dvb-experimental/v4l/bttv-driver.c:4637: error: (Each
-undeclared identifier is reported only once
-/usr/src/v4l-dvb-experimental/v4l/bttv-driver.c:4637: error: for each
-function it appears in.)
-make[2]: *** [/usr/src/v4l-dvb-experimental/v4l/bttv-driver.o] Error 1
-make[1]: *** [_module_/usr/src/v4l-dvb-experimental/v4l] Error 2
-make[1]: Leaving directory `/usr/src/linux-headers-2.6.26-1-686'
-make: *** [default] Erreur 2
+You may need to install some firmware as well (you can tell if you need to get the firmware by an error message in the syslog [accessed by typing "dmesg" in a terminal], this error will only show up after you try to scan or tune to a channel.  If you need firmware goto:
+http://www.steventoth.net/linux/xc5000/
+and follow the instructions inside the files (extract.sh and readme.txt).
+
+Give that a go then come back, with any issues to the mailing list.
+
+Perhaps you could create a wiki page on: http://linuxtv.org/wiki/index.php
+with all the relevant information on it, for an example checkout: http://linuxtv.org/wiki/index.php/DViCO_FusionHDTV_DVB-T_Dual_Express
+And if you do make the page, update this page while you are at it: http://linuxtv.org/wiki/index.php/DViCO
+and also: http://linuxtv.org/wiki/index.php/ATSC_PCIe_Cards
+
+Regards,
+
+Stephen.
+
+P.S. If you have received my email address from the linux dvb mailing list please include it in the cc field so that everybody can learn about this as well.
 
 
-Cheers,
-Martin
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-iEYEARECAAYFAki2oasACgkQayBuE7eUetACLgCfZQbIVLlKWd4i4U3UMLI05EFi
-SzkAoNn8gxOjCICANw8iEIwtbPXQN2pT
-=BrSZ
------END PGP SIGNATURE-----
+
+-- 
+Be Yourself @ mail.com!
+Choose From 200+ Email Addresses
+Get a Free Account at www.mail.com
+
 
 _______________________________________________
 linux-dvb mailing list
