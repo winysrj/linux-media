@@ -1,23 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m789FI7O005159
-	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 05:15:18 -0400
-Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m789F6S9014345
-	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 05:15:07 -0400
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-In-Reply-To: <200808071237.47230.laurent.pinchart@skynet.be>
-References: <489AD045.7030404@hhs.nl>
-	<200808071237.47230.laurent.pinchart@skynet.be>
-Content-Type: text/plain; charset=ISO-8859-1
-Date: Fri, 08 Aug 2008 11:10:36 +0200
-Message-Id: <1218186636.1734.13.camel@localhost>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7JE6FKG012885
+	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 10:06:15 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7JE6Cea009023
+	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 10:06:13 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1KVRqZ-0003ew-Re
+	for video4linux-list@redhat.com; Tue, 19 Aug 2008 14:06:07 +0000
+Received: from 82-135-208-232.static.zebra.lt ([82.135.208.232])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 14:06:07 +0000
+Received: from paulius.zaleckas by 82-135-208-232.static.zebra.lt with local
+	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Tue, 19 Aug 2008 14:06:07 +0000
+To: video4linux-list@redhat.com
+From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Date: Tue, 19 Aug 2008 17:05:51 +0300
+Message-ID: <48AAD33F.7000000@teltonika.lt>
+References: <A69FA2915331DC488A831521EAE36FE457EDDAA9@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: Video 4 Linux <video4linux-list@redhat.com>
-Subject: Re: RFC: adding a flag to indicate a webcam sensor is installed
-	upside down
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE457EDDAA9@dlee06.ent.ti.com>
+Subject: Re: V4L2 - contiguous buffer support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,44 +36,13 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 2008-08-07 at 12:37 +0200, Laurent Pinchart wrote:
-> On Thursday 07 August 2008, Hans de Goede wrote:
-> > Hi all,
-> > 
-> > I have this Philips SPC 200NC webcam, which has its sensor installed upside 
-> > down and the sensor does not seem to support flipping the image. So I
-> > believe the windows drivers fix this little problem in software.
-> > 
-> > I would like to add a flag somewhere to indicate this to userspace (and then 
-> > add flipping code to libv4l).
-> > 
-> > I think the best place for this would the flags field of the v4l2_fmtdesc 
-> > struct. Any other ideas / objections to this?
+Karicheri, Muralidharan wrote:
+> Hello All,
 > 
-> More often than sensors being mounted upside down in a webcam, what I've noticed frequently is webcam modules being mounted upside down in a laptop screen. There is no way that I'm aware of to check the module orientation based on the USB descriptors only. We will need a pure userspace solution.
+> I had seen some patches in the past about adding support for contiguous buffer allocation in V4L2 buffer management subsystem. Could someone tell me when this is expected to be in the kernel tree ? If possible, I would like to work with an interim version if available.
 
-Agree.
-
-Having a horizontal or vertical inversion may exist in any webcam (and
-tuner?), and may be the fact of wire inversion when assembling the
-device. So, having a flag in the driver could not work with hardware
-error.
-
-If the sensor (or bridge?) may do H or V flip, we are done. If not, this
-may be done by software, but in the userspace, i.e. at decoding time.
-
-What I propose is to add a check of the control commands V4L2_CID_HFLIP
-and V4L2_CID_VFLIP in the v4l library: if the driver does not have these
-controls, the library silenctly adds them and handles their requests.
-Then, at frame decoding time, the hflip and vflip may be given to the
-decoding functions.
-
-How do you feel it, Hans?
-
--- 
-Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-Jef             |               http://moinejf.free.fr/
-
+It is already in the mainline. If I am not mistaken since 2.6.27-rc1.
+videobuf-dma-contig.c
 
 --
 video4linux-list mailing list
