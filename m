@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1KWIoQ-0002m0-7J
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 00:39:27 +0200
-Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
-	[84.70.212.195])
-	by mail.youplala.net (Postfix) with ESMTP id C14FFD880AC
-	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 00:38:30 +0200 (CEST)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1219357458.6770.14.camel@youkaida>
-References: <1219357458.6770.14.camel@youkaida>
-Date: Thu, 21 Aug 2008 23:38:29 +0100
-Message-Id: <1219358309.6770.23.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] [mythtv-users] New firmware for dib0700 (Nova-T-500
-	and others)
+	(envelope-from <mkrufky@linuxtv.org>) id 1KVddS-0000JE-Fq
+	for linux-dvb@linuxtv.org; Wed, 20 Aug 2008 04:41:23 +0200
+Message-ID: <48AB8444.50202@linuxtv.org>
+Date: Tue, 19 Aug 2008 22:41:08 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Tim Lucas <lucastim@gmail.com>
+References: <48AB4353.4030809@linuxtv.org>
+	<e32e0e5d0808191912i40a63f5fieb32be0ea696a90@mail.gmail.com>
+In-Reply-To: <e32e0e5d0808191912i40a63f5fieb32be0ea696a90@mail.gmail.com>
+Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DViCO Fusion HDTV7 Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,19 +26,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 2008-08-21 at 23:24 +0100, Nicolas Will wrote:
-> All,
-> 
-> There is a new firmware file fixing the last cause for i2c errors and
-> disconnects and providing a new, more modular i2c request formatting.
+Tim Lucas wrote:
+> Is there any reason why analog cannot be supported?  The website for the
+> card says that it supports analog.  I know this means that someone needs to
+> write the drivers, but it might not be that difficult to update the driver
+> from  another dvico card where analog works.  I could just do the digital
+> over the air signal and record the locals for now (which are actually the
+> most important ones for me), but I'm sure others would want this support.  I
+> bought this card with the intention of upgrading my cable service when I
+> move, I'm only going to be living here for 11 more months.  My intent was to
+> get a dvr running while I had this free non-upgradeable cable service.
+Tim,
 
-I will need to request someone with Mercurial access and knowledge to
-change the code in dib0700_devices.c to ask for that new file.
+Please, do NOT top-post.  This is the policy of this mailing list.
 
-Until then, I have put instructions in the wiki for a link or a change
-to the old file name.
+I did not say that analog can not be supported.  I said that analog IS
+not supported.
 
-Nico
+If somebody gets analog working, I'm sure that everybody will be happy
+about it.  I'd like to see analog working on the cx23885 cards, too.
+
+-Mike
+
 
 
 _______________________________________________
