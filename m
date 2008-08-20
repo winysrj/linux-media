@@ -1,26 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m75HLPiK027881
-	for <video4linux-list@redhat.com>; Tue, 5 Aug 2008 13:21:25 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m75HKBKf005869
-	for <video4linux-list@redhat.com>; Tue, 5 Aug 2008 13:20:43 -0400
-Date: Tue, 5 Aug 2008 13:19:42 -0400 (EDT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-In-Reply-To: <20080806023906.c2f919b4.sfr@canb.auug.org.au>
-Message-ID: <alpine.LFD.1.10.0808051315440.22576@bombadil.infradead.org>
-References: <20080806012357.55625daf.sfr@canb.auug.org.au>
-	<20080805154122.GC22895@cs181140183.pp.htv.fi>
-	<20080806020647.2cf11a2b.sfr@canb.auug.org.au>
-	<20080805092650.af88364a.akpm@linux-foundation.org>
-	<20080806023906.c2f919b4.sfr@canb.auug.org.au>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7KInlbQ001789
+	for <video4linux-list@redhat.com>; Wed, 20 Aug 2008 14:49:47 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7KInV6F007361
+	for <video4linux-list@redhat.com>; Wed, 20 Aug 2008 14:49:32 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so394925fga.7
+	for <video4linux-list@redhat.com>; Wed, 20 Aug 2008 11:49:31 -0700 (PDT)
+Message-ID: <aad488990808201149n956d58ej544a07da93f33336@mail.gmail.com>
+Date: Wed, 20 Aug 2008 11:49:30 -0700
+From: "Simoes Vincent" <boelraty.altern@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <470378.52874.qm@web28411.mail.ukl.yahoo.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: linux-mips@linux-mips.org, video4linux-list@redhat.com,
-	Ralf Baechle <ralf@linux-mips.org>, LKML <linux-kernel@vger.kernel.org>,
-	v4l-dvb-maintainer@linuxtv.org, Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: v4l/mips build problem
+References: <470378.52874.qm@web28411.mail.ukl.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Subject: Re: Timestamp and buffer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,30 +29,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 6 Aug 2008, Stephen Rothwell wrote:
+I feel free to answer to this question, because I have the same problem. For
+the moment, I have just avoided the problem by deleting the first images. If
+someone has an idea on the value we need to set in the timestamp, it would
+be great.
 
-> Hi Andrew,
+Thanks
+Vincent
+
+2008/8/11 Malsoaz James <jmalsoaz@yahoo.fr>
+
+> Hello,
 >
-> On Tue, 5 Aug 2008 09:26:50 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
->>
->> yup, I'll send it in unless it turned up in today's linux-next.
+> I'm trying to capture some images with a camera in a repetitive way.
+> Unfortunately each time I'm launching my program the first images are not
+> good and match with a previous capture. It seems  that the problem comes
+> from the size of the buffer I'm using and that to solve the problem I have
+> to change the timestamp of the buffer. However I don't know what are the
+> value I have to set in the timestamp.
 >
-> Which I think is unlikely:  the v4l/dvb tree has been unmergable since
-> 29/7 and I haven't heard from Mauro since then.
-Too busy during those days. I don't mind if Andrew prefer to forward this 
-directly, but I have another bunch of patches to send Linus probably 
-today.
-
-I did some changes on the procedures I use for sending patches upstream, 
-but I want to do some additional tests here to be sure that everything is 
-all right. The idea is never rebase my main branches again.
-
--- 
-Cheers,
-Mauro Carvalho Chehab
-http://linuxtv.org
-mchehab@infradead.org
-
+> I hope someone would be able to help me.
+> Thank you
+> James
+>
+>
+>
+>
+>  _____________________________________________________________________________
+> Envoyez avec Yahoo! Mail. Une boite mail plus intelligente
+> http://mail.yahoo.fr
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subjectunsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
