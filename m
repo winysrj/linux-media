@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
+Received: from yx-out-2324.google.com ([74.125.44.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dvb-t@iinet.com.au>) id 1KQe5s-0000Sz-10
-	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 10:10:07 +0200
-Message-ID: <41A3723BDBA947399F2CBD960E4AFB94@mce>
-From: "David Porter" <dvb-t@iinet.com.au>
-To: <linux-dvb@linuxtv.org>
-References: <20080801034025.C0EC947808F@ws1-5.us4.outblaze.com><4897AC24.3040006@linuxtv.org>
-	<20080805214339.GA7314@kryten><20080805234129.GD11008@brainz.yelavich.home>
-	<4899020C.50000@linuxtv.org>
-Date: Wed, 6 Aug 2008 18:09:53 +1000
+	(envelope-from <beth.null@gmail.com>) id 1KVbvv-0003Sx-JV
+	for linux-dvb@linuxtv.org; Wed, 20 Aug 2008 02:52:22 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so64278yxg.41
+	for <linux-dvb@linuxtv.org>; Tue, 19 Aug 2008 17:52:15 -0700 (PDT)
+Message-ID: <7641eb8f0808191752l66477998hf1df63f3470290cd@mail.gmail.com>
+Date: Wed, 20 Aug 2008 02:52:14 +0200
+From: Beth <beth.null@gmail.com>
+To: "Carl Oscar Ejwertz" <oscarmax3@gmail.com>
+In-Reply-To: <48AB3A52.8010305@gmail.com>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
-	DVB-T Dual Express
+Content-Disposition: inline
+References: <48AB3A52.8010305@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Twinhan AD-TP300 (3030) Mantis .. Help needed..
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,98 +22,78 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+I don't know if is applicable to you but I have the same problem with
+a SkyStar HD2 that is a Twinhan clone (mine is satellite not
+terrestrial), but I think that this could work for you.
 
-I have one of these, saw Stevens post and thought i would give it a go.
+I had the same problem, I get dvr0 and such, until I modified the
+kernel driver to recognize my card, the problem becomes because they
+are the same card but have different product id (a pci device is
+identified by its vendor id "vid" and product id "pid"), my clone is
+the same but with a different vid, 0x003 instead 0x001, so I edited
+the .h of the driver change the vid to the SkyStar HD2, and
+recompile&install the driver modules.
 
-I built from : http://linuxtv.org/hg/~stoth/v4l-dvb
-All seemed to go well with no errors.
+Later I had read that without this modification the frontend is not
+created, so maybe you are in the same situation as I.
 
-dmesg reads:
+I hope this helps you, bye.
 
-[   31.964424] CORE cx23885[0]: subsystem: 18ac:db78, board: DViCO 
-FusionHDTV DVB-T Dual Express [card=11,autodetected]
-[   32.104767] cx23885[0]: i2c bus 0 registered
-[   32.104781] cx23885[0]: i2c bus 1 registered
-[   32.104794] cx23885[0]: i2c bus 2 registered
-[   32.164385] input: i2c IR (FusionHDTV) as /devices/virtual/input/input8
-[   32.422764] ir-kbd-i2c: i2c IR (FusionHDTV) detected at i2c-1/1-006b/ir0 
-[cx23885[0]]
-[   32.423135] cx23885[0]: cx23885 based dvb card
-[   32.492021] xc2028 1-0061: creating new instance
-[   32.492027] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-[   32.492036] DVB: registering new adapter (cx23885[0])
-[   32.492040] DVB: registering frontend 0 (Zarlink ZL10353 DVB-T)...
-[   32.492386] cx23885[0]: cx23885 based dvb card
-[   32.492924] xc2028 2-0061: creating new instance
-[   32.492926] xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
-[   32.492928] DVB: registering new adapter (cx23885[0])
-[   32.492930] DVB: registering frontend 1 (Zarlink ZL10353 DVB-T)...
-[   32.493228] cx23885_dev_checkrevision() Hardware revision = 0xb0
-[   32.493236] cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16, 
-latency: 0, mmio: 0xfe800000
-
-But scanning, returns :
-
-[ 1381.214624] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-[ 1382.220858] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-[ 1382.260825] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-[ 1383.267724] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-[ 1383.276680] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-
-I checked  /lib/firmware/ but xc3028-v27.fw is not in the directory ?
-
-Must have messed it up somewhere! Any help appreciated.
-
-Thanks
-David
-
------ Original Message ----- 
-From: "Steven Toth" <stoth@linuxtv.org>
-To: "Luke Yelavich" <themuso@themuso.com>
-Cc: <linux-dvb@linuxtv.org>
-Sent: Wednesday, August 06, 2008 11:44 AM
-Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV 
-DVB-T Dual Express
-
-
+2008/8/19 Carl Oscar Ejwertz <oscarmax3@gmail.com>:
+> Hello!
 >
->>>> I've tested with the HVR1500Q (xc5000 based) and I'm happy with the
->>>> results. Can you both try the DViCO board?
->>> It tests fine and I like how simpler things have got.
->>
->> I pulled the above linked tree, and compiled the modules. It seems at the 
->> moment for the dual express, that I have to pass the parameter card=11 to 
->> the driver, for it to correctly find the card and make use of all 
->> adapters. Without any module parameters, dmsg complains that the card 
->> couldn't be identified, yet two adapters are shown. I have two of these 
->> cards.
->>
->> Hope this helps some.
+> I have this DVB-T card in my ubuntu htpc box but cannot get it to work.
+> I've tried diffrent kinds of drivers and no luck.. my best hopes are on
+> some guys drivers called Manu - he has Mantis drivers that are almost
+> working for this card. The problem are after compiling the lastest hg
+> is  that it doesn't create a Frontend0 in the /dev/dvb/adapter0. I get
+> the dvr0, mux0 and the others. I wonder if anyone have any solution for
+> this and can assist me in getting this card to work.
 >
-> .. And they're both the same model?
+> I get this from lspci -vvv
 >
-> If so, insert one at a time and run the 'lspci -vn' command, save the
-> output for each card.
+> 01:06.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI
+> Bridge Controller [Ver 1.0] (rev 01)
+>    Subsystem: Twinhan Technology Co. Ltd Unknown device 0024
+>    Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+> Stepping- SERR- FastB2B-
+>    Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=3Dmedium >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR-
+>    Latency: 32 (2000ns min, 63750ns max)
+>    Interrupt: pin A routed to IRQ 10
+>    Region 0: Memory at ea000000 (32-bit, prefetchable) [size=3D4K]
 >
-> Post the output here.
+> Many thanks
 >
-> Assuming you load the driver with card=11, does each card work correctly
-> after that?
+> Oscar
 >
-> - Steve
+>
 >
 > _______________________________________________
 > linux-dvb mailing list
 > linux-dvb@linuxtv.org
 > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
+>
+
+
+
+-- =
+
+---------------------------------------------------
+Jos=E9 Antonio Robles
+
+beth.null@gmail.com
+
+661 960 119
+
+Sometimes something happens ...
+---------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
