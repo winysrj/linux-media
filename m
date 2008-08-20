@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1-g19.free.fr ([212.27.42.27])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stef.dev@free.fr>) id 1KW4Ie-0004gT-1Z
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 09:09:40 +0200
-Received: from smtp1-g19.free.fr (localhost.localdomain [127.0.0.1])
-	by smtp1-g19.free.fr (Postfix) with ESMTP id 58AB31AB2D8
-	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 09:09:36 +0200 (CEST)
-Received: from sidero.numenor.net (lac49-1-82-245-43-74.fbx.proxad.net
-	[82.245.43.74])
-	by smtp1-g19.free.fr (Postfix) with ESMTP id 415051AB2C2
-	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 09:09:36 +0200 (CEST)
-From: stef <stef.dev@free.fr>
-To: linux-dvb@linuxtv.org
-Date: Thu, 21 Aug 2008 09:07:05 +0200
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200808210907.05333.stef.dev@free.fr>
-Subject: [linux-dvb] Pinnacle hybrid pro card (pctv310c) status
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Steven Toth <stoth@linuxtv.org>,
+	Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	Andrew de Quincey <adq_dvb@lidskialf.net>
+In-Reply-To: <48AC2527.1090209@linuxtv.org>
+References: <48A90517.9000109@boerkel.de>
+	<1219113106.4107.21.camel@pc10.localdom.local>
+	<48ABA309.30906@boerkel.de>
+	<48AC1087.2010503@iki.fi>  <48AC2527.1090209@linuxtv.org>
+Date: Thu, 21 Aug 2008 01:40:30 +0200
+Message-Id: <1219275630.2670.76.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: Antti Palosaari <crope@iki.fi>, linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] A/V sync issues with DVB-S
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,25 +20,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-	Hello,
-
-	Id' like to know what is the current status of the pctv310c regarding DVB-T. 
-I know that Markus Rechberger's ~mrec/v4l-dvb-experimental mercurial tree 
-should allow it to lock on signal but DMA transfers don't start. But I can't 
-compile it on recent kernel.
-	So what is the status of this card in v4l-dvb tree, and is anyone working on 
-it ?
-
-Regards,
-	Stef
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGksCgpBbSBNaXR0d29jaCwgZGVuIDIwLjA4LjIwMDgsIDEwOjA3IC0wNDAwIHNjaHJpZWIgU3Rl
+dmVuIFRvdGg6Cj4gQW50dGkgUGFsb3NhYXJpIHdyb3RlOgo+ID4gVGhvbWFzIELDtnJrZWwgd3Jv
+dGU6Cj4gPj4gaGVybWFubiBwaXR0b24gd3JvdGU6Cj4gPj4gTWVhc3VyaW5nIHRoZSBzdHJlbmd0
+aCBhbmQgU05SIGlzIG5vdCBzbyBlYXN5IG5vdy4gTXkgU0FUIHJlY2VpdmVyCj4gPj4gYWx3YXlz
+IHNheXMgc3RyZW5ndGggNzAlIGFuZCBTTlIgODAlLiBNeSBuZXcgTm92YSBTIFBsdXMgY2FyZHMg
+YWx3YXlzCj4gPj4gcmVwb3J0IHN0cmVuZ3RoIDk3JSBhbmQgU05SIDk5JS4gT25seSBteSBUVCAx
+NTAwcyByZXBvcnRlZCByZWFzb25hYmxlCj4gPj4gbnVtYmVycyBsaWtlIHN0cmVuZ3RoIDYzLTgw
+JSBhbmQgU05SIDc1LTkwJS4KPiA+IAo+ID4gV2hhdCBpcyB0aGUgcmVjb21tZW5kZWQgd2F5IHRv
+IHJlcG9ydCBzaWduYWwgc3RyZW5ndGggb3IgU05SIGJ5IHRoZSAKPiA+IGRyaXZlcj8gQm90aCBv
+ZiB0aG9zZSBhcmUgMTZiaXQgdW5zaWduZWQgdmFsdWUuIElzIGl0IGJldHRlciB0byBzY2FsZSAK
+PiA+IDAtMHhmZmZmIG9yIHJldHVybiBhcyBkZWNpYmVscz8gSWYgU05SIGlzIHJlcG9ydGVkIGFz
+IGRlY2liZWxzIGl0IHdpbGwgCj4gPiBsb29rIGxpa2UgdmVyeSBzbWFsbCB2YWx1ZS4uLgo+ID4g
+Cj4gPiBBbnR0aQo+IAo+IE1heSBvZiB0aGUgZHJpdmVycyBJJ3ZlIGFkZGVkIHJlY2VudGx5IHJl
+cG9ydCB0aGVpciB2YWx1ZXMgaW4gZGIsIGJ1dCBJIAo+IHR5cGljYWxseSBhbHNvIGhhdmUgb25l
+IHByZWNpc2lvbiBwb2ludC4gU28gSSByZXBvcnQgMjAuNCBhcyAyMDQgZGVjaW1hbC4KPiAKPiAt
+IFN0ZXZlCj4gCgpwbGVhc2UgYWxsb3cgbWUgdG8gYWJ1c2UgdGhlIHRocmVhZCBhIGxpdHRsZSBm
+b3Igc29tZSBzdGF0dXMgSSBzZWVtIHRvCmhhdmUgb24gc2FhNzEzNCBhbmQgRFZCLVMgc28gZmFy
+LCBub3QgZ29pbmcgaW50byB4MjY0IGlzc3Vlcy4KCkNhbiBvbmx5IHJlcG9ydCBmb3IgdGhlIHNh
+YTcxMzQgZHJpdmVyIGFuZCBEVkItUyBhbmQgd2hhdCB3ZSBoYXZlIGZvcgp0aGUgZHVhbCB0cmlw
+bGUgTWVkaW9uIFF1YWQgQ3JlYXRpeC85NDQgYW5kIHRoZSBuZXcgc2luZ2xlIHRyaXBsZQpDcmVh
+dGl4L0NUWDk0OCB3aXRoIHRkYTEwMDg2L3RkYTgyODMgYW5kIGlzbDY0MDUgZHVhbC4KCklmIFNO
+UiBnb2VzIGRvd24gNTAlIGNhdXNlZCBieSBleHRlcm5hbCBpbmZsdWVuY2VzIG9uIHNvbWUgZmV3
+CnRyYW5zcG9uZGVycyAoMSBvciAyKSwgYXJ0aWZhY3RzIHdpbGwgYmVjb21lIHZpc2libGUgZnJv
+bSB0aW1lIHRvIHRpbWUKaW4gdGhlIHByZXZpZXcuIFRoaXMgaGFzIGVmZmVjdHMgb24gdGhlIGFw
+cHMgdHJ5aW5nIHRvIGtlZXAgQS9WIHN5bmMgb24KdGhlIHJlY29yZGVkIGltbWVkaWF0ZWx5IHRv
+byBhbmQgY2FuIGJlIHNlZW4gd2l0aCB2ZXJib3NpdHkgZW5hYmxlZCBmb3IKdGhlbSBpbiBtb3Jl
+IGRldGFpbHMuCgpUaGUgYXBwcyBkbyBkaWZmZXIgYSBsb3QsIGhvdyB3ZWxsIHRoZXkgZGVhbCB3
+aXRoIHRoZSBtZXNzLCBidXQgaW4KZ2VuZXJhbCB3aXRob3V0IHN1Y2ggbWVzcyBmb3IgbXBlZzIg
+dGhleSBoYXZlIG5vIHByb2JsZW1zLgoKTXkgZXh0ZXJuYWwgRFZCLVMgcmVjZWl2ZXIgaXMgYXQg
+dGhlIHZlcnkgc2FtZSBwb2ludCB3aXRoIGxvb3B0aHJvdWdoIHRvCnNlY29uZCBEVkItUyBjb25u
+ZWN0b3IgYW5kIHRvIHRoZSBleHRlcm5hbCByZWNlaXZlciBvZiB0aGUgTWVkaW9uIFF1YWQKZnJv
+bSBpdHMgZmlyc3QsIHdoaWNoIHJlYWxseSBjYW4gYWN0aXZlbHkgY29udHJvbCB2b2x0YWdlIGFu
+ZCB0b25lLgoKSXQgd2FzIGV4YWN0bHkgdGhlIG90aGVyIHdheSByb3VuZCwgYmVmb3JlIHdlIGhh
+ZCBzdXBwb3J0IGZvciB0aGUKaXNsNjQwNS4gV29ya2VkIGZpbmUgdG9vLiAoQSBuZXcgUEMgaGFk
+IHRoZSBtb2JvIHRoZW4gdXBzaWRlIGRvd24gb24gdGhlCmxlZnQsIGhlbHBlZCB0byBiZWNvbWUg
+YXdhcmUgb2YgdGhlIGxvb3B0aHJvdWdoIDspCgpTaW5jZSB0aGUgZXh0ZXJuYWwgYm94IHJ1bnMg
+YWxtb3N0IHdpdGhvdXQgbXVjaCBidWZmZXJpbmcsIG9uZSBjYW4gc2VlCm1ham9yIGdsaXRjaGVz
+IHRoZXJlIGF0IGZpcnN0IGFuZCB0aGV5IHdpbGwgaGFwcGVuIGluIHRoZSBidWZmZXJzIHRvbyBh
+CmxpdHRsZSBsYXRlciBvbiBvdXIgZHJpdmVycy4gVGhpcyBpcyBmdWxseSBpbiBzeW5jLCBqdXN0
+IHRoYXQgZGVsYXkuCgpUaGlzIHdvcmtzIHZlcnkgcmVsaWFibGUgaGVyZS4KCkhvd2V2ZXIsIHNp
+Z25hbCBzdHJlbmd0aCBhbmQgU05SIHJlcG9ydGVkIGRpZmZlciBmb3IgdGhlIGV4dGVybmFsIGJv
+eAp0b28sIHZpc3RhIGlzIGV2ZW4gd29yc2Ugb24gQkRBIGRyaXZlcnMgYW5kIGFsd2F5cyByZXBv
+cnRzIDEwMCUgZm9yIGJvdGgKdW50aWwgeW91IGFyZSByZWFsbHkgb2ZmIGFuZCB0aGVuIHNlZW1z
+IHRvIGRpc3BsYXkgc29tZSBmYWtlLgoKQWxzbyB0aGUgbGF0ZSAyMDA2IGRyaXZlciBzZWVtcyB0
+byBiZWhhdmUgZXhhY3RseSBsaWtlIHdoYXQgd2UgaGF2ZSBub3cKb24gdGhpcyBkdWFsIHRyaXBs
+ZSBNZWRpb24gUXVhZC4gT3RoZXJzIGRpZCBzYXkgaXQgaXMgYWxsIGZpbmUKcHJldmlvdXNseS4K
+Ck9uIHRoZSBzZWNvbmQgRFZCLVMgZGV2aWNlIHdpdGhvdXQgaTJjLWFjY2VzcyB0byB0aGUgaXNs
+NjQwNSwgcG93ZXJpbmcKaXQgdXAgZnJvbSB0aGUgZmlyc3QgdG8gMTggVm9sdHMgYW5kIG9uIGNs
+b3NlIGRpc2FibGUgaXQgd29ya3MgZmluZS4KQnV0IHRoZSBhdHRlbXB0ZWQgdm9sdGFnZS90b25l
+IHN3aXRjaGluZyBpbiBiZXR3ZWVuIGRvZXMgbm90aGluZyBvbiB0aGF0Cm9uZS4KCk9uIHRoZSBs
+YXRlIDIwMDcgZHJpdmVyIHRoZXkgc2VlbSB0byBoYXZlIGdpdmVuIHVwIG9uIHRoZSBzZWNvbmQg
+RFZCLVMKYW5kIG5vdGhpbmcgYXQgYWxsIGhhcHBlbnMgYW55IG1vcmUuIFRoYXQgcmVjZW50IC5p
+bmYgaXMgYWxzbyBvbmx5Cmxpc3RpbmcgdGhlIGZpcnN0IDE2YmU6MDAwNyBhcyBEVkItUyBjYXBh
+YmxlIGFueW1vcmUuCgpTaW5jZSB3ZSBzdGlsbCBoYXZlIGxvb3B0aHJvdWdoIGJ5IGRlZmF1bHQg
+ZW5hYmxlZCBvbiB0aGUgdGRhODI2MywgaXQgaXMKc3RpbGwgdXNhYmxlIHNvIGZhci4KCkZvciB0
+aGUgcmVjb3JkLCB0aGUgaW50ZXJuYWwgRFZCLVMgbG9vcHRocm91Z2ggaGFzIHNvbWUgbG9zcyBm
+b3Igd2hhdCBJCmNhbiBzZWUsIGJ1dCB0aGlzIGRvZXMgbm90IGNvdW50IGZvciB3aGF0IGdvZXMg
+dGhyb3VnaCB0byBhbiBleHRlcm5hbApyZWNlaXZlci4gSXQgd2FzIHRoZSBvdGhlciB3YXkgcm91
+bmQgcHJldmlvdXNseSB0aGUgc2FtZS4KClN0aWxsIG5vIGhpZ2ggc3ltYm9sIHJhdGVzIGhlcmUg
+Zm9yIHRlc3RpbmcsIGJ1dCB0aGUgT2xpdmVyL01hbnUvSGFydG11dApwYXRjaCBmb3IgdGhvc2Ug
+aXMgY29uZmlybWVkIGJ5IG90aGVycyB0byBiZSB3ZWxsIGRvbmUuCgpBbHNvIGZvciB0aGUgcmVj
+b3JkLCBpdCBtaWdodCB0YWtlIHllYXJzIGJlZm9yZSBhbnlvbmUgY29tZXMgYmFjayB0bwppdCA6
+KSwgdGhlIG1hbnVhbCBEVkItVC9UViBhbmFsb2cgc3dpdGNoIGRpc3RyaWJ1dGVzIHRoZSBSRiBz
+aWduYWwKZXZlbmx5IHRvIGJvdGggdHVuZXJzLCBtZWFucyB3b3JrcyBtdWNoIGJldHRlciB0aGFu
+IGEgcGFzc2l2ZSBzcGxpdHRlciwKZG9uJ3Qga25vdyB3aHkuIE5vIGV4dGVybmFsIExOQSBmb3Vu
+ZC4gTGlrZWx5IHRoZSBhc3N1bWVkIHNsaWdodGx5CmJldHRlciBzcGxpdHRlcnMgYXJlIHN0aWxs
+IGNyYXAuCgpBbGwgaW4gYWxsLCBtdWNoIGZ1biBvbiB0aGUgUXVhZHMgbm93LgoKVGhhbmtzIHRv
+IGV2ZXJ5Ym9keSBpbnZvbHZlZCwgZXNwZWNpYWxseSB0byBIYXJ0bXV0IGFuZCBvZiBjb3Vyc2Ug
+QW5kcmV3CnByZXZpb3VzbHkgYW5kIHRvIGFsbCBvdGhlcnMgd2hvIHBhdmVkIHRoaXMgcm9hZC4K
+CkNoZWVycywKSGVybWFubgoKCgoKCgoKCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4
+dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xp
+bnV4LWR2Yg==
