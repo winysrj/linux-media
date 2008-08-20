@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from yx-out-2324.google.com ([74.125.44.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KTIxS-0001RG-4z
-	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 18:12:23 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K5J005AORNM0SC0@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 13 Aug 2008 12:11:47 -0400 (EDT)
-Date: Wed, 13 Aug 2008 12:11:45 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <bd41c5f0808130905y30efc79m84bdcf5128c425a@mail.gmail.com>
-To: Chaogui Zhang <czhang1974@gmail.com>
-Message-id: <48A307C1.9080304@linuxtv.org>
-MIME-version: 1.0
-References: <8e5b27790808120058o52c4c6bcw21152364b2613c39@mail.gmail.com>
-	<8e5b27790808122233r539e6404y777e2bade7c78b47@mail.gmail.com>
-	<bd41c5f0808130905y30efc79m84bdcf5128c425a@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] FusionHDTV5 IR not working.
+	(envelope-from <reversemirror@gmail.com>) id 1KVowf-000472-HM
+	for linux-dvb@linuxtv.org; Wed, 20 Aug 2008 16:45:59 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so180924yxg.41
+	for <linux-dvb@linuxtv.org>; Wed, 20 Aug 2008 07:45:53 -0700 (PDT)
+Message-ID: <12ec05d20808200745j3a6dcb89qc5c1428f4079d2a9@mail.gmail.com>
+Date: Wed, 20 Aug 2008 16:45:52 +0200
+From: "fred asper" <reversemirror@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Subject: [linux-dvb] [Debian] scan with "WARNING: >>> tuning failed!!!"
+	output
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,46 +19,70 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2041163628=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Chaogui Zhang wrote:
-> On Wed, Aug 13, 2008 at 5:33 AM, Paul Marks <paul@pmarks.net> wrote:
->> On Tue, Aug 12, 2008 at 12:58 AM, Paul Marks <paul@pmarks.net> wrote:
->>> I have a DViCO FusionHDTV5 RT Gold, with an IR sensor that connects to
->>> the back of the card.  The remote is a "Fusion Remote MCE".  The video
->>> capture stuff works just fine, but I've had no such luck with the
->>> remote.
->> Just to confirm some things:
->> - The remote control works using DViCO's software on Windows Vista x64.
->> - The remote is not detected in Ubuntu 8.04.1
->>
->> I normally run Gentoo with kernel 2.6.26, but I tested with an Ubuntu
->> Live CD, to be sure I wasn't forgetting some trivial kernel module.
->>
-> 
-> Do the following and see if it works:
-> 
-> Power off your system (don't just reboot), then unplug power, wait for
-> 20 seconds and plug it back in then start your Ubuntu.
-> 
-> If this works, that means the IR receiver got messed up somehow and
-> only a complete power cut can reset it. I have seen this happening
-> tons of times when I tried to get the IR on my HDTV5 RT Gold to work
-> last summer.
-> 
+--===============2041163628==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_29621_29270799.1219243552541"
 
-If this is true, and the IR device reset line is wired to the bridge, we 
-should try to identify the GPIO and force a device reset on driver load.
+------=_Part_29621_29270799.1219243552541
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-... assuming it's actually wired and reset capable.
+Hello All,
 
-- Steve
+I bought a Pinnacle PCTV nanostick (73e) and I have this problem:
+
+when I scan my frequencies with 'scan' command (scan -a 0 freq.txt), my
+output is like bottom:
+
+==============================
+>>> tune to:
+514000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+(tuning failed)
+==============================
+and this output is equal for all frequencies of my file.
+
+The Pinnacle works correctly because I can capture streaming of channels
+with 'dvbstream' command (with the option '-tm 8', I live in Italy).
+
+SystemInfo:
+Debian 2.6.26.2 64bit, this kernel has support for this Pinnacle embedded
+[With 3 different kernel I have same error]
+4 GB RAM
+
+Someone can help me?
+
+Thank you.
+
+r.
+
+------=_Part_29621_29270799.1219243552541
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">Hello All,<br><br>I bought a Pinnacle PCTV nanostick (73e) and I have this problem:<br><br>when I scan my frequencies with &#39;scan&#39; command (scan -a 0 freq.txt), my output is like bottom:<br><br>==============================<br>
+&gt;&gt;&gt; tune to: 514000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE (tuning failed)<br>==============================<br>and this output is equal for all frequencies of my file.<br>
+<br>The Pinnacle works correctly because I can capture streaming of channels with &#39;dvbstream&#39; command (with the option &#39;-tm 8&#39;, I live in Italy).<br><br>SystemInfo:<br>Debian <a href="http://2.6.26.2">2.6.26.2</a> 64bit, this kernel has support for this Pinnacle embedded [With 3 different kernel I have same error]<br>
+4 GB RAM<br><br>Someone can help me?<br><br>Thank you.<br><br>r.<br></div>
+
+------=_Part_29621_29270799.1219243552541--
+
+
+--===============2041163628==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2041163628==--
