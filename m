@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1KWun6-0006sl-Ey
-	for linux-dvb@linuxtv.org; Sat, 23 Aug 2008 17:12:37 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Sat, 23 Aug 2008 17:11:35 +0200
-References: <48B00D6C.8080302@gmx.de> <48B01765.8020104@gmail.com>
-In-Reply-To: <48B01765.8020104@gmail.com>
+Received: from mail.hauppauge.com ([167.206.143.4])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mkrufky@linuxtv.org>) id 1KW0OZ-00060O-7B
+	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 04:59:33 +0200
+Message-ID: <48ACDA05.2070108@linuxtv.org>
+Date: Wed, 20 Aug 2008 22:59:17 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_oiCsIhs3MZrYMNW"
-Message-Id: <200808231711.36277@orion.escape-edv.de>
-Cc: Patrick Boettcher <pb@linuxtv.org>
-Subject: Re: [linux-dvb] Support of Nova S SE DVB card missing
-Reply-To: linux-dvb@linuxtv.org
+To: Damien Morrissey <damien@damienandlaurel.com>
+References: <d16b033e0808201810wca140d8ob33dd6bae2dfcf8b@mail.gmail.com>	
+	<ee0ad0230808201844s512f8658pb2459c192cfa21d6@mail.gmail.com>	
+	<48ACC98A.4090201@linuxtv.org>
+	<ee0ad0230808201920p1bd21d1cpeb66c7c803c73333@mail.gmail.com>
+In-Reply-To: <ee0ad0230808201920p1bd21d1cpeb66c7c803c73333@mail.gmail.com>
+Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Recommended repository for Dvico Dual Digital 4 rev1
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,94 +22,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_oiCsIhs3MZrYMNW
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Damien Morrissey wrote:
+> On Thu, Aug 21, 2008 at 11:48 AM, Michael Krufky <mkrufky@linuxtv.org>wrote:
+>> On Thu, Aug 21, 2008 at 11:10 AM, Bonne Eggleston
+>> <b.eggleston@gmail.com>wrote:
+>>     
+>>>> Hi all,
+>>>> I have a working Dvico Dual Digital 4 rev1 using some older drivers
+>>>> (from http://linuxtv.org/hg/~pascoe/xc-test/<http://linuxtv.org/hg/%7Epascoe/xc-test/>
+>>>>         
+>> <http://linuxtv.org/hg/%7Epascoe/xc-test/>
+>>     
+>>>> ).
+>>>> I'm looking to upgrade my kernel from 2.6.18 to 2.6.25 or 26 and
+>>>> thought I should get the most up to date dvb driver too.
+>>>> What's the current recommended driver and firmware for this card?
+>>>>         
+>> Damien Morrissey wrote:
+>>     
+>>> Be warned that there seems to be a funky thing with the firmware (in
+>>> australia at least). I needed no less than three different firmware files to
+>>>       
+>>> get my DVico Dual Digital 4 (rev1) to be recognised AND to successfully lock
+>>>       
+>>> on a channel. Check for dmesg warnings. I am using mythbuntu 8.04.
+>>>
+>>>       
+>> Anyway, Damien....  Please try the latest driver in the v4l-dvb master
+>> branch -- recent changesets have improved driver performance, and you
+>> should not have the problems anymore that you have described, above.
+>>
+>> The AU-specific firmware images have been deprecated, in favor of a much
+>> better driver that works regardless of location.  Standard firmware is
+>> not used, instead.
+>>
+>> -Mike
+>>
+>>
+>>     
+> I thought I was using the latest driver in the v4l-dvb master branch
+> already... it's working now, but next release of mythbuntu I may clean the
+> system out and I will report any issues then.
+Unless somebody files a bug on launchpad, the fix won't be in Ubuntu
+until Intrepid.  I think that comes out in a few months.
 
-e9hack wrote:
-> Eberhard Kaltenhaeuser schrieb:
-> > Actual kernel does not support the Hauppauge WinTV Nova S SE PCI card 
-> > anymore:
-> > 
-> 
-> I think it is a problem of this changeset http://linuxtv.org/hg/v4l-dvb/rev/358d281e6a3d 
-> from Patrick Boettcher. The S5H1420 isn't able to understand repeated start conditions. 
-> The i2c-read code was changed from:
-> 
-> 	if ((ret = i2c_transfer (state->i2c, &msg1, 1)) != 1)
-> 		return ret;
-> 
-> 	if ((ret = i2c_transfer (state->i2c, &msg2, 1)) != 1)
-> 		return ret;
-> 
-> to:
-> 	if (state->config->repeated_start_workaround) {
-> 		ret = i2c_transfer(state->i2c, msg, 3);
-> 		if (ret != 3)
-> 			return ret;
-> 	} else {
-> 		ret = i2c_transfer(state->i2c, &msg[1], 2);
-> 		if (ret != 2)
-> 			return ret;
-> 	}
+-Mike
 
-I think you are right.
 
-Btw, I don't understand Patrick's workaround.
-
-As the tuner does not support repeated start conditions, the solution
-is to send two separate messages, as it was before.
-
-Does the attached patch fix the problem?
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
-
---Boundary-00=_oiCsIhs3MZrYMNW
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="s5h1420_repeated_start.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="s5h1420_repeated_start.diff"
-
-diff -r 1760a612cc98 linux/drivers/media/dvb/frontends/s5h1420.c
---- a/linux/drivers/media/dvb/frontends/s5h1420.c	Sun Aug 03 05:02:35 2008 +0200
-+++ b/linux/drivers/media/dvb/frontends/s5h1420.c	Sat Aug 23 17:07:01 2008 +0200
-@@ -94,8 +94,11 @@ static u8 s5h1420_readreg(struct s5h1420
- 		if (ret != 3)
- 			return ret;
- 	} else {
--		ret = i2c_transfer(state->i2c, &msg[1], 2);
--		if (ret != 2)
-+		ret = i2c_transfer(state->i2c, &msg[1], 1);
-+		if (ret != 1)
-+			return ret;
-+		ret = i2c_transfer(state->i2c, &msg[2], 1);
-+		if (ret != 1)
- 			return ret;
- 	}
- 
-
---Boundary-00=_oiCsIhs3MZrYMNW
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_oiCsIhs3MZrYMNW--
