@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nschwmtas05p.mx.bigpond.com ([61.9.189.149])
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jhhummel@bigpond.com>) id 1KUJJP-0000j9-Vr
-	for linux-dvb@linuxtv.org; Sat, 16 Aug 2008 12:47:13 +0200
-From: Jonathan Hummel <jhhummel@bigpond.com>
-To: Robert Golding <robert.golding@gmail.com>
-In-Reply-To: <ae5231870808152114j273efbd4g2ce0b25ffce251e6@mail.gmail.com>
-References: <20080816013510.AF253104F0@ws1-3.us4.outblaze.com>
-	<ae5231870808152114j273efbd4g2ce0b25ffce251e6@mail.gmail.com>
-Date: Sat, 16 Aug 2008 20:46:30 +1000
-Message-Id: <1218883590.16051.6.camel@mistress>
-Mime-Version: 1.0
-Cc: LinuxTV DVB list <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR	3200
-	H - DVB Only support
+	(envelope-from <mkrufky@linuxtv.org>) id 1KW0Si-0006Yr-PG
+	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 05:03:49 +0200
+Message-ID: <48ACDB07.8080801@linuxtv.org>
+Date: Wed, 20 Aug 2008 23:03:35 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Bonne Eggleston <b.eggleston@gmail.com>
+References: <d16b033e0808201810wca140d8ob33dd6bae2dfcf8b@mail.gmail.com>	
+	<ee0ad0230808201844s512f8658pb2459c192cfa21d6@mail.gmail.com>	
+	<48ACC98A.4090201@linuxtv.org>
+	<d16b033e0808201942h56e9b370x778faa7098cf5d41@mail.gmail.com>
+In-Reply-To: <d16b033e0808201942h56e9b370x778faa7098cf5d41@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Recommended repository for Dvico Dual Digital 4 rev1
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,51 +28,63 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 2008-08-16 at 13:44 +0930, Robert Golding wrote:
-> Whoops, sent to wrong place this sent to mail list, sorry
-> 
-> I have finally got the modules to load the PxDVR 3200 H I bought,
-> however, now I am getting "Failed to lock channel" error messages from
-> MeTV.
-> The 'channels.conf' file is correct as I used for my Dvico DVB-T.
-> 
->  I have replaced the Dvico with the Leadtek because I wanted to be
-> able to get local radio and also use the PCI-e channel since I have
-> many of them and only one PCI slot.
-> 
-> The card is auto-recognised and loads all dvb modules, including fw
-> and frontends.
-> 
-> One other thing, I attached an MS drive and tried it in windows [that
-> is another wholly different story :-) ] and it worked very well.  I
-> had occation to compare the channels info to each other and the Linux
-> version is OK.
-> 
-> Any information, no matter how small, to show how I might fix this
-> would be greatly apprecited
-> 
+Bonne Eggleston wrote:
+> On Thu, Aug 21, 2008 at 11:48 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>   
+>> On Thu, Aug 21, 2008 at 11:10 AM, Bonne Eggleston
+>> <b.eggleston@gmail.com>wrote:
+>>     
+>>>> Hi all,
+>>>> I have a working Dvico Dual Digital 4 rev1 using some older drivers
+>>>> (from http://linuxtv.org/hg/~pascoe/xc-test/<http://linuxtv.org/hg/%7Epascoe/xc-test/>
+>>>> ).
+>>>> I'm looking to upgrade my kernel from 2.6.18 to 2.6.25 or 26 and
+>>>> thought I should get the most up to date dvb driver too.
+>>>> What's the current recommended driver and firmware for this card?
+>>>>
+>>>>
+>>>>         
+>> Damien Morrissey wrote:
+>>     
+>>> Be warned that there seems to be a funky thing with the firmware (in
+>>> australia at least). I needed no less than three different firmware files to
+>>> get my DVico Dual Digital 4 (rev1) to be recognised AND to successfully lock
+>>> on a channel. Check for dmesg warnings. I am using mythbuntu 8.04.
+>>>
+>>>       
+>> Please be advised that the posting policy on this mailing list is to
+>> post your reply BELOW the quote.
+>>
+>> It's irritating that I have to tell this to people repeatedly, and I'm
+>> sure its even more irritating for others that have to constantly read my
+>> complaints about it.
+>>
+>> Nothing against you -- please don't top-post in the future.
+>>
+>> Anyway, Damien....  Please try the latest driver in the v4l-dvb master
+>> branch -- recent changesets have improved driver performance, and you
+>> should not have the problems anymore that you have described, above.
+>>     
+> So that's the mercurial repository here:  http://linuxtv.org/hg/v4l-dvb ?
+>   
 
-Rob
+correct.
 
-I've been using Me-TV for a while now on a DTV2000H Card, and recently
-set up the 3200H card as well, with a lot (and I mean a lot) of help
-from Stephen. In my experience, you only really get this message when
-the card is getting no reception. Other similar errors which relate to
-accessing the card itself happen when another TV programme, such as Myth
-is already loaded and locked onto the card.
+>   
+>> The AU-specific firmware images have been deprecated, in favor of a much
+>> better driver that works regardless of location.  Standard firmware is
+>> not used, instead.
+>>     
+> Do you mean standard firmware *is* used instead? Where do I get the
+> standard firmware from? Is it just the dvb-usb-bluebird-01.fw  from
+> http://www.linuxtv.org/downloads/firmware/ ?
+>   
 
-I'm not sure radio works on these cards without a lot of effort and
-stuffing around each and every time you want to use it. I've never
-gotten the 2000H to work on radio, so didn't even bother with the 3200H
-though.
+Use the same bluebird firmware you would have used before.  Now, the
+standard xc3028-v27.fw is used instead of the AU-specific one.  My bad
+-- I should have specified that earlier.
 
-As Stephen said, this card is a bit sensitive to firmware and drivers,
-as the patch to allow this card is relatively new (days old).
-
-cheers
-
-Jon
-
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
