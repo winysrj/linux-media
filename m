@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mk-outboundfilter-6.mail.uk.tiscali.com ([212.74.114.14])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lists@glidos.net>) id 1KYiAo-0006Ih-O9
-	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 16:08:32 +0200
-Message-ID: <48B6B0FE.9030109@glidos.net>
-Date: Thu, 28 Aug 2008 15:06:54 +0100
-From: Paul Gardiner <lists@glidos.net>
+Date: Thu, 21 Aug 2008 23:38:16 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Michael Krufky <mkrufky@linuxtv.org>
+In-Reply-To: <37219a840808211329j697556fcj760057bb1c7b58a8@mail.gmail.com>
+Message-ID: <alpine.LRH.1.10.0808212337070.21606@pub5.ifh.de>
+References: <1219330331.15825.2.camel@dark> <48ADCC81.5000407@nafik.cz>
+	<37219a840808211321k34590d38v7ada0fb9655e5dfe@mail.gmail.com>
+	<412bdbff0808211325h64d454d5m3353d8756b9eb737@mail.gmail.com>
+	<37219a840808211329j697556fcj760057bb1c7b58a8@mail.gmail.com>
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@wilsonet.com>
-References: <48B5D5CF.3060401@glidos.net>
-	<48B6083B.5000803@linuxtv.org>	<48B64690.4060205@glidos.net>	<37219a840808280556q2ee85291o7ad1afb75a7ed6f6@mail.gmail.com>	<48B6ADB3.5010003@glidos.net>
-	<1219932031.5654.3.camel@xavier.wilsonet.com>
-In-Reply-To: <1219932031.5654.3.camel@xavier.wilsonet.com>
+ReSent-Message-ID: <alpine.LRH.1.10.0808212344290.21606@pub5.ifh.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Looks like there's a new unsupported WinTV Nova T
- 500 out there
+Subject: Re: [linux-dvb] dib0700 and analog broadcasting
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,20 +25,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jarod Wilson wrote:
->>> It might be no change at all.  I'd look it up in the code, but I don't
->>> even know what the usb ID's of your device are, offhand -- what are
->>> they?  (do "lsusb -n | grep 2040" )
->> I get no output from that.
-> 
-> Casual observer butting in here... Mike, why would lsusb output be at
-> all relevant if its a PCI card? :)
+Hi,
 
-I think Mike's right on this. The card is PCI, but it provides a
-USB hub to then support the two tuner devices, as far as I know.
+On Thu, 21 Aug 2008, Michael Krufky wrote:
+> Lets sync up when you get to that point -- I have a good chunk of code
+> written that will add analog support to the dvb-usb framework as an
+> optional additional adapter type.
 
-Cheers,
-	Paul.
+Wow wow wow. That sounds like music in my ears. Great direction!!!
+
+Patrick.
 
 
 _______________________________________________
