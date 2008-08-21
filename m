@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KZUoF-0004Id-OM
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 20:04:28 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6F00GK0E6HNQ90@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sat, 30 Aug 2008 14:03:53 -0400 (EDT)
-Date: Sat, 30 Aug 2008 14:03:53 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48B98914.1020800@w3z.co.uk>
-To: Charles Price <cpwp@w3z.co.uk>
-Message-id: <48B98B89.80803@linuxtv.org>
-MIME-version: 1.0
-References: <48B8400A.9030409@linuxtv.org> <48B98914.1020800@w3z.co.uk>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+	(envelope-from <jw@raven.inka.de>) id 1KWFhv-0005Na-DR
+	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 21:20:33 +0200
+Date: Thu, 21 Aug 2008 21:17:58 +0200
+From: Josef Wolf <jw@raven.inka.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080821191758.GD32022@raven.wolf.lan>
+References: <20080820211005.GA32022@raven.wolf.lan>
+Mime-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20080820211005.GA32022@raven.wolf.lan>
+Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,24 +25,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Charles Price wrote:
->> If you also feel frustrated by the multiproto situation and agree in
->> principle with this new approach, and the overall direction of the API
->> changes, then we welcome you and ask you to help us.
->>
-> 
-> I wholeheartedly agree.
-> 
-> Although I can't offer any programming input, I do have a variety of DVB 
-> hardware and different architectures on which I can test your creations.
-> 
-> Happy to help.
+On Wed, Aug 20, 2008 at 11:10:06PM +0200, Josef Wolf wrote:
 
-Thanks Charles.
+>   jw@dvb1:~$ dvbsnoop -s pes -if zdf.test|grep Stream_id|head -40
+>   Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2 video stream]
+>   Stream_id: 0 (0x00)  [= picture_start_code]
+>   Stream_id: 181 (0xb5)  [= extension_start_code]
+>   Stream_id: 1 (0x01)  [= slice_start_code]
+>   Stream_id: 2 (0x02)  [= slice_start_code]
+>   [ consecutive lines deleted ]
+>   Stream_id: 34 (0x22)  [= slice_start_code]
+>   Stream_id: 35 (0x23)  [= slice_start_code]
+>   [ here the list of stream ids start over again and repeats ]
 
-Regards,
+Table 2-18 in iso-13818-1 don't list any stream_id's below 0xBC.
+Anybody knows what those stream_id's 0x00..0x23 and 0xB5 are for
+and whether they could be the reason for the artefacts?
 
-Steve
+> Maybe I should discard some of those to get a proper PES?
+
+Hmm, guess I should give it a try.
 
 _______________________________________________
 linux-dvb mailing list
