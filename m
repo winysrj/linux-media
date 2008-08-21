@@ -1,23 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KZUGf-0000cn-OO
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 19:29:47 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6F000RCCKNKWR0@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sat, 30 Aug 2008 13:29:11 -0400 (EDT)
-Date: Sat, 30 Aug 2008 13:29:10 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <1220115813.10672.6.camel@youkaida>
-To: Nicolas Will <nico@youplala.net>
-Message-id: <48B98366.2060607@linuxtv.org>
-MIME-version: 1.0
-References: <48B8400A.9030409@linuxtv.org> <1220115813.10672.6.camel@youkaida>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Message-ID: <48ACC98A.4090201@linuxtv.org>
+Date: Wed, 20 Aug 2008 21:48:58 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Damien Morrissey <damien@damienandlaurel.com>
+References: <d16b033e0808201810wca140d8ob33dd6bae2dfcf8b@mail.gmail.com>
+	<ee0ad0230808201844s512f8658pb2459c192cfa21d6@mail.gmail.com>
+In-Reply-To: <ee0ad0230808201844s512f8658pb2459c192cfa21d6@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Recommended repository for Dvico Dual Digital 4 rev1
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,96 +22,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Nicolas Will wrote:
-> On Fri, 2008-08-29 at 14:29 -0400, Steven Toth wrote:
->> Regarding the multiproto situation:
+On Thu, Aug 21, 2008 at 11:10 AM, Bonne Eggleston
+<b.eggleston@gmail.com>wrote:
+>   
+>> Hi all,
+>> I have a working Dvico Dual Digital 4 rev1 using some older drivers
+>> (from http://linuxtv.org/hg/~pascoe/xc-test/<http://linuxtv.org/hg/%7Epascoe/xc-test/>
+>> ).
+>> I'm looking to upgrade my kernel from 2.6.18 to 2.6.25 or 26 and
+>> thought I should get the most up to date dvb driver too.
+>> What's the current recommended driver and firmware for this card?
 >>
->> A number of developers, maintainers and users are unhappy with the
->> multiproto situation, actually they've been unhappy for a considerable
->> amount of time. The linuxtv developer community (to some degree) is seen
->> as a joke and a bunch in-fighting people. Multiproto is a great
->> demonstration of this. [1] The multiproto project has gone too far, for
->> too long and no longer has any credibility in the eyes of many people.
->>
->> In response, a number developers have agreed that "enough is enough" and
->> "it's time to take a new direction", for these developers the technical,
->> political and personal cost of multiproto is too high. These developers
->> have decided to make an announcement.
->>
->> Mauro Chehab, Michael Krufky, Patrick Boettcher and myself are hereby
->> announcing that we no longer support multiproto and are forming a
->> smaller dedicated project group which is focusing on adding next
->> generation S2/ISDB-T/DVB-H/DVB-T2/DVB-SH support to the kernel through a 
->> different and simpler API.
->>
->> Basic patches and demo code for this API is currently available here.
->>
->> http://www.steventoth.net/linux/s2
->>
->> Does it even work? Yes
->> Is this new API complete? No
->> Is it perfect? No, we've already had feedback on structural and
->> namingspace changes that people would like to see.
->> Does it have bugs? Of course, we have a list of things we already know
->> we want to fix.
->>
->> but ...
->>
->> Is the new approach flexible? Yes, we're moving away from passing fixed
->> modulation structures into the kernel.
->> Can we add to it without breaking the future ABI when unforseen
->> modulations types occur? Yes
->> Does it preserve backwards compatibility? Yes
->> Importantly, is the overall direction correct? Yes
->> Does it impact existing frontend drivers? No.
->> What's the impact to dvb-core? Small.
->> What's the impact to application developers? None, unless an application 
->> developer wants to support the new standards - binary compatibility!
->>
->> We want feedback and we want progress, we aim to achieve it.
->>
->> Importantly, this project group seeks your support.
->>
->> If you also feel frustrated by the multiproto situation and agree in
->> principle with this new approach, and the overall direction of the API
->> changes, then we welcome you and ask you to help us.
->>
->> Growing the list of supporting names by 100%, and allowing us to publish
->> your name on the public mailing list, would show the non-maintainer
->> development community that we recognize the problem and we're taking
->> steps to correct the problem. We want to make LinuxTV a perfect platform
->> for S2, ISDB-T and other advanced modulation types, without using the
->> multiproto patches.
->>
->> We're not asking you for technical help, although we'd like that  :) ,
->> we're just asking for your encouragement to move away from multiproto.
->>
->> If you feel that you want to support our movement then please help us by
->> acking this email.
->>
->> Regards - Steve, Mike, Patrick and Mauro.
->>
->> Acked-by: Patrick Boettcher <pb@linuxtv.org>
->> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
->> Acked-by: Steven Toth <stoth@linuxtv.org>
->> Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-> 
-> Acked-by: Nicolas Will <nico@youplala.net>
-> 
-> I can't review code or provide any, but I have a server if needed.
+>>     
 
-Nico, understood. Thats for the offer.
+Damien Morrissey wrote:
+> Be warned that there seems to be a funky thing with the firmware (in
+> australia at least). I needed no less than three different firmware files to
+> get my DVico Dual Digital 4 (rev1) to be recognised AND to successfully lock
+> on a channel. Check for dmesg warnings. I am using mythbuntu 8.04.
+>   
 
-> 
-> DVB-S2 and DVB-T2 (when it arrrives) are of interst to me.
+Please be advised that the posting policy on this mailing list is to
+post your reply BELOW the quote.
 
-... and many other people.
+It's irritating that I have to tell this to people repeatedly, and I'm
+sure its even more irritating for others that have to constantly read my
+complaints about it.
 
-Thanks for your support.
+Nothing against you -- please don't top-post in the future.
 
-Regards,
+Anyway, Damien....  Please try the latest driver in the v4l-dvb master
+branch -- recent changesets have improved driver performance, and you
+should not have the problems anymore that you have described, above.
 
-Steve
+The AU-specific firmware images have been deprecated, in favor of a much
+better driver that works regardless of location.  Standard firmware is
+not used, instead.
+
+-Mike
+
+
 
 _______________________________________________
 linux-dvb mailing list
