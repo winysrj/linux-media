@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.koalatelecom.com.au ([202.126.101.92])
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <peter_s_d@fastmail.com.au>) id 1KWSrC-0000Xy-1h
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 11:22:58 +0200
-From: "Peter D." <peter_s_d@fastmail.com.au>
-To: Matthias Dahl <mldvb@mortal-soul.de>
-Date: Fri, 22 Aug 2008 19:22:45 +1000
-References: <200808121443.27020.mldvb@mortal-soul.de>
-	<200808221656.53605.peter_s_d@fastmail.com.au>
-	<200808220930.39630.mldvb@mortal-soul.de>
-In-Reply-To: <200808220930.39630.mldvb@mortal-soul.de>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200808221922.46056.peter_s_d@fastmail.com.au>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Possible SMP problems with budget_av/saa7134
+	(envelope-from <nico@youplala.net>) id 1KWIZi-0001YD-4z
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 00:24:15 +0200
+Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
+	[84.70.212.195])
+	by mail.youplala.net (Postfix) with ESMTP id 311A2D880A4
+	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 00:23:21 +0200 (CEST)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb@linuxtv.org
+Date: Thu, 21 Aug 2008 23:23:19 +0100
+Message-Id: <1219357399.6770.12.camel@youkaida>
+Mime-Version: 1.0
+Subject: [linux-dvb] New firmware for dib0700 (Nova-T-500 and others)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,49 +26,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Friday 22 August 2008, Matthias Dahl wrote:
-> Hello Peter.
->
-> On Friday 22 August 2008 08:56:53 Peter D. wrote:
-> > That machine now has a vanilla 2.6.26.3 kernel and the
-> > "nosmp" flag.  It has been up for two hours now.  If you
-> > don't solve this in the next month, I'll post a follow-up.  ;-)
->
-> I am sorry to disappoint you but I guess we are talking about different
-> problems here. This thread is mainly about problems with concurrent
-> access to a ci/cam attached to a budget card. And since you are using
-> dvb-t which afaik is always fta, you are experiencing a totally different
-> problem. Besides my machine never locked up, the cam just stopped
-> decrypting. Otherwise it would really have been quite strange to explain.
-> :-)
+All,
 
-I was already disappointed in the motherboard.  :-(  
+There is a new firmware file fixing the last cause for i2c errors and
+disconnects and providing a new, more modular i2c request formatting.
 
-> Have you run some tests on the machine like a memtest and/or processor
-> test? 
+The wiki pages for the relevant devices needing it have been updated (if
+they use the proper template).
 
-Overnight runs of memtest have not found a fault with either mem stick.  
-Problems have occurred with each stick being the sole stick, and with 
-two different processors, both were X2 3600+ AMDs.  I doubt that both 
-cpus have the same problem.  sys_basher did not find any faults.  
-Do you recommend anything in particular - like cpuburn?
+For example:
 
-> Faulty memory can causes all sorts of strange problems. If you 
-> still suspect the dvb subsystem, compile a kernel without it, test and
-> stress it. If it works reliably for a longer period of time, you've
-> possibly narrowed the list of suspects down. But I bet it's more like a
-> hardware problem... sorry.
->
-> So long,
-> matthias.
+http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500
 
-I think that it is a motherboard problem, but I will let it run with 
-nosmp for a while and see what happens.  
+Nico
 
-
--- 
-sig goes here...
-Peter D.
 
 _______________________________________________
 linux-dvb mailing list
