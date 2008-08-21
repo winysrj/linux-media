@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from yx-out-2324.google.com ([74.125.44.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1KYkRs-0008R6-9m
-	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 18:34:17 +0200
-Received: from [10.175.39.141] (unknown [83.224.64.17])
-	by mail.youplala.net (Postfix) with ESMTP id CB1E3D880A4
-	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 18:33:14 +0200 (CEST)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <004f01c90921$248fe2b0$6dafa810$@com.au>
-References: <004f01c90921$248fe2b0$6dafa810$@com.au>
-Date: Thu, 28 Aug 2008 17:33:14 +0100
-Message-Id: <1219941194.7262.7.camel@acropora>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Hauppauge WinTV-NOVA-T-500 New
-	Firmware	(dvb-usb-dib0700-1.20.fw) causes problems
+	(envelope-from <gujs.lists@gmail.com>) id 1KW5m3-0001vh-Ps
+	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 10:44:08 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so349702yxg.41
+	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 01:44:03 -0700 (PDT)
+Message-ID: <23be820f0808210144m57e65363m159c231d2084c1c5@mail.gmail.com>
+Date: Thu, 21 Aug 2008 10:44:02 +0200
+From: "Gregor Fuis" <gujs.lists@gmail.com>
+To: "Ola Ekedahl" <ola.ekedahl@fra.se>
+In-Reply-To: <48AD16A1.5040703@fra.se>
+MIME-Version: 1.0
+References: <48ABB045.5050301@fra.se> <20080820082010.GA5582@gmail.com>
+	<48AD16A1.5040703@fra.se>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto, multiproto_plus & mantis
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,26 +22,64 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1934010832=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 2008-08-28 at 23:17 +0800, Thomas Goerke wrote:
-> After following the instructions on
-> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500 and
-> updating the firmware to dvb-usb-dib0700-1.20.fw the card was no
-> longer useable.  When using Mythbuntu backend the card was not
-> detected correctly and gave an unknown error.
+--===============1934010832==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_20402_3953178.1219308242823"
 
-Weird, once I cleaned up my fw files, things went very well with MythTV
-using fw 1.20, no reconfig or anything else needed.
+------=_Part_20402_3953178.1219308242823
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Nico
+Resend again to list
 
+Hi,
+
+I also have problem with this repository. I have KNC ONE DVB-S2 card and it
+doesn't even get initialized with this repository. I used
+http://jusst.de/hg/multiproto tree before and it worked fine. Kernel
+automatically detected card and loaded proper modules.
+
+Does this repository even have support for KNC ONE DVB-S2 card and I just
+have to load the right modules. If I just have to load modules, please help
+me with the names of modules and sequence how to start them.
+
+Thanks for help!
+
+Gregor
+
+------=_Part_20402_3953178.1219308242823
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">Resend again to list<br><br>Hi,<br><br>I also have problem with this repository. I have KNC ONE
+DVB-S2 card and it doesn&#39;t even get initialized with this repository. I
+used <a href="http://jusst.de/hg/multiproto" target="_blank">http://jusst.de/hg/multiproto</a> tree before and it worked fine. Kernel automatically detected card and loaded proper modules.<br>
+
+<br>Does this repository even have support for KNC ONE DVB-S2 card and
+I just have to load the right modules. If I just have to load modules,
+please help me with the names of modules and sequence how to start them.<br><br>
+Thanks for help!<br>
+<br>Gregor</div>
+
+------=_Part_20402_3953178.1219308242823--
+
+
+--===============1934010832==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1934010832==--
