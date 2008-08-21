@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx00.csee.securepod.com ([66.232.128.196]
-	helo=cseeapp00.csee.securepod.com)
+Received: from fg-out-1718.google.com ([72.14.220.159])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roger@beardandsandals.co.uk>) id 1KXfDU-0006aL-V6
-	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 18:46:58 +0200
-Received: from [192.168.10.241] (unknown [81.168.109.249])
-	by smtp00.csee.securepod.com (Postfix) with ESMTP id AAD3D22C649
-	for <linux-dvb@linuxtv.org>; Mon, 25 Aug 2008 17:46:19 +0100 (BST)
-Message-ID: <48B2E1DC.2080605@beardandsandals.co.uk>
-Date: Mon, 25 Aug 2008 17:46:20 +0100
-From: Roger James <roger@beardandsandals.co.uk>
+	(envelope-from <mkrufky@gmail.com>) id 1KWDBs-0005xG-3m
+	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 18:39:18 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so40590fga.25
+	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 09:39:11 -0700 (PDT)
+Message-ID: <37219a840808210939n1d9be3e0t2a976ff16d8b48c1@mail.gmail.com>
+Date: Thu, 21 Aug 2008 12:39:11 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "gothic nafik" <nafik@nafik.cz>
+In-Reply-To: <1219330331.15825.2.camel@dark>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <20080825122741.GB17421@optima.lan>
-In-Reply-To: <20080825122741.GB17421@optima.lan>
-Subject: Re: [linux-dvb] TT S2-3200 + CI Extension
+Content-Disposition: inline
+References: <1219330331.15825.2.camel@dark>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dib0700 and analog broadcasting
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,61 +28,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Martin Hurton wrote:
-> Hi List,
+On Thu, Aug 21, 2008 at 10:52 AM, gothic nafik <nafik@nafik.cz> wrote:
 >
-> I have the TT-budget S2-3200 card with CI Extension and have problem
-> to get it work with my CAM module. I have tried different CI Extensions,
-> different CI cables, different CAM modules, and also different computers 
-> but still without any success. I am using multiproto driver.
+> hi,
 >
-> Debugging the driver I have found the problem is in the following code:
-> (budget-ci.c).
+> i have problems with my tv tuner. It is hybrid (analog receiver, digital
+> receiver, radio fm reciver) tv tuner with chipset dib7700. I had to hack
+> dib0700 module and update a line with my product id and vendor id
+> (because my hardware was not there). It is tv tuner in notebook Asus
+> M51SN.
 >
-> 507     ci_version = ttpci_budget_debiread(&budget_ci->budget, DEBICICTL, DEBIADDR_CIVERSION, 1, 1, 0);
-> 508     if ((ci_version & 0xa0) != 0xa0) {
-> 509             result = -ENODEV;
-> 510             goto error;
-> 511     }
+[snip]
 >
-> it seems the driver expects the high nibble of ci_version to be 0xa but in my case,
-> the ci_version is always zero. And because of this, the CA is not supported.
->
-> Did anybody have this same problem? Or can somebody explains why this happens?
-> Any help will be greatly appreciated.
->
->
->   
-Martin,
+> Digital tv is maybe working, I do not know, becasue in my region is not
+> digital broadcasting yet. But I want to watch analog tv or listen to
+> radio. And I am not sure, but I need device /dev/video or /dev/video0
+> (/dev/radio is not created too) for watching analog broadcasting (module
+> dib0700 did not create any /dev/video, just /dev/dvb/*)? Am I right?
 
-I am investigating a simillar (but not the same) problem with a TT-3200
-and a T-Rex/Dragon CAM (see my postings in the last week). I am
-beginning to come to the conclusion that either I have a hardware
-problem or the TT-3200 does not like certain CAMs, this is partially
-born out by the fact the some incompatible cams are listed on the wiki
-http://www.linuxtv.org/wiki/index.php/DVB_Conditional_Access_Modules . I
-don't know whether this is a hardware or software (or both)
-incompatibility. If it software it could be fixable. Does anyone know?
+The driver currently does not support analog video.
 
-I did come across a post, which I have been unable to find again! This
-referred to the fact that the Dragon CAM was asserting a line on PCMCIA
-interface that said it was a low voltage device (3.5V) and that this was
-outside the CI spec and causing a problem with the budget CI.
+I am working on adding analog video support to the dvb-usb framework,
+but it is far from ready, and lowest on my priority list.  The good
+news is that I made some very nice progress last month, but I wouldn't
+expect any kind of release for months.
 
-However this link says that it should work. I don't know if your CAM is
-on it. I suspect this is referring to the supplied windows driver
-http://www.dvbnetwork.de/index.php?option=com_fireboard&func=view&id=927&catid=2&Itemid=26
+Side note:  I said something very similar to the above last year.  I
+made a lot of good rpogress recently, but I wont have time to get back
+to it until a few weeks from now.
 
-I would love to investigate further but really need some specs of the
-software interface to the 3200. Can anyone point me at further info? All
-I have at the momenet is the spec for the SAA7146  chip and the en50221
-CI spec.
+You should consider your device a digital-only tv stick for now, under Linux.
 
-Sorry I cannot offer any direct help. But I thought you might like to
-know you are not the only one fighting with this piece of hardware :-)
+Regards,
 
-Roger
-
+Mike
 
 _______________________________________________
 linux-dvb mailing list
