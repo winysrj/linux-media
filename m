@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.225])
+Received: from b01.banan.cz ([77.78.110.131])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KXe1d-00027z-49
-	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 17:30:39 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so1709052rvf.41
-	for <linux-dvb@linuxtv.org>; Mon, 25 Aug 2008 08:30:31 -0700 (PDT)
-Message-ID: <d9def9db0808250830m5aa2d59at2c7bb3788d075e60@mail.gmail.com>
-Date: Mon, 25 Aug 2008 17:30:31 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Robin Perkins" <robin.perkins@internode.on.net>
-In-Reply-To: <E8C49B92-E40C-499D-9362-923C3A3A1F9A@internode.on.net>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <E8C49B92-E40C-499D-9362-923C3A3A1F9A@internode.on.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Reverse enginnering using i2c protocol analysers
+	(envelope-from <nafik@nafik.cz>) id 1KWBYA-0000m4-9q
+	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 16:54:10 +0200
+Received: from p01.banan.cz (p01.banan.cz [77.93.194.164])
+	by b01.banan.cz (Postfix) with ESMTP id D63C517A9D
+	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 16:54:05 +0200 (CEST)
+Received: from [192.168.0.10] (ip-85-160-83-165.eurotel.cz [85.160.83.165])
+	by p01.banan.cz (Postfix) with ESMTP id 89CEA663D3
+	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 17:01:24 +0200 (CEST)
+From: gothic nafik <nafik@nafik.cz>
+To: linux-dvb@linuxtv.org
+Date: Thu, 21 Aug 2008 16:52:11 +0200
+Message-Id: <1219330331.15825.2.camel@dark>
+Mime-Version: 1.0
+Subject: [linux-dvb] dib0700 and analog broadcasting
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,37 +28,66 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/8/23 Robin Perkins <robin.perkins@internode.on.net>:
-> Does anyone have any experiences using i2c logic analysers to work out how
-> cards work ?
-> Is it an effective reverse enginering method ?
 
-not everything is usually bound to i2c..
+hi,
 
-there are Virtualization methods available nowadays for PCI
-passthrough (Intel has one, AMD I'm not sure about the status). As
-soon as that is mainstream it will make reverse engineering easier..
-Another interesting thing would be drivers could directly be used out
-from a operating system which is jailed in a virtual machine.
+i have problems with my tv tuner. It is hybrid (analog receiver, digital
+receiver, radio fm reciver) tv tuner with chipset dib7700. I had to hack
+dib0700 module and update a line with my product id and vendor id
+(because my hardware was not there). It is tv tuner in notebook Asus
+M51SN.
 
-Qemu has support for PCI passthrough with appropriate patches,
-although the host will get killed as soon as DMA gets set up.
+nafik@dark:~$ lsusb -s 007:002 
 
-USB can easily be captured with usbsnoop.
+Bus 007 Device 002: ID 1164:1f08 YUAN High-Tech Development Co., Ltd  
 
-Markus
+nafik@dark:~$ sudo modprobe dvb-usb-dib0700
 
-> I was looking for them online but most of them seem pretty expensive
-> (~$4000) however I found the Total Phase Beagle for about $300. Has anyone
-> else tried this adapter out ? (It appears to have software for Linux, OS X
-> and Windows which seems pretty good.)
-> Thanks,
-> Rob
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+nafik@dark:~$ dmesg 
+
+[   41.965881] dib0700: loaded with support for 6 different device-types
+[   41.966089] dvb-usb: found a 'DiBcom STK7700D reference design' in
+warm state.
+[   41.966127] dvb-usb: will pass the complete MPEG2 transport stream to
+the software demuxer.
+[   41.966307] DVB: registering new adapter (DiBcom STK7700D reference
+design)
+[   42.000752] dvb-usb: no frontend was attached by 'DiBcom STK7700D
+reference design'
+[   42.000760] dvb-usb: will pass the complete MPEG2 transport stream to
+the software demuxer.
+[   42.000975] DVB: registering new adapter (DiBcom STK7700D reference
+design)
+[   42.152993] DVB: registering frontend 1 (DiBcom 7000PC)...
+[   42.154697] MT2266 I2C read failed
+[   42.154851] input: IR-receiver inside an USB DVB receiver
+as /devices/pci0000:00/0000:00:1d.7/usb7/7-5/input/input9
+[   42.207246] dvb-usb: schedule remote query interval to 150 msecs.
+[   42.207253] dvb-usb: DiBcom STK7700D reference design successfully
+initialized and connected.
+[   42.207517] usbcore: registered new interface driver dvb_usb_dib0700
+
+nafik@dark:~$ ls /dev/dvb/*
+/dev/dvb/adapter0:
+demux0  dvr0  net0
+
+/dev/dvb/adapter1:
+demux0  dvr0  frontend0  net0
+
+Digital tv is maybe working, I do not know, becasue in my region is not
+digital broadcasting yet. But I want to watch analog tv or listen to
+radio. And I am not sure, but I need device /dev/video or /dev/video0
+(/dev/radio is not created too) for watching analog broadcasting (module
+dib0700 did not create any /dev/video, just /dev/dvb/*)? Am I right? 
+
+ 
+Thanks for help
+
+nafik 
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
