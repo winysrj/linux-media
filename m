@@ -1,29 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.linuxnewmedia.com.br ([189.14.98.138] ident=postfix)
+Received: from f61.mail.ru ([194.67.57.95])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lsiqueira@linuxnewmedia.com.br>) id 1KY6XB-0000Ak-Qs
-	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 23:57:07 +0200
-Received: from titan.linuxnewmedia.com.br (c95300e2.virtua.com.br
-	[201.83.0.226])
-	by mail.linuxnewmedia.com.br (Postfix) with ESMTP id 6EAD629B679
-	for <linux-dvb@linuxtv.org>; Tue, 26 Aug 2008 18:56:58 -0300 (BRT)
-Received: from localhost (localhost [127.0.0.1])
-	by titan.linuxnewmedia.com.br (Postfix) with ESMTP id AA5B7211F4
-	for <linux-dvb@linuxtv.org>; Tue, 26 Aug 2008 19:00:46 -0300 (BRT)
-Received: from titan.linuxnewmedia.com.br ([127.0.0.1])
-	by localhost (titan.linuxnewmedia.com.br [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id lZFow4JNkHx0 for <linux-dvb@linuxtv.org>;
-	Tue, 26 Aug 2008 19:00:46 -0300 (BRT)
-Received: from [192.168.1.152] (luciano-laptop.intra.linuxnewmedia.com.br
-	[192.168.1.152])
-	by titan.linuxnewmedia.com.br (Postfix) with ESMTP id 3B970211E9
-	for <linux-dvb@linuxtv.org>; Tue, 26 Aug 2008 19:00:46 -0300 (BRT)
-Message-ID: <48B47C99.8040006@linuxnewmedia.com.br>
-Date: Tue, 26 Aug 2008 18:58:49 -0300
-From: Luciano Siqueira <lsiqueira@linuxnewmedia.com.br>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Problems with a Yuan USB stick
+	(envelope-from <goga777@bk.ru>) id 1KW59e-0007pB-8o
+	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 10:04:26 +0200
+From: Goga777 <goga777@bk.ru>
+To: Ing.Marek Hajduk-Francetech s.r.o <hajduk@francetech.sk>
+Mime-Version: 1.0
+Date: Thu, 21 Aug 2008 12:03:51 +0400
+In-Reply-To: <E1KW518-00079b-Ri@www.linuxtv.org>
+References: <E1KW518-00079b-Ri@www.linuxtv.org>
+Message-Id: <E1KW595-00086r-00.goga777-bk-ru@f61.mail.ru>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?SFZSIDQwMDAgcmVjb21uZWRlZCBkcml2ZXIgYW5k?=
+	=?koi8-r?b?IGZpcm13YXJlIGZvciBWRFIgMS43LjA=?=
+Reply-To: Goga777 <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,27 +28,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi everybody,
+ Could somebody recomend me which driver and firmware is working without
+> problem
+> 
+> with vdr 1.7.0 and reelbox extension eHD?
 
-I'm having trouble with a USB device I bought here in Brasil. It's a 
-hybrid DVB-T USB stick.
+szap2 and drivers from 
+http://liplianindvb.sourceforge.net/hg/
 
-Linux recognizes it as:
+firmware from
+http://steventoth.net/linux/cx24116/
 
-ID 1164:0918 YUAN High-Tech Development Co., Ltd
+> With liplianindvb I didnt have any Picture.
 
-As it doesn't have a related module, I just tried to change de ID in the 
-module header files of the working Yuan device to mine. Then the module 
-seems to work, but a firmware is still missing and the device doesn't 
-work at all.
 
-Thanks in advance.
+at first you have to try szap2 from http://liplianindvb.sourceforge.net/hg/
 
--- 
-Luciano Siqueira                 | lsiqueira@linuxnewmedia.com.br
-Editor                           | Tel.:  +55 (0) 11 4082 1300
-Linux New Media do Brasil Ltda.  | Fax :  +55 (0) 11 4082 1302
-http://www.linuxnewmedia.com.br/ | http://www.linuxmagazine.com.br/
+
+I have vdr 170 + h.264 patch + http://liplianindvb.sourceforge.net/hg/ + hvr4000 and I can see any dvb-s/dvb-s2 channels without any problem
+
+Goga
+
 
 _______________________________________________
 linux-dvb mailing list
