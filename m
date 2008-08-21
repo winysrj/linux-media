@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.28])
+Received: from rv-out-0506.google.com ([209.85.198.239])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kknull0@gmail.com>) id 1KRZq0-0003LV-BJ
-	for linux-dvb@linuxtv.org; Fri, 08 Aug 2008 23:49:33 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so279459yxg.41
-	for <linux-dvb@linuxtv.org>; Fri, 08 Aug 2008 14:49:27 -0700 (PDT)
-Message-ID: <57ed08da0808081449m598af353n7edf908551753318@mail.gmail.com>
-Date: Fri, 8 Aug 2008 23:49:27 +0200
-From: Xaero <kknull0@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <mrechberger@gmail.com>) id 1KW8x6-0002Ij-0M
+	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 14:07:44 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so977181rvf.41
+	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 05:07:37 -0700 (PDT)
+Message-ID: <d9def9db0808210507pa76088cx28a955b1840e2147@mail.gmail.com>
+Date: Thu, 21 Aug 2008 14:07:37 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Alex Speed Kjeldsen" <alex.kjeldsen@gmail.com>
+In-Reply-To: <20080821124658.549ced6c@ask-gnewsense>
 MIME-Version: 1.0
-Subject: [linux-dvb] Pinnacle pctv hybrid pro stick 340e support
+Content-Disposition: inline
+References: <20080821124658.549ced6c@ask-gnewsense>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-T USB Device which doesn't require non-free
+	software
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,61 +23,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1637909068=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1637909068==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_52963_16612312.1218232167853"
+On Thu, Aug 21, 2008 at 12:46 PM, Alex Speed Kjeldsen
+<alex.kjeldsen@gmail.com> wrote:
+> I run the fully free OS gNewSense, which basically is Ubuntu 8.04 with all the non-free stuff removed.
+>
+> Could anyone recommend a DVB-T (or hybrid DVB-T/Analog) USB device which would work in this environment without requiring non-free drivers or firmware?
+>
 
-------=_Part_52963_16612312.1218232167853
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I am not aware that there are any devices available which support as
+many videostandards as those devices which use firmware.
+As for em28xx based devices there have been a couple of
+em2870-zl10353-mt2060 based devices around.
+Whatever devices you'll use with xc3028, xc3028L, xc4000, xc5000
+they'll require a firmware esp. because those silicon tuners require
+special firmware/codes for the different modes. Same counts for many
+Micronas designs.
 
-Hi,
-I'm trying to make the 340e card work. (This is a reply to Gerard post, I've
-just subscribed to this list and I didn't know how to reply, sorry :D)
-I have the same lsusb output as Gerard. but I can't get more information
-from dmesg:
-I get only
+I can recommend the Terratec Hybrid XS FM which is fully supported,
+you can get them for a good price on Ebay what I saw yesterday when
+looking at all their prices.
 
-usb 6-8: new high speed USB device using ehci_hcd and address 8
-usb 6-8: configuration #1 chosen from 1 choice
-
-when the card is plugged. (maybe I have to configure some kernel options?)
-
-Btw, I tried the dib0770 modules (following Albert's instructions) , and no
-dvb devices are created, so i don't think they'rer the right drivers (I'm
-not sure again, dmesg doesn't write anything)...
-Suggestion?
-Thanks.
-KKnull
-
-------=_Part_52963_16612312.1218232167853
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">Hi, <br>I&#39;m trying to make the 340e card work. (This is a reply to Gerard post, I&#39;ve just subscribed to this list and I didn&#39;t know how to reply, sorry :D)<br>I have the same lsusb output as Gerard. but I can&#39;t get more information from dmesg:<br>
-I get only <br><br>usb 6-8: new high speed USB device using ehci_hcd and address 8<br>usb 6-8: configuration #1 chosen from 1 choice<br><br>when the card is plugged. (maybe I have to configure some kernel options?)<br><br>
-Btw, I tried the dib0770 modules (following Albert&#39;s instructions) , and no dvb devices are created, so i don&#39;t think they&#39;rer the right drivers (I&#39;m not sure again, dmesg doesn&#39;t write anything)...<br>
-Suggestion?<br>Thanks.<br>KKnull<br></div>
-
-------=_Part_52963_16612312.1218232167853--
-
-
---===============1637909068==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Markus
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1637909068==--
