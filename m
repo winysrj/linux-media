@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f110.mail.ru ([194.67.57.230])
+Received: from b01.banan.cz ([77.78.110.131])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KOsjV-0007Ru-62
-	for linux-dvb@linuxtv.org; Fri, 01 Aug 2008 13:23:43 +0200
-From: Goga777 <goga777@bk.ru>
-To: sacha <sacha@hemmail.se>
-Mime-Version: 1.0
-Date: Fri, 01 Aug 2008 15:23:05 +0400
-In-Reply-To: <1217581835.8480.4.camel@asrock>
-References: <1217581835.8480.4.camel@asrock>
-Message-Id: <E1KOsiv-000MRu-00.goga777-bk-ru@f110.mail.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?SG93IHRvIGZpeCBpb2N0bCBEVkJGRV9HRVRfSU5G?=
-	=?koi8-r?b?TyBmYWlsZWQgZXJyb3I/?=
-Reply-To: Goga777 <goga777@bk.ru>
+	(envelope-from <nafik@nafik.cz>) id 1KWIIB-0007xB-CF
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 00:06:07 +0200
+Received: from p01.banan.cz (p01.banan.cz [77.93.194.164])
+	by b01.banan.cz (Postfix) with ESMTP id 4D05A17A70
+	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 00:06:03 +0200 (CEST)
+Received: from [10.166.10.148] (ip-85-160-83-165.eurotel.cz [85.160.83.165])
+	by p01.banan.cz (Postfix) with ESMTP id 2528366420
+	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 00:12:49 +0200 (CEST)
+Message-ID: <48ADE6AC.4050608@nafik.cz>
+Date: Fri, 22 Aug 2008 00:05:32 +0200
+From: gothic nafik <nafik@nafik.cz>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+References: <1219330331.15825.2.camel@dark>
+In-Reply-To: <1219330331.15825.2.camel@dark>
+Subject: Re: [linux-dvb] dib0700 and analog broadcasting
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,25 +30,7 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-did you use the patch for scan ?
-http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026423.html
-
------Original Message-----
-From: sacha <sacha@hemmail.se>
-To: linux-dvb@linuxtv.org
-Date: Fri, 01 Aug 2008 11:10:35 +0200
-Subject: [linux-dvb] How to fix ioctl DVBFE_GET_INFO failed error?
-
-> 
-> Hello
-> 
-> I am struggling with my Twinhan1041 card for a while now. I am on my way
-> to give up.
-> I hope someone give me a last chance.
-> 
-> I have this error when I try to scan "ioctl DVBFE_GET_INFO failed"
-
-
+I beg you too. Please... :)
 
 _______________________________________________
 linux-dvb mailing list
