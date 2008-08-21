@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.172])
+Received: from ti-out-0910.google.com ([209.85.142.189])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1KVivU-0001dM-4C
-	for linux-dvb@linuxtv.org; Wed, 20 Aug 2008 10:20:20 +0200
-Received: by ug-out-1314.google.com with SMTP id q7so892617uge.16
-	for <linux-dvb@linuxtv.org>; Wed, 20 Aug 2008 01:20:15 -0700 (PDT)
-Date: Wed, 20 Aug 2008 10:20:10 +0200
-To: linux-dvb@linuxtv.org
-Message-ID: <20080820082010.GA5582@gmail.com>
-References: <48ABB045.5050301@fra.se>
+	(envelope-from <bonne@ixum.net>) id 1KW087-0005B5-Lt
+	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 04:42:37 +0200
+Received: by ti-out-0910.google.com with SMTP id w7so445202tib.13
+	for <linux-dvb@linuxtv.org>; Wed, 20 Aug 2008 19:42:26 -0700 (PDT)
+Message-ID: <d16b033e0808201942h56e9b370x778faa7098cf5d41@mail.gmail.com>
+Date: Thu, 21 Aug 2008 12:42:25 +1000
+From: "Bonne Eggleston" <b.eggleston@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <48ACC98A.4090201@linuxtv.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <48ABB045.5050301@fra.se>
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: Re: [linux-dvb] Multiproto, multiproto_plus & mantis
+References: <d16b033e0808201810wca140d8ob33dd6bae2dfcf8b@mail.gmail.com>
+	<ee0ad0230808201844s512f8658pb2459c192cfa21d6@mail.gmail.com>
+	<48ACC98A.4090201@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Recommended repository for Dvico Dual Digital 4 rev1
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,31 +24,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Aug 20, 2008 at 07:48:53AM +0200, Ola Ekedahl wrote:
-> Hi,
-> =
+On Thu, Aug 21, 2008 at 11:48 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> On Thu, Aug 21, 2008 at 11:10 AM, Bonne Eggleston
+> <b.eggleston@gmail.com>wrote:
+>>
+>>> Hi all,
+>>> I have a working Dvico Dual Digital 4 rev1 using some older drivers
+>>> (from http://linuxtv.org/hg/~pascoe/xc-test/<http://linuxtv.org/hg/%7Epascoe/xc-test/>
+>>> ).
+>>> I'm looking to upgrade my kernel from 2.6.18 to 2.6.25 or 26 and
+>>> thought I should get the most up to date dvb driver too.
+>>> What's the current recommended driver and firmware for this card?
+>>>
+>>>
+>
+> Damien Morrissey wrote:
+>> Be warned that there seems to be a funky thing with the firmware (in
+>> australia at least). I needed no less than three different firmware files to
+>> get my DVico Dual Digital 4 (rev1) to be recognised AND to successfully lock
+>> on a channel. Check for dmesg warnings. I am using mythbuntu 8.04.
+>>
+>
+> Please be advised that the posting policy on this mailing list is to
+> post your reply BELOW the quote.
+>
+> It's irritating that I have to tell this to people repeatedly, and I'm
+> sure its even more irritating for others that have to constantly read my
+> complaints about it.
+>
+> Nothing against you -- please don't top-post in the future.
+>
+> Anyway, Damien....  Please try the latest driver in the v4l-dvb master
+> branch -- recent changesets have improved driver performance, and you
+> should not have the problems anymore that you have described, above.
+So that's the mercurial repository here:  http://linuxtv.org/hg/v4l-dvb ?
 
-> I have been trying to compile the three different trees in Fedora 7, but =
-
-> all fails with alot of warnings and errors. What are the recomended =
-
-> specification for the kernel, wont it compile with the kernel in Fedora 7?
-
-AFAIK the only actively maintened tree is :
-http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
-
-Wanny try this one ?
--- =
-
-Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
-rg
-               http://picasaweb.google.com/Gregoire.Favre
+>
+> The AU-specific firmware images have been deprecated, in favor of a much
+> better driver that works regardless of location.  Standard firmware is
+> not used, instead.
+Do you mean standard firmware *is* used instead? Where do I get the
+standard firmware from? Is it just the dvb-usb-bluebird-01.fw  from
+http://www.linuxtv.org/downloads/firmware/ ?
 
 _______________________________________________
 linux-dvb mailing list
