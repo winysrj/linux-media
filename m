@@ -1,31 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7E6OK0h004944
-	for <video4linux-list@redhat.com>; Thu, 14 Aug 2008 02:24:20 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7E6O8W6012369
-	for <video4linux-list@redhat.com>; Thu, 14 Aug 2008 02:24:08 -0400
-Date: Thu, 14 Aug 2008 08:24:13 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-In-Reply-To: <48A3CD0F.9050509@hni.uni-paderborn.de>
-Message-ID: <Pine.LNX.4.64.0808140820580.13783@axis700.grange>
-References: <294f0a37c4feadf87bf8.1217484144@carolinen.hni.uni-paderborn.de>
-	<48917CB5.6000304@teltonika.lt> <4892A90B.7080309@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0808010820560.14927@axis700.grange>
-	<4892BCD8.4010102@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0808010940400.14927@axis700.grange>
-	<4892C629.5000208@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0808131456140.5389@axis700.grange>
-	<48A3BB38.7010301@hni.uni-paderborn.de>
-	<Pine.LNX.4.64.0808140705550.12600@axis700.grange>
-	<48A3CD0F.9050509@hni.uni-paderborn.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Subject: Re: [PATCH] soc-camera: Move .power and .reset from soc_camera host
- to sensor driver
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7LMgms9022729
+	for <video4linux-list@redhat.com>; Thu, 21 Aug 2008 18:42:49 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7LMgal8031839
+	for <video4linux-list@redhat.com>; Thu, 21 Aug 2008 18:42:37 -0400
+Date: Thu, 21 Aug 2008 19:42:25 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Dean A." <dean@sensoray.com>
+Message-ID: <20080821194225.6ef1af35@mchehab.chehab.org>
+In-Reply-To: <tkrat.e703f589e6ff1d88@sensoray.com>
+References: <tkrat.e703f589e6ff1d88@sensoray.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: greg@kroah.com, video4linux-list@redhat.com, dean@sensoray.com
+Subject: Re: [PATCH] s2255drv for 2.6.27-rc2: firmware loading improved,
+ kfree bug fixed
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,22 +28,82 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 14 Aug 2008, Stefan Herbrechtsmeier wrote:
+Hi Dean,
 
-> The GPIOs belongs to the camera. One GPIO for the camera reset input and one
-> for the power down
-> input of the camera.
+On Thu, 7 Aug 2008 16:21:34 -0700 (PDT)
+"Dean A." <dean@sensoray.com> wrote:
 
-Ok, then don't you want to keep the camera off even if the driver is not 
-configured or not loaded at all? Why don't you configure those GPIOs in 
-your platform code permanently, you can make it dependent on 
-defined(CONFIG_...) || defined(CONFIG_..._MODULE), and then just let power 
-and reset callbacks toggle them without reconfiguring them ever again?
+> From: Dean Anderson <dean@sensoray.com>
+> 
+> This patch fixes timer issues in driver disconnect.
+> It also removes the restriction of one user per channel at a time.
+> Adds handshaking with USB firmware to confirm proper loading.
+> 
+> 
+> Signed-off-by: Dean Anderson <dean@sensoray.com>
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+There's something wrong with your patch (tested on both Linus tree and devel
+tree). It seems that some changes were applied by a previous patch. Also,
+please generate it against the latest devel tree, since some API changes
+happened there. The devel tree is at:
+	http://linuxtv.org/hg/v4l-dvb
+
+
+patching file drivers/media/video/s2255drv.c
+Hunk #1 succeeded at 67 (offset 3 lines).
+Hunk #3 succeeded at 155 (offset 3 lines).
+Hunk #4 FAILED at 187.
+Hunk #5 succeeded at 200 (offset 1 line).
+Hunk #6 succeeded at 248 (offset 3 lines).
+Hunk #7 FAILED at 280.
+Hunk #8 FAILED at 289.
+Hunk #9 succeeded at 312 (offset -5 lines).
+Hunk #10 succeeded at 422 (offset 3 lines).
+Hunk #11 FAILED at 492.
+Hunk #12 FAILED at 512.
+Hunk #13 succeeded at 552 (offset -1 lines).
+Hunk #14 succeeded at 588 (offset 3 lines).
+Hunk #15 succeeded at 618 (offset -1 lines).
+Hunk #16 succeeded at 650 (offset 3 lines).
+Hunk #17 succeeded at 659 (offset -1 lines).
+Hunk #18 FAILED at 790.
+Hunk #19 FAILED at 801.
+Hunk #20 succeeded at 1035 (offset 13 lines).
+Hunk #21 succeeded at 1082 (offset -1 lines).
+Hunk #22 succeeded at 1158 (offset 13 lines).
+Hunk #23 succeeded at 1190 (offset -1 lines).
+Hunk #24 succeeded at 1219 (offset 13 lines).
+Hunk #25 succeeded at 1214 (offset -1 lines).
+Hunk #26 FAILED at 1257.
+Hunk #27 succeeded at 1297 (offset 13 lines).
+Hunk #28 FAILED at 1327.
+Hunk #29 FAILED at 1483.
+Hunk #30 FAILED at 1500.
+Hunk #31 succeeded at 1588 (offset 4 lines).
+Hunk #32 FAILED at 1613.
+Hunk #33 FAILED at 1636.
+Hunk #34 FAILED at 1686.
+Hunk #35 succeeded at 1743 (offset 24 lines).
+Hunk #36 succeeded at 1810 (offset 7 lines).
+Hunk #37 succeeded at 1846 (offset 24 lines).
+Hunk #38 succeeded at 1954 (offset 7 lines).
+Hunk #39 succeeded at 1993 (offset 24 lines).
+Hunk #40 succeeded at 2001 (offset 7 lines).
+Hunk #41 succeeded at 2102 (offset 24 lines).
+Hunk #42 succeeded at 2122 (offset 7 lines).
+Hunk #43 succeeded at 2314 (offset 24 lines).
+Hunk #44 succeeded at 2307 (offset 7 lines).
+Hunk #45 succeeded at 2356 (offset 24 lines).
+Hunk #46 succeeded at 2409 (offset 7 lines).
+Hunk #47 succeeded at 2452 (offset 24 lines).
+Hunk #48 succeeded at 2465 (offset 7 lines).
+Hunk #49 succeeded at 2503 (offset 24 lines).
+Hunk #50 succeeded at 2519 (offset 7 lines).
+14 out of 50 hunks FAILED -- saving rejects to file drivers/media/video/s2255drv.c.rej
+
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
