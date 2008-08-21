@@ -1,15 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web23203.mail.ird.yahoo.com ([217.146.189.58])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <newspaperman_germany@yahoo.com>) id 1KPIa1-000088-Hx
-	for linux-dvb@linuxtv.org; Sat, 02 Aug 2008 16:59:38 +0200
-Date: Sat, 2 Aug 2008 14:59:02 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-To: linux-dvb@linuxtv.org
+Received: from nf-out-0910.google.com ([64.233.182.189])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KWIII-0007yK-HU
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 00:06:17 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so210837nfb.11
+	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 15:06:11 -0700 (PDT)
+Message-ID: <412bdbff0808211506i6c6c96f6t7285848f2d79b5f0@mail.gmail.com>
+Date: Thu, 21 Aug 2008 18:06:11 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Patrick Boettcher" <patrick.boettcher@desy.de>
+In-Reply-To: <alpine.LRH.1.10.0808220000340.21606@pub5.ifh.de>
 MIME-Version: 1.0
-Message-ID: <581268.9395.qm@web23203.mail.ird.yahoo.com>
-Subject: [linux-dvb]  TT S2-3200 lock question
-Reply-To: newspaperman_germany@yahoo.com
+Content-Disposition: inline
+References: <1219330331.15825.2.camel@dark> <48ADCC81.5000407@nafik.cz>
+	<37219a840808211321k34590d38v7ada0fb9655e5dfe@mail.gmail.com>
+	<412bdbff0808211325h64d454d5m3353d8756b9eb737@mail.gmail.com>
+	<37219a840808211329j697556fcj760057bb1c7b58a8@mail.gmail.com>
+	<alpine.LRH.1.10.0808212337070.21606@pub5.ifh.de>
+	<1219355890.6770.2.camel@youkaida>
+	<alpine.LRH.1.10.0808220000340.21606@pub5.ifh.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dib0700 and analog broadcasting
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,23 +34,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi!
+Yes, I am doing the i2c work before anything else (hopefully tonight).
 
-seems to be not dvb-s2 standard modulation. Perhaps turbo-coded 8psk or anything else that usual dvb-s2 pci cards can't demodulate.
+Devin
 
-There's one usb box (genpix's skywalker 1) that could do turbo-coded 8psk but it costs about 280 $ and if it's not turbo-coded 8psk it's a very bad investment.
+On Thu, Aug 21, 2008 at 6:02 PM, Patrick Boettcher
+<patrick.boettcher@desy.de> wrote:
+> Nicolas,
+>
+> 1) The firmware alone should fix the i2c problems, even with the currently
+> used requests.
+> 2) The new requests are necessary to have the xc5000 running correctly, if
+> I understand everything correctly. So yes, it will be done first - I
+> think.
+>
+> Patrick.
+>
+>
+> On Thu, 21 Aug 2008, Nicolas Will wrote:
+>
+>> On Thu, 2008-08-21 at 23:38 +0200, Patrick Boettcher wrote:
+>>> On Thu, 21 Aug 2008, Michael Krufky wrote:
+>>>> Lets sync up when you get to that point -- I have a good chunk of
+>>> code
+>>>> written that will add analog support to the dvb-usb framework as an
+>>>> optional additional adapter type.
+>>>
+>>> Wow wow wow. That sounds like music in my ears. Great direction!!!
+>>>
+>>
+>> hmmm, Devin, Patrick, let me be selfish a little bit, that's what I do
+>> best most of the time, so you can beat me up for it.
+>>
+>> Can the new i2c request code for the new firmware be done first?
+>>
+>> Nico
+>>
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-kind regards
 
 
-Newsy
-
-
-
-      __________________________________________________________
-Gesendet von Yahoo! Mail.
-Dem pfiffigeren Posteingang.
-http://de.overview.mail.yahoo.com
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
