@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KY6bn-0000kU-Nj
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 00:01:53 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K68001E8AI42EX0@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 26 Aug 2008 18:01:17 -0400 (EDT)
-Date: Tue, 26 Aug 2008 18:01:16 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48B46F9D.105@gmail.com>
-To: Mijhail Moreyra <mijhail.moreyra@gmail.com>
-Message-id: <48B47D2C.3010005@linuxtv.org>
-MIME-version: 1.0
-References: <48B4687D.8070205@gmail.com> <48B46D46.2020800@linuxtv.org>
-	<48B46F9D.105@gmail.com>
+Received: from bld-mail06.adl2.internode.on.net ([203.16.214.70]
+	helo=mail.internode.on.net) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <robin.perkins@internode.on.net>) id 1KWeug-0005Ve-Nz
+	for linux-dvb@linuxtv.org; Sat, 23 Aug 2008 00:15:24 +0200
+Message-Id: <AF5DCBA8-DF95-4CF7-B161-BBB8657139B3@internode.on.net>
+From: Robin Perkins <robin.perkins@internode.on.net>
+To: Markus Hahn <markus.o.hahn@gmx.de>
+In-Reply-To: <200808222348.49789.markus.o.hahn@gmx.de>
+Mime-Version: 1.0 (Apple Message framework v926)
+Date: Sat, 23 Aug 2008 08:14:54 +1000
+References: <200808222348.49789.markus.o.hahn@gmx.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
- HVR-1500
+Subject: Re: [linux-dvb] Wiki
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,31 +25,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mijhail Moreyra wrote:
-> Steven Toth wrote:
->> Indeed, very nice, thank you!
->>
->> I'll generate a ~stoth/cx23885-audio tree and encourage a few people 
->> to test.
->>
->> Regards,
->>
->> - Steve
-> 
-> That's great but then it would be nice to add the required configuration 
-> for the cx23887 bridge to cx23887_sram_channels for TV Audio so more 
-> people can test it.
-> 
-> Regards
-> Mijhail Moreyra
+On 23/08/2008, at 7:48 AM, Markus Hahn wrote:
+>
+> does anybody knows how to edit the linux-tv.org/wiki ?
+>
 
-Mijhail,
+linux-tv.org is just a cybersquatter, try linuxtv.org/wiki  (notice no  
+hyphen). Then its just a matter of registering, logging in and  
+clicking the edit tab.
 
-Can you give me your sign-off for the patch?
-
-Thanks.
-
-- Steve
 
 _______________________________________________
 linux-dvb mailing list
