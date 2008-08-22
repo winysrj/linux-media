@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m71JropI015542
-	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 15:53:51 -0400
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m71JrbU7013313
-	for <video4linux-list@redhat.com>; Fri, 1 Aug 2008 15:53:38 -0400
-Message-ID: <48936BD4.20905@hhs.nl>
-Date: Fri, 01 Aug 2008 22:02:28 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7MJZsDN018071
+	for <video4linux-list@redhat.com>; Fri, 22 Aug 2008 15:35:54 -0400
+Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7MJZgOd016521
+	for <video4linux-list@redhat.com>; Fri, 22 Aug 2008 15:35:42 -0400
+Message-ID: <48AF1515.4080805@kaiser-linux.li>
+Date: Fri, 22 Aug 2008 21:35:49 +0200
+From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-References: <1217614143.1686.12.camel@localhost>
-In-Reply-To: <1217614143.1686.12.camel@localhost>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+References: <48AF0927.3020604@hhs.nl>
+In-Reply-To: <48AF0927.3020604@hhs.nl>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Video 4 Linux <video4linux-list@redhat.com>
-Subject: Re: [PATCH] libv4l decoding to rgb24
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: Patch: gspca-pac73xx-fixes.patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,20 +27,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Jean-Francois Moine wrote:
-> The RGB24 pixel format is often used in X11 applications.
-> This patch adds it to the V4L library.
+Hans de Goede wrote:
+> Hi All,
 > 
-> Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
+> I'm proud to present the results of spending way too much hours (days)
+> working on pac73xx results:
 > 
 
-Thanks, the yuv part of the patch is not correct as u and v have different 
-weight factors in the conversion so simply swapping them is not correct, but 
-I'll fix that myself.
+Hi Hans
 
-Regards,
+That's how re-engineering works. Spend lots of time ;-)
+Anyway, I am happy that I see more progress for the PAC73xx based 
+webcams :-)
 
-Hans
+Thomas
 
 --
 video4linux-list mailing list
