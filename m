@@ -1,17 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ws1-5.us4.outblaze.com ([205.158.62.51])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1KXk9i-0005W7-R1
-	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 00:03:23 +0200
-Content-Disposition: inline
+Received: from n7.bullet.re3.yahoo.com ([68.142.237.92])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <rvf16@yahoo.gr>) id 1KWW4t-0005wh-G5
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 14:49:20 +0200
+Message-ID: <48AEB3F9.4020703@yahoo.gr>
+Date: Fri, 22 Aug 2008 15:41:29 +0300
+From: rvf16 <rvf16@yahoo.gr>
 MIME-Version: 1.0
-From: stev391@email.com
-To: jackden <jackden@gmail.com>
-Date: Tue, 26 Aug 2008 08:03:05 +1000
-Message-Id: <20080825220305.429DA4782FC@ws1-5.us4.outblaze.com>
-Cc: linux dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
- TV/FM capture card
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] CX23885 based AVerMedia AVerTV Hybrid Express Slim tv
+ card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,58 +23,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Thank you stev391.
+Based upon your info and links regarding wiki pages i've managed to 
+create a wiki for this tv card.
+I've done my best to provide everything i have gathered along with 
+pictures and links :
 
-> ----- Original Message -----
-> From: jackden <jackden@gmail.com>
-> To: stev391@email.com
-> Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog TV/FM capture card
-> Date: Mon, 25 Aug 2008 21:40:08 +0800
-> 
-> 
-> Stephen,
-> 
-> > 1) A high resolution photo so I can identify the main items on the board
-> ok. see http://linuxtv.org/wiki/index.php/Compro_VideoMate_E650
-> 
-> > 2) A list of chips used on board, (The two key chips that I need to know are the tuner & 
-> > demodulator)
-> ok.
-> 
-> > 3) The output of `lspci -vv` and `lspci -n` that are relevant for this card.
-> ok.
-> 
-> > 4) The output of `i2cdetect -l` and `i2cdetect #` where # is the number associated with a 
-> > cx23885 adapter (see 
-> > http://linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid_Express_Slim_HC81R#i2cdetect for 
-> > example)
-> hmm... I run 'i2cdetect -l' ,but the output is empty. : (
-> 
-> 
-> > 5) The Regspy output, for: idle straight after boot, dvb channel tuned and working, analog 
-> > tuned and working. (This needs windows, to get regspy just google "regspy dscaler".
-> Regspy is windows only? I no have windows operating system.  : (
-> 
-> 6) An external link to the compro product page.
-> 
-> ----=Jackden in Google=----
-> --=Jackden@Gmail.com=--
+http://www.linuxtv.org/wiki/index.php/AVerMedia
+http://www.linuxtv.org/wiki/index.php/DVB-T_PCMCIA_Cards#Supported_DVB-T_PCMCIA_Cards_.28PC_Card.2FCardBus.2C_ExpressCard.29
+http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid_Express_Slim_HC81R
 
-Jackden,
+If anyone can help me in any way i would be grateful.
+Hope the community shows some interest on this, it is after all a very 
+good tuner with multiple features, good signal and very small size.
 
-Thanks for completing the information on the wiki page.
-
-To use i2cdetect you need to load i2c_dev module (or something similar).  i2cdetect is part of lm sensors so maybe you should install this if you haven't already. (perhaps try Google for an answer...)
-
->From what you have posted I still think it is possible to support this card easily, but as you cannot provide me with the output of Regspy (which is windows) I will have do a little of trial and error.  So hopefully you are very patient. (I still need the output of i2cdetect before I create a patch).
-
-Regards,
-Stephen.
-
-
--- 
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
+Thank you again.
+Regards.
 
 
 _______________________________________________
