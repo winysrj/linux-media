@@ -1,25 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from mu-out-0910.google.com ([209.85.134.189])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KYLgb-0003Yf-3r
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 16:07:50 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K69004VAJ7WM230@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 27 Aug 2008 10:07:14 -0400 (EDT)
-Date: Wed, 27 Aug 2008 10:07:09 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <003201c9082d$4b7fff80$e27ffe80$@com.au>
-To: Thomas Goerke <tom@goeng.com.au>
-Message-id: <48B55F8D.9090005@linuxtv.org>
-MIME-version: 1.0
-References: <20080827061320.298E2104F0@ws1-3.us4.outblaze.com>
-	<003201c9082d$4b7fff80$e27ffe80$@com.au>
-Cc: linux-dvb@linuxtv.org, stev391@email.com
-Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
- TV/FM capture card
+	(envelope-from <alex.kjeldsen@gmail.com>) id 1KWQ2Y-0004Mz-5i
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 08:22:31 +0200
+Received: by mu-out-0910.google.com with SMTP id w8so513087mue.1
+	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 23:22:26 -0700 (PDT)
+Date: Fri, 22 Aug 2008 08:22:24 +0200
+From: Alex Speed Kjeldsen <alex.kjeldsen@gmail.com>
+To: "Hans Werner" <HWerner4@gmx.de>
+Message-ID: <20080822082224.5c72335d@ask-gnewsense>
+In-Reply-To: <20080821155412.114260@gmx.net>
+References: <20080821124658.549ced6c@ask-gnewsense>
+	<d9def9db0808210507pa76088cx28a955b1840e2147@mail.gmail.com>
+	<20080821154705.0ab3f854@ask-gnewsense>
+	<d9def9db0808210756y277f21a3wd6fe16f0bc52f9ad@mail.gmail.com>
+	<d9def9db0808210800g6cc8c106jb609009c5d44699f@mail.gmail.com>
+	<20080821155412.114260@gmx.net>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-T USB Device which doesn't require non-free
+ software
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,24 +33,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+
+> Alex is concerned about which licenses these drivers and firmwares are released
+> under. He is using gNewSense so he clearly cares that they are free as in free beer *and* free
+> as in free speech. You say there are two pieces of firmware. Could you clarify (1) which
+> files you are talking about, (2) who holds the copyrights and (3) whether the driver 
+> and firmware source codes are available and under what licenses.
 > 
-> 
-> Stephen,
-> 
-> I managed to install a copy of D-scaler (v4.1.11) which contained regspy
-> from http://www.dscaler.org/downloads.htm, but was unable to get regspy nor
-> d-scaler to recognize the Compro E800 card.  Thus I have been unable to get
-> the register dump you requested.  I can try again if you think that regspy
-> can be made to work with the card and any suggestions here would be
-> appreciated.
+> Binaries coded in ascii are still binaries.
 
-http://steventoth.net/ReverseEngineering/PCI/
 
-This was the version I originally added cx23885/7/8 support to.
+Thank you Hans for clarifying. This is exactly what I am concerned about.
 
-It assumes dscaler is installed.
+After a tip on the gNewSense Forum, I think a solution could be this item:
 
-- Steve
+http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_T2
 
 
 _______________________________________________
