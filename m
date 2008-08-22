@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jw@raven.inka.de>) id 1KWXyB-0005T9-Id
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 16:50:32 +0200
-Date: Fri, 22 Aug 2008 16:44:48 +0200
-From: Josef Wolf <jw@raven.inka.de>
+	(envelope-from <nico@youplala.net>) id 1KWaiA-0002Ba-L5
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 19:46:11 +0200
+Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
+	[84.70.212.195])
+	by mail.youplala.net (Postfix) with ESMTP id 90E22D880A4
+	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 19:45:16 +0200 (CEST)
+From: Nicolas Will <nico@youplala.net>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080822144448.GF32022@raven.wolf.lan>
-References: <20080821174512.GC32022@raven.wolf.lan>
-	<52113.203.82.187.131.1219367267.squirrel@webmail.planb.net.au>
+In-Reply-To: <1219424386.29624.16.camel@youkaida>
+References: <1219330331.15825.2.camel@dark> <48ADF515.6080401@nafik.cz>
+	<1219360304.6770.34.camel@youkaida> <1219423326.29624.8.camel@youkaida>
+	<1219423493.29624.9.camel@youkaida>
+	<412bdbff0808220952y16d36f3by646f0000991de4d3@mail.gmail.com>
+	<1219424386.29624.16.camel@youkaida>
+Date: Fri, 22 Aug 2008 18:45:17 +0100
+Message-Id: <1219427117.29624.33.camel@youkaida>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <52113.203.82.187.131.1219367267.squirrel@webmail.planb.net.au>
-Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
+Subject: Re: [linux-dvb] dib0700 and analog broadcasting
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,41 +32,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Aug 22, 2008 at 11:07:47AM +1000, Kevin Sheehan wrote:
+On Fri, 2008-08-22 at 17:59 +0100, Nicolas Will wrote:
+> > Does it happen right after you plug the device in, or does it not
+> > occur until you start a video application?
+> 
+> Difficult to say.
+> 
+> The Nova-T 500 is a PCI card. It has a Via usb controller and the USB
+> dib0700 behing on the card.
+> 
+> As for the application, I do not think I have to enter X. I can check,
+> though.
+> 
 
-> Barry was right on the money with the ts2ps suggestion below.  It's part
-> of the libdvb package.  You don't have to use the dvb-mpegtools app, you
-> can just use the lib in yours - no pipes, etc.
+Sure, it happens when X starts. But it could also be bad timing. The
+MythTV backend, the app that really uses the DVB stuff, starts right
+before X.
 
-I know.  But I still consider ts2ps to be too heavy for my application.
-It goes and parses all the PES contents, which eats much CPU.
 
-But at least, ts2pes was very helpful in analyzing the differences in
-the stream between what I created and what ts2pes created.  Finally, I
-have found the problem:
+I have asked for debug info from the dib0700 module.
 
-I appears that PES_packet_length==0 is allowed in TS _only_.  While
-unpacking, the long packet (I have seen up to 100 kbytes) extracted 
-from the TS needs to be split up into smaller ones.  ps2pes splits
-into pieces with PES_packet_length==0x7fa and prepends an empty PES
-header (with only the length specification) to each of the new packets.
+Aug 22 18:05:23 favia kernel: [   33.238864] dib0700: loaded with support for 7 different device-types
+Aug 22 18:05:23 favia kernel: [   33.239009] FW GET_VERSION length: -32
+Aug 22 18:05:23 favia kernel: [   33.239011] cold: 1
+Aug 22 18:05:23 favia kernel: [   33.239012] dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in cold state, will try to load a firmware
 
-Finally, I can generate a PES stream with one video and multiple
-audio streams which is played pretty fine by mplayer and vlc.
+And then nothing with 1.20 fw.
 
-Now I need to add the PS pack header (ts2ps adds 14 bytes) and the
-system header (ts2ps adds 18 bytes).  For this, I have two more
-questions:
+What is interesting, is that at each self-reboot, that are warm reboots,
+the card is in cold state and needs a firmware. So can I conclude that
+it never got loaded? Or that the self reboot is a cold reboot?
 
-1. Is the system_header required at all?  Table 2-33 in iso-13818-1
-   seems to make it optional.
 
-2. For creating the PS pack header, the only missing information is
-   the program_mux_rate.  How is this value calculated?  How accurate
-   has this value to be?  If the stream bit rate changes (maybe because
-   of changes in resolution), do I need to adopt this value and generate
-   a MPEG_program_end_code and add a new pack header with the new
-   value?  Or will the player stop when it detects MPEG_program_end_code?
+I have tried to boot without a firmware file, and it goes all the way to
+MythTV without reboot.
+
+Nico
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
