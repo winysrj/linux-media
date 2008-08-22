@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from b01.banan.cz ([77.78.110.131])
+Received: from mail.koalatelecom.com.au ([202.126.101.92])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nafik@nafik.cz>) id 1KWJEU-0005uw-2a
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 01:06:22 +0200
-Received: from p01.banan.cz (p01.banan.cz [77.93.194.164])
-	by b01.banan.cz (Postfix) with ESMTP id DB04F17B2D
-	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 01:06:17 +0200 (CEST)
-Received: from [10.166.10.148] (ip-85-160-83-165.eurotel.cz [85.160.83.165])
-	by p01.banan.cz (Postfix) with ESMTP id 32C86663B8
-	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 01:14:19 +0200 (CEST)
-Message-ID: <48ADF515.6080401@nafik.cz>
-Date: Fri, 22 Aug 2008 01:07:01 +0200
-From: gothic nafik <nafik@nafik.cz>
+	(envelope-from <peter_s_d@fastmail.com.au>) id 1KWSrC-0000Xy-1h
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 11:22:58 +0200
+From: "Peter D." <peter_s_d@fastmail.com.au>
+To: Matthias Dahl <mldvb@mortal-soul.de>
+Date: Fri, 22 Aug 2008 19:22:45 +1000
+References: <200808121443.27020.mldvb@mortal-soul.de>
+	<200808221656.53605.peter_s_d@fastmail.com.au>
+	<200808220930.39630.mldvb@mortal-soul.de>
+In-Reply-To: <200808220930.39630.mldvb@mortal-soul.de>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <1219330331.15825.2.camel@dark>
-In-Reply-To: <1219330331.15825.2.camel@dark>
-Subject: Re: [linux-dvb] dib0700 and analog broadcasting
+Content-Disposition: inline
+Message-Id: <200808221922.46056.peter_s_d@fastmail.com.au>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Possible SMP problems with budget_av/saa7134
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,9 +28,49 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-i have just tried to load that new firmware and i don't have any 
-problems with that...
-no unexpected reboot and it mounts devices into /dev/dvb/*
+On Friday 22 August 2008, Matthias Dahl wrote:
+> Hello Peter.
+>
+> On Friday 22 August 2008 08:56:53 Peter D. wrote:
+> > That machine now has a vanilla 2.6.26.3 kernel and the
+> > "nosmp" flag.  It has been up for two hours now.  If you
+> > don't solve this in the next month, I'll post a follow-up.  ;-)
+>
+> I am sorry to disappoint you but I guess we are talking about different
+> problems here. This thread is mainly about problems with concurrent
+> access to a ci/cam attached to a budget card. And since you are using
+> dvb-t which afaik is always fta, you are experiencing a totally different
+> problem. Besides my machine never locked up, the cam just stopped
+> decrypting. Otherwise it would really have been quite strange to explain.
+> :-)
+
+I was already disappointed in the motherboard.  :-(  
+
+> Have you run some tests on the machine like a memtest and/or processor
+> test? 
+
+Overnight runs of memtest have not found a fault with either mem stick.  
+Problems have occurred with each stick being the sole stick, and with 
+two different processors, both were X2 3600+ AMDs.  I doubt that both 
+cpus have the same problem.  sys_basher did not find any faults.  
+Do you recommend anything in particular - like cpuburn?
+
+> Faulty memory can causes all sorts of strange problems. If you 
+> still suspect the dvb subsystem, compile a kernel without it, test and
+> stress it. If it works reliably for a longer period of time, you've
+> possibly narrowed the list of suspects down. But I bet it's more like a
+> hardware problem... sorry.
+>
+> So long,
+> matthias.
+
+I think that it is a motherboard problem, but I will let it run with 
+nosmp for a while and see what happens.  
+
+
+-- 
+sig goes here...
+Peter D.
 
 _______________________________________________
 linux-dvb mailing list
