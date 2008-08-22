@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from gv-out-0910.google.com ([216.239.58.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1KQBnf-0007OS-QB
-	for linux-dvb@linuxtv.org; Tue, 05 Aug 2008 03:57:28 +0200
-From: Andy Walls <awalls@radix.net>
-To: hermann pitton <hermann-pitton@arcor.de>
-In-Reply-To: <1217873263.2671.27.camel@pc10.localdom.local>
-References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
-	<1217728894.5348.72.camel@morgan.walls.org>
-	<5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
-	<1217791214.2690.31.camel@morgan.walls.org>
-	<1217810697.2673.8.camel@pc10.localdom.local>
-	<1217817352.23133.64.camel@palomino.walls.org>
-	<1217873263.2671.27.camel@pc10.localdom.local>
-Date: Mon, 04 Aug 2008 21:57:05 -0400
-Message-Id: <1217901425.2695.32.camel@morgan.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1600 - No audio
+	(envelope-from <thomas.schorpp@googlemail.com>) id 1KWT9Z-0002PT-K9
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 11:41:58 +0200
+Received: by gv-out-0910.google.com with SMTP id n29so116527gve.16
+	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 02:41:53 -0700 (PDT)
+Message-ID: <48AE89DD.5090307@gmail.com>
+Date: Fri, 22 Aug 2008 11:41:49 +0200
+MIME-Version: 1.0
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <1219357399.6770.12.camel@youkaida>
+In-Reply-To: <1219357399.6770.12.camel@youkaida>
+From: thomas schorpp <thomas.schorpp@googlemail.com>
+Subject: Re: [linux-dvb] New firmware for dib0700 (Nova-T-500 and others)
+Reply-To: thomas.schorpp@gmail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,93 +21,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gTW9uLCAyMDA4LTA4LTA0IGF0IDIwOjA3ICswMjAwLCBoZXJtYW5uIHBpdHRvbiB3cm90ZToK
-PiBBbSBTb25udGFnLCBkZW4gMDMuMDguMjAwOCwgMjI6MzUgLTA0MDAgc2NocmllYiBBbmR5IFdh
-bGxzOgo+ID4gT24gTW9uLCAyMDA4LTA4LTA0IGF0IDAyOjQ0ICswMjAwLCBoZXJtYW5uIHBpdHRv
-biB3cm90ZToKPiA+ID4gQW0gU29ubnRhZywgZGVuIDAzLjA4LjIwMDgsIDE1OjIwIC0wNDAwIHNj
-aHJpZWIgQW5keSBXYWxsczoKPiA+ID4gPiBPbiBTdW4sIDIwMDgtMDgtMDMgYXQgMTA6NDkgLTA3
-MDAsIEJyaWFuIFN0ZWVsZSB3cm90ZToKIAo+ID4gSSBoYXZlIHR3byBIVlItMTYwMCdzOiBvbmUg
-d2l0aCByYWRpbyBhbmQgb25lIHdpdGhvdXQuICBJIGNhbid0IGNoZWNrCj4gPiB0aGUgb25lIHdp
-dGhvdXQgcmFkaW8gcmlnaHQgbm93ICh0aGF0IGNvbXB1dGVyIGlzIGRvd24gZm9yIG90aGVyCj4g
-PiBleHBlcmltZW50cykuCgpCcmlhbiwKCkkgaGF2ZSBiZWVuIGFibGUgdG8gdGVzdCBteSBIVlIt
-MTYwMCB0aGF0IGhhcyBhIFRDTCBNMjUyMy4gIEZvciB0aGUKcmVjb3JkLCB1c2luZyB0dW5lciB0
-eXBlIDUwLCB0aGUgdHVuZXIgYXVkaW8gZm9yIGFuYWxvZyBjYXB0dXJlcyB3b3Jrcwpmb3IgbWUg
-d2l0aCB0aGUgbGF0ZXN0IHY0bC1kdmIuCgpIZXJlJ3MgaG93IHRoZSBpbml0aWFsaXphdGlvbiBs
-b29rcyB3aXRob3V0IGFueSBkZWJ1ZyB0dXJuZWQgb24uCgpjeDE4OiAgU3RhcnQgaW5pdGlhbGl6
-YXRpb24sIHZlcnNpb24gMS4wLjAKY3gxOC0wOiBJbml0aWFsaXppbmcgY2FyZCAjMApjeDE4LTA6
-IEF1dG9kZXRlY3RlZCBIYXVwcGF1Z2UgY2FyZApBQ1BJOiBQQ0kgSW50ZXJydXB0IDAwMDA6MDM6
-MDMuMFtBXSAtPiBHU0kgMjEgKGxldmVsLCBsb3cpIC0+IElSUSAyMQpjeDE4LTA6IGN4MjM0MTgg
-cmV2aXNpb24gMDEwMTAwMDAgKEIpCnR2ZWVwcm9tIDEtMDA1MDogSGF1cHBhdWdlIG1vZGVsIDc0
-MDQxLCByZXYgQzVCMiwgc2VyaWFsIyA4OTEzNTEKdHZlZXByb20gMS0wMDUwOiBNQUMgYWRkcmVz
-cyBpcyAwMC0wRC1GRS0wRC05OS1ENwp0dmVlcHJvbSAxLTAwNTA6IHR1bmVyIG1vZGVsIGlzIFRD
-TCBNMjUyM181Tl9FIChpZHggMTEyLCB0eXBlIDUwKQp0dmVlcHJvbSAxLTAwNTA6IFRWIHN0YW5k
-YXJkcyBOVFNDKE0pIChlZXByb20gMHgwOCkKdHZlZXByb20gMS0wMDUwOiBhdWRpbyBwcm9jZXNz
-b3IgaXMgQ1gyMzQxOCAoaWR4IDM4KQp0dmVlcHJvbSAxLTAwNTA6IGRlY29kZXIgcHJvY2Vzc29y
-IGlzIENYMjM0MTggKGlkeCAzMSkKdHZlZXByb20gMS0wMDUwOiBoYXMgbm8gcmFkaW8sIGhhcyBJ
-UiByZWNlaXZlciwgaGFzIElSIHRyYW5zbWl0dGVyCmN4MTgtMDogQXV0b2RldGVjdGVkIEhhdXBw
-YXVnZSBIVlItMTYwMApjeDE4LTA6IFZCSSBpcyBub3QgeWV0IHN1cHBvcnRlZAp0dW5lciAyLTAw
-NjE6IGNoaXAgZm91bmQgQCAweGMyIChjeDE4IGkyYyBkcml2ZXIgIzAtMSkKY3M1MzQ1IDEtMDA0
-YzogY2hpcCBmb3VuZCBAIDB4OTggKGN4MTggaTJjIGRyaXZlciAjMC0wKQp0dW5lci1zaW1wbGUg
-Mi0wMDYxOiBjcmVhdGluZyBuZXcgaW5zdGFuY2UKdHVuZXItc2ltcGxlIDItMDA2MTogdHlwZSBz
-ZXQgdG8gNTAgKFRDTCAyMDAyTikKY3gxOC0wOiBEaXNhYmxlZCBlbmNvZGVyIElEWCBkZXZpY2UK
-Y3gxOC0wOiBSZWdpc3RlcmVkIGRldmljZSB2aWRlbzAgZm9yIGVuY29kZXIgTVBFRyAoMiBNQikK
-RFZCOiByZWdpc3RlcmluZyBuZXcgYWRhcHRlciAoY3gxOCkKY3gxOC0wOiBsb2FkZWQgdjRsLWN4
-MjM0MTgtYXB1LmZ3IGZpcm13YXJlIFYwMDEyMDAwMCAoMTQxMjAwIGJ5dGVzKQpNWEw1MDA1Uzog
-QXR0YWNoZWQgYXQgYWRkcmVzcyAweDYzCkRWQjogcmVnaXN0ZXJpbmcgZnJvbnRlbmQgMCAoU2Ft
-c3VuZyBTNUgxNDA5IFFBTS84VlNCIEZyb250ZW5kKS4uLgpjeDE4LTA6IERWQiBGcm9udGVuZCBy
-ZWdpc3RlcmVkCmN4MTgtMDogbG9hZGVkIHY0bC1jeDIzNDE4LWNwdS5mdyBmaXJtd2FyZSAoMTU4
-MzMyIGJ5dGVzKQpjeDE4LTA6IEZXIHZlcnNpb246IDAuMC43NC4wIChSZWxlYXNlIDIwMDcvMDMv
-MTIpCmN4MTgtMDogbG9hZGVkIHY0bC1jeDIzNDE4LWRpZy5mdyBmaXJtd2FyZSAoMTYzODIgYnl0
-ZXMpCmN4MTgtMDogUmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8zMiBmb3IgZW5jb2RlciBZVVYgKDIg
-TUIpCmN4MTgtMDogUmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8yNCBmb3IgZW5jb2RlciBQQ00gYXVk
-aW8gKDEgTUIpCmN4MTgtMDogSW5pdGlhbGl6ZWQgY2FyZCAjMDogSGF1cHBhdWdlIEhWUi0xNjAw
-CmN4MTg6ICBFbmQgaW5pdGlhbGl6YXRpb24KCgpXaGVuIHdlIGluaXRpYWxseSBoYWQgYSBwcm9i
-bGVtIHdpdGggdGhlIGN4LTE4IG5vdCBwcm9kdWNpbmcgYW55IGF1ZGlvCmZyb20gdGhlIHR1bmVy
-LCBpdCB3YXMgYmVjYXVzZSB0aGVyZSB3YXMgZXJyb3JzIGluIHRoZSBtaWNyb2NvbnRyb2xsZXIK
-ZmlybXdhcmUgbG9hZC4gIEhhbnMnIG1hZGUgYSBmaXggdG8gbWFrZSB0aGUgZmlybXdhcmUgbG9h
-ZCBtb3JlIHJvYnVzdAphbmQgdGhpbmdzIHN0YXJ0ZWQgd29ya2luZy4gIElmIHlvdXIgdHVuZXIg
-bG9va3MgbGlrZSBpdCdzIGdldHRpbmcKY29tbWFuZGVkIHByb3Blcmx5LCB3ZSdsbCBpbnZlc3Rp
-Z2F0ZSBtaWNyb2NvbnRyb2xsZXIgZmlybXdhcmUgbG9hZApuZXh0LgoKCgogCj4gPiBEb2VzIGEg
-VENMIE0yNTIzXzVOX0UgaGF2ZSBhIFREQTk4OHg/ICBJIGtub3cgdGhlIFREQTk4ODcgY2FuCj4g
-PiBkZW1vZHVsYXRlIEZNIHJhZGlvLiBCcmlhbidzIEhWUi0xNjAwIGRvZXNuJ3QgaGF2ZSBGTSBy
-YWRpbyBhY2NvcmRpbmcgdG8KPiA+IHR2ZWVlcHJvbSwgc28gYXJlIHlvdSB0aGlua2luZyBhIFRE
-QTk4OFs1Nl0gaXMgaW4gdGhlIFRDTCBNMjUyMyA1TiBFPyAKPiAKPiBObywgdGhlcmVmb3JlIHRo
-ZSB3YXJuaW5nIHRoYXQgSSBkaWQgbm90IGxvb2sgYW55IGNsb3NlciB5ZXQuCj4gCj4gaHR0cDov
-L3d3dy50Y2xyZi5jb20vRW5nbGlzaC9odG1sL2VuZXdzcHJvb3Blbi5hc3A/cHJvbmFtZT0xMDIm
-dXJsPXByb2R1Y3QKCkhlcm1hbm0sCgpUaGFuayB5b3UgZm9yIHRoZSBsaW5rLiAgRnJvbSB0aGUg
-bGluayB5b3UgZ2F2ZToKCsK3SUMgdHlwZTogU043NjE2NzggJiBUREE5ODAxVAoKU28gYSBUREE5
-ODAxIGlzIHRoZSBkZW1vZHVsYXRvci1QTEwgY2hpcCBvbiB0aGlzIFRDTCB0dW5lci4gIFRoYW5r
-cy4KCgo+ID4gInN0cnVjdCB0dW5lcl9wYXJhbXMgdHVuZXJfdGNsXzIwMDJuX3BhcmFtc1tdIiBp
-bgo+ID4gdjRsLWR2Yi9saW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdHVuZXItdHlw
-ZXMuYwo+ID4gZG9lc24ndCBoYXZlICIuaGFzX3RkYTk4ODcgPSAxIiBzZXQuCj4gCj4gSSBhc3N1
-bWVkIGEgTUs0IHR1bmVyPTU3IG9uIGl0IGxpa2UgaXQgaXMgYWxzbyBvbiBQVlItMTUwIGFuZCBQ
-VlItNTAwLgo+IFRoZXkgYWxzbyBoYXZlIG5vIHJhZGlvLCBidXQgd2l0aG91dCB0ZGE5ODg3LCBp
-bmNsdWRlcyB0ZGE5ODg1IGFuZAo+IHRkYTk4ODYsIHlvdSB3b24ndCBnZXQgYW55dGhpbmcgdXNl
-ZnVsIG91dCBvZiB0aGVtLgoKTXkgUFZSLTE1ME1DRSBoYXMgYW4gTEcgVEFQRSBIMDAxRiAodHlw
-ZSA0NykuICBUaGUgdGFwZSBpcyBhIHJlYnJhbmRlZApQaGlsbGlwcyBGTTEyMzYgTUszICh0eXBl
-IDQzKSBhbmQgaXQgZG9lcyBoYXZlIGEgdGRhOTg4eC4gIEkgZmlndXJlZCBvdXQKYSBmZXcgeWVh
-cnMgYWdvIGhvdyB0byBnZXQgdGhlIEZNIHJhZGlvIHdvcmtpbmcgcmlnaHQgZm9yIHRoZSBUQVBF
-CkgwMDFGLCBhbmQgSGFucycgaGVscGVkIG1lIGZpZ3VyZSB0aGF0IHRoZSBUQVBFIEgwMDFGIHdh
-cyBhIGNsb25lIG9mIHRoZQpGTTEyMzYgTUszLgoKCgo+IFRoZW4gZXhhY3RseSB0aGUgYWJvdmUg
-bWlzc2luZyAuaGFzX3RkYTk4ODcgPSAxIGZvciBfdGhhdCBvbmVfIGNvdWxkCj4gY2F1c2Ugc3Vj
-aCBwcm9ibGVtcy4KPiAKCj4gSXQganVzdCBjYW1lIGluIG1pbmQgaXQgbWlnaHQgYmUgcmVsYXRl
-ZCB0byB0aGUgbWlzc2luZyB0ZGE5ODg3IGZvcgo+IHR1bmVyPTU3LCBidXQgeW91IG9idmlvdXNs
-eSBkZWFsIHdpdGggb3RoZXIgdHVuZXJzLgoKTm93IEkgdW5kZXJzdGFuZCB5b3Ugb3JpZ2luYWwg
-bWVhbmluZy4gT0suCgoKPiBIb3dldmVyLCB0aGUgbWlzc2luZyB0ZGE5ODg3IGZvciB0aGUgRlEx
-MjM2QSBzZWVtcyB0byBiZSBhdCBsZWFzdCBhCj4gaW5jb25zaXN0ZW5jeSBpbiB0dW5lci10eXBl
-cy5jIGZvciBtZS4KCkZvciB0aGUgRlExMjM2QSBNSzQgSXQgbG9va3MgaW5jb25zaXN0ZW50IHRv
-IG1lIHRvby4gIFlvdSdyZSBwcm9iYWJseQpyaWdodC4gIEkgZG9uJ3QgaGF2ZSBhIFBWUiBjYXJk
-IHdpdGggdGhhdCB0dW5lciB0byB0ZXN0IHRob3VnaCwgYW5kIEkKY2FuJ3QgZmluZCBhIGRhdGFz
-aGVldCBmb3IgdGhlIEZRMTIzNkEgTUs0IHRvIHZlcmlmeSB5b3VyIG9ic2VydmF0aW9uLiAKCgpS
-ZWdhcmRzLApBbmR5Cgo+ID5Gcm9tIGxvZ3Mgb2YgdGhlIFBWUi01MDAgYW5kIFBWUi0xNTAgb25l
-IGNhbiBzZWUgdGhleSBuZWVkIHRoZSB0ZGE5ODg3Cj4gbW9kdWxlIGFuZCBpdCBpcyBhdCAweDQz
-LzB4ODYuCj4gCj4gQ2hlZXJzLAo+IEhlcm1hbm4KCgoKX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJA
-bGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGlu
-Zm8vbGludXgtZHZi
+Nicolas Will wrote:
+> All,
+> 
+> There is a new firmware file fixing the last cause for i2c errors and
+> disconnects and providing a new, more modular i2c request formatting.
+> 
+
+this is not firmware since it does not occur with the "other OS" and it's gone better 
+upgrading 2.6.24->2.6.26.2 but the driver is still buggy:
+
+do lsusb and...
+
+INFO: task khubd:1966 blocked for more than 120 seconds.
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+khubd         D ffff81003dca9bc0     0  1966      2
+ ffff81003dca9bb0 0000000000000046 ffff81003eeb6220 ffff81003f0ea7d0
+ ffff81003eeb6478 ffff81003eeb6478 ffff81003dca9b90 ffffffff80245e8f
+ ffff81003dca9bb0 ffff81003dd33800 ffff81003dca9bc0 0000000000000000
+Call Trace:
+ [<ffffffff80245e8f>] ? kthread_stop+0x7f/0x90
+ [<ffffffffa0099645>] :dvb_core:dvb_unregister_frontend+0xb5/0x100
+ [<ffffffff80246150>] ? autoremove_wake_function+0x0/0x40
+ [<ffffffffa021bf0d>] :dvb_usb:dvb_usb_adapter_frontend_exit+0x1d/0x40
+ [<ffffffffa021b42c>] :dvb_usb:dvb_usb_exit+0x4c/0xe0
+ [<ffffffffa021b505>] :dvb_usb:dvb_usb_device_exit+0x45/0x60
+ [<ffffffffa00f3e47>] :usbcore:usb_unbind_interface+0x47/0x90
+ [<ffffffff804cd57d>] __device_release_driver+0x9d/0xe0
+ [<ffffffff804cd70b>] device_release_driver+0x2b/0x40
+ [<ffffffff804cc9e5>] bus_remove_device+0xb5/0xf0
+ [<ffffffff804cb133>] device_del+0x123/0x190
+ [<ffffffffa00f1054>] :usbcore:usb_disable_device+0x94/0x120
+ [<ffffffffa00ec233>] :usbcore:usb_disconnect+0xb3/0x140
+ [<ffffffffa00ecf2e>] :usbcore:hub_thread+0x37e/0x1210
+ [<ffffffff80209ccf>] ? __switch_to+0x1f/0x3b0
+ [<ffffffff80246150>] ? autoremove_wake_function+0x0/0x40
+ [<ffffffffa00ecbb0>] ? :usbcore:hub_thread+0x0/0x1210
+ [<ffffffff80245bd9>] kthread+0x49/0x80
+ [<ffffffff8020c1e8>] child_rip+0xa/0x12
+ [<ffffffff80245b90>] ? kthread+0x0/0x80
+ [<ffffffff8020c1de>] ? child_rip+0x0/0x12
+
+y
+tom
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
