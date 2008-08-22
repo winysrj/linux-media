@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt1.poste.it ([62.241.4.164])
+Received: from wf-out-1314.google.com ([209.85.200.175])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nicola.sabbi@poste.it>) id 1KXsMN-0001cR-PJ
-	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 08:49:00 +0200
-Received: from [192.168.1.116] (79.36.57.111) by relay-pt1.poste.it (7.3.122)
-	(authenticated as nicola.sabbi@poste.it)
-	id 48B347C8000010EE for linux-dvb@linuxtv.org;
-	Tue, 26 Aug 2008 08:48:55 +0200
-From: Nico Sabbi <nicola.sabbi@poste.it>
+	(envelope-from <lucastim@gmail.com>) id 1KWLrH-0008Ez-O0
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 03:54:36 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so214425wfd.17
+	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 18:54:30 -0700 (PDT)
+Message-ID: <e32e0e5d0808211854l52a11dc6l82d8cea7df5aae63@mail.gmail.com>
+Date: Thu, 21 Aug 2008 18:54:30 -0700
+From: "Tim Lucas" <lucastim@gmail.com>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <20080825190241.GH32022@raven.wolf.lan>
-References: <20080821174512.GC32022@raven.wolf.lan>
-	<52113.203.82.187.131.1219367267.squirrel@webmail.planb.net.au>
-	<20080822144448.GF32022@raven.wolf.lan>
-	<F4917AA8-6EA3-40A7-855B-AEB774B26C58@recoil.org>
-	<20080825190241.GH32022@raven.wolf.lan>
-Date: Tue, 26 Aug 2008 08:49:08 +0200
-Message-Id: <1219733348.3846.8.camel@suse.site>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
-Reply-To: nicola.sabbi@poste.it
+MIME-Version: 1.0
+Subject: [linux-dvb] Request: Analog support for DViCO FusionHDTV7 Dual
+	Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,60 +19,53 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0914005744=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SWwgZ2lvcm5vIGx1biwgMjUvMDgvMjAwOCBhbGxlIDIxLjAyICswMjAwLCBKb3NlZiBXb2xmIGhh
-IHNjcml0dG86Cj4gT24gRnJpLCBBdWcgMjIsIDIwMDggYXQgMDQ6NDQ6NTZQTSArMDEwMCwgTmlj
-ayBMdWRsYW0gd3JvdGU6Cj4gPiBPbiAyMiBBdWcgMjAwOCwgYXQgMTU6NDQsIEpvc2VmIFdvbGYg
-d3JvdGU6Cj4gPj5PbiBGcmksIEF1ZyAyMiwgMjAwOCBhdCAxMTowNzo0N0FNICsxMDAwLCBLZXZp
-biBTaGVlaGFuIHdyb3RlOgo+ID4+Cj4gPj4+QmFycnkgd2FzIHJpZ2h0IG9uIHRoZSBtb25leSB3
-aXRoIHRoZSB0czJwcyBzdWdnZXN0aW9uIGJlbG93LiAgSXQncyAgCj4gPj4+cGFydCBvZiB0aGUg
-bGliZHZiIHBhY2thZ2UuICBZb3UgZG9uJ3QgaGF2ZSB0byB1c2UgdGhlIGR2Yi1tcGVndG9vbHMg
-IAo+ID4+PmFwcCwgeW91IGNhbiBqdXN0IHVzZSB0aGUgbGliIGluIHlvdXJzIC0gbm8gcGlwZXMs
-IGV0Yy4KCgpkdmItbXBlZ3Rvb2xzLCBsaWtlIG1wbGV4LCBkZW11eGVzIHRoZSBUUyBhbmQgbG9z
-ZXMgYWxsIGluZm9ybWF0aW9ucwphYm91dCB0aW1lc3RhbXBzID0+IHZlcnkgbGlrZWx5IHRoZSBv
-dXRwdXQgd2lsbCBiZSBvdXQgb2Ygc3luYy4KCj4gCj4gSSBoYXZlIG5vdyBjaGFuZ2VkIG15IGFw
-cGxpY2F0aW9uIHRvIGNyZWF0ZSBleGFjdGx5IHdoYXQgdHMycHMgY3JlYXRlcy4KPiBOb3cgSSBu
-b3RpY2UgdGhhdCBuZWl0aGVyIG1wbGF5ZXIgbm9yIHZsYyBwbGF5IHRoZSBzdHJlYW0gY3JlYXRl
-ZCBieQo+IHRzMnBzLgoKCkkndiBlc2VlbiB0czJwcyBtYWtlIGEgcmVhbCBtZXNzIGluIGNvdW50
-bGVzcyBvY2Nhc2lvbnMsIGVzcGVjaWFsbHkgCndpdGggYnJva2VuIFRTcy4KCj4gCj4gVmxjIGdp
-dmVzIHRvbnMgb2YgZXJyb3IgbWVzc2FnZXMgbGlrZSB0aGlzOgo+IAo+ICAgWzAwMDAwMzY1XSBt
-YWluIHZpZGVvIG91dHB1dCB3YXJuaW5nOiB2b3V0IHdhcm5pbmc6IGVhcmx5IHBpY3R1cmUgc2tp
-cHBlZCAoNDc3MjIyNzk0ODMpCj4gICBbMDAwMDAzNTldIG1haW4gYXVkaW8gb3V0cHV0IHdhcm5p
-bmc6IHJlY2VpdmVkIGJ1ZmZlciBpbiB0aGUgZnV0dXJlICg0NzcyMjE3OTU5NykKPiAKPiBubyBh
-dWRpbyBhbmQgYmxhY2sgdmlkZW8gOi0oCj4gCj4gSWYgSSByZW1vdmUgdGhlIFBTIHBhY2sgaGVh
-ZGVyIGFuZCB0aGUgUFMgc3lzdGVtIGhlYWRlciAoc3RyZWFtLWlkIDB4YmEKPiBhbmQgMHhiYikg
-dGhlbiBib3RoIHBsYXkgdGhlIHN0cmVhbSwgYnV0IG5vIFNUQiBwbGF5cyBpdCA6LSgKCgrvu79Z
-b3UgbXVzdCBoYXZlIGNvcnJ1cHRlZCBzb21lIGhlYWRlciBpbiB5b3VyIGFwcGxpY2F0aW9uIDop
-Cgo+IAo+IE5leHQsIEkgdHJpZWQ6Cj4gCj4gPiBUaGUgY29tbWFuZCBJIHdyYXBwZWQgaW4gYSBw
-b3BlbiBjYWxsIGZyb20gYSBzY3JpcHQgd2FzOgo+ID4gCj4gPiAJL29wdC9sb2NhbC9iaW4vcmVw
-bGV4IC1vIC9kZXYvc3Rkb3V0IC1pIFRTIC12ICVzIC1hICVzIC10IE1QRUcyIAo+ID4gCS9kZXYv
-IHN0ZGluCj4gCj4gV2l0aCB0aGlzIGNvbW1hbmQsIEkgZ2V0IGhvcHBpbmcgdmlkZW8gd2l0aCBW
-TEMuCgoK77u/cmVwbGV4IG5ldmVyIHdvcmtlZCB3aXRoIGF0IGxlYXN0IDYwJSBvZiB0aGUgVFNz
-IEkgZmVkIGl0IHdpdGgsCnRoYXQgbGVmdCBtZSBubyBvdGhlciBjaG9pc2UgdGhhbiB0byBmaXgg
-bWVuY29kZXIncyBtdXhlciwgYXMgbG9uZwphcyBzb21ldGhpbmcgYXMgaG9ycmlibHkgY3JpcHBs
-ZWQgYW5kIGJyb2tlbiBsaWtlIG1lbmNvZGVyIGNhbiBiZQpmaXhlZCAodGhhdCBtYXkgbm90IHdv
-cmsgaWYgeW91IGdpdmUgaXQgMTAwJSBjb3JyZWN0IHRpbWVzdGFtcHMKZm9yIGV2ZXJ5IHNpbmds
-ZSBmcmFtZSkKCj4gCj4gSXQgc2VlbXMgdG8gYmUgYSBtZXNzLiAgTm9uZSBvZiB0aGUgcHJvZ3Jh
-bXMgc2VlbSB0byBwcm9kdWNlIHByb3Blcgo+IHN0cmVhbXMuICBPbmx5IG1lbmNvZGVyIHNlZW1z
-IHRvIGdlbmVyYXRlIGEgcHJvcGVyIHN0cmVhbS4gIEJ1dCBBRkFJQ1MsCj4gbWVuY29kZXIgY29t
-cGxldGVseSBkZWNvZGVzIHRoZSBzdHJlYW0gYW5kIHJlLWVuY29kZXMgaXQgYWdhaW4sIGVhdGlu
-Zwo+IHVwIGFsbCB0aGUgQ1BVLgoKaXQgZG9lc24ndCBkZWNvZGU6IGl0IGp1c3QgZGVtdXhlcywg
-YWx0aG91Z2ggcGFyc2luZyBhdWRpbyBhbmQgdmlkZW8KZnJhbWUgaGVhZGVycyBpcyBwcm9iYWJs
-eSBlYXRpbmcgdXAgYSBnb29kICUgb2YgeW91ciBjcHUuCklmIHlvdSB3YW50IHRvIG1ha2UgaXQg
-bGlnaHRlciBlaXRoZXIKLSB1c2UgZmZtcGVnLCBpdCBjYW4gYmUgc3VyZWx5IHVzZWQgdG8gZ2Vu
-ZXJhdGUgbWFueSBQUyBmcm9tIGEgc2luZ2xlIFRTCiAgYWx0aG91Z2ggaXRzIGNvbW1hbmQgbGlu
-ZSBpcyByZWFsbHkgY2hhbGxlbmdpbmcKLSB1c2UgLWRlbXV4ZXIgbGF2ZiBhbmQgZml4IGxpYm1w
-ZGVtdXgvbXV4ZXJfbXBlZy5jIHNvIHRoYXQgZnJhbWVzIGFyZQogIG5vdCBhbmFseXplZCB3aXRo
-aW4gdGhlIG11eGVyIGl0c2VsZiwgYnV0IGp1c3QgY29waWVkIHZlcmJhdGltIGluCiAgdGVoIGNv
-cnJlc3BvbmRpbmcgbXBlZ19mcmFtZV90W10gYXJyYXkKCgo+IAo+IEFueSBtb3JlIGlkZWFzIGhv
-dyB0byBkbyB0aGUgY29udmVyc2lvbj8KPiAKPiBCVFc6IENhbiBhbnlib2R5IHJlY29tbWVuZCBh
-IGdvb2QgYm9vayBvbiB0aGUgdG9waWM/Cj4gCgpub25lIHRoYXQgSSBrbm93IG9mLCBidXQgbXV4
-aW5nIG1wZWctcHMgaXMgbW9yZSB0cml2aWFsIHRoYW4gaXQgbG9va3MKbGlrZSB3aGVuIHJlYWRp
-bmcgdGhlIHNwZWNzCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDov
-L3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+--===============0914005744==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_64482_13467927.1219370070719"
+
+------=_Part_64482_13467927.1219370070719
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+I have been informed that the current linux drivers for this card and other
+cx23885 cards are digital only.
+I was wondering whether anyone was working on analog support for this type
+of card.  Although I am a novice, I would be willing to put some effort into
+making this work since I am sure a lot of people would benefit.  If I knew
+where to start, i.e. a similar driver with analog support, I would be
+willing to try to put the correct details in.  Any help would be
+appreciated.  I can share more info about the card and/or my system if
+someone is willing to work with me on this one.  Thank you.
+
+--Tim
+
+------=_Part_64482_13467927.1219370070719
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr"><div>I have been informed that the current linux drivers for this card and other cx23885 cards are digital only. &nbsp; &nbsp;</div>I was wondering whether anyone was working on analog support for this type of card. &nbsp;Although I am a novice, I would be willing to put some effort into making this work since I am sure a lot of people would benefit. &nbsp;If I knew where to start, i.e. a similar driver with analog support, I would be willing to try to put the correct details in. &nbsp;Any help would be appreciated. &nbsp;I can share more info about the card and/or my system if someone is willing to work with me on this one. &nbsp;Thank you.<br clear="all">
+
+<br><div>--Tim<br></div></div>
+
+------=_Part_64482_13467927.1219370070719--
+
+
+--===============0914005744==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0914005744==--
