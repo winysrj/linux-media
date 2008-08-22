@@ -1,21 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7OE71J8031551
-	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 10:07:01 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7OE6l6Y010342
-	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 10:06:47 -0400
-Date: Sun, 24 Aug 2008 11:00:45 -0300 (BRT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Henne <henne@nachtwindheim.de>
-In-Reply-To: <48AF1E83.4000102@nachtwindheim.de>
-Message-ID: <Pine.LNX.4.64.0808241045530.2897@areia>
-References: <48AF1E83.4000102@nachtwindheim.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
-	mchehab@infradead.org
-Subject: Re: [PATCH] V4L: fix retval in vivi driver for more than one device
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7MKXXVw012562
+	for <video4linux-list@redhat.com>; Fri, 22 Aug 2008 16:33:33 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7MKXVtD022621
+	for <video4linux-list@redhat.com>; Fri, 22 Aug 2008 16:33:31 -0400
+Date: Fri, 22 Aug 2008 22:32:47 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Andy Walls <awalls@radix.net>
+Message-ID: <20080822203247.GA928@daniel.bse>
+References: <200808181918.05975.jdelvare@suse.de>
+	<200808202334.20872.jdelvare@suse.de>
+	<Pine.LNX.4.58.0808210107110.23833@shell4.speakeasy.net>
+	<200808211114.27290.jdelvare@suse.de>
+	<Pine.LNX.4.58.0808211445230.23833@shell4.speakeasy.net>
+	<1219407994.2855.24.camel@morgan.walls.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1219407994.2855.24.camel@morgan.walls.org>
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
+	Trent Piepho <xyzzy@speakeasy.org>, Jean Delvare <jdelvare@suse.de>
+Subject: Re: [v4l-dvb-maintainer] bttv driver errors
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,73 +33,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This patch is not 100% OK, for some reasons:
+On Fri, Aug 22, 2008 at 08:26:34AM -0400, Andy Walls wrote:
+> What are the benefits of using the moving average filters before
+> decimation?
 
-1) since ret won't be initialized anymore, it will generate compilation
-    warnings;
+The benefit is that the upper spectrum is attenuated before it is
+mirrored into the lower spectrum by the decimation. After the decimation
+you have no way of removing those artifacts in a mathematically correct
+way.
 
-2) with the current code, if you ask to allocate, let's say, 3 virtual
-    drivers, and the second or the third fails, you'll still have one
-    allocated. With your change, you'll de-allocate even the ones that
-    succeeded. IMO, the better is to allow using the ones that succeeded.
+There are better FIR filters than 0.5 * x(0) + 0.5 * x(1), which will
+avoid aliasing even more and preserve more of the lower spectrum.
+This is just the simplest.
 
-That's said, I can see other issues on the current vivi.c code:
+Btw., enabling the chroma comb filter in bttv will result in alternating
+0.5*x(-2)+0.5*x(0) and 0.5*x(-1)+0.5*x(1) for frame captures and
+0.5*x(-1)+0.5*x(0) for field captures. I have once tried to modify
+bttv_risc_planar to be closer to MPEG chroma subsampling when the comb
+filter is enabled, because I was annoyed by the gray first line.
 
-1) what happens if someone uses n_dev=0? It will return a wrong error
-    code.
+On Thu, Aug 21, 2008 at 01:50:05AM -0700, Trent Piepho wrote:
+> A better question would be how does the bt878 do horizontal and vertical
+> scaling?  If you look at the description of ultralock and the number of
+> taps avaiable for the vertical scaling filters, the chip must have some
+> kind of multi-line buffer before the scaler.  But this buffer, and the
+> delay it must introduce, is never mentioned in the datasheet.
 
-2) there are still some cases where the driver allocates less devices than
-    requested, but it will fail to register, and all stuff will be
-    de-allocated;
+The buffer is "mentioned" in figure 2-4 of the Fusion 878A datasheet
+available on the Conexant website. Its size can be derived from the
+restrictions placed on the luma filters. It should be 768 luma samples.
+The decimation then has another full line buffer for luma and chroma
+to perform the linear luma interpolation and the chroma comb filter.
 
-3) what if n_dev is a big number? Currently, i think videodev will allow
-    you to register up to 32 video devices of this type, even if you have
-    memory for more, due to some limits inside videodev, and due to the
-    number of minors allocated for V4L.  IMO, the driver should allocate up
-    to the maximum allowed devices by videodev, and let users use they.
-
-Anyway, thanks for your patch. For sure we need to do some fixes here. 
-I'll try to address all those stuff into a patch.
-
-Cheers,
-Mauro.
-
-
-On Fri, 22 Aug 2008, Henne wrote:
-
-> From: Henrik Kretzschmar <henne@nachtwindheim.de>
-> Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
->
-> The variable ret should be set for each device to -ENOMEM, not only the 
-> first.
->
-> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-> index 3518af0..d739b59 100644
-> --- a/drivers/media/video/vivi.c
-> +++ b/drivers/media/video/vivi.c
-> @@ -1106,11 +1106,12 @@ static struct video_device vivi_template = {
-> 
-> static int __init vivi_init(void)
-> {
-> -	int ret = -ENOMEM, i;
-> +	int ret, i;
-> 	 struct vivi_dev *dev;
-> 	 struct video_device *vfd;
->
-> 	for (i = 0; i < n_devs; i++) {
-> +		ret = -ENOMEM;
-> 		 dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-> 		 if (NULL == dev)
-> 			 break;
->
->
->
-
--- 
-Cheers,
-Mauro Carvalho Chehab
-http://linuxtv.org
-mchehab@infradead.org
+  Daniel
 
 --
 video4linux-list mailing list
