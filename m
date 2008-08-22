@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.239])
+Received: from emh02.mail.saunalahti.fi ([62.142.5.108])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KW8x6-0002Ij-0M
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 14:07:44 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so977181rvf.41
-	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 05:07:37 -0700 (PDT)
-Message-ID: <d9def9db0808210507pa76088cx28a955b1840e2147@mail.gmail.com>
-Date: Thu, 21 Aug 2008 14:07:37 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Alex Speed Kjeldsen" <alex.kjeldsen@gmail.com>
-In-Reply-To: <20080821124658.549ced6c@ask-gnewsense>
+	(envelope-from <marko.ristola@kolumbus.fi>) id 1KWcLi-0001Ix-2j
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 21:31:08 +0200
+Message-ID: <48AF13F1.8040202@kolumbus.fi>
+Date: Fri, 22 Aug 2008 22:30:57 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20080821124658.549ced6c@ask-gnewsense>
+To: Ola Ekedahl <ola.ekedahl@fra.se>
+References: <48ABB045.5050301@fra.se>
+	<20080820082010.GA5582@gmail.com>	<48AD16A1.5040703@fra.se>
+	<48AE500A.1060204@fra.se>
+In-Reply-To: <48AE500A.1060204@fra.se>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-T USB Device which doesn't require non-free
-	software
+Subject: Re: [linux-dvb] Multiproto, multiproto_plus & mantis
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,27 +27,105 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 21, 2008 at 12:46 PM, Alex Speed Kjeldsen
-<alex.kjeldsen@gmail.com> wrote:
-> I run the fully free OS gNewSense, which basically is Ubuntu 8.04 with all the non-free stuff removed.
+
+Hi,
+
+Here are two ways to accomplish the compilation problem,
+the second one might be the easier one for you.
+
+
+One commonly working way to fix odd compilation problems:
+1. Check out from linuxtv.org v4l-dvb-linuxtv (the main branch).
+2. Check from there the file v4l-dvb-linuxtv/linux/drivers/media/???/s400.c
+
+There you will probably find the fix for the s400.c problem.
+Then you just copy that fix into multiproto s400.c version and compile 
+the multiproto version again.
+
+So the wisdom is, that usually v4l-dvb-linuxtv will gain all 
+compatibility fixes for many kernels.
+
+
+Another way to fix compilation problem is to try to disable s400.c 
+altogether:
+Add into v4l/versions.txt s400.c driver's definition under [2.6.99] and 
+remove it from other places in versions.txt.
+
+Idea is that you inform compilation system that s400 doesn't work yet in 
+your kernel, but instead it will work under 2.6.99.
+Kernel compilation system desides to skip the compilation of the broken 
+driver and because you don't need
+s400.c, it doesn't matter for you.
+
+Happy hunting.
+
+Regards,
+Marko Ristola
+
+Ola Ekedahl kirjoitti:
+> Seriously, no one knows what might be wrong? Is it the kernel or might 
+> it be the compilation software?
 >
-> Could anyone recommend a DVB-T (or hybrid DVB-T/Analog) USB device which would work in this environment without requiring non-free drivers or firmware?
+>   
+>> Gregoire Favre skrev:
+>>   
+>>     
+>>> On Wed, Aug 20, 2008 at 07:48:53AM +0200, Ola Ekedahl wrote:
+>>>   
+>>>     
+>>>       
+>>>> Hi,
+>>>>
+>>>> I have been trying to compile the three different trees in Fedora 7, but 
+>>>> all fails with alot of warnings and errors. What are the recomended 
+>>>> specification for the kernel, wont it compile with the kernel in Fedora 7?
+>>>>     
+>>>>       
+>>>>         
+>>> AFAIK the only actively maintened tree is :
+>>> http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
+>>>
+>>> Wanny try this one ?
+>>>   
+>>>     
+>>>       
+>> I tried to compile the driver, but it failed too. I got the following 
+>> error after quite some time:
+>>
+>>   LD [M]  /home/kurt/Desktop/liplianindvb/v4l/sms1xxx.o
+>>   CC [M]  /home/kurt/Desktop/liplianindvb/v4l/s400.o
+>> /home/kurt/Desktop/liplianindvb/v4l/s400.c: In function 's400_ir_init':
+>> /home/kurt/Desktop/liplianindvb/v4l/s400.c:508: error: 'struct 
+>> input_dev' has no member named 'dev'
+>> make[3]: *** [/home/kurt/Desktop/liplianindvb/v4l/s400.o] Error 1
+>> make[2]: *** [_module_/home/kurt/Desktop/liplianindvb/v4l] Error 2
+>> make[2]: Leaving directory `/usr/src/kernels/2.6.21-1.3194.fc7-i686'
+>> make[1]: *** [default] Error 2
+>> make[1]: Leaving directory `/home/kurt/Desktop/liplianindvb/v4l'
+>> make: *** [all] Error 2
+>>
+>>
+>>
+>> Anyone have any idea? Is it because of the dist Im running?
+>>
+>> Best regards
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>>   
+>>     
 >
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>   
 
-I am not aware that there are any devices available which support as
-many videostandards as those devices which use firmware.
-As for em28xx based devices there have been a couple of
-em2870-zl10353-mt2060 based devices around.
-Whatever devices you'll use with xc3028, xc3028L, xc4000, xc5000
-they'll require a firmware esp. because those silicon tuners require
-special firmware/codes for the different modes. Same counts for many
-Micronas designs.
-
-I can recommend the Terratec Hybrid XS FM which is fully supported,
-you can get them for a good price on Ebay what I saw yesterday when
-looking at all their prices.
-
-Markus
 
 _______________________________________________
 linux-dvb mailing list
