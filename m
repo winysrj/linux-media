@@ -1,23 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]
-	helo=mail.wilsonet.com) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jarod@wilsonet.com>) id 1KYiBa-0006ja-QJ
-	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 16:09:20 +0200
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Paul Gardiner <paul@laser-point.co.uk>
-In-Reply-To: <48B6B084.5070504@laser-point.co.uk>
-References: <48B5D5CF.3060401@glidos.net> <48B6083B.5000803@linuxtv.org>
-	<48B64690.4060205@glidos.net>
-	<37219a840808280556q2ee85291o7ad1afb75a7ed6f6@mail.gmail.com>
-	<48B6ADB3.5010003@glidos.net>
-	<1219932031.5654.3.camel@xavier.wilsonet.com>
-	<48B6B084.5070504@laser-point.co.uk>
-Date: Thu, 28 Aug 2008 10:09:10 -0400
-Message-Id: <1219932550.5654.6.camel@xavier.wilsonet.com>
-Mime-Version: 1.0
+Message-ID: <48AEF2F8.3080402@ecst.csuchico.edu>
+Date: Fri, 22 Aug 2008 10:10:16 -0700
+From: Barry Quiel <quielb@ecst.csuchico.edu>
+MIME-Version: 1.0
+To: Steven Toth <stoth@linuxtv.org>
+References: <6664ae760808181614g47d65c7atf71d564d815934a8@mail.gmail.com>	<48AAF9FB.6010108@ecst.csuchico.edu>	<6664ae760808191345y3a0c5bd8odd4f5f7ca969b3b@mail.gmail.com>	<48AB3507.8030302@linuxtv.org>
+	<48AB9098.1090700@ecst.csuchico.edu>	<48AB94D9.8020304@linuxtv.org>
+	<48AB9E2C.50502@ecst.csuchico.edu>
+In-Reply-To: <48AB9E2C.50502@ecst.csuchico.edu>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Looks like there's a new unsupported WinTV Nova T
- 500 out there
+Subject: Re: [linux-dvb] Hauppauge HVR-1800 Analog issues
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,30 +23,63 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 2008-08-28 at 15:04 +0100, Paul Gardiner wrote:
-> Jarod Wilson wrote:
-> >>> It might be no change at all.  I'd look it up in the code, but I don't
-> >>> even know what the usb ID's of your device are, offhand -- what are
-> >>> they?  (do "lsusb -n | grep 2040" )
-> >> I get no output from that.
-> > 
-> > Casual observer butting in here... Mike, why would lsusb output be at
-> > all relevant if its a PCI card? :)
+Barry Quiel wrote:
+> Steven Toth wrote:
+>> Barry Quiel wrote:
+>>> Steven Toth wrote:
+>>>> Jay Modi wrote:
+>>>>> On Tue, Aug 19, 2008 at 12:51 PM, Barry Quiel 
+>>>>> <quielb@ecst.csuchico.edu <mailto:quielb@ecst.csuchico.edu>> wrote:
+>>>>>
+>>>>>
+>>>>>     I've got the same problem.  I'm running on a fedora 9 box, so at
+>>>>>     least that tells you its not OS related.
+>>>>>
+>>>>>     I posted this problem on the list a while back and didn't get any
+>>>>>     response.  Here is my post out of the archives:
+>>>>>
+>>>>>     http://linuxtv.org/pipermail/linux-dvb/2008-July/027367.html
+>>>>>     http://linuxtv.org/pipermail/linux-dvb/2008-August/027670.html
+>>>>>
+>>>>>     It makes me feel a little bit better that its not just me.
+>>>>>
+>>>>>
+>>>>>
+>>>>> I am glad to know someone else has this error too.
+>>>>>
+>>>>> For the devs, is there anything Barry and I can do to help 
+>>>>> diagnose/test/fix this problem?
+>>>> # make unload
+>>>> # modprobe cx25840 debug=1
+>>>> # modprobe cx23885 debug=1
+>>>>
+>>>> Then cat /dev/video1 >test.mpg
+>>>>
+>>>> Better?
+>>>>
+>>>> - Steve
+>>>>
+>>> I pulled the PVR-500 and rebooted.  Modprob and all that, still no 
+>>> video just static.
+>> Start tvtime (/dev/video0) then tune a channel, ensure video is 
+>> working correctly.
+>>
+>> Now try the cat /dev/video1 >test.mpg again.
+>>
+>> - Steve
 > 
-> I think Mike's right on this. The card is PCI, but it provides a
-> USB hub to then support the two tuner devices, as far as I know.
+> Same results.  I get static from both /dev/video devices.  I don't get 
+> the error when using the /dev/video0 device, if that's helpful at all
+> 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-Ah, so it is!
-
-http://www.mythtv.org/wiki/index.php/Hauppauge_WinTV_Nova-T_500_PCI
-
-Never knew such a beast existed. I'll shut up now. :)
+Is there anything I else I can do to help the process?
 
 
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
 
 
 _______________________________________________
