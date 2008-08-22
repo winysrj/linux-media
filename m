@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Mon, 11 Aug 2008 09:40:31 +1000
-From: Anton Blanchard <anton@samba.org>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Message-ID: <20080810234031.GB8402@kryten>
-References: <20080804131051.GA7241@kryten>
-	<37219a840808040935o3cf613bdvd644bb0e592c8430@mail.gmail.com>
-	<20080809041847.GA5045@kryten> <489F2B71.4060607@linuxtv.org>
+Received: from [194.250.18.140] (helo=tv-numeric.com)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1KWRWu-0002Mq-KN
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 09:57:56 +0200
+From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
+To: "'Josef Wolf'" <jw@raven.inka.de>,
+	<linux-dvb@linuxtv.org>
+Date: Fri, 22 Aug 2008 09:57:07 +0200
+Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAgguJmjEUAk6GyhTPSI7ffwEAAAAA@tv-numeric.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <489F2B71.4060607@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] DViCO FusionHDTV DVB-T Dual Digital 4 (rev
-	2)
+In-Reply-To: <20080821191758.GD32022@raven.wolf.lan>
+Subject: [linux-dvb] RE :  How to convert MPEG-TS to MPEG-PS on the fly?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,26 +25,52 @@ Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 
-Hi Mike,
+On Wed, Aug 20, 2008 at 11:10:06PM +0200, Josef Wolf wrote:
 
-> I've applied your patch to my cxusb tree, with slight modifications. 
-> Please test the tree and confirm proper operation before I request a
-> merge into the master branch.
+>>   jw@dvb1:~$ dvbsnoop -s pes -if zdf.test|grep Stream_id|head -40
+>>   Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2 video stream]
+>>   Stream_id: 0 (0x00)  [= picture_start_code]
+>>   Stream_id: 181 (0xb5)  [= extension_start_code]
+>>   Stream_id: 1 (0x01)  [= slice_start_code]
+>>   Stream_id: 2 (0x02)  [= slice_start_code]
+>>   [ consecutive lines deleted ]
+>>   Stream_id: 34 (0x22)  [= slice_start_code]
+>>   Stream_id: 35 (0x23)  [= slice_start_code]
+>>   [ here the list of stream ids start over again and repeats ]
 >
-> http://linuxtv.org/hg/~mkrufky/cxusb
+> Table 2-18 in iso-13818-1 don't list any stream_id's below 0xBC.
+> Anybody knows what those stream_id's 0x00..0x23 and 0xB5 are for
+> and whether they could be the reason for the artefacts?
 
-I just pulled and built this tree and it tested out OK.
+They are defined ISO-13818-2 (MPEG-2 video). They are "start codes"
+for PES payload elements. Stream id's (in PES headers, not
+payloads) are a subset of start codes and are named "system start
+codes". You won't find other start codes in PES headers, only in
+PES payloads.
 
-> Perhaps we could put all of the dib7070p common setup into a dib7070p
-> module, to centralize the duplicated code between dib0700 and cxusb. 
-> This could also help to remove the static links described above.
-> 
-> I started playing around with this idea -- If I make any progress, I'll
-> post the tree and ask for testers.
+[Quoted from ISO-13818-2]
 
-Sounds good. Thanks for all your help.
+Table 6-1  Start code values
+name                 start code value (hexadecimal)
+picture_start_code   00
+slice_start_code     01 through AF
+reserved             B0
+reserved             B1
+user_data_start_code B2
+sequence_header_code B3
+sequence_error_code  B4
+extension_start_code B5
+reserved             B6
+sequence_end_code    B7
+group_start_code     B8
+system start codes   B9 through FF
 
-Anton
+NOTE - system start codes are defined in Part 1 of this specification
+
+[End quote]
+
+-Thierry
+
 
 _______________________________________________
 linux-dvb mailing list
