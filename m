@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n73.bullet.mail.sp1.yahoo.com ([98.136.44.191])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KYQ3t-00043Y-To
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 20:48:11 +0200
-Date: Wed, 27 Aug 2008 11:47:25 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: linux-dvb@linuxtv.org, goga777@bk.ru, Hans Werner <HWerner4@gmx.de>
-In-Reply-To: <20080827174927.271630@gmx.net>
-MIME-Version: 1.0
-Message-ID: <412393.34790.qm@web46101.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for VDR
-	1.7.0
-Reply-To: free_beer_for_all@yahoo.com
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <nico@youplala.net>) id 1KWa2c-0007mw-NY
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 19:03:16 +0200
+Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
+	[84.70.212.195])
+	by mail.youplala.net (Postfix) with ESMTP id E8AC1D880A4
+	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 19:02:20 +0200 (CEST)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <1219423493.29624.9.camel@youkaida>
+References: <1219330331.15825.2.camel@dark>  <48ADF515.6080401@nafik.cz>
+	<1219360304.6770.34.camel@youkaida> <1219423326.29624.8.camel@youkaida>
+	<1219423493.29624.9.camel@youkaida>
+Date: Fri, 22 Aug 2008 18:02:22 +0100
+Message-Id: <1219424542.29624.17.camel@youkaida>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] dib0700 and analog broadcasting
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,86 +30,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Wed, 8/27/08, Hans Werner <HWerner4@gmx.de> wrote:
+On Fri, 2008-08-22 at 17:44 +0100, Nicolas Will wrote:
+> > dmesg, lspci, lsusb, lsmod available here, more can be provided on
+> > demand:
+> > http://www.youplala.net/~will/htpc/Hardware/lsmod.txt
 
-> There still seems to be a problem though. All three FTA HD
-> channels lock, but only Arte HD plays properly in mplayer. 
+http://www.youplala.net/~will/htpc/Hardware/
 
-Which version  of `mplayer'?
+grrr
 
-You probably know, but it bears repeating:  mplayer is a
-moving target, and significant features are added regularly.
-
-Also, some things break from time to time but are usually
-quickly fixed.
-
-I tend to build a new mplayer binary once or twice a month,
-and keep the old ones around.
-
-
-> Mplayer crashes after less than a second for Anixe HD and
-> Astra HD+ :
-> 
-> Playing testfile_anixe.ts.
-> TS file format detected.
-> VIDEO H264(pid=1535) AUDIO A52(pid=1539) NO SUBS (yet)! 
-> PROGRAM N. 132
-> FPS seems to be: 25.000000
-> ==========================================================================
-> Opening video decoder: [ffmpeg] FFmpeg's libavcodec
-> codec family
-> Selected video codec: [ffh264] vfm: ffmpeg (FFmpeg H.264)
-> ==========================================================================
-
-> Starting playback...
-> [h264 @ 0xbc0b40]number of reference frames exceeds max
-> (probably corrupt input), discarding one
-> [h264 @ 0xbc0b40]number of reference frames exceeds max
-> (probably corrupt input), discarding one
-> [h264 @ 0xbc0b40]number of reference frames exceeds max
-> (probably corrupt input), discarding one
-> [h264 @ 0xbc0b40]number of reference frames exceeds max
-> (probably corrupt input), discarding one
-
-This looks like what I see when playing IYV-HD video (with
-a patch), whereas I see something different with BBC-HD on
-mplayer from the start of august:
-
-[h264 @ 0x89e5d50]B picture before any references, skipping
-[h264 @ 0x89e5d50]decode_slice_header error
-[h264 @ 0x89e5d50]no frame!
-Error while decoding frame!
-VDec: vo config request - 1440 x 1080 (preferred colorspace: Planar YV12)
-
-This is normal at the start of the file.
-
->From ITV;
-
-[h264 @ 0x89e5d50]number of reference frames exceeds max (probably corrupt input), discarding one
-[h264 @ 0x89e5d50]number of reference frames exceeds max (probably corrupt input), discarding one
-[h264 @ 0x89e5d50]mmco: unref short failure
-Overriding type of video from 0x10000002 to 0x10000005
-Overriding type of video from 0x10000002 to 0x10000005
-[h264 @ 0x89e5d50]mmco: unref short failure
-Overriding type of video from 0x10000002 to 0x10000005
-VDec: vo config request - 1440 x 1080 (preferred colorspace: Planar YV12)
-
-Then it will play for me with relatively clean video.  The version
-of mplayer about a month earlier did not play this same file with
-clean video.
-
-Perhaps your flavour of `mplayer' doesn't properly support the H.264
-encoding used by the two problem channels?
-
-
-Just a thought, try the latest SVN source of mplayer, if you aren't
-already
-
-
-barry bouwsma
-
-
-      
+Nico
 
 
 _______________________________________________
