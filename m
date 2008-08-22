@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from dd15922.kasserver.com ([85.13.137.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KPI3u-0006Uu-HI
-	for linux-dvb@linuxtv.org; Sat, 02 Aug 2008 16:26:27 +0200
-Message-ID: <48946E85.3070108@linuxtv.org>
-Date: Sat, 02 Aug 2008 10:26:13 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <mldvb@mortal-soul.de>) id 1KWR6a-0000N2-GD
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 09:30:45 +0200
+From: Matthias Dahl <mldvb@mortal-soul.de>
+To: "Peter D." <peter_s_d@fastmail.com.au>
+Date: Fri, 22 Aug 2008 09:30:38 +0200
+References: <200808121443.27020.mldvb@mortal-soul.de>
+	<200808221656.53605.peter_s_d@fastmail.com.au>
+In-Reply-To: <200808221656.53605.peter_s_d@fastmail.com.au>
 MIME-Version: 1.0
-To: Robert Lowery <rglowery@exemail.com.au>
-References: <489398B5.6020409@linuxtv.org>
-	<60933.220.233.174.242.1217662169.squirrel@webmail.exetel.com.au>
-In-Reply-To: <60933.220.233.174.242.1217662169.squirrel@webmail.exetel.com.au>
+Content-Disposition: inline
+Message-Id: <200808220930.39630.mldvb@mortal-soul.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVICO firmware compatibility between v4l-dvb and
- in-tree kernel drivers
+Subject: Re: [linux-dvb] Possible SMP problems with budget_av/saa7134
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,21 +27,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Robert Lowery wrote:
->> I'm glad to hear it -- I need you to provide a sign-off, in order to apply your patch.
->>
->> What do you mean by sign off?  I have fully built your tree and confirmed
->> my patch is in it and works.
-Please see http://linuxtv.org/hg/v4l-dvb/file/tip/README.patches
+Hello Peter.
 
-specifically this section:
+On Friday 22 August 2008 08:56:53 Peter D. wrote:
 
-e) All patches shall have a Developers Certificate of Origin
+> That machine now has a vanilla 2.6.26.3 kernel and the
+> "nosmp" flag.  It has been up for two hours now.  If you
+> don't solve this in the next month, I'll post a follow-up.  ;-)
 
+I am sorry to disappoint you but I guess we are talking about different 
+problems here. This thread is mainly about problems with concurrent access to 
+a ci/cam attached to a budget card. And since you are using dvb-t which afaik 
+is always fta, you are experiencing a totally different problem. Besides my 
+machine never locked up, the cam just stopped decrypting. Otherwise it would 
+really have been quite strange to explain. :-)
 
+Have you run some tests on the machine like a memtest and/or processor test? 
+Faulty memory can causes all sorts of strange problems. If you still suspect 
+the dvb subsystem, compile a kernel without it, test and stress it. If it 
+works reliably for a longer period of time, you've possibly narrowed the list 
+of suspects down. But I bet it's more like a hardware problem... sorry.
 
-Regards,
-Mike
+So long,
+matthias.
 
 _______________________________________________
 linux-dvb mailing list
