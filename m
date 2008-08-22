@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail14.opentransfer.com ([76.162.254.14])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dcoates@systemoverload.net>) id 1KZCzR-0001dd-7H
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 01:02:51 +0200
-Message-ID: <48B87FF5.9020606@systemoverload.net>
-Date: Fri, 29 Aug 2008 18:02:13 -0500
-From: Dustin Coates <dcoates@systemoverload.net>
+Received: from mail.koalatelecom.com.au ([202.126.101.92])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <peter_s_d@fastmail.com.au>) id 1KWQa4-0006cz-Kk
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 08:57:09 +0200
+From: "Peter D." <peter_s_d@fastmail.com.au>
+To: linux-dvb@linuxtv.org
+Date: Fri, 22 Aug 2008 16:56:53 +1000
+References: <200808121443.27020.mldvb@mortal-soul.de>
+In-Reply-To: <200808121443.27020.mldvb@mortal-soul.de>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>
-References: <e32e0e5d0808291401x39932ab6q6086882e81547f84@mail.gmail.com>
-	<37219a840808291514o76704d60t63986edf391e699f@mail.gmail.com>
-In-Reply-To: <37219a840808291514o76704d60t63986edf391e699f@mail.gmail.com>
-Cc: Tim Lucas <lucastim@gmail.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support
-	for	HVR-1500
+Content-Disposition: inline
+Message-Id: <200808221656.53605.peter_s_d@fastmail.com.au>
+Subject: Re: [linux-dvb] Possible SMP problems with budget_av/saa7134
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,138 +25,104 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> 2008/8/29 Tim Lucas <lucastim@gmail.com>:
->   
->> Mijhail Moreyra wrote:
->>     
->>> Steven Toth wrote:
->>>       
->>>> Mijhail Moreyra wrote:
->>>>         
->>>>> Steven Toth wrote:
->>>>>           
->>>>>> Mijhail,
->>>>>>
->>>>>> http://linuxtv.org/hg/~stoth/cx23885-audio
->>>>>>
->>>>>> This tree contains your patch with some minor whitespace cleanups
->>>>>> and fixes for HUNK related merge issues due to the patch wrapping at
->>>>>> 80 cols.
->>>>>>
->>>>>> Please build this tree and retest in your environment to ensure I
->>>>>> did not break anything. Does this tree still work OK for you?
->>>>>>
->>>>>> After this I will apply some other minor cleanups then invite a few
->>>>>> other HVR1500 owners to begin testing.
->>>>>>
->>>>>> Thanks again.
->>>>>>
->>>>>> Regards,
->>>>>>
->>>>>> Steve
->>>>>>             
->>>>> Hi, sorry for the delay.
->>>>>
->>>>> I've tested the http://linuxtv.org/hg/~stoth/cx23885-audio tree and
->>>>> it doesn't work well.
->>>>>
->>>>> You seem to have removed a piece from my patch that avoids some register
->>>>> modification in cx25840-core.c:cx23885_
->>>>>           
->> initialize()
->>     
->>>>> -       cx25840_write(client, 0x2, 0x76);
->>>>> +       if (state->rev != 0x0000) /* FIXME: How to detect the bridge
->>>>> type ??? */
->>>>> +               /* This causes image distortion on a true cx23885
->>>>> board */
->>>>> +               cx25840_write(client, 0x2, 0x76);
->>>>>
->>>>> As the patch says that register write causes a horrible image distortion
->>>>> on my HVR-1500 which has a real cx23885 (not 23887, 23888, etc) board.
->>>>>
->>>>> I don't know if it's really required for any bridge as everything seems
->>>>> to be auto-configured by default, maybe it can be simply dropped.
->>>>>
->>>>> Other than that the cx23885-audio tree works well.
->>>>>
->>>>> WRT the whitespaces, 80 cols, etc; most are also in the sources I took
->>>>> as basis, so I didn't think they were a problem.
->>>>>           
->>>> That's a mistake, I'll add that later tonight, thanks for finding
->>>> this. I must of missed it when I had to tear apart your email because
->>>> of HUNK issues caused by patch line wrapping.
->>>>
->>>> Apart from this, is everything working as you expect?
->>>>
->>>> Regards,
->>>>
->>>> Steve
->>>>
->>>>
->>>>         
->>> OK.
->>>
->>> And sorry about the patch, I didn't know it was going to be broken that
->>> way by being sent by email.
->>>
->>>  >> Other than that the cx23885-audio tree works well.
->>>
->>>       
->>> Great, thanks for confirming.
->>>       
->>> Regards,
->>>       
->>> Steve
->>>       
->> I'll try asking again since my replies in gmail were not including the
->> correct subject heading.
->> Can this code for cx23885 analog support be adapted for the DViCO Fusion
->> HDTV7 Dual Express which also uses the cx23885?  Currently the driver for
->> that card is digital only and I am stuck with a free antiquated large
->> satellite system that is analog only in my apartment. I am willing to put in
->> the work if someone can point me in the right direction.  Thank you,
->>     
+On Tuesday 12 August 2008, Matthias Dahl wrote:
+> Hello all.
 >
-> Tim,
+> I am resending the following message because I didn't get any response so
+> far and in addition I am putting it on cc' to the vdr devel list. I'd
+> look into this issue myself, yet I don't have the necessary time to dive
+> into the DVB tree. So please, if anyone knows how to debug this or has
+> any hint where the problem could be located... I'd be more than grateful
+> to hear about it.
 >
-> The patch currently being tested only enables the analog video path on
-> the HVR1500, but this does lay down the ground work to bring up analog
-> on all of the other cards.
+> By the way, just today after a few minutes of uptime with vdr 1.7.0, I
+> got those (increased the CAM check interval to 5 seconds btw):
 >
-> If the HVR1500 is working properly, then it will be easy to add analog
-> support for the HVR1500Q ... Once that is done, the exact same code
-> (for analog) will be reused for the FusionHDTV7 Dual.
+> vdr: [3280] ERROR: can't write to CI adapter on device 0: Input/output
+> error vdr: [3280] ERROR: can't write to CI adapter on device 0: Invalid
+> argument
 >
-> Keep in mind, however, that you will only get ONE analog video device
-> on the F7 Dual, and that you must not try to use the first DVB adapter
-> while using the analog on that board.  You can always use the 2nd
-> adapter , though.
+> And the CAM stopped working until I restarted vdr. In one forum post
+> someone reported about similar problems with MythTV, so it's becoming
+> more and more likely that this is indeed a problem within the dvb tree.
+> And if it's a SMP problem, it should get fixed because multicore systems
+> will be everywhere pretty soon.
 >
-> Actually, I think it might be a good idea to reverse the registration
-> order of the DVB adapters in the cx23885 driver, but I'll have to talk
-> to Steve about that.
+> Thanks again.
+
+I thought that I had physically damaged a motherboard and caused it 
+to be unreliable.  Your post opens up another possibility.  
+
+I use Kaffeine, a PCI dvb-t card and an X2 processor.  
+
+It might run fine for a week and then lock up three times in an 
+hour.  It was so annoying that I stopped using that machine as 
+my main machine.  I have not noticed anything odd in the logs.  
+
+That machine now has a vanilla 2.6.26.3 kernel and the 
+"nosmp" flag.  It has been up for two hours now.  If you 
+don't solve this in the next month, I'll post a follow-up.  ;-)  
+
+
+> -------------------------------------------------------------------------
+>---------
 >
-> I think it makes more sense to register VIDC first, since VIDC is
-> always going to be a DTV device, where there *might* be an encoder on
-> VIDB.
+> Hello all.
 >
-> VIDB may or may not share a tuner with VIDA, but VIDC will always be
-> independant.
+> After minutes or hours or days of running vdr 1.4.7, I get the following
+> messages in my syslog:
 >
-> What do you think about that, Steve?
+>    dvb_ca adapter 0: CAM tried to send a buffer larger than the ecount
+> size! dvb_ca adapter 0: DVB CAM link initialisation failed :(
 >
-> Regards,
+> When running vdr 1.6.x, the problems are even more frequent/worse and I
+> get those:
 >
-> Mike
+>   dvb_ca adapter 0: CAM tried to send a buffer larger than the link
+> buffer size (192 > 128)!
+>   vdr: [3140] ERROR: can't write to CI adapter on device 0: Input/output
+> error dvb_ca adapter 0: CAM tried to send a buffer larger than the ecount
+> size! dvb_ca adapter 0: DVB CAM link initialisation failed :(
 >
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->   
-Could this help with the HVR-1800 Also?
+> The result is always the same, the CAM stops decrypting and I have to
+> restart vdr. After a lot of searching around, I've learnt that I am not
+> the only one with those problems and they seem to be related to multi
+> core systems. I read that pining vdr down to one CPU core might help...
+> and indeed it did.
+>
+> This cannot be a hardware related issue because...
+>
+>  1) meanwhile I switched from a NForce 590 SLI to a X48 chipset and thus
+> also from an AMD64 X2 5600+ (Winchester) to an Intel Core2Duo E8400
+> (Wolfdale)
+>
+>  2) I swapped my KNC One DVB-C Plus for a new one
+>
+> And the problems persist.
+>
+> I've already written a report to the vdr list which was unfortunately
+> ignored and besides it looks more like a dvb issue itself.
+>
+> I was unable to test the kernel with nosmp or similar (which was reported
+> by others to work just fine) because I need this machine to work on.
+>
+> I've attached detailed informations about my system and I'd be more than
+> happy to help fix this once and for all, so one can savely rely on vdr
+> again.
+>
+> Last but not least, I am using a AlphaCrypt Light module with 3.15
+> firmware.
+>
+> Thanks a lot in advance for every help.
+>
+> Best regards,
+> Matthias Dahl
+
+
+
+-- 
+sig goes here...
+Peter D.
 
 _______________________________________________
 linux-dvb mailing list
