@@ -1,28 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KTdcF-0005Hr-Iu
-	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 16:15:52 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K5L00E9OGXF0B31@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Thu, 14 Aug 2008 10:15:17 -0400 (EDT)
-Date: Thu, 14 Aug 2008 10:15:15 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <8fcafd2c0808132039h4d0ada9xef21a8502e495b9d@mail.gmail.com>
-To: James Lucas <orbus42@gmail.com>
-Message-id: <48A43DF3.6000705@linuxtv.org>
-MIME-version: 1.0
-References: <8fcafd2c0808131723l21031daej9e9ae3eeabfa57f7@mail.gmail.com>
-	<48A37D44.7090808@linuxtv.org>
-	<8fcafd2c0808131806l1fcc7563v121715d937d39a5d@mail.gmail.com>
-	<8fcafd2c0808131840u4fe27c7dq84953bd34d24e0b1@mail.gmail.com>
-	<8fcafd2c0808132039h4d0ada9xef21a8502e495b9d@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Digital tuning failing on Pinnacle 800i with dmesg
- output
+Received: from n2.bullet.mail.re3.yahoo.com ([68.142.237.109])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <rvf16@yahoo.gr>) id 1KWW3V-0005Wf-EB
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 14:47:57 +0200
+Message-ID: <48AEA723.3000304@yahoo.gr>
+Date: Fri, 22 Aug 2008 14:46:43 +0300
+From: rvf16 <rvf16@yahoo.gr>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] CX23885 based AVerMedia AVerTV Hybrid Express Slim tv
+ card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,58 +17,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0975878573=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-James Lucas wrote:
-> On Wed, Aug 13, 2008 at 8:40 PM, James Lucas <orbus42@gmail.com 
-> <mailto:orbus42@gmail.com>> wrote:
-> 
->     Anyway, update.  Installed in the windows machine, and got the
->     drivers installed successfully, but the player software that comes
->     with the card requires windows xp, and the newest version of windows
->     I have is 2000.  I know analog capture is pretty well supported in
->     windows by things like virtualdub and media player classic, but do
->     you know of any apps I can use to test the HD functionality?
-> 
->     While I had the card out, got the following from visual inspection:
-> 
->     Printed on the PCB:
->     pctv 800i rev 1.1
-> 
->     There were two large visible chips on the card:
->     Samsung C649 S5H1409X01-T0  N079X
-> 
->     Conexant Broadcast Decoder  CX23883-39  72013496  0729 Korea
-> 
->     I imagine the tuner chip is hidden under the metal box (shielding?).
-> 
->     James
-> 
-> 
-> 
-> Another update - I spoke too soon.  One of the windows drivers is 
-> refusing to load properly.  I don't know if the signifies a bad card or 
-> just that the driver doesn't work on anything less than xp.  I don't 
-> have any way to test at the moment.  I'm happy to try anything you want 
-> in the way of diagnosis under linux though.
+--===============0975878573==
+Content-Type: text/html; charset=ISO-8859-7
+Content-Transfer-Encoding: 7bit
 
-I don't think anyone else is reporting i2c issues on that board, so it's 
-possible you just have a bad unit.
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Thank you stev391.<br>
+Based upon your info and links regarding wiki pages i've managed to
+create a wiki for this tv card.<br>
+I've done my best to provide everything i have gathered along with
+pictures and links :<br>
+<a href="http://www.linuxtv.org/wiki/index.php/AVerMedia"></a><br>
+<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/wiki/index.php/AVerMedia">http://www.linuxtv.org/wiki/index.php/AVerMedia</a><br>
+<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/wiki/index.php/DVB-T_PCMCIA_Cards#Supported_DVB-T_PCMCIA_Cards_.28PC_Card.2FCardBus.2C_ExpressCard.29">http://www.linuxtv.org/wiki/index.php/DVB-T_PCMCIA_Cards#Supported_DVB-T_PCMCIA_Cards_.28PC_Card.2FCardBus.2C_ExpressCard.29</a><br>
+<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid_Express_Slim_HC81R">http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid_Express_Slim_HC81R</a><br>
+<br>
+If anyone can help me in any way i would be grateful.<br>
+Hope the community shows some interest on this, it is after all a very
+good tuner with multiple features, good signal and very small size.<br>
+<br>
+Thank you again.<br>
+Regards.<br>
+<br>
+</body>
+</html>
 
-It goes without saying, try to bring up the baord on a supported windows 
-platform to verify it... or perhaps take it to a neighbours house a 
-wreck his xp install ;)
 
-If you get to the point of it working in windows but not on Linux then 
-we'll be able to make progress.
 
-- Steve
+--===============0975878573==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0975878573==--
