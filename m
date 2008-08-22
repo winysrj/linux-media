@@ -1,26 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.30])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <steele.brian@gmail.com>) id 1KRGoj-0000bc-In
-	for linux-dvb@linuxtv.org; Fri, 08 Aug 2008 03:30:58 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so349017ywj.41
-	for <linux-dvb@linuxtv.org>; Thu, 07 Aug 2008 18:30:52 -0700 (PDT)
-Message-ID: <5f8558830808071830u4c8d882dse362748942ccec5b@mail.gmail.com>
-Date: Thu, 7 Aug 2008 18:30:52 -0700
-From: "Brian Steele" <steele.brian@gmail.com>
-To: "Andy Walls" <awalls@radix.net>, linux-dvb@linuxtv.org
-In-Reply-To: <1218074868.2689.34.camel@morgan.walls.org>
+Received: from mx-02.fra.se ([194.18.169.36])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <ola.ekedahl@fra.se>) id 1KWPJG-0001QM-S5
+	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 07:35:44 +0200
+Message-ID: <48AE500A.1060204@fra.se>
+Date: Fri, 22 Aug 2008 07:35:06 +0200
+From: Ola Ekedahl <ola.ekedahl@fra.se>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
-	<1217728894.5348.72.camel@morgan.walls.org>
-	<5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
-	<1217791214.2690.31.camel@morgan.walls.org>
-	<5f8558830808031428u3c9a8191tcd1705b27087f992@mail.gmail.com>
-	<1217814427.23133.24.camel@palomino.walls.org>
-	<5f8558830808051733w5960fb03p169ae2aa6d893ce8@mail.gmail.com>
-	<1218074868.2689.34.camel@morgan.walls.org>
-Subject: Re: [linux-dvb] HVR-1600 - No audio
+To: Gregoire Favre <gregoire.favre@gmail.com>
+References: <48ABB045.5050301@fra.se> <20080820082010.GA5582@gmail.com>
+	<48AD16A1.5040703@fra.se>
+In-Reply-To: <48AD16A1.5040703@fra.se>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto, multiproto_plus & mantis
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,51 +26,55 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Aug 6, 2008 at 7:07 PM, Andy Walls <awalls@radix.net> wrote:
-> Some thing to try:
+Seriously, no one knows what might be wrong? Is it the kernel or might 
+it be the compilation software?
+
+> Gregoire Favre skrev:
+>   
+>> On Wed, Aug 20, 2008 at 07:48:53AM +0200, Ola Ekedahl wrote:
+>>   
+>>     
+>>> Hi,
+>>>
+>>> I have been trying to compile the three different trees in Fedora 7, but 
+>>> all fails with alot of warnings and errors. What are the recomended 
+>>> specification for the kernel, wont it compile with the kernel in Fedora 7?
+>>>     
+>>>       
+>> AFAIK the only actively maintened tree is :
+>> http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
+>>
+>> Wanny try this one ?
+>>   
+>>     
+> I tried to compile the driver, but it failed too. I got the following 
+> error after quite some time:
 >
-> Start an analog video capture and tune to the channel that you want to
-> watch.  If/When you have video and no sound, switch to line in 1 and
-> then back to tuner with v4l2-ctl.  This switching  should reset the
-> audio standard detection microcontroller (twice).  This switching should
-> also set the I2S routing input for the MPEG encoder to the line in and
-> then back to the tuner.
+>   LD [M]  /home/kurt/Desktop/liplianindvb/v4l/sms1xxx.o
+>   CC [M]  /home/kurt/Desktop/liplianindvb/v4l/s400.o
+> /home/kurt/Desktop/liplianindvb/v4l/s400.c: In function 's400_ir_init':
+> /home/kurt/Desktop/liplianindvb/v4l/s400.c:508: error: 'struct 
+> input_dev' has no member named 'dev'
+> make[3]: *** [/home/kurt/Desktop/liplianindvb/v4l/s400.o] Error 1
+> make[2]: *** [_module_/home/kurt/Desktop/liplianindvb/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/kernels/2.6.21-1.3194.fc7-i686'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/home/kurt/Desktop/liplianindvb/v4l'
+> make: *** [all] Error 2
 >
-> Hopefully that works as a work-around.
-
-
-Unfortunately, this doesn't give me any sound.  I even tried changing
-channels in the middle of the capture after doing the above steps.  I
-could see the channel change when I played back the MPEG but still no
-audio.
 >
-> With an analog tuner capture running could you please send me the
-> complete output of
 >
-> # v4l-dvb/v4l2-apps/util/v4l2-dbg -R type=host
+> Anyone have any idea? Is it because of the dist Im running?
+>
+> Best regards
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>   
 
-Here is the output:
-
-ioctl: VIDIOC_DBG_G_REGISTER
-
-                00       04       08       0C       10       14
-18       1C
-02000000: 007c0000 009bfc11 00000000 00000000 00000000 000df604
-00000000 00000000
-02000020: 0035f815 00260dec 006a100f 004c0000 004c0002 00001d70
-00000000 00023d81
-02000040: 000fe40a 00000000 000e0201 007ff611 00000000 000016c0
-011306db 00000000
-02000060: 000deffd 00180000 000ff9fa 00000000 007e0213 0055fe0a
-00bbe400 00000000
-02000080: 00080000 000fedf8 004801ff 00a7e418 00000000 005de408
-00000000 00000000
-020000a0: 00000010 000027f0 011307e9 00000000 00000000 001c0000
-000fe1ed 0017ffea
-020000c0: 0013fc15 0031f611 003bfe08 002a0001 01627765 00000000
-00000000 00000000
-020000e0: 00000000 00000000 00000000 00000000 00000000 00000000
-00000000 00000000
 
 _______________________________________________
 linux-dvb mailing list
