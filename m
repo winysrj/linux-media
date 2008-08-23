@@ -1,16 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.245])
+Received: from mx00.csee.securepod.com ([66.232.128.196]
+	helo=cseeapp00.csee.securepod.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <albert.comerma@gmail.com>) id 1KRR8u-0001MB-8w
-	for linux-dvb@linuxtv.org; Fri, 08 Aug 2008 14:32:29 +0200
-Received: by an-out-0708.google.com with SMTP id c18so260106anc.125
-	for <linux-dvb@linuxtv.org>; Fri, 08 Aug 2008 05:32:23 -0700 (PDT)
-Message-ID: <ea4209750808080532h950d84fud047c135551e1ff1@mail.gmail.com>
-Date: Fri, 8 Aug 2008 14:32:23 +0200
-From: "Albert Comerma" <albert.comerma@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>, zeph7r@gmail.com
+	(envelope-from <roger@beardandsandals.co.uk>) id 1KWzWW-000827-Kz
+	for linux-dvb@linuxtv.org; Sat, 23 Aug 2008 22:15:49 +0200
+Received: from [192.168.10.241] (unknown [81.168.109.249])
+	by smtp00.csee.securepod.com (Postfix) with ESMTP id 5BB8C22C334
+	for <linux-dvb@linuxtv.org>; Sat, 23 Aug 2008 21:15:14 +0100 (BST)
+Message-ID: <48B06FD3.5050500@beardandsandals.co.uk>
+Date: Sat, 23 Aug 2008 21:15:15 +0100
+From: Roger James <roger@beardandsandals.co.uk>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] Support for Asus My-Cinema U3000Hybrid?
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Has anyone got the CI on a TT 3200 past the initial
+	reset state
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,55 +21,67 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0890769439=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0890769439==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_58884_18426377.1218198743605"
+I asked a similar question this a little whiile ago and got no answer. 
+So I am trying again with a bit more detail and hoping someone somewhere 
+can tell me whether I am wasting my time. I need to find out whether the 
+CI daughter board is broken or this combination has never worked in the 
+budget-ci driver.
 
-------=_Part_58884_18426377.1218198743605
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+The TT-3200 works fine for DVB scan and capture, but I cannot get the CI 
+to initialise fully. It always times out on the initial reset and gives 
+a "PC card did not respond" message in the kernel log.
 
-Just to clarify things...
+I peppered the driver with extra diagnostics and as far as I can see the 
+initial CI reset process is started. The firmware version is reported as 
+0xa0 (is this correct?) so an interrupt is expected from the card. This 
+interrupt never occurs. If I poll the card status 
+(ciintf_poll_slot_status) when the reset times out then flags come back 
+as 9 (CAMDETECT|RESET) but it looks like the read_attribute_mem does not 
+give the correct value and returns 0x00 which I assume means that the 
+CAM has not initialised. I have appended the dmesg output to the end of 
+this message.
 
-Xceive chips are just tunners, RF chips, mostly analogue with some digital
-interface, they don't do anything with usb or comunication with the
-computer, for this reason you need the dibcom chip, it's a usb bridge +
-decoder + something else...
-To start to develop something you must first be sure of what chips it's
-using.
-If not you can try blindly if modifying the code for the U3000-Mini works or
-Pinnacle 320cx (dibcom 7700 + xceive2028) work (you just need to add your
-device usb id's).
+If anyone has got this working can you please let me know, so I can swap 
+the CI daughter board for a working one and stop wasting my time debugging.
 
-Albert
+Help!
 
-------=_Part_58884_18426377.1218198743605
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Roger
 
-<div dir="ltr">Just to clarify things...<br><br>Xceive chips are just tunners, RF chips, mostly analogue with some digital interface, they don&#39;t do anything with usb or comunication with the computer, for this reason you need the dibcom chip, it&#39;s a usb bridge + decoder + something else... <br>
-To start to develop something you must first be sure of what chips it&#39;s using. <br>If not you can try blindly if modifying the code for the U3000-Mini works or Pinnacle 320cx (dibcom 7700 + xceive2028) work (you just need to add your device usb id&#39;s).<br>
-<br>Albert<br></div>
+saa7146: register extension 'budget_ci dvb'.
+ACPI: PCI Interrupt 0000:00:0b.0[A] -> Link [LNKD] -> GSI 12 (level, 
+low) -> IRQ 12
+saa7146: found saa7146 @ mem e1a28000 (revision 1, irq 12) (0x13c2,0x1019).
+saa7146 (0): dma buffer size 192512
+DVB: registering new adapter (TT-Budget S2-3200 PCI)
+adapter has MAC addr = 00:d0:5c:68:34:04
+input: Budget-CI dvb ir receiver saa7146 (0) as /class/input/input9
+budget_ci: Slot status cf451000 set to NONE 3 fw vers a0
+budget_ci: Slot status cf451000 set to PRESENT
+dvb_ca_en50221_init
+budget_ci: CI interface initialised
+CAMCHANGE IRQ slot:0 change_type:1
+dvb_ca_en50221_thread_wakeup
+dvb_ca_en50221_thread
+budget_ci: Slot status cf451000 set to RESET
+stb0899_attach: Attaching STB0899
+stb6100_attach: Attaching STB6100
+DVB: registering frontend 0 (STB0899 Multistandard)...
+budget_ci: poll status budget_ci cf451000 flags 9 slot_status 4
+budget_ci: read_attribute 0
+dvb_ca adaptor 0: PC card did not respond :( 0x1
 
-------=_Part_58884_18426377.1218198743605--
 
 
---===============0890769439==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0890769439==--
