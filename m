@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7R5rfSa011316
-	for <video4linux-list@redhat.com>; Wed, 27 Aug 2008 01:53:41 -0400
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7NEXUkN031720
+	for <video4linux-list@redhat.com>; Sat, 23 Aug 2008 10:33:30 -0400
 Received: from smtp-vbr14.xs4all.nl (smtp-vbr14.xs4all.nl [194.109.24.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7R5rdTd031340
-	for <video4linux-list@redhat.com>; Wed, 27 Aug 2008 01:53:39 -0400
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7NEWg3l015352
+	for <video4linux-list@redhat.com>; Sat, 23 Aug 2008 10:32:42 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Gordon Smith" <spiderkarma@gmail.com>
-Date: Wed, 27 Aug 2008 07:53:35 +0200
-References: <2df568dc0808261327w4fadadebm37b9516a5c4975b6@mail.gmail.com>
-	<2df568dc0808261646t37eeb2e2o19646c4a9c939b7@mail.gmail.com>
-	<2df568dc0808261752y777a98e1pa6e4bc4a2c53d3d7@mail.gmail.com>
-In-Reply-To: <2df568dc0808261752y777a98e1pa6e4bc4a2c53d3d7@mail.gmail.com>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Date: Sat, 23 Aug 2008 16:31:26 +0200
+References: <200808171709.51258.hverkuil@xs4all.nl>
+	<200808231601.33052.laurent.pinchart@skynet.be>
+In-Reply-To: <200808231601.33052.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200808270753.35928.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: Fwd: saa7134_empress streaming via v4l2
+Message-Id: <200808231631.26716.hverkuil@xs4all.nl>
+Cc: Mike Isely <isely@isely.net>, v4l <video4linux-list@redhat.com>,
+	david@identd.dyndns.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: V4L2: switch to register_chrdev_region: needs testing/review of
+	release() handling
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,65 +33,94 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Gordon,
+On Saturday 23 August 2008 16:01:32 Laurent Pinchart wrote:
+> Hi Hans,
+>
+> On Sunday 17 August 2008, Hans Verkuil wrote:
+> > Hi all,
+> >
+> > As part of my ongoing cleanup of the v4l subsystem I've been
+> > looking into converting v4l from register_chrdev to
+> > register_chrdev_region. The latter is more flexible and allows for
+> > a larger range of minor numbers. In addition it allows us to
+> > intercept the release callback when the char device's refcount
+> > reaches 0.
+> >
+> > This is very useful for hotpluggable devices like USB webcams.
+> > Currently usb video drivers need to do the refcounting themselves,
+> > but with this patch they can rely on the release callback since it
+> > will only be called when the last user has closed the device. Since
+> > current usb drivers do the refcounting in varying degrees of
+> > competency (from 'not' to 'if you're lucky' to 'buggy' to
+> > 'perfect') it would be nice to have the v4l framework take care of
+> > this.
+> >
+> > So on a disconnect the driver can call video_unregister_device()
+> > even if an application still has the device open. Only when the
+> > application closes as well will the release be called and the
+> > driver can do the final cleanup.
+> >
+> > In fact, I think with this change it should even be possible to
+> > reconnect the webcam even while some application is still using the
+> > old char device. In that case a new minor number will be chosen
+> > since the old one is still in use, but otherwise the webcam should
+> > just work as usual. This is untested, though.
+> >
+> > Note that right now I basically copy the old release callback as
+> > installed by cdev_init() and install our own v4l callback instead
+> > (to be precise, I replace the ktype pointer with our own
+> > kobj_type).
+> >
+> > It would be much cleaner if chardev.c would allow one to set a
+> > callback explicitly. It's not difficult to do that, but before
+> > doing that I first have to know whether my approach is working
+> > correctly.
+> >
+> > The v4l-dvb repository with my changes is here:
+> >
+> > http://linuxtv.org/hg/~hverkuil/v4l-dvb-cdev2/
+> >
+> > To see the diff in question:
+> >
+> > http://linuxtv.org/hg/~hverkuil/v4l-dvb-cdev2/rev/98acd2c1dea1
+> >
+> > I have tested myself with the quickcam_messenger webcam. For this
+> > driver this change actually fixed a bug: disconnecting while a
+> > capture was in progress and then trying to use /dev/video0 would
+> > lock that second application.
+> >
+> > I also tested with gspca: I could find no differences here, it all
+> > worked as before.
+> >
+> > There are a lot more USB video devices and it would be great if
+> > people could test with their devices to see if this doesn't break
+> > anything. Having a release callback that is called when it is
+> > really safe to free everything should make life a lot easier I
+> > think.
+>
+> I've given your patch a try on 2.6.27-rc4 with the uvcvideo driver.
+> Nothing seems to have been broken so far, and the uvcvideo driver got
+> a bit simpler as I've been able to get rid of the refcounting logic.
+> Good job.
 
-Please go to the v4l2-apps directory and do a make there and then use 
-the v4l2-ctl that is in the v4l2-apps/util directory. There was also a 
-bug in v4l2-ctl, so hopefully this will fix it for you.
+Thanks for testing this!
 
-Did you also make sure that you are using the updated saa6752hs.ko 
-module? That too has fixes for control handling.
+> Do we really need the double refcounting (class device and character
+> device) ? As far as I can tell, the class device is only used for the
+> name and index sysfs attributes. Its release callback, video_release,
+> is called as soon as video_unregister_device drops its reference to
+> the class device, even when sysfs files are still opened.
+
+I think that in practice it probably isn't necessary, but I do know that 
+it is the correct way to do it. It doesn't matter for the driver, since 
+that has only one release to deal with.
+
+I want to do a few additional tests next weekend and if they all pass, 
+then I'll ask Mauro to merge this patch.
 
 Regards,
 
 	Hans
-
-On Wednesday 27 August 2008 02:52:43 Gordon Smith wrote:
-> FYI, I changed saa7134 version and verified modules from your tree are 
-loading.
-> 
-> 
-> I added a print to saa7134-empress.c
-> 
-> dprintk("to call v4l2_ctrl_next: c->id=%x\n", c->id);
-> 
->        c->id = v4l2_ctrl_next(ctrl_classes, c->id);
-> 
-> 
-> When I run
-> 
-> gsmith@gsmith-pc104 ~ $ v4l2-ctl --list-ctrls --device=/dev/video2
-> 
-> 
-> dmesg has
-> 
-> saa7133[0]/empress: open minor=2
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80000000
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980001
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980900
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980901
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980902
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980903
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980905
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980909
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980914
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80990001
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80000000
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980001
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980900
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980901
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980902
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980903
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980905
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980909
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80980914
-> saa7133[0]/empress: to call v4l2_ctrl_next: c->id=80990001
-> 
-> 
-> The control query stops with the MPEG queries (at 
-V4L2_CID_MPEG_STREAM_PID_PMT).
-> 
-
 
 --
 video4linux-list mailing list
