@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KZUFI-00007q-NJ
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 19:28:21 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6F00FWKCI7WB80@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sat, 30 Aug 2008 13:27:43 -0400 (EDT)
-Date: Sat, 30 Aug 2008 13:27:43 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080830125930.455e8d3c@gmail.com>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Message-id: <48B9830F.1090108@linuxtv.org>
-MIME-version: 1.0
-References: <48B8400A.9030409@linuxtv.org> <20080830125930.455e8d3c@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1KX0D5-0002QB-PQ
+	for linux-dvb@linuxtv.org; Sat, 23 Aug 2008 22:59:50 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: Matthias Dahl <mldvb@mortal-soul.de>
+Date: Sat, 23 Aug 2008 22:58:39 +0200
+References: <200808221555.26507.mldvb@mortal-soul.de>
+In-Reply-To: <200808221555.26507.mldvb@mortal-soul.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200808232258.40112@orion.escape-edv.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Subject: Re: [linux-dvb] [PATCH] budget_av / dvb_ca_en50221: fixes ci/cam
+	handling especially on SMP machines
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,29 +27,63 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Douglas Schilling Landgraf wrote:
-> Hello,
+Matthias Dahl wrote:
+> Hi Oliver.
 > 
-> On Fri, 29 Aug 2008 14:29:30 -0400
-> Steven Toth <stoth@linuxtv.org> wrote:
+> I can happily report that with the following two patches applied, I haven't 
+> seen a single case where the cam stopped working due to i/o errors or 
+> anything like it.
 > 
->> If you feel that you want to support our movement then please help us
->> by acking this email.
->>
->> Regards - Steve, Mike, Patrick and Mauro.
->>
->> Acked-by: Patrick Boettcher <pb@linuxtv.org>
->> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
->> Acked-by: Steven Toth <stoth@linuxtv.org>
->> Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+> The budget_av patch is basically your patch just a bit extended which I 
+> thought was necessary to cover all relevant cases. Works just fine.
 > 
-> Acked-by: Douglas Schilling Landgraf <dougsland@linuxtv.org>
+> The dvb_ca_en50221 patch introduces the concept of slot lock that means, you 
+> can either read or write to a slot but concurrent i/o on a slot is no longer 
+> allowed. This case was already thought of and partly taken care of but 
+> unfortunately due to the missing locking mechanism, it just made the race 
+> condition harder to trigger but not impossible... especially on SMP systems 
+> where this is easier to hit. That's way I introduced a mutex. I left the 
+> original check in there but it actually never should get triggered anymore. 
+> Right now actually, if it gets triggered, one could assume the ci/cam is in 
+> an undefined state and trigger a reinit, like it's done on a few other 
+> places.
+> 
+> Could you please apply those patches to the dvb tree and maybe get into the 
+> official 2.6.27? Those bugs haven been around for quite some time now and 
+> without the patches, they are not so hard to trigger.
 
-Douglas, thank you, your support is very much appreciated.
+Finally I had some time to review your patches.
 
-Regards,
+budget-av:
+Could you please elaborate why 
+- ciintf_slot_ts_enable
+- ciintf_slot_shutdown
+require locking? I cannot see that.
 
-Steve
+ciintf_slot_reset:
+Ok, although I doubt that it will make any difference, because the
+routine will kill tuner and CI interface anyway...
+
+ciintf_poll_slot_status:
+Hm, I think my version was also correct.
+
+
+dvb_ca_en50221.c:
+Ok. but I need your signed-off-by for this patch.
+
+Btw, wouldn't it be better to remove the locking stuff from budget-av.c,
+and do all locking in dvb_ca_en50221.c?
+
+Imho this would be a far better solution (only one mutex, not two).
+Could you implement that?
+
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
