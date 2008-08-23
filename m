@@ -1,24 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1KQCWZ-0000bt-Q7
-	for linux-dvb@linuxtv.org; Tue, 05 Aug 2008 04:43:49 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andy Walls <awalls@radix.net>
-In-Reply-To: <1217901425.2695.32.camel@morgan.walls.org>
-References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
-	<1217728894.5348.72.camel@morgan.walls.org>
-	<5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
-	<1217791214.2690.31.camel@morgan.walls.org>
-	<1217810697.2673.8.camel@pc10.localdom.local>
-	<1217817352.23133.64.camel@palomino.walls.org>
-	<1217873263.2671.27.camel@pc10.localdom.local>
-	<1217901425.2695.32.camel@morgan.walls.org>
-Date: Tue, 05 Aug 2008 04:36:21 +0200
-Message-Id: <1217903781.2673.10.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	(envelope-from <patrick.boettcher@desy.de>) id 1KWukq-0006NG-J3
+	for linux-dvb@linuxtv.org; Sat, 23 Aug 2008 17:10:17 +0200
+Date: Sat, 23 Aug 2008 17:09:37 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: e9hack <e9hack@googlemail.com>
+In-Reply-To: <48B01765.8020104@gmail.com>
+Message-ID: <alpine.LRH.1.10.0808231704500.26788@pub5.ifh.de>
+References: <48B00D6C.8080302@gmx.de> <48B01765.8020104@gmail.com>
+MIME-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1600 - No audio
+Subject: Re: [linux-dvb] Support of Nova S SE DVB card missing
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,106 +19,72 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CkFtIE1vbnRhZywgZGVuIDA0LjA4LjIwMDgsIDIxOjU3IC0wNDAwIHNjaHJpZWIgQW5keSBXYWxs
-czoKPiBPbiBNb24sIDIwMDgtMDgtMDQgYXQgMjA6MDcgKzAyMDAsIGhlcm1hbm4gcGl0dG9uIHdy
-b3RlOgo+ID4gQW0gU29ubnRhZywgZGVuIDAzLjA4LjIwMDgsIDIyOjM1IC0wNDAwIHNjaHJpZWIg
-QW5keSBXYWxsczoKPiA+ID4gT24gTW9uLCAyMDA4LTA4LTA0IGF0IDAyOjQ0ICswMjAwLCBoZXJt
-YW5uIHBpdHRvbiB3cm90ZToKPiA+ID4gPiBBbSBTb25udGFnLCBkZW4gMDMuMDguMjAwOCwgMTU6
-MjAgLTA0MDAgc2NocmllYiBBbmR5IFdhbGxzOgo+ID4gPiA+ID4gT24gU3VuLCAyMDA4LTA4LTAz
-IGF0IDEwOjQ5IC0wNzAwLCBCcmlhbiBTdGVlbGUgd3JvdGU6Cj4gIAo+ID4gPiBJIGhhdmUgdHdv
-IEhWUi0xNjAwJ3M6IG9uZSB3aXRoIHJhZGlvIGFuZCBvbmUgd2l0aG91dC4gIEkgY2FuJ3QgY2hl
-Y2sKPiA+ID4gdGhlIG9uZSB3aXRob3V0IHJhZGlvIHJpZ2h0IG5vdyAodGhhdCBjb21wdXRlciBp
-cyBkb3duIGZvciBvdGhlcgo+ID4gPiBleHBlcmltZW50cykuCj4gCj4gQnJpYW4sCj4gCj4gSSBo
-YXZlIGJlZW4gYWJsZSB0byB0ZXN0IG15IEhWUi0xNjAwIHRoYXQgaGFzIGEgVENMIE0yNTIzLiAg
-Rm9yIHRoZQo+IHJlY29yZCwgdXNpbmcgdHVuZXIgdHlwZSA1MCwgdGhlIHR1bmVyIGF1ZGlvIGZv
-ciBhbmFsb2cgY2FwdHVyZXMgd29ya3MKPiBmb3IgbWUgd2l0aCB0aGUgbGF0ZXN0IHY0bC1kdmIu
-Cj4gCj4gSGVyZSdzIGhvdyB0aGUgaW5pdGlhbGl6YXRpb24gbG9va3Mgd2l0aG91dCBhbnkgZGVi
-dWcgdHVybmVkIG9uLgo+IAo+IGN4MTg6ICBTdGFydCBpbml0aWFsaXphdGlvbiwgdmVyc2lvbiAx
-LjAuMAo+IGN4MTgtMDogSW5pdGlhbGl6aW5nIGNhcmQgIzAKPiBjeDE4LTA6IEF1dG9kZXRlY3Rl
-ZCBIYXVwcGF1Z2UgY2FyZAo+IEFDUEk6IFBDSSBJbnRlcnJ1cHQgMDAwMDowMzowMy4wW0FdIC0+
-IEdTSSAyMSAobGV2ZWwsIGxvdykgLT4gSVJRIDIxCj4gY3gxOC0wOiBjeDIzNDE4IHJldmlzaW9u
-IDAxMDEwMDAwIChCKQo+IHR2ZWVwcm9tIDEtMDA1MDogSGF1cHBhdWdlIG1vZGVsIDc0MDQxLCBy
-ZXYgQzVCMiwgc2VyaWFsIyA4OTEzNTEKPiB0dmVlcHJvbSAxLTAwNTA6IE1BQyBhZGRyZXNzIGlz
-IDAwLTBELUZFLTBELTk5LUQ3Cj4gdHZlZXByb20gMS0wMDUwOiB0dW5lciBtb2RlbCBpcyBUQ0wg
-TTI1MjNfNU5fRSAoaWR4IDExMiwgdHlwZSA1MCkKPiB0dmVlcHJvbSAxLTAwNTA6IFRWIHN0YW5k
-YXJkcyBOVFNDKE0pIChlZXByb20gMHgwOCkKPiB0dmVlcHJvbSAxLTAwNTA6IGF1ZGlvIHByb2Nl
-c3NvciBpcyBDWDIzNDE4IChpZHggMzgpCj4gdHZlZXByb20gMS0wMDUwOiBkZWNvZGVyIHByb2Nl
-c3NvciBpcyBDWDIzNDE4IChpZHggMzEpCj4gdHZlZXByb20gMS0wMDUwOiBoYXMgbm8gcmFkaW8s
-IGhhcyBJUiByZWNlaXZlciwgaGFzIElSIHRyYW5zbWl0dGVyCj4gY3gxOC0wOiBBdXRvZGV0ZWN0
-ZWQgSGF1cHBhdWdlIEhWUi0xNjAwCj4gY3gxOC0wOiBWQkkgaXMgbm90IHlldCBzdXBwb3J0ZWQK
-PiB0dW5lciAyLTAwNjE6IGNoaXAgZm91bmQgQCAweGMyIChjeDE4IGkyYyBkcml2ZXIgIzAtMSkK
-PiBjczUzNDUgMS0wMDRjOiBjaGlwIGZvdW5kIEAgMHg5OCAoY3gxOCBpMmMgZHJpdmVyICMwLTAp
-Cj4gdHVuZXItc2ltcGxlIDItMDA2MTogY3JlYXRpbmcgbmV3IGluc3RhbmNlCj4gdHVuZXItc2lt
-cGxlIDItMDA2MTogdHlwZSBzZXQgdG8gNTAgKFRDTCAyMDAyTikKPiBjeDE4LTA6IERpc2FibGVk
-IGVuY29kZXIgSURYIGRldmljZQo+IGN4MTgtMDogUmVnaXN0ZXJlZCBkZXZpY2UgdmlkZW8wIGZv
-ciBlbmNvZGVyIE1QRUcgKDIgTUIpCj4gRFZCOiByZWdpc3RlcmluZyBuZXcgYWRhcHRlciAoY3gx
-OCkKPiBjeDE4LTA6IGxvYWRlZCB2NGwtY3gyMzQxOC1hcHUuZncgZmlybXdhcmUgVjAwMTIwMDAw
-ICgxNDEyMDAgYnl0ZXMpCj4gTVhMNTAwNVM6IEF0dGFjaGVkIGF0IGFkZHJlc3MgMHg2Mwo+IERW
-QjogcmVnaXN0ZXJpbmcgZnJvbnRlbmQgMCAoU2Ftc3VuZyBTNUgxNDA5IFFBTS84VlNCIEZyb250
-ZW5kKS4uLgo+IGN4MTgtMDogRFZCIEZyb250ZW5kIHJlZ2lzdGVyZWQKPiBjeDE4LTA6IGxvYWRl
-ZCB2NGwtY3gyMzQxOC1jcHUuZncgZmlybXdhcmUgKDE1ODMzMiBieXRlcykKPiBjeDE4LTA6IEZX
-IHZlcnNpb246IDAuMC43NC4wIChSZWxlYXNlIDIwMDcvMDMvMTIpCj4gY3gxOC0wOiBsb2FkZWQg
-djRsLWN4MjM0MTgtZGlnLmZ3IGZpcm13YXJlICgxNjM4MiBieXRlcykKPiBjeDE4LTA6IFJlZ2lz
-dGVyZWQgZGV2aWNlIHZpZGVvMzIgZm9yIGVuY29kZXIgWVVWICgyIE1CKQo+IGN4MTgtMDogUmVn
-aXN0ZXJlZCBkZXZpY2UgdmlkZW8yNCBmb3IgZW5jb2RlciBQQ00gYXVkaW8gKDEgTUIpCj4gY3gx
-OC0wOiBJbml0aWFsaXplZCBjYXJkICMwOiBIYXVwcGF1Z2UgSFZSLTE2MDAKPiBjeDE4OiAgRW5k
-IGluaXRpYWxpemF0aW9uCj4gCj4gCj4gV2hlbiB3ZSBpbml0aWFsbHkgaGFkIGEgcHJvYmxlbSB3
-aXRoIHRoZSBjeC0xOCBub3QgcHJvZHVjaW5nIGFueSBhdWRpbwo+IGZyb20gdGhlIHR1bmVyLCBp
-dCB3YXMgYmVjYXVzZSB0aGVyZSB3YXMgZXJyb3JzIGluIHRoZSBtaWNyb2NvbnRyb2xsZXIKPiBm
-aXJtd2FyZSBsb2FkLiAgSGFucycgbWFkZSBhIGZpeCB0byBtYWtlIHRoZSBmaXJtd2FyZSBsb2Fk
-IG1vcmUgcm9idXN0Cj4gYW5kIHRoaW5ncyBzdGFydGVkIHdvcmtpbmcuICBJZiB5b3VyIHR1bmVy
-IGxvb2tzIGxpa2UgaXQncyBnZXR0aW5nCj4gY29tbWFuZGVkIHByb3Blcmx5LCB3ZSdsbCBpbnZl
-c3RpZ2F0ZSBtaWNyb2NvbnRyb2xsZXIgZmlybXdhcmUgbG9hZAo+IG5leHQuCj4gCj4gCj4gCj4g
-IAo+ID4gPiBEb2VzIGEgVENMIE0yNTIzXzVOX0UgaGF2ZSBhIFREQTk4OHg/ICBJIGtub3cgdGhl
-IFREQTk4ODcgY2FuCj4gPiA+IGRlbW9kdWxhdGUgRk0gcmFkaW8uIEJyaWFuJ3MgSFZSLTE2MDAg
-ZG9lc24ndCBoYXZlIEZNIHJhZGlvIGFjY29yZGluZyB0bwo+ID4gPiB0dmVlZXByb20sIHNvIGFy
-ZSB5b3UgdGhpbmtpbmcgYSBUREE5ODhbNTZdIGlzIGluIHRoZSBUQ0wgTTI1MjMgNU4gRT8gCj4g
-PiAKPiA+IE5vLCB0aGVyZWZvcmUgdGhlIHdhcm5pbmcgdGhhdCBJIGRpZCBub3QgbG9vayBhbnkg
-Y2xvc2VyIHlldC4KPiA+IAo+ID4gaHR0cDovL3d3dy50Y2xyZi5jb20vRW5nbGlzaC9odG1sL2Vu
-ZXdzcHJvb3Blbi5hc3A/cHJvbmFtZT0xMDImdXJsPXByb2R1Y3QKPiAKPiBIZXJtYW5tLAo+IAo+
-IFRoYW5rIHlvdSBmb3IgdGhlIGxpbmsuICBGcm9tIHRoZSBsaW5rIHlvdSBnYXZlOgo+IAo+IMK3
-SUMgdHlwZTogU043NjE2NzggJiBUREE5ODAxVAo+IAo+IFNvIGEgVERBOTgwMSBpcyB0aGUgZGVt
-b2R1bGF0b3ItUExMIGNoaXAgb24gdGhpcyBUQ0wgdHVuZXIuICBUaGFua3MuCj4gCj4gCj4gPiA+
-ICJzdHJ1Y3QgdHVuZXJfcGFyYW1zIHR1bmVyX3RjbF8yMDAybl9wYXJhbXNbXSIgaW4KPiA+ID4g
-djRsLWR2Yi9saW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdHVuZXItdHlwZXMuYwo+
-ID4gPiBkb2Vzbid0IGhhdmUgIi5oYXNfdGRhOTg4NyA9IDEiIHNldC4KPiA+IAo+ID4gSSBhc3N1
-bWVkIGEgTUs0IHR1bmVyPTU3IG9uIGl0IGxpa2UgaXQgaXMgYWxzbyBvbiBQVlItMTUwIGFuZCBQ
-VlItNTAwLgo+ID4gVGhleSBhbHNvIGhhdmUgbm8gcmFkaW8sIGJ1dCB3aXRob3V0IHRkYTk4ODcs
-IGluY2x1ZGVzIHRkYTk4ODUgYW5kCj4gPiB0ZGE5ODg2LCB5b3Ugd29uJ3QgZ2V0IGFueXRoaW5n
-IHVzZWZ1bCBvdXQgb2YgdGhlbS4KPiAKPiBNeSBQVlItMTUwTUNFIGhhcyBhbiBMRyBUQVBFIEgw
-MDFGICh0eXBlIDQ3KS4gIFRoZSB0YXBlIGlzIGEgcmVicmFuZGVkCj4gUGhpbGxpcHMgRk0xMjM2
-IE1LMyAodHlwZSA0MykgYW5kIGl0IGRvZXMgaGF2ZSBhIHRkYTk4OHguICBJIGZpZ3VyZWQgb3V0
-Cj4gYSBmZXcgeWVhcnMgYWdvIGhvdyB0byBnZXQgdGhlIEZNIHJhZGlvIHdvcmtpbmcgcmlnaHQg
-Zm9yIHRoZSBUQVBFCj4gSDAwMUYsIGFuZCBIYW5zJyBoZWxwZWQgbWUgZmlndXJlIHRoYXQgdGhl
-IFRBUEUgSDAwMUYgd2FzIGEgY2xvbmUgb2YgdGhlCj4gRk0xMjM2IE1LMy4KPiAKPiAKPiAKPiA+
-IFRoZW4gZXhhY3RseSB0aGUgYWJvdmUgbWlzc2luZyAuaGFzX3RkYTk4ODcgPSAxIGZvciBfdGhh
-dCBvbmVfIGNvdWxkCj4gPiBjYXVzZSBzdWNoIHByb2JsZW1zLgo+ID4gCj4gCj4gPiBJdCBqdXN0
-IGNhbWUgaW4gbWluZCBpdCBtaWdodCBiZSByZWxhdGVkIHRvIHRoZSBtaXNzaW5nIHRkYTk4ODcg
-Zm9yCj4gPiB0dW5lcj01NywgYnV0IHlvdSBvYnZpb3VzbHkgZGVhbCB3aXRoIG90aGVyIHR1bmVy
-cy4KPiAKPiBOb3cgSSB1bmRlcnN0YW5kIHlvdSBvcmlnaW5hbCBtZWFuaW5nLiBPSy4KPiAKPiAK
-PiA+IEhvd2V2ZXIsIHRoZSBtaXNzaW5nIHRkYTk4ODcgZm9yIHRoZSBGUTEyMzZBIHNlZW1zIHRv
-IGJlIGF0IGxlYXN0IGEKPiA+IGluY29uc2lzdGVuY3kgaW4gdHVuZXItdHlwZXMuYyBmb3IgbWUu
-Cj4gCj4gRm9yIHRoZSBGUTEyMzZBIE1LNCBJdCBsb29rcyBpbmNvbnNpc3RlbnQgdG8gbWUgdG9v
-LiAgWW91J3JlIHByb2JhYmx5Cj4gcmlnaHQuICBJIGRvbid0IGhhdmUgYSBQVlIgY2FyZCB3aXRo
-IHRoYXQgdHVuZXIgdG8gdGVzdCB0aG91Z2gsIGFuZCBJCj4gY2FuJ3QgZmluZCBhIGRhdGFzaGVl
-dCBmb3IgdGhlIEZRMTIzNkEgTUs0IHRvIHZlcmlmeSB5b3VyIG9ic2VydmF0aW9uLiAKCldlIGFy
-ZSBpbiB0aGUgZGFtbmVkIHNhbWUgYm9hdCBoZXJlIQoKSGFucywgd2hhdCBkbyB5b3Ugc2F5PwoK
-PiAKPiBSZWdhcmRzLAo+IEFuZHkKPiAKPiA+ID5Gcm9tIGxvZ3Mgb2YgdGhlIFBWUi01MDAgYW5k
-IFBWUi0xNTAgb25lIGNhbiBzZWUgdGhleSBuZWVkIHRoZSB0ZGE5ODg3Cj4gPiBtb2R1bGUgYW5k
-IGl0IGlzIGF0IDB4NDMvMHg4Ni4KCkkgZXZlbiBzdGFydGVkIHRvIGJlbGlldmUsIHRoYXQgdGhp
-cyBjb3VsZCBiZSBhIHZhcmlhbnQgaGF2aW5nIHRoZQp0ZGE5OHh4IHN0dWZmIHN0cmFwcGVkIHRv
-IGJlIGhhcmR3aXJlZCBmb3IgU3lzdGVtLU0sIGhhcmQgdG8gYmVsaWV2ZSBhbmQKSSB3YXMgZXZl
-biBpbnZvbHZlZCBwcmV2aW91c2x5IHRvIGdldCBzb21ldGhpbmcgb3V0IG9mIHRoZW0gYXQgYWxs
-IC4uLgoKVGhpcyBjb3VsZCBiZSBwb3NzaWJsZSwgYnV0IGl0IHdhcyBhbGwgYnVsbHNoaXQgZXZl
-biB0byB0aGluayBhYm91dCBpdC4KCldoeSB0aGF0IEZRMTIzNkEgaGFzIG5vIHN1cHBvcnQgZm9y
-IHRkYTk4ODcgaW4gdHVuZXItdHlwZXMuYyA/CgpJIGRvbid0IGV2ZW4gYXNrIGl0IHRoZSBmaXJz
-dCB0aW1lIC4uLi4KCkNoZWVycywKSGVybWFubgoKCgoKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZi
-QGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LWR2Yg==
+Hi Hartmut and Eberhard,
+
+thanks for pointing that out, I almost overlooked the previous mail from 
+Eberhard.
+
+Eberhard, are you able to try patches and to compile your own drivers in 
+order to help finding the best solution.
+
+One option is to put back the original code in case the 
+repeated-start-workaround is not set. But this one looks not very 
+protected. I mean between the two i2c_transfer-calls something else could 
+happen.
+
+Is there no other mean to tell to the i2c-adapter to do a repeated start 
+within one i2c_transfer-call?
+
+Another option would be to try to set the "repeated_start_workaround" 
+option also for the Nova SE card.
+
+What do you think?
+
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+
+
+On Sat, 23 Aug 2008, e9hack wrote:
+
+> Eberhard Kaltenhaeuser schrieb:
+>> Actual kernel does not support the Hauppauge WinTV Nova S SE PCI card
+>> anymore:
+>>
+>
+> I think it is a problem of this changeset http://linuxtv.org/hg/v4l-dvb/rev/358d281e6a3d
+> from Patrick Boettcher. The S5H1420 isn't able to understand repeated start conditions.
+> The i2c-read code was changed from:
+>
+> 	if ((ret = i2c_transfer (state->i2c, &msg1, 1)) != 1)
+> 		return ret;
+>
+> 	if ((ret = i2c_transfer (state->i2c, &msg2, 1)) != 1)
+> 		return ret;
+>
+> to:
+> 	if (state->config->repeated_start_workaround) {
+> 		ret = i2c_transfer(state->i2c, msg, 3);
+> 		if (ret != 3)
+> 			return ret;
+> 	} else {
+> 		ret = i2c_transfer(state->i2c, &msg[1], 2);
+> 		if (ret != 2)
+> 			return ret;
+> 	}
+>
+> -Hartmut
+>
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
