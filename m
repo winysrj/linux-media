@@ -1,23 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7QKwuQQ014202
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 16:58:57 -0400
-Received: from smtp-vbr1.xs4all.nl (smtp-vbr1.xs4all.nl [194.109.24.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7QKwjr7015630
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 16:58:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Tue, 26 Aug 2008 22:58:43 +0200
-References: <2df568dc0808261327w4fadadebm37b9516a5c4975b6@mail.gmail.com>
-In-Reply-To: <2df568dc0808261327w4fadadebm37b9516a5c4975b6@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7NLmlIw010424
+	for <video4linux-list@redhat.com>; Sat, 23 Aug 2008 17:48:47 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7NLmZFh021783
+	for <video4linux-list@redhat.com>; Sat, 23 Aug 2008 17:48:35 -0400
+From: Andy Walls <awalls@radix.net>
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+In-Reply-To: <de8cad4d0808181017q1c2467c2g74973deb1c70db97@mail.gmail.com>
+References: <de8cad4d0808051804l13d1b66cs9df26cc43ba6cfd6@mail.gmail.com>
+	<1217986174.5252.7.camel@morgan.walls.org>
+	<de8cad4d0808060357r4849d935k2e61caf03953d366@mail.gmail.com>
+	<1218070521.2689.15.camel@morgan.walls.org>
+	<de8cad4d0808070636q4045b788s6773a4e168cca2cc@mail.gmail.com>
+	<1218205108.3003.44.camel@morgan.walls.org>
+	<de8cad4d0808111433y4620b726wc664a06d7422e883@mail.gmail.com>
+	<1218939204.3591.25.camel@morgan.walls.org>
+	<de8cad4d0808180335l7a6f9377m97c3eff844e187ee@mail.gmail.com>
+	<de8cad4d0808181017q1c2467c2g74973deb1c70db97@mail.gmail.com>
+Content-Type: text/plain
+Date: Sat, 23 Aug 2008 17:44:20 -0400
+Message-Id: <1219527860.11451.2.camel@morgan.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200808262258.43478.hverkuil@xs4all.nl>
-Cc: 
-Subject: Re: saa7134_empress streaming via v4l2
+Cc: Waffle Head <narflex@gmail.com>, video4linux-list@redhat.com,
+	ivtv-devel@ivtvdriver.org
+Subject: Re: CX18 Oops
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,107 +37,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 26 August 2008 22:27:03 Gordon Smith wrote:
-> Hello -
+On Mon, 2008-08-18 at 13:17 -0400, Brandon Jenkins wrote:
+> On Mon, Aug 18, 2008 at 6:35 AM, Brandon Jenkins <bcjenkins@tvwhere.com> wrote:
+> > On Sat, Aug 16, 2008 at 10:13 PM, Andy Walls <awalls@radix.net> wrote:
+> >> On Mon, 2008-08-11 at 17:33 -0400, Brandon Jenkins wrote:
+> >>> On Fri, Aug 8, 2008 at 10:18 AM, Andy Walls <awalls@radix.net> wrote:
+
+> Andy,
 > 
-> I have a RTD Technologies VFG7350 (saa7134 based, two channel, 
-hardware
-> encoder per channel, no tuner).
+> I also seeing these messages in dmesg:
 > 
-> Should v4l2 show MPEG extended controls for a saa7134_empress device?
+> [65288.817420] cx18-0: Cannot find buffer 58 for stream TS
+> [65288.817440] cx18-0: Could not find buf 58 for stream TS
+> [65840.130797] cx18-0: Cannot find buffer 17 for stream TS
+> [65840.130797] cx18-0: Could not find buf 17 for stream TS
+> [65861.882721] cx18-0: Cannot find buffer 48 for stream TS
+> [65861.882741] cx18-0: Could not find buf 48 for stream TS
+> [66151.627392] cx18-0: Cannot find buffer 107 for stream encoder MPEG
+> [66151.627392] cx18-0: Could not find buf 107 for stream encoder MPEG
+> [67632.953680] cx18-0: Cannot find buffer 99 for stream encoder MPEG
+> [67632.953680] cx18-0: Could not find buf 99 for stream encoder MPEG
+> [67795.527911] cx18-0: Cannot find buffer 106 for stream encoder MPEG
+> [67795.527911] cx18-0: Could not find buf 106 for stream encoder MPEG
+> 
+> Brandon
 
-Not in that kernel. It was broken.
+Brandon,
 
-> If so, 
-> any hints about how to restore the controls?
-
-I would love it if you could try this development tree: 
-http://linuxtv.org/hg/~hverkuil/v4l-dvb-empress/
-
-I literally merged the last change this evening to 'revive' the empress 
-driver after it was solidly broken in recent kernels. It should have 
-the MPEG controls and I would really like to know whether it is working 
-for you.
-
-For my BeholdTV M6 card I see the standard user controls on both 
-devices, I get the private controls on the first device and I get the 
-MPEG controls on the second device.
+There is now a fix for this bug as well in my v4l-dvb repo.
 
 Regards,
-
-	Hans
-
-> 
-> Below is control listing in 2.6.25-gentoo-r7 + v4l-dvb:
-> ----------------------------------------
-> $ v4l2-ctl  --list-ctrls --device=/dev/video2
-> 
-> User Controls
-> 
->                      brightness (int)  : min=0 max=255 step=1 
-default=128
-> value=128
->                        contrast (int)  : min=0 max=127 step=1 
-default=68
-> value=68
->                      saturation (int)  : min=0 max=127 step=1 
-default=64
-> value=64
->                             hue (int)  : min=-128 max=127 step=1 
-default=0
-> value=0
->                          volume (int)  : min=-15 max=15 step=1 
-default=0
-> value=0
->                            mute (bool) : default=0 value=1
->                          mirror (bool) : default=0 value=0
-> 
-> MPEG Encoder Controls
-> ----------------------------------------
-> 
-> Below is control listing in 2.6.22-gentoo-r10 (also shows "private
-> controls"):
-> ----------------------------------------
-> $ v4l2-ctl  --list-ctrls --device=/dev/video2
->                      brightness (int)  : min=0 max=255 step=1 
-default=128
-> value=128
->                        contrast (int)  : min=0 max=127 step=1 
-default=68
-> value=68
->                      saturation (int)  : min=0 max=127 step=1 
-default=64
-> value=64
->                             hue (int)  : min=-128 max=127 step=1 
-default=0
-> value=0
->                          volume (int)  : min=-15 max=15 step=1 
-default=0
-> value=0
->                            mute (bool) : default=0 value=1
->                          mirror (bool) : default=0 value=0
->                          invert (bool) : default=0 value=0
->              y_offset_odd_field (int)  : min=0 max=128 step=0 
-default=0
-> value=0
->             y_offset_even_field (int)  : min=0 max=128 step=0 
-default=0
-> value=0
->                        automute (bool) : default=1 value=1
-> ----------------------------------------
-> 
-> Any hints also about how to restore the "private controls" (invert -
-> automute)?
-> 
-> Thanks.
-> - Gordon
-> --
-> video4linux-list mailing list
-> Unsubscribe 
-mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
-
+Andy
 
 --
 video4linux-list mailing list
