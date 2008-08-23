@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KWPq5-0003NO-1k
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 08:09:38 +0200
-Message-ID: <48AE5818.1090102@iki.fi>
-Date: Fri, 22 Aug 2008 09:09:28 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1KWwoR-0006zq-Gm
+	for linux-dvb@linuxtv.org; Sat, 23 Aug 2008 19:22:08 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Sat, 23 Aug 2008 19:21:19 +0200
+References: <48B00D6C.8080302@gmx.de>
+	<alpine.LRH.1.10.0808231750550.26788@pub5.ifh.de>
+	<200808231842.36465@orion.escape-edv.de>
+In-Reply-To: <200808231842.36465@orion.escape-edv.de>
 MIME-Version: 1.0
-To: David <dvb-t@iinet.com.au>
-References: <DA670E4156FE4C8DB883E07249860A77@CRAYXT5>
-In-Reply-To: <DA670E4156FE4C8DB883E07249860A77@CRAYXT5>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] USB DVB-T Tuner with Alfa AF9015 + Philips TDA18211
+Content-Disposition: inline
+Message-Id: <200808231921.20076@orion.escape-edv.de>
+Subject: Re: [linux-dvb] Support of Nova S SE DVB card missing
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,23 +28,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-David wrote:
-> Hi All
-> 
-> I have been offered this low cost device.
-> Just to enquire if any work is has already been done or is underway, to 
-> support devices with this chipset and tuner combination.
+Oliver Endriss wrote:
+> As there is a flag I2C_M_NOSTART in the I2C subsystem in recent kernels,
+> we could pass this flag to the I2C driver and add a workaround to the 
+> i2c master_xfer function.
 
-Could you try http://linuxtv.org/hg/~anttip/af9015 . Download firmware 
-from 
-http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
-. It should work if your device has reference design USB-IDs, if not new 
-USB-IDs should be added to the driver.
+Correction. I2C_M_NOSTART cannot be used. It removes a *start*
+condition, but we have to insert a *stop* condition...
 
-regards
-Antti
+CU
+Oliver
+
 -- 
-http://palosaari.fi/
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
