@@ -1,36 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7J2Hj2Y026041
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 22:17:45 -0400
-Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net
-	[151.189.21.44])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7J2HWhH024662
-	for <video4linux-list@redhat.com>; Mon, 18 Aug 2008 22:17:32 -0400
-Received: from mail-in-07-z2.arcor-online.net (mail-in-07-z2.arcor-online.net
-	[151.189.8.19])
-	by mail-in-04.arcor-online.net (Postfix) with ESMTP id 2A67917F46E
-	for <video4linux-list@redhat.com>;
-	Tue, 19 Aug 2008 04:17:31 +0200 (CEST)
-Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
-	[151.189.21.57])
-	by mail-in-07-z2.arcor-online.net (Postfix) with ESMTP id 161ED2C6BAC
-	for <video4linux-list@redhat.com>;
-	Tue, 19 Aug 2008 04:17:31 +0200 (CEST)
-Received: from [192.168.0.10] (181.126.46.212.adsl.ncore.de [212.46.126.181])
-	(Authenticated sender: hermann-pitton@arcor.de)
-	by mail-in-17.arcor-online.net (Postfix) with ESMTP id 71F6D2BD308
-	for <video4linux-list@redhat.com>;
-	Tue, 19 Aug 2008 04:17:30 +0200 (CEST)
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7ONTYoq032111
+	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 19:29:34 -0400
+Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net
+	[151.189.21.42])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7ONSrPZ022135
+	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 19:28:53 -0400
 From: hermann pitton <hermann-pitton@arcor.de>
-To: video4linux-list@redhat.com
-In-Reply-To: <2df568dc0808181516g49377e0fj73c104696d8616d4@mail.gmail.com>
-References: <2df568dc0808181516g49377e0fj73c104696d8616d4@mail.gmail.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0808240708p7fa3c012q57408d09db090a13@mail.gmail.com>
+References: <20080824152931.hbojr7or58oggosc@webmail.versatel.nl>
+	<d9def9db0808240708p7fa3c012q57408d09db090a13@mail.gmail.com>
 Content-Type: text/plain
-Date: Tue, 19 Aug 2008 04:16:30 +0200
-Message-Id: <1219112190.4107.5.camel@pc10.localdom.local>
+Date: Mon, 25 Aug 2008 01:27:50 +0200
+Message-Id: <1219620470.11522.38.camel@pc10.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: Re: saa7134_empress hang on close()
+Cc: video4linux-list@redhat.com
+Subject: Re: Low profile TV card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -42,38 +29,69 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Gordon,
+Hi,
 
-Am Montag, den 18.08.2008, 16:16 -0600 schrieb Gordon Smith:
-> Hello -
+Am Sonntag, den 24.08.2008, 16:08 +0200 schrieb Markus Rechberger:
+> On Sun, Aug 24, 2008 at 3:29 PM,  <hansfong@zonnet.nl> wrote:
+> > I'm building a new system with a barebone AOpen/Intel Atom PC.  Problem is
+> > that is can only fit one low profile PCI card. My 8 year old Pinnacle PCTV
+> > pro doesn't fit, so....
+> >
 > 
-> I have a saa7134 based video capture card running in kernel
-> 2.6.24.4(gentoo). I can view raw and compressed video on both channels
-> of the card
-> using xawtv and mplayer.
+> ever thought about USB solutions? My impression is since they aren't
+> directly connected with the motherboard and not influenced by the
+> electronic fields in the PC the quality is usually better with a lower
+> signal strength. I have an Asus DigiMatrix with Saa7134 and clearly
+> notice that a stronger signal is required.
 > 
-> However, any program reading a compressed stream that attempts to exit,
-> hangs and is unkillable. This includes cat, mplayer, and the example V4L2
-> program capture.c.
+> Do you mean PCI or miniPCI with low profile PCI card?
 > 
-> I removed capture code from capture.c (because, unlike mplayer, it doesn't
-> capture) and left only open() and close() and found that it hangs on
-> close().
+> Markus
 > 
-> Any thoughts on how I might solve this problem?
-> 
+> > - what low profile PCI TV cards are out there that work well with Linux? I
+> > need a simple analog card with composite and s-video inputs. Alternatively a
+> > video capture card will fit the bill too.
+> > - the latest line of Pinnacle cards seem low profile, but... I can't find
+> > any info on a) if they are really low profile cards and come with the
+> > appropriate bracket, b) the chipset they use . Does anyone know?
+> >
+> > Cheers,
+> >
+> > Hans
+> >
 
-you might have seen the ongoing debugging and improvements to get the
-saa7134-empress back and better.
+latest lines of PCI cards are all low profile,
 
-Are you using a known card, which is assumed to be supported and which
-tuner is on it?
+but we still don't even get a rule for not to top post implemented, or
+do it the other way round ... (how many posts about USB disconnects
+during the last years ?)
 
-Did you try the recent v4l-dvb and maybe use qv4l2 to control the
-devices?
+For what I remember from hacking them, the miniature LG tuners on the
+Asus DigiMatrix are for sure no reference for the saa713x and that stuff
+is really old now, but was very new once ...
+
+It makes also a difference if you are using a recent machine or some
+older stuff concerning internal interferences.
+
+But much bigger is what you see with different tuner types and after
+that still of what is caused by the PCB layout/shielding.
+
+The cheaper tuners around use years old European and American chips and
+they try also with there own SAW Filters, but are not there yet.
+
+On a low profile card you will have silicon tuners and demodulators
+anyway, so can't even fall back to latest known good can tuners.
+
+The Philips tda8275a can compete with them, if on the right card.
+
+Since you need only Composite and S-Video (how that thes days ;) buy the
+cheapest used and oldest Asus low profile PCI card you can get on some
+auction and you should be fine, might even have a remote.
 
 Cheers,
 Hermann
+
+
 
 
 
