@@ -1,32 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m79CTiMd002402
-	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 08:29:44 -0400
-Received: from mail.farba.eu.org ([81.219.10.162])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m79CTYfo019490
-	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 08:29:34 -0400
-Received: from localhost (agimoja.farba.eu.org [127.0.0.1])
-	by mail.farba.eu.org (Postfix) with ESMTP id 64F1620006
-	for <video4linux-list@redhat.com>;
-	Sat,  9 Aug 2008 14:29:33 +0200 (CEST)
-Received: from mail.farba.eu.org ([127.0.0.1])
-	by localhost (mail.farba.eu.org [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id Bmgnc5GkSQmt for <video4linux-list@redhat.com>;
-	Sat,  9 Aug 2008 14:29:29 +0200 (CEST)
-Received: from [10.68.0.121] (mincho [10.68.0.121])
-	by mail.farba.eu.org (Postfix) with ESMTP id B398620002
-	for <video4linux-list@redhat.com>;
-	Sat,  9 Aug 2008 14:29:29 +0200 (CEST)
-Message-ID: <489D8DA8.1080600@farba.eu.org>
-Date: Sat, 09 Aug 2008 14:29:28 +0200
-From: WK <w.kier@farba.eu.org>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7OBvjOZ009554
+	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 07:57:45 -0400
+Received: from metis.extern.pengutronix.de (metis.extern.pengutronix.de
+	[83.236.181.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7OBvVgM014634
+	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 07:57:32 -0400
+Date: Sun, 24 Aug 2008 13:57:25 +0200
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <20080824115725.GG10168@pengutronix.de>
+References: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <489D7F5E.9060006@farba.eu.org>
-In-Reply-To: <489D7F5E.9060006@farba.eu.org>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: Re: A few egoistic questions about DVB-T cards.
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH RFC] soc-camera: add API documentation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,20 +28,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Wiadomo¶æ od WK:
+Hi Guennadi,
 
-> 
-> Conditions are:
-> Hybrid analog + DVB-T.
-> PAL, PAL-BG/DK
-> Stereo sound.
-> MPEG-4 hardware decoding.
-> At least good working analog module (with linux drivers) and DVB-T 
-> module in progress or, of course, working just now.
-A little correction.
-It can be only DVB-T card with MPEG-4 decoder and linux support.
+On Wed, Aug 20, 2008 at 11:40:39AM +0200, Guennadi Liakhovetski wrote:
+> +Existing drivers
+> +----------------
+> +
+> +Currently there are two host drivers in the mainline: pxa_camera.c for PXA27x
+> +SoCs and sh_mobile_ceu_camera.c for SuperH SoCs, and four sensor drivers:
+> +mt9m001.c, mt9m111.c, mt9v022.c and a generic soc_camera_platform.c driver.
+> +Please, use these driver as examples when developing new ones.
+
+I wouldn't include this kind of cross-link between a generic
+documentation and what's in the tree. The tree is moving quickly and
+people tend to forget to update the docs then.
+
+rsc
 -- 
-WK
+ Dipl.-Ing. Robert Schwebel | http://www.pengutronix.de
+ Pengutronix - Linux Solutions for Science and Industry
+   Handelsregister:  Amtsgericht Hildesheim, HRA 2686
+     Hannoversche Str. 2, 31134 Hildesheim, Germany
+   Phone: +49-5121-206917-0 |  Fax: +49-5121-206917-9
 
 --
 video4linux-list mailing list
