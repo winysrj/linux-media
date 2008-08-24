@@ -1,24 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from nelson.telenet-ops.be ([195.130.133.66])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KQNZe-0005Ka-0Q
-	for linux-dvb@linuxtv.org; Tue, 05 Aug 2008 16:31:43 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K54006UNTNLXOB0@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 05 Aug 2008 10:31:07 -0400 (EDT)
-Date: Tue, 05 Aug 2008 10:30:57 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080805114757.5502411581F@ws1-7.us4.outblaze.com>
-To: stev391@email.com
-Message-id: <48986421.6070002@linuxtv.org>
-MIME-version: 1.0
-References: <20080805114757.5502411581F@ws1-7.us4.outblaze.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200
- H - DVB Only support
+	(envelope-from <jo@requestfocus.be>) id 1KXLwD-0001vx-EK
+	for linux-dvb@linuxtv.org; Sun, 24 Aug 2008 22:11:51 +0200
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by nelson.telenet-ops.be (Postfix) with SMTP id 030EA50029
+	for <linux-dvb@linuxtv.org>; Sun, 24 Aug 2008 22:11:46 +0200 (CEST)
+Received: from [192.168.3.12] (d5153E2BE.access.telenet.be [81.83.226.190])
+	by nelson.telenet-ops.be (Postfix) with ESMTP id DDCA950054
+	for <linux-dvb@linuxtv.org>; Sun, 24 Aug 2008 22:11:45 +0200 (CEST)
+From: Jo Heremans <jo@requestfocus.be>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <48B1774F.7060707@beardandsandals.co.uk>
+References: <48B06FD3.5050500@beardandsandals.co.uk>
+	<1219576046.11317.2.camel@pvr> <48B1774F.7060707@beardandsandals.co.uk>
+Date: Sun, 24 Aug 2008 22:11:48 +0200
+Message-Id: <1219608708.30402.1.camel@pvr>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Has anyone got the CI on a TT 3200 past	the	initial
+	reset state
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,47 +32,126 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-stev391@email.com wrote:
-> Steve,
+On Sun, 2008-08-24 at 15:59 +0100, Roger James wrote:
+> Jo Heremans wrote: 
+> > On Sat, 2008-08-23 at 21:15 +0100, Roger James wrote:
+> >   
+> > > I asked a similar question this a little whiile ago and got no answer. 
+> > > So I am trying again with a bit more detail and hoping someone somewhere 
+> > > can tell me whether I am wasting my time. I need to find out whether the 
+> > > CI daughter board is broken or this combination has never worked in the 
+> > > budget-ci driver.
+> > > 
+> > > The TT-3200 works fine for DVB scan and capture, but I cannot get the CI 
+> > > to initialise fully. It always times out on the initial reset and gives 
+> > > a "PC card did not respond" message in the kernel log.
+> > > 
+> > > I peppered the driver with extra diagnostics and as far as I can see the 
+> > > initial CI reset process is started. The firmware version is reported as 
+> > > 0xa0 (is this correct?) so an interrupt is expected from the card. This 
+> > > interrupt never occurs. If I poll the card status 
+> > > (ciintf_poll_slot_status) when the reset times out then flags come back 
+> > > as 9 (CAMDETECT|RESET) but it looks like the read_attribute_mem does not 
+> > > give the correct value and returns 0x00 which I assume means that the 
+> > > CAM has not initialised. I have appended the dmesg output to the end of 
+> > > this message.
+> > > 
+> > > If anyone has got this working can you please let me know, so I can swap 
+> > > the CI daughter board for a working one and stop wasting my time debugging.
+> > > 
+> > > Help!
+> > > 
+> > > Roger
+> > > 
+> > > saa7146: register extension 'budget_ci dvb'.
+> > > ACPI: PCI Interrupt 0000:00:0b.0[A] -> Link [LNKD] -> GSI 12 (level, 
+> > > low) -> IRQ 12
+> > > saa7146: found saa7146 @ mem e1a28000 (revision 1, irq 12) (0x13c2,0x1019).
+> > > saa7146 (0): dma buffer size 192512
+> > > DVB: registering new adapter (TT-Budget S2-3200 PCI)
+> > > adapter has MAC addr = 00:d0:5c:68:34:04
+> > > input: Budget-CI dvb ir receiver saa7146 (0) as /class/input/input9
+> > > budget_ci: Slot status cf451000 set to NONE 3 fw vers a0
+> > > budget_ci: Slot status cf451000 set to PRESENT
+> > > dvb_ca_en50221_init
+> > > budget_ci: CI interface initialised
+> > > CAMCHANGE IRQ slot:0 change_type:1
+> > > dvb_ca_en50221_thread_wakeup
+> > > dvb_ca_en50221_thread
+> > > budget_ci: Slot status cf451000 set to RESET
+> > > stb0899_attach: Attaching STB0899
+> > > stb6100_attach: Attaching STB6100
+> > > DVB: registering frontend 0 (STB0899 Multistandard)...
+> > > budget_ci: poll status budget_ci cf451000 flags 9 slot_status 4
+> > > budget_ci: read_attribute 0
+> > > dvb_ca adaptor 0: PC card did not respond :( 0x1
+> > > 
+> > > 
+> > > 
+> > > 
+> > > 
+> > > _______________________________________________
+> > > linux-dvb mailing list
+> > > linux-dvb@linuxtv.org
+> > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> > > 
+> > >     
+> > 
+> > Roger,
+> > 
+> > I have the CI adaptor working on the TT S-3200.
+> > I have ubuntu 8.04 with kernel Linux pvr 2.6.24-16-generic
+> > I use the latest multiproto drivers.
+> > 
+> > Greetz,
+> > Jo
+> > 
+> > 
+> > 
+> > Aug 23 14:20:52 pvr kernel: [   37.779037] saa7146: register extension
+> > 'budget_ci dvb'.
+> > Aug 23 14:20:52 pvr kernel: [   37.779088] ACPI: PCI Interrupt
+> > 0000:05:01.0[A] -> GSI 19 (level, low) -> IRQ 19
+> > Aug 23 14:20:52 pvr kernel: [   37.779106] saa7146: found saa7146 @ mem
+> > ffffc200008b2000 (revision 1, irq 19) (0x13c2,0x1019).
+> > Aug 23 14:20:52 pvr kernel: [   37.779111] saa7146 (0): dma buffer size
+> > 192512
+> > Aug 23 14:20:52 pvr kernel: [   37.779113] DVB: registering new adapter
+> > (TT-Budget S2-3200 PCI)
+> > Aug 23 14:20:52 pvr kernel: [   37.815982] adapter has MAC addr =
+> > 00:d0:5c:64:9b:c2
+> > Aug 23 14:20:52 pvr kernel: [   37.816245] input: Budget-CI dvb ir
+> > receiver saa7146 (0)
+> > as /devices/pci0000:00/0000:00:1e.0/0000:05:01.0/input/input6
+> > Aug 23 14:20:52 pvr kernel: [   37.864809] budget_ci: CI interface
+> > initialised
+> > Aug 23 14:20:52 pvr kernel: [   38.212946] stb0899_attach: Attaching
+> > STB0899
+> > Aug 23 14:20:52 pvr kernel: [   38.234440] stb6100_attach: Attaching
+> > STB6100
+> > Aug 23 14:20:52 pvr kernel: [   38.249442] DVB: registering frontend 0
+> > (STB0899 Multistandard)...
+> > 
+> > 
+> > 
+> >   
+> Jo,
 > 
-> I have reworked the tuner callback now against your branch at:
-> http://linuxtv.org/hg/~stoth/v4l-dvb
+> It looks like the driver is OK but I have an issue either with the
+> T.Rex/Dragon CAM when it used in this CI, or the CI interface on my
+> TT-3200, or the CI daughter board. What kind of CAM are you using? Has
+> anyone got a T.Rex/Dragon CAM working with the budget PCI driver.
 > 
-> The new Patch (to add support for this card) is attached inline below 
-> for testing (this is a hint Mark & Jon), I have not provided a 
-> signed-off note on purpose as I want to solve the issue mentioned in the 
-> next paragraph first.
+> Thanks,
 > 
-> Regarding the cx25840 module; the card doesn't seem to initialise 
-> properly (no DVB output and DMA errors in log) unless I have this 
-> requested.  Once the card is up and running I can unload all drivers, 
-> recompile without the cx25840 and load and it will work again until I 
-> power off the computer and back on again (This has been tedious trying 
-> to work out which setting I had missed).  Is there some initialisation 
-> work being performed in the cx25840 module that I can incorporate into 
-> my patch to remove this dependency? Or should I leave it as is?
-> 
-> Anyway nearly bedtime here.
-
-The patch looks good, with the exception of requesting the cx25840.
-
-I've always been able to run DVB without that driver being present, so 
-something is odd with the Leadtek card. I'm not aware of any 
-relationship between the cx25840 driver and the DVB core.
-
-You're going to need to find the magic register write that the cx25840 
-is performing so we can discuss here. I'd rather we figured that out 
-cleanly, than just merged the patch and have the problem linger on.
-
-Other than that, good patch.
-
-- Steve
+> Roger
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
-
-
-
-
+I am using a original tv-vlaanderen CAM (mediaguard)
 
 
 _______________________________________________
