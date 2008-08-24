@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jw@raven.inka.de>) id 1KXiEj-0007xI-5m
-	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 22:00:25 +0200
-Date: Mon, 25 Aug 2008 21:55:47 +0200
-From: Josef Wolf <jw@raven.inka.de>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1KX7pD-0007T9-Nk
+	for linux-dvb@linuxtv.org; Sun, 24 Aug 2008 07:07:45 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
 To: linux-dvb@linuxtv.org
-Message-ID: <20080825195547.GI32022@raven.wolf.lan>
-References: <20080821211437.GE32022@raven.wolf.lan>
-	<!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAOaJZETzR8EqzWu9A9o/UpwEAAAAA@tv-numeric.com>
-Mime-Version: 1.0
+Date: Sun, 24 Aug 2008 07:06:13 +0200
+References: <9e849af80808170229i4d79e160ibb8a928b2434f59b@mail.gmail.com>
+	<200808172336.51407@orion.escape-edv.de>
+In-Reply-To: <200808172336.51407@orion.escape-edv.de>
+MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAOaJZETzR8EqzWu9A9o/UpwEAAAAA@tv-numeric.com>
-Subject: Re: [linux-dvb] RE : How to convert MPEG-TS to MPEG-PS on the fly?
+Message-Id: <200808240706.14898@orion.escape-edv.de>
+Subject: Re: [linux-dvb] activy dvb-t ALPS tdhd1-204A support?
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,31 +27,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Aug 22, 2008 at 10:10:09AM +0200, Thierry Lelegard wrote:
-> On Thu, Aug 21, 2008 at 09:17:58PM +0200, Josef Wolf wrote:
+Oliver Endriss wrote:
+> jaakko tuomainen wrote:
+> > Hi,
+> > 
+> > Thanks for the patch, now I can tune to any free-to-air
+> > channel with Kaffeine (i don't have pay-tv to test it).
+> > Is there need for some kind of "fine tuning" of the driver
+> > now when the cards are detected and work ok?
 > 
-> >The more I look at this PES stream the more confused I get:  The
-> >stream_id 0xe0 seems to transport PTS and DTS _only_.  Everything
-> >else seems to be contained in PES packets with those unknown
-> >stream_id's.  Here is what I see:
+> Great. I am a bit surprised that it works, since most of the parameters
+> in 'struct tda1004x_config' are just an educated guess. ;-)
 > 
-> As mentioned in my previous post, the "stream ids" below B9
-> are ISO 13818-2 "start codes".
+> If there are no problems we can leave the parameters 'as is'.
+> Fine tuning - if necessary - must be done by people who own the card
+> and are able to compare behaviour with the windows driver.
+> 
+> Let's test the patch until next weekend, then I will commit it to HG.
 
-Thanks for the explanation, Thierry!
+Could you please post a log which contains the driver messages after a
+coldstart (poweroff the machine).
 
-I now have tried to convert via ffmpeg.  The command I used was
+I'd like to know whether the TDHD1 has an internal eeprom for the
+tda10046 firmware. If yes, we do not need the request_firmware stuff.
 
-  ffmpeg -vcodec copy -acodec copy z.ps.mp2 -i z.ts
+Thanks,
+Oliver
 
-This creates pack headers which don't seem to fit to the syntax
-defined in table 2-33 of iso-13818-1:
-
-  00 00 01 ba 21 00 01 00  01 a1 9f 0d 00 00 01 bb
-
-This looks strange to me.  According to the syntax, the pack
-header should be 14 bytes.  Maybe I used the wrong options and
-created  a mpeg1 stream?
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
