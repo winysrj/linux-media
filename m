@@ -1,25 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7R2KjCQ001098
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 22:20:45 -0400
-Received: from mail8.sea5.speakeasy.net (mail8.sea5.speakeasy.net
-	[69.17.117.10])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7R2KXgM024717
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 22:20:33 -0400
-Date: Tue, 26 Aug 2008 19:20:27 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-In-Reply-To: <20080826232913.GA2145@daniel.bse>
-Message-ID: <Pine.LNX.4.58.0808261911000.2423@shell2.speakeasy.net>
-References: <200808251445.22005.jdelvare@suse.de>
-	<1219711251.2796.47.camel@morgan.walls.org>
-	<20080826232913.GA2145@daniel.bse>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7O9aIRB019355
+	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 05:36:18 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7O9a6kn017621
+	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 05:36:06 -0400
+Message-ID: <48B12E11.5000500@hhs.nl>
+Date: Sun, 24 Aug 2008 11:46:57 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
-	Jean Delvare <jdelvare@suse.de>
-Subject: Re: [v4l-dvb-maintainer] bttv driver questions
+To: Jean-Francois Moine <moinejf@free.fr>
+Content-Type: multipart/mixed; boundary="------------070007070608080002030305"
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: PATCH: gspca-sonixb-led-off.patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,43 +24,78 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 27 Aug 2008, Daniel [iso-8859-1] Glöckner wrote:
-> On Mon, Aug 25, 2008 at 08:40:51PM -0400, Andy Walls wrote:
-> > On Mon, 2008-08-25 at 14:45 +0200, Jean Delvare wrote:
-> > > * Does the bttv driver have anything special to do for full
-> > >   resolution frames, that it doesn't have to do for half resolution
-> > >   ones? In particular, I wonder if the BT878 DMA engine knows how to
-> > >   interlace fields when writing to the memory, or if the bttv driver
-> > >   must take care of reordering the fields properly afterwards. I
-> > >   suspect the latter.
->
-> The driver fills buffers with instructions for the DMA engine, one buffer
-> for the top field and one for the bottom field. These instructions tell
-> the engine where to write a specific pixel. For interlaced video the
-> instructions for the top field write to line 0, 2, 4, ... in memory and for
-> the bottom field to line 1, 3, 5, ... .
+This is a multi-part message in MIME format.
+--------------070007070608080002030305
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Keep in mind that _either_ field can be transmitted first.  I.e., in some
-cases one first writes lines 1,3,5 then lines 0,2,4.  I'm not sure if bttv
-supports both field dominances or not, but I think it does.
+Hi,
 
-> > So with a BT878 latency timer of 32 cycles, a 128 byte burst could be
-> > sent as 2 transactions, assuming a maximum target setup time for the
-> > host bridge, with a transfer that doesn't hit a modified cache line,
-> > assuming transparent arbitration:
-> >
-> I think worst case for slow targets is more like
->
-> 1 addr cycle
-> 15 setup cycles (unsure if initial latency includes addr cycle...)
-> 1 data cycle
-> 7 setup cycles
-> 1 data cycle
-> 7 setup cycles <-- latency timer of 32 expires, assuming GNT# is deasserted
+* Turn the led of the cam off after plugging in the cam
+* Move the probe code from open to config, so that if the probe fails
+   we never register
 
-Isn't the latency timer in units of 250 ns, not PCI cycles?
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+
+Regards,
+
+Hans
+
+--------------070007070608080002030305
+Content-Type: text/plain;
+ name="gspca-sonixb-led-off.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="gspca-sonixb-led-off.patch"
+
+* Turn the led of the cam off after plugging in the cam
+* Move the probe code from open to config, so that if the probe fails
+  we never register
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+diff -r a392efb75b57 linux/drivers/media/video/gspca/sonixb.c
+--- a/linux/drivers/media/video/gspca/sonixb.c	Sun Aug 24 11:37:43 2008 +0200
++++ b/linux/drivers/media/video/gspca/sonixb.c	Sun Aug 24 11:40:27 2008 +0200
+@@ -789,6 +789,11 @@
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	struct cam *cam;
+ 	int sif = 0;
++	const __u8 stop = 0x09; /* Disable stream turn of LED */
++
++	reg_r(gspca_dev, 0x00);
++	if (gspca_dev->usb_buf[0] != 0x10)
++		return -ENODEV;
+ 
+ 	/* copy the webcam info from the device id */
+ 	sd->sensor = (id->driver_info >> 24) & 0xff;
+@@ -821,15 +826,15 @@
+ 		sd->autogain = AUTOGAIN_DEF;
+ 	sd->freq = FREQ_DEF;
+ 
++	/* Disable stream turn of LED */
++	reg_w(gspca_dev, 0x01, &stop, 1);
++
+ 	return 0;
+ }
+ 
+ /* this function is called at open time */
+ static int sd_open(struct gspca_dev *gspca_dev)
+ {
+-	reg_r(gspca_dev, 0x00);
+-	if (gspca_dev->usb_buf[0] != 0x10)
+-		return -ENODEV;
+ 	return 0;
+ }
+ 
+
+--------------070007070608080002030305
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------070007070608080002030305--
