@@ -1,28 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7MKwDxf023257
-	for <video4linux-list@redhat.com>; Fri, 22 Aug 2008 16:58:13 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7MKvxha004762
-	for <video4linux-list@redhat.com>; Fri, 22 Aug 2008 16:57:59 -0400
-From: Andy Walls <awalls@radix.net>
-To: Daniel =?ISO-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-In-Reply-To: <20080822203247.GA928@daniel.bse>
-References: <200808181918.05975.jdelvare@suse.de>
-	<200808202334.20872.jdelvare@suse.de>
-	<Pine.LNX.4.58.0808210107110.23833@shell4.speakeasy.net>
-	<200808211114.27290.jdelvare@suse.de>
-	<Pine.LNX.4.58.0808211445230.23833@shell4.speakeasy.net>
-	<1219407994.2855.24.camel@morgan.walls.org>
-	<20080822203247.GA928@daniel.bse>
-Content-Type: text/plain; charset=utf8
-Date: Fri, 22 Aug 2008 16:54:22 -0400
-Message-Id: <1219438462.2897.43.camel@morgan.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
-	Jean Delvare <jdelvare@suse.de>
-Subject: Re: [v4l-dvb-maintainer] bttv driver errors
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7OEYrYZ003906
+	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 10:34:54 -0400
+Received: from smtp-vbr14.xs4all.nl (smtp-vbr14.xs4all.nl [194.109.24.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7OEYf9E023159
+	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 10:34:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Sun, 24 Aug 2008 16:34:36 +0200
+References: <48AF1E83.4000102@nachtwindheim.de>
+	<Pine.LNX.4.64.0808241045530.2897@areia>
+In-Reply-To: <Pine.LNX.4.64.0808241045530.2897@areia>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200808241634.36653.hverkuil@xs4all.nl>
+Cc: Henne <henne@nachtwindheim.de>, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] V4L: fix retval in vivi driver for more than one device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,56 +31,82 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 2008-08-22 at 22:32 +0200, Daniel Glöckner wrote:
-> On Fri, Aug 22, 2008 at 08:26:34AM -0400, Andy Walls wrote:
-> > What are the benefits of using the moving average filters before
-> > decimation?
-> 
-> The benefit is that the upper spectrum is attenuated before it is
-> mirrored into the lower spectrum by the decimation. After the decimation
-> you have no way of removing those artifacts in a mathematically correct
-> way.
+On Sunday 24 August 2008 16:00:45 Mauro Carvalho Chehab wrote:
+> This patch is not 100% OK, for some reasons:
+>
+> 1) since ret won't be initialized anymore, it will generate
+> compilation warnings;
+>
+> 2) with the current code, if you ask to allocate, let's say, 3
+> virtual drivers, and the second or the third fails, you'll still have
+> one allocated. With your change, you'll de-allocate even the ones
+> that succeeded. IMO, the better is to allow using the ones that
+> succeeded.
+>
+> That's said, I can see other issues on the current vivi.c code:
+>
+> 1) what happens if someone uses n_dev=0? It will return a wrong error
+>     code.
+>
+> 2) there are still some cases where the driver allocates less devices
+> than requested, but it will fail to register, and all stuff will be
+> de-allocated;
+>
+> 3) what if n_dev is a big number? Currently, i think videodev will
+> allow you to register up to 32 video devices of this type, even if
+> you have memory for more, due to some limits inside videodev, and due
+> to the number of minors allocated for V4L.  IMO, the driver should
+> allocate up to the maximum allowed devices by videodev, and let users
+> use they.
+>
+> Anyway, thanks for your patch. For sure we need to do some fixes
+> here. I'll try to address all those stuff into a patch.
 
-Ah, of course. Thank you.  
+Hi Mauro,
 
-I should have known that. :P  I didn't mentally connect decimation with
-pulling the alias spectra in closer to overlap the main spectrum.
+Please note that I am working on creating a much improved V4L 
+infrastructure to take care of such things. It's simply nuts that v4l 
+drivers need to put in all the plumbing just to be able to have 
+multiple instances.
 
+In particular, all these limitations on the number of instances should 
+disappear (unless you run out of minors).
 
 Regards,
-Andy
 
+	Hans
 
-> There are better FIR filters than 0.5 * x(0) + 0.5 * x(1), which will
-> avoid aliasing even more and preserve more of the lower spectrum.
-> This is just the simplest.
-> 
-> Btw., enabling the chroma comb filter in bttv will result in alternating
-> 0.5*x(-2)+0.5*x(0) and 0.5*x(-1)+0.5*x(1) for frame captures and
-> 0.5*x(-1)+0.5*x(0) for field captures. I have once tried to modify
-> bttv_risc_planar to be closer to MPEG chroma subsampling when the comb
-> filter is enabled, because I was annoyed by the gray first line.
-> 
-> On Thu, Aug 21, 2008 at 01:50:05AM -0700, Trent Piepho wrote:
-> > A better question would be how does the bt878 do horizontal and vertical
-> > scaling?  If you look at the description of ultralock and the number of
-> > taps avaiable for the vertical scaling filters, the chip must have some
-> > kind of multi-line buffer before the scaler.  But this buffer, and the
-> > delay it must introduce, is never mentioned in the datasheet.
-> 
-> The buffer is "mentioned" in figure 2-4 of the Fusion 878A datasheet
-> available on the Conexant website. Its size can be derived from the
-> restrictions placed on the luma filters. It should be 768 luma samples.
-> The decimation then has another full line buffer for luma and chroma
-> to perform the linear luma interpolation and the chroma comb filter.
-> 
->   Daniel
-> 
-> _______________________________________________
-> v4l-dvb-maintainer mailing list
-> v4l-dvb-maintainer@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/v4l-dvb-maintainer
-> 
+>
+> Cheers,
+> Mauro.
+>
+> On Fri, 22 Aug 2008, Henne wrote:
+> > From: Henrik Kretzschmar <henne@nachtwindheim.de>
+> > Signed-off-by: Henrik Kretzschmar <henne@nachtwindheim.de>
+> >
+> > The variable ret should be set for each device to -ENOMEM, not only
+> > the first.
+> >
+> > diff --git a/drivers/media/video/vivi.c
+> > b/drivers/media/video/vivi.c index 3518af0..d739b59 100644
+> > --- a/drivers/media/video/vivi.c
+> > +++ b/drivers/media/video/vivi.c
+> > @@ -1106,11 +1106,12 @@ static struct video_device vivi_template =
+> > {
+> >
+> > static int __init vivi_init(void)
+> > {
+> > -	int ret = -ENOMEM, i;
+> > +	int ret, i;
+> > 	 struct vivi_dev *dev;
+> > 	 struct video_device *vfd;
+> >
+> > 	for (i = 0; i < n_devs; i++) {
+> > +		ret = -ENOMEM;
+> > 		 dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+> > 		 if (NULL == dev)
+> > 			 break;
+
 
 --
 video4linux-list mailing list
