@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7GBlRJv022577
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 07:47:27 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7GBlD0i032220
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 07:47:13 -0400
-Date: Sat, 16 Aug 2008 08:47:04 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Message-ID: <20080816084704.60709971@mchehab.chehab.org>
-In-Reply-To: <48A689C1.7070007@hhs.nl>
-References: <20080816050023.GB30725@thumper> <48A67A8D.8040104@hhs.nl>
-	<7813ee860808160046s60de698bu307ab5255631a5e@mail.gmail.com>
-	<48A689C1.7070007@hhs.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7OE8ewp031721
+	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 10:08:40 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.237])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7OE8Tp5011182
+	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 10:08:29 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so1967438rvb.51
+	for <video4linux-list@redhat.com>; Sun, 24 Aug 2008 07:08:29 -0700 (PDT)
+Message-ID: <d9def9db0808240708p7fa3c012q57408d09db090a13@mail.gmail.com>
+Date: Sun, 24 Aug 2008 16:08:29 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: hansfong@zonnet.nl
+In-Reply-To: <20080824152931.hbojr7or58oggosc@webmail.versatel.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <20080824152931.hbojr7or58oggosc@webmail.versatel.nl>
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Add support for OmniVision OV534 based USB cameras.
+Subject: Re: Low profile TV card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,28 +30,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, 16 Aug 2008 10:03:13 +0200
-> > I would definitely be willing to merge the code into an existing driver,
-> > though I was under the impression that the gspca core was for ISOC based
-> > USB devices.  The ov534's imagine end-point is bulk transfer, with the
-> > audio endpoints being isoc.
-> > 
-> 
-> Ah yes it is I didn't know non isoc cams existed, so thats why your driver is 
-> so small I already was sorta missing the isoc setup stufff :)
+On Sun, Aug 24, 2008 at 3:29 PM,  <hansfong@zonnet.nl> wrote:
+> I'm building a new system with a barebone AOpen/Intel Atom PC.  Problem is
+> that is can only fit one low profile PCI card. My 8 year old Pinnacle PCTV
+> pro doesn't fit, so....
+>
 
-The usage of videobuf simplifies a lot the driver logic. That's why it is so small :)
+ever thought about USB solutions? My impression is since they aren't
+directly connected with the motherboard and not influenced by the
+electronic fields in the PC the quality is usually better with a lower
+signal strength. I have an Asus DigiMatrix with Saa7134 and clearly
+notice that a stronger signal is required.
 
-I think it would be good if gspca could also use videobuf in the future.
+Do you mean PCI or miniPCI with low profile PCI card?
 
+Markus
 
-> In that case its fine as is. Mauro as this is a new driver and looks clean (and 
-> uses videobuf) any chance this can get merged for 2.6.27 ?
-
-Maybe. I'll see when I receive Mark updates.
-
-Cheers,
-Mauro
+> - what low profile PCI TV cards are out there that work well with Linux? I
+> need a simple analog card with composite and s-video inputs. Alternatively a
+> video capture card will fit the bill too.
+> - the latest line of Pinnacle cards seem low profile, but... I can't find
+> any info on a) if they are really low profile cards and come with the
+> appropriate bracket, b) the chipset they use . Does anyone know?
+>
+> Cheers,
+>
+> Hans
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
 --
 video4linux-list mailing list
