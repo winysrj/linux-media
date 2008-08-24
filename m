@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
+Received: from winston.telenet-ops.be ([195.130.137.75])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dvb-t@iinet.com.au>) id 1KQwDe-0000BO-OK
-	for linux-dvb@linuxtv.org; Thu, 07 Aug 2008 05:31:21 +0200
-Message-ID: <0BBC9497950E4ECA878D1D018B090B61@mce>
-From: "David" <dvb-t@iinet.com.au>
-To: "Tim Farrington" <timf@iinet.net.au>
-References: <20080801034025.C0EC947808F@ws1-5.us4.outblaze.com><4897AC24.3040006@linuxtv.org>	<20080805214339.GA7314@kryten><20080805234129.GD11008@brainz.yelavich.home>	<4899020C.50000@linuxtv.org>
-	<41A3723BDBA947399F2CBD960E4AFB94@mce>
-	<48996623.4010703@iinet.net.au>
-Date: Thu, 7 Aug 2008 13:31:10 +1000
-MIME-Version: 1.0
+	(envelope-from <jo@requestfocus.be>) id 1KXDRR-0003yv-UP
+	for linux-dvb@linuxtv.org; Sun, 24 Aug 2008 13:07:31 +0200
+From: Jo Heremans <jo@requestfocus.be>
+To: Roger James <roger@beardandsandals.co.uk>
+In-Reply-To: <48B06FD3.5050500@beardandsandals.co.uk>
+References: <48B06FD3.5050500@beardandsandals.co.uk>
+Date: Sun, 24 Aug 2008 13:07:26 +0200
+Message-Id: <1219576046.11317.2.camel@pvr>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
-	DVB-T Dual Express
+Subject: Re: [linux-dvb] Has anyone got the CI on a TT 3200 past the	initial
+	reset state
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,148 +26,103 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Tim
+On Sat, 2008-08-23 at 21:15 +0100, Roger James wrote:
+> I asked a similar question this a little whiile ago and got no answer. 
+> So I am trying again with a bit more detail and hoping someone somewhere 
+> can tell me whether I am wasting my time. I need to find out whether the 
+> CI daughter board is broken or this combination has never worked in the 
+> budget-ci driver.
+> 
+> The TT-3200 works fine for DVB scan and capture, but I cannot get the CI 
+> to initialise fully. It always times out on the initial reset and gives 
+> a "PC card did not respond" message in the kernel log.
+> 
+> I peppered the driver with extra diagnostics and as far as I can see the 
+> initial CI reset process is started. The firmware version is reported as 
+> 0xa0 (is this correct?) so an interrupt is expected from the card. This 
+> interrupt never occurs. If I poll the card status 
+> (ciintf_poll_slot_status) when the reset times out then flags come back 
+> as 9 (CAMDETECT|RESET) but it looks like the read_attribute_mem does not 
+> give the correct value and returns 0x00 which I assume means that the 
+> CAM has not initialised. I have appended the dmesg output to the end of 
+> this message.
+> 
+> If anyone has got this working can you please let me know, so I can swap 
+> the CI daughter board for a working one and stop wasting my time debugging.
+> 
+> Help!
+> 
+> Roger
+> 
+> saa7146: register extension 'budget_ci dvb'.
+> ACPI: PCI Interrupt 0000:00:0b.0[A] -> Link [LNKD] -> GSI 12 (level, 
+> low) -> IRQ 12
+> saa7146: found saa7146 @ mem e1a28000 (revision 1, irq 12) (0x13c2,0x1019).
+> saa7146 (0): dma buffer size 192512
+> DVB: registering new adapter (TT-Budget S2-3200 PCI)
+> adapter has MAC addr = 00:d0:5c:68:34:04
+> input: Budget-CI dvb ir receiver saa7146 (0) as /class/input/input9
+> budget_ci: Slot status cf451000 set to NONE 3 fw vers a0
+> budget_ci: Slot status cf451000 set to PRESENT
+> dvb_ca_en50221_init
+> budget_ci: CI interface initialised
+> CAMCHANGE IRQ slot:0 change_type:1
+> dvb_ca_en50221_thread_wakeup
+> dvb_ca_en50221_thread
+> budget_ci: Slot status cf451000 set to RESET
+> stb0899_attach: Attaching STB0899
+> stb6100_attach: Attaching STB6100
+> DVB: registering frontend 0 (STB0899 Multistandard)...
+> budget_ci: poll status budget_ci cf451000 flags 9 slot_status 4
+> budget_ci: read_attribute 0
+> dvb_ca adaptor 0: PC card did not respond :( 0x1
+> 
+> 
+> 
+> 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
-Thanks for information.
+Roger,
 
-I obtained the driver, extracted the firmware to lib/firmware and tried to 
-scan.
-I cannot get a lock on anything.
+I have the CI adaptor working on the TT S-3200.
+I have ubuntu 8.04 with kernel Linux pvr 2.6.24-16-generic
+I use the latest multiproto drivers.
 
-dmesg shows it is loading the firmware but nothing more:
-
-[  192.596627] xc2028 1-0061: Loading 3 firmware images from xc3028-v27.fw, 
-type: DViCO DualDig4/Nano2 (Australia), ver 2.7
-[  192.796658] xc2028 1-0061: Loading firmware for type=BASE F8MHZ (3), id 
-0000000000000000.
-[  193.965865] xc2028 1-0061: Loading firmware for type=D2620 DTV7 (88), id 
-0000000000000000.
-[  265.268818] xc2028 2-0061: Loading 3 firmware images from xc3028-v27.fw, 
-type: DViCO DualDig4/Nano2 (Australia), ver 2.7
-[  265.468693] xc2028 2-0061: Loading firmware for type=BASE F8MHZ (3), id 
-0000000000000000.
-[  266.633170] xc2028 2-0061: Loading firmware for type=D2620 DTV7 (88), id 
-0000000000000000.
-
-
-Regards
-David
+Greetz,
+Jo
 
 
 
------ Original Message ----- 
-From: "Tim Farrington" <timf@iinet.net.au>
-To: "David Porter" <dvb-t@iinet.com.au>
-Cc: <linux-dvb@linuxtv.org>
-Sent: Wednesday, August 06, 2008 6:51 PM
-Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV 
-DVB-T Dual Express
+Aug 23 14:20:52 pvr kernel: [   37.779037] saa7146: register extension
+'budget_ci dvb'.
+Aug 23 14:20:52 pvr kernel: [   37.779088] ACPI: PCI Interrupt
+0000:05:01.0[A] -> GSI 19 (level, low) -> IRQ 19
+Aug 23 14:20:52 pvr kernel: [   37.779106] saa7146: found saa7146 @ mem
+ffffc200008b2000 (revision 1, irq 19) (0x13c2,0x1019).
+Aug 23 14:20:52 pvr kernel: [   37.779111] saa7146 (0): dma buffer size
+192512
+Aug 23 14:20:52 pvr kernel: [   37.779113] DVB: registering new adapter
+(TT-Budget S2-3200 PCI)
+Aug 23 14:20:52 pvr kernel: [   37.815982] adapter has MAC addr =
+00:d0:5c:64:9b:c2
+Aug 23 14:20:52 pvr kernel: [   37.816245] input: Budget-CI dvb ir
+receiver saa7146 (0)
+as /devices/pci0000:00/0000:00:1e.0/0000:05:01.0/input/input6
+Aug 23 14:20:52 pvr kernel: [   37.864809] budget_ci: CI interface
+initialised
+Aug 23 14:20:52 pvr kernel: [   38.212946] stb0899_attach: Attaching
+STB0899
+Aug 23 14:20:52 pvr kernel: [   38.234440] stb6100_attach: Attaching
+STB6100
+Aug 23 14:20:52 pvr kernel: [   38.249442] DVB: registering frontend 0
+(STB0899 Multistandard)...
 
 
-> David Porter wrote:
->> Hi
->>
->> I have one of these, saw Stevens post and thought i would give it a go.
->>
->> I built from : http://linuxtv.org/hg/~stoth/v4l-dvb
->> All seemed to go well with no errors.
->>
->> dmesg reads:
->>
->> [   31.964424] CORE cx23885[0]: subsystem: 18ac:db78, board: DViCO 
->> FusionHDTV DVB-T Dual Express [card=11,autodetected]
->> [   32.104767] cx23885[0]: i2c bus 0 registered
->> [   32.104781] cx23885[0]: i2c bus 1 registered
->> [   32.104794] cx23885[0]: i2c bus 2 registered
->> [   32.164385] input: i2c IR (FusionHDTV) as 
->> /devices/virtual/input/input8
->> [   32.422764] ir-kbd-i2c: i2c IR (FusionHDTV) detected at 
->> i2c-1/1-006b/ir0 [cx23885[0]]
->> [   32.423135] cx23885[0]: cx23885 based dvb card
->> [   32.492021] xc2028 1-0061: creating new instance
->> [   32.492027] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
->> [   32.492036] DVB: registering new adapter (cx23885[0])
->> [   32.492040] DVB: registering frontend 0 (Zarlink ZL10353 DVB-T)...
->> [   32.492386] cx23885[0]: cx23885 based dvb card
->> [   32.492924] xc2028 2-0061: creating new instance
->> [   32.492926] xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
->> [   32.492928] DVB: registering new adapter (cx23885[0])
->> [   32.492930] DVB: registering frontend 1 (Zarlink ZL10353 DVB-T)...
->> [   32.493228] cx23885_dev_checkrevision() Hardware revision = 0xb0
->> [   32.493236] cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16, 
->> latency: 0, mmio: 0xfe800000
->>
->> But scanning, returns :
->>
->> [ 1381.214624] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
->> [ 1382.220858] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
->> [ 1382.260825] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
->> [ 1383.267724] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
->> [ 1383.276680] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
->>
->> I checked  /lib/firmware/ but xc3028-v27.fw is not in the directory ?
->>
->> Must have messed it up somewhere! Any help appreciated.
->>
->> Thanks
->> David
->>
->> ----- Original Message ----- 
->> From: "Steven Toth" <stoth@linuxtv.org>
->> To: "Luke Yelavich" <themuso@themuso.com>
->> Cc: <linux-dvb@linuxtv.org>
->> Sent: Wednesday, August 06, 2008 11:44 AM
->> Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV 
->> DVB-T Dual Express
->>
->>
->>
->>>>>> I've tested with the HVR1500Q (xc5000 based) and I'm happy with the
->>>>>> results. Can you both try the DViCO board?
->>>>>>
->>>>> It tests fine and I like how simpler things have got.
->>>>>
->>>> I pulled the above linked tree, and compiled the modules. It seems at 
->>>> the moment for the dual express, that I have to pass the parameter 
->>>> card=11 to the driver, for it to correctly find the card and make use 
->>>> of all adapters. Without any module parameters, dmsg complains that the 
->>>> card couldn't be identified, yet two adapters are shown. I have two of 
->>>> these cards.
->>>>
->>>> Hope this helps some.
->>>>
->>> .. And they're both the same model?
->>>
->>> If so, insert one at a time and run the 'lspci -vn' command, save the
->>> output for each card.
->>>
->>> Post the output here.
->>>
->>> Assuming you load the driver with card=11, does each card work correctly
->>> after that?
->>>
->>> - Steve
->>>
->>> _______________________________________________
->>> linux-dvb mailing list
->>> linux-dvb@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>
->>>
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->>
->
-> To obtain xc3028-v27.fw
->
-> see ~/v4l-dvb/linux/Documentation/video4linux/extract_xc3028.pl
->
-> Regards,
-> Timf 
 
 _______________________________________________
 linux-dvb mailing list
