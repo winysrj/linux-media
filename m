@@ -1,25 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1KWb0o-0003f0-No
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 20:05:27 +0200
-Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
-	[84.70.212.195])
-	by mail.youplala.net (Postfix) with ESMTP id 9D5C3D880A4
-	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 20:04:28 +0200 (CEST)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1219427117.29624.33.camel@youkaida>
-References: <1219330331.15825.2.camel@dark> <48ADF515.6080401@nafik.cz>
-	<1219360304.6770.34.camel@youkaida> <1219423326.29624.8.camel@youkaida>
-	<1219423493.29624.9.camel@youkaida>
-	<412bdbff0808220952y16d36f3by646f0000991de4d3@mail.gmail.com>
-	<1219424386.29624.16.camel@youkaida>
-	<1219427117.29624.33.camel@youkaida>
-Date: Fri, 22 Aug 2008 19:04:30 +0100
-Message-Id: <1219428270.29624.39.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] dib0700 and analog broadcasting
+	(envelope-from <stoth@linuxtv.org>) id 1KXdIJ-0007eC-Hn
+	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 16:43:48 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K65004CGVK03U60@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 25 Aug 2008 10:43:12 -0400 (EDT)
+Date: Mon, 25 Aug 2008 10:43:12 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <002801c9062b$141c01f0$3c5405d0$@net>
+To: Dustin Coates <dcoates@systemoverload.net>
+Message-id: <48B2C500.6010906@linuxtv.org>
+MIME-version: 1.0
+References: <1219545012.23807.1.camel@sysmain> <48B16766.7070306@linuxtv.org>
+	<002801c9062b$141c01f0$3c5405d0$@net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1800 Analog issues
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,38 +32,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 2008-08-22 at 18:45 +0100, Nicolas Will wrote:
+Dustin Coates wrote:
+> Thanks. 
 > 
-> What is interesting, is that at each self-reboot, that are warm
-> reboots,
-> the card is in cold state and needs a firmware. So can I conclude that
-> it never got loaded? Or that the self reboot is a cold reboot?
+> I got all the modules loaded, but lspci -vnn is still show it as
+> unreconized. 
+>   
+> 02:00.0 Multimedia video controller [0400]: Conexant Unknown device
+> [14f1:8880] (rev 0f)
+> 	Subsystem: Hauppauge computer works Inc. Unknown device [0070:7801]
+> 	Flags: bus master, fast devsel, latency 0, IRQ 16
+> 	Memory at e9000000 (64-bit, non-prefetchable) [size=2M]
+> 	Capabilities: <access denied>
 
+That's normal. It means the PCI database of strings needs a patch. It 
+does not effect driver behavior.
 
-hmmm...
+<cut>
 
-OK.
+> 
+> I have the HVR-1800 MCE kit edition
+> 
+> Also another issue, don't know if this is mythtv relateed or drive
+> related. 
+> 
+> When i set the card up in mythtv is /dev/video0 lets me choos
+> television/s-video/composite whereas /dev/video1 is stuck on unset. 
+> 
+> Anything i can do to help? It's been ages since i've programmed, but i
+> have a high learning curve. 
 
-It works now.
+Does it work in MythTV, even though it's set to unset?
 
-A lot of noise about not much, and that makes me wonder how much of an
-idiot I am...
-
-I did a 
-
-sudo find /lib/firmware/2.6.24-1* -name "dvb-usb-dib07*.fw" -exec rm {}
-\;
-
-It did remove all the 1.10 firware files provided by the Ubuntu
-packaging.
-
-I made sure that I had the 1.20 fw with the 1.10 name in /lib/firmware,
-and all is working.
-
-Apparently the driver/kernel was confused about which file to pick-up.
-
-Nico
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
