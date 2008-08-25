@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KQTtx-0003jg-5e
-	for linux-dvb@linuxtv.org; Tue, 05 Aug 2008 23:17:06 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K55005BDCFAF811@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 05 Aug 2008 17:16:24 -0400 (EDT)
-Date: Tue, 05 Aug 2008 17:16:21 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <1217969890.6864.11.camel@bonnie>
-To: Chris Proctor <chrisp_42@bigpond.com>
-Message-id: <4898C325.9090207@linuxtv.org>
-MIME-version: 1.0
-References: <20080801034025.C0EC947808F@ws1-5.us4.outblaze.com>
-	<4897AC24.3040006@linuxtv.org> <1217969890.6864.11.camel@bonnie>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
- DVB-T Dual Express
+	(envelope-from <jw@raven.inka.de>) id 1KXiEj-0007xI-5m
+	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 22:00:25 +0200
+Date: Mon, 25 Aug 2008 21:55:47 +0200
+From: Josef Wolf <jw@raven.inka.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080825195547.GI32022@raven.wolf.lan>
+References: <20080821211437.GE32022@raven.wolf.lan>
+	<!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAOaJZETzR8EqzWu9A9o/UpwEAAAAA@tv-numeric.com>
+Mime-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAOaJZETzR8EqzWu9A9o/UpwEAAAAA@tv-numeric.com>
+Subject: Re: [linux-dvb] RE : How to convert MPEG-TS to MPEG-PS on the fly?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,39 +26,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Chris Proctor wrote:
-> On Mon, 2008-08-04 at 21:25 -0400, Steven Toth wrote:
->> Stephen / Anton,
->>
->> http://linuxtv.org/hg/~stoth/v4l-dvb
->>
->> This has Anton's patches and a subsequent cleanup patch to merge the 
->> single tune callback functions into a single entity. A much better 
->> solution all-round.
->>
->> I've tested with the HVR1500Q (xc5000 based) and I'm happy with the 
->> results. Can you both try the DViCO board?
->>
->> Thanks,
->>
->> Steve
->>
+On Fri, Aug 22, 2008 at 10:10:09AM +0200, Thierry Lelegard wrote:
+> On Thu, Aug 21, 2008 at 09:17:58PM +0200, Josef Wolf wrote:
 > 
-> Steven,
+> >The more I look at this PES stream the more confused I get:  The
+> >stream_id 0xe0 seems to transport PTS and DTS _only_.  Everything
+> >else seems to be contained in PES packets with those unknown
+> >stream_id's.  Here is what I see:
 > 
-> I have tested this in a machine with two DViCOs and all appears to work
-> well.
-> 
-> I have been running these cards with a slightly modified version of the
-> other Stephen's patches.  It will be good to finally get this driver
-> into the tree.
+> As mentioned in my previous post, the "stream ids" below B9
+> are ISO 13818-2 "start codes".
 
-Noted.
+Thanks for the explanation, Thierry!
 
-Thanks Chris.
+I now have tried to convert via ffmpeg.  The command I used was
 
-- Steve
+  ffmpeg -vcodec copy -acodec copy z.ps.mp2 -i z.ts
 
+This creates pack headers which don't seem to fit to the syntax
+defined in table 2-33 of iso-13818-1:
+
+  00 00 01 ba 21 00 01 00  01 a1 9f 0d 00 00 01 bb
+
+This looks strange to me.  According to the syntax, the pack
+header should be 14 bytes.  Maybe I used the wrong options and
+created  a mpeg1 stream?
 
 _______________________________________________
 linux-dvb mailing list
