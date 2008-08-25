@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KYF7u-0005SW-IB
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 09:07:35 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6800245ZROSQE1@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 27 Aug 2008 03:07:00 -0400 (EDT)
-Date: Wed, 27 Aug 2008 03:06:59 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <ed347ce40808262255s6bfc4f58ne2c8c00f56f95e44@mail.gmail.com>
-To: David Schollmeyer <dschollmeyer@gmail.com>
-Message-id: <48B4FD13.9030703@linuxtv.org>
-MIME-version: 1.0
-References: <ed347ce40808262255s6bfc4f58ne2c8c00f56f95e44@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1800 DVB Configuration
+	(envelope-from <jw@raven.inka.de>) id 1KXhSS-000581-U8
+	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 21:10:33 +0200
+Date: Mon, 25 Aug 2008 21:02:41 +0200
+From: Josef Wolf <jw@raven.inka.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080825190241.GH32022@raven.wolf.lan>
+References: <20080821174512.GC32022@raven.wolf.lan>
+	<52113.203.82.187.131.1219367267.squirrel@webmail.planb.net.au>
+	<20080822144448.GF32022@raven.wolf.lan>
+	<F4917AA8-6EA3-40A7-855B-AEB774B26C58@recoil.org>
+Mime-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <F4917AA8-6EA3-40A7-855B-AEB774B26C58@recoil.org>
+Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,64 +28,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-David Schollmeyer wrote:
-> Hi,
+On Fri, Aug 22, 2008 at 04:44:56PM +0100, Nick Ludlam wrote:
+> On 22 Aug 2008, at 15:44, Josef Wolf wrote:
+>>On Fri, Aug 22, 2008 at 11:07:47AM +1000, Kevin Sheehan wrote:
+>>
+>>>Barry was right on the money with the ts2ps suggestion below.  It's  
+>>>part of the libdvb package.  You don't have to use the dvb-mpegtools  
+>>>app, you can just use the lib in yours - no pipes, etc.
+
+I have now changed my application to create exactly what ts2ps creates.
+Now I notice that neither mplayer nor vlc play the stream created by
+ts2ps.
+
+Vlc gives tons of error messages like this:
+
+  [00000365] main video output warning: vout warning: early picture skipped (47722279483)
+  [00000359] main audio output warning: received buffer in the future (47722179597)
+
+no audio and black video :-(
+
+If I remove the PS pack header and the PS system header (stream-id 0xba
+and 0xbb) then both play the stream, but no STB plays it :-(
+
+Next, I tried:
+
+> The command I wrapped in a popen call from a script was:
 > 
-> I have the Hauppauge HVR-1800 that I am trying to get setup. I can get
-> the tuner to work on NTSC analog with my local cable provider (Cox
-> Communications - Phoenix, AZ). I am trying to get the ATSC/QAM tuner
-> to work with Cox as well. From what I've read, I should be able to get
-> all of the unencrypted DTV local channels from Cox but I cannot figure
-> out how to do so.
-> 
-> Following the steps at
-> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device, I
-> created the following channels.conf file:
-> KASW-DT:537000000:QAM_256:33:36
-> KSAZ-DT:537000000:QAM_256:49:52
-> KNXV-DT:555000000:QAM_256:33:36
-> KPHO-DT:555000000:QAM_256:49:52
-> KAET-DT-1:567000000:QAM_256:33:34
-> KPNX-DT:567000000:QAM_256:49:52
-> KAET-DT-2:567000000:QAM_256:67:70
-> 
-> I've tried running azap 'KAET-DT-2' gives:
-> 
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> tuning to 567000000 Hz
-> video pid 0x0043, audio pid 0x0046
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-> status 1f | signal 015e | snr 015e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 015e | snr 015e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 015e | snr 015e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 015e | snr 015e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal 015e | snr 015e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> ...
-> 
+> 	/opt/local/bin/replex -o /dev/stdout -i TS -v %s -a %s -t MPEG2 
+> 	/dev/ stdin
 
-This looks normal. I do this in NY with Cablevision with the HVR1800 and 
-it's working very well for me (and others).
+With this command, I get hopping video with VLC.
 
-> Any help on what may be wrong would be appreciated.
+It seems to be a mess.  None of the programs seem to produce proper
+streams.  Only mencoder seems to generate a proper stream.  But AFAICS,
+mencoder completely decodes the stream and re-encodes it again, eating
+up all the CPU.
 
+Any more ideas how to do the conversion?
 
-Chances are the streams you expect to see are encrypted. It's difficult 
-to say without looking at the packets. mplayer cannot play encrypted 
-streams. The other possibility is that you have the audio and video pids 
-set incorrectly in your channels.conf file, this would also cause 
-mplayer not to be able to play the stream correctly.
-
-Try some other frequencies.
-
-Also run dvbtraffic to see the packet traffic distribution across the 
-pids. The video pids will have a lot more packets per second than audio, 
-this may help you diagnose the problem.
-
-I assume the channel names, pid values and service numbers in your 
-channels.conf are accurate. Did this come as a result of running the 
-scan app, or something else?
-
-- Steve
+BTW: Can anybody recommend a good book on the topic?
 
 _______________________________________________
 linux-dvb mailing list
