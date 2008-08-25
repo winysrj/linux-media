@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.190])
+Received: from smtp-out1.iol.cz ([194.228.2.86])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <e9hack@googlemail.com>) id 1KWtd1-0002as-Jo
-	for linux-dvb@linuxtv.org; Sat, 23 Aug 2008 15:58:08 +0200
-Received: by fk-out-0910.google.com with SMTP id f40so566854fka.1
-	for <linux-dvb@linuxtv.org>; Sat, 23 Aug 2008 06:58:03 -0700 (PDT)
-Message-ID: <48B01765.8020104@gmail.com>
-Date: Sat, 23 Aug 2008 15:57:57 +0200
-MIME-Version: 1.0
+	(envelope-from <ajurik@quick.cz>) id 1KXiBz-0007NZ-Ir
+	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 21:57:36 +0200
+From: Ales Jurik <ajurik@quick.cz>
 To: linux-dvb@linuxtv.org
-References: <48B00D6C.8080302@gmx.de>
-In-Reply-To: <48B00D6C.8080302@gmx.de>
-From: e9hack <e9hack@googlemail.com>
-Subject: Re: [linux-dvb] Support of Nova S SE DVB card missing
+Date: Mon, 25 Aug 2008 21:56:52 +0200
+References: <1219648828.2816407742@mx16.mail.ru>
+	<E1KXWht-0009u2-00.goga777-bk-ru@f48.mail.ru>
+In-Reply-To: <E1KXWht-0009u2-00.goga777-bk-ru@f48.mail.ru>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200808252156.52323.ajurik@quick.cz>
+Subject: Re: [linux-dvb]
+ =?iso-8859-1?q?HVR_4000_recomneded_driver_and_firmwar?=
+ =?iso-8859-1?q?e_for_VDR_1=2E7=2E0?=
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,34 +29,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Eberhard Kaltenhaeuser schrieb:
-> Actual kernel does not support the Hauppauge WinTV Nova S SE PCI card 
-> anymore:
-> 
+On Monday 25 of August 2008, Goga777 wrote:
+> Yesterday Igor updated his repo, please update it and try again.
+>
+> here you can read more about firmware for hvr4000
+> http://allrussian.info/thread.php?threadid=98587
+>
 
-I think it is a problem of this changeset http://linuxtv.org/hg/v4l-dvb/rev/358d281e6a3d 
-from Patrick Boettcher. The S5H1420 isn't able to understand repeated start conditions. 
-The i2c-read code was changed from:
+I could confirm that this new version of drivers is running better (I have the 
+same problem as Marek and I use his hint with patched multiproto_plus drivers 
+to make HV-4000 under linux running) but not for all channels. I couldn't get 
+lock for some dvb-s2 channels (ANIXE HD, Premiere HD) which is with patched 
+multiproto_plus possible without problem. Also switching seems to be sometimes 
+slower.
 
-	if ((ret = i2c_transfer (state->i2c, &msg1, 1)) != 1)
-		return ret;
+I've tested it with kernel 2.6.25-2 and with fw for cs24116 version 1.20.79.0 
+and version 1.23.86.1.
 
-	if ((ret = i2c_transfer (state->i2c, &msg2, 1)) != 1)
-		return ret;
+Many thanks to Goga and Igor for their work.
 
-to:
-	if (state->config->repeated_start_workaround) {
-		ret = i2c_transfer(state->i2c, msg, 3);
-		if (ret != 3)
-			return ret;
-	} else {
-		ret = i2c_transfer(state->i2c, &msg[1], 2);
-		if (ret != 2)
-			return ret;
-	}
+BR,
 
--Hartmut
-
+Ales
 
 
 _______________________________________________
