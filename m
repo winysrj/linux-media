@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.28])
+Received: from mx00.csee.securepod.com ([66.232.128.196]
+	helo=cseeapp00.csee.securepod.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gujs.lists@gmail.com>) id 1KW5m3-0001vh-Ps
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 10:44:08 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so349702yxg.41
-	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 01:44:03 -0700 (PDT)
-Message-ID: <23be820f0808210144m57e65363m159c231d2084c1c5@mail.gmail.com>
-Date: Thu, 21 Aug 2008 10:44:02 +0200
-From: "Gregor Fuis" <gujs.lists@gmail.com>
-To: "Ola Ekedahl" <ola.ekedahl@fra.se>
-In-Reply-To: <48AD16A1.5040703@fra.se>
+	(envelope-from <roger@beardandsandals.co.uk>) id 1KXfDU-0006aL-V6
+	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 18:46:58 +0200
+Received: from [192.168.10.241] (unknown [81.168.109.249])
+	by smtp00.csee.securepod.com (Postfix) with ESMTP id AAD3D22C649
+	for <linux-dvb@linuxtv.org>; Mon, 25 Aug 2008 17:46:19 +0100 (BST)
+Message-ID: <48B2E1DC.2080605@beardandsandals.co.uk>
+Date: Mon, 25 Aug 2008 17:46:20 +0100
+From: Roger James <roger@beardandsandals.co.uk>
 MIME-Version: 1.0
-References: <48ABB045.5050301@fra.se> <20080820082010.GA5582@gmail.com>
-	<48AD16A1.5040703@fra.se>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto, multiproto_plus & mantis
+To: linux-dvb@linuxtv.org
+References: <20080825122741.GB17421@optima.lan>
+In-Reply-To: <20080825122741.GB17421@optima.lan>
+Subject: Re: [linux-dvb] TT S2-3200 + CI Extension
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,64 +22,69 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1934010832=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1934010832==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_20402_3953178.1219308242823"
+Martin Hurton wrote:
+> Hi List,
+>
+> I have the TT-budget S2-3200 card with CI Extension and have problem
+> to get it work with my CAM module. I have tried different CI Extensions,
+> different CI cables, different CAM modules, and also different computers 
+> but still without any success. I am using multiproto driver.
+>
+> Debugging the driver I have found the problem is in the following code:
+> (budget-ci.c).
+>
+> 507     ci_version = ttpci_budget_debiread(&budget_ci->budget, DEBICICTL, DEBIADDR_CIVERSION, 1, 1, 0);
+> 508     if ((ci_version & 0xa0) != 0xa0) {
+> 509             result = -ENODEV;
+> 510             goto error;
+> 511     }
+>
+> it seems the driver expects the high nibble of ci_version to be 0xa but in my case,
+> the ci_version is always zero. And because of this, the CA is not supported.
+>
+> Did anybody have this same problem? Or can somebody explains why this happens?
+> Any help will be greatly appreciated.
+>
+>
+>   
+Martin,
 
-------=_Part_20402_3953178.1219308242823
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I am investigating a simillar (but not the same) problem with a TT-3200
+and a T-Rex/Dragon CAM (see my postings in the last week). I am
+beginning to come to the conclusion that either I have a hardware
+problem or the TT-3200 does not like certain CAMs, this is partially
+born out by the fact the some incompatible cams are listed on the wiki
+http://www.linuxtv.org/wiki/index.php/DVB_Conditional_Access_Modules . I
+don't know whether this is a hardware or software (or both)
+incompatibility. If it software it could be fixable. Does anyone know?
 
-Resend again to list
+I did come across a post, which I have been unable to find again! This
+referred to the fact that the Dragon CAM was asserting a line on PCMCIA
+interface that said it was a low voltage device (3.5V) and that this was
+outside the CI spec and causing a problem with the budget CI.
 
-Hi,
+However this link says that it should work. I don't know if your CAM is
+on it. I suspect this is referring to the supplied windows driver
+http://www.dvbnetwork.de/index.php?option=com_fireboard&func=view&id=927&catid=2&Itemid=26
 
-I also have problem with this repository. I have KNC ONE DVB-S2 card and it
-doesn't even get initialized with this repository. I used
-http://jusst.de/hg/multiproto tree before and it worked fine. Kernel
-automatically detected card and loaded proper modules.
+I would love to investigate further but really need some specs of the
+software interface to the 3200. Can anyone point me at further info? All
+I have at the momenet is the spec for the SAA7146  chip and the en50221
+CI spec.
 
-Does this repository even have support for KNC ONE DVB-S2 card and I just
-have to load the right modules. If I just have to load modules, please help
-me with the names of modules and sequence how to start them.
+Sorry I cannot offer any direct help. But I thought you might like to
+know you are not the only one fighting with this piece of hardware :-)
 
-Thanks for help!
+Roger
 
-Gregor
-
-------=_Part_20402_3953178.1219308242823
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">Resend again to list<br><br>Hi,<br><br>I also have problem with this repository. I have KNC ONE
-DVB-S2 card and it doesn&#39;t even get initialized with this repository. I
-used <a href="http://jusst.de/hg/multiproto" target="_blank">http://jusst.de/hg/multiproto</a> tree before and it worked fine. Kernel automatically detected card and loaded proper modules.<br>
-
-<br>Does this repository even have support for KNC ONE DVB-S2 card and
-I just have to load the right modules. If I just have to load modules,
-please help me with the names of modules and sequence how to start them.<br><br>
-Thanks for help!<br>
-<br>Gregor</div>
-
-------=_Part_20402_3953178.1219308242823--
-
-
---===============1934010832==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1934010832==--
