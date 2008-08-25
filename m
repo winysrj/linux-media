@@ -1,17 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KTmvU-0004dV-9v
-	for linux-dvb@linuxtv.org; Fri, 15 Aug 2008 02:12:21 +0200
-Message-ID: <48A4C9DE.5060503@linuxtv.org>
-Date: Thu, 14 Aug 2008 20:12:14 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from web38802.mail.mud.yahoo.com ([209.191.125.93])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <urishk@yahoo.com>) id 1KXctn-0004ya-FZ
+	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 16:18:29 +0200
+Date: Mon, 25 Aug 2008 07:17:52 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Brandon Jenkins <bcjenkins@tvwhere.com>
-References: <de8cad4d0808140908r7b1e7a04xc3d907da69fd3549@mail.gmail.com>
-In-Reply-To: <de8cad4d0808140908r7b1e7a04xc3d907da69fd3549@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1600 - mxl5005s - QAM scanning
+Message-ID: <751966.30294.qm@web38802.mail.mud.yahoo.com>
+Subject: [linux-dvb] Cross target compilation
+Reply-To: urishk@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,20 +23,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Brandon Jenkins wrote:
-> Greetings all,
-> 
-> The last time I tried scanning for QAM it didn't work. If I recall, it
-> would be a while before the driver could be looked at. Has there been
-> any change in status worth testing out again?
+Hi,
 
-I have an HVR1600 model 74041 -- When I scan for QAM channels, I find the same channels that I find when I scan using any other QAM256-capable device.
+Is it possible to build the LinuxTv DVB (Mercurial) tree in a cross target environment (e.g. without too many modification)? 
 
-So yes, it's worth testing again.
+I have several tool-sets (ARM, Mx, Samsung....) that I would like to enable customers with mild kernel knowledge and little time 
 
-You wrote that email at noon, and now is eight hours later -- did you test it yet?
 
--Mike
+
+      
 
 _______________________________________________
 linux-dvb mailing list
