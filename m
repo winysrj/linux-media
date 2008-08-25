@@ -1,21 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from pslib.cesnet.cz ([195.178.64.118] helo=neptun.pslib.cz)
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <petr.cvek@pslib.cz>) id 1KTJnh-0007Sb-M6
-	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 19:06:22 +0200
-Received: from opteron.pslib.cz (opteron.pslib.cz [10.200.0.18])
-	by neptun.pslib.cz (8.13.1/8.13.1) with ESMTP id m7DH6HMA011043
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 19:06:17 +0200
-Received: from pslib.cz (localhost.localdomain [127.0.0.1])
-	by opteron.pslib.cz (8.13.8/8.13.8) with ESMTP id m7DH6HaI027370
-	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 19:06:17 +0200
-From: "Petr Cvek" <petr.cvek@pslib.cz>
-To: linux-dvb@linuxtv.org
-Date: Wed, 13 Aug 2008 19:06:17 +0200
-Message-Id: <20080813170508.M39801@pslib.cz>
-MIME-Version: 1.0
-Subject: [linux-dvb] Leadtek Winfast Dongle H (hybrid)
+	(envelope-from <stoth@linuxtv.org>) id 1KXefb-0004eH-Ed
+	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 18:11:58 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K650054DZMW2O01@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 25 Aug 2008 12:11:21 -0400 (EDT)
+Date: Mon, 25 Aug 2008 12:11:20 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48B2C6DD.9040806@linuxtv.org>
+To: Robin Perkins <robin.perkins@internode.on.net>
+Message-id: <48B2D9A8.4020208@linuxtv.org>
+MIME-version: 1.0
+References: <E8C49B92-E40C-499D-9362-923C3A3A1F9A@internode.on.net>
+	<48B2C6DD.9040806@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Reverse enginnering using i2c protocol analysers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,68 +32,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello everyone, I was asked by my friend to help him with his DVB USB card 
-(based on STK7700PH): 
+Steven Toth wrote:
+> Robin Perkins wrote:
+>> Does anyone have any experiences using i2c logic analysers to work out 
+>> how cards work ?
+>> Is it an effective reverse enginering method ?
+>> I was looking for them online but most of them seem pretty expensive 
+>> (~$4000) however I found the Total Phase Beagle 
+>> <http://www.totalphase.com/products/beagle_ism/> for about $300. Has 
+>> anyone else tried this adapter out ? (It appears to have software for 
+>> Linux, OS X and Windows which seems pretty good.)
+> 
+> A parallel port on a spare linux box, two wires and a copy of lmilk does 
+> it for me. < $10.
 
-Bus 008 Device 005: ID 0413:60f6 Leadtek Research, Inc.
+Just for the record, it won't go above 100KHz so while it works on 
+almost everything I've ever used it on ... at somepoint of someone wants 
+to run their i2c bus at > 100Khz, this won't work.
 
-...and I found, that card isn't yet supported, but there is all code for it 
-now. 
-So I add new device into list:
-
-diff -Naur old/dib0700_devices.c new/dib0700_devices.c
---- old/dib0700_devices.c	2008-08-13 18:55:35.000000000 +0200
-+++ new/dib0700_devices.c	2008-08-13 18:26:27.000000000 +0200
-@@ -1117,7 +1117,8 @@
- 	{ USB_DEVICE(USB_VID_TERRATEC,	
-USB_PID_TERRATEC_CINERGY_HT_EXPRESS) },
- 	{ USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_T_XXS) },
- 	{ USB_DEVICE(USB_VID_LEADTEK,   
-USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
--	{ USB_DEVICE(USB_VID_HAUPPAUGE, 
-USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
-+/* 35 */{ USB_DEVICE(USB_VID_HAUPPAUGE, 
-USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
-+	{ USB_DEVICE(USB_VID_LEADTEK,   USB_PID_WINFAST_DTV_DONGLE_HYBRID) },
- 	{ 0 }		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -1403,7 +1404,7 @@
- 			},
- 		},
- 
--		.num_device_descs = 3,
-+		.num_device_descs = 4,
- 		.devices = {
- 			{   "Terratec Cinergy HT USB XE",
- 				{ &dib0700_usb_id_table[27], NULL },
-@@ -1417,6 +1418,10 @@
- 				{ &dib0700_usb_id_table[32], NULL },
- 				{ NULL },
- 			},
-+			{   "Leadtek Winfast Dongle Hybrid",
-+				{ &dib0700_usb_id_table[36], NULL },
-+				{ NULL },
-+			},
- 		},
- 		.rc_interval      = DEFAULT_RC_INTERVAL,
- 		.rc_key_map       = dib0700_rc_keys,
-diff -Naur old/dvb-usb-ids.h new/dvb-usb-ids.h
---- old/dvb-usb-ids.h	2008-08-13 18:55:39.000000000 +0200
-+++ new/dvb-usb-ids.h	2008-08-13 18:24:55.000000000 +0200
-@@ -189,6 +189,7 @@
- #define USB_PID_WINFAST_DTV_DONGLE_WARM			0x6026
- #define USB_PID_WINFAST_DTV_DONGLE_STK7700P		0x6f00
- #define USB_PID_WINFAST_DTV_DONGLE_STK7700P_2		0x6f01
-+#define USB_PID_WINFAST_DTV_DONGLE_HYBRID		0x60f6
- #define USB_PID_GENPIX_8PSK_REV_1_COLD			0x0200
- #define USB_PID_GENPIX_8PSK_REV_1_WARM			0x0201
- #define USB_PID_GENPIX_8PSK_REV_2			0x0202
-
-After patching, card works as DVB-T reciever (confirmed by someone other with 
-this card and with DVB-T signal). This card can receive analog TV too, it has 
-cx25843 (cx25840 compatible) chip for it, but there is not any connection 
-between this subsystems.
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
