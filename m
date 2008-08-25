@@ -1,14 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Sat, 30 Aug 2008 10:48:34 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200808301316.05526@orion.escape-edv.de>
+Received: from web38808.mail.mud.yahoo.com ([209.191.125.99])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <urishk@yahoo.com>) id 1KXct9-0004wt-CZ
+	for linux-dvb@linuxtv.org; Mon, 25 Aug 2008 16:17:48 +0200
+Date: Mon, 25 Aug 2008 07:17:11 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
 To: linux-dvb@linuxtv.org
-Message-id: <48B95DC2.5060900@linuxtv.org>
-MIME-version: 1.0
-References: <48B8400A.9030409@linuxtv.org>
-	<200808301316.05526@orion.escape-edv.de>
-Cc: VDR mailing list <vdr@linuxtv.org>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+MIME-Version: 1.0
+Message-ID: <272973.7632.qm@web38808.mail.mud.yahoo.com>
+Subject: [linux-dvb] Cross target compilation
+Reply-To: urishk@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,16 +23,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> As I am not willing to spend a single minute of my time with API wars,
-> I will ack this API only if the multiproto developer and the users agree
-> with this approach.
+Hi,
 
-Understood. Thank you for taking the time to review the approach and 
-provide feedback.
+Is it possible to build the LinuxTV DVB (Mercurial) tree in a cross target environment?(e.g. without too many modifications)
 
-Regards,
+I have several tool-sets (ARM and more) that I would like to enable customers with mild kernel knowledge and little time to build easily, similar to the way it's done on local x86 host.
 
-Steve
+Uri
+
+
+      
 
 _______________________________________________
 linux-dvb mailing list
