@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.187])
+Received: from f25.mail.ru ([194.67.57.151])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kurtxue@gmail.com>) id 1KPhec-0006te-B1
-	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 19:46:05 +0200
-Received: by ti-out-0910.google.com with SMTP id w7so505897tib.13
-	for <linux-dvb@linuxtv.org>; Sun, 03 Aug 2008 10:45:55 -0700 (PDT)
-Message-ID: <f3ebb34d0808031045n15e1550bofd673c1ab1893e3@mail.gmail.com>
-Date: Sun, 3 Aug 2008 19:45:55 +0200
-From: "kurt xue" <kurtxue@gmail.com>
-To: loody <miloody@gmail.com>
-In-Reply-To: <3a665c760808022337m627a9562q1d47df062dfc67e0@mail.gmail.com>
-MIME-Version: 1.0
-References: <3a665c760808022337m627a9562q1d47df062dfc67e0@mail.gmail.com>
+	(envelope-from <goga777@bk.ru>) id 1KXq3Q-0002hB-Aw
+	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 06:21:16 +0200
+From: Goga777 <goga777@bk.ru>
+To: ajurik@quick.cz
+Mime-Version: 1.0
+Date: Tue, 26 Aug 2008 08:20:42 +0400
+In-Reply-To: <200808252156.52323.ajurik@quick.cz>
+References: <200808252156.52323.ajurik@quick.cz>
+Message-Id: <E1KXq2s-0007z3-00.goga777-bk-ru@f25.mail.ru>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] About SI tables HOWTO
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?SFZSIDQwMDAgcmVjb21uZWRlZCBkcml2ZXIgYW5k?=
+	=?koi8-r?b?IGZpcm13YXJlIGZvciBWRFIgMS43LjA=?=
+Reply-To: Goga777 <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,80 +22,50 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1183611261=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1183611261==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_78209_12348963.1217785555303"
-
-------=_Part_78209_12348963.1217785555303
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Dear Miloody
-
-Did you try linux-tv wiki ? I think you can find some general acknowledge
-about the tables there...
-
-regards,
-Kurt
-
-On Sun, Aug 3, 2008 at 8:37 AM, loody <miloody@gmail.com> wrote:
-
-> Dear all:
-> I know there are a lot of specs describing each si tables explicitly.
-> But I find I really need some book or information to tell me what are
-> these tables used for and when, how I need them.
-> If someone knows any article or book introduces the whole
-> relationships between different si tables, please let me know.
->
-> thanks a lot,
-> miloody
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
-------=_Part_78209_12348963.1217785555303
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">Dear Miloody<br><br>Did you try linux-tv wiki ? I think you can find some general acknowledge about the tables there...<br><br>regards,<br>Kurt<br><br><div class="gmail_quote">On Sun, Aug 3, 2008 at 8:37 AM, loody <span dir="ltr">&lt;<a href="mailto:miloody@gmail.com">miloody@gmail.com</a>&gt;</span> wrote:<br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">Dear all:<br>
-I know there are a lot of specs describing each si tables explicitly.<br>
-But I find I really need some book or information to tell me what are<br>
-these tables used for and when, how I need them.<br>
-If someone knows any article or book introduces the whole<br>
-relationships between different si tables, please let me know.<br>
-<br>
-thanks a lot,<br>
-miloody<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</blockquote></div><br></div>
-
-------=_Part_78209_12348963.1217785555303--
+Hi
 
 
---===============1183611261==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> I could confirm that this new version of drivers is running better (I have the 
+> same problem as Marek and I use his hint with patched multiproto_plus drivers 
+
+sorry, which hint do you mean ?
+
+> to make HV-4000 under linux running) but not for all channels. 
+
+it's strange - I have only repo from Igor without any patches and everything works well
+
+
+>I couldn't get 
+> lock for some dvb-s2 channels (ANIXE HD, Premiere HD) which is with patched 
+> multiproto_plus possible without problem. 
+
+I can see these channels without any problem on my vdr 170
+
+sorry, do you use patched multiproto_plus or native repo from Igor ?
+
+>Also switching seems to be sometimes 
+> slower.
+> 
+> I've tested it with kernel 2.6.25-2 and with fw for cs24116 version 1.20.79.0 
+> and version 1.23.86.1.
+
+I have kernel 2.6.22, cx24116 FW version 1.23.86.1, the letaest repo from Igor, vdr 170
+ 
+> Many thanks to Goga and Igor for their work.
+
+many thanks to Igor :)
+
+Goga
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1183611261==--
