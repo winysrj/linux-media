@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <udo_richter@gmx.de>) id 1KZSvx-0003JX-S3
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 18:04:18 +0200
-Message-ID: <48B96F5E.5050600@gmx.de>
-Date: Sat, 30 Aug 2008 18:03:42 +0200
-From: Udo Richter <udo_richter@gmx.de>
+Received: from ti-out-0910.google.com ([209.85.142.186])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jackden@gmail.com>) id 1KXyUx-00030y-Oo
+	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 15:22:16 +0200
+Received: by ti-out-0910.google.com with SMTP id w7so1696664tib.13
+	for <linux-dvb@linuxtv.org>; Tue, 26 Aug 2008 06:22:09 -0700 (PDT)
+Message-ID: <ede8a03f0808260622we595019p1289ce1d8bdbe50f@mail.gmail.com>
+Date: Tue, 26 Aug 2008 21:22:09 +0800
+From: jackden <jackden@gmail.com>
+To: stev391@email.com
+In-Reply-To: <20080825220305.429DA4782FC@ws1-5.us4.outblaze.com>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <48B8400A.9030409@linuxtv.org>
-	<78aae6eb0808291405m452462b4l2df267c3066ec28f@mail.gmail.com>
-In-Reply-To: <78aae6eb0808291405m452462b4l2df267c3066ec28f@mail.gmail.com>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Content-Disposition: inline
+References: <20080825220305.429DA4782FC@ws1-5.us4.outblaze.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
+	TV/FM capture card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,47 +23,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Gr=E9goire FAVRE wrote:
-> Is there a patch for VDR to use this (vdr works really well with multipro=
-to
-> right now, which don't mean I wouldn't choose this one, but I should try
-> it before).
+2008/8/26  <stev391@email.com>:
+>
+--snip--
+> Jackden,
+>
+> Thanks for completing the information on the wiki page.
+>
+> To use i2cdetect you need to load i2c_dev module (or something similar).  i2cdetect is part of lm sensors so maybe you should install this if you haven't already. (perhaps try Google for an answer...)
+>
+> From what you have posted I still think it is possible to support this card easily, but as you cannot provide me with the output of Regspy (which is windows) I will have do a little of trial and error.  So hopefully you are very patient. (I still need the output of i2cdetect before I create a patch).
+>
+> Regards,
+> Stephen.
+>
+> --
+> Be Yourself @ mail.com!
+> Choose From 200+ Email Addresses
+> Get a Free Account at www.mail.com
+>
+Stephen,
 
-There is none yet of course, but once the new API is ready, it might be =
+I update information on the wiki page of i2cdetect's output.
 
-less difficult to get VDR 1.7.0 running on the new API than it looks.
+--
+i2cdetect -l :
 
-One could start with my dvb-api-wrapper patch for VDR 1.7.0. (Basically =
-
-an userspace wrapper that translates multiproto calls into old API =
-
-calls.) To get VDR running on the new API, only three multiproto API =
-
-calls must be translated to the new API, and these are already isolated =
-
-in separate functions ioctl_DVBFE_SET_DELSYS(), ioctl_DVBFE_SET_PARAMS() =
-
-and ioctl_DVBFE_GET_DELSYS(). Without taking a too deep look into the =
-
-new API, I think this should be possible without too much trouble.
-
-This is of course a temporary solution, nothing final. Maybe, until =
-
-things settle, its even a good idea to get VDR working on all three =
-
-APIs, so people can use whatever works best for them.
+  i2c-0	unknown   	SMBus nForce2 adapter at 4c00   	N/A
+  i2c-1	unknown   	SMBus nForce2 adapter at 4c40   	N/A
+  i2c-2	unknown   	cx23885[0]                      	N/A
+  i2c-3	unknown   	cx23885[0]                      	N/A
+  i2c-4	unknown   	cx23885[0]                      	N/A
+--
+I guess i2c-0 and i2c-1 are asus motherboard (m2n4-sli) on board chip....
 
 
-Cheers,
-
-Udo
-
+----=Jackden in Google=----
+--=Jackden@Gmail.com=--
 
 _______________________________________________
 linux-dvb mailing list
