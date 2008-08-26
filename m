@@ -1,23 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.229])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KZe4V-0004Dz-BZ
-	for linux-dvb@linuxtv.org; Sun, 31 Aug 2008 05:57:53 +0200
-Received: by wx-out-0506.google.com with SMTP id h27so386371wxd.17
-	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 20:57:46 -0700 (PDT)
-Message-ID: <d9def9db0808302057u25e7ce5yfb2967c893255df0@mail.gmail.com>
-Date: Sun, 31 Aug 2008 05:57:46 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>,
-	"Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>,
-	"Greg KH" <greg@kroah.com>
-In-Reply-To: <48B98B89.80803@linuxtv.org>
+Received: from n76.bullet.mail.sp1.yahoo.com ([98.136.44.48])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KXxGR-0007nc-5M
+	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 14:03:13 +0200
+Date: Tue, 26 Aug 2008 05:00:18 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <1219733348.3846.8.camel@suse.site>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <48B8400A.9030409@linuxtv.org> <48B98914.1020800@w3z.co.uk>
-	<48B98B89.80803@linuxtv.org>
-Cc: mrechberger@sundtek.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Message-ID: <709924.7684.qm@web46108.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,74 +24,56 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, Aug 30, 2008 at 8:03 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> Charles Price wrote:
->>> If you also feel frustrated by the multiproto situation and agree in
->>> principle with this new approach, and the overall direction of the API
->>> changes, then we welcome you and ask you to help us.
->>>
->>
->> I wholeheartedly agree.
->>
->> Although I can't offer any programming input, I do have a variety of DVB
->> hardware and different architectures on which I can test your creations.
->>
->> Happy to help.
->
+--- On Tue, 8/26/08, Nico Sabbi <nicola.sabbi@poste.it> wrote:
 
-not reading the parts above, but saying this is Steven, not caring
-about the main people who work on something.
+> dvb-mpegtools, like mplex, demuxes the TS and loses all informations
+> about timestamps => very likely the output will be out of sync.
 
-There's a split between a few people here (including myself) and other
-people from that scene who just don't care about anything.
+I wondered about this, as I had used `something' to convert a
+TS to a file that I could play on a standalone DVD-player with
+card/USB slots.
 
-Manu and the others put in alot work, why screw what he wrote (code)
-he has been on vacation (I know he married a few weeks ago - since I
-got the invitation) Hauppauge people (Michael Krufky and Steven Toth)
-are running their personal own game .. sorry to say that but it's that
-way.
+It turns out I used `replex'; unfortunately, the source material
+wasn't something for which timestamps were too critical -- stop-
+motion animation from Nick Park/Aardman Animations, broadcast
+with a typical fraction of a second offset betweem audio and
+video PTSen in real-time:
 
-I have logs and mails here where Steven and Mike wrote hey that would
-be a cool idea about compatibility but when "I" mentioned it again and
-spent work on it it was like hey we're linux only (I don't only care
-about linux since I also work alot with commercial companies in that
-area look at the dibcom website - Job requirement 'independent' code
-neither do I want to depend on Windows nor Linux but having something
-that works on both in case of hardware is fine - especially I2C is
-trivial to realize for everything).
+-rwxr-xr-x 1 root root 188704772 2007-05-25 16:34 /selinux/misc/Shaun_the_Sheep-Shape_Up_With_Shaun-replex-mpeg2.mpg
+-rwxr-xr-x 1 root root 193982464 2007-05-25 17:11 /selinux/misc/Shaun_the_Sheep-Bathtime-replex-dvd.mpg
 
-Rethink your position and try to get people onboard but don't try to
-screw people and run your own game.
+In these files, I no longer see any useable timestamps (those I
+do see start around 0 and work up), and as noted, if there were
+to be loss of sync, I'd be unlikely to notice with this source.
 
-Seeing the comments Acked-By: xyz - I cannot review neither contribute
-code but I can provide webspace .. hilarious. get down on earth again
-Steven, Mike expecially Mauro - try to get Manufacturers onboard
-instead working against you.
-I talked alot with Manu he has good connections and is avoing to work
-together just as I am because of certain Monopoly and copyright
-infringements which you are building here (I see Mauro using leaked
-code here!) . Mauro is spreading foo, Manu has the specs for xyz. I
-fully understand Manu's point since Mauro did the same with me,
-however .. I better don't comment it.
 
-Let's put another thing in here: Greg Kroah Hartman Linux Guy reverted
-my patch in favour of supporting the binary Firmware upload tool of
-Dell (I fully support Dell here too) although claiming to be
-opensource but still running after someone (please comment this one -
-it confused me at 'your' position). It was just like ok let's revert
-it but not asking why?!
-I'm just getting up with this just because I saw following yesterday:
-21:07 < pmp> hmm: request_firmware(&fw, CX24116_DEFAULT_FIRMWARE,
-&state->i2c->dev) ?
-21:08 < pmp> the &state->i2c->dev looks strange and the kernel is
-saying that about it: kobject_add failed
-             for i2c-1 with -EEXIST, don't try to re....
-21:09 < pmp> other fe-driver have a callback in their config-struct...
-21:09 < pmp> I start to believe there is a reason ;)
+For laughs, I now converted a short BBC-Four TS I had recorded as
+a test with `ts2ps', and there, the PTS/DTS are present in the PS
+and match those seen in the TS...
 
-I better cut it now.
+     ==> system_clock_reference_base: 859961626 (0x3341f91a)  [= 90 kHz-Timestamp: 2:39:15.1291]
+         ==> PTS: 5154932522 (0x13342072a)  [= 90 kHz-Timestamp: 15:54:37.0280]
+         ==> DTS: 5154921721 (0x13341dcf9)  [= 90 kHz-Timestamp: 15:54:36.9080]
+         ==> PTS: 5154925321 (0x13341eb09)  [= 90 kHz-Timestamp: 15:54:36.9480]
+         ==> PTS: 5154928921 (0x13341f919)  [= 90 kHz-Timestamp: 15:54:36.9880]
+     ==> system_clock_reference_base: 859937348 (0x33419a44)  [= 90 kHz-Timestamp: 2:39:14.8594]
+         ==> PTS: 5154908244 (0x13341a854)  [= 90 kHz-Timestamp: 15:54:36.7582]
+         ==> PTS: 5154943322 (0x13342315a)  [= 90 kHz-Timestamp: 15:54:37.1480]
+         ==> DTS: 5154932521 (0x133420729)  [= 90 kHz-Timestamp: 15:54:37.0280]
+         ==> PTS: 5154936121 (0x133421539)  [= 90 kHz-Timestamp: 15:54:37.0680]
+         ==> PTS: 5154939721 (0x133422349)  [= 90 kHz-Timestamp: 15:54:37.1080]
+         ==> PTS: 5154954122 (0x133425b8a)  [= 90 kHz-Timestamp: 15:54:37.2680]
 
-Markus
+If I had lots of time to kill, I'd separate the audio stream PTSen
+from the video (they have a couple tenths-of-second offset relative
+to each other)...
+
+
+barry bouwsma
+
+
+      
+
 
 _______________________________________________
 linux-dvb mailing list
