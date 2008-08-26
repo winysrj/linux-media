@@ -1,19 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nskntmtas05p.mx.bigpond.com ([61.9.168.149])
+Received: from rv-out-0506.google.com ([209.85.198.232])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jhhummel@bigpond.com>) id 1KSXa4-0007Rn-Iw
-	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 15:37:08 +0200
-From: Jonathan Hummel <jhhummel@bigpond.com>
-To: stev391@email.com
-In-Reply-To: <20080810014226.07EFF47808F@ws1-5.us4.outblaze.com>
-References: <20080810014226.07EFF47808F@ws1-5.us4.outblaze.com>
-Content-Type: multipart/mixed; boundary="=-16usuwxT/xolEH2aMNAI"
-Date: Mon, 11 Aug 2008 23:36:25 +1000
-Message-Id: <1218461785.7443.10.camel@mistress>
-Mime-Version: 1.0
-Cc: linux dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200
-	H - DVB	Only support
+	(envelope-from <steele.brian@gmail.com>) id 1KXnIX-0004By-Vs
+	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 03:24:43 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so1915505rvf.41
+	for <linux-dvb@linuxtv.org>; Mon, 25 Aug 2008 18:24:36 -0700 (PDT)
+Message-ID: <5f8558830808251824s153f4ed2wbfcb72a0eeddb364@mail.gmail.com>
+Date: Mon, 25 Aug 2008 18:24:36 -0700
+From: "Brian Steele" <steele.brian@gmail.com>
+To: "Andy Walls" <awalls@radix.net>
+In-Reply-To: <1219540819.11451.36.camel@morgan.walls.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
+	<1217728894.5348.72.camel@morgan.walls.org>
+	<5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
+	<1217791214.2690.31.camel@morgan.walls.org>
+	<5f8558830808031428u3c9a8191tcd1705b27087f992@mail.gmail.com>
+	<1217814427.23133.24.camel@palomino.walls.org>
+	<5f8558830808051733w5960fb03p169ae2aa6d893ce8@mail.gmail.com>
+	<1218074868.2689.34.camel@morgan.walls.org>
+	<5f8558830808071830u4c8d882dse362748942ccec5b@mail.gmail.com>
+	<1219540819.11451.36.camel@morgan.walls.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1600 - No audio
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,287 +31,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Sat, Aug 23, 2008 at 6:20 PM, Andy Walls <awalls@radix.net> wrote:
+> Brian,
+>
+> v4l2-dbg didn't output the data I was expecting.  Here's a more explicit
+> command line to try for me, if you could:
+>
+> # v4l2-apps/util/v4l2-dbg -d /dev/video0 -R type=host,chip=0,min=0x02c40000,max=0x2c409c7
+>
+> Substitute in the correct device node for /dev/video0 to access the
+> cx23418 based card, if you more than 1 type of video capture card in
+> your system.
+>
+> This will let me compare the setup of your CX23418's AV core with mine,
+> to help me figure out where things may be failing for your tuner audio.
+>
 
---=-16usuwxT/xolEH2aMNAI
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Hi Andy,
 
-On Sun, 2008-08-10 at 11:42 +1000, stev391@email.com wrote:
-> 
-> 
->         ----- Original Message -----
->         From: "Jonathan Hummel" 
->         To: stev391@email.com
->         Subject: Re: [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR
->         3200 H - DVB Only support
->         Date: Sat, 09 Aug 2008 21:48:21 +1000
->         
->         
->         Hi All,
->         
->         Finnaly got some time to give the patch a go. I used the
->         pacakges
->         Stephen, sent the link to, not Mark's. I cant't get past the
->         attached
->         problem. The dmesg output is attached. I tried setting the
->         card like
->         this:
->         /etc/modprobe.d/options file and add the line: options cx88xx
->         card=11
->         I also tried the following two varients:
->         cx23885 card=11
->         cx23885 card=12
->         
->         I also got what looked like an error message when applying the
->         first
->         patch, something like "strip count 1 is not a
->         number" (although 1 not
->         being a number would explain my difficulties with maths!)
->         
->         Cheers
->         
->         Jon
->         
->         On Wed, 2008-08-06 at 07:33 +1000, stev391@email.com wrote:
->         > Mark, Jon,
->         >
->         > The patches I made were not against the v4l-dvb tip that is
->         referenced
->         > in Mark's email below. I did this on purpose because there
->         is a small
->         > amount of refactoring (recoding to make it better) being
->         performed by
->         > Steven Toth and others.
->         >
->         > To get the version I used for the patch download (This is
->         for the
->         > first initial patch [you can tell it is this one as the
->         patch file
->         > mentions cx23885-sram in the path]):
->         > http://linuxtv.org/hg/~stoth/cx23885-sram/archive/tip.tar.gz
->         >
->         > For the second patch that emailed less then 12 hours ago
->         download this
->         > version of drivers:
->         > http://linuxtv.org/hg/~stoth/v4l-dvb/archive/tip.tar.gz
->         > and then apply my patch (this patch mentions v4l-dvb). This
->         version is
->         > a cleanup of the previous and uses the generic callback
->         function.
->         >
->         > Other then that you are heading in the correct direction...
->         >
->         > Do either of you have the same issue I have that when the
->         computer is
->         > first turned on the autodetect card feature doesn't work due
->         to
->         > subvendor sub product ids of 0000? Or is just a faulty card
->         that I
->         > have?
->         >
->         > Regards,
->         >
->         > Stephen.
->         > ----- Original Message -----
->         > From: "Mark Carbonaro" To: "Jonathan Hummel" 
->         > Subject: Re: [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR
->         > 3200 H - DVB Only support
->         > Date: Tue, 5 Aug 2008 23:47:46 +1000 (EST)
->         >
->         >
->         > Hi Mark,
->         >
->         > Forgive my ignorance/ newbie-ness, but what do I do with
->         that
->         > patch code
->         > below? is there a tutorial or howto or something somewhere
->         > that will
->         > introduce me to this. I have done some programming, but
->         > nothing of this
->         > level.
->         >
->         > cheers
->         >
->         > Jon
->         >
->         > ----- Original Message -----
->         > From: "Jonathan Hummel" To: "Mark Carbonaro" 
->         > Cc: stev391@email.com, linux-dvb@linuxtv.org
->         > Sent: Tuesday, 5 August, 2008 10:21:11 PM (GMT+1000)
->         > Auto-Detected
->         > Subject: Re: [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR
->         > 3200 H - DVB Only support
->         >
->         > Hi Jon,
->         >
->         > Not a problem at all, I'm new to this myself, below is what
->         > went through and I may not be doing it the right 
->         > way either. So if anyone would like to point out what I 
->         > am doing wrong I would
->         > really appreciate it.
->         >
->         > The file that I downloaded was called
->         > v4l-dvb-2bade2ed7ac8.tar.bz2 which I downloaded 
->         > from 
->         > http://linuxtv.org/hg/~stoth/v4l-dvb/archive/tip.tar.bz2, I
->         > also saved the patch to the same location as the download.
->         >
->         > The patch didn't apply for me, so I manually patched applied
->         > the patches and created a new diff that should 
->         > hopefully work for
->         > you also (attached and inline below). From what I 
->         > could see the offsets in Stephens patch were a little off 
->         > for this code
->         > snapshot but otherwise it is all good.
->         >
->         > I ran the following using the attached diff...
->         >
->         > tar -xjf v4l-dvb-2bade2ed7ac8.tar.bz2
->         > cd v4l-dvb-2bade2ed7ac8
->         > patch -p1 < ../Leadtek.Winfast.PxDVR.3200.H.2.diff
->         >
->         > Once the patch was applied I was then able to build and
->         > install the modules as per the instructions in 
->         > the INSTALL file. I ran
->         > the following...
->         >
->         > make all
->         > sudo make install
->         >
->         > From there I could load the modules and start testing.
->         >
->         > I hope this helps you get started.
->         >
->         > Regards,
->         > Mark
->         >
->         >
->         >
->         >
->         >
->         >
->         
->         
-> Jon,
-> 
-> The patch did not apply correctly as the dmesg should list an extra
-> entry in card list (number 12), and it should have autodetected.
-> 
-> Attached is the newest copy of the patch (save this in the same
-> directory that you use the following commands from), just to avoid
-> confusion. 
-> Following the following:
-> wget http://linuxtv.org/hg/~stoth/v4l-dvb/archive/2bade2ed7ac8.tar.gz
-> tar -xf 2bade2ed7ac8.tar.gz
-> cd v4l-dvb-2bade2ed7ac8
-> patch -p1 <../Leadtek_Winfast_PxDVR3200_H.diff
-> make
-> sudo make install
-> sudo make unload
-> sudo modprobe cx23885
-> 
-> Now the card should have been detected and you should
-> have /dev/adapterN/ (where N is a number). If it hasn't been detected
-> properly you should see a list of cards in dmesg with the card as
-> number 12. Unload the module (sudo rmmod cx23885) and then load it
-> with the option card=12 (sudo modprobe cx23885 card=12)
-> 
-> For further instructions on how to watch digital tv look at the wiki
-> page (you need to create a channels.conf).
-> 
-> Regards,
-> Stephen
-> 
-> P.S.
-> Please make sure you cc the linux dvb mailing list, so if anyone else
-> has the same issue we can work together to solve it.
-> Also the convention is to post your message at the bottom (I got
-> caught by this one until recently).
-> 
-> 
-> -- 
-> Be Yourself @ mail.com!
-> Choose From 200+ Email Addresses
-> Get a Free Account at www.mail.com!
-
-Hi Stevhen, Mark,
-
-
-So you write your post at the bottom of the email?! well that does
-explain a lot, and does kinda make sense if your intending someone to
-pick it up halfway through. I just normaly read backwards when that
-happens to me.
-
-As for the patch. I realised that it is patch -p1 (as in one) not -pl
-(as in bLoody &*^^* i can't believe i was using the wrong character)
-which explains why my patches never worked.
-So the patch applied all fine and that, and dmesg looks great, but I
-can't find anything by scanning. On my other card, the DTV2000H (rev J)
-it can scan in MythTV to find channels, and with me-TV, I think it just
-has a list which it picks from or something, tunes to that frequency to
-see if there is anything there. Can't do that with this card so far.
-Attached is the output from scan (or DVB scan) I don't know if it would
-be useful, but I don't know what is useful for such a problem.
-
-cheers
-
-Jon
-
---=-16usuwxT/xolEH2aMNAI
-Content-Disposition: attachment; filename=scan.txt
-Content-Type: text/plain; name=scan.txt; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
- 
-sudo scan au-Sydney_North_Shore
-[sudo] password for susan:
-scanning au-Sydney_North_Shore
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 226500000 1 3 9 3 1 1 0
-initial transponder 177500000 1 2 9 3 1 1 0
-initial transponder 191625000 1 3 9 3 1 1 0
-initial transponder 219500000 1 3 9 3 1 1 0
-initial transponder 571500000 1 2 9 3 1 2 0
-initial transponder 578500000 1 2 9 3 1 0 0
->>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 191625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 191625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 219500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 219500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 571500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 571500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 578500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 578500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
---=-16usuwxT/xolEH2aMNAI
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I got a new HVR-1600 with a different hardware revision (the one with
+the FM tuner).  Sound works perfectly on the new card.  Hooray.  I
+still have the old card for another few days.  If you are feeling
+really motivated and want to track down the issue, I can put it into a
+test system and run the command you asked for.  If you'd rather chalk
+it up to faulty hardware I can certainly understand that.  Let me know
+if you want me to do any further testing this week on the
+non-functional card.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---=-16usuwxT/xolEH2aMNAI--
