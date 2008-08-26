@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7E026OX021953
-	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 20:02:06 -0400
-Received: from mail-in-08.arcor-online.net (mail-in-08.arcor-online.net
-	[151.189.21.48])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7E01sls008050
-	for <video4linux-list@redhat.com>; Wed, 13 Aug 2008 20:01:54 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>
-In-Reply-To: <20080813135255.5af83623@glory.loctelecom.ru>
-References: <20080813135255.5af83623@glory.loctelecom.ru>
-Content-Type: text/plain
-Date: Thu, 14 Aug 2008 01:53:31 +0200
-Message-Id: <1218671611.2696.30.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7QFtMVa006256
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 11:55:22 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7QFsiBe012997
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 11:55:03 -0400
+Message-ID: <48B429D9.7000900@hhs.nl>
+Date: Tue, 26 Aug 2008 18:05:45 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: v4l2 library <v4l2-library@linuxtv.org>, video4linux-list@redhat.com,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, gert.vervoort@hccnet.nl,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: TS packet??
+Cc: 
+Subject: Announcing libv4l 0.4.1
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,38 +27,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi All,
 
-Am Mittwoch, den 13.08.2008, 13:52 +1000 schrieb Dmitri Belimov:
-> Hi All
-> 
-> After long time plaing with MPEG encoder I read test data. See attachment.
-> Is it correct TS packet??
+Some assorted fixes, and support for Pixart cams JPEG's (which are non standard 
+JPEG's) together with some gspca kernel changes this means that we now have 
+working pac7302 and pac7311 webcams!
 
-all known apps dealing with .ts streams say no.
+Go grab the new release here
+http://people.atrpms.net/~hdegoede/libv4l-0.4.1.tar.gz
 
-As I at the very beginning tried to point to, after realizing a total
-mess happened, Frederic has some last known spot working and can also
-report about how far he can come with the recent attempts.
+Full list of changes:
 
-I'm still without any such hardware even close to be functional for the
-empress encoder.
+libv4l-0.4.1
+------------
+* When the driver supports read() and we are not converting let the driver
+   handle read() instead of emulating it with mmap mode
+* Fix errors and warnings when compiling with ICC (Gregor Jasny)
+* Add support to libv4lconvert for rotating images 90 (for Pixart 7302 cams)
+   or 180 (Philips SPC200NC / Philips SPC300NC) degrees
+* Add support for Pixart custom JPEG format
+* Hide non public symbols (Gregor Jasny)
+* Fix and enable x86_64 asm jpeg decompress helper functions (Gregor Jasny)
 
-But at least others have/had stuff proved once to be functional, like
-Frederic and Gert and Mans previously and Hans is around too.
+Regards,
 
-Looks like you have by default the mpeg encoder more or less active and
-I can only say, that I don't have the slightest problems for analog
-TV ;), to get the tda9887 sharp early enough is likely still something
-very simple, and DVB-T and on radio only the well known minor, what to
-say, fuzz for autoscanning ;)
-
-How to switch from DVB-T to the mpeg encoder, I don't know ...
-
-Cheers,
-Hermann
-
-
+Hans
 
 
 --
