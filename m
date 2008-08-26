@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7HJnait011063
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 15:49:36 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.229])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7HJmxqL001145
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 15:48:59 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so3835011rvb.51
-	for <video4linux-list@redhat.com>; Sun, 17 Aug 2008 12:48:59 -0700 (PDT)
-Message-ID: <6f278f100808171248s53633e27xce36cbbf123c5e0a@mail.gmail.com>
-Date: Sun, 17 Aug 2008 21:48:58 +0200
-From: "Theou Jean-Baptiste" <jbtheou@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7QLvKiA004450
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 17:57:21 -0400
+Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7QLv8F0018014
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 17:57:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Tue, 26 Aug 2008 23:57:05 +0200
+References: <48B3B8CD.9090503@hhs.nl> <200808262235.12292.hverkuil@xs4all.nl>
+	<48B47511.4010008@hhs.nl>
+In-Reply-To: <48B47511.4010008@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: Re: [PATCH] Add support for OmniVision OV534 based USB cameras.
+Message-Id: <200808262357.05806.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com
+Subject: Re: What todo with cams which have 2 drivers?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,28 +30,104 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi. I'm the EasyCam Dev, a ubuntu software who make the webcam install
-easier ( I hope )
-I use this patch in my software. One user had try this patch, and after
-install, he observe in dmesg output :
+On Tuesday 26 August 2008 23:26:41 Hans de Goede wrote:
+> Hans Verkuil wrote:
+> > 
+> > In general I am getting worried by the lack of a common standard to
+> > interface to sensor and controller drivers. I'm no expert on webcams, so
+> > correct me if I'm wrong, but it seems to me that the correct design would
+> > be to have a generic API to these devices that can be used by the various
+> > USB or platform drivers.
+> > 
+> > But for e.g. the mt9* sensors we have three that use the soc_camera
+> > interface, one using the sn9c102 interface and I know of two more that
+> > are not yet in v4l-dvb but that will use the v4l2-int-device.h interface.
+> > It's a mess in my opinion.
+> > 
+> 
+> It is indeed, in my experience so far the easiest solution is to see the bridge 
+> and sensor (and this the whole cam) as one device. 80% of the per sensor code 
+> in a bridge driver is setting up the bridge to talk to the cam (there are 
+> various connections between the 2 possible and most bridges support multiple 
+> connection types) and 80% of the sensor code is configuring the sensor for a 
+> specific bridge (same story). The remaining 20% of sensor code is rather boring 
+>   (poking registers to set things like conteast and brightness) and since the 
+> sensor needs to be programmed to talk to the bridge in a bridge specific way 
+> there is little to gain from having seperate sensor drivers as those still need 
+> to be patched for a new bridge type before the sensor will work with a certain 
+> bridge.
+> 
+> If you for example look at the attempting to be generic ovchipcam drivers in 
+> the current kernel tree, which contain code for the ov6xxx and ov7xxx sensors, 
+> then the attach routine contains the following:
+> 
+>          switch (adap->id) {
+>          case I2C_HW_SMBUS_OV511:
+>          case I2C_HW_SMBUS_OV518:
+>          case I2C_HW_SMBUS_W9968CF:
+>                  PDEBUG(1, "Adapter ID 0x%06x accepted", adap->id);
+>                  break;
+>          default:
+>                  PDEBUG(1, "Adapter ID 0x%06x rejected", adap->id);
+>                  return -ENODEV;
+>          }
+> 
+> IOW this generic sensor code will only work with 3 know bridges and some of the 
+> code itself is bridge specific too, for example in ov6x30.c :
+> 
+>          if (win->format == VIDEO_PALETTE_GREY) {
+>                  if (c->adapter->id == I2C_HW_SMBUS_OV518) {
+>                          /* Do nothing - we're already in 8-bit mode */
+>                  } else {
+>                          ov_write_mask(c, 0x13, 0x20, 0x20);
+>                  }
+>          } else {
+>                  /* The OV518 needs special treatment. Although both the OV518
+>                   * and the OV6630 support a 16-bit video bus, only the 8 bit Y
+>                   * bus is actually used. The UV bus is tied to ground.
+>                   * Therefore, the OV6630 needs to be in 8-bit multiplexed
+>                   * output mode */
+> 
+>                  if (c->adapter->id == I2C_HW_SMBUS_OV518) {
+>                          /* Do nothing - we want to stay in 8-bit mode */
+>                          /* Warning: Messing with reg 0x13 breaks OV518 color */
+>                  } else {
+>                          ov_write_mask(c, 0x13, 0x00, 0x20);
+>                  }
+>          }
+> 
+> I've done a comparison of code size between trying to use generic sensor code 
+> (which isn't that generic at all see above) and just putting sensor specific 
+> code into each bridge driver separately, see:
+> http://marc.info/?l=linux-video&m=121645882518114&w=2
+> 
+> So my conclusion (for now) is that trying to separate the sensor code out of 
+> the bridge drivers is not worth it. I plan to rewrite the ov511/ov518 driver 
+> for v4l2 using gspca (so that libv4l can be used to decode the special JPEG-ish 
+> format making these cams actually work). For this rewrite I will probably 
+> remove the ovcamchip stuff and just put sensor init and ctrl code in the bridge 
+> driver, probably resulting in a smaller driver.
 
-[21222.334007] usb 1-2: new high speed USB device using ehci_hcd and addres=
-s
-9
-[21222.395446] usb 1-2: configuration #1 chosen from 1 choice
-[21222.399771] /usr/share/EasyCam2/drivers/ov534/v4l/ov534.c: OmniVision
-OV534 compatible webcam detected
-[21222.399778] /usr/share/EasyCam2/drivers/ov534/v4l/ov534.c: 06f8:3002
-Hercules Blog Webcam found
-[21222.438333] /usr/share/EasyCam2/drivers/ov534/v4l/ov534.c: ov534
-controlling video device -1
+Interesting results. And I think it makes sense for these sensor devices. It
+definitely does not make sense elsewhere (e.g. the video/audio encoder and
+decoder i2c devices are very much reusable in other drivers).
 
-Thanks you very much for your job
+I think it is a reasonable approach. I'm getting very annoyed at all the
+attempts at creating generic APIs for these devices, which is probably an
+indication that this approach might not be a good fit here.
 
-Best regards, and sorry for my bad english
+> > I think it would be interesting to discuss this further with you in Portland.
+> 
+> Yes it would, I think we need to make an agenda what we want to discuss (both 
+> in the miniconf and outside of that).
 
---=20
-Jean-Baptiste Th=E9ou
+Mauro intends to organize discussion sessions in addition to the miniconf itself.
+There will be no lack of topics to talk about.
+
+Regards,
+
+	Hans
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
