@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.188])
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bcjenkins@tvwhere.com>) id 1KTnxo-0006Si-Hg
-	for linux-dvb@linuxtv.org; Fri, 15 Aug 2008 03:18:54 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so963259nfb.11
-	for <linux-dvb@linuxtv.org>; Thu, 14 Aug 2008 18:18:45 -0700 (PDT)
-Message-ID: <de8cad4d0808141818i1d0b9c56m648457941248a68e@mail.gmail.com>
-Date: Thu, 14 Aug 2008 21:18:44 -0400
-From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-In-Reply-To: <48A4C9DE.5060503@linuxtv.org>
-MIME-Version: 1.0
+	(envelope-from <stev391@email.com>) id 1KXsUo-0003HY-Cy
+	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 08:57:43 +0200
+Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
+	[192.168.8.242])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
+	11F85180013B
+	for <linux-dvb@linuxtv.org>; Tue, 26 Aug 2008 06:57:08 +0000 (GMT)
 Content-Disposition: inline
-References: <de8cad4d0808140908r7b1e7a04xc3d907da69fd3549@mail.gmail.com>
-	<48A4C9DE.5060503@linuxtv.org>
+MIME-Version: 1.0
+From: stev391@email.com
+To: "Steven Toth" <stoth@linuxtv.org>
+Date: Tue, 26 Aug 2008 16:57:08 +1000
+Message-Id: <20080826065708.07B2D32675A@ws1-8.us4.outblaze.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1600 - mxl5005s - QAM scanning
+Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200
+ H - DVB Only support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,91 +30,49 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 14, 2008 at 8:12 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> Brandon Jenkins wrote:
->> Greetings all,
->>
->> The last time I tried scanning for QAM it didn't work. If I recall, it
->> would be a while before the driver could be looked at. Has there been
->> any change in status worth testing out again?
->
-> I have an HVR1600 model 74041 -- When I scan for QAM channels, I find the same channels that I find when I scan using any other QAM256-capable device.
->
-> So yes, it's worth testing again.
->
-> You wrote that email at noon, and now is eight hours later -- did you test it yet?
->
-> -Mike
->
 
-Actually I did. Unfortunately, no change for usable scans. For me
-there was a change in the scan results when the driver went from
-mxl500x to mxl5005s back in May. (I think it was May) Since then I
-have been using my roof top antenna. However, now that VZ has moved to
-all digitlal channels I would like to see what I actually get via QAM
-again.
+> ----- Original Message -----
+> From: "Steven Toth" <stoth@linuxtv.org>
+> To: stev391@email.com
+> Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200 H - DVB Only support
+> Date: Tue, 12 Aug 2008 12:33:53 -0400
+> 
+> 
+> 
+> > ---------Leadtek_Winfast_PxDVR3200_H_Signed_Off.diff---------
+> > cx23885: Add DVB support for Leadtek Winfast PxDVR3200 H
+> >
+> > ---------cx23885_callback_tidyup.diff---------
+> > cx23885: Remove Redundant if statements in tuner callback
+> 
+> Thanks.
+> 
+> Pull this tree and run a quick test again (I had an odd whitespace merge issue - likely 
+> thunderbirds fault - that I have to cleanup):
+> 
+> http://linuxtv.org/hg/~stoth/v4l-dvb/
+> 
+> If everything is working then I'll issue the pull request for final merge.
+> 
+> - Steve
 
-I did find 40 services during a scan, but there were no associated
-PIDs. When it functioned, I was getting 80+ services.
+G'day Steve,
 
-dumping lists (40 services)
-[01d6]:411000000:QAM_256:2031:2030:470
-[0078]:411000000:QAM_256:2058:2057:120
-[009a]:411000000:QAM_256:2044:2043:154
-[0105]:411000000:QAM_256:2035:2034:261
-[0064]:411000000:QAM_256:2062:2061:100
-[0091]:411000000:QAM_256:2053:2052:145
-[0097]:411000000:QAM_256:2049:2047:151
-[00c3]:411000000:QAM_256:2039:2038:195
-[00d9]:417000000:QAM_256:2000:1999:217
-[00a6]:417000000:QAM_256:2012:2011:166
-[008d]:417000000:QAM_256:2017:2016:141
-[00cd]:417000000:QAM_256:2004:2003:205
-[00a8]:417000000:QAM_256:2008:2007:168
-[0070]:417000000:QAM_256:2022:2021:112
-[0110]:417000000:QAM_256:1992:1991:272
-[0068]:417000000:QAM_256:2027:2026:104
-[00dd]:417000000:QAM_256:1996:1995:221
-[01d7]:423000000:QAM_256:2042:2041:471
-[007c]:423000000:QAM_256:2062:2061:124
-[00eb]:423000000:QAM_256:2055:2054:235
-[0140]:423000000:QAM_256:2050:2049:320
-[00d5]:423000000:QAM_256:2059:2058:213
-[0142]:423000000:QAM_256:2047:2046:322
-[0104]:423000000:QAM_256:2038:2037:260
-[006e]:429000000:QAM_256:2034:2033:110
-[00ee]:429000000:QAM_256:2013:2012:238
-[00ba]:429000000:QAM_256:2022:2021:186
-[00e5]:429000000:QAM_256:2017:2016:229
-[00f2]:429000000:QAM_256:2009:2008:242
-[0087]:429000000:QAM_256:2027:2026:135
-[00ae]:435000000:QAM_256:1629:1628:174
-[008f]:435000000:QAM_256:1639:1638:143
-[00b4]:435000000:QAM_256:1625:1624:180
-[00d3]:435000000:QAM_256:1613:1612:211
-[0095]:435000000:QAM_256:1634:1633:149
-[00df]:435000000:QAM_256:1608:1607:223
-[00c1]:435000000:QAM_256:1621:1620:193
-[00c7]:435000000:QAM_256:1617:1616:199
-[0266]:711000000:QAM_256:6141:6142:614
-[026a]:711000000:QAM_256:6181:6182:618
+I was just wondering if there was anything else I needed to do to get this in the main v4l-dvb repository?
 
-Subsequent scan in SageTV only turned up 1 SD channel.
+I just checked today and it has not been incorporated.
 
-During the scan, the following appears in dmesg:
-
-[52241.432909] DVB: frontend 0 frequency 4294967295 out of range
-(54000000..858000000)
-[52241.543936] DVB: frontend 0 frequency 4294967295 out of range
-(54000000..858000000)
-[52254.018384] DVB: frontend 0 frequency 53000000 out of range
-(54000000..858000000)
-
-FTR - This was tested on Hauppauge model 74041, rev C5B2
+(Your v4l-dvb has been working fine now for a while).
 
 Thanks,
+Stephen.
 
-Brandon
+
+-- 
+Be Yourself @ mail.com!
+Choose From 200+ Email Addresses
+Get a Free Account at www.mail.com
+
 
 _______________________________________________
 linux-dvb mailing list
