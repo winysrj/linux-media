@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jw@raven.inka.de>) id 1KWHZk-0004bl-Ij
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 23:20:13 +0200
-Date: Thu, 21 Aug 2008 23:14:37 +0200
-From: Josef Wolf <jw@raven.inka.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080821211437.GE32022@raven.wolf.lan>
-References: <20080820211005.GA32022@raven.wolf.lan>
-	<20080821191758.GD32022@raven.wolf.lan>
+	(envelope-from <goga777@bk.ru>) id 1KY13j-0000xh-Co
+	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 18:06:20 +0200
+Date: Tue, 26 Aug 2008 20:15:30 +0400
+From: Goga777 <goga777@bk.ru>
+To: Marek Hajduk <hajduk@francetech.sk>
+Message-ID: <20080826201530.47fd3bb7@bk.ru>
+In-Reply-To: <1219735725.3886.6.camel@HTPC>
+References: <200808252156.52323.ajurik@quick.cz>
+	<E1KXq2s-0007z3-00.goga777-bk-ru@f25.mail.ru>
+	<1219735725.3886.6.camel@HTPC>
 Mime-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20080821191758.GD32022@raven.wolf.lan>
-Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for VDR
+ 1.7.0
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,71 +28,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 21, 2008 at 09:17:58PM +0200, Josef Wolf wrote:
-> On Wed, Aug 20, 2008 at 11:10:06PM +0200, Josef Wolf wrote:
+> I have to confirm that with latest liplianindvb drivers I can't see
+> Anixe HD, Premiere HD and discovery HD on Astra 19.2E.
 > 
-> >   jw@dvb1:~$ dvbsnoop -s pes -if zdf.test|grep Stream_id|head -40
-> >   Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2 video stream]
-> >   Stream_id: 0 (0x00)  [= picture_start_code]
-> >   Stream_id: 181 (0xb5)  [= extension_start_code]
-> >   Stream_id: 1 (0x01)  [= slice_start_code]
-> >   Stream_id: 2 (0x02)  [= slice_start_code]
-> >   [ consecutive lines deleted ]
-> >   Stream_id: 34 (0x22)  [= slice_start_code]
-> >   Stream_id: 35 (0x23)  [= slice_start_code]
-> >   [ here the list of stream ids start over again and repeats ]
-> 
-> Table 2-18 in iso-13818-1 don't list any stream_id's below 0xBC.
-> Anybody knows what those stream_id's 0x00..0x23 and 0xB5 are for
-> and whether they could be the reason for the artefacts?
+> Rest of channels are without problem.
 
-The more I look at this PES stream the more confused I get:  The
-stream_id 0xe0 seems to transport PTS and DTS _only_.  Everything
-else seems to be contained in PES packets with those unknown
-stream_id's.  Here is what I see:
+could you show your logs from szap2 
+http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/szap2/
 
-At byte position 0x0:
-0x0000+0x0000: 00 00 01 e0 00 00 88 80  05 25 ea ad 04 69 00 00
-0x0000+0x0010: 01 00 02 9f ff fb b8 00  00 01 b5 85 55 53 9c 00
+hereafter is my logs with channels.conf and szap2 from Igor
 
-stream_id:            0xe0
-PES_packet_length:       0 (unlimited)
-PES_priority:            1
-PTS_DTS_flags:          10
-PES_header_data_length:  5 (so the header ends on position 0x0d)
-PTS:                     25 ea ad 04 69 (bit fiddling not done yet)
+goga:/usr/src/szap2# ./szap2 -c19 -H -S1 -C910 -M2 -n5
+reading channels from file '19'
+zapping to 5 'ASTRA HD+;BetaDigital':
+delivery DVB-S2, modulation QPSK
+sat 0, frequency 11914 MHz H, symbolrate 27500000, coderate 9/10, rolloff 0.35
+vpid 0x04ff, apid 0x1fff, sid 0x0000
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal  96% | snr  41% | ber 0 | unc 0 | FE_HAS_LOCK
+status 1f | signal  96% | snr  42% | ber 0 | unc 0 | FE_HAS_LOCK
+status 1f | signal  96% | snr  42% | ber 0 | unc 0 | FE_HAS_LOCK
+status 1f | signal  96% | snr  42% | ber 0 | unc 0 | FE_HAS_LOCK
+status 1f | signal  96% | snr  42% | ber 0 | unc 0 | FE_HAS_LOCK
 
-at position 0x0e comes the next packet with stream_id==0x00
-So this video PES packet don't contain any payload at all.
+channels.conf for vdr 170 and szap2 from Igor
 
-
-The next packet with stream_id==0xe0 is on position 0x2c83:
-
-0x2c83+0x0000: 00 00 01 e0 00 00 88 c0  0b 35 ea ad 74 e9 15 ea
-0x2c83+0x0010: ad 20 89 ff 00 00 01 b3  2d 02 40 33 24 9f 23 81
-
-stream_id:             0xe0
-PES_packet_length:        0 (unlimited)
-PES_priority:             1
-PTS_DTS_flags:           11
-PES_header_data_length: 0x0b (so the header ends on position 0x13)
-PTS:                     35 ea ad 74 e9 (bit fiddling not done yet)
-DTS:                     15 ea ad 20 89 (bit fiddling not done yet)
-payload:               0xff (ough, only one byte padding in payload?)
-
-at position 0x14 comes the next packet with stream_id==0xb3
-So this video packet don't contain any payload at all.
-
-And so it goes on and on.  All the payload seems to be contained
-in those unknown packets.  Packets with stream_id==0xe0 don't
-seem to contain any payload at all.
-
-Obviously, I must have misunderstood something very badly.  But
-I simply can't figure out what.  I bet there is some sort of stuffing
-or escaping that I should do when removing the TS layer?
-
-Any ideas how those unknown stream_id's come to carry all the
-ES contents?
+ORF 1 HD;ORF:10832:hC56M2O0S0:S19.2E:22000:1920:1921=deu,1922=eng;1923=deu:1925:D05,1702,1801,648,D95,9C4,1833:61920:1:1057:0
+ANIXE HD;BetaDigital:11914:hC910M2O35S1:S19.2E:27500:1535:0;1539=deu:0:0:132:133:6:0
+arte HD;ZDFvision:11361:hC23M5O0S1:S19.2E:22000:6210:6221=deu,6222=fra:6230:0:11120:1:1011:0
+ASTRA HD+;BetaDigital:11914:hC910M2O35S1:S19.2E:27500:1279:0;1283=deu:0:0:131:133:6:0
+PREMIERE HD,PREM HD;PREMIERE:11914:hC910M2O35S1:S19.2E:27500:767:0;771=deu,772=eng:32:1830,1831,1833,1834,9C4,1801:129:133:6:0
+DISCOVERY HD,DISC HD;PREMIERE:11914:hC910M2O35S1:S19.2E:27500:1023:0;1027=deu:32:1830,1831,1833,1834,9C4,1801:130:133:6:0
+CINE PREMIER HD;CSAT:12580:vC23M5O35S1:S19.2E:22000:160:0;82=fra,83=eng:0:100:9301:1:1110:0
+13EME RUE HD;CSAT:12580:vC23M5O35S1:S19.2E:22000:161:0;86=fra:0:100:9302:1:1110:0
+ 
 
 
 _______________________________________________
