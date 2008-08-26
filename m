@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx00.csee.securepod.com ([66.232.128.196]
-	helo=cseeapp00.csee.securepod.com)
+Received: from an-out-0708.google.com ([209.85.132.250])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roger@beardandsandals.co.uk>) id 1KWzWW-000827-Kz
-	for linux-dvb@linuxtv.org; Sat, 23 Aug 2008 22:15:49 +0200
-Received: from [192.168.10.241] (unknown [81.168.109.249])
-	by smtp00.csee.securepod.com (Postfix) with ESMTP id 5BB8C22C334
-	for <linux-dvb@linuxtv.org>; Sat, 23 Aug 2008 21:15:14 +0100 (BST)
-Message-ID: <48B06FD3.5050500@beardandsandals.co.uk>
-Date: Sat, 23 Aug 2008 21:15:15 +0100
-From: Roger James <roger@beardandsandals.co.uk>
+	(envelope-from <mijhail.moreyra@gmail.com>) id 1KY7ou-0004gO-IL
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 01:19:29 +0200
+Received: by an-out-0708.google.com with SMTP id c18so550170anc.125
+	for <linux-dvb@linuxtv.org>; Tue, 26 Aug 2008 16:19:24 -0700 (PDT)
+Message-ID: <48B48F62.7090100@gmail.com>
+Date: Tue, 26 Aug 2008 18:18:58 -0500
+From: Mijhail Moreyra <mijhail.moreyra@gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Has anyone got the CI on a TT 3200 past the initial
-	reset state
+To: Steven Toth <stoth@linuxtv.org>
+References: <48B4687D.8070205@gmail.com> <48B46D46.2020800@linuxtv.org>
+	<48B46F9D.105@gmail.com> <48B47D2C.3010005@linuxtv.org>
+In-Reply-To: <48B47D2C.3010005@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
+	HVR-1500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,59 +29,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I asked a similar question this a little whiile ago and got no answer. 
-So I am trying again with a bit more detail and hoping someone somewhere 
-can tell me whether I am wasting my time. I need to find out whether the 
-CI daughter board is broken or this combination has never worked in the 
-budget-ci driver.
+Steven Toth wrote:
+> Can you give me your sign-off for the patch?
+> 
+> Thanks.
+> 
+> - Steve
 
-The TT-3200 works fine for DVB scan and capture, but I cannot get the CI 
-to initialise fully. It always times out on the initial reset and gives 
-a "PC card did not respond" message in the kernel log.
+I was waiting some testing and comments first but anyway
+the patch I sent before is
 
-I peppered the driver with extra diagnostics and as far as I can see the 
-initial CI reset process is started. The firmware version is reported as 
-0xa0 (is this correct?) so an interrupt is expected from the card. This 
-interrupt never occurs. If I poll the card status 
-(ciintf_poll_slot_status) when the reset times out then flags come back 
-as 9 (CAMDETECT|RESET) but it looks like the read_attribute_mem does not 
-give the correct value and returns 0x00 which I assume means that the 
-CAM has not initialised. I have appended the dmesg output to the end of 
-this message.
+Signed-off-by: Mijhail Moreyra <mijhail.moreyra@gmail.com>
 
-If anyone has got this working can you please let me know, so I can swap 
-the CI daughter board for a working one and stop wasting my time debugging.
-
-Help!
-
-Roger
-
-saa7146: register extension 'budget_ci dvb'.
-ACPI: PCI Interrupt 0000:00:0b.0[A] -> Link [LNKD] -> GSI 12 (level, 
-low) -> IRQ 12
-saa7146: found saa7146 @ mem e1a28000 (revision 1, irq 12) (0x13c2,0x1019).
-saa7146 (0): dma buffer size 192512
-DVB: registering new adapter (TT-Budget S2-3200 PCI)
-adapter has MAC addr = 00:d0:5c:68:34:04
-input: Budget-CI dvb ir receiver saa7146 (0) as /class/input/input9
-budget_ci: Slot status cf451000 set to NONE 3 fw vers a0
-budget_ci: Slot status cf451000 set to PRESENT
-dvb_ca_en50221_init
-budget_ci: CI interface initialised
-CAMCHANGE IRQ slot:0 change_type:1
-dvb_ca_en50221_thread_wakeup
-dvb_ca_en50221_thread
-budget_ci: Slot status cf451000 set to RESET
-stb0899_attach: Attaching STB0899
-stb6100_attach: Attaching STB6100
-DVB: registering frontend 0 (STB0899 Multistandard)...
-budget_ci: poll status budget_ci cf451000 flags 9 slot_status 4
-budget_ci: read_attribute 0
-dvb_ca adaptor 0: PC card did not respond :( 0x1
-
-
-
-
+Regards.
+Mijhail Moreyra
 
 _______________________________________________
 linux-dvb mailing list
