@@ -1,19 +1,12 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KYP9c-0008Rq-BM
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 19:50:01 +0200
-Date: Wed, 27 Aug 2008 19:49:27 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <20080827125601.62260@gmx.net>
-Message-ID: <20080827174927.271630@gmx.net>
+From: Oliver Neukum <oliver@neukum.org>
+To: linux-dvb@linuxtv.org
+Date: Tue, 26 Aug 2008 17:05:57 +0200
 MIME-Version: 1.0
-References: <200808252156.52323.ajurik@quick.cz>
-	<E1KXq2s-0007z3-00.goga777-bk-ru@f25.mail.ru>	<1219735725.3886.6.camel@HTPC>
-	<20080826201530.47fd3bb7@bk.ru> <20080827125601.62260@gmx.net>
-To: linux-dvb@linuxtv.org, goga777@bk.ru
-Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for
-	VDR	1.7.0
+Content-Disposition: inline
+Message-Id: <200808261705.58118.oliver@neukum.org>
+Cc: v4l-dvb-maintainer@linuxtv.org, linux-usb <linux-usb@vger.kernel.org>
+Subject: [linux-dvb] [patch]dma on stack in dib0700
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,105 +14,236 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+USB on some architectures cannot do DMA with buffers on the stack.
+Therefore the dib0700 driver will fail on some architectures. The fix is
+allocating buffers on the stack.
 
-> Goga,
-> as you can see in your own log above, szap2 does not correctly parse the
-> APID and SID from =
+Signed-off-by: Oliver Neukum <oneukum@suse.de>
 
-> your channels.conf file. This does matter if you want to use the szap2 -p
-> option [add pat and pmt
-> to TS recording (which also implies the -r option)]. get_pmt_pid does not
-> get the correct
-> value.
-> =
+	Regards
+		Oliver
 
-> The following channels.conf.fixed works better (format VPID:APID:SID) ,
-> but perhaps it would
-> be best to fix the parsing in szap2 instead.
-> =
+---
 
-> ANIXE HD:11914:hC910M2O35S1:S19.2E:27500:1535:1539:132:133:6:0
-> arte HD:11361:hC23M5O0S1:S19.2E:22000:6210:6221:11120:1:1011:0
-> ASTRA HD+:11914:hC910M2O35S1:S19.2E:27500:1279:1283:131:133:6:0
-> =
-
-> $ szap2 -c ~/channels.conf.fixed -H -p -n3
-> =
-
-> reading channels from file '/home/hans/channels.conf.fixed'
-> zapping to 3 'ASTRA HD+':
-> delivery DVB-S2, modulation QPSK
-> sat 0, frequency 11914 MHz H, symbolrate 27500000, coderate 9/10, rolloff
-> 0.35
-> vpid 0x04ff, apid 0x0503, sid 0x0083
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> ** get_pmt_pid returned : 100
-> status 1f | signal  77% | snr  50% | ber 0 | unc 0 | FE_HAS_LOCK
-> status 1f | signal  77% | snr  50% | ber 0 | unc 0 | FE_HAS_LOCK
-> ...
-> =
-
-> then watch the channel with:
-> $ mplayer - < /dev/dvb/adapter0/dvr0
-> =
-
-
-There still seems to be a problem though. All three FTA HD channels lock, b=
-ut only Arte HD plays properly in mplayer.  Mplayer crashes after less than=
- a second for Anixe HD and Astra HD+ :
-
-Playing testfile_anixe.ts.
-TS file format detected.
-VIDEO H264(pid=3D1535) AUDIO A52(pid=3D1539) NO SUBS (yet)!  PROGRAM N. 132
-FPS seems to be: 25.000000
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Opening video decoder: [ffmpeg] FFmpeg's libavcodec codec family
-Selected video codec: [ffh264] vfm: ffmpeg (FFmpeg H.264)
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-Opening audio decoder: [liba52] AC3 decoding with liba52
-Using SSE optimized IMDCT transform
-Using MMX optimized resampler
-AUDIO: 48000 Hz, 2 ch, s16le, 448.0 kbit/29.17% (ratio: 56000->192000)
-Selected audio codec: [a52] afm: liba52 (AC3-liba52)
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-[AO OSS] audio_setup: Can't open audio device /dev/dsp: Device or resource =
-busy
-AO: [alsa] 48000Hz 2ch s16le (2 bytes per sample)
-Starting playback...
-[h264 @ 0xbc0b40]number of reference frames exceeds max (probably corrupt i=
-nput), discarding one
-[h264 @ 0xbc0b40]number of reference frames exceeds max (probably corrupt i=
-nput), discarding one
-[h264 @ 0xbc0b40]number of reference frames exceeds max (probably corrupt i=
-nput), discarding one
-[h264 @ 0xbc0b40]number of reference frames exceeds max (probably corrupt i=
-nput), discarding one
-
-
-Does anyone know what is wrong? Audio only sounds fine.
-
-Hans
--- =
-
-Release early, release often.
-
-Psssst! Schon das coole Video vom GMX MultiMessenger gesehen?
-Der Eine f=FCr Alle: http://www.gmx.net/de/go/messenger03
+--- linux-2.6.27-rc4/drivers/media/dvb/dvb-usb/dib0700_core.c.alt	2008-08-26 15:31:31.000000000 +0200
++++ linux-2.6.27-rc4/drivers/media/dvb/dvb-usb/dib0700_core.c	2008-08-26 15:46:32.000000000 +0200
+@@ -77,8 +77,19 @@ int dib0700_ctrl_rd(struct dvb_usb_devic
+ 
+ int dib0700_set_gpio(struct dvb_usb_device *d, enum dib07x0_gpios gpio, u8 gpio_dir, u8 gpio_val)
+ {
+-	u8 buf[3] = { REQUEST_SET_GPIO, gpio, ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6) };
+-	return dib0700_ctrl_wr(d,buf,3);
++	u8 *buf;
++	int rv;
++
++	buf = kmalloc(3, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++	buf[0] = REQUEST_SET_GPIO;
++	buf[1] = gpio;
++	buf[2] = ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6);
++
++	rv = dib0700_ctrl_wr(d,buf,3);
++	kfree(buf);
++	return rv;
+ }
+ 
+ /*
+@@ -88,10 +99,15 @@ static int dib0700_i2c_xfer(struct i2c_a
+ {
+ 	struct dvb_usb_device *d = i2c_get_adapdata(adap);
+ 	int i,len;
+-	u8 buf[255];
++	u8 *buf;
+ 
+-	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
++	buf = kmalloc(255, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++	if (mutex_lock_interruptible(&d->i2c_mutex) < 0) {
++		kfree(buf);
+ 		return -EAGAIN;
++	}
+ 
+ 	for (i = 0; i < num; i++) {
+ 		/* fill in the address */
+@@ -121,6 +137,7 @@ static int dib0700_i2c_xfer(struct i2c_a
+ 	}
+ 
+ 	mutex_unlock(&d->i2c_mutex);
++	kfree(buf);
+ 	return i;
+ }
+ 
+@@ -137,9 +154,18 @@ struct i2c_algorithm dib0700_i2c_algo =
+ int dib0700_identify_state(struct usb_device *udev, struct dvb_usb_device_properties *props,
+ 			struct dvb_usb_device_description **desc, int *cold)
+ {
+-	u8 b[16];
+-	s16 ret = usb_control_msg(udev, usb_rcvctrlpipe(udev,0),
++	u8 *b;
++	s16 ret;
++
++	b = kmalloc(16, GFP_KERNEL);
++
++	if (b) {
++		ret = usb_control_msg(udev, usb_rcvctrlpipe(udev,0),
+ 		REQUEST_GET_VERSION, USB_TYPE_VENDOR | USB_DIR_IN, 0, 0, b, 16, USB_CTRL_GET_TIMEOUT);
++		kfree(b);
++	} else {
++		ret = 0;
++	}
+ 
+ 	deb_info("FW GET_VERSION length: %d\n",ret);
+ 
+@@ -153,7 +179,12 @@ static int dib0700_set_clock(struct dvb_
+ 	u8 pll_src, u8 pll_range, u8 clock_gpio3, u16 pll_prediv,
+ 	u16 pll_loopdiv, u16 free_div, u16 dsuScaler)
+ {
+-	u8 b[10];
++	u8 *b;
++	int rv;
++
++	b = kmalloc(10, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
+ 	b[0] = REQUEST_SET_CLOCK;
+ 	b[1] = (en_pll << 7) | (pll_src << 6) | (pll_range << 5) | (clock_gpio3 << 4);
+ 	b[2] = (pll_prediv >> 8)  & 0xff; // MSB
+@@ -165,7 +196,9 @@ static int dib0700_set_clock(struct dvb_
+ 	b[8] = (dsuScaler >> 8)   & 0xff; // MSB
+ 	b[9] =  dsuScaler         & 0xff; // LSB
+ 
+-	return dib0700_ctrl_wr(d, b, 10);
++	rv = dib0700_ctrl_wr(d, b, 10);
++	kfree(b);
++	return rv;
+ }
+ 
+ int dib0700_ctrl_clock(struct dvb_usb_device *d, u32 clk_MHz, u8 clock_out_gp3)
+@@ -179,30 +212,40 @@ int dib0700_ctrl_clock(struct dvb_usb_de
+ 
+ static int dib0700_jumpram(struct usb_device *udev, u32 address)
+ {
+-	int ret, actlen;
+-	u8 buf[8] = { REQUEST_JUMPRAM, 0, 0, 0,
+-		(address >> 24) & 0xff,
+-		(address >> 16) & 0xff,
+-		(address >> 8)  & 0xff,
+-		 address        & 0xff };
++	int ret = 0, actlen;
++	u8 *buf;
++
++	buf = kzalloc(8, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
++	buf[0] = REQUEST_JUMPRAM;
++	*(u32 *)(buf + 4) = cpu_to_be32(address);
+ 
+ 	if ((ret = usb_bulk_msg(udev, usb_sndbulkpipe(udev, 0x01),buf,8,&actlen,1000)) < 0) {
+ 		deb_fw("jumpram to 0x%x failed\n",address);
+-		return ret;
++		goto out;
+ 	}
+ 	if (actlen != 8) {
+ 		deb_fw("jumpram to 0x%x failed\n",address);
+-		return -EIO;
++		ret = -EIO;
++		goto out;
+ 	}
+-	return 0;
++
++out:
++	kfree(buf);
++	return ret;
+ }
+ 
+ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw)
+ {
+ 	struct hexline hx;
+ 	int pos = 0, ret, act_len;
++	u8 *buf;
+ 
+-	u8 buf[260];
++	buf = kmalloc(260, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
+ 
+ 	while ((ret = dvb_usb_get_hexline(fw, &hx, &pos)) > 0) {
+ 		deb_fwdata("writing to address 0x%08x (buffer: 0x%02x %02x)\n",hx.addr, hx.len, hx.chk);
+@@ -222,6 +265,7 @@ int dib0700_download_firmware(struct usb
+ 			1000);
+ 
+ 		if (ret < 0) {
++			kfree(buf);
+ 			err("firmware download failed at %d with %d",pos,ret);
+ 			return ret;
+ 		}
+@@ -236,14 +280,19 @@ int dib0700_download_firmware(struct usb
+ 	} else
+ 		ret = -EIO;
+ 
++	kfree(buf);
+ 	return ret;
+ }
+ 
+ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ {
+ 	struct dib0700_state *st = adap->dev->priv;
+-	u8 b[4];
++	u8 *b;
++	int rv;
+ 
++	b = kmalloc(4, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
+ 	b[0] = REQUEST_ENABLE_VIDEO;
+ 	b[1] = (onoff << 4) | 0x00; /* this bit gives a kind of command, rather than enabling something or not */
+ 	b[2] = (0x01 << 4); /* Master mode */
+@@ -260,18 +309,29 @@ int dib0700_streaming_ctrl(struct dvb_us
+ 
+ 	deb_info("data for streaming: %x %x\n",b[1],b[2]);
+ 
+-	return dib0700_ctrl_wr(adap->dev, b, 4);
++	rv = dib0700_ctrl_wr(adap->dev, b, 4);
++	kfree(b);
++	return rv;
+ }
+ 
+ int dib0700_rc_setup(struct dvb_usb_device *d)
+ {
+-	u8 rc_setup[3] = {REQUEST_SET_RC, dvb_usb_dib0700_ir_proto, 0};
+-	int i = dib0700_ctrl_wr(d, rc_setup, 3);
+-	if (i<0) {
+-		err("ir protocol setup failed");
++	u8 *rc_setup;
++	int i;
++
++	rc_setup = kmalloc(3, GFP_KERNEL);
++	if (!rc_setup)
+ 		return -1;
+-	}
+-	return 0;
++	rc_setup[0] = REQUEST_SET_RC;
++	rc_setup[1] = dvb_usb_dib0700_ir_proto;
++	rc_setup[2] = 0;
++
++	i = dib0700_ctrl_wr(d, rc_setup, 3);
++	kfree(rc_setup);
++	if (i<0)
++		err("ir protocol setup failed");
++
++	return i >= 0 ? 0 : -1;
+ }
+ 
+ static int dib0700_probe(struct usb_interface *intf,
 
 _______________________________________________
 linux-dvb mailing list
