@@ -1,22 +1,40 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7G7rGAK010128
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 03:53:16 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7G7r2UA024381
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 03:53:02 -0400
-Message-ID: <48A689C1.7070007@hhs.nl>
-Date: Sat, 16 Aug 2008 10:03:13 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Mark Ferrell <majortrips@gmail.com>
-References: <20080816050023.GB30725@thumper> <48A67A8D.8040104@hhs.nl>
-	<7813ee860808160046s60de698bu307ab5255631a5e@mail.gmail.com>
-In-Reply-To: <7813ee860808160046s60de698bu307ab5255631a5e@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7QNHx9A024585
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 19:18:00 -0400
+Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
+	[151.189.21.54])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7QNHk7A028485
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 19:17:46 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: ian.davidson@bigfoot.com
+In-Reply-To: <48B44CDF.60903@blueyonder.co.uk>
+References: <488C9266.7010108@blueyonder.co.uk>
+	<1217364178.2699.17.camel@pc10.localdom.local>
+	<4890BBE8.8000901@blueyonder.co.uk>
+	<1217457895.4433.52.camel@pc10.localdom.local>
+	<48921FF9.8040504@blueyonder.co.uk>
+	<1217542190.3272.106.camel@pc10.localdom.local>
+	<48942E42.5040207@blueyonder.co.uk>
+	<1217679767.3304.30.camel@pc10.localdom.local>
+	<4895D741.1020906@blueyonder.co.uk>
+	<1217798899.2676.148.camel@pc10.localdom.local>
+	<4898C258.4040004@blueyonder.co.uk> <489A0B01.8020901@blueyonder.co.uk>
+	<1218059636.4157.21.camel@pc10.localdom.local>
+	<489B6E1B.301@blueyonder.co.uk>
+	<1218153337.8481.30.camel@pc10.localdom.local>
+	<489D7781.8030007@blueyonder.co.uk>
+	<1218474259.2676.42.camel@pc10.localdom.local>
+	<48A8892F.1010900@blueyonder.co.uk>
+	<1219024648.2677.20.camel@pc10.localdom.local>
+	<48B44CDF.60903@blueyonder.co.uk>
+Content-Type: text/plain
+Date: Wed, 27 Aug 2008 01:15:46 +0200
+Message-Id: <1219792546.2669.17.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] Add support for OmniVision OV534 based USB cameras.
+Subject: Re: KWorld DVB-T 210SE - Capture only in Black/White
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,73 +46,103 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mark Ferrell wrote:
-> On Sat, Aug 16, 2008 at 08:58:21AM +0200, Hans de Goede wrote:
->> majortrips@gmail.com wrote:
->>> Adds suport for OmniVision OV534 based cameras:
->>>  - Hercules Blog Webcam
->>>  - Hercules Dualpix HD Webcam
->>>  - Sony HD PS3 Eye (SLEH 00201)
->>> Currently only supports 640x480 YUYV non-interlaced output.
->>> Signed-off-by: Mark Ferrell <majortrips@gmail.com>
->> Hi Mark,
->>
->> Have you taken a look at the ov519 driver which is currently in gspca,
->> which is  in 2.6.27rc1 and more general (latest version) available here:
->> http://linuxtv.org/hg/~jfrancois/gspca/
->>
->> That driver does do jpeg, maybe it can give some clues. gspca is a webcam
->> driver framework. Would you consider porting your driver to gspca, I (we ?)
->> really want to see all usb webcam drivers start using the gspca framework
->> to share as much code as possible.
+Hi Ian,
+
+Am Dienstag, den 26.08.2008, 19:35 +0100 schrieb Ian Davidson:
+> Arrrrgh!
 > 
-> I would definitely be willing to merge the code into an existing driver,
-> though I was under the impression that the gspca core was for ISOC based
-> USB devices.  The ov534's imagine end-point is bulk transfer, with the
-> audio endpoints being isoc.
+> My capture has gone back to Black and White.
 > 
-
-Ah yes it is I didn't know non isoc cams existed, so thats why your driver is 
-so small I already was sorta missing the isoc setup stufff :)
-
-In that case its fine as is. Mauro as this is a new driver and looks clean (and 
-uses videobuf) any chance this can get merged for 2.6.27 ?
-
-I'll work together with Mark on getting YUYV support added to libv4l so that 
-userspace support is taken care of.
-
->>> +The ov534 outputs frames in YUYV format, non-interlaced, at 640x480. This
->>> +format does not yet have wide support among user-land applications.
->>> Though at
->>> +the time of this writing xawtv was known to work correctly.
->>> +
->> This (custom cam formats) was a big problem with gspca too, for this I've
->> written libv4l, which is a library which does format conversion from many
->> cam specific formats to more general formats in userspace. A joined effort
->> between Debian, Suse and Fedora is currently working on making all v4l apps
->> use libv4l, patches have already been written for gstreamer (cheese), pwlib
->> (ekiga) and xawtv.
->>
->> For more on libv4l see:
->> http://hansdegoede.livejournal.com/3636.html
->> http://linuxtv.org/v4lwiki/index.php/Libv4l_Progress
->>
->> Maybe you can write a patch to add YUYV input support to libv4l, if you do
->> that please base your work on the latest version which is available here:
->> http://linuxtv.org/hg/~hgoede/v4l-dvb
+> Since being able to capture video in colour, I have been attempting to
+> install mjpegtools.  Today, having been pointed at the livna
+> repository, I have succeeded.  When I tried a video capture (for
+> regression testing purposes), I found that it was, once again, Black
+> and White.
 > 
-> Thanks, will take a look.
+> Having said that, I get occasional glimpses of colour - and when I do,
+> it is the real colour of whatever the camera is pointing at.  Having
+> made a brief study, it would seem that occasional frames get colour at
+> the top half of the picture.  I have checked (broken and reconnected)
+> the connections between the camera and the computer, but is does not
+> seem to make any difference.
+> 
+> Any ideas where I go from here?
+> 
+> Ian
 > 
 
-Let me know how it goes. I'll gladly help where I can, but I prefer people with 
-hardware to test to write the actual code. All you need todo is add support for 
-YUYV to libv4lconvert/libv4lconvert.c and add a file under libv4lconvert with 
-the actual conversion routines. Also take a good look at libv4lconvert/rgbyuv.c 
-for some good inspiration for the YUV->RGB conversion routines.
+please excuse, but you are on some limit for random issues.
 
-Regards,
+We have, within what is hidden, about two hundreds saa713x cards.
 
-Hans
+I'll pull some of my analog stuff out of the trash bin once more and
+check, but I don't like it to do it again and it will not happen
+endlessly.
+
+You will need some companions claiming still having the same after it.
+
+If you have a chance to test on the Philips/NXP m$ driver, fine there ?
+
+I don't know what more to debug here and gave already all hints in all
+directions i can think about.
+
+Maybe they have done something really not recommended, but I can't tell.
+
+Cheers,
+Hermann
+
+
+
+
+
+> 
+> 
+> 
+> hermann pitton wrote: 
+> > Hi Ian,
+> > 
+> > Am Sonntag, den 17.08.2008, 21:25 +0100 schrieb Ian Davidson:
+> >   
+> > > Hi Hermann,
+> > > 
+> > > Success.  I did nothing of any significance.  What I did do was to add 
+> > > some more lines to saa7134-cards.c (to add vmux 5, 6 and 7) - and then 
+> > > went through the make process again.
+> > > 
+> > > Then, I ran xawtv and started by selecting Composite1 - and I got a 
+> > > colour image.
+> > > 
+> > > I also ran streamer to capture the video signal (using Composite1) and 
+> > > that also captured a colour image.
+> > > 
+> > > I hope it stays that way.
+> > > 
+> > > One other question - but this is probably not the correct place to ask. 
+> > > In the 'help' for streamer, it describes the use of 'lav2wav' to strip 
+> > > the audio out of a video file (that is, to create a separate WAV file 
+> > > using the audio in a particular AVI file).  I do not seem to have 
+> > > lav2wav on my system - and it does not appear to be something that yum 
+> > > acknowledges (using Fedora repositories).  Where might I find lav2wav or 
+> > > something similar?
+> > > 
+> > > Ian
+> > > 
+> > >     
+> > 
+> > as I told you previously already, please stay on the lists.
+> > 
+> > I don't even have a minimum consense about how to submit 5 to 7 patches
+> > currently within a kernel release cycle, but I'm very sure about that I
+> > don't like to be included in 24/7 games and would expect at least kernel
+> > level agreements for contributions still valid. Mauro?
+> > 
+> > So, you are on your own to get it in and further, but people on the
+> > lists are always helpful.
+> > 
+> > Cheers,
+> > Hermannn
+> > 
+
 
 --
 video4linux-list mailing list
