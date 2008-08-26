@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jw@raven.inka.de>) id 1KY7Mp-0003WK-6X
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 00:50:28 +0200
-Date: Wed, 27 Aug 2008 00:45:19 +0200
-From: Josef Wolf <jw@raven.inka.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080826224519.GL32022@raven.wolf.lan>
-References: <1219733348.3846.8.camel@suse.site>
-	<709924.7684.qm@web46108.mail.sp1.yahoo.com>
-Mime-Version: 1.0
+From: Oliver Neukum <oliver@neukum.org>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Tue, 26 Aug 2008 21:28:42 +0200
+References: <Pine.LNX.4.44L0.0808261430330.2139-100000@iolanthe.rowland.org>
+	<48B451B5.7050802@hhs.nl>
+In-Reply-To: <48B451B5.7050802@hhs.nl>
+MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <709924.7684.qm@web46108.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
+Message-Id: <200808262128.43886.oliver@neukum.org>
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	linux-usb <linux-usb@vger.kernel.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	v4l-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [patch]dma on stack in dib0700
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,41 +26,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Aug 26, 2008 at 05:00:18AM -0700, barry bouwsma wrote:
+Am Dienstag 26 August 2008 20:55:49 schrieb Hans de Goede:
+> I see, so basicly the only safe buffer for usb_control_msg is one that is 
+> kmalloc -ed all by itself with no other use for that kmalloc block then using 
+> it for usb_comtrol_msg, iow the buffer may not be allocated as anything that is 
+> part of a larger memory block such as a struct or an array?
 
-> For laughs, I now converted a short BBC-Four TS I had recorded as
-> a test with `ts2ps', and there, the PTS/DTS are present in the PS
-> and match those seen in the TS...
-> 
->      ==> system_clock_reference_base: 859961626 (0x3341f91a)  [= 90 kHz-Timestamp: 2:39:15.1291]
+That's the rule to follow.
 
-This is a PS pack header, right?
+> And we then could allocate 32 bytes, because we might as well as that is the 
+> minimum kmalloc block size, or MUST we allocate 32 bytes to make sure we get a 
+> cache-line all by ourselves?
 
->          ==> PTS: 5154932522 (0x13342072a)  [= 90 kHz-Timestamp: 15:54:37.0280]
->          ==> DTS: 5154921721 (0x13341dcf9)  [= 90 kHz-Timestamp: 15:54:36.9080]
->          ==> PTS: 5154925321 (0x13341eb09)  [= 90 kHz-Timestamp: 15:54:36.9480]
->          ==> PTS: 5154928921 (0x13341f919)  [= 90 kHz-Timestamp: 15:54:36.9880]
+Anything kmalloc returns is safe. You might just as well allocate 32 bytes
+you don't have to. kmalloc on the affected architectures will round up to
+cache line size.
 
-Are those PES headers from audio or from video?  Noticed the hop here?
+	Regards
+		Oliver
 
->      ==> system_clock_reference_base: 859937348 (0x33419a44)  [= 90 kHz-Timestamp: 2:39:14.8594]
-
-PS pack header again? Hop backwards from previous pack header?
-
->          ==> PTS: 5154908244 (0x13341a854)  [= 90 kHz-Timestamp: 15:54:36.7582]
->          ==> PTS: 5154943322 (0x13342315a)  [= 90 kHz-Timestamp: 15:54:37.1480]
->          ==> DTS: 5154932521 (0x133420729)  [= 90 kHz-Timestamp: 15:54:37.0280]
->          ==> PTS: 5154936121 (0x133421539)  [= 90 kHz-Timestamp: 15:54:37.0680]
->          ==> PTS: 5154939721 (0x133422349)  [= 90 kHz-Timestamp: 15:54:37.1080]
->          ==> PTS: 5154954122 (0x133425b8a)  [= 90 kHz-Timestamp: 15:54:37.2680]
-
-Again hops.  Have you tried to play this stream with vlc?
-
-BTW: what is the DTS good for?  Isn't PTS the relevant time for playbacK?
-     What difference does it make when a frame was decoded as long as it
-     is presented at the correct time?
-
-     And what is the SCRB good for?  I am totally confused by all those times.
 
 _______________________________________________
 linux-dvb mailing list
