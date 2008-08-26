@@ -1,29 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from rv-out-0506.google.com ([209.85.198.231])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KSpBk-0000om-Gx
-	for linux-dvb@linuxtv.org; Tue, 12 Aug 2008 10:25:09 +0200
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1KSpBe-00060E-JT
-	for linux-dvb@linuxtv.org; Tue, 12 Aug 2008 08:25:02 +0000
-Received: from host211-152-dynamic.47-79-r.retail.telecomitalia.it
-	([79.47.152.211]) by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Tue, 12 Aug 2008 08:25:02 +0000
-Received: from rainmaker by
-	host211-152-dynamic.47-79-r.retail.telecomitalia.it with local
-	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Tue, 12 Aug 2008 08:25:02 +0000
+	(envelope-from <whauger@gmail.com>) id 1KY4Kf-0001zU-A5
+	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 21:36:02 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so2273714rvf.41
+	for <linux-dvb@linuxtv.org>; Tue, 26 Aug 2008 12:35:55 -0700 (PDT)
+Message-ID: <6f94e1a00808261235g130cf9b9h9b09f11249a01ebe@mail.gmail.com>
+Date: Tue, 26 Aug 2008 21:35:55 +0200
+From: "Werner Hauger" <whauger@gmail.com>
 To: linux-dvb@linuxtv.org
-From: Rainmaker <rainmaker@icgag.it>
-Date: Tue, 12 Aug 2008 08:03:31 +0000 (UTC)
-Message-ID: <g7rg4j$368$1@ger.gmane.org>
-References: <d350e5180804290541q6455c0b3s63aafbbc17e424e2@mail.gmail.com>
-	<48171AA0.2060203@linuxtv.org> <1216716678.7270.15.camel@localhost>
-	<alpine.LFD.1.10.0807220823090.24182@bombadil.infradead.org>
-	<bde349b50808010321u7575e242sfdf4a23f8af0f39b@mail.gmail.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] hauppauge HVR 900H
+In-Reply-To: <48B2E1DC.2080605@beardandsandals.co.uk>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <20080825122741.GB17421@optima.lan>
+	<48B2E1DC.2080605@beardandsandals.co.uk>
+Subject: Re: [linux-dvb] TT S2-3200 + CI Extension
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,28 +28,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 01 Aug 2008 12:21:27 +0200, Eddi De Pieri wrote:
+Hi Guys
 
-> Since the mercurial repository seems to not be so updated, if available,
-> can you post here an "unofficial" patch with latest changes?
-> 
-> Thanks a lot!
-> Regards,
-> 
-> Eddi
+What is the hardware revision of your CI board (printed on the bottom
+of the PCB just above the PCI connector)?
 
+I have a Rev 1.1 on my TT S2-3200 which requires polling, as well a
+Rev 1.0 on an old NOVA-S card which provides an interrupt, both of
+which work with the current driver. The version testing code was added
+to the driver to handle these two boards. Maybe there is a new
+revision out that the driver does not yet cater for.
 
-I add myself to the same request as well... I'm one of those unfortunate 
-folks who thought they were buying a HVR900, just to find themselves 
-stuck with a 900H (as as far as I've understood, I'm not alone!)
+A working CI and CAM combination should produce the following output
+when the driver loads:
 
-An initial unofficial patch to mess around with would be really nice: I'd 
-do all my best to help evaluate it, since I've currently a couple of 
-weeks of holiday from work and so time to dedicate to it.
+Linux video capture interface: v2.00
+saa7146: register extension 'dvb'.
+saa7146: register extension 'budget_ci dvb'.
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 5
+PCI: setting IRQ 5 as level-triggered
+ACPI: PCI Interrupt 0000:00:09.0[A] -> Link [LNKB] -> GSI 5 (level,
+low) -> IRQ 5
+saa7146: found saa7146 @ mem d8ae8000 (revision 1, irq 5) (0x13c2,0x1019).
+saa7146 (0): dma buffer size 192512
+DVB: registering new adapter (TT-Budget S2-3200 PCI)
+adapter has MAC addr = 00:d0:5c:64:ba:14
+input: Budget-CI dvb ir receiver saa7146 (0) as
+/devices/pci0000:00/0000:00:09.0/input/input6
+budget_ci: CI interface initialised
+stb0899_get_dev_id: Device ID=[8], Release=[2]
+stb0899_get_dev_id: Demodulator Core ID=[DMD1], Version=[1]
+stb0899_get_dev_id: FEC Core ID=[FEC1], Version=[1]
+stb0899_attach: Attaching STB0899
+stb6100_attach: Attaching STB6100
+dvb_ca adapter 0: DVB CAM detected and initialised successfully
+DVB: registering frontend 0 (STB0899 Multistandard)...
 
-Cheers,
-Lorenzo
+> > 508     if ((ci_version & 0xa0) != 0xa0) {
+> > 509             result = -ENODEV;
+> > 510             goto error;
+> > 511     }
+> >
 
+Martin, have you tried commenting out this test to see if you then can
+get the 'CI interface initialised' message?
+
+> Sorry I cannot offer any direct help. But I thought you might like to
+> know you are not the only one fighting with this piece of hardware :-)
+>
+> Roger
+
+Roger, in your other message you said your CI board reports the
+version as 0xa0 which the driver expects to generate interrupts, which
+clearly it doesn't. Have you tried changing the code so that the
+driver uses polling for your CI version?
+
+Werner
 
 _______________________________________________
 linux-dvb mailing list
