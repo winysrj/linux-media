@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TNiYPJ028827
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 19:44:35 -0400
-Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7TNiMZS005858
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 19:44:22 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7TNiGHs031025
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 18:44:21 -0500
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7TNiGbG022872
-	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 18:44:16 -0500 (CDT)
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Fri, 29 Aug 2008 18:44:02 -0500
-Message-ID: <A24693684029E5489D1D202277BE89441191E346@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7QLFpu4021382
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 17:15:52 -0400
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7QLFd2m026943
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 17:15:40 -0400
+Message-ID: <48B47511.4010008@hhs.nl>
+Date: Tue, 26 Aug 2008 23:26:41 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: [PATCH 14/15] OMAP3 camera driver: OMAP34XXCAM: Camera Base Address.
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <48B3B8CD.9090503@hhs.nl> <200808262235.12292.hverkuil@xs4all.nl>
+In-Reply-To: <200808262235.12292.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: What todo with cams which have 2 drivers?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,65 +27,91 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Sergio Aguirre <saaguirre@ti.com>
+Hans Verkuil wrote:
+> 
+> In general I am getting worried by the lack of a common standard to
+> interface to sensor and controller drivers. I'm no expert on webcams, so
+> correct me if I'm wrong, but it seems to me that the correct design would
+> be to have a generic API to these devices that can be used by the various
+> USB or platform drivers.
+> 
+> But for e.g. the mt9* sensors we have three that use the soc_camera
+> interface, one using the sn9c102 interface and I know of two more that
+> are not yet in v4l-dvb but that will use the v4l2-int-device.h interface.
+> It's a mess in my opinion.
+> 
 
-ARM: OMAP: OMAP34XXCAM: Camera Base Address.
+It is indeed, in my experience so far the easiest solution is to see the bridge 
+and sensor (and this the whole cam) as one device. 80% of the per sensor code 
+in a bridge driver is setting up the bridge to talk to the cam (there are 
+various connections between the 2 possible and most bridges support multiple 
+connection types) and 80% of the sensor code is configuring the sensor for a 
+specific bridge (same story). The remaining 20% of sensor code is rather boring 
+  (poking registers to set things like conteast and brightness) and since the 
+sensor needs to be programmed to talk to the bridge in a bridge specific way 
+there is little to gain from having seperate sensor drivers as those still need 
+to be patched for a new bridge type before the sensor will work with a certain 
+bridge.
 
-Adding OMAP 3 Camera registers base address, and Platform Device.
+If you for example look at the attempting to be generic ovchipcam drivers in 
+the current kernel tree, which contain code for the ov6xxx and ov7xxx sensors, 
+then the attach routine contains the following:
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-Signed-off-by: Sameer Venkatraman <sameerv@ti.com>
-Signed-off-by: Mohit Jalori <mjalori@ti.com>
----
- arch/arm/plat-omap/include/mach-omap2/devices.c              |   26 ++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat-omap/include/mach/omap34xx.h |    1 +
- 2 files changed, 27 insertions(+)
+         switch (adap->id) {
+         case I2C_HW_SMBUS_OV511:
+         case I2C_HW_SMBUS_OV518:
+         case I2C_HW_SMBUS_W9968CF:
+                 PDEBUG(1, "Adapter ID 0x%06x accepted", adap->id);
+                 break;
+         default:
+                 PDEBUG(1, "Adapter ID 0x%06x rejected", adap->id);
+                 return -ENODEV;
+         }
 
---- a/arch/arm/plat-omap/include/mach/omap34xx.h
-+++ b/arch/arm/plat-omap/include/mach/omap34xx.h
-@@ -63,6 +63,7 @@
- #define OMAP2_CM_BASE			OMAP3430_CM_BASE
- #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
- #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
-+#define OMAP34XX_CAMERA_BASE		(L4_34XX_BASE + 0xBC000)
- 
- #endif
- 
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -50,6 +50,32 @@
- {
- 	platform_device_register(&omap_cam_device);
- }
-+
-+#elif defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
-+
-+static struct resource cam_resources[] = {
-+	{
-+		.start		= OMAP34XX_CAMERA_BASE,
-+		.end		= OMAP34XX_CAMERA_BASE + 0x1B70,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= INT_34XX_CAM_IRQ,
-+		.flags		= IORESOURCE_IRQ,
-+	}
-+};
-+
-+static struct platform_device omap_cam_device = {
-+	.name		= "omap34xxcam",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(cam_resources),
-+	.resource	= cam_resources,
-+};
-+
-+static inline void omap_init_camera(void)
-+{
-+	platform_device_register(&omap_cam_device);
-+}
- #else
- static inline void omap_init_camera(void)
- {
+IOW this generic sensor code will only work with 3 know bridges and some of the 
+code itself is bridge specific too, for example in ov6x30.c :
+
+         if (win->format == VIDEO_PALETTE_GREY) {
+                 if (c->adapter->id == I2C_HW_SMBUS_OV518) {
+                         /* Do nothing - we're already in 8-bit mode */
+                 } else {
+                         ov_write_mask(c, 0x13, 0x20, 0x20);
+                 }
+         } else {
+                 /* The OV518 needs special treatment. Although both the OV518
+                  * and the OV6630 support a 16-bit video bus, only the 8 bit Y
+                  * bus is actually used. The UV bus is tied to ground.
+                  * Therefore, the OV6630 needs to be in 8-bit multiplexed
+                  * output mode */
+
+                 if (c->adapter->id == I2C_HW_SMBUS_OV518) {
+                         /* Do nothing - we want to stay in 8-bit mode */
+                         /* Warning: Messing with reg 0x13 breaks OV518 color */
+                 } else {
+                         ov_write_mask(c, 0x13, 0x00, 0x20);
+                 }
+         }
+
+I've done a comparison of code size between trying to use generic sensor code 
+(which isn't that generic at all see above) and just putting sensor specific 
+code into each bridge driver separately, see:
+http://marc.info/?l=linux-video&m=121645882518114&w=2
+
+So my conclusion (for now) is that trying to separate the sensor code out of 
+the bridge drivers is not worth it. I plan to rewrite the ov511/ov518 driver 
+for v4l2 using gspca (so that libv4l can be used to decode the special JPEG-ish 
+format making these cams actually work). For this rewrite I will probably 
+remove the ovcamchip stuff and just put sensor init and ctrl code in the bridge 
+driver, probably resulting in a smaller driver.
+
+> I think it would be interesting to discuss this further with you in Portland.
+
+Yes it would, I think we need to make an agenda what we want to discuss (both 
+in the miniconf and outside of that).
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
