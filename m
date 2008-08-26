@@ -1,15 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n76.bullet.mail.sp1.yahoo.com ([98.136.44.48])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KTAx2-0006my-DI
-	for linux-dvb@linuxtv.org; Wed, 13 Aug 2008 09:39:26 +0200
-Date: Wed, 13 Aug 2008 00:38:47 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Message-ID: <874239.94389.qm@web46116.mail.sp1.yahoo.com>
-Subject: [linux-dvb] Fix for ttusb-dec
-Reply-To: free_beer_for_all@yahoo.com
+Received: from mail3.atlantis.sk ([80.94.52.52] helo=ocean.atlantis.sk)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hajduk@francetech.sk>) id 1KY1MV-0001te-FF
+	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 18:25:44 +0200
+From: Marek Hajduk <hajduk@francetech.sk>
+To: Goga777 <goga777@bk.ru>
+In-Reply-To: <20080826201530.47fd3bb7@bk.ru>
+References: <200808252156.52323.ajurik@quick.cz>
+	<E1KXq2s-0007z3-00.goga777-bk-ru@f25.mail.ru>
+	<1219735725.3886.6.camel@HTPC>  <20080826201530.47fd3bb7@bk.ru>
+Date: Tue, 26 Aug 2008 18:25:33 +0200
+Message-Id: <1219767933.6859.3.camel@HTPC>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for
+	VDR	1.7.0
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,33 +22,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Moin moin,
-
-Can I beg and plead for someone to add to the v4l-dvb repository,
-in order to get it eventually into the kernel, the patch or
-something comparable, which was posted to the linux-kernel mailing
-list on 23.Jun 2008 with Message-ID <485FB75E.4030606@gmx.net>
-and which can be found at, for example,
-http://lkml.org/lkml/2008/6/23/197
-
-Without this, I need to add a local custom patch, else my DEC3000-S
-does not work at all with the latest kernels.
-
-
-thanks!
-barry bouwsma
-
-
-      
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+VGhhbmsgWW91IEdvZ2EgZm9yIFlvdXIgcmVwbHksCgpFdmVyeXRoaW5nIGlzIE9LLiBJIGhhZCBl
+cnJvciBtb2R1bGF0aW9uIGluIGNoYW5uZWxzLmNvbmYuCgpOb3cgaXMgQWxsIE9LLgoKQmVzdCBS
+ZWdhcmRzCgpNYXJreQoKCkdvZ2E3NzcgcMOtxaFlIHYgw5p0IDI2LiAwOC4gMjAwOCB2IDIwOjE1
+ICswNDAwOgo+ID4gSSBoYXZlIHRvIGNvbmZpcm0gdGhhdCB3aXRoIGxhdGVzdCBsaXBsaWFuaW5k
+dmIgZHJpdmVycyBJIGNhbid0IHNlZQo+ID4gQW5peGUgSEQsIFByZW1pZXJlIEhEIGFuZCBkaXNj
+b3ZlcnkgSEQgb24gQXN0cmEgMTkuMkUuCj4gPiAKPiA+IFJlc3Qgb2YgY2hhbm5lbHMgYXJlIHdp
+dGhvdXQgcHJvYmxlbS4KPiAKPiBjb3VsZCB5b3Ugc2hvdyB5b3VyIGxvZ3MgZnJvbSBzemFwMiAK
+PiBodHRwOi8vbGlwbGlhbmluZHZiLnNvdXJjZWZvcmdlLm5ldC9jZ2ktYmluL2hnd2ViZGlyLmNn
+aS9zemFwMi8KPiAKPiBoZXJlYWZ0ZXIgaXMgbXkgbG9ncyB3aXRoIGNoYW5uZWxzLmNvbmYgYW5k
+IHN6YXAyIGZyb20gSWdvcgo+IAo+IGdvZ2E6L3Vzci9zcmMvc3phcDIjIC4vc3phcDIgLWMxOSAt
+SCAtUzEgLUM5MTAgLU0yIC1uNQo+IHJlYWRpbmcgY2hhbm5lbHMgZnJvbSBmaWxlICcxOScKPiB6
+YXBwaW5nIHRvIDUgJ0FTVFJBIEhEKztCZXRhRGlnaXRhbCc6Cj4gZGVsaXZlcnkgRFZCLVMyLCBt
+b2R1bGF0aW9uIFFQU0sKPiBzYXQgMCwgZnJlcXVlbmN5IDExOTE0IE1IeiBILCBzeW1ib2xyYXRl
+IDI3NTAwMDAwLCBjb2RlcmF0ZSA5LzEwLCByb2xsb2ZmIDAuMzUKPiB2cGlkIDB4MDRmZiwgYXBp
+ZCAweDFmZmYsIHNpZCAweDAwMDAKPiB1c2luZyAnL2Rldi9kdmIvYWRhcHRlcjAvZnJvbnRlbmQw
+JyBhbmQgJy9kZXYvZHZiL2FkYXB0ZXIwL2RlbXV4MCcKPiBzdGF0dXMgMWYgfCBzaWduYWwgIDk2
+JSB8IHNuciAgNDElIHwgYmVyIDAgfCB1bmMgMCB8IEZFX0hBU19MT0NLCj4gc3RhdHVzIDFmIHwg
+c2lnbmFsICA5NiUgfCBzbnIgIDQyJSB8IGJlciAwIHwgdW5jIDAgfCBGRV9IQVNfTE9DSwo+IHN0
+YXR1cyAxZiB8IHNpZ25hbCAgOTYlIHwgc25yICA0MiUgfCBiZXIgMCB8IHVuYyAwIHwgRkVfSEFT
+X0xPQ0sKPiBzdGF0dXMgMWYgfCBzaWduYWwgIDk2JSB8IHNuciAgNDIlIHwgYmVyIDAgfCB1bmMg
+MCB8IEZFX0hBU19MT0NLCj4gc3RhdHVzIDFmIHwgc2lnbmFsICA5NiUgfCBzbnIgIDQyJSB8IGJl
+ciAwIHwgdW5jIDAgfCBGRV9IQVNfTE9DSwo+IAo+IGNoYW5uZWxzLmNvbmYgZm9yIHZkciAxNzAg
+YW5kIHN6YXAyIGZyb20gSWdvcgo+IAo+IE9SRiAxIEhEO09SRjoxMDgzMjpoQzU2TTJPMFMwOlMx
+OS4yRToyMjAwMDoxOTIwOjE5MjE9ZGV1LDE5MjI9ZW5nOzE5MjM9ZGV1OjE5MjU6RDA1LDE3MDIs
+MTgwMSw2NDgsRDk1LDlDNCwxODMzOjYxOTIwOjE6MTA1NzowCj4gQU5JWEUgSEQ7QmV0YURpZ2l0
+YWw6MTE5MTQ6aEM5MTBNMk8zNVMxOlMxOS4yRToyNzUwMDoxNTM1OjA7MTUzOT1kZXU6MDowOjEz
+MjoxMzM6NjowCj4gYXJ0ZSBIRDtaREZ2aXNpb246MTEzNjE6aEMyM001TzBTMTpTMTkuMkU6MjIw
+MDA6NjIxMDo2MjIxPWRldSw2MjIyPWZyYTo2MjMwOjA6MTExMjA6MToxMDExOjAKPiBBU1RSQSBI
+RCs7QmV0YURpZ2l0YWw6MTE5MTQ6aEM5MTBNMk8zNVMxOlMxOS4yRToyNzUwMDoxMjc5OjA7MTI4
+Mz1kZXU6MDowOjEzMToxMzM6NjowCj4gUFJFTUlFUkUgSEQsUFJFTSBIRDtQUkVNSUVSRToxMTkx
+NDpoQzkxME0yTzM1UzE6UzE5LjJFOjI3NTAwOjc2NzowOzc3MT1kZXUsNzcyPWVuZzozMjoxODMw
+LDE4MzEsMTgzMywxODM0LDlDNCwxODAxOjEyOToxMzM6NjowCj4gRElTQ09WRVJZIEhELERJU0Mg
+SEQ7UFJFTUlFUkU6MTE5MTQ6aEM5MTBNMk8zNVMxOlMxOS4yRToyNzUwMDoxMDIzOjA7MTAyNz1k
+ZXU6MzI6MTgzMCwxODMxLDE4MzMsMTgzNCw5QzQsMTgwMToxMzA6MTMzOjY6MAo+IENJTkUgUFJF
+TUlFUiBIRDtDU0FUOjEyNTgwOnZDMjNNNU8zNVMxOlMxOS4yRToyMjAwMDoxNjA6MDs4Mj1mcmEs
+ODM9ZW5nOjA6MTAwOjkzMDE6MToxMTEwOjAKPiAxM0VNRSBSVUUgSEQ7Q1NBVDoxMjU4MDp2QzIz
+TTVPMzVTMTpTMTkuMkU6MjIwMDA6MTYxOjA7ODY9ZnJhOjA6MTAwOjkzMDI6MToxMTEwOjAKPiAg
+Cj4gCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGlu
+dXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51
+eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
