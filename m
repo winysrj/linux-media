@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.187])
+Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mika.batsman@gmail.com>) id 1KQct1-00069u-Lv
-	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 08:52:45 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so2834910nfb.11
-	for <linux-dvb@linuxtv.org>; Tue, 05 Aug 2008 23:52:40 -0700 (PDT)
-Message-ID: <48994A33.30302@gmail.com>
-Date: Wed, 06 Aug 2008 09:52:35 +0300
-From: =?ISO-8859-1?Q?Mika_B=E5tsman?= <mika.batsman@gmail.com>
-MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-References: <3b52bc790807101342o12f6f879n9c68704cd6b96e22@mail.gmail.com>	<4879FA31.2080803@kolumbus.fi>	<4A2CCDB3-57B0-4121-A94D-59F985FCDE2B@oberste-berghaus.de>	<487BB17D.8080707@kolumbus.fi>	<D5C41D41-A72D-4603-9AD1-67A8C5E73289@oberste-berghaus.de>
-	<488CAE63.9070204@kolumbus.fi> <488F0D80.7010607@gmail.com>
-	<489766A4.7070907@kolumbus.fi> <48981245.2050900@gmail.com>
-	<489890CD.8040508@kolumbus.fi>
-In-Reply-To: <489890CD.8040508@kolumbus.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy C DVB-C / Twinhan AD-CP400
- (VP-2040) &	mantis driver
+	(envelope-from <jw@raven.inka.de>) id 1KY7Mp-0003WK-6X
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 00:50:28 +0200
+Date: Wed, 27 Aug 2008 00:45:19 +0200
+From: Josef Wolf <jw@raven.inka.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080826224519.GL32022@raven.wolf.lan>
+References: <1219733348.3846.8.camel@suse.site>
+	<709924.7684.qm@web46108.mail.sp1.yahoo.com>
+Mime-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <709924.7684.qm@web46108.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,193 +20,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-If you can give me a link or mail me your driver I could give it a try too.
+On Tue, Aug 26, 2008 at 05:00:18AM -0700, barry bouwsma wrote:
 
--Mika
+> For laughs, I now converted a short BBC-Four TS I had recorded as
+> a test with `ts2ps', and there, the PTS/DTS are present in the PS
+> and match those seen in the TS...
+> 
+>      ==> system_clock_reference_base: 859961626 (0x3341f91a)  [= 90 kHz-Timestamp: 2:39:15.1291]
 
-Marko Ristola wrote:
-> =
+This is a PS pack header, right?
 
-> Maybe I should try with Manu's jusst.de version, if it works for me now
-> Better exclude the driver differences away.
-> I don't have a CAM module and I haven't tested with two equal cards.
-> =
+>          ==> PTS: 5154932522 (0x13342072a)  [= 90 kHz-Timestamp: 15:54:37.0280]
+>          ==> DTS: 5154921721 (0x13341dcf9)  [= 90 kHz-Timestamp: 15:54:36.9080]
+>          ==> PTS: 5154925321 (0x13341eb09)  [= 90 kHz-Timestamp: 15:54:36.9480]
+>          ==> PTS: 5154928921 (0x13341f919)  [= 90 kHz-Timestamp: 15:54:36.9880]
 
-> Our problems seem to be similar though.
-> =
+Are those PES headers from audio or from video?  Noticed the hop here?
 
-> Marko
-> =
+>      ==> system_clock_reference_base: 859937348 (0x33419a44)  [= 90 kHz-Timestamp: 2:39:14.8594]
 
-> Mika B=E5tsman kirjoitti:
->> Marko Ristola wrote:
->>> Mika B=E5tsman kirjoitti:
->>>> Hi,
->>>> I also tried your patch because I've had freezes since I got these =
+PS pack header again? Hop backwards from previous pack header?
 
->>>> cards. Unfortunately it didn't help me. Got a whooping 5min uptime =
+>          ==> PTS: 5154908244 (0x13341a854)  [= 90 kHz-Timestamp: 15:54:36.7582]
+>          ==> PTS: 5154943322 (0x13342315a)  [= 90 kHz-Timestamp: 15:54:37.1480]
+>          ==> DTS: 5154932521 (0x133420729)  [= 90 kHz-Timestamp: 15:54:37.0280]
+>          ==> PTS: 5154936121 (0x133421539)  [= 90 kHz-Timestamp: 15:54:37.0680]
+>          ==> PTS: 5154939721 (0x133422349)  [= 90 kHz-Timestamp: 15:54:37.1080]
+>          ==> PTS: 5154954122 (0x133425b8a)  [= 90 kHz-Timestamp: 15:54:37.2680]
 
->>>> before it all went wrong again. I have 2x Cinergy C + 2.6.24-19 + =
+Again hops.  Have you tried to play this stream with vlc?
 
->>>> vdr 1.6.
->>>>
->>> Do you have a heat problem? Have you checked your motherboard sensors?
->>> Have you checked that your memory is okay? Air flows easilly?
->>
->> Memory was the first thing I suspected but memtest went through 10+ =
+BTW: what is the DTS good for?  Isn't PTS the relevant time for playbacK?
+     What difference does it make when a frame was decoded as long as it
+     is presented at the correct time?
 
->> times without a fail. Heat shouldn't be a problem either. There's a =
-
->> big efficient, noisy fan in the back of the case.
->>
->> The machine works fine when dvb is watched with dvbyell =
-
->> http://www.dvbyell.org/ which has cards set to fixed frequency ie. =
-
->> card1 -> 152Mhz and card2 -> 290Mhz. At least for me the problem =
-
->> occurs only with apps like mythtv and vdr which change the frequency =
-
->> of the tuner.
->>
->> -Mika
->>
->>>> I did:
->>>> hg clone http://jusst.de/hg/mantis
->>>> replaced mantis_dma.c with the one you attached, renamed =
-
->>>> MANTIS_GPIF_RDWRN -> MANTIS_GPIF_HIFRDWRN
->>>> make && make install && reboot
->>>>
->>>> Am I missing something? It seemed to compile and install fine.
->>>>
->>>> You said that the mantis_dma.c in jusst.de mantis head is not the =
-
->>>> latest version. Where can it be found then?
->>> I have my own driver version which I have given for Finnish people =
-
->>> for easy installation with remote control support for Twinhan 2033.
->>> (Personally I'm not pleased with the card: now after some years of =
-
->>> development the card works well enough for me finally).
->>>
->>> So the most important feature of my driver for Finnish people has =
-
->>> been the easy compile and install and that the driver ("release") is =
-
->>> tested for Twinhan 2033.
->>> Secondly I have given for some Finnish people the Twinhan 2033 remote =
-
->>> control support included.
->>> Maybe somebody from Finland would be interested with the DMA transfer =
-
->>> fixes, if they have unsolved quality problems. That's a fact that =
-
->>> those tweaks helped me although the root cause is a bit uncertain. =
-
->>> Other features of my driver version like suspend/resume aren't very =
-
->>> important.
->>>
->>> Regards,
->>> Marko Ristola
->>>
->>>>
->>>> Regards,
->>>> Mika B=E5tsman
->>>>
->>>> Marko Ristola wrote:
->>>>>
->>>>> Hi,
->>>>>
->>>>> Unfortunately I have been busy.
->>>>>
->>>>> The patch you tried was against jusst.de Mantis Mercurial branch head.
->>>>> Your version of mantis_dma.c is not the latest version and thus the =
-
->>>>> patch didn't
->>>>> apply cleanly.
->>>>>
->>>>> Here is the version that I use currently. It doesn't compile =
-
->>>>> straight against jusst.de/mantis head.
->>>>> It might work for you because MANTIS_GPIF_RDWRN is not renamed as =
-
->>>>> MANTIS_GPIF_HIFRDWRN.
->>>>>
->>>>> If it doesn't compile please rename MANTIS_GPIF_RDWRN occurrences =
-
->>>>> into MANTIS_GPIF_HIFRDWRN on that file.
->>>>> Otherwise the file should work as it is.
->>>>>
->>>>> Best regards,
->>>>> Marko Ristola
->>>>>
->>>>> Leif Oberste-Berghaus kirjoitti:
->>>>>> Hi Marko,
->>>>>>
->>>>>> I tried to patch the driver but I'm getting an error message:
->>>>>>
->>>>>> root@mediapc:/usr/local/src/test/mantis-0b04be0c088a# patch -p1 < =
-
->>>>>> mantis_dma.c.aligned_dma_trs.patch
->>>>>> patching file linux/drivers/media/dvb/mantis/mantis_dma.c
->>>>>> patch: **** malformed patch at line 22: int mantis_dma_exit(struct =
-
->>>>>> mantis_pci *mantis)
->>>>>>
->>>>>> Any ideas?
->>>>>>
->>>>>> Regards
->>>>>> Leif
->>>>>>
->>>>>>
->>>>>> Am 14.07.2008 um 22:05 schrieb Marko Ristola:
->>>>>>
->>>>>>> Hi Leif,
->>>>>>>
->>>>>>> Here is a patch that implements the mentioned DMA transfer =
-
->>>>>>> improvements.
->>>>>>> I hope that these contain also the needed fix for you.
->>>>>>> You can apply it into jusst.de/mantis Mercurial branch.
->>>>>>> It modifies linux/drivers/media/dvb/mantis/mantis_dma.c only.
->>>>>>> I have compiled the patch against 2.6.25.9-76.fc9.x86_64.
->>>>>>>
->>>>>>> cd mantis
->>>>>>> patch -p1 < mantis_dma.c.aligned_dma_trs.patch
->>>>>>>
->>>>>>> Please tell us whether my patch helps you or not: if it helps, =
-
->>>>>>> some of my patch might get into jusst.de as
->>>>>>> a fix for your problem.
->>>>>>>
->>>>>>> Best Regards,
->>>>>>> Marko
->>>>>>
->>>>>>
->>>>>
->>>>> ---------------------------------------------------------------------=
---- =
-
->>>>>
->>>>>
->>>>> _______________________________________________
->>>>> linux-dvb mailing list
->>>>> linux-dvb@linuxtv.org
->>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>>
->>>
->>
->>
-> =
-
+     And what is the SCRB good for?  I am totally confused by all those times.
 
 _______________________________________________
 linux-dvb mailing list
