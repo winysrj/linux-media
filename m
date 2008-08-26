@@ -1,29 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7QKZQW8004443
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 16:35:26 -0400
-Received: from smtp-vbr11.xs4all.nl (smtp-vbr11.xs4all.nl [194.109.24.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7QKZEc2032563
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 16:35:14 -0400
-Received: from tschai.lan (cm-84.208.85.194.getinternet.no [84.208.85.194])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id m7QKZDVO071075
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>;
-	Tue, 26 Aug 2008 22:35:13 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Tue, 26 Aug 2008 22:35:12 +0200
-References: <48B3B8CD.9090503@hhs.nl>
-In-Reply-To: <48B3B8CD.9090503@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7QNUMhA027323
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 19:30:23 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7QNTk15002241
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 19:30:02 -0400
+Date: Wed, 27 Aug 2008 01:29:13 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Andy Walls <awalls@radix.net>
+Message-ID: <20080826232913.GA2145@daniel.bse>
+References: <200808251445.22005.jdelvare@suse.de>
+	<1219711251.2796.47.camel@morgan.walls.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200808262235.12292.hverkuil@xs4all.nl>
-Subject: Re: What todo with cams which have 2 drivers?
+In-Reply-To: <1219711251.2796.47.camel@morgan.walls.org>
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
+	Jean Delvare <jdelvare@suse.de>
+Subject: Re: [v4l-dvb-maintainer] bttv driver questions
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,96 +29,102 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 26 August 2008 10:03:25 Hans de Goede wrote:
-> Hi All,
-> 
-> Now that gspca is part of the v4l-dvb tree, we have 2 drivers for several cams.
-> 
-> The "problem" is that various gspca subdrivers and various drivers written by 
-> Luca Risolia support the same controllers (and a subset of the same sensors too).
-> 
-> Currently this is solved by removing the usb-id's for any cams supported by 
-> Luca's drivers (which have been in the kernel for some time) from gspca when 
-> Luca's drivers are enabled.
-> 
-> Since the drivers written by Luca Risolia seem to be basicly unmaintained, for 
-> example luca has one last update to his sn9c102 driver on his website which he 
-> has never bother to merge upstream, and since Luca's drivers often have a 
-> poorer feature set then gspca (no exposure control for sn9c102 + tas5110 making 
-> it unusable in many lighting conditions for example), I would like to suggest 
-> to start removing usb-id's from Luca's drivers when gspca is enabled and leave 
-> them always enabled in gspca, atleast for those cams which have been thoroughly 
-> tested with gspca.
+On Mon, Aug 25, 2008 at 08:40:51PM -0400, Andy Walls wrote:
+> On Mon, 2008-08-25 at 14:45 +0200, Jean Delvare wrote:
+> > * When is the bttv IRQ handler called? At the end of every frame?
 
-Seems like a good idea.
+yes
 
-> ##
+> > At the end of the VBI?
+
+yes
+
+> > Between the odd field and even field sequences for full resolution frames?
+
+no, in-between only if fields are captured independently
+
+> > * Does the bttv driver have anything special to do for full
+> >   resolution frames, that it doesn't have to do for half resolution
+> >   ones? In particular, I wonder if the BT878 DMA engine knows how to
+> >   interlace fields when writing to the memory, or if the bttv driver
+> >   must take care of reordering the fields properly afterwards. I
+> >   suspect the latter.
+
+The driver fills buffers with instructions for the DMA engine, one buffer
+for the top field and one for the bottom field. These instructions tell
+the engine where to write a specific pixel. For interlaced video the
+instructions for the top field write to line 0, 2, 4, ... in memory and for
+the bottom field to line 1, 3, 5, ... .
+
+> > * How longs are the blocks written by the BT878 DMA engine to memory?
+> >   Obviously it can't send more than the FIFO size (128 bytes) at
+> >   once.
+
+The FIFO is bigger. In packed modes it is 140x4 bytes. In planar modes
+it is 70x4 bytes for luma and 35x4 bytes for each chroma FIFO.
+
+> IF I'm reading the PCI 2.2 spec correctly, targets are allowed an
+> initial (start of burst) latency of up to 16 cycles before they must be
+> ready for the first data transfer in a burst.  Host bridges as targets
+> are allowed an additional 16 cycles setup time (for a total of 32) if
+> the transfer is to a modified cache line.  For subsequent transfers in
+> the burst, the target is only allowed 8 setup cycles max.
 > 
-> Another issue is that Luca's drivers claim to support usb-id's which they don't 
-> Luca uses probing to find out which sensor there is instead of using usb-id's 
-> and has added all usb-id's he could find for a controller, independend on 
-> wether or not his driver supports the sensor used in that usb-id.
+> So with a BT878 latency timer of 32 cycles, a 128 byte burst could be
+> sent as 2 transactions, assuming a maximum target setup time for the
+> host bridge, with a transfer that doesn't hit a modified cache line,
+> assuming transparent arbitration:
 > 
-> For example the sn9c102 driver used to claim that it supports 0c45:6011 but it 
-> does not, as that uses an ov6650 sensor, which the sn9c102 driver does not 
-> support. I actually have such a cam and have tested it with Luca's driver and 
-> that only results in the following dmesg: "No supported image sensor detected 
-> for this bridge", a patch removing this usb-id has already been submitted (and 
-> accepted) through the gspca tree.
-> 
-> I've also noticed that Luca's zc0301 driver only supports 2 sensors the pas202 
-> and the pb0330, where as the gspca zc3xx driver supports 18 different sensors!
-> 
-> If you look in zc0301_sensor.h you will find the following list:
->          { ZC0301_USB_DEVICE(0x041e, 0x4017, 0xff), }, /* ICM105 */            \
->          { ZC0301_USB_DEVICE(0x041e, 0x401c, 0xff), }, /* PAS106 */            \
->          { ZC0301_USB_DEVICE(0x041e, 0x401e, 0xff), }, /* HV7131 */            \
->          { ZC0301_USB_DEVICE(0x041e, 0x401f, 0xff), }, /* TAS5130 */           \
->          { ZC0301_USB_DEVICE(0x041e, 0x4022, 0xff), },                         \
->          { ZC0301_USB_DEVICE(0x041e, 0x4034, 0xff), }, /* PAS106 */            \
->          { ZC0301_USB_DEVICE(0x041e, 0x4035, 0xff), }, /* PAS106 */            \
->          { ZC0301_USB_DEVICE(0x041e, 0x4036, 0xff), }, /* HV7131 */            \
->          { ZC0301_USB_DEVICE(0x041e, 0x403a, 0xff), }, /* HV7131 */            \
->          { ZC0301_USB_DEVICE(0x0458, 0x7007, 0xff), }, /* TAS5130 */           \
->          { ZC0301_USB_DEVICE(0x0458, 0x700c, 0xff), }, /* TAS5130 */           \
->          { ZC0301_USB_DEVICE(0x0458, 0x700f, 0xff), }, /* TAS5130 */           \
->          { ZC0301_USB_DEVICE(0x046d, 0x08ae, 0xff), }, /* PAS202 */            \
->          { ZC0301_USB_DEVICE(0x055f, 0xd003, 0xff), }, /* TAS5130 */           \
->          { ZC0301_USB_DEVICE(0x055f, 0xd004, 0xff), }, /* TAS5130 */           \
->          { ZC0301_USB_DEVICE(0x0ac8, 0x0301, 0xff), },                         \
->          { ZC0301_USB_DEVICE(0x0ac8, 0x301b, 0xff), }, /* PB-0330/HV7131 */    \
->          { ZC0301_USB_DEVICE(0x0ac8, 0x303b, 0xff), }, /* PB-0330 */           \
->          { ZC0301_USB_DEVICE(0x10fd, 0x0128, 0xff), }, /* TAS5130 */           \
->          { ZC0301_USB_DEVICE(0x10fd, 0x8050, 0xff), }, /* TAS5130 */           \
->          { ZC0301_USB_DEVICE(0x10fd, 0x804e, 0xff), }, /* TAS5130 */           \
-> 
-> Note how most of these cams cannot work with Luca's driver as there is no 
-> support for the mentioned sensors. So I'll be submitting a patch (through the 
-> gspca tree) enabling these cams unconditional in gspca and removing their 
-> usb-ids from Luca's zc0301 driver, given the small number of supported cams 
-> then left (2), we should consider deprecating the zc0301 driver all together.
+> 1 addr cycle + 16 setup cycles + 15 data cycles  (60 bytes transferred)
+> 1 turn around cycle (I think...)
+> 1 addr cycle + 8 setup cycles + 17 data cycles (68 bytes transferred)
+> 1 turn around cycle
 
-Makes also sense IMHO.
+I think worst case for slow targets is more like
 
-> I'll do an audit of Luca's other drivers for similar issues (claiming unsupport 
-> usb-id's)
+1 addr cycle
+15 setup cycles (unsure if initial latency includes addr cycle...)
+1 data cycle
+7 setup cycles
+1 data cycle
+7 setup cycles <-- latency timer of 32 expires, assuming GNT# is deasserted
+1 data cycle <-- can't deassert FRAME# yet
+7 setup cycles <-- FRAME# deasserted
+1 data cycle
+1 turnaround cycle
+--------------------
+16 bytes in 42 cycles
 
-In general I am getting worried by the lack of a common standard to
-interface to sensor and controller drivers. I'm no expert on webcams, so
-correct me if I'm wrong, but it seems to me that the correct design would
-be to have a generic API to these devices that can be used by the various
-USB or platform drivers.
+With fast targets we have
 
-But for e.g. the mt9* sensors we have three that use the soc_camera
-interface, one using the sn9c102 interface and I know of two more that
-are not yet in v4l-dvb but that will use the v4l2-int-device.h interface.
-It's a mess in my opinion.
+1 addr cycle
+31 data cycles
+(more data cycles as long as GNT# is asserted)
+1 data cycle with FRAME# deasserted
+1 turnaround cycle
+--------------------
+128 bytes in 34 cycles
 
-I think it would be interesting to discuss this further with you in Portland.
+> >  I am curious if there is a minimum FIFO usage for the
+> >   BT878 to request the PCI bus. Couldn't find anything related to
+> >   this in the datasheet.
 
-Regards,
+There are FIFO trigger points settable in the GPIO_DMA_CTL register.
+They can be set to 4, 8, 16, or 32 DWORDS.
 
-	Hans
+> A PCI latency timer is the maximum amount of cycles a master is allowed
+> to have the bus before it must request another grant.
+
+The master may request extended/another grant before its timer expires.
+Furthermore the arbiter may grant the bus without it being requested (bus
+parking).
+
+Making use of both features can be turned off in the Bt878 by the EN_TBFX and
+EN_VSFX bits respectively to cope with bad chipsets.
+
+Jean, is v4l-dvb-maintainer the right place to discuss these things?
+
+  Daniel
 
 --
 video4linux-list mailing list
