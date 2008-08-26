@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.171])
+Received: from mail3.atlantis.sk ([80.94.52.52] helo=ocean.atlantis.sk)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lucastim@gmail.com>) id 1KYBvp-0005jL-P0
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 05:42:54 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so2259038wfd.17
-	for <linux-dvb@linuxtv.org>; Tue, 26 Aug 2008 20:42:47 -0700 (PDT)
-Message-ID: <e32e0e5d0808262042u7bdb8f81pcd9fbc77c4c23014@mail.gmail.com>
-Date: Tue, 26 Aug 2008 20:42:47 -0700
-From: "Tim Lucas" <lucastim@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <mailman.312.1219791031.839.linux-dvb@linuxtv.org>
-MIME-Version: 1.0
-References: <mailman.312.1219791031.839.linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] linux-dvb Digest, Vol 43, Issue 116
+	(envelope-from <hajduk@francetech.sk>) id 1KXt0C-0004qT-3T
+	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 09:30:10 +0200
+From: Marek Hajduk <hajduk@francetech.sk>
+To: Goga777 <goga777@bk.ru>
+In-Reply-To: <E1KXq2s-0007z3-00.goga777-bk-ru@f25.mail.ru>
+References: <200808252156.52323.ajurik@quick.cz>
+	<E1KXq2s-0007z3-00.goga777-bk-ru@f25.mail.ru>
+Date: Tue, 26 Aug 2008 09:28:45 +0200
+Message-Id: <1219735725.3886.6.camel@HTPC>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for	VDR
+	1.7.0
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,67 +21,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0812166910=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0812166910==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_21918_27170758.1219808567835"
-
-------=_Part_21918_27170758.1219808567835
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Mijhail Moreyra wrote:
-> Hi,
->
-> This patch adds analog TV support for the HVR-1500 which has a cx23885
-> bridge and a xc3028 tuner but no MPEG encoder. It also adds support for
-> ALSA audio capture.
->
-> There isn't digital TV in my country so I didn't test if it breaks
-> digital mode.
->
-> Hope it will be useful for anyone interested.
->
-> Regards.
-> Mijhail Moreyra
->
-
-Hi.  I have a DViCO FusionHDTV7 Dual Express which has the cx23885 bridge as
-well.  I would like to add analog support for this card.  Will your work on
-the HVR-1500 card translate to my card as well.  If I only need to do a
-little work, I'll do it, but I need to be pointed in the right direction.
-
-     --Tim
-
-------=_Part_21918_27170758.1219808567835
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr"><span class="Apple-style-span" style="border-collapse: collapse; ">Mijhail Moreyra wrote:<br>&gt; Hi,<br>&gt;<br>&gt; This patch adds analog TV support for the HVR-1500 which has a cx23885<br>&gt; bridge and a xc3028 tuner but no MPEG encoder. It also adds support for<br>
-&gt; ALSA audio capture.<br>&gt;<br>&gt; There isn&#39;t digital TV in my country so I didn&#39;t test if it breaks<br>&gt; digital mode.<br>&gt;<br>&gt; Hope it will be useful for anyone interested.<br>&gt;<br>&gt; Regards.<br>
-&gt; Mijhail Moreyra<br>&gt;<br><br></span><div class="gmail_quote"><span class="Apple-style-span" style="border-collapse: collapse;">Hi. &nbsp;I have a DViCO FusionHDTV7 Dual Express which has the cx23885 bridge as well. &nbsp;I would like to add analog support for this card. &nbsp;Will your work on the HVR-1500 card translate to my card as well. &nbsp;If I only need to do a little work, I&#39;ll do it, but I need to be pointed in the right direction.</span></div>
-<div class="gmail_quote"><span class="Apple-style-span" style="border-collapse: collapse;"><br></span></div><div class="gmail_quote"><span class="Apple-style-span" style="border-collapse: collapse;">&nbsp;&nbsp; &nbsp; --Tim</span></div>
-
-</div>
-
-------=_Part_21918_27170758.1219808567835--
-
-
---===============0812166910==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0812166910==--
+SGkgR29nYSBhbmQgQWxlcywKCkkgaGF2ZSB0byBjb25maXJtIHRoYXQgd2l0aCBsYXRlc3QgbGlw
+bGlhbmluZHZiIGRyaXZlcnMgSSBjYW4ndCBzZWUKQW5peGUgSEQsIFByZW1pZXJlIEhEIGFuZCBk
+aXNjb3ZlcnkgSEQgb24gQXN0cmEgMTkuMkUuCgpSZXN0IG9mIGNoYW5uZWxzIGFyZSB3aXRob3V0
+IHByb2JsZW0uCgpCZXN0IFJlZ2FyZHMKCk1hcmt5CgpHb2dhNzc3IHDDrcWhZSB2IMOadCAyNi4g
+MDguIDIwMDggdiAwODoyMCArMDQwMDoKPiBIaQo+IAo+IAo+ID4gSSBjb3VsZCBjb25maXJtIHRo
+YXQgdGhpcyBuZXcgdmVyc2lvbiBvZiBkcml2ZXJzIGlzIHJ1bm5pbmcgYmV0dGVyIChJIGhhdmUg
+dGhlIAo+ID4gc2FtZSBwcm9ibGVtIGFzIE1hcmVrIGFuZCBJIHVzZSBoaXMgaGludCB3aXRoIHBh
+dGNoZWQgbXVsdGlwcm90b19wbHVzIGRyaXZlcnMgCj4gCj4gc29ycnksIHdoaWNoIGhpbnQgZG8g
+eW91IG1lYW4gPwo+IAo+ID4gdG8gbWFrZSBIVi00MDAwIHVuZGVyIGxpbnV4IHJ1bm5pbmcpIGJ1
+dCBub3QgZm9yIGFsbCBjaGFubmVscy4gCj4gCj4gaXQncyBzdHJhbmdlIC0gSSBoYXZlIG9ubHkg
+cmVwbyBmcm9tIElnb3Igd2l0aG91dCBhbnkgcGF0Y2hlcyBhbmQgZXZlcnl0aGluZyB3b3JrcyB3
+ZWxsCj4gCj4gCj4gPkkgY291bGRuJ3QgZ2V0IAo+ID4gbG9jayBmb3Igc29tZSBkdmItczIgY2hh
+bm5lbHMgKEFOSVhFIEhELCBQcmVtaWVyZSBIRCkgd2hpY2ggaXMgd2l0aCBwYXRjaGVkIAo+ID4g
+bXVsdGlwcm90b19wbHVzIHBvc3NpYmxlIHdpdGhvdXQgcHJvYmxlbS4gCj4gCj4gSSBjYW4gc2Vl
+IHRoZXNlIGNoYW5uZWxzIHdpdGhvdXQgYW55IHByb2JsZW0gb24gbXkgdmRyIDE3MAo+IAo+IHNv
+cnJ5LCBkbyB5b3UgdXNlIHBhdGNoZWQgbXVsdGlwcm90b19wbHVzIG9yIG5hdGl2ZSByZXBvIGZy
+b20gSWdvciA/Cj4gCj4gPkFsc28gc3dpdGNoaW5nIHNlZW1zIHRvIGJlIHNvbWV0aW1lcyAKPiA+
+IHNsb3dlci4KPiA+IAo+ID4gSSd2ZSB0ZXN0ZWQgaXQgd2l0aCBrZXJuZWwgMi42LjI1LTIgYW5k
+IHdpdGggZncgZm9yIGNzMjQxMTYgdmVyc2lvbiAxLjIwLjc5LjAgCj4gPiBhbmQgdmVyc2lvbiAx
+LjIzLjg2LjEuCj4gCj4gSSBoYXZlIGtlcm5lbCAyLjYuMjIsIGN4MjQxMTYgRlcgdmVyc2lvbiAx
+LjIzLjg2LjEsIHRoZSBsZXRhZXN0IHJlcG8gZnJvbSBJZ29yLCB2ZHIgMTcwCj4gIAo+ID4gTWFu
+eSB0aGFua3MgdG8gR29nYSBhbmQgSWdvciBmb3IgdGhlaXIgd29yay4KPiAKPiBtYW55IHRoYW5r
+cyB0byBJZ29yIDopCj4gCj4gR29nYQo+IAo+IAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxp
+bnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZv
+L2xpbnV4LWR2Yg==
