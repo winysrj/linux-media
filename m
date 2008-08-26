@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+Received: from yx-out-2324.google.com ([74.125.44.29])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1KZtTb-00011F-9R
-	for linux-dvb@linuxtv.org; Sun, 31 Aug 2008 22:24:48 +0200
-Received: from [91.149.190.211] (account liplianin@tut.by HELO
-	useri.liplianin.net)
-	by speedy.tutby.com (CommuniGate Pro SMTP 5.1.12)
-	with ESMTPA id 45103179 for linux-dvb@linuxtv.org;
-	Sun, 31 Aug 2008 23:24:33 +0300
+	(envelope-from <daveb21@gmail.com>) id 1KXxlt-00012i-2y
+	for linux-dvb@linuxtv.org; Tue, 26 Aug 2008 14:35:43 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so1026835yxg.41
+	for <linux-dvb@linuxtv.org>; Tue, 26 Aug 2008 05:35:36 -0700 (PDT)
+Message-ID: <8a1afe660808260535m2e5474earec97b9d76a556354@mail.gmail.com>
+Date: Tue, 26 Aug 2008 22:05:35 +0930
+From: "Dave Brown" <daveb21@gmail.com>
 To: linux-dvb@linuxtv.org
-Content-Disposition: inline
-From: "Igor M. Liplianin" <liplianin@tut.by>
-Date: Sun, 31 Aug 2008 23:22:14 +0300
 MIME-Version: 1.0
-Message-Id: <200808312322.14925.liplianin@tut.by>
-Subject: Re: [linux-dvb] Drivers for TT S2-3200
+Subject: [linux-dvb] Avermedia A16D Remote
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,25 +18,64 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0689868073=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-0JIg0YHQvtC+0LHRidC10L3QuNC4INC+0YIgMzEgQXVndXN0IDIwMDggMTM6MzI6MzMgU0tPxIxE
-T1BPTEUgVG9tw6HFoSAK0L3QsNC/0LjRgdCw0Lso0LApOgo+IGhpLAo+Cj4gSSB3YW50IHRvIGFz
-ayB5b3UsIHdoYXQgZHJpdmVycyBpIGNhbiB1c2UgZm9yIFRUIFMyLTMyMDAgd2l0aCBiZXN0IHN1
-cHBvcnQKPiBmb3IgdmRyLCBzemFwLCBzY2FuIGV0Yy4KPgo+IEknbSBhY3R1YWxseSB1c2luZyBt
-dWx0aXByb3RvIGRyaXZlcnMgaHR0cDovL2p1c3N0LmRlL2hnL211bHRpcHJvdG8gd2l0aAo+IGNo
-YW5uZWwgbG9jayBwYXRjaC4gSSByZWFkIGhlcmUgYWJvdXQgSWdvciBNLiBMaXBsaWFuaW5zIGRy
-aXZlcnMsIGJ1dCBJCj4ga25vdyBhbnl0aGluZyBhYm91dCBpdC4KPgo+IFRoYW5rIHlvdSEKPgo+
-IFJlZ2FyZHMgVG9tYXMKPgo+Cj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KPiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4gbGludXgtZHZiQGxpbnV4dHYu
-b3JnCj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGlu
-dXgtZHZiCkhpLAoKWW91IGNhbiB0cnkgaXQuCmh0dHA6Ly9saXBsaWFuaW5kdmIuc291cmNlZm9y
-Z2UubmV0L2hnLwpBY3R1YWxseSBJIGFzayB5b3UgYW5kIG90aGVyIHBlb3BsZXMgdG8gZmVlZGJh
-Y2ssIHdoZXRoZXIgaXQgd29ya3MgcHJvcGVybHksIApvciBub3QuCkJlc3QgUmVnYXJkcwogCkln
-b3IgTS4gTGlwbGlhbmluCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0
-cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+--===============0689868073==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_4026_9681442.1219754135689"
+
+------=_Part_4026_9681442.1219754135689
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hey All,
+
+Just got hold of a Avermedia A16D Hybrid tuner to replace the Dvico I had
+that never really worked the way I wanted it to. I've tried to configure the
+remote using irrecord but unfortunately there's a couple of glitches in
+terms of a couple buttons don't register (with accompanying kernel: saa7134
+IR (AVerMedia Hybrid TV: unknown key: key=0x1a raw=0x1a down=1 message) and
+a few buttons overlap (ie pressing the Info button actually registers as
+pressing the 5 button while the 5 registers as a 5).
+
+I don't reckon I have the skills / time to put a patch together to address
+this but if someone points me in the direction of how to capture exactly the
+data needed (ie button X = freq Y, button A = freq B) I'm happy to complete
+this and forward to the list for potential inclusion into the source. I
+think this is a win-win as I get a 100% working remote and I can help out
+anyone else who happens to be using the device :)
+
+If anyone is interested in what I'm proposing and can let me know how to
+capture the raw data please let me know.
+
+Cheers
+Dave Brown
+
+------=_Part_4026_9681442.1219754135689
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">Hey All,<br><br>Just got hold of a Avermedia A16D Hybrid tuner to replace the Dvico I had that never really worked the way I wanted it to. I&#39;ve tried to configure the remote using irrecord but unfortunately there&#39;s a couple of glitches in terms of a couple buttons don&#39;t register (with accompanying kernel: saa7134 IR (AVerMedia Hybrid TV: unknown key: key=0x1a raw=0x1a down=1 message) and a few buttons overlap (ie pressing the Info button actually registers as pressing the 5 button while the 5 registers as a 5).<br>
+<br>I don&#39;t reckon I have the skills / time to put a patch together to address this but if someone points me in the direction of how to capture exactly the data needed (ie button X = freq Y, button A = freq B) I&#39;m happy to complete this and forward to the list for potential inclusion into the source. I think this is a win-win as I get a 100% working remote and I can help out anyone else who happens to be using the device :)<br>
+<br>If anyone is interested in what I&#39;m proposing and can let me know how to capture the raw data please let me know.<br><br>Cheers<br>Dave Brown<br></div>
+
+------=_Part_4026_9681442.1219754135689--
+
+
+--===============0689868073==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0689868073==--
