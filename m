@@ -1,21 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7LDruuI007008
-	for <video4linux-list@redhat.com>; Thu, 21 Aug 2008 09:54:28 -0400
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7LDeedA020184
-	for <video4linux-list@redhat.com>; Thu, 21 Aug 2008 09:40:40 -0400
-Message-ID: <48AD72D5.4050408@hhs.nl>
-Date: Thu, 21 Aug 2008 15:51:17 +0200
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7Q7qRTA011639
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 03:52:27 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7Q7qOXH014424
+	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 03:52:25 -0400
+Message-ID: <48B3B8CD.9090503@hhs.nl>
+Date: Tue, 26 Aug 2008 10:03:25 +0200
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-References: <48A8698E.3090004@hhs.nl> <1219304978.1762.25.camel@localhost>
-In-Reply-To: <1219304978.1762.25.camel@localhost>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: PATCH: gspca-spc200nc-upside-down-v2
+Subject: What todo with cams which have 2 drivers?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,101 +24,74 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Jean-Francois Moine wrote:
-> On Sun, 2008-08-17 at 20:10 +0200, Hans de Goede wrote:
->> Hi,
-> 
-> Hi Hans,
-> 
->> This patch adds a V4L2_CAP_SENSOR_UPSIDE_DOWN flag to the capabilities flags,
->> and sets this flag for the Philips SPC200NC cam (which has its sensor installed
->> upside down). The same flag is also needed and added for the Philips SPC300NC.
-> 	[snip]
->> Of you do not plan to apply this patch please let me know that and why, then we 
->> can discuss this further, I really believe that in cases where the upside down 
->> ness is 100% known at the kernel level we should report this in some way to 
->> userspace so that libv4l can flip the image in software. I know that for 
->> certain cases the upside down ness needs to be determined elsewhere, but not 
->> for all cases.
->>
->> I believe all hardware info for a certain piece of hardware should be kept at 
->> one place, and in this case that is the driver. With upside down mounted 
->> generic laptop cam modules, the upside down ness is not module specific but 
->> laptop specific and thus this info should be stored in hal, which takes care of 
->> laptop model specific things which can differ from laptop to laptop even though 
->> they use the same lowlevel IC's. In this case however this is not system/latop 
->> specific but cam specific so this info should be stored together with the other 
->> cam specific knowledge (such as which sensor it uses) in the driver.
-> 
-> Well, I looked at various messages in various mail-lists talking about
-> upside down. Sometimes, a webcam may be normal or upside down, or even
-> just mirrored. Two times only (Vimicro 0325 and 0326), they say that the
-> webcam is always upside down. So, is it useful to make a generic code
-> for this specific case?
-> 
+Hi All,
 
-Yes, as that will make these webcam work out of the box for end users. Please 
-stop thinking as a developer for a moment and start thinking as a simple end 
-user plugging such a cam into his asus eee pc, which is his first and only 
-linux machine. What do you think he will like better, the upside down picture 
-or the hey cool I plug in in this cam and it just works (tm) ?
+Now that gspca is part of the v4l-dvb tree, we have 2 drivers for several cams.
 
-> For the general case (the webcam may have H or V flip, or both - upside
-> down). The user will see it. If she may use the HFLIP and VFLIP
-> controls, she will get a correct image.
+The "problem" is that various gspca subdrivers and various drivers written by 
+Luca Risolia support the same controllers (and a subset of the same sensors too).
 
-Currently the 4 major (as in more then just a gimmick) end user v4l wewbcam 
-programs I'm aware of are:
-ekiga
-cheese
-flash plugin
-skype
+Currently this is solved by removing the usb-id's for any cams supported by 
+Luca's drivers (which have been in the kernel for some time) from gspca when 
+Luca's drivers are enabled.
 
-And AFAIK (didn't check skype) non of these offer a simple GUI option for the 
-user to change vflip / hflip controls. Telling a user to go the cmdline is not 
-*userfriendly* and in this scenario is not necessary!
+Since the drivers written by Luca Risolia seem to be basicly unmaintained, for 
+example luca has one last update to his sn9c102 driver on his website which he 
+has never bother to merge upstream, and since Luca's drivers often have a 
+poorer feature set then gspca (no exposure control for sn9c102 + tas5110 making 
+it unusable in many lighting conditions for example), I would like to suggest 
+to start removing usb-id's from Luca's drivers when gspca is enabled and leave 
+them always enabled in gspca, atleast for those cams which have been thoroughly 
+tested with gspca.
 
-Sorry to say this, but sheesh what a lot of discussion I'm only adding one 
-simple lousy flag, all the actual rotating code is done in libv4l! So what if 
-for now we only can use this flag for 2 webcams, we may use it for others in 
-the future.
+##
 
-The reason why I'm spending tons of time on all this webcam stuff, is so that 
-end users can just plugin their cam and have it work. If that requires a 
-special flag for just these 2 cams so be it and I strongly believe we will 
-encounter other cams like this in the future.
+Another issue is that Luca's drivers claim to support usb-id's which they don't 
+Luca uses probing to find out which sensor there is instead of using usb-id's 
+and has added all usb-id's he could find for a controller, independend on 
+wether or not his driver supports the sensor used in that usb-id.
 
-> To go further, it will be nice
-> to have a v4l2 control program which saves and restores the video
-> control values at system stop and start times, as it is done for sound.
-> 
+For example the sn9c102 driver used to claim that it supports 0c45:6011 but it 
+does not, as that uses an ov6650 sensor, which the sn9c102 driver does not 
+support. I actually have such a cam and have tested it with Luca's driver and 
+that only results in the following dmesg: "No supported image sensor detected 
+for this bridge", a patch removing this usb-id has already been submitted (and 
+accepted) through the gspca tree.
 
-That may be usefull, but I myself prefer (atleast for laptop frame cams) a 
-solution using a laptop BIOS DMI string database so things will just work for 
-end users.
+I've also noticed that Luca's zc0301 driver only supports 2 sensors the pas202 
+and the pb0330, where as the gspca zc3xx driver supports 18 different sensors!
 
-> BTW, if noticed a small difference in the PAS106B initialization between
-> the actual driver (zc3xx) and the data in usbvm31b.inf. As I have no
-> such webcams, may anybody check what happens changing the lines 4146 and
-> 4264 of zc3xx.c from
-> 	{0xa0, 0x00, 0x01ad},
-> to
-> 	{0xa0, 0x09, 0x01ad},
-> 
-> This will impact on the webcams V:041e P:401c, 4034 and 4035, V:0471,
-> P:0325, 0326, 032d and 032e.
-> 
+If you look in zc0301_sensor.h you will find the following list:
+         { ZC0301_USB_DEVICE(0x041e, 0x4017, 0xff), }, /* ICM105 */            \
+         { ZC0301_USB_DEVICE(0x041e, 0x401c, 0xff), }, /* PAS106 */            \
+         { ZC0301_USB_DEVICE(0x041e, 0x401e, 0xff), }, /* HV7131 */            \
+         { ZC0301_USB_DEVICE(0x041e, 0x401f, 0xff), }, /* TAS5130 */           \
+         { ZC0301_USB_DEVICE(0x041e, 0x4022, 0xff), },                         \
+         { ZC0301_USB_DEVICE(0x041e, 0x4034, 0xff), }, /* PAS106 */            \
+         { ZC0301_USB_DEVICE(0x041e, 0x4035, 0xff), }, /* PAS106 */            \
+         { ZC0301_USB_DEVICE(0x041e, 0x4036, 0xff), }, /* HV7131 */            \
+         { ZC0301_USB_DEVICE(0x041e, 0x403a, 0xff), }, /* HV7131 */            \
+         { ZC0301_USB_DEVICE(0x0458, 0x7007, 0xff), }, /* TAS5130 */           \
+         { ZC0301_USB_DEVICE(0x0458, 0x700c, 0xff), }, /* TAS5130 */           \
+         { ZC0301_USB_DEVICE(0x0458, 0x700f, 0xff), }, /* TAS5130 */           \
+         { ZC0301_USB_DEVICE(0x046d, 0x08ae, 0xff), }, /* PAS202 */            \
+         { ZC0301_USB_DEVICE(0x055f, 0xd003, 0xff), }, /* TAS5130 */           \
+         { ZC0301_USB_DEVICE(0x055f, 0xd004, 0xff), }, /* TAS5130 */           \
+         { ZC0301_USB_DEVICE(0x0ac8, 0x0301, 0xff), },                         \
+         { ZC0301_USB_DEVICE(0x0ac8, 0x301b, 0xff), }, /* PB-0330/HV7131 */    \
+         { ZC0301_USB_DEVICE(0x0ac8, 0x303b, 0xff), }, /* PB-0330 */           \
+         { ZC0301_USB_DEVICE(0x10fd, 0x0128, 0xff), }, /* TAS5130 */           \
+         { ZC0301_USB_DEVICE(0x10fd, 0x8050, 0xff), }, /* TAS5130 */           \
+         { ZC0301_USB_DEVICE(0x10fd, 0x804e, 0xff), }, /* TAS5130 */           \
 
-That register seems to influence the zc3xx autoexposure / autogain algorithm, 
-with the values changed to 9 as suggested by you, the algorithm becomes very 
-quick to adjust, so quick I can get it to oscilate quite easily just be moving 
-me head a little in the picture until I've found a sweet spot for oscilating, 
-so the 0 setting definitely is better!
+Note how most of these cams cannot work with Luca's driver as there is no 
+support for the mentioned sensors. So I'll be submitting a patch (through the 
+gspca tree) enabling these cams unconditional in gspca and removing their 
+usb-ids from Luca's zc0301 driver, given the small number of supported cams 
+then left (2), we should consider deprecating the zc0301 driver all together.
 
-I also tried writing 5 to it, but it does not seem to be a simple linear scale, 
-after I wrote 5 to it no more autoexposure / gain was done at all, not even 
-after changing the value back to 0, I had to unplug the cam to get autoexposure 
-back again.
+I'll do an audit of Luca's other drivers for similar issues (claiming unsupport 
+usb-id's)
 
 Regards,
 
