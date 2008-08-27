@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Fri, 29 Aug 2008 20:34:18 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <37219a840808291514o76704d60t63986edf391e699f@mail.gmail.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Message-id: <48B8958A.5080207@linuxtv.org>
-MIME-version: 1.0
-References: <e32e0e5d0808291401x39932ab6q6086882e81547f84@mail.gmail.com>
-	<37219a840808291514o76704d60t63986edf391e699f@mail.gmail.com>
-Cc: Tim Lucas <lucastim@gmail.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
- HVR-1500
+Received: from bane.moelleritberatung.de ([77.37.2.25])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <artem@moelleritberatung.de>) id 1KYSV7-0005br-8h
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 23:24:26 +0200
+Date: Wed, 27 Aug 2008 23:24:13 +0200
+From: Artem Makhutov <artem@makhutov.org>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080827212413.GI7830@moelleritberatung.de>
+References: <BAY137-W489CF3F8D962EC11AB96CD90610@phx.gbl>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <BAY137-W489CF3F8D962EC11AB96CD90610@phx.gbl>
+Cc: johan_vdp@hotmail.com
+Subject: Re: [linux-dvb] Inclusion of STB0899 support in kernel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,126 +26,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> 2008/8/29 Tim Lucas <lucastim@gmail.com>:
->> Mijhail Moreyra wrote:
->>> Steven Toth wrote:
->>>> Mijhail Moreyra wrote:
->>>>> Steven Toth wrote:
->>>>>> Mijhail,
->>>>>>
->>>>>> http://linuxtv.org/hg/~stoth/cx23885-audio
->>>>>>
->>>>>> This tree contains your patch with some minor whitespace cleanups
->>>>>> and fixes for HUNK related merge issues due to the patch wrapping at
->>>>>> 80 cols.
->>>>>>
->>>>>> Please build this tree and retest in your environment to ensure I
->>>>>> did not break anything. Does this tree still work OK for you?
->>>>>>
->>>>>> After this I will apply some other minor cleanups then invite a few
->>>>>> other HVR1500 owners to begin testing.
->>>>>>
->>>>>> Thanks again.
->>>>>>
->>>>>> Regards,
->>>>>>
->>>>>> Steve
->>>>> Hi, sorry for the delay.
->>>>>
->>>>> I've tested the http://linuxtv.org/hg/~stoth/cx23885-audio tree and
->>>>> it doesn't work well.
->>>>>
->>>>> You seem to have removed a piece from my patch that avoids some register
->>>>> modification in cx25840-core.c:cx23885_
->> initialize()
->>>>> -       cx25840_write(client, 0x2, 0x76);
->>>>> +       if (state->rev != 0x0000) /* FIXME: How to detect the bridge
->>>>> type ??? */
->>>>> +               /* This causes image distortion on a true cx23885
->>>>> board */
->>>>> +               cx25840_write(client, 0x2, 0x76);
->>>>>
->>>>> As the patch says that register write causes a horrible image distortion
->>>>> on my HVR-1500 which has a real cx23885 (not 23887, 23888, etc) board.
->>>>>
->>>>> I don't know if it's really required for any bridge as everything seems
->>>>> to be auto-configured by default, maybe it can be simply dropped.
->>>>>
->>>>> Other than that the cx23885-audio tree works well.
->>>>>
->>>>> WRT the whitespaces, 80 cols, etc; most are also in the sources I took
->>>>> as basis, so I didn't think they were a problem.
->>>> That's a mistake, I'll add that later tonight, thanks for finding
->>>> this. I must of missed it when I had to tear apart your email because
->>>> of HUNK issues caused by patch line wrapping.
->>>>
->>>> Apart from this, is everything working as you expect?
->>>>
->>>> Regards,
->>>>
->>>> Steve
->>>>
->>>>
->>> OK.
->>>
->>> And sorry about the patch, I didn't know it was going to be broken that
->>> way by being sent by email.
->>>
->>>  >> Other than that the cx23885-audio tree works well.
->>>
->>> Great, thanks for confirming.
->>> Regards,
->>> Steve
->> I'll try asking again since my replies in gmail were not including the
->> correct subject heading.
->> Can this code for cx23885 analog support be adapted for the DViCO Fusion
->> HDTV7 Dual Express which also uses the cx23885?  Currently the driver for
->> that card is digital only and I am stuck with a free antiquated large
->> satellite system that is analog only in my apartment. I am willing to put in
->> the work if someone can point me in the right direction.  Thank you,
-> 
-> Tim,
-> 
-> The patch currently being tested only enables the analog video path on
-> the HVR1500, but this does lay down the ground work to bring up analog
-> on all of the other cards.
-> 
-> If the HVR1500 is working properly, then it will be easy to add analog
-> support for the HVR1500Q ... Once that is done, the exact same code
-> (for analog) will be reused for the FusionHDTV7 Dual.
-> 
-> Keep in mind, however, that you will only get ONE analog video device
-> on the F7 Dual, and that you must not try to use the first DVB adapter
-> while using the analog on that board.  You can always use the 2nd
-> adapter , though.
-> 
-> Actually, I think it might be a good idea to reverse the registration
-> order of the DVB adapters in the cx23885 driver, but I'll have to talk
-> to Steve about that.
-> 
-> I think it makes more sense to register VIDC first, since VIDC is
-> always going to be a DTV device, where there *might* be an encoder on
-> VIDB.
-> 
-> VIDB may or may not share a tuner with VIDA, but VIDC will always be
-> independant.
-> 
-> What do you think about that, Steve?
+Hi,
 
-I think we should indicate the load order in the cards struct, the 
-default should remain as-is, but each specific card could chose to do C, 
-then B, or B then C.
+On Wed, Aug 27, 2008 at 10:19:06PM +0200, johan vdp wrote:
+> 
+> What happened to STB0899 support?
+> Building a kernel, patching it (with some luck), building applications with patches to match the driver, it is simply too much work.
+> (It might be fun once, but starts to be annoying when automatic package updates start to fail, the next day.)
+> Having support in the kernel, will lead to applications that 'automatically' start to support it.
+>  
+> Back in the days that 'multiproto' development was still alive and buzzing. The STB0899 cards looked like having the best support.
+> I have followed these lists for some time and opted to buy a STB0899 based DVB-S2 tuner card because the outlook for support was good; THEN.
+> NOW it must have been two years, and it is still not merged into the kernel.
 
-I don't think it's safe to assume that VIDC will not share a tuner with 
-VID_A.
+Same here. I am using multiproto for a long time now. Personally for me
+it works great, but it is really bad, that it is still not included in
+the kernel.
 
-I'll put some patches together in the cx23885-audio tree when I do some 
-testing this weekend, allowing the creation order to be changed.
+Manu Abrahams hg tree is "out of date" and it is impossible to compile
+it with a recent kernel without patching it.
 
-- Steve
+Hopefully Igor M. Liplianin has created an hg tree, which merges all the
+different dvb-trees in one single tree (http://liplianindvb.sourceforge.net/hg/liplianindvb).
+This really helps in compiling multiproto, but this is not the solution.
 
+What is required to get multiproto into the kernel?
+Where are the problems?
 
+Regards, Artem
+
+-- 
+Artem Makhutov
+Unterort Str. 36
+D-65760 Eschborn
 
 _______________________________________________
 linux-dvb mailing list
