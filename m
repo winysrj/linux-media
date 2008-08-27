@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.28])
+Received: from ey-out-2122.google.com ([74.125.78.26])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <eduardhc@gmail.com>) id 1KYFAf-00061T-KP
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 09:10:26 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so1169966yxg.41
-	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 00:10:20 -0700 (PDT)
-Message-ID: <617be8890808270010j640f4cb7je46e74c7234b978b@mail.gmail.com>
-Date: Wed, 27 Aug 2008 09:10:20 +0200
-From: "Eduard Huguet" <eduardhc@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KY9d6-00005q-Mt
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 03:15:26 +0200
+Received: by ey-out-2122.google.com with SMTP id 25so406931eya.17
+	for <linux-dvb@linuxtv.org>; Tue, 26 Aug 2008 18:15:21 -0700 (PDT)
+Message-ID: <412bdbff0808261815u58da6143m60f57153f2d0f086@mail.gmail.com>
+Date: Tue, 26 Aug 2008 21:15:20 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] dib0700 new i2c implementation
+Content-Type: multipart/mixed;
+	boundary="----=_Part_3980_2464433.1219799720913"
+Subject: [linux-dvb] dib0700 new i2c implementation
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,116 +20,158 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0693529956=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0693529956==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_16480_5368822.1219821020867"
-
-------=_Part_16480_5368822.1219821020867
+------=_Part_3980_2464433.1219799720913
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
->
-> ---------- Missatge reenviat ----------
-> From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-> To: linux-dvb <linux-dvb@linuxtv.org>
-> Date: Tue, 26 Aug 2008 21:15:20 -0400
-> Subject: [linux-dvb] dib0700 new i2c implementation
-> The attached patch implements the new dib0700 i2c API, which requires
-> v1.20 of the firmware.  It addresses some classes of i2c problems (in
-> particular the one I had where i2c reads were being sent onto the bus
-> as i2c write calls)
->
-> I would appreciate it if those with dib0700 based devices would try
-> out the patch and provide feedback as to whether they have any
-> problems.  I've done testing with the Pinnacle PCTV HD Pro USB 801e
-> stick, but I don't have any other dib0700 based devices.
->
-> Thanks to Patrick Boettcher for providing the firmware, sample code,
-> and peer review of the first version of this patch.
->
-> Regards,
->
-> Devin
->
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
->
+The attached patch implements the new dib0700 i2c API, which requires
+v1.20 of the firmware.  It addresses some classes of i2c problems (in
+particular the one I had where i2c reads were being sent onto the bus
+as i2c write calls)
 
+I would appreciate it if those with dib0700 based devices would try
+out the patch and provide feedback as to whether they have any
+problems.  I've done testing with the Pinnacle PCTV HD Pro USB 801e
+stick, but I don't have any other dib0700 based devices.
 
-Hi,
-    Thanks for your work, first of all. =BFDo you think this patch might
-solve the problems that seem to be appeared since the new firmware is out
-with the Hauppauge Nova-T 500, like random reboots, etc... (what's ths stat=
-e
-on this, anyway?) ?
+Thanks to Patrick Boettcher for providing the firmware, sample code,
+and peer review of the first version of this patch.
 
-I delayed the adoption of the new 1.20 firmware because of those problems,
-because I didn't want to leave the machine in a complete unusable state...
+Regards,
 
-Best regards,
-  Eduard Huguet
+Devin
 
-------=_Part_16480_5368822.1219821020867
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
-<div dir=3D"ltr"><div class=3D"gmail_quote"><blockquote class=3D"gmail_quot=
-e" style=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt =
-0.8ex; padding-left: 1ex;">---------- Missatge reenviat ----------<br>From:=
-&nbsp;&quot;Devin Heitmueller&quot; &lt;<a href=3D"mailto:devin.heitmueller=
-@gmail.com">devin.heitmueller@gmail.com</a>&gt;<br>
-To:&nbsp;linux-dvb &lt;<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@l=
-inuxtv.org</a>&gt;<br>Date:&nbsp;Tue, 26 Aug 2008 21:15:20 -0400<br>Subject=
-:&nbsp;[linux-dvb] dib0700 new i2c implementation<br>The attached patch imp=
-lements the new dib0700 i2c API, which requires<br>
+------=_Part_3980_2464433.1219799720913
+Content-Type: text/x-diff; name=dib0700_new_i2c_api.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fkd94dq60
+Content-Disposition: attachment; filename=dib0700_new_i2c_api.patch
 
-v1.20 of the firmware. &nbsp;It addresses some classes of i2c problems (in<=
-br>
-particular the one I had where i2c reads were being sent onto the bus<br>
-as i2c write calls)<br>
-<br>
-I would appreciate it if those with dib0700 based devices would try<br>
-out the patch and provide feedback as to whether they have any<br>
-problems. &nbsp;I&#39;ve done testing with the Pinnacle PCTV HD Pro USB 801=
-e<br>
-stick, but I don&#39;t have any other dib0700 based devices.<br>
-<br>
-Thanks to Patrick Boettcher for providing the firmware, sample code,<br>
-and peer review of the first version of this patch.<br>
-<br>
-Regards,<br>
-<br>
-Devin<br>
-<br>
---<br>
-Devin J. Heitmueller<br>
-<a href=3D"http://www.devinheitmueller.com" target=3D"_blank">http://www.de=
-vinheitmueller.com</a><br>
-AIM: devinheitmueller<br>
-</blockquote></div><br><br>Hi, <br>&nbsp;&nbsp;&nbsp; Thanks for your work,=
- first of all. =BFDo you think this patch might&nbsp; solve the problems th=
-at seem to be appeared since the new firmware is out with the Hauppauge Nov=
-a-T 500, like random reboots, etc... (what&#39;s ths state on this, anyway?=
-) ?<br>
-<br>I delayed the adoption of the new 1.20 firmware because of those proble=
-ms, because I didn&#39;t want to leave the machine in a complete unusable s=
-tate...<br><br>Best regards, <br>&nbsp; Eduard Huguet<br><br>&nbsp; <br><br=
-></div>
-
-------=_Part_16480_5368822.1219821020867--
-
-
---===============0693529956==
+QWRkIHN1cHBvcnQgZm9yIG5ldyBpMmMgQVBJIHByb3ZpZGVkIGluIGZpcm13YXJlIHZlcnNpb24g
+MS4yMAoKRnJvbTogRGV2aW4gSGVpdG11ZWxsZXIgPGRldmluLmhlaXRtdWVsbGVyQGdtYWlsLmNv
+bT4KClRoZSBQaW5uYWNsZSBQQ1RWIEhEIFBybyBoYXMgYW4geGM1MDAwLCB3aGljaCBleHBvc2Vk
+IGEgYnVnIGluIHRoZSBkaWIwNzAwJ3MKaTJjIGltcGxlbWVudGF0aW9uIHdoZXJlIGl0IGRpZCBu
+b3QgcHJvcGVybHkgc3VwcG9ydCBhIHNpbmdsZSBpMmMgcmVhZCByZXF1ZXN0CihzZW5kaW5nIGl0
+IGFzIGFuIGkyYyB3cml0ZSByZXF1ZXN0IGluc3RlYWQpLiAgVmVyc2lvbiAxLjIwIG9mIHRoZSBm
+aXJtd2FyZSAKYWRkZWQgc3VwcG9ydCBmb3IgYSBuZXcgaTJjIEFQSSB3aGljaCBzdXBwb3J0ZWQg
+c3VjaCByZXF1ZXN0cy4KClRoaXMgY2hhbmdlIGRlZmF1bHRzIHRvIGZ3IDEuMjAgZm9yIGFsbCBk
+ZXZpY2VzLCBhcyB3ZWxsIGFzIGRlZmF1bHRpbmcgdG8KdXNpbmcgdGhlIG5ldyBpMmMgQVBJLiAg
+Rm9yIHRlc3RpbmcgcHVycG9zZXMsIHRoZSBtYWludGFpbmVyIGNhbiBkaXNhYmxlCnVzZSBvZiB0
+aGUgbmV3IGkyYyBBUEkgKGZhbGxpbmcgYmFjayB0byB0aGUgbGVnYWN5IGNhbGxzKSBieSBwdXR0
+aW5nIHRoZQpmb2xsb3dpbmcgaW50byB0aGVpciBmcm9udGVuZCBpbml0aWFsaXphdGlvbjoKCnN0
+cnVjdCBkaWIwNzAwX3N0YXRlICpzdCA9IGFkYXAtPmRldi0+cHJpdjsKc3QtPmZ3X3VzZV9sZWdh
+Y3lfaTJjX2FwaSA9IDE7CgpBbHNvIG5vdGUgdGhhdCB0aGUgY29kZSBleHBlY3RzIGkyYyByZXBl
+YXRlZCBzdGFydCB0byBiZSBzdXBwb3J0ZWQuICBJZiB0aGUKaTJjIHNsYXZlIGRvZXMgbm90IHN1
+cHBvcnQgcmVwZWF0ZWQgc3RhcnQsIGkyYyBtZXNzc2FnZXMgc2hvdWxkIGhhdmUgdGhlCkkyQ19N
+X05PU1RBUlQgZmxhZyBzZXQuCgpUaGFua3MgdG8gUGF0cmljayBCb2V0dGNoZXIgPHBhdHJpY2su
+Ym9ldHRjaGVyQGRlc3kuZGU+IGZvciBwcm92aWRpbmcgbmV3CmZpcm13YXJlIGZpeGluZyB0aGUg
+aXNzdWUgYXMgd2VsbCBhcyBleGFtcGxlIGkyYyBjb2RlIHV0aWxpemluZyB0aGUgaW50ZXJmYWNl
+LgoKU2lnbmVkLW9mZi1ieTogRGV2aW4gSGVpdG11ZWxsZXIgPGRldmluLmhlaXRtdWVsbGVyQGdt
+YWlsLmNvbT4KCmRpZmYgLXIgYTQ4NDNlMTMwNGU2IGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2
+Yi11c2IvZGliMDcwMC5oCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGli
+MDcwMC5oCVN1biBBdWcgMjQgMTI6Mjg6MTEgMjAwOCAtMDMwMAorKysgYi9saW51eC9kcml2ZXJz
+L21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDAuaAlUdWUgQXVnIDI2IDIxOjAyOjQ5IDIwMDggLTA0
+MDAKQEAgLTMxLDYgKzMxLDggQEAgZXh0ZXJuIGludCBkdmJfdXNiX2RpYjA3MDBfZGVidWc7CiAJ
+Ly8gMiBCeXRlOiBNUEVHMiBtb2RlOiAgNE1TQigxID0gTWFzdGVyIE1vZGUsIDAgPSBTbGF2ZSBN
+b2RlKSA0TFNCKENoYW5uZWwgMSA9IGJpdDAsIENoYW5uZWwgMiA9IGJpdDEpCiAJLy8gMiBCeXRl
+OiBBbmFsb2cgbW9kZTogNE1TQigwID0gNjI1IGxpbmVzLCAxID0gNTI1IGxpbmVzKSAgICA0TFNC
+KCAgICAgIiAgICAgICAgICAgICAgICAiICAgICAgICAgICApCiAjZGVmaW5lIFJFUVVFU1RfU0VU
+X1JDICAgICAgIDB4MTEKKyNkZWZpbmUgUkVRVUVTVF9ORVdfSTJDX1JFQUQgMHgxMgorI2RlZmlu
+ZSBSRVFVRVNUX05FV19JMkNfV1JJVEUgMHgxMwogI2RlZmluZSBSRVFVRVNUX0dFVF9WRVJTSU9O
+ICAweDE1CiAKIHN0cnVjdCBkaWIwNzAwX3N0YXRlIHsKQEAgLTM5LDYgKzQxLDcgQEAgc3RydWN0
+IGRpYjA3MDBfc3RhdGUgewogCXU4IHJjX3RvZ2dsZTsKIAl1OCByY19jb3VudGVyOwogCXU4IGlz
+X2RpYjcwMDBwYzsKKwl1OCBmd191c2VfbGVnYWN5X2kyY19hcGk7CiB9OwogCiBleHRlcm4gaW50
+IGRpYjA3MDBfc2V0X2dwaW8oc3RydWN0IGR2Yl91c2JfZGV2aWNlICosIGVudW0gZGliMDd4MF9n
+cGlvcyBncGlvLCB1OCBncGlvX2RpciwgdTggZ3Bpb192YWwpOwpkaWZmIC1yIGE0ODQzZTEzMDRl
+NiBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfY29yZS5jCi0tLSBhL2xp
+bnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGliMDcwMF9jb3JlLmMJU3VuIEF1ZyAyNCAx
+MjoyODoxMSAyMDA4IC0wMzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2Iv
+ZGliMDcwMF9jb3JlLmMJVHVlIEF1ZyAyNiAyMTowMjo0OSAyMDA4IC0wNDAwCkBAIC04Miw5ICs4
+Miw5OCBAQCBpbnQgZGliMDcwMF9zZXRfZ3BpbyhzdHJ1Y3QgZHZiX3VzYl9kZXZpCiB9CiAKIC8q
+Ci0gKiBJMkMgbWFzdGVyIHhmZXIgZnVuY3Rpb24KKyAqIEkyQyBtYXN0ZXIgeGZlciBmdW5jdGlv
+biAoc3VwcG9ydGVkIGluIDEuMjAgZmlybXdhcmUpCiAgKi8KLXN0YXRpYyBpbnQgZGliMDcwMF9p
+MmNfeGZlcihzdHJ1Y3QgaTJjX2FkYXB0ZXIgKmFkYXAsc3RydWN0IGkyY19tc2cgKm1zZyxpbnQg
+bnVtKQorc3RhdGljIGludCBkaWIwNzAwX2kyY194ZmVyX25ldyhzdHJ1Y3QgaTJjX2FkYXB0ZXIg
+KmFkYXAsIHN0cnVjdCBpMmNfbXNnICptc2csCisJCQkJaW50IG51bSkKK3sKKwkvKiBUaGUgbmV3
+IGkyYyBmaXJtd2FyZSBtZXNzYWdlcyBhcmUgbW9yZSByZWxpYWJsZSBhbmQgaW4gcGFydGljdWxh
+cgorCSAgIHByb3Blcmx5IHN1cHBvcnQgaTJjIHJlYWQgY2FsbHMgbm90IHByZWNlZGVkIGJ5IGEg
+d3JpdGUgKi8KKworCXN0cnVjdCBkdmJfdXNiX2RldmljZSAqZCA9IGkyY19nZXRfYWRhcGRhdGEo
+YWRhcCk7CisJdWludDhfdCBidXNfbW9kZSA9IDE7ICAvKiAwPWVlcHJvbSBidXMsIDE9ZnJvbnRl
+bmQgYnVzICovCisJdWludDhfdCBnZW5fbW9kZSA9IDA7IC8qIDA9bWFzdGVyIGkyYywgMT1ncGlv
+IGkyYyAqLworCXVpbnQ4X3QgZW5fc3RhcnQgPSAwOworCXVpbnQ4X3QgZW5fc3RvcCA9IDA7CisJ
+dWludDhfdCBidWZbMjU1XTsgLyogVEJWOiBtYWxsb2MgPyAqLworCWludCByZXN1bHQsIGk7CisK
+KwkvKiBFbnN1cmUgbm9ib2R5IGVsc2UgaGl0cyB0aGUgaTJjIGJ1cyB3aGlsZSB3ZSdyZSBzZW5k
+aW5nIG91cgorCSAgIHNlcXVlbmNlIG9mIG1lc3NhZ2VzLCAoc3VjaCBhcyB0aGUgcmVtb3RlIGNv
+bnRyb2wgdGhyZWFkKSAqLworCWlmIChtdXRleF9sb2NrX2ludGVycnVwdGlibGUoJmQtPmkyY19t
+dXRleCkgPCAwKQorCQlyZXR1cm4gLUVBR0FJTjsKKworCWZvciAoaSA9IDA7IGkgPCBudW07IGkr
+KykgeworCQlpZiAoaSA9PSAwKSB7CisJCQkvKiBGaXJzdCBtZXNzYWdlIGluIHRoZSB0cmFuc2Fj
+dGlvbiAqLworCQkJZW5fc3RhcnQgPSAxOworCQl9IGVsc2UgaWYgKCEobXNnW2ldLmZsYWdzICYg
+STJDX01fTk9TVEFSVCkpIHsKKwkJCS8qIERldmljZSBzdXBwb3J0cyByZXBlYXRlZC1zdGFydCAq
+LworCQkJZW5fc3RhcnQgPSAxOworCQl9IGVsc2UgeworCQkJLyogTm90IHRoZSBmaXJzdCBwYWNr
+ZXQgYW5kIGRldmljZSBkb2Vzbid0IHN1cHBvcnQKKwkJCSAgIHJlcGVhdGVkIHN0YXJ0ICovCisJ
+CQllbl9zdGFydCA9IDA7CisJCX0KKwkJaWYgKGkgPT0gKG51bSAtIDEpKSB7CisJCQkvKiBMYXN0
+IG1lc3NhZ2UgaW4gdGhlIHRyYW5zYWN0aW9uICovCisJCQllbl9zdG9wID0gMTsKKwkJfQorCisJ
+CWlmIChtc2dbaV0uZmxhZ3MgJiBJMkNfTV9SRCkgeworCQkJLyogUmVhZCByZXF1ZXN0ICovCisJ
+CQl1MTYgaW5kZXgsIHZhbHVlOworCQkJdWludDhfdCBpMmNfZGVzdDsKKworCQkJaTJjX2Rlc3Qg
+PSAobXNnW2ldLmFkZHIgPDwgMSk7CisJCQl2YWx1ZSA9ICgoZW5fc3RhcnQgPDwgNykgfCAoZW5f
+c3RvcCA8PCA2KSB8CisJCQkJIChtc2dbaV0ubGVuICYgMHgzRikpIDw8IDggfCBpMmNfZGVzdDsK
+KwkJCS8qIEkyQyBjdHJsICsgRkUgYnVzOyAqLworCQkJaW5kZXggPSAoKGdlbl9tb2RlPDw2KSYw
+eEMwKSB8ICgoYnVzX21vZGU8PDQpJjB4MzApOworCisJCQlyZXN1bHQgPSB1c2JfY29udHJvbF9t
+c2coZC0+dWRldiwKKwkJCQkJCSB1c2JfcmN2Y3RybHBpcGUoZC0+dWRldiwgMCksCisJCQkJCQkg
+UkVRVUVTVF9ORVdfSTJDX1JFQUQsCisJCQkJCQkgVVNCX1RZUEVfVkVORE9SIHwgVVNCX0RJUl9J
+TiwKKwkJCQkJCSB2YWx1ZSwgaW5kZXgsIG1zZ1tpXS5idWYsCisJCQkJCQkgbXNnW2ldLmxlbiwK
+KwkJCQkJCSBVU0JfQ1RSTF9HRVRfVElNRU9VVCk7CisJCQlpZiAocmVzdWx0IDwgMCkgeworCQkJ
+CWVycigiaTJjIHJlYWQgZXJyb3IgKHN0YXR1cyA9ICVkKVxuIiwgcmVzdWx0KTsKKwkJCQlicmVh
+azsKKwkJCX0KKwkJfSBlbHNlIHsKKwkJCS8qIFdyaXRlIHJlcXVlc3QgKi8KKwkJCWJ1ZlswXSA9
+IFJFUVVFU1RfTkVXX0kyQ19XUklURTsKKwkJCWJ1ZlsxXSA9IChtc2dbaV0uYWRkciA8PCAxKTsK
+KwkJCWJ1ZlsyXSA9IChlbl9zdGFydCA8PCA3KSB8IChlbl9zdG9wIDw8IDYpIHwKKwkJCQkobXNn
+W2ldLmxlbiAmIDB4M0YpOworCQkJLyogSTJDIGN0cmwgKyBGRSBidXM7ICovCisJCQlidWZbM10g
+PSAoKGdlbl9tb2RlPDw2KSYweEMwKSB8ICgoYnVzX21vZGU8PDQpJjB4MzApOworCQkJLyogVGhl
+IEFjdHVhbCBpMmMgcGF5bG9hZCAqLworCQkJbWVtY3B5KCZidWZbNF0sIG1zZ1tpXS5idWYsIG1z
+Z1tpXS5sZW4pOworCisJCQlyZXN1bHQgPSB1c2JfY29udHJvbF9tc2coZC0+dWRldiwKKwkJCQkJ
+CSB1c2Jfc25kY3RybHBpcGUoZC0+dWRldiwgMCksCisJCQkJCQkgUkVRVUVTVF9ORVdfSTJDX1dS
+SVRFLAorCQkJCQkJIFVTQl9UWVBFX1ZFTkRPUiB8IFVTQl9ESVJfT1VULAorCQkJCQkJIDAsIDAs
+IGJ1ZiwgbXNnW2ldLmxlbiArIDQsCisJCQkJCQkgVVNCX0NUUkxfR0VUX1RJTUVPVVQpOworCQkJ
+aWYgKHJlc3VsdCA8IDApIHsKKwkJCQllcnIoImkyYyB3cml0ZSBlcnJvciAoc3RhdHVzID0gJWQp
+XG4iLCByZXN1bHQpOworCQkJCWJyZWFrOworCQkJfQorCQl9CisJfQorCW11dGV4X3VubG9jaygm
+ZC0+aTJjX211dGV4KTsKKwlyZXR1cm4gaTsKK30KKworLyoKKyAqIEkyQyBtYXN0ZXIgeGZlciBm
+dW5jdGlvbiAocHJlLTEuMjAgZmlybXdhcmUpCisgKi8KK3N0YXRpYyBpbnQgZGliMDcwMF9pMmNf
+eGZlcl9sZWdhY3koc3RydWN0IGkyY19hZGFwdGVyICphZGFwLAorCQkJCSAgIHN0cnVjdCBpMmNf
+bXNnICptc2csIGludCBudW0pCiB7CiAJc3RydWN0IGR2Yl91c2JfZGV2aWNlICpkID0gaTJjX2dl
+dF9hZGFwZGF0YShhZGFwKTsKIAlpbnQgaSxsZW47CkBAIC0xMjIsNiArMjExLDIxIEBAIHN0YXRp
+YyBpbnQgZGliMDcwMF9pMmNfeGZlcihzdHJ1Y3QgaTJjX2EKIAogCW11dGV4X3VubG9jaygmZC0+
+aTJjX211dGV4KTsKIAlyZXR1cm4gaTsKK30KKworc3RhdGljIGludCBkaWIwNzAwX2kyY194ZmVy
+KHN0cnVjdCBpMmNfYWRhcHRlciAqYWRhcCwgc3RydWN0IGkyY19tc2cgKm1zZywKKwkJCSAgICBp
+bnQgbnVtKQoreworCXN0cnVjdCBkdmJfdXNiX2RldmljZSAqZCA9IGkyY19nZXRfYWRhcGRhdGEo
+YWRhcCk7CisJc3RydWN0IGRpYjA3MDBfc3RhdGUgKnN0ID0gZC0+cHJpdjsKKworCWlmIChzdC0+
+ZndfdXNlX2xlZ2FjeV9pMmNfYXBpID09IDEpIHsKKwkJLyogVXNlIGxlZ2FjeSBjYWxscyAqLwor
+CQlyZXR1cm4gZGliMDcwMF9pMmNfeGZlcl9sZWdhY3koYWRhcCwgbXNnLCBudW0pOworCX0gZWxz
+ZSB7CisJCS8qIFVzZXIgcnVubmluZyBhdCBsZWFzdCBmdyAxLjIwICovCisJCXJldHVybiBkaWIw
+NzAwX2kyY194ZmVyX25ldyhhZGFwLCBtc2csIG51bSk7CisJfQogfQogCiBzdGF0aWMgdTMyIGRp
+YjA3MDBfaTJjX2Z1bmMoc3RydWN0IGkyY19hZGFwdGVyICphZGFwdGVyKQpkaWZmIC1yIGE0ODQz
+ZTEzMDRlNiBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfZGV2aWNlcy5j
+Ci0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGliMDcwMF9kZXZpY2VzLmMJ
+U3VuIEF1ZyAyNCAxMjoyODoxMSAyMDA4IC0wMzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEv
+ZHZiL2R2Yi11c2IvZGliMDcwMF9kZXZpY2VzLmMJVHVlIEF1ZyAyNiAyMTowMjo0OSAyMDA4IC0w
+NDAwCkBAIC0xMTI1LDcgKzExMjUsNyBAQCBNT0RVTEVfREVWSUNFX1RBQkxFKHVzYiwgZGliMDcw
+MF91c2JfaWRfCiAjZGVmaW5lIERJQjA3MDBfREVGQVVMVF9ERVZJQ0VfUFJPUEVSVElFUyBcCiAJ
+LmNhcHMgICAgICAgICAgICAgID0gRFZCX1VTQl9JU19BTl9JMkNfQURBUFRFUiwgXAogCS51c2Jf
+Y3RybCAgICAgICAgICA9IERFVklDRV9TUEVDSUZJQywgXAotCS5maXJtd2FyZSAgICAgICAgICA9
+ICJkdmItdXNiLWRpYjA3MDAtMS4xMC5mdyIsIFwKKwkuZmlybXdhcmUgICAgICAgICAgPSAiZHZi
+LXVzYi1kaWIwNzAwLTEuMjAuZnciLCBcCiAJLmRvd25sb2FkX2Zpcm13YXJlID0gZGliMDcwMF9k
+b3dubG9hZF9maXJtd2FyZSwgXAogCS5ub19yZWNvbm5lY3QgICAgICA9IDEsIFwKIAkuc2l6ZV9v
+Zl9wcml2ICAgICAgPSBzaXplb2Yoc3RydWN0IGRpYjA3MDBfc3RhdGUpLCBcCg==
+------=_Part_3980_2464433.1219799720913
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -137,4 +181,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0693529956==--
+------=_Part_3980_2464433.1219799720913--
