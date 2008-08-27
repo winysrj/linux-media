@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.30])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <steele.brian@gmail.com>) id 1KPn9Q-00013J-6c
-	for linux-dvb@linuxtv.org; Mon, 04 Aug 2008 01:38:12 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so845716ywj.41
-	for <linux-dvb@linuxtv.org>; Sun, 03 Aug 2008 16:38:08 -0700 (PDT)
-Message-ID: <5f8558830808031638i33caaa3se8b1870240b37c53@mail.gmail.com>
-Date: Sun, 3 Aug 2008 16:38:08 -0700
-From: "Brian Steele" <steele.brian@gmail.com>
-To: "Andy Walls" <awalls@radix.net>
-In-Reply-To: <1217791214.2690.31.camel@morgan.walls.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1KYRrT-0003NN-1j
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 22:43:28 +0200
+Date: Wed, 27 Aug 2008 22:42:50 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <412393.34790.qm@web46101.mail.sp1.yahoo.com>
+Message-ID: <20080827204250.271660@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
-	<1217728894.5348.72.camel@morgan.walls.org>
-	<5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
-	<1217791214.2690.31.camel@morgan.walls.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1600 - No audio
+References: <412393.34790.qm@web46101.mail.sp1.yahoo.com>
+To: free_beer_for_all@yahoo.com, goga777@bk.ru, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for
+	VDR	1.7.0
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,14 +19,67 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Quick update: I tried testing the card on another machine running
-Windows and I was getting good audio through the tuner
+Barry, thanks for your messge. You didn't say whether you tried what
+I did with HVR4000+liplianindvb+szap2 (-p option). =
+
+
+Before we talk about mplayer, does it actually work for you?
+
+> Which version  of `mplayer'?
+> =
+
+> You probably know, but it bears repeating:  mplayer is a
+> moving target, and significant features are added regularly. =
+
+
+Yes, I know. People around here could learn a lot from the way mplayer
+and ffmpeg each continue to check in significant and rapid improvements to a
+single repository.
+
+I regularly update mplayer from SVN and recompile too.  I have tried the fo=
+llowing:
+
+MPlayer dev-SVN-r27489-4.1.2  (today!): runs but video very slow and out of=
+ sync, audio ok.
+MPlayer dev-SVN-r27341-4.1.2  (about 1 month old): crashes in <1s
+MPlayer 1.0rc2-4.2.3 (ubuntu hardy): crashes in <1s
+xine-lib 1.1.15, xine-ui 0.99.5 (latest): No video, but audio ok.
+
+The log I showed was from Mplayer SVN 27341, but 27489 is similar: lots and=
+ lots of =
+
+"number of reference frames exceeds max" errors.
+ =
+
+> > Starting playback...
+> > [h264 @ 0xbc0b40]number of reference frames exceeds max
+> > (probably corrupt input), discarding one
+> > [h264 @ 0xbc0b40]number of reference frames exceeds max
+> > (probably corrupt input), discarding one
+> > [h264 @ 0xbc0b40]number of reference frames exceeds max
+> > (probably corrupt input), discarding one
+> > [h264 @ 0xbc0b40]number of reference frames exceeds max
+> > (probably corrupt input), discarding one
+
+And I have some sample TS files for Astra HD+ made with another card which =
+all the
+mplayers play perfectly so I know h264 is working.
+
+So at this point I do not think the problem is mplayer.
+
+Hans
+-- =
+
+Release early, release often.
+
+Psssst! Schon das coole Video vom GMX MultiMessenger gesehen?
+Der Eine f=FCr Alle: http://www.gmx.net/de/go/messenger03
 
 _______________________________________________
 linux-dvb mailing list
