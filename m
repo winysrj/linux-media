@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.177])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <owen.townend@gmail.com>) id 1KTQlt-0004PY-0y
-	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 02:32:59 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so120745wag.13
-	for <linux-dvb@linuxtv.org>; Wed, 13 Aug 2008 17:32:51 -0700 (PDT)
-Message-ID: <bb72339d0808131732l686f034ft9b4fcbedd73dae73@mail.gmail.com>
-Date: Thu, 14 Aug 2008 10:32:51 +1000
-From: "Owen Townend" <owen.townend@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1218672730.2696.48.camel@pc10.localdom.local>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1KYU7M-0003Jr-1q
+	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 01:08:02 +0200
+Date: Thu, 28 Aug 2008 01:07:26 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <20080827212413.GI7830@moelleritberatung.de>
+Message-ID: <20080827230726.271670@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <48A2EF6A.23BC.005F.0@leicester.gov.uk>
-	<1218672730.2696.48.camel@pc10.localdom.local>
-Subject: Re: [linux-dvb] Attempting to compile the saa7134-alsa module
+References: <BAY137-W489CF3F8D962EC11AB96CD90610@phx.gbl>
+	<20080827212413.GI7830@moelleritberatung.de>
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Inclusion of STB0899 support in kernel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,37 +25,71 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/8/14 hermann pitton <hermann-pitton@arcor.de>:
-> Am Mittwoch, den 13.08.2008, 14:27 +0100 schrieb John Chajecki:
->> Herman,
->>
->> Thanks again. It was suggested to me to use Ubuntu because apparently it is good for multimedia apps. I had googled saa7134-alsa prior to posting and saw a few reports of the problem but no solution. This does seem to be a Ubuntu issue and in one of the reports I looked at (https://bugs.launchpad.net/ubuntu/+source/linux-ubuntu-modules-2.6.24/+bug/212271) it states that the problem does not occurr on a 'stock kernel' from kernel.org.
->>
->> Now I'm womdoering whether I shpuld use another Linux distro? If so, which distro do others use?
->
-> There have been not any problems previously with Ubuntu, unfortunately
-> they seem something to try now, others have been through during 2.6.5
-> development and better should let it.
->
-> I don't have recommendations what to try else, but looking back over
-> years, some are continuously contributing new stuff at high rates and
-> others try to become famous for being very stable :)))
->
-> If a distribution does not stand a vanilla kernel anymore, what I would
-> not expect in this case, use the trash bin.
->
-> Cheers,
-> Hermann
->
+> Hi,
+> 
+> On Wed, Aug 27, 2008 at 10:19:06PM +0200, johan vdp wrote:
+> > 
+> > What happened to STB0899 support?
+> > Building a kernel, patching it (with some luck), building applications
+> with patches to match the driver, it is simply too much work.
+> > (It might be fun once, but starts to be annoying when automatic package
+> updates start to fail, the next day.)
+> > Having support in the kernel, will lead to applications that
+> 'automatically' start to support it.
+> >  
+> > Back in the days that 'multiproto' development was still alive and
+> buzzing. The STB0899 cards looked like having the best support.
+> > I have followed these lists for some time and opted to buy a STB0899
+> based DVB-S2 tuner card because the outlook for support was good; THEN.
+> > NOW it must have been two years, and it is still not merged into the
+> kernel.
+> 
+> Same here. I am using multiproto for a long time now. Personally for me
+> it works great, but it is really bad, that it is still not included in
+> the kernel.
+> 
+> Manu Abrahams hg tree is "out of date" and it is impossible to compile
+> it with a recent kernel without patching it.
+> 
+> Hopefully Igor M. Liplianin has created an hg tree, which merges all the
+> different dvb-trees in one single tree
+> (http://liplianindvb.sourceforge.net/hg/liplianindvb).
+> This really helps in compiling multiproto, but this is not the solution.
+> 
+> What is required to get multiproto into the kernel?
+> Where are the problems?
+> 
+> Regards, Artem
 
-Hey,
+I absolutely agree. Please see the messages I sent on this recently
+http://linuxtv.org/pipermail/linux-dvb/2008-August/028084.html
 
-  If you were using MythBuntu and are looking for a similar experience
-using a different distro then have a look into MythDora or KnopMyth
-for the RedHat and Knoppix takes on the theme.
+For the reasons mentioned above it is a terrible waste of effort to maintain
+code outside the kernel. Because multiproto (or equivalent code) has not
+been merged into the kernel (after 2 years and 4.5 months in development) there
+is a *lot* of out-of-kernel code supporting DVB-S2 cards, which of course are
+amongst the most popular, capable and important cards on the market. It is 
+not OK to expect everyone (including end users) to clone hg trees and update
+and patch them repeatedly. All driver code should be heading towards the kernel,
+preferably sooner than later. Anything else is pointless.
 
-cheers,
-Owen.
+I think Linux DVB is in a state of unacknowledged crisis.  
+
+The code works, but the kernel merging of multiproto or another way of supporting
+DVB-S2 cards seems to be completely paralysed.  What is required to get it done?
+It must eventually be accomplished.
+
+OT, even the simplest userspace code is sorely lacking. Simple yet important tools such
+as szap, and scan don't even have version numbers. Distros don't agree on whether
+the package is called dvb-apps or dvb-utils and have had to create their own code
+versioning. How many szap patches are floating around?
+
+Hans
+-- 
+Release early, release often. Really, you should.
+
+Ist Ihr Browser Vista-kompatibel? Jetzt die neuesten 
+Browser-Versionen downloaden: http://www.gmx.net/de/go/browser
 
 _______________________________________________
 linux-dvb mailing list
