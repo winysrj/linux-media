@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from server42.ukservers.net ([217.10.138.242])
+Received: from yx-out-2324.google.com ([74.125.44.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@nzbaxters.com>) id 1KPaot-0005Y9-1a
-	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 12:28:13 +0200
-Message-ID: <005901c8f553$8af7de90$7501010a@ad.sytec.com>
-From: "Simon Baxter" <linuxtv@nzbaxters.com>
-To: "Antti Palosaari" <crope@iki.fi>,
-	"Markus Oliver Hahn" <markus.o.hahn@gmx.de>,
-	"Arthur Konovalov" <artlov@gmail.com>, <linux-dvb@linuxtv.org>
-References: <008401c8ebe5$4e09ea90$450011ac@ad.sytec.com>	<003001c8ecb2$57b93af0$7501010a@ad.sytec.com><003401c8ee3d$7f98b870$7501010a@ad.sytec.com><488C5B02.4080506@gmail.com>
-	<005901c8f45a$7b869270$7501010a@ad.sytec.com>
-Date: Sun, 3 Aug 2008 21:27:13 +1200
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KYTau-0001DR-26
+	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 00:34:29 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so43280yxg.41
+	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 15:34:24 -0700 (PDT)
+Message-ID: <412bdbff0808271534j16fe07b5hb07f030e4ddfaf45@mail.gmail.com>
+Date: Wed, 27 Aug 2008 18:34:23 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Paul Gardiner" <lists@glidos.net>
+In-Reply-To: <48B5D5CF.3060401@glidos.net>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] THINGS ARE LOOKING UP!!682Mhz problem withTT-1501
-	driver inv4l-dvb
+Content-Disposition: inline
+References: <48B5D5CF.3060401@glidos.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Looks like there's a new unsupported WinTV Nova T
+	500 out there
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,36 +29,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->>>>> I have patched the v4l-dvb driver with Sigmund Augdal's changes to
->>>>> support
->>>>> C-1501.  I can't get channels to work on all but one frequency -
->>>>> 682Mhz.
->>>>> Frequencies which work:  578, 586, 594, 602, 610, 626, 634, 642, 666,
->>>>> 674
->>>>> Mhz.
->>
->> You are not alone with this problem.
->> I haven't signal on two more frequencies: 322 and 386 MHz
->>
->> AK
+It might be a good idea to create a page in the LinuxTV DVB wiki, in
+particular including the USB device id:
+
+http://www.linuxtv.org/wiki/index.php/Main_Page
+
+Devin
+
+On Wed, Aug 27, 2008 at 6:31 PM, Paul Gardiner <lists@glidos.net> wrote:
+> Just trying to get MythTV up and running, plugged in my
+> newly arrived WinTV Nova T 500 and no /dev/dvb directory
+> appeared. It's not the known probelmatic Diversity version,
+> but it does say v2.1 on the box, and it seems to have
+> different chips. :-(
 >
-> Is this a hardware problem?  Has anyone tried it on a Windows machine??
-
-I was mucking around with some patches to dvb_ca_en50221.c and saa7146_i2c.c 
-which introduce some 'msleep(1)' delays when communicating with the CAM, and 
-in the process firmed up some of the cable connections, and I'm now getting 
-a picture on some 682Mhz channels.  Looks like it might have been mostly an 
-electrical problem.
-
-I am getting some new weird problems with occasional no audio when I tune to 
-a channel, but this might yet be signal, VDR or vdr-xine.  Will keep you 
-posted!
+> Just thought I'd warn people and maybe ask if anyone
+> else has run into this.
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 
-Thanks
 
-Simon 
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
