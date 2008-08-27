@@ -1,26 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns218.ovh.net ([213.186.34.114])
+Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <webdev@chaosmedia.org>) id 1KZPOh-000324-U8
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 14:17:44 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by ns218.ovh.net (Postfix) with ESMTP id 5582B4E83D
-	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 14:17:00 +0200 (CEST)
-Received: from ns218.ovh.net ([127.0.0.1])
-	by localhost (ns218.ovh.net [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id k5hwWpbbu2mR for <linux-dvb@linuxtv.org>;
-	Sat, 30 Aug 2008 14:17:00 +0200 (CEST)
-Received: from [192.168.0.50] (droid.chaosmedia.org [82.225.228.49])
-	by ns218.ovh.net (Postfix) with ESMTP id 1BCE18524
-	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 14:17:00 +0200 (CEST)
-Message-ID: <48B93A3B.6090301@chaosmedia.org>
-Date: Sat, 30 Aug 2008 14:16:59 +0200
-From: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
+	(envelope-from <dvb-t@iinet.com.au>) id 1KYU7b-0003RO-It
+	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 01:08:18 +0200
+Message-ID: <61692348D89B4D8AB03C6F18C6B78382@mce>
+From: "David" <dvb-t@iinet.com.au>
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>,
+	"Paul Gardiner" <lists@glidos.net>
+References: <48B5D5CF.3060401@glidos.net>
+	<412bdbff0808271534j16fe07b5hb07f030e4ddfaf45@mail.gmail.com>
+Date: Thu, 28 Aug 2008 09:08:09 +1000
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <48B8400A.9030409@linuxtv.org>
-In-Reply-To: <48B8400A.9030409@linuxtv.org>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Looks like there's a new unsupported WinTV Nova
+	T500 out there
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,64 +27,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-It's not my place to judge if the problem is moving in the right 
-direction or not but it's a good thing that something happens.
-I'll trust the experienced devs whom acked this proposal.
-
-Writting a multiproto patch for kaffeine to get dvb-s2 support, got me 
-to learn a bit about v4l-dvb api and multiproto. Again i'm no 
-experienced coder, i followed some examples to keep v4l-dvb backward 
-compatibility and it wasn't really a walk in the park nor was it really 
-necessary now that i look at it, either your use multiproto or you don't 
-and if you do, patch your app and build it again.
-But well it's working and that's what was most important to me, to get 
-it working "asap".
-
-So as Christophe Thommeret wrote, who helped a lot dealing with 
-kaffeine, i'll support whichever api is going to bring dvb-s2 and new 
-dvb hardware support to the kernel.
-
-In the meantime i'll keep using and maintaining my multiproto patch as 
-it's curently done with most other applications, so end users don't have 
-to wait for the whole kernel thing to get completed.
-
-And of course if or when the new api has to be tested and modifications 
-to be done on the application side, i'll join the effort.
-
-Marc.
-
-Acked-by: Marc Delcambre <webdev@chaosmedia.org>
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Paul Gardiner" <lists@glidos.net>
+Cc: <linux-dvb@linuxtv.org>
+Sent: Thursday, August 28, 2008 8:34 AM
+Subject: Re: [linux-dvb] Looks like there's a new unsupported WinTV Nova 
+T500 out there
 
 
-
-Steven Toth wrote:
-> Regarding the multiproto situation:
+> It might be a good idea to create a page in the LinuxTV DVB wiki, in
+> particular including the USB device id:
 >
-> .....
+> http://www.linuxtv.org/wiki/index.php/Main_Page
 >
-> We're not asking you for technical help, although we'd like that  :) ,
-> we're just asking for your encouragement to move away from multiproto.
+> Devin
 >
-> If you feel that you want to support our movement then please help us by
-> acking this email.
->
-> Regards - Steve, Mike, Patrick and Mauro.
->
-> Acked-by: Patrick Boettcher <pb@linuxtv.org>
-> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
-> Acked-by: Steven Toth <stoth@linuxtv.org>
-> Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
->
-> * [1]. Rather than point out the issues with multiproto here, take a
-> look at the patches and/or read the comments on the mailing lists.
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
+> On Wed, Aug 27, 2008 at 6:31 PM, Paul Gardiner <lists@glidos.net> wrote:
+>> Just trying to get MythTV up and running, plugged in my
+>> newly arrived WinTV Nova T 500 and no /dev/dvb directory
+>> appeared. It's not the known probelmatic Diversity version,
+>> but it does say v2.1 on the box, and it seems to have
+>> different chips. :-(
+>>
+>> Just thought I'd warn people and maybe ask if anyone
+>> else has run into this.
+
+The Nova-T 500 is supposed to be end of life.
+In March 2008 the Australian importer said "The Nova 500 should continue for 
+about another 3-4 months but will be replaced by the HVR-2200"
+
+Regards
+David 
 
 _______________________________________________
 linux-dvb mailing list
