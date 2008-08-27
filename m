@@ -1,25 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m79MCbmL006790
-	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 18:12:37 -0400
-Received: from lxorguk.ukuu.org.uk (earthlight.etchedpixels.co.uk
-	[81.2.110.250])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m79MCQdJ026985
-	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 18:12:27 -0400
-Date: Sat, 9 Aug 2008 22:55:02 +0100
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Rene Herman <rene.herman@keyaccess.nl>
-Message-ID: <20080809225502.27b38a9d@lxorguk.ukuu.org.uk>
-In-Reply-To: <489E13C0.4010807@keyaccess.nl>
-References: <489DE890.1090103@keyaccess.nl>
-	<20080809214657.3b5318d1@lxorguk.ukuu.org.uk>
-	<489E13C0.4010807@keyaccess.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7R9f6xM008694
+	for <video4linux-list@redhat.com>; Wed, 27 Aug 2008 05:41:06 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7R9f4fG031733
+	for <video4linux-list@redhat.com>; Wed, 27 Aug 2008 05:41:04 -0400
+Received: by wf-out-1314.google.com with SMTP id 25so2393552wfc.6
+	for <video4linux-list@redhat.com>; Wed, 27 Aug 2008 02:41:03 -0700 (PDT)
+Message-ID: <aec7e5c30808270241x12bac614lc573293ce84d608e@mail.gmail.com>
+Date: Wed, 27 Aug 2008 18:41:03 +0900
+From: "Magnus Damm" <magnus.damm@gmail.com>
+To: "Geert Uytterhoeven" <geert@linux-m68k.org>
+In-Reply-To: <Pine.LNX.4.64.0808262035310.7910@anakin>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@osdl.org>, Ingo Molnar <mingo@elte.hu>,
-	video4linux-list@redhat.com, Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] V4L1: make PMS not auto-grab port 0x250
+Content-Disposition: inline
+References: <20080814195522.ad74990c.akpm@linux-foundation.org>
+	<Pine.LNX.4.64.0808262035310.7910@anakin>
+Cc: Linux Kernel Development <linux-kernel@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Paul Mundt <lethal@linux-sh.org>, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] VIDEO_SH_MOBILE_CEU should depend on HAS_DMA (was: Re:
+	m68k allmodconfig)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,29 +35,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> > Just apply a tiny bit of rational thought here. There is exactly ONE 
-> > Ingo.
-> 
-> And as you say yourself -- close to exactly 1 person who still has this 
-> hardware and closer still to 0 who use it. Really, you contradict yourself:
+On Wed, Aug 27, 2008 at 4:37 AM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+>        Hi Andrew,
+>
+> On Thu, 14 Aug 2008, Andrew Morton wrote:
+>> ERROR: "dma_alloc_coherent" [drivers/media/video/videobuf-dma-contig.ko] undefined!
+>> ERROR: "dma_sync_single_for_cpu" [drivers/media/video/videobuf-dma-contig.ko] undefined!
+>> ERROR: "dma_free_coherent" [drivers/media/video/videobuf-dma-contig.ko] undefined!
+>
+> M68k allmodconfig still selects Sun-3, which sets NO_DMA.
+> I guess you're also seeing this on the other NO_DMA platforms (h8300, m32r,
+> s390, and PCI-less SPARC)?
+>
+> Below is a patch.
+>
+> Shouldn't it also (or instead) depend on SUPERH or some SuperH platform?
+> Or is this not done to have more compile-coverage?
+>
+> Subject: [PATCH] VIDEO_SH_MOBILE_CEU should depend on HAS_DMA
+>
+> commit 0d3244d6439c8c31d2a29efd587c7aca9042c8aa ("V4L/DVB (8342):
+> sh_mobile_ceu_camera: Add SuperH Mobile CEU driver V3") introduced
+> VIDEO_SH_MOBILE_CEU, which selects VIDEOBUF_DMA_CONTIG. This circumvents the
+> dependency on HAS_DMA of VIDEOBUF_DMA_CONTIG.
+>
+> Add a dependency on HAS_DMA to VIDEO_SH_MOBILE_CEU to fix this.
 
-Consider the posibility that I might be talking about the general case
-here. And if there are two people with the PMS card thats the general
-case 8)
+Thank you!
 
-> We know this driver breaks the boot during useful kernel work. We know 
-> that changing it has about a 0.0001% percent change of mattering to 
-> anyone and then only as long as all those person can't be bothered to 
-> setup a value in his modprobe.conf.
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-It never breaks anything for anyone as a module, only compiled in. Which
-despite your moans about 'factual' things is a fact.
-
-Can I suggest a rather more elegant solution would be to add a
-"CONFIG_UNSAFE_PROBES" tristate (so you can decide if you want no unsafe
-probing devices, unsafe probing devices only as modules, or anything goes)
-
-Alan
+Acked-by: Magnus Damm <damm@igel.co.jp>
 
 --
 video4linux-list mailing list
