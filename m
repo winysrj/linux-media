@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
+Received: from n73.bullet.mail.sp1.yahoo.com ([98.136.44.191])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KYRrT-0003NN-1j
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 22:43:28 +0200
-Date: Wed, 27 Aug 2008 22:42:50 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <412393.34790.qm@web46101.mail.sp1.yahoo.com>
-Message-ID: <20080827204250.271660@gmx.net>
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KYQ3t-00043Y-To
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 20:48:11 +0200
+Date: Wed, 27 Aug 2008 11:47:25 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org, goga777@bk.ru, Hans Werner <HWerner4@gmx.de>
+In-Reply-To: <20080827174927.271630@gmx.net>
 MIME-Version: 1.0
-References: <412393.34790.qm@web46101.mail.sp1.yahoo.com>
-To: free_beer_for_all@yahoo.com, goga777@bk.ru, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for
-	VDR	1.7.0
+Message-ID: <412393.34790.qm@web46101.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for VDR
+	1.7.0
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,67 +19,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Barry, thanks for your messge. You didn't say whether you tried what
-I did with HVR4000+liplianindvb+szap2 (-p option). =
+--- On Wed, 8/27/08, Hans Werner <HWerner4@gmx.de> wrote:
+
+> There still seems to be a problem though. All three FTA HD
+> channels lock, but only Arte HD plays properly in mplayer. 
+
+Which version  of `mplayer'?
+
+You probably know, but it bears repeating:  mplayer is a
+moving target, and significant features are added regularly.
+
+Also, some things break from time to time but are usually
+quickly fixed.
+
+I tend to build a new mplayer binary once or twice a month,
+and keep the old ones around.
 
 
-Before we talk about mplayer, does it actually work for you?
+> Mplayer crashes after less than a second for Anixe HD and
+> Astra HD+ :
+> 
+> Playing testfile_anixe.ts.
+> TS file format detected.
+> VIDEO H264(pid=1535) AUDIO A52(pid=1539) NO SUBS (yet)! 
+> PROGRAM N. 132
+> FPS seems to be: 25.000000
+> ==========================================================================
+> Opening video decoder: [ffmpeg] FFmpeg's libavcodec
+> codec family
+> Selected video codec: [ffh264] vfm: ffmpeg (FFmpeg H.264)
+> ==========================================================================
 
-> Which version  of `mplayer'?
-> =
+> Starting playback...
+> [h264 @ 0xbc0b40]number of reference frames exceeds max
+> (probably corrupt input), discarding one
+> [h264 @ 0xbc0b40]number of reference frames exceeds max
+> (probably corrupt input), discarding one
+> [h264 @ 0xbc0b40]number of reference frames exceeds max
+> (probably corrupt input), discarding one
+> [h264 @ 0xbc0b40]number of reference frames exceeds max
+> (probably corrupt input), discarding one
 
-> You probably know, but it bears repeating:  mplayer is a
-> moving target, and significant features are added regularly. =
+This looks like what I see when playing IYV-HD video (with
+a patch), whereas I see something different with BBC-HD on
+mplayer from the start of august:
+
+[h264 @ 0x89e5d50]B picture before any references, skipping
+[h264 @ 0x89e5d50]decode_slice_header error
+[h264 @ 0x89e5d50]no frame!
+Error while decoding frame!
+VDec: vo config request - 1440 x 1080 (preferred colorspace: Planar YV12)
+
+This is normal at the start of the file.
+
+>From ITV;
+
+[h264 @ 0x89e5d50]number of reference frames exceeds max (probably corrupt input), discarding one
+[h264 @ 0x89e5d50]number of reference frames exceeds max (probably corrupt input), discarding one
+[h264 @ 0x89e5d50]mmco: unref short failure
+Overriding type of video from 0x10000002 to 0x10000005
+Overriding type of video from 0x10000002 to 0x10000005
+[h264 @ 0x89e5d50]mmco: unref short failure
+Overriding type of video from 0x10000002 to 0x10000005
+VDec: vo config request - 1440 x 1080 (preferred colorspace: Planar YV12)
+
+Then it will play for me with relatively clean video.  The version
+of mplayer about a month earlier did not play this same file with
+clean video.
+
+Perhaps your flavour of `mplayer' doesn't properly support the H.264
+encoding used by the two problem channels?
 
 
-Yes, I know. People around here could learn a lot from the way mplayer
-and ffmpeg each continue to check in significant and rapid improvements to a
-single repository.
+Just a thought, try the latest SVN source of mplayer, if you aren't
+already
 
-I regularly update mplayer from SVN and recompile too.  I have tried the fo=
-llowing:
 
-MPlayer dev-SVN-r27489-4.1.2  (today!): runs but video very slow and out of=
- sync, audio ok.
-MPlayer dev-SVN-r27341-4.1.2  (about 1 month old): crashes in <1s
-MPlayer 1.0rc2-4.2.3 (ubuntu hardy): crashes in <1s
-xine-lib 1.1.15, xine-ui 0.99.5 (latest): No video, but audio ok.
+barry bouwsma
 
-The log I showed was from Mplayer SVN 27341, but 27489 is similar: lots and=
- lots of =
 
-"number of reference frames exceeds max" errors.
- =
+      
 
-> > Starting playback...
-> > [h264 @ 0xbc0b40]number of reference frames exceeds max
-> > (probably corrupt input), discarding one
-> > [h264 @ 0xbc0b40]number of reference frames exceeds max
-> > (probably corrupt input), discarding one
-> > [h264 @ 0xbc0b40]number of reference frames exceeds max
-> > (probably corrupt input), discarding one
-> > [h264 @ 0xbc0b40]number of reference frames exceeds max
-> > (probably corrupt input), discarding one
-
-And I have some sample TS files for Astra HD+ made with another card which =
-all the
-mplayers play perfectly so I know h264 is working.
-
-So at this point I do not think the problem is mplayer.
-
-Hans
--- =
-
-Release early, release often.
-
-Psssst! Schon das coole Video vom GMX MultiMessenger gesehen?
-Der Eine f=FCr Alle: http://www.gmx.net/de/go/messenger03
 
 _______________________________________________
 linux-dvb mailing list
