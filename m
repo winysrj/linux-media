@@ -1,27 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m77Daw3U002584
-	for <video4linux-list@redhat.com>; Thu, 7 Aug 2008 09:36:58 -0400
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m77Dag7U029901
-	for <video4linux-list@redhat.com>; Thu, 7 Aug 2008 09:36:42 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so177228nfc.21
-	for <video4linux-list@redhat.com>; Thu, 07 Aug 2008 06:36:42 -0700 (PDT)
-Message-ID: <de8cad4d0808070636q4045b788s6773a4e168cca2cc@mail.gmail.com>
-Date: Thu, 7 Aug 2008 09:36:41 -0400
-From: "Brandon Jenkins" <bcjenkins@tvwhere.com>
-To: "Andy Walls" <awalls@radix.net>
-In-Reply-To: <1218070521.2689.15.camel@morgan.walls.org>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7RGxMdQ024978
+	for <video4linux-list@redhat.com>; Wed, 27 Aug 2008 12:59:23 -0400
+Received: from n6.bullet.mail.mud.yahoo.com (n6.bullet.mail.mud.yahoo.com
+	[216.252.100.62])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7RGx8j2015774
+	for <video4linux-list@redhat.com>; Wed, 27 Aug 2008 12:59:08 -0400
+Date: Wed, 27 Aug 2008 16:59:01 +0000 (GMT)
+From: Lars Oliver Hansen <lolh@ymail.com>
+To: linux-dvb@linuxtv.org, video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <de8cad4d0808051804l13d1b66cs9df26cc43ba6cfd6@mail.gmail.com>
-	<1217986174.5252.7.camel@morgan.walls.org>
-	<de8cad4d0808060357r4849d935k2e61caf03953d366@mail.gmail.com>
-	<1218070521.2689.15.camel@morgan.walls.org>
-Cc: video4linux-list@redhat.com, ivtv-devel@ivtvdriver.org
-Subject: Re: CX18 Oops
+Message-ID: <954706.44416.qm@web28416.mail.ukl.yahoo.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Cc: 
+Subject: Information: Ubuntu Linux kernel image update solves v4l2
+	alsa-sound troubles
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,82 +27,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Aug 6, 2008 at 8:55 PM, Andy Walls <awalls@radix.net> wrote:
-> On Wed, 2008-08-06 at 06:57 -0400, Brandon Jenkins wrote:
->> On Tue, Aug 5, 2008 at 9:29 PM, Andy Walls <awalls@radix.net> wrote:
->> > On Tue, 2008-08-05 at 21:04 -0400, Brandon Jenkins wrote:
->> >> Hi All
->> >>
->> >> I am running kernel 2.6.26 on  Ubuntu 8.04. Any thoughts?
->> >
->> > I ran into a similar Oops in the same function on 23 July.  I had it at
->> > a lower priority since no one had complained about it and it seems rare.
->> >
->> > I'll try and get to it before Saturday morning.  If anyone wants to
->> > submit a patch before then, I'll review it ASAP after receipt.
->> >
->> > Regards,
->> > Andy
->> >
->> >> Thanks in advance
->> >>
->> >> Brandon
->> >>
->
->> >> [35037.080852] Code: 74 22 31 c9 0f 1f 80 00 00 00 00 48 89 c8 48 03
->> >> 47 28 8b 10 0f ca 89 10 8d 41 04 48 83 c1 04 39 47 30 77 e7 f3 c3 0f
->> >> 1f 44 00 00 <4c> 8b 0e 49 89 d2 49 8b 41 08 49 8b 11 48 89 42 08 48 89
->> >> 10 49
->> >> [35037.080976] RIP  [<ffffffffa01e4180>] :cx18:cx18_queue_move_buf+0x0/0xa0
->> >> [35037.080992]  RSP <ffff810217c4be50>
->> >> [35037.081000] CR2: 0000000000000000
->> >> [35037.081192] ---[ end trace 10100555b3a0d104 ]---
->> >> [35037.090147] note: java[15894] exited with preempt_count 1
->> >>
->> >> --
->> >> video4linux-list mailing list
->> >> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> >> https://www.redhat.com/mailman/listinfo/video4linux-list
->> >>
->> >
->> >
->> Here's another one. Is there something I could do to lessen the issue
->> while a patch is being worked? Rebuild the kernel without preempting?
->
->
-> Nope.  The problem I have has to do with per stream queue and buffer
-> accounting being slightly but you'll only notice when it's being freed.
->
-> I suspect you have the same problem, but I can't tell for sure as you
-> system is compiling the code differently than mine.
->
-> Could you please send the output of
->
-> $ cd v4l-dvb
-> $ objdump -D v4l/cx18-queue.o
->
-> from the offending build to me.  That way I can see the assembled
-> machine code and verify where in the function the NULL dereference is
-> happening.
->
-> If you have the exact same problem as me, I can give you a "band-aid"
-> patch which will lessen the problem in short order.  It'll be a band aid
-> because it won't fix the accounting problem though.  I need to do more
-> extensive test and debug to find out where the accounting of buffers is
-> getting screwed up.
->
-> Regards,
-> Andy
-
-Andy,
-
-Reposting with the file hosted in my dropbox instead. I didn't realize
-there was a size limit on the devel list.
-
-Brandon
-
-https://dl.getdropbox.com/u/4976/cx18-queue.o.objdump.tar.gz
-
+Hello everyone!=0A=0A =0Ayesterday the Ubuntu 8.04 auto-updater installed a=
+ new kernel image (64-bit desktop). It solved the alsa-sound troubles on my=
+ laptop using mrec s v4l-experimental driver for saa7134.=0A =0AHere's the =
+dmesg:=0A[    0.000000] Linux video capture interface: v2.00=0A[    0.00000=
+0] video_buf: exports duplicate symbol videobuf_mmap_mapper (owned by video=
+buf_core)=0A[    0.000000] video_buf: exports duplicate symbol videobuf_mma=
+p_mapper (owned by videobuf_core)=0A[    0.000000] saa7130/34: v4l2 driver =
+version 0.2.14 loaded=0A[    0.000000] video_buf: exports duplicate symbol =
+videobuf_mmap_mapper (owned by videobuf_core)=0A[    0.000000] saa7134 ALSA=
+ driver for DMA sound loaded=0A =0AThe only errors are duplicate symbols no=
+w. My Sound driver is the current latest Realtek HD audio codec driver. My =
+laptop is an Acer 5050.=0A =0AUnfortunately the new kernel image made acpi =
+not working again on my laptop instead of solving the wireless not detectin=
+g any routers.=0AIs it possible to compile a new Linux kernel without modif=
+ying anything else (other dependencies) and telling grub to load this new k=
+ernel while having the previous one still around so that one can always cha=
+nge to the old kernel in case anything goes wrong? How?=0AThanks!=0ALars=0A=
+=0ASend instant messages to your online friends http://uk.messenger.yahoo.c=
+om 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
