@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n56.bullet.mail.sp1.yahoo.com ([98.136.44.52])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KYFQK-00071u-EG
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 09:26:38 +0200
-Date: Wed, 27 Aug 2008 00:26:00 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: linux-dvb@linuxtv.org, Josef Wolf <jw@raven.inka.de>
-In-Reply-To: <20080826224519.GL32022@raven.wolf.lan>
+Received: from mx00.csee.securepod.com ([66.232.128.196]
+	helo=cseeapp00.csee.securepod.com)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <roger@beardandsandals.co.uk>) id 1KYQ49-00043z-SM
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 20:48:26 +0200
+Received: from [192.168.10.241] (unknown [81.168.109.249])
+	by smtp00.csee.securepod.com (Postfix) with ESMTP id C75EA22C6C0
+	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 19:47:50 +0100 (BST)
+Message-ID: <48B5A157.1080206@beardandsandals.co.uk>
+Date: Wed, 27 Aug 2008 19:47:51 +0100
+From: Roger James <roger@beardandsandals.co.uk>
 MIME-Version: 1.0
-Message-ID: <949376.11164.qm@web46110.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
-Reply-To: free_beer_for_all@yahoo.com
+To: linux-dvb@linuxtv.org
+References: <20080825122741.GB17421@optima.lan>	<48B2E1DC.2080605@beardandsandals.co.uk>	<6f94e1a00808261235g130cf9b9h9b09f11249a01ebe@mail.gmail.com>
+	<48B525F4.50004@beardandsandals.co.uk>
+In-Reply-To: <48B525F4.50004@beardandsandals.co.uk>
+Subject: Re: [linux-dvb] TT S2-3200 + CI Extension
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,324 +23,307 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0351040032=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Tue, 8/26/08, Josef Wolf <jw@raven.inka.de> wrote:
-
-> >      ==> system_clock_reference_base: 859961626
-> (0x3341f91a)  [= 90 kHz-Timestamp: 2:39:15.1291]
-> 
-> This is a PS pack header, right?
-
-Correct:
-
-Packet_start_code_prefix: 0x000001
-Stream_id: 186 (0xba)  [= MPEG_pack_start (PS)]
-Pack_header:
-    fixed '01': 1 (0x01)
-    system_clock_reference_base:
-        bit[32..30]: 0 (0x00)
-        marker_bit: 1 (0x01)
-        bit[29..15]: 26243 (0x6683)
-        marker_bit: 1 (0x01)
-        bit[14..0]: 31002 (0x791a)
-        marker_bit: 1 (0x01)
-         ==> system_clock_reference_base: 859961626 (0x3341f91a)  [= 90 kHz-Timestamp: 2:39:15.1291]
-
-
-> >          ==> PTS: 5154932522 (0x13342072a)  [= 90
-> kHz-Timestamp: 15:54:37.0280]
-> >          ==> DTS: 5154921721 (0x13341dcf9)  [= 90
-> kHz-Timestamp: 15:54:36.9080]
-> >          ==> PTS: 5154925321 (0x13341eb09)  [= 90
-> kHz-Timestamp: 15:54:36.9480]
-> >          ==> PTS: 5154928921 (0x13341f919)  [= 90
-> kHz-Timestamp: 15:54:36.9880]
-> 
-> Are those PES headers from audio or from video?  Noticed
-> the hop here?
-
-Both, and yes.  I vaguely recall some years ago using something
-which gave more info about the timestamps, but I cannot for the
-life of me remember what, or how.  For the above, I simply `grep'ed
-on `Timestamp' and lost the context, sorry.
-
-Anyway, let me give more detail from this PS file, using dvbsnoop,
-to put the times I quoted into context.  My point was that I was
-seeing the very same timestamps as in the original TS file, while
-with `replex', these timestamps were lost.
-
-Whether `replex' preserved the relative offset between video and
-audio, I'd have to either create a new stream and compare, or find
-the original from which I converted to the replexed files.
-
-Back to the output from `ts2ps':
-
-
-Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2
-video stream]
-             ==> PTS: 5154932522 (0x13342072a)  [= 90 kHz-Timestamp: 15:54:37.0280]
-             ==> DTS: 5154921721 (0x13341dcf9)  [= 90 kHz-Timestamp: 15:54:36.9080]
-
-Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2
-video stream]
-             ==> PTS: 5154925321 (0x13341eb09)  [= 90 kHz-Timestamp: 15:54:36.9480]
-
-Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2
-video stream]
-             ==> PTS: 5154928921 (0x13341f919)  [= 90 kHz-Timestamp: 15:54:36.9880]
-
-
-Stream_id: 186 (0xba)  [= MPEG_pack_start (PS)]
-         ==> system_clock_reference_base: 859937348 (0x33419a44)  [= 90 kHz-Timestamp: 2:39:14.8594]
-
-Stream_id: 192 (0xc0)  [= ISO/IEC 13818-3 or ISO/IEC 11172-3 audio stream]
-             ==> PTS: 5154908244 (0x13341a854)  [= 90 kHz-Timestamp: 15:54:36.7582]
-
-
-Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2
-video stream]
-             ==> PTS: 5154943322 (0x13342315a)  [= 90 kHz-Timestamp: 15:54:37.1480]
-    DTS:
-             ==> DTS: 5154932521 (0x133420729)  [= 90 kHz-Timestamp: 15:54:37.0280]
-
-Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2
-video stream]
-             ==> PTS: 5154936121 (0x133421539)  [= 90 kHz-Timestamp: 15:54:37.0680]
-
-
-Odd, if in those packets where both PTS and DTS appear, I were
-to take what is given for DTS, it fits into the monotonically
-increasing +0,0400sec timestamps of PTS elsewhere.
-
-The audio stream has about 1/4 second offset from the video,
-as is well-known for such broadcasts, and matches the offset
-I see that `mplayer' needs to apply to sync the two.
-
-
-Now you have me curious, so I'm `dvbsnoop'ing the TS from which
-I `ts2ps'ed the above values.  PIDs 5300 and 5301 are resp. the
-video, and audio, from which the PS was made.
-
-PID: 5300 (0x14b4)  [= ]
-             ==> program_clock_reference: 1546464923192 (0x168107e0e38)  [= PCR-Timestamp: 15:54:36.478636]
-
-PID: 5300 (0x14b4)  [= ]
-             ==> program_clock_reference: 1546465965095 (0x168108df427)  [= PCR-Timestamp: 15:54:36.517225]
-
-PID: 5300 (0x14b4)  [= ]
-             ==> program_clock_reference: 1546467003390 (0x168109dcbfe)  [= PCR-Timestamp: 15:54:36.555681]
-and on it goes.
-
-Now, getting the payload from the relevant PIDs:
-
-    TS sub-decoding (69 packet(s) stored for PID 0x14b4):
-    =====================================================
-    TS contains PES/PS stream...
-        Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC
-11172-2 video stream]
-                   ==> PTS: 5154907321 (0x13341a4b9)  [= 90 kHz-Timestamp: 15:54:36.7480]
-
-    TS sub-decoding (145 packet(s) stored for PID 0x14b4):
-    =====================================================
-    TS contains PES/PS stream...
-        Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC
-11172-2 video stream]
-                   ==> PTS: 5154921722 (0x13341dcfa)  [= 90 kHz-Timestamp: 15:54:36.9080]
-                   ==> DTS: 5154910921 (0x13341b2c9)  [= 90 kHz-Timestamp: 15:54:36.7880]
-
-Somewhat further in the stream, we then reach the values given
-above for my converted PS file:
-
-    TS sub-decoding (290 packet(s) stored for PID 0x14b4):
-    =====================================================
-    TS contains PES/PS stream...
-        Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC
-11172-2 video stream]
-                   ==> PTS: 5154932522 (0x13342072a)  [= 90 kHz-Timestamp: 15:54:37.0280]
-                   ==> DTS: 5154921721 (0x13341dcf9)  [= 90 kHz-Timestamp: 15:54:36.9080]
-
-    TS sub-decoding (68 packet(s) stored for PID 0x14b4):
-    =====================================================
-    TS contains PES/PS stream...
-        Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC
-11172-2 video stream]
-                   ==> PTS: 5154925321 (0x13341eb09)  [= 90 kHz-Timestamp: 15:54:36.9480]
-
-
-That matches precisely the values in the PS file, including the
-discrepancy between PTS and DTS that I find curious.
-
-
-> >      ==> system_clock_reference_base: 859937348
-> (0x33419a44)  [= 90 kHz-Timestamp: 2:39:14.8594]
-> 
-> PS pack header again? Hop backwards from previous pack
-> header?
-
-Appears with context above, just before the PTS of the audio PID.
-As noted, there's an offset in realtime between the video and audio
-timestamps.
-
-> >          ==> PTS: 5154908244 (0x13341a854)  [= 90
-> kHz-Timestamp: 15:54:36.7582]
-
-And that's the audio PID.  The video follows.
-
-> >          ==> PTS: 5154943322 (0x13342315a)  [= 90
-> kHz-Timestamp: 15:54:37.1480]
-> >          ==> DTS: 5154932521 (0x133420729)  [= 90
-> kHz-Timestamp: 15:54:37.0280]
-> >          ==> PTS: 5154936121 (0x133421539)  [= 90
-> kHz-Timestamp: 15:54:37.0680]
-> >          ==> PTS: 5154939721 (0x133422349)  [= 90
-> kHz-Timestamp: 15:54:37.1080]
-> >          ==> PTS: 5154954122 (0x133425b8a)  [= 90
-> kHz-Timestamp: 15:54:37.2680]
-> 
-> Again hops.  Have you tried to play this stream with vlc?
-
-Not yet.  Normally I use `mplayer', with the problem that none of
-my machines are fast enough to playback such a stream without me
-needing to `-framedrop', and thus, the A-V offset tends to jump
-around noticeably, and video/audio sync never quite reaches the
-point where any lack of sync in the source would be noticeable.
-
-I'll give it a try (means firing up X and learning options to
-vlc to make it play reasonably well on a machine at 100% load)
-
-
-
-> BTW: what is the DTS good for?  Isn't PTS the relevant
-> time for playbacK?
-
-I'll let someone who actually knows answer, rather than speculating
-in ignorance.  I also thought PTS was all to be concerned with for
-non-realtime playback, so that the additional wealth of timestamps
-weren't too important for a stream written for later playback, but
-honestly, I have no clue.
-
-
->      And what is the SCRB good for?  I am totally confused
-> by all those times.
-
-I'm with you.  I would guess many of the timestamps are used so that
-realtime decoders will tend to present the decoded streams in sync
-with one another, avoiding echo effects when unsynced devices in the
-same room with different sized buffering and different delays in the
-decoding process receive the same signal, though in reality, I've
-observed devices that are noticeably out-of-sync on the same channel.
-
-
-
-Now here's what gets interesting.  I'm accustomed to seeing on the
-order of 1/4 second, more or less depending on station, offset in
-real time between audio and video timestamps in TSen.
-
-But now that I look more closely at the Shaun data, converted from
-BBC One which should have timing data like the BBC Four data above,
-I see something unexpected:
-
-Stream_id: 186 (0xba)  [= MPEG_pack_start (PS)]
-         ==> system_clock_reference_base: 0 (0x00000000)  [= 90 kHz-Timestamp: 0:00:00.0000]
-
-Stream_id: 186 (0xba)  [= MPEG_pack_start (PS)]
-         ==> system_clock_reference_base: 146 (0x00000092)  [= 90 kHz-Timestamp: 0:00:00.0016]
-
-Stream_id: 192 (0xc0)  [= ISO/IEC 13818-3 or ISO/IEC 11172-3 audio stream]
-             ==> PTS: 16200 (0x00003f48)  [= 90 kHz-Timestamp: 0:00:00.1800]
-
-Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2
-video stream]
-             ==> PTS: 23400 (0x00005b68)  [= 90 kHz-Timestamp: 0:00:00.2600]
-             ==> DTS: 12600 (0x00003138)  [= 90 kHz-Timestamp: 0:00:00.1400]
-
-and plenty of system_clock_reference_base
-
-Stream_id: 192 (0xc0)  [= ISO/IEC 13818-3 or ISO/IEC 11172-3 audio stream]
-             ==> PTS: 22680 (0x00005898)  [= 90 kHz-Timestamp: 0:00:00.2520]
-
-Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2
-video stream]
-             ==> PTS: 66600 (0x00010428)  [= 90 kHz-Timestamp: 0:00:00.7400]
-             ==> DTS: 55800 (0x0000d9f8)  [= 90 kHz-Timestamp: 0:00:00.6200]
-
-Stream_id: 192 (0xc0)  [= ISO/IEC 13818-3 or ISO/IEC 11172-3 audio stream]
-             ==> PTS: 29160 (0x000071e8)  [= 90 kHz-Timestamp: 0:00:00.3240]
-
-Stream_id: 192 (0xc0)  [= ISO/IEC 13818-3 or ISO/IEC 11172-3 audio stream]
-             ==> PTS: 33480 (0x000082c8)  [= 90 kHz-Timestamp: 0:00:00.3720]
-
-Stream_id: 192 (0xc0)  [= ISO/IEC 13818-3 or ISO/IEC 11172-3 audio stream]
-             ==> PTS: 39960 (0x00009c18)  [= 90 kHz-Timestamp: 0:00:00.4440]
-
-Stream_id: 192 (0xc0)  [= ISO/IEC 13818-3 or ISO/IEC 11172-3 audio stream]
-             ==> PTS: 46440 (0x0000b568)  [= 90 kHz-Timestamp: 0:00:00.5160]
-
-Stream_id: 192 (0xc0)  [= ISO/IEC 13818-3 or ISO/IEC 11172-3 audio stream]
-             ==> PTS: 50760 (0x0000c648)  [= 90 kHz-Timestamp: 0:00:00.5640]
-
-snippage...
-
-         ==> system_clock_reference_base: 51950 (0x0000caee)  [= 90 kHz-Timestamp: 0:00:00.5772]
-
-Stream_id: 224 (0xe0)  [= ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2
-video stream]
-             ==> PTS: 109800 (0x0001ace8)  [= 90 kHz-Timestamp: 0:00:01.2200]
-             ==> DTS: 99000 (0x000182b8)  [= 90 kHz-Timestamp: 0:00:01.1000]
-
-Stream_id: 192 (0xc0)  [= ISO/IEC 13818-3 or ISO/IEC 11172-3 audio stream]
-             ==> PTS: 63720 (0x0000f8e8)  [= 90 kHz-Timestamp: 0:00:00.7080]
-
-
-Things I find interesting:
-The PTS (DTS?) offsets between the video and audio are closer to
-half a second.  I'd really have to dig to find where I archived
-the original TS recording.
-
-At the start, first audio then video packets with nearly the same
-PTS appear, in spite of the source being different, before the
-values approach that expected, meaning there's not a one-to-one
-transfer of info from the source to the PS, by some manner.
-
-Video timestamps here only appear as combined PTS/DTS; there are
-plenty of SCRB timestamps between everything.
-
-That `replex' file was created with a `dvd' option; the file where
-I tried the `mpeg2' option is similarly interesting, with a few
-scattered PTS-only video timestamps, while most of the combined
-PTS-DTS packets have identical values for both, and which do not
-match the PTS-only timestamps (without pasting, I see PTS-only
-timestamp at 1,58sec, followed later by PTS+DTS timestamps 1,50
-sec, and later audio PTS at 1,07sec, and SCRB at 1,00sec).
-
-It's all very confusing, you see.  Both files played on the DVD
-player, as I remember, without obvious problems, though I can't
-remember if there was strangeness at the start -- as I was aware
-of the realtime offset between audio and video within the file, I
-wondered how the DVD player would cope.
-
-And now, I'm wondering just how `replex' is arriving at these
-timestamps from the TS file.
-
-
-Anyway, it's not all that relevant, no?  I'm just muttering to
-myself out loud, yes?  I'm not slowly going insane, right?
-
-I'll be off in my corner, rocking back and forth
-
-Yours &c, &c,
-barry bouwsma
-
-
-      
-
+--===============0351040032==
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title></title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Roger James wrote:
+<blockquote cite="mid:48B525F4.50004@beardandsandals.co.uk" type="cite">
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title></title>
+Werner Hauger wrote:
+  <blockquote
+ cite="mid:6f94e1a00808261235g130cf9b9h9b09f11249a01ebe@mail.gmail.com"
+ type="cite">
+    <pre wrap="">Hi Guys
+
+What is the hardware revision of your CI board (printed on the bottom
+of the PCB just above the PCI connector)?
+
+I have a Rev 1.1 on my TT S2-3200 which requires polling, as well a
+Rev 1.0 on an old NOVA-S card which provides an interrupt, both of
+which work with the current driver. The version testing code was added
+to the driver to handle these two boards. Maybe there is a new
+revision out that the driver does not yet cater for.
+
+A working CI and CAM combination should produce the following output
+when the driver loads:
+
+Linux video capture interface: v2.00
+saa7146: register extension 'dvb'.
+saa7146: register extension 'budget_ci dvb'.
+ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 5
+PCI: setting IRQ 5 as level-triggered
+ACPI: PCI Interrupt 0000:00:09.0[A] -&gt; Link [LNKB] -&gt; GSI 5 (level,
+low) -&gt; IRQ 5
+saa7146: found saa7146 @ mem d8ae8000 (revision 1, irq 5) (0x13c2,0x1019).
+saa7146 (0): dma buffer size 192512
+DVB: registering new adapter (TT-Budget S2-3200 PCI)
+adapter has MAC addr = 00:d0:5c:64:ba:14
+input: Budget-CI dvb ir receiver saa7146 (0) as
+/devices/pci0000:00/0000:00:09.0/input/input6
+budget_ci: CI interface initialised
+stb0899_get_dev_id: Device ID=[8], Release=[2]
+stb0899_get_dev_id: Demodulator Core ID=[DMD1], Version=[1]
+stb0899_get_dev_id: FEC Core ID=[FEC1], Version=[1]
+stb0899_attach: Attaching STB0899
+stb6100_attach: Attaching STB6100
+dvb_ca adapter 0: DVB CAM detected and initialised successfully
+DVB: registering frontend 0 (STB0899 Multistandard)...
+
+  </pre>
+    <blockquote type="cite">
+      <blockquote type="cite">
+        <pre wrap="">508     if ((ci_version &amp; 0xa0) != 0xa0) {
+509             result = -ENODEV;
+510             goto error;
+511     }
+
+      </pre>
+      </blockquote>
+    </blockquote>
+    <pre wrap=""><!---->
+Martin, have you tried commenting out this test to see if you then can
+get the 'CI interface initialised' message?
+
+  </pre>
+    <blockquote type="cite">
+      <pre wrap="">Sorry I cannot offer any direct help. But I thought you might like to
+know you are not the only one fighting with this piece of hardware :-)
+
+Roger
+    </pre>
+    </blockquote>
+    <pre wrap=""><!---->
+Roger, in your other message you said your CI board reports the
+version as 0xa0 which the driver expects to generate interrupts, which
+clearly it doesn't. Have you tried changing the code so that the
+driver uses polling for your CI version?
+
+Werner
+
+  </pre>
+  </blockquote>
+Werner,<br>
+  <br>
+Thank you for the suggestions. All help is gratefully received.<br>
+  <br>
+The board does generate interrupts for CAM insertion and removal. But I
+did try it with polling, no change. The flags coming back from the CI
+stay at 0x09 (CICONTROL_CAMDETECT_|CICONTROL_RESET), and the read of
+byte 0 of the atrribute memory returns 0x00 so the slot never goes into
+ready state. I will follow your suggestion and check out the board
+versions though!<br>
+  <br>
+I am waiting for the delivery an AstonCrypt CAM (I found one cheap one
+ebay) to see if that will initialise. As far as I can see, in my case
+the DEBI interface between the TT-3200 and the CI board is working, but
+I cannot ascertain if the CI interface on the daughter board is working
+properly or the CAM I am using (T.Rex/Dragon) is incompatible with the
+budget-ci driver. I know the Dragon CAM will work in TT-3200+CI
+installations on windows using the TT drivers because a number of
+people have reported success with it. The particular CAM I have also
+works with the CI emulator in my CAS-3 programmer so I don't think it
+is faulty.<br>
+  <br>
+In Martin's set up the DEBI interface may not be working as he does not
+see any difference if the CAM is present or not.<br>
+  <br>
+Do you ( or anyone) know of any source of information on the software
+interface to these boards? The guys who wrote the original code must
+have had some. Is Andrew de Quincey still active on the list?<br>
+  <br>
+Roger
+</blockquote>
+Hooray,<br>
+<br>
+I have got it working. I took out the TT3200 and the CI board to check
+their versions. Before putting them back in I cleaned and reseated the
+DEBI interface cable connections. Whilst I was playing with some more
+diagnostics I noticed I was getting back a 0x1d (CISTPL_DEVICE_OA) code
+from the call the read_attribute_memory in the call to
+ciintf_poll_status I had put into the "PC card not responding" path. I
+put back the change to use polling mode for firmware version 0xa0 that
+I had tried and failed with before, and lo and behold it all burst into
+life. Well at least it appears to have intiailised, whether it will
+decrypt is for another day.<br>
+<br>
+Here is the dmesg output now for information.<br>
+<br>
+saa7146: register extension 'budget_ci dvb'.<br>
+ACPI: PCI Interrupt 0000:00:0b.0[A] -&gt; Link [LNKD] -&gt; GSI 12
+(level, low) -&gt; IRQ 12<br>
+saa7146: found saa7146 @ mem e0a42000 (revision 1, irq 12)
+(0x13c2,0x1019).<br>
+saa7146 (0): dma buffer size 192512<br>
+DVB: registering new adapter (TT-Budget S2-3200 PCI)<br>
+adapter has MAC addr = 00:d0:5c:68:34:04<br>
+input: Budget-CI dvb ir receiver saa7146 (0) as /class/input/input9<br>
+budget_ci: Slot status d587c000 set to NONE 3 ci_version a0<br>
+budget_ci: Slot status d587c000 set to PRESENT<br>
+dvb_ca_en50221_init<br>
+budget_ci: CI interface initialised<br>
+dvb_ca_en50221_thread<br>
+budget_ci: Slot status d587c000 set to RESET<br>
+budget_ci: Slot status d587c000 set to READY<br>
+budget_ci: read_attribute 1d<br>
+TUPLE type:0x1d length:4<br>
+&nbsp; 0x00: 0x00 .<br>
+&nbsp; 0x01: 0x61 a<br>
+&nbsp; 0x02: 0x00 .<br>
+&nbsp; 0x03: 0xff .<br>
+TUPLE type:0x1c length:4<br>
+&nbsp; 0x00: 0x00 .<br>
+&nbsp; 0x01: 0xd3 .<br>
+&nbsp; 0x02: 0x00 .<br>
+&nbsp; 0x03: 0xff .<br>
+TUPLE type:0x15 length:27<br>
+&nbsp; 0x00: 0x05 .<br>
+&nbsp; 0x01: 0x00 .<br>
+&nbsp; 0x02: 0x54 T<br>
+&nbsp; 0x03: 0x2d -<br>
+&nbsp; 0x04: 0x52 R<br>
+&nbsp; 0x05: 0x45 E<br>
+&nbsp; 0x06: 0x58 X<br>
+&nbsp; 0x07: 0x58 X<br>
+&nbsp; 0x08: 0x00 .<br>
+&nbsp; 0x09: 0x54 T<br>
+&nbsp; 0x0a: 0x52 R<br>
+&nbsp; 0x0b: 0x45 E<br>
+&nbsp; 0x0c: 0x58 X<br>
+&nbsp; 0x0d: 0x20<br>
+&nbsp; 0x0e: 0x43 C<br>
+&nbsp; 0x0f: 0x41 A<br>
+&nbsp; 0x10: 0x4d M<br>
+&nbsp; 0x11: 0x00 .<br>
+&nbsp; 0x12: 0x52 R<br>
+&nbsp; 0x13: 0x45 E<br>
+&nbsp; 0x14: 0x56 V<br>
+&nbsp; 0x15: 0x00 .<br>
+&nbsp; 0x16: 0x32 2<br>
+&nbsp; 0x17: 0x2e .<br>
+&nbsp; 0x18: 0x32 2<br>
+&nbsp; 0x19: 0x00 .<br>
+&nbsp; 0x1a: 0xff .<br>
+TUPLE type:0x20 length:4<br>
+&nbsp; 0x00: 0xc9 .<br>
+&nbsp; 0x01: 0x02 .<br>
+&nbsp; 0x02: 0x01 .<br>
+&nbsp; 0x03: 0x01 .<br>
+TUPLE type:0x1a length:21<br>
+&nbsp; 0x00: 0x01 .<br>
+&nbsp; 0x01: 0x39 9<br>
+&nbsp; 0x02: 0x00 .<br>
+&nbsp; 0x03: 0x02 .<br>
+&nbsp; 0x04: 0x03 .<br>
+&nbsp; 0x05: 0xc0 .<br>
+&nbsp; 0x06: 0x0e .<br>
+&nbsp; 0x07: 0x41 A<br>
+&nbsp; 0x08: 0x02 .<br>
+&nbsp; 0x09: 0x44 D<br>
+&nbsp; 0x0a: 0x56 V<br>
+&nbsp; 0x0b: 0x42 B<br>
+&nbsp; 0x0c: 0x5f _<br>
+&nbsp; 0x0d: 0x43 C<br>
+&nbsp; 0x0e: 0x49 I<br>
+&nbsp; 0x0f: 0x5f _<br>
+&nbsp; 0x10: 0x56 V<br>
+&nbsp; 0x11: 0x31 1<br>
+&nbsp; 0x12: 0x2e .<br>
+&nbsp; 0x13: 0x30 0<br>
+&nbsp; 0x14: 0x30 0<br>
+TUPLE type:0x1b length:42<br>
+&nbsp; 0x00: 0xf9 .<br>
+&nbsp; 0x01: 0x04 .<br>
+&nbsp; 0x02: 0x09 .<br>
+&nbsp; 0x03: 0x7f .<br>
+&nbsp; 0x04: 0x55 U<br>
+&nbsp; 0x05: 0xcd .<br>
+&nbsp; 0x06: 0x19 .<br>
+&nbsp; 0x07: 0xd5 .<br>
+&nbsp; 0x08: 0x19 .<br>
+&nbsp; 0x09: 0x3d =<br>
+&nbsp; 0x0a: 0x9e .<br>
+&nbsp; 0x0b: 0x25 %<br>
+&nbsp; 0x0c: 0x26 &amp;<br>
+&nbsp; 0x0d: 0x54 T<br>
+&nbsp; 0x0e: 0x22 "<br>
+&nbsp; 0x0f: 0xc0 .<br>
+&nbsp; 0x10: 0x09 .<br>
+&nbsp; 0x11: 0x44 D<br>
+&nbsp; 0x12: 0x56 V<br>
+&nbsp; 0x13: 0x42 B<br>
+&nbsp; 0x14: 0x5f _<br>
+&nbsp; 0x15: 0x48 H<br>
+&nbsp; 0x16: 0x4f O<br>
+&nbsp; 0x17: 0x53 S<br>
+&nbsp; 0x18: 0x54 T<br>
+&nbsp; 0x19: 0x00 .<br>
+&nbsp; 0x1a: 0xc1 .<br>
+&nbsp; 0x1b: 0x0e .<br>
+&nbsp; 0x1c: 0x44 D<br>
+&nbsp; 0x1d: 0x56 V<br>
+&nbsp; 0x1e: 0x42 B<br>
+&nbsp; 0x1f: 0x5f _<br>
+&nbsp; 0x20: 0x43 C<br>
+&nbsp; 0x21: 0x49 I<br>
+&nbsp; 0x22: 0x5f _<br>
+&nbsp; 0x23: 0x4d M<br>
+&nbsp; 0x24: 0x4f O<br>
+&nbsp; 0x25: 0x44 D<br>
+&nbsp; 0x26: 0x55 U<br>
+&nbsp; 0x27: 0x4c L<br>
+&nbsp; 0x28: 0x45 E<br>
+&nbsp; 0x29: 0x00 .<br>
+TUPLE type:0x14 length:0<br>
+END OF CHAIN TUPLE type:0xff<br>
+Valid DVB CAM detected MANID:2c9 DEVID:101 CONFIGBASE:0x200
+CONFIGOPTION:0x39<br>
+dvb_ca_en50221_set_configoption<br>
+Set configoption 0x39, read configoption 0x39<br>
+DVB CAM validated successfully<br>
+dvb_ca_en50221_link_init<br>
+dvb_ca_en50221_wait_if_status<br>
+dvb_ca_en50221_wait_if_status succeeded timeout:0<br>
+dvb_ca_en50221_read_data<br>
+Received CA packet for slot 0 connection id 0x0 last_frag:0 size:0x2<br>
+Chosen link buffer size of 255<br>
+dvb_ca_en50221_wait_if_status<br>
+dvb_ca_en50221_wait_if_status succeeded timeout:0<br>
+dvb_ca_en50221_write_data<br>
+Wrote CA packet for slot 0, connection id 0x0 last_frag:0 size:0x2<br>
+dvb_ca adapter 0: DVB CAM detected and initialised successfully<br>
+stb0899_attach: Attaching STB0899<br>
+stb6100_attach: Attaching STB6100<br>
+DVB: registering frontend 0 (STB0899 Multistandard)...<br>
+<br>
+Roger<br>
+<br>
+</body>
+</html>
+
+
+--===============0351040032==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0351040032==--
