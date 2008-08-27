@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
+Received: from n8a.bullet.ukl.yahoo.com ([217.146.183.156])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1KX0D5-0002QB-PQ
-	for linux-dvb@linuxtv.org; Sat, 23 Aug 2008 22:59:50 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: Matthias Dahl <mldvb@mortal-soul.de>
-Date: Sat, 23 Aug 2008 22:58:39 +0200
-References: <200808221555.26507.mldvb@mortal-soul.de>
-In-Reply-To: <200808221555.26507.mldvb@mortal-soul.de>
+	(envelope-from <eallaud@yahoo.fr>) id 1KY8jU-0006hR-Ll
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 02:17:57 +0200
+Date: Tue, 26 Aug 2008 20:17:18 -0400
+From: manu <eallaud@yahoo.fr>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Message-Id: <1219796238l.24416l.0l@manu-laptop>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200808232258.40112@orion.escape-edv.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] budget_av / dvb_ca_en50221: fixes ci/cam
-	handling especially on SMP machines
+Subject: [linux-dvb] TT-3200 versus Twinhan vp1041
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,63 +23,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Matthias Dahl wrote:
-> Hi Oliver.
-> 
-> I can happily report that with the following two patches applied, I haven't 
-> seen a single case where the cam stopped working due to i/o errors or 
-> anything like it.
-> 
-> The budget_av patch is basically your patch just a bit extended which I 
-> thought was necessary to cover all relevant cases. Works just fine.
-> 
-> The dvb_ca_en50221 patch introduces the concept of slot lock that means, you 
-> can either read or write to a slot but concurrent i/o on a slot is no longer 
-> allowed. This case was already thought of and partly taken care of but 
-> unfortunately due to the missing locking mechanism, it just made the race 
-> condition harder to trigger but not impossible... especially on SMP systems 
-> where this is easier to hit. That's way I introduced a mutex. I left the 
-> original check in there but it actually never should get triggered anymore. 
-> Right now actually, if it gets triggered, one could assume the ci/cam is in 
-> an undefined state and trigger a reinit, like it's done on a few other 
-> places.
-> 
-> Could you please apply those patches to the dvb tree and maybe get into the 
-> official 2.6.27? Those bugs haven been around for quite some time now and 
-> without the patches, they are not so hard to trigger.
-
-Finally I had some time to review your patches.
-
-budget-av:
-Could you please elaborate why 
-- ciintf_slot_ts_enable
-- ciintf_slot_shutdown
-require locking? I cannot see that.
-
-ciintf_slot_reset:
-Ok, although I doubt that it will make any difference, because the
-routine will kill tuner and CI interface anyway...
-
-ciintf_poll_slot_status:
-Hm, I think my version was also correct.
+	Hi all,
+Still struggling with my TT 3200 for DVB-S lock on a transponder, I 
+downloaded a tree from the twinhan website. This card also uses 
+sbt6100/0899 combination so I thought it could be a good comparison.
+And the two drivers are pretty similar but with some actual differences 
+(and I did not check the init values for the regs). So my questions:
+- do the people with twinhan have lock problems as we do with TT 3200?
+- Can a technical guy here tell us which driver is the best wrt to 
+stb0899 programming?
+I plan on trying this tree for my TT 3200 in the hope to make some 
+progress...
+Bye
+Manu
 
 
-dvb_ca_en50221.c:
-Ok. but I need your signed-off-by for this patch.
-
-Btw, wouldn't it be better to remove the locking stuff from budget-av.c,
-and do all locking in dvb_ca_en50221.c?
-
-Imho this would be a far better solution (only one mutex, not two).
-Could you implement that?
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
