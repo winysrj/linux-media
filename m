@@ -1,25 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from fk-out-0910.google.com ([209.85.128.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KVYMd-0003F7-GJ
-	for linux-dvb@linuxtv.org; Tue, 19 Aug 2008 23:03:40 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K5V00ILD953D1N0@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 19 Aug 2008 17:03:04 -0400 (EDT)
-Date: Tue, 19 Aug 2008 17:03:03 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <6664ae760808191345y3a0c5bd8odd4f5f7ca969b3b@mail.gmail.com>
-To: Jay Modi <jaymode@gmail.com>
-Message-id: <48AB3507.8030302@linuxtv.org>
-MIME-version: 1.0
-References: <6664ae760808181614g47d65c7atf71d564d815934a8@mail.gmail.com>
-	<48AAF9FB.6010108@ecst.csuchico.edu>
-	<6664ae760808191345y3a0c5bd8odd4f5f7ca969b3b@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1800 Analog issues
+	(envelope-from <timcumming123@googlemail.com>) id 1KYLf0-000335-1W
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 16:06:11 +0200
+Received: by fk-out-0910.google.com with SMTP id f40so1775418fka.1
+	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 07:06:06 -0700 (PDT)
+Message-ID: <e42dc1490808270706r5f989df5l1a877fcf08a7827@mail.gmail.com>
+Date: Wed, 27 Aug 2008 15:06:06 +0100
+From: "Tim Cumming" <timcumming123@googlemail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <e42dc1490808260402i153cbbfj9beb18481caeac9d@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <e42dc1490808260402i153cbbfj9beb18481caeac9d@mail.gmail.com>
+Subject: Re: [linux-dvb] WinTV-Nova-T usb2 64bit
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,40 +27,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jay Modi wrote:
-> On Tue, Aug 19, 2008 at 12:51 PM, Barry Quiel <quielb@ecst.csuchico.edu 
-> <mailto:quielb@ecst.csuchico.edu>> wrote:
-> 
-> 
->     I've got the same problem.  I'm running on a fedora 9 box, so at
->     least that tells you its not OS related.
-> 
->     I posted this problem on the list a while back and didn't get any
->     response.  Here is my post out of the archives:
-> 
->     http://linuxtv.org/pipermail/linux-dvb/2008-July/027367.html
->     http://linuxtv.org/pipermail/linux-dvb/2008-August/027670.html
-> 
->     It makes me feel a little bit better that its not just me.
-> 
-> 
-> 
-> I am glad to know someone else has this error too.
-> 
-> For the devs, is there anything Barry and I can do to help 
-> diagnose/test/fix this problem?
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-# make unload
-# modprobe cx25840 debug=1
-# modprobe cx23885 debug=1
+Hi,
 
-Then cat /dev/video1 >test.mpg
+Just a quick update. I have since set up a serial console to remote
+log the events, and have found early on in the errors:
 
-Better?
+Aug 27 14:35:02 legend kernel: dvb-usb: bulk message failed: -110 (2/0)
+Aug 27 14:35:02 legend kernel: dvb-usb: bulk message failed: -110 (2/0)
+Aug 27 14:35:04 legend kernel: dvb-usb: bulk message failed: -110 (3/0)
+Aug 27 14:35:04 legend kernel: dvb-usb: error while stopping stream.
+Aug 27 14:35:04 legend kernel: dvb-usb: bulk message failed: -110 (2/0)
+Aug 27 14:35:04 legend kernel: dvb-usb: bulk message failed: -110 (6/0)
 
-- Steve
+After this the flood continues, to rescue the system I have to stop
+mythbackend, then remove the dvb_usb_nova_t_usb2 module, disconnect
+the tuners, then reconnect and restart mythbackend.
 
 
+Tim.
+
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.8 (Darwin)
+Comment: http://getfiregpg.org
+
+iEYEARECAAYFAki1XrYACgkQ+3B4KcqycetfCwCgnND7qg5ufwkG4X9T4AO9ZJHr
+kfsAoJ4aaKthDkGug3BX5vwwC5FPKbNr
+=bZWB
+-----END PGP SIGNATURE-----
+2008/8/26 Tim Cumming <timcumming123@googlemail.com>
+>
+> I have recently upgraded my hardware from 32bit to 64bit, and am now
+> experiencing issues with my Hauppage WinTV Nova-T usb2's.
+> I have been searching through the mail lists and googling, but with no
+> luck. I should also mention there is an old WinTV Nova-T pci in the
+> system working fine.
+> My problem is that when the usb devices are in use will they work
+> periodically, but randomly produce a flood of messages ending in
+> alternate:
+>
+> dvb-usb: bulk message failed: -110 (2/0)
+> dvb-usb: bulk message failed: -110 (6/0)
+>
+> These are old style Nova-T usb2's:
+>
+> [mythtv@legend ~]$ /sbin/lsusb
+> Bus 001 Device 014: ID 2040:9301 Hauppauge WinTV NOVA-T USB2 (warm)
+> Bus 001 Device 012: ID 2040:9301 Hauppauge WinTV NOVA-T USB2 (warm)
+> Bus 001 Device 010: ID 2040:9301 Hauppauge WinTV NOVA-T USB2 (warm)
+>
+> The machine is an AMD Phenom 9850 Quad-Core running Fedora 9 and
+> mythtv. I can provide further details if required, and also details of
+> the previously working machine. (Although it was a 32bit system).
+>
+> Regards,
+>
+> Tim Cumming.
+>
+>
 
 _______________________________________________
 linux-dvb mailing list
