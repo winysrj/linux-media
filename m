@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out1.iinet.net.au ([203.59.1.108])
+Received: from mail.infomir.com.ua ([79.142.192.5] helo=infomir.com.ua)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dvb-t@iinet.com.au>) id 1KR1AF-0000Kl-CY
-	for linux-dvb@linuxtv.org; Thu, 07 Aug 2008 10:48:08 +0200
-Message-ID: <37109BA97D5848A396220552404AD028@mce>
-From: "David" <dvb-t@iinet.com.au>
-To: "Tim Farrington" <timf@iinet.net.au>
-References: <20080801034025.C0EC947808F@ws1-5.us4.outblaze.com><4897AC24.3040006@linuxtv.org>	<20080805214339.GA7314@kryten><20080805234129.GD11008@brainz.yelavich.home>	<4899020C.50000@linuxtv.org>	<41A3723BDBA947399F2CBD960E4AFB94@mce>	<48996623.4010703@iinet.net.au>	<0BBC9497950E4ECA878D1D018B090B61@mce>	<489A7B4A.4080206@iinet.net.au>
-	<C5551D141EAB485E8EB2F1D8E43B6676@mce>
-	<489A9D74.5090501@iinet.net.au>
-	<42DDE4283DB94F2580D473D5B1954CB5@mce>
-	<489AA9AF.2060803@iinet.net.au>
-Date: Thu, 7 Aug 2008 18:47:57 +1000
+	(envelope-from <vdp@teletec.com.ua>) id 1KYHMu-00060f-Mf
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 11:31:13 +0200
+Received: from [10.128.0.10] (iptv.infomir.com.ua [79.142.192.146])
+	by infomir.com.ua with ESMTP id 1KYHMp-0008GD-WE
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 12:31:08 +0300
+Message-ID: <48B51EE1.1080507@teletec.com.ua>
+Date: Wed, 27 Aug 2008 12:31:13 +0300
+From: Dmitry Podyachev <vdp@teletec.com.ua>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
-	DVB-T Dual Express
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] mantis and dvb_ca adapter 0: CAM tried to send a buffer
+ larger than the link buffer size (16384 > 128)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,47 +26,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+How to look which layer of CI available for mantis (VP-1034  Mantis Rev 
+1 [1822:0014] )
+modprobe stb0899
+modprobe mantis
 
------ Original Message ----- 
-From: "Tim Farrington" <timf@iinet.net.au>
-To: "David" <dvb-t@iinet.com.au>
-Cc: <linux-dvb@linuxtv.org>; <stoth@linuxtv.org>; 
-<patrick.claven@manildra.com.au>
-Sent: Thursday, August 07, 2008 5:52 PM
-Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV 
-DVB-T Dual Express
+DVB: registering frontend 0 (Fujitsu MB86A16 
+DVB-S).                                     ..
+kernel: mantis_ca_init (0): Registering EN50221 device
+kernel: mantis_ca_init (0): Registered EN50221 device
+kernel: mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
+kernel: dvb_ca adapter 0: DVB CAM detected and initialised successfully
+
+zap_ca and gnutv don't work properly with CAM:
+/hg/dvb-apps/util/gnutv # ./gnutv -adapter 0 -caslotnum 0 -channels 
+/srv/mantis_c/sport.conf -secfile /srv/mantis_c/sec.cfg -secid c10750 
+-cammenu
+
+en50221_stdcam_llci_poll: Error reported by stack:-2
+
+en50221_stdcam_llci_poll: Error reported by stack:-3
+
+and dmesg:
+kernel: dvb_ca adapter 0: DVB CAM detected and initialised successfully
+kernel: mantis_hif_write_wait (0): Adater(0) Slot(0): Write operation 
+timed out!
+kernel: mantis_hif_write_iom (0): Adapter(0) Slot(0): HIF Smart Buffer 
+operation failed
+kernel: dvb_ca adapter 0: CAM tried to send a buffer larger than the 
+link buffer size (16384 > 128)!
+kernel: mantis_hif_write_wait (0): Adater(0) Slot(0): Write operation 
+timed out!
+kernel: mantis_hif_write_iom (0): Adapter(0) Slot(0): HIF Smart Buffer 
+operation failed
+kernel: mantis_hif_write_wait (0): Adater(0) Slot(0): Write operation 
+timed out!
+kernel: mantis_hif_write_iom (0): Adapter(0) Slot(0): HIF Smart Buffer 
+operation failed
+kernel: dvb_ca adapter 0: DVB CAM link initialisation failed :(
 
 
->
-> The point is that the developers are trying to incorporate Chris's work 
-> into the
-> main v4l-dvb driver.
->
-> Chris's original firmware requirements were:
-> dvb-usb-bluebird-01.fw xc3028-dvico-au-01.fw dvb-usb-bluebird-02.fw
->
-> whereas now it needs:
-> xc3028-v27.fw
->
-> It seems that the "new" firmware doesn't work as of yet for Australia, for 
-> this device.
->
-> IIRC, Chris had an "offset" for Australia.
->
-> Regards,
-> Timf
->
-
-Just a thought....
-There has been a lot of information posted on the lead up to announcement of 
-initial support for the card.
-The information that I used to build the drivers was gleaned from a number 
-of these and was a bit fragmented.
-If anyone has been successful in getting the card to work with the new 
-drivers, a brief step by step, how to would be greatly appreciated.
-
-Regards
-David 
 
 _______________________________________________
 linux-dvb mailing list
