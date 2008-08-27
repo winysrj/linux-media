@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from smtp5-g19.free.fr ([212.27.42.35])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1KZYcj-0006Rc-Ns
-	for linux-dvb@linuxtv.org; Sun, 31 Aug 2008 00:08:51 +0200
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	5A7E21800FDE
-	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 22:08:14 +0000 (GMT)
-Content-Disposition: inline
+	(envelope-from <thierry.merle@free.fr>) id 1KYPud-0003F0-M5
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 20:38:37 +0200
+Message-ID: <48B59F1E.4070007@free.fr>
+Date: Wed, 27 Aug 2008 20:38:22 +0200
+From: Thierry Merle <thierry.merle@free.fr>
 MIME-Version: 1.0
-From: stev391@email.com
-To: "Thomas Goerke" <tom@goeng.com.au>
-Date: Sun, 31 Aug 2008 08:08:14 +1000
-Message-Id: <20080830220814.5F194BE4078@ws1-9.us4.outblaze.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
- TV/FM capture card
+To: Alex Speed Kjeldsen <alex.kjeldsen@gmail.com>
+References: <20080821124658.549ced6c@ask-gnewsense>	<d9def9db0808210507pa76088cx28a955b1840e2147@mail.gmail.com>	<20080821154705.0ab3f854@ask-gnewsense>	<d9def9db0808210756y277f21a3wd6fe16f0bc52f9ad@mail.gmail.com>	<d9def9db0808210800g6cc8c106jb609009c5d44699f@mail.gmail.com>	<20080821155412.114260@gmx.net>
+	<20080822082224.5c72335d@ask-gnewsense>
+In-Reply-To: <20080822082224.5c72335d@ask-gnewsense>
+Cc: Hans Werner <HWerner4@gmx.de>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-T USB Device which doesn't require non-free
+	software
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,100 +21,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Alex Speed Kjeldsen a =E9crit :
+>> Alex is concerned about which licenses these drivers and firmwares are r=
+eleased
+>> under. He is using gNewSense so he clearly cares that they are free as i=
+n free beer *and* free
+>> as in free speech. You say there are two pieces of firmware. Could you c=
+larify (1) which
+>> files you are talking about, (2) who holds the copyrights and (3) whethe=
+r the driver =
 
-> ----- Original Message -----
-> From: "Steven Toth" <stoth@linuxtv.org>
-> To: "Thomas Goerke" <tom@goeng.com.au>
-> Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog TV/FM capture card
-> Date: Sat, 30 Aug 2008 10:30:45 -0400
-> 
-> 
-> Thomas Goerke wrote:
-> >> Stephen,
-> >>
-> >> I downloaded latest version of v4l-dvb (30/08/08:11:30am WST), applied
-> >> patch
-> >> (which passed) and then tried a make.  This is the output:
-> >>
-> >> -- snip --
-> >> include/asm/io_32.h: In function 'memcpy_fromio':
-> >> include/asm/io_32.h:211: warning: passing argument 2 of '__memcpy'
-> >> discards
-> >> qualifiers from pointer target type
-> >>   CC [M]  /home/tom/source/v4l-dvb/v4l/stradis.o
-> >>   CC [M]  /home/tom/source/v4l-dvb/v4l/cpia.o
-> >> /home/tom/source/v4l-dvb/v4l/cpia.c: In function 'cpia_open':
-> >> /home/tom/source/v4l-dvb/v4l/cpia.c:3205: error: implicit declaration
-> >> of
-> >> function 'current_uid'
-> >> make[3]: *** [/home/tom/source/v4l-dvb/v4l/cpia.o] Error 1
-> >> make[2]: *** [_module_/home/tom/source/v4l-dvb/v4l] Error 2
-> >> make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
-> >> make[1]: *** [default] Error 2
-> >> make[1]: Leaving directory `/home/tom/source/v4l-dvb/v4l'
-> >> make: *** [all] Error 2
-> >>
-> >> I then tried make clean, make and the same error occurred.
-> >>
-> >> Tom
-> >>
-> > Stephen,
-> > It seems that the latest source is at fault:
-> > This:
-> > hg clone http://linuxtv.org/hg/v4l-dvb
-> > cd v4l-dvb
-> > make
-> > Produces:
-> > -- snip ---
-> > include/asm/io_32.h: In function 'memcpy_fromio':
-> > include/asm/io_32.h:211: warning: passing argument 2 of '__memcpy' discards
-> > qualifiers from pointer target type
-> >   CC [M]  /home/tom/source/v4l-dvb/v4l/stradis.o
-> >   CC [M]  /home/tom/source/v4l-dvb/v4l/cpia.o
-> > /home/tom/source/v4l-dvb/v4l/cpia.c: In function 'cpia_open':
-> > /home/tom/source/v4l-dvb/v4l/cpia.c:3205: error: implicit declaration of
-> > function 'current_uid'
-> > make[3]: *** [/home/tom/source/v4l-dvb/v4l/cpia.o] Error 1
-> > make[2]: *** [_module_/home/tom/source/v4l-dvb/v4l] Error 2
-> > make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
-> > make[1]: *** [default] Error 2
-> > make[1]: Leaving directory `/home/tom/source/v4l-dvb/v4l'
-> > make: *** [all] Error 2
-> >
-> > Let me know if you have a separate archive of the source tree that I can use
-> > to test, or alternatively let me know if I have done something wrong with
-> > the clone and make.
-> 
-> CPIA is broken
-> 
-> # make menuconfig
-> 
-> (disable the CPIA+CPIA2 moduoes)
-> 
-> Exit, save,
-> 
-> then make.
+>> and firmware source codes are available and under what licenses.
+>>
+>> Binaries coded in ascii are still binaries.
+>>     =
 
-Tom,
+>
+>
+> Thank you Hans for clarifying. This is exactly what I am concerned about.
+>
+> After a tip on the gNewSense Forum, I think a solution could be this item:
+>
+> http://linuxtv.org/wiki/index.php/TerraTec_Cinergy_T2
+>
+>   =
 
-As a secondary option to Steve's email you can also try the previously downloaded cx23885-leadtek tree, the cx23885 driver will behave the same as it was recently merged into the main tree. (Make sure it is not the copy that the original patch was applied to).  However I do recommend trying to get the main tree working first.
-
-I just updated my main tree and it compiled ok (Ubuntu Hardy Heron, kernel: 2.6.24-19-generic)
+Right, this device works without firmware loading, I confirm.
+This is a good choice for a DVB-T only tuner.
 
 Regards,
-Stephen.
-
-
--- 
-Nothing says Labor Day like 500hp of American muscle
-Visit OnCars.com today.
-
+Thierry
 
 _______________________________________________
 linux-dvb mailing list
