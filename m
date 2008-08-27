@@ -1,21 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f127.mail.ru ([194.67.57.236])
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KZ4MY-000397-Ua
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 15:50:07 +0200
-Received: from mail by f127.mail.ru with local id 1KZ4M1-000Pyk-00
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 17:49:33 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Mime-Version: 1.0
-Date: Fri, 29 Aug 2008 17:49:33 +0400
-References: <200808291426.45972.cpwp@w3z.co.uk>
-In-Reply-To: <200808291426.45972.cpwp@w3z.co.uk>
-Message-Id: <E1KZ4M1-000Pyk-00.goga777-bk-ru@f127.mail.ru>
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?dXBkYXRpbmcgb2YgTGlwbGlhbmluRFZCIC0gcGxl?=
-	=?koi8-r?b?YXNlLCB0ZXN0?=
-Reply-To: Goga777 <goga777@bk.ru>
+	(envelope-from <stoth@linuxtv.org>) id 1KYLgb-0003Yf-3r
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 16:07:50 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K69004VAJ7WM230@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 27 Aug 2008 10:07:14 -0400 (EDT)
+Date: Wed, 27 Aug 2008 10:07:09 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <003201c9082d$4b7fff80$e27ffe80$@com.au>
+To: Thomas Goerke <tom@goeng.com.au>
+Message-id: <48B55F8D.9090005@linuxtv.org>
+MIME-version: 1.0
+References: <20080827061320.298E2104F0@ws1-3.us4.outblaze.com>
+	<003201c9082d$4b7fff80$e27ffe80$@com.au>
+Cc: linux-dvb@linuxtv.org, stev391@email.com
+Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
+ TV/FM capture card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,57 +33,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > Igor has updated his repo
-> > http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
-> >
 > 
-> Working great for me!
-
-
-fine
-
 > 
-> 2.6.26-gentoo i386
-> Intel Core2 E6300 @ 1.86GHz
-> 1Gb DDR2
-> Hauppauge Nova HD-S2 (HVR4000 Lite)
-> Hauppauge WinTV Nova-T
-> MythTV 0.21-fixes
+> Stephen,
 > 
-> cx88[1]: subsystem: 0070:6906, board: Hauppauge WinTV-HVR4000(Lite) DVB-S/S2 
-> [card=69,autodetected]
-> cx88[1]: TV tuner type -1, Radio tuner type -1
-> tveeprom 2-0050: Hauppauge model 69100, rev B2C3, serial# 915242
-> tveeprom 2-0050: MAC address is 00-0D-FE-0D-F7-2A
-> tveeprom 2-0050: tuner model is Conexant CX24118A (idx 123, type 4)
-> tveeprom 2-0050: TV standards ATSC/DVB Digital (eeprom 0x80)
-> tveeprom 2-0050: audio processor is None (idx 0)
-> tveeprom 2-0050: decoder processor is CX882 (idx 25)
-> tveeprom 2-0050: has no radio, has IR receiver, has no IR transmitter
-> cx88[1]: hauppauge eeprom: model=69100
-> input: cx88 IR (Hauppauge WinTV-HVR400 as /class/input/input5
-> cx88[1]/2: cx2388x 8802 Driver Manager
-> cx88[1]/2: found at 0000:01:01.2, rev: 5, irq: 21, latency: 64, mmio: 
-> 0xdb000000
-> cx88[1]/0: found at 0000:01:01.0, rev: 5, irq: 21, latency: 64, mmio: 
-> 0xd9000000
-> cx88[1]/0: registered device video1 [v4l2]
-> cx88[1]/0: registered device vbi1
-> cx88[1]/1: CX88x/0: ALSA support for cx2388x boards
-> cx88/2: cx2388x dvb driver version 0.0.6 loaded
-> cx88/2: registering cx8802 driver, type: dvb access: shared
-> cx88[1]/2: subsystem: 0070:6906, board: Hauppauge WinTV-HVR4000(Lite) DVB-S/S2 
-> [card=69]
-> cx88[1]/2: cx2388x based DVB/ATSC card
-> DVB: registering new adapter (cx88[1])
-> DVB: registering frontend 1 (Conexant CX24116/CX24118)...
-> 
-> Anything else I need to include?
+> I managed to install a copy of D-scaler (v4.1.11) which contained regspy
+> from http://www.dscaler.org/downloads.htm, but was unable to get regspy nor
+> d-scaler to recognize the Compro E800 card.  Thus I have been unable to get
+> the register dump you requested.  I can try again if you think that regspy
+> can be made to work with the card and any suggestions here would be
+> appreciated.
 
+http://steventoth.net/ReverseEngineering/PCI/
 
-no
+This was the version I originally added cx23885/7/8 support to.
 
-Goga
+It assumes dscaler is installed.
+
+- Steve
 
 
 _______________________________________________
