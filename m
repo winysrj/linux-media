@@ -1,10 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Fri, 29 Aug 2008 14:29:30 -0400
-From: Steven Toth <stoth@linuxtv.org>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <48B8400A.9030409@linuxtv.org>
-MIME-version: 1.0
-Subject: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Received: from znsun1.ifh.de ([141.34.1.16])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <patrick.boettcher@desy.de>) id 1KYGKq-0001M8-P8
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 10:25:03 +0200
+Date: Wed, 27 Aug 2008 10:24:18 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Eduard Huguet <eduardhc@gmail.com>
+In-Reply-To: <617be8890808270010j640f4cb7je46e74c7234b978b@mail.gmail.com>
+Message-ID: <alpine.LRH.1.10.0808271021040.18085@pub6.ifh.de>
+References: <617be8890808270010j640f4cb7je46e74c7234b978b@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="579696143-892527153-1219825458=:18085"
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] dib0700 new i2c implementation
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -12,88 +20,95 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Regarding the multiproto situation:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-A number of developers, maintainers and users are unhappy with the
-multiproto situation, actually they've been unhappy for a considerable
-amount of time. The linuxtv developer community (to some degree) is seen
-as a joke and a bunch in-fighting people. Multiproto is a great
-demonstration of this. [1] The multiproto project has gone too far, for
-too long and no longer has any credibility in the eyes of many people.
+--579696143-892527153-1219825458=:18085
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by znsun1.ifh.de id m7R8OIuM020902
 
-In response, a number developers have agreed that "enough is enough" and
-"it's time to take a new direction", for these developers the technical,
-political and personal cost of multiproto is too high. These developers
-have decided to make an announcement.
+Hi Eduard,
 
-Mauro Chehab, Michael Krufky, Patrick Boettcher and myself are hereby
-announcing that we no longer support multiproto and are forming a
-smaller dedicated project group which is focusing on adding next
-generation S2/ISDB-T/DVB-H/DVB-T2/DVB-SH support to the kernel through a 
-different and simpler API.
+We had some problems with previous I2C implementation and the 1.20 is=20
+really fixing them - they were hard to find. But the problem we had were=20
+not on the Nova-T 500... Still I think it could be related.
 
-Basic patches and demo code for this API is currently available here.
+So depending on any previous behaviour of the device it can only be bette=
+r=20
+or worse, both results are interesting in order to know whether this=20
+firmware can be become the main one or not.
 
-http://www.steventoth.net/linux/s2
+best regards,
+Patrick.
 
-Does it even work? Yes
-Is this new API complete? No
-Is it perfect? No, we've already had feedback on structural and
-namingspace changes that people would like to see.
-Does it have bugs? Of course, we have a list of things we already know
-we want to fix.
+On Wed, 27 Aug 2008, Eduard Huguet wrote:
 
-but ...
-
-Is the new approach flexible? Yes, we're moving away from passing fixed
-modulation structures into the kernel.
-Can we add to it without breaking the future ABI when unforseen
-modulations types occur? Yes
-Does it preserve backwards compatibility? Yes
-Importantly, is the overall direction correct? Yes
-Does it impact existing frontend drivers? No.
-What's the impact to dvb-core? Small.
-What's the impact to application developers? None, unless an application 
-developer wants to support the new standards - binary compatibility!
-
-We want feedback and we want progress, we aim to achieve it.
-
-Importantly, this project group seeks your support.
-
-If you also feel frustrated by the multiproto situation and agree in
-principle with this new approach, and the overall direction of the API
-changes, then we welcome you and ask you to help us.
-
-Growing the list of supporting names by 100%, and allowing us to publish
-your name on the public mailing list, would show the non-maintainer
-development community that we recognize the problem and we're taking
-steps to correct the problem. We want to make LinuxTV a perfect platform
-for S2, ISDB-T and other advanced modulation types, without using the
-multiproto patches.
-
-We're not asking you for technical help, although we'd like that  :) ,
-we're just asking for your encouragement to move away from multiproto.
-
-If you feel that you want to support our movement then please help us by
-acking this email.
-
-Regards - Steve, Mike, Patrick and Mauro.
-
-Acked-by: Patrick Boettcher <pb@linuxtv.org>
-Acked-by: Michael Krufky <mkrufky@linuxtv.org>
-Acked-by: Steven Toth <stoth@linuxtv.org>
-Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
-
-* [1]. Rather than point out the issues with multiproto here, take a
-look at the patches and/or read the comments on the mailing lists.
+>       ---------- Missatge reenviat ----------
+>       From:=A0"Devin Heitmueller" <devin.heitmueller@gmail.com>
+>       To:=A0linux-dvb <linux-dvb@linuxtv.org>
+>       Date:=A0Tue, 26 Aug 2008 21:15:20 -0400
+>       Subject:=A0[linux-dvb] dib0700 new i2c implementation
+>       The attached patch implements the new dib0700 i2c API, which requ=
+ires
+>       v1.20 of the firmware. =A0It addresses some classes of i2c proble=
+ms (in
+>       particular the one I had where i2c reads were being sent onto the=
+ bus
+>       as i2c write calls)
+>
+>       I would appreciate it if those with dib0700 based devices would t=
+ry
+>       out the patch and provide feedback as to whether they have any
+>       problems. =A0I've done testing with the Pinnacle PCTV HD Pro USB =
+801e
+>       stick, but I don't have any other dib0700 based devices.
+>
+>       Thanks to Patrick Boettcher for providing the firmware, sample co=
+de,
+>       and peer review of the first version of this patch.
+>
+>       Regards,
+>
+>       Devin
+>
+>       --
+>       Devin J. Heitmueller
+>       http://www.devinheitmueller.com
+>       AIM: devinheitmueller
+>=20
+>=20
+>=20
+> Hi,
+> =A0=A0=A0 Thanks for your work, first of all. =BFDo you think this patc=
+h might=A0 solve the problems that seem to be appeared since the new firm=
+ware is out
+> with the Hauppauge Nova-T 500, like random reboots, etc... (what's ths =
+state on this, anyway?) ?
+>=20
+> I delayed the adoption of the new 1.20 firmware because of those proble=
+ms, because I didn't want to leave the machine in a complete unusable
+> state...
+>=20
+> Best regards,
+> =A0 Eduard Huguet
+>=20
+> =A0
+>=20
+>=20
+>
+--579696143-892527153-1219825458=:18085
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--579696143-892527153-1219825458=:18085--
