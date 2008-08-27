@@ -1,21 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1KQ7P0-0007tL-Ak
-	for linux-dvb@linuxtv.org; Mon, 04 Aug 2008 23:15:40 +0200
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	DCB8A180369E
-	for <linux-dvb@linuxtv.org>; Mon,  4 Aug 2008 21:15:02 +0000 (GMT)
-MIME-Version: 1.0
-From: stev391@email.com
-To: "Steven Toth" <stoth@linuxtv.org>
-Date: Tue, 5 Aug 2008 07:15:01 +1000
-Message-Id: <20080804211502.6FD061158CC@ws1-7.us4.outblaze.com>
+	(envelope-from <stoth@linuxtv.org>) id 1KYN82-0001Ds-DA
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 17:40:16 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6900HPRNI0OEX0@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 27 Aug 2008 11:39:38 -0400 (EDT)
+Date: Wed, 27 Aug 2008 11:39:35 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <ed347ce40808270827g5c0aaf3em2157d40cfed8a779@mail.gmail.com>
+To: David Schollmeyer <dschollmeyer@gmail.com>
+Message-id: <48B57537.6070506@linuxtv.org>
+MIME-version: 1.0
+References: <ed347ce40808262255s6bfc4f58ne2c8c00f56f95e44@mail.gmail.com>
+	<48B4FD13.9030703@linuxtv.org>
+	<ed347ce40808270827g5c0aaf3em2157d40cfed8a779@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200
- H - DVB Only support
+Subject: Re: [linux-dvb] HVR-1800 DVB Configuration
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,141 +27,44 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0805111412=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+David Schollmeyer wrote:
+> On Wed, Aug 27, 2008 at 12:06 AM, Steven Toth <stoth@linuxtv.org> wrote:
+>> I assume the channel names, pid values and service numbers in your
+>> channels.conf are accurate. Did this come as a result of running the scan
+>> app, or something else?
+>>
+>> - Steve
+>>
+> 
+> I used the values from a mythtv-users posting from a couple of years
+> ago so I'm not sure if it is up-to-date. I also tried ascan but the
+> output from that did not have any channel names (they were all of the
+> format "[000x]") so I'm not sure if that worked correctly. The
+> mythtv-users posting said that Cox does not transmit pids.
 
---===============0805111412==
-Content-Transfer-Encoding: 7bit
-Content-Type: multipart/alternative; boundary="_----------=_121788450184894"
+Given that this is working fine for a number of people it's more likely 
+a Cox related problem. You should try running:
 
-This is a multi-part message in MIME format.
+scan -A2 US-Cable_Center-Frequencies (google the exact center 
+frequencies filename or look in /usr/share/doc/dvb-utils/something....) 
+at the scanning files.
 
---_----------=_121788450184894
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Also try the IRC/HRC equivalent frequency tables.
 
- Steve,
+If you're lucky 'scan' will generate a new channels.conf for you, and 
+the world will be a happy shiny Digital Cable loving place.
 
-That must have slipped in from my effort to get the analog support for
-the card.  I will remove that when I go through and redo the callback.
-
-Thanks for your comments.
-
-Regards,
-Stephen.
-
-  ----- Original Message -----
-  From: "Steven Toth"
-  To: stev391@email.com
-  Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast
-  PxDVR 3200 H - DVB Only support
-  Date: Mon, 04 Aug 2008 10:35:20 -0400
-
-
-  > case CX23885_BOARD_HAUPPAUGE_HVR1800:
-  > case CX23885_BOARD_HAUPPAUGE_HVR1800lp:
-  > case CX23885_BOARD_HAUPPAUGE_HVR1700:
-  > + case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
-  > request_module("cx25840");
-  > break;
-  > }
-
-  Steve, thanks for look at this.
-
-  I took a quick look at your patch. Obviously the callback stuff
-  you're planning to re-work will be based Antons patch, which I plan
-  to push tonight after more testing.... So I'm ignoring this.
-
-  Minor nitpick... Don't request module cx25840 above unless you plan
-  to use it. If you are planning to add analog support, make this a
-  second patch after the digital stuff gets merged.
-
-  Other than that, it will be great to have another product supported
-  in the tree.
-
-  Regards,
-
-  - Steve
-
---=20
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
+- Steve
 
 
---_----------=_121788450184894
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html; charset="iso-8859-1"
-
-
-<div>
-Steve,<br><br>That must have slipped in from my effort to get the analog su=
-pport for the card.&nbsp; I will remove that when I go through and redo the=
- callback.<br><br>Thanks for your comments.<br><br>Regards,<br>Stephen.<br>
-<br>
-<blockquote style=3D"border-left: 2px solid rgb(16, 16, 255); margin-left: =
-5px; padding-left: 5px;">----- Original Message -----<br>
-From: "Steven Toth" <stoth@linuxtv.org><br>
-To: stev391@email.com<br>
-Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 320=
-0 H - DVB Only support<br>
-Date: Mon, 04 Aug 2008 10:35:20 -0400<br>
-<br>
-
-<br>
-&gt;      case CX23885_BOARD_HAUPPAUGE_HVR1800:<br>
-&gt;      case CX23885_BOARD_HAUPPAUGE_HVR1800lp:<br>
-&gt;      case CX23885_BOARD_HAUPPAUGE_HVR1700:<br>
-&gt; +    case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:<br>
-&gt;          request_module("cx25840");<br>
-&gt;          break;<br>
-&gt;      }<br>
-<br>
-Steve, thanks for look at this.<br>
-<br>
-I took a quick look at your patch. Obviously the callback stuff <br>
-you're planning to re-work will be based Antons patch, which I plan <br>
-to push tonight after more testing.... So I'm ignoring this.<br>
-<br>
-Minor nitpick... Don't request module cx25840 above unless you plan <br>
-to use it. If you are planning to add analog support, make this a <br>
-second patch after the digital stuff gets merged.<br>
-<br>
-Other than that, it will be great to have another product supported <br>
-in the tree.<br>
-<br>
-Regards,<br>
-<br>
-- Steve<br>
-</stoth@linuxtv.org></blockquote>
-</div>
-<BR>
-
---=20
-<div> Be Yourself @ mail.com!<br>
-Choose From 200+ Email Addresses<br>
-Get a <b>Free</b> Account at <a href=3D"http://www.mail.com/Product.aspx" t=
-arget=3D"_blank">www.mail.com</a>!</div>
-
---_----------=_121788450184894--
-
-
-
---===============0805111412==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0805111412==--
