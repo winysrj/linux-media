@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx-02.fra.se ([194.18.169.36])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <ola.ekedahl@fra.se>) id 1KWPJG-0001QM-S5
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 07:35:44 +0200
-Message-ID: <48AE500A.1060204@fra.se>
-Date: Fri, 22 Aug 2008 07:35:06 +0200
-From: Ola Ekedahl <ola.ekedahl@fra.se>
-MIME-Version: 1.0
-To: Gregoire Favre <gregoire.favre@gmail.com>
-References: <48ABB045.5050301@fra.se> <20080820082010.GA5582@gmail.com>
-	<48AD16A1.5040703@fra.se>
-In-Reply-To: <48AD16A1.5040703@fra.se>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto, multiproto_plus & mantis
+Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <nico@youplala.net>) id 1KYGMT-00026L-6b
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 10:26:43 +0200
+Received: from [134.32.30.87] (milan-ofs-a87.milan.oilfield.slb.com
+	[134.32.30.87])
+	by mail.youplala.net (Postfix) with ESMTP id D9AEAD880A7
+	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 10:25:33 +0200 (CEST)
+From: Nicolas Will <nico@youplala.net>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <617be8890808270010j640f4cb7je46e74c7234b978b@mail.gmail.com>
+References: <617be8890808270010j640f4cb7je46e74c7234b978b@mail.gmail.com>
+Date: Wed, 27 Aug 2008 09:25:28 +0100
+Message-Id: <1219825528.7191.11.camel@acropora>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] dib0700 new i2c implementation
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,63 +22,55 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Seriously, no one knows what might be wrong? Is it the kernel or might 
-it be the compilation software?
-
-> Gregoire Favre skrev:
->   
->> On Wed, Aug 20, 2008 at 07:48:53AM +0200, Ola Ekedahl wrote:
->>   
->>     
->>> Hi,
->>>
->>> I have been trying to compile the three different trees in Fedora 7, but 
->>> all fails with alot of warnings and errors. What are the recomended 
->>> specification for the kernel, wont it compile with the kernel in Fedora 7?
->>>     
->>>       
->> AFAIK the only actively maintened tree is :
->> http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
->>
->> Wanny try this one ?
->>   
->>     
-> I tried to compile the driver, but it failed too. I got the following 
-> error after quite some time:
->
->   LD [M]  /home/kurt/Desktop/liplianindvb/v4l/sms1xxx.o
->   CC [M]  /home/kurt/Desktop/liplianindvb/v4l/s400.o
-> /home/kurt/Desktop/liplianindvb/v4l/s400.c: In function 's400_ir_init':
-> /home/kurt/Desktop/liplianindvb/v4l/s400.c:508: error: 'struct 
-> input_dev' has no member named 'dev'
-> make[3]: *** [/home/kurt/Desktop/liplianindvb/v4l/s400.o] Error 1
-> make[2]: *** [_module_/home/kurt/Desktop/liplianindvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/kernels/2.6.21-1.3194.fc7-i686'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/kurt/Desktop/liplianindvb/v4l'
-> make: *** [all] Error 2
->
->
->
-> Anyone have any idea? Is it because of the dist Im running?
->
-> Best regards
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+T24gV2VkLCAyMDA4LTA4LTI3IGF0IDA5OjEwICswMjAwLCBFZHVhcmQgSHVndWV0IHdyb3RlOgo+
+IAo+ICAgICAgICAgLS0tLS0tLS0tLSBNaXNzYXRnZSByZWVudmlhdCAtLS0tLS0tLS0tCj4gICAg
+ICAgICBGcm9tOiAiRGV2aW4gSGVpdG11ZWxsZXIiIDxkZXZpbi5oZWl0bXVlbGxlckBnbWFpbC5j
+b20+Cj4gICAgICAgICBUbzogbGludXgtZHZiIDxsaW51eC1kdmJAbGludXh0di5vcmc+Cj4gICAg
+ICAgICBEYXRlOiBUdWUsIDI2IEF1ZyAyMDA4IDIxOjE1OjIwIC0wNDAwCj4gICAgICAgICBTdWJq
+ZWN0OiBbbGludXgtZHZiXSBkaWIwNzAwIG5ldyBpMmMgaW1wbGVtZW50YXRpb24KPiAgICAgICAg
+IFRoZSBhdHRhY2hlZCBwYXRjaCBpbXBsZW1lbnRzIHRoZSBuZXcgZGliMDcwMCBpMmMgQVBJLCB3
+aGljaAo+ICAgICAgICAgcmVxdWlyZXMKPiAgICAgICAgIHYxLjIwIG9mIHRoZSBmaXJtd2FyZS4g
+IEl0IGFkZHJlc3NlcyBzb21lIGNsYXNzZXMgb2YgaTJjCj4gICAgICAgICBwcm9ibGVtcyAoaW4K
+PiAgICAgICAgIHBhcnRpY3VsYXIgdGhlIG9uZSBJIGhhZCB3aGVyZSBpMmMgcmVhZHMgd2VyZSBi
+ZWluZyBzZW50IG9udG8KPiAgICAgICAgIHRoZSBidXMKPiAgICAgICAgIGFzIGkyYyB3cml0ZSBj
+YWxscykKPiAgICAgICAgIAo+ICAgICAgICAgSSB3b3VsZCBhcHByZWNpYXRlIGl0IGlmIHRob3Nl
+IHdpdGggZGliMDcwMCBiYXNlZCBkZXZpY2VzCj4gICAgICAgICB3b3VsZCB0cnkKPiAgICAgICAg
+IG91dCB0aGUgcGF0Y2ggYW5kIHByb3ZpZGUgZmVlZGJhY2sgYXMgdG8gd2hldGhlciB0aGV5IGhh
+dmUgYW55Cj4gICAgICAgICBwcm9ibGVtcy4gIEkndmUgZG9uZSB0ZXN0aW5nIHdpdGggdGhlIFBp
+bm5hY2xlIFBDVFYgSEQgUHJvIFVTQgo+ICAgICAgICAgODAxZQo+ICAgICAgICAgc3RpY2ssIGJ1
+dCBJIGRvbid0IGhhdmUgYW55IG90aGVyIGRpYjA3MDAgYmFzZWQgZGV2aWNlcy4KPiAgICAgICAg
+IAo+ICAgICAgICAgVGhhbmtzIHRvIFBhdHJpY2sgQm9ldHRjaGVyIGZvciBwcm92aWRpbmcgdGhl
+IGZpcm13YXJlLCBzYW1wbGUKPiAgICAgICAgIGNvZGUsCj4gICAgICAgICBhbmQgcGVlciByZXZp
+ZXcgb2YgdGhlIGZpcnN0IHZlcnNpb24gb2YgdGhpcyBwYXRjaC4KPiAKPiBIaSwgCj4gICAgIFRo
+YW5rcyBmb3IgeW91ciB3b3JrLCBmaXJzdCBvZiBhbGwuIMK/RG8geW91IHRoaW5rIHRoaXMgcGF0
+Y2ggbWlnaHQKPiBzb2x2ZSB0aGUgcHJvYmxlbXMgdGhhdCBzZWVtIHRvIGJlIGFwcGVhcmVkIHNp
+bmNlIHRoZSBuZXcgZmlybXdhcmUgaXMKPiBvdXQgd2l0aCB0aGUgSGF1cHBhdWdlIE5vdmEtVCA1
+MDAsIGxpa2UgcmFuZG9tIHJlYm9vdHMsIGV0Yy4uLiAod2hhdCdzCj4gdGhzIHN0YXRlIG9uIHRo
+aXMsIGFueXdheT8pID8KClNvcnJ5IEkgZm9yIG15IGdvaW5nIEFXT0wuLi4KCkkndmUgc3BlbmRp
+bmcgbW9zdCBvZiBteSB0aW1lIG91dCBvZiBteSBjb3VudHJ5IG9mIHJlc2lkZW5jZSBmb3IgYQpw
+cm9qZWN0IHRoZXNlIGxhc3QgNiBtb250aHMuCgpUZXN0aW5nIGlzIGEgYml0IGRpZmZpY3VsdCBm
+b3IgbWUuIE15IFdBRiBnb2VzIGRvd24gd2hlbiBJIHNwZW50IHBhcnQgb2YKdGhlIHdlZWsgZW5k
+IG9uIHRoZSBUViBjb21wdXRlciB0ZXN0aW5nIHN0dWZmIGluc3RlYWQgb2Ygc3BlbmRpbmcKcXVh
+bGl0eSB0aW1lIHdpdGggdGhlIGZhbWlseS4gIEFsc28sIEkgZG8gbm90IHdhbnQgdG8gbGVhdmUg
+dGhlIG9ubHkgVFYKc3lzdGVtIGluIHRoZSBob3VzZSBpbiBhbiB1bnN0YWJsZSBzdGF0ZSByaWdo
+dCBiZWZvcmUgbGVhdmluZyBmb3IgYQp0cmlwLgoKSG93ZXZlciwgaXQgc2VlbXMgdGhhdCBteSBw
+cm9ibGVtcyB3aXRoIHRoZSAxLjIwIGZpcm13YXJlIHdlcmUgbW9zdApwcm9iYWJseSBkdWUgdG8g
+bGVmdG92ZXIgMS4xMCBmaWxlcyBzY2F0dGVyZWQKYXJvdW5kIC9saWIvZmlybXdhcmUvbGludXgq
+LgoKSSBtYXkgYmUgd3JvbmcgYW5kIEkgZGlkIG5vdCBzcGVuZCBtdWNoIHRpbWUgb24gdGhpcywg
+YXMgSSByZXZlcnRlZCB0bwoxLjEwIGJlZm9yZSBib2FyZGluZyB5ZXQgYW5vdGhlciBwbGFuZS4K
+CkkgbWF5IGhhdmUgZXhwZXJpZW5jZWQgYSByZW1vdGUgY29udHJvbCBpc3N1ZSB0b28uCgpCdXQg
+YWdhaW4sIEkgZGlkIG5vdCB0YWtlIHRoZSB0aW1lIHRvIHByb3Blcmx5IHNpdCBpbiBmcm9udCBv
+ZiB0aGUKc3lzdGVtIGFuZCB0ZXN0IHRoaW5ncyB3aXRoIGEgY2xlYXIgbWluZCBhbmQgc29tZSBw
+cm9wZXIgcHJvY2Vzcy4KClNvcnJ5LgoKTWF5YmUgdGhpcyB3ZWVrLWVuZC4KCj4gCj4gSSBkZWxh
+eWVkIHRoZSBhZG9wdGlvbiBvZiB0aGUgbmV3IDEuMjAgZmlybXdhcmUgYmVjYXVzZSBvZiB0aG9z
+ZQo+IHByb2JsZW1zLCBiZWNhdXNlIEkgZGlkbid0IHdhbnQgdG8gbGVhdmUgdGhlIG1hY2hpbmUg
+aW4gYSBjb21wbGV0ZQo+IHVudXNhYmxlIHN0YXRlLi4uCgpJIGhlYXIgeW91LgoKTmljbwoKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBt
+YWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcv
+Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
