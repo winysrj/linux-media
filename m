@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt3.poste.it ([62.241.4.129])
+Received: from smtp4-g19.free.fr ([212.27.42.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nicola.sabbi@poste.it>) id 1KPhtH-0008SR-NW
-	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 20:01:12 +0200
-Received: from [192.168.1.116] (79.32.6.41) by relay-pt3.poste.it (7.3.122)
-	(authenticated as nicola.sabbi@poste.it)
-	id 4894E737000029CB for linux-dvb@linuxtv.org;
-	Sun, 3 Aug 2008 20:01:07 +0200
-From: Nico Sabbi <nicola.sabbi@poste.it>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-In-Reply-To: <3C276393607085468A28782D978BA5EE6ED36D11F5@w2k8svr1.glcdomain8.local>
-References: <3C276393607085468A28782D978BA5EE6ED36D11F5@w2k8svr1.glcdomain8.local>
-Date: Sun, 03 Aug 2008 20:04:49 +0200
-Message-Id: <1217786689.4109.0.camel@suse.site>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] dvbstream compile on the  on fedora 2.6.25 x86_64
-Reply-To: nicola.sabbi@poste.it
+	(envelope-from <stef.dev@free.fr>) id 1KYR5s-0008IG-9U
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 21:54:18 +0200
+Received: from smtp4-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp4-g19.free.fr (Postfix) with ESMTP id 65A793EA122
+	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 21:54:12 +0200 (CEST)
+Received: from sidero.numenor.net (lac49-1-82-245-43-74.fbx.proxad.net
+	[82.245.43.74])
+	by smtp4-g19.free.fr (Postfix) with ESMTP id 2305D3EA11F
+	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 21:54:12 +0200 (CEST)
+From: stef <stef.dev@free.fr>
+To: linux-dvb@linuxtv.org
+Date: Wed, 27 Aug 2008 21:51:36 +0200
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200808272151.36167.stef.dev@free.fr>
+Subject: [linux-dvb] [PATCH] Pinnacle pctv310c DVB support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,21 +24,120 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SWwgZ2lvcm5vIGRvbSwgMDMvMDgvMjAwOCBhbGxlIDE4LjEyICswMTAwLCBNaWNoYWVsIEouIEN1
-cnRpcyBoYQpzY3JpdHRvOgo+IEhpIGFsbAo+IAo+ICAKPiAKPiBDYW4gYW55b25lIGhlbHAgbWUg
-aW4gdHJhY2tpbmcgZG93biBhIGNvcHkgb2YgZHZic3RyZWFtIGZvciB0aGUgYWJvdmUKPiBkaXN0
-cm8gb3IgdGhhdCB3aWxsIGNvbXBpbGUgZm9yIHg4Nl82NAo+IAo+ICAKPiAKPiBUaGUgb25seSBz
-b3VyY2UgZmlsZSBJIGhhdmUgYmVlbiBhYmxlIHRvIHRyYWNrIGRvd24gaXMgdGhlIFNvdXJjRm9y
-Z2UKPiBlZGl0aW9uIHRoYXQgaXMgdjAuNSAoMjAwNCkgYW5kIHdpbGwgbm90IGNvbXBpbGUgb24g
-bXkgNjQgYml0IENQVQo+IAo+ICAKPiAKPiBSUE3igJlzIGZyb20gb3RoZXIgZGlzdHJv4oCZcyB3
-aWxsIGNvbXBsYWluIG9mIG1pc3NpbmcgZGVwZW5kZW5jaWVz4oCZIHRoYXQKPiB3b3VsZCBhcHBl
-YXIgdG8gYmUgZGlzdHJvIHNwZWNpZmljCj4gCgp1c2UgYSBmcmVzaCBjdnMgY2hlY2tvdXQgIGlu
-c3RlYWQKPiAKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3
-LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+	Hello,
+
+	I finally managed to get DVB working on my Pinnacle PCTV Hybrid Pro card. =
+I have it currently working, watching TV with kaffeine. =
+
+The only drawback is that enabling DVB breaks analog TV, which is certainly=
+ an issue in tunex-xc2028.c which doesn't reload a proper =
+
+firmware when changing from DVB to analog.
+
+Regards,
+	Stef
+
+Signed-off-by: St=E9phane Voltz <stef.dev@free.fr>
+
+
+diff -baur v4l-dvb/linux/drivers/media/video/cx88/cx88-cards.c v4l-dvb-stef=
+/linux/drivers/media/video/cx88/cx88-cards.c
+--- v4l-dvb/linux/drivers/media/video/cx88/cx88-cards.c	2008-08-17 19:09:04=
+.000000000 +0200
++++ v4l-dvb-stef/linux/drivers/media/video/cx88/cx88-cards.c	2008-08-27 21:=
+06:57.000000000 +0200
+@@ -1479,15 +1479,26 @@
+ 		.name           =3D "Pinnacle Hybrid PCTV",
+ 		.tuner_type     =3D TUNER_XC2028,
+ 		.tuner_addr     =3D 0x61,
++		.radio_type     =3D TUNER_XC2028,
++		.radio_addr     =3D 0x61,
+ 		.input          =3D { {
+ 			.type   =3D CX88_VMUX_TELEVISION,
+ 			.vmux   =3D 0,
++			.gpio0  =3D 0x004ff,
++			.gpio1  =3D 0x010ff,
++			.gpio2  =3D 0x00001,
+ 		}, {
+ 			.type   =3D CX88_VMUX_COMPOSITE1,
+ 			.vmux   =3D 1,
++			.gpio0  =3D 0x004fb,
++			.gpio1  =3D 0x010ef,
++			.audioroute =3D 1,
+ 		}, {
+ 			.type   =3D CX88_VMUX_SVIDEO,
+ 			.vmux   =3D 2,
++			.gpio0  =3D 0x004fb,
++			.gpio1  =3D 0x010ef,
++			.audioroute =3D 1,
+ 		} },
+ 		.radio =3D {
+ 			.type   =3D CX88_RADIO,
+@@ -1495,10 +1506,7 @@
+ 			.gpio1  =3D 0x010ff,
+ 			.gpio2  =3D 0x0ff,
+ 		},
+-#if 0
+-		/* needs some more GPIO work */
+ 		.mpeg           =3D CX88_MPEG_DVB,
+-#endif
+ 	},
+ 	[CX88_BOARD_WINFAST_TV2000_XP_GLOBAL] =3D {
+ 		.name           =3D "Winfast TV2000 XP Global",
+@@ -2483,6 +2491,10 @@
+ 		 * This board uses non-MTS firmware
+ 		 */
+ 		break;
++	case CX88_BOARD_PINNACLE_HYBRID_PCTV:
++		ctl->demod =3D XC3028_FE_ZARLINK456;
++		ctl->mts =3D 1;
++		break;
+ 	default:
+ 		ctl->demod =3D XC3028_FE_OREN538;
+ 		ctl->mts =3D 1;
+diff -baur v4l-dvb/linux/drivers/media/video/cx88/cx88-dvb.c v4l-dvb-stef/l=
+inux/drivers/media/video/cx88/cx88-dvb.c
+--- v4l-dvb/linux/drivers/media/video/cx88/cx88-dvb.c	2008-08-17 19:09:04.0=
+00000000 +0200
++++ v4l-dvb-stef/linux/drivers/media/video/cx88/cx88-dvb.c	2008-08-27 21:03=
+:52.000000000 +0200
+@@ -460,6 +460,12 @@
+ 	.tuner_callback	=3D cx88_tuner_callback,
+ };
+ =
+
++static struct zl10353_config cx88_pinnacle_hybrid_pctv =3D {
++	.demod_address =3D (0x1e >> 1),
++	.no_tuner      =3D 1,
++	.if2           =3D 45600,
++};
++
+ static struct zl10353_config cx88_geniatech_x8000_mt =3D {
+        .demod_address =3D (0x1e >> 1),
+        .no_tuner =3D 1,
+@@ -855,10 +861,13 @@
+ 		break;
+ 	 case CX88_BOARD_PINNACLE_HYBRID_PCTV:
+ 		dev->dvb.frontend =3D dvb_attach(zl10353_attach,
+-					       &cx88_geniatech_x8000_mt,
++					       &cx88_pinnacle_hybrid_pctv,
+ 					       &core->i2c_adap);
++		if (dev->dvb.frontend) {
++			dev->dvb.frontend->ops.i2c_gate_ctrl =3D NULL;
+ 		if (attach_xc3028(0x61, dev) < 0)
+ 			goto frontend_detach;
++		}
+ 		break;
+ 	 case CX88_BOARD_GENIATECH_X8000_MT:
+ 		dev->ts_gen_cntrl =3D 0x00;
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
