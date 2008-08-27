@@ -1,29 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.25])
+Received: from rv-out-0506.google.com ([209.85.198.230])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KYu4A-0003vy-VM
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 04:50:28 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so190048eya.17
-	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 19:50:23 -0700 (PDT)
-Message-ID: <412bdbff0808281950r48f40835w3f81f506c32eaff3@mail.gmail.com>
-Date: Thu, 28 Aug 2008 22:50:23 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Thomas Goerke" <tom@goeng.com.au>
-In-Reply-To: <008201c90980$9b7ffd10$d27ff730$@com.au>
+	(envelope-from <whauger@gmail.com>) id 1KYQMB-0005Yj-Tc
+	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 21:07:15 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so5245rvf.41
+	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 12:06:59 -0700 (PDT)
+Message-ID: <6f94e1a00808271206g5468a666o25ed81698c5afeb8@mail.gmail.com>
+Date: Wed, 27 Aug 2008 21:06:59 +0200
+From: "Werner Hauger" <whauger@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <20080827091948.GA2479@optima.lan>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <004f01c90921$248fe2b0$6dafa810$@com.au>
-	<412bdbff0808280824s288de72el297dda0556d6ca4d@mail.gmail.com>
-	<007f01c90965$344da360$9ce8ea20$@com.au>
-	<412bdbff0808281638h7e911b37n4d5043bf40b42d65@mail.gmail.com>
-	<008001c9096a$f315df10$d9419d30$@com.au>
-	<412bdbff0808281731t7641e4d1kf86058e071c7d5fb@mail.gmail.com>
-	<008101c90971$ca7e5080$5f7af180$@com.au>
-	<412bdbff0808281905w1a76f8eald99de203fd0c18be@mail.gmail.com>
-	<008201c90980$9b7ffd10$d27ff730$@com.au>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge WinTV-NOVA-T-500 New Firmware
-	(dvb-usb-dib0700-1.20.fw) causes problems
+References: <20080825122741.GB17421@optima.lan>
+	<48B2E1DC.2080605@beardandsandals.co.uk>
+	<6f94e1a00808261235g130cf9b9h9b09f11249a01ebe@mail.gmail.com>
+	<20080827091948.GA2479@optima.lan>
+Subject: Re: [linux-dvb] TT S2-3200 + CI Extension
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,37 +30,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 28, 2008 at 10:40 PM, Thomas Goerke <tom@goeng.com.au> wrote:
-> Devin,
+Hi
+
+On Wed, Aug 27, 2008 at 11:19 AM, Martin Hurton <martin.hurton@gmail.com> wrote:
 >
-> See output below.  Tuners are now working correctly with MythTV.
+> The revision of my CI board is 1.1.
 
-Well that's promising.  Could you please reboot the system a few times
-and test both cold and warm starts so you are comfortable that
-everything is working?
+Ok.
 
-Once you're confident everything works, could you please try the following:
+> When I comment out the above code, I can see the "CI interface
+> initialised" message, but cannot see the "dvb_ca adapter 0: DVB CAM
+> detected and initialised successfully" one. The CA is not working.
 
-1.  Comment out the "st->fw_use_legacy_i2c_api = 1" line you added in
-the previous email
-2.  Add "| I2C_M_NOSTART" to line 46 of mt2060.c so it looks like the following:
+Good, that means there is communication between the TT-3200 and the CI
+board. The firmware version reported by your CI was preventing any
+attempt to communicate. A few lines further down from your change is
+another version check that decides if polling or interrupts should be
+used:
 
-{ .addr = priv->cfg->i2c_address, .flags = I2C_M_RD | I2C_M_NOSTART,
-.buf = val,  .len = 1 },
+// version 0xa2 of the CI firmware doesn't generate interrupts
+        if (ci_version == 0xa2) {
+                ca_flags = 0;
+                budget_ci->ci_irq = 0;
+        } else {
+                ca_flags = DVB_CA_EN50221_FLAG_IRQ_CAMCHANGE |
+                                DVB_CA_EN50221_FLAG_IRQ_FR |
+                                DVB_CA_EN50221_FLAG_IRQ_DA;
+                budget_ci->ci_irq = 1;
+        }
 
-make, make install, reboot
+The default is interrupts which you say doesn't work. You can try
+adding your CI version to the if section test (or rearranging the
+whole if/else section so that the two values are always set as per the
+if section) to see if polling gets your CAM initialised.
 
-Then let me know if the dmesg output contains i2c errors (and send the
-output if it does).
-
-We're getting close here....
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Werner
 
 _______________________________________________
 linux-dvb mailing list
