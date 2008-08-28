@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m728Rvx7007748
-	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 04:27:57 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.225])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m728Rkgd007490
-	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 04:27:46 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so2728850rvb.51
-	for <video4linux-list@redhat.com>; Sat, 02 Aug 2008 01:27:45 -0700 (PDT)
-Message-ID: <d9def9db0808020127r74489c57h7e44ab6cccca543a@mail.gmail.com>
-Date: Sat, 2 Aug 2008 10:27:45 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Sascha Sommer" <saschasommer@freenet.de>
-In-Reply-To: <200808020839.16696.saschasommer@freenet.de>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7SEisB0005545
+	for <video4linux-list@redhat.com>; Thu, 28 Aug 2008 10:44:54 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7SEiev9028246
+	for <video4linux-list@redhat.com>; Thu, 28 Aug 2008 10:44:41 -0400
+Date: Thu, 28 Aug 2008 16:49:42 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>,
+	Robert Schwebel <r.schwebel@pengutronix.de>
+In-Reply-To: <20080824115725.GG10168@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.0808281646420.6514@axis700.grange>
+References: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>
+	<20080824115725.GG10168@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <4890438E.8070703@mail.ru>
-	<200808020839.16696.saschasommer@freenet.de>
-Cc: cavedon@sssup.it, video4linux-list@redhat.com, ar-grig@mail.ru
-Subject: Re: em28xx problem
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2] soc-camera: add API documentation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,104 +28,140 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Aug 2, 2008 at 8:39 AM, Sascha Sommer <saschasommer@freenet.de> wrote:
-> Hi,
->
-> On Mittwoch, 30. Juli 2008, ar wrote:
->> Hi !
->> I have problems with em28xx --- no signal in tvtime and xawtv:
->>
->> kerne1 2.6.24.5
->> v4l snapspot: f1cc98803a31
->> device: intex gravity usb 2.0 tv box (works properly under XP)
->> model No: IT-200USB made in China
->> lsusb output:   Bus 001 Device 011: ID eb1a:2821 eMPIA Technology, Inc.
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> I guess Markus might know more about the em2821 chips.
->
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-I requested some more information about this one, though I'm currently
-busy with other devices which leaves only little time for this one..
+---
 
-Markus
+Addressed comments to the previous version - thanks! And RFC is gone now - 
+if there are no objections this time, I will push it through my hg tree.
 
->> card number 1 selected automatically
->> can not select tuner
->> dmesg output:
->> em28xx v4l2 driver version 0.1.0 loaded
->> em28xx new video device (eb1a:2821): interface 0, class 255
->> em28xx Has usb audio class
->> em28xx #0: Alternate settings: 8
->> em28xx #0: Alternate setting 0, max size= 0
->> em28xx #0: Alternate setting 1, max size= 1024
->> em28xx #0: Alternate setting 2, max size= 1448
->> em28xx #0: Alternate setting 3, max size= 2048
->> em28xx #0: Alternate setting 4, max size= 2304
->> em28xx #0: Alternate setting 5, max size= 2580
->> em28xx #0: Alternate setting 6, max size= 2892
->> em28xx #0: Alternate setting 7, max size= 3072
->> em28xx #0: em28xx chip ID = 18
->> saa7115' 2-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
->> em28xx #0: found i2c device @ 0x4a [saa7113h]
->> em28xx #0: found i2c device @ 0x60 [remote IR sensor]
->> em28xx #0: found i2c device @ 0xc6 [tuner (analog)]
->> em28xx #0: Your board has no unique USB ID.
->> em28xx #0: A hint were successfully done, based on i2c devicelist hash.
->> em28xx #0: This method is not 100% failproof.
->> em28xx #0: If the board were missdetected, please email this log to:
->> em28xx #0:      V4L Mailing List  <video4linux-list@redhat.com>
->> em28xx #0: Board detected as V-Gear PocketTV
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> I think it is misdetected. The V-Gear PocketTV is an em2800 chip whereas the
-> usb id indicates an em2820 chip.
-> You might want to try to modprobe the driver with card=Nr
->
-> Where nr is one of the em2820 chips from:
->
->  0 -> Unknown EM2800 video grabber             (em2800)        [eb1a:2800]
->  1 -> Unknown EM2750/28xx video grabber        (em2820/em2840)
-> [eb1a:2750,eb1a:2820,eb1a:2821,eb1a:2860,eb1a:2861,eb1a:2870,eb1a:2881,eb1a:2883]
->  2 -> Terratec Cinergy 250 USB                 (em2820/em2840) [0ccd:0036]
->  3 -> Pinnacle PCTV USB 2                      (em2820/em2840) [2304:0208]
->  4 -> Hauppauge WinTV USB 2                    (em2820/em2840)
-> [2040:4200,2040:4201]
->  5 -> MSI VOX USB 2.0                          (em2820/em2840)
->  6 -> Terratec Cinergy 200 USB                 (em2800)
->  7 -> Leadtek Winfast USB II                   (em2800)
->  8 -> Kworld USB2800                           (em2800)
->  9 -> Pinnacle Dazzle DVC 90/DVC 100           (em2820/em2840)
-> [2304:0207,2304:021a]
->  10 -> Hauppauge WinTV HVR 900                  (em2880)
-> [2040:6500,2040:6502]
->  11 -> Terratec Hybrid XS                       (em2880)        [0ccd:0042]
->  12 -> Kworld PVR TV 2800 RF                    (em2820/em2840)
->  13 -> Terratec Prodigy XS                      (em2880)        [0ccd:0047]
->  14 -> Pixelview Prolink PlayTV USB 2.0         (em2820/em2840)
->  15 -> V-Gear PocketTV                          (em2800)
->  16 -> Hauppauge WinTV HVR 950                  (em2880)        [2040:6513]
->
-> Maybe one of those works.
->
->
->> em28xx #0: i2c write timed out
->> em28xx #0: i2c write timed out
->> em28xx #0: i2c write timed out
->> em28xx #0: i2c write timed out
->> em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi0
->> em28xx #0: Found V-Gear PocketTV
->> usbcore: registered new interface driver em28xx
->> ---------------------------END DMESG OUTPUT------------------------------
->>
->> so seems to be V-Gear PocketTV -- but no signal detected
->> i am using PAL, and east-european channel list -- it works with xawtv on
->> my other pci tv card (bttv driver)
->>
->>
->
-> Regards
->
-> Sascha
->
+diff -u /dev/null a/Documentation/video4linux/soc-camera.txt
+--- /dev/null	2008-08-28 10:21:05.503011301 +0200
++++ a/Documentation/video4linux/soc-camera.txt	2008-08-28 16:38:12.000000000 +0200
+@@ -0,0 +1,123 @@
++			Soc-Camera Subsystem
++			====================
++
++Terminology
++-----------
++
++The following terms are used in this document:
++ - camera / camera device / camera sensor - a video-camera sensor chip, capable
++   of connecting to a variety of systems and interfaces, typically uses i2c for
++   control and configuration, and a parallel or a serial bus for data.
++ - camera host - an interface, to which a camera is connected. Typically a
++   specialised interface, present on many SoCs, e.g., PXA27x and PXA3xx, SuperH,
++   AVR32, i.MX27, i.MX31.
++ - camera host bus - a connection between a camera host and a camera. Can be
++   parallel or serial, consists of data and control lines, e.g., clock, vertical
++   and horisontal synchronization signals.
++
++Purpose of the soc-camera subsystem
++-----------------------------------
++
++The soc-camera subsystem provides a unified API between camera host drivers and
++camera sensor drivers. It implements a V4L2 interface to the user, currently
++only the mmap method is supported.
++
++Originally this subsystem has been written to connect drivers for System-on-Chip
++(SoC) video capture interfaces with drivers for CMOS camera sensor chips to
++enable the reuse of sensor drivers with various hosts. The subsystem has been
++designed to support multiple camera host interfaces and multiple cameras per
++interface, although most applications have only one camera sensor. It has also
++been proposed to use this subsystem for USB or PCI based cameras, where there is
++a clear separation between the card / adapter and the sensor. For example, when
++there is an internal i2c bus in the card and the sensor is controlled over it.
++
++Existing drivers
++----------------
++
++As of 2.6.27-rc4 there are two host drivers in the mainline: pxa_camera.c for
++PXA27x SoCs and sh_mobile_ceu_camera.c for SuperH SoCs, and four sensor drivers:
++mt9m001.c, mt9m111.c, mt9v022.c and a generic soc_camera_platform.c driver. This
++list is not supposed to be updated, look for more examples in your tree.
++
++Camera host API
++---------------
++
++A host camera driver is registered using the
++
++soc_camera_host_register(struct soc_camera_host *);
++
++function. The host object can be initialized as follows:
++
++static struct soc_camera_host pxa_soc_camera_host = {
++	.drv_name	= PXA_CAM_DRV_NAME,
++	.ops		= &pxa_soc_camera_host_ops,
++};
++
++All camera host methods are passed in a struct soc_camera_host_ops:
++
++static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
++	.owner		= THIS_MODULE,
++	.add		= pxa_camera_add_device,
++	.remove		= pxa_camera_remove_device,
++	.suspend	= pxa_camera_suspend,
++	.resume		= pxa_camera_resume,
++	.set_fmt_cap	= pxa_camera_set_fmt_cap,
++	.try_fmt_cap	= pxa_camera_try_fmt_cap,
++	.init_videobuf	= pxa_camera_init_videobuf,
++	.reqbufs	= pxa_camera_reqbufs,
++	.poll		= pxa_camera_poll,
++	.querycap	= pxa_camera_querycap,
++	.try_bus_param	= pxa_camera_try_bus_param,
++	.set_bus_param	= pxa_camera_set_bus_param,
++};
++
++.add and .remove methods are called when a sensor is attached to or detached
++from the host, apart from performing host-internal tasks they shall also call
++sensor driver's .init and .release methods respectively. .suspend and .resume
++methods implement host's power-management functionality and its their
++responsibility to call respective sensor's methods. .try_bus_param and
++.set_bus_param are used to negotiate physical connection parameters between the
++host and the sensor. .init_videobuf is called by soc-camera core when a
++video-device is opened, further video-buffer management is implemented completely
++by the specific camera host driver. The rest of the methods are called from
++respective V4L2 operations.
++
++Camera API
++----------
++
++Sensor drivers can use struct soc_camera_link, typically provided by the
++platform, and used to specify to which camera host bus the sensor is connected,
++and arbitrarily provide platform .power and .reset methods for the camera.
++soc_camera_device_register() and soc_camera_device_unregister() functions are
++used to add a sensor driver to or remove one from the system. The registration
++function takes a pointer to struct soc_camera_device as the only parameter.
++This struct can be initialized as follows:
++
++	/* link to driver operations */
++	icd->ops	= &mt9m001_ops;
++	/* link to the underlying physical (e.g., i2c) device */
++	icd->control	= &client->dev;
++	/* window geometry */
++	icd->x_min	= 20;
++	icd->y_min	= 12;
++	icd->x_current	= 20;
++	icd->y_current	= 12;
++	icd->width_min	= 48;
++	icd->width_max	= 1280;
++	icd->height_min	= 32;
++	icd->height_max	= 1024;
++	icd->y_skip_top	= 1;
++	/* camera bus ID, typically obtained from platform data */
++	icd->iface	= icl->bus_id;
++
++struct soc_camera_ops provides .probe and .remove methods, which are called by
++the soc-camera core, when a camera is matched against or removed from a camera
++host bus, .init, .release, .suspend, and .resume are called from the camera host
++driver as discussed above. Other members of this struct provide respective V4L2
++functionality.
++
++struct soc_camera_device also links to an array of struct soc_camera_data_format,
++listing pixel formats, supported by the camera.
++
++--
++Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
 --
 video4linux-list mailing list
