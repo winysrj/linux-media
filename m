@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web34403.mail.mud.yahoo.com ([66.163.178.152])
+Received: from n66.bullet.mail.sp1.yahoo.com ([98.136.44.50])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <muppetman4662@yahoo.com>) id 1KP4Xs-0007L0-Pg
-	for linux-dvb@linuxtv.org; Sat, 02 Aug 2008 02:00:29 +0200
-Date: Fri, 1 Aug 2008 16:59:52 -0700 (PDT)
-From: Muppet Man <muppetman4662@yahoo.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KYZ4A-0002pN-0h
+	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 06:25:06 +0200
+Date: Wed, 27 Aug 2008 21:24:26 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org, Hans Werner <HWerner4@gmx.de>
+In-Reply-To: <20080827204250.271660@gmx.net>
 MIME-Version: 1.0
-Message-ID: <595821.21214.qm@web34403.mail.mud.yahoo.com>
-Subject: [linux-dvb] Error message trying to compile v4l with Fedora 9
+Message-ID: <613687.9380.qm@web46107.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for VDR
+	1.7.0
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,65 +19,100 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0553664231=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0553664231==
-Content-Type: multipart/alternative; boundary="0-468723820-1217635192=:21214"
+--- On Wed, 8/27/08, Hans Werner <HWerner4@gmx.de> wrote:
 
---0-468723820-1217635192=:21214
-Content-Type: text/plain; charset=us-ascii
+> Barry, thanks for your messge. You didn't say whether you tried what
+> I did with HVR4000+liplianindvb+szap2 (-p option). 
 
-Greetings all,
-I am attempting to compile the v4l-dvb drivers via the instructions on the website, but when I go into root to "make" I get this error.
+First, my apologies -- I've only been half-reading all the
+messages, without really paying attention to things that do
+not immediately concern me, and I probably should have kept
+quiet.
 
-[root@localhost ~]# cd /home/ed/v4l-dvb/
-[root@localhost v4l-dvb]# make
-make -C /home/ed/v4l-dvb/v4l 
-make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
-No version yet, using 2.6.25.11-97.fc9.i686
-make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
-make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
-scripts/make_makefile.pl
-Updating/Creating .config
-Preparing to compile for kernel version 2.6.25
-File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config at ./scripts/make_kconfig.pl line 32, <IN> line 4.
-make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
-make[1]: Entering directory `/home/ed/v4l-dvb/v4l'
-Updating/Creating .config
-Preparing to compile for kernel version 2.6.25
-File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config at ./scripts/make_kconfig.pl line 32, <IN> line 4.
-make[1]: *** No rule to make target `.myconfig', needed by `config-compat.h'.  Stop.
-make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'
-make: *** [all] Error 2
+Second, I don't have any DVB-S2 hardware yet, though the HVR4000
+has been on my Interest-O-Meter -- nor is my machine fast enough
+to play any streams in realtime, so I'm always writing a file
+(which takes little CPU power) for playback later; in the case
+of H.264 1080i video, I see at best part of one, two, or maybe
+three full frames per second, which actually gives me time to
+judge the quality of the video compression.
 
-I have searched around trying to find any answers but I found nothing.  Any help would be greatly appreciated.
-Thanks
+So, no, I haven't tried that, but I'm confused -- based on your
+posted debug output, it looked as though you were playing a
+recorded file, testfile_anixe.ts ...
 
+
+The output you gave reminded me of that of ITV-HD, which uses
+some (PAFF?) encoding for which mplayer recently got support,
+so I posted, in case you had a distro-supplied player.
+
+
+> I regularly update mplayer from SVN and recompile too.  I
+> have tried the following:
+> 
+> MPlayer dev-SVN-r27489-4.1.2  (today!): runs but video very
+> slow and out of sync, audio ok.
+> MPlayer dev-SVN-r27341-4.1.2  (about 1 month old): crashes
+> in <1s
+
+Good to know, and thanks for making me look like a fool, and
+I'm happy for it.  No, really.  It's not just worth it for its
+own sake, but if it helps others, that's even better.
+
+
+> And I have some sample TS files for Astra HD+ made with
+> another card which all the
+> mplayers play perfectly so I know h264 is working.
+
+I am going to plead ignorance of what does, and what does not
+work for you.  Please correct me where I ass-u-me wrong:
+
+arte HD plays fine for you, both from a recorded TS file, and
+live from szap2.
+
+Anixe HD / Astra HD+ play fine from recorded files from another
+machine.
+
+Anixe HD played from your anixe.ts file crashed?
+Anixe HD played from szap2 crashed?
+
+
+I pointed out the different debug output from BBC-HD/ITV-HD to
+show that of ITV matched your errors, and that's using an encoding
+for which support has only within the last month or two appeared
+in mplayer, and will not be as mature as the support used by
+other streams.
+
+
+Just a thought, if you cannot play a realtime stream, is that the
+decoder needs to do seeking within the stream, which it could do
+within a file, but the support is not yet mature enough to be able
+to do the same within a stream.  I could be completely wrong...
+
+
+If you have short examples of recorded files that crash, and others
+from the same source that play properly, I'd be interested to be
+able to download them and look for obvious problems.
+
+And likewise, if I'm not understanding where you have success and
+failures with mplayer, please correct me, if you think it's worth
+it, as I don't have the hardware to test on my own.
+
+
+thanks,
+barry bouwsma
 
 
       
---0-468723820-1217635192=:21214
-Content-Type: text/html; charset=us-ascii
 
-<html><head><style type="text/css"><!-- DIV {margin:0px;} --></style></head><body><div style="font-family:times new roman,new york,times,serif;font-size:12pt"><div>Greetings all,<br>I am attempting to compile the v4l-dvb drivers via the instructions on the website, but when I go into root to "make" I get this error.<br><br>[root@localhost ~]# cd /home/ed/v4l-dvb/<br>[root@localhost v4l-dvb]# make<br>make -C /home/ed/v4l-dvb/v4l <br>make[1]: Entering directory `/home/ed/v4l-dvb/v4l'<br>No version yet, using 2.6.25.11-97.fc9.i686<br>make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'<br>make[1]: Entering directory `/home/ed/v4l-dvb/v4l'<br>scripts/make_makefile.pl<br>Updating/Creating .config<br>Preparing to compile for kernel version 2.6.25<br>File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config at ./scripts/make_kconfig.pl line 32, &lt;IN&gt; line 4.<br>make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'<br>make[1]: Entering directory
- `/home/ed/v4l-dvb/v4l'<br>Updating/Creating .config<br>Preparing to compile for kernel version 2.6.25<br>File not found: /lib/modules/2.6.25.11-97.fc9.i686/build/.config at ./scripts/make_kconfig.pl line 32, &lt;IN&gt; line 4.<br>make[1]: *** No rule to make target `.myconfig', needed by `config-compat.h'.&nbsp; Stop.<br>make[1]: Leaving directory `/home/ed/v4l-dvb/v4l'<br>make: *** [all] Error 2<br><br>I have searched around trying to find any answers but I found nothing.&nbsp; Any help would be greatly appreciated.<br>Thanks<br></div></div><br>
-
-      </body></html>
---0-468723820-1217635192=:21214--
-
-
---===============0553664231==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0553664231==--
