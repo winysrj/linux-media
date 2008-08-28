@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.171])
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KTi0w-00066W-5u
-	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 20:57:39 +0200
-Received: by ug-out-1314.google.com with SMTP id x30so3512ugc.20
-	for <linux-dvb@linuxtv.org>; Thu, 14 Aug 2008 11:57:34 -0700 (PDT)
-Message-ID: <412bdbff0808141157t241748b4n5d82b15fcbc18d4a@mail.gmail.com>
-Date: Thu, 14 Aug 2008 14:57:34 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
+	(envelope-from <xyzzy@speakeasy.org>) id 1KYoZw-0001ew-Ci
+	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 22:58:53 +0200
+Date: Thu, 28 Aug 2008 13:58:47 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+In-Reply-To: <Pine.LNX.4.44L0.0808271036421.2498-100000@iolanthe.rowland.org>
+Message-ID: <Pine.LNX.4.58.0808281325120.2423@shell2.speakeasy.net>
+References: <Pine.LNX.4.44L0.0808271036421.2498-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Possible bug in dib0700_core.c i2c transfer function
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	linux-usb <linux-usb@vger.kernel.org>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	v4l-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [patch]dma on stack in dib0700
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,65 +28,56 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Sent this to Patrick Boettcher last week and didn't hear anything
-back.  Figured it might be worth sending to the list to see if anyone
-else had any ideas:
+On Wed, 27 Aug 2008, Alan Stern wrote:
+> On Tue, 26 Aug 2008, Trent Piepho wrote:
+> > > That's not entirely accurate.  The mutex makes sure the buffer gets
+> > > used only by one USB control transfer _on the host_.  But it also gets
+> > > used simultaneously by the USB host controller, through DMA accesses.
+> > >
+> > > On some architectures these DMA accesses do not respect the CPU cache.
+> > > Access by the CPU to different parts of the same cache line while the
+> > > transfer is in progress can overwrite data that was stored by the host
+> > > controller.
+> >
+> > It seems like you would need to allocate the cacheline size times two
+> > (minus "1") and then use the middle of that.  Any less and the memory used
+> > could overlap a cacheline boundary.
+>
+> I don't see how you arrived at that conclusion.  (And if you did use
+> the middle of a region which was twice the size of a cache line, then
+> you would _certainly_ overlap a cache-line boundary!)
 
----
+What I meant was that if you get a pointer that's unaligned, via the stack
+or malloc, and want an N byte region aligned to a multiple of N, you must
+allocate 2*N-1 bytes.  Then align the pointer by moving it up between
+0 and N-1 bytes, e.g.  p += N - (p % N ? : N)
 
-I have been doing some work on the Pinnacle PCTV HD Pro USB Stick,
-which uses the dib0700/s5h1411/xc5000 combination.  I'm making good
-progress but I think I might have run into a bug.
+But if kmalloc is already returning cacheline aligned memory, then
+there isn't anything to worry about.
 
-The dib0700_i2c_xfer() function appears to have a problem where it
-converts i2c read calls into i2c write calls in certain cases.  In
-particular, if you send a single i2c read message, the function always
-treats it as a write request.
+> In theory the buffer _could_ be part of a larger structure, if you
+> included GCC attributes telling the compiler that the buffer's address
+> and the address of the following item in the structure must be aligned
+> at a cache-line boundary.  That would work just as well, but it is kind
+> of awkward.  I don't know of any code taking that approach currently.
 
-if (i+1 < num && (msg[i+1].flags & I2C_M_RD)) {
- ...
-} else {
- buf[0] = REQUEST_I2C_WRITE;
- ...
+If the buffer is made the first field in the struct, then shouldn't making
+the buffer a multiple of the cacheline size be sufficient?  Assuming the
+larger structure is allocated with kmalloc() and thus starts aligned
+on a cacheline boundary.
 
-I would assume this would also fail if you sent multiple read messages
-(read/read/read as opposed to write/read/write/read).
+Though I think expecting drivers to work with these constraints is probably
+a losing proposition.  The fact of the matter is that most driver are
+developed and tested almost entirely on x86.  If something works fine on
+x86 but doesn't work on your architecture, you will be forever plagued with
+difficult to track down bugs because if it.  You can say it's the drivers
+fault for not following a spec, but that isn't going to make the problem go
+away.
 
-Was there some design limitation that prevents i2c read calls without
-being preceded by a write call?  The dib0700_ctrl_rd() function only
-seems to support a read in response to a write call.
-
-The issue manifests itself in xc5000.c in the following case:
-
-static int xc5000_readregs(struct xc5000_priv *priv, u8 *buf, u8 len)
-{
- struct i2c_msg msg = { .addr = priv->cfg->i2c_address,
-    .flags = I2C_M_RD, .buf = buf, .len = len };
-
- if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
-   printk(KERN_ERR "xc5000 I2C read failed (len=%i)\n",(int)len);
-   return -EREMOTEIO;
- }
- return 0;
-}
-
-I can probably work around it in the xc5000 driver, but this seems
-like a pretty fundamental issue with i2c handing.  If this was a
-limitation of the hardware design, it might make sense to at least
-make the call fail in this case instead of turning it into a write
-call.
-
-If anyone has an experience with the dib0700 and has some insight as
-to why it does this, I would appreciate it.
-
-Thanks,
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Most of the non-x86 archs have less strongly ordered IO than x86 does.
+But, their versions of writel(), etc. impose additional ordering to
+provide x86 like semantics.  Otherwise there are just too many bugs from
+drivers that assume x86.
 
 _______________________________________________
 linux-dvb mailing list
