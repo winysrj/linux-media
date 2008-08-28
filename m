@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1KQquM-0000YB-Pw
-	for linux-dvb@linuxtv.org; Wed, 06 Aug 2008 23:51:03 +0200
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	6C5AF1801800
-	for <linux-dvb@linuxtv.org>; Wed,  6 Aug 2008 21:49:40 +0000 (GMT)
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <ke2705@gmx.de>) id 1KYjZc-0003a9-5a
+	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 17:38:15 +0200
+Message-ID: <48B6C8D7.8000904@gmx.de>
+Date: Thu, 28 Aug 2008 17:48:39 +0200
+From: Eberhard Kaltenhaeuser <ke2705@gmx.de>
 MIME-Version: 1.0
-From: stev391@email.com
-To: rvf16 <rvf16@yahoo.gr>
-Date: Thu, 7 Aug 2008 07:49:40 +1000
-Message-Id: <20080806214940.4024447808F@ws1-5.us4.outblaze.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] CX23885 based AVerMedia AVerTV Hybrid Express Slim
- tv card
+To: linux-dvb@linuxtv.org
+References: <48B00D6C.8080302@gmx.de> <48B01765.8020104@gmail.com>
+	<200808231711.36277@orion.escape-edv.de>
+In-Reply-To: <200808231711.36277@orion.escape-edv.de>
+Content-Type: multipart/mixed; boundary="------------000104040803060304060202"
+Cc: Patrick Boettcher <pb@linuxtv.org>
+Subject: Re: [linux-dvb] Support of Nova S SE DVB card missing
+Reply-To: ke2705@gmx.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,111 +22,231 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1791297125=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 This is a multi-part message in MIME format.
+--------------000104040803060304060202
+Content-Type: multipart/alternative;
+ boundary="------------000701050706010702000604"
 
---===============1791297125==
+
+--------------000701050706010702000604
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Type: multipart/alternative; boundary="_----------=_121805938038700"
 
-This is a multi-part message in MIME format.
+Hello,
 
---_----------=_121805938038700
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+against my expectation, the Nova-S SE card does not work, although the 
+card is recognized by the kernel. Frontend modul is loaded, but no 
+signal can be received. So VDR exists (Emergency exit) when switching to 
+this device (i.e. to record something)
 
-I just had a quick look in the .inf file that is installed=20
+Any suggestions?
+Eberhard
 
+Oliver Endriss wrote:
 
-by the drivers from Avermedia.
-
-It appears that your card uses a TDA18271 tuner.  I'm not=20
-sure what demod it is using though, just thought this might=20
-help you a bit.
-
-Maybe you could try using one of the cards already in the=20
-cx23885 driver, some of these are using this tuner...
-
-As Steve said the best way to find out what is in the tuner=20
-is to physically open the case and identify all chips and=20
-related devices.
-
-Maybe perform an i2cdetect on the three i2c interfaces of=20
-the cx23885 and include this on the wiki page (if there=20
-isn't a wiki page create it and include your regspy logs,=20
-photos and key components, link to product page, etc)
-
-Good luck.
-
-Stephen
-
-rvf16 wrote:
-> Thanks for the reply but how am i going to do all these?
+>e9hack wrote:
+>  
 >
-> Are there any howtos for identifying tuner and demodulator?
-> Where do i find the patches to add support for my device?
-> Submit my patches? what do you mean? After reading several mails in=20
-> this mailing list i did the regspy task but now i am completely=20
-> blind .
-> Thank you.
+>>Eberhard Kaltenhaeuser schrieb:
+>>    
+>>
+>>>Actual kernel does not support the Hauppauge WinTV Nova S SE PCI card 
+>>>anymore:
+>>>
+>>>      
+>>>
+>>I think it is a problem of this changeset http://linuxtv.org/hg/v4l-dvb/rev/358d281e6a3d 
+>>from Patrick Boettcher. The S5H1420 isn't able to understand repeated start conditions. 
+>>The i2c-read code was changed from:
+>>
+>>	if ((ret = i2c_transfer (state->i2c, &msg1, 1)) != 1)
+>>		return ret;
+>>
+>>	if ((ret = i2c_transfer (state->i2c, &msg2, 1)) != 1)
+>>		return ret;
+>>
+>>to:
+>>	if (state->config->repeated_start_workaround) {
+>>		ret = i2c_transfer(state->i2c, msg, 3);
+>>		if (ret != 3)
+>>			return ret;
+>>	} else {
+>>		ret = i2c_transfer(state->i2c, &msg[1], 2);
+>>		if (ret != 2)
+>>			return ret;
+>>	}
+>>    
+>>
 >
->> Start by identifying the tuner and demodulator, then patch the=20
->> cx23885 tree - adding support for these devices - and submit your=20
->> patches here for review.
+>I think you are right.
+>
+>Btw, I don't understand Patrick's workaround.
+>
+>As the tuner does not support repeated start conditions, the solution
+>is to send two separate messages, as it was before.
+>
+>Does the attached patch fix the problem?
+>
+>CU
+>Oliver
+>
+>  
+>
+>------------------------------------------------------------------------
+>
+>diff -r 1760a612cc98 linux/drivers/media/dvb/frontends/s5h1420.c
+>--- a/linux/drivers/media/dvb/frontends/s5h1420.c	Sun Aug 03 05:02:35 2008 +0200
+>+++ b/linux/drivers/media/dvb/frontends/s5h1420.c	Sat Aug 23 17:07:01 2008 +0200
+>@@ -94,8 +94,11 @@ static u8 s5h1420_readreg(struct s5h1420
+> 		if (ret != 3)
+> 			return ret;
+> 	} else {
+>-		ret = i2c_transfer(state->i2c, &msg[1], 2);
+>-		if (ret != 2)
+>+		ret = i2c_transfer(state->i2c, &msg[1], 1);
+>+		if (ret != 1)
+>+			return ret;
+>+		ret = i2c_transfer(state->i2c, &msg[2], 1);
+>+		if (ret != 1)
+> 			return ret;
+> 	}
+> 
+>  
+>
+>------------------------------------------------------------------------
+>
+>_______________________________________________
+>linux-dvb mailing list
+>linux-dvb@linuxtv.org
+>http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
---=20
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
+--------------000701050706010702000604
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title></title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Hello,<br>
+<br>
+against my expectation, the Nova-S SE card does not work, although the
+card is recognized by the kernel. Frontend modul is loaded, but no
+signal can be received. So VDR exists (Emergency exit) when switching
+to this device (i.e. to record something)<br>
+<br>
+Any suggestions?<br>
+Eberhard<br>
+<br>
+Oliver Endriss wrote:
+<blockquote cite="mid200808231711.36277@orion.escape-edv.de" type="cite">
+  <pre wrap="">e9hack wrote:
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">Eberhard Kaltenhaeuser schrieb:
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">Actual kernel does not support the Hauppauge WinTV Nova S SE PCI card 
+anymore:
+
+      </pre>
+    </blockquote>
+    <pre wrap="">I think it is a problem of this changeset <a class="moz-txt-link-freetext" href="http://linuxtv.org/hg/v4l-dvb/rev/358d281e6a3d">http://linuxtv.org/hg/v4l-dvb/rev/358d281e6a3d</a> 
+from Patrick Boettcher. The S5H1420 isn't able to understand repeated start conditions. 
+The i2c-read code was changed from:
+
+	if ((ret = i2c_transfer (state-&gt;i2c, &amp;msg1, 1)) != 1)
+		return ret;
+
+	if ((ret = i2c_transfer (state-&gt;i2c, &amp;msg2, 1)) != 1)
+		return ret;
+
+to:
+	if (state-&gt;config-&gt;repeated_start_workaround) {
+		ret = i2c_transfer(state-&gt;i2c, msg, 3);
+		if (ret != 3)
+			return ret;
+	} else {
+		ret = i2c_transfer(state-&gt;i2c, &amp;msg[1], 2);
+		if (ret != 2)
+			return ret;
+	}
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+I think you are right.
+
+Btw, I don't understand Patrick's workaround.
+
+As the tuner does not support repeated start conditions, the solution
+is to send two separate messages, as it was before.
+
+Does the attached patch fix the problem?
+
+CU
+Oliver
+
+  </pre>
+  <pre wrap="">
+<hr size="4" width="90%">
+diff -r 1760a612cc98 linux/drivers/media/dvb/frontends/s5h1420.c
+--- a/linux/drivers/media/dvb/frontends/s5h1420.c	Sun Aug 03 05:02:35 2008 +0200
++++ b/linux/drivers/media/dvb/frontends/s5h1420.c	Sat Aug 23 17:07:01 2008 +0200
+@@ -94,8 +94,11 @@ static u8 s5h1420_readreg(struct s5h1420
+ 		if (ret != 3)
+ 			return ret;
+ 	} else {
+-		ret = i2c_transfer(state-&gt;i2c, &amp;msg[1], 2);
+-		if (ret != 2)
++		ret = i2c_transfer(state-&gt;i2c, &amp;msg[1], 1);
++		if (ret != 1)
++			return ret;
++		ret = i2c_transfer(state-&gt;i2c, &amp;msg[2], 1);
++		if (ret != 1)
+ 			return ret;
+ 	}
+ 
+  </pre>
+  <pre wrap="">
+<hr size="4" width="90%">
+_______________________________________________
+linux-dvb mailing list
+<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
+<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></pre>
+</blockquote>
+</body>
+</html>
+
+--------------000701050706010702000604--
+
+--------------000104040803060304060202
+Content-Type: text/x-vcard; charset=utf-8;
+ name="ke2705.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="ke2705.vcf"
+
+begin:vcard
+fn:Eberhard Kaltenhaeuser
+n:Kaltenhaeuser;Eberhard
+adr;dom:;;Obermembach 6;Hessdorf;;91093
+email;internet:ke2705@gmx.de
+tel;fax:+49 9135 725517
+tel;home:+49 9135 799955
+tel;cell:+49 173 3760676
+version:2.1
+end:vcard
 
 
---_----------=_121805938038700
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html; charset="iso-8859-1"
-
-<span id=3D"obmessage"><pre>I just had a quick look in the .inf file that i=
-s installed <br>by the drivers from Avermedia.<br><br>It appears that your =
-card uses a TDA18271 tuner.  I'm not <br>sure what demod it is using though=
-, just thought this might <br>help you a bit.<br><br>Maybe you could try us=
-ing one of the cards already in the <br>cx23885 driver, some of these are u=
-sing this tuner...<br><br>As Steve said the best way to find out what is in=
- the tuner <br>is to physically open the case and identify all chips and <b=
-r>related devices.<br><br>Maybe perform an i2cdetect on the three i2c inter=
-faces of <br>the cx23885 and include this on the wiki page (if there <br>is=
-n't a wiki page create it and include your regspy logs, <br>photos and key =
-components, link to product page, etc)<br><br>Good luck.<br><br>Stephen<br>=
-<br>rvf16 wrote:<br>&gt; Thanks for the reply but how am i going to do all =
-these?<br>&gt;<br>&gt; Are there any howtos for identifying tuner and demod=
-ulator?<br>&gt; Where do i find the patches to add support for my device?<b=
-r>&gt; Submit my patches? what do you mean? After reading several mails in =
-<br>&gt; this mailing list i did the regspy task but now i am completely <b=
-r>&gt; blind .<br>&gt; Thank you.<br>&gt;<br>&gt;&gt; Start by identifying =
-the tuner and demodulator, then patch the <br>&gt;&gt; cx23885 tree - addin=
-g support for these devices - and submit your <br>&gt;&gt; patches here for=
- review.<br><br></pre></span>
-<div>
-
-</div>
-<BR>
-
---=20
-<div> Be Yourself @ mail.com!<br>
-Choose From 200+ Email Addresses<br>
-Get a <b>Free</b> Account at <a href=3D"http://www.mail.com/Product.aspx" t=
-arget=3D"_blank">www.mail.com</a>!</div>
-
---_----------=_121805938038700--
-
-
-
---===============1791297125==
+--------------000104040803060304060202
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -137,4 +256,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1791297125==--
+--------------000104040803060304060202--
