@@ -1,15 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n24.bullet.mail.mud.yahoo.com ([68.142.206.163])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <rvf16@yahoo.gr>) id 1KUKuu-0006Pf-70
-	for linux-dvb@linuxtv.org; Sat, 16 Aug 2008 14:30:02 +0200
-Message-ID: <48A6C80E.7050001@yahoo.gr>
-Date: Sat, 16 Aug 2008 15:29:02 +0300
-From: rvf16 <rvf16@yahoo.gr>
+Received: from gv-out-0910.google.com ([216.239.58.189])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KYjMA-0002C9-4g
+	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 17:24:20 +0200
+Received: by gv-out-0910.google.com with SMTP id n29so32298gve.16
+	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 08:24:14 -0700 (PDT)
+Message-ID: <412bdbff0808280824s288de72el297dda0556d6ca4d@mail.gmail.com>
+Date: Thu, 28 Aug 2008 11:24:14 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Thomas Goerke" <tom@goeng.com.au>
+In-Reply-To: <004f01c90921$248fe2b0$6dafa810$@com.au>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] CX23885 based AVerMedia AVerTV Hybrid Express Slim tv
- card
+Content-Disposition: inline
+References: <004f01c90921$248fe2b0$6dafa810$@com.au>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge WinTV-NOVA-T-500 New Firmware
+	(dvb-usb-dib0700-1.20.fw) causes problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,49 +29,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello again.
-No one seems to be interested in my attempts so i must be doing 
-something wrong.
-I find hard to locate where i can add a wiki about this card, and a 
-simple howto for trying to make this card work.
-It may be my mistake but i find all that i have red insufficient to 
-understand how to continue.
+2008/8/28 Thomas Goerke <tom@goeng.com.au>:
+> I have been using the dvb-usb-dib0700-1.10.fw firmware for the past month
+> with no issues.  After following the instructions on
+> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500 and updating
+> the firmware to dvb-usb-dib0700-1.20.fw the card was no longer useable.
+> When using Mythbuntu backend the card was not detected correctly and gave an
+> unknown error.  Rolling back to dvb-usb-dib0700-1.10.fw corrected the
+> problem.
 
-Anyway after thorough examination of the vista driver i ended up in this 
-section :
-;-----------------------------------------------
-; XC3028 + Afa9013
-;-----------------------------------------------
-%CX23885.HC81R%=CX23885.HC81_C,          
-PCI\VEN_14F1&DEV_8852&SUBSYS_D9391461    ;PCI-e     XCeive_L+FM+Afa9013
-(this is my model : AVer Media AVerTV Hybrid Express Slim HC81R HC81_C)
+Well I'm glad the 1.20 support didn't just get checked in then.
+Thanks for doing this testing.
 
-After googling around i found the following :
-CX23885 = PCI Express Video and Broadcast Audio Decoder
-http://www.conexant.com/products/entry.jsp?id=393
-http://www.conexant.com/servlets/DownloadServlet/PBR-200865-004.pdf?docid=866&revid=4
+Do you happen to have the dmesg output from the failed attempt, which
+might have information on the nature of the failure?  I would like to
+get to the bottom of the issue.
 
-XC3028 = Hybrid tuner
-http://www.xceive.com/technology_XC3028.htm
-http://www.xceive.com/docs/XC3028_prodbrief.pdf
-I have the L model which is same as standard just with "L"ower energy  
-consumption)
+Devin
 
-Afa9013 = Demodulator
 
-from linux lspci -n :
-0c:00.0 0400: 14f1:8852 (rev 02)
-        Subsystem: 1461:d939
-
-I can find no xc3028 module in the v4l tree and absolutely nothing on 
-the Afa9013.
-Please confirm the above are tuner and demodulator chips respectively 
-and show me where i can create a wiki with the above info, my dmesg info 
-and my card pictures.
-
-Thank you.
-Regards.
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
