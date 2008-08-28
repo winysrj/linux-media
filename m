@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n7.bullet.re3.yahoo.com ([68.142.237.92])
+Received: from n24.bullet.mail.ukl.yahoo.com ([87.248.110.141])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <rvf16@yahoo.gr>) id 1KWW4t-0005wh-G5
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 14:49:20 +0200
-Message-ID: <48AEB3F9.4020703@yahoo.gr>
-Date: Fri, 22 Aug 2008 15:41:29 +0300
-From: rvf16 <rvf16@yahoo.gr>
-MIME-Version: 1.0
+	(envelope-from <eallaud@yahoo.fr>) id 1KYVZ3-00027b-S8
+	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 02:40:42 +0200
+Date: Wed, 27 Aug 2008 20:40:04 -0400
+From: manu <eallaud@yahoo.fr>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] CX23885 based AVerMedia AVerTV Hybrid Express Slim tv
- card
+References: <48B5D5C7.6000802@free.fr>
+	<37219a840808271718y5c25d0d4y62f016de745143b2@mail.gmail.com>
+In-Reply-To: <37219a840808271718y5c25d0d4y62f016de745143b2@mail.gmail.com>
+	(from mkrufky@gmail.com on Wed Aug 27 20:18:18 2008)
+Message-Id: <1219884004l.9440l.1l@manu-laptop>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Re :  Signal strenght SNR and BER units
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,28 +21,31 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thank you stev391.
-Based upon your info and links regarding wiki pages i've managed to 
-create a wiki for this tv card.
-I've done my best to provide everything i have gathered along with 
-pictures and links :
+Le 27.08.2008 20:18:18, mkrufky@gmail.com a =E9crit=A0:
+> It is different for each demod, depending on who wrote the code. I =
 
-http://www.linuxtv.org/wiki/index.php/AVerMedia
-http://www.linuxtv.org/wiki/index.php/DVB-T_PCMCIA_Cards#Supported_DVB-T_PCMCIA_Cards_.28PC_Card.2FCardBus.2C_ExpressCard.29
-http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid_Express_Slim_HC81R
+> can
+> list a bunch of drivers that report SNR in dB, but you cannot rely on
+> this because the drivers are not consistent between one another.  =
 
-If anyone can help me in any way i would be grateful.
-Hope the community shows some interest on this, it is after all a very 
-good tuner with multiple features, good signal and very small size.
+> That
+> is why your searches didn't turn up any answers.  This is the first
+> email that i'm sending from my new cell phone - please excuse if the
+> quoting format got mangled...   -MiKE
+> =
 
-Thank you again.
-Regards.
+> =
+
+
+Hmm could a format be chosen so that it is actually useable?
+Bye
+Manu
 
 
 _______________________________________________
