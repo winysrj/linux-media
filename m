@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1KWa2c-0007mw-NY
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 19:03:16 +0200
-Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
-	[84.70.212.195])
-	by mail.youplala.net (Postfix) with ESMTP id E8AC1D880A4
-	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 19:02:20 +0200 (CEST)
+	(envelope-from <nico@youplala.net>) id 1KYlTP-0004AO-V5
+	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 19:39:58 +0200
+Received: from [10.175.39.141] (unknown [83.224.64.17])
+	by mail.youplala.net (Postfix) with ESMTP id D2EF2D8816B
+	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 19:38:40 +0200 (CEST)
 From: Nicolas Will <nico@youplala.net>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <1219423493.29624.9.camel@youkaida>
-References: <1219330331.15825.2.camel@dark>  <48ADF515.6080401@nafik.cz>
-	<1219360304.6770.34.camel@youkaida> <1219423326.29624.8.camel@youkaida>
-	<1219423493.29624.9.camel@youkaida>
-Date: Fri, 22 Aug 2008 18:02:22 +0100
-Message-Id: <1219424542.29624.17.camel@youkaida>
+In-Reply-To: <412bdbff0808281018v54fab2e0rbcdf9021ddbe5509@mail.gmail.com>
+References: <004f01c90921$248fe2b0$6dafa810$@com.au>
+	<1219941194.7262.7.camel@acropora>
+	<412bdbff0808281018v54fab2e0rbcdf9021ddbe5509@mail.gmail.com>
+Date: Thu, 28 Aug 2008 18:38:40 +0100
+Message-Id: <1219945120.7262.20.camel@acropora>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] dib0700 and analog broadcasting
+Subject: Re: [linux-dvb] Hauppauge WinTV-NOVA-T-500 New
+	Firmware	(dvb-usb-dib0700-1.20.fw) causes problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,14 +30,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 2008-08-22 at 17:44 +0100, Nicolas Will wrote:
-> > dmesg, lspci, lsusb, lsmod available here, more can be provided on
-> > demand:
-> > http://www.youplala.net/~will/htpc/Hardware/lsmod.txt
+On Thu, 2008-08-28 at 13:18 -0400, Devin Heitmueller wrote:
+> On Thu, Aug 28, 2008 at 12:33 PM, Nicolas Will <nico@youplala.net>
+> >Weird, once I cleaned up my fw files, things went very well with
+> MythTV
+> > using fw 1.20, no reconfig or anything else needed.
+> 
+> Just to be clear, Nicolas, are you using a WinTV NOVA-T 500?  This
+> could be an issue with Thomas's particular product if your experience
+> is based on a different product.
 
-http://www.youplala.net/~will/htpc/Hardware/
 
-grrr
+yup, Nova-T 500.
+
+System here:
+http://www.youplala.net/linux/home-theater-pc
 
 Nico
 
