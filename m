@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wr-out-0506.google.com ([64.233.184.228])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <robert.golding@gmail.com>) id 1KUDBw-0005Vn-5N
-	for linux-dvb@linuxtv.org; Sat, 16 Aug 2008 06:15:05 +0200
-Received: by wr-out-0506.google.com with SMTP id 50so1361050wra.13
-	for <linux-dvb@linuxtv.org>; Fri, 15 Aug 2008 21:15:00 -0700 (PDT)
-Message-ID: <ae5231870808152114j273efbd4g2ce0b25ffce251e6@mail.gmail.com>
-Date: Sat, 16 Aug 2008 13:44:59 +0930
-From: "Robert Golding" <robert.golding@gmail.com>
-To: "LinuxTV DVB list" <linux-dvb@linuxtv.org>
-In-Reply-To: <20080816013510.AF253104F0@ws1-3.us4.outblaze.com>
+Message-ID: <48B6EFE1.3040009@glidos.net>
+Date: Thu, 28 Aug 2008 19:35:13 +0100
+From: Paul Gardiner <lists@glidos.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20080816013510.AF253104F0@ws1-3.us4.outblaze.com>
-Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200
-	H - DVB Only support
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <48B5D5CF.3060401@glidos.net> <48B6083B.5000803@linuxtv.org>	
+	<48B64690.4060205@glidos.net>	
+	<37219a840808280556q2ee85291o7ad1afb75a7ed6f6@mail.gmail.com>	
+	<37219a840808280825i4c867c03u3c2d48888f51dde4@mail.gmail.com>	
+	<48B6CDEB.2060305@glidos.net>
+	<37219a840808280921g3e602acco6697c4f4af43ec74@mail.gmail.com>
+	<48B6E525.7070306@glidos.net>
+In-Reply-To: <48B6E525.7070306@glidos.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Looks like there's a new unsupported WinTV Nova T
+ 500 out there
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,40 +28,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Whoops, sent to wrong place this sent to mail list, sorry
+Paul Gardiner wrote:
+> I'm going to try the card in a Windows machine. Didn't
+> want to pollute that machine with the extra drivers, but
+> I guess now it's looking like a dead card.
 
-I have finally got the modules to load the PxDVR 3200 H I bought,
-however, now I am getting "Failed to lock channel" error messages from
-MeTV.
-The 'channels.conf' file is correct as I used for my Dvico DVB-T.
+Oh sorry. It's a dead card. The Latest drivers for Windows,
+from the Hauppauge web site agree with your drivers in
+finding no supported hardware.  The USB part is recognised
+but then a device called HOOK appears, and the Windows
+drivers just don't want to touch that.
 
- I have replaced the Dvico with the Leadtek because I wanted to be
-able to get local radio and also use the PCI-e channel since I have
-many of them and only one PCI slot.
+I think I was justifiably confused by the wiki. There's
+plenty about the Diversity version that isn't supported,
+but nothing saying that there are any v2.1 versions that
+do work, or anything about the 99XXX series. I could
+try updating it, but that's a bit risky: if I had done
+so yesterday, I'd have been spreading my scaremongering
+further afield. Better if people really in the know do so.
+On the other hand, if the experts have little time and
+it's the choice between updating the drivers and the wiki,
+I know which I'd vote for! :-)
 
-The card is auto-recognised and loads all dvb modules, including fw
-and frontends.
+Anyway, thanks for all the friendly advice. I'll let you
+know how I get on with the replacement, when it arrives.
 
-One other thing, I attached an MS drive and tried it in windows [that
-is another wholly different story :-) ] and it worked very well.  I
-had occation to compare the channels info to each other and the Linux
-version is OK.
+Cheers,
+	Paul.
 
-Any information, no matter how small, to show how I might fix this
-would be greatly apprecited
-
--- 
-Regards,	Robert
-
-..... Some people can tell what time it is by looking at the sun, but
-I have never been able to make out the numbers.
----
-Errata: Spelling mistakes are not intentional, however, I don't use
-spell checkers because it's too easy to allow the spell checker to
-make the decisions and use words that are out of context for that
-being written, i.e. their/there, your/you're, threw/through and even
-accept/except, not to mention foreign (I'm Australian) English
-spelling, i.e. colour/color, socks/sox, etc,.
 
 _______________________________________________
 linux-dvb mailing list
