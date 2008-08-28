@@ -1,22 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.189])
+Received: from nf-out-0910.google.com ([64.233.182.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bonne@ixum.net>) id 1KW087-0005B5-Lt
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 04:42:37 +0200
-Received: by ti-out-0910.google.com with SMTP id w7so445202tib.13
-	for <linux-dvb@linuxtv.org>; Wed, 20 Aug 2008 19:42:26 -0700 (PDT)
-Message-ID: <d16b033e0808201942h56e9b370x778faa7098cf5d41@mail.gmail.com>
-Date: Thu, 21 Aug 2008 12:42:25 +1000
-From: "Bonne Eggleston" <b.eggleston@gmail.com>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-In-Reply-To: <48ACC98A.4090201@linuxtv.org>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KYr43-0001zG-SS
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 01:38:08 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so168610nfb.11
+	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 16:38:04 -0700 (PDT)
+Message-ID: <412bdbff0808281638h7e911b37n4d5043bf40b42d65@mail.gmail.com>
+Date: Thu, 28 Aug 2008 19:38:04 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Thomas Goerke" <tom@goeng.com.au>
+In-Reply-To: <007f01c90965$344da360$9ce8ea20$@com.au>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <d16b033e0808201810wca140d8ob33dd6bae2dfcf8b@mail.gmail.com>
-	<ee0ad0230808201844s512f8658pb2459c192cfa21d6@mail.gmail.com>
-	<48ACC98A.4090201@linuxtv.org>
+References: <004f01c90921$248fe2b0$6dafa810$@com.au>
+	<412bdbff0808280824s288de72el297dda0556d6ca4d@mail.gmail.com>
+	<007f01c90965$344da360$9ce8ea20$@com.au>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Recommended repository for Dvico Dual Digital 4 rev1
+Subject: Re: [linux-dvb] Hauppauge WinTV-NOVA-T-500 New Firmware
+	(dvb-usb-dib0700-1.20.fw) causes problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,48 +31,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 21, 2008 at 11:48 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> On Thu, Aug 21, 2008 at 11:10 AM, Bonne Eggleston
-> <b.eggleston@gmail.com>wrote:
->>
->>> Hi all,
->>> I have a working Dvico Dual Digital 4 rev1 using some older drivers
->>> (from http://linuxtv.org/hg/~pascoe/xc-test/<http://linuxtv.org/hg/%7Epascoe/xc-test/>
->>> ).
->>> I'm looking to upgrade my kernel from 2.6.18 to 2.6.25 or 26 and
->>> thought I should get the most up to date dvb driver too.
->>> What's the current recommended driver and firmware for this card?
->>>
->>>
->
-> Damien Morrissey wrote:
->> Be warned that there seems to be a funky thing with the firmware (in
->> australia at least). I needed no less than three different firmware files to
->> get my DVico Dual Digital 4 (rev1) to be recognised AND to successfully lock
->> on a channel. Check for dmesg warnings. I am using mythbuntu 8.04.
->>
->
-> Please be advised that the posting policy on this mailing list is to
-> post your reply BELOW the quote.
->
-> It's irritating that I have to tell this to people repeatedly, and I'm
-> sure its even more irritating for others that have to constantly read my
-> complaints about it.
->
-> Nothing against you -- please don't top-post in the future.
->
-> Anyway, Damien....  Please try the latest driver in the v4l-dvb master
-> branch -- recent changesets have improved driver performance, and you
-> should not have the problems anymore that you have described, above.
-So that's the mercurial repository here:  http://linuxtv.org/hg/v4l-dvb ?
+On Thu, Aug 28, 2008 at 7:24 PM, Thomas Goerke <tom@goeng.com.au> wrote:
+> Devin,  I looked at the dmesg output and it showed no errors.  So I tested
+> it again using both symbolic link and hard copy.  This time it worked
+> correctly.  I am not sure what was causing the problem before but rolling
+> back to the .10 definitely fixed it.  Apologies for the multicast on this
+> but all seems ok now using the .20 firmware.
 
->
-> The AU-specific firmware images have been deprecated, in favor of a much
-> better driver that works regardless of location.  Standard firmware is
-> not used, instead.
-Do you mean standard firmware *is* used instead? Where do I get the
-standard firmware from? Is it just the dvb-usb-bluebird-01.fw  from
-http://www.linuxtv.org/downloads/firmware/ ?
+Hmmm...  You're the second person to see that behavior.  Weird.
+
+Did you apply the patch I sent out for the driver as well, or did you
+just replace the firmware file?
+
+Devin
+
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
