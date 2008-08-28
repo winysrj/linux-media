@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from scing.com ([217.160.110.58])
+Received: from mo-p00-ob.rzone.de ([81.169.146.162])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <janne-dvb@grunau.be>) id 1KZSP0-0000jN-AQ
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 17:30:16 +0200
-From: Janne Grunau <janne-dvb@grunau.be>
-To: linux-dvb@linuxtv.org
-Date: Sat, 30 Aug 2008 17:30:09 +0200
-References: <48B8400A.9030409@linuxtv.org>
-In-Reply-To: <48B8400A.9030409@linuxtv.org>
+	(envelope-from <olly@dEU5.net>) id 1KYflp-0005ed-G0
+	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 13:34:35 +0200
+Received: from [192.168.42.101] (p4FE6E454.dip.t-dialin.net [79.230.228.84])
+	by post.webmailer.de (klopstock mo49) (RZmta 16.47)
+	with ESMTP id Y00e88k7SAQYXj for <linux-dvb@linuxtv.org>;
+	Thu, 28 Aug 2008 13:34:30 +0200 (MEST)
+	(envelope-from: <olly@dEU5.net>)
+Message-ID: <48B68D4A.4050800@dEU5.net>
+Date: Thu, 28 Aug 2008 13:34:34 +0200
+From: olly <olly@dEU5.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200808301730.09135.janne-dvb@grunau.be>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] WinTV Nova-S USB2 support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,50 +27,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Friday 29 August 2008 20:29:30 Steven Toth wrote:
->
-> Mauro Chehab, Michael Krufky, Patrick Boettcher and myself are hereby
-> announcing that we no longer support multiproto and are forming a
-> smaller dedicated project group which is focusing on adding next
-> generation S2/ISDB-T/DVB-H/DVB-T2/DVB-SH support to the kernel
-> through a different and simpler API.
->
-> Basic patches and demo code for this API is currently available here.
->
-> http://www.steventoth.net/linux/s2
+Hi,
 
-Overall API looks good.
+due to the wiki i know that there is no support for the WinTV Nova-S 
+USB2 yet in the kernel. so here's the alltime question. Is there someone 
+active in developing and needs help, info, tester? Or better, is there a 
+way to get that device working?
 
-I have also a slightly preference for DTV/dtv as prefix but it's not 
-really important. 
+greetings, olly
 
-16 properties per ioctl are probably enough but a variable-length 
-property array would be safe. I'm unsure if this justifies a more 
-complicate copy from/to userspace in the ioctls.
 
-> Importantly, this project group seeks your support.
->
-> If you also feel frustrated by the multiproto situation and agree in
-> principle with this new approach, and the overall direction of the
-> API changes, then we welcome you and ask you to help us.
->
-> Growing the list of supporting names by 100%, and allowing us to
-> publish your name on the public mailing list, would show the
-> non-maintainer development community that we recognize the problem
-> and we're taking steps to correct the problem. We want to make
-> LinuxTV a perfect platform for S2, ISDB-T and other advanced
-> modulation types, without using the multiproto patches.
->
-> We're not asking you for technical help, although we'd like that  :)
-> , we're just asking for your encouragement to move away from
-> multiproto.
->
-> If you feel that you want to support our movement then please help us
-> by acking this email.
-
-Acked-by: Janne Grunau <janne-dvb@grunau.be>
-
-Janne
 
 _______________________________________________
 linux-dvb mailing list
