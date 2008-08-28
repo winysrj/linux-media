@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1KUqSJ-0005dN-CZ
-	for linux-dvb@linuxtv.org; Mon, 18 Aug 2008 00:10:36 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Sun, 17 Aug 2008 23:36:51 +0200
-References: <9e849af80808170229i4d79e160ibb8a928b2434f59b@mail.gmail.com>
-In-Reply-To: <9e849af80808170229i4d79e160ibb8a928b2434f59b@mail.gmail.com>
+Message-ID: <48B64690.4060205@glidos.net>
+Date: Thu, 28 Aug 2008 07:32:48 +0100
+From: Paul Gardiner <lists@glidos.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200808172336.51407@orion.escape-edv.de>
-Subject: Re: [linux-dvb] activy dvb-t ALPS tdhd1-204A support?
-Reply-To: linux-dvb@linuxtv.org
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <48B5D5CF.3060401@glidos.net> <48B6083B.5000803@linuxtv.org>
+In-Reply-To: <48B6083B.5000803@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Looks like there's a new unsupported WinTV Nova T
+ 500	out there
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,33 +22,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-jaakko tuomainen wrote:
-> Hi,
+Michael Krufky wrote:
+> Paul Gardiner wrote:
+>> Just trying to get MythTV up and running, plugged in my
+>> newly arrived WinTV Nova T 500 and no /dev/dvb directory
+>> appeared. It's not the known probelmatic Diversity version,
+>> but it does say v2.1 on the box, and it seems to have
+>> different chips. :-(
+>>
+>> Just thought I'd warn people and maybe ask if anyone
+>> else has run into this.
 > 
-> Thanks for the patch, now I can tune to any free-to-air
-> channel with Kaffeine (i don't have pay-tv to test it).
-> Is there need for some kind of "fine tuning" of the driver
-> now when the cards are detected and work ok?
+> What is the 5-digit model number of your PCI card?
 
-Great. I am a bit surprised that it works, since most of the parameters
-in 'struct tda1004x_config' are just an educated guess. ;-)
+Says 99101 LF
+      Rev D8B5
 
-If there are no problems we can leave the parameters 'as is'.
-Fine tuning - if necessary - must be done by people who own the card
-and are able to compare behaviour with the windows driver.
+Also on the circuit board: 990000-03A LF
 
-Let's test the patch until next weekend, then I will commit it to HG.
+It has 2 x 3000P-2122a-G / 6121030-A / 0636-200-A
+        1 x 0700C-XCXXa-G / USB2.0 / D2F9Y.7 / 0635-0100-C
+        1 x VT6212L / 0617CD
 
-CU
-Oliver
+> Did you confirm that it doesn't work in the v4l-dvb master repository?
 
-P.S.:
-CI support is not implemented for Activy cards.
+Do you mean build from the leading edge? No, didn't try that.
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+> If that's the case, give me a few days and I'll push in a patch for it.
+
+Brilliant, thanks, but how is that possible? I can imagine it's not a
+huge change to make a new ID recognised, but with the chips being
+different, isn't a huge complicated change? Or are these different
+variants of the same chip?
+
+Cheers,
+	Paul.
+
 
 _______________________________________________
 linux-dvb mailing list
