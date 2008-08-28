@@ -1,27 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7G8dr7E026605
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 04:39:53 -0400
-Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
-	[151.189.21.51])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7G8dbvl019115
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 04:39:38 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>
-In-Reply-To: <20080816134720.37ad63e2@glory.loctelecom.ru>
-References: <20080814093320.49265ec1@glory.loctelecom.ru>
-	<48A4763D.8030509@hccnet.nl>
-	<20080815115954.0be6c5ba@glory.loctelecom.ru>
-	<200808150805.20459.hverkuil@xs4all.nl>
-	<20080816134720.37ad63e2@glory.loctelecom.ru>
-Content-Type: text/plain
-Date: Sat, 16 Aug 2008 10:30:12 +0200
-Message-Id: <1218875412.2668.20.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Mauro@xs4all.nl,
-	Gert Vervoort <gert.vervoort@hccnet.nl>, Chehab <mchehab@infradead.org>
-Subject: Re: MPEG stream work
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7SH88QG009593
+	for <video4linux-list@redhat.com>; Thu, 28 Aug 2008 13:08:08 -0400
+Received: from smtp7-g19.free.fr (smtp7-g19.free.fr [212.27.42.64])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7SH7sIF024645
+	for <video4linux-list@redhat.com>; Thu, 28 Aug 2008 13:07:55 -0400
+Message-ID: <48B6DB6D.2000304@free.fr>
+Date: Thu, 28 Aug 2008 19:07:57 +0200
+From: Thierry Merle <thierry.merle@free.fr>
+MIME-Version: 1.0
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+References: <48B3B8CD.9090503@hhs.nl> <200808262235.12292.hverkuil@xs4all.nl>
+	<48B47511.4010008@hhs.nl>
+In-Reply-To: <48B47511.4010008@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: What todo with cams which have 2 drivers?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,88 +28,104 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hans de Goede a écrit :
+> Hans Verkuil wrote:
+>>
+>> In general I am getting worried by the lack of a common standard to
+>> interface to sensor and controller drivers. I'm no expert on webcams, so
+>> correct me if I'm wrong, but it seems to me that the correct design
+>> would
+>> be to have a generic API to these devices that can be used by the
+>> various
+>> USB or platform drivers.
+>>
+>> But for e.g. the mt9* sensors we have three that use the soc_camera
+>> interface, one using the sn9c102 interface and I know of two more that
+>> are not yet in v4l-dvb but that will use the v4l2-int-device.h
+>> interface.
+>> It's a mess in my opinion.
+>>
+>
+> It is indeed, in my experience so far the easiest solution is to see
+> the bridge and sensor (and this the whole cam) as one device. 80% of
+> the per sensor code in a bridge driver is setting up the bridge to
+> talk to the cam (there are various connections between the 2 possible
+> and most bridges support multiple connection types) and 80% of the
+> sensor code is configuring the sensor for a specific bridge (same
+> story). The remaining 20% of sensor code is rather boring  (poking
+> registers to set things like conteast and brightness) and since the
+> sensor needs to be programmed to talk to the bridge in a bridge
+> specific way there is little to gain from having seperate sensor
+> drivers as those still need to be patched for a new bridge type before
+> the sensor will work with a certain bridge.
+>
+> If you for example look at the attempting to be generic ovchipcam
+> drivers in the current kernel tree, which contain code for the ov6xxx
+> and ov7xxx sensors, then the attach routine contains the following:
+>
+>         switch (adap->id) {
+>         case I2C_HW_SMBUS_OV511:
+>         case I2C_HW_SMBUS_OV518:
+>         case I2C_HW_SMBUS_W9968CF:
+>                 PDEBUG(1, "Adapter ID 0x%06x accepted", adap->id);
+>                 break;
+>         default:
+>                 PDEBUG(1, "Adapter ID 0x%06x rejected", adap->id);
+>                 return -ENODEV;
+>         }
+>
+> IOW this generic sensor code will only work with 3 know bridges and
+> some of the code itself is bridge specific too, for example in ov6x30.c :
+>
+>         if (win->format == VIDEO_PALETTE_GREY) {
+>                 if (c->adapter->id == I2C_HW_SMBUS_OV518) {
+>                         /* Do nothing - we're already in 8-bit mode */
+>                 } else {
+>                         ov_write_mask(c, 0x13, 0x20, 0x20);
+>                 }
+>         } else {
+>                 /* The OV518 needs special treatment. Although both
+> the OV518
+>                  * and the OV6630 support a 16-bit video bus, only the
+> 8 bit Y
+>                  * bus is actually used. The UV bus is tied to ground.
+>                  * Therefore, the OV6630 needs to be in 8-bit multiplexed
+>                  * output mode */
+>
+>                 if (c->adapter->id == I2C_HW_SMBUS_OV518) {
+>                         /* Do nothing - we want to stay in 8-bit mode */
+>                         /* Warning: Messing with reg 0x13 breaks OV518
+> color */
+>                 } else {
+>                         ov_write_mask(c, 0x13, 0x00, 0x20);
+>                 }
+>         }
+>
+> I've done a comparison of code size between trying to use generic
+> sensor code (which isn't that generic at all see above) and just
+> putting sensor specific code into each bridge driver separately, see:
+> http://marc.info/?l=linux-video&m=121645882518114&w=2
+>
+> So my conclusion (for now) is that trying to separate the sensor code
+> out of the bridge drivers is not worth it. I plan to rewrite the
+> ov511/ov518 driver for v4l2 using gspca (so that libv4l can be used to
+> decode the special JPEG-ish format making these cams actually work).
+> For this rewrite I will probably remove the ovcamchip stuff and just
+> put sensor init and ctrl code in the bridge driver, probably resulting
+> in a smaller driver.
+>
+OK and I started to convert the v4l1 w9968cf driver to v4l2, but I will
+do as you, writing a simple gspca module.
+>> I think it would be interesting to discuss this further with you in
+>> Portland.
+>
+> Yes it would, I think we need to make an agenda what we want to
+> discuss (both in the miniconf and outside of that).
+>
+Agreed.
 
-Am Samstag, den 16.08.2008, 13:47 +1000 schrieb Dmitri Belimov:
-> Hi Hans
-> 
-> > > I found problem in v4l2-ctl. This programm can't set correct TV
-> > > norm. After my hack TV norm was set correct.
-> > 
-> > ???
-> > 
-> > $ v4l2-ctl -s secam-dk
-> > Standard set to 00320000
-> > 
-> > v4l2-ctl works fine for me!
-> > 
-> > Are you using the latest v4l2-ctl version from v4l-dvb? I did fix a
-> > bug in SetStandard some time ago (although I think that bug didn't
-> > affect this particular situation either).
-> 
-> This is my error. I run
-> 
-> v4l2-ctl -s=secam-dk -d /dev/video0
-> 
-> It response set TV norm to 0x0b000
-> 
-> When I run
-> 
-> v4l2-ctl -s secam-dk -d /dev/video0
-> 
-> All is OK.
-> 
-> With my best regards, Dmitry.
-
-yes, sorry.
-
-This does explain at least the NTSC-M seen after it and lowers confusion
-on this, after all, amazing and successful story.
-
-However, using v4l2-ctl for setting the correct norm still results in
-losing picture and sound immediately on all FMD1216ME/I MK3 and all
-tda8275a tuners in this machine here.
-
-The same happens with old "v4lctl setnorm PAL-BG".
-The tda8275a is known for not playing nicely with all apps, the FMD1216
-is famous for other issues, but not those.
-
-Eventually I might have a chance in the evening to play with some very
-old tuners to look out for any difference, for now I still say, I can't
-set the norm neither with v4l2-ctl nor v4lctl on all four cards I have
-here and this was my latest contribution to help to debug it.
-
-Cheers,
-Hermann
-
->  
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> > >
-> > > diff -r 42e3970c09aa v4l2-apps/util/v4l2-ctl.cpp
-> > > --- a/v4l2-apps/util/v4l2-ctl.cpp	Sun Jul 27 19:30:46 2008
-> > > -0300 +++ b/v4l2-apps/util/v4l2-ctl.cpp	Fri Aug 15 05:53:38
-> > > 2008 +1000 @@ -1572,6 +1572,7 @@
-> > >  	}
-> > >
-> > >  	if (options[OptSetStandard]) {
-> > > +	  std = 0x320000; // durty hack for SECAM-DK
-> > >  		if (std & (1ULL << 63)) {
-> > >  			vs.index = std & 0xffff;
-> > >  			if (ioctl(fd, VIDIOC_ENUMSTD, &vs) >= 0) {
-> > >
-> > > I have MPEG stream with CORRECT TV data.
-> > > See link:
-> > >
-> > > http://debian.oshec.org/binary/tmp/mpeg02.dat
-> > >
-> > > Yahooooo!
-> > >
-> > > With my best regards, Dmitry.
-> > >
-
+Regards,
+Thierry
 
 --
 video4linux-list mailing list
