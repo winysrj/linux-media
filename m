@@ -1,22 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1KYEI4-0003Dg-CA
-	for linux-dvb@linuxtv.org; Wed, 27 Aug 2008 08:14:02 +0200
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	31DCC18001AC
-	for <linux-dvb@linuxtv.org>; Wed, 27 Aug 2008 06:13:20 +0000 (GMT)
-Content-Disposition: inline
+Message-ID: <48B7218D.7020201@glidos.net>
+Date: Thu, 28 Aug 2008 23:07:09 +0100
+From: Paul Gardiner <lists@glidos.net>
 MIME-Version: 1.0
-From: stev391@email.com
-To: "Thomas Goerke" <tom@goeng.com.au>
-Date: Wed, 27 Aug 2008 16:13:20 +1000
-Message-Id: <20080827061320.298E2104F0@ws1-3.us4.outblaze.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <48B5D5CF.3060401@glidos.net> <48B6083B.5000803@linuxtv.org>	
+	<48B64690.4060205@glidos.net>	
+	<37219a840808280556q2ee85291o7ad1afb75a7ed6f6@mail.gmail.com>	
+	<37219a840808280825i4c867c03u3c2d48888f51dde4@mail.gmail.com>	
+	<48B6CDEB.2060305@glidos.net>	
+	<37219a840808280921g3e602acco6697c4f4af43ec74@mail.gmail.com>	
+	<48B6E525.7070306@glidos.net> <48B6EFE1.3040009@glidos.net>
+	<37219a840808281214r18d90a95s389c1f5d3234bf9f@mail.gmail.com>
+In-Reply-To: <37219a840808281214r18d90a95s389c1f5d3234bf9f@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
- TV/FM capture card
+Subject: Re: [linux-dvb] Looks like there's a new unsupported WinTV Nova T
+ 500 out there
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,93 +29,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-> ----- Original Message -----
-> From: "Thomas Goerke" <tom@goeng.com.au>
-> To: stev391@email.com
-> Subject: RE: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog TV/FM capture card
-> Date: Tue, 26 Aug 2008 21:40:40 +0800
+Michael Krufky wrote:
+> On Thu, Aug 28, 2008 at 2:35 PM, Paul Gardiner <lists@glidos.net> wrote:
+>> Paul Gardiner wrote:
+>> Anyway, thanks for all the friendly advice. I'll let you
+>> know how I get on with the replacement, when it arrives.
 > 
+> You can fix it yourself if you want.... or you can get a replacement
+> -- it's up to you.
 > 
-> > From: stev391@email.com [mailto:stev391@email.com]
-> ---snip---
-> > Thomas,
-> >
-> > I'm happy to give it a go...
-> >
-> > The Zarlink demod is the exact same chip as the Intel one mentioned
-> > previously.  Zarlink sold there demodulator (and possibly others) to
-> > Intel.  The driver in Linux is still known as the Zarlink 10353, this
-> > is not going to be a problem.
-> >
-> > The same windows driver controls both of these cards (and the E300,
-> > E500 both normal and F versions), so they should be pretty similar
-> > (except got for the HW mpeg encoder, and the power on support). (The
-> > driver is based on the reference design as well)
-> >
-> > Create a wiki page for this card with the same information I need for
-> > the E650, hopefully when I get the DVB-T going in one it will be a
-> > simple matter for the other.
-> >
-> > I don't want to get your hopes up with the analog side yet, as I have
-> > not managed to quite work out what I need to do there.
-> >
-> > Thanks for the email
-> >
-> > Regards,
-> >
-> > Stephen
-> >
-> > P.S. Please do not top post, reply to the email at the bottom. This
-> > will help people who are catching up with this thread...
-> >
-> >
-> > --
-> > Be Yourself @ mail.com!
-> > Choose From 200+ Email Addresses
-> > Get a Free Account at www.mail.com
-> Stephen,
+> Based on the information in your dmesg, I can see that the eeprom on
+> your device has gotten erased or corrupted.  Some informative links:
 > 
-> I have created the page as requested:
-> http://linuxtv.org/wiki/index.php/Compro_VideoMate_E800F.
+> http://article.gmane.org/gmane.linux.drivers.dvb/36609
 > 
-> I was able to run the regspy as requested but it was unclear to me how I was
-> supposed to provide you with registry outputs.  Using the save command only
-> seemed to provide vb or java script which didn't include anything specific
-> as to registry contents.  If you can let me know the specific registry entry
-> you are interested in (or a rough description) I can reboot under XP and
-> find these values for you.
-> 
-> Thanks in advance
-> 
-> Tom
+> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg26676.html
 
-Tom,
+That's amazing. I now have a populated /dev/dvb!!
 
-Thanks for doing that, it appears that the two cards (E800F and E650) have the same subvendor and product ids. Also the same i2c output...
+I'm guessing this isn't a great long term solution. Probably
+best if the card goes back, but now I get to have my first
+play with MythTV over the weekend.
 
-So this means that if I make a patch for DVB support in one, it will automatically be loaded for the other.  This however does pose a dilemma when looking at the analog side of the card.  However this can be hopefully tackled at a later stage.
+Thanks again.
 
-The key registers that I'm after are the states of:
-VID_A_INT_MSK
-VID_B_INT_MSK
-VID_C_INT_MSK
-
-As I need to determine which port has the digital stream connected to it.
-
-Typically these are zero when not in use, so if you run the program when the tuner is not in use then run the DVB program you should see a change in state of one of these only.
-
-Can you also tune to an analog channel as well and let me know which one it is on (a, b or c).
-
-Thanks,
-
-Stephen.
-
-
--- 
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
+Cheers,
+	Paul.
 
 
 _______________________________________________
