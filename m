@@ -1,23 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ik-out-1112.google.com ([66.249.90.180])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KWNga-0004gP-VC
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 05:51:41 +0200
-Received: by ik-out-1112.google.com with SMTP id c21so197023ika.1
-	for <linux-dvb@linuxtv.org>; Thu, 21 Aug 2008 20:51:37 -0700 (PDT)
-Message-ID: <412bdbff0808212051i4cfcfe7cnebc6bd0b1c957abc@mail.gmail.com>
-Date: Thu, 21 Aug 2008 23:51:37 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-In-Reply-To: <37219a840808211329j697556fcj760057bb1c7b58a8@mail.gmail.com>
+Message-ID: <48B6ADB3.5010003@glidos.net>
+Date: Thu, 28 Aug 2008 14:52:51 +0100
+From: Paul Gardiner <lists@glidos.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <1219330331.15825.2.camel@dark> <48ADCC81.5000407@nafik.cz>
-	<37219a840808211321k34590d38v7ada0fb9655e5dfe@mail.gmail.com>
-	<412bdbff0808211325h64d454d5m3353d8756b9eb737@mail.gmail.com>
-	<37219a840808211329j697556fcj760057bb1c7b58a8@mail.gmail.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <48B5D5CF.3060401@glidos.net> <48B6083B.5000803@linuxtv.org>	
+	<48B64690.4060205@glidos.net>
+	<37219a840808280556q2ee85291o7ad1afb75a7ed6f6@mail.gmail.com>
+In-Reply-To: <37219a840808280556q2ee85291o7ad1afb75a7ed6f6@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dib0700 and analog broadcasting
+Subject: Re: [linux-dvb] Looks like there's a new unsupported WinTV Nova T
+ 500 out there
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,28 +24,95 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 21, 2008 at 4:29 PM, Michael Krufky
-> Lets sync up when you get to that point -- I have a good chunk of code
-> written that will add analog support to the dvb-usb framework as an
-> optional additional adapter type.
->
-> Hopefully I'll get more work done on it before then, but if not, this
-> is at least a good starting point.
->
-> The idea is to add support to the framework so that the sub-drivers
-> (such as dib0700, cxusb et al) can all use the common code.
->
-> CX25843 is already supported, just the dvb-usb framework currently
-> lacks a v4l2 interface.
+Michael Krufky wrote:
+> On Thu, Aug 28, 2008 at 2:32 AM, Paul Gardiner <lists@glidos.net> wrote:
+>> Michael Krufky wrote:
+>>> Paul Gardiner wrote:
+>>>> Just trying to get MythTV up and running, plugged in my
+>>>> newly arrived WinTV Nova T 500 and no /dev/dvb directory
+>>>> appeared. It's not the known probelmatic Diversity version,
+>>>> but it does say v2.1 on the box, and it seems to have
+>>>> different chips. :-(
+>>>>
+>>>> Just thought I'd warn people and maybe ask if anyone
+>>>> else has run into this.
+>>> What is the 5-digit model number of your PCI card?
+>> Says 99101 LF
+>>     Rev D8B5
+>>
+>> Also on the circuit board: 990000-03A LF
+>>
+>> It has 2 x 3000P-2122a-G / 6121030-A / 0636-200-A
+>>       1 x 0700C-XCXXa-G / USB2.0 / D2F9Y.7 / 0635-0100-C
+>>       1 x VT6212L / 0617CD
+> 
+> 
+> Based on the info above, it looks like you have a board that actually
+> *is* supported in the mercurial repository.
 
-Will do.  I'm going back and forth now with Patrick to get his new
-firmware and i2c interface integrated which will hopefully cause my
-xc5000 to start working.
+Great I hope that's right.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+>>> Did you confirm that it doesn't work in the v4l-dvb master repository?
+>> Do you mean build from the leading edge? No, didn't try that.
+
+Sorry, I'm being daft. I think that may have been exactly what I did. (I
+was thinking there might be separate stable and beta releases or 
+something when I replied before)
+I did:
+
+   hg clone http://linuxtv.org/hg/v41-dvb
+   cd v41-dvb
+   make
+   su
+   make install
+
+
+I overlooked
+
+   make load
+
+but I've just repeated the process and remembered this time, and I
+still have no /dev/dvb directory. dvb_usb_dib0700 doesn't load
+automatically at boot. I can modprobe it, but still no /dev/dvb
+directory.
+
+> Please test the linuxtv.org v4l-dvb master development repository and
+> confirm -- if it is still not recognized, then let me know.
+> 
+> 
+>>> If that's the case, give me a few days and I'll push in a patch for it.
+>> Brilliant, thanks, but how is that possible? I can imagine it's not a
+>> huge change to make a new ID recognised, but with the chips being
+>> different, isn't a huge complicated change? Or are these different
+>> variants of the same chip?
+> 
+> It might be no change at all.  I'd look it up in the code, but I don't
+> even know what the usb ID's of your device are, offhand -- what are
+> they?  (do "lsusb -n | grep 2040" )
+
+I get no output from that.
+
+> You should really try the development repository before you go off
+> telling other people that the card isnt supported.
+
+Sorry, new to all this
+
+> If it turns out, in fact, that your card isn't supported, then we'll
+> be able to take care of that quickly.
+
+Wow! I'm surprised you can be that certain. I don't want to keep hold
+of the card too long in case I miss the deadline for returning it, but
+I'll certainly keep hold of it while you think support is likely (would
+be rude to accept your help and then not even be in a position to test).
+
+Thanks very much for the help.
+
+Cheers,
+	Paul.
+
+P.S. This could be some unrelated problem, like could my motherboard 
+support only PCI2.1?
+
 
 _______________________________________________
 linux-dvb mailing list
