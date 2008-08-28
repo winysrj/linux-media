@@ -1,28 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nschwmtas04p.mx.bigpond.com ([61.9.189.146])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mickhowe@bigpond.net.au>) id 1KOm3P-0008BY-7O
-	for linux-dvb@linuxtv.org; Fri, 01 Aug 2008 06:15:49 +0200
-Received: from nschwotgx03p.mx.bigpond.com ([58.165.93.19])
-	by nschwmtas04p.mx.bigpond.com with ESMTP id
-	<20080801041507.QKVB19703.nschwmtas04p.mx.bigpond.com@nschwotgx03p.mx.bigpond.com>
-	for <linux-dvb@linuxtv.org>; Fri, 1 Aug 2008 04:15:07 +0000
-Received: from fini.bareclan ([58.165.93.19])
-	by nschwotgx03p.mx.bigpond.com with ESMTP
-	id <20080801041507.EWZH9085.nschwotgx03p.mx.bigpond.com@fini.bareclan>
-	for <linux-dvb@linuxtv.org>; Fri, 1 Aug 2008 04:15:07 +0000
-From: mick <mickhowe@bigpond.net.au>
-To: linux-dvb@linuxtv.org
-Date: Fri, 1 Aug 2008 14:15:05 +1000
-References: <200807161621.42016.mickhowe@bigpond.net.au>
-	<1216232348.2669.35.camel@pc10.localdom.local>
-	<200807301244.17219.mickhowe@bigpond.net.au>
-In-Reply-To: <200807301244.17219.mickhowe@bigpond.net.au>
+Received: from gateway16.websitewelcome.com ([69.56.160.2])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <skerit@kipdola.com>) id 1KYowf-0003KC-TH
+	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 23:22:22 +0200
+Message-ID: <48B71706.3000504@kipdola.com>
+Date: Thu, 28 Aug 2008 23:22:14 +0200
+From: Jelle De Loecker <skerit@kipdola.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200808011415.06162.mickhowe@bigpond.net.au>
-Subject: Re: [linux-dvb] Leadtek DTV2000H rev J - no digital tv,
-	no sound but I have got analog vision
+To: Hans Werner <HWerner4@gmx.de>, v4l-dvb-maintainer@linuxtv.org,
+	linux-dvb@linuxtv.org
+References: <20080821173909.114260@gmx.net> <20080823200531.246370@gmx.net>
+In-Reply-To: <20080823200531.246370@gmx.net>
+Subject: Re: [linux-dvb] Future of DVB-S2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,89 +19,172 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0044520117=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 30 Jul 2008 12:44:16 mick wrote:
-> On Thu, 17 Jul 2008 04:19:08 you wrote:
-> > Hi Mick,
-> >
-> > Am Mittwoch, den 16.07.2008, 16:21 +1000 schrieb mick:
-> > > A couple of days ago I finally managed to get the latest source for
-> > > v4l-dvb to d/l & build and then add a patch (from a croatian
-> > > contributor - lost the link) for my Leadtek DTV2000H rev J.
-> > >
-> > > I now have picture on analog using either motv or tvtime applications
-> > > but can get no sound or digital tv.
-> > >
-> > > Where can I turn next?
-> > >
-> > > /]/]ik
-> >
-> > have a look at the patch here and further messages.
-> > http://www.spinics.net/lists/vfl/msg37257.html
+This is a multi-part message in MIME format.
+--===============0044520117==
+Content-Type: multipart/alternative;
+ boundary="------------050700070302060209050908"
+
+This is a multi-part message in MIME format.
+--------------050700070302060209050908
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Yet all we need is some clarification on what's going to happen in the 
+future.
+
+/Met vriendelijke groeten,/
+
+*Jelle De Loecker*
+Kipdola Studios - Tomberg
+
+
+
+Hans Werner schreef:
+>> An: linux-dvb@linuxtv.org, mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org
+>> Betreff: [linux-dvb] Future of DVB-S2
+>>     
 >
-> I downloaded the latest v4l-dvb and this patch (which contains a patch to
-> cx88-mpeg.c that wasn't in the patch I had), applied it and got the
-> following error trying to build.
+>   
+>> A question to the maintainer:
+>>
+>> what is your plan for getting DVB-S2 support into the mainline kernel?
+>>
+>> So many people have put so much time and effort into creating a working
+>> API, drivers
+>> and applications but I have seen no indications of the direction and
+>> timescale anywhere.
+>>
+>> All this work is of very little value if it does not end up in the
+>> mainline kernel. Maintaining
+>> out-of-kernel projects and patches over the long term is a terrible waste
+>> of effort for
+>> maintainers, developers and experienced users. It also makes Linux DVB
+>> look less than
+>> professional, and is almost worthless to most end users.
+>>
+>> Working code already exists but it needs to be managed into a form that
+>> can be merged
+>> with the kernel.
+>>
+>> So how is it going to be done? It's really not that hard.
+>>     
 >
-> root@cave:~/v4l-dvb# make
-> make -C /root/v4l-dvb/v4l
-> make[1]: Entering directory `/root/v4l-dvb/v4l'
-> creating symbolic links...
-> Kernel build directory is /lib/modules/2.6.26cave1/build
-> make -C /lib/modules/2.6.26cave1/build SUBDIRS=/root/v4l-dvb/v4l  modules
-> make[2]: Entering directory `/usr/src/linux-2.6.26'
->   CC [M]  /root/v4l-dvb/v4l/cx88-video.o
->   CC [M]  /root/v4l-dvb/v4l/cx88-vbi.o
->   CC [M]  /root/v4l-dvb/v4l/cx88-mpeg.o
-> /root/v4l-dvb/v4l/cx88-mpeg.c: In function 'cx8802_start_dma':
-> /root/v4l-dvb/v4l/cx88-mpeg.c:108: error: invalid operands to binary ==
-> make[3]: *** [/root/v4l-dvb/v4l/cx88-mpeg.o] Error 1
-> make[2]: *** [_module_/root/v4l-dvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-2.6.26'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/root/v4l-dvb/v4l'
-> make: *** [all] Error 2
-> root@cave:~/v4l-dvb#
+> Bump.
 >
-> The failing code is
-> ...
-> 	/* FIXME: this needs a review.
-> 	 * also: move to cx88-blackbird + cx88-dvb source files? */
-> /*****/
-> 	if ((core->board) == CX88_BOARD_WINFAST_DTV2000H_J)
->                   cx_write(MO_GP0_IO, 0x00017300);
-> /******/         /*switch signal input to antena*/
+> It's disappointingly silent so far....
 >
-I think I have found the problem with that bit of code;
-replacing Zbynek Hrabovsky's patch of cx88-mpeg.c with:
-diff -Naur /usr/src/linux/drivers/media/video/cx88/cx88-mpeg.c /usr/src/linux/drivers/media/video/cx88-patched/cx88-mpeg.c
---- /usr/src/linux/drivers/media/video/cx88/cx88-mpeg.c	2007-10-09 
-22:31:38.000000000 +0200
-+++ /usr/src/linux/drivers/media/video/cx88-patched/cx88-mpeg.c	2008-01-07 
-23:28:29.000000000 +0100
-@@ -103,6 +103,7 @@
- 	/* FIXME: this needs a review.
- 	 * also: move to cx88-blackbird + cx88-dvb source files? */
+> In the interest of making progress I will be more specific.
+>  
+> It is easily possible to use the work that has already been done to quickly create (and debug
+> and merge) kernel patches which will provide support for one or more DVB-S2 cards.
+>
+> But before such patches can be created,  there needs to be a clear statement about
+> which API changes (if any) will be permitted.
+>
+> How will the API change? Who is going to make the decision? When?
+>
+> Hopefully,
+> Hans
+>
+>   
+
+--------------050700070302060209050908
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Yet all we need is some clarification on what's going to happen in the
+future.<br>
+<div class="moz-signature"><br>
+<em>Met vriendelijke groeten,</em>
+<br>
+<br>
+<strong>Jelle De Loecker</strong>
+<br>
+Kipdola Studios - Tomberg <br>
+<br>
+</div>
+<br>
+<br>
+Hans Werner schreef:
+<blockquote cite="mid:20080823200531.246370@gmx.net" type="cite">
+  <blockquote type="cite">
+    <pre wrap="">An: <a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>, <a class="moz-txt-link-abbreviated" href="mailto:mchehab@infradead.org">mchehab@infradead.org</a>, <a class="moz-txt-link-abbreviated" href="mailto:v4l-dvb-maintainer@linuxtv.org">v4l-dvb-maintainer@linuxtv.org</a>
+Betreff: [linux-dvb] Future of DVB-S2
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">A question to the maintainer:
+
+what is your plan for getting DVB-S2 support into the mainline kernel?
+
+So many people have put so much time and effort into creating a working
+API, drivers
+and applications but I have seen no indications of the direction and
+timescale anywhere.
+
+All this work is of very little value if it does not end up in the
+mainline kernel. Maintaining
+out-of-kernel projects and patches over the long term is a terrible waste
+of effort for
+maintainers, developers and experienced users. It also makes Linux DVB
+look less than
+professional, and is almost worthless to most end users.
+
+Working code already exists but it needs to be managed into a form that
+can be merged
+with the kernel.
+
+So how is it going to be done? It's really not that hard.
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+Bump.
+
+It's disappointingly silent so far....
+
+In the interest of making progress I will be more specific.
  
-+	if ((core->boardnr) == CX88_BOARD_WINFAST_DTV2000H_2)
-+                 cx_write(MO_GP0_IO, 0x00017300);
-+             /*switch signal input to antena*/
- 	dprintk( 1, "core->active_type_id = 0x%08x\n", core->active_type_id);
- 
- 	if ( (core->active_type_id == CX88_MPEG_DVB) &&
+It is easily possible to use the work that has already been done to quickly create (and debug
+and merge) kernel patches which will provide support for one or more DVB-S2 cards.
 
-compiles successfully.
+But before such patches can be created,  there needs to be a clear statement about
+which API changes (if any) will be permitted.
 
-still can't get the a tv app to find channels
+How will the API change? Who is going to make the decision? When?
 
-mick
+Hopefully,
+Hans
+
+  </pre>
+</blockquote>
+</body>
+</html>
+
+--------------050700070302060209050908--
+
+
+--===============0044520117==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0044520117==--
