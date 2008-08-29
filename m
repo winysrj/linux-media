@@ -1,23 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1KWa0F-0007A9-Ly
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 19:00:48 +0200
-Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
-	[84.70.212.195])
-	by mail.youplala.net (Postfix) with ESMTP id 04D97D880A4
-	for <linux-dvb@linuxtv.org>; Fri, 22 Aug 2008 18:59:44 +0200 (CEST)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <412bdbff0808220952y16d36f3by646f0000991de4d3@mail.gmail.com>
-References: <1219330331.15825.2.camel@dark> <48ADF515.6080401@nafik.cz>
-	<1219360304.6770.34.camel@youkaida> <1219423326.29624.8.camel@youkaida>
-	<1219423493.29624.9.camel@youkaida>
-	<412bdbff0808220952y16d36f3by646f0000991de4d3@mail.gmail.com>
-Date: Fri, 22 Aug 2008 17:59:46 +0100
-Message-Id: <1219424386.29624.16.camel@youkaida>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] dib0700 and analog broadcasting
+	(envelope-from <stoth@linuxtv.org>) id 1KZ4eu-0004Aq-DT
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 16:09:05 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6D009JH8M13XK0@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 29 Aug 2008 10:08:26 -0400 (EDT)
+Date: Fri, 29 Aug 2008 10:08:24 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48B7A60C.4050600@kipdola.com>
+To: Jelle De Loecker <skerit@kipdola.com>
+Message-id: <48B802D8.7010806@linuxtv.org>
+MIME-version: 1.0
+References: <20080821173909.114260@gmx.net> <20080823200531.246370@gmx.net>
+	<48B78AE6.1060205@gmx.net> <48B7A60C.4050600@kipdola.com>
+Cc: LinuxTV DVB Mailing <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Future of DVB-S2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,60 +32,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 2008-08-22 at 12:52 -0400, Devin Heitmueller wrote:
-> On Fri, Aug 22, 2008 at 12:44 PM, Nicolas Will <nico@youplala.net>
-> wrote:
-> > In /etc/modprobe.d/options, I have:
-> > # Load DVB-T before DVB-S
-> > install cx88-dvb /sbin/modprobe dvb-usb-dib0700; /sbin/modprobe
-> > --ignore-install cx88-dvb
-> >
-> > # Hauppauge WinTV NOVA-T-500
-> > options dvb-usb-dib0700 force_lna_activation=1
-> > options usbcore autosuspend=-1
-> 
-> Interesting.  I installed the firmware, and although it hasn't helped
-> my particular issue (and it's behaving identically to 1.10), it hasn't
-> crashed my environment.  On the other hand, my failures occur fairly
-> early in the initialization so the problem may be further into startup
-> than I have gotten with my device.  I am running 8.04 with the latest
-> kernel and v4l-dvb code.
-> 
-> Does it happen right after you plug the device in, or does it not
-> occur until you start a video application?
+>> 1. We decide multiproto is awesome, it's status is not that bad and the 
+>> future path. Fix it and put it in hg.
+>>
+>> 2. Multiproto is NOT the way to go in the future, or it's too messed up 
+>> and too much work to fix. In that case, forget about any other new 
+>> protocol other than DVB-S2 and port the drivers for the DVB-S2 cards to 
+>> hg. Apps will get patched soon enough as soon as S2 goes in-kernel.
 
-Difficult to say.
+These aren't the only options.
 
-The Nova-T 500 is a PCI card. It has a Via usb controller and the USB
-dib0700 behing on the card.
+> I just hope the developper understand US.
 
-As for the application, I do not think I have to enter X. I can check,
-though.
+... and yes, many people understand you.
 
-I have my MythTV setup so that it doesn't grab the cards for good from
-the get go. It will only get to them when it needs to record.
+> We know all about the "coding in your free time" and we can only have 
+> the highest respect for that, but the drivers are completely abandonded, 
+> and that's how we feel, too.
 
+No, and that's my HVR4000 code you're talking about (and the good work 
+of Darron Broad, which was then picked up by Igor). The driver is 
+marginalized, it's not abandoned.
 
-> 
-> If it occurs immediately on connect, perhaps you could jump out of X11
-> to the console before plugging it in, to see if there is any panic
-> output prior to the reboot.
+The HVR4000 situation is under review, the wheels are slowly turning.... 
+just not fast enough for many of you - I guess.
 
-As it is a PCI card, that will be difficult.
-
-> 
-> Also, I can't think of why this would happen, but could you send the
-> md5sum of your firmware file so we can make sure it wasn't corrupted?
-
-I have though of that, hence the new download and the already provided
-md5sum:
-
-> The md5sum I have is the following for the firmware file:
-> f42f86e2971fd994003186a055813237  dvb-usb-dib0700-1.20.fw
-
-Nico
-
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
