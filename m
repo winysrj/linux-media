@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from fg-out-1718.google.com ([72.14.220.156])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1KPj7w-0004G8-J8
-	for linux-dvb@linuxtv.org; Sun, 03 Aug 2008 21:20:25 +0200
-From: Andy Walls <awalls@radix.net>
-To: Brian Steele <steele.brian@gmail.com>
-In-Reply-To: <5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
-References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
-	<1217728894.5348.72.camel@morgan.walls.org>
-	<5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
-Date: Sun, 03 Aug 2008 15:20:14 -0400
-Message-Id: <1217791214.2690.31.camel@morgan.walls.org>
-Mime-Version: 1.0
+	(envelope-from <mkrufky@gmail.com>) id 1KZCEe-0006wW-Ey
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 00:14:31 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so653158fga.25
+	for <linux-dvb@linuxtv.org>; Fri, 29 Aug 2008 15:14:25 -0700 (PDT)
+Message-ID: <37219a840808291514o76704d60t63986edf391e699f@mail.gmail.com>
+Date: Fri, 29 Aug 2008 18:14:25 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Tim Lucas" <lucastim@gmail.com>
+In-Reply-To: <e32e0e5d0808291401x39932ab6q6086882e81547f84@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <e32e0e5d0808291401x39932ab6q6086882e81547f84@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1600 - No audio
+Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
+	HVR-1500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,147 +29,122 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 2008-08-03 at 10:49 -0700, Brian Steele wrote:
-> On Sat, Aug 2, 2008 at 7:01 PM, Andy Walls <awalls@radix.net> wrote:
-> > On Tue, 2008-07-29 at 19:34 -0700, Brian Steele wrote:
-> >
-> >
-> >> cx18-0: VIDIOC_QUERYCTRL id=0x980909, type=2, name=Mute, min/max=0/1,
-> >> step=1, default=0, flags=0x00000000
+2008/8/29 Tim Lucas <lucastim@gmail.com>:
+> Mijhail Moreyra wrote:
+>> Steven Toth wrote:
+>>> Mijhail Moreyra wrote:
+>>>> Steven Toth wrote:
+>>>>> Mijhail,
+>>>>>
+>>>>> http://linuxtv.org/hg/~stoth/cx23885-audio
+>>>>>
+>>>>> This tree contains your patch with some minor whitespace cleanups
+>>>>> and fixes for HUNK related merge issues due to the patch wrapping at
+>>>>> 80 cols.
+>>>>>
+>>>>> Please build this tree and retest in your environment to ensure I
+>>>>> did not break anything. Does this tree still work OK for you?
+>>>>>
+>>>>> After this I will apply some other minor cleanups then invite a few
+>>>>> other HVR1500 owners to begin testing.
+>>>>>
+>>>>> Thanks again.
+>>>>>
+>>>>> Regards,
+>>>>>
+>>>>> Steve
+>>>>
+>>>> Hi, sorry for the delay.
+>>>>
+>>>> I've tested the http://linuxtv.org/hg/~stoth/cx23885-audio tree and
+>>>> it doesn't work well.
+>>>>
+>>>> You seem to have removed a piece from my patch that avoids some register
+>>>> modification in cx25840-core.c:cx23885_
+> initialize()
+>>>>
+>>>> -       cx25840_write(client, 0x2, 0x76);
+>>>> +       if (state->rev != 0x0000) /* FIXME: How to detect the bridge
+>>>> type ??? */
+>>>> +               /* This causes image distortion on a true cx23885
+>>>> board */
+>>>> +               cx25840_write(client, 0x2, 0x76);
+>>>>
+>>>> As the patch says that register write causes a horrible image distortion
+>>>> on my HVR-1500 which has a real cx23885 (not 23887, 23888, etc) board.
+>>>>
+>>>> I don't know if it's really required for any bridge as everything seems
+>>>> to be auto-configured by default, maybe it can be simply dropped.
+>>>>
+>>>> Other than that the cx23885-audio tree works well.
+>>>>
+>>>> WRT the whitespaces, 80 cols, etc; most are also in the sources I took
+>>>> as basis, so I didn't think they were a problem.
+>>>
+>>> That's a mistake, I'll add that later tonight, thanks for finding
+>>> this. I must of missed it when I had to tear apart your email because
+>>> of HUNK issues caused by patch line wrapping.
+>>>
+>>> Apart from this, is everything working as you expect?
+>>>
+>>> Regards,
+>>>
+>>> Steve
+>>>
+>>>
+>>
+>> OK.
+>>
+>> And sorry about the patch, I didn't know it was going to be broken that
+>> way by being sent by email.
+>>
+>>  >> Other than that the cx23885-audio tree works well.
+>>
+>
+>> Great, thanks for confirming.
+>
+>> Regards,
+>
+>> Steve
+> I'll try asking again since my replies in gmail were not including the
+> correct subject heading.
+> Can this code for cx23885 analog support be adapted for the DViCO Fusion
+> HDTV7 Dual Express which also uses the cx23885?  Currently the driver for
+> that card is digital only and I am stuck with a free antiquated large
+> satellite system that is analog only in my apartment. I am willing to put in
+> the work if someone can point me in the right direction.  Thank you,
 
-This one is V4L2_CID_AUDIO_MUTE, as defined in
-"include/linux/videodev2.h", being translated into "Mute".  This should
-correspond to mute of the cx18-av-core
+Tim,
 
+The patch currently being tested only enables the analog video path on
+the HVR1500, but this does lay down the ground work to bring up analog
+on all of the other cards.
 
-> >> cx18-0: VIDIOC_QUERYCTRL id=0x98090a, type=2, name=Mute, min/max=0/1,
-> >> step=1, default=0, flags=0x00000001
+If the HVR1500 is working properly, then it will be easy to add analog
+support for the HVR1500Q ... Once that is done, the exact same code
+(for analog) will be reused for the FusionHDTV7 Dual.
 
-This one is V4L2_CID_AUDIO_LOUDNESS, as defined in
-"include/linux/videodev2.h" being translated into "Mute".  I have to
-check on why this is.  I'm getting the same thing on my system.
+Keep in mind, however, that you will only get ONE analog video device
+on the F7 Dual, and that you must not try to use the first DVB adapter
+while using the analog on that board.  You can always use the 2nd
+adapter , though.
 
-Trying to set the "loudness" in the cx18-av-core will fail with -EINVAL.
+Actually, I think it might be a good idea to reverse the registration
+order of the DVB adapters in the cx23885 driver, but I'll have to talk
+to Steve about that.
 
+I think it makes more sense to register VIDC first, since VIDC is
+always going to be a DTV device, where there *might* be an encoder on
+VIDB.
 
-> >> cx18-0: VIDIOC_QUERYCTRL id=0x99096d, type=2, name=Audio Mute,
-> >> min/max=0/1, step=1, default=0, flags=0x00000000
+VIDB may or may not share a tuner with VIDA, but VIDC will always be
+independant.
 
-This corresponds to V4L2_CID_MPEG_AUDIO_MUTE.  This should mute via the
-MPEG encoder in the cx23418.
-
-
-> > IIRC, one mute is for the audio processing paths in the cx18-av-core,
-> > the other mute is for muting the audio in the MPEG encoder.
-> 
-> Looking at the code it looks like the one named "Audio Mute" is for
-> the MPEG encoder and the one named "Mute" is for cx18-av-core.  As you
-> can see there are three mutes with different ids in my output.  This
-> seems very odd to me.
-
-It sure is.  I have to investigate how "loudness" is getting translated
-to "mute".  But in the meantime, my system at least shows the correct
-mute control is being accessed by v4l2-ctl.
-
-$ ./v4l2-ctl -d /dev/video0 --get-ctrl="mute"
-
-shows in dmesg that
-
-cx18-0: VIDIOC_QUERYCTRL id=0x0
-cx18-0: VIDIOC_QUERYCTRL error -22
-cx18-0: VIDIOC_G_CTRL id=0x980909, value=0
-cx18-0 ioctl: close() of encoder MPEG
-
-So the get ioctl is actually using the correct control id of
-V4L2_CID_AUDIO_MUTE.
-
-With
-
-$ ./v4l2-ctl -d /dev/video0 --set-ctrl="mute"=1
-
-dmesg shows
-
-cx18-0: VIDIOC_QUERYCTRL id=0x0
-cx18-0: VIDIOC_QUERYCTRL error -22
-cx18-0: VIDIOC_S_CTRL id=0x980909, value=1
-cx18-0 ioctl: close() of encoder MPEG
-
-So the set is happening on the correct control as well, and should be
-commanding the cx18-av core hardware as well.  The problem is the
-microcontroller may be working against you by automatically muting
-things in the cx18-av core  hardware until it detects an audio standard
-in the SIF.
-
-
-> >> I'm using v4l-dvb pulled from hg about 2 hours ago.  Does anybody have
-> >> any ideas what else I can do to debug this or how to fix it?
-> >
-> > First make sure that line in audio from a portable DVD player or VCR
-> > still works.  Just to make sure that in fact tuner audio is the only
-> > problem.
-> 
-> I plugged a camcorder into S-Video1 and successfully captured audio
-> when I did playback from the camcorder.  I think this confirms that
-> tuner audio is the only problem.
-
-OK.
-
-> > Then with tuner video & audio, you need to try to get the system to a
-> > state where the audio microcontroller in the cx18-av-core actually
-> > detects a sound standard in the SIF audio coming from the tuner.  Try
-> > changing channels and see if there is any channel that gives you sound -
-> > or at least shows that the microcontroller has detected a sound
-> > standard.
-> >
-> > If that doesn't work, I look into how you can manually have the MPEG
-> > encoder fall back to using Tuner AF (mono) instead of Tuner SIF audio.
-> > Then we can make sure at least determine if the chips in the tuner are
-> > demodulating the sound carrier properly.
-> 
-> I tried about 7 different channels.  None of them showed a detected
-> audio standard and none of them had any sound when I did test
-> captures.  All my test captures have good video.
-
-OK.  I'm going to assume you're working with the latest version of the
-cx18-av microcontroller firmware
-( http://dl.ivtvdriver.org/ivtv/firmware/cx18-firmware.tar.gz ).
-
-So we'll go with the tried and true axiom of "the bug was caused by the
-last thing I changed".
-
-On Jul 23 & 25 I made some changes to the cx18-av-audio.c file to fix
-the 32 kHz sample rate, lock the Video PLL and Audio PLL together, and
-fine tune the video sample rate PLL values.
-
-I've just put in a small change at 
-
-http://linuxtv.org/hg/~awalls/v4l-dvb
-
-to back out the part of the change that locked the video PLL & the audio
-PLL together for both tuner and line in audio.
-
-See if that change makes things work for you.
-
-
-BTW, Did the cx18 driver ever work properly for tuner audio for you
-before?
-
-> > (Also note that the first analog capture after modprobe cx18 will not
-> > work right: it will have no audio or choppy audio.  Every subsequent
-> > capture should work fine.)
-> 
-> Yes, I've seen this.  I continue to have no audio from the tuner after
-> numerous captures.
-
-OK.
+What do you think about that, Steve?
 
 Regards,
-Andy
 
-> Thanks,
-> Brian
-
-
+Mike
 
 _______________________________________________
 linux-dvb mailing list
