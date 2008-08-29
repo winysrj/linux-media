@@ -1,16 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jonathan Brandmeyer <jbrandmeyer@earthlink.net>
-In-Reply-To: <1218250532.9331.21.camel@pheonix>
-References: <1218239652.9331.6.camel@pheonix> <489CF205.9080409@linuxtv.org>
-	<1218247210.9331.7.camel@pheonix>
-	<1218248080.2670.14.camel@pc10.localdom.local>
-	<1218250532.9331.21.camel@pheonix>
-Date: Sat, 09 Aug 2008 05:20:02 +0200
-Message-Id: <1218252002.2670.24.camel@pc10.localdom.local>
-Mime-Version: 1.0
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1KZ8o5-0005Ov-AG
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 20:34:51 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6D008GHKWXS8G0@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 29 Aug 2008 14:34:10 -0400 (EDT)
+Date: Fri, 29 Aug 2008 14:34:09 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080829182618.74790@gmx.net>
+To: Hans Werner <HWerner4@gmx.de>
+Message-id: <48B84121.8090400@linuxtv.org>
+MIME-version: 1.0
+References: <20080821173909.114260@gmx.net> <20080823200531.246370@gmx.net>
+	<48B78AE6.1060205@gmx.net> <48B7A60C.4050600@kipdola.com>
+	<48B802D8.7010806@linuxtv.org> <20080829154342.74800@gmx.net>
+	<37219a840808290852k4cafb891tbf35162d3add6d60@mail.gmail.com>
+	<48B81DB6.9030206@linuxtv.org> <20080829182618.74790@gmx.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1250 IR support
+Subject: Re: [linux-dvb] [PATCH] Future of DVB-S2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,54 +35,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-Am Freitag, den 08.08.2008, 22:55 -0400 schrieb Jonathan Brandmeyer:
-> On Sat, 2008-08-09 at 04:14 +0200, hermann pitton wrote:
-> > Am Freitag, den 08.08.2008, 22:00 -0400 schrieb Jonathan Brandmeyer:
-> > > On Fri, 2008-08-08 at 21:25 -0400, Steven Toth wrote:
-> > > > Jonathan Brandmeyer wrote:
-> > > > > A few months ago, Steven Toth mentioned that it would "be a while"
-> > > > > before he could get around to getting the IR to work on the HVR-1250.
-> > > > > Has he made progress on that front?  I've done some kernel programming
-> > > > > in the past and would be willing to work on it if someone would be kind
-> > > > > enough to point me in the right direction.
-> > > > 
-> > > > I have not worked on IR, it's not a priority for me.
-> > > 
-> > > What would it take to get it working?  Is there proper documentation for
-> > > it?
-> > > 
-> > > -Jonathan
-> > > 
-> > 
-> > Don't get it wrong,
-> > 
-> > but don't you realize, that you are somehow off ...?
-> > 
-> > You always ask, tell me how it works and then I make it work ...
-> > 
-> > If it would be such simple, you won't have to ask at all.
-> > 
-> > Please stop or report at least what you tried already.
 > 
-> I read the source for cx23885_ir_init().  The line /* FIXME: Implement
-> me */ was a useful hint.  Beyond that, I've searched on the conexant
-> website and various permutations of googling for cx23885, datasheet,
-> specification, documentation, etc.
+>> ... as I say, the wheels are turning so keep watching this mailing list.
 > 
-> -Jonathan
-> 
+> Tantalising.... Do you mean you and Darron are working on something? Or you 
+> know of something else specific?
 
-OK.
+You should of seen a bigger DVB-S2 multiproto statement on list ML by now.
 
-Should be _really_ enough for a first try.
-
-All other further (un)known limitations are not on your bill then.
-
-Thanks,
-Hermann
-
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
