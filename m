@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n68.bullet.mail.sp1.yahoo.com ([98.136.44.44])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KWT5C-0001ga-4B
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 11:37:27 +0200
-Date: Fri, 22 Aug 2008 02:36:49 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: linux-dvb@linuxtv.org, Kristo Czaja <kc0@wp.pl>
-In-Reply-To: <48AE7777.3050106@wp.pl>
+Received: from an-out-0708.google.com ([209.85.132.245])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <owen.townend@gmail.com>) id 1KYvYK-00083G-NU
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 06:25:51 +0200
+Received: by an-out-0708.google.com with SMTP id c18so112494anc.125
+	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 21:25:35 -0700 (PDT)
+Message-ID: <bb72339d0808282125g59a24920o6af8b41ccfa1f15c@mail.gmail.com>
+Date: Fri, 29 Aug 2008 14:25:35 +1000
+From: "Owen Townend" <owen.townend@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <48B59989.4080004@interia.pl>
 MIME-Version: 1.0
-Message-ID: <297718.19837.qm@web46115.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] DVB-T DiBcom STK7070P: no video
-Reply-To: free_beer_for_all@yahoo.com
+Content-Disposition: inline
+References: <48B59989.4080004@interia.pl>
+Subject: Re: [linux-dvb] saa7162. Aver saa7135 cards. User stupid questions.
+	More or less.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,53 +28,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Fri, 8/22/08, Kristo Czaja <kc0@wp.pl> wrote:
+2008/8/28  <mincho@interia.pl>:
+> Hi.
+> saa7162
+> Maybe thats really stupid question, but I greped and googled very
+> intensive and I am not sure.
+> What is recent status of saa7162 driver?
+> Am I wrong - work is frozen due to missing specs?
+> So should I assume - that schmeltz will not work under linux for long
+> time more?
+>
+> Aver DVB-T Hybrid+FM PCI A16D.
+> I found (on wiki page), that this card is poor supported.
+> But I did not found 777 A16A-C at all.
+> I have A16A-C and it works excellent.
+> What is recent status for Hybrid+FM PCI A16D?
+>
+> Regards
+> --
+> Wieslaw Kirbedz
 
-> dvbscan pl-Warsaw:
-> TVP1:690000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:104:1
-> TVP2:690000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:204:2
+Hey,
+ The wiki page for the AVerMedia DVB-T Hybrid+FM PCI (A16D) shows that
+the card is actually well supported using the linuxtv repository. I
+wrote/updated much of the A16D wiki section as I own one of these.
+ Both digital and analogue work well (except for analogue audio under
+Ubuntu - saa7134-alsa issues)
+ I haven't yet tried to use the remote but there was a post earlier by
+someone who is working on getting it mapped.
 
-Google shows me that apparently the DVB-T signal is using the
-H.264 video codec, plus AC3 audio.  Apparently you're getting
-an mp2 audio stream on PID 204 for TVP2, but your `dvbscan'
-is failing to recognize the video stream as AVC and it shows
-up above as `0'.
+ If you have a new type of card that is working could you please
+create a page for it in the wiki, add as much info as you can and add
+it to the table here[1].
 
+cheers,
+Owen.
 
-> Odtwarzam /dev/dvb/adapter0/dvr0.
-> Wykryto format pliku TS.
-> VIDEO MPEG2(pid=102) AUDIO A52(pid=103) NO SUBS (yet)! 
-
-In the absence of the PID which includes the info about the
-H.264 AVC video stream, `mplayer' defaults to the incorrect
-MPEG2 video.  I have a hack which can override this (needed
-for, say, ITV-HD at 28E, or other AVC streams recorded without
-all the needed PIDs) but you would be better off to use the
-correct PID for that service.
-
-
-> /usr/bin/dvbtraffic:
-> 0066  1857 p/s   340 kb/s  2793 kbit
-PID 102 decimal, AVC video
-> 0067   306 p/s    56 kb/s   460 kbit
-PID 103, AC3 audio
-> 0068   109 p/s    20 kb/s   164 kbit
-I'll guess an alternate mp2 audio seen above as PID 104
-
-You'll either need to write a stream with PIDs 0, as well as
-the PID for Service ID 2 (TVP2), which mplayer can parse and
-detect the video as AVC, or, well, um, somehow mplayer needs
-to be able to read PIDs 0 plus that for service ID 2 (or any
-other service you wish to see).  No personal experience there
-as none of my machines can come close to realtime playback, so
-I always write to a file...
-
-
-barry bouwsma
-
-
-      
-
+[0] http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid%2BFM_PCI
+[1] http://www.linuxtv.org/wiki/index.php/DVB-T_PCI_Cards
 
 _______________________________________________
 linux-dvb mailing list
