@@ -1,24 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nelson.telenet-ops.be ([195.130.133.66])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jo@requestfocus.be>) id 1KXLwD-0001vx-EK
-	for linux-dvb@linuxtv.org; Sun, 24 Aug 2008 22:11:51 +0200
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by nelson.telenet-ops.be (Postfix) with SMTP id 030EA50029
-	for <linux-dvb@linuxtv.org>; Sun, 24 Aug 2008 22:11:46 +0200 (CEST)
-Received: from [192.168.3.12] (d5153E2BE.access.telenet.be [81.83.226.190])
-	by nelson.telenet-ops.be (Postfix) with ESMTP id DDCA950054
-	for <linux-dvb@linuxtv.org>; Sun, 24 Aug 2008 22:11:45 +0200 (CEST)
-From: Jo Heremans <jo@requestfocus.be>
+Received: from gateway04.websitewelcome.com ([67.18.52.3])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <skerit@kipdola.com>) id 1KZ7B9-0005gh-MI
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 18:50:32 +0200
+Received: from [77.109.104.26] (port=57798 helo=[192.168.1.3])
+	by gator143.hostgator.com with esmtpa (Exim 4.68)
+	(envelope-from <skerit@kipdola.com>) id 1KZ7B1-0005W6-Bt
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 11:50:23 -0500
+Message-ID: <48B828CF.6050306@kipdola.com>
+Date: Fri, 29 Aug 2008 18:50:23 +0200
+From: Jelle De Loecker <skerit@kipdola.com>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-In-Reply-To: <48B1774F.7060707@beardandsandals.co.uk>
-References: <48B06FD3.5050500@beardandsandals.co.uk>
-	<1219576046.11317.2.camel@pvr> <48B1774F.7060707@beardandsandals.co.uk>
-Date: Sun, 24 Aug 2008 22:11:48 +0200
-Message-Id: <1219608708.30402.1.camel@pvr>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Has anyone got the CI on a TT 3200 past	the	initial
-	reset state
+References: <20080821173909.114260@gmx.net>
+	<20080823200531.246370@gmx.net>	<48B78AE6.1060205@gmx.net>
+	<48B7A60C.4050600@kipdola.com>	<48B802D8.7010806@linuxtv.org>
+	<20080829154342.74800@gmx.net>	<37219a840808290852k4cafb891tbf35162d3add6d60@mail.gmail.com>
+	<20080829164352.74800@gmx.net>
+In-Reply-To: <20080829164352.74800@gmx.net>
+Subject: Re: [linux-dvb] [PATCH] Future of DVB-S2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,135 +26,252 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0615694929=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 2008-08-24 at 15:59 +0100, Roger James wrote:
-> Jo Heremans wrote: 
-> > On Sat, 2008-08-23 at 21:15 +0100, Roger James wrote:
-> >   
-> > > I asked a similar question this a little whiile ago and got no answer. 
-> > > So I am trying again with a bit more detail and hoping someone somewhere 
-> > > can tell me whether I am wasting my time. I need to find out whether the 
-> > > CI daughter board is broken or this combination has never worked in the 
-> > > budget-ci driver.
-> > > 
-> > > The TT-3200 works fine for DVB scan and capture, but I cannot get the CI 
-> > > to initialise fully. It always times out on the initial reset and gives 
-> > > a "PC card did not respond" message in the kernel log.
-> > > 
-> > > I peppered the driver with extra diagnostics and as far as I can see the 
-> > > initial CI reset process is started. The firmware version is reported as 
-> > > 0xa0 (is this correct?) so an interrupt is expected from the card. This 
-> > > interrupt never occurs. If I poll the card status 
-> > > (ciintf_poll_slot_status) when the reset times out then flags come back 
-> > > as 9 (CAMDETECT|RESET) but it looks like the read_attribute_mem does not 
-> > > give the correct value and returns 0x00 which I assume means that the 
-> > > CAM has not initialised. I have appended the dmesg output to the end of 
-> > > this message.
-> > > 
-> > > If anyone has got this working can you please let me know, so I can swap 
-> > > the CI daughter board for a working one and stop wasting my time debugging.
-> > > 
-> > > Help!
-> > > 
-> > > Roger
-> > > 
-> > > saa7146: register extension 'budget_ci dvb'.
-> > > ACPI: PCI Interrupt 0000:00:0b.0[A] -> Link [LNKD] -> GSI 12 (level, 
-> > > low) -> IRQ 12
-> > > saa7146: found saa7146 @ mem e1a28000 (revision 1, irq 12) (0x13c2,0x1019).
-> > > saa7146 (0): dma buffer size 192512
-> > > DVB: registering new adapter (TT-Budget S2-3200 PCI)
-> > > adapter has MAC addr = 00:d0:5c:68:34:04
-> > > input: Budget-CI dvb ir receiver saa7146 (0) as /class/input/input9
-> > > budget_ci: Slot status cf451000 set to NONE 3 fw vers a0
-> > > budget_ci: Slot status cf451000 set to PRESENT
-> > > dvb_ca_en50221_init
-> > > budget_ci: CI interface initialised
-> > > CAMCHANGE IRQ slot:0 change_type:1
-> > > dvb_ca_en50221_thread_wakeup
-> > > dvb_ca_en50221_thread
-> > > budget_ci: Slot status cf451000 set to RESET
-> > > stb0899_attach: Attaching STB0899
-> > > stb6100_attach: Attaching STB6100
-> > > DVB: registering frontend 0 (STB0899 Multistandard)...
-> > > budget_ci: poll status budget_ci cf451000 flags 9 slot_status 4
-> > > budget_ci: read_attribute 0
-> > > dvb_ca adaptor 0: PC card did not respond :( 0x1
-> > > 
-> > > 
-> > > 
-> > > 
-> > > 
-> > > _______________________________________________
-> > > linux-dvb mailing list
-> > > linux-dvb@linuxtv.org
-> > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> > > 
-> > >     
-> > 
-> > Roger,
-> > 
-> > I have the CI adaptor working on the TT S-3200.
-> > I have ubuntu 8.04 with kernel Linux pvr 2.6.24-16-generic
-> > I use the latest multiproto drivers.
-> > 
-> > Greetz,
-> > Jo
-> > 
-> > 
-> > 
-> > Aug 23 14:20:52 pvr kernel: [   37.779037] saa7146: register extension
-> > 'budget_ci dvb'.
-> > Aug 23 14:20:52 pvr kernel: [   37.779088] ACPI: PCI Interrupt
-> > 0000:05:01.0[A] -> GSI 19 (level, low) -> IRQ 19
-> > Aug 23 14:20:52 pvr kernel: [   37.779106] saa7146: found saa7146 @ mem
-> > ffffc200008b2000 (revision 1, irq 19) (0x13c2,0x1019).
-> > Aug 23 14:20:52 pvr kernel: [   37.779111] saa7146 (0): dma buffer size
-> > 192512
-> > Aug 23 14:20:52 pvr kernel: [   37.779113] DVB: registering new adapter
-> > (TT-Budget S2-3200 PCI)
-> > Aug 23 14:20:52 pvr kernel: [   37.815982] adapter has MAC addr =
-> > 00:d0:5c:64:9b:c2
-> > Aug 23 14:20:52 pvr kernel: [   37.816245] input: Budget-CI dvb ir
-> > receiver saa7146 (0)
-> > as /devices/pci0000:00/0000:00:1e.0/0000:05:01.0/input/input6
-> > Aug 23 14:20:52 pvr kernel: [   37.864809] budget_ci: CI interface
-> > initialised
-> > Aug 23 14:20:52 pvr kernel: [   38.212946] stb0899_attach: Attaching
-> > STB0899
-> > Aug 23 14:20:52 pvr kernel: [   38.234440] stb6100_attach: Attaching
-> > STB6100
-> > Aug 23 14:20:52 pvr kernel: [   38.249442] DVB: registering frontend 0
-> > (STB0899 Multistandard)...
-> > 
-> > 
-> > 
-> >   
-> Jo,
-> 
-> It looks like the driver is OK but I have an issue either with the
-> T.Rex/Dragon CAM when it used in this CI, or the CI interface on my
-> TT-3200, or the CI daughter board. What kind of CAM are you using? Has
-> anyone got a T.Rex/Dragon CAM working with the budget PCI driver.
-> 
-> Thanks,
-> 
-> Roger
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+This is a multi-part message in MIME format.
+--===============0615694929==
+Content-Type: multipart/alternative;
+ boundary="------------040501010805020804010800"
+
+This is a multi-part message in MIME format.
+--------------040501010805020804010800
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+I wasn't really focusing the haupage drivers, more the multiproto 
+drivers manu created.
+
+I have a TT S2-3200.
+
+You're talking about upcoming change in the HVR4000 world? Do you know 
+anything about our little technotrend cards?
+
+/Met vriendelijke groeten,/
+
+*Jelle De Loecker*
+Kipdola Studios - Tomberg
 
 
-I am using a original tv-vlaanderen CAM (mediaguard)
 
+Hans Werner schreef:
+>>> Now, to show how simple I think all this could be, here is a PATCH
+>>>       
+>> implementing what
+>>     
+>>> I think is the *minimal* API required to support DVB-S2.
+>>>
+>>> Notes:
+>>>
+>>> * same API structure, I just added some new enums and variables, nothing
+>>>       
+>> removed
+>>     
+>>> * no changes required to any existing drivers (v4l-dvb still compiles)
+>>> * no changes required to existing applications (just need to be
+>>>       
+>> recompiled)
+>>     
+>>> * no drivers, but I think the HVR4000 MFE patch could be easily adapted
+>>>
+>>> I added the fe_caps2 enum because we're running out of bits in the
+>>>       
+>> capabilities bitfield.
+>>     
+>>> More elegant would be to have separate bitfields for FEC capabilities
+>>>       
+>> and modulation
+>>     
+>>> capabilities but that would require (easy) changes to (a lot of) drivers
+>>>       
+>> and applications.
+>>     
+>>> Why should we not merge something simple like this immediately? This
+>>>       
+>> could have been done
+>>     
+>>> years ago. If it takes several rounds of API upgrades to reach all the
+>>>       
+>> feature people want then
+>>     
+>>> so be it, but a long journey begins with one step.
+>>>       
+>> This will break binary compatibility with existing apps.  You're right
+>> -- those apps will work with a recompile, but I believe that as a
+>> whole, the linux-dvb kernel and userspace developers alike are looking
+>> to avoid breaking binary compatibility.
+>>     
+>
+> Michael,
+> thank you for your comment.
+>
+> I understand, but I think binary compatibility *should* be broken in this case. It makes
+> everything else simpler.
+>
+> I know that not breaking binary compatibility *can* be done (as in the HVR4000 SFE and
+> MFE patches) but at what cost?  The resulting code is very odd. Look at multiproto which 
+> bizarrely implements both the 3.2 and the 3.3 API and a compatibility layer as well, at huge cost
+> in terms of development time and complexity of understanding. The wrappers used in the MFE
+> patches are a neat and simple trick, but not something you would release in the kernel.
+>
+> If you take the position the binary interface cannot *ever* change then you are severely
+> restricting the changes that can be made and you doom yourself to an API that is no longer
+> suited to the job. And the complexity kills. As we have seen, it makes the whole process grind to a
+> halt. 
+>
+> Recompilation is not a big deal. All distros recompile every application for each release (in fact much more frequently -- updates too), so most users will never even notice.  It is much better to make the right, elegant changes to the API and require a recompilation. It's better for the application developers because they get a sane evolution of the API and can more easily add new features. Anyone who
+> really cannot recompile existing userspace binaries will also have plenty of other restrictions and
+> should not be trying to drop a new kernel into a fixed userspace.
+>
+> I would be interested to hear your opinion on how we can move forward rapidly.
+>
+> Regards,
+> Hans
+>
+>   
+
+--------------040501010805020804010800
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+I wasn't really focusing the haupage drivers, more the multiproto
+drivers manu created.<br>
+<br>
+I have a TT S2-3200. <br>
+<br>
+You're talking about upcoming change in the HVR4000 world? Do you know
+anything about our little technotrend cards?<br>
+<div class="moz-signature"><br>
+<em>Met vriendelijke groeten,</em>
+<br>
+<br>
+<strong>Jelle De Loecker</strong>
+<br>
+Kipdola Studios - Tomberg <br>
+<br>
+</div>
+<br>
+<br>
+Hans Werner schreef:
+<blockquote cite="mid:20080829164352.74800@gmx.net" type="cite">
+  <blockquote type="cite">
+    <blockquote type="cite">
+      <pre wrap="">Now, to show how simple I think all this could be, here is a PATCH
+      </pre>
+    </blockquote>
+    <pre wrap="">implementing what
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">I think is the *minimal* API required to support DVB-S2.
+
+Notes:
+
+* same API structure, I just added some new enums and variables, nothing
+      </pre>
+    </blockquote>
+    <pre wrap="">removed
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">* no changes required to any existing drivers (v4l-dvb still compiles)
+* no changes required to existing applications (just need to be
+      </pre>
+    </blockquote>
+    <pre wrap="">recompiled)
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">* no drivers, but I think the HVR4000 MFE patch could be easily adapted
+
+I added the fe_caps2 enum because we're running out of bits in the
+      </pre>
+    </blockquote>
+    <pre wrap="">capabilities bitfield.
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">More elegant would be to have separate bitfields for FEC capabilities
+      </pre>
+    </blockquote>
+    <pre wrap="">and modulation
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">capabilities but that would require (easy) changes to (a lot of) drivers
+      </pre>
+    </blockquote>
+    <pre wrap="">and applications.
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">Why should we not merge something simple like this immediately? This
+      </pre>
+    </blockquote>
+    <pre wrap="">could have been done
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">years ago. If it takes several rounds of API upgrades to reach all the
+      </pre>
+    </blockquote>
+    <pre wrap="">feature people want then
+    </pre>
+    <blockquote type="cite">
+      <pre wrap="">so be it, but a long journey begins with one step.
+      </pre>
+    </blockquote>
+    <pre wrap="">This will break binary compatibility with existing apps.  You're right
+-- those apps will work with a recompile, but I believe that as a
+whole, the linux-dvb kernel and userspace developers alike are looking
+to avoid breaking binary compatibility.
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+Michael,
+thank you for your comment.
+
+I understand, but I think binary compatibility *should* be broken in this case. It makes
+everything else simpler.
+
+I know that not breaking binary compatibility *can* be done (as in the HVR4000 SFE and
+MFE patches) but at what cost?  The resulting code is very odd. Look at multiproto which 
+bizarrely implements both the 3.2 and the 3.3 API and a compatibility layer as well, at huge cost
+in terms of development time and complexity of understanding. The wrappers used in the MFE
+patches are a neat and simple trick, but not something you would release in the kernel.
+
+If you take the position the binary interface cannot *ever* change then you are severely
+restricting the changes that can be made and you doom yourself to an API that is no longer
+suited to the job. And the complexity kills. As we have seen, it makes the whole process grind to a
+halt. 
+
+Recompilation is not a big deal. All distros recompile every application for each release (in fact much more frequently -- updates too), so most users will never even notice.  It is much better to make the right, elegant changes to the API and require a recompilation. It's better for the application developers because they get a sane evolution of the API and can more easily add new features. Anyone who
+really cannot recompile existing userspace binaries will also have plenty of other restrictions and
+should not be trying to drop a new kernel into a fixed userspace.
+
+I would be interested to hear your opinion on how we can move forward rapidly.
+
+Regards,
+Hans
+
+  </pre>
+</blockquote>
+</body>
+</html>
+
+--------------040501010805020804010800--
+
+
+--===============0615694929==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0615694929==--
