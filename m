@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KSFBn-0001aY-2t
-	for linux-dvb@linuxtv.org; Sun, 10 Aug 2008 19:58:47 +0200
-Message-ID: <489F2C4A.4070908@linuxtv.org>
-Date: Sun, 10 Aug 2008 13:58:34 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <patrick.boettcher@desy.de>) id 1KZ1BD-0000Ze-By
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 12:26:12 +0200
+Date: Fri, 29 Aug 2008 12:25:22 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+In-Reply-To: <412bdbff0808281731t7641e4d1kf86058e071c7d5fb@mail.gmail.com>
+Message-ID: <alpine.LRH.1.10.0808291202310.17297@pub3.ifh.de>
+References: <004f01c90921$248fe2b0$6dafa810$@com.au>
+	<412bdbff0808280824s288de72el297dda0556d6ca4d@mail.gmail.com>
+	<007f01c90965$344da360$9ce8ea20$@com.au>
+	<412bdbff0808281638h7e911b37n4d5043bf40b42d65@mail.gmail.com>
+	<008001c9096a$f315df10$d9419d30$@com.au>
+	<412bdbff0808281731t7641e4d1kf86058e071c7d5fb@mail.gmail.com>
 MIME-Version: 1.0
-To: Timothy Lee <timothy.lee@siriushk.com>
-References: <489C16EF.5030004@siriushk.com> <489C4056.9080804@linuxtv.org>
-	<489D4D5D.2020700@siriushk.com>
-In-Reply-To: <489D4D5D.2020700@siriushk.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Support for Magic-Pro DMB-TH usb stick
+Subject: Re: [linux-dvb] Hauppauge WinTV-NOVA-T-500 New Firmware
+ (dvb-usb-dib0700-1.20.fw) causes problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,69 +31,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Timothy Lee wrote:
-> Michael Krufky wrote:
->> Timothy Lee wrote:
->>  
->>> Attached is a patch against v4l-dvb repository to add support for
->>> Magic-Pro DMB-TH usb stick.  DMB-TH is the HDTV broadcast standard used
->>> in Hong Kong and China.
->>>
->>> Regards,
->>> Timothy Lee
->>>     
->>
->> Timothy,
->>
->> In order for your patch to be applied to the kernel, a sign-off is
->> required.
->>
->> Please respond to this email with your sign-off, as described here:
->>
->> http://linuxtv.org/hg/v4l-dvb/file/tip/README.patches
->>
->> e) All patches shall have a Developers Certificate of Origin
->>
->>
->> Also, what software can people use with your device & driver to tune
->> to DMB-TH services?
->>
->> How do users scan for services?
->>   
+Honestly spoken I never tried the 1.20 firmware on the NOVA-T 500. (This 
+card was last used in DiBcom 3 years ago.)
+
+It might be that using the new i2c-requests along with the I2C-master do 
+not work with some boards.
+
+In that case you can still use the new i2c-requests but you need to select 
+the gpio-bus instead of the i2c-master-bus.
+
+Patrick.
+
+
+
+On Thu, 28 Aug 2008, Devin Heitmueller wrote:
+
+> On Thu, Aug 28, 2008 at 8:05 PM, Thomas Goerke <tom@goeng.com.au> wrote:
+>> I did a little more debugging and it seems that the I still have a problem
+>> with the .20 version.  However, you only see it after a cold reset ie when
+>> you need to load the firmware.  See below for the first dmesg which is with
+>> the .20 firmware.  As you can see the card is found but only in a cold
+>> state.  The second dmesg is with the .10 firmware and the card is found
+>> firstly in a cold state and then in a warm state.  Each of these dmesg
+>> outputs have been after a power off from the power supply for 10 seconds ie
+>> no power to backplane.
 >
-> Dear Michael,
+> Wow, that's so early in the loading process for the device, it's hard
+> to see how that can have anything to do with my i2c changes.
 >
-> Thanks for your hint on getting the patch accepted.  I've now cleaned
-> up the patch to pass checkpatch.pl, and signed it off.
+> Patrick, do you have any changelogs that describe the differences
+> between 1.10 and 1.20 other than the addition of the new i2c API?
 >
-> I've also attached a second patch against the dvb-apps repository
-> which adds a DMB-TH scan file for Hong Kong.  Since the ProHDTV stick
-> contains a DMB-TH decoder (lgs8gl5) onboard, it outputs MPEG-TS to the
-> PC.
+> Devin
 >
-> I've been using mplayer to test the driver.  But since I'm using
-> dvb-usb's generic video streaming mechanism, I imagine the driver
-> should be compatible with other DVB software. 
-Timothy,
-
-I've applied your patch to my cxusb tree, with slight modifications, in
-order to coincide with another patch to the same code.  Please test the
-tree and confirm proper operation before I request a merge into the
-master branch.
-
-http://linuxtv.org/hg/~mkrufky/cxusb
-
-I'll push the Hong Kong scan file to dvb-apps after this tree is merged
-into the master branch.
-
-If you have any additional fixes / changes to make before this is merged
-into master, please generate them against this cxusb tree.
-
-Regards,
-
-Mike
-
-
+> -- 
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
 
 _______________________________________________
 linux-dvb mailing list
