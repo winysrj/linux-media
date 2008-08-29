@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m761ZEtQ026949
-	for <video4linux-list@redhat.com>; Tue, 5 Aug 2008 21:35:24 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m761Xjir024263
-	for <video4linux-list@redhat.com>; Tue, 5 Aug 2008 21:34:05 -0400
-From: Andy Walls <awalls@radix.net>
-To: Brandon Jenkins <bcjenkins@tvwhere.com>
-In-Reply-To: <de8cad4d0808051804l13d1b66cs9df26cc43ba6cfd6@mail.gmail.com>
-References: <de8cad4d0808051804l13d1b66cs9df26cc43ba6cfd6@mail.gmail.com>
-Content-Type: text/plain
-Date: Tue, 05 Aug 2008 21:29:34 -0400
-Message-Id: <1217986174.5252.7.camel@morgan.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, ivtv-devel@ivtvdriver.org
-Subject: Re: CX18 Oops
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TNikbg028831
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 19:44:47 -0400
+Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7TNiYvm005910
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 19:44:34 -0400
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7TNiSlM031036
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 18:44:33 -0500
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7TNiSaN022936
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 18:44:28 -0500 (CDT)
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Fri, 29 Aug 2008 18:44:27 -0500
+Message-ID: <A24693684029E5489D1D202277BE89441191E347@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: [PATCH 15/15] OMAP3 camera driver: OMAP34XXCAM: Add Sensors Support.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,87 +32,272 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 2008-08-05 at 21:04 -0400, Brandon Jenkins wrote:
-> Hi All
-> 
-> I am running kernel 2.6.26 on  Ubuntu 8.04. Any thoughts?
+From: Sergio Aguirre <saaguirre@ti.com>
 
-I ran into a similar Oops in the same function on 23 July.  I had it at
-a lower priority since no one had complained about it and it seems rare.
+OMAP34XX: CAM: Add Sensors Support
 
-I'll try and get to it before Saturday morning.  If anyone wants to
-submit a patch before then, I'll review it ASAP after receipt.
+This adds support in OMAP34xx SDP board file for Sensor and Lens
+driver.
 
-Regards,
-Andy
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ arch/arm/mach-omap2/board-3430sdp.c |  228 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 228 insertions(+)
 
-> Thanks in advance
-> 
-> Brandon
-> 
-> [35037.080230] BUG: unable to handle kernel NULL pointer dereference
-> at 0000000000000000
-> [35037.080258] IP: [<ffffffffa01e4180>] :cx18:cx18_queue_move_buf+0x0/0xa0
-> [35037.080284] PGD 21b9e9067 PUD 218c12067 PMD 0
-> [35037.080298] Oops: 0000 [1] PREEMPT SMP
-> [35037.080311] CPU 1
-> [35037.080320] Modules linked in: binfmt_misc iptable_filter ip_tables
-> x_tables xfs loop mxl5005s s5h1409 tuner_simple ipv6 tuner_types
-> cs5345 tuner usbhid cx18 dvb_core hid compat_ioctl32 videodev
-> v4l1_compat i2c_algo_bit cx2341x v4l2_common tveeprom psmouse i2c_core
-> button ext3 jbd mbcache sd_mod ahci libata scsi_mod iTCO_wdt dock
-> r8169 ehci_hcd uhci_hcd usbcore raid10 raid456 async_xor async_memcpy
-> async_tx xor raid1 raid0 multipath linear md_mod dm_mirror dm_log
-> dm_snapshot dm_mod thermal processor fan fuse
-> [35037.080488] Pid: 15894, comm: java Not tainted 2.6.26-server-sagetv #1
-> [35037.080499] RIP: 0010:[<ffffffffa01e4180>]  [<ffffffffa01e4180>]
-> :cx18:cx18_queue_move_buf+0x0/0xa0
-> [35037.080521] RSP: 0018:ffff810217c4be50  EFLAGS: 00010046
-> [35037.080530] RAX: 00000000003d0000 RBX: 0000000000000000 RCX: 0000000000000001
-> [35037.080541] RDX: ffff81021d9a81f8 RSI: 0000000000000000 RDI: ffff81021d9a8188
-> [35037.080552] RBP: ffff81021d9a81f8 R08: 0000000000000000 R09: 000000000009d548
-> [35037.080563] R10: 000000000009d547 R11: 0000000000000002 R12: 0000000000000001
-> [35037.080574] R13: 0000000000020000 R14: 0000000000000000 R15: ffff81021d9a8188
-> [35037.080585] FS:  0000000000000000(0000) GS:ffff81021fc06580(0063)
-> knlGS:00000000c9efbb90
-> [35037.080601] CS:  0010 DS: 002b ES: 002b CR0: 000000008005003b
-> [35037.080611] CR2: 0000000000000000 CR3: 00000002179b8000 CR4: 00000000000006a0
-> [35037.080622] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> [35037.080633] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> [35037.080644] Process java (pid: 15894, threadinfo ffff810217c4a000,
-> task ffff81020ad6c620)
-> [35037.080659] Stack:  ffffffffa01e42c2 00000000003d0000
-> ffff81021d9a81b0 0000000000000292
-> [35037.080682]  000000011d9a81f8 ffff8102003d0000 ffff81021d9a8188
-> ffff81021d9a8000
-> [35037.080703]  ffff81021d9a8188 ffff81021d9a8128 ffff81021fd15600
-> 0000000000000000
-> [35037.080719] Call Trace:
-> [35037.080736]  [<ffffffffa01e42c2>] ? :cx18:cx18_queue_move+0xa2/0x160
-> [35037.080752]  [<ffffffffa01e58e8>] ? :cx18:cx18_release_stream+0x78/0xc0
-> [35037.080767]  [<ffffffffa01e5d86>] ? :cx18:cx18_v4l2_close+0xb6/0x150
-> [35037.080781]  [<ffffffff802a88d1>] ? __fput+0xb1/0x1d0
-> [35037.080792]  [<ffffffff802a5404>] ? filp_close+0x54/0x90
-> [35037.080803]  [<ffffffff802a6c1f>] ? sys_close+0x9f/0x110
-> [35037.080815]  [<ffffffff80226c02>] ? sysenter_do_call+0x1b/0x66
-> [35037.080826]  [<ffffffff80315060>] ? dummy_file_free_security+0x0/0x10
-> [35037.080839]
-> [35037.080845]
-> [35037.080852] Code: 74 22 31 c9 0f 1f 80 00 00 00 00 48 89 c8 48 03
-> 47 28 8b 10 0f ca 89 10 8d 41 04 48 83 c1 04 39 47 30 77 e7 f3 c3 0f
-> 1f 44 00 00 <4c> 8b 0e 49 89 d2 49 8b 41 08 49 8b 11 48 89 42 08 48 89
-> 10 49
-> [35037.080976] RIP  [<ffffffffa01e4180>] :cx18:cx18_queue_move_buf+0x0/0xa0
-> [35037.080992]  RSP <ffff810217c4be50>
-> [35037.081000] CR2: 0000000000000000
-> [35037.081192] ---[ end trace 10100555b3a0d104 ]---
-> [35037.090147] note: java[15894] exited with preempt_count 1
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
+Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c	2008-08-25 11:00:18.000000000 -0500
++++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c	2008-08-25 12:16:46.000000000 -0500
+@@ -42,6 +42,19 @@
+ #include <mach/gpmc.h>
+ #include <linux/i2c/twl4030-rtc.h>
+ 
++#ifdef CONFIG_VIDEO_OMAP3
++#include <media/v4l2-int-device.h>
++#include <../drivers/media/video/omap34xxcam.h>
++#include <../drivers/media/video/isp/ispreg.h>
++#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
++#include <../drivers/media/video/mt9p012.h>
++#endif
++#endif
++
++#ifdef CONFIG_VIDEO_DW9710
++#include <../drivers/media/video/dw9710.h>
++#endif
++
+ #include <asm/io.h>
+ #include <asm/delay.h>
+ #include <mach/control.h>
+@@ -266,6 +279,216 @@
+ 	},
+ };
+ 
++#ifdef CONFIG_VIDEO_DW9710
++static int dw9710_lens_power_set(enum v4l2_power power)
++{
++
++	return 0;
++}
++
++static int dw9710_lens_set_prv_data(void *priv)
++{
++	struct omap34xxcam_hw_config *hwc = priv;
++
++	hwc->dev_index = 0;
++	hwc->dev_minor = 0;
++	hwc->dev_type = OMAP34XXCAM_SLAVE_LENS;
++
++	return 0;
++}
++
++static struct dw9710_platform_data sdp3430_dw9710_platform_data = {
++	.power_set      = dw9710_lens_power_set,
++	.priv_data_set  = dw9710_lens_set_prv_data,
++};
++#endif
++
++#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
++static void __iomem *fpga_map_addr;
++
++static struct omap34xxcam_sensor_config cam_hwc = {
++	.sensor_isp = 0,
++	.xclk = OMAP34XXCAM_XCLK_A,
++};
++
++static void enable_fpga_vio_1v8(u8 enable)
++{
++	u16 reg_val;
++
++	fpga_map_addr = ioremap(DEBUG_BASE, 4096);
++	reg_val = readw(fpga_map_addr + REG_SDP3430_FPGA_GPIO_2);
++
++	/* Ensure that the SPR_GPIO1_3v3 is 0 - powered off.. 1 is on */
++	if (reg_val & FPGA_SPR_GPIO1_3v3) {
++		reg_val |= FPGA_SPR_GPIO1_3v3;
++		reg_val |= FPGA_GPIO6_DIR_CTRL; /* output mode */
++		writew(reg_val, fpga_map_addr + REG_SDP3430_FPGA_GPIO_2);
++		/* give a few milli sec to settle down
++		 * Let the sensor also settle down.. if required..
++		 */
++		if (enable)
++			mdelay(10);
++	}
++
++	if (enable) {
++		reg_val |= FPGA_SPR_GPIO1_3v3 | FPGA_GPIO6_DIR_CTRL;
++		writew(reg_val, fpga_map_addr + REG_SDP3430_FPGA_GPIO_2);
++	}
++	/* Vrise time for the voltage - should be less than 1 ms */
++	mdelay(1);
++}
++
++static int mt9p012_sensor_set_prv_data(void *priv)
++{
++	struct omap34xxcam_hw_config *hwc = priv;
++
++	hwc->u.sensor.xclk = cam_hwc.xclk;
++	hwc->u.sensor.sensor_isp = cam_hwc.sensor_isp;
++	hwc->dev_index = 0;
++	hwc->dev_minor = 0;
++	hwc->dev_type = OMAP34XXCAM_SLAVE_SENSOR;
++	return 0;
++}
++
++static struct isp_interface_config mt9p012_if_config = {
++	.ccdc_par_ser = ISP_PARLL,
++	.dataline_shift = 0x1,
++	.hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
++	.vdint0_timing = 0x0,
++	.vdint1_timing = 0x0,
++	.strobe = 0x0,
++	.prestrobe = 0x0,
++	.shutter = 0x0,
++	.u.par.par_bridge = 0x0,
++	.u.par.par_clk_pol = 0x0,
++};
++
++static int mt9p012_sensor_power_set(enum v4l2_power power)
++{
++	switch (power) {
++	case V4L2_POWER_OFF:
++		/* Power Down Sequence */
++#ifdef CONFIG_TWL4030_CORE
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++				VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
++#else
++#error "no power companion board defined!"
++#endif
++		enable_fpga_vio_1v8(0);
++		omap_free_gpio(MT9P012_RESET_GPIO);
++		iounmap(fpga_map_addr);
++		omap_free_gpio(MT9P012_STANDBY_GPIO);
++		break;
++	case V4L2_POWER_ON:
++		/* Power Up Sequence */
++		isp_configure_interface(&mt9p012_if_config);
++
++		/* Request and configure gpio pins */
++		if (omap_request_gpio(MT9P012_STANDBY_GPIO) != 0) {
++			printk(KERN_WARNING "Could not request GPIO %d for "
++					"AF D88\n", MT9P012_STANDBY_GPIO);
++			return -EIO;
++		}
++
++		/* Request and configure gpio pins */
++		if (omap_request_gpio(MT9P012_RESET_GPIO) != 0)
++			return -EIO;
++
++		/* set to output mode */
++		omap_set_gpio_direction(MT9P012_STANDBY_GPIO, 0);
++		/* set to output mode */
++		omap_set_gpio_direction(MT9P012_RESET_GPIO, 0);
++
++		/* STANDBY_GPIO is active HIGH for set LOW to release */
++		omap_set_gpio_dataout(MT9P012_STANDBY_GPIO, 1);
++
++		/* nRESET is active LOW. set HIGH to release reset */
++		omap_set_gpio_dataout(MT9P012_RESET_GPIO, 1);
++
++		/* turn on digital power */
++		enable_fpga_vio_1v8(1);
++#ifdef CONFIG_TWL4030_CORE
++		/* turn on analog power */
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++					VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++					VAUX_DEV_GRP_P1, TWL4030_VAUX2_DEV_GRP);
++#else
++#error "no power companion board defined!"
++#endif
++
++		omap_set_gpio_dataout(MT9P012_STANDBY_GPIO, 0);
++
++		udelay(1000);
++
++		/* have to put sensor to reset to guarantee detection */
++		omap_set_gpio_dataout(MT9P012_RESET_GPIO, 0);
++
++		udelay(1500);
++
++		/* nRESET is active LOW. set HIGH to release reset */
++		omap_set_gpio_dataout(MT9P012_RESET_GPIO, 1);
++		/* give sensor sometime to get out of the reset. Datasheet says
++		   2400 xclks. At 6 MHz, 400 usec are enough */
++		udelay(300);
++		break;
++	case V4L2_POWER_STANDBY:
++		/* stand by */
++		omap_set_gpio_dataout(MT9P012_STANDBY_GPIO, 1);
++		break;
++	case V4L2_POWER_RESUME:
++		/* out of standby */
++		omap_set_gpio_dataout(MT9P012_STANDBY_GPIO, 0);
++		udelay(1000);
++		break;
++	}
++
++	return 0;
++}
++
++static struct v4l2_ifparm ifparm = {
++	.if_type = V4L2_IF_TYPE_BT656,
++	.u = {
++		.bt656 = {
++			.frame_start_on_rising_vs = 1,
++			.latch_clk_inv = 0,
++			.mode = V4L2_IF_TYPE_BT656_MODE_NOBT_10BIT,
++			.clock_min = MT9P012_XCLK_MIN,
++			.clock_max = MT9P012_XCLK_MAX,
++		},
++	},
++};
++
++static int mt9p012_ifparm(struct v4l2_ifparm *p)
++{
++	*p = ifparm;
++	return 0;
++}
++
++static struct mt9p012_platform_data sdp3430_mt9p012_platform_data = {
++	.power_set      = mt9p012_sensor_power_set,
++	.priv_data_set  = mt9p012_sensor_set_prv_data,
++	.default_regs   = NULL,
++	.ifparm         = mt9p012_ifparm,
++};
++
++
++static struct i2c_board_info __initdata sdp3430_i2c_board_info[] = {
++#ifdef CONFIG_VIDEO_DW9710
++	{
++		I2C_BOARD_INFO(DW9710_NAME,  DW9710_AF_I2C_ADDR),
++		.platform_data = &sdp3430_dw9710_platform_data,
++	},
++#endif
++	{
++		I2C_BOARD_INFO("mt9p012", MT9P012_I2C_ADDR),
++		.platform_data = &sdp3430_mt9p012_platform_data,
++	},
++};
++
++#endif
++
++
+ static struct platform_device sdp3430_lcd_device = {
+ 	.name		= "sdp2430_lcd",
+ 	.id		= -1,
+@@ -344,7 +567,12 @@
+ static int __init omap3430_i2c_init(void)
+ {
+ 	omap_register_i2c_bus(1, 2600, NULL, 0);
++#if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
++	omap_register_i2c_bus(2, 400, sdp3430_i2c_board_info,
++			      ARRAY_SIZE(sdp3430_i2c_board_info));
++#else
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
++#endif
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+ 	return 0;
+ }
 
 --
 video4linux-list mailing list
