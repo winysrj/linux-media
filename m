@@ -1,19 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from emh07.mail.saunalahti.fi ([62.142.5.117])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marko.ristola@kolumbus.fi>) id 1KQ6gU-00060x-Ls
-	for linux-dvb@linuxtv.org; Mon, 04 Aug 2008 22:29:39 +0200
-Message-ID: <489766A4.7070907@kolumbus.fi>
-Date: Mon, 04 Aug 2008 23:29:24 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+	(envelope-from <abraham.manu@gmail.com>) id 1KZ9Rh-0001p0-Dw
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 21:15:46 +0200
+Received: from [212.12.32.49] (helo=smtp.work.de)
+	by mail.work.de with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1KZ9Rd-0006Rs-Ga
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 21:15:41 +0200
+Received: from [217.164.61.201] (helo=[192.168.1.10])
+	by smtp.work.de with esmtpa (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1KZ9Rd-0005bt-1E
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 21:15:41 +0200
+Message-ID: <48B84AD0.8010209@gmail.com>
+Date: Fri, 29 Aug 2008 23:15:28 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Mika_B=E5tsman?= <mika.batsman@gmail.com>
-References: <3b52bc790807101342o12f6f879n9c68704cd6b96e22@mail.gmail.com>	<4879FA31.2080803@kolumbus.fi>	<4A2CCDB3-57B0-4121-A94D-59F985FCDE2B@oberste-berghaus.de>	<487BB17D.8080707@kolumbus.fi>	<D5C41D41-A72D-4603-9AD1-67A8C5E73289@oberste-berghaus.de>
-	<488CAE63.9070204@kolumbus.fi> <488F0D80.7010607@gmail.com>
-In-Reply-To: <488F0D80.7010607@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TerraTec Cinergy C DVB-C / Twinhan AD-CP400
- (VP-2040) &	mantis driver
+To: linux-dvb@linuxtv.org
+References: <20080821173909.114260@gmx.net>	<37219a840808290852k4cafb891tbf35162d3add6d60@mail.gmail.com>	<20080829164352.74800@gmx.net>
+	<200808292052.51219@orion.escape-edv.de>
+In-Reply-To: <200808292052.51219@orion.escape-edv.de>
+Subject: Re: [linux-dvb] [PATCH] Future of DVB-S2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,145 +27,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mika B=E5tsman kirjoitti:
-> Hi,
-> I also tried your patch because I've had freezes since I got these =
+Oliver Endriss wrote:
+> Hans Werner wrote:
+>>>> Now, to show how simple I think all this could be, here is a PATCH
+>>> implementing what
+>>>> I think is the *minimal* API required to support DVB-S2.
+>>>>
+>>>> Notes:
+>>>>
+>>>> * same API structure, I just added some new enums and variables, nothing
+>>> removed
+>>>> * no changes required to any existing drivers (v4l-dvb still compiles)
+>>>> * no changes required to existing applications (just need to be
+>>> recompiled)
+>>>> * no drivers, but I think the HVR4000 MFE patch could be easily adapted
+>>>>
+>>>> I added the fe_caps2 enum because we're running out of bits in the
+>>> capabilities bitfield.
+>>>> More elegant would be to have separate bitfields for FEC capabilities
+>>> and modulation
+>>>> capabilities but that would require (easy) changes to (a lot of) drivers
+>>> and applications.
+>>>> Why should we not merge something simple like this immediately? This
+>>> could have been done
+>>>> years ago. If it takes several rounds of API upgrades to reach all the
+>>> feature people want then
+>>>> so be it, but a long journey begins with one step.
+>>> This will break binary compatibility with existing apps.  You're right
+>>> -- those apps will work with a recompile, but I believe that as a
+>>> whole, the linux-dvb kernel and userspace developers alike are looking
+>>> to avoid breaking binary compatibility.
+>> Michael,
+>> thank you for your comment.
+>>
+>> I understand, but I think binary compatibility *should* be broken in this case. It makes
+>> everything else simpler.
+> 
+> No way. Breaking binary compatibility is a no-go.
+> 
+>> I know that not breaking binary compatibility *can* be done (as in the HVR4000 SFE and
+>> MFE patches) but at what cost?  The resulting code is very odd. Look at multiproto which 
+>> bizarrely implements both the 3.2 and the 3.3 API and a compatibility layer as well, at huge cost
+>> in terms of development time and complexity of understanding. The wrappers used in the MFE
+>> patches are a neat and simple trick, but not something you would release in the kernel.
+> 
+> The only way to support DVB-S2 in a reasonable way is adding a new API.
+> Multiproto does this.
+> 
+>> If you take the position the binary interface cannot *ever* change then you are severely
+>> restricting the changes that can be made and you doom yourself to an API that is no longer
+>> suited to the job. And the complexity kills. As we have seen, it makes the whole process grind to a
+>> halt. 
+>>
+>> Recompilation is not a big deal. All distros recompile every application for each release (in fact much more frequently -- updates too), so most users will never even notice.  It is much better to make the right, elegant changes to the API and require a recompilation. It's better for the application developers because they get a sane evolution of the API and can more easily add new features. Anyone who
+>> really cannot recompile existing userspace binaries will also have plenty of other restrictions and
+>> should not be trying to drop a new kernel into a fixed userspace.
+> 
+> The linux distribution maintainers would kill you.
+> Applications must continue to run after a kernel update.
+> 
+>> I would be interested to hear your opinion on how we can move forward rapidly.
+> 
+> Multiproto should be merged asap.
 
-> cards. Unfortunately it didn't help me. Got a whooping 5min uptime =
 
-> before it all went wrong again. I have 2x Cinergy C + 2.6.24-19 + vdr =
-
-> 1.6.
->
-Do you have a heat problem? Have you checked your motherboard sensors?
-Have you checked that your memory is okay? Air flows easilly?
-> I did:
-> hg clone http://jusst.de/hg/mantis
-> replaced mantis_dma.c with the one you attached, renamed =
-
-> MANTIS_GPIF_RDWRN -> MANTIS_GPIF_HIFRDWRN
-> make && make install && reboot
->
-> Am I missing something? It seemed to compile and install fine.
->
-> You said that the mantis_dma.c in jusst.de mantis head is not the =
-
-> latest version. Where can it be found then?
-I have my own driver version which I have given for Finnish people for =
-
-easy installation with remote control support for Twinhan 2033.
-(Personally I'm not pleased with the card: now after some years of =
-
-development the card works well enough for me finally).
-
-So the most important feature of my driver for Finnish people has been =
-
-the easy compile and install and that the driver ("release") is tested =
-
-for Twinhan 2033.
-Secondly I have given for some Finnish people the Twinhan 2033 remote =
-
-control support included.
-Maybe somebody from Finland would be interested with the DMA transfer =
-
-fixes, if they have unsolved quality problems. That's a fact that those =
-
-tweaks helped me although the root cause is a bit uncertain. Other =
-
-features of my driver version like suspend/resume aren't very important.
+True. Sorry about the long delay, just got back after quite a long
+journey. Will do so these following days.
 
 Regards,
-Marko Ristola
-
->
-> Regards,
-> Mika B=E5tsman
->
-> Marko Ristola wrote:
->>
->> Hi,
->>
->> Unfortunately I have been busy.
->>
->> The patch you tried was against jusst.de Mantis Mercurial branch head.
->> Your version of mantis_dma.c is not the latest version and thus the =
-
->> patch didn't
->> apply cleanly.
->>
->> Here is the version that I use currently. It doesn't compile straight =
-
->> against jusst.de/mantis head.
->> It might work for you because MANTIS_GPIF_RDWRN is not renamed as =
-
->> MANTIS_GPIF_HIFRDWRN.
->>
->> If it doesn't compile please rename MANTIS_GPIF_RDWRN occurrences =
-
->> into MANTIS_GPIF_HIFRDWRN on that file.
->> Otherwise the file should work as it is.
->>
->> Best regards,
->> Marko Ristola
->>
->> Leif Oberste-Berghaus kirjoitti:
->>> Hi Marko,
->>>
->>> I tried to patch the driver but I'm getting an error message:
->>>
->>> root@mediapc:/usr/local/src/test/mantis-0b04be0c088a# patch -p1 < =
-
->>> mantis_dma.c.aligned_dma_trs.patch
->>> patching file linux/drivers/media/dvb/mantis/mantis_dma.c
->>> patch: **** malformed patch at line 22: int mantis_dma_exit(struct =
-
->>> mantis_pci *mantis)
->>>
->>> Any ideas?
->>>
->>> Regards
->>> Leif
->>>
->>>
->>> Am 14.07.2008 um 22:05 schrieb Marko Ristola:
->>>
->>>> Hi Leif,
->>>>
->>>> Here is a patch that implements the mentioned DMA transfer =
-
->>>> improvements.
->>>> I hope that these contain also the needed fix for you.
->>>> You can apply it into jusst.de/mantis Mercurial branch.
->>>> It modifies linux/drivers/media/dvb/mantis/mantis_dma.c only.
->>>> I have compiled the patch against 2.6.25.9-76.fc9.x86_64.
->>>>
->>>> cd mantis
->>>> patch -p1 < mantis_dma.c.aligned_dma_trs.patch
->>>>
->>>> Please tell us whether my patch helps you or not: if it helps, some =
-
->>>> of my patch might get into jusst.de as
->>>> a fix for your problem.
->>>>
->>>> Best Regards,
->>>> Marko
->>>
->>>
->>
->> ------------------------------------------------------------------------
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
+Manu
 
 _______________________________________________
 linux-dvb mailing list
