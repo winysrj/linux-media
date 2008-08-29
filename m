@@ -1,22 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1KQ4Zg-0000s7-I1
-	for linux-dvb@linuxtv.org; Mon, 04 Aug 2008 20:14:30 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andy Walls <awalls@radix.net>
-In-Reply-To: <1217817352.23133.64.camel@palomino.walls.org>
-References: <5f8558830807291934i34579ed6s8de1dd8240d2f93e@mail.gmail.com>
-	<1217728894.5348.72.camel@morgan.walls.org>
-	<5f8558830808031049p1a714907y94e9d2e98e30ba8b@mail.gmail.com>
-	<1217791214.2690.31.camel@morgan.walls.org>
-	<1217810697.2673.8.camel@pc10.localdom.local>
-	<1217817352.23133.64.camel@palomino.walls.org>
-Date: Mon, 04 Aug 2008 20:07:43 +0200
-Message-Id: <1217873263.2671.27.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1600 - No audio
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <w3ird_n3rd@gmx.net>) id 1KZ9Wu-0002TZ-9s
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 21:21:12 +0200
+Message-ID: <48B84C02.6000002@gmx.net>
+Date: Fri, 29 Aug 2008 21:20:34 +0200
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
+MIME-Version: 1.0
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <48B8400A.9030409@linuxtv.org>
+In-Reply-To: <48B8400A.9030409@linuxtv.org>
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,120 +24,116 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On 08/29/2008 08:29 PM, Steven Toth wrote:
+> Regarding the multiproto situation:
+> 
+> A number of developers, maintainers and users are unhappy with the
+> multiproto situation, actually they've been unhappy for a considerable
+> amount of time. The linuxtv developer community (to some degree) is seen
+> as a joke and a bunch in-fighting people. Multiproto is a great
+> demonstration of this. [1] The multiproto project has gone too far, for
+> too long and no longer has any credibility in the eyes of many people.
+> 
+> In response, a number developers have agreed that "enough is enough" and
+> "it's time to take a new direction", for these developers the technical,
+> political and personal cost of multiproto is too high. These developers
+> have decided to make an announcement.
+> 
+> Mauro Chehab, Michael Krufky, Patrick Boettcher and myself are hereby
+> announcing that we no longer support multiproto and are forming a
+> smaller dedicated project group which is focusing on adding next
+> generation S2/ISDB-T/DVB-H/DVB-T2/DVB-SH support to the kernel through a 
+> different and simpler API.
+> 
+> Basic patches and demo code for this API is currently available here.
+> 
+> http://www.steventoth.net/linux/s2
+> 
+> Does it even work? Yes
+> Is this new API complete? No
+> Is it perfect? No, we've already had feedback on structural and
+> namingspace changes that people would like to see.
+> Does it have bugs? Of course, we have a list of things we already know
+> we want to fix.
+> 
+> but ...
+> 
+> Is the new approach flexible? Yes, we're moving away from passing fixed
+> modulation structures into the kernel.
+> Can we add to it without breaking the future ABI when unforseen
+> modulations types occur? Yes
+> Does it preserve backwards compatibility? Yes
+> Importantly, is the overall direction correct? Yes
+> Does it impact existing frontend drivers? No.
+> What's the impact to dvb-core? Small.
+> What's the impact to application developers? None, unless an application 
+> developer wants to support the new standards - binary compatibility!
+> 
+> We want feedback and we want progress, we aim to achieve it.
+> 
+> Importantly, this project group seeks your support.
+> 
+> If you also feel frustrated by the multiproto situation and agree in
+> principle with this new approach, and the overall direction of the API
+> changes, then we welcome you and ask you to help us.
+> 
+> Growing the list of supporting names by 100%, and allowing us to publish
+> your name on the public mailing list, would show the non-maintainer
+> development community that we recognize the problem and we're taking
+> steps to correct the problem. We want to make LinuxTV a perfect platform
+> for S2, ISDB-T and other advanced modulation types, without using the
+> multiproto patches.
+> 
+> We're not asking you for technical help, although we'd like that  :) ,
+> we're just asking for your encouragement to move away from multiproto.
+> 
+> If you feel that you want to support our movement then please help us by
+> acking this email.
+> 
+> Regards - Steve, Mike, Patrick and Mauro.
+> 
+> Acked-by: Patrick Boettcher <pb@linuxtv.org>
+> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
+> Acked-by: Steven Toth <stoth@linuxtv.org>
+> Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+> 
+> * [1]. Rather than point out the issues with multiproto here, take a
+> look at the patches and/or read the comments on the mailing lists.
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
-Am Sonntag, den 03.08.2008, 22:35 -0400 schrieb Andy Walls:
-> On Mon, 2008-08-04 at 02:44 +0200, hermann pitton wrote:
-> > Hi Andy,
-> > 
-> > Am Sonntag, den 03.08.2008, 15:20 -0400 schrieb Andy Walls:
-> > > On Sun, 2008-08-03 at 10:49 -0700, Brian Steele wrote:
-> 
-> > > So we'll go with the tried and true axiom of "the bug was caused by the
-> > > last thing I changed".
-> > > 
-> > > On Jul 23 & 25 I made some changes to the cx18-av-audio.c file to fix
-> > > the 32 kHz sample rate, lock the Video PLL and Audio PLL together, and
-> > > fine tune the video sample rate PLL values.
-> > > 
-> > > I've just put in a small change at 
-> > > 
-> > > http://linuxtv.org/hg/~awalls/v4l-dvb
-> > > 
-> > > to back out the part of the change that locked the video PLL & the audio
-> > > PLL together for both tuner and line in audio.
-> > > 
-> > > See if that change makes things work for you.
-> > > 
-> > > 
-> > > BTW, Did the cx18 driver ever work properly for tuner audio for you
-> > > before?
-> > > 
-> > > > > (Also note that the first analog capture after modprobe cx18 will not
-> 
-> > without looking up any of your code, kick my ass if needed,
-> > but this should be all still on some tuner 57 ?
-> 
-> I would never kick the ass of anyone whom is offering help or advice. :)
-> 
-> 
-> I have two HVR-1600's: one with radio and one without.  I can't check
-> the one without radio right now (that computer is down for other
-> experiments).
-> 
-> For my HVR-1600 without radio, IIRC it has a TCL M2523_5N_E just like
-> Brian's HVR-1600.  I remember the driver initialization logging saying
-> that it would treat it like a TCL_2002 (or something like that).  I know
-> that it worked for me just a few days ago.
-> 
-> Looking at linux/include/media/tuner.h, the only TCL 2002 tuners are
-> type numbers 50 or 55.  Type 55 is for a PAL tuner, which an HVR-1600
-> should not have, AFAIK.
-> 
-> 
-> > All have been around I can think about, but it still has no tda988x
-> > config something in tuner-types.c, and you need it for sure, maybe you
-> > have it in the cards entry? All other will fail.
-> 
-> tveeprom.c has the answer.
-> 
-> $ cd v4l-dvb/linux/drivers/media/video
-> $ grep 2523 tveeprom.c
->         { TUNER_TCL_2002N,              "TCL M2523_5N_E"},   <-------
->         { TUNER_TCL_2002MB,             "TCL M2523_3DB_E"},
->         { TUNER_ABSENT,                 "TCL M2523_3DI_E"},
->         { TUNER_ABSENT,                 "TCL M2523_5NH_E"},
->         { TUNER_ABSENT,                 "TCL M2523_3DBH_E"},
->         { TUNER_ABSENT,                 "TCL M2523_3DIH_E"},
-> 
-> $ cd v4l-dvb/linux/include/media
-> $ egrep '(2002)|(2523)' tuner.h
-> #define TUNER_TCL_2002N                 50     <--------------
-> #define TUNER_TCL_2002MB                55      /* Hauppauge PVR-150 PAL */
-> 
-> 
-> 
-> I'm not quite sure I understand everything you were trying to say, but I
-> agree with your line of thinking.  It's most likely a tuner problem.
-> 
-> Does a TCL M2523_5N_E have a TDA988x?  I know the TDA9887 can
-> demodulate FM radio. Brian's HVR-1600 doesn't have FM radio according to
-> tveeeprom, so are you thinking a TDA988[56] is in the TCL M2523 5N E? 
+It's pretty clear to me multiproto is likely never going to make it to 
+the kernel. And the things you sum up here sound good. I haven't used 
+multiproto much, and I understood some parts of it are a pain from 
+dev-POV. And stuff that doesn't go in-kernel gets little support from 
+applications.
 
-No, therefore the warning that I did not look any closer yet.
+Also, if we would NOT accept the solution you propose now, I see 
+linux-DVB getting killed off altogether, more (other) developers working 
+on multiproto and eventually the (atm messy) multiproto project (or some 
+spinoff) going in-kernel, replacing linux-DVB.
 
-http://www.tclrf.com/English/html/enewsproopen.asp?proname=102&url=product
+That's radical. I'm not even sure that's possible. But I think it should 
+be said it's an alternative.
 
-> "struct tuner_params tuner_tcl_2002n_params[]" in
-> v4l-dvb/linux/drivers/media/common/tuners/tuner-types.c
-> doesn't have ".has_tda9887 = 1" set.
+Since you are the current linux-DVB developers and you support this new 
+solution, I'll support you and am willing to abandon multiproto (haven't 
+used it much anyway). On the other hand: if more people prefer 
+multiproto and it grows seriously and goes in-kernel (after which 
+enduser apps would start supporting it), I'll install that on my 
+machine. In short, the most important thing to me, an enduser: I want a 
+solution that for now brings me DVB-S2 and will later on be capable of 
+supporting new standards.
 
-I assumed a MK4 tuner=57 on it like it is also on PVR-150 and PVR-500.
-They also have no radio, but without tda9887, includes tda9885 and
-tda9886, you won't get anything useful out of them.
+For now, I am willing to support this new solution. Both because you 
+support and, and because it sounds good. Being an ignorant enduser I 
+can't judge much other things.
 
-Then exactly the above missing .has_tda9887 = 1 for _that one_ could
-cause such problems.
-
-> 
-> Thanks.
-> 
-> If you have any other thoughts/idea, please let me know.
-
-It just came in mind it might be related to the missing tda9887 for
-tuner=57, but you obviously deal with other tuners.
-
-However, the missing tda9887 for the FQ1236A seems to be at least a
-inconsistency in tuner-types.c for me.
-
->From logs of the PVR-500 and PVR-150 one can see they need the tda9887
-module and it is at 0x43/0x86.
-
-Cheers,
-Hermann
-
-
-
-
+Acked-by: P. van Gaans (please no unsolicited bulk mail)
 
 _______________________________________________
 linux-dvb mailing list
