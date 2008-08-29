@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f32.google.com ([209.85.217.32])
+Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mijhail.moreyra@gmail.com>) id 1KZA1j-0004V6-S3
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 21:53:02 +0200
-Received: by gxk13 with SMTP id 13so1323985gxk.17
-	for <linux-dvb@linuxtv.org>; Fri, 29 Aug 2008 12:52:25 -0700 (PDT)
-Message-ID: <48B85361.6020508@gmail.com>
-Date: Fri, 29 Aug 2008 14:52:01 -0500
-From: Mijhail Moreyra <mijhail.moreyra@gmail.com>
-MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <48B4687D.8070205@gmail.com> <48B46D46.2020800@linuxtv.org>
-	<48B46F9D.105@gmail.com> <48B47D2C.3010005@linuxtv.org>
-	<48B48F62.7090100@gmail.com> <48B4FB50.3020200@linuxtv.org>
-In-Reply-To: <48B4FB50.3020200@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
-	HVR-1500
+	(envelope-from <jw@raven.inka.de>) id 1KZ6Ex-0008Tk-FU
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 17:50:24 +0200
+Date: Fri, 29 Aug 2008 17:45:43 +0200
+From: Josef Wolf <jw@raven.inka.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080829154543.GQ32022@raven.wolf.lan>
+References: <1219733348.3846.8.camel@suse.site>
+	<709924.7684.qm@web46108.mail.sp1.yahoo.com>
+	<20080826224519.GL32022@raven.wolf.lan>
+Mime-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20080826224519.GL32022@raven.wolf.lan>
+Subject: Re: [linux-dvb] PTS/DTS clarification (Was: How to convert MPEG-TS
+	to MPEG-PS on the fly?)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,54 +28,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Steven Toth wrote:
-> Mijhail,
+On Wed, Aug 27, 2008 at 12:45:19AM +0200, Josef Wolf wrote:
+
+> BTW: what is the DTS good for?  Isn't PTS the relevant time for playbacK?
+>      What difference does it make when a frame was decoded as long as it
+>      is presented at the correct time?
 > 
-> http://linuxtv.org/hg/~stoth/cx23885-audio
-> 
-> This tree contains your patch with some minor whitespace cleanups and 
-> fixes for HUNK related merge issues due to the patch wrapping at 80 cols.
-> 
-> Please build this tree and retest in your environment to ensure I did 
-> not break anything. Does this tree still work OK for you?
-> 
-> After this I will apply some other minor cleanups then invite a few 
-> other HVR1500 owners to begin testing.
-> 
-> Thanks again.
-> 
-> Regards,
-> 
-> Steve
+>      And what is the SCRB good for?  I am totally confused by all those
+>      times.
 
-Hi, sorry for the delay.
+I have found a good reading on
 
-I've tested the http://linuxtv.org/hg/~stoth/cx23885-audio tree and it 
-doesn't work well.
+  http://www.tek.com/Measurement/programs/mpeg_fundamentals/
 
-You seem to have removed a piece from my patch that avoids some register
-modification in cx25840-core.c:cx23885_initialize()
+This reading is much more comprehensive than the iso-13818-1.  Page 47
+explains PTS/DTS.  In a nutshell, DTS is needed because of bidirectional
+video encoding.  As an example, pictures can be presented in order IBBP,
+but for decoding the order would be IPBB because the B pictures depend
+on the I and P pictures.  Since decoders can decode only one picture at
+a time, DTS is used to signal that decoding have to be done in a
+different order than presentation.
 
--       cx25840_write(client, 0x2, 0x76);
-+       if (state->rev != 0x0000) /* FIXME: How to detect the bridge 
-type ??? */
-+               /* This causes image distortion on a true cx23885 board */
-+               cx25840_write(client, 0x2, 0x76);
+So now my understanding is that for determining packet order in the PS,
+DTS has to be used if it exists.  If no DTS exists, then PTS is to be
+used.
 
-As the patch says that register write causes a horrible image distortion
-on my HVR-1500 which has a real cx23885 (not 23887, 23888, etc) board.
-
-I don't know if it's really required for any bridge as everything seems
-to be auto-configured by default, maybe it can be simply dropped.
-
-Other than that the cx23885-audio tree works well.
-
-WRT the whitespaces, 80 cols, etc; most are also in the sources I took
-as basis, so I didn't think they were a problem.
-
-Regards,
-
-Mijhail Moreyra
+Guess, my understanding is still wrong.  But I need a starting point
+from which I can remove errors step by step ;-)
 
 
 _______________________________________________
