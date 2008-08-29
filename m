@@ -1,21 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.153])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1KSV0h-0007Fs-M0
-	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 12:52:27 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so950928fga.25
-	for <linux-dvb@linuxtv.org>; Mon, 11 Aug 2008 03:52:20 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Mon, 11 Aug 2008 12:52:16 +0200
-References: <489C16EF.5030004@siriushk.com> <489D4D5D.2020700@siriushk.com>
-	<489F2C4A.4070908@linuxtv.org>
-In-Reply-To: <489F2C4A.4070908@linuxtv.org>
+Message-ID: <48B83C83.7050801@sustik.com>
+Date: Fri, 29 Aug 2008 13:14:27 -0500
+From: Matyas Sustik <linux-dvb.list@sustik.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200808111252.17061.christophpfister@gmail.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] Support for Magic-Pro DMB-TH usb stick
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <48B822A9.6070400@sustik.com>
+	<37219a840808290932n23165451nfcdfa6ded704713e@mail.gmail.com>
+In-Reply-To: <37219a840808290932n23165451nfcdfa6ded704713e@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fusion HDTV 7
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,37 +22,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Mike,
+Thanks for the quick response!
 
-Am Sonntag 10 August 2008 19:58:34 schrieb Michael Krufky:
-<snip>
-> Timothy,
->
-> I've applied your patch to my cxusb tree, with slight modifications, in
-> order to coincide with another patch to the same code.  Please test the
-> tree and confirm proper operation before I request a merge into the
-> master branch.
->
-> http://linuxtv.org/hg/~mkrufky/cxusb
->
-> I'll push the Hong Kong scan file to dvb-apps after this tree is merged
-> into the master branch.
+Michael Krufky wrote:
+> No, you must have used a "car=4" option....  Next time read the error
+> message and it might help you figure out what you did wrong.
 
-I didn't really follow the discussion (sorry), but I think if the device 
-presents itself as a dvb-t device and is usable as a (pseudo-)dvb-t device 
-(tune / scan / watch), the scan file should be in the dvb-t. And in this case 
-please change "fec_lo" to "NONE" when you're committing.
+I reverted to the stock kernel modules and cx23885 indeed loaded with
+"card=4".  However channel scanning did not find anything.  Since you
+wrote:
 
-> If you have any additional fixes / changes to make before this is merged
-> into master, please generate them against this cxusb tree.
->
-> Regards,
->
-> Mike
+> FusionHDTV7 is not supported in 2.6.26.y -- you should use the
+> linuxtv.org modules from the development repository, instead.
 
-Thanks,
+I just got the sources again and did make, make install (no make load)
+and rebooted.  Module loaded, dmesg indicated no errors.
 
-Christoph
+Scanning turns up nothing though, I only get:
+> scan /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB
+scanning /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>>> tune to: 57028615:8VSB
+WARNING: filter timeout pid 0x0000
+WARNING: filter timeout pid 0x1ffb
+>>> tune to: 63028615:8VSB
+WARNING: filter timeout pid 0x0000
+WARNING: filter timeout pid 0x1ffb
+>>> tune to: 69028615:8VSB
+WARNING: filter timeout pid 0x0000
+WARNING: filter timeout pid 0x1ffb
+>>> tune to: 79028615:8VSB
+WARNING: filter timeout pid 0x0000
+WARNING: filter timeout pid 0x1ffb
+...
+
+I picked us-ATSC-center-frequencies-8VSB for the over the air channels (in
+Austin TX), please correct me if I was wrong there.
+
+Is there a way to make sure that the card is receiving anything?  I would
+like to rule out a malfunctioning card.  Does the load of the module indicate
+that some communication has already taken place with the card?
+
+I will try a different cable next.  I can also ask a friend to test-drive the
+card under windows but I would do that as a last resort.  (If there is a
+hardware error on the card I need to return it soon.)
+
+> Did you reboot your machine before trying the new modules?
+
+That was the problem.  It was not clear to me that other than the cx23885
+module need to be updated, that there are dependencies regarding module
+versions.  (The module system is not modular enough it seems; presumably as a
+result of constant changes in the module and kernel interfaces?)
+
+Thanks again for your help!
+Matyas
+-
+Every hardware eventually breaks.  Every software eventually works.
 
 _______________________________________________
 linux-dvb mailing list
