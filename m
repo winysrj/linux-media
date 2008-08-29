@@ -1,21 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7F02doe025794
-	for <video4linux-list@redhat.com>; Thu, 14 Aug 2008 20:02:39 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7F02RY3007827
-	for <video4linux-list@redhat.com>; Thu, 14 Aug 2008 20:02:28 -0400
-Date: Fri, 15 Aug 2008 02:02:05 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Nakarin Lamangthong <lnakarin@gmail.com>
-Message-ID: <20080815000205.GA1359@daniel.bse>
-References: <443ddfb30808141632l30b6fbefgda1bb2a1f6bbe028@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <443ddfb30808141632l30b6fbefgda1bb2a1f6bbe028@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Commell MP-878D first time error
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TNf0Go028284
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 19:41:00 -0400
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7TNeled004293
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 19:40:48 -0400
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m7TNegV9007826
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 18:40:47 -0500
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m7TNeg04021664
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 18:40:42 -0500 (CDT)
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Fri, 29 Aug 2008 18:40:41 -0500
+Message-ID: <A24693684029E5489D1D202277BE89441191E33F@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: [PATCH 8/15] OMAP3 camera driver: V4L2: Int if: Add enumeration
+ ioctls.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,25 +33,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Aug 15, 2008 at 06:32:21AM +0700, Nakarin Lamangthong wrote:
-> I'm newbie for LinuxTV, I have a Capture Mini-pci Card form Commell MP-878D
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+---
+ include/media/v4l2-int-device.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-> bttv0: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
-
-As your card can't be detected, you need to load the bttv module
-with pll=28 to be able to decode PAL signals.
-
-> How do i fix this error?
-> 
-> bt878_probe: card id=[0x0], Unknown card.
-> Exiting..
-> bt878: probe of 0000:00:0e.1 failed with error -22
-
-Ignore this error.
-It tells you that your card is none of the bt878 cards known to use the
-audio part to transport DVB data.
-
-  Daniel
+Index: linux-omap-2.6/include/media/v4l2-int-device.h
+===================================================================
+--- linux-omap-2.6.orig/include/media/v4l2-int-device.h	2008-08-28 19:37:11.000000000 -0500
++++ linux-omap-2.6/include/media/v4l2-int-device.h	2008-08-28 19:38:29.000000000 -0500
+@@ -205,6 +205,8 @@
+ 	vidioc_int_g_ifparm_num,
+ 	/* Does the slave need to be reset after VIDIOC_DQBUF? */
+ 	vidioc_int_g_needs_reset_num,
++	vidioc_int_enum_framesizes_num,
++	vidioc_int_enum_frameintervals_num,
+ 
+ 	/*
+ 	 *
+@@ -292,6 +294,8 @@
+ V4L2_INT_WRAPPER_1(g_priv, void, *);
+ V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
+ V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
++V4L2_INT_WRAPPER_1(enum_framesizes, struct v4l2_frmsizeenum, *);
++V4L2_INT_WRAPPER_1(enum_frameintervals, struct v4l2_frmivalenum, *);
+ 
+ V4L2_INT_WRAPPER_0(reset);
+ V4L2_INT_WRAPPER_0(init);
 
 --
 video4linux-list mailing list
