@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m76Fk4Bv012572
-	for <video4linux-list@redhat.com>; Wed, 6 Aug 2008 11:46:04 -0400
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m76FjKLi016969
-	for <video4linux-list@redhat.com>; Wed, 6 Aug 2008 11:45:54 -0400
-Received: by yx-out-2324.google.com with SMTP id 31so163577yxl.81
-	for <video4linux-list@redhat.com>; Wed, 06 Aug 2008 08:45:54 -0700 (PDT)
-Message-ID: <3634de740808060845x14e00908hd177201c73414162@mail.gmail.com>
-Date: Wed, 6 Aug 2008 21:15:54 +0530
-From: John <john.maximus@gmail.com>
-To: "Jalori, Mohit" <mjalori@ti.com>
-In-Reply-To: <8AA5EFF14ED6C44DB31DA963D1E78F0DB58C686C@dlee02.ent.ti.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TIHi5S019951
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 14:17:44 -0400
+Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7TIH4d8011168
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 14:17:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date: Fri, 29 Aug 2008 20:16:48 +0200
+References: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>
+	<200808282058.26623.hverkuil@xs4all.nl>
+	<Pine.LNX.4.64.0808292013120.3521@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0808292013120.3521@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <3634de740807172215v52a624ga09449e81bb684fe@mail.gmail.com>
-	<8AA5EFF14ED6C44DB31DA963D1E78F0DB58C686C@dlee02.ent.ti.com>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: RE: omap3 camera patches
+Message-Id: <200808292016.48647.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3] soc-camera: add API documentation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,51 +31,154 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello Mohit,
-   Using the patches on the omap git kernel. patch applies cleanly.
-
-   Seems like the camera clocks aren't set properly.
-
-   Messages like "Clock cam_mclk didn't enable in 100000 tries" are
-displayed during
-   boot.
-
-   have you tried with latest git kernel
-
-   trying out with 2.6.26-rc6 results in the same error.
-
-/John
-
-
-On Sat, Jul 26, 2008 at 8:20 AM, Jalori, Mohit <mjalori@ti.com> wrote:
->> -----Original Message-----
->> From: John [mailto:john.maximus@gmail.com]
->> Sent: Friday, July 18, 2008 12:15 AM
->> To: video4linux-list@redhat.com
->> Subject:
->>
->> Hello,
->>    looking at the OMAP3 camera patches posted sometime back.
->>    I manually applied these patches on a existing OMAP3 2.6.22 kernel.
->>    am trying to port an existing SOC micron driver to OMAP3 on a
->> custom board.
->>    am not seeing any interrupts.
->>
->>   Is anyone using the current camera patches for OMAP3. Is this
->> working?
->>
->>   Are there any existing sensor drivers that use these patches. I find
->> there are no sensor
->>   driver for OMAP3.
+On Friday 29 August 2008 20:16:31 Guennadi Liakhovetski wrote:
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 >
-> I have sent the sensor and lens driver patches. They are also based on 2.6.26. I verified these by applying the original 16 patches and then these 4 new ones.
+> ---
 >
->>
->>
->> Regards,
->>
->> John
+> Ok, more comments addressed, thanks to all again, we might even get
+> it in for 2.6.27? It certainly will not cause any regressions:-)
+
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+And apologies for hijacking your post for me rant :-)
+
+Regards,
+
+	Hans
+
 >
+> diff -u /dev/null b/Documentation/video4linux/soc-camera.txt
+> --- /dev/null	2008-08-29 08:10:06.483001029 +0200
+> +++ b/Documentation/video4linux/soc-camera.txt	2008-08-29
+> 19:56:41.000000000 +0200 @@ -0,0 +1,120 @@
+> +			Soc-Camera Subsystem
+> +			====================
+> +
+> +Terminology
+> +-----------
+> +
+> +The following terms are used in this document:
+> + - camera / camera device / camera sensor - a video-camera sensor
+> chip, capable +   of connecting to a variety of systems and
+> interfaces, typically uses i2c for +   control and configuration, and
+> a parallel or a serial bus for data. + - camera host - an interface,
+> to which a camera is connected. Typically a +   specialised
+> interface, present on many SoCs, e.g., PXA27x and PXA3xx, SuperH, +  
+> AVR32, i.MX27, i.MX31.
+> + - camera host bus - a connection between a camera host and a
+> camera. Can be +   parallel or serial, consists of data and control
+> lines, e.g., clock, vertical +   and horizontal synchronization
+> signals.
+> +
+> +Purpose of the soc-camera subsystem
+> +-----------------------------------
+> +
+> +The soc-camera subsystem provides a unified API between camera host
+> drivers and +camera sensor drivers. It implements a V4L2 interface to
+> the user, currently +only the mmap method is supported.
+> +
+> +This subsystem has been written to connect drivers for
+> System-on-Chip (SoC) +video capture interfaces with drivers for CMOS
+> camera sensor chips to enable +the reuse of sensor drivers with
+> various hosts. The subsystem has been designed +to support multiple
+> camera host interfaces and multiple cameras per interface, +although
+> most applications have only one camera sensor.
+> +
+> +Existing drivers
+> +----------------
+> +
+> +As of 2.6.27-rc4 there are two host drivers in the mainline:
+> pxa_camera.c for +PXA27x SoCs and sh_mobile_ceu_camera.c for SuperH
+> SoCs, and four sensor drivers: +mt9m001.c, mt9m111.c, mt9v022.c and a
+> generic soc_camera_platform.c driver. This +list is not supposed to
+> be updated, look for more examples in your tree. +
+> +Camera host API
+> +---------------
+> +
+> +A host camera driver is registered using the
+> +
+> +soc_camera_host_register(struct soc_camera_host *);
+> +
+> +function. The host object can be initialized as follows:
+> +
+> +static struct soc_camera_host pxa_soc_camera_host = {
+> +	.drv_name	= PXA_CAM_DRV_NAME,
+> +	.ops		= &pxa_soc_camera_host_ops,
+> +};
+> +
+> +All camera host methods are passed in a struct soc_camera_host_ops:
+> +
+> +static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+> +	.owner		= THIS_MODULE,
+> +	.add		= pxa_camera_add_device,
+> +	.remove		= pxa_camera_remove_device,
+> +	.suspend	= pxa_camera_suspend,
+> +	.resume		= pxa_camera_resume,
+> +	.set_fmt_cap	= pxa_camera_set_fmt_cap,
+> +	.try_fmt_cap	= pxa_camera_try_fmt_cap,
+> +	.init_videobuf	= pxa_camera_init_videobuf,
+> +	.reqbufs	= pxa_camera_reqbufs,
+> +	.poll		= pxa_camera_poll,
+> +	.querycap	= pxa_camera_querycap,
+> +	.try_bus_param	= pxa_camera_try_bus_param,
+> +	.set_bus_param	= pxa_camera_set_bus_param,
+> +};
+> +
+> +.add and .remove methods are called when a sensor is attached to or
+> detached +from the host, apart from performing host-internal tasks
+> they shall also call +sensor driver's .init and .release methods
+> respectively. .suspend and .resume +methods implement host's
+> power-management functionality and its their +responsibility to call
+> respective sensor's methods. .try_bus_param and +.set_bus_param are
+> used to negotiate physical connection parameters between the +host
+> and the sensor. .init_videobuf is called by soc-camera core when a
+> +video-device is opened, further video-buffer management is
+> implemented completely +by the specific camera host driver. The rest
+> of the methods are called from +respective V4L2 operations.
+> +
+> +Camera API
+> +----------
+> +
+> +Sensor drivers can use struct soc_camera_link, typically provided by
+> the +platform, and used to specify to which camera host bus the
+> sensor is connected, +and arbitrarily provide platform .power and
+> .reset methods for the camera. +soc_camera_device_register() and
+> soc_camera_device_unregister() functions are +used to add a sensor
+> driver to or remove one from the system. The registration +function
+> takes a pointer to struct soc_camera_device as the only parameter.
+> +This struct can be initialized as follows:
+> +
+> +	/* link to driver operations */
+> +	icd->ops	= &mt9m001_ops;
+> +	/* link to the underlying physical (e.g., i2c) device */
+> +	icd->control	= &client->dev;
+> +	/* window geometry */
+> +	icd->x_min	= 20;
+> +	icd->y_min	= 12;
+> +	icd->x_current	= 20;
+> +	icd->y_current	= 12;
+> +	icd->width_min	= 48;
+> +	icd->width_max	= 1280;
+> +	icd->height_min	= 32;
+> +	icd->height_max	= 1024;
+> +	icd->y_skip_top	= 1;
+> +	/* camera bus ID, typically obtained from platform data */
+> +	icd->iface	= icl->bus_id;
+> +
+> +struct soc_camera_ops provides .probe and .remove methods, which are
+> called by +the soc-camera core, when a camera is matched against or
+> removed from a camera +host bus, .init, .release, .suspend, and
+> .resume are called from the camera host +driver as discussed above.
+> Other members of this struct provide respective V4L2 +functionality.
+> +
+> +struct soc_camera_device also links to an array of struct
+> soc_camera_data_format, +listing pixel formats, supported by the
+> camera.
+> +
+> +--
+> +Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
 
 --
 video4linux-list mailing list
