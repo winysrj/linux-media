@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m72NdqbV021098
-	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 19:39:52 -0400
-Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net
-	[151.189.21.44])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m72NdbMj010951
-	for <video4linux-list@redhat.com>; Sat, 2 Aug 2008 19:39:37 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Lars Oliver Hansen <lolh@ymail.com>
-In-Reply-To: <1217690263.6605.25.camel@lars-laptop>
-References: <1217690263.6605.25.camel@lars-laptop>
-Content-Type: text/plain
-Date: Sun, 03 Aug 2008 01:32:25 +0200
-Message-Id: <1217719945.2676.6.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: saa7134-alsa  appears to be broken
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TIoaHI002541
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 14:50:36 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7TIoS2N001227
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 14:50:28 -0400
+Date: Fri, 29 Aug 2008 20:55:51 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200808292016.48647.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0808292047560.3521@axis700.grange>
+References: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>
+	<200808282058.26623.hverkuil@xs4all.nl>
+	<Pine.LNX.4.64.0808292013120.3521@axis700.grange>
+	<200808292016.48647.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v3] soc-camera: add API documentation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,75 +29,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Lars,
+On Fri, 29 Aug 2008, Hans Verkuil wrote:
 
-Am Samstag, den 02.08.2008, 17:17 +0200 schrieb Lars Oliver Hansen:
-> Hi,
+> On Friday 29 August 2008 20:16:31 Guennadi Liakhovetski wrote:
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >
+> > ---
+> >
+> > Ok, more comments addressed, thanks to all again, we might even get
+> > it in for 2.6.27? It certainly will not cause any regressions:-)
 > 
-> I experience the same problem: the sound part of the saa7134 driver
-> doesn't load.
+> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 > 
-> Ususally I get such symbol errors with MadWiFis snapshot driver after
-> every application installation which configured some kernel stuff. I
-> then unload the MadWiFi driver and do a clean install according to their
-> description.
-> 
-> I'm new to Linux and thus don't know the options I have for and how to
-> make a clean install in general. Hermann suggested to do a make
-> rminstall in his response. Could anyone help me here as how to do this
-> with the saa7134 experimental driver (it's cloning the relevant
-> Mercurial repository) or what else I could try?
-> 
-> As I installed the sound driver after make-ing the TV card driver I
-> guess an update of some dependancies may be necessary. I don't know
-> anything about the relations there at all. Would someone shed some light
-> on this? Thanks for taking time for this issue and for a possible answer
-> in advance!
-> 
-> Kind Regards,
-> 
-> Lars
-> 
+> And apologies for hijacking your post for me rant :-)
 
-please report this again from a 2.6.26.1 or every other vanilla kernel
-of you choice.
+No problem at all. I am glad it served the purpose. It is clear we need an 
+API for the SoC camera interface, or a USB dongle, or a PCI card on one 
+side and a CMOS sensor, or a frame-grabber, or you-name-them on the other 
+side. I might well imagine, that the current soc-camera API is not a final 
+solution, i.e., it will not suit all these purposes, so, I am all for a 
+better more generic interface. I only hope the transition will not be too 
+painful... And I suspect, we will get a couple more soc-camera drivers by 
+the time the new API gets implemented, so, I very much hope we will not 
+have to largely re-write them all:-)
 
-We had some minor issues, but I refuse to investigate what others
-deliberately add.
-
-Cheers,
-Hermann
-
-BTW: in kernel drivers follow the kernel versions since ever.
-
-> P.s.: here's the dmesg output again:
-> 
-> [    0.000000] saa7134_alsa: disagrees about version of symbol
-> saa7134_tvaudio_setmute
-> [    0.000000] saa7134_alsa: Unknown symbol saa7134_tvaudio_setmute
-> [    0.000000] saa7134_alsa: disagrees about version of symbol
-> saa_dsp_writel
-> [    0.000000] saa7134_alsa: Unknown symbol saa_dsp_writel
-> [    0.000000] saa7134_alsa: disagrees about version of symbol
-> saa7134_pgtable_alloc
-> [    0.000000] saa7134_alsa: Unknown symbol saa7134_pgtable_alloc
-> [    0.000000] saa7134_alsa: disagrees about version of symbol
-> saa7134_pgtable_build
-> [    0.000000] saa7134_alsa: Unknown symbol saa7134_pgtable_build
-> [    0.000000] saa7134_alsa: disagrees about version of symbol
-> saa7134_pgtable_free
-> [    0.000000] saa7134_alsa: Unknown symbol saa7134_pgtable_free
-> [    0.000000] saa7134_alsa: disagrees about version of symbol
-> saa7134_dmasound_init
-> [    0.000000] saa7134_alsa: Unknown symbol saa7134_dmasound_init
-> [    0.000000] saa7134_alsa: disagrees about version of symbol
-> saa7134_dmasound_exit
-> [    0.000000] saa7134_alsa: Unknown symbol saa7134_dmasound_exit
-> [    0.000000] saa7134_alsa: disagrees about version of symbol
-> saa7134_set_dmabits
-> [    0.000000] saa7134_alsa: Unknown symbol saa7134_set_dmabits
-> 
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
