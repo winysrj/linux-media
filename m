@@ -1,18 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from quechua.inka.de ([193.197.184.2] helo=mail.inka.de ident=mail)
+Received: from ik-out-1112.google.com ([66.249.90.179])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jw@raven.inka.de>) id 1KWYR3-0007CL-MB
-	for linux-dvb@linuxtv.org; Fri, 22 Aug 2008 17:20:22 +0200
-Date: Fri, 22 Aug 2008 17:16:02 +0200
-From: Josef Wolf <jw@raven.inka.de>
-To: Kevin Sheehan <linux-dvb@ephedrine.net>, linux-dvb@linuxtv.org
-Message-ID: <20080822151602.GG32022@raven.wolf.lan>
-References: <52113.203.82.187.131.1219367267.squirrel@webmail.planb.net.au>
-	<271833.9641.qm@web46109.mail.sp1.yahoo.com>
-Mime-Version: 1.0
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KYru0-0004JI-5G
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 02:31:50 +0200
+Received: by ik-out-1112.google.com with SMTP id c21so383818ika.1
+	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 17:31:44 -0700 (PDT)
+Message-ID: <412bdbff0808281731t7641e4d1kf86058e071c7d5fb@mail.gmail.com>
+Date: Thu, 28 Aug 2008 20:31:44 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Thomas Goerke" <tom@goeng.com.au>,
+	"Patrick Boettcher" <patrick.boettcher@desy.de>
+In-Reply-To: <008001c9096a$f315df10$d9419d30$@com.au>
+MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <271833.9641.qm@web46109.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] How to convert MPEG-TS to MPEG-PS on the fly?
+References: <004f01c90921$248fe2b0$6dafa810$@com.au>
+	<412bdbff0808280824s288de72el297dda0556d6ca4d@mail.gmail.com>
+	<007f01c90965$344da360$9ce8ea20$@com.au>
+	<412bdbff0808281638h7e911b37n4d5043bf40b42d65@mail.gmail.com>
+	<008001c9096a$f315df10$d9419d30$@com.au>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge WinTV-NOVA-T-500 New Firmware
+	(dvb-usb-dib0700-1.20.fw) causes problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,47 +34,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 21, 2008 at 10:15:37PM -0700, barry bouwsma wrote:
-> --- On Fri, 8/22/08, Kevin Sheehan <linux-dvb@ephedrine.net> wrote:
-> 
-> > Barry was right on the money with the ts2ps suggestion below.  It's part
-> > of the libdvb package.  You don't have to use the dvb-mpegtools app, you
-> > can just use the lib in yours - no pipes, etc.
-> 
-> My understanding of a PS stream (redundant, yeah) was based on how
-> ts2ps created one, with just two PIDs (0xe0 and 0xc0), which I then
-> assumed was the norm.
-> 
-> But in the case of ZDF from the original post, as well as ARD, BR,
-> Sat1, and so on, Josef wants to make the multiple available audio
-> streams from the TS (primary mp2 audio, second narrative audio/
-> second lang, plus AC3) within the PS for the client to select.
-> 
-> I'd imagine a bit of hacking is needed to ts2ps to allow one to add
-> more than a single audio PID to the PS, but it should be possible.
-> 
-> But, if there's a need for, say, the DVB subtitles from ZDF, or the
-> teletext (for teletext subtitles, amongst others), or any other
-> auxiliary data within the stream, if I understand right, one would
-> need to stick to writing a partial transport stream, which then
-> could be filtered to PS as needed.
+On Thu, Aug 28, 2008 at 8:05 PM, Thomas Goerke <tom@goeng.com.au> wrote:
+> I did a little more debugging and it seems that the I still have a problem
+> with the .20 version.  However, you only see it after a cold reset ie when
+> you need to load the firmware.  See below for the first dmesg which is with
+> the .20 firmware.  As you can see the card is found but only in a cold
+> state.  The second dmesg is with the .10 firmware and the card is found
+> firstly in a cold state and then in a warm state.  Each of these dmesg
+> outputs have been after a power off from the power supply for 10 seconds ie
+> no power to backplane.
 
-In addition to audio, video, program_stream_map, private_stream-X
-and program_stream_directory, Table 2-19 in iso-13818-1 defines 9
-more stream types:
+Wow, that's so early in the loading process for the device, it's hard
+to see how that can have anything to do with my i2c changes.
 
- - ECM_stream
- - EMM_stream
- - 13818-6_DSMCC_stream
- - ISO/IEC_13522_stream
- - ITU-T Reac. H.222.1 type A
- - ITU-T Reac. H.222.1 type B
- - ITU-T Reac. H.222.1 type C
- - ITU-T Reac. H.222.1 type D
- - ITU-T Reac. H.222.1 type E
+Patrick, do you have any changelogs that describe the differences
+between 1.10 and 1.20 other than the addition of the new i2c API?
 
-I have not looked into the details, but I guess teletext and subtitles
-might be included in this list.
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
