@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7QLvKiA004450
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 17:57:21 -0400
-Received: from smtp-vbr2.xs4all.nl (smtp-vbr2.xs4all.nl [194.109.24.22])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7QLv8F0018014
-	for <video4linux-list@redhat.com>; Tue, 26 Aug 2008 17:57:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 26 Aug 2008 23:57:05 +0200
-References: <48B3B8CD.9090503@hhs.nl> <200808262235.12292.hverkuil@xs4all.nl>
-	<48B47511.4010008@hhs.nl>
-In-Reply-To: <48B47511.4010008@hhs.nl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7TCBAO8016746
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 08:11:10 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7TCAr4l016590
+	for <video4linux-list@redhat.com>; Fri, 29 Aug 2008 08:10:54 -0400
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <jdelvare@suse.de>
+In-Reply-To: <200808281658.28151.jdelvare@suse.de>
+References: <200808251445.22005.jdelvare@suse.de>
+	<1219711251.2796.47.camel@morgan.walls.org>
+	<200808281658.28151.jdelvare@suse.de>
+Content-Type: text/plain
+Date: Fri, 29 Aug 2008 08:09:38 -0400
+Message-Id: <1220011778.3174.19.camel@morgan.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200808262357.05806.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com
-Subject: Re: What todo with cams which have 2 drivers?
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [v4l-dvb-maintainer] bttv driver questions
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,103 +30,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 26 August 2008 23:26:41 Hans de Goede wrote:
-> Hans Verkuil wrote:
-> > 
-> > In general I am getting worried by the lack of a common standard to
-> > interface to sensor and controller drivers. I'm no expert on webcams, so
-> > correct me if I'm wrong, but it seems to me that the correct design would
-> > be to have a generic API to these devices that can be used by the various
-> > USB or platform drivers.
-> > 
-> > But for e.g. the mt9* sensors we have three that use the soc_camera
-> > interface, one using the sn9c102 interface and I know of two more that
-> > are not yet in v4l-dvb but that will use the v4l2-int-device.h interface.
-> > It's a mess in my opinion.
-> > 
-> 
-> It is indeed, in my experience so far the easiest solution is to see the bridge 
-> and sensor (and this the whole cam) as one device. 80% of the per sensor code 
-> in a bridge driver is setting up the bridge to talk to the cam (there are 
-> various connections between the 2 possible and most bridges support multiple 
-> connection types) and 80% of the sensor code is configuring the sensor for a 
-> specific bridge (same story). The remaining 20% of sensor code is rather boring 
->   (poking registers to set things like conteast and brightness) and since the 
-> sensor needs to be programmed to talk to the bridge in a bridge specific way 
-> there is little to gain from having seperate sensor drivers as those still need 
-> to be patched for a new bridge type before the sensor will work with a certain 
-> bridge.
-> 
-> If you for example look at the attempting to be generic ovchipcam drivers in 
-> the current kernel tree, which contain code for the ov6xxx and ov7xxx sensors, 
-> then the attach routine contains the following:
-> 
->          switch (adap->id) {
->          case I2C_HW_SMBUS_OV511:
->          case I2C_HW_SMBUS_OV518:
->          case I2C_HW_SMBUS_W9968CF:
->                  PDEBUG(1, "Adapter ID 0x%06x accepted", adap->id);
->                  break;
->          default:
->                  PDEBUG(1, "Adapter ID 0x%06x rejected", adap->id);
->                  return -ENODEV;
->          }
-> 
-> IOW this generic sensor code will only work with 3 know bridges and some of the 
-> code itself is bridge specific too, for example in ov6x30.c :
-> 
->          if (win->format == VIDEO_PALETTE_GREY) {
->                  if (c->adapter->id == I2C_HW_SMBUS_OV518) {
->                          /* Do nothing - we're already in 8-bit mode */
->                  } else {
->                          ov_write_mask(c, 0x13, 0x20, 0x20);
->                  }
->          } else {
->                  /* The OV518 needs special treatment. Although both the OV518
->                   * and the OV6630 support a 16-bit video bus, only the 8 bit Y
->                   * bus is actually used. The UV bus is tied to ground.
->                   * Therefore, the OV6630 needs to be in 8-bit multiplexed
->                   * output mode */
-> 
->                  if (c->adapter->id == I2C_HW_SMBUS_OV518) {
->                          /* Do nothing - we want to stay in 8-bit mode */
->                          /* Warning: Messing with reg 0x13 breaks OV518 color */
->                  } else {
->                          ov_write_mask(c, 0x13, 0x00, 0x20);
->                  }
->          }
-> 
-> I've done a comparison of code size between trying to use generic sensor code 
-> (which isn't that generic at all see above) and just putting sensor specific 
-> code into each bridge driver separately, see:
-> http://marc.info/?l=linux-video&m=121645882518114&w=2
-> 
-> So my conclusion (for now) is that trying to separate the sensor code out of 
-> the bridge drivers is not worth it. I plan to rewrite the ov511/ov518 driver 
-> for v4l2 using gspca (so that libv4l can be used to decode the special JPEG-ish 
-> format making these cams actually work). For this rewrite I will probably 
-> remove the ovcamchip stuff and just put sensor init and ctrl code in the bridge 
-> driver, probably resulting in a smaller driver.
+On Thu, 2008-08-28 at 16:58 +0200, Jean Delvare wrote:
+> Hi Andy,
 
-Interesting results. And I think it makes sense for these sensor devices. It
-definitely does not make sense elsewhere (e.g. the video/audio encoder and
-decoder i2c devices are very much reusable in other drivers).
-
-I think it is a reasonable approach. I'm getting very annoyed at all the
-attempts at creating generic APIs for these devices, which is probably an
-indication that this approach might not be a good fit here.
-
-> > I think it would be interesting to discuss this further with you in Portland.
+> In the specific case I am studying, there are 8 BT878 chips, so each
+> one definitely can't be considered the only "high bandwith card in
+> the system". And it seems to me that latency matters as much as
+> bandwith here... A high latency timer on one card will hurt bus
+> latency at least as much as bus banwidth as I understand it.
 > 
-> Yes it would, I think we need to make an agenda what we want to discuss (both 
-> in the miniconf and outside of that).
+> > Setting latency timers for a system is a balancing act between the needs
+> > of individual devices and the system's need for the shared PCI bus to
+> > support the maximum anticipated burst or sustained activity on the bus
+> > by all the devices that could be active at once.
+> 
+> We agree on that. With 8 BT878 chips, the problem is that both bus
+> latency and bus bandwidth are potentially problematic. So the balance
+> isn't an easy one to find. Which is exactly why I am asking all these
+> questions.
 
-Mauro intends to organize discussion sessions in addition to the miniconf itself.
-There will be no lack of topics to talk about.
+No it probably isn't easy.  With a static analysis (spreadheet),
+assuming worst case conditions, you will likely end up with the
+conclusion that the PCI bus can't handle the worst case load, so you'll
+need to model with higher fidelity and different assumptions than worst
+case.
+
+Consistently meeting the real-time communications needs of the 8 BT878's
+and the disks on the PCI bus could well be impossible with (the very
+common) round robin arbiters.
+
+You may find this thesis paper interesting:
+
+http://os.inf.tu-dresden.de/papers_ps/schoenberg-phd.pdf
+
+Which addresses the problem by proposing a different arbiter.
+
+
+This, much shorter paper:
+
+http://www.irisa.fr/manifestations/2004/wcet2004/Papers/Stohr.pdf
+
+proposes that the Master Enable bit of devices be switched on and off to
+ensure deterministic times across the bus.  (I'm not sure if I'd want to
+do that though...)
+
 
 Regards,
-
-	Hans
+Andy
 
 --
 video4linux-list mailing list
