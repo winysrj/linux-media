@@ -1,14 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <ke2705@gmx.de>) id 1KWsxT-0008Ko-GD
-	for linux-dvb@linuxtv.org; Sat, 23 Aug 2008 15:15:12 +0200
-Message-ID: <48B00D6C.8080302@gmx.de>
-Date: Sat, 23 Aug 2008 15:15:24 +0200
-From: Eberhard Kaltenhaeuser <ke2705@gmx.de>
+Received: from mail-gx0-f32.google.com ([209.85.217.32])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mijhail.moreyra@gmail.com>) id 1KZA1j-0004V6-S3
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 21:53:02 +0200
+Received: by gxk13 with SMTP id 13so1323985gxk.17
+	for <linux-dvb@linuxtv.org>; Fri, 29 Aug 2008 12:52:25 -0700 (PDT)
+Message-ID: <48B85361.6020508@gmail.com>
+Date: Fri, 29 Aug 2008 14:52:01 -0500
+From: Mijhail Moreyra <mijhail.moreyra@gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Support of Nova S SE DVB card missing
+To: Steven Toth <stoth@linuxtv.org>
+References: <48B4687D.8070205@gmail.com> <48B46D46.2020800@linuxtv.org>
+	<48B46F9D.105@gmail.com> <48B47D2C.3010005@linuxtv.org>
+	<48B48F62.7090100@gmail.com> <48B4FB50.3020200@linuxtv.org>
+In-Reply-To: <48B4FB50.3020200@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
+	HVR-1500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,84 +24,63 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0551216524=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============0551216524==
-Content-Type: multipart/alternative;
- boundary="------------070004030101040705020702"
+Steven Toth wrote:
+> Mijhail,
+> 
+> http://linuxtv.org/hg/~stoth/cx23885-audio
+> 
+> This tree contains your patch with some minor whitespace cleanups and 
+> fixes for HUNK related merge issues due to the patch wrapping at 80 cols.
+> 
+> Please build this tree and retest in your environment to ensure I did 
+> not break anything. Does this tree still work OK for you?
+> 
+> After this I will apply some other minor cleanups then invite a few 
+> other HVR1500 owners to begin testing.
+> 
+> Thanks again.
+> 
+> Regards,
+> 
+> Steve
 
-This is a multi-part message in MIME format.
---------------070004030101040705020702
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi, sorry for the delay.
 
-Actual kernel does not support the Hauppauge WinTV Nova S SE PCI card 
-anymore:
+I've tested the http://linuxtv.org/hg/~stoth/cx23885-audio tree and it 
+doesn't work well.
 
-Aug 10 16:00:43 linvdr user.info kernel: [   13.464026] DVB: registering new adapter (TT-Budget/WinTV-NOVA-S  PCI)
-Aug 10 16:00:43 linvdr user.warn kernel: [   13.472474] adapter has MAC addr = 00:d0:5c:23:72:54
-Aug 10 16:00:43 linvdr user.warn kernel: [   13.590880] budget: A frontend driver was not found for device 1131/7146 subsystem 13c2/1016
+You seem to have removed a piece from my patch that avoids some register
+modification in cx25840-core.c:cx23885_initialize()
 
-Tested with kernel 2.6.25.11
+-       cx25840_write(client, 0x2, 0x76);
++       if (state->rev != 0x0000) /* FIXME: How to detect the bridge 
+type ??? */
++               /* This causes image distortion on a true cx23885 board */
++               cx25840_write(client, 0x2, 0x76);
 
-Previous kernel versions (i.e. 2.6.20.1) did not show this problem:
+As the patch says that register write causes a horrible image distortion
+on my HVR-1500 which has a real cx23885 (not 23887, 23888, etc) board.
 
-Aug 10 16:14:12 linvdr user.info kernel: DVB: registering new adapter (TT-Budget/WinTV-NOVA-S  PCI)
-Aug 10 16:14:12 linvdr user.warn kernel: adapter has MAC addr = 00:d0:5c:23:72:54
-Aug 10 16:14:12 linvdr user.warn kernel: DVB: registering frontend 1 (Samsung S5H1420 DVB-S)...
+I don't know if it's really required for any bridge as everything seems
+to be auto-configured by default, maybe it can be simply dropped.
 
-Regards
--- 
+Other than that the cx23885-audio tree works well.
 
+WRT the whitespaces, 80 cols, etc; most are also in the sources I took
+as basis, so I didn't think they were a problem.
 
---------------070004030101040705020702
-Content-Type: text/html; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Regards,
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-<font face="Times New Roman">Actual kernel does not support the
-Hauppauge WinTV Nova S SE PCI card anymore:<br>
-</font>
-<pre>Aug 10 16:00:43 linvdr user.info kernel: [   13.464026] DVB: registering new adapter (TT-Budget/WinTV-NOVA-S  PCI)
-Aug 10 16:00:43 linvdr user.warn kernel: [   13.472474] adapter has MAC addr = 00:d0:5c:23:72:54
-Aug 10 16:00:43 linvdr user.warn kernel: [   13.590880] budget: A frontend driver was not found for device 1131/7146 subsystem 13c2/1016</pre>
-Tested with kernel 2.6.25.11<br>
-<br>
-Previous kernel versions (i.e. 2.6.20.1) did not show this problem:<br>
-<pre>Aug 10 16:14:12 linvdr user.info kernel: DVB: registering new adapter (TT-Budget/WinTV-NOVA-S  PCI)
-Aug 10 16:14:12 linvdr user.warn kernel: adapter has MAC addr = 00:d0:5c:23:72:54
-Aug 10 16:14:12 linvdr user.warn kernel: DVB: registering frontend 1 (Samsung S5H1420 DVB-S)...</pre>
-Regards<br>
-<div class="moz-signature">-- <br>
-<meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
-<title>Signatur_2</title>
-<font size="-1"><span
- style="font-family: Courier New,Courier,monospace;"></span></font><br
- style="font-family: Courier New,Courier,monospace;">
-</div>
-</body>
-</html>
+Mijhail Moreyra
 
---------------070004030101040705020702--
-
-
---===============0551216524==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0551216524==--
