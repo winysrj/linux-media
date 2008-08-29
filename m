@@ -1,26 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KZRU0-0002to-Qu
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 16:31:23 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6F001RB4B98ML0@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sat, 30 Aug 2008 10:30:45 -0400 (EDT)
-Date: Sat, 30 Aug 2008 10:30:45 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <000a01c90a55$62da6e70$288f4b50$@com.au>
-To: Thomas Goerke <tom@goeng.com.au>
-Message-id: <48B95995.4070206@linuxtv.org>
-MIME-version: 1.0
-References: <20080830012407.BCB0247808F@ws1-5.us4.outblaze.com>
-	<000901c90a51$72e44100$58acc300$@com.au>
-	<000a01c90a55$62da6e70$288f4b50$@com.au>
-Cc: linux-dvb@linuxtv.org, stev391@email.com
-Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
- TV/FM capture card
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1KZ9D5-00080w-VG
+	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 21:00:42 +0200
+Date: Fri, 29 Aug 2008 21:00:06 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <48B8400A.9030409@linuxtv.org>
+Message-ID: <20080829190006.74790@gmx.net>
+MIME-Version: 1.0
+References: <48B8400A.9030409@linuxtv.org>
+To: Steven Toth <stoth@linuxtv.org>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,78 +18,143 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thomas Goerke wrote:
->> Stephen,
->>
->> I downloaded latest version of v4l-dvb (30/08/08:11:30am WST), applied
->> patch
->> (which passed) and then tried a make.  This is the output:
->>
->> -- snip --
->> include/asm/io_32.h: In function 'memcpy_fromio':
->> include/asm/io_32.h:211: warning: passing argument 2 of '__memcpy'
->> discards
->> qualifiers from pointer target type
->>   CC [M]  /home/tom/source/v4l-dvb/v4l/stradis.o
->>   CC [M]  /home/tom/source/v4l-dvb/v4l/cpia.o
->> /home/tom/source/v4l-dvb/v4l/cpia.c: In function 'cpia_open':
->> /home/tom/source/v4l-dvb/v4l/cpia.c:3205: error: implicit declaration
->> of
->> function 'current_uid'
->> make[3]: *** [/home/tom/source/v4l-dvb/v4l/cpia.o] Error 1
->> make[2]: *** [_module_/home/tom/source/v4l-dvb/v4l] Error 2
->> make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
->> make[1]: *** [default] Error 2
->> make[1]: Leaving directory `/home/tom/source/v4l-dvb/v4l'
->> make: *** [all] Error 2
->>
->> I then tried make clean, make and the same error occurred.
->>
->> Tom
->>
-> Stephen,
-> It seems that the latest source is at fault:
-> This:
-> hg clone http://linuxtv.org/hg/v4l-dvb
-> cd v4l-dvb
-> make
-> Produces:
-> -- snip ---
-> include/asm/io_32.h: In function 'memcpy_fromio':
-> include/asm/io_32.h:211: warning: passing argument 2 of '__memcpy' discards
-> qualifiers from pointer target type
->   CC [M]  /home/tom/source/v4l-dvb/v4l/stradis.o
->   CC [M]  /home/tom/source/v4l-dvb/v4l/cpia.o
-> /home/tom/source/v4l-dvb/v4l/cpia.c: In function 'cpia_open':
-> /home/tom/source/v4l-dvb/v4l/cpia.c:3205: error: implicit declaration of
-> function 'current_uid'
-> make[3]: *** [/home/tom/source/v4l-dvb/v4l/cpia.o] Error 1
-> make[2]: *** [_module_/home/tom/source/v4l-dvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/tom/source/v4l-dvb/v4l'
-> make: *** [all] Error 2
-> 
-> Let me know if you have a separate archive of the source tree that I can use
-> to test, or alternatively let me know if I have done something wrong with
-> the clone and make.
 
-CPIA is broken
+-------- Original-Nachricht --------
+> Datum: Fri, 29 Aug 2008 14:29:30 -0400
+> Von: Steven Toth <stoth@linuxtv.org>
+> An: linux-dvb <linux-dvb@linuxtv.org>
+> Betreff: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 
-# make menuconfig
+> Regarding the multiproto situation:
+> =
 
-(disable the CPIA+CPIA2 moduoes)
+> A number of developers, maintainers and users are unhappy with the
+> multiproto situation, actually they've been unhappy for a considerable
+> amount of time. The linuxtv developer community (to some degree) is seen
+> as a joke and a bunch in-fighting people. Multiproto is a great
+> demonstration of this. [1] The multiproto project has gone too far, for
+> too long and no longer has any credibility in the eyes of many people.
+> =
 
-Exit, save,
+> In response, a number developers have agreed that "enough is enough" and
+> "it's time to take a new direction", for these developers the technical,
+> political and personal cost of multiproto is too high. These developers
+> have decided to make an announcement.
+> =
 
-then make.
+> Mauro Chehab, Michael Krufky, Patrick Boettcher and myself are hereby
+> announcing that we no longer support multiproto and are forming a
+> smaller dedicated project group which is focusing on adding next
+> generation S2/ISDB-T/DVB-H/DVB-T2/DVB-SH support to the kernel through a =
 
+> different and simpler API.
+> =
+
+> Basic patches and demo code for this API is currently available here.
+> =
+
+> http://www.steventoth.net/linux/s2
+> =
+
+> Does it even work? Yes
+> Is this new API complete? No
+> Is it perfect? No, we've already had feedback on structural and
+> namingspace changes that people would like to see.
+> Does it have bugs? Of course, we have a list of things we already know
+> we want to fix.
+> =
+
+> but ...
+> =
+
+> Is the new approach flexible? Yes, we're moving away from passing fixed
+> modulation structures into the kernel.
+> Can we add to it without breaking the future ABI when unforseen
+> modulations types occur? Yes
+> Does it preserve backwards compatibility? Yes
+> Importantly, is the overall direction correct? Yes
+> Does it impact existing frontend drivers? No.
+> What's the impact to dvb-core? Small.
+> What's the impact to application developers? None, unless an application =
+
+> developer wants to support the new standards - binary compatibility!
+> =
+
+> We want feedback and we want progress, we aim to achieve it.
+> =
+
+> Importantly, this project group seeks your support.
+> =
+
+> If you also feel frustrated by the multiproto situation and agree in
+> principle with this new approach, and the overall direction of the API
+> changes, then we welcome you and ask you to help us.
+> =
+
+> Growing the list of supporting names by 100%, and allowing us to publish
+> your name on the public mailing list, would show the non-maintainer
+> development community that we recognize the problem and we're taking
+> steps to correct the problem. We want to make LinuxTV a perfect platform
+> for S2, ISDB-T and other advanced modulation types, without using the
+> multiproto patches.
+> =
+
+> We're not asking you for technical help, although we'd like that  :) ,
+> we're just asking for your encouragement to move away from multiproto.
+> =
+
+> If you feel that you want to support our movement then please help us by
+> acking this email.
+> =
+
+> Regards - Steve, Mike, Patrick and Mauro.
+> =
+
+> Acked-by: Patrick Boettcher <pb@linuxtv.org>
+> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
+> Acked-by: Steven Toth <stoth@linuxtv.org>
+> Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+> =
+
+> * [1]. Rather than point out the issues with multiproto here, take a
+> look at the patches and/or read the comments on the mailing lists.
+> =
+
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+Dear Steve, Michael, Patrick and Mauro,
+
+wow! Let me be the first to congratulate all of you on taking a bold, decis=
+ive step, which
+I am sure with your combined talents can be successful. I agree that it is =
+time to move on
+from the multiproto era and work to create something to be proud of. Your a=
+lternative approach
+sounds intriguing. I will take some time to try and understand your patch b=
+efore commenting
+any further.
+
+Best regards,
+Hans
+
+Acked-by: Hans Werner <hwerner4@gmx.de>
+
+
+-- =
+
+Release early, release often. Really, you should.
+
+Psssst! Schon das coole Video vom GMX MultiMessenger gesehen?
+Der Eine f=FCr Alle: http://www.gmx.net/de/go/messenger03
 
 _______________________________________________
 linux-dvb mailing list
