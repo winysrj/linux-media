@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.155])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1KYh3X-0001uD-DK
-	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 14:56:56 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so247194fga.25
-	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 05:56:52 -0700 (PDT)
-Message-ID: <37219a840808280556q2ee85291o7ad1afb75a7ed6f6@mail.gmail.com>
-Date: Thu, 28 Aug 2008 08:56:52 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Paul Gardiner" <lists@glidos.net>
-In-Reply-To: <48B64690.4060205@glidos.net>
+Received: from 203.161.84.42.static.amnet.net.au ([203.161.84.42]
+	helo=goeng.com.au) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tom@goeng.com.au>) id 1KZHEq-0000j4-Da
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 05:35:01 +0200
+From: "Thomas Goerke" <tom@goeng.com.au>
+To: stev391@email.com, "'jackden'" <jackden@gmail.com>
+References: <20080830012407.BCB0247808F@ws1-5.us4.outblaze.com>
+In-Reply-To: <20080830012407.BCB0247808F@ws1-5.us4.outblaze.com>
+Date: Sat, 30 Aug 2008 11:35:23 +0800
+Message-ID: <000901c90a51$72e44100$58acc300$@com.au>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <48B5D5CF.3060401@glidos.net> <48B6083B.5000803@linuxtv.org>
-	<48B64690.4060205@glidos.net>
+Content-Language: en-au
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Looks like there's a new unsupported WinTV Nova T
-	500 out there
+Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
+	TV/FM capture card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,65 +27,68 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 28, 2008 at 2:32 AM, Paul Gardiner <lists@glidos.net> wrote:
-> Michael Krufky wrote:
->>
->> Paul Gardiner wrote:
->>>
->>> Just trying to get MythTV up and running, plugged in my
->>> newly arrived WinTV Nova T 500 and no /dev/dvb directory
->>> appeared. It's not the known probelmatic Diversity version,
->>> but it does say v2.1 on the box, and it seems to have
->>> different chips. :-(
->>>
->>> Just thought I'd warn people and maybe ask if anyone
->>> else has run into this.
->>
->> What is the 5-digit model number of your PCI card?
->
-> Says 99101 LF
->     Rev D8B5
->
-> Also on the circuit board: 990000-03A LF
->
-> It has 2 x 3000P-2122a-G / 6121030-A / 0636-200-A
->       1 x 0700C-XCXXa-G / USB2.0 / D2F9Y.7 / 0635-0100-C
->       1 x VT6212L / 0617CD
+> Tom,
+> (Jackden please try first patch and provide feedback, if that doesn't
+> work for your card, then try this and provide feedback)
+> 
+> The second dmesg (with debugging) didn't show me what I was looking
+> for, but from past experience I will try something else.  I was looking
+> for some dma errors from the cx23885 driver, these usually occured
+> while streaming is being attempted.
+> 
+> Attached to this email is another patch.  The difference between the
+> first one and the second one is that I load an extra module (cx25840),
+> which normally is not required for DVB as it is part of the analog side
+> of this card.  This does NOT mean analog will be supported.
+> 
+> As of today the main v4l-dvb can be used with this patch and this means
+> that the cx23885-leadtek tree will soon disappear. So step 2 above has
+> been modified to: "Check out the latest v4l-dvb source".
+> 
+> Other then that step 4 has a different file name for the patch.
+> 
+> Steps that need to be completed are: 2, 3, 4, 5, 7, 9, 10 & 11. (As you
+> have completed the missing steps already).
+> 
+> If the patch works, please do not stop communicating, as I have to
+> perform one more patch to prove that cx25840 is required and my
+> assumptions are correct. Once this is completed I will send it to
+> Steven Toth for inclusion in his test tree. This will need to be tested
+> by you again, and if all is working well after a week or more it will
+> be included into the main tree.
+> 
+> Regards,
+> Stephen
+> 
+> 
+> --
+> Nothing says Labor Day like 500hp of American muscle Visit OnCars.com
+> today.
+Stephen,
 
+I downloaded latest version of v4l-dvb (30/08/08:11:30am WST), applied patch
+(which passed) and then tried a make.  This is the output:
 
-Based on the info above, it looks like you have a board that actually
-*is* supported in the mercurial repository.
+-- snip --
+include/asm/io_32.h: In function 'memcpy_fromio':
+include/asm/io_32.h:211: warning: passing argument 2 of '__memcpy' discards
+qualifiers from pointer target type
+  CC [M]  /home/tom/source/v4l-dvb/v4l/stradis.o
+  CC [M]  /home/tom/source/v4l-dvb/v4l/cpia.o
+/home/tom/source/v4l-dvb/v4l/cpia.c: In function 'cpia_open':
+/home/tom/source/v4l-dvb/v4l/cpia.c:3205: error: implicit declaration of
+function 'current_uid'
+make[3]: *** [/home/tom/source/v4l-dvb/v4l/cpia.o] Error 1
+make[2]: *** [_module_/home/tom/source/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/tom/source/v4l-dvb/v4l'
+make: *** [all] Error 2
 
+I then tried make clean, make and the same error occurred.
 
->> Did you confirm that it doesn't work in the v4l-dvb master repository?
->
-> Do you mean build from the leading edge? No, didn't try that.
+Tom
 
-
-Please test the linuxtv.org v4l-dvb master development repository and
-confirm -- if it is still not recognized, then let me know.
-
-
->> If that's the case, give me a few days and I'll push in a patch for it.
->
-> Brilliant, thanks, but how is that possible? I can imagine it's not a
-> huge change to make a new ID recognised, but with the chips being
-> different, isn't a huge complicated change? Or are these different
-> variants of the same chip?
-
-It might be no change at all.  I'd look it up in the code, but I don't
-even know what the usb ID's of your device are, offhand -- what are
-they?  (do "lsusb -n | grep 2040" )
-
-You should really try the development repository before you go off
-telling other people that the card isnt supported.
-
-If it turns out, in fact, that your card isn't supported, then we'll
-be able to take care of that quickly.
-
-Regards,
-
-Mike
 
 _______________________________________________
 linux-dvb mailing list
