@@ -1,37 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m79At7LI009301
-	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 06:55:07 -0400
-Received: from smtp-out4.blueyonder.co.uk (smtp-out4.blueyonder.co.uk
-	[195.188.213.7])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m79AstfH009930
-	for <video4linux-list@redhat.com>; Sat, 9 Aug 2008 06:54:55 -0400
-Message-ID: <489D7781.8030007@blueyonder.co.uk>
-Date: Sat, 09 Aug 2008 11:54:57 +0100
-From: Ian Davidson <id012c3076@blueyonder.co.uk>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7U78IML006893
+	for <video4linux-list@redhat.com>; Sat, 30 Aug 2008 03:08:19 -0400
+Received: from smtp-vbr14.xs4all.nl (smtp-vbr14.xs4all.nl [194.109.24.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7U7825X018473
+	for <video4linux-list@redhat.com>; Sat, 30 Aug 2008 03:08:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Sat, 30 Aug 2008 09:08:01 +0200
+References: <A24693684029E5489D1D202277BE89441191E339@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE89441191E339@dlee02.ent.ti.com>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <488C9266.7010108@blueyonder.co.uk>	
-	<1217364178.2699.17.camel@pc10.localdom.local>	
-	<4890BBE8.8000901@blueyonder.co.uk>	
-	<1217457895.4433.52.camel@pc10.localdom.local>	
-	<48921FF9.8040504@blueyonder.co.uk>	
-	<1217542190.3272.106.camel@pc10.localdom.local>	
-	<48942E42.5040207@blueyonder.co.uk>	
-	<1217679767.3304.30.camel@pc10.localdom.local>	
-	<4895D741.1020906@blueyonder.co.uk>	
-	<1217798899.2676.148.camel@pc10.localdom.local>	
-	<4898C258.4040004@blueyonder.co.uk>
-	<489A0B01.8020901@blueyonder.co.uk>	
-	<1218059636.4157.21.camel@pc10.localdom.local>	
-	<489B6E1B.301@blueyonder.co.uk>
-	<1218153337.8481.30.camel@pc10.localdom.local>
-In-Reply-To: <1218153337.8481.30.camel@pc10.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: KWorld DVB-T 210SE - Capture only in Black/White
-Reply-To: id012c3076@blueyonder.co.uk
+Content-Disposition: inline
+Message-Id: <200808300908.01182.hverkuil@xs4all.nl>
+Cc: 
+Subject: Re: [PATCH 2/15] OMAP3 camera driver: V4L2: Adding internal IOCTLs
+	for crop.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -43,141 +30,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hermann,
+Hi,
 
-I thought I had had success - but no.
+Did something happen to PATCH 1/15? Patch 2/15 is the first I see.
 
-I did the makes as you described - no difference, so I made the changes 
-to the code.
-I left Composite1 as vmux=3 and assigned Composite and Composite 2-4 to 
-the other vmux values and 'maked' again.  When I went into xawtv, I 
-thought that I saw colour (true colour, not false colour) - but next 
-time I looked, it saw only Black and White.  The changes certainly were 
-applied correctly, because I could choose from all 5 Composite choices - 
-but only Composite1 showed me any picture.
+Regards,
 
-What is gpio? Does it have anything to do with the colour?
+	Hans
 
-Below is some extracts from the .inf file on the Windows driver disk.  I 
-see (from the third line) that my card is "3xHybridQ" - based on the 4 
-bytes being reported from the eeprom .  Based on that, certain values 
-would be loaded into the registry - but I have no idea what those values 
-represent.  I don't know if it is of any help.
-
-You will get some peace from me for a week.  I will be away on business.
-
-Ian
-
-
-
-%Hybrid.DeviceDescSilicon% 
-=3xHybridP.NTx86,PCI\VEN_1131&DEV_7133&SUBSYS_735117DE
-
-%Hybrid.DeviceDescSilicon% 
-=3xHybridO.NTx86,PCI\VEN_1131&DEV_7133&SUBSYS_735217DE
-
-%Hybrid.DeviceDescSilicon% 
-=3xHybridQ.NTx86,PCI\VEN_1131&DEV_7133&SUBSYS_725317DE
-
-
-[3xHybridO.AddReg]
-
-HKR, "I2C Devices", "Device 0, Data1",0x00010001,0x18,0x00,0x00,0x00 ; 
-Tuner ID
-
-HKR, "I2C Devices", "Device 0, Data2",0x00010001,0xC2,0x00,0x00,0x00 ; 
-Tuner slave addr.
-
-HKR, "I2C Devices", "Device 0, Data3",0x00010001,0x86,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data4",0x00010001,0x00,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data5",0x00010001,0xFF,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data6",0x00010001,0x55,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data7",0x00010001,0x55,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data8",0x00010001,0x55,0x00,0x00,0x00 ; 
-FM radio mode.
-
-HKR, "AudioDecoder", "CVBS Channel",0x00010001,3
-
-HKR, "AudioDecoder", "SVHS Channel",0x00010001,3
-
-HKR, "AudioDecoder", "FM Radio Channel",0x00010001,1
-
-
-[3xHybridP.AddReg]
-
-HKR, "I2C Devices", "Device 0, Data1",0x00010001,0x18,0x00,0x00,0x00 ; 
-Tuner ID
-
-HKR, "I2C Devices", "Device 0, Data2",0x00010001,0xC2,0x00,0x00,0x00 ; 
-Tuner slave addr.
-
-HKR, "I2C Devices", "Device 0, Data3",0x00010001,0x86,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data4",0x00010001,0x00,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data5",0x00010001,0x03,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data6",0x00010001,0x21,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data7",0x00010001,0x00,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data8",0x00010001,0x00,0x00,0x00,0x00 ; 
-FM radio mode.
-
-HKR, "AudioDecoder", "CVBS Channel",0x00010001,3
-
-HKR, "AudioDecoder", "SVHS Channel",0x00010001,3
-
-HKR, "AudioDecoder", "FM Radio Channel",0x00010001,1
-
-
-[3xHybridQ.AddReg]
-
-HKR, "I2C Devices", "Device 0, Data1",0x00010001,0x21,0x00,0x00,0x00 ; 
-Tuner ID
-
-HKR, "I2C Devices", "Device 0, Data2",0x00010001,0xC2,0x00,0x00,0x00 ; 
-Tuner slave addr.
-
-HKR, "I2C Devices", "Device 0, Data3",0x00010001,0x96,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data4",0x00010001,0x10,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data5",0x00010001,0x03,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data6",0x00010001,0x32,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data7",0x00010001,0x15,0x00,0x00,0x00 ; 
-Tuner IF PLL slave addr.
-
-HKR, "I2C Devices", "Device 0, Data8",0x00010001,0x50,0x00,0x00,0x00 ; 
-FM radio mode.
-
-HKR, "AudioDecoder", "CVBS Channel",0x00010001,3
-
-HKR, "AudioDecoder", "SVHS Channel",0x00010001,3
-
-HKR, "AudioDecoder", "FM Radio Channel",0x00010001,1
-
+On Saturday 30 August 2008 01:37:11 Aguirre Rodriguez, Sergio Alberto 
+wrote:
+> From: Sameer Venkatraman <sameerv@ti.com>
+>
+> V4L2: Adding internal IOCTLs for crop.
+>
+> Adding internal IOCTLs for crop.
+>
+> Signed-off-by: Sameer Venkatraman <sameerv@ti.com>
+> Signed-off-by: Mohit Jalori <mjalori@ti.com>
+> ---
+>  include/media/v4l2-int-device.h |    6 ++++++
+>  1 file changed, 6 insertions(+)
+>
+> Index: linux-omap-2.6/include/media/v4l2-int-device.h
+> ===================================================================
+> --- linux-omap-2.6.orig/include/media/v4l2-int-device.h	2008-08-25
+> 12:19:09.000000000 -0500 +++
+> linux-omap-2.6/include/media/v4l2-int-device.h	2008-08-25
+> 12:19:10.000000000 -0500 @@ -170,6 +170,9 @@
+>  	vidioc_int_queryctrl_num,
+>  	vidioc_int_g_ctrl_num,
+>  	vidioc_int_s_ctrl_num,
+> +	vidioc_int_cropcap_num,
+> +	vidioc_int_g_crop_num,
+> +	vidioc_int_s_crop_num,
+>  	vidioc_int_g_parm_num,
+>  	vidioc_int_s_parm_num,
+>
+> @@ -266,6 +269,9 @@
+>  V4L2_INT_WRAPPER_1(queryctrl, struct v4l2_queryctrl, *);
+>  V4L2_INT_WRAPPER_1(g_ctrl, struct v4l2_control, *);
+>  V4L2_INT_WRAPPER_1(s_ctrl, struct v4l2_control, *);
+> +V4L2_INT_WRAPPER_1(cropcap, struct v4l2_cropcap, *);
+> +V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
+> +V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
+>  V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
+>  V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
 
 --
