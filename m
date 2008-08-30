@@ -1,13 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from smtp-out2.iol.cz ([194.228.2.87])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ajurik@quick.cz>) id 1KZM2J-0005qc-Sy
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 10:42:24 +0200
+Received: from ales-debian.local (unknown [88.103.120.47])
+	by smtp-out2.iol.cz (Postfix) with ESMTP id C1A4594ECE
+	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 10:27:31 +0200 (CEST)
 From: Ales Jurik <ajurik@quick.cz>
 To: linux-dvb@linuxtv.org
-Date: Mon, 18 Aug 2008 20:24:04 +0200
-References: <200808181427.36988.ajurik@quick.cz> <48A9BAFE.8020501@linuxtv.org>
-In-Reply-To: <48A9BAFE.8020501@linuxtv.org>
+Date: Sat, 30 Aug 2008 10:27:22 +0200
+References: <E1KZ3gT-000Ivd-00.goga777-bk-ru@f129.mail.ru>
+	<1220035187l.8981l.1l@manu-laptop> <20080829232000.2ca826ea@bk.ru>
+In-Reply-To: <20080829232000.2ca826ea@bk.ru>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200808182024.04637.ajurik@quick.cz>
-Subject: Re: [linux-dvb] HVR-4000 driver problems - i2c error
+Message-Id: <200808301027.22983.ajurik@quick.cz>
+Subject: Re: [linux-dvb] Re :  updating of LiplianinDVB - please, test
 Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,38 +30,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Monday 18 of August 2008, Steven Toth wrote:
-> Ales Jurik wrote:
-> > Hi,
+On Friday 29 of August 2008, Goga777 wrote:
+> > > you can send the reports in this mail-list or in Igor's topic
+> > > http://allrussian.info/thread.php?threadid=99733
+> > >
+> > > Goga
 > >
-> > I've got a HVR-4000, but I have now some very strange problems.
-> > I have Debian Leeny with 2.6.25-2 kernel and multiproto from Igor
-> > Lipianin hg running at Athlon64 X2 2700+ and Asus M2N-DVI mobo.
-> > Whole multiproto tree compiled without any problem.
-> >
-> > - when starting system I got this message:
-> >
-> > [   24.658572] tda9887 0-0043: i2c i/o error: rc == -121 (should be 4)
-> > [   24.659047] tuner-simple 0-0061: i2c i/o error: rc == -121 (should be
-> > 4) [   23.609971] tda9887 0-0043: i2c i/o error: rc == -121 (should be 4)
-> >
+> > Stupid question: is there any fixes to stb0899 locking problems in this
+> > (for TT 3200)?
 >
-> I fixed an issue with cx88 sometime ago where a value of 0 (taken from
-> the cards struct) was being written to the GPIO register, resulting in
-> the same i2c issues.
+> seems to me - not yet
 >
-> It looks a lot like this.
+> Goga
 >
-> - Steve
 
-Yes, after few hours using google I also found such remarks, but please could 
-you be more specific? I don't have any documentation for chips used at 
-HVR-4000.
+It seems that Igor released 13 hours ago new version of his tree with many 
+changes for stb6100 and stb0899. 
 
-Thanks,
+Please try.
+
+BR,
 
 Ales
-
 
 _______________________________________________
 linux-dvb mailing list
