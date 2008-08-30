@@ -1,17 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.infomir.com.ua ([79.142.192.5] helo=infomir.com.ua)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vdp@teletec.com.ua>) id 1KW7Vv-0006gC-6a
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 12:35:36 +0200
-Received: from [10.128.0.10] (iptv.infomir.com.ua [79.142.192.146])
-	by infomir.com.ua with ESMTP id 1KW7Vr-0003CJ-3H
-	for linux-dvb@linuxtv.org; Thu, 21 Aug 2008 13:35:31 +0300
-Message-ID: <48AD44F2.5050502@teletec.com.ua>
-Date: Thu, 21 Aug 2008 13:35:30 +0300
-From: Dmitry Podyachev <vdp@teletec.com.ua>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Help installing with S2-3200 or with TW1034
+Date: Sat, 30 Aug 2008 11:00:49 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48B95633.8070201@linuxtv.org>
+To: Andreas Oberritter <obi@linuxtv.org>
+Message-id: <48B960A1.3050404@linuxtv.org>
+MIME-version: 1.0
+References: <48B8400A.9030409@linuxtv.org> <48B95633.8070201@linuxtv.org>
+Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,62 +21,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Problem with /dev/dvb/adapterX/ca0 at Twinhan-1034 with CI and with
-Technotrend S2-3200+CI.
-I try http://www.twinhan.com/files/AW/Linux/AZLinux_v1.4.2_CI_FC6.tar.gz
-and http://www.twinhan.com/files/AW/Linux/AZLinux_v1.5_CI_FC6.tar.gz
-but not on Fedora6,but with the same linux-kernel: linux-2.6.18.2-34 and
-linux-2.6.23.1. CI don't work (invalid PC card inserted message)
-the same CAM-module (viaccess red label) and chip card ("poverhnost")
-worked properly with Skystar1-ci.
-Next I installed last v4l and try it with kernel 2.6.23.1-42,
-linux-2.6.26 and linux-2.6.27:
+Andreas Oberritter wrote:
+> Steven Toth wrote:
+>> If you feel that you want to support our movement then please help us by
+>> acking this email.
+> 
+> In general, I like your proposal.
+> 
+> Acked-by: Andreas Oberritter <obi@linuxtv.org>
 
-git clone
-git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
+Andreas, thank you for your support.
 
-hg clone http://jusst.de/hg/multiproto_plus
-hg clone http://linuxtv.org/hg/v4l-dvb
-hg clone http://linuxtv.org/hg/dvb-apps
+> 
+> Regarding the code:
+> 1) What's TV_SEQ_CONTINUE good for? It seems to be unused.
+> 
+> 2) Like Christophe I'd prefer to use DTV_ and dtv_ prefixes.
+> 
+> 3) Did you mean p.u.qam.modulation below? Also, p.u.qam.fec_inner is
+> missing.
+> 
+> +		printk("%s() Preparing QAM req\n", __FUNCTION__);
+> +		/* TODO: Insert sanity code to validate a little. */
+> +		p.frequency = c->frequency;
+> +		p.inversion = c->inversion;
+> +		p.u.qam.symbol_rate = c->symbol_rate;		
+> +		p.u.vsb.modulation = c->modulation;
+> 
+> 4) About enum tv_cmd_types:
+> 
+> SYMBOLRATE -> SYMBOL_RATE?
+> INNERFEC -> INNER_FEC (or FEC)?
+> 
+> The Tone Burst command got lost (FE_DISEQC_SEND_BURST). How about
+> TV_SET_TONE_BURST?
+> 
+> FE_ENABLE_HIGH_LNB_VOLTAGE got lost, too.
+> 
+> Which old ioctls should be considered as obsolete? Do you plan to add a
+> tv_cmd for every old ioctl?
 
-then try other
-hg clone http://jusst.de/hg/multiproto
-and multiproto_plus
+I'm collecting all of the feedback, we have lots of comments and change 
+suggests - but largely we're heading in a good direction.
 
-and always cp /usr/src/linux-next/.config /tmp
-make mrproper
-cp /tmp/.config .
-make clean;make bzImage;make modules;make modules_install;make install
-&& reboot
+You've pointed out some obvious missing pieces (the new s2 patch was 
+written in 12 hours - so it hasn't had the time multiproto had to be 
+developers), so we're going to have to fill in some missing pieces.
 
-when I try load budget_ci or saa, message like that:
-modprobe saa7134
-WARNING: Error inserting compat_ioctl32
-(/lib/modules/2.6.27-rc1-git/kernel/drivers/media/video/compat_ioctl32.ko):
-Invalid module format
-WARNING: Error inserting v4l1_compat
-(/lib/modules/2.6.27-rc1-git/kernel/drivers/media/video/v4l1-compat.ko):
-Invalid argument
-WARNING: Error inserting videodev
-(/lib/modules/2.6.27-rc1-git/kernel/drivers/media/video/videodev.ko):
-Invalid module format
-The relevant part of dmesg:
-kernel: compat_ioctl32: exports duplicate symbol v4l_compat_ioctl32
-(owned by kernel)
-kernel: v4l1_compat: module is already loaded
-kernel: videodev: exports duplicate symbol video_device_alloc (owned by
-kernel)
+When the mailing list settles down I'm going to publish an email to all 
+interested parties about all of the comments, and we can respond to each 
+comment until we feels it's resolved.
 
-or with en50221 - invalid pc card inserted
+Again, thank you for your support.
 
-everywhere I have't successful result.
-Next I try mantis v4l and here stb0899 error
+Regards,
 
-Can anybody help me out with my installation? I've tried both the latest
-git (linux-next) and v4l2, mantis_v4l. I have no idea what to do.
-
-Thank you in advance, Dmitry
-
+Steve
 
 _______________________________________________
 linux-dvb mailing list
