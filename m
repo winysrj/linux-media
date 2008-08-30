@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail4.sea5.speakeasy.net ([69.17.117.6])
+Received: from wx-out-0506.google.com ([66.249.82.238])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <xyzzy@speakeasy.org>) id 1KYoZw-0001ew-Ci
-	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 22:58:53 +0200
-Date: Thu, 28 Aug 2008 13:58:47 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Alan Stern <stern@rowland.harvard.edu>
-In-Reply-To: <Pine.LNX.4.44L0.0808271036421.2498-100000@iolanthe.rowland.org>
-Message-ID: <Pine.LNX.4.58.0808281325120.2423@shell2.speakeasy.net>
-References: <Pine.LNX.4.44L0.0808271036421.2498-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	linux-usb <linux-usb@vger.kernel.org>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	v4l-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [patch]dma on stack in dib0700
+	(envelope-from <dougsland@gmail.com>) id 1KZSs4-0002k5-3o
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 18:00:17 +0200
+Received: by wx-out-0506.google.com with SMTP id h27so339699wxd.17
+	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 09:00:12 -0700 (PDT)
+Date: Sat, 30 Aug 2008 12:59:30 -0400
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080830125930.455e8d3c@gmail.com>
+In-Reply-To: <48B8400A.9030409@linuxtv.org>
+References: <48B8400A.9030409@linuxtv.org>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,56 +26,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 27 Aug 2008, Alan Stern wrote:
-> On Tue, 26 Aug 2008, Trent Piepho wrote:
-> > > That's not entirely accurate.  The mutex makes sure the buffer gets
-> > > used only by one USB control transfer _on the host_.  But it also gets
-> > > used simultaneously by the USB host controller, through DMA accesses.
-> > >
-> > > On some architectures these DMA accesses do not respect the CPU cache.
-> > > Access by the CPU to different parts of the same cache line while the
-> > > transfer is in progress can overwrite data that was stored by the host
-> > > controller.
-> >
-> > It seems like you would need to allocate the cacheline size times two
-> > (minus "1") and then use the middle of that.  Any less and the memory used
-> > could overlap a cacheline boundary.
->
-> I don't see how you arrived at that conclusion.  (And if you did use
-> the middle of a region which was twice the size of a cache line, then
-> you would _certainly_ overlap a cache-line boundary!)
+Hello,
 
-What I meant was that if you get a pointer that's unaligned, via the stack
-or malloc, and want an N byte region aligned to a multiple of N, you must
-allocate 2*N-1 bytes.  Then align the pointer by moving it up between
-0 and N-1 bytes, e.g.  p += N - (p % N ? : N)
+On Fri, 29 Aug 2008 14:29:30 -0400
+Steven Toth <stoth@linuxtv.org> wrote:
 
-But if kmalloc is already returning cacheline aligned memory, then
-there isn't anything to worry about.
+> If you feel that you want to support our movement then please help us
+> by acking this email.
+> 
+> Regards - Steve, Mike, Patrick and Mauro.
+> 
+> Acked-by: Patrick Boettcher <pb@linuxtv.org>
+> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
+> Acked-by: Steven Toth <stoth@linuxtv.org>
+> Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
 
-> In theory the buffer _could_ be part of a larger structure, if you
-> included GCC attributes telling the compiler that the buffer's address
-> and the address of the following item in the structure must be aligned
-> at a cache-line boundary.  That would work just as well, but it is kind
-> of awkward.  I don't know of any code taking that approach currently.
+Acked-by: Douglas Schilling Landgraf <dougsland@linuxtv.org>
 
-If the buffer is made the first field in the struct, then shouldn't making
-the buffer a multiple of the cacheline size be sufficient?  Assuming the
-larger structure is allocated with kmalloc() and thus starts aligned
-on a cacheline boundary.
-
-Though I think expecting drivers to work with these constraints is probably
-a losing proposition.  The fact of the matter is that most driver are
-developed and tested almost entirely on x86.  If something works fine on
-x86 but doesn't work on your architecture, you will be forever plagued with
-difficult to track down bugs because if it.  You can say it's the drivers
-fault for not following a spec, but that isn't going to make the problem go
-away.
-
-Most of the non-x86 archs have less strongly ordered IO than x86 does.
-But, their versions of writel(), etc. impose additional ordering to
-provide x86 like semantics.  Otherwise there are just too many bugs from
-drivers that assume x86.
+Cheers,
+Douglas
 
 _______________________________________________
 linux-dvb mailing list
