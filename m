@@ -1,26 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ik-out-1112.google.com ([66.249.90.179])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KYru0-0004JI-5G
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 02:31:50 +0200
-Received: by ik-out-1112.google.com with SMTP id c21so383818ika.1
-	for <linux-dvb@linuxtv.org>; Thu, 28 Aug 2008 17:31:44 -0700 (PDT)
-Message-ID: <412bdbff0808281731t7641e4d1kf86058e071c7d5fb@mail.gmail.com>
-Date: Thu, 28 Aug 2008 20:31:44 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Thomas Goerke" <tom@goeng.com.au>,
-	"Patrick Boettcher" <patrick.boettcher@desy.de>
-In-Reply-To: <008001c9096a$f315df10$d9419d30$@com.au>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <udo_richter@gmx.de>) id 1KZSvx-0003JX-S3
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 18:04:18 +0200
+Message-ID: <48B96F5E.5050600@gmx.de>
+Date: Sat, 30 Aug 2008 18:03:42 +0200
+From: Udo Richter <udo_richter@gmx.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <004f01c90921$248fe2b0$6dafa810$@com.au>
-	<412bdbff0808280824s288de72el297dda0556d6ca4d@mail.gmail.com>
-	<007f01c90965$344da360$9ce8ea20$@com.au>
-	<412bdbff0808281638h7e911b37n4d5043bf40b42d65@mail.gmail.com>
-	<008001c9096a$f315df10$d9419d30$@com.au>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge WinTV-NOVA-T-500 New Firmware
-	(dvb-usb-dib0700-1.20.fw) causes problems
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <48B8400A.9030409@linuxtv.org>
+	<78aae6eb0808291405m452462b4l2df267c3066ec28f@mail.gmail.com>
+In-Reply-To: <78aae6eb0808291405m452462b4l2df267c3066ec28f@mail.gmail.com>
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,34 +19,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Aug 28, 2008 at 8:05 PM, Thomas Goerke <tom@goeng.com.au> wrote:
-> I did a little more debugging and it seems that the I still have a problem
-> with the .20 version.  However, you only see it after a cold reset ie when
-> you need to load the firmware.  See below for the first dmesg which is with
-> the .20 firmware.  As you can see the card is found but only in a cold
-> state.  The second dmesg is with the .10 firmware and the card is found
-> firstly in a cold state and then in a warm state.  Each of these dmesg
-> outputs have been after a power off from the power supply for 10 seconds ie
-> no power to backplane.
+Gr=E9goire FAVRE wrote:
+> Is there a patch for VDR to use this (vdr works really well with multipro=
+to
+> right now, which don't mean I wouldn't choose this one, but I should try
+> it before).
 
-Wow, that's so early in the loading process for the device, it's hard
-to see how that can have anything to do with my i2c changes.
+There is none yet of course, but once the new API is ready, it might be =
 
-Patrick, do you have any changelogs that describe the differences
-between 1.10 and 1.20 other than the addition of the new i2c API?
+less difficult to get VDR 1.7.0 running on the new API than it looks.
 
-Devin
+One could start with my dvb-api-wrapper patch for VDR 1.7.0. (Basically =
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+an userspace wrapper that translates multiproto calls into old API =
+
+calls.) To get VDR running on the new API, only three multiproto API =
+
+calls must be translated to the new API, and these are already isolated =
+
+in separate functions ioctl_DVBFE_SET_DELSYS(), ioctl_DVBFE_SET_PARAMS() =
+
+and ioctl_DVBFE_GET_DELSYS(). Without taking a too deep look into the =
+
+new API, I think this should be possible without too much trouble.
+
+This is of course a temporary solution, nothing final. Maybe, until =
+
+things settle, its even a good idea to get VDR working on all three =
+
+APIs, so people can use whatever works best for them.
+
+
+Cheers,
+
+Udo
+
 
 _______________________________________________
 linux-dvb mailing list
