@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KZEXF-00018u-Lp
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 02:41:51 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6E000LI1WRL070@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 29 Aug 2008 20:41:15 -0400 (EDT)
-Date: Fri, 29 Aug 2008 20:41:14 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48B87085.6050800@linuxtv.org>
-To: Tim Lucas <lucastim@gmail.com>
-Message-id: <48B8972A.3020501@linuxtv.org>
-MIME-version: 1.0
-References: <e32e0e5d0808291401x39932ab6q6086882e81547f84@mail.gmail.com>
-	<48B87085.6050800@linuxtv.org>
+	(envelope-from <abraham.manu@gmail.com>) id 1KZUPY-0001qG-UG
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 19:38:57 +0200
+Message-ID: <48B985A0.7040704@gmail.com>
+Date: Sat, 30 Aug 2008 21:38:40 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: Sverker Abrahamsson <sverker@abrahamsson.com>
+References: <483940C30C8D406C93CF3978F5371313@shrek>
+In-Reply-To: <483940C30C8D406C93CF3978F5371313@shrek>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
- HVR-1500
+Subject: Re: [linux-dvb] Mantis status? VP3030 questions
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,122 +25,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Steven Toth wrote:
-> Tim Lucas wrote:
->> Mijhail Moreyra wrote:
->>  > Steven Toth wrote:
->>  >> Mijhail Moreyra wrote:
->>  >>> Steven Toth wrote:
->>  >>>> Mijhail,
->>  >>>>
->>  >>>> http://linuxtv.org/hg/~stoth/cx23885-audio 
->> <http://linuxtv.org/hg/%7Estoth/cx23885-audio>
->>  >>>>
->>  >>>> This tree contains your patch with some minor whitespace cleanups
->>  >>>> and fixes for HUNK related merge issues due to the patch 
->> wrapping at
->>  >>>> 80 cols.
->>  >>>>
->>  >>>> Please build this tree and retest in your environment to ensure I
->>  >>>> did not break anything. Does this tree still work OK for you?
->>  >>>>
->>  >>>> After this I will apply some other minor cleanups then invite a few
->>  >>>> other HVR1500 owners to begin testing.
->>  >>>>
->>  >>>> Thanks again.
->>  >>>>
->>  >>>> Regards,
->>  >>>>
->>  >>>> Steve
->>  >>>
->>  >>> Hi, sorry for the delay.
->>  >>>
->>  >>> I've tested the http://linuxtv.org/hg/~stoth/cx23885-audio 
->> <http://linuxtv.org/hg/%7Estoth/cx23885-audio> tree and
->>  >>> it doesn't work well.
->>  >>>
->>  >>> You seem to have removed a piece from my patch that avoids some 
->> register
->>  >>> modification in cx25840-core.c:cx23885_
->> initialize()
->>  >>>
->>  >>> -       cx25840_write(client, 0x2, 0x76);
->>  >>> +       if (state->rev != 0x0000) /* FIXME: How to detect the bridge
->>  >>> type ??? */
->>  >>> +               /* This causes image distortion on a true cx23885
->>  >>> board */
->>  >>> +               cx25840_write(client, 0x2, 0x76);
->>  >>>
->>  >>> As the patch says that register write causes a horrible image 
->> distortion
->>  >>> on my HVR-1500 which has a real cx23885 (not 23887, 23888, etc) 
->> board.
->>  >>>
->>  >>> I don't know if it's really required for any bridge as everything 
->> seems
->>  >>> to be auto-configured by default, maybe it can be simply dropped.
->>  >>>
->>  >>> Other than that the cx23885-audio tree works well.
->>  >>>
->>  >>> WRT the whitespaces, 80 cols, etc; most are also in the sources I 
->> took
->>  >>> as basis, so I didn't think they were a problem.
->>  >>
->>  >> That's a mistake, I'll add that later tonight, thanks for finding
->>  >> this. I must of missed it when I had to tear apart your email because
->>  >> of HUNK issues caused by patch line wrapping.
->>  >>
->>  >> Apart from this, is everything working as you expect?
->>  >>
->>  >> Regards,
->>  >>
->>  >> Steve
->>  >>
->>  >>
->>  >
->>  > OK.
->>  >
->>  > And sorry about the patch, I didn't know it was going to be broken 
->> that
->>  > way by being sent by email.
->>  >
->>  >  >> Other than that the cx23885-audio tree works well.
->>  >
->>
->>  > Great, thanks for confirming.
->>
->>  > Regards,
->>
->>  > Steve
->>
->> I'll try asking again since my replies in gmail were not including the 
->> correct subject heading.
->> Can this code for cx23885 analog support be adapted for the DViCO 
->> Fusion HDTV7 Dual Express which also uses the cx23885?  Currently the 
->> driver for that card is digital only and I am stuck with a free 
->> antiquated large satellite system that is analog only in my apartment. 
->> I am willing to put in the work if someone can point me in the right 
->> direction.  Thank you,
+Sverker Abrahamsson wrote:
+> Hi,
+> what is the current status of the Mantis driver (Manu Abrahams tree)? Does it work stable with any card?
 > 
-> Wait until I get a chance to merge the cx25840 fix late tonight. Watch 
-> the stoth/cx23885-audio tree for a cx25840 fix appearing, then test the 
-> driver. Look in the driver, find the correct card=N option for the 
-> HVR1500 and load the driver on your system with that option .... then 
-> try analog.
+> I've been trying to make it work for the Twinhan VP3030 DVB-T card but I see that the part that enables the frontend was disabled. I've enabled it and made the neccesary API changes to make it compile (such as using dvb_attach instead of calling directly to the specific frontend attach). The frontend is a ZL10353 (it is now called CE6353 after being aquired by Intel) which is supported on other cards.
+> 
+> In the zl10353_attach routine I see that it's trying to read CHIP_ID from i2c device 0x0f but I'm getting undefined results. Yesterday it was 0xfd, today it has been 0x00. Not 0x14 as it should be.
+> 
+> The only reason I can see for that is that the chip has not been reset properly. The sequence for initializing the frontend is to first power it up by setting gpio bit 0x0c on mantis to 1, then reset it by writing first 0 to gpio bit 13 for 200 ms, then 1.
+> 
+> One potential scenario is that the reset pin is not connected to gpio pin 13 on this board but has some other wiring, other than that I don't know what to look for.
 
-Tim,
+I had the same card, also the same mentioned issue. I figured probably
+it could be a hardware related issue. Maybe it is time that i check the
+card again.
 
-The audio fix has now been applied to 
-http://linuxtv.org/hg/~stoth/cx23885-audio.
+> 
+> I tested to comment out the check for CARD_ID, then the frontend is established and it finds the tuner correctly on i2c address 0x60 but it does not work to scann, get tuning failed on all frequencies.
+> 
 
-Try loading the card as the HVR1500 and see what happens.
-
-Mijhail, if you could download and compile the cx23885-audio tree one 
-more time I would be grateful.
+The issue what i guess is that the frontend is not RESET or powered up.
 
 Regards,
+Manu
 
-Steve
 
 _______________________________________________
 linux-dvb mailing list
