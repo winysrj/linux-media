@@ -1,24 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from an-out-0708.google.com ([209.85.132.240])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KSAws-0004h2-AB
-	for linux-dvb@linuxtv.org; Sun, 10 Aug 2008 15:27:08 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K5D005Y7ZZR8200@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sun, 10 Aug 2008 09:26:16 -0400 (EDT)
-Date: Sun, 10 Aug 2008 09:26:15 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080810053101.8695447808F@ws1-5.us4.outblaze.com>
-To: stev391@email.com
-Message-id: <489EEC77.4080403@linuxtv.org>
-MIME-version: 1.0
-References: <20080810053101.8695447808F@ws1-5.us4.outblaze.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200
- H - DVB Only support
+	(envelope-from <owen.townend@gmail.com>) id 1KZFho-00052q-TS
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 03:56:59 +0200
+Received: by an-out-0708.google.com with SMTP id c18so180856anc.125
+	for <linux-dvb@linuxtv.org>; Fri, 29 Aug 2008 18:56:45 -0700 (PDT)
+Message-ID: <bb72339d0808291856p487a3fc2p8333e3f16d135a6e@mail.gmail.com>
+Date: Sat, 30 Aug 2008 11:56:44 +1000
+From: "Owen Townend" <owen.townend@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <48B82D09.60200@interia.pl>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <48B59989.4080004@interia.pl>
+	<bb72339d0808282125g59a24920o6af8b41ccfa1f15c@mail.gmail.com>
+	<48B7AB83.90802@farba.eu.org>
+	<bb72339d0808290347l7732b608idaabad895c2488d7@mail.gmail.com>
+	<48B82D09.60200@interia.pl>
+Subject: Re: [linux-dvb] saa7162. Aver saa7135 cards. User stupid questions.
+	More or less.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,100 +32,65 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-stev391@email.com wrote:
->> ----- Original Message -----
->> From: "Steven Toth" <stoth@linuxtv.org>
->> To: stev391@email.com
->> Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200 H - DVB Only support
->> Date: Tue, 05 Aug 2008 10:30:57 -0400
->>
->>
->> stev391@email.com wrote:
->>> Steve,
->>>
->>> I have reworked the tuner callback now against your branch at:
->>> http://linuxtv.org/hg/~stoth/v4l-dvb
->>>
->>> The new Patch (to add support for this card) is attached inline below for testing (this is a 
->>> hint Mark & Jon), I have not provided a signed-off note on purpose as I want to solve the 
->>> issue mentioned in the next paragraph first.
->>>
->>> Regarding the cx25840 module; the card doesn't seem to initialise properly (no DVB output and 
->>> DMA errors in log) unless I have this requested.  Once the card is up and running I can unload 
->>> all drivers, recompile without the cx25840 and load and it will work again until I power off 
->>> the computer and back on again (This has been tedious trying to work out which setting I had 
->>> missed).  Is there some initialisation work being performed in the cx25840 module that I can 
->>> incorporate into my patch to remove this dependency? Or should I leave it as is?
->>>
->>> Anyway nearly bedtime here.
->> The patch looks good, with the exception of requesting the cx25840.
->>
->> I've always been able to run DVB without that driver being present, so something is odd with the 
->> Leadtek card. I'm not aware of any relationship between the cx25840 driver and the DVB core.
->>
->> You're going to need to find the magic register write that the cx25840 is performing so we can 
->> discuss here. I'd rather we figured that out cleanly, than just merged the patch and have the 
->> problem linger on.
->>
->> Other than that, good patch.
->>
->> - Steve
-> 
-> Steve,
-> 
-> I have found the lines (starting at line 1441) within cx25840-core.c that effects the DVB working or not working. These lines are:
-> 	if (state->is_cx23885) {
-> 		/* Drive GPIO2 direction and values */
-> 		cx25840_write(client, 0x160, 0x1d);
-> 		cx25840_write(client, 0x164, 0x00);
-> 	}
-> 
-> If I comment these lines out in the code, the DVB side doesn't work.  I have tried incorporating these register writes into various places in the cx23885 code (cx23885_gpio_setup(), cx23885_card_setup() and dvb_register()) as the following lines:
-> cx_write(0x160, 0x1d);
-> cx_write(0x164, 0x00);
-> 
-> But this does not allow the card to work.
-> 
-> I have also commented out/ removed all of the code in cx25840-core.c except for the read, write, probe(now only contains the above cx25840_writes) and remove functions and the various struct configs, to ensure that it is not something else contributing to the dependency.
-> 
-> Have a used cx_write correctly?
-> 
-> I have also noticed that the following card also uses the cx25840 without any analog support in the driver:
-> CX23885_BOARD_HAUPPAUGE_HVR1700
-> 
-> Perhaps the person who included support for this card has already gone down this track...
-> 
-> There are two possible directions that I would like to take from here:
-> 1) Submit the patch as is with the cx25840 dependency
-> 2) Work on why the registers writes aren't working. (However this is out of my depth of knowledge and will need some guidance or pass it onto someone else).
+2008/8/30  <mincho@interia.pl>:
+>> Hey,
+>>  If it's detecting and working as the 777 A16AR then it would make
+>> sense to add it to the existing page, similar to the A16AR/A16D
+>> Hybrid+FM Page.
+>>  As to the first question, the 7162 development seemed to be still
+>> progressing as of last month:
+>>  http://article.gmane.org/gmane.linux.drivers.dvb/43048
+> Hey, hey.
+>
+> Here are few pictures (slow link):
+> ftp://farba.eu.org//download/AVER777A16A-C.zip
+>
+> lspci -vv:
+> 01:0a.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135
+> Video Broadcast Decoder (rev d1)
+>         Subsystem: Avermedia Technologies Inc Unknown device 2c05
+>         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+> ParErr- Stepping- SERR- FastB2B- DisINTx-
+>         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
+>>TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+>         Latency: 32
+>         Interrupt: pin A routed to IRQ 7
+>         Region 0: Memory at e4000000 (32-bit, non-prefetchable) [size=2K]
+>         Capabilities: [40] Power Management version 2
+>                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+>                 Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+>         Kernel driver in use: saa7134
+>         Kernel modules: saa7134
+>
+>
+> And dmesg output:
+> Aug 29 18:24:23 mincho kernel: saa7130/34: v4l2 driver version 0.2.14 loaded
+> Aug 29 18:24:23 mincho kernel: saa7133[0]: found at 0000:01:0a.0, rev:
+> 209, irq: 7, latency: 32, mmio: 0xe4000000
+> Aug 29 18:24:23 mincho kernel: saa7133[0]: subsystem: 1461:2c05, board:
+> AverTV DVB-T 777 [card=85,autodetected]
+> Aug 29 18:24:23 mincho kernel: saa7133[0]: board init: gpio is 2e400
+> Aug 29 18:24:23 mincho kernel: input: saa7134 IR (AverTV DVB-T 777) as
+> /devices/pci0000:00/0000:00:08.0/0000:01:0a.0/input/input7
+>
+> Bag your pardon for writing to priv address.
+>
+> Cheers, cheers.
+> --
+> WK
 
-OK, so they tied the demod reset to the GPIO on the avcore, rather than 
-a regular GPIO on the pcie bridge itself. I've only ever seen one other 
-card do that (which you found - the HVR1700) because Hauppauge ran out 
-of GPIO's on the bridge itself.
+No worries, I'll add the info to the wiki.
+Can you send through what distro you're using as well as the output of
+`uname -a`. Also can you send `lspci -vvnn` instead of just `-vv` --
+It adds the numeric identifiers.
 
-In this new case, for the Leadtek, I accept that we'll have to 
-request_module for the card.
+I'll create a separate page rather than add it on as the current page
+name/link is specific to the A16AR.
+(which it's not for the Hybrid+FM)
 
-You should also add a comment to the _gpio_setup() code (where generally 
-I try to ensure all card GPIO's are document), to say that the GPIO is 
-on the AVCore (like the HVR1700). See the HVR1700 example comments.
-
-One comment the bitmask in the tuner reset looks unusually long for 
-resetting the xc3028. 70404, and it dosn't match the value used in your 
-_gpio_setup() implementation (0x04).
-
-So three very minor things to get this patch accepted:
-1. Change 70404 to 4, this is clean.
-2. Add the cx25840 request_module() code back.
-3. Update the comments in _gpio_setup() to indicate the GPIO for the 
-zilink part os on the AVcore.
-
-Good work Steve, thanks for helping. Please publish the patch to this 
-mailing list (with your sign-off) and I'll put up an official tree for 
-retest and final merge.
-
-- Steve
+cheers,
+Owen.
 
 _______________________________________________
 linux-dvb mailing list
