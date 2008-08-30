@@ -1,22 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.youplala.net ([88.191.51.216] helo=mail.youplala.net)
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nico@youplala.net>) id 1KTk3t-0005HY-Iv
-	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 23:08:50 +0200
-Received: from [10.11.11.138] (user-5446d4c3.lns5-c13.telh.dsl.pol.co.uk
-	[84.70.212.195])
-	by mail.youplala.net (Postfix) with ESMTP id E5DADD880A4
-	for <linux-dvb@linuxtv.org>; Thu, 14 Aug 2008 23:07:38 +0200 (CEST)
-From: Nicolas Will <nico@youplala.net>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <412bdbff0808141311p264d327ayb9e736f290326371@mail.gmail.com>
-References: <412bdbff0808141157t241748b4n5d82b15fcbc18d4a@mail.gmail.com>
-	<1218743866.8654.2.camel@youkaida>
-	<412bdbff0808141311p264d327ayb9e736f290326371@mail.gmail.com>
-Date: Thu, 14 Aug 2008 22:07:40 +0100
-Message-Id: <1218748060.8654.7.camel@youkaida>
+	(envelope-from <goga777@bk.ru>) id 1KZUFs-00009D-G0
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 19:28:58 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id 80BD919E6392
+	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 21:28:22 +0400 (MSD)
+Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id 16E7919E631A
+	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 21:28:21 +0400 (MSD)
+Date: Sat, 30 Aug 2008 21:38:31 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080830213831.7b8e2c42@bk.ru>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] Possible bug in dib0700_core.c i2c transfer	function
+Subject: [linux-dvb] cat: /dev/dvb/adapter0/dvr0: Value too large for
+	defined data type
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,31 +29,100 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 2008-08-14 at 16:11 -0400, Devin Heitmueller wrote:
-> On Thu, Aug 14, 2008 at 3:57 PM, Nicolas Will <nico@youplala.net>
-> wrote:
-> > I, for one, am very interested in this.
-> >
-> > I cannot code or really understand the details, but could this
-> explain
-> > the more or less regular i2c read failures or even write failures
-> > eventually leading to device lock-ups that we are still experiencing
-> if
-> > we are a bit too agressive?
-> 
-> Also, what device are you describing when you refer to your i2c
-> problem?  That might help narrow down whether we are talking about an
-> xc5000 issue or a dib0700 issue.
+Hi
+
+I run the 
+
+# ./szap2 -n1 -c19 -S0 -M2 -C34 -p
+reading channels from file '19'
+zapping to 1 'EinsFestival HD;ARD':
+sat 0, frequency = 12422 MHz H, symbolrate 27500000, vpid = 0x0641, apid = 0x0642 sid = 0x6eec
+Delivery system=DVB-S
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+
+do_tune: API version=3, delivery system = 0
+do_tune: Frequency = 1822000, Srate = 27500000
+do_tune: Frequency = 1822000, Srate = 27500000
 
 
-I was going to comment on this on your previous post.
+status 1f | signal f240 | snr 7ccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal f240 | snr 799a | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal f280 | snr 7800 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
 
-My context include the Hauppauge Nova-T-500, MT2060 and DIB3000P. which
-also use the dib0700 module.
 
-I guess that this rules out xc50000.
+and try to see the pictures with ffplay
 
-Nico
+env LANG=C cat /dev/dvb/adapter0/dvr0 | ffplay - 
+
+goga@goga:/usr/src/vdr-1.7.0$ env LANG=C cat /dev/dvb/adapter0/dvr0 | ffplay -
+FFplay version SVN-r15050, Copyright (c) 2003-2008 Fabrice Bellard, et al.
+  configuration: --arch=i686 --cpu=pentium4 --enable-pthreads --enable-shared --enable-gpl --enable-postproc --disable-stripping --enable-liba52 --enable-libvorbis
+  libavutil     49.10. 0 / 49.10. 0
+  libavcodec    51.70. 0 / 51.70. 0
+  libavformat   52.21. 0 / 52.21. 0
+  libavdevice   52. 1. 0 / 52. 1. 0
+  built on Aug 30 2008 18:28:25, gcc: 4.3.1
+[h264 @ 0x80aa760]B picture before any references, skipping
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]B picture before any references, skipping
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]non-existing PPS referenced
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]B picture before any references, skipping
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]B picture before any references, skipping
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]non-existing PPS referenced
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]B picture before any references, skipping
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]B picture before any references, skipping
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]non-existing PPS referenced
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]B picture before any references, skipping
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]B picture before any references, skipping
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]number of reference frames exceeds max (probably corrupt input), discarding one
+[h264 @ 0x80aa760]number of reference frames exceeds max (probably corrupt input), discarding one
+[h264 @ 0x80aa760]number of reference frames exceeds max (probably corrupt input), discarding one
+[h264 @ 0x80aa760]number of reference frames exceeds max (probably corrupt input), discarding one
+[h264 @ 0x80aa760]B picture before any references, skipping
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]B picture before any references, skipping
+[h264 @ 0x80aa760]decode_slice_header error
+[h264 @ 0x80aa760]no frame!
+[h264 @ 0x80aa760]warning: first frame is no keyframe
+[h264 @ 0x80aa760]number of reference frames exceeds max (probably corrupt input), discarding one
+cat: /dev/dvb/adapter0/dvr0: Value too large for defined data type
+[h264 @ 0x80aa760]error while decoding MB 14 23, bytestream (-4)
+[h264 @ 0x80aa760]concealing 1795 DC, 1795 AC, 1795 MV errors
+
+after that the pictures is freezing 
+
+"cat: /dev/dvb/adapter0/dvr0: Value too large for defined data type"
+
+is it possible to fix it ?
+
+
+Goga
+
+
+
+
 
 
 _______________________________________________
