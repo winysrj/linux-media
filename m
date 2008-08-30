@@ -1,15 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n2.bullet.mail.mud.yahoo.com ([209.191.127.222])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <rvf16@yahoo.gr>) id 1KTY9q-0003aF-Fn
-	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 10:26:12 +0200
-Message-ID: <48A3EBAE.5050204@yahoo.gr>
-Date: Thu, 14 Aug 2008 11:24:14 +0300
-From: rvf16 <rvf16@yahoo.gr>
-MIME-Version: 1.0
+Received: from an-out-0708.google.com ([209.85.132.248])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <owen.townend@gmail.com>) id 1KZRDy-0001Ru-Nt
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 16:14:50 +0200
+Received: by an-out-0708.google.com with SMTP id c18so198459anc.125
+	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 07:14:42 -0700 (PDT)
+Message-ID: <bb72339d0808300714k3393188en77f1fab735936e03@mail.gmail.com>
+Date: Sun, 31 Aug 2008 00:14:41 +1000
+From: "Owen Townend" <owen.townend@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] CX23885 based AVerMedia AVerTV Hybrid Express Slim tv
- card
+In-Reply-To: <48B91E1B.8090408@interia.pl>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <48B59989.4080004@interia.pl>
+	<bb72339d0808282125g59a24920o6af8b41ccfa1f15c@mail.gmail.com>
+	<48B7AB83.90802@farba.eu.org>
+	<bb72339d0808290347l7732b608idaabad895c2488d7@mail.gmail.com>
+	<48B82D09.60200@interia.pl>
+	<bb72339d0808291856p487a3fc2p8333e3f16d135a6e@mail.gmail.com>
+	<48B91E1B.8090408@interia.pl>
+Subject: Re: [linux-dvb] saa7162. Aver saa7135 cards. User stupid questions.
+	More or less.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,206 +28,69 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1221715405=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1221715405==
-Content-Type: text/plain; charset=ISO-8859-7; format=flowed
-Content-Transfer-Encoding: 8bit
+2008/8/30  <mincho@interia.pl>:
+>
+>>
+>> No worries, I'll add the info to the wiki.
+>> Can you send through what distro you're using as well as the output of
+>> `uname -a`. Also can you send `lspci -vvnn` instead of just `-vv` --
+>
+> Distro is Fedora 9 32bit.
+>
+> lspci -vvnn:
+> 01:0a.0 Multimedia controller [0480]: Philips Semiconductors
+> SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+>         Subsystem: Avermedia Technologies Inc Unknown device [1461:2c05]
+>         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+> ParErr- Stepping- SERR- FastB2B- DisINTx-
+>         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
+>>TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+>         Latency: 32
+>         Interrupt: pin A routed to IRQ 7
+>         Region 0: Memory at e4000000 (32-bit, non-prefetchable) [size=2K]
+>         Capabilities: [40] Power Management version 2
+>                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+>                 Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+>         Kernel driver in use: saa7134
+>         Kernel modules: saa7134
+>
+> uname -a:
+> Linux mincho 2.6.25.14-108.fc9.i686 #1 SMP Mon Aug 4 14:08:11 EDT 2008
+> i686 athlon i386 GNU/Linux
+>
+>
+>> I'll create a separate page rather than add it on as the current page
+>> name/link is specific to the A16AR.
+>> (which it's not for the Hybrid+FM)
+> Thats not Hybrid. Thats DVB-T 777 A16A-C.
+> I asked about Hybrid A16D, because my card - that 777 is not described
+> anywhere but works.
+> Therefore I was not sure if Hybrid A16D description is up-to-date as 777
+> A16A-C does not exist at all.
+>
+> Cheers
+> Wieslaw
 
-Hello.
+My apologies, I was just drawing a comparison to the hybrid.
+Thanks for the information, I've created a page for the 777 A16A-C:
+http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_DVB-T_777_(A16A-C)
 
-After viewing the oem22.inf file which appears to be the driver for 
-Vista i have come across the following words which might help you define 
-tuner or demodulator :
-HC81R HC81_C (this is the AVerTV Hybrid Express Slim model)
-XC3028 + Afa9013
-NT.6
-XCeive_L+FM+Afa9013
-CX885
-oem22.inf:Models.NT.6:CX23885.HC81_C:1.12.0.76:pci\ven_14f1&dev_8852&subsys_d9391461 
-(this is the driver)
-A885VCap
-cx416enc
-CX88
+If there's anything missing feel free to add it, or let me know and I can.
+Next I, or someone, will have to add a patch to have it detected and
+labeled correctly instead of 'Avermedia Technologies Inc Unknown
+device'. As the card itself is working this shouldn't be too hard.
 
-this was in another .inf file :
-bda
-
-Inside the oem22.inf there was a sector regarding my model which follows :
-;----------------------------------------------------------------------------------------- 
-
-; Model HC81_C
-;----------------------------------------------------------------------------------------- 
-
-[CX23885.HC81_C]
-Include=    ks.inf, kscaptur.inf, wdmaudio.inf, bda.inf
-Needs=      KS.Registration,KSCAPTUR.Registration.NT, 
-WDMAUDIO.Registration, BDA.Registration,bda.Installation.NT
-AddReg=     CX885.AddReg, HC81_C.AddReg, AVerXBAR_B.AddReg, 
-CX23885.Xceive.AddReg, AVerXceiveL.AddReg, CXTS.AddReg
-CopyFiles=  CX885.CopyDrivers,DSFilters.CopyFiles
-RegisterDlls=DSFilters.RegDLL
- 
-[CX23885.HC81_C.NT]
-Include=    ks.inf, kscaptur.inf, wdmaudio.inf, bda.inf
-Needs=      KS.Registration.NT,KSCAPTUR.Registration.NT, 
-WDMAUDIO.Registration, BDA.Registration,bda.Installation.NT
-AddReg=     CX885.AddReg, HC81_C.AddReg, AVerXBAR_B.AddReg, 
-CX23885.Xceive.AddReg, AVerXceiveL.AddReg, CXTS.AddReg
-CopyFiles=  CX885.CopyDrivers,DSFilters.CopyFiles
-RegisterDlls=DSFilters.RegDLL
- 
- 
-[CX23885.HC81_C.Interfaces]
-Needs=VID.Interfaces
- 
-[CX23885.HC81_C.NT.Interfaces]
-Needs=VID.Interfaces
- 
-[CX23885.HC81_C.Services]
-AddService = CXSONORA,2,VID.ServiceInstall
- 
-[CX23885.HC81_C.NT.Services]
-AddService = CXSONORA,2,VID.ServiceInstall
- 
-[HC81_C.AddReg]
-;Copy protection method enforced by driver
-HKR,"DriverData","CpMethod",0x00010001, 0x04, 0x00, 0x00, 0x00
- 
-; these registry keys for 3D comb filter enable
-; use3DComb entry allows the use of the 3D Comb feature, currently 
-connected to the color enable
-; property of the capture filter
-HKR,"DriverData","Use3DComb",0x00010001, 0x00,0x00,0x00,0x00
- 
-; this entry sets the initial state of the 3D comb enable when use3DComb 
-is specified
-HKR,"DriverData","Enable3DComb",0x00010001, 0x00,0x00,0x00,0x00
- 
-; The following entries just for testing BDA driver
-; No demod for now
-HKR,"DriverData","TunerModel",0x00010001, 0x03,0x00,0x00,0x00
- 
-;Enable TS capture and BDA filter registration
-HKR,"DriverData","Enable_BDA",0x00010001, 0x01, 0x00, 0x00, 0x00
-HKR,"DriverData","BDA_Demod_Tuner_type",0x00010001, 0x03, 0x00, 0x00, 0x00
-HKR,"DriverData","DemodI2CAddress",0x00010001, 0x38, 0x00, 0x00, 0x00
- 
-; these registry keys for TS filter
-; DebugTS entry forces creation of TS capture filter without a demod
-;HKR,"DriverData","DebugTS",0x00010001, 0x01,0x00,0x00,0x00
-; Next line enables the software TS packetizer
-;HKR,"DriverData","dwIsTSStream",0x00010001,0x01,0x00,0x00,0x00
- 
-; this registry keys for the FixNMI option which takes care of the BSODs 
-in the 
-; ICH6/7 chipsets
-HKR,"DriverData","FixNMIBit",0x00010001, 0x00,0x00,0x00,0x00
- 
-;IR Support
-HKR,"DriverData","EnableIR",0x00010001, 0x00, 0x00, 0x00, 0x00
-;NEC standard
-HKR,"DriverData","IRStandard",0x00010001, 0x01, 0x00, 0x00, 0x00
- 
-; GPIO Pin values 
-; IMPORTANT !!! if any GPIO is not used - just delete the corresponding 
-entry !!!
-HKR,"DriverData","tuner_reset_gpio_bit",  0x00010001, 0x02, 0x00, 0x00, 
-0x00
-HKR,"DriverData","demod_reset_gpio_bit",  0x00010001, 0x00, 0x00, 0x00, 
-0x00
-HKR,"DriverData","demod_sleep_gpio_bit",  0x00010001, 0x01, 0x00, 0x00, 
-0x00
- 
-; Back Panel = 0x00, Front Panel = 0x01
-HKR,"DriverData","comp_select_panel", 0x00010001, 0x00, 0x00, 0x00, 0x00
- 
-;Demod Comm mode : 0x00 = Serial, 0x01 = Parallel
-HKR,"DriverData","DemodTransferMode",0x00010001, 0x00, 0x00, 0x00, 0x00
- 
-;BoardType HC81_C= 0x1E
-HKR,"DriverData","BoardType",0x00010001, 0x1e, 0x00, 0x00, 0x00
- 
-;Init_I2C_Check, 0: don't chack,so driver will register all needed filters.
-HKR,"DriverData","Init_I2C_Check",0x00010001, 0x01, 0x00, 0x00, 0x00
-
-I tried out i2cdetect with the following resaults :
-[root@XXX]# i2cdetect -l
-i2c-0   smbus           SMBus I801 adapter at 10c0              SMBus 
-adapter
-i2c-1   i2c             cx23885[0]                              I2C adapter
-i2c-2   i2c             cx23885[0]                              I2C adapter
-i2c-3   i2c             cx23885[0]                              I2C adapter
-[root@XXX]# man i2cdetect
-[root@XXX]# i2cdetect 1
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-1.
-I will probe address range 0x03-0x77.
-Continue? [Y/n] y              
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          -- -- -- -- -- -- -- -- -- -- -- -- --
-10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-30: 30 31 32 33 34 35 36 37 -- -- -- -- -- -- -- --
-40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-50: UU 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f
-60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-70: -- -- -- -- -- -- -- --                        
-[root@XXX]# i2cdetect 2
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-2.
-I will probe address range 0x03-0x77.
-Continue? [Y/n] y
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          -- -- -- -- -- -- -- -- -- -- -- -- --
-10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-30: 30 31 32 33 34 35 36 37 -- -- -- -- -- -- -- --
-40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f
-60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-70: -- -- -- -- -- -- -- --                        
-[root@XXX]# i2cdetect 3
-WARNING! This program can confuse your I2C bus, cause data loss and worse!
-I will probe file /dev/i2c-3.
-I will probe address range 0x03-0x77.
-Continue? [Y/n] y
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          -- -- -- -- -- -- -- -- -- -- -- -- --
-10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-30: 30 31 32 33 34 35 36 37 -- -- -- -- -- -- -- --
-40: -- -- -- -- 44 -- -- -- -- -- -- -- 4c -- -- --
-50: 50 51 52 53 54 55 56 57 58 59 5a 5b 5c 5d 5e 5f
-60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-70: -- -- -- -- -- -- -- --                        
-
-
-I have no idea what i am doing and i am this close to opening the 
-express card case but the loss of 2 years warranty and the possibility 
-of damaging this 100¤ card during the process is holding me back.
-
-I should mention that, for the time being, i am mainly interested in 
-analog tv and fm radio as there are only 3 digital channels around here 
-which require a decoder.
-
-Thank you.
-Regards.
-
-
-
---===============1221715405==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+cheers,
+Owen.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1221715405==--
