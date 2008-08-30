@@ -1,24 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from smtp239.poczta.interia.pl ([217.74.64.239])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KTQmd-0004ZA-NE
-	for linux-dvb@linuxtv.org; Thu, 14 Aug 2008 02:33:45 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K5K00G7VEV8EKD0@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 13 Aug 2008 20:33:09 -0400 (EDT)
-Date: Wed, 13 Aug 2008 20:33:08 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <8fcafd2c0808131723l21031daej9e9ae3eeabfa57f7@mail.gmail.com>
-To: James Lucas <orbus42@gmail.com>
-Message-id: <48A37D44.7090808@linuxtv.org>
-MIME-version: 1.0
-References: <8fcafd2c0808131723l21031daej9e9ae3eeabfa57f7@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Digital tuning failing on Pinnacle 800i with dmesg
- output
+	(envelope-from <mincho@interia.pl>) id 1KZNW2-0002cX-EU
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 12:17:11 +0200
+Received: from poczta.interia.pl (mi02.poczta.interia.pl [10.217.12.2])
+	by smtp239.poczta.interia.pl (INTERIA.PL) with ESMTP id 85BE13D4E70
+	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 12:17:05 +0200 (CEST)
+Received: from [10.68.0.121] (unknown [81.219.10.162])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by poczta.interia.pl (INTERIA.PL) with ESMTP id 2F59E2BC153
+	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 12:17:03 +0200 (CEST)
+Message-ID: <48B91E1B.8090408@interia.pl>
+Date: Sat, 30 Aug 2008 12:16:59 +0200
+From: mincho@interia.pl
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+References: <48B59989.4080004@interia.pl>	<bb72339d0808282125g59a24920o6af8b41ccfa1f15c@mail.gmail.com>	<48B7AB83.90802@farba.eu.org>	<bb72339d0808290347l7732b608idaabad895c2488d7@mail.gmail.com>	<48B82D09.60200@interia.pl>
+	<bb72339d0808291856p487a3fc2p8333e3f16d135a6e@mail.gmail.com>
+In-Reply-To: <bb72339d0808291856p487a3fc2p8333e3f16d135a6e@mail.gmail.com>
+Subject: Re: [linux-dvb] saa7162. Aver saa7135 cards. User stupid questions.
+ More or less.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,43 +34,56 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-James Lucas wrote:
-> Hello - first time poster here.  I'm running Ubuntu Hardy, stock kernel 
-> 2.6.24-19-generic.  Compiled the v4l tree from repository and installed 
-> the modules.  Also grabbed firmware found on the dvb-wiki page  Analog 
-> tuning works.  Trying to run dvbscan or scan results in either no 
-> channels found or a hang on the attempt to tune the first channel.
-
-Welcome!
-
 
 > 
-> Output of dmesg contains errors like this:
-> 
-> [  576.298553] i2c-adapter i2c-2: sendbytes: error - bailout.
-> [  577.098249] xc5000: I2C write failed (len=4)
-> [  577.098259] xc5000: Unable to initialise tuner
-> [  583.499754] s5h1409_writereg: writereg error (reg == 0xf3, val == 
-> 0x0000, ret == -121)
-> [  589.897260] s5h1409_writereg: writereg error (reg == 0xf5, val == 
-> 0x0000, ret == -121)
-> [  596.294758] s5h1409_writereg: writereg error (reg == 0xf5, val == 
-> 0x0001, ret == -121)
-> [  602.692260] s5h1409_writereg: writereg error (reg == 0xf4, val == 
-> 0x0001, ret == -121)
-> [  609.089760] s5h1409_writereg: writereg error (reg == 0x85, val == 
-> 0x0110, ret == -121)
-> [  615.487264] s5h1409_writereg: writereg error (reg == 0xf5, val == 
-> 0x0000, ret == -121)
-> [  621.884765] s5h1409_writereg: writereg error (reg == 0xf5, val == 
-> 0x0001, ret == -121)
-> [  628.386227] s5h1409_writereg: writereg error (reg == 0xf3, val == 
-> 0x0001, ret == -121)
+> No worries, I'll add the info to the wiki.
+> Can you send through what distro you're using as well as the output of
+> `uname -a`. Also can you send `lspci -vvnn` instead of just `-vv` --
 
-Looks i2c dead during xc5000 initialization, does the hardware work 
-under windows?
+Distro is Fedora 9 32bit.
 
-- Steve
+lspci -vvnn:
+01:0a.0 Multimedia controller [0480]: Philips Semiconductors
+SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+         Subsystem: Avermedia Technologies Inc Unknown device [1461:2c05]
+         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium
+>TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+         Latency: 32
+         Interrupt: pin A routed to IRQ 7
+         Region 0: Memory at e4000000 (32-bit, non-prefetchable) [size=2K]
+         Capabilities: [40] Power Management version 2
+                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+                 Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+         Kernel driver in use: saa7134
+         Kernel modules: saa7134
+
+uname -a:
+Linux mincho 2.6.25.14-108.fc9.i686 #1 SMP Mon Aug 4 14:08:11 EDT 2008
+i686 athlon i386 GNU/Linux
+
+
+> I'll create a separate page rather than add it on as the current page
+> name/link is specific to the A16AR.
+> (which it's not for the Hybrid+FM)
+Thats not Hybrid. Thats DVB-T 777 A16A-C.
+I asked about Hybrid A16D, because my card - that 777 is not described
+anywhere but works.
+Therefore I was not sure if Hybrid A16D description is up-to-date as 777
+A16A-C does not exist at all.
+
+Cheers
+Wieslaw
+
+
+
+
+
+----------------------------------------------------------------------
+>> Sprawdz, czy do siebie pasujecie!
+>> http://link.interia.pl/f1eea
 
 
 _______________________________________________
