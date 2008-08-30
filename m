@@ -1,22 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from ns218.ovh.net ([213.186.34.114])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1KUZ8f-0002xw-KD
-	for linux-dvb@linuxtv.org; Sun, 17 Aug 2008 05:41:13 +0200
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	4535C180094A
-	for <linux-dvb@linuxtv.org>; Sun, 17 Aug 2008 03:40:33 +0000 (GMT)
-Content-Disposition: inline
+	(envelope-from <webdev@chaosmedia.org>) id 1KZPOh-000324-U8
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 14:17:44 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by ns218.ovh.net (Postfix) with ESMTP id 5582B4E83D
+	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 14:17:00 +0200 (CEST)
+Received: from ns218.ovh.net ([127.0.0.1])
+	by localhost (ns218.ovh.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id k5hwWpbbu2mR for <linux-dvb@linuxtv.org>;
+	Sat, 30 Aug 2008 14:17:00 +0200 (CEST)
+Received: from [192.168.0.50] (droid.chaosmedia.org [82.225.228.49])
+	by ns218.ovh.net (Postfix) with ESMTP id 1BCE18524
+	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 14:17:00 +0200 (CEST)
+Message-ID: <48B93A3B.6090301@chaosmedia.org>
+Date: Sat, 30 Aug 2008 14:16:59 +0200
+From: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
 MIME-Version: 1.0
-From: stev391@email.com
-To: vf16 <rvf16@yahoo.gr>
-Date: Sun, 17 Aug 2008 13:40:30 +1000
-Message-Id: <20080817034031.0BF79104F0@ws1-3.us4.outblaze.com>
-Cc: linux dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] CX23885 based AVerMedia AVerTV Hybrid Express Slim
- tv card
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <48B8400A.9030409@linuxtv.org>
+In-Reply-To: <48B8400A.9030409@linuxtv.org>
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,82 +34,64 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Hello again.
-> No one seems to be interested in my attempts so i must be doing
-> something wrong.
-> I find hard to locate where i can add a wiki about this card, and a
-> simple howto for trying to make this card work.
-> It may be my mistake but i find all that i have red insufficient to
-> understand how to continue.
-> 
-> Anyway after thorough examination of the vista driver i ended up in this
-> section :
-> ;-----------------------------------------------
-> ; XC3028 + Afa9013
-> ;-----------------------------------------------
-> %CX23885.HC81R%=CX23885.HC81_C,
-> PCI\VEN_14F1&DEV_8852&SUBSYS_D9391461    ;PCI-e     XCeive_L+FM+Afa9013
-> (this is my model : AVer Media AVerTV Hybrid Express Slim HC81R HC81_C)
-> 
-> After googling around i found the following :
-> CX23885 = PCI Express Video and Broadcast Audio Decoder
-> http://www.conexant.com/products/entry.jsp?id=393
-> http://www.conexant.com/servlets/DownloadServlet/PBR-200865-004.pdf?docid=866&revid=4
-> 
-> XC3028 = Hybrid tuner
-> http://www.xceive.com/technology_XC3028.htm
-> http://www.xceive.com/docs/XC3028_prodbrief.pdf
-> I have the L model which is same as standard just with "L"ower energy
-> consumption)
-> 
-> Afa9013 = Demodulator
-> 
-> from linux lspci -n :
-> 0c:00.0 0400: 14f1:8852 (rev 02)
->          Subsystem: 1461:d939
-> 
-> I can find no xc3028 module in the v4l tree and absolutely nothing on
-> the Afa9013.
-> Please confirm the above are tuner and demodulator chips respectively
-> and show me where i can create a wiki with the above info, my dmesg info
-> and my card pictures.
-> 
-> Thank you.
-> Regards.
 
-vf16,
+It's not my place to judge if the problem is moving in the right 
+direction or not but it's a good thing that something happens.
+I'll trust the experienced devs whom acked this proposal.
 
-The xc3028 is indeed a tuner, the driver module you need for it is the "tuner_xc2028" (note the number is 2028), this also supports the 3028.
+Writting a multiproto patch for kaffeine to get dvb-s2 support, got me 
+to learn a bit about v4l-dvb api and multiproto. Again i'm no 
+experienced coder, i followed some examples to keep v4l-dvb backward 
+compatibility and it wasn't really a walk in the park nor was it really 
+necessary now that i look at it, either your use multiproto or you don't 
+and if you do, patch your app and build it again.
+But well it's working and that's what was most important to me, to get 
+it working "asap".
 
-For an idea of what you need to do to get this card working, have a look in:
-http://linuxtv.org/hg/~stoth/v4l-dvb/
-In particular the patch to Add support for the Leadtek Winfast PxDVR 3200 H, this is one that I recently wrote to get the DVB on this card working.
+So as Christophe Thommeret wrote, who helped a lot dealing with 
+kaffeine, i'll support whichever api is going to bring dvb-s2 and new 
+dvb hardware support to the kernel.
 
-The afa9013 is indeed a demodulator,  however it appears to be currently unsupported.  See this wiki page:
-http://www.linuxtv.org/wiki/index.php/Afatech_AF9015
+In the meantime i'll keep using and maintaining my multiproto patch as 
+it's curently done with most other applications, so end users don't have 
+to wait for the whole kernel thing to get completed.
 
-You can create a wiki page at: http://www.linuxtv.org/wiki/index.php
-To create a page you need to create a log in, then do a search for the page name, (i.e. "AVerMedia AVerTV Hybrid Express Slim") and click create page.  I think there might be pro formers on what the page should look like somewhere...  To get an idea on what you need to type in click edit on another similar page, such as:
-http://www.linuxtv.org/wiki/index.php/DViCO_FusionHDTV_DVB-T_Dual_Express
-The images should be uploaded using the "Upload file" in menu on the left when you are logged in.
+And of course if or when the new api has to be tested and modifications 
+to be done on the application side, i'll join the effort.
 
-Also once you  have created the page update: 
-http://www.linuxtv.org/wiki/index.php/AVerMedia
-with the link to page and the relevant details, and similar for this one (and others you think are relevant): 
-http://www.linuxtv.org/wiki/index.php/DVB-T_PCMCIA_Cards
+Marc.
 
-I hope this helps and hopefully soon the AFA9013 will be supported (I'm not involved in the development of this).
+Acked-by: Marc Delcambre <webdev@chaosmedia.org>
 
-Well that is my two bits of advice,
 
-Regards,
-Stephen
 
--- 
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
-
+Steven Toth wrote:
+> Regarding the multiproto situation:
+>
+> .....
+>
+> We're not asking you for technical help, although we'd like that  :) ,
+> we're just asking for your encouragement to move away from multiproto.
+>
+> If you feel that you want to support our movement then please help us by
+> acking this email.
+>
+> Regards - Steve, Mike, Patrick and Mauro.
+>
+> Acked-by: Patrick Boettcher <pb@linuxtv.org>
+> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
+> Acked-by: Steven Toth <stoth@linuxtv.org>
+> Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+>
+> * [1]. Rather than point out the issues with multiproto here, take a
+> look at the patches and/or read the comments on the mailing lists.
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>   
 
 _______________________________________________
 linux-dvb mailing list
