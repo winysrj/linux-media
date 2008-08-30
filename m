@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 203.161.84.42.static.amnet.net.au ([203.161.84.42]
-	helo=goeng.com.au) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tom@goeng.com.au>) id 1KZHg2-0002Gw-4P
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 06:03:07 +0200
-From: "Thomas Goerke" <tom@goeng.com.au>
-To: stev391@email.com
-References: <20080830012407.BCB0247808F@ws1-5.us4.outblaze.com>
-	<000901c90a51$72e44100$58acc300$@com.au>
-In-Reply-To: <000901c90a51$72e44100$58acc300$@com.au>
-Date: Sat, 30 Aug 2008 12:03:36 +0800
-Message-ID: <000a01c90a55$62da6e70$288f4b50$@com.au>
-MIME-Version: 1.0
-Content-Language: en-au
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and
-	analog	TV/FM capture card
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1KZRtV-0005Se-Sm
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 16:57:42 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6F001TH5J78MM0@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sat, 30 Aug 2008 10:57:07 -0400 (EDT)
+Date: Sat, 30 Aug 2008 10:57:07 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48B93A3B.6090301@chaosmedia.org>
+To: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
+Message-id: <48B95FC3.7050005@linuxtv.org>
+MIME-version: 1.0
+References: <48B8400A.9030409@linuxtv.org> <48B93A3B.6090301@chaosmedia.org>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,63 +31,55 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Stephen,
-> 
-> I downloaded latest version of v4l-dvb (30/08/08:11:30am WST), applied
-> patch
-> (which passed) and then tried a make.  This is the output:
-> 
-> -- snip --
-> include/asm/io_32.h: In function 'memcpy_fromio':
-> include/asm/io_32.h:211: warning: passing argument 2 of '__memcpy'
-> discards
-> qualifiers from pointer target type
->   CC [M]  /home/tom/source/v4l-dvb/v4l/stradis.o
->   CC [M]  /home/tom/source/v4l-dvb/v4l/cpia.o
-> /home/tom/source/v4l-dvb/v4l/cpia.c: In function 'cpia_open':
-> /home/tom/source/v4l-dvb/v4l/cpia.c:3205: error: implicit declaration
-> of
-> function 'current_uid'
-> make[3]: *** [/home/tom/source/v4l-dvb/v4l/cpia.o] Error 1
-> make[2]: *** [_module_/home/tom/source/v4l-dvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/tom/source/v4l-dvb/v4l'
-> make: *** [all] Error 2
-> 
-> I then tried make clean, make and the same error occurred.
-> 
-> Tom
-> 
-Stephen,
-It seems that the latest source is at fault:
-This:
-hg clone http://linuxtv.org/hg/v4l-dvb
-cd v4l-dvb
-make
-Produces:
--- snip ---
-include/asm/io_32.h: In function 'memcpy_fromio':
-include/asm/io_32.h:211: warning: passing argument 2 of '__memcpy' discards
-qualifiers from pointer target type
-  CC [M]  /home/tom/source/v4l-dvb/v4l/stradis.o
-  CC [M]  /home/tom/source/v4l-dvb/v4l/cpia.o
-/home/tom/source/v4l-dvb/v4l/cpia.c: In function 'cpia_open':
-/home/tom/source/v4l-dvb/v4l/cpia.c:3205: error: implicit declaration of
-function 'current_uid'
-make[3]: *** [/home/tom/source/v4l-dvb/v4l/cpia.o] Error 1
-make[2]: *** [_module_/home/tom/source/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.24-19-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/tom/source/v4l-dvb/v4l'
-make: *** [all] Error 2
+ChaosMedia > WebDev wrote:
+> It's not my place to judge if the problem is moving in the right 
+> direction or not but it's a good thing that something happens.
+> I'll trust the experienced devs whom acked this proposal.
 
-Let me know if you have a separate archive of the source tree that I can use
-to test, or alternatively let me know if I have done something wrong with
-the clone and make.
+Thank you, it was time to take a position and it's good to see many 
+people supporting us now.
 
-Tom
+> 
+> Writting a multiproto patch for kaffeine to get dvb-s2 support, got me 
+> to learn a bit about v4l-dvb api and multiproto. Again i'm no 
+> experienced coder, i followed some examples to keep v4l-dvb backward 
+> compatibility and it wasn't really a walk in the park nor was it really 
+> necessary now that i look at it, either your use multiproto or you don't 
+> and if you do, patch your app and build it again.
+> But well it's working and that's what was most important to me, to get 
+> it working "asap".
 
+Agreed.
+
+> 
+> So as Christophe Thommeret wrote, who helped a lot dealing with 
+> kaffeine, i'll support whichever api is going to bring dvb-s2 and new 
+> dvb hardware support to the kernel.
+
+Agreed.
+
+> 
+> In the meantime i'll keep using and maintaining my multiproto patch as 
+> it's curently done with most other applications, so end users don't have 
+> to wait for the whole kernel thing to get completed.
+
+Great, please do.
+
+> 
+> And of course if or when the new api has to be tested and modifications 
+> to be done on the application side, i'll join the effort.
+
+Great, thanks.
+
+> 
+> Marc.
+> 
+> Acked-by: Marc Delcambre <webdev@chaosmedia.org>
+
+
+Regards,
+
+Steve
 
 _______________________________________________
 linux-dvb mailing list
