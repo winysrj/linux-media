@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KZ692-0007jg-SW
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 17:44:19 +0200
-Date: Fri, 29 Aug 2008 17:43:42 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <48B802D8.7010806@linuxtv.org>
-Message-ID: <20080829154342.74800@gmx.net>
+Received: from smtpauth02.csee.siteprotect.eu ([83.246.86.181])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <roger@beardandsandals.co.uk>) id 1KZQ2J-0006MC-93
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 14:58:39 +0200
+Received: from [192.168.10.241] (unknown [81.168.109.249])
+	(Authenticated sender: roger@beardandsandals.co.uk)
+	by smtpauth02.csee.siteprotect.eu (Postfix) with ESMTP id F0F01C68005
+	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 14:58:04 +0200 (CEST)
+Message-ID: <48B943DF.1080702@beardandsandals.co.uk>
+Date: Sat, 30 Aug 2008 13:58:07 +0100
+From: Roger James <roger@beardandsandals.co.uk>
 MIME-Version: 1.0
-References: <20080821173909.114260@gmx.net> <20080823200531.246370@gmx.net>
-	<48B78AE6.1060205@gmx.net> <48B7A60C.4050600@kipdola.com>
-	<48B802D8.7010806@linuxtv.org>
-To: Steven Toth <stoth@linuxtv.org>, skerit@kipdola.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Future of DVB-S2
+To: linux-dvb@linuxtv.org
+References: <20080825122741.GB17421@optima.lan>	<48B2E1DC.2080605@beardandsandals.co.uk>	<6f94e1a00808261235g130cf9b9h9b09f11249a01ebe@mail.gmail.com>	<48B525F4.50004@beardandsandals.co.uk>	<48B5A157.1080206@beardandsandals.co.uk>	<6f94e1a00808271238q1d42e219t9d2b6c493d056b0c@mail.gmail.com>	<48B5E1C6.9040908@beardandsandals.co.uk>
+	<48B69A3E.4020808@beardandsandals.co.uk>
+In-Reply-To: <48B69A3E.4020808@beardandsandals.co.uk>
+Subject: Re: [linux-dvb] TT S2-3200 + CI Extension
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,206 +23,106 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0522575850=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> ... and yes, many people understand you.
+--===============0522575850==
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-:) Thanks to everyone who replied so far. I am glad people care about this.
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Roger James wrote:
+<blockquote cite="mid:48B69A3E.4020808@beardandsandals.co.uk"
+ type="cite">
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+Roger James wrote:
+  <blockquote cite="mid:48B5E1C6.9040908@beardandsandals.co.uk"
+ type="cite">
+    <meta content="text/html;charset=ISO-8859-1"
+ http-equiv="Content-Type">
+    <title></title>
+Werner Hauger wrote:
+    <blockquote
+ cite="mid:6f94e1a00808271238q1d42e219t9d2b6c493d056b0c@mail.gmail.com"
+ type="cite">
+      <pre wrap="">So what revision of the CI board do you have ?
 
-> > We know all about the "coding in your free time" and we can only have =
+  </pre>
+      <pre wrap="">I'm glad you got it working. I wonder if that means there we indeed
+have different CI firmware on new CI boards that need to be catered
+for in the driver.
 
-> > the highest respect for that, but the drivers are completely abandonded,
-> > and that's how we feel, too.
-> =
-
-> No, and that's my HVR4000 code you're talking about (and the good work =
-
-> of Darron Broad, which was then picked up by Igor). The driver is =
-
-> marginalized, it's not abandoned.
-
-I hope your and Darron's drivers (http://dev.kewl.org/hauppauge) are not se=
-en as
-marginalized. The multifrontend (MFE) patch by you and Darron is the driver=
- that I
-actually *use* for watching TV. It works nicely with Kaffeine without modif=
-ication. And I,
-for one, appreciate your sane approach and the simplicity of the techniques=
- you used to
-add DVB-S2 support (using sysctls for the SFE driver, and wrapping two ioct=
-ls to pull in
-extra parameters for the MFE driver). If the kernel API is changed sensibly=
- it should be
-easy and quick to adapt your drivers to fit in.
- =
-
-> The HVR4000 situation is under review, the wheels are slowly turning.... =
-
-If you are able to say anything about that I would be very interested.
-
-Now, to show how simple I think all this could be, here is a PATCH implemen=
-ting what
-I think is the *minimal* API required to support DVB-S2.
-
-Notes:
-
-* same API structure, I just added some new enums and variables, nothing re=
-moved
-* no changes required to any existing drivers (v4l-dvb still compiles)
-* no changes required to existing applications (just need to be recompiled)
-* no drivers, but I think the HVR4000 MFE patch could be easily adapted
-
-I added the fe_caps2 enum because we're running out of bits in the capabili=
-ties bitfield.
-More elegant would be to have separate bitfields for FEC capabilities and m=
-odulation
-capabilities but that would require (easy) changes to (a lot of) drivers an=
-d applications.
-
-Why should we not merge something simple like this immediately? This could =
-have been done
-years ago. If it takes several rounds of API upgrades to reach all the feat=
-ure people want then
-so be it, but a long journey begins with one step.
-
-Regards.
-Hans
-
-diff -r a4843e1304e6 linux/include/linux/dvb/frontend.h
---- a/linux/include/linux/dvb/frontend.h	Sun Aug 24 12:28:11 2008 -0300
-+++ b/linux/include/linux/dvb/frontend.h	Fri Aug 29 16:22:47 2008 +0100
-@@ -36,6 +36,15 @@
- 	FE_ATSC
- } fe_type_t;
- =
-
-+typedef enum fe_standard {
-+	DVBS,
-+	DVBS2,
-+	DVBT,
-+	DVBH,
-+	DVBC,
-+	DSS,
-+	ATSC
-+} fe_standard_t;
- =
-
- typedef enum fe_caps {
- 	FE_IS_STUPID			=3D 0,
-@@ -67,6 +76,16 @@
- 	FE_CAN_MUTE_TS			=3D 0x80000000  // frontend can stop spurious TS data ou=
-tput
- } fe_caps_t;
- =
-
-+typedef enum fe_caps2 {
-+	FE_CAN_FEC_1_3			=3D 0x0,
-+	FE_CAN_FEC_1_4			=3D 0x1,
-+	FE_CAN_FEC_2_5			=3D 0x2,
-+	FE_CAN_FEC_3_5			=3D 0x4,
-+	FE_CAN_FEC_9_10			=3D 0x8,
-+	FE_CAN_8PSK			=3D 0x10,
-+	FE_CAN_16APSK			=3D 0x20,
-+	FE_CAN_32APSK			=3D 0x40
-+} fe_caps2_t;
- =
-
- struct dvb_frontend_info {
- 	char       name[128];
-@@ -80,6 +99,7 @@
- 	__u32      symbol_rate_tolerance;	/* ppm */
- 	__u32      notifier_delay;		/* DEPRECATED */
- 	fe_caps_t  caps;
-+	fe_caps2_t caps2;
- };
- =
-
- =
-
-@@ -140,19 +160,27 @@
- typedef enum fe_code_rate {
- 	FEC_NONE =3D 0,
- 	FEC_1_2,
-+	FEC_1_3,
-+	FEC_1_4,
- 	FEC_2_3,
-+	FEC_2_5,
- 	FEC_3_4,
-+	FEC_3_5,
- 	FEC_4_5,
- 	FEC_5_6,
- 	FEC_6_7,
- 	FEC_7_8,
- 	FEC_8_9,
-+	FEC_9_10,
- 	FEC_AUTO
- } fe_code_rate_t;
- =
-
- =
-
- typedef enum fe_modulation {
- 	QPSK,
-+	PSK_8,
-+	APSK_16,
-+	APSK_32,
- 	QAM_16,
- 	QAM_32,
- 	QAM_64,
-@@ -194,10 +222,25 @@
- 	HIERARCHY_AUTO
- } fe_hierarchy_t;
- =
-
-+typedef enum fe_rolloff {
-+	ROLLOFF_035,
-+	ROLLOFF_025,
-+	ROLLOFF_020,
-+	ROLLOFF_UNKNOWN
-+} fe_rolloff_t;
-+
-+typedef enum fe_pilot {
-+	PILOT_OFF,
-+	PILOT_ON,
-+	PILOT_AUTO
-+} fe_pilot_t;
- =
-
- struct dvb_qpsk_parameters {
- 	__u32		symbol_rate;  /* symbol rate in Symbols per second */
- 	fe_code_rate_t	fec_inner;    /* forward error correction (see above) */
-+	fe_modulation_t	modulation;   /* DVB-S2 allows modulations QPSK plus 8PSK=
-,16APSK,32APSK */
-+	fe_rolloff_t 	rolloff;      /* for DVB-S2*/
-+	fe_pilot_t	pilot;        /* for DVB-S2*/
- };
- =
-
- struct dvb_qam_parameters {
-@@ -225,6 +268,7 @@
- 	__u32 frequency;     /* (absolute) frequency in Hz for QAM/OFDM/ATSC */
- 			     /* intermediate frequency in kHz for QPSK */
- 	fe_spectral_inversion_t inversion;
-+	fe_standard_t           standard;   /* use to set DVBS/DVBS2/DVBT etc */
- 	union {
- 		struct dvb_qpsk_parameters qpsk;
- 		struct dvb_qam_parameters  qam;
+  </pre>
+      <blockquote type="cite">
+        <pre wrap="">budget_ci: Slot status d587c000 set to NONE 3 ci_version a0
+    </pre>
+      </blockquote>
+    </blockquote>
+Werner,<br>
+    <br>
+The version number printed on the CI board is 1.0A. The firmware
+version reported by the board is 0xa0 (it is at the end of the above
+diagnostic.<br>
+    <br>
+I think it might be an idea to patch the driver to log the version by
+default so we can build a picture of which firmware/board/CAM
+combinations generate interrupts. I am bit suspicious of the fact that
+my 1.0 rev of the CI board is not generating interrupts in this case,
+whereas you said in an earlier posting that you had a 1.0 rev of the
+board that was generating interrupts with a Nova S card (were you using
+a TT CI board with a Hauppauge card, I am little confused). I should be
+getting an AstonCrypt CAM in the next few days. I want to test that and
+see if that does generate interrupts with my 1.0A CI board before I
+would suggest adding firmware version 0xa0 to the list of the ones that
+do not generate interrupts.<br>
+    <br>
+Roger<br>
+  </blockquote>
+Werner,<br>
+  <br>
+I spoke slightly too soon. I tested using gnutv -cammenu and got a
+"CAWrite failed" message. I managed to fix this by increasing the
+timeout in dvb_ca_en50221_io_write to 10 seconds ( from 0.5 seconds). I
+am not too hopeful of success when I try some real decrypting, but that
+will have to wait for a while.<br>
+  <br>
+Roger<br>
+</blockquote>
+I have now got hold of an AstonCrypt 1.05 CAM and done a quick test
+against it. Once again the CI board required polling to initialise
+properly, so it looks like this is related to the firmware version and
+not specific to a particular CAM. However I am still not entirely
+convinced. This is because of two factors; firstly CAM insertion and
+removal interrupts are generated, and secondly I still have not managed
+to get sensible data out of the card when the CAM and a smartcard is
+inserted, even on unencrypted channels. But this may be finger trouble
+and lack of understanding of the dvb-apps utils.<br>
+<br>
+On the second factor. I have been testing using gnutv and szap. One
+thing I notice is that I can get a FE lock reported using szap, I
+cannot get one using gnutv. Any ideas anyone?<br>
+<br>
+Roger<br>
+</body>
+</html>
 
 
--- =
-
-Release early, release often. Really, you should.
-
-GMX Kostenlose Spiele: Einfach online spielen und Spa=DF haben mit Pastry P=
-assion!
-http://games.entertainment.gmx.net/de/entertainment/games/free/puzzle/61691=
-96
+--===============0522575850==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0522575850==--
