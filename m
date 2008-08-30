@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m78EoUMR020672
-	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 10:50:30 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m78EmEdW015195
-	for <video4linux-list@redhat.com>; Fri, 8 Aug 2008 10:49:01 -0400
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200808081635.20640.hverkuil@xs4all.nl>
-References: <de8cad4d0808051804l13d1b66cs9df26cc43ba6cfd6@mail.gmail.com>
-	<de8cad4d0808070636q4045b788s6773a4e168cca2cc@mail.gmail.com>
-	<1218205108.3003.44.camel@morgan.walls.org>
-	<200808081635.20640.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Fri, 08 Aug 2008 10:44:11 -0400
-Message-Id: <1218206651.3003.54.camel@morgan.walls.org>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7U7mjiq013151
+	for <video4linux-list@redhat.com>; Sat, 30 Aug 2008 03:48:45 -0400
+Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7U7mX5C001287
+	for <video4linux-list@redhat.com>; Sat, 30 Aug 2008 03:48:33 -0400
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20080829183420.1fcbfc11@mchehab.chehab.org>
+References: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>
+	<200808282058.26623.hverkuil@xs4all.nl> <48B7E8C4.5060605@nokia.com>
+	<200808291543.27863.hverkuil@xs4all.nl>
+	<20080829183420.1fcbfc11@mchehab.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Sat, 30 Aug 2008 09:22:44 +0200
+Message-Id: <1220080964.1736.55.camel@localhost>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, ivtv-devel@ivtvdriver.org
-Subject: Re: CX18 Oops
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, Sakari Ailus <sakari.ailus@nokia.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2] soc-camera: add API documentation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,31 +31,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 2008-08-08 at 16:35 +0200, Hans Verkuil wrote:
-> On Friday 08 August 2008 16:18:28 Andy Walls wrote:
+On Fri, 2008-08-29 at 18:34 -0300, Mauro Carvalho Chehab wrote:
+	[split]
+> At the other side of the coin, we have lots of drivers that don't use any API
+> to split sensors from the bridge drivers, being GSPCA the newest example. I
+> believe that splitting sensors from bridge drivers will benefit to reduce the
+> amount of coding size on such drivers, and help to fix bugs that are common to
+> several webcams. Of course, such conversion would be a huge task.
 
-> No objection at all. If you look at where cx18_queue_move is used, then 
-> you'll notice that it is only in cx18_flush_queues(). And all it has to 
-> do there is to move any buffers in the q_io or q_full queue to the 
-> q_free queue and initialize all those buffers to their initial state. 
-> You do not need all that complicated code for that. I suggest that you 
-> make a new function instead that replaces cx18_queue_move and 
-> cx18_queue_move_buf.
+I think this subject was already discussed.
 
-:)
+If you look at the gspca code, you will see that many sensors are used
+by different bridges. Indeed, some values are closed from each other,
+but what to do with the differences? (the initial values of the sensor
+registers seem to be tied to the physical wires, signal levels and
+capabilities of the bridges)
 
-I was especially annoyed at the local var that was named 'from_free' but
-that was also used being for transfers *to* q_free, which happened to be
-cx18's only use case for the variable.,,,
+Also, the way to load the sensor registers is very different from one
+bridge to an other one (direct write, with one or many values in one
+write, paging, bridge packets with different headers/tails..).
 
-Regards,
-Andy
+Eventually, looking again at the code, you will see that the sensor
+exchanges are only a small part of the code.
 
+Cheers.
 
-> Regards,
-> 
-> 	Hans
-> 
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
 
 --
 video4linux-list mailing list
