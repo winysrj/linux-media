@@ -1,21 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f39.mail.ru ([194.67.57.77])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KYamY-0006Ha-5N
-	for linux-dvb@linuxtv.org; Thu, 28 Aug 2008 08:14:58 +0200
-From: Goga777 <goga777@bk.ru>
-To: free_beer_for_all@yahoo.com
-Mime-Version: 1.0
-Date: Thu, 28 Aug 2008 10:14:23 +0400
-In-Reply-To: <613687.9380.qm@web46107.mail.sp1.yahoo.com>
-References: <613687.9380.qm@web46107.mail.sp1.yahoo.com>
-Message-Id: <E1KYalz-000GZm-00.goga777-bk-ru@f39.mail.ru>
-Cc: Hans Werner <HWerner4@gmx.de>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?TVBsYXllciBjYW4ndCBwbGF5IGguMjY0IGR2Yi1z?=
-	=?koi8-r?b?dHJlYW0gKHdhcyAtIEhWUiA0MDAwIHJlY29tbmVkZWQgZHJpdmVy?=
-	=?koi8-r?b?IGFuZCBmaXJtd2FyZSBmb3IgVkRSMS43LjAp?=
-Reply-To: Goga777 <goga777@bk.ru>
+From: Christophe Thommeret <hftom@free.fr>
+To: linux-dvb@linuxtv.org
+Date: Sat, 30 Aug 2008 02:04:13 +0200
+References: <48B8400A.9030409@linuxtv.org>
+In-Reply-To: <48B8400A.9030409@linuxtv.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200808300204.13561.hftom@free.fr>
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,115 +15,110 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+Le Friday 29 August 2008 20:29:30 Steven Toth, vous avez =E9crit=A0:
+> Regarding the multiproto situation:
+>
+> A number of developers, maintainers and users are unhappy with the
+> multiproto situation, actually they've been unhappy for a considerable
+> amount of time. The linuxtv developer community (to some degree) is seen
+> as a joke and a bunch in-fighting people. Multiproto is a great
+> demonstration of this. [1] The multiproto project has gone too far, for
+> too long and no longer has any credibility in the eyes of many people.
+>
+> In response, a number developers have agreed that "enough is enough" and
+> "it's time to take a new direction", for these developers the technical,
+> political and personal cost of multiproto is too high. These developers
+> have decided to make an announcement.
+>
+> Mauro Chehab, Michael Krufky, Patrick Boettcher and myself are hereby
+> announcing that we no longer support multiproto and are forming a
+> smaller dedicated project group which is focusing on adding next
+> generation S2/ISDB-T/DVB-H/DVB-T2/DVB-SH support to the kernel through a
+> different and simpler API.
+>
+> Basic patches and demo code for this API is currently available here.
+>
+> http://www.steventoth.net/linux/s2
+>
+> Does it even work? Yes
+> Is this new API complete? No
+> Is it perfect? No, we've already had feedback on structural and
+> namingspace changes that people would like to see.
+> Does it have bugs? Of course, we have a list of things we already know
+> we want to fix.
+>
+> but ...
+>
+> Is the new approach flexible? Yes, we're moving away from passing fixed
+> modulation structures into the kernel.
+> Can we add to it without breaking the future ABI when unforseen
+> modulations types occur? Yes
+> Does it preserve backwards compatibility? Yes
+> Importantly, is the overall direction correct? Yes
+> Does it impact existing frontend drivers? No.
+> What's the impact to dvb-core? Small.
+> What's the impact to application developers? None, unless an application
+> developer wants to support the new standards - binary compatibility!
+>
+> We want feedback and we want progress, we aim to achieve it.
+>
+> Importantly, this project group seeks your support.
+>
+> If you also feel frustrated by the multiproto situation and agree in
+> principle with this new approach, and the overall direction of the API
+> changes, then we welcome you and ask you to help us.
+>
+> Growing the list of supporting names by 100%, and allowing us to publish
+> your name on the public mailing list, would show the non-maintainer
+> development community that we recognize the problem and we're taking
+> steps to correct the problem. We want to make LinuxTV a perfect platform
+> for S2, ISDB-T and other advanced modulation types, without using the
+> multiproto patches.
+>
+> We're not asking you for technical help, although we'd like that  :) ,
+> we're just asking for your encouragement to move away from multiproto.
+>
+> If you feel that you want to support our movement then please help us by
+> acking this email.
 
-I have read that szap -r -p options was broken. May be is it reason of your problem with the latest MPlayer ?
-http://marc.info/?l=linux-dvb&m=121660960211299&w=2
+Good.
+We are all waiting for a new API.
+As Johannes said some months ago, the first one (individual or group) that =
 
-could you try please to play in another way - after of tine with szap2 help please try like this 
+will come with something good enougth will win.
+Sadly, Manu's work could be lost, but he's the only one that knows why.
+Kaffeine will support the winner.
 
-dvbsnoop -s ts -b -tsraw | mplayer -
-dvbsnoop -s ts -b -tsraw | xine stdin://
+Acked-by: Christophe Thommeret <hftom@free.fr>
 
-or
+P.S.
+1) imho, DTV_ prefix would make more sense.
+2) if someone want to donate a S2 card ...
 
-dvbstream -o 8192 | xine stdin://
-dvbstream -o 8192 | mplayer -
+> Regards - Steve, Mike, Patrick and Mauro.
+>
+> Acked-by: Patrick Boettcher <pb@linuxtv.org>
+> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
+> Acked-by: Steven Toth <stoth@linuxtv.org>
+> Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+>
+> * [1]. Rather than point out the issues with multiproto here, take a
+> look at the patches and/or read the comments on the mailing lists.
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-Goga
+-- =
 
-
------Original Message-----
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: linux-dvb@linuxtv.org, Hans Werner <HWerner4@gmx.de>
-Date: Wed, 27 Aug 2008 21:24:26 -0700 (PDT)
-Subject: Re: [linux-dvb] HVR 4000 recomneded driver and firmware for VDR1.7.0
-
-> 
-> --- On Wed, 8/27/08, Hans Werner <HWerner4@gmx.de> wrote:
-> 
-> > Barry, thanks for your messge. You didn't say whether you tried what
-> > I did with HVR4000+liplianindvb+szap2 (-p option). 
-> 
-> First, my apologies -- I've only been half-reading all the
-> messages, without really paying attention to things that do
-> not immediately concern me, and I probably should have kept
-> quiet.
-> 
-> Second, I don't have any DVB-S2 hardware yet, though the HVR4000
-> has been on my Interest-O-Meter -- nor is my machine fast enough
-> to play any streams in realtime, so I'm always writing a file
-> (which takes little CPU power) for playback later; in the case
-> of H.264 1080i video, I see at best part of one, two, or maybe
-> three full frames per second, which actually gives me time to
-> judge the quality of the video compression.
-> 
-> So, no, I haven't tried that, but I'm confused -- based on your
-> posted debug output, it looked as though you were playing a
-> recorded file, testfile_anixe.ts ...
-> 
-> 
-> The output you gave reminded me of that of ITV-HD, which uses
-> some (PAFF?) encoding for which mplayer recently got support,
-> so I posted, in case you had a distro-supplied player.
-> 
-> 
-> > I regularly update mplayer from SVN and recompile too.  I
-> > have tried the following:
-> > 
-> > MPlayer dev-SVN-r27489-4.1.2  (today!): runs but video very
-> > slow and out of sync, audio ok.
-> > MPlayer dev-SVN-r27341-4.1.2  (about 1 month old): crashes
-> > in <1s
-> 
-> Good to know, and thanks for making me look like a fool, and
-> I'm happy for it.  No, really.  It's not just worth it for its
-> own sake, but if it helps others, that's even better.
-> 
-> 
-> > And I have some sample TS files for Astra HD+ made with
-> > another card which all the
-> > mplayers play perfectly so I know h264 is working.
-> 
-> I am going to plead ignorance of what does, and what does not
-> work for you.  Please correct me where I ass-u-me wrong:
-> 
-> arte HD plays fine for you, both from a recorded TS file, and
-> live from szap2.
-> 
-> Anixe HD / Astra HD+ play fine from recorded files from another
-> machine.
-> 
-> Anixe HD played from your anixe.ts file crashed?
-> Anixe HD played from szap2 crashed?
-> 
-> 
-> I pointed out the different debug output from BBC-HD/ITV-HD to
-> show that of ITV matched your errors, and that's using an encoding
-> for which support has only within the last month or two appeared
-> in mplayer, and will not be as mature as the support used by
-> other streams.
-> 
-> 
-> Just a thought, if you cannot play a realtime stream, is that the
-> decoder needs to do seeking within the stream, which it could do
-> within a file, but the support is not yet mature enough to be able
-> to do the same within a stream.  I could be completely wrong...
-> 
-> 
-> If you have short examples of recorded files that crash, and others
-> from the same source that play properly, I'd be interested to be
-> able to download them and look for obvious problems.
-> 
-> And likewise, if I'm not understanding where you have success and
-> failures with mplayer, please correct me, if you think it's worth
-> it, as I don't have the hardware to test on my own.
+Christophe Thommeret
 
 
 _______________________________________________
