@@ -1,24 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KSwpL-0003eR-4v
-	for linux-dvb@linuxtv.org; Tue, 12 Aug 2008 18:34:32 +0200
+	(envelope-from <stoth@linuxtv.org>) id 1KZSAG-0007mq-MD
+	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 17:15:01 +0200
 Received: from steven-toths-macbook-pro.local
 	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
+	mta5.srv.hcvlny.cv.net
 	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K5H00HDKY0HQ060@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 12 Aug 2008 12:33:56 -0400 (EDT)
-Date: Tue, 12 Aug 2008 12:33:53 -0400
+	with ESMTP id <0K6F00AHQ6C2AY30@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sat, 30 Aug 2008 11:14:26 -0400 (EDT)
+Date: Sat, 30 Aug 2008 11:14:25 -0400
 From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080812042250.B929732675A@ws1-8.us4.outblaze.com>
-To: stev391@email.com
-Message-id: <48A1BB71.2000409@linuxtv.org>
+In-reply-to: <20080830150844.GQ7830@moelleritberatung.de>
+To: Artem Makhutov <artem@makhutov.org>
+Message-id: <48B963D1.3060908@linuxtv.org>
 MIME-version: 1.0
-References: <20080812042250.B929732675A@ws1-8.us4.outblaze.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH-TESTERS-REQUIRED] Leadtek Winfast PxDVR 3200
- H - DVB Only support
+References: <48B8400A.9030409@linuxtv.org>
+	<20080830150844.GQ7830@moelleritberatung.de>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,23 +32,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-> ---------Leadtek_Winfast_PxDVR3200_H_Signed_Off.diff---------
-> cx23885: Add DVB support for Leadtek Winfast PxDVR3200 H
+Artem Makhutov wrote:
+> Hi,
 > 
-> ---------cx23885_callback_tidyup.diff---------
-> cx23885: Remove Redundant if statements in tuner callback
+> On Fri, Aug 29, 2008 at 02:29:30PM -0400, Steven Toth wrote:
+>> Regarding the multiproto situation:
+>>
+>> A number of developers, maintainers and users are unhappy with the
+>> multiproto situation, actually they've been unhappy for a considerable
+>> amount of time. The linuxtv developer community (to some degree) is seen
+>> as a joke and a bunch in-fighting people. Multiproto is a great
+>> demonstration of this. [1] The multiproto project has gone too far, for
+>> too long and no longer has any credibility in the eyes of many people.
+> 
+> Can you please explain me what you do not like in multiproto?
 
-Thanks.
 
-Pull this tree and run a quick test again (I had an odd whitespace merge 
-issue - likely thunderbirds fault - that I have to cleanup):
+1. Where is the support for ISDB-T/ATSC-MH/CMMB/DVB-H/DBM-T/H and other 
+modulation types. If we're going to make a massive kernel change then 
+why aren't we accommodating these new modulation types? If we don't 
+added now then we'll have the rev the kernel ABI again in 2 months.... 
+that isn't a forward looking future proof API.
 
-http://linuxtv.org/hg/~stoth/v4l-dvb/
+2. It's too big, too risky, too late. It doesn't add enough new fatures 
+to the kernel to justify the massive code change.
 
-If everything is working then I'll issue the pull request for final merge.
+Thanks your for your feedback.
 
-- Steve
+Regards,
+
+Steve
+
+
 
 _______________________________________________
 linux-dvb mailing list
