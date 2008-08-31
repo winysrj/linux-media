@@ -1,20 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7H1tr7m018193
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 21:55:53 -0400
-Received: from web34503.mail.mud.yahoo.com (web34503.mail.mud.yahoo.com
-	[66.163.178.169])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m7H1sNUj011403
-	for <video4linux-list@redhat.com>; Sat, 16 Aug 2008 21:54:23 -0400
-Date: Sat, 16 Aug 2008 18:54:17 -0700 (PDT)
-From: Carlos Limarino <climarino@yahoo.com.ar>
-To: video4linux-list@redhat.com
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7VMaulw001771
+	for <video4linux-list@redhat.com>; Sun, 31 Aug 2008 18:36:57 -0400
+Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.231])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7VMafqX025085
+	for <video4linux-list@redhat.com>; Sun, 31 Aug 2008 18:36:41 -0400
+Received: by wx-out-0506.google.com with SMTP id i27so477619wxd.6
+	for <video4linux-list@redhat.com>; Sun, 31 Aug 2008 15:36:41 -0700 (PDT)
+Message-ID: <d9def9db0808311536l3d35f6a4y677d535536e4cf97@mail.gmail.com>
+Date: Mon, 1 Sep 2008 00:36:40 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "hermann pitton" <hermann-pitton@arcor.de>
+In-Reply-To: <1220221611.2669.55.camel@pc10.localdom.local>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Message-ID: <474079.21637.qm@web34503.mail.mud.yahoo.com>
-Content-Transfer-Encoding: 8bit
-Subject: Help needed to add support for the card Compro VideoMate X50
-	(CX88/XC2028)
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <BAY126-W51445FEADC96EC0484E7ABE35D0@phx.gbl>
+	<d9def9db0808311511p51df8befm2cbd641fc4d0a88f@mail.gmail.com>
+	<1220221611.2669.55.camel@pc10.localdom.local>
+Cc: video4linux-list@redhat.com, alkureishi.lee@gmail.com,
+	Lee Alkureishi <lee_alkureishi@hotmail.com>
+Subject: Re: em2820, Tena TNF-9533 and V4L
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,106 +33,96 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, 
+On Mon, Sep 1, 2008 at 12:26 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
+> Markus,
+>
+> Am Montag, den 01.09.2008, 00:11 +0200 schrieb Markus Rechberger:
+>> On Sun, Aug 31, 2008 at 8:26 PM, Lee Alkureishi
+>> <lee_alkureishi@hotmail.com> wrote:
+>> >
+>> > Hi all,
+>> >
+>> > Hoping someone on this list can help me with this frustrating problem:
+>> >
+>> > I'm running Mythbuntu 8.04, fully updated. I'm trying to set up a USB TV tuner box, and have made progress but haven't quite got it working.
+>> >
+>> > The USB box is a Kworld PVR TV 2800 RF. It uses a Empia em2820 chipset, and a Tena TNF-9533-D/IF tuner. Other chips I found under the casing are:
+>> > RM-KUB03 04AEAAC6, HEF4052BT, TEA5767, SAA7113H.
+>> >
+>> > The PCB has the following printed on it: EM2800TV_KW Ver:F
+>> >
+>> > I followed the instructions to install v4l using mercurial, and have got it to the point where dmesg shows that the card is recognised and initialised:
+>> > ------
+>> > dmesg:
+>> > [ 1844.847318] usb 5-1: new high speed USB device using ehci_hcd and address 3
+>> > [ 1844.979744] usb 5-1: configuration #1 chosen from 1 choice
+>> > [ 1844.980718] em28xx new video device (eb1a:2820): interface 0, class 255
+>> > [ 1844.980727] em28xx: device is attached to a USB 2.0 bus
+>> > [ 1844.980730] em28xx: you're using the experimental/unstable tree from mcentral.de
+>> > [ 1844.980732] em28xx: there's also a stable tree available but which is limited to
+>> > [ 1844.980734] em28xx: linux <=2.6.19.2
+>> > [ 1844.980736] em28xx: it's fine to use this driver but keep in mind that it will move
+>> > [ 1844.980738] em28xx: to http://mcentral.de/hg/~mrec/v4l-dvb-kernel as soon as it's
+>> > [ 1844.980740] em28xx: proved to be stable
+>> > [ 1844.980743] em28xx #0: Alternate settings: 8
+>> > [ 1844.980746] em28xx #0: Alternate setting 0, max size= 0
+>> > [ 1844.980748] em28xx #0: Alternate setting 1, max size= 1024
+>> > [ 1844.980750] em28xx #0: Alternate setting 2, max size= 1448
+>> > [ 1844.980752] em28xx #0: Alternate setting 3, max size= 2048
+>> > [ 1844.980754] em28xx #0: Alternate setting 4, max size= 2304
+>> > [ 1844.980756] em28xx #0: Alternate setting 5, max size= 2580
+>> > [ 1844.980758] em28xx #0: Alternate setting 6, max size= 2892
+>> > [ 1844.980760] em28xx #0: Alternate setting 7, max size= 3072
+>> > [ 1845.271190] tuner 1-0060: TEA5767 detected.
+>> > [ 1845.271199] tuner 1-0060: chip found @ 0xc0 (em28xx #0)
+>> > [ 1845.271254] attach inform (default): detected I2C address c0
+>> > [ 1845.271260] tuner 0x60: Configuration acknowledged
+>> > [ 1845.271266] tuner 1-0060: type set to 61 (Tena TNF9533-D/IF/TNF9533-B/DF)
+>> > [ 1845.272189] tuner 1-0061: chip found @ 0xc2 (em28xx #0)
+>> > [ 1845.272215] attach inform (default): detected I2C address c2
+>> > [ 1845.272219] tuner 0x61: Configuration acknowledged
+>> > [ 1845.272223] tuner 1-0061: type set to 61 (Tena TNF9533-D/IF/TNF9533-B/DF)
+>> > [ 1845.302962] saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
+>> > [ 1845.332719] attach_inform: saa7113 detected.
+>> > [ 1845.346159] em28xx #0: V4L2 device registered as /dev/video0
+>> > [ 1845.346173] em28xx #0: Found Kworld PVR TV 2800 RF
+>> > ----------
+>> >
+>>
+>> please don't use that driver, it'S not maintained anymore either.
+>>
+>> can you run:
+>>
+>> $ apt-get install --reinstall linux-image-`uname -r`-generic
+>>
+>> for restoring your kernel?
+>>
+>> You should safely be able to compile the latest em28xx driver or grab
+>> debian packages for it (what does uname -r show up?)
+>>
+>> $ hg clone http://mcentral.de/hg/~mrec/em28xx-new
+>> $ cd em28xx-new
+>> $ ./build.sh build
+>> $ ./build.sh install
+>>
+>> there's also em28xx at mcentral.de available which has alot
+>> subscribers who have em28xx based devices, it only deals about Empia
+>> based devices and appilcations + support for those devices only.
+>>
+>> Markus
+>
+> that tuner won't work for NTSC.
+>
+> Did you notice my previous reply?
+>
 
-I'm trying to add support for a CX23880 based card that uses the Xceive 2028 tuner. Support for this tuner was recently added to the kernel, I tried using similar cards already supported by the driver. The results were:
+sure although I wonder KWorld mostly sells NTSC based hardware as far as I know.
 
-using card=62 (PowerColor RA330)
+http://www.kworldcomputer.com/product/analog/003/pvr-tv2800u.htm
 
-cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-ACPI: PCI Interrupt Link [APC2] enabled at IRQ 17
-ACPI: PCI Interrupt 0000:02:09.0[A] -> Link [APC2] -> GSI 17 (level, low) -> IRQ 17
-cx88[0]: subsystem: 185b:e000, board: PowerColor RA330 [card=62,insmod option]
-cx88[0]: TV tuner type 71, Radio tuner type 0
-tuner' 2-0061: chip found @ 0xc2 (cx88[0])
-xc2028 2-0061: creating new instance
-xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
-cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
-cx88 IR (PowerColor RA330): unknown key: key=0x3f raw=0x3f down=1
-cx88 IR (PowerColor RA330): unknown key: key=0x3f raw=0x3f down=0
-input: cx88 IR (PowerColor RA330) as /devices/pci0000:00/0000:00:10.0/0000:02:09.0/input/input6
-cx88[0]/0: found at 0000:02:09.0, rev: 5, irq: 17, latency: 32, mmio: 0xfc000000
-cx88[0]/0: registered device video0 [v4l2]
-cx88[0]/0: registered device vbi0
-cx88[0]/0: registered device radio0
-firmware: requesting xc3028-v27.fw
-xc2028 2-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-cx88[0]: Calling XC2028/3028 callback
-xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-cx88[0]: Calling XC2028/3028 callback
-xc2028 2-0061: i2c output error: rc = -121 (should be 64)
-xc2028 2-0061: -121 returned from send
-xc2028 2-0061: Error -22 while loading base firmware
-cx88[0]: Calling XC2028/3028 callback
-xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
-cx88[0]: Calling XC2028/3028 callback
-xc2028 2-0061: i2c output error: rc = -121 (should be 64)
-xc2028 2-0061: -121 returned from send
-xc2028 2-0061: Error -22 while loading base firmware
-cx88[0]: Calling XC2028/3028 callback
-xc2028 2-0061: Loading firmware for type=BASE FM (401), id 0000000000000000.
-cx88[0]: Calling XC2028/3028 callback
-xc2028 2-0061: Loading firmware for type=FM (400), id 0000000000000000.
-cx88[0]: Calling XC2028/3028 callback
+Lee, can you check if it's about exactly that device?
 
-using card=61 (Winfast TV2000 XP Global)
-
-cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-ACPI: PCI Interrupt 0000:02:09.0[A] -> Link [APC2] -> GSI 17 (level, low) -> IRQ 17
-cx88[0]: subsystem: 185b:e000, board: Winfast TV2000 XP Global [card=61,insmod option]
-cx88[0]: TV tuner type 71, Radio tuner type 0
-tuner' 2-0061: chip found @ 0xc2 (cx88[0])
-xc2028 2-0061: creating new instance
-xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
-cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
-cx88[0]/0: found at 0000:02:09.0, rev: 5, irq: 17, latency: 32, mmio: 0xfc000000
-cx88[0]/0: registered device video0 [v4l2]
-cx88[0]/0: registered device vbi0
-cx88[0]/0: registered device radio0
-firmware: requesting xc3028-v27.fw
-xc2028 2-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-cx88[0]: Calling XC2028/3028 callback
-xc2028 2-0061: Loading firmware for type=BASE MTS (5), id 0000000000000000.
-cx88[0]: Calling XC2028/3028 callback
-i2c-adapter i2c-2: sendbytes: NAK bailout.
-xc2028 2-0061: i2c output error: rc = -5 (should be 64)
-xc2028 2-0061: -5 returned from send
-xc2028 2-0061: Error -22 while loading base firmware
-cx88[0]: Calling XC2028/3028 callback
-xc2028 2-0061: Loading firmware for type=BASE MTS (5), id 0000000000000000.
-cx88[0]: Calling XC2028/3028 callback
-i2c-adapter i2c-2: sendbytes: NAK bailout.
-xc2028 2-0061: i2c output error: rc = -5 (should be 64)
-xc2028 2-0061: -5 returned from send
-xc2028 2-0061: Error -22 while loading base firmware
-cx88[0]: Calling XC2028/3028 callback
-xc2028 2-0061: Loading firmware for type=BASE FM (401), id 0000000000000000.
-cx88[0]: Calling XC2028/3028 callback
-i2c-adapter i2c-2: sendbytes: NAK bailout.
-xc2028 2-0061: i2c output error: rc = -5 (should be 64)
-xc2028 2-0061: -5 returned from send
-xc2028 2-0061: Error -22 while loading base firmware
-cx88[0]: Calling XC2028/3028 callback
-xc2028 2-0061: Loading firmware for type=BASE FM (401), id 0000000000000000.
-cx88[0]: Calling XC2028/3028 callback
-i2c-adapter i2c-2: sendbytes: NAK bailout.
-xc2028 2-0061: i2c output error: rc = -5 (should be 64)
-xc2028 2-0061: -5 returned from send
-xc2028 2-0061: Error -22 while loading base firmware
-
-Developers of the CX18 driver found a similar problem with some cards, it seems that the pin that is used to reset the tuner changes from card to card:
-
-http://www.gossamer-threads.com/lists/ivtv/devel/38594
-
-Since I don't have much knowledge about driver programming, I can't find something similar to 'xceive_pin' to change & test. I would greatly appreciate any help with this.
-
-Thank you!
-
-
-
-      Yahoo! Cocina
-Recetas prácticas y comida saludable
-http://ar.mujer.yahoo.com/cocina/
+Markus
 
 --
 video4linux-list mailing list
