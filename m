@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out2.iol.cz ([194.228.2.87])
+Received: from dd15922.kasserver.com ([85.13.137.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ajurik@quick.cz>) id 1KZM2J-0005qc-Sy
-	for linux-dvb@linuxtv.org; Sat, 30 Aug 2008 10:42:24 +0200
-Received: from ales-debian.local (unknown [88.103.120.47])
-	by smtp-out2.iol.cz (Postfix) with ESMTP id C1A4594ECE
-	for <linux-dvb@linuxtv.org>; Sat, 30 Aug 2008 10:27:31 +0200 (CEST)
-From: Ales Jurik <ajurik@quick.cz>
+	(envelope-from <mldvb@mortal-soul.de>) id 1KZqyY-0003SC-ND
+	for linux-dvb@linuxtv.org; Sun, 31 Aug 2008 19:44:36 +0200
+From: Matthias Dahl <mldvb@mortal-soul.de>
 To: linux-dvb@linuxtv.org
-Date: Sat, 30 Aug 2008 10:27:22 +0200
-References: <E1KZ3gT-000Ivd-00.goga777-bk-ru@f129.mail.ru>
-	<1220035187l.8981l.1l@manu-laptop> <20080829232000.2ca826ea@bk.ru>
-In-Reply-To: <20080829232000.2ca826ea@bk.ru>
+Date: Sun, 31 Aug 2008 19:44:29 +0200
+References: <200808221555.26507.mldvb@mortal-soul.de>
+	<200808242030.24060.mldvb@mortal-soul.de>
+	<200808242203.53675@orion.escape-edv.de>
+In-Reply-To: <200808242203.53675@orion.escape-edv.de>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200808301027.22983.ajurik@quick.cz>
-Subject: Re: [linux-dvb] Re :  updating of LiplianinDVB - please, test
-Reply-To: ajurik@quick.cz
+Message-Id: <200808311944.29970.mldvb@mortal-soul.de>
+Subject: Re: [linux-dvb] [PATCH] budget_av / dvb_ca_en50221: fixes ci/cam
+	handling especially on SMP machines
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,28 +28,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Friday 29 of August 2008, Goga777 wrote:
-> > > you can send the reports in this mail-list or in Igor's topic
-> > > http://allrussian.info/thread.php?threadid=99733
-> > >
-> > > Goga
-> >
-> > Stupid question: is there any fixes to stb0899 locking problems in this
-> > (for TT 3200)?
->
-> seems to me - not yet
->
-> Goga
->
+Hi Oliver.
 
-It seems that Igor released 13 hours ago new version of his tree with many 
-changes for stb6100 and stb0899. 
+Just wanted to post a status note that I was too busy to get anything useful 
+done. Next weekend should be okay though, finally.
 
-Please try.
+So far I've decided to go with a rather conservative locking instead of a more 
+finer grained one because in the end it'll make things easier to handle and 
+won't introduce new problems. In more detail:
 
-BR,
+ - a slot is locked as long as the kernel thread is processing it or if some
+   user ioctl needs access to it
 
-Ales
+ - reading won't introduce any new locks because it doesn't access the h/w
+   directly and thus doesn't need locks (only works on the slot ringbuffer)
+
+I hope that this will work out and the longer lock in the kernel thread won't 
+introduce new trouble. For the underlying implementations like budget_[av|ci] 
+this means they are save from concurrent accesses to one slot but concurrent 
+accesses to different slots are still possible and have to be taken care of 
+there. Nevertheless this is rather irrelevant at the moment because there is 
+no driver using dvb_ca_en50221 yet which provides more than one slot afaik.
+
+Ok... as soon as I have something tested and ready, I'll let you know.
+
+So long,
+matthias.
 
 _______________________________________________
 linux-dvb mailing list
