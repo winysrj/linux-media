@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KSbwb-0004sm-Gn
-	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 20:16:39 +0200
-Received: from dyn3-82-128-188-116.psoas.suomi.net ([82.128.188.116])
-	by mail.kapsi.fi with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA:32)
-	(Exim 4.50) id 1KSbwX-000558-Q3
-	for linux-dvb@linuxtv.org; Mon, 11 Aug 2008 21:16:33 +0300
-Message-ID: <48A08201.6070505@iki.fi>
-Date: Mon, 11 Aug 2008 21:16:33 +0300
-From: Antti Palosaari <crope@iki.fi>
+Message-ID: <48B9E6E2.3030104@sustik.com>
+Date: Sat, 30 Aug 2008 19:33:38 -0500
+From: Matyas Sustik <linux-dvb.list@sustik.com>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] DVB-C / DVB-T combo device multi mode driver
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <48B822A9.6070400@sustik.com>	
+	<37219a840808290932n23165451nfcdfa6ded704713e@mail.gmail.com>	
+	<48B83C83.7050801@sustik.com>
+	<37219a840808291204o7012d75t95bd8dbcf3ee0cc2@mail.gmail.com>
+In-Reply-To: <37219a840808291204o7012d75t95bd8dbcf3ee0cc2@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fusion HDTV 7
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,27 +24,49 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hello
-I have a brand new Anysee E30 Combo Plus device. Device does have 
-ZL10353 DVB-T demodulator and TDA10023 DVB-C demodulator sharing one 
-Samsung tuner module. How I can handle this king of hardware? I see some 
-  possibilities;
-1) add module param for mode select
-2) make driver register two adapters
-3) use multiproto
+Thanks for your comments!
 
-I have already done first choice and it is working, but it is not very 
-user friendly. I tried second one but didn't found way to lock tuner. 
-Multiproto sounds like good decision but it is not ready yet. So what to 
-do? Implement as 1) and wait for 3). Implementation of 2) is not 
-possible without hacking current dvb-usb-framework?
+I can report that the card receives OTA HD channels.  Both tuners
+work (at the same time) allowing two HD channels to be received.
+(azap/mplayer and mythtv both work.)
 
-Any ideas?
+The last missing piece was with the firmware.  A script which came
+with the firmware files from www.steventoth.net placed the firmware
+file dvb-fe-xc5000-1.1.fw to /lib/firmware/2.6.26-amd64 instead of
+/lib/firmware.  This may be distro specific.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+I could have figured all this out by the available docs and reading
+the logs.  However here is a list of what may improve the documentation:
+
+1.  Emphasize that other than the card module (in my case cx23885) need
+to be reloaded for compatibility between modules.  Therefore the compile
+from sources and reboot is needed.  (Easier than to find, remove and reload
+all the relevant modules.)
+
+2.  The firmware file has to be hunted down.  In my case the manufacturer
+provides .exe files only (maybe self-extracting) so I could not get the
+firmware that way.  Why not just have a page with the firmware files
+themselves?  The need for the firmware file also could be emphasized.
+(This is apparent if one reads the logs.)
+
+Some info on what should be in the logs when the card works:
+
+CORE cx23885[0]: subsystem: 18ac:d618, board: DViCO FusionHDTV7 Dual Express
+[card=10,autodetected]
+DVB: registering frontend 0 (Samsung S5H1411 QAM/8VSB Frontend)..
+
+xc5000: Successfully identified at address 0x64
+xc5000: Firmware has not been loaded previously
+
+xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+firmware: requesting dvb-fe-xc5000-1.1.fw
+xc5000: firmware read 12332 bytes.
+xc5000: firmware upload
+
+Thanks again,
+Matyas
+-
+Every hardware eventually breaks.  Every software eventually works.
 
 _______________________________________________
 linux-dvb mailing list
