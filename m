@@ -1,28 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+Received: from ns218.ovh.net ([213.186.34.114])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KOklB-0004Ji-6a
-	for linux-dvb@linuxtv.org; Fri, 01 Aug 2008 04:52:54 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K4W009ZLIN5JUJ0@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Thu, 31 Jul 2008 22:52:18 -0400 (EDT)
-Date: Thu, 31 Jul 2008 22:52:17 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080801021307.GF7094@kryten>
-To: Anton Blanchard <anton@samba.org>
-Message-id: <48927A61.3070805@linuxtv.org>
-MIME-version: 1.0
-References: <20080630235654.CCD891CE833@ws1-6.us4.outblaze.com>
-	<20080731042433.GA21788@kryten> <4891D557.10901@linuxtv.org>
-	<20080801012138.GA7094@kryten> <48926F11.7090508@linuxtv.org>
-	<20080801021307.GF7094@kryten>
-Cc: linux-dvb@linuxtv.org, "stev391@email.com" <stev391@email.com>,
-	linuxdvb@itee.uq.edu.au
-Subject: Re: [linux-dvb] [PATCH] Add initial support for DViCO FusionHDTV
- DVB-T Dual Express
+	(envelope-from <webdev@chaosmedia.org>) id 1KZiy7-0001w9-Hv
+	for linux-dvb@linuxtv.org; Sun, 31 Aug 2008 11:11:35 +0200
+Message-ID: <48BA6019.10705@chaosmedia.org>
+Date: Sun, 31 Aug 2008 11:10:49 +0200
+From: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
+MIME-Version: 1.0
+To: Goga777 <goga777@bk.ru>,
+	LinuxTV DVB Mailing <linux-dvb@linuxtv.org>
+References: <20080830213831.7b8e2c42@bk.ru>
+In-Reply-To: <20080830213831.7b8e2c42@bk.ru>
+Subject: Re: [linux-dvb] cat: /dev/dvb/adapter0/dvr0: Value too large for
+ defined data type
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,29 +26,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Anton Blanchard wrote:
-> Hi,
-> 
->> Either I'm missing patch 1/4, or the patches don't build.
->>
->> I have 2,3,4 so I guess I'm missing something.
-> 
-> It looks like 1/4 got delayed for some reason, it only just hit the
-> mailing list. Here it is again:
 
-<cut>
 
-Thanks.
+Goga777 wrote:
+>
+> env LANG=C cat /dev/dvb/adapter0/dvr0 | ffplay - 
+>
+>   
+> "cat: /dev/dvb/adapter0/dvr0: Value too large for defined data type"
+>
+> is it possible to fix it ?
+>
+>   
+i usually have better results with dd
 
-At this stage I think I can add a final patch to get back to a single 
-callback directly, regardless of tuner type. (this weekend)
+i don't remember the exact command line but it should be something like :
 
-I don't have your specific DViCO card, I assume you're willing to 
-re-test with my cleanup patch?
+dd id=/dev/dvb/adapter0/dvr0 conv=noerror | mplayer -
 
-Regards,
+but it's not perfect and also suffer buffer problem, i know you can set some buffer sizes with dd but i couldn't get something working flawlessly
 
-Steve
+try googling "dd dvr0 mplayer" you may find some more clues..
+
+
+Marc
+
 
 _______________________________________________
 linux-dvb mailing list
