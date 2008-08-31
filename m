@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.adamomail.se ([87.251.223.195] helo=adamomail.se)
+Received: from mail1007.centrum.cz ([90.183.38.137])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sacha@hemmail.se>) id 1KOqem-0000qs-2t
-	for linux-dvb@linuxtv.org; Fri, 01 Aug 2008 11:10:41 +0200
-Received: from [89.233.205.229] (account sacha@hemmail.se HELO [192.168.1.4])
-	by adamomail.se (CommuniGate Pro SMTP 4.2.10)
-	with ESMTP id 17167121 for linux-dvb@linuxtv.org;
-	Fri, 01 Aug 2008 11:10:31 +0200
-From: sacha <sacha@hemmail.se>
-To: linux-dvb@linuxtv.org
-Date: Fri, 01 Aug 2008 11:10:35 +0200
-Message-Id: <1217581835.8480.4.camel@asrock>
-Mime-Version: 1.0
-Subject: [linux-dvb] How to fix ioctl DVBFE_GET_INFO failed error?
+	(envelope-from <hoppik@centrum.cz>) id 1KZkEY-0006hs-FR
+	for linux-dvb@linuxtv.org; Sun, 31 Aug 2008 12:32:39 +0200
+Received: by mail1007.centrum.cz id S738210865AbYHaKcd (ORCPT
+	<rfc822;linux-dvb@linuxtv.org>); Sun, 31 Aug 2008 12:32:33 +0200
+Date: Sun, 31 Aug 2008 12:32:33 +0200
+From: " =?UTF-8?Q?SKO=C4=8CDOPOLE?= =?UTF-8?Q?=20Tom=C3=A1=C5=A1?="
+	<hoppik@centrum.cz>
+To: <linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Message-ID: <200808311232.11677@centrum.cz>
+References: <200808311224.13193@centrum.cz> <200808311225.12679@centrum.cz>
+	<200808311226.13759@centrum.cz> <200808311227.13008@centrum.cz>
+	<200808311228.12868@centrum.cz> <200808311229.13053@centrum.cz>
+	<200808311230.25613@centrum.cz> <200808311231.13902@centrum.cz>
+In-Reply-To: <200808311231.13902@centrum.cz>
+Subject: [linux-dvb] Drivers for TT S2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,18 +30,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello
+hi,
 
-I am struggling with my Twinhan1041 card for a while now. I am on my way
-to give up.
-I hope someone give me a last chance.
+I want to ask you, what drivers i can use for TT S2-3200 with best support for vdr, szap, scan etc.
 
-I have this error when I try to scan "ioctl DVBFE_GET_INFO failed"
+I'm actually using multiproto drivers http://jusst.de/hg/multiproto with channel lock patch.
+I read here about Igor M. Liplianins drivers, but I know anything about it.
 
-How to fix it? 
-Is there the most up to date instructions for this card somewhere?
+Thank you!
 
-KR
+Regards Tomas
 
 
 _______________________________________________
