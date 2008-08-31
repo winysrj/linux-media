@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <48B9E6E2.3030104@sustik.com>
-Date: Sat, 30 Aug 2008 19:33:38 -0500
-From: Matyas Sustik <linux-dvb.list@sustik.com>
-MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>
-References: <48B822A9.6070400@sustik.com>	
-	<37219a840808290932n23165451nfcdfa6ded704713e@mail.gmail.com>	
-	<48B83C83.7050801@sustik.com>
-	<37219a840808291204o7012d75t95bd8dbcf3ee0cc2@mail.gmail.com>
-In-Reply-To: <37219a840808291204o7012d75t95bd8dbcf3ee0cc2@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Fusion HDTV 7
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Johannes Stezenbach <js@linuxtv.org>
+In-Reply-To: <20080830201305.GA9580@linuxtv.org>
+References: <48B8400A.9030409@linuxtv.org>
+	<200808301316.05526@orion.escape-edv.de>
+	<20080830201305.GA9580@linuxtv.org>
+Date: Sun, 31 Aug 2008 02:48:55 +0200
+Message-Id: <1220143735.2858.19.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org, VDR mailing list <vdr@linuxtv.org>
+Subject: Re: [linux-dvb] [vdr] DVB-S2 / Multiproto and
+	future	modulation	support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,49 +24,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thanks for your comments!
+Hi,
 
-I can report that the card receives OTA HD channels.  Both tuners
-work (at the same time) allowing two HD channels to be received.
-(azap/mplayer and mythtv both work.)
+Am Samstag, den 30.08.2008, 22:13 +0200 schrieb Johannes Stezenbach:
+> On Sat, Aug 30, 2008, Oliver Endriss wrote:
+> > Steven Toth wrote:
+> > > 
+> > > http://www.steventoth.net/linux/s2
+> > 
+> > Guys, I don't like the way you do this. ;-(
+> > 
+> > Why didn't you propose this API when we reviewed multiproto?
+> > Meanwhile there are applications (vdr, others?) which implement the
+> > multiproto API.
+> 
+> The proposal isn't new, there was some discussion on the
+> list in Nov 2007. For reasons unknown to me I cannot
+> find Steve's original mail on the topic in the list archives,
+> but here's my reply:
+> 
+> http://linuxtv.org/pipermail/linux-dvb/2007-November/021618.html
+> http://article.gmane.org/gmane.linux.drivers.dvb/37214
+> 
+> Johannes
+> 
 
-The last missing piece was with the firmware.  A script which came
-with the firmware files from www.steventoth.net placed the firmware
-file dvb-fe-xc5000-1.1.fw to /lib/firmware/2.6.26-amd64 instead of
-/lib/firmware.  This may be distro specific.
+I might still be wrong, but since such stuff did get _very_ personal
+sometimes, I still ask why.
 
-I could have figured all this out by the available docs and reading
-the logs.  However here is a list of what may improve the documentation:
+Fact is, tell me lies, that potential and good people were running for
+NDAs very hard that time and some did know this game already better than
+others, who were giving the patch monkeys.
 
-1.  Emphasize that other than the card module (in my case cx23885) need
-to be reloaded for compatibility between modules.  Therefore the compile
-from sources and reboot is needed.  (Easier than to find, remove and reload
-all the relevant modules.)
+I still do say, that this whole mess we saw, is fully caused by kernel
+rules and accepted as collateral damage.
 
-2.  The firmware file has to be hunted down.  In my case the manufacturer
-provides .exe files only (maybe self-extracting) so I could not get the
-firmware that way.  Why not just have a page with the firmware files
-themselves?  The need for the firmware file also could be emphasized.
-(This is apparent if one reads the logs.)
+Tell me, who did try to intercept these obviously colliding trains from
+somewhere above and backed you to stop it?
 
-Some info on what should be in the logs when the card works:
+Greetings,
+Hermann
 
-CORE cx23885[0]: subsystem: 18ac:d618, board: DViCO FusionHDTV7 Dual Express
-[card=10,autodetected]
-DVB: registering frontend 0 (Samsung S5H1411 QAM/8VSB Frontend)..
 
-xc5000: Successfully identified at address 0x64
-xc5000: Firmware has not been loaded previously
 
-xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
-firmware: requesting dvb-fe-xc5000-1.1.fw
-xc5000: firmware read 12332 bytes.
-xc5000: firmware upload
 
-Thanks again,
-Matyas
--
-Every hardware eventually breaks.  Every software eventually works.
+
+
 
 _______________________________________________
 linux-dvb mailing list
