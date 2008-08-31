@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7EJJC0C006820
-	for <video4linux-list@redhat.com>; Thu, 14 Aug 2008 15:19:12 -0400
-Received: from mail-in-08.arcor-online.net (mail-in-08.arcor-online.net
-	[151.189.21.48])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7EJIxsk012142
-	for <video4linux-list@redhat.com>; Thu, 14 Aug 2008 15:19:00 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <20080814093320.49265ec1@glory.loctelecom.ru>
-References: <20080814093320.49265ec1@glory.loctelecom.ru>
-Content-Type: text/plain
-Date: Thu, 14 Aug 2008 21:10:32 +0200
-Message-Id: <1218741032.11120.26.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, gert.vervoort@hccnet.nl,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: MPEG stream work
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m7VIR6iG023849
+	for <video4linux-list@redhat.com>; Sun, 31 Aug 2008 14:27:06 -0400
+Received: from bay0-omc1-s6.bay0.hotmail.com (bay0-omc1-s6.bay0.hotmail.com
+	[65.54.246.78])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m7VIQpfu014526
+	for <video4linux-list@redhat.com>; Sun, 31 Aug 2008 14:26:52 -0400
+Message-ID: <BAY126-W51445FEADC96EC0484E7ABE35D0@phx.gbl>
+From: Lee Alkureishi <lee_alkureishi@hotmail.com>
+To: <video4linux-list@redhat.com>
+Date: Sun, 31 Aug 2008 19:26:51 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Cc: alkureishi.lee@gmail.com
+Subject: em2820, Tena TNF-9533 and V4L
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,204 +26,118 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
 
-Am Donnerstag, den 14.08.2008, 09:33 +1000 schrieb Dmitri Belimov: 
-> Hi All
-> 
-> Now I have MPEG stream from the saa6752hs MPEG encoder TV card of Beholder M6.
-> 
-> See test video 
-> http://debian.oshec.org/binary/tmp/mpeg01.dat
-> 
-> This is my script for configure TV card and read data
-> 
-> <script start>
-> 
-> echo "Set Frequency..."
-> ./v4l2-ctl --set-freq=623.25 -d /dev/video0
-> echo "Set INPUT Id"
-> ./v4l2-ctl --set-input=0 -d /dev/video0
-> echo "Set Norm"
-> ./v4l2-ctl -s=secam-d -d /dev/video0
-> echo "Set INPUT Id"
-> ./v4l2-ctl --set-input=0 -d /dev/video1
-> echo "Set Norm"
-> ./v4l2-ctl -s=secam-d -d /dev/video1
-> echo "Start MPEG"
-> echo "Configure MPEG stream"
-> echo "Set Bitrate mode"
-> ./v4l2-ctl -c video_bitrate_mode=0 -d /dev/video1
-> echo "Set audio sampling frequency"
-> ./v4l2-ctl -c audio_sampling_frequency=1 -d /dev/video1
-> echo "Set audio encoding"
-> ./v4l2-ctl -c audio_encoding_layer=1 -d /dev/video1
-> echo "Set audio bitrate"
-> ./v4l2-ctl -c audio_layer_ii_bitrate=11 -d /dev/video1
-> echo "Set video bitrate"
-> ./v4l2-ctl -c video_bitrate=7500000 -d /dev/video1
-> ./v4l2-ctl -c video_peak_bitrate=9500000 -d /dev/video1
-> echo "Set aspect video"
-> ./v4l2-ctl -c video_aspect=1 -d /dev/video1
-> 
-> cat /dev/video1 > test
-> 
-> <script stop>
-> 
-> But I have a trouble. I can't set correct Freq for TV tuner. I send command to tuner
-> but data from tuner to MPEG encoder is wrong. The encoder send to host stream with "snow window".
-> Anybody can help me??
-> 
+Hi all=2C
 
-hmm, looks like black snow. The tda9887 on the FM1216ME/I H-3 goes off
-if the tuner is not used by an application.
+Hoping someone on this list can help me with this frustrating problem:
 
-Enable saa7134-empress debug and tda9887 debug=2.
+I'm running Mythbuntu 8.04=2C fully updated. I'm trying to set up a USB TV =
+tuner box=2C and have made progress but haven't quite got it working.=20
 
-I have no analog audio out on that card, so I use saa7134-alsa and sox. 
-sox -c 2 -s -w -r 32000 -t ossdsp /dev/dsp4 -t ossdsp -w -r 48000 /dev/dsp
+The USB box is a Kworld PVR TV 2800 RF. It uses a Empia em2820 chipset=2C a=
+nd a Tena TNF-9533-D/IF tuner. Other chips I found under the casing are:
+RM-KUB03 04AEAAC6=2C HEF4052BT=2C TEA5767=2C SAA7113H.=20
 
-With Hans' "qv4l2" from v4l2-apps/util on /dev/video3, your video0, I
-have sound, can switch channels and standards.
+The PCB has the following printed on it: EM2800TV_KW Ver:F
 
-If I force SECAM-DK i get of course distorted sound and the empress
-loses the video signal, but this is all like expected on PAL-BG.
+I followed the instructions to install v4l using mercurial=2C and have got =
+it to the point where dmesg shows that the card is recognised and initialis=
+ed:
+------
+dmesg:
+[ 1844.847318] usb 5-1: new high speed USB device using ehci_hcd and addres=
+s 3
+[ 1844.979744] usb 5-1: configuration #1 chosen from 1 choice
+[ 1844.980718] em28xx new video device (eb1a:2820): interface 0=2C class 25=
+5
+[ 1844.980727] em28xx: device is attached to a USB 2.0 bus
+[ 1844.980730] em28xx: you're using the experimental/unstable tree from mce=
+ntral.de
+[ 1844.980732] em28xx: there's also a stable tree available but which is li=
+mited to
+[ 1844.980734] em28xx: linux <=3D2.6.19.2
+[ 1844.980736] em28xx: it's fine to use this driver but keep in mind that i=
+t will move
+[ 1844.980738] em28xx: to http://mcentral.de/hg/~mrec/v4l-dvb-kernel as soo=
+n as it's
+[ 1844.980740] em28xx: proved to be stable
+[ 1844.980743] em28xx #0: Alternate settings: 8
+[ 1844.980746] em28xx #0: Alternate setting 0=2C max size=3D 0
+[ 1844.980748] em28xx #0: Alternate setting 1=2C max size=3D 1024
+[ 1844.980750] em28xx #0: Alternate setting 2=2C max size=3D 1448
+[ 1844.980752] em28xx #0: Alternate setting 3=2C max size=3D 2048
+[ 1844.980754] em28xx #0: Alternate setting 4=2C max size=3D 2304
+[ 1844.980756] em28xx #0: Alternate setting 5=2C max size=3D 2580
+[ 1844.980758] em28xx #0: Alternate setting 6=2C max size=3D 2892
+[ 1844.980760] em28xx #0: Alternate setting 7=2C max size=3D 3072
+[ 1845.271190] tuner 1-0060: TEA5767 detected.
+[ 1845.271199] tuner 1-0060: chip found @ 0xc0 (em28xx #0)
+[ 1845.271254] attach inform (default): detected I2C address c0
+[ 1845.271260] tuner 0x60: Configuration acknowledged
+[ 1845.271266] tuner 1-0060: type set to 61 (Tena TNF9533-D/IF/TNF9533-B/DF=
+)
+[ 1845.272189] tuner 1-0061: chip found @ 0xc2 (em28xx #0)
+[ 1845.272215] attach inform (default): detected I2C address c2
+[ 1845.272219] tuner 0x61: Configuration acknowledged
+[ 1845.272223] tuner 1-0061: type set to 61 (Tena TNF9533-D/IF/TNF9533-B/DF=
+)
+[ 1845.302962] saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28=
+xx #0)
+[ 1845.332719] attach_inform: saa7113 detected.
+[ 1845.346159] em28xx #0: V4L2 device registered as /dev/video0
+[ 1845.346173] em28xx #0: Found Kworld PVR TV 2800 RF
+----------
 
-You can also enable saa7134 audio_debug=1, but you should have video and
-sound on /dev/video0 ? I let "tvtime" run on it.
+(I had to manally tell modprobe to set the card type (18) and tuner type (6=
+1)=2C as it does not have an EPROM. Took me forever to figure that out!
 
-saa7134[3]/empress: video signal acquired
-tda9887 5-0043: configure for: SECAM-DK
-tda9887 5-0043: writing: b=0x14 c=0x70 e=0x4b
-tda9887 5-0043: write: byte B 0x14
-tda9887 5-0043:   B0   video mode      : sound trap
-tda9887 5-0043:   B1   auto mute fm    : no
-tda9887 5-0043:   B2   carrier mode    : QSS
-tda9887 5-0043:   B3-4 tv sound/radio  : FM/TV
-tda9887 5-0043:   B5   force mute audio: no
-tda9887 5-0043:   B6   output port 1   : low (active)
-tda9887 5-0043:   B7   output port 2   : low (active)
-tda9887 5-0043: write: byte C 0x70
-tda9887 5-0043:   C0-4 top adjustment  : 0 dB
-tda9887 5-0043:   C5-6 de-emphasis     : 50
-tda9887 5-0043:   C7   audio gain      : 0
-tda9887 5-0043: write: byte E 0x4b
-tda9887 5-0043:   E0-1 sound carrier   : 6.5 MHz / AM
-tda9887 5-0043:   E6   l pll gating   : 36
-tda9887 5-0043:   E2-4 video if        : 38.9 MHz
-tda9887 5-0043:   E5   tuner gain      : normal
-tda9887 5-0043:   E7   vif agc output  : pin3+pin22 port
-tda9887 5-0043: --
-saa7134[3]/empress: no video signal
-tda9887 5-0043: configure for: PAL-BGHN
-tda9887 5-0043: writing: b=0x14 c=0x70 e=0x49
-tda9887 5-0043: write: byte B 0x14
-tda9887 5-0043:   B0   video mode      : sound trap
-tda9887 5-0043:   B1   auto mute fm    : no
-tda9887 5-0043:   B2   carrier mode    : QSS
-tda9887 5-0043:   B3-4 tv sound/radio  : FM/TV
-tda9887 5-0043:   B5   force mute audio: no
-tda9887 5-0043:   B6   output port 1   : low (active)
-tda9887 5-0043:   B7   output port 2   : low (active)
-tda9887 5-0043: write: byte C 0x70
-tda9887 5-0043:   C0-4 top adjustment  : 0 dB
-tda9887 5-0043:   C5-6 de-emphasis     : 50
-tda9887 5-0043:   C7   audio gain      : 0
-tda9887 5-0043: write: byte E 0x49
-tda9887 5-0043:   E0-1 sound carrier   : 5.5 MHz
-tda9887 5-0043:   E6   l pll gating   : 36
-tda9887 5-0043:   E2-4 video if        : 38.9 MHz
-tda9887 5-0043:   E5   tuner gain      : normal
-tda9887 5-0043:   E7   vif agc output  : pin3+pin22 port
-tda9887 5-0043: --
-tda9887 5-0043: configure for: PAL-BGHN
-tda9887 5-0043: writing: b=0x14 c=0x70 e=0x49
-tda9887 5-0043: write: byte B 0x14
-tda9887 5-0043:   B0   video mode      : sound trap
-tda9887 5-0043:   B1   auto mute fm    : no
-tda9887 5-0043:   B2   carrier mode    : QSS
-tda9887 5-0043:   B3-4 tv sound/radio  : FM/TV
-tda9887 5-0043:   B5   force mute audio: no
-tda9887 5-0043:   B6   output port 1   : low (active)
-tda9887 5-0043:   B7   output port 2   : low (active)
-tda9887 5-0043: write: byte C 0x70
-tda9887 5-0043:   C0-4 top adjustment  : 0 dB
-tda9887 5-0043:   C5-6 de-emphasis     : 50
-tda9887 5-0043:   C7   audio gain      : 0
-tda9887 5-0043: write: byte E 0x49
-tda9887 5-0043:   E0-1 sound carrier   : 5.5 MHz
-tda9887 5-0043:   E6   l pll gating   : 36
-tda9887 5-0043:   E2-4 video if        : 38.9 MHz
-tda9887 5-0043:   E5   tuner gain      : normal
-tda9887 5-0043:   E7   vif agc output  : pin3+pin22 port
-tda9887 5-0043: --
-saa7134[3]/empress: video signal acquired
+The problem arises when I try to do anything with it=2C though: I've tried =
+a few programs=2C including mythTV=2C tvtime and xawtv. I can't find a way =
+to select the TUNER as the input source. The only options are "composite1" =
+or "s-video1". I've got a cheap antenna attached to the antenna connector=
+=2C and a DTV set-top box attached to the composite input. I can't seem to =
+get any sort of picture to come up on either input=2C though... Tvtime just=
+ gives a black screen=2C and lets me cycle between composite/s-video. MythT=
+V just dumps me back to the main menu when I try to watch TV. Scanning for =
+channels brings up nothing in Myth setup.=20
 
-Only if I open /dev/video4 empress with qv4l2 too, then I can't change
-the frequency anymore, changing standard still works on /dev/video3 and
-both never worked on video4, since unsupported input "Television" on
-CCIR   comes back.
+I tried tvtime-scanner=2C but it fails:
 
-I also notice that mute doesn't work anymore with qv4l2 on both empress
-devices. It worked previously even from /dev/video4 like the other
-controls still do. Without empress enabled mute is OK.
+leeko@leeko-media:~$ tvtime-scanner &
+Reading configuration from /etc/tvtime/tvtime.xml
+Scanning using TV standard NTSC.
+[1] 6918
+leeko@leeko-media:~$=20
+    No tuner found on input 0.  If you have a tuner=2C please
+    select a different input using --input=3D<num>.
+[1]+  Exit 1                  tvtime-scanner
 
-BUT, using v4l2-ctl currently causes that any tuned in channel is
-immediately lost! Noise for video and audio.
+I tried cycling through input=3D1 through 4=2C but they didn't work either =
+(2 through 4 give an error about the card not being able to set its input).
 
-And the tda9887 always shows
+Am I doing something wrong? Surely I should see an option to choose the tun=
+er as an input? As far as I can tell=2C it looks like it should be working!
 
-tda9887 5-0043: configure for: NTSC-M
-tda9887 5-0043: writing: b=0x34 c=0x30 e=0x44
-tda9887 5-0043: write: byte B 0x34
-tda9887 5-0043:   B0   video mode      : sound trap
-tda9887 5-0043:   B1   auto mute fm    : no
-tda9887 5-0043:   B2   carrier mode    : QSS
-tda9887 5-0043:   B3-4 tv sound/radio  : FM/TV
-tda9887 5-0043:   B5   force mute audio: yes
-tda9887 5-0043:   B6   output port 1   : low (active)
-tda9887 5-0043:   B7   output port 2   : low (active)
-tda9887 5-0043: write: byte C 0x30
-tda9887 5-0043:   C0-4 top adjustment  : 0 dB
-tda9887 5-0043:   C5-6 de-emphasis     : no
-tda9887 5-0043:   C7   audio gain      : 0
-tda9887 5-0043: write: byte E 0x44
-tda9887 5-0043:   E0-1 sound carrier   : 4.5 MHz
-tda9887 5-0043:   E6   l pll gating   : 36
-tda9887 5-0043:   E2-4 video if        : 45.75 MHz
-tda9887 5-0043:   E5   tuner gain      : normal
-tda9887 5-0043:   E7   vif agc output  : pin3+pin22 port
-tda9887 5-0043: --
+The only thing I can think of=2C is that the tuner may actually have origin=
+ated outside the USA (i.e. the UK). Would that stop it from working with NT=
+SC channels? And even so=2C should the composite input not still work? (And=
+ why can't I even select the tuner!?).
 
-This seems to be a bug.
+If I do "ls /dev/video*"=2C the only entry is /dev/video0.=20
 
-If you see the same, try to use qv4l2.
+Thanks in advance for ANY help you can offer. This is driving me nuts! I've=
+ been learning as I go along=2C but I've hit a brick wall now :(
 
-hg head
-changeset:   8647:405d3e926ffd
-tag:         tip
-parent:      8641:deeb5dfb37a1
-parent:      8646:2bade2ed7ac8
-user:        Mauro Carvalho Chehab <mchehab@infradead.org>
-date:        Sat Aug 09 09:21:15 2008 -0300
-summary:     merge: http://www.linuxtv.org/hg/~stoth/v4l-dvb
+Best regards=2C
 
-Some 2.6.24 is booted and Hans' latest improvements are in.
+Lee=20
+=20
 
-Since I can't switch yet from DVB-T to the encoder, likely can't test
-much more.
+lee_alkureishi@hotmail.com=20
 
-Cheers,
-Hermann
-
-
-
-
-
-
-
-
-
+_________________________________________________________________
+Win New York holidays with Kellogg=92s & Live Search=20
+http://clk.atdmt.com/UKM/go/107571440/direct/01/=
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
