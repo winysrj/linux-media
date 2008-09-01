@@ -1,22 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8FGLK6Y025523
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 12:21:21 -0400
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8FGLB0B001697
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 12:21:11 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Date: Mon, 15 Sep 2008 21:50:58 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403CD770071@dbde02.ent.ti.com>
-In-Reply-To: <1221489500.6312.104.camel@tubuntu>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m81CaZ8x015844
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 08:36:35 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m81CaAbk024644
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 08:36:11 -0400
+Date: Mon, 1 Sep 2008 14:35:44 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Jean Delvare <jdelvare@suse.de>
+Message-ID: <20080901123544.GA447@daniel.bse>
+References: <200808251445.22005.jdelvare@suse.de>
+	<200808301201.47561.jdelvare@suse.de>
+	<20080830151233.GA221@daniel.bse>
+	<200809011144.54233.jdelvare@suse.de>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="XsQoSWH+UP9D9v3l"
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+In-Reply-To: <200809011144.54233.jdelvare@suse.de>
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org
+Subject: Re: bttv driver questions
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,145 +32,199 @@ Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
 
+--XsQoSWH+UP9D9v3l
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-Thanks,
-Vaibhav Hiremath
-Senior Software Engg.
-Platform Support Products
-Texas Instruments Inc
-Ph: +91-80-25099927
-TI IP Ph: 509-9927
-http://dbdwss01.india.ti.com/pspproducts/
+On Mon, Sep 01, 2008 at 11:44:53AM +0200, Jean Delvare wrote:
+> > It's not that much faster. Of the 250MB/s a lot is lost to overhead,
+> > especially when there are mostly short packets.
+> 
+> The very same is true of the PCI side, isn't it? Out of the 133 MB/s
+> of PCI bandwith I don't expect to get more than 100 MB/s effective.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tomi
-> Valkeinen
-> Sent: Monday, September 15, 2008 8:08 PM
-> To: Hiremath, Vaibhav
-> Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-list@redhat.com
-> Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
-> 
-> On Mon, 2008-09-15 at 19:02 +0530, ext Hiremath, Vaibhav wrote:
-> 
-> > We more concentrated on TV and LCD interface, out design doesn't support DSI as of now. As
-> mentioned earlier it is easily extendible to support DSI.
-> >
-> > If I understand your implementation correctly, right now there is no way you can switch the
-> outputs, I mean to say from LCD to DVI. The frame buffer driver gets the handle with API
-> omap_dss_get_display, which will return pointer to omap_display for panel-sdp3430. Henceforth all
-> your functions will use omap_display configuring for LCD panel. How are you planning to add support
-> for this? Through some ioctls or sysfs entry? How about switching between multiple overlay managers?
-> 
-> You can switch the outputs in the DSS driver. You can enable/disable
-> displays individually, and configure the planes and or L4 pixel source
-> for the display.
-> 
-> But yes, the fb driver does not support that currently.
-> 
-> One idea I had was to present each display with one framebuffer, so
-> let's say we have 3 displays, we would have fb[0-2]. In addition to
-> that, we would have two framebuffers for the video overlays. Only one of
-> the displays can be updated with DISPC, so the overlays would appear
-> there.
-> 
-> Then the display that is updated with DISPC could be changed on the fly
-> to another one, but the framebuffer arrangement would stay the same (so
-> fb0 would still be seen on display0, even if it's now updated with L4).
-> 
-> There's still the question how to manage the video overlays, in this
-> scenario they would automatically move to other LCD's as the DISPC
-> target is changed. Also the TV-out is problematic.
-> 
-> > This issue has been addresses with our design, you can change the output either to TV, LCD or to
-> DVI through sysfs entry. Switching between multiple overlay managers is very well supported in DSS
-> library. Currently SYSFS is the user interface layer to control the overlay managers. But in future
-> DSS library will easily be suitable to support media processor interface which is in concept phase
-> right now.  RFC for the media processor is at
-> 
-> Does your design support displays that are not updated with DISPC?
+You are right. PCI is only faster for transfers of 4 bytes or less.
+The throughput formula for memory writes without waitstates on PCI is
+  400/3*x/(x+8) MB
+and for memory writes with infinite credit without ECRC on PCIe
+  250*x/(x+20) MB,
+where x is the burst size and must be a multiple of four in both
+protocols.
 
-Yes, it should. I don't see any reason why it should fail if the display is completely independent.
+> Actually there may be up to 8 masters. Latency counter values of 254
+> and 20 are rather extreme values.
 
-> 
-> Your design has good points. I have to think about the overlay managers
-> a bit more. Especially if in some future hardware there were more
-> overlay managers instead of the current two.
-> 
+The equilibrium pattern for latency values between 20 and 254 at a
+trigger of 4 in my simulation is the same.
 
-Let me take this opportunity, shortly I will post the DSS library and V4L2 driver. We can work together to add support for DSI, RFBI and SDI support to it.
+> I guess that your computations assume that the BT878 returns the bus
+> control as soon as its FIFO is empty?
 
-> > http://lists-archives.org/video4linux/23652-rfc-add-support-to-query-and-change-connections-inside-
-> a-media-device.html
-> >
-> >
-> > > I also wanted to be able to change the configuration on the fly,
-> > > changing where DISPC output is going and which displays are updated with
-> > > CPU or sDMA.
-> > >
-> > > This is why I have the display-concept in my design.
-> > >
-> >
-> >
-> > Here we both are on same page, you have broken the displays and modes supported into multiple files
-> registering functions to the display.c file, there are many loopholes though.
-> >
-> > > I haven't made support for multiple users of the displays (like separate
-> > > fb and v4l drivers), but I don't immediately see why it couldn't be
-> > > done.
-> > >
-> >
-> > How are you going to handle the concurrency between these two?
-> 
-> In the simple case of just an LCD and a TV-out, what are the concurrency
-> problems? Each plane is independent of each other. Sure you need to
-> check that the output is on if there's a plane enabled there and basic
-> things like that. Are there some other issues I'm not seeing?
-> 
+Yes
 
-Yes some of the features of the DSS are tied to overlay managers and not the individual planes like global alpha, alpha blending enabling and timing parameters. So while programming of these parameters DSS library will have to maintain the data structures for the same and then any high level drivers can query those data structures.
+> Not sure what you call "maximum fill"? If the FIFO triggers at 32, I
+> have a hard time believing that it always gets the control within the
+> next 0.17 µs (2 pixels).
 
-> > > However, there are some questions regarding that, as the planes do not
-> > > represent displays, but just overlay planes. What happens when both fb
-> > > and v4l drivers want to change the resolution or timings of the display?
-> > >
-> > > Also I still don't quite know how to present displays to user space.
-> > > Currently my omapfb just uses the first display, and that's it. I think
-> > > in the end the user (be it X server, or perhaps some entity over it),
-> > > needs to have some understanding of what OMAP offers and how it can use
-> > > the displays. And there probably needs to be some product spesific
-> > > configuration regarding this in userspace.
-> > >
-> >
-> > Here are you saying application will have hardware specific support? Is this feasible?
-> >
-> 
-> I don't see any other way. The displays are not independent of each
-> other.  For example the OMAP3 SDP has LCD and DVI outputs. They can't be
-> switched programmatically, but let's say it was possible. Only one of
-> those displays can be enabled at time. If an application wants to use
-> them both, it has to understand that they will not both work at the same
-> time.
-> 
-> Or if there are two DSI displays, and one is updated with DISPC and the
-> other via L4. The application has to know that a video overlay can only
-> be used on the first display, or it has to exchange the DISPC/L4
-> updating order.
-> 
-> Of course this is product specific software and configuration, not
-> something I'm planning to put in the driver. A normal application does
-> not have to know anything about it. I was just bringing it up to
-> demonstrate what must be possible.
-> 
->  Tomi
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There is an initial phase of about 2000 PCI cycles where the FIFO fill
+may be higher (this is not the case for a trigger of 4). Afterwards they
+acquire the bus in a uniform pattern and stay below the quoted values.
+At a trigger of 32 the bus is idle between requests, so access is granted
+immediately.
 
+> Again, I fail to see how we care about the idle cycles. I agree that
+> we don't have to pay attention to having  a lot of them, because the
+> BT878s are alone on that side of the bridge, but we also don't need
+> to maximize the "raw" bus usage. What matters is that the bus can
+> take the bandwidth peaks and that the FIFOs do never overflow.
+
+It's not about maximizing the bus usage. I suggest to use a low trigger
+to keep the FIFO usage low. The high bus usage is just a side effect,
+which can be neglected if the Bt878s are on a secondary bus (and either
+the primary bus is faster or the bridge can merge writes).
+
+> Care to share your simulation tool with me? This seems to be a very
+> valuable tool for the problem I am trying to solve.
+
+Attached.
+Cycle description, FIFO overflows and periodic bus idleness estimations
+on stderr. FIFO fill for all masters in every cycle on stdout.
+
+  Daniel
+
+--XsQoSWH+UP9D9v3l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="pcisim.c"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+static int busstate;
+static int nextbusstate;
+static int gnt;
+static unsigned long long clk;
+
+#define N 5
+
+static struct master {
+  int req;
+  int fifofill;
+  int trigger;
+  int latval;
+  int latcnt;
+  int phase;
+  unsigned long long step; /* fixed point 32 bit mantissa */
+  unsigned long long accu;
+} masters[N];
+
+static void simulate(int i)
+{
+  masters[i].fifofill+=masters[i].accu>>32;
+  masters[i].accu&=0xffffffff;
+  if(masters[i].fifofill>140) {
+    fprintf(stderr,"%llu [%i dropped %i]\n",clk,i,masters[i].fifofill-140);
+    masters[i].fifofill=140;
+  }
+  if(busstate==0 && gnt==i && masters[i].fifofill>=masters[i].trigger) {
+    nextbusstate=1;
+    masters[i].phase=1;
+  }
+  if(busstate==1) {
+    switch(masters[i].phase) {
+      case 1:
+	masters[i].phase=2;
+	masters[i].latval=masters[i].latcnt;
+	fprintf(stderr,"%llu %i addr\n",clk,i);
+	break;
+      case 2:
+	masters[i].fifofill--;
+	fprintf(stderr,"%llu %i data, %i remaining\n",clk,i,masters[i].fifofill);
+    }
+    if(masters[i].latval>0)
+      masters[i].latval--;
+    if(masters[i].phase && (masters[i].fifofill==1 || (!masters[i].latval && gnt!=i)))
+      nextbusstate=2;
+  }
+  if(busstate==2 && masters[i].phase) {
+    masters[i].fifofill--;
+    fprintf(stderr,"%llu %i final data, %i remaining\n",clk,i,masters[i].fifofill);
+    if(gnt==i && masters[i].fifofill>=masters[i].trigger) {
+      nextbusstate=1;
+      masters[i].phase=1;
+    } else {
+      nextbusstate=0;
+      masters[i].phase=0;
+    }
+  }
+  masters[i].req=(masters[i].fifofill>=masters[i].trigger || (masters[i].phase && nextbusstate==1 && masters[i].fifofill>1));
+  masters[i].accu+=masters[i].step;
+}
+
+int main()
+{
+  int i;
+  unsigned long long idle;
+  int wasactive;
+  
+  clk=idle=0;
+  
+  busstate=0;
+  gnt=0;
+  wasactive=0;
+  srandom(time(0));
+  for(i=0;i<N;i++) {
+    masters[i].req=0;
+    masters[i].trigger=4;
+    masters[i].fifofill=random()%masters[i].trigger;
+    masters[i].latcnt=64;
+    masters[i].phase=0;
+#define PAL(w) (((unsigned long long)(w)<<31)*3/5200)
+#define NTSC(w) (((unsigned long long)(w)<<31)*30/52856)
+    masters[i].step=NTSC(640);
+    masters[i].accu=random()%masters[i].step;
+  }
+  while(1) {
+    int nextgnt=gnt;
+    if(wasactive) {
+      for(nextgnt=(gnt+1)%N;nextgnt!=gnt;nextgnt=(nextgnt+1)%N)
+        if(masters[nextgnt].req)
+          break;
+      if(nextgnt!=gnt)
+	wasactive=0;
+    }
+    for(i=0;i<N;i++) {
+      printf("%i%c",masters[i].fifofill,i+1==N?'\n':'\t');
+      simulate(i);
+    }
+    gnt=nextgnt;
+    if(!busstate && nextbusstate)
+      wasactive=1;
+    clk++;
+    if(!nextbusstate) {
+      if(busstate)
+	fprintf(stderr,"%llu turnaround\n",clk);
+      else {
+	fprintf(stderr,"%llu idle\n",clk);
+	idle++;
+      }
+    }
+    if(!(clk&511))
+      fprintf(stderr,"[%llu bus idle %f%%]\n",clk,100.0*idle/clk);
+    busstate=nextbusstate;
+  }
+  return 0;
+}
+
+--XsQoSWH+UP9D9v3l
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--XsQoSWH+UP9D9v3l--
