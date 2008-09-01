@@ -1,19 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8M8I6wc008765
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 04:18:06 -0400
-Received: from smtp-vbr14.xs4all.nl (smtp-vbr14.xs4all.nl [194.109.24.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8M8HcYA005034
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 04:17:38 -0400
-Message-ID: <4470.24.120.242.223.1222071456.squirrel@webmail.xs4all.nl>
-Date: Mon, 22 Sep 2008 10:17:36 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Andy Walls" <awalls@radix.net>
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Video4Linux <video4linux-list@redhat.com>
-Subject: Re: Annoying problem with minors and video_register_device()
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m818WLYW026147
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 04:32:21 -0400
+Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m818W9T3013797
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 04:32:09 -0400
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Content-Type: multipart/mixed; boundary="=-TlQAne8wa8j8yxi+y/VO"
+Date: Mon, 01 Sep 2008 10:04:28 +0200
+Message-Id: <1220256268.1753.17.camel@localhost>
+Mime-Version: 1.0
+Cc: Video 4 Linux <video4linux-list@redhat.com>
+Subject: [PATCH] v4l library YVYU decoding
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,97 +24,200 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Description:
->
-> I have machine with a CX23416 (ivtv) and CX23418 (cx18) based card.  The
-> following commands yield the video device node names as I'd prefer to
-> see them:
->
-> # modprobe cx18 cx18_first_minor=1
-> # modprobe ivtv ivtv_first_minor=0
-> # ls -al /dev/video*
-> lrwxrwxrwx  1 root root      6 2008-09-21 19:37 /dev/video -> video0
-> crw-rw----+ 1 root root 81,  0 2008-09-21 19:37 /dev/video0
-> crw-rw----+ 1 root root 81,  1 2008-09-21 19:37 /dev/video1
-> crw-rw----+ 1 root root 81, 24 2008-09-21 19:37 /dev/video24
-> crw-rw----+ 1 root root 81, 25 2008-09-21 19:37 /dev/video25
-> crw-rw----+ 1 root root 81, 32 2008-09-21 19:37 /dev/video32
-> crw-rw----+ 1 root root 81, 33 2008-09-21 19:37 /dev/video33
->
->
-> If I leave off the module options, I get this:
->
-> # modprobe cx18
-> # modprobe ivtv
-> # ls -al /dev/video*
-> lrwxrwxrwx  1 root root      6 2008-09-21 19:43 /dev/video -> video0
-> crw-rw----+ 1 root root 81,  0 2008-09-21 19:43 /dev/video0
-> crw-rw----+ 1 root root 81,  1 2008-09-21 19:44 /dev/video1
-> crw-rw----+ 1 root root 81,  2 2008-09-21 19:44 /dev/video2
-> crw-rw----+ 1 root root 81, 24 2008-09-21 19:43 /dev/video24
-> crw-rw----+ 1 root root 81,  3 2008-09-21 19:44 /dev/video3
-> crw-rw----+ 1 root root 81, 32 2008-09-21 19:43 /dev/video32
->
-> /dev/video2 and /dev/video3 aren't following the convention.
 
-Hi Andy,
+--=-TlQAne8wa8j8yxi+y/VO
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 
-Yeah, I know about this. My v4l-dvb-dev tree should work much better in
-this respect. W
+Hi Hans,
 
->
->
-> The problem is video_register_device() either gives you the minor for
-> which the driver asked or it can auto assign the first available but
-> only starting at an offset 0.
->
-> Perhaps video_register_device() could be modified so that the 3rd
-> argument, nr, if less than 0, could be interpreted as -(offset+1).
-> Offset would be the offset from the base at which auto assignment of a
-> minor could start.  The case of nr being passed in as -1 is then a
-> backwards compatible case.  In the case of nr greater than or equal to
-> 0, nothing different would be done so things remain backward compatible.
->
-> So near the middle/bottom of video_register_device_index() one would
-> have:
->
->         if (nr >= 0 && nr < end-base) {
->                 /* use the one the driver asked for */
->                 i = base + nr;
->                 if (NULL != video_device[i]) {
->                         mutex_unlock(&videodev_lock);
->                         return -ENFILE;
->                 }
->         } else {
-> -               /* use first free */
-> -               for (i = base; i < end; i++)
-> +               if (nr >= 0)
-> +                       nr = -1;
-> +               /* use first free from offset -nr - 1 */
-> +               for (i = base - nr - 1; i < end; i++)
->                         if (NULL == video_device[i])
->                                 break;
-> -               if (i == end) {
-> +               if (i >= end) {
->                         mutex_unlock(&videodev_lock);
->                         return -ENFILE;
->                 }
->         }
->
->
-> Of course the drivers (ivtv and cx18 in my case) would have to be
-> modified to use this.
->
-> Any comments?  Is it not worth solving such a rare case when a
-> workaround with a module parameter exists?
->
-> Regards,
-> Andy
->
->
+Here is a new YVYU decoding patch which replaces the previous one.
 
+Sorry for it is not tested: the webcam 046d:0896 does not work well.
+
+Cheers.
+
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
+
+--=-TlQAne8wa8j8yxi+y/VO
+Content-Disposition: attachment; filename=yvyu.pat
+Content-Type: text/plain; name=yvyu.pat; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+
+This patch adds the decoding of YVYU images generated by vc0321.
+
+Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
+
+--- v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert-priv.h.orig	2008-08-29 14:00:57.000000000 +0200
++++ v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert-priv.h	2008-08-31 16:31:40.000000000 +0200
+@@ -59,6 +59,10 @@
+ #define V4L2_PIX_FMT_SRGGB8 v4l2_fourcc('R','G','G','B')
+ #endif
+ 
++#ifndef V4L2_PIX_FMT_YVYU
++#define V4L2_PIX_FMT_YVYU v4l2_fourcc('Y', 'V', 'Y', 'U')
++#endif
++
+ #define V4LCONVERT_ERROR_MSG_SIZE 256
+ 
+ #define V4LCONVERT_ERR(...) \
+@@ -87,6 +91,15 @@
+ void v4lconvert_yuv420_to_bgr24(const unsigned char *src, unsigned char *dst,
+   int width, int height);
+ 
++void v4lconvert_yvyu_to_rgb24(const unsigned char *src, unsigned char *dst,
++  int width, int height);
++
++void v4lconvert_yvyu_to_bgr24(const unsigned char *src, unsigned char *dst,
++  int width, int height);
++
++void v4lconvert_yvyu_to_yuv420(const unsigned char *src, unsigned char *dst,
++  int width, int height);
++
+ void v4lconvert_swap_rgb(const unsigned char *src, unsigned char *dst,
+   int width, int height);
+ 
+--- v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c.orig	2008-08-29 14:00:57.000000000 +0200
++++ v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	2008-08-31 15:47:58.000000000 +0200
+@@ -49,6 +49,7 @@
+   V4L2_PIX_FMT_SN9C10X,
+   V4L2_PIX_FMT_PAC207,
+   V4L2_PIX_FMT_PJPG,
++  V4L2_PIX_FMT_YVYU,
+ };
+ 
+ static const unsigned int supported_dst_pixfmts[] = {
+@@ -518,6 +519,23 @@
+       }
+       break;
+ 
++    case V4L2_PIX_FMT_YVYU:
++      switch (dest_fmt->fmt.pix.pixelformat) {
++      case V4L2_PIX_FMT_RGB24:
++	v4lconvert_yvyu_to_rgb24(src, dest, dest_fmt->fmt.pix.width,
++				   dest_fmt->fmt.pix.height);
++	break;
++      case V4L2_PIX_FMT_BGR24:
++	v4lconvert_yvyu_to_bgr24(src, dest, dest_fmt->fmt.pix.width,
++				   dest_fmt->fmt.pix.height);
++	break;
++      default:
++	v4lconvert_yvyu_to_yuv420(src, dest, dest_fmt->fmt.pix.width,
++		    dest_fmt->fmt.pix.height);
++	break;
++      }
++      break;
++
+     default:
+       V4LCONVERT_ERR("Unknown src format in conversion\n");
+       errno = EINVAL;
+--- v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/rgbyuv.c.orig	2008-08-29 14:00:57.000000000 +0200
++++ v4l-dvb-423381bc0d61/v4l2-apps/lib/libv4l/libv4lconvert/rgbyuv.c	2008-08-31 16:44:29.000000000 +0200
+@@ -130,6 +130,91 @@
+   }
+ }
+ 
++void v4lconvert_yvyu_to_bgr24(const unsigned char *src, unsigned char *dest,
++  int width, int height)
++{
++  int j;
++
++  while (--height >= 0) {
++    for (j = 0; j < width; j += 2) {
++      int u = src[3];
++      int v = src[1];
++      int u1 = (((u - 128) << 7) +  (u - 128)) >> 6;
++      int rg = (((u - 128) << 1) +  (u - 128) +
++		((v - 128) << 2) + ((v - 128) << 1)) >> 3;
++      int v1 = (((v - 128) << 1) +  (v - 128)) >> 1;
++
++      *dest++ = CLIP(*src + u1);
++      *dest++ = CLIP(*src - rg);
++      *dest++ = CLIP(*src + v1);
++
++      *dest++ = CLIP(src[2] + u1);
++      *dest++ = CLIP(src[2] - rg);
++      *dest++ = CLIP(src[2] + v1);
++      src += 4;
++    }
++  }
++}
++
++void v4lconvert_yvyu_to_rgb24(const unsigned char *src, unsigned char *dest,
++  int width, int height)
++{
++  int j;
++
++  while (--height >= 0) {
++    for (j = 0; j < width; j += 2) {
++      int u = src[3];
++      int v = src[1];
++      int u1 = (((u - 128) << 7) +  (u - 128)) >> 6;
++      int rg = (((u - 128) << 1) +  (u - 128) +
++		((v - 128) << 2) + ((v - 128) << 1)) >> 3;
++      int v1 = (((v - 128) << 1) +  (v - 128)) >> 1;
++
++      *dest++ = CLIP(*src + v1);
++      *dest++ = CLIP(*src - rg);
++      *dest++ = CLIP(*src + u1);
++
++      *dest++ = CLIP(src[2] + v1);
++      *dest++ = CLIP(src[2] - rg);
++      *dest++ = CLIP(src[2] + u1);
++      src += 4;
++    }
++  }
++}
++
++void v4lconvert_yvyu_to_yuv420(const unsigned char *src, unsigned char *dest,
++  int width, int height)
++{
++  int i, j;
++  const unsigned char *src1;
++  unsigned char *vdest;
++
++  /* copy the Y values */
++  src1 = src;
++  for (i = 0; i < height; i++) {
++    for (j = 0; j < width; j += 2) {
++      *dest++ = *src1;
++      *dest++ = src1[2];
++      src1 += 4;
++    }
++  }
++
++  /* copy the U and V values */
++  src++;				/* point to V */
++  src1 = src + width * 2;		/* next line */
++  vdest = dest + width * height / 4;
++  for (i = 0; i < height; i += 2) {
++    for (j = 0; j < width; j += 2) {
++      *dest++ = ((int) src[2] + src1[2]) / 2;	/* U */
++      *vdest++ = ((int) *src + *src1) / 2;	/* V */
++      src += 4;
++      src1 += 4;
++    }
++    src = src1;
++    src1 += width * 2;
++  }
++}
++
+ void v4lconvert_swap_rgb(const unsigned char *src, unsigned char *dst,
+   int width, int height)
+ {
+
+--=-TlQAne8wa8j8yxi+y/VO
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--=-TlQAne8wa8j8yxi+y/VO--
