@@ -1,24 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from eazy.amigager.de ([213.239.192.238])
+Received: from host-03.papagayo.com.pl ([213.134.141.74]
+	helo=secure.papagayo.com.pl)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tino@tikei.de>) id 1KhrpP-0000eG-Tb
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 22:16:16 +0200
-Received: from dose.home.local (port-212-202-35-74.dynamic.qsc.de
-	[212.202.35.74])
-	by eazy.amigager.de (Postfix) with ESMTP id 400E5C8C01C
-	for <linux-dvb@linuxtv.org>; Mon, 22 Sep 2008 22:16:13 +0200 (CEST)
-Received: from scorpion by dose.home.local with local (Exim 4.69)
-	(envelope-from <tino.keitel@tikei.de>) id 1KhrpM-0002Iw-2b
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 22:16:12 +0200
-Date: Mon, 22 Sep 2008 22:16:12 +0200
-From: Tino Keitel <tino.keitel@tikei.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080922201612.GA8756@dose.home.local>
-References: <28756.192.100.124.219.1222068042.squirrel@ncircle.nullnet.fi>
+	(envelope-from <mincho@interia.pl>) id 1Ka4Rp-0007uy-HZ
+	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 10:07:42 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by secure.papagayo.com.pl (Postfix) with ESMTP id 5FD803C61A
+	for <linux-dvb@linuxtv.org>; Mon,  1 Sep 2008 10:07:06 +0200 (CEST)
+Received: from secure.papagayo.com.pl ([127.0.0.1])
+	by localhost (serwer-01.in.papagayo.com.pl [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id F5UzEf3yPTsL for <linux-dvb@linuxtv.org>;
+	Mon,  1 Sep 2008 10:06:54 +0200 (CEST)
+Received: from repro.in.papagayo.com.pl (repro.in.papagayo.com.pl
+	[192.168.1.84])
+	by secure.papagayo.com.pl (Postfix) with ESMTP id 0B8C23C615
+	for <linux-dvb@linuxtv.org>; Mon,  1 Sep 2008 10:06:53 +0200 (CEST)
+Message-ID: <48BBA297.5000206@interia.pl>
+Date: Mon, 01 Sep 2008 10:06:47 +0200
+From: Wieslaw Kierbedz <mincho@interia.pl>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <28756.192.100.124.219.1222068042.squirrel@ncircle.nullnet.fi>
-Subject: Re: [linux-dvb] [RFC] cinergyT2 rework final review
+To: linux-dvb@linuxtv.org
+References: <48B59989.4080004@interia.pl>	<bb72339d0808282125g59a24920o6af8b41ccfa1f15c@mail.gmail.com>	<48B7AB83.90802@farba.eu.org>	<bb72339d0808290347l7732b608idaabad895c2488d7@mail.gmail.com>	<48B82D09.60200@interia.pl>	<bb72339d0808291856p487a3fc2p8333e3f16d135a6e@mail.gmail.com>	<48B91E1B.8090408@interia.pl>
+	<bb72339d0808300714k3393188en77f1fab735936e03@mail.gmail.com>
+In-Reply-To: <bb72339d0808300714k3393188en77f1fab735936e03@mail.gmail.com>
+Subject: [linux-dvb] [OT] Re:  Aver saa7135 cards.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,27 +37,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Sep 22, 2008 at 10:20:42 +0300, Tomi Orava wrote:
 
-[...]
+>
+>
+> If there's anything missing feel free to add it, or let me know and I can.
+>   
+By the way.
+I thought about MPEG4/H.264 section on wiki pages. In Poland DVB-T+ is 
+most used standard.
+But at this moment due to PFAF interlacing I had to use commercial codec.
+I can write a little howto, but it would be some free advertising for 
+core avc.
+Do you think it has some sens?
 
-> Could you check what is the firmware version in your device ?
-> Check for the "bcdDevice" keyword with lsusb -v -s <busid>:<devnum> I had
-> way too many problems with 1.06 firmware version, but the
-> newer 1.08 seems to be a little bit better in stability.
-> I do think that this device is certainly not the most stable tuner on
-> earth but if you don't do suspend/resume with it,
-> it should work quite fine.
-
-I have 1.06, but it was rock stable over the years, if I unload the
-driver before suspend. And as I use MythTV, the card had pretty much
-load (MythTV's EIT crawler).
-
-I just updated to 2.6.27-rc7 and the cinergyT2 driver from
-http://linuxtv.org/hg/~tmerle/cinergyT2. Looks good so far.
-
-Regards,
-Tino
+-- 
+Wieslaw Kiebedz
 
 _______________________________________________
 linux-dvb mailing list
