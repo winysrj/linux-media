@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.25])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1KkJVE-0002kb-Ki
-	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 16:13:33 +0200
-Received: by qw-out-2122.google.com with SMTP id 9so260175qwb.17
-	for <linux-dvb@linuxtv.org>; Mon, 29 Sep 2008 07:13:27 -0700 (PDT)
-Message-ID: <c74595dc0809290713i7ca11bdfw3424c8347e9a6d9e@mail.gmail.com>
-Date: Mon, 29 Sep 2008 17:13:27 +0300
-From: "Alex Betis" <alex.betis@gmail.com>
-To: "Jelle De Loecker" <skerit@kipdola.com>
-In-Reply-To: <48E0D490.5030202@kipdola.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <w3ird_n3rd@gmx.net>) id 1KaCCL-0003r9-DK
+	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 18:24:14 +0200
+Message-ID: <48BC170B.9040805@gmx.net>
+Date: Mon, 01 Sep 2008 18:23:39 +0200
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
 MIME-Version: 1.0
-References: <1221327465l.12125l.2l@manu-laptop> <48CC4867.1050705@gmail.com>
-	<1221354611l.12125l.3l@manu-laptop> <48E0D490.5030202@kipdola.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Re : Re : TT S2-3200 driver
+To: VDR User <user.vdr@gmail.com>
+References: <48B9360D.7030303@gmail.com>	<20080901120601.044ddc30@mchehab.chehab.org>
+	<a3ef07920809010900l5f4bde4buaac6bcf38e9c034e@mail.gmail.com>
+In-Reply-To: <a3ef07920809010900l5f4bde4buaac6bcf38e9c034e@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Merge multiproto tree
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,169 +20,64 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1218711442=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1218711442==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_16274_17392496.1222697607844"
-
-------=_Part_16274_17392496.1222697607844
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-
-Does that card use stb0899 drivers as Twinhan 1041?
-
-I've done some changes to the algorithm that provide constant lock.
-
-2008/9/29 Jelle De Loecker <skerit@kipdola.com>
-
->
-> manu schreef:
->
-> Le 13.09.2008 19:10:31, Manu Abraham a =E9crit :
->
->
->  manu wrote:
->
->
->  I forgot the logs...
->
->
->  Taking a look at it. Please do note that, i will have to go through
-> it
-> very patiently.
->
-> Thanks for the logs.
->
->
->
->  You're more than welcome. I tried to put some printk's but the only
-> thing I got is that even when the carrier is correctly detected, the
-> driver does not detect the data (could that be related to the different
-> FEC?).
-> Anyway let me know if you need more testing.
-> Bye
-> Manu
->
->
-> I'm unable to scan the channels on the Astra 23,5 satellite
-> Frequency 11856000
-> Symbol rate 27500000
-> Vertical polarisation
-> FEC 5/6
->
-> Is this because of the same bug? I should be getting Discovery Channel HD=
-,
-> National Geographic Channel HD, Brava HDTV and Voom HD International, but
-> I'm only getting a time out.
->
->
-> *Met vriendelijke groeten,*
->
-> *Jelle De Loecker*
-> Kipdola Studios - Tomberg
->
->
->
+On 09/01/2008 06:00 PM, VDR User wrote:
+> On Mon, Sep 1, 2008 at 8:06 AM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+>> I'm aware that your solution seems to be more code-complete than Steven's
+>> proposal.
+>>
+>> But the recent activity on the mailing list regarding his idea (and its,
+>> so far, positive feedback) and the fact that I was anyway planning to
+>> have a discussion about the future of the DVB-API at the Linux Plumbers
+>> Conference 2008 are supporting me in my idea of post-poning such a pull to
+>> a point in time shortly after this event.
+> 
+> I understand peoples frustration in waiting for multiproto since I'm
+> one of them as well.  However, I believe the support for Steven's
+> proposal is largely because people aren't aware that multiproto is now
+> in a ready-state and has a pull request pending.  Over the last
+> several months I've seen many question when/if multiproto will be
+> done, or if it is dead...  I think we all agree that it has taken
+> quite some time for multiproto to get to a point where it's ready but
+> that time has come.
+> 
+> Multiproto -can- be pulled in right now, and if that happened, drivers
+> could be written immediately, finally providing users with what
+> they've needed for so long.  In my opinion it makes no sense to throw
+> out a robust api that is ready right now just because of frustration
+> and past personal grudges (whether anyone will openly admit to this or
+> not, it -is- a part of this).  The questions for consideration -should
+> be-... Is the code ready?  Can it handle future specs?  Is it missing
+> anything that should be included?  If the code is ready and is robust,
+> then the final question is what benefit is there in making people wait
+> yet longer for another api to be written?  Will this new api proposal
+> offer anything that multiproto doesn't already?
+> 
+> It seems we can finally move forward and now instead of incomplete
+> code stopping it, politics are.
+> 
 > _______________________________________________
 > linux-dvb mailing list
 > linux-dvb@linuxtv.org
 > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+> 
 
-------=_Part_16274_17392496.1222697607844
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+If what VDR User and Jelle De Loecker are saying is right, I don't see a 
+reason for not going with multiproto either.
 
-<div dir=3D"ltr">Does that card use stb0899 drivers as Twinhan 1041?<br><br=
->I&#39;ve done some changes to the algorithm that provide constant lock.<br=
-><br><div class=3D"gmail_quote">2008/9/29 Jelle De Loecker <span dir=3D"ltr=
-">&lt;<a href=3D"mailto:skerit@kipdola.com">skerit@kipdola.com</a>&gt;</spa=
-n><br>
-<blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, =
-204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+I'm an enduser and I would be happy with multiproto as well. I think I'm 
+not alone if I say I care less *what* the solution is going to be, as 
+long as we get DVB-S2 support in-kernel.
 
-
- =20
-
-<div bgcolor=3D"#ffffff" text=3D"#000000">
-<br>
-manu schreef:
-<blockquote type=3D"cite">
-  <pre>Le 13.09.2008 19:10:31, Manu Abraham a =E9crit&nbsp;:
-  </pre>
-  <blockquote type=3D"cite">
-    <pre>manu wrote:
-    </pre>
-    <blockquote type=3D"cite">
-      <pre>I forgot the logs...
-      </pre>
-    </blockquote>
-    <pre>Taking a look at it. Please do note that, i will have to go throug=
-h=20
-it
-very patiently.
-
-Thanks for the logs.
-
-    </pre>
-  </blockquote>
-  <pre>You&#39;re more than welcome. I tried to put some printk&#39;s but t=
-he only=20
-thing I got is that even when the carrier is correctly detected, the=20
-driver does not detect the data (could that be related to the different=20
-FEC?).
-Anyway let me know if you need more testing.
-Bye
-Manu</pre>
-</blockquote>
-<br>
-I&#39;m unable to scan the channels on the Astra 23,5 satellite<br>
-Frequency 11856000<br>
-Symbol rate 27500000<br>
-Vertical polarisation<br>
-FEC 5/6<br>
-<br>
-Is this because of the same bug? I should be getting Discovery Channel
-HD, National Geographic Channel HD, Brava HDTV and Voom HD
-International, but I&#39;m only getting a time out.<br>
-<br>
-<div><br>
-<i>Met vriendelijke groeten,</i>
-<br>
-<br>
-<b>Jelle De Loecker</b>
-<br>
-Kipdola Studios - Tomberg <br>
-<br>
-</div>
-<br>
-</div>
-
-<br>_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" targe=
-t=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><=
-br></blockquote></div><br></div>
-
-------=_Part_16274_17392496.1222697607844--
-
-
---===============1218711442==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+P. van Gaans
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1218711442==--
