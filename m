@@ -1,30 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8DMVapv014194
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 18:31:36 -0400
-Received: from mta3.srv.hcvlny.cv.net (mta3.srv.hcvlny.cv.net [167.206.4.198])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8DMVOf7006408
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 18:31:24 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7500HG4NWC29D0@mta3.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Sat, 13 Sep 2008 18:31:24 -0400 (EDT)
-Date: Sat, 13 Sep 2008 18:31:23 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200809140119.38052.liplianin@tut.by>
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Message-id: <48CC3F3B.3050600@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=KOI8-R; format=flowed
-Content-transfer-encoding: 8BIT
-References: <E1KdnPr-0002YP-SF@www.linuxtv.org>
-	<200809131623.10155.liplianin@tut.by> <48CC2512.2020502@linuxtv.org>
-	<200809140119.38052.liplianin@tut.by>
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [linux-dvb]  [PATCH] Add support for SDMC DM1105 PCI chip
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m81KkB30014301
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 16:46:11 -0400
+Received: from web35603.mail.mud.yahoo.com (web35603.mail.mud.yahoo.com
+	[66.163.179.142])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m81KjMTq030559
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 16:45:54 -0400
+Date: Mon, 1 Sep 2008 13:45:21 -0700 (PDT)
+From: Sam Logen <starz909@yahoo.com>
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Message-ID: <176100.66247.qm@web35603.mail.mud.yahoo.com>
+Subject: cx88 and Dvico hdtv card - card loses IR functionality
+Reply-To: starz909@yahoo.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,37 +25,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Igor M. Liplianin wrote:
-> В сообщении от 13 September 2008 23:39:46 Steven Toth написал(а):
->> Igor M. Liplianin wrote:
->>> The patch adds support for SDMC DM1105 PCI chip. There is a lot of
->>> cards based on it, like DvbWorld 2002 DVB-S , 2004 DVB-S2
->>> Source code prepaired to and already tested with cards, which have
->>> si2109, stv0288, cx24116 demods.  Currently enabled only stv0299, as
->>> other demods are not in a v4l-dvb main tree, but I will submit
->>> corresponded patches (si2109, stv0288) next time.
->> Igor,
->>
->> Cool.
->>
->> Master repo does not have cx24116 support so it probably cannot be
->> merged. Do you need me to merge this into the s2api tree?
->>
-> Steve,
-> 
-> It would be great !
-> Patch is ready to s2api tree.
-> 
-> So I must prepair next patch, which enables DvbWorld 2004 DVB-S2.
+Hi,
 
-Merged, thanks Igor.
+For some time I've been updating my drivers to V4L's tip repository, and I've consistently had some problems with my HDTV card.  It's a Dvico FusionHDTV 5 RT Gold card, and specifically the problems have to do with the remote control.  For awhile the drivers have supported the IR receiver of the card, but it has never been stable.
 
-I also have a large cx24116.c patch from Darron pending, I need his 
-sign-off. Hopefully this will go into the tree tonight also.
+  For instance, after the machine is soft-powered off for some time, then turned on, the remote will no longer generate IR events.  The device node is there, but I cannot ircat any events when I use the remote, and programs such as mythtv will not respond to the remote - until I power off the machine, unplug it to flush the memory in the card, then re-connect the power and turn the machine back on.  Then the remote acts as it should.
 
-Regards,
+  Second, the card has two system power-on functionalities.  The card can generate a PME wake event that will return the system on from a soft-off state through the bios.  Or the card can be plugged into the power button pins on the mainboard, and a signal from the remote will be perceived by the mainboard as if the power button was pushed.
 
-- Steve
+  I am using the second option, since the bios has difficulties determining what is a PME event, and what is not.  The problem is that the second option only works after the memory of the card is flushed - if the machine has been unplugged for some time.  If I just soft-off the machine, the remote cannot be used to power the machine back on.
+
+  I'm forced to hypothesize that the cx88 modules are affecting the memory in the card in such a way that certain functions are no longer performed properly.  If there's anything I can do to fix this, or any more information I can provide, please let me know.
+
+Thanks,
+Sam
+
+lspci -vnnm
+
+Device: 04:08.0
+Class:  Multimedia video controller [0400]
+Vendor: Conexant [14f1]
+Device: CX23880/1/2/3 PCI Video and Audio Decoder [8800]
+SVendor:        DViCO Corporation [18ac]
+SDevice:        FusionHDTV 5 Gold [d500]
+Rev:    05
+
+Device: 04:08.1
+Class:  Multimedia controller [0480]
+Vendor: Conexant [14f1]
+Device: CX23880/1/2/3 PCI Video and Audio Decoder [Audio Port] [8811]
+SVendor:        DViCO Corporation [18ac]
+SDevice:        DViCO FusionHDTV5 Gold [d500]
+Rev:    05
+
+Device: 04:08.2
+Class:  Multimedia controller [0480]
+Vendor: Conexant [14f1]
+Device: CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] [8802]
+SVendor:        DViCO Corporation [18ac]
+SDevice:        DViCO FusionHDTV5 Gold [d500]
+Rev:    05 
+
+
+      
 
 --
 video4linux-list mailing list
