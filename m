@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KdSJL-00039X-OO
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 18:12:57 +0200
-Date: Wed, 10 Sep 2008 18:12:22 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <200809101710.19695.hftom@free.fr>
-Message-ID: <20080910161222.21640@gmx.net>
+Received: from yx-out-2324.google.com ([74.125.44.29])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <user.vdr@gmail.com>) id 1KaBp8-0002TO-Vc
+	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 18:00:16 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so889905yxg.41
+	for <linux-dvb@linuxtv.org>; Mon, 01 Sep 2008 09:00:10 -0700 (PDT)
+Message-ID: <a3ef07920809010900l5f4bde4buaac6bcf38e9c034e@mail.gmail.com>
+Date: Mon, 1 Sep 2008 09:00:10 -0700
+From: "VDR User" <user.vdr@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <20080901120601.044ddc30@mchehab.chehab.org>
 MIME-Version: 1.0
-References: <48B8400A.9030409@linuxtv.org> <200809101340.09702.hftom@free.fr>
-	<48C7CDCF.9090300@hauppauge.com> <200809101710.19695.hftom@free.fr>
-To: Christophe Thommeret <hftom@free.fr>, stoth@hauppauge.com
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Content-Disposition: inline
+References: <48B9360D.7030303@gmail.com>
+	<20080901120601.044ddc30@mchehab.chehab.org>
+Subject: Re: [linux-dvb] Merge multiproto tree
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,101 +22,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Mon, Sep 1, 2008 at 8:06 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> I'm aware that your solution seems to be more code-complete than Steven's
+> proposal.
+>
+> But the recent activity on the mailing list regarding his idea (and its,
+> so far, positive feedback) and the fact that I was anyway planning to
+> have a discussion about the future of the DVB-API at the Linux Plumbers
+> Conference 2008 are supporting me in my idea of post-poning such a pull to
+> a point in time shortly after this event.
 
--------- Original-Nachricht --------
-> Datum: Wed, 10 Sep 2008 17:10:19 +0200
-> Von: Christophe Thommeret <hftom@free.fr>
-> An: Steven Toth <stoth@hauppauge.com>
-> CC: linux-dvb@linuxtv.org
-> Betreff: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+I understand peoples frustration in waiting for multiproto since I'm
+one of them as well.  However, I believe the support for Steven's
+proposal is largely because people aren't aware that multiproto is now
+in a ready-state and has a pull request pending.  Over the last
+several months I've seen many question when/if multiproto will be
+done, or if it is dead...  I think we all agree that it has taken
+quite some time for multiproto to get to a point where it's ready but
+that time has come.
 
-> Le Wednesday 10 September 2008 15:38:23 Steven Toth, vous avez =E9crit :
-> > > Is this card able to deliver both S and T at the same time?
-> >
-> > No, the hardware can do S/S2 or T.
-> =
+Multiproto -can- be pulled in right now, and if that happened, drivers
+could be written immediately, finally providing users with what
+they've needed for so long.  In my opinion it makes no sense to throw
+out a robust api that is ready right now just because of frustration
+and past personal grudges (whether anyone will openly admit to this or
+not, it -is- a part of this).  The questions for consideration -should
+be-... Is the code ready?  Can it handle future specs?  Is it missing
+anything that should be included?  If the code is ready and is robust,
+then the final question is what benefit is there in making people wait
+yet longer for another api to be written?  Will this new api proposal
+offer anything that multiproto doesn't already?
 
-> > The driver in the S2API tree only has S/S2 enabled (for the time being).
-> =
-
-> So, maybe we have to think a bit about how to add support for this kind of
-> device.
-
-Yes, absolutely, and I hope this can go in to S2API and the kernel. It woul=
-d be a lie
-to claim that linux supports the HVR4000 until this is done. Fortunately St=
-even
-and Darron made experimental drivers which do this.
-
-> I mean, if the driver provides different adapters/frontends (say =
-
-> adapter0/frontend0 and adapter1/frontend0), a typical application will see
-> these as separate devices, and then when a user watch a S channel, the app
-> assumes that the T frontend is free while in fact it's not.
-> For example, Kaffeine updates its channels list according to which
-> channels =
-
-> can be viewed (based on which frontends are free). So, if you are
-> recording a =
-
-> S channel, all channels on this freq are shown as available and all T =
-
-> channels are also shown as available. But in the HVR4000 case, it's false,
-> since the T tuner isn't free.
-> =
-
-> Maybe a solution could be to have :
-> - adapter0/frontend0 -> S/S2 tuner
-> - adapter0/frontend1 -> T tuner
-
-This is what the multifrontend (mfe) driver at http://dev.kewl.org/hauppaug=
-e does.
-And Kaffeine is the only major DVB app which correctly finds the two fronte=
-nds
-and uses them correctly (well done!!). Or very nearly -- TV watching is per=
-fect, but
-the only slight problem happens when you are recording:
-
-(1) record a DVB-T channel:
--->all DVB-T channels except those in same multiplex vanish from the availa=
-ble
-channels list (correct)
--->no satellite channels vanish (incorrect)
-
-(2) record a DVB-S channel;
--->all DVB-S channels except those on the same multiplex vanish from the av=
-ailable
-channels list (correct)
--->no DVB-T channels vanish (incorrect)
-
-It's a small problem, easily fixed I would think.
-
-> =
-
-> So applications could know that these 2 frontends are exclusive.
-> That would not require any API change, but would have to be a rule
-> followed by =
-
-> all drivers.
-
-Yes, if we keep to that rule then only frontends which can operate truly
-simultaneously should have a different adapter number.
-
-Regards,
-Hans
--- =
-
-Release early, release often.
-
-Ist Ihr Browser Vista-kompatibel? Jetzt die neuesten =
-
-Browser-Versionen downloaden: http://www.gmx.net/de/go/browser
+It seems we can finally move forward and now instead of incomplete
+code stopping it, politics are.
 
 _______________________________________________
 linux-dvb mailing list
