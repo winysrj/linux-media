@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8HFUqRk024269
-	for <video4linux-list@redhat.com>; Wed, 17 Sep 2008 11:30:52 -0400
-Received: from mgw-mx09.nokia.com (smtp.nokia.com [192.100.105.134])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m8HFUfPp029697
-	for <video4linux-list@redhat.com>; Wed, 17 Sep 2008 11:30:41 -0400
-Message-ID: <48D1227D.5070207@nokia.com>
-Date: Wed, 17 Sep 2008 18:30:05 +0300
-From: Sakari Ailus <sakari.ailus@nokia.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m81JJSJF028477
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 15:19:29 -0400
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m81JJH3B022328
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 15:19:18 -0400
+Received: by ug-out-1314.google.com with SMTP id m2so1450447uge.13
+	for <video4linux-list@redhat.com>; Mon, 01 Sep 2008 12:19:17 -0700 (PDT)
+Message-ID: <226dee610809011219h4088a062k77a2d0ac1acbc047@mail.gmail.com>
+Date: Tue, 2 Sep 2008 00:49:16 +0530
+From: "JoJo jojo" <onetwojojo@gmail.com>
+To: "Hans de Goede" <j.w.r.degoede@hhs.nl>
+In-Reply-To: <48B7D198.60505@hhs.nl>
 MIME-Version: 1.0
-To: ext Hardik Shah <hardik.shah@ti.com>
-References: <hardik.shah@ti.com>
-	<1221663942-7160-1-git-send-email-hardik.shah@ti.com>
-In-Reply-To: <1221663942-7160-1-git-send-email-hardik.shah@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org,
-	linux-fbdev-devel@lists.sourceforge.net
-Subject: Re: [PATCH] OMAP 2/3 V4L2 display driver on video planes
+Content-Disposition: inline
+References: <48B7D198.60505@hhs.nl>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
+Subject: Re: gspca-sonixb and sn9c102 produce incompatible
+	V4L2_PIX_FMT_SN9C10X
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,55 +32,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, Hardik!
+On Fri, Aug 29, 2008 at 4:08 PM, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
+> Hi all,
+> 1) Fix the gspca driver and libv4l to produce / expect BGGR bayer inside the
+> V4L2_PIX_FMT_SN9C10X data, making gspca compatible with the already released
+> in an official kernel sn9c102 driver. The downside of this is that we loose
+> all the testing done with gspca (both v1 and v2) with the current gspca
+> settings but given that windows uses the sn9c102 settings I don't expect
+> much
+> of a problem from this (and I can test the new settings for 3 of the 7
+> supported sensors).
+>
 
-ext Hardik Shah wrote:
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index 2703c66..e899dd2 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -762,8 +762,6 @@ source "drivers/media/video/au0828/Kconfig"
-> 
->  source "drivers/media/video/ivtv/Kconfig"
-> 
-> -source drivers/media/video/omap/Kconfig
-> -
->  source "drivers/media/video/cx18/Kconfig"
-> 
->  config VIDEO_M32R_AR
-> @@ -802,6 +800,14 @@ config VIDEO_OMAP2
->  	---help---
->  	  Driver for an OMAP 2 camera controller.
-> 
-> +config VIDEO_OMAP3
 
-This is the same configuration option as we are using for the OMAP 3 
-camera driver at the moment.
+What are the other 4 USB ids of sensors that you can't test yourself?
+Maybe we can help.
 
-Could you, for example, call this VIDEO_OMAP3_VIDEOOUT?
-
-CONFIG_VIDEO_OMAP2 enables the OMAP 2 camera driver.
-
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index 3e580e8..10f879c 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -107,6 +107,8 @@ obj-$(CONFIG_VIDEO_CAFE_CCIC) += cafe_ccic.o
->  obj-$(CONFIG_VIDEO_OV7670) 	+= ov7670.o
-> 
->  obj-$(CONFIG_VIDEO_OMAP2) += omap24xxcam.o omap24xxcam-dma.o
-> +obj-$(CONFIG_VIDEO_OMAP3) += omap/
-
-It's just two C source code files --- how about putting them into the 
-parent directory? The omap directory has just one driver in it, the OMAP 
-1 camera driver. I think at some point it was intended to be moved to 
-the parent directory although this hasn't happened.
-
-Best regards,
-
--- 
-Sakari Ailus
-sakari.ailus@nokia.com
+-JoJo
 
 --
 video4linux-list mailing list
