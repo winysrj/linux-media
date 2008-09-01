@@ -1,27 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8MH3flJ019721
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 13:03:41 -0400
-Received: from mail11c.verio-web.com (mail11c.verio-web.com [204.202.242.55])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id m8MH3SUT029559
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 13:03:28 -0400
-Received: from mx22.stngva01.us.mxservers.net (204.202.242.39)
-	by mail11c.verio-web.com (RS ver 1.0.95vs) with SMTP id 3-0935143008
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 13:03:28 -0400 (EDT)
-From: "Charlie X. Liu" <charlie@sensoray.com>
-To: "'Amol Borawake'" <borawake_amol@hotmail.com>,
-	<video4linux-list@redhat.com>
-References: <BLU149-W210DC75BDED2B9311FDE09994B0@phx.gbl>
-In-Reply-To: <BLU149-W210DC75BDED2B9311FDE09994B0@phx.gbl>
-Date: Mon, 22 Sep 2008 10:03:41 -0700
-Message-ID: <000001c91cd5$2b548160$81fd8420$@com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m81NEl5H010179
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 19:14:48 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m81NEYTP001499
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 19:14:34 -0400
+From: Andy Walls <awalls@radix.net>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+In-Reply-To: <1217987207.5252.21.camel@morgan.walls.org>
+References: <1217712326.2699.84.camel@morgan.walls.org>
+	<489501BB.3070309@hauppauge.com>
+	<1217987207.5252.21.camel@morgan.walls.org>
+Content-Type: text/plain
+Date: Mon, 01 Sep 2008 19:08:48 -0400
+Message-Id: <1220310528.2737.49.camel@morgan.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Language: en-us
-Cc: 
-Subject: RE: Capturing the Video Data from a Capture Card using V4L2
+Cc: "ivtv-users@ivtvdriver.org" <ivtv-users@ivtvdriver.org>,
+	"linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>,
+	"ivtv-devel@ivtvdriver.org" <ivtv-devel@ivtvdriver.org>
+Subject: cx18: Testers needed for patch to solve non-working CX23418 cards
+	under linux (Re: cx18: Possible causal realtionship for HVR-1600 I2C
+	errors)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,38 +33,89 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-http://linuxtv.org/v4lwiki/index.php/Main_Page
+On Tue, 2008-08-05 at 21:47 -0400, Andy Walls wrote:
+> > Andy Walls wrote:
+> > > Quite a few HVR-1600 users have reported cx18 driver I2C related
+> > > problems usually with the following errors present:
+> > >
+> > >    tveeprom 1-0050: Huh, no eeprom present (err=-121)?
+> > >    tveeprom 1-0050: Encountered bad packet header [ff]. Corrupt or not a Hauppauge eeprom.
+> > >
+> > >    s5h1409_readreg: readreg error (ret == -121)
+> > >    cx18: frontend initialization failed
+> > >    cx18-0: DVB failed to register
+> > >
+> > > and an unusable HVR-1600/CX23418 under linux.
+> > >
+> > >
+> > > On the surface the problem appeared to be related to the devices on the
+> > > I2C buses of the HVR-1600. [...] The I2C bus errors appear to be
+> > > just a symptom of a larger underlying problem.
 
 
------Original Message-----
-From: video4linux-list-bounces@redhat.com
-[mailto:video4linux-list-bounces@redhat.com] On Behalf Of Amol Borawake
-Sent: Monday, September 22, 2008 3:11 AM
-To: video4linux-list@redhat.com
-Subject: Capturing the Video Data from a Capture Card using V4L2
+To all the users of CX23418 based cards that currently don't seem to
+work, showing some of the above symptoms, please test my latest changes
+at:
+
+http://linuxtv.org/hg/~awalls/v4l-dvb
+
+If your card still doesn't work with the default module options, then
+try upping the "mmio_ndelay" module parameter by multiples of about 30.3
+ns until the card does work:
+
+For example, if the default "mmio_ndelay=31" doesn't work for you, then
+use:
+
+# /sbin/modprobe cx18 mmio_ndelay=61
+
+or 91, or 121, or 152, etc. until your card does work.
+
+If you have multiple cx18 cards, and the default doesn't work, then you
+will have to specify a value for each card.  For example:
+
+# /sbin/modprobe cx18 mmio_ndelay=61,61,61
+
+for a three card setup.
+
+As always feedback is appreciated.  In this case, I'd especially like to
+hear about digital captures, simultaneous analog & digital capture, and
+the (in)correctness of the cx18_memcpy_fromio() and cx18_memset_io()
+routines.
 
 
-Dear Sir,
 
-I am having an video capture card which uses Conexant BT878 Chipset.
-I would like to acess the video data from that card. 
-I am working on linux (Suse 10 with Linux Kernel 2.6.16) .
-How do I proceed for this ?
+This patch works for me to get my HVR-1600 and my Raptor PAL/SECAM card
+working in my older machine with an Intel 82810E Northbridge and 82801AA
+Southbridge.  I have only been able to test analog capture from the
+analog tuner and composite 1 input in this setup using 'cat /dev/video0
+>foo.mpg' and playing the mpg file on another machine.  (The machine has
+no keyboard nor monitor nor apps like mplayer and mythtv).   Things
+appear to be working properly.
 
-Thanks in advance.
-Waiting for your reply.
 
-Thanks and Regards,
-Amol Borawake
-_________________________________________________________________
-Searching for weekend getaways? Try Live.com
-http://www.live.com/?scope=video&form=MICOAL
+> To all the cx18 users who
+> have patiently provided data at my request on this problem so far, thank
+> you.
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+Thanks, again for helping me resolve this problem.
 
+<hypothesis>
+The underlying cause appears to be that the CX23418 can't handle very
+rapid memory mapped IO accesses to differing locations under certain
+(unknown) conditions.  In the Linux cx18 driver, these rapid MMIO
+accesses apparently happened quite often.  In certain modern motherboard
+configurations, the PCI bridges apparently were slowing things down or
+adding retries so that the CX23418 would actually work for some people.
+</hypothesis>
+
+These patches work by adding a short delay (a 10's of ns busy wait)
+after *every* access to CX23418 mmio addresses.  If your card already
+works fine and these busy waits bother you, then you can get
+approximately the previous behavior by setting "mmio_ndelay=0" which
+will skip all the calls to ndelay().
+
+Regards,
+Andy
 
 --
 video4linux-list mailing list
