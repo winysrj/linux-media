@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n4.bullet.ukl.yahoo.com ([217.146.182.181])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dirk_vornheder@yahoo.de>) id 1Kg2VH-0005dd-LO
-	for linux-dvb@linuxtv.org; Wed, 17 Sep 2008 21:15:57 +0200
-From: Dirk Vornheder <dirk_vornheder@yahoo.de>
-To: Antti Palosaari <crope@iki.fi>,
- linux-dvb@linuxtv.org
-Date: Wed, 17 Sep 2008 21:15:19 +0200
-References: <200809152345.37786.dirk_vornheder@yahoo.de>
-	<48CF85C2.1030806@iki.fi> (sfid-20080916_200620_773173_78C7D8C0)
-In-Reply-To: <48CF85C2.1030806@iki.fi>
+Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <liplianin@tut.by>) id 1KaAaJ-0003aI-Pe
+	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 16:40:54 +0200
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: linux-dvb@linuxtv.org
+Date: Mon, 1 Sep 2008 17:40:06 +0300
+References: <200808311224.13193@centrum.cz>
+	<200808311554.27562.liplianin@me.by>
+	<200809011351.15699@centrum.cz>
+In-Reply-To: <200809011351.15699@centrum.cz>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200809172115.19851.dirk_vornheder@yahoo.de>
-Subject: Re: [linux-dvb] UNS: Re:  New unspported device AVerMedia DVB-T
+Message-Id: <200809011740.07077.liplianin@tut.by>
+Subject: Re: [linux-dvb] Drivers for TT S2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,53 +21,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-Compile produces undefined symbol:
-
-  Building modules, stage 2.
-  MODPOST 166 modules
-WARNING: "__udivdi3" [/backup/privat/kernel/af9015_test-
-c8583d119095/v4l/af9013.ko] undefined!
-  CC      /backup/privat/kernel/af9015_test-c8583d119095/v4l/af9013.mod.o
-  LD [M]  /backup/privat/kernel/af9015_test-c8583d119095/v4l/af9013.ko
-  CC      /backup/privat/kernel/af9015_test-c8583d119095/v4l/au8522.mod.o
-  LD [M]  /backup/privat/kernel/af9015_test-c8583d119095/v4l/au8522.ko
-
-
-> > Hi !
-> >
-> > I buy a new notebook HP Pavilion dv7-1070eg which includes one
-> >
-> > AVerMedia DVB-T-Device.
->
-> It is Afatech AF9015 based device. Please test driver from:
-> http://linuxtv.org/hg/~anttip/af9015_test
-> and firmware from:
-> http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_=
-fi
->les/4.95.0/
->
-> regards
-> Antti
-
-
-	=
-
-		=
-
-___________________________________________________________ =
-
-Der fr=FChe Vogel f=E4ngt den Wurm. Hier gelangen Sie zum neuen Yahoo! Mail=
-: http://mail.yahoo.de
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Tm93IGluIG15IHByaW9yaXRpZXMgbGlzdCBpcyBzY2FuMiBhbmQgY2hhbm5lbHNjYW4ob3IgcmVl
+bGNoYW5uZWxzY2FuKSBmb3IgClZEUi0xLjcuMAoKU3RhcnRpbmcgcG9pbnQKaHR0cDovL3d3dy5s
+aW51eHR2Lm9yZy9waXBlcm1haWwvbGludXgtZHZiLzIwMDgtSnVuZS8wMjY0MjMuaHRtbAoKQmVz
+dCBSZWdhcmRzCgpJZ29yCgrQkiDRgdC+0L7QsdGJ0LXQvdC40Lgg0L7RgiAxIFNlcHRlbWJlciAy
+MDA4IDE0OjUxOjA4IFNLT8SMRE9QT0xFIFRvbcOhxaEg0L3QsNC/0LjRgdCw0Lso0LApOgo+IFJl
+Z3VsYXIgc2NhbiB3b3Jrcz8gQnV0IEkgbWVhbiBzY2FuIHV0aWxpdHkgZG9lc250IHN1cHBvcnQg
+RFZCLVMyLiBGb3IKPiBleGFtcGxlIEZFQyA5LzEwLi4uCj4KPiBPciB3aGF0IGkgY2FuIHVzZSBm
+b3Igc2NhbiBEVkItUzIgY2hhbm5lbHM/Cj4KPiBSZWdhcmRzIFRvbWFzCj4KPiBfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+Cj4g
+PiBPZDogbGlwbGlhbmluQG1lLmJ5Cj4gPiBLb211OiBsaW51eC1kdmJAbGludXh0di5vcmcKPiA+
+IENDOiAmcXVvdDsgU0tP0LTiloRET1BPTEUgIFRvbdGG4pWR0LXilZEmcXVvdDsgPGhvcHBpa0Bj
+ZW50cnVtLmN6Pgo+ID4gRGF0dW06IDMxLjA4LjIwMDggMTQ6NTQKPiA+IFDQteKJpWVkbdC04oyh
+dDogUmU6IFtsaW51eC1kdmJdIERyaXZlcnMgZm9yIFRUIFMyLTMyMDAKPiA+Cj4gPtC/4paTINGP
+4pSC0L/ilazQv+KVrNC/4pWg0Y/ilLTQv+KVo9C/4pWr0L/ilabQv+KVpiDQv+KVrNGP4pSMIDMx
+IEF1Z3VzdCAyMDA4IDE0OjEzOjA2IFNLT9C04paERE9QT0xFIFRvbdGG4pWR0LXilZEgCtC/4pWr
+0L/ilZ/Qv8Kp0L/ilabRj+KUgtC/4pWf0L/ilako0L/ilZ8pOgo+ID4+IE9LLCBJIGhhdmUgc29t
+ZSBmcmVldGltZSBhdCB0aHVlcnNkYXksIHNvIGkgd2lsbCB0cnkgeW91IGRyaXZlcnMuCj4gPj4K
+PiA+PiBJIHdhbnQgdG8gYXNrIHlvdSBhYm91dCBkdmItYXBwcyB1dGlsaXRpZXMgc3phcCBhbmQg
+c2Nhbjogd29yayB0aGV5IHdpdGgKPiA+PiB5b3UgZHJpdmVycz8KPiA+Pgo+ID4+IE9yIEkgbmVl
+ZCBzb21lIHBhdGNoZXMuCj4gPj4KPiA+PiBSZWdhcmRzIFRvbWFzCj4gPj4KPiA+PiBfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+
+ID4+Cj4gPj4gPiBPZDogbGlwbGlhbmluQG1lLmJ5Cj4gPj4gPiBLb211OiBsaW51eC1kdmJAbGlu
+dXh0di5vcmcKPiA+PiA+IENDOiAmcXVvdDsgU0tP0L/ilaLQkeKImuKUlERPUE9MRSAgVG9t0Y/i
+lJzQkeKImeKWktC/4pWj0JHiiJnilpImcXVvdDsgPGhvcHBpa0BjZW50cnVtLmN6Pgo+ID4+ID4g
+RGF0dW06IDMxLjA4LjIwMDggMTI6NTAKPiA+PiA+IFDQv+KVo9CR4pS04pWUZWRt0L/ilaLQkeKW
+hOKVkXQ6IFJlOiBbbGludXgtZHZiXSBEcml2ZXJzIGZvciBUVCBTMi0zMjAwCj4gPj4gPgo+ID4+
+ID7Qv8Kp0JHiiJrijKAg0Y/ilpDQkeKWoOKUjNC/wqnQkeKImeKVm9C/wqnQkeKImeKVm9C/wqnQ
+keKImeKVkNGP4paQ0JHilqDilaLQv8Kp0JHiiJnRkdC/wqnQkeKImeKVmtC/wqnQkeKImeKVldC/
+wqnQkeKImeKVlSDQv8Kp0JHiiJnilZvRj+KWkNCR4pag4paEIDMxCj4gPj4gPiBBdWd1c3QgMjAw
+OCAxMzozMjozMyBTS0/Qv+KVotCR4oia4pSURE9QT0xFIFRvbdGP4pSc0JHiiJnilpLQv+KVo9CR
+4oiZ4paSCj4gPgo+ID7Qv8Kp0JHiiJnilZrQv8Kp0JHiiJnDt9C/wqnQseKVmNC/wqnQkeKImeKV
+ldGP4paQ0JHilqDilIzQv8Kp0JHiiJnDt9C/wqnQkeKImeKVmCjQv8Kp0JHiiJnDtyk6Cj4gPj4g
+Pj4gaGksCj4gPj4gPj4KPiA+PiA+PiBJIHdhbnQgdG8gYXNrIHlvdSwgd2hhdCBkcml2ZXJzIGkg
+Y2FuIHVzZSBmb3IgVFQgUzItMzIwMCB3aXRoIGJlc3QKPiA+PiA+PiBzdXBwb3J0IGZvciB2ZHIs
+IHN6YXAsIHNjYW4gZXRjLgo+ID4+ID4+Cj4gPj4gPj4gSSdtIGFjdHVhbGx5IHVzaW5nIG11bHRp
+cHJvdG8gZHJpdmVycyBodHRwOi8vanVzc3QuZGUvaGcvbXVsdGlwcm90bwo+ID4+ID4+IHdpdGgg
+Y2hhbm5lbCBsb2NrIHBhdGNoLiBJIHJlYWQgaGVyZSBhYm91dCBJZ29yIE0uIExpcGxpYW5pbnMK
+PiA+PiA+PiBkcml2ZXJzLCBidXQgSSBrbm93IGFueXRoaW5nIGFib3V0IGl0Lgo+ID4+ID4+Cj4g
+Pj4gPj4gVGhhbmsgeW91IQo+ID4+ID4+Cj4gPj4gPj4gUmVnYXJkcyBUb21hcwo+ID4+ID4+Cj4g
+Pj4gPj4KPiA+PiA+PiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwo+ID4+ID4+IGxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKPiA+PiA+PiBsaW51eC1kdmJAbGlu
+dXh0di5vcmcKPiA+PiA+PiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1kdmIKPiA+PiA+Cj4gPj4gPkhpLAo+ID4+ID4KPiA+PiA+WW91IGNhbiB0
+cnkgaXQuCj4gPj4gPmh0dHA6Ly9saXBsaWFuaW5kdmIuc291cmNlZm9yZ2UubmV0L2hnLwo+ID4+
+ID5BY3R1YWxseSBJIGFzayB5b3UgYW5kIG90aGVyIHBlb3BsZXMgdG8gZmVlZGJhY2ssIHdoZXRo
+ZXIgaXQgd29ya3MKPiA+PiA+IHByb3Blcmx5LCBvciBub3QuCj4gPj4gPkJlc3QgUmVnYXJkcwo+
+ID4+ID4KPiA+PiA+SWdvciBNLiBMaXBsaWFuaW4KPiA+Pgo+ID4+IF9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gPj4gbGludXgtZHZiIG1haWxpbmcgbGlz
+dAo+ID4+IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+ID4+IGh0dHA6Ly93d3cubGludXh0di5vcmcv
+Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Ygo+ID4KPiA+UmVndWxhciBzemFwICYg
+c2NhbiB3b3Jrcy4KPiA+Cj4gPkJlc3QgUmVnYXJkcwo+ID4KPiA+SWdvciBNLiBMaXBsaWFuaW4K
+Pgo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gbGlu
+dXgtZHZiIG1haWxpbmcgbGlzdAo+IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+IGh0dHA6Ly93d3cu
+bGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2YgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBs
+aXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4v
+bWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
