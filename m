@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m89JptNE007575
-	for <video4linux-list@redhat.com>; Tue, 9 Sep 2008 15:51:55 -0400
-Received: from smtp107.biz.mail.re2.yahoo.com (smtp107.biz.mail.re2.yahoo.com
-	[206.190.52.176])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id m89Jpj6N007114
-	for <video4linux-list@redhat.com>; Tue, 9 Sep 2008 15:51:46 -0400
-Message-ID: <48C6D3D0.5070803@migmasys.com>
-Date: Tue, 09 Sep 2008 15:51:44 -0400
-From: Ming Liu <mliu@migmasys.com>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <20080908160012.574456184D5@hormel.redhat.com>
-	<48C5948D.5030504@migmasys.com> <20080909190727.GA2184@daniel.bse>
-In-Reply-To: <20080909190727.GA2184@daniel.bse>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m81DuPFm008205
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 09:56:27 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m81Dtlsk003774
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 09:56:11 -0400
+Date: Mon, 1 Sep 2008 10:54:34 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+Message-ID: <20080901105434.2281f0e7@mchehab.chehab.org>
+In-Reply-To: <d9def9db0808311511p51df8befm2cbd641fc4d0a88f@mail.gmail.com>
+References: <BAY126-W51445FEADC96EC0484E7ABE35D0@phx.gbl>
+	<d9def9db0808311511p51df8befm2cbd641fc4d0a88f@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Subject: Re: a multichannel capture problem
+Cc: video4linux-list@redhat.com, alkureishi.lee@gmail.com,
+	Lee Alkureishi <lee_alkureishi@hotmail.com>
+Subject: Re: em2820, Tena TNF-9533 and V4L
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,11 +29,15 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thank you so much, Daniel.
-Now I know where to dig.
+On Mon, 1 Sep 2008 00:11:07 +0200
+"Markus Rechberger" <mrechberger@gmail.com> wrote:
 
-Sincerely yours
-Ming
+> please don't use that driver, it'S not maintained anymore either.
+
+The driver is maintained.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
