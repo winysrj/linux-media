@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.24])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1Kh3T5-0003sX-0a
-	for linux-dvb@linuxtv.org; Sat, 20 Sep 2008 16:29:51 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so252120eya.17
-	for <linux-dvb@linuxtv.org>; Sat, 20 Sep 2008 07:29:47 -0700 (PDT)
-Message-ID: <412bdbff0809200729q551ece09u98fb2c22f680188b@mail.gmail.com>
-Date: Sat, 20 Sep 2008 10:29:47 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Tharsan Bhuvanendran" <me@tharsan.com>
-In-Reply-To: <c64bf6860809200004o1970a939jaa51e543de2ec594@mail.gmail.com>
+Received: from n68.bullet.mail.sp1.yahoo.com ([98.136.44.44])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1Ka9gp-0000Ag-3Q
+	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 15:43:32 +0200
+Date: Mon, 1 Sep 2008 06:42:54 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org, Jiri Jansky <janskj1@fel.cvut.cz>
+In-Reply-To: <48BBDFE0.5080000@fel.cvut.cz>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <c64bf6860809200004o1970a939jaa51e543de2ec594@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Support for Pinnacle PCTV mini stick (USB TV Tuner)
-	80e
+Message-ID: <125110.94356.qm@web46106.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] USB Opera DVB-S 1 and diseqc switch
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,38 +24,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello Tharsan,
+--- On Mon, 9/1/08, Jiri Jansky <janskj1@fel.cvut.cz> wrote:
 
-2008/9/20 Tharsan Bhuvanendran <me@tharsan.com>:
-> Hi,
->
-> At the moment, there doesn't seem to be any dvb support for the Pinnacle
-> PCTV HD mini stick (USB TV Tuner).
-> The model is 80e.  This appears to be a new model, released about a month
-> ago.
->
-> The Pinnacle product page is here:
-> http://pinnaclesys.com/PublicSite/us/Products/Consumer+Products/PCTV+Tuners/PCTV+Digital+PVR+(DVB-S_DVB-T)/HD+mini+Stick
+> and it run well, but I'm not able switch to different input in my 
+> 4-input diseqc switch. Like driver didn't support it at all.
+> Does anybody run diseqc switch or motor with this usb card?
 
-I just finished support for the Pro and Non-Pro versions a couple of
-weeks ago, but judging by the different form factor, I would suspect
-this is a different hardware design.
+Ahoj,
 
-The most useful thing you could do would be to pop the device open and
-take digital photos of the PCBs, and create a page on the LInuxTV DVB
-Wiki for the device.
+I have one of these cards, and it works fine, connected to a
+multiswitch (select from four sat positions, incl. lo/hi hor/vert)
 
-Once we know what components it contains, that will give us some idea
-how much work will be required.
+I don't remember if I tried it with a normal 2/1 or 4/1
+DiSEqC switch; I'll add it to my list of things to check.
 
-Regards,
+Do you know what level DiSEqC your 4/1 switch is (2.0, 1.something)?
 
-Devin
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+barry bouwsma
+
+
+      
+
 
 _______________________________________________
 linux-dvb mailing list
