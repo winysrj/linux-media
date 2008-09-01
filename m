@@ -1,25 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KhvgJ-0006GO-Fn
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 02:23:29 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7M00GG7H1JSG30@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 22 Sep 2008 20:22:32 -0400 (EDT)
-Date: Mon, 22 Sep 2008 20:22:31 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <007d01c91d0a$beb8cb70$3c2a6250$@net>
-To: James Evans <jrevans1@earthlink.net>
-Message-id: <48D836C7.7060901@linuxtv.org>
-MIME-version: 1.0
-References: <002001c91c65$939d8b60$bad8a220$@net>
-	<48D71852.5090705@linuxtv.org> <002701c91c6b$6d310fa0$47932ee0$@net>
-	<48D726C9.3030605@linuxtv.org> <007d01c91d0a$beb8cb70$3c2a6250$@net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVICO FusionHDTV5 Express Support
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+5d1aee805689a037d2dc+1835+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1KaG22-0002I0-9V
+	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 22:29:50 +0200
+Date: Mon, 1 Sep 2008 17:28:43 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jelle De Loecker <skerit@kipdola.com>
+Message-ID: <20080901172843.49387677@mchehab.chehab.org>
+In-Reply-To: <48BC253A.7050409@kipdola.com>
+References: <200809010005.28716.liplianin@tut.by>
+	<48BB0FE7.2010109@linuxtv.org>
+	<a3ef07920809010938h22f71abfgb633ba9f06c2d41e@mail.gmail.com>
+	<48BC253A.7050409@kipdola.com>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>, lucian orasanu <o_lucian@yahoo.com>
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,143 +29,96 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-James Evans wrote:
->> James Evans wrote:
->>> Thank you for such a quick response.
->>>
->>>> Debug looks OK. If you have another board where you know for certain
->>>> that tuning a specific 8VSB frequency works, then tuning this same
->>>> frequency with the LG should probably work reliably.
->>> The installed Airstar HD5000 cards both have an LG tuner and can tune perfectly fine.
->> OK, pick a single frequency and focus on always tuning that for the time
->> being with the Express card.
-> 
-> HD5000 Results:
-> % /usr/bin/azap -a 1 -r -c ~/.azap/channels.conf "KTTV DT" 
-> using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
-> tuning to 779028615 Hz
-> video pid 0x0031, audio pid 0x0034
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-> status 1e | signal c6ce | snr 1b2e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1e | signal e4e6 | snr 1f4b | ber 00000000 | unc 0000003d | FE_HAS_LOCK
-> status 1e | signal e1b8 | snr 1edc | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1e | signal e86e | snr 1fc7 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1e | signal e86e | snr 1fc7 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1e | signal daef | snr 1dee | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> ^C
-> 
-> FusionHDTV5 Results:
-> % /usr/bin/azap -a 0 -r -c ~/.azap/channels.conf "KTTV DT" 
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> tuning to 779028615 Hz
-> video pid 0x0031, audio pid 0x0034
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-> status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-> ^C
-> 
->>>> In terms of the tuner-to-demod, are you confident that the I/F is set
->>>> correctly? (And inversion for that matter?)
->>> I am not sure I understand the above question.  How would I go about setting up the interface for
->> the tuner-to-demod?
->>
->> /me checks the code and thinks it should be working fine.
->>
->> Specifically, please list here the frequencies that lock reliably for
->> you on 8VSB with other boards. I've seen issues in the past (mainly due
->> to driver issues) where channels tables work reliably for one tuner but
->> not for another.
-> 
-> Here is the working table that the HD5000 boards are using.
-> 
-> KFLA-LD:183028615:8VSB:4128:4129:1
-> HCCN:183028615:8VSB:4130:4131:2
-> CVTV:183028615:8VSB:4640:4641:3
-> WSTV:183028615:8VSB:80:89:4
-> KTBN-DT 1:527028615:8VSB:49:52:3
-> KTBN-DT 2:527028615:8VSB:65:68:4
-> KTBN-DT 3:527028615:8VSB:81:84:5
-> KTBN-DT 4:527028615:8VSB:97:100:6
-> KTBN-DT 5:527028615:8VSB:113:116:7
-> TeleFutura:563028615:8VSB:49:52:3
-> KTLA-DT:575028615:8VSB:49:52:3
-> KDOC-HD:581028615:8VSB:49:52:1
-> KDOCSD1:581028615:8VSB:65:68:2
-> [0004]:581028615:8VSB:81:84:4
-> KDOCSD2:581028615:8VSB:81:84:3
-> Univision:599028615:8VSB:49:52:3
-> NBC-4LA:605028615:8VSB:49:52:3
-> WX-Plus:605028615:8VSB:65:68:4
-> NewsRaw:605028615:8VSB:81:84:5
-> ION:617028615:8VSB:49:52:3
-> KPXN qubo:617028615:8VSB:65:68:4
-> IONLife:617028615:8VSB:81:84:5
-> Worship:617028615:8VSB:97:100:6
-> KVEA-HD:623028615:8VSB:49:52:3
-> KVEA-SD:623028615:8VSB:65:68:4
-> KLCS-DT:635028615:8VSB:49:52:2
-> KLCS-DT:635028615:8VSB:65:68:3
-> KLCS-DT:635028615:8VSB:81:84:4
-> KLCS-DT:635028615:8VSB:97:100:5
-> [0006]:635028615:8VSB:113:116:6
-> KWHY-HD:641028615:8VSB:49:52:3
-> KWHY-SD:641028615:8VSB:65:68:4
-> KCAL-DT:647028615:8VSB:49:52:1
-> KAZA-DT:671028615:8VSB:49:52:3
-> KAZA-TV:671028615:8VSB:0:0:65535
-> KOCE-HD:677028615:8VSB:49:52:3
-> KOCE-OC:677028615:8VSB:65:68:4
-> KOCE-SD:677028615:8VSB:81:84:5
-> Daystar:677028615:8VSB:97:100:6
-> KOCE-TV:677028615:8VSB:0:0:65535
-> KJLA-DT:683028615:8VSB:49:52:3
-> KXLA-DT:683028615:8VSB:65:68:4
-> KVMD-DT:683028615:8VSB:81:84:5
-> LATV:683028615:8VSB:97:100:6
-> KXLA-DT:695028615:8VSB:49:52:3
-> KVMD-DT:695028615:8VSB:65:68:4
-> KABC-DT:707028615:8VSB:49:52:1
-> KABC-SD:707028615:8VSB:65:68:2
-> KABC-WN:707028615:8VSB:81:84:3
-> KCET-HD:743028615:8VSB:49:52:1
-> KCET-OC:743028615:8VSB:97:100:2
-> KCET-Vm:743028615:8VSB:81:84:3
-> KCET-W:743028615:8VSB:65:68:4
-> [0009]:743028615:8VSB:0:0:9
-> [000a]:743028615:8VSB:0:0:10
-> KCBS-DT:749028615:8VSB:49:52:1
-> LA18.1:755028615:8VSB:49:52:1
-> LA18.8:755028615:8VSB:161:164:8
-> LA18.5:755028615:8VSB:113:116:5
-> LA18.7:755028615:8VSB:145:148:7
-> LA18.3:755028615:8VSB:81:84:3
-> LA18.6:755028615:8VSB:129:132:6
-> LA18:755028615:8VSB:0:0:65535
-> KTTV DT:779028615:8VSB:49:52:3
-> KCOP DT:785028615:8VSB:49:52:3
-> KRCA-DT:797028615:8VSB:49:52:1
-> KRCA-DT:797028615:8VSB:65:68:2
-> 
-> Thanks again for the help!
-> --James Evans
-> 
+Hi all,
 
-Add this:
+Thanks for your feedback.
 
-test:779000000:8VSB:49:52:3
+All of us are waiting for a long time for support for the new DTV standards.
 
-And try azap -r test
+The idea is not to postpone it, but to be sure that the API changes will be
+flexible enough. Once an API change goes to kernel, It may take a large amount
+of time for it to be removed. So extra care is taken on patches adding a
+new kernel to userspace API.
 
-Better?
+I dunno if you are aware of how kernel development cycles are. 
 
-- Steve
+There is a short period of 2 weeks for merging API changes and driver
+improvements. This starts when a new kernel is released. After that 2 weeks
+period, a bug fix period starts. We are currently under bug fix period for
+kernel 2.6.27, at release candidate 5 (-rc5).
+
+So, the minimum Kernel release that we may expect to add support for other
+protocols is 2.6.28.
+
+In general, a kernel bug fix cycle goes up to -rc8 or -rc9, being one rc
+release by week. So, 2.6.27 kernel is likely to be released sometime after the
+end of Plumbers conf. 
+
+So, there's no gain of merging the API changes and the corresponding DVB-S2
+drivers now.
+
+Since several active Linuxtv maintainers will be at the conf for the Video
+Input Infrastructure Miniconf, this will give us a perfect opportunity for
+working together, carefully examining the technical details of both proposals,
+and finish whatever is needed for the addition of API changes as soon as
+possible and submit feedbacks to the ML.
+
+So, it is very likely that we'll add support for those protocols for 2.6.28
+inclusion.
+
+Thanks,
+Mauro.
+
+
+On Mon, 01 Sep 2008 19:24:10 +0200
+Jelle De Loecker <skerit@kipdola.com> wrote:
+
+> You said everything that needed to be said, I agree with you 100 %
+> 
+> I vote for the merging of multiproto.
+
+
+> 
+> /Met vriendelijke groeten,/
+> 
+> *Jelle De Loecker*
+> Kipdola Studios - Tomberg
+> 
+> 
+> VDR User schreef:
+> > After some consideration, I can not ack this new api proposal.  I
+> > believe a lot of the support for it is based in people not knowing the
+> > current state of multiproto and thinking this might be the only path
+> > to new needed drivers.  It hasn't helped that there has been some
+> > misinformation spread such as the binary compatibility and so on.
+> > There is a current pull request for multiproto right now and if done,
+> > drivers could start being developed right now.  In the end that's what
+> > matters to users, especially those of us who've been patiently waiting
+> > several months or even years.
+> >
+> > To my knowledge the multiproto api is very robust and can be easily
+> > updated to accommodate new modulations, etc. From a technical
+> > standpoint, I can't justify disregarding all the work thats been done
+> > on multiproto, especially when it's finally ready to go.  In Mauro's
+> > own response to the pull request, he admits the multiproto code is
+> > complete.  Unless someone can provide legitimate reasons why we should
+> > wait for yet another api to be written when multiproto is (finally)
+> > ready to be pulled now, I'm afraid I can't support the idea.
+> >
+> > People have been waiting to move forward with a new api for a long
+> > time and it seems we can with multiproto right now, today.  I don't
+> > agree that makes a very strong case of too little, too late.  Whether
+> > it's openly admitted or not, I think we're mostly all aware that there
+> > is some personal politics involved in this as well, which is
+> > unfortunate.  Hopefully people will be mature enough to put that aside
+> > and do what's best for us, the linux dvb user base, as a whole.  After
+> > learning that multiproto is ready and there's no technical reason
+> > against it, I wonder how many people still choose to wait for another
+> > api to be written..?
+> >
+> > Best regards guys!
+> >   
+
 
 _______________________________________________
 linux-dvb mailing list
