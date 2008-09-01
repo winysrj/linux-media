@@ -1,15 +1,34 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.devoteam.com ([213.190.82.43])
+Received: from smtp239.poczta.interia.pl ([217.74.64.239])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Jens.Peder.Terjesen@devoteam.com>)
-	id 1KkG3L-0007PG-IF
-	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 12:32:32 +0200
+	(envelope-from <mincho@interia.pl>) id 1Ka663-00049Z-4t
+	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 11:53:22 +0200
+Received: from poczta.interia.pl (mi05.te.interia.pl [10.217.12.5])
+	by smtp239.poczta.interia.pl (INTERIA.PL) with ESMTP id 3B239D2591
+	for <linux-dvb@linuxtv.org>; Mon,  1 Sep 2008 11:53:13 +0200 (CEST)
+Received: from repro.in.papagayo.com.pl (host-05.papagayo.com.pl
+	[213.134.141.76])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by poczta.interia.pl (INTERIA.PL) with ESMTP id E6595BE18FC
+	for <linux-dvb@linuxtv.org>; Mon,  1 Sep 2008 11:53:12 +0200 (CEST)
+Message-ID: <48BBBB77.9000303@interia.pl>
+Date: Mon, 01 Sep 2008 11:52:55 +0200
+From: Wieslaw Kierbedz <mincho@interia.pl>
 MIME-Version: 1.0
-From: Jens.Peder.Terjesen@devoteam.com
 To: linux-dvb@linuxtv.org
-Date: Mon, 29 Sep 2008 12:31:22 +0200
-Message-ID: <OFD920AEE2.261195E1-ONC12574D3.0039CDF0-C12574D3.0039CDF6@devoteam.com>
-Subject: Re: [linux-dvb] HVR-4000 and analogue tv
+References: <48B59989.4080004@interia.pl>	
+	<bb72339d0808282125g59a24920o6af8b41ccfa1f15c@mail.gmail.com>	
+	<48B7AB83.90802@farba.eu.org>	
+	<bb72339d0808290347l7732b608idaabad895c2488d7@mail.gmail.com>	
+	<48B82D09.60200@interia.pl>	
+	<bb72339d0808291856p487a3fc2p8333e3f16d135a6e@mail.gmail.com>	
+	<48B91E1B.8090408@interia.pl>	
+	<bb72339d0808300714k3393188en77f1fab735936e03@mail.gmail.com>	
+	<48BBA297.5000206@interia.pl>
+	<80bd11420809010128s4f93c666r988da057e226f1c@mail.gmail.com>
+In-Reply-To: <80bd11420809010128s4f93c666r988da057e226f1c@mail.gmail.com>
+Subject: Re: [linux-dvb] [OT] Re: Aver saa7135 cards.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,66 +36,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="iso-8859-2"
 Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Krzysztof Burghardt nagli:
+> 2008/9/1 Wieslaw Kierbedz <mincho@interia.pl>:
+>   =
+
+>> By the way.
+>> I thought about MPEG4/H.264 section on wiki pages. In Poland DVB-T+ is
+>> most used standard.
+>>     =
+
+>
+> AFAIN there is no _official_ directive or standard for DVB in Poland.
+> There is a only a recommendation form UKE [1]. In short, minimal
+> requirements are DVB-T (v1), MPEG-4 AVC (aka H.264) and DolbyDigital+
+> (EAC3).
+>
+>   =
+
+There is a decision.
+Due to number of possible programs and frequencies limit polish DBT
+stations will work with H.264.
+Most of test transmiters changed standard from mpeg2 to h264 just in
+this summer.
+http://www.digital-tv.pl/index.php?option=3Dcom_content&task=3Dview&id=3D23=
+5&Itemid=3D32
+and (your link):
+http://www.kigeit.org.pl/stirc/pliki/20080403_parametry_techniczne_DTT.htm
+"4. Standard kodowania sygna=B3u wizji:
+     tylko H.264/AVC".
+Only H.264/AVC.
+-- =
+
+WK
 
 
------linux-dvb-bounces@linuxtv.org wrote: -----
-
->To:=A0Jens.Peder.Terjesen@devoteam.com
->From:=A0Anders=A0Semb=A0Hermansen=A0<anders@ginandtonic.no>
->Sent=A0by:=A0linux-dvb-bounces@linuxtv.org
->Date:=A029-09-2008=A011:40
->cc:=A0linux-dvb@linuxtv.org
->Subject:=A0Re:=A0[linux-dvb]=A0HVR-4000=A0and=A0analogue=A0tv
->
->Jens.Peder.Terjesen@devoteam.com=A0wrote:
->> I thought that the analogue and DVB-T on this card was quite
->separate
->>=A0parts?
->
->I=A0think=A0so=A0yes.
->
->> The DVB-T broadcast has probably already begun. At least it has in
->my=A0part
->>=A0of=A0Norway=A0where=A0the=A0official=A0date=A0is=A0also=A0November=A01=
-1th.
->
->I used w_scan yesterday and it returned results. I used scan to get a
->
->channels.conf which looks ok (don't have it here, I'm at work). But I
->
->could not manage to get it to play. I don't know if this is because
->of
->software=A0not=A0supporting=A0frontend1=A0(DVB-T=A0is=A0on
->/dev/dvb/adapter0/frontend1),=A0frontend0=A0is=A0DVB-S=A0or=A0if=A0it=A0do=
-es=A0not
->support=A0the=A0digital=A0standard=A0in=A0norway=A0yet.=A0I=A0tried=A0to=
-=A0play=A0using
->mplayer directly, and dvbstream with a pipe to mplayer (seems mplayer
->
->does=A0not=A0cope=A0with=A0different=A0frontend).
->
->Any=A0suggestion=A0on=A0how=A0to=A0go=A0forward=A0from=A0here=A0is=A0appre=
-ceated.
-
-This is about as far as I have come too.
-
-I know that Kaffeine handles multiple frontends, but not sure about the
-support for Norwegian DVB-T.
-When I scanned with Kaffeine a few weeks ago it found only one of 24
-channels, but there was no picture or sound. Not sure if this was because
-the one channel it found is one of the encrypted ones.
-
-I later patched and compiled DVB-apps, and this version of scan seemed to
-be outputting correct information, but I am not sure if this can be used by
-Kaffeine.
-
-Jens
+----------------------------------------------------------------------
+>> Sprawdz, czy do siebie pasujecie!
+>> http://link.interia.pl/f1eea
 
 
 _______________________________________________
