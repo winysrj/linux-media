@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Steven Toth <stoth@linuxtv.org>
-In-Reply-To: <48C81465.9060709@linuxtv.org>
-References: <48B8400A.9030409@linuxtv.org> <48C7CDCF.9090300@hauppauge.com>
-	<200809101710.19695.hftom@free.fr>
-	<200809101733.29910.janne-dvb@grunau.be>
-	<48C81465.9060709@linuxtv.org>
-Date: Thu, 11 Sep 2008 00:46:41 +0200
-Message-Id: <1221086801.2663.40.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stev391@email.com>) id 1KaHdJ-0005Xo-9d
+	for linux-dvb@linuxtv.org; Tue, 02 Sep 2008 00:12:27 +0200
+Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
+	[192.168.8.242])
+	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
+	C2A9618001D5
+	for <linux-dvb@linuxtv.org>; Mon,  1 Sep 2008 22:11:49 +0000 (GMT)
+Content-Disposition: inline
+MIME-Version: 1.0
+From: stev391@email.com
+To: "Laurence Huizinga" <lhuizinga@iinet.net.au>
+Date: Tue, 2 Sep 2008 08:11:49 +1000
+Message-Id: <20080901221149.B913547808F@ws1-5.us4.outblaze.com>
+Cc: linux dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Compro DVB T300 Card support under ArchLinux
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,74 +23,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkgU3RldmUsCgpBbSBNaXR0d29jaCwgZGVuIDEwLjA5LjIwMDgsIDE0OjM5IC0wNDAwIHNjaHJp
-ZWIgU3RldmVuIFRvdGg6Cj4gSmFubmUgR3J1bmF1IHdyb3RlOgo+ID4gT24gV2VkbmVzZGF5IDEw
-IFNlcHRlbWJlciAyMDA4IDE3OjEwOjE5IENocmlzdG9waGUgVGhvbW1lcmV0IHdyb3RlOgo+ID4+
-IExlIFdlZG5lc2RheSAxMCBTZXB0ZW1iZXIgMjAwOCAxNTozODoyMyBTdGV2ZW4gVG90aCwgdm91
-cyBhdmV6IMOpY3JpdCA6Cj4gPj4+PiBJcyB0aGlzIGNhcmQgYWJsZSB0byBkZWxpdmVyIGJvdGgg
-UyBhbmQgVCBhdCB0aGUgc2FtZSB0aW1lPwo+ID4+PiBObywgdGhlIGhhcmR3YXJlIGNhbiBkbyBT
-L1MyIG9yIFQuCj4gPj4+Cj4gPj4+IFRoZSBkcml2ZXIgaW4gdGhlIFMyQVBJIHRyZWUgb25seSBo
-YXMgUy9TMiBlbmFibGVkIChmb3IgdGhlIHRpbWUKPiA+Pj4gYmVpbmcpLgo+ID4+IFNvLCBtYXli
-ZSB3ZSBoYXZlIHRvIHRoaW5rIGEgYml0IGFib3V0IGhvdyB0byBhZGQgc3VwcG9ydCBmb3IgdGhp
-cwo+ID4+IGtpbmQgb2YgZGV2aWNlLgo+ID4+Cj4gPj4gTWF5YmUgYSBzb2x1dGlvbiBjb3VsZCBi
-ZSB0byBoYXZlIDoKPiA+PiAtIGFkYXB0ZXIwL2Zyb250ZW5kMCAtPiBTL1MyIHR1bmVyCj4gPj4g
-LSBhZGFwdGVyMC9mcm9udGVuZDEgLT4gVCB0dW5lcgo+ID4+Cj4gPj4gU28gYXBwbGljYXRpb25z
-IGNvdWxkIGtub3cgdGhhdCB0aGVzZSAyIGZyb250ZW5kcyBhcmUgZXhjbHVzaXZlLgo+ID4+IFRo
-YXQgd291bGQgbm90IHJlcXVpcmUgYW55IEFQSSBjaGFuZ2UsIGJ1dCB3b3VsZCBoYXZlIHRvIGJl
-IGEgcnVsZQo+ID4+IGZvbGxvd2VkIGJ5IGFsbCBkcml2ZXJzLgo+ID4gCj4gPiBUaGUgZXhwZXJp
-bWVudGFsIEhWUjQwMDAgZG9lcyB0aGlzIGFscmVhZHkgYW5kIHdlIGhhdmUgYXQgbGVhc3QgaW5p
-dGlhbCAKPiA+IHN1cHBvcnQgZm9yIHRoYXQgaW4gbXl0aHR2Lgo+IAo+IFllcywgSSBiZWxpZXZl
-IGl0IHdhcyBhZGRlZCBzb21ldGltZSBhZ28uCj4gCj4gPiAKPiA+IEkgZG9uJ3QgdGhpbmsgdGhp
-cyB3YXMgdGhlIGludGVuZGVkIHVzZSBvZiBtdWx0aXBsZSBmcm9udGVuZHMgaW4gdGhlIERWQiAK
-PiA+IEFQSSBidXQgQUZBSUsgYWxsIGR1YWwgdHVuZXJzIGRyaXZlcnMgdXNlcyBtdWx0aXBsZSBh
-ZGFwdGVycy4KPiAKPiBJdCBhY3R1YWxseSB3YXMgaW50ZW5kZWQgZm9yIHVzZSwgaXQgY2FtZSBm
-cm9tIHBhdGNoZXMgYmFzZWQgb24gCj4gbGludXh0di5vcmcvaGcvfnN0b3RoL2h2cjMwMDAgMiB5
-ZWFycyBhZ28sIGZvciB0aGlzIGV4YWN0IHJlYXNvbi4KPiAKPiBUaGUgaWRlYSBkaWVkIG9uIHRo
-ZSB2aW5lLCBleGNlcHQgZm9yIGEgZmV3IGRpZS1oYXJkIHBlb3BsZSB0byAKPiBtYWludGFpbmVk
-IHRoZWlyIG93biBzcGluLW9mZi9kZXJpdmF0aXZlLgo+IAo+ID4gCj4gPiBJIGxpa2UgdGhpcyBh
-cHByb2FjaC4KPiAKPiBTbyBkbyBJLCBpdCBzb2x2ZXMgYSBsb3Qgb2YgcHJvYmxlbXMgd2l0aCBt
-dWx0aXBsZSBmcm9udGVuZHMgb24gYSBzaW5nbGUgCj4gdHJhbnNwb3J0IGJ1cy4gQXQgdGhlIHRp
-bWUgSSBkaWQgbm90IHBhdGNoIHRoZSA3MTM0IGZyYW1ld29yayB3aXRoIHRoZSAKPiBtaW5vciBj
-aGFuZ2VzIGZvciBpdCB0byBjb21wbHksIGJ1dCBpZiB0aGF0J3MgZG9uZSB0aGVuIHRoZSA2LWlu
-LTEgNzEzNCAKPiBEdWFsIERWQi1TL1QvQW5hbG9nIGNhcmQgd291bGQgYWxzbyBiZW5lZml0IGdy
-ZWF0bHkuIFJpZ2h0IG5vdyB0aGF0IGNhcmQgCj4gb25seSBzdXBwb3J0cyBzb21lIGZ1bmN0aW9u
-cyBpbiB0aGUga2VybmVsIChJSVJDKS4KCmp1c3QgYSBub3RlIG9uIGl0LgoKPiBJdCdzIGJlZW4g
-YSB2ZXJ5IGxvbmcgdGltZSBidXQgdGhpcyB3YXMgYWxzbyBtZW50aW9uZWQgb24gdGhlIG1haWxp
-bmcgbGlzdC4KCkFsbCBlZmZvcnRzIGFyZSB3ZWxjb21lLiAKCkl0IGlzIHNhZCwgdGhhdCBpdCBu
-ZWVkZWQgdGhhdCBzdGVwIHRvIGNvbWUgdXAgd2l0aCBuZXcgc29sdXRpb25zLAp3aGVyZWFzIG11
-bHRpcHJvdG8gY291bGQgYmUgaW4gdGhlIGtlcm5lbCBzaW5jZSBsb25nLCBidXQgb25seSBub3cg
-aXMKYWxsb3dlZCB0byBiZSB0aGVyZSB0aGUgZmlyc3QgdGltZS4KCldlIGhhdmUgYWdhaW4gZm9y
-Y2VkIGNvbXBldGl0aW9uIGluc3RlYWQgb2YgY29vcGVyYXRpb24gYW5kIEkgZG9uJ3QgbGlrZQpz
-dWNoLCBidXQgSSBrbm93IHlvdSBoYWQgbm8gb3RoZXIgY2hvaWNlLiBJJ20gc3RpbGwgbmFpdmUg
-ZW5vdWdoIHRvIGhvcGUKdG8gcmVzY3VlIGFzIG11Y2ggYXMgcG9zc2libGUgZnJvbSBib3RoIGVm
-Zm9ydHMgLi4uCgpGb3IgdGhhdCA2LWluLTEgb25lIG9uIHRoZSBzYWE3MTM0LCBzaW5jZSBpdCBo
-YXMgdHdvIGRpZmZlcmVudCBQQ0kKYnJpZGdlcyBvbiB0aGF0IHNwZWNpYWwgUENJIHNsb3QsIGl0
-IGFyZSBpbiBmYWN0IG9ubHkgdHdvIDMtaW4tMSwgZXhjZXB0CmZvciB0aGUgc2hhcmVkIExOQiBz
-dXBwbHkgd2l0aCBpdHMgaXNzdWVzIGZvciB0aGUgc2Vjb25kIERWQi1TIGRldmljZSwKaXQgaXMg
-cmVhbGx5IGZhaXJseSBzaW1wbGUgdG8gaGFuZGxlLgoKWW91IGp1c3QgaGF2ZSB0byBjaG9vc2Ug
-d2hhdCB5b3UgbGlrZSB0byBoYXZlLCB0d28gRFZCLVMsIHR3byBEVkItVApmcm9udGVuZHMgb3Ig
-YSBtaXggb2YgaXQgYW5kIHRoYXQgaXMgYWxsIGFuZCBrYWZmZWluZSB3aWxsIGRlYWwgd2l0aCBp
-dC4KClRoZSBvbmx5IHJlYWwgZGFuZ2VyIGlzIGFuYWxvZyBpbnB1dHMgaWYgRFZCIHVzZXMgYWxy
-ZWFkeSB0aGUgZG1hCmVuZ2luZXMuIE9ubHkgcGFja2VkIGZvcm1hdHMgY2FuIGNvbWUgdGhyb3Vn
-aCB0aGVuLCBwbGFuYXIgY2FuIHJlYWxseQpjYXVzZSBjb3JydXB0aW9uIGFuZCB0aGVyZSBpcyBu
-byBwcm90ZWN0aW9uIGFnYWluc3QgaXQuCgpJbiB0aGUgY3VycmVudCBwb29yLCBidXQgZnVsbHkg
-dXNhYmxlIHNoYXBlLCBvbiBEVkItVCBhbmQgRFZCLVMgeW91IGNhbgpkbyBub3RoaW5nIHdyb25n
-IGFuZCBqdXN0IHVzZSBhIHdvcmthcm91bmQsIGxvYWRpbmcgYSBjb21wYXRpYmxlIERWQi1UCmNh
-cmQsIHRvIGdldCBhbGwgcG9zc2libGUgdXNhZ2UgY29uZGl0aW9ucy4KCkl0IGhhcyBhIG1hbnVh
-bCBzd2l0Y2ggZm9yIHRoZSB0d28gdGRhODI3NWFjMSBoeWJyaWQgdHVuZXJzLCBzbyB5b3UKZGVj
-aWRlLCBpZiB5b3Ugd2FudCBEVkItVCBvciBhbmFsb2cgUkYgbG9vcHRocm91Z2ggdG8gYm90aCBv
-ciBmZWVkIGEKZGlmZmVyZW50IHNpZ25hbCBvbiB0aGUgc2Vjb25kLgoKVGhlIGVuYWJsZWQgRFZC
-LVMgbG9vcHRocm91Z2ggY2FuIGJlIHVzZWQgb24gYW4gZXh0ZXJuYWwgcmVjZWl2ZXIsCmlmIHdh
-bnRlZC4KCkl0IGlzIHNpbXBsZXIgdGhlbiBvbiBtJCBzdHVmZiwgc2luY2UgZnVsbHkgdHJhbnNw
-YXJlbnQgYW5kIHRvdGFsbHkgc2FmZQphbmQgZnVsbHkgZnVuY3Rpb25hbCwgZXhjZXB0IGZvciBz
-d2l0Y2hpbmcgdG8gMTNWb2x0cyBvbiB0aGUgc2Vjb25kIExOQiwKYnV0IHRoZXkgc2VlbSB0byBo
-YXZlIGdpdmVuIHVwIG9uIGl0IG9uIHZpc3RhIHRvby4KCkNoZWVycywKSGVybWFubgoKCgoKCgoK
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1k
-dmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYu
-b3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+> Hi,
+> Was wondering if anyone knew what was necessary to get a compro dvb t-300
+> card working with Freevo, with Archlinux as a base.  Do i need to download
+> firmware etc.  My LC17 Box will be running at 64-bit on an intel 945 board
+> with p4-D 3.0Ghz.  Have only installed Archlinux as yet.
+> 
+> Is there support for this card in the latest kernels (and is there
+> anectdotal evidence of it working in Freevo or Myth if I have to, or
+> should i look at another (newer) card)?  Obviously i will really only be
+> interested in the digital tv tuner part of this hybrid card, and the video
+> capture function. Cheers,
+> Larry
+
+Larry,
+
+Is this the card, you are referring to:
+http://www.comprousa.com/en/product/e300/e300.html
+
+If so at the moment I'm writing patches that should add support for this card.
+
+Could you please read this and complete the steps that I have listed for your card:
+http://linuxtv.org/pipermail/linux-dvb/2008-August/028090.html
+
+If the details generated are similar to:
+http://linuxtv.org/wiki/index.php/Compro_VideoMate_E650
+Or
+http://linuxtv.org/wiki/index.php/Compro_VideoMate_E800F
+You can try the other links below to see if it will work.
+
+Read (At the bottom, or you can catch up on the conversation, note that the main v4l-dvb tree should now be used instead of the cx23885-leadtek tree):
+http://linuxtv.org/pipermail/linux-dvb/2008-August/028233.html
+And do the steps listed, please provide the requested feedback to me.
+
+Then if this does not work read this one (At the bottom, or you can catch up on the conversation):
+http://linuxtv.org/pipermail/linux-dvb/2008-August/028341.html
+And same deal the feedback would be great.
+
+As I do not own any of the cards referenced above the previous links provide me with the required information to get the DVB-T side of the card working.
+
+At least one person has the E800 working in MythTV (the DVB-T is the same on both cards) so I do not see any issues. I'm not familiar with Arch Linux or Freevo, but give it a try.
+
+Thanks, for your time.
+
+Stephen.
+
+
+
+
+-- 
+Nothing says Labor Day like 500hp of American muscle
+Visit OnCars.com today.
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
