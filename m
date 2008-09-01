@@ -1,27 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m82JhKco018605
-	for <video4linux-list@redhat.com>; Tue, 2 Sep 2008 15:43:21 -0400
-Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m82Jh8ss003183
-	for <video4linux-list@redhat.com>; Tue, 2 Sep 2008 15:43:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Harvey Harrison <harvey.harrison@gmail.com>
-Date: Tue, 2 Sep 2008 21:42:04 +0200
-References: <1218324197.24441.20.camel@brick> <1220380552.2137.3.camel@brick>
-	<1220381401.2137.6.camel@brick>
-In-Reply-To: <1220381401.2137.6.camel@brick>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m81IH1pD014124
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 14:17:01 -0400
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m81IGmwN020310
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 14:16:49 -0400
+Message-ID: <48BC3447.1060804@hhs.nl>
+Date: Mon, 01 Sep 2008 20:28:23 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200809022142.04578.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [BUILDFIX] byteorder: remove direct byteorder includes
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: multipart/mixed; boundary="------------070804040601070202060609"
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: PATCH: Priority=high: luca-drivers-parent-fix.patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,138 +24,96 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Harvey,
+This is a multi-part message in MIME format.
+--------------070804040601070202060609
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Tuesday 02 September 2008 20:50:00 Harvey Harrison wrote:
-> All of the functionality has been collected in linux/swab.h
-> 
-> Needed to prevent build brakage as arches start moving over
-> to the new byteorder implementation.
+Hi Mauro,
 
-1) With this patch the i686, x86_64 and powerpc64 build fail on 
-av7110.c, as I said in my original mail. Do you have additional patches 
-that address this?
+I didn't know through which tree to send this as Luca's drivers are 
+unmaintained so I'm sending this directly to you. I would like to see this make 
+2.6.27 as without this any cams using Luca's drivers do not work out of the box 
+(they require a manual chmod to allow non root access after plugging them in).
 
-2) For the cx18, ivtv and vpx3220 please just remove the swabb.h 
-include: it's either not really needed or included through another 
-include. The v4l-dvb master repository has been updated to just remove 
-these linux/byteorder/swabb.h includes in these three sources.
+###
+
+While doing some testing using Luca Risolia's sonix driver I noticed that
+the video device did not get ACL's set to allow access by locally logged in
+users, nor does it show up as a video device in lshal, causing cheese to not
+see it.
+
+This turns out to be caused by all of Luca Risolia's drivers not setting
+the parent member of the video_device struct. This patch fixes this.
+
+Priority: high
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
 
 Regards,
 
-	Hans
+Hans
 
-> Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-> ---
-> Sorry, I only sent you half-a-patch in my last message, this is the
-> full patch needed.
-> 
->  drivers/media/dvb/ttpci/av7110.c       |    2 +-
->  drivers/media/video/cx18/cx18-driver.h |    2 +-
->  drivers/media/video/ivtv/ivtv-driver.h |    2 +-
->  drivers/media/video/vpx3220.c          |    2 +-
->  kernel/rcupreempt.c                    |    2 +-
->  tests/rcutorture.c                     |    2 +-
->  6 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/ttpci/av7110.c
-> b/drivers/media/dvb/ttpci/av7110.c
-> index c0a1746..792a175 100644
-> --- a/drivers/media/dvb/ttpci/av7110.c
-> +++ b/drivers/media/dvb/ttpci/av7110.c
-> @@ -36,7 +36,7 @@
->  #include <linux/fs.h>
->  #include <linux/timer.h>
->  #include <linux/poll.h>
-> -#include <linux/byteorder/swabb.h>
-> +#include <linux/swab.h>
->  #include <linux/smp_lock.h>
->  
->  #include <linux/kernel.h>
-> diff --git a/drivers/media/video/cx18/cx18-driver.h
-> b/drivers/media/video/cx18/cx18-driver.h
-> index 2635989..8787a5f 100644
-> --- a/drivers/media/video/cx18/cx18-driver.h
-> +++ b/drivers/media/video/cx18/cx18-driver.h
-> @@ -38,7 +38,7 @@
->  #include <linux/i2c-algo-bit.h>
->  #include <linux/list.h>
->  #include <linux/unistd.h>
-> -#include <linux/byteorder/swab.h>
-> +#include <linux/swab.h>
->  #include <linux/pagemap.h>
->  #include <linux/workqueue.h>
->  #include <linux/mutex.h>
-> diff --git a/drivers/media/video/ivtv/ivtv-driver.h
-> b/drivers/media/video/ivtv/ivtv-driver.h
-> index 2ceb522..2213473 100644
-> --- a/drivers/media/video/ivtv/ivtv-driver.h
-> +++ b/drivers/media/video/ivtv/ivtv-driver.h
-> @@ -49,7 +49,7 @@
->  #include <linux/i2c-algo-bit.h>
->  #include <linux/list.h>
->  #include <linux/unistd.h>
-> -#include <linux/byteorder/swab.h>
-> +#include <linux/swab.h>
->  #include <linux/pagemap.h>
->  #include <linux/scatterlist.h>
->  #include <linux/workqueue.h>
-> diff --git a/drivers/media/video/vpx3220.c
-> b/drivers/media/video/vpx3220.c
-> index 3529302..6828411 100644
-> --- a/drivers/media/video/vpx3220.c
-> +++ b/drivers/media/video/vpx3220.c
-> @@ -24,7 +24,7 @@
->  #include <linux/types.h>
->  #include <linux/slab.h>
->  
-> -#include <linux/byteorder/swab.h>
-> +#include <linux/swab.h>
->  
->  #include <asm/io.h>
->  #include <asm/uaccess.h>
-> diff --git a/kernel/rcupreempt.c b/kernel/rcupreempt.c
-> index ca4bbbe..494d0e8 100644
-> --- a/kernel/rcupreempt.c
-> +++ b/kernel/rcupreempt.c
-> @@ -54,7 +54,7 @@
->  #include <linux/cpu.h>
->  #include <linux/random.h>
->  #include <linux/delay.h>
-> -#include <linux/byteorder/swabb.h>
-> +#include <linux/swab.h>
->  #include <linux/cpumask.h>
->  #include <linux/rcupreempt_trace.h>
->  
-> diff --git a/tests/rcutorture.c b/tests/rcutorture.c
-> index 90b5b12..67856af 100644
-> --- a/tests/rcutorture.c
-> +++ b/tests/rcutorture.c
-> @@ -42,7 +42,7 @@
->  #include <linux/freezer.h>
->  #include <linux/cpu.h>
->  #include <linux/delay.h>
-> -#include <linux/byteorder/swabb.h>
-> +#include <linux/swab.h>
->  #include <linux/stat.h>
->  #include <linux/srcu.h>
->  #include <linux/slab.h>
-> -- 
-> 1.6.0.1.400.ga23d3
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-> 
+--------------070804040601070202060609
+Content-Type: text/plain;
+ name="luca-drivers-parent-fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="luca-drivers-parent-fix.patch"
 
+While doing some testing using Luca Risolia's sonix driver I noticed that
+the video device did not get ACL's set to allow access by locally logged in
+users, nor does it show up as a video device in lshal, causing cheese to not
+see it.
+
+This turns out to be caused by all of Luca Risolia's drivers not setting
+the parent member of the video_device struct. This patch fixes this.
+
+Priority: high
+
+Signed-off-by: Hans de Goede <j.w.r.degoede@hhs.nl>
+diff -r 01f8914508b4 linux/drivers/media/video/et61x251/et61x251_core.c
+--- a/linux/drivers/media/video/et61x251/et61x251_core.c	Sun Aug 31 19:25:43 2008 +0200
++++ b/linux/drivers/media/video/et61x251/et61x251_core.c	Mon Sep 01 20:20:14 2008 +0200
+@@ -2592,6 +2592,7 @@
+ 	cam->v4ldev->fops = &et61x251_fops;
+ 	cam->v4ldev->minor = video_nr[dev_nr];
+ 	cam->v4ldev->release = video_device_release;
++	cam->v4ldev->parent = &udev->dev;
+ 	video_set_drvdata(cam->v4ldev, cam);
+ 
+ 	init_completion(&cam->probe);
+diff -r 01f8914508b4 linux/drivers/media/video/sn9c102/sn9c102_core.c
+--- a/linux/drivers/media/video/sn9c102/sn9c102_core.c	Sun Aug 31 19:25:43 2008 +0200
++++ b/linux/drivers/media/video/sn9c102/sn9c102_core.c	Mon Sep 01 20:20:14 2008 +0200
+@@ -3316,6 +3316,7 @@
+ 	cam->v4ldev->fops = &sn9c102_fops;
+ 	cam->v4ldev->minor = video_nr[dev_nr];
+ 	cam->v4ldev->release = video_device_release;
++	cam->v4ldev->parent = &udev->dev;
+ 
+ 	init_completion(&cam->probe);
+ 
+diff -r 01f8914508b4 linux/drivers/media/video/zc0301/zc0301_core.c
+--- a/linux/drivers/media/video/zc0301/zc0301_core.c	Sun Aug 31 19:25:43 2008 +0200
++++ b/linux/drivers/media/video/zc0301/zc0301_core.c	Mon Sep 01 20:20:14 2008 +0200
+@@ -1992,6 +1992,7 @@
+ 	cam->v4ldev->fops = &zc0301_fops;
+ 	cam->v4ldev->minor = video_nr[dev_nr];
+ 	cam->v4ldev->release = video_device_release;
++	cam->v4ldev->parent = &udev->dev;
+ 	video_set_drvdata(cam->v4ldev, cam);
+ 
+ 	init_completion(&cam->probe);
+
+--------------070804040601070202060609
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------070804040601070202060609--
