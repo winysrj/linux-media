@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <Harald.Becherer@gmx.de>) id 1Kklvx-00089y-H0
-	for linux-dvb@linuxtv.org; Tue, 30 Sep 2008 22:35:03 +0200
-Message-Id: <994AD73E-BB0E-4FA5-8481-6EBB65BEF1DC@gmx.de>
-From: Harald Becherer <Harald.Becherer@gmx.de>
-To: DVB-Mailing <linux-dvb@linuxtv.org>
-In-Reply-To: <c74595dc0809300248i12241125ia77a788f3094bc75@mail.gmail.com>
-Mime-Version: 1.0 (iPhone Mail 5F136)
-Date: Tue, 30 Sep 2008 22:34:36 +0200
-References: <c74595dc0809290713i7ca11bdfw3424c8347e9a6d9e@mail.gmail.com>
-	<909452.76198.qm@web23201.mail.ird.yahoo.com>
-	<c74595dc0809300248i12241125ia77a788f3094bc75@mail.gmail.com>
-Subject: Re: [linux-dvb] Re : Re : TT S2-3200 driver
+Received: from mail-in-10.arcor-online.net ([151.189.21.50])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hermann-pitton@arcor.de>) id 1KaGC9-00051M-7y
+	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 22:40:19 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: "Michael J. Curtis" <michael.curtis@glcweb.co.uk>
+In-Reply-To: <1220222207.2669.62.camel@pc10.localdom.local>
+References: <3C276393607085468A28782D978BA5EE71D2BA8176@w2k8svr1.glcdomain8.local>
+	<1220215933.2669.46.camel@pc10.localdom.local>
+	<1220222207.2669.62.camel@pc10.localdom.local>
+Date: Mon, 01 Sep 2008 22:37:37 +0200
+Message-Id: <1220301457.2681.38.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Compro S350/S300 Tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,312 +21,214 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1909247438=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 
---===============1909247438==
-Content-Type: multipart/alternative;
-	boundary=Apple-Mail-1--313458523
+Am Montag, den 01.09.2008, 00:36 +0200 schrieb hermann pitton:
+> Hi,
+> 
+> Am Sonntag, den 31.08.2008, 22:52 +0200 schrieb hermann pitton:
+> > Hi Michael,
+> > 
+> > Am Sonntag, den 31.08.2008, 14:17 +0100 schrieb Michael J. Curtis:
+> > > Hi all
+> > > 
+> > > Has anyone discovered the tuner for the above?
+> > > 
+> > > Is there anyone that has got this card to work?
+> > > 
+> > > Seems like the card is correctly identified but the tuner is not?
+> > > 
+> > > ACPI: PCI Interrupt 0000:02:07.0[A] -> Link [APC2] -> GSI 17 (level, low) -> IRQ 17
+> > > saa7134[0]: found at 0000:02:07.0, rev: 1, irq: 17, latency: 84, mmio: 0xfdffe000
+> > > saa7134[0]: subsystem: 185b:c900, board: Compro Videomate DVB-T300 [card=70,autodetected]
+> > > saa7134[0]: board init: gpio is 843f00
+> > > input: saa7134 IR (Compro Videomate DV as /class/input/input6
+> > > saa7134[0]: i2c eeprom 00: 5b 18 00 c9 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> > > saa7134[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom 20: 01 40 01 02 02 01 03 01 08 ff 00 87 ff ff ff ff
+> > > saa7134[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom 40: ff d6 00 c0 86 1c 02 01 02 ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff cb
+> > > saa7134[0]: i2c eeprom 60: 35 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom 70: 00 00 00 00 4f e7 ff ff ff ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7134[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > tuner' 2-0068: chip found @ 0xd0 (saa7134[0])
+> > 
+> > The Compro cards all have a micro controller at 0xd0, but that is not
+> > the tuner.
+> > 
+> > > tuner' 2-0068: tuner type not set
+> > > tuner' 2-0068: tuner type not set
+> > > saa7134[0]: registered device video0 [v4l2]
+> > > saa7134[0]: registered device vbi0
+> > > 
+> > 
+> > hardly have time to read all the mails currently, but one thing is
+> > already discovered on your above post.
+> > 
+> > We have another case, where the PCI subsystem for Compro cards is not
+> > reliable for autodetection and ambiguous stuff made it already in again.
+> > 
+> > 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+> > 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+> > 		.subvendor    = 0x185b,
+> > 		.subdevice    = 0xc900,
+> > 		.driver_data  = SAA7134_BOARD_VIDEOMATE_DVBT_300,
+> > 	},{
+> > 
+> > 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+> > 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+> > 		.subvendor    = 0x185b,
+> > 		.subdevice    = 0xc900,
+> > 		.driver_data  = SAA7134_BOARD_VIDEOMATE_T750,
+> > 	}, {
+> > 
+> 
+> No, that is OK, since different PCI devices, only your card seems to
+> break it now.
+> 
+> > For some other Compro cards we have introduced eeprom detection to sort
+> > them, but it is getting annoying.
+> > 
+> > The detected card is an hybrid DVB-T card and the analog tuner is hard
+> > coded at 0x61, also has an analog tda9887 IF demod at 0x86/0x43.
+> > 
+> > 	[SAA7134_BOARD_VIDEOMATE_DVBT_300] = {
+> > 		.name           = "Compro Videomate DVB-T300",
+> > 		.audio_clock    = 0x00187de7,
+> > 		.tuner_type     = TUNER_PHILIPS_TD1316,
+> > 		.radio_type     = UNSET,
+> > 		.tuner_addr	= 0x61,
+> > 		.radio_addr	= ADDR_UNSET,
+> > 		.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE,
+> > 		.mpeg           = SAA7134_MPEG_DVB,
+> > 		.inputs = {{
+> > 			.name   = name_tv,
+> > 			.vmux   = 3,
+> > 			.amux   = TV,
+> > 			.tv     = 1,
+> > 		},{
+> > 			.name   = name_comp1,
+> > 			.vmux   = 1,
+> > 			.amux   = LINE2,
+> > 		},{
+> > 			.name   = name_svideo,
+> > 			.vmux   = 8,
+> > 			.amux   = LINE2,
+> > 		}},
+> > 	},
+> > 
+> > 
+> > The tuner also only becomes visible if the i2c bridge of the digital
+> > demod (tda10046 at 0x10/0x08) is open.
+> > 
+> > 
+> > 	case SAA7134_BOARD_VIDEOMATE_DVBT_300:
+> > 	case SAA7134_BOARD_ASUS_EUROPA2_HYBRID:
+> > 	{
+> > 
+> > 		/* The Philips EUROPA based hybrid boards have the tuner connected through
+> > 		 * the channel decoder. We have to make it transparent to find it
+> > 		 */
+> > 		u8 data[] = { 0x07, 0x02};
+> > 		struct i2c_msg msg = {.addr=0x08, .flags=0, .buf=data, .len = sizeof(data)};
+> > 		i2c_transfer(&dev->i2c_adap, &msg, 1);
+> > 
+> > 		break;
+> > 	}
+> > 
+> > You are talking about Compro S350/S300 and these are different cards For
+> > DVB-S and not DVB-T.
+> > http://www.comprousa.com/en/product/s300/s300.html
+> > 
+> > You seem to have the tuner at 0xc0/0x60 and the demod at 0x1c/0x0e.
+> > 
+> > That would be the same like on card=96, the dual triple CTX944 and the
+> > single triple CTX948 in DVB-S mode.
+> > 
+> > To force DVB-S you need "options saa7134-dvb use_frontend=1" or modprobe
+> > saa7134-dvb accordingly. ("modinfo saa7134-dvb")
+> > 
+> > You should of course at first load the saa7134 with i2c_scan=1 and see
+> > if at least a tda10086 demod is visible on it.
+> > 
+> > Your card has the same PCI subsystem than the Compro DVBT_300, even gpio
+> > init is the same, but eeprom differs for tuner and demod.
+> > 
+> > The S300 was already seen here, need to crawl through the archives.
+> > 
+> 
+> Also forgot to ask, did you identify the LNB supply?
+> 
+> The card=96 assumes an isl6405 behind the bridge of the tda10086 at
+> 0x08.
+> 
+
+Michael,
+
+is it the Compro S350 with saa7134 chip?
+One with some sort of saa7133 seems to be around too.
+
+Until now I assumed it has a saa7130 chip, like the S300.
+You need different drivers for that one
+
+There are first patches from Jan D. Louw here.
+http://www.linuxtv.org/pipermail/linux-dvb/2007-December/022569.html
+
+Please follow that thread. It continues January 2008 and has some fixes.
+
+You will also find a link to Tino's site
+http://www.mcmilk.de/projects/dvb-card/patches
+
+It has a v4l-dvb repo with also Jan's patches and you would have to
+force card=118 there for testing.
+
+I'm not sure what is the best to try with the zl10039 tuner currently
+and you might try to get a hint from Jan, Tino and Matthias.
+
+Matthias usually has what is not yet in v4l-dvb at
+
+http://dev.gentoo.org/~zzam/dvb/a700_full_20080519.diff
+
+for the Avermedia 700 and zl10036. The zl10313 support is in tree
+already.
+
+For the zl10039 Jan seems to have patches to use it with Matthias'
+latest stuff here.
+
+http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025713.html
+
+This here seems to be the latest on that topic.
+
+http://www.linuxtv.org/pipermail/linux-dvb/2008-May/025918.html
+
+Cheers,
+Hermann
 
 
---Apple-Mail-1--313458523
-Content-Type: text/plain;
-	charset=utf-8;
-	format=flowed;
-	delsp=yes
-Content-Transfer-Encoding: quoted-printable
-
-Would a TT S2-3650 CI also do the job?
-I would like to contribute with testing...
-
-Harald
 
 
 
-Am 30.09.2008 um 11:48 schrieb "Alex Betis" <alex.betis@gmail.com>:
-
-> I'll send the patches to the list as soon as I'll finish some more =20
-> debugging and clean the code from all the garbage I've added there.
->
-> Meanwhile I'd also like to wait for few people responses who test =20
-> those patches. So far one person with Twinhan 1041 card confirmed =20
-> that the changes "improved a lot" the locking. Waiting for few more =20=
-
-> people with TT S2-3200 to confirm it.
->
-> On Tue, Sep 30, 2008 at 12:35 PM, Newsy Paper =
-<newspaperman_germany@yahoo.com=20
-> > wrote:
-> Hi Alex!
->
-> This souds like good news!
-> Hope you could help us with a patch from you.
->
-> kind regards
->
->
-> Newsy
->
->
-> --- Alex Betis <alex.betis@gmail.com> schrieb am Mo, 29.9.2008:
->
-> > Von: Alex Betis <alex.betis@gmail.com>
-> > Betreff: Re: [linux-dvb] Re : Re : TT S2-3200 driver
-> > An: "Jelle De Loecker" <skerit@kipdola.com>
-> > CC: "linux-dvb" <linux-dvb@linuxtv.org>
-> > Datum: Montag, 29. September 2008, 16:13
-> > Does that card use stb0899 drivers as Twinhan 1041?
-> >
-> > I've done some changes to the algorithm that provide
-> > constant lock.
-> >
-> > 2008/9/29 Jelle De Loecker <skerit@kipdola.com>
-> >
-> > >
-> > > manu schreef:
-> > >
-> > > Le 13.09.2008 19:10:31, Manu Abraham a =C3=A9crit :
-> > >
-> > >
-> > >  manu wrote:
-> > >
-> > >
-> > >  I forgot the logs...
-> > >
-> > >
-> > >  Taking a look at it. Please do note that, i will have
-> > to go through
-> > > it
-> > > very patiently.
-> > >
-> > > Thanks for the logs.
-> > >
-> > >
-> > >
-> > >  You're more than welcome. I tried to put some
-> > printk's but the only
-> > > thing I got is that even when the carrier is correctly
-> > detected, the
-> > > driver does not detect the data (could that be related
-> > to the different
-> > > FEC?).
-> > > Anyway let me know if you need more testing.
-> > > Bye
-> > > Manu
-> > >
-> > >
-> > > I'm unable to scan the channels on the Astra 23,5
-> > satellite
-> > > Frequency 11856000
-> > > Symbol rate 27500000
-> > > Vertical polarisation
-> > > FEC 5/6
-> > >
-> > > Is this because of the same bug? I should be getting
-> > Discovery Channel HD,
-> > > National Geographic Channel HD, Brava HDTV and Voom HD
-> > International, but
-> > > I'm only getting a time out.
-> > >
-> > >
-> > > *Met vriendelijke groeten,*
-> > >
-> > > *Jelle De Loecker*
-> > > Kipdola Studios - Tomberg
-> > >
-> > >
-> > >
-> > > _______________________________________________
-> > > linux-dvb mailing list
-> > > linux-dvb@linuxtv.org
-> > >
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> > >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
---Apple-Mail-1--313458523
-Content-Type: text/html;
-	charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-
-<html><body bgcolor=3D"#FFFFFF"><div>Would a TT S2-3650 CI also do the =
-job?</div><div>I would like to contribute with =
-testing...</div><div><br></div><div>Harald<br><br><br></div><div><br>Am =
-30.09.2008 um 11:48 schrieb "Alex Betis" &lt;<a =
-href=3D"mailto:alex.betis@gmail.com">alex.betis@gmail.com</a>>:<br><br></d=
-iv><div><span></span></div><blockquote type=3D"cite"><div><div =
-dir=3D"ltr">I'll send the patches to the list as soon as I'll finish =
-some more debugging and clean the code from all the garbage I've added =
-there.<br><br>Meanwhile I'd also like to wait for few people responses =
-who test those patches. So far one person with Twinhan 1041 card =
-confirmed that the changes "improved a lot" the locking. Waiting for few =
-more people with TT S2-3200 to confirm it.<br>
-<br><div class=3D"gmail_quote">On Tue, Sep 30, 2008 at 12:35 PM, Newsy =
-Paper <span dir=3D"ltr">&lt;<a =
-href=3D"mailto:newspaperman_germany@yahoo.com"><a =
-href=3D"mailto:newspaperman_germany@yahoo.com">newspaperman_germany@yahoo.=
-com</a></a>></span> wrote:<br><blockquote class=3D"gmail_quote" =
-style=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt =
-0.8ex; padding-left: 1ex;">
-Hi Alex!<br>
-<br>
-This souds like good news!<br>
-Hope you could help us with a patch from you.<br>
-<br>
-kind regards<br>
-<br>
-<br>
-Newsy<br>
-<br>
-<br>
---- Alex Betis &lt;<a href=3D"mailto:alex.betis@gmail.com"><a =
-href=3D"mailto:alex.betis@gmail.com">alex.betis@gmail.com</a></a>> =
-schrieb am Mo, 29.9.2008:<br>
-<br>
-> Von: Alex Betis &lt;<a href=3D"mailto:alex.betis@gmail.com"><a =
-href=3D"mailto:alex.betis@gmail.com">alex.betis@gmail.com</a></a>><br>
-> Betreff: Re: [linux-dvb] Re : Re : TT S2-3200 driver<br>
-> An: "Jelle De Loecker" &lt;<a href=3D"mailto:skerit@kipdola.com"><a =
-href=3D"mailto:skerit@kipdola.com">skerit@kipdola.com</a></a>><br>
-> CC: "linux-dvb" &lt;<a href=3D"mailto:linux-dvb@linuxtv.org"><a =
-href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a></a>><br>
-> Datum: Montag, 29. September 2008, 16:13<br>
-<div><div></div><div class=3D"Wj3C7c">> Does that card use stb0899 =
-drivers as Twinhan 1041?<br>
-><br>
-> I've done some changes to the algorithm that provide<br>
-> constant lock.<br>
-><br>
-> 2008/9/29 Jelle De Loecker &lt;<a href=3D"mailto:skerit@kipdola.com"><a =
-href=3D"mailto:skerit@kipdola.com">skerit@kipdola.com</a></a>><br>
-><br>
-> ><br>
-> > manu schreef:<br>
-> ><br>
-> > Le 13.09.2008 19:10:31, Manu Abraham a =C3=A9crit :<br>
-> ><br>
-> ><br>
-> > &nbsp;manu wrote:<br>
-> ><br>
-> ><br>
-> > &nbsp;I forgot the logs...<br>
-> ><br>
-> ><br>
-> > &nbsp;Taking a look at it. Please do note that, i will have<br>
-> to go through<br>
-> > it<br>
-> > very patiently.<br>
-> ><br>
-> > Thanks for the logs.<br>
-> ><br>
-> ><br>
-> ><br>
-> > &nbsp;You're more than welcome. I tried to put some<br>
-> printk's but the only<br>
-> > thing I got is that even when the carrier is correctly<br>
-> detected, the<br>
-> > driver does not detect the data (could that be related<br>
-> to the different<br>
-> > FEC?).<br>
-> > Anyway let me know if you need more testing.<br>
-> > Bye<br>
-> > Manu<br>
-> ><br>
-> ><br>
-> > I'm unable to scan the channels on the Astra 23,5<br>
-> satellite<br>
-> > Frequency 11856000<br>
-> > Symbol rate 27500000<br>
-> > Vertical polarisation<br>
-> > FEC 5/6<br>
-> ><br>
-> > Is this because of the same bug? I should be getting<br>
-> Discovery Channel HD,<br>
-> > National Geographic Channel HD, Brava HDTV and Voom HD<br>
-> International, but<br>
-> > I'm only getting a time out.<br>
-> ><br>
-> ><br>
-> > *Met vriendelijke groeten,*<br>
-> ><br>
-> > *Jelle De Loecker*<br>
-> > Kipdola Studios - Tomberg<br>
-> ><br>
-> ><br>
-> ><br>
-> > _______________________________________________<br>
-> > linux-dvb mailing list<br>
-> > <a href=3D"mailto:linux-dvb@linuxtv.org"><a =
-href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a></a><br>
-> ><br>
-> <a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" =
-target=3D"_blank"><a =
-href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://=
-www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></a><br>
-> ><br>
-> _______________________________________________<br>
-> linux-dvb mailing list<br>
-> <a href=3D"mailto:linux-dvb@linuxtv.org"><a =
-href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a></a><br>
-> <a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" =
-target=3D"_blank"><a =
-href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://=
-www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></a><br>
-<br>
-<br>
-<br>
-<br>
-<br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href=3D"mailto:linux-dvb@linuxtv.org"><a =
-href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a></a><br>
-<a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" =
-target=3D"_blank"><a =
-href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://=
-www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></a><br>
-</div></div></blockquote></div><br></div>
-</div></blockquote><blockquote =
-type=3D"cite"><div><span>_______________________________________________</=
-span><br><span>linux-dvb mailing list</span><br><span><a =
-href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a></span><br>=
-<span><a =
-href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://=
-www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></span></div></block=
-quote></body></html>=
-
---Apple-Mail-1--313458523--
 
 
---===============1909247438==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1909247438==--
