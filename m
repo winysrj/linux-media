@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Ke96C-0006Bn-7S
-	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 15:54:14 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K73001T2593P030@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 12 Sep 2008 09:53:28 -0400 (EDT)
-Date: Fri, 12 Sep 2008 09:53:27 -0400
-From: Steven Toth <stoth@linuxtv.org>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <48CA7457.8060805@linuxtv.org>
-MIME-version: 1.0
-Subject: [linux-dvb] S2API + TT-3200 support?
+Date: Tue, 2 Sep 2008 00:31:03 +1000 (EST)
+From: Finn Thain <fthain@telegraphics.com.au>
+To: v4l-dvb-maintainer@linuxtv.org
+In-Reply-To: <alpine.LRH.1.10.0808291356540.17297@pub3.ifh.de>
+Message-ID: <Pine.LNX.4.64.0809020025050.2229@loopy.telegraphics.com.au>
+References: <Pine.LNX.4.64.0808291627340.21301@loopy.telegraphics.com.au>
+	<alpine.LRH.1.10.0808291157060.17297@pub3.ifh.de>
+	<Pine.LNX.4.64.0808292129330.21301@loopy.telegraphics.com.au>
+	<alpine.LRH.1.10.0808291356540.17297@pub3.ifh.de>
+MIME-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: [linux-dvb] [PATCH] Add support for the Gigabyte R8000-HT USB DVB-T
+ adapter, take 2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,26 +25,55 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello!
+
+Add support for the Gigabyte R8000-HT USB DVB-T adapter.
+
+Thanks to Ilia Penev for the tip-off that this device is much the same as 
+(identical to?) a Terratec Cinergy HT USB XE, and for the firmware hints: 
+http://linuxtv.org/pipermail/linux-dvb/2008-August/028108.html
+
+DVB functionality tested OK with xine using the usual dib0700 firmware.
+
+This diff is based on the latest latest linuxtv.org v4l-dvb mercurial 
+repo.
 
 
-A few people are writing to me privately and asking:
+Signed-off-by: Finn Thain <fthain@telegraphics.com.au>
 
-"Will I add support for the TT-3200 cards to the S2API"
-
-
-I wanted to share my thoughts with everyone:
-
-I would _LOVE_ to see 3200 support in the S2API tree. With Manu's 
-approval I'd start that work tomorrow, but I doubt Manu would like that, 
-so that's unlikely to happen before one of the API's is selected for merge.
-
-Let me just say one thing. If the S2API is selected for merge I'll be 
-doing everything I can to get the TT-3200 support added within a week or 
-two of the decision. I have a TT-3200 board, I have the energy and 
-motivation.
-
-- Steve
+--- linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2008-09-01 22:33:12.000000000 +1000
++++ linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2008-09-01 22:37:32.000000000 +1000
+@@ -1119,6 +1119,7 @@
+ 	{ USB_DEVICE(USB_VID_LEADTEK,   USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
+ /* 35 */{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
+ 	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_3) },
++	{ USB_DEVICE(USB_VID_GIGABYTE,  USB_PID_GIGABYTE_U8000) },
+ 	{ 0 }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+@@ -1408,8 +1409,12 @@
+ 			},
+ 		},
+ 
+-		.num_device_descs = 3,
++		.num_device_descs = 4,
+ 		.devices = {
++			{   "Gigabyte U8000-RH",
++				{ &dib0700_usb_id_table[37], NULL },
++				{ NULL },
++			},
+ 			{   "Terratec Cinergy HT USB XE",
+ 				{ &dib0700_usb_id_table[27], NULL },
+ 				{ NULL },
+--- linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2008-09-01 22:33:12.000000000 +1000
++++ linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2008-09-01 22:37:32.000000000 +1000
+@@ -205,6 +205,7 @@
+ #define USB_PID_LIFEVIEW_TV_WALKER_TWIN_COLD		0x0514
+ #define USB_PID_LIFEVIEW_TV_WALKER_TWIN_WARM		0x0513
+ #define USB_PID_GIGABYTE_U7000				0x7001
++#define USB_PID_GIGABYTE_U8000				0x7002
+ #define USB_PID_ASUS_U3000				0x171f
+ #define USB_PID_ASUS_U3100				0x173f
+ #define USB_PID_YUAN_EC372S				0x1edc
 
 _______________________________________________
 linux-dvb mailing list
