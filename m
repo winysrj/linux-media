@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m869eQLJ020667
-	for <video4linux-list@redhat.com>; Sat, 6 Sep 2008 05:40:27 -0400
-Received: from smtp-vbr9.xs4all.nl (smtp-vbr9.xs4all.nl [194.109.24.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m869eDxr008395
-	for <video4linux-list@redhat.com>; Sat, 6 Sep 2008 05:40:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Sat, 6 Sep 2008 11:40:10 +0200
-References: <2df568dc0809031448y3e70715codb5f3a0be505f6cf@mail.gmail.com>
-	<200809040822.09653.hverkuil@xs4all.nl>
-	<2df568dc0809041506w2c300f56r7b8cae3f2726c70@mail.gmail.com>
-In-Reply-To: <2df568dc0809041506w2c300f56r7b8cae3f2726c70@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m811t0xJ005882
+	for <video4linux-list@redhat.com>; Sun, 31 Aug 2008 21:55:00 -0400
+Received: from mail-in-06.arcor-online.net (mail-in-06.arcor-online.net
+	[151.189.21.46])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m811slmO011310
+	for <video4linux-list@redhat.com>; Sun, 31 Aug 2008 21:54:48 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Markus Rechberger <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0808311802s3e658f3eha93159f1a8beb3ba@mail.gmail.com>
+References: <BAY126-W51445FEADC96EC0484E7ABE35D0@phx.gbl>
+	<d9def9db0808311511p51df8befm2cbd641fc4d0a88f@mail.gmail.com>
+	<1220221611.2669.55.camel@pc10.localdom.local>
+	<d9def9db0808311536l3d35f6a4y677d535536e4cf97@mail.gmail.com>
+	<93b129120808311755r2a302043ubb41243134f00a14@mail.gmail.com>
+	<d9def9db0808311802s3e658f3eha93159f1a8beb3ba@mail.gmail.com>
+Content-Type: text/plain
+Date: Mon, 01 Sep 2008 03:52:24 +0200
+Message-Id: <1220233944.2669.104.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200809061140.10738.hverkuil@xs4all.nl>
-Cc: 
-Subject: Re: saa7134_empress standard vs input
+Cc: video4linux-list@redhat.com, Lee Alkureishi <lee_alkureishi@hotmail.com>
+Subject: Re: em2820, Tena TNF-9533 and V4L
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,78 +33,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 05 September 2008 00:06:00 Gordon Smith wrote:
-> On Thu, Sep 4, 2008 at 12:22 AM, Hans Verkuil <hverkuil@xs4all.nl> 
-wrote:
-> > On Wednesday 03 September 2008 23:48:39 Gordon Smith wrote:
-> > > Greetings -
-> > >
-> > > I have a RTD Technologies VFG7350 (saa7134 based, two channel,
-> > > hardware encoder per channel, no tuner) running current v4l-dvb
-> > > in 2.6.25-gentoo-r7.
-> > >
-> > > Short form question: Is it necessary to do something to connect
-> > > an input standard to an MPEG encoder?
-> > >
-> > > I seem to have a disconnect between input signal and the MPEG
-> > > encoder. In this case, there is a NTSC camera signal on the
-> > > input. Raw data and input selection are on video0. Raw data can
-> > > be read from and input selected on video0. MPEG encoder output is
-> > > on video2. MPEG data can be read from video2, but it looks like
-> > > PAL aspect with NTSC data (extra lines at bottom of image repeat
-> > > uppermost lines).
-> > >
-> > >
-> > > $ v4l2-ctl --get-standard --device /dev/video0
-> > > Video Standard = 0x0000b000
-> > >         NTSC-M/M-JP/M-KR
-> > > $ v4l2-ctl --get-standard --device /dev/video2
-> > > Video Standard = 0x000000ff
-> > >         PAL-B/B1/G/H/I/D/D1/K
-> > >
-> > >
-> > > The input standard is automatically selected by the hardware.
-> > > Is there something that needs to be set to match the standard
-> > > between input and encoder?
+
+Am Montag, den 01.09.2008, 03:02 +0200 schrieb Markus Rechberger:
+> On Mon, Sep 1, 2008 at 2:55 AM, Lee Alkureishi
+> <lee_alkureishi@hotmail.com> wrote:
+> > Hi Markus and Hermann,
 > >
-> > I suspect I know what is wrong. After loading the driver
-> > run 'v4l2-ctl -s ntsc-m' and see if the capture now works. Ignore
-> > the standard as reported by video2: it's bogus and is unused.
+> > Thanks for the replies. Yes, that is exactly the device that I have. I
+> > notice that on that specification page, it says both NTSC and PAL are
+> > supported. Is that possible? If so, should I go ahead and replace the
+> > driver, or is this device not going to work in the US?
 > >
-> > What I believe is happening is that the saa6752 is never told that
-> > the standard is NTSC when it is loaded the first time. But if you
-> > set it explicitly afterwards, then it probably works.
-> >
-> > Let me know what happens. If it is indeed a bug then I'll fix it.
->
-> I set the standard as above as well as just "ntsc" on another
-> attempt, but the the capture is still PAL size.
->
-> {{{
-> $ v4l2-ctl -s ntsc-m --device /dev/video0
-> Standard set to 00001000
-> }}}
+> 
+> let me see I will check back with KWorld.
+> 
+> Markus
+> 
 
-Hi Gordon,
+My, that is the usual since ever before global silicon tuners did
+appear.
 
-I've just tested it and I found out that setting the standard works fine 
-as long as the tuner is selected as input. If composite or S-Video is 
-selected as input then the mpeg encoder was never updated. Since you 
-have no tuner input that makes it a bit hard on you :-)
+It is even far below Philips ME MultiEurope MK3s, 4s, 5s ...
 
-I've fixed that in the code so you can use my tree for now:
+Nothing to check there, old very well known chips are in there baked
+together with some "other" discretes including the poorer home brewed
+SAW filter. 
 
-http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
+Cheers,
+Hermann
 
-I've also fixed that you can set/get the standard from the video1 device 
-as well.
-
-Note that once this fix is in the master v4l-dvb repository I recommend 
-that you switch to that one.
-
-Regards,
-
-	Hans
 
 --
 video4linux-list mailing list
