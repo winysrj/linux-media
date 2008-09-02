@@ -1,15 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web23204.mail.ird.yahoo.com ([217.146.189.59])
+Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <newspaperman_germany@yahoo.com>) id 1KbEtZ-0000mT-3F
-	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 15:29:12 +0200
-Date: Thu, 4 Sep 2008 13:27:49 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <csutor@gmx.de>) id 1KadiK-00068h-2Q
+	for linux-dvb@linuxtv.org; Tue, 02 Sep 2008 23:47:05 +0200
+Message-ID: <48BDB436.1080905@gmx.de>
+Date: Tue, 02 Sep 2008 23:46:30 +0200
+From: Clemens Sutor <csutor@gmx.de>
 MIME-Version: 1.0
-Message-ID: <772209.85557.qm@web23204.mail.ird.yahoo.com>
-Subject: [linux-dvb]  Drivers for TT S2-3200
-Reply-To: newspaperman_germany@yahoo.com
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Works the Cinergy C Pci CI Module with the
+	mantis	drivers?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,45 +17,25 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-@Igor: I tried your new driver. My first impression is that it works stable=
- with me TT S2-3200 so thx for providing a driver that's uptodate.
-
-I found 3 bugs:
-1) When I switch to Nilesat (this is the weakest satellite; I get a weak si=
-gnal, but still no dropouts and pixelation). When I switch from one transpo=
-nder to another on that satellite I get no more signal lock on the chosen t=
-ransponder. I have to kill and restart vdr to get signal again. It doesn't =
-depend on the transponder frequency it occours with all transponders on nil=
-esat (while for others it could be another satellite that is so weak to cau=
-se such switching problems). The problem already occoured with multiproto +=
- channel lock patch.
-
-2) There's still this bug with DVB-S2 SR 30000 3/4 I don't know if you alre=
-ady expierenced this bug but it only occours with linux drivers. In Windows=
- it's working.
-
-3) no signal strengh on femon, but I think you already know this.
-
-kind regards
-
-
-Newsy
-
-__________________________________________________
-Do You Yahoo!?
-Sie sind Spam leid? Yahoo! Mail verf=FCgt =FCber einen herausragenden Schut=
-z gegen Massenmails. =
-
-http://mail.yahoo.com =
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGVsbG8gQ2hyaXN0aWFuIQoKTm8sIGl0wrRzIG5vdCB3b3JraW5nIHlldC4KCkkgaGF2ZSB0aGUg
+VGVycmF0ZWMgQ2luZXJneSBDIFBDSSB3aXRoIHRoZSBDSSBhbmQgYW4gQWxwaGFjcnlwdCBMaWdo
+dCAKQ0FNIHdpdGggb2ZmaWNpYWwgVW5pdHlNZWRpYSBTbWFydENhcmQuClRoZSBjYXJkIGlzIHdv
+cmtpbmcgZmluZSB3aXRoIGZyZWUgY2hhbm5lbHMsIGJ1dCBhbGwgZHJpdmVycyBmYWlsIHRvIApp
+bml0IHRoZSBDQU0gKGV2ZW4gd2l0aG91dCBTbWFydENhcmQpLgoKV2l0aCB0aGUgbmV3ZXN0IHJl
+bGVhc2UgaXQganVzdCBzaG93czoKClsgIDIxMy45MzU2MzNdIGR2Yl9jYSBhZGFwdGVyIDA6IENB
+TSB0cmllZCB0byBzZW5kIGEgYnVmZmVyIGxhcmdlciB0aGFuIHRoZSBsaW5rIGJ1ZmZlciBzaXpl
+ICg0OTE1OCA+IDEyOCkhClsgIDExOS4yNzAzMzldIGR2Yl9jYSBhZGFwdGVyIDA6IENBTSB0cmll
+ZCB0byBzZW5kIGEgYnVmZmVyIGxhcmdlciB0aGFuIHRoZSBlY291bnQgc2l6ZSEKWyAgMTE5LjI3
+MDM0N10gZHZiX2NhIGFkYXB0ZXIgMDogRFZCIENBTSBsaW5rIGluaXRpYWxpc2F0aW9uIGZhaWxl
+ZCAgOiggCgpJIHdhbnRlZCB0byB3cml0ZSBhYm91dCB0aGUgaXNzdWUgaGVyZSBhbmQgZG8gc29t
+ZSBtb3JlIHJlc2VhcmNoLCBidXQgZGlkbsK0dCBmaW5kIHRoZSB0aW1lIHRpbGwgbm93LgoKQW55
+Ym9keSBrbm93cyB0aGUgcHJvYmxlbT8KCkJ5ZQpDbGVtZW5zCgoKCgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0Cmxp
+bnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1h
+bi9saXN0aW5mby9saW51eC1kdmI=
