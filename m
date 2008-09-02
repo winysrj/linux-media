@@ -1,17 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n34.bullet.mail.ukl.yahoo.com ([87.248.110.167])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1KcTPr-0002jg-EA
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 01:11:37 +0200
-Date: Sun, 07 Sep 2008 19:10:58 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <48C44137.2090106@gmail.com> (from abraham.manu@gmail.com on
-	Sun Sep  7 17:01:43 2008)
-Message-Id: <1220829058l.6056l.1l@manu-laptop>
-MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re :  Re : TT S2-3200 driver
+Message-ID: <20932892.1220359551794.JavaMail.root@elwamui-sweet.atl.sa.earthlink.net>
+Date: Tue, 2 Sep 2008 08:45:51 -0400 (GMT-04:00)
+From: William Melgaard <piobair@mindspring.com>
+To: Matyas Sustik <linux-dvb.list@sustik.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org, stev391@email.com
+Subject: Re: [linux-dvb] Fusion HDTV 7
+Reply-To: William Melgaard <piobair@mindspring.com>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,82 +15,80 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 07.09.2008 17:01:43, Manu Abraham a =E9crit=A0:
-> crow wrote:
-> > Hi,
-> > I am also tryint to compile multiproto_plus on kernel 2.6.26-3
-> (sidux
-> > 2008-02) but no luck.
-> > Kernel: Linux vdrbox 2.6.26-3.slh.4-sidux-amd64 #1 SMP PREEMPT Wed
-> Sep
-> > 3 19:39:11 UTC 2008 x86_64 GNU/Linux
-> > I tryed it this way:
-> > I downloaded dvb driver from:
-> > apt-get update
-> > apt-get install mercurial
-> > cd /usr/src/
-> > hg clone http://jusst.de/hg/multiproto_plus
-> > mv multiproto dvb
-> > ln -vfs /usr/src/linux-headers-`uname -r` linux
-> > cd /usr/src/dvb/linux/include/linux/
-> > ln -s /usr/src/linux/include/linux/compiler.h compiler.h
-> > cd /usr/src/dvb/
-> > and i am trying make and get this problem :
-> > ............
-> >   CC [M]  /usr/src/dvb/v4l/ivtv-gpio.o
-> >   CC [M]  /usr/src/dvb/v4l/ivtv-i2c.o
-> > /usr/src/dvb/v4l/ivtv-i2c.c: In function 'ivtv_i2c_register':
-> > /usr/src/dvb/v4l/ivtv-i2c.c:171: error: 'struct i2c_board_info' has
-> no
-> > member named 'driver_name'
-> > make[3]: *** [/usr/src/dvb/v4l/ivtv-i2c.o] Error 1
-> > make[2]: *** [_module_/usr/src/dvb/v4l] Error 2
-> > make[2]: Leaving directory `/usr/src/linux-headers-2.6.26-3.slh.4-
-> sidux-amd64'
-> > make[1]: *** [default] Error 2
-> > make[1]: Leaving directory `/usr/src/dvb/v4l'
-> > make: *** [all] Error 2
-> > root@vdrbox:/usr/src/dvb#
-> > =
+This refers to the Dual Express card.
+I have a (FusionHDTV7) RT Gold card. On August 1,I received instructions from Steve to:
+1. run dscaler regspy under Windows & record values for the wiki page
+2. run 'lspce -vnn' in Linux & copy the values to the wiki page.
+3. take High Resolution pictures of it for the wiki page
+4. Record major components
 
-> > I wanna try this patch to as i am also TT S2-3200 user.
-> > Any help welcome.
-> =
+I did the above, except that dscaler does not recognize the RT Gold, and I need more specific instructions for use with 'regspy'.  I received a message from the linux-dvb administrator that my reply (including the pictures) exceeded the 2Mb message limit, so I don't know what happened to that information.
 
-> =
+Additional advice would be appreciated.
 
-> That tree is being updated and being pushed, you can either wait for =
+William
 
-> a
-> little while till that tree is populated, or you can pull the
-> multiproto
-> tree as well.
-
-Bye any chance, di you get some time to see my posts about TT-S 3200 =
-
-([BUG]: stb6100 getting carrier but stb0899
-unable to get data (on a transponder that is emitting
-normally) where I describe my problem: basically I can get the carrier =
-
-but search_data fails for a DVB-S transponder with 5/6 FEC and 30MS/s =
-
-whereas all other transp lock OK, they only have a different FEC: 3/4.
-Hope you can help me.
-BTW: looking at a mantis driver (coming from their website) I saw it =
-
-was pretty close to yours though with some differences, specially for =
-
-init values. Is there any consolidation possible here to get stb0899 =
-
-going?
-Bye
-Manu
+-----Original Message-----
+>From: Matyas Sustik <linux-dvb.list@sustik.com>
+>Sent: Aug 30, 2008 8:33 PM
+>To: Michael Krufky <mkrufky@linuxtv.org>
+>Cc: linux-dvb@linuxtv.org
+>Subject: Re: [linux-dvb] Fusion HDTV 7
+>
+>Thanks for your comments!
+>
+>I can report that the card receives OTA HD channels.  Both tuners
+>work (at the same time) allowing two HD channels to be received.
+>(azap/mplayer and mythtv both work.)
+>
+>The last missing piece was with the firmware.  A script which came
+>with the firmware files from www.steventoth.net placed the firmware
+>file dvb-fe-xc5000-1.1.fw to /lib/firmware/2.6.26-amd64 instead of
+>/lib/firmware.  This may be distro specific.
+>
+>I could have figured all this out by the available docs and reading
+>the logs.  However here is a list of what may improve the documentation:
+>
+>1.  Emphasize that other than the card module (in my case cx23885) need
+>to be reloaded for compatibility between modules.  Therefore the compile
+>from sources and reboot is needed.  (Easier than to find, remove and reload
+>all the relevant modules.)
+>
+>2.  The firmware file has to be hunted down.  In my case the manufacturer
+>provides .exe files only (maybe self-extracting) so I could not get the
+>firmware that way.  Why not just have a page with the firmware files
+>themselves?  The need for the firmware file also could be emphasized.
+>(This is apparent if one reads the logs.)
+>
+>Some info on what should be in the logs when the card works:
+>
+>CORE cx23885[0]: subsystem: 18ac:d618, board: DViCO FusionHDTV7 Dual Express
+>[card=10,autodetected]
+>DVB: registering frontend 0 (Samsung S5H1411 QAM/8VSB Frontend)..
+>
+>xc5000: Successfully identified at address 0x64
+>xc5000: Firmware has not been loaded previously
+>
+>xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+>firmware: requesting dvb-fe-xc5000-1.1.fw
+>xc5000: firmware read 12332 bytes.
+>xc5000: firmware upload
+>
+>Thanks again,
+>Matyas
+>-
+>Every hardware eventually breaks.  Every software eventually works.
+>
+>_______________________________________________
+>linux-dvb mailing list
+>linux-dvb@linuxtv.org
+>http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
 _______________________________________________
