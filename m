@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8CJJkX8031934
-	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 15:19:46 -0400
-Received: from idcmail-mo2no.shaw.ca (idcmail-mo2no.shaw.ca [64.59.134.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8CJJZHO011035
-	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 15:19:35 -0400
-Message-ID: <48CAC0C5.905@ekran.org>
-Date: Fri, 12 Sep 2008 12:19:33 -0700
-From: "B. Bogart" <ben@ekran.org>
-MIME-Version: 1.0
-References: <48C05DC8.5060700@ekran.org>
-	<1220568687.2736.12.camel@morgan.walls.org>
-In-Reply-To: <1220568687.2736.12.camel@morgan.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m820gHsK027210
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 20:42:18 -0400
+Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
+	[151.189.21.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m820g4B2006368
+	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 20:42:04 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+In-Reply-To: <20080901094102.653e8370@lxorguk.ukuu.org.uk>
+References: <1220227274.2669.89.camel@pc10.localdom.local>
+	<20080901094102.653e8370@lxorguk.ukuu.org.uk>
+Content-Type: text/plain
+Date: Tue, 02 Sep 2008 02:39:34 +0200
+Message-Id: <1220315974.2690.34.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, gem-dev@iem.at
-Subject: Re: Re: V4l2 :: Debugging an issue with cx8800 card.
+Cc: video4linux-list@redhat.com
+Subject: Re: list defaults
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,38 +29,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I have made progress.
 
-I've managed to get my card working in Gem with some minor changes to
-the code. I'm not sure what this code does though, so I'm not sure what
-the longer term effect will be.
+Am Montag, den 01.09.2008, 09:41 +0100 schrieb Alan Cox:
+> On Mon, 01 Sep 2008 02:01:14 +0200
+> hermann pitton <hermann-pitton@arcor.de> wrote:
+> 
+> > Hi Alan,
+> > 
+> > can't we have the list defaults back, like it was previously?
+> 
+> Nothing to do with me, I don't admin the list
 
-I'm sending this to the v4l list as you all are the best to advice on a
-proper solution to this issue.
 
-I've attached the original, and the hacked version.
+Sorry for having this wrong.
 
-Basically the hacked version ignores all errors when running the
-following command:
+Replies should default to the list, since it does create the contacts.
 
-xioctl (m_tvfd, VIDIOC_DQBUF, &buf)
+I could even imagine a rule, that one is only allowed to go private, if
+this was previously explicitly announced and all parties agreed.
 
-What does this command actually do? Why are there two instances in the
-capture function?
+Just hitting reply instead of reply to all and being private is a mess.
 
-I can use the card at 640x480.
+It also attracts people to try it in private, if the list is not
+responsive enough and this is always the wrong way.
 
-The result is the frame-rate is horrid compared to mplayer (which I
-suppose makes sense based on those removed error reports) and also using
-the V4L1 w/ a bt8x8 card.
+Cheers,
+Hermann
 
-Does this change give a hint as to what is causing the problem?
 
-What is the proper way to fix the issue, rather than commenting out
-error codes?
 
-Thanks all,
-B. Bogart
+
+
 
 --
 video4linux-list mailing list
