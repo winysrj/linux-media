@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Steven Toth <stoth@linuxtv.org>
-In-Reply-To: <48C9145A.2020003@linuxtv.org>
-References: <48B8400A.9030409@linuxtv.org> <20080910161222.21640@gmx.net>
-	<48C85153.8010205@linuxtv.org> <200809110201.48935.hftom@free.fr>
-	<48C86DBD.6090108@linuxtv.org>
-	<1221095822.2663.46.camel@pc10.localdom.local>
-	<48C8898E.3040809@linuxtv.org>
-	<1221106230.2663.33.camel@pc10.localdom.local>
-	<48C9145A.2020003@linuxtv.org>
-Date: Thu, 11 Sep 2008 23:08:21 +0200
-Message-Id: <1221167301.7166.29.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Received: from gateway03.websitewelcome.com ([69.93.31.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <skerit@kipdola.com>) id 1Kaad2-0002PA-FQ
+	for linux-dvb@linuxtv.org; Tue, 02 Sep 2008 20:29:26 +0200
+Message-ID: <48BD85FC.6030800@kipdola.com>
+Date: Tue, 02 Sep 2008 20:29:16 +0200
+From: Jelle De Loecker <skerit@kipdola.com>
+MIME-Version: 1.0
+To: Roger James <roger@beardandsandals.co.uk>,
+	linux-dvb <linux-dvb@linuxtv.org>
+References: <48BD78B0.6070508@beardandsandals.co.uk>
+In-Reply-To: <48BD78B0.6070508@beardandsandals.co.uk>
+Subject: Re: [linux-dvb] Help - trying to get multiproto TT03200 driver
+ working via old API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,119 +20,154 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============1599186967=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CkFtIERvbm5lcnN0YWcsIGRlbiAxMS4wOS4yMDA4LCAwODo1MSAtMDQwMCBzY2hyaWViIFN0ZXZl
-biBUb3RoOgo+IGhlcm1hbm4gcGl0dG9uIHdyb3RlOgo+ID4gQW0gTWl0dHdvY2gsIGRlbiAxMC4w
-OS4yMDA4LCAyMjo1OSAtMDQwMCBzY2hyaWViIFN0ZXZlbiBUb3RoOgo+ID4+IGhlcm1hbm4gcGl0
-dG9uIHdyb3RlOgo+ID4+PiBIaSwKPiA+Pj4KPiA+Pj4gQW0gTWl0dHdvY2gsIGRlbiAxMC4wOS4y
-MDA4LCAyMTowMCAtMDQwMCBzY2hyaWViIFN0ZXZlbiBUb3RoOgo+ID4+Pj4gQ2hyaXN0b3BoZSBU
-aG9tbWVyZXQgd3JvdGU6Cj4gPj4+Pj4gTGUgVGh1cnNkYXkgMTEgU2VwdGVtYmVyIDIwMDggMDA6
-NTk6MzEgQW5kcmVhcyBPYmVycml0dGVyLCB2b3VzIGF2ZXogw6ljcml0IDoKPiA+Pj4+Pj4gSGFu
-cyBXZXJuZXIgd3JvdGU6Cj4gPj4+Pj4+Pj4gU28gYXBwbGljYXRpb25zIGNvdWxkIGtub3cgdGhh
-dCB0aGVzZSAyIGZyb250ZW5kcyBhcmUgZXhjbHVzaXZlLgo+ID4+Pj4+Pj4+IFRoYXQgd291bGQg
-bm90IHJlcXVpcmUgYW55IEFQSSBjaGFuZ2UsIGJ1dCB3b3VsZCBoYXZlIHRvIGJlIGEgcnVsZQo+
-ID4+Pj4+Pj4+IGZvbGxvd2VkIGJ5Cj4gPj4+Pj4+Pj4gYWxsIGRyaXZlcnMuCj4gPj4+Pj4+PiBZ
-ZXMsIGlmIHdlIGtlZXAgdG8gdGhhdCBydWxlIHRoZW4gb25seSBmcm9udGVuZHMgd2hpY2ggY2Fu
-IG9wZXJhdGUgdHJ1bHkKPiA+Pj4+Pj4+IHNpbXVsdGFuZW91c2x5IHNob3VsZCBoYXZlIGEgZGlm
-ZmVyZW50IGFkYXB0ZXIgbnVtYmVyLgo+ID4+Pj4+PiBBbiBhZGFwdGVyIHJlZmVycyB0byBhIHNl
-bGYtY29udGFpbmVkIHBpZWNlIG9mIGhhcmR3YXJlLCB3aG9zZSBwYXJ0cyBjYW4KPiA+Pj4+Pj4g
-bm90IGJlIHVzZWQgYnkgYSBzZWNvbmQgYWRhcHRlciAoZS5nLiBhZGFwdGVyMC9kZW11eDAgY2Fu
-IG5vdCBhY2Nlc3MgdGhlCj4gPj4+Pj4+IGRhdGEgZnJvbSBhZGFwdGVyMS9mcm9udGVuZDEpLiBJ
-biBhIGNvbW1vbmx5IHVzZWQgc2V0dXAgaXQgbWVhbnMgdGhhdAo+ID4+Pj4+PiBhZGFwdGVyMCBp
-cyB0aGUgZmlyc3QgaW5pdGlhbGl6ZWQgUENJIGNhcmQgYW5kIGFkYXB0ZXIxIGlzIHRoZSBzZWNv
-bmQuCj4gPj4+Pj4+Cj4gPj4+Pj4+IE5vdywgaWYgeW91IHdhbnQgYSBkZXZpY2Ugd2l0aCB0d28g
-dHVuZXJzIHRoYXQgY2FuIGJlIGFjY2Vzc2VkCj4gPj4+Pj4+IHNpbXVsdGFuZW91c2x5IHRvIGNy
-ZWF0ZSBhIHNlY29uZCBhZGFwdGVyLCB0aGVuIHlvdSB3b3VsZCBoYXZlIHRvCj4gPj4+Pj4+IGFy
-dGlmaWNpYWxseSBkaXZpZGUgaXRzIGNvbXBvbmVudHMgc28gdGhhdCBpdCBsb29rcyBsaWtlIHR3
-byBpbmRlcGVuZGFudAo+ID4+Pj4+PiBQQ0kgY2FyZHMuIFRoaXMgbWlnaHQgYmVjb21lIHZlcnkg
-Y29tcGxpY2F0ZWQgYW5kIGxpbWl0cyB0aGUgZnVuY3Rpb25zCj4gPj4+Pj4+IG9mIHRoZSBoYXJk
-d2FyZS4KPiA+Pj4+Pj4KPiA+Pj4+Pj4gSG93ZXZlciwgb24gYSBzZXR1cCB3aXRoIG11bHRpcGxl
-IGFjY2Vzc2libGUgdHVuZXJzIHlvdSBjYW4gZXhwZWN0IGF0Cj4gPj4+Pj4+IGxlYXN0IHRoZSBz
-YW1lIGFtb3VudCBvZiBhY2Nlc3NpYmxlIGRlbXV4IGRldmljZXMgb24gdGhlIHNhbWUgYWRhcHRl
-cgo+ID4+Pj4+PiAoYW5kIGFsc28gZHZyIGRldmljZXMgZm9yIHRoYXQgbWF0dGVyKS4gVGhlcmUg
-aXMgYW4gaW9jdGwgdG8gY29ubmVjdCBhCj4gPj4+Pj4+IGZyb250ZW5kIHRvIGEgc3BlY2lmaWMg
-ZGVtdXggKERNWF9TRVRfU09VUkNFKS4KPiA+Pj4+Pj4KPiA+Pj4+Pj4gU28sIGlmIHRoZXJlIGFy
-ZSBkZW11eDAsIGZyb250ZW5kMCBhbmQgZnJvbnRlbmQxLCB0aGVuIHRoZSBhcHBsaWNhdGlvbgo+
-ID4+Pj4+PiBrbm93cyB0aGF0IGl0IGNhbid0IHVzZSBib3RoIGZyb250ZW5kcyBzaW11bHRhbmVv
-dXNseS4gT3RoZXJ3aXNlLCBpZiAKPiA+Pj4+Pj4gdGhlcmUgYXJlIGRlbXV4MCwgZGVtdXgxLCBm
-cm9udGVuZDAgYW5kIGZyb250ZW5kMSwgdGhlbiBpdCBjYW4gdXNlIGJvdGgKPiA+Pj4+Pj4gb2Yg
-dGhlbSAoYnkgdXNpbmcgYm90aCBkZW11eCBkZXZpY2VzIGFuZCBjb25uZWN0aW5nIHRoZW0gdG8g
-dGhlCj4gPj4+Pj4+IGZyb250ZW5kcyB2aWEgdGhlIGlvY3RsIG1lbnRpb25lZCBhYm92ZSkuCj4g
-Pj4+Pj4gU291bmRzIGxvZ2ljYWwuIEFuZCB0aGF0J3Mgd2h5IEthZmZlaW5lIHNlYXJjaCBmb3Ig
-ZnJvbnRlbmQvZGVtdXgvZHZyID4gMCBhbmQgCj4gPj4+Pj4gdXNlcyBkZW11eDEgd2l0aCBmcm9u
-dGVuZDEuIChUaGF0IHdhcyBqdXN0IGEgZ3Vlc3Mgc2luY2UgaSd2ZSBuZXZlciBzZWVuIAo+ID4+
-Pj4+IG5laXRoZXIgYW55IHN1Y2ggZGV2aWNlcyBub3IgY29tbWVudHMvcmVjb21tZW5kYXRpb25z
-L3J1bGVzIGFib3V0IHN1Y2ggY2FzZSkuCj4gPj4+Pj4KPiA+Pj4+PiBIb3dldmVyLCBhbGwgZHVh
-bCB0dW5lcnMgZGV2aWNlcyBkcml2ZXJzIGkga25vdyBleHBvc2UgdGhlIDIgZnJvbnRlbmRzIGFz
-IAo+ID4+Pj4+IGZyb250ZW5kMCBpbiBzZXBhcmF0ZSBhZGFwdGVycy4gQnV0IGFsbCB0aGVzZSBk
-ZXZpY2VzIHNlZW1zIHRvIGJlIFVTQi4KPiA+Pj4+Pgo+ID4+Pj4+IFRoZSBmYWN0IHRoYXQgS2Fm
-ZmVpbmUgd29ya3Mgd2l0aCB0aGUgZXhwZXJpbWVudGFsIGh2cjQwMDAgZHJpdmVyIGluZGljYXRl
-cyAKPiA+Pj4+PiB0aGF0IHRoaXMgZHJpdmVyIHBvcHVsYXRlcyBmcm9udGVuZDEvZGVtdXgxL2R2
-cjEgYW5kIHRoZW4gZG9lc24ndCBmb2xsb3cgdGhlIAo+ID4+Pj4+IHdheSB5b3UgZGVzY3JpYmUg
-KHNpbmNlIHRoZSB0dW5lcnMgY2FuJ3QgYmUgdXNlZCBhdCBvbmNlKS4KPiA+Pj4+PiBJIHdvdWxk
-IGxpa2UgdG8gaGVhciBmcm9tIFN0ZXZlIG9uIHRoaXMgcG9pbnQuCj4gPj4+Pj4KPiA+Pj4+Pgo+
-ID4+Pj4gQ29ycmVjdCwgZnJvbnRlbmQxLCBkZW11eDEsIGR2cjEgZXRjLiBBbGwgb24gdGhlIHNh
-bWUgYWRhcHRlci4gVGhlIAo+ID4+Pj4gZHJpdmVyIGFuZCBtdWx0aS1mcm9udGVuZCBwYXRjaGVz
-IG1hbmFnZSBleGNsdXNpdmUgYWNjZXNzIHRvIHRoZSBzaW5nbGUgCj4gPj4+PiBpbnRlcm5hbCBy
-ZXNvdXJjZS4KPiA+Pj4+Cj4gPj4+IHRoZW4gcGxlYXNlIGV4cGxhaW4gd2hhdCBpcyBhYm91dCB0
-aGUgYW5hbG9nIHVzYWdlLCB3aGljaCBjYW4gYWx3YXlzIGJlCj4gPj4+IGZpcnN0IGFuZCBkb24n
-dCB0ZWxsIGl0IGhhcyB0byBzdGF5IGJhY2ssIHNpbmNlIHlvdSBhbHdheXMgc2l0IG9uIHRoYXQK
-PiA+Pj4gYnJpZGdlIGFuZCBlbHNlIGNvbWUgbm93aGVyZSAuLi4KPiA+PiBIZXJtYW5uLCBJJ20g
-bm90IHN1cmUgSSB1bmRlcnN0YW5kIHlvdXIgcXVlc3Rpb24sIGJ1dCBJJ2xsIHRyeS4KPiA+Pgo+
-ID4+IFRoaXMgaGFzIG5vdGhpbmcgdG8gZG8gd2l0aCBhbmFsb2csIEkgbmV2ZXIgc3VnZ2VzdGVk
-IHRoZXNlIHBhdGNoZXMgCj4gPj4gZWZmZWN0ZWQgYW5hbG9nLgo+ID4+Cj4gPj4gRWl0aGVyIHlv
-dSdyZSBjb25mdXNlZCwgb3IgSSBhbSA6KQo+ID4+Cj4gPj4gVGhlIG11bHRpZnJvbnRlbmQgcGF0
-Y2hlcyBhcmUgcmVsYXRlZCB0byBEVkIgb25seSwgdGhlIGFuYWxvZyBwb3J0cyBvbiAKPiA+PiB0
-aGUgY3g4OCByZW1haW4gdW50b3VjaGVkLCB1bmNoYW5nZWQuCj4gPiAKPiA+IFN0ZXZlLAo+ID4g
-Cj4gPiBsaWtlbHkgd2Ugc2hvdWxkIGhhdmUgYWxsIHNvbWUgc2xlZXAgcHJldmlvdXNseSBhZ2Fp
-bi4KPiAKPiBIZXJtYW5uLCBJIGhhdmUgcHJvYmxlbXMgdHJ5aW5nIHRvIHVuZGVyc3RhbmQgeW91
-ciB3cml0dGVuIEVuZ2xpc2gsIEkgZG8gCj4gbm90IGFsd2F5cyB1bmRlcnN0YW5kIHdoYXQgeW91
-IHdyaXRlLiBUaGlzIGxlYWRzIHRvIGNvbmZ1c2lvbi4KClNvcnJ5LCBsZXQgbWUga25vdyBpZiB5
-b3UgaGF2ZSBhbnkgZnVydGhlciBxdWVzdGlvbiBhYm91dCB0aGUgTWVkaW9uClF1YWQgb3IgYW55
-IG90aGVyIG11bHRpcGxlIGZyb250ZW5kIGRldmljZSBvbiB0aGUgc2FhNzEzNCBhbmQgSSB0cnkg
-dG8KYW5zd2VyIGl0IHRha2luZyBtb3JlIGNhcmUgb24gbXkgRW5nbGlzaC4KCj4gPiAKPiA+IEJ1
-dCBJJ20gcXVpdCBzdXJlIHdoYXQgSSd0YWxraW5nIGFib3V0Lgo+IAo+IE9mIGNvdXJzZSB5b3Ug
-ZG8sIEkgbmV2ZXIgc3VnZ2VzdGVkIHRoYXQgeW91IHdlcmUgbm90Lgo+IAo+ID4gCj4gPiBJZiB1
-c2luZyB0aGUgZG1hIGVuZ2luZXMgb2YgdGhlIHNhYTcxM3ggYXQgb25jZSwgeW91IGNhbid0IHNh
-eSBhbmFsb2cKPiA+IGFuZCBkdmIgYXJlIG5vdCByZWxhdGVkIQo+IAo+IE9oLCBJIHVuZGVyc3Rh
-bmQgdGhlIHRvcGljIHlvdSBhcmUgbWVudGlvbmluZyBub3cuCj4gCj4gSSBoYXZlIG5vIGV4cGVy
-aWVuY2Ugd2l0aCB0aGUgNzEzNCBhbmQgSSdtIG5vdCBhd2FyZSBvZiBpdCdzIGhhcmR3YXJlIAo+
-IGNhcGFiaWxpdGllcywgb3IgbGFjayBvZi4gSSdtIG5vdCBmaXQgdG8gY29tbWVudCBvbiB3aGF0
-IHJlc291cmNlcyBjYW4gCj4gYmUgc2hhcmVkIGFuZCB0aGUgaW1wbGljYXRpb25zIG9mLgo+IAo+
-IFdoYXQgSSBjYW4gc2F5IHdpdGggY29uZmlkZW5jZSwgaXMgdGhhdCBpZiBpdCBoYXMgYSBkaWdp
-dGFsIHRyYW5zcG9ydCAKPiBwb3J0LCBhbmQgaWYgc29tZSBvZiB0aGUgY2FyZHMgc2hhcmUgdGhp
-cyBwb3J0IHdpdGggRFZCLVQgYW5kIERWQi1TIHRoZW4gCj4gdGhlIG11bHRpcGxlLWZyb250ZW5k
-IHBhdGNoZXMgd2lsbCBwcm9iYWJseSBoZWxwIHdpdGggdGhvc2UgZGVzaWducy4gCj4gUmF0aGVy
-IHRoYW4gaGF2aW5nIHRvIHNwZWNpZnkgRFZCLVQgb3IgRFZCLVMgZHVyaW5nIG1vZHVsZSBsb2Fk
-IHRpbWUsIAo+IHRoZSBwYXRjaGVzIHdpbGwgbmVnb3RpYXRlIHVzZXIgYWNjZXNzIGFuZCBhbGxv
-dyBib3RoIHRvIGJlIHByZXNlbnQuCj4gCj4gVGhpcyBtYXkgYmUgYSBnb29kIGZlYXR1cmUgZm9y
-IHRoZSA3MTM0LCBpdCBtYXkgbm90LgoKWWVzLCBmb3Igc3VyZSBpdCB3aWxsIGJlIGFuZCBubyBh
-ZGRpdGlvbmFsIHByb2JsZW1zIHdpdGggZG1hIHRocm91Z2hwdXQKd2lsbCBhcHBlYXIuIElmIGth
-ZmZlaW5lIGtub3dzIHdoYXQgdG8gZG8gYW5kIGtlZXBzIHRoZSBzYW1lIHVzYWJpbGl0eQphcyBp
-dCBpcyBkaXNjdXNzZWQuCiAKPiA+IFRoZXJlIGFyZSBjbGVhciByZXN0cmljdGlvbnMgYW5kIHlv
-dSBjYW4gY2F1c2UgbWFqb3IgZGFtbWFnZSBpZ25vcmluZwo+ID4gdGhlbS4KPiAKPiBOb2JvZHkg
-aXMgaWdub3JpbmcgdGhlbSwgdGhhbmsgeW91IGZvciByYWlzaW5nIHRoZSBpc3N1ZS4KPiAKPiAt
-IFN0ZXZlCj4gCgpIb3BlZnVsbHkgeW91IGhhdmUgbG90cyBvZiB0ZXN0ZXJzIGFuZCBjb250cmli
-dXRvcnMgYW5kIEkgd2lsbCBiZSBvbmUgb2YKdGhlbSBhcyBzb29uIEkgZmluZCB0aW1lLiBJIGRp
-ZCB0ZXN0IHRoZSBsYXRlc3QgbXVsdGlwcm90byBzbyBmYXIKd2l0aG91dCBpc3N1ZXMuCgpUaGUg
-cG9pbnQgSSB0cnkgdG8gcmFpc2UgZm9yIHlvdXIgdGVzdGVycyBpcyB0byBrZWVwIGluIG1pbmQs
-IG9uIHRoZQpzYWE3MTM0IHRoZXkgY2FuIHVzZSBhbmFsb2cgaW5wdXRzIGZyb20gdHVuZXJzIG9y
-IGV4dGVybmFsIHNvdXJjZXMgd2l0aApEVkItVC9TIGF0IG9uY2UsIGJ1dCBvbmx5IGlmIHRoZSBh
-bmFsb2cgZmVlZCBpcyB1c2luZyBwYWNrZWQgZm9ybWF0cy4KCkZvciBleGFtcGxlIG1wbGF5ZXIv
-bWVuY29kZXIgdXNlcyBhIHBsYW5hciBmb3JtYXQgYnkgZGVmYXVsdC4KVGhpcyB3aWxsIGxlYWQg
-dG8gYSBjb3JydXB0ZWQgcmVjb3JkZWQgZmlsZSBhbmQgaW4gd29yc3QgY2FzZSB0byBmaWxlCnN5
-c3RlbSBjb3JydXB0aW9uLCBpZiB1c2VkIHdpdGggRFZCIGF0IG9uY2UuCgpIYXJ0bXV0IGNvbnNp
-ZGVyZWQgb25jZSB0byBkaXNhYmxlIGFsbCBwbGFuYXIgZm9ybWF0cyBiZWNhdXNlIG9mIHRoYXQs
-IApidXQgd2UgZG9uJ3QgaGF2ZSBhIHNvbHV0aW9uIHlldCBhbmQgcGVvcGxlIHNob3VsZCBiZSBh
-d2FyZS4KCk1lYW5zIGFsc28sIGlmIGEgY2FwdHVyZSBpbiBhIHBsYW5hciBmb3JtYXQgaXMgYWxy
-ZWFkeSBydW5uaW5nIGZvcgphbmFsb2cgaW5wdXRzLCBubyBEVkIgd2lsbCBjb21lIHRocm91Z2gu
-CgpUaGVyZSBpcyBubyBwcmlvcml0eSBoYW5kbGluZywgbm90aWZpY2F0aW9uIG9yIGFueXRoaW5n
-IHlldCBhbmQgSSBqdXN0CnBvaW50IHRvIGl0IGFnYWluLgoKQ2hlZXJzLApIZXJtYW5uCgoKCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIg
-bWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3Jn
-L2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+This is a multi-part message in MIME format.
+--===============1599186967==
+Content-Type: multipart/alternative;
+ boundary="------------040906090608040302020106"
+
+This is a multi-part message in MIME format.
+--------------040906090608040302020106
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+I feel your pain, patch-hell isn't a fun place to be :)
+
+Lots of people make guides on how to fix something, unfortunately they 
+forget that trees grow, and a patch that works today probably won't work 
+tomorrow.
+Thankfully you can check out different revisions!
+
+I'd sugest you try this patch out on manu's original multiproto tree, 
+revision number 7213 (that was the last update, in april, before she 
+made her patch)
+
+hg clone -r 7213 http://jusst.de/hg/multiproto
+
+/Met vriendelijke groeten,/
+
+*Jelle De Loecker*
+Kipdola Studios - Tomberg
+
+
+Roger James schreef:
+> I am have been trying to get gnutv to drive the TT-3200 driver using 
+> the old api (gnutv uses dvb-apps/lib which is not patched for multi 
+> proto). After much head scratching I realised that the fialure of the 
+> driver to get lock when exercised in this way seemed to be related to 
+> DVBFE_ALGO_SEARCH_AGAIN not being set when the FE_SET_FRONTEND ioctl 
+> path was followed rather than than the DVBFE_SET_PARAMS path. A search 
+> of the list revealed that Anssi Hannula had already worked this out 
+> and made a patch 
+> (http://www.spinics.net/lists/linux-dvb/msg26174.html). However it 
+> does not look like this patch has made it into the code that Manu has 
+> asked to be merged into the kernel. Does this mean that the merged 
+> code will not be compatible with applications such as gnutv which use 
+> dvb-apps/lib or other apps which use the old api?
+>
+> To help me carry on with my testing. Is there as version of Anssi's 
+> patch that can be applied against a recent clone of Manu's code.
+>
+> I apologise if this has been visited before; but I am finding it 
+> virtually impossible to unravel the complexities of what patch matches 
+> what tree.
+>
+> Help
+>
+> Roger
+> ------------------------------------------------------------------------
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+--------------040906090608040302020106
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title></title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+I feel your pain, patch-hell isn't a fun place to be :)<br>
+<br>
+Lots of people make guides on how to fix something, unfortunately they
+forget that trees grow, and a patch that works today probably won't
+work tomorrow.<br>
+Thankfully you can check out different revisions!<br>
+<br>
+I'd sugest you try this patch out on manu's original multiproto tree,
+revision number 7213 (that was the last update, in april, before she
+made her patch)<br>
+<br>
+hg clone -r 7213 <a class="moz-txt-link-freetext" href="http://jusst.de/hg/multiproto">http://jusst.de/hg/multiproto</a><br>
+<div class="moz-signature"><br>
+<em>Met vriendelijke groeten,</em>
+<br>
+<br>
+<strong>Jelle De Loecker</strong>
+<br>
+Kipdola Studios - Tomberg <br>
+</div>
+<br>
+<br>
+Roger James schreef:
+<blockquote cite="mid:48BD78B0.6070508@beardandsandals.co.uk"
+ type="cite">I am have been trying to get gnutv to drive the TT-3200
+driver using
+the old api (gnutv uses dvb-apps/lib which is not patched for multi
+proto). After much head scratching I realised that the fialure of the
+driver to get lock when exercised in this way seemed to be related to
+DVBFE_ALGO_SEARCH_AGAIN not being set when the FE_SET_FRONTEND ioctl
+path was followed rather than than the DVBFE_SET_PARAMS path. A search
+of the list revealed that Anssi Hannula had already worked this out and
+made a patch (<a moz-do-not-send="true" class="moz-txt-link-freetext"
+ href="http://www.spinics.net/lists/linux-dvb/msg26174.html">http://www.spinics.net/lists/linux-dvb/msg26174.html</a>).
+However it does not look like this patch has made it into the code that
+Manu has asked to be merged into the kernel. Does this mean that the
+merged code will not be compatible with applications such as gnutv
+which use dvb-apps/lib or other apps which use the old api?<br>
+  <br>
+To help me carry on with my testing. Is there as version of Anssi's
+patch that can be applied against a recent clone of Manu's code.<br>
+  <br>
+I apologise if this has been visited before; but I am finding it
+virtually impossible to unravel the complexities of what patch matches
+what tree.<br>
+  <br>
+Help<br>
+  <br>
+Roger<br>
+  <pre wrap="">
+<hr size="4" width="90%">
+_______________________________________________
+linux-dvb mailing list
+<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
+<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></pre>
+</blockquote>
+</body>
+</html>
+
+--------------040906090608040302020106--
+
+
+--===============1599186967==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1599186967==--
