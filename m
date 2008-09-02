@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m88GmXoR014124
-	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 12:48:34 -0400
-Received: from mgw-mx06.nokia.com (smtp.nokia.com [192.100.122.233])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m88GmKBs021776
-	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 12:48:20 -0400
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m827qQ9q019077
+	for <video4linux-list@redhat.com>; Tue, 2 Sep 2008 03:52:27 -0400
+Received: from mgw-mx03.nokia.com (smtp.nokia.com [192.100.122.230])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m827qD3Q020027
+	for <video4linux-list@redhat.com>; Tue, 2 Sep 2008 03:52:13 -0400
+Message-ID: <48BCF083.6060200@nokia.com>
+Date: Tue, 02 Sep 2008 10:51:31 +0300
 From: Sakari Ailus <sakari.ailus@nokia.com>
-To: video4linux-list@redhat.com
-Date: Mon,  8 Sep 2008 19:48:09 +0300
-Message-Id: <12208924933015-git-send-email-sakari.ailus@nokia.com>
-In-Reply-To: <12208924931107-git-send-email-sakari.ailus@nokia.com>
-References: <48C55737.4080804@nokia.com>
-	<12208924933529-git-send-email-sakari.ailus@nokia.com>
-	<12208924931107-git-send-email-sakari.ailus@nokia.com>
-Cc: tuukka.o.toivonen@nokia.com, vherkuil@xs4all.nl, vimarsh.zutshi@nokia.com
-Subject: [PATCH 3/7] V4L: Add 10-bit RAW Bayer formats
+MIME-Version: 1.0
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+References: <A24693684029E5489D1D202277BE89441191E343@dlee02.ent.ti.com>
+	<200809020832.39530.hverkuil@xs4all.nl>
+In-Reply-To: <200809020832.39530.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 12/15] OMAP3 camera driver: Add Sensor and Lens Driver.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,34 +28,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Add 10-bit raw bayer format expanded to 16 bits. Adds also definition
-for 10-bit raw bayer format dpcm-compressed to 8 bits.
+ext Hans Verkuil wrote:
+> The diff for the Makefile shows the presence of OMAP2 drivers 
+> (omap24xxcam.o and omap24xxcam-dma.o), yet these drivers are not 
+> present in the master v4l-dvb repository. Why not submit these drivers 
+> as well? It would be nice to have the full set. Either that or redo the 
+> Kconfig and Makefile patches against the v4l-dvb master repository 
+> since they currently do not apply cleanly.
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- include/linux/videodev2.h |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+The patches are against the linux-omap tree. The reason they're being 
+posted here is mostly for review since people understand more V4L here 
+than on linux-omap list. ;)
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index e466bd5..79187c6 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -315,6 +315,13 @@ struct v4l2_pix_format {
- /* see http://www.siliconimaging.com/RGB%20Bayer.htm */
- #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
- #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
-+/*
-+ * 10bit raw bayer, expanded to 16 bits
-+ * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
-+ */
-+#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0')
-+/* 10bit raw bayer DPCM compressed to 8 bits */
-+#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
- 
- /* compressed formats */
+<URL:http://www.muru.com/linux/omap/README_OMAP_GIT>
+
+The other drivers are already part of linux-omap tree.
+
+Regards,
+
 -- 
-1.5.0.6
+Sakari Ailus
+sakari.ailus@nokia.com
 
 --
 video4linux-list mailing list
