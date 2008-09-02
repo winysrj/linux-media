@@ -1,26 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.236])
+Received: from smtpauth02.csee.siteprotect.eu ([83.246.86.181])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1Keh4j-0007xP-QC
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 04:11:00 +0200
-Received: by wx-out-0506.google.com with SMTP id t16so640504wxc.17
-	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 19:10:53 -0700 (PDT)
-Message-ID: <d9def9db0809131910h2ff43b9auf86eb340adb2fac8@mail.gmail.com>
-Date: Sun, 14 Sep 2008 04:10:53 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Manu Abraham" <abraham.manu@gmail.com>
-In-Reply-To: <48CC4D35.3000003@gmail.com>
+	(envelope-from <roger@beardandsandals.co.uk>) id 1KacAD-0007qB-Sn
+	for linux-dvb@linuxtv.org; Tue, 02 Sep 2008 22:07:46 +0200
+Received: from [192.168.10.241] (unknown [81.168.109.249])
+	(Authenticated sender: roger@beardandsandals.co.uk)
+	by smtpauth02.csee.siteprotect.eu (Postfix) with ESMTP id E571CC68005
+	for <linux-dvb@linuxtv.org>; Tue,  2 Sep 2008 22:07:11 +0200 (CEST)
+Message-ID: <48BD9CF0.9080604@beardandsandals.co.uk>
+Date: Tue, 02 Sep 2008 21:07:12 +0100
+From: Roger James <roger@beardandsandals.co.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-	<48CC42D8.8080806@gmail.com>
-	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
-	<48CC4D35.3000003@gmail.com>
-Cc: linux-dvb@linuxtv.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+To: linux-dvb@linuxtv.org
+References: <48BD78B0.6070508@beardandsandals.co.uk>	<48BD85FC.6030800@kipdola.com>
+	<48BD96F9.2010901@beardandsandals.co.uk>
+In-Reply-To: <48BD96F9.2010901@beardandsandals.co.uk>
+Subject: Re: [linux-dvb] Help - trying to get multiproto TT03200 driver
+ working via old API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,117 +24,136 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0561463705=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Sep 14, 2008 at 1:31 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
-> Markus Rechberger wrote:
->> On Sun, Sep 14, 2008 at 12:46 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
->>> Markus Rechberger wrote:
->>>
->>>> How many devices are currently supported by the multiproto API
->>>> compared with the s2 tree?
->>> The initial set of DVB-S2 multistandard devices supported by the
->>> multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
->>> alone. There are more additions by 2 more modules (not devices), but for
->>> the simple comparison here is the quick list of them, for which some of
->>> the manufacturers have shown support in some way. (There has been quite
->>> some contributions from the community as well.):
->>>
->>> (Also to be noted is that, some BSD chaps also have shown interest in
->>> the same)
->>>
->>
->> they're heavy into moving the whole framework over as far as I've seen
->> yes, also including yet unmerged drivers.
->
->
-> Using the same interface, the same applications will work there as well
-> which is a bonus, but isn't the existing user interface GPL ? (A bit
-> confused on that aspect)
->
+--===============0561463705==
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-I think it's good to have something that competes with Linux, I talked to some
-guys at that front too, and they seem to work close with application
-developers too
-As for the em28xx driver I agreed with pushing all my code (in case of
-linux, which
-includes unmerged independent drivercode from manufacturers) into their system
-using their license.
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title></title>
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Hmm,<br>
+<br>
+Looking at this further. I think the patch will break compatibility
+with all the old non multi-protocol drivers. That is the last thing I
+want to do. What is needed is something that converts to the new api
+only when needed. I wonder if there is a simple test to see if the
+underlying driver is old or new.<br>
+<br>
+I am somewhat out of my depth here!<br>
+<br>
+I am beginning to think I should have bought a DVB-S card after all.
+Especially as none of the services I want to view are S2!<br>
+<br>
+Roger<br>
+<br>
+Roger James wrote:
+<blockquote cite="mid:48BD96F9.2010901@beardandsandals.co.uk"
+ type="cite">
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+  <title></title>
+Thanks,<br>
+  <br>
+Looking at the patch diff is does not appear too complex. I will try
+and see if I can work out a minimal patch against the current tree. If
+not I will fall back on your suggestion. I think it would be desireable
+if what makes it into the kernel supports new cards been driven in the
+old way. <br>
+  <br>
+Roger<br>
+  <br>
+Jelle De Loecker wrote:
+  <blockquote cite="mid:48BD85FC.6030800@kipdola.com" type="cite">
+    <meta content="text/html;charset=ISO-8859-1"
+ http-equiv="Content-Type">
+    <title></title>
+I feel your pain, patch-hell isn't a fun place to be :)<br>
+    <br>
+Lots of people make guides on how to fix something, unfortunately they
+forget that trees grow, and a patch that works today probably won't
+work tomorrow.<br>
+Thankfully you can check out different revisions!<br>
+    <br>
+I'd sugest you try this patch out on manu's original multiproto tree,
+revision number 7213 (that was the last update, in april, before she
+made her patch)<br>
+    <br>
+hg clone -r 7213 <a moz-do-not-send="true"
+ class="moz-txt-link-freetext" href="http://jusst.de/hg/multiproto">http://jusst.de/hg/multiproto</a><br>
+    <div class="moz-signature"><br>
+    <em>Met vriendelijke groeten,</em> <br>
+    <br>
+    <strong>Jelle De Loecker</strong> <br>
+Kipdola Studios - Tomberg <br>
+    </div>
+    <br>
+    <br>
+Roger James schreef:
+    <blockquote cite="mid:48BD78B0.6070508@beardandsandals.co.uk"
+ type="cite">I am have been trying to get gnutv to drive the TT-3200
+driver using
+the old api (gnutv uses dvb-apps/lib which is not patched for multi
+proto). After much head scratching I realised that the fialure of the
+driver to get lock when exercised in this way seemed to be related to
+DVBFE_ALGO_SEARCH_AGAIN not being set when the FE_SET_FRONTEND ioctl
+path was followed rather than than the DVBFE_SET_PARAMS path. A search
+of the list revealed that Anssi Hannula had already worked this out and
+made a patch (<a moz-do-not-send="true" class="moz-txt-link-freetext"
+ href="http://www.spinics.net/lists/linux-dvb/msg26174.html">http://www.spinics.net/lists/linux-dvb/msg26174.html</a>).
+However it does not look like this patch has made it into the code that
+Manu has asked to be merged into the kernel. Does this mean that the
+merged code will not be compatible with applications such as gnutv
+which use dvb-apps/lib or other apps which use the old api?<br>
+      <br>
+To help me carry on with my testing. Is there as version of Anssi's
+patch that can be applied against a recent clone of Manu's code.<br>
+      <br>
+I apologise if this has been visited before; but I am finding it
+virtually impossible to unravel the complexities of what patch matches
+what tree.<br>
+      <br>
+Help<br>
+      <br>
+Roger<br>
+      <pre wrap=""><hr size="4" width="90%">
+_______________________________________________
+linux-dvb mailing list
+<a moz-do-not-send="true" class="moz-txt-link-abbreviated"
+ href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
+<a moz-do-not-send="true" class="moz-txt-link-freetext"
+ href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></pre>
+    </blockquote>
+  </blockquote>
+  <br>
+  <pre wrap="">
+<hr size="4" width="90%">
+_______________________________________________
+linux-dvb mailing list
+<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
+<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></pre>
+</blockquote>
+<br>
+</body>
+</html>
 
->
->>> * STB0899 based
->>>
->>> Anubis
->>> Typhoon DVB-S2 PCI
->>>
->>> Azurewave/Twinhan
->>> VP-1041
->>> VP-7050
->>>
->>> Digital Now
->>> AD SP400
->>> AD SB300
->>>
->>> KNC1
->>> TV Station DVB-S2
->>> TV Station DVB-S2 Plus
->>>
->>> Pinnacle
->>> PCTV Sat HDTV Pro USB 452e
->>>
->>> Satelco
->>> TV Station DVB-S2
->>> Easywatch HDTV USB CI
->>> Easywatch HDTV PCI
->>>
->>> Technisat
->>> Skystar HD
->>> Skystar HD2
->>> Skystar USB2 HDCI
->>>
->>> Technotrend
->>> TT S2 3200
->>> TT S2 3600
->>> TT S2 3650
->>>
->>> Terratec
->>> Cinergy S2 PCI HD
->>> Cinergy S2 PCI HDCI
->>>
->>
->> those are pullable now against the current tree?
->
->
-> These devices, depend upon the DVB API update without which it wouldn't
-> work as they depend heavily on the DVB API framework. Without the
-> updated framework, it doesn't make any sense to pull them: they won't
-> even compile. The last but not least reason is that, the stb0899 driver
-> is a DVB-S2 multistandard device which requires DVB-S2/DSS support
-> additionally.
->
 
-as far as I understood here it's that alot code is already available
-and has been tested for
-a couple of years, a few guys are trying to run their own game since
-they already have
- "some" code, and the problem is that people would have to port your
-drivers to the
-other system without your support. We've seen the same issue with the
-em28xx a year ago,
-although this one is participating at the BSD and OSX project now too
-(which takes the same
-source and makes alot more sence in terms of contributions).
-As soon as the em28xx code supports the mt2060 and saa7114 devices it
-would be ready
-to go into the kernel again separated from linuxtv...
-
-Markus
+--===============0561463705==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0561463705==--
