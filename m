@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m83CaN1S019154
-	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 08:36:23 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m83Ca9LC008499
-	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 08:36:10 -0400
-Message-ID: <48BE877A.3020007@hhs.nl>
-Date: Wed, 03 Sep 2008 14:47:54 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m83Lmo6r011034
+	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 17:48:51 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.224])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m83LmLFN022320
+	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 17:48:40 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so2841404rvb.51
+	for <video4linux-list@redhat.com>; Wed, 03 Sep 2008 14:48:40 -0700 (PDT)
+Message-ID: <2df568dc0809031448y3e70715codb5f3a0be505f6cf@mail.gmail.com>
+Date: Wed, 3 Sep 2008 15:48:39 -0600
+From: "Gordon Smith" <spider.karma+video4linux-list@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: libv4l release: 0.4.3
+Content-Disposition: inline
+Subject: saa7134_empress standard vs input
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,19 +27,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All,
+Greetings -
 
-libv4l-0.4.3
-------------
-* Add suport for YUYV and YVYU packed pixel formats (Jean-Francois Moine)
-* Prefer compressed pixformats for resolutions > 176x144
+I have a RTD Technologies VFG7350 (saa7134 based, two channel,
+hardware encoder per channel, no tuner) running current v4l-dvb in
+2.6.25-gentoo-r7.
 
-Get it here:
-http://people.atrpms.net/~hdegoede/libv4l-0.4.3.tar.gz
+Short form question: Is it necessary to do something to connect an
+input standard to an MPEG encoder?
 
-Regards,
+I seem to have a disconnect between input signal and the MPEG encoder.
+In this case, there is a NTSC camera signal on the input.
+Raw data and input selection are on video0. Raw data can be read from
+and input selected on video0. MPEG encoder output is on video2. MPEG
+data can be read from video2, but it looks like PAL aspect with NTSC
+data (extra lines at bottom of image repeat uppermost lines).
 
-Hans
+
+$ v4l2-ctl --get-standard --device /dev/video0
+Video Standard = 0x0000b000
+        NTSC-M/M-JP/M-KR
+$ v4l2-ctl --get-standard --device /dev/video2
+Video Standard = 0x000000ff
+        PAL-B/B1/G/H/I/D/D1/K
+
+
+The input standard is automatically selected by the hardware.
+Is there something that needs to be set to match the standard between
+input and encoder?
+
+Thanks,
+Gordon
 
 --
 video4linux-list mailing list
