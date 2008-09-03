@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8UCjpQI009336
-	for <video4linux-list@redhat.com>; Tue, 30 Sep 2008 08:45:51 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8UCjjLu018713
-	for <video4linux-list@redhat.com>; Tue, 30 Sep 2008 08:45:45 -0400
-Date: Tue, 30 Sep 2008 14:45:28 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Elvis Chen <chene77@hotmail.com>
-Message-ID: <20080930124528.GA442@daniel.bse>
-References: <BAY122-W46E61F0928F2E422B22355AA150@phx.gbl>
-	<20080301234821.GA1691@daniel.bse>
-	<BAY122-W277E26F7DB592126DD2175AA400@phx.gbl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <BAY122-W277E26F7DB592126DD2175AA400@phx.gbl>
-Cc: video4linux-list@redhat.com
-Subject: Re: newbie programming help:  grabbing image(s) from /dev/video0,
-	example code?
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m83CaN1S019154
+	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 08:36:23 -0400
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m83Ca9LC008499
+	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 08:36:10 -0400
+Message-ID: <48BE877A.3020007@hhs.nl>
+Date: Wed, 03 Sep 2008 14:47:54 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: libv4l release: 0.4.3
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,17 +27,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Sep 29, 2008 at 08:58:05PM +0000, Elvis Chen wrote:
-> and it appears that the Hauppauge pvr-150 does not:
+Hi All,
 
-You are right, ivtv supports only read/write access.
+libv4l-0.4.3
+------------
+* Add suport for YUYV and YVYU packed pixel formats (Jean-Francois Moine)
+* Prefer compressed pixformats for resolutions > 176x144
 
-> is there another way to increase the performance?
+Get it here:
+http://people.atrpms.net/~hdegoede/libv4l-0.4.3.tar.gz
 
-Have you tried reading in a thread separate from the image processing
-(with multiple frame buffers)?
+Regards,
 
-  Daniel
+Hans
 
 --
 video4linux-list mailing list
