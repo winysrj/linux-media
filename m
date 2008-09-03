@@ -1,31 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8EDhDZI017006
-	for <video4linux-list@redhat.com>; Sun, 14 Sep 2008 09:43:13 -0400
-Received: from flanders.hackvalue.nl (flanders.hackvalue.nl [82.94.238.226])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8EDg1uP022770
-	for <video4linux-list@redhat.com>; Sun, 14 Sep 2008 09:42:02 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by flanders.hackvalue.nl (Postfix) with ESMTP id AB9769781BE
-	for <video4linux-list@redhat.com>;
-	Sun, 14 Sep 2008 15:42:03 +0200 (CEST)
-Received: from flanders.hackvalue.nl ([127.0.0.1])
-	by localhost (flanders.hackvalue.nl [127.0.0.1]) (amavisd-new,
-	port 10024)
-	with ESMTP id JysYkt1FVPSE for <video4linux-list@redhat.com>;
-	Sun, 14 Sep 2008 15:42:02 +0200 (CEST)
-Received: from [127.0.0.1] (localhost.localdomain [127.0.0.1])
-	by flanders.hackvalue.nl (Postfix) with ESMTP id 9AD779781AD
-	for <video4linux-list@redhat.com>;
-	Sun, 14 Sep 2008 15:42:02 +0200 (CEST)
-From: Armijn Hemel <armijn@uulug.nl>
-To: video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Sun, 14 Sep 2008 15:42:00 +0200
-Message-Id: <1221399720.3870.8.camel@cletus.local>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m83GmHhB008926
+	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 12:48:18 -0400
+Received: from n43.bullet.mail.ukl.yahoo.com (n43.bullet.mail.ukl.yahoo.com
+	[87.248.110.176])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m83Gm6h6022866
+	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 12:48:07 -0400
+From: Lars Oliver Hansen <lolh@ymail.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0809021639u1e5774dek7014597cf3364707@mail.gmail.com>
+References: <1220396812.3752.46.camel@lars-laptop>
+	<d9def9db0809021639u1e5774dek7014597cf3364707@mail.gmail.com>
+Date: Wed, 03 Sep 2008 18:48:04 +0200
+Message-Id: <1220460484.6279.29.camel@lars-laptop>
 Mime-Version: 1.0
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Subject: Conceptronic CHVIDEOCR
+Cc: video4linux-list@redhat.com
+Subject: Re: em28xx-based KWorld 310U delivers no signal, 2 drivers tried
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,83 +29,72 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hi,
+Hi,
 
-I have a Conceptronic CHVIDEOCR
-(http://www.conceptronic.net/site/desktopdefault.aspx?tabindex=0&tabid=200&Cat=20&grp=2010&ar=360&Prod_ID=1020&Prod=CHVIDEOCR).
-I plugged it in on my Fedora 9 system and the kernel said the following:
+Am Mittwoch, den 03.09.2008, 01:39 +0200 schrieb Markus Rechberger:
 
-Sep 14 15:32:40 localhost kernel: em28xx #0: em28xx chip ID = 18
-Sep 14 15:32:40 localhost kernel: saa7115' 1-0025: saa7113 found
-(1f7113d0e100000) @ 0x4a (em28xx #0)
-Sep 14 15:32:41 localhost kernel: em28xx #0: found i2c device @ 0x4a
-[saa7113h]
-Sep 14 15:32:41 localhost kernel: em28xx #0: Your board has no unique
-USB ID and thus need a hint to be detected.
-Sep 14 15:32:41 localhost kernel: em28xx #0: You may try to use card=<n>
-insmod option to workaround that.
-Sep 14 15:32:41 localhost kernel: em28xx #0: Please send an email with
-this log to:
-Sep 14 15:32:41 localhost kernel: em28xx #0:    V4L Mailing List
-<video4linux-list@redhat.com>
-Sep 14 15:32:41 localhost kernel: em28xx #0: Board eeprom hash is
-0x00000000
-Sep 14 15:32:41 localhost kernel: em28xx #0: Board i2c devicelist hash
-is 0x1ba50080
-Sep 14 15:32:41 localhost kernel: em28xx #0: Here is a list of valid
-choices for the card=<n> insmod option:
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=0 -> Unknown
-EM2800 video grabber
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=1 -> Unknown
-EM2750/28xx video grabber
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=2 -> Terratec
-Cinergy 250 USB
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=3 -> Pinnacle PCTV
-USB 2
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=4 -> Hauppauge
-WinTV USB 2
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=5 -> MSI VOX USB
-2.0
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=6 -> Terratec
-Cinergy 200 USB
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=7 -> Leadtek
-Winfast USB II
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=8 -> Kworld
-USB2800
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=9 -> Pinnacle
-Dazzle DVC 90/DVC 100
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=10 -> Hauppauge
-WinTV HVR 900
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=11 -> Terratec
-Hybrid XS
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=12 -> Kworld PVR
-TV 2800 RF
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=13 -> Terratec
-Prodigy XS
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=14 -> Pixelview
-Prolink PlayTV USB 2.0
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=15 -> V-Gear
-PocketTV
-Sep 14 15:32:41 localhost kernel: em28xx #0:     card=16 -> Hauppauge
-WinTV HVR 950
-Sep 14 15:32:41 localhost kernel: em28xx #0: V4L2 device registered
-as /dev/video0 and /dev/vbi0
-Sep 14 15:32:41 localhost kernel: em28xx #0: Found Unknown EM2750/28xx
-video grabber
+> 2008/9/3 Lars Oliver Hansen <lolh@ymail.com>:
+> > Hello,
 
-When I load it with card configuration 9 (Pinnacle Dazzle) it works like
-a charm. Where exactly should I add it to the driver? Is that in
-em28xx-cards.c in the em28xx_i2c_hash struct?
 
-thanks in advance,
 
-armijn
+> > What are the best working options to get my KWorld DVB-T 310U usable in
+> > analog TV mode at least? Which driver to I have to take, what would I
+> > have to do?
 
--- 
--------------------------------------------------------------------------
-armijn@uulug.nl | http://www.uulug.nl/ | UULug: Utrecht Linux Users Group
--------------------------------------------------------------------------
 
+
+> > I'm on Ubuntu 8.04
+> > but I have a vanilla kernel 2.6.27-rc5 source at hand  (yes which I
+> > configured, compiled and have working with Ubuntu in another grub
+> > entry :-)), which v4l drivers would I have to enable there to use that
+> > kernels drivers?
+> >
+> > Thanks fro any help!
+> >
+> 
+> audio especially for that device will take a few more days in a
+> default ubuntu environment for that device it's work in progress.
+> 
+> you might read through the em28xx mailinglist, it has several
+> information how to get most of that device work (there's no need to
+> grab an extra firmware from somewhere).
+> 
+> Markus
+
+
+What's the state of each of your 3 trees v4l-dvb-kernel,
+v4l-dvb-experimental and em28xx-new? I noticed that the last entry to
+your v4l trees is around 4 months old in both cases and that they both
+received updates at around the same times. Is there a difference in the
+experimental tree from the kernel tree? Is every file affected or were
+only some added/changed? I gathered from gnames archive of your em28xx
+mailing list that you have an em28xx-new tree. Unfortunately I found
+only 5 posts regarding the 310U, yet many regarding the 300. Will your
+new tree support the chips that come with the em2883 like the XCeive
+3028? Your kernel driver gave the 310U the status of a DVB-T device and
+w_scan worked, unfortunately the analog part was unstable as mentioned
+in my first e-mail and I have no DVB-T viewing application under Gnome
+(or they don't work (Totem misses the channels.conf and I don't know
+where to put it and mplayers gui has no TV controls and I haven't
+figured out its command line spec and I don't know whether I want to)).
+The v4l-dvb driver from the v4l wikis main-page (so not yours) didn't
+give the 310U the status of a DVB-T device so it would just work for
+analog.
+The v4l wiki has many different pages which tell similar things but they
+are not linked with each other and sometimes one leads there while the
+other leads elsewhere and the information obtained then is different.
+For example regarding the em28xx it is said that only analog works but
+the xc3028 which may come with an em28xx (as in my case) is said to have
+support for DVB-T yet the v4l-dvb driver didn't make the device a DVB-T
+one. Is that the em28xx drivers "fault"?
+Also there is a seperate wiki for dvb-t which I think is unneccessary.
+They are pointing to the same repository (v4l-dvb) and the same people
+are working on the driver, isn't this the case? It would be sufficient
+if the linuxTV wiki split the technical section only into one for
+dvb-info and one for analog info. And where would the hybrid people go?
+
+Lars
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
