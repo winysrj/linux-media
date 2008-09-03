@@ -1,13 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: =?us-ascii?Q?Niels_Wagenaar?= <n.wagenaar@xs4all.nl>
-To: "=?us-ascii?Q?Igor_M._Liplianin?=" <liplianin@tut.by>, vdr@linuxtv.org
-Date: Sun, 28 Sep 2008 10:54:46 +0000
-Mime-Version: 1.0
-In-Reply-To: <200809281349.23741.liplianin@tut.by>
-References: <vmime.48da5de9.2764.631c157d48c6c18b@shalafi.ath.cx>
-Message-Id: <vmime.48df6276.2764.736fa91d27c7aeeb@shalafi.ath.cx>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [vdr][PATCH] S2API for vdr-1.7.0(1.7.1) quick hack
+Received: from ti-out-0910.google.com ([209.85.142.190])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <glenn.l.mcgrath@gmail.com>) id 1Kaspl-0007al-6D
+	for linux-dvb@linuxtv.org; Wed, 03 Sep 2008 15:55:46 +0200
+Received: by ti-out-0910.google.com with SMTP id w7so1906779tib.13
+	for <linux-dvb@linuxtv.org>; Wed, 03 Sep 2008 06:55:38 -0700 (PDT)
+Message-ID: <141058d50809030655i680f7937o3aa657601d1910a0@mail.gmail.com>
+Date: Wed, 3 Sep 2008 23:55:38 +1000
+From: "Glenn McGrath" <glenn.l.mcgrath@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Fine tuning app ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,32 +25,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> -----Oorspronkelijk bericht-----
-> Van: Igor M. Liplianin [mailto:liplianin@tut.by]
-> Verzonden: zondag 28 september 2008 12:49
-> Aan: vdr@linuxtv.org; Niels Wagenaar
-> CC: Gregoire Favre; linux-dvb@linuxtv.org
-> Onderwerp: [vdr][PATCH] S2API for vdr-1.7.0(1.7.1) quick hack
-> 
-> -- SNIP --
->
-> Hi Niels
-> 
-> S2API for vdr-1.7.0(1.7.1) quick hack
-> Patch is ugly and only supported DVB-S. But it is useful to begin.
-> You may modify it like you wish.
->
+Hi all, im very happy to say i have my dvico dual fusion working
+really well now, all channels work.
 
-Igor, thanks for the hack/patch! Now I have something to compare and this will speed it up for me very much :)
+I had to manually tweak the frequencies by adding 125kHz to the center
+frequency, i think i read somewhere that 125kHz is the max they are
+allowed to vary it.
 
-I didn't had time to start with it yet (Family ;). It was my plan to start this evening. So if I have something new, I'll report this asap :)
- 
-> Igor
+It would be really useful to have a fine tuning app that can use a
+table of hard coded frequency values  for different countries and fine
+tune it until the error rate is minimal.
 
-Regards,
+Does such an app exists.. im tempted to try and code one up myself.
 
-Niels Wagenaar
 
+
+Glenn
 
 _______________________________________________
 linux-dvb mailing list
