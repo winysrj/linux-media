@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8JETB9J028815
-	for <video4linux-list@redhat.com>; Fri, 19 Sep 2008 10:29:12 -0400
-Received: from www.curtronics.com
-	(h69-129-7-18.nwblwi.dedicated.static.tds.net [69.129.7.18])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8JET9cN019319
-	for <video4linux-list@redhat.com>; Fri, 19 Sep 2008 10:29:09 -0400
-Message-ID: <48D3B730.9060204@curtronics.com>
-Date: Fri, 19 Sep 2008 09:29:04 -0500
-From: Curt Blank <Curt.Blank@curtronics.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m83KtTHt023397
+	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 16:55:30 -0400
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m83KHigG032762
+	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 16:17:45 -0400
+From: "Jalori, Mohit" <mjalori@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, "Aguirre Rodriguez, Sergio Alberto"
+	<saaguirre@ti.com>
+Date: Wed, 3 Sep 2008 15:17:36 -0500
+Message-ID: <8AA5EFF14ED6C44DB31DA963D1E78F0DB98111BB@dlee02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE894411A07DFA@dlee02.ent.ti.com>
+	<200809032158.10633.hverkuil@xs4all.nl>
+In-Reply-To: <200809032158.10633.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-To: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-References: <48D32F0E.1000903@curtronics.com>
-	<200809190435.17646.vanessaezekowitz@gmail.com>
-In-Reply-To: <200809190435.17646.vanessaezekowitz@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Kworld PlusTV HD PCI 120 (ATSC 120)
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: RE: [PATCH 15/15] OMAP3 camera driver: OMAP34XXCAM: Add Sensors
+	Support.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,130 +31,124 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
 
-Thanks yo the reply. I had read through all your posts from back in 
-February and did see you got it working. I've got a few questions.
 
-Vanessa Ezekowitz wrote:
-> On Thursday 18 September 2008 11:48:14 pm Curt Blank wrote:
->   
->> I'm trying to get this  card working  and I'm having some trouble and
->> I'm not sure exactly where. I'm using the 2.6.26.5 kernel gen'd to
->> include all the v4l support.
->>     
->
-> I don't know if that version of the kernel has the full driver or not, however, 
-> it would be a good idea to use the v4l-dvb repository instead, as that code is 
-> more up to date.
->
-> Mauro, does any current kernel contain these drivers yet?  I've not been 
-> following v4l-dvb-->kernel merges.
->   
-I looked at the cx88_cards.c code and I see it has the Kworld PlusTV HD 
-PCI 120 (ATSC 120) card listed in it. It looks to me it was included 
-since 2.6.26. I do have the v4l code fro the repository, I was 
-experimenting with using it in the 2.6.25.22 kernel but decided 2.6.26.5 
-might be better. If I don't have any luck with you suggestions and the 
-2.6.26.5 code I'll switch back to the repository code.
->   
->> Using Kradio I can manually tune in a station  but the audio only comes
->> out the Line Out jack on the card. Alsa is installed and working, I can 
->> play CD's, listen to streaming music, KDE sound effects work, so it
->> appears my sound subsystem is working. The alsa config in Kradio is set
->> to what it determined and it appears to match the device as far as
->> things go.
->>     
->   
-> The first thing that comes to mind here is that Kradio chose the wrong audio 
-> device but made it look like it chose correctly.  I seem to recall it doing 
-> the same thing on my box as well.  This card provides audio via a digital 
-> stream, and the drivers put that stream on /dev/dsp1, so you must chose that 
-> as your capture card/device, and set the playback card/device to use your 
-> usual sound card.
->   
-So this card follows the oss format instead of the alas format? I wasn't 
-sure which one to use. I switched Kradio's V4L Config Options to use OSS 
-and tried both /dev/dsp and /dev/dsp1 and there is no sound. I had 
-experimented with this before also.
-> Also, the current version of the driver no longer provides or requires the 
-> cx88-alsa module (it has apparently been merged with other parts of the 
-> driver).  Don't try to load this module, as it will probably cause a bunch of 
-> errors and break things.  I've just updated the KW120 article to reflect this 
-> change in driver behavior (and to fix some other errors on my part).
->   
->> When I try to scan for stations it doesn't find any but I can 
->> tune to any local station and get it.
->>
->> I also can't get the video (HDTV) to work either. When it starts up I get
->> a:
->>     
->
-> At the present, you can't load both the digital- and analog-mode drivers at the 
-> same time - this card uses a "hybrid" tuner, which the drivers can't quite 
-> deal with properly yet (this is being worked on).  The end result is that 
-> neither mode will work at all, or may work only intermittently (last time I 
-> tried, the result was unpredictable).
->
-> You must select one more or the other, and you must reboot the computer 
-> (actually, a hard power-off is better) when switching modes.
->
-> Basically, it boils down to blacklisting several modules and then loading 
-> either the cx8800 or cx88-dvb module (for analog or digital, respectively).
->   
-I did experiment with the blacklisting and I did notice that I could 
-listen to the radio (through the cards line out) when the cx8800 was 
-loaded without the cx88-alsa module loaded. At the moment I have 
-blacklisted everything, powered down and now only have the cx8800 module 
-loaded.
->   
->   
->> I also can't get the video (HDTV) to work either. When it starts up I get a:
->> [...]
->> When I run kdetv in a terminal window I see this:
->>     
->
-> [errors snipped]
->
-> Last time I tried to use it, KDETV only worked with analog video/TV and other 
-> v4l capture devices.  For digital TV, you need to use something like 
-> Kaffeine/Xine, MythTV, etc.  Basically any video player that can read from a 
-> DVB device.
->
-> Also note that KDETV, unless it's changed since I last looked, isn't aware of 
-> that separate digital stream for analog TV, so you probably won't get any 
-> audio from it.  Most of the other TV programs are like this also.  Kradio is 
-> aware of it, however, and worked fine for me last time I used it.
->   
-I do have kaffine and xine, I will try that when I get a chance later today.
->   
->> I've read the Wiki at http://www.linuxtv.org including the
->> http://www.linuxtv.org/wiki/index.php/KWorld_ATSC_120 info. I also
->> downloaded the archived list messages back to January 2007 and looked
->> through them for help.
->>     
->
-> I know it sounds a little Windows-ish, but since the driver is still 
-> experimental, and the ATSC 120 is kinda finicky, a reboot is the first thing 
-> to do here, just to get the card back into a predictable state.  Get the 
-> blacklist into place before you do that, check after the reboot to make sure 
-> that worked, then try just the analog mode.  One that works, reboot again, 
-> enable digital mode, and scan for channels with dvbscan or whatever your 
-> distro calls it.
->
-> Stuart and I wrote most of what's in the ATSC 120 info page, so if it didn't 
-> work for you, I'd like to see if we can figure out what went wrong, so I can 
-> update the page to address the problem.  I'm kinda partial to the idea of 
-> seeing this card working fully for those who have one. :-)
->   
-Thanks. I'll work on all your suggestions more in depth when I have more 
-time later today and over the weekend and report back. The first thing 
-I'd like to get working as a stepping stone is the sound not using the 
-cards line out. I've been trying this in a box using that MSI MB, it's 
-going to be used in different box with an Asus m3a78-em MB that should 
-be arriving today so I will probably move to that. I've had some issues 
-with MSI MB's and media cards (video) in the last year where they did 
-not work and that's why I've switched back to Asus.
+> -----Original Message-----
+> From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-
+> bounces@redhat.com] On Behalf Of Hans Verkuil
+> Sent: Wednesday, September 03, 2008 2:58 PM
+> To: Aguirre Rodriguez, Sergio Alberto
+> Cc: video4linux-list@redhat.com
+> Subject: Re: [PATCH 15/15] OMAP3 camera driver: OMAP34XXCAM: Add
+> Sensors Support.
+> 
+> On Wednesday 03 September 2008 18:49:32 Aguirre Rodriguez, Sergio
+> Alberto wrote:
+> > Hans,
+> >
+> > This file hasn't yet been merged into Linus tree, these patches are
+> > made for applying on top of linux-omap tree, that's why you don't
+> > find it there.
+> >
+> > We came up to the conclusion that  we will only send you all the
+> > needed (and reworked with all the comments, of course) v4l2 changes
+> > for omap3 camera operation, and send the remaining ones, which are
+> > omap-specific, to the linux-omap list.
+> 
+> OK, clear.
+> 
+> > We'll keep you updated on this between this week and next one.
+> >
+> > I appreciate your time. Thanks.
+> 
+> FYI: I'm on vacation from September 10-29, so I will not be able to do
+> any reviewing during that time. During my vacation I'll also be at the
+> Linux conference in Portland and I hope to discuss some extensions to
+> the v4l API there that could well have an impact on the
+> previewer/resizer devices that you created.
+> 
+> It would really help me to have a description of what and how those
+> devices are currently used for so that I can decide whether that will
+> fit well with my ideas.
+> 
+
+
+OMAP Previewer:
+It is used for color conversion. It takes in RAW images and generated YUV data. The intent for this is to be able to take RAW image, tune the image pipe parameters and generate the YUV images. If you use the OMAP3 camera driver the default values are good for certain light conditions and can be changed by the private IOCTLs implemented in the camera driver. However for good quality images there is an option of just using the previewer with the tuned coefficients for all HW blocks in the OMAP3 ISP.
+It takes in RAW image, you can set the size, you can configure which HW blocks you want to enable for processing and you can select what the parameters will be for these HW blocks. For eg you can select whether you want to use the noise filter or not, If used you can specify the threshold and strength for this filter. It will generate the YUV image. It is possible to link it to the resizer wrapper (which is currently being implemented).
+
+
+OMAP Resizer:
+We use this for stand alone image scaling. It takes in YUV data and rescales (upscale/downscale) to the user requested size. User has the option to specify the resizer coefficients to be used since the default coefficients work well for certain rescaling ratios. Can use used for image view application or even for snapshot/thumbnail generation.
+
+
+About the interface we implemented them to be custom for the following reasons
+1. These blocks are anyway very OMAP HW specific so the ioctls and parameters accepted were kept close to what the HW accepted.
+2. Lots of existing customers using older chipsets are using this interface and we wanted to maintain the same interface
+3. If we moved to V4L2 based I/f we could have reused format, buffer management related ioctls but still most of the controls are very specific to HW and would not be generic.
+
+We will go through the RFC and let you know our comments.
+
+Regards,
+Mohit
+
+> See this link for the RFC I wrote:
+> 
+> http://lists-archives.org/video4linux/23652-rfc-add-support-to-query-
+> and-change-connections-inside-a-media-device.html
+> 
+> I think that most of the driver internals are no doubt OK, it's the
+> public API that I will pay close attention to when I review.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> >
+> > Regards,
+> > Sergio
+> >
+> > -----Original Message-----
+> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> > Sent: Tuesday, September 02, 2008 1:24 AM
+> > To: video4linux-list@redhat.com
+> > Cc: Aguirre Rodriguez, Sergio Alberto
+> > Subject: Re: [PATCH 15/15] OMAP3 camera driver: OMAP34XXCAM: Add
+> > Sensors Support.
+> >
+> > On Saturday 30 August 2008 01:44:27 Aguirre Rodriguez, Sergio
+> Alberto
+> >
+> > wrote:
+> > > From: Sergio Aguirre <saaguirre@ti.com>
+> > >
+> > > OMAP34XX: CAM: Add Sensors Support
+> > >
+> > > This adds support in OMAP34xx SDP board file for Sensor and Lens
+> > > driver.
+> > >
+> > > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> > > ---
+> > >  arch/arm/mach-omap2/board-3430sdp.c |  228
+> >
+> > ++++++++++++++++++++++++++++++++++++
+> >
+> > >  1 file changed, 228 insertions(+)
+> >
+> > Can you mail the original board-3430sdp.c file? I cannot find this
+> > file in the linux kernel (looked in the latest git tree from Linus).
+> >
+> > Regards,
+> >
+> > 	Hans
+> 
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-
+> request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+
 
 --
 video4linux-list mailing list
