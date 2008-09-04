@@ -1,31 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Kev0W-0006Ht-CC
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 19:03:33 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K770005K3CX9T70@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sun, 14 Sep 2008 13:02:58 -0400 (EDT)
-Date: Sun, 14 Sep 2008 13:02:57 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <d9def9db0809140838k2ced5211gc2690e76f53a98be@mail.gmail.com>
-To: Markus Rechberger <mrechberger@gmail.com>
-Message-id: <48CD43C1.2090902@linuxtv.org>
-MIME-version: 1.0
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-	<48CC42D8.8080806@gmail.com>
-	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
-	<48CC4D35.3000003@gmail.com>
-	<d9def9db0809140838k2ced5211gc2690e76f53a98be@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Received: from web55602.mail.re4.yahoo.com ([206.190.58.226])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o_lucian@yahoo.com>) id 1KbJKR-0006pI-C3
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 20:13:12 +0200
+Date: Thu, 4 Sep 2008 11:12:37 -0700 (PDT)
+From: lucian orasanu <o_lucian@yahoo.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Message-ID: <191296.97055.qm@web55602.mail.re4.yahoo.com>
+Subject: [linux-dvb] Multiproto API/Driver Update
+Reply-To: o_lucian@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -39,109 +23,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus Rechberger wrote:
-> On Sun, Sep 14, 2008 at 1:31 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
->> Markus Rechberger wrote:
->>> On Sun, Sep 14, 2008 at 12:46 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
->>>> Markus Rechberger wrote:
->>>>
->>>>> How many devices are currently supported by the multiproto API
->>>>> compared with the s2 tree?
->>>> The initial set of DVB-S2 multistandard devices supported by the
->>>> multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
->>>> alone. There are more additions by 2 more modules (not devices), but for
->>>> the simple comparison here is the quick list of them, for which some of
->>>> the manufacturers have shown support in some way. (There has been quite
->>>> some contributions from the community as well.):
->>>>
->>>> (Also to be noted is that, some BSD chaps also have shown interest in
->>>> the same)
->>>>
->>> they're heavy into moving the whole framework over as far as I've seen
->>> yes, also including yet unmerged drivers.
->>
->> Using the same interface, the same applications will work there as well
->> which is a bonus, but isn't the existing user interface GPL ? (A bit
->> confused on that aspect)
->>
->>
->>>> * STB0899 based
->>>>
->>>> Anubis
->>>> Typhoon DVB-S2 PCI
->>>>
->>>> Azurewave/Twinhan
->>>> VP-1041
->>>> VP-7050
->>>>
->>>> Digital Now
->>>> AD SP400
->>>> AD SB300
->>>>
->>>> KNC1
->>>> TV Station DVB-S2
->>>> TV Station DVB-S2 Plus
->>>>
->>>> Pinnacle
->>>> PCTV Sat HDTV Pro USB 452e
->>>>
->>>> Satelco
->>>> TV Station DVB-S2
->>>> Easywatch HDTV USB CI
->>>> Easywatch HDTV PCI
->>>>
->>>> Technisat
->>>> Skystar HD
->>>> Skystar HD2
->>>> Skystar USB2 HDCI
->>>>
->>>> Technotrend
->>>> TT S2 3200
->>>> TT S2 3600
->>>> TT S2 3650
->>>>
->>>> Terratec
->>>> Cinergy S2 PCI HD
->>>> Cinergy S2 PCI HDCI
->>>>
->>> those are pullable now against the current tree?
->>
->> These devices, depend upon the DVB API update without which it wouldn't
->> work as they depend heavily on the DVB API framework. Without the
->> updated framework, it doesn't make any sense to pull them: they won't
->> even compile. The last but not least reason is that, the stb0899 driver
->> is a DVB-S2 multistandard device which requires DVB-S2/DSS support
->> additionally.
->>
-> 
-> so the framework is available, and the drivers could be pushed in
-> right afterwards, I wonder
-> who is willing to port those drivers to the other API (including testing).
+>Feedback, bug reports, etc. are welcomed and encouraged!  Please feel
+>free to
+>contact me via email at:  abraham.manu at gmail.com
+>
+>If you have an unsupported device, please let me know!
+>
+>Best Regards,
+>Manu
 
-Me. I'll port the 3200 cards and their derivatives, including the 6100 
-and the 0899. I've already said I'd do that.... but it's manu's code and 
-he retains all rights. He gets to decide first.
-
-
-> It's not going to happen any time soon I guess, if there's not an
-> agreement with Manu's
-> work. Dumping this code would show another step of ignorance and
-> selfishness against the
-> people who worked on it.
-
-
-The demod/tuners drivers would be merged with S2API within a few days. I 
-have a TT-3200 here. I'd have to re-write various things, and change the 
-demod API a little. but I'm prepared to do that.
-
-Judging by the positive response we're having to the S2API tree, I 
-suspect a number of people will be willing to offer patches, test time 
-and support.
-
-- Steve
+Can you solve stb08900 driver bugs?? that was reported in ML when you where away??
 
 
 
+      
 
 _______________________________________________
 linux-dvb mailing list
