@@ -1,24 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KbGcf-0006y2-TC
-	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 17:19:51 +0200
+	(envelope-from <stoth@linuxtv.org>) id 1KbFmk-0003xy-FU
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 16:26:12 +0200
 Received: from steven-toths-macbook-pro.local
 	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
 	mta2.srv.hcvlny.cv.net
 	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6O001S8FW13RD0@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Thu, 04 Sep 2008 11:19:15 -0400 (EDT)
-Date: Thu, 04 Sep 2008 11:19:13 -0400
+	with ESMTP id <0K6O001SRDEMXC80@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Thu, 04 Sep 2008 10:25:35 -0400 (EDT)
+Date: Thu, 04 Sep 2008 10:25:34 -0400
 From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200809041803.05495.liplianin@tut.by>
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Message-id: <48BFFC71.9090105@linuxtv.org>
+In-reply-to: <200809012235.50974.hverkuil@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Message-id: <48BFEFDE.7090600@linuxtv.org>
 MIME-version: 1.0
-References: <48BF6A09.3020205@linuxtv.org>
-	<200809041803.05495.liplianin@tut.by>
+References: <48B8400A.9030409@linuxtv.org>
+	<200809012235.50974.hverkuil@xs4all.nl>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API - First release
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,68 +26,173 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SWdvciBNLiBMaXBsaWFuaW4gd3JvdGU6Cj4g9yDTz8/C3cXOyckgz9QgNCBTZXB0ZW1iZXIgMjAw
-OCAwNzo1NDozMyBTdGV2ZW4gVG90aCDOwdDJ08HMKMEpOgo+PiBIZWxsbywKPj4KPj4gSXQncyBi
-ZWVuIGEgY3JhenkgZmV3IGRheXMsIHBsZWFzZSBmb3JnaXZlIG15IHNob3J0IGFic2VuY2UuCj4+
-Cj4+IFdoYXQgaGF2ZSBJIGJlZW4gZG9pbmc/IFdlbGwsIHJhdGhlciB0aGFuIHNwZW5kaW5nIHRp
-bWUgZGlzY3Vzc2luZyBhIG5ldwo+PiBTMkFQSSBvbiB0aGUgbWFpbGluZyBsaXN0LCBJIHdhbnRl
-ZCB0byBhY3R1YWxseSBwcm9kdWNlIGEgd29ya2luZyBzZXJpZXMKPj4gb2YgcGF0Y2hlcyB0aGF0
-IGtlcm5lbCBhbmQgYXBwbGljYXRpb24gZGV2ZWxvcGVycyBjb3VsZCBiZWdpbiB0byB0ZXN0Lgo+
-Pgo+PiBIZXJlJ3Mgd2hlcmUgYWxsIG9mIHRoZSBuZXcgUzJBUEkgcGF0Y2hlcyB3aWxsIG5vdyBh
-cHBlYXI6Cj4+Cj4+IGh0dHA6Ly9saW51eHR2Lm9yZy9oZy9+c3RvdGgvczIKPj4KPj4gSW4gYWRk
-aXRpb24sIGhlcmUncyBpcyBhIHVzZXJsYW5kIGFwcGxpY2F0aW9uIHRoYXQgZGVtb25zdHJhdGVz
-IHR1bmluZwo+PiB0aGUgY3VycmVudCBEVkItUy9UL0MgYW5kIFVTIEFUU0MgbW9kdWxhdGlvbnMg
-dHlwZXMgdXNpbmcgdGhlIG5ldyBBUEkuCj4+ICh3d3cuc3RldmVudG90aC5uZXQvbGludXgvczIv
-dHVuZS12MC4wLjEudGd6KQo+Pgo+PiBBIHR1bmluZyBkZW1vIGFwcD8gV2hhdD8gT2J2aW91c2x5
-LCB0dW5pbmcgb2xkZXIgbW9kdWxhdGlvbiB0eXBlcyB2aWEKPj4gdGhlIG5ldyBBUEkgaXNuJ3Qg
-YSByZXF1aXJlbWVudHMsIGJ1dCBpdCdzIGEgdXNlZnVsIHZhbGlkYXRpb24gZXhlcmNpc2UKPj4g
-Zm9yIHRoZSBuZXcgUzJBUEkuIFdoYXQgX0lTXyBpbXBvcnRhbnQgaXMuLi4uLiB0aGF0IGl0IGFs
-c28gZGVtb25zdHJhdGVzCj4+IHVzaW5nIHRoZSBzYW1lIHR1bmluZyBtZWNoYW5pc20gdG8gdHVu
-ZSBEVkItUzIgOFBTSyAvIE5CQy1RUFNLCj4+IG1vZHVsYXRpb24gdHlwZXMsIGFuZCBhbHNvIGhh
-cyBydWRpbWVudGFyeSBJU0RCLVQgc3VwcG9ydCBmb3IgYW55Cj4+IGRldmVsb3BlcnMgc3BlY2lm
-aWNhbGx5IGludGVyZXN0ZWQuCj4+Cj4+IFRoaXMgUzJBUEkgdHJlZSBhbHNvIGNvbnRhaW5zIHN1
-cHBvcnQgZm9yIHRoZSBjeDI0MTE2IGRlbW9kdWxhdG9yCj4+IGRyaXZlciwgYW5kIHRoZSBIYXVw
-cGF1Z2UgSFZSNDAwMCBmYW1pbHkgb2YgUzIgcHJvZHVjdHMuIFNvIHRob3NlCj4+IGludGVyZXN0
-ZWQgdGVzdGVycy9kZXZlbG9wZXJzIGNhbiBtb2RpZnkgdGhlIHR1bmUuYyBhcHAgZGVtbyBhbmQg
-bWFrZQo+PiBjaGFuZ2VzIHNwZWNpZmljIHRvIHRoZWlyIGFyZWEsIGFuZCB0cnkgZXhwZXJpbWVu
-dGluZyB3aXRoIHRoZSBuZXcgQVBJCj4+IGlmIHRoZXkgZGVzaXJlLiBbMV0KPj4KPj4gT2J2aW91
-c2x5LCB0dW5lLmMgaXNuJ3QgaW50ZWxsaWdlbnQsIGl0J3Mgbm90IGEgcmVwbGFjZW1lbnQgZm9y
-IHN6YXAsCj4+IHR6YXAgb3Igd2hhdGV2ZXIgLSBpdCdzIHNpbXBseSBhIHN0YW5kYWxvbmUgUzJB
-UEkgdGVzdCB0b29sLCB0aGF0Cj4+IGRlbW9uc3RyYXRlcyB0aGUgaW1wb3J0YW50IEFQSSBpbnRl
-cmZhY2UuCj4+Cj4+IFFBTS9BVFNDIGFyZSB3b3JraW5nIHdlbGwsIHRoZSBIVlI0MDAwIGNoYW5n
-ZXMgbG9vayBmaW5lIGFjY29yZGluZyB0bwo+PiB0aGUgZGVidWcgbG9nIChhbHRob3VnaCBJIGhh
-dmUgbm8gbG9jYWwgc2F0ZWxsaXRlIGZlZWQgZm9yIHRlc3RpbmcKPj4gdG9uaWdodCkuIERWQi1U
-IHNob3VsZCBqdXN0IHdvcmsgYXMtaXMsIGJ1dCBJIGNhbid0IHRlc3QgdGhpcyBmb3IgYSBkYXkK
-Pj4gb3Igc28uIEkuRS4gSSd2ZSB0ZXN0ZWQgd2hhdCBJIGNhbiBpbiB0aGUgVVMgYnV0IHdlIG1p
-Z2h0IGhhdmUgYSBmZXcKPj4gYnVncyBvciBnb3RjaGFzIQo+Pgo+PiBJZiBhbnlvbmUgaXMgd2ls
-bGluZyB0byBwdWxsIHRoZSB0cmVlIGFuZCBiZWdpbiB0ZXN0aW5nIHdpdGggdGhlIHR1bmUuYwo+
-PiBhcHAgdGhlbiBwbGVhc2UgcG9zdCBhbGwgZmVlZGJhY2sgb24gdGhpcyB0aHJlYWQuIFsyXQo+
-Pgo+PiBJJ3ZlIHJlY2VpdmVkIGEgbG90IG9mIGdvb2QgZmVlZGJhY2sgb2YgdGhlIG9yaWdpbmFs
-IDIwMDcgcGF0Y2hlcy4gSQo+PiBleHBlY3QgdG8gc3RhcnQgbWVyZ2luZyB0aG9zZSBjaGFuZ2Vz
-IG9mIHRoZSBjb21pbmcgZGF5cy4gRG9uJ3QgYmUgdG9vCj4+IGNvbmNlcm5lZCB0aGF0IHlvdXIg
-Y2hhbmdlcyBhcmUgbm90IHlldCBtZXJnZWQsIGtlZXAgd2F0Y2hpbmcgdGhlIFMyQVBJCj4+IHRy
-ZWUgYW5kIHRoZXkgd2lsbCBzb29uIGFwcGVhciAuLi4gYWxvbmcgd2l0aCBhIGxvdCBvZiBnZW5l
-cmFsIGNvZGUKPj4gY2xlYW51cCAoY2hlY2twYXRjaCB2aW9sYXRpb25zKQo+Pgo+PiBJIGV4cGVj
-dCB0byBjYXRjaHVwIG9uIG15IG9sZGVyIGVtYWlsIHRvbW9ycm93Lgo+Pgo+PiBSZWdhcmRzIHRv
-IGFsbCwKPj4KPj4gLSBTdGV2ZQo+PiBbMV0gSSdsbCBuZWVkIHRvIHJldmlldyBhbmQgZGlmZiBh
-bnkgb2YgdGhlIG5ld2VyIEhWUjQwMDAgZHJpdmVyCj4+IGRlcml2YXRpdmVzIHRoYXQgcGVvcGxl
-IGhhdmUgYmVlbiB1c2luZywgYmVmb3JlIG1lcmdpbmcgdGhvc2UgY2hhbmdlcwo+PiBpbnRvIHRo
-ZSBTMkFQSSB0cmVlLgo+PiBbMl0gUmVtZW1iZXIgeW91J3JlIGdvaW5nIHRvIG5lZWQgdGhlIGN4
-MjQxMTYgZmlybXdhcmUgaWYgeW91J3JlCj4+IHNwZWNpZmljYWxseSB0ZXN0aW5nIHRoZSBIVlI0
-MDAwLi4uLiBidXQgeW91IHByb2JhYmx5IGFscmVhZHkga25vdyB0aGF0ISA6KQo+Pgo+PiBfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+PiBsaW51eC1kdmIg
-bWFpbGluZyBsaXN0Cj4+IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+PiBodHRwOi8vd3d3LmxpbnV4
-dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmIKPiBHb29kIG5ld3MuIEkg
-d2lsbCB0ZXN0IGl0IHdpdGggbXkgY3gyNDExNiBiYXNlZCBjYXJkcyAobm90IEhWUjQwMDApCgpU
-aGFua3MuCgpJZiB5b3UgaGF2ZSBhbnkgaXNzdWVzIEknbSBvbiBJUkMsIHBpbmcgbWUgLSBpdCBj
-b3VsZCBiZSBzb21ldGhpbmcgCm1pbm9yLiBJJ20gcGxhbm5pbmcgdG8gZ3JhYiBhIERWQi1TIGdl
-bmVyYXRvciB0b2RheSBmb3Igc29tZSBtb3JlIAp0ZXN0aW5nIHRoaXMgZXZlbmluZy4KCi0gU3Rl
-dmUKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
-eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4
-dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Hans Verkuil wrote:
+> Hi Steve,
+> 
+> On Friday 29 August 2008 20:29:30 Steven Toth wrote:
+>> Regarding the multiproto situation:
+>>
+>> A number of developers, maintainers and users are unhappy with the
+>> multiproto situation, actually they've been unhappy for a considerable
+>> amount of time. The linuxtv developer community (to some degree) is 
+> seen
+>> as a joke and a bunch in-fighting people. Multiproto is a great
+>> demonstration of this. [1] The multiproto project has gone too far, 
+> for
+>> too long and no longer has any credibility in the eyes of many people.
+>>
+>> In response, a number developers have agreed that "enough is enough" 
+> and
+>> "it's time to take a new direction", for these developers the 
+> technical,
+>> political and personal cost of multiproto is too high. These 
+> developers
+>> have decided to make an announcement.
+>>
+>> Mauro Chehab, Michael Krufky, Patrick Boettcher and myself are hereby
+>> announcing that we no longer support multiproto and are forming a
+>> smaller dedicated project group which is focusing on adding next
+>> generation S2/ISDB-T/DVB-H/DVB-T2/DVB-SH support to the kernel through 
+> a 
+>> different and simpler API.
+>>
+>> Basic patches and demo code for this API is currently available here.
+>>
+>> http://www.steventoth.net/linux/s2
+>>
+>> Does it even work? Yes
+>> Is this new API complete? No
+>> Is it perfect? No, we've already had feedback on structural and
+>> namingspace changes that people would like to see.
+>> Does it have bugs? Of course, we have a list of things we already know
+>> we want to fix.
+>>
+>> but ...
+>>
+>> Is the new approach flexible? Yes, we're moving away from passing 
+> fixed
+>> modulation structures into the kernel.
+>> Can we add to it without breaking the future ABI when unforseen
+>> modulations types occur? Yes
+>> Does it preserve backwards compatibility? Yes
+>> Importantly, is the overall direction correct? Yes
+>> Does it impact existing frontend drivers? No.
+>> What's the impact to dvb-core? Small.
+>> What's the impact to application developers? None, unless an 
+> application 
+>> developer wants to support the new standards - binary compatibility!
+>>
+>> We want feedback and we want progress, we aim to achieve it.
+> 
+> Feedback is no problem :-)
+> 
+> I noticed that the properties work very similar as to how extended 
+> controls work in v4l: 
+> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html#VIDIOC-G-EXT-CTRLS
+> 
+> It might be useful to compare the two.
+
+
+yes, another developer also suggested this. It would be good to 
+implement simmilar ideas - especially then they are already well 
+established.
+
+
+> 
+> I would recommend adding a few reserved fields, since that has proven to 
+> be very useful in v4l to make the API more future proof.
+
+Interesting.
+
+> 
+> Also: is setting multiple properties an atomic action? E.g. if one 
+> fails, are all other changes rolled back as well? And how do you give 
+> the caller feedback on which property in the list failed? Will there 
+> also be a TRY_PROPERTIES variant which just checks for correctness 
+> without actually setting it? How do you query/test whether a device has 
+> certain properties?
+
+I've been thinking about this a lot and I'm leaning away from making the 
+  sequence atomic, partly for the issue you raised and partly because 
+when I tried to find concrete use cases where this was required I only 
+came up with a few.
+
+I want to explore this more, after I've published all of the feedback.
+
+> 
+> Do you need separate get and set commands? Why not either set or get a 
+> list of properties, and setting them implies an automatic SEQ_COMPLETE 
+> at the end. By having a variable length array of properties you do not 
+> need to set the properties in multiple blocks of 16, so that simplifies 
+> the API as well.
+
+The 16 limit is going to be removed in favor of a more flexible (and 
+traditional approach). A complete set of set's or get's is interesting. 
+Let me see if I can find a use-case where we'd mix the two... if not 
+then I agree with this, and it would simplify things even further.
+
+We'll explore this more.
+
+> 
+> As I said, extended controls in v4l do something very similar. I thought 
+> about the extended controls a great deal at the time, so it might 
+> provide a handy comparison for you.
+
+Yes.
+
+> 
+>> Importantly, this project group seeks your support.
+>>
+>> If you also feel frustrated by the multiproto situation and agree in
+>> principle with this new approach, and the overall direction of the API
+>> changes, then we welcome you and ask you to help us.
+>>
+>> Growing the list of supporting names by 100%, and allowing us to 
+> publish
+>> your name on the public mailing list, would show the non-maintainer
+>> development community that we recognize the problem and we're taking
+>> steps to correct the problem. We want to make LinuxTV a perfect 
+> platform
+>> for S2, ISDB-T and other advanced modulation types, without using the
+>> multiproto patches.
+>>
+>> We're not asking you for technical help, although we'd like that  :) ,
+>> we're just asking for your encouragement to move away from multiproto.
+>>
+>> If you feel that you want to support our movement then please help us 
+> by
+>> acking this email.
+>>
+>> Regards - Steve, Mike, Patrick and Mauro.
+>>
+>> Acked-by: Patrick Boettcher <pb@linuxtv.org>
+>> Acked-by: Michael Krufky <mkrufky@linuxtv.org>
+>> Acked-by: Steven Toth <stoth@linuxtv.org>
+>> Acked-by: Mauro Carvalho Chehab <mchehab@infradead.org>
+>>
+>> * [1]. Rather than point out the issues with multiproto here, take a
+>> look at the patches and/or read the comments on the mailing lists.
+> 
+> While I am no dvb expert I do think that this is a good and simple 
+> approach that should be reasonably future proof. It needs some work to 
+> hammer out the details, but I like it.
+> 
+> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+Hans, thanks for your support and feedback.
+
+Regards,
+
+Steve
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
