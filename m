@@ -1,30 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ffm.saftware.de ([83.141.3.46])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <obi@linuxtv.org>) id 1KdYf4-0007wR-8d
-	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 00:59:47 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by ffm.saftware.de (Postfix) with ESMTP id 0118AE6D9B
-	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 00:59:43 +0200 (CEST)
-Received: from ffm.saftware.de ([83.141.3.46])
-	by localhost (pinky.saftware.org [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id 31zxpxwBOYIo for <linux-dvb@linuxtv.org>;
-	Thu, 11 Sep 2008 00:59:42 +0200 (CEST)
-Received: from [172.22.22.60] (unknown [92.50.81.33])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by ffm.saftware.de (Postfix) with ESMTPSA id 63CD0E6D98
-	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 00:59:42 +0200 (CEST)
-Message-ID: <48C85153.8010205@linuxtv.org>
-Date: Thu, 11 Sep 2008 00:59:31 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+	(envelope-from <abraham.manu@gmail.com>) id 1KbLcH-00041R-J0
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 22:39:46 +0200
+Message-ID: <48C0478A.3010003@gmail.com>
+Date: Fri, 05 Sep 2008 00:39:38 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <48B8400A.9030409@linuxtv.org>
-	<200809101340.09702.hftom@free.fr>	<48C7CDCF.9090300@hauppauge.com>
-	<200809101710.19695.hftom@free.fr> <20080910161222.21640@gmx.net>
-In-Reply-To: <20080910161222.21640@gmx.net>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+To: Goga777 <goga777@bk.ru>
+References: <48C00822.4030509@gmail.com>
+	<48C01698.4060503@gmail.com>	<48C01A99.402@gmail.com>
+	<20080904223827.1b92f2d7@bk.ru>
+In-Reply-To: <20080904223827.1b92f2d7@bk.ru>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,39 +27,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hans Werner wrote:
->> So applications could know that these 2 frontends are exclusive.
->> That would not require any API change, but would have to be a rule
->> followed by 
->> all drivers.
+Hi Goga,
+
+Goga777 wrote:
+> Hi, Manu
 > 
-> Yes, if we keep to that rule then only frontends which can operate truly
-> simultaneously should have a different adapter number.
+> is it possible to patch scan2 for dvb-s2 support ?
 
-An adapter refers to a self-contained piece of hardware, whose parts can
-not be used by a second adapter (e.g. adapter0/demux0 can not access the
-data from adapter1/frontend1). In a commonly used setup it means that
-adapter0 is the first initialized PCI card and adapter1 is the second.
 
-Now, if you want a device with two tuners that can be accessed
-simultaneously to create a second adapter, then you would have to
-artificially divide its components so that it looks like two independant
-PCI cards. This might become very complicated and limits the functions
-of the hardware.
-
-However, on a setup with multiple accessible tuners you can expect at
-least the same amount of accessible demux devices on the same adapter
-(and also dvr devices for that matter). There is an ioctl to connect a
-frontend to a specific demux (DMX_SET_SOURCE).
-
-So, if there are demux0, frontend0 and frontend1, then the application
-knows that it can't use both frontends simultaneously. Otherwise, if
-there are demux0, demux1, frontend0 and frontend1, then it can use both
-of them (by using both demux devices and connecting them to the
-frontends via the ioctl mentioned above).
+Will do so.
 
 Regards,
-Andreas
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
