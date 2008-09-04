@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from fg-out-1718.google.com ([72.14.220.152])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KcROO-0006oG-KH
-	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 23:01:58 +0200
-Message-ID: <48C44137.2090106@gmail.com>
-Date: Mon, 08 Sep 2008 01:01:43 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <mkrufky@gmail.com>) id 1KbK2H-0006Al-Sb
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 20:58:31 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so493259fga.25
+	for <linux-dvb@linuxtv.org>; Thu, 04 Sep 2008 11:58:26 -0700 (PDT)
+Message-ID: <37219a840809041158l25a6e22fr4a7505c301f2280a@mail.gmail.com>
+Date: Thu, 4 Sep 2008 14:58:26 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Timothy E. Krantz" <tkrantz@stahurabrenner.com>
+In-Reply-To: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAOMVmZh16nVIl8AQ98OnPV0BAAAAAA==@stahurabrenner.com>
 MIME-Version: 1.0
-To: crow <crow@linux.org.ba>
-References: <3c031ccc0809071010s2facf462x33b16433c9663d0d@mail.gmail.com>
-In-Reply-To: <3c031ccc0809071010s2facf462x33b16433c9663d0d@mail.gmail.com>
+Content-Disposition: inline
+References: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAFlk6faj1j1FhIe00GqH5lMBAAAAAA==@stahurabrenner.com>
+	<412bdbff0809041124o3ab340bci72e6d4f72b7653f9@mail.gmail.com>
+	<!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAOMVmZh16nVIl8AQ98OnPV0BAAAAAA==@stahurabrenner.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Re : TT S2-3200 driver
+Subject: Re: [linux-dvb] Getting firmware loaded to 2 cards of the same type
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,48 +30,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-crow wrote:
-> Hi,
-> I am also tryint to compile multiproto_plus on kernel 2.6.26-3 (sidux
-> 2008-02) but no luck.
-> Kernel: Linux vdrbox 2.6.26-3.slh.4-sidux-amd64 #1 SMP PREEMPT Wed Sep
-> 3 19:39:11 UTC 2008 x86_64 GNU/Linux
-> I tryed it this way:
-> I downloaded dvb driver from:
-> apt-get update
-> apt-get install mercurial
-> cd /usr/src/
-> hg clone http://jusst.de/hg/multiproto_plus
-> mv multiproto dvb
-> ln -vfs /usr/src/linux-headers-`uname -r` linux
-> cd /usr/src/dvb/linux/include/linux/
-> ln -s /usr/src/linux/include/linux/compiler.h compiler.h
-> cd /usr/src/dvb/
-> and i am trying make and get this problem :
-> ............
->   CC [M]  /usr/src/dvb/v4l/ivtv-gpio.o
->   CC [M]  /usr/src/dvb/v4l/ivtv-i2c.o
-> /usr/src/dvb/v4l/ivtv-i2c.c: In function 'ivtv_i2c_register':
-> /usr/src/dvb/v4l/ivtv-i2c.c:171: error: 'struct i2c_board_info' has no
-> member named 'driver_name'
-> make[3]: *** [/usr/src/dvb/v4l/ivtv-i2c.o] Error 1
-> make[2]: *** [_module_/usr/src/dvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-headers-2.6.26-3.slh.4-sidux-amd64'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/usr/src/dvb/v4l'
-> make: *** [all] Error 2
-> root@vdrbox:/usr/src/dvb#
-> 
-> I wanna try this patch to as i am also TT S2-3200 user.
-> Any help welcome.
+>> -----Original Message-----
+>> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
+>> Sent: Thursday, September 04, 2008 2:24 PM
+>> To: Timothy E. Krantz
+>> Cc: linux-dvb@linuxtv.org
+>> Subject: Re: [linux-dvb] Getting firmware loaded to 2 cards
+>> of the same type
+>>
+>> 2008/9/4 Timothy E. Krantz <tkrantz@stahurabrenner.com>:
+>> > I have 2 tuner cards of the same type.  They have xc5000
+>> tuner chips
+>> > in them that require firmware to be loaded.  As best as I can tell
+>> > from the dmesg, only the first card is actually getting the
+>> firmware
+>> > properly loaded. There seems to be a message related to the second
+>> > card that says something about firmware previously loaded.
+>> The second
+>> > card fails to tune in either ATSC or NTSC mode, just a black screen.
+>>
+>> What type of card is it?
+>>
+On Thu, Sep 4, 2008 at 2:28 PM, Timothy E. Krantz
+<tkrantz@stahurabrenner.com> wrote:
+> Pinnacle PCTV HD (800i).
+>
 
 
-That tree is being updated and being pushed, you can either wait for a
-little while till that tree is populated, or you can pull the multiproto
-tree as well.
+Timothy -- please do not top post.  The policy on this mailing list is
+that replies shall appear below the quoted text.
 
-Regards,
-Manu
+Can you show us a full dmesg dump, starting from "Linux video capture
+interface" , including all lines after.
+
+Thanks,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
