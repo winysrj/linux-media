@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail14.opentransfer.com ([76.162.254.14])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dcoates@systemoverload.net>) id 1KkP47-0005Fo-0a
-	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 22:09:57 +0200
-Message-ID: <48E135F0.60808@systemoverload.net>
-Date: Mon, 29 Sep 2008 15:09:20 -0500
-From: Dustin Coates <dcoates@systemoverload.net>
+Received: from mail.work.de ([212.12.32.20])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1KbIci-0004KQ-CD
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 19:28:01 +0200
+Received: from [212.12.32.49] (helo=smtp.work.de)
+	by mail.work.de with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1KbIcf-0006BI-0s
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 19:27:57 +0200
+Received: from [217.164.61.201] (helo=[192.168.1.10])
+	by smtp.work.de with esmtpa (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1KbIce-0006Zy-IP
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 19:27:56 +0200
+Message-ID: <48C01A99.402@gmail.com>
+Date: Thu, 04 Sep 2008 21:27:53 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <000001c91f6f$e23ab920$a6b02b60$@net>	<000001c921f0$7d4aede0$77e0c9a0$@net>	<48E11A2F.5030901@linuxtv.org>
-	<48E130EB.20006@systemoverload.net>
-In-Reply-To: <48E130EB.20006@systemoverload.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1800 Analouge Issues
+To: linux-dvb@linuxtv.org
+References: <48C00822.4030509@gmail.com> <48C01698.4060503@gmail.com>
+In-Reply-To: <48C01698.4060503@gmail.com>
+Subject: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,86 +26,80 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dustin Coates wrote:
-> Steven Toth wrote:
->   =
+Greetings.
 
->> Dustin Coates wrote:
->>     =
+First I would like to thank everyone for their patience.  Multiproto
+has been under development for some time and I know many of you have
+been anxious for its arrival.  I would also like to thank all the
+people who've helped code and test the new api.  Last but not least, a
+thanks to the app developers who've supported multiproto, and whose
+continued support is very much appreciated.
 
->>>  =
+As you might already know, I've been out-of-town for the last few
+months and haven't been able to progress multiproto further.  I've now
+returned and am glad to announce I've been putting the finishing
+touches on the multiproto api, along with many fixes/updates to
+supported drivers.  Multiproto has reached a state where it is ready
+to be adopted into the kernel and already has a pull request to do so.
 
->>>
->>>  =
+Here are some important pieces of information for you to know:
 
->>>
->>> *From:* linux-dvb-bounces@linuxtv.org =
+current supported modulations with supported hardware:
+DVB-S, DVB-S2, DVB-T, DVB-C, DVB-H
 
->>> [mailto:linux-dvb-bounces@linuxtv.org] *On Behalf Of *Dustin Coates
->>> *Sent:* Thursday, September 25, 2008 7:36 PM
->>> *To:* linux-dvb@linuxtv.org
->>> *Subject:* [linux-dvb] HVR-1800 Analouge Issues
->>>
->>>  =
+How big is multiproto?
+It's not.  It doesn't exceed the size of the legacy api and is infact
+smaller when used in non-legacy mode.
 
->>>
->>> Hi Everyone,
->>>
->>>  =
+Does it support ISDB-T, ATSC-MH, CMMB, DBM-T/H?
+Intentionally, no!  Experience with the old api development has proven
+that making blind assumptions about delivery systems is a bad idea.
+It's better to add in support for these when the hardware actually arrives
+and can be properly tested. There is enough reserved space in the api to
+support future modulations.
 
->>>
->>>                 Ok I=92ve recently decided to start seeing if I can =
+current supported chipsets/devices:
+STB0899 based cards (AD SP400/VP-1041, TT S2 3200, KNC1 DVB-S2 etc.)
 
->>> figure out the issue with the Analouge, on this card, first my normal =
+drivers currently in development:
+STB0900/STB0903 based (eg. SAA716x based cards: AD SE-200/VP-1028, etc.)
 
->>> dmesg.
->>>       =
+To clear up some misinformation and misconceptions:
 
->> The analog encoder works fine for me.
->>
->> In my case the basic analog tuner is usually /dev/video0 and the =
+Is multiproto backwards compatible with previously built binaries?
+YES!  You don't need to do anything to make it backward compatible.
 
->> encoder is video1.
->>
->> Launch tvtime (which opens video0) tune and everything is fine, then =
+Does multiproto have support for drivers found in v4l?
+YES!  Multiproto includes the v4l tree as well.  However, the software
+you use must support the multiproto api in order to use them.
+Fortunately many already do but in the event support for the api must
+be added, it can usually be done with minor changes.
 
->> cat /dev/video1 >test.mpg is working as expected.
->>
->> - Steve
->>
->>
->>     =
+Are new modulations possible?
+YES!  Multiproto has been designed so that adding new future
+modulations may be done with minimal effort.  This will help speed up
+the driver development process and allow us to use this api for some
+time to come.
 
-> Ok, TVTime works, still some static on a mostly the lower, and higher
-> channels.
->
-> Mythtv is only showing a green screen.
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->   =
+If you would like to use any of these drivers now, you may pull the
+tree from http://jusst.de/hg/multiproto.  Drivers may be configured
+with 'make menuconfig' the same as you've done with v4l.
 
-Mythbackend.log is showing these errors.
+Feedback, bug reports, etc. are welcomed and encouraged!  Please feel
+free to
+contact me via email at:  abraham.manu@gmail.com
 
-VIDIOCGCHAN: Invalid argument
-VIDIOCMCAPTUREi0: Invalid argument
-VIDIOCMCAPTUREi1: Invalid argument
-VIDIOCMCAPTURE0: Invalid argument
-VIDIOCMCAPTURE1: Invalid argument
+If you have an unsupported device, please let me know!
 
+Best Regards,
+Manu
 
-I think if i can get past these errors it might just work...
-
-Thanks,
 
 _______________________________________________
 linux-dvb mailing list
