@@ -1,20 +1,12 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.27])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KhREc-0003Rp-VM
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 17:52:32 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so311050eya.17
-	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 08:52:27 -0700 (PDT)
-Date: Sun, 21 Sep 2008 17:52:11 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Jonathan Coles <jcoles0727@rogers.com>
-In-Reply-To: <48D658BF.7040807@rogers.com>
-Message-ID: <alpine.DEB.1.10.0809211744070.13969@ybpnyubfg.ybpnyqbznva>
-References: <48D658BF.7040807@rogers.com>
+Message-ID: <48C0437C.9050107@gmail.com>
+Date: Fri, 05 Sep 2008 00:22:20 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
+To: linux-kernel@vger.kernel.org,  v4l-dvb-maintainer@linuxtv.org,
+	akpm@linux-foundation.org
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950 and
- v4l-dvb
+Subject: [linux-dvb] DVB Update [PATCH 0/31] multiproto tree
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,31 +20,53 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 21 Sep 2008, Jonathan Coles wrote:
+Hi,
 
-> [   17.247610] usb 5-2: new high speed USB device using ehci_hcd and 
-> address 2
-> [   17.380387] usb 5-2: unable to read config index 0 descriptor/all
-> [   17.380434] usb 5-2: can't read configurations, error -71
+This patchset adds newer delivery systems, modulations and parameters.
 
-This is a problem (I see it from time to time) when the USB
-stack or hardware wets itself.  Some of my solutions have been
-*  disconnect and reconnect the device...
-*  use a different USB port
-*  if an external USB hub is involved, disconnect and reconnect
-   that (sometimes certain ports fly south for no obvious reason)
-*  if needed, disconnect and reconnect power to any USB hubs or
-   other devices (like if your device gets powered elsewhere)
-*  if nothing else works, reboot your machine,
-*  if that fails, completely power-cycle your machine, so that
-   all hardware has a chance to reset and start from cold state.
+It adds a much needed uplift for DVB for adding newer delivery systems
+such as DVB-S2, DVB-H. Also it allows the addition of future modulations
+in an easier manner. Newer delivery systems such as DMB-T/H and ISDB-T/H
+can easily be added later on, without breaking compatibility.
 
-In exceptional cases, your hardware could have somehow been
-damaged, if a particular USB port always gives this type of error.
+The initial post for the update:
+http://article.gmane.org/gmane.linux.drivers.dvb/25606
+
+More details are available according to the discussions:
+http://article.gmane.org/gmane.linux.drivers.dvb/25608
+http://article.gmane.org/gmane.linux.drivers.dvb/25610
+http://article.gmane.org/gmane.linux.drivers.dvb/25611
+
+which were reworked again according to
+Code Review from Johannes Stezenbach <js@linuxtv.org>. (The rework
+happened just immediate after a pull request and a merge):
+
+http://article.gmane.org/gmane.linux.drivers.dvb/25616
+
+It was reworked again,
+Code Review from Oliver Endriss <o.endriss@gmx.de>,
+reviewed again and relevant changes applied:
+
+http://article.gmane.org/gmane.linux.drivers.dvb/37406
+
+The resulting changes were also tested. Drivers also available at
+http://jusst.de/hg/multiproto
+Some newer drivers also on the way.
 
 
-hope that's useful
-barry bouwsma
+The DVB API update patches are available also at:
+http://www.kernel.org/pub/linux/kernel/people/manu/dvb_patches/
+
+Sample applications:
+simple zapping app
+http://linuxtv.org/hg/dvb-apps/file/ef0bf9bd3bd4/test/szap2.c
+
+VDR 1.7.0 ftp://ftp.cadsoft.de/vdr/Developer/vdr-1.7.0.tar.bz2
+
+Regards,
+Manu
+
+
 
 _______________________________________________
 linux-dvb mailing list
