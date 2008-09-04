@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.232])
+Received: from wf-out-1314.google.com ([209.85.200.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KcfkE-0007ev-1E
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 14:21:28 +0200
-Received: by wx-out-0506.google.com with SMTP id t16so139654wxc.17
-	for <linux-dvb@linuxtv.org>; Mon, 08 Sep 2008 05:21:22 -0700 (PDT)
-Message-ID: <d9def9db0809080521s70d95b65ma277b7f3049193b3@mail.gmail.com>
-Date: Mon, 8 Sep 2008 14:21:21 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Simon Kenyon" <simon@koala.ie>, npaknejad@sundtek.de
-In-Reply-To: <48C5091F.3050807@koala.ie>
+	(envelope-from <lucastim@gmail.com>) id 1KbOD8-0003Ja-5y
+	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 01:25:58 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so169863wfd.17
+	for <linux-dvb@linuxtv.org>; Thu, 04 Sep 2008 16:25:52 -0700 (PDT)
+Message-ID: <e32e0e5d0809041625y22993606vae7f7ee63e936f9c@mail.gmail.com>
+Date: Thu, 4 Sep 2008 16:25:51 -0700
+From: "Tim Lucas" <lucastim@gmail.com>
+To: stoth@linuxtv.org, "linux dvb" <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <48C00822.4030509@gmail.com> <48C01698.4060503@gmail.com>
-	<48C01A99.402@gmail.com> <20080904204709.GA32329@linuxtv.org>
-	<d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>
-	<48C1380F.7050705@linuxtv.org> <48C42851.8070005@koala.ie>
-	<d9def9db0809071252x708f1b1ch6c23cb3d2b5796e9@mail.gmail.com>
-	<48C5091F.3050807@koala.ie>
-Cc: DVB ML <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
+	HVR-1500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,133 +19,104 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1566724572=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Sep 8, 2008 at 1:14 PM, Simon Kenyon <simon@koala.ie> wrote:
-> Markus Rechberger wrote:
+--===============1566724572==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_62760_22233465.1220570751987"
+
+------=_Part_62760_22233465.1220570751987
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+> Tim Lucas wrote:
+>
+>> For some reason, when I  add the line
+>> options cx23885 card=6
+>> I can no longer boot the machine successfully.
+>> The machine hangs saying that
 >>
->> On Sun, Sep 7, 2008 at 9:15 PM, Simon Kenyon <simon@koala.ie> wrote:
+>> (Ctl-alt-F1)
+>> kinit: No resume image, doing normal boot . . .
+>> (Ctl-alt-F8)
+>> udevd-event[3374]: run-program: '/sbin/modprobe' abnormal exit
 >>
->>>
->>> Steven Toth wrote:
->>>
->>>>
->>>> A big difference between can and will, the em28xx fiasco tells us this.
->>>>
->>>>
->>>
->>> just wondering if your tree will go any way towards resolving that
->>> little problem?
->>>
+>> After a while it continues to boot, but the messages go by so fast that I
+>> can't read them.  Finally, it just sits on a blank screen.  Since
+2.6.24-19
+>> was originally installed and it updated to 2.6.24-21, I am able to boot
+into
+>> the older kernel and then comment out that line.
 >>
->> I don't see any fiasco nor problem here, it's more comfortable to have
->> the em28xx in an extra
->> tree and do ongoing development with it. People who followed the
->> development  during the last
->> few years know that newer things got added and newer chips are
->> supported by it, it will continue
->> to evolve anyway.
+>> I am pretty sure that HVR1500 is card 6, so I am not sure what is wrong.
+>>  I didn't have that problem, the first time I rebooted, but have had that
+>> problem on every succesive reboot.
 >>
->> The driverwork is currently around 30% of it, patching applications
->> and providing full support from
->> the driver till the endapplications is what everything's focussing on
->> mcentral.de not just driver only
->> development.
->>
->> We do dedicated application support for several customers too (analog
->> tv, radio, dvb integration in their
->> business applications).
->> There are many new products coming up, adding support for them is on
->> the roadmap.
->>
->> Markus
->>
+>> Any ideas?
 >>
 >
-> i have had the device for a while now
-> i originally got it because the wiki showed that support was being worked on
-> then that all changed and you moved your stuff elsewhere
+> Please cc the list in all email, which I've done.
 >
-> i really don't understand your rationale. i really don't.
-> i'm not trying to start a flame war, but your arguments for having your own
-> tree and doing stuff user side makes no sense
+> Check the /var/log/messages or kern.log files to see what they contain.
 >
-> let my try to explain:
+> Or, if the system isn't booting, remove the module from your
+> /lib/modules/`uname -r`/kernel/drivers/media/video/cx23885 dir then boot
+> again.
 >
-> you say:
+> The card won't get initialised by the driver won't exist, then you can
+> install the driver with 'make install' which will install it from your
+> linux-dvb/v4l test tree, then load it at your own leisure with modprobe
+> cx23885 debug=1.
 >
->> it is more comfortable to have the em28xx in an extra tree
 >
-> it may very well be comfortable for you. but it is impossible for me
-> i have lots of different devices. i can choose between using your tree and
-> having support for one of them.
-> or i change choose the linuxtv.org tree and have supoort for all the other.
-> how is that "more comfortable"?
-> i really don't understand that argument
->
-> you then say:
->
->> newer things get added and newer chips are supported by it
->
-> how does that help me? it doesn't, as far as i can see
->
-> next you say:
->
->> the driverwork is currently around 30% of it, patching applications and
->> providing full support from the driver till the...
->
-> apart from the little speedbump that is multiproto vs. s2api most apps don't
-> need "supporting". they are already supported by their respective
-> communities.
->
->> we do dedicated application support for several customers...
->
-> now i think we get to the heart of the matter.
-> you have built up a nice little business providing support for the various
-> devices. you have customers who (in my humble opinion misguidedly) think
-> that by having support in your tree that they can proudly boast "linux
-> supported". all i can say is well done. congratulations on building a
-> sucessful business.
->
-> but please do not mistake that for providing linux support for the em28xx
-> devices in linux. what you are providing and "linux support of the em28xx
-> class of devices" are not one and the same thing. for better or worse, linux
-> support means that at some point (and it may well be one year from now) it
-> will be in the kernel.
-> have you not seen all the software that has come and gone because linus will
-> not put it in the tree. right now the only route to doing that is to get it
-> in the linuxtv.org tree. from there it stands some chance of making it into
-> the kernel. i seriously doubt that any other approach has any chance of
-> success.
->
-> this may not be of concern or interest to you. well so be it. but it is
-> important to me.
+> - Steve
 >
 
-the code on mcentral.de didn't write itself, it was mostly written
-from our side.
-If you're going to pay my monthly insurance for working together with
-linuxtv.org (something has to
-compensate the slowdown of the development due those endless wanted
-discussions) I'll be glad to
-go that way.
+Using your instructions, I figured out that the driver will not load using
+modprobe. That is why the computer has trouble booting with that driver and
+the HVR-1500 card selected.I also tried copying the relevant code and
+putting it into the DViCO FusionHDTV7 Dual Express area to see if that
+worked. I had the same results as when I tried loading the card as a
+HVR-1500. I cannot get any signal from the card that way.  I know the card
+is getting a signal because it shows a signal when loaded as a digital card.
+ If you have any suggestions I would appreciate them.  Thank you.
 
-Application development and driver development is right now at an
-acceptable speed, noone bothers
-about fixed drivers there which improve the signal strength etc.
+-- 
+--Tim
 
-The code is already used with BSD [1] now and will be used by our OSX
-driver in near future.
+------=_Part_62760_22233465.1220570751987
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Markus
+<div dir="ltr"><div><span class="Apple-style-span" style="border-collapse: collapse; ">&gt; Tim Lucas wrote:<br>&gt;<br>&gt;&gt; For some reason, when I &nbsp;add the line<br>&gt;&gt; options cx23885 card=6<br>&gt;&gt; I can no longer boot the machine successfully.<br>
+&gt;&gt; The machine hangs saying that<br>&gt;&gt;<br>&gt;&gt; (Ctl-alt-F1)<br>&gt;&gt; kinit: No resume image, doing normal boot . . .<br>&gt;&gt; (Ctl-alt-F8)<br>&gt;&gt; udevd-event[3374]: run-program: &#39;/sbin/modprobe&#39; abnormal exit<br>
+&gt;&gt;<br>&gt;&gt; After a while it continues to boot, but the messages go by so fast that I<br>&gt;&gt; can&#39;t read them. &nbsp;Finally, it just sits on a blank screen. &nbsp;Since 2.6.24-19<br>&gt;&gt; was originally installed and it updated to 2.6.24-21, I am able to boot into<br>
+&gt;&gt; the older kernel and then comment out that line.<br>&gt;&gt;<br>&gt;&gt; I am pretty sure that HVR1500 is card 6, so I am not sure what is wrong.<br>&gt;&gt; &nbsp;I didn&#39;t have that problem, the first time I rebooted, but have had that<br>
+&gt;&gt; problem on every succesive reboot.<br>&gt;&gt;<br>&gt;&gt; Any ideas?<br>&gt;&gt;<br>&gt;<br>&gt; Please cc the list in all email, which I&#39;ve done.<br>&gt;<br>&gt; Check the /var/log/messages or kern.log files to see what they contain.<br>
+&gt;<br>&gt; Or, if the system isn&#39;t booting, remove the module from your<br>&gt; /lib/modules/`uname -r`/kernel/drivers/media/video/cx23885 dir then boot<br>&gt; again.<br>&gt;<br>&gt; The card won&#39;t get initialised by the driver won&#39;t exist, then you can<br>
+&gt; install the driver with &#39;make install&#39; which will install it from your<br>&gt; linux-dvb/v4l test tree, then load it at your own leisure with modprobe<br>&gt; cx23885 debug=1.<br>&gt;<br>&gt;<br>&gt; - Steve<br>
+&gt;</span></div><div><span class="Apple-style-span" style="border-collapse: collapse;"><br></span></div>Using your instructions, I figured out that the driver will not load using modprobe.&nbsp;That is why the computer has trouble booting with that driver and the HVR-1500 card selected.<div>
+I also tried copying the relevant code and putting it into the DViCO FusionHDTV7 Dual Express area to see if that worked.&nbsp;I had the same results as when I tried loading the card as a HVR-1500.&nbsp;I cannot get any signal from the card that way. &nbsp;I know the card is getting a signal because it shows a signal when loaded as a digital card. &nbsp;If you have any suggestions I would appreciate them. &nbsp;Thank you.</div>
+<div><br></div><div>-- <br> --Tim<br>
+</div></div>
 
-[1] http://netbsd-soc.sourceforge.net/projects/dvb/
+------=_Part_62760_22233465.1220570751987--
+
+
+--===============1566724572==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1566724572==--
