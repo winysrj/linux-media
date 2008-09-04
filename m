@@ -1,25 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KdUXA-000160-SU
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 20:35:22 +0200
+	(envelope-from <stoth@linuxtv.org>) id 1KbGcf-0006y2-TC
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 17:19:51 +0200
 Received: from steven-toths-macbook-pro.local
 	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
+	mta2.srv.hcvlny.cv.net
 	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6Z00EYXSXWWGD1@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 10 Sep 2008 14:34:46 -0400 (EDT)
-Date: Wed, 10 Sep 2008 14:34:43 -0400
+	with ESMTP id <0K6O001S8FW13RD0@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Thu, 04 Sep 2008 11:19:15 -0400 (EDT)
+Date: Thu, 04 Sep 2008 11:19:13 -0400
 From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48C7B362.8050603@magma.ca>
-To: Patrick Boisvenue <patrbois@magma.ca>
-Message-id: <48C81343.6030907@linuxtv.org>
+In-reply-to: <200809041803.05495.liplianin@tut.by>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Message-id: <48BFFC71.9090105@linuxtv.org>
 MIME-version: 1.0
-References: <48C659C5.8000902@magma.ca> <48C68DC5.1050400@linuxtv.org>
-	<48C73161.7090405@magma.ca> <48C732DE.2030902@linuxtv.org>
-	<48C7B362.8050603@magma.ca>
-Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
+References: <48BF6A09.3020205@linuxtv.org>
+	<200809041803.05495.liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API - First release
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,46 +26,68 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->>> I have the firmware file located here:
->>>
->>> # ls -l /lib/firmware/dvb-fe-xc5000-1.1.fw
->>> -rw-r--r-- 1 root root 12332 Aug 31 12:56 
->>> /lib/firmware/dvb-fe-xc5000-1.1.fw
->>>
->>> If there is anything else I can provide (or try) to help debug, let 
->>> me know,
->>> ...Patrick
->>
->>  > kobject_add_internal failed for i2c-2 with -EEXIST, don't try to
->>  > register things with the same name in the same directory.
->>
->> Ooh, that's nasty problem, this is new - and looks like it's i2c related.
->>
->> Why does this sound familiar? Anyone?
->>
->> Just for the hell of it, copy the firmware to /lib/firmware/`uname -r` 
->> also, then re-run the test - it's unlikely to make any difference but 
->> it _is_ the scenario I always test under.
->>
->> - Steve
->>
-> 
-> You were right, no difference.  Is there any other debug messages I can 
-> create?
-
-No, it needs some of my time to try and repro.
-
-I'll spend a few minutes tonight and see what I can find.
-
-- Steve
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SWdvciBNLiBMaXBsaWFuaW4gd3JvdGU6Cj4g9yDTz8/C3cXOyckgz9QgNCBTZXB0ZW1iZXIgMjAw
+OCAwNzo1NDozMyBTdGV2ZW4gVG90aCDOwdDJ08HMKMEpOgo+PiBIZWxsbywKPj4KPj4gSXQncyBi
+ZWVuIGEgY3JhenkgZmV3IGRheXMsIHBsZWFzZSBmb3JnaXZlIG15IHNob3J0IGFic2VuY2UuCj4+
+Cj4+IFdoYXQgaGF2ZSBJIGJlZW4gZG9pbmc/IFdlbGwsIHJhdGhlciB0aGFuIHNwZW5kaW5nIHRp
+bWUgZGlzY3Vzc2luZyBhIG5ldwo+PiBTMkFQSSBvbiB0aGUgbWFpbGluZyBsaXN0LCBJIHdhbnRl
+ZCB0byBhY3R1YWxseSBwcm9kdWNlIGEgd29ya2luZyBzZXJpZXMKPj4gb2YgcGF0Y2hlcyB0aGF0
+IGtlcm5lbCBhbmQgYXBwbGljYXRpb24gZGV2ZWxvcGVycyBjb3VsZCBiZWdpbiB0byB0ZXN0Lgo+
+Pgo+PiBIZXJlJ3Mgd2hlcmUgYWxsIG9mIHRoZSBuZXcgUzJBUEkgcGF0Y2hlcyB3aWxsIG5vdyBh
+cHBlYXI6Cj4+Cj4+IGh0dHA6Ly9saW51eHR2Lm9yZy9oZy9+c3RvdGgvczIKPj4KPj4gSW4gYWRk
+aXRpb24sIGhlcmUncyBpcyBhIHVzZXJsYW5kIGFwcGxpY2F0aW9uIHRoYXQgZGVtb25zdHJhdGVz
+IHR1bmluZwo+PiB0aGUgY3VycmVudCBEVkItUy9UL0MgYW5kIFVTIEFUU0MgbW9kdWxhdGlvbnMg
+dHlwZXMgdXNpbmcgdGhlIG5ldyBBUEkuCj4+ICh3d3cuc3RldmVudG90aC5uZXQvbGludXgvczIv
+dHVuZS12MC4wLjEudGd6KQo+Pgo+PiBBIHR1bmluZyBkZW1vIGFwcD8gV2hhdD8gT2J2aW91c2x5
+LCB0dW5pbmcgb2xkZXIgbW9kdWxhdGlvbiB0eXBlcyB2aWEKPj4gdGhlIG5ldyBBUEkgaXNuJ3Qg
+YSByZXF1aXJlbWVudHMsIGJ1dCBpdCdzIGEgdXNlZnVsIHZhbGlkYXRpb24gZXhlcmNpc2UKPj4g
+Zm9yIHRoZSBuZXcgUzJBUEkuIFdoYXQgX0lTXyBpbXBvcnRhbnQgaXMuLi4uLiB0aGF0IGl0IGFs
+c28gZGVtb25zdHJhdGVzCj4+IHVzaW5nIHRoZSBzYW1lIHR1bmluZyBtZWNoYW5pc20gdG8gdHVu
+ZSBEVkItUzIgOFBTSyAvIE5CQy1RUFNLCj4+IG1vZHVsYXRpb24gdHlwZXMsIGFuZCBhbHNvIGhh
+cyBydWRpbWVudGFyeSBJU0RCLVQgc3VwcG9ydCBmb3IgYW55Cj4+IGRldmVsb3BlcnMgc3BlY2lm
+aWNhbGx5IGludGVyZXN0ZWQuCj4+Cj4+IFRoaXMgUzJBUEkgdHJlZSBhbHNvIGNvbnRhaW5zIHN1
+cHBvcnQgZm9yIHRoZSBjeDI0MTE2IGRlbW9kdWxhdG9yCj4+IGRyaXZlciwgYW5kIHRoZSBIYXVw
+cGF1Z2UgSFZSNDAwMCBmYW1pbHkgb2YgUzIgcHJvZHVjdHMuIFNvIHRob3NlCj4+IGludGVyZXN0
+ZWQgdGVzdGVycy9kZXZlbG9wZXJzIGNhbiBtb2RpZnkgdGhlIHR1bmUuYyBhcHAgZGVtbyBhbmQg
+bWFrZQo+PiBjaGFuZ2VzIHNwZWNpZmljIHRvIHRoZWlyIGFyZWEsIGFuZCB0cnkgZXhwZXJpbWVu
+dGluZyB3aXRoIHRoZSBuZXcgQVBJCj4+IGlmIHRoZXkgZGVzaXJlLiBbMV0KPj4KPj4gT2J2aW91
+c2x5LCB0dW5lLmMgaXNuJ3QgaW50ZWxsaWdlbnQsIGl0J3Mgbm90IGEgcmVwbGFjZW1lbnQgZm9y
+IHN6YXAsCj4+IHR6YXAgb3Igd2hhdGV2ZXIgLSBpdCdzIHNpbXBseSBhIHN0YW5kYWxvbmUgUzJB
+UEkgdGVzdCB0b29sLCB0aGF0Cj4+IGRlbW9uc3RyYXRlcyB0aGUgaW1wb3J0YW50IEFQSSBpbnRl
+cmZhY2UuCj4+Cj4+IFFBTS9BVFNDIGFyZSB3b3JraW5nIHdlbGwsIHRoZSBIVlI0MDAwIGNoYW5n
+ZXMgbG9vayBmaW5lIGFjY29yZGluZyB0bwo+PiB0aGUgZGVidWcgbG9nIChhbHRob3VnaCBJIGhh
+dmUgbm8gbG9jYWwgc2F0ZWxsaXRlIGZlZWQgZm9yIHRlc3RpbmcKPj4gdG9uaWdodCkuIERWQi1U
+IHNob3VsZCBqdXN0IHdvcmsgYXMtaXMsIGJ1dCBJIGNhbid0IHRlc3QgdGhpcyBmb3IgYSBkYXkK
+Pj4gb3Igc28uIEkuRS4gSSd2ZSB0ZXN0ZWQgd2hhdCBJIGNhbiBpbiB0aGUgVVMgYnV0IHdlIG1p
+Z2h0IGhhdmUgYSBmZXcKPj4gYnVncyBvciBnb3RjaGFzIQo+Pgo+PiBJZiBhbnlvbmUgaXMgd2ls
+bGluZyB0byBwdWxsIHRoZSB0cmVlIGFuZCBiZWdpbiB0ZXN0aW5nIHdpdGggdGhlIHR1bmUuYwo+
+PiBhcHAgdGhlbiBwbGVhc2UgcG9zdCBhbGwgZmVlZGJhY2sgb24gdGhpcyB0aHJlYWQuIFsyXQo+
+Pgo+PiBJJ3ZlIHJlY2VpdmVkIGEgbG90IG9mIGdvb2QgZmVlZGJhY2sgb2YgdGhlIG9yaWdpbmFs
+IDIwMDcgcGF0Y2hlcy4gSQo+PiBleHBlY3QgdG8gc3RhcnQgbWVyZ2luZyB0aG9zZSBjaGFuZ2Vz
+IG9mIHRoZSBjb21pbmcgZGF5cy4gRG9uJ3QgYmUgdG9vCj4+IGNvbmNlcm5lZCB0aGF0IHlvdXIg
+Y2hhbmdlcyBhcmUgbm90IHlldCBtZXJnZWQsIGtlZXAgd2F0Y2hpbmcgdGhlIFMyQVBJCj4+IHRy
+ZWUgYW5kIHRoZXkgd2lsbCBzb29uIGFwcGVhciAuLi4gYWxvbmcgd2l0aCBhIGxvdCBvZiBnZW5l
+cmFsIGNvZGUKPj4gY2xlYW51cCAoY2hlY2twYXRjaCB2aW9sYXRpb25zKQo+Pgo+PiBJIGV4cGVj
+dCB0byBjYXRjaHVwIG9uIG15IG9sZGVyIGVtYWlsIHRvbW9ycm93Lgo+Pgo+PiBSZWdhcmRzIHRv
+IGFsbCwKPj4KPj4gLSBTdGV2ZQo+PiBbMV0gSSdsbCBuZWVkIHRvIHJldmlldyBhbmQgZGlmZiBh
+bnkgb2YgdGhlIG5ld2VyIEhWUjQwMDAgZHJpdmVyCj4+IGRlcml2YXRpdmVzIHRoYXQgcGVvcGxl
+IGhhdmUgYmVlbiB1c2luZywgYmVmb3JlIG1lcmdpbmcgdGhvc2UgY2hhbmdlcwo+PiBpbnRvIHRo
+ZSBTMkFQSSB0cmVlLgo+PiBbMl0gUmVtZW1iZXIgeW91J3JlIGdvaW5nIHRvIG5lZWQgdGhlIGN4
+MjQxMTYgZmlybXdhcmUgaWYgeW91J3JlCj4+IHNwZWNpZmljYWxseSB0ZXN0aW5nIHRoZSBIVlI0
+MDAwLi4uLiBidXQgeW91IHByb2JhYmx5IGFscmVhZHkga25vdyB0aGF0ISA6KQo+Pgo+PiBfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+PiBsaW51eC1kdmIg
+bWFpbGluZyBsaXN0Cj4+IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+PiBodHRwOi8vd3d3LmxpbnV4
+dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmIKPiBHb29kIG5ld3MuIEkg
+d2lsbCB0ZXN0IGl0IHdpdGggbXkgY3gyNDExNiBiYXNlZCBjYXJkcyAobm90IEhWUjQwMDApCgpU
+aGFua3MuCgpJZiB5b3UgaGF2ZSBhbnkgaXNzdWVzIEknbSBvbiBJUkMsIHBpbmcgbWUgLSBpdCBj
+b3VsZCBiZSBzb21ldGhpbmcgCm1pbm9yLiBJJ20gcGxhbm5pbmcgdG8gZ3JhYiBhIERWQi1TIGdl
+bmVyYXRvciB0b2RheSBmb3Igc29tZSBtb3JlIAp0ZXN0aW5nIHRoaXMgZXZlbmluZy4KCi0gU3Rl
+dmUKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
+eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4
+dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
