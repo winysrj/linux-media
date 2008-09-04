@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <csutor@gmx.de>) id 1KeyGs-0004hh-G3
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 22:32:39 +0200
-Message-ID: <48CD74C2.8020800@gmx.de>
-Date: Sun, 14 Sep 2008 22:32:02 +0200
-From: Clemens Sutor <csutor@gmx.de>
-MIME-Version: 1.0
+Received: from bar.sig21.net ([88.198.146.85])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <js@sig21.net>) id 1KbLj7-0005Cg-HQ
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 22:46:51 +0200
+Date: Thu, 4 Sep 2008 22:47:09 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
 To: Manu Abraham <abraham.manu@gmail.com>
-References: <48C3178F.6050704@gmx.de>	<200809141434.48564.mldvb@mortal-soul.de>	<48CD4B09.8000706@gmx.de>	<200809142001.20702.mldvb@mortal-soul.de>	<48CD6040.4030400@freenet.de>
-	<48CD63C5.4020807@gmail.com>
-In-Reply-To: <48CD63C5.4020807@gmail.com>
+Message-ID: <20080904204709.GA32329@linuxtv.org>
+References: <48C00822.4030509@gmail.com> <48C01698.4060503@gmail.com>
+	<48C01A99.402@gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <48C01A99.402@gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problem with mantis drivers for Terratec Cinergy
- C	and CAM
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,52 +27,48 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->
->>> No, actually I did not. :-) All I said is I had a brief look over the mantis 
->>> tree and spotted several known areas which area cicam related. From what I 
->>> had seen, I thought everything was already in place and concluded that you 
->>> might be suffering from a similar problem like I did for several month 
->>> because everything looked very familiar. But it seems like the cicam support 
->>> is rather new and still not quite ready. 
->>>   
->>>       
-Thank you for trying to help Matthias.
->> Yes, for the 2033 it is not working yet!.
->> And as said several times on this list, I'm waiting for it for a long
->> time already.
->> I wonder why Manu does not finish it. There are several people here
->> waiting for CiCam support.
->>     
->
-> It's not something that i am purposefully delaying it. I am also almost
-> at wits end. It is indeed a silly bug now, as almost everything is done
-> for the "basic CI-CAM" support on the Mantis. The vendor is also helping
-> out, by taking a look at the issue, but as said sometimes silly bugs are
-> hard to find.
->
-> Regards,
-> Manu
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
-Hi Manu,
+On Thu, Sep 04, 2008, Manu Abraham wrote:
+> 
+> Does it support ISDB-T, ATSC-MH, CMMB, DBM-T/H?
+> Intentionally, no!  Experience with the old api development has proven
+> that making blind assumptions about delivery systems is a bad idea.
+> It's better to add in support for these when the hardware actually arrives
+> and can be properly tested.
 
-thanks for the info about the status in develeopment, it's the first 
-answer I was able to get from "official" sources :)
+Full ACK on this one. Once an API is merged into the mailine
+kernel we're stuck with it, no matter how ugly and broken it might be.
+-> NEVER merge untested APIs
 
-Can you give us some updates if you get feedback from the vendor please?
+> If you would like to use any of these drivers now, you may pull the
+> tree from http://jusst.de/hg/multiproto.  Drivers may be configured
+> with 'make menuconfig' the same as you've done with v4l.
+> 
+> Feedback, bug reports, etc. are welcomed and encouraged!
 
-Is there something I can do to support you in finding the problem?
+I only want to add a bit of historical perspective so people
+are aware of the reasons why Steve came up with his alternative
+API proposal, and why a number of developers seem to support it.
 
-Bye
-Clemens
+First let's look at the timestamps:
+http://jusst.de/hg/multiproto/log/2a911b8f9910/linux/include/linux/dvb/frontend.h
+http://jusst.de/hg/multiproto_api_merge/log/4c62efb08ea6/linux/include/linux/dvb/frontend.h
+
+Then at some discussion from nearly one year ago:
+http://article.gmane.org/gmane.linux.drivers.dvb/36643
 
 
-
+Johannes
+-- 
+"Folks,
+As vou can see for yourself.
+The way this clock over here
+is behaving,
+TIME IS OF AFFLICTION!
+Now this might be cause for alarm
+Among a portion of you, as,
+>From a certain experience,
+I TEND TO PROCLAIM:
+'THE EONS ARE CLOSING'!" -- Frank Zappa
 
 _______________________________________________
 linux-dvb mailing list
