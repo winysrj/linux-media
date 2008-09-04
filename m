@@ -1,28 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ffm.saftware.de ([83.141.3.46])
+Received: from ti-out-0910.google.com ([209.85.142.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <obi@linuxtv.org>) id 1Kdnl0-0003vj-5g
-	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 17:06:55 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by ffm.saftware.de (Postfix) with ESMTP id D510CE6E1D
-	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 17:06:50 +0200 (CEST)
-Received: from ffm.saftware.de ([83.141.3.46])
-	by localhost (pinky.saftware.org [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id aIhYRmf8wxnY for <linux-dvb@linuxtv.org>;
-	Thu, 11 Sep 2008 17:06:50 +0200 (CEST)
-Received: from [172.22.22.60] (unknown [92.50.81.33])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by ffm.saftware.de (Postfix) with ESMTPSA id 4F830E6DF7
-	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 17:06:50 +0200 (CEST)
-Message-ID: <48C9340A.4030901@linuxtv.org>
-Date: Thu, 11 Sep 2008 17:06:50 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+	(envelope-from <glenn.l.mcgrath@gmail.com>) id 1Kb70z-0006K7-EM
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 07:04:22 +0200
+Received: by ti-out-0910.google.com with SMTP id w7so2078630tib.13
+	for <linux-dvb@linuxtv.org>; Wed, 03 Sep 2008 22:04:12 -0700 (PDT)
+Message-ID: <141058d50809032204o7b8a70d9jc3fa64b4e2f9ef3@mail.gmail.com>
+Date: Thu, 4 Sep 2008 15:04:11 +1000
+From: "Glenn McGrath" <glenn.l.mcgrath@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <48BE98CC.1080600@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <570512.55545.qm@web46113.mail.sp1.yahoo.com>
-In-Reply-To: <570512.55545.qm@web46113.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Content-Disposition: inline
+References: <141058d50809030655i680f7937o3aa657601d1910a0@mail.gmail.com>
+	<48BE98CC.1080600@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Fine tuning app ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,31 +29,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-barry bouwsma wrote:
-> --- On Thu, 9/11/08, Andreas Oberritter <obi@linuxtv.org> wrote:
-> 
->> How about dropping demux1 and dvr1 for this adapter, since they don't
->> create any benefit? IMHO the number of demux devices should always equal
->> the number of simultaneously usable transport stream inputs.
-> 
-> I like this `solution', but I'm not sure it is optimal...
-> 
-> Sure, it works for 2x devices, where only one at a time can be
-> used, but if one has a hypothetical DVB-S(2) + DVB-C/T device,
-> with two RF inputs, so that one could simultaneously use sat
-> and one of cable/terrestrial, you'd get two demux devices, and
-> three frontends, and you'd need to map the exclusivity of the
-> cable/terrestrial frontend somehow.
+On Thu, Sep 4, 2008 at 12:01 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> Glenn McGrath wrote:
+>> It would be really useful to have a fine tuning app that can use a
+>> table of hard coded frequency values  for different countries and fine
+>> tune it until the error rate is minimal.
+>
+> w_scan -- http://wirbel.htpc-forum.de/
+>
+> ...now with ATSC / QAM Annex-B tuning support!
 
-That's indeed a case where you can not easily determine how many inputs
-can be handled at the same time. This might require another enhancement
-of the userland API. Until then, for such a small number of frontends,
-an application could simply try out which combination of frontends can
-be used at the same time (either open() or DMX_SET_SOURCE would fail if
-you try to use the mentioned -C and -T at the same time).
+I didnt realise w_scan did fine tuning... ill try and describe my
+situation some more.
 
-Regards,
-Andreas
+First off, w_scan didnt find any channels, i realised it was looking
+at the wrong frequencies, so i modified w_scan to check the center
+frequency specified by Australian (where i live) regulations, w_scan
+only found 1 or 5 station.
+
+I did a lot of digging and found i need to check somewhere within
+125kHz of the center frequency (usually center +125kHz is best), if i
+just check the center frequency my tv card doesnt even get a lock.
+
+A nice piece of info i found from
+http://www.acma.gov.au/webwr/_assets/main/lib100059/geninfo.pdf
+---
+The centre frequency of the digital television channel is shown in the
+service listings in this
+book. It should be noted that for implementation reasons, broadcasters
+may choose to operate
+with a +/- 125 kHz offset from the nominal channel centre frequency.
+---
+
+I am still confused about w_scan vs scan, if i do w_scan -x and then
+use scan, is scan supposed to do some fine tuning ?  I so see it
+trying different frequencies (sometimes very strange frequencies), no
+quite sure whats going on.
+
+Also, is this the best place to talk about w_scan or is there a
+specific project list ?
+
+
+Thanks
+
+Glenn
 
 _______________________________________________
 linux-dvb mailing list
