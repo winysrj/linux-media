@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8RMcXnD007224
-	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 18:38:34 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8RMcLJv016980
-	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 18:38:21 -0400
-Date: Sun, 28 Sep 2008 00:38:23 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200808282058.26623.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0809280012330.10006@axis700.grange>
-References: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>
-	<20080824115725.GG10168@pengutronix.de>
-	<Pine.LNX.4.64.0808281646420.6514@axis700.grange>
-	<200808282058.26623.hverkuil@xs4all.nl>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m84M6B2L002236
+	for <video4linux-list@redhat.com>; Thu, 4 Sep 2008 18:06:12 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.228])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m84M61V5028655
+	for <video4linux-list@redhat.com>; Thu, 4 Sep 2008 18:06:01 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so136898rvb.51
+	for <video4linux-list@redhat.com>; Thu, 04 Sep 2008 15:06:00 -0700 (PDT)
+Message-ID: <2df568dc0809041506w2c300f56r7b8cae3f2726c70@mail.gmail.com>
+Date: Thu, 4 Sep 2008 16:06:00 -0600
+From: "Gordon Smith" <spider.karma+video4linux-list@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <200809040822.09653.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2] soc-camera: add API documentation
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <2df568dc0809031448y3e70715codb5f3a0be505f6cf@mail.gmail.com>
+	<200809040822.09653.hverkuil@xs4all.nl>
+Subject: Re: saa7134_empress standard vs input
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,76 +30,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
+On Thu, Sep 4, 2008 at 12:22 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> On Wednesday 03 September 2008 23:48:39 Gordon Smith wrote:
+> > Greetings -
+> >
+> > I have a RTD Technologies VFG7350 (saa7134 based, two channel,
+> > hardware encoder per channel, no tuner) running current v4l-dvb in
+> > 2.6.25-gentoo-r7.
+> >
+> > Short form question: Is it necessary to do something to connect an
+> > input standard to an MPEG encoder?
+> >
+> > I seem to have a disconnect between input signal and the MPEG
+> > encoder. In this case, there is a NTSC camera signal on the input.
+> > Raw data and input selection are on video0. Raw data can be read from
+> > and input selected on video0. MPEG encoder output is on video2. MPEG
+> > data can be read from video2, but it looks like PAL aspect with NTSC
+> > data (extra lines at bottom of image repeat uppermost lines).
+> >
+> >
+> > $ v4l2-ctl --get-standard --device /dev/video0
+> > Video Standard = 0x0000b000
+> >         NTSC-M/M-JP/M-KR
+> > $ v4l2-ctl --get-standard --device /dev/video2
+> > Video Standard = 0x000000ff
+> >         PAL-B/B1/G/H/I/D/D1/K
+> >
+> >
+> > The input standard is automatically selected by the hardware.
+> > Is there something that needs to be set to match the standard between
+> > input and encoder?
+>
+> I suspect I know what is wrong. After loading the driver
+> run 'v4l2-ctl -s ntsc-m' and see if the capture now works. Ignore the
+> standard as reported by video2: it's bogus and is unused.
+>
+> What I believe is happening is that the saa6752 is never told that the
+> standard is NTSC when it is loaded the first time. But if you set it
+> explicitly afterwards, then it probably works.
+>
+> Let me know what happens. If it is indeed a bug then I'll fix it.
 
-On Thu, 28 Aug 2008, Hans Verkuil wrote:
+I set the standard as above as well as just "ntsc" on another attempt,
+but the the capture is still PAL size.
 
-> Lately I've been experimenting with improving the V4L2 framework. 
-> Prototyping code can be found in my hg/~hverkuil/v4l-dvb-ng/ tree. It 
-> provides a new generic 'ops' structure (see media/v4l2-client.h) that 
-> can be used both by i2c drivers and non-i2c driver alike, that is easy 
-> to extend and that will work for all client drivers, not just sensors. 
-> And it can be implemented in existing i2c drivers without requiring 
-> that the current PCI/USB drivers that use them need to be converted at 
-> the same time.
-> 
-> The client ops structure is this:
-> 
-> struct v4l2_client_ops {
->         const struct v4l2_client_core_ops  *core;
->         const struct v4l2_client_tuner_ops *tuner;
->         const struct v4l2_client_audio_ops *audio;
->         const struct v4l2_client_video_ops *video;
-> };
-> 
-> Basically it's a bunch of (possibly NULL) pointers to other ops 
-> structures. The pointers can by NULL so that client drivers that are 
-> video only do not need to implement e.g. audio ops. It is easy to 
-> extend this with other ops structs like a sensor_ops. It probably fits 
-> fairly well with soc_camera which does something similar, except that 
-> this approach is general.
+{{{
+$ v4l2-ctl -s ntsc-m --device /dev/video0
+Standard set to 00001000
+}}}
 
-[...]
-
-Finally I took a couple of minutes and looked at your v4l-dvb-ng tree - I 
-really did:-) Do I understand it right, that you currently only have some 
-infrastructure in place (v4l2-client.h, v4l2-client.c, v4l2-common.c) and 
-some client drivers like saa717x.c, but no "host" (USB or PCI or SoC) 
-drivers and no APIs for host / client communication? And it is exactly 
-this part that makes this generalisation so interesting. How you let the 
-host driver specify what interface it has to the client (slave serial, or 
-master parallel, 8 or 10 bits...) and what data (pixel) formats it is 
-prepared to accept. Like:
-
-Host: I have a XYZ-compatible device at i2c-address II
-Client: XYZ-device version ABC detected at i2c-address II
-User: need format U
-Client: device is capabale of formats O, P, Q over bus types L, M, N
-Host: suggest you send me format O using bus type L, I convert it to U
-
-Or even
-
-Core: Host: enumerate capabilities
-Core: Client: enumerate capabilities
-Core: Host: prepare pipe-X converting O on L to U
-Core: Client: start sending O over L
-
-(note, I'm not saying soc-camera can handle all these negotiation 
-perfectly as it stands now). I like your struct v4l2_client_ops, and I 
-think it is not very different from what soc-camera is doing in this 
-regard at the moment - but only the video part. So, it should be possible 
-to convert the soc-camera interface to your v4l2_client. Then, I think, we 
-could think about the host-client negotiation and maybe design it in a way 
-similar to what soc-camera is doing ATM?
-
-Note, I am away the whole next week, and quite possibly will not have 
-proper internet connection, only back on 9 October.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+>
+> Regards,
+>
+>        Hans
 
 --
 video4linux-list mailing list
