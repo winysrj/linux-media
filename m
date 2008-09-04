@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KhYla-0006HB-LX
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 01:55:04 +0200
-Date: Mon, 22 Sep 2008 01:54:29 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <200809211905.34424.hftom@free.fr>
-Message-ID: <20080921235429.18440@gmx.net>
+Received: from mta10.adelphia.net ([68.168.78.202])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tkrantz@stahurabrenner.com>) id 1KbJZs-0001kD-9q
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 20:29:13 +0200
+From: "Timothy E. Krantz" <tkrantz@stahurabrenner.com>
+To: "'Devin Heitmueller'" <devin.heitmueller@gmail.com>
+References: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAFlk6faj1j1FhIe00GqH5lMBAAAAAA==@stahurabrenner.com>
+	<412bdbff0809041124o3ab340bci72e6d4f72b7653f9@mail.gmail.com>
+Date: Thu, 4 Sep 2008 14:28:31 -0400
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAOMVmZh16nVIl8AQ98OnPV0BAAAAAA==@stahurabrenner.com>
 MIME-Version: 1.0
-References: <200809211905.34424.hftom@free.fr>
-To: Christophe Thommeret <hftom@free.fr>, linux-dvb@linuxtv.org,
-	stoth@linuxtv.org
-Subject: Re: [linux-dvb] hvr4000-s2api + QAM_AUTO
+In-Reply-To: <412bdbff0809041124o3ab340bci72e6d4f72b7653f9@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Getting firmware loaded to 2 cards of the same type
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,44 +26,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Pinnacle PCTV HD (800i). 
 
--------- Original-Nachricht --------
-> Datum: Sun, 21 Sep 2008 19:05:34 +0200
-> Von: Christophe Thommeret <hftom@free.fr>
-> An: Steven Toth <stoth@linuxtv.org>, "linux-dvb" <linux-dvb@linuxtv.org>
-> Betreff: [linux-dvb] hvr4000-s2api + QAM_AUTO
-
-> Hi Steve,
+> -----Original Message-----
+> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com] 
+> Sent: Thursday, September 04, 2008 2:24 PM
+> To: Timothy E. Krantz
+> Cc: linux-dvb@linuxtv.org
+> Subject: Re: [linux-dvb] Getting firmware loaded to 2 cards 
+> of the same type
 > 
-> I've managed to add S2 support to kaffeine, so it can scan and zap.
-> However, i have a little problem with DVB-S:
-> Before tuning to S2, S channels tune well with QAM_AUTO.
-> But after having tuned to S2 channels, i can no more lock on S ones until
-> i 
-> set modulation to QPSK insteed of QAM_AUTO for these S channels.
-> Is this known?
+> 2008/9/4 Timothy E. Krantz <tkrantz@stahurabrenner.com>:
+> > I have 2 tuner cards of the same type.  They have xc5000 
+> tuner chips 
+> > in them that require firmware to be loaded.  As best as I can tell 
+> > from the dmesg, only the first card is actually getting the 
+> firmware 
+> > properly loaded. There seems to be a message related to the second 
+> > card that says something about firmware previously loaded.  
+> The second 
+> > card fails to tune in either ATSC or NTSC mode, just a black screen.
 > 
-> -- 
-> Christophe Thommeret
+> What type of card is it?
+> 
+> Devin
+> 
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+> 
 
-Hi Christophe,
-do you mean FEC_AUTO? There is a note in the comments in cx24116.c about
-FEC_AUTO working for QPSK but not for S2 (8PSK or NBC-QPSK). 
-Look for "Especially, no auto detect when in S2 mode."
 
-Hope I'm not misunderstanding your question.
-
-I'd be very happy to try out your patch for Kaffeine and give feedback if you are
-ready to share it.
-
-Regards,
-Hans
-
--- 
-Release early, release often.
-
-Ist Ihr Browser Vista-kompatibel? Jetzt die neuesten 
-Browser-Versionen downloaden: http://www.gmx.net/de/go/browser
 
 _______________________________________________
 linux-dvb mailing list
