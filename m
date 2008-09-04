@@ -1,24 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from wx-out-0506.google.com ([66.249.82.227])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KkOMz-0002H2-BM
-	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 21:25:23 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7Z007W71X9Z0O0@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 29 Sep 2008 15:24:47 -0400 (EDT)
-Date: Mon, 29 Sep 2008 15:24:44 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <857271.56028.qm@web59911.mail.ac4.yahoo.com>
-To: albatrosmwdvb@yahoo.com
-Message-id: <48E12B7C.9020700@linuxtv.org>
-MIME-version: 1.0
-References: <857271.56028.qm@web59911.mail.ac4.yahoo.com>
-Cc: linux-dvb@linuxtv.org, stev391@email.com
-Subject: Re: [linux-dvb] Compro VideoMate E600F analog PCIe TV/FM capture
-	card
+	(envelope-from <mrechberger@gmail.com>) id 1KbOJU-0004RX-4t
+	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 01:32:33 +0200
+Received: by wx-out-0506.google.com with SMTP id h27so49627wxd.17
+	for <linux-dvb@linuxtv.org>; Thu, 04 Sep 2008 16:32:27 -0700 (PDT)
+Message-ID: <d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>
+Date: Fri, 5 Sep 2008 01:32:27 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Johannes Stezenbach" <js@linuxtv.org>
+In-Reply-To: <20080904204709.GA32329@linuxtv.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <48C00822.4030509@gmail.com> <48C01698.4060503@gmail.com>
+	<48C01A99.402@gmail.com> <20080904204709.GA32329@linuxtv.org>
+Cc: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,29 +29,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Marek Marek wrote:
-> At the begining I am sorry for misunderstanding... This account was created specially for v4l-dvb mailing list.  I got the previous email from you today so could not answer on it yet. There wasn't any others emails from you eariel in my mailbox. 
-> 
->>> Other items that you could include on the wiki page:
->>> * eeprom dump (read this
->> http://www.linuxtv.org/pipermail/linux-dvb/2008-September/028529.html)
->>> * regspy dump of all registers in all states (It is
->> Steven Toths DScaler Regspy version that you require)
->>> * i2c scan see the other Compro VideoMate wiki pages.
->>>
-> 
-> As you asked I included some new information about my card on wiki page. The RegSpy output I will include later when install winxp. If those information are correct that's good if not I will be grateful you will tell me that.
-> 
-> Me and my broken english... sorry guy's :)
-> I do my best. Forgive me these problems.
+Hi,
 
-:) No problem! I wanted to make sure you'd seen my original response.
+On Thu, Sep 4, 2008 at 10:47 PM, Johannes Stezenbach <js@linuxtv.org> wrote:
+> On Thu, Sep 04, 2008, Manu Abraham wrote:
+>>
+>> Does it support ISDB-T, ATSC-MH, CMMB, DBM-T/H?
+>> Intentionally, no!  Experience with the old api development has proven
+>> that making blind assumptions about delivery systems is a bad idea.
+>> It's better to add in support for these when the hardware actually arrives
+>> and can be properly tested.
+>
 
-If you can get some regspy dumps, some i2c scan details and pictures of 
-the silicon on the wiki then we have a good chance of adding support for 
-you.
+I have Empia ISDB-T and DMB-T/H hardware and the corresponding signal
+generator for it here,
+it's right on my roadmap and work can be started within a few days.
 
-- Steve
+> Full ACK on this one. Once an API is merged into the mailine
+> kernel we're stuck with it, no matter how ugly and broken it might be.
+> -> NEVER merge untested APIs
+
+should be the rule but there's always an exception for it too . o (
+thinking about KVM )
+
+>
+>> If you would like to use any of these drivers now, you may pull the
+>> tree from http://jusst.de/hg/multiproto.  Drivers may be configured
+>> with 'make menuconfig' the same as you've done with v4l.
+>>
+>> Feedback, bug reports, etc. are welcomed and encouraged!
+>
+> I only want to add a bit of historical perspective so people
+> are aware of the reasons why Steve came up with his alternative
+> API proposal, and why a number of developers seem to support it.
+>
+> First let's look at the timestamps:
+> http://jusst.de/hg/multiproto/log/2a911b8f9910/linux/include/linux/dvb/frontend.h
+> http://jusst.de/hg/multiproto_api_merge/log/4c62efb08ea6/linux/include/linux/dvb/frontend.h
+>
+> Then at some discussion from nearly one year ago:
+> http://article.gmane.org/gmane.linux.drivers.dvb/36643
+>
+
+by experience I'm sure most people won't read up the history here...
+
+Markus
 
 _______________________________________________
 linux-dvb mailing list
