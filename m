@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out113.alice.it ([85.37.17.113])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <wayneandholly@alice.it>) id 1Khpuu-0001Ly-1e
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 20:13:50 +0200
-From: "Wayne and Holly" <wayneandholly@alice.it>
-To: <linux-dvb@linuxtv.org>
-Date: Mon, 22 Sep 2008 20:13:05 +0200
-Message-ID: <000001c91cde$dc02ac90$0202a8c0@speedy>
+	(envelope-from <abraham.manu@gmail.com>) id 1KbJoY-0004rE-Qx
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 20:44:19 +0200
+Message-ID: <48C02C7B.2060201@gmail.com>
+Date: Thu, 04 Sep 2008 22:44:11 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] New Formfactor Twinhan vp1020a
+To: o_lucian@yahoo.com
+References: <23657.38924.qm@web55603.mail.re4.yahoo.com>
+In-Reply-To: <23657.38924.qm@web55603.mail.re4.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API - First release
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,32 +25,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi there,
-There is a seller on eBay that is advertising the Twinhan vp1020a budget
-DVB-S card however the picture of the card is low profile rather than the
-"old" full size.
+lucian orasanu wrote:
+> Hello Steven Toth,
+> 
+> I was not pro for new DVBS2 API, but seeing now how fast the things are mouving, I think this is reale goodand cool, can you add  your API to stb6100 and stb08900 driver?
+> 
 
-New card:
-http://images.channeladvisor.com/Sell/SSProfiles/82000004/Images/3/DVB-S_2.j
-pg
 
-Old card:
-http://www.linuxtv.org/wiki/images/thumb/a/a3/Vp-1020A.jpg/250px-Vp-1020A.jp
-g
+Let me put things a bit clear. The multiproto tree already supports
+DVB-S2 and future modulations, with backward compatibility. Also all
+STB0899 based devices are supported by the multiproto tree. Patches do
+exist for the cx24116 devices as well. Once the API patches are in
+kernel (a pull request is already pending) it will be easy to add in
+newer devices as well.
 
-If you look carefully at the image of the "new" card it clearly states
-1020a.  I already have a "old" 1020a fitted in my HTPC and it works
-perfectly.  Since my Geniatech DVB-S card just died (it never worked
-properly anyway) I am looking to replace it with another low-profile card
-(it needs to be low-profile to fit).  If this turns out to be geniune it
-would be perfect.  I have emailed the seller for clarification but I am not
-holding my breath for a clear answer.
+If you need to use the stb0899 based drivers, you can simply pull the
+tree from http:http://jusst.de/hg/multiproto
 
-Has anyone had any experience with the "new" Twinhan vp1020a?
+It is available -now- you don't have to wait for things
 
-Thanks in advance
-Wayne
-
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
