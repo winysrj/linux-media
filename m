@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.226])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KetWT-0007kn-Gi
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 17:28:27 +0200
-Received: by wx-out-0506.google.com with SMTP id t16so676767wxc.17
-	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 08:28:21 -0700 (PDT)
-Message-ID: <d9def9db0809140828q470c5610k695c26b9d8b5d7f3@mail.gmail.com>
-Date: Sun, 14 Sep 2008 17:28:21 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: free_beer_for_all@yahoo.com
-In-Reply-To: <564277.58085.qm@web46102.mail.sp1.yahoo.com>
+Received: from n62.bullet.mail.sp1.yahoo.com ([98.136.44.35])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KbE5r-00066u-3z
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 14:37:48 +0200
+Date: Thu, 4 Sep 2008 05:36:07 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org, Roger James <roger@beardandsandals.co.uk>
+In-Reply-To: <48BFBE68.7070707@beardandsandals.co.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <48CD1F3E.6080900@linuxtv.org>
-	<564277.58085.qm@web46102.mail.sp1.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Message-ID: <619958.57053.qm@web46102.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] S2API - First release
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,74 +24,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Sep 14, 2008 at 5:14 PM, barry bouwsma
-<free_beer_for_all@yahoo.com> wrote:
-> --- On Sun, 9/14/08, Steven Toth <stoth@linuxtv.org> wrote:
->
->> is that the BSD folks can't port the GPL license into BSD because it's
->> not compatible.
->
-> I don't want to see any religious war here (trimmed to dvb
-> list), but...
->
+--- On Thu, 9/4/08, Roger James <roger@beardandsandals.co.uk> wrote:
 
-I totally agree here, I won't reply anyone who's jumping onto
-religious wars here, since this is
-not the topic why it's getting supported.
-Both use the same community applications which are available which is
-good, so there's
-some competition about getting things done in the end.
+>  The services I use (BSkyB and
+> Freesat) are mostly DVB-S with very little if any S2.
 
-> There is GPL code distributed as part of *BSD sources,
-> as you can see by reading the licensing in, for example,
-> $ ls /lost+found/CVSUP/BSD/FreeBSD.cvs/src/sys/gnu/dev/sound/pci/
-> Attic       emu10k1-alsa.h,v  maestro3_reg.h,v  p17v-alsa.h,v
-> csaimg.h,v  maestro3_dsp.h,v  p16v-alsa.h,v
->
+Howdy,
 
-also alsa-oss compat layer in Linux, though I don't want to get deeper
-into it :-)
+Just to clarify things, in fact, BSkyB is indeed making rather
+heavy use of DVB-S2, with -- based on what I've read and results
+of previous `scan's (as I have no DVB-S2-capable tuner), two more
+transponders recently or about to switch from DVB-S to DVB-S2.
 
-Markus
+If I am to trust my manually-added notes to my frequency list,
+that is bringing the number of DVB-S2 transponders at 28E to
+almost ten, more or less.
 
->
->> I owe it to myself to spend somehime reading the BSD licencing. Maybe
->> the GPL is compatible with BSD.
->
-> It all depends on the intended use -- whether for optional
-> kernel components as above.  In the distributions, though,
-> it's kept separated.
->
-> It's also possible to dual-licence source, and I see a good
-> number of such files in NetBSD under, as an example,
-> /lost+found/CVSUP/BSD/NetBSD.cvs/src/sys/dev/ic/
->
->
-> There will be plenty of misinformation and FUD about which
-> licensing is better, and I don't want to hear any more such.
-> Or debates.  Or evangelism.  Or anything.
->
-> The different BSDen will handle GPLed code differently.
->
-> (By the way, it is possible to completely build NetBSD from
-> within Linux, though the DVB code hasn't been merged as of
-> this morning my time, if someone with *BSD familiarity here
-> wants to think about considering maybe playing with it later
-> sometime, perhaps, maybe)
->
->
-> thanks,
-> barry bouwsma
->
->
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+However, as I understand it, the specs from Freesat for the SD
+receivers do not include DVB-S2 ability (or is it H.264, or both?)
+and Sky SD receivers also do not support this (nor dynamic PMT,
+thus the need for umpteen regional variants of ITV1 and BBC1
+and not-so-many C4/+1) and as a result, pretty much lock the
+broadcasters into a far less efficient use of the scarce spectrum
+for the near future.
+
+The existing HDTV Freesat/FTA services are H.264 over DVB-S, but
+all Freesat-HD receivers will need to tune DVB-S2, and it is
+likely that BBC-HD will in the not-terribly-distant future be
+using a DVB-S2 transponder.  Likewise ITV-HD, C4HD when it makes
+it to Freesat, and all the regular channels that get HD versions.
+
+BSkyB actually makes the most use of DVB-S2 for DTH satellite in
+europe that I am aware of, but these services are pretty much
+exclusively subscription services.
+
+
+I agree that due to compatibility with SD services, DVB-S reception
+will be a necessity for quite some time to come in many markets.
+
+
+barry bouwsma
+
+
+      
+
 
 _______________________________________________
 linux-dvb mailing list
