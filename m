@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m83GnpeW009672
-	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 12:49:51 -0400
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m83GndgB023767
-	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 12:49:39 -0400
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, "video4linux-list@redhat.com"
-	<video4linux-list@redhat.com>
-Date: Wed, 3 Sep 2008 11:49:32 -0500
-Message-ID: <A24693684029E5489D1D202277BE894411A07DFA@dlee02.ent.ti.com>
-In-Reply-To: <200809020823.48163.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m84FgSJA027695
+	for <video4linux-list@redhat.com>; Thu, 4 Sep 2008 11:42:29 -0400
+Received: from py-out-1112.google.com (py-out-1112.google.com [64.233.166.182])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m84FekTs003153
+	for <video4linux-list@redhat.com>; Thu, 4 Sep 2008 11:40:46 -0400
+Received: by py-out-1112.google.com with SMTP id a29so4635pyi.0
+	for <video4linux-list@redhat.com>; Thu, 04 Sep 2008 08:40:43 -0700 (PDT)
+Message-ID: <f4fceb150809040812j5be9b4a8pc2456254e3fbefa1@mail.gmail.com>
+Date: Thu, 4 Sep 2008 18:12:58 +0300
+From: "Yair Weinberger" <yairwein@gmail.com>
+To: "Steven Toth" <stoth@linuxtv.org>
+In-Reply-To: <48BFEAF2.9060805@linuxtv.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: RE: [PATCH 15/15] OMAP3 camera driver: OMAP34XXCAM: Add Sensors
- Support.
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <f4fceb150809011152n2a0adf2aqffb67a4cf87449c3@mail.gmail.com>
+	<f4fceb150809011155pa06831eoff1ef993d3eb17c9@mail.gmail.com>
+	<48BFEAF2.9060805@linuxtv.org>
+Cc: video4linux-list <video4linux-list@redhat.com>
+Subject: Re: Hauppauge WinTV USB2-Stick with Hardy
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,48 +32,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hans,
+Hi,
+Thanks for your help.
+My hardware's ID doesn't appear also on the tm6010 tree. (grep -r
+"0x2040, 0x6610" * returns nothing).
+It appears that it is actually HVR 900H.
 
-This file hasn't yet been merged into Linus tree, these patches are made for applying on top of linux-omap tree, that's why you don't find it there.
+Anything else I should try?
 
-We came up to the conclusion that  we will only send you all the needed (and reworked with all the comments, of course) v4l2 changes for omap3 camera operation, and send the remaining ones, which are omap-specific, to the linux-omap list.
+  Wein
 
-We'll keep you updated on this between this week and next one.
-
-I appreciate your time. Thanks.
-
-Regards,
-Sergio
-
------Original Message-----
-From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
-Sent: Tuesday, September 02, 2008 1:24 AM
-To: video4linux-list@redhat.com
-Cc: Aguirre Rodriguez, Sergio Alberto
-Subject: Re: [PATCH 15/15] OMAP3 camera driver: OMAP34XXCAM: Add Sensors Support.
-
-On Saturday 30 August 2008 01:44:27 Aguirre Rodriguez, Sergio Alberto 
-wrote:
-> From: Sergio Aguirre <saaguirre@ti.com>
-> 
-> OMAP34XX: CAM: Add Sensors Support
-> 
-> This adds support in OMAP34xx SDP board file for Sensor and Lens
-> driver.
-> 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  arch/arm/mach-omap2/board-3430sdp.c |  228 
-++++++++++++++++++++++++++++++++++++
->  1 file changed, 228 insertions(+)
-
-Can you mail the original board-3430sdp.c file? I cannot find this file 
-in the linux kernel (looked in the latest git tree from Linus).
-
-Regards,
-
-	Hans
-
+On Thu, Sep 4, 2008 at 5:04 PM, Steven Toth <stoth@linuxtv.org> wrote:
+> Yair Weinberger wrote:
+>>
+>> Hi,
+>> I bought a new Hauppauge WinTV USB2-Stick (At least that's the writing
+>> on the card).  According to the v4l documentation, this card should be
+>> supported in the em28xx drivers (card #4).  However, in the
+>> documentation the vendor & device ID should be 2040:4200 or 2040:4201,
+>> and my output of lsusb is 2040:6610.
+>> I checked the em28xx-cards.c file, and my ID doesn't seem to appear
+>> there (nor in any other file as far as I know).
+>> The device is of course not automatically recognized, Output of dmesg
+>> | grep em28xx:
+>> [  198.082257] em28xx v4l2 driver version 0.1.0 loaded
+>> [  198.082294] usbcore: registered new interface driver em28xx
+>>
+>> Trying to load it with card=4 produced the following error in the dmesg
+>> output:
+>> em28xx probing error: endpoint is non-ISO endpoint.
+>>
+>> I attached what I think is the appropriate inf file from the Windows
+>> drivers disk (renamed as text).  I will happily provide more data if
+>> required.
+>>
+>> Any advice will be appreciated,
+>>  Wein
+>
+> The 66xx model is not supported my the em28xx driver.
+>
+> For this you need Mauro's tm6010 development trees at
+> linuxtv.org/hg/~mchehab/... although I'm not sure what level of support he
+> has for that unit.
+>
+> - Steve
+>
 
 --
 video4linux-list mailing list
