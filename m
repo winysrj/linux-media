@@ -1,19 +1,12 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KcDhi-00008Y-5E
-	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 08:24:59 +0200
-Message-ID: <48C373B2.6030504@gmail.com>
-Date: Sun, 07 Sep 2008 10:24:50 +0400
+Message-ID: <48C02A45.3000108@gmail.com>
+Date: Thu, 04 Sep 2008 22:34:45 +0400
 From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: Gregor Fuis <gujs.lists@gmail.com>
-References: <48ABB045.5050301@fra.se>
-	<20080820082010.GA5582@gmail.com>	<48AD16A1.5040703@fra.se>
-	<23be820f0808210144m57e65363m159c231d2084c1c5@mail.gmail.com>
-In-Reply-To: <23be820f0808210144m57e65363m159c231d2084c1c5@mail.gmail.com>
+To: linux-kernel@vger.kernel.org,  v4l-dvb-maintainer@linuxtv.org,
+	akpm@linux-foundation.org
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto, multiproto_plus & mantis
+Subject: [linux-dvb] DVB Update [PATCH 0/31] multiproto tree
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,34 +20,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Gregor Fuis wrote:
-> Resend again to list
-> 
-> Hi,
-> 
-> I also have problem with this repository. I have KNC ONE DVB-S2 card and it
-> doesn't even get initialized with this repository. I used
-> http://jusst.de/hg/multiproto tree before and it worked fine. Kernel
-> automatically detected card and loaded proper modules.
-> 
-> Does this repository even have support for KNC ONE DVB-S2 card and I just
-> have to load the right modules. If I just have to load modules, please help
-> me with the names of modules and sequence how to start them.
+Hi,
 
-hg clone http://jusst.de/hg/multiproto
+This patchset adds newer delivery systems, modulations and parameters.
 
-make
+It adds a much needed uplift for DVB for adding newer delivery systems
+such as DVB-S2, DVB-H. Also it allows the addition of future modulations
+in an easier manner. Newer delivery systems such as DMB-T/H and ISDB-T/H
+can easily be added later on, without breaking compatibility.
 
-and you need to load the following modules in the order, in case it is
-not loaded
+The initial post for the update:
+http://article.gmane.org/gmane.linux.drivers.dvb/25606
 
-stb0899
-stb6100
-lnbp21
-budget_av
+More details are available according to the discussions:
+http://article.gmane.org/gmane.linux.drivers.dvb/25608
+http://article.gmane.org/gmane.linux.drivers.dvb/25610
+http://article.gmane.org/gmane.linux.drivers.dvb/25611
+
+which were reworked again according to
+Code Review from Johannes Stezenbach <js@linuxtv.org>. (The rework
+happened just immediate after a pull request and a merge):
+
+http://article.gmane.org/gmane.linux.drivers.dvb/25616
+
+It was reworked again,
+Code Review from Oliver Endriss <o.endriss@gmx.de>,
+reviewed again and relevant changes applied:
+
+http://article.gmane.org/gmane.linux.drivers.dvb/37406
+
+The resulting changes were also tested. Drivers also available at
+http://jusst.de/hg/multiproto
+Some newer drivers also on the way.
+
+
+The DVB API update patches are available also at:
+http://www.kernel.org/pub/linux/kernel/people/manu/dvb_patches/
+
+Sample applications:
+simple zapping app
+http://linuxtv.org/hg/dvb-apps/file/ef0bf9bd3bd4/test/szap2.c
+
+VDR 1.7.0 ftp://ftp.cadsoft.de/vdr/Developer/vdr-1.7.0.tar.bz2
 
 Regards,
 Manu
+
 
 _______________________________________________
 linux-dvb mailing list
