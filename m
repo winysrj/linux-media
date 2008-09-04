@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Frederic CAND <frederic.cand@anevia.com>
-In-Reply-To: <48D8A789.4050904@anevia.com>
-References: <48D27B52.2010704@anevia.com>  <48D28052.5000209@gmx.de>
-	<1221777738.4904.40.camel@pc10.localdom.local>
-	<48D75FA5.90106@anevia.com>
-	<1222123277.2983.53.camel@pc10.localdom.local>
-	<48D8A789.4050904@anevia.com>
-Date: Wed, 24 Sep 2008 01:50:43 +0200
-Message-Id: <1222213843.2998.53.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] hvr 1300 radio
+Received: from mta10.adelphia.net ([68.168.78.202])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tkrantz@stahurabrenner.com>) id 1KbJP1-0007sG-9n
+	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 20:17:55 +0200
+Received: from SBGCLTXP1 ([98.24.94.176]) by mta10.adelphia.net
+	(InterMail vM.6.01.05.02 201-2131-123-102-20050715) with ESMTP
+	id <20080904182205.JEII21416.mta10.adelphia.net@SBGCLTXP1>
+	for <linux-dvb@linuxtv.org>; Thu, 4 Sep 2008 14:22:05 -0400
+From: "Timothy E. Krantz" <tkrantz@stahurabrenner.com>
+To: <linux-dvb@linuxtv.org>
+Date: Thu, 4 Sep 2008 14:17:17 -0400
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAFlk6faj1j1FhIe00GqH5lMBAAAAAA==@stahurabrenner.com>
+MIME-Version: 1.0
+Subject: [linux-dvb] Getting firmware loaded to 2 cards of the same type
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,143 +20,98 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0771425920=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CkFtIERpZW5zdGFnLCBkZW4gMjMuMDkuMjAwOCwgMTA6MjMgKzAyMDAgc2NocmllYiBGcmVkZXJp
-YyBDQU5EOgo+IGhlcm1hbm4gcGl0dG9uIGEgw6ljcml0IDoKPiA+IEFtIE1vbnRhZywgZGVuIDIy
-LjA5LjIwMDgsIDExOjA0ICswMjAwIHNjaHJpZWIgRnJlZGVyaWMgQ0FORDoKPiA+PiBoZXJtYW5u
-IHBpdHRvbiBhIMOpY3JpdCA6Cj4gPj4+IEhpLAo+ID4+Pgo+ID4+PiBBbSBEb25uZXJzdGFnLCBk
-ZW4gMTguMDkuMjAwOCwgMTg6MjIgKzAyMDAgc2NocmllYiB3azoKPiA+Pj4+IEZyZWRlcmljIENB
-TkQgd3JvdGU6Cj4gPj4+Pj4gRGVhciBhbGwsCj4gPj4+Pj4KPiA+Pj4+PiBoYXMgYW55b25lIGdv
-dCBhbmFsb2cgRk0gcmFkaW8gd29ya2luZyB3aXRoIGFuIEhhdXBwYXVnZSBIVlIgMTMwMCA/Cj4g
-Pj4+Pj4gSWYgeWVzIHBsZWFzZSB0ZWxsIG1lIGhvdyAhIEkgZ290IG9ubHkgbm9pc2UgZnJvbSAv
-ZGV2L2RzcCogLi4uIDooCj4gPj4+Pj4gVGhpcyBpcyBhbiBpc3N1ZSBJJ3ZlIGhhZCBmb3Igc29t
-ZSB0aW1lIG5vdyAuLi4KPiA+Pj4+PiBJIHRyaWVkIG9wdGlvbiByYWRpbz02MyBvbiBjeDg4eHgg
-bW9kdWxlIGJ1dCBpdCBkaWQgbm90IGNoYW5nZSBhbnl0aGluZyAKPiA+Pj4+PiAoZXhjZXB0IHdy
-aXRpbmcgY3g4OFswXTogVFYgdHVuZXIgdHlwZSA2MywgUmFkaW8gdHVuZXIgdHlwZSA2MyBpbiBk
-bWVzZyAKPiA+Pj4+PiBpbnN0ZWFkIG9mIHJhZGlvIHR1bmVyIHR5cGUgLTEgLi4uKQo+ID4+Pj4+
-Cj4gPj4+Pj4gSXMgcmFkaW8gc3VwcG9ydCBqdXN0IG5vdCBpbXBsZW1lbnRlZCA/Cj4gPj4+Pj4K
-PiA+Pj4+PiAgIAo+ID4+Pj4gTG9hZCBjeDg4X2JsYWNrYmlyZCBhbmQgb3BlbiAvZGV2L3JhZGlv
-WC4KPiA+Pj4+IEkgaGF2ZW4ndCB0cmllZCByYWRpbyB1cCB0byBub3csIGJ1dCBpIHdvdWxkIGV4
-cGVjdCB0aGF0IG9ubHkgcmFkaW8gKm9yKiAKPiA+Pj4+IGR2YiB3b3JrcywgYnV0IG5vdCBib3Ro
-IGF0IHRoZSBzYW1lIHRpbWUuIE1vc3QgcHJvYmFibHkgcmFkaW8gaXMgYWxzbyAKPiA+Pj4+IG5v
-dCBmZWVkIHRyb3VnaCB0aGUgbXBlZyBlbmNvZGVyLgo+ID4+Pj4KPiA+Pj4gYSBmaXhtZSBzdGls
-bCBzdGlja3Mgb24gcmFkaW8gb2YgdGhlIEhWUjEzMDAuCj4gPj4+Cj4gPj4+IAkJCS5hdWRpb3Jv
-dXRlID0gMiwKPiA+Pj4gCQl9LHsKPiA+Pj4gCQkJLnR5cGUJPSBDWDg4X1ZNVVhfU1ZJREVPLAo+
-ID4+PiAJCQkudm11eAk9IDIsCj4gPj4+IAkJCS5ncGlvMAk9IDB4ZTc4MCwKPiA+Pj4gCQkJLmF1
-ZGlvcm91dGUgPSAyLAo+ID4+PiAJCX19LAo+ID4+PiAJCS8qIGZpeG1lOiBBZGQgcmFkaW8gc3Vw
-cG9ydCAqLwo+ID4+PiAJCS5tcGVnICAgICAgICAgICA9IENYODhfTVBFR19EVkIgfCBDWDg4X01Q
-RUdfQkxBQ0tCSVJELAo+ID4+PiAJCS5yYWRpbyA9IHsKPiA+Pj4gCQkJLnR5cGUgICA9IENYODhf
-UkFESU8sCj4gPj4+IAkJCS5ncGlvMAk9IDB4ZTc4MCwKPiA+Pj4gCQl9LAo+ID4+PiAJfSwKPiA+
-Pj4KPiA+Pj4gR3Vlc3MgYXVkaW8gcm91dGluZyBhbmQgc3dpdGNoaW5nIGlzIG5vdCBjbGVhciB5
-ZXQuCj4gPj4+Cj4gPj4+IFRoZSBGTUQxMjE2TUUgc3VwcG9ydHMgcmFkaW8gb3ZlciB0ZGE5ODg3
-IGFuZCB0ZGE3MDQwLgo+ID4+Pgo+ID4+PiBPbiB0aGUgRk0xMjE2TUUgYW5kIEZNMTIzNiBNSzMg
-d2UgY2FuIHRha2UgdGhlIHN0ZXJlbyBpbmRpY2F0aW9uIGJpdAo+ID4+PiBmcm9tIHRoZSBQTEwg
-Y2hpcCBhbmQgc3dpdGNoIHRoZSB0ZGE5ODg3IGludG8gRk0gc3RlcmVvIG1vZGUKPiA+Pj4gYWNj
-b3JkaW5nbHkuIFJlYWRpbmcgdGhpcyBzdGF0dXMgaW5mb3JtYXRpb24gYWxzbyBlbmFibGVzIGF1
-dG8gc2Nhbm5pbmcKPiA+Pj4gZm9yIHJhZGlvIGJyb2FkY2FzdHMgZm9yIHRoZSBhcHBsaWNhdGlv
-bnMuICh2NGwyIGF3YXJlIGxpa2Uga3JhZGlvCj4gPj4+IHNob3VsZCBiZSBwcmVmZXJyZWQpCj4g
-Pj4+Cj4gPj4+IFRoaXMgYml0IGRvZXMgbm90IHdvcmsgb24gdGhlIGh5YnJpZCBGTUQxMjE2TUUg
-TUszIGFuZCB5b3UgaGF2ZSB0bwo+ID4+PiBjcmVhdGUgYSBzdGF0aW9uIGxpc3QgbWFudWFsbHkg
-b25jZSwgYnV0IHRoZW4gc3RlcmVvIHJhZGlvIGlzIGZpbmUuCj4gPj4+Cj4gPj4+IE9uIHRoZSBs
-YXRlciBGTUQxMjE2TUVYLCB3aGljaCBjYW4gYWxzbyBiZSBvbiB0aGF0IGJvYXJkLCBTdGV2ZQo+
-ID4+PiBtZW50aW9uZWQgb25jZSB0aGF0IHRoZSByYWRpbyBtaWdodCBiZSBzbGlnaHRseSBkaWZm
-ZXJlbnQuCj4gPj4+Cj4gPj4+IFRoYXQgb25lIGlzIGN1cnJlbnRseSB0cmVhdGVkIGxpa2UgdGhl
-IEZNRDEyMTZNRSwgYnV0IHdvdWxkIG5lZWQgaXRzIG93bgo+ID4+PiBzZXBhcmF0ZSB0dW5lciB0
-eXBlIGVudHJ5IGluIHRoYXQgY2FzZS4KPiA+Pj4KPiA+Pj4gV2UgYWxzbyBmb3VuZCBoaW50cyBp
-biB0dW5lciBzcGVjcyBwcm92aWRlZCBieSBTdGV2ZSBmb3IgaXZ0diwgSUlSQywKPiA+Pj4gdGhh
-dCBhbiBBRkMgbmFycm93aW5nIGRvd24gbG9vcGluZyBjYW4gYmUgdXNlZCB0byB0YWtlIHRoaXMg
-YXMga2luZCBvZgo+ID4+PiBzaWduYWwgc3RyZW5ndGggZGV0ZWN0aW9uIG9uIHRoZSB0ZGE5ODg3
-IGFsdGVybmF0aXZlbHkgZm9yIHRoZSBzdGVyZW8KPiA+Pj4gYml0IG9uIHRoZSBwbGwuIEhhcnRt
-dXQgd2FzIGF3YXJlIG9mIGl0IHRvbywgYnV0IHdobyBsaWtlcyB0byB3b3JrIG9uCj4gPj4+IGFu
-YWxvZyByYWRpbyB0aGVzZSBkYXlzIC4uLgo+ID4+IEkgZG8uIEFzIHdlIGVtYmVkZCB0aGVzZSBj
-YXJkcyBvbiBvdXIgc2VydmVycyB3ZSdkIGxpa2UgdG8gYWRkIHRoaXMgCj4gPj4gZmVhdHVyZSB0
-byBvdXIgcHJvZHVjdHMgKGFuYWxvZyB0byBkaWdpdGFsIHN0cmVhbWluZyBzZXJ2ZXJzKS4KPiA+
-PiBBbnl3YXksIHRoaXMgaXMgYSBmZWF0dXJlIG9mIHRoZSBjYXJkIHdoaWNoIGlzIGxhY2tpbmcg
-dW5kZXIgTGludXggc28gCj4gPj4gdGhlIHF1ZXN0aW9uIG9mIHdobyBpcyBpbnRlcmVzdGVkIGlu
-IGFuYWxvZyByYWRpbyBpcyBub3QgYSBnb29kIAo+ID4+IHF1ZXN0aW9uLiBUaGUgcXVlc3Rpb24g
-b2Ygd2h5IG5vdCBnb2luZyBhcyBmYXIgYXMgcG9zc2libGUgd2hlbiAKPiA+PiBzdXBwb3J0aW5n
-IGEgY2FyZCBpcyBhIGdvb2QgcXVlc3Rpb24uCj4gPj4gU28geWVzIEkgYW0gbm90IGFmcmFpZCBv
-ZiBzYXlpbmcgSSdtIGludGVyZXN0ZWQgaW4gYW5hbGdvIHJhZGlvIDopCj4gPiAKPiA+IEknbSBp
-bnRlcmVzdGVkIHRvbyA6KSBhbmQgd29ya2VkIHdpdGggb3RoZXJzIG9uIHRoZSB0ZGE5ODg3IHJh
-ZGlvCj4gPiBzdXBwb3J0LCBidXQgb24gdGhlIEZNMTIxNk1FL0kgSC0zIGFuZCBzb21lIG90aGVy
-IE1LMyB0dW5lcnMuCj4gVGhhdCdzIHRoZSBvbmUgcHJlc2VudCBvbiB0aGUgS05DIFRWIFN0YXRp
-b24gRFZSLgo+IAo+ID4gCj4gPiBEb24ndCBoYXZlIGEgSFZSLTEzMDAgYW5kIGNhbiBnaXZlIHlv
-dSBvbmx5IGhpbnRzIGFib3V0IHRoZSBGTUQxMjE2TUUKPiA+IHJhZGlvIHN0YXR1cyBhbmQgdGhh
-dCB5b3Ugc2hvdWxkIGhhdmUgbm90aWNlZCB0aGUgRklYTUUuCj4gPiAKPiA+Pj4gSXQgaXMgbm90
-IGltcGxlbWVudGVkIHlldCwgaWYgaXQgc2hvdWxkIGJlIHJlbGF0ZWQuCj4gPj4+Cj4gPj4+IENo
-ZWVycywKPiA+Pj4gSGVybWFubgo+ID4+Pgo+ID4+Pgo+ID4+Pgo+ID4+IE9rIHNvIGlmIEkgZ2V0
-IGl0IHJpZ2h0LCB3aGF0IHlvdSdyZSBzYXlpbmcgaXMgdGhhdCBzdGVyZW8gcmFkaW8gaXNuJ3Qg
-Cj4gPj4gd29ya2luZyBvbiBIVlIgMTMwMCB3aXRoIEZNRDEyMTZNRVggYnV0IG1vbm8gcmFkaW8g
-aXMgd29ya2luZyA/IElmIHllcyAKPiA+PiBJJ2QgbGlrZSB0byBrbm93IGhvdyAuLi4gc2hvdWxk
-bid0IEkganVzdCBzZXQgZnJlcXVlbmN5IHRvIC9kZXYvcmFkaW8sIAo+ID4+IHRoZW4gZ2V0IGl0
-IGZyb20gL2Rldi9kc3AgPz8/IFRoaXMgZm9yIG1lIGlzbid0IHdvcmtpbmcgYW5kIHByb3ZpZGlu
-ZyAKPiA+PiBvbmx5IG5vaXNlLgo+ID4gCj4gPiBJIGtub3cgbm90aGluZyBhYm91dCB0aGUgcmFk
-aW8gb24gdGhlIEZNRDEyMTZNRVgsIGJ1dCBJIGRpZCBsZXQgeW91IGtub3cKPiA+IHRoYXQgaXQg
-bWlnaHQgYmUgZXZlbnR1YWxseSBkaWZmZXJlbnQgYWNjb3JkaW5nIHRvIFN0ZXZlLgo+ID4gCj4g
-PiBJZiB5b3Ugd291bGQgYmUgb24gdGhlIHJpZ2h0IGxpc3Qgd2l0aCB5b3VyIHF1ZXN0aW9ucywg
-eW91IHdvdWxkIGtub3cKPiA+IHRoYXQgdGhlIEZNRDEyMTZNRSBub3QgWCBkb2Vzbid0IHdvcmsg
-ZWl0aGVyIHlldCBvbiB0aGlzIGNhcmQgZm9yIHJhZGlvLgo+ID4gCj4gPj4gTm93IGlmIHlvdSB0
-ZWxsIG1lIHRoaXMgaXMganVzdCBub3QgaW1wbGVtZW50ZWQgeWV0LCB0aGVuIGhvdyBjb3VsZCBJ
-IAo+ID4+IGhlbHAgeW91IHRvIGltcGxlbWVudCBpdCA/IElmIGl0J3Mgbm90IHNjaGVkdWxlZCB0
-byBiZSBpbXBsZW1lbnRlZCBvbmUgCj4gPj4gZGF5IHRoZW4gSSBtaWdodCBiZSBhYmxlIHRvIHdv
-cmsgb24gaXQgYXQgbXkgb2ZmaWNlIChtYXliZSBub3QgbWUgCj4gPj4gZGlyZWN0bHkgYnV0IG9u
-ZSBvZiBteSBjb3dvcmtlcnMpLgo+ID4gCj4gPiBUaGlzIGlzIG9ubHkgYSBzcGVjdWxhdGlvbiBk
-ZXJpdmVkIGZyb20gRk0xMjE2TUUgYW5kIG9ubHkgYWJvdXQgc2lnbmFsCj4gPiBzdHJlbmd0aCBm
-b3IgYXV0byBzY2FubmluZy4gRWxzZSB0aGUgRk1EMTIxNk1FIGhhcyB3b3JraW5nIHN0ZXJlbyBy
-YWRpbwo+ID4gYWxyZWFkeS4KPiA+IAo+ID4gWW91IHdvdWxkIG5lZWQgZGF0YXNoZWV0cyBhbmQg
-cHJlZmVyYWJseSBzYW1wbGUgY29kZSB0b28gZm9yIHRoZSBGTUQKPiA+IHR1bmVycyBhbmQgdGhh
-dCB5b3UgY2FuIGdldCBvbmx5IHVuZGVyIE5EQSwgQUZBSUsuCj4gPiAKPiA+PiBCdHcgSSB0cmll
-ZCBvbiBteSBLTkMgVFYgU3RhdGlvbiBEVlIgKEZNMTIxNk1FIE1LMywgc2FhNzEzNCwgc2FhNjc1
-MmhzKSAKPiA+PiB3aXRoIG5vIHN1Y2Nlc3MgOiBpZiBJIHR1bmUgdG8gYW4gYW5hbG9nIFRWIHN0
-YXRpb24gdGhyb3VnaCAvZGV2L3ZpZGVvLCAKPiA+PiBJIHdpbGwgZ2V0IHNvdW5kIGZyb20gL2Rl
-di9kc3AuIFRoZW4gSSB0dW5lIHRvIGEgcmFkaW8gdGhyb3VnaCAKPiA+PiAvZGV2L3JhZGlvIC4u
-LiBidXQgSSBzdGlsbCBnZXQgdGhlIFRWIHNvdW5kIGZyb20gL2Rldi9kc3AgLi4uCj4gPiAKPiA+
-IElJUkMsIHdoZW4gdGhhdCByYXJlbHkgc2VlbiBjYXJkIHdhcyBhZGRlZCwgdGhlcmUgd2FzIG5v
-IHJhZGlvIHN1cHBvcnQKPiA+IGZvciB0aGUgTUszIHR1bmVycyB5ZXQuIExpa2VseSBzb21lIHN3
-aXRjaGluZyBpcyB3cm9uZy4KPiA+IAo+ID4gUmFkaW8gaXMgb24gdGhlIHNhbWUgYW11eCBsaWtl
-IFRWIE1PTk8sIHNlZSB0aGUgcHJldmlvdXMgY2FyZC4KPiA+IAo+ID4gSSBrbm93IGZvciBzdXJl
-IHRoYXQgd2UgaGF2ZSByYWRpbyBtb25vIG9uIHRoZSB0ZGE5ODg3IHNpbmNlIGNhcmQ9MTIuCj4g
-PiAKPiA+IEFmdGVyIEhhcnRtdXQgYWRkZWQgdGhlIEZNRDEyMTZNRSB3aXRoIHJhZGlvLCBOaWNr
-b2xheSBhbmQgbWUKPiA+IGltbWVkaWF0ZWx5IHJlYWxpemVkIHRoYXQgb24gc29tZSBwb2ludCBp
-biBvdXIgcHJpb3IgdHJpZXMgZm9yIHN0ZXJlbwo+ID4gcmFkaW8gb24gdGhlIEZNMTIxNk1FIHdl
-IHdlcmUgYWxyZWFkeSByaWdodC4gU2hvcnQgdGltZSBsYXRlciB3ZSBoYWQKPiA+IHN1cHBvcnQg
-Zm9yIGl0Lgo+ID4gCj4gPiBBbGwgb24gdGhlIHZpZGVvNGxpbnV4IGxpc3QgLi4uCj4gPiAKCkhp
-IEZyZWRlcmljLAoKPiBGaW5lLiBJJ2xsIHRyeSB0byBtYWtlIHJhZGlvIHdvcmsgb24gdGhpcyBj
-YXJkIGFzIGl0IHNlZW1zIGl0IGNhbiBiZSBkb25lLgo+IAo+IFJlZ2FyZGluZyB0aGUgRk1EMTIx
-Nk1FIGFuZCBNRVgsIEknbGwgdHJ5IHRvIGNvbnRhY3QgTlhQIGFuZCBzZWUgaWYgSSAKPiBjYW4g
-aGF2ZSBkYXRhc2hlZXRzIGFuZCAvIG9yIHN1cHBvcnQgZnJvbSB0aGVtIGluIG9yZGVyIHRvIHN1
-cHBvcnQgcmFkaW8gCj4gb24gdGhlc2UgdHVuZXJzIHVuZGVyIExpbnV4LiBXZSBoYXZlIGhlcmUg
-YXQgdGhlIG9mZmljZSB0aGUgRk0xMjE2TUUgCj4gZGF0YXNoZWV0cyBmcm9tIE5YUCBidXQgbm90
-IHRoZSBvdGhlciBvbmVzLgo+IAo+IEJ1dCwgaG93IHdhcyBpbXBsZW1lbnRlZCB0diBzdXBwb3J0
-IG9mIHRoZXNlIHR1bmVycyBpbiB2NGwtZHZiID8gd2Fzbid0IAo+IGl0IGFscmVhZHkgdXNpbmcg
-ZGF0YXNoZWV0cyA/IFdobyBkaWQgaXQgPyBNYXliZSB3ZSBjb3VsZCBjb250YWN0IHRoZSAKPiBv
-bnQgd2hvIGluaXRpYWx5IHdvcmtlZCBvbiB0aGVzZSB0dW5lcnMgYW5kIGhhdmUgYSBuaWNlIGNo
-YXQgd2l0aCAKPiBoaW0vaGVyLCB0byBzZWUgaG93IG11Y2ggd29yayBpdCB3b3VsZCBiZSwgYS5z
-Lm8uID8KCnRvIHNvbWUgcG9pbnQgSSBjYW4gdW5kZXJzdGFuZCB5b3VyIGZydXN0cmF0aW9uLCBh
-cyB5b3UgcHJldmlvdXNseSBoYWQKYWxyZWFkeSBmdW4gd2l0aCB0aGUgZW1wcmVzcyBlbmNvZGVy
-LgoKVGhlIFBoaWxpcHMgTUszIHR1bmVycyB3ZXJlIGhhY2tlZC4KCk92ZXIgc2V2ZXJhbCB5ZWFy
-cyBjb3VudGxlc3MgcGVvcGxlLCBubyB0aGF0IGlzIG5vdCB0cnVlLCBJIGNhbiByZW1lbWJlcgpl
-dmVyeSBzaW5nbGUgb25lLCBjb250cmlidXRlZCB0byBnZXQgcG9ydC9xc3MgYW5kIHR1bmVyIHNw
-ZWNpZmljIG9wdGlvbnMKcmlnaHQgYXJvdW5kIHRoZSBnbG9iZS4gQW5kIHdlIGhhZCBpdCBhbGwg
-c28gZmFyLgoKRmluYWxseSBIYXVwcGF1Z2UgcHJvdmlkZWQgZGF0YXNoZWV0cyB0byBpdnR2IGFu
-ZCBIYW5zIGRpZCB0aGUgcmVtYWluaW5nCmNsZWFuIHVwcywgVHJlbnQgYWxzbyBoZWxwZWQgdG8g
-cmVzb2x2ZSByZWdyZXNzaW9ucyB3ZSBpbnRyb2R1Y2VkIGZvcgptaWNyb3R1bmUgc3R1ZmYgZHVy
-aW5nIHRoZSB0cnkgdG8gZ2V0IHRoZSBQaGlsaXBzIHJpZ2h0LgoKSSBrbm93LCBpZiB5b3UgaGF2
-ZSB0aGUgRk0xMjE2TUUgcHJvZ3JhbW1pbmcgaW5zdHJ1Y3Rpb25zLCBpdCBsb29rcyBsaWtlCmp1
-c3QgYSBncmluLCBidXQgd2UgZGlkIG5vdCBoYXZlIHRoZW0gYW5kIGl0IGlzIHN0aWxsIG5vdCB0
-aGF0IGVhc3ksCnNpbmNlIHRoZXJlIGFyZSBvdGhlciB0dW5lcnMgdXNpbmcvYWJ1c2luZyB0aGUg
-dGRhOTg3LzUvNS83IHN0dWZmIHRvby4KCkhhcnRtdXQgaW50cm9kdWNlZCB0aGUgRk1EMTIxNk1F
-IE1LMyB1bmRlciBOREEuCgpJdCBpcyB0cmlja3kgZm9yIGFuYWxvZyBpbml0aWFsaXphdGlvbiBh
-bmQgaGVhdmlseSBleHBvc2VkIHRvIHBvdGVudGlhbApyZWdyZXNzaW9ucyB3aXRoaW4gYSBtb3Zp
-bmcgdHVuZXIgZnJhbWV3b3JrLgoKT2YgY291cnNlIERWQi1UIHdhcyB0aGUgbWFpbiBnb2FsIHRo
-YXQgdGltZSwgYnV0IGJ5IHRoZSB3YXkgaXQgYnJvdWdodApzaWduaWZpY2FudCBpbXByb3ZlbWVu
-dHMgZm9yIHJhZGlvLCBtZWFucyBzb2xpZCBzdGVyZW8gZm9yIHRoZSBmaXJzdAp0aW1lIC4uLiAg
-CgpGZWVsIGZyZWUgdG8gZG8gbW9yZS4KCkNoZWVycywKSGVybWFubgoKCgoKCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxp
-c3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9t
-YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+This is a multi-part message in MIME format.
+
+--===============0771425920==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0364_01C90E98.EFC6A280"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0364_01C90E98.EFC6A280
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+Hi,
+I have searched the list but not found what I am looking for.
+ 
+I have 2 tuner cards of the same type.  They have xc5000 tuner chips in them
+that require firmware to be loaded.  As best as I can tell from the dmesg,
+only the first card is actually getting the firmware properly loaded. There
+seems to be a message related to the second card that says something about
+firmware previously loaded.  The second card fails to tune in either ATSC or
+NTSC mode, just a black screen.
+ 
+Any clues?
+ 
+Thanks!
+ 
+Tim Krantz
+
+------=_NextPart_000_0364_01C90E98.EFC6A280
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii">
+<META content=3D"MSHTML 6.00.6000.16705" name=3DGENERATOR></HEAD>
+<BODY>
+<DIV><SPAN class=3D969251418-04092008><FONT face=3DArial=20
+size=3D2>Hi,</FONT></SPAN></DIV>
+<DIV><SPAN class=3D969251418-04092008><FONT face=3DArial size=3D2>I have =
+searched the=20
+list but not found what I am looking for.</FONT></SPAN></DIV>
+<DIV><SPAN class=3D969251418-04092008><FONT face=3DArial=20
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D969251418-04092008><FONT face=3DArial size=3D2>I have =
+2 tuner cards=20
+of the same type.&nbsp; They have xc5000 tuner chips in them that =
+require=20
+firmware to be loaded.&nbsp; As best as I can tell from the dmesg, only =
+the=20
+first card is actually getting the firmware properly loaded. There seems =
+to be a=20
+message related to the second card that says something about firmware =
+previously=20
+loaded.&nbsp; The second card fails to tune in either ATSC or NTSC mode, =
+just a=20
+black screen.</FONT></SPAN></DIV>
+<DIV><SPAN class=3D969251418-04092008><FONT face=3DArial=20
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D969251418-04092008><FONT face=3DArial size=3D2>Any=20
+clues?</FONT></SPAN></DIV>
+<DIV><SPAN class=3D969251418-04092008><FONT face=3DArial=20
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D969251418-04092008><FONT face=3DArial=20
+size=3D2>Thanks!</FONT></SPAN></DIV>
+<DIV><SPAN class=3D969251418-04092008><FONT face=3DArial=20
+size=3D2></FONT></SPAN>&nbsp;</DIV>
+<DIV><SPAN class=3D969251418-04092008><FONT face=3DArial size=3D2>Tim=20
+Krantz</FONT></SPAN></DIV></BODY></HTML>
+
+------=_NextPart_000_0364_01C90E98.EFC6A280--
+
+
+
+
+--===============0771425920==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0771425920==--
