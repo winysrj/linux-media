@@ -1,29 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp28.orange.fr ([80.12.242.99])
+Received: from rv-out-0506.google.com ([209.85.198.229])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@bercot.org>) id 1Kjgek-0003B1-4o
-	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 22:44:46 +0200
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2803.orange.fr (SMTP Server) with ESMTP id 94DC78000097
-	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 22:44:12 +0200 (CEST)
-Received: from mail.bercot.org (LRouen-151-71-134-185.w193-253.abo.wanadoo.fr
-	[193.253.252.185])
-	by mwinf2803.orange.fr (SMTP Server) with ESMTP id 7B8278000083
-	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 22:44:12 +0200 (CEST)
-Received: from david.huperie (localhost [127.0.0.1])
-	by mail.bercot.org (Postfix) with ESMTP id 597033C05A
-	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 22:54:24 +0200 (CEST)
-Date: Sat, 27 Sep 2008 22:44:11 +0200
-From: David BERCOT <linux-dvb@bercot.org>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080927224411.003bd002@david.huperie>
-In-Reply-To: <d9def9db0809271339w70e64903o6a2026840cce5f6f@mail.gmail.com>
-References: <20080927201547.2fbde736@david.huperie>
-	<d9def9db0809271230p561c022aoa2a32c8806688f68@mail.gmail.com>
-	<20080927221314.1313010c@david.huperie>
-	<d9def9db0809271339w70e64903o6a2026840cce5f6f@mail.gmail.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] How installing em28xx ?
+	(envelope-from <makosoft@googlemail.com>) id 1KbiKW-0002UQ-P8
+	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 22:54:58 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so584880rvf.41
+	for <linux-dvb@linuxtv.org>; Fri, 05 Sep 2008 13:54:51 -0700 (PDT)
+Message-ID: <c8b4dbe10809051354r2747b42atf15b3b6f9346987c@mail.gmail.com>
+Date: Fri, 5 Sep 2008 21:54:51 +0100
+From: "Aidan Thornton" <makosoft@googlemail.com>
+To: "Greg KH" <greg@kroah.com>
+In-Reply-To: <20080831042115.GA21622@kroah.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <48B8400A.9030409@linuxtv.org> <48B98914.1020800@w3z.co.uk>
+	<48B98B89.80803@linuxtv.org>
+	<d9def9db0808302057u25e7ce5yfb2967c893255df0@mail.gmail.com>
+	<20080831042115.GA21622@kroah.com>
+Cc: mrechberger@sundtek.com, linux-dvb@linuxtv.org,
+	Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,44 +26,63 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-TGUgU2F0LCAyNyBTZXAgMjAwOCAyMjozOTowOSArMDIwMCwKIk1hcmt1cyBSZWNoYmVyZ2VyIiA8
-bXJlY2hiZXJnZXJAZ21haWwuY29tPiBhIMOpY3JpdCA6Cj4gPj4gT24gU2F0LCBTZXAgMjcsIDIw
-MDggYXQgODoxNSBQTSwgRGF2aWQgQkVSQ09UCj4gPj4gPGxpbnV4LWR2YkBiZXJjb3Qub3JnPiB3
-cm90ZToKPiA+PiA+IEhpLAo+ID4+ID4KPiA+PiA+IEkgdXNlZCBlbTI4eHggZm9yIHRoZSBwYXN0
-LCBidXQgbm93LCBpdCBzZWVtcyB0byBiZSBtb3JlCj4gPj4gPiBjb21wbGljYXRlZC4uLiBJbiBo
-dHRwOi8vbWNlbnRyYWwuZGUvaGcgSSBmb3VuZCBlbTI4eHgtbmV3IChidXQgSQo+ID4+ID4gaGF2
-ZSBtYW55IGVycm9ycyA6IFsuLi5dCj4gPj4gPiAnZHZiX25ldF9yZWxlYXNlJyAvb3B0L2VtMjh4
-eC1uZXcvZW0yODgwLWR2Yi5jOjk3NjogZXJyZXVyOgo+ID4+ID4gaW1wbGljaXQgZGVjbGFyYXRp
-b24gb2YgZnVuY3Rpb24KPiA+PiA+ICdkdmJfdW5yZWdpc3Rlcl9mcm9udGVuZCcgL29wdC9lbTI4
-eHgtbmV3L2VtMjg4MC1kdmIuYzo5Nzc6Cj4gPj4gPiBlcnJldXI6IGltcGxpY2l0IGRlY2xhcmF0
-aW9uIG9mIGZ1bmN0aW9uCj4gPj4gPiAnZHZiX2Zyb250ZW5kX2RldGFjaCcgL29wdC9lbTI4eHgt
-bmV3L2VtMjg4MC1kdmIuYzo5ODE6IGVycmV1cjoKPiA+PiA+IGltcGxpY2l0IGRlY2xhcmF0aW9u
-IG9mIGZ1bmN0aW9uCj4gPj4gPiAnZHZiX2RteF9yZWxlYXNlJyAvb3B0L2VtMjh4eC1uZXcvZW0y
-ODgwLWR2Yi5jOjk4MzogZXJyZXVyOgo+ID4+ID4gaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVu
-Y3Rpb24gJ2R2Yl91bnJlZ2lzdGVyX2FkYXB0ZXInCj4gPj4gPiBbLi4uXSkgYW5kIHRoZSAib2xk
-IiB2NGwtZHZiLWtlcm5lbCAmIHY0bC1kdmItZXhwZXJpbWVudGFsCj4gPj4gPiBkb2Vzbid0IHdv
-cmsgYW55IG1vcmUgc2luY2UgMi42LjI2IGtlcm5lbC4KPiA+PiA+IEkgc2hvdWxkIHVzZSBtdWx0
-aXByb3RvLCBidXQgaXQgc2VlbXMgaGVhdnksIG5vID8KPiA+PiA+Cj4gPj4gPiBEbyB5b3UgaGF2
-ZSBhbnkgc3VnZ2VzdGlvbiA/Cj4gPj4KPiA+PiBkbyB5b3UgaGF2ZSBhIGN1c3RvbSBrZXJuZWw/
-IG9yIGEgZGVmYXVsdCBkaXN0cmlidXRpb24gLSBhbmQgd2hpY2gKPiA+PiBvbmU/Cj4gPgo+ID4g
-Tm8sIGl0IGlzIGEgY2xhc3NpY2FsIGtlcm5lbCA6IDIuNi4yNi0xLTY4NiBvbiBEZWJpYW4gU2lk
-Lgo+ID4gU2hvdWxkIEkgcHV0IGFsbCB0aGUgZXJyb3JzID8KPiAKPiA+PiA+ICdkdmJfdW5yZWdp
-c3Rlcl9mcm9udGVuZCcgL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo5Nzc6Cj4gPj4gPiBl
-cnJldXI6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uCj4gCj4gdGhpcyBtZWFucyBp
-dCBjYW5ub3QgZmluZCBzb21lIGhlYWRlcnMsIHlvdSBuZWVkIHRvIGluc3RhbGwgdGhlIGZ1bGwK
-PiBrZXJuZWwgc291cmNlcyBmb3IgeW91ciBpbnN0YWxsZWQKPiBrZXJuZWwgYmVmb3JlIGNvbXBp
-bGluZyB0aGUgZHJpdmVyLgoKUmVhbGx5ID8gS2VybmVsIGhlYWRlcnMgKGluIG15IGNhc2UgOiBs
-aW51eC1oZWFkZXJzLTIuNi4yNi0xLTY4NikgYXJlCm5vdCBzdWZmaWNpZW50ID8gV2hlbiBJJ3Zl
-IGluc3RhbGxlZCBlbTI4eHggKHdpdGggdjRsLWR2Yi1leHBlcmltZW50YWwpCmEgZmV3IG1vbnRo
-cyBhZ28sIGl0IHdhcyBvayBvbmx5IHdpdGggdGhlIGhlYWRlcnMuLi4KCk9LLiBJJ2xsIHRyeSB3
-aXRoIHRoZSBjb21wbGV0ZSBzb3VyY2UgKGV2ZW4gaWYgSSBkb24ndCB1bmRlcnN0YW5kCndoeSA7
-LSkpKQoKVGhhbmsgeW91IHZlcnkgbXVjaC4KCkRhdmlkLgoKCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgt
-ZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LWR2Yg==
+On Sun, Aug 31, 2008 at 5:21 AM, Greg KH <greg@kroah.com> wrote:
+> On Sun, Aug 31, 2008 at 05:57:46AM +0200, Markus Rechberger wrote:
+>> Let's put another thing in here: Greg Kroah Hartman Linux Guy reverted
+>
+> If you're going to spell my full last name out, please get it right, you
+> forgot a '-' :)
+>
+>> my patch in favour of supporting the binary Firmware upload tool of
+>> Dell (I fully support Dell here too) although claiming to be
+>> opensource but still running after someone (please comment this one -
+>> it confused me at 'your' position). It was just like ok let's revert
+>> it but not asking why?!
+>
+> What patch specifically are you referring to here?
+>
+> And what does this have to do with v4l and DVB issues?
+>
+> thanks,
+>
+> greg k-h
+
+Hi,
+
+Markus submitted a patch to the firmware loader code that fixed a
+sysfs filename collision by appending a suffix to the sysfs filename
+it used. This bug broke the use of the firmware loader from i2c device
+drivers (specifically, the drivers for the xc3028 TV tuner chip) with
+certain (not particularly unusual) kernel configurations - IIRC, it
+affected kernels with I2C compiled as a module and a particular value
+of some option related to sysfs depreciated support. The patch was
+reverted by you because it broke binary-only firmware upload tools for
+Dell hardware, screwing over normal desktop users in the process.
+
+See, for example, http://lkml.org/lkml/2008/4/26/319 - this is fairly
+typical. IIRC, the only drivers for the xc3028 that aren't affected
+are Markus' recent ones, since they compile the firmware into the
+driver (ugh). This may have been fixed since, but I'm not sure.
+
+(Incidentally, looking at the conversation, I believe your remark that
+"the i2c devices can fix things by changing their module names so this
+collision doesn't happen :)" may be inaccurate. The firmware loader
+copies the name it uses from the device passed to it, so I'm not sure
+how much can be done, short of hacking around the issue by creating a
+fake device to pass to the firmware loader or making potentially
+compatibility-breaking changes to either the i2c core or the firmware
+loader. Of course, I haven't looked at the issue that closely, so I
+may be wrong.)
+
+Aidan
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
