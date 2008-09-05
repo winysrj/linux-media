@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46])
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1KgSGU-0000xd-J9
-	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 00:46:23 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: wk <handygewinnspiel@gmx.de>
-In-Reply-To: <48D28052.5000209@gmx.de>
-References: <48D27B52.2010704@anevia.com>  <48D28052.5000209@gmx.de>
-Date: Fri, 19 Sep 2008 00:42:18 +0200
-Message-Id: <1221777738.4904.40.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] hvr 1300 radio
+	(envelope-from <stoth@linuxtv.org>) id 1KbbIA-0001QT-SS
+	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 15:24:04 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6Q00DK2573HOR0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 05 Sep 2008 09:23:28 -0400 (EDT)
+Date: Fri, 05 Sep 2008 09:23:27 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080904232657.E73D747808F@ws1-5.us4.outblaze.com>
+To: stev391@email.com, Thomas Goerke <tom@goeng.com.au>
+Message-id: <48C132CF.1060903@linuxtv.org>
+MIME-version: 1.0
+References: <20080904232657.E73D747808F@ws1-5.us4.outblaze.com>
+Cc: linux-dvb@linuxtv.org, 'jackden' <jackden@gmail.com>
+Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
+ TV/FM capture card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,76 +32,92 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-Am Donnerstag, den 18.09.2008, 18:22 +0200 schrieb wk:
-> Frederic CAND wrote:
-> > Dear all,
-> >
-> > has anyone got analog FM radio working with an Hauppauge HVR 1300 ?
-> > If yes please tell me how ! I got only noise from /dev/dsp* ... :(
-> > This is an issue I've had for some time now ...
-> > I tried option radio=63 on cx88xx module but it did not change anything 
-> > (except writing cx88[0]: TV tuner type 63, Radio tuner type 63 in dmesg 
-> > instead of radio tuner type -1 ...)
-> >
-> > Is radio support just not implemented ?
-> >
-> >   
-> Load cx88_blackbird and open /dev/radioX.
-> I haven't tried radio up to now, but i would expect that only radio *or* 
-> dvb works, but not both at the same time. Most probably radio is also 
-> not feed trough the mpeg encoder.
+stev391@email.com wrote:
+>> ----- Original Message -----
+>> From: "Thomas Goerke" <tom@goeng.com.au>
+>> To: stev391@email.com, "'jackden'" <jackden@gmail.com>
+>> Subject: RE: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog TV/FM capture card
+>> Date: Sun, 31 Aug 2008 19:22:31 +0800
+>>
+>>
+>>> Tom,
+>>> (Jackden please try first patch and provide feedback, if that doesn't
+>>> work for your card, then try this and provide feedback)
+>>>
+>>> The second dmesg (with debugging) didn't show me what I was looking
+>>> for, but from past experience I will try something else.  I was looking
+>>> for some dma errors from the cx23885 driver, these usually occured
+>>> while streaming is being attempted.
+>>>
+>>> Attached to this email is another patch.  The difference between the
+>>> first one and the second one is that I load an extra module (cx25840),
+>>> which normally is not required for DVB as it is part of the analog side
+>>> of this card.  This does NOT mean analog will be supported.
+>>>
+>>> As of today the main v4l-dvb can be used with this patch and this means
+>>> that the cx23885-leadtek tree will soon disappear. So step 2 above has
+>>> been modified to: "Check out the latest v4l-dvb source".
+>>>
+>>> Other then that step 4 has a different file name for the patch.
+>>>
+>>> Steps that need to be completed are: 2, 3, 4, 5, 7, 9, 10 & 11. (As you
+>>> have completed the missing steps already).
+>>>
+>>> If the patch works, please do not stop communicating, as I have to
+>>> perform one more patch to prove that cx25840 is required and my
+>>> assumptions are correct. Once this is completed I will send it to
+>>> Steven Toth for inclusion in his test tree. This will need to be tested
+>>> by you again, and if all is working well after a week or more it will
+>>> be included into the main tree.
+>>>
+>>> Regards,
+>>> Stephen
+>>>
+>>>
+>>> --
+>> Stephen,
+>>
+>> After following Steven Toth's advice re CPIA, applying your patch and then
+>> make, make install, I can now report that the Compro E800F card is working!
+>> This is very impressive and thanks for your help.
+>>
+>> I have added the card to MythTV and all channels were successfully added.  I
+>> am not sure about the comparable signal strength's compared to the Hauppauge
+>> Nova card I also have installed - this is something I can provide feedback
+>> on at a later stage.
+>>
+>> I have tried from a soft and hard reset and all seems ok.
+>>
+>> See below for the o/p from dmesg.  Please let  me know if there is anything
+>> else you would like to try/test.
+>>
+>> Tom
+>>
+> ---Snip---
 > 
+> 
+> Tom,
+> 
+> Attached is another patch,  this will break the support for your card, but proves that the 
+> cx25840 module is required for the DVB-T side of this card.  So before applying the patch make 
+> sure you have a copy of the working patch handy (or even two copies of the source tree).
+> 
+> Follow the same steps I had for the v0.1 patch, but use the attached (v0.2) patch.  The symptons will be the same as the original patch, i.e. no errors in dmesg, but unable to scam/tune.
+> 
+> Also can you please look at the other IC's on the board and see if you identify them for me.  
+> I'm looking for an eeprom or similiar IC, as I will need to distinguish between the various 
+> different boards.  Also if you can get a dump of what is on the eeprom and provide it (or put it 
+> on the wiki page, or both).  I'm not sure how to do this safely yet, so if you have time google 
+> is your friend (i2cdump might to the trick).
 
-a fixme still sticks on radio of the HVR1300.
+modprobe cx23885 i2c_scan=1
 
-			.audioroute = 2,
-		},{
-			.type	= CX88_VMUX_SVIDEO,
-			.vmux	= 2,
-			.gpio0	= 0xe780,
-			.audioroute = 2,
-		}},
-		/* fixme: Add radio support */
-		.mpeg           = CX88_MPEG_DVB | CX88_MPEG_BLACKBIRD,
-		.radio = {
-			.type   = CX88_RADIO,
-			.gpio0	= 0xe780,
-		},
-	},
+This will scan each i2c bus and try to determine what silicon is 
+attached, including any eeprom.
 
-Guess audio routing and switching is not clear yet.
+FYI
 
-The FMD1216ME supports radio over tda9887 and tda7040.
-
-On the FM1216ME and FM1236 MK3 we can take the stereo indication bit
-from the PLL chip and switch the tda9887 into FM stereo mode
-accordingly. Reading this status information also enables auto scanning
-for radio broadcasts for the applications. (v4l2 aware like kradio
-should be preferred)
-
-This bit does not work on the hybrid FMD1216ME MK3 and you have to
-create a station list manually once, but then stereo radio is fine.
-
-On the later FMD1216MEX, which can also be on that board, Steve
-mentioned once that the radio might be slightly different.
-
-That one is currently treated like the FMD1216ME, but would need its own
-separate tuner type entry in that case.
-
-We also found hints in tuner specs provided by Steve for ivtv, IIRC,
-that an AFC narrowing down looping can be used to take this as kind of
-signal strength detection on the tda9887 alternatively for the stereo
-bit on the pll. Hartmut was aware of it too, but who likes to work on
-analog radio these days ...
-
-It is not implemented yet, if it should be related.
-
-Cheers,
-Hermann
-
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
