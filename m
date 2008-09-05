@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Markus Rechberger <mrechberger@gmail.com>
-In-Reply-To: <d9def9db0809241949i5b368f01w5f635d59cd19dd1f@mail.gmail.com>
-References: <20080923181628.10797e0b@mchehab.chehab.org>
-	<48D9F6F3.8090501@gmail.com>
-	<alpine.LRH.1.10.0809241051170.12985@pub3.ifh.de>
-	<48DA15A2.40109@gmail.com>
-	<alpine.LFD.1.10.0809240942250.28125@areia.chehab.org>
-	<a3ef07920809241441gea2c09al6e2ed32589ad6fa4@mail.gmail.com>
-	<d9def9db0809241901g56a54750kbfccecc77b111ec7@mail.gmail.com>
-	<37219a840809241947w6ca35351xa15920de6ff41aab@mail.gmail.com>
-	<d9def9db0809241949i5b368f01w5f635d59cd19dd1f@mail.gmail.com>
-Date: Thu, 25 Sep 2008 05:04:37 +0200
-Message-Id: <1222311877.3323.101.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: Manu Abraham <abraham.manu@gmail.com>, Greg KH <greg@kroah.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	DVB ML <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
+Received: from wf-out-1314.google.com ([209.85.200.173])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <lucastim@gmail.com>) id 1KbcL3-00065V-2P
+	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 16:31:07 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so486896wfd.17
+	for <linux-dvb@linuxtv.org>; Fri, 05 Sep 2008 07:31:00 -0700 (PDT)
+Message-ID: <e32e0e5d0809050731h17e18aeao786011bc8775e12c@mail.gmail.com>
+Date: Fri, 5 Sep 2008 07:31:00 -0700
+From: "Tim Lucas" <lucastim@gmail.com>
+To: "Steven Toth" <stoth@linuxtv.org>, "linux dvb" <linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
+	HVR-1500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,151 +19,223 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0733722964=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============0733722964==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_73401_20945762.1220625060807"
 
-Am Donnerstag, den 25.09.2008, 04:49 +0200 schrieb Markus Rechberger:
-> On Thu, Sep 25, 2008 at 4:47 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> > On Wed, Sep 24, 2008 at 10:01 PM, Markus Rechberger
-> > <mrechberger@gmail.com> wrote:
-> >> On Wed, Sep 24, 2008 at 11:41 PM, VDR User <user.vdr@gmail.com> wrote:
-> >>> On Wed, Sep 24, 2008 at 8:21 AM, Mauro Carvalho Chehab
-> >>> <mchehab@infradead.org> wrote:
-> >>>> The decision were already taken by the group.
-> >>>>
-> >>>> It should be noticed also that the public announcement took some time to
-> >>>> be ready, since we all carefully reviewed it to reflect the understanding
-> >>>> that the group had.
-> >>>>
-> >>>> Both API's work, and people needed to choose between one of the proposals.
-> >>>>
-> >>>> Each one there had enough time to read and understand each proposal, since
-> >>>> the patches were available more than one week before the meeting, and
-> >>>> everybody were aware that the decision are scheduled to happen during LPC.
-> >>>>
-> >>>> Each one voted based on their own technical analysis, on a meeting that
-> >>>> took about 2:30 hours, on the day after the presentations. People had
-> >>>> enough time there to discuss, explain their ideas with the help of a
-> >>>> whiteboard, decide and improve the proposal.
-> >>>>
-> >>>> S2API was choosen, since it was considered the better proposal for
-> >>>> everybody there. None of the presents voted for Multiproto.
-> >>>>
-> >>>> Now that the decision were already taken, it is not time anymore to argue
-> >>>> in favor to any other proposals. We need to move ahead and finally add
-> >>>> support for DVB-S2 and the remaining missing digital TV's at kernel.
-> >>>>
-> >>>> Thank you and everyone else involved on adding support for the missing
-> >>>> standards.
-> >>>>
-> >>>> Let's move to the next step: finally add API changes and drivers for
-> >>>> DVB-S2 and prepare support for the remaining missing standards.
-> >>>
-> >>> It's no secret to anyone that there has been foul play, and blatantly
-> >>> clear there is bias against Manu himself, and multiproto as a result,
-> >>> based on personal differences & past conflicts.  You can't possibly
-> >>> expect the dvb community to believe a fair & balanced meeting took
-> >>> place to discuss these proposals when half the people there already
-> >>> signed on for s2api, and the other half don't have the knowledge &
-> >>> experience with dvb to make well-informed decisions.  You can't
-> >>> possibly think people will believe any of you (who've openly admitted
-> >>> support for s2api) spent 2 seconds defending multiproto, or even
-> >>> assessing the proposal from an unbias technical standpoint.
-> >>>
-> >>> It's very convenient that you've completely ignored multiple requests
-> >>> for more in-depth details that actually prove your points have real
-> >>> technical merit and aren't just the result of some self-interest
-> >>> politics and b.s.  Yet, you had no problem writing paragraphs about
-> >>> how the decision has been made and everyone should just accept it.
-> >>> Sorry, people aren't going to just accept it because this whole thing
-> >>> has been tainted by misleading people, misrepresenting the truth, and
-> >>> sometimes flat out lying.
-> >>>
-> >>> Valuable members of the community have turned, and are turning away
-> >>> because of how poorly dvb has been maintained, and how self-serving
-> >>> some people act.  I'm thankful that more people are being exposed &
-> >>> becoming aware of what's been going on in hopes that at the very least
-> >>> some kind of steps will be taken to stop the misuse & abuse of power
-> >>> at the front of the dvb train.
-> >>>
-> >>> Again, if there is truth to your claims that s2api is the best
-> >>> technical solution, then convince us all by providing tangible proof
-> >>> rather then expecting everyone to take your word for it while ignoring
-> >>> our requests for such information.  You have an obligation to the
-> >>> community to justify your actions, and be held accountable for them.
-> >>>
-> >>
-> >> There hasn't been much positive feedback here! How about let's talk to split the
-> >> v4l and dvb development in order to not give Mauro the full authority
-> >> over the whole
-> >> 2 subsystems where he hardly anything contributed (to the second part).
-> >>
-> >> Don't see this as a flamewar, Andrew Morton and a few others are
-> >> following that discussion now.
-> >>
-> >> Mauro as for you try to justify your step technically, the only point
-> >> we've seen for now was from
-> >> Patrick Boettcher (which was a good one from his side) but also the
-> >> other involved people (within that
-> >> 8 people group in Portland should point out their opinion and
-> >> technical objections/reasons now).
-> >>
-> >> Officially it looks like you had 3 people supporting the Stevens
-> >> proposal and 5 people who didn't know about
-> >> the framework at all and explaining them that the DVB-S2 step is the
-> >> better one to go whereas you had
-> >> noone representing the multiproto path. Such a vote is highly doubtful then.
-> >>
-> >> Hans Hverkuil:
-> >> I saw you in IRC that you support that proposal please also state out
-> >> your opinion and/or ask your questions
-> >> what/why things have been done like they are done in the multiproto
-> >> tree and why you don't support it.
-> >>
-> >> It finally can really end up with a good solution either multiproto or
-> >> S2 but everyone should understand and not only
-> >> a few people.
-> >>
-> >> Markus
-> >
-> > Markus,
-> >
-> > After over two years, a decision has been made.  Up until now, many
-> > people have been unhappy.  Now less people can be unhappy.  An
-> > extension to the api has been merged, and now we can move forward.
-> >
-> > There have been enough debates on the mailing lists to date, and there
-> > is enough information available about each proposal and all of the
-> > details surrounding them.  We need not hash this out again here.
-> >
-> > Nobody wants to debate this any more -- a better use of our time is to
-> > start working on userspace applications for the new supported
-> > standards.  Please redirect your energy towards something creative.
-> >
-> > Make love, not war.
-> >
-> 
-> sure state out technical reasons and that's what it is about otherwise
-> a serious split should happen asap.
-> I personally invite you to be the first one here!
-> 
-> Markus
-> 
+------=_Part_73401_20945762.1220625060807
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Markus,
+> Why doesn't the driver load if you force it with card=X? What does dmesg
+show?
+>
+> - Steve
 
-you can't invite anybody, since you stay out of kernel by your own
-decision and because Manu did not let you in the way you came :)
+I followed your instructions modprobe cx23885 debug=1 says operation not
+permitted
+Then I tried sudo modprobe cx23885 debug=1 and it says the process was
+killed
+This is the output from dmeg.
 
-Hermann
+589.243831] cx23885: no version for "snd_pcm_new" found: kernel tainted.
+[  589.245284] cx23885 driver version 0.0.1 loaded
+[  589.245628] ACPI: PCI Interrupt Link [APC6] enabled at IRQ 16
+[  589.245632] ACPI: PCI Interrupt 0000:08:00.0[A] -> Link [APC6] -> GSI 16
+(level, low) -> IRQ 16
+[  589.245750] cx23885[0]/0: cx23885_dev_setup() Memory configured for PCIe
+bridge type 885
+[  589.245752] cx23885[0]/0: cx23885_init_tsport(portno=2)
+[  589.245759] CORE cx23885[0]: subsystem: 18ac:d618, board: Hauppauge
+WinTV-HVR1500 [card=6,insmod option]
+[  589.245761] cx23885[0]/0: cx23885_pci_quirks()
+[  589.245763] cx23885[0]/0: cx23885_dev_setup() tuner_type = 0x47
+tuner_addr = 0x61
+[  589.245765] cx23885[0]/0: cx23885_dev_setup() radio_type = 0x0 radio_addr
+= 0x0
+[  589.245766] cx23885[0]/0: cx23885_reset()
+[  589.345825] cx23885[0]/0: cx23885_sram_channel_setup() Configuring
+channel [VID A]
+[  589.345837] cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel
+[ch2]
+[  589.345838] cx23885[0]/0: cx23885_sram_channel_setup() Configuring
+channel [TS1 B]
+[  589.345850] cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel
+[ch4]
+[  589.345852] cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel
+[ch5]
+[  589.345853] cx23885[0]/0: cx23885_sram_channel_setup() Configuring
+channel [TS2 C]
+589.345866] cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel
+[TV Audio]
+[  589.345880] cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel
+[ch8]
+[  589.345882] cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel
+[ch9]
+[  589.355776] cx23885[0]: i2c bus 0 registered
+[  589.355793] cx23885[0]: i2c bus 1 registered
+[  589.355810] cx23885[0]: i2c bus 2 registered
+[  589.382427] tveeprom 5-0050: Encountered bad packet header [ff]. Corrupt
+or not a Hauppauge eeprom.
+[  589.382431] cx23885[0]: warning: unknown hauppauge model #0
+[  589.382432] cx23885[0]: hauppauge eeprom: model=0
+[  589.388510] cx25840' 7-0044: cx25  0-21 found @ 0x88 (cx23885[0])
+[  589.395552] tuner' 5-0064: chip found @ 0xc8 (cx23885[0])
+[  589.398231] tuner' 6-0064: chip found @ 0xc8 (cx23885[0])
+[  589.400298] cx23885[0]/0: registered device video0 [v4l2]
+[  589.400351] Unable to handle kernel NULL pointer dereference at
+0000000000000008 RIP:
+[  589.400353]  [<ffffffff881f5f89>] :snd:snd_device_new+0x59/0xb0
+[  589.400363] PGD 7105a067 PUD 7c727067 PMD 0
+[  589.400366] Oops: 0002 [1] SMP
+[  589.400368] CPU 0
+[  589.400369] Modules linked in: tuner cx25840 cx23885(F) af_packet ipv6
+cpufreq_ondemand cpufreq_stats cpuf
+q_userspace freq_table cpufreq_powersave cpufreq_conservative video output
+container dock sbs sbshc battery ipt
+able_filter ip_tables x_tables ac sbp2 lp compat_ioctl32 nvidia(P) videodev
+v4l1_compat cx2341x videobuf_dma_sg
+ v4l2_common btcx_risc tveeprom videobuf_dvb dvb_core videobuf_core
+snd_hda_intel snd_pcm_oss snd_mixer_oss snd
+_pcm snd_page_alloc snd_hwdep snd_seq_dummy snd_seq_oss snd_seq_midi
+snd_rawmidi snd_seq_midi_event snd_seq ser
+io_raw snd_timer snd_seq_device psmouse snd button i2c_nforce2 i2c_core
+parport_pc parport shpchp pci_hotplug e
+vdev soundcore pcspkr ext3 jbd mbcache usbhid hid sd_mod sg sr_mod cdrom
+sata_nv ehci_hcd ohci1394 ohci_hcd pat
+a_acpi pata_amd usbcore ieee1394 forcedeth ata_generic libata scsi_mod
+thermal processor fan fbcon tileblit fon
+t bitblit softcursor fuse
+[  589.400408] Pid: 17811, comm: modprobe Tainted: PF
+2.6.24-21-generic #1
+[  589.400409] RIP: 0010:[<ffffffff881f5f89>]  [<ffffffff881f5f89>]
+:snd:snd_device_new+0x59/0xb0
+[  589.400416] RSP: 0018:ffff810073235aa8  EFLAGS: 00010282
+[  589.400417] RAX: 0000000000000000 RBX: ffffffff88c7dd20 RCX:
+0000000000000000
+[  589.400418] RDX: ffff810071048e40 RSI: 0000000000000000 RDI:
+ffff810071048e80
+[  589.400420] RBP: 0000000000001003 R08: 0000000000000000 R09:
+ffff810071048e40
+[  589.400421] R10: 0000000000000000 R11: ffffffff803bcc30 R12:
+ffff81007212d000
+[  589.400423] R13: ffffffff8821a620 R14: ffff810073235b20 R15:
+ffffffff88265e48
+[  589.400424] FS:  00007f379fe496e0(0000) GS:ffffffff805b9000(0000)
+knlGS:0000000000000000
+[  589.400426] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  589.400427] CR2: 0000000000000008 CR3: 0000000073137000 CR4:
+00000000000006e0
+[  589.400429] DR0: 0000000000000000 DR1: 0000000000000000 DR2:
+0000000000000000
+[  589.400430] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7:
+0000000000000400
+[  589.400432] Process modprobe (pid: 17811, threadinfo ffff810073234000,
+task ffff81007c53c7e0)
+[  589.400433] Stack:  ffff81007212d000 ffff81007212d000 ffff810073235b08
+ffffffff88c7dd20
+[  589.400436]  ffffffff88266648 ffffffff88215128 ffff81007b6d1e58
+ffff81007212d400
+[  589.400439]  0000000000000018 ffff81007212d458 0000000000000001
+ffffffff88264c12
+[  589.400441] Call Trace:
+[  589.400448]  [<ffffffff88215128>] :snd_timer:snd_timer_new+0x128/0x180
+[  589.400457]  [<ffffffff88264c12>] :snd_pcm:snd_pcm_timer_init+0x52/0x1a0
+[  589.400465]  [<ffffffff8825b7dd>]
+:snd_pcm:snd_pcm_dev_register+0xfd/0x220
+[  589.400470]  [<ffffffff802f88a8>] create_proc_entry+0x58/0xa0
+[  589.400480]  [<ffffffff881f5c9f>] :snd:snd_device_register_all+0x2f/0x60
+[  589.400487]  [<ffffffff881f0b8b>] :snd:snd_card_register+0x3b/0x390
+[  589.400493]  [<ffffffff8825b9e3>] :snd_pcm:snd_pcm_new+0xe3/0x140
+[  589.400505]  [<ffffffff88c6f306>]
+:cx23885:cx23885_audio_initdev+0x156/0x1d0
+[  589.400512]  [<ffffffff88c66a52>]
+:cx23885:cx23885_video_register+0x1d2/0x2f0
+[  589.400520]  [<ffffffff88c644d0>]
+:cx23885:cx23885_tuner_callback+0x0/0xf0
+[  589.400526]  [<ffffffff881e1f8a>] :i2c_core:i2c_clients_command+0x2a/0xe0
+[  589.400534]  [<ffffffff88c6aef7>] :cx23885:cx23885_initdev+0x927/0xb00
+[  589.400537]  [<ffffffff8034a172>] kobject_get+0x12/0x20
+[  589.400542]  [<ffffffff8035e4b8>] pci_device_probe+0xf8/0x170
+[  589.400548]  [<ffffffff803bfd7c>] driver_probe_device+0x9c/0x1b0
+[  589.400552]  [<ffffffff803c0049>] __driver_attach+0xc9/0xd0
+[  589.400556]  [<ffffffff803bff80>] __driver_attach+0x0/0xd0
+[  589.400558]  [<ffffffff803befbd>] bus_for_each_dev+0x4d/0x80
+[  589.400564]  [<ffffffff803bf3cc>] bus_add_driver+0xac/0x220
+[  589.400567]  [<ffffffff8035e739>] __pci_register_driver+0x69/0xb0
+[  589.400572]  [<ffffffff80263e0e>] sys_init_module+0x18e/0x1a90
+[  589.400586]  [<ffffffff882f2550>]
+:videobuf_core:videobuf_mmap_free+0x0/0x40
+[  589.400593]  [<ffffffff8020c37e>] system_call+0x7e/0x83
+[  589.400600]
+[  589.400600]
+[  589.400601] Code: 48 89 50 08 48 89 02 48 8d 83 50 01 00 00 48 89 93 50
+01 00
+[  589.400607] RIP  [<ffffffff881f5f89>] :snd:snd_device_new+0x59/0xb0
+[  589.400613]  RSP <ffff810073235aa8>
+[  589.400614] CR2: 0000000000000008
+[  589.400615] ---[ end trace 5a3db5147eff6869 ]---
+
+-- 
+--Tim
+
+------=_Part_73401_20945762.1220625060807
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr"><span class="Apple-style-span" style="border-collapse: collapse; font-family: Times; font-size: 16px; "><div><span class="Apple-style-span" style="font-family: arial; font-size: 13px; ">&gt; Why doesn&#39;t the driver load if you force it with card=X? What does dmesg show?<br>
+&gt;&nbsp;<br>&gt; - Steve</span><br></div><div><br></div><div>I followed your instructions&nbsp;<span style="font-family: Times; font-size: 16px; ">modprobe cx23885 debug=1 says operation not permitted<br>Then I tried sudo&nbsp;</span><span style="font-family: Times; font-size: 16px; "><span style="font-family: Times; font-size: 16px; ">modprobe cx23885 debug=1</span></span>&nbsp;and it says the process was killed<br>
+</div><div>This is the output from dmeg.</div><div><br></div>589.243831] cx23885: no version for &quot;snd_pcm_new&quot; found: kernel tainted.<br>[&nbsp; 589.245284] cx23885 driver version 0.0.1 loaded<br>[&nbsp; 589.245628] ACPI: PCI Interrupt Link [APC6] enabled at IRQ 16<br>
+[&nbsp; 589.245632] ACPI: PCI Interrupt 0000:08:00.0[A] -&gt; Link [APC6] -&gt; GSI 16 (level, low) -&gt; IRQ 16<br>[&nbsp; 589.245750] cx23885[0]/0: cx23885_dev_setup() Memory configured for PCIe bridge type 885<br>[&nbsp; 589.245752] cx23885[0]/0: cx23885_init_tsport(portno=2)<br>
+[&nbsp; 589.245759] CORE cx23885[0]: subsystem: 18ac:d618, board: Hauppauge WinTV-HVR1500 [card=6,insmod option]<br>[&nbsp; 589.245761] cx23885[0]/0: cx23885_pci_quirks()<br>[&nbsp; 589.245763] cx23885[0]/0: cx23885_dev_setup() tuner_type = 0x47 tuner_addr = 0x61<br>
+[&nbsp; 589.245765] cx23885[0]/0: cx23885_dev_setup() radio_type = 0x0 radio_addr = 0x0<br>[&nbsp; 589.245766] cx23885[0]/0: cx23885_reset()<br>[&nbsp; 589.345825] cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [VID A]<br>
+[&nbsp; 589.345837] cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch2]<br>[&nbsp; 589.345838] cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [TS1 B]<br>[&nbsp; 589.345850] cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch4]<br>
+[&nbsp; 589.345852] cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch5]<br>[&nbsp; 589.345853] cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [TS2 C]<br>589.345866] cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [TV Audio]<br>
+[&nbsp; 589.345880] cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch8]<br>[&nbsp; 589.345882] cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch9]<br>[&nbsp; 589.355776] cx23885[0]: i2c bus 0 registered<br>[&nbsp; 589.355793] cx23885[0]: i2c bus 1 registered<br>
+[&nbsp; 589.355810] cx23885[0]: i2c bus 2 registered<br>[&nbsp; 589.382427] tveeprom 5-0050: Encountered bad packet header [ff]. Corrupt or not a Hauppauge eeprom.<br>[&nbsp; 589.382431] cx23885[0]: warning: unknown hauppauge model #0<br>
+[&nbsp; 589.382432] cx23885[0]: hauppauge eeprom: model=0<br>[&nbsp; 589.388510] cx25840&#39; 7-0044: cx25&nbsp; 0-21 found @ 0x88 (cx23885[0])<br>[&nbsp; 589.395552] tuner&#39; 5-0064: chip found @ 0xc8 (cx23885[0])<br>[&nbsp; 589.398231] tuner&#39; 6-0064: chip found @ 0xc8 (cx23885[0])<br>
+[&nbsp; 589.400298] cx23885[0]/0: registered device video0 [v4l2]<br>[&nbsp; 589.400351] Unable to handle kernel NULL pointer dereference at 0000000000000008 RIP:&nbsp;<br>[&nbsp; 589.400353]&nbsp; [&lt;ffffffff881f5f89&gt;] :snd:snd_device_new+0x59/0xb0<br>
+[&nbsp; 589.400363] PGD 7105a067 PUD 7c727067 PMD 0&nbsp;<br>[&nbsp; 589.400366] Oops: 0002 [1] SMP&nbsp;<br>[&nbsp; 589.400368] CPU 0&nbsp;<br>[&nbsp; 589.400369] Modules linked in: tuner cx25840 cx23885(F) af_packet ipv6 cpufreq_ondemand cpufreq_stats cpuf<br>
+q_userspace freq_table cpufreq_powersave cpufreq_conservative video output container dock sbs sbshc battery ipt<br>able_filter ip_tables x_tables ac sbp2 lp compat_ioctl32 nvidia(P) videodev v4l1_compat cx2341x videobuf_dma_sg<br>
+&nbsp;v4l2_common btcx_risc tveeprom videobuf_dvb dvb_core videobuf_core snd_hda_intel snd_pcm_oss snd_mixer_oss snd<br>_pcm snd_page_alloc snd_hwdep snd_seq_dummy snd_seq_oss snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq ser<br>
+io_raw snd_timer snd_seq_device psmouse snd button i2c_nforce2 i2c_core parport_pc parport shpchp pci_hotplug e<br>vdev soundcore pcspkr ext3 jbd mbcache usbhid hid sd_mod sg sr_mod cdrom sata_nv ehci_hcd ohci1394 ohci_hcd pat<br>
+a_acpi pata_amd usbcore ieee1394 forcedeth ata_generic libata scsi_mod thermal processor fan fbcon tileblit fon<br>t bitblit softcursor fuse<br>[&nbsp; 589.400408] Pid: 17811, comm: modprobe Tainted: PF&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2.6.24-21-generic #1<br>
+[&nbsp; 589.400409] RIP: 0010:[&lt;ffffffff881f5f89&gt;]&nbsp; [&lt;ffffffff881f5f89&gt;] :snd:snd_device_new+0x59/0xb0<br>[&nbsp; 589.400416] RSP: 0018:ffff810073235aa8&nbsp; EFLAGS: 00010282<br>[&nbsp; 589.400417] RAX: 0000000000000000 RBX: ffffffff88c7dd20 RCX: 0000000000000000<br>
+[&nbsp; 589.400418] RDX: ffff810071048e40 RSI: 0000000000000000 RDI: ffff810071048e80<br>[&nbsp; 589.400420] RBP: 0000000000001003 R08: 0000000000000000 R09: ffff810071048e40<br>[&nbsp; 589.400421] R10: 0000000000000000 R11: ffffffff803bcc30 R12: ffff81007212d000<br>
+[&nbsp; 589.400423] R13: ffffffff8821a620 R14: ffff810073235b20 R15: ffffffff88265e48<br>[&nbsp; 589.400424] FS:&nbsp; 00007f379fe496e0(0000) GS:ffffffff805b9000(0000) knlGS:0000000000000000<br>[&nbsp; 589.400426] CS:&nbsp; 0010 DS: 0000 ES: 0000 CR0: 000000008005003b<br>
+[&nbsp; 589.400427] CR2: 0000000000000008 CR3: 0000000073137000 CR4: 00000000000006e0<br>[&nbsp; 589.400429] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000<br>[&nbsp; 589.400430] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400<br>
+[&nbsp; 589.400432] Process modprobe (pid: 17811, threadinfo ffff810073234000, task ffff81007c53c7e0)<br>[&nbsp; 589.400433] Stack:&nbsp; ffff81007212d000 ffff81007212d000 ffff810073235b08 ffffffff88c7dd20<br>[&nbsp; 589.400436]&nbsp; ffffffff88266648 ffffffff88215128 ffff81007b6d1e58 ffff81007212d400<br>
+[&nbsp; 589.400439]&nbsp; 0000000000000018 ffff81007212d458 0000000000000001 ffffffff88264c12<br>[&nbsp; 589.400441] Call Trace:<br>[&nbsp; 589.400448]&nbsp; [&lt;ffffffff88215128&gt;] :snd_timer:snd_timer_new+0x128/0x180<br>[&nbsp; 589.400457]&nbsp; [&lt;ffffffff88264c12&gt;] :snd_pcm:snd_pcm_timer_init+0x52/0x1a0<br>
+[&nbsp; 589.400465]&nbsp; [&lt;ffffffff8825b7dd&gt;] :snd_pcm:snd_pcm_dev_register+0xfd/0x220<br>[&nbsp; 589.400470]&nbsp; [&lt;ffffffff802f88a8&gt;] create_proc_entry+0x58/0xa0<br>[&nbsp; 589.400480]&nbsp; [&lt;ffffffff881f5c9f&gt;] :snd:snd_device_register_all+0x2f/0x60<br>
+[&nbsp; 589.400487]&nbsp; [&lt;ffffffff881f0b8b&gt;] :snd:snd_card_register+0x3b/0x390<br>[&nbsp; 589.400493]&nbsp; [&lt;ffffffff8825b9e3&gt;] :snd_pcm:snd_pcm_new+0xe3/0x140<br>[&nbsp; 589.400505]&nbsp; [&lt;ffffffff88c6f306&gt;] :cx23885:cx23885_audio_initdev+0x156/0x1d0<br>
+[&nbsp; 589.400512]&nbsp; [&lt;ffffffff88c66a52&gt;] :cx23885:cx23885_video_register+0x1d2/0x2f0<br>[&nbsp; 589.400520]&nbsp; [&lt;ffffffff88c644d0&gt;] :cx23885:cx23885_tuner_callback+0x0/0xf0<br>[&nbsp; 589.400526]&nbsp; [&lt;ffffffff881e1f8a&gt;] :i2c_core:i2c_clients_command+0x2a/0xe0<br>
+[&nbsp; 589.400534]&nbsp; [&lt;ffffffff88c6aef7&gt;] :cx23885:cx23885_initdev+0x927/0xb00<br>[&nbsp; 589.400537]&nbsp; [&lt;ffffffff8034a172&gt;] kobject_get+0x12/0x20<br>[&nbsp; 589.400542]&nbsp; [&lt;ffffffff8035e4b8&gt;] pci_device_probe+0xf8/0x170<br>
+[&nbsp; 589.400548]&nbsp; [&lt;ffffffff803bfd7c&gt;] driver_probe_device+0x9c/0x1b0<br>[&nbsp; 589.400552]&nbsp; [&lt;ffffffff803c0049&gt;] __driver_attach+0xc9/0xd0<br>[&nbsp; 589.400556]&nbsp; [&lt;ffffffff803bff80&gt;] __driver_attach+0x0/0xd0<br>[&nbsp; 589.400558]&nbsp; [&lt;ffffffff803befbd&gt;] bus_for_each_dev+0x4d/0x80<br>
+[&nbsp; 589.400564]&nbsp; [&lt;ffffffff803bf3cc&gt;] bus_add_driver+0xac/0x220<br>[&nbsp; 589.400567]&nbsp; [&lt;ffffffff8035e739&gt;] __pci_register_driver+0x69/0xb0<br>[&nbsp; 589.400572]&nbsp; [&lt;ffffffff80263e0e&gt;] sys_init_module+0x18e/0x1a90<br>
+[&nbsp; 589.400586]&nbsp; [&lt;ffffffff882f2550&gt;] :videobuf_core:videobuf_mmap_free+0x0/0x40<br>[&nbsp; 589.400593]&nbsp; [&lt;ffffffff8020c37e&gt;] system_call+0x7e/0x83<br>[&nbsp; 589.400600]&nbsp;<br>[&nbsp; 589.400600]&nbsp;<br>[&nbsp; 589.400601] Code: 48 89 50 08 48 89 02 48 8d 83 50 01 00 00 48 89 93 50 01 00&nbsp;<br>
+[&nbsp; 589.400607] RIP&nbsp; [&lt;ffffffff881f5f89&gt;] :snd:snd_device_new+0x59/0xb0<br>[&nbsp; 589.400613]&nbsp; RSP &lt;ffff810073235aa8&gt;<br>[&nbsp; 589.400614] CR2: 0000000000000008<br>[&nbsp; 589.400615] ---[ end trace 5a3db5147eff6869 ]---</span><br clear="all">
+<br>-- <br> --Tim<br>
+</div>
+
+------=_Part_73401_20945762.1220625060807--
 
 
+--===============0733722964==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0733722964==--
