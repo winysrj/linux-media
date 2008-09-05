@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.234])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rlskoeser@gmail.com>) id 1KbhSE-0007GX-4f
-	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 21:58:50 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so566977rvf.41
-	for <linux-dvb@linuxtv.org>; Fri, 05 Sep 2008 12:58:45 -0700 (PDT)
-Message-ID: <4f5573e90809051258w2b7ba178w1c1ae6b93d26c569@mail.gmail.com>
-Date: Fri, 5 Sep 2008 15:58:45 -0400
-From: "Rebecca Sutton Koeser" <rlskoeser@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <mailman.596.1220644386.834.linux-dvb@linuxtv.org>
-MIME-Version: 1.0
-References: <mailman.596.1220644386.834.linux-dvb@linuxtv.org>
-Subject: [linux-dvb] ATI HDTV Wonder - unknown device ac00
+Date: Fri, 05 Sep 2008 09:45:51 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>
+To: Markus Rechberger <mrechberger@gmail.com>,
+	Johannes Stezenbach <js@linuxtv.org>, Manu Abraham <abraham.manu@gmail.com>
+Message-id: <48C1380F.7050705@linuxtv.org>
+MIME-version: 1.0
+References: <48C00822.4030509@gmail.com> <48C01698.4060503@gmail.com>
+	<48C01A99.402@gmail.com> <20080904204709.GA32329@linuxtv.org>
+	<d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,77 +18,100 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2006547069=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2006547069==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_38967_12040710.1220644725672"
+Markus Rechberger wrote:
+> Hi,
+> 
+> On Thu, Sep 4, 2008 at 10:47 PM, Johannes Stezenbach <js@linuxtv.org> wrote:
+>> On Thu, Sep 04, 2008, Manu Abraham wrote:
+>>> Does it support ISDB-T, ATSC-MH, CMMB, DBM-T/H?
+>>> Intentionally, no!  Experience with the old api development has proven
+>>> that making blind assumptions about delivery systems is a bad idea.
+>>> It's better to add in support for these when the hardware actually arrives
+>>> and can be properly tested.
 
-------=_Part_38967_12040710.1220644725672
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+We have ISDB-T running under linux in the lab, we have a pretty good 
+idea about what we need to generalize for an API, but you can't make a 
+standard out of one demod.
 
-I hope this the right place to ask this question.
-
-I bought an ATI HDTV Wonder because I thought I read that it worked in
-Linux.  But when I followed the instructions to load the firmware and get it
-working, nothing happens.  I see the notes on the wiki page (
-http://www.linuxtv.org/wiki/index.php/ATI/AMD_HDTV_Wonder ) about alternate
-subsystem IDs that are not supported, but I'm not sure how to proceed from
-there.
-
-If someone can give me instructions on how to get more information about the
-hardware I will be glad to investigate.
-
-Here's the relevant output from lspci -v
-
-04:02.0 Multimedia controller: ATI Technologies Inc Unknown device ac00
-    Subsystem: ATI Technologies Inc Unknown device b359
-    Flags: bus master, medium devsel, latency 32, IRQ 11
-    Memory at fdb00000 (32-bit, non-prefetchable) [size=1M]
-    Memory at fdae0000 (32-bit, prefetchable) [size=128K]
-    Capabilities: [50] Power Management version 2
+All API's developers should be cautious here.
 
 
-Can anyone tell me, is it likely / possible that this card will work in
-linux any time soon, or should I be looking into returning it and finding
-something more likely to work?
+> 
+> I have Empia ISDB-T and DMB-T/H hardware and the corresponding signal
+> generator for it here,
+> it's right on my roadmap and work can be started within a few days.
 
-Thanks in advance for any help or advice.
+A big difference between can and will, the em28xx fiasco tells us this.
 
-Rebecca
-
-------=_Part_38967_12040710.1220644725672
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr"><div class="gmail_quote"><div dir="ltr">I hope this the right place to ask this question.<br><br>I bought an ATI HDTV Wonder because I thought I read that it worked in Linux.&nbsp; But when I followed the instructions to load the firmware and get it working, nothing happens.&nbsp; I see the notes on the wiki page ( <a href="http://www.linuxtv.org/wiki/index.php/ATI/AMD_HDTV_Wonder" target="_blank">http://www.linuxtv.org/wiki/index.php/ATI/AMD_HDTV_Wonder</a> ) about alternate subsystem IDs that are not supported, but I&#39;m not sure how to proceed from there.<br clear="all">
-
-<br>If someone can give me instructions on how to get more information about the hardware I will be glad to investigate.<br>
-<br>Here&#39;s the relevant output from lspci -v<br><br>04:02.0 Multimedia controller: ATI Technologies Inc Unknown device ac00<br>&nbsp;&nbsp;&nbsp; Subsystem: ATI Technologies Inc Unknown device b359<br>
-&nbsp;&nbsp;&nbsp; Flags: bus master, medium devsel, latency 32, IRQ 11<br>&nbsp;&nbsp;&nbsp; Memory at fdb00000 (32-bit, non-prefetchable) [size=1M]<br>&nbsp;&nbsp;&nbsp; Memory at fdae0000 (32-bit, prefetchable) [size=128K]<br>&nbsp;&nbsp;&nbsp; Capabilities: [50] Power Management version 2<br>
-
-<br><br>Can anyone tell me, is it likely / possible that this card will work in linux any time soon, or should I be looking into returning it and finding something more likely to work?<br><br>Thanks in advance for any help or advice.<br>
-<br></div></div>Rebecca<br>
-</div>
-
-------=_Part_38967_12040710.1220644725672--
+I hope this next question isn't seen as a flame, because I ask this as a 
+genuine question. Are you committing to adding ISDB-T and DMB-T/H 
+support to master at linuxtv.org? Or would this be something you'd plan 
+to keep at you own site, like your other code?
 
 
---===============2006547069==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> 
+>> Full ACK on this one. Once an API is merged into the mailine
+>> kernel we're stuck with it, no matter how ugly and broken it might be.
+>> -> NEVER merge untested APIs
+
+Indeed.
+
+> 
+> should be the rule but there's always an exception for it too . o (
+> thinking about KVM )
+> 
+>>> If you would like to use any of these drivers now, you may pull the
+>>> tree from http://jusst.de/hg/multiproto.  Drivers may be configured
+>>> with 'make menuconfig' the same as you've done with v4l.
+>>>
+>>> Feedback, bug reports, etc. are welcomed and encouraged!
+>> I only want to add a bit of historical perspective so people
+>> are aware of the reasons why Steve came up with his alternative
+>> API proposal, and why a number of developers seem to support it.
+
+/me nods
+
+>>
+>> First let's look at the timestamps:
+>> http://jusst.de/hg/multiproto/log/2a911b8f9910/linux/include/linux/dvb/frontend.h
+>> http://jusst.de/hg/multiproto_api_merge/log/4c62efb08ea6/linux/include/linux/dvb/frontend.h
+>>
+>> Then at some discussion from nearly one year ago:
+>> http://article.gmane.org/gmane.linux.drivers.dvb/36643
+
+This is worth reading.
+
+>>
+> 
+> by experience I'm sure most people won't read up the history here...
+
+Also agreed, a lot of people have lost sight of the history - which is 
+the entire reason that the S2API alternative exists.
+
+Manu,
+
+The S2API tree is available on linuxtv.org with HVR4000 support, 
+spanning 3 or 4 patches.
+
+I have a TT-3200, do you have a complete tree with all of your pull 
+req'd patches available on linuxtv.org for testing, including your 
+demodulation and tuning drivers? Do you have a complete solution that I 
+can evaluate for pro's and cons?
+
+Thanks,
+
+Steve
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2006547069==--
