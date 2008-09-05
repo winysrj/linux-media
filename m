@@ -1,23 +1,44 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8NLHpjw024832
-	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 17:17:52 -0400
-Received: from mailrelay007.isp.belgacom.be (mailrelay007.isp.belgacom.be
-	[195.238.6.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8NLHcvQ012427
-	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 17:17:39 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: video4linux-list@redhat.com
-Date: Tue, 23 Sep 2008 23:17:44 +0200
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m85JO7ZZ013637
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 15:24:07 -0400
+Received: from smtp-out5.blueyonder.co.uk (smtp-out5.blueyonder.co.uk
+	[195.188.213.8])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m85JNumG008653
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 15:23:57 -0400
+Message-ID: <48C1874B.5080502@blueyonder.co.uk>
+Date: Fri, 05 Sep 2008 20:23:55 +0100
+From: Ian Davidson <id012c3076@blueyonder.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <488C9266.7010108@blueyonder.co.uk>	
+	<1217364178.2699.17.camel@pc10.localdom.local>	
+	<4890BBE8.8000901@blueyonder.co.uk>	
+	<1217457895.4433.52.camel@pc10.localdom.local>	
+	<48921FF9.8040504@blueyonder.co.uk>	
+	<1217542190.3272.106.camel@pc10.localdom.local>	
+	<48942E42.5040207@blueyonder.co.uk>	
+	<1217679767.3304.30.camel@pc10.localdom.local>	
+	<4895D741.1020906@blueyonder.co.uk>	
+	<1217798899.2676.148.camel@pc10.localdom.local>	
+	<4898C258.4040004@blueyonder.co.uk>
+	<489A0B01.8020901@blueyonder.co.uk>	
+	<1218059636.4157.21.camel@pc10.localdom.local>	
+	<489B6E1B.301@blueyonder.co.uk>	
+	<1218153337.8481.30.camel@pc10.localdom.local>	
+	<489D7781.8030007@blueyonder.co.uk>	
+	<1218474259.2676.42.camel@pc10.localdom.local>	
+	<48A8892F.1010900@blueyonder.co.uk>	
+	<1219024648.2677.20.camel@pc10.localdom.local>	
+	<48B44CDF.60903@blueyonder.co.uk>	
+	<1219792546.2669.17.camel@pc10.localdom.local>
+	<1220236507.2669.117.camel@pc10.localdom.local>
+In-Reply-To: <1220236507.2669.117.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200809232317.44795.laurent.pinchart@skynet.be>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] uvcvideo: Fix control cache access when setting composite
-	auto-update controls
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: KWorld DVB-T 210SE - Capture only in Black/White
+Reply-To: ian.davidson@bigfoot.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,51 +50,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Auto-update controls are never marked is loaded to prevent uvc_get_ctrl from
-loading the control value from the cache. When setting a composite (mapped to
-several V4L2 controls) auto-update UVC control, the driver updates the control
-cache value before processing each V4L2 control, overwriting the previously
-set V4L2 control.
 
-This fixes the problem by marking all controls as loaded in uvc_set_ctrl
-regardless of their type and resetting the loaded flag in uvc_commit_ctrl for
-auto-update controls.
+I am about to give up with this KWorld card as I do not have the time - 
+I need to get something that works.  So 2 questions - one for a 'last 
+try' and one for 'Plan B'.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
----
- drivers/media/video/uvc/uvc_ctrl.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+Q1. Initially, the card was not recognised automatically, but under 
+guidance form Hermann, forcing Linux to treat it as card=114, I was able 
+to capture video.  Unfortunately, normally Black and White rather than 
+colour.  I understand that  normally Linux would sniff the eeprom and 
+determine the type of card from information found in there.  I have the 
+.inf files that describe the various KWorld cards to that other 
+operating system and I can see that the first 4 bytes of the eeprom, 
+albeit swapped about (Big Endian/Little Endian) are used in that .inf to 
+identify the card.  Various parameters are apparently put into the 
+Registry, depending on the card type and I thought I would compare the 
+parameters for my card with the parameters for the 'Real 114'.  I assume 
+that there is a file somewhere which says "If the eeprom says 'xxxx' 
+then the card is type 'n'".  Where can I see that file which identifies 
+the card type?
 
-diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-index 6da37cd..a86e38e 100644
---- a/drivers/media/video/uvc/uvc_ctrl.c
-+++ b/drivers/media/video/uvc/uvc_ctrl.c
-@@ -853,7 +853,12 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
- 			       uvc_ctrl_data(ctrl, UVC_CTRL_DATA_BACKUP),
- 			       ctrl->info->size);
- 
--		if ((ctrl->info->flags & UVC_CONTROL_GET_CUR) == 0)
-+		/* Reset the loaded flag for auto-update and read-only controls
-+		 * that were marked as loaded in uvc_ctrl_set to prevent
-+		 * uvc_ctrl_get from using the cached value.
-+		 */
-+		if ((ctrl->info->flags & UVC_CONTROL_GET_CUR) == 0 ||
-+		    (ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE) == 0)
- 			ctrl->loaded = 0;
- 
- 		ctrl->dirty = 0;
-@@ -965,8 +970,7 @@ int uvc_ctrl_set(struct uvc_video_device *video,
- 				return ret;
- 		}
- 
--		if ((ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE) == 0)
--			ctrl->loaded = 1;
-+		ctrl->loaded = 1;
- 	}
- 
- 	if (!ctrl->dirty) {
+Q2. Assuming that I am unable to make any difference, I will need to use 
+a different card - and hopefully, one that is supported.  In order to 
+make the current card do anything, I had to issue a couple of commands
+
+"modprobe -vr saa7134-dvb saa7134-alsa saa7134 tuner"
+
+"modprobe -v saa7134 card=114 i2c_scan=1"
+
+so presumably, I would need to 'undo' the effect of those lines to let Linux auto-detect.  What do I need to do?
+
+Ian
+
+
 -- 
-1.5.6.4
+Ian Davidson
+239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
+-- 
+Facts used in this message may or may not reflect an underlying objective reality. 
+Facts are supplied for personal use only. 
+Recipients quoting supplied information do so at their own risk. 
+Facts supplied may vary in whole or part from widely accepted standards. 
+While painstakingly researched, facts may or may not be indicative of actually occurring events or natural phenomena. 
+The author accepts no responsibility for personal loss or injury resulting from memorisation and subsequent use.
+
 
 --
 video4linux-list mailing list
