@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8UCDeYg027972
-	for <video4linux-list@redhat.com>; Tue, 30 Sep 2008 08:13:40 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8UCDRNQ031699
-	for <video4linux-list@redhat.com>; Tue, 30 Sep 2008 08:13:28 -0400
-Date: Tue, 30 Sep 2008 14:12:59 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Vinicius Kamakura <thehexa@gmail.com>
-Message-ID: <20080930121259.GA237@daniel.bse>
-References: <20080908160012.574456184D5@hormel.redhat.com>
-	<48C5948D.5030504@migmasys.com> <20080909190727.GA2184@daniel.bse>
-	<3ebb0dc80809300125n24567d11kf4b414b7909c8270@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m85AddD1023337
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 06:39:40 -0400
+Received: from metis.extern.pengutronix.de (metis.extern.pengutronix.de
+	[83.236.181.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m85AdIQC014119
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 06:39:25 -0400
+Date: Fri, 5 Sep 2008 12:39:17 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: video4linux-list@redhat.com
+Message-ID: <20080905103917.GQ4941@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <3ebb0dc80809300125n24567d11kf4b414b7909c8270@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: a multichannel capture problem
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [soc-camera] about the y_skip_top parameter
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,19 +26,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Sep 30, 2008 at 05:25:27AM -0300, Vinicius Kamakura wrote:
-> On Tue, Sep 09, 2008 at 09:07:27PM +0200, Daniel Glöckner wrote:
-> > Some time ago I made some experiments changing the input at random times
-> > using direct hardware access while capturing. IIRC the chip will skip at
-> > least one complete frame before it continues to capture.
-> >
-> 
-> what do you mean by direct hardware access?
+Hi all,
 
-I mmap'ed /sys/class/video4linux/video0/device/resource0 and toggled
-bit 5 of IFORM.
+The y_skip_top parameter tells the cameras to effectively make the
+picture one line higher. I think this parameter was introduced to work
+around a bug in the pxa camera interface. The pxa refuses to read the
+first line of a picture. The problem with this parameter is that it is
+set to 1 in the sensor drivers and not in the pxa driver, so it's the
+sensor drivers which work around a bug in the pxa. On other
+hardware platforms (mx27 in this particular case) I cannot skip the
+first line, so I think this parameter should be set to 1 in the pxa
+driver and not the sensor drivers.
 
-  Daniel
+What do you think?
+
+Sascha
+
+-- 
+ Pengutronix - Linux Solutions for Science and Industry
+   Handelsregister:  Amtsgericht Hildesheim, HRA 2686
+     Hannoversche Str. 2, 31134 Hildesheim, Germany
+   Phone: +49-5121-206917-0 |  Fax: +49-5121-206917-9
 
 --
 video4linux-list mailing list
