@@ -1,29 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8DKe1RD025260
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 16:40:02 -0400
-Received: from mta5.srv.hcvlny.cv.net (mta5.srv.hcvlny.cv.net [167.206.4.200])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8DKdnv4019997
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 16:39:50 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7500E43IQAK7H0@mta5.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Sat, 13 Sep 2008 16:39:49 -0400 (EDT)
-Date: Sat, 13 Sep 2008 16:39:46 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200809131623.10155.liplianin@tut.by>
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Message-id: <48CC2512.2020502@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <E1KdnPr-0002YP-SF@www.linuxtv.org>
-	<200809131623.10155.liplianin@tut.by>
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [linux-dvb]  [PATCH] Add support for SDMC DM1105 PCI chip
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m856mQQS015891
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 02:48:26 -0400
+Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m856XhMW032657
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 02:33:50 -0400
+From: Jean-Francois Moine <moinejf@free.fr>
+To: "B. Bogart" <ben@ekran.org>
+In-Reply-To: <48C06C3A.5000104@ekran.org>
+References: <48C05DC8.5060700@ekran.org>
+	<1220568687.2736.12.camel@morgan.walls.org>
+	<48C06C3A.5000104@ekran.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Fri, 05 Sep 2008 08:01:27 +0200
+Message-Id: <1220594487.1750.6.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, IOhannes m zmoelnig <zmoelnig@iem.at>
+Subject: Re: V4l2 :: Debugging an issue with cx8800 card.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,24 +29,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Igor M. Liplianin wrote:
-> The patch adds support for SDMC DM1105 PCI chip. There is a lot of
-> cards based on it, like DvbWorld 2002 DVB-S , 2004 DVB-S2
-> Source code prepaired to and already tested with cards, which have si2109, 
-> stv0288, cx24116 demods.  Currently enabled only stv0299, as other demods are 
-> not in a v4l-dvb main tree, but I will submit corresponded patches (si2109, 
-> stv0288) next time.
+On Thu, 2008-09-04 at 16:16 -0700, B. Bogart wrote:
+> I've not yet tried running your program, but did have some luck with:
+> http://moinejf.free.fr/svv.c
 
-Igor,
+Hello B.,
 
-Cool.
+It seems the driver cannot switch to 640x480. You may know it grabbing
+images with svv. Try
+	svv -rg -f 640x480
+then
+	svv -rg -f 320x240
+and check each time the size of image.dat.
 
-Master repo does not have cx24116 support so it probably cannot be 
-merged. Do you need me to merge this into the s2api tree?
+Best regards.
 
-- Steve
-
-
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
 
 
 --
