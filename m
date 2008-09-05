@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Markus Rechberger <mrechberger@gmail.com>
-In-Reply-To: <d9def9db0809252150t9dd113axa9acd3d7c3817cb8@mail.gmail.com>
-References: <002101c91f1a$b13c4e60$0401a8c0@asrock> <48DBBAC0.7030201@gmx.de>
-	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
-	<20080925181943.GA12800@halim.local>
-	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
-	<48DBF224.2010109@gmx.de>
-	<37219a840809251340n7c588667xd18982f78e68a2ec@mail.gmail.com>
-	<d9def9db0809251400r331c0667k733486a013eccefe@mail.gmail.com>
-	<1222385832.4589.41.camel@pc10.localdom.local>
-	<20080925212732.70e70bef@gmail.com>
-	<d9def9db0809252150t9dd113axa9acd3d7c3817cb8@mail.gmail.com>
-Date: Fri, 26 Sep 2008 07:10:07 +0200
-Message-Id: <1222405807.2671.20.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point
-	of	view
+Received: from rv-out-0506.google.com ([209.85.198.234])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <rlskoeser@gmail.com>) id 1KbhSE-0007GX-4f
+	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 21:58:50 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so566977rvf.41
+	for <linux-dvb@linuxtv.org>; Fri, 05 Sep 2008 12:58:45 -0700 (PDT)
+Message-ID: <4f5573e90809051258w2b7ba178w1c1ae6b93d26c569@mail.gmail.com>
+Date: Fri, 5 Sep 2008 15:58:45 -0400
+From: "Rebecca Sutton Koeser" <rlskoeser@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <mailman.596.1220644386.834.linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+References: <mailman.596.1220644386.834.linux-dvb@linuxtv.org>
+Subject: [linux-dvb] ATI HDTV Wonder - unknown device ac00
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,109 +20,77 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2006547069=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============2006547069==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_38967_12040710.1220644725672"
 
-Am Freitag, den 26.09.2008, 06:50 +0200 schrieb Markus Rechberger:
-> On Fri, Sep 26, 2008 at 3:27 AM, Douglas Schilling Landgraf
-> <dougsland@gmail.com> wrote:
-> > Hello,
-> >
-> > On Fri, 26 Sep 2008 01:37:12 +0200
-> > hermann pitton <hermann-pitton@arcor.de> wrote:
-> >
-> >>
-> >> Who the hell is VDR User <user.vdr@gmail.com> ?
-> >> Klaus himself?
-> >>
-> >> At least he knows nothing about Mauro's real work on video4linux.
-> >
-> > Agreed. He's *totally lost* about Mauro's work.
-> >
-> >> To prepare the kernel sync and give the patchmonkey on Johannes'
-> >> request for dvb too, are only a very few percent of his work and the
-> >> "thanks" he had for this so far are it not worth at all ...
-> >>
-> >> On all other major projects, where he is the maintainer, such absurd
-> >> stuff did never happen.
-> >>
-> >> The dvb guys inside don't get their stuff together and do exclude each
-> >> other. At least Steve had no other choice than to come up with his own
-> >> solution.
-> >
-> > Definitely.
-> >
-> >> What a bullshit to accuse Mauro of missing maintainer ship, all asked
-> >> him to stay out as far as possible to continue to play there own
-> >> games!
-> >
-> > For sure, there are people here trying this every single day.
-> > Insted of spend time improving drivers they prefer attack Mauro and
-> > people that are working hard in their spare time.
-> >
-> >> But they just load the daily dirt on him they preferably don't like to
-> >> care themselves for at all, including patch reviewing in many parts.
-> >>
-> >> Also Mike did more integration work across the frameworks than anyone
-> >> else during the last year. That by the way.
-> >
-> > Agreed.
-> >
-> 
-> the merge request has been pushed out for for Manu's code.
-> 
-> I'm also dealing alot with DVB and related issues (eg. the i2c messup,
-> as for the cx88 based
-> devices pcmcia iomem reservation back then .. and many other issues
-> which went through other
-> subsystems).
-> 
-> That there's no progress at the other sides is not true:
-> http://mcentral.de/hg/~mrec/em28xx-new/shortlog
-> 
-> permanent development for the last couple of months.
-> All you could do there is to take out the usbids copy it to
-> linuxtv.org and play against all the people
-> who contributed to the other tree and which is manufacturer supported.
-> 
-> I'd really better think twice if you want to keep up reverse
-> engineered drivers with linux which are capable
-> of melting devices (this happens with wrong configurations).
-> 
-> Why am I interested in DVB? Because we have devices supporting
-> multiple standards which are yet
-> not directly supported by the DVB framework.
-> 
-> The lies that I forked off the driver which I initially submitted to
-> linuxtv is ridiculous as you modified the wiki
-> site on linuxtv.org. See all that you and Mauro basically have done is
-> copying the code from mcentral.de
-> and trying to build up a second front against the manufacturer supported work.
-> 
-> I'm seriously for a new Maintainer election here, let's see what will
-> come up during the next few days.
-> 
+------=_Part_38967_12040710.1220644725672
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+I hope this the right place to ask this question.
+
+I bought an ATI HDTV Wonder because I thought I read that it worked in
+Linux.  But when I followed the instructions to load the firmware and get it
+working, nothing happens.  I see the notes on the wiki page (
+http://www.linuxtv.org/wiki/index.php/ATI/AMD_HDTV_Wonder ) about alternate
+subsystem IDs that are not supported, but I'm not sure how to proceed from
+there.
+
+If someone can give me instructions on how to get more information about the
+hardware I will be glad to investigate.
+
+Here's the relevant output from lspci -v
+
+04:02.0 Multimedia controller: ATI Technologies Inc Unknown device ac00
+    Subsystem: ATI Technologies Inc Unknown device b359
+    Flags: bus master, medium devsel, latency 32, IRQ 11
+    Memory at fdb00000 (32-bit, non-prefetchable) [size=1M]
+    Memory at fdae0000 (32-bit, prefetchable) [size=128K]
+    Capabilities: [50] Power Management version 2
 
 
-A new maintainer for dvb?
+Can anyone tell me, is it likely / possible that this card will work in
+linux any time soon, or should I be looking into returning it and finding
+something more likely to work?
 
-Was there ever one ?
+Thanks in advance for any help or advice.
 
-It likely is the evilest swamp I can imagine.
+Rebecca
 
-Who could be ever interested in such? YOU ?
+------=_Part_38967_12040710.1220644725672
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Be sure on video4linux we'll never discuss it ever again.
+<div dir="ltr"><div class="gmail_quote"><div dir="ltr">I hope this the right place to ask this question.<br><br>I bought an ATI HDTV Wonder because I thought I read that it worked in Linux.&nbsp; But when I followed the instructions to load the firmware and get it working, nothing happens.&nbsp; I see the notes on the wiki page ( <a href="http://www.linuxtv.org/wiki/index.php/ATI/AMD_HDTV_Wonder" target="_blank">http://www.linuxtv.org/wiki/index.php/ATI/AMD_HDTV_Wonder</a> ) about alternate subsystem IDs that are not supported, but I&#39;m not sure how to proceed from there.<br clear="all">
 
-Cheers,
-Hermann
+<br>If someone can give me instructions on how to get more information about the hardware I will be glad to investigate.<br>
+<br>Here&#39;s the relevant output from lspci -v<br><br>04:02.0 Multimedia controller: ATI Technologies Inc Unknown device ac00<br>&nbsp;&nbsp;&nbsp; Subsystem: ATI Technologies Inc Unknown device b359<br>
+&nbsp;&nbsp;&nbsp; Flags: bus master, medium devsel, latency 32, IRQ 11<br>&nbsp;&nbsp;&nbsp; Memory at fdb00000 (32-bit, non-prefetchable) [size=1M]<br>&nbsp;&nbsp;&nbsp; Memory at fdae0000 (32-bit, prefetchable) [size=128K]<br>&nbsp;&nbsp;&nbsp; Capabilities: [50] Power Management version 2<br>
 
+<br><br>Can anyone tell me, is it likely / possible that this card will work in linux any time soon, or should I be looking into returning it and finding something more likely to work?<br><br>Thanks in advance for any help or advice.<br>
+<br></div></div>Rebecca<br>
+</div>
+
+------=_Part_38967_12040710.1220644725672--
+
+
+--===============2006547069==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2006547069==--
