@@ -1,27 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f20.google.com ([209.85.217.20])
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KdxER-00028s-Ku
-	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 03:13:57 +0200
-Received: by gxk13 with SMTP id 13so18846812gxk.17
-	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 18:13:20 -0700 (PDT)
-Message-ID: <d9def9db0809111813r58466991wf8f6266ddf379364@mail.gmail.com>
-Date: Fri, 12 Sep 2008 03:13:20 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Johannes Stezenbach" <js@linuxtv.org>
-In-Reply-To: <20080911230507.GA10179@linuxtv.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-	<1220993974.17270.22.camel@localhost>
-	<d9def9db0809091414t5953e696s521aa2f7525d182d@mail.gmail.com>
-	<1221007328.2647.53.camel@morgan.walls.org>
-	<141058d50809092040m6ccbcer2ff26cf109a63682@mail.gmail.com>
-	<20080911230507.GA10179@linuxtv.org>
+	(envelope-from <stoth@linuxtv.org>) id 1KbbDi-0000Ov-Ts
+	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 15:19:29 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6Q00IRS4ZAV2R0@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 05 Sep 2008 09:18:47 -0400 (EDT)
+Date: Fri, 05 Sep 2008 09:18:46 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080904160756.146270@gmx.net>
+To: Hans Werner <HWerner4@gmx.de>
+Message-id: <48C131B6.60006@linuxtv.org>
+MIME-version: 1.0
+References: <48BF6A09.3020205@linuxtv.org> <20080904160756.146270@gmx.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to measure API "goodness"?
+Subject: Re: [linux-dvb] S2API - First release
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,24 +31,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Sep 12, 2008 at 1:05 AM, Johannes Stezenbach <js@linuxtv.org> wrote:
-> On Wed, Sep 10, 2008 at 01:40:03PM +1000, Glenn McGrath wrote:
->> On Wed, Sep 10, 2008 at 10:42 AM, Andy Walls <awalls@radix.net> wrote:
->> >
->> > What are the attributes to measure for comparing APIs or API proposals?
+Hans Werner wrote:
+>> Hello,
 >>
->> Well said, but can the goodness of an API even be measured ?
->
-> Yeah, it seems much easier to measure the badness ;-)
-> http://www.osnews.com/images/comics/wtfm.jpg
+>> It's been a crazy few days, please forgive my short absence.
+>>
+>> What have I been doing? Well, rather than spending time discussing a new 
+>> S2API on the mailing list, I wanted to actually produce a working series 
+>> of patches that kernel and application developers could begin to test.
+>>
+> 
+> Great, that's good to hear :) .
+> 
+>> In addition, here's is a userland application that demonstrates tuning 
+>> the current DVB-S/T/C and US ATSC modulations types using the new API. 
+>> (www.steventoth.net/linux/s2/tune-v0.0.1.tgz)
+>>
+>> A tuning demo app? What? Obviously, tuning older modulation types via 
+>> the new API isn't a requirements, but it's a useful validation exercise 
+>> for the new S2API. What _IS_ important is..... that it also demonstrates 
+>> using the same tuning mechanism to tune DVB-S2 8PSK / NBC-QPSK 
+>> modulation types, and also has rudimentary ISDB-T support for any 
+>> developers specifically interested.
+>>
+>> This S2API tree also contains support for the cx24116 demodulator 
+>> driver, and the Hauppauge HVR4000 family of S2 products. So those 
+>> interested testers/developers can modify the tune.c app demo and make 
+>> changes specific to their area, and try experimenting with the new API 
+>> if they desire. [1]
+> 
+> Even better!
+>  
+>> Obviously, tune.c isn't intelligent, it's not a replacement for szap, 
+>> tzap or whatever - it's simply a standalone S2API test tool, that 
+>> demonstrates the important API interface.
+> 
+>> If anyone is willing to pull the tree and begin testing with the tune.c 
+>> app then please post all feedback on this thread. [2]
+> 
+> I will test it with the HVR4000.
+> 
+> Looking at the code in dvb_frontend.c I think TV_SET_TONE and TV_SET_VOLTAGE don't do
+> anything. Or am I missing something?
 
+My bad.
 
-asking linuxtv people about the goodness of code is as good as asking
-the worst people who don't know about code how to write proper code.
-The one who writes one driver, and rewrites that one hundred times
-will probably be the best one to ask such a question.
+Pull again from ~stoth/s2, I fixed this last night and tested with a 
+generator.
 
-Markus
+DVB-S is working fine. 8PSK and NBC-QPSK would also work - assuming you 
+have the right tuning params (pilot etc).
+
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
