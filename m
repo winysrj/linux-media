@@ -1,23 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rn-out-0910.google.com ([64.233.170.191])
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1Ke3LH-00041X-2i
-	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 09:45:23 +0200
-Received: by rn-out-0910.google.com with SMTP id m36so505958rnd.2
-	for <linux-dvb@linuxtv.org>; Fri, 12 Sep 2008 00:45:19 -0700 (PDT)
-Date: Fri, 12 Sep 2008 09:45:13 +0200
-To: linux-dvb@linuxtv.org
-Message-ID: <20080912074513.GB3216@gmail.com>
-References: <48C70F88.4050701@linuxtv.org>
-	<200809112024.24821.liplianin@tut.by>
-	<20080911200931.GA25626@gmail.com>
-	<200809120030.55445.liplianin@tut.by>
-	<20080912051056.GA3216@gmail.com> <web-53239698@speedy.tutby.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <web-53239698@speedy.tutby.com>
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: Re: [linux-dvb] S2API simple szap-s2 utility
+	(envelope-from <stoth@linuxtv.org>) id 1KbbQp-0002Cu-Ux
+	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 15:33:01 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6Q00I8N5M1UWU0@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 05 Sep 2008 09:32:26 -0400 (EDT)
+Date: Fri, 05 Sep 2008 09:32:25 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <29147.65816.qm@web38804.mail.mud.yahoo.com>
+To: borisstevenson@yahoo.com
+Message-id: <48C134E9.7010503@linuxtv.org>
+MIME-version: 1.0
+References: <29147.65816.qm@web38804.mail.mud.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DSS Support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,52 +25,39 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Sep 12, 2008 at 09:30:04AM +0300, "?????? ????? <liplianin@tut.by>"=
-@vdr.localdomain wrote:
+boris stevenson wrote:
+> One option that is missing in your new api is DSS support. Manu's 
+> multiprotocol currently supports DSS (DTV) mode and is a requirement for 
+> quite a few people. My vote is to approve any approach that 
+> automatically suppots DSS mode.
+> 
+> 
 
-> mplayer, kaffeine, xine works with properly filled channels.conf
->
->   mplayer dvb://channelname
->
-> Or you may try:
-> In one console
->   szap-s2 channelname -r
->
-> In another
->   mplayer - < /dev/dvb/adaptero/dvr0
->
+That's interesting, because I've previously thought that the kernel 
+demux didn't understand 144 (?) byte packets.
 
-Thank you very much, I missed the -r yesterday :-)
+Does this actually work, and are the regular DVB tools giving you 144 
+transport packets? Which applications do you use for analysis and/or 
+playback?
 
-Unfortunetely today I can't tune to anything, I always got this error : =
+The HVR4000 silicon supports DSS but I've never enabled it, if the 
+applications and kernel support are maturing then I'll certainly do 
+this. Why not, right?
 
-FE_SET_PROPERTY failed: Operation not permitted
+Let me know.
 
-Directly with mplayer, I only get sofar :
+Regards,
 
-mplayer dvb://1@ZDF
-MPlayer dev-SVN-r27546 (C) 2000-2008 MPlayer Team
-CPU: Intel(R) Core(TM)2 CPU          6600  @ 2.40GHz (Family: 6, Model:
-15, Stepping: 6)
-CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
-Compiled for x86 CPU with extensions: MMX MMX2 SSE SSE2
+Steve
 
-Playing dvb://1@ZDF.
-dvb_tune Freq: 11954000
-TS file format detected.
 
-Thanks.
--- =
 
-Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
-rg
-               http://picasaweb.google.com/Gregoire.Favre
 
 _______________________________________________
 linux-dvb mailing list
