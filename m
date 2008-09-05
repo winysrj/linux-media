@@ -1,30 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with SMTP id m8K6jYA4018107
-	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 02:45:34 -0400
-Received: from mta2.srv.hcvlny.cv.net (mta2.srv.hcvlny.cv.net [167.206.4.197])
-	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id m8K6jGEj023927
-	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 02:45:17 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7H002WNEEX6N61@mta2.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Sat, 20 Sep 2008 02:37:46 -0400 (EDT)
-Date: Sat, 20 Sep 2008 02:37:45 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <9d87242f0809192255t49e112bfvd9c95e66bd3292a8@mail.gmail.com>
-To: Scott Bronson <bronson@rinspin.com>
-Message-id: <48D49A39.5010909@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <9d87242f0809191425p1adb1e59p417753a4c403a872@mail.gmail.com>
-	<412bdbff0809191428j760ed51cy8fecd68e1cb738a4@mail.gmail.com>
-	<9d87242f0809192005t246311dp796aa28cb744b3af@mail.gmail.com>
-	<9d87242f0809192255t49e112bfvd9c95e66bd3292a8@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Unreliable tuning with HVR-950q
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m85FTxZW001181
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 11:30:00 -0400
+Received: from idcmail-mo2no.shaw.ca (idcmail-mo2no.shaw.ca [64.59.134.9])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m85FTn6J016780
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 11:29:49 -0400
+Message-ID: <48C15069.4030404@ekran.org>
+Date: Fri, 05 Sep 2008 08:29:45 -0700
+From: "B. Bogart" <ben@ekran.org>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+References: <48C05DC8.5060700@ekran.org>	
+	<1220568687.2736.12.camel@morgan.walls.org>
+	<48C06C3A.5000104@ekran.org> <1220594487.1750.6.camel@localhost>
+In-Reply-To: <1220594487.1750.6.camel@localhost>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, IOhannes m zmoelnig <zmoelnig@iem.at>
+Subject: Re: V4l2 :: Debugging an issue with cx8800 card.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,24 +29,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Scott Bronson wrote:
-> On Fri, Sep 19, 2008 at 8:05 PM, Scott Bronson <bronson@rinspin.com> wrote:
->> On Fri, Sep 19, 2008 at 2:28 PM, Devin Heitmueller
->> <devin.heitmueller@gmail.com> wrote:
->>> What application are you using?  Kaffeine?  Scan?
->> mplayer and MythTV.  They seem to be about equally unreliable.
-> 
-> And scan of course.  I haven't noticed any problems with it missing channels.
-> 
-> Does scan try to acquire a lock?  Would it be useful for me to run it
-> 5 or 6 times in a row and see how consistent its results are?
+Hello Jean-Francois,
 
-I guess it's possible that the frontend is being overwhelmed. What 
-happens if you discinnect the antenna and hold it very close to the 
-antenna connector on the usb device and try locking on a channel that 
-doesn't normally lock (on a very close transmitter).
+I don't believe this is a size issue with svv (but it does appear to be
+one with Gem) but the image really looks like NTSC interpreted as PAL to
+me, in particular the VBI noise at the bottom.
 
-- Steve
+I ran your test to confirm and:
+
+bbogart@insitu:~/tmp/svv$ ./svv -rg -f 320x240
+raw pixfmt: UYVY 320x240
+pixfmt: UYVY 320x240
+mmap method
+raw image dumped to 'image.dat'
+
+bbogart@insitu:~/tmp/svv$ ls -l image.dat
+-rw-r--r-- 1 bbogart bbogart 153600 2008-09-05 08:23 image.dat
+bbogart@insitu:~/tmp/svv$ ./svv -rg -f 640x480
+raw pixfmt: UYVY 640x480
+pixfmt: UYVY 640x480
+mmap method
+
+raw image dumped to 'image.dat'
+bbogart@insitu:~/tmp/svv$ ls -l image.dat
+-rw-r--r-- 1 bbogart bbogart 614400 2008-09-05 08:24 image.dat
+
+>From your message I assume a larger file means that indeed the image
+format is 640x480. Also mplayer shows video from this device as 640x480.
+
+Johannes,
+
+I'd feel better about svv "working" once I get the normal thing going,
+but what Gem files should I compare with svv for stuff like choosing the
+pixel format and allocating the size? I took a crack yesterday but I
+felt like I was following a string through a haystack through the
+various levels of abstraction from pix_video to v4l... FYI the behaviour
+is the same for Gem compiled with v4l2 and v4l.
+
+Thanks all,
+.b.
+
+Jean-Francois Moine wrote:
+> On Thu, 2008-09-04 at 16:16 -0700, B. Bogart wrote:
+>> I've not yet tried running your program, but did have some luck with:
+>> http://moinejf.free.fr/svv.c
+> 
+> Hello B.,
+> 
+> It seems the driver cannot switch to 640x480. You may know it grabbing
+> images with svv. Try
+> 	svv -rg -f 640x480
+> then
+> 	svv -rg -f 320x240
+> and check each time the size of image.dat.
+> 
+> Best regards.
+> 
 
 --
 video4linux-list mailing list
