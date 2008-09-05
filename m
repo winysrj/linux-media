@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8J4mVAf004324
-	for <video4linux-list@redhat.com>; Fri, 19 Sep 2008 00:48:31 -0400
-Received: from www.curtronics.com
-	(h69-129-7-18.nwblwi.dedicated.static.tds.net [69.129.7.18])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8J4mIP3001137
-	for <video4linux-list@redhat.com>; Fri, 19 Sep 2008 00:48:18 -0400
-Received: from [192.168.10.120] (winprtsrv.curtronics.com [192.168.10.120])
-	by www.curtronics.com (8.14.1/8.14.1/SuSE Linux 0.8) with ESMTP id
-	m8J4mFiQ023068
-	for <video4linux-list@redhat.com>; Thu, 18 Sep 2008 23:48:17 -0500
-Message-ID: <48D32F0E.1000903@curtronics.com>
-Date: Thu, 18 Sep 2008 23:48:14 -0500
-From: Curt Blank <Curt.Blank@curtronics.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m85JGXId006344
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 15:16:34 -0400
+Received: from mail4.sea5.speakeasy.net (mail4.sea5.speakeasy.net
+	[69.17.117.6])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m85JGIKB003945
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 15:16:19 -0400
+Date: Fri, 5 Sep 2008 12:16:00 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Jean Delvare <jdelvare@suse.de>
+In-Reply-To: <200809021109.31007.jdelvare@suse.de>
+Message-ID: <Pine.LNX.4.58.0809051205480.2423@shell2.speakeasy.net>
+References: <200808251445.22005.jdelvare@suse.de>
+	<200809012126.06532.jdelvare@suse.de>
+	<20080901225450.GA1424@daniel.bse>
+	<200809021109.31007.jdelvare@suse.de>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Kworld PlusTV HD PCI 120 (ATSC 120)
+Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
+Content-Transfer-Encoding: 8bit
+Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
+Subject: Re: [v4l-dvb-maintainer] bttv driver questions
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,48 +31,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I'm trying to get this  card working  and I'm having some trouble and 
-I'm not sure exactly where. I'm using the 2.6.26.5 kernel gen'd to 
-include all the v4l support.
+On Tue, 2 Sep 2008, Jean Delvare wrote:
+> Le mardi 02 septembre 2008, Daniel Glöckner a écrit :
+> > If grayscale is not what your customer wants, there is a 8 bit color
+> > mode V4L2_PIX_FMT_HI240.
+>
+> I've seen this, and BT878 supports that format. But I don't know how
+> to check how it looks like visually... mplayer doesn't seem to
 
-Using Kradio I can manually tune in a station  but the audio only comes 
-out the Line Out jack on the card. Alsa is installed and working, I can 
-play CD's, listen to streaming music, KDE sound effects work, so it 
-appears my sound subsystem is working. The alsa config in Kradio is set 
-to what it determined and it appears to match the device as far as 
-things go. When I try to scan for stations it doesn't find any but I can 
-tune to any local station and get it.
+It looks "ok".  I used to use it when I watched tv with overlay and a video
+card in 8-bit pseudocolor.  It will probably compress very poorly.  You can
+turn dithering on and off, on looks better, but jpeg compress will probably
+be much worse with dithering.
 
-I also can't get the video (HDTV) to work either. When it starts up I get a:
+> support that pixel format. Apparently ffmpeg forces the format to
+> YUV 4:2:0 planar (a pretty bad choice if you ask me), so I can't use
 
-Unable to grab video
-
-Video display is not possible with the current plugin
-configuration. Try playing with the configuration options of the
-V4L2 plugin.
-
-And the VBI decoder is running is red, along with the Video plugin 
-supports signal strength readbacks and Ok to Scan.
-
-When I run kdetv in a terminal window I see this:
-
-Requesting 16 streaming i/o buffers
-Mapping 16 streaming i/o buffers
-Successful opened /dev/vbi (Kworld PlusTV HD PCI 120 (ATSC )
-stream-read: ERROR: failed to enable streaming
-ASSERT: "_init" in /usr/src/packages/BUILD/kdetv-0.8.9/kdetv/kvideoio/qvideostream.cpp (477)
-(repeated many times)
-Too many errors. Ending V4L2 grabbing.
-
-The MB is a MSI K9N4 SLI with an AMD 64 X2 3800+ cpu and the video card is an ATI x1300 and I've tried it with the fglrx driver and with the vesa driver, it makes no difference.
-
-I've read the Wiki at http://www.linuxtv.org including the http://www.linuxtv.org/wiki/index.php/KWorld_ATSC_120 info. I also downloaded the archived list messages back to January 2007 and looked through them for help.
-
-I'm not sure where to go from here or where to look what to try or even what info to provide that might be of help. So if anyone has any ideas please let me know, I sure could use some ideas.
-
-Thanks.
-
-
+Most codecs operate on planar 4:2:0, so it makes the most sense to request
+the right format from the hardware, instead of converting from packed to
+planar in software.  ffmpeg doesn't know that DMA of planar formats is
+harder for the bt8x8 and that you are running out of PCI bandwidth but
+might have lots of memory bandwidth and CPU cycles to use.
 
 --
 video4linux-list mailing list
