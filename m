@@ -1,29 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8E00nIJ030437
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 20:00:50 -0400
-Received: from zim.mi-connect.com (zim.mi-connect.com [208.73.200.230])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8E00bJU013002
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 20:00:38 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by zim.mi-connect.com (Postfix) with ESMTP id 5E2D22338733
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 19:44:38 -0400 (EDT)
-Received: from zim.mi-connect.com ([127.0.0.1])
-	by localhost (zim.mi-connect.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id mARCCulsAUV3 for <video4linux-list@redhat.com>;
-	Sat, 13 Sep 2008 19:44:36 -0400 (EDT)
-Received: from zim.mi-connect.com (zim.mi-connect.com [208.73.200.230])
-	by zim.mi-connect.com (Postfix) with ESMTP id 4392223386A5
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 19:44:36 -0400 (EDT)
-Date: Sat, 13 Sep 2008 19:44:35 -0400 (EDT)
-From: ron gage <ron@rongage.org>
-To: video4linux-list@redhat.com
-Message-ID: <1307084.71221349475763.JavaMail.root@zim.mi-connect.com>
-In-Reply-To: <11204850.51221349360873.JavaMail.root@zim.mi-connect.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m867f6EY030484
+	for <video4linux-list@redhat.com>; Sat, 6 Sep 2008 03:41:07 -0400
+Received: from smtp-out2.blueyonder.co.uk (smtp-out2.blueyonder.co.uk
+	[195.188.213.5])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m867eLQS023606
+	for <video4linux-list@redhat.com>; Sat, 6 Sep 2008 03:40:21 -0400
+Message-ID: <48C233E6.3020407@blueyonder.co.uk>
+Date: Sat, 06 Sep 2008 08:40:22 +0100
+From: Ian Davidson <id012c3076@blueyonder.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+To: danflu@uninet.com.br
+References: <48c16426.349.7a8c.1092537460@uninet.com.br>
+In-Reply-To: <48c16426.349.7a8c.1092537460@uninet.com.br>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Osprey 230 - no audio
+Cc: video4linux-list@redhat.com
+Subject: Re: Capture card
+Reply-To: ian.davidson@bigfoot.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,54 +29,228 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Greetings!
+Hi Daniel,
 
-I have an Osprey 230 capture card that is giving me fits.  I have video working from it without issue but can't for the life of me get any audio from it at all.
+If what you want to do is simply to capture I would suggest that you 
+take a look at xawtv.
 
-I am working from Slackware 12 and kernel 2.6.26.5.
+The 'package' comes with 'xawtv' itself which is menu driven and allows 
+you to view the video on screen.  You can select from the various 
+sources and you can capture if you want.  Also included in the 'package' 
+is 'streamer' which is a command-line program which will capture from 
+the nominated source to a file.  Various formats are supported.
 
-I have checked that sound is going to the card (verified by connecting headphones directly to the audio cable).
+On the other hand, if you want to look at some code - you will need to 
+be guided by someone else.
 
-While audio is going to the card, I have ran the following command: sox -w -r 48000 -t ossdsp /dev/dsp1 -t wav try.wav   - this gives me a wav file with no audio.
+Ian
 
-dmesg shows nothing wrong at all.  Module insertion (snd-bt87x) creates the device nodes without issue.
+danflu@uninet.com.br wrote:
+> Hello,
+>
+> I have a capture card with three types of input:
+>
+> -composite video
+> -Svideo
+> -tunner.
+>
+> I'm looking for some code ilustrating how to capture from a
+> capture card device. 
+>
+> Is it possible ? If so , how can i do this ?
+>
+> Please Help,
+>
+> Thanks
+> Daniel
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>   
 
-output from amixer -c 1:
-ron@video:/root/vlc/vlc-0.9.2$ amixer -c 1
-Simple mixer control 'FM',0
-  Capabilities: cswitch cswitch-joined cswitch-exclusive
-  Capture exclusive group: 0
-  Capture channels: Mono
-  Mono: Capture [off]
-Simple mixer control 'Mic/Line',0
-  Capabilities: cswitch cswitch-joined cswitch-exclusive
-  Capture exclusive group: 0
-  Capture channels: Mono
-  Mono: Capture [off]
-Simple mixer control 'Capture',0
-  Capabilities: cvolume
-  Capture channels: Mono
-  Limits: Capture 0 - 15
-  Mono: Capture 0 [0%]
-Simple mixer control 'Capture Boost',0
-  Capabilities: pswitch pswitch-joined
-  Playback channels: Mono
-  Mono: Playback [off]
-Simple mixer control 'TV Tuner',0
-  Capabilities: cswitch cswitch-joined cswitch-exclusive
-  Capture exclusive group: 0
-  Capture channels: Mono
-  Mono: Capture [on]
-ron@video:/root/vlc/vlc-0.9.2$
+-- 
+Ian Davidson
+239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
+-- 
+Facts used in this message may or may not reflect an underlying objective reality. 
+Facts are supplied for personal use only. 
+Recipients quoting supplied information do so at their own risk. 
+Facts supplied may vary in whole or part from widely accepted standards. 
+While painstakingly researched, facts may or may not be indicative of actually occurring events or natural phenomena. 
+The author accepts no responsibility for personal loss or injury resulting from memorisation and subsequent use.
 
-
-Setting the capture control to 100% does nothing - still no sound out.
-
-Does anyone have any ideas on what to try here?
-
-Thanks!
-
-Ron
 
 --
 video4linux-list mailing list
