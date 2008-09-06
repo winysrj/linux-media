@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.7.61.12] (helo=killala.koala.ie)
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon@koala.ie>) id 1Kho9e-0001sD-0a
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 18:20:56 +0200
-Received: from [127.0.0.1] (killala.koala.ie [195.7.61.12])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id m8MGKf9M014076
-	for <linux-dvb@linuxtv.org>; Mon, 22 Sep 2008 17:20:41 +0100
-Message-ID: <48D7C5D4.1070209@koala.ie>
-Date: Mon, 22 Sep 2008 17:20:36 +0100
-From: Simon Kenyon <simon@koala.ie>
+	(envelope-from <patrick.boettcher@desy.de>) id 1Kc1GI-0008TF-5k
+	for linux-dvb@linuxtv.org; Sat, 06 Sep 2008 19:07:51 +0200
+Date: Sat, 6 Sep 2008 19:07:12 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Martin Dauskardt <martin.dauskardt@gmx.de>
+In-Reply-To: <alpine.LRH.1.10.0809011646570.3828@pub6.ifh.de>
+Message-ID: <alpine.LRH.1.10.0809061905510.6645@pub5.ifh.de>
+References: <200808241510.48819@orion.escape-edv.de>
+	<200809011337.39753.martin.dauskardt@gmx.de>
+	<alpine.LRH.1.10.0809011646570.3828@pub6.ifh.de>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <48B9360D.7030303@gmail.com>	<20080901120601.044ddc30@mchehab.chehab.org>	<48BC16E3.20500@linuxtv.org>	<20080901181450.4329ebc5@mchehab.chehab.org>	<48D75194.6090006@linuxtv.org>
-	<a3ef07920809220728wf544c2cg58035826bb436de6@mail.gmail.com>
-In-Reply-To: <a3ef07920809220728wf544c2cg58035826bb436de6@mail.gmail.com>
-Subject: Re: [linux-dvb] Merge multiproto tree
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Cablestar DVB-C (Flexcop + stv0297) broken since
+ changeset 7fb12d754061 (7469)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,17 +28,54 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-VDR User wrote:
-> It's no secret Mauro and company are trying to sweep multiproto under
-> the rug so I too am curious to hear about how those multiproto talks
-> went.
+Hi again,
+
+I just pushed patch to my hg repository which fixes the s5h1420-support 
+for other cards than the flexcop-based ones.
+
+I will ask Mauro to pull right now.
+
+Patrick.
+
+On Mon, 1 Sep 2008, Patrick Boettcher wrote:
+
+> On Mon, 1 Sep 2008, Martin Dauskardt wrote:
+>> So we have broken support for at least three cards now. (Technotrend 2400 and
+>> Hauppauge Noba-S-SE with s5h1420 frontend doesn`t work any longer ,too. See
+>> http://linuxtv.org/pipermail/linux-dvb/2008-August/028249.html)
+>>
+>> In my opinion it is not acceptable to break support for three cards in the
+>> v4l-dvb main tree to get one other card supported.
+>>
+>> I strongly request to revert the changeset until a working solution for all
+>> cards has been tested.
 >
-> By the way, maybe someone will have the decency to remove the
-> misleading b.s. and lies from
-> http://www.linuxtv.org/wiki/index.php/Multiproto
->   
-mister sombody is currently on holiday
-perhaps mister anybody will do it for him
+> We need to separate the things:
+>
+> 1) breakage of stv0297-based cards
+>
+> This was a mistake - I'm still trying to see which atomic modification
+> causes that.... Should be a 3-liner to fix it, but where...
+>
+> 2) s5h1420-based cards
+>
+> I modified it to support a new card - right. I published the patch and ask
+> for owners of the NOVA-S SE to test it. After not receiving a comment from
+> anyone Mauro agreed to integrate it and wait if it breaks for someone. I
+> agree this is not the smoothest/nicest way, but what else could I have
+> done to move forward?
+>
+> Blindly reverting now would push me back where I was 6 months ago :(. But
+> I totally agree with this idea when someone of you NOVA-S SE owners gives
+> me a hand in order to test a possibly fixed patch. ;)
+>
+> Patrick.
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
