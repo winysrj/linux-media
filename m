@@ -1,21 +1,43 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with SMTP id m8L1oEWm004870
-	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 21:50:14 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id m8L1nseI013206
-	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 21:49:55 -0400
-From: Andy Walls <awalls@radix.net>
-To: Dale Pontius <DEPontius@edgehp.net>
-In-Reply-To: <48D4D5FE.60507@edgehp.net>
-References: <48D4D5FE.60507@edgehp.net>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m861NUVx003271
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 21:23:30 -0400
+Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
+	[151.189.21.43])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m861NG5f024942
+	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 21:23:17 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: ian.davidson@bigfoot.com
+In-Reply-To: <48C1874B.5080502@blueyonder.co.uk>
+References: <488C9266.7010108@blueyonder.co.uk>
+	<1217364178.2699.17.camel@pc10.localdom.local>
+	<4890BBE8.8000901@blueyonder.co.uk>
+	<1217457895.4433.52.camel@pc10.localdom.local>
+	<48921FF9.8040504@blueyonder.co.uk>
+	<1217542190.3272.106.camel@pc10.localdom.local>
+	<48942E42.5040207@blueyonder.co.uk>
+	<1217679767.3304.30.camel@pc10.localdom.local>
+	<4895D741.1020906@blueyonder.co.uk>
+	<1217798899.2676.148.camel@pc10.localdom.local>
+	<4898C258.4040004@blueyonder.co.uk> <489A0B01.8020901@blueyonder.co.uk>
+	<1218059636.4157.21.camel@pc10.localdom.local>
+	<489B6E1B.301@blueyonder.co.uk>
+	<1218153337.8481.30.camel@pc10.localdom.local>
+	<489D7781.8030007@blueyonder.co.uk>
+	<1218474259.2676.42.camel@pc10.localdom.local>
+	<48A8892F.1010900@blueyonder.co.uk>
+	<1219024648.2677.20.camel@pc10.localdom.local>
+	<48B44CDF.60903@blueyonder.co.uk>
+	<1219792546.2669.17.camel@pc10.localdom.local>
+	<1220236507.2669.117.camel@pc10.localdom.local>
+	<48C1874B.5080502@blueyonder.co.uk>
 Content-Type: text/plain
-Date: Sat, 20 Sep 2008 21:43:47 -0400
-Message-Id: <1221961427.6151.43.camel@palomino.walls.org>
+Date: Sat, 06 Sep 2008 03:20:47 +0200
+Message-Id: <1220664047.6339.53.camel@pc10.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: HVR-1600 - unable to find tuner
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: KWorld DVB-T 210SE - Capture only in Black/White
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,131 +49,102 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, 2008-09-20 at 06:52 -0400, Dale Pontius wrote:
+Hi Ian,
 
-> A week back I posted a "newby question," and eventually it became
-> apparent that I can't find my tuner.
-
->  I loaded the module with:
-> "modprobe cx18 mmio_ndelay=61"
-
-You can always try higher numbers to see if things get better at some
-higher value.  Use multiples of 30.3.
-
-
-> The results of dmesg:
-> cx18:  Start initialization, version 1.0.0
-> cx18-0: Initializing card #0
-> cx18-0: Autodetected Hauppauge card
-> ACPI: PCI Interrupt 0000:05:08.0[A] -> Link [APC3] -> GSI 18 (level, low) -> IRQ 18
-> cx18-0: Unreasonably low latency timer, setting to 64 (was 32)
-> cx18-0: cx23418 revision 01010000 (B)
-> tveeprom 6-0050: Hauppauge model 74041, rev C6B2, serial# 3334244
-> tveeprom 6-0050: MAC address is 00-0D-FE-32-E0-64
-> tveeprom 6-0050: tuner model is TCL M2523_5N_E (idx 112, type 50)
-> tveeprom 6-0050: TV standards NTSC(M) (eeprom 0x08)
-> tveeprom 6-0050: audio processor is CX23418 (idx 38)
-> tveeprom 6-0050: decoder processor is CX23418 (idx 31)
-> tveeprom 6-0050: has no radio, has IR receiver, has IR transmitter
-> cx18-0: Autodetected Hauppauge HVR-1600
-> cx18-0: VBI is not yet supported
-> cs5345 6-004c: chip found @ 0x98 (cx18 i2c driver #0-0)
-> cx18-0: Disabled encoder IDX device
-> cx18-0: Registered device video1 for encoder MPEG (2 MB)
-> DVB: registering new adapter (cx18)
-> MXL5005S: Attached at address 0x63
-> DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB Frontend)...
-> cx18-0: DVB Frontend registered
-> cx18-0: Registered device video32 for encoder YUV (2 MB)
-> cx18-0: Registered device video24 for encoder PCM audio (1 MB)
-> cx18-0: Initialized card #0: Hauppauge HVR-1600
-> cx18:  End initialization
-
-Just FYI, the CX23418 has 2 I2C masters built into it, so it contributes
-two new, separate i2c buses to your system.  In this case i2c-6 and
-i2c-7 are the two buses on your system.
-
-The two I2C devices that correspond to the analog NTSC tuner (a
-mixer/osc chip and an IF demodulator chip) should be on the second i2c
-bus (i2c-7 or cx18 i2c driver #0-1).  All the other devices are on the
-first i2c bus.
-
-
-
-> Then thinking about the i2c problems, and not easily finding any sort
-> of "i2c-explorer" or "lsi2c"
-
-For a handy i2c explorer tool you can use i2cdetect from the lm_sensors
-or i2c-tools package.  You must also have the i2c-dev module built.
-Modprobe the i2c-dev module, have i2cdetect list the buses, then run
-i2cdetect to probe all the addresses on the i2c buses of the cx18 based
-card.  Analog tuner mixer/osc chips will show up in the low 0x60's
-(0x60, 0x61 IIRC).
-
-
-
-> I understand that both tuners are supposed to be attached to the i2c
-> bus of the cx18, and it's pretty clear that the ATSC/QAM tuner is
-> there. But other than the "video4linux:video1" I don't see
-> anything that smacks of the NTSC tuner.
+Am Freitag, den 05.09.2008, 20:23 +0100 schrieb Ian Davidson:
+> I am about to give up with this KWorld card as I do not have the time - 
+> I need to get something that works.  So 2 questions - one for a 'last 
+> try' and one for 'Plan B'.
 > 
-> Can someone tell me what this is supposed to look like,
+> Q1. Initially, the card was not recognised automatically, but under 
+> guidance form Hermann, forcing Linux to treat it as card=114, I was able 
+> to capture video.  Unfortunately, normally Black and White rather than 
+> colour.  I understand that  normally Linux would sniff the eeprom and 
+> determine the type of card from information found in there.  I have the 
+> .inf files that describe the various KWorld cards to that other 
+> operating system and I can see that the first 4 bytes of the eeprom, 
+> albeit swapped about (Big Endian/Little Endian) are used in that .inf to 
+> identify the card.  Various parameters are apparently put into the 
+> Registry, depending on the card type and I thought I would compare the 
+> parameters for my card with the parameters for the 'Real 114'.  I assume 
+> that there is a file somewhere which says "If the eeprom says 'xxxx' 
+> then the card is type 'n'".  Where can I see that file which identifies 
+> the card type?
 
-The init messages in dmesg for my HVR-1600 MCE shows the mixer/osc is at
-0x61 (0xc2) and the IF demodulator is at 0x43 (0x86) and that they are
-both on the second i2c bus: cx18 #0-1:
+the manufacturers always need to improve their products to stay
+competitive.
 
-tuner 1-0043: chip found @ 0x86 (cx18 i2c driver #0-1)
-tda9887 1-0043: creating new instance
-tda9887 1-0043: tda988[5/6/7] found
-tuner 1-0061: chip found @ 0xc2 (cx18 i2c driver #0-1)
-tuner-simple 1-0061: creating new instance
-tuner-simple 1-0061: type set to 43 (Philips NTSC MK3 (FM1236MK3 or
-FM1236/F))
+So we continuously see new card revisions with some small changes.
+That likely is the same for your card, the 210SE.
 
-The MCE version has a tda9887 IF demodulator which supports FM radio.
-Your non-MCE card, without FM radio, may have something a little
-different for an IF demodulator chip.
+>From what I'm aware of, I'm for sure not of all, we can neither gather
+from the .inf files nor from the eeprom dump additional information.
+
+Admittedly the previous 210RF had already previously reports of some
+instability for DVB-T usage and reasons are unknown and since no more
+users came in, the base is a singular report.
+
+Your report to have sometimes color on the composite input and sometimes
+only black and white is very unusual, since this also should not be
+related to an additional external LNA, but I asked you to try with
+tuner_config = 2 for the card in saa7134-cards.c, since it hangs around
+in saa7134-dvb.c for it, and if possible, also on the some other OS.
+
+> 
+> Q2. Assuming that I am unable to make any difference, I will need to use 
+> a different card - and hopefully, one that is supported.  In order to 
+> make the current card do anything, I had to issue a couple of commands
+> 
+> "modprobe -vr saa7134-dvb saa7134-alsa saa7134 tuner"
+> 
+> "modprobe -v saa7134 card=114 i2c_scan=1"
+> 
+> so presumably, I would need to 'undo' the effect of those lines to let Linux auto-detect.  What do I need to do?
+> 
+> Ian
+
+Your card is a new revision, the manufacturer changed the PCI subsystem
+ID in the eeprom for it. That might have a reason.
+
+At least that is the reason why it is not auto detected yet and why you
+have to use "modprobe -v" for loading the likely most matching card,
+that should be its previous revision.
+
+Anyway, someone must go through all details, not only external inputs,
+but also radio, analog TV and DVB-T before we can add that card to auto
+detection.
+
+Depending of the results of that work, we have to decide if it can use
+the same entry as the previous card has or if it needs a new one,
+because something substantial has changed.
+
+You find the auto detection in saa7134-cards.c, the card enumeration in
+saa7134.h and all is mirrored in Documentation/CARDLIST.saa7134.
+
+As already explained, there is nothing to "undo" after "modprobe",
+except you like to unload and try with different options again.
+
+The -v option can be helpful, since it can find settings some system
+setup helper tool might have written for you overriding your command
+line for module options, but there is no indication in that direction.
+
+Sorry, we have a very poor result here, but thanks for all your efforts
+so far.
+
+It becomes obvious, that manufacturers actively supporting GNU/Linux on
+the more complex devices we have these days, but which are in most cases
+still easy to set up within the framework we have, but not for every
+single first customer, are clearly winners.
+
+And that is fully OK.
+
+Cheers,
+Hermann
 
 
 
 
->  or suggest a next step in finding my tuner?
 
-1. Make sure you have tuner modules installed somewhere
-under /lib/modules (i.e. tuner.ko, tuner-simple.ko, etc.)
-
-2. Turn on some debugging in /etc/modprobe.conf:
-
-	options tuner debug=1 show_i2c=1
-	options tuner-simple debug=1
-	options cx18 debug=67
-	
-and see, if on module load, something obviously looks wrong.
-
-3. You can increase the msecs_asserted and msecs_recovery in
-linux/drivers/media/video/cx18/cx18-cards.c and the mdelays() in
-linux/drivers/media/video/cx18/cx18-i2c.c to some ridiculously high
-numbers (e.g. 100 msec) to make sure everything connected to the I2C
-buses gets reset.  (Obviously rebuild and reinstall the cx18.ko module.)
-
-4. As I mentioned before, you may just need to set the mmio_ndelay
-number higher.  From my observations, the CX23418 appears to have a
-problem when accessing one set of its registers and then jumping to
-access registers in a different part of its register address space with
-no "dead time" in between.  The control registers for the first and
-second I2C bus masters are about 64k apart, and, of course, accessed
-almost back to back during module initialization.  The mmio_ndelay
-parameter adds in the "dead time" the CX23418 occasionally seems to
-need.
-
-
-Good luck.
-
-Andy
-
-> Thanks,
-> Dale Pontius
 
 --
 video4linux-list mailing list
