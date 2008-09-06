@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.26])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KgIxH-0004SP-HP
-	for linux-dvb@linuxtv.org; Thu, 18 Sep 2008 14:49:56 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so1618094eya.17
-	for <linux-dvb@linuxtv.org>; Thu, 18 Sep 2008 05:49:51 -0700 (PDT)
-Date: Thu, 18 Sep 2008 14:49:47 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Andrew Lyon <andrew.lyon@gmail.com>
-In-Reply-To: <f4527be0809180536sce988a1m800f55191e5f039d@mail.gmail.com>
-Message-ID: <alpine.DEB.1.10.0809181445420.5927@ybpnyubfg.ybpnyqbznva>
-References: <f4527be0809180536sce988a1m800f55191e5f039d@mail.gmail.com>
+Received: from 203.161.84.42.static.amnet.net.au ([203.161.84.42]
+	helo=goeng.com.au) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tom@goeng.com.au>) id 1Kbppp-0004U2-4w
+	for linux-dvb@linuxtv.org; Sat, 06 Sep 2008 06:55:46 +0200
+From: "Thomas Goerke" <tom@goeng.com.au>
+To: stev391@email.com, "'jackden'" <jackden@gmail.com>
+References: <20080905221347.5F8101BF28D@ws1-10.us4.outblaze.com>
+In-Reply-To: <20080905221347.5F8101BF28D@ws1-10.us4.outblaze.com>
+Date: Sat, 6 Sep 2008 12:56:15 +0800
+Message-ID: <00d901c90fdc$e6f1ae30$b4d50a90$@com.au>
 MIME-Version: 1.0
+Content-Language: en-au
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Scan Astra 28.8 no ITV HD?
+Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
+	TV/FM capture card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,26 +27,61 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 18 Sep 2008, Andrew Lyon wrote:
+> 
+> Tom,
+> 
+> So the V0.2 patch worked after a cold reboot (No power to the computer
+> then starting up again). Is that what you are saying?
+> (Make sure that the v0.1 modules are not loaded on boot up if you are
+> testing V0.2)
+> 
+> I was expecting the DMA timeout errors when using V0.2 from a cold
+> start, it should not have caused it to break for a warm start (i.e.
+> V0.1 modules loaded, then removed and v0.2 modules loaded).
+> 
+> Sorry to ask for clarification, as the results were not what I was
+> expecting.
+> 
+> Can you try the:
+> modprobe cx23885 i2c_scan=1
+> That Steve Suggested.
+> 
+> Thanks
+> 
+> Stephen
+Stephen,
 
-> I have scanned Astra 28.8 using dvbscan but it did not find ITV HD,
+V0.1
+	Cold Reset (0ff for 10 second):	No errors from dmesg
+							Can tune and watch
+channels
+	Warm Reset (ie sudo reboot):		Many errors in dmesg
+							Can tune and watch
+channels
+V0.2
+	Cold Reset (0ff for 10 second):	No errors from dmesg
+							Can tune and watch
+channels
+	Warm Reset (ie sudo reboot):		Many errors in dmesg
+							Tuning fails.
+Unable to watch channels
 
-ITV HD is not broadcast with standard DVB specifications, but
-with Freesat `extensions', which means you don't just find it.
-You actually did find it, but you didn't know it.
+Wrt sudo modprobe cx23885 i2c_scan=1, where are you expecting the output?
+Given that the module is already loaded do I need to modify the
+modprobe.d/cx23885 file to include the option and then reboot?
 
+With regard to ensuring V0.1 modules are not loaded when using V0.2, the
+method I have used is to have two completely different v4l_dvb source
+directories and doing a make, sudo make install to use the different
+versions.  I have assumed that this will copy the modules over the top of
+the old modules.  Please let me know if this is not correct.
 
-> can anybody give me the channel details so I can try to szap it
+If you want me to reboot with new option let me know.
 
-Better is that I point you to the Digital Spy Freesat Fora,
-where it is discussed in painstaking detail many times over,
-and you can read more than is worth posting here...
+Thanks
 
-Search engines would like to befriend you, should you not
-already know to what I refer...
+Tom
 
-
-barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
