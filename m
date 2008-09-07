@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Sun, 21 Sep 2008 13:03:13 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48D67247.6010904@linuxtv.org>
-To: Jonathan Coles <jcoles0727@rogers.com>
-Message-id: <48D67E51.6090603@linuxtv.org>
-MIME-version: 1.0
-References: <48D658BF.7040807@rogers.com>
-	<412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
-	<48D65E36.9070003@linuxtv.org> <48D66BE1.7020900@rogers.com>
-	<48D67247.6010904@linuxtv.org>
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950
-	and	v4l-dvb
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1Kc9bI-0006wV-GJ
+	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 04:02:07 +0200
+Date: Sun, 07 Sep 2008 04:01:31 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <200809061457.59955.liplianin@tut.by>
+Message-ID: <20080907020131.235250@gmx.net>
+MIME-Version: 1.0
+References: <48BF6A09.3020205@linuxtv.org>
+	<200809061457.59955.liplianin@tut.by>
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API - First release
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,98 +19,90 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> Jonathan Coles wrote:
->> Michael Krufky wrote:
->>> Devin Heitmueller wrote:
->>>  
->>>> On Sun, Sep 21, 2008 at 10:22 AM, Jonathan Coles
->>>> <jcoles0727@rogers.com> wrote:
->>>>    
->>>>> It would really help if there was a single set of instructions
->>>>> specific
->>>>> to the HVR-950 with tests at each stage. I'm really confused as to the
->>>>> status of my installation.
->>>>>
->>>>> I compiled the firmware according to the instructions on
->>>>> http://linuxtv.org/repo/. The result:
->>>>>
->>>>> $ lsusb
->>>>> Bus 005 Device 002: ID 2040:7200 Hauppauge
->>>>>       
->>>> Hold the phone!  You don't have an HVR-950.  You have an HVR-950Q.
->>>> Please be sure to mention this in all future messages, since it's a
->>>> totally different device and the HVR-950 directions do not apply.
->>>>
->>>> I'm not sure whether the HVR-950Q support has been merged yet.  Steven
->>>> could comment on that.  I suspect it's still in a separate branch,
->>>> which would mean you would need to do an hg clone of a different tree.
->>>>     
->>>
->>> HVR950Q ATSC / QAM is supported in the master development repository,
->>> and it is in upstream 2.6.26 and later.
->>>
->>> You need the xc5000 firmware.
->>>
->>> [   17.247610] usb 5-2: new high speed USB device using ehci_hcd and
->>> address 2
->>> [   17.380387] usb 5-2: unable to read config index 0 descriptor/all
->>> [   17.380434] usb 5-2: can't read configurations, error -71
->>>
->>>
->>> ^^ This is not a firmware problem, but looks fishy.  If using the
->>> latest drivers from linuxtv.org doesnt work for you, then try another
->>> USB port, or confirm that it also works in windows.
->>>
->>> Good Luck,
->>>
->>> Mike
->>>   
->> Thanks guys!
->>
->> The box says HVR-950 on it and that the device "Cannot receive digital
->> cable TV". However, the device itself is labeled "NTSC/ATSC/QAM HD TV
->> receiver" and there is a small, stylized Q following the "950". Great!
->> I got this on sale. Lack of QAM support was my reason for not buying
->> earlier at the usual price. Perhaps the store didn't realize that this
->> is the newer model.
->>
->> I had added the XC5000 firmware, dvb-fe-xc5000-1.1.fw, in case I had a
->> 950Q. But if, as you say, I need a later kernel, that might be why it
->> doesn't work. I have kernel 2.6.24-19.
->>
->> I'll look for more info on linuxtv.org. Perhaps I just need to wait a
->> little for the support for this to be developed.
-> I am telling you that this device is already supported -- You must use
-> kernel version 2.6.26 or later, *or* you can use the latest modules from
-> linuxtv.org with your older kernel.
-> 
-> Check the howto for info about how to install the drivers:
-> 
-> http://linuxtv.org/repo
-> 
-> 
-> ...and yes -- your stick does support QAM.
-
-Jonathan, this sticks works very nicely for me for ATSC and US digital 
-cable services. I think you'll enjoy it!
-
-If you have specific hvr-950q issues perhaps you could generate a new 
-thread with the appropriate subject (for future reference to users with 
-similar issues).
-
-Regards,
-
-Steve
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Ci0tLS0tLS0tIE9yaWdpbmFsLU5hY2hyaWNodCAtLS0tLS0tLQo+IERhdHVtOiBTYXQsIDYgU2Vw
+IDIwMDggMTQ6NTc6NTkgKzAzMDAKPiBWb246ICJJZ29yIE0uIExpcGxpYW5pbiIgPGxpcGxpYW5p
+bkB0dXQuYnk+Cj4gQW46IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+IEJldHJlZmY6IFJlOiBbbGlu
+dXgtZHZiXSBTMkFQSSAtIEZpcnN0IHJlbGVhc2UKCj4g0JIg0YHQvtC+0LHRidC10L3QuNC4INC+
+0YIgNCBTZXB0ZW1iZXIgMjAwOCAwNzo1NDozMyBTdGV2ZW4gVG90aAo+INC90LDQv9C40YHQsNC7
+KNCwKToKPiA+IEhlbGxvLAo+ID4KPiA+IEl0J3MgYmVlbiBhIGNyYXp5IGZldyBkYXlzLCBwbGVh
+c2UgZm9yZ2l2ZSBteSBzaG9ydCBhYnNlbmNlLgo+ID4KPiA+IFdoYXQgaGF2ZSBJIGJlZW4gZG9p
+bmc/IFdlbGwsIHJhdGhlciB0aGFuIHNwZW5kaW5nIHRpbWUgZGlzY3Vzc2luZyBhIG5ldwo+ID4g
+UzJBUEkgb24gdGhlIG1haWxpbmcgbGlzdCwgSSB3YW50ZWQgdG8gYWN0dWFsbHkgcHJvZHVjZSBh
+IHdvcmtpbmcgc2VyaWVzCj4gPiBvZiBwYXRjaGVzIHRoYXQga2VybmVsIGFuZCBhcHBsaWNhdGlv
+biBkZXZlbG9wZXJzIGNvdWxkIGJlZ2luIHRvIHRlc3QuCj4gPgo+ID4gSGVyZSdzIHdoZXJlIGFs
+bCBvZiB0aGUgbmV3IFMyQVBJIHBhdGNoZXMgd2lsbCBub3cgYXBwZWFyOgo+ID4KPiA+IGh0dHA6
+Ly9saW51eHR2Lm9yZy9oZy9+c3RvdGgvczIKPiA+Cj4gPiBJbiBhZGRpdGlvbiwgaGVyZSdzIGlz
+IGEgdXNlcmxhbmQgYXBwbGljYXRpb24gdGhhdCBkZW1vbnN0cmF0ZXMgdHVuaW5nCj4gPiB0aGUg
+Y3VycmVudCBEVkItUy9UL0MgYW5kIFVTIEFUU0MgbW9kdWxhdGlvbnMgdHlwZXMgdXNpbmcgdGhl
+IG5ldyBBUEkuCj4gPiAod3d3LnN0ZXZlbnRvdGgubmV0L2xpbnV4L3MyL3R1bmUtdjAuMC4xLnRn
+eikKPiA+Cj4gPiBBIHR1bmluZyBkZW1vIGFwcD8gV2hhdD8gT2J2aW91c2x5LCB0dW5pbmcgb2xk
+ZXIgbW9kdWxhdGlvbiB0eXBlcyB2aWEKPiA+IHRoZSBuZXcgQVBJIGlzbid0IGEgcmVxdWlyZW1l
+bnRzLCBidXQgaXQncyBhIHVzZWZ1bCB2YWxpZGF0aW9uIGV4ZXJjaXNlCj4gPiBmb3IgdGhlIG5l
+dyBTMkFQSS4gV2hhdCBfSVNfIGltcG9ydGFudCBpcy4uLi4uIHRoYXQgaXQgYWxzbyBkZW1vbnN0
+cmF0ZXMKPiA+IHVzaW5nIHRoZSBzYW1lIHR1bmluZyBtZWNoYW5pc20gdG8gdHVuZSBEVkItUzIg
+OFBTSyAvIE5CQy1RUFNLCj4gPiBtb2R1bGF0aW9uIHR5cGVzLCBhbmQgYWxzbyBoYXMgcnVkaW1l
+bnRhcnkgSVNEQi1UIHN1cHBvcnQgZm9yIGFueQo+ID4gZGV2ZWxvcGVycyBzcGVjaWZpY2FsbHkg
+aW50ZXJlc3RlZC4KPiA+Cj4gPiBUaGlzIFMyQVBJIHRyZWUgYWxzbyBjb250YWlucyBzdXBwb3J0
+IGZvciB0aGUgY3gyNDExNiBkZW1vZHVsYXRvcgo+ID4gZHJpdmVyLCBhbmQgdGhlIEhhdXBwYXVn
+ZSBIVlI0MDAwIGZhbWlseSBvZiBTMiBwcm9kdWN0cy4gU28gdGhvc2UKPiA+IGludGVyZXN0ZWQg
+dGVzdGVycy9kZXZlbG9wZXJzIGNhbiBtb2RpZnkgdGhlIHR1bmUuYyBhcHAgZGVtbyBhbmQgbWFr
+ZQo+ID4gY2hhbmdlcyBzcGVjaWZpYyB0byB0aGVpciBhcmVhLCBhbmQgdHJ5IGV4cGVyaW1lbnRp
+bmcgd2l0aCB0aGUgbmV3IEFQSQo+ID4gaWYgdGhleSBkZXNpcmUuIFsxXQo+ID4KPiA+IE9idmlv
+dXNseSwgdHVuZS5jIGlzbid0IGludGVsbGlnZW50LCBpdCdzIG5vdCBhIHJlcGxhY2VtZW50IGZv
+ciBzemFwLAo+ID4gdHphcCBvciB3aGF0ZXZlciAtIGl0J3Mgc2ltcGx5IGEgc3RhbmRhbG9uZSBT
+MkFQSSB0ZXN0IHRvb2wsIHRoYXQKPiA+IGRlbW9uc3RyYXRlcyB0aGUgaW1wb3J0YW50IEFQSSBp
+bnRlcmZhY2UuCj4gPgo+ID4gUUFNL0FUU0MgYXJlIHdvcmtpbmcgd2VsbCwgdGhlIEhWUjQwMDAg
+Y2hhbmdlcyBsb29rIGZpbmUgYWNjb3JkaW5nIHRvCj4gPiB0aGUgZGVidWcgbG9nIChhbHRob3Vn
+aCBJIGhhdmUgbm8gbG9jYWwgc2F0ZWxsaXRlIGZlZWQgZm9yIHRlc3RpbmcKPiA+IHRvbmlnaHQp
+LiBEVkItVCBzaG91bGQganVzdCB3b3JrIGFzLWlzLCBidXQgSSBjYW4ndCB0ZXN0IHRoaXMgZm9y
+IGEgZGF5Cj4gPiBvciBzby4gSS5FLiBJJ3ZlIHRlc3RlZCB3aGF0IEkgY2FuIGluIHRoZSBVUyBi
+dXQgd2UgbWlnaHQgaGF2ZSBhIGZldwo+ID4gYnVncyBvciBnb3RjaGFzIQo+ID4KPiA+IElmIGFu
+eW9uZSBpcyB3aWxsaW5nIHRvIHB1bGwgdGhlIHRyZWUgYW5kIGJlZ2luIHRlc3Rpbmcgd2l0aCB0
+aGUgdHVuZS5jCj4gPiBhcHAgdGhlbiBwbGVhc2UgcG9zdCBhbGwgZmVlZGJhY2sgb24gdGhpcyB0
+aHJlYWQuIFsyXQo+ID4KPiA+IEkndmUgcmVjZWl2ZWQgYSBsb3Qgb2YgZ29vZCBmZWVkYmFjayBv
+ZiB0aGUgb3JpZ2luYWwgMjAwNyBwYXRjaGVzLiBJCj4gPiBleHBlY3QgdG8gc3RhcnQgbWVyZ2lu
+ZyB0aG9zZSBjaGFuZ2VzIG9mIHRoZSBjb21pbmcgZGF5cy4gRG9uJ3QgYmUgdG9vCj4gPiBjb25j
+ZXJuZWQgdGhhdCB5b3VyIGNoYW5nZXMgYXJlIG5vdCB5ZXQgbWVyZ2VkLCBrZWVwIHdhdGNoaW5n
+IHRoZSBTMkFQSQo+ID4gdHJlZSBhbmQgdGhleSB3aWxsIHNvb24gYXBwZWFyIC4uLiBhbG9uZyB3
+aXRoIGEgbG90IG9mIGdlbmVyYWwgY29kZQo+ID4gY2xlYW51cCAoY2hlY2twYXRjaCB2aW9sYXRp
+b25zKQo+ID4KPiA+IEkgZXhwZWN0IHRvIGNhdGNodXAgb24gbXkgb2xkZXIgZW1haWwgdG9tb3Jy
+b3cuCj4gPgo+ID4gUmVnYXJkcyB0byBhbGwsCj4gPgo+ID4gLSBTdGV2ZQo+ID4gWzFdIEknbGwg
+bmVlZCB0byByZXZpZXcgYW5kIGRpZmYgYW55IG9mIHRoZSBuZXdlciBIVlI0MDAwIGRyaXZlcgo+
+ID4gZGVyaXZhdGl2ZXMgdGhhdCBwZW9wbGUgaGF2ZSBiZWVuIHVzaW5nLCBiZWZvcmUgbWVyZ2lu
+ZyB0aG9zZSBjaGFuZ2VzCj4gPiBpbnRvIHRoZSBTMkFQSSB0cmVlLgo+ID4gWzJdIFJlbWVtYmVy
+IHlvdSdyZSBnb2luZyB0byBuZWVkIHRoZSBjeDI0MTE2IGZpcm13YXJlIGlmIHlvdSdyZQo+ID4g
+c3BlY2lmaWNhbGx5IHRlc3RpbmcgdGhlIEhWUjQwMDAuLi4uIGJ1dCB5b3UgcHJvYmFibHkgYWxy
+ZWFkeSBrbm93IHRoYXQhCj4gOikKPiA+Cj4gPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwo+ID4gbGludXgtZHZiIG1haWxpbmcgbGlzdAo+ID4gbGludXgt
+ZHZiQGxpbnV4dHYub3JnCj4gPiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1h
+bi9saXN0aW5mby9saW51eC1kdmIKPiAKPiBJcyBpdCBwb3NzaWJsZSB0byBhZGQgVGVWaWkgUzQ2
+MCBzdXBwb3J0IHRvIHlvdXIgcmVwb3NpdG9yeT8KPiBQYXRjaCBpbmNsdWRlZC4KPiBJIGhhdmUg
+bG9ja2VkIHNpZ25hbCB3aXRoIHR1bmUuYyBzdWNjZXNmdWxseS4KPiAgCj4gSWdvciBNLiBMaXBs
+aWFuaW4KClN0ZXZlLAoKSSBoYXZlIGJlZW4gdHJhY2tpbmcgZG93biB0aGUgZm9sbG93aW5nIGJ1
+ZyB3aGljaCBhZmZlY3RzIHRoZSBMTkIgdm9sdGFnZS4gSSBub3cgaGF2ZQpzaWduYWwgbG9jayBm
+b3IgRFZCLVMgYW5kIERWQi1TMiAoUVBTSywgQXN0cmEgSEQgUHJvbW8pIHdpdGggdGhlIEhWUjQw
+MDAuCgpSZWdhcmRzLApIYW5zCgpkaWZmIC1yIGYwM2RjNWJmYzQwZiBsaW51eC9kcml2ZXJzL21l
+ZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlh
+L2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYyAgIFRodSBTZXAgMDQgMjA6MTk6NDMgMjAwOCAt
+MDQwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQu
+YyAgIFN1biBTZXAgMDcgMDI6NDY6MTcgMjAwOCArMDEwMApAQCAtMTMwMSw3ICsxMzAxLDcgQEAg
+aW50IHR2X3Byb3BlcnR5X3Byb2Nlc3Moc3RydWN0IGR2Yl9mcm9udAogICAgICAgIGNhc2UgVFZf
+U0VUX1ZPTFRBR0U6CiAgICAgICAgICAgICAgICBmZS0+dHZfcHJvcGVydHlfY2FjaGUudm9sdGFn
+ZSA9IHR2cC0+dS5kYXRhOwogICAgICAgICAgICAgICAgciA9IGR2Yl9mcm9udGVuZF9pb2N0bF9s
+ZWdhY3koaW5vZGUsIGZpbGUsIEZFX1NFVF9WT0xUQUdFLAotICAgICAgICAgICAgICAgICAgICAg
+ICAmZmUtPnR2X3Byb3BlcnR5X2NhY2hlLnZvbHRhZ2UpOworICAgICAgICAgICAgICAgICAgICAg
+ICAodm9pZCAqKWZlLT50dl9wcm9wZXJ0eV9jYWNoZS52b2x0YWdlKTsKICAgICAgICAgICAgICAg
+IGJyZWFrOwogICAgICAgIGNhc2UgVFZfR0VUX1ZPTFRBR0U6CiAgICAgICAgICAgICAgICB0dnAt
+PnUuZGF0YSA9IGZlLT50dl9wcm9wZXJ0eV9jYWNoZS52b2x0YWdlOwoKCi0tIApSZWxlYXNlIGVh
+cmx5LCByZWxlYXNlIG9mdGVuLgoKR01YIEtvc3Rlbmxvc2UgU3BpZWxlOiBFaW5mYWNoIG9ubGlu
+ZSBzcGllbGVuIHVuZCBTcGHDnyBoYWJlbiBtaXQgUGFzdHJ5IFBhc3Npb24hCmh0dHA6Ly9nYW1l
+cy5lbnRlcnRhaW5tZW50LmdteC5uZXQvZGUvZW50ZXJ0YWlubWVudC9nYW1lcy9mcmVlL3B1enps
+ZS82MTY5MTk2CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3
+LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
