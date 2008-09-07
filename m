@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from fk-out-0910.google.com ([209.85.128.186])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <msanders@fenza.com>) id 1KhKRJ-0002Pb-GV
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 10:37:11 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so1061287fga.25
-	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 01:37:05 -0700 (PDT)
-Message-ID: <5926395e0809210137y7a89a887xa7ca54218d09b1e@mail.gmail.com>
-Date: Sun, 21 Sep 2008 18:07:05 +0930
-From: Michael <m72@fenza.com>
-To: "Alistair Buxton" <a.j.buxton@gmail.com>
-In-Reply-To: <3d374d00809201151w543e17cdm4ca67e5940667f2b@mail.gmail.com>
+	(envelope-from <don@syst.com.br>) id 1KcBNR-0002ME-GL
+	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 05:55:55 +0200
+Received: by fk-out-0910.google.com with SMTP id f40so825161fka.1
+	for <linux-dvb@linuxtv.org>; Sat, 06 Sep 2008 20:55:49 -0700 (PDT)
+Message-ID: <a86be8e70809062055v6157e476nfbff0cba13dbd444@mail.gmail.com>
+Date: Sun, 7 Sep 2008 00:55:49 -0300
+From: "Daniel Oliveira Nascimento" <don@syst.com.br>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <5926395e0809182212k1454836dq1585f56048ae5404@mail.gmail.com>
-	<3d374d00809190659r123651ffwec3a326367e248e7@mail.gmail.com>
-	<5926395e0809200414m186da966g62b4f0f975b46633@mail.gmail.com>
-	<3d374d00809201151w543e17cdm4ca67e5940667f2b@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB USB receiver stopped reporting correct USB ID
+Content-Type: multipart/mixed;
+	boundary="----=_Part_61807_13647873.1220759749497"
+Subject: [linux-dvb] [PATCH] support YUAN High-Tech STK7700D (1164:1f08)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,70 +20,97 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Sep 21, 2008 at 4:21 AM, Alistair Buxton <a.j.buxton@gmail.com> wrote:
-> 2008/9/20 Michael Sanders <msanders@fenza.com>:
->
->> Thanks for you ideas. I have attached the full dmesg as suggested.
->>
->> I don't think the problem is a cold/warm state issue. When I used the
->> device for the first time, I saw a warning that it (correct name was
->> given) was it its cold state and that firmware was not found. Adding
->> the firmware fixed the problem and then it worked fine. i.e. in the
->> cold state, it did not show the EZ-USB id.
->
-> That's odd. However, there is no difference between cold state and the
-> current state. EZ-USB devices usually have a very small I2C eeprom
-> which holds nothing except for the device IDs. It looks like that chip
-> has either been wiped or has blown.
->
-> You should still be able to force the firmware loading, after which it
-> should go into warm state as normal. There are two ways you could do
-> that. There is a tool called "fxload" which can load the firmware, but
-> it uses a different format to the kernel drivers for the firmware
-> file. It needs intel hex format (ihx). You could alternatively add the
-> EZ-USB development ID to the list of IDs for the kernel driver.
+------=_Part_61807_13647873.1220759749497
+Content-Type: multipart/alternative;
+	boundary="----=_Part_61808_27097693.1220759749497"
 
-Thats very encouraging - sounds like there is hope to fix it. I did
-some googling and concluded that the cold ID for my device should be
-eb2a:17de and that the kernel module that it requires is
-"dvb-usb-dibusb-mb". At the moment, the generic 04b4:8613 seems to
-load the "usbtest" module - how do I force it to load
-dvb-usb-dibusb-mb instead? At least then I can confirm the matter is
-worth pursuing.
+------=_Part_61808_27097693.1220759749497
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> Unfortunately neither of those methods will be a permanent fix. You
-> will need to reprogram the I2C eeprom with the correct USB IDs in
-> order to do that. That can be done with fxload and a special firmware
-> or there is a tool available from Cypress which can do it - although
-> it is Windows only.
+Hi List,
 
-So I looked that this path too and downloaded the SuiteUSB 1.0 - USB
-Development tools for Visual C++ 6.0 from
-http://www.cypress.com/design/RD1076. That had a utility called
-CyConsole. That recognised that Cypress a USB device was plugged in
-and allows data be be manually changed, but unfortunately the
-documentation is written for people who have a better understanding of
-these things than me. There wasn't any obvious way just enter new
-vendor and product IDs. I looked through the datasheet of the
-cy7c68013 (http://download.cypress.com.edgesuite.net/design_resources/datasheets/contents/cy7c68013_8.pdf),
-but didn't see anything obvious. Anyone out there able/willing to give
-me some instructions on how to use the cypress tool to do that?
+attached is a patch that extends the dib0700 driver to support the
+DVB-part of the Asus notebook M51Sn tv-tunner (USB-ID 1164:1f08).
 
-On my linux machine, I installed fxload, but that also didn't provide
-any obvious way to change the IDs (I guess it only for loading the
-firmware)
+Following this thread:
+http://thread.gmane.org/gmane.linux.drivers.dvb/39269/focus=39298
 
-Thanks for all the help so far.
+I reproduced the same behavior that Albert Comerma had with his card.
+So I think that the same code will work with this card.
+I can't test if the card work properly with the patch because a live
+in Brazil and the digital tv standard is different.
+But I think that this information will be useful for someone trying to
+make this card work.
 
-- Michael
+Did someone make the analog part of any of these cards "Terratec
+Cinergy HT USB XE", "Pinnacle Expresscard 320cx" or "Terratec Cinergy
+HT Express" work ?
+
+------=_Part_61808_27097693.1220759749497
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr"><pre>Hi List,<br><br>attached is a patch that extends the dib0700 driver to support the DVB-part of the Asus notebook M51Sn tv-tunner (USB-ID 1164:1f08).<br><br>Following this thread:<br><a href="http://thread.gmane.org/gmane.linux.drivers.dvb/39269/focus=39298">http://thread.gmane.org/gmane.linux.drivers.dvb/39269/focus=39298</a><br>
+<br>I reproduced the same behavior that Albert Comerma had with his card. So I think that the same code will work with this card.<br>I can&#39;t test if the card work properly with the patch because a live in Brazil and the digital tv standard is different. <br>
+But I think that this information will be useful for someone trying to make this card work.<br><br>Did someone make the analog part of any of these cards &quot;Terratec Cinergy HT USB XE&quot;, &quot;Pinnacle Expresscard 320cx&quot; or &quot;Terratec Cinergy HT Express&quot; work ?<br>
+<br></pre></div>
+
+------=_Part_61808_27097693.1220759749497--
+
+------=_Part_61807_13647873.1220759749497
+Content-Type: text/x-patch; name=YUAN_STK7700.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fkt4lj3f0
+Content-Disposition: attachment; filename=YUAN_STK7700.patch
+
+ZGlmZiAtTmF1ciB2NGwtZHZiLm9yaWcvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9k
+aWIwNzAwX2RldmljZXMuYyB2NGwtZHZiLTIwMDgwOTA3L2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZi
+L2R2Yi11c2IvZGliMDcwMF9kZXZpY2VzLmMKLS0tIHY0bC1kdmIub3JpZy9saW51eC9kcml2ZXJz
+L21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfZGV2aWNlcy5jCTIwMDgtMDktMDcgMDA6MTE6Mjcu
+MDAwMDAwMDAwIC0wMzAwCisrKyB2NGwtZHZiLTIwMDgwOTA3L2xpbnV4L2RyaXZlcnMvbWVkaWEv
+ZHZiL2R2Yi11c2IvZGliMDcwMF9kZXZpY2VzLmMJMjAwOC0wOS0wNyAwMDoxODo1My4wMDAwMDAw
+MDAgLTAzMDAKQEAgLTExMTksNiArMTExOSw3IEBACiAJeyBVU0JfREVWSUNFKFVTQl9WSURfTEVB
+RFRFSywgICBVU0JfUElEX1dJTkZBU1RfRFRWX0RPTkdMRV9TVEs3NzAwUF8yKSB9LAogLyogMzUg
+Ki97IFVTQl9ERVZJQ0UoVVNCX1ZJRF9IQVVQUEFVR0UsIFVTQl9QSURfSEFVUFBBVUdFX05PVkFf
+VERfU1RJQ0tfNTIwMDkpIH0sCiAJeyBVU0JfREVWSUNFKFVTQl9WSURfSEFVUFBBVUdFLCBVU0Jf
+UElEX0hBVVBQQVVHRV9OT1ZBX1RfNTAwXzMpIH0sCisJeyBVU0JfREVWSUNFKFVTQl9WSURfWVVB
+TiwgICAgICBVU0JfUElEX1lVQU5fU1RLNzcwMCkgfSwKIAl7IDAgfQkJLyogVGVybWluYXRpbmcg
+ZW50cnkgKi8KIH07CiBNT0RVTEVfREVWSUNFX1RBQkxFKHVzYiwgZGliMDcwMF91c2JfaWRfdGFi
+bGUpOwpAQCAtMTQwOCw3ICsxNDA5LDcgQEAKIAkJCX0sCiAJCX0sCiAKLQkJLm51bV9kZXZpY2Vf
+ZGVzY3MgPSAzLAorCQkubnVtX2RldmljZV9kZXNjcyA9IDQsCiAJCS5kZXZpY2VzID0gewogCQkJ
+eyAgICJUZXJyYXRlYyBDaW5lcmd5IEhUIFVTQiBYRSIsCiAJCQkJeyAmZGliMDcwMF91c2JfaWRf
+dGFibGVbMjddLCBOVUxMIH0sCkBAIC0xNDIyLDYgKzE0MjMsMTAgQEAKIAkJCQl7ICZkaWIwNzAw
+X3VzYl9pZF90YWJsZVszMl0sIE5VTEwgfSwKIAkJCQl7IE5VTEwgfSwKIAkJCX0sCisgICAgICAg
+ICAgICAgICAgICAgICAgICB7ICAgIllVQU4gSGlnaC1UZWNoIFNUSzc3MDBEIiwKKyAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgeyAmZGliMDcwMF91c2JfaWRfdGFibGVbMzddLCBOVUxM
+IH0sCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsgTlVMTCB9LAorICAgICAgICAg
+ICAgICAgICAgICAgICAgfSwKIAkJfSwKIAkJLnJjX2ludGVydmFsICAgICAgPSBERUZBVUxUX1JD
+X0lOVEVSVkFMLAogCQkucmNfa2V5X21hcCAgICAgICA9IGRpYjA3MDBfcmNfa2V5cywKZGlmZiAt
+TmF1ciB2NGwtZHZiLm9yaWcvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNi
+LWlkcy5oIHY0bC1kdmItMjAwODA5MDcvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9k
+dmItdXNiLWlkcy5oCi0tLSB2NGwtZHZiLm9yaWcvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZi
+LXVzYi9kdmItdXNiLWlkcy5oCTIwMDgtMDktMDcgMDA6MTE6MjcuMDAwMDAwMDAwIC0wMzAwCisr
+KyB2NGwtZHZiLTIwMDgwOTA3L2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVz
+Yi1pZHMuaAkyMDA4LTA5LTA3IDAwOjE4OjM3LjAwMDAwMDAwMCAtMDMwMApAQCAtMjA4LDYgKzIw
+OCw3IEBACiAjZGVmaW5lIFVTQl9QSURfQVNVU19VMzAwMAkJCQkweDE3MWYKICNkZWZpbmUgVVNC
+X1BJRF9BU1VTX1UzMTAwCQkJCTB4MTczZgogI2RlZmluZSBVU0JfUElEX1lVQU5fRUMzNzJTCQkJ
+CTB4MWVkYworI2RlZmluZSBVU0JfUElEX1lVQU5fU1RLNzcwMAkJCQkweDFmMDgKICNkZWZpbmUg
+VVNCX1BJRF9EVzIxMDIJCQkJCTB4MjEwMgogCiAjZW5kaWYK
+------=_Part_61807_13647873.1220759749497
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_61807_13647873.1220759749497--
