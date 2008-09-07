@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 202.7.249.79.dynamic.rev.aanet.com.au ([202.7.249.79]
-	helo=home.singlespoon.org.au)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <paulc@singlespoon.org.au>) id 1KjQHj-0002gd-Bk
-	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 05:15:56 +0200
-Message-ID: <48DDA4CE.20205@singlespoon.org.au>
-Date: Sat, 27 Sep 2008 13:13:18 +1000
-From: Paul Chubb <paulc@singlespoon.org.au>
+Received: from n65a.bullet.mail.sp1.yahoo.com ([98.136.45.12])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KcKeB-0002yK-Vr
+	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 15:49:49 +0200
+Date: Sun, 7 Sep 2008 06:49:12 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org, alireza ghahremanian <mat2ag@yahoo.com>
+In-Reply-To: <604499.69898.qm@web55108.mail.re4.yahoo.com>
 MIME-Version: 1.0
-To: larrykathy3@verizon.net
-References: <494928.55243.qm@web84108.mail.mud.yahoo.com>
-In-Reply-To: <494928.55243.qm@web84108.mail.mud.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] geniatech x8000 hdtv
+Message-ID: <410315.30960.qm@web46116.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] Skystar 2.8 + HD
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,42 +24,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Ruth,
-              please do an lspci and lspci -n from a terminal and post 
-the results.
+--- On Sun, 9/7/08, alireza ghahremanian <mat2ag@yahoo.com> wrote:
 
-Cheers Paul
+> Dose Skystar 2.8 support HD, for example Magyar channel on
 
-Ruth Fernandez wrote:
-> I have a geniatech x8000 hdtv card #63. I have installed v4l, firmware 
-> and put modprobe cx88--dvb into rc.local. I use Ubuntu desktop 
-> 2.6.24.19(latest). I did the blacklist and still the card is unkown to 
-> the driver.     Larry
->
->
->  45.289876] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-> [   45.289988] cx88[0]: Your board isn't known (yet) to the driver.  
-> You can
-> [   45.289990] cx88[0]: try to pick one of the existing card configs via
-> [   45.289992] cx88[0]: card=<n> insmod option.  Updating to the latest
->
->
-> -- 
-> This message has been scanned for viruses and
-> dangerous content by *MailScanner* <http://www.mailscanner.info/>, and is
-> believed to be clean.
-> ------------------------------------------------------------------------
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+You probably mean the recently-started m2 HD (along with SD
+4:3 and SD 16:9).
+
+This is a DVB-S transponder and can be received by any DVB-S
+card -- as can HD channels like BBC-HD, EinsFestival, ORF-HD,
+HD suisse, ....
+
+You need to have a player that is capable of H.264 for all the
+above channels (and a subscription for the last two; 1festHD
+has stopped for now)
 
 
--- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
+barry bouwsma
+
+
+      
 
 
 _______________________________________________
