@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f20.google.com ([209.85.217.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vanessaezekowitz@gmail.com>) id 1KhcSw-0000aR-6q
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 05:52:03 +0200
-Received: by gxk13 with SMTP id 13so2514002gxk.17
-	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 20:51:27 -0700 (PDT)
-From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-To: "linux-dvb" <linux-dvb@linuxtv.org>
-Date: Sun, 21 Sep 2008 22:51:45 -0500
+Received: from web55606.mail.re4.yahoo.com ([206.190.58.230])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o_lucian@yahoo.com>) id 1KcNsr-00026d-1t
+	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 19:17:10 +0200
+Date: Sun, 7 Sep 2008 10:16:33 -0700 (PDT)
+From: lucian orasanu <o_lucian@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809212251.45982.vanessaezekowitz@gmail.com>
-Cc: Ruth Fernandez <larrykathy3@verizon.net>
-Subject: [linux-dvb] Fwd: ubuntu installed geniatech x8000
+Message-ID: <946638.16132.qm@web55606.mail.re4.yahoo.com>
+Subject: [linux-dvb] Update multiproto to recent kernel
+Reply-To: o_lucian@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,53 +17,30 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-TGFycnk6ICBGb3IgdGhlIGtlcm5lbCwgSSdtIHVzaW5nICJsaW51eC1pbWFnZS0yLjYuMjQtMTkt
-Z2VuZXJpYyIsIHdpdGggdGhlIGhlYWRlcnMgdGhhdCBnbyB3aXRoIGl0IAooIiJsaW51eC1oZWFk
-ZXJzLTIuNi4yNC0xOS1nZW5lcmljIikuICAgIEl0IHJlYWxseSAqcmVhbGx5KiBzb3VuZHMgbGlr
-ZSB5b3UgYXJlIG1pc3NpbmcgdGhlIGNvcnJlY3QgaGVhZGVycyBwYWNrYWdlLCBwbHVzIAp0aGlz
-ICItc2VydmVyIiB2YXJpYW50IG9mIHRoZSBrZXJuZWwgaXMgbmV3IHRvIG1lLiAgSSdtIGZvcndh
-cmRpbmcgeW91ciBlbWFpbCB0byB0aGUgdjRsLWR2YiBtYWlsaW5nIGxpc3QgdG8gZ2V0IG1vcmUg
-ZXllcyBvbiB0aGUgCnByb2JsZW0uICBJZiB5b3UndmUgbm90IGRvbmUgc28sIHlvdSBzaG91bGQg
-am9pbiB0aGUgdjRsLWR2YiBtYWlsaW5nIGxpc3Q6CgpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2Nn
-aS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmIKCnY0bC1kdmIgZm9sa3M6ICBDYW4gc29t
-ZW9uZSBoZWxwIHRoaXMgZ3V5IG91dD8gIExpa2UgdGhlIHByZXZpb3VzIHRocmVhZCB3aXRoICJD
-dXJ0IEJsYW5rIiwgTGFycnkgaGVyZSBpcyB0cnlpbmcgdG8gZ2V0IGEgS3dvcmxkIApBVFNDIDEy
-MCB3b3JraW5nLCBidXQgSSBkb24ndCBrbm93IGhvdyB0byBzb2x2ZSB0aGUgcHJvYmxlbSBoZSdz
-IGhhdmluZy4gIEF0IGZpcnN0LCBMYXJyeSB3YXMgdXNpbmcgU1VTRSwgYnV0IGl0IGp1c3Qgd291
-bGRuJ3QgCmNvb3BlcmF0ZSAoaGUgd2FzIHJlY2VpdmluZyB0aGUgc2FtZSBlcnJvcnMgdGhlcmUg
-YXMgd2VsbCkuICBBdCBsZWFzdCBDdXJ0IHdhcyBhYmxlIHRvIGdldCB0aGUgZHJpdmVyIHRvIGJ1
-aWxkLiAgT2ZmIHRoZSB0b3Agb2YgbXkgCmhlYWQsIEkgZG9uJ3Qga25vdyB3aGF0IHRoZSBkaWZm
-ZXJlbmNlcyBhcmUgYmV0d2VlbiB0aGUga2VybmVsIEknbSB1c2luZyBhbmQgdGhlIG9uZSBoZSdz
-IHVzaW5nLCBzZWVpbmcgYXMgdGhleSdyZSB0aGUgc2FtZSAKdmVyc2lvbiBudW1iZXIuICBJIGNv
-dWxkIHN3ZWFyIG9uIGEgc3RhY2sgb2YgcHJvZ3JhbW1lcidzIHJlZmVyZW5jZSBndWlkZXMgdGhh
-dCBJJ3ZlIHNlZW4gdGhlIHNhbWUgZXJyb3IgbXlzZWxmIGF0IGxlYXN0IG9uY2UsIApidXQgSSds
-bCBiZSBkYW1uZWQgaWYgSSBjYW4gcmVtZW1iZXIgaG93IEkgc29sdmVkIGl0LgoKKEhvdyBkaWQg
-SSBiZWNvbWUgdGhlIHJlc2lkZW50IGV4cGVydCBvbiB0aGlzIGNhcmQgYW55d2F5PyA6LSkgKQoK
-LS0tLS0gVGV4dCBJbXBvcnQgQmVnaW4gLS0tLS0KClN1YmplY3Q6IHVidW50dSBpbnN0YWxsZWQg
-Z2VuaWF0ZWNoIHg4MDAwCkRhdGU6IFN1bmRheSAyMSBTZXB0ZW1iZXIgMjAwOApGcm9tOiBSdXRo
-IEZlcm5hbmRleiA8bGFycnlrYXRoeTNAdmVyaXpvbi5uZXQ+ClRvOiB2YW5lc3NhZXpla293aXR6
-IDx2YW5lc3NhZXpla293aXR6QGdtYWlsLmNvbT4KCldlbGwgSSBnYXZlIHVwIG9uIFN1c2UsIEkg
-a25vdyBpdMWbIGFuIG9sZCBzdG9yeSwgbGVhdmUgdGhvc2UgZ2lybHMgYWxvbmUuIE5vdyBpdMK0
-cyBVYnVudHUuCkFuZCBub3cgbWFrZSAtajQgZ2V0IG1lLCBJwrRtIHVzZWluZyAyLjYuMjQtMTkt
-c2VydmVyIEkgYmVsaWV2ZSB0aGF0IGtlcm5lbCBpcyB0aGUgcHJvYmxlbSAKSSBoYXZlIGtlcm5l
-bCAyLjYuMjYtMTktZ2VuZXJpYy4gV2hpY2gga2VybmVsIGFuZCBrZXJuZWwgaGVhZGVyIGRvIHlv
-dSB1c2U/wqAgTGFycnkgCgptYWtlIC1DIC9ob21lL2xhcnJ5L3Y0bC1kdmIvdjRsIAptYWtlWzFd
-OiBFbnRlcmluZyBkaXJlY3RvcnkgYC9ob21lL2xhcnJ5L3Y0bC1kdmIvdjRsJwpVcGRhdGluZy9D
-cmVhdGluZyAuY29uZmlnClByZXBhcmluZyB0byBjb21waWxlIGZvciBrZXJuZWwgdmVyc2lvbiAy
-LjYuMjQKRmlsZSBub3QgZm91bmQ6IC9saWIvbW9kdWxlcy8yLjYuMjQtMTktc2VydmVyL2J1aWxk
-Ly5jb25maWcgYXQgLi9zY3JpcHRzL21ha2Vfa2NvbmZpZy5wbCBsaW5lIDMyLCA8SU4+IGxpbmUg
-NC4KbWFrZVsxXTogKioqIE5vIHJ1bGUgdG8gbWFrZSB0YXJnZXQgYC5teWNvbmZpZycsIG5lZWRl
-ZCBieSBgY29uZmlnLWNvbXBhdC5oJy7CoCBTdG9wLgptYWtlWzFdOiBMZWF2aW5nIGRpcmVjdG9y
-eSBgL2hvbWUvbGFycnkvdjRsLWR2Yi92NGwnCm1ha2U6ICoqKiBbYWxsXSBFcnJvciAyCgotLS0t
-LSBUZXh0IEltcG9ydCBFbmQgLS0tLS0KCi0tIAoiTGlmZSBpcyBmdWxsIG9mIHBvc2l0aXZlIGFu
-ZCBuZWdhdGl2ZSBldmVudHMuICBTcGVuZAp5b3VyIHRpbWUgY29uc2lkZXJpbmcgdGhlIGZvcm1l
-ciwgbm90IHRoZSBsYXR0ZXIuIgpWYW5lc3NhIEV6ZWtvd2l0eiA8dmFuZXNzYWV6ZWtvd2l0ekBn
-bWFpbC5jb20+CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3
-LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Hy,
+
+Maybe this will help you: 
+
+cd /usr/local/src/dvb/linux/include/linux
+ln -s /usr/src/linux/include/linux/compiler.h compiler.h
+
+Is from here :
+
+
+http://www.vdr-wiki.de/wiki/index.php/OpenSUSE_VDR_DVB-S2_-_Teil2:_DVB_Treiber
+
+Regard Lucian.
+
+
+      
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
