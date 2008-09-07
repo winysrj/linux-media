@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KesjR-0000ra-0H
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 16:37:46 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K76008BBWLV2250@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sun, 14 Sep 2008 10:37:08 -0400 (EDT)
-Date: Sun, 14 Sep 2008 10:37:07 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <516169.32534.qm@web28413.mail.ukl.yahoo.com>
-To: horuljo@yahoo.de
-Message-id: <48CD2193.2000106@linuxtv.org>
-MIME-version: 1.0
-References: <516169.32534.qm@web28413.mail.ukl.yahoo.com>
+	(envelope-from <abraham.manu@gmail.com>) id 1KcDlX-0000kE-By
+	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 08:28:56 +0200
+Message-ID: <48C3749F.10904@gmail.com>
+Date: Sun, 07 Sep 2008 10:28:47 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: sacha <sacha@hemmail.se>
+References: <1219183334.6734.3.camel@lanbox>
+In-Reply-To: <1219183334.6734.3.camel@lanbox>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Kernel integration of rtl2831u driver
+Subject: Re: [linux-dvb] Mantis loading errors.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,25 +25,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Peter Mayer wrote:
-> Hi,
+sacha wrote:
+> I have compiled latest Mantis driver on my 64-bit Ubuntu 8.04 and see
+> this message from dmesg:
+> [   90.229741] mantis: disagrees about version of symbol
+> dvb_unregister_frontend
+> [   90.229743] mantis: Unknown symbol dvb_unregister_frontend
+> [   90.229858] mantis: disagrees about version of symbol
+> dvb_register_frontend
+> [   90.229860] mantis: Unknown symbol dvb_register_frontend
 > 
-> i own a Freecom rev 4 DVB-T USB-stick using a rtl2831u chip inside. Since about February this year, drivers for that stick are available and a lot of discussion about the driver was done on this list. 
-> 
-> But it seems for quite some time that no further discussion happens anymore.. I am using debian SID (sidux) and the actual kernel there (2.6.26-5.slh.4-sidux-686) from some days ago still does not include the rtl2831u dvb-t driver. So, I wonder now what the next steps are to make this driver available in the linux kernel, and when it will probably happen.
-> 
-> Background of my question is that I would like to use the stick of course, but without patching and compiling a new kernel from source by myself.
-> 
-> So, what is the future plan of rtl2831u for kernel integration? I am not familiar with the standard procedure of the diffusion process into mainstream kernel versions, so I would appreciate any comments on this topic.
+> what does it mean?
 
-This has been on and off the mailing list since Jan.
 
-I gather the tree has some significant merge issues, that's probably why 
-it hasn't been merged. Generally if the drivers are legally clean, code 
-clean they get merged in a couple of weeks.
+You have loaded the same modules from within kernel also. You can unload
+those modules manually and reload them, or simply do a reboot, to reload
+the modules.
 
-- Steve
-
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
