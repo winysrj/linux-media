@@ -1,15 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Fri, 12 Sep 2008 12:17:44 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080912152755.GA29142@linuxtv.org>
-To: Johannes Stezenbach <js@linuxtv.org>
-Message-id: <48CA9628.7030709@linuxtv.org>
-MIME-version: 1.0
-References: <48CA0355.6080903@linuxtv.org> <200809120826.31108.hftom@free.fr>
-	<48CA6C2E.7050908@linuxtv.org> <200809121529.41795.hftom@free.fr>
-	<48CA77DE.1020700@linuxtv.org> <20080912152755.GA29142@linuxtv.org>
-Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1KcRDg-0004tC-Sn
+	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 22:50:53 +0200
+Date: Sun, 07 Sep 2008 22:50:19 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <468e5d620809071325meb34081h51b7318c6b872e5b@mail.gmail.com>
+Message-ID: <20080907205019.310640@gmx.net>
+MIME-Version: 1.0
+References: <468e5d620809071325meb34081h51b7318c6b872e5b@mail.gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR 4000 in Ubuntu 8.04
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,44 +18,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Johannes Stezenbach wrote:
-> On Fri, Sep 12, 2008, Steven Toth wrote:
->> Christophe Thommeret wrote:
->>> As far  as i understand, the cinergyT2 driver is a bit unusual, e.g. 
->>> dvb_register_frontend is never called (hence no dtv_* log messages). I don't 
->>> know if there is others drivers like this, but this has to be investigated 
->>> cause rewritting all drivers for S2API could be a bit of work :)
->>>
->>> P.S.
->>> I think there is an alternate driver for cinergyT2 actually in developement 
->>> but idon't remember where it's located neither its state.
->> Good to know. (I also saw your followup email). I have zero experience 
->> with the cinergyT2 but the old api should still be working reliably. I 
->> plan to investigate this, sounds like a bug! :)
-> 
-> Holger was of the opinion that having the demux in dvb-core
-> was stupid for devices which have no hw demux, so he
-> programmed around dvb-core. His plan was to add a
-> mmap-dma-buffers kind of API to the frontend device,
-> but it never got implemented.
-> 
-> Anyway, it's bad if one driver is different than all the others.
 
-Hmm, I didn't realize this, good to know.
+-------- Original-Nachricht --------
+> Datum: Sun, 7 Sep 2008 22:25:18 +0200
+> Von: "ga ver" <gavermer@gmail.com>
+> An: linux-dvb@linuxtv.org
+> Betreff: [linux-dvb] Hauppauge HVR 4000 in Ubuntu 8.04
 
-Now it's peaked my interest, I'll have to look at the code.
+> Hi,
+> =
 
-The existing API should still work at a bare minimum, if it's not - it 
-needs to.
+> In Ubuntu 8.04 with kernel 2.6.24-19 I will use a HVR 4000 card.
+> I have upgrade the firmware from http://www.steventoth.net/linux/cx24116/,
+> and the latest driver from http:/linuxtv.org/hg/v4l-dvb
+> =
 
-- Steve
+> In dmesg is the card not autodetected.
+> What is missing here?
+> Where can I find more info.
+> =
 
+> Thanks in advance
+> gaston
+
+The v4l-dvb you downloaded does not contain an HVR4000 driver (yet), but se=
+veral
+drivers exist. Read the wiki at http://linuxtv.org/wiki/index.php/Hauppauge=
+_WinTV-HVR-4000
+for instructions. I use the MFE driver mostly. Are you interested in DVB-S,=
+ DVB-S2
+or DVB-T, or all of them? Keep watching this list -- it's a popular card he=
+re.
+
+Hans
+
+-- =
+
+Release early, release often.
+
+Psssst! Schon das coole Video vom GMX MultiMessenger gesehen?
+Der Eine f=FCr Alle: http://www.gmx.net/de/go/messenger03
 
 _______________________________________________
 linux-dvb mailing list
