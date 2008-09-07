@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.189])
+Received: from [195.7.61.12] (helo=killala.koala.ie)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <user.vdr@gmail.com>) id 1KiYa7-0000pS-SN
-	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 19:55:21 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so14069nfb.11
-	for <linux-dvb@linuxtv.org>; Wed, 24 Sep 2008 10:55:16 -0700 (PDT)
-Message-ID: <a3ef07920809241055i7c60ed78paef11dd55dcfeda9@mail.gmail.com>
-Date: Wed, 24 Sep 2008 10:55:16 -0700
-From: "VDR User" <user.vdr@gmail.com>
-To: "Oliver Endriss" <o.endriss@gmx.de>
-In-Reply-To: <200809241922.16748@orion.escape-edv.de>
+	(envelope-from <simon@koala.ie>) id 1KcPjS-0003xa-5A
+	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 21:15:34 +0200
+Received: from [195.7.61.29] (joburg.koala.ie [195.7.61.29])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id m87JFTbH018162
+	for <linux-dvb@linuxtv.org>; Sun, 7 Sep 2008 20:15:30 +0100
+Message-ID: <48C42851.8070005@koala.ie>
+Date: Sun, 07 Sep 2008 20:15:29 +0100
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <200809241922.16748@orion.escape-edv.de>
-Cc: v4l-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org, vdr@linuxtv.org
-Subject: Re: [linux-dvb] [Wanted] dvb-ttpci maintainer
+To: linux-dvb@linuxtv.org
+References: <48C00822.4030509@gmail.com>
+	<48C01698.4060503@gmail.com>	<48C01A99.402@gmail.com>
+	<20080904204709.GA32329@linuxtv.org>	<d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>
+	<48C1380F.7050705@linuxtv.org>
+In-Reply-To: <48C1380F.7050705@linuxtv.org>
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,23 +31,13 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Sep 24, 2008 at 10:22 AM, Oliver Endriss <o.endriss@gmx.de> wrote:
-> Hi,
->
-> due to the way S2API was pushed through (I would call it a plot)
-> there is not much motivation left to spend my time with DVB.
->
-> So - if someone wants to take over the dvb-ttpci drivers he should speak
-> up now. The sooner the better.
-
-I'm not the only person who will hate to see you leave!  Many people
-are disgusted by this stunt they pulled and while your absence will be
-a great loss to the linux dvb community, I understand & accept your
-position on it.  Unfortunately the politics, backstabbing, and dirty
-tactics has been driving away some very good people & assets away.  I
-can only hope that some day people will be put in charge who are
-unbiased and don't let their personal feelings interfere with what's
-best for the community.
+Steven Toth wrote:
+> A big difference between can and will, the em28xx fiasco tells us this.
+>   
+just wondering if your tree will go any way towards resolving that 
+little problem?
+--
+simo
 
 _______________________________________________
 linux-dvb mailing list
