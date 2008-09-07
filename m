@@ -1,19 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1Kh6Jk-00083V-Py
-	for linux-dvb@linuxtv.org; Sat, 20 Sep 2008 19:32:25 +0200
-Message-ID: <48D533A4.5060406@iki.fi>
-Date: Sat, 20 Sep 2008 20:32:20 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1KcTOn-0002Hf-UN
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 01:10:32 +0200
+Date: Mon, 08 Sep 2008 01:09:56 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+Message-ID: <20080907230956.310620@gmx.net>
 MIME-Version: 1.0
-To: Christoph Pfister <christophpfister@gmail.com>
-References: <4836F51E.7070403@iki.fi>	<200806111910.06038.christophpfister@gmail.com>	<488F2684.2030809@iki.fi>
-	<200808011115.38550.christophpfister@gmail.com>
-In-Reply-To: <200808011115.38550.christophpfister@gmail.com>
-Content-Type: multipart/mixed; boundary="------------090306080304020500060006"
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] update Finland initial DVB-T tuning files
+To: linux-dvb@linuxtv.org, darron@kewl.org, stoth@linuxtv.org
+Subject: [linux-dvb] HVR4000 scratchpad patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,57 +16,28 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------090306080304020500060006
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Does anyone know about the status of the HVR 4000 patch at
+http://dev.kewl.org/hauppauge/scratchpad-8628.diff ?
+According to the note from 18th Aug it's a test version for 2.6.26.
+But it is 5x larger than previous patches so it looks like it was
+diffed against the wrong revision. Has anyone rebased it?
 
-hello,
-updating DVB-T fi-* initial tuning files again!
+Thanks,
+Hans
+-- =
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Release early, release often.
 
---------------090306080304020500060006
-Content-Type: text/plain;
- name="fi-update_2008-09-20.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fi-update_2008-09-20.patch"
-
-diff -r 07e6a86c9eba util/scan/dvb-t/fi-Salla_Ihistysjanka
---- a/util/scan/dvb-t/fi-Salla_Ihistysjanka	Sun Sep 14 18:03:01 2008 +0200
-+++ b/util/scan/dvb-t/fi-Salla_Ihistysjanka	Sat Sep 20 20:29:48 2008 +0300
-@@ -1,4 +1,4 @@
- # automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 07e6a86c9eba util/scan/dvb-t/fi-Salla_Saija
---- a/util/scan/dvb-t/fi-Salla_Saija	Sun Sep 14 18:03:01 2008 +0200
-+++ b/util/scan/dvb-t/fi-Salla_Saija	Sat Sep 20 20:29:48 2008 +0300
-@@ -1,4 +1,4 @@
- # automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-
---------------090306080304020500060006
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Psssst! Schon das coole Video vom GMX MultiMessenger gesehen?
+Der Eine f=FCr Alle: http://www.gmx.net/de/go/messenger03
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------090306080304020500060006--
