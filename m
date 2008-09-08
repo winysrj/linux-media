@@ -1,16 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web23201.mail.ird.yahoo.com ([217.146.189.56])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <newspaperman_germany@yahoo.com>) id 1Kd3d0-0005Jl-Pr
-	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 15:51:36 +0200
-Date: Tue, 9 Sep 2008 13:49:58 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1Kcjyi-0005lg-5X
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 18:52:41 +0200
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Kcjyd-0006TE-0P
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 16:52:35 +0000
+Received: from c83-254-20-12.bredband.comhem.se ([83.254.20.12])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Mon, 08 Sep 2008 16:52:34 +0000
+Received: from elupus by c83-254-20-12.bredband.comhem.se with local (Gmexim
+	0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Mon, 08 Sep 2008 16:52:34 +0000
 To: linux-dvb@linuxtv.org
-In-Reply-To: <1220829058l.6056l.1l@manu-laptop>
-MIME-Version: 1.0
-Message-ID: <898909.47709.qm@web23201.mail.ird.yahoo.com>
-Subject: Re: [linux-dvb] Re :  Re : TT S2-3200 driver
-Reply-To: newspaperman_germany@yahoo.com
+From: elupus <elupus@ecce.se>
+Date: Mon, 8 Sep 2008 18:52:28 +0200
+Message-ID: <tih9ovrhiir9$.pski8ckx8xe6.dlg@40tude.net>
+References: <10d98cn4rdklb.sc6i17qzg4hh.dlg@40tude.net>
+	<ht6lq3h8puvv$.1f20vcvg13w7e.dlg@40tude.net>
+	<alpine.LRH.1.10.0809062106340.6645@pub5.ifh.de>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="--387128B66CE7E590_message_boundary--"
+Subject: Re: [linux-dvb] [PATCH] Yuan STK7700D support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,141 +30,84 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi manu!
+----387128B66CE7E590_message_boundary--
+Content-type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
+On Sat, 6 Sep 2008 21:07:48 +0200 (CEST), Patrick Boettcher wrote:
 
-Are you talking about DVB-S or DVB-s2 are we talking about the same problem.
+> Hi,
+> 
+> In order to add a patch I need a Signed-off-by line with your name and 
+> email-address. See README.patches in v4l-dvb repository for more 
+> information.
+> 
 
-I experienced those problems on a dvb-s2 transponder with a SR of 30000 and=
- FEC 3/4 currently used on Thor 1=B0W by Canal Digital Nordic on some of th=
-eir HD packages.
+Here we go, somebody had gone and added another device since my last patch,
+so patch had merge conflicts ofcourse. 
 
-When I set Sr to 29998 I even get lock, but the stream is totaly corrupted.
+People say mercurial should be easier than git. But hey, just adding a
+Signed-Off-By message was hard. (then again first time I try it).
 
-kind regards
+Here it is anyway.
 
+Regards
+----387128B66CE7E590_message_boundary--
+Content-type: text/x-patch; charset=iso-8859-1
+Content-Transfer-Encoding: Base64
+Content-Disposition: attachment; filename=yuan.patch
+Content-Description: Attached file: yuan.patch
 
-Newsy
+IyBIRyBjaGFuZ2VzZXQgcGF0Y2gNCiMgVXNlciBKb2FraW0gUGxhdGUgPGVsdXB1c0BlY2Nl
+LnNlPg0KIyBEYXRlIDEyMjA4OTI0NzQgLTcyMDANCiMgTm9kZSBJRCA5ODRiZjQ3YzExZWQ5
+MDZkODgxZTM2YzQ4Y2NkZjI1ZTY2NDkyOWNiDQojIFBhcmVudCAgZmYwNTIwMTBjNGNiNmJi
+MjBjZDM3YmFkYTAyNTE0OGI2OWZhNDBhZQ0KWXVhbiBTVEs3NzAwRCBzdXBwb3J0DQoNClNp
+Z25lZC1PZmYtQnk6IEpvYWtpbSBQbGF0ZSA8ZWx1cHVzQGVjY2Uuc2U+DQoNCmRpZmYgLXIg
+ZmYwNTIwMTBjNGNiIC1yIDk4NGJmNDdjMTFlZCBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9k
+dmItdXNiL2RpYjA3MDBfZGV2aWNlcy5jDQotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL2R2
+Yi9kdmItdXNiL2RpYjA3MDBfZGV2aWNlcy5jCVN1biBTZXAgMDcgMTQ6NDY6NDQgMjAwOCAr
+MDIwMA0KKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIwNzAwX2Rl
+dmljZXMuYwlNb24gU2VwIDA4IDE4OjQ3OjU0IDIwMDggKzAyMDANCkBAIC0xMTE5LDYgKzEx
+MTksNyBAQCBzdHJ1Y3QgdXNiX2RldmljZV9pZCBkaWIwNzAwX3VzYl9pZF90YWJsDQogCXsg
+VVNCX0RFVklDRShVU0JfVklEX0xFQURURUssICAgVVNCX1BJRF9XSU5GQVNUX0RUVl9ET05H
+TEVfU1RLNzcwMFBfMikgfSwNCiAvKiAzNSAqL3sgVVNCX0RFVklDRShVU0JfVklEX0hBVVBQ
+QVVHRSwgVVNCX1BJRF9IQVVQUEFVR0VfTk9WQV9URF9TVElDS181MjAwOSkgfSwNCiAJeyBV
+U0JfREVWSUNFKFVTQl9WSURfSEFVUFBBVUdFLCBVU0JfUElEX0hBVVBQQVVHRV9OT1ZBX1Rf
+NTAwXzMpIH0sDQorCXsgVVNCX0RFVklDRShVU0JfVklEX1lVQU4sCVVTQl9QSURfWVVBTl9T
+VEs3NzAwRCkgfSwNCiAJeyAwIH0JCS8qIFRlcm1pbmF0aW5nIGVudHJ5ICovDQogfTsNCiBN
+T0RVTEVfREVWSUNFX1RBQkxFKHVzYiwgZGliMDcwMF91c2JfaWRfdGFibGUpOw0KQEAgLTE0
+MDgsNyArMTQwOSw3IEBAIHN0cnVjdCBkdmJfdXNiX2RldmljZV9wcm9wZXJ0aWVzIGRpYjA3
+MDANCiAJCQl9LA0KIAkJfSwNCiANCi0JCS5udW1fZGV2aWNlX2Rlc2NzID0gMywNCisJCS5u
+dW1fZGV2aWNlX2Rlc2NzID0gNCwNCiAJCS5kZXZpY2VzID0gew0KIAkJCXsgICAiVGVycmF0
+ZWMgQ2luZXJneSBIVCBVU0IgWEUiLA0KIAkJCQl7ICZkaWIwNzAwX3VzYl9pZF90YWJsZVsy
+N10sIE5VTEwgfSwNCkBAIC0xNDIyLDYgKzE0MjMsMTAgQEAgc3RydWN0IGR2Yl91c2JfZGV2
+aWNlX3Byb3BlcnRpZXMgZGliMDcwMA0KIAkJCQl7ICZkaWIwNzAwX3VzYl9pZF90YWJsZVsz
+Ml0sIE5VTEwgfSwNCiAJCQkJeyBOVUxMIH0sDQogCQkJfSwNCisJCQl7ICAgIll1YW4gU1RL
+NzcwMEQiLA0KKwkJCQl7ICZkaWIwNzAwX3VzYl9pZF90YWJsZVszN10sIE5VTEwgfSwNCisJ
+CQkJeyBOVUxMIH0sDQorCQkJfSwNCiAJCX0sDQogCQkucmNfaW50ZXJ2YWwgICAgICA9IERF
+RkFVTFRfUkNfSU5URVJWQUwsDQogCQkucmNfa2V5X21hcCAgICAgICA9IGRpYjA3MDBfcmNf
+a2V5cywNCmRpZmYgLXIgZmYwNTIwMTBjNGNiIC1yIDk4NGJmNDdjMTFlZCBsaW51eC9kcml2
+ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2R2Yi11c2ItaWRzLmgNCi0tLSBhL2xpbnV4L2RyaXZl
+cnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi1pZHMuaAlTdW4gU2VwIDA3IDE0OjQ2OjQ0
+IDIwMDggKzAyMDANCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZi
+LXVzYi1pZHMuaAlNb24gU2VwIDA4IDE4OjQ3OjU0IDIwMDggKzAyMDANCkBAIC0yMDgsNiAr
+MjA4LDcgQEANCiAjZGVmaW5lIFVTQl9QSURfQVNVU19VMzAwMAkJCQkweDE3MWYNCiAjZGVm
+aW5lIFVTQl9QSURfQVNVU19VMzEwMAkJCQkweDE3M2YNCiAjZGVmaW5lIFVTQl9QSURfWVVB
+Tl9FQzM3MlMJCQkJMHgxZWRjDQorI2RlZmluZSBVU0JfUElEX1lVQU5fU1RLNzcwMEQJCQkJ
+MHgxZjA4DQogI2RlZmluZSBVU0JfUElEX0RXMjEwMgkJCQkJMHgyMTAyDQogDQogI2VuZGlm
 
-
---- manu <eallaud@yahoo.fr> schrieb am Mo, 8.9.2008:
-
-> Von: manu <eallaud@yahoo.fr>
-> Betreff: [linux-dvb] Re :  Re : TT S2-3200 driver
-> An: linux-dvb@linuxtv.org
-> Datum: Montag, 8. September 2008, 1:10
-> Le 07.09.2008 17:01:43, Manu Abraham a =E9crit :
-> > crow wrote:
-> > > Hi,
-> > > I am also tryint to compile multiproto_plus on
-> kernel 2.6.26-3
-> > (sidux
-> > > 2008-02) but no luck.
-> > > Kernel: Linux vdrbox 2.6.26-3.slh.4-sidux-amd64
-> #1 SMP PREEMPT Wed
-> > Sep
-> > > 3 19:39:11 UTC 2008 x86_64 GNU/Linux
-> > > I tryed it this way:
-> > > I downloaded dvb driver from:
-> > > apt-get update
-> > > apt-get install mercurial
-> > > cd /usr/src/
-> > > hg clone http://jusst.de/hg/multiproto_plus
-> > > mv multiproto dvb
-> > > ln -vfs /usr/src/linux-headers-`uname -r` linux
-> > > cd /usr/src/dvb/linux/include/linux/
-> > > ln -s /usr/src/linux/include/linux/compiler.h
-> compiler.h
-> > > cd /usr/src/dvb/
-> > > and i am trying make and get this problem :
-> > > ............
-> > >   CC [M]  /usr/src/dvb/v4l/ivtv-gpio.o
-> > >   CC [M]  /usr/src/dvb/v4l/ivtv-i2c.o
-> > > /usr/src/dvb/v4l/ivtv-i2c.c: In function
-> 'ivtv_i2c_register':
-> > > /usr/src/dvb/v4l/ivtv-i2c.c:171: error:
-> 'struct i2c_board_info' has
-> > no
-> > > member named 'driver_name'
-> > > make[3]: *** [/usr/src/dvb/v4l/ivtv-i2c.o] Error
-> 1
-> > > make[2]: *** [_module_/usr/src/dvb/v4l] Error 2
-> > > make[2]: Leaving directory
-> `/usr/src/linux-headers-2.6.26-3.slh.4-
-> > sidux-amd64'
-> > > make[1]: *** [default] Error 2
-> > > make[1]: Leaving directory `/usr/src/dvb/v4l'
-> > > make: *** [all] Error 2
-> > > root@vdrbox:/usr/src/dvb#
-> > > =
-
-> > > I wanna try this patch to as i am also TT S2-3200
-> user.
-> > > Any help welcome.
-> > =
-
-> > =
-
-> > That tree is being updated and being pushed, you can
-> either wait for =
-
-> > a
-> > little while till that tree is populated, or you can
-> pull the
-> > multiproto
-> > tree as well.
-> =
-
-> Bye any chance, di you get some time to see my posts about
-> TT-S 3200 =
-
-> ([BUG]: stb6100 getting carrier but stb0899
-> unable to get data (on a transponder that is emitting
-> normally) where I describe my problem: basically I can get
-> the carrier =
-
-> but search_data fails for a DVB-S transponder with 5/6 FEC
-> and 30MS/s =
-
-> whereas all other transp lock OK, they only have a
-> different FEC: 3/4.
-> Hope you can help me.
-> BTW: looking at a mantis driver (coming from their website)
-> I saw it =
-
-> was pretty close to yours though with some differences,
-> specially for =
-
-> init values. Is there any consolidation possible here to
-> get stb0899 =
-
-> going?
-> Bye
-> Manu
-> =
-
-> =
-
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-__________________________________________________
-Do You Yahoo!?
-Sie sind Spam leid? Yahoo! Mail verf=FCgt =FCber einen herausragenden Schut=
-z gegen Massenmails. =
-
-http://mail.yahoo.com =
-
+----387128B66CE7E590_message_boundary--
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+----387128B66CE7E590_message_boundary----
