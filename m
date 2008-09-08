@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp100.rog.mail.re2.yahoo.com ([206.190.36.78])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <jcoles0727@rogers.com>) id 1KhT2f-0005Zp-OI
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 19:48:19 +0200
-Message-ID: <48D688BE.80008@rogers.com>
-Date: Sun, 21 Sep 2008 13:47:42 -0400
-From: Jonathan Coles <jcoles0727@rogers.com>
+Received: from mail.work.de ([212.12.32.20])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1KcnUJ-0003zQ-Cq
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 22:37:32 +0200
+Message-ID: <48C58D03.8040004@gmail.com>
+Date: Tue, 09 Sep 2008 00:37:23 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] me-tv doesn't accept its own channel file
+To: free_beer_for_all@yahoo.com
+References: <364203.80680.qm@web46101.mail.sp1.yahoo.com>
+In-Reply-To: <364203.80680.qm@web46101.mail.sp1.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,28 +25,70 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-me-tv scans ATSC channels on my HVR-950Q and creates a channels.conf 
-file. The file has channel entries, even though the Channel Scan window 
-reports nothing but "Failed to tune" messages. But me-tv cannot use its 
-own file. It complains, "There's an invalid channel record in the 
-channels.conf file." Oh, come on! Was this application tested even once?
+barry bouwsma wrote:
+> Ciao,
+> 
 
-My file contains the following:
+[..]
 
-CKXTDT:509028615:8VSB:65:67:2
-CKXT:509028615:8VSB:81:83:3
-HDTV RADIO-CANADA OTTAWA:521028615:8VSB:49:52:11
-HDTV CBC OTTAWA:539028615:8VSB:49:52:10
+> 
+> What I wonder, is two things.
+> 
+> Does DiSEqC 1.1 fit into the existing API, and is it more of
+> a question of hardware support (generally I've noticed 1.0 and
+> 1.2 listed), and applications being able to handle the additional
+> switching (I've found an app limit of 4 positions)?
 
-(I live in Canada. Our TV stations have until 2011 to go digital and 
-they are moving slowly.)
+Cascading is not supported by the dvb-apps, i must say. It's more of a
+support from the application side.
 
-A possible problem is the strange 2-byte character following "CKXTDT" in 
-the first line, hex 0810. Removing this line did not make the file 
-acceptable to me-tv.
+As far as multiproto goes, the driver used alongwith it supports DiSEqC 2.0
 
-Does anyone have experience with this glitch?
 
+> I don't know enough about the internals of DiSEqC to have any idea
+> what I'm talking about; I've got a 1.1 switch on order, and I have
+> a 1.1-able 8/1+16/1 receiver, where those appear to be incompatible
+> with my existing 4/1 switch.
+> 
+> 
+> Second, how do non-DVB-like technologies like DAB (Eureka-147) fit
+> into the scope of either multiproto or S2API -- or must they
+> remain outside of v4l-dvb?
+
+
+There is already a kernel module called dabusb for ages.
+
+
+> The Wiki sez, ``some developers already have hardware using
+> standards unsupported by multiproto, such as ISDB-T and DMB-T/H.''
+> And some of us non-developers have such hardware and want to try
+> it with non-Windows for readily-receiveable DAB.
+
+With some simple definitions ? What applications are used ? With regards
+to ISDB-T, there was an idea to integrate the ARIB extension used in the
+DVB V4 API, but then it was proven that there wasn't much use for the
+same due to:
+
+* lack of available hardware (only some mobile devices using 1 seg or
+likewise were available) Of course, there was the demodulator from
+Toshiba TCxxxx, the DVB V4 API which it was based on.
+
+* most of the stuff's completely scrambled and the scrambling schemes
+are not open like DVB stuff.
+
+But still, if there's need to add support for the same into the
+multiproto tree, it is quite trivial.
+
+> Or is DAB/T-DMB too different from DVB and related technologies,
+> that a separate development path needs to be taken outside
+> linux-dvb, but probably within V4L?
+
+DMB resembles quite a bit of DAB. Well, the tables for DMB-T/H is quite
+different from standard DVB tables, but still you can use multiproto to
+handle DMB-T/H, it's quite trivial.
+
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
