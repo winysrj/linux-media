@@ -1,19 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.24])
+Received: from wx-out-0506.google.com ([66.249.82.234])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dougsland@gmail.com>) id 1KiGsZ-0005QB-PB
-	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 01:01:12 +0200
-Received: by qw-out-2122.google.com with SMTP id 9so258690qwb.17
-	for <linux-dvb@linuxtv.org>; Tue, 23 Sep 2008 16:01:06 -0700 (PDT)
-Date: Tue, 23 Sep 2008 16:00:26 -0400
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: linux-dvb@linuxtv.org, Wiktor =?UTF-8?B?R3LEmWJsYQ==?= <greblus@gmail.com>
-Message-ID: <20080923160026.14585af9@gmail.com>
-In-Reply-To: <912f87b30809231210w45e304d6rbd5ccfb964d36bba@mail.gmail.com>
-References: <912f87b30809231210w45e304d6rbd5ccfb964d36bba@mail.gmail.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] em28xx-audio: HVR-900 B3C0 - ID 2040:6502 Hauppauge
- (audio clicking)
+	(envelope-from <mrechberger@gmail.com>) id 1KclQM-0002uG-AJ
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 20:25:19 +0200
+Received: by wx-out-0506.google.com with SMTP id t16so256210wxc.17
+	for <linux-dvb@linuxtv.org>; Mon, 08 Sep 2008 11:25:14 -0700 (PDT)
+Message-ID: <d9def9db0809081125i6a7eb3d1h35af8f3d59059d62@mail.gmail.com>
+Date: Mon, 8 Sep 2008 20:25:14 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <20080908181929.153310@gmx.net>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <48C00822.4030509@gmail.com> <48C1380F.7050705@linuxtv.org>
+	<48C42851.8070005@koala.ie>
+	<d9def9db0809071252x708f1b1ch6c23cb3d2b5796e9@mail.gmail.com>
+	<48C5091F.3050807@koala.ie>
+	<d9def9db0809080521s70d95b65ma277b7f3049193b3@mail.gmail.com>
+	<20080908131913.GA11251@halim.local> <48C54DBF.7080204@linuxtv.org>
+	<48C566E6.2010601@gmail.com> <20080908181929.153310@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,24 +28,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGVsbG8gV2lrdG9yLAoKT24gVHVlLCAyMyBTZXAgMjAwOCAyMToxMDowNiArMDIwMAoiV2lrdG9y
-IEdyxJlibGEiIDxncmVibHVzQGdtYWlsLmNvbT4gd3JvdGU6Cgo+IEhpLgo+IAo+IEFmdGVyIHNv
-bWUgZGlmZmluZyBJJ3ZlIGZpbmFsbHkgbWFuYWdlZCB0byBnZXQgcmlkIG9mICJhdWRpbyBjbGlj
-a2luZyIKPiBwcm9ibGVtIHdoaWNoIGNvdWxkIGJlIGhlYXJkIHdoZW4gdXNpbmcgYW5hbG9nIHR2
-IG9yIGNvbXBvc2l0ZSBpbnB1dAo+IG9mIG15IEhWUi05MDAuIEFkZGl0aW9uYWxseSwgYWZ0ZXIg
-TWF1cm8ncyBzdWdnZXN0aW9uLCBJIGZvdW5kIGl0Cj4gbmVjZXNzYXJ5IHRvIGNoYW5nZSB0aGUg
-YXVkaW8gYW11eCB2YWx1ZSBmb3IgY29tcG9zaXRlIGlucHV0IGZyb20gMSB0bwo+IDMuCj4gCj4g
-UGF0Y2ggYWdhaW5zdCBsaW51eC1kdmIgaGcgcmVwbyBhdHRhY2hlZC4gSSBob3BlIGl0J3MgdHJp
-dmlhbCBlbm91Z2gKPiB0byBiZSBhcHBsaWVkIHF1aWNrbHkuIAoKRm9yIHN1cmUsIEknbGwgY2hl
-Y2sgeW91ciBwYXRjaC4gVGhhbmtzIGZvciB5b3VyCmhlbHAuCgo+IEkndmUgYmVlbiB1c2luZyBt
-eSB0dW5lciBmb3IgdGhyZWUgZGF5cyB3aXRob3V0Cj4gYW55IHNvdW5kIGlzc3VlcyBzbyBmYXIu
-CgpDb29sIQoKQ2hlZXJzLApEb3VnbGFzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2
-Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51
-eC1kdmI=
+On Mon, Sep 8, 2008 at 8:19 PM, Hans Werner <HWerner4@gmx.de> wrote:
+>
+> -------- Original-Nachricht --------
+>> Datum: Mon, 08 Sep 2008 21:54:46 +0400
+>> Von: Manu Abraham <abraham.manu@gmail.com>
+>> An: linux-dvb@linuxtv.org
+>> Betreff: Re: [linux-dvb] Multiproto API/Driver Update
+>
+>> Steven Toth wrote:
+>>
+>> > Fragmenting tree's to mcentral.de or Manu's repo (just.de?) shows that
+>> > those developers don't want to contribute to the community at
+>> linuxtv.org.
+>>
+>> Since it is another round of spreading lies and false accusations, i
+>> will respond.
+>>
+>> http://thread.gmane.org/gmane.linux.kernel/729892
+>>
+>> http://thread.gmane.org/gmane.linux.kernel/729969
+>>
+>> also at
+>>
+>> http://www.kernel.org/pub/linux/kernel/people/manu/dvb_patches/
+>>
+>> Normally anyone sane would think that the linux-kernel @kernel.org is
+>> just a superset of any smaller Linux-* communities.
+>>
+>> Maybe you just need to find a newer topic to spread Fear, Uncertainty
+>> and Doubt (FUD).
+>>
+>> Regards,
+>> Manu
+>
+> Where's the beef? The drivers are missing.
+> http://linuxtv.org/pipermail/linux-dvb/2008-September/028445.html
+>
+
+The drivers will come afterwards, first the split out framework
+afterwards the rest.
+(just as far as I understood).
+
+I fully agree with Manu though.
+
+Markus
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
