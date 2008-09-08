@@ -1,21 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.7.61.12] (helo=killala.koala.ie)
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon@koala.ie>) id 1KiqIz-0002Mi-Oz
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 14:50:50 +0200
-Received: from [127.0.0.1] (killala.koala.ie [195.7.61.12])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id m8PCooP2029099
-	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 13:50:50 +0100
-Message-ID: <48DB8915.2060307@koala.ie>
-Date: Thu, 25 Sep 2008 13:50:29 +0100
-From: Simon Kenyon <simon@koala.ie>
-MIME-Version: 1.0
-CC: DVB ML <linux-dvb@linuxtv.org>
-References: <20080923181628.10797e0b@mchehab.chehab.org>	<48D9F6F3.8090501@gmail.com>	<alpine.LRH.1.10.0809241051170.12985@pub3.ifh.de>	<48DA15A2.40109@gmail.com>	<alpine.LFD.1.10.0809240942250.28125@areia.chehab.org>	<a3ef07920809241441gea2c09al6e2ed32589ad6fa4@mail.gmail.com>	<d9def9db0809241901g56a54750kbfccecc77b111ec7@mail.gmail.com>	<37219a840809241947w6ca35351xa15920de6ff41aab@mail.gmail.com>
-	<d9def9db0809241949i5b368f01w5f635d59cd19dd1f@mail.gmail.com>
-In-Reply-To: <d9def9db0809241949i5b368f01w5f635d59cd19dd1f@mail.gmail.com>
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
+	(envelope-from <stoth@linuxtv.org>) id 1KcjHW-00035o-9U
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 18:08:03 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6V001R2WSFDLT0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 08 Sep 2008 12:07:28 -0400 (EDT)
+Date: Mon, 08 Sep 2008 12:07:27 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080908131913.GA11251@halim.local>
+To: Halim Sahin <halim.sahin@t-online.de>
+Message-id: <48C54DBF.7080204@linuxtv.org>
+MIME-version: 1.0
+References: <48C00822.4030509@gmail.com> <48C01698.4060503@gmail.com>
+	<48C01A99.402@gmail.com> <20080904204709.GA32329@linuxtv.org>
+	<d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>
+	<48C1380F.7050705@linuxtv.org> <48C42851.8070005@koala.ie>
+	<d9def9db0809071252x708f1b1ch6c23cb3d2b5796e9@mail.gmail.com>
+	<48C5091F.3050807@koala.ie>
+	<d9def9db0809080521s70d95b65ma277b7f3049193b3@mail.gmail.com>
+	<20080908131913.GA11251@halim.local>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,24 +38,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus Rechberger wrote:
-> sure state out technical reasons and that's what it is about otherwise
-> a serious split should happen asap.
-> I personally invite you to be the first one here!
->   
+Halim Sahin wrote:
+> Hi,
+> On Mo, Sep 08, 2008 at 02:21:21 +0200, Markus Rechberger wrote:
+>> If you're going to pay my monthly insurance for working together with
+>> linuxtv.org (something has to
+>> compensate the slowdown of the development due those endless wanted
+>> discussions) I'll be glad to
+>> go that way.
+> 
+> Your choosen way doesn't compensate the non-ending diskusions too.
+> Maybe you should start to show other developers how things can go on
+> without slowing down development and
+> building drivers out of official kernel tree?
+> 
+> I read most of the mails on this list and
+> the current situation is really annoying.
+> 
+> 1. We have multiproto
+> 2. We have s2-API
+> 3. We have your drivers at mcentral.de
+> 
+> Please go on alltogether and stop working against each other.
+> Have a nice Day
 
-why do i even bother?
+S2API is available on linuxtv.org, along with all of my other trees. I 
+don't get paid by Hauppauge to work on Linux.... I chose to work from 
+linuxtv.org because I love Linux and I believe that's where the heart of 
+the community belongs.
 
-there doesn't have to be a good technical reason
-there doesn't have to be a good technical reason
-there doesn't have to be a good technical reason
+Fragmenting tree's to mcentral.de or Manu's repo (just.de?) shows that 
+those developers don't want to contribute to the community at linuxtv.org.
 
-it is the path of least resistance and will lead to more supported 
-hardware in linux
+S2API is actively maintained at linuxtv.org, where the community owns 
+the code.
 
-now for the love of all that is holy (not swearing or mocking any 
-religion here - although sorely tempted) would you all stop squabbling 
-like children and move on
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
