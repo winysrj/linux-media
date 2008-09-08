@@ -1,16 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <md001@gmx.de>) id 1Ka80B-0002P1-7e
-	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 13:55:24 +0200
-To: linux-dvb@linuxtv.org
-Content-Disposition: inline
-From: Martin Dauskardt <md001@gmx.de>
-Date: Mon, 1 Sep 2008 13:54:45 +0200
-MIME-Version: 1.0
-Message-Id: <200809011354.49297.md001@gmx.de>
-Subject: Re: [linux-dvb] Cablestar DVB-C (Flexcop + stv0297) broken since
-	changeset 7fb12d754061 (7469)
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1KciNV-0008E5-Qf
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 17:10:10 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6V00E5NU3V06V0@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 08 Sep 2008 11:09:35 -0400 (EDT)
+Date: Mon, 08 Sep 2008 11:09:31 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080907020131.235250@gmx.net>
+To: Hans Werner <HWerner4@gmx.de>
+Message-id: <48C5402B.70806@linuxtv.org>
+MIME-version: 1.0
+References: <48BF6A09.3020205@linuxtv.org>
+	<200809061457.59955.liplianin@tut.by> <20080907020131.235250@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API - First release
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,32 +32,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Sonntag, 24. August 2008 15:10:48 schrieb Oliver Endriss:
-> Hi,
+> Steve,
 > 
-> according to the thread
->   http://www.vdr-portal.de/board/thread.php?threadid=76932
-> in vdr-portal, the modifications of the flexcop i2c handling in
-> changeset 7fb12d754061 (7469) broke support for the Cablestar card.
-> 
-> Note that stv0297 does not support repeated start conditions (same
-> problem as with s5h1420).
-> 
-> CU
-> Oliver
+> I have been tracking down the following bug which affects the LNB voltage. I now have
+> signal lock for DVB-S and DVB-S2 (QPSK, Astra HD Promo) with the HVR4000.
 
-So we have broken support for at least three cards now. (Technotrend 2400 and 
-Hauppauge Noba-S-SE with s5h1420 frontend doesn`t work any longer ,too. See
-http://linuxtv.org/pipermail/linux-dvb/2008-August/028249.html)
+Hans, thanks for fixing this. I've applied it the ~stoth/s2 tree.
 
-In my opinion it is not acceptable to break support for three cards in the 
-v4l-dvb main tree to get one other card supported.
+Good to hear you're up and running with the HVR4000!
 
-I strongly request to revert the changeset until a working solution for all 
-cards has been tested.
+Regards,
 
-Greets,
-Martin
+Steve
+
 
 _______________________________________________
 linux-dvb mailing list
