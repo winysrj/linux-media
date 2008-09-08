@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KeGQL-00046S-PL
-	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 23:43:30 +0200
-Message-ID: <48CAE273.4030809@gmail.com>
-Date: Sat, 13 Sep 2008 01:43:15 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: free_beer_for_all@yahoo.com
-References: <630160.40997.qm@web46116.mail.sp1.yahoo.com>
-In-Reply-To: <630160.40997.qm@web46116.mail.sp1.yahoo.com>
+	(envelope-from <stoth@linuxtv.org>) id 1KchxO-0006GW-31
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 16:43:12 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6V00JJFSUXHPT0@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 08 Sep 2008 10:42:35 -0400 (EDT)
+Date: Mon, 08 Sep 2008 10:42:33 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200809061457.59955.liplianin@tut.by>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Message-id: <48C539D9.4080900@linuxtv.org>
+MIME-version: 1.0
+References: <48BF6A09.3020205@linuxtv.org>
+	<200809061457.59955.liplianin@tut.by>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Subject: Re: [linux-dvb] S2API - First release
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,46 +32,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-barry bouwsma wrote:
-
->>> And some of us non-developers have such hardware and want to try
->>> it with non-Windows for readily-receiveable DAB.
->> With some simple definitions ? What applications are used ?
+> Is it possible to add TeVii S460 support to your repository?
+> Patch included.
+> I have locked signal with tune.c succesfully.
+>  
+> Igor M. Liplianin
 > 
-> I imagine I will have to hack something out of gaffer tape
-> and chewing gum if I want to actually do anything...
 
 
-Use any of the existing applications, "as it is".
-
-> 
-> Now a completely different question -- I was pleased to see
-> that my not-too-old kernel compiled well with your mp_plus
-> source, and I read on the Wiki that certain basic tools
-> still needed to be ported to multiproto.
-
-
-Please use the multiproto tree rather than the multiproto_plus tree.
-
-
-> Something hands-on like this is probably the only way I'm
-> ever going to get a clue about the APIs.  And it might even
-> result in something useful in addition.  But I don't have
-> any hardware which requires multiproto, if I'd need that
-> for testing or anything.
-> 
-> Would it be worth it for me to attempt such a port, given
-> that, or will I find it unlikely to get anywhere?  I'm no
-> developer and no programmer, and barely a hacker...
-
-
-You don't need to make any ports, neither for the drivers nor for the
-applications ...
-
+Applied, thank you. :)
 
 Regards,
-Manu
 
+Steve
 
 _______________________________________________
 linux-dvb mailing list
