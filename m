@@ -1,16 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KcnUJ-0003zQ-Cq
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 22:37:32 +0200
-Message-ID: <48C58D03.8040004@gmail.com>
-Date: Tue, 09 Sep 2008 00:37:23 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1KclLH-0002GK-25
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 20:20:04 +0200
+Date: Mon, 08 Sep 2008 20:19:29 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <48C566E6.2010601@gmail.com>
+Message-ID: <20080908181929.153310@gmx.net>
 MIME-Version: 1.0
-To: free_beer_for_all@yahoo.com
-References: <364203.80680.qm@web46101.mail.sp1.yahoo.com>
-In-Reply-To: <364203.80680.qm@web46101.mail.sp1.yahoo.com>
-Cc: linux-dvb@linuxtv.org
+References: <48C00822.4030509@gmail.com>	<48C01698.4060503@gmail.com>
+	<48C01A99.402@gmail.com>	<20080904204709.GA32329@linuxtv.org>
+	<d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>
+	<48C1380F.7050705@linuxtv.org>	<48C42851.8070005@koala.ie>
+	<d9def9db0809071252x708f1b1ch6c23cb3d2b5796e9@mail.gmail.com>
+	<48C5091F.3050807@koala.ie>
+	<d9def9db0809080521s70d95b65ma277b7f3049193b3@mail.gmail.com>
+	<20080908131913.GA11251@halim.local>	<48C54DBF.7080204@linuxtv.org>
+	<48C566E6.2010601@gmail.com>
+To: linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,76 +26,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-barry bouwsma wrote:
-> Ciao,
-> 
 
-[..]
+-------- Original-Nachricht --------
+> Datum: Mon, 08 Sep 2008 21:54:46 +0400
+> Von: Manu Abraham <abraham.manu@gmail.com>
+> An: linux-dvb@linuxtv.org
+> Betreff: Re: [linux-dvb] Multiproto API/Driver Update
 
-> 
-> What I wonder, is two things.
-> 
-> Does DiSEqC 1.1 fit into the existing API, and is it more of
-> a question of hardware support (generally I've noticed 1.0 and
-> 1.2 listed), and applications being able to handle the additional
-> switching (I've found an app limit of 4 positions)?
+> Steven Toth wrote:
+> =
 
-Cascading is not supported by the dvb-apps, i must say. It's more of a
-support from the application side.
+> > Fragmenting tree's to mcentral.de or Manu's repo (just.de?) shows that =
 
-As far as multiproto goes, the driver used alongwith it supports DiSEqC 2.0
+> > those developers don't want to contribute to the community at
+> linuxtv.org.
+> =
+
+> Since it is another round of spreading lies and false accusations, i
+> will respond.
+> =
+
+> http://thread.gmane.org/gmane.linux.kernel/729892
+> =
+
+> http://thread.gmane.org/gmane.linux.kernel/729969
+> =
+
+> also at
+> =
+
+> http://www.kernel.org/pub/linux/kernel/people/manu/dvb_patches/
+> =
+
+> Normally anyone sane would think that the linux-kernel @kernel.org is
+> just a superset of any smaller Linux-* communities.
+> =
+
+> Maybe you just need to find a newer topic to spread Fear, Uncertainty
+> and Doubt (FUD).
+> =
+
+> Regards,
+> Manu
+
+Where's the beef? The drivers are missing.
+http://linuxtv.org/pipermail/linux-dvb/2008-September/028445.html
 
 
-> I don't know enough about the internals of DiSEqC to have any idea
-> what I'm talking about; I've got a 1.1 switch on order, and I have
-> a 1.1-able 8/1+16/1 receiver, where those appear to be incompatible
-> with my existing 4/1 switch.
-> 
-> 
-> Second, how do non-DVB-like technologies like DAB (Eureka-147) fit
-> into the scope of either multiproto or S2API -- or must they
-> remain outside of v4l-dvb?
+-- =
 
+Release early, release often.
 
-There is already a kernel module called dabusb for ages.
-
-
-> The Wiki sez, ``some developers already have hardware using
-> standards unsupported by multiproto, such as ISDB-T and DMB-T/H.''
-> And some of us non-developers have such hardware and want to try
-> it with non-Windows for readily-receiveable DAB.
-
-With some simple definitions ? What applications are used ? With regards
-to ISDB-T, there was an idea to integrate the ARIB extension used in the
-DVB V4 API, but then it was proven that there wasn't much use for the
-same due to:
-
-* lack of available hardware (only some mobile devices using 1 seg or
-likewise were available) Of course, there was the demodulator from
-Toshiba TCxxxx, the DVB V4 API which it was based on.
-
-* most of the stuff's completely scrambled and the scrambling schemes
-are not open like DVB stuff.
-
-But still, if there's need to add support for the same into the
-multiproto tree, it is quite trivial.
-
-> Or is DAB/T-DMB too different from DVB and related technologies,
-> that a separate development path needs to be taken outside
-> linux-dvb, but probably within V4L?
-
-DMB resembles quite a bit of DAB. Well, the tables for DMB-T/H is quite
-different from standard DVB tables, but still you can use multiproto to
-handle DMB-T/H, it's quite trivial.
-
-Regards,
-Manu
+Psssst! Schon das coole Video vom GMX MultiMessenger gesehen?
+Der Eine f=FCr Alle: http://www.gmx.net/de/go/messenger03
 
 _______________________________________________
 linux-dvb mailing list
