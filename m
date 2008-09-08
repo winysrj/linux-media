@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from mx45.mail.ru ([194.67.23.236])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KgnnD-0007Ct-KS
-	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 23:45:36 +0200
-Message-ID: <48D41D7B.90609@iki.fi>
-Date: Sat, 20 Sep 2008 00:45:31 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Dirk Vornheder <dirk_vornheder@yahoo.de>
-References: <200809152345.37786.dirk_vornheder@yahoo.de>	<48CF85C2.1030806@iki.fi>
-	(sfid-20080916_200620_773173_78C7D8C0)
-	<200809172115.19851.dirk_vornheder@yahoo.de>
-In-Reply-To: <200809172115.19851.dirk_vornheder@yahoo.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] UNS: Re:  New unspported device AVerMedia DVB-T
+	(envelope-from <goga777@bk.ru>) id 1KcYRw-00010r-7A
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 06:34:13 +0200
+Received: from f15.mail.ru (f15.mail.ru [194.67.57.45])
+	by mx45.mail.ru (mPOP.Fallback_MX) with ESMTP id 11170E010241
+	for <linux-dvb@linuxtv.org>; Mon,  8 Sep 2008 08:30:38 +0400 (MSD)
+Received: from mail by f15.mail.ru with local id 1KcYO7-000IeO-00
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 08:30:07 +0400
+From: Goga777 <goga777@bk.ru>
+To: LinuxTV DVB Mailing <linux-dvb@linuxtv.org>
+Mime-Version: 1.0
+Date: Mon, 08 Sep 2008 08:30:07 +0400
+In-Reply-To: <468e5d620809071325meb34081h51b7318c6b872e5b@mail.gmail.com>
+References: <468e5d620809071325meb34081h51b7318c6b872e5b@mail.gmail.com>
+Message-Id: <E1KcYO7-000IeO-00.goga777-bk-ru@f15.mail.ru>
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?SGF1cHBhdWdlIEhWUiA0MDAwIGluIFVidW50dSA4?=
+	=?koi8-r?b?LjA0?=
+Reply-To: Goga777 <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,29 +32,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dirk Vornheder wrote:
-> Compile produces undefined symbol:
+> In Ubuntu 8.04 with kernel 2.6.24-19 I will use a HVR 4000 card.
+> I have upgrade the firmware from http://www.steventoth.net/linux/cx24116/,
+> and the latest driver from http:/linuxtv.org/hg/v4l-dvb
 > 
->   Building modules, stage 2.
->   MODPOST 166 modules
-> WARNING: "__udivdi3" [/backup/privat/kernel/af9015_test-
-> c8583d119095/v4l/af9013.ko] undefined!
->   CC      /backup/privat/kernel/af9015_test-c8583d119095/v4l/af9013.mod.o
->   LD [M]  /backup/privat/kernel/af9015_test-c8583d119095/v4l/af9013.ko
->   CC      /backup/privat/kernel/af9015_test-c8583d119095/v4l/au8522.mod.o
->   LD [M]  /backup/privat/kernel/af9015_test-c8583d119095/v4l/au8522.ko
+> In dmesg is the card not autodetected.
+> What is missing here?
+> Where can I find more info.
 
-That's now fixed, please test: http://linuxtv.org/hg/~anttip/af9015_test
 
->>> I buy a new notebook HP Pavilion dv7-1070eg which includes one
+I recommend to use the LiplianinDVB drivers for your hvr4000 card
+http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
 
-Did you mean that this AverMedia DVB-T device is integrated to the 
-motherboard of your computer?
-
-regards
-Antti
--- 
-http://palosaari.fi/
+Goga
 
 _______________________________________________
 linux-dvb mailing list
