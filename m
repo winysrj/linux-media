@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8OHOL48003975
-	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 13:24:21 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8OHNkOu031685
-	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 13:23:52 -0400
-Date: Wed, 24 Sep 2008 19:23:25 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Johnny <jtriana@msn.com>
-Message-ID: <20080924172325.GA10842@daniel.bse>
-References: <BLU136-DS6B9094AF8EFC2B48BB533AE450@phx.gbl>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m88NrFMP009938
+	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 19:53:16 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m88NqTNt024830
+	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 19:52:29 -0400
+From: Andy Walls <awalls@radix.net>
+To: Brandon Jenkins <bcjenkins@tvwhere.com>
+In-Reply-To: <de8cad4d0809081443o39bf9a17vc804e86981f2170e@mail.gmail.com>
+References: <de8cad4d0809081443o39bf9a17vc804e86981f2170e@mail.gmail.com>
+Content-Type: text/plain
+Date: Mon, 08 Sep 2008 19:53:42 -0400
+Message-Id: <1220918022.3137.4.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <BLU136-DS6B9094AF8EFC2B48BB533AE450@phx.gbl>
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: SEARCHING (and ATI TV Wonder Elite)
+Subject: Re: Recommended 2 input hardware encoder
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,31 +27,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Sep 24, 2008 at 10:36:56AM -0500, Johnny wrote:
-> How do I perform a search on the list?
+On Mon, 2008-09-08 at 17:43 -0400, Brandon Jenkins wrote:
+> Hi all,
+> 
+> I am looking for a Linux compatible board which has 2 analog
+> svideo/composite inputs (NTSC) on a single bracket. Anyone know of
+> such a thing? A tuner is not required, but a hardware encoder for
+> mpeg-2 is.
 
-http://marc.info/?l=linux-video
+If you want to do two captures simultaneously, you'll need two MPEG
+encoders.
 
-> I want info on the ATI TV Wonder Elite tuner card.
-> Will it work with Mythbuntu?
+The PVR-500 (MCE version linked here) is one such device that has two
+encoder chips:
 
-The ATI TV Wonder Elite uses an ATI Theater 550 Pro chip.
-I can't remember having heard of a Linux driver for this chip.
+http://www.hauppauge.com/pages/products/data_pvr500mce.html
 
-> I have a ASRock K8NF4G-SATA2 Mobo with a AMD Athlon 64 2800+ cpu;
-> 1GB Kingston KVR400x64C3A PC3200 DDR400 DIMM;
-> and a PNY GeForce 7600GS PCI-e 256MB DDR graphics card.
+You may need to wire up a custom cable to one of the internal white
+header connectors to use the second MPEG encoder with an input other
+then the 2nd tuner.
 
-In 99,9% of all cases this information is irrelevant when talking about
-TV cards. If there is a suitable slot on the board, the problem reduces
-to availability of drivers.
+It's well supported by the ivtv driver for CX23416 based devices.
 
-> Do I really need the PNY card, or will the onboard integrated nVidia
-> graphics be good?
+You can probably get the card cheap off of eBay.
 
-The onboard graphics will be good.
+Regards,
+Andy
 
-  Daniel
+> Thanks,
+> 
+> Brandon
+
 
 --
 video4linux-list mailing list
