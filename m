@@ -1,27 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8M2ZPFk024954
-	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 22:35:25 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.154])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8M2YUMu014966
-	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 22:34:30 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so1269655fga.7
-	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 19:34:30 -0700 (PDT)
-Message-ID: <d9def9db0809211934s72bbea5ds95b05d45ffd41072@mail.gmail.com>
-Date: Mon, 22 Sep 2008 04:34:29 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Henry Hu" <henry.hu.sh@gmail.com>
-In-Reply-To: <d9def9db0809211921h33cccff1y97477902473fd999@mail.gmail.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m88AYtu6004174
+	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 06:34:56 -0400
+Received: from metis.extern.pengutronix.de (metis.extern.pengutronix.de
+	[83.236.181.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m88AYgBZ016735
+	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 06:34:43 -0400
+Date: Mon, 8 Sep 2008 12:34:41 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <20080908103441.GB6496@pengutronix.de>
+References: <20080905103917.GQ4941@pengutronix.de>
+	<Pine.LNX.4.64.0809051330390.5482@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-References: <200809220018.AAA14502@sopwith.solgatos.com>
-	<53a1e0710809211907i340069f7w4847b2623a48a953@mail.gmail.com>
-	<d9def9db0809211921h33cccff1y97477902473fd999@mail.gmail.com>
-Cc: freebsd-multimedia@freebsd.org, freebsd@sopwith.solgatos.com,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: Video4Linux2 and BSD
+In-Reply-To: <Pine.LNX.4.64.0809051330390.5482@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: Re: [soc-camera] about the y_skip_top parameter
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,46 +29,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Sep 22, 2008 at 4:21 AM, Markus Rechberger
-<mrechberger@gmail.com> wrote:
-> On Mon, Sep 22, 2008 at 4:07 AM, Henry Hu <henry.hu.sh@gmail.com> wrote:
->> They've also got a USB video class driver. Hope it would be imported soon.
->>
->> 2008/9/22 Dieter <freebsd@sopwith.solgatos.com>:
->>> FYI, NetBSD now has Video4Linux2.
->>>
->>> http://www.netbsd.org/changes/#200809-video
->>>
->>> Ob-counterpoint: It isn't obvious from the summary whether
->>> this addresses the kernel bloat issue raised in
->>>
->>> http://video4bsd.sourceforge.net/
->>> and
->>> http://wiki.freebsd.org/HDTV
->>> _______________________________________________
->>> freebsd-multimedia@freebsd.org mailing list
->>> http://lists.freebsd.org/mailman/listinfo/freebsd-multimedia
->>> To unsubscribe, send any mail to "freebsd-multimedia-unsubscribe@freebsd.org"
->>>
->
-> great news!
->
+On Fri, Sep 05, 2008 at 08:12:56PM +0200, Guennadi Liakhovetski wrote:
+> On Fri, 5 Sep 2008, Sascha Hauer wrote:
+> 
+> > Hi all,
+> > 
+> > The y_skip_top parameter tells the cameras to effectively make the
+> > picture one line higher. I think this parameter was introduced to work
+> > around a bug in the pxa camera interface. The pxa refuses to read the
+> > first line of a picture. The problem with this parameter is that it is
+> > set to 1 in the sensor drivers and not in the pxa driver, so it's the
+> > sensor drivers which work around a bug in the pxa. On other
+> > hardware platforms (mx27 in this particular case) I cannot skip the
+> > first line, so I think this parameter should be set to 1 in the pxa
+> > driver and not the sensor drivers.
+> > 
+> > What do you think?
+> 
+> Hm, AFAIR, the reason was different. I was told, that "all" cameras 
+> corrupt the first line, that's why that parameter has been introduced. I 
+> don't think it was related to PXA270. In any case, why don't you just set 
+> this parameter to whatever you need in your hist driver .add method, for 
+> example, before calling camera's .init?
 
-btw. I talked to Xceive a while ago regarding BSD, the xc3028 and
-xc5000 tuners which are used for analog and digital TV devices (eg.
-DVB-T, ATSC, analog TV-multistandard) can be licensed under the terms
-of the BSD license.
+That's what I'm doing at the moment. I just had the feeling that there
+is a bug fixed in the wrong place, but I did not know that it's the cameras
+that corrupt the first line.
+Anyway, what in case of bayer cameras? don't we have to skip the first
+two lines then? I'm asking because I'm still struggling with getting the
+correct pixel in the top left corner without introducing funny offsets.
+This brings me back to the question: Which color does the top left
+corner have? http://v4l2spec.bytesex.org/spec/r3735.htm says the first is a
+blue/red line, due to y_skip_top=1 the pxa actually delivers a green/red
+line
 
-http://mcentral.de/hg/~mrec/em28xx-new/file/6b0e6877f961/xc3028/
-http://mcentral.de/hg/~mrec/em28xx-new/file/6b0e6877f961/xc5000/
+Sascha
 
-I will keep the sources uptodate (there are occasionally firmware updates).
 
-Those ICs are used with numerous devices nowadays. If there are any
-questions just drop me a line.
-
-regards,
-Markus
+-- 
+ Pengutronix - Linux Solutions for Science and Industry
+   Handelsregister:  Amtsgericht Hildesheim, HRA 2686
+     Hannoversche Str. 2, 31134 Hildesheim, Germany
+   Phone: +49-5121-206917-0 |  Fax: +49-5121-206917-9
 
 --
 video4linux-list mailing list
