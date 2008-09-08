@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m89J8IfZ031291
-	for <video4linux-list@redhat.com>; Tue, 9 Sep 2008 15:08:19 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m89J7g3e020287
-	for <video4linux-list@redhat.com>; Tue, 9 Sep 2008 15:07:43 -0400
-Date: Tue, 9 Sep 2008 21:07:27 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Ming Liu <mliu@migmasys.com>
-Message-ID: <20080909190727.GA2184@daniel.bse>
-References: <20080908160012.574456184D5@hormel.redhat.com>
-	<48C5948D.5030504@migmasys.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <48C5948D.5030504@migmasys.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: a multichannel capture problem
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m88GmTCZ014102
+	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 12:48:29 -0400
+Received: from mgw-mx06.nokia.com (smtp.nokia.com [192.100.122.233])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m88GmHib021757
+	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 12:48:18 -0400
+From: Sakari Ailus <sakari.ailus@nokia.com>
+To: video4linux-list@redhat.com
+Date: Mon,  8 Sep 2008 19:48:12 +0300
+Message-Id: <12208924934155-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <1220892493727-git-send-email-sakari.ailus@nokia.com>
+References: <48C55737.4080804@nokia.com>
+	<12208924933529-git-send-email-sakari.ailus@nokia.com>
+	<12208924931107-git-send-email-sakari.ailus@nokia.com>
+	<12208924933015-git-send-email-sakari.ailus@nokia.com>
+	<12208924933079-git-send-email-sakari.ailus@nokia.com>
+	<1220892493727-git-send-email-sakari.ailus@nokia.com>
+Cc: tuukka.o.toivonen@nokia.com, vherkuil@xs4all.nl, vimarsh.zutshi@nokia.com
+Subject: [PATCH 6/7] V4L: Int if: Export more interfaces to modules
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,41 +29,69 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Sep 08, 2008 at 05:09:33PM -0400, Ming Liu wrote:
-> 1. Is there any example codes that I can follow to estimate the frame 
-> rates using switch channel approach?
+Export v4l2_int_device_try_attach_all. This allows initiating the
+initialisation of int if device after the drivers have been registered.
 
-Motion (http://www.lavrsen.dk/twiki/bin/view/Motion/WebHome ) is said
-to support multiple inputs of one card "at the same time".
-I never tried it, though.
+Also allow drivers to call ioctls if v4l2-int-if was compiled as
+module.
 
-> Can I do this by using standard V4L2 APIs, or I will need to deal with
-> the driver?
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+---
+ drivers/media/video/v4l2-int-device.c |    5 ++++-
+ include/media/v4l2-int-device.h       |    2 ++
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-You can do this with V4L2.
-
-Some time ago I made some experiments changing the input at random times
-using direct hardware access while capturing. IIRC the chip will skip at
-least one complete frame before it continues to capture. 
-
-> 2. If I choose a multi-chip PCI based video capture card, is there any 
-> limit from the bandwidth?
-
-Of course. A few days ago we had a discussion about bandwidth issues when
-using 5+ bt8xx cards to capture 640x480 in YUV 4:2:0. When there are
-other chips using the PCI bus (f.ex. the harddisk controller), the limit
-will be lower.
-
-> Are there any sample codes available?
-
-Motion can handle multiple devices at the same time as well.
-
-> 3. In the program point of view, is there difference between using 
-> multi-chip card and several single chip cards?
-
-No.
-
-  Daniel
+diff --git a/drivers/media/video/v4l2-int-device.c b/drivers/media/video/v4l2-int-device.c
+index 0e45499..a935bae 100644
+--- a/drivers/media/video/v4l2-int-device.c
++++ b/drivers/media/video/v4l2-int-device.c
+@@ -32,7 +32,7 @@
+ static DEFINE_MUTEX(mutex);
+ static LIST_HEAD(int_list);
+ 
+-static void v4l2_int_device_try_attach_all(void)
++void v4l2_int_device_try_attach_all(void)
+ {
+ 	struct v4l2_int_device *m, *s;
+ 
+@@ -66,6 +66,7 @@ static void v4l2_int_device_try_attach_all(void)
+ 		}
+ 	}
+ }
++EXPORT_SYMBOL_GPL(v4l2_int_device_try_attach_all);
+ 
+ static int ioctl_sort_cmp(const void *a, const void *b)
+ {
+@@ -144,6 +145,7 @@ int v4l2_int_ioctl_0(struct v4l2_int_device *d, int cmd)
+ 		find_ioctl(d->u.slave, cmd,
+ 			   (v4l2_int_ioctl_func *)no_such_ioctl_0))(d);
+ }
++EXPORT_SYMBOL_GPL(v4l2_int_ioctl_0);
+ 
+ static int no_such_ioctl_1(struct v4l2_int_device *d, void *arg)
+ {
+@@ -156,5 +158,6 @@ int v4l2_int_ioctl_1(struct v4l2_int_device *d, int cmd, void *arg)
+ 		find_ioctl(d->u.slave, cmd,
+ 			   (v4l2_int_ioctl_func *)no_such_ioctl_1))(d, arg);
+ }
++EXPORT_SYMBOL_GPL(v4l2_int_ioctl_1);
+ 
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index d3c5d22..489808e 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -84,6 +84,8 @@ struct v4l2_int_device {
+ 	void *priv;
+ };
+ 
++void v4l2_int_device_try_attach_all(void);
++
+ int v4l2_int_device_register(struct v4l2_int_device *d);
+ void v4l2_int_device_unregister(struct v4l2_int_device *d);
+ 
+-- 
+1.5.0.6
 
 --
 video4linux-list mailing list
