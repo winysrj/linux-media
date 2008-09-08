@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n21.bullet.mail.ukl.yahoo.com ([87.248.110.138])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dirk_vornheder@yahoo.de>) id 1Kh64W-00060D-Lh
-	for linux-dvb@linuxtv.org; Sat, 20 Sep 2008 19:16:41 +0200
-From: Dirk Vornheder <dirk_vornheder@yahoo.de>
-To: Antti Palosaari <crope@iki.fi>,
- linux-dvb@linuxtv.org
-Date: Sat, 20 Sep 2008 19:16:01 +0200
-References: <200809152345.37786.dirk_vornheder@yahoo.de>
-	<200809172115.19851.dirk_vornheder@yahoo.de>
-	<48D41D7B.90609@iki.fi> (sfid-20080920_124515_459025_6B4D8025)
-In-Reply-To: <48D41D7B.90609@iki.fi>
+Received: from mail.work.de ([212.12.32.20])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1Kclds-0003xj-9E
+	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 20:39:19 +0200
+Message-ID: <48C5713C.8080101@gmail.com>
+Date: Mon, 08 Sep 2008 22:38:52 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809201916.01736.dirk_vornheder@yahoo.de>
-Subject: Re: [linux-dvb] UNS: Re: UNS: Re: New unspported device AVerMedia
-	DVB-T
+To: Hans Werner <HWerner4@gmx.de>
+References: <48C00822.4030509@gmail.com>	<48C01698.4060503@gmail.com>	<48C01A99.402@gmail.com>	<20080904204709.GA32329@linuxtv.org>	<d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>	<48C1380F.7050705@linuxtv.org>	<48C42851.8070005@koala.ie>	<d9def9db0809071252x708f1b1ch6c23cb3d2b5796e9@mail.gmail.com>	<48C5091F.3050807@koala.ie>	<d9def9db0809080521s70d95b65ma277b7f3049193b3@mail.gmail.com>	<20080908131913.GA11251@halim.local>	<48C54DBF.7080204@linuxtv.org>	<48C566E6.2010601@gmail.com>
+	<20080908181929.153310@gmx.net>
+In-Reply-To: <20080908181929.153310@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,58 +26,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Friday 19 September 2008 23:45:31 schrieben Sie:
-> Dirk Vornheder wrote:
-> > Compile produces undefined symbol:
-> >
-> >   Building modules, stage 2.
-> >   MODPOST 166 modules
-> > WARNING: "__udivdi3" [/backup/privat/kernel/af9015_test-
-> > c8583d119095/v4l/af9013.ko] undefined!
-> >   CC      /backup/privat/kernel/af9015_test-c8583d119095/v4l/af9013.mod.o
-> >   LD [M]  /backup/privat/kernel/af9015_test-c8583d119095/v4l/af9013.ko
-> >   CC      /backup/privat/kernel/af9015_test-c8583d119095/v4l/au8522.mod.o
-> >   LD [M]  /backup/privat/kernel/af9015_test-c8583d119095/v4l/au8522.ko
->
-> That's now fixed, please test: http://linuxtv.org/hg/~anttip/af9015_test
->
+Hans Werner wrote:
 
-Compile now works.
+> Where's the beef? The drivers are missing.
+> http://linuxtv.org/pipermail/linux-dvb/2008-September/028445.html
+> 
 
-Some messages from booting:
+If you have read the post or the links what i sent or what i wrote maybe
+you would have understood.
 
-dvb-usb: found a 'AVerMedia DVB-T' in cold state, will try to load a firmware
-firmware: requesting dvb-usb-af9015.fw
-dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-usbcore: registered new interface driver dvb_usb_af9015
+Also, i don't know whether you are the same Hans Werner as in here:
 
-lsmod | grep af  shows:
-
-af9013                 17156  0
-dvb_usb_af9015         19108  0
-dvb_usb                14860  1 dvb_usb_af9015
-usbcore               108752  10 
-iforce,usbmouse,usbhid,uvcvideo,dvb_usb_af9015,dvb_usb,btusb,ehci_hcd,uhci_hcd
-i2c_core               18324  52 
-zl10353,ves1x93,ves1820,tua6100,tda826x,tda8083,tda10086,tda1004x,tda10048,tda10023,tda10021,stv0299,stv0297,sp887x,sp8870,s5h1420,s5h1411,s5h1409,or51211,or51132,nxt6000,nxt200x,mt352,mt312,lnbp21,lgs8gl5,lgdt330x,l64781,itd1000,isl6421,isl6405,dvb_pll,drx397xD,dib7000p,dib7000m,dib3000mc,dibx000_common,dib3000mb,dib0070,cx24123,cx24110,cx22702,cx22700,bcm3510,au8522,af9013,dvb_ttpci,ttpci_eeprom,dvb_usb_af9015,dvb_usb,nvidia,i2c_i801
-
-But i found no device entries in /dev/dvb.
-
-> >>> I buy a new notebook HP Pavilion dv7-1070eg which includes one
->
-> Did you mean that this AverMedia DVB-T device is integrated to the
-> motherboard of your computer?
->
-
-Yes.
-
-Dirk
-
-
-		
-___________________________________________________________ 
-Telefonate ohne weitere Kosten vom PC zum PC: http://messenger.yahoo.de
-
+http://article.gmane.org/gmane.linux.drivers.dvb/44017
 
 _______________________________________________
 linux-dvb mailing list
