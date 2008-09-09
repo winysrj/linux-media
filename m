@@ -1,13 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Fri, 12 Sep 2008 11:17:26 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Steven Toth <stoth@linuxtv.org>
-In-Reply-To: <48CA0355.6080903@linuxtv.org>
-Message-ID: <alpine.LRH.1.10.0809121112350.29931@pub3.ifh.de>
-References: <48CA0355.6080903@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <ke2705@gmx.de>) id 1Kd4os-0001yn-QK
+	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 17:07:55 +0200
+Message-ID: <48C69161.4080905@gmx.de>
+Date: Tue, 09 Sep 2008 17:08:17 +0200
+From: Eberhard Kaltenhaeuser <ke2705@gmx.de>
 MIME-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+References: <48BC00C6.1020006@gmx.de>
+	<alpine.LRH.1.10.0809011658130.3828@pub6.ifh.de>
+In-Reply-To: <alpine.LRH.1.10.0809011658130.3828@pub6.ifh.de>
+Cc: linux-dvb@linuxtv.org, Martin Dauskardt <martin.dauskardt@gmx.de>
+Subject: Re: [linux-dvb] Support of Nova-S SE PCI still uncomplete
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -15,91 +20,183 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0016831250=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Steve,
+This is a multi-part message in MIME format.
+--===============0016831250==
+Content-Type: multipart/alternative;
+ boundary="------------030500060405060607060801"
 
-On Fri, 12 Sep 2008, Steven Toth wrote:
-> Patrick, I haven't looked at your 1.7MHz bandwidth suggestion - I'm open
-> to ideas on how you think we should do this. Take a look at todays
-> linux/dvb/frontend.h and see if these updates help, or whether you need
-> more changes.
+This is a multi-part message in MIME format.
+--------------030500060405060607060801
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I attached a patch which adds a DTV_BANDWIDTH_HZ command. That's all. I 
-would like to have the option to pass any bandwidth I want to the 
-frontend.
+Hi Patrick and Martin,
 
-Also this patch includes some more things and questions around ISDB-T and 
-ISDB-Tsb:
+the Nova-S SE works perfectly now! Thanks to Patrick for providing the 
+patch and to Martin for compiling the kernel.
 
---- frontend.h.old	2008-09-12 10:46:25.351332000 +0200
-+++ frontend.h	2008-09-12 11:12:00.326085000 +0200
-@@ -258,6 +258,12 @@
-  	DTV_FREQUENCY,
-  	DTV_MODULATION,
-  	DTV_BANDWIDTH,
-+
-+	/* XXX PB: I would like to have field which describes the
-+	 * bandwidth of a channel in Hz or kHz - maybe we can remove the
-+	 * DTV_BANDWIDTH now and put a compat layer */
-+	DTV_BANDWIDTH_HZ,
-+
-  	DTV_INVERSION,
-  	DTV_DISEQC_MASTER,
-  	DTV_SYMBOL_RATE,
-@@ -276,18 +282,32 @@
-  	/* New commands are always appended */
-  	DTV_DELIVERY_SYSTEM,
+Eberhard
 
-+	/* XXX PB: is DTV_ISDB the good prefix for ISDB-T parameters ? XXX */
-+
-  	/* ISDB-T */
--	DTV_ISDB_SEGMENT_IDX,
--	DTV_ISDB_SEGMENT_WIDTH,
-+	DTV_ISDB_SEGMENT_IDX, /* maybe a duplicate of DTV_ISDB_SOUND_BROADCASTING_SUBCHANNEL_ID ??? to be checked */
-+	DTV_ISDB_SEGMENT_WIDTH, /* 1, 3 or 13 ??? */
-+
-+	DTV_ISDB_PARTIAL_RECEPTION, /* the central segment can be received independently or 1/3 seg in SB-mode */
-+	DTV_ISDB_SOUND_BROADCASTING, /* sound broadcasting is used 0 = 13segment, 1 = 1 or 3 see DTV_ISDB_PARTIAL_RECEPTION */
-+
-+	/* only used in SB */
-+	DTV_ISDB_SOUND_BROADCASTING_SUBCHANNEL_ID, /* determines the initial PRBS of the segment (to match with 13seg channel) */
-+
-  	DTV_ISDB_LAYERA_FEC,
-  	DTV_ISDB_LAYERA_MODULATION,
-  	DTV_ISDB_LAYERA_SEGMENT_WIDTH,
-+	DTV_ISDB_LAYERA_TIME_INTERLEAVER,
-+
-  	DTV_ISDB_LAYERB_FEC,
-  	DTV_ISDB_LAYERB_MODULATION,
-  	DTV_ISDB_LAYERB_SEGMENT_WIDTH,
-+	DTV_ISDB_LAYERB_TIME_INTERLEAVING,
-+
-  	DTV_ISDB_LAYERC_FEC,
-  	DTV_ISDB_LAYERC_MODULATION,
-  	DTV_ISDB_LAYERC_SEGMENT_WIDTH,
-+	DTV_ISDB_LAYERC_TIME_INTERLEAVING,
+Patrick Boettcher schrieb:
+> Dear Eberhard and Martin,
+>
+> On Mon, 1 Sep 2008, Eberhard Kaltenhaeuser wrote:
+>
+>> Against my expectation, the Nova-S SE card does still not work, 
+>> although the card is recognized by the kernel (see link). Frontend 
+>> modul is loaded, but no signal can be received. So VDR exists 
+>> (emergency exit) when switching to this device (i.e. to record 
+>> something)
+>
+> You would do me a big favour if you could test some patches in order 
+> to fix support for your card on the current v4l-dvb.
+>
+> Or even better if it is possible to give me remote access on your 
+> device - like that I could try patches directly and the issue would be 
+> covered with two hours I think.
+>
+> Please contact me privately if this is possible.
+>
+> Thank you very much in advance for your help,
+> Patrick.
+>
 
-  } dtv_cmd_types_t;
+-- 
+         ___________________________________
+        |                                   |
+        |      Eberhard Kaltenhaeuser       |
+      _ | (+49/0)9135 Tel:799955 Fax:725517 | _
+     / )|                                   |( \
+    / / |       mailto:ke2705@gmx.de        | \ \
+  _( (_ |  _                             _  | _) )_
+ (((\ \>|_/ )___________________________( \_|</ /)))
+ (\ \  \_/ /                             \ \_/  / /)
+  \       /                               \       /
+   \    _/                                 \_    /
+   /   /                                     \   \
 
+--------------030500060405060607060801
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Sorry for not integrating this into the frontend_cache yet. But I'm really 
-out of time (at work and even at home, working on cx24120) and I will not 
-be able to supply the DiBcom ISDB-T demod-driver (which would use all 
-that) right now.
-
-thanks for all your efforts,
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<font face="Times New Roman">Hi Patrick and Martin,<br>
+<br>
+the Nova-S SE works perfectly now! Thanks to Patrick for providing the
+patch and to Martin for compiling the kernel. <br>
+<br>
+Eberhard<br>
+</font><br>
+Patrick Boettcher schrieb:
+<blockquote cite="mid:alpine.LRH.1.10.0809011658130.3828@pub6.ifh.de"
+ type="cite">Dear Eberhard and Martin,
+  <br>
+  <br>
+On Mon, 1 Sep 2008, Eberhard Kaltenhaeuser wrote:
+  <br>
+  <br>
+  <blockquote type="cite">Against my expectation, the Nova-S SE card
+does still not work, although the card is recognized by the kernel (see
+link). Frontend modul is loaded, but no signal can be received. So VDR
+exists (emergency exit) when switching to this device (i.e. to record
+something)
+    <br>
+  </blockquote>
+  <br>
+You would do me a big favour if you could test some patches in order to
+fix support for your card on the current v4l-dvb.
+  <br>
+  <br>
+Or even better if it is possible to give me remote access on your
+device - like that I could try patches directly and the issue would be
+covered with two hours I think.
+  <br>
+  <br>
+Please contact me privately if this is possible.
+  <br>
+  <br>
+Thank you very much in advance for your help,
+  <br>
 Patrick.
+  <br>
+  <br>
+</blockquote>
+<br>
+<div class="moz-signature">-- <br>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+<title>Signatur_2</title>
+<font size="-1"><span
+ style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+___________________________________</span><br
+ style="font-family: Courier New,Courier,monospace;">
+<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|</span><br style="font-family: Courier New,Courier,monospace;">
+<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-weight: bold;">Eberhard
+Kaltenhaeuser</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|</span><br style="font-family: Courier New,Courier,monospace;">
+<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+_ | (+49/0)9135 Tel:799955 Fax:725517 | _</span><br
+ style="font-family: Courier New,Courier,monospace;">
+<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;&nbsp;
+/
+)|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+|( \</span><br style="font-family: Courier New,Courier,monospace;">
+<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;
+/ / | &nbsp; &nbsp; &nbsp; <a href="mailto:ke2705@gmx.de">mailto:ke2705@gmx.de</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+| \ \</span><br style="font-family: Courier New,Courier,monospace;">
+<span style="font-family: Courier New,Courier,monospace;">&nbsp; _( (_
+|&nbsp;
+_&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+_&nbsp; | _) )_</span><br style="font-family: Courier New,Courier,monospace;">
+<span style="font-family: Courier New,Courier,monospace;">&nbsp;(((\
+\&gt;|_/ )___________________________( \_|&lt;/ /)))</span><br
+ style="font-family: Courier New,Courier,monospace;">
+<span style="font-family: Courier New,Courier,monospace;">&nbsp;(\
+\&nbsp; \_/
+/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+\ \_/&nbsp; / /)</span><br
+ style="font-family: Courier New,Courier,monospace;">
+<span style="font-family: Courier New,Courier,monospace;">&nbsp;
+\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /</span><br style="font-family: Courier New,Courier,monospace;">
+<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;
+\&nbsp;&nbsp;&nbsp;
+_/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+\_&nbsp;&nbsp;&nbsp; /</span><br style="font-family: Courier New,Courier,monospace;">
+<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;
+/&nbsp;&nbsp;
+/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+\&nbsp;&nbsp; \</span></font>
+<br style="font-family: Courier New,Courier,monospace;">
+</div>
+</body>
+</html>
 
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+--------------030500060405060607060801--
+
+
+--===============0016831250==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0016831250==--
