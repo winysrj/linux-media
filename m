@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.189])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crow@linux.org.ba>) id 1KcNmN-0001L4-Bx
-	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 19:10:28 +0200
-Received: by fk-out-0910.google.com with SMTP id f40so971730fka.1
-	for <linux-dvb@linuxtv.org>; Sun, 07 Sep 2008 10:10:23 -0700 (PDT)
-Message-ID: <3c031ccc0809071010s2facf462x33b16433c9663d0d@mail.gmail.com>
-Date: Sun, 7 Sep 2008 19:10:23 +0200
-From: crow <crow@linux.org.ba>
-To: linux-dvb@linuxtv.org
+	(envelope-from <abraham.manu@gmail.com>) id 1KcyUI-0007qz-Vi
+	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 10:22:16 +0200
+Message-ID: <48C6322D.7030501@gmail.com>
+Date: Tue, 09 Sep 2008 12:22:05 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb]  Re : TT S2-3200 driver
+To: urishk@yahoo.com
+References: <179729.56472.qm@web38808.mail.mud.yahoo.com>
+In-Reply-To: <179729.56472.qm@web38808.mail.mud.yahoo.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,51 +25,82 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-I am also tryint to compile multiproto_plus on kernel 2.6.26-3 (sidux
-2008-02) but no luck.
-Kernel: Linux vdrbox 2.6.26-3.slh.4-sidux-amd64 #1 SMP PREEMPT Wed Sep
-3 19:39:11 UTC 2008 x86_64 GNU/Linux
-I tryed it this way:
-I downloaded dvb driver from:
-apt-get update
-apt-get install mercurial
-cd /usr/src/
-hg clone http://jusst.de/hg/multiproto_plus
-mv multiproto dvb
-ln -vfs /usr/src/linux-headers-`uname -r` linux
-cd /usr/src/dvb/linux/include/linux/
-ln -s /usr/src/linux/include/linux/compiler.h compiler.h
-cd /usr/src/dvb/
-and i am trying make and get this problem :
-............
-  CC [M]  /usr/src/dvb/v4l/ivtv-gpio.o
-  CC [M]  /usr/src/dvb/v4l/ivtv-i2c.o
-/usr/src/dvb/v4l/ivtv-i2c.c: In function 'ivtv_i2c_register':
-/usr/src/dvb/v4l/ivtv-i2c.c:171: error: 'struct i2c_board_info' has no
-member named 'driver_name'
-make[3]: *** [/usr/src/dvb/v4l/ivtv-i2c.o] Error 1
-make[2]: *** [_module_/usr/src/dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.26-3.slh.4-sidux-amd64'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/usr/src/dvb/v4l'
-make: *** [all] Error 2
-root@vdrbox:/usr/src/dvb#
+Uri Shkolnik wrote:
+> Manu and all,
+> 
+> 
+> First I would like to present myself (I'm new to this forum)
+> My name is Uri Shkolnik, and I work as Software Architecture at Siano Mobile Silicon (www.siano-ms.com).
+> 
+> As some people reading this mailing list know, but some don't.... Siano manufactures chipsets that support various of MDTV standards (DVB-H, DVB-T, ISDB-T, CMMB, T-DMB, DAB-IP,... and many more). Many products you see actually uses Siano's chipsets.
+> 
+> As far as I understand from this thread, and from other threads, the LinuxTV/DVB sub-system will not support non-DVB standards in the near future.
+> 
 
-I wanna try this patch to as i am also TT S2-3200 user.
-Any help welcome.
+Well, this is not true. What the idea we put forward was thus:
 
-Quote:
->Hello Ales,
->
->> I've used last one, multiproto-2a911b8f9910.tar.bz2.
->
->Against which kernel version do you compile this multiproto set?
->2.6.24 (fc8), 26.25.11, 2.6.26 all gave build errors...
->
->Kind Regards,
->
->Remy
+* have an API that is capable of supporting things which are needed in
+the future as well, not just for now.
+
+* At the point of working on the same, we mostly worked on DSS, DVB-S2,
+DVB-H, also for some DOCSIS cable modems. Since these were somewhat
+suppoted on many hardware we had.
+
+* The Linux DVB V4 API supports ISDB-T and is running on some STB's
+http://linuxtv.org/cgi-bin/viewcvs.cgi/dvb-kernel-v4/
+
+This is something which has been proven with regards to the ARIB
+extensions as well, so we can use the interface of the delivery system
+in the new API. But having no open drivers which were really supported,
+really was a let down and the scrambling being employed -- was not
+something that was open, slowed down things quite a lot, as it was yet
+to be seen whether such supported hardware drivers would really exist
+under Linux.
+
+* With regards to DMB-T/H or the Chinese T-DMB, there is quite some
+people interested on the same, This can be added in to the API at any
+point of time, without sacrificing backward binary compatibility.
+
+* There was even DVB-T2 in the works at that time, but it was argued and
+proven right that we shouldn't just blindly keep adding things till we
+really have support on the same.
+
+You can see my post over here:
+http://thread.gmane.org/gmane.linux.kernel/729969
+
+> This is quite understandable since those standards are quite complicate, and the newer are even more complicated than DVB-C/S/T. It took about 5 years for the DVB sub-system to become mature, so, trying to add all of those standards at once will lead to nowhere good.
+> 
+
+True, one must look first what hardware will the general home user would
+like to get going under Linux. There are some features professional
+users also would like to get going.
+
+But adding all the definitions into an API will be just a mess:
+for example ATSC over satellite was a standard that was put forward at
+some point of time and later on the whole standard itself was scrapped
+in favour of DVB over satellite.
+
+> I don't know what should be done next, which API (and sub-system) should be added first, second, ... (or not at all?). I have my own views (CMMB getting much more audience than DVB-H and ISDB-T more than the DAB family). 
+> 
+> But, I can offer technical assistant. Siano is senior member at most of the MDTV consortiumes (CMMB, DVB and more) and I have access to lot of technical documentation (specifications, guildlines, etc.) which are otherwise quite hard (if not impossible) to be obtained.
+> True that some (not all) of those papers are under classification that does not permit me to share them directly, but always a specific question can be answered.
+
+That would be nice. Well, there are quite some vendors who are willing
+to help as well. Some of us have access to some of the consortiums,
+AFAICS. If there's supported hardware out there, we can add in support
+in the API too, for the relevant delivery systems.
+
+The easiest way to do so, will be to start a discussion, on a newer
+thread as to what you will need in terms of API support in a newer
+delivery system.
+
+> One point regarding Siano non-DVB offering - With Michael Krufky's help, I'm trying to find a way to add Siano's non-DVB(-T) offering into the kernel's code base (till now we supply a proprietary sources directly to our customers). Of course it will be somewhat specific code by the fact that it'll match Siano's chipset instead of be more generic.
+> 
+
+
+Regards,
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
