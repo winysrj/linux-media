@@ -1,13 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Oliver Endriss <o.endriss@gmx.de>
-In-Reply-To: <200809241922.16748@orion.escape-edv.de>
-References: <200809241922.16748@orion.escape-edv.de>
-Date: Thu, 25 Sep 2008 03:28:45 +0200
-Message-Id: <1222306125.3323.80.camel@pc10.localdom.local>
+Received: from [195.7.61.12] (helo=killala.koala.ie)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <simon@koala.ie>) id 1KdAJI-00022G-Vj
+	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 22:59:42 +0200
+Received: from [195.7.61.7] (cozumel.koala.ie [195.7.61.7])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id m89KxY6c008190
+	for <linux-dvb@linuxtv.org>; Tue, 9 Sep 2008 21:59:34 +0100
+From: Simon Kenyon <simon@koala.ie>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+Date: Tue, 09 Sep 2008 21:59:34 +0100
+Message-Id: <1220993974.17270.22.camel@localhost>
 Mime-Version: 1.0
-Cc: v4l-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org, vdr@linuxtv.org
-Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [Wanted] dvb-ttpci maintainer
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,42 +30,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Tue, 2008-09-09 at 17:33 +0200, Markus Rechberger wrote:
+> As from my side I have to write it was a good move for the em28xx to
+> make it independent especially
+> since business customers use the improved version now and don't have
+> to fear any uncoordinated
+> breakage.
 
-Am Mittwoch, den 24.09.2008, 19:22 +0200 schrieb Oliver Endriss:
-> Hi,
-> 
-> due to the way S2API was pushed through (I would call it a plot)
-> there is not much motivation left to spend my time with DVB.
-> 
-> So - if someone wants to take over the dvb-ttpci drivers he should speak
-> up now. The sooner the better.
-> 
-> Oliver
-> 
-
-Oliver,
-
-you and Manu still stand for dvb with highest respect from _all_ I know
-about.
-
-And for all I know else, maybe I know nothing, this was for sure not a
-plot.
-
-Except of course a majority of plumbers at the same place at the same
-time can create/propose some facts.
-
-If you attack people such hard as Manu did, also behind the visible
-lines sometimes, Marcel had a copy from me concerning Mauro and did say
-nothing, you must not wonder about people starting to defend themselves.
-
-For sure the dirt was not started from v4l people.
-
-Think it over.
-
-Hermann
- 
-
-
+as i said before (and to which you did not respond), this may be good
+for you, but it is not good for the rest of us.
+--
+simon
 
 
 _______________________________________________
