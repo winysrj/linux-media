@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Fri, 05 Sep 2008 09:45:51 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>
-To: Markus Rechberger <mrechberger@gmail.com>,
-	Johannes Stezenbach <js@linuxtv.org>, Manu Abraham <abraham.manu@gmail.com>
-Message-id: <48C1380F.7050705@linuxtv.org>
-MIME-version: 1.0
-References: <48C00822.4030509@gmail.com> <48C01698.4060503@gmail.com>
-	<48C01A99.402@gmail.com> <20080904204709.GA32329@linuxtv.org>
-	<d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: linux-dvb@linuxtv.org
+Date: Tue, 9 Sep 2008 19:31:01 +0300
+References: <48BF6A09.3020205@linuxtv.org>
+	<200809082334.04511.liplianin@tut.by>
+	<200809091750.38009.liplianin@tut.by>
+In-Reply-To: <200809091750.38009.liplianin@tut.by>
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_FTqxIf+Xig4vSpE"
+Message-Id: <200809091931.01831.liplianin@tut.by>
+Subject: [linux-dvb] [PATCH] S2 cx24116: Above 30000 kSym/s symbol rates
+	patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,100 +19,122 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus Rechberger wrote:
-> Hi,
-> 
-> On Thu, Sep 4, 2008 at 10:47 PM, Johannes Stezenbach <js@linuxtv.org> wrote:
->> On Thu, Sep 04, 2008, Manu Abraham wrote:
->>> Does it support ISDB-T, ATSC-MH, CMMB, DBM-T/H?
->>> Intentionally, no!  Experience with the old api development has proven
->>> that making blind assumptions about delivery systems is a bad idea.
->>> It's better to add in support for these when the hardware actually arrives
->>> and can be properly tested.
+--Boundary-00=_FTqxIf+Xig4vSpE
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-We have ISDB-T running under linux in the lab, we have a pretty good 
-idea about what we need to generalize for an API, but you can't make a 
-standard out of one demod.
+Hi Steven,
+Please apply this patch
 
-All API's developers should be cautious here.
+Above 30000 kSym/s symbol rates patch
+Tested on 44948 transponders (Express AM2)
 
+Igor M. Liplianin
 
-> 
-> I have Empia ISDB-T and DMB-T/H hardware and the corresponding signal
-> generator for it here,
-> it's right on my roadmap and work can be started within a few days.
+--Boundary-00=_FTqxIf+Xig4vSpE
+Content-Type: text/x-diff;
+  charset="koi8-r";
+  name="8863.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="8863.patch"
 
-A big difference between can and will, the em28xx fiasco tells us this.
+# HG changeset patch
+# User Igor M. Liplianin <liplianin@me.by>
+# Date 1220977349 -10800
+# Node ID c16df309144fe4971cbdbb1e6fb67eb6df0ec727
+# Parent  49c174f134f86203f892857b33832c2ff8bd850a
+cx24116: Fix lock for high (above 30000 kSyms) symbol rates
 
-I hope this next question isn't seen as a flame, because I ask this as a 
-genuine question. Are you committing to adding ISDB-T and DMB-T/H 
-support to master at linuxtv.org? Or would this be something you'd plan 
-to keep at you own site, like your other code?
+From: Igor M. Liplianin <liplianin@me.by>
 
+cx24116: Fix lock for high (above 30000 kSyms) symbol rates
 
-> 
->> Full ACK on this one. Once an API is merged into the mailine
->> kernel we're stuck with it, no matter how ugly and broken it might be.
->> -> NEVER merge untested APIs
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
 
-Indeed.
+diff -r 49c174f134f8 -r c16df309144f linux/drivers/media/dvb/frontends/cx24116.c
+--- a/linux/drivers/media/dvb/frontends/cx24116.c	Tue Sep 09 17:29:43 2008 +0300
++++ b/linux/drivers/media/dvb/frontends/cx24116.c	Tue Sep 09 19:22:29 2008 +0300
+@@ -29,6 +29,11 @@
+  * August
+  *	Sync with legacy version.
+  *	Some clean ups.
++ */
++/* Updates by Igor Liplianin
++ *
++ * September, 9th 2008
++ *	Fixed locking on high symbol rates (>30000).
+  */
+ 
+ #include <linux/slab.h>
+@@ -809,7 +814,7 @@
+ 	struct tv_frontend_properties *c = &fe->tv_property_cache;
+ 	struct cx24116_cmd cmd;
+ 	fe_status_t tunerstat;
+-	int ret;
++	int ret, above30msps;
+ 	u8 retune=4;
+ 
+ 	dprintk("%s()\n",__func__);
+@@ -839,6 +844,16 @@
+ 	if (state->config->set_ts_params)
+ 		state->config->set_ts_params(fe, 0);
+ 
++	above30msps = (state->dcur.symbol_rate > 30000000);
++
++	if (above30msps){
++		cx24116_writereg(state, 0xF9, 0x01);
++		cx24116_writereg(state, 0xF3, 0x44);
++	} else {	
++		cx24116_writereg(state, 0xF9, 0x00);
++		cx24116_writereg(state, 0xF3, 0x46);
++	}
++
+ 	/* Prepare a tune request */
+ 	cmd.args[0x00] = CMD_TUNEREQUEST;
+ 
+@@ -866,11 +881,21 @@
+ 	cmd.args[0x0b] = 0x00;
+ 	cmd.args[0x0c] = 0x02;
+ 	cmd.args[0x0d] = state->dcur.fec_mask;
+-	cmd.args[0x0e] = 0x06;
+-	cmd.args[0x0f] = 0x00;
+-	cmd.args[0x10] = 0x00;
+-	cmd.args[0x11] = 0xFA;
+-	cmd.args[0x12] = 0x24;
++
++	if (above30msps){
++		cmd.args[0x0e] = 0x04;
++		cmd.args[0x0f] = 0x00;
++		cmd.args[0x10] = 0x01;
++		cmd.args[0x11] = 0x77;
++		cmd.args[0x12] = 0x36;
++	} else {
++		cmd.args[0x0e] = 0x06;
++		cmd.args[0x0f] = 0x00;
++		cmd.args[0x10] = 0x00;
++		cmd.args[0x11] = 0xFA;
++		cmd.args[0x12] = 0x24;
++	}
++
+ 	cmd.len= 0x13;
+ 
+ 	/* We need to support pilot and non-pilot tuning in the
 
-> 
-> should be the rule but there's always an exception for it too . o (
-> thinking about KVM )
-> 
->>> If you would like to use any of these drivers now, you may pull the
->>> tree from http://jusst.de/hg/multiproto.  Drivers may be configured
->>> with 'make menuconfig' the same as you've done with v4l.
->>>
->>> Feedback, bug reports, etc. are welcomed and encouraged!
->> I only want to add a bit of historical perspective so people
->> are aware of the reasons why Steve came up with his alternative
->> API proposal, and why a number of developers seem to support it.
-
-/me nods
-
->>
->> First let's look at the timestamps:
->> http://jusst.de/hg/multiproto/log/2a911b8f9910/linux/include/linux/dvb/frontend.h
->> http://jusst.de/hg/multiproto_api_merge/log/4c62efb08ea6/linux/include/linux/dvb/frontend.h
->>
->> Then at some discussion from nearly one year ago:
->> http://article.gmane.org/gmane.linux.drivers.dvb/36643
-
-This is worth reading.
-
->>
-> 
-> by experience I'm sure most people won't read up the history here...
-
-Also agreed, a lot of people have lost sight of the history - which is 
-the entire reason that the S2API alternative exists.
-
-Manu,
-
-The S2API tree is available on linuxtv.org with HVR4000 support, 
-spanning 3 or 4 patches.
-
-I have a TT-3200, do you have a complete tree with all of your pull 
-req'd patches available on linuxtv.org for testing, including your 
-demodulation and tuning drivers? Do you have a complete solution that I 
-can evaluate for pro's and cons?
-
-Thanks,
-
-Steve
-
-
-
+--Boundary-00=_FTqxIf+Xig4vSpE
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_FTqxIf+Xig4vSpE--
