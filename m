@@ -1,23 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.24])
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1Kepgo-0004KH-7l
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 13:22:51 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so718170eya.17
-	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 04:22:45 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: =?iso-8859-1?q?H=E5kon_Alstadheim?= <hakon@alstadheim.priv.no>
-Date: Sun, 14 Sep 2008 13:22:40 +0200
-References: <48C0DD05.3070608@alstadheim.priv.no>
-	<200809131200.02589.christophpfister@gmail.com>
-	<48CC1C84.8050103@alstadheim.priv.no>
-In-Reply-To: <48CC1C84.8050103@alstadheim.priv.no>
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_AQPzIBs6LIy+XSn"
-Message-Id: <200809141322.40094.christophpfister@gmail.com>
+	(envelope-from <stoth@linuxtv.org>) id 1Kd4av-0000wF-Hi
+	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 16:53:30 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6X00DKFO050X41@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 09 Sep 2008 10:52:53 -0400 (EDT)
+Date: Tue, 09 Sep 2008 10:52:53 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48C659C5.8000902@magma.ca>
+To: Patrick Boisvenue <patrbois@magma.ca>
+Message-id: <48C68DC5.1050400@linuxtv.org>
+MIME-version: 1.0
+References: <48C659C5.8000902@magma.ca>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] =?utf-8?q?dvb-t_scan_file_Norway=2C_Tr=C3=B8ndelag?=
+Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,92 +25,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_AQPzIBs6LIy+XSn
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Patrick Boisvenue wrote:
+> I cannot get my new HVR-1500Q to work at all even though it's recognized 
+> as such.  The best I was able to figure out was it does not like the 
+> eeprom.  After enabling the debug mode on tveeprom, I got the following 
+> when loading cx23885:
 
-Am Saturday 13 September 2008 22:03:16 schrieb H=C3=A5kon Alstadheim:
-> Christoph Pfister wrote:
-> > Am Friday 05 September 2008 09:17:25 schrieb H=C3=A5kon Alstadheim:
-> >  =20
-> >> The attached is raw output from w_scan, with a couple of comments adde=
-d.
-> >> The frequency I actually use which has the unencrypted channels is=20
-> >> 658000000.
-> >>    =20
-> >
-> > Hmm, it contains quite some occurencies of "AUTO". Any chance to get ri=
-d of=20
-> > them?
-> >
-> >  =20
-> I'm a rank amateur in this, so I'll freely admit that this config is=20
-> just a first approximation to allow me to test the state of various dvb=20
-> players. The standards used in dvb-t in Norway means that all software=20
-> needs to bee at the bleeding edge, so a working first approximation to=20
-> make testing easier is a boon (i.e. I'm hoping this file will end up on=20
-> live-cd distros).
->=20
-> The only thing I ever see in the actual scan output is stuff like:
->=20
-> parse_terrestrial_delivery_system_descriptor:498: 0x3409/0x3a4=20
-> 586000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISS=
-ION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
->=20
-> Which I guess means that all the entries could be changed to 8MHz 2/3=20
-> 2/3 QAM64 8k 1/8 NONE. I have no contract or guarantee or even official=20
-> documentation from any provider to corroborate this. I tried asking on a=
-=20
-> web "help forum" for the dvb-t distributor (norkring). The answer was=20
-> "digital broadcasts in Norway are not viewable on a pc". (I'm watching=20
-> NRK1 digital on a gentoo box right now). Any official info on the=20
-> norkring website bears no resemblance to what actually works. There are=20
-> some "channel numbers" listed for the various "packages", but what those=
-=20
-> numbers mean (i.e. frequency ) is not specified, and there are some=20
-> transmitters that are not on the official list yet.
+...
 
-Could you please check whether scan still produces correct output if you use
-the attached file?
+> cx23885[0]: warning: unknown hauppauge model #0
+> cx23885[0]: hauppauge eeprom: model=0
+> cx23885[0]: cx23885 based dvb card
+
+...
+
+> Did a hg pull -u http://linuxtv.org/hg/v4l-dvb earlier today so running 
+> off recent codebase.
+
+Fixed it, see linuxtv.org/hg/~stoth/v4l-dvb.
+
+Pull the topmost patch and try again, please post your results back here.
 
 Thanks,
 
-Christoph
+Steve
 
---Boundary-00=_AQPzIBs6LIy+XSn
-Content-Type: text/plain;
-  charset="iso 8859-15";
-  name="no-Trondelag_Stjordal"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="no-Trondelag_Stjordal"
 
-# Norway / Trondelag / Stjordal
-# modified according to data automatically generated by w_scan
-# free (nrk) channels are on 658000000
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-T 474000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-
---Boundary-00=_AQPzIBs6LIy+XSn
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_AQPzIBs6LIy+XSn--
