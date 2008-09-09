@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from yx-out-2324.google.com ([74.125.44.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1Kex4N-0006Sh-CV
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 21:15:40 +0200
-Message-ID: <48CD62D2.9050200@gmail.com>
-Date: Sun, 14 Sep 2008 23:15:30 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <lucastim@gmail.com>) id 1KdALJ-0002ZM-RB
+	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 23:01:46 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so1239278yxg.41
+	for <linux-dvb@linuxtv.org>; Tue, 09 Sep 2008 14:01:41 -0700 (PDT)
+Message-ID: <e32e0e5d0809091401w75909006uccd7a776d4d5bd35@mail.gmail.com>
+Date: Tue, 9 Sep 2008 14:01:40 -0700
+From: "Tim Lucas" <lucastim@gmail.com>
+To: "Steven Toth" <stoth@linuxtv.org>, "linux dvb" <linux-dvb@linuxtv.org>,
+	patrbois@magma.ca
 MIME-Version: 1.0
-To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
-References: <630160.40997.qm@web46116.mail.sp1.yahoo.com>	<48CAE273.4030809@gmail.com>
-	<48CCF23D.5050209@cadsoft.de>
-In-Reply-To: <48CCF23D.5050209@cadsoft.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,71 +19,126 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0058880389=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Klaus Schmidinger wrote:
-> On 09/12/08 23:43, Manu Abraham wrote:
->> barry bouwsma wrote:
->> ...
->>> Now a completely different question -- I was pleased to see
->>> that my not-too-old kernel compiled well with your mp_plus
->>> source, and I read on the Wiki that certain basic tools
->>> still needed to be ported to multiproto.
->>
->> Please use the multiproto tree rather than the multiproto_plus tree.
-> 
-> I tried the multiproto version 855d0c878944, but it didn't work on
-> my system. My VDR doesn't recognize my DVB-T card and hangs upon startup.
-> When I try to unload the driver modules, the 'rmmod budget_core' appears
-> to hang. If I kill that, a subsequent 'lsmod' also hangs, so I need to do
-> a reboot - which also hangs, so a hard reset is the last resort.
-> 
-> Then I tried the latest multiproto_plus version adf34f76ab7c, with which
-> VDR's startup sequence results in
-> 
-> Sep 14 13:06:59 video vdr: [3309] probing /dev/dvb/adapter0/frontend0
-> Sep 14 13:06:59 video vdr: [3313] CI adapter on device 0 thread started (pid=3309, tid=3313)
-> Sep 14 13:06:59 video vdr: [3309] ERROR (dvbdevice.c,471): Operation not supported
-> Sep 14 13:06:59 video vdr: [3314] section handler thread started (pid=3309, tid=3314)
-> Sep 14 13:06:59 video vdr: [3309] probing /dev/dvb/adapter1/frontend0
-> Sep 14 13:06:59 video vdr: [3316] CI adapter on device 1 thread started (pid=3309, tid=3316)
-> Sep 14 13:06:59 video vdr: [3309] ERROR (dvbdevice.c,471): Operation not supported
-> Sep 14 13:06:59 video vdr: [3317] section handler thread started (pid=3309, tid=3317)
-> Sep 14 13:06:59 video vdr: [3309] probing /dev/dvb/adapter2/frontend0
-> Sep 14 13:06:59 video vdr: [3309] ERROR (dvbdevice.c,471): Operation not supported
-> Sep 14 13:06:59 video vdr: [3319] section handler thread started (pid=3309, tid=3319)
-> Sep 14 13:06:59 video vdr: [3309] probing /dev/dvb/adapter3/frontend0
-> Sep 14 13:06:59 video vdr: [3309] ERROR (dvbdevice.c,471): Operation not supported
-> Sep 14 13:06:59 video vdr: [3321] section handler thread started (pid=3309, tid=3321)
-> 
-> This is the DVBFE_GET_DELSYS call that apparently fails.
-> 
-> Using the multiproto_plus version 88821ce4ed8d (2008-04-13) works fine.
-> So I'm still using that one for now.
-> 
-> Have there been any API changes since multiproto_plus version 88821ce4ed8d
-> that I would need to take into account in VDR?
+--===============0058880389==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_37497_24337222.1220994101019"
 
-There hasn't been any further API changes after that changeset.
+------=_Part_37497_24337222.1220994101019
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-The only other change (to dvb-core) is a backward compatibility add on
-from Anssi Hannula, but that change i haven't ported yet to the
-multiproto_plus tree.
+> Message: 5
+> Date: Tue, 09 Sep 2008 10:52:53 -0400
+> From: Steven Toth <stoth@linuxtv.org>
+> Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
+> To: Patrick Boisvenue <patrbois@magma.ca>
+> Cc: linux-dvb@linuxtv.org
+> Message-ID: <48C68DC5.1050400@linuxtv.org>
+> Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 
-Maybe something came up, while merging the two trees .. ?
+> Patrick Boisvenue wrote:
+>> I cannot get my new HVR-1500Q to work at all even though it's recognized
+>> as such.  The best I was able to figure out was it does not like the
+>> eeprom.  After enabling the debug mode on tveeprom, I got the following
+>> when loading cx23885:
 
-Let me see what i can dig through.
+...
 
-Thanks for looking it up.
+>> cx23885[0]: warning: unknown hauppauge model #0
+>> cx23885[0]: hauppauge eeprom: model=0
+>> cx23885[0]: cx23885 based dvb card
 
-Regards,
-Manu
+...
+
+>> Did a hg pull -u http://linuxtv.org/hg/v4l-dvb earlier today so running
+>> off recent codebase.
+
+>Fixed it, see linuxtv.org/hg/~stoth/v4l-dvb<http://linuxtv.org/hg/%7Estoth/v4l-dvb>
+.
+
+>Pull the topmost patch and try again, please post your results back here.
+
+>Thanks,
+
+>Steve
+
+This is the same problem that I was having
+
+[  589.382427] tveeprom 5-0050: Encountered bad packet header [ff]. Corrupt
+or not a Hauppauge eeprom.
+[  589.382431] cx23885[0]: warning: unknown hauppauge model #0
+[  589.382432] cx23885[0]: hauppauge eeprom: model=0
+
+I was working with the cx23885-audio branch for the analog support.  Could
+these changes be added to that branch as well?  Or could I get things
+working by simply merging with the ~stoth/v4l-dvd branch?
+
+-- 
+--Tim
+
+------=_Part_37497_24337222.1220994101019
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">&gt; Message: 5<br>
+&gt; Date: Tue, 09 Sep 2008 10:52:53 -0400<br>
+&gt; From: Steven Toth &lt;<a href="mailto:stoth@linuxtv.org" target="_blank">stoth@linuxtv.org</a>&gt;<br>
+&gt; Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly<br>
+&gt; To: Patrick Boisvenue &lt;<a href="mailto:patrbois@magma.ca" target="_blank">patrbois@magma.ca</a>&gt;<br>
+&gt; Cc: <a href="mailto:linux-dvb@linuxtv.org" target="_blank">linux-dvb@linuxtv.org</a><br>&gt; Message-ID: &lt;<a href="mailto:48C68DC5.1050400@linuxtv.org" target="_blank">48C68DC5.1050400@linuxtv.org</a>&gt;<br>
+&gt; Content-Type: text/plain; charset=ISO-8859-1; format=flowed<br>
+<br>
+&gt; Patrick Boisvenue wrote:<br>
+&gt;&gt; I cannot get my new HVR-1500Q to work at all even though it&#39;s recognized<br>
+&gt;&gt; as such. &nbsp;The best I was able to figure out was it does not like the<br>
+&gt;&gt; eeprom. &nbsp;After enabling the debug mode on tveeprom, I got the following<br>
+&gt;&gt; when loading cx23885:<br>
+<br>
+...<br>
+<br>
+&gt;&gt; cx23885[0]: warning: unknown hauppauge model #0<br>
+&gt;&gt; cx23885[0]: hauppauge eeprom: model=0<br>
+&gt;&gt; cx23885[0]: cx23885 based dvb card<br>
+<br>
+...<br>
+<br>
+&gt;&gt; Did a hg pull -u <a href="http://linuxtv.org/hg/v4l-dvb" target="_blank">http://linuxtv.org/hg/v4l-dvb</a> earlier today so running<br>
+&gt;&gt; off recent codebase.<br>
+<br>
+&gt;Fixed it, see <a href="http://linuxtv.org/hg/%7Estoth/v4l-dvb" target="_blank">linuxtv.org/hg/~stoth/v4l-dvb</a>.<br>
+<br>
+&gt;Pull the topmost patch and try again, please post your results back here.<br>
+<br>
+&gt;Thanks,<br>
+<br>
+&gt;Steve<br clear="all"><br>This is the same problem that I was having<br><br><span style="border-collapse: collapse; font-family: Times; font-size: 16px;">[&nbsp; 589.382427] tveeprom 5-0050: Encountered bad packet header [ff]. Corrupt or not a Hauppauge eeprom.<br>
+[&nbsp; 589.382431] cx23885[0]: warning: unknown hauppauge model #0<br>
+
+
+[&nbsp; 589.382432] cx23885[0]: hauppauge eeprom: model=0</span><br><br>I was working with the cx23885-audio branch for the analog support.&nbsp; Could these changes be added to that branch as well?&nbsp; Or could I get things working by simply merging with the ~stoth/v4l-dvd branch?<br>
+
+<br>-- <br> --Tim<br>
+</div>
+
+------=_Part_37497_24337222.1220994101019--
+
+
+--===============0058880389==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0058880389==--
