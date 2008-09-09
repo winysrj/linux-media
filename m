@@ -1,22 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8I0HlWa002556
-	for <video4linux-list@redhat.com>; Wed, 17 Sep 2008 20:17:47 -0400
-Received: from mail-in-06.arcor-online.net (mail-in-06.arcor-online.net
-	[151.189.21.46])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8I0HWRO014580
-	for <video4linux-list@redhat.com>; Wed, 17 Sep 2008 20:17:33 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: danflu@uninet.com.br
-In-Reply-To: <48d00727.2fe.4e96.811320937@uninet.com.br>
-References: <48d00727.2fe.4e96.811320937@uninet.com.br>
-Content-Type: text/plain
-Date: Thu, 18 Sep 2008 02:13:51 +0200
-Message-Id: <1221696831.4557.54.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m897JxGW030035
+	for <video4linux-list@redhat.com>; Tue, 9 Sep 2008 03:19:59 -0400
+Received: from metis.extern.pengutronix.de (metis.extern.pengutronix.de
+	[83.236.181.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m897JCDM001169
+	for <video4linux-list@redhat.com>; Tue, 9 Sep 2008 03:19:12 -0400
+Date: Tue, 9 Sep 2008 09:19:14 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <20080909071914.GC7126@pengutronix.de>
+References: <20080905103917.GQ4941@pengutronix.de>
+	<Pine.LNX.4.64.0809051330390.5482@axis700.grange>
+	<20080908103441.GB6496@pengutronix.de>
+	<Pine.LNX.4.64.0809081248360.4466@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0809081248360.4466@axis700.grange>
 Cc: video4linux-list@redhat.com
-Subject: Re: saa7134 controller
+Subject: Re: [soc-camera] about the y_skip_top parameter
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,48 +31,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Daniel,
-
-Am Dienstag, den 16.09.2008, 16:21 -0300 schrieb danflu@uninet.com.br:
-> Hi,
+On Tue, Sep 09, 2008 at 08:38:55AM +0200, Guennadi Liakhovetski wrote:
+> On Mon, 8 Sep 2008, Sascha Hauer wrote:
 > 
-> I'm Trying to capture from a capture TV card (Zogis Real
-> Angel 220 with FM) that has a saa7134 controller but I'm not
-> succeding in make it work.
+> > On Fri, Sep 05, 2008 at 08:12:56PM +0200, Guennadi Liakhovetski wrote:
+> > > 
+> > > Hm, AFAIR, the reason was different. I was told, that "all" cameras 
+> > > corrupt the first line, that's why that parameter has been introduced. I 
+> > > don't think it was related to PXA270. In any case, why don't you just set 
+> > > this parameter to whatever you need in your hist driver .add method, for 
+> > > example, before calling camera's .init?
+> > 
+> > That's what I'm doing at the moment. I just had the feeling that there
+> > is a bug fixed in the wrong place, but I did not know that it's the cameras
+> > that corrupt the first line.
+> > Anyway, what in case of bayer cameras? don't we have to skip the first
+> > two lines then?
 > 
-> When I type dmesg the operating system (linux Ubuntu
-> 8.04)says that it cannot automatically detect the device,
-> and V4L2 lists it as UNKNOWN. The driver listed by
-> video4linux is saa7134. The device is identified at
-> /dev/video0.
+> I think so, yes. Or you start with the wrong line in your user-space 
+> application.
 > 
-> Please, could you clarify step by step how can I setup linux
-> to make this device work ? 
+> > I'm asking because I'm still struggling with getting the
+> > correct pixel in the top left corner without introducing funny offsets.
+> > This brings me back to the question: Which color does the top left
+> > corner have? http://v4l2spec.bytesex.org/spec/r3735.htm says the first is a
+> > blue/red line, due to y_skip_top=1 the pxa actually delivers a green/red
+> > line
 > 
-> Another thing... what is the best application available
-> today to watch tv on linux ???
-> 
+> http://www.siliconimaging.com/RGB%20Bayer.htm shows a green/red line on 
+> the top. But look in your camera datasheet - at least datasheets I was 
+> working with did describe the specific pattern the camera was producing. 
+> For example, mt9m001 also specifies green/red at the top.
 
-looks like you can't get old dogs away from the oven with such questions
-that soon.
+Ah ok, so even the Micron chips are not consistent. I wonder whether we
+should move the pictures in kernel so that they all have the same pixel
+in the top left corner or introduce a second bayer fourcc then. It
+doesn't seem practical that the userspace apps hold a database of camera
+chips.
 
-Start as usual, it is exercised close to two hundred times now, with the
-hidden cards included.
+Sascha
 
-Reload the drivers with i2c_scan=1 (modinfo saa7134), identify the tuner
-and the audio clock and follow the instructions on the v4l wiki at
-linuxtv.org about adding a new card, if it even is one.
-
-You can find lots of patterns like a card can be configured here
-http://linuxtv.org/hg/v4l-dvb/log/e5ca4534b543/linux/drivers/media/video/saa7134/saa7134.h
-
-and all sort of questions since 2002 on the lists/archives.
-
-Cheers,
-Hermann
-
-
-
+-- 
+ Pengutronix - Linux Solutions for Science and Industry
+   Handelsregister:  Amtsgericht Hildesheim, HRA 2686
+     Hannoversche Str. 2, 31134 Hildesheim, Germany
+   Phone: +49-5121-206917-0 |  Fax: +49-5121-206917-9
 
 --
 video4linux-list mailing list
