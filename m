@@ -1,18 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wa-out-1112.google.com ([209.85.146.179])
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <glenn.l.mcgrath@gmail.com>) id 1KaMXe-0007WH-9U
-	for linux-dvb@linuxtv.org; Tue, 02 Sep 2008 05:26:58 +0200
-Received: by wa-out-1112.google.com with SMTP id n7so1612586wag.13
-	for <linux-dvb@linuxtv.org>; Mon, 01 Sep 2008 20:26:47 -0700 (PDT)
-Date: Tue, 2 Sep 2008 13:26:34 +1000
-From: "Glenn L. McGrath" <glenn.l.mcgrath@gmail.com>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080902132634.306304af@bugsville.home.prv>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/MiFp.zNUrp+ZvHSuITqXala"
-Subject: [linux-dvb] Initial tuning data file for all Australian digitial
-	frequencies
+	(envelope-from <stoth@linuxtv.org>) id 1KdD1a-0006Kd-Qf
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 01:53:37 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6Y00EGOD00VDA0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 09 Sep 2008 19:52:48 -0400 (EDT)
+Date: Tue, 09 Sep 2008 19:52:48 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200809091931.01831.liplianin@tut.by>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Message-id: <48C70C50.4010803@linuxtv.org>
+MIME-version: 1.0
+References: <48BF6A09.3020205@linuxtv.org>
+	<200809082334.04511.liplianin@tut.by>
+	<200809091750.38009.liplianin@tut.by>
+	<200809091931.01831.liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] S2 cx24116: Above 30000 kSym/s symbol rates
+ patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,110 +29,27 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---MP_/MiFp.zNUrp+ZvHSuITqXala
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Igor M. Liplianin wrote:
+> Hi Steven,
+> Please apply this patch
+> 
+> Above 30000 kSym/s symbol rates patch
+> Tested on 44948 transponders (Express AM2)
+> 
+> Igor M. Liplianin
+> 
 
-Hi all
+Merged, thanks.
 
-First off, thanks to everyone who has been working on the drivers
-for the DViCO FusionHDTV DVB-T Dual Express, i have mine partially
-working now. (but thats another story)
-
-One problem i had was scanning for channels, this is how i did it.
-
-I live in regional Victoria and couldnt find a pre-generated
-initial tuning data file, the wiki pointed me to w_scan.
-
-I tried to use w_scan but after stumbling across
-http://vk3khb.gak.net.au/ i realised it was scanning the wrong
-frequencies for Australia, i did modify w_scan to scan aus frequencies,
-but it breaks it for everyone else, and it only found the first
-channel.
-
-So i looked at the output of the one output line and just added extra
-lines for every other frequency allowed for digital tv in Australia.
-
-Then to produce my local channnels.conf i just scan every
-allowed frequency with 
-> scan au-Initial > au-Warrnambool-City
-
-I think others should be able to use the same method so they dont need
-the pre-generated scan output for their region, they can make their own.
-
-
-
-Glenn
-
---MP_/MiFp.zNUrp+ZvHSuITqXala
-Content-Type: text/plain; name=au-Initial
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=au-Initial
-
-IyBUaGFua3MgZ28gdG8gR2FyeSBmcm9tIGh0dHA6Ly92azNraGIuZ2FrLm5ldC5hdS8gZm9yIHRo
-ZSBGcmVxdWVuY2llcw0KIyBUIGZyZXEgYncgZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9u
-LW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5DQpUIDE3NzUwMDAwMCA3TUh6IEFVVE8gQVVU
-TyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDE4NDUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFV
-VE8gQVVUTyBBVVRPDQpUIDE5MTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBB
-VVRPDQpUIDE5ODUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDIw
-NTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDIxMTUwMDAwMCA3
-TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDIxODUwMDAwMCA3TUh6IEFVVE8g
-QVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDIyNTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRP
-IEFVVE8gQVVUTyBBVVRPDQpUIDIzMjUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVU
-TyBBVVRPDQpUIDQ0NjUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpU
-IDUwMTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDUwODUwMDAw
-MCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDUxNTUwMDAwMCA3TUh6IEFV
-VE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDUyNTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBB
-VVRPIEFVVE8gQVVUTyBBVVRPDQpUIDUyOTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8g
-QVVUTyBBVVRPDQpUIDUzNjUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRP
-DQpUIDU0MzUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDU1MDUw
-MDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDU1NzUwMDAwMCA3TUh6
-IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDU2NDUwMDAwMCA3TUh6IEFVVE8gQVVU
-TyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDU3MTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFV
-VE8gQVVUTyBBVVRPDQpUIDU3ODUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBB
-VVRPDQpUIDU4NTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDU5
-MjUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDU5OTUwMDAwMCA3
-TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDYwNjUwMDAwMCA3TUh6IEFVVE8g
-QVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDYxMzUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRP
-IEFVVE8gQVVUTyBBVVRPDQpUIDYyMDUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVU
-TyBBVVRPDQpUIDYyNzUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpU
-IDYzNDUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDY0MTUwMDAw
-MCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDY0ODUwMDAwMCA3TUh6IEFV
-VE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDY1NTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBB
-VVRPIEFVVE8gQVVUTyBBVVRPDQpUIDY2MjUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8g
-QVVUTyBBVVRPDQpUIDY2OTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRP
-DQpUIDY3NjUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDY4MzUw
-MDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDY5MDUwMDAwMCA3TUh6
-IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDY5NzUwMDAwMCA3TUh6IEFVVE8gQVVU
-TyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDcwNDUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFV
-VE8gQVVUTyBBVVRPDQpUIDcxMTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBB
-VVRPDQpUIDcxODUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDcy
-NTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDczMjUwMDAwMCA3
-TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDczOTUwMDAwMCA3TUh6IEFVVE8g
-QVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDc0NjUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRP
-IEFVVE8gQVVUTyBBVVRPDQpUIDc1MzUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVU
-TyBBVVRPDQpUIDc2MDUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpU
-IDc2NzUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDc3NDUwMDAw
-MCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDc4MTUwMDAwMCA3TUh6IEFV
-VE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDc4ODUwMDAwMCA3TUh6IEFVVE8gQVVUTyBB
-VVRPIEFVVE8gQVVUTyBBVVRPDQpUIDc5NTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8g
-QVVUTyBBVVRPDQpUIDgwMjUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRP
-DQpUIDgwOTUwMDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQpUIDgxNjUw
-MDAwMCA3TUh6IEFVVE8gQVVUTyBBVVRPIEFVVE8gQVVUTyBBVVRPDQo=
-
---MP_/MiFp.zNUrp+ZvHSuITqXala
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---MP_/MiFp.zNUrp+ZvHSuITqXala--
