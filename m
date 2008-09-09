@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8S0LplA026420
-	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 20:21:52 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8S0Lel7028164
-	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 20:21:40 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so1590728rvb.51
-	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 17:21:40 -0700 (PDT)
-Message-ID: <208cbae30809271721m4bd152d8gc5b7e404711d9a53@mail.gmail.com>
-Date: Sun, 28 Sep 2008 04:21:40 +0400
-From: "Alexey Klimov" <klimov.linux@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <20080925113932.GA21999@shell.devel.redhat.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m897WKL5001275
+	for <video4linux-list@redhat.com>; Tue, 9 Sep 2008 03:32:21 -0400
+Received: from smtp-vbr16.xs4all.nl (smtp-vbr16.xs4all.nl [194.109.24.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m897W58k007289
+	for <video4linux-list@redhat.com>; Tue, 9 Sep 2008 03:32:06 -0400
+Message-ID: <24048.62.70.2.252.1220945521.squirrel@webmail.xs4all.nl>
+Date: Tue, 9 Sep 2008 09:32:01 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <208cbae30809250429m64c1c552ud18ff5064602e3c0@mail.gmail.com>
-	<20080925113932.GA21999@shell.devel.redhat.com>
-Subject: Re: radio-mr800 usb driver
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: Sakari Ailus <sakari.ailus@nokia.com>,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
+	Zutshi Vimarsh <vimarsh.zutshi@nokia.com>
+Subject: Re: [PATCH 0/7] V4L changes for OMAP 3 camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,34 +27,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Sep 25, 2008 at 3:39 PM, Alan Cox <alan@redhat.com> wrote:
-> On Thu, Sep 25, 2008 at 03:29:55PM +0400, Alexey Klimov wrote:
->> Driver works fine with kradio & gnomeradio applications. Works normal
->> under Linux kernel  2.6.27-rc6 (released 9 Sep 2008), compiles without
->> warnings with gcc version 4.3.1 (Gentoo 4.3.1-r1 p1.1) on
->> x86-architecture machine.
+> [PATCH 4/7] V4L: Add VIDIOC_G_PRIV_MEM ioctl:
 >
-> Looks nice and clean to me. No obvious mistakes. Probably the warn()
-> statements should include the module name so people know which module
-> produced them if they ever want to file a bug.
+> On Monday 08 September 2008 23:18:14 ext Hans Verkuil wrote:
+>> Patch 4/7: I'm having problems with this one. Shouldn't it be better to
+>> make this a driver-private ioctl? And then that ioctl can actually
 >
-> Alan
+> Do you mean that the ioctl number would be defined inside
+> sensor (=camera module) driver header file?
+>
+> Many camera modules have EEPROM and it seems waste to need
+> it to be defined again and again in different drivers.
 
-Hello,
-I'm so sorry. I put err() and warn() statements in "static int __init
-amradio_init(void)" section, compile, insmod module and looked at
-dmesg. So i got smth like this:
+Perhaps, perhaps not. It depends on what sort of information is stored in
+the eeproms and what it is used for.
 
-radio_mr800: 0.01 AverMedia MR 800 USB FM radio driver
-radio_mr800: Error statement test
-radio_mr800: Warn statement test
+Having a EEPROM reading ioctl is all very nice, but it shifts the burden
+of decoding it to the application. Since the eeprom content is device
+specific (right?) I think this belongs in the driver, not in the
+application.
 
-Seems, like warn() statement already includes module name.
-Maybe I configured kernel in debug mode, that's why i got module name
-in dmesg or it's default behaviour of kernel-message logging API ?
+Would it perhaps be possible to let the driver create read-only controls
+that contain that information? Similar to say the uvc driver that can
+create controls dynamically based on the camera information.
 
--- 
-Best regards, Klimov Alexey
+>> return a struct containing those settings, rather than a eeprom dump.
+>> It is highly device specific, after all, so let the device extract and
+>> return the useful information instead of requiring an application to do
+>> that.
+>
+> OK, can be done, but it seems likely that the returned structure
+> will need to be updated often, because I think it is likely
+> that new camera modules will have new fields in EEPROM.
+
+For this reason as well using private controls wouldn't be such a bad idea
+(as long as the extended controls are used as it has a better way of
+dealing with private controls).
+
+Regards,
+
+         Hans
 
 --
 video4linux-list mailing list
