@@ -1,22 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.184])
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <glenn.l.mcgrath@gmail.com>) id 1KkeDJ-0001U7-Nx
-	for linux-dvb@linuxtv.org; Tue, 30 Sep 2008 14:20:26 +0200
-Received: by ti-out-0910.google.com with SMTP id w7so1357747tib.13
-	for <linux-dvb@linuxtv.org>; Tue, 30 Sep 2008 05:20:19 -0700 (PDT)
-Message-ID: <141058d50809300520s2a959e06xd48dca4822f8d62d@mail.gmail.com>
-Date: Tue, 30 Sep 2008 22:20:19 +1000
-From: "Glenn McGrath" <glenn.l.mcgrath@gmail.com>
-To: "Alex Ferrara" <alex@receptiveit.com.au>
-In-Reply-To: <03391629-289E-4635-B6D6-2E72E1C8206A@receptiveit.com.au>
+	(envelope-from <rudy@grumpydevil.homelinux.org>) id 1Kd25M-0008S3-HS
+	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 14:12:45 +0200
+Message-ID: <48C66829.1010902@grumpydevil.homelinux.org>
+Date: Tue, 09 Sep 2008 14:12:25 +0200
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20080921104125.3218916429C@ws1-4.us4.outblaze.com>
-	<6894A2D0-2EC8-4C49-8D63-FA66CCA16E01@receptiveit.com.au>
-	<03391629-289E-4635-B6D6-2E72E1C8206A@receptiveit.com.au>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Dvico dual digital express - Poor tuner
+To: free_beer_for_all@yahoo.com
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+In-Reply-To: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,40 +25,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-How did you generate your channels.conf ?
+barry bouwsma wrote:
+> --- On Tue, 9/9/08, hermann pitton <hermann-pitton@arcor.de> wrote:
+>
+>   
+>> following your thoughts, you are likely right. DVB-T2 likely indicates
+>> that you need new hardware, like it is for sure on DVB-S2.
+>>     
+>
+> Servus,
+>
+> Disclaimer:  I'm only an outsider, not a programmer, and not
+> familiar with the digital broadcast specs or the DVB API, so
+> I will both not know what I'm talking about, and be asking
+> stupid questions.
+>
+>
+> I decided to look again at DVB-T2, as it's likely to be the
+> next change that will be in need of Linux support in a year
+> or so, at least in the UK, when hardware becomes available.
+>   
+Likely true, DVB-T2 is well on the way in development.
+> My stupid question is, will DVB-T2, in Transport Stream mode,
+> be similar enough to existing DVB-T, apart from the extended
+> modulation parameters, that it can be fit into the existing
+> API, or am I overlooking something in my ignorance of the API?
+>   
+TS is unchanged from DVB-T, simply higher capacity. The changes are in 
+the modulation (and additional table entries)
+> This seems to me somewhat like the case of existing DVB-C,
+> where some hardware is incapable of 256QAM and so cannot tune
+> all the carriers, but I really haven't tried to understand
+> the API or how it can be extended without breaking things...
+>   
+That is old... QAM256 is pretty standard now. Only rather old HW should 
+be incapable of handling QAM-256.
 
-Ive started working on a new app called utuner
-(http://gna.org/projects/utuner) it attempts to generate the initial
-tuning data that is input to scan, similar to w_scan.
+>
+> In looking at the Wikipedia article on DVB-T, it appears that
+> at least the following diffs to include/dvb/frontend.h might
+> be needed to support the additional possibilities that a DVB-T2
+> tuner would be likely to support -- diff against the S2API, as
+> this file is unchanged in multiproto, while S2API already has
+>   
+> the additional FEC values present...
+>   
 
-If you want to give it a try id appreciate some feedback, its only a
-few weeks old and i dont think anyone except me has tried it.
-
-It uses a frequency table to isolate what frequency bands to test, it
-works by looking for the shoulders of firstly the carrier and then the
-lock band.
-
-Example of usage is
-
-dtv-scan -t <some path>/channels/Australia.center generated-initial-tuning-data
-
-If you dont have a frequency table it will scan the entire spectrum
-that the card can go to, it uses a step of 500kHz to detect a carrier
-and a card might have a range of 500MHz, so it means it has to take
-about 2500 samples this way, currently it takes multiple samples, one
-every 500ms or so and or's them to overcome inconsistent signals. This
-means it can take 2 hours to do a complete scan, this is a long time,
-but its faster than the week it took me to work it out... and it can
-be greatly reduced by having a frequency table of authorized broadcast
-bands (such as i have done for australia) for different
-regions/countries.
-
-There are a few other utilities that i have used for testing my card
-in there as well.
+ From my understanding, S2API is a generic approach, and should not have 
+troubles supporting these standards.
+> goto Disclaimer;
+>
+>   
 
 
+DVB-C2, i do not expect to get beyond definition stage, as - unless 
+someone is really willing to pay for it - it seems unlikely there will 
+be a market for it.
+Too many significantly cheaper solutions to solve the problem on cable.
 
-Glenn
+Cheers,
+
+Rudy
 
 _______________________________________________
 linux-dvb mailing list
