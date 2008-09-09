@@ -1,15 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <csutor@gmx.de>) id 1Kc7Zf-0000r6-DJ
-	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 01:52:17 +0200
-Message-ID: <48C3178F.6050704@gmx.de>
-Date: Sun, 07 Sep 2008 01:51:43 +0200
-From: Clemens Sutor <csutor@gmx.de>
-MIME-Version: 1.0
+Received: from yx-out-2324.google.com ([74.125.44.28])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <renaud.pagin@gmail.com>) id 1Kd2Pb-00013p-TA
+	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 14:33:42 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so1127489yxg.41
+	for <linux-dvb@linuxtv.org>; Tue, 09 Sep 2008 05:33:35 -0700 (PDT)
+Message-ID: <ed53dcb30809090533p7b951fb6s9699a3eab9e3545b@mail.gmail.com>
+Date: Tue, 9 Sep 2008 14:33:34 +0200
+From: "Renaud Pagin" <renaud.pagin@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Problem with mantis drivers for Terratec Cinergy C and
- CAM
+MIME-Version: 1.0
+Subject: [linux-dvb] TT connect S3650 working set ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,38 +18,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0924135717=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello @all!
+--===============0924135717==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_7201_18018236.1220963614382"
 
-I have a Terratec Cinergy C with CI under Ubuntu 8.04 running vdr 1.6.
-I use the newest mantis drivers from the mercury repository (83e2af36efe7).
+------=_Part_7201_18018236.1220963614382
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
- <http://www.jusst.de/hg/mantis/rev/83e2af36efe7>With all free channels everything is running fine but if I insert my CAM into the CI when running vdr, the CAM init fails and even free programs are not viewable anymore.
+Hello,
 
-The dmesg shows:
+Since more then 2 days i try to get working this device.
 
-[   86.389545] dvb_ca adapter 0: CAM tried to send a buffer larger than the link buffer size (49158 > 128)!
-[   86.491022] dvb_ca adapter 0: CAM tried to send a buffer larger than the ecount size!
-[   86.491027] dvb_ca adapter 0: DVB CAM link initialisation failed :(
+I followed the linux wiki ( S3650 ) , misc message on the ML , plenty patchs
+found here and there.
 
-Any ideas or fixes for this problem?
+And i have not found any solution working so far.
 
-Will be a verbose log of the mantis module more helpfull?
- 
-Bye
-Clemens
+Where i can find the last patch working with the last head mercurial of
+multiproto ?
+
+Thanks !
+
+Best regards
+
+------=_Part_7201_18018236.1220963614382
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">Hello,<br><br>Since more then 2 days i try to get working this device.<br><br>I followed the linux wiki ( S3650 ) , misc message on the ML , plenty patchs found here and there.<br><br>And i have not found any solution working so far.<br>
+<br>Where i can find the last patch working with the last head mercurial of multiproto ?<br><br>Thanks !<br><br>Best regards<br></div>
+
+------=_Part_7201_18018236.1220963614382--
 
 
-
- 
-
+--===============0924135717==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0924135717==--
