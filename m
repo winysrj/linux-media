@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <48BBFFA9.8030602@linuxtv.org>
-Date: Mon, 01 Sep 2008 10:43:53 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from mout1.freenet.de ([195.4.92.91])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ruediger.dohmhardt@freenet.de>) id 1Kd8aj-00052A-1W
+	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 21:09:35 +0200
+Message-ID: <48C6CA03.5070808@freenet.de>
+Date: Tue, 09 Sep 2008 21:09:55 +0200
+From: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
 MIME-Version: 1.0
-To: Finn Thain <fthain@telegraphics.com.au>
-References: <Pine.LNX.4.64.0808291627340.21301@loopy.telegraphics.com.au>	<alpine.LRH.1.10.0808291157060.17297@pub3.ifh.de>	<Pine.LNX.4.64.0808292129330.21301@loopy.telegraphics.com.au>	<alpine.LRH.1.10.0808291356540.17297@pub3.ifh.de>
-	<Pine.LNX.4.64.0809020025050.2229@loopy.telegraphics.com.au>
-In-Reply-To: <Pine.LNX.4.64.0809020025050.2229@loopy.telegraphics.com.au>
-Cc: v4l-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [PATCH] Add support for the
- Gigabyte R8000-HT USB DVB-T adapter, take 2
+To: reklam@holisticode.se
+References: <6F209492AAB14D439DC4FCBB16A6C5CB@xplap>
+In-Reply-To: <6F209492AAB14D439DC4FCBB16A6C5CB@xplap>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Mantis errors on 64 bit openSuse 11 using Conax ci
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,82 +19,86 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0847898405=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Finn Thain wrote:
-> Add support for the Gigabyte R8000-HT USB DVB-T adapter.
->
-> Thanks to Ilia Penev for the tip-off that this device is much the same as 
-> (identical to?) a Terratec Cinergy HT USB XE, and for the firmware hints: 
-> http://linuxtv.org/pipermail/linux-dvb/2008-August/028108.html
->
-> DVB functionality tested OK with xine using the usual dib0700 firmware.
->
-> This diff is based on the latest latest linuxtv.org v4l-dvb mercurial 
-> repo.
->
->
-> Signed-off-by: Finn Thain <fthain@telegraphics.com.au>
->   
+--===============0847898405==
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Your patch looks fine, but I have one comment, please see below:
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+<a class="moz-txt-link-abbreviated" href="mailto:reklam@holisticode.se">reklam@holisticode.se</a> schrieb:
+<blockquote cite="mid:6F209492AAB14D439DC4FCBB16A6C5CB@xplap"
+ type="cite">
+  <meta http-equiv="Content-Type" content="text/html; ">
+  <meta name="Generator" content="Microsoft Word 11 (filtered medium)">
+  <o:SmartTagType
+ namespaceuri="urn:schemas-microsoft-com:office:smarttags" name="place">
+<!--[if !mso]>
+<style>
+st1\:*{behavior:url(#default#ieooui) }
+</style>
+<![endif]-->
+  <style>
+<!--
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman";}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:purple;
+	text-decoration:underline;}
+span.E-postmall17
+	{mso-style-type:personal-compose;
+	font-family:Arial;
+	color:windowtext;}
+@page Section1
+	{size:612.0pt 792.0pt;
+	margin:72.0pt 90.0pt 72.0pt 90.0pt;}
+div.Section1
+	{page:Section1;}
+-->
+  </style></o:SmartTagType>
+  <div class="Section1">
+  <p class="MsoNormal"><font face="Arial" size="1"><span
+ style="font-size: 9pt; font-family: Arial;">Hi<br>
+  <br>
+I am having problems with my AzureWave ad-cp300 with Conax ci on 64 bit
+openSuse. </span></font></p>
+  </div>
+</blockquote>
+The CI interface is simply not working yet for the Manti 2033.&nbsp; <br>
+The card works great for me for unencrypted channels.<br>
+However, I'm a little bit disappointed, because I'm waiting for the CI
+interface for almost 1 1/2 years.<br>
+<br>
+Ciao Ruediger D.<br>
+<br>
+</body>
+</html>
 
 
-> --- linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2008-09-01 22:33:12.000000000 +1000
-> +++ linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2008-09-01 22:37:32.000000000 +1000
-> @@ -1119,6 +1119,7 @@
->  	{ USB_DEVICE(USB_VID_LEADTEK,   USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
->  /* 35 */{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
->  	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_3) },
-> +	{ USB_DEVICE(USB_VID_GIGABYTE,  USB_PID_GIGABYTE_U8000) },
->  	{ 0 }		/* Terminating entry */
->  };
->  MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-> @@ -1408,8 +1409,12 @@
->  			},
->  		},
->  
-> -		.num_device_descs = 3,
-> +		.num_device_descs = 4,
->  		.devices = {
-> +			{   "Gigabyte U8000-RH",
-> +				{ &dib0700_usb_id_table[37], NULL },
-> +				{ NULL },
-> +			},
->  			{   "Terratec Cinergy HT USB XE",
->  				{ &dib0700_usb_id_table[27], NULL },
->  				{ NULL },
->   
-
-You've added your new entry to be the first listed in the .devices section.
-
-We usually prefer to add new entries below those already existing.
-
-Would you regenerate this again with the new device listed after the
-other three preexisting ones?
-
-
-> --- linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2008-09-01 22:33:12.000000000 +1000
-> +++ linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2008-09-01 22:37:32.000000000 +1000
-> @@ -205,6 +205,7 @@
->  #define USB_PID_LIFEVIEW_TV_WALKER_TWIN_COLD		0x0514
->  #define USB_PID_LIFEVIEW_TV_WALKER_TWIN_WARM		0x0513
->  #define USB_PID_GIGABYTE_U7000				0x7001
-> +#define USB_PID_GIGABYTE_U8000				0x7002
->  #define USB_PID_ASUS_U3000				0x171f
->  #define USB_PID_ASUS_U3100				0x173f
->  #define USB_PID_YUAN_EC372S				0x1edc
->
->   
-Cheers,
-
-Mike
+--===============0847898405==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0847898405==--
