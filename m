@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from yw-out-2324.google.com ([74.125.46.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KdtZI-0006t1-CS
-	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 23:19:17 +0200
-Message-ID: <48C97210.2060609@linuxtv.org>
-Date: Thu, 11 Sep 2008 15:31:28 -0400
-From: Steven Toth <stoth@linuxtv.org>
+	(envelope-from <bokola@gmail.com>) id 1Kd3XI-0004ix-DU
+	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 15:45:41 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so213675ywj.41
+	for <linux-dvb@linuxtv.org>; Tue, 09 Sep 2008 06:45:35 -0700 (PDT)
+Message-ID: <854d46170809090645k56f0befgda4dcee489a15128@mail.gmail.com>
+Date: Tue, 9 Sep 2008 15:45:33 +0200
+From: "Faruk A" <fa@elwak.com>
+To: "Renaud Pagin" <renaud.pagin@gmail.com>
+In-Reply-To: <ed53dcb30809090533p7b951fb6s9699a3eab9e3545b@mail.gmail.com>
 MIME-Version: 1.0
-To: Christophe Thommeret <hftom@free.fr>
-References: <48B8400A.9030409@linuxtv.org>
-	<48C81627.8080409@linuxtv.org>	<200809102232.26884.hftom@free.fr>
-	<200809111535.19315.hftom@free.fr>
-In-Reply-To: <200809111535.19315.hftom@free.fr>
+Content-Disposition: inline
+References: <ed53dcb30809090533p7b951fb6s9699a3eab9e3545b@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiple frontends on a single adapter support
+Subject: Re: [linux-dvb] TT connect S3650 working set ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,40 +28,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Andreas Oberritter said:
-> "This way is used on dual and quad tuner Dreambox models." (non exclusive 
-> tuners).
-> "How about dropping demux1 and dvr1 for this adapter (exclusive tuners), since 
-> they don't create any benefit? IMHO the number of demux devices should always 
-> equal the number of simultaneously usable transport stream inputs."
+Hi!
 
-...
+This drivers doesn't work with the latest multiproto and kernel ( 2.6.26/27).
+you need to download multiproto changeset 9036 ->
+http://jusst.de/hg/multiproto/archive/fbcc9fa65f56.tar.bz2
+and apply the patch from wiki, that patch includes all the patch
+posted here on this mailing list.
+It should work with kernel 2.6.24 and 25, i have test with kernel
+2.6.26 dvb-usb and dvb-usb-pctv452e is broken.
 
-> 
-> So, here are my questions:
-> 
-> @Steven Toth:
-> What do you think of Andreas' suggestion? Do you think it could be done that 
-> way for HVR4000 (and 3000?) ?
+For me it was working perfectly fine before my vacation when i came
+back i did system upgrade, it upgdrade
+every software to the latest including the kernel but i rollback to
+kernel 2.6.25-4 thats what i had before. The card is working but
+the weird thing is there are packet losses from the TS similar to the
+first version of this driver when it was first posted.
 
-Could it, yes. I'll go with the majority on this to be honest.
+Cheers
+Faruk
 
-As far as I'm concerned the hvr3000 patches (if you read the patch 
-description) were not to be merged as-is, they were for discussion and 
-review. It's encouraging good to see that discussion happening now, 
-later than expect, but good.
-
-The inodes largely reflect API usage so it needs to be obvious, if we 
-think this isn't, then we should come to a consensus and resolve for the 
-future.
-
-Obviously, the impact would be that existing applications that are using 
-unofficial patches would have to be patched again, away from the current 
-approach.
-
-- Steve
-
-
+> Hello,
+>
+> Since more then 2 days i try to get working this device.
+>
+> I followed the linux wiki ( S3650 ) , misc message on the ML , plenty patchs
+> found here and there.
+>
+> And i have not found any solution working so far.
+>
+> Where i can find the last patch working with the last head mercurial of
+> multiproto ?
+>
+> Thanks !
+>
+> Best regards
 
 _______________________________________________
 linux-dvb mailing list
