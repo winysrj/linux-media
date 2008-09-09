@@ -1,23 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.7.61.12] (helo=killala.koala.ie)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon@koala.ie>) id 1Kewxg-0005mM-BJ
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 21:08:44 +0200
-Received: from [195.7.61.7] (cozumel.koala.ie [195.7.61.7])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id m8EJ8e4U005276
-	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 20:08:40 +0100
-From: Simon Kenyon <simon@koala.ie>
+From: "Igor M. Liplianin" <liplianin@tut.by>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <48CC42D8.8080806@gmail.com>
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-	<48CC42D8.8080806@gmail.com>
-Date: Sun, 14 Sep 2008 20:08:39 +0100
-Message-Id: <1221419319.9803.0.camel@localhost>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Date: Tue, 9 Sep 2008 20:12:04 +0300
+References: <48BF6A09.3020205@linuxtv.org>
+	<200809082334.04511.liplianin@tut.by>
+	<200809091750.38009.liplianin@tut.by>
+In-Reply-To: <200809091750.38009.liplianin@tut.by>
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_k5qxI8Zr2E6M+2p"
+Message-Id: <200809092012.04927.liplianin@tut.by>
+Subject: [linux-dvb]  [PATCH] S2 cx24116:  MPEG initialization
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,30 +18,95 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 2008-09-14 at 02:46 +0400, Manu Abraham wrote:
-> The initial set of DVB-S2 multistandard devices supported by the
-> multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
-> alone. There are more additions by 2 more modules (not devices), but for
-> the simple comparison here is the quick list of them, for which some of
-> the manufacturers have shown support in some way. (There has been quite
-> some contributions from the community as well.):
-> 
-> (Also to be noted is that, some BSD chaps also have shown interest in
-> the same)
+--Boundary-00=_k5qxI8Zr2E6M+2p
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-is there any issue with GPL code being merged into BSD?
-just asking
---
-simon
+Hi again Steven,
 
+Please apply this patch.
+Patch to adjust MPEG initialization in cx24116 in order to accomodate 
+different MPEG CLK positions and polarities for different cards.
+
+Igor Liplianin
+
+--Boundary-00=_k5qxI8Zr2E6M+2p
+Content-Type: text/x-diff;
+  charset="koi8-r";
+  name="8867.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="8867.patch"
+
+# HG changeset patch
+# User Igor M. Liplianin <liplianin@me.by>
+# Date 1220979467 -10800
+# Node ID 77293218655c3d272705232dc40ad9925473b8c1
+# Parent  ed37fbee40febc38e74833387ec7d317087056d1
+Adjust MPEG initialization in cx24116
+
+From: Igor M. Liplianin <liplianin@me.by>
+
+Adjust MPEG initialization in cx24116 in order to accomodate different
+MPEG CLK position and polarity in different cards.
+
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+
+diff -r ed37fbee40fe -r 77293218655c linux/drivers/media/dvb/dvb-usb/dw2102.c
+--- a/linux/drivers/media/dvb/dvb-usb/dw2102.c	Tue Sep 09 19:22:29 2008 +0300
++++ b/linux/drivers/media/dvb/dvb-usb/dw2102.c	Tue Sep 09 19:57:47 2008 +0300
+@@ -284,7 +284,7 @@
+ 
+ static struct cx24116_config dw2104_config = {
+ 	.demod_address = 0x55,
+-	/*.mpg_clk_pos_pol = 0x01,*/
++	.mpg_clk_pos_pol = 0x01,
+ };
+ 
+ static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
+diff -r ed37fbee40fe -r 77293218655c linux/drivers/media/dvb/frontends/cx24116.c
+--- a/linux/drivers/media/dvb/frontends/cx24116.c	Tue Sep 09 19:22:29 2008 +0300
++++ b/linux/drivers/media/dvb/frontends/cx24116.c	Tue Sep 09 19:57:47 2008 +0300
+@@ -478,7 +478,10 @@
+ 	cmd.args[0x01] = 0x01;
+ 	cmd.args[0x02] = 0x75;
+ 	cmd.args[0x03] = 0x00;
+-	cmd.args[0x04] = 0x02;
++	if (state->config->mpg_clk_pos_pol)
++		cmd.args[0x04] = state->config->mpg_clk_pos_pol;
++	else
++		cmd.args[0x04] = 0x02;
+ 	cmd.args[0x05] = 0x00;
+ 	cmd.len= 0x06;
+ 	ret = cx24116_cmd_execute(fe, &cmd);
+diff -r ed37fbee40fe -r 77293218655c linux/drivers/media/dvb/frontends/cx24116.h
+--- a/linux/drivers/media/dvb/frontends/cx24116.h	Tue Sep 09 19:22:29 2008 +0300
++++ b/linux/drivers/media/dvb/frontends/cx24116.h	Tue Sep 09 19:57:47 2008 +0300
+@@ -33,6 +33,9 @@
+ 
+ 	/* Need to reset device during firmware loading */
+ 	int (*reset_device)(struct dvb_frontend* fe);
++
++	/* Need to set MPEG parameters */
++	u8 mpg_clk_pos_pol:0x02;
+ };
+ 
+ #if defined(CONFIG_DVB_CX24116) || defined(CONFIG_DVB_CX24116_MODULE)
+
+--Boundary-00=_k5qxI8Zr2E6M+2p
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_k5qxI8Zr2E6M+2p--
