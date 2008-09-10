@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bar.sig21.net ([88.198.146.85])
+Received: from f204.mail.ru ([194.67.57.195])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <js@sig21.net>) id 1KeaQz-0001gS-CR
-	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 21:05:31 +0200
-Date: Sat, 13 Sep 2008 21:05:25 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Frederic CAND <frederic.cand@anevia.com>
-Message-ID: <20080913190525.GA24529@linuxtv.org>
-References: <48C8E890.1030704@anevia.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <48C8E890.1030704@anevia.com>
-Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] tarball retrieval
+	(envelope-from <goga777@bk.ru>) id 1KdLBa-000739-SV
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 10:36:29 +0200
+Received: from mail by f204.mail.ru with local id 1KdLB2-000GN8-00
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 12:35:52 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Mime-Version: 1.0
+Date: Wed, 10 Sep 2008 12:35:52 +0400
+References: <200809091931.01831.liplianin@tut.by>
+In-Reply-To: <200809091931.01831.liplianin@tut.by>
+Message-Id: <E1KdLB2-000GN8-00.goga777-bk-ru@f204.mail.ru>
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?W1BBVENIXSBTMiBjeDI0MTE2OiBBYm92ZSAzMDAw?=
+	=?koi8-r?b?MCBrU3ltL3Mgc3ltYm9sIHJhdGVzcGF0Y2g=?=
+Reply-To: Goga777 <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,16 +29,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Sep 11, 2008 at 11:44:48AM +0200, Frederic CAND wrote:
-> I tried this :
-> http://linuxtv.org/hg/v4l-dvb/archive/db80ce914b61.tar.bz2
+Hi
+
+I can confirm - with Igor's repo I can lock the transponders with highest SR - 44948 FEC 5/6 (Express AM2)& 44950 fec 3/4 (Express AM22 53E) with my hvr4000 
+
+@Igor
+thanks 
+
+Goga
+
+
+-----Original Message-----
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: linux-dvb@linuxtv.org
+Date: Tue, 9 Sep 2008 19:31:01 +0300
+Subject: [linux-dvb] [PATCH] S2 cx24116: Above 30000 kSym/s symbol ratespatch
+
 > 
-> to retrieve a certain revision that I'd like to try  but I got a 
-> "CompressionError" message, problem in python scrypt sthing ...
+> Hi Steven,
+> Please apply this patch
+> 
+> Above 30000 kSym/s symbol rates patch
+> Tested on 44948 transponders (Express AM2)
+> 
+> Igor M. Liplianin
+> 
 
-Should be fixed now.
-
-Johannes
 
 _______________________________________________
 linux-dvb mailing list
