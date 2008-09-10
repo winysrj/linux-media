@@ -1,23 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Ke8YL-0002po-VD
-	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 15:19:19 +0200
+	(envelope-from <stoth@linuxtv.org>) id 1KdUVI-0000Xl-VC
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 20:33:26 +0200
 Received: from steven-toths-macbook-pro.local
 	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
+	mta1.srv.hcvlny.cv.net
 	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7300IZO3N2YP50@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 12 Sep 2008 09:18:39 -0400 (EDT)
-Date: Fri, 12 Sep 2008 09:18:38 -0400
+	with ESMTP id <0K6Z00FX6SUF1OC1@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 10 Sep 2008 14:32:45 -0400 (EDT)
+Date: Wed, 10 Sep 2008 14:32:39 -0400
 From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200809120826.31108.hftom@free.fr>
+In-reply-to: <200809101710.19695.hftom@free.fr>
 To: Christophe Thommeret <hftom@free.fr>
-Message-id: <48CA6C2E.7050908@linuxtv.org>
+Message-id: <48C812C7.2090004@linuxtv.org>
 MIME-version: 1.0
-References: <48CA0355.6080903@linuxtv.org> <200809120826.31108.hftom@free.fr>
+References: <48B8400A.9030409@linuxtv.org> <200809101340.09702.hftom@free.fr>
+	<48C7CDCF.9090300@hauppauge.com> <200809101710.19695.hftom@free.fr>
 Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,118 +33,132 @@ Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 Christophe Thommeret wrote:
-> Le Friday 12 September 2008 07:51:17 Steven Toth, vous avez =E9crit :
->> Hello!
->>
->> More progress today, 7 new patches were merged - all related to the
->> feedback and suggestions we had.... And a bugfix. :)
->>
->> The DTV_SET/GET command syntax has been rationalised, as Hans requested.
->> This cleans up the application API nicely. Various internal improvements
->> and code cleanup related to variable length arrays, moving values
->> to/from userspace to the kernel. Interfacing to the demods to allow them
->> to interact with set/get property requests, if they chose to do so.
->> Quite a lot of changes internally and to the user facing API.
->>
->> If you're planning to test then you'll need the tune-v0.0.5.c to see the
->> different. (steventoth.net/linux/s2/tune-v0.0.5.tgz)
->>
->> In addition, some related news:
->>
->> mkrufky spent some time adding S2API isdb-t support to the siano driver,
->> that's working pretty well - tuning via the S2API app.
->>
->> Two tree here, offering slightly different approaches, one with S2API,
->> one using some spare bits in the DVB-T tuning fields.
->>
->> http://linuxtv.org/hg/~mkrufky/sms1xxx-s2api-isdbt/
->> http://linuxtv.org/hg/~mkrufky/sms1xxx-isdbt-as-dvbt/
->>
->> (See tune-v0.0.5.tgz for example ISDB-T tuning code)
->>
->> If you're interested in seeing the impact of switching to S2API for this
->> driver, see the set_frontend() func, it's a small change - just a few
->> lines to reference the dtv_frontend_properties cache.
->>
->> I don't think we're quite ready to announce we've conquered the complete
->> ISDB-T API, so don't assume that this is concrete.... As we experiment
->> with other ISDB-T products we'll probably find reasons to tweak the API
->> a little further as a standard begins to form..... but tuning through a
->> clean API is a great step forward, and its working now, today. Thank you
->> mkrufky :)
->>
->> Hans Werner sent a large patch for the multifrontend HVR3000/HVR4000
->> combined DVB-T/DVB-S/S2 support for the S2API tree. (Thanks Hans - this
->> was obviously a lot of manual merge work, it's greatly appreciated.)
->>
->> What would everyone like to see happen with this patch?
->>
->> Would you prefer to see this dealt with outside of the S2API discussion,
->> or would you like to see this included and merged? Let me know your
->> thoughts. Andreas also has the multifrontend thread running, so comment
->> here if you would like to see this as part of the S2API patches, or
->> comment on the Andreas thread of you want this as a separate patchset at
->> a later date.
->>
->> Darron Broad has offered to bring the cx24116.c driver up to date with
->> some additions he has in his repositories. With any luck we may see
->> these merged into the current cx24116 driver within a few days. Thank
->> you Darron.
->>
->> Patrick, I haven't looked at your 1.7MHz bandwidth suggestion - I'm open
->> to ideas on how you think we should do this. Take a look at todays
->> linux/dvb/frontend.h and see if these updates help, or whether you need
->> more changes.
->>
->> Igor has been busy patching the szap-s2 tool
->> (http://liplianindvb.sourceforge.net/hg/szap-s2/) so many thanks to
->> Igor! Gregoire has been running some basic tests and appears to be
->> having some success, that's encouraging. Thank you.
->>
->> What's next?
->>
->> Now's probably a good time to start patching dvb-apps. I think the
->> frontend.h changes are close enough for that work to begin. This will
->> probably start Friday, so keep your eyes and open for the
->> stoth/s2api-dvb-apps tree appearing ... and an announcement here.
->>
->> Thanks again to everyone, your efforts are appreciated!
->>
->> Regards,
->>
->> Steve
+> Le Wednesday 10 September 2008 15:38:23 Steven Toth, vous avez =E9crit :
+>>> Is this card able to deliver both S and T at the same time?
+>> No, the hardware can do S/S2 or T.
 > =
 
-> Good work.
-> I've just gave it a try:
+>> The driver in the S2API tree only has S/S2 enabled (for the time being).
 > =
 
-> First i tried old api (kaffeine)-> everything works as expected.
-> Then i tried new API (with latest tune.c) -> nova-t and nova-s work, cine=
-rgyT2 =
+> So, maybe we have to think a bit about how to add support for this kind o=
+f =
 
-> doesn't. I've also noticed that FE_SET_PROPERTY ioctl always return -1, e=
-ven =
+> device.
 
-> when success..
-> Then i tried old api again -> now dvb-s doesn't lock and dvb-t always loc=
-k on =
+This is already in progress, based on some work I did on the HVR3000 =
 
-> the freq used in tune.c
+bus-sharing changes a couple of years ago =
+
+(http://linuxtv.org/hg/~stoth/hvr3000). People are interested in seeing =
+
+this merged. Darron Board took the patches a long time ago and has been =
+
+maintaining them. (Thank you)
+
+What does this mean? Well, this is what it looks like to the applications:
+
+/dev/dvb/adapter0/frontend0 DVB-S
+/dev/dvb/adapter0/frontend1 DVB-T
+
+I floated these patches in the linux-dvb mailing list a long time ago =
+
+and the general feeling was of support for this approach.
+
+I'm told myth already supports this. If anyone has experience running an =
+
+HVR3000 with both DVB-T and DVB-T on Myth then I'd welcome their =
+
+feedback here.
+
+
+> I mean, if the driver provides different adapters/frontends (say =
+
+> adapter0/frontend0 and adapter1/frontend0), a typical application will se=
+e =
+
+> these as separate devices, and then when a user watch a S channel, the ap=
+p =
+
+> assumes that the T frontend is free while in fact it's not.
+> For example, Kaffeine updates its channels list according to which channe=
+ls =
+
+> can be viewed (based on which frontends are free). So, if you are recordi=
+ng a =
+
+> S channel, all channels on this freq are shown as available and all T =
+
+> channels are also shown as available. But in the HVR4000 case, it's false=
+, =
+
+> since the T tuner isn't free.
+> =
+
+> Maybe a solution could be to have :
+> - adapter0/frontend0 -> S/S2 tuner
+> - adapter0/frontend1 -> T tuner
+
+Correct, this : http://linuxtv.org/hg/~stoth/hvr3000/rev/3f78be7007f6
+
+Quoting the original patch description:
+
+"Multiple frontends on a single adapter support.
+
+From: Steven Toth <stoth@hauppauge.com>
+
+These patches are for review only.
+
+The WinTV-HVR3000 has a single transport bus which is shared between
+a DVB-T and DVB-S modulator. These patches build on the bus acquisition
+cx88 work from a few weeks ago to add support for this.
+
+So to applications the HVR3000 looks like this:
+/dev/dvb/adapter0/fe0 (cx24123 DVB-S demod)
+/dev/dvb/adapter0/fe1 (cx22702 DVB-T demod)
+
+Additional boards continue as before, eg:
+/dev/dvb/adapter1/fe0 (lgdt3302 ATSC demod)
+
+The basic change is removing the single instance of the videobuf_dvb in
+cx8802_dev and saa7134_dev(?) and replacing it with a list and some
+supporting functions.
+
+*NOTE* This branch was taken before v4l-dvb was closed for 2.6.19 so
+two or three current cx88 patches appear to be reversed by this tree,
+this will be cleaned up in the near future. The patches missing change
+the mutex handing to core->lock, fix an enumeration problem.
+
+For Review: The best place to start reviewing this patch
+is videobuf_dvb. These core structures and functions are then implemented
+in cx88 and (partially in) saa7134.
+
+Signed-off-by: Steven Toth <stoth@hauppauge.com>"
+
+
+
+> =
+
+> So applications could know that these 2 frontends are exclusive.
+> That would not require any API change, but would have to be a rule follow=
+ed by =
+
+> all drivers.
+> =
+
 > =
 
 
-Christophe, thanks for the feedback. I'm not familiar with the cinergyT2 =
+This would be a nice addition to the S2API tree. I'll collect the new =
 
-driver so I'll look into this tonight and see what's causing the tuning =
+patches and present another patchset for review.
 
-to fail.
+S2API is shaping up nicely, we just have to make sure we don't overload =
 
-Thanks for highlighting this.
+the tree and lose sight of the basic goal.
 
-Regards,
+- Steve
 
-Steve
 
 
 _______________________________________________
