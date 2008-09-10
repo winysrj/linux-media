@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Tue, 2 Sep 2008 14:44:05 +1000 (EST)
-From: Finn Thain <fthain@telegraphics.com.au>
-To: v4l-dvb-maintainer@linuxtv.org
-In-Reply-To: <48BBFFA9.8030602@linuxtv.org>
-Message-ID: <Pine.LNX.4.64.0809021442280.22720@loopy.telegraphics.com.au>
-References: <Pine.LNX.4.64.0808291627340.21301@loopy.telegraphics.com.au>
-	<alpine.LRH.1.10.0808291157060.17297@pub3.ifh.de>
-	<Pine.LNX.4.64.0808292129330.21301@loopy.telegraphics.com.au>
-	<alpine.LRH.1.10.0808291356540.17297@pub3.ifh.de>
-	<Pine.LNX.4.64.0809020025050.2229@loopy.telegraphics.com.au>
-	<48BBFFA9.8030602@linuxtv.org>
-MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] [PATCH] Add support for the Gigabyte R8000-HT USB DVB-T
- adapter, take 3
+Received: from sange.fi ([193.64.31.26])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <otto@sange.fi>) id 1KdSFJ-0002Zf-DF
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 18:08:46 +0200
+Received: from 80-186-113-69.elisa-mobile.fi ([80.186.113.69])
+	by oiva.sange.fi with esmtpsa (SSL 3.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.63) (envelope-from <otto@sange.fi>) id 1KdSFF-00019G-1Y
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 19:08:41 +0300
+From: Otto =?ISO-8859-1?Q?Kek=E4l=E4inen?= <otto@sange.fi>
+To: linux-dvb@linuxtv.org
+Date: Wed, 10 Sep 2008 18:55:03 +0300
+Message-Id: <1221062103.6144.31.camel@HPG5050EO>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,71 +20,44 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-Add support for the Gigabyte R8000-HT USB DVB-T adapter.
-
-Thanks to Ilia Penev for the tip-off that this device is much the same as 
-(identical to?) a Terratec Cinergy HT USB XE, and for the firmware hints: 
-http://linuxtv.org/pipermail/linux-dvb/2008-August/028108.html
-
-DVB functionality tested OK with xine using the usual dib0700 firmware.
-
-This diff is based on the latest latest linuxtv.org v4l-dvb mercurial 
-repo.
-
-
-Signed-off-by: Finn Thain <fthain@telegraphics.com.au>
-
-diff -r 6032ecd6ad7e linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
---- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Sat Aug 30 11:07:04 2008 -0300
-+++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Tue Sep 02 14:40:12 2008 +1000
-@@ -1119,6 +1119,7 @@ struct usb_device_id dib0700_usb_id_tabl
- 	{ USB_DEVICE(USB_VID_LEADTEK,   USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
- /* 35 */{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
- 	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_3) },
-+	{ USB_DEVICE(USB_VID_GIGABYTE,  USB_PID_GIGABYTE_U8000) },
- 	{ 0 }		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -1408,7 +1409,7 @@ struct dvb_usb_device_properties dib0700
- 			},
- 		},
- 
--		.num_device_descs = 3,
-+		.num_device_descs = 4,
- 		.devices = {
- 			{   "Terratec Cinergy HT USB XE",
- 				{ &dib0700_usb_id_table[27], NULL },
-@@ -1422,6 +1423,10 @@ struct dvb_usb_device_properties dib0700
- 				{ &dib0700_usb_id_table[32], NULL },
- 				{ NULL },
- 			},
-+			{   "Gigabyte U8000-RH",
-+				{ &dib0700_usb_id_table[37], NULL },
-+				{ NULL },
-+			},
- 		},
- 		.rc_interval      = DEFAULT_RC_INTERVAL,
- 		.rc_key_map       = dib0700_rc_keys,
-diff -r 6032ecd6ad7e linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
---- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Sat Aug 30 11:07:04 2008 -0300
-+++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Tue Sep 02 14:40:12 2008 +1000
-@@ -205,6 +205,7 @@
- #define USB_PID_LIFEVIEW_TV_WALKER_TWIN_COLD		0x0514
- #define USB_PID_LIFEVIEW_TV_WALKER_TWIN_WARM		0x0513
- #define USB_PID_GIGABYTE_U7000				0x7001
-+#define USB_PID_GIGABYTE_U8000				0x7002
- #define USB_PID_ASUS_U3000				0x171f
- #define USB_PID_ASUS_U3100				0x173f
- #define USB_PID_YUAN_EC372S				0x1edc
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGVsbG8sCgpJJ3ZlIHJlYWQgdGhpcyB0aHJlYWQgYW5kIGFsc28gdGhlIHRocmVhZCAiRnV0dXJl
+IG9mIE11bHRpcHJvdG8iIGZyb20KZmFsbCAyMDA3IGFuZCBJIGZlYWx0IEkgc2hvdWxkIHNheSBh
+IGZldyB3b3JkcyBhYm91dCB0aGlzLi4KCkkgYW0gbm90IGFuIGV4cGVydCBpbiBkcml2ZXIgY29k
+aW5nIG9yIEFQSXMsIHNvIEkgY2FuJ3Qgc2F5IG11Y2ggYWJvdXQKd2hvJ3MgdGVjaG5pY2FsIGFw
+cHJvYWNoIGlzIHRoZSBtb3N0IGVsZWdhbnQgb3IgYmVzdCBpbiBhbnkgd2F5LiBJIGp1c3QKaG9w
+ZSB5b3UgY291bGQgYWdyZWUgb24gc29tZSBzb2x1dGlvbiB0aGF0IHdvdWxkIGFsbG93IE1hbnRp
+cyB3b3JrIHRvIGJlCm1lcmdlZCBpbnRvIHY0bCBtYWluIHNvIHRoYXQgdGhlIG51bWJlciBvZiBz
+dXBwb3J0ZWQgZGV2aWNlcyBpbiB2NGwKd291bGQgZ3Jvdy4gRm9yIG1lLCBvbmUgb2YgdGhlIGJl
+YXV0aWVzIG9mIEZPU1MgaXMgdGhhdCBvbmNlIHNvbWVib2R5CmhhcyBjb2RlZCBhIHBpZWNlIG9m
+IGdvb2QgY29kZSwgbGlrZSBhIHdvcmtpbmcgZHJpdmVyLCBldmVyeWJvZHkgaW4gdGhlCndvcmxk
+IGNhbiBiZW5lZml0IG9mIGl0IGFsbW9zdCBpbW1lZGlhdGVseSBhbmQgd2l0aG91dCBhcnRpZmlj
+aWFsCnJlc3RyaWN0aW9ucy4KCj5Gcm9tIG15IHBvaW50IG9mIHZpZXcgdGhlIHN0YXRlIG9mIHY0
+bCBpcyBmYXIgZnJvbSBvcHRpbWFsOiBJIGJvdWdodApteXNlbGYgYSBUZXJyYXRlYyBDeW5lcmd5
+IEMgSEQgRFZCIC1jYXJkIChub3QgYSB2ZXJ5IG5ldyBtb2RlbCkuIFRvIGdldAppdCB3b3JraW5n
+IEkgZmlyc3QgdHJpZWQgdGhlIG1vc3QgcmVjZW50IHY0bCBkcml2ZXJzLCB3aGljaCBJIGNvbXBp
+bGVkCmZyb20gc291cmNlLCBidXQgaXQgZGlkbid0IHdvcmsuIEFmdGVyIHNvbWUgd29yayBJIGZp
+bmFsbHkgZ290IGl0CndvcmtpbmcgYnkgdXNpbmcgTWFudGlzJyB2ZXJzaW9uIG9mIHY0bCB3aXRo
+IGEgcGF0Y2ggYnkgUGF1bGkgQm9yb2R1bGluCmFuZCBhIElSIHJlbW90ZSBjb2RlIHRhYmxlIG1h
+ZGUgYnkgbXlzZWxmLiBOb3cgaXQgd29ya3MgcGVyZmVjdGx5IGFzCmxvbmcgYXMgbXkgZGlzdHJv
+IHJlbGVhc2VzIGEga2VybmVsIHVwZGF0ZSAtIGFmdGVyIHRob3NlIEkgbmVlZCB0bwpyZWNvbXBp
+bGUgdGhlIGRyaXZlciBtYW51YWxseS4KClRoaXMgaXNuJ3QgdmVyeSB1c2VyIGZyaWVuZGx5IG9y
+IHRlY2huaWNhbGx5IGVsZWdhbnQuIEhhdmluZyB0byBkbyB0aGlzCm15Y2ggd29yayBpcyBPSyB3
+aGlsZSB0aGUgZHJpdmVyIGlzIHVuZGVyIGRldmVsb3BtZW50LCBidXQgYWZ0ZXIgYWJvdXQgNgpt
+b250aHMgb3Igc28gdGhpcyBoYXJkd2FyZSBzaG91bGQgd29yayBvdXQtb2YtdGhlLWJveC4KCkhh
+dmluZyBhbGwgb2Ygb3VyIGNvbWJpbmVkIHdvcmsgaW4gdGhlIG1haW4gdjRsLCB3aGljaCBpcyBk
+ZWxpdmVyZWQgYnkKTGludXggZGlzdHJvcyB0byB1c2Vycywgd291bGQgbWFrZSBldmVyeXRoaW5n
+IHdvcmsgb3V0LW9mLXRoZS1ib3ggZm9yCmV2ZXJ5Ym9keSBkb2luZyB0aGUgc2FtZSBhIGZldyBt
+b250aHMgYWZ0ZXIgdXMgLSB0aGF0IHdvdWxkIGJlIG5pY2UgYW5kCkkgdGhpbmsgdGhhdCBzaG91
+bGQgYmUgdGhlIHVsdGltYXRlIGdvYWwsIHJpZ2h0PwoKVGhhbmtzIHRvIHlvdSBhbGwgZm9yIHlv
+dSBlZmZvcnRzISBIb3BlZnVsbHkgYWxsIExpbnV4IGRyaXZlcnMgY291bGQgZ28KdXBzdHJlYW0g
+YW5kIHVsdGltYXRlbHkgYmVuZWZpdCBldmVyeWJvZHkgaW4gdGhlIGZ1dHVyZS4uCgoKLS0gCnwg
+T3R0byBLZWvDpGzDpGluZW4KfCBodHRwOi8vd3d3LnNhbmdlLmZpLwoKCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QK
+bGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
