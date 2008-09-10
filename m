@@ -1,15 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org
-Date: Tue, 9 Sep 2008 17:50:37 +0300
-References: <48BF6A09.3020205@linuxtv.org> <48C539D9.4080900@linuxtv.org>
-	<200809082334.04511.liplianin@tut.by>
-In-Reply-To: <200809082334.04511.liplianin@tut.by>
+Received: from hs-out-0708.google.com ([64.233.178.250])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mkrufky@gmail.com>) id 1KdRoS-0000iu-80
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 17:41:02 +0200
+Received: by hs-out-0708.google.com with SMTP id 4so829650hsl.1
+	for <linux-dvb@linuxtv.org>; Wed, 10 Sep 2008 08:40:56 -0700 (PDT)
+Message-ID: <37219a840809100840q3f614720wb0ae7849027e4d88@mail.gmail.com>
+Date: Wed, 10 Sep 2008 11:40:55 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: urishk@yahoo.com
+In-Reply-To: <260419.76903.qm@web38806.mail.mud.yahoo.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_+0oxIVi37rwLmyc"
-Message-Id: <200809091750.38009.liplianin@tut.by>
-Subject: Re: [linux-dvb] [PATCH] S2 - DVBWorld 2104, TeVii S650
+Content-Disposition: inline
+References: <630160.40997.qm@web46116.mail.sp1.yahoo.com>
+	<260419.76903.qm@web38806.mail.mud.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,76 +23,73 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_+0oxIVi37rwLmyc
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Wed, Sep 10, 2008 at 5:16 AM, Uri Shkolnik <urishk@yahoo.com> wrote:
+> Barry,
+>
+> My name is Uri Shkolnik and I'm Siano's software architect.
+>
+> If you would like to add a generic support for DAB, T-DMB, DAB2, DAB-IP, etc. to LinuxTV, it'll be great!
+>
+> I can assist you with generic information, plus chipset specific information.
+>
+> If you have a DAB related RF feed, I even can, on certain conditions, to supply you with a hardware (USB or SDIO based), I already did so before with different open source / Linux projects.
+>
+> I'm not sure that DVB sub-system is the perfect location for DAB related devices, and what about multi-DTV devices? (Siano based chipsets devices support many DTV standards, DVB-x and DAB-y among them), maybe somewhere up the chain (under media/common ? elsewhere? I'm not pretending to be a Linux kernel nor LinuxTV expert).
+>
+> Anyway, keep in touch, just letting you know that I'm here... (except my vacation between Sep 19th and Oct 20th :-)
 
-=F7 =D3=CF=CF=C2=DD=C5=CE=C9=C9 =CF=D4 8 September 2008 23:34:04 Igor M. Li=
-plianin =CE=C1=D0=C9=D3=C1=CC(=C1):
-> Patch for DVBWorld 2104, TeVii S650 cx24116 based cards.
+Uri,
 
-Additionally change Kconfig for DvbWorld cards.
+The policy on this mailing list is not to top-post.  Email replies
+should appear below the quoted text -- please keep this in mind for
+the future.
 
-=2D-=20
-Igor M. Liplianin
+As far as your previous comments, please get over the DVB
+nomenclature.  LinuxDVB is the _name_ of the Linux kernel subsystem
+that deals with digital media, as a whole, *not* limited to DVB-T,
+DVB-S, DVB-C, DVB-T2, DVB-S2, DVB-C2, ATSC, ISDB-T, DVB-H, DMB-TH,
+DAB,  etc etc etc
 
---Boundary-00=_+0oxIVi37rwLmyc
-Content-Type: text/x-diff;
-  charset="koi8-r";
-  name="8865.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="8865.patch"
+Your comment stating that, "the LinuxTV/DVB sub-system will not
+support non-DVB standards in the near future" is entirely invalid.
+There is no reason why the LinuxDVB API cannot be extended to support,
+as you call them, "non-DVB" standards.
 
-# HG changeset patch
-# User Igor M. Liplianin <liplianin@me.by>
-# Date 1220970583 -10800
-# Node ID 94185acebf5c72f507eaca24d1e77cf9fc9cba9a
-# Parent  e002e5deabad4f8993f5ab9aba79a3fd1f154491
-Kconfig corrections for DVBWorld 2104 and TeVii S650 USB DVB-S2 cards
+Now that you, Uri, have joined our community and are offering help
+with documentation, specifications, etc, this is a great opportunity
+to help in adding support for these new standards to the Linux Kernel.
 
-From: Igor M. Liplianin <liplianin@me.by>
+Just so that everybody is on the same page here, there are two API
+proposals on the table.  These proposals deal with ways to extend the
+LinuxDVB API for future expansion.   The issue being discussed is
+*not*  how to deal with adding support for additional standards -- we
+already have that covered.  Regardless of whether Manu's proposal or
+Steve's proposal is accepted, support for the same additional
+standards will be added, while still leaving room for future
+expansion.
 
-Change menu item in Kconfig for DVBWorld 2104 and TeVii S650 USB DVB-S2 cards
+Once the decision is officially made, as per who's API extension
+proposal is accepted, then I welcome you to start discussing how we
+can add support for the additional standards into the kernel.
 
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+Please don't reply to this message -- we're better off dealing with
+this topic in a _new_ thread, after the API discussions have
+completed.  To continue on with this here will only distract from the
+threads original topic.
 
-diff -r e002e5deabad -r 94185acebf5c linux/drivers/media/dvb/dvb-usb/Kconfig
---- a/linux/drivers/media/dvb/dvb-usb/Kconfig	Mon Sep 08 23:16:40 2008 +0300
-+++ b/linux/drivers/media/dvb/dvb-usb/Kconfig	Tue Sep 09 17:29:43 2008 +0300
-@@ -247,12 +247,14 @@
- 	  Afatech AF9005 based receiver.
- 
- config DVB_USB_DW2102
--	tristate "DvbWorld 2102 DVB-S USB2.0 receiver"
-+	tristate "DvbWorld DVB-S/S2 USB2.0 support"
- 	depends on DVB_USB
-+	select DVB_PLL if !DVB_FE_CUSTOMISE
- 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
--	select DVB_PLL if !DVB_FE_CUSTOMISE
-+	select DVB_CX24116 if !DVB_FE_CUSTOMISE
- 	help
--	   Say Y here to support the DvbWorld 2102 DVB-S USB2.0 receiver.
-+	  Say Y here to support the DvbWorld DVB-S/S2 USB2.0 receivers
-+	  and the TeVii S650.
- 
- config DVB_USB_ANYSEE
- 	tristate "Anysee DVB-T/C USB2.0 support"
+Thank you for your input.
 
---Boundary-00=_+0oxIVi37rwLmyc
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Regards,
+
+Mike Krufky
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_+0oxIVi37rwLmyc--
