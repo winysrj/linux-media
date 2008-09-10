@@ -1,23 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Ke9PE-0008Sj-I2
-	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 16:13:53 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7300I6A665H9A0@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 12 Sep 2008 10:13:18 -0400 (EDT)
-Date: Fri, 12 Sep 2008 10:13:17 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <130284.93148.qm@web46107.mail.sp1.yahoo.com>
-To: free_beer_for_all@yahoo.com
-Message-id: <48CA78FD.1020600@linuxtv.org>
-MIME-version: 1.0
-References: <130284.93148.qm@web46107.mail.sp1.yahoo.com>
-Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Siano ISDB [was: Re: S2API - Status - Thu Sep 11th]
+Message-ID: <48C7B362.8050603@magma.ca>
+Date: Wed, 10 Sep 2008 07:45:38 -0400
+From: Patrick Boisvenue <patrbois@magma.ca>
+MIME-Version: 1.0
+To: Steven Toth <stoth@linuxtv.org>
+References: <48C659C5.8000902@magma.ca> <48C68DC5.1050400@linuxtv.org>
+	<48C73161.7090405@magma.ca> <48C732DE.2030902@linuxtv.org>
+In-Reply-To: <48C732DE.2030902@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,72 +22,117 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-barry bouwsma wrote:
-> --- On Fri, 9/12/08, Steven Toth <stoth@hauppauge.com> wrote:
-> 
->>> module parameter `default_mode=5' or =6,
->>>   
->> Correct, that tree expects a module option to load the firmware, you 
->> might want to check this code snippet in the other tree.  The other 
->> detects the delivery system and reloads the firmware on the fly.
-> 
-> Hey, no fair, I think you're answering questions I'm about
-> to ask before I can send them!
 
-:)
-
+Steven Toth wrote:
+> Patrick Boisvenue wrote:
+>> Steven Toth wrote:
+>>> Patrick Boisvenue wrote:
+>>>> I cannot get my new HVR-1500Q to work at all even though it's 
+>>>> recognized as such.  The best I was able to figure out was it does 
+>>>> not like the eeprom.  After enabling the debug mode on tveeprom, I 
+>>>> got the following when loading cx23885:
+>>>
+>>> ...
+>>>
+>>>> cx23885[0]: warning: unknown hauppauge model #0
+>>>> cx23885[0]: hauppauge eeprom: model=0
+>>>> cx23885[0]: cx23885 based dvb card
+>>>
+>>> ...
+>>>
+>>>> Did a hg pull -u http://linuxtv.org/hg/v4l-dvb earlier today so 
+>>>> running off recent codebase.
+>>>
+>>> Fixed it, see linuxtv.org/hg/~stoth/v4l-dvb.
+>>>
+>>> Pull the topmost patch and try again, please post your results back 
+>>> here.
+>>>
+>>> Thanks,
+>>>
+>>> Steve
+>>>
+>>
+>> Getting better, the eeprom parsing seems to work (check dmesg output 
+>> below). However, doing a dvbscan still nets me no stations while doing 
+>> a scan in a WindowsXP laptop gets me the expected two (2) stations in 
+>> my area.
+>>
+>> dmesg output with tveeprom debug=1 and cx23885 debug=5 after loading 
+>> cx23885 module:
+>>
+>> cx23885 driver version 0.0.1 loaded
+>> ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19 (level, low) -> IRQ 19
+>> cx23885[0]/0: cx23885_dev_setup() Memory configured for PCIe bridge 
+>> type 885
+>> cx23885[0]/0: cx23885_init_tsport(portno=2)
+>> CORE cx23885[0]: subsystem: 0070:7790, board: Hauppauge WinTV-HVR1500Q 
+>> [card=5,autodetected]
+>>
+>> ...
+ >>
+>> When launching dvbscan I get the following in dmesg:
+>>
+>> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+>> firmware: requesting dvb-fe-xc5000-1.1.fw
+>> kobject_add_internal failed for i2c-2 with -EEXIST, don't try to 
+>> register things with the same name in the same directory.
+>> Pid: 8059, comm: kdvb-fe-0 Tainted: P          2.6.26-gentoo #11
+>>
+>> Call Trace:
+>>  [<ffffffff8036abb5>] kobject_add_internal+0x13f/0x17e
+>>  [<ffffffff8036aff2>] kobject_add+0x74/0x7c
+>>  [<ffffffff80230b02>] printk+0x4e/0x56
+>>  [<ffffffff803eb84a>] device_add+0x9b/0x483
+>>  [<ffffffff8036a876>] kobject_init+0x41/0x69
+>>  [<ffffffff803f059d>] _request_firmware+0x169/0x324
+>>  [<ffffffffa00e9a7e>] :xc5000:xc_load_fw_and_init_tuner+0x64/0x293
+>>  [<ffffffff804a7222>] i2c_transfer+0x75/0x7f
+>>  [<ffffffffa00e53ad>] :s5h1409:s5h1409_writereg+0x51/0x83
+>>  [<ffffffffa00e9cea>] :xc5000:xc5000_init+0x3d/0x6f
+>>  [<ffffffffa0091b0c>] :dvb_core:dvb_frontend_init+0x49/0x63
+>>  [<ffffffffa0092e2c>] :dvb_core:dvb_frontend_thread+0x78/0x2f0
+>>  [<ffffffffa0092db4>] :dvb_core:dvb_frontend_thread+0x0/0x2f0
+>>  [<ffffffff80240eaf>] kthread+0x47/0x74
+>>  [<ffffffff8022bc41>] schedule_tail+0x27/0x5b
+>>  [<ffffffff8020be18>] child_rip+0xa/0x12
+>>  [<ffffffff80240e68>] kthread+0x0/0x74
+>>  [<ffffffff8020be0e>] child_rip+0x0/0x12
+>>
+>> fw_register_device: device_register failed
+>> xc5000: Upload failed. (file not found?)
+>> xc5000: Unable to initialise tuner
+>>
+>>
+>> I have the firmware file located here:
+>>
+>> # ls -l /lib/firmware/dvb-fe-xc5000-1.1.fw
+>> -rw-r--r-- 1 root root 12332 Aug 31 12:56 
+>> /lib/firmware/dvb-fe-xc5000-1.1.fw
+>>
+>> If there is anything else I can provide (or try) to help debug, let me 
+>> know,
+>> ...Patrick
 > 
-> Oh heck, here's what I wrote a short while ago, just in case...
+>  > kobject_add_internal failed for i2c-2 with -EEXIST, don't try to
+>  > register things with the same name in the same directory.
 > 
->  =-=#=-=#=-=
+> Ooh, that's nasty problem, this is new - and looks like it's i2c related.
 > 
-> In looking at the S2API code for the Siano chipsets, I had
-> a question which I couldn't answer by reading the code.
+> Why does this sound familiar? Anyone?
 > 
-> At present, my card supports DVB-T by default, and I can
-> load a different firmware to get it to (potentially) support
-> alternatives, say, DVB-H.
+> Just for the hell of it, copy the firmware to /lib/firmware/`uname -r` 
+> also, then re-run the test - it's unlikely to make any difference but it 
+> _is_ the scenario I always test under.
 > 
-> The answer might be blindingly obvious, but I don't see if
-> this card has the capability of saying, okay, I can give
-> you DVB-T, or DVB-H, or DAB, or T-DMB...  Right now, I spit
-> DVB-T.  Then an application wanting DVB-H would then be able
-> to initiate a reload of the firmware, and the device would
-> reappear as a DVB-H device.
+> - Steve
 > 
-> The ability to do this firmware switch seems to be present
-> within the driver, but I'm wondering if the S2API, or indeed
-> the present APIs, can handle a case like this.
 
-The delivery system is present in the tuning cache. Demod drivers who 
-need these advanced features can check the required delivery type 
-(c->delivery_system) and decide to load the appropriate firmware to 
-satisfy the users needs.
+You were right, no difference.  Is there any other debug messages I can 
+create?
 
-That _should_ work today, but the firmware reload in the siano demod was 
-added late in the evening (thanks mkrufky) so any bugs need to be shaken 
-out of the demod driver. Prior to this we were only testing the isdb-t 
-portion.
+...Patrick
 
-What's missing now in tune.c is the GET_PROPERTY example code to show 
-what delivery systems and modulations types these new drivers can support.
-
-> 
-> I know that `mplayer' will grab the first available device
-> of the appropriate standard, while my other applications
-> pick a fixed adapter number (or more correctly, device by
-> product).  But I can see myself wanting to make both DVB-T
-> and DAB (eventually) use of this one device, without the
-> bother of reloading the kernel module to switch.
-> 
-> I did spend the night looking at the old API, and remember
-> virtually none of it, and the discussion of multifrontend
-> devices and what they mean has made me wonder about this...
-
-
-Regards,
-
-Steve
 
 _______________________________________________
 linux-dvb mailing list
