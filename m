@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
+Received: from ti-out-0910.google.com ([209.85.142.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sonofzev@iinet.net.au>) id 1KiuaH-0002n5-F0
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 19:24:58 +0200
-From: allan k <sonofzev@iinet.net.au>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1222355498.17944.1.camel@media1>
-References: <1222352934.9701.3.camel@media1> <1222355498.17944.1.camel@media1>
-Date: Fri, 26 Sep 2008 03:24:49 +1000
-Message-Id: <1222363489.23405.3.camel@media1>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] how do i get the bt878 driver to show
-	and	xc-3028	on 2.6.26-gentoo
+	(envelope-from <glenn.l.mcgrath@gmail.com>) id 1KdGYp-00051X-SS
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 05:40:09 +0200
+Received: by ti-out-0910.google.com with SMTP id w7so1551553tib.13
+	for <linux-dvb@linuxtv.org>; Tue, 09 Sep 2008 20:40:03 -0700 (PDT)
+Message-ID: <141058d50809092040m6ccbcer2ff26cf109a63682@mail.gmail.com>
+Date: Wed, 10 Sep 2008 13:40:03 +1000
+From: "Glenn McGrath" <glenn.l.mcgrath@gmail.com>
+To: "Andy Walls" <awalls@radix.net>
+In-Reply-To: <1221007328.2647.53.camel@morgan.walls.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<1220993974.17270.22.camel@localhost>
+	<d9def9db0809091414t5953e696s521aa2f7525d182d@mail.gmail.com>
+	<1221007328.2647.53.camel@morgan.walls.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How to measure API "goodness"?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,62 +33,100 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Sorry 
+On Wed, Sep 10, 2008 at 10:42 AM, Andy Walls <awalls@radix.net> wrote:
+>
+> This leads into something I've been thinking about the past few days
+> that's probably worth discussion out loud:
+>
+> What are the attributes to measure for comparing APIs or API proposals?
+> How can each attribute be measure objectively (if possible)?
+> What are the units for each measurement attribute?
+> What weight should be given to each attribute?
+>
+> I've seen several suggestions in the threads already for attributes that
+> could be considered in a comparison:
+>
+> 1. Complexity (internal to the kernel)
+> 2. Complexity (visible to the application)
+> 3. Extensibility/Future adaptability
+> 4. Implementation maturity (if one exists already)
+> 5. Number of currently supported devices
+> 6. Number of applications already using an implementation
+> 7. Status of an implementation in the kernel (already there, leverages
+> or consistent with another API, etc.)
+> 8. Ease of use for applications
+> 9. Elegance/Beauty
+>
+> I'm sure I've missed some that were discussed, but it doesn't seem that
+> everything in the list above all are relevant to an API comparison, and
+> there could very well be things missing from the list.
+>
+> I was going to look for some CS journal article which may provide
+> insight into metrics for performing such a comparison, but I haven't
+> found the time.
+>
+>
+> But I was thinking it reasonable that metrics, that get the most weight
+> in an evaluation, be in line with the purpose of an API:
+>
+>   Provide a well defined interface, that is consistent over time, which
+>   applications can call and whose source code can remain insulated from
+>   differences and changes in the underlying service, for some
+>   (unspecified) period of time into the future.
+>
+> (I made that up.)
+>
+>
+> That leads me to think that maybe the most important measures should be:
+>
+> 1. Projected invariance of the application facing side over time.
+>
+> 2. The amount of application code that would be forced to change given
+> forseeable changes or growth in the API due to change or growth in the
+> underlying service.
+>
+> 3. The transparency of differences in the underlying service (e.g.
+> capture devices from different manufacturers or using different
+> chipsets) to the applications calling the API.
+>
+> 4. The functionality provided to applications to deal with differences
+> that cannot be made transparent to the application.
+>
+> 5. The feasibility of maintaining the desirable properties of an API
+> while kernel software maintenance move forward.
+>
+>
+> Beauty, complexity, existing implementations (out of kernel), and ease
+> of use don't really rank, given my made up definition of an API.
+> (libX11 isn't an easy to use API, but it has stood the test of time.)
+>
+> Given the back and forth on the list, I thought some discussion on how
+> one might perform a technical evaluation of an API may be productive.
+> The list conversations on certain point aspects of API proposals, would
+> benefit from rough concensus on how API "goodness" should be measured in
+> the first place, instead of arguing over perceptions/measurements that
+> may not be that important to a "good" API.
+>
+>
+> Regards,
+> Andy
 
-I've answered my own questions had to grab the more generic
-xc3028-v27.fw to make the card work on the standard v4l-dvb tree to
-work.
+Well said, but can the goodness of an API even be measured ?
 
-Would be nice for the analog part to work in Mythtv (maybe it works in
-other software) especially the composite input (I guess this is on the
-xc2028 part of the card) to encode all my old VHS tapes. 
+The more i learn about programming the more i think software
+blueprints (to avoid saying design) are created rather than designed,
+and that deep down this is a discussion of science vs art.
 
-cheers
+For example, to many the 5 measurable attributes you specify come
+under the subjective value of beauty, people will quickly decide if
+they personally like an API or not, and that is likely to determine
+how useful it is.
 
-Allan 
+If you do find any references on measuring an API (or a design) i
+would love to read them.
 
 
-
-
-On Fri, 2008-09-26 at 01:11 +1000, allan k wrote:
-> Okay .. 
-> 
-> It seems I had no trouble with the bt-878... but the xc3028 version of
-> the fusion dual express doesn't seem to be in the kernel (not listed in
-> the compatible cards)...
-> 
-> I'm going back to mercurial now. 
-> 
-> cheers
-> 
-> Allan
-> 
-> On Fri, 2008-09-26 at 00:28 +1000, allan k wrote:
-> > Hi all 
-> > 
-> > >From what I understand I should now be able to get both my Fusion HDTV
-> > lite and Fusion Digital Express (cx23885 with xc-3028) to work from
-> > in-kernel drivers and not use the mercurial tree. 
-> > 
-> > Firstly I can't get the bt-878 driver for the lite card to show... I
-> > know I've done this along time ago, but just can't remember...
-> > 
-> > Also I've seen some discussion about the xc3028-dvico-au-01.fw and it's
-> > compatibility with 2.6.26 but can't see an answer as to whether it works
-> > or not... any definitive answer or do need to download new firmware from
-> > somewhere? 
-> > 
-> > 
-> > 
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Glenn
 
 _______________________________________________
 linux-dvb mailing list
