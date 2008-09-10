@@ -1,21 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from emh05.mail.saunalahti.fi ([62.142.5.111])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <niemi.jarkko@gmail.com>) id 1KeUw8-0002E8-1r
-	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 15:13:19 +0200
-Received: from saunalahti-vams (vs3-10.mail.saunalahti.fi [62.142.5.94])
-	by emh05-2.mail.saunalahti.fi (Postfix) with SMTP id C78238C3C8
-	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 16:13:11 +0300 (EEST)
-Received: from [81.197.70.192] (e81-197-70-192.elisa-laajakaista.fi
-	[81.197.70.192])
-	by emh01.mail.saunalahti.fi (Postfix) with ESMTP id B41054BBB3
-	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 16:13:10 +0300 (EEST)
-Message-ID: <48CBBC67.8060004@gmail.com>
-Date: Sat, 13 Sep 2008 16:13:11 +0300
-From: Jarkko Niemi <niemi.jarkko@gmail.com>
+Received: from web31102.mail.mud.yahoo.com ([68.142.200.35])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <bsdskin@yahoo.com>) id 1KdEtN-0006y4-PY
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 03:53:17 +0200
+Date: Tue, 9 Sep 2008 18:52:38 -0700 (PDT)
+From: William Austin <bsdskin@yahoo.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] How to change linux kernel module frontend?
+Message-ID: <868475.15080.qm@web31102.mail.mud.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1950 with Ubuntu Intrepid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,54 +23,79 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Card: Azurewave / Twinhan DVB-C AD-CP300 (Mantis 2033) CI PCI
-Driver from: http://jusst.de/hg/mantis/
+William Austin wrote:
+>> I have a Hauppauge WinTV HVR-1950 USB box on a box running Ubuntu Intrepid.  Although I should expect problems from a testing distro, I've tried getting this box working on stable, Live-CD versions of Ubuntu, Open Suse, and Mandriva as well (because they were what I had around the house.)
+>>
+>>First, there is a kernel problem in Ubuntu Intrepid where, if the 1950 is plugged into USB, the system will hang on boot.  Yet, if I boot without it and plug it in after boot, the drivers (pvrusb2 et al) seem to load, but no device nodes are created.  I have downloaded the firmware, renamed it properly, and placed it in /lib/firmware.  So I'm at a loss on how to troubleshoot.  Here's the relevant information on plug-in the box in after the system has been booted.
 
-Compiles and installs, after reboot, it can be found as (dmesg extract)
+>What firmware did you " download and rename " ??
 
-mantis_core_exit (0): DMA engine stopping
-mantis_dma_exit (0): DMA=0x7d6c0000 cpu=0xffff81007d6c0000 size=65536
-mantis_dma_exit (0): RISC=0x7c346000 cpu=0xffff81007c346000 size=1000
-mantis_hif_exit (0): Adapter(0) Exiting Mantis Host Interface
-mantis_ca_exit (0): Unregistering EN50221 device
-mantis_pci_remove (0): Removing -->Mantis irq: 23, latency: 64
- memory: 0xfd6ff000, mmio: 0xffffc200008ca000
-ACPI: PCI interrupt for device 0000:07:06.0 disabled
-ACPI: PCI Interrupt 0000:07:06.0[A] -> GSI 23 (level, low) -> IRQ 23
-irq: 23, latency: 64
-memory: 0xfd6ff000, mmio: 0xffffc200008cc000
-found a VP-2033 PCI DVB-C device on (07:06.0),
-    Mantis Rev 1 [1822:0008], irq: 23, latency: 64
-    memory: 0xfd6ff000, mmio: 0xffffc200008cc000
-    MAC Address=[00:08:ca:1c:2c:ba]
-mantis_alloc_buffers (0): DMA=0x7d6c0000 cpu=0xffff81007d6c0000 size=65536
-mantis_alloc_buffers (0): RISC=0x7d192000 cpu=0xffff81007d192000 size=1000
-DVB: registering new adapter (Mantis dvb adapter)
-mantis_frontend_init (0): Probing for CU1216 (DVB-C)
-TDA10021: i2c-addr = 0x0c, id = 0x7d
-mantis_frontend_init (0): found Philips CU1216 DVB-C frontend (TDA10021) 
-@ 0x0c
-mantis_frontend_init (0): Mantis DVB-C Philips CU1216 frontend attach 
-success
-DVB: registering frontend 0 (Philips TDA10021 DVB-C)...
-mantis_ca_init (0): Registering EN50221 device
-mantis_ca_init (0): Registered EN50221 device
-mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
+I tried both the version on Stephen Toth's site and the version that came with my windows driver CD (4.5a).  The firmware was extracted with Mike Isely's perl script and renamed according to information on his website.  There were three files total.
 
-Most propably problem is exactly same than in here
-http://www.spinics.net/lists/linux-dvb/msg24184.html
+>Where did you get " v4l-pvrusb2-73xxx-01.fw " ??  or did you forget it?
 
-mantis loads wrong frontend (tda10021 instead of tda10023)
+See above. 
 
-> The chip ID is 0x7d. Probably, your card uses a CU1216-3 with a TDA10023. There are 
-> differences between the TDA10021 and the TDA10023.
+>> dmesg says:
+>> usbcore: registered new interface driver pvrusb2
+>> pvrusb2: Hauppauge WinTV-PVR-USB2 MPEG2 Encoder/Tuner : V4L in-tree version
+>> pvrusb2: Debug mask is 31 (0x1f)
 
- > Changed the tuner to TDA10023 and it worked like a charm!
 
-main question is:
-How to do that change?
+>Those lines will show up is you simply "modprobe pvrusb2" even if the device is not present.  What comes next?  It should download firmware, >disconnect & reconnect USB automatically, then continue on with driver initialization.
 
-Jarkko
+That was the end of my dmesg as far as the dvb stuff is concerned.  There were a few more lines dealing with my wireless adapter, but I didn't think it relevant.  I did not modprobe pvrusb2.  Those lines were the result of just plugging the device in.
+
+
+>> lsmod (edit):
+>> usbcore
+>> pvrusb2
+>> i2c_core
+>> v4l2_common
+>> tveeprom
+>> dvb_core
+>> cx2341x
+>> videodev
+>> v4l1_compat
+
+
+>lsmod doesnt tell us anything.  You can load all those modules by hand, and it says nothing about the device that you have plugged in.
+
+But I didn't load them by hand.  Just trying to help people help me.
+
+>> /proc/devices lists DVB as a character device.
+>>
+>> Now, I'm assuming I'm missing some chip drivers.  I think I should have at least three, if memory serves, but only cx2341x is loading on plug-in.  Unfortunately (and I assume this is another Ubuntu problem) I can't unload pvrusb2 once loaded.  It hangs the terminal.  It makes playing around with it a tedious endeavor.
+>>
+>> If anyone has had the same problems or could give some advice, I appreciate it in advance.
+
+>I think you're best off taking a look at the pvrusb2 home page and reading the information there.  If you are still having trouble, then please just paste your full dmesg into an email so that we can have a better idea of what's wrong.
+>Good Luck,
+>Mike
+
+If I hadn't already checked out the pvrusb2 home page and read the information there, I wouldn't be feeling patronised on a mailing list asking for help.  But then, I understand requests like this can get tedious, so no worries.
+
+I just rebooted with the device unplugged.  Here is the end of my dmesg (the changes after I plugged in the HVR-1950):
+[ 5115.393036] usb 2-2: new high speed USB device using ehci_hcd and address 12
+[ 5115.529015] usb 2-2: configuration #1 chosen from 1 choice
+[ 5115.616658] Linux video capture interface: v2.00
+[ 5115.672945] usbcore: registered new interface driver pvrusb2
+[ 5115.674849] pvrusb2: Hauppauge WinTV-PVR-USB2 MPEG2 Encoder/Tuner : V4L in-tree version
+[ 5115.674857] pvrusb2: Debug mask is 31 (0x1f)
+[ 5116.673636] firmware: requesting v4l-pvrusb2-73xxx-01.fw
+[ 5116.697396] pvrusb2: Device microcontroller firmware (re)loaded; it should now reset and reconnect.
+[ 5116.861037] usb 2-2: USB disconnect, address 12
+[ 5116.862449] pvrusb2: Device being rendered inoperable
+[ 5118.488036] usb 2-2: new high speed USB device using ehci_hcd and address 13
+[ 5118.625005] usb 2-2: configuration #1 chosen from 1 choice
+
+Now, for the first time (and it'd have to be after I've already written to the list asking about it) it seems to load the firmware correctly; however, I'm still without a device node for it.
+
+Will
+
+
+
+      
 
 _______________________________________________
 linux-dvb mailing list
