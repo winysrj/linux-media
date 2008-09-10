@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from sange.fi ([193.64.31.26])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <otto@sange.fi>) id 1KdSFJ-0002Zf-DF
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 18:08:46 +0200
-Received: from 80-186-113-69.elisa-mobile.fi ([80.186.113.69])
-	by oiva.sange.fi with esmtpsa (SSL 3.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.63) (envelope-from <otto@sange.fi>) id 1KdSFF-00019G-1Y
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 19:08:41 +0300
-From: Otto =?ISO-8859-1?Q?Kek=E4l=E4inen?= <otto@sange.fi>
+	(envelope-from <awalls@radix.net>) id 1KdDmo-0002gi-Mw
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 02:42:24 +0200
+Received: from [192.168.1.7] (01-057.155.popsite.net [66.217.131.57])
+	(authenticated bits=0)
+	by mail1.radix.net (8.13.4/8.13.4) with ESMTP id m8A0gFkS023769
+	for <linux-dvb@linuxtv.org>; Tue, 9 Sep 2008 20:42:16 -0400 (EDT)
+From: Andy Walls <awalls@radix.net>
 To: linux-dvb@linuxtv.org
-Date: Wed, 10 Sep 2008 18:55:03 +0300
-Message-Id: <1221062103.6144.31.camel@HPG5050EO>
+In-Reply-To: <d9def9db0809091414t5953e696s521aa2f7525d182d@mail.gmail.com>
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<1220993974.17270.22.camel@localhost>
+	<d9def9db0809091414t5953e696s521aa2f7525d182d@mail.gmail.com>
+Date: Tue, 09 Sep 2008 20:42:08 -0400
+Message-Id: <1221007328.2647.53.camel@morgan.walls.org>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Subject: [linux-dvb] How to measure API "goodness"?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,44 +26,100 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGVsbG8sCgpJJ3ZlIHJlYWQgdGhpcyB0aHJlYWQgYW5kIGFsc28gdGhlIHRocmVhZCAiRnV0dXJl
-IG9mIE11bHRpcHJvdG8iIGZyb20KZmFsbCAyMDA3IGFuZCBJIGZlYWx0IEkgc2hvdWxkIHNheSBh
-IGZldyB3b3JkcyBhYm91dCB0aGlzLi4KCkkgYW0gbm90IGFuIGV4cGVydCBpbiBkcml2ZXIgY29k
-aW5nIG9yIEFQSXMsIHNvIEkgY2FuJ3Qgc2F5IG11Y2ggYWJvdXQKd2hvJ3MgdGVjaG5pY2FsIGFw
-cHJvYWNoIGlzIHRoZSBtb3N0IGVsZWdhbnQgb3IgYmVzdCBpbiBhbnkgd2F5LiBJIGp1c3QKaG9w
-ZSB5b3UgY291bGQgYWdyZWUgb24gc29tZSBzb2x1dGlvbiB0aGF0IHdvdWxkIGFsbG93IE1hbnRp
-cyB3b3JrIHRvIGJlCm1lcmdlZCBpbnRvIHY0bCBtYWluIHNvIHRoYXQgdGhlIG51bWJlciBvZiBz
-dXBwb3J0ZWQgZGV2aWNlcyBpbiB2NGwKd291bGQgZ3Jvdy4gRm9yIG1lLCBvbmUgb2YgdGhlIGJl
-YXV0aWVzIG9mIEZPU1MgaXMgdGhhdCBvbmNlIHNvbWVib2R5CmhhcyBjb2RlZCBhIHBpZWNlIG9m
-IGdvb2QgY29kZSwgbGlrZSBhIHdvcmtpbmcgZHJpdmVyLCBldmVyeWJvZHkgaW4gdGhlCndvcmxk
-IGNhbiBiZW5lZml0IG9mIGl0IGFsbW9zdCBpbW1lZGlhdGVseSBhbmQgd2l0aG91dCBhcnRpZmlj
-aWFsCnJlc3RyaWN0aW9ucy4KCj5Gcm9tIG15IHBvaW50IG9mIHZpZXcgdGhlIHN0YXRlIG9mIHY0
-bCBpcyBmYXIgZnJvbSBvcHRpbWFsOiBJIGJvdWdodApteXNlbGYgYSBUZXJyYXRlYyBDeW5lcmd5
-IEMgSEQgRFZCIC1jYXJkIChub3QgYSB2ZXJ5IG5ldyBtb2RlbCkuIFRvIGdldAppdCB3b3JraW5n
-IEkgZmlyc3QgdHJpZWQgdGhlIG1vc3QgcmVjZW50IHY0bCBkcml2ZXJzLCB3aGljaCBJIGNvbXBp
-bGVkCmZyb20gc291cmNlLCBidXQgaXQgZGlkbid0IHdvcmsuIEFmdGVyIHNvbWUgd29yayBJIGZp
-bmFsbHkgZ290IGl0CndvcmtpbmcgYnkgdXNpbmcgTWFudGlzJyB2ZXJzaW9uIG9mIHY0bCB3aXRo
-IGEgcGF0Y2ggYnkgUGF1bGkgQm9yb2R1bGluCmFuZCBhIElSIHJlbW90ZSBjb2RlIHRhYmxlIG1h
-ZGUgYnkgbXlzZWxmLiBOb3cgaXQgd29ya3MgcGVyZmVjdGx5IGFzCmxvbmcgYXMgbXkgZGlzdHJv
-IHJlbGVhc2VzIGEga2VybmVsIHVwZGF0ZSAtIGFmdGVyIHRob3NlIEkgbmVlZCB0bwpyZWNvbXBp
-bGUgdGhlIGRyaXZlciBtYW51YWxseS4KClRoaXMgaXNuJ3QgdmVyeSB1c2VyIGZyaWVuZGx5IG9y
-IHRlY2huaWNhbGx5IGVsZWdhbnQuIEhhdmluZyB0byBkbyB0aGlzCm15Y2ggd29yayBpcyBPSyB3
-aGlsZSB0aGUgZHJpdmVyIGlzIHVuZGVyIGRldmVsb3BtZW50LCBidXQgYWZ0ZXIgYWJvdXQgNgpt
-b250aHMgb3Igc28gdGhpcyBoYXJkd2FyZSBzaG91bGQgd29yayBvdXQtb2YtdGhlLWJveC4KCkhh
-dmluZyBhbGwgb2Ygb3VyIGNvbWJpbmVkIHdvcmsgaW4gdGhlIG1haW4gdjRsLCB3aGljaCBpcyBk
-ZWxpdmVyZWQgYnkKTGludXggZGlzdHJvcyB0byB1c2Vycywgd291bGQgbWFrZSBldmVyeXRoaW5n
-IHdvcmsgb3V0LW9mLXRoZS1ib3ggZm9yCmV2ZXJ5Ym9keSBkb2luZyB0aGUgc2FtZSBhIGZldyBt
-b250aHMgYWZ0ZXIgdXMgLSB0aGF0IHdvdWxkIGJlIG5pY2UgYW5kCkkgdGhpbmsgdGhhdCBzaG91
-bGQgYmUgdGhlIHVsdGltYXRlIGdvYWwsIHJpZ2h0PwoKVGhhbmtzIHRvIHlvdSBhbGwgZm9yIHlv
-dSBlZmZvcnRzISBIb3BlZnVsbHkgYWxsIExpbnV4IGRyaXZlcnMgY291bGQgZ28KdXBzdHJlYW0g
-YW5kIHVsdGltYXRlbHkgYmVuZWZpdCBldmVyeWJvZHkgaW4gdGhlIGZ1dHVyZS4uCgoKLS0gCnwg
-T3R0byBLZWvDpGzDpGluZW4KfCBodHRwOi8vd3d3LnNhbmdlLmZpLwoKCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QK
-bGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+On Tue, 2008-09-09 at 23:14 +0200, Markus Rechberger wrote:
+> On Tue, Sep 9, 2008 at 10:59 PM, Simon Kenyon <simon@koala.ie> wrote:
+> > On Tue, 2008-09-09 at 17:33 +0200, Markus Rechberger wrote:
+
+
+>  There are multiple ways which can lead to success, the beauty
+> of a patch or framework won't matter too much (nevermind
+> if Steven's or Manu's work seems to be more prettier to someone).
+
+This leads into something I've been thinking about the past few days
+that's probably worth discussion out loud: 
+
+What are the attributes to measure for comparing APIs or API proposals?
+How can each attribute be measure objectively (if possible)?
+What are the units for each measurement attribute?
+What weight should be given to each attribute?
+
+I've seen several suggestions in the threads already for attributes that
+could be considered in a comparison:
+
+1. Complexity (internal to the kernel)
+2. Complexity (visible to the application)
+3. Extensibility/Future adaptability
+4. Implementation maturity (if one exists already)
+5. Number of currently supported devices
+6. Number of applications already using an implementation
+7. Status of an implementation in the kernel (already there, leverages
+or consistent with another API, etc.)
+8. Ease of use for applications
+9. Elegance/Beauty 
+
+I'm sure I've missed some that were discussed, but it doesn't seem that
+everything in the list above all are relevant to an API comparison, and
+there could very well be things missing from the list.
+
+I was going to look for some CS journal article which may provide
+insight into metrics for performing such a comparison, but I haven't
+found the time.
+
+
+But I was thinking it reasonable that metrics, that get the most weight
+in an evaluation, be in line with the purpose of an API: 
+
+   Provide a well defined interface, that is consistent over time, which
+   applications can call and whose source code can remain insulated from
+   differences and changes in the underlying service, for some
+   (unspecified) period of time into the future.
+
+(I made that up.)  
+
+
+That leads me to think that maybe the most important measures should be:
+
+1. Projected invariance of the application facing side over time.
+
+2. The amount of application code that would be forced to change given
+forseeable changes or growth in the API due to change or growth in the
+underlying service.
+
+3. The transparency of differences in the underlying service (e.g.
+capture devices from different manufacturers or using different
+chipsets) to the applications calling the API.
+
+4. The functionality provided to applications to deal with differences
+that cannot be made transparent to the application.
+
+5. The feasibility of maintaining the desirable properties of an API
+while kernel software maintenance move forward.
+
+
+Beauty, complexity, existing implementations (out of kernel), and ease
+of use don't really rank, given my made up definition of an API.
+(libX11 isn't an easy to use API, but it has stood the test of time.)
+
+Given the back and forth on the list, I thought some discussion on how
+one might perform a technical evaluation of an API may be productive.
+The list conversations on certain point aspects of API proposals, would
+benefit from rough concensus on how API "goodness" should be measured in
+the first place, instead of arguing over perceptions/measurements that
+may not be that important to a "good" API.
+
+
+Regards,
+Andy
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
