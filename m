@@ -1,20 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 202.7.249.79.dynamic.rev.aanet.com.au ([202.7.249.79]
-	helo=home.singlespoon.org.au)
+Received: from ffm.saftware.de ([83.141.3.46])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <paulc@singlespoon.org.au>) id 1KeOep-0007Op-8y
-	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 08:31:00 +0200
-Received: from [192.168.3.112] (unknown [192.168.3.112])
+	(envelope-from <obi@linuxtv.org>) id 1KdYf4-0007wR-8d
+	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 00:59:47 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by ffm.saftware.de (Postfix) with ESMTP id 0118AE6D9B
+	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 00:59:43 +0200 (CEST)
+Received: from ffm.saftware.de ([83.141.3.46])
+	by localhost (pinky.saftware.org [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id 31zxpxwBOYIo for <linux-dvb@linuxtv.org>;
+	Thu, 11 Sep 2008 00:59:42 +0200 (CEST)
+Received: from [172.22.22.60] (unknown [92.50.81.33])
 	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by home.singlespoon.org.au (Postfix) with ESMTP id A88D7644013
-	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 16:34:24 +1000 (EST)
-Message-ID: <48CB5D7A.3040403@singlespoon.org.au>
-Date: Sat, 13 Sep 2008 16:28:10 +1000
-From: Paul Chubb <paulc@singlespoon.org.au>
+	by ffm.saftware.de (Postfix) with ESMTPSA id 63CD0E6D98
+	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 00:59:42 +0200 (CEST)
+Message-ID: <48C85153.8010205@linuxtv.org>
+Date: Thu, 11 Sep 2008 00:59:31 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: linux dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] why opensource will fail
+To: linux-dvb@linuxtv.org
+References: <48B8400A.9030409@linuxtv.org>
+	<200809101340.09702.hftom@free.fr>	<48C7CDCF.9090300@hauppauge.com>
+	<200809101710.19695.hftom@free.fr> <20080910161222.21640@gmx.net>
+In-Reply-To: <20080910161222.21640@gmx.net>
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,55 +38,39 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-     now that I have your attention:-{)=
+Hans Werner wrote:
+>> So applications could know that these 2 frontends are exclusive.
+>> That would not require any API change, but would have to be a rule
+>> followed by 
+>> all drivers.
+> 
+> Yes, if we keep to that rule then only frontends which can operate truly
+> simultaneously should have a different adapter number.
 
-I believe that this community has a real problem. There appears to be 
-little willingness to help and mentor newcomers. This will limit the 
-effectiveness of the community because it will hinder expansion of 
-people who are both willing and able to work on the code. Eventually 
-this issue  will lead to the community dying simply because you have 
-people leaving but few joining.
+An adapter refers to a self-contained piece of hardware, whose parts can
+not be used by a second adapter (e.g. adapter0/demux0 can not access the
+data from adapter1/frontend1). In a commonly used setup it means that
+adapter0 is the first initialized PCI card and adapter1 is the second.
 
-The card I was working on has been around for  a while now. There have 
-been three attempts so far to get it working with Linux. Two in this 
-community and one against the mcentral.de tree. Both attempts in this 
-community have failed not because of a lack of willingness of the people 
-involved to do the hard yards but because of the inability of the 
-community to mentor and help newcomers.
+Now, if you want a device with two tuners that can be accessed
+simultaneously to create a second adapter, then you would have to
+artificially divide its components so that it looks like two independant
+PCI cards. This might become very complicated and limits the functions
+of the hardware.
 
-The third attempt by a Czech programmer succeeded, however it is 
-dependent on the mcentral.de tree and the author appears to have made no 
-attempt to get the patch into the tree. The original instructions to 
-produce a driver set are in Czech. However instructions in english for 
-2.6.22 are available - ubuntu gutsy. I will soon be putting up 
-instructions for 2.6.24 - hardy. They may even work  for later revisions 
-since the big issue was incompatible versioning.
+However, on a setup with multiple accessible tuners you can expect at
+least the same amount of accessible demux devices on the same adapter
+(and also dvr devices for that matter). There is an ioctl to connect a
+frontend to a specific demux (DMX_SET_SOURCE).
 
-I understand from recent posts to this list that many in the community 
-are disturbed by the existence of mcentral.de. Well every person from 
-now on who wants to run the Leadtek Winfast DTV1800H will be using that 
-tree. Since the card is excellent value for what it is, there should be 
-lots of them. Not helping newcomers who are trying to add cards has led 
-and will lead to increased fragmentation.
+So, if there are demux0, frontend0 and frontend1, then the application
+knows that it can't use both frontends simultaneously. Otherwise, if
+there are demux0, demux1, frontend0 and frontend1, then it can use both
+of them (by using both demux devices and connecting them to the
+frontends via the ioctl mentioned above).
 
-And before you say or think that we are all volunteers here, I am a 
-volunteer also. I have spent close to 3 weeks on this code and it is 
-very close to working. The biggest difference between working code in 
-the mcentral.de tree and the patch I was working on is the firmware that 
-is used.
-
-Finally you might consider that if few developers are prepared to work 
-on the v4l-dvb tree, then much of the fun will disappear because those 
-few will have to do everything.
-
-Cheers Paul
-
--- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
-
+Regards,
+Andreas
 
 _______________________________________________
 linux-dvb mailing list
