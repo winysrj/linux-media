@@ -1,14 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <48D75FA5.90106@anevia.com>
-Date: Mon, 22 Sep 2008 11:04:37 +0200
-From: Frederic CAND <frederic.cand@anevia.com>
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <48D27B52.2010704@anevia.com> <48D28052.5000209@gmx.de>
-	<1221777738.4904.40.camel@pc10.localdom.local>
-In-Reply-To: <1221777738.4904.40.camel@pc10.localdom.local>
-Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] hvr 1300 radio
+From: Andy Walls <awalls@radix.net>
+To: Steven Toth <stoth@linuxtv.org>
+In-Reply-To: <48C732DE.2030902@linuxtv.org>
+References: <48C659C5.8000902@magma.ca> <48C68DC5.1050400@linuxtv.org>
+	<48C73161.7090405@magma.ca>  <48C732DE.2030902@linuxtv.org>
+Date: Wed, 10 Sep 2008 18:55:04 -0400
+Message-Id: <1221087304.2648.7.camel@morgan.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,150 +16,99 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hermann pitton a =E9crit :
-> Hi,
-> =
+On Tue, 2008-09-09 at 22:37 -0400, Steven Toth wrote:
+> Patrick Boisvenue wrote:
+> > Steven Toth wrote:
+> >> Patrick Boisvenue wrote:
 
-> Am Donnerstag, den 18.09.2008, 18:22 +0200 schrieb wk:
->> Frederic CAND wrote:
->>> Dear all,
->>>
->>> has anyone got analog FM radio working with an Hauppauge HVR 1300 ?
->>> If yes please tell me how ! I got only noise from /dev/dsp* ... :(
->>> This is an issue I've had for some time now ...
->>> I tried option radio=3D63 on cx88xx module but it did not change anythi=
-ng =
+> > 
+> > When launching dvbscan I get the following in dmesg:
+> > 
+> > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+> > firmware: requesting dvb-fe-xc5000-1.1.fw
+> > kobject_add_internal failed for i2c-2 with -EEXIST, don't try to 
+> > register things with the same name in the same directory.
+> > Pid: 8059, comm: kdvb-fe-0 Tainted: P          2.6.26-gentoo #11
+> > 
+> > Call Trace:
+> >  [<ffffffff8036abb5>] kobject_add_internal+0x13f/0x17e
+> >  [<ffffffff8036aff2>] kobject_add+0x74/0x7c
+> >  [<ffffffff80230b02>] printk+0x4e/0x56
+> >  [<ffffffff803eb84a>] device_add+0x9b/0x483
+> >  [<ffffffff8036a876>] kobject_init+0x41/0x69
+> >  [<ffffffff803f059d>] _request_firmware+0x169/0x324
+> >  [<ffffffffa00e9a7e>] :xc5000:xc_load_fw_and_init_tuner+0x64/0x293
+> >  [<ffffffff804a7222>] i2c_transfer+0x75/0x7f
+> >  [<ffffffffa00e53ad>] :s5h1409:s5h1409_writereg+0x51/0x83
+> >  [<ffffffffa00e9cea>] :xc5000:xc5000_init+0x3d/0x6f
+> >  [<ffffffffa0091b0c>] :dvb_core:dvb_frontend_init+0x49/0x63
+> >  [<ffffffffa0092e2c>] :dvb_core:dvb_frontend_thread+0x78/0x2f0
+> >  [<ffffffffa0092db4>] :dvb_core:dvb_frontend_thread+0x0/0x2f0
+> >  [<ffffffff80240eaf>] kthread+0x47/0x74
+> >  [<ffffffff8022bc41>] schedule_tail+0x27/0x5b
+> >  [<ffffffff8020be18>] child_rip+0xa/0x12
+> >  [<ffffffff80240e68>] kthread+0x0/0x74
+> >  [<ffffffff8020be0e>] child_rip+0x0/0x12
+> > 
+> > fw_register_device: device_register failed
+> > xc5000: Upload failed. (file not found?)
+> > xc5000: Unable to initialise tuner
+> > 
+> > 
+> > I have the firmware file located here:
+> > 
+> > # ls -l /lib/firmware/dvb-fe-xc5000-1.1.fw
+> > -rw-r--r-- 1 root root 12332 Aug 31 12:56 
+> > /lib/firmware/dvb-fe-xc5000-1.1.fw
+> > 
+> > If there is anything else I can provide (or try) to help debug, let me 
+> > know,
+> > ...Patrick
+> 
+>  > kobject_add_internal failed for i2c-2 with -EEXIST, don't try to
+>  > register things with the same name in the same directory.
+> 
+> Ooh, that's nasty problem, this is new - and looks like it's i2c related.
+> 
+> Why does this sound familiar? Anyone?
 
->>> (except writing cx88[0]: TV tuner type 63, Radio tuner type 63 in dmesg =
+A cx18 user had a similar problem on one distro.  I remeber running it
+down to a race condition in creating device nodes in one of the
+"virtual" filesystems (/proc or /sys) the device was looking for a
+paretn PCI device entry to hook onto, but it wasn't created at the time
+so it tries to create it itself.  In the meantime some other part of the
+kernel subsystem did actually finish creating the entry - so it exists
+by the time the firmware load tries to make it.
 
->>> instead of radio tuner type -1 ...)
->>>
->>> Is radio support just not implemented ?
->>>
->>>   =
+As far as I could tell, it should be non-fatal (not an Oops or panic),
+but if the driver gives up on -EEXIST then things won't work obviously.
 
->> Load cx88_blackbird and open /dev/radioX.
->> I haven't tried radio up to now, but i would expect that only radio *or* =
+I never resolved the problem for the user.  I think some kernel change
+outside of cx18 resolved it.  That's all the details I have.
 
->> dvb works, but not both at the same time. Most probably radio is also =
+Regards,
+Andy
 
->> not feed trough the mpeg encoder.
->>
-> =
+> Just for the hell of it, copy the firmware to /lib/firmware/`uname -r` 
+> also, then re-run the test - it's unlikely to make any difference but it 
+> _is_ the scenario I always test under.
+> 
+> - Steve
+> 
+> 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
-> a fixme still sticks on radio of the HVR1300.
-> =
-
-> 			.audioroute =3D 2,
-> 		},{
-> 			.type	=3D CX88_VMUX_SVIDEO,
-> 			.vmux	=3D 2,
-> 			.gpio0	=3D 0xe780,
-> 			.audioroute =3D 2,
-> 		}},
-> 		/* fixme: Add radio support */
-> 		.mpeg           =3D CX88_MPEG_DVB | CX88_MPEG_BLACKBIRD,
-> 		.radio =3D {
-> 			.type   =3D CX88_RADIO,
-> 			.gpio0	=3D 0xe780,
-> 		},
-> 	},
-> =
-
-> Guess audio routing and switching is not clear yet.
-> =
-
-> The FMD1216ME supports radio over tda9887 and tda7040.
-> =
-
-> On the FM1216ME and FM1236 MK3 we can take the stereo indication bit
-> from the PLL chip and switch the tda9887 into FM stereo mode
-> accordingly. Reading this status information also enables auto scanning
-> for radio broadcasts for the applications. (v4l2 aware like kradio
-> should be preferred)
-> =
-
-> This bit does not work on the hybrid FMD1216ME MK3 and you have to
-> create a station list manually once, but then stereo radio is fine.
-> =
-
-> On the later FMD1216MEX, which can also be on that board, Steve
-> mentioned once that the radio might be slightly different.
-> =
-
-> That one is currently treated like the FMD1216ME, but would need its own
-> separate tuner type entry in that case.
-> =
-
-> We also found hints in tuner specs provided by Steve for ivtv, IIRC,
-> that an AFC narrowing down looping can be used to take this as kind of
-> signal strength detection on the tda9887 alternatively for the stereo
-> bit on the pll. Hartmut was aware of it too, but who likes to work on
-> analog radio these days ...
-
-I do. As we embedd these cards on our servers we'd like to add this =
-
-feature to our products (analog to digital streaming servers).
-Anyway, this is a feature of the card which is lacking under Linux so =
-
-the question of who is interested in analog radio is not a good =
-
-question. The question of why not going as far as possible when =
-
-supporting a card is a good question.
-So yes I am not afraid of saying I'm interested in analgo radio :)
-
-> =
-
-> It is not implemented yet, if it should be related.
-> =
-
-> Cheers,
-> Hermann
-> =
-
-> =
-
-> =
-
-
-Ok so if I get it right, what you're saying is that stereo radio isn't =
-
-working on HVR 1300 with FMD1216MEX but mono radio is working ? If yes =
-
-I'd like to know how ... shouldn't I just set frequency to /dev/radio, =
-
-then get it from /dev/dsp ??? This for me isn't working and providing =
-
-only noise.
-
-Now if you tell me this is just not implemented yet, then how could I =
-
-help you to implement it ? If it's not scheduled to be implemented one =
-
-day then I might be able to work on it at my office (maybe not me =
-
-directly but one of my coworkers).
-
-Btw I tried on my KNC TV Station DVR (FM1216ME MK3, saa7134, saa6752hs) =
-
-with no success : if I tune to an analog TV station through /dev/video, =
-
-I will get sound from /dev/dsp. Then I tune to a radio through =
-
-/dev/radio ... but I still get the TV sound from /dev/dsp ...
-
--- =
-
-CAND Frederic
-Product Manager
-ANEVIA
 
 _______________________________________________
 linux-dvb mailing list
