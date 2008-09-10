@@ -1,15 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n45.bullet.mail.ukl.yahoo.com ([87.248.110.178])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dirk_vornheder@yahoo.de>) id 1KfLth-0003xr-Cs
-	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 23:46:28 +0200
-From: Dirk Vornheder <dirk_vornheder@yahoo.de>
-To: linux-dvb@linuxtv.org
-Date: Mon, 15 Sep 2008 23:45:37 +0200
+Message-ID: <48C73161.7090405@magma.ca>
+Date: Tue, 09 Sep 2008 22:30:57 -0400
+From: Patrick Boisvenue <patrbois@magma.ca>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809152345.37786.dirk_vornheder@yahoo.de>
-Subject: [linux-dvb] New unspported device AVerMedia DVB-T
+To: Steven Toth <stoth@linuxtv.org>
+References: <48C659C5.8000902@magma.ca> <48C68DC5.1050400@linuxtv.org>
+In-Reply-To: <48C68DC5.1050400@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,288 +21,232 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi !
+Steven Toth wrote:
+> Patrick Boisvenue wrote:
+>> I cannot get my new HVR-1500Q to work at all even though it's 
+>> recognized as such.  The best I was able to figure out was it does not 
+>> like the eeprom.  After enabling the debug mode on tveeprom, I got the 
+>> following when loading cx23885:
+> 
+> ...
+> 
+>> cx23885[0]: warning: unknown hauppauge model #0
+>> cx23885[0]: hauppauge eeprom: model=0
+>> cx23885[0]: cx23885 based dvb card
+> 
+> ...
+> 
+>> Did a hg pull -u http://linuxtv.org/hg/v4l-dvb earlier today so 
+>> running off recent codebase.
+> 
+> Fixed it, see linuxtv.org/hg/~stoth/v4l-dvb.
+> 
+> Pull the topmost patch and try again, please post your results back here.
+> 
+> Thanks,
+> 
+> Steve
+> 
 
-I buy a new notebook HP Pavilion dv7-1070eg which includes one
+Getting better, the eeprom parsing seems to work (check dmesg output 
+below). However, doing a dvbscan still nets me no stations while doing a 
+scan in a WindowsXP laptop gets me the expected two (2) stations in my area.
 
-AVerMedia DVB-T-Device.
+dmesg output with tveeprom debug=1 and cx23885 debug=5 after loading 
+cx23885 module:
 
-lsusb shows:
+cx23885 driver version 0.0.1 loaded
+ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19 (level, low) -> IRQ 19
+cx23885[0]/0: cx23885_dev_setup() Memory configured for PCIe bridge type 885
+cx23885[0]/0: cx23885_init_tsport(portno=2)
+CORE cx23885[0]: subsystem: 0070:7790, board: Hauppauge WinTV-HVR1500Q 
+[card=5,autodetected]
+cx23885[0]/0: cx23885_pci_quirks() 
 
-Bus 003 Device 003: ID 07ca:a309 AVerMedia Technologies, Inc. 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  idVendor           0x07ca AVerMedia Technologies, Inc.
-  idProduct          0xa309 
-  bcdDevice            2.00
-  iManufacturer           1 AVerMedia
-  iProduct                2 A309
-  iSerial                 3 300938405000000
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           46
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+cx23885[0]/0: cx23885_dev_setup() tuner_type = 0x0 tuner_addr = 0x0 
 
-;*******************************************************************************
-; Copyright (C) AVerMedia
-;*******************************************************************************
+cx23885[0]/0: cx23885_dev_setup() radio_type = 0x0 radio_addr = 0x0 
 
-[Version]
-signature="$CHICAGO$"
-Class=Media
-ClassGUID={4d36e96c-e325-11ce-bfc1-08002be10318}
-Provider=%MfgName%
-DriverVer=03/14/2008,1.0.0.43
-CatalogFile=AVerAF15.cat
+cx23885[0]/0: cx23885_reset() 
 
-[DestinationDirs]
-AVerAF15.CopyDrivers=10,System32\Drivers
-AVerAF15.CopyFiles=10,System32
+cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [VID A] 
 
-[SourceDisksNames]
-1=%AVerAF15.Disc%,,,
+cx23885[0]/0: cx23885_sram_channel_setup() 0x000104c0 <- 0x00000040 
 
-[SourceDisksFiles]
-AVerAF15.sys=1
-AP6RMFP.BIN=1
-AP6RMHR.BIN=1
-AP6RMHV.BIN=1
-AP6RMJH.BIN=1
+cx23885[0]/0: cx23885_sram_channel_setup() 0x000104d0 <- 0x00000b80 
 
-[Manufacturer]
-%MfgName%=AVerMedia
+cx23885[0]/0: cx23885_sram_channel_setup() 0x000104e0 <- 0x000016c0 
 
-[ControlFlags]
-ExcludeFromSelect=*
-ExcludeFromSelect.NT=*
+cx23885[0]/0: [bridge 885] sram setup VID A: bpl=2880 lines=3 
 
-[AVerMedia]
-%AVerAF15.DeviceDesc.A309% = AVerAF15.Device,USB\VID_07CA&PID_A309
+cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch2] 
 
-[AVerAF15.Device.NT]
-Include    = ks.inf, kscaptur.inf, bda.inf
-Needs      = KS.Registration.NT,KSCAPTUR.Registration.NT,BDA.Installation.NT
-DelReg	   = AVerAF15.DeleteReg
-;AddReg     = AVerAF15_DemodInit.AddReg
-AddReg     = AVerAF15.AddReg
-CopyFiles  = AVerAF15.CopyDrivers,AVerAF15.CopyFiles
+cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [TS1 B] 
 
-[AVerAF15.Device.NT.Services]
-Addservice = AVerAF15, 0x00000002, AVerAF15.AddService
+cx23885[0]/0: cx23885_sram_channel_setup() 0x00010580 <- 0x00005000 
 
-[AVerAF15.AddService]
-DisplayName    = %AVerAF15.FriendlyName%
-ServiceType    = %SERVICE_KERNEL_DRIVER%
-StartType      = %SERVICE_DEMAND_START%
-ErrorControl   = %SERVICE_ERROR_NORMAL%
-ServiceBinary  = %10%\System32\Drivers\AVerAF15.sys
-LoadOrderGroup = Base
+cx23885[0]/0: cx23885_sram_channel_setup() 0x00010590 <- 0x000052f0 
 
-[AVerAF15.CopyDrivers]
-AVerAF15.sys
+cx23885[0]/0: cx23885_sram_channel_setup() 0x000105a0 <- 0x000055e0 
 
-[AVerAF15.CopyFiles]
-AP6RMFP.BIN
-AP6RMHR.BIN
-AP6RMHV.BIN
-AP6RMJH.BIN
+cx23885[0]/0: cx23885_sram_channel_setup() 0x000105b0 <- 0x000058d0 
 
-[AVerAF15.DeleteReg]
-HKLM,System\CurrentControlSet\SERVICES\AF15BDA\DemodInit
+cx23885[0]/0: cx23885_sram_channel_setup() 0x000105c0 <- 0x00005bc0 
 
-;[AVerAF15_DemodInit.AddReg]
-;HKLM,System\CurrentControlSet\SERVICES\AF15BDA\DemodInit,InitScriptPatch,
-%REG_DWORD%,0x00
-;HKLM,System\CurrentControlSet\SERVICES\AF15BDA\DemodInit,1,
-%REG_DWORD%,0xd5,0x9b,0x08,0x01
-;HKLM,System\CurrentControlSet\SERVICES\AF15BDA\DemodInit,2,
-%REG_DWORD%,0xd5,0x9b,0x08,0x01
+cx23885[0]/0: [bridge 885] sram setup TS1 B: bpl=752 lines=5 
 
-[AVerAF15.AddReg]
-HKR,,DevLoader,,*ntkern
-HKR,,NTMPDriver,,AVerAF15.sys
-HKR,,PageOutWhenUnopened,3,01
-HKLM,System\CurrentControlSet\Control\MediaCategories\{1A9333B6-3704-4b18-
-A6DD-E1979FC56970}
-HKLM,System\CurrentControlSet\Control\MediaCategories\{1A9333B6-3704-4b18-
-A6DD-E1979FC56970},Display,0x00010001,0
-HKLM,System\CurrentControlSet\Control\MediaCategories\{1A9333B6-3704-4b18-
-A6DD-E1979FC56970},Name,,"Tuner Node"
-HKLM,System\CurrentControlSet\Control\MediaCategories\{F65394A2-
-A018-4307-8D12-35AA494A406F}
-HKLM,System\CurrentControlSet\Control\MediaCategories\{F65394A2-
-A018-4307-8D12-35AA494A406F},Display,0x00010001,0
-HKLM,System\CurrentControlSet\Control\MediaCategories\{F65394A2-
-A018-4307-8D12-35AA494A406F},Name,,"Demodulator Node"
-HKLM,System\CurrentControlSet\Control\MediaCategories\{870E4D6F-77E7-4c40-
-ADE3-BEF8708A9D52}
-HKLM,System\CurrentControlSet\Control\MediaCategories\{870E4D6F-77E7-4c40-
-ADE3-BEF8708A9D52},Display,0x00010001,0
-HKLM,System\CurrentControlSet\Control\MediaCategories\{870E4D6F-77E7-4c40-
-ADE3-BEF8708A9D52},Name,,"Antenna In Pin"
+cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch4] 
 
-HKLM,System\CurrentControlSet\SERVICES\AF15BDA\Parameters,TPSLockTimes,0x00010001,60
-HKLM,System\CurrentControlSet\SERVICES\AF15BDA\Parameters,IRModel,0x00010001,0x00000004
-HKLM,System\CurrentControlSet\SERVICES\AF15BDA\Parameters,TunerMode,0x00010001,0x00000000
-HKLM,System\CurrentControlSet\SERVICES\AF15BDA\Parameters,SelectiveSuspend,0x00010001,0x00000001
-HKLM,System\CurrentControlSet\SERVICES\AF15BDA\Parameters,EnRSSI,0x00010001,0x00000001
-HKLM,System\CurrentControlSet\SERVICES\AF15BDA\Parameters,SS_NormalDelayTime,0x00010001,0
-HKLM,System\CurrentControlSet\SERVICES\AF15BDA\Parameters,SS_StartDelayTime,0x00010001,120000
+cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch5] 
 
-[AVerAF15.Device.NT.Interfaces]
-AddInterface=%GUID.TunerCatID%,%KSNAME_Filter%,AVerAF15.Interfaces,
-AddInterface=%GUID.BdaReceiverCompID%,%KSNAME_Filter%,AVerAF15.Interfaces,
-AddInterface=%GUID.BdaReceiverCtrl%,%KSNAME_Filter%,AVerAF15.Interfaces,
-AddInterface=%GUID.TunerCatID%,%KSNAME_Filter2%,AVerAF152.Interfaces,
-AddInterface=%GUID.BdaReceiverCompID%,%KSNAME_Filter2%,AVerAF152.Interfaces,
-AddInterface=%GUID.BdaReceiverCtrl%,%KSNAME_Filter2%,AVerAF152.Interfaces,
+cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [TS2 C] 
 
-[AVerAF15.Interfaces]
-AddReg=AVerAF15.Interface.AddReg
+cx23885[0]/0: cx23885_sram_channel_setup() 0x000105e0 <- 0x00006000 
 
-[AVerAF152.Interfaces]
-AddReg=AVerAF152.Interface.AddReg
+cx23885[0]/0: cx23885_sram_channel_setup() 0x000105f0 <- 0x000062f0 
 
-[AVerAF15.Interface.AddReg]
-HKR,,CLSID,,%AVerAF15.CLSID%
-HKR,,FriendlyName,,%AVerAF15.FriendlyName%
+cx23885[0]/0: cx23885_sram_channel_setup() 0x00010600 <- 0x000065e0 
 
-[AVerAF152.Interface.AddReg]
-HKR,,CLSID,,%AVerAF15.CLSID%
-HKR,,FriendlyName,,%AVerAF152.FriendlyName%
+cx23885[0]/0: cx23885_sram_channel_setup() 0x00010610 <- 0x000068d0 
 
-[Strings]
-MfgName						= "AVerMedia TECHNOLOGIES, Inc."
-AVerAF15.CLSID				= "{17CCA71B-ECD7-11D0-B908-00A0C9223196}"
-AVerAF15.Disc				= "AVerMedia DVB-T BDA Video Capture Installation Disk"
-AVerAF15.DeviceDesc.A309	= "HP DVB-T TV Tuner"
-AVerAF15.FriendlyName		= "HP DVB-T TV Tuner"
-AVerAF152.FriendlyName		= "HP DVB-T TV Tuner"
-KSNAME_Filter           = "{9B365890-165F-11D0-A195-0020AFD156E4}"
-KSNAME_Filter2          = "{9B365890-165F-11D0-A195-0020AFD156E5}"
+cx23885[0]/0: cx23885_sram_channel_setup() 0x00010620 <- 0x00006bc0 
 
-Plugin_BdaDevice        = "BDA Device Control Plug-in"
-GUID.TunerCatID         = "{71985F48-1CA1-11d3-9CC8-00C04F7971E0}"
-GUID.BdaReceiverCompID	= "{FD0A5AF4-B41D-11d2-9C95-00C04F7971E0}"
-AMcatID                 = "{DA4E3DA0-D07D-11d0-BD50-00A0C911CE86}"
-BDAReceivers            = "BDA Streaming Receiver Components"
-MediaCategories         = "SYSTEM\CurrentControlSet\Control\MediaCategories"
-Pin.BdaTransport        = "BDA Transport Stream"
-GUID.BdaTransport       = "{78216A81-CFA8-493e-9711-36A61C08BD9D}"
-GUID.BdaReceiverCtrl    = "{FD0A5AF3-B41D-11d2-9C95-00C04F7971E0}"
+cx23885[0]/0: [bridge 885] sram setup TS2 C: bpl=752 lines=5 
 
-; ServiceType values
-SERVICE_KERNEL_DRIVER       = 0x00000001
-SERVICE_FILE_SYSTEM_DRIVER  = 0x00000002
-SERVICE_ADAPTER             = 0x00000004
-SERVICE_RECOGNIZER_DRIVER   = 0x00000008
-SERVICE_WIN32_OWN_PROCESS   = 0x00000010
-SERVICE_WIN32_SHARE_PROCESS = 0x00000020
-SERVICE_INTERACTIVE_PROCESS = 0x00000100
-SERVICE_INTERACTIVE_SHARE_PROCESS = 0x00000120
+cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch7] 
 
-; StartType values
-SERVICE_BOOT_START          = 0x00000000
-SERVICE_SYSTEM_START        = 0x00000001
-SERVICE_AUTO_START          = 0x00000002
-SERVICE_DEMAND_START        = 0x00000003
-SERVICE_DISABLED            = 0x00000004
+cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch8] 
 
-; ErrorControl values
-SERVICE_ERROR_IGNORE        = 0x00000000
-SERVICE_ERROR_NORMAL        = 0x00000001
-SERVICE_ERROR_SEVERE        = 0x00000002
-SERVICE_ERROR_CRITICAL      = 0x00000003
+cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch9] 
 
-; Registry types
-REG_MULTI_SZ                = 0x10000
-REG_EXPAND_SZ               = 0x20000
-REG_DWORD                   = 0x10001
+cx23885[0]: i2c bus 0 registered 
 
-Hope this helps to get working the device under linux.
+cx23885[0]: i2c bus 1 registered 
 
-Dirk
+cx23885[0]: i2c bus 2 registered 
+
+tveeprom 1-0050: full 256-byte eeprom dump: 
+
+tveeprom 1-0050: 00: 20 00 13 00 00 00 00 00 2c 00 05 00 70 00 90 77 
+
+tveeprom 1-0050: 10: 50 03 05 00 04 80 00 08 0c 03 05 80 0e 01 00 00 
+
+tveeprom 1-0050: 20: 78 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+
+tveeprom 1-0050: 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+
+tveeprom 1-0050: 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+
+tveeprom 1-0050: 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+
+tveeprom 1-0050: 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+
+tveeprom 1-0050: 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+
+tveeprom 1-0050: 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+
+tveeprom 1-0050: 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+
+tveeprom 1-0050: a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+
+tveeprom 1-0050: b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff 
+
+tveeprom 1-0050: c0: 84 09 00 04 20 77 00 40 ec 66 25 f0 73 05 27 00 
+
+tveeprom 1-0050: d0: 84 08 00 06 fb 2c 01 00 90 29 95 72 07 70 73 09 
+
+tveeprom 1-0050: e0: 21 7f 73 0a 88 96 72 0b 13 72 10 01 72 11 ff 79 
+
+tveeprom 1-0050: f0: dc 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+
+tveeprom 1-0050: Tag [04] + 8 bytes: 20 77 00 40 ec 66 25 f0 
+
+tveeprom 1-0050: Tag [05] + 2 bytes: 27 00 
+
+tveeprom 1-0050: Tag [06] + 7 bytes: fb 2c 01 00 90 29 95 
+
+tveeprom 1-0050: Tag [07] + 1 bytes: 70 
+
+tveeprom 1-0050: Tag [09] + 2 bytes: 21 7f 
+
+tveeprom 1-0050: Tag [0a] + 2 bytes: 88 96 
+
+tveeprom 1-0050: Tag [0b] + 1 bytes: 13 
+
+tveeprom 1-0050: Tag [10] + 1 bytes: 01 
+
+tveeprom 1-0050: Not sure what to do with tag [10] 
+
+tveeprom 1-0050: Tag [11] + 1 bytes: ff 
+
+tveeprom 1-0050: Not sure what to do with tag [11] 
+
+tveeprom 1-0050: Hauppauge model 77051, rev E2F0, serial# 2451180 
+
+tveeprom 1-0050: MAC address is 00-0D-FE-25-66-EC 
+
+tveeprom 1-0050: tuner model is Xceive XC5000 (idx 150, type 4) 
+
+tveeprom 1-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom 0x88) 
+
+tveeprom 1-0050: audio processor is CX23885 (idx 39) 
+
+tveeprom 1-0050: decoder processor is CX23885 (idx 33) 
+
+tveeprom 1-0050: has no radio 
+
+cx23885[0]: hauppauge eeprom: model=77051
+cx23885[0]: cx23885 based dvb card
+xc5000: Successfully identified at address 0x61
+xc5000: Firmware has not been loaded previously
+DVB: registering new adapter (cx23885[0])
+DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB Frontend)...
+cx23885_dev_checkrevision() Hardware revision = 0xb0
+cx23885[0]/0: found at 0000:05:00.0, rev: 2, irq: 19, latency: 0, mmio: 
+0xd4000000
+PCI: Setting latency timer of device 0000:05:00.0 to 64
 
 
+When launching dvbscan I get the following in dmesg:
 
-		
-___________________________________________________________ 
-Telefonate ohne weitere Kosten vom PC zum PC: http://messenger.yahoo.de
+xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+firmware: requesting dvb-fe-xc5000-1.1.fw
+kobject_add_internal failed for i2c-2 with -EEXIST, don't try to 
+register things with the same name in the same directory.
+Pid: 8059, comm: kdvb-fe-0 Tainted: P          2.6.26-gentoo #11
 
+Call Trace:
+  [<ffffffff8036abb5>] kobject_add_internal+0x13f/0x17e
+  [<ffffffff8036aff2>] kobject_add+0x74/0x7c
+  [<ffffffff80230b02>] printk+0x4e/0x56
+  [<ffffffff803eb84a>] device_add+0x9b/0x483
+  [<ffffffff8036a876>] kobject_init+0x41/0x69
+  [<ffffffff803f059d>] _request_firmware+0x169/0x324
+  [<ffffffffa00e9a7e>] :xc5000:xc_load_fw_and_init_tuner+0x64/0x293
+  [<ffffffff804a7222>] i2c_transfer+0x75/0x7f
+  [<ffffffffa00e53ad>] :s5h1409:s5h1409_writereg+0x51/0x83
+  [<ffffffffa00e9cea>] :xc5000:xc5000_init+0x3d/0x6f
+  [<ffffffffa0091b0c>] :dvb_core:dvb_frontend_init+0x49/0x63
+  [<ffffffffa0092e2c>] :dvb_core:dvb_frontend_thread+0x78/0x2f0
+  [<ffffffffa0092db4>] :dvb_core:dvb_frontend_thread+0x0/0x2f0
+  [<ffffffff80240eaf>] kthread+0x47/0x74
+  [<ffffffff8022bc41>] schedule_tail+0x27/0x5b
+  [<ffffffff8020be18>] child_rip+0xa/0x12
+  [<ffffffff80240e68>] kthread+0x0/0x74
+  [<ffffffff8020be0e>] child_rip+0x0/0x12
+
+fw_register_device: device_register failed
+xc5000: Upload failed. (file not found?)
+xc5000: Unable to initialise tuner
+
+
+I have the firmware file located here:
+
+# ls -l /lib/firmware/dvb-fe-xc5000-1.1.fw
+-rw-r--r-- 1 root root 12332 Aug 31 12:56 /lib/firmware/dvb-fe-xc5000-1.1.fw
+
+If there is anything else I can provide (or try) to help debug, let me know,
+...Patrick
 
 _______________________________________________
 linux-dvb mailing list
