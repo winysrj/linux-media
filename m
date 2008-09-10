@@ -1,29 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from anchor-post-36.mail.demon.net ([194.217.242.86])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1KiBQU-0007PA-0r
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 19:11:50 +0200
-Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
-	helo=pentagram.youmustbejoking.demon.co.uk)
-	by anchor-post-36.mail.demon.net with esmtp (Exim 4.67)
-	id 1KiBQQ-00030A-Jf
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 17:11:46 +0000
-Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
-	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1KiBQA-00019G-Aq
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 18:11:36 +0100
-Date: Tue, 23 Sep 2008 18:10:11 +0100
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
-To: linux-dvb@linuxtv.org
-Message-ID: <4FE8D94B5C%linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <200809231755.55023.liplianin@tut.by>
-References: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAEH2unQOalpGjvGmwr9GMIQBAAAAAA==@stahurabrenner.com>
-	<4FE87384AC%linux@youmustbejoking.demon.co.uk>
-	<200809231755.55023.liplianin@tut.by>
+Received: from n63.bullet.mail.sp1.yahoo.com ([98.136.44.33])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KdDwu-0003WG-LR
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 02:52:51 +0200
+Date: Tue, 9 Sep 2008 17:52:13 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+In-Reply-To: <48C58D03.8040004@gmail.com>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] Start making stv0903, stv0900, stv6110 support
+Message-ID: <630160.40997.qm@web46116.mail.sp1.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,19 +25,70 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I demand that Igor M. Liplianin may or may not have written...
+--- On Mon, 9/8/08, Manu Abraham <abraham.manu@gmail.com> wrote:
 
-> Linuxtv community, let you know:
-> Start to work on stv0900, stv0903, stv6110 drivers
+> > Second, how do non-DVB-like technologies like DAB (Eureka-147) fit
+> > into the scope of either multiproto or S2API -- or must they
+> > remain outside of v4l-dvb?
+> 
+> There is already a kernel module called dabusb for ages.
 
-Er... shouldn't this be in a thread of its own?
+I just looked at it again, now that I know a bit more about
+how DAB works, and to confirm the impression I got earlier
+when I was thinking about seeing if I could make it work
+with my (then) new DAB-able device.
 
--- 
-| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
-| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
-| + Travel less. Share transport more.           PRODUCE LESS CARBON DIOXIDE.
+This seems to be written specifically for one particular
+product, which I don't have, and I've forgotten what I've
+read about it.  It seems to be mostly loading firmware to
+the device, and pulling data from it via USB.  I don't
+see any way to tune to a particular frequency, or select
+a particular service, so that's presumably done elsewhere,
+perhaps physically on the receiver itself.
 
-Sight is a faculty; seeing is an art.
+The device I have is partly supported by the v4l-dvb `siano'
+directory, with hints such as
+#define MSG_SMS_DAB_CHANNEL        607
+
+I have what looks to be a personal reply from Herr Acher
+that has helped me understand a bit more about the dabusb
+code/device, and I need to welcome the honourable Uri Shkolnik
+and ask questions to learn about the Siano's support of DAB.
+
+
+
+> > And some of us non-developers have such hardware and want to try
+> > it with non-Windows for readily-receiveable DAB.
+> 
+> With some simple definitions ? What applications are used ?
+
+I imagine I will have to hack something out of gaffer tape
+and chewing gum if I want to actually do anything...
+
+
+
+Now a completely different question -- I was pleased to see
+that my not-too-old kernel compiled well with your mp_plus
+source, and I read on the Wiki that certain basic tools
+still needed to be ported to multiproto.
+
+Something hands-on like this is probably the only way I'm
+ever going to get a clue about the APIs.  And it might even
+result in something useful in addition.  But I don't have
+any hardware which requires multiproto, if I'd need that
+for testing or anything.
+
+Would it be worth it for me to attempt such a port, given
+that, or will I find it unlikely to get anywhere?  I'm no
+developer and no programmer, and barely a hacker...
+
+
+thanks,
+barry bouwsma
+
+
+      
+
 
 _______________________________________________
 linux-dvb mailing list
