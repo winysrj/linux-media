@@ -1,14 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Christophe Thommeret <hftom@free.fr>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Date: Sun, 14 Sep 2008 16:46:01 +0200
-References: <48CA0355.6080903@linuxtv.org> <200809120826.31108.hftom@free.fr>
-	<48CC12BF.7050803@hauppauge.com>
-In-Reply-To: <48CC12BF.7050803@hauppauge.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809141646.01263.hftom@free.fr>
-Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1KdUbr-0001mx-CM
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 20:40:12 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6Z001YNT5XZ6Z0@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 10 Sep 2008 14:39:37 -0400 (EDT)
+Date: Wed, 10 Sep 2008 14:39:33 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200809101733.29910.janne-dvb@grunau.be>
+To: Janne Grunau <janne-dvb@grunau.be>
+Message-id: <48C81465.9060709@linuxtv.org>
+MIME-version: 1.0
+References: <48B8400A.9030409@linuxtv.org> <48C7CDCF.9090300@hauppauge.com>
+	<200809101710.19695.hftom@free.fr>
+	<200809101733.29910.janne-dvb@grunau.be>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,32 +33,63 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le Saturday 13 September 2008 21:21:35 Steven Toth, vous avez =E9crit=A0:
-> > First i tried old api (kaffeine)-> everything works as expected.
-> > Then i tried new API (with latest tune.c) -> nova-t and nova-s work,
-> > cinergyT2 doesn't. I've also noticed that FE_SET_PROPERTY ioctl always
-> > return -1, even when success..
-> > Then i tried old api again -> now dvb-s doesn't lock and dvb-t always
-> > lock on the freq used in tune.c
->
-> Fixed in the current tree.
+Janne Grunau wrote:
+> On Wednesday 10 September 2008 17:10:19 Christophe Thommeret wrote:
+>> Le Wednesday 10 September 2008 15:38:23 Steven Toth, vous avez =E9crit :
+>>>> Is this card able to deliver both S and T at the same time?
+>>> No, the hardware can do S/S2 or T.
+>>>
+>>> The driver in the S2API tree only has S/S2 enabled (for the time
+>>> being).
+>> So, maybe we have to think a bit about how to add support for this
+>> kind of device.
+>>
+>> Maybe a solution could be to have :
+>> - adapter0/frontend0 -> S/S2 tuner
+>> - adapter0/frontend1 -> T tuner
+>>
+>> So applications could know that these 2 frontends are exclusive.
+>> That would not require any API change, but would have to be a rule
+>> followed by all drivers.
+> =
 
-Indeed, cache bug is now fixed, old api works as expected in all cases. (Ex=
-ept =
+> The experimental HVR4000 does this already and we have at least initial =
 
-for the cinergyT2 case off course)
+> support for that in mythtv.
 
-However, i see that GETting DTV_DELIVERY_SYSTEM always returns the cached =
+Yes, I believe it was added sometime ago.
 
-value, so at first (after modules (re)load) it returns 0. An application =
+> =
 
-really needs to know the delivery system (and others usefull infos) to be =
+> I don't think this was the intended use of multiple frontends in the DVB =
 
-able to handle a device, like the old api FE_GET_INFO.
+> API but AFAIK all dual tuners drivers uses multiple adapters.
 
--- =
+It actually was intended for use, it came from patches based on =
 
-Christophe Thommeret
+linuxtv.org/hg/~stoth/hvr3000 2 years ago, for this exact reason.
+
+The idea died on the vine, except for a few die-hard people to =
+
+maintained their own spin-off/derivative.
+
+> =
+
+> I like this approach.
+
+So do I, it solves a lot of problems with multiple frontends on a single =
+
+transport bus. At the time I did not patch the 7134 framework with the =
+
+minor changes for it to comply, but if that's done then the 6-in-1 7134 =
+
+Dual DVB-S/T/Analog card would also benefit greatly. Right now that card =
+
+only supports some functions in the kernel (IIRC).
+
+It's been a very long time but this was also mentioned on the mailing list.
+
+- Steve
 
 
 _______________________________________________
