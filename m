@@ -1,15 +1,10 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [194.250.18.140] (helo=tv-numeric.com)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1Ki2Vh-0000uA-4U
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 09:40:37 +0200
-From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
-To: <linux-dvb@linuxtv.org>
-Date: Tue, 23 Sep 2008 09:39:57 +0200
-Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAANaAFVszeqk6rYggku+N2CQEAAAAA@tv-numeric.com>
-MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.1.10.0809222133560.25926@ybpnyubfg.ybpnyqbznva>
-Subject: [linux-dvb] RE :  DVB-H support
+Date: Tue, 09 Sep 2008 22:23:21 -0400
+From: Steven Toth <stoth@linuxtv.org>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Message-id: <48C72F99.20501@linuxtv.org>
+MIME-version: 1.0
+Subject: [linux-dvb] S2API - Code review and suggested changes (1)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,57 +12,282 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> On Mon, 22 Sep 2008, Javier G=E1lvez Guerrero wrote:
 
-> If I understand what you are asking, as far as I know in the
-> area where I am, all DVB-H services are broadcast with
-> modulation parameters that makes it possible to receive them
-> with any DVB-T device that can be used with Linux-DVB, so
-> you do not need to search for a specific receiver.  Any will
-> work, and I deliberately chose *not* to use my TerraTec to
-> verify that I could tune DVB-H on something else not specifically
-> intended for that as well as DVB-T.
+Hello!
 
-> I do not know (without looking) if this is always the case,
-> that DVB-H modulation can always be received by DVB-T --
-> just as I don't know what is the difference between a DVB-H-
-> capable receiver used with Linux-DVB and today's DVB-T devices.
-> Someone else would have to clarify that, if it's important.
+Here's the feedback collected from various people. Thank you! I've 
+indented their comments and replied directly inline but more suggestions 
+and potential changes.
 
-I think that the preferred transmission mode for DVB-H is 4K
-while many (most? all?) DVB-T receivers can do 2K and 8K only.
-The current Linux DVB API does not even have a definition for 4K.
+* Johannes:
+*
+* OK can't help myself to give a few techical remarks:
+*
+* - I'm not sure because I don't have a 64bit platform but I
+*   think tv_property_t has different size on 64bit due to
+*   alignment? Please check, to avoid compat_ioctl
+*
+* - typedefs? hm, I guess to match the style of the existing code...
 
->From ETSI EN 300 744 ("DVB; Framing structure, channel coding and
-modulation for digital terrestrial television"):
+Looking at the CodingStyle section on typedefs, it tries to discourage 
+their use.
+It probably makes sense to switch to result structs.
 
-  Exclusively for use in DVB-H systems, a third transmission mode the
-  "4K mode" is defined in annex F, addressing the specific needs of
-  Handheld terminals. The "4K mode" aims to offer an additional
-  trade-off between transmission cell size and mobile reception
-  capabilities, providing an additional degree of flexibility for
-  DVB-H network planning.
+tv_property_t type becomes struct dtv_property.
 
-See also ETSI EN 302 304 ("DVB; Transmission System for Handheld
-Terminals (DVB-H)").
+*
+* - why both FE_SET_PROPERTY/FE_GET_PROPERTY and
+* TV_SET_FREQUENCY/TV_GET_FREQUENCY etc?
+*
 
-Here, in France, we won't see DVB-H until next year so I cannot
-tell. There was a field test two or three years ago in the Paris
-area. At that time, I did receive DVB-H on an Hauppauge PCI DVB-T
-receiver in a Linux box but the field test used 2K, not 4K
-(modulator availability issue at this time maybe).
+If I understand correctly then I think the suggestion is 
+FE_SET_PROPERTY(TV_FREQUENCY, ...)
+makes more sense. Han's also touched on this. I think I agree, removing 
+the notion of SET/GET
+from the command name is cleaner, less confusing.
 
-But if your receiver can do 4K or your DVB-H network uses 2K or 8K,
-you can receive DVB-H on a DVB-T receiver device.
+* - instead of "typedef tv_property_t tv_properties_t[16];" and the
+*   TV_SEQ_* things why not
+*      typedef struct {
+* 	     __u32 num;
+* 	     tv_property_t *props;
+*      } tv_properties_t;
+*    and then copy_from_user() an arbitrary number of properties?
+*    But its all a matter of taste and if it works is find by me.
 
--Thierry
+Perfect sense, I'll change this, it will become
 
+       struct dtv_properties {
+  	     __u32 num;
+  	     dtv_property *props;
+       };
+
+
+* Patrick:
+*
+* I think it would be better to change TV_ to FE_ (because TV is by
+* far not
+* the only application for linux-dvb) , but this is a very unimportant
+* detail.
+
+A few people prefer dtv_ and DTV_, rather than tv_ and TV_. is fe_
+and FE_ still important to you?
+
+
+* Hans:
+*
+* I noticed that the properties work very similar as to how extended
+* controls work in v4l:
+* http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-si
+* ngle/v4l2.html#VIDIOC-G-EXT-CTRLS
+*
+* It might be useful to compare the two.
+
+Yes - similar concepts, I'll read further.
+
+Last year, Mauro has suggested we also consider the VIDIOC_QUERYCTRL, 
+VIDIOC_QUERYMENU ioctls,
+giving the applications to ability to query supported functions on a 
+given demodulator.
+
+*
+* I would recommend adding a few reserved fields, since that has
+* proven to be very useful in v4l to make the API more future proof.
+
+Good point, __u32 and __u64's could be added.
+
+struct dtv_property {
+	__u32 cmd;
+	__u64 reserved1;
+	__u64 reserved2;
+	__u64 reserved3;
+	__u64 reserved4;
+	union {
+		__u32 data;
+		struct {
+			__u8 data[32];
+			__u32 len;
+		} buffer;
+	} u;
+};
+
+Question: Is their significant penalties for switching completely from 
+__u32 to __u64 now?
+Is this something that should be done completely in this struct, or are 
+__u32 types less
+problematic?
+
+This feels perhaps a little too heavy handed, I'd welcome comments on 
+the types and
+number of entries.
+
+*
+* Also: is setting multiple properties an atomic action? E.g. if one
+* fails, are all other changes rolled back as well? And how do you give
+* the caller feedback on which property in the list failed? Will there
+* also be a TRY_PROPERTIES variant which just checks for correctness
+* without actually setting it? How do you query/test whether a
+* device has certain properties?
+
+Atomic vs non-atomic.
+
+That's a level of complexity that leads easily to confusion, and we 
+should avoid. The code we have working today assumes that that 
+set_frontend() on the demodulators is called when the TV_SET_FREQUENCY 
+or TV_SEQ_COMPLETE are passed. I think removing the notion of begin and 
+end sequence, in favour of short structures is less confusing and less 
+code to maintain in the dvb-core.
+
+What's does this translate into for application developers? Well, a tune 
+request may look something like:
+
+properties {
+	{ MODULATION, QAM64)}
+	{ INVERSION, ON)}
+	{ SET_FREQUENCY, 474000000)}
+	{ TUNE }
+};
+
+All of the commands prior to TUNE are cache in the dvb-core, TUNE 
+explicitly results in a call to set_frontend();
+
+The odd item to note is satellite tuning, where certain commands need to 
+be done immediatly. SET_VOLTAGE or SET_TONE, or DiSEqC related commands.
+
+So, passing SET_VOLTAGE commands would likely execute immediately. I 
+don't know whether this is a good or bad thing, without spending a lot 
+of time reviewing our existing dvb-core code. In some respects, the 
+current in-kernel API expects multiple ioctls to occurs for satellite 
+tuning to take effect. This (hopefully) will turn that into a single ioctl.
+
+Summary: This would allow the applications to call set/get properties on 
+cache values, without them being committed to hardware, or directly 
+committed depending on the type of tuning system and delivery system 
+being used. An Important fact for any documentation.
+
+*
+* Do you need separate get and set commands? Why not either set or get a
+* list of properties, and setting them implies an automatic SEQ_COMPLETE
+* at the end. By having a variable length array of properties you do not
+* need to set the properties in multiple blocks of 16, so that
+* simplifies the API as well.
+
+Correct, this is going to change to a variable length array.
+
+*
+* As I said, extended controls in v4l do something very similar.
+* I thought about the extended controls a great deal at the time, so
+* it might provide a handy comparison for you.
+
+Thanks.
+
+* Christophe:
+*
+* P.S.
+* 1) imho, DTV_ prefix would make more sense.
+
+Understood.
+
+* Andreas:
+*
+* Regarding the code:
+* 1) What's TV_SEQ_CONTINUE good for? It seems to be unused.
+
+It was going to allow unforseen long command structure to be passed to 
+the kernel. It's since been superseeded and will be removed.
+
+*
+* 2) Like Christophe I'd prefer to use DTV_ and dtv_ prefixes.
+
+Understood.
+
+*
+* 3) Did you mean p.u.qam.modulation below? Also, p.u.qam.fec_inner is
+* missing.
+*
+* +		printk("%s() Preparing QAM req\n", __FUNCTION__);
+* +		/* TODO: Insert sanity code to validate a little. */
+* +		p.frequency = c->frequency;
+* +		p.inversion = c->inversion;
+* +		p.u.qam.symbol_rate = c->symbol_rate;		
+* +		p.u.vsb.modulation = c->modulation;
+
+
+Yes, typo, thanks for mentioning this. I'll fix this.
+
+
+*
+* 4) About enum tv_cmd_types:
+*
+* SYMBOLRATE -> SYMBOL_RATE?
+* INNERFEC -> INNER_FEC (or FEC)?
+
+OK, this was inconsistent. This will change to SYMBOL_RATE and INNER_FEC.
+
+*
+* The Tone Burst command got lost (FE_DISEQC_SEND_BURST). How about
+* TV_SET_TONE_BURST?
+*
+* FE_ENABLE_HIGH_LNB_VOLTAGE got lost, too.
+*
+* Which old ioctls should be considered as obsolete? Do you plan to
+* add a tv_cmd for every old ioctl?
+
+SET_TONE and SET_VOLTAGE was added late last week, and appear to be 
+working correctly. If I've miss-understood the implementation then we 
+can review/refine again until it makes sense.
+
+
+* Janne:
+*
+* I have also a slightly preference for DTV/dtv as prefix but it's not
+* really important.
+
+Understood.
+
+*
+*
+* >> 16 properties per ioctl are probably enough but a variable-length
+* >> > > property array would be safe. I'm unsure if this justifies a more
+* >> > > complicate copy from/to userspace in the ioctls.
+* > >
+* > > Johannes suggested we lose the fixed length approach and instead pass
+* > > in struct containing the number of elements... I happen to like this,
+* > > and it removed an unnecessary restriction.
+*
+* That's the same V4L2 handles the extended controls. For reference look
+* at VIDIOC_[G|S|TRY]_EXT_CTRLS in v4l2-ioctl.c.
+
+
+I think makes a lot of sense (when used along with _QUERYMENU). It 
+allows application developers to build tools like v4l2ctl which can 
+tweak frontend behaviour.
+
+I don't know whether change dtv_property to match v4l2_ext_control makes 
+much sense, but the spirit of the API is strong, and should probably be 
+carried forward into any new digital TV API.
+
+Let me look into this.
+
+Summary, what do we do next?
+
+I'm going to make some patches for the structure changes, reserved 
+fields, typedefs, nomenclature and generate a tree (and tune.c) for 
+review/test.
+
+That will leave the EXT_CTRLS discussion for further debate, and any 
+other items that are raised during this review and round of discussions.
+We will address these in round 2.
+
+I welcome your feedback.
+
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
