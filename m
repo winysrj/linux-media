@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f20.google.com ([209.85.217.20])
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vanessaezekowitz@gmail.com>) id 1KhI0b-0001Xi-6r
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 08:01:27 +0200
-Received: by gxk13 with SMTP id 13so1979401gxk.17
-	for <linux-dvb@linuxtv.org>; Sat, 20 Sep 2008 23:00:50 -0700 (PDT)
-From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-To: "linux-dvb" <linux-dvb@linuxtv.org>
-Date: Sun, 21 Sep 2008 01:01:02 -0500
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809210101.02348.vanessaezekowitz@gmail.com>
-Subject: Re: [linux-dvb] Kworld PlusTV HD PCI 120 (ATSC 120)
+	(envelope-from <stoth@linuxtv.org>) id 1KdZPL-00025j-OT
+	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 01:47:37 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K70001657DZAKB0@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 10 Sep 2008 19:46:48 -0400 (EDT)
+Date: Wed, 10 Sep 2008 19:46:46 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48C73161.7090405@magma.ca>
+To: Patrick Boisvenue <patrbois@magma.ca>
+Message-id: <48C85C66.90606@linuxtv.org>
+MIME-version: 1.0
+References: <48C659C5.8000902@magma.ca> <48C68DC5.1050400@linuxtv.org>
+	<48C73161.7090405@magma.ca>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,340 +32,177 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Third in the thread....
-
------ Text Import Begin -----
-
-Subject: Re: Kworld PlusTV HD PCI 120 (ATSC 120)
-Date: Friday 19 September 2008
-From: Curt Blank <Curt.Blank@curtronics.com>
-To: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-
-Hi,
-
-Thanks yo the reply. I had read through all your posts from back in 
-February and did see you got it working. I've got a few questions.
-
-Vanessa Ezekowitz wrote:
-> On Thursday 18 September 2008 11:48:14 pm Curt Blank wrote:
->   
->> I'm trying to get this  card working  and I'm having some trouble and
->> I'm not sure exactly where. I'm using the 2.6.26.5 kernel gen'd to
->> include all the v4l support.
->>     
->
-> I don't know if that version of the kernel has the full driver or not, 
-however, 
-> it would be a good idea to use the v4l-dvb repository instead, as that code 
-is 
-> more up to date.
->
-> Mauro, does any current kernel contain these drivers yet?  I've not been 
-> following v4l-dvb-->kernel merges.
->   
-I looked at the cx88_cards.c code and I see it has the Kworld PlusTV HD 
-PCI 120 (ATSC 120) card listed in it. It looks to me it was included 
-since 2.6.26. I do have the v4l code fro the repository, I was 
-experimenting with using it in the 2.6.25.22 kernel but decided 2.6.26.5 
-might be better. If I don't have any luck with you suggestions and the 
-2.6.26.5 code I'll switch back to the repository code.
->   
->> Using Kradio I can manually tune in a station  but the audio only comes
->> out the Line Out jack on the card. Alsa is installed and working, I can 
->> play CD's, listen to streaming music, KDE sound effects work, so it
->> appears my sound subsystem is working. The alsa config in Kradio is set
->> to what it determined and it appears to match the device as far as
->> things go.
->>     
->   
-> The first thing that comes to mind here is that Kradio chose the wrong audio 
-> device but made it look like it chose correctly.  I seem to recall it doing 
-> the same thing on my box as well.  This card provides audio via a digital 
-> stream, and the drivers put that stream on /dev/dsp1, so you must chose that 
-> as your capture card/device, and set the playback card/device to use your 
-> usual sound card.
->   
-So this card follows the oss format instead of the alas format? I wasn't 
-sure which one to use. I switched Kradio's V4L Config Options to use OSS 
-and tried both /dev/dsp and /dev/dsp1 and there is no sound. I had 
-experimented with this before also.
-> Also, the current version of the driver no longer provides or requires the 
-> cx88-alsa module (it has apparently been merged with other parts of the 
-> driver).  Don't try to load this module, as it will probably cause a bunch of 
-> errors and break things.  I've just updated the KW120 article to reflect this 
-> change in driver behavior (and to fix some other errors on my part).
->   
->> When I try to scan for stations it doesn't find any but I can 
->> tune to any local station and get it.
+Patrick Boisvenue wrote:
+> Steven Toth wrote:
+>> Patrick Boisvenue wrote:
+>>> I cannot get my new HVR-1500Q to work at all even though it's 
+>>> recognized as such.  The best I was able to figure out was it does 
+>>> not like the eeprom.  After enabling the debug mode on tveeprom, I 
+>>> got the following when loading cx23885:
 >>
->> I also can't get the video (HDTV) to work either. When it starts up I get
->> a:
->>     
->
-> At the present, you can't load both the digital- and analog-mode drivers at 
-the 
-> same time - this card uses a "hybrid" tuner, which the drivers can't quite 
-> deal with properly yet (this is being worked on).  The end result is that 
-> neither mode will work at all, or may work only intermittently (last time I 
-> tried, the result was unpredictable).
->
-> You must select one more or the other, and you must reboot the computer 
-> (actually, a hard power-off is better) when switching modes.
->
-> Basically, it boils down to blacklisting several modules and then loading 
-> either the cx8800 or cx88-dvb module (for analog or digital, respectively).
->   
-I did experiment with the blacklisting and I did notice that I could 
-listen to the radio (through the cards line out) when the cx8800 was 
-loaded without the cx88-alsa module loaded. At the moment I have 
-blacklisted everything, powered down and now only have the cx8800 module 
-loaded.
->   
->   
->> I also can't get the video (HDTV) to work either. When it starts up I get a:
->> [...]
->> When I run kdetv in a terminal window I see this:
->>     
->
-> [errors snipped]
->
-> Last time I tried to use it, KDETV only worked with analog video/TV and other 
-> v4l capture devices.  For digital TV, you need to use something like 
-> Kaffeine/Xine, MythTV, etc.  Basically any video player that can read from a 
-> DVB device.
->
-> Also note that KDETV, unless it's changed since I last looked, isn't aware of 
-> that separate digital stream for analog TV, so you probably won't get any 
-> audio from it.  Most of the other TV programs are like this also.  Kradio is 
-> aware of it, however, and worked fine for me last time I used it.
->   
-I do have kaffine and xine, I will try that when I get a chance later today.
->   
->> I've read the Wiki at http://www.linuxtv.org including the
->> http://www.linuxtv.org/wiki/index.php/KWorld_ATSC_120 info. I also
->> downloaded the archived list messages back to January 2007 and looked
->> through them for help.
->>     
->
-> I know it sounds a little Windows-ish, but since the driver is still 
-> experimental, and the ATSC 120 is kinda finicky, a reboot is the first thing 
-> to do here, just to get the card back into a predictable state.  Get the 
-> blacklist into place before you do that, check after the reboot to make sure 
-> that worked, then try just the analog mode.  One that works, reboot again, 
-> enable digital mode, and scan for channels with dvbscan or whatever your 
-> distro calls it.
->
-> Stuart and I wrote most of what's in the ATSC 120 info page, so if it didn't 
-> work for you, I'd like to see if we can figure out what went wrong, so I can 
-> update the page to address the problem.  I'm kinda partial to the idea of 
-> seeing this card working fully for those who have one. :-)
->   
-Thanks. I'll work on all your suggestions more in depth when I have more 
-time later today and over the weekend and report back. The first thing 
-I'd like to get working as a stepping stone is the sound not using the 
-cards line out. I've been trying this in a box using that MSI MB, it's 
-going to be used in different box with an Asus m3a78-em MB that should 
-be arriving today so I will probably move to that. I've had some issues 
-with MSI MB's and media cards (video) in the last year where they did 
-not work and that's why I've switched back to Asus.
-
-
--------------------------------------------------------
-
-----------  Forwarded Message  ----------
-
-Subject: Re: Kworld PlusTV HD PCI 120 (ATSC 120)
-Date: Saturday 20 September 2008
-From: Curt Blank <Curt.Blank@curtronics.com>
-To: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-
-Curt Blank wrote:
-> Hi,
->
-> Thanks yo the reply. I had read through all your posts from back in 
-> February and did see you got it working. I've got a few questions.
->
-> Vanessa Ezekowitz wrote:
->> On Thursday 18 September 2008 11:48:14 pm Curt Blank wrote:
->>  
->>> I'm trying to get this  card working  and I'm having some trouble and
->>> I'm not sure exactly where. I'm using the 2.6.26.5 kernel gen'd to
->>> include all the v4l support.
->>>     
+>> ...
 >>
->> I don't know if that version of the kernel has the full driver or 
->> not, however, it would be a good idea to use the v4l-dvb repository 
->> instead, as that code is more up to date.
+>>> cx23885[0]: warning: unknown hauppauge model #0
+>>> cx23885[0]: hauppauge eeprom: model=0
+>>> cx23885[0]: cx23885 based dvb card
 >>
->> Mauro, does any current kernel contain these drivers yet?  I've not 
->> been following v4l-dvb-->kernel merges.
->>   
-> I looked at the cx88_cards.c code and I see it has the Kworld PlusTV 
-> HD PCI 120 (ATSC 120) card listed in it. It looks to me it was 
-> included since 2.6.26. I do have the v4l code fro the repository, I 
-> was experimenting with using it in the 2.6.25.22 kernel but decided 
-> 2.6.26.5 might be better. If I don't have any luck with you 
-> suggestions and the 2.6.26.5 code I'll switch back to the repository 
-> code.
->>  
->>> Using Kradio I can manually tune in a station  but the audio only comes
->>> out the Line Out jack on the card. Alsa is installed and working, I 
->>> can play CD's, listen to streaming music, KDE sound effects work, so it
->>> appears my sound subsystem is working. The alsa config in Kradio is set
->>> to what it determined and it appears to match the device as far as
->>> things go.
->>>     
->>   The first thing that comes to mind here is that Kradio chose the 
->> wrong audio device but made it look like it chose correctly.  I seem 
->> to recall it doing the same thing on my box as well.  This card 
->> provides audio via a digital stream, and the drivers put that stream 
->> on /dev/dsp1, so you must chose that as your capture card/device, and 
->> set the playback card/device to use your usual sound card.
->>   
-> So this card follows the oss format instead of the alas format? I 
-> wasn't sure which one to use. I switched Kradio's V4L Config Options 
-> to use OSS and tried both /dev/dsp and /dev/dsp1 and there is no 
-> sound. I had experimented with this before also.
->> Also, the current version of the driver no longer provides or 
->> requires the cx88-alsa module (it has apparently been merged with 
->> other parts of the driver).  Don't try to load this module, as it 
->> will probably cause a bunch of errors and break things.  I've just 
->> updated the KW120 article to reflect this change in driver behavior 
->> (and to fix some other errors on my part).
->>  
->>> When I try to scan for stations it doesn't find any but I can tune 
->>> to any local station and get it.
->>>
->>> I also can't get the video (HDTV) to work either. When it starts up 
->>> I get
->>> a:
->>>     
+>> ...
 >>
->> At the present, you can't load both the digital- and analog-mode 
->> drivers at the same time - this card uses a "hybrid" tuner, which the 
->> drivers can't quite deal with properly yet (this is being worked 
->> on).  The end result is that neither mode will work at all, or may 
->> work only intermittently (last time I tried, the result was 
->> unpredictable).
+>>> Did a hg pull -u http://linuxtv.org/hg/v4l-dvb earlier today so 
+>>> running off recent codebase.
 >>
->> You must select one more or the other, and you must reboot the 
->> computer (actually, a hard power-off is better) when switching modes.
+>> Fixed it, see linuxtv.org/hg/~stoth/v4l-dvb.
 >>
->> Basically, it boils down to blacklisting several modules and then 
->> loading either the cx8800 or cx88-dvb module (for analog or digital, 
->> respectively).
->>   
-> I did experiment with the blacklisting and I did notice that I could 
-> listen to the radio (through the cards line out) when the cx8800 was 
-> loaded without the cx88-alsa module loaded. At the moment I have 
-> blacklisted everything, powered down and now only have the cx8800 
-> module loaded.
->>    
->>> I also can't get the video (HDTV) to work either. When it starts up 
->>> I get a:
->>> [...]
->>> When I run kdetv in a terminal window I see this:
->>>     
+>> Pull the topmost patch and try again, please post your results back here.
 >>
->> [errors snipped]
+>> Thanks,
 >>
->> Last time I tried to use it, KDETV only worked with analog video/TV 
->> and other v4l capture devices.  For digital TV, you need to use 
->> something like Kaffeine/Xine, MythTV, etc.  Basically any video 
->> player that can read from a DVB device.
+>> Steve
 >>
->> Also note that KDETV, unless it's changed since I last looked, isn't 
->> aware of that separate digital stream for analog TV, so you probably 
->> won't get any audio from it.  Most of the other TV programs are like 
->> this also.  Kradio is aware of it, however, and worked fine for me 
->> last time I used it.
->>   
-> I do have kaffine and xine, I will try that when I get a chance later 
-> today.
->>  
->>> I've read the Wiki at http://www.linuxtv.org including the
->>> http://www.linuxtv.org/wiki/index.php/KWorld_ATSC_120 info. I also
->>> downloaded the archived list messages back to January 2007 and looked
->>> through them for help.
->>>     
->>
->> I know it sounds a little Windows-ish, but since the driver is still 
->> experimental, and the ATSC 120 is kinda finicky, a reboot is the 
->> first thing to do here, just to get the card back into a predictable 
->> state.  Get the blacklist into place before you do that, check after 
->> the reboot to make sure that worked, then try just the analog mode.  
->> One that works, reboot again, enable digital mode, and scan for 
->> channels with dvbscan or whatever your distro calls it.
->>
->> Stuart and I wrote most of what's in the ATSC 120 info page, so if it 
->> didn't work for you, I'd like to see if we can figure out what went 
->> wrong, so I can update the page to address the problem.  I'm kinda 
->> partial to the idea of seeing this card working fully for those who 
->> have one. :-)
->>   
-> Thanks. I'll work on all your suggestions more in depth when I have 
-> more time later today and over the weekend and report back. The first 
-> thing I'd like to get working as a stepping stone is the sound not 
-> using the cards line out. I've been trying this in a box using that 
-> MSI MB, it's going to be used in different box with an Asus m3a78-em 
-> MB that should be arriving today so I will probably move to that. I've 
-> had some issues with MSI MB's and media cards (video) in the last year 
-> where they did not work and that's why I've switched back to Asus.
->
+> 
+> Getting better, the eeprom parsing seems to work (check dmesg output 
+> below). However, doing a dvbscan still nets me no stations while doing a 
+> scan in a WindowsXP laptop gets me the expected two (2) stations in my 
+> area.
+> 
+> dmesg output with tveeprom debug=1 and cx23885 debug=5 after loading 
+> cx23885 module:
+> 
+> cx23885 driver version 0.0.1 loaded
+> ACPI: PCI Interrupt 0000:05:00.0[A] -> GSI 19 (level, low) -> IRQ 19
+> cx23885[0]/0: cx23885_dev_setup() Memory configured for PCIe bridge type 
+> 885
+> cx23885[0]/0: cx23885_init_tsport(portno=2)
+> CORE cx23885[0]: subsystem: 0070:7790, board: Hauppauge WinTV-HVR1500Q 
+> [card=5,autodetected]
+> cx23885[0]/0: cx23885_pci_quirks()
+> cx23885[0]/0: cx23885_dev_setup() tuner_type = 0x0 tuner_addr = 0x0
+> cx23885[0]/0: cx23885_dev_setup() radio_type = 0x0 radio_addr = 0x0
+> cx23885[0]/0: cx23885_reset()
+> cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [VID A]
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x000104c0 <- 0x00000040
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x000104d0 <- 0x00000b80
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x000104e0 <- 0x000016c0
+> cx23885[0]/0: [bridge 885] sram setup VID A: bpl=2880 lines=3
+> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch2]
+> cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [TS1 B]
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010580 <- 0x00005000
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010590 <- 0x000052f0
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x000105a0 <- 0x000055e0
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x000105b0 <- 0x000058d0
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x000105c0 <- 0x00005bc0
+> cx23885[0]/0: [bridge 885] sram setup TS1 B: bpl=752 lines=5
+> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch4]
+> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch5]
+> cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [TS2 C]
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x000105e0 <- 0x00006000
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x000105f0 <- 0x000062f0
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010600 <- 0x000065e0
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010610 <- 0x000068d0
+> cx23885[0]/0: cx23885_sram_channel_setup() 0x00010620 <- 0x00006bc0
+> cx23885[0]/0: [bridge 885] sram setup TS2 C: bpl=752 lines=5
+> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch7]
+> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch8]
+> cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch9]
+> cx23885[0]: i2c bus 0 registered
+> cx23885[0]: i2c bus 1 registered
+> cx23885[0]: i2c bus 2 registered
+> tveeprom 1-0050: full 256-byte eeprom dump:
+> tveeprom 1-0050: 00: 20 00 13 00 00 00 00 00 2c 00 05 00 70 00 90 77
+> tveeprom 1-0050: 10: 50 03 05 00 04 80 00 08 0c 03 05 80 0e 01 00 00
+> tveeprom 1-0050: 20: 78 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tveeprom 1-0050: 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tveeprom 1-0050: 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tveeprom 1-0050: 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tveeprom 1-0050: 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tveeprom 1-0050: 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tveeprom 1-0050: 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tveeprom 1-0050: 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tveeprom 1-0050: a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tveeprom 1-0050: b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tveeprom 1-0050: c0: 84 09 00 04 20 77 00 40 ec 66 25 f0 73 05 27 00
+> tveeprom 1-0050: d0: 84 08 00 06 fb 2c 01 00 90 29 95 72 07 70 73 09
+> tveeprom 1-0050: e0: 21 7f 73 0a 88 96 72 0b 13 72 10 01 72 11 ff 79
+> tveeprom 1-0050: f0: dc 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> tveeprom 1-0050: Tag [04] + 8 bytes: 20 77 00 40 ec 66 25 f0
+> tveeprom 1-0050: Tag [05] + 2 bytes: 27 00
+> tveeprom 1-0050: Tag [06] + 7 bytes: fb 2c 01 00 90 29 95
+> tveeprom 1-0050: Tag [07] + 1 bytes: 70
+> tveeprom 1-0050: Tag [09] + 2 bytes: 21 7f
+> tveeprom 1-0050: Tag [0a] + 2 bytes: 88 96
+> tveeprom 1-0050: Tag [0b] + 1 bytes: 13
+> tveeprom 1-0050: Tag [10] + 1 bytes: 01
+> tveeprom 1-0050: Not sure what to do with tag [10]
+> tveeprom 1-0050: Tag [11] + 1 bytes: ff
+> tveeprom 1-0050: Not sure what to do with tag [11]
+> tveeprom 1-0050: Hauppauge model 77051, rev E2F0, serial# 2451180
+> tveeprom 1-0050: MAC address is 00-0D-FE-25-66-EC
+> tveeprom 1-0050: tuner model is Xceive XC5000 (idx 150, type 4)
+> tveeprom 1-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom 0x88)
+> tveeprom 1-0050: audio processor is CX23885 (idx 39)
+> tveeprom 1-0050: decoder processor is CX23885 (idx 33)
+> tveeprom 1-0050: has no radio
+> cx23885[0]: hauppauge eeprom: model=77051
+> cx23885[0]: cx23885 based dvb card
+> xc5000: Successfully identified at address 0x61
+> xc5000: Firmware has not been loaded previously
+> DVB: registering new adapter (cx23885[0])
+> DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB Frontend)...
+> cx23885_dev_checkrevision() Hardware revision = 0xb0
+> cx23885[0]/0: found at 0000:05:00.0, rev: 2, irq: 19, latency: 0, mmio: 
+> 0xd4000000
+> PCI: Setting latency timer of device 0000:05:00.0 to 64
+> 
+> 
+> When launching dvbscan I get the following in dmesg:
+> 
+> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+> firmware: requesting dvb-fe-xc5000-1.1.fw
+> kobject_add_internal failed for i2c-2 with -EEXIST, don't try to 
+> register things with the same name in the same directory.
+> Pid: 8059, comm: kdvb-fe-0 Tainted: P          2.6.26-gentoo #11
+> 
+> Call Trace:
+>  [<ffffffff8036abb5>] kobject_add_internal+0x13f/0x17e
+>  [<ffffffff8036aff2>] kobject_add+0x74/0x7c
+>  [<ffffffff80230b02>] printk+0x4e/0x56
+>  [<ffffffff803eb84a>] device_add+0x9b/0x483
+>  [<ffffffff8036a876>] kobject_init+0x41/0x69
+>  [<ffffffff803f059d>] _request_firmware+0x169/0x324
+>  [<ffffffffa00e9a7e>] :xc5000:xc_load_fw_and_init_tuner+0x64/0x293
+>  [<ffffffff804a7222>] i2c_transfer+0x75/0x7f
+>  [<ffffffffa00e53ad>] :s5h1409:s5h1409_writereg+0x51/0x83
+>  [<ffffffffa00e9cea>] :xc5000:xc5000_init+0x3d/0x6f
+>  [<ffffffffa0091b0c>] :dvb_core:dvb_frontend_init+0x49/0x63
+>  [<ffffffffa0092e2c>] :dvb_core:dvb_frontend_thread+0x78/0x2f0
+>  [<ffffffffa0092db4>] :dvb_core:dvb_frontend_thread+0x0/0x2f0
+>  [<ffffffff80240eaf>] kthread+0x47/0x74
+>  [<ffffffff8022bc41>] schedule_tail+0x27/0x5b
+>  [<ffffffff8020be18>] child_rip+0xa/0x12
+>  [<ffffffff80240e68>] kthread+0x0/0x74
+>  [<ffffffff8020be0e>] child_rip+0x0/0x12
+> 
+> fw_register_device: device_register failed
+> xc5000: Upload failed. (file not found?)
+> xc5000: Unable to initialise tuner
+> 
+> 
+> I have the firmware file located here:
+> 
+> # ls -l /lib/firmware/dvb-fe-xc5000-1.1.fw
+> -rw-r--r-- 1 root root 12332 Aug 31 12:56 
+> /lib/firmware/dvb-fe-xc5000-1.1.fw
+> 
+> If there is anything else I can provide (or try) to help debug, let me 
+> know,
+> ...Patrick
 
-I've got the new computer built, with the 2.6.26.5 kernel, v4l not gen'd
-in and using the latest from the repository.
+I can't repro. The latest v4l-dvb is working fine on my 8.04 32bit dev 
+system and my Intrepid 64bit system.
 
-Using Kradio I still can only listen to it via the Line Out on the 120's
-board.
+No problem found.
 
-When I run kaffeine I get a pop up window with this:
-
-No plugin found to handle this resource (/dev/video)
-
-17:59:33: xine: couldn't find demux for >file:///dev/video<
-
-17:59:33: xine: found input plugin : file input plugin
-
-
-When I run xawtv I get this:
-
-# xawtv
-This is xawtv-3.95, running on Linux/x86_64 (2.6.26.5-touch)
-xinerama 0: 1024x768+0+0
-/dev/video0 [v4l2]: no overlay support
-v4l-conf had some trouble, trying to continue anyway
-ioctl: VIDIOC_REQBUFS(count=2;type=VIDEO_CAPTURE;memory=MMAP): Success
-ioctl: VIDIOC_REQBUFS(count=2;type=VIDEO_CAPTURE;memory=MMAP): Resource 
-temporarily unavailable
-
-
-And I still get the "Unable to grab video." pop up form kdetv.
-
-Ideas? Am I missing something?
-
-I blacklisted cx8800, cx8802, cx88-alsa, & cx88-dvb on boot, then moved
-the blacklist file then only modprobed cx8800. That and cx88xx are the
-only ones loaded.
-
-I have this in my modprobe.d/tv file:
-
-alias char-major-81 videodev
-options i2c-algo-bit bit_test=1
-
-alias char-major-81-0 cx8800
-alias char-major-81-1 off
-alias char-major-81-2 off
-alias char-major-81-3 off
-
-Thanks.
-
------ Text Import End -----
-
--- 
-"Life is full of positive and negative events.  Spend
-your time considering the former, not the latter."
-Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
