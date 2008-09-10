@@ -1,22 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KjgZN-0002SA-62
-	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 22:39:13 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so1010977fga.25
-	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 13:39:10 -0700 (PDT)
-Message-ID: <d9def9db0809271339w70e64903o6a2026840cce5f6f@mail.gmail.com>
-Date: Sat, 27 Sep 2008 22:39:09 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "David BERCOT" <linux-dvb@bercot.org>
-In-Reply-To: <20080927221314.1313010c@david.huperie>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <20080927201547.2fbde736@david.huperie>
-	<d9def9db0809271230p561c022aoa2a32c8806688f68@mail.gmail.com>
-	<20080927221314.1313010c@david.huperie>
+	(envelope-from <stoth@linuxtv.org>) id 1KdDAb-0007Vh-N1
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 02:02:54 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6Y00NQ5DFQ38B0@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 09 Sep 2008 20:02:14 -0400 (EDT)
+Date: Tue, 09 Sep 2008 20:02:13 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <d9def9db0809091414t5953e696s521aa2f7525d182d@mail.gmail.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+Message-id: <48C70E85.4050001@linuxtv.org>
+MIME-version: 1.0
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<1220993974.17270.22.camel@localhost>
+	<d9def9db0809091414t5953e696s521aa2f7525d182d@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How installing em28xx ?
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,55 +29,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, Sep 27, 2008 at 10:13 PM, David BERCOT <linux-dvb@bercot.org> wrote:
-> Hi,
->
-> Le Sat, 27 Sep 2008 21:30:38 +0200,
-> "Markus Rechberger" <mrechberger@gmail.com> a =E9crit :
->> Hi,
->>
->> On Sat, Sep 27, 2008 at 8:15 PM, David BERCOT <linux-dvb@bercot.org>
->> wrote:
->> > Hi,
->> >
->> > I used em28xx for the past, but now, it seems to be more
->> > complicated... In http://mcentral.de/hg I found em28xx-new (but I
->> > have many errors : [...]
->> > 'dvb_net_release' /opt/em28xx-new/em2880-dvb.c:976: erreur: implicit
->> > declaration of function
->> > 'dvb_unregister_frontend' /opt/em28xx-new/em2880-dvb.c:977: erreur:
->> > implicit declaration of function
->> > 'dvb_frontend_detach' /opt/em28xx-new/em2880-dvb.c:981: erreur:
->> > implicit declaration of function
->> > 'dvb_dmx_release' /opt/em28xx-new/em2880-dvb.c:983: erreur: implicit
->> > declaration of function 'dvb_unregister_adapter'
->> > [...]) and the "old" v4l-dvb-kernel & v4l-dvb-experimental doesn't
->> > work any more since 2.6.26 kernel.
->> > I should use multiproto, but it seems heavy, no ?
->> >
->> > Do you have any suggestion ?
->>
->> do you have a custom kernel? or a default distribution - and which
->> one?
->
-> No, it is a classical kernel : 2.6.26-1-686 on Debian Sid.
-> Should I put all the errors ?
->
+> Anyway I'd appreciate to get back to the topic again and the question
+> which I pointed out to, how many devices
+> are supported by Steven's patch and how many by the work which Manu
+> used to managed for years with a couple of
+> people. There are multiple ways which can lead to success, the beauty
+> of a patch or framework won't matter too much (nevermind
+> if Steven's or Manu's work seems to be more prettier to someone).
 
->> > 'dvb_unregister_frontend' /opt/em28xx-new/em2880-dvb.c:977: erreur:
->> > implicit declaration of function
+I'm going to post this notice in a new thread, as this is getting long 
+but, to respond generally....
 
-this means it cannot find some headers, you need to install the full
-kernel sources for your installed
-kernel before compiling the driver.
+I merged patches from Igor today, so the S2API tree has five S2 devices.
 
-Markus
+HVR4000 S/S2 card
+HVR4000LITE (Also known as the S2 Lite) S/S2 card
+TeVii S460 S/S2 card
+TeVii S650 S2 card
+DvbWorld DVB-S/S2 USB2.0 S/S2
+
+It's a pretty good start, thanks to Igor.
+
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
