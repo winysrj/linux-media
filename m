@@ -1,15 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org
-Date: Thu, 11 Sep 2008 01:51:08 +0300
-References: <48C70F88.4050701@linuxtv.org>
-	<E1KdLOn-0002ri-00.goga777-bk-ru@f147.mail.ru>
-	<48C80D58.3010705@linuxtv.org>
-In-Reply-To: <48C80D58.3010705@linuxtv.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809110151.08382.liplianin@tut.by>
-Subject: [linux-dvb] S2API simple szap-s2 utility
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1KdUXA-000160-SU
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 20:35:22 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K6Z00EYXSXWWGD1@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 10 Sep 2008 14:34:46 -0400 (EDT)
+Date: Wed, 10 Sep 2008 14:34:43 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48C7B362.8050603@magma.ca>
+To: Patrick Boisvenue <patrbois@magma.ca>
+Message-id: <48C81343.6030907@linuxtv.org>
+MIME-version: 1.0
+References: <48C659C5.8000902@magma.ca> <48C68DC5.1050400@linuxtv.org>
+	<48C73161.7090405@magma.ca> <48C732DE.2030902@linuxtv.org>
+	<48C7B362.8050603@magma.ca>
+Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,14 +33,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-There is a program to zap satellite channels with S2API:
+>>> I have the firmware file located here:
+>>>
+>>> # ls -l /lib/firmware/dvb-fe-xc5000-1.1.fw
+>>> -rw-r--r-- 1 root root 12332 Aug 31 12:56 
+>>> /lib/firmware/dvb-fe-xc5000-1.1.fw
+>>>
+>>> If there is anything else I can provide (or try) to help debug, let 
+>>> me know,
+>>> ...Patrick
+>>
+>>  > kobject_add_internal failed for i2c-2 with -EEXIST, don't try to
+>>  > register things with the same name in the same directory.
+>>
+>> Ooh, that's nasty problem, this is new - and looks like it's i2c related.
+>>
+>> Why does this sound familiar? Anyone?
+>>
+>> Just for the hell of it, copy the firmware to /lib/firmware/`uname -r` 
+>> also, then re-run the test - it's unlikely to make any difference but 
+>> it _is_ the scenario I always test under.
+>>
+>> - Steve
+>>
+> 
+> You were right, no difference.  Is there any other debug messages I can 
+> create?
 
-http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/szap-s2/archive/tip.tar.gz
+No, it needs some of my time to try and repro.
 
-For easy understanding and quickly testing S2API (and even viewing TV with 
-mplayer) 
- 
-Igor M. Liplianin
+I'll spend a few minutes tonight and see what I can find.
+
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
