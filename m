@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bay0-omc3-s26.bay0.hotmail.com ([65.54.246.226])
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <aegyssus@hotmail.com>) id 1Kfy6f-0003AS-05
-	for linux-dvb@linuxtv.org; Wed, 17 Sep 2008 16:34:13 +0200
-Message-ID: <BLU134-DAV80904DC18112615D393CBD34C0@phx.gbl>
-From: "Virgil Mocanu" <aegyssus@hotmail.com>
-To: <linux-dvb@linuxtv.org>
-References: <20080916042956.711261CE825@ws1-6.us4.outblaze.com>
-Date: Wed, 17 Sep 2008 10:33:30 -0400
+	(envelope-from <mkrufky@linuxtv.org>) id 1KdDzP-000478-2A
+	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 02:55:24 +0200
+Message-ID: <48C71AF5.2080700@linuxtv.org>
+Date: Tue, 09 Sep 2008 20:55:17 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Cc: stev391@email.com
-Subject: Re: [linux-dvb] LeadTek PxPVR2200 drivers
+To: William Austin <bsdskin@yahoo.com>
+References: <273704.19765.qm@web31108.mail.mud.yahoo.com>
+In-Reply-To: <273704.19765.qm@web31108.mail.mud.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1950 with Ubuntu Intrepid
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,149 +25,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Steven,
-Many thanks for your answer.
-The card is analog only. So no DVB of any kind is supported.
-I tried several <card> options including the Leadtek one that you suggested. 
-I got not luck so far... The typical behaviour is that the cx23885 driver 
-loads, but fails to initialize the frontend. It generates the following log 
-messages and then crashes the kernel when rmmod.
-===
-cx23885 driver version 0.0.1 loaded
-ACPI: PCI Interrupt 0000:07:00.0[A] -> GSI 18 (level, low) -> IRQ 18
-CORE cx23885[0]: subsystem: 107d:6f21, board: Leadtek Winfast PxDVR3200 H 
-[card=12,insmod option]
-cx23885[0]: i2c bus 0 registered
-cx23885[0]: i2c bus 1 registered
-cx23885[0]: i2c bus 2 registered
-cx23885[0]: cx23885 based dvb card
-cx23885[0]: frontend initialization failed
-cx23885_dvb_register() dvb_register failed err = -1
-cx23885_dev_setup() Failed to register dvb on VID_C
-cx23885_dev_checkrevision() Hardware revision = 0xb0
-cx23885[0]/0: found at 0000:07:00.0, rev: 2, irq: 18, latency: 0, mmio: 
-0xfe800000
-PCI: Setting latency timer of device 0000:07:00.0 to 64
-===
-I started an Wiki page for this card:
-http://www.linuxtv.org/wiki/index.php/Leadtek_Winfast_PxPVR_2200
+William Austin wrote:
+> I have a Hauppauge WinTV HVR-1950 USB box on a box running Ubuntu Intrepid.  Although I should expect problems from a testing distro, I've tried getting this box working on stable, Live-CD versions of Ubuntu, Open Suse, and Mandriva as well (because they were what I had around the house.)
+> 
+> First, there is a kernel problem in Ubuntu Intrepid where, if the 1950 is plugged into USB, the system will hang on boot.  Yet, if I boot without it and plug it in after boot, the drivers (pvrusb2 et al) seem to load, but no device nodes are created.  I have downloaded the firmware, renamed it properly, and placed it in /lib/firmware.  So I'm at a loss on how to troubleshoot.  Here's the relevant information on plug-in the box in after the system has been booted.
 
-Regards,
-aegyssus
+What firmware did you " download and rename " ??
 
------ Original Message ----- 
-From: <>
-To: <aegyssus@hotmail.com>
-Cc: <linux-dvb@linuxtv.org>
-Sent: Tuesday, September 16, 2008 12:29 AM
-Subject: Re: [linux-dvb] LeadTek PxPVR2200 drivers
+Where did you get " v4l-pvrusb2-73xxx-01.fw " ??  or did you forget it?
 
 
-> Hi,
-> I am just wondering if anybody succeeded to make a LeadTek PxPVR2200 
-> work...
-> It's using Conexant CX23885+CX23417 + Xceive silicon tuner.
-> The card is mostly sold in Eastern Europe but it is only coming with 
-> Windows
-> drivers and v4l does not recognize it:
-> ========================
-> cx23885 driver version 0.0.1 loaded
-> ACPI: PCI Interrupt 0000:07:00.0[A] -> GSI 18 (level, low) -> IRQ 18
-> cx23885[0]: Your board isn't known (yet) to the driver.  You can
-> cx23885[0]: try to pick one of the existing card configs via
-> cx23885[0]: card=<n> insmod option.  Updating to the latest
-> cx23885[0]: version might help as well.
-> cx23885[0]: Here is a list of valid choices for the card=<n> insmod 
-> option:
-> cx23885[0]:    card=0 -> UNKNOWN/GENERIC
-> cx23885[0]:    card=1 -> Hauppauge WinTV-HVR1800lp
-> cx23885[0]:    card=2 -> Hauppauge WinTV-HVR1800
-> cx23885[0]:    card=3 -> Hauppauge WinTV-HVR1250
-> cx23885[0]:    card=4 -> DViCO FusionHDTV5 Express
-> cx23885[0]:    card=5 -> Hauppauge WinTV-HVR1500Q
-> cx23885[0]:    card=6 -> Hauppauge WinTV-HVR1500
-> cx23885[0]:    card=7 -> Hauppauge WinTV-HVR1200
-> cx23885[0]:    card=8 -> Hauppauge WinTV-HVR1700
-> cx23885[0]:    card=9 -> Hauppauge WinTV-HVR1400
-> cx23885[0]:    card=10 -> DViCO FusionHDTV7 Dual Express
-> cx23885[0]:    card=11 -> DViCO FusionHDTV DVB-T Dual Express
-> cx23885[0]:    card=12 -> Leadtek Winfast PxDVR3200 H
-> CORE cx23885[0]: subsystem: 107d:6f21, board: UNKNOWN/GENERIC
-> [card=0,autodetected]
-> cx23885[0]: i2c bus 0 registered
-> tuner' 2-0061: chip found @ 0xc2 (cx23885[0])
-> cx23885[0]: i2c bus 1 registered
-> tvaudio' 3-004c: tea6420 found @ 0x98 (cx23885[0])
-> cx23885[0]: i2c bus 2 registered
-> cx23885_dev_checkrevision() Hardware revision = 0xb0
-> cx23885[0]/0: found at 0000:07:00.0, rev: 2, irq: 18, latency: 0, mmio:
-> 0xfe800000
-> PCI: Setting latency timer of device 0000:07:00.0 to 64
-> ========================
->
-> No video device is created for this card therefore it's totally unusable
-> under Linux.
-> I played with the card by changing <card> option but none of them worked. 
-> I
-> used the latest mercurial drivers but it did not help.
->
-> lspci -vvv returns this:
----Snip---
-> ========================
->
-> Many thanks for any suggestion,
-> aegyssus
->
+> 
+> dmesg says:
+> usbcore: registered new interface driver pvrusb2
+> pvrusb2: Hauppauge WinTV-PVR-USB2 MPEG2 Encoder/Tuner : V4L in-tree version
+> pvrusb2: Debug mask is 31 (0x1f)
 
 
-Aegyssus,
-Does this card handle DVB? If so try loading the cx23885 with the option 
-card=12.
-
-If it doesn't you will have to wait a little longer for linux support or try 
-writing your own driver.
-
-If you have some spare time, please create a wiki page for this card similar 
-to this one:
-http://linuxtv.org/wiki/index.php/Leadtek_Winfast_PxDVR_3200_H
-
-and also update:
-http://linuxtv.org/wiki/index.php/Leadtek
-
-The driver's currently for the cx23885 chipset aren't stable enough to 
-reliably run the analog (well in my personal experience, and analog is not a 
-high priority for me).
-However there is some patches floating around that add support for other 
-similar cards, that have managed to get the analog working near or 
-perfectly.
-
-If you want to attempt to write your own driver look in the source files 
-under
-linux/drivers/media/video/cx23885/
-and try to understand how they work.
-
-If you want to wait to I or someone else has some spare time, then please at 
-least create the wiki page with:
-* High resolution photo of board.
-* Photo of the major chips.
-* output of lspci -vvn
-* A Dscaler Regspy output (see this message to get the right version: 
-http://www.spinics.net/lists/linux-dvb/msg28077.html)
-* i2cdetect -l and also the i2cdetect output for each of the 3 buses on this 
-card.
-
-Thanks, for bringing this to list.
-
-Regards,
-Stephen.
+Those lines will show up is you simply "modprobe pvrusb2" even if the device is not present.  What comes next?  It should download firmware, disconnect & reconnect USB automatically, then continue on with driver initialization.
 
 
--- 
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
+> 
+> lsmod (edit):
+> usbcore
+> pvrusb2
+> i2c_core
+> v4l2_common
+> tveeprom
+> dvb_core
+> cx2341x
+> videodev
+> v4l1_compat
 
 
+lsmod doesnt tell us anything.  You can load all those modules by hand, and it says nothing about the device that you have plugged in.
+
+> /proc/devices lists DVB as a character device.
+> 
+> Now, I'm assuming I'm missing some chip drivers.  I think I should have at least three, if memory serves, but only cx2341x is loading on plug-in.  Unfortunately (and I assume this is another Ubuntu problem) I can't unload pvrusb2 once loaded.  It hangs the terminal.  It makes playing around with it a tedious endeavor.
+> 
+> If anyone has had the same problems or could give some advice, I appreciate it in advance.
+
+I think you're best off taking a look at the pvrusb2 home page and reading the information there.  If you are still having trouble, then please just paste your full dmesg into an email so that we can have a better idea of what's wrong.
+
+Good Luck,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
