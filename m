@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+Received: from yw-out-2324.google.com ([74.125.46.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1KiAeY-0002e8-1b
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 18:22:18 +0200
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: Manu Abraham <abraham.manu@gmail.com>
-Date: Tue, 23 Sep 2008 19:15:21 +0300
-References: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAEH2unQOalpGjvGmwr9GMIQBAAAAAA==@stahurabrenner.com>
-	<200809231848.15885.liplianin@tut.by> <48D9126F.8000409@gmail.com>
-In-Reply-To: <48D9126F.8000409@gmail.com>
+	(envelope-from <gregoire.favre@gmail.com>) id 1KdlVg-00020t-HG
+	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 14:42:57 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so103943ywj.41
+	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 05:42:52 -0700 (PDT)
+Date: Thu, 11 Sep 2008 14:42:46 +0200
+To: linux-dvb@linuxtv.org
+Message-ID: <20080911124246.GB3263@gmail.com>
+References: <48C70F88.4050701@linuxtv.org>
+	<E1KdLOn-0002ri-00.goga777-bk-ru@f147.mail.ru>
+	<48C80D58.3010705@linuxtv.org>
+	<200809110151.08382.liplianin@tut.by>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200809231915.21494.liplianin@tut.by>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Start making stv0903, stv0900, stv6110 support
+In-Reply-To: <200809110151.08382.liplianin@tut.by>
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Subject: Re: [linux-dvb] S2API simple szap-s2 utility
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,26 +24,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMjMgU2VwdGVtYmVyIDIwMDggMTg6NTk6NDMgTWFudSBBYnJhaGFtIM7B
-0MnTwcwowSk6Cj4gSWdvciBNLiBMaXBsaWFuaW4gd3JvdGU6Cj4gPiD3INPPz8Ldxc7JySDP1CAy
-MyBTZXB0ZW1iZXIgMjAwOCAxODoxNjo1NiBNYW51IEFicmFoYW0gzsHQydPBzCjBKToKPiA+PiBJ
-Z29yIE0uIExpcGxpYW5pbiB3cm90ZToKPiA+Pj4gTGludXh0diBjb21tdW5pdHksIGxldCB5b3Ug
-a25vdzoKPiA+Pj4gU3RhcnQgdG8gd29yayBvbiBzdHYwOTAwLCBzdHYwOTAzLCBzdHY2MTEwIGRy
-aXZlcnMKPiA+Pgo+ID4+IEkgaGF2ZSBkb25lIHF1aXRlIHNvbWUgd29yayBvbiB0aGlzIGNvbWJp
-bmF0aW9uLCB3aGljaCBpcyBvZmZpY2lhbGx5Cj4gPj4gc3VwcG9ydGVkIGJ5IFNUTSBhcyB3ZWxs
-LiBJIGNhbiBwdXNoIG91dCB0aGUgZHJpdmVycyBhcyBzb29uIGFzIFNUTQo+ID4+IGdpdmVzIG1l
-IHRoZSBnbyBvbiBpdC4KPiA+Pgo+ID4+IFJlZ2FyZHMsCj4gPj4gTWFudQo+ID4KPiA+IEl0IGlz
-IGdvb2QgbmV3cwo+ID4gTXkgd29ycnkgaXMgb25seSB0aW1lCj4KPiBJIGRvbid0IHRoaW5rIHRo
-ZXJlJ3MgYW55IG5lZWQgdG8gd29ycnkuIFdpbGwgdHJ5IHRvIHB1c2ggaXQgb3V0IGFzCj4gZWFy
-bHkgYXMgcG9zc2libGUuCj4KPiBSZWdhcmRzLAo+IE1hbnUKCkxvb2tpbmcgZm9yd2FyZCB0byBp
-dApBbmQgdGhhbmsgeW91IGJlZm9yZWhhbmQKClRoYXQgaXMgbXkgY2hhcmFjdGVyIC0gSSBhbHdh
-eXMgd29ycnkKClJlZ2FyZHMKSWdvcgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5v
-cmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgt
-ZHZi
+On Thu, Sep 11, 2008 at 01:51:08AM +0300, Igor M. Liplianin wrote:
+> There is a program to zap satellite channels with S2API:
+> =
+
+> http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/szap-s2/archive/=
+tip.tar.gz
+> =
+
+> For easy understanding and quickly testing S2API (and even viewing TV wit=
+h =
+
+> mplayer) =
+
+
+Great, I just compiled the s2 driver from
+http://linuxtv.org/hg/~stoth/s2/
+and loaded modules with scripts/rmmod load which shows :
+
+i2c-adapter i2c-4: SMBus Quick command not supported, can't probe for
+chips
+OmniVision ov7670 sensor driver, at your service
+wm8775' 2-001b: chip found @ 0x36 (cx88[0])
+i2c-adapter i2c-4: SMBus Quick command not supported, can't probe for
+chips
+saa7146: register extension 'budget dvb'.
+saa7146: register extension 'budget_av'.
+cx23885 driver version 0.0.1 loaded
+cx2388x blackbird driver version 0.0.6 loaded
+cx88/2: registering cx8802 driver, type: blackbird access: shared
+cx88[0]/2: subsystem: 0070:6902, board: Hauppauge WinTV-HVR4000
+DVB-S/S2/T/Hybrid [card=3D68]
+cx88[0]/2: cx8802 probe failed, err =3D -19
+cx88[1]/2: subsystem: 14f1:0084, board: Geniatech DVB-S [card=3D52]
+cx88[1]/2: cx8802 probe failed, err =3D -19
+
+So I loose one card in this process which isn't a big problem.
+
+But my big problem is that with every channel I try, I get an error :
+szap-s2 -n 13
+reading channels from file '/home/greg/.szap/channels.conf'
+zapping to 13 'BBCHD':
+delivery DVB-S, modulation QPSK
+sat 2, frequency 10847 MHz V, symbolrate 22000000, coderate auto,
+rolloff 0.35
+vpid 0x090e, apid 0x090f, sid 0x1b1c
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+FE_SET_PROPERTY failed: Operation not supported
+status 01 | signal 9b02 | snr 81ea | ber 0000ff00 | unc fffffffe | =
+
+status 01 | signal 9fee | snr 82cb | ber 0000ff00 | unc fffffffe | =
+
+status 01 | signal a00c | snr 8283 | ber 0000ff08 | unc fffffffe | =
+
+
+What did I do wrong ?
+
+Thanks.
+-- =
+
+Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
+rg
+               http://picasaweb.google.com/Gregoire.Favre
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
