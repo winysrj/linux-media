@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KiAkZ-0003oP-57
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 18:28:31 +0200
-Date: Tue, 23 Sep 2008 18:27:57 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <200809221201.26115.hftom@free.fr>
-Message-ID: <20080923162757.282370@gmx.net>
+Message-ID: <48C86857.70603@magma.ca>
+Date: Wed, 10 Sep 2008 20:37:43 -0400
+From: Patrick Boisvenue <patrbois@magma.ca>
 MIME-Version: 1.0
-References: <200809211905.34424.hftom@free.fr> <20080921235429.18440@gmx.net>
-	<200809221201.26115.hftom@free.fr>
-To: Christophe Thommeret <hftom@free.fr>, linux-dvb@linuxtv.org
+To: Andy Walls <awalls@radix.net>
+References: <48C659C5.8000902@magma.ca> <48C68DC5.1050400@linuxtv.org>	
+	<48C73161.7090405@magma.ca> <48C732DE.2030902@linuxtv.org>
+	<1221087304.2648.7.camel@morgan.walls.org>
+In-Reply-To: <1221087304.2648.7.camel@morgan.walls.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] hvr4000-s2api + QAM_AUTO
+Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,93 +17,90 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > >
-> > > Hi Steve,
-> > >
-> > > I've managed to add S2 support to kaffeine, so it can scan and zap.
-> > > However, i have a little problem with DVB-S:
-> > > Before tuning to S2, S channels tune well with QAM_AUTO.
-> > > But after having tuned to S2 channels, i can no more lock on S ones
-> until
-> > > i
-> > > set modulation to QPSK insteed of QAM_AUTO for these S channels.
-> > > Is this known?
-> > >
-> > > --
-> > > Christophe Thommeret
-> >
-> > Hi Christophe,
-...
-> =
+Andy Walls wrote:
+> On Tue, 2008-09-09 at 22:37 -0400, Steven Toth wrote:
+>> Patrick Boisvenue wrote:
+>>> Steven Toth wrote:
+>>>> Patrick Boisvenue wrote:
+> 
+>>> When launching dvbscan I get the following in dmesg:
+>>>
+>>> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+>>> firmware: requesting dvb-fe-xc5000-1.1.fw
+>>> kobject_add_internal failed for i2c-2 with -EEXIST, don't try to 
+>>> register things with the same name in the same directory.
+>>> Pid: 8059, comm: kdvb-fe-0 Tainted: P          2.6.26-gentoo #11
+>>>
+>>> Call Trace:
+>>>  [<ffffffff8036abb5>] kobject_add_internal+0x13f/0x17e
+>>>  [<ffffffff8036aff2>] kobject_add+0x74/0x7c
+>>>  [<ffffffff80230b02>] printk+0x4e/0x56
+>>>  [<ffffffff803eb84a>] device_add+0x9b/0x483
+>>>  [<ffffffff8036a876>] kobject_init+0x41/0x69
+>>>  [<ffffffff803f059d>] _request_firmware+0x169/0x324
+>>>  [<ffffffffa00e9a7e>] :xc5000:xc_load_fw_and_init_tuner+0x64/0x293
+>>>  [<ffffffff804a7222>] i2c_transfer+0x75/0x7f
+>>>  [<ffffffffa00e53ad>] :s5h1409:s5h1409_writereg+0x51/0x83
+>>>  [<ffffffffa00e9cea>] :xc5000:xc5000_init+0x3d/0x6f
+>>>  [<ffffffffa0091b0c>] :dvb_core:dvb_frontend_init+0x49/0x63
+>>>  [<ffffffffa0092e2c>] :dvb_core:dvb_frontend_thread+0x78/0x2f0
+>>>  [<ffffffffa0092db4>] :dvb_core:dvb_frontend_thread+0x0/0x2f0
+>>>  [<ffffffff80240eaf>] kthread+0x47/0x74
+>>>  [<ffffffff8022bc41>] schedule_tail+0x27/0x5b
+>>>  [<ffffffff8020be18>] child_rip+0xa/0x12
+>>>  [<ffffffff80240e68>] kthread+0x0/0x74
+>>>  [<ffffffff8020be0e>] child_rip+0x0/0x12
+>>>
+>>> fw_register_device: device_register failed
+>>> xc5000: Upload failed. (file not found?)
+>>> xc5000: Unable to initialise tuner
+>>>
+>>>
+>>> I have the firmware file located here:
+>>>
+>>> # ls -l /lib/firmware/dvb-fe-xc5000-1.1.fw
+>>> -rw-r--r-- 1 root root 12332 Aug 31 12:56 
+>>> /lib/firmware/dvb-fe-xc5000-1.1.fw
+>>>
+>>> If there is anything else I can provide (or try) to help debug, let me 
+>>> know,
+>>> ...Patrick
+>>  > kobject_add_internal failed for i2c-2 with -EEXIST, don't try to
+>>  > register things with the same name in the same directory.
+>>
+>> Ooh, that's nasty problem, this is new - and looks like it's i2c related.
+>>
+>> Why does this sound familiar? Anyone?
+> 
+> A cx18 user had a similar problem on one distro.  I remeber running it
+> down to a race condition in creating device nodes in one of the
+> "virtual" filesystems (/proc or /sys) the device was looking for a
+> paretn PCI device entry to hook onto, but it wasn't created at the time
+> so it tries to create it itself.  In the meantime some other part of the
+> kernel subsystem did actually finish creating the entry - so it exists
+> by the time the firmware load tries to make it.
+> 
+> As far as I could tell, it should be non-fatal (not an Oops or panic),
+> but if the driver gives up on -EEXIST then things won't work obviously.
+> 
+> I never resolved the problem for the user.  I think some kernel change
+> outside of cx18 resolved it.  That's all the details I have.
+> 
+> Regards,
+> Andy
+> 
 
-> > I'd be very happy to try out your patch for Kaffeine and give feedback
-> if
-> > you are ready to share it.
-> =
+So what are my options? Different kernels? Wait for newer kernels and 
+try again? Running 2.6.26 right now and I have 2.6.25 available, 
+however, I cannot go lower since my Thinkpad needs >=2.6.25 to run properly.
 
-> Sure, here it is (patch against current svn =
-
-> http://websvn.kde.org/branches/extragear/kde3/multimedia/)
-> =
-
-> Atm, s2api is only used for S/S2.
-> =
-
-> P.S.
-> In order to play H264/HD with kaffeine/xine, you need a fairly recent
-> ffmpeg =
-
-> and xine compiled with --with-external-ffmpeg configure option. (and of =
-
-> course a quite strong cpu, unlike my old athlon-xp-2600 :)
-> However, you can still record and/or broadcast without this update.
-
-Success! Many thanks Christophe.
-
-With the following:
-HVR4000 card
-S2API + multifrontend patch (hg clone http://linuxtv.org/hg/~stoth/s2-mfe)
-ffmpeg from SVN
-xine-lib from mercurial (compiled with --with-external-ffmpeg)
-Kaffeine from SVN + Christophe's S2API patch
-
-Scanning to find channels and tuning are working in Kaffeine for  DVB-T, DV=
-B-S and DVB-S2.
-S/S2 tuning and scanning is with S2API.
-
-My CPU (3ghz core 2 quad) is fast enough to show live HD video so I can wat=
-ch HD channels
-live inside Kaffeine, or record to disk and watch afterwards. ASTRA HD+ and=
- ANIXE HD are
-good. ARTE HD throws some errors and stutters a bit. Simul HD can crash Kaf=
-feine.
-
-I enabled the two lines in dvbstream.cpp which set modulation to QPSK inste=
-ad of
-QAM_AUTO for DVB-S.
-
-Settings: number of xine threads >=3D 4, de-interlacing(CTRL-I) at minimum =
-(is it useful for HD ?
-I don't know). The load isn't always distributed well across the 4 cpus -- =
-it can max out one
-of them sometimes, with the others almost idle. Perhaps this can be improve=
-d.
-
-Regards,
-Hans
-
--- =
-
-Release early, release often.
-
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
-http://www.gmx.net/de/go/multimessenger
+...Patrick
 
 _______________________________________________
 linux-dvb mailing list
