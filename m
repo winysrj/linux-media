@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1Kf0Vw-0007hc-17
-	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 00:56:21 +0200
-Date: Mon, 15 Sep 2008 00:55:38 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: =?ISO-8859-15?Q?Michael_M=FCller?= <mueller_michael@nikocity.de>
-In-Reply-To: <20080914082131.GA12258@mueller_michael.de>
-Message-ID: <alpine.LRH.1.10.0809150049000.7121@pub5.ifh.de>
-References: <20080914082131.GA12258@mueller_michael.de>
+From: Christophe Thommeret <hftom@free.fr>
+To: linux-dvb@linuxtv.org
+Date: Thu, 11 Sep 2008 02:01:48 +0200
+References: <48B8400A.9030409@linuxtv.org> <20080910161222.21640@gmx.net>
+	<48C85153.8010205@linuxtv.org>
+In-Reply-To: <48C85153.8010205@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="579716367-277567491-1221432555=:7121"
-Cc: pboettcher@dibcom.fr, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Elgato EyeTV Diversity patch
+Content-Disposition: inline
+Message-Id: <200809110201.48935.hftom@free.fr>
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,65 +16,73 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Le Thursday 11 September 2008 00:59:31 Andreas Oberritter, vous avez =E9cri=
+t=A0:
+> Hans Werner wrote:
+> >> So applications could know that these 2 frontends are exclusive.
+> >> That would not require any API change, but would have to be a rule
+> >> followed by
+> >> all drivers.
+> >
+> > Yes, if we keep to that rule then only frontends which can operate truly
+> > simultaneously should have a different adapter number.
+>
+> An adapter refers to a self-contained piece of hardware, whose parts can
+> not be used by a second adapter (e.g. adapter0/demux0 can not access the
+> data from adapter1/frontend1). In a commonly used setup it means that
+> adapter0 is the first initialized PCI card and adapter1 is the second.
+>
+> Now, if you want a device with two tuners that can be accessed
+> simultaneously to create a second adapter, then you would have to
+> artificially divide its components so that it looks like two independant
+> PCI cards. This might become very complicated and limits the functions
+> of the hardware.
+>
+> However, on a setup with multiple accessible tuners you can expect at
+> least the same amount of accessible demux devices on the same adapter
+> (and also dvr devices for that matter). There is an ioctl to connect a
+> frontend to a specific demux (DMX_SET_SOURCE).
+>
+> So, if there are demux0, frontend0 and frontend1, then the application
+> knows that it can't use both frontends simultaneously. Otherwise, if =
 
---579716367-277567491-1221432555=:7121
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by znsun1.ifh.de id m8EMtdWB014843
+> there are demux0, demux1, frontend0 and frontend1, then it can use both
+> of them (by using both demux devices and connecting them to the
+> frontends via the ioctl mentioned above).
 
-Hi Michael,
+Sounds logical. And that's why Kaffeine search for frontend/demux/dvr > 0 a=
+nd =
 
-On Sun, 14 Sep 2008, Michael M=FCller wrote:
-> Simply adding a new entry beside the Hauppauge Nova-T stick using the
-> new ids didn't work. Using trail and error I was able to find the
-> right combination. I also was able to activate the remote
-> control. Since the other devices that use stk7070pd_frontend_attach0
-> and stk7070pd_frontend_attach1 as frontends doesn't activate the RC I
-> needed to start a section for my stick. If it doesn't hurt the other
-> devices to have a RC defined perhaps you should combine them.
+uses demux1 with frontend1. (That was just a guess since i've never seen =
 
-Yes, please do that. And send the patch again with your Signed-off-by-lin=
-e=20
-and both file-changes created with hg diff of the v4l-dvb repository.
+neither any such devices nor comments/recommendations/rules about such case=
+).
 
-> Although it is stated that the diversity mode is currentl not
-> supported it seems to be necessary that both antenna plugs are
-> connected. I have an active antenna and I thought that without
-> diversity it would be the best to connect the antenna directly to the
-> adapter that I want to use. But in this combination 'scan' only
-> creates 'WARNING: >>> tuning failed!!!' messages. If I use the Y-cable
-> to connect the antenna to both adapters scan is able to find the TV
-> channels. Do you have an explanation for this behaviour?
+However, all dual tuners devices drivers i know expose the 2 frontends as =
 
-As you might have noticed, pluging the hardware results in having two=20
-/dev/dvb/adapters. Diversity is in fact disabled, but dual-mode (sometime=
-s=20
-referred as PVR) is activated by default.
+frontend0 in separate adapters. But all these devices seems to be USB.
 
-Diversity actually is the combination of the signal resulting from two=20
-different antennas (and tuners and demodulators). This is not yet=20
-supported by LinuxTV-drivers.
+The fact that Kaffeine works with the experimental hvr4000 driver indicates =
 
-> Are there plans to add support for the diversity mode?
+that this driver populates frontend1/demux1/dvr1 and then doesn't follow th=
+e =
 
-Yes.
+way you describe (since the tuners can't be used at once).
+I would like to hear from Steve on this point.
 
-Thanks for your patch,
-Patrick.
---579716367-277567491-1221432555=:7121
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+-- =
+
+Christophe Thommeret
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---579716367-277567491-1221432555=:7121--
