@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 202.7.249.79.dynamic.rev.aanet.com.au ([202.7.249.79]
-	helo=home.singlespoon.org.au)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <paulc@singlespoon.org.au>) id 1Kj8ls-0000Xj-Ly
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 10:33:54 +0200
-Message-ID: <48DC9DEA.3080707@singlespoon.org.au>
-Date: Fri, 26 Sep 2008 18:31:38 +1000
-From: Paul Chubb <paulc@singlespoon.org.au>
+Received: from n71.bullet.mail.sp1.yahoo.com ([98.136.44.36])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1Kdt97-0004me-1g
+	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 22:52:12 +0200
+Date: Thu, 11 Sep 2008 13:51:33 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb <linux-dvb@linuxtv.org>, urishk@yahoo.com
+In-Reply-To: <179729.56472.qm@web38808.mail.mud.yahoo.com>
 MIME-Version: 1.0
-To: allan k <sonofzev@iinet.net.au>
-References: <1222402903.8329.4.camel@media1>	
-	<48DC7EF0.3050205@singlespoon.org.au>
-	<1222411185.8172.2.camel@media1>
-In-Reply-To: <1222411185.8172.2.camel@media1>
-Cc: linux dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] unknown v4l symbols from dmesg on reboot
+Message-ID: <164710.35297.qm@web46108.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,230 +24,104 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Allan,
-          the other thing you could try would be to do an lsmod before 
-you reload and direct the output into a file. Do the same after the 
-reload and then do a diff on the two files. This should show if there 
-are modules being loaded the first time but not the second. Perhaps 
-there is a rule somewhere that is loading something.
+--- On Mon, 9/8/08, Uri Shkolnik <urishk@yahoo.com> wrote:
 
-BTW Gentoo is brilliant for keeping up with the latest kernel, that is 
-one thing I miss having moved to Ubuntu. I chose Gentoo to bootstrap my 
-knowledge but after a while I stopped learning and then it began getting 
-in the way:-P
+> First I would like to present myself (I'm new to this forum)
 
-Cheers Paul
-
-allan k wrote:
-> Thanks Paul 
->
-> Unfortuately removing all the drivers and doing 'make install' again,
-> didn't work. 
->
-> For the meantime, I have added the relevant modprobe -r and modprobe
-> lines into my /etc/conf.d/local.start file. This is a nice gentoo
-> facility that provides a workaround for problems like this
->
-> Hopefully before too long the driver I need will be in-kernel. 
->
-> cheers
->
-> Allan 
->
->
-> On Fri, 2008-09-26 at 16:19 +1000, Paul Chubb wrote:
->   
->> Hi Allan,
->> this is caused by mismatch between components of the v4l-dvb drivers. 
->> You see this behaviour when part of the compiled code is replaced by a 
->> new version but some of the old code is still there. Specifically you 
->> generally see this if the kernel has some of the v4l stuff compiled in 
->> and not as modules. The other cause that I personally have seen is where 
->> a driver is removed from the newer code because it is no longer needed 
->> however when you do the make install, the old driver remains. In that 
->> case what I did was to remove everything in the module video directory 
->> before doing a make install.
->>
->> HTH
->>
->> Cheers Paul
->>
->> allan k wrote:
->>     
->>> Hi 
->>>
->>> After upgrading to 2.6.26 and updating my v4l-dvb modules last night. I
->>> get alot of messages about unknown symbols and the driver fails to
->>> start. (at end of message)
->>>
->>> IF I do a modprobe -r on my bt878 and cx23885 modules and the reload
->>> them with modprobe everything works fine. 
->>>
->>> Is there a way to fix this?
->>>
->>> cheers
->>>
->>> Allan
->>>
->>> pci 0000:05:00.0: Boot video device
->>> videobuf_dma_sg: disagrees about version of symbol videobuf_alloc
->>> videobuf_dma_sg: Unknown symbol videobuf_alloc
->>> videobuf_dma_sg: disagrees about version of symbol
->>> videobuf_queue_core_init
->>> videobuf_dma_sg: Unknown symbol videobuf_queue_core_init
->>> videobuf_dma_sg: disagrees about version of symbol videobuf_alloc
->>> videobuf_dma_sg: Unknown symbol videobuf_alloc
->>> videobuf_dma_sg: disagrees about version of symbol
->>> videobuf_queue_core_init
->>> videobuf_dma_sg: Unknown symbol videobuf_queue_core_init
->>> videobuf_dvb: disagrees about version of symbol videobuf_read_stop
->>> videobuf_dvb: Unknown symbol videobuf_read_stop
->>> videobuf_dvb: disagrees about version of symbol videobuf_waiton
->>> videobuf_dvb: Unknown symbol videobuf_waiton
->>> videobuf_dvb: disagrees about version of symbol
->>> videobuf_queue_to_vmalloc
->>> videobuf_dvb: Unknown symbol videobuf_queue_to_vmalloc
->>> videobuf_dvb: disagrees about version of symbol videobuf_read_start
->>> videobuf_dvb: Unknown symbol videobuf_read_start
->>> videobuf_dma_sg: disagrees about version of symbol videobuf_alloc
->>> videobuf_dma_sg: Unknown symbol videobuf_alloc
->>> videobuf_dma_sg: disagrees about version of symbol
->>> videobuf_queue_core_init
->>> videobuf_dma_sg: Unknown symbol videobuf_queue_core_init
->>> Linux video capture interface: v2.00
->>> cx23885: disagrees about version of symbol videobuf_streamoff
->>> cx23885: Unknown symbol videobuf_streamoff
->>> cx23885: disagrees about version of symbol videobuf_poll_stream
->>> cx23885: Unknown symbol videobuf_poll_stream
->>> cx23885: disagrees about version of symbol videobuf_read_stop
->>> cx23885: Unknown symbol videobuf_read_stop
->>> cx23885: Unknown symbol videobuf_dma_free
->>> cx23885: disagrees about version of symbol videobuf_reqbufs
->>> cx23885: Unknown symbol videobuf_reqbufs
->>> cx23885: disagrees about version of symbol videobuf_waiton
->>> cx23885: Unknown symbol videobuf_waiton
->>> cx23885: disagrees about version of symbol videobuf_dqbuf
->>> cx23885: Unknown symbol videobuf_dqbuf
->>> cx23885: Unknown symbol videobuf_queue_sg_init
->>> cx23885: Unknown symbol videobuf_dvb_unregister
->>> cx23885: Unknown symbol videobuf_dma_unmap
->>> cx23885: disagrees about version of symbol videobuf_read_stream
->>> cx23885: Unknown symbol videobuf_read_stream
->>> cx23885: Unknown symbol videobuf_dvb_register
->>> cx23885: disagrees about version of symbol videobuf_querybuf
->>> cx23885: Unknown symbol videobuf_querybuf
->>> cx23885: disagrees about version of symbol videobuf_qbuf
->>> cx23885: Unknown symbol videobuf_qbuf
->>> cx23885: disagrees about version of symbol videobuf_read_one
->>> cx23885: Unknown symbol videobuf_read_one
->>> cx23885: disagrees about version of symbol videobuf_iolock
->>> cx23885: Unknown symbol videobuf_iolock
->>> cx23885: disagrees about version of symbol videobuf_streamon
->>> cx23885: Unknown symbol videobuf_streamon
->>> cx23885: disagrees about version of symbol videobuf_queue_cancel
->>> cx23885: Unknown symbol videobuf_queue_cancel
->>> cx23885: disagrees about version of symbol videobuf_mmap_mapper
->>> cx23885: Unknown symbol videobuf_mmap_mapper
->>> cx23885: Unknown symbol videobuf_to_dma
->>> cx23885: disagrees about version of symbol videobuf_mmap_free
->>> cx23885: Unknown symbol videobuf_mmap_free
->>> bttv: disagrees about version of symbol videobuf_streamoff
->>> bttv: Unknown symbol videobuf_streamoff
->>> bttv: disagrees about version of symbol videobuf_poll_stream
->>> bttv: Unknown symbol videobuf_poll_stream
->>> bttv: disagrees about version of symbol __videobuf_mmap_setup
->>> bttv: Unknown symbol __videobuf_mmap_setup
->>> bttv: Unknown symbol videobuf_dma_free
->>> bttv: disagrees about version of symbol videobuf_reqbufs
->>> bttv: Unknown symbol videobuf_reqbufs
->>> bttv: disagrees about version of symbol videobuf_waiton
->>> bttv: Unknown symbol videobuf_waiton
->>> bttv: disagrees about version of symbol videobuf_queue_is_busy
->>> bttv: Unknown symbol videobuf_queue_is_busy
->>> bttv: disagrees about version of symbol videobuf_dqbuf
->>> bttv: Unknown symbol videobuf_dqbuf
->>> bttv: disagrees about version of symbol videobuf_stop
->>> bttv: Unknown symbol videobuf_stop
->>> bttv: Unknown symbol videobuf_queue_sg_init
->>> bttv: Unknown symbol videobuf_dma_unmap
->>> bttv: disagrees about version of symbol videobuf_read_stream
->>> bttv: Unknown symbol videobuf_read_stream
->>> bttv: Unknown symbol videobuf_sg_alloc
->>> bttv: disagrees about version of symbol videobuf_querybuf
->>> bttv: Unknown symbol videobuf_querybuf
->>> bttv: disagrees about version of symbol videobuf_qbuf
->>> bttv: Unknown symbol videobuf_qbuf
->>> bttv: disagrees about version of symbol videobuf_read_one
->>> bttv: Unknown symbol videobuf_read_one
->>> bttv: disagrees about version of symbol videobuf_iolock
->>> bttv: Unknown symbol videobuf_iolock
->>> bttv: disagrees about version of symbol videobuf_streamon
->>> bttv: Unknown symbol videobuf_streamon
->>> bttv: disagrees about version of symbol videobuf_next_field
->>> bttv: Unknown symbol videobuf_next_field
->>> bttv: disagrees about version of symbol videobuf_mmap_mapper
->>> bttv: Unknown symbol videobuf_mmap_mapper
->>> bttv: Unknown symbol videobuf_to_dma
->>> bttv: disagrees about version of symbol videobuf_mmap_free
->>> bttv: Unknown symbol videobuf_mmap_free
->>> bttv: disagrees about version of symbol videobuf_streamoff
->>> bttv: Unknown symbol videobuf_streamoff
->>> bttv: disagrees about version of symbol videobuf_poll_stream
->>> bttv: Unknown symbol videobuf_poll_stream
->>> bttv: disagrees about version of symbol __videobuf_mmap_setup
->>> bttv: Unknown symbol __videobuf_mmap_setup
->>> bttv: Unknown symbol videobuf_dma_free
->>> bttv: disagrees about version of symbol videobuf_reqbufs
->>> bttv: Unknown symbol videobuf_reqbufs
->>> bttv: disagrees about version of symbol videobuf_waiton
->>> bttv: Unknown symbol videobuf_waiton
->>> bttv: disagrees about version of symbol videobuf_queue_is_busy
->>> bttv: Unknown symbol videobuf_queue_is_busy
->>> bttv: disagrees about version of symbol videobuf_dqbuf
->>> bttv: Unknown symbol videobuf_dqbuf
->>> bttv: disagrees about version of symbol videobuf_stop
->>> bttv: Unknown symbol videobuf_stop
->>> bttv: Unknown symbol videobuf_queue_sg_init
->>> bttv: Unknown symbol videobuf_dma_unmap
->>> bttv: disagrees about version of symbol videobuf_read_stream
->>> bttv: Unknown symbol videobuf_read_stream
->>> bttv: Unknown symbol videobuf_sg_alloc
->>> bttv: disagrees about version of symbol videobuf_querybuf
->>> bttv: Unknown symbol videobuf_querybuf
->>> bttv: disagrees about version of symbol videobuf_qbuf
->>> bttv: Unknown symbol videobuf_qbuf
->>> bttv: disagrees about version of symbol videobuf_read_one
->>> bttv: Unknown symbol videobuf_read_one
->>> bttv: disagrees about version of symbol videobuf_iolock
->>> bttv: Unknown symbol videobuf_iolock
->>> bttv: disagrees about version of symbol videobuf_streamon
->>> bttv: Unknown symbol videobuf_streamon
->>> bttv: disagrees about version of symbol videobuf_next_field
->>> bttv: Unknown symbol videobuf_next_field
->>> bttv: disagrees about version of symbol videobuf_mmap_mapper
->>> bttv: Unknown symbol videobuf_mmap_mapper
->>> bttv: Unknown symbol videobuf_to_dma
->>> bttv: disagrees about version of symbol videobuf_mmap_free
->>> bttv: Unknown symbol videobuf_mmap_free
->>>
->>>
->>>
->>> _______________________________________________
->>> linux-dvb mailing list
->>> linux-dvb@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>
->>>   
->>>       
->>     
->
->   
+A hearty Welcome from my side, and I hope you have a pleasant
+stay.  Please help yourself to the refreshments from the bar,
+and have a kipper.  ;-)
 
 
--- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
+> I don't know what should be done next, which API (and
+> sub-system) should be added first, second, ... (or not at
+> all?). I have my own views (CMMB getting much more audience
+> than DVB-H and ISDB-T more than the DAB family). 
+
+Of course, this will depend on your location -- in some parts
+of Europe, DVB-H is available as an (subscription) option and
+DAB is widespread from the provider-point-of-view.
+
+It is from my perspective in Europe that I write, where ISDB-T
+is not used, but DAB hardware is relatively difficult to find.
+Still, DAB services have been widely available for a longer
+time than DVB-T has been operating.
+
+
+> One point regarding Siano non-DVB offering - With Michael
+> Krufky's help, I'm trying to find a way to add
+> Siano's non-DVB(-T) offering into the kernel's code
+> base (till now we supply a proprietary sources directly to
+> our customers).
+
+When you say `customers', do you mean business customers,
+for example, TerraTec, which has incorporated your device
+into the Cinergy Piranha, which I have, and for which the
+TerraTec-supplied 'Doze media player can sort-of successfully
+play the available DAB stations?  Or do you mean, `end-users'
+(fnarr) such as myself, who want to use this device under
+Linux, for more than DVB-T?
+
+
+Here is my biggest question, which probably could be answered
+if I used a Real Web Browser.
+
+My Internet access is mostly through a SSH connection to a text-
+only web-browser on a trusted host, usually on a borrowed
+connection.  So I don't have access to Javascript links, or
+other non-text offerings -- and often I have no access at all,
+so I've sort of adopted a UUCP-like way of `working', for some
+values of `work'.
+
+
+In Mr. Krufky's work, I've seen reference to Siano-provided
+drivers as an alternative to those which he's painstakingly
+adapted and included in the mainstream.  Unfortunately for me,
+the link is to the main webpage, and from there, normal links
+lead nowhere interesting.  There are plenty of Javascript links
+that I can't follow.  So, I haven't found anything which might
+help me to answer my further questions myself, and for that,
+I must apologise.
+
+
+>  Of course it will be somewhat specific code
+> by the fact that it'll match Siano's chipset instead
+> of be more generic.
+
+I don't see this as a real problem, because I don't know
+how to weave a generic API from the DAB/DAB+ specs that
+I've read.
+
+
+I was hoping to find a diagram of the demodulation process
+for DAB streams, from the OFDM RF carrier (handled by the
+hardware) to the mp2/AAC+ audio decoding (in Linux, handled
+by a userspace software player).  Unfortunately, I could not
+find anything...
+
+Had I found something, I would ask you, if it is not obvious
+from freely-available code to customers, just where in the
+chain of decoding, your hardware outputs a stream.  I mean,
+if I supply a channel number such as 12C (VHF), would I be
+seeing the entire multiplex from which I could extract one
+particular service, or can I expect something more specific?
+
+
+I suspect that I would likely find that with different
+devices (of the few that are available), I'd be tapping
+into the demodulation-demultiplexing chain at different
+points, therefore needing to be able to tweak the devices
+differently appropriate to where I tap into the chain.
+
+
+But then, I really don't know what I'm talking about.
+
+
+thanks,
+barry bouwsma
+
+
+      
 
 
 _______________________________________________
