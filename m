@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx45.mail.ru ([194.67.23.236])
+Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KcYRw-00010r-7A
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 06:34:13 +0200
-Received: from f15.mail.ru (f15.mail.ru [194.67.57.45])
-	by mx45.mail.ru (mPOP.Fallback_MX) with ESMTP id 11170E010241
-	for <linux-dvb@linuxtv.org>; Mon,  8 Sep 2008 08:30:38 +0400 (MSD)
-Received: from mail by f15.mail.ru with local id 1KcYO7-000IeO-00
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 08:30:07 +0400
-From: Goga777 <goga777@bk.ru>
-To: LinuxTV DVB Mailing <linux-dvb@linuxtv.org>
-Mime-Version: 1.0
-Date: Mon, 08 Sep 2008 08:30:07 +0400
-In-Reply-To: <468e5d620809071325meb34081h51b7318c6b872e5b@mail.gmail.com>
-References: <468e5d620809071325meb34081h51b7318c6b872e5b@mail.gmail.com>
-Message-Id: <E1KcYO7-000IeO-00.goga777-bk-ru@f15.mail.ru>
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?SGF1cHBhdWdlIEhWUiA0MDAwIGluIFVidW50dSA4?=
-	=?koi8-r?b?LjA0?=
-Reply-To: Goga777 <goga777@bk.ru>
+	(envelope-from <liplianin@tut.by>) id 1KdtlE-0007xw-OA
+	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 23:31:45 +0200
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: linux-dvb@linuxtv.org
+Date: Fri, 12 Sep 2008 00:30:55 +0300
+References: <48C70F88.4050701@linuxtv.org>
+	<200809112024.24821.liplianin@tut.by>
+	<20080911200931.GA25626@gmail.com>
+In-Reply-To: <20080911200931.GA25626@gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200809120030.55445.liplianin@tut.by>
+Subject: Re: [linux-dvb] S2API simple szap-s2 utility
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,27 +21,18 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> In Ubuntu 8.04 with kernel 2.6.24-19 I will use a HVR 4000 card.
-> I have upgrade the firmware from http://www.steventoth.net/linux/cx24116/,
-> and the latest driver from http:/linuxtv.org/hg/v4l-dvb
-> 
-> In dmesg is the card not autodetected.
-> What is missing here?
-> Where can I find more info.
-
-
-I recommend to use the LiplianinDVB drivers for your hvr4000 card
-http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/liplianindvb/
-
-Goga
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+9yDTz8/C3cXOyckgz9QgMTEgU2VwdGVtYmVyIDIwMDggMjM6MDk6MzEgR3JlZ29pcmUgRmF2cmUg
+zsHQydPBzCjBKToKPiBPbiBUaHUsIFNlcCAxMSwgMjAwOCBhdCAwODoyNDoyNFBNICswMzAwLCBJ
+Z29yIE0uIExpcGxpYW5pbiB3cm90ZToKPiA+IEp1c3Qgbm93IHVwZGF0ZWQgdXRpbGl0eQo+Cj4g
+R3JlYXQsIGlzIGl0ICJoZyIgYXZhaWxhYmxlID8KPgo+IHRoYW5rIHlvdSB2ZXJ5IG11Y2gsCgpT
+b3JyeSA6LSkKRm9yZ290IHRvIHB1c2ggY2hhbmdlcyA6LSkKV2Fpc3RpbmcgNiBob3VycyA6LSkK
+Cmh0dHA6Ly9saXBsaWFuaW5kdmIuc291cmNlZm9yZ2UubmV0L2hnL3N6YXAtczIvCgotLSAKSWdv
+ciBNLiBMaXBsaWFuaW4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6
+Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
