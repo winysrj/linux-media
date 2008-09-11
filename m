@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n74.bullet.mail.sp1.yahoo.com ([98.136.44.186])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KepCi-0001Hi-6n
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 12:51:45 +0200
-Date: Sun, 14 Sep 2008 03:51:08 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: Markus Rechberger <mrechberger@gmail.com>
-In-Reply-To: <d9def9db0809131910h2ff43b9auf86eb340adb2fac8@mail.gmail.com>
+Received: from bar.sig21.net ([88.198.146.85])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <js@sig21.net>) id 1KdvCz-0004c8-5C
+	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 01:04:18 +0200
+Date: Fri, 12 Sep 2008 01:05:07 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Glenn McGrath <glenn.l.mcgrath@gmail.com>
+Message-ID: <20080911230507.GA10179@linuxtv.org>
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<1220993974.17270.22.camel@localhost>
+	<d9def9db0809091414t5953e696s521aa2f7525d182d@mail.gmail.com>
+	<1221007328.2647.53.camel@morgan.walls.org>
+	<141058d50809092040m6ccbcer2ff26cf109a63682@mail.gmail.com>
 MIME-Version: 1.0
-Message-ID: <391631.73780.qm@web46111.mail.sp1.yahoo.com>
+Content-Disposition: inline
+In-Reply-To: <141058d50809092040m6ccbcer2ff26cf109a63682@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
-Reply-To: free_beer_for_all@yahoo.com
+Subject: Re: [linux-dvb] How to measure API "goodness"?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,73 +32,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Sun, 9/14/08, Markus Rechberger <mrechberger@gmail.com> wrote:
+On Wed, Sep 10, 2008 at 01:40:03PM +1000, Glenn McGrath wrote:
+> On Wed, Sep 10, 2008 at 10:42 AM, Andy Walls <awalls@radix.net> wrote:
+> >
+> > What are the attributes to measure for comparing APIs or API proposals?
+> 
+> Well said, but can the goodness of an API even be measured ?
 
-> >>> (Also to be noted is that, some BSD chaps also have shown interest in
+Yeah, it seems much easier to measure the badness ;-)
+http://www.osnews.com/images/comics/wtfm.jpg
 
-Does BSD == NetBSD here?  Or are there other developments
-as well that I'm not aware of?
-
-
-> As for the em28xx driver I agreed with pushing all my code
-
-Do you want to have patches for your repository, like the
-following (just an example, based on the NetBSD SOC source)
-
---- em2880-dvb.c-LINUX  2008-09-03 06:47:08.000000000 +0200
-+++ em2880-dvb.c        2008-09-14 12:35:49.000000000 +0200
-@@ -18,6 +18,7 @@
-  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#if defined(__linux__)
- #include <linux/init.h>
- #include <linux/list.h>
- #include <linux/module.h>
-@@ -29,6 +30,7 @@
- #include <linux/dvb/frontend.h>
- #include <linux/usb.h>
- #include <linux/version.h>
-+#endif
- 
- #include "em28xx.h"
- 
-@@ -60,9 +62,11 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr
- #define xc3028_offset_atsc 1750000;
- 
- 
-+#if defined(__linux__)
- MODULE_DESCRIPTION("Empiatech em2880 DVB-T extension");
- MODULE_AUTHOR("Markus Rechberger <mrechberger@gmail.com>");
- MODULE_LICENSE("GPL");
-+#endif
- 
- 
- DRX3973DData_t DRX3973DData_g = {
-@@ -209,7 +213,11 @@ module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "em2880-dvb debug level (default off)");
- 
- #define dprintk(lvl, fmt, args...) if (debug >= lvl) do {\
-+#if defined(__linux__)
-        printk(fmt, ##args); } while (0)
-+#elif defined(__NetBSD__)
-+       printf(fmt, ##args); } while (0)
-+#endif
- 
- 
- static int em2880_set_alternate(struct em2880_dvb *dvb_dev);
-
-
-I think I've found something to play with...  (waits patiently
-for kernel panic, to have an excuse to reboot)
-
-
-thanks,
-barry bouwsma
-
-
-      
-
+Johannes
 
 _______________________________________________
 linux-dvb mailing list
