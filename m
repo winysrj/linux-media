@@ -1,14 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Mon, 1 Sep 2008 12:06:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Manu Abraham <abraham.manu@gmail.com>
-Message-ID: <20080901120601.044ddc30@mchehab.chehab.org>
-In-Reply-To: <48B9360D.7030303@gmail.com>
-References: <48B9360D.7030303@gmail.com>
-Mime-Version: 1.0
-Cc: v4l-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org,
-	linux-kernel@vger.kernel.org, akpm@linux-foundation.org
-Subject: Re: [linux-dvb] Merge multiproto tree
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1Kdlef-0002rY-FN
+	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 14:52:15 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7100DG97Q2O6V0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Thu, 11 Sep 2008 08:51:39 -0400 (EDT)
+Date: Thu, 11 Sep 2008 08:51:38 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <1221106230.2663.33.camel@pc10.localdom.local>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-id: <48C9145A.2020003@linuxtv.org>
+MIME-version: 1.0
+References: <48B8400A.9030409@linuxtv.org> <20080910161222.21640@gmx.net>
+	<48C85153.8010205@linuxtv.org> <200809110201.48935.hftom@free.fr>
+	<48C86DBD.6090108@linuxtv.org>
+	<1221095822.2663.46.camel@pc10.localdom.local>
+	<48C8898E.3040809@linuxtv.org>
+	<1221106230.2663.33.camel@pc10.localdom.local>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,42 +30,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello, Manu,
-
-On Sat, 30 Aug 2008, Manu Abraham wrote:
-
->  Hello Mauro,
->
->  Please pull from http://jusst.de/hg/multiproto_api_merge/
->  to merge the following Changesets from the multiproto tree.
-
-The need for supporting newer DTV protocols increases day by day, since when
-the first multiproto proposal started to be discussed, about two years ago.
-
-At the end of the last year, Steven send one email to the ML with a different 
-API proposal. Yet, people decided to wait for your work to be done. People then 
-pinged you, from time to time, asking about the completion of multiproto. All 
-the times, your answer were that multiproto were not ready yet for production.
-
-I'm aware that your solution seems to be more code-complete than Steven's 
-proposal.
-
-But the recent activity on the mailing list regarding his idea (and its, 
-so far, positive feedback) and the fact that I was anyway planning to 
-have a discussion about the future of the DVB-API at the Linux Plumbers 
-Conference 2008 are supporting me in my idea of post-poning such a pull to 
-a point in time shortly after this event.
-
-Cheers,
-Mauro
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+aGVybWFubiBwaXR0b24gd3JvdGU6Cj4gQW0gTWl0dHdvY2gsIGRlbiAxMC4wOS4yMDA4LCAyMjo1
+OSAtMDQwMCBzY2hyaWViIFN0ZXZlbiBUb3RoOgo+PiBoZXJtYW5uIHBpdHRvbiB3cm90ZToKPj4+
+IEhpLAo+Pj4KPj4+IEFtIE1pdHR3b2NoLCBkZW4gMTAuMDkuMjAwOCwgMjE6MDAgLTA0MDAgc2No
+cmllYiBTdGV2ZW4gVG90aDoKPj4+PiBDaHJpc3RvcGhlIFRob21tZXJldCB3cm90ZToKPj4+Pj4g
+TGUgVGh1cnNkYXkgMTEgU2VwdGVtYmVyIDIwMDggMDA6NTk6MzEgQW5kcmVhcyBPYmVycml0dGVy
+LCB2b3VzIGF2ZXogw6ljcml0IDoKPj4+Pj4+IEhhbnMgV2VybmVyIHdyb3RlOgo+Pj4+Pj4+PiBT
+byBhcHBsaWNhdGlvbnMgY291bGQga25vdyB0aGF0IHRoZXNlIDIgZnJvbnRlbmRzIGFyZSBleGNs
+dXNpdmUuCj4+Pj4+Pj4+IFRoYXQgd291bGQgbm90IHJlcXVpcmUgYW55IEFQSSBjaGFuZ2UsIGJ1
+dCB3b3VsZCBoYXZlIHRvIGJlIGEgcnVsZQo+Pj4+Pj4+PiBmb2xsb3dlZCBieQo+Pj4+Pj4+PiBh
+bGwgZHJpdmVycy4KPj4+Pj4+PiBZZXMsIGlmIHdlIGtlZXAgdG8gdGhhdCBydWxlIHRoZW4gb25s
+eSBmcm9udGVuZHMgd2hpY2ggY2FuIG9wZXJhdGUgdHJ1bHkKPj4+Pj4+PiBzaW11bHRhbmVvdXNs
+eSBzaG91bGQgaGF2ZSBhIGRpZmZlcmVudCBhZGFwdGVyIG51bWJlci4KPj4+Pj4+IEFuIGFkYXB0
+ZXIgcmVmZXJzIHRvIGEgc2VsZi1jb250YWluZWQgcGllY2Ugb2YgaGFyZHdhcmUsIHdob3NlIHBh
+cnRzIGNhbgo+Pj4+Pj4gbm90IGJlIHVzZWQgYnkgYSBzZWNvbmQgYWRhcHRlciAoZS5nLiBhZGFw
+dGVyMC9kZW11eDAgY2FuIG5vdCBhY2Nlc3MgdGhlCj4+Pj4+PiBkYXRhIGZyb20gYWRhcHRlcjEv
+ZnJvbnRlbmQxKS4gSW4gYSBjb21tb25seSB1c2VkIHNldHVwIGl0IG1lYW5zIHRoYXQKPj4+Pj4+
+IGFkYXB0ZXIwIGlzIHRoZSBmaXJzdCBpbml0aWFsaXplZCBQQ0kgY2FyZCBhbmQgYWRhcHRlcjEg
+aXMgdGhlIHNlY29uZC4KPj4+Pj4+Cj4+Pj4+PiBOb3csIGlmIHlvdSB3YW50IGEgZGV2aWNlIHdp
+dGggdHdvIHR1bmVycyB0aGF0IGNhbiBiZSBhY2Nlc3NlZAo+Pj4+Pj4gc2ltdWx0YW5lb3VzbHkg
+dG8gY3JlYXRlIGEgc2Vjb25kIGFkYXB0ZXIsIHRoZW4geW91IHdvdWxkIGhhdmUgdG8KPj4+Pj4+
+IGFydGlmaWNpYWxseSBkaXZpZGUgaXRzIGNvbXBvbmVudHMgc28gdGhhdCBpdCBsb29rcyBsaWtl
+IHR3byBpbmRlcGVuZGFudAo+Pj4+Pj4gUENJIGNhcmRzLiBUaGlzIG1pZ2h0IGJlY29tZSB2ZXJ5
+IGNvbXBsaWNhdGVkIGFuZCBsaW1pdHMgdGhlIGZ1bmN0aW9ucwo+Pj4+Pj4gb2YgdGhlIGhhcmR3
+YXJlLgo+Pj4+Pj4KPj4+Pj4+IEhvd2V2ZXIsIG9uIGEgc2V0dXAgd2l0aCBtdWx0aXBsZSBhY2Nl
+c3NpYmxlIHR1bmVycyB5b3UgY2FuIGV4cGVjdCBhdAo+Pj4+Pj4gbGVhc3QgdGhlIHNhbWUgYW1v
+dW50IG9mIGFjY2Vzc2libGUgZGVtdXggZGV2aWNlcyBvbiB0aGUgc2FtZSBhZGFwdGVyCj4+Pj4+
+PiAoYW5kIGFsc28gZHZyIGRldmljZXMgZm9yIHRoYXQgbWF0dGVyKS4gVGhlcmUgaXMgYW4gaW9j
+dGwgdG8gY29ubmVjdCBhCj4+Pj4+PiBmcm9udGVuZCB0byBhIHNwZWNpZmljIGRlbXV4IChETVhf
+U0VUX1NPVVJDRSkuCj4+Pj4+Pgo+Pj4+Pj4gU28sIGlmIHRoZXJlIGFyZSBkZW11eDAsIGZyb250
+ZW5kMCBhbmQgZnJvbnRlbmQxLCB0aGVuIHRoZSBhcHBsaWNhdGlvbgo+Pj4+Pj4ga25vd3MgdGhh
+dCBpdCBjYW4ndCB1c2UgYm90aCBmcm9udGVuZHMgc2ltdWx0YW5lb3VzbHkuIE90aGVyd2lzZSwg
+aWYgCj4+Pj4+PiB0aGVyZSBhcmUgZGVtdXgwLCBkZW11eDEsIGZyb250ZW5kMCBhbmQgZnJvbnRl
+bmQxLCB0aGVuIGl0IGNhbiB1c2UgYm90aAo+Pj4+Pj4gb2YgdGhlbSAoYnkgdXNpbmcgYm90aCBk
+ZW11eCBkZXZpY2VzIGFuZCBjb25uZWN0aW5nIHRoZW0gdG8gdGhlCj4+Pj4+PiBmcm9udGVuZHMg
+dmlhIHRoZSBpb2N0bCBtZW50aW9uZWQgYWJvdmUpLgo+Pj4+PiBTb3VuZHMgbG9naWNhbC4gQW5k
+IHRoYXQncyB3aHkgS2FmZmVpbmUgc2VhcmNoIGZvciBmcm9udGVuZC9kZW11eC9kdnIgPiAwIGFu
+ZCAKPj4+Pj4gdXNlcyBkZW11eDEgd2l0aCBmcm9udGVuZDEuIChUaGF0IHdhcyBqdXN0IGEgZ3Vl
+c3Mgc2luY2UgaSd2ZSBuZXZlciBzZWVuIAo+Pj4+PiBuZWl0aGVyIGFueSBzdWNoIGRldmljZXMg
+bm9yIGNvbW1lbnRzL3JlY29tbWVuZGF0aW9ucy9ydWxlcyBhYm91dCBzdWNoIGNhc2UpLgo+Pj4+
+Pgo+Pj4+PiBIb3dldmVyLCBhbGwgZHVhbCB0dW5lcnMgZGV2aWNlcyBkcml2ZXJzIGkga25vdyBl
+eHBvc2UgdGhlIDIgZnJvbnRlbmRzIGFzIAo+Pj4+PiBmcm9udGVuZDAgaW4gc2VwYXJhdGUgYWRh
+cHRlcnMuIEJ1dCBhbGwgdGhlc2UgZGV2aWNlcyBzZWVtcyB0byBiZSBVU0IuCj4+Pj4+Cj4+Pj4+
+IFRoZSBmYWN0IHRoYXQgS2FmZmVpbmUgd29ya3Mgd2l0aCB0aGUgZXhwZXJpbWVudGFsIGh2cjQw
+MDAgZHJpdmVyIGluZGljYXRlcyAKPj4+Pj4gdGhhdCB0aGlzIGRyaXZlciBwb3B1bGF0ZXMgZnJv
+bnRlbmQxL2RlbXV4MS9kdnIxIGFuZCB0aGVuIGRvZXNuJ3QgZm9sbG93IHRoZSAKPj4+Pj4gd2F5
+IHlvdSBkZXNjcmliZSAoc2luY2UgdGhlIHR1bmVycyBjYW4ndCBiZSB1c2VkIGF0IG9uY2UpLgo+
+Pj4+PiBJIHdvdWxkIGxpa2UgdG8gaGVhciBmcm9tIFN0ZXZlIG9uIHRoaXMgcG9pbnQuCj4+Pj4+
+Cj4+Pj4+Cj4+Pj4gQ29ycmVjdCwgZnJvbnRlbmQxLCBkZW11eDEsIGR2cjEgZXRjLiBBbGwgb24g
+dGhlIHNhbWUgYWRhcHRlci4gVGhlIAo+Pj4+IGRyaXZlciBhbmQgbXVsdGktZnJvbnRlbmQgcGF0
+Y2hlcyBtYW5hZ2UgZXhjbHVzaXZlIGFjY2VzcyB0byB0aGUgc2luZ2xlIAo+Pj4+IGludGVybmFs
+IHJlc291cmNlLgo+Pj4+Cj4+PiB0aGVuIHBsZWFzZSBleHBsYWluIHdoYXQgaXMgYWJvdXQgdGhl
+IGFuYWxvZyB1c2FnZSwgd2hpY2ggY2FuIGFsd2F5cyBiZQo+Pj4gZmlyc3QgYW5kIGRvbid0IHRl
+bGwgaXQgaGFzIHRvIHN0YXkgYmFjaywgc2luY2UgeW91IGFsd2F5cyBzaXQgb24gdGhhdAo+Pj4g
+YnJpZGdlIGFuZCBlbHNlIGNvbWUgbm93aGVyZSAuLi4KPj4gSGVybWFubiwgSSdtIG5vdCBzdXJl
+IEkgdW5kZXJzdGFuZCB5b3VyIHF1ZXN0aW9uLCBidXQgSSdsbCB0cnkuCj4+Cj4+IFRoaXMgaGFz
+IG5vdGhpbmcgdG8gZG8gd2l0aCBhbmFsb2csIEkgbmV2ZXIgc3VnZ2VzdGVkIHRoZXNlIHBhdGNo
+ZXMgCj4+IGVmZmVjdGVkIGFuYWxvZy4KPj4KPj4gRWl0aGVyIHlvdSdyZSBjb25mdXNlZCwgb3Ig
+SSBhbSA6KQo+Pgo+PiBUaGUgbXVsdGlmcm9udGVuZCBwYXRjaGVzIGFyZSByZWxhdGVkIHRvIERW
+QiBvbmx5LCB0aGUgYW5hbG9nIHBvcnRzIG9uIAo+PiB0aGUgY3g4OCByZW1haW4gdW50b3VjaGVk
+LCB1bmNoYW5nZWQuCj4gCj4gU3RldmUsCj4gCj4gbGlrZWx5IHdlIHNob3VsZCBoYXZlIGFsbCBz
+b21lIHNsZWVwIHByZXZpb3VzbHkgYWdhaW4uCgpIZXJtYW5uLCBJIGhhdmUgcHJvYmxlbXMgdHJ5
+aW5nIHRvIHVuZGVyc3RhbmQgeW91ciB3cml0dGVuIEVuZ2xpc2gsIEkgZG8gCm5vdCBhbHdheXMg
+dW5kZXJzdGFuZCB3aGF0IHlvdSB3cml0ZS4gVGhpcyBsZWFkcyB0byBjb25mdXNpb24uCgo+IAo+
+IEJ1dCBJJ20gcXVpdCBzdXJlIHdoYXQgSSd0YWxraW5nIGFib3V0LgoKT2YgY291cnNlIHlvdSBk
+bywgSSBuZXZlciBzdWdnZXN0ZWQgdGhhdCB5b3Ugd2VyZSBub3QuCgo+IAo+IElmIHVzaW5nIHRo
+ZSBkbWEgZW5naW5lcyBvZiB0aGUgc2FhNzEzeCBhdCBvbmNlLCB5b3UgY2FuJ3Qgc2F5IGFuYWxv
+Zwo+IGFuZCBkdmIgYXJlIG5vdCByZWxhdGVkIQoKT2gsIEkgdW5kZXJzdGFuZCB0aGUgdG9waWMg
+eW91IGFyZSBtZW50aW9uaW5nIG5vdy4KCkkgaGF2ZSBubyBleHBlcmllbmNlIHdpdGggdGhlIDcx
+MzQgYW5kIEknbSBub3QgYXdhcmUgb2YgaXQncyBoYXJkd2FyZSAKY2FwYWJpbGl0aWVzLCBvciBs
+YWNrIG9mLiBJJ20gbm90IGZpdCB0byBjb21tZW50IG9uIHdoYXQgcmVzb3VyY2VzIGNhbiAKYmUg
+c2hhcmVkIGFuZCB0aGUgaW1wbGljYXRpb25zIG9mLgoKV2hhdCBJIGNhbiBzYXkgd2l0aCBjb25m
+aWRlbmNlLCBpcyB0aGF0IGlmIGl0IGhhcyBhIGRpZ2l0YWwgdHJhbnNwb3J0IApwb3J0LCBhbmQg
+aWYgc29tZSBvZiB0aGUgY2FyZHMgc2hhcmUgdGhpcyBwb3J0IHdpdGggRFZCLVQgYW5kIERWQi1T
+IHRoZW4gCnRoZSBtdWx0aXBsZS1mcm9udGVuZCBwYXRjaGVzIHdpbGwgcHJvYmFibHkgaGVscCB3
+aXRoIHRob3NlIGRlc2lnbnMuIApSYXRoZXIgdGhhbiBoYXZpbmcgdG8gc3BlY2lmeSBEVkItVCBv
+ciBEVkItUyBkdXJpbmcgbW9kdWxlIGxvYWQgdGltZSwgCnRoZSBwYXRjaGVzIHdpbGwgbmVnb3Rp
+YXRlIHVzZXIgYWNjZXNzIGFuZCBhbGxvdyBib3RoIHRvIGJlIHByZXNlbnQuCgpUaGlzIG1heSBi
+ZSBhIGdvb2QgZmVhdHVyZSBmb3IgdGhlIDcxMzQsIGl0IG1heSBub3QuCgo+IAo+IFRoZXJlIGFy
+ZSBjbGVhciByZXN0cmljdGlvbnMgYW5kIHlvdSBjYW4gY2F1c2UgbWFqb3IgZGFtbWFnZSBpZ25v
+cmluZwo+IHRoZW0uCgpOb2JvZHkgaXMgaWdub3JpbmcgdGhlbSwgdGhhbmsgeW91IGZvciByYWlz
+aW5nIHRoZSBpc3N1ZS4KCi0gU3RldmUKCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0
+di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGlu
+dXgtZHZi
