@@ -1,25 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m88KIWTa017032
-	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 16:18:32 -0400
-Received: from smtp-vbr15.xs4all.nl (smtp-vbr15.xs4all.nl [194.109.24.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m88KIJ38003663
-	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 16:18:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@nokia.com>
-Date: Mon, 8 Sep 2008 22:18:14 +0200
-References: <48C55737.4080804@nokia.com>
-In-Reply-To: <48C55737.4080804@nokia.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8BGEA7s032523
+	for <video4linux-list@redhat.com>; Thu, 11 Sep 2008 12:14:11 -0400
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8BGE5K9022892
+	for <video4linux-list@redhat.com>; Thu, 11 Sep 2008 12:14:05 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so144698ywb.81
+	for <video4linux-list@redhat.com>; Thu, 11 Sep 2008 09:14:05 -0700 (PDT)
+Message-ID: <fa4052ef0809110914x521b3a6cta32f907d1782cc30@mail.gmail.com>
+Date: Thu, 11 Sep 2008 12:14:04 -0400
+From: Shane <gnome42@gmail.com>
+To: video4linux-list <video4linux-list@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200809082218.14332.hverkuil@xs4all.nl>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
-	"Zutshi Vimarsh \(Nokia-D-MSW/Helsinki\)" <vimarsh.zutshi@nokia.com>
-Subject: Re: [PATCH 0/7] V4L changes for OMAP 3 camera
+Content-Type: multipart/mixed;
+	boundary="----=_Part_20880_16683477.1221149644933"
+Subject: [PATCH] spca561: add USB_DIR_OUT to reg_w_val()
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,60 +26,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Sakari,
+------=_Part_20880_16683477.1221149644933
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Monday 08 September 2008 18:47:51 Sakari Ailus wrote:
-> Hi,
->
-> This patchset extends V4L2 interface and especially v4l2-int-if
-> somewhat. The new functionality is there to support the OMAP 3 camera
-> driver.
->
-> Our aim is to get these patches into v4l-dvb tree and further to
-> Linus' tree. The OMAP 3 camera driver, which is dependent on these
-> patches, is targeted to linux-omap tree through
-> linux-omap@vger.kernel.org mailing list. It is unlikely that it would
-> be useful (or even compile) without many of the changes in linux-omap
-> tree.
->
-> The patches apply against v4l-dvb, Linus' tree or linux-omap.
->
-> Comments will be appreciated. :-)
+Looks like USB_DIR_OUT was missing in reg_w_val(...)
 
-Well, here they are:
+--- a/drivers/media/video/gspca/spca561.c
++++ b/drivers/media/video/gspca/spca561.c
+@@ -152,7 +152,7 @@ static void reg_w_val(struct usb_device *dev,
+__u16 index, __u8 value)
 
-Patch 1/7 seems to be missing in action. Can you post that one again?
+        ret = usb_control_msg(dev, usb_sndctrlpipe(dev, 0),
+                              0,                /* request */
+-                             USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++                             USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+                              value, index, NULL, 0, 500);
+        PDEBUG(D_USBO, "reg write: 0x%02x:0x%02x", index, value);
+        if (ret < 0)
 
-Patch 2/7: Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-Patch 3/7: Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Shane Shrybman
 
-Patch 4/7: I'm having problems with this one. Shouldn't it be better to 
-make this a driver-private ioctl? And then that ioctl can actually 
-return a struct containing those settings, rather than a eeprom dump. 
-It is highly device specific, after all, so let the device extract and 
-return the useful information instead of requiring an application to do 
-that.
+------=_Part_20880_16683477.1221149644933
+Content-Type: plain/text; name=spca561_add_USB_DIR_OUT_to_reg_w_val.diff
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fkzkqgrt0
+Content-Disposition: attachment;
+	filename=spca561_add_USB_DIR_OUT_to_reg_w_val.diff
 
-Patch 5/7: Please add the explanation regarding possible transitions as 
-comments to the header. Also, why is the RESUME needed? You have three 
-states: off, standby, on. Resume is not a state, it is a state 
-transition. It seems out of place.
-
-Patch 6/7: Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-Patch 7/7: Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-Note: as I have stated in earlier posts, I'm not happy about having 
-multiple interfaces for sensors (soc-camera vs v4l2-int-device). 
-However, since there is no replacement available at the moment I'm not 
-going to hold back this effort.
-
-Regards,
-
-	Hans
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2Evc3BjYTU2MS5jIGIvZHJpdmVy
+cy9tZWRpYS92aWRlby9nc3BjYS9zcGNhNTYxLmMKaW5kZXggOTVmY2ZjYi4uYWQ0OTkzOSAxMDA2
+NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS9zcGNhNTYxLmMKKysrIGIvZHJpdmVy
+cy9tZWRpYS92aWRlby9nc3BjYS9zcGNhNTYxLmMKQEAgLTE1Miw3ICsxNTIsNyBAQCBzdGF0aWMg
+dm9pZCByZWdfd192YWwoc3RydWN0IHVzYl9kZXZpY2UgKmRldiwgX191MTYgaW5kZXgsIF9fdTgg
+dmFsdWUpCiAKIAlyZXQgPSB1c2JfY29udHJvbF9tc2coZGV2LCB1c2Jfc25kY3RybHBpcGUoZGV2
+LCAwKSwKIAkJCSAgICAgIDAsCQkvKiByZXF1ZXN0ICovCi0JCQkgICAgICBVU0JfVFlQRV9WRU5E
+T1IgfCBVU0JfUkVDSVBfREVWSUNFLAorCQkJICAgICAgVVNCX0RJUl9PVVQgfCBVU0JfVFlQRV9W
+RU5ET1IgfCBVU0JfUkVDSVBfREVWSUNFLAogCQkJICAgICAgdmFsdWUsIGluZGV4LCBOVUxMLCAw
+LCA1MDApOwogCVBERUJVRyhEX1VTQk8sICJyZWcgd3JpdGU6IDB4JTAyeDoweCUwMngiLCBpbmRl
+eCwgdmFsdWUpOwogCWlmIChyZXQgPCAwKQo=
+------=_Part_20880_16683477.1221149644933
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_20880_16683477.1221149644933--
