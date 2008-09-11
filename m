@@ -1,27 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m811t0xJ005882
-	for <video4linux-list@redhat.com>; Sun, 31 Aug 2008 21:55:00 -0400
-Received: from mail-in-06.arcor-online.net (mail-in-06.arcor-online.net
-	[151.189.21.46])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m811slmO011310
-	for <video4linux-list@redhat.com>; Sun, 31 Aug 2008 21:54:48 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Markus Rechberger <mrechberger@gmail.com>
-In-Reply-To: <d9def9db0808311802s3e658f3eha93159f1a8beb3ba@mail.gmail.com>
-References: <BAY126-W51445FEADC96EC0484E7ABE35D0@phx.gbl>
-	<d9def9db0808311511p51df8befm2cbd641fc4d0a88f@mail.gmail.com>
-	<1220221611.2669.55.camel@pc10.localdom.local>
-	<d9def9db0808311536l3d35f6a4y677d535536e4cf97@mail.gmail.com>
-	<93b129120808311755r2a302043ubb41243134f00a14@mail.gmail.com>
-	<d9def9db0808311802s3e658f3eha93159f1a8beb3ba@mail.gmail.com>
-Content-Type: text/plain
-Date: Mon, 01 Sep 2008 03:52:24 +0200
-Message-Id: <1220233944.2669.104.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Lee Alkureishi <lee_alkureishi@hotmail.com>
-Subject: Re: em2820, Tena TNF-9533 and V4L
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8BGEJdb032683
+	for <video4linux-list@redhat.com>; Thu, 11 Sep 2008 12:14:20 -0400
+Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8BGE907022959
+	for <video4linux-list@redhat.com>; Thu, 11 Sep 2008 12:14:09 -0400
+Received: by yx-out-2324.google.com with SMTP id 31so146750yxl.81
+	for <video4linux-list@redhat.com>; Thu, 11 Sep 2008 09:14:09 -0700 (PDT)
+Message-ID: <fa4052ef0809110914s2a67f90n55ad014ff2857950@mail.gmail.com>
+Date: Thu, 11 Sep 2008 12:14:09 -0400
+From: Shane <gnome42@gmail.com>
+To: video4linux-list <video4linux-list@redhat.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_20882_9459528.1221149649521"
+Subject: [PATCH] spca561: while balance -> white balance typo
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,37 +26,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+------=_Part_20882_9459528.1221149649521
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Am Montag, den 01.09.2008, 03:02 +0200 schrieb Markus Rechberger:
-> On Mon, Sep 1, 2008 at 2:55 AM, Lee Alkureishi
-> <lee_alkureishi@hotmail.com> wrote:
-> > Hi Markus and Hermann,
-> >
-> > Thanks for the replies. Yes, that is exactly the device that I have. I
-> > notice that on that specification page, it says both NTSC and PAL are
-> > supported. Is that possible? If so, should I go ahead and replace the
-> > driver, or is this device not going to work in the US?
-> >
-> 
-> let me see I will check back with KWorld.
-> 
-> Markus
-> 
+--- a/drivers/media/video/gspca/spca561.c
++++ b/drivers/media/video/gspca/spca561.c
+@@ -1064,7 +1064,7 @@ static struct ctrl sd_ctrls_12a[] = {
+            {
+                .id = V4L2_CID_DO_WHITE_BALANCE,
+                .type = V4L2_CTRL_TYPE_INTEGER,
+-               .name = "While Balance",
++               .name = "White Balance",
+                .minimum = WHITE_MIN,
+                .maximum = WHITE_MAX,
+                .step = 1,
 
-My, that is the usual since ever before global silicon tuners did
-appear.
 
-It is even far below Philips ME MultiEurope MK3s, 4s, 5s ...
+Shane Shrybman
 
-Nothing to check there, old very well known chips are in there baked
-together with some "other" discretes including the poorer home brewed
-SAW filter. 
+------=_Part_20882_9459528.1221149649521
+Content-Type: plain/text; name=spca561_while_balance_typo.diff
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fkzkulzm0
+Content-Disposition: attachment; filename=spca561_while_balance_typo.diff
 
-Cheers,
-Hermann
-
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2Evc3BjYTU2MS5jIGIvZHJpdmVy
+cy9tZWRpYS92aWRlby9nc3BjYS9zcGNhNTYxLmMKaW5kZXggYWQ0OTkzOS4uYzBhOTAzMCAxMDA2
+NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS9zcGNhNTYxLmMKKysrIGIvZHJpdmVy
+cy9tZWRpYS92aWRlby9nc3BjYS9zcGNhNTYxLmMKQEAgLTEwNjQsNyArMTA2NCw3IEBAIHN0YXRp
+YyBzdHJ1Y3QgY3RybCBzZF9jdHJsc18xMmFbXSA9IHsKIAkgICAgewogCQkuaWQgPSBWNEwyX0NJ
+RF9ET19XSElURV9CQUxBTkNFLAogCQkudHlwZSA9IFY0TDJfQ1RSTF9UWVBFX0lOVEVHRVIsCi0J
+CS5uYW1lID0gIldoaWxlIEJhbGFuY2UiLAorCQkubmFtZSA9ICJXaGl0ZSBCYWxhbmNlIiwKIAkJ
+Lm1pbmltdW0gPSBXSElURV9NSU4sCiAJCS5tYXhpbXVtID0gV0hJVEVfTUFYLAogCQkuc3RlcCA9
+IDEsCg==
+------=_Part_20882_9459528.1221149649521
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_20882_9459528.1221149649521--
