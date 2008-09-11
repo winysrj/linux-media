@@ -1,22 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1KbGMz-0005wS-I1
-	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 17:03:39 +0200
-Received: from [91.149.190.211] (account liplianin@tut.by HELO
-	useri.liplianin.net)
-	by speedy.tutby.com (CommuniGate Pro SMTP 5.1.12)
-	with ESMTPA id 48045095 for linux-dvb@linuxtv.org;
-	Thu, 04 Sep 2008 18:03:22 +0300
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org
-Date: Thu, 4 Sep 2008 18:03:05 +0300
-References: <48BF6A09.3020205@linuxtv.org>
-In-Reply-To: <48BF6A09.3020205@linuxtv.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809041803.05495.liplianin@tut.by>
-Subject: Re: [linux-dvb] S2API - First release
+From: Andy Walls <awalls@radix.net>
+To: Patrick Boisvenue <patrbois@magma.ca>
+In-Reply-To: <48C86857.70603@magma.ca>
+References: <48C659C5.8000902@magma.ca> <48C68DC5.1050400@linuxtv.org>
+	<48C73161.7090405@magma.ca>  <48C732DE.2030902@linuxtv.org>
+	<1221087304.2648.7.camel@morgan.walls.org>  <48C86857.70603@magma.ca>
+Date: Wed, 10 Sep 2008 21:10:47 -0400
+Message-Id: <1221095447.2648.69.camel@morgan.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,64 +17,124 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgNCBTZXB0ZW1iZXIgMjAwOCAwNzo1NDozMyBTdGV2ZW4gVG90aCDOwdDJ
-08HMKMEpOgo+IEhlbGxvLAo+Cj4gSXQncyBiZWVuIGEgY3JhenkgZmV3IGRheXMsIHBsZWFzZSBm
-b3JnaXZlIG15IHNob3J0IGFic2VuY2UuCj4KPiBXaGF0IGhhdmUgSSBiZWVuIGRvaW5nPyBXZWxs
-LCByYXRoZXIgdGhhbiBzcGVuZGluZyB0aW1lIGRpc2N1c3NpbmcgYSBuZXcKPiBTMkFQSSBvbiB0
-aGUgbWFpbGluZyBsaXN0LCBJIHdhbnRlZCB0byBhY3R1YWxseSBwcm9kdWNlIGEgd29ya2luZyBz
-ZXJpZXMKPiBvZiBwYXRjaGVzIHRoYXQga2VybmVsIGFuZCBhcHBsaWNhdGlvbiBkZXZlbG9wZXJz
-IGNvdWxkIGJlZ2luIHRvIHRlc3QuCj4KPiBIZXJlJ3Mgd2hlcmUgYWxsIG9mIHRoZSBuZXcgUzJB
-UEkgcGF0Y2hlcyB3aWxsIG5vdyBhcHBlYXI6Cj4KPiBodHRwOi8vbGludXh0di5vcmcvaGcvfnN0
-b3RoL3MyCj4KPiBJbiBhZGRpdGlvbiwgaGVyZSdzIGlzIGEgdXNlcmxhbmQgYXBwbGljYXRpb24g
-dGhhdCBkZW1vbnN0cmF0ZXMgdHVuaW5nCj4gdGhlIGN1cnJlbnQgRFZCLVMvVC9DIGFuZCBVUyBB
-VFNDIG1vZHVsYXRpb25zIHR5cGVzIHVzaW5nIHRoZSBuZXcgQVBJLgo+ICh3d3cuc3RldmVudG90
-aC5uZXQvbGludXgvczIvdHVuZS12MC4wLjEudGd6KQo+Cj4gQSB0dW5pbmcgZGVtbyBhcHA/IFdo
-YXQ/IE9idmlvdXNseSwgdHVuaW5nIG9sZGVyIG1vZHVsYXRpb24gdHlwZXMgdmlhCj4gdGhlIG5l
-dyBBUEkgaXNuJ3QgYSByZXF1aXJlbWVudHMsIGJ1dCBpdCdzIGEgdXNlZnVsIHZhbGlkYXRpb24g
-ZXhlcmNpc2UKPiBmb3IgdGhlIG5ldyBTMkFQSS4gV2hhdCBfSVNfIGltcG9ydGFudCBpcy4uLi4u
-IHRoYXQgaXQgYWxzbyBkZW1vbnN0cmF0ZXMKPiB1c2luZyB0aGUgc2FtZSB0dW5pbmcgbWVjaGFu
-aXNtIHRvIHR1bmUgRFZCLVMyIDhQU0sgLyBOQkMtUVBTSwo+IG1vZHVsYXRpb24gdHlwZXMsIGFu
-ZCBhbHNvIGhhcyBydWRpbWVudGFyeSBJU0RCLVQgc3VwcG9ydCBmb3IgYW55Cj4gZGV2ZWxvcGVy
-cyBzcGVjaWZpY2FsbHkgaW50ZXJlc3RlZC4KPgo+IFRoaXMgUzJBUEkgdHJlZSBhbHNvIGNvbnRh
-aW5zIHN1cHBvcnQgZm9yIHRoZSBjeDI0MTE2IGRlbW9kdWxhdG9yCj4gZHJpdmVyLCBhbmQgdGhl
-IEhhdXBwYXVnZSBIVlI0MDAwIGZhbWlseSBvZiBTMiBwcm9kdWN0cy4gU28gdGhvc2UKPiBpbnRl
-cmVzdGVkIHRlc3RlcnMvZGV2ZWxvcGVycyBjYW4gbW9kaWZ5IHRoZSB0dW5lLmMgYXBwIGRlbW8g
-YW5kIG1ha2UKPiBjaGFuZ2VzIHNwZWNpZmljIHRvIHRoZWlyIGFyZWEsIGFuZCB0cnkgZXhwZXJp
-bWVudGluZyB3aXRoIHRoZSBuZXcgQVBJCj4gaWYgdGhleSBkZXNpcmUuIFsxXQo+Cj4gT2J2aW91
-c2x5LCB0dW5lLmMgaXNuJ3QgaW50ZWxsaWdlbnQsIGl0J3Mgbm90IGEgcmVwbGFjZW1lbnQgZm9y
-IHN6YXAsCj4gdHphcCBvciB3aGF0ZXZlciAtIGl0J3Mgc2ltcGx5IGEgc3RhbmRhbG9uZSBTMkFQ
-SSB0ZXN0IHRvb2wsIHRoYXQKPiBkZW1vbnN0cmF0ZXMgdGhlIGltcG9ydGFudCBBUEkgaW50ZXJm
-YWNlLgo+Cj4gUUFNL0FUU0MgYXJlIHdvcmtpbmcgd2VsbCwgdGhlIEhWUjQwMDAgY2hhbmdlcyBs
-b29rIGZpbmUgYWNjb3JkaW5nIHRvCj4gdGhlIGRlYnVnIGxvZyAoYWx0aG91Z2ggSSBoYXZlIG5v
-IGxvY2FsIHNhdGVsbGl0ZSBmZWVkIGZvciB0ZXN0aW5nCj4gdG9uaWdodCkuIERWQi1UIHNob3Vs
-ZCBqdXN0IHdvcmsgYXMtaXMsIGJ1dCBJIGNhbid0IHRlc3QgdGhpcyBmb3IgYSBkYXkKPiBvciBz
-by4gSS5FLiBJJ3ZlIHRlc3RlZCB3aGF0IEkgY2FuIGluIHRoZSBVUyBidXQgd2UgbWlnaHQgaGF2
-ZSBhIGZldwo+IGJ1Z3Mgb3IgZ290Y2hhcyEKPgo+IElmIGFueW9uZSBpcyB3aWxsaW5nIHRvIHB1
-bGwgdGhlIHRyZWUgYW5kIGJlZ2luIHRlc3Rpbmcgd2l0aCB0aGUgdHVuZS5jCj4gYXBwIHRoZW4g
-cGxlYXNlIHBvc3QgYWxsIGZlZWRiYWNrIG9uIHRoaXMgdGhyZWFkLiBbMl0KPgo+IEkndmUgcmVj
-ZWl2ZWQgYSBsb3Qgb2YgZ29vZCBmZWVkYmFjayBvZiB0aGUgb3JpZ2luYWwgMjAwNyBwYXRjaGVz
-LiBJCj4gZXhwZWN0IHRvIHN0YXJ0IG1lcmdpbmcgdGhvc2UgY2hhbmdlcyBvZiB0aGUgY29taW5n
-IGRheXMuIERvbid0IGJlIHRvbwo+IGNvbmNlcm5lZCB0aGF0IHlvdXIgY2hhbmdlcyBhcmUgbm90
-IHlldCBtZXJnZWQsIGtlZXAgd2F0Y2hpbmcgdGhlIFMyQVBJCj4gdHJlZSBhbmQgdGhleSB3aWxs
-IHNvb24gYXBwZWFyIC4uLiBhbG9uZyB3aXRoIGEgbG90IG9mIGdlbmVyYWwgY29kZQo+IGNsZWFu
-dXAgKGNoZWNrcGF0Y2ggdmlvbGF0aW9ucykKPgo+IEkgZXhwZWN0IHRvIGNhdGNodXAgb24gbXkg
-b2xkZXIgZW1haWwgdG9tb3Jyb3cuCj4KPiBSZWdhcmRzIHRvIGFsbCwKPgo+IC0gU3RldmUKPiBb
-MV0gSSdsbCBuZWVkIHRvIHJldmlldyBhbmQgZGlmZiBhbnkgb2YgdGhlIG5ld2VyIEhWUjQwMDAg
-ZHJpdmVyCj4gZGVyaXZhdGl2ZXMgdGhhdCBwZW9wbGUgaGF2ZSBiZWVuIHVzaW5nLCBiZWZvcmUg
-bWVyZ2luZyB0aG9zZSBjaGFuZ2VzCj4gaW50byB0aGUgUzJBUEkgdHJlZS4KPiBbMl0gUmVtZW1i
-ZXIgeW91J3JlIGdvaW5nIHRvIG5lZWQgdGhlIGN4MjQxMTYgZmlybXdhcmUgaWYgeW91J3JlCj4g
-c3BlY2lmaWNhbGx5IHRlc3RpbmcgdGhlIEhWUjQwMDAuLi4uIGJ1dCB5b3UgcHJvYmFibHkgYWxy
-ZWFkeSBrbm93IHRoYXQhIDopCj4KPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwo+IGxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKPiBsaW51eC1kdmJAbGludXh0
-di5vcmcKPiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1kdmIKR29vZCBuZXdzLiBJIHdpbGwgdGVzdCBpdCB3aXRoIG15IGN4MjQxMTYgYmFzZWQg
-Y2FyZHMgKG5vdCBIVlI0MDAwKQogCklnb3IKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4
-dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xp
-bnV4LWR2Yg==
+On Wed, 2008-09-10 at 20:37 -0400, Patrick Boisvenue wrote:
+> Andy Walls wrote:
+> > On Tue, 2008-09-09 at 22:37 -0400, Steven Toth wrote:
+> >> Patrick Boisvenue wrote:
+> >>> Steven Toth wrote:
+> >>>> Patrick Boisvenue wrote:
+> > 
+> >>> When launching dvbscan I get the following in dmesg:
+> >>>
+> >>> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+> >>> firmware: requesting dvb-fe-xc5000-1.1.fw
+> >>> kobject_add_internal failed for i2c-2 with -EEXIST, don't try to 
+> >>> register things with the same name in the same directory.
+> >>> Pid: 8059, comm: kdvb-fe-0 Tainted: P          2.6.26-gentoo #11
+> >>>
+> >>> Call Trace:
+> >>>  [<ffffffff8036abb5>] kobject_add_internal+0x13f/0x17e
+> >>>  [<ffffffff8036aff2>] kobject_add+0x74/0x7c
+> >>>  [<ffffffff80230b02>] printk+0x4e/0x56
+> >>>  [<ffffffff803eb84a>] device_add+0x9b/0x483
+> >>>  [<ffffffff8036a876>] kobject_init+0x41/0x69
+> >>>  [<ffffffff803f059d>] _request_firmware+0x169/0x324
+> >>>  [<ffffffffa00e9a7e>] :xc5000:xc_load_fw_and_init_tuner+0x64/0x293
+> >>>  [<ffffffff804a7222>] i2c_transfer+0x75/0x7f
+> >>>  [<ffffffffa00e53ad>] :s5h1409:s5h1409_writereg+0x51/0x83
+> >>>  [<ffffffffa00e9cea>] :xc5000:xc5000_init+0x3d/0x6f
+> >>>  [<ffffffffa0091b0c>] :dvb_core:dvb_frontend_init+0x49/0x63
+> >>>  [<ffffffffa0092e2c>] :dvb_core:dvb_frontend_thread+0x78/0x2f0
+> >>>  [<ffffffffa0092db4>] :dvb_core:dvb_frontend_thread+0x0/0x2f0
+> >>>  [<ffffffff80240eaf>] kthread+0x47/0x74
+> >>>  [<ffffffff8022bc41>] schedule_tail+0x27/0x5b
+> >>>  [<ffffffff8020be18>] child_rip+0xa/0x12
+> >>>  [<ffffffff80240e68>] kthread+0x0/0x74
+> >>>  [<ffffffff8020be0e>] child_rip+0x0/0x12
+> >>>
+> >>> fw_register_device: device_register failed
+> >>> xc5000: Upload failed. (file not found?)
+> >>> xc5000: Unable to initialise tuner
+> >>>
+> >>>
+> >>> I have the firmware file located here:
+> >>>
+> >>> # ls -l /lib/firmware/dvb-fe-xc5000-1.1.fw
+> >>> -rw-r--r-- 1 root root 12332 Aug 31 12:56 
+> >>> /lib/firmware/dvb-fe-xc5000-1.1.fw
+> >>>
+> >>> If there is anything else I can provide (or try) to help debug, let me 
+> >>> know,
+> >>> ...Patrick
+> >>  > kobject_add_internal failed for i2c-2 with -EEXIST, don't try to
+> >>  > register things with the same name in the same directory.
+> >>
+> >> Ooh, that's nasty problem, this is new - and looks like it's i2c related.
+> >>
+> >> Why does this sound familiar? Anyone?
+> > 
+> > A cx18 user had a similar problem on one distro.  I remeber running it
+> > down to a race condition in creating device nodes in one of the
+> > "virtual" filesystems (/proc or /sys) the device was looking for a
+> > paretn PCI device entry to hook onto, but it wasn't created at the time
+> > so it tries to create it itself.  In the meantime some other part of the
+> > kernel subsystem did actually finish creating the entry - so it exists
+> > by the time the firmware load tries to make it.
+> > 
+> > As far as I could tell, it should be non-fatal (not an Oops or panic),
+> > but if the driver gives up on -EEXIST then things won't work obviously.
+> > 
+> > I never resolved the problem for the user.  I think some kernel change
+> > outside of cx18 resolved it.  That's all the details I have.
+> > 
+> > Regards,
+> > Andy
+> > 
+> 
+> So what are my options? 
+
+Good question.  I don't know.  Working with kobjects is way out of my
+knowledge base.
+
+I looked at the kernel code long enough to decide that without being
+able to reproduce the problem myself, I won't be able to spot the root
+cause.  Part of the reason is that this problem is about looking for and
+creating sysfs objects as it relates to driver probing and firmware
+loading.  I couldn't quite sort out what had to happen in series and
+what the kernel could be executing in parallel.
+
+I think your best option would be to post to the LKML or wherever else
+the sysfs and kobject experts hang out.
+
+Another option could be to modify the driver code that gives up when the
+firmware operation returns an error code because a sysfs device node
+already exists (-EEXIST).  That's no big deal, and a driver should be
+able to merrily go forward, if it can easily detect the condition.
+
+
+
+> Different kernels? Wait for newer kernels and 
+> try again?
+
+That's sub-optimal as it provides not guarantee of resolution.
+
+Regards,
+Andy
+
+>  Running 2.6.26 right now and I have 2.6.25 available, 
+> however, I cannot go lower since my Thinkpad needs >=2.6.25 to run properly.
+> 
+> ...Patrick
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
