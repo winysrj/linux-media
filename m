@@ -1,20 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n23.bullet.mail.ukl.yahoo.com ([87.248.110.140])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1KkOAG-0001Al-If
-	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 21:12:13 +0200
-Date: Mon, 29 Sep 2008 15:10:50 -0400
-From: Emmanuel ALLAUD <eallaud@yahoo.fr>
-To: Jelle De Loecker <skerit@kipdola.com>
-References: <1221327465l.12125l.2l@manu-laptop> <48CC4867.1050705@gmail.com>
-	<1221354611l.12125l.3l@manu-laptop> <48E0D490.5030202@kipdola.com>
-In-Reply-To: <48E0D490.5030202@kipdola.com> (from skerit@kipdola.com on Mon
-	Sep 29 09:13:52 2008)
-Message-Id: <1222715450l.7695l.2l@manu-laptop>
+Date: Fri, 12 Sep 2008 11:17:26 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Steven Toth <stoth@linuxtv.org>
+In-Reply-To: <48CA0355.6080903@linuxtv.org>
+Message-ID: <alpine.LRH.1.10.0809121112350.29931@pub3.ifh.de>
+References: <48CA0355.6080903@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
 Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] Re :  Re : Re : TT S2-3200 driver
+Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,74 +15,89 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 29.09.2008 09:13:52, Jelle De Loecker a =E9crit=A0:
-> =
+Hi Steve,
 
-> manu schreef:
-> > Le 13.09.2008 19:10:31, Manu Abraham a =E9crit :
-> >   =
+On Fri, 12 Sep 2008, Steven Toth wrote:
+> Patrick, I haven't looked at your 1.7MHz bandwidth suggestion - I'm open
+> to ideas on how you think we should do this. Take a look at todays
+> linux/dvb/frontend.h and see if these updates help, or whether you need
+> more changes.
 
-> >> manu wrote:
-> >>     =
+I attached a patch which adds a DTV_BANDWIDTH_HZ command. That's all. I 
+would like to have the option to pass any bandwidth I want to the 
+frontend.
 
-> >>> I forgot the logs...
-> >>>       =
+Also this patch includes some more things and questions around ISDB-T and 
+ISDB-Tsb:
 
-> >> Taking a look at it. Please do note that, i will have to go =
+--- frontend.h.old	2008-09-12 10:46:25.351332000 +0200
++++ frontend.h	2008-09-12 11:12:00.326085000 +0200
+@@ -258,6 +258,12 @@
+  	DTV_FREQUENCY,
+  	DTV_MODULATION,
+  	DTV_BANDWIDTH,
++
++	/* XXX PB: I would like to have field which describes the
++	 * bandwidth of a channel in Hz or kHz - maybe we can remove the
++	 * DTV_BANDWIDTH now and put a compat layer */
++	DTV_BANDWIDTH_HZ,
++
+  	DTV_INVERSION,
+  	DTV_DISEQC_MASTER,
+  	DTV_SYMBOL_RATE,
+@@ -276,18 +282,32 @@
+  	/* New commands are always appended */
+  	DTV_DELIVERY_SYSTEM,
 
-> through
-> =
++	/* XXX PB: is DTV_ISDB the good prefix for ISDB-T parameters ? XXX */
++
+  	/* ISDB-T */
+-	DTV_ISDB_SEGMENT_IDX,
+-	DTV_ISDB_SEGMENT_WIDTH,
++	DTV_ISDB_SEGMENT_IDX, /* maybe a duplicate of DTV_ISDB_SOUND_BROADCASTING_SUBCHANNEL_ID ??? to be checked */
++	DTV_ISDB_SEGMENT_WIDTH, /* 1, 3 or 13 ??? */
++
++	DTV_ISDB_PARTIAL_RECEPTION, /* the central segment can be received independently or 1/3 seg in SB-mode */
++	DTV_ISDB_SOUND_BROADCASTING, /* sound broadcasting is used 0 = 13segment, 1 = 1 or 3 see DTV_ISDB_PARTIAL_RECEPTION */
++
++	/* only used in SB */
++	DTV_ISDB_SOUND_BROADCASTING_SUBCHANNEL_ID, /* determines the initial PRBS of the segment (to match with 13seg channel) */
++
+  	DTV_ISDB_LAYERA_FEC,
+  	DTV_ISDB_LAYERA_MODULATION,
+  	DTV_ISDB_LAYERA_SEGMENT_WIDTH,
++	DTV_ISDB_LAYERA_TIME_INTERLEAVER,
++
+  	DTV_ISDB_LAYERB_FEC,
+  	DTV_ISDB_LAYERB_MODULATION,
+  	DTV_ISDB_LAYERB_SEGMENT_WIDTH,
++	DTV_ISDB_LAYERB_TIME_INTERLEAVING,
++
+  	DTV_ISDB_LAYERC_FEC,
+  	DTV_ISDB_LAYERC_MODULATION,
+  	DTV_ISDB_LAYERC_SEGMENT_WIDTH,
++	DTV_ISDB_LAYERC_TIME_INTERLEAVING,
 
-> >> it
-> >> very patiently.
-> >>
-> >> Thanks for the logs.
-> >>
-> >>     =
+  } dtv_cmd_types_t;
 
-> >
-> > You're more than welcome. I tried to put some printk's but the only =
 
-> > thing I got is that even when the carrier is correctly detected, =
+Sorry for not integrating this into the frontend_cache yet. But I'm really 
+out of time (at work and even at home, working on cx24120) and I will not 
+be able to supply the DiBcom ISDB-T demod-driver (which would use all 
+that) right now.
 
-> the
-> =
+thanks for all your efforts,
+Patrick.
 
-> > driver does not detect the data (could that be related to the
-> different =
-
-> > FEC?).
-> > Anyway let me know if you need more testing.
-> > Bye
-> > Manu
-> =
-
-> I'm unable to scan the channels on the Astra 23,5 satellite
-> Frequency 11856000
-> Symbol rate 27500000
-> Vertical polarisation
-> FEC 5/6
-> =
-
-> Is this because of the same bug? I should be getting Discovery =
-
-> Channel
-> =
-
-> HD, National Geographic Channel HD, Brava HDTV and Voom HD =
-
-> International, but I'm only getting a time out.
-
-Yes it looks like the same bug.
-Bye
-Manu
-
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
 _______________________________________________
 linux-dvb mailing list
