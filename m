@@ -1,25 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp27.orange.fr ([80.12.242.96])
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1Kexsi-0002gE-MD
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 22:07:42 +0200
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2716.orange.fr (SMTP Server) with ESMTP id 44AD01C0008C
-	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 22:07:07 +0200 (CEST)
-Received: from stratocaster.lan (ANantes-256-1-171-44.w90-25.abo.wanadoo.fr
-	[90.25.242.44])
-	by mwinf2716.orange.fr (SMTP Server) with ESMTP id 023C61C000A6
-	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 22:07:07 +0200 (CEST)
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-dvb@linuxtv.org
-Date: Sun, 14 Sep 2008 22:08:04 +0200
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48CD43C1.2090902@linuxtv.org> <48CD5D19.1070700@gmail.com>
-In-Reply-To: <48CD5D19.1070700@gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809142208.04494.hftom@free.fr>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+	(envelope-from <stoth@linuxtv.org>) id 1Ke1ZQ-000775-Cd
+	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 07:51:54 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7200CA5IXHE000@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 12 Sep 2008 01:51:17 -0400 (EDT)
+Date: Fri, 12 Sep 2008 01:51:17 -0400
+From: Steven Toth <stoth@linuxtv.org>
+To: linux-dvb <linux-dvb@linuxtv.org>, Steven Toth <stoth@hauppauge.com>
+Message-id: <48CA0355.6080903@linuxtv.org>
+MIME-version: 1.0
+Subject: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,161 +22,92 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le Sunday 14 September 2008 20:51:05 Manu Abraham, vous avez =E9crit=A0:
-> Steven Toth wrote:
-> > Markus Rechberger wrote:
-> >> On Sun, Sep 14, 2008 at 1:31 AM, Manu Abraham <abraham.manu@gmail.com>
-> >>
-> >> wrote:
-> >>> Markus Rechberger wrote:
-> >>>> On Sun, Sep 14, 2008 at 12:46 AM, Manu Abraham
-> >>>>
-> >>>> <abraham.manu@gmail.com> wrote:
-> >>>>> Markus Rechberger wrote:
-> >>>>>> How many devices are currently supported by the multiproto API
-> >>>>>> compared with the s2 tree?
-> >>>>>
-> >>>>> The initial set of DVB-S2 multistandard devices supported by the
-> >>>>> multiproto tree is follows. This is just the stb0899 based dvb-s2
-> >>>>> driver
-> >>>>> alone. There are more additions by 2 more modules (not devices),
-> >>>>> but for
-> >>>>> the simple comparison here is the quick list of them, for which
-> >>>>> some of
-> >>>>> the manufacturers have shown support in some way. (There has been
-> >>>>> quite
-> >>>>> some contributions from the community as well.):
-> >>>>>
-> >>>>> (Also to be noted is that, some BSD chaps also have shown interest =
-in
-> >>>>> the same)
-> >>>>
-> >>>> they're heavy into moving the whole framework over as far as I've se=
-en
-> >>>> yes, also including yet unmerged drivers.
-> >>>
-> >>> Using the same interface, the same applications will work there as we=
-ll
-> >>> which is a bonus, but isn't the existing user interface GPL ? (A bit
-> >>> confused on that aspect)
-> >>>
-> >>>>> * STB0899 based
-> >>>>>
-> >>>>> Anubis
-> >>>>> Typhoon DVB-S2 PCI
-> >>>>>
-> >>>>> Azurewave/Twinhan
-> >>>>> VP-1041
-> >>>>> VP-7050
-> >>>>>
-> >>>>> Digital Now
-> >>>>> AD SP400
-> >>>>> AD SB300
-> >>>>>
-> >>>>> KNC1
-> >>>>> TV Station DVB-S2
-> >>>>> TV Station DVB-S2 Plus
-> >>>>>
-> >>>>> Pinnacle
-> >>>>> PCTV Sat HDTV Pro USB 452e
-> >>>>>
-> >>>>> Satelco
-> >>>>> TV Station DVB-S2
-> >>>>> Easywatch HDTV USB CI
-> >>>>> Easywatch HDTV PCI
-> >>>>>
-> >>>>> Technisat
-> >>>>> Skystar HD
-> >>>>> Skystar HD2
-> >>>>> Skystar USB2 HDCI
-> >>>>>
-> >>>>> Technotrend
-> >>>>> TT S2 3200
-> >>>>> TT S2 3600
-> >>>>> TT S2 3650
-> >>>>>
-> >>>>> Terratec
-> >>>>> Cinergy S2 PCI HD
-> >>>>> Cinergy S2 PCI HDCI
-> >>>>
-> >>>> those are pullable now against the current tree?
-> >>>
-> >>> These devices, depend upon the DVB API update without which it wouldn=
-'t
-> >>> work as they depend heavily on the DVB API framework. Without the
-> >>> updated framework, it doesn't make any sense to pull them: they won't
-> >>> even compile. The last but not least reason is that, the stb0899 driv=
-er
-> >>> is a DVB-S2 multistandard device which requires DVB-S2/DSS support
-> >>> additionally.
-> >>
-> >> so the framework is available, and the drivers could be pushed in
-> >> right afterwards, I wonder
-> >> who is willing to port those drivers to the other API (including
-> >> testing).
-> >
-> > Me. I'll port the 3200 cards and their derivatives, including the 6100
-> > and the 0899. I've already said I'd do that.... but it's manu's code and
-> > he retains all rights. He gets to decide first.
->
-> The STB0899 based devices are much different from the crappy handicapped
-> Hauppauge S2 cards and hence the API that you work upon is quite limited
-> to what you see with regards to the Hauppauge (CX24116 based) cards.
->
-> Even the bare specifications from Conexant point to a handicapped DVB-S2
-> demodulator.
->
-> Attempts to do so, will break those devices at least for most of the
-> features and more yet to come. The DVB-S2 transport is a bit more
-> advanced delivery system than what your API based on the CX24116
-> demodulator.
->
-> At least it will be great for Hauppauge as you can point to people that
-> Hauppauge hardware is much better, for the marketing aspects as you have
-> done in the past on IRC lists.
->
-> Very good marketing strategy, Steven keep it up, you have earned more
-> sales for the Hauppauge cards ...
-> <claps hands>
->
-> >> It's not going to happen any time soon I guess, if there's not an
-> >> agreement with Manu's
-> >> work. Dumping this code would show another step of ignorance and
-> >> selfishness against the
-> >> people who worked on it.
-> >
-> > The demod/tuners drivers would be merged with S2API within a few days. I
-> > have a TT-3200 here. I'd have to re-write various things, and change the
-> > demod API a little. but I'm prepared to do that.
->
-> Just having a TT 3200 won't help working on the STB0899. Almost everyone
-> who has a STB0899 based knows that, except you.
->
-> No need for you to break the compliant devices in favour of your
-> mediocre cards. As i wrote just above, the STB0899 is not the only one
-> device using the said features. Also i can guarantee that the CX24116
-> (HVR4000) is the most handicapped DVB-S2 device that you are basing the
-> DVB-S2 API on: and i can guarantee that what you do will be just be
-> broken as you have done for other devices in the past.
->
-> Also i do not understand, why you have to make a lot of noise to port
-> the STB0899 drivers to your crap, when all your cards work as expected
-> by you with the multiproto tree. I don't see any reason why the STB0899
-> has to be ported to the handicapped API of yours, handicapping the
-> STB0899 based devices.
+Hello!
 
-Sounds like Sarah "pitbull" Palin's sentences :)
+More progress today, 7 new patches were merged - all related to the 
+feedback and suggestions we had.... And a bugfix. :)
 
+The DTV_SET/GET command syntax has been rationalised, as Hans requested. 
+This cleans up the application API nicely. Various internal improvements 
+and code cleanup related to variable length arrays, moving values 
+to/from userspace to the kernel. Interfacing to the demods to allow them 
+to interact with set/get property requests, if they chose to do so. 
+Quite a lot of changes internally and to the user facing API.
 
--- =
+If you're planning to test then you'll need the tune-v0.0.5.c to see the 
+different. (steventoth.net/linux/s2/tune-v0.0.5.tgz)
 
-Christophe Thommeret
+In addition, some related news:
+
+mkrufky spent some time adding S2API isdb-t support to the siano driver, 
+that's working pretty well - tuning via the S2API app.
+
+Two tree here, offering slightly different approaches, one with S2API, 
+one using some spare bits in the DVB-T tuning fields.
+
+http://linuxtv.org/hg/~mkrufky/sms1xxx-s2api-isdbt/
+http://linuxtv.org/hg/~mkrufky/sms1xxx-isdbt-as-dvbt/
+
+(See tune-v0.0.5.tgz for example ISDB-T tuning code)
+
+If you're interested in seeing the impact of switching to S2API for this 
+driver, see the set_frontend() func, it's a small change - just a few 
+lines to reference the dtv_frontend_properties cache.
+
+I don't think we're quite ready to announce we've conquered the complete 
+ISDB-T API, so don't assume that this is concrete.... As we experiment 
+with other ISDB-T products we'll probably find reasons to tweak the API 
+a little further as a standard begins to form..... but tuning through a 
+clean API is a great step forward, and its working now, today. Thank you 
+mkrufky :)
+
+Hans Werner sent a large patch for the multifrontend HVR3000/HVR4000 
+combined DVB-T/DVB-S/S2 support for the S2API tree. (Thanks Hans - this 
+was obviously a lot of manual merge work, it's greatly appreciated.)
+
+What would everyone like to see happen with this patch?
+
+Would you prefer to see this dealt with outside of the S2API discussion, 
+or would you like to see this included and merged? Let me know your 
+thoughts. Andreas also has the multifrontend thread running, so comment 
+here if you would like to see this as part of the S2API patches, or 
+comment on the Andreas thread of you want this as a separate patchset at 
+a later date.
+
+Darron Broad has offered to bring the cx24116.c driver up to date with 
+some additions he has in his repositories. With any luck we may see 
+these merged into the current cx24116 driver within a few days. Thank 
+you Darron.
+
+Patrick, I haven't looked at your 1.7MHz bandwidth suggestion - I'm open 
+to ideas on how you think we should do this. Take a look at todays 
+linux/dvb/frontend.h and see if these updates help, or whether you need 
+more changes.
+
+Igor has been busy patching the szap-s2 tool 
+(http://liplianindvb.sourceforge.net/hg/szap-s2/) so many thanks to 
+Igor! Gregoire has been running some basic tests and appears to be 
+having some success, that's encouraging. Thank you.
+
+What's next?
+
+Now's probably a good time to start patching dvb-apps. I think the 
+frontend.h changes are close enough for that work to begin. This will 
+probably start Friday, so keep your eyes and open for the 
+stoth/s2api-dvb-apps tree appearing ... and an announcement here.
+
+Thanks again to everyone, your efforts are appreciated!
+
+Regards,
+
+Steve
+
 
 
 _______________________________________________
