@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <csutor@gmx.de>) id 1Kgolb-0001R2-IS
-	for linux-dvb@linuxtv.org; Sat, 20 Sep 2008 00:48:00 +0200
-Message-ID: <48D42BFB.2000708@gmx.de>
-Date: Sat, 20 Sep 2008 00:47:23 +0200
-From: Clemens Sutor <csutor@gmx.de>
+Received: from webmail.icp-qv1-irony-out1.iinet.net.au ([203.59.1.146])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <sonofzev@iinet.net.au>) id 1Kdyqe-0007eq-5G
+	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 04:57:29 +0200
 MIME-Version: 1.0
-To: Fredrik Jonson <fjonson95@hotmail.com>
-References: <BAY108-W49816DC274A6E8D70E62DFE4E0@phx.gbl>	<BAY115-W351744C2D44B2B29FB45B2BC4E0@phx.gbl>
-	<48D41A1E.1040604@gmx.de>
-In-Reply-To: <48D41A1E.1040604@gmx.de>
-Cc: Stefan Ellenberger <stefan_ell@hotmail.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb]
- =?windows-1256?q?VP_1041_CAM=3A_dvb=5Fca_adapter_0=3A?=
- =?windows-1256?q?_Invalid_PC_card_inserted=FE?=
+From: "sonofzev@iinet.net.au" <sonofzev@iinet.net.au>
+To: 'linux dvb' <linux-dvb@linuxtv.org>, 'Steven Toth' <stoth@linuxtv.org>,
+	'Tim Lucas' <lucastim@gmail.com>
+Date: Fri, 12 Sep 2008 10:57:18 +0800
+Message-Id: <62806.1221188238@iinet.net.au>
+Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
+	HVR-1500 (Update on progress)
+Reply-To: sonofzev@iinet.net.au
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,70 +19,217 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1256"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0107666090=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Q2xlbWVucyBTdXRvciBzY2hyaWViOgo+IEZyZWRyaWsgSm9uc29uIHNjaHJpZWI6Cj4gICAKPj4g
-SGVsbG8KPj4KPj4gSSBoYXZlIHRoZSBzYW1lIHByb2JsZW0gYnV0IHdpdGggVlAtMTAzNCBzZSBt
-eSBwb3N0IFtsaW51eC1kdmJdIAo+PiBWUC0xMDM0IGFuZCBDSSAKPj4gPGh0dHA6Ly93d3cubGlu
-dXh0di5vcmcvcGlwZXJtYWlsL2xpbnV4LWR2Yi8yMDA4LVNlcHRlbWJlci8wMjg4NjAuaHRtbD4K
-Pj4KPj4gL2Zqb25zb24KPj4g/iA8aHR0cDovL3d3dy5saW51eHR2Lm9yZy9waXBlcm1haWwvbGlu
-dXgtZHZiLzIwMDgtU2VwdGVtYmVyLzAyODg2MC5odG1sPgo+Pgo+PiAgICAgCj4+PiBGcm9tOiBz
-dGVmYW5fZWxsQGhvdG1haWwuY29tCj4+PiBUbzogbGludXgtZHZiQGxpbnV4dHYub3JnCj4+PiBE
-YXRlOiBGcmksIDE5IFNlcCAyMDA4IDEyOjQxOjMyICswMjAwCj4+PiBTdWJqZWN0OiBbbGludXgt
-ZHZiXSBWUCAxMDQxIENBTTogZHZiX2NhIGFkYXB0ZXIgMDogSW52YWxpZCBQQyBjYXJkIAo+Pj4g
-ICAgICAgCj4+IGluc2VydGVk/go+PiAgICAgCj4+PiBIaSBsaXN0Cj4+Pgo+Pj4gSWYgSSBhdHRh
-Y2ggdGhlIENvbW1vbiBJbnRlcmZhY2UgdG8gdGhlIGNhcmQgKFR3aW5oYW4gVlAgMTA0MSkgYW5k
-IAo+Pj4gICAgICAgCj4+IHJlbG9hZCB0aGUgbWFudGlzIG1vZHVsZXMgZG1lc2cgb3V0cHV0IGlz
-IHRoZSBmb2xsb3dpbmc6Cj4+ICAgICAKPj4+IFsgNjk3OS45Njk1MjZdIEFDUEk6IFBDSSBJbnRl
-cnJ1cHQgMDAwMDowMTowNi4wW0FdIC0+IExpbmsgW0FQQzJdIC0+IAo+Pj4gICAgICAgCj4+IEdT
-SSAxNyAobGV2ZWwsIGxvdykgLT4gSVJRIDIxCj4+ICAgICAKPj4+IFsgNjk3OS45Njk1NjJdIGly
-cTogMjEsIGxhdGVuY3k6IDMyCj4+PiBbIDY5NzkuOTY5NTY2XSBtZW1vcnk6IDB4ZDUxMDAwMDAs
-IG1taW86IDB4ZjhjMWMwMDAKPj4+IFsgNjk3OS45Njk1NzNdIGZvdW5kIGEgVlAtMTA0MSBQQ0kg
-RFNTL0RWQi1TL0RWQi1TMiBkZXZpY2Ugb24gKDAxOjA2LjApLAo+Pj4gWyA2OTc5Ljk2OTU3Nl0g
-TWFudGlzIFJldiAxIFsxODIyOjAwMzFdLCBpcnE6IDIxLCBsYXRlbmN5OiAzMgo+Pj4gWyA2OTc5
-Ljk2OTU3OV0gbWVtb3J5OiAweGQ1MTAwMDAwLCBtbWlvOiAweGY4YzFjMDAwCj4+PiBbIDY5Nzku
-OTcyMjc2XSBNQUMgQWRkcmVzcz1bMDA6MDg6Y2E6MWM6M2Y6NGNdCj4+PiBbIDY5NzkuOTcyMzEy
-XSBtYW50aXNfYWxsb2NfYnVmZmVycyAoMCk6IERNQT0weDJlZjEwMDAwIAo+Pj4gICAgICAgCj4+
-IGNwdT0weGVlZjEwMDAwIHNpemU9NjU1MzYKPj4gICAgIAo+Pj4gWyA2OTc5Ljk3MjMxOV0gbWFu
-dGlzX2FsbG9jX2J1ZmZlcnMgKDApOiBSSVNDPTB4MTNkZGMwMDAgCj4+PiAgICAgICAKPj4gY3B1
-PTB4ZDNkZGMwMDAgc2l6ZT0xMDAwCj4+ICAgICAKPj4+IFsgNjk3OS45NzIzMjNdIERWQjogcmVn
-aXN0ZXJpbmcgbmV3IGFkYXB0ZXIgKE1hbnRpcyBkdmIgYWRhcHRlcikKPj4+IFsgNjk4MC41MjAz
-NDRdIHN0YjA4OTlfYXR0YWNoOiBBdHRhY2hpbmcgU1RCMDg5OQo+Pj4gWyA2OTgwLjUyMDM1M10g
-bWFudGlzX2Zyb250ZW5kX2luaXQgKDApOiBmb3VuZCBTVEIwODk5IERWQi1TL0RWQi1TMiAKPj4+
-ICAgICAgIAo+PiBmcm9udGVuZCBAMHg2OAo+PiAgICAgCj4+PiBbIDY5ODAuNTIwMzYyXSBzdGI2
-MTAwX2F0dGFjaDogQXR0YWNoaW5nIFNUQjYxMDAKPj4+IFsgNjk4MC41MjA3MTVdIERWQjogcmVn
-aXN0ZXJpbmcgZnJvbnRlbmQgMCAoU1RCMDg5OSBNdWx0aXN0YW5kYXJkKS4uLgo+Pj4gWyA2OTgw
-LjUyMDc3OF0gbWFudGlzX2NhX2luaXQgKDApOiBSZWdpc3RlcmluZyBFTjUwMjIxIGRldmljZQo+
-Pj4gWyA2OTgwLjUyMjgxMV0gbWFudGlzX2NhX2luaXQgKDApOiBSZWdpc3RlcmVkIEVONTAyMjEg
-ZGV2aWNlCj4+PiBbIDY5ODAuNTIyODI1XSBtYW50aXNfaGlmX2luaXQgKDApOiBBZGFwdGVyKDAp
-IEluaXRpYWxpemluZyBNYW50aXMgCj4+PiAgICAgICAKPj4gSG9zdCBJbnRlcmZhY2UKPj4gICAg
-IAo+Pj4gWyA2OTgxLjUyODgyOF0gZHZiX2NhIGFkYXB0ZXIgMDogSW52YWxpZCBQQyBjYXJkIGlu
-c2VydGVkIDooCj4+Pgo+Pj4gU2luY2UgaXQgaXMgdGhlIG9mZmljaWFsIFZpYWNjZXNzICJyZWQg
-Y2FtIiAoUmV2IDEuMCkgSSBkb24ndCAKPj4+ICAgICAgIAo+PiB1bmRlcnN0YW5kIHRoZSBwcm9i
-bGVtIC0gdGhpcyBvbmUgd29ya2VkIGp1c3QgZmluZSBpbiBhbnkgU1RCIEkgZXZlciAKPj4gdXNl
-ZCAtIEkga25vdyBJIG1pZ2h0IGhhdmUgdG8gdXBkYXRlIHRoZSBDQU1zIGZpcm13YXJlIGlmIEkg
-d2FudCB0byAKPj4gd2F0Y2ggSEQgY29udGVudCwgYnV0IG5ldmVydGhlbGVzczogc2hvdWxkbid0
-IHRoaXMgd29yayBmb3IgYW55IG5vbiBIRCAKPj4gY29udGVudCBhcyBpdCBkb2VzIG9uIG15IFNU
-Qj8KPj4gICAgIAo+Pj4gQW55b25lIGhhcyBpc3N1ZXMgd2l0aCB0aGUgc2FtZSBDQU0gUmV2aXNp
-b24gYW5kIG1hbnRpcyBjYXJkcz8KPj4+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4+PiAgICAgICAKPgo+IEhlbGxvLAo+
-Cj4gYXMgZmFyIGFzIEkga25vdywgdGhlIHdob2xlIG1hbnRpcyBkcml2ZXIgdHJlZSBoYXMgbm8g
-d29ya2luZyBDSS9DQU0gCj4gc3VwcG9ydCB5ZXQuIEZvciBzdXJlIEkga25vdyB0aGlzIGZvciB0
-aGUgbWFudGlzIDIwMzMgYW5kIDIwNDAgYmFzZWQgCj4gY2FyZHMgYW5kIGluIGluIHRoZSBzb3Vy
-Y2UgY29kZSB0aGUgQ0kvQ0FNIHN1cHBvcnQgaXMgaW1wbGVtZW50ZWQgdGhlIAo+IHNhbWUgd2F5
-IGZvciBhbGwgbWFudGlzIGJhc2VkIGNhcmRzLgo+Cj4gVGhlIGRlc2NyaXBlZCBwcm9ibGVtIGlz
-IGtub3duLCBidXQgbm93IHNvbHZlZC4gQSBsb3Qgb2YgdGhlIENJIHN1cHBvcnQgCj4gaXMgd29y
-a2luZyBhbGxyZWFkeSwgYnV0IHRoZSBkcml2ZXIgaXMgc3RpbGwgbm90IGZpbmlzaGVkIGFuZCBz
-dGFibGUuIAo+IFRoZSBtYW50YWluZXIgb2YgdGhlIG1hbnRpcyB0cmVlIHRvbGQgaW4gdGhlIG1h
-aWxpbmcgbGlzdCBoZXJlLCB0aGF0IHRoZSAKPiBwcm9ibGVtIGlzIG5vdCBlYXN5IHRvIGZpbmQg
-YW5kIGhlIGNvbnRhY3RlZCB0aGUgdmVuZG9yIHRvIGdldCBzb21lIG1vcmUgCj4gdGVjaG5pY2Fs
-IGRldGFpbHMuIFNvIHdlIGhhdmUgdG8gYmUgcGF0aWVudCB1bnRpbCB0aGVyZSBpcyBhIHdvcmtp
-bmcgCj4gc29sdXRpb24uCj4KPiBCeWUKPiBDbGVtZW5zCj4gICAKU29ycnksIHR5cG8sIG5vdCAi
-bm93IHNvbHZlZCIgIk5PVCBzb2x2ZWQiIDopCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51
-eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1kdmI=
+--===============0107666090==
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset="us-ascii"
+
+<HTML>
+<BR>
+I'm keeping close track of this. I've got the Australian/European version o=
+f the card. <BR>
+<BR>
+Does this mean once analog is working the composite input may work as well?=
+<BR>
+ <BR>
+<BR>
+<span style=3D"font-weight: bold;">On Fri Sep 12 11:51 , "Tim Lucas" <lucas=
+tim@gmail.com> sent:<BR>
+<BR>
+</lucastim@gmail.com></span><blockquote style=3D"border-left: 2px solid rgb=
+(245, 245, 245); margin-left: 5px; margin-right: 0px; padding-left: 5px; pa=
+dding-right: 0px;"><div dir=3D"ltr"><div>Brief summary: &nbsp;Trying to get=
+ analog working on a DViCO FusionHDTV7 Dual Express</div><div>It was sugges=
+ted that I use the ~stoth/cx23885-audio branch and load the card as a HVR15=
+00.</div><div><BR>
+</div>
+
+
+<div>Since nothing was working, I decided to update to the latest kernel (a=
+nd therefore mythbuntu 8.1)</div><div>Although the card still didn't work, =
+I was getting better results. &nbsp;dmesg said</div><div><BR>
+</div><div>
+
+
+[ &nbsp; 11.224568] cx23885[0]: i2c bus 0 registered</div><div>[ &nbsp; 11.=
+224609] cx23885[0]: i2c bus 1 registered</div><div>[ &nbsp; 11.224632] cx23=
+885[0]: i2c bus 2 registered</div><div>[ &nbsp; 11.251024] tveeprom 2-0050:=
+ Encountered bad packet header [ff]. Corrupt or not a Hauppauge eeprom.</di=
+v>
+
+
+<div>[ &nbsp; 11.251026] cx23885[0]: warning: unknown hauppauge model #0</d=
+iv><div>[ &nbsp; 11.251027] cx23885[0]: hauppauge eeprom: model=3D0</div><d=
+iv>[ &nbsp; 11.268639] cx25840' 4-0044: cx25 &nbsp;0-21 found @ 0x88 (cx238=
+85[0])</div><div>
+
+
+[ &nbsp; 11.283305] tuner' 2-0064: chip found @ 0xc8 (cx23885[0])</div><div=
+>[ &nbsp; 11.285887] tuner' 3-0064: chip found @ 0xc8 (cx23885[0])</div><di=
+v>[ &nbsp; 11.288377] cx23885[0]/0: registered device video0 [v4l2]</div><d=
+iv>
+
+
+[ &nbsp; 11.288653] cx23885[0]/1: registered ALSA audio device</div><div>[ =
+&nbsp; 11.288658] tuner' 3-0064: tuner type not set</div><div>[ &nbsp; 11.2=
+92131] firmware: requesting v4l-cx23885-avcore-01.fw</div><div>[ &nbsp; 11.=
+310299] cx25840' 4-0044: unable to open firmware v4l-cx23885-avcore-01.fw</=
+div>
+
+
+<div>[ &nbsp; 11.324551] cx23885[0]: cx23885 based dvb card</div><div>[ &nb=
+sp; 11.348947] cx23885[0]: frontend initialization failed</div><div>[ &nbsp=
+; 11.348949] cx23885_dvb_register() dvb_register failed err =3D -1</div><di=
+v>[ &nbsp; 11.348951] cx23885_dev_setup() Failed to register dvb on VID_C</=
+div>
+
+
+<div>[ &nbsp; 11.348955] cx23885_dev_checkrevision() Hardware revision =3D =
+0xb0</div><div>[ &nbsp; 11.348960] cx23885[0]/0: found at 0000:08:00.0, rev=
+: 2, irq: 16, latency: 0, mmio: 0xfd800000</div><div>[ &nbsp; 11.348966] cx=
+23885 0000:08:00.0: setting latency timer to 64</div>
+
+
+<div><div>[ &nbsp; 11.349304] ACPI: PCI Interrupt Link [AAZA] enabled at IR=
+Q 22</div><div>[ &nbsp; 11.349308] HDA Intel 0000:00:10.1: PCI INT B -&gt; =
+Link[AAZA] -&gt; GSI 22 (level, low) -&gt; IRQ 22</div><div>[ &nbsp; 11.349=
+322] HDA Intel 0000:00:10.1: setting latency timer to 64</div>
+
+
+<div>[ &nbsp; 11.382833] hda_codec: Unknown model for ALC883, trying auto-p=
+robe from BIOS...</div><div>[ &nbsp; 12.055790] lp0: using parport0 (interr=
+upt-driven).</div><div>[ &nbsp; 12.326401] Adding 6040400k swap on /dev/sda=
+5. &nbsp;Priority:-1 extents:1 across:6040400k</div>
+
+
+<div>[ &nbsp; 13.009799] EXT3 FS on sda1, internal journal</div><div>[ &nbs=
+p; 14.162071] type=3D1505 audit(1221183219.263:2): operation=3D"profile_loa=
+d" name=3D"/usr/sbin/mysqld" name2=3D"default" pid=3D4549</div>
+
+
+<div>[ &nbsp; 14.370696] ip_tables: (C) 2000-2006 Netfilter Core Team</div>=
+<div>[ &nbsp; 15.464191] ACPI: WMI: Mapper loaded</div><div>[ &nbsp; 18.424=
+988] warning: `avahi-daemon' uses 32-bit capabilities (legacy support in us=
+e)</div>
+
+
+<div>[ &nbsp; 19.203038] NET: Registered protocol family 10</div><div>[ &nb=
+sp; 19.203387] lo: Disabled Privacy Extensions</div><div>[ &nbsp; 29.299688=
+] tuner' 3-0064: tuner type not set</div><div>[ &nbsp; 29.307835] tuner' 3-=
+0064: tuner type not set</div>
+
+
+<div>[ &nbsp; 32.729350] mtrr: base(0xf7000000) is not aligned on a size(0x=
+e00000) boundary</div><div>[ &nbsp; 34.762892] NET: Registered protocol fam=
+ily 17</div><div>[ &nbsp; 44.712012] eth0: no IPv6 routers present</div><di=
+v><BR>
+</div>
+
+
+</div><div><BR>
+</div><div>This made me think that I should go out and find&nbsp;v4l-cx2388=
+5-avcore-01.fw.</div><div>I found it at&nbsp;<a href=3D"http://www.stevento=
+th.net/linux/hvr1800/" target=3D"_blank">http://www.steventoth.net/linux/hv=
+r1800/</a></div>
+
+
+<div><BR>
+</div><div>I loaded this firmware too. &nbsp;New results:</div><div><div>[ =
+&nbsp; 11.087605] cx23885 driver version 0.0.1 loaded</div><div>[ &nbsp; 11=
+.088234] ACPI: PCI Interrupt Link [APC6] enabled at IRQ 16</div><div>[ &nbs=
+p; 11.088237] cx23885 0000:08:00.0: PCI INT A -&gt; Link[APC6] -&gt; GSI 16=
+ (level, low) -&gt; IRQ 16</div>
+
+<div>[ &nbsp; 11.088311] CORE cx23885[0]: subsystem: 18ac:d618, board: Haup=
+pauge WinTV-HVR1500 [card=3D6,insmod option]</div><div>[ &nbsp; 11.196069] =
+cx23885[0]: i2c bus 0 registered</div><div>[ &nbsp; 11.196109] cx23885[0]: =
+i2c bus 1 registered</div>
+
+<div>[ &nbsp; 11.196144] cx23885[0]: i2c bus 2 registered</div><div>[ &nbsp=
+; 11.222543] tveeprom 2-0050: Encountered bad packet header [ff]. Corrupt o=
+r not a Hauppauge eeprom.</div><div>[ &nbsp; 11.222545] cx23885[0]: warning=
+: unknown hauppauge model #0</div>
+
+<div>[ &nbsp; 11.222546] cx23885[0]: hauppauge eeprom: model=3D0</div><div>=
+[ &nbsp; 11.232371] cx25840' 4-0044: cx25 &nbsp;0-21 found @ 0x88 (cx23885[=
+0])</div><div>[ &nbsp; 11.245763] tuner' 2-0064: chip found @ 0xc8 (cx23885=
+[0])</div>
+
+<div>[ &nbsp; 11.248348] tuner' 3-0064: chip found @ 0xc8 (cx23885[0])</div=
+><div>[ &nbsp; 11.250432] cx23885[0]/0: registered device video0 [v4l2]</di=
+v><div>[ &nbsp; 11.250696] cx23885[0]/1: registered ALSA audio device</div>=
+<div>[ &nbsp; 11.250700] tuner' 3-0064: tuner type not set</div>
+
+<div>[ &nbsp; 11.254199] firmware: requesting v4l-cx23885-avcore-01.fw</div=
+><div>[ &nbsp; 11.876323] cx25840' 4-0044: loaded v4l-cx23885-avcore-01.fw =
+firmware (16382 bytes)</div><div>[ &nbsp; 11.890444] cx23885[0]: cx23885 ba=
+sed dvb card</div>
+
+<div><div>[ &nbsp; 11.920769] cx23885[0]: frontend initialization failed</d=
+iv><div>[ &nbsp; 11.920771] cx23885_dvb_register() dvb_register failed err =
+=3D -1</div><div>[ &nbsp; 11.920773] cx23885_dev_setup() Failed to register=
+ dvb on VID_C</div>
+
+<div>[ &nbsp; 11.920777] cx23885_dev_checkrevision() Hardware revision =3D =
+0xb0</div><div>[ &nbsp; 11.920783] cx23885[0]/0: found at 0000:08:00.0, rev=
+: 2, irq: 16, latency: 0, mmio: 0xfd800000</div><div>[ &nbsp; 11.920788] cx=
+23885 0000:08:00.0: setting latency timer to 64</div>
+
+<div>[ &nbsp; 11.921128] ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 22<=
+/div><div>[ &nbsp; 11.921132] HDA Intel 0000:00:10.1: PCI INT B -&gt; Link[=
+AAZA] -&gt; GSI 22 (level, low) -&gt; IRQ 22</div><div>[ &nbsp; 11.921147] =
+HDA Intel 0000:00:10.1: setting latency timer to 64</div>
+
+<div>[ &nbsp; 11.954833] hda_codec: Unknown model for ALC883, trying auto-p=
+robe from BIOS...</div><div>[ &nbsp; 13.052435] lp0: using parport0 (interr=
+upt-driven).</div><div>[ &nbsp; 13.323879] Adding 6040400k swap on /dev/sda=
+5. &nbsp;Priority:-1 extents:1 across:6040400k</div>
+
+<div>[ &nbsp; 14.006491] EXT3 FS on sda1, internal journal</div><div>[ &nbs=
+p; 15.167174] type=3D1505 audit(1221184067.272:2): operation=3D"profile_loa=
+d" name=3D"/usr/sbin/mysqld" name2=3D"default" pid=3D4590</div>
+
+<div>[ &nbsp; 15.334061] ip_tables: (C) 2000-2006 Netfilter Core Team</div>=
+<div>[ &nbsp; 16.444201] ACPI: WMI: Mapper loaded</div><div>[ &nbsp; 19.463=
+314] warning: `avahi-daemon' uses 32-bit capabilities (legacy support in us=
+e)</div>
+
+<div>[ &nbsp; 20.171391] NET: Registered protocol family 10</div><div>[ &nb=
+sp; 20.171801] lo: Disabled Privacy Extensions</div><div>[ &nbsp; 29.432385=
+] tuner' 3-0064: tuner type not set</div><div>[ &nbsp; 29.440692] tuner' 3-=
+0064: tuner type not set</div>
+
+<div>[ &nbsp; 34.560243] NET: Registered protocol family 17</div><div>[ &nb=
+sp; 44.123339] mtrr: base(0xf7000000) is not aligned on a size(0xe00000) bo=
+undary</div><div>[ &nbsp; 45.156509] eth0: no IPv6 routers present</div><di=
+v><BR>
+</div>
+
+<div>I feel like I am getting closer, but I still cannot tune channels. &nb=
+sp;Any help would be appreciated.</div></div></div><div><BR>
+</div><div><BR>
+</div>-- <BR>
+ --Tim<BR>
+
+</div>
+</blockquote></HTML>
+<BR>=
+
+
+--===============0107666090==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0107666090==--
