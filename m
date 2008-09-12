@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from flexo.newnewyork.be ([91.121.117.137])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ben@bbackx.com>) id 1KgIpT-0003oV-GP
-	for linux-dvb@linuxtv.org; Thu, 18 Sep 2008 14:41:52 +0200
-To: Andrew Lyon <andrew.lyon@gmail.com>
+Received: from n68.bullet.mail.sp1.yahoo.com ([98.136.44.44])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1Ke8me-0004qG-0u
+	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 15:34:01 +0200
+Date: Fri, 12 Sep 2008 06:33:24 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: Steven Toth <stoth@hauppauge.com>
+In-Reply-To: <48CA6BBB.5010802@hauppauge.com>
 MIME-Version: 1.0
-Date: Thu, 18 Sep 2008 14:39:05 +0200
-From: Ben Backx <ben@bbackx.com>
-In-Reply-To: <f4527be0809180536sce988a1m800f55191e5f039d@mail.gmail.com>
-References: <f4527be0809180536sce988a1m800f55191e5f039d@mail.gmail.com>
-Message-ID: <52060c1f8d01ef7ce57ec31b93e06259@localhost>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] =?utf-8?q?Scan_Astra_28=2E8_no_ITV_HD=3F?=
-Reply-To: ben@bbackx.com
+Message-ID: <130284.93148.qm@web46107.mail.sp1.yahoo.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Siano ISDB [was: Re: S2API - Status - Thu Sep 11th]
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,30 +25,56 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--- On Fri, 9/12/08, Steven Toth <stoth@hauppauge.com> wrote:
 
-On Thu, 18 Sep 2008 13:36:08 +0100, "Andrew Lyon" <andrew.lyon@gmail.com>
-wrote:
-> Hi,
-> 
-> I have scanned Astra 28.8 using dvbscan but it did not find ITV HD,
-> can anybody give me the channel details so I can try to szap it
-> manually?
-> 
-> Thanks
-> Andy
-> 
+> > module parameter `default_mode=5' or =6,
+> >   
+> Correct, that tree expects a module option to load the firmware, you 
+> might want to check this code snippet in the other tree.  The other 
+> detects the delivery system and reloads the firmware on the fly.
 
-ITV HD is a little bit hidden :-)
-You should find a service (I believe an audio service) with name 10510.
-That's ITV HD.
-Video PID is 3401, Audio PID is 11594, Service ID is 10510, PCR PID is 3401
-and PMT PID is 3400.
-That should give you ITV HD (but they aren't broadcasting all the time,
-more chance on getting the test-screen right now.
+Hey, no fair, I think you're answering questions I'm about
+to ask before I can send them!
+
+Oh heck, here's what I wrote a short while ago, just in case...
+
+ =-=#=-=#=-=
+
+In looking at the S2API code for the Siano chipsets, I had
+a question which I couldn't answer by reading the code.
+
+At present, my card supports DVB-T by default, and I can
+load a different firmware to get it to (potentially) support
+alternatives, say, DVB-H.
+
+The answer might be blindingly obvious, but I don't see if
+this card has the capability of saying, okay, I can give
+you DVB-T, or DVB-H, or DAB, or T-DMB...  Right now, I spit
+DVB-T.  Then an application wanting DVB-H would then be able
+to initiate a reload of the firmware, and the device would
+reappear as a DVB-H device.
+
+The ability to do this firmware switch seems to be present
+within the driver, but I'm wondering if the S2API, or indeed
+the present APIs, can handle a case like this.
+
+I know that `mplayer' will grab the first available device
+of the appropriate standard, while my other applications
+pick a fixed adapter number (or more correctly, device by
+product).  But I can see myself wanting to make both DVB-T
+and DAB (eventually) use of this one device, without the
+bother of reloading the kernel module to switch.
+
+I did spend the night looking at the old API, and remember
+virtually none of it, and the discussion of multifrontend
+devices and what they mean has made me wonder about this...
 
 
-regards,
-Ben
+thanks,
+barry bouwsma
+
+
+      
 
 
 _______________________________________________
