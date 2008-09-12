@@ -1,22 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Markus Rechberger <mrechberger@gmail.com>
-In-Reply-To: <d9def9db0809251400r331c0667k733486a013eccefe@mail.gmail.com>
-References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
-	<a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>
-	<48DBBAC0.7030201@gmx.de>
-	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
-	<20080925181943.GA12800@halim.local>
-	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
-	<48DBF224.2010109@gmx.de>
-	<37219a840809251340n7c588667xd18982f78e68a2ec@mail.gmail.com>
-	<d9def9db0809251400r331c0667k733486a013eccefe@mail.gmail.com>
-Date: Fri, 26 Sep 2008 01:37:12 +0200
-Message-Id: <1222385832.4589.41.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point
-	of	view
+Date: Fri, 12 Sep 2008 12:17:44 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080912152755.GA29142@linuxtv.org>
+To: Johannes Stezenbach <js@linuxtv.org>
+Message-id: <48CA9628.7030709@linuxtv.org>
+MIME-version: 1.0
+References: <48CA0355.6080903@linuxtv.org> <200809120826.31108.hftom@free.fr>
+	<48CA6C2E.7050908@linuxtv.org> <200809121529.41795.hftom@free.fr>
+	<48CA77DE.1020700@linuxtv.org> <20080912152755.GA29142@linuxtv.org>
+Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,86 +17,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CkFtIERvbm5lcnN0YWcsIGRlbiAyNS4wOS4yMDA4LCAyMzowMCArMDIwMCBzY2hyaWViIE1hcmt1
-cyBSZWNoYmVyZ2VyOgo+IE9uIFRodSwgU2VwIDI1LCAyMDA4IGF0IDEwOjQwIFBNLCBNaWNoYWVs
-IEtydWZreSA8bWtydWZreUBsaW51eHR2Lm9yZz4gd3JvdGU6Cj4gPiBPbiBUaHUsIFNlcCAyNSwg
-MjAwOCBhdCA0OjE4IFBNLCBKw7ZyZyBLbml0dGVyIDxqb2VyZy5rbml0dGVyQGdteC5kZT4gd3Jv
-dGU6Cj4gPj4gVkRSIFVzZXIgd3JvdGU6Cj4gPj4+IEFub3RoZXIgb3B0aW9uIHdvdWxkIGJlIHRv
-IGxvb2sgYXQgYm90aCBwcm9wb3NhbHMsIHRha2UgdGhlIGJlc3QgaWRlYXMKPiA+Pj4gZm9yIGVh
-Y2gsIGFuZCBtYXJyeSB0aGVtIGludG8gYSBuZXcgaHlicmlkIHByb3Bvc2FsIHNvLXRvLXNwZWFr
-LiAgQnkKPiA+Pj4gdGhhdCBJIGRvbid0IG1lYW4gc29tZXRoaW5nIHdoaWNoIG11c3QgYmUgYnVp
-bHQgY29tcGxldGVseSBmcm9tIHRoZQo+ID4+PiBncm91bmQgdXAuLiAgTW9zdCBvZiB0aGUgd29y
-ayBoYXMgYWxyZWFkeSBiZWVuIGRvbmUuICBJIHRoaW5rIHRoYXQgaXMKPiA+Pj4gYSB3b3JrYWJs
-ZSBzb2x1dGlvbiB0aGF0IGNhbiBiZSBmb3VuZCBzb21ld2hlcmUgaW4gdGhlIG1pZGRsZS4KPiA+
-Pj4KPiA+PiBUaGlua2luZyBhYm91dCBhbGwgdGhlIHBvc3RzIHdpdGhpbiB0aGUgbGFzdCBkYXlz
-LCBJIGRpZCBub3QgcHJvcG9zZQo+ID4+IHNvbWV0aGluZyBhcyB0aGlzIGFzIEkgZG9uwrR0IGJl
-bGlldmUgdGhhdCBjZXJ0YWluIHBlcnNvbnMgYXJlIHN0aWxsCj4gPj4gd2lsbGluZyB0byBjb29w
-ZXJhdGUgb3IgY2hhbmdlIHRoZWlyIHBvaW50IG9mIHZpZXcuIFRvIGJlIG1vcmUgcHJlY2lzZToK
-PiA+PiBJIHRoaW5rIGl0IHdvdWxkIGJlIGEgd29uZGVyIGlmIFN0ZXZlbiBUb3RoIGFuZCBNYW51
-IEFicmFoYW0gd29ya2VkCj4gPj4gdG9nZXRoZXIuIDspCj4gPj4KPiA+PiBXaXRoIGtpbmQgcmVn
-YXJkcwo+ID4KPiA+IEZvciB0aGUgcmVjb3JkLCBNYW51IGRpZCBhIGdyZWF0IGpvYiB3aXRoIE11
-bHRpcHJvdG8uICBTdGV2ZSB3b3JrZWQKPiA+IHdpdGggdGhlIG11bHRpcHJvdG8gQVBJIGFuZCBh
-ZGRlZCBkcml2ZXIgc3VwcG9ydCBmb3IgaGlzIGRldmljZXMuCj4gPiBTdGV2ZSBkZXBlbmRlZCBv
-biBNdWx0aXByb3RvIGluIG9yZGVyIGZvciBoaXMgZGV2aWNlcyB0byB3b3JrLiAgU3RldmUKPiA+
-IGFza2VkIE1hbnUgd2hlbiBoZSB3b3VsZCBtZXJnZSBpbnRvIHRoZSBtYXN0ZXIgYnJhbmNoLCBh
-bmQgd2FpdGVkCj4gPiBwYXRpZW50bHkgZm9yIG1vbnRocy4gIE1hbnUgd291bGRuJ3QgZXZlbiBt
-ZXJnZSBTdGV2ZSdzIGRyaXZlcnMgaW50bwo+ID4gTWFudSdzIG93biBtdWx0aXByb3RvIHRyZWUu
-ICBBZnRlciByZXBlYXRlZGx5IGFza2luZyBoaW0gdG8gbWVyZ2Ugd2l0aAo+ID4gbm8gc2lnbiBv
-ZiBwcm9ncmVzcywgU3RldmUgd2FzIGxlZnQgaW4gYSB0b3VnaCBzcG90IGFuZCBoYWQgdG8gY29t
-ZSB1cAo+ID4gd2l0aCBoaXMgb3duIHNvbHV0aW9uLgo+ID4KPiA+IFRoZXJlIGlzIGEgc2F5aW5n
-IHRoYXQgZ29lcyBvZnRlbiBmb3IgTGludXggZGV2ZWxvcG1lbnQuLi4gInJlbGVhc2UKPiA+IGVh
-cmx5LCByZWxlYXNlIG9mdGVuIiAuLiAgSSBmaXJzdCBoZWFyZCB0aGlzIHNheWluZyBmcm9tIEpv
-aGFubmVzLiAgSWYKPiA+IHlvdSBkb250IGdvIGJ5IHRoaXMgd2F5IG9mIHRoaW5raW5nLCBpZTog
-IGhvbGQgb24gdG8gY29kZSBmb3IgdHdvIGFuZAo+ID4gYSBoYWxmIHllYXJzIHdpdGhvdXQgYWxs
-b3dpbmcgYSBtZXJnZSwgdGhlcmUgaXMgbm8gZ3VhcmFudGVlIHRoYXQKPiA+IHNvbWVib2R5IGVs
-c2UgbWF5IGNvbWUgdXAgd2l0aCBhIGJldHRlciBzb2x1dGlvbi4KPiA+Cj4gPiBUaGVyZSB3YXMg
-bm8gc2lnbiB0aGF0IE11bHRpcHJvdG8gd291bGQgX2V2ZXJfIGdldCBtZXJnZWQuICBBbGwgb2Yg
-dXMKPiA+IGhhdmUgd2FpdGVkIGZvciB0d28gYW5kIGEgaGFsZiB5ZWFycyBmb3IgdGhpcy4gIFRo
-ZSBGSVJTVCBwdWxsIHJlcXVlc3QKPiA+IGZyb20gTWFudSBvbmx5IGFwcGVhcmVkIGFmdGVyIFN0
-ZXZlIHBvc3RlZCBoaXMgb3duIEFQSSBwcm9wb3NhbC4gIEhhZAo+ID4gTWFudSByZXF1ZXN0ZWQg
-bWVyZ2UgYnV0IG9uZSBkYXkgYmVmb3JlIHRoYXQsIGl0IHdvdWxkIGhhdmUgYmVlbgo+ID4gbWVy
-Z2VkIGFuZCB0aGF0IHdvdWxkIGhhdmUgYmVlbiB0aGUgZW5kIG9mIGl0Lgo+ID4KPiA+IEFzIGl0
-IHR1cm5zIG91dCwgU3RldmUncyBBUEkgaXMgbW9yZSBmbGV4aWJsZSwgYW5kIGFsbG93cyB1cyB0
-bwo+ID4gc3VwcG9ydCBtb3JlIGZlYXR1cmVzIHRoYW4gTXVsdGlwcm90byBhbGxvd3MuICBJZiBN
-YW51IHdvdWxkIGhhdmUKPiA+IGFsbG93ZWQgTXVsdGlwcm90byB0byBoYXZlIGJlZW4gbWVyZ2Vk
-IGludG8gdGhlIG1hc3RlciBicmFuY2gsIFN0ZXZlCj4gPiB3b3VsZCBuZXZlciBoYXZlIGRlc2ln
-bmVkIHRoaXMgbmV3ZXIgQVBJLiAgRHVlIHRvIHRoZSBzdXBlcmlvciBkZXNpZ24sCj4gPiB0aGF0
-IHdhcyB0aGUgY2hvc2VuIGV4dGVuc2lvbi4gIFRoaXMgaXMgd2hlcmUgd2UgYXJlIGxlZnQgdG9k
-YXkuCj4gPgo+ID4gSSBob3BlIHRoYXQgY2xlYXJzIHRoaW5ncyB1cC4KPiA+Cj4gCj4gSnVsaWFu
-IHB1dCB0b2dldGhlciBhIGhpc3RvcnkgKGp1c3QgYmVjYXVzZSBNaWNoYWVsIGtlZXBzIHdyaXRp
-bmcgdGhlIHNhbWUpOgo+IGh0dHA6Ly9sa21sLm9yZy9sa21sLzIwMDgvOS8xOS82Nwo+IAo+IE1h
-cmt1cwo+IAoKSSBrbm93IHdlIGFsbCBzaG91bGQgc3RvcCwgYnV0IHRoYXQgaXMgaGFyZCB0b28g
-Li4uCgpKdWxpYW4gc2VlbXMgdG8gYmUgbm90IGF3YXJlIGFib3V0IGFsbCBwcmF5cyB0byBNYW51
-IGR1cmluZyB0aGUgbGFzdAptZXJnZSB3aW5kb3dzLgoKTWFudSwgcGxlYXNlLCBwbGVhc2UsIHBs
-ZWFzZSAuLi4KClRoZSB2NGwtZHZiLW1haW50YWluZXJAbGludXh0di5vcmcgbGlzdCBpcyBzdGls
-bCBwdWJsaWMuCgpTaG91bGQgU3RldmUgd2FpdCBmb3IgZXZlcj8KClRoZSB1c2VyIHBvaW50IG9m
-IGNvdXJzZSBpcyBvbmUgaW1wb3J0YW50IHRoaW5nLCBidXQgcHJldmlvdXNseSB0aGUKYXBwbGlj
-YXRpb24gZGV2ZWxvcGVycyBjYW1lLiBBbmQgSSBrbm93IHRoZXkgd2VyZSBhbGwgdmVyeSB1bmhh
-cHB5LApleGNlcHQgbWF5YmUgdmRyLCB3aG8gbW92ZWQgZm9yd2FyZCBmb3IgbXVsdGlwcm90byBh
-bHJlYWR5LgoKV2hvIHRoZSBoZWxsIGlzIFZEUiBVc2VyIDx1c2VyLnZkckBnbWFpbC5jb20+ID8K
-S2xhdXMgaGltc2VsZj8KCkF0IGxlYXN0IGhlIGtub3dzIG5vdGhpbmcgYWJvdXQgTWF1cm8ncyBy
-ZWFsIHdvcmsgb24gdmlkZW80bGludXguCgpUbyBwcmVwYXJlIHRoZSBrZXJuZWwgc3luYyBhbmQg
-Z2l2ZSB0aGUgcGF0Y2htb25rZXkgb24gSm9oYW5uZXMnIHJlcXVlc3QKZm9yIGR2YiB0b28sIGFy
-ZSBvbmx5IGEgdmVyeSBmZXcgcGVyY2VudCBvZiBoaXMgd29yayBhbmQgdGhlICJ0aGFua3MiIGhl
-CmhhZCBmb3IgdGhpcyBzbyBmYXIgYXJlIGl0IG5vdCB3b3J0aCBhdCBhbGwgLi4uCgpPbiBhbGwg
-b3RoZXIgbWFqb3IgcHJvamVjdHMsIHdoZXJlIGhlIGlzIHRoZSBtYWludGFpbmVyLCBzdWNoIGFi
-c3VyZApzdHVmZiBkaWQgbmV2ZXIgaGFwcGVuLgoKVGhlIGR2YiBndXlzIGluc2lkZSBkb24ndCBn
-ZXQgdGhlaXIgc3R1ZmYgdG9nZXRoZXIgYW5kIGRvIGV4Y2x1ZGUgZWFjaApvdGhlci4gQXQgbGVh
-c3QgU3RldmUgaGFkIG5vIG90aGVyIGNob2ljZSB0aGFuIHRvIGNvbWUgdXAgd2l0aCBoaXMgb3du
-CnNvbHV0aW9uLgoKV2hhdCBhIGJ1bGxzaGl0IHRvIGFjY3VzZSBNYXVybyBvZiBtaXNzaW5nIG1h
-aW50YWluZXIgc2hpcCwgYWxsIGFza2VkCmhpbSB0byBzdGF5IG91dCBhcyBmYXIgYXMgcG9zc2li
-bGUgdG8gY29udGludWUgdG8gcGxheSB0aGVyZSBvd24gZ2FtZXMhIAoKQnV0IHRoZXkganVzdCBs
-b2FkIHRoZSBkYWlseSBkaXJ0IG9uIGhpbSB0aGV5IHByZWZlcmFibHkgZG9uJ3QgbGlrZSB0bwpj
-YXJlIHRoZW1zZWx2ZXMgZm9yIGF0IGFsbCwgaW5jbHVkaW5nIHBhdGNoIHJldmlld2luZyBpbiBt
-YW55IHBhcnRzLgoKQWxzbyBNaWtlIGRpZCBtb3JlIGludGVncmF0aW9uIHdvcmsgYWNyb3NzIHRo
-ZSBmcmFtZXdvcmtzIHRoYW4gYW55b25lCmVsc2UgZHVyaW5nIHRoZSBsYXN0IHllYXIuIFRoYXQg
-YnkgdGhlIHdheS4KCkNoZWVycywKSGVybWFubgoKCgoKCgoKCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgt
-ZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LWR2Yg==
+Johannes Stezenbach wrote:
+> On Fri, Sep 12, 2008, Steven Toth wrote:
+>> Christophe Thommeret wrote:
+>>> As far  as i understand, the cinergyT2 driver is a bit unusual, e.g. 
+>>> dvb_register_frontend is never called (hence no dtv_* log messages). I don't 
+>>> know if there is others drivers like this, but this has to be investigated 
+>>> cause rewritting all drivers for S2API could be a bit of work :)
+>>>
+>>> P.S.
+>>> I think there is an alternate driver for cinergyT2 actually in developement 
+>>> but idon't remember where it's located neither its state.
+>> Good to know. (I also saw your followup email). I have zero experience 
+>> with the cinergyT2 but the old api should still be working reliably. I 
+>> plan to investigate this, sounds like a bug! :)
+> 
+> Holger was of the opinion that having the demux in dvb-core
+> was stupid for devices which have no hw demux, so he
+> programmed around dvb-core. His plan was to add a
+> mmap-dma-buffers kind of API to the frontend device,
+> but it never got implemented.
+> 
+> Anyway, it's bad if one driver is different than all the others.
+
+Hmm, I didn't realize this, good to know.
+
+Now it's peaked my interest, I'll have to look at the code.
+
+The existing API should still work at a bare minimum, if it's not - it 
+needs to.
+
+- Steve
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
