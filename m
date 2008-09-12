@@ -1,21 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.27])
+Received: from rn-out-0910.google.com ([64.233.170.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1KeS4w-0002z7-PE
-	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 12:10:11 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so529284eya.17
-	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 03:10:07 -0700 (PDT)
-From: Christoph Pfister <christophpfister@gmail.com>
+	(envelope-from <gregoire.favre@gmail.com>) id 1Ke3LH-00041X-2i
+	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 09:45:23 +0200
+Received: by rn-out-0910.google.com with SMTP id m36so505958rnd.2
+	for <linux-dvb@linuxtv.org>; Fri, 12 Sep 2008 00:45:19 -0700 (PDT)
+Date: Fri, 12 Sep 2008 09:45:13 +0200
 To: linux-dvb@linuxtv.org
-Date: Sat, 13 Sep 2008 12:10:05 +0200
-References: <857523.1729.qm@web24501.mail.ird.yahoo.com>
-In-Reply-To: <857523.1729.qm@web24501.mail.ird.yahoo.com>
+Message-ID: <20080912074513.GB3216@gmail.com>
+References: <48C70F88.4050701@linuxtv.org>
+	<200809112024.24821.liplianin@tut.by>
+	<20080911200931.GA25626@gmail.com>
+	<200809120030.55445.liplianin@tut.by>
+	<20080912051056.GA3216@gmail.com> <web-53239698@speedy.tutby.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200809131210.05844.christophpfister@gmail.com>
-Subject: Re: [linux-dvb]
-	=?utf-8?q?Ajouter_un_drapeau_=C3=A0_ce_mail_fr-Dijon_?=
-	=?utf-8?q?DVB-T_frequency_update?=
+In-Reply-To: <web-53239698@speedy.tutby.com>
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Subject: Re: [linux-dvb] S2API simple szap-s2 utility
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,20 +25,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGksCgpBbSBTdW5kYXkgMDcgU2VwdGVtYmVyIDIwMDggMTM6MTc6NDUgc2NocmllYiBtYXhlbmNl
-IGFudG9uY3p5azoKPiBIZWxsbwo+IAo+IFlvdSBjYW4gZmluZCBpbiBhdHRhY2htZW50IHRoZSB1
-cGRhdGUgZnJlcXVlbmN5IGZvciBEaWpvbixGcmFuY2UgJ2ZyLURpam9uJwoKVXBkYXRlZCwgdGhh
-bmtzIDopCgo+IFRoYW5rcyBmb3IgdXBkYXRpbmcgZmlsZSBvbiB5b3VyIHNlcnZlci4KPiAKPiBN
-YXhlbmNlIEFOVE9OQ1pZSwo+IAo+ICMjZnJlbmNoIHZlcnNpb24jIwo+IAo+IEJvbmpvdXIKPiAK
-PiBWb3VzIHRyb3V2ZXJleiBjaS1qb2ludCBsZSBmaWNoaWVyIGRlIGZyw6lxdWVuY2UgcG91ciBs
-YSB6b25lIERpam9uLEZyYW5jZSAnZnItRGlqb24nCj4gCj4gTWVyY2kgZGUgbWV0dHJlIMOgIGpv
-dXIgbGEgdmVyc2lvbnN1ciB2b3Mgc2VydmV1cnMuCj4gCj4gTWF4ZW5jZSBBTlRPTkNaWUsKCkNo
-cmlzdG9waAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-bGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5s
-aW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+On Fri, Sep 12, 2008 at 09:30:04AM +0300, "?????? ????? <liplianin@tut.by>"=
+@vdr.localdomain wrote:
+
+> mplayer, kaffeine, xine works with properly filled channels.conf
+>
+>   mplayer dvb://channelname
+>
+> Or you may try:
+> In one console
+>   szap-s2 channelname -r
+>
+> In another
+>   mplayer - < /dev/dvb/adaptero/dvr0
+>
+
+Thank you very much, I missed the -r yesterday :-)
+
+Unfortunetely today I can't tune to anything, I always got this error : =
+
+FE_SET_PROPERTY failed: Operation not permitted
+
+Directly with mplayer, I only get sofar :
+
+mplayer dvb://1@ZDF
+MPlayer dev-SVN-r27546 (C) 2000-2008 MPlayer Team
+CPU: Intel(R) Core(TM)2 CPU          6600  @ 2.40GHz (Family: 6, Model:
+15, Stepping: 6)
+CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
+Compiled for x86 CPU with extensions: MMX MMX2 SSE SSE2
+
+Playing dvb://1@ZDF.
+dvb_tune Freq: 11954000
+TS file format detected.
+
+Thanks.
+-- =
+
+Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
+rg
+               http://picasaweb.google.com/Gregoire.Favre
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
