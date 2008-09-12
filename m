@@ -1,18 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bar.sig21.net ([88.198.146.85])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <js@sig21.net>) id 1KfCTx-0004Ig-Dz
-	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 13:43:06 +0200
-Date: Mon, 15 Sep 2008 13:43:00 +0200
+Date: Fri, 12 Sep 2008 17:27:55 +0200
 From: Johannes Stezenbach <js@linuxtv.org>
-To: Christophe Thommeret <hftom@free.fr>
-Message-ID: <20080915114300.GB13335@linuxtv.org>
-References: <48CA0355.6080903@linuxtv.org> <48CD4004.4040005@linuxtv.org>
-	<200809142004.06876.hftom@free.fr>
-	<200809150414.41360.hftom@free.fr>
+To: Steven Toth <stoth@linuxtv.org>
+Message-ID: <20080912152755.GA29142@linuxtv.org>
+References: <48CA0355.6080903@linuxtv.org> <200809120826.31108.hftom@free.fr>
+	<48CA6C2E.7050908@linuxtv.org> <200809121529.41795.hftom@free.fr>
+	<48CA77DE.1020700@linuxtv.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <200809150414.41360.hftom@free.fr>
+In-Reply-To: <48CA77DE.1020700@linuxtv.org>
 Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
@@ -22,36 +18,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Sep 15, 2008, Christophe Thommeret wrote:
-> Le Sunday 14 September 2008 20:04:06 Christophe Thommeret, vous avez =E9c=
-rit=A0:
-> >
-> > as you expected, it's abit buggy and crashes at load ;)
-> > i've searched for the alternative cinergyT2 driver.
-> > it's available at: http://linuxtv.org/hg/~tmerle/cinergyT2/
-> >
-> > haven't tried it yet but will do (at least several people seems to have=
- it
-> > working).
-> =
+On Fri, Sep 12, 2008, Steven Toth wrote:
+> Christophe Thommeret wrote:
+> > 
+> > As far  as i understand, the cinergyT2 driver is a bit unusual, e.g. 
+> > dvb_register_frontend is never called (hence no dtv_* log messages). I don't 
+> > know if there is others drivers like this, but this has to be investigated 
+> > cause rewritting all drivers for S2API could be a bit of work :)
+> > 
+> > P.S.
+> > I think there is an alternate driver for cinergyT2 actually in developement 
+> > but idon't remember where it's located neither its state.
+> 
+> Good to know. (I also saw your followup email). I have zero experience 
+> with the cinergyT2 but the old api should still be working reliably. I 
+> plan to investigate this, sounds like a bug! :)
 
-> Have it working, not as good as Holger' one (often fails to lock) but it =
+Holger was of the opinion that having the demux in dvb-core
+was stupid for devices which have no hw demux, so he
+programmed around dvb-core. His plan was to add a
+mmap-dma-buffers kind of API to the frontend device,
+but it never got implemented.
 
-> works, with both old and new api.
-
-Looking at the code, cinergyt2_fe_get_tune_settings() should
-probably set step_size =3D max_drift =3D 0 to defeat
-dvb_frontend_swzigzag_autotune().
-c.f. mt352_get_tune_settings()
+Anyway, it's bad if one driver is different than all the others.
 
 
-HTH,
 Johannes
 
 _______________________________________________
