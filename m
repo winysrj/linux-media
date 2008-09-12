@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m81Ge7CV025055
-	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 12:40:07 -0400
-Received: from smtp-vbr16.xs4all.nl (smtp-vbr16.xs4all.nl [194.109.24.36])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m81Gdr3k000534
-	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 12:39:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Date: Mon, 1 Sep 2008 18:39:47 +0200
-References: <A24693684029E5489D1D202277BE89441191E52B@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE89441191E52B@dlee02.ent.ti.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8C7WVcF019666
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 03:32:31 -0400
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.249])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8C7UXCl024499
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 03:30:33 -0400
+Received: by an-out-0708.google.com with SMTP id d31so98509and.124
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 00:30:33 -0700 (PDT)
+Message-ID: <3192d3cd0809120030u781d25cfm49afefb40f01d060@mail.gmail.com>
+Date: Fri, 12 Sep 2008 07:30:33 +0000
+From: "Christian Gmeiner" <christian.gmeiner@gmail.com>
+To: "Linux and Kernel Video" <video4linux-list@redhat.com>
+In-Reply-To: <3192d3cd0809120003q11367eb1if685b033b4f4d070@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200809011839.47730.hverkuil@xs4all.nl>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"camera_team@list.ti.com - Distribution list for Camera activities \(May
-	contain non-TIers\)" <camera_team@list.ti.com>
-Subject: Re: [PATCH 2/15] OMAP3 camera driver: V4L2: Adding internal IOCTLs
-	for crop.
+Content-Type: multipart/mixed;
+	boundary="----=_Part_131054_5876490.1221204633392"
+References: <3192d3cd0809120003q11367eb1if685b033b4f4d070@mail.gmail.com>
+Subject: Re: [PATCH] Clean up adv7175 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,186 +28,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Monday 01 September 2008 16:39:59 Aguirre Rodriguez, Sergio Alberto 
-wrote:
-> Hi Hans,
-> 
-> 1.- The reply I got for patch #1 is this:
-> 
-> "Your mail to 'video4linux-list' with the subject
-> 
->     [PATCH 1/15] OMAP3 camera driver: V4L2: Adding IOCTL command to 
-get slave private data.
-> 
-> Is being held until the list moderator can review it for approval.
-> 
-> The reason it is being held:
-> 
->     Message has a suspicious header
-> 
-> Either the message will get posted to the list, or you will receive 
-notification of the moderator's decision."
-> 
-> So, I don't know who can help me review it for aprooval. :)
-> 
-> 2.- Thanks for your time on reviewing this. We will take everyone's 
-comments and regenerate a new set of patches.
+------=_Part_131054_5876490.1221204633392
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-If it is again held back when you post, then just mail it directly to 
-me. I'll probably do most of the reviewing anyway and I can setup a hg 
-repository containing all this.
+Upps... missed patch file.
 
-Regards,
+2008/9/12 Christian Gmeiner <christian.gmeiner@gmail.com>:
+> This patch removes some not needed includes and also removes some not supported
+> variables from struct adv7175.
+>
+> Signed-off-by: Christian Gmeiner <christian.gmeiner@gmail.com>
+>
+> --
+> Christian Gmeiner, B.Sc.
+>
 
-	Hans
 
-> 
-> Regards,
-> Sergio
-> 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
-> Sent: Sunday, August 31, 2008 3:01 PM
-> To: Aguirre Rodriguez, Sergio Alberto
-> Cc: video4linux-list@redhat.com; camera_team@list.ti.com - 
-Distribution list for Camera activities (May contain non-TIers)
-> Subject: Re: [PATCH 2/15] OMAP3 camera driver: V4L2: Adding internal 
-IOCTLs for crop.
-> 
-> On Sunday 31 August 2008 15:30:55 Aguirre Rodriguez, Sergio Alberto 
-> wrote:
-> > Hi Hans,
-> > 
-> > I think that it has been detected by the list mail server to have a 
-> suspicious header name, and therefore not finally sent to the list.
-> > 
-> > I'm not at my work pc right now, but i'll be resending the patch 
-> tomorrow morning (9:00 AM, GMT -6) to see if i still have the same 
-> error.
-> > 
-> > Thanks for all the comments, we will be fixing those aswell starting 
-> tomorrow.
-> > 
-> > These set of patches should apply cleanly on top of MontaVista 
-kernel 
-> v2.6.27-rc3. They are ready for V4L api changes until that kernel 
-> version (changes in video_device, ioctls).
-> 
-> Note that the v4l-dvb tree (http://linuxtv.org/hg/v4l-dvb/) is always 
-> the latest tree and the tree against which you will merge your code. 
-> This tree is basically what will go to 2.6.28 so that should be your 
-> target. 2.6.27-rc3 is old already :-)
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > Regards,
-> > Sergio
-> > ________________________________________
-> > From: Hans Verkuil [hverkuil@xs4all.nl]
-> > Sent: Saturday, August 30, 2008 3:34 PM
-> > To: video4linux-list@redhat.com
-> > Cc: Aguirre Rodriguez, Sergio Alberto
-> > Subject: Re: [PATCH 2/15] OMAP3 camera driver: V4L2: Adding internal 
-> IOCTLs for crop.
-> > 
-> > Hi,
-> > 
-> > Did something happen to PATCH 1/15? Patch 2/15 is the first I see.
-> > 
-> > Some initial comments (things seen when scanning through the 
-patches):
-> > 
-> > - Please add a small comment at the top of the driver sources 
-> explaining
-> > what a certain abbreviation means (e.g. 'ISP', 'H3A', etc.) and what
-> > the driver does.
-> > 
-> > - Patch 10 seems to have some devfs support (resizer). Devfs is dead 
-> and
-> > should not be used.
-> > 
-> > - The previewer uses register_chrdev while the resizer uses
-> > alloc_chrdev_region. The latter is the preferred solution since
-> > register_chrdev allocates a block of 256 minors, which seems to be
-> > overkill.
-> > 
-> > - The previewer and resizer basically create a new public API. Can 
-you
-> > give a short description of that API and how it is used? I need some
-> > more information about it. In general I would say that a document
-> > describing these drivers and esp. the driver-specific public API is
-> > required.
-> > 
-> > - Can you test whether these patches apply to the latest v4l-dvb
-> > repository? There have been a lot of changes this weekend and it is
-> > probably good to check this.
-> > 
-> > Regards,
-> > 
-> >         Hans
-> > 
-> > 
-> > On Saturday 30 August 2008 01:37:11 Aguirre Rodriguez, Sergio 
-Alberto
-> > wrote:
-> > > From: Sameer Venkatraman <sameerv@ti.com>
-> > >
-> > > V4L2: Adding internal IOCTLs for crop.
-> > >
-> > > Adding internal IOCTLs for crop.
-> > >
-> > > Signed-off-by: Sameer Venkatraman <sameerv@ti.com>
-> > > Signed-off-by: Mohit Jalori <mjalori@ti.com>
-> > > ---
-> > >  include/media/v4l2-int-device.h |    6 ++++++
-> > >  1 file changed, 6 insertions(+)
-> > >
-> > > Index: linux-omap-2.6/include/media/v4l2-int-device.h
-> > > 
-===================================================================
-> > > --- linux-omap-2.6.orig/include/media/v4l2-int-device.h       
-> 2008-08-25
-> > > 12:19:09.000000000 -0500 +++
-> > > linux-omap-2.6/include/media/v4l2-int-device.h        2008-08-25
-> > > 12:19:10.000000000 -0500 @@ -170,6 +170,9 @@
-> > >       vidioc_int_queryctrl_num,
-> > >       vidioc_int_g_ctrl_num,
-> > >       vidioc_int_s_ctrl_num,
-> > > +     vidioc_int_cropcap_num,
-> > > +     vidioc_int_g_crop_num,
-> > > +     vidioc_int_s_crop_num,
-> > >       vidioc_int_g_parm_num,
-> > >       vidioc_int_s_parm_num,
-> > >
-> > > @@ -266,6 +269,9 @@
-> > >  V4L2_INT_WRAPPER_1(queryctrl, struct v4l2_queryctrl, *);
-> > >  V4L2_INT_WRAPPER_1(g_ctrl, struct v4l2_control, *);
-> > >  V4L2_INT_WRAPPER_1(s_ctrl, struct v4l2_control, *);
-> > > +V4L2_INT_WRAPPER_1(cropcap, struct v4l2_cropcap, *);
-> > > +V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
-> > > +V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
-> > >  V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
-> > >  V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
-> > >
-> > >
-> > > --
-> > > video4linux-list mailing list
-> > > Unsubscribe
-> > > mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> > > https://www.redhat.com/mailman/listinfo/video4linux-list
-> > 
-> > 
-> 
-> 
-> 
-> 
-> 
 
+-- 
+Christian Gmeiner, B.Sc.
+
+------=_Part_131054_5876490.1221204633392
+Content-Type: application/octet-stream; name=adv7175_cleanup.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fl0luxb90
+Content-Disposition: attachment; filename=adv7175_cleanup.patch
+
+ZGlmZiAtciBlNWNhNDUzNGI1NDMgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9hZHY3MTc1LmMK
+LS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9hZHY3MTc1LmMJVHVlIFNlcCAwOSAwODoy
+OTo1NiAyMDA4IC0wNzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vYWR2NzE3NS5j
+CUZyaSBTZXAgMTIgMDg6NTg6MDYgMjAwOCArMDAwMApAQCAtMjQsMjMgKzI0LDcgQEAKICAqIEZv
+dW5kYXRpb24sIEluYy4sIDY3NSBNYXNzIEF2ZSwgQ2FtYnJpZGdlLCBNQSAwMjEzOSwgVVNBLgog
+ICovCiAKLSNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KLSNpbmNsdWRlIDxsaW51eC9pbml0Lmg+
+Ci0jaW5jbHVkZSA8bGludXgvZGVsYXkuaD4KLSNpbmNsdWRlIDxsaW51eC9lcnJuby5oPgotI2lu
+Y2x1ZGUgPGxpbnV4L2ZzLmg+Ci0jaW5jbHVkZSA8bGludXgva2VybmVsLmg+Ci0jaW5jbHVkZSA8
+bGludXgvbWFqb3IuaD4KLSNpbmNsdWRlIDxsaW51eC9zbGFiLmg+Ci0jaW5jbHVkZSA8bGludXgv
+bW0uaD4KLSNpbmNsdWRlIDxsaW51eC9zaWduYWwuaD4KLSNpbmNsdWRlIDxsaW51eC90eXBlcy5o
+PgogI2luY2x1ZGUgPGxpbnV4L2kyYy5oPgotI2luY2x1ZGUgPGFzbS9pby5oPgotI2luY2x1ZGUg
+PGFzbS9wZ3RhYmxlLmg+Ci0jaW5jbHVkZSA8YXNtL3BhZ2UuaD4KLSNpbmNsdWRlIDxhc20vdWFj
+Y2Vzcy5oPgotCiAjaW5jbHVkZSA8bGludXgvdmlkZW9kZXYuaD4KICNpbmNsdWRlIDxsaW51eC92
+aWRlb19lbmNvZGVyLmg+CiAjaW5jbHVkZSAiY29tcGF0LmgiCkBAIC02OSwxMCArNTMsNiBAQAog
+CWludCBub3JtOwogCWludCBpbnB1dDsKIAlpbnQgZW5hYmxlOwotCWludCBicmlnaHQ7Ci0JaW50
+IGNvbnRyYXN0OwotCWludCBodWU7Ci0JaW50IHNhdDsKIH07CiAKICNkZWZpbmUgICBJMkNfQURW
+NzE3NSAgICAgICAgMHhkNAo=
+------=_Part_131054_5876490.1221204633392
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_131054_5876490.1221204633392--
