@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gordons.ginandtonic.no ([195.159.29.69])
+Received: from mail-in-10.arcor-online.net ([151.189.21.50])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <anders@ginandtonic.no>) id 1KiXlL-0003yu-CM
-	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 19:02:52 +0200
-Message-Id: <F70AC72F-8DF3-4A9A-BFA1-A4FED9D3EABC@ginandtonic.no>
-From: Anders Semb Hermansen <anders@ginandtonic.no>
-To: Darron Broad <darron@kewl.org>
-In-Reply-To: <5584.1222273099@kewl.org>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Date: Wed, 24 Sep 2008 19:02:11 +0200
-References: <953A45C4-975B-4A05-8B41-AE8A486D0CA6@ginandtonic.no>
-	<5584.1222273099@kewl.org>
+	(envelope-from <hermann-pitton@arcor.de>) id 1KeHIn-0007TK-EW
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 00:39:45 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Manu Abraham <abraham.manu@gmail.com>
+In-Reply-To: <48CAE273.4030809@gmail.com>
+References: <630160.40997.qm@web46116.mail.sp1.yahoo.com>
+	<48CAE273.4030809@gmail.com>
+Date: Sat, 13 Sep 2008 00:35:32 +0200
+Message-Id: <1221258932.3674.8.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-4000 and analogue tv
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,77 +26,54 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Den 24. sep.. 2008 kl. 18.18 skrev Darron Broad:
-<snip>
-> I haven't tested analogue in mythtv, only dvb-s. My only testing has  
-> been
-> done with TVTIME for analogue. What happens when you try that?
 
-It seems to work ok. I struggeld a bit to get sound. Need to run this  
-also:
-arecord -f dat -D hw:2,0 | aplay -f dat -
+Am Samstag, den 13.09.2008, 01:43 +0400 schrieb Manu Abraham:
+> barry bouwsma wrote:
+> 
+> >>> And some of us non-developers have such hardware and want to try
+> >>> it with non-Windows for readily-receiveable DAB.
+> >> With some simple definitions ? What applications are used ?
+> > 
+> > I imagine I will have to hack something out of gaffer tape
+> > and chewing gum if I want to actually do anything...
+> 
+> 
+> Use any of the existing applications, "as it is".
+> 
+> > 
+> > Now a completely different question -- I was pleased to see
+> > that my not-too-old kernel compiled well with your mp_plus
+> > source, and I read on the Wiki that certain basic tools
+> > still needed to be ported to multiproto.
+> 
+> 
+> Please use the multiproto tree rather than the multiproto_plus tree.
+> 
+> 
+> > Something hands-on like this is probably the only way I'm
+> > ever going to get a clue about the APIs.  And it might even
+> > result in something useful in addition.  But I don't have
+> > any hardware which requires multiproto, if I'd need that
+> > for testing or anything.
+> > 
+> > Would it be worth it for me to attempt such a port, given
+> > that, or will I find it unlikely to get anywhere?  I'm no
+> > developer and no programmer, and barely a hacker...
+> 
+> 
+> You don't need to make any ports, neither for the drivers nor for the
+> applications ...
 
-I saw this in my logs, but it seems to work okay (maybe these came  
-when I was trying difference sox and arecord/aplay commands):
+Linus and Greg don't get their jobs done or do it too well.
 
-Sep 24 18:53:46 xpc kernel: [  769.020260] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020269] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020277] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020286] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020294] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020310] cx88[0]: irq aud [0x1000]  
-dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020318] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020327] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020335] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020343] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020352] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020362] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020375] cx88[0]: irq aud [0x1000]  
-dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020382] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020391] cx88[0]: irq aud [0x1000]  
-dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020399] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020407] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020416] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020424] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020439] cx88[0]: irq aud [0x1000]  
-dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020447] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020456] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020464] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020473] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
-Sep 24 18:53:46 xpc kernel: [  769.020481] cx88[0]: irq aud [0x1001]  
-dn_risci1* dn_sync*
+Either stay more away from subsystems or come closer.
+
+To let it hang around over years for cheap, is a pity.
+
+Hermann
 
 
-Does this mean that mythtv is doing something weird or maybe just  
-using the v4l api in a different way which the driver cannot handle?
 
-
-Thanks for your response,
-Anders
 
 
 _______________________________________________
