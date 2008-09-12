@@ -1,23 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m867f6EY030484
-	for <video4linux-list@redhat.com>; Sat, 6 Sep 2008 03:41:07 -0400
-Received: from smtp-out2.blueyonder.co.uk (smtp-out2.blueyonder.co.uk
-	[195.188.213.5])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m867eLQS023606
-	for <video4linux-list@redhat.com>; Sat, 6 Sep 2008 03:40:21 -0400
-Message-ID: <48C233E6.3020407@blueyonder.co.uk>
-Date: Sat, 06 Sep 2008 08:40:22 +0100
-From: Ian Davidson <id012c3076@blueyonder.co.uk>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8CD9hGh001975
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 09:09:43 -0400
+Received: from smtp-vbr13.xs4all.nl (smtp-vbr13.xs4all.nl [194.109.24.33])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8CD9W6A022434
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 09:09:32 -0400
+Message-ID: <25482.208.105.65.130.1221224970.squirrel@webmail.xs4all.nl>
+Date: Fri, 12 Sep 2008 15:09:30 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Christian Gmeiner" <christian.gmeiner@gmail.com>,
+	video4linux-list@redhat.com
 MIME-Version: 1.0
-To: danflu@uninet.com.br
-References: <48c16426.349.7a8c.1092537460@uninet.com.br>
-In-Reply-To: <48c16426.349.7a8c.1092537460@uninet.com.br>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Capture card
-Reply-To: ian.davidson@bigfoot.com
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: Re: Extending current adv717x drivers
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,228 +26,72 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Daniel,
+Hi Christian,
 
-If what you want to do is simply to capture I would suggest that you 
-take a look at xawtv.
+> Hi all,
+>
+> I am one of the supporters of the dxr3 drivers for Linux [0]. The big
+> goal is it to get the driver ready
+> for the mainline kernel.
 
-The 'package' comes with 'xawtv' itself which is menu driven and allows 
-you to view the video on screen.  You can select from the various 
-sources and you can capture if you want.  Also included in the 'package' 
-is 'streamer' which is a command-line program which will capture from 
-the nominated source to a file.  Various formats are supported.
+Very nice!
 
-On the other hand, if you want to look at some code - you will need to 
-be guided by someone else.
+> As this needs lot of work to be done, I will
+> start with one of the top items
+> of my todo list. Extending current adv717x drivers with new functionality.
+>
+> As you can see here [1] and [2] the adv717x driver offers some more
+> functions, which are needed
+> for the dxr3 driver - e.g. switching pixel port between 8-bit
+> multiplexed YCrCb and 16 bit YCrCb.
+>
+> The current drivers used v4l1 include and so I had a look at the v4l2
+> api but I am not sure how such
+> a driver can be switched to v4l2. If this is not the case, whats the
+> best way to "merge" dxr3s driver
+> with the in-kernel driver?
 
-Ian
+Your timing is most unfortunate. I'm pretty much the contact for helping
+you doing this. However, I'm travelling abroad and do not have the time or
+resources to assist you until I return at the end of the month.
 
-danflu@uninet.com.br wrote:
-> Hello,
+I do know that this tree:
+
+http://linuxtv.org/hg/~mchehab/decoders/
+
+already contains an old attempt at converting these drivers to v4l2.
+
+The core problem are the zoran drivers: they are in need of an overhaul
+and a full conversion to v4l2. Bits and pieces of such work are in several
+places, but no one had the time to pull it all together. I want to do it,
+but I doubt I will have time to do that before November. Unless someone
+else is willing to work on the zoran drivers.
+
+I think you should just use the version of adv717x that dxr3 is using for
+the time being and concentrate on the other parts of the dxr3 merge. There
+is no doubt enough to do.
+
+Regards,
+
+      Hans
+
 >
-> I have a capture card with three types of input:
+> [0] http://dxr3.sf.net
+> [1]
+> http://dxr3.sourceforge.net/hg/em8300-nboullis/file/37328a436d49/modules/adv717x.c
+> [2]
+> http://dxr3.sourceforge.net/hg/em8300-nboullis/file/37328a436d49/modules/adv717x.h
 >
-> -composite video
-> -Svideo
-> -tunner.
 >
-> I'm looking for some code ilustrating how to capture from a
-> capture card device. 
->
-> Is it possible ? If so , how can i do this ?
->
-> Please Help,
->
-> Thanks
-> Daniel
+> Thanks for your help,
+> --
+> BSc, Christian Gmeiner
 >
 > --
 > video4linux-list mailing list
 > Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 > https://www.redhat.com/mailman/listinfo/video4linux-list
 >
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->   
-
--- 
-Ian Davidson
-239 Streetsbrook Road, Solihull, West Midlands, B91 1HE
--- 
-Facts used in this message may or may not reflect an underlying objective reality. 
-Facts are supplied for personal use only. 
-Recipients quoting supplied information do so at their own risk. 
-Facts supplied may vary in whole or part from widely accepted standards. 
-While painstakingly researched, facts may or may not be indicative of actually occurring events or natural phenomena. 
-The author accepts no responsibility for personal loss or injury resulting from memorisation and subsequent use.
-
 
 --
 video4linux-list mailing list
