@@ -1,27 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KiZvv-0006YE-Kk
-	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 21:21:56 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7P00CYHSFK0ML0@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 24 Sep 2008 15:21:21 -0400 (EDT)
-Date: Wed, 24 Sep 2008 15:21:20 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <e32e0e5d0809232050s1d0257e3m30c9c055e9d32dd6@mail.gmail.com>
-To: Tim Lucas <lucastim@gmail.com>
-Message-id: <48DA9330.6070005@linuxtv.org>
-MIME-version: 1.0
-References: <e32e0e5d0809171545r3c2e58beh62d58fa6d04dae71@mail.gmail.com>
-	<48D34C69.6050700@linuxtv.org>
-	<e32e0e5d0809232045j56bef9ah1ec3ac59401de0d5@mail.gmail.com>
-	<e32e0e5d0809232050s1d0257e3m30c9c055e9d32dd6@mail.gmail.com>
-Cc: linux dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Porting analog support from HVR-1500 to the DViCO
- FusionHDTV7 Dual Express (Read this one)
+Message-ID: <48CAAE6E.7060806@linuxtv.org>
+Date: Fri, 12 Sep 2008 14:01:18 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Steven Toth <stoth@hauppauge.com>
+References: <263027.23563.qm@web46116.mail.sp1.yahoo.com>
+	<48CA6BBB.5010802@hauppauge.com>
+In-Reply-To: <48CA6BBB.5010802@hauppauge.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Siano ISDB [was: Re: S2API - Status - Thu Sep 11th]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,19 +22,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Tim Lucas wrote:
-> I forgot to mention that I commented out the digital tuner at .portc 
-> first.  Then I tried to tune channels, but could not.  Then I changed 
-> the tuner to 0xc8 >> 1, leaving .portc commented out.  I still could not 
-> tune channels.
-> 
->      --Tim
-> 
-> 
+Steven Toth wrote:
+> barry bouwsma wrote:
+>> --- On Fri, 9/12/08, Steven Toth <stoth@linuxtv.org> wrote:
+>>
+>>  
+>>> mkrufky spent some time adding S2API isdb-t support to the siano
+>>> driver, that's working pretty well - tuning via the S2API app.
+>>>
+>>> http://linuxtv.org/hg/~mkrufky/sms1xxx-isdbt-as-dvbt/
+>>>     
+>>
+>> Just a first quick feedback, the following will need to be
+>> frobbed appropriately:
+>>
+>>     204         if (id < DEVICE_MODE_DVBT || id >
+>> DEVICE_MODE_DVBT_BDA) {
+>>     205                 sms_err("invalid firmware id specified %d", id);
+>>     206                 return -EINVAL;
+>>
+>> In order to enable ISDB modes, one will need to specify
+>> module parameter `default_mode=5' or =6, whichever, and,
+>> hmmm, looks like I gotta hunt down a firmware too.
+>>
+>>   
+> Correct, that tree expects a module option to load the firmware, you
+> might want to check this code snippet in the other tree. The other
+> detects the delivery system and reloads the firmware on the fly. 
 
-I really need you to test composite or svideo, did you do this?
+Actually, I did not yet push up the auto-firmware load patch -- I saw a
+bug here in my tests, so I'll push that one up after I get back and fix it.
 
-- Steve
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
