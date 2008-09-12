@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8MIGUx1021097
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 14:16:30 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8MIGKvK009930
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 14:16:20 -0400
-Message-ID: <48D7E121.50002@hhs.nl>
-Date: Mon, 22 Sep 2008 20:17:05 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8C7YPJZ019989
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 03:34:26 -0400
+Received: from mail-gx0-f15.google.com (mail-gx0-f15.google.com
+	[209.85.217.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8C7Y4s3025685
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 03:34:11 -0400
+Received: by gxk8 with SMTP id 8so11285259gxk.3
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 00:34:04 -0700 (PDT)
+Message-ID: <3192d3cd0809120034q4d40469cob5f0f0bbfbff5fb5@mail.gmail.com>
+Date: Fri, 12 Sep 2008 07:34:03 +0000
+From: "Christian Gmeiner" <christian.gmeiner@gmail.com>
+To: "Linux and Kernel Video" <video4linux-list@redhat.com>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-References: <48D7DAE1.7040204@gmail.com>
-In-Reply-To: <48D7DAE1.7040204@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: m560x driver devel <m560x-driver-devel@lists.sourceforge.net>,
-	video4linux-list@redhat.com
-Subject: Re: [GSPCA] A couple of questions
+Content-Type: multipart/mixed;
+	boundary="----=_Part_131089_2511572.1221204844067"
+Subject: [PATCH] Clean up bt819 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,44 +27,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Erik Andrén wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> Hi,
-> I've begun the working investigating the possibility of converting the
-> m5602 driver to the gspca framework.
+------=_Part_131089_2511572.1221204844067
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Great! You rock, really you do :)
+This patch removes some not needed includes.
 
-> I currently have the following questions:
-> 1) From my understanding each driver implementing the gspca framework
-> has a static list of v4l2 controls. In the m5602 driver, each sensor has
-> its own set of v4l2 controls with different resolutions.
-> Is there a obious solution to this problem?
-> 
+Signed-off-by: Christian Gmeiner <christian.gmeiner@gmail.com>
 
-Yes and no, for now the solution is to make your sd_desc non const and update 
-the ctrls member to point to the right array. In the future I want to add a 
-const struct sd_desc *sensor_ctrls to the main gspca struct, which you can then 
-set at probe time, as there are more subdrivers with this issue.
+-- 
+Christian Gmeiner, B.Sc.
 
-Feel free todo that now in your patch if that suits you. My idea is to have per 
-bridge controls in sd_desc, and per sensor controls in gspca_dev.
+------=_Part_131089_2511572.1221204844067
+Content-Type: application/octet-stream; name=bt819_cleanup.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fl0lzm1p0
+Content-Disposition: attachment; filename=bt819_cleanup.patch
 
-> 2) In the sd_desc struct, is it necessary to implement the dq_callback
-> or does the gspca driver automagically requeue buffers?
-
-There is no need to implement this, its just a callback for when you want todo 
-something each frame from a non interrupt contexts (like software autoexposure).
-
-Don't hesitate to ask more questions!
-
-Regards,
-
-Hans
+ZGlmZiAtciBlNWNhNDUzNGI1NDMgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9idDgxOS5jCi0t
+LSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vYnQ4MTkuYwlUdWUgU2VwIDA5IDA4OjI5OjU2
+IDIwMDggLTA3MDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9idDgxOS5jCUZyaSBT
+ZXAgMTIgMDk6MjU6MjUgMjAwOCArMDAwMApAQCAtMjgsMjYgKzI4LDkgQEAKICAqIEZvdW5kYXRp
+b24sIEluYy4sIDY3NSBNYXNzIEF2ZSwgQ2FtYnJpZGdlLCBNQSAwMjEzOSwgVVNBLgogICovCiAK
+LSNpbmNsdWRlIDxsaW51eC9tb2R1bGUuaD4KLSNpbmNsdWRlIDxsaW51eC9pbml0Lmg+Ci0jaW5j
+bHVkZSA8bGludXgvZGVsYXkuaD4KLSNpbmNsdWRlIDxsaW51eC9lcnJuby5oPgotI2luY2x1ZGUg
+PGxpbnV4L2ZzLmg+Ci0jaW5jbHVkZSA8bGludXgva2VybmVsLmg+Ci0jaW5jbHVkZSA8bGludXgv
+bWFqb3IuaD4KLSNpbmNsdWRlIDxsaW51eC9zbGFiLmg+Ci0jaW5jbHVkZSA8bGludXgvbW0uaD4K
+LSNpbmNsdWRlIDxsaW51eC9zaWduYWwuaD4KLSNpbmNsdWRlIDxsaW51eC90eXBlcy5oPgogI2lu
+Y2x1ZGUgPGxpbnV4L2kyYy5oPgotI2luY2x1ZGUgPGFzbS9pby5oPgotI2luY2x1ZGUgPGFzbS9w
+Z3RhYmxlLmg+Ci0jaW5jbHVkZSA8YXNtL3BhZ2UuaD4KLSNpbmNsdWRlIDxhc20vdWFjY2Vzcy5o
+PgotCiAjaW5jbHVkZSA8bGludXgvdmlkZW9kZXYuaD4KICNpbmNsdWRlIDxsaW51eC92aWRlb19k
+ZWNvZGVyLmg+Ci0KICNpbmNsdWRlICJjb21wYXQuaCIKIAogTU9EVUxFX0RFU0NSSVBUSU9OKCJC
+cm9va3RyZWUtODE5IHZpZGVvIGRlY29kZXIgZHJpdmVyIik7Cg==
+------=_Part_131089_2511572.1221204844067
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_131089_2511572.1221204844067--
