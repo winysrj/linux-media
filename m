@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web38806.mail.mud.yahoo.com ([209.191.125.97])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <urishk@yahoo.com>) id 1KdLos-0002Xf-8Z
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 11:17:04 +0200
-Date: Wed, 10 Sep 2008 02:16:27 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-To: free_beer_for_all@yahoo.com
-In-Reply-To: <630160.40997.qm@web46116.mail.sp1.yahoo.com>
+Message-ID: <48CAB3EA.5050600@magma.ca>
+Date: Fri, 12 Sep 2008 14:24:42 -0400
+From: Patrick Boisvenue <patrbois@magma.ca>
 MIME-Version: 1.0
-Message-ID: <260419.76903.qm@web38806.mail.mud.yahoo.com>
-Cc: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
-Reply-To: urishk@yahoo.com
+To: Andy Walls <awalls@radix.net>
+References: <48C659C5.8000902@magma.ca> <48C68DC5.1050400@linuxtv.org>	
+	<48C73161.7090405@magma.ca> <48C732DE.2030902@linuxtv.org>	
+	<1221087304.2648.7.camel@morgan.walls.org>
+	<48C86857.70603@magma.ca>
+	<1221095447.2648.69.camel@morgan.walls.org>
+In-Reply-To: <1221095447.2648.69.camel@morgan.walls.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,117 +25,191 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Barry,
+Andy Walls wrote:
+> On Wed, 2008-09-10 at 20:37 -0400, Patrick Boisvenue wrote:
+>> Andy Walls wrote:
+>>> On Tue, 2008-09-09 at 22:37 -0400, Steven Toth wrote:
+>>>> Patrick Boisvenue wrote:
+>>>>> Steven Toth wrote:
+>>>>>> Patrick Boisvenue wrote:
+>>>>> When launching dvbscan I get the following in dmesg:
+>>>>>
+>>>>> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+>>>>> firmware: requesting dvb-fe-xc5000-1.1.fw
+>>>>> kobject_add_internal failed for i2c-2 with -EEXIST, don't try to 
+>>>>> register things with the same name in the same directory.
+>>>>> Pid: 8059, comm: kdvb-fe-0 Tainted: P          2.6.26-gentoo #11
+>>>>>
+>>>>> Call Trace:
+>>>>>  [<ffffffff8036abb5>] kobject_add_internal+0x13f/0x17e
+>>>>>  [<ffffffff8036aff2>] kobject_add+0x74/0x7c
+>>>>>  [<ffffffff80230b02>] printk+0x4e/0x56
+>>>>>  [<ffffffff803eb84a>] device_add+0x9b/0x483
+>>>>>  [<ffffffff8036a876>] kobject_init+0x41/0x69
+>>>>>  [<ffffffff803f059d>] _request_firmware+0x169/0x324
+>>>>>  [<ffffffffa00e9a7e>] :xc5000:xc_load_fw_and_init_tuner+0x64/0x293
+>>>>>  [<ffffffff804a7222>] i2c_transfer+0x75/0x7f
+>>>>>  [<ffffffffa00e53ad>] :s5h1409:s5h1409_writereg+0x51/0x83
+>>>>>  [<ffffffffa00e9cea>] :xc5000:xc5000_init+0x3d/0x6f
+>>>>>  [<ffffffffa0091b0c>] :dvb_core:dvb_frontend_init+0x49/0x63
+>>>>>  [<ffffffffa0092e2c>] :dvb_core:dvb_frontend_thread+0x78/0x2f0
+>>>>>  [<ffffffffa0092db4>] :dvb_core:dvb_frontend_thread+0x0/0x2f0
+>>>>>  [<ffffffff80240eaf>] kthread+0x47/0x74
+>>>>>  [<ffffffff8022bc41>] schedule_tail+0x27/0x5b
+>>>>>  [<ffffffff8020be18>] child_rip+0xa/0x12
+>>>>>  [<ffffffff80240e68>] kthread+0x0/0x74
+>>>>>  [<ffffffff8020be0e>] child_rip+0x0/0x12
+>>>>>
+>>>>> fw_register_device: device_register failed
+>>>>> xc5000: Upload failed. (file not found?)
+>>>>> xc5000: Unable to initialise tuner
+>>>>>
+>>>>>
+>>>>> I have the firmware file located here:
+>>>>>
+>>>>> # ls -l /lib/firmware/dvb-fe-xc5000-1.1.fw
+>>>>> -rw-r--r-- 1 root root 12332 Aug 31 12:56 
+>>>>> /lib/firmware/dvb-fe-xc5000-1.1.fw
+>>>>>
+>>>>> If there is anything else I can provide (or try) to help debug, let me 
+>>>>> know,
+>>>>> ...Patrick
+>>>>  > kobject_add_internal failed for i2c-2 with -EEXIST, don't try to
+>>>>  > register things with the same name in the same directory.
+>>>>
+>>>> Ooh, that's nasty problem, this is new - and looks like it's i2c related.
+>>>>
+>>>> Why does this sound familiar? Anyone?
+>>> A cx18 user had a similar problem on one distro.  I remeber running it
+>>> down to a race condition in creating device nodes in one of the
+>>> "virtual" filesystems (/proc or /sys) the device was looking for a
+>>> paretn PCI device entry to hook onto, but it wasn't created at the time
+>>> so it tries to create it itself.  In the meantime some other part of the
+>>> kernel subsystem did actually finish creating the entry - so it exists
+>>> by the time the firmware load tries to make it.
+>>>
+>>> As far as I could tell, it should be non-fatal (not an Oops or panic),
+>>> but if the driver gives up on -EEXIST then things won't work obviously.
+>>>
+>>> I never resolved the problem for the user.  I think some kernel change
+>>> outside of cx18 resolved it.  That's all the details I have.
+>>>
+>>> Regards,
+>>> Andy
+>>>
+>> So what are my options? 
+> 
+> Good question.  I don't know.  Working with kobjects is way out of my
+> knowledge base.
+> 
+> I looked at the kernel code long enough to decide that without being
+> able to reproduce the problem myself, I won't be able to spot the root
+> cause.  Part of the reason is that this problem is about looking for and
+> creating sysfs objects as it relates to driver probing and firmware
+> loading.  I couldn't quite sort out what had to happen in series and
+> what the kernel could be executing in parallel.
+> 
+> I think your best option would be to post to the LKML or wherever else
+> the sysfs and kobject experts hang out.
+> 
+> Another option could be to modify the driver code that gives up when the
+> firmware operation returns an error code because a sysfs device node
+> already exists (-EEXIST).  That's no big deal, and a driver should be
+> able to merrily go forward, if it can easily detect the condition.
+> 
+> 
 
-My name is Uri Shkolnik and I'm Siano's software architect.
-
-If you would like to add a generic support for DAB, T-DMB, DAB2, DAB-IP, etc. to LinuxTV, it'll be great!
-
-I can assist you with generic information, plus chipset specific information.
-
-If you have a DAB related RF feed, I even can, on certain conditions, to supply you with a hardware (USB or SDIO based), I already did so before with different open source / Linux projects.
-
-I'm not sure that DVB sub-system is the perfect location for DAB related devices, and what about multi-DTV devices? (Siano based chipsets devices support many DTV standards, DVB-x and DAB-y among them), maybe somewhere up the chain (under media/common ? elsewhere? I'm not pretending to be a Linux kernel nor LinuxTV expert).
-
-Anyway, keep in touch, just letting you know that I'm here... (except my vacation between Sep 19th and Oct 20th :-)
-
-
-Uri
-
---- On Wed, 9/10/08, barry bouwsma <free_beer_for_all@yahoo.com> wrote:
-
-> From: barry bouwsma <free_beer_for_all@yahoo.com>
-> Subject: Re: [linux-dvb] Multiproto API/Driver Update
-> To: "Manu Abraham" <abraham.manu@gmail.com>
-> Cc: linux-dvb@linuxtv.org
-> Date: Wednesday, September 10, 2008, 3:52 AM
-> --- On Mon, 9/8/08, Manu Abraham
-> <abraham.manu@gmail.com> wrote:
-> 
-> > > Second, how do non-DVB-like technologies like DAB
-> (Eureka-147) fit
-> > > into the scope of either multiproto or S2API --
-> or must they
-> > > remain outside of v4l-dvb?
-> > 
-> > There is already a kernel module called dabusb for
-> ages.
-> 
-> I just looked at it again, now that I know a bit more about
-> how DAB works, and to confirm the impression I got earlier
-> when I was thinking about seeing if I could make it work
-> with my (then) new DAB-able device.
-> 
-> This seems to be written specifically for one particular
-> product, which I don't have, and I've forgotten
-> what I've
-> read about it.  It seems to be mostly loading firmware to
-> the device, and pulling data from it via USB.  I don't
-> see any way to tune to a particular frequency, or select
-> a particular service, so that's presumably done
-> elsewhere,
-> perhaps physically on the receiver itself.
-> 
-> The device I have is partly supported by the v4l-dvb
-> `siano'
-> directory, with hints such as
-> #define MSG_SMS_DAB_CHANNEL        607
-> 
-> I have what looks to be a personal reply from Herr Acher
-> that has helped me understand a bit more about the dabusb
-> code/device, and I need to welcome the honourable Uri
-> Shkolnik
-> and ask questions to learn about the Siano's support of
-> DAB.
-> 
-> 
-> 
-> > > And some of us non-developers have such hardware
-> and want to try
-> > > it with non-Windows for readily-receiveable DAB.
-> > 
-> > With some simple definitions ? What applications are
-> used ?
-> 
-> I imagine I will have to hack something out of gaffer tape
-> and chewing gum if I want to actually do anything...
-> 
-> 
-> 
-> Now a completely different question -- I was pleased to see
-> that my not-too-old kernel compiled well with your mp_plus
-> source, and I read on the Wiki that certain basic tools
-> still needed to be ported to multiproto.
-> 
-> Something hands-on like this is probably the only way
-> I'm
-> ever going to get a clue about the APIs.  And it might even
-> result in something useful in addition.  But I don't
-> have
-> any hardware which requires multiproto, if I'd need
-> that
-> for testing or anything.
-> 
-> Would it be worth it for me to attempt such a port, given
-> that, or will I find it unlikely to get anywhere?  I'm
-> no
-> developer and no programmer, and barely a hacker...
-> 
-> 
-> thanks,
-> barry bouwsma
-> 
-> 
->       
-> 
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+More observations before I go bother people LKML.  This is the error 
+with an older 2.6.25 kernel.  The dmesg output is more interesting.
 
 
-      
+xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)... 
+ 
+
+sysfs: duplicate filename 'i2c-1' can not be created 
+ 
+
+------------[ cut here ]------------ 
+ 
+
+WARNING: at fs/sysfs/dir.c:424 sysfs_add_one+0x3f/0x93() 
+ 
+
+Modules linked in: wlan_wep xc5000 s5h1409 cx23885 compat_ioctl32 
+videodev v4l1_compat cx2341x wlan_scan_sta videobuf_dma_sg 
+ath_rate_sample v4l2_common btcx_risc tveeprom ath_pci videobuf_dvb 
+dvb_core wlan ath_hal(P) videobuf_core 
+
+Pid: 7730, comm: kdvb-fe-0 Tainted: P         2.6.25-gentoo-r6 #2 
+ 
+
+
+Call Trace:
+  [<ffffffff8023019d>] warn_on_slowpath+0x51/0x63
+  [<ffffffff80230ef4>] printk+0x4e/0x56
+  [<ffffffff8029143a>] find_inode+0x28/0x6d
+  [<ffffffff802bea5c>] sysfs_ilookup_test+0x0/0xf
+  [<ffffffff8029156e>] ifind+0x44/0x8d
+  [<ffffffff802bec58>] sysfs_find_dirent+0x1b/0x2f
+  [<ffffffff802becab>] sysfs_add_one+0x3f/0x93
+  [<ffffffff802bf1fe>] create_dir+0x4f/0x87
+  [<ffffffff802bf26b>] sysfs_create_dir+0x35/0x4a
+  [<ffffffff80366f6a>] kobject_get+0x12/0x17
+  [<ffffffff8036708f>] kobject_add_internal+0xc3/0x17e
+  [<ffffffff80367224>] kobject_add_varg+0x54/0x61
+  [<ffffffff802296d6>] __wake_up+0x38/0x4f
+  [<ffffffff80367581>] kobject_add+0x74/0x7c
+  [<ffffffff880cb43e>] :cx23885:i2c_readbytes+0x1ae/0x25d
+  [<ffffffff80230ef4>] printk+0x4e/0x56
+  [<ffffffff803e647a>] device_add+0x85/0x4a4
+  [<ffffffff80366e05>] kobject_init+0x41/0x69
+  [<ffffffff803ebe58>] _request_firmware+0x154/0x30f
+  [<ffffffff880e3a7e>] :xc5000:xc_load_fw_and_init_tuner+0x64/0x293
+  [<ffffffff804ac2c7>] i2c_transfer+0x75/0x7f
+  [<ffffffff880df3ad>] :s5h1409:s5h1409_writereg+0x51/0x83
+  [<ffffffff880e3cea>] :xc5000:xc5000_init+0x3d/0x6f
+  [<ffffffff8806ab0c>] :dvb_core:dvb_frontend_init+0x49/0x63
+  [<ffffffff8806be8d>] :dvb_core:dvb_frontend_thread+0x78/0x307
+  [<ffffffff8806be15>] :dvb_core:dvb_frontend_thread+0x0/0x307
+  [<ffffffff80241392>] kthread+0x47/0x75
+  [<ffffffff8022bc6a>] schedule_tail+0x27/0x5c
+  [<ffffffff8020bc88>] child_rip+0xa/0x12
+  [<ffffffff8024134b>] kthread+0x0/0x75
+  [<ffffffff8020bc7e>] child_rip+0x0/0x12
+
+---[ end trace 01bdacc4ebef05bf ]---
+kobject_add_internal failed for i2c-1 with -EEXIST, don't try to 
+register things with the same name in the same directory.
+Pid: 7730, comm: kdvb-fe-0 Tainted: P         2.6.25-gentoo-r6 #2
+
+Call Trace:
+  [<ffffffff8036710b>] kobject_add_internal+0x13f/0x17e
+  [<ffffffff80367224>] kobject_add_varg+0x54/0x61
+  [<ffffffff802296d6>] __wake_up+0x38/0x4f
+  [<ffffffff80367581>] kobject_add+0x74/0x7c
+  [<ffffffff880cb43e>] :cx23885:i2c_readbytes+0x1ae/0x25d
+  [<ffffffff80230ef4>] printk+0x4e/0x56
+  [<ffffffff803e647a>] device_add+0x85/0x4a4
+  [<ffffffff80366e05>] kobject_init+0x41/0x69
+  [<ffffffff803ebe58>] _request_firmware+0x154/0x30f
+  [<ffffffff880e3a7e>] :xc5000:xc_load_fw_and_init_tuner+0x64/0x293
+  [<ffffffff804ac2c7>] i2c_transfer+0x75/0x7f
+  [<ffffffff880df3ad>] :s5h1409:s5h1409_writereg+0x51/0x83
+  [<ffffffff880e3cea>] :xc5000:xc5000_init+0x3d/0x6f
+  [<ffffffff8806ab0c>] :dvb_core:dvb_frontend_init+0x49/0x63
+  [<ffffffff8806be8d>] :dvb_core:dvb_frontend_thread+0x78/0x307
+  [<ffffffff8806be15>] :dvb_core:dvb_frontend_thread+0x0/0x307
+  [<ffffffff80241392>] kthread+0x47/0x75
+  [<ffffffff8022bc6a>] schedule_tail+0x27/0x5c
+  [<ffffffff8020bc88>] child_rip+0xa/0x12
+  [<ffffffff8024134b>] kthread+0x0/0x75
+  [<ffffffff8020bc7e>] child_rip+0x0/0x12
+
+fw_register_device: device_register failed
+xc5000: Upload failed. (file not found?)
+xc5000: Unable to initialise tuner
+
+...Patrick
 
 _______________________________________________
 linux-dvb mailing list
