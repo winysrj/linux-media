@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8MHin9W005432
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 13:44:49 -0400
-Received: from pne-smtpout2-sn1.fre.skanova.net
-	(pne-smtpout2-sn1.fre.skanova.net [81.228.11.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8MHidLc019976
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 13:44:39 -0400
-Received: from [192.168.0.102] (90.224.104.93) by
-	pne-smtpout2-sn1.fre.skanova.net (7.3.129)
-	id 4843FAEB01945D52 for video4linux-list@redhat.com;
-	Mon, 22 Sep 2008 19:44:39 +0200
-Message-ID: <48D7D987.7020107@gmail.com>
-Date: Mon, 22 Sep 2008 19:44:39 +0200
-From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: multipart/mixed; boundary="------------060800080908030201070101"
-Subject: [PATCH][GSPCA] Remove some superflous commas
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8C301ow016389
+	for <video4linux-list@redhat.com>; Thu, 11 Sep 2008 23:00:02 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8C2xn0I022271
+	for <video4linux-list@redhat.com>; Thu, 11 Sep 2008 22:59:50 -0400
+From: Andy Walls <awalls@radix.net>
+To: Dale Pontius <DEPontius@edgehp.net>
+In-Reply-To: <48C9D060.6080808@edgehp.net>
+References: <48C9D060.6080808@edgehp.net>
+Content-Type: text/plain
+Date: Thu, 11 Sep 2008 22:59:32 -0400
+Message-Id: <1221188372.2648.100.camel@morgan.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Hauppauge HVR-1600 (cx18) newbie - stuff loads, can't get output
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,378 +27,211 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------060800080908030201070101
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thu, 2008-09-11 at 22:13 -0400, Dale Pontius wrote:
+> I'm trying to get an Hauppauge HVR-1600 card running, based on 
+> information from the Gentoo Wiki, the IVTV Wiki, google, and lists. 
+> (This list, the mythtv list, and searching LIRC archives.)
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Hi,
-The attached patch removes some superflous commas.
-More gspca files could be combed for these, I just picked a couple of
-files when I had some spare minutes over.
 
-Patch should apply against current v4l-dvb hg tree.
+> I'm running a 2.6.25 kernel and v4l-dvb sources pulled tonight.
 
-Thanks,
-Erik
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+Those should be fine for cx18.
 
-iD8DBQFI19mHN7qBt+4UG0ERAt+YAKCEUI9nVyzRKJ4qe4O78ApSwmLsdQCff5IJ
-Jw7okc9fjoMuwDclfXubKVY=
-=EdEM
------END PGP SIGNATURE-----
+>   As a 
+> side note, the saa5249 driver with this drop does not compile for me.  I 
+> don't remember from previous attempts if it's needed or not.
 
---------------060800080908030201070101
-Content-Type: text/x-diff;
- name="remove_superflous_commas.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="remove_superflous_commas.patch"
+You shouldn't for an HVR-1600.
 
-diff -r b72ff7b5aa68 linux/drivers/media/video/gspca/ov519.c
---- a/linux/drivers/media/video/gspca/ov519.c	Wed Sep 17 07:49:32 2008 +0200
-+++ b/linux/drivers/media/video/gspca/ov519.c	Mon Sep 22 18:19:19 2008 +0200
-@@ -92,10 +92,10 @@
- 		.maximum = 255,
- 		.step    = 1,
- #define BRIGHTNESS_DEF 127
--		.default_value = BRIGHTNESS_DEF,
-+		.default_value = BRIGHTNESS_DEF
- 	    },
- 	    .set = sd_setbrightness,
--	    .get = sd_getbrightness,
-+	    .get = sd_getbrightness
- 	},
- 	{
- 	    {
-@@ -106,10 +106,10 @@
- 		.maximum = 255,
- 		.step    = 1,
- #define CONTRAST_DEF 127
--		.default_value = CONTRAST_DEF,
-+		.default_value = CONTRAST_DEF
- 	    },
- 	    .set = sd_setcontrast,
--	    .get = sd_getcontrast,
-+	    .get = sd_getcontrast
- 	},
- 	{
- 	    {
-@@ -120,10 +120,10 @@
- 		.maximum = 255,
- 		.step    = 1,
- #define COLOR_DEF 127
--		.default_value = COLOR_DEF,
-+		.default_value = COLOR_DEF
- 	    },
- 	    .set = sd_setcolors,
--	    .get = sd_getcolors,
-+	    .get = sd_getcolors
- 	},
- /* next controls work with ov7670 only */
- #define HFLIP_IDX 3
-@@ -136,10 +136,10 @@
- 		.maximum = 1,
- 		.step    = 1,
- #define HFLIP_DEF 0
--		.default_value = HFLIP_DEF,
-+		.default_value = HFLIP_DEF
- 	    },
- 	    .set = sd_sethflip,
--	    .get = sd_gethflip,
-+	    .get = sd_gethflip
- 	},
- #define VFLIP_IDX 4
- 	{
-@@ -151,10 +151,10 @@
- 		.maximum = 1,
- 		.step    = 1,
- #define VFLIP_DEF 0
--		.default_value = VFLIP_DEF,
-+		.default_value = VFLIP_DEF
- 	    },
- 	    .set = sd_setvflip,
--	    .get = sd_getvflip,
-+	    .get = sd_getvflip
- 	},
- };
- 
-@@ -168,7 +168,7 @@
- 		.bytesperline = 640,
- 		.sizeimage = 640 * 480 * 3 / 8 + 590,
- 		.colorspace = V4L2_COLORSPACE_JPEG,
--		.priv = 0},
-+		.priv = 0}
- };
- static struct v4l2_pix_format sif_mode[] = {
- 	{176, 144, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
-@@ -180,7 +180,7 @@
- 		.bytesperline = 352,
- 		.sizeimage = 352 * 288 * 3 / 8 + 590,
- 		.colorspace = V4L2_COLORSPACE_JPEG,
--		.priv = 0},
-+		.priv = 0}
- };
- 
- /* OV519 Camera interface register numbers */
-@@ -341,7 +341,7 @@
- 	{ 0x4b, 0x80 },
- 	{ 0x4d, 0xd2 }, /* This reduces noise a bit */
- 	{ 0x4e, 0xc1 },
--	{ 0x4f, 0x04 },
-+	{ 0x4f, 0x04 }
- /* Do 50-53 have any effect? */
- /* Toggle 0x12[2] off and on here? */
- };
-@@ -428,7 +428,7 @@
- 	{ 0x3d, 0x80 },
- 	{ 0x27, 0xa6 },
- 	{ 0x12, 0x20 }, /* Toggle AWB */
--	{ 0x12, 0x24 },
-+	{ 0x12, 0x24 }
- };
- 
- /* Lawrence Glaister <lg@jfm.bc.ca> reports:
-@@ -469,7 +469,7 @@
- 	{ 0x12, 0x24 },
- 	{ 0x11, 0x01 },
- 	{ 0x0c, 0x24 },
--	{ 0x0d, 0x24 },
-+	{ 0x0d, 0x24 }
- };
- 
- static const struct ov_i2c_regvals norm_7620[] = {
-@@ -535,13 +535,13 @@
- 	{ 0x79, 0x80 },
- 	{ 0x7a, 0x80 },
- 	{ 0x7b, 0xe2 },
--	{ 0x7c, 0x00 },
-+	{ 0x7c, 0x00 }
- };
- 
- /* 7640 and 7648. The defaults should be OK for most registers. */
- static const struct ov_i2c_regvals norm_7640[] = {
- 	{ 0x12, 0x80 },
--	{ 0x12, 0x14 },
-+	{ 0x12, 0x14 }
- };
- 
- /* 7670. Defaults taken from OmniVision provided data,
-@@ -738,7 +738,7 @@
- 	{ 0xc8, 0x40 },
- 	{ 0x79, 0x05 },
- 	{ 0xc8, 0x30 },
--	{ 0x79, 0x26 },
-+	{ 0x79, 0x26 }
- };
- 
- static const struct ov_i2c_regvals norm_8610[] = {
-@@ -826,7 +826,7 @@
- 	{ 0x88, 0x00 },
- 	{ 0x89, 0x01 },
- 	{ 0x12, 0x20 },
--	{ 0x12, 0x25 }, /* was 0x24, new from windrv 090403 */
-+	{ 0x12, 0x25 } /* was 0x24, new from windrv 090403 */
- };
- 
- static unsigned char ov7670_abs_to_sm(unsigned char v)
-@@ -1308,7 +1308,7 @@
- 		{ OV519_GPIO_IO_CTRL0,   0xee },
- 		{ 0x51,  0x0f }, /* SetUsbInit */
- 		{ 0x51,  0x00 },
--		{ 0x22,  0x00 },
-+		{ 0x22,  0x00 }
- 		/* windows reads 0x55 at this point*/
- 	};
- 
-@@ -1471,7 +1471,7 @@
- 		{ 0x40,	0xff }, /* I2C timeout counter */
- 		{ 0x46,	0x00 }, /* I2C clock prescaler */
- 		{ 0x59,	0x04 },	/* new from windrv 090403 */
--		{ 0xff,	0x00 }, /* undocumented */
-+		{ 0xff,	0x00 } /* undocumented */
- 		/* windows reads 0x55 at this point, why? */
- 	};
- 
-@@ -2201,11 +2201,11 @@
- 	.name = MODULE_NAME,
- 	.id_table = device_table,
- 	.probe = sd_probe,
--	.disconnect = gspca_disconnect,
- #ifdef CONFIG_PM
- 	.suspend = gspca_suspend,
- 	.resume = gspca_resume,
- #endif
-+	.disconnect = gspca_disconnect
- };
- 
- /* -- module insert / remove -- */
-diff -r b72ff7b5aa68 linux/drivers/media/video/gspca/pac207.c
---- a/linux/drivers/media/video/gspca/pac207.c	Wed Sep 17 07:49:32 2008 +0200
-+++ b/linux/drivers/media/video/gspca/pac207.c	Mon Sep 22 18:19:19 2008 +0200
-@@ -96,7 +96,7 @@
- 		.maximum = PAC207_BRIGHTNESS_MAX,
- 		.step = 1,
- 		.default_value = PAC207_BRIGHTNESS_DEFAULT,
--		.flags = 0,
-+		.flags = 0
- 	    },
- 	    .set = sd_setbrightness,
- 	    .get = sd_getbrightness,
-@@ -111,10 +111,10 @@
- 		.maximum = PAC207_EXPOSURE_MAX,
- 		.step = 1,
- 		.default_value = PAC207_EXPOSURE_DEFAULT,
--		.flags = 0,
-+		.flags = 0
- 	    },
- 	    .set = sd_setexposure,
--	    .get = sd_getexposure,
-+	    .get = sd_getexposure
- 	},
- #define SD_AUTOGAIN 2
- 	{
-@@ -127,10 +127,10 @@
- 		.step	= 1,
- #define AUTOGAIN_DEF 1
- 		.default_value = AUTOGAIN_DEF,
--		.flags = 0,
-+		.flags = 0
- 	    },
- 	    .set = sd_setautogain,
--	    .get = sd_getautogain,
-+	    .get = sd_getautogain
- 	},
- #define SD_GAIN 3
- 	{
-@@ -142,11 +142,11 @@
- 		.maximum = PAC207_GAIN_MAX,
- 		.step = 1,
- 		.default_value = PAC207_GAIN_DEFAULT,
--		.flags = 0,
-+		.flags = 0
- 	    },
- 	    .set = sd_setgain,
--	    .get = sd_getgain,
--	},
-+	    .get = sd_getgain
-+	}
- };
- 
- static struct v4l2_pix_format sif_mode[] = {
-@@ -162,7 +162,7 @@
- 			   when the framerate is low) */
- 		.sizeimage = (352 + 2) * 288,
- 		.colorspace = V4L2_COLORSPACE_SRGB,
--		.priv = 0},
-+		.priv = 0}
- };
- 
- static const __u8 pac207_sensor_init[][8] = {
-@@ -170,7 +170,7 @@
- 	{0x00, 0x64, 0x64, 0x64, 0x04, 0x10, 0xf0, 0x30},
- 	{0x00, 0x00, 0x00, 0x70, 0xa0, 0xf8, 0x00, 0x00},
- 	{0x00, 0x00, 0x32, 0x00, 0x96, 0x00, 0xa2, 0x02},
--	{0x32, 0x00, 0x96, 0x00, 0xA2, 0x02, 0xaf, 0x00},
-+	{0x32, 0x00, 0x96, 0x00, 0xA2, 0x02, 0xaf, 0x00}
- };
- 
- 			/* 48 reg_72 Rate Control end BalSize_4a =0x36 */
-@@ -521,7 +521,7 @@
- 	.start = sd_start,
- 	.stopN = sd_stopN,
- 	.dq_callback = pac207_do_auto_gain,
--	.pkt_scan = sd_pkt_scan,
-+	.pkt_scan = sd_pkt_scan
- };
- 
- /* -- module initialisation -- */
-@@ -552,11 +552,11 @@
- 	.name = MODULE_NAME,
- 	.id_table = device_table,
- 	.probe = sd_probe,
--	.disconnect = gspca_disconnect,
- #ifdef CONFIG_PM
- 	.suspend = gspca_suspend,
- 	.resume = gspca_resume,
- #endif
-+	.disconnect = gspca_disconnect
- };
- 
- /* -- module insert / remove -- */
-diff -r b72ff7b5aa68 linux/drivers/media/video/gspca/tv8532.c
---- a/linux/drivers/media/video/gspca/tv8532.c	Wed Sep 17 07:49:32 2008 +0200
-+++ b/linux/drivers/media/video/gspca/tv8532.c	Mon Sep 22 18:19:19 2008 +0200
-@@ -57,10 +57,10 @@
- 	  .minimum = 1,
- 	  .maximum = 0x2ff,
- 	  .step = 1,
--	  .default_value = 0x18f,
-+	  .default_value = 0x18f
- 	  },
- 	 .set = sd_setbrightness,
--	 .get = sd_getbrightness,
-+	 .get = sd_getbrightness
- 	 },
- #define SD_CONTRAST 1
- 	{
-@@ -71,10 +71,10 @@
- 	  .minimum = 0,
- 	  .maximum = 0xffff,
- 	  .step = 1,
--	  .default_value = 0x7fff,
-+	  .default_value = 0x7fff
- 	  },
- 	 .set = sd_setcontrast,
--	 .get = sd_getcontrast,
-+	 .get = sd_getcontrast
- 	 },
- };
- 
-@@ -88,7 +88,7 @@
- 		.bytesperline = 352,
- 		.sizeimage = 352 * 288,
- 		.colorspace = V4L2_COLORSPACE_SRGB,
--		.priv = 0},
-+		.priv = 0}
- };
- 
- /*
-@@ -615,7 +615,7 @@
- 	.init = sd_init,
- 	.start = sd_start,
- 	.stopN = sd_stopN,
--	.pkt_scan = sd_pkt_scan,
-+	.pkt_scan = sd_pkt_scan
- };
- 
- /* -- module initialisation -- */
-@@ -642,11 +642,11 @@
- 	.name = MODULE_NAME,
- 	.id_table = device_table,
- 	.probe = sd_probe,
--	.disconnect = gspca_disconnect,
- #ifdef CONFIG_PM
- 	.suspend = gspca_suspend,
- 	.resume = gspca_resume,
- #endif
-+	.disconnect = gspca_disconnect
- };
- 
- /* -- module insert / remove -- */
 
---------------060800080908030201070101
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>   Google 
+> hasn't helped me determine this.  I also tried Andy Walls' tree a few 
+> weeks back, but for some reason it didn't integrate properly with my 
+> source tree, and though it compiled, it didn't install any modules.
+
+Make install problems should be related to my tree, but that's a moot
+point.  The latest v4l-dvb has all of my latest changes.
+
+
+
+> Incidentally, this system also has a bttv card installed, which I'm 
+> currently using for video capture.  I hope to replace it with a pair of 
+> HVR-1600s.
+
+FYI cx18 doesn't support analog VBI right now.  If you need closed
+captions and the bttv card provides it, you may wish to keep it in for
+now.
+
+> -------------------------------------------------------------------------------
+> When I try "mplayer /dev/video1" it suggests I try a few options.  I did 
+> some trial and error with that, and with modprobe ivtv before cx18. So 
+> the latest when I try "mplayer -vf spp,scale /dev/video1":
+> -------------------------------------------------------------------------------
+> MPlayer dev-SVN-r26753-4.1.2 (C) 2000-2008 MPlayer Team
+> CPU: AMD Athlon(tm) 64 Processor 3000+ (Family: 15, Model: 47, Stepping: 0)
+> SSE2 supported but disabled
+> 3DNowExt supported but disabled
+> CPUflags:  MMX: 1 MMX2: 1 3DNow: 1 3DNow2: 0 SSE: 1 SSE2: 0
+> Compiled for x86 CPU with extensions: MMX MMX2 3DNow SSE
+> 
+> Playing /dev/video1.
+> MPEG-PS file format detected.
+> VIDEO:  MPEG2  384x288  (aspect 2)  29.970 fps  8000.0 kbps (1000.0 kbyte/s)
+                 ^^^^^^^
+That resolution seems really odd to me ATM.
+
+
+> Opening video filter: [scale]
+> Opening video filter: [spp]
+> ==========================================================================
+> Opening video decoder: [mpegpes] MPEG 1/2 Video passthrough
+> VDec: vo config request - 384 x 288 (preferred colorspace: Mpeg PES)
+> [PP] Using external postprocessing filter, max q = 6.
+> Could not find matching colorspace - retrying with -vf scale...
+> Opening video filter: [scale]
+> The selected video_out device is incompatible with this codec.
+> Try appending the scale filter to your filter list,
+> e.g. -vf spp,scale instead of -vf spp.
+> VDecoder init failed :(
+> Opening video decoder: [ffmpeg] FFmpeg's libavcodec codec family
+> Selected video codec: [ffmpeg2] vfm: ffmpeg (FFmpeg MPEG-2)
+> ==========================================================================
+> ==========================================================================
+> Opening audio decoder: [mp3lib] MPEG layer-2, layer-3
+> AUDIO: 48000 Hz, 2 ch, s16le, 224.0 kbit/14.58% (ratio: 28000->192000)
+> Selected audio codec: [mp3] afm: mp3lib (mp3lib MPEG layer-2, layer-3)
+> ==========================================================================
+> AO: [alsa] 48000Hz 2ch s16le (2 bytes per sample)
+> Starting playback...
+> VDec: vo config request - 384 x 288 (preferred colorspace: Planar YV12)
+> [PP] Using external postprocessing filter, max q = 6.
+> VDec: using Planar YV12 as output csp (no 0)
+> Movie-Aspect is 1.33:1 - prescaling to correct movie aspect.
+> [swscaler @ 0x87804b8]using unscaled yuv420p -> yuv420p special converter
+> VO: [xv] 384x288 => 384x288 Planar YV12
+> A:   0.5 V:   0.0 A-V:  0.504 ct:  0.000   1/  1 ??% ??% ??,?% 0 0 [J 
+> A:   0.5 V:   0.8 A-V: -0.296 ct: -0.003   2/  2 ??% ??% ??,?% 0 0 [J 
+> A:   0.6 V:   0.9 A-V: -0.244 ct: -0.007   3/  3 ??% ??% ??,?% 1 0
+> [J A:   1.2 V:   1.3 A-V: -0.086 ct: -0.047  15/ 15 ??% ??% ??,?% 6 0
+> ...
+> [J A:   1.2 V:   1.3 A-V: -0.093 ct: -0.050  16/ 16 13% 61% 97.5% 7 0 
+> [J A:   1.2 V:   1.3 A-V: -0.103 ct: -0.053  17/ 17 12% 61% 91.5% 8 0 
+> [J A:   1.3 V:   1.4 A-V: -0.051 ct: -0.057  18/ 18 11% 62% 108.8% 9 0
+> ...
+> [J A:   3.8 V:   2.8 A-V:  1.058 ct: -0.197  60/ 60  5% 66% 236.5% 49 
+> 0 [J A:   3.9 V:   2.8 A-V:  1.110 ct: -0.200  61/ 61  5% 66% 240.2% 
+> 50 0 [J
+> 
+>             ************************************************
+>             **** Your system is too SLOW to play this!  ****
+>             ************************************************
+> 
+> Possible reasons, problems, workarounds:
+> - Most common: broken/buggy _audio_ driver
+>    - Try -ao sdl or use the OSS emulation of ALSA.
+>    - Experiment with different values for -autosync, 30 is a good start.
+> - Slow video output
+>    - Try a different -vo driver (-vo help for a list) or try -framedrop!
+> - Slow CPU
+>    - Don't try to play a big DVD/DivX on a slow CPU! Try some of the 
+> lavdopts,
+>      e.g. -vfm ffmpeg -lavdopts lowres=1:fast:skiploopfilter=all.
+> - Broken file
+>    - Try various combinations of -nobps -ni -forceidx -mc 0.
+> - Slow media (NFS/SMB mounts, DVD, VCD etc)
+>    - Try -cache 8192.
+> - Are you using -cache to play a non-interleaved AVI file?
+>    - Try -nocache.
+> Read DOCS/HTML/en/video.html for tuning/speedup tips.
+> If none of this helps you, read DOCS/HTML/en/bugreports.html.
+> 
+> A:   4.0 V:   2.8 A-V:  1.161 ct: -0.204  62/ 62  5% 66% 243.9% 51 0 [J 
+> A:   4.1 V:   2.9 A-V:  1.213 ct: -0.207  63/ 63  5% 65% 248.3% 52 0 [J 
+> A:   4.1 V:   2.9 A-V:  1.204 ct: -0.210  64/ 64  5% 65% 244.4% 53 0
+> ...
+> [J A:   4.6 V:   3.2 A-V:  1.424 ct: -0.240  73/ 73  5% 65% 248.8% 61 0
+> [J A:   4.7 V:   3.2 A-V:  1.476 ct: -0.244  74/ 74  5% 65% 250.7% 62 0 [J
+> Exiting... (Quit)
+> ---------------------------------------------------------------------------------
+> I would truly appreciate any suggestions or instructions for getting 
+> this beast working.
+
+OK. Some questions and things to try:
+
+1. Do you set the mmio_ndelay module option to anything specific when
+you load the cx18 module?  (The very latest v4l-dvb defaults it to 0).
+
+2. What does dmesg or /var/log/messages output look like when the module
+is loaded?
+
+
+3. What is the output of
+
+   $ v4l2-ctl -d /dev/video1 --log-status
+
+
+4. Do this sequence of commands
+
+   $ cat /dev/video1 > foo0.mpg
+   ^C
+   $ cat /dev/video1 > foo1.mpg    
+   ^C
+   $ mplayer foo1.mpg -vo x11
+
+(You can drop the '-vo x11' if you now your card supports Xv with X.)
+
+Do you see a good capture being played back?  The first analog capture
+in file foo0.mpg will playback in a jumpy manner: it's a known cx18 bug.
+
+
+5. Run a capture using caching but not scaling
+
+   $ mplayer /dev/video1 -cache 16384 -vo x11
+
+(Again drop the '-vo x11' if you know Xv works for you.)
+
+That should be a buffered live capture.  The last numer on the mplayer
+status line is the percent cache fill.  If it drops to 0 the playback
+may get a little jumps every so often.
+
+(I'm looking into how to remove the need to buffer output from the cx18
+driver before playback - it's a driver problem.)
+
+
+> When it's fully in service I plan to put it on 
+> svideo behind a Comcast set-top box, using the IR blaster.
+>   But I know 
+> that's another ongoing story,
+
+Yeah, fixing up the lirc_pvr150 driver to support the hvr1600 is on my
+list of things to do, but it's way way down there.  It involves
+capturing commands as they are issued to the Zilog chip on a windows
+box; and I don't currently have a setup to do that.
+
+
+
+>  just like cx18.  I see today on LKML that 
+> they merged bidi LIRC for practically everything but the HVR-1600.
+
+There's nothing to merge for the HVR-1600 really.  The lirc_pvr150
+module itself really only needs minor modifications.  It's capturing the
+library of octet strings to command the IR chip for the HVR-1600 that's
+the hangup.
+
+Regards,
+Andy
+
+> Thanks,
+> Dale Pontius
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------060800080908030201070101--
