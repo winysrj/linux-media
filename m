@@ -1,17 +1,12 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2f.orange.fr ([80.12.242.151])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1Kf3bV-0006Y9-5c
-	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 04:14:21 +0200
 From: Christophe Thommeret <hftom@free.fr>
 To: linux-dvb@linuxtv.org
-Date: Mon, 15 Sep 2008 04:14:41 +0200
-References: <48CA0355.6080903@linuxtv.org> <48CD4004.4040005@linuxtv.org>
-	<200809142004.06876.hftom@free.fr>
-In-Reply-To: <200809142004.06876.hftom@free.fr>
+Date: Fri, 12 Sep 2008 08:26:30 +0200
+References: <48CA0355.6080903@linuxtv.org>
+In-Reply-To: <48CA0355.6080903@linuxtv.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200809150414.41360.hftom@free.fr>
+Message-Id: <200809120826.31108.hftom@free.fr>
 Cc: Steven Toth <stoth@hauppauge.com>
 Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
@@ -27,86 +22,102 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le Sunday 14 September 2008 20:04:06 Christophe Thommeret, vous avez =E9cri=
-t=A0:
-> Le Sunday 14 September 2008 18:47:00 Steven Toth, vous avez =E9crit=A0:
-> > Steven Toth wrote:
-> > > Johannes Stezenbach wrote:
-> > >> On Fri, Sep 12, 2008, Steven Toth wrote:
-> > >>> Christophe Thommeret wrote:
-> > >>>> As far  as i understand, the cinergyT2 driver is a bit unusual, e.=
-g.
-> > >>>> dvb_register_frontend is never called (hence no dtv_* log messages=
-).
-> > >>>> I don't know if there is others drivers like this, but this has to
-> > >>>> be investigated cause rewritting all drivers for S2API could be a
-> > >>>> bit of work :)
-> > >>>>
-> > >>>> P.S.
-> > >>>> I think there is an alternate driver for cinergyT2 actually in
-> > >>>> developement but idon't remember where it's located neither its
-> > >>>> state.
-> > >>>
-> > >>> Good to know. (I also saw your followup email). I have zero
-> > >>> experience with the cinergyT2 but the old api should still be worki=
-ng
-> > >>> reliably. I plan to investigate this, sounds like a bug! :)
-> > >>
-> > >> Holger was of the opinion that having the demux in dvb-core
-> > >> was stupid for devices which have no hw demux, so he
-> > >> programmed around dvb-core. His plan was to add a
-> > >> mmap-dma-buffers kind of API to the frontend device,
-> > >> but it never got implemented.
-> > >>
-> > >> Anyway, it's bad if one driver is different than all the others.
-> > >
-> > > Hmm, I didn't realize this, good to know.
-> > >
-> > > Now it's peaked my interest, I'll have to look at the code.
-> > >
-> > > The existing API should still work at a bare minimum, if it's not - it
-> > > needs to.
-> >
-> > So I looked the the cinergyT2 code, that's a complete eye-opener. It has
-> > it's own ioctl handler, outside of dvb-core.
-> >
-> > It's a good news / bad news thing.
-> >
-> > The good news is that this driver will not be effected by the S2API
-> > changes, so nothing can break.
-> >
-> > The bad news is that this driver will not be effected by the S2API
-> > changes, so it doesn't get the benefit.
-> >
-> > Regardless of S2API or multiproto, I see no reason why we shouldn't
-> > bring this driver back into dvb-core.
-> >
-> > I don't have a device to test, but here's a patch (0% tested, with bugs
-> > probably) that converts the module back to a regular dvb-core compatible
-> > device, so the S2API would work with this. If anyone wants to test this,
-> > and finds bugs - I won't get back to this driver for a couple of weeks -
-> > so your patches would be welcome. :)
-> >
-> > Frankly, is S2API is selected for merge and we have enough users of the
-> > current non-dvb-core driver, I'll probably re-write it from the spec.
-> >
-> > So much to do, so little time.
-> >
-> > - Steve
+Le Friday 12 September 2008 07:51:17 Steven Toth, vous avez =E9crit=A0:
+> Hello!
 >
-> Steve,
+> More progress today, 7 new patches were merged - all related to the
+> feedback and suggestions we had.... And a bugfix. :)
 >
-> as you expected, it's abit buggy and crashes at load ;)
-> i've searched for the alternative cinergyT2 driver.
-> it's available at: http://linuxtv.org/hg/~tmerle/cinergyT2/
+> The DTV_SET/GET command syntax has been rationalised, as Hans requested.
+> This cleans up the application API nicely. Various internal improvements
+> and code cleanup related to variable length arrays, moving values
+> to/from userspace to the kernel. Interfacing to the demods to allow them
+> to interact with set/get property requests, if they chose to do so.
+> Quite a lot of changes internally and to the user facing API.
 >
-> haven't tried it yet but will do (at least several people seems to have it
-> working).
+> If you're planning to test then you'll need the tune-v0.0.5.c to see the
+> different. (steventoth.net/linux/s2/tune-v0.0.5.tgz)
+>
+> In addition, some related news:
+>
+> mkrufky spent some time adding S2API isdb-t support to the siano driver,
+> that's working pretty well - tuning via the S2API app.
+>
+> Two tree here, offering slightly different approaches, one with S2API,
+> one using some spare bits in the DVB-T tuning fields.
+>
+> http://linuxtv.org/hg/~mkrufky/sms1xxx-s2api-isdbt/
+> http://linuxtv.org/hg/~mkrufky/sms1xxx-isdbt-as-dvbt/
+>
+> (See tune-v0.0.5.tgz for example ISDB-T tuning code)
+>
+> If you're interested in seeing the impact of switching to S2API for this
+> driver, see the set_frontend() func, it's a small change - just a few
+> lines to reference the dtv_frontend_properties cache.
+>
+> I don't think we're quite ready to announce we've conquered the complete
+> ISDB-T API, so don't assume that this is concrete.... As we experiment
+> with other ISDB-T products we'll probably find reasons to tweak the API
+> a little further as a standard begins to form..... but tuning through a
+> clean API is a great step forward, and its working now, today. Thank you
+> mkrufky :)
+>
+> Hans Werner sent a large patch for the multifrontend HVR3000/HVR4000
+> combined DVB-T/DVB-S/S2 support for the S2API tree. (Thanks Hans - this
+> was obviously a lot of manual merge work, it's greatly appreciated.)
+>
+> What would everyone like to see happen with this patch?
+>
+> Would you prefer to see this dealt with outside of the S2API discussion,
+> or would you like to see this included and merged? Let me know your
+> thoughts. Andreas also has the multifrontend thread running, so comment
+> here if you would like to see this as part of the S2API patches, or
+> comment on the Andreas thread of you want this as a separate patchset at
+> a later date.
+>
+> Darron Broad has offered to bring the cx24116.c driver up to date with
+> some additions he has in his repositories. With any luck we may see
+> these merged into the current cx24116 driver within a few days. Thank
+> you Darron.
+>
+> Patrick, I haven't looked at your 1.7MHz bandwidth suggestion - I'm open
+> to ideas on how you think we should do this. Take a look at todays
+> linux/dvb/frontend.h and see if these updates help, or whether you need
+> more changes.
+>
+> Igor has been busy patching the szap-s2 tool
+> (http://liplianindvb.sourceforge.net/hg/szap-s2/) so many thanks to
+> Igor! Gregoire has been running some basic tests and appears to be
+> having some success, that's encouraging. Thank you.
+>
+> What's next?
+>
+> Now's probably a good time to start patching dvb-apps. I think the
+> frontend.h changes are close enough for that work to begin. This will
+> probably start Friday, so keep your eyes and open for the
+> stoth/s2api-dvb-apps tree appearing ... and an announcement here.
+>
+> Thanks again to everyone, your efforts are appreciated!
+>
+> Regards,
+>
+> Steve
 
-Have it working, not as good as Holger' one (often fails to lock) but it =
+Good work.
+I've just gave it a try:
 
-works, with both old and new api.
-So, one problem less :)
+First i tried old api (kaffeine)-> everything works as expected.
+Then i tried new API (with latest tune.c) -> nova-t and nova-s work, cinerg=
+yT2 =
+
+doesn't. I've also noticed that FE_SET_PROPERTY ioctl always return -1, eve=
+n =
+
+when success..
+Then i tried old api again -> now dvb-s doesn't lock and dvb-t always lock =
+on =
+
+the freq used in tune.c
 
 -- =
 
