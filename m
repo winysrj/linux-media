@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m84M6B2L002236
-	for <video4linux-list@redhat.com>; Thu, 4 Sep 2008 18:06:12 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.228])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m84M61V5028655
-	for <video4linux-list@redhat.com>; Thu, 4 Sep 2008 18:06:01 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so136898rvb.51
-	for <video4linux-list@redhat.com>; Thu, 04 Sep 2008 15:06:00 -0700 (PDT)
-Message-ID: <2df568dc0809041506w2c300f56r7b8cae3f2726c70@mail.gmail.com>
-Date: Thu, 4 Sep 2008 16:06:00 -0600
-From: "Gordon Smith" <spider.karma+video4linux-list@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <200809040822.09653.hverkuil@xs4all.nl>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8CAYP98012018
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 06:34:26 -0400
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.189])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8CAYDwE025408
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 06:34:13 -0400
+Received: by rn-out-0910.google.com with SMTP id k32so587172rnd.7
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 03:34:13 -0700 (PDT)
+Message-ID: <3192d3cd0809120334r1fc41715ldcac02e0d3d39b25@mail.gmail.com>
+Date: Fri, 12 Sep 2008 10:34:12 +0000
+From: "Christian Gmeiner" <christian.gmeiner@gmail.com>
+To: "Linux and Kernel Video" <video4linux-list@redhat.com>
+In-Reply-To: <3192d3cd0809101046t62b3cb48w2c1d2af4b471b6b0@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <2df568dc0809031448y3e70715codb5f3a0be505f6cf@mail.gmail.com>
-	<200809040822.09653.hverkuil@xs4all.nl>
-Subject: Re: saa7134_empress standard vs input
+References: <3192d3cd0809100508v7da001d1oacd8fe076be5db5@mail.gmail.com>
+	<3192d3cd0809101046t62b3cb48w2c1d2af4b471b6b0@mail.gmail.com>
+Subject: Re: Extending current adv717x drivers
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,60 +30,69 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Sep 4, 2008 at 12:22 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> On Wednesday 03 September 2008 23:48:39 Gordon Smith wrote:
-> > Greetings -
-> >
-> > I have a RTD Technologies VFG7350 (saa7134 based, two channel,
-> > hardware encoder per channel, no tuner) running current v4l-dvb in
-> > 2.6.25-gentoo-r7.
-> >
-> > Short form question: Is it necessary to do something to connect an
-> > input standard to an MPEG encoder?
-> >
-> > I seem to have a disconnect between input signal and the MPEG
-> > encoder. In this case, there is a NTSC camera signal on the input.
-> > Raw data and input selection are on video0. Raw data can be read from
-> > and input selected on video0. MPEG encoder output is on video2. MPEG
-> > data can be read from video2, but it looks like PAL aspect with NTSC
-> > data (extra lines at bottom of image repeat uppermost lines).
-> >
-> >
-> > $ v4l2-ctl --get-standard --device /dev/video0
-> > Video Standard = 0x0000b000
-> >         NTSC-M/M-JP/M-KR
-> > $ v4l2-ctl --get-standard --device /dev/video2
-> > Video Standard = 0x000000ff
-> >         PAL-B/B1/G/H/I/D/D1/K
-> >
-> >
-> > The input standard is automatically selected by the hardware.
-> > Is there something that needs to be set to match the standard between
-> > input and encoder?
->
-> I suspect I know what is wrong. After loading the driver
-> run 'v4l2-ctl -s ntsc-m' and see if the capture now works. Ignore the
-> standard as reported by video2: it's bogus and is unused.
->
-> What I believe is happening is that the saa6752 is never told that the
-> standard is NTSC when it is loaded the first time. But if you set it
-> explicitly afterwards, then it probably works.
->
-> Let me know what happens. If it is indeed a bug then I'll fix it.
+I have looked for a plan how to get all my wishes in the kernel an I came to
+this roadmap:
 
-I set the standard as above as well as just "ntsc" on another attempt,
-but the the capture is still PAL size.
+1) Add support for v4l2 to all i2c used chips of the zoran driver
+2) Switch zoran dirver to use 4vl2 for en/decoders
+3) Remove v4l1 stuff from all i2c used chips of the zoran driver
 
-{{{
-$ v4l2-ctl -s ntsc-m --device /dev/video0
-Standard set to 00001000
-}}}
+If I am at this point, I can start thinking about how to extend the drivers, for
+my needs.
 
+Hope you agree with this three step plan.
+greets
+
+2008/9/10 Christian Gmeiner <christian.gmeiner@gmail.com>:
+> So...
 >
-> Regards,
+> I have stared to convert the adv7175 driver to v4l2 but I am not sure
+> if its okay. Also there exist
+> a driver which must be changed to the new api.
 >
->        Hans
+> So please give me feedback....
+>
+>
+> 2008/9/10 Christian Gmeiner <christian.gmeiner@gmail.com>:
+>> Hi all,
+>>
+>> I am one of the supporters of the dxr3 drivers for Linux [0]. The big
+>> goal is it to get the driver ready
+>> for the mainline kernel. As this needs lot of work to be done, I will
+>> start with one of the top items
+>> of my todo list. Extending current adv717x drivers with new functionality.
+>>
+>> As you can see here [1] and [2] the adv717x driver offers some more
+>> functions, which are needed
+>> for the dxr3 driver - e.g. switching pixel port between 8-bit
+>> multiplexed YCrCb and 16 bit YCrCb.
+>>
+>> The current drivers used v4l1 include and so I had a look at the v4l2
+>> api but I am not sure how such
+>> a driver can be switched to v4l2. If this is not the case, whats the
+>> best way to "merge" dxr3s driver
+>> with the in-kernel driver?
+>>
+>> [0] http://dxr3.sf.net
+>> [1] http://dxr3.sourceforge.net/hg/em8300-nboullis/file/37328a436d49/modules/adv717x.c
+>> [2] http://dxr3.sourceforge.net/hg/em8300-nboullis/file/37328a436d49/modules/adv717x.h
+>>
+>>
+>> Thanks for your help,
+>> --
+>> BSc, Christian Gmeiner
+>>
+>
+>
+>
+> --
+> Christian Gmeiner, B.Sc.
+>
+
+
+
+-- 
+Christian Gmeiner, B.Sc.
 
 --
 video4linux-list mailing list
