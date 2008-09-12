@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8Q2NEw4014738
-	for <video4linux-list@redhat.com>; Thu, 25 Sep 2008 22:23:14 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.224])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8Q2N2AG017552
-	for <video4linux-list@redhat.com>; Thu, 25 Sep 2008 22:23:02 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so721117rvb.51
-	for <video4linux-list@redhat.com>; Thu, 25 Sep 2008 19:23:01 -0700 (PDT)
-Message-ID: <7b6d682a0809251923uaacc119u25cf5118625c03d0@mail.gmail.com>
-Date: Thu, 25 Sep 2008 23:23:01 -0300
-From: "Eduardo Fontes" <eduardo.fontes@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <d9def9db0809251837k126b6b83n2803e56a00a7f961@mail.gmail.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8CCr1Ne026323
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 08:53:02 -0400
+Received: from smtp-vbr3.xs4all.nl (smtp-vbr3.xs4all.nl [194.109.24.23])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8CCqmns012190
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 08:52:48 -0400
+Message-ID: <22811.208.105.65.130.1221223937.squirrel@webmail.xs4all.nl>
+Date: Fri, 12 Sep 2008 14:52:17 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Todd Duffin" <nospam@tippyturtle.com>
 MIME-Version: 1.0
-References: <7b6d682a0809251804j1277af44i80c53529a3c33d62@mail.gmail.com>
-	<d9def9db0809251837k126b6b83n2803e56a00a7f961@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: Re: Pinnacle PCTV HD Pro Stick
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	ken_taylor@pheonix.com
+Subject: Re: Can anyone test the saa6752hs (saa7134-empress)?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,65 +26,203 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Markus,
+Hi Todd,
 
-Ok. The .deb package that you send to me + tvtime ".deb" package (
-http://mcentral.de/tvtime/tvtime_1.0.2-1_i386.deb) my Pinnacle PCTV works
-with sound, but only in b/w NTSC. Brazil is PAL-M color standard and when I
-put in this TV Standard I get only noises and a disfigured green image. In
-NTSC the image is clear but only in grey scale and sound is fine. Some patch
-for this?
+> Hello, We can help test...we are trying to implement this chip for a
+> client.
+> Here is a note from our developer (on the TO: line).  Can anyone help us
+> work through these issues?
 
-Thanks again.
+The empress driver was basically broken for a long time. The latest
+v4l-dvb repository (www.linuxtv.org/hg/v4l-dvb) has fixed most of the
+problems. There is no point in using drivers included with any of the
+recent kernels.
 
------
-Eduardo M. Fontes
-A simple brazilian linux user.
+So try the driver in v4l-dvb. Hopefully that will work. I am unfortunately
+unable to help you further at the moment, at least not until the end of
+this month when I return from traveling abroad.
 
-On Thu, Sep 25, 2008 at 10:37 PM, Markus Rechberger
-<mrechberger@gmail.com>wrote:
+Regards,
 
-> Hi Eduardo,
+        Hans
+
+> Background:
+> I am working on a video capture solution for law enforcement that uses an
+> SAA7134/SAA6752 to capture two MPEG video streams on an AMD (National
+> Semiconductor) SC1200 based system.  I would like to capture the MPEG
+> compressed output from the SAA6752 chips to a buffer set that is also
+> transferred to multiple destination files on different drives, and I would
+> like to switch output files every hour on a key-frame.
 >
-> On Fri, Sep 26, 2008 at 3:04 AM, Eduardo Fontes
-> <eduardo.fontes@gmail.com> wrote:
-> > Hello fellows,
-> >
-> > I use Ubuntu Hardy (8.04), kernel 2.6.24-19, and I try to install a
-> Pinnacle
-> > PCTV HD Pro Stick USB2.0 device without success.
-> > I download the v4l newer source drivers from Mercurial and compile it.
-> When
-> > module is loaded, it detects the USB device (em28xx #0: Found Pinnacle
-> PCTV
-> > HD Pro Stick), but sound (em28xx Doesn't have usb audio class).
-> > I download too the firmware (
-> > http://konstantin.filtschew.de/v4l-firmware/firmware_v4.tgz) and put it
-> on
-> > /lib/firmware.
-> > In V4L Wiki page, inform that EM2880 chips don't have de USB Audio Class,
-> > only a USB Vendor Class for digital audio, and here is the big question:
-> > where I find the em28xx-alsa module for the kernel version that I have
+> The hardware is very similar to the RTD VFG7350 frame grabber board; in
+> fact
+> I am using this board for software prototyping and proof of concept.  I am
+> using a Linux distribution based on Debi an, but I am not particularly
+> attached to it (the application note for the RTD VFG73xx cards only
+> mentions
+> Fedora Core 4 running Linux 2.6.15).
+>
+> Questions:
+> 1. Has anyone managed to capture MPEG compressed video from /dev/video2
 > and
-> > compatible with firmware and v4l drivers!?
-> >
+> /dev/video3 using Debian and an RTD VFG7350?  If so, how? (Note:  Those
+> who
+> only use software compression on /dev/video0 and/or /dev/video1 need not
+> respond).
 >
-> You might try to install one of the following packages:
-> i386:
-> http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-7_i386.deb
-> amd64<http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-7_i386.debamd64>
-> :
-> http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-8_amd64.deb
+> 2. Under Debian, any attempt to close an open pipe to /dev/video2 and
+> /dev/video3 permanently blocks the active thread, apparently in the video
+> capture driver. This prevents the user-land process that opened the pipe
+> from terminating.  You can’t even get back to the prompt after “cat
+> /dev/video2 [enter] [ctrl+c]”; switching consoles and killing the
+> blocked
+> process with “kill -KILL” doesn’t help, and Debian also reports
+> [failure]
+> when trying to terminate all the processes on shutdown.  Does anyone else
+> experience this?
 >
-> those packages contain all the necessary firmwares and the driver for
-> em28xx based devices.
-> As for userspace applications you will need tvtime from mcentral.de in
-> order to automatically
-> get some audio playback, there's also a debian package available but
-> for i386 only.
+> 3. Under Fedora Core, (I don’t remember the exact version, but many of
+> them
+> won’t install on a SC1200, so take your pick of whichever one would be
+> easiest to get working under this condition), I found that the interface
+> to
+> /dev/video3 returned bogus information for the QUERRY and ENUM ioctl
+> functions.  Does anyone know of any alternative distribution that installs
+> and correctly supports /dev/video3 on the RTD VFG73xx?
 >
-> Markus
+> 4. I also tried the latest Linux kernel, 2.6.26.5 (actually, I started
+> with
+> 2.6.26 in the unstable version, but this applies to the latest as well).
+> I
+> found that with this kernel, the VIDIOC_QUERYBUF ioctl fails, although
+> calls
+> to the same function did not fail under earlier kernels.  I checked the
+> saa7134 driver and found that VIDIOC_REQBUFS, VIDIOC_QUERYBUF,
+> VIDIOC_QBUF,
+> VIDIOC_DQBUF, VIDIOC_STREAMON and VIDIOC_STREAMOFF have all been
+> completely
+> removed from the current driver.
 >
+> I absolutely must know when the buffer contains a key-frame, so I can
+> switch
+> target files smoothly.  I don’t see a way to find keyframes short of
+> decoding the stream on the fly if I don’t have the buffer information
+> associated with that interface.  I don’t think the SC1200 has enough
+> processing power to capture and decode two high quality MPEG streams on
+> the
+> fly, and still stream all the output to multiple files.  Also, I’m
+> morally
+> opposed to writing an MPEG stream decoder, just to locate keyframes.
+> Should
+> I just give up on using the newer kernels or is there an alternate
+> mechanism
+> for finding keyframes that doesn’t involve decoding the stream on the
+> fly?
+>
+> 5. Even with older kernel/driver combinations that support VIDIOC_QUERYBUF
+> in the saa7134 driver, I have had difficulty with VIDIOC_DQBUF constantly
+> failing (errno == IOC) and it is clearly not getting around to de-queuing
+> the buffer properly since I always get buffer 0 back and the result
+> isn’t
+> properly initialized.  The Video 4 Linux 2 API documentation indicates IOC
+> is an internal driver error, but I’m not entirely clear on why this is
+> happening.  Does this look familiar to anyone?
+>
+> 6. I have spent more than a week trying different Linux distributions,
+> looking for one that has consistent support for V4L2 and the RTD VFG7350.
+> Every single distribution I’ve tried is broken in a different way, and
+> none
+> of them have really come close to working out of the box.
+>
+> I may also need to switch to different MPEG capture hardware in the
+> future,
+> due to various parts going end-of-life.  I would really prefer to not be
+> forced into spending months re-working and debugging the video capture
+> software again.
+>
+> Is this a reasonable expectation, or is MPEG capture support sufficiently
+> difficult to implement and maintain that I should expect to go through
+> this
+> every time I change the hardware if I stick with Linux?  I am sure I
+> wouldn’t
+> be experiencing this pain if I just used XP Embedded, but I would really
+> prefer to give Linux a fair chance… its build level configurability
+> makes it
+> strongly attractive for this specific application, and I’ve got a lot of
+> time already invested in this.
+>
+> Thanks in advance,
+> Todd
+>
+> ----- Original Message -----
+> From: "hermann pitton" <hermann-pitton@arcor.de>
+> To: "Linux and Kernel Video" <video4linux-list@redhat.com>
+> Sent: Friday, February 29, 2008 4:44 PM
+> Subject: Re: Can anyone test the saa6752hs (saa7134-empress)?
+>
+>
+>> Am Samstag, den 20.01.2007, 17:48 +0100 schrieb Ulf Bartholomäus:
+>>> Hi Hans,
+>>>
+>>> On Thursday 15 June 2006 22:30, Hans Verkuil wrote:
+>>> > I'm currently working to switch cx88-blackbird and saa7134-empress
+>>> over
+>>> > to the new MPEG encoding API. So I need someone to test the changes
+>>> to
+>>> > the empress driver and saa6752hs module for me.
+>>> On which place I found more information about this. What packages
+>>> should
+>>> be
+>>> installed?
+>>>
+>>> > If you have a card with that hardware and are willing to test it (and
+>>> > possibly even do some development to improve the current driver) then
+>>> > please contact me. The changes I made to the cx88-blackbird work
+>>> fine,
+>>> > so I hope that the same is true for the saa6752hs changes but without
+>>> > hardware I simply can't test it.
+>>> Yes I have a KNC1 TV-Station DVR with this chipset.
+>>> http://www.knc1.de/d/produkte/analog_dvr.htm
+>>>
+>>> Is your offer sometimes available now (more than a half year ago)?
+>>>
+>>> Ciao Ulf
+>>>
+>>
+>> Hi,
+>>
+>> have started to mess around with a not yet supported saa7134_empress
+>> hybrid device.
+>>
+>> I have anything going, except the mpeg encoder.
+>>
+>> Last track of having it working seems 2.4.18, but I get even EIO stuff
+>> on trying to read from the device there, but that might be device
+>> specific. At least it has two gpio switchers not seen before, but the
+>> whole stuff seems not to be that well documented ...
+>>
+>> Current stuff is definitely broken,
+>> any known last working status out there?
+>>
+>> Cheers,
+>> Hermann
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
