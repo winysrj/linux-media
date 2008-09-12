@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n30.bullet.mail.ukl.yahoo.com ([87.248.110.147])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dirk_vornheder@yahoo.de>) id 1KhJ0A-00064g-SJ
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 09:05:07 +0200
-From: Dirk Vornheder <dirk_vornheder@yahoo.de>
-To: Antti Palosaari <crope@iki.fi>,
- linux-dvb@linuxtv.org
-Date: Sun, 21 Sep 2008 09:04:27 +0200
-References: <200809152345.37786.dirk_vornheder@yahoo.de>
-	<200809201953.39006.dirk_vornheder@yahoo.de>
-	<48D53B37.6020001@iki.fi> (sfid-20080920_200615_807989_643FFC56)
-In-Reply-To: <48D53B37.6020001@iki.fi>
+Received: from gv-out-0910.google.com ([216.239.58.190])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <gregoire.favre@gmail.com>) id 1Ke0vv-0004ht-Qh
+	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 07:11:05 +0200
+Received: by gv-out-0910.google.com with SMTP id n29so832266gve.16
+	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 22:11:00 -0700 (PDT)
+Date: Fri, 12 Sep 2008 07:10:56 +0200
+To: linux-dvb@linuxtv.org
+Message-ID: <20080912051056.GA3216@gmail.com>
+References: <48C70F88.4050701@linuxtv.org>
+	<200809112024.24821.liplianin@tut.by>
+	<20080911200931.GA25626@gmail.com>
+	<200809120030.55445.liplianin@tut.by>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200809210904.28192.dirk_vornheder@yahoo.de>
-Subject: Re: [linux-dvb] New unspported device AVerMedia DVB-T
+In-Reply-To: <200809120030.55445.liplianin@tut.by>
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Subject: Re: [linux-dvb] S2API simple szap-s2 utility
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,51 +24,27 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Fri, Sep 12, 2008 at 12:30:55AM +0300, Igor M. Liplianin wrote:
 
-> >>
-> >> Looks like tuner is not identified. Could you load af9015 with some
-> >> debugging enabled to see more information?
-> >>
-> >> 1) remove all dvb-modules "make rmmod"
-> >> 2) load af9015 with debug enabled "modprobe dvb-usb-af9015 debug=3"
-> >>
-> >> after that there should be more information in message-log.
-> >
-> > Sep 20 19:51:13 lappc kernel: af9015: command failed:255
-> > Sep 20 19:51:13 lappc kernel: af9015: eeprom read failed:-1
-> > Sep 20 19:51:13 lappc kernel: dvb_usb_af9015: probe of 3-3:1.0 failed
-> > with error -1
-> > Sep 20 19:51:13 lappc kernel: usbcore: registered new interface driver
-> > dvb_usb_af9015
->
-> hmm, now it even fails to read eeprom :( I have no idea why. Could you
-> try to poweroff and do cold start to see if it loads driver properly
-> then...
->
-> Antti
+Hello :-)
 
-Sep 21 08:17:51 lappc kernel: dvb-usb: found a 'AVerMedia DVB-T' in cold 
-state, will try to load a firmware
-Sep 21 08:17:51 lappc kernel: firmware: requesting dvb-usb-af9015.fw
-Sep 21 08:17:51 lappc kernel: dvb-usb: downloading firmware from file 'dvb-
-usb-af9015.fw'
-Sep 21 08:17:51 lappc kernel: usbcore: registered new interface driver 
-dvb_usb_af9015
+> http://liplianindvb.sourceforge.net/hg/szap-s2/
 
-But i found no device entries in /dev/dvb.
+Thank you very much, I managed to get lock on some channels, could
+someone tell me how to play it with mplayer/xine ?
 
-Dirk
+I tried to play from every device in v4l without success...
+-- =
 
-		
-___________________________________________________________ 
-Telefonate ohne weitere Kosten vom PC zum PC: http://messenger.yahoo.de
-
+Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
+rg
+               http://picasaweb.google.com/Gregoire.Favre
 
 _______________________________________________
 linux-dvb mailing list
