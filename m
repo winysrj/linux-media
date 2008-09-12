@@ -1,27 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with SMTP id m8KAsMQk024938
-	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 06:54:22 -0400
-Received: from mho-02-bos.mailhop.org (mho-02-bos.mailhop.org [63.208.196.179])
-	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id m8KAs32a007845
-	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 06:54:04 -0400
-Received: from c-24-63-231-219.hsd1.vt.comcast.net ([24.63.231.219]
-	helo=homer.edgehp.net)
-	by mho-02-bos.mailhop.org with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.68) (envelope-from <DEPontius@edgehp.net>)
-	id 1Kh052-000DBv-5R
-	for video4linux-list@redhat.com; Sat, 20 Sep 2008 10:52:48 +0000
-Received: from [192.168.154.40] (anastasia.edgehp.net [192.168.154.40])
-	by homer.edgehp.net (Postfix) with ESMTP id 11B1E1426D
-	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 06:52:47 -0400 (EDT)
-Message-ID: <48D4D5FE.60507@edgehp.net>
-Date: Sat, 20 Sep 2008 06:52:46 -0400
-From: Dale Pontius <DEPontius@edgehp.net>
-MIME-Version: 1.0
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8CGIk1S024184
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 12:18:46 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.230])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8CGHv0F021979
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 12:17:57 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so886587rvb.51
+	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 09:17:56 -0700 (PDT)
+Message-ID: <2df568dc0809120917w1638438bp21c2dd30a7d9997f@mail.gmail.com>
+Date: Fri, 12 Sep 2008 10:17:56 -0600
+From: "Gordon Smith" <spider.karma+video4linux-list@gmail.com>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: HVR-1600 - unable to find tuner
+In-Reply-To: <DB0F63C32D074C01B14D2466868D9FF8@in.tippyturtle.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Disposition: inline
+References: <200606152230.04490.hverkuil@xs4all.nl>
+	<200701201749.02254.ulfbart@gmx.net>
+	<1204328672.3190.9.camel@pc08.localdom.local>
+	<DB0F63C32D074C01B14D2466868D9FF8@in.tippyturtle.com>
+Content-Transfer-Encoding: 8bit
+Subject: Re: Can anyone test the saa6752hs (saa7134-empress)?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,140 +32,131 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I've been having mail problems recently, both at my ISP and my
-server, so if this is a dupe, I apologize.
+On Fri, Sep 12, 2008 at 2:24 AM, Todd Duffin <nospam@tippyturtle.com> wrote:
+>
+> Hello, We can help test...we are trying to implement this chip for a client. Here is a note from our developer (on the TO: line).  Can anyone help us work through these issues?
+>
+> Background:
+> I am working on a video capture solution for law enforcement that uses an SAA7134/SAA6752 to capture two MPEG video streams on an AMD (National Semiconductor) SC1200 based system.  I would like to capture the MPEG compressed output from the SAA6752 chips to a buffer set that is also transferred to multiple destination files on different drives, and I would like to switch output files every hour on a key-frame.
+>
+> The hardware is very similar to the RTD VFG7350 frame grabber board; in fact I am using this board for software prototyping and proof of concept.  I am using a Linux distribution based on Debi an, but I am not particularly attached to it (the application note for the RTD VFG73xx cards only mentions Fedora Core 4 running Linux 2.6.15).
+>
 
-A week back I posted a "newby question," and eventually it became
-apparent that I can't find my tuner.  Though I have a supposedly
-good (PCI-2.3) motherboard, I loaded the module with:
-"modprobe cx18 mmio_ndelay=61"
+I'm also using an RTD VFG7350 in Gentoo 2.6.25-gentoo-r7 + latest
+v4l-dvb on x86 PC104. Currently:
+  - video2/3 capture works.
+  - video2/3 QBUF/DQBUF is set as capable, but does not function
+  - there is a disconnect between input and compression and the input
+signal standard is lost - NTSC input signal is compressed as PAL
+format
 
-The results of dmesg:
-cx18:  Start initialization, version 1.0.0
-cx18-0: Initializing card #0
-cx18-0: Autodetected Hauppauge card
-ACPI: PCI Interrupt 0000:05:08.0[A] -> Link [APC3] -> GSI 18 (level, low) -> IRQ 18
-cx18-0: Unreasonably low latency timer, setting to 64 (was 32)
-cx18-0: cx23418 revision 01010000 (B)
-tveeprom 6-0050: Hauppauge model 74041, rev C6B2, serial# 3334244
-tveeprom 6-0050: MAC address is 00-0D-FE-32-E0-64
-tveeprom 6-0050: tuner model is TCL M2523_5N_E (idx 112, type 50)
-tveeprom 6-0050: TV standards NTSC(M) (eeprom 0x08)
-tveeprom 6-0050: audio processor is CX23418 (idx 38)
-tveeprom 6-0050: decoder processor is CX23418 (idx 31)
-tveeprom 6-0050: has no radio, has IR receiver, has IR transmitter
-cx18-0: Autodetected Hauppauge HVR-1600
-cx18-0: VBI is not yet supported
-cs5345 6-004c: chip found @ 0x98 (cx18 i2c driver #0-0)
-cx18-0: Disabled encoder IDX device
-cx18-0: Registered device video1 for encoder MPEG (2 MB)
-DVB: registering new adapter (cx18)
-MXL5005S: Attached at address 0x63
-DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB Frontend)...
-cx18-0: DVB Frontend registered
-cx18-0: Registered device video32 for encoder YUV (2 MB)
-cx18-0: Registered device video24 for encoder PCM audio (1 MB)
-cx18-0: Initialized card #0: Hauppauge HVR-1600
-cx18:  End initialization
+> Questions:
+> 1. Has anyone managed to capture MPEG compressed video from /dev/video2 and /dev/video3 using Debian and an RTD VFG7350?  If so, how? (Note:  Those who only use software compression on /dev/video0 and/or /dev/video1 need not respond).
+>
+> 2. Under Debian, any attempt to close an open pipe to /dev/video2 and /dev/video3 permanently blocks the active thread, apparently in the video capture driver. This prevents the user-land process that opened the pipe from terminating.  You can't even get back to the prompt after "cat /dev/video2 [enter] [ctrl+c]"; switching consoles and killing the blocked process with "kill -KILL" doesn't help, and Debian also reports [failure] when trying to terminate all the processes on shutdown.  Does anyone else experience this?
+>
 
-Then thinking about the i2c problems, and not easily finding any sort
-of "i2c-explorer" or "lsi2c" I went probing around in "/sys/class/i2c-adapter".
-The card shows up as i2c-6 and i2c-7: (cat i2c-*/name)
-SMBus nForce2 adapter at 4c00
-SMBus nForce2 adapter at 4c40
-bt878 #0 [sw]
-NVIDIA i2c adapter
-NVIDIA i2c adapter
-NVIDIA i2c adapter
-cx18 i2c driver #0-0
-cx18 i2c driver #0-1
+I had a similar experience on my first attempts in Gentoo, approx. 2.6.23.
 
-(Even though it says "SMBus nForce2" it's really nForce4.)
+> 3. Under Fedora Core, (I don't remember the exact version, but many of them won't install on a SC1200, so take your pick of whichever one would be easiest to get working under this condition), I found that the interface to /dev/video3 returned bogus information for the QUERRY and ENUM ioctl functions.  Does anyone know of any alternative distribution that installs and correctly supports /dev/video3 on the RTD VFG73xx?
+>
 
-The i2c-6 bus is the cs5345:
-i2c-6:
-total 0
-drwxr-xr-x 3 root root    0 Sep 19 19:33 6-004c
-lrwxrwxrwx 1 root root    0 Sep 19 19:33 device -> ../../../devices/pci0000:00/0000:00:09.0/0000:05:08.0
--r--r--r-- 1 root root 4096 Sep 19 19:33 name       (cx18 i2c driver #0-0)
-drwxr-xr-x 2 root root    0 Sep 19 19:33 power
-lrwxrwxrwx 1 root root    0 Sep 19 19:33 subsystem -> ../../i2c-adapter
--rw-r--r-- 1 root root 4096 Sep 19 19:33 uevent
+I've not noticed a difference between video2 and video3 in my experience.
 
-i2c-6/6-004c:
-total 0
-lrwxrwxrwx 1 root root    0 Sep 19 19:33 bus -> ../../../../bus/i2c
-lrwxrwxrwx 1 root root    0 Sep 19 19:33 driver -> ../../../../bus/i2c/drivers/cs5345
--r--r--r-- 1 root root 4096 Sep 19 19:33 modalias   (cs5345)
--r--r--r-- 1 root root 4096 Sep 19 19:33 name       ( )
-drwxr-xr-x 2 root root    0 Sep 19 19:33 power
-lrwxrwxrwx 1 root root    0 Sep 19 19:33 subsystem -> ../../../../bus/i2c
--rw-r--r-- 1 root root 4096 Sep 19 19:33 uevent
+> 4. I also tried the latest Linux kernel, 2.6.26.5 (actually, I started with 2.6.26 in the unstable version, but this applies to the latest as well).  I found that with this kernel, the VIDIOC_QUERYBUF ioctl fails, although calls to the same function did not fail under earlier kernels.  I checked the saa7134 driver and found that VIDIOC_REQBUFS, VIDIOC_QUERYBUF, VIDIOC_QBUF, VIDIOC_DQBUF, VIDIOC_STREAMON and VIDIOC_STREAMOFF have all been completely removed from the current driver.
+>
+> I absolutely must know when the buffer contains a key-frame, so I can switch target files smoothly.  I don't see a way to find keyframes short of decoding the stream on the fly if I don't have the buffer information associated with that interface.  I don't think the SC1200 has enough processing power to capture and decode two high quality MPEG streams on the fly, and still stream all the output to multiple files.  Also, I'm morally opposed to writing an MPEG stream decoder, just to locate keyframes.  Should I just give up on using the newer kernels or is there an alternate mechanism for finding keyframes that doesn't involve decoding the stream on the fly?
+>
+> 5. Even with older kernel/driver combinations that support VIDIOC_QUERYBUF in the saa7134 driver, I have had difficulty with VIDIOC_DQBUF constantly failing (errno == IOC) and it is clearly not getting around to de-queuing the buffer properly since I always get buffer 0 back and the result isn't properly initialized.  The Video 4 Linux 2 API documentation indicates IOC is an internal driver error, but I'm not entirely clear on why this is happening.  Does this look familiar to anyone?
+>
 
-i2c-6/6-004c/power:
-total 0
--rw-r--r-- 1 root root 4096 Sep 19 19:33 wakeup
+I don't know what IOC error means, but in v4l2 versions that attempt
+to buffer (2.6.16-gentoo-r13), I get EIO error every 0.5 second which
+means there is no data. Notice that the buffer index is likely to be
+UNINITIALIZED. See
+http://lists-archives.org/video4linux/19252-howto-handle-errors-during-vidioc_dqbuf.html.
+I believe all buffers must be examined to determine which can be
+returned to the queue.
 
-i2c-6/power:
-total 0
--rw-r--r-- 1 root root 4096 Sep 19 19:33 wakeup
+> 6. I have spent more than a week trying different Linux distributions, looking for one that has consistent support for V4L2 and the RTD VFG7350. Every single distribution I've tried is broken in a different way, and none of them have really come close to working out of the box.
+>
 
-The i2c-7 bus is the cx18:
-i2c-7:
-total 0
-lrwxrwxrwx 1 root root    0 Sep 19 19:34 device -> ../../../devices/pci0000:00/0000:00:09.0/0000:05:08.0
--r--r--r-- 1 root root 4096 Sep 19 19:33 name
-drwxr-xr-x 2 root root    0 Sep 19 19:34 power
-lrwxrwxrwx 1 root root    0 Sep 19 19:34 subsystem -> ../../i2c-adapter
--rw-r--r-- 1 root root 4096 Sep 19 19:34 uevent
+I have only attempted various Gentoo kernels from 2.6.16 to 2.6.25. It
+appears that the VFG7350 never fully functioned in v4l2 in 2.6
 
-i2c-7/power:
-total 0
--rw-r--r-- 1 root root 4096 Sep 19 19:34 wakeup
+> I may also need to switch to different MPEG capture hardware in the future, due to various parts going end-of-life.  I would really prefer to not be forced into spending months re-working and debugging the video capture software again.
+>
+> Is this a reasonable expectation, or is MPEG capture support sufficiently difficult to implement and maintain that I should expect to go through this every time I change the hardware if I stick with Linux?  I am sure I wouldn't be experiencing this pain if I just used XP Embedded, but I would really prefer to give Linux a fair chance… its build level configurability makes it strongly attractive for this specific application, and I've got a lot of time already invested in this.
+>
 
-And there's a bit more information under i2c-7/device/:
-.:
-total 0
--rw-r--r-- 1 root root     4096 Sep 19 19:38 broken_parity_status
-lrwxrwxrwx 1 root root        0 Sep 19 06:22 bus -> ../../../../bus/pci
--r--r--r-- 1 root root     4096 Sep 19 19:38 class
--rw-r--r-- 1 root root      256 Sep 19 19:38 config
--r--r--r-- 1 root root     4096 Sep 19 19:38 device
-lrwxrwxrwx 1 root root        0 Sep 19 19:38 driver -> ../../../../bus/pci/drivers/cx18
-lrwxrwxrwx 1 root root        0 Sep 19 19:38 dvb:dvb0.demux0 -> ../../../../class/dvb/dvb0.demux0
-lrwxrwxrwx 1 root root        0 Sep 19 19:38 dvb:dvb0.dvr0 -> ../../../../class/dvb/dvb0.dvr0
-lrwxrwxrwx 1 root root        0 Sep 19 19:38 dvb:dvb0.frontend0 -> ../../../../class/dvb/dvb0.frontend0
-lrwxrwxrwx 1 root root        0 Sep 19 19:38 dvb:dvb0.net0 -> ../../../../class/dvb/dvb0.net0
--rw------- 1 root root     4096 Sep 19 19:38 enable
-lrwxrwxrwx 1 root root        0 Sep 19 19:38 i2c-adapter:i2c-6 -> ../../../../class/i2c-adapter/i2c-6
-lrwxrwxrwx 1 root root        0 Sep 19 19:38 i2c-adapter:i2c-7 -> ../../../../class/i2c-adapter/i2c-7
--r--r--r-- 1 root root     4096 Sep 19 19:38 irq
--r--r--r-- 1 root root     4096 Sep 19 19:38 local_cpus
--r--r--r-- 1 root root     4096 Sep 19 19:38 modalias
--rw-r--r-- 1 root root     4096 Sep 19 19:38 msi_bus
-drwxr-xr-x 2 root root        0 Sep 19 06:30 power
--r--r--r-- 1 root root     4096 Sep 19 06:22 resource
--rw------- 1 root root 67108864 Sep 19 19:38 resource0
-lrwxrwxrwx 1 root root        0 Sep 19 19:38 subsystem -> ../../../../bus/pci
--r--r--r-- 1 root root     4096 Sep 19 19:38 subsystem_device
--r--r--r-- 1 root root     4096 Sep 19 19:38 subsystem_vendor
--rw-r--r-- 1 root root     4096 Sep 19 06:22 uevent
--r--r--r-- 1 root root     4096 Sep 19 19:38 vendor
-lrwxrwxrwx 1 root root        0 Sep 19 19:38 video4linux:video1 -> ../../../../class/video4linux/video1
-lrwxrwxrwx 1 root root        0 Sep 19 19:38 video4linux:video24 -> ../../../../class/video4linux/video24
-lrwxrwxrwx 1 root root        0 Sep 19 19:38 video4linux:video32 -> ../../../../class/video4linux/video32
+I'd like to read about experiences with other cards and if
+manufacturers routinely run v4l2 code against their cards to verify
+compatibility.
 
-./power:
-total 0
--rw-r--r-- 1 root root 4096 Sep 19 06:30 wakeup
-
-I understand that both tuners are supposed to be attached to the i2c bus of the cx18, and it's pretty clear that the ATSC/QAM tuner is there. But other than the "video4linux:video1" I don't see
-anything that smacks of the NTSC tuner.
-
-Can someone tell me what this is supposed to look like, or suggest a next step in finding my tuner?
-
-Thanks,
-Dale Pontius
+> Thanks in advance,
+> Todd
+>
+> ----- Original Message ----- From: "hermann pitton" <hermann-pitton@arcor.de>
+> To: "Linux and Kernel Video" <video4linux-list@redhat.com>
+> Sent: Friday, February 29, 2008 4:44 PM
+> Subject: Re: Can anyone test the saa6752hs (saa7134-empress)?
+>
+>
+>> Am Samstag, den 20.01.2007, 17:48 +0100 schrieb Ulf Bartholomäus:
+>>>
+>>> Hi Hans,
+>>>
+>>> On Thursday 15 June 2006 22:30, Hans Verkuil wrote:
+>>> > I'm currently working to switch cx88-blackbird and saa7134-empress over
+>>> > to the new MPEG encoding API. So I need someone to test the changes to
+>>> > the empress driver and saa6752hs module for me.
+>>> On which place I found more information about this. What packages should be
+>>> installed?
+>>>
+>>> > If you have a card with that hardware and are willing to test it (and
+>>> > possibly even do some development to improve the current driver) then
+>>> > please contact me. The changes I made to the cx88-blackbird work fine,
+>>> > so I hope that the same is true for the saa6752hs changes but without
+>>> > hardware I simply can't test it.
+>>> Yes I have a KNC1 TV-Station DVR with this chipset.
+>>> http://www.knc1.de/d/produkte/analog_dvr.htm
+>>>
+>>> Is your offer sometimes available now (more than a half year ago)?
+>>>
+>>> Ciao Ulf
+>>>
+>>
+>> Hi,
+>>
+>> have started to mess around with a not yet supported saa7134_empress
+>> hybrid device.
+>>
+>> I have anything going, except the mpeg encoder.
+>>
+>> Last track of having it working seems 2.4.18, but I get even EIO stuff
+>> on trying to read from the device there, but that might be device
+>> specific. At least it has two gpio switchers not seen before, but the
+>> whole stuff seems not to be that well documented ...
+>>
+>> Current stuff is definitely broken,
+>> any known last working status out there?
+>>
+>> Cheers,
+>> Hermann
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
 --
 video4linux-list mailing list
