@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.24])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KiBEd-0006T5-4e
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 18:59:37 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so593876eya.17
-	for <linux-dvb@linuxtv.org>; Tue, 23 Sep 2008 09:59:31 -0700 (PDT)
-Date: Tue, 23 Sep 2008 18:59:12 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Hans Werner <HWerner4@gmx.de>
-In-Reply-To: <20080923162757.282370@gmx.net>
-Message-ID: <alpine.DEB.1.10.0809231848260.26459@ybpnyubfg.ybpnyqbznva>
-References: <200809211905.34424.hftom@free.fr> <20080921235429.18440@gmx.net>
-	<200809221201.26115.hftom@free.fr> <20080923162757.282370@gmx.net>
+Received: from web38807.mail.mud.yahoo.com ([209.191.125.98])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <urishk@yahoo.com>) id 1Ke78L-0007Q6-Dc
+	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 13:48:18 +0200
+Date: Fri, 12 Sep 2008 04:47:43 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+To: linux-dvb <linux-dvb@linuxtv.org>, free_beer_for_all@yahoo.com
+In-Reply-To: <814453.14494.qm@web46105.mail.sp1.yahoo.com>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] hvr4000-s2api + QAM_AUTO
+Message-ID: <400498.97106.qm@web38807.mail.mud.yahoo.com>
+Subject: Re: [linux-dvb] Siano ISDB
+Reply-To: urishk@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,32 +24,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 23 Sep 2008, Hans Werner wrote:
+--- On Fri, 9/12/08, barry bouwsma <free_beer_for_all@yahoo.com> wrote:
 
-> My CPU (3ghz core 2 quad) is fast enough to show live HD video
-> [...]   ARTE HD throws some errors and stutters a bit. 
+> From: barry bouwsma <free_beer_for_all@yahoo.com>
+> Subject: Re: [linux-dvb] Siano ISDB
+> To: "linux-dvb" <linux-dvb@linuxtv.org>
+> Date: Friday, September 12, 2008, 11:24 AM
+> --- On Fri, 9/12/08, barry bouwsma
+> <free_beer_for_all@yahoo.com> wrote:
+> 
+> > hmmm, looks like I gotta hunt down a firmware too.
+> 
+> Actually, just ignore me.  Looks like the SMS1000 chip in
+> my
+> device doesn't support ISDB (only DAB-related and
+> DVB-T-related)
+> 
+> sorry,
+> barry bouwsma
+> 
+> 
 
-A suggestion:  Write your arte-HD streams to disk, instead of
-trying to decode them real-time.
-
-If for some reason your CPU isn't quite fast enough, you can
-later decode the arte-HD streams and see if the artifacts you
-are observing are still present.
-
-If there's some encoder parameter being used by arte-HD that is
-not yet properly supported, then later you should be able to
-decode that stream flawlessly (this is the case for me with ITV-HD
-recorded before mplayer could properly de-interlace it).
-
-Alternatively, I noticed myself that the occasional recordings I
-made for the first couple days of the recent IFA EinsFestival 
-showcase showed problems in `mplayer', while those recordings
-made later were as flawless as those made half a year ago, so I
-do not rule out tweaking of the encoders used...
+True. SMS10xx doesn't support ISDB-T.
+Only 11xx and 12xx support it.
 
 
-barry bouwsma
-(without access to the DVB-S2 arte-HD stream so far)
+
+
+
+      
 
 _______________________________________________
 linux-dvb mailing list
