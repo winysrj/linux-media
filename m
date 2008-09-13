@@ -1,15 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <48DB99C5.3090704@gmail.com>
-Date: Thu, 25 Sep 2008 18:01:41 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: VDR Mailing List <vdr@linuxtv.org>
-References: <200809241922.16748@orion.escape-edv.de>	<1222306125.3323.80.camel@pc10.localdom.local>	<200809251254.59680@orion.escape-edv.de>
-	<20080925122857.GA7282@halim.local>
-In-Reply-To: <20080925122857.GA7282@halim.local>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [vdr] [v4l-dvb-maintainer] [Wanted]
-	dvb-ttpci	maintainer
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1KebKJ-0003so-ST
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 22:02:41 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K75008X2GZG65E0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sat, 13 Sep 2008 16:02:04 -0400 (EDT)
+Date: Sat, 13 Sep 2008 16:02:04 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <alpine.LRH.1.10.0809121112350.29931@pub3.ifh.de>
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+Message-id: <48CC1C3C.6020701@linuxtv.org>
+MIME-version: 1.0
+References: <48CA0355.6080903@linuxtv.org>
+	<alpine.LRH.1.10.0809121112350.29931@pub3.ifh.de>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,62 +32,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Halim Sahin wrote:
-> Hi,
-> On Do, Sep 25, 2008 at 12:54:58 +0200, Oliver Endriss wrote:
->> There are basic democratic rules which must be followed in a community:
->>
->> (1) Make a proposal
+Patrick Boettcher wrote:
+> Hi Steve,
 > 
-> Yes We have multiproto, since 2006.
+> On Fri, 12 Sep 2008, Steven Toth wrote:
+>> Patrick, I haven't looked at your 1.7MHz bandwidth suggestion - I'm open
+>> to ideas on how you think we should do this. Take a look at todays
+>> linux/dvb/frontend.h and see if these updates help, or whether you need
+>> more changes.
 > 
+> I attached a patch which adds a DTV_BANDWIDTH_HZ command. That's all. I 
+> would like to have the option to pass any bandwidth I want to the frontend.
 > 
->> (2) Discuss the proposal
+
+...
+
 > 
-> Was done since 2006
-> 
->> (3) Finally, _after_ the discussion: A poll to find a decision.
-> 
-> Great thing. Why was multiproto not merged after your code review
-> november 2007????
-> 
-> I thing Manu wanted to do the s2 stuff himself and did not  accept 
-> any community help.
+> Sorry for not integrating this into the frontend_cache yet. But I'm 
+> really out of time (at work and even at home, working on cx24120) and I 
+> will not be able to supply the DiBcom ISDB-T demod-driver (which would 
+> use all that) right now.
 
-http://lwn.net/Articles/297301/
+Great, thanks, I Merged with minor cleanup of comments.
 
-API and core related patches: 31 + 1 patches, total 32 in all.
+We should discuss the ISDB specifics at plumbers. The LAYER commands are 
+not currently implemented and it would be good to understand atleast two 
+different demodulators so we can abstract their controls into an API - 
+and avoid any device specifics.
 
-http://www.kernel.org/pub/linux/kernel/people/manu/dvb_patches/
+Changes to tune.c (v0.0.6) on steventoth.net/linux/s2
 
-The people who contributed some way or the other (in the final stages):
-on the API changes alone. (Not mentioning about the people who initially
-provided many comments.)
-
-Marco Schluessler <marco@lordzodiac.de>
-Arvo Jarve <arvo@softshark.ee>
-Reinhard Nissl <rnissl@gmx.de>
-Oliver Endriss <o.endriss@gmx.de>
-Anssi Hannula <anssi.hannula@gmail.com>
-
-These folks on a whole, contributed to ~14 of the patches.
-
-> Yes I read most of the old mails from last year.
-> In most cases Manu wrote that multiproto is not ready.
-> The fact is, that many people are using (not ready multiproto stuff) 
-> since two years.
-
-After the code review, it was left for testing. Thanks to the VDR
-community/Klaus for providing support for the same, so it could be
-tested in real life.
-
-As you can see quite some of the changes came during the test phase, as
-you can see from the timestamps in the multiproto tree.
-
-
-Regards,
-Manu
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
