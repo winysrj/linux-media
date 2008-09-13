@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1KaArb-0005hS-1r
-	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 16:58:44 +0200
-Date: Mon, 1 Sep 2008 16:58:05 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Martin Dauskardt <martin.dauskardt@gmx.de>
-In-Reply-To: <200809011337.39753.martin.dauskardt@gmx.de>
-Message-ID: <alpine.LRH.1.10.0809011646570.3828@pub6.ifh.de>
-References: <200808241510.48819@orion.escape-edv.de>
-	<200809011337.39753.martin.dauskardt@gmx.de>
+Message-ID: <48CC4669.9060407@singlespoon.org.au>
+Date: Sun, 14 Sep 2008 09:02:01 +1000
+From: Paul Chubb <paulc@singlespoon.org.au>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Cablestar DVB-C (Flexcop + stv0297) broken since
- changeset 7fb12d754061 (7469)
+To: Steven Toth <stoth@linuxtv.org>, linux dvb <linux-dvb@linuxtv.org>
+References: <466191.65236.qm@web46110.mail.sp1.yahoo.com>
+	<48CC219C.9010007@singlespoon.org.au>
+	<48CC3479.5080706@linuxtv.org>
+In-Reply-To: <48CC3479.5080706@linuxtv.org>
+Subject: Re: [linux-dvb] Why I need to choose better Subject: headers [was:
+ Re: Why (etc.)]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,37 +23,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 1 Sep 2008, Martin Dauskardt wrote:
-> So we have broken support for at least three cards now. (Technotrend 2400 and
-> Hauppauge Noba-S-SE with s5h1420 frontend doesn`t work any longer ,too. See
-> http://linuxtv.org/pipermail/linux-dvb/2008-August/028249.html)
+Steven Toth wrote:
+> Paul Chubb wrote:
+>> Barry,
+>> I drew the line at porting the xc3028 tuner module from mcentral.de 
+>> into v4l-dvb, so no didn't solve the firmware issues. If you know 
+>> what you are doing it should be trivial work - just linking in yet 
+>> another tuner module and then calling it like all the others. For me 
+>> because I don't know the code well it would take a week or two.
 >
-> In my opinion it is not acceptable to break support for three cards in the
-> v4l-dvb main tree to get one other card supported.
+> No porting required.
 >
-> I strongly request to revert the changeset until a working solution for all
-> cards has been tested.
+> xc3028 tuner is already in the kernel, it should just be a case of 
+> configuring the attach/config structs correctly.
+>
+> - Steve
+>
+Steve,
+           I think we are talking about two different things. Yes the 
+xc3028 tuner is supported via tuner-xc2028 and works for many xc3028 
+based cards. This support uses the xc3028-v27.fw file that contains say 
+80 firmware modules. This firmware was extracted from a Haupage windows 
+driver.
 
-We need to separate the things:
+I believe that the 1800H has some incompatibility with this firmware. 
+The mcentral.de tree has a different firmware loading and tuner support 
+module for xc3028 that loads individual firmware modules - you literally 
+put twenty or thirty files into /lib/firmware. This firmware is the 
+standard firmware from xceive before the card manufacturers get to it. 
+Comparing the dmesg listing from a working mcentral.de setup and the 
+non-working v4l tree the only thing that leaps out is the different 
+firmware. If I was continuing the next step would be to port that tuner 
+module into the v4l code and set it up in the normal way.
 
-1) breakage of stv0297-based cards
+Cheers Paul
 
-This was a mistake - I'm still trying to see which atomic modification 
-causes that.... Should be a 3-liner to fix it, but where...
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
 
-2) s5h1420-based cards
-
-I modified it to support a new card - right. I published the patch and ask 
-for owners of the NOVA-S SE to test it. After not receiving a comment from 
-anyone Mauro agreed to integrate it and wait if it breaks for someone. I 
-agree this is not the smoothest/nicest way, but what else could I have 
-done to move forward?
-
-Blindly reverting now would push me back where I was 6 months ago :(. But 
-I totally agree with this idea when someone of you NOVA-S SE owners gives 
-me a hand in order to test a possibly fixed patch. ;)
-
-Patrick.
 
 _______________________________________________
 linux-dvb mailing list
