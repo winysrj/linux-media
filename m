@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <ke2705@gmx.de>) id 1Kd4os-0001yn-QK
-	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 17:07:55 +0200
-Message-ID: <48C69161.4080905@gmx.de>
-Date: Tue, 09 Sep 2008 17:08:17 +0200
-From: Eberhard Kaltenhaeuser <ke2705@gmx.de>
+Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <liplianin@tut.by>) id 1KeSWr-0004xz-MR
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 12:39:06 +0200
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: linux-dvb@linuxtv.org
+Date: Sat, 13 Sep 2008 13:38:20 +0300
+References: <48CB5D7A.3040403@singlespoon.org.au>
+In-Reply-To: <48CB5D7A.3040403@singlespoon.org.au>
 MIME-Version: 1.0
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-References: <48BC00C6.1020006@gmx.de>
-	<alpine.LRH.1.10.0809011658130.3828@pub6.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0809011658130.3828@pub6.ifh.de>
-Cc: linux-dvb@linuxtv.org, Martin Dauskardt <martin.dauskardt@gmx.de>
-Subject: Re: [linux-dvb] Support of Nova-S SE PCI still uncomplete
+Content-Disposition: inline
+Message-Id: <200809131338.20196.liplianin@tut.by>
+Subject: Re: [linux-dvb] why opensource will fail
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,183 +19,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0016831250=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============0016831250==
-Content-Type: multipart/alternative;
- boundary="------------030500060405060607060801"
-
-This is a multi-part message in MIME format.
---------------030500060405060607060801
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Hi Patrick and Martin,
-
-the Nova-S SE works perfectly now! Thanks to Patrick for providing the 
-patch and to Martin for compiling the kernel.
-
-Eberhard
-
-Patrick Boettcher schrieb:
-> Dear Eberhard and Martin,
->
-> On Mon, 1 Sep 2008, Eberhard Kaltenhaeuser wrote:
->
->> Against my expectation, the Nova-S SE card does still not work, 
->> although the card is recognized by the kernel (see link). Frontend 
->> modul is loaded, but no signal can be received. So VDR exists 
->> (emergency exit) when switching to this device (i.e. to record 
->> something)
->
-> You would do me a big favour if you could test some patches in order 
-> to fix support for your card on the current v4l-dvb.
->
-> Or even better if it is possible to give me remote access on your 
-> device - like that I could try patches directly and the issue would be 
-> covered with two hours I think.
->
-> Please contact me privately if this is possible.
->
-> Thank you very much in advance for your help,
-> Patrick.
->
-
--- 
-         ___________________________________
-        |                                   |
-        |      Eberhard Kaltenhaeuser       |
-      _ | (+49/0)9135 Tel:799955 Fax:725517 | _
-     / )|                                   |( \
-    / / |       mailto:ke2705@gmx.de        | \ \
-  _( (_ |  _                             _  | _) )_
- (((\ \>|_/ )___________________________( \_|</ /)))
- (\ \  \_/ /                             \ \_/  / /)
-  \       /                               \       /
-   \    _/                                 \_    /
-   /   /                                     \   \
-
---------------030500060405060607060801
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-</head>
-<body bgcolor="#ffffff" text="#000000">
-<font face="Times New Roman">Hi Patrick and Martin,<br>
-<br>
-the Nova-S SE works perfectly now! Thanks to Patrick for providing the
-patch and to Martin for compiling the kernel. <br>
-<br>
-Eberhard<br>
-</font><br>
-Patrick Boettcher schrieb:
-<blockquote cite="mid:alpine.LRH.1.10.0809011658130.3828@pub6.ifh.de"
- type="cite">Dear Eberhard and Martin,
-  <br>
-  <br>
-On Mon, 1 Sep 2008, Eberhard Kaltenhaeuser wrote:
-  <br>
-  <br>
-  <blockquote type="cite">Against my expectation, the Nova-S SE card
-does still not work, although the card is recognized by the kernel (see
-link). Frontend modul is loaded, but no signal can be received. So VDR
-exists (emergency exit) when switching to this device (i.e. to record
-something)
-    <br>
-  </blockquote>
-  <br>
-You would do me a big favour if you could test some patches in order to
-fix support for your card on the current v4l-dvb.
-  <br>
-  <br>
-Or even better if it is possible to give me remote access on your
-device - like that I could try patches directly and the issue would be
-covered with two hours I think.
-  <br>
-  <br>
-Please contact me privately if this is possible.
-  <br>
-  <br>
-Thank you very much in advance for your help,
-  <br>
-Patrick.
-  <br>
-  <br>
-</blockquote>
-<br>
-<div class="moz-signature">-- <br>
-<meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
-<title>Signatur_2</title>
-<font size="-1"><span
- style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-___________________________________</span><br
- style="font-family: Courier New,Courier,monospace;">
-<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|</span><br style="font-family: Courier New,Courier,monospace;">
-<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-weight: bold;">Eberhard
-Kaltenhaeuser</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|</span><br style="font-family: Courier New,Courier,monospace;">
-<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-_ | (+49/0)9135 Tel:799955 Fax:725517 | _</span><br
- style="font-family: Courier New,Courier,monospace;">
-<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;&nbsp;
-/
-)|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-|( \</span><br style="font-family: Courier New,Courier,monospace;">
-<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;&nbsp;
-/ / | &nbsp; &nbsp; &nbsp; <a href="mailto:ke2705@gmx.de">mailto:ke2705@gmx.de</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-| \ \</span><br style="font-family: Courier New,Courier,monospace;">
-<span style="font-family: Courier New,Courier,monospace;">&nbsp; _( (_
-|&nbsp;
-_&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-_&nbsp; | _) )_</span><br style="font-family: Courier New,Courier,monospace;">
-<span style="font-family: Courier New,Courier,monospace;">&nbsp;(((\
-\&gt;|_/ )___________________________( \_|&lt;/ /)))</span><br
- style="font-family: Courier New,Courier,monospace;">
-<span style="font-family: Courier New,Courier,monospace;">&nbsp;(\
-\&nbsp; \_/
-/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-\ \_/&nbsp; / /)</span><br
- style="font-family: Courier New,Courier,monospace;">
-<span style="font-family: Courier New,Courier,monospace;">&nbsp;
-\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-\&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; /</span><br style="font-family: Courier New,Courier,monospace;">
-<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;
-\&nbsp;&nbsp;&nbsp;
-_/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-\_&nbsp;&nbsp;&nbsp; /</span><br style="font-family: Courier New,Courier,monospace;">
-<span style="font-family: Courier New,Courier,monospace;">&nbsp;&nbsp;
-/&nbsp;&nbsp;
-/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-\&nbsp;&nbsp; \</span></font>
-<br style="font-family: Courier New,Courier,monospace;">
-</div>
-</body>
-</html>
-
---------------030500060405060607060801--
-
-
---===============0016831250==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0016831250==--
+9yDTz8/C3cXOyckgz9QgMTMgU2VwdGVtYmVyIDIwMDggMDk6Mjg6MTAgUGF1bCBDaHViYiDOwdDJ
+08HMKMEpOgo+IEhpLAo+ICAgICAgbm93IHRoYXQgSSBoYXZlIHlvdXIgYXR0ZW50aW9uOi17KT0K
+Pgo+IEkgYmVsaWV2ZSB0aGF0IHRoaXMgY29tbXVuaXR5IGhhcyBhIHJlYWwgcHJvYmxlbS4gVGhl
+cmUgYXBwZWFycyB0byBiZQo+IGxpdHRsZSB3aWxsaW5nbmVzcyB0byBoZWxwIGFuZCBtZW50b3Ig
+bmV3Y29tZXJzLiBUaGlzIHdpbGwgbGltaXQgdGhlCj4gZWZmZWN0aXZlbmVzcyBvZiB0aGUgY29t
+bXVuaXR5IGJlY2F1c2UgaXQgd2lsbCBoaW5kZXIgZXhwYW5zaW9uIG9mCj4gcGVvcGxlIHdobyBh
+cmUgYm90aCB3aWxsaW5nIGFuZCBhYmxlIHRvIHdvcmsgb24gdGhlIGNvZGUuIEV2ZW50dWFsbHkK
+PiB0aGlzIGlzc3VlICB3aWxsIGxlYWQgdG8gdGhlIGNvbW11bml0eSBkeWluZyBzaW1wbHkgYmVj
+YXVzZSB5b3UgaGF2ZQo+IHBlb3BsZSBsZWF2aW5nIGJ1dCBmZXcgam9pbmluZy4KPgo+IFRoZSBj
+YXJkIEkgd2FzIHdvcmtpbmcgb24gaGFzIGJlZW4gYXJvdW5kIGZvciAgYSB3aGlsZSBub3cuIFRo
+ZXJlIGhhdmUKPiBiZWVuIHRocmVlIGF0dGVtcHRzIHNvIGZhciB0byBnZXQgaXQgd29ya2luZyB3
+aXRoIExpbnV4LiBUd28gaW4gdGhpcwo+IGNvbW11bml0eSBhbmQgb25lIGFnYWluc3QgdGhlIG1j
+ZW50cmFsLmRlIHRyZWUuIEJvdGggYXR0ZW1wdHMgaW4gdGhpcwo+IGNvbW11bml0eSBoYXZlIGZh
+aWxlZCBub3QgYmVjYXVzZSBvZiBhIGxhY2sgb2Ygd2lsbGluZ25lc3Mgb2YgdGhlIHBlb3BsZQo+
+IGludm9sdmVkIHRvIGRvIHRoZSBoYXJkIHlhcmRzIGJ1dCBiZWNhdXNlIG9mIHRoZSBpbmFiaWxp
+dHkgb2YgdGhlCj4gY29tbXVuaXR5IHRvIG1lbnRvciBhbmQgaGVscCBuZXdjb21lcnMuCj4KPiBU
+aGUgdGhpcmQgYXR0ZW1wdCBieSBhIEN6ZWNoIHByb2dyYW1tZXIgc3VjY2VlZGVkLCBob3dldmVy
+IGl0IGlzCj4gZGVwZW5kZW50IG9uIHRoZSBtY2VudHJhbC5kZSB0cmVlIGFuZCB0aGUgYXV0aG9y
+IGFwcGVhcnMgdG8gaGF2ZSBtYWRlIG5vCj4gYXR0ZW1wdCB0byBnZXQgdGhlIHBhdGNoIGludG8g
+dGhlIHRyZWUuIFRoZSBvcmlnaW5hbCBpbnN0cnVjdGlvbnMgdG8KPiBwcm9kdWNlIGEgZHJpdmVy
+IHNldCBhcmUgaW4gQ3plY2guIEhvd2V2ZXIgaW5zdHJ1Y3Rpb25zIGluIGVuZ2xpc2ggZm9yCj4g
+Mi42LjIyIGFyZSBhdmFpbGFibGUgLSB1YnVudHUgZ3V0c3kuIEkgd2lsbCBzb29uIGJlIHB1dHRp
+bmcgdXAKPiBpbnN0cnVjdGlvbnMgZm9yIDIuNi4yNCAtIGhhcmR5LiBUaGV5IG1heSBldmVuIHdv
+cmsgIGZvciBsYXRlciByZXZpc2lvbnMKPiBzaW5jZSB0aGUgYmlnIGlzc3VlIHdhcyBpbmNvbXBh
+dGlibGUgdmVyc2lvbmluZy4KPgo+IEkgdW5kZXJzdGFuZCBmcm9tIHJlY2VudCBwb3N0cyB0byB0
+aGlzIGxpc3QgdGhhdCBtYW55IGluIHRoZSBjb21tdW5pdHkKPiBhcmUgZGlzdHVyYmVkIGJ5IHRo
+ZSBleGlzdGVuY2Ugb2YgbWNlbnRyYWwuZGUuIFdlbGwgZXZlcnkgcGVyc29uIGZyb20KPiBub3cg
+b24gd2hvIHdhbnRzIHRvIHJ1biB0aGUgTGVhZHRlayBXaW5mYXN0IERUVjE4MDBIIHdpbGwgYmUg
+dXNpbmcgdGhhdAo+IHRyZWUuIFNpbmNlIHRoZSBjYXJkIGlzIGV4Y2VsbGVudCB2YWx1ZSBmb3Ig
+d2hhdCBpdCBpcywgdGhlcmUgc2hvdWxkIGJlCj4gbG90cyBvZiB0aGVtLiBOb3QgaGVscGluZyBu
+ZXdjb21lcnMgd2hvIGFyZSB0cnlpbmcgdG8gYWRkIGNhcmRzIGhhcyBsZWQKPiBhbmQgd2lsbCBs
+ZWFkIHRvIGluY3JlYXNlZCBmcmFnbWVudGF0aW9uLgo+Cj4gQW5kIGJlZm9yZSB5b3Ugc2F5IG9y
+IHRoaW5rIHRoYXQgd2UgYXJlIGFsbCB2b2x1bnRlZXJzIGhlcmUsIEkgYW0gYQo+IHZvbHVudGVl
+ciBhbHNvLiBJIGhhdmUgc3BlbnQgY2xvc2UgdG8gMyB3ZWVrcyBvbiB0aGlzIGNvZGUgYW5kIGl0
+IGlzCj4gdmVyeSBjbG9zZSB0byB3b3JraW5nLiBUaGUgYmlnZ2VzdCBkaWZmZXJlbmNlIGJldHdl
+ZW4gd29ya2luZyBjb2RlIGluCj4gdGhlIG1jZW50cmFsLmRlIHRyZWUgYW5kIHRoZSBwYXRjaCBJ
+IHdhcyB3b3JraW5nIG9uIGlzIHRoZSBmaXJtd2FyZSB0aGF0Cj4gaXMgdXNlZC4KPgo+IEZpbmFs
+bHkgeW91IG1pZ2h0IGNvbnNpZGVyIHRoYXQgaWYgZmV3IGRldmVsb3BlcnMgYXJlIHByZXBhcmVk
+IHRvIHdvcmsKPiBvbiB0aGUgdjRsLWR2YiB0cmVlLCB0aGVuIG11Y2ggb2YgdGhlIGZ1biB3aWxs
+IGRpc2FwcGVhciBiZWNhdXNlIHRob3NlCj4gZmV3IHdpbGwgaGF2ZSB0byBkbyBldmVyeXRoaW5n
+Lgo+Cj4gQ2hlZXJzIFBhdWwKClRoZXJlIGlzIGEgcXVlc3Rpb24gb2YgdGltZSBhbmQgcGF0aWVu
+Y2UuCkRvbid0IGdpdmUgdXAuCgotLSAKSWdvciBNLiBMaXBsaWFuaW4KCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QK
+bGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWls
+bWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
