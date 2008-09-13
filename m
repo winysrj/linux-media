@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 202.7.249.79.dynamic.rev.aanet.com.au ([202.7.249.79]
-	helo=home.singlespoon.org.au)
+Received: from nf-out-0910.google.com ([64.233.182.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <paulc@singlespoon.org.au>) id 1Kj6iC-000265-8S
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 08:21:57 +0200
-Message-ID: <48DC7EF0.3050205@singlespoon.org.au>
-Date: Fri, 26 Sep 2008 16:19:28 +1000
-From: Paul Chubb <paulc@singlespoon.org.au>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1Kecrv-0001Ry-RI
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 23:41:28 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so807864nfb.11
+	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 14:41:24 -0700 (PDT)
+Message-ID: <412bdbff0809131441k5f38931cr7d64dc3871c37987@mail.gmail.com>
+Date: Sat, 13 Sep 2008 17:41:24 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-To: allan k <sonofzev@iinet.net.au>, linux dvb <linux-dvb@linuxtv.org>
-References: <1222402903.8329.4.camel@media1>
-In-Reply-To: <1222402903.8329.4.camel@media1>
-Subject: Re: [linux-dvb] unknown v4l symbols from dmesg on reboot
+Content-Disposition: inline
+Subject: [linux-dvb] Power management and dvb framework
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,193 +25,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Allan,
-this is caused by mismatch between components of the v4l-dvb drivers. 
-You see this behaviour when part of the compiled code is replaced by a 
-new version but some of the old code is still there. Specifically you 
-generally see this if the kernel has some of the v4l stuff compiled in 
-and not as modules. The other cause that I personally have seen is where 
-a driver is removed from the newer code because it is no longer needed 
-however when you do the make install, the old driver remains. In that 
-case what I did was to remove everything in the module video directory 
-before doing a make install.
+Hello,
 
-HTH
+I have been doing some debugging of a USB DVB capture device, and I
+was hoping someone could answer the following question about the DVB
+framework:
 
-Cheers Paul
+What facilities exist to power down a device after a user is done with it?
 
-allan k wrote:
-> Hi 
->
-> After upgrading to 2.6.26 and updating my v4l-dvb modules last night. I
-> get alot of messages about unknown symbols and the driver fails to
-> start. (at end of message)
->
-> IF I do a modprobe -r on my bt878 and cx23885 modules and the reload
-> them with modprobe everything works fine. 
->
-> Is there a way to fix this?
->
-> cheers
->
-> Allan
->
-> pci 0000:05:00.0: Boot video device
-> videobuf_dma_sg: disagrees about version of symbol videobuf_alloc
-> videobuf_dma_sg: Unknown symbol videobuf_alloc
-> videobuf_dma_sg: disagrees about version of symbol
-> videobuf_queue_core_init
-> videobuf_dma_sg: Unknown symbol videobuf_queue_core_init
-> videobuf_dma_sg: disagrees about version of symbol videobuf_alloc
-> videobuf_dma_sg: Unknown symbol videobuf_alloc
-> videobuf_dma_sg: disagrees about version of symbol
-> videobuf_queue_core_init
-> videobuf_dma_sg: Unknown symbol videobuf_queue_core_init
-> videobuf_dvb: disagrees about version of symbol videobuf_read_stop
-> videobuf_dvb: Unknown symbol videobuf_read_stop
-> videobuf_dvb: disagrees about version of symbol videobuf_waiton
-> videobuf_dvb: Unknown symbol videobuf_waiton
-> videobuf_dvb: disagrees about version of symbol
-> videobuf_queue_to_vmalloc
-> videobuf_dvb: Unknown symbol videobuf_queue_to_vmalloc
-> videobuf_dvb: disagrees about version of symbol videobuf_read_start
-> videobuf_dvb: Unknown symbol videobuf_read_start
-> videobuf_dma_sg: disagrees about version of symbol videobuf_alloc
-> videobuf_dma_sg: Unknown symbol videobuf_alloc
-> videobuf_dma_sg: disagrees about version of symbol
-> videobuf_queue_core_init
-> videobuf_dma_sg: Unknown symbol videobuf_queue_core_init
-> Linux video capture interface: v2.00
-> cx23885: disagrees about version of symbol videobuf_streamoff
-> cx23885: Unknown symbol videobuf_streamoff
-> cx23885: disagrees about version of symbol videobuf_poll_stream
-> cx23885: Unknown symbol videobuf_poll_stream
-> cx23885: disagrees about version of symbol videobuf_read_stop
-> cx23885: Unknown symbol videobuf_read_stop
-> cx23885: Unknown symbol videobuf_dma_free
-> cx23885: disagrees about version of symbol videobuf_reqbufs
-> cx23885: Unknown symbol videobuf_reqbufs
-> cx23885: disagrees about version of symbol videobuf_waiton
-> cx23885: Unknown symbol videobuf_waiton
-> cx23885: disagrees about version of symbol videobuf_dqbuf
-> cx23885: Unknown symbol videobuf_dqbuf
-> cx23885: Unknown symbol videobuf_queue_sg_init
-> cx23885: Unknown symbol videobuf_dvb_unregister
-> cx23885: Unknown symbol videobuf_dma_unmap
-> cx23885: disagrees about version of symbol videobuf_read_stream
-> cx23885: Unknown symbol videobuf_read_stream
-> cx23885: Unknown symbol videobuf_dvb_register
-> cx23885: disagrees about version of symbol videobuf_querybuf
-> cx23885: Unknown symbol videobuf_querybuf
-> cx23885: disagrees about version of symbol videobuf_qbuf
-> cx23885: Unknown symbol videobuf_qbuf
-> cx23885: disagrees about version of symbol videobuf_read_one
-> cx23885: Unknown symbol videobuf_read_one
-> cx23885: disagrees about version of symbol videobuf_iolock
-> cx23885: Unknown symbol videobuf_iolock
-> cx23885: disagrees about version of symbol videobuf_streamon
-> cx23885: Unknown symbol videobuf_streamon
-> cx23885: disagrees about version of symbol videobuf_queue_cancel
-> cx23885: Unknown symbol videobuf_queue_cancel
-> cx23885: disagrees about version of symbol videobuf_mmap_mapper
-> cx23885: Unknown symbol videobuf_mmap_mapper
-> cx23885: Unknown symbol videobuf_to_dma
-> cx23885: disagrees about version of symbol videobuf_mmap_free
-> cx23885: Unknown symbol videobuf_mmap_free
-> bttv: disagrees about version of symbol videobuf_streamoff
-> bttv: Unknown symbol videobuf_streamoff
-> bttv: disagrees about version of symbol videobuf_poll_stream
-> bttv: Unknown symbol videobuf_poll_stream
-> bttv: disagrees about version of symbol __videobuf_mmap_setup
-> bttv: Unknown symbol __videobuf_mmap_setup
-> bttv: Unknown symbol videobuf_dma_free
-> bttv: disagrees about version of symbol videobuf_reqbufs
-> bttv: Unknown symbol videobuf_reqbufs
-> bttv: disagrees about version of symbol videobuf_waiton
-> bttv: Unknown symbol videobuf_waiton
-> bttv: disagrees about version of symbol videobuf_queue_is_busy
-> bttv: Unknown symbol videobuf_queue_is_busy
-> bttv: disagrees about version of symbol videobuf_dqbuf
-> bttv: Unknown symbol videobuf_dqbuf
-> bttv: disagrees about version of symbol videobuf_stop
-> bttv: Unknown symbol videobuf_stop
-> bttv: Unknown symbol videobuf_queue_sg_init
-> bttv: Unknown symbol videobuf_dma_unmap
-> bttv: disagrees about version of symbol videobuf_read_stream
-> bttv: Unknown symbol videobuf_read_stream
-> bttv: Unknown symbol videobuf_sg_alloc
-> bttv: disagrees about version of symbol videobuf_querybuf
-> bttv: Unknown symbol videobuf_querybuf
-> bttv: disagrees about version of symbol videobuf_qbuf
-> bttv: Unknown symbol videobuf_qbuf
-> bttv: disagrees about version of symbol videobuf_read_one
-> bttv: Unknown symbol videobuf_read_one
-> bttv: disagrees about version of symbol videobuf_iolock
-> bttv: Unknown symbol videobuf_iolock
-> bttv: disagrees about version of symbol videobuf_streamon
-> bttv: Unknown symbol videobuf_streamon
-> bttv: disagrees about version of symbol videobuf_next_field
-> bttv: Unknown symbol videobuf_next_field
-> bttv: disagrees about version of symbol videobuf_mmap_mapper
-> bttv: Unknown symbol videobuf_mmap_mapper
-> bttv: Unknown symbol videobuf_to_dma
-> bttv: disagrees about version of symbol videobuf_mmap_free
-> bttv: Unknown symbol videobuf_mmap_free
-> bttv: disagrees about version of symbol videobuf_streamoff
-> bttv: Unknown symbol videobuf_streamoff
-> bttv: disagrees about version of symbol videobuf_poll_stream
-> bttv: Unknown symbol videobuf_poll_stream
-> bttv: disagrees about version of symbol __videobuf_mmap_setup
-> bttv: Unknown symbol __videobuf_mmap_setup
-> bttv: Unknown symbol videobuf_dma_free
-> bttv: disagrees about version of symbol videobuf_reqbufs
-> bttv: Unknown symbol videobuf_reqbufs
-> bttv: disagrees about version of symbol videobuf_waiton
-> bttv: Unknown symbol videobuf_waiton
-> bttv: disagrees about version of symbol videobuf_queue_is_busy
-> bttv: Unknown symbol videobuf_queue_is_busy
-> bttv: disagrees about version of symbol videobuf_dqbuf
-> bttv: Unknown symbol videobuf_dqbuf
-> bttv: disagrees about version of symbol videobuf_stop
-> bttv: Unknown symbol videobuf_stop
-> bttv: Unknown symbol videobuf_queue_sg_init
-> bttv: Unknown symbol videobuf_dma_unmap
-> bttv: disagrees about version of symbol videobuf_read_stream
-> bttv: Unknown symbol videobuf_read_stream
-> bttv: Unknown symbol videobuf_sg_alloc
-> bttv: disagrees about version of symbol videobuf_querybuf
-> bttv: Unknown symbol videobuf_querybuf
-> bttv: disagrees about version of symbol videobuf_qbuf
-> bttv: Unknown symbol videobuf_qbuf
-> bttv: disagrees about version of symbol videobuf_read_one
-> bttv: Unknown symbol videobuf_read_one
-> bttv: disagrees about version of symbol videobuf_iolock
-> bttv: Unknown symbol videobuf_iolock
-> bttv: disagrees about version of symbol videobuf_streamon
-> bttv: Unknown symbol videobuf_streamon
-> bttv: disagrees about version of symbol videobuf_next_field
-> bttv: Unknown symbol videobuf_next_field
-> bttv: disagrees about version of symbol videobuf_mmap_mapper
-> bttv: Unknown symbol videobuf_mmap_mapper
-> bttv: Unknown symbol videobuf_to_dma
-> bttv: disagrees about version of symbol videobuf_mmap_free
-> bttv: Unknown symbol videobuf_mmap_free
->
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
+Let's look at an example:
 
+I have a dib0700 based device.  I specify my own frontend_attach()
+function, which twiddles various GPIOs for the demodulator, and I have
+a tuner_attach() function which I use to initialize the tuner.  Both
+of these are called when I plug in the device.
+
+I had to set various GPIOs to bring components out of reset or
+properly set the sleep pin, but I do not see any way to put them back
+to sleep after the user is done with them.
+
+So in my case the USB device draws 100ma when plugged in, then goes to
+320ma when I start streaming, but when I stop streaming I have no hook
+to put the demodulator back to sleep so it *stays* at 320ma until I
+unplug the device.
+
+I know I have similar issues with em28xx based devices I am responsible for.
+
+Is there some part of the framework I am simply missing?  Ideally I
+would like to be able to power down the tuner and demodulator when the
+user is done with them.  I know there are *_sleep functions but it's
+not clear how they are used and it doesn't look like they are commonly
+used by other devices.  Are the sleep functions called when a user
+disconnects from the frontend, or is this purely a power management
+call that is used when a user suspends his workstation?
+
+Any advise anyone can give about the basic workflow here would be very useful.
+
+Thanks,
+
+Devin
 
 -- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
-
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
