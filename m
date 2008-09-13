@@ -1,33 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8QJeJlU027156
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 15:40:19 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.154])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8QJd5E4029346
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 15:39:24 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so775867fga.7
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 12:39:05 -0700 (PDT)
-Message-ID: <d9def9db0809261239i45c7a9fbu8395a64b0c58bc73@mail.gmail.com>
-Date: Fri, 26 Sep 2008 21:39:04 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Eduardo Fontes" <eduardo.fontes@gmail.com>, video4linux-list@redhat.com,
-	em28xx@mcentral.de
-In-Reply-To: <7b6d682a0809261234i71ea0fd5i6709fbc843f40768@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <7b6d682a0809251804j1277af44i80c53529a3c33d62@mail.gmail.com>
-	<d9def9db0809251837k126b6b83n2803e56a00a7f961@mail.gmail.com>
-	<7b6d682a0809251923uaacc119u25cf5118625c03d0@mail.gmail.com>
-	<d9def9db0809251944g56462217sdc14a57c85db1b97@mail.gmail.com>
-	<d9def9db0809260443w53d575b7s3857b424163ec1b@mail.gmail.com>
-	<beb91d720809260508vc1e28d0m33daaa289c8cfe0b@mail.gmail.com>
-	<d9def9db0809260517p3ddef5bby47eb52d6bb1fa948@mail.gmail.com>
-	<d9def9db0809260537j2ff6fc98mc133ca37a06c1bc4@mail.gmail.com>
-	<7b6d682a0809261234i71ea0fd5i6709fbc843f40768@mail.gmail.com>
-Cc: 
-Subject: Re: Pinnacle PCTV HD Pro Stick
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8DKe1RD025260
+	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 16:40:02 -0400
+Received: from mta5.srv.hcvlny.cv.net (mta5.srv.hcvlny.cv.net [167.206.4.200])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8DKdnv4019997
+	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 16:39:50 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7500E43IQAK7H0@mta5.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Sat, 13 Sep 2008 16:39:49 -0400 (EDT)
+Date: Sat, 13 Sep 2008 16:39:46 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200809131623.10155.liplianin@tut.by>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Message-id: <48CC2512.2020502@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <E1KdnPr-0002YP-SF@www.linuxtv.org>
+	<200809131623.10155.liplianin@tut.by>
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [linux-dvb]  [PATCH] Add support for SDMC DM1105 PCI chip
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,54 +35,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Sep 26, 2008 at 9:34 PM, Eduardo Fontes
-<eduardo.fontes@gmail.com> wrote:
-> Dear Markus,
->
-> This new em28xx driver works like a charm!
->
+Igor M. Liplianin wrote:
+> The patch adds support for SDMC DM1105 PCI chip. There is a lot of
+> cards based on it, like DvbWorld 2002 DVB-S , 2004 DVB-S2
+> Source code prepaired to and already tested with cards, which have si2109, 
+> stv0288, cx24116 demods.  Currently enabled only stv0299, as other demods are 
+> not in a v4l-dvb main tree, but I will submit corresponded patches (si2109, 
+> stv0288) next time.
 
-great! good to know that PAL-M now works properly too.
+Igor,
 
--Markus
+Cool.
 
-> Thanks a lot.
->
-> Eduardo M. Fontes
->
-> On Fri, Sep 26, 2008 at 9:37 AM, Markus Rechberger <mrechberger@gmail.com>
-> wrote:
->>
->> >>> Ok here's the updated i386 package:
->> >>> http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-8_i386.deb
->> >>>
->> >>> Markus
->> >>>
->> >>> --
->> >>> video4linux-list mailing list
->> >>> Unsubscribe
->> >>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> >>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->> Just for the completion:
->>
->> amd64:
->> http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-9_amd64.deb
->> i386:
->> http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-8_i386.deb
->>
->> the generic amd64 empia driver is also updated now (i386/amd64 have
->> their own versioning so 8/9
->> has no relation with each other).
->>
->> Markus
->
->
->
-> --
-> Eduardo Mota Fontes
-> Analista de Suporte
->
+Master repo does not have cx24116 support so it probably cannot be 
+merged. Do you need me to merge this into the s2api tree?
+
+- Steve
+
+
+
 
 --
 video4linux-list mailing list
