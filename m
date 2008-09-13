@@ -1,16 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web38807.mail.mud.yahoo.com ([209.191.125.98])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <urishk@yahoo.com>) id 1Ke78L-0007Q6-Dc
-	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 13:48:18 +0200
-Date: Fri, 12 Sep 2008 04:47:43 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-To: linux-dvb <linux-dvb@linuxtv.org>, free_beer_for_all@yahoo.com
-In-Reply-To: <814453.14494.qm@web46105.mail.sp1.yahoo.com>
-MIME-Version: 1.0
-Message-ID: <400498.97106.qm@web38807.mail.mud.yahoo.com>
-Subject: Re: [linux-dvb] Siano ISDB
-Reply-To: urishk@yahoo.com
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1Ked3z-0002he-U5
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 23:53:58 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K75009L6M4XZ5G0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sat, 13 Sep 2008 17:53:22 -0400 (EDT)
+Date: Sat, 13 Sep 2008 17:53:21 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <412bdbff0809131441k5f38931cr7d64dc3871c37987@mail.gmail.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Message-id: <48CC3651.5040502@linuxtv.org>
+MIME-version: 1.0
+References: <412bdbff0809131441k5f38931cr7d64dc3871c37987@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Power management and dvb framework
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,35 +31,69 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Fri, 9/12/08, barry bouwsma <free_beer_for_all@yahoo.com> wrote:
-
-> From: barry bouwsma <free_beer_for_all@yahoo.com>
-> Subject: Re: [linux-dvb] Siano ISDB
-> To: "linux-dvb" <linux-dvb@linuxtv.org>
-> Date: Friday, September 12, 2008, 11:24 AM
-> --- On Fri, 9/12/08, barry bouwsma
-> <free_beer_for_all@yahoo.com> wrote:
+Devin Heitmueller wrote:
+> Hello,
 > 
-> > hmmm, looks like I gotta hunt down a firmware too.
+> I have been doing some debugging of a USB DVB capture device, and I
+> was hoping someone could answer the following question about the DVB
+> framework:
 > 
-> Actually, just ignore me.  Looks like the SMS1000 chip in
-> my
-> device doesn't support ISDB (only DAB-related and
-> DVB-T-related)
+> What facilities exist to power down a device after a user is done with it?
 > 
-> sorry,
-> barry bouwsma
+> Let's look at an example:
 > 
+> I have a dib0700 based device.  I specify my own frontend_attach()
+> function, which twiddles various GPIOs for the demodulator, and I have
+> a tuner_attach() function which I use to initialize the tuner.  Both
+> of these are called when I plug in the device.
 > 
+> I had to set various GPIOs to bring components out of reset or
+> properly set the sleep pin, but I do not see any way to put them back
+> to sleep after the user is done with them.
 
-True. SMS10xx doesn't support ISDB-T.
-Only 11xx and 12xx support it.
+See below.
+
+> 
+> So in my case the USB device draws 100ma when plugged in, then goes to
+> 320ma when I start streaming, but when I stop streaming I have no hook
+> to put the demodulator back to sleep so it *stays* at 320ma until I
+> unplug the device.
+
+A common problem.
+
+> 
+> I know I have similar issues with em28xx based devices I am responsible for.
+> 
+> Is there some part of the framework I am simply missing?  Ideally I
+> would like to be able to power down the tuner and demodulator when the
+> user is done with them.  I know there are *_sleep functions but it's
+> not clear how they are used and it doesn't look like they are commonly
+> used by other devices.  Are the sleep functions called when a user
+> disconnects from the frontend, or is this purely a power management
+> call that is used when a user suspends his workstation?
+> 
+> Any advise anyone can give about the basic workflow here would be very useful.
+
+I looked at some power stuff for the au0828 recently. I added a couple 
+of callbacks in the USB_register struct IIRC, I had those drive the 
+gpios. I don't recall the details but if you look at the definition of 
+the structure you should see some power related callbacks. Actually, I'm 
+not even sure if those patches got merged.
+
+Also, the demod _init() and _sleep()  callbacks get called by dvb-core 
+when the demod is required (or not). These might help.
+
+Lastly, depending on how the driver implements DVB, is might use 
+videobuf - or it might do it's own buffer handing. In case of the 
+latter, look at the feed_start() feed_stop() functions and the struct 
+specific feed counter that usually accompanies this... you could 
+probably add some useful power related stuff with these indications.
+
+- Steve
 
 
 
-
-
-      
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
