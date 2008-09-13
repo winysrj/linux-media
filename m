@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <joerg.knitter@gmx.de>) id 1KiteD-0006r1-On
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 18:24:58 +0200
-Message-ID: <48DBBAC0.7030201@gmx.de>
-Date: Thu, 25 Sep 2008 18:22:24 +0200
-From: =?ISO-8859-1?Q?J=F6rg_Knitter?= <joerg.knitter@gmx.de>
+Received: from emh05.mail.saunalahti.fi ([62.142.5.111])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <niemi.jarkko@gmail.com>) id 1KeUw8-0002E8-1r
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 15:13:19 +0200
+Received: from saunalahti-vams (vs3-10.mail.saunalahti.fi [62.142.5.94])
+	by emh05-2.mail.saunalahti.fi (Postfix) with SMTP id C78238C3C8
+	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 16:13:11 +0300 (EEST)
+Received: from [81.197.70.192] (e81-197-70-192.elisa-laajakaista.fi
+	[81.197.70.192])
+	by emh01.mail.saunalahti.fi (Postfix) with ESMTP id B41054BBB3
+	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 16:13:10 +0300 (EEST)
+Message-ID: <48CBBC67.8060004@gmail.com>
+Date: Sat, 13 Sep 2008 16:13:11 +0300
+From: Jarkko Niemi <niemi.jarkko@gmail.com>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
-	<a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>
-In-Reply-To: <a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
- viwer
+Subject: [linux-dvb] How to change linux kernel module frontend?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,126 +23,60 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-VDR User wrote:
-> 2008/9/25 Sacha <sacha@hemmail.se>:
->   =
+Card: Azurewave / Twinhan DVB-C AD-CP300 (Mantis 2033) CI PCI
+Driver from: http://jusst.de/hg/mantis/
 
->> Following your discussion from an end-user point of viwer I must say tha=
-t I
->> wholy agree with this statement:
->>
->> <But 2 years to get a new API is really too much. And during these 2 yea=
-rs,
->> 2
->>
->> <different trees for 2 differents drivers was totally insane. We
->> (applications
->>
->> <devs) are always making our best to bring DVB to users as easily as
->> possible.
->>
->> <And trust me, the multiproto story has complicated users life A LOT. Th=
-is
->> must NEVER happen again.
->>
->> We, end-users want our stuff working now!
->>     =
+Compiles and installs, after reboot, it can be found as (dmesg extract)
 
->
-> I assume you'd also like something that is well-designed, tested, and
-> stable rather then slapped together and rushed...  But you know what
-> they say about assumptions!
->   =
+mantis_core_exit (0): DMA engine stopping
+mantis_dma_exit (0): DMA=0x7d6c0000 cpu=0xffff81007d6c0000 size=65536
+mantis_dma_exit (0): RISC=0x7c346000 cpu=0xffff81007c346000 size=1000
+mantis_hif_exit (0): Adapter(0) Exiting Mantis Host Interface
+mantis_ca_exit (0): Unregistering EN50221 device
+mantis_pci_remove (0): Removing -->Mantis irq: 23, latency: 64
+ memory: 0xfd6ff000, mmio: 0xffffc200008ca000
+ACPI: PCI interrupt for device 0000:07:06.0 disabled
+ACPI: PCI Interrupt 0000:07:06.0[A] -> GSI 23 (level, low) -> IRQ 23
+irq: 23, latency: 64
+memory: 0xfd6ff000, mmio: 0xffffc200008cc000
+found a VP-2033 PCI DVB-C device on (07:06.0),
+    Mantis Rev 1 [1822:0008], irq: 23, latency: 64
+    memory: 0xfd6ff000, mmio: 0xffffc200008cc000
+    MAC Address=[00:08:ca:1c:2c:ba]
+mantis_alloc_buffers (0): DMA=0x7d6c0000 cpu=0xffff81007d6c0000 size=65536
+mantis_alloc_buffers (0): RISC=0x7d192000 cpu=0xffff81007d192000 size=1000
+DVB: registering new adapter (Mantis dvb adapter)
+mantis_frontend_init (0): Probing for CU1216 (DVB-C)
+TDA10021: i2c-addr = 0x0c, id = 0x7d
+mantis_frontend_init (0): found Philips CU1216 DVB-C frontend (TDA10021) 
+@ 0x0c
+mantis_frontend_init (0): Mantis DVB-C Philips CU1216 frontend attach 
+success
+DVB: registering frontend 0 (Philips TDA10021 DVB-C)...
+mantis_ca_init (0): Registering EN50221 device
+mantis_ca_init (0): Registered EN50221 device
+mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
 
+Most propably problem is exactly same than in here
+http://www.spinics.net/lists/linux-dvb/msg24184.html
 
-I have to agree with the claim Sacha said.
+mantis loads wrong frontend (tda10021 instead of tda10023)
 
-I am also "just" an end-user, got a TT3200 with VDR 1.7 working with all =
+> The chip ID is 0x7d. Probably, your card uses a CU1216-3 with a TDA10023. There are 
+> differences between the TDA10021 and the TDA10023.
 
-the guides and even wrote an article on it. But it was and is still a =
+ > Changed the tuner to TDA10023 and it worked like a charm!
 
-pain - for 2 years now.
+main question is:
+How to do that change?
 
-With the introduction of the alternative S2API I was hoping that this =
-
-long wait is over after waiting endlessly after the announcement, =
-
-multiproto is ready "in a few weeks".
-
-I have followed the discussion all the two (?) years, and I did just =
-
-filter out information about, when the API could be ready, and I was =
-
-shocked by all the really bad personal attacks that happened last year =
-
-(or the year before) and the splits that results now in four =
-
-"repositories" (kernel, multiproto, hvr4000-stuff and mcentral), often =
-
-with dozens of patches postet here or at vdrportal that need to be =
-
-applied to get a DVB card running.
-
-And the main reasons for this is not really technical, it seems to me =
-
-that they are personal. Open source projects claim to be better than =
-
-commercial products, but the things that happened and currently happen =
-
-are a good reason to see also the disadvantage of community development.
-
-I understand all sides:
-1) Manu does not want to to give up his work that he worked for long 2 =
-
-years.
-2) Markus Rechberger also did a lot of work, but I remember him to be =
-
-very insulting to other developers - and quite uncooperative by starting =
-
-his own tree. Linux development with MCC as leader might indeed be hard =
-
-;)...
-3) The S2API guys are fed up with all the waiting. Maybe there is indeed =
-
-no technical reason behind the decision for S2API as I am also wondering =
-
-why there is no answer to THE question. But waiting endlessly really is =
-
-no solution...
-
-The situation I see can not be solved by endless discussion, and even if =
-
-MCC would switch to multiproto (again), there discussion would continue =
-
-endlessly.
-
-I just see two options to get a fair decision:
-1) Allowing both APIs exist parallel for a short time and see who is the =
-
-winner (as mentioned).
-2) Let the community decide (all interested developers and even =
-
-end-users like me and Sacha) with some kind of online vote. Communicate =
-
-clearly before which "important" developer favours which API. As none of =
-
-the API seems to have a real advantage/disadvantage, users like me will =
-
-have to vote for both or decide on personal taste ;)
-
-I favour option 2) as I also don=B4t like applications that rely on =
-
-certain hardware (if only one API is supported).
-
-With kind regards
-
-Joerg Knitter
+Jarkko
 
 _______________________________________________
 linux-dvb mailing list
