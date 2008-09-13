@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp114.rog.mail.re2.yahoo.com ([68.142.225.230])
+Received: from n78.bullet.mail.sp1.yahoo.com ([98.136.44.42])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <jcoles0727@rogers.com>) id 1KhR7U-0002jK-D6
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 17:45:10 +0200
-Message-ID: <48D66BE1.7020900@rogers.com>
-Date: Sun, 21 Sep 2008 11:44:33 -0400
-From: Jonathan Coles <jcoles0727@rogers.com>
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KeTjA-0007ja-9q
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 13:55:50 +0200
+Date: Sat, 13 Sep 2008 04:55:13 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org, Paul Chubb <paulc@singlespoon.org.au>
+In-Reply-To: <48CB978D.1030308@singlespoon.org.au>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-References: <48D658BF.7040807@rogers.com>
-	<412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
-	<48D65E36.9070003@linuxtv.org>
-In-Reply-To: <48D65E36.9070003@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950
-	and	v4l-dvb
+Message-ID: <466191.65236.qm@web46110.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] Why I need to choose better Subject: headers [was:
+	Re: Why (etc.)]
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,62 +25,64 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> Devin Heitmueller wrote:
->   
->> On Sun, Sep 21, 2008 at 10:22 AM, Jonathan Coles <jcoles0727@rogers.com> wrote:
->>     
->>> It would really help if there was a single set of instructions specific
->>> to the HVR-950 with tests at each stage. I'm really confused as to the
->>> status of my installation.
->>>
->>> I compiled the firmware according to the instructions on
->>> http://linuxtv.org/repo/. The result:
->>>
->>> $ lsusb
->>> Bus 005 Device 002: ID 2040:7200 Hauppauge
->>>       
->> Hold the phone!  You don't have an HVR-950.  You have an HVR-950Q.
->> Please be sure to mention this in all future messages, since it's a
->> totally different device and the HVR-950 directions do not apply.
->>
->> I'm not sure whether the HVR-950Q support has been merged yet.  Steven
->> could comment on that.  I suspect it's still in a separate branch,
->> which would mean you would need to do an hg clone of a different tree.
->>     
->
->
-> HVR950Q ATSC / QAM is supported in the master development repository, and it is in upstream 2.6.26 and later.
->
-> You need the xc5000 firmware.
->
-> [   17.247610] usb 5-2: new high speed USB device using ehci_hcd and 
-> address 2
-> [   17.380387] usb 5-2: unable to read config index 0 descriptor/all
-> [   17.380434] usb 5-2: can't read configurations, error -71
->
->
-> ^^ This is not a firmware problem, but looks fishy.  If using the latest drivers from linuxtv.org doesnt work for you, then try another USB port, or confirm that it also works in windows.
->
-> Good Luck,
->
-> Mike
->   
-Thanks guys!
+--- On Sat, 9/13/08, Paul Chubb <paulc@singlespoon.org.au> wrote:
 
-The box says HVR-950 on it and that the device "Cannot receive digital 
-cable TV". However, the device itself is labeled "NTSC/ATSC/QAM HD TV 
-receiver" and there is a small, stylized Q following the "950". Great! I 
-got this on sale. Lack of QAM support was my reason for not buying 
-earlier at the usual price. Perhaps the store didn't realize that this 
-is the newer model.
+> around 2.6.22. At some stage the functionality in videobuf_core.c was 
+> replaced by video-buf-dvb.c. This meant that when you compile against 
+> the 2.6.22 headers it works fine but still loads the videobuf_core 
+> module from the previous module set. Once you get to 2.6.24 it still 
+> loads videobuf_core, however now you get a lot of symbol issues when it 
+> loads and ultimately the driver for the card didn't work. This was 
 
-I had added the XC5000 firmware, dvb-fe-xc5000-1.1.fw, in case I had a 
-950Q. But if, as you say, I need a later kernel, that might be why it 
-doesn't work. I have kernel 2.6.24-19.
+Ah, thanks.  I've seen this (in the list) often and ignored it
+as a newbie error.  (I ignore most things anyway)
 
-I'll look for more info on linuxtv.org. Perhaps I just need to wait a 
-little for the support for this to be developed.
+Now I'm trying to hack* around something comparable in a diff
+which has strangely disappeared from my screen, but may be
+videodev.c --> v4l2-dev.c  which probably will/has cause(d)
+issues.
+
+* `hack' should be translated as, looking at the diffs, wishing
+I had had more sleep, even if it had meant missing all the doku on
+Chairman Humph (for those in the know) that I should have instead
+recorded for later viewing, and wondering if a `make-it-compile'
+hack is enough...  Am I making sense?  Should I sleep?
+
+
+> 2) The v4l-dvb tree has complex firmware loading logic in tuner-xc2028.c 
+> 
+> So either could be fixed, and I fixed the first. I could have fixed the 
+> second by investing more time.
+
+Just to be clear -- did you fix the firmware issue, or the issue
+with migration of, and changes to, source files, which in my
+hum^Wignorant opinion, would be the more difficult one in general?
+
+
+>  But I don't think that is why people talk 
+> about incompatibility between the two.
+
+It's helpful to me, nonetheless.  I am sympathetic to the fork,
+as my `production' (were I to produce anything; in reality, I
+mean that it's been several years operating with only power
+failures requiring attention, otherwise generally running with
+full CPU load) machine is 2.6.14 and has loads of hacks which
+I need to apply to a more recent kernel, should I find a stable
+one (perhaps the hardware of my development machine is suspect
+here, as I now have nearly a week uptime on the same kernel
+which would typically freeze/panic within a few hours -- watch
+it wedge solid before I can send this, again), and much of the
+code which I've hacked (UFS large fragment size filesystem,
+ISA ethernet and others) has or may have suffered substantial
+rewriting since I got it working...  That second sentence was long...
+
+
+thanks for your feedback!
+barry bouwsma
+
+
+      
+
 
 _______________________________________________
 linux-dvb mailing list
