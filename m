@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1011.centrum.cz ([90.183.38.141])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hoppik@centrum.cz>) id 1Ka7wI-0001pf-Im
-	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 13:51:23 +0200
-Received: by mail1011.centrum.cz id S537212968AbYIALvI convert
-	rfc822-to-quoted-printable (ORCPT <rfc822;linux-dvb@linuxtv.org>);
-	Mon, 1 Sep 2008 13:51:08 +0200
-Date: Mon, 01 Sep 2008 13:51:08 +0200
-From: " =?UTF-8?Q?SKO=C4=8CDOPOLE?= =?UTF-8?Q?=20Tom=C3=A1=C5=A1?="
-	<hoppik@centrum.cz>
-To: <liplianin@me.by>
+Received: from n62.bullet.mail.sp1.yahoo.com ([98.136.44.35])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KebRY-00047z-Jg
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 22:10:10 +0200
+Date: Sat, 13 Sep 2008 13:09:33 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: Beth <beth.null@gmail.com>
+In-Reply-To: <7641eb8f0808300017o1e571cddse38aceeb9ce7df8f@mail.gmail.com>
 MIME-Version: 1.0
-Message-ID: <200809011351.15699@centrum.cz>
-References: <200808311224.13193@centrum.cz>
-	<200808311350.17752.liplianin@me.by> <200808311313.7520@centrum.cz>
-	<200808311554.27562.liplianin@me.by>
-In-Reply-To: <200808311554.27562.liplianin@me.by>
+Message-ID: <594291.64273.qm@web46113.mail.sp1.yahoo.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Drivers for TT S2-3200
+Subject: Re: [linux-dvb] Skystar HD2 (device don't stream data).
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,51 +19,97 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-UmVndWxhciBzY2FuIHdvcmtzPyBCdXQgSSBtZWFuIHNjYW4gdXRpbGl0eSBkb2VzbnQgc3VwcG9y
-dCBEVkItUzIuIEZvciBleGFtcGxlIEZFQyA5LzEwLi4uCgpPciB3aGF0IGkgY2FuIHVzZSBmb3Ig
-c2NhbiBEVkItUzIgY2hhbm5lbHM/CgpSZWdhcmRzIFRvbWFzCgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IE9kOiBsaXBsaWFu
-aW5AbWUuYnkKPiBLb211OiBsaW51eC1kdmJAbGludXh0di5vcmcKPiBDQzogJnF1b3Q7IFNLT8SM
-RE9QT0xFICBUb23DocWhJnF1b3Q7IDxob3BwaWtAY2VudHJ1bS5jej4KPiBEYXR1bTogMzEuMDgu
-MjAwOCAxNDo1NAo+IFDFmWVkbcSbdDogUmU6IFtsaW51eC1kdmJdIERyaXZlcnMgZm9yIFRUIFMy
-LTMyMDAKPgo+0JIg0YHQvtC+0LHRidC10L3QuNC4INC+0YIgMzEgQXVndXN0IDIwMDggMTQ6MTM6
-MDYgU0tPxIxET1BPTEUgVG9tw6HFoSDQvdCw0L/QuNGB0LDQuyjQsCk6Cj4+IE9LLCBJIGhhdmUg
-c29tZSBmcmVldGltZSBhdCB0aHVlcnNkYXksIHNvIGkgd2lsbCB0cnkgeW91IGRyaXZlcnMuCj4+
-Cj4+IEkgd2FudCB0byBhc2sgeW91IGFib3V0IGR2Yi1hcHBzIHV0aWxpdGllcyBzemFwIGFuZCBz
-Y2FuOiB3b3JrIHRoZXkgd2l0aAo+PiB5b3UgZHJpdmVycz8KPj4KPj4gT3IgSSBuZWVkIHNvbWUg
-cGF0Y2hlcy4KPj4KPj4gUmVnYXJkcyBUb21hcwo+Pgo+PiBfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+Pgo+PiA+IE9kOiBsaXBs
-aWFuaW5AbWUuYnkKPj4gPiBLb211OiBsaW51eC1kdmJAbGludXh0di5vcmcKPj4gPiBDQzogJnF1
-b3Q7IFNLT9C04paERE9QT0xFICBUb23RhuKVkdC14pWRJnF1b3Q7IDxob3BwaWtAY2VudHJ1bS5j
-ej4KPj4gPiBEYXR1bTogMzEuMDguMjAwOCAxMjo1MAo+PiA+IFDQteKJpWVkbdC04oyhdDogUmU6
-IFtsaW51eC1kdmJdIERyaXZlcnMgZm9yIFRUIFMyLTMyMDAKPj4gPgo+PiA+0L/ilpMg0Y/ilILQ
-v+KVrNC/4pWs0L/ilaDRj+KUtNC/4pWj0L/ilavQv+KVptC/4pWmINC/4pWs0Y/ilIwgMzEgQXVn
-dXN0IDIwMDggMTM6MzI6MzMgU0tP0LTiloRET1BPTEUgVG9t0YbilZHQteKVkSAKPtC/4pWr0L/i
-lZ/Qv8Kp0L/ilabRj+KUgtC/4pWf0L/ilako0L/ilZ8pOgo+PiA+PiBoaSwKPj4gPj4KPj4gPj4g
-SSB3YW50IHRvIGFzayB5b3UsIHdoYXQgZHJpdmVycyBpIGNhbiB1c2UgZm9yIFRUIFMyLTMyMDAg
-d2l0aCBiZXN0Cj4+ID4+IHN1cHBvcnQgZm9yIHZkciwgc3phcCwgc2NhbiBldGMuCj4+ID4+Cj4+
-ID4+IEknbSBhY3R1YWxseSB1c2luZyBtdWx0aXByb3RvIGRyaXZlcnMgaHR0cDovL2p1c3N0LmRl
-L2hnL211bHRpcHJvdG8gd2l0aAo+PiA+PiBjaGFubmVsIGxvY2sgcGF0Y2guIEkgcmVhZCBoZXJl
-IGFib3V0IElnb3IgTS4gTGlwbGlhbmlucyBkcml2ZXJzLCBidXQgSQo+PiA+PiBrbm93IGFueXRo
-aW5nIGFib3V0IGl0Lgo+PiA+Pgo+PiA+PiBUaGFuayB5b3UhCj4+ID4+Cj4+ID4+IFJlZ2FyZHMg
-VG9tYXMKPj4gPj4KPj4gPj4KPj4gPj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KPj4gPj4gbGludXgtZHZiIG1haWxpbmcgbGlzdAo+PiA+PiBsaW51eC1k
-dmJAbGludXh0di5vcmcKPj4gPj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxt
-YW4vbGlzdGluZm8vbGludXgtZHZiCj4+ID4KPj4gPkhpLAo+PiA+Cj4+ID5Zb3UgY2FuIHRyeSBp
-dC4KPj4gPmh0dHA6Ly9saXBsaWFuaW5kdmIuc291cmNlZm9yZ2UubmV0L2hnLwo+PiA+QWN0dWFs
-bHkgSSBhc2sgeW91IGFuZCBvdGhlciBwZW9wbGVzIHRvIGZlZWRiYWNrLCB3aGV0aGVyIGl0IHdv
-cmtzCj4+ID4gcHJvcGVybHksIG9yIG5vdC4KPj4gPkJlc3QgUmVnYXJkcwo+PiA+Cj4+ID5JZ29y
-IE0uIExpcGxpYW5pbgo+Pgo+PiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwo+PiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4+IGxpbnV4LWR2YkBsaW51eHR2
-Lm9yZwo+PiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1kdmIKPgo+UmVndWxhciBzemFwICYgc2NhbiB3b3Jrcy4KPgo+QmVzdCBSZWdhcmRzCj4g
-Cj5JZ29yIE0uIExpcGxpYW5pbgo+CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5v
-cmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgt
-ZHZi
+--- On Sat, 8/30/08, Beth <beth.null@gmail.com> wrote:
+
+> I had been doing some tests this morning on XP and why I
+> didn't made them before?.
+> 
+> I think that I have two problems, first one is the signal quality, I
+> have 65% of level and 98% of quality, 65% maybe the problem of the
+> impossibility of tunning certain transponders, I had tried some of the
+> problematic ones and the can't lock and scan on XP probrams like
+> ProgDVB. So first thing I need to increase the signal level.
+
+Hola Beth!  Sorry for the late reply, but I do not have
+too much that is new to add...  :-(
+
+
+> Second, the incorrect vid&aid, really I don't know what is happening
+
+I took a look at your `scan' results.  But first, ...
+
+You have told me (in personal mail) that your location is
+such that you should be well within the 80cm sat dish
+area of Astra 19E2.  So, if you have problems with particular
+transponders -- and the lack of the german ARD 11836 was very
+obvious to me -- then I would look at your satellite dish
+installation.
+
+You are not in the centre of the beam, but close to the
+border, where reception will be not perfect, yet quite
+possible.  Here, it is actually a good thing to check
+whether you can receive certain weak transponders, such as
+ARD -- if you can move your satellite dish for a strong
+signal on this (which previously never appeared on your
+scans), then you should get a strong signal on everything.
+
+If you cannot get a strong signal on every transponder, then
+I would wonder about your satellite dish -- but as you are
+mostly interested in the D+ Espana stations, which you can
+receive most of the time, that is not so much a problem.
+
+(Also, Hispasat at 30E should carry most of the same channels,
+plus many extra that are not at 19E2...)
+
+You have probably already done this now  :-)
+
+
+
+Anyway, I looked at your `scan' results, and, while you still
+are missing certain transponders/frequencies, what I did 
+notice was that every time you got audio+video PIDs of :0:0: ,
+there were always the services from the previously-scanned
+transponder -- the problem which I hoped I had `fixed' with
+my hack.
+
+The biggest difference between your `scan' and mine, is that
+I start a new `scan' for each frequency -- so I need to let
+my `scan' check all the transponders at once, to see if what
+I thought was a ``fix'' really works, or not...
+
+
+
+On the third hand, your satellite card is one of these
+new-fangled ones that needs to be supported by either the
+multiproto or the new S2API ... um ... driver API thingy.
+So there may be some unresolved issues there.  Or not.
+I really can't say.  Perhaps things will be better soon.
+
+In any case, you should be able to get a strong signal
+from the D+ channels of particular interest to you, and
+at the least, the `scan' results you have with correct
+PIDs are not likely to change too much soon, so this
+should help you receive the stations of interest, and get
+better reception of all others...
+
+
+If I see the same problem again with my receiver, and
+find a fix for it, I will let you (and the list) know...
+
+
+barry bouwsma
+
+
+      
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
