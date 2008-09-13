@@ -1,16 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web38808.mail.mud.yahoo.com ([209.191.125.99])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <urishk@yahoo.com>) id 1Kcq4q-0005vK-6z
-	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 01:23:27 +0200
-Date: Mon, 8 Sep 2008 16:22:49 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <48C5911A.4050808@gmail.com>
+Received: from wr-out-0506.google.com ([64.233.184.238])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mrechberger@gmail.com>) id 1Kee35-00073p-9s
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 00:57:04 +0200
+Received: by wr-out-0506.google.com with SMTP id c8so769722wra.13
+	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 15:56:58 -0700 (PDT)
+Message-ID: <d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
+Date: Sun, 14 Sep 2008 00:56:58 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Manu Abraham" <abraham.manu@gmail.com>
+In-Reply-To: <48CC42D8.8080806@gmail.com>
 MIME-Version: 1.0
-Message-ID: <179729.56472.qm@web38808.mail.mud.yahoo.com>
+Content-Disposition: inline
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<48CC42D8.8080806@gmail.com>
+Cc: linux-dvb@linuxtv.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Subject: Re: [linux-dvb] Multiproto API/Driver Update
-Reply-To: urishk@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,37 +32,69 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Manu and all,
+On Sun, Sep 14, 2008 at 12:46 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
+> Markus Rechberger wrote:
+>
+>> How many devices are currently supported by the multiproto API
+>> compared with the s2 tree?
+>
+> The initial set of DVB-S2 multistandard devices supported by the
+> multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
+> alone. There are more additions by 2 more modules (not devices), but for
+> the simple comparison here is the quick list of them, for which some of
+> the manufacturers have shown support in some way. (There has been quite
+> some contributions from the community as well.):
+>
+> (Also to be noted is that, some BSD chaps also have shown interest in
+> the same)
+>
 
+they're heavy into moving the whole framework over as far as I've seen
+yes, also including yet unmerged drivers.
 
-First I would like to present myself (I'm new to this forum)
-My name is Uri Shkolnik, and I work as Software Architecture at Siano Mobile Silicon (www.siano-ms.com).
+> * STB0899 based
+>
+> Anubis
+> Typhoon DVB-S2 PCI
+>
+> Azurewave/Twinhan
+> VP-1041
+> VP-7050
+>
+> Digital Now
+> AD SP400
+> AD SB300
+>
+> KNC1
+> TV Station DVB-S2
+> TV Station DVB-S2 Plus
+>
+> Pinnacle
+> PCTV Sat HDTV Pro USB 452e
+>
+> Satelco
+> TV Station DVB-S2
+> Easywatch HDTV USB CI
+> Easywatch HDTV PCI
+>
+> Technisat
+> Skystar HD
+> Skystar HD2
+> Skystar USB2 HDCI
+>
+> Technotrend
+> TT S2 3200
+> TT S2 3600
+> TT S2 3650
+>
+> Terratec
+> Cinergy S2 PCI HD
+> Cinergy S2 PCI HDCI
+>
 
-As some people reading this mailing list know, but some don't.... Siano manufactures chipsets that support various of MDTV standards (DVB-H, DVB-T, ISDB-T, CMMB, T-DMB, DAB-IP,... and many more). Many products you see actually uses Siano's chipsets.
+those are pullable now against the current tree?
 
-As far as I understand from this thread, and from other threads, the LinuxTV/DVB sub-system will not support non-DVB standards in the near future.
-
-This is quite understandable since those standards are quite complicate, and the newer are even more complicated than DVB-C/S/T. It took about 5 years for the DVB sub-system to become mature, so, trying to add all of those standards at once will lead to nowhere good.
-
-I don't know what should be done next, which API (and sub-system) should be added first, second, ... (or not at all?). I have my own views (CMMB getting much more audience than DVB-H and ISDB-T more than the DAB family). 
-
-But, I can offer technical assistant. Siano is senior member at most of the MDTV consortiumes (CMMB, DVB and more) and I have access to lot of technical documentation (specifications, guildlines, etc.) which are otherwise quite hard (if not impossible) to be obtained.
-True that some (not all) of those papers are under classification that does not permit me to share them directly, but always a specific question can be answered.
-
-One point regarding Siano non-DVB offering - With Michael Krufky's help, I'm trying to find a way to add Siano's non-DVB(-T) offering into the kernel's code base (till now we supply a proprietary sources directly to our customers). Of course it will be somewhat specific code by the fact that it'll match Siano's chipset instead of be more generic.
-
-
-So, I'm done with the introduction..... :-)
-
-
-Regards,
-
-Uri
-
-
-
-
-      
+Markus
 
 _______________________________________________
 linux-dvb mailing list
