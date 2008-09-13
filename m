@@ -1,18 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KdEio-0006JF-Me
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 03:42:30 +0200
-Message-ID: <48C725F5.2080407@linuxtv.org>
-Date: Tue, 09 Sep 2008 21:42:13 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: William Austin <bsdskin@yahoo.com>
-References: <273704.19765.qm@web31108.mail.mud.yahoo.com>
-	<48C71AF5.2080700@linuxtv.org>
-In-Reply-To: <48C71AF5.2080700@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1950 with Ubuntu Intrepid
+	(envelope-from <stoth@linuxtv.org>) id 1KecwO-00020g-G4
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 23:46:05 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7500FJ4LRTN7H0@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sat, 13 Sep 2008 17:45:30 -0400 (EDT)
+Date: Sat, 13 Sep 2008 17:45:29 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48CC219C.9010007@singlespoon.org.au>
+To: Paul Chubb <paulc@singlespoon.org.au>
+Message-id: <48CC3479.5080706@linuxtv.org>
+MIME-version: 1.0
+References: <466191.65236.qm@web46110.mail.sp1.yahoo.com>
+	<48CC219C.9010007@singlespoon.org.au>
+Cc: linux dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Why I need to choose better Subject: headers [was:
+ Re: Why (etc.)]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,64 +33,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> William Austin wrote:
->> I have a Hauppauge WinTV HVR-1950 USB box on a box running Ubuntu Intrepid.  Although I should expect problems from a testing distro, I've tried getting this box working on stable, Live-CD versions of Ubuntu, Open Suse, and Mandriva as well (because they were what I had around the house.)
->>
->> First, there is a kernel problem in Ubuntu Intrepid where, if the 1950 is plugged into USB, the system will hang on boot.  Yet, if I boot without it and plug it in after boot, the drivers (pvrusb2 et al) seem to load, but no device nodes are created.  I have downloaded the firmware, renamed it properly, and placed it in /lib/firmware.  So I'm at a loss on how to troubleshoot.  Here's the relevant information on plug-in the box in after the system has been booted.
-> 
-> What firmware did you " download and rename " ??
-> 
-> Where did you get " v4l-pvrusb2-73xxx-01.fw " ??  or did you forget it?
-> 
-> 
->> dmesg says:
->> usbcore: registered new interface driver pvrusb2
->> pvrusb2: Hauppauge WinTV-PVR-USB2 MPEG2 Encoder/Tuner : V4L in-tree version
->> pvrusb2: Debug mask is 31 (0x1f)
-> 
-> 
-> Those lines will show up is you simply "modprobe pvrusb2" even if the device is not present.  What comes next?  It should download firmware, disconnect & reconnect USB automatically, then continue on with driver initialization.
-> 
-> 
->> lsmod (edit):
->> usbcore
->> pvrusb2
->> i2c_core
->> v4l2_common
->> tveeprom
->> dvb_core
->> cx2341x
->> videodev
->> v4l1_compat
-> 
-> 
-> lsmod doesnt tell us anything.  You can load all those modules by hand, and it says nothing about the device that you have plugged in.
-> 
->> /proc/devices lists DVB as a character device.
->>
->> Now, I'm assuming I'm missing some chip drivers.  I think I should have at least three, if memory serves, but only cx2341x is loading on plug-in.  Unfortunately (and I assume this is another Ubuntu problem) I can't unload pvrusb2 once loaded.  It hangs the terminal.  It makes playing around with it a tedious endeavor.
->>
->> If anyone has had the same problems or could give some advice, I appreciate it in advance.
-> 
-> I think you're best off taking a look at the pvrusb2 home page and reading the information there.  If you are still having trouble, then please just paste your full dmesg into an email so that we can have a better idea of what's wrong.
+Paul Chubb wrote:
+> Barry,
+> I drew the line at porting the xc3028 tuner module from mcentral.de into 
+> v4l-dvb, so no didn't solve the firmware issues. If you know what you 
+> are doing it should be trivial work - just linking in yet another tuner 
+> module and then calling it like all the others. For me because I don't 
+> know the code well it would take a week or two.
 
-William,
+No porting required.
 
-I'm sorry -- I forgot to include the link to the pvrusb2 web page:
+xc3028 tuner is already in the kernel, it should just be a case of 
+configuring the attach/config structs correctly.
 
-http://www.isely.net/pvrusb2
-
-
-Also, I think I may have been unclear in my previous email.  Basically, the information that you've shown us is not enough to indicate any problem, nor is it enough to indicate success.
-
-The most common and likely reason that it might not be working is for lack of the "v4l-pvrusb2-73xxx-01.fw" firmware, but that is only a guess based on the incomplete information.
-
-If you still cant it working, please show us a full dmesg dump.
-
-I hope this helps...
-
--Mike
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
