@@ -1,16 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Sat, 6 Sep 2008 21:45:39 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Albert Comerma <albert.comerma@gmail.com>
-In-Reply-To: <ea4209750809061235mf068166h36ff1f979eeb6589@mail.gmail.com>
-Message-ID: <alpine.LRH.1.10.0809062145150.6645@pub5.ifh.de>
-References: <ea4209750808160758y53777c02kb4c881b57d232233@mail.gmail.com>
-	<ea4209750809061235mf068166h36ff1f979eeb6589@mail.gmail.com>
+Received: from n33.bullet.mail.ukl.yahoo.com ([87.248.110.166])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1KeYya-00059K-T2
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 19:32:05 +0200
+Date: Sat, 13 Sep 2008 13:29:56 -0400
+From: manu <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <682529.97908.qm@web55601.mail.re4.yahoo.com>
+In-Reply-To: <682529.97908.qm@web55601.mail.re4.yahoo.com> (from
+	o_lucian@yahoo.com on Tue Sep  9 10:31:06 2008)
+Message-Id: <1221326996l.12125l.1l@manu-laptop>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="579716367-28114796-1220730339=:6645"
-Cc: Patrick Boettcher <pb@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] Added support for Asus My Cinema U3000H
- dvb-t (dibcom based device)
+Content-Disposition: inline
+Cc: Manu Abraham <abraham.manu@gmail.com>
+Subject: [linux-dvb] Re :  TT S2-3200 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,62 +21,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Le 09.09.2008 10:31:06, lucian orasanu a =E9crit=A0:
+> Hy all
+> =
 
---579716367-28114796-1220730339=:6645
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by znsun1.ifh.de id m86JjdRD002231
+>  Maybe if we post logs, from stb08900 driver tunning to diferent
+> transponders that dose not work will help Manu Abraham to solve the
+> problem. Right??
+> =
 
-I will take of that, sorry for overlooking that in the first place.
+> Regards Lucian.
 
-Patrick.
+OK, here we go. Attached are several logs: two successes for "good" =
 
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+transponders, even if lock is a bit slow to come (freqs: 11093MHz and =
 
+11555MHz)
+Two others which are failures for 11495 and 11499 MHz (the actual =
 
-On Sat, 6 Sep 2008, Albert Comerma wrote:
+transponder is announced at 11495Mhz freq). As you can see it gets the =
 
-> Hi all, since I think it was not added I send again a patch adding the =
-Asus-U3000H device for dvb-t.
->=20
-> ---------- Forwarded message ----------
-> From: Albert Comerma <albert.comerma@gmail.com>
-> Date: 2008/8/16
-> Subject: [PATCH] Added support for Asus My Cinema U3000H dvb-t (dibcom =
-based device)
-> To: linux-dvb <linux-dvb@linuxtv.org>, Patrick Boettcher <patrick.boett=
-cher@desy.de>, zePh7r <zeph7r@gmail.com>
->=20
->=20
-> Hi all, this patch add support for the Asus My Cinema U3000H, tested by=
- Rui.
-> I copy the header of the patch;
->=20
-> #This patch introduces support for dvb-t for the following dibcom based=
- cards:
-> #=A0=A0=A0=A0=A0=A0 Asus My Cinema U3000 Hybrid (USB-ID: 0b05:1736)
-> #=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Signed-off-by: Rui <zeph7r@=
-gmail.com>
-> #=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Signed-off-by: Albert Comer=
-ma <albert.comerma@gmail.com>
->=20
-> Albert
---579716367-28114796-1220730339=:6645
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+carrier OK (after a while though) but fails to get the data. This =
+
+transponder has the same characteristic (symbol rate is 30000, =
+
+polarisation is vertical) than the 2 others with the only diff being =
+
+the FEC which is 5/6 instead of the more common 3/4.
+HTH
+Bye
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---579716367-28114796-1220730339=:6645--
