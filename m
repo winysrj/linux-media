@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.158])
+Received: from ug-out-1314.google.com ([66.249.92.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KiCBj-0002vy-5l
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 20:00:41 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so1837255fga.25
-	for <linux-dvb@linuxtv.org>; Tue, 23 Sep 2008 11:00:35 -0700 (PDT)
-Message-ID: <d9def9db0809231100k6fd424f2u5ef95fce67684052@mail.gmail.com>
-Date: Tue, 23 Sep 2008 20:00:35 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Doug Lung" <dlung0@gmail.com>
-In-Reply-To: <78c72afb0809231057m195d1f7dk57195f611357e39d@mail.gmail.com>
+	(envelope-from <christophpfister@gmail.com>) id 1KeRvJ-0002Bd-Ip
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 12:00:15 +0200
+Received: by ug-out-1314.google.com with SMTP id 39so426464ugf.16
+	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 03:00:08 -0700 (PDT)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: linux-dvb@linuxtv.org
+Date: Sat, 13 Sep 2008 12:00:02 +0200
+References: <48C0DD05.3070608@alstadheim.priv.no>
+In-Reply-To: <48C0DD05.3070608@alstadheim.priv.no>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <78c72afb0809231057m195d1f7dk57195f611357e39d@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Support for Pinnacle PCTV mini stick (USB TV Tuner)
-	80e
+Message-Id: <200809131200.02589.christophpfister@gmail.com>
+Subject: Re: [linux-dvb] =?utf-8?q?dvb-t_scan_file_Norway=2C_Tr=C3=B8ndelag?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,36 +21,18 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Sep 23, 2008 at 7:57 PM, Doug Lung <dlung0@gmail.com> wrote:
-> Thanks, Devin, for your work getting the Pinnacle HD Pro Stick (801e) working!
->
-> Here is the info Pinnacle gave me regarding the devices in the Mini-Stick:
->
-> -          Tuner: NXP TDA18271HD
->
-> -          Demod: Micronas DRX3933J
->
-> -          USB controller: EMpia 2874
->
-> -          We have included a low-noise amplifier to improve the
-> sensitivity in weak-signal situations ("Signal Booster"). To prevent
-> overdriving with stronger signals, the LNA can be switched off. The
-> switch is provided in software (in our TVCenter Pro application, and
-> for Windows Media Center users in a small separate tool).
->
-
-I've got everything here, just a matter of time and discussion with
-some people now.
-
-Markus
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+QW0gRnJpZGF5IDA1IFNlcHRlbWJlciAyMDA4IDA5OjE3OjI1IHNjaHJpZWIgSMOla29uIEFsc3Rh
+ZGhlaW06Cj4gVGhlIGF0dGFjaGVkIGlzIHJhdyBvdXRwdXQgZnJvbSB3X3NjYW4sIHdpdGggYSBj
+b3VwbGUgb2YgY29tbWVudHMgYWRkZWQuCj4gVGhlIGZyZXF1ZW5jeSBJIGFjdHVhbGx5IHVzZSB3
+aGljaCBoYXMgdGhlIHVuZW5jcnlwdGVkIGNoYW5uZWxzIGlzIAo+IDY1ODAwMDAwMC4KCkhtbSwg
+aXQgY29udGFpbnMgcXVpdGUgc29tZSBvY2N1cmVuY2llcyBvZiAiQVVUTyIuIEFueSBjaGFuY2Ug
+dG8gZ2V0IHJpZCBvZiAKdGhlbT8KCkNocmlzdG9waAoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJA
+bGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGlu
+Zm8vbGludXgtZHZi
