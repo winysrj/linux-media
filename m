@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joan.kewl.org ([212.161.35.248])
+Received: from ey-out-2122.google.com ([74.125.78.26])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <darron@kewl.org>) id 1KiZkB-0005eu-0x
-	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 21:09:49 +0200
-From: Darron Broad <darron@kewl.org>
-To: Anders Semb Hermansen <anders@ginandtonic.no>
-In-reply-to: <8C08530B-BAD7-4E83-B1CA-6AB66EE9F53F@ginandtonic.no> 
-References: <953A45C4-975B-4A05-8B41-AE8A486D0CA6@ginandtonic.no>
-	<5584.1222273099@kewl.org>
-	<F70AC72F-8DF3-4A9A-BFA1-A4FED9D3EABC@ginandtonic.no>
-	<6380.1222276810@kewl.org>
-	<8C08530B-BAD7-4E83-B1CA-6AB66EE9F53F@ginandtonic.no>
-Date: Wed, 24 Sep 2008 20:09:42 +0100
-Message-ID: <7674.1222283382@kewl.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-4000 and analogue tv
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KedbI-0004fy-HR
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 00:28:30 +0200
+Received: by ey-out-2122.google.com with SMTP id 25so638647eya.17
+	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 15:28:16 -0700 (PDT)
+Message-ID: <412bdbff0809131528h22171a3am434cd5e2500f40db@mail.gmail.com>
+Date: Sat, 13 Sep 2008 18:28:16 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Steven Toth" <stoth@linuxtv.org>
+In-Reply-To: <48CC3651.5040502@linuxtv.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <412bdbff0809131441k5f38931cr7d64dc3871c37987@mail.gmail.com>
+	<48CC3651.5040502@linuxtv.org>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Power management and dvb framework
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,86 +23,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <8C08530B-BAD7-4E83-B1CA-6AB66EE9F53F@ginandtonic.no>, Anders Semb Hermansen wrote:
+Hello Steven,
 
-lo
+On Sat, Sep 13, 2008 at 5:53 PM, Steven Toth <stoth@linuxtv.org> wrote:
+> I looked at some power stuff for the au0828 recently. I added a couple of
+> callbacks in the USB_register struct IIRC, I had those drive the gpios. I
+> don't recall the details but if you look at the definition of the structure
+> you should see some power related callbacks. Actually, I'm not even sure if
+> those patches got merged.
+>
+> Also, the demod _init() and _sleep()  callbacks get called by dvb-core when
+> the demod is required (or not). These might help.
+>
+> Lastly, depending on how the driver implements DVB, is might use videobuf -
+> or it might do it's own buffer handing. In case of the latter, look at the
+> feed_start() feed_stop() functions and the struct specific feed counter that
+> usually accompanies this... you could probably add some useful power related
+> stuff with these indications.
 
->Den 24. sep.. 2008 kl. 19.20 skrev Darron Broad:
->
-><snip>
->
->> <snip>
->>>
->>> Does this mean that mythtv is doing something weird or maybe just
->>> using the v4l api in a different way which the driver cannot handle?
->>
->> This is feasable. I will take a look if I get the time but this
->> is more than likely to be when I have other reasons to look
->> at mythtv so don't expect an immediate response :-)
->>
->
->I did some more investigating.
->
->I thought maybe this had something to do with the tuner, since I got  
->snow. So I enabled debugging for the tuner module (debug=1). What I  
->saw was that when I started watching TV in myth, there was a  
->TUNER_SET_STANDBY after frequency and other things was set. This  
->TUNER_SET_STANDBY did not appear when I was just changing channel (and  
->picture worked).
->
->So I searched the driver for TUNER_STANDBY and found one which I  
->tried. Here is what I did:
->
->diff -r e5ca4534b543 linux/drivers/media/video/cx88/cx88-video.c
->--- a/linux/drivers/media/video/cx88/cx88-video.c       Tue Sep 09  
->08:29:56 2008 -0700
->+++ b/linux/drivers/media/video/cx88/cx88-video.c       Wed Sep 24  
->20:35:46 2008 +0200
->@@ -1152,7 +1152,8 @@
->         file->private_data = NULL;
->         kfree(fh);
->
->-       cx88_call_i2c_clients (dev->core, TUNER_SET_STANDBY, NULL);
->+       printk("Don't set standby mode! TUNER_SET_STANDBY NO SIR!");
->+       //cx88_call_i2c_clients (dev->core, TUNER_SET_STANDBY, NULL);
->
->         return 0;
->  }
->
->
->This fixed it!!
->
->I don't know what side effects this will have. Or if this is caused by  
->wrong use of v4l by mythtv, or driver not implementing it correctly.  
->Those who know the codebase can maybe answer that and come up with a  
->better permanent solution.
+Thanks for the suggestions.  At this point my best bet is to just
+litter the code with some printk() messages so I can see what the
+complete workflow is for the life of a device.  That will help alot
+with figuring out where at what point which hooks get called.
 
-I admit I found your fix interesting. In fact, you can reproduce
-this using tvtime and cat.
+Thanks,
 
-Eg.
+Devin
 
-> tvtime -d /dev/video0 &
-> cat /dev/video0
-
-The problem in mythtv appears to be in OpenV4L2DeviceAsInput(void)
-where is opens the video device twice although I have no confirmed it.
-
-cya
-
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
