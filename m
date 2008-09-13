@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.171])
+Received: from 202.7.249.79.dynamic.rev.aanet.com.au ([202.7.249.79]
+	helo=home.singlespoon.org.au)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kristiadi.himawan@gmail.com>) id 1Khi9T-0001pG-H3
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 11:56:20 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so1675222wfd.17
-	for <linux-dvb@linuxtv.org>; Mon, 22 Sep 2008 02:56:15 -0700 (PDT)
-Message-ID: <8bc341120809220256nff6f532mec04e29e4ea16cb8@mail.gmail.com>
-Date: Mon, 22 Sep 2008 16:56:14 +0700
-From: "Kristiadi Himawan" <kristiadi.himawan@gmail.com>
-To: liplianin@tut.by
-In-Reply-To: <web-59702567@speedy.tutby.com>
+	(envelope-from <paulc@singlespoon.org.au>) id 1Kebi6-0005iL-RY
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 22:27:16 +0200
+Message-ID: <48CC219C.9010007@singlespoon.org.au>
+Date: Sun, 14 Sep 2008 06:25:00 +1000
+From: Paul Chubb <paulc@singlespoon.org.au>
 MIME-Version: 1.0
-References: <8bc341120809212324r5664bd2dh44decab3b5292af0@mail.gmail.com>
-	<web-59702567@speedy.tutby.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVBWorld DW2104
+To: free_beer_for_all@yahoo.com, linux dvb <linux-dvb@linuxtv.org>
+References: <466191.65236.qm@web46110.mail.sp1.yahoo.com>
+In-Reply-To: <466191.65236.qm@web46110.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] Why I need to choose better Subject: headers [was:
+	Re: Why (etc.)]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,99 +20,100 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2067959142=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2067959142==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_58417_30808847.1222077374821"
+Barry,
+I drew the line at porting the xc3028 tuner module from mcentral.de into 
+v4l-dvb, so no didn't solve the firmware issues. If you know what you 
+are doing it should be trivial work - just linking in yet another tuner 
+module and then calling it like all the others. For me because I don't 
+know the code well it would take a week or two.
 
-------=_Part_58417_30808847.1222077374821
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+The other issue is that with the state of relationship between Markus 
+Rechberger and the community I don't want to be in the middle of that.
 
-SGkgSWdvciwKClRoYW5rIHlvdSwgaSB3aWxsIHdhaXQgdGhlIGZpcm13YXJlIHRoZW4uCgoKT24g
-TW9uLCBTZXAgMjIsIDIwMDggYXQgNDo0NyBQTSwgPz8/Pz8gPGxpcGxpYW5pbkB0dXQuYnk+IDwi
-Pz8/Pz8/PiB3cm90ZToKCj4g5M/C0tnKIMTFztghCj4KPiBNb24sIDIyIFNlcCAyMDA4IDEzOjI0
-OjM1ICswNzAwLCAiS3Jpc3RpYWRpIEhpbWF3YW4iIDwKPiBrcmlzdGlhZGkuaGltYXdhbkBnbWFp
-bC5jb20+INDJ08HMKMEpOgo+Cj4gIEhpLAo+Pgo+IEhpLAo+Cj4KPj4gSSBoYXZlIHRyeSBEVkJX
-b3JsZCBIRCAyMTA0IENBK0NJIFVTQiBCb3ggYXQgbXkgRGViaWFuIEV0Y2ggdXNpbmcgSWdvcgo+
-PiBwYXRjaAo+PiBkcml2ZXIgZm9yIDIxMDQgZHZiczIKPj4gYnV0IGZvdW5kIGVycm9yIG1lc3Nh
-Z2VzIGFib3V0IGZpcm13YXJlIGZpbGUuCj4+Cj4+IGR2Yi11c2I6IGZvdW5kIGEgJ0RWQldvcmxk
-IERXMjEwNCBVU0IyLjAnIGluIGNvbGQgc3RhdGUsIHdpbGwgdHJ5IHRvIGxvYWQKPj4gYQo+PiBm
-aXJtd2FyZQo+PiBmaXJtd2FyZTogcmVxdWVzdGluZyBkdmItdXNiLWR3MjEwNC5mdwo+PiBkdmIt
-dXNiOiBkaWQgbm90IGZpbmQgdGhlIGZpcm13YXJlIGZpbGUuIChkdmItdXNiLWR3MjEwNC5mdykg
-UGxlYXNlIHNlZQo+PiBsaW51eC9Eb2N1bWVudGF0aW9uL2R2Yi8gZm9yIG1vcmUgZGV0YWlscyBv
-biBmaXJtd2FyZS1wcm9ibGVtcy4gKC0yKQo+PiB1c2IgNS00OiBOZXcgVVNCIGRldmljZSBmb3Vu
-ZCwgaWRWZW5kb3I9MDRiNCwgaWRQcm9kdWN0PTIxMDQKPj4gdXNiIDUtNDogTmV3IFVTQiBkZXZp
-Y2Ugc3RyaW5nczogTWZyPTAsIFByb2R1Y3Q9MCwgU2VyaWFsTnVtYmVyPTAKPj4KPj4gSXMgdGhp
-cyBub3JtYWwgPyBiZWNhdXNlIHVzdWFsbHkgdGhlcmUncyBmcm9udGVuZCBkZXZpY2UgaW5zdGFs
-bGVkIGFsc28uCj4+Cj4gSXQgaXMgY2xlYXIsIHRoYXQgeW91IG5lZWQgJ2R2Yi11c2ItZHcyMTA0
-LmZ3JyBmaXJtd2FyZSBmaWxlIGluCj4gL2xpYi9maXJtd2FyZS4KPiBJIHdpbGwgc2VuZCB5b3Ug
-aW5zdHJ1Y3Rpb25zIGhvdyB0byBleHRyYWN0IGl0IHRoaXMgZXZlbmluZy4KPgo+ICAtLQo+Pgo+
-PiBCUi9LSAo+Pgo+Cj4gQlIKPiBJZ29yCj4KPgo+IC0tLS0tLS0tLS0tLS0KPiD32dfPxMnNINPB
-ytTZINcgzMnExdLZLiDzIMfB0sHO1MnFyi4KPiBodHRwOi8vd3d3LnByb21vLXdlYmNvbS5ieS9f
-c2VvLmh0bWwKPgoKCgotLSAKCkJSL0tICg==
-------=_Part_58417_30808847.1222077374821
-Content-Type: text/html; charset=KOI8-R
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+Cheers Paul
 
-PGRpdiBkaXI9Imx0ciI+SGkgSWdvciw8YnI+PGJyPlRoYW5rIHlvdSwgaSB3aWxsIHdhaXQgdGhl
-IGZpcm13YXJlIHRoZW4uPGJyPjxicj48YnI+PGRpdiBjbGFzcz0iZ21haWxfcXVvdGUiPk9uIE1v
-biwgU2VwIDIyLCAyMDA4IGF0IDQ6NDcgUE0sID8/Pz8/ICZsdDs8YSBocmVmPSJtYWlsdG86bGlw
-bGlhbmluQHR1dC5ieSI+bGlwbGlhbmluQHR1dC5ieTwvYT4mZ3Q7IDxzcGFuIGRpcj0ibHRyIj4m
-bHQ7JnF1b3Q7Pz8/Pz8/Jmd0Ozwvc3Bhbj4gd3JvdGU6PGJyPgo8YmxvY2txdW90ZSBjbGFzcz0i
-Z21haWxfcXVvdGUiIHN0eWxlPSJib3JkZXItbGVmdDogMXB4IHNvbGlkIHJnYigyMDQsIDIwNCwg
-MjA0KTsgbWFyZ2luOiAwcHQgMHB0IDBwdCAwLjhleDsgcGFkZGluZy1sZWZ0OiAxZXg7Ij7kz8LS
-2cogxMXO2CE8YnI+Cjxicj4KTW9uLCAyMiBTZXAgMjAwOCAxMzoyNDozNSArMDcwMCwgJnF1b3Q7
-S3Jpc3RpYWRpIEhpbWF3YW4mcXVvdDsgJmx0OzxhIGhyZWY9Im1haWx0bzprcmlzdGlhZGkuaGlt
-YXdhbkBnbWFpbC5jb20iIHRhcmdldD0iX2JsYW5rIj5rcmlzdGlhZGkuaGltYXdhbkBnbWFpbC5j
-b208L2E+Jmd0OyDQydPBzCjBKTo8YnI+Cjxicj4KPGJsb2NrcXVvdGUgY2xhc3M9ImdtYWlsX3F1
-b3RlIiBzdHlsZT0iYm9yZGVyLWxlZnQ6IDFweCBzb2xpZCByZ2IoMjA0LCAyMDQsIDIwNCk7IG1h
-cmdpbjogMHB0IDBwdCAwcHQgMC44ZXg7IHBhZGRpbmctbGVmdDogMWV4OyI+CkhpLDxicj4KPC9i
-bG9ja3F1b3RlPjxkaXY+PGRpdj48L2Rpdj48ZGl2IGNsYXNzPSJXajNDN2MiPgpIaSw8YnI+Cjxi
-cj4KPGJsb2NrcXVvdGUgY2xhc3M9ImdtYWlsX3F1b3RlIiBzdHlsZT0iYm9yZGVyLWxlZnQ6IDFw
-eCBzb2xpZCByZ2IoMjA0LCAyMDQsIDIwNCk7IG1hcmdpbjogMHB0IDBwdCAwcHQgMC44ZXg7IHBh
-ZGRpbmctbGVmdDogMWV4OyI+Cjxicj4KSSBoYXZlIHRyeSBEVkJXb3JsZCBIRCAyMTA0IENBK0NJ
-IFVTQiBCb3ggYXQgbXkgRGViaWFuIEV0Y2ggdXNpbmcgSWdvciBwYXRjaDxicj4KZHJpdmVyIGZv
-ciAyMTA0IGR2YnMyPGJyPgpidXQgZm91bmQgZXJyb3IgbWVzc2FnZXMgYWJvdXQgZmlybXdhcmUg
-ZmlsZS48YnI+Cjxicj4KZHZiLXVzYjogZm91bmQgYSAmIzM5O0RWQldvcmxkIERXMjEwNCBVU0Iy
-LjAmIzM5OyBpbiBjb2xkIHN0YXRlLCB3aWxsIHRyeSB0byBsb2FkIGE8YnI+CmZpcm13YXJlPGJy
-PgpmaXJtd2FyZTogcmVxdWVzdGluZyBkdmItdXNiLWR3MjEwNC5mdzxicj4KZHZiLXVzYjogZGlk
-IG5vdCBmaW5kIHRoZSBmaXJtd2FyZSBmaWxlLiAoZHZiLXVzYi1kdzIxMDQuZncpIFBsZWFzZSBz
-ZWU8YnI+CmxpbnV4L0RvY3VtZW50YXRpb24vZHZiLyBmb3IgbW9yZSBkZXRhaWxzIG9uIGZpcm13
-YXJlLXByb2JsZW1zLiAoLTIpPGJyPgp1c2IgNS00OiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRW
-ZW5kb3I9MDRiNCwgaWRQcm9kdWN0PTIxMDQ8YnI+CnVzYiA1LTQ6IE5ldyBVU0IgZGV2aWNlIHN0
-cmluZ3M6IE1mcj0wLCBQcm9kdWN0PTAsIFNlcmlhbE51bWJlcj0wPGJyPgo8YnI+CklzIHRoaXMg
-bm9ybWFsID8gYmVjYXVzZSB1c3VhbGx5IHRoZXJlJiMzOTtzIGZyb250ZW5kIGRldmljZSBpbnN0
-YWxsZWQgYWxzby48YnI+CjwvYmxvY2txdW90ZT48L2Rpdj48L2Rpdj4KSXQgaXMgY2xlYXIsIHRo
-YXQgeW91IG5lZWQgJiMzOTtkdmItdXNiLWR3MjEwNC5mdyYjMzk7IGZpcm13YXJlIGZpbGUgaW4g
-L2xpYi9maXJtd2FyZS48YnI+Ckkgd2lsbCBzZW5kIHlvdSBpbnN0cnVjdGlvbnMgaG93IHRvIGV4
-dHJhY3QgaXQgdGhpcyBldmVuaW5nLjxicj4KPGJyPgo8YmxvY2txdW90ZSBjbGFzcz0iZ21haWxf
-cXVvdGUiIHN0eWxlPSJib3JkZXItbGVmdDogMXB4IHNvbGlkIHJnYigyMDQsIDIwNCwgMjA0KTsg
-bWFyZ2luOiAwcHQgMHB0IDBwdCAwLjhleDsgcGFkZGluZy1sZWZ0OiAxZXg7Ij4KLS0gPGJyPgo8
-YnI+CkJSL0tIPGJyPgo8L2Jsb2NrcXVvdGU+Cjxicj4KQlI8YnI+Cklnb3I8YnI+CiAmbmJzcDs8
-YnI+Cjxicj4KLS0tLS0tLS0tLS0tLTxicj4K99nXz8TJzSDTwcrU2SDXIMzJxMXS2S4g8yDHwdLB
-ztTJxcouPGJyPgo8YSBocmVmPSJodHRwOi8vd3d3LnByb21vLXdlYmNvbS5ieS9fc2VvLmh0bWwi
-IHRhcmdldD0iX2JsYW5rIj5odHRwOi8vd3d3LnByb21vLXdlYmNvbS5ieS9fc2VvLmh0bWw8L2E+
-PGJyPgo8L2Jsb2NrcXVvdGU+PC9kaXY+PGJyPjxiciBjbGVhcj0iYWxsIj48YnI+LS0gPGJyPjxi
-cj5CUi9LSDxicj4KPC9kaXY+Cg==
-------=_Part_58417_30808847.1222077374821--
+barry bouwsma wrote:
+> --- On Sat, 9/13/08, Paul Chubb <paulc@singlespoon.org.au> wrote:
+>
+>   
+>> around 2.6.22. At some stage the functionality in videobuf_core.c was 
+>> replaced by video-buf-dvb.c. This meant that when you compile against 
+>> the 2.6.22 headers it works fine but still loads the videobuf_core 
+>> module from the previous module set. Once you get to 2.6.24 it still 
+>> loads videobuf_core, however now you get a lot of symbol issues when it 
+>> loads and ultimately the driver for the card didn't work. This was 
+>>     
+>
+> Ah, thanks.  I've seen this (in the list) often and ignored it
+> as a newbie error.  (I ignore most things anyway)
+>
+> Now I'm trying to hack* around something comparable in a diff
+> which has strangely disappeared from my screen, but may be
+> videodev.c --> v4l2-dev.c  which probably will/has cause(d)
+> issues.
+>
+> * `hack' should be translated as, looking at the diffs, wishing
+> I had had more sleep, even if it had meant missing all the doku on
+> Chairman Humph (for those in the know) that I should have instead
+> recorded for later viewing, and wondering if a `make-it-compile'
+> hack is enough...  Am I making sense?  Should I sleep?
+>
+>
+>   
+>> 2) The v4l-dvb tree has complex firmware loading logic in tuner-xc2028.c 
+>>
+>> So either could be fixed, and I fixed the first. I could have fixed the 
+>> second by investing more time.
+>>     
+>
+> Just to be clear -- did you fix the firmware issue, or the issue
+> with migration of, and changes to, source files, which in my
+> hum^Wignorant opinion, would be the more difficult one in general?
+>
+>
+>   
+>>  But I don't think that is why people talk 
+>> about incompatibility between the two.
+>>     
+>
+> It's helpful to me, nonetheless.  I am sympathetic to the fork,
+> as my `production' (were I to produce anything; in reality, I
+> mean that it's been several years operating with only power
+> failures requiring attention, otherwise generally running with
+> full CPU load) machine is 2.6.14 and has loads of hacks which
+> I need to apply to a more recent kernel, should I find a stable
+> one (perhaps the hardware of my development machine is suspect
+> here, as I now have nearly a week uptime on the same kernel
+> which would typically freeze/panic within a few hours -- watch
+> it wedge solid before I can send this, again), and much of the
+> code which I've hacked (UFS large fragment size filesystem,
+> ISA ethernet and others) has or may have suffered substantial
+> rewriting since I got it working...  That second sentence was long...
+>
+>
+> thanks for your feedback!
+> barry bouwsma
+>
+>
+>       
+>
+>
+>   
 
 
---===============2067959142==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2067959142==--
