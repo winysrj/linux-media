@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m820gHsK027210
-	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 20:42:18 -0400
-Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
-	[151.189.21.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m820g4B2006368
-	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 20:42:04 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-In-Reply-To: <20080901094102.653e8370@lxorguk.ukuu.org.uk>
-References: <1220227274.2669.89.camel@pc10.localdom.local>
-	<20080901094102.653e8370@lxorguk.ukuu.org.uk>
-Content-Type: text/plain
-Date: Tue, 02 Sep 2008 02:39:34 +0200
-Message-Id: <1220315974.2690.34.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8DGTH0Y006900
+	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 12:29:17 -0400
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8DGSQHB018798
+	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 12:28:26 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: video4linux-list@redhat.com, EVENTYR@terra.es
+Date: Sat, 13 Sep 2008 18:28:31 +0200
+References: <14252019.1220515774408.JavaMail.root@cps2>
+In-Reply-To: <14252019.1220515774408.JavaMail.root@cps2>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: list defaults
+Content-Disposition: inline
+Message-Id: <200809131828.32120.laurent.pinchart@skynet.be>
+Cc: 
+Subject: Re: Cannot allocate memory
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,37 +30,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi,
 
-Am Montag, den 01.09.2008, 09:41 +0100 schrieb Alan Cox:
-> On Mon, 01 Sep 2008 02:01:14 +0200
-> hermann pitton <hermann-pitton@arcor.de> wrote:
-> 
-> > Hi Alan,
-> > 
-> > can't we have the list defaults back, like it was previously?
-> 
-> Nothing to do with me, I don't admin the list
+On Thursday 04 September 2008, EVENTYR@terra.es wrote:
+> Hi,
+>
+> I'm executing test software which is in official website:
+>
+>
+> http://v4l2spec.bytesex.org/spec/capture-example.html
+>
+> My system is a debian stable with kernel 2.6.24 (i'm trying with 2.6.18
+> too).
+>
+>
+> Software crash (stop) when i use USERPTR mode:
+>
+> -u | --userp         Use application allocated buffers
+>
+> Software returns:
+>
+> "VIDIOC_QBUF error 12, Cannot allocate memory"
+>
+> With other two modes (READ and MMAP) works fine, but i need that works with
+> USERPTR mode, what is the problem?
 
+The driver you're using probably doesn't support the user pointer method. Not 
+all drivers do. Why do you need that specific method ?
 
-Sorry for having this wrong.
+Best regards,
 
-Replies should default to the list, since it does create the contacts.
-
-I could even imagine a rule, that one is only allowed to go private, if
-this was previously explicitly announced and all parties agreed.
-
-Just hitting reply instead of reply to all and being private is a mess.
-
-It also attracts people to try it in private, if the list is not
-responsive enough and this is always the wrong way.
-
-Cheers,
-Hermann
-
-
-
-
-
+Laurent Pinchart
 
 --
 video4linux-list mailing list
