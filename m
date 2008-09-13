@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1Keqqg-0002EP-0q
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 14:37:06 +0200
-Date: Sun, 14 Sep 2008 14:36:31 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <48CC1C3C.6020701@linuxtv.org>
-Message-ID: <20080914123631.73900@gmx.net>
+Received: from mailfe01.swip.net ([212.247.154.1] helo=swip.net)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hakon@alstadheim.priv.no>) id 1KebL4-0003uN-QQ
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 22:03:28 +0200
+Message-ID: <48CC1C84.8050103@alstadheim.priv.no>
+Date: Sat, 13 Sep 2008 22:03:16 +0200
+From: =?UTF-8?B?SMOla29uIEFsc3RhZGhlaW0=?= <hakon@alstadheim.priv.no>
 MIME-Version: 1.0
-References: <48CA0355.6080903@linuxtv.org>
-	<alpine.LRH.1.10.0809121112350.29931@pub3.ifh.de>
-	<48CC1C3C.6020701@linuxtv.org>
-To: linux-dvb@linuxtv.org, stoth@linuxtv.org, darron@kewl.org
-Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
+To: Christoph Pfister <christophpfister@gmail.com>
+References: <48C0DD05.3070608@alstadheim.priv.no>
+	<200809131200.02589.christophpfister@gmail.com>
+In-Reply-To: <200809131200.02589.christophpfister@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] =?utf-8?q?dvb-t_scan_file_Norway=2C_Tr=C3=B8ndelag?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,93 +20,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Patrick Boettcher wrote:
-> > Hi Steve,
-> > =
-
-> > On Fri, 12 Sep 2008, Steven Toth wrote:
-> >> Patrick, I haven't looked at your 1.7MHz bandwidth suggestion - I'm
-> open
-> >> to ideas on how you think we should do this. Take a look at todays
-> >> linux/dvb/frontend.h and see if these updates help, or whether you need
-> >> more changes.
-> > =
-
-> > I attached a patch which adds a DTV_BANDWIDTH_HZ command. That's all. I =
-
-> > would like to have the option to pass any bandwidth I want to the
-> frontend.
-> > =
-
-> =
-
-> ...
-> =
-
-> > =
-
-> > Sorry for not integrating this into the frontend_cache yet. But I'm =
-
-> > really out of time (at work and even at home, working on cx24120) and I =
-
-> > will not be able to supply the DiBcom ISDB-T demod-driver (which would =
-
-> > use all that) right now.
-> =
-
-> Great, thanks, I Merged with minor cleanup of comments.
-> =
-
-> We should discuss the ISDB specifics at plumbers. The LAYER commands are =
-
-> not currently implemented and it would be good to understand atleast two =
-
-> different demodulators so we can abstract their controls into an API - =
-
-> and avoid any device specifics.
-> =
-
-> Changes to tune.c (v0.0.6) on steventoth.net/linux/s2
-> =
-
-> - Steve
-
-The examples in tune 0.0.6 have two extra zeros :
-
-it should be
-{ .cmd =3D DTV_BANDWIDTH_HZ,    .u.data =3D 8000000 },
-not
-{ .cmd =3D DTV_BANDWIDTH_HZ,    .u.data =3D 800000000 },
-
-After applying the multifrontend patch I have signal lock working with HVR4=
-000 and =
-
-S2API on all three delivery systems:
-DVB-T (tune -f 1 option)
-and
-DVB-S/S2 (tune -f 0 option)
-
-The legacy API works too for DVB-T and DVB-S. Darron has a cx24116 patch wh=
-ich
-I needed to apply.
-
-Hans
--- =
-
-Release early, release often.
-
-GMX Kostenlose Spiele: Einfach online spielen und Spa=DF haben mit Pastry P=
-assion!
-http://games.entertainment.gmx.net/de/entertainment/games/free/puzzle/61691=
-96
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Q2hyaXN0b3BoIFBmaXN0ZXIgd3JvdGU6Cj4gQW0gRnJpZGF5IDA1IFNlcHRlbWJlciAyMDA4IDA5
+OjE3OjI1IHNjaHJpZWIgSMOla29uIEFsc3RhZGhlaW06Cj4gICAKPj4gVGhlIGF0dGFjaGVkIGlz
+IHJhdyBvdXRwdXQgZnJvbSB3X3NjYW4sIHdpdGggYSBjb3VwbGUgb2YgY29tbWVudHMgYWRkZWQu
+Cj4+IFRoZSBmcmVxdWVuY3kgSSBhY3R1YWxseSB1c2Ugd2hpY2ggaGFzIHRoZSB1bmVuY3J5cHRl
+ZCBjaGFubmVscyBpcyAKPj4gNjU4MDAwMDAwLgo+PiAgICAgCj4KPiBIbW0sIGl0IGNvbnRhaW5z
+IHF1aXRlIHNvbWUgb2NjdXJlbmNpZXMgb2YgIkFVVE8iLiBBbnkgY2hhbmNlIHRvIGdldCByaWQg
+b2YgCj4gdGhlbT8KPgo+ICAgCkknbSBhIHJhbmsgYW1hdGV1ciBpbiB0aGlzLCBzbyBJJ2xsIGZy
+ZWVseSBhZG1pdCB0aGF0IHRoaXMgY29uZmlnIGlzIApqdXN0IGEgZmlyc3QgYXBwcm94aW1hdGlv
+biB0byBhbGxvdyBtZSB0byB0ZXN0IHRoZSBzdGF0ZSBvZiB2YXJpb3VzIGR2YiAKcGxheWVycy4g
+VGhlIHN0YW5kYXJkcyB1c2VkIGluIGR2Yi10IGluIE5vcndheSBtZWFucyB0aGF0IGFsbCBzb2Z0
+d2FyZSAKbmVlZHMgdG8gYmVlIGF0IHRoZSBibGVlZGluZyBlZGdlLCBzbyBhIHdvcmtpbmcgZmly
+c3QgYXBwcm94aW1hdGlvbiB0byAKbWFrZSB0ZXN0aW5nIGVhc2llciBpcyBhIGJvb24gKGkuZS4g
+SSdtIGhvcGluZyB0aGlzIGZpbGUgd2lsbCBlbmQgdXAgb24gCmxpdmUtY2QgZGlzdHJvcykuCgpU
+aGUgb25seSB0aGluZyBJIGV2ZXIgc2VlIGluIHRoZSBhY3R1YWwgc2NhbiBvdXRwdXQgaXMgc3R1
+ZmYgbGlrZToKCnBhcnNlX3RlcnJlc3RyaWFsX2RlbGl2ZXJ5X3N5c3RlbV9kZXNjcmlwdG9yOjQ5
+ODogMHgzNDA5LzB4M2E0IAo1ODYwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUha
+OkZFQ18yXzM6RkVDXzJfMzpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJW
+QUxfMV84OkhJRVJBUkNIWV9OT05FCgpXaGljaCBJIGd1ZXNzIG1lYW5zIHRoYXQgYWxsIHRoZSBl
+bnRyaWVzIGNvdWxkIGJlIGNoYW5nZWQgdG8gOE1IeiAyLzMgCjIvMyBRQU02NCA4ayAxLzggTk9O
+RS4gSSBoYXZlIG5vIGNvbnRyYWN0IG9yIGd1YXJhbnRlZSBvciBldmVuIG9mZmljaWFsIApkb2N1
+bWVudGF0aW9uIGZyb20gYW55IHByb3ZpZGVyIHRvIGNvcnJvYm9yYXRlIHRoaXMuIEkgdHJpZWQg
+YXNraW5nIG9uIGEgCndlYiAiaGVscCBmb3J1bSIgZm9yIHRoZSBkdmItdCBkaXN0cmlidXRvciAo
+bm9ya3JpbmcpLiBUaGUgYW5zd2VyIHdhcyAKImRpZ2l0YWwgYnJvYWRjYXN0cyBpbiBOb3J3YXkg
+YXJlIG5vdCB2aWV3YWJsZSBvbiBhIHBjIi4gKEknbSB3YXRjaGluZyAKTlJLMSBkaWdpdGFsIG9u
+IGEgZ2VudG9vIGJveCByaWdodCBub3cpLiBBbnkgb2ZmaWNpYWwgaW5mbyBvbiB0aGUgCm5vcmty
+aW5nIHdlYnNpdGUgYmVhcnMgbm8gcmVzZW1ibGFuY2UgdG8gd2hhdCBhY3R1YWxseSB3b3Jrcy4g
+VGhlcmUgYXJlIApzb21lICJjaGFubmVsIG51bWJlcnMiIGxpc3RlZCBmb3IgdGhlIHZhcmlvdXMg
+InBhY2thZ2VzIiwgYnV0IHdoYXQgdGhvc2UgCm51bWJlcnMgbWVhbiAoaS5lLiBmcmVxdWVuY3kg
+KSBpcyBub3Qgc3BlY2lmaWVkLCBhbmQgdGhlcmUgYXJlIHNvbWUgCnRyYW5zbWl0dGVycyB0aGF0
+IGFyZSBub3Qgb24gdGhlIG9mZmljaWFsIGxpc3QgeWV0LgoKCgpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4
+LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1kdmI=
