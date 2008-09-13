@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8Q1nQ0a006728
-	for <video4linux-list@redhat.com>; Thu, 25 Sep 2008 21:49:26 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8Q1nF0S031645
-	for <video4linux-list@redhat.com>; Thu, 25 Sep 2008 21:49:15 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so507030fga.7
-	for <video4linux-list@redhat.com>; Thu, 25 Sep 2008 18:49:15 -0700 (PDT)
-Message-ID: <30353c3d0809251849t561c6c9dr4fd0ac26bf2924f5@mail.gmail.com>
-Date: Thu, 25 Sep 2008 21:49:14 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Jaime Velasco Juan" <jsagarribay@gmail.com>
-In-Reply-To: <30353c3d0809251203q4f09a237xd08aa227d96e62b0@mail.gmail.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8DDNusr031864
+	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 09:23:56 -0400
+Received: from speedy.tutby.com (mail.tut.by [195.137.160.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8DDNic0014992
+	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 09:23:45 -0400
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: linux-dvb@linuxtv.org, video4linux-list@redhat.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Sat, 13 Sep 2008 16:23:09 +0300
+References: <E1KdnPr-0002YP-SF@www.linuxtv.org>
+In-Reply-To: <E1KdnPr-0002YP-SF@www.linuxtv.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_11174_2937365.1222393754737"
-References: <30353c3d0809202112i6f1b7f5do48dd7c9e299ba877@mail.gmail.com>
-	<20080923195137.GA4038@singular.sob>
-	<30353c3d0809251203q4f09a237xd08aa227d96e62b0@mail.gmail.com>
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: [PATCH RFT]: stk-webcam: release via video_device release
-	callback
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_+67yI32yOlYXLEx"
+Message-Id: <200809131623.10155.liplianin@tut.by>
+Cc: 
+Subject: [linux-dvb] [PATCH] Add support for SDMC DM1105 PCI chip
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,215 +28,1023 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-------=_Part_11174_2937365.1222393754737
-Content-Type: text/plain; charset=ISO-8859-1
+--Boundary-00=_+67yI32yOlYXLEx
+Content-Type: text/plain;
+  charset="koi8-r"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Jamie,
+The patch adds support for SDMC DM1105 PCI chip. There is a lot of
+cards based on it, like DvbWorld 2002 DVB-S , 2004 DVB-S2
+Source code prepaired to and already tested with cards, which have si2109, 
+stv0288, cx24116 demods.  Currently enabled only stv0299, as other demods are 
+not in a v4l-dvb main tree, but I will submit corresponded patches (si2109, 
+stv0288) next time.
 
-After re-examining stk-webcam, I believe the crash you experienced
-would occur despite having applied my patch. In the current version of
-stk-webcam.c there are two if conditions at the very beginning of the
-v4l_stk_release function that checks for NULL. In the case of a close
-occuring after disconnect, neither of these variable will be NULL. The
-sequence would be as follows:
+Best Regards
+Igor M. Liplianin
 
-v4l_stk_release
-  stk_free_buffers
-    stk_clean_iso
-      usb_kill_urb
-        (crash)
-
-After the camera has been disconnected, usb_kill_urb should not be
-called since usb_disconnect already takes care of killing all urbs
-associated with a disconnected device. usb_free_urb however still
-needs to be called for every urb allocated. Therefore I believe the
-proper fix for this should be to checke that the camera is present
-before calling usb_kill_urb.
-
-Attached are a series of patches, the first of which should correct
-the crash you experienced.
-
-Regards,
-
-David Ellingsworth
-
-------=_Part_11174_2937365.1222393754737
+--Boundary-00=_+67yI32yOlYXLEx
 Content-Type: text/x-diff;
-	name=0001-stkwebcam-fix-crash-on-disconnect-before-close.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_flk5d3nz0
+  charset="koi8-r";
+  name="8964.patch"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename=0001-stkwebcam-fix-crash-on-disconnect-before-close.patch
+	filename="8964.patch"
 
-RnJvbSAyY2FhZTIyZjkzNDY5OTc2YmZkMTI2Njg5NWRhMzliY2Y3YmZiYmUyIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5k
-bnMub3JnPgpEYXRlOiBUaHUsIDI1IFNlcCAyMDA4IDIwOjU5OjM0IC0wNDAwClN1YmplY3Q6IFtQ
-QVRDSF0gc3Rrd2ViY2FtOiBmaXggY3Jhc2ggb24gZGlzY29ubmVjdCBiZWZvcmUgY2xvc2UKCgpT
-aWduZWQtb2ZmLWJ5OiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5kbnMub3Jn
-PgotLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vc3RrLXdlYmNhbS5jIHwgICAgMiArLQogMSBmaWxl
-cyBjaGFuZ2VkLCAxIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3N0
-ay13ZWJjYW0uYwppbmRleCA4ZGRhNTY4Li5iYmYzNjc3IDEwMDY0NAotLS0gYS9kcml2ZXJzL21l
-ZGlhL3ZpZGVvL3N0ay13ZWJjYW0uYworKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3N0ay13ZWJj
-YW0uYwpAQCAtNTc2LDcgKzU3Niw3IEBAIHN0YXRpYyB2b2lkIHN0a19jbGVhbl9pc28oc3RydWN0
-IHN0a19jYW1lcmEgKmRldikKIAogCQl1cmIgPSBkZXYtPmlzb2J1ZnNbaV0udXJiOwogCQlpZiAo
-dXJiKSB7Ci0JCQlpZiAoYXRvbWljX3JlYWQoJmRldi0+dXJic191c2VkKSkKKwkJCWlmIChhdG9t
-aWNfcmVhZCgmZGV2LT51cmJzX3VzZWQpICYmIGlzX3ByZXNlbnQoZGV2KSkKIAkJCQl1c2Jfa2ls
-bF91cmIodXJiKTsKIAkJCXVzYl9mcmVlX3VyYih1cmIpOwogCQl9Ci0tIAoxLjUuNgoK
-------=_Part_11174_2937365.1222393754737
-Content-Type: text/x-diff;
-	name=0002-stkwebcam-release-via-video_device-release-callback.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_flk5eywx1
-Content-Disposition: attachment;
-	filename=0002-stkwebcam-release-via-video_device-release-callback.patch
+# HG changeset patch
+# User Igor M. Liplianin <liplianin@me.by>
+# Date 1221311453 -10800
+# Node ID dd93cb9ea77d4dbdef2504a91c885a57020020d7
+# Parent  e5ca4534b5438b321226cb5393026b72a3382759
+Add support for SDMC DM1105 PCI chip
 
-RnJvbSAzMDA4OGZjNzFjYWI1YWYwNjk2NjhhNTYyOWZjNzQ5ZDU3MTNjYWM4IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5k
-bnMub3JnPgpEYXRlOiBUaHUsIDI1IFNlcCAyMDA4IDIxOjAwOjIxIC0wNDAwClN1YmplY3Q6IFtQ
-QVRDSF0gc3Rrd2ViY2FtOiByZWxlYXNlIHZpYSB2aWRlb19kZXZpY2UgcmVsZWFzZSBjYWxsYmFj
-awoKClNpZ25lZC1vZmYtYnk6IERhdmlkIEVsbGluZ3N3b3J0aCA8ZGF2aWRAaWRlbnRkLmR5bmRu
-cy5vcmc+Ci0tLQogZHJpdmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmMgfCAgIDQ0ICsrKysr
-KysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vc3Rr
-LXdlYmNhbS5oIHwgICAgMiAtCiAyIGZpbGVzIGNoYW5nZWQsIDE4IGluc2VydGlvbnMoKyksIDI4
-IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vc3RrLXdlYmNh
-bS5jIGIvZHJpdmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmMKaW5kZXggYmJmMzY3Ny4uN2Fk
-OTdjNyAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmMKKysrIGIv
-ZHJpdmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmMKQEAgLTY1LDIyICs2NSw2IEBAIHN0YXRp
-YyBzdHJ1Y3QgdXNiX2RldmljZV9pZCBzdGt3ZWJjYW1fdGFibGVbXSA9IHsKIH07CiBNT0RVTEVf
-REVWSUNFX1RBQkxFKHVzYiwgc3Rrd2ViY2FtX3RhYmxlKTsKIAotc3RhdGljIHZvaWQgc3RrX2Nh
-bWVyYV9jbGVhbnVwKHN0cnVjdCBrcmVmICprcmVmKQotewotCXN0cnVjdCBzdGtfY2FtZXJhICpk
-ZXYgPSB0b19zdGtfY2FtZXJhKGtyZWYpOwotCi0JU1RLX0lORk8oIlN5bnRlayBVU0IyLjAgQ2Ft
-ZXJhIHJlbGVhc2UgcmVzb3VyY2VzIgotCQkiIHZpZGVvIGRldmljZSAvZGV2L3ZpZGVvJWRcbiIs
-IGRldi0+dmRldi5taW5vcik7Ci0JdmlkZW9fdW5yZWdpc3Rlcl9kZXZpY2UoJmRldi0+dmRldik7
-Ci0JdmlkZW9fc2V0X2RydmRhdGEoJmRldi0+dmRldiwgTlVMTCk7Ci0KLQlpZiAoZGV2LT5zaW9f
-YnVmcyAhPSBOVUxMIHx8IGRldi0+aXNvYnVmcyAhPSBOVUxMKQotCQlTVEtfRVJST1IoIldlIGFy
-ZSBsZWFraW5nIG1lbW9yeVxuIik7Ci0JdXNiX3B1dF9pbnRmKGRldi0+aW50ZXJmYWNlKTsKLQlr
-ZnJlZShkZXYpOwotfQotCi0KIC8qCiAgKiBCYXNpYyBzdHVmZgogICovCkBAIC02OTUsNyArNjc5
-LDYgQEAgc3RhdGljIGludCB2NGxfc3RrX29wZW4oc3RydWN0IGlub2RlICppbm9kZSwgc3RydWN0
-IGZpbGUgKmZwKQogCQlyZXR1cm4gLUVOWElPOwogCX0KIAlmcC0+cHJpdmF0ZV9kYXRhID0gdmRl
-djsKLQlrcmVmX2dldCgmZGV2LT5rcmVmKTsKIAl1c2JfYXV0b3BtX2dldF9pbnRlcmZhY2UoZGV2
-LT5pbnRlcmZhY2UpOwogCXVubG9ja19rZXJuZWwoKTsKIApAQCAtNzIwLDcgKzcwMyw2IEBAIHN0
-YXRpYyBpbnQgdjRsX3N0a19yZWxlYXNlKHN0cnVjdCBpbm9kZSAqaW5vZGUsIHN0cnVjdCBmaWxl
-ICpmcCkKIAogCWlmIChkZXYtPm93bmVyICE9IGZwKSB7CiAJCXVzYl9hdXRvcG1fcHV0X2ludGVy
-ZmFjZShkZXYtPmludGVyZmFjZSk7Ci0JCWtyZWZfcHV0KCZkZXYtPmtyZWYsIHN0a19jYW1lcmFf
-Y2xlYW51cCk7CiAJCXJldHVybiAwOwogCX0KIApAQCAtNzMxLDcgKzcxMyw2IEBAIHN0YXRpYyBp
-bnQgdjRsX3N0a19yZWxlYXNlKHN0cnVjdCBpbm9kZSAqaW5vZGUsIHN0cnVjdCBmaWxlICpmcCkK
-IAlkZXYtPm93bmVyID0gTlVMTDsKIAogCXVzYl9hdXRvcG1fcHV0X2ludGVyZmFjZShkZXYtPmlu
-dGVyZmFjZSk7Ci0Ja3JlZl9wdXQoJmRldi0+a3JlZiwgc3RrX2NhbWVyYV9jbGVhbnVwKTsKIAog
-CXJldHVybiAwOwogfQpAQCAtMTM1OSw2ICsxMzQwLDEyIEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3Qg
-djRsMl9pb2N0bF9vcHMgdjRsX3N0a19pb2N0bF9vcHMgPSB7CiAKIHN0YXRpYyB2b2lkIHN0a192
-NGxfZGV2X3JlbGVhc2Uoc3RydWN0IHZpZGVvX2RldmljZSAqdmQpCiB7CisJc3RydWN0IHN0a19j
-YW1lcmEgKmRldiA9IHZkZXZfdG9fY2FtZXJhKHZkKTsKKworCWlmIChkZXYtPnNpb19idWZzICE9
-IE5VTEwgfHwgZGV2LT5pc29idWZzICE9IE5VTEwpCisJCVNUS19FUlJPUigiV2UgYXJlIGxlYWtp
-bmcgbWVtb3J5XG4iKTsKKwl1c2JfcHV0X2ludGYoZGV2LT5pbnRlcmZhY2UpOworCWtmcmVlKGRl
-dik7CiB9CiAKIHN0YXRpYyBzdHJ1Y3QgdmlkZW9fZGV2aWNlIHN0a192NGxfZGF0YSA9IHsKQEAg
-LTEzOTYsNyArMTM4Myw3IEBAIHN0YXRpYyBpbnQgc3RrX2NhbWVyYV9wcm9iZShzdHJ1Y3QgdXNi
-X2ludGVyZmFjZSAqaW50ZXJmYWNlLAogCQljb25zdCBzdHJ1Y3QgdXNiX2RldmljZV9pZCAqaWQp
-CiB7CiAJaW50IGk7Ci0JaW50IGVycjsKKwlpbnQgZXJyID0gMDsKIAogCXN0cnVjdCBzdGtfY2Ft
-ZXJhICpkZXYgPSBOVUxMOwogCXN0cnVjdCB1c2JfZGV2aWNlICp1ZGV2ID0gaW50ZXJmYWNlX3Rv
-X3VzYmRldihpbnRlcmZhY2UpOwpAQCAtMTQwOSw3ICsxMzk2LDYgQEAgc3RhdGljIGludCBzdGtf
-Y2FtZXJhX3Byb2JlKHN0cnVjdCB1c2JfaW50ZXJmYWNlICppbnRlcmZhY2UsCiAJCXJldHVybiAt
-RU5PTUVNOwogCX0KIAotCWtyZWZfaW5pdCgmZGV2LT5rcmVmKTsKIAlzcGluX2xvY2tfaW5pdCgm
-ZGV2LT5zcGlubG9jayk7CiAJaW5pdF93YWl0cXVldWVfaGVhZCgmZGV2LT53YWl0X2ZyYW1lKTsK
-IApAQCAtMTQ0Miw4ICsxNDI4LDggQEAgc3RhdGljIGludCBzdGtfY2FtZXJhX3Byb2JlKHN0cnVj
-dCB1c2JfaW50ZXJmYWNlICppbnRlcmZhY2UsCiAJfQogCWlmICghZGV2LT5pc29jX2VwKSB7CiAJ
-CVNUS19FUlJPUigiQ291bGQgbm90IGZpbmQgaXNvYy1pbiBlbmRwb2ludCIpOwotCQlrcmVmX3B1
-dCgmZGV2LT5rcmVmLCBzdGtfY2FtZXJhX2NsZWFudXApOwotCQlyZXR1cm4gLUVOT0RFVjsKKwkJ
-ZXJyID0gLUVOT0RFVjsKKwkJZ290byBlcnJvcjsKIAl9CiAJZGV2LT52c2V0dGluZ3MuYnJpZ2h0
-bmVzcyA9IDB4N2ZmZjsKIAlkZXYtPnZzZXR0aW5ncy5wYWxldHRlID0gVjRMMl9QSVhfRk1UX1JH
-QjU2NTsKQEAgLTE0NTcsMTQgKzE0NDMsMTcgQEAgc3RhdGljIGludCBzdGtfY2FtZXJhX3Byb2Jl
-KHN0cnVjdCB1c2JfaW50ZXJmYWNlICppbnRlcmZhY2UsCiAKIAllcnIgPSBzdGtfcmVnaXN0ZXJf
-dmlkZW9fZGV2aWNlKGRldik7CiAJaWYgKGVycikgewotCQlrcmVmX3B1dCgmZGV2LT5rcmVmLCBz
-dGtfY2FtZXJhX2NsZWFudXApOwotCQlyZXR1cm4gZXJyOworCQlnb3RvIGVycm9yOwogCX0KIAog
-CXN0a19jcmVhdGVfc3lzZnNfZmlsZXMoJmRldi0+dmRldik7CiAJdXNiX2F1dG9wbV9lbmFibGUo
-ZGV2LT5pbnRlcmZhY2UpOwogCiAJcmV0dXJuIDA7CisKK2Vycm9yOgorCWtmcmVlKGRldik7CisJ
-cmV0dXJuIGVycjsKIH0KIAogc3RhdGljIHZvaWQgc3RrX2NhbWVyYV9kaXNjb25uZWN0KHN0cnVj
-dCB1c2JfaW50ZXJmYWNlICppbnRlcmZhY2UpCkBAIC0xNDc3LDcgKzE0NjYsMTAgQEAgc3RhdGlj
-IHZvaWQgc3RrX2NhbWVyYV9kaXNjb25uZWN0KHN0cnVjdCB1c2JfaW50ZXJmYWNlICppbnRlcmZh
-Y2UpCiAJd2FrZV91cF9pbnRlcnJ1cHRpYmxlKCZkZXYtPndhaXRfZnJhbWUpOwogCXN0a19yZW1v
-dmVfc3lzZnNfZmlsZXMoJmRldi0+dmRldik7CiAKLQlrcmVmX3B1dCgmZGV2LT5rcmVmLCBzdGtf
-Y2FtZXJhX2NsZWFudXApOworCVNUS19JTkZPKCJTeW50ZWsgVVNCMi4wIENhbWVyYSByZWxlYXNl
-IHJlc291cmNlcyIKKwkJInZpZGVvIGRldmljZSAvZGV2L3ZpZGVvJWRcbiIsIGRldi0+dmRldi5t
-aW5vcik7CisKKwl2aWRlb191bnJlZ2lzdGVyX2RldmljZSgmZGV2LT52ZGV2KTsKIH0KIAogI2lm
-ZGVmIENPTkZJR19QTQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9zdGstd2ViY2Ft
-LmggYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3N0ay13ZWJjYW0uaAppbmRleCBkZjRkZmVmLi4wODRh
-ODViIDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3N0ay13ZWJjYW0uaAorKysgYi9k
-cml2ZXJzL21lZGlhL3ZpZGVvL3N0ay13ZWJjYW0uaApAQCAtOTksNyArOTksNiBAQCBzdHJ1Y3Qg
-c3RrX2NhbWVyYSB7CiAKIAl1OCBpc29jX2VwOwogCi0Jc3RydWN0IGtyZWYga3JlZjsKIAkvKiBO
-b3Qgc3VyZSBpZiB0aGlzIGlzIHJpZ2h0ICovCiAJYXRvbWljX3QgdXJic191c2VkOwogCkBAIC0x
-MjEsNyArMTIwLDYgQEAgc3RydWN0IHN0a19jYW1lcmEgewogCXVuc2lnbmVkIHNlcXVlbmNlOwog
-fTsKIAotI2RlZmluZSB0b19zdGtfY2FtZXJhKGQpIGNvbnRhaW5lcl9vZihkLCBzdHJ1Y3Qgc3Rr
-X2NhbWVyYSwga3JlZikKICNkZWZpbmUgdmRldl90b19jYW1lcmEoZCkgY29udGFpbmVyX29mKGQs
-IHN0cnVjdCBzdGtfY2FtZXJhLCB2ZGV2KQogCiB2b2lkIHN0a19jYW1lcmFfZGVsZXRlKHN0cnVj
-dCBrcmVmICopOwotLSAKMS41LjYKCg==
-------=_Part_11174_2937365.1222393754737
-Content-Type: text/x-diff;
-	name=0003-stkwebcam-simplify-access-to-stk_camera-struct.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_flk5f4hy2
-Content-Disposition: attachment;
-	filename=0003-stkwebcam-simplify-access-to-stk_camera-struct.patch
+From: Igor M. Liplianin <liplianin@me.by>
 
-RnJvbSBiNTg4NjMwN2ZlMTFlZDNlNzY4NDEzN2NmZWYyNzY2ZGM2YjExZWM0IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5k
-bnMub3JnPgpEYXRlOiBUaHUsIDI1IFNlcCAyMDA4IDIxOjAwOjU3IC0wNDAwClN1YmplY3Q6IFtQ
-QVRDSF0gc3Rrd2ViY2FtOiBzaW1wbGlmeSBhY2Nlc3MgdG8gc3RrX2NhbWVyYSBzdHJ1Y3QKCgpT
-aWduZWQtb2ZmLWJ5OiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5kbnMub3Jn
-PgotLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vc3RrLXdlYmNhbS5jIHwgICA0MCArKysrLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDUgaW5zZXJ0aW9u
-cygrKSwgMzUgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9z
-dGstd2ViY2FtLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3N0ay13ZWJjYW0uYwppbmRleCA3YWQ5
-N2M3Li5jM2U3ZDY2IDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3N0ay13ZWJjYW0u
-YworKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3N0ay13ZWJjYW0uYwpAQCAtNjc4LDcgKzY3OCw3
-IEBAIHN0YXRpYyBpbnQgdjRsX3N0a19vcGVuKHN0cnVjdCBpbm9kZSAqaW5vZGUsIHN0cnVjdCBm
-aWxlICpmcCkKIAkJdW5sb2NrX2tlcm5lbCgpOwogCQlyZXR1cm4gLUVOWElPOwogCX0KLQlmcC0+
-cHJpdmF0ZV9kYXRhID0gdmRldjsKKwlmcC0+cHJpdmF0ZV9kYXRhID0gZGV2OwogCXVzYl9hdXRv
-cG1fZ2V0X2ludGVyZmFjZShkZXYtPmludGVyZmFjZSk7CiAJdW5sb2NrX2tlcm5lbCgpOwogCkBA
-IC02ODcsMTkgKzY4Nyw3IEBAIHN0YXRpYyBpbnQgdjRsX3N0a19vcGVuKHN0cnVjdCBpbm9kZSAq
-aW5vZGUsIHN0cnVjdCBmaWxlICpmcCkKIAogc3RhdGljIGludCB2NGxfc3RrX3JlbGVhc2Uoc3Ry
-dWN0IGlub2RlICppbm9kZSwgc3RydWN0IGZpbGUgKmZwKQogewotCXN0cnVjdCBzdGtfY2FtZXJh
-ICpkZXY7Ci0Jc3RydWN0IHZpZGVvX2RldmljZSAqdmRldjsKLQotCXZkZXYgPSB2aWRlb19kZXZk
-YXRhKGZwKTsKLQlpZiAodmRldiA9PSBOVUxMKSB7Ci0JCVNUS19FUlJPUigidjRsX3JlbGVhc2Ug
-Y2FsbGVkIHcvbyB2aWRlbyBkZXZkYXRhXG4iKTsKLQkJcmV0dXJuIC1FRkFVTFQ7Ci0JfQotCWRl
-diA9IHZkZXZfdG9fY2FtZXJhKHZkZXYpOwotCWlmIChkZXYgPT0gTlVMTCkgewotCQlTVEtfRVJS
-T1IoInY0bF9yZWxlYXNlIGNhbGxlZCBvbiByZW1vdmVkIGRldmljZVxuIik7Ci0JCXJldHVybiAt
-RU5PREVWOwotCX0KKwlzdHJ1Y3Qgc3RrX2NhbWVyYSAqZGV2ID0gZnAtPnByaXZhdGVfZGF0YTsK
-IAogCWlmIChkZXYtPm93bmVyICE9IGZwKSB7CiAJCXVzYl9hdXRvcG1fcHV0X2ludGVyZmFjZShk
-ZXYtPmludGVyZmFjZSk7CkBAIC03MjMsMTQgKzcxMSw4IEBAIHN0YXRpYyBzc2l6ZV90IHY0bF9z
-dGtfcmVhZChzdHJ1Y3QgZmlsZSAqZnAsIGNoYXIgX191c2VyICpidWYsCiAJaW50IGk7CiAJaW50
-IHJldDsKIAl1bnNpZ25lZCBsb25nIGZsYWdzOwotCXN0cnVjdCBzdGtfY2FtZXJhICpkZXY7Ci0J
-c3RydWN0IHZpZGVvX2RldmljZSAqdmRldjsKIAlzdHJ1Y3Qgc3RrX3Npb19idWZmZXIgKnNidWY7
-Ci0KLQl2ZGV2ID0gdmlkZW9fZGV2ZGF0YShmcCk7Ci0JaWYgKHZkZXYgPT0gTlVMTCkKLQkJcmV0
-dXJuIC1FRkFVTFQ7Ci0JZGV2ID0gdmRldl90b19jYW1lcmEodmRldik7CisJc3RydWN0IHN0a19j
-YW1lcmEgKmRldiA9IGZwLT5wcml2YXRlX2RhdGE7CiAKIAlpZiAoZGV2ID09IE5VTEwpCiAJCXJl
-dHVybiAtRUlPOwpAQCAtNzg5LDE1ICs3NzEsOCBAQCBzdGF0aWMgc3NpemVfdCB2NGxfc3RrX3Jl
-YWQoc3RydWN0IGZpbGUgKmZwLCBjaGFyIF9fdXNlciAqYnVmLAogCiBzdGF0aWMgdW5zaWduZWQg
-aW50IHY0bF9zdGtfcG9sbChzdHJ1Y3QgZmlsZSAqZnAsIHBvbGxfdGFibGUgKndhaXQpCiB7Ci0J
-c3RydWN0IHN0a19jYW1lcmEgKmRldjsKLQlzdHJ1Y3QgdmlkZW9fZGV2aWNlICp2ZGV2OwotCi0J
-dmRldiA9IHZpZGVvX2RldmRhdGEoZnApOwotCi0JaWYgKHZkZXYgPT0gTlVMTCkKLQkJcmV0dXJu
-IC1FRkFVTFQ7CisJc3RydWN0IHN0a19jYW1lcmEgKmRldiA9IGZwLT5wcml2YXRlX2RhdGE7CiAK
-LQlkZXYgPSB2ZGV2X3RvX2NhbWVyYSh2ZGV2KTsKIAlpZiAoZGV2ID09IE5VTEwpCiAJCXJldHVy
-biAtRU5PREVWOwogCkBAIC04MzUsMTYgKzgxMCwxMiBAQCBzdGF0aWMgaW50IHY0bF9zdGtfbW1h
-cChzdHJ1Y3QgZmlsZSAqZnAsIHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hKQogCXVuc2lnbmVk
-IGludCBpOwogCWludCByZXQ7CiAJdW5zaWduZWQgbG9uZyBvZmZzZXQgPSB2bWEtPnZtX3Bnb2Zm
-IDw8IFBBR0VfU0hJRlQ7Ci0Jc3RydWN0IHN0a19jYW1lcmEgKmRldjsKLQlzdHJ1Y3QgdmlkZW9f
-ZGV2aWNlICp2ZGV2OworCXN0cnVjdCBzdGtfY2FtZXJhICpkZXYgPSBmcC0+cHJpdmF0ZV9kYXRh
-OwogCXN0cnVjdCBzdGtfc2lvX2J1ZmZlciAqc2J1ZiA9IE5VTEw7CiAKIAlpZiAoISh2bWEtPnZt
-X2ZsYWdzICYgVk1fV1JJVEUpIHx8ICEodm1hLT52bV9mbGFncyAmIFZNX1NIQVJFRCkpCiAJCXJl
-dHVybiAtRUlOVkFMOwogCi0JdmRldiA9IHZpZGVvX2RldmRhdGEoZnApOwotCWRldiA9IHZkZXZf
-dG9fY2FtZXJhKHZkZXYpOwotCiAJZm9yIChpID0gMDsgaSA8IGRldi0+bl9zYnVmczsgaSsrKSB7
-CiAJCWlmIChkZXYtPnNpb19idWZzW2ldLnY0bGJ1Zi5tLm9mZnNldCA9PSBvZmZzZXQpIHsKIAkJ
-CXNidWYgPSBkZXYtPnNpb19idWZzICsgaTsKQEAgLTEzNjYsNyArMTMzNyw2IEBAIHN0YXRpYyBp
-bnQgc3RrX3JlZ2lzdGVyX3ZpZGVvX2RldmljZShzdHJ1Y3Qgc3RrX2NhbWVyYSAqZGV2KQogCWRl
-di0+dmRldiA9IHN0a192NGxfZGF0YTsKIAlkZXYtPnZkZXYuZGVidWcgPSBkZWJ1ZzsKIAlkZXYt
-PnZkZXYucGFyZW50ID0gJmRldi0+aW50ZXJmYWNlLT5kZXY7Ci0JdmlkZW9fc2V0X2RydmRhdGEo
-JmRldi0+dmRldiwgZGV2KTsKIAllcnIgPSB2aWRlb19yZWdpc3Rlcl9kZXZpY2UoJmRldi0+dmRl
-diwgVkZMX1RZUEVfR1JBQkJFUiwgLTEpOwogCWlmIChlcnIpCiAJCVNUS19FUlJPUigidjRsIHJl
-Z2lzdHJhdGlvbiBmYWlsZWRcbiIpOwotLSAKMS41LjYKCg==
-------=_Part_11174_2937365.1222393754737
+Add support for SDMC DM1105 PCI chip. There is a lot of
+cards based on it, like DvbWorld 2002 DVB-S , 2004 DVB-S2
+
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+
+diff -r e5ca4534b543 -r dd93cb9ea77d linux/drivers/media/dvb/Kconfig
+--- a/linux/drivers/media/dvb/Kconfig	Tue Sep 09 08:29:56 2008 -0700
++++ b/linux/drivers/media/dvb/Kconfig	Sat Sep 13 16:10:53 2008 +0300
+@@ -35,6 +35,10 @@
+ 	depends on DVB_CORE && PCI && I2C
+ source "drivers/media/dvb/pluto2/Kconfig"
+ 
++comment "Supported SDMC DM1105 Adapters"
++        depends on DVB_CORE && PCI && I2C
++source "drivers/media/dvb/dm1105/Kconfig"
++
+ comment "Supported DVB Frontends"
+ 	depends on DVB_CORE
+ source "drivers/media/dvb/frontends/Kconfig"
+diff -r e5ca4534b543 -r dd93cb9ea77d linux/drivers/media/dvb/Makefile
+--- a/linux/drivers/media/dvb/Makefile	Tue Sep 09 08:29:56 2008 -0700
++++ b/linux/drivers/media/dvb/Makefile	Sat Sep 13 16:10:53 2008 +0300
+@@ -2,4 +2,4 @@
+ # Makefile for the kernel multimedia device drivers.
+ #
+ 
+-obj-y        := dvb-core/ frontends/ ttpci/ ttusb-dec/ ttusb-budget/ b2c2/ bt8xx/ cinergyT2/ dvb-usb/ pluto2/ siano/
++obj-y        := dvb-core/ frontends/ ttpci/ ttusb-dec/ ttusb-budget/ b2c2/ bt8xx/ cinergyT2/ dvb-usb/ pluto2/ siano/ dm1105/
+diff -r e5ca4534b543 -r dd93cb9ea77d linux/drivers/media/dvb/dm1105/Kconfig
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/linux/drivers/media/dvb/dm1105/Kconfig	Sat Sep 13 16:10:53 2008 +0300
+@@ -0,0 +1,14 @@
++config DVB_DM1105
++        tristate "SDMC DM1105 based PCI cards"
++        depends on DVB_CORE && PCI && I2C
++	select DVB_PLL if !DVB_FE_CUSTOMISE
++	select DVB_STV0299 if !DVB_FE_CUSTOMISE
++        help
++          Support for cards based on the SDMC DM1105 PCI chip like
++          DvbWorld 2002
++
++          Since these cards have no MPEG decoder onboard, they transmit
++          only compressed MPEG data over the PCI bus, so you need
++          an external software decoder to watch TV on your computer.
++
++          Say Y or M if you own such a device and want to use it.
+diff -r e5ca4534b543 -r dd93cb9ea77d linux/drivers/media/dvb/dm1105/Makefile
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/linux/drivers/media/dvb/dm1105/Makefile	Sat Sep 13 16:10:53 2008 +0300
+@@ -0,0 +1,3 @@
++obj-$(CONFIG_DVB_DM1105) += dm1105.o
++
++EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends
+diff -r e5ca4534b543 -r dd93cb9ea77d linux/drivers/media/dvb/dm1105/dm1105.c
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/linux/drivers/media/dvb/dm1105/dm1105.c	Sat Sep 13 16:10:53 2008 +0300
+@@ -0,0 +1,925 @@
++/*
++ * dm1105.c - driver for DVB cards based on SDMC DM1105 PCI chip
++ *
++ * Copyright (C) 2008 Igor M. Liplianin <liplianin@me.by>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ */
++
++#include <linux/version.h>
++#include <linux/i2c.h>
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/proc_fs.h>
++#include <linux/pci.h>
++#include <linux/dma-mapping.h>
++#include <linux/input.h>
++#include <media/ir-common.h>
++
++#include "demux.h"
++#include "dmxdev.h"
++#include "dvb_demux.h"
++#include "dvb_frontend.h"
++#include "dvb_net.h"
++#include "dvbdev.h"
++#include "dvb-pll.h"
++
++#include "stv0299.h"
++/*#include "stv0288.h"
++ *#include "si21xx.h"
++ *#include "stb6000.h"
++ *#include "cx24116.h"*/
++#include "z0194a.h"
++
++/* ----------------------------------------------- */
++/*
++ * PCI ID's
++ */
++#ifndef PCI_VENDOR_ID_TRIGEM
++#define PCI_VENDOR_ID_TRIGEM	0x109f
++#endif
++#ifndef PCI_DEVICE_ID_DM1105
++#define PCI_DEVICE_ID_DM1105	0x036f
++#endif
++#ifndef PCI_DEVICE_ID_DW2002
++#define PCI_DEVICE_ID_DW2002	0x2002
++#endif
++#ifndef PCI_DEVICE_ID_DW2004
++#define PCI_DEVICE_ID_DW2004	0x2004
++#endif
++/* ----------------------------------------------- */
++/* sdmc dm1105 registers */
++
++/* TS Control */
++#define DM1105_TSCTR				0x00
++#define DM1105_DTALENTH				0x04
++
++/* GPIO Interface */
++#define DM1105_GPIOVAL				0x08
++#define DM1105_GPIOCTR				0x0c
++
++/* PID serial number */
++#define DM1105_PIDN				0x10
++
++/* Odd-even secret key select */
++#define DM1105_CWSEL				0x14
++
++/* Host Command Interface */
++#define DM1105_HOST_CTR				0x18
++#define DM1105_HOST_AD				0x1c
++
++/* PCI Interface */
++#define DM1105_CR				0x30
++#define DM1105_RST				0x34
++#define DM1105_STADR				0x38
++#define DM1105_RLEN				0x3c
++#define DM1105_WRP				0x40
++#define DM1105_INTCNT				0x44
++#define DM1105_INTMAK				0x48
++#define DM1105_INTSTS				0x4c
++
++/* CW Value */
++#define DM1105_ODD				0x50
++#define DM1105_EVEN				0x58
++
++/* PID Value */
++#define DM1105_PID				0x60
++
++/* IR Control */
++#define DM1105_IRCTR				0x64
++#define DM1105_IRMODE				0x68
++#define DM1105_SYSTEMCODE			0x6c
++#define DM1105_IRCODE				0x70
++
++/* Unknown Values */
++#define DM1105_ENCRYPT				0x74
++#define DM1105_VER				0x7c
++
++/* I2C Interface */
++#define DM1105_I2CCTR				0x80
++#define DM1105_I2CSTS				0x81
++#define DM1105_I2CDAT				0x82
++#define DM1105_I2C_RA				0x83
++/* ----------------------------------------------- */
++/* Interrupt Mask Bits */
++
++#define INTMAK_TSIRQM				0x01
++#define INTMAK_HIRQM				0x04
++#define INTMAK_IRM				0x08
++#define INTMAK_ALLMASK				(INTMAK_TSIRQM | \
++						INTMAK_HIRQM | \
++						INTMAK_IRM)
++#define INTMAK_NONEMASK				0x00
++
++/* Interrupt Status Bits */
++#define INTSTS_TSIRQ				0x01
++#define INTSTS_HIRQ				0x04
++#define INTSTS_IR				0x08
++
++/* IR Control Bits */
++#define DM1105_IR_EN				0x01
++#define DM1105_SYS_CHK				0x02
++#define DM1105_REP_FLG				0x08
++
++/* EEPROM addr */
++#define IIC_24C01_addr				0xa0
++/* Max board count */
++#define DM1105_MAX				0x04
++
++#define DRIVER_NAME				"dm1105"
++
++#define DM1105_DMA_PACKETS			47
++#define DM1105_DMA_PACKET_LENGTH		(128*4)
++#define DM1105_DMA_BYTES			(128 * 4 * DM1105_DMA_PACKETS)
++
++/* GPIO's for LNB power control */
++#define DM1105_LNB_MASK				0x00000000
++#define DM1105_LNB_13V				0x00010100
++#define DM1105_LNB_18V				0x00000100
++
++static int ir_debug;
++module_param(ir_debug, int, 0644);
++MODULE_PARM_DESC(ir_debug, "enable debugging information for IR decoding");
++
++DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
++
++static u16 ir_codes_dm1105_nec[128] = {
++	[0x0a] = KEY_Q,		/*power*/
++	[0x0c] = KEY_M,		/*mute*/
++	[0x11] = KEY_1,
++	[0x12] = KEY_2,
++	[0x13] = KEY_3,
++	[0x14] = KEY_4,
++	[0x15] = KEY_5,
++	[0x16] = KEY_6,
++	[0x17] = KEY_7,
++	[0x18] = KEY_8,
++	[0x19] = KEY_9,
++	[0x10] = KEY_0,
++	[0x1c] = KEY_PAGEUP,	/*ch+*/
++	[0x0f] = KEY_PAGEDOWN,	/*ch-*/
++	[0x1a] = KEY_O,		/*vol+*/
++	[0x0e] = KEY_Z,		/*vol-*/
++	[0x04] = KEY_R,		/*rec*/
++	[0x09] = KEY_D,		/*fav*/
++	[0x08] = KEY_BACKSPACE,	/*rewind*/
++	[0x07] = KEY_A,		/*fast*/
++	[0x0b] = KEY_P,		/*pause*/
++	[0x02] = KEY_ESC,	/*cancel*/
++	[0x03] = KEY_G,		/*tab*/
++	[0x00] = KEY_UP,	/*up*/
++	[0x1f] = KEY_ENTER,	/*ok*/
++	[0x01] = KEY_DOWN,	/*down*/
++	[0x05] = KEY_C,		/*cap*/
++	[0x06] = KEY_S,		/*stop*/
++	[0x40] = KEY_F,		/*full*/
++	[0x1e] = KEY_W,		/*tvmode*/
++	[0x1b] = KEY_B,		/*recall*/
++};
++
++/* infrared remote control */
++struct infrared {
++	u16	key_map[128];
++	struct input_dev	*input_dev;
++	char			input_phys[32];
++	struct tasklet_struct	ir_tasklet;
++	u32			ir_command;
++};
++
++struct dm1105dvb {
++	/* pci */
++	struct pci_dev *pdev;
++	u8 __iomem *io_mem;
++
++	/* ir */
++	struct infrared ir;
++
++	/* dvb */
++	struct dmx_frontend hw_frontend;
++	struct dmx_frontend mem_frontend;
++	struct dmxdev dmxdev;
++	struct dvb_adapter dvb_adapter;
++	struct dvb_demux demux;
++	struct dvb_frontend *fe;
++	struct dvb_net dvbnet;
++	unsigned int full_ts_users;
++
++	/* i2c */
++	struct i2c_adapter i2c_adap;
++
++	/* dma */
++	dma_addr_t dma_addr;
++	unsigned char *ts_buf;
++	u32 wrp;
++	u32 buffer_size;
++	unsigned int	PacketErrorCount;
++	unsigned int dmarst;
++	spinlock_t lock;
++
++};
++
++#define dm_io_mem(reg)	((unsigned long)(&dm1105dvb->io_mem[reg]))
++
++static struct dm1105dvb *dm1105dvb_local;
++
++static int dm1105_i2c_xfer(struct i2c_adapter *i2c_adap,
++			    struct i2c_msg *msgs, int num)
++{
++	struct dm1105dvb *dm1105dvb ;
++
++	int addr, rc, i, j, k, len, byte, data;
++	u8 status;
++
++	dm1105dvb = i2c_adap->algo_data;
++	for (i = 0; i < num; i++) {
++		outb(0x00, dm_io_mem(DM1105_I2CCTR));
++		if (msgs[i].flags & I2C_M_RD) {
++			/* read bytes */
++			addr  = msgs[i].addr << 1;
++			addr |= 1;
++			outb(addr, dm_io_mem(DM1105_I2CDAT));
++			for (byte = 0; byte < msgs[i].len; byte++)
++				outb(0, dm_io_mem(DM1105_I2CDAT + byte + 1));
++
++			outb(0x81 + msgs[i].len, dm_io_mem(DM1105_I2CCTR));
++			for (j = 0; j < 55; j++) {
++				mdelay(10);
++				status = inb(dm_io_mem(DM1105_I2CSTS));
++				if ((status & 0xc0) == 0x40)
++					break;
++			}
++			if (j >= 55)
++				return -1;
++
++			for (byte = 0; byte < msgs[i].len; byte++) {
++				rc = inb(dm_io_mem(DM1105_I2CDAT + byte + 1));
++				if (rc < 0)
++					goto err;
++				msgs[i].buf[byte] = rc;
++			}
++		} else {
++			if ((msgs[i].buf[0] == 0xf7) && (msgs[i].addr == 0x55)) {
++				/* prepaired for cx24116 firmware */
++				/* Write in small blocks */
++				len = msgs[i].len - 1;
++				k = 1;
++				do {
++					outb(msgs[i].addr << 1, dm_io_mem(DM1105_I2CDAT));
++					outb(0xf7, dm_io_mem(DM1105_I2CDAT + 1));
++					for (byte = 0; byte < (len > 48 ? 48 : len); byte++) {
++						data = msgs[i].buf[k+byte];
++						outb(data, dm_io_mem(DM1105_I2CDAT + byte + 2));
++					}
++					outb(0x82 + (len > 48 ? 48 : len), dm_io_mem(DM1105_I2CCTR));
++					for (j = 0; j < 25; j++) {
++						mdelay(10);
++						status = inb(dm_io_mem(DM1105_I2CSTS));
++						if ((status & 0xc0) == 0x40)
++							break;
++					}
++
++					if (j >= 25)
++						return -1;
++
++					k += 48;
++					len -= 48;
++				} while (len > 0);
++			} else {
++				/* write bytes */
++				outb(msgs[i].addr<<1, dm_io_mem(DM1105_I2CDAT));
++				for (byte = 0; byte < msgs[i].len; byte++) {
++					data = msgs[i].buf[byte];
++					outb(data, dm_io_mem(DM1105_I2CDAT + byte + 1));
++				}
++				outb(0x81 + msgs[i].len, dm_io_mem(DM1105_I2CCTR));
++				for (j = 0; j < 25; j++) {
++					mdelay(10);
++					status = inb(dm_io_mem(DM1105_I2CSTS));
++					if ((status & 0xc0) == 0x40)
++						break;
++				}
++
++				if (j >= 25)
++					return -1;
++			}
++		}
++	}
++	return num;
++ err:
++	return rc;
++}
++
++static u32 functionality(struct i2c_adapter *adap)
++{
++	return I2C_FUNC_I2C;
++}
++
++static struct i2c_algorithm dm1105_algo = {
++	.master_xfer   = dm1105_i2c_xfer,
++	.functionality = functionality,
++};
++
++static inline struct dm1105dvb *feed_to_dm1105dvb(struct dvb_demux_feed *feed)
++{
++	return container_of(feed->demux, struct dm1105dvb, demux);
++}
++
++static inline struct dm1105dvb *frontend_to_dm1105dvb(struct dvb_frontend *fe)
++{
++	return container_of(fe->dvb, struct dm1105dvb, dvb_adapter);
++}
++
++static int dm1105dvb_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
++{
++	struct dm1105dvb *dm1105dvb = frontend_to_dm1105dvb(fe);
++
++		if (voltage == SEC_VOLTAGE_18) {
++			outl(DM1105_LNB_MASK, dm_io_mem(DM1105_GPIOCTR));
++			outl(DM1105_LNB_18V, dm_io_mem(DM1105_GPIOVAL));
++		} else	{
++		/*LNB ON-13V by default!*/
++			outl(DM1105_LNB_MASK, dm_io_mem(DM1105_GPIOCTR));
++			outl(DM1105_LNB_13V, dm_io_mem(DM1105_GPIOVAL));
++		}
++
++	return 0;
++}
++
++static void dm1105dvb_set_dma_addr(struct dm1105dvb *dm1105dvb)
++{
++	outl(cpu_to_le32(dm1105dvb->dma_addr), dm_io_mem(DM1105_STADR));
++}
++
++static int __devinit dm1105dvb_dma_map(struct dm1105dvb *dm1105dvb)
++{
++	dm1105dvb->ts_buf = pci_alloc_consistent(dm1105dvb->pdev, 6*DM1105_DMA_BYTES, &dm1105dvb->dma_addr);
++
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 27)
++	return pci_dma_mapping_error(dm1105dvb->dma_addr);
++#else
++	return pci_dma_mapping_error(dm1105dvb->pdev, dm1105dvb->dma_addr);
++#endif
++}
++
++static void dm1105dvb_dma_unmap(struct dm1105dvb *dm1105dvb)
++{
++	pci_free_consistent(dm1105dvb->pdev, 6*DM1105_DMA_BYTES, dm1105dvb->ts_buf, dm1105dvb->dma_addr);
++}
++
++static void __devinit dm1105dvb_enable_irqs(struct dm1105dvb *dm1105dvb)
++{
++	outb(INTMAK_ALLMASK, dm_io_mem(DM1105_INTMAK));
++	outb(1, dm_io_mem(DM1105_CR));
++}
++
++static void dm1105dvb_disable_irqs(struct dm1105dvb *dm1105dvb)
++{
++	outb(INTMAK_IRM, dm_io_mem(DM1105_INTMAK));
++	outb(0, dm_io_mem(DM1105_CR));
++}
++
++static int dm1105dvb_start_feed(struct dvb_demux_feed *f)
++{
++	struct dm1105dvb *dm1105dvb = feed_to_dm1105dvb(f);
++
++	if (dm1105dvb->full_ts_users++ == 0)
++		dm1105dvb_enable_irqs(dm1105dvb);
++
++	return 0;
++}
++
++static int dm1105dvb_stop_feed(struct dvb_demux_feed *f)
++{
++	struct dm1105dvb *dm1105dvb = feed_to_dm1105dvb(f);
++
++	if (--dm1105dvb->full_ts_users == 0)
++		dm1105dvb_disable_irqs(dm1105dvb);
++
++	return 0;
++}
++
++/* ir tasklet */
++static void dm1105_emit_key(unsigned long parm)
++{
++	struct infrared *ir = (struct infrared *) parm;
++	u32 ircom = ir->ir_command;
++	u8 data;
++	u16 keycode;
++
++	data = (ircom >> 8) & 0x7f;
++
++	input_event(ir->input_dev, EV_MSC, MSC_RAW, (0x0000f8 << 16) | data);
++	input_event(ir->input_dev, EV_MSC, MSC_SCAN, data);
++	keycode = ir->key_map[data];
++
++	if (!keycode)
++		return;
++
++	input_event(ir->input_dev, EV_KEY, keycode, 1);
++	input_sync(ir->input_dev);
++	input_event(ir->input_dev, EV_KEY, keycode, 0);
++	input_sync(ir->input_dev);
++
++}
++
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
++static irqreturn_t dm1105dvb_irq(int irq, void *dev_id, struct pt_regs *regs)
++#else
++static irqreturn_t dm1105dvb_irq(int irq, void *dev_id)
++#endif
++{
++	struct dm1105dvb *dm1105dvb = dev_id;
++	unsigned int piece;
++	unsigned int nbpackets;
++	u32 command;
++	u32 nextwrp;
++	u32 oldwrp;
++
++	/* Read-Write INSTS Ack's Interrupt for DM1105 chip 16.03.2008 */
++	unsigned int intsts = inb(dm_io_mem(DM1105_INTSTS));
++	outb(intsts, dm_io_mem(DM1105_INTSTS));
++
++	switch (intsts) {
++	case INTSTS_TSIRQ:
++	case (INTSTS_TSIRQ | INTSTS_IR):
++		nextwrp = inl(dm_io_mem(DM1105_WRP)) -
++			inl(dm_io_mem(DM1105_STADR)) ;
++		oldwrp = dm1105dvb->wrp;
++		spin_lock(&dm1105dvb->lock);
++		if (!((dm1105dvb->ts_buf[oldwrp] == 0x47) &&
++				(dm1105dvb->ts_buf[oldwrp + 188] == 0x47) &&
++				(dm1105dvb->ts_buf[oldwrp + 188 * 2] == 0x47))) {
++			dm1105dvb->PacketErrorCount++;
++			/* bad packet found */
++			if ((dm1105dvb->PacketErrorCount >= 2) &&
++					(dm1105dvb->dmarst == 0)) {
++				outb(1, dm_io_mem(DM1105_RST));
++				dm1105dvb->wrp = 0;
++				dm1105dvb->PacketErrorCount = 0;
++				dm1105dvb->dmarst = 0;
++				spin_unlock(&dm1105dvb->lock);
++				return IRQ_HANDLED;
++			}
++		}
++		if (nextwrp < oldwrp) {
++			piece = dm1105dvb->buffer_size - oldwrp;
++			memcpy(dm1105dvb->ts_buf + dm1105dvb->buffer_size, dm1105dvb->ts_buf, nextwrp);
++			nbpackets = (piece + nextwrp)/188;
++		} else	{
++			nbpackets = (nextwrp - oldwrp)/188;
++		}
++		dvb_dmx_swfilter_packets(&dm1105dvb->demux, &dm1105dvb->ts_buf[oldwrp], nbpackets);
++		dm1105dvb->wrp = nextwrp;
++		spin_unlock(&dm1105dvb->lock);
++		break;
++	case INTSTS_IR:
++		command = inl(dm_io_mem(DM1105_IRCODE));
++		if (ir_debug)
++			printk("dm1105: received byte 0x%04x\n", command);
++
++		dm1105dvb->ir.ir_command = command;
++		tasklet_schedule(&dm1105dvb->ir.ir_tasklet);
++		break;
++	}
++	return IRQ_HANDLED;
++
++
++}
++
++/* register with input layer */
++static void input_register_keys(struct infrared *ir)
++{
++	int i;
++
++	memset(ir->input_dev->keybit, 0, sizeof(ir->input_dev->keybit));
++
++	for (i = 0; i < ARRAY_SIZE(ir->key_map); i++)
++			set_bit(ir->key_map[i], ir->input_dev->keybit);
++
++	ir->input_dev->keycode = ir->key_map;
++	ir->input_dev->keycodesize = sizeof(ir->key_map[0]);
++	ir->input_dev->keycodemax = ARRAY_SIZE(ir->key_map);
++}
++
++int __devinit dm1105_ir_init(struct dm1105dvb *dm1105)
++{
++	struct input_dev *input_dev;
++	int err;
++
++	dm1105dvb_local = dm1105;
++
++	input_dev = input_allocate_device();
++	if (!input_dev)
++		return -ENOMEM;
++
++	dm1105->ir.input_dev = input_dev;
++	snprintf(dm1105->ir.input_phys, sizeof(dm1105->ir.input_phys),
++		"pci-%s/ir0", pci_name(dm1105->pdev));
++
++	input_dev->evbit[0] = BIT(EV_KEY);
++	input_dev->name = "DVB on-card IR receiver";
++
++	input_dev->phys = dm1105->ir.input_phys;
++	input_dev->id.bustype = BUS_PCI;
++	input_dev->id.version = 2;
++	if (dm1105->pdev->subsystem_vendor) {
++		input_dev->id.vendor = dm1105->pdev->subsystem_vendor;
++		input_dev->id.product = dm1105->pdev->subsystem_device;
++	} else {
++		input_dev->id.vendor = dm1105->pdev->vendor;
++		input_dev->id.product = dm1105->pdev->device;
++	}
++	input_dev->dev.parent = &dm1105->pdev->dev;
++	/* initial keymap */
++	memcpy(dm1105->ir.key_map, ir_codes_dm1105_nec, sizeof dm1105->ir.key_map);
++	input_register_keys(&dm1105->ir);
++	err = input_register_device(input_dev);
++	if (err) {
++		input_free_device(input_dev);
++		return err;
++	}
++
++	tasklet_init(&dm1105->ir.ir_tasklet, dm1105_emit_key, (unsigned long) &dm1105->ir);
++
++	return 0;
++}
++
++
++void __devexit dm1105_ir_exit(struct dm1105dvb *dm1105)
++{
++	tasklet_kill(&dm1105->ir.ir_tasklet);
++	input_unregister_device(dm1105->ir.input_dev);
++
++}
++
++static int __devinit dm1105dvb_hw_init(struct dm1105dvb *dm1105dvb)
++{
++	dm1105dvb_disable_irqs(dm1105dvb);
++
++	outb(0, dm_io_mem(DM1105_HOST_CTR));
++
++	/*DATALEN 188,*/
++	outb(188, dm_io_mem(DM1105_DTALENTH));
++	/*TS_STRT TS_VALP MSBFIRST TS_MODE ALPAS TSPES*/
++	outw(0xc10a, dm_io_mem(DM1105_TSCTR));
++
++	/* map DMA and set address */
++	dm1105dvb_dma_map(dm1105dvb);
++	dm1105dvb_set_dma_addr(dm1105dvb);
++	/* big buffer */
++	outl(5*DM1105_DMA_BYTES, dm_io_mem(DM1105_RLEN));
++	outb(47, dm_io_mem(DM1105_INTCNT));
++
++	/* IR NEC mode enable */
++	outb((DM1105_IR_EN | DM1105_SYS_CHK), dm_io_mem(DM1105_IRCTR));
++	outb(0, dm_io_mem(DM1105_IRMODE));
++	outw(0, dm_io_mem(DM1105_SYSTEMCODE));
++
++	return 0;
++}
++
++static void dm1105dvb_hw_exit(struct dm1105dvb *dm1105dvb)
++{
++	dm1105dvb_disable_irqs(dm1105dvb);
++
++	/* IR disable */
++	outb(0, dm_io_mem(DM1105_IRCTR));
++	outb(INTMAK_NONEMASK, dm_io_mem(DM1105_INTMAK));
++
++	dm1105dvb_dma_unmap(dm1105dvb);
++}
++#if 0 /* keep */
++static struct stv0288_config earda_config = {
++	.demod_address = 0x68,
++	.min_delay_ms = 100,
++};
++
++static struct si21xx_config serit_config = {
++	.demod_address = 0x68,
++	.min_delay_ms = 100,
++
++};
++
++static struct cx24116_config serit_sp2633_config = {
++	.demod_address = 0x55,
++};
++#endif /* keep */
++
++static int __devinit frontend_init(struct dm1105dvb *dm1105dvb)
++{
++	int ret;
++
++	switch (dm1105dvb->pdev->subsystem_device) {
++	case PCI_DEVICE_ID_DW2002:
++		dm1105dvb->fe = dvb_attach(
++			stv0299_attach, &sharp_z0194a_config,
++			&dm1105dvb->i2c_adap);
++
++		if (dm1105dvb->fe) {
++			dm1105dvb->fe->ops.set_voltage =
++							dm1105dvb_set_voltage;
++			dvb_attach(dvb_pll_attach, dm1105dvb->fe, 0x60,
++					&dm1105dvb->i2c_adap, DVB_PLL_OPERA1);
++		}
++#if 0 /* keep */
++		if (!dm1105dvb->fe) {
++			dm1105dvb->fe = dvb_attach(
++				stv0288_attach, &earda_config,
++				&dm1105dvb->i2c_adap);
++			if (dm1105dvb->fe) {
++				dm1105dvb->fe->ops.set_voltage =
++							dm1105dvb_set_voltage;
++				dvb_attach(stb6000_attach, dm1105dvb->fe, 0x61,
++						&dm1105dvb->i2c_adap);
++			}
++		}
++
++		if (!dm1105dvb->fe) {
++			dm1105dvb->fe = dvb_attach(
++				si21xx_attach, &serit_config,
++				&dm1105dvb->i2c_adap);
++			if (dm1105dvb->fe)
++				dm1105dvb->fe->ops.set_voltage =
++							dm1105dvb_set_voltage;
++		}
++#endif /* keep */
++		break;
++	case PCI_DEVICE_ID_DW2004:
++#if 0 /* keep */
++		dm1105dvb->fe = dvb_attach(
++			cx24116_attach, &serit_sp2633_config,
++			&dm1105dvb->i2c_adap);
++		if (dm1105dvb->fe)
++			dm1105dvb->fe->ops.set_voltage = dm1105dvb_set_voltage;
++#else /* keep */
++		dev_err(&dm1105dvb->pdev->dev, "needs cx24116 module\n");
++#endif /* keep */
++		break;
++	}
++
++	if (!dm1105dvb->fe) {
++		dev_err(&dm1105dvb->pdev->dev, "could not attach frontend\n");
++		return -ENODEV;
++	}
++
++	ret = dvb_register_frontend(&dm1105dvb->dvb_adapter, dm1105dvb->fe);
++	if (ret < 0) {
++		if (dm1105dvb->fe->ops.release)
++			dm1105dvb->fe->ops.release(dm1105dvb->fe);
++		dm1105dvb->fe = NULL;
++		return ret;
++	}
++
++	return 0;
++}
++
++static void __devinit dm1105dvb_read_mac(struct dm1105dvb *dm1105dvb, u8 *mac)
++{
++	static u8 command[1] = { 0x28 };
++
++	struct i2c_msg msg[] = {
++		{ .addr = IIC_24C01_addr >> 1, .flags = 0,
++				.buf = command, .len = 1 },
++		{ .addr = IIC_24C01_addr >> 1, .flags = I2C_M_RD,
++				.buf = mac, .len = 6 },
++	};
++
++	dm1105_i2c_xfer(&dm1105dvb->i2c_adap, msg , 2);
++	dev_info(&dm1105dvb->pdev->dev, "MAC %02x:%02x:%02x:%02x:%02x:%02x\n",
++			mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
++}
++
++static int __devinit dm1105_probe(struct pci_dev *pdev,
++				  const struct pci_device_id *ent)
++{
++	struct dm1105dvb *dm1105dvb;
++	struct dvb_adapter *dvb_adapter;
++	struct dvb_demux *dvbdemux;
++	struct dmx_demux *dmx;
++	int ret = -ENOMEM;
++
++	dm1105dvb = kzalloc(sizeof(struct dm1105dvb), GFP_KERNEL);
++	if (!dm1105dvb)
++		goto out;
++
++	dm1105dvb->pdev = pdev;
++	dm1105dvb->buffer_size = 5 * DM1105_DMA_BYTES;
++	dm1105dvb->PacketErrorCount = 0;
++	dm1105dvb->dmarst = 0;
++
++	ret = pci_enable_device(pdev);
++	if (ret < 0)
++		goto err_kfree;
++
++	ret = pci_set_dma_mask(pdev, DMA_32BIT_MASK);
++	if (ret < 0)
++		goto err_pci_disable_device;
++
++	pci_set_master(pdev);
++
++	ret = pci_request_regions(pdev, DRIVER_NAME);
++	if (ret < 0)
++		goto err_pci_disable_device;
++
++	dm1105dvb->io_mem = pci_iomap(pdev, 0, pci_resource_len(pdev, 0));
++	if (!dm1105dvb->io_mem) {
++		ret = -EIO;
++		goto err_pci_release_regions;
++	}
++
++	spin_lock_init(&dm1105dvb->lock);
++	pci_set_drvdata(pdev, dm1105dvb);
++
++	ret = request_irq(pdev->irq, dm1105dvb_irq, IRQF_SHARED, DRIVER_NAME, dm1105dvb);
++	if (ret < 0)
++		goto err_pci_iounmap;
++
++	ret = dm1105dvb_hw_init(dm1105dvb);
++	if (ret < 0)
++		goto err_free_irq;
++
++	/* i2c */
++	i2c_set_adapdata(&dm1105dvb->i2c_adap, dm1105dvb);
++	strcpy(dm1105dvb->i2c_adap.name, DRIVER_NAME);
++	dm1105dvb->i2c_adap.owner = THIS_MODULE;
++	dm1105dvb->i2c_adap.class = I2C_CLASS_TV_DIGITAL;
++	dm1105dvb->i2c_adap.dev.parent = &pdev->dev;
++	dm1105dvb->i2c_adap.algo = &dm1105_algo;
++	dm1105dvb->i2c_adap.algo_data = dm1105dvb;
++	ret = i2c_add_adapter(&dm1105dvb->i2c_adap);
++
++	if (ret < 0)
++		goto err_dm1105dvb_hw_exit;
++
++	/* dvb */
++	ret = dvb_register_adapter(&dm1105dvb->dvb_adapter, DRIVER_NAME,
++					THIS_MODULE, &pdev->dev, adapter_nr);
++	if (ret < 0)
++		goto err_i2c_del_adapter;
++
++	dvb_adapter = &dm1105dvb->dvb_adapter;
++
++	dm1105dvb_read_mac(dm1105dvb, dvb_adapter->proposed_mac);
++
++	dvbdemux = &dm1105dvb->demux;
++	dvbdemux->filternum = 256;
++	dvbdemux->feednum = 256;
++	dvbdemux->start_feed = dm1105dvb_start_feed;
++	dvbdemux->stop_feed = dm1105dvb_stop_feed;
++	dvbdemux->dmx.capabilities = (DMX_TS_FILTERING |
++			DMX_SECTION_FILTERING | DMX_MEMORY_BASED_FILTERING);
++	ret = dvb_dmx_init(dvbdemux);
++	if (ret < 0)
++		goto err_dvb_unregister_adapter;
++
++	dmx = &dvbdemux->dmx;
++	dm1105dvb->dmxdev.filternum = 256;
++	dm1105dvb->dmxdev.demux = dmx;
++	dm1105dvb->dmxdev.capabilities = 0;
++
++	ret = dvb_dmxdev_init(&dm1105dvb->dmxdev, dvb_adapter);
++	if (ret < 0)
++		goto err_dvb_dmx_release;
++
++	dm1105dvb->hw_frontend.source = DMX_FRONTEND_0;
++
++	ret = dmx->add_frontend(dmx, &dm1105dvb->hw_frontend);
++	if (ret < 0)
++		goto err_dvb_dmxdev_release;
++
++	dm1105dvb->mem_frontend.source = DMX_MEMORY_FE;
++
++	ret = dmx->add_frontend(dmx, &dm1105dvb->mem_frontend);
++	if (ret < 0)
++		goto err_remove_hw_frontend;
++
++	ret = dmx->connect_frontend(dmx, &dm1105dvb->hw_frontend);
++	if (ret < 0)
++		goto err_remove_mem_frontend;
++
++	ret = frontend_init(dm1105dvb);
++	if (ret < 0)
++		goto err_disconnect_frontend;
++
++	dvb_net_init(dvb_adapter, &dm1105dvb->dvbnet, dmx);
++	dm1105_ir_init(dm1105dvb);
++out:
++	return ret;
++
++err_disconnect_frontend:
++	dmx->disconnect_frontend(dmx);
++err_remove_mem_frontend:
++	dmx->remove_frontend(dmx, &dm1105dvb->mem_frontend);
++err_remove_hw_frontend:
++	dmx->remove_frontend(dmx, &dm1105dvb->hw_frontend);
++err_dvb_dmxdev_release:
++	dvb_dmxdev_release(&dm1105dvb->dmxdev);
++err_dvb_dmx_release:
++	dvb_dmx_release(dvbdemux);
++err_dvb_unregister_adapter:
++	dvb_unregister_adapter(dvb_adapter);
++err_i2c_del_adapter:
++	i2c_del_adapter(&dm1105dvb->i2c_adap);
++err_dm1105dvb_hw_exit:
++	dm1105dvb_hw_exit(dm1105dvb);
++err_free_irq:
++	free_irq(pdev->irq, dm1105dvb);
++err_pci_iounmap:
++	pci_iounmap(pdev, dm1105dvb->io_mem);
++err_pci_release_regions:
++	pci_release_regions(pdev);
++err_pci_disable_device:
++	pci_disable_device(pdev);
++err_kfree:
++	pci_set_drvdata(pdev, NULL);
++	kfree(dm1105dvb);
++	goto out;
++}
++
++static void __devexit dm1105_remove(struct pci_dev *pdev)
++{
++	struct dm1105dvb *dm1105dvb = pci_get_drvdata(pdev);
++	struct dvb_adapter *dvb_adapter = &dm1105dvb->dvb_adapter;
++	struct dvb_demux *dvbdemux = &dm1105dvb->demux;
++	struct dmx_demux *dmx = &dvbdemux->dmx;
++
++	dm1105_ir_exit(dm1105dvb);
++	dmx->close(dmx);
++	dvb_net_release(&dm1105dvb->dvbnet);
++	if (dm1105dvb->fe)
++		dvb_unregister_frontend(dm1105dvb->fe);
++
++	dmx->disconnect_frontend(dmx);
++	dmx->remove_frontend(dmx, &dm1105dvb->mem_frontend);
++	dmx->remove_frontend(dmx, &dm1105dvb->hw_frontend);
++	dvb_dmxdev_release(&dm1105dvb->dmxdev);
++	dvb_dmx_release(dvbdemux);
++	dvb_unregister_adapter(dvb_adapter);
++	if (&dm1105dvb->i2c_adap)
++		i2c_del_adapter(&dm1105dvb->i2c_adap);
++
++	dm1105dvb_hw_exit(dm1105dvb);
++	synchronize_irq(pdev->irq);
++	free_irq(pdev->irq, dm1105dvb);
++	pci_iounmap(pdev, dm1105dvb->io_mem);
++	pci_release_regions(pdev);
++	pci_disable_device(pdev);
++	pci_set_drvdata(pdev, NULL);
++	kfree(dm1105dvb);
++}
++
++static struct pci_device_id dm1105_id_table[] __devinitdata = {
++	{
++		.vendor = PCI_VENDOR_ID_TRIGEM,
++		.device = PCI_DEVICE_ID_DM1105,
++		.subvendor = PCI_ANY_ID,
++		.subdevice = PCI_DEVICE_ID_DW2002,
++	}, {
++		.vendor = PCI_VENDOR_ID_TRIGEM,
++		.device = PCI_DEVICE_ID_DM1105,
++		.subvendor = PCI_ANY_ID,
++		.subdevice = PCI_DEVICE_ID_DW2004,
++	}, {
++		/* empty */
++	},
++};
++
++MODULE_DEVICE_TABLE(pci, dm1105_id_table);
++
++static struct pci_driver dm1105_driver = {
++	.name = DRIVER_NAME,
++	.id_table = dm1105_id_table,
++	.probe = dm1105_probe,
++	.remove = __devexit_p(dm1105_remove),
++};
++
++static int __init dm1105_init(void)
++{
++	return pci_register_driver(&dm1105_driver);
++}
++
++static void __exit dm1105_exit(void)
++{
++	pci_unregister_driver(&dm1105_driver);
++}
++
++module_init(dm1105_init);
++module_exit(dm1105_exit);
++
++MODULE_AUTHOR("Igor M. Liplianin <liplianin@me.by>");
++MODULE_DESCRIPTION("SDMC DM1105 DVB driver");
++MODULE_LICENSE("GPL");
+
+--Boundary-00=_+67yI32yOlYXLEx
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -250,4 +1054,4 @@ Content-Disposition: inline
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-------=_Part_11174_2937365.1222393754737--
+--Boundary-00=_+67yI32yOlYXLEx--
