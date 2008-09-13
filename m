@@ -1,25 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nskntmtas01p.mx.bigpond.com ([61.9.168.137])
+Received: from relay.chp.ru ([213.170.120.254] helo=ns.chp.ru)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mickhowe@bigpond.net.au>) id 1KfPPa-00014I-VV
-	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 03:31:28 +0200
-Received: from nskntotgx02p.mx.bigpond.com ([124.186.164.191])
-	by nskntmtas01p.mx.bigpond.com with ESMTP id
-	<20080916013047.EUTF1812.nskntmtas01p.mx.bigpond.com@nskntotgx02p.mx.bigpond.com>
-	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 01:30:47 +0000
-Received: from fini.bareclan ([124.186.164.191])
-	by nskntotgx02p.mx.bigpond.com with ESMTP
-	id <20080916013047.CPXM1865.nskntotgx02p.mx.bigpond.com@fini.bareclan>
-	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 01:30:47 +0000
-From: mick <mickhowe@bigpond.net.au>
+	(envelope-from <goga777@bk.ru>) id 1KeQO5-00028q-Qs
+	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 10:21:52 +0200
+Received: from cherep2.ptl.ru (localhost.ptl.ru [127.0.0.1])
+	by cherep.quantum.ru (Postfix) with SMTP id 543D219E6474
+	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 12:20:42 +0400 (MSD)
+Received: from localhost.localdomain (hpool.chp.ptl.ru [213.170.123.250])
+	by ns.chp.ru (Postfix) with ESMTP id 0D81619E646E
+	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 12:20:42 +0400 (MSD)
+Date: Sat, 13 Sep 2008 12:31:24 +0400
+From: Goga777 <goga777@bk.ru>
 To: linux-dvb@linuxtv.org
-Date: Tue, 16 Sep 2008 11:30:46 +1000
-References: <200809152211.06386.jhhummel@bigpond.com>
-In-Reply-To: <200809152211.06386.jhhummel@bigpond.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809161130.46410.mickhowe@bigpond.net.au>
-Subject: Re: [linux-dvb] DTV2000H
+Message-ID: <20080913123124.6c2f0c17@bk.ru>
+Mime-Version: 1.0
+Subject: [linux-dvb] NXP to Demonstrate End-to-End DVB-T2 Transmission at
+ IBC 2008 in Amsterdam
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,27 +29,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 15 Sep 2008 22:11:06 Jonathan wrote:
-> Hi,
->
-> I've had a look on Google, and there seems to be quite a bit of mail forums
-> about a patch for rev J of this card, but they all seem to have issues of
-> some form.
->
-> Apparently the patch can get analogue TV and Radio working.
->
-> Can anyone shed some light on this?
-by changing
- +	if ((core->board)
-to
-+	if ((core->boardnr)
-in the cx88-mpeg.c patch I got it to compile and can get analog tv without 
-sound.
+DVB-T2 demodulator prototype to enable next HDTV broadcast revolution 
 
-The sound problem may be unrelated to the patch as I have lost audio 
-system-wide as a regular user and 'randomly' as root.
+Eindhoven, Netherlands - September 10, 2008 - NXP Semiconductors, the independent company founded by Philips, will unveil a demonstration of an end-to-end DVB-T2 technology-based transmission at the IBC 2008 conference in Amsterdam. The demonstration features NXP's silicon tuner TDA18211HN and one of the first prototypes of NXP's DVB-T2 demodulator TDA10055 - which will complete NXP's wide range of front-end products for digital TV reception. 
 
-/]/]ik
+Building on the success of NXP's DVB-T receivers, the new demodulator's unique architecture will enable all the benefits of DVB-T2, the most advanced digital terrestrial TV system, to be delivered to tomorrow's living rooms. NXP developed its DVB-T2 demonstration at IBC in close collaboration with ENENSYS and Pace plc. 
+
+"DVB-T2 will be the next edge of the TV revolution in our living room, providing the most efficient and robust way to bring HDTV to end consumers over terrestrial networks. NXP, building on its leadership in DVB-T silicon tuners and demodulators, is proud to demonstrate the first prototype of its DVB-T2 solution," said Christos Lagomichos, executive vice president and general manager of the Home business unit at NXP Semiconductors. "Leaps in technology innovation are made possible when companies can combine their expertise, and we are particularly happy to have joined forces for this new challenge with ENENSYS and Pace." 
+
+To appeal to end consumers, broadcasters are due to propose attractive new services, including a much larger array of High-Definition channels, which take advantage of the high capacity and reliability of the DVB-T2 digital terrestrial transmission system. Because of the high bandwidth consumed by these services, there is a strong need for highly efficient transmission techniques. DVB-T2 is the ideal solution, offering an unsurpassed level of signal robustness and bandwidth, while still complying with the existing antenna infrastructure. As the analog terrestrial switch-off releases some spectrum, it creates an opportunity to introduce services based on this new technology. 
+
+The end-to-end DVB-T2 transmission demonstrated at IBC 2008 is made possible through close collaboration between NXP, ENENSYS and Pace. The demo will showcase NXP's complete front-end based on the digital terrestrial silicon tuner, TDA18211HN, and a prototype of its forthcoming DVB-T2 demodulator TDA10055; ENENSYS' DVB-T2 modulator prototype; and a complete video back-end from Pace, featuring its high-definition set-top box, the DTR5000. 
+
+For more information on NXP Semiconductors' demo at IBC 2008, please visit the NXP stand number 1.D10, or 
+
+www.nxp.com/infocus/topics/ibc2008/.
+
 
 
 _______________________________________________
