@@ -1,30 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8QCc5ri029346
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 08:38:05 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8QCbpMO011511
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 08:37:52 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so668301fga.7
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 05:37:51 -0700 (PDT)
-Message-ID: <d9def9db0809260537j2ff6fc98mc133ca37a06c1bc4@mail.gmail.com>
-Date: Fri, 26 Sep 2008 14:37:51 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Salatiel Filho" <salatiel.filho@gmail.com>
-In-Reply-To: <d9def9db0809260517p3ddef5bby47eb52d6bb1fa948@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <7b6d682a0809251804j1277af44i80c53529a3c33d62@mail.gmail.com>
-	<d9def9db0809251837k126b6b83n2803e56a00a7f961@mail.gmail.com>
-	<7b6d682a0809251923uaacc119u25cf5118625c03d0@mail.gmail.com>
-	<d9def9db0809251944g56462217sdc14a57c85db1b97@mail.gmail.com>
-	<d9def9db0809260443w53d575b7s3857b424163ec1b@mail.gmail.com>
-	<beb91d720809260508vc1e28d0m33daaa289c8cfe0b@mail.gmail.com>
-	<d9def9db0809260517p3ddef5bby47eb52d6bb1fa948@mail.gmail.com>
-Cc: video4linux-list@redhat.com, em28xx@mcentral.de
-Subject: Re: Pinnacle PCTV HD Pro Stick
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8DMVapv014194
+	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 18:31:36 -0400
+Received: from mta3.srv.hcvlny.cv.net (mta3.srv.hcvlny.cv.net [167.206.4.198])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8DMVOf7006408
+	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 18:31:24 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7500HG4NWC29D0@mta3.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Sat, 13 Sep 2008 18:31:24 -0400 (EDT)
+Date: Sat, 13 Sep 2008 18:31:23 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200809140119.38052.liplianin@tut.by>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Message-id: <48CC3F3B.3050600@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=KOI8-R; format=flowed
+Content-transfer-encoding: 8BIT
+References: <E1KdnPr-0002YP-SF@www.linuxtv.org>
+	<200809131623.10155.liplianin@tut.by> <48CC2512.2020502@linuxtv.org>
+	<200809140119.38052.liplianin@tut.by>
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [linux-dvb]  [PATCH] Add support for SDMC DM1105 PCI chip
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,83 +36,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Sep 26, 2008 at 2:17 PM, Markus Rechberger
-<mrechberger@gmail.com> wrote:
-> On Fri, Sep 26, 2008 at 2:08 PM, Salatiel Filho
-> <salatiel.filho@gmail.com> wrote:
->> On Fri, Sep 26, 2008 at 8:43 AM, Markus Rechberger
->> <mrechberger@gmail.com> wrote:
->>> Hi,
->>>
->>> On Fri, Sep 26, 2008 at 4:44 AM, Markus Rechberger
->>> <mrechberger@gmail.com> wrote:
->>>> On Fri, Sep 26, 2008 at 4:23 AM, Eduardo Fontes
->>>> <eduardo.fontes@gmail.com> wrote:
->>>>> Hi Markus,
->>>>>
->>>>> Ok. The .deb package that you send to me + tvtime ".deb" package (
->>>>> http://mcentral.de/tvtime/tvtime_1.0.2-1_i386.deb) my Pinnacle PCTV works
->>>>> with sound, but only in b/w NTSC. Brazil is PAL-M color standard and when I
->>>>> put in this TV Standard I get only noises and a disfigured green image. In
->>>>> NTSC the image is clear but only in grey scale and sound is fine. Some patch
->>>>> for this?
->>>>>
->>>>
->>>> I'm going to update the package in a few hours with the latest code.
->>>>
->>>
->>> Ok here's the updated i386 package:
->>> http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-8_i386.deb
->>>
->>> Markus
->>>
->>> --
->>> video4linux-list mailing list
->>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>
+Igor M. Liplianin wrote:
+> В сообщении от 13 September 2008 23:39:46 Steven Toth написал(а):
+>> Igor M. Liplianin wrote:
+>>> The patch adds support for SDMC DM1105 PCI chip. There is a lot of
+>>> cards based on it, like DvbWorld 2002 DVB-S , 2004 DVB-S2
+>>> Source code prepaired to and already tested with cards, which have
+>>> si2109, stv0288, cx24116 demods.  Currently enabled only stv0299, as
+>>> other demods are not in a v4l-dvb main tree, but I will submit
+>>> corresponded patches (si2109, stv0288) next time.
+>> Igor,
 >>
->> Just curious , is there a way to get sound automatically using mplayer ?
+>> Cool.
 >>
->
-> not yet, although it's on the roadmap to provide patches for this too...
-> The patched tvtime version tries to get a list of available audio
-> devices and tries to connect
-> it automaticaly with the default audio output device and copies the
-> data from A to B.
-> This is why the tvtime version on mcentral.de has automated audio
-> support in general it
-> has a few more features so that it will work guaranteed with most
-> hardware even with bad graphic
-> drivers. I provided an X11 output driver in order to not depend on
-> hardware acceleration support
-> if support is not available. This X11 output plugin uses ffmpeg and
-> optimized CPU algorithms for
-> scaling.
->
-> You need to pass a parameter to mplayer, it's documented on mcentral.de
->
-> eg.:
->    mplayer -vf pp=l5 -tv
-> driver=v4l2:outfmt=yuy2:width=720:height=576:fps=25:chanlist=europe-west:
->    input=1:forceaudio:alsa:adevice=hw.2:immediatemode=0 tv://
->
-> you might search for foceaudio on mcentral.de it will show up a few
-> possibilities which endusers posted.
->
+>> Master repo does not have cx24116 support so it probably cannot be
+>> merged. Do you need me to merge this into the s2api tree?
+>>
+> Steve,
+> 
+> It would be great !
+> Patch is ready to s2api tree.
+> 
+> So I must prepair next patch, which enables DvbWorld 2004 DVB-S2.
 
-Just for the completion:
+Merged, thanks Igor.
 
-amd64:
-http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-9_amd64.deb
-i386:
-http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-8_i386.deb
+I also have a large cx24116.c patch from Darron pending, I need his 
+sign-off. Hopefully this will go into the tree tonight also.
 
-the generic amd64 empia driver is also updated now (i386/amd64 have
-their own versioning so 8/9
-has no relation with each other).
+Regards,
 
-Markus
+- Steve
 
 --
 video4linux-list mailing list
