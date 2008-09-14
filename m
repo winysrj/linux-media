@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n63.bullet.mail.sp1.yahoo.com ([98.136.44.33])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1Ke3ae-00055X-Q5
-	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 10:01:18 +0200
-Date: Fri, 12 Sep 2008 01:00:41 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: linux-dvb <linux-dvb@linuxtv.org>, Steven Toth <stoth@hauppauge.com>,
-	Steven Toth <stoth@linuxtv.org>
-In-Reply-To: <48CA0355.6080903@linuxtv.org>
+Received: from yx-out-2324.google.com ([74.125.44.29])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mrechberger@gmail.com>) id 1Kes14-0005v4-T0
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 15:51:56 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so478859yxg.41
+	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 06:51:50 -0700 (PDT)
+Message-ID: <d9def9db0809140651l392282d4u87098881ce4ca382@mail.gmail.com>
+Date: Sun, 14 Sep 2008 15:51:50 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: free_beer_for_all@yahoo.com
+In-Reply-To: <391631.73780.qm@web46111.mail.sp1.yahoo.com>
 MIME-Version: 1.0
-Message-ID: <263027.23563.qm@web46116.mail.sp1.yahoo.com>
-Cc: mkrufky@linuxtv.org
-Subject: [linux-dvb] Siano ISDB [was: Re:  S2API - Status - Thu Sep 11th]
-Reply-To: free_beer_for_all@yahoo.com
+Content-Disposition: inline
+References: <d9def9db0809131910h2ff43b9auf86eb340adb2fac8@mail.gmail.com>
+	<391631.73780.qm@web46111.mail.sp1.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,39 +29,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Fri, 9/12/08, Steven Toth <stoth@linuxtv.org> wrote:
+On Sun, Sep 14, 2008 at 12:51 PM, barry bouwsma
+<free_beer_for_all@yahoo.com> wrote:
+> --- On Sun, 9/14/08, Markus Rechberger <mrechberger@gmail.com> wrote:
+>
+>> >>> (Also to be noted is that, some BSD chaps also have shown interest in
+>
+> Does BSD == NetBSD here?  Or are there other developments
+> as well that I'm not aware of?
+>
 
-> mkrufky spent some time adding S2API isdb-t support to the siano driver, 
-> that's working pretty well - tuning via the S2API app.
-> 
-> http://linuxtv.org/hg/~mkrufky/sms1xxx-isdbt-as-dvbt/
-
-Just a first quick feedback, the following will need to be
-frobbed appropriately:
-
-    204         if (id < DEVICE_MODE_DVBT || id > DEVICE_MODE_DVBT_BDA) {
-    205                 sms_err("invalid firmware id specified %d", id);
-    206                 return -EINVAL;
-
-In order to enable ISDB modes, one will need to specify
-module parameter `default_mode=5' or =6, whichever, and,
-hmmm, looks like I gotta hunt down a firmware too.
-
-Is one or the other mode, that is, BDA driver or not, to
-be preferred?
-
-Obviously I can't receive anything.
-
-Other comments may appear in personal mail to mkrufky, unless
-I should keep them here, I think...
+for now it's netBSD, we're offering support to everyone who's interested.
 
 
-thanks,
-barry bouwsma
+>
+>> As for the em28xx driver I agreed with pushing all my code
+>
+> Do you want to have patches for your repository, like the
+> following (just an example, based on the NetBSD SOC source)
+>
 
+If you look at the chipdrivers, manufacturers often have independent
+code there, as code can be kept independent in that area.
+The bridge driver will contain operating system dependent code of course,
+The drx driver which you mention mostly uses the Code which came from
+Micronas, the module interface code which you looked at is linux
+specific yes, but it's more or less just a wrapper against the
+original source. It's the same with upcoming drivers.
 
-      
+Its just like Chipdriver - Linuxwrapper - linuxdriver; whereas it can
+be the same with any operating system. This also keeps the incomplete
+API (of any OS) separated from the available features of the
+chipdriver logic. That way it's also rather easy to catch updates from
+the manufacturers of the corresponding ICs.
 
+Markus
 
 _______________________________________________
 linux-dvb mailing list
