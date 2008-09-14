@@ -1,18 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1Kclwi-0005QI-EV
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 20:58:45 +0200
-Date: Mon, 08 Sep 2008 20:58:10 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <27703.1220885470@kewl.org>
-Message-ID: <20080908185810.177440@gmx.net>
+Received: from wx-out-0506.google.com ([66.249.82.230])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mrechberger@gmail.com>) id 1Ketfr-0000KF-Vs
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 17:38:09 +0200
+Received: by wx-out-0506.google.com with SMTP id t16so677420wxc.17
+	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 08:38:04 -0700 (PDT)
+Message-ID: <d9def9db0809140838k2ced5211gc2690e76f53a98be@mail.gmail.com>
+Date: Sun, 14 Sep 2008 17:38:03 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Manu Abraham" <abraham.manu@gmail.com>
+In-Reply-To: <48CC4D35.3000003@gmail.com>
 MIME-Version: 1.0
-References: <20080907230956.310620@gmx.net> <20080908000941.310670@gmx.net>
-	<27703.1220885470@kewl.org>
-To: Darron Broad <darron@kewl.org>, linux-dvb@linuxtv.org, stoth@linuxtv.org
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR4000 scratchpad patch
+Content-Disposition: inline
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<48CC42D8.8080806@gmail.com>
+	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
+	<48CC4D35.3000003@gmail.com>
+Cc: linux-dvb@linuxtv.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,44 +34,94 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> 
-> Hi
-> 
-> Does it work as expected or do you have a problem?
+On Sun, Sep 14, 2008 at 1:31 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
+> Markus Rechberger wrote:
+>> On Sun, Sep 14, 2008 at 12:46 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
+>>> Markus Rechberger wrote:
+>>>
+>>>> How many devices are currently supported by the multiproto API
+>>>> compared with the s2 tree?
+>>> The initial set of DVB-S2 multistandard devices supported by the
+>>> multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
+>>> alone. There are more additions by 2 more modules (not devices), but for
+>>> the simple comparison here is the quick list of them, for which some of
+>>> the manufacturers have shown support in some way. (There has been quite
+>>> some contributions from the community as well.):
+>>>
+>>> (Also to be noted is that, some BSD chaps also have shown interest in
+>>> the same)
+>>>
+>>
+>> they're heavy into moving the whole framework over as far as I've seen
+>> yes, also including yet unmerged drivers.
+>
+>
+> Using the same interface, the same applications will work there as well
+> which is a bonus, but isn't the existing user interface GPL ? (A bit
+> confused on that aspect)
+>
+>
+>>> * STB0899 based
+>>>
+>>> Anubis
+>>> Typhoon DVB-S2 PCI
+>>>
+>>> Azurewave/Twinhan
+>>> VP-1041
+>>> VP-7050
+>>>
+>>> Digital Now
+>>> AD SP400
+>>> AD SB300
+>>>
+>>> KNC1
+>>> TV Station DVB-S2
+>>> TV Station DVB-S2 Plus
+>>>
+>>> Pinnacle
+>>> PCTV Sat HDTV Pro USB 452e
+>>>
+>>> Satelco
+>>> TV Station DVB-S2
+>>> Easywatch HDTV USB CI
+>>> Easywatch HDTV PCI
+>>>
+>>> Technisat
+>>> Skystar HD
+>>> Skystar HD2
+>>> Skystar USB2 HDCI
+>>>
+>>> Technotrend
+>>> TT S2 3200
+>>> TT S2 3600
+>>> TT S2 3650
+>>>
+>>> Terratec
+>>> Cinergy S2 PCI HD
+>>> Cinergy S2 PCI HDCI
+>>>
+>>
+>> those are pullable now against the current tree?
+>
+>
+> These devices, depend upon the DVB API update without which it wouldn't
+> work as they depend heavily on the DVB API framework. Without the
+> updated framework, it doesn't make any sense to pull them: they won't
+> even compile. The last but not least reason is that, the stb0899 driver
+> is a DVB-S2 multistandard device which requires DVB-S2/DSS support
+> additionally.
+>
 
-It seems to be working fine for DVB-S, DVB-S2 and DVB-T :).
-I wanted a minimal diff to easily scan through what is in it and what has
-changed. I wasn't sure of the status anyway so I thought I would ask.
- 
-> The revision is 8628. The reason that you find this patch larger than
-> expected is because when I was supplied with some fixes from a fellow user
-> Carlo Scarfoglio the updates were against an older tree and when
-> added to a more recent tree it meant that a whole bunch of stuff which
-> had been added since his patch had to be reverted.
+so the framework is available, and the drivers could be pushed in
+right afterwards, I wonder
+who is willing to port those drivers to the other API (including testing).
+It's not going to happen any time soon I guess, if there's not an
+agreement with Manu's
+work. Dumping this code would show another step of ignorance and
+selfishness against the
+people who worked on it.
 
-OK, I see.
-
-> It's a bit messy but it ought to work and has been tested to work.
-> 
-> If you wish to provide a cleaner more up to date multi-frontend diff
-> then please go ahead, you are welcome.
-
-I'll send you one of the smaller diffs I mentioned -- the end result is identical.
-As for more up-to-date I may do but I can't promise anything.
-
-Would you mind saying what what will happen next with it?
-I.e. will it be renamed from scratchpad to mfe_latest or are you going to make
-further changes. And are there any fixes or changes already in it apart from
-the ones necessary to work with 2.6.26 ?
-
-Thanks,
-Hans
-
--- 
-Release early, release often.
-
-Ist Ihr Browser Vista-kompatibel? Jetzt die neuesten 
-Browser-Versionen downloaden: http://www.gmx.net/de/go/browser
+Markus
 
 _______________________________________________
 linux-dvb mailing list
