@@ -1,14 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Andy Walls <awalls@radix.net>
-To: Steven Toth <stoth@linuxtv.org>
-In-Reply-To: <48C732DE.2030902@linuxtv.org>
-References: <48C659C5.8000902@magma.ca> <48C68DC5.1050400@linuxtv.org>
-	<48C73161.7090405@magma.ca>  <48C732DE.2030902@linuxtv.org>
-Date: Wed, 10 Sep 2008 18:55:04 -0400
-Message-Id: <1221087304.2648.7.camel@morgan.walls.org>
-Mime-Version: 1.0
+Received: from wx-out-0506.google.com ([66.249.82.238])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mrechberger@gmail.com>) id 1KexdE-0001Ss-FV
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 21:51:41 +0200
+Received: by wx-out-0506.google.com with SMTP id t16so702823wxc.17
+	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 12:51:36 -0700 (PDT)
+Message-ID: <d9def9db0809141251r1edece84r96c8becd5a2d4ee3@mail.gmail.com>
+Date: Sun, 14 Sep 2008 21:51:36 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Steven Toth" <stoth@linuxtv.org>
+In-Reply-To: <48CD41BD.8040508@linuxtv.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <564277.58085.qm@web46102.mail.sp1.yahoo.com>
+	<48CD41BD.8040508@linuxtv.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,93 +29,84 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 2008-09-09 at 22:37 -0400, Steven Toth wrote:
-> Patrick Boisvenue wrote:
-> > Steven Toth wrote:
-> >> Patrick Boisvenue wrote:
+On Sun, Sep 14, 2008 at 6:54 PM, Steven Toth <stoth@linuxtv.org> wrote:
+> barry bouwsma wrote:
+>> --- On Sun, 9/14/08, Steven Toth <stoth@linuxtv.org> wrote:
+>>
+>>> is that the BSD folks can't port the GPL license into BSD because it's
+>>> not compatible.
+>>
+>> I don't want to see any religious war here (trimmed to dvb
+>> list), but...
+>>
+>> There is GPL code distributed as part of *BSD sources,
+>> as you can see by reading the licensing in, for example,
+>> $ ls /lost+found/CVSUP/BSD/FreeBSD.cvs/src/sys/gnu/dev/sound/pci/
+>> Attic       emu10k1-alsa.h,v  maestro3_reg.h,v  p17v-alsa.h,v
+>> csaimg.h,v  maestro3_dsp.h,v  p16v-alsa.h,v
+>
+> Interesting.
+>
+>>
+>>
+>>> I owe it to myself to spend somehime reading the BSD licencing. Maybe
+>>> the GPL is compatible with BSD.
+>>
+>> It all depends on the intended use -- whether for optional
+>> kernel components as above.  In the distributions, though,
+>> it's kept separated.
+>>
+>> It's also possible to dual-licence source, and I see a good
+>> number of such files in NetBSD under, as an example,
+>> /lost+found/CVSUP/BSD/NetBSD.cvs/src/sys/dev/ic/
+>
+> I'm be quite happy to grant a second license on my work the the BSD
+> guys, as the copyright owner I can do that. The legal stuff gets messy
+> quickly and I don't claim to understand all of it.
+>
 
-> > 
-> > When launching dvbscan I get the following in dmesg:
-> > 
-> > xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
-> > firmware: requesting dvb-fe-xc5000-1.1.fw
-> > kobject_add_internal failed for i2c-2 with -EEXIST, don't try to 
-> > register things with the same name in the same directory.
-> > Pid: 8059, comm: kdvb-fe-0 Tainted: P          2.6.26-gentoo #11
-> > 
-> > Call Trace:
-> >  [<ffffffff8036abb5>] kobject_add_internal+0x13f/0x17e
-> >  [<ffffffff8036aff2>] kobject_add+0x74/0x7c
-> >  [<ffffffff80230b02>] printk+0x4e/0x56
-> >  [<ffffffff803eb84a>] device_add+0x9b/0x483
-> >  [<ffffffff8036a876>] kobject_init+0x41/0x69
-> >  [<ffffffff803f059d>] _request_firmware+0x169/0x324
-> >  [<ffffffffa00e9a7e>] :xc5000:xc_load_fw_and_init_tuner+0x64/0x293
-> >  [<ffffffff804a7222>] i2c_transfer+0x75/0x7f
-> >  [<ffffffffa00e53ad>] :s5h1409:s5h1409_writereg+0x51/0x83
-> >  [<ffffffffa00e9cea>] :xc5000:xc5000_init+0x3d/0x6f
-> >  [<ffffffffa0091b0c>] :dvb_core:dvb_frontend_init+0x49/0x63
-> >  [<ffffffffa0092e2c>] :dvb_core:dvb_frontend_thread+0x78/0x2f0
-> >  [<ffffffffa0092db4>] :dvb_core:dvb_frontend_thread+0x0/0x2f0
-> >  [<ffffffff80240eaf>] kthread+0x47/0x74
-> >  [<ffffffff8022bc41>] schedule_tail+0x27/0x5b
-> >  [<ffffffff8020be18>] child_rip+0xa/0x12
-> >  [<ffffffff80240e68>] kthread+0x0/0x74
-> >  [<ffffffff8020be0e>] child_rip+0x0/0x12
-> > 
-> > fw_register_device: device_register failed
-> > xc5000: Upload failed. (file not found?)
-> > xc5000: Unable to initialise tuner
-> > 
-> > 
-> > I have the firmware file located here:
-> > 
-> > # ls -l /lib/firmware/dvb-fe-xc5000-1.1.fw
-> > -rw-r--r-- 1 root root 12332 Aug 31 12:56 
-> > /lib/firmware/dvb-fe-xc5000-1.1.fw
-> > 
-> > If there is anything else I can provide (or try) to help debug, let me 
-> > know,
-> > ...Patrick
-> 
->  > kobject_add_internal failed for i2c-2 with -EEXIST, don't try to
->  > register things with the same name in the same directory.
-> 
-> Ooh, that's nasty problem, this is new - and looks like it's i2c related.
-> 
-> Why does this sound familiar? Anyone?
+Great move Steven! Can we move the TDA10048 code over, maybe adding
+a note that it's dual licensed would be nice?
 
-A cx18 user had a similar problem on one distro.  I remeber running it
-down to a race condition in creating device nodes in one of the
-"virtual" filesystems (/proc or /sys) the device was looking for a
-paretn PCI device entry to hook onto, but it wasn't created at the time
-so it tries to create it itself.  In the meantime some other part of the
-kernel subsystem did actually finish creating the entry - so it exists
-by the time the firmware load tries to make it.
+thanks,
+Markus
 
-As far as I could tell, it should be non-fatal (not an Oops or panic),
-but if the driver gives up on -EEXIST then things won't work obviously.
-
-I never resolved the problem for the user.  I think some kernel change
-outside of cx18 resolved it.  That's all the details I have.
-
-Regards,
-Andy
-
-> Just for the hell of it, copy the firmware to /lib/firmware/`uname -r` 
-> also, then re-run the test - it's unlikely to make any difference but it 
-> _is_ the scenario I always test under.
-> 
+> I'm an opensource developer, I chose to work on Linux because it's the
+> biggest movement. I have no objections to any other projects, in fact I
+> welcome them.
+>
+>
+>>
+>>
+>> There will be plenty of misinformation and FUD about which
+>> licensing is better, and I don't want to hear any more such.
+>> Or debates.  Or evangelism.  Or anything.
+>
+> Agreed.
+>
+>>
+>> The different BSDen will handle GPLed code differently.
+>>
+>> (By the way, it is possible to completely build NetBSD from
+>> within Linux, though the DVB code hasn't been merged as of
+>> this morning my time, if someone with *BSD familiarity here
+>> wants to think about considering maybe playing with it later
+>> sometime, perhaps, maybe)
+>
+> The issue would be your support community. If you're working on linux
+> then people here will help, if our working on something else and asking
+> for help here - then people will probably be trying to fix linux first,
+> so responses to questions may not arrive, or be slow coming.
+>
+> Still, better TV support in BSD is good news.
+>
 > - Steve
-> 
-> 
-> 
+>
 > _______________________________________________
 > linux-dvb mailing list
 > linux-dvb@linuxtv.org
 > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
-
+>
 
 _______________________________________________
 linux-dvb mailing list
