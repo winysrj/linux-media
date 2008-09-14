@@ -1,50 +1,50 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.28])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1KZB9U-0002Yx-Ns
-	for linux-dvb@linuxtv.org; Fri, 29 Aug 2008 23:05:05 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so547107yxg.41
-	for <linux-dvb@linuxtv.org>; Fri, 29 Aug 2008 14:05:00 -0700 (PDT)
-Message-ID: <78aae6eb0808291405m452462b4l2df267c3066ec28f@mail.gmail.com>
-Date: Fri, 29 Aug 2008 23:05:00 +0200
-From: "=?ISO-8859-1?Q?Gr=E9goire_FAVRE?=" <gregoire.favre@gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <48B8400A.9030409@linuxtv.org>
+Return-path: <video4linux-list-bounces@redhat.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8EK88o4031836
+	for <video4linux-list@redhat.com>; Sun, 14 Sep 2008 16:08:09 -0400
+Received: from nlpi025.prodigy.net (nlpi025.sbcis.sbc.com [207.115.36.54])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8EK7kPu012248
+	for <video4linux-list@redhat.com>; Sun, 14 Sep 2008 16:07:47 -0400
+Received: from [192.168.0.201] (adsl-75-4-149-125.dsl.emhril.sbcglobal.net
+	[75.4.149.125]) (authenticated bits=0)
+	by nlpi025.prodigy.net (8.13.8 smtpauth/dk/8.13.8) with ESMTP id
+	m8EK7jnP006333
+	for <video4linux-list@redhat.com>; Sun, 14 Sep 2008 15:07:46 -0500
+Message-ID: <48CD6F11.8020900@xnet.com>
+Date: Sun, 14 Sep 2008 15:07:45 -0500
+From: stuart <stuart@xnet.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <48B8400A.9030409@linuxtv.org>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: KWorld 120 IR control?
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+List-ID: <video4linux-list@redhat.com>
 
-Hello,
 
-nice job :-)
+Hi...
 
-Is there a patch for VDR to use this (vdr works really well with multiproto
-right now, which don't mean I wouldn't choose this one, but I should try
-it before).
+This is my monthly (humm, more like quarterly) bump to see if anyone has 
+looked at (or can tell me what to do with) the KWorld 120 video4linux 
+drivers when it comes to getting the IR hardware to work.
 
-Thank.
--- =
+I would think, by now, there are a lot of these cards out there.  Were 
+not the KWorld 110 and 115 ATSC tuners popular here?  And haven't they 
+been replaced by the KWorld 120?  If so, what are people doing for IR?
 
-Gr=E9goire FAVRE
-http://picasaweb.google.com/Gregoire.Favre
-http://gregoire.favre.googlepages.com/
-http://fr.wikipedia.org/wiki/N%C3%A9tiquette
-http://en.wikipedia.org/wiki/Netiquette
+...thanks
 
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
