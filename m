@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.238])
+Received: from yx-out-2324.google.com ([74.125.44.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KexdE-0001Ss-FV
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 21:51:41 +0200
-Received: by wx-out-0506.google.com with SMTP id t16so702823wxc.17
-	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 12:51:36 -0700 (PDT)
-Message-ID: <d9def9db0809141251r1edece84r96c8becd5a2d4ee3@mail.gmail.com>
-Date: Sun, 14 Sep 2008 21:51:36 +0200
+	(envelope-from <mrechberger@gmail.com>) id 1KexDd-0007hx-7w
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 21:25:14 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so499186yxg.41
+	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 12:25:09 -0700 (PDT)
+Message-ID: <d9def9db0809141225q421828cdn8b97c0e61b99acac@mail.gmail.com>
+Date: Sun, 14 Sep 2008 21:25:08 +0200
 From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <48CD41BD.8040508@linuxtv.org>
+To: "Simon Kenyon" <simon@koala.ie>
+In-Reply-To: <1221419319.9803.0.camel@localhost>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <564277.58085.qm@web46102.mail.sp1.yahoo.com>
-	<48CD41BD.8040508@linuxtv.org>
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<48CC42D8.8080806@gmail.com> <1221419319.9803.0.camel@localhost>
 Cc: linux-dvb@linuxtv.org
 Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
@@ -29,84 +31,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Sep 14, 2008 at 6:54 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> barry bouwsma wrote:
->> --- On Sun, 9/14/08, Steven Toth <stoth@linuxtv.org> wrote:
+On Sun, Sep 14, 2008 at 9:08 PM, Simon Kenyon <simon@koala.ie> wrote:
+> On Sun, 2008-09-14 at 02:46 +0400, Manu Abraham wrote:
+>> The initial set of DVB-S2 multistandard devices supported by the
+>> multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
+>> alone. There are more additions by 2 more modules (not devices), but for
+>> the simple comparison here is the quick list of them, for which some of
+>> the manufacturers have shown support in some way. (There has been quite
+>> some contributions from the community as well.):
 >>
->>> is that the BSD folks can't port the GPL license into BSD because it's
->>> not compatible.
->>
->> I don't want to see any religious war here (trimmed to dvb
->> list), but...
->>
->> There is GPL code distributed as part of *BSD sources,
->> as you can see by reading the licensing in, for example,
->> $ ls /lost+found/CVSUP/BSD/FreeBSD.cvs/src/sys/gnu/dev/sound/pci/
->> Attic       emu10k1-alsa.h,v  maestro3_reg.h,v  p17v-alsa.h,v
->> csaimg.h,v  maestro3_dsp.h,v  p16v-alsa.h,v
+>> (Also to be noted is that, some BSD chaps also have shown interest in
+>> the same)
 >
-> Interesting.
->
->>
->>
->>> I owe it to myself to spend somehime reading the BSD licencing. Maybe
->>> the GPL is compatible with BSD.
->>
->> It all depends on the intended use -- whether for optional
->> kernel components as above.  In the distributions, though,
->> it's kept separated.
->>
->> It's also possible to dual-licence source, and I see a good
->> number of such files in NetBSD under, as an example,
->> /lost+found/CVSUP/BSD/NetBSD.cvs/src/sys/dev/ic/
->
-> I'm be quite happy to grant a second license on my work the the BSD
-> guys, as the copyright owner I can do that. The legal stuff gets messy
-> quickly and I don't claim to understand all of it.
->
+> is there any issue with GPL code being merged into BSD?
+> just asking
 
-Great move Steven! Can we move the TDA10048 code over, maybe adding
-a note that it's dual licensed would be nice?
+Not with the code which comes from our side. They're at DVB-T right
+now which already works.
+That code is fully duallicensed.
+The Bridge code itself needs to get slightly refactored for analog TV.
+They are getting full technical and HW support.
 
-thanks,
 Markus
-
-> I'm an opensource developer, I chose to work on Linux because it's the
-> biggest movement. I have no objections to any other projects, in fact I
-> welcome them.
->
->
->>
->>
->> There will be plenty of misinformation and FUD about which
->> licensing is better, and I don't want to hear any more such.
->> Or debates.  Or evangelism.  Or anything.
->
-> Agreed.
->
->>
->> The different BSDen will handle GPLed code differently.
->>
->> (By the way, it is possible to completely build NetBSD from
->> within Linux, though the DVB code hasn't been merged as of
->> this morning my time, if someone with *BSD familiarity here
->> wants to think about considering maybe playing with it later
->> sometime, perhaps, maybe)
->
-> The issue would be your support community. If you're working on linux
-> then people here will help, if our working on something else and asking
-> for help here - then people will probably be trying to fix linux first,
-> so responses to questions may not arrive, or be slow coming.
->
-> Still, better TV support in BSD is good news.
->
-> - Steve
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
 
 _______________________________________________
 linux-dvb mailing list
