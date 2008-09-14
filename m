@@ -1,21 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.156])
+Received: from ffm.saftware.de ([83.141.3.46])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1Kbhgn-0008Pc-LD
-	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 22:13:54 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so785183fga.25
-	for <linux-dvb@linuxtv.org>; Fri, 05 Sep 2008 13:13:50 -0700 (PDT)
-Message-ID: <37219a840809051313k2e48a34ay42a3afa8ea6692af@mail.gmail.com>
-Date: Fri, 5 Sep 2008 16:13:50 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Rebecca Sutton Koeser" <rlskoeser@gmail.com>
-In-Reply-To: <4f5573e90809051258w2b7ba178w1c1ae6b93d26c569@mail.gmail.com>
+	(envelope-from <obi@linuxtv.org>) id 1KezhG-0003Lk-S8
+	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 00:03:59 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by ffm.saftware.de (Postfix) with ESMTP id 9006FE6DD0
+	for <linux-dvb@linuxtv.org>; Mon, 15 Sep 2008 00:03:55 +0200 (CEST)
+Received: from ffm.saftware.de ([83.141.3.46])
+	by localhost (pinky.saftware.org [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id HBVG-o1NRaWb for <linux-dvb@linuxtv.org>;
+	Mon, 15 Sep 2008 00:03:55 +0200 (CEST)
+Received: from [172.22.22.60] (unknown [92.50.81.33])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by ffm.saftware.de (Postfix) with ESMTPSA id 1F11DE6DC9
+	for <linux-dvb@linuxtv.org>; Mon, 15 Sep 2008 00:03:55 +0200 (CEST)
+Message-ID: <48CD8A4B.4090209@linuxtv.org>
+Date: Mon, 15 Sep 2008 00:03:55 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <mailman.596.1220644386.834.linux-dvb@linuxtv.org>
-	<4f5573e90809051258w2b7ba178w1c1ae6b93d26c569@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] ATI HDTV Wonder - unknown device ac00
+To: linux-dvb@linuxtv.org
+References: <564277.58085.qm@web46102.mail.sp1.yahoo.com>	<48CD41BD.8040508@linuxtv.org>	<d9def9db0809141251r1edece84r96c8becd5a2d4ee3@mail.gmail.com>
+	<48CD88CF.7060601@linuxtv.org>
+In-Reply-To: <48CD88CF.7060601@linuxtv.org>
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,48 +37,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/9/5 Rebecca Sutton Koeser <rlskoeser@gmail.com>:
-> I hope this the right place to ask this question.
->
-> I bought an ATI HDTV Wonder because I thought I read that it worked in
-> Linux.  But when I followed the instructions to load the firmware and get it
-> working, nothing happens.  I see the notes on the wiki page (
-> http://www.linuxtv.org/wiki/index.php/ATI/AMD_HDTV_Wonder ) about alternate
-> subsystem IDs that are not supported, but I'm not sure how to proceed from
-> there.
->
-> If someone can give me instructions on how to get more information about the
-> hardware I will be glad to investigate.
->
-> Here's the relevant output from lspci -v
->
-> 04:02.0 Multimedia controller: ATI Technologies Inc Unknown device ac00
->     Subsystem: ATI Technologies Inc Unknown device b359
->     Flags: bus master, medium devsel, latency 32, IRQ 11
->     Memory at fdb00000 (32-bit, non-prefetchable) [size=1M]
->     Memory at fdae0000 (32-bit, prefetchable) [size=128K]
->     Capabilities: [50] Power Management version 2
->
->
-> Can anyone tell me, is it likely / possible that this card will work in
-> linux any time soon, or should I be looking into returning it and finding
-> something more likely to work?
+Steven Toth wrote:
+> Markus Rechberger wrote:
+>> Great move Steven! Can we move the TDA10048 code over, maybe adding
+>> a note that it's dual licensed would be nice?
+> 
+> In principle yes.
+> 
+> I'd like to see an example of dual license just to make sure it has no 
+> nasty side effects.
+> 
+> Can you point me at one of your dual-license drivers so I can review the 
+> wording?
 
-Rebecca,
-
-When you read that the HDTV Wonder was supported, that would be the
-cx2388x-based HDTV Wonder, which uses the NXT2004 ATSC/QAM
-demodulator.
-
-The card that you have is using ATi's own chipset, which currently
-does not have a driver within the v4l/dvb linux kernel subsystems.
-
-It is _not_ likely that the card will work under Linux anytime soon.
-I'm sorry to deliver the bad news.
+AFAIK the biggest problem with dual licensing is that you cannot merge
+patches from Linus' tree, because they are not dual licensed (unless, of
+course, you'll get the permission from the contributors).
 
 Regards,
+Andreas
 
-Mike
 
 _______________________________________________
 linux-dvb mailing list
