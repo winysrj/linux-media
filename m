@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1KigFR-0005mN-Ul
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 04:06:30 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: manu <eallaud@yahoo.fr>
-In-Reply-To: <1222307144l.25694l.0l@manu-laptop>
-References: <200809241922.16748@orion.escape-edv.de>
-	<1222306125.3323.80.camel@pc10.localdom.local>
-	<170087DB-526D-47EF-BA01-A87D6CB6E675@pobox.com>
-	<1222307144l.25694l.0l@manu-laptop>
-Date: Thu, 25 Sep 2008 04:01:24 +0200
-Message-Id: <1222308084.3323.93.camel@pc10.localdom.local>
-Mime-Version: 1.0
+Received: from n61.bullet.mail.sp1.yahoo.com ([98.136.44.37])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KetJN-000680-IX
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 17:14:55 +0200
+Date: Sun, 14 Sep 2008 08:14:18 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: Steven Toth <stoth@linuxtv.org>
+In-Reply-To: <48CD1F3E.6080900@linuxtv.org>
+MIME-Version: 1.0
+Message-ID: <564277.58085.qm@web46102.mail.sp1.yahoo.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Re : [v4l-dvb-maintainer] [Wanted]
-	dvb-ttpci	maintainer
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,28 +19,60 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CkFtIE1pdHR3b2NoLCBkZW4gMjQuMDkuMjAwOCwgMjE6NDUgLTA0MDAgc2NocmllYiBtYW51Ogo+
-IExlIDI0LjA5LjIwMDggMjE6NDA6MDUsIFRvcmdlaXIgVmVpbW8gYSDDqWNyaXQgOgo+ID4gVGhp
-cyB3aG9sZSBpc3N1ZSBzZWVtcyB0byBiZSBhIGNsYXNzaWNhbCBjYXNlIG9mIHRlbnNpb24gZHVy
-aW5nIGEgIAo+ID4gY2F0aGVkcmFsIHRvIGJhemFyIGRldmVsb3BtZW50IHN0eWxlIHByb2plY3Qg
-dHJhbnNpdGlvbi4KPiAKPiBXb3VsZG4ndCB0aGlzIHRyYW5zaXRpb25hbCBzdGF0ZSBqdXN0IGJl
-IGNhbGxlZCBhIG1lc3MgOy0pCj4gT0sganVzdCB0cnlpbmcgdG8gbWFrZSBzb21lIGZ1biBvdXQg
-b2YgdGhpcywgSSBtZWFuIHRoaXMgaXMgc3VwcG9zZWQgdG8gCj4gYmUgb3VyIHNwYXJlIHRpbWUg
-aG9iYnkgc28gcGFzc2lvbiBpcyBPSyBidXQgcGVvcGxlIGhhdmUgdG8gc29tZXRpbWVzIAo+IHRh
-a2UgYSBkZWVwIGJyZWF0aCBhbmQgcmVtZW1iZXIgdGhhdCBpcyB3aGF0IGl0IHNob3VsZDogc3Bh
-cmUgdGltZSBGVU4hCj4gOy0pCj4gQnllCj4gTWFudQoKWWVzIDopCgpCdXQgb3RoZXJzIGRlYWwg
-d2l0aCBOREFzIGFuZCBoYXZlIG1vcmUgZGV0YWlscyBvbiBsaW51eCBhbHJlYWR5IGZvcgpsYXRl
-c3QgY2hpcCByZXZpc2lvbnMgdGhhbiBzb21lIG1ham9yIE9FTSBtaWdodCBoYXZlIG9uIG0kIHNt
-YXNoaW5nCmFnYWluc3QgdGhlIHNob3JlcyB3aXRoIHRoZSBmaXJzdCBnZW5lcmF0aW9ucyAuLi4K
-ClRoaXMgaXMgd2hhdCBob3dldmVyIDEwMCUgY291bnRzIGZvciBNYW51IGFuZCBJIGRvIG5vdCBk
-ZW55IGl0LgoKQnV0IHdpdGhpbiB0aGF0IHRyYW5zaXRpb25hbCBraW5kIG9mIHN0dWZmIHdlIG11
-c3QgbGl2ZSAuLi4KClRoZXJlIGlzIG5vIG90aGVyLCBhbHNvIG5vdCBmb3IgdGhlIG90aGVycyA7
-KQoKSGVybWFubgoKCgoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRw
-Oi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+--- On Sun, 9/14/08, Steven Toth <stoth@linuxtv.org> wrote:
+
+> is that the BSD folks can't port the GPL license into BSD because it's 
+> not compatible.
+
+I don't want to see any religious war here (trimmed to dvb
+list), but...
+
+There is GPL code distributed as part of *BSD sources,
+as you can see by reading the licensing in, for example,
+$ ls /lost+found/CVSUP/BSD/FreeBSD.cvs/src/sys/gnu/dev/sound/pci/
+Attic       emu10k1-alsa.h,v  maestro3_reg.h,v  p17v-alsa.h,v
+csaimg.h,v  maestro3_dsp.h,v  p16v-alsa.h,v
+
+
+> I owe it to myself to spend somehime reading the BSD licencing. Maybe 
+> the GPL is compatible with BSD.
+
+It all depends on the intended use -- whether for optional
+kernel components as above.  In the distributions, though,
+it's kept separated.
+
+It's also possible to dual-licence source, and I see a good
+number of such files in NetBSD under, as an example,
+/lost+found/CVSUP/BSD/NetBSD.cvs/src/sys/dev/ic/
+
+
+There will be plenty of misinformation and FUD about which
+licensing is better, and I don't want to hear any more such.
+Or debates.  Or evangelism.  Or anything.
+
+The different BSDen will handle GPLed code differently.
+
+(By the way, it is possible to completely build NetBSD from
+within Linux, though the DVB code hasn't been merged as of
+this morning my time, if someone with *BSD familiarity here
+wants to think about considering maybe playing with it later
+sometime, perhaps, maybe)
+
+
+thanks,
+barry bouwsma
+
+
+      
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
