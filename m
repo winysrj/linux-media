@@ -1,19 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2e.orange.fr ([80.12.242.112])
+Received: from smtp2f.orange.fr ([80.12.242.150])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1KdRKy-0007Yv-Kv
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 17:10:34 +0200
+	(envelope-from <hftom@free.fr>) id 1Ket25-0004Qx-5u
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 16:57:02 +0200
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2f04.orange.fr (SMTP Server) with ESMTP id E30CD700008F
+	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 16:56:27 +0200 (CEST)
+Received: from stratocaster.lan (ANantes-256-1-171-44.w90-25.abo.wanadoo.fr
+	[90.25.242.44])
+	by mwinf2f04.orange.fr (SMTP Server) with ESMTP id C3ED47000082
+	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 16:56:27 +0200 (CEST)
 From: Christophe Thommeret <hftom@free.fr>
-To: Steven Toth <stoth@hauppauge.com>
-Date: Wed, 10 Sep 2008 17:10:19 +0200
-References: <48B8400A.9030409@linuxtv.org> <200809101340.09702.hftom@free.fr>
-	<48C7CDCF.9090300@hauppauge.com>
-In-Reply-To: <48C7CDCF.9090300@hauppauge.com>
+To: linux-dvb@linuxtv.org
+Date: Sun, 14 Sep 2008 16:56:39 +0200
+References: <48CA0355.6080903@linuxtv.org> <48CC12BF.7050803@hauppauge.com>
+	<200809141646.01263.hftom@free.fr>
+In-Reply-To: <200809141646.01263.hftom@free.fr>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200809101710.19695.hftom@free.fr>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Message-Id: <200809141656.39538.hftom@free.fr>
+Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,44 +33,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le Wednesday 10 September 2008 15:38:23 Steven Toth, vous avez =E9crit=A0:
-> > Is this card able to deliver both S and T at the same time?
->
-> No, the hardware can do S/S2 or T.
+Le Sunday 14 September 2008 16:46:01 Christophe Thommeret, vous avez =E9cri=
+t=A0:
 
-> The driver in the S2API tree only has S/S2 enabled (for the time being).
+> (Exept for the cinergyT2 case off course)
+Missworded, cinergyT2 has always worked wit old api.
+I menat, all devices work now as expected with both old and new api, except =
 
-So, maybe we have to think a bit about how to add support for this kind of =
-
-device.
-I mean, if the driver provides different adapters/frontends (say =
-
-adapter0/frontend0 and adapter1/frontend0), a typical application will see =
-
-these as separate devices, and then when a user watch a S channel, the app =
-
-assumes that the T frontend is free while in fact it's not.
-For example, Kaffeine updates its channels list according to which channels =
-
-can be viewed (based on which frontends are free). So, if you are recording=
- a =
-
-S channel, all channels on this freq are shown as available and all T =
-
-channels are also shown as available. But in the HVR4000 case, it's false, =
-
-since the T tuner isn't free.
-
-Maybe a solution could be to have :
-- adapter0/frontend0 -> S/S2 tuner
-- adapter0/frontend1 -> T tuner
-
-So applications could know that these 2 frontends are exclusive.
-That would not require any API change, but would have to be a rule followed=
- by =
-
-all drivers.
-
+cinergyT2 which only works with old api.
 
 -- =
 
