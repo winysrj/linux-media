@@ -1,15 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
+Received: from nf-out-0910.google.com ([64.233.182.190])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sonofzev@iinet.net.au>) id 1Kirp6-00089Q-ID
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 16:28:05 +0200
-From: allan k <sonofzev@iinet.net.au>
-To: linux-dvb@linuxtv.org
-Date: Fri, 26 Sep 2008 00:28:54 +1000
-Message-Id: <1222352934.9701.3.camel@media1>
-Mime-Version: 1.0
-Subject: [linux-dvb] how do i get the bt878 driver to show and xc-3028 on
-	2.6.26-gentoo
+	(envelope-from <devin.heitmueller@gmail.com>) id 1Ker3k-0003II-IZ
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 14:50:40 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so920215nfb.11
+	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 05:50:32 -0700 (PDT)
+Message-ID: <412bdbff0809140550w7c6bdeaag567039de5af590db@mail.gmail.com>
+Date: Sun, 14 Sep 2008 08:50:32 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Andreas Oberritter" <obi@linuxtv.org>
+In-Reply-To: <48CC8338.6050405@linuxtv.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <412bdbff0809131441k5f38931cr7d64dc3871c37987@mail.gmail.com>
+	<48CC3651.5040502@linuxtv.org>
+	<412bdbff0809131528h22171a3am434cd5e2500f40db@mail.gmail.com>
+	<48CC8338.6050405@linuxtv.org>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Power management and dvb framework
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,21 +31,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all 
+On Sat, Sep 13, 2008 at 11:21 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
+> The sleep callback gets called automatically some seconds after the last
+> user closed the frontend device.
 
->From what I understand I should now be able to get both my Fusion HDTV
-lite and Fusion Digital Express (cx23885 with xc-3028) to work from
-in-kernel drivers and not use the mercurial tree. 
+Great.  That sounds like the ideal place to bring everything down.  Is
+that scheduled via a timer?  And does it still get called if the
+frontend gets reopened before the timer expires?
 
-Firstly I can't get the bt-878 driver for the lite card to show... I
-know I've done this along time ago, but just can't remember...
+Thanks,
 
-Also I've seen some discussion about the xc3028-dvico-au-01.fw and it's
-compatibility with 2.6.26 but can't see an answer as to whether it works
-or not... any definitive answer or do need to download new firmware from
-somewhere? 
+Devin
 
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
