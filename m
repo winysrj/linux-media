@@ -1,14 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KcTOn-0002Hf-UN
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 01:10:32 +0200
-Date: Mon, 08 Sep 2008 01:09:56 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-Message-ID: <20080907230956.310620@gmx.net>
+From: Christophe Thommeret <hftom@free.fr>
+To: Steven Toth <stoth@linuxtv.org>
+Date: Sun, 14 Sep 2008 17:27:32 +0200
+References: <48CA0355.6080903@linuxtv.org> <200809141646.01263.hftom@free.fr>
+	<48CD275D.7090301@linuxtv.org>
+In-Reply-To: <48CD275D.7090301@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org, darron@kewl.org, stoth@linuxtv.org
-Subject: [linux-dvb] HVR4000 scratchpad patch
+Content-Disposition: inline
+Message-Id: <200809141727.32436.hftom@free.fr>
+Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,20 +23,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Does anyone know about the status of the HVR 4000 patch at
-http://dev.kewl.org/hauppauge/scratchpad-8628.diff ?
-According to the note from 18th Aug it's a test version for 2.6.26.
-But it is 5x larger than previous patches so it looks like it was
-diffed against the wrong revision. Has anyone rebased it?
+Le Sunday 14 September 2008 17:01:49 Steven Toth, vous avez =E9crit=A0:
+> Christophe Thommeret wrote:
+> > Le Saturday 13 September 2008 21:21:35 Steven Toth, vous avez =E9crit :
+> >>> First i tried old api (kaffeine)-> everything works as expected.
+> >>> Then i tried new API (with latest tune.c) -> nova-t and nova-s work,
+> >>> cinergyT2 doesn't. I've also noticed that FE_SET_PROPERTY ioctl always
+> >>> return -1, even when success..
+> >>> Then i tried old api again -> now dvb-s doesn't lock and dvb-t always
+> >>> lock on the freq used in tune.c
+> >>
+> >> Fixed in the current tree.
+> >
+> > Indeed, cache bug is now fixed, old api works as expected in all cases.
+> > (Exept for the cinergyT2 case off course)
+>
+> Speaking of which, I looked at this yesterday. I'll post my feedback
+> back to Johannes thread, where I said I'd investigate.
+>
+> > However, i see that GETting DTV_DELIVERY_SYSTEM always returns the cach=
+ed
+> > value, so at first (after modules (re)load) it returns 0. An application
+> > really needs to know the delivery system (and others usefull infos) to =
+be
+> > able to handle a device, like the old api FE_GET_INFO.
+>
+> Yes, talking with Darron we're talking about being able to identify the
+> existence of the API and capabilities.
+>
+> We have the DTV_FE_CAPABILITY_COUNT and DTV_FE_CAPABILITY (current
+> defined but not connected in dvb-core) which would be the natural place
+> to expose every older (and newer) feature of the demods.
+>
+> The command you're referring to now does exactly what it's supposed to,
+> it selects your last SET value (or if the demod has provided a
+> .get_proeprty() callback), the demod could chose to answer differently.
+> In principle we could add a one line fix to the cx24116 demod
+> "c->delivery_system =3D SYS_DVBS2;" to solve your initial problem - but I
+> don't that's the correct approach.
+>
+> When the phase #1 work is done we'll fill out the capabilities changes
+> in dvb-core and start to expose interesting features, like LNA,
+> diversity, delivery systems, power controls or anything else that the
+> linuxtv community thinks is generalized and useful. We will take these
+> steps carefully.
 
-Thanks,
-Hans
+Ok, good.
+
 -- =
 
-Release early, release often.
+Christophe Thommeret
 
-Psssst! Schon das coole Video vom GMX MultiMessenger gesehen?
-Der Eine f=FCr Alle: http://www.gmx.net/de/go/messenger03
 
 _______________________________________________
 linux-dvb mailing list
