@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org, Steven Toth <stoth@hauppauge.com>,
-	Steven Toth <stoth@linuxtv.org>,
-	Patrick Boettcher <patrick.boettcher@desy.de>
-Date: Thu, 25 Sep 2008 05:30:37 +0300
-References: <48CA0355.6080903@linuxtv.org>
-	<200809170037.59770.liplianin@tut.by>
-	<200809232201.06863.liplianin@tut.by>
-In-Reply-To: <200809232201.06863.liplianin@tut.by>
+Received: from wx-out-0506.google.com ([66.249.82.226])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mrechberger@gmail.com>) id 1KetWT-0007kn-Gi
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 17:28:27 +0200
+Received: by wx-out-0506.google.com with SMTP id t16so676767wxc.17
+	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 08:28:21 -0700 (PDT)
+Message-ID: <d9def9db0809140828q470c5610k695c26b9d8b5d7f3@mail.gmail.com>
+Date: Sun, 14 Sep 2008 17:28:21 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: free_beer_for_all@yahoo.com
+In-Reply-To: <564277.58085.qm@web46102.mail.sp1.yahoo.com>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_Ofv2IvsKAP7IZ8i"
-Message-Id: <200809250530.38075.liplianin@tut.by>
-Subject: [linux-dvb] [PATCH] S2API - Kconfig dependency fixes for cards with
-	stv0288 and si21xx.
+Content-Disposition: inline
+References: <48CD1F3E.6080900@linuxtv.org>
+	<564277.58085.qm@web46102.mail.sp1.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,99 +23,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_Ofv2IvsKAP7IZ8i
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Sun, Sep 14, 2008 at 5:14 PM, barry bouwsma
+<free_beer_for_all@yahoo.com> wrote:
+> --- On Sun, 9/14/08, Steven Toth <stoth@linuxtv.org> wrote:
+>
+>> is that the BSD folks can't port the GPL license into BSD because it's
+>> not compatible.
+>
+> I don't want to see any religious war here (trimmed to dvb
+> list), but...
+>
 
-Hi,
+I totally agree here, I won't reply anyone who's jumping onto
+religious wars here, since this is
+not the topic why it's getting supported.
+Both use the same community applications which are available which is
+good, so there's
+some competition about getting things done in the end.
 
-Patches for Kconfig dependencies for cards with stv0288 and si21xx.
+> There is GPL code distributed as part of *BSD sources,
+> as you can see by reading the licensing in, for example,
+> $ ls /lost+found/CVSUP/BSD/FreeBSD.cvs/src/sys/gnu/dev/sound/pci/
+> Attic       emu10k1-alsa.h,v  maestro3_reg.h,v  p17v-alsa.h,v
+> csaimg.h,v  maestro3_dsp.h,v  p16v-alsa.h,v
+>
 
-Thanks to Patrick for paying attention.
+also alsa-oss compat layer in Linux, though I don't want to get deeper
+into it :-)
 
-Igor
+Markus
 
---Boundary-00=_Ofv2IvsKAP7IZ8i
-Content-Type: text/x-diff;
-  charset="koi8-r";
-  name="8897.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="8897.patch"
-
-# HG changeset patch
-# User Igor M. Liplianin <liplianin@me.by>
-# Date 1222307333 -10800
-# Node ID 8de73c0adc5dee549fd7f9d34f80a2ee40ae347e
-# Parent  70b18ec9535dc884fb0e9ff9456aa4f79df14921
-Kconfig correction for USB card modification with SI2109/2110 demodulator.
-
-From: Igor M. Liplianin <liplianin@me.by>
-
-Kconfig correction for USB card modification with SI2109/2110 demodulator.
-
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
-
-diff -r 70b18ec9535d -r 8de73c0adc5d linux/drivers/media/dvb/dvb-usb/Kconfig
---- a/linux/drivers/media/dvb/dvb-usb/Kconfig	Tue Sep 23 21:43:57 2008 +0300
-+++ b/linux/drivers/media/dvb/dvb-usb/Kconfig	Thu Sep 25 04:48:53 2008 +0300
-@@ -252,6 +252,7 @@
- 	select DVB_PLL if !DVB_FE_CUSTOMISE
- 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
- 	select DVB_CX24116 if !DVB_FE_CUSTOMISE
-+	select DVB_SI21XX if !DVB_FE_CUSTOMISE
- 	help
- 	  Say Y here to support the DvbWorld DVB-S/S2 USB2.0 receivers
- 	  and the TeVii S650.
-
---Boundary-00=_Ofv2IvsKAP7IZ8i
-Content-Type: text/x-diff;
-  charset="koi8-r";
-  name="8898.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="8898.patch"
-
-# HG changeset patch
-# User Igor M. Liplianin <liplianin@me.by>
-# Date 1222309107 -10800
-# Node ID 5a8329f6c66c8c9a8852245f473ca577a92c602f
-# Parent  8de73c0adc5dee549fd7f9d34f80a2ee40ae347e
-Kconfig dependency fix for DW2002 card with ST STV0288 demodulator.
-
-From: Igor M. Liplianin <liplianin@me.by>
-
-Kconfig dependency fix for DW2002 card with ST STV0288 demodulator.
-
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
-
-diff -r 8de73c0adc5d -r 5a8329f6c66c linux/drivers/media/dvb/dm1105/Kconfig
---- a/linux/drivers/media/dvb/dm1105/Kconfig	Thu Sep 25 04:48:53 2008 +0300
-+++ b/linux/drivers/media/dvb/dm1105/Kconfig	Thu Sep 25 05:18:27 2008 +0300
-@@ -3,6 +3,8 @@
- 	depends on DVB_CORE && PCI && I2C
- 	select DVB_PLL if !DVB_FE_CUSTOMISE
- 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
-+	select DVB_STV0288 if !DVB_FE_CUSTOMISE
-+	select DVB_STB6000 if !DVB_FE_CUSTOMISE
- 	select DVB_CX24116 if !DVB_FE_CUSTOMISE
- 	select DVB_SI21XX if !DVB_FE_CUSTOMISE
- 	help
-
---Boundary-00=_Ofv2IvsKAP7IZ8i
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+>
+>> I owe it to myself to spend somehime reading the BSD licencing. Maybe
+>> the GPL is compatible with BSD.
+>
+> It all depends on the intended use -- whether for optional
+> kernel components as above.  In the distributions, though,
+> it's kept separated.
+>
+> It's also possible to dual-licence source, and I see a good
+> number of such files in NetBSD under, as an example,
+> /lost+found/CVSUP/BSD/NetBSD.cvs/src/sys/dev/ic/
+>
+>
+> There will be plenty of misinformation and FUD about which
+> licensing is better, and I don't want to hear any more such.
+> Or debates.  Or evangelism.  Or anything.
+>
+> The different BSDen will handle GPLed code differently.
+>
+> (By the way, it is possible to completely build NetBSD from
+> within Linux, though the DVB code hasn't been merged as of
+> this morning my time, if someone with *BSD familiarity here
+> wants to think about considering maybe playing with it later
+> sometime, perhaps, maybe)
+>
+>
+> thanks,
+> barry bouwsma
+>
+>
+>
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_Ofv2IvsKAP7IZ8i--
