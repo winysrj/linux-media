@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KebKJ-0003so-ST
-	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 22:02:41 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K75008X2GZG65E0@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sat, 13 Sep 2008 16:02:04 -0400 (EDT)
-Date: Sat, 13 Sep 2008 16:02:04 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <alpine.LRH.1.10.0809121112350.29931@pub3.ifh.de>
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-Message-id: <48CC1C3C.6020701@linuxtv.org>
-MIME-version: 1.0
-References: <48CA0355.6080903@linuxtv.org>
-	<alpine.LRH.1.10.0809121112350.29931@pub3.ifh.de>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
+	(envelope-from <abraham.manu@gmail.com>) id 1Kex8I-00071g-8s
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 21:19:43 +0200
+Message-ID: <48CD63C5.4020807@gmail.com>
+Date: Sun, 14 Sep 2008 23:19:33 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
+References: <48C3178F.6050704@gmx.de>	<200809141434.48564.mldvb@mortal-soul.de>	<48CD4B09.8000706@gmx.de>	<200809142001.20702.mldvb@mortal-soul.de>
+	<48CD6040.4030400@freenet.de>
+In-Reply-To: <48CD6040.4030400@freenet.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Problem with mantis drivers for Terratec Cinergy
+ C	and CAM
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,37 +27,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Patrick Boettcher wrote:
-> Hi Steve,
-> 
-> On Fri, 12 Sep 2008, Steven Toth wrote:
->> Patrick, I haven't looked at your 1.7MHz bandwidth suggestion - I'm open
->> to ideas on how you think we should do this. Take a look at todays
->> linux/dvb/frontend.h and see if these updates help, or whether you need
->> more changes.
-> 
-> I attached a patch which adds a DTV_BANDWIDTH_HZ command. That's all. I 
-> would like to have the option to pass any bandwidth I want to the frontend.
-> 
+Ruediger Dohmhardt wrote:
+>> No, actually I did not. :-) All I said is I had a brief look over the mantis 
+>> tree and spotted several known areas which area cicam related. From what I 
+>> had seen, I thought everything was already in place and concluded that you 
+>> might be suffering from a similar problem like I did for several month 
+>> because everything looked very familiar. But it seems like the cicam support 
+>> is rather new and still not quite ready. 
+>>   
+> Yes, for the 2033 it is not working yet!.
+> And as said several times on this list, I'm waiting for it for a long
+> time already.
+> I wonder why Manu does not finish it. There are several people here
+> waiting for CiCam support.
 
-...
+It's not something that i am purposefully delaying it. I am also almost
+at wits end. It is indeed a silly bug now, as almost everything is done
+for the "basic CI-CAM" support on the Mantis. The vendor is also helping
+out, by taking a look at the issue, but as said sometimes silly bugs are
+hard to find.
 
-> 
-> Sorry for not integrating this into the frontend_cache yet. But I'm 
-> really out of time (at work and even at home, working on cx24120) and I 
-> will not be able to supply the DiBcom ISDB-T demod-driver (which would 
-> use all that) right now.
-
-Great, thanks, I Merged with minor cleanup of comments.
-
-We should discuss the ISDB specifics at plumbers. The LAYER commands are 
-not currently implemented and it would be good to understand atleast two 
-different demodulators so we can abstract their controls into an API - 
-and avoid any device specifics.
-
-Changes to tune.c (v0.0.6) on steventoth.net/linux/s2
-
-- Steve
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
