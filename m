@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: VDR User <user.vdr@gmail.com>
-In-Reply-To: <a3ef07920809251814r4abbca6lc2e89ed5b3c5f2f0@mail.gmail.com>
-References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
-	<a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>
-	<48DBBAC0.7030201@gmx.de>
-	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
-	<20080925181943.GA12800@halim.local>
-	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
-	<48DBF224.2010109@gmx.de>
-	<37219a840809251340n7c588667xd18982f78e68a2ec@mail.gmail.com>
-	<d9def9db0809251400r331c0667k733486a013eccefe@mail.gmail.com>
-	<1222385832.4589.41.camel@pc10.localdom.local>
-	<a3ef07920809251814r4abbca6lc2e89ed5b3c5f2f0@mail.gmail.com>
-Date: Fri, 26 Sep 2008 03:18:30 +0200
-Message-Id: <1222391910.4589.45.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point
-	of	view
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <csutor@gmx.de>) id 1KeyGs-0004hh-G3
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 22:32:39 +0200
+Message-ID: <48CD74C2.8020800@gmx.de>
+Date: Sun, 14 Sep 2008 22:32:02 +0200
+From: Clemens Sutor <csutor@gmx.de>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+References: <48C3178F.6050704@gmx.de>	<200809141434.48564.mldvb@mortal-soul.de>	<48CD4B09.8000706@gmx.de>	<200809142001.20702.mldvb@mortal-soul.de>	<48CD6040.4030400@freenet.de>
+	<48CD63C5.4020807@gmail.com>
+In-Reply-To: <48CD63C5.4020807@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Problem with mantis drivers for Terratec Cinergy
+ C	and CAM
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,30 +27,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-Am Donnerstag, den 25.09.2008, 18:14 -0700 schrieb VDR User:
-> On Thu, Sep 25, 2008 at 4:37 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> > Who the hell is VDR User <user.vdr@gmail.com> ?
-> > Klaus himself?
-> 
-> No, I am not Klaus as could be assumed by simply looking at my email
-> address.  I am, however, a long-time linux dvb and VDR user.
-> 
-> > At least he knows nothing about Mauro's real work on video4linux.
-> 
-> If that comment was directed towards me then you're very wrong.  You'd
-> be making a terrible mistake if you think I just wandered in off the
-> street the other day.
-> 
+>
+>>> No, actually I did not. :-) All I said is I had a brief look over the mantis 
+>>> tree and spotted several known areas which area cicam related. From what I 
+>>> had seen, I thought everything was already in place and concluded that you 
+>>> might be suffering from a similar problem like I did for several month 
+>>> because everything looked very familiar. But it seems like the cicam support 
+>>> is rather new and still not quite ready. 
+>>>   
+>>>       
+Thank you for trying to help Matthias.
+>> Yes, for the 2033 it is not working yet!.
+>> And as said several times on this list, I'm waiting for it for a long
+>> time already.
+>> I wonder why Manu does not finish it. There are several people here
+>> waiting for CiCam support.
+>>     
+>
+> It's not something that i am purposefully delaying it. I am also almost
+> at wits end. It is indeed a silly bug now, as almost everything is done
+> for the "basic CI-CAM" support on the Mantis. The vendor is also helping
+> out, by taking a look at the issue, but as said sometimes silly bugs are
+> hard to find.
+>
 > Regards,
-> -Derek
+> Manu
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>   
+Hi Manu,
 
-Hi Uwe,
+thanks for the info about the status in develeopment, it's the first 
+answer I was able to get from "official" sources :)
 
-welcome back.
+Can you give us some updates if you get feedback from the vendor please?
 
-Cheers,
-Hermann
+Is there something I can do to support you in finding the problem?
+
+Bye
+Clemens
+
 
 
 
