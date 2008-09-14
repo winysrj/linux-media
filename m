@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f20.google.com ([209.85.217.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <owen.townend@gmail.com>) id 1Kfm01-0000P6-Dm
-	for linux-dvb@linuxtv.org; Wed, 17 Sep 2008 03:38:35 +0200
-Received: by gxk13 with SMTP id 13so27961088gxk.17
-	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 18:37:58 -0700 (PDT)
-Message-ID: <bb72339d0809161837w58ce1256g519306a029e36294@mail.gmail.com>
-Date: Wed, 17 Sep 2008 11:37:58 +1000
-From: "Owen Townend" <owen.townend@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <48D059AE.1060307@rogers.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <48D059AE.1060307@rogers.com>
-Subject: Re: [linux-dvb] Questions on v4l-dvb driver instructions
+From: Andy Walls <awalls@radix.net>
+To: Manu Abraham <abraham.manu@gmail.com>
+In-Reply-To: <48CD5D19.1070700@gmail.com>
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<48CC42D8.8080806@gmail.com>
+	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
+	<48CC4D35.3000003@gmail.com>
+	<d9def9db0809140838k2ced5211gc2690e76f53a98be@mail.gmail.com>
+	<48CD43C1.2090902@linuxtv.org>  <48CD5D19.1070700@gmail.com>
+Date: Sun, 14 Sep 2008 16:45:46 -0400
+Message-Id: <1221425146.4278.30.camel@morgan.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,57 +29,74 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/9/17 Jonathan Coles <jcoles0727@rogers.com>:
-> Your instructions at http://linuxtv.org/repo/ for obtaining v4l-dvb say
-> to execute:
->
-> hg clone http://linuxtv.org/hg/v4l-dvb
->
-> But this returns
->
-> abort: error: Name or service not known
->
-> Perhaps there is a mistake in the instructions.
+On Sun, 2008-09-14 at 22:51 +0400, Manu Abraham wrote:
+> Steven Toth wrote:
+> > Markus Rechberger wrote:
+> >> On Sun, Sep 14, 2008 at 1:31 AM, Manu Abraham <abraham.manu@gmail.com>
+> >> wrote:
+> >>> Markus Rechberger wrote:
+> >>>> On Sun, Sep 14, 2008 at 12:46 AM, Manu Abraham
+> >>>> <abraham.manu@gmail.com> wrote:
+> >>>>> Markus Rechberger wrote:
 
-copy and pasting that line here works fine:
+ 
+> > Me. I'll port the 3200 cards and their derivatives, including the 6100
+> > and the 0899. I've already said I'd do that.... but it's manu's code and
+> > he retains all rights. He gets to decide first.
+> 
+> 
+> The STB0899 based devices are much different from the crappy handicapped
+> Hauppauge S2 cards and hence the API that you work upon is quite limited
+> to what you see with regards to the Hauppauge (CX24116 based) cards.
+> 
+> Even the bare specifications from Conexant point to a handicapped DVB-S2
+> demodulator.
+> 
+> Attempts to do so, will break those devices at least for most of the
+> features and more yet to come. The DVB-S2 transport is a bit more
+> advanced delivery system than what your API based on the CX24116
+> demodulator.
+> 
+> At least it will be great for Hauppauge as you can point to people that
+> Hauppauge hardware is much better, for the marketing aspects as you have
+> done in the past on IRC lists.
+> 
+> Very good marketing strategy, Steven keep it up, you have earned more
+> sales for the Hauppauge cards ...
+> <claps hands>
 
-% hg clone http://linuxtv.org/hg/v4l-dvb
-destination directory: v4l-dvb
-requesting all changes
-adding changesets
-...etc
 
->
-> It seems this checkout step is not really required, as you can download
-> the tarball from a link on the page at the URL.
+Manu,
 
-One advantage of using mercurial over the tarball is the ability to
-run `hg pull` and `hg update` rather than re download the entire set.
+Though I can't read much German, after looking at the jusst.de website I
+can't help but think that you as well have financial interests driving
+your actions.  If so, then your statements display quite a bit of
+hypocrisy.
 
->
-> I also find it confusing that you mention dvb-apps, but don't talk about
-> compiling it. Is it needed? Optional? An alternative?
+Manipulating (i.e. stalling) the timing of Multiproto being merged into
+the v4l-dvb tree or kernel, for you or your employer's gain, would be
+little different from the motivations you allege Steve of having.
 
-dvb-apps AFAIK are optional. I have not yet needed them in normal
-operation of a tuner card.
+Since the major gripe I'm reading on the list "is that multiproto has
+taken too long" and since it seems to me the only thing that shook it
+loose was a competing proposal, please save the venom for when you
+actually have some clear moral high-ground to stand on.  I don't see it
+from here.
+ 
 
->
-> Are there additional steps not presented here? I was unable to get my
-> Hauppage HVR-950 to work on Ubuntu 8.04. Does this package support that
-> device?
 
-Do you have the firmware for the device as well as the driver?
+As for the technical superiority of either API proposal; that probably
+just doesn't matter.  I've seen policy/political decisions force
+suboptimal technical solutions at work time and time again.  If you
+really believe you have a superior product technically; then perhaps you
+should work to make it superior politically as well.  Mud-slinging can't
+be a good long term strategy toward that end.
 
-On the mythtv-users list there was a success story using one of these
-tuners. It details how they got it working before going into issues
-using two of them:
-http://www.gossamer-threads.com/lists/mythtv/users/349205?search_string=HVR-950;#349205
-He was using the mcentral repository, and Edgy but the steps are
-otherwise the same.
 
-Hope this helps,
-cheers,
-Owen.
+
+Regards,
+Andy
+
 
 _______________________________________________
 linux-dvb mailing list
