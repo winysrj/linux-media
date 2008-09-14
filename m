@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.28])
+Received: from dd15922.kasserver.com ([85.13.137.18])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bokola@gmail.com>) id 1Kd3XI-0004ix-DU
-	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 15:45:41 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so213675ywj.41
-	for <linux-dvb@linuxtv.org>; Tue, 09 Sep 2008 06:45:35 -0700 (PDT)
-Message-ID: <854d46170809090645k56f0befgda4dcee489a15128@mail.gmail.com>
-Date: Tue, 9 Sep 2008 15:45:33 +0200
-From: "Faruk A" <fa@elwak.com>
-To: "Renaud Pagin" <renaud.pagin@gmail.com>
-In-Reply-To: <ed53dcb30809090533p7b951fb6s9699a3eab9e3545b@mail.gmail.com>
+	(envelope-from <mldvb@mortal-soul.de>) id 1KevuW-0001jL-Sm
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 20:01:25 +0200
+From: Matthias Dahl <mldvb@mortal-soul.de>
+To: Clemens Sutor <csutor@gmx.de>
+Date: Sun, 14 Sep 2008 20:01:19 +0200
+References: <48C3178F.6050704@gmx.de> <200809141434.48564.mldvb@mortal-soul.de>
+	<48CD4B09.8000706@gmx.de>
+In-Reply-To: <48CD4B09.8000706@gmx.de>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <ed53dcb30809090533p7b951fb6s9699a3eab9e3545b@mail.gmail.com>
+Message-Id: <200809142001.20702.mldvb@mortal-soul.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT connect S3650 working set ?
+Subject: Re: [linux-dvb] Problem with mantis drivers for Terratec Cinergy C
+	and CAM
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,41 +28,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi!
+On Sunday 14 September 2008 19:34:02 Clemens Sutor wrote:
 
-This drivers doesn't work with the latest multiproto and kernel ( 2.6.26/27).
-you need to download multiproto changeset 9036 ->
-http://jusst.de/hg/multiproto/archive/fbcc9fa65f56.tar.bz2
-and apply the patch from wiki, that patch includes all the patch
-posted here on this mailing list.
-It should work with kernel 2.6.24 and 25, i have test with kernel
-2.6.26 dvb-usb and dvb-usb-pctv452e is broken.
+> first, thanks for the reply. I hope you can help me.
 
-For me it was working perfectly fine before my vacation when i came
-back i did system upgrade, it upgdrade
-every software to the latest including the kernel but i rollback to
-kernel 2.6.25-4 thats what i had before. The card is working but
-the weird thing is there are packet losses from the TS similar to the
-first version of this driver when it was first posted.
+You're welcome, but unfortunately you are suffering from a totally different 
+problem. I searched around a bit and found some "old" threads from June 08 
+with related problems... but no solution. :(
 
-Cheers
-Faruk
+> there is no working CI/CAM support for the Mantis 2033/2040 chipset
+> cards. You are telling me the opposite now. Did I get something wrong?
 
-> Hello,
->
-> Since more then 2 days i try to get working this device.
->
-> I followed the linux wiki ( S3650 ) , misc message on the ML , plenty patchs
-> found here and there.
->
-> And i have not found any solution working so far.
->
-> Where i can find the last patch working with the last head mercurial of
-> multiproto ?
->
-> Thanks !
->
-> Best regards
+No, actually I did not. :-) All I said is I had a brief look over the mantis 
+tree and spotted several known areas which area cicam related. From what I 
+had seen, I thought everything was already in place and concluded that you 
+might be suffering from a similar problem like I did for several month 
+because everything looked very familiar. But it seems like the cicam support 
+is rather new and still not quite ready. 
+
+I am sorry I cannot be of more help but I don't have a Mantis based card here 
+nor have I any experience with the Mantis tree. :-( Maybe someone else...?
+
+Hope you get this fixed sooner rather than later... :-(
+
+So long,
+mathtias.
+
 
 _______________________________________________
 linux-dvb mailing list
