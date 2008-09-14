@@ -1,26 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nschwmtas04p.mx.bigpond.com ([61.9.189.146])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jhhummel@bigpond.com>) id 1KfCvh-0005pU-On
-	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 14:11:47 +0200
-Received: from nschwotgx02p.mx.bigpond.com ([58.173.115.70])
-	by nschwmtas04p.mx.bigpond.com with ESMTP id
-	<20080915121107.MITB19703.nschwmtas04p.mx.bigpond.com@nschwotgx02p.mx.bigpond.com>
-	for <linux-dvb@linuxtv.org>; Mon, 15 Sep 2008 12:11:07 +0000
-Received: from harriet ([58.173.115.70]) by nschwotgx02p.mx.bigpond.com
-	with ESMTP
-	id <20080915121106.OXC1865.nschwotgx02p.mx.bigpond.com@harriet>
-	for <linux-dvb@linuxtv.org>; Mon, 15 Sep 2008 12:11:06 +0000
-Received: from harriet by harriet with local (Exim 4.69)
-	(envelope-from <jhhummel@bigpond.com>) id 1KfCv4-0002pt-Hf
-	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 22:11:06 +1000
-From: Jonathan <jhhummel@bigpond.com>
+Received: from n31.bullet.mail.ukl.yahoo.com ([87.248.110.148])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <horuljo@yahoo.de>) id 1KeqX6-0000Di-QW
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 14:16:53 +0200
+Date: Sun, 14 Sep 2008 12:09:37 +0000 (GMT)
+From: Peter Mayer <horuljo@yahoo.de>
 To: linux-dvb@linuxtv.org
-Date: Mon, 15 Sep 2008 22:11:06 +1000
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809152211.06386.jhhummel@bigpond.com>
-Subject: [linux-dvb] DTV2000H
+Message-ID: <516169.32534.qm@web28413.mail.ukl.yahoo.com>
+Subject: [linux-dvb] Kernel integration of rtl2831u driver
+Reply-To: horuljo@yahoo.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,25 +17,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
 Hi,
 
-I've had a look on Google, and there seems to be quite a bit of mail forums 
-about a patch for rev J of this card, but they all seem to have issues of 
-some form.
+i own a Freecom rev 4 DVB-T USB-stick using a rtl2831u chip inside. Since a=
+bout February this year, drivers for that stick are available and a lot of =
+discussion about the driver was done on this list. =
 
-Apparently the patch can get analogue TV and Radio working.
 
-Can anyone shed some light on this?
+But it seems for quite some time that no further discussion happens anymore=
+.. I am using debian SID (sidux) and the actual kernel there (2.6.26-5.slh.=
+4-sidux-686) from some days ago still does not include the rtl2831u dvb-t d=
+river. So, I wonder now what the next steps are to make this driver availab=
+le in the linux kernel, and when it will probably happen.
 
-Thanks
+Background of my question is that I would like to use the stick of course, =
+but without patching and compiling a new kernel from source by myself.
 
-Jon
+So, what is the future plan of rtl2831u for kernel integration? I am not fa=
+miliar with the standard procedure of the diffusion process into mainstream=
+ kernel versions, so I would appreciate any comments on this topic.
+
+Best regards,
+Peter Mayer
+
+__________________________________________________
+Do You Yahoo!?
+Sie sind Spam leid? Yahoo! Mail verf=FCgt =FCber einen herausragenden Schut=
+z gegen Massenmails. =
+
+http://mail.yahoo.com =
+
+
 
 _______________________________________________
 linux-dvb mailing list
