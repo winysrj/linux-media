@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n2b.bullet.mail.ac4.yahoo.com ([76.13.13.72])
+Received: from n74.bullet.mail.sp1.yahoo.com ([98.136.44.186])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <albatrosmwdvb@yahoo.com>) id 1KjIUq-0008OC-2h
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 20:56:57 +0200
-Date: Fri, 26 Sep 2008 11:56:21 -0700 (PDT)
-From: Marek Marek <albatrosmwdvb@yahoo.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KepCi-0001Hi-6n
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 12:51:45 +0200
+Date: Sun, 14 Sep 2008 03:51:08 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0809131910h2ff43b9auf86eb340adb2fac8@mail.gmail.com>
 MIME-Version: 1.0
-Message-ID: <114395.53052.qm@web59909.mail.ac4.yahoo.com>
-Subject: [linux-dvb] Compro VideoMate E600F analog PCIe TV/FM capture card
-Reply-To: albatrosmwdvb@yahoo.com
+Message-ID: <391631.73780.qm@web46111.mail.sp1.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,78 +25,69 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have Compro VideoMate E600F analog PCIe TV/FM capture card with MPEG II A/V Encoder. I use Gentoo 2008.0 with 2.6.25-gentoo-r7 x86_64 kernel. There's no any support for this card on the V4L/DVB repository yet, so anybody help me?
+--- On Sun, 9/14/08, Markus Rechberger <mrechberger@gmail.com> wrote:
 
-lspci -vvnn
-02:00.0 Multimedia video controller [0400]: Conexant Device [14f1:8852] (rev 02)
-        Subsystem: Compro Technology, Inc. Device [185b:e800]
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 0, Cache Line Size: 4 bytes
-        Interrupt: pin A routed to IRQ 5
-        Region 0: Memory at fd600000 (64-bit, non-prefetchable) [size=2M]
-        Capabilities: [40] Express (v1) Endpoint, MSI 00
-                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
-                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
-                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
-                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
-                        MaxPayload 128 bytes, MaxReadReq 512 bytes
-                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
-                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0 <2us, L1 <4us
-                        ClockPM- Suprise- LLActRep- BwNot-
-                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
-                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
-        Capabilities: [80] Power Management version 2
-                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
-                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-        Capabilities: [90] Vital Product Data <?>
-        Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ Queue=0/0 Enable-
-                Address: 0000000000000000  Data: 0000
-        Capabilities: [100] Advanced Error Reporting <?>
-        Capabilities: [200] Virtual Channel <?>
+> >>> (Also to be noted is that, some BSD chaps also have shown interest in
 
-dmesg
-cx23885 driver version 0.0.1 loaded
-ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 16 (level, low) -> IRQ 16
-cx23885[0]: Your board isn't known (yet) to the driver.  You can
-cx23885[0]: try to pick one of the existing card configs via
-cx23885[0]: card=<n> insmod option.  Updating to the latest
-cx23885[0]: version might help as well.
-cx23885[0]: Here is a list of valid choices for the card=<n> insmod option:
-cx23885[0]:    card=0 -> UNKNOWN/GENERIC
-cx23885[0]:    card=1 -> Hauppauge WinTV-HVR1800lp
-cx23885[0]:    card=2 -> Hauppauge WinTV-HVR1800
-cx23885[0]:    card=3 -> Hauppauge WinTV-HVR1250
-cx23885[0]:    card=4 -> DViCO FusionHDTV5 Express
-cx23885[0]:    card=5 -> Hauppauge WinTV-HVR1500Q
-cx23885[0]:    card=6 -> Hauppauge WinTV-HVR1500
-cx23885[0]:    card=7 -> Hauppauge WinTV-HVR1200
-cx23885[0]:    card=8 -> Hauppauge WinTV-HVR1700
-cx23885[0]:    card=9 -> Hauppauge WinTV-HVR1400
-cx23885[0]:    card=10 -> DViCO FusionHDTV7 Dual Express
-cx23885[0]:    card=11 -> DViCO FusionHDTV DVB-T Dual Express
-cx23885[0]:    card=12 -> Leadtek Winfast PxDVR3200 H
-CORE cx23885[0]: subsystem: 185b:e800, board: UNKNOWN/GENERIC [card=0,autodetected]
-cx23885[0]: i2c bus 0 registered
-cx23885[0]: i2c bus 1 registered
-cx23885[0]: i2c bus 2 registered
-cx23885_dev_checkrevision() Hardware revision = 0xb0
-cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16, latency: 0, mmio: 0xfd600000
-PCI: Setting latency timer of device 0000:02:00.0 to 64
+Does BSD == NetBSD here?  Or are there other developments
+as well that I'm not aware of?
 
-Conexant CX23885-13Z PCIe A/V Decoder
-Conexant CX23417-11Z MPEG II A/V Encoder
-XCeive XC2028ACQ Video Tuner
 
-Detailed specification is on http://linuxtv.org/wiki/index.php/Compro_VideoMate_E600F
+> As for the em28xx driver I agreed with pushing all my code
 
-Thanks for any help.
+Do you want to have patches for your repository, like the
+following (just an example, based on the NetBSD SOC source)
 
-Marek Wasilow
+--- em2880-dvb.c-LINUX  2008-09-03 06:47:08.000000000 +0200
++++ em2880-dvb.c        2008-09-14 12:35:49.000000000 +0200
+@@ -18,6 +18,7 @@
+  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#if defined(__linux__)
+ #include <linux/init.h>
+ #include <linux/list.h>
+ #include <linux/module.h>
+@@ -29,6 +30,7 @@
+ #include <linux/dvb/frontend.h>
+ #include <linux/usb.h>
+ #include <linux/version.h>
++#endif
+ 
+ #include "em28xx.h"
+ 
+@@ -60,9 +62,11 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr
+ #define xc3028_offset_atsc 1750000;
+ 
+ 
++#if defined(__linux__)
+ MODULE_DESCRIPTION("Empiatech em2880 DVB-T extension");
+ MODULE_AUTHOR("Markus Rechberger <mrechberger@gmail.com>");
+ MODULE_LICENSE("GPL");
++#endif
+ 
+ 
+ DRX3973DData_t DRX3973DData_g = {
+@@ -209,7 +213,11 @@ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "em2880-dvb debug level (default off)");
+ 
+ #define dprintk(lvl, fmt, args...) if (debug >= lvl) do {\
++#if defined(__linux__)
+        printk(fmt, ##args); } while (0)
++#elif defined(__NetBSD__)
++       printf(fmt, ##args); } while (0)
++#endif
+ 
+ 
+ static int em2880_set_alternate(struct em2880_dvb *dvb_dev);
 
-PS: Sorry for my poor english...
 
+I think I've found something to play with...  (waits patiently
+for kernel panic, to have an excuse to reboot)
+
+
+thanks,
+barry bouwsma
 
 
       
