@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from mail-in-07.arcor-online.net ([151.189.21.47])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Kh40R-0006By-1A
-	for linux-dvb@linuxtv.org; Sat, 20 Sep 2008 17:04:19 +0200
-Message-ID: <48D510E8.7080900@linuxtv.org>
-Date: Sat, 20 Sep 2008 11:04:08 -0400
-From: Steven Toth <stoth@linuxtv.org>
-MIME-Version: 1.0
-To: Jonathan Coles <jcoles0727@rogers.com>
-References: <48D059AE.1060307@rogers.com>	<bb72339d0809161837w58ce1256g519306a029e36294@mail.gmail.com>
-	<48D4DE00.90005@rogers.com>
-In-Reply-To: <48D4DE00.90005@rogers.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Questions on v4l-dvb driver instructions
+	(envelope-from <hermann-pitton@arcor.de>) id 1KeiWp-0003JD-EL
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 05:44:05 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Markus Rechberger <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<48CC42D8.8080806@gmail.com>
+	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
+Date: Sun, 14 Sep 2008 05:39:57 +0200
+Message-Id: <1221363597.2667.2.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,80 +31,74 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jonathan Coles wrote:
-> Perhaps I have some other misconfiguration in my system. With the wget 
-> command I must use the --no-proxy option. Otherwise, I get "Error 
-> parsing proxy URL http://:8080/: Invalid host name." Very strange that 
-> port 8080 is assumed when the standard port is 80.
+
+Am Sonntag, den 14.09.2008, 00:56 +0200 schrieb Markus Rechberger:
+> On Sun, Sep 14, 2008 at 12:46 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
+> > Markus Rechberger wrote:
+> >
+> >> How many devices are currently supported by the multiproto API
+> >> compared with the s2 tree?
+> >
+> > The initial set of DVB-S2 multistandard devices supported by the
+> > multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
+> > alone. There are more additions by 2 more modules (not devices), but for
+> > the simple comparison here is the quick list of them, for which some of
+> > the manufacturers have shown support in some way. (There has been quite
+> > some contributions from the community as well.):
+> >
+> > (Also to be noted is that, some BSD chaps also have shown interest in
+> > the same)
+> >
 > 
-> I couldn't find an equivalent no-proxy option for hg.
+> they're heavy into moving the whole framework over as far as I've seen
+> yes, also including yet unmerged drivers.
+
+:) any problems?
+
+> > * STB0899 based
+> >
+> > Anubis
+> > Typhoon DVB-S2 PCI
+> >
+> > Azurewave/Twinhan
+> > VP-1041
+> > VP-7050
+> >
+> > Digital Now
+> > AD SP400
+> > AD SB300
+> >
+> > KNC1
+> > TV Station DVB-S2
+> > TV Station DVB-S2 Plus
+> >
+> > Pinnacle
+> > PCTV Sat HDTV Pro USB 452e
+> >
+> > Satelco
+> > TV Station DVB-S2
+> > Easywatch HDTV USB CI
+> > Easywatch HDTV PCI
+> >
+> > Technisat
+> > Skystar HD
+> > Skystar HD2
+> > Skystar USB2 HDCI
+> >
+> > Technotrend
+> > TT S2 3200
+> > TT S2 3600
+> > TT S2 3650
+> >
+> > Terratec
+> > Cinergy S2 PCI HD
+> > Cinergy S2 PCI HDCI
+> >
 > 
-> Thanks.
-
-Please don't top-post, it's aainst to policy of the mailing list.
-
-See below.
-
+> those are pullable now against the current tree?
 > 
-> Owen Townend wrote:
->> 2008/9/17 Jonathan Coles <jcoles0727@rogers.com>:
->>   
->>> Your instructions at http://linuxtv.org/repo/ for obtaining v4l-dvb say
->>> to execute:
->>>
->>> hg clone http://linuxtv.org/hg/v4l-dvb
->>>
->>> But this returns
->>>
->>> abort: error: Name or service not known
->>>
->>> Perhaps there is a mistake in the instructions.
->>>     
->> copy and pasting that line here works fine:
->>
->> % hg clone http://linuxtv.org/hg/v4l-dvb
->> destination directory: v4l-dvb
->> requesting all changes
->> adding changesets
->> ...etc
->>
->>   
->>> It seems this checkout step is not really required, as you can download
->>> the tarball from a link on the page at the URL.
->>>     
->> One advantage of using mercurial over the tarball is the ability to
->> run `hg pull` and `hg update` rather than re download the entire set.
->>
->>   
->>> I also find it confusing that you mention dvb-apps, but don't talk about
->>> compiling it. Is it needed? Optional? An alternative?
->>>     
->> dvb-apps AFAIK are optional. I have not yet needed them in normal
->> operation of a tuner card.
->>
->>   
->>> Are there additional steps not presented here? I was unable to get my
->>> Hauppage HVR-950 to work on Ubuntu 8.04. Does this package support that
->>> device?
->>>     
->> Do you have the firmware for the device as well as the driver?
->>
->> On the mythtv-users list there was a success story using one of these
->> tuners. It details how they got it working before going into issues
->> using two of them:
->> http://www.gossamer-threads.com/lists/mythtv/users/349205?search_string=HVR-950;#349205
->> He was using the mcentral repository, and Edgy but the steps are
->> otherwise the same.
->>
->> Hope this helps,
->> cheers,
->> Owen.
-
-Read this, it will probably help :)
-
-http://www.selenic.com/mercurial/hgrc.5.html
-
-- Steve
+> Markus
+> 
 
 
 
