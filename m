@@ -1,21 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from a-sasl-fastnet.sasl.smtp.pobox.com ([207.106.133.19]
-	helo=sasl.smtp.pobox.com) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <torgeir@pobox.com>) id 1Kinnt-0004tn-UO
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 12:10:34 +0200
-Message-Id: <FE8D1FB7-03BC-423E-8E6C-BC73CF4AB974@pobox.com>
-From: Torgeir Veimo <torgeir@pobox.com>
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-In-Reply-To: <alpine.LRH.1.10.0809251156390.1247@pub1.ifh.de>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Date: Thu, 25 Sep 2008 20:10:19 +1000
-References: <573008.36358.qm@web52908.mail.re2.yahoo.com>
-	<alpine.LRH.1.10.0809251152480.1247@pub1.ifh.de>
-	<01DE66C3-8E94-4DC3-9828-DF2CD7B59EBB@pobox.com>
-	<alpine.LRH.1.10.0809251156390.1247@pub1.ifh.de>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] getting rid of input dev in dvb-usb (was: Re:
- [PATCH] Add remote control support to Nova-TD (52009))
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1KeusC-0005ZQ-Gi
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 18:54:58 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K77009ZN2YM2J70@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sun, 14 Sep 2008 12:54:22 -0400 (EDT)
+Date: Sun, 14 Sep 2008 12:54:21 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <564277.58085.qm@web46102.mail.sp1.yahoo.com>
+To: free_beer_for_all@yahoo.com
+Message-id: <48CD41BD.8040508@linuxtv.org>
+MIME-version: 1.0
+References: <564277.58085.qm@web46102.mail.sp1.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,51 +31,70 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+barry bouwsma wrote:
+> --- On Sun, 9/14/08, Steven Toth <stoth@linuxtv.org> wrote:
+> 
+>> is that the BSD folks can't port the GPL license into BSD because it's 
+>> not compatible.
+> 
+> I don't want to see any religious war here (trimmed to dvb
+> list), but...
+> 
+> There is GPL code distributed as part of *BSD sources,
+> as you can see by reading the licensing in, for example,
+> $ ls /lost+found/CVSUP/BSD/FreeBSD.cvs/src/sys/gnu/dev/sound/pci/
+> Attic       emu10k1-alsa.h,v  maestro3_reg.h,v  p17v-alsa.h,v
+> csaimg.h,v  maestro3_dsp.h,v  p16v-alsa.h,v
 
-On 25 Sep 2008, at 19:59, Patrick Boettcher wrote:
+Interesting.
 
-> On Thu, 25 Sep 2008, Torgeir Veimo wrote:
->
->>
->> On 25 Sep 2008, at 19:53, Patrick Boettcher wrote:
->>
->>>> This patch is against the 2.6.26.5 kernel, and adds remote  
->>>> control support for the Hauppauge WinTV Nova-TD (Diversity)  
->>>> model. (That's the 52009 version.) It also adds the key-codes for  
->>>> the credit-card style remote control that comes with this  
->>>> particular adapter.
->>> Committed and ask to be pulled, thanks.
->>
->>
->> Am curious, would it be possible to augment these drivers to  
->> provide the raw IR codes on a raw hid device, eg. /dev/hidraw0 etc,  
->> so that other RC5 remotes than the ones that actually are sold with  
->> the card can be used with the card?
->
-> I would love that idea. Maybe this is the solution I have searched  
-> for so long. I desparately want to put those huge remote-control- 
-> table into user-space.
->
-> If hidraw is the right way, I'm with you. So far I wasn't sure what  
-> to do?!
->
-> How would it work with the key-table onces it is done with hidraw?
+> 
+> 
+>> I owe it to myself to spend somehime reading the BSD licencing. Maybe 
+>> the GPL is compatible with BSD.
+> 
+> It all depends on the intended use -- whether for optional
+> kernel components as above.  In the distributions, though,
+> it's kept separated.
+> 
+> It's also possible to dual-licence source, and I see a good
+> number of such files in NetBSD under, as an example,
+> /lost+found/CVSUP/BSD/NetBSD.cvs/src/sys/dev/ic/
 
+I'm be quite happy to grant a second license on my work the the BSD 
+guys, as the copyright owner I can do that. The legal stuff gets messy 
+quickly and I don't claim to understand all of it.
 
-I'm not sure if I'm the right person to answer that. But at least I  
-could use lircd with /dev/hidraw0 and I would be able to configure  
-filtering of IR events as I please.
-
-Maybe a generic table could be set in an input device by cat'ing the  
-table in some format to a /sys/../ file.
-
--- 
-Torgeir Veimo
-torgeir@pobox.com
+I'm an opensource developer, I chose to work on Linux because it's the 
+biggest movement. I have no objections to any other projects, in fact I 
+welcome them.
 
 
+> 
+> 
+> There will be plenty of misinformation and FUD about which
+> licensing is better, and I don't want to hear any more such.
+> Or debates.  Or evangelism.  Or anything.
 
+Agreed.
 
+> 
+> The different BSDen will handle GPLed code differently.
+> 
+> (By the way, it is possible to completely build NetBSD from
+> within Linux, though the DVB code hasn't been merged as of
+> this morning my time, if someone with *BSD familiarity here
+> wants to think about considering maybe playing with it later
+> sometime, perhaps, maybe)
+
+The issue would be your support community. If you're working on linux 
+then people here will help, if our working on something else and asking 
+for help here - then people will probably be trying to fix linux first, 
+so responses to questions may not arrive, or be slow coming.
+
+Still, better TV support in BSD is good news.
+
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
