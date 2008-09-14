@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <handygewinnspiel@gmx.de>) id 1KgMHt-0001T6-Gb
-	for linux-dvb@linuxtv.org; Thu, 18 Sep 2008 18:23:26 +0200
-Message-ID: <48D28052.5000209@gmx.de>
-Date: Thu, 18 Sep 2008 18:22:42 +0200
-From: wk <handygewinnspiel@gmx.de>
+Received: from mail.work.de ([212.12.32.20])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <abraham.manu@gmail.com>) id 1KezN3-0001n2-5C
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 23:43:06 +0200
+Message-ID: <48CD8560.3040301@gmail.com>
+Date: Mon, 15 Sep 2008 01:42:56 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: Frederic CAND <frederic.cand@anevia.com>
-References: <48D27B52.2010704@anevia.com>
-In-Reply-To: <48D27B52.2010704@anevia.com>
-Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] hvr 1300 radio
+To: Clemens Sutor <csutor@gmx.de>
+References: <48C3178F.6050704@gmx.de>	<200809141434.48564.mldvb@mortal-soul.de>	<48CD4B09.8000706@gmx.de>	<200809142001.20702.mldvb@mortal-soul.de>	<48CD6040.4030400@freenet.de>
+	<48CD63C5.4020807@gmail.com> <48CD74C2.8020800@gmx.de>
+In-Reply-To: <48CD74C2.8020800@gmx.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Problem with mantis drivers for Terratec Cinergy
+ C	and CAM
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,26 +27,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Frederic CAND wrote:
-> Dear all,
->
-> has anyone got analog FM radio working with an Hauppauge HVR 1300 ?
-> If yes please tell me how ! I got only noise from /dev/dsp* ... :(
-> This is an issue I've had for some time now ...
-> I tried option radio=63 on cx88xx module but it did not change anything 
-> (except writing cx88[0]: TV tuner type 63, Radio tuner type 63 in dmesg 
-> instead of radio tuner type -1 ...)
->
-> Is radio support just not implemented ?
->
->   
-Load cx88_blackbird and open /dev/radioX.
-I haven't tried radio up to now, but i would expect that only radio *or* 
-dvb works, but not both at the same time. Most probably radio is also 
-not feed trough the mpeg encoder.
+Hi Clemens,
+
+Clemens Sutor wrote:
+
+> Hi Manu,
+> 
+> thanks for the info about the status in develeopment, it's the first
+> answer I was able to get from "official" sources :)
+> 
+> Can you give us some updates if you get feedback from the vendor please?
+
+Of course.
+
+> 
+> Is there something I can do to support you in finding the problem?
+> 
+
+The key to the bug lies here:
+
+http://jusst.de/hg/mantis/rev/83e2af36efe7
 
 Regards,
-Winfried
+Manu
 
 
 _______________________________________________
