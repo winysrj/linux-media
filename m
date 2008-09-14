@@ -1,30 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp28.orange.fr ([80.12.242.100])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@bercot.org>) id 1KjseZ-0000WX-VP
-	for linux-dvb@linuxtv.org; Sun, 28 Sep 2008 11:33:25 +0200
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2809.orange.fr (SMTP Server) with ESMTP id A602E80000BA
-	for <linux-dvb@linuxtv.org>; Sun, 28 Sep 2008 11:32:50 +0200 (CEST)
-Received: from mail.bercot.org (LRouen-151-71-134-185.w193-253.abo.wanadoo.fr
-	[193.253.252.185])
-	by mwinf2809.orange.fr (SMTP Server) with ESMTP id 5505980000B3
-	for <linux-dvb@linuxtv.org>; Sun, 28 Sep 2008 11:32:50 +0200 (CEST)
-Received: from david.huperie (localhost [127.0.0.1])
-	by mail.bercot.org (Postfix) with ESMTP id 6DEF43C05A
-	for <linux-dvb@linuxtv.org>; Sun, 28 Sep 2008 11:43:06 +0200 (CEST)
-Date: Sun, 28 Sep 2008 11:32:49 +0200
-From: David BERCOT <linux-dvb@bercot.org>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080928113249.3b9d55c7@david.huperie>
-In-Reply-To: <20080927224411.003bd002@david.huperie>
-References: <20080927201547.2fbde736@david.huperie>
-	<d9def9db0809271230p561c022aoa2a32c8806688f68@mail.gmail.com>
-	<20080927221314.1313010c@david.huperie>
-	<d9def9db0809271339w70e64903o6a2026840cce5f6f@mail.gmail.com>
-	<20080927224411.003bd002@david.huperie>
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Markus Rechberger <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0809141533v12698fa3od765d09a4299f03c@mail.gmail.com>
+References: <564277.58085.qm@web46102.mail.sp1.yahoo.com>
+	<48CD41BD.8040508@linuxtv.org>
+	<d9def9db0809141251r1edece84r96c8becd5a2d4ee3@mail.gmail.com>
+	<48CD88CF.7060601@linuxtv.org>
+	<d9def9db0809141533v12698fa3od765d09a4299f03c@mail.gmail.com>
+Date: Mon, 15 Sep 2008 00:41:24 +0200
+Message-Id: <1221432084.4566.7.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] How installing em28xx ?
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,181 +19,77 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGksCgo+ID4gPiBObywgaXQgaXMgYSBjbGFzc2ljYWwga2VybmVsIDogMi42LjI2LTEtNjg2IG9u
-IERlYmlhbiBTaWQuCj4gPiAKPiA+ID4+ID4gJ2R2Yl91bnJlZ2lzdGVyX2Zyb250ZW5kJyAvb3B0
-L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOjk3NzoKPiA+ID4+ID4gZXJyZXVyOiBpbXBsaWNpdCBk
-ZWNsYXJhdGlvbiBvZiBmdW5jdGlvbgo+ID4gCj4gPiB0aGlzIG1lYW5zIGl0IGNhbm5vdCBmaW5k
-IHNvbWUgaGVhZGVycywgeW91IG5lZWQgdG8gaW5zdGFsbCB0aGUgZnVsbAo+ID4ga2VybmVsIHNv
-dXJjZXMgZm9yIHlvdXIgaW5zdGFsbGVkCj4gPiBrZXJuZWwgYmVmb3JlIGNvbXBpbGluZyB0aGUg
-ZHJpdmVyLgoKSSd2ZSBpbnN0YWxsZWQgdGhlIGZ1bGwga2VybmVsIHNvdXJjZXMgOgpkYXZpZDov
-dXNyL3NyYy9hcHQtZ2V0IHNvdXJjZSBsaW51eC1pbWFnZS0yLjYuMjYtMS02ODYKCmFuZCBpdCdz
-IG5vdCBiZXR0ZXIgOgpkYXZpZDovb3B0L2VtMjh4eC1uZXcjIG1ha2UKcm0gLXJmIE1vZHVsZS5z
-eW12ZXJzOyAKbWFrZSAtQyAvbGliL21vZHVsZXMvYGlmIFsgLWQgL2xpYi9tb2R1bGVzLzIuNi4y
-MS40LWVlZXBjIF07IHRoZW4gZWNobwoyLjYuMjEuNC1lZWVwYzsgZWxzZSB1bmFtZSAtcjsgZmlg
-L2J1aWxkIFNVQkRJUlM9YHB3ZGAgbW9kdWxlcyBtYWtlWzFdOgplbnRyYW50IGRhbnMgbGUgcsOp
-cGVydG9pcmUgwqsgL3Vzci9zcmMvbGludXgtaGVhZGVycy0yLjYuMjYtMS02ODYgwrsgQ0MKW01d
-ICAvb3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5vIERhbnMgbGUgZmljaGllciBpbmNsdXMgw6Ag
-cGFydGlyCmRlIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6MzM6IC9vcHQvZW0yOHh4LW5l
-dy9lbTI4eHguaDozMjoyMDoKZXJyZXVyOiBkbXhkZXYuaCA6IEF1Y3VuIGZpY2hpZXIgb3UgcsOp
-cGVydG9pcmUgZGUgY2UKdHlwZSAvb3B0L2VtMjh4eC1uZXcvZW0yOHh4Lmg6MzM6MjM6IGVycmV1
-cjogZHZiX2RlbXV4LmggOiBBdWN1bgpmaWNoaWVyIG91IHLDqXBlcnRvaXJlIGRlIGNlIHR5cGUg
-L29wdC9lbTI4eHgtbmV3L2VtMjh4eC5oOjM0OjIxOgplcnJldXI6IGR2Yl9uZXQuaCA6IEF1Y3Vu
-IGZpY2hpZXIgb3UgcsOpcGVydG9pcmUgZGUgY2UKdHlwZSAvb3B0L2VtMjh4eC1uZXcvZW0yOHh4
-Lmg6MzU6MjY6IGVycmV1cjogZHZiX2Zyb250ZW5kLmggOiBBdWN1bgpmaWNoaWVyIG91IHLDqXBl
-cnRvaXJlIGRlIGNlIHR5cGUgSW4gZmlsZSBpbmNsdWRlZApmcm9tIC9vcHQvZW0yOHh4LW5ldy9l
-bTI4ODAtZHZiLmM6MzM6IC9vcHQvZW0yOHh4LW5ldy9lbTI4eHguaDo1NTA6CmVycmV1cjogZmll
-bGQg4oCYZGVtdXjigJkgaGFzIGluY29tcGxldGUgdHlwZSAvb3B0L2VtMjh4eC1uZXcvZW0yOHh4
-Lmg6NTU4OgplcnJldXI6IGZpZWxkIOKAmGFkYXB0ZXLigJkgaGFzIGluY29tcGxldGUKdHlwZSAv
-b3B0L2VtMjh4eC1uZXcvZW0yOHh4Lmg6NTYxOiBlcnJldXI6IGZpZWxkIOKAmGRteGRlduKAmSBo
-YXMKaW5jb21wbGV0ZSB0eXBlIC9vcHQvZW0yOHh4LW5ldy9lbTI4eHguaDo1NjM6IGVycmV1cjog
-ZmllbGQg4oCYZHZibmV04oCZCmhhcyBpbmNvbXBsZXRlIHR5cGUgRGFucyBsZSBmaWNoaWVyIGlu
-Y2x1cyDDoCBwYXJ0aXIKZGUgL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo0MTogL29wdC9l
-bTI4eHgtbmV3L2RyeDM5NzNkL2RyeDM5NzNkX2RlbW9kLmg6NToyNjoKZXJyZXVyOiBkdmJfZnJv
-bnRlbmQuaCA6IEF1Y3VuIGZpY2hpZXIgb3UgcsOpcGVydG9pcmUgZGUgY2UgdHlwZSBJbiBmaWxl
-CmluY2x1ZGVkCmZyb20gL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo0MTogL29wdC9lbTI4
-eHgtbmV3L2RyeDM5NzNkL2RyeDM5NzNkX2RlbW9kLmg6OToKZXJyZXVyOiBmaWVsZCDigJhmcm9u
-dGVuZOKAmSBoYXMgaW5jb21wbGV0ZSB0eXBlIERhbnMgbGUgZmljaGllciBpbmNsdXMgw6AKcGFy
-dGlyCmRlIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6NDM6IC9vcHQvZW0yOHh4LW5ldy9x
-dDEwMTAvcXQxMDEwLmg6MjU6MjY6CmVycmV1cjogZHZiX2Zyb250ZW5kLmggOiBBdWN1biBmaWNo
-aWVyIG91IHLDqXBlcnRvaXJlIGRlIGNlCnR5cGUgL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIu
-Yzo0NzoyMjogZXJyZXVyOiBsZ2R0MzMweC5oIDogQXVjdW4KZmljaGllciBvdSByw6lwZXJ0b2ly
-ZSBkZSBjZSB0eXBlIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6IEluCmZ1bmN0aW9uIOKA
-mGVtMjg4MF9jb21wbGV0ZV9pcnHigJk6IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6MjU0
-OgplcnJldXI6IGltcGxpY2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uCuKAmGR2Yl9kbXhfc3dm
-aWx0ZXLigJkgL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzogSG9ycyBkZSB0b3V0ZQpmb25j
-dGlvbiA6IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6MzU3OiBhdHRlbnRpb24gOiDigJhz
-dHJ1Y3QKZHZiX2RlbXV4X2ZlZWTigJkgZGVjbGFyZWQgaW5zaWRlIHBhcmFtZXRlcgpsaXN0IC9v
-cHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6MzU3OiBhdHRlbnRpb24gOiB2aXNpYmxlIHVuaXF1
-ZW1lbnQKZGVwdWlzIGNldHRlIGTDqWZpbml0aW9uIG91IGTDqWNsYXJhdGlvbiwgY2UgcXVpIG4n
-ZXN0IHByb2JhYmxlbWVudCBwYXMKY2UgcXVlIHZvdXMgZMOpc2lyZXogL29wdC9lbTI4eHgtbmV3
-L2VtMjg4MC1kdmIuYzogSW4gZnVuY3Rpb24K4oCYZW0yODgwX3N0YXJ0X2ZlZWTigJk6IC9vcHQv
-ZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6MzU5OiBlcnJldXI6CmTDqXLDqWbDqXJlbmNlbWVudCBk
-J3VuIHBvaW50ZXVyIGRlIHR5cGUKaW5jb21wbGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZi
-LmM6MzYwOiBlcnJldXI6IGTDqXLDqWbDqXJlbmNlbWVudApkJ3VuIHBvaW50ZXVyIGRlIHR5cGUg
-aW5jb21wbGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6IEhvcnMgZGUKdG91dGUgZm9u
-Y3Rpb24gOiAvb3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOjM3NDogYXR0ZW50aW9uIDog4oCY
-c3RydWN0CmR2Yl9kZW11eF9mZWVk4oCZIGRlY2xhcmVkIGluc2lkZSBwYXJhbWV0ZXIKbGlzdCAv
-b3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOiBJbiBmdW5jdGlvbgrigJhlbTI4ODBfc3RvcF9m
-ZWVk4oCZOiAvb3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOjM3NjogZXJyZXVyOgpkw6lyw6lm
-w6lyZW5jZW1lbnQgZCd1biBwb2ludGV1ciBkZSB0eXBlCmluY29tcGxldCAvb3B0L2VtMjh4eC1u
-ZXcvZW0yODgwLWR2Yi5jOjM3NzogZXJyZXVyOiBkw6lyw6lmw6lyZW5jZW1lbnQKZCd1biBwb2lu
-dGV1ciBkZSB0eXBlIGluY29tcGxldCAvb3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOiBJbgpm
-dW5jdGlvbiDigJhlbTI4eHhfdHNfYnVzX2N0cmzigJk6IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAt
-ZHZiLmM6NDAzOgplcnJldXI6IGTDqXLDqWbDqXJlbmNlbWVudCBkJ3VuIHBvaW50ZXVyIGRlIHR5
-cGUKaW5jb21wbGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6IEhvcnMgZGUgdG91dGUK
-Zm9uY3Rpb24gOiAvb3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOjQyMDogZXJyZXVyOiB2YXJp
-YWJsZQrigJhlbTI4ODBfbGdkdDMzMDNfZGV24oCZIGhhcyBpbml0aWFsaXplciBidXQgaW5jb21w
-bGV0ZQp0eXBlIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6NDIxOiBlcnJldXI6IHVua25v
-d24gZmllbGQK4oCYZGVtb2RfYWRkcmVzc+KAmSBzcGVjaWZpZWQgaW4KaW5pdGlhbGl6ZXIgL29w
-dC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo0MjE6IGF0dGVudGlvbiA6IMOpbMOpbWVudHMgZW4K
-ZXhjw6hzIGRhbnMgbCdpbml0aWFsaXNhdGlvbiBkZSBsYQpzdHJ1Y3R1cmUgL29wdC9lbTI4eHgt
-bmV3L2VtMjg4MC1kdmIuYzo0MjE6IGF0dGVudGlvbiA6IChuZWFyCmluaXRpYWxpemF0aW9uIGZv
-cgrigJhlbTI4ODBfbGdkdDMzMDNfZGV24oCZKSAvb3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5j
-OjQyMjogZXJyZXVyOgp1bmtub3duIGZpZWxkIOKAmGRlbW9kX2NoaXDigJkgc3BlY2lmaWVkIGlu
-CmluaXRpYWxpemVyIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6NDIyOiBlcnJldXI6IOKA
-mExHRFQzMzAz4oCZCnVuZGVjbGFyZWQgaGVyZSAobm90IGluIGEgZnVuY3Rpb24pIC9vcHQvZW0y
-OHh4LW5ldy9lbTI4ODAtZHZiLmM6NDIzOgphdHRlbnRpb24gOiDDqWzDqW1lbnRzIGVuIGV4Y8Oo
-cyBkYW5zIGwnaW5pdGlhbGlzYXRpb24gZGUgbGEKc3RydWN0dXJlIC9vcHQvZW0yOHh4LW5ldy9l
-bTI4ODAtZHZiLmM6NDIzOiBhdHRlbnRpb24gOiAobmVhcgppbml0aWFsaXphdGlvbiBmb3Ig4oCY
-ZW0yODgwX2xnZHQzMzAzX2RlduKAmSkgL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzoKSW4g
-ZnVuY3Rpb24K4oCYa3dvcmxkMzU1dV9pMmNfZ2F0ZV9jdHJs4oCZOiAvb3B0L2VtMjh4eC1uZXcv
-ZW0yODgwLWR2Yi5jOjQzNzogZXJyZXVyOgpmaWVsZCDigJhmcm9udGVuZOKAmSBoYXMgaW5jb21w
-bGV0ZSB0eXBlIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6NDQzOgplcnJldXI6IGTDqXLD
-qWbDqXJlbmNlbWVudCBkJ3VuIHBvaW50ZXVyIGRlIHR5cGUKaW5jb21wbGV0IC9vcHQvZW0yOHh4
-LW5ldy9lbTI4ODAtZHZiLmM6IEluIGZ1bmN0aW9uCuKAmGVtMjh4eF9zZXRfcGFyYW1z4oCZOiAv
-b3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOjQ1NzogZXJyZXVyOgpkw6lyw6lmw6lyZW5jZW1l
-bnQgZCd1biBwb2ludGV1ciBkZSB0eXBlCmluY29tcGxldCAvb3B0L2VtMjh4eC1uZXcvZW0yODgw
-LWR2Yi5jOjQ2NjogZXJyZXVyOiBkw6lyw6lmw6lyZW5jZW1lbnQKZCd1biBwb2ludGV1ciBkZSB0
-eXBlIGluY29tcGxldCAvb3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOiBJbgpmdW5jdGlvbiDi
-gJhlbTI4eHhfZ2V0X2ZyZXF1ZW5jeeKAmTogL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo1
-ODQ6CmVycmV1cjogZMOpcsOpZsOpcmVuY2VtZW50IGQndW4gcG9pbnRldXIgZGUgdHlwZQppbmNv
-bXBsZXQgL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzogSW4gZnVuY3Rpb24K4oCYZW0yOHh4
-X2dldF9iYW5kd2lkdGjigJk6IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6NTkxOiBlcnJl
-dXI6CmTDqXLDqWbDqXJlbmNlbWVudCBkJ3VuIHBvaW50ZXVyIGRlIHR5cGUKaW5jb21wbGV0IC9v
-cHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6IEluIGZ1bmN0aW9uCuKAmGVtMjh4eF9kdmJfaW5p
-dOKAmTogL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo1OTk6IGVycmV1cjoKZMOpcsOpZsOp
-cmVuY2VtZW50IGQndW4gcG9pbnRldXIgZGUgdHlwZQppbmNvbXBsZXQgL29wdC9lbTI4eHgtbmV3
-L2VtMjg4MC1kdmIuYzogSW4gZnVuY3Rpb24K4oCYZW0yOHh4X3psMTAzNTNfaW5pdOKAmTogL29w
-dC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo2NTU6IGVycmV1cjoKZMOpcsOpZsOpcmVuY2VtZW50
-IGQndW4gcG9pbnRldXIgZGUgdHlwZQppbmNvbXBsZXQgL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1k
-dmIuYzogSW4gZnVuY3Rpb24K4oCYZW0yOHh4X3psMTAzNTNfc2xlZXDigJk6IC9vcHQvZW0yOHh4
-LW5ldy9lbTI4ODAtZHZiLmM6Njk3OiBlcnJldXI6CmTDqXLDqWbDqXJlbmNlbWVudCBkJ3VuIHBv
-aW50ZXVyIGRlIHR5cGUKaW5jb21wbGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6IElu
-IGZ1bmN0aW9uCuKAmGVtMjh4eF9kdmJfc2xlZXDigJk6IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAt
-ZHZiLmM6NzA5OiBlcnJldXI6CmTDqXLDqWbDqXJlbmNlbWVudCBkJ3VuIHBvaW50ZXVyIGRlIHR5
-cGUKaW5jb21wbGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6IEluIGZ1bmN0aW9uCuKA
-mGVtMjg4MF9kdmJfaW5pdOKAmTogL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo3NzQ6IGVy
-cmV1cjogaW1wbGljaXQKZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24g4oCYZHZiX2F0dGFjaOKAmSAv
-b3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOjc3ODoKYXR0ZW50aW9uIDogYXNzaWdubWVudCBt
-YWtlcyBwb2ludGVyIGZyb20gaW50ZWdlciB3aXRob3V0IGEKY2FzdCAvb3B0L2VtMjh4eC1uZXcv
-ZW0yODgwLWR2Yi5jOjc5NjogYXR0ZW50aW9uIDogYXNzaWdubWVudCBtYWtlcwpwb2ludGVyIGZy
-b20gaW50ZWdlciB3aXRob3V0IGEgY2FzdCAvb3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOjgw
-MjoKZXJyZXVyOiDigJhsZ2R0MzMweF9hdHRhY2jigJkgdW5kZWNsYXJlZCAoZmlyc3QgdXNlIGlu
-IHRoaXMKZnVuY3Rpb24pIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6ODAyOiBlcnJldXI6
-IChFYWNoIHVuZGVjbGFyZWQKaWRlbnRpZmllciBpcyByZXBvcnRlZCBvbmx5IG9uY2UgL29wdC9l
-bTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo4MDI6CmVycmV1cjogZm9yIGVhY2ggZnVuY3Rpb24gaXQg
-YXBwZWFycwppbi4pIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6ODAzOiBhdHRlbnRpb24g
-OiBhc3NpZ25tZW50IG1ha2VzCnBvaW50ZXIgZnJvbSBpbnRlZ2VyIHdpdGhvdXQgYSBjYXN0IC9v
-cHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6ODEyOgphdHRlbnRpb24gOiBhc3NpZ25tZW50IG1h
-a2VzIHBvaW50ZXIgZnJvbSBpbnRlZ2VyIHdpdGhvdXQgYQpjYXN0IC9vcHQvZW0yOHh4LW5ldy9l
-bTI4ODAtZHZiLmM6ODE3OiBhdHRlbnRpb24gOiBhc3NpZ25tZW50IG1ha2VzCnBvaW50ZXIgZnJv
-bSBpbnRlZ2VyIHdpdGhvdXQgYSBjYXN0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6ODQy
-OgplcnJldXI6IGTDqXLDqWbDqXJlbmNlbWVudCBkJ3VuIHBvaW50ZXVyIGRlIHR5cGUKaW5jb21w
-bGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6ODQzOiBlcnJldXI6IGTDqXLDqWbDqXJl
-bmNlbWVudApkJ3VuIHBvaW50ZXVyIGRlIHR5cGUgaW5jb21wbGV0IC9vcHQvZW0yOHh4LW5ldy9l
-bTI4ODAtZHZiLmM6ODQ1OgplcnJldXI6IGTDqXLDqWbDqXJlbmNlbWVudCBkJ3VuIHBvaW50ZXVy
-IGRlIHR5cGUKaW5jb21wbGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6ODQ3OiBlcnJl
-dXI6IGTDqXLDqWbDqXJlbmNlbWVudApkJ3VuIHBvaW50ZXVyIGRlIHR5cGUgaW5jb21wbGV0IC9v
-cHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6ODUxOgplcnJldXI6IGTDqXLDqWbDqXJlbmNlbWVu
-dCBkJ3VuIHBvaW50ZXVyIGRlIHR5cGUKaW5jb21wbGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAt
-ZHZiLmM6ODUzOiBlcnJldXI6IGTDqXLDqWbDqXJlbmNlbWVudApkJ3VuIHBvaW50ZXVyIGRlIHR5
-cGUgaW5jb21wbGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6ODYyOgplcnJldXI6IGTD
-qXLDqWbDqXJlbmNlbWVudCBkJ3VuIHBvaW50ZXVyIGRlIHR5cGUKaW5jb21wbGV0IC9vcHQvZW0y
-OHh4LW5ldy9lbTI4ODAtZHZiLmM6ODc2OiBlcnJldXI6IGTDqXLDqWbDqXJlbmNlbWVudApkJ3Vu
-IHBvaW50ZXVyIGRlIHR5cGUgaW5jb21wbGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6
-ODc4OgplcnJldXI6IGTDqXLDqWbDqXJlbmNlbWVudCBkJ3VuIHBvaW50ZXVyIGRlIHR5cGUKaW5j
-b21wbGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6ODc5OiBlcnJldXI6IGTDqXLDqWbD
-qXJlbmNlbWVudApkJ3VuIHBvaW50ZXVyIGRlIHR5cGUgaW5jb21wbGV0IC9vcHQvZW0yOHh4LW5l
-dy9lbTI4ODAtZHZiLmM6ODk3OgplcnJldXI6IGTDqXLDqWbDqXJlbmNlbWVudCBkJ3VuIHBvaW50
-ZXVyIGRlIHR5cGUKaW5jb21wbGV0IC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6OTAwOiBl
-cnJldXI6IGltcGxpY2l0CmRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uCuKAmGR2Yl9yZWdpc3Rlcl9h
-ZGFwdGVy4oCZIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6OTE4OiBlcnJldXI6CmltcGxp
-Y2l0IGRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uCuKAmGR2Yl9yZWdpc3Rlcl9mcm9udGVuZOKAmSAv
-b3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOjkyNTogZXJyZXVyOgrigJhETVhfVFNfRklMVEVS
-SU5H4oCZIHVuZGVjbGFyZWQgKGZpcnN0IHVzZSBpbiB0aGlzCmZ1bmN0aW9uKSAvb3B0L2VtMjh4
-eC1uZXcvZW0yODgwLWR2Yi5jOjkyNjogZXJyZXVyOgrigJhETVhfU0VDVElPTl9GSUxURVJJTkfi
-gJkgdW5kZWNsYXJlZCAoZmlyc3QgdXNlIGluIHRoaXMKZnVuY3Rpb24pIC9vcHQvZW0yOHh4LW5l
-dy9lbTI4ODAtZHZiLmM6OTI3OiBlcnJldXI6CuKAmERNWF9NRU1PUllfQkFTRURfRklMVEVSSU5H
-4oCZIHVuZGVjbGFyZWQgKGZpcnN0IHVzZSBpbiB0aGlzCmZ1bmN0aW9uKSAvb3B0L2VtMjh4eC1u
-ZXcvZW0yODgwLWR2Yi5jOjkyOTogZXJyZXVyOiBpbXBsaWNpdApkZWNsYXJhdGlvbiBvZiBmdW5j
-dGlvbgrigJhkdmJfZG14X2luaXTigJkgL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo5NDA6
-IGVycmV1cjogaW1wbGljaXQKZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24K4oCYZHZiX2RteGRldl9p
-bml04oCZIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6OTQ0OiBlcnJldXI6IGltcGxpY2l0
-CmRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uCuKAmGR2Yl9kbXhkZXZfcmVsZWFzZeKAmSAvb3B0L2Vt
-Mjh4eC1uZXcvZW0yODgwLWR2Yi5jOjk1NTogZXJyZXVyOiBpbXBsaWNpdApkZWNsYXJhdGlvbiBv
-ZiBmdW5jdGlvbgrigJhkdmJfbmV0X2luaXTigJkgL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIu
-Yzo5NTU6IGVycmV1cjoKZMOpcsOpZsOpcmVuY2VtZW50IGQndW4gcG9pbnRldXIgZGUgdHlwZQpp
-bmNvbXBsZXQgL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzogSW4gZnVuY3Rpb24K4oCYZW0y
-ODgwX2R2Yl9maW5p4oCZOiAvb3B0L2VtMjh4eC1uZXcvZW0yODgwLWR2Yi5jOjk3NTogZXJyZXVy
-OiBpbXBsaWNpdApkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbgrigJhkdmJfbmV0X3JlbGVhc2XigJkg
-L29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo5NzY6IGVycmV1cjogaW1wbGljaXQKZGVjbGFy
-YXRpb24gb2YgZnVuY3Rpb24K4oCYZHZiX3VucmVnaXN0ZXJfZnJvbnRlbmTigJkgL29wdC9lbTI4
-eHgtbmV3L2VtMjg4MC1kdmIuYzo5Nzc6IGVycmV1cjoKaW1wbGljaXQgZGVjbGFyYXRpb24gb2Yg
-ZnVuY3Rpb24K4oCYZHZiX2Zyb250ZW5kX2RldGFjaOKAmSAvb3B0L2VtMjh4eC1uZXcvZW0yODgw
-LWR2Yi5jOjk4MTogZXJyZXVyOgppbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbgrigJhk
-dmJfZG14X3JlbGVhc2XigJkgL29wdC9lbTI4eHgtbmV3L2VtMjg4MC1kdmIuYzo5ODM6IGVycmV1
-cjogaW1wbGljaXQKZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24g4oCYZHZiX3VucmVnaXN0ZXJfYWRh
-cHRlcuKAmSBtYWtlWzJdOiAqKioKWy9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLm9dIEVycmV1
-ciAxIG1ha2VbMV06ICoqKgpbX21vZHVsZV8vb3B0L2VtMjh4eC1uZXddIEVycmV1ciAyIG1ha2Vb
-MV06IHF1aXR0YW50IGxlIHLDqXBlcnRvaXJlCsKrIC91c3Ivc3JjL2xpbnV4LWhlYWRlcnMtMi42
-LjI2LTEtNjg2IMK7IG1ha2U6ICoqKiBbZGVmYXVsdF0gRXJyZXVyIDIKClNob3VsZCBJIGFkZCBh
-bm90aGVyIHRoaW5nID8gSSBkb24ndCBrbm93IHdoYXQncyB3cm9uZy4uLgoKVGhhbmtzLgoKRGF2
-aWQuCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGlu
-dXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51
-eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+
+Am Montag, den 15.09.2008, 00:33 +0200 schrieb Markus Rechberger:
+> On Sun, Sep 14, 2008 at 11:57 PM, Steven Toth <stoth@linuxtv.org> wrote:
+> > Markus Rechberger wrote:
+> >>
+> >> On Sun, Sep 14, 2008 at 6:54 PM, Steven Toth <stoth@linuxtv.org> wrote:
+> >>>
+> >>> barry bouwsma wrote:
+> >>>>
+> >>>> --- On Sun, 9/14/08, Steven Toth <stoth@linuxtv.org> wrote:
+> >>>>
+> >>>>> is that the BSD folks can't port the GPL license into BSD because it's
+> >>>>> not compatible.
+> >>>>
+> >>>> I don't want to see any religious war here (trimmed to dvb
+> >>>> list), but...
+> >>>>
+> >>>> There is GPL code distributed as part of *BSD sources,
+> >>>> as you can see by reading the licensing in, for example,
+> >>>> $ ls /lost+found/CVSUP/BSD/FreeBSD.cvs/src/sys/gnu/dev/sound/pci/
+> >>>> Attic       emu10k1-alsa.h,v  maestro3_reg.h,v  p17v-alsa.h,v
+> >>>> csaimg.h,v  maestro3_dsp.h,v  p16v-alsa.h,v
+> >>>
+> >>> Interesting.
+> >>>
+> >>>>
+> >>>>> I owe it to myself to spend somehime reading the BSD licencing. Maybe
+> >>>>> the GPL is compatible with BSD.
+> >>>>
+> >>>> It all depends on the intended use -- whether for optional
+> >>>> kernel components as above.  In the distributions, though,
+> >>>> it's kept separated.
+> >>>>
+> >>>> It's also possible to dual-licence source, and I see a good
+> >>>> number of such files in NetBSD under, as an example,
+> >>>> /lost+found/CVSUP/BSD/NetBSD.cvs/src/sys/dev/ic/
+> >>>
+> >>> I'm be quite happy to grant a second license on my work the the BSD
+> >>> guys, as the copyright owner I can do that. The legal stuff gets messy
+> >>> quickly and I don't claim to understand all of it.
+> >>>
+> >>
+> >> Great move Steven! Can we move the TDA10048 code over, maybe adding
+> >> a note that it's dual licensed would be nice?
+> >
+> > In principle yes.
+> >
+> > I'd like to see an example of dual license just to make sure it has no nasty
+> > side effects.
+> >
+> > Can you point me at one of your dual-license drivers so I can review the
+> > wording?
+> >
+> 
+> videodev2.h is also dual licensed.
+> 
+
+That was to what I tried to point to.
+
+Cheers,
+Hermann
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
