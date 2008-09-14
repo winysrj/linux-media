@@ -1,15 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Tue, 16 Sep 2008 12:36:46 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <412bdbff0809160544h28f90d86x81adcb37626fd518@mail.gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Message-id: <48CFE09E.2030009@linuxtv.org>
-MIME-version: 1.0
-References: <412bdbff0809152102j4faa675cw3134efe5403020bd@mail.gmail.com>
-	<48CF3D97.40805@linuxtv.org>
-	<412bdbff0809160544h28f90d86x81adcb37626fd518@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] [FIX] Use correct firmware for the ATI TV Wonder 600
+Received: from [195.7.61.12] (helo=killala.koala.ie)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <simon@koala.ie>) id 1Kewxg-0005mM-BJ
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 21:08:44 +0200
+Received: from [195.7.61.7] (cozumel.koala.ie [195.7.61.7])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id m8EJ8e4U005276
+	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 20:08:40 +0100
+From: Simon Kenyon <simon@koala.ie>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <48CC42D8.8080806@gmail.com>
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<48CC42D8.8080806@gmail.com>
+Date: Sun, 14 Sep 2008 20:08:39 +0100
+Message-Id: <1221419319.9803.0.camel@localhost>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,23 +31,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Devin Heitmueller wrote:
-> On Tue, Sep 16, 2008 at 1:01 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->> I'll push this in... I like the fact that you defined the xc3028L firmware in the header -- I will also push up a patch to change the HVR1400 (cx23885 ExpressCard) to use XC3028L_DEFAULT_FIRMWARE instead of specifying the filename explicitly.
+On Sun, 2008-09-14 at 02:46 +0400, Manu Abraham wrote:
+> The initial set of DVB-S2 multistandard devices supported by the
+> multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
+> alone. There are more additions by 2 more modules (not devices), but for
+> the simple comparison here is the quick list of them, for which some of
+> the manufacturers have shown support in some way. (There has been quite
+> some contributions from the community as well.):
 > 
-> Michael,
-> 
-> Thanks for your help in getting this pulled in.  The moral of this
-> story seems to have been that it's *way* easier to just buy the damn
-> thing than to add support for someone's device remotely.  92 emails
-> over three weeks to get support added versus 1 evening to get support
-> working right.  :-)
+> (Also to be noted is that, some BSD chaps also have shown interest in
+> the same)
 
-/me nods
+is there any issue with GPL code being merged into BSD?
+just asking
+--
+simon
 
-Better still, have someone give you a device for free in return for help.
-
-- Steve
 
 _______________________________________________
 linux-dvb mailing list
