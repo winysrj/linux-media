@@ -1,24 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KclLH-0002GK-25
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 20:20:04 +0200
-Date: Mon, 08 Sep 2008 20:19:29 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <48C566E6.2010601@gmail.com>
-Message-ID: <20080908181929.153310@gmx.net>
-MIME-Version: 1.0
-References: <48C00822.4030509@gmail.com>	<48C01698.4060503@gmail.com>
-	<48C01A99.402@gmail.com>	<20080904204709.GA32329@linuxtv.org>
-	<d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>
-	<48C1380F.7050705@linuxtv.org>	<48C42851.8070005@koala.ie>
-	<d9def9db0809071252x708f1b1ch6c23cb3d2b5796e9@mail.gmail.com>
-	<48C5091F.3050807@koala.ie>
-	<d9def9db0809080521s70d95b65ma277b7f3049193b3@mail.gmail.com>
-	<20080908131913.GA11251@halim.local>	<48C54DBF.7080204@linuxtv.org>
-	<48C566E6.2010601@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1Kesn8-0001TY-Jo
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 16:41:36 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K76007YNWSBAA40@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sun, 14 Sep 2008 10:41:00 -0400 (EDT)
+Date: Sun, 14 Sep 2008 10:40:59 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <20080914123631.73900@gmx.net>
+To: Hans Werner <HWerner4@gmx.de>
+Message-id: <48CD227B.2060503@linuxtv.org>
+MIME-version: 1.0
+References: <48CA0355.6080903@linuxtv.org>
+	<alpine.LRH.1.10.0809121112350.29931@pub3.ifh.de>
+	<48CC1C3C.6020701@linuxtv.org> <20080914123631.73900@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,65 +27,63 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hans Werner wrote:
+>> Patrick Boettcher wrote:
+>>> Hi Steve,
+>>>
+>>> On Fri, 12 Sep 2008, Steven Toth wrote:
+>>>> Patrick, I haven't looked at your 1.7MHz bandwidth suggestion - I'm
+>> open
+>>>> to ideas on how you think we should do this. Take a look at todays
+>>>> linux/dvb/frontend.h and see if these updates help, or whether you need
+>>>> more changes.
+>>> I attached a patch which adds a DTV_BANDWIDTH_HZ command. That's all. I 
+>>> would like to have the option to pass any bandwidth I want to the
+>> frontend.
+>> ...
+>>
+>>> Sorry for not integrating this into the frontend_cache yet. But I'm 
+>>> really out of time (at work and even at home, working on cx24120) and I 
+>>> will not be able to supply the DiBcom ISDB-T demod-driver (which would 
+>>> use all that) right now.
+>> Great, thanks, I Merged with minor cleanup of comments.
+>>
+>> We should discuss the ISDB specifics at plumbers. The LAYER commands are 
+>> not currently implemented and it would be good to understand atleast two 
+>> different demodulators so we can abstract their controls into an API - 
+>> and avoid any device specifics.
+>>
+>> Changes to tune.c (v0.0.6) on steventoth.net/linux/s2
+>>
+>> - Steve
+> 
+> The examples in tune 0.0.6 have two extra zeros :
+> 
+> it should be
+> { .cmd = DTV_BANDWIDTH_HZ,    .u.data = 8000000 },
+> not
+> { .cmd = DTV_BANDWIDTH_HZ,    .u.data = 800000000 },
+> 
+> After applying the multifrontend patch I have signal lock working with HVR4000 and 
+> S2API on all three delivery systems:
+> DVB-T (tune -f 1 option)
+> and
+> DVB-S/S2 (tune -f 0 option)
+> 
+> The legacy API works too for DVB-T and DVB-S. Darron has a cx24116 patch which
+> I needed to apply.
 
--------- Original-Nachricht --------
-> Datum: Mon, 08 Sep 2008 21:54:46 +0400
-> Von: Manu Abraham <abraham.manu@gmail.com>
-> An: linux-dvb@linuxtv.org
-> Betreff: Re: [linux-dvb] Multiproto API/Driver Update
+Thanks for highlighting this.
 
-> Steven Toth wrote:
-> =
+Fixed in v0.0.7, available on steventoth.net/linux/s2
 
-> > Fragmenting tree's to mcentral.de or Manu's repo (just.de?) shows that =
-
-> > those developers don't want to contribute to the community at
-> linuxtv.org.
-> =
-
-> Since it is another round of spreading lies and false accusations, i
-> will respond.
-> =
-
-> http://thread.gmane.org/gmane.linux.kernel/729892
-> =
-
-> http://thread.gmane.org/gmane.linux.kernel/729969
-> =
-
-> also at
-> =
-
-> http://www.kernel.org/pub/linux/kernel/people/manu/dvb_patches/
-> =
-
-> Normally anyone sane would think that the linux-kernel @kernel.org is
-> just a superset of any smaller Linux-* communities.
-> =
-
-> Maybe you just need to find a newer topic to spread Fear, Uncertainty
-> and Doubt (FUD).
-> =
-
-> Regards,
-> Manu
-
-Where's the beef? The drivers are missing.
-http://linuxtv.org/pipermail/linux-dvb/2008-September/028445.html
-
-
--- =
-
-Release early, release often.
-
-Psssst! Schon das coole Video vom GMX MultiMessenger gesehen?
-Der Eine f=FCr Alle: http://www.gmx.net/de/go/messenger03
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
