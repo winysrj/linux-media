@@ -1,24 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <n.wagenaar@xs4all.nl>) id 1Ki83q-0001ec-T6
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 15:36:15 +0200
-Received: from shalafi.ath.cx (shalafi-old.xs4all.nl [82.95.219.165])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id m8NDa9Lx061555
-	for <linux-dvb@linuxtv.org>; Tue, 23 Sep 2008 15:36:09 +0200 (CEST)
-	(envelope-from n.wagenaar@xs4all.nl)
-Received: from shalafi.ath.cx (localhost [127.0.0.1])
-	by shalafi.ath.cx (8.14.2/8.14.2/Debian-2build1) with ESMTP id
-	m8NDa9GM000610
-	for <linux-dvb@linuxtv.org>; Tue, 23 Sep 2008 15:36:09 +0200
-From: =?us-ascii?Q?Niels_Wagenaar?= <n.wagenaar@xs4all.nl>
-To: linux-dvb@linuxtv.org
-Date: Tue, 23 Sep 2008 15:36:09 +0200
-Mime-Version: 1.0
-Message-Id: <vmime.48d8f0c9.2764.5f503f2dd63a35b@shalafi.ath.cx>
-Subject: Re: [linux-dvb] Satelco EasyWatch reception woes in the 11700-11800
- MHz range
-Reply-To: n.wagenaar@xs4all.nl
+Message-ID: <48CD91E7.2060904@gmail.com>
+Date: Mon, 15 Sep 2008 02:36:23 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: Andy Walls <awalls@radix.net>
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>	
+	<48C66829.1010902@grumpydevil.homelinux.org>	
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>	
+	<48CC42D8.8080806@gmail.com>	
+	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>	
+	<48CC4D35.3000003@gmail.com>	
+	<d9def9db0809140838k2ced5211gc2690e76f53a98be@mail.gmail.com>	
+	<48CD43C1.2090902@linuxtv.org> <48CD5D19.1070700@gmail.com>	
+	<1221425146.4278.30.camel@morgan.walls.org>
+	<48CD7BC2.1080708@gmail.com>
+	<1221430822.4278.86.camel@morgan.walls.org>
+In-Reply-To: <1221430822.4278.86.camel@morgan.walls.org>
+Cc: linux-dvb@linuxtv.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,36 +32,127 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------Original message-----
-From: David Santinoli <marauder@tiscali.it>
-Sent: Tue 23-09-2008 15:16
-To: linux-dvb@linuxtv.org; 
-Subject: [linux-dvb] Satelco EasyWatch reception woes in the 11700-11800 MHz range
-
+Andy Walls wrote:
+> On Mon, 2008-09-15 at 01:01 +0400, Manu Abraham wrote:
+>> Andy,
+>>
+>>
+>> Andy Walls wrote:
+>>
+>>> Manu,
+>>>
+>>> Though I can't read much German, after looking at the jusst.de website I
+>>> can't help but think that you as well have financial interests driving
+>>> your actions.  If so, then your statements display quite a bit of
+>>> hypocrisy.
+>> To your utter disappointment as i should say, i am not working for any
+>> vendor, but just get device support out to the community.
 > 
-> Hi,
->   I'm experiencing reception problems (blocky video and scratchy audio)
-> with my Satelco EasyWatch PCI card (PCI ID 1131:7146) when tuning to
-> certain frequencies, roughly in the 11700-11800 MHz range.  Channels
-> outside this interval are tuned OK.
-> It does not look like an antenna-related issue, since feeding the same
-> input to a different card (Twinhan VP1032) or a set-top box gives good
-> results with all channels.
+> Not to my disappointment.  I'm glad to hear it.  Someone who appears to
+> have an EE background without corporate bias can be an asset to the
+> community. 
+> 
+> 
+>> The jusst.de domain is owned by Julian Scheel who runs Jusst
+>> Technologies, just happened to offer me hosting for me repositories for
+>> my work, using full ssh access, so that my workflow is easier.
+>>
+>> Not that i have anything to do with jusst.de otherwise. OTOH, i do have
+>> the patches at kernel.org
+>>
+>> Maybe Julian can comment on this to make things more clearer on the
+>> financial interests.
+> 
+> Then what I perceived was wrong.  My apologies.
+> 
+> 
+> 
+>>> Manipulating (i.e. stalling) the timing of Multiproto being merged into
+>>> the v4l-dvb tree or kernel, for you or your employer's gain, would be
+>>> little different from the motivations you allege Steve of having.
+>>
+>> I am not manipulating any timing of multiproto being merged. In fact i
+>> had been away, for a few months due to certain reasons, that you are
+>> perfectly aware by now as far as i can understand.
+> 
+> I was aware you were away.  For what dates I do not know (I have emails
+> from you in May 2008).  For what reasons, I do not know for sure (nor do
+> I feel is it my business).
+> 
+> 
+> 
+>>  So the points that
+>> you raise are quite baseless.
+> 
+> Not entirely, there is a basis for the timing point.  The pull requests
+> seemed to have come in short order when confronted with a competing
+> proposal.  Yet the project had been ongoing for at least over a year (as
+> far as I can ascertain).  Here's a gripe about delays from Jan 2008:
+> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg28606.html
+> 
+> There seemed to have been no other visible motivation for the pull
+> requests except competition.
+
+
+I got back on the beginning of September.
+
+
+>>> Since the major gripe I'm reading on the list "is that multiproto has
+>>> taken too long" and since it seems to me the only thing that shook it
+>>> loose was a competing proposal, please save the venom for when you
+>>> actually have some clear moral high-ground to stand on.  I don't see it
+>>> from here.
+>> Crap, just read above.
+> 
+> OK, then you do have some high ground.  But you also had essentially a
+> monopoly position and now you have competition.  That is not crap. 
 > 
 
-Satelco is a rebrand of the KNC1 product line (or the other way around). And I encountered similar problems with the KNC1 TV-Station DVB-S card as well. But in my case, I had only problems with the transponders on Astra 28.2e which had the BBC and ITV channels on them. Other sats (or at least, the ones I could receive and watch) didn't had the problems.
+Monopoly, competition .. sounds nonsense to me.
 
-> Anyone with similar experiences (with this or other cards)?
+
+>>> As for the technical superiority of either API proposal; that probably
+>>> just doesn't matter.  I've seen policy/political decisions force
+>>> suboptimal technical solutions at work time and time again.  If you
+>>> really believe you have a superior product technically; then perhaps you
+>>> should work to make it superior politically as well.  Mud-slinging can't
+>>> be a good long term strategy toward that end.
+>>
+>> I don't have to do any mud-slinging, just wrote the exact facts out here.
 > 
+> No, you are mud slinging.  Let's count the derogatory terms you use in
+> addressing your competition in the following quote:
+> 
+> "No need for you to break the compliant devices in favour of your
+> mediocre cards. As i wrote just above, the STB0899 is not the only one
+> device using the said features. Also i can guarantee that the CX24116
+> (HVR4000) is the most handicapped DVB-S2 device that you are basing the
 
-First I thought it was an dish-alligment problem. But after switching to a TT-1500S the problem was resolved. I then thought allready it was a driver problem. Because the TT-1500S resolved it, I never thought about it again till your message.
 
-> Thanks,
->  David
+Conexant themselves mentions what their demodulators can do. (In fact,
+they stopped their satellite demodulator businesses and sold it to NXP,
+AFAIK) I don't know what you want to add more into it, what Conexant
+hasn't. Only basic 8PSK NBC mode of operation. The DVB-S2 specification
+and supported devices do a lot more than that.
+
+
+> DVB-S2 API on: and i can guarantee that what you do will be just be
+> broken as you have done for other devices in the past."
+
+
+> "Also i do not understand, why you have to make a lot of noise to port
+> the STB0899 drivers to your crap, when all your cards work as expected
+> by you with the multiproto tree. I don't see any reason why the STB0899
+> has to be ported to the handicapped API of yours, handicapping the
+> STB0899 based devices."
+
+
+True it is.
+
 
 Regards,
+Manu
 
-Niels Wagenaar
 
 _______________________________________________
 linux-dvb mailing list
