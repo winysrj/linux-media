@@ -1,23 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.175])
+Received: from ey-out-2122.google.com ([74.125.78.24])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <user.vdr@gmail.com>) id 1KjIhv-00017b-6T
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 21:10:28 +0200
-Received: by ug-out-1314.google.com with SMTP id 39so1526879ugf.16
-	for <linux-dvb@linuxtv.org>; Fri, 26 Sep 2008 12:10:23 -0700 (PDT)
-Message-ID: <a3ef07920809261210l737493a4ydf68373531073ef8@mail.gmail.com>
-Date: Fri, 26 Sep 2008 12:10:23 -0700
-From: "VDR User" <user.vdr@gmail.com>
-To: "hermann pitton" <hermann-pitton@arcor.de>
-In-Reply-To: <1222454633.2675.11.camel@pc10.localdom.local>
+	(envelope-from <christophpfister@gmail.com>) id 1Kepgo-0004KH-7l
+	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 13:22:51 +0200
+Received: by ey-out-2122.google.com with SMTP id 25so718170eya.17
+	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 04:22:45 -0700 (PDT)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: =?iso-8859-1?q?H=E5kon_Alstadheim?= <hakon@alstadheim.priv.no>
+Date: Sun, 14 Sep 2008 13:22:40 +0200
+References: <48C0DD05.3070608@alstadheim.priv.no>
+	<200809131200.02589.christophpfister@gmail.com>
+	<48CC1C84.8050103@alstadheim.priv.no>
+In-Reply-To: <48CC1C84.8050103@alstadheim.priv.no>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <200809241922.16748@orion.escape-edv.de>
-	<1222306125.3323.80.camel@pc10.localdom.local>
-	<200809261714.58188@orion.escape-edv.de>
-	<1222454633.2675.11.camel@pc10.localdom.local>
-Cc: linux-dvb@linuxtv.org, v4l-dvb-maintainer@linuxtv.org, vdr@linuxtv.org
-Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [Wanted] dvb-ttpci maintainer
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_AQPzIBs6LIy+XSn"
+Message-Id: <200809141322.40094.christophpfister@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] =?utf-8?q?dvb-t_scan_file_Norway=2C_Tr=C3=B8ndelag?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,41 +25,92 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Sep 26, 2008 at 11:43 AM, hermann pitton
-<hermann-pitton@arcor.de> wrote:
-> Put at least a sticker on such guys like Uwe/Derek and Manu should do it
-> as well.
+--Boundary-00=_AQPzIBs6LIy+XSn
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Why do you keep insisting I am Uwe?  I am not so stop confusing me
-with someone else.  As you can see here, I've been registered on this
-list since March 23, 2006.
+Am Saturday 13 September 2008 22:03:16 schrieb H=C3=A5kon Alstadheim:
+> Christoph Pfister wrote:
+> > Am Friday 05 September 2008 09:17:25 schrieb H=C3=A5kon Alstadheim:
+> >  =20
+> >> The attached is raw output from w_scan, with a couple of comments adde=
+d.
+> >> The frequency I actually use which has the unencrypted channels is=20
+> >> 658000000.
+> >>    =20
+> >
+> > Hmm, it contains quite some occurencies of "AUTO". Any chance to get ri=
+d of=20
+> > them?
+> >
+> >  =20
+> I'm a rank amateur in this, so I'll freely admit that this config is=20
+> just a first approximation to allow me to test the state of various dvb=20
+> players. The standards used in dvb-t in Norway means that all software=20
+> needs to bee at the bleeding edge, so a working first approximation to=20
+> make testing easier is a boon (i.e. I'm hoping this file will end up on=20
+> live-cd distros).
+>=20
+> The only thing I ever see in the actual scan output is stuff like:
+>=20
+> parse_terrestrial_delivery_system_descriptor:498: 0x3409/0x3a4=20
+> 586000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISS=
+ION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
+>=20
+> Which I guess means that all the entries could be changed to 8MHz 2/3=20
+> 2/3 QAM64 8k 1/8 NONE. I have no contract or guarantee or even official=20
+> documentation from any provider to corroborate this. I tried asking on a=
+=20
+> web "help forum" for the dvb-t distributor (norkring). The answer was=20
+> "digital broadcasts in Norway are not viewable on a pc". (I'm watching=20
+> NRK1 digital on a gentoo box right now). Any official info on the=20
+> norkring website bears no resemblance to what actually works. There are=20
+> some "channel numbers" listed for the various "packages", but what those=
+=20
+> numbers mean (i.e. frequency ) is not specified, and there are some=20
+> transmitters that are not on the official list yet.
 
-=====
-from	linux-dvb-request@linuxtv.org
-to	user.vdr@gmail.com
-date	Thu, Mar 23, 2006 at 5:10 PM
-subject	Welcome to the "linux-dvb" mailing list (Digest mode)
-mailing list	linux-dvb.linuxtv.org Filter messages from this mailing list
-mailed-by	linuxtv.org
-=====
+Could you please check whether scan still produces correct output if you use
+the attached file?
 
-So you continue to try to tell people I am someone else, said that I
-have threatened you which I certainly have NOT.  Anyone can easily
-search ALL my posts here since I first joined and see for themselves I
-have clearly never done such a thing.
+Thanks,
 
-Why you continue making up these lies is beyond me but there's no
-doubt you are making a complete idiot of yourself by doing it and I
-doubt anyone with a brain in their head believes such ridiculous
-nonsense.
+Christoph
+
+--Boundary-00=_AQPzIBs6LIy+XSn
+Content-Type: text/plain;
+  charset="iso 8859-15";
+  name="no-Trondelag_Stjordal"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="no-Trondelag_Stjordal"
+
+# Norway / Trondelag / Stjordal
+# modified according to data automatically generated by w_scan
+# free (nrk) channels are on 658000000
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+T 474000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+
+--Boundary-00=_AQPzIBs6LIy+XSn
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_AQPzIBs6LIy+XSn--
