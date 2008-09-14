@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1KdqIW-0004OZ-FN
-	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 19:49:44 +0200
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org
-Date: Thu, 11 Sep 2008 20:24:24 +0300
-References: <48C70F88.4050701@linuxtv.org>
-	<200809110151.08382.liplianin@tut.by>
-	<20080911124246.GB3263@gmail.com>
-In-Reply-To: <20080911124246.GB3263@gmail.com>
+	(envelope-from <abraham.manu@gmail.com>) id 1Kf0bu-0008Le-KB
+	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 01:02:33 +0200
+Message-ID: <48CD97FC.7050608@gmail.com>
+Date: Mon, 15 Sep 2008 03:02:20 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809112024.24821.liplianin@tut.by>
-Subject: Re: [linux-dvb] S2API simple szap-s2 utility
+To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+References: <630160.40997.qm@web46116.mail.sp1.yahoo.com>	<48CAE273.4030809@gmail.com>
+	<48CCF23D.5050209@cadsoft.de>
+In-Reply-To: <48CCF23D.5050209@cadsoft.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,49 +20,63 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMTEgU2VwdGVtYmVyIDIwMDggMTU6NDI6NDYgR3JlZ29pcmUgRmF2cmUg
-zsHQydPBzCjBKToKPiBPbiBUaHUsIFNlcCAxMSwgMjAwOCBhdCAwMTo1MTowOEFNICswMzAwLCBJ
-Z29yIE0uIExpcGxpYW5pbiB3cm90ZToKPiA+IFRoZXJlIGlzIGEgcHJvZ3JhbSB0byB6YXAgc2F0
-ZWxsaXRlIGNoYW5uZWxzIHdpdGggUzJBUEk6Cj4gPgo+ID4gaHR0cDovL2xpcGxpYW5pbmR2Yi5z
-b3VyY2Vmb3JnZS5uZXQvY2dpLWJpbi9oZ3dlYmRpci5jZ2kvc3phcC1zMi9hcmNoaXZlLwo+ID50
-aXAudGFyLmd6Cj4gPgo+ID4gRm9yIGVhc3kgdW5kZXJzdGFuZGluZyBhbmQgcXVpY2tseSB0ZXN0
-aW5nIFMyQVBJIChhbmQgZXZlbiB2aWV3aW5nIFRWCj4gPiB3aXRoIG1wbGF5ZXIpCj4KPiBHcmVh
-dCwgSSBqdXN0IGNvbXBpbGVkIHRoZSBzMiBkcml2ZXIgZnJvbQo+IGh0dHA6Ly9saW51eHR2Lm9y
-Zy9oZy9+c3RvdGgvczIvCj4gYW5kIGxvYWRlZCBtb2R1bGVzIHdpdGggc2NyaXB0cy9ybW1vZCBs
-b2FkIHdoaWNoIHNob3dzIDoKPgo+IGkyYy1hZGFwdGVyIGkyYy00OiBTTUJ1cyBRdWljayBjb21t
-YW5kIG5vdCBzdXBwb3J0ZWQsIGNhbid0IHByb2JlIGZvcgo+IGNoaXBzCj4gT21uaVZpc2lvbiBv
-djc2NzAgc2Vuc29yIGRyaXZlciwgYXQgeW91ciBzZXJ2aWNlCj4gd204Nzc1JyAyLTAwMWI6IGNo
-aXAgZm91bmQgQCAweDM2IChjeDg4WzBdKQo+IGkyYy1hZGFwdGVyIGkyYy00OiBTTUJ1cyBRdWlj
-ayBjb21tYW5kIG5vdCBzdXBwb3J0ZWQsIGNhbid0IHByb2JlIGZvcgo+IGNoaXBzCj4gc2FhNzE0
-NjogcmVnaXN0ZXIgZXh0ZW5zaW9uICdidWRnZXQgZHZiJy4KPiBzYWE3MTQ2OiByZWdpc3RlciBl
-eHRlbnNpb24gJ2J1ZGdldF9hdicuCj4gY3gyMzg4NSBkcml2ZXIgdmVyc2lvbiAwLjAuMSBsb2Fk
-ZWQKPiBjeDIzODh4IGJsYWNrYmlyZCBkcml2ZXIgdmVyc2lvbiAwLjAuNiBsb2FkZWQKPiBjeDg4
-LzI6IHJlZ2lzdGVyaW5nIGN4ODgwMiBkcml2ZXIsIHR5cGU6IGJsYWNrYmlyZCBhY2Nlc3M6IHNo
-YXJlZAo+IGN4ODhbMF0vMjogc3Vic3lzdGVtOiAwMDcwOjY5MDIsIGJvYXJkOiBIYXVwcGF1Z2Ug
-V2luVFYtSFZSNDAwMAo+IERWQi1TL1MyL1QvSHlicmlkIFtjYXJkPTY4XQo+IGN4ODhbMF0vMjog
-Y3g4ODAyIHByb2JlIGZhaWxlZCwgZXJyID0gLTE5Cj4gY3g4OFsxXS8yOiBzdWJzeXN0ZW06IDE0
-ZjE6MDA4NCwgYm9hcmQ6IEdlbmlhdGVjaCBEVkItUyBbY2FyZD01Ml0KPiBjeDg4WzFdLzI6IGN4
-ODgwMiBwcm9iZSBmYWlsZWQsIGVyciA9IC0xOQo+Cj4gU28gSSBsb29zZSBvbmUgY2FyZCBpbiB0
-aGlzIHByb2Nlc3Mgd2hpY2ggaXNuJ3QgYSBiaWcgcHJvYmxlbS4KPgo+IEJ1dCBteSBiaWcgcHJv
-YmxlbSBpcyB0aGF0IHdpdGggZXZlcnkgY2hhbm5lbCBJIHRyeSwgSSBnZXQgYW4gZXJyb3IgOgo+
-IHN6YXAtczIgLW4gMTMKPiByZWFkaW5nIGNoYW5uZWxzIGZyb20gZmlsZSAnL2hvbWUvZ3JlZy8u
-c3phcC9jaGFubmVscy5jb25mJwo+IHphcHBpbmcgdG8gMTMgJ0JCQ0hEJzoKPiBkZWxpdmVyeSBE
-VkItUywgbW9kdWxhdGlvbiBRUFNLCj4gc2F0IDIsIGZyZXF1ZW5jeSAxMDg0NyBNSHogViwgc3lt
-Ym9scmF0ZSAyMjAwMDAwMCwgY29kZXJhdGUgYXV0bywKPiByb2xsb2ZmIDAuMzUKPiB2cGlkIDB4
-MDkwZSwgYXBpZCAweDA5MGYsIHNpZCAweDFiMWMKPiB1c2luZyAnL2Rldi9kdmIvYWRhcHRlcjAv
-ZnJvbnRlbmQwJyBhbmQgJy9kZXYvZHZiL2FkYXB0ZXIwL2RlbXV4MCcKPiBGRV9TRVRfUFJPUEVS
-VFkgZmFpbGVkOiBPcGVyYXRpb24gbm90IHN1cHBvcnRlZAo+IHN0YXR1cyAwMSB8IHNpZ25hbCA5
-YjAyIHwgc25yIDgxZWEgfCBiZXIgMDAwMGZmMDAgfCB1bmMgZmZmZmZmZmUgfAo+IHN0YXR1cyAw
-MSB8IHNpZ25hbCA5ZmVlIHwgc25yIDgyY2IgfCBiZXIgMDAwMGZmMDAgfCB1bmMgZmZmZmZmZmUg
-fAo+IHN0YXR1cyAwMSB8IHNpZ25hbCBhMDBjIHwgc25yIDgyODMgfCBiZXIgMDAwMGZmMDggfCB1
-bmMgZmZmZmZmZmUgfAo+Cj4gV2hhdCBkaWQgSSBkbyB3cm9uZyA/Cj4KPiBUaGFua3MuCkhpLApK
-dXN0IG5vdyB1cGRhdGVkIHV0aWxpdHkKCklnb3IgTS4gTGlwbGlhbmluCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0
-CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFp
-bG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Klaus Schmidinger wrote:
+> On 09/12/08 23:43, Manu Abraham wrote:
+>> barry bouwsma wrote:
+>> ...
+>>> Now a completely different question -- I was pleased to see
+>>> that my not-too-old kernel compiled well with your mp_plus
+>>> source, and I read on the Wiki that certain basic tools
+>>> still needed to be ported to multiproto.
+>>
+>> Please use the multiproto tree rather than the multiproto_plus tree.
+> 
+> I tried the multiproto version 855d0c878944, but it didn't work on
+> my system. My VDR doesn't recognize my DVB-T card and hangs upon startup.
+> When I try to unload the driver modules, the 'rmmod budget_core' appears
+> to hang. If I kill that, a subsequent 'lsmod' also hangs, so I need to do
+> a reboot - which also hangs, so a hard reset is the last resort.
+
+
+Digging more into this...
+
+
+> Then I tried the latest multiproto_plus version adf34f76ab7c, with which
+> VDR's startup sequence results in
+> 
+> Sep 14 13:06:59 video vdr: [3309] probing /dev/dvb/adapter0/frontend0
+> Sep 14 13:06:59 video vdr: [3313] CI adapter on device 0 thread started (pid=3309, tid=3313)
+> Sep 14 13:06:59 video vdr: [3309] ERROR (dvbdevice.c,471): Operation not supported
+> Sep 14 13:06:59 video vdr: [3314] section handler thread started (pid=3309, tid=3314)
+> Sep 14 13:06:59 video vdr: [3309] probing /dev/dvb/adapter1/frontend0
+> Sep 14 13:06:59 video vdr: [3316] CI adapter on device 1 thread started (pid=3309, tid=3316)
+> Sep 14 13:06:59 video vdr: [3309] ERROR (dvbdevice.c,471): Operation not supported
+> Sep 14 13:06:59 video vdr: [3317] section handler thread started (pid=3309, tid=3317)
+> Sep 14 13:06:59 video vdr: [3309] probing /dev/dvb/adapter2/frontend0
+> Sep 14 13:06:59 video vdr: [3309] ERROR (dvbdevice.c,471): Operation not supported
+> Sep 14 13:06:59 video vdr: [3319] section handler thread started (pid=3309, tid=3319)
+> Sep 14 13:06:59 video vdr: [3309] probing /dev/dvb/adapter3/frontend0
+> Sep 14 13:06:59 video vdr: [3309] ERROR (dvbdevice.c,471): Operation not supported
+> Sep 14 13:06:59 video vdr: [3321] section handler thread started (pid=3309, tid=3321)
+> 
+> This is the DVBFE_GET_DELSYS call that apparently fails.
+
+Does this look like a mix up of the headers ? Also i do see a bad merge
+with the multiproto_plus tree with the v4l-dvb head :-/
+
+So eventually since the IOCTL doesn't exist in the merged
+multiproto_plus tree, i guess that's why it is failing.
+
+Regards,
+Manu
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
