@@ -1,62 +1,93 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from anchor-post-35.mail.demon.net ([194.217.242.85])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1KizDr-0002qn-C5
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 00:22:08 +0200
-Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
-	helo=pentagram.youmustbejoking.demon.co.uk)
-	by anchor-post-35.mail.demon.net with esmtp (Exim 4.67)
-	id 1KizDn-0003Bb-In
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 22:22:03 +0000
-Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
-	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1KizDj-0005Ua-5S
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 23:22:03 +0100
-Date: Thu, 25 Sep 2008 23:13:13 +0100
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
-To: linux-dvb@linuxtv.org
-Message-ID: <4FE9FCB5B4%linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <766065.22236.qm@web52911.mail.re2.yahoo.com>
-References: <766065.22236.qm@web52911.mail.re2.yahoo.com>
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] [PATCH] Add remote control support to Nova-TD
-	(52009)
+Return-path: <freebeer.bouwsma@gmail.com>
+Date: Sun, 14 Sep 2008 10:50:08 -0400
+In-reply-to: <48CC4669.9060407@singlespoon.org.au>
+To: Paul Chubb <paulc@singlespoon.org.au>
+Message-id: <48CD24A0.5020704@linuxtv.org>
+MIME-version: 1.0
+References: <466191.65236.qm@web46110.mail.sp1.yahoo.com>
+ <48CC219C.9010007@singlespoon.org.au> <48CC3479.5080706@linuxtv.org>
+ <48CC4669.9060407@singlespoon.org.au>
+Cc: linux dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] xc3028 config issue. Re: Why I need to choose better
+ Subject: headers [was: Re: Why (etc.)]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+  <mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
 List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+ <mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+Errors-To: linux-dvb-bounces+freebeer.bouwsma=gmail.com@linuxtv.org
+ReSent-Message-ID: <alpine.DEB.1.10.0809141912560.793@ybpnyubfg.ybpnyqbznva>
+From: Steven Toth <freebeer.bouwsma@gmail.com>
 List-ID: <linux-dvb@linuxtv.org>
 
-[text wrapped to <80 columns]
 
-I demand that Chris Rankin may or may not have written...
+Mauro, see question below.
 
-[snip]
-> Aren't we opening the door to "remote control wars" by just concatenating
-> the codes from several different remotes into one big list called
-> dib0700_rc_keys[]? Wouldn't it be better to allow the user to pick just one
-> of the available remotes somehow? Maybe we need an array of dvb_usb_rc_key
-> structures instead?
+Paul Chubb wrote:
+> Steven Toth wrote:
+>> Paul Chubb wrote:
+>>> Barry,
+>>> I drew the line at porting the xc3028 tuner module from mcentral.de 
+>>> into v4l-dvb, so no didn't solve the firmware issues. If you know 
+>>> what you are doing it should be trivial work - just linking in yet 
+>>> another tuner module and then calling it like all the others. For me 
+>>> because I don't know the code well it would take a week or two.
+>>
+>> No porting required.
+>>
+>> xc3028 tuner is already in the kernel, it should just be a case of 
+>> configuring the attach/config structs correctly.
+>>
+>> - Steve
+>>
+> Steve,
+>           I think we are talking about two different things. Yes the 
+> xc3028 tuner is supported via tuner-xc2028 and works for many xc3028 
+> based cards. This support uses the xc3028-v27.fw file that contains say 
+> 80 firmware modules. This firmware was extracted from a Haupage windows 
+> driver.
 
-It needs to be converted to use the IR input helper code
-(drivers/media/common/ir-{functions,keymaps}.c & <media/ir-common.h>).
+Correct.
 
-[snip]
--- 
-| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
-| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
-| + Lobby friends, family, business, government.    WE'RE KILLING THE PLANET.
+(I changed the subject by the way)
 
-Are you addicted to taglines? Call Tagliners Anonymous *now*!
+> 
+> I believe that the 1800H has some incompatibility with this firmware. 
+> The mcentral.de tree has a different firmware loading and tuner support 
+> module for xc3028 that loads individual firmware modules - you literally 
+> put twenty or thirty files into /lib/firmware. This firmware is the 
+> standard firmware from xceive before the card manufacturers get to it. 
+> Comparing the dmesg listing from a working mcentral.de setup and the 
+> non-working v4l tree the only thing that leaps out is the different 
+> firmware. If I was continuing the next step would be to port that tuner 
+> module into the v4l code and set it up in the normal way.
+
+the v27.fw file does contain the correct firmware, so the fact that the 
+inkernel tuner driver isn't select the correct version (or that it needs 
+a hint in the config struct) is probably a very small fix.
+
+Mauro (cc'd) generally maintains that driver and he should be able to 
+help. My suggestion is that you cut/paste the attach/config struct from 
+your leadtek code into this email thread. From you email address I guess 
+you're trying to get DVB-T 7MHz working in Australia. Mauro can review it.
+
+Ideally, we'd point you at a different card struct for the same tuner 
+that we know works in Australia, so you build the leadtek config struct 
+based on something that we know works.
+
+Mauro, what should the attach/config struct look like for a xc2028/3028 
+tune in Australia? Can you point to a working example or suggest a change?
+
+Regards,
+
+- Steve
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
