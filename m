@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from moutng.kundenserver.de ([212.227.126.186])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0=4PPs=2I=nikocity.de=mueller_michael@srs.kundenserver.de>)
-	id 1KkneQ-0005wq-OC
-	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 00:25:04 +0200
-In-Reply-To: <05763FBF-CEC8-4C6D-9DD0-42880ABB317A@nikocity.de>
-References: <20080914082131.GA12258@mueller_michael.de>
-	<alpine.LRH.1.10.0809150049000.7121@pub5.ifh.de>
-	<05763FBF-CEC8-4C6D-9DD0-42880ABB317A@nikocity.de>
-Mime-Version: 1.0 (Apple Message framework v753.1)
-Message-Id: <D3D88866-76A5-4C25-B4B7-8B7113238A84@nikocity.de>
-From: =?ISO-8859-1?Q?Michael_M=FCller?= <mueller_michael@nikocity.de>
-Date: Wed, 1 Oct 2008 00:26:32 +0200
-To: =?ISO-8859-1?Q?Michael_M=FCller?= <mueller_michael@nikocity.de>
-Cc: linux-dvb@linuxtv.org, pboettcher@dibcom.fr
-Subject: Re: [linux-dvb] Elgato EyeTV Diversity patch
+Received: from mail-gx0-f20.google.com ([209.85.217.20])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <gregoire.favre@gmail.com>) id 1KfKIe-0004am-K2
+	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 22:03:57 +0200
+Received: by gxk13 with SMTP id 13so25469179gxk.17
+	for <linux-dvb@linuxtv.org>; Mon, 15 Sep 2008 13:03:20 -0700 (PDT)
+Date: Mon, 15 Sep 2008 22:02:48 +0200
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Message-ID: <20080915200248.GA3258@gmail.com>
+References: <48CA0355.6080903@linuxtv.org> <200809150414.41360.hftom@free.fr>
+	<48CDD3AE.80506@linuxtv.org> <200809152008.10180.liplianin@tut.by>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <200809152008.10180.liplianin@tut.by>
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,56 +29,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Patrick!
+Hello,
 
-Am 15.09.2008 um 09:08 schrieb Michael M=FCller:
+today I checked my twelve diseqc/lnb possibily I have (3 sat, hi/low,
+v/h) and my HVR-4000 got lock on all with szap-s2 from Igor M. Liplianin
+with the S2 API :-)
+-- =
 
-> Hi Patrick!
->
-> Am 15.09.2008 um 00:55 schrieb Patrick Boettcher:
->
->> Hi Michael,
->>
->> On Sun, 14 Sep 2008, Michael M=FCller wrote:
->>> Simply adding a new entry beside the Hauppauge Nova-T stick using  =
+Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
+rg
+               http://picasaweb.google.com/Gregoire.Favre
 
->>> the
->>> new ids didn't work. Using trail and error I was able to find the
->>> right combination. I also was able to activate the remote
->>> control. Since the other devices that use stk7070pd_frontend_attach0
->>> and stk7070pd_frontend_attach1 as frontends doesn't activate the  =
-
->>> RC I
->>> needed to start a section for my stick. If it doesn't hurt the other
->>> devices to have a RC defined perhaps you should combine them.
->>
->> Yes, please do that.
->
-> I'll do that.
-
-Sorry for the delay but I was busy the last two weeks.
-
-I have the patch now ready but some tests show me that the RC part  =
-
-does not work fully as expected: After hitting a key on the remote  =
-
-control it seems that the key is send over and over again. If I hit  =
-
-another key it switches to this key and keeps sending this key. This  =
-
-problem already shows in a command line window. It seems to be a  =
-
-driver problem because if I activate the outcommented info() command  =
-
-in the driver I get the same output over and over.
-
-Do you have an idea what's going wrong?
-
-If not, should I remove the RC support from the patch?
-
-Regards
-
-Michael
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
