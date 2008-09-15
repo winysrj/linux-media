@@ -1,22 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1KbK2H-0006Al-Sb
-	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 20:58:31 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so493259fga.25
-	for <linux-dvb@linuxtv.org>; Thu, 04 Sep 2008 11:58:26 -0700 (PDT)
-Message-ID: <37219a840809041158l25a6e22fr4a7505c301f2280a@mail.gmail.com>
-Date: Thu, 4 Sep 2008 14:58:26 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Timothy E. Krantz" <tkrantz@stahurabrenner.com>
-In-Reply-To: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAOMVmZh16nVIl8AQ98OnPV0BAAAAAA==@stahurabrenner.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAFlk6faj1j1FhIe00GqH5lMBAAAAAA==@stahurabrenner.com>
-	<412bdbff0809041124o3ab340bci72e6d4f72b7653f9@mail.gmail.com>
-	<!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAOMVmZh16nVIl8AQ98OnPV0BAAAAAA==@stahurabrenner.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Getting firmware loaded to 2 cards of the same type
+	(envelope-from <stoth@linuxtv.org>) id 1Kf4ap-0000ZC-5b
+	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 05:17:41 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7700LDLVSFL690@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sun, 14 Sep 2008 23:17:03 -0400 (EDT)
+Date: Sun, 14 Sep 2008 23:17:02 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200809150414.41360.hftom@free.fr>
+To: Christophe Thommeret <hftom@free.fr>
+Message-id: <48CDD3AE.80506@linuxtv.org>
+MIME-version: 1.0
+References: <48CA0355.6080903@linuxtv.org> <48CD4004.4040005@linuxtv.org>
+	<200809142004.06876.hftom@free.fr> <200809150414.41360.hftom@free.fr>
+Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,48 +26,94 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->> -----Original Message-----
->> From: Devin Heitmueller [mailto:devin.heitmueller@gmail.com]
->> Sent: Thursday, September 04, 2008 2:24 PM
->> To: Timothy E. Krantz
->> Cc: linux-dvb@linuxtv.org
->> Subject: Re: [linux-dvb] Getting firmware loaded to 2 cards
->> of the same type
+Christophe Thommeret wrote:
+> Le Sunday 14 September 2008 20:04:06 Christophe Thommeret, vous avez =E9c=
+rit :
+>> Le Sunday 14 September 2008 18:47:00 Steven Toth, vous avez =E9crit :
+>>> Steven Toth wrote:
+>>>> Johannes Stezenbach wrote:
+>>>>> On Fri, Sep 12, 2008, Steven Toth wrote:
+>>>>>> Christophe Thommeret wrote:
+>>>>>>> As far  as i understand, the cinergyT2 driver is a bit unusual, e.g.
+>>>>>>> dvb_register_frontend is never called (hence no dtv_* log messages).
+>>>>>>> I don't know if there is others drivers like this, but this has to
+>>>>>>> be investigated cause rewritting all drivers for S2API could be a
+>>>>>>> bit of work :)
+>>>>>>>
+>>>>>>> P.S.
+>>>>>>> I think there is an alternate driver for cinergyT2 actually in
+>>>>>>> developement but idon't remember where it's located neither its
+>>>>>>> state.
+>>>>>> Good to know. (I also saw your followup email). I have zero
+>>>>>> experience with the cinergyT2 but the old api should still be working
+>>>>>> reliably. I plan to investigate this, sounds like a bug! :)
+>>>>> Holger was of the opinion that having the demux in dvb-core
+>>>>> was stupid for devices which have no hw demux, so he
+>>>>> programmed around dvb-core. His plan was to add a
+>>>>> mmap-dma-buffers kind of API to the frontend device,
+>>>>> but it never got implemented.
+>>>>>
+>>>>> Anyway, it's bad if one driver is different than all the others.
+>>>> Hmm, I didn't realize this, good to know.
+>>>>
+>>>> Now it's peaked my interest, I'll have to look at the code.
+>>>>
+>>>> The existing API should still work at a bare minimum, if it's not - it
+>>>> needs to.
+>>> So I looked the the cinergyT2 code, that's a complete eye-opener. It has
+>>> it's own ioctl handler, outside of dvb-core.
+>>>
+>>> It's a good news / bad news thing.
+>>>
+>>> The good news is that this driver will not be effected by the S2API
+>>> changes, so nothing can break.
+>>>
+>>> The bad news is that this driver will not be effected by the S2API
+>>> changes, so it doesn't get the benefit.
+>>>
+>>> Regardless of S2API or multiproto, I see no reason why we shouldn't
+>>> bring this driver back into dvb-core.
+>>>
+>>> I don't have a device to test, but here's a patch (0% tested, with bugs
+>>> probably) that converts the module back to a regular dvb-core compatible
+>>> device, so the S2API would work with this. If anyone wants to test this,
+>>> and finds bugs - I won't get back to this driver for a couple of weeks -
+>>> so your patches would be welcome. :)
+>>>
+>>> Frankly, is S2API is selected for merge and we have enough users of the
+>>> current non-dvb-core driver, I'll probably re-write it from the spec.
+>>>
+>>> So much to do, so little time.
+>>>
+>>> - Steve
+>> Steve,
 >>
->> 2008/9/4 Timothy E. Krantz <tkrantz@stahurabrenner.com>:
->> > I have 2 tuner cards of the same type.  They have xc5000
->> tuner chips
->> > in them that require firmware to be loaded.  As best as I can tell
->> > from the dmesg, only the first card is actually getting the
->> firmware
->> > properly loaded. There seems to be a message related to the second
->> > card that says something about firmware previously loaded.
->> The second
->> > card fails to tune in either ATSC or NTSC mode, just a black screen.
+>> as you expected, it's abit buggy and crashes at load ;)
+>> i've searched for the alternative cinergyT2 driver.
+>> it's available at: http://linuxtv.org/hg/~tmerle/cinergyT2/
 >>
->> What type of card is it?
->>
-On Thu, Sep 4, 2008 at 2:28 PM, Timothy E. Krantz
-<tkrantz@stahurabrenner.com> wrote:
-> Pinnacle PCTV HD (800i).
->
+>> haven't tried it yet but will do (at least several people seems to have =
+it
+>> working).
+> =
+
+> Have it working, not as good as Holger' one (often fails to lock) but it =
+
+> works, with both old and new api.
+> So, one problem less :)
+> =
 
 
-Timothy -- please do not top post.  The policy on this mailing list is
-that replies shall appear below the quoted text.
+Good to know Christophe, thanks.
 
-Can you show us a full dmesg dump, starting from "Linux video capture
-interface" , including all lines after.
+- Steve
 
-Thanks,
-
-Mike
 
 _______________________________________________
 linux-dvb mailing list
