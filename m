@@ -1,28 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m84E4q1U001983
-	for <video4linux-list@redhat.com>; Thu, 4 Sep 2008 10:04:53 -0400
-Received: from mta4.srv.hcvlny.cv.net (mta4.srv.hcvlny.cv.net [167.206.4.199])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m84E4crM019975
-	for <video4linux-list@redhat.com>; Thu, 4 Sep 2008 10:04:39 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6O003RICFMDY60@mta4.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Thu, 04 Sep 2008 10:04:36 -0400 (EDT)
-Date: Thu, 04 Sep 2008 10:04:34 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <f4fceb150809011155pa06831eoff1ef993d3eb17c9@mail.gmail.com>
-To: Yair Weinberger <yairwein@gmail.com>
-Message-id: <48BFEAF2.9060805@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <f4fceb150809011152n2a0adf2aqffb67a4cf87449c3@mail.gmail.com>
-	<f4fceb150809011155pa06831eoff1ef993d3eb17c9@mail.gmail.com>
-Cc: video4linux-list <video4linux-list@redhat.com>
-Subject: Re: Hauppauge WinTV USB2-Stick with Hardy
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8FM8xtJ003420
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 18:08:59 -0400
+Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
+	[151.189.21.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8FM8sxf031640
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 18:08:55 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: stuart <stuart@xnet.com>
+In-Reply-To: <48CEC847.8030404@xnet.com>
+References: <48CD6F11.8020900@xnet.com>
+	<1221431625.4566.5.camel@pc10.localdom.local>
+	<48CEC847.8030404@xnet.com>
+Content-Type: text/plain
+Date: Tue, 16 Sep 2008 00:04:56 +0200
+Message-Id: <1221516296.2715.52.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: Dwaine Garden <dwainegarden@rogers.com>, video4linux-list@redhat.com
+Subject: Re: KWorld 120 IR control?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,36 +30,67 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Yair Weinberger wrote:
-> Hi,
-> I bought a new Hauppauge WinTV USB2-Stick (At least that's the writing
-> on the card).  According to the v4l documentation, this card should be
-> supported in the em28xx drivers (card #4).  However, in the
-> documentation the vendor & device ID should be 2040:4200 or 2040:4201,
-> and my output of lsusb is 2040:6610.
-> I checked the em28xx-cards.c file, and my ID doesn't seem to appear
-> there (nor in any other file as far as I know).
-> The device is of course not automatically recognized, Output of dmesg
-> | grep em28xx:
-> [  198.082257] em28xx v4l2 driver version 0.1.0 loaded
-> [  198.082294] usbcore: registered new interface driver em28xx
-> 
-> Trying to load it with card=4 produced the following error in the dmesg output:
-> em28xx probing error: endpoint is non-ISO endpoint.
-> 
-> I attached what I think is the appropriate inf file from the Windows
-> drivers disk (renamed as text).  I will happily provide more data if required.
-> 
-> Any advice will be appreciated,
->  Wein
+Hi,
 
-The 66xx model is not supported my the em28xx driver.
+Am Montag, den 15.09.2008, 15:40 -0500 schrieb stuart:
+> 
+> hermann pitton wrote:
+> > Hi Stuart,
+> > 
+> > Am Sonntag, den 14.09.2008, 15:07 -0500 schrieb stuart:
+> >> Hi...
+> >>
+> >> This is my monthly (humm, more like quarterly) bump to see if anyone has 
+> >> looked at (or can tell me what to do with) the KWorld 120 video4linux 
+> >> drivers when it comes to getting the IR hardware to work.
+> >>
+> >> I would think, by now, there are a lot of these cards out there.  Were 
+> >> not the KWorld 110 and 115 ATSC tuners popular here?  And haven't they 
+> >> been replaced by the KWorld 120?  If so, what are people doing for IR?
+> >>
+> >> ...thanks
+> >>
+> > 
+> > Mauro, better we all of course, need to review Brian Rogers latest patch
+> > from Thursday on this to get it in.
+> > 
+> > Based on this, likely Dwaine Garden is the one who can further proceed
+> > for the Kworld stuff too.
+> > 
+> > Cheers,
+> > Hermann
+> 
+> Hey, thanks to all who have contributed to the KWorld-120 v4l driver! 
+> If it wasn't obvious, I've been enjoying the sound and video from my v4l 
+> driven KWorld-120 for months now.
+> 
+> So, are these IR remote control patches in Staging (the v4l somewhat 
+> stable pre-release version).  I've pulled and compiled from that repo 
+> before - no problem if that's where the new IR code is.
+> 
+> ...thanks
+> 
 
-For this you need Mauro's tm6010 development trees at 
-linuxtv.org/hg/~mchehab/... although I'm not sure what level of support 
-he has for that unit.
+there have been patches on the lists for KS003 and KS007 i2c driven
+remotes, but nothing is in yet.
 
-- Steve
+Brian Rogers current version likely will make it in now for the saa7134
+MSI TV@nywhere, based on Henry Wong's old patch.
+
+Mauro will have a look at it again next week after Portland.
+
+It likely can provide the base for other cards and drivers too then.
+
+Cheers,
+Hermann
+
+
+
+
+
+
+
+
 
 --
 video4linux-list mailing list
