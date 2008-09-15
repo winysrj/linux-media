@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KbbDi-0000Ov-Ts
-	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 15:19:29 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6Q00IRS4ZAV2R0@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 05 Sep 2008 09:18:47 -0400 (EDT)
-Date: Fri, 05 Sep 2008 09:18:46 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080904160756.146270@gmx.net>
-To: Hans Werner <HWerner4@gmx.de>
-Message-id: <48C131B6.60006@linuxtv.org>
-MIME-version: 1.0
-References: <48BF6A09.3020205@linuxtv.org> <20080904160756.146270@gmx.net>
+Received: from n41.bullet.mail.ukl.yahoo.com ([87.248.110.174])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <horuljo@yahoo.de>) id 1KfMKQ-0006Hr-Hw
+	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 00:13:56 +0200
+Date: Mon, 15 Sep 2008 22:12:58 +0000 (GMT)
+From: Peter Mayer <horuljo@yahoo.de>
+To: Steven Toth <stoth@linuxtv.org>
+In-Reply-To: <48CD2193.2000106@linuxtv.org>
+MIME-Version: 1.0
+Message-ID: <35680.33061.qm@web28404.mail.ukl.yahoo.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API - First release
+Subject: Re: [linux-dvb] Kernel integration of rtl2831u driver
+Reply-To: horuljo@yahoo.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,64 +19,89 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hans Werner wrote:
->> Hello,
->>
->> It's been a crazy few days, please forgive my short absence.
->>
->> What have I been doing? Well, rather than spending time discussing a new 
->> S2API on the mailing list, I wanted to actually produce a working series 
->> of patches that kernel and application developers could begin to test.
->>
-> 
-> Great, that's good to hear :) .
-> 
->> In addition, here's is a userland application that demonstrates tuning 
->> the current DVB-S/T/C and US ATSC modulations types using the new API. 
->> (www.steventoth.net/linux/s2/tune-v0.0.1.tgz)
->>
->> A tuning demo app? What? Obviously, tuning older modulation types via 
->> the new API isn't a requirements, but it's a useful validation exercise 
->> for the new S2API. What _IS_ important is..... that it also demonstrates 
->> using the same tuning mechanism to tune DVB-S2 8PSK / NBC-QPSK 
->> modulation types, and also has rudimentary ISDB-T support for any 
->> developers specifically interested.
->>
->> This S2API tree also contains support for the cx24116 demodulator 
->> driver, and the Hauppauge HVR4000 family of S2 products. So those 
->> interested testers/developers can modify the tune.c app demo and make 
->> changes specific to their area, and try experimenting with the new API 
->> if they desire. [1]
-> 
-> Even better!
->  
->> Obviously, tune.c isn't intelligent, it's not a replacement for szap, 
->> tzap or whatever - it's simply a standalone S2API test tool, that 
->> demonstrates the important API interface.
-> 
->> If anyone is willing to pull the tree and begin testing with the tune.c 
->> app then please post all feedback on this thread. [2]
-> 
-> I will test it with the HVR4000.
-> 
-> Looking at the code in dvb_frontend.c I think TV_SET_TONE and TV_SET_VOLTAGE don't do
-> anything. Or am I missing something?
+--- Steven Toth <stoth@linuxtv.org> schrieb am So, 14.9.2008:
 
-My bad.
+> > So, I wonder now what the next steps are to make
+> this driver available in the linux kernel, and when it will
+> probably happen.
+> > =
 
-Pull again from ~stoth/s2, I fixed this last night and tested with a 
-generator.
+> =
 
-DVB-S is working fine. 8PSK and NBC-QPSK would also work - assuming you 
-have the right tuning params (pilot etc).
+> I gather the tree has some significant merge issues,
+> that's probably why it hasn't been merged. Generally if the drivers are
+> legally clean, code clean they get merged in a couple of weeks.
 
-- Steve
+Sorry if I need to ask again, but what does this actually mean with respect=
+ to that specific driver rtl2821u? I just wonder.
+
+My problem is that in Ubuntu Hardy I managed to make this stick work, but i=
+n Debian SID I have no idea how to get it work. When I do
+
+hg clone http://linuxtv.org/hg/v4l-dvb
+make =
+
+make install
+
+the stick is not recognized. The entries in /var/log/syslog are:
+
+Sep 15 23:35:55  kernel: usb 3-3: New USB device found, idVendor=3D14aa, id=
+Product=3D0160
+Sep 15 23:35:55  kernel: usb 3-3: New USB device strings: Mfr=3D1, Product=
+=3D2, SerialNumber=3D3
+Sep 15 23:35:55  kernel: usb 3-3: Product: DTV Receiver
+Sep 15 23:35:55  kernel: usb 3-3: Manufacturer: DTV Receiver
+Sep 15 23:35:55  kernel: usb 3-3: SerialNumber: 0000000000010205
+
+When I unpack and make & make install rtl2831u_dvb-usb_v0.0.2mod, syslog sa=
+ys:
+
+Sep 15 23:40:17  kernel: usb 3-3: new high speed USB device using ehci_hcd =
+and address 3
+Sep 15 23:40:17  kernel: usb 3-3: configuration #1 chosen from 1 choice
+Sep 15 23:40:17  kernel: usb 3-3: New USB device found, idVendor=3D14aa, id=
+Product=3D0160
+Sep 15 23:40:17  kernel: usb 3-3: New USB device strings: Mfr=3D1, Product=
+=3D2, SerialNumber=3D3
+Sep 15 23:40:17  kernel: usb 3-3: Product: DTV Receiver
+Sep 15 23:40:17  kernel: usb 3-3: Manufacturer: DTV Receiver
+Sep 15 23:40:17  kernel: usb 3-3: SerialNumber: 0000000000010205
+Sep 15 23:40:17  NetworkManager: <debug> [1221514817.598859] nm_hal_device_=
+added(): New device added (hal udi is '/org/freedesktop/Hal/devices/usb_dev=
+ice_14aa_160_0000000000010205').
+Sep 15 23:40:17  NetworkManager: <debug> [1221514817.602281] nm_hal_device_=
+added(): New device added (hal udi is '/org/freedesktop/Hal/devices/usb_dev=
+ice_14aa_160_0000000000010205_usbraw').
+Sep 15 23:40:17  kernel: dvb-usb: found a 'Freecom USB 2.0 DVB-T Device' in=
+ warm state.
+Sep 15 23:40:17  kernel: dvb-usb: will pass the complete MPEG2 transport st=
+ream to the software demuxer.
+Sep 15 23:40:17  udevd-event[3309]: run_program: '/sbin/modprobe' abnormal =
+exit
+Sep 15 23:40:17  NetworkManager: <debug> [1221514817.795519] nm_hal_device_=
+added(): New device added (hal udi is '/org/freedesktop/Hal/devices/usb_dev=
+ice_14aa_160_0000000000010205_if0').
+
+So, what can I try to make this stick work in Debian SID?
+
+Greetings,
+Peter
+
+
+__________________________________________________
+Do You Yahoo!?
+Sie sind Spam leid? Yahoo! Mail verf=FCgt =FCber einen herausragenden Schut=
+z gegen Massenmails. =
+
+http://mail.yahoo.com =
+
+
 
 _______________________________________________
 linux-dvb mailing list
