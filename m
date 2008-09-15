@@ -1,33 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8DLt62U007427
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 17:55:06 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8DLt3LA022466
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 17:55:04 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1Ked54-0002f2-ND
-	for video4linux-list@redhat.com; Sat, 13 Sep 2008 21:55:02 +0000
-Received: from thrashbarg.mansr.com ([78.86.181.100])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 21:55:02 +0000
-Received: from mans by thrashbarg.mansr.com with local (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 21:55:02 +0000
-To: video4linux-list@redhat.com
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Date: Sat, 13 Sep 2008 22:47:40 +0100
-Message-ID: <yw1xbpyr3egz.fsf@thrashbarg.mansr.com>
-References: <1221144955.12281.6.camel@tubuntu>
-	<5A47E75E594F054BAF48C5E4FC4B92AB02C42B43C8@dbde02.ent.ti.com>
-	<20080912152937.GP31563@intune.research.nokia.com>
-	<92846148-6506-47F1-8643-7333FB5E146A@student.utwente.nl>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8F4QwYl027782
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 00:26:58 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8F4QulZ027384
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 00:26:56 -0400
+Date: Mon, 15 Sep 2008 01:26:40 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080915012640.51c86e04@areia.chehab.org>
+In-Reply-To: <1221359719.6598.31.camel@pc10.localdom.local>
+References: <48C4FC1F.40509@comcast.net>
+	<20080911103801.52629349@mchehab.chehab.org>
+	<1221359719.6598.31.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: linux-omap@vger.kernel.org
-Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Schultz <n9xmj@yahoo.com>,
+	Henry Wong <henry@stuffedcow.net>, v4ldvb@linuxtv.org,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
+Subject: Re: [PATCH] Add support for MSI TV@nywhere Plus remote
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,50 +31,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Koen Kooi <k.kooi@student.utwente.nl> writes:
+On Sun, 14 Sep 2008 04:35:19 +0200
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
-> Op 12 sep 2008, om 17:29 heeft Daniel Stone het volgende geschreven:
->
->> On Fri, Sep 12, 2008 at 07:59:44PM +0530, ext Shah, Hardik wrote:
->>> It's time to re-design DSS frame buffer driver for the OMAP2/3.
->>> Current frame buffer driver is not covering the most of the
->>> functionality of the OMAP2/3 DSS Hardware like multiple outputs and
->>> multiple overlay managers supported by OMAP2/3 class of SoC. Again
->>> there is no V4L2 interface exposed by the DSS drivers for
->>> controlling the video pipelines of the DSS which is highly
->>> desirable feature as the video pipelines of the DSS hardware is a
->>> natural fit to the V4L2 architecture.
->>
->> If you want to use v4l for video output, don't let me stop you, but I
->> don't see that it has much actual wide use beyond TI PowerPoint
->> presentations about their graphical architecture.
->
-> That was my thought as well, but I've encountered at least 2 products
-> this weekend at IBC using the v4l way on omap3. One of the engineers
-> was complaining about the lack of synchronous updates if you move
-> various videoplanes around (think resizing video windows) which makes
-> the video picture end up outside your nice cairo-drawn borders. So
-> yes, it is getting used outside of TI :)
+> Mauro,
+> 
+> this is the oldest and most important outstanding patch we have.
+> 
+> There are whole generations of cards still without of any IR support,
+> since years, because of that.
+> 
+> If this one should still hang on coding style violations, please let me
+> know.
 
-I'm thinking the best solution is probably to have a low-level
-internal driver providing access to various planes, exposing as much
-functionality as is practical.  Various user-space interfaces, such as
-fbdev and v4l, could then be implemented on top of this with very
-little code.  If I've understood things correctly, this is essentially
-what the patch in this thread is doing.  This approach should let the
-TI people and Koen's mythical friends from IBC use the v4l2 interface,
-while still allowing the less masochistic among us to use a simpler
-interface.
+I'll handle this patch soon. I'm currently away (in Portland, due to Plumbers
+and KS conferences), so, maybe I'll wait until the next week for committing it.
 
-What I don't like about the patch posted is its size.  I'm sure the
-transition could be done in a sequence of smaller patches.  At the
-very least, it should be possible to move existing functionality to
-the new architecture, then add the new parts afterwards.  I also see
-little value in keeping the old model around, as is done in the patch.
+> If you would ever find time again, have a look at my patch enabling
+> first support for the new Asus Tiger 3in1, which I have only as an OEM
+> board, but which is coming up to global distribution now and likely will
+> cover all newer boards.
 
--- 
-Måns Rullgård
-mans@mansr.com
+Could you please forward it me again any pending patches? Better if you can do
+it at the beginning of the next week. If I don't answer about a patch in about
+one week, the better is to ping me about it.
+
+> I wasted some time again, to fit into the 80 columns rule on
+> saaa7134-dvb.c, and all I can say is, this way not with me.
+
+The 80 cols rule is just a warning. On some cases, it helps to improve
+readability. Also, it is generally easier to review codes that fit on 80 cols,
+since it helps me to open a window comparing a file and a patched version with
+some tool like kdiff3, where the several file revisions are presented side by side.
+
+> Please exercise it yourself now, you have all relevant information, show
+> the resulting code and explain, why such crap should be looking good.
+
+I did my self some coding style patches and the end result was an easier to
+read code. As already discussed, such warnings/errors should be used as a hint
+of troubles, not as absolute rules.
+
+Cheers,
+Mauro.
 
 --
 video4linux-list mailing list
