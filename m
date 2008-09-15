@@ -1,37 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8H8oGm6016910
-	for <video4linux-list@redhat.com>; Wed, 17 Sep 2008 04:50:19 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8H8o3Bt004428
-	for <video4linux-list@redhat.com>; Wed, 17 Sep 2008 04:50:04 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1Kfsjb-0003j1-5A
-	for video4linux-list@redhat.com; Wed, 17 Sep 2008 08:50:03 +0000
-Received: from thrashbarg.mansr.com ([78.86.181.100])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Wed, 17 Sep 2008 08:50:03 +0000
-Received: from mans by thrashbarg.mansr.com with local (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Wed, 17 Sep 2008 08:50:03 +0000
-To: video4linux-list@redhat.com
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Date: Wed, 17 Sep 2008 09:47:05 +0100
-Message-ID: <yw1xy71rupkm.fsf@thrashbarg.mansr.com>
-References: <1221144955.12281.6.camel@tubuntu>
-	<5A47E75E594F054BAF48C5E4FC4B92AB02C42B43C8@dbde02.ent.ti.com>
-	<20080912152937.GP31563@intune.research.nokia.com>
-	<92846148-6506-47F1-8643-7333FB5E146A@student.utwente.nl>
-	<yw1xbpyr3egz.fsf@thrashbarg.mansr.com>
-	<1221480334.6312.54.camel@tubuntu>
-	<yw1xljxtxl8t.fsf@thrashbarg.mansr.com>
-	<1221636762.6312.117.camel@tubuntu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: linux-omap@vger.kernel.org
-Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8FKeiM6002159
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 16:40:44 -0400
+Received: from nlpi025.prodigy.net (nlpi025.sbcis.sbc.com [207.115.36.54])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8FKegcG014434
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 16:40:42 -0400
+Message-ID: <48CEC847.8030404@xnet.com>
+Date: Mon, 15 Sep 2008 15:40:39 -0500
+From: stuart <stuart@xnet.com>
+MIME-Version: 1.0
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <48CD6F11.8020900@xnet.com>
+	<1221431625.4566.5.camel@pc10.localdom.local>
+In-Reply-To: <1221431625.4566.5.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Dwaine Garden <dwainegarden@rogers.com>, video4linux-list@redhat.com
+Subject: Re: KWorld 120 IR control?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -43,44 +28,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
 
-> On Mon, 2008-09-15 at 20:27 +0100, ext Måns Rullgård wrote:
->> Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
->> 
->> > On Sat, 2008-09-13 at 22:47 +0100, ext Måns Rullgård wrote:
->> >> Koen Kooi <k.kooi@student.utwente.nl> writes:
->> >
->> >> What I don't like about the patch posted is its size.  I'm sure the
->> >> transition could be done in a sequence of smaller patches.  At the
->> >> very least, it should be possible to move existing functionality to
->> >> the new architecture, then add the new parts afterwards.  I also see
->> >> little value in keeping the old model around, as is done in the patch.
->> >
->> > I don't like the size either. However, I have no idea how the old driver
->> > could be transformed to include this functionality with a reasonable
->> > effort. The implementations are quite different.
->> >
->> > Any suggestions how I could approach this task? Only thing that comes to
->> > my mind is that there are very similar low level functions in both DSS1
->> > and DSS2 (for dispc and rfbi), that I could remove from the old place
->> > and move to arch/arm/plat-omap/dss/, but that doesn't take us very far.
->> 
->> Are the patches you posted your latest version of the code?  Do you
->> have this code in a public git repo?  I'd like to take a closer look
->> at what you've done.
->
-> They are not the very latest, but they are recent enough. Unfortunately
-> I don't have them on a public git. Nokia is still a bit lacking in that
-> area =). They should apply to linux-omap kernel from last Thursday (I
-> think the commit id is mentioned in the series file).
 
-I don't like working on old code.  It inevitably leads to wasting time
-re-doing things that have already been done in the latest version.
+hermann pitton wrote:
+> Hi Stuart,
+> 
+> Am Sonntag, den 14.09.2008, 15:07 -0500 schrieb stuart:
+>> Hi...
+>>
+>> This is my monthly (humm, more like quarterly) bump to see if anyone has 
+>> looked at (or can tell me what to do with) the KWorld 120 video4linux 
+>> drivers when it comes to getting the IR hardware to work.
+>>
+>> I would think, by now, there are a lot of these cards out there.  Were 
+>> not the KWorld 110 and 115 ATSC tuners popular here?  And haven't they 
+>> been replaced by the KWorld 120?  If so, what are people doing for IR?
+>>
+>> ...thanks
+>>
+> 
+> Mauro, better we all of course, need to review Brian Rogers latest patch
+> from Thursday on this to get it in.
+> 
+> Based on this, likely Dwaine Garden is the one who can further proceed
+> for the Kworld stuff too.
+> 
+> Cheers,
+> Hermann
 
--- 
-Måns Rullgård
-mans@mansr.com
+Hey, thanks to all who have contributed to the KWorld-120 v4l driver! 
+If it wasn't obvious, I've been enjoying the sound and video from my v4l 
+driven KWorld-120 for months now.
+
+So, are these IR remote control patches in Staging (the v4l somewhat 
+stable pre-release version).  I've pulled and compiled from that repo 
+before - no problem if that's where the new IR code is.
+
+...thanks
 
 --
 video4linux-list mailing list
