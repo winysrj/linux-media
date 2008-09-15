@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [195.7.61.12] (helo=killala.koala.ie)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon@koala.ie>) id 1Keybr-0006k6-3M
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 22:54:19 +0200
-Received: from [195.7.61.7] (cozumel.koala.ie [195.7.61.7])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id m8EKsFBn006402
-	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 21:54:15 +0100
-From: Simon Kenyon <simon@koala.ie>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <d9def9db0809141225q421828cdn8b97c0e61b99acac@mail.gmail.com>
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-	<48CC42D8.8080806@gmail.com> <1221419319.9803.0.camel@localhost>
-	<d9def9db0809141225q421828cdn8b97c0e61b99acac@mail.gmail.com>
-Date: Sun, 14 Sep 2008 21:54:15 +0100
-Message-Id: <1221425655.10386.4.camel@localhost>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Received: from moutng.kundenserver.de ([212.227.126.177])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0=STUH=ZZ=nikocity.de=mueller_michael@srs.kundenserver.de>)
+	id 1Kf8BP-0001al-I9
+	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 09:07:40 +0200
+In-Reply-To: <alpine.LRH.1.10.0809150049000.7121@pub5.ifh.de>
+References: <20080914082131.GA12258@mueller_michael.de>
+	<alpine.LRH.1.10.0809150049000.7121@pub5.ifh.de>
+Mime-Version: 1.0 (Apple Message framework v753.1)
+Message-Id: <05763FBF-CEC8-4C6D-9DD0-42880ABB317A@nikocity.de>
+From: =?ISO-8859-1?Q?Michael_M=FCller?= <mueller_michael@nikocity.de>
+Date: Mon, 15 Sep 2008 09:08:33 +0200
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+Cc: pboettcher@dibcom.fr, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Elgato EyeTV Diversity patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,44 +21,78 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 2008-09-14 at 21:25 +0200, Markus Rechberger wrote:
-> On Sun, Sep 14, 2008 at 9:08 PM, Simon Kenyon <simon@koala.ie> wrote:
-> > On Sun, 2008-09-14 at 02:46 +0400, Manu Abraham wrote:
-> >> The initial set of DVB-S2 multistandard devices supported by the
-> >> multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
-> >> alone. There are more additions by 2 more modules (not devices), but for
-> >> the simple comparison here is the quick list of them, for which some of
-> >> the manufacturers have shown support in some way. (There has been quite
-> >> some contributions from the community as well.):
-> >>
-> >> (Also to be noted is that, some BSD chaps also have shown interest in
-> >> the same)
-> >
-> > is there any issue with GPL code being merged into BSD?
-> > just asking
-> 
-> Not with the code which comes from our side. They're at DVB-T right
-> now which already works.
-> That code is fully duallicensed.
-> The Bridge code itself needs to get slightly refactored for analog TV.
-> They are getting full technical and HW support.
+Hi Patrick!
 
-not quite sure (in the context of your sentence) who "our side" is.
-all the code on mcentral.de seems to be GPL 2 or greater with copyright
-claimed by you and others. i've seen nothing on this mailing list about
-dual licencing any linuxtv.org code.
+Am 15.09.2008 um 00:55 schrieb Patrick Boettcher:
 
-i am in no way a gpl bigot. but legal niceties have to be dealt with.
---
-simon
+> Hi Michael,
+>
+> On Sun, 14 Sep 2008, Michael M=FCller wrote:
+>> Simply adding a new entry beside the Hauppauge Nova-T stick using the
+>> new ids didn't work. Using trail and error I was able to find the
+>> right combination. I also was able to activate the remote
+>> control. Since the other devices that use stk7070pd_frontend_attach0
+>> and stk7070pd_frontend_attach1 as frontends doesn't activate the RC I
+>> needed to start a section for my stick. If it doesn't hurt the other
+>> devices to have a RC defined perhaps you should combine them.
+>
+> Yes, please do that.
 
+I'll do that.
 
+> And send the patch again with your Signed-off-by-line and both file- =
+
+> changes created with hg diff of the v4l-dvb repository.
+
+It will be the first time for me. ;-)
+
+>
+>> Although it is stated that the diversity mode is currentl not
+>> supported it seems to be necessary that both antenna plugs are
+>> connected. I have an active antenna and I thought that without
+>> diversity it would be the best to connect the antenna directly to the
+>> adapter that I want to use. But in this combination 'scan' only
+>> creates 'WARNING: >>> tuning failed!!!' messages. If I use the Y- =
+
+>> cable
+>> to connect the antenna to both adapters scan is able to find the TV
+>> channels. Do you have an explanation for this behaviour?
+>
+> As you might have noticed, pluging the hardware results in having  =
+
+> two /dev/dvb/adapters. Diversity is in fact disabled, but dual-mode  =
+
+> (sometimes referred as PVR) is activated by default.
+
+Yes, but scan uses adapter0 frontend0 by default. So why does it  =
+
+makes failing to scan adapter0 if the antenna is not connected to  =
+
+adapter1?
+
+> Diversity actually is the combination of the signal resulting from  =
+
+> two different antennas (and tuners and demodulators). This is not  =
+
+> yet supported by LinuxTV-drivers.
+>
+>> Are there plans to add support for the diversity mode?
+>
+> Yes.
+
+Any timeline?
+
+Need help?
+
+Regards
+
+Michael
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
