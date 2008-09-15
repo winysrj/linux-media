@@ -1,29 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8LKGncs020510
-	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 16:16:49 -0400
-Received: from mail-gx0-f15.google.com (mail-gx0-f15.google.com
-	[209.85.217.15])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8LKGlVb010476
-	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 16:16:48 -0400
-Received: by gxk8 with SMTP id 8so2281795gxk.3
-	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 13:16:47 -0700 (PDT)
-Message-ID: <9d87242f0809211316g1a34f0e7wed0f8345d5cdd787@mail.gmail.com>
-Date: Sun, 21 Sep 2008 13:16:47 -0700
-From: "Scott Bronson" <bronson@rinspin.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <48D49A39.5010909@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8FLw6SA000941
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 17:58:07 -0400
+Received: from mail-in-08.arcor-online.net (mail-in-08.arcor-online.net
+	[151.189.21.48])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8FLvpSE027478
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 17:57:51 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20080915012640.51c86e04@areia.chehab.org>
+References: <48C4FC1F.40509@comcast.net>
+	<20080911103801.52629349@mchehab.chehab.org>
+	<1221359719.6598.31.camel@pc10.localdom.local>
+	<20080915012640.51c86e04@areia.chehab.org>
+Content-Type: text/plain
+Date: Mon, 15 Sep 2008 23:53:53 +0200
+Message-Id: <1221515633.2715.41.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <9d87242f0809191425p1adb1e59p417753a4c403a872@mail.gmail.com>
-	<412bdbff0809191428j760ed51cy8fecd68e1cb738a4@mail.gmail.com>
-	<9d87242f0809192005t246311dp796aa28cb744b3af@mail.gmail.com>
-	<9d87242f0809192255t49e112bfvd9c95e66bd3292a8@mail.gmail.com>
-	<48D49A39.5010909@linuxtv.org>
-Cc: video4linux-list@redhat.com
-Subject: Re: Unreliable tuning with HVR-950q
+Cc: video4linux-list@redhat.com, Schultz <n9xmj@yahoo.com>,
+	Henry Wong <henry@stuffedcow.net>, v4ldvb@linuxtv.org,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
+Subject: Re: [PATCH] Add support for MSI TV@nywhere Plus remote
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,25 +33,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Sep 19, 2008 at 11:37 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> I guess it's possible that the frontend is being overwhelmed. What happens
-> if you discinnect the antenna and hold it very close to the antenna
-> connector on the usb device and try locking on a channel that doesn't
-> normally lock (on a very close transmitter).
+Hi,
 
-Yes, that does seem to help.  I can't find a distance that gives locks
-100% of the time, but 1mm distance seems to take it from 50% to
-80-90%.
+Am Montag, den 15.09.2008, 01:26 -0300 schrieb Mauro Carvalho Chehab:
+> On Sun, 14 Sep 2008 04:35:19 +0200
+> hermann pitton <hermann-pitton@arcor.de> wrote:
+> 
+> > Mauro,
+> > 
+> > this is the oldest and most important outstanding patch we have.
+> > 
+> > There are whole generations of cards still without of any IR support,
+> > since years, because of that.
+> > 
+> > If this one should still hang on coding style violations, please let me
+> > know.
+> 
+> I'll handle this patch soon. I'm currently away (in Portland, due to Plumbers
+> and KS conferences), so, maybe I'll wait until the next week for committing it.
 
-It seems to always get a lock if I just keep trying.  I just quickly
-keep hitting return and escape until I get a picture.  It rarely takes
-more than 3 attempts.  However, if I just leave it alone as it tries
-tune, it will sit there forever (well, at least 1/2 hour) and never
-get it.
+fine. My small other stuff will cause no merge conflicts.
 
-Thanks, tell me if there's anything more I can do.
+> > If you would ever find time again, have a look at my patch enabling
+> > first support for the new Asus Tiger 3in1, which I have only as an OEM
+> > board, but which is coming up to global distribution now and likely will
+> > cover all newer boards.
+> 
+> Could you please forward it me again any pending patches? Better if you can do
+> it at the beginning of the next week. If I don't answer about a patch in about
+> one week, the better is to ping me about it.
+> 
+> > I wasted some time again, to fit into the 80 columns rule on
+> > saaa7134-dvb.c, and all I can say is, this way not with me.
+> 
+> The 80 cols rule is just a warning. On some cases, it helps to improve
+> readability. Also, it is generally easier to review codes that fit on 80 cols,
+> since it helps me to open a window comparing a file and a patched version with
+> some tool like kdiff3, where the several file revisions are presented side by side.
+> 
+> > Please exercise it yourself now, you have all relevant information, show
+> > the resulting code and explain, why such crap should be looking good.
+> 
+> I did my self some coding style patches and the end result was an easier to
+> read code. As already discussed, such warnings/errors should be used as a hint
+> of troubles, not as absolute rules.
+> 
 
-    - Scott
+I cooled down next day and a patch within 80 columns is on the lists :)
+
+Please pick up this one first and report any issues.
+
+I'll provide the other few patches then next weekend.
+
+Good times in Portland, peace and cooperation.
+
+Cheers,
+Hermann
+
 
 --
 video4linux-list mailing list
