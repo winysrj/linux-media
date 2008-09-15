@@ -1,43 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m861NUVx003271
-	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 21:23:30 -0400
-Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
-	[151.189.21.43])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m861NG5f024942
-	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 21:23:17 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: ian.davidson@bigfoot.com
-In-Reply-To: <48C1874B.5080502@blueyonder.co.uk>
-References: <488C9266.7010108@blueyonder.co.uk>
-	<1217364178.2699.17.camel@pc10.localdom.local>
-	<4890BBE8.8000901@blueyonder.co.uk>
-	<1217457895.4433.52.camel@pc10.localdom.local>
-	<48921FF9.8040504@blueyonder.co.uk>
-	<1217542190.3272.106.camel@pc10.localdom.local>
-	<48942E42.5040207@blueyonder.co.uk>
-	<1217679767.3304.30.camel@pc10.localdom.local>
-	<4895D741.1020906@blueyonder.co.uk>
-	<1217798899.2676.148.camel@pc10.localdom.local>
-	<4898C258.4040004@blueyonder.co.uk> <489A0B01.8020901@blueyonder.co.uk>
-	<1218059636.4157.21.camel@pc10.localdom.local>
-	<489B6E1B.301@blueyonder.co.uk>
-	<1218153337.8481.30.camel@pc10.localdom.local>
-	<489D7781.8030007@blueyonder.co.uk>
-	<1218474259.2676.42.camel@pc10.localdom.local>
-	<48A8892F.1010900@blueyonder.co.uk>
-	<1219024648.2677.20.camel@pc10.localdom.local>
-	<48B44CDF.60903@blueyonder.co.uk>
-	<1219792546.2669.17.camel@pc10.localdom.local>
-	<1220236507.2669.117.camel@pc10.localdom.local>
-	<48C1874B.5080502@blueyonder.co.uk>
-Content-Type: text/plain
-Date: Sat, 06 Sep 2008 03:20:47 +0200
-Message-Id: <1220664047.6339.53.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: KWorld DVB-T 210SE - Capture only in Black/White
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8F8fCM0027470
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 04:41:13 -0400
+Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8F8eLDr018827
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 04:40:21 -0400
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Mon, 15 Sep 2008 14:10:02 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C4347B9B@dbde02.ent.ti.com>
+In-Reply-To: <yw1xbpyr3egz.fsf@thrashbarg.mansr.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -49,102 +28,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Ian,
 
-Am Freitag, den 05.09.2008, 20:23 +0100 schrieb Ian Davidson:
-> I am about to give up with this KWorld card as I do not have the time - 
-> I need to get something that works.  So 2 questions - one for a 'last 
-> try' and one for 'Plan B'.
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Måns
+> Rullgård
+> Sent: Sunday, September 14, 2008 3:18 AM
+> To: linux-omap@vger.kernel.org
+> Cc: video4linux-list@redhat.com
+> Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
 > 
-> Q1. Initially, the card was not recognised automatically, but under 
-> guidance form Hermann, forcing Linux to treat it as card=114, I was able 
-> to capture video.  Unfortunately, normally Black and White rather than 
-> colour.  I understand that  normally Linux would sniff the eeprom and 
-> determine the type of card from information found in there.  I have the 
-> .inf files that describe the various KWorld cards to that other 
-> operating system and I can see that the first 4 bytes of the eeprom, 
-> albeit swapped about (Big Endian/Little Endian) are used in that .inf to 
-> identify the card.  Various parameters are apparently put into the 
-> Registry, depending on the card type and I thought I would compare the 
-> parameters for my card with the parameters for the 'Real 114'.  I assume 
-> that there is a file somewhere which says "If the eeprom says 'xxxx' 
-> then the card is type 'n'".  Where can I see that file which identifies 
-> the card type?
-
-the manufacturers always need to improve their products to stay
-competitive.
-
-So we continuously see new card revisions with some small changes.
-That likely is the same for your card, the 210SE.
-
->From what I'm aware of, I'm for sure not of all, we can neither gather
-from the .inf files nor from the eeprom dump additional information.
-
-Admittedly the previous 210RF had already previously reports of some
-instability for DVB-T usage and reasons are unknown and since no more
-users came in, the base is a singular report.
-
-Your report to have sometimes color on the composite input and sometimes
-only black and white is very unusual, since this also should not be
-related to an additional external LNA, but I asked you to try with
-tuner_config = 2 for the card in saa7134-cards.c, since it hangs around
-in saa7134-dvb.c for it, and if possible, also on the some other OS.
-
+> Koen Kooi <k.kooi@student.utwente.nl> writes:
 > 
-> Q2. Assuming that I am unable to make any difference, I will need to use 
-> a different card - and hopefully, one that is supported.  In order to 
-> make the current card do anything, I had to issue a couple of commands
+> > Op 12 sep 2008, om 17:29 heeft Daniel Stone het volgende geschreven:
+> >
+> >> On Fri, Sep 12, 2008 at 07:59:44PM +0530, ext Shah, Hardik wrote:
+> >>> It's time to re-design DSS frame buffer driver for the OMAP2/3.
+> >>> Current frame buffer driver is not covering the most of the
+> >>> functionality of the OMAP2/3 DSS Hardware like multiple outputs and
+> >>> multiple overlay managers supported by OMAP2/3 class of SoC. Again
+> >>> there is no V4L2 interface exposed by the DSS drivers for
+> >>> controlling the video pipelines of the DSS which is highly
+> >>> desirable feature as the video pipelines of the DSS hardware is a
+> >>> natural fit to the V4L2 architecture.
+> >>
+> >> If you want to use v4l for video output, don't let me stop you, but I
+> >> don't see that it has much actual wide use beyond TI PowerPoint
+> >> presentations about their graphical architecture.
+> >
+> > That was my thought as well, but I've encountered at least 2 products
+> > this weekend at IBC using the v4l way on omap3. One of the engineers
+> > was complaining about the lack of synchronous updates if you move
+> > various videoplanes around (think resizing video windows) which makes
+> > the video picture end up outside your nice cairo-drawn borders. So
+> > yes, it is getting used outside of TI :)
 > 
-> "modprobe -vr saa7134-dvb saa7134-alsa saa7134 tuner"
+> I'm thinking the best solution is probably to have a low-level
+> internal driver providing access to various planes, exposing as much
+> functionality as is practical.  Various user-space interfaces, such as
+> fbdev and v4l, could then be implemented on top of this with very
+> little code.  If I've understood things correctly, this is essentially
+> what the patch in this thread is doing.  This approach should let the
+> TI people and Koen's mythical friends from IBC use the v4l2 interface,
+> while still allowing the less masochistic among us to use a simpler
+> interface.
 > 
-> "modprobe -v saa7134 card=114 i2c_scan=1"
-> 
-> so presumably, I would need to 'undo' the effect of those lines to let Linux auto-detect.  What do I need to do?
-> 
-> Ian
+> What I don't like about the patch posted is its size.  I'm sure the
+> transition could be done in a sequence of smaller patches.  At the
+> very least, it should be possible to move existing functionality to
+> the new architecture, then add the new parts afterwards.  I also see
+> little value in keeping the old model around, as is done in the patch.
 
-Your card is a new revision, the manufacturer changed the PCI subsystem
-ID in the eeprom for it. That might have a reason.
+Our DSS library is inline with the above model suggested by you.  Following is the link containing DSS library code and small design document, which currently handles only video pipeline.  The next immediate goal is to add the support for graphics pipeline functionality.  
 
-At least that is the reason why it is not auto detected yet and why you
-have to use "modprobe -v" for loading the likely most matching card,
-that should be its previous revision.
+https://omapzoom.org/gf/project/omapkernel/docman/?subdir=10
 
-Anyway, someone must go through all details, not only external inputs,
-but also radio, analog TV and DVB-T before we can add that card to auto
-detection.
+ 
 
-Depending of the results of that work, we have to decide if it can use
-the same entry as the previous card has or if it needs a new one,
-because something substantial has changed.
-
-You find the auto detection in saa7134-cards.c, the card enumeration in
-saa7134.h and all is mirrored in Documentation/CARDLIST.saa7134.
-
-As already explained, there is nothing to "undo" after "modprobe",
-except you like to unload and try with different options again.
-
-The -v option can be helpful, since it can find settings some system
-setup helper tool might have written for you overriding your command
-line for module options, but there is no indication in that direction.
-
-Sorry, we have a very poor result here, but thanks for all your efforts
-so far.
-
-It becomes obvious, that manufacturers actively supporting GNU/Linux on
-the more complex devices we have these days, but which are in most cases
-still easy to set up within the framework we have, but not for every
-single first customer, are clearly winners.
-
-And that is fully OK.
-
-Cheers,
-Hermann
-
-
-
-
-
+Thanks and Regards,
+Hardik Shah
 
 --
 video4linux-list mailing list
