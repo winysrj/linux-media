@@ -1,17 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from nschwmtas04p.mx.bigpond.com ([61.9.189.146])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KfXUc-00014C-Gx
-	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 12:09:11 +0200
-Message-ID: <48CF85C2.1030806@iki.fi>
-Date: Tue, 16 Sep 2008 13:09:06 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <jhhummel@bigpond.com>) id 1KfCvh-0005pU-On
+	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 14:11:47 +0200
+Received: from nschwotgx02p.mx.bigpond.com ([58.173.115.70])
+	by nschwmtas04p.mx.bigpond.com with ESMTP id
+	<20080915121107.MITB19703.nschwmtas04p.mx.bigpond.com@nschwotgx02p.mx.bigpond.com>
+	for <linux-dvb@linuxtv.org>; Mon, 15 Sep 2008 12:11:07 +0000
+Received: from harriet ([58.173.115.70]) by nschwotgx02p.mx.bigpond.com
+	with ESMTP
+	id <20080915121106.OXC1865.nschwotgx02p.mx.bigpond.com@harriet>
+	for <linux-dvb@linuxtv.org>; Mon, 15 Sep 2008 12:11:06 +0000
+Received: from harriet by harriet with local (Exim 4.69)
+	(envelope-from <jhhummel@bigpond.com>) id 1KfCv4-0002pt-Hf
+	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 22:11:06 +1000
+From: Jonathan <jhhummel@bigpond.com>
+To: linux-dvb@linuxtv.org
+Date: Mon, 15 Sep 2008 22:11:06 +1000
 MIME-Version: 1.0
-To: Dirk Vornheder <dirk_vornheder@yahoo.de>
-References: <200809152345.37786.dirk_vornheder@yahoo.de>
-In-Reply-To: <200809152345.37786.dirk_vornheder@yahoo.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] New unspported device AVerMedia DVB-T
+Content-Disposition: inline
+Message-Id: <200809152211.06386.jhhummel@bigpond.com>
+Subject: [linux-dvb] DTV2000H
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,22 +34,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dirk Vornheder wrote:
-> Hi !
-> 
-> I buy a new notebook HP Pavilion dv7-1070eg which includes one
-> 
-> AVerMedia DVB-T-Device.
+Hi,
 
-It is Afatech AF9015 based device. Please test driver from:
-http://linuxtv.org/hg/~anttip/af9015_test
-and firmware from:
-http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/
+I've had a look on Google, and there seems to be quite a bit of mail forums 
+about a patch for rev J of this card, but they all seem to have issues of 
+some form.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Apparently the patch can get analogue TV and Radio working.
+
+Can anyone shed some light on this?
+
+Thanks
+
+Jon
 
 _______________________________________________
 linux-dvb mailing list
