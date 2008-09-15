@@ -1,19 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 202.7.249.79.dynamic.rev.aanet.com.au ([202.7.249.79]
-	helo=home.singlespoon.org.au)
+Received: from wr-out-0506.google.com ([64.233.184.232])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <paulc@singlespoon.org.au>) id 1KeSV7-0004Ub-HR
-	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 12:37:15 +0200
-Message-ID: <48CB978D.1030308@singlespoon.org.au>
-Date: Sat, 13 Sep 2008 20:35:57 +1000
-From: Paul Chubb <paulc@singlespoon.org.au>
+	(envelope-from <mkrufky@gmail.com>) id 1KfGDM-0007px-A0
+	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 17:42:15 +0200
+Received: by wr-out-0506.google.com with SMTP id c8so1079551wra.13
+	for <linux-dvb@linuxtv.org>; Mon, 15 Sep 2008 08:42:07 -0700 (PDT)
+Message-ID: <37219a840809150842l3a6260j4b57f14026e5c40a@mail.gmail.com>
+Date: Mon, 15 Sep 2008 11:42:06 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Julian Scheel" <julian@jusst.de>
+In-Reply-To: <48CDF7A1.2020905@jusst.de>
 MIME-Version: 1.0
-To: free_beer_for_all@yahoo.com,
-	"linux-dvb >> linux dvb" <linux-dvb@linuxtv.org>
-References: <485872.32367.qm@web46101.mail.sp1.yahoo.com>
-In-Reply-To: <485872.32367.qm@web46101.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] Why my binary-only Win95 closed-source drivers
- trump your puny free-as-in-beer etc. [was: Re: why (etc.)]
+Content-Disposition: inline
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<48CC42D8.8080806@gmail.com>
+	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
+	<48CC4D35.3000003@gmail.com>
+	<d9def9db0809140838k2ced5211gc2690e76f53a98be@mail.gmail.com>
+	<48CD43C1.2090902@linuxtv.org> <48CD5D19.1070700@gmail.com>
+	<1221425146.4278.30.camel@morgan.walls.org>
+	<48CDF7A1.2020905@jusst.de>
+Cc: linux-dvb@linuxtv.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,132 +38,147 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Barry,
-delightful post. I am not sure I am able to answer all your questions 
-because my experience is strictly limited to what I have done in the 
-last three weeks. My experience is two surmountable incompatibilities. 
-Being a newbie I may have misunderstood what I am seeing but:
-
-1) My take is that the mcentral.de tree was originally based somewhere 
-around 2.6.22. At some stage the functionality in videobuf_core.c was 
-replaced by video-buf-dvb.c. This meant that when you compile against 
-the 2.6.22 headers it works fine but still loads the videobuf_core 
-module from the previous module set. Once you get to 2.6.24 it still 
-loads videobuf_core, however now you get a lot of symbol issues when it 
-loads and ultimately the driver for the card didn't work. This was 
-simply fixed by removing all the old drivers in the drivers/media/video 
-directory.
-
-2) The v4l-dvb tree has complex firmware loading logic in tuner-xc2028.c 
-that is tied to a single file that has lots of firmware modules in it. 
-the mcentral.de tree has that code replaced by a new xc3028-tuner module 
-that is designed to load individual fw files. Mr Rechberger managed to 
-get original firmware from Xcieve.
-
-So either could be fixed, and I fixed the first. I could have fixed the 
-second by investing more time. But I don't think that is why people talk 
-about incompatibility between the two.
-
-Cheers Paul
-barry bouwsma wrote:
-> Bow down before the might of my hardware that I can't use on
-> anything later than an LSI-11-based machine!  Replies there ------>
-> plz thx okbye
+On Mon, Sep 15, 2008 at 1:50 AM, Julian Scheel <julian@jusst.de> wrote:
+> Andy,
 >
-> --- On Sat, 9/13/08, Paul Chubb <paulc@singlespoon.org.au> wrote:
+> just to clarify things a bit I'll give a short statement now.
 >
->   
->> The third attempt by a Czech programmer succeeded, however it is 
->> dependent on the mcentral.de tree and the author appears to
->>     
+> Andy Walls schrieb:
+>> Though I can't read much German, after looking at the jusst.de website I
+>> can't help but think that you as well have financial interests driving
+>> your actions.  If so, then your statements display quite a bit of
+>> hypocrisy.
+>>
+> The role of jusst technologies in the whole multiproto story is as
+> following:
+> The time when DVB-S2 came up this was of course of major interest for
+> jusst technologies, so we searched for people working on drivers. At
+> that not many people did seem to care about this stuff - but Manu did.
+> So we got in contact and tried to help him as much as we can, which
+> included making up connections to KNC1 for technical questions and
+> datasheets, provide a KNC1 testing board and later then give free
+> web/codespace to Manu.
+> Furthermore we of course did lots of testing of multiproto. But never we
+> did pay Manu for any of this work.
+> Reading that you should recognize that there can't be much financial
+> interests for Manu.
 >
-> I have a serious question.  Really.  I mean it.
+> Seeing that you impute hyprocrisy to Manu due to "facts" you don't have
+> proven in any way makes me a bit contemplative. I don't like being
+> political when talking about technical terms (which linuxtv in first
+> place should be about imho) - anyway this one time I will give a
+> somewhat political statement, too.
+> All you guys who are blaming Manu to do some wrong or bad stuff, what is
+> your point? - I see you searching quote where Manu did talk in a
+> somewhat unpolite manner just to blame him of being the wrong person
+> introducing a new API? - I have no interest in doing the same quoting
+> with your postings or the so called competitors postings, but I'd bed I
+> could quote almost any of you in a not less distracting manner than you
+> like to do with Manu.
+>> Manipulating (i.e. stalling) the timing of Multiproto being merged into
+>> the v4l-dvb tree or kernel, for you or your employer's gain, would be
+>> little different from the motivations you allege Steve of having.
+>>
+>> Since the major gripe I'm reading on the list "is that multiproto has
+>> taken too long" and since it seems to me the only thing that shook it
+>> loose was a competing proposal, please save the venom for when you
+>> actually have some clear moral high-ground to stand on.  I don't see it
+>> from here.
+>>
+> Using "taking too long" as an argument against an API proposal is really
+> interesting. What did you expect? - A quick shot which is not well
+> thought about wouldn't have be a good thing for anyone.
+> I'm absolutely fine if anyone would came up with real technical
+> arguments, but reading many postings so far I couldn't find much of such
+> statements.
+>> As for the technical superiority of either API proposal; that probably
+>> just doesn't matter.  I've seen policy/political decisions force
+>> suboptimal technical solutions at work time and time again.  If you
+>> really believe you have a superior product technically; then perhaps you
+>> should work to make it superior politically as well.  Mud-slinging can't
+>> be a good long term strategy toward that end.
+>>
+> To be political again: Thank you for blaming jusst being not interested
+> in proper technical solutions. What makes you thinking of this? - Just
+> the fact that you recognize jusst as a commercial company? Very interesting.
 >
-> I want factual answers.  No flames.  If your native language
-> is not english, feel free to reply in personal mail in your
-> native language, and I will try to make sense of it -- sometimes
-> I feel that non-english speakers here would be far more effective
-> in their native language, as anyone who has heard or read me
-> fumbling through their native languange (english included) will
-> agree.
+> I really have a feeling that many people here are mostly interested in
+> making politics instead of thinking about technical solutions which
+> makes all this a horrible topic for all that people who are interested
+> in a working solution (which Manu has proven to deliver) - mainly the users.
 >
-> I periodically build the drivers from recent em28xx-new against
-> a recent kernel, and pass the needed patches upstream.  While
-> I have an EM288x device, it's not yet supported, so I can't
-> actually test my hacks.
->
-> I've just now downloaded the mcentral v4l-dvb source, in an
-> attempt to compile (notice I said nothing about functionality)
-> it against a recent kernel.  My observation so far is that it
-> has heaps of backwards-compatibility, and lacks a few recent
-> changes that I'm hoping to merge in.  (`Hope' the operative
-> word)
->
-> Otherwise I really don't pay attention to the details of the
-> drivers and their use, probably the reason for my question.
->
-> You can bet that as soon as Markus has time to write support
-> for the demodulators and such, that I'm going to try my hardest
-> to get it to work with a stock linux kernel.
->
->
-> Can you, or someone, explain the technical details of what needs
-> to be done to a random, or a particular driver on mcentral, to
-> get it into em28xx on linuxtv?  Or why it can't be done as is,
-> as I see a slow addition of drivers to linuxtv over time?
->
-> Or better yet, give me an example of code that won't fit into
-> linuxtv from mcentral.  That might keep me quiet for a while.
->
-> In spite of the fact that I may have the datasheet for one of
-> the chips in my unsupported device, there is no way I'll be
-> able to turn that into a driver, no matter how much mentoring
-> or handholding I get, whereas I might be able to stumble my
-> way through incompatibility issues with plenty of review.
-> Maybe in ten years or so, in the event I'm still alive, I'd
-> be able to whip together a driver free of the enforced DRM
-> (not the broadcast norm DRM, hmmm, does that deserve a place
-> in the digital-broadcasting API?)
->
->
->
->   
->> I understand from recent posts to this list that many in the community 
->> are disturbed by the existence of mcentral.de. Well every person from 
->> now on who wants to run the Leadtek Winfast DTV1800H will be using that 
->> tree. Since the card is excellent value for what it is,
->>     
->
-> This is the second time I've read about incompatibility (an
-> either/or choice) between the trees.  That obviously isn't
-> acceptable to me.  Can you or someone give a *technical only*
-> overview of why this should be, so I can motivate myself to
-> do what I can to make it should not be so?
->
-> Again, no flames, minimal opinions, please.  Facts will be
-> `rewarded' by an `effort' on my part to try to `benefit'
-> everyone out there who wants additional `functionality', but
-> no promises.
->
-> Disclaimer:  if I don't make much sense, it's due to chronic
-> sleep deprivation, in part.
->
->
-> thanks,
-> barry bouwsma
->
->
->       
->
->
->   
+> So far this is my statement (in representation for jusst technologies)
+> for the moment.
 
 
--- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
+Julien,
 
+In summary, the bottom line is this:
+
+Manu did a great job with the multiproto API, people were happy using
+it, and all of the LinuxDVB developer community was happy with the
+work that was done, and we all wanted to merge it ~ two years ago.
+
+Back then, Manu said that it wasnt ready, so for some time we waited
+for him in hopes that he would agree that it was ready for merge.
+
+As more months went by, Manu was asked if he would be merging his
+changes, and he kept answering to the effect of "it's not ready yet,
+but should be in a few weeks"
+
+Months and months and months went by since then, with an occasional
+ping to Manu, with the reply "not ready yet" ...
+
+Two years is a very long time to wait for a new API, especially
+considering that it was functional from the start.  It was looking
+like Manu may not have had any intention at all to merge his work into
+the master v4l/dvb development repository --  It should be not be
+surprising at all that Steven Toth felt the need to come up with his
+own solution.
+
+Steven posted a proposal for his API expansion solution, and he
+received positive feedback.  Immediately, Manu broke out of his
+silence and sent in a pull request.
+
+
+Is there malice here??  No.  There is development, and developers
+looking to move forward.  Nobody is at fault.
+
+
+I have posted the above just to clarify what the "politics" actually
+are, here.  The only real politics going around are those that are
+accusing others of politics themselves.
+
+Had Manu been willing to merge his work earlier, this would have all
+been a non-issue.  However, now there is an alternative proposal on
+the table, which appears to be more robust and may have more potential
+that the multiproto proposal.
+
+Does that mean multiproto is disqualified?   Absolutely not.
+
+Does the fact that multiproto was there first mean that it will be
+merged without question now that it is suddenly available?  No, not
+necessarily.
+
+What does it mean?  It means that now there are two proposals on the
+table.  Two ways to solve a problem using different ideas and methods.
+
+The end users that have piped into the discussion are mostly concerned
+with which API demonstration repository already contains support for
+their device.  This should have no bearing whatsoever on the decision
+of the linuxDVB API extension.  All drivers will be ported to
+whichever solution is decided upon.
+
+Now is the time to examine these solutions from a developer point of
+view, in terms of how this affects kernel developers and application
+developers alike.  There is no reason to rush into things just because
+a pull request has been made -- the outcome of this decision is highly
+important, and we will have to live with the decision for a good long
+time.
+
+Regards,
+
+Michael Krufky
 
 _______________________________________________
 linux-dvb mailing list
