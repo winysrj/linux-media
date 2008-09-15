@@ -1,17 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m82N7eSA029391
-	for <video4linux-list@redhat.com>; Tue, 2 Sep 2008 19:07:41 -0400
-Received: from n6.bullet.ukl.yahoo.com (n6.bullet.ukl.yahoo.com
-	[217.146.182.183])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m82N7A3s018591
-	for <video4linux-list@redhat.com>; Tue, 2 Sep 2008 19:07:10 -0400
-From: Lars Oliver Hansen <lolh@ymail.com>
-To: video4linux-list@redhat.com
-Date: Wed, 03 Sep 2008 01:06:52 +0200
-Message-Id: <1220396812.3752.46.camel@lars-laptop>
-Mime-Version: 1.0
-Subject: em28xx-based KWorld 310U delivers no signal, 2 drivers tried
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8FBrSc2022321
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 07:53:28 -0400
+Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8FBrB1B001600
+	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 07:53:12 -0400
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Date: Mon, 15 Sep 2008 17:22:59 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C4347CE3@dbde02.ent.ti.com>
+In-Reply-To: <1221476854.6312.37.camel@tubuntu>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -19,203 +24,125 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0980010013=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
 
---===============0980010013==
-Content-Type: multipart/related; type="multipart/alternative";
-	boundary="=-/trEqekWwOEUAfPTdizS"
 
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> Sent: Monday, September 15, 2008 4:38 PM
+> To: Shah, Hardik
+> Cc: linux-omap@vger.kernel.org; video4linux-list@redhat.com
+> Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+> 
+> On Fri, 2008-09-12 at 19:59 +0530, ext Shah, Hardik wrote:
+> >
+> > > -----Original Message-----
+> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+> Tomi
+> > > Valkeinen
+> > > Sent: Thursday, September 11, 2008 8:26 PM
+> > > To: linux-omap@vger.kernel.org
+> > > Subject: [PREVIEW] New display subsystem for OMAP2/3
+> > >
+> > > Display Subsystem driver for OMAP2 and 3 (DSS2)
+> > > -----------------------------------------------
+> > Hi,
+> > It's time to re-design DSS frame buffer driver for the OMAP2/3.  Current frame buffer driver is not
+> covering the most of the functionality of the OMAP2/3 DSS Hardware like multiple outputs and multiple
+> overlay managers supported by OMAP2/3 class of SoC. Again there is no V4L2 interface exposed by the
+> DSS drivers for controlling the video pipelines of the DSS which is highly desirable feature as the
+> video pipelines of the DSS hardware is a natural fit to the V4L2 architecture.
+> >
+> > We have already initiated the re-designing of the DSS drivers and already posted the RFC for the
+> same on the Linux-Omap and the V4L2 mailing lists.  Below is the link for the RFC submitted by us on
+> the open source mailing lists -
+> >
+> > http://lists-archives.org/video4linux/23648-omap3-display-driver-v4l2.html
+> > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg02510.html
+> 
+> Ah, I seem to have missed these, I was on my summer holidays at that
+> time =). I'll study those.
+> 
+> >
+> > Typically most of the modern display devices which include the OMAP2 and OMAP3, are required to
+> support two separate types of interfaces - V4L2 interface for the video planes and fbdev interface
+> for graphics planes. It is impossible for these two drivers on separate frameworks to co-exist as
+> independent full fledged drivers. Hence this has been one of the main aspects we are trying to
+> address through our design, which includes as a common DSS library which can be used by both of the
+> drivers.
+> >
+> > VIDEO0(V4L2)    VIDEO1(V4L2)   GFX0(fbdev0)
+> > 		|	|		|
+> > 		|	|		|
+> > 		----DSS Library----
+> > 		     |    |
+> > 		    LCD   TV
+> >
+> >
+> > Here, the DSS library is the central set of APIs which is designed to make sure that, there are no
+> conflicts for resources, resources being the Graphics plane (pipeline), Video planes (pipelines) and
+> Overlay Managers. Display library is not tied to any interfaces, like V4L2 or FBDEV.
+> >
+> > Output devices registers to the DSS library and applications will be able to switch/exchange/change
+> parameters through their interfaces going through the DSS library.
+> >
+> > We believe that currently your implementation does not address these important aspects and lot of
+> the users will be at loss of functionality if this is not addressed.
+> 
+> I haven't used much time on the userspace interface, so my fb driver is
+> just a copy of the old omapfb. It sounds my implementation is somewhat
+> similar to yours. The DSS driver is not tied to fb or v4l interface, and
+> offers ways to configure the displays and planes however you want.
+> 
+We have the implementation for the V4L2 as well as the FBDEV driver on the DSS library.  Although FBDEV driver is not in the shape to be posted to open source lists.
 
---=-/trEqekWwOEUAfPTdizS
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> I concentrated more on the the lower part than to fbdev or v4l, and more
+> specifically I needed DSI support and multiple display support, while
+DSS library is easily extendible to add DSI, RFBI, SDI support.
 
-Hello,
+> still retaining the old functionality. And with multiple displays I
+> don't mean just an LCD and a TV-out, but, for example, two LCD's and
+> tv-out. Configurations like one LCD connected to parallel output,
+> updated with DISPC, and the other one connected to DSI and updated with
+> CPU or system DMA. Or two displays connected to DSI.
+> 
+DSS library gives the flexibility to change to add the as many overlay managers or as many encoder on the overlay manager.
 
-I had troubles with my saa7134 card (driver got in a phase where it
-never powered on the device again) so I fetched an em2880-based KWorld
-DVB-T 310U. I feel awkward bothering you again but this device doesn't
-want to work properly, 2 different drivers tried, although I researched
-before my purchase which device would most probably work.
+> I also wanted to be able to change the configuration on the fly,
+> changing where DISPC output is going and which displays are updated with
+> CPU or sDMA.
+> 
+> This is why I have the display-concept in my design.
+> 
+> I haven't made support for multiple users of the displays (like separate
+> fb and v4l drivers), but I don't immediately see why it couldn't be
+> done.
+> 
+> However, there are some questions regarding that, as the planes do not
+> represent displays, but just overlay planes. What happens when both fb
+> and v4l drivers want to change the resolution or timings of the display?
+> 
+The controls of the display library which are shared between the pipelines like the timing parameters, panel width, panel height can be configured through the sysfs entries.  It will be something like  "echo ntsc_m > /sys/class/display_control/standard".  DSS library maintains the data structures and individual userspace drivers can query these controls for setting their parameters dependent on these controls.
 
-I tried the v4l-dvb-kernel em28xx driver from mcentral linked to at
-http://mcentral.de/wiki/index.php5/Em2880 which is where one gets
-directed to when following the links about supported hardware using
-video via usb em28xx from the v4l wiki main page.
+> Also I still don't quite know how to present displays to user space.
+> Currently my omapfb just uses the first display, and that's it. I think
+> in the end the user (be it X server, or perhaps some entity over it),
+> needs to have some understanding of what OMAP offers and how it can use
+> the displays. And there probably needs to be some product spesific
+> configuration regarding this in userspace.
+> 
+Most of the open source applications are not aware of the hardware capabilities.  So it should be transparently handled by the low level drivers/libraries.
+> > Thanks and Regards,
+> > Hardik
+> 
+>  Tomi
+> 
 
-When using tvtime-scanner it reports I/O error, driver doesn't want to
-stop streaming, driver doesn't want to start streaming and can't drop
-frame after a while. When using tvtimes gui scanner it hangs at a random
-channel after a while. While it has gathered some channels then, it
-hasn't got all. Sometimes tvtime only output black and white and
-sometimes in color and it freezes at a frame after some while. dmesg
-says incorrect setup device. For the rare moments the tv image was fine,
-dmesg gave analog tv request.
-
-DVB-T scanning went fine with scan from dvb-utils and w_scan only
-mplayer doesn't have an option for TV in its gui (I reconfigured mplayer
-and got v4l support reported and recompiled) and I won't bash tune
-manually everytime, so I never saw a DVB-T image and mplayer is the only
-option with Gnome as far as I gathered (kaffeine is for KDE, someone
-wrote xine is for grandfathers and Totem, well I didn't find the
-directory where to place channels.conf).
-
-Then I switched to the v4l-dvb driver which is the first link in the
-users section on v4l wikis main page. This driver put out to dmesg: 
-
-[    0.000000] Linux video capture interface: v2.00
-[    0.000000] em28xx v4l2 driver version 0.1.0 loaded
-[    0.000000] em28xx new video device (eb1a:e310): interface 0, class
-255
-[    0.000000] em28xx Has usb audio class
-[    0.000000] em28xx #0: Alternate settings: 8
-[    0.000000] em28xx #0: Alternate setting 0, max size= 0
-[    0.000000] em28xx #0: Alternate setting 1, max size= 0
-[    0.000000] em28xx #0: Alternate setting 2, max size= 1448
-[    0.000000] em28xx #0: Alternate setting 3, max size= 2048
-[    0.000000] em28xx #0: Alternate setting 4, max size= 2304
-[    0.000000] em28xx #0: Alternate setting 5, max size= 2580
-[    0.000000] em28xx #0: Alternate setting 6, max size= 2892
-[    0.000000] em28xx #0: Alternate setting 7, max size= 3072
-[    0.000000] em28xx #0: chip ID is em2882/em2883
-[    0.000000] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 10 e3 50 12
-5c 03 6a 22 00 00
-[    0.000000] em28xx #0: i2c eeprom 10: 00 00 04 57 4e 07 00 00 00 00
-00 00 00 00 00 00
-[    0.000000] em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 01 00 00 00
-00 00 5b 1e 00 00
-[    0.000000] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01
-00 00 00 00 00 00
-[    0.000000] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[    0.000000] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[    0.000000] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
-22 03 55 00 53 00
-[    0.000000] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 38 00
-31 00 20 00 44 00
-[    0.000000] em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00
-00 00 00 00 00 00
-[    0.000000] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[    0.000000] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[    0.000000] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[    0.000000] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[    0.000000] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[    0.000000] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[    0.000000] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[    0.000000] EEPROM ID= 0x9567eb1a, hash = 0x966a0441
-[    0.000000] Vendor/Product ID= eb1a:e310
-[    0.000000] AC97 audio (5 sample rates)
-[    0.000000] 500mA max power
-[    0.000000] Table at 0x04, strings=0x226a, 0x0000, 0x0000
-[    0.000000] em28xx #0: 
-[    0.000000] 
-[    0.000000] em28xx #0: The support for this board weren't valid yet.
-[    0.000000] em28xx #0: Please send a report of having this working
-[    0.000000] em28xx #0: not to V4L mailing list (and/or to other
-addresses)
-[    0.000000] 
-[    0.000000] tuner' 1-0061: chip found @ 0xc2 (em28xx #0)
-[    0.000000] xc2028 1-0061: creating new instance
-[    0.000000] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-[    0.000000] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-[    0.000000] tvp5150 1-005c: tvp5150am1 detected.
-[    0.000000] em28xx #0: V4L2 device registered as /dev/video0
-and /dev/vbi0
-[    0.000000] em28xx #0: Found MSI DigiVox A/D
-[    0.000000] usbcore: registered new interface driver em28xx
-[    0.000000] tvp5150 1-005c: tvp5150am1 detected.
-[    0.000000] tvp5150 1-005c: tvp5150am1 detected.
-[    0.000000] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-[    0.000000] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-[    0.000000] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-[    0.000000] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-[    0.000000] tvp5150 1-005c: tvp5150am1 detected.
-[    0.000000] xc2028 1-0061: Error: firmware xc3028-v27.fw not found.
-
-After I got the firmware following the instructions on the wiki, tvtimes
-takes approximately 10 seconds to load (it seems to load 80 different
-firmwares) in contrast to instant load before but tvtime says no signal
-and while it can scan the screen remains blue.
-
-I tried the zapping application but it delivers 3 error messages before
-it segfaults: /dev/vbi0 is no vbi device, -- that's it at another try,
-it was sth like driver doesn't support video_overlay and sth long string
-before.
-
-What are the best working options to get my KWorld DVB-T 310U usable in
-analog TV mode at least? Which driver to I have to take, what would I
-have to do? (I removed my previous saa7134 driver installation
-completely, so probably no old modules lying around). I'm on Ubuntu 8.04
-but I have a vanilla kernel 2.6.27-rc5 source at hand  (yes which I
-configured, compiled and have working with Ubuntu in another grub
-entry :-)), which v4l drivers would I have to enable there to use that
-kernels drivers?
-
-Thanks fro any help!
-
-Kind and Best Regards
-
-Lars
-
---=-/trEqekWwOEUAfPTdizS
-Content-ID: <1220396404.3752.38.camel@lars-laptop>
-Content-Disposition: attachment; filename=stock_smiley-1.png
-Content-Type: image/png; name=stock_smiley-1.png
-Content-Transfer-Encoding: base64
-
-iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAAB3RJ
-TUUH1wgOER8RqU5d7gAAAwtJREFUOI1lk01oXGUYhZ/73Ts/sWPiT8YE2ti6SF00jDWBaBWLuhFB
-QgUNQsFdCair2pVSBV3YGkNWDVjcqKlIaG2sLf5EUBqTBkqjTFMi2Px2ojOTpJnMZHLnfvd+3+si
-VKR5V2dxOBx4z+Nw1419QZty3R5EdYmJmgEcpfIgF6zYT59+nan/+5074sYQ8XIQG/ASjYdbDxyP
-px58Rql4M0hIFMxQKf5sb149pY1eOdOQ4I193ej/AoaGcFt07PKufUc6dmY+ShBOI+FfQAB4ID5C
-CieeYWHy3SA/c/FaLsHB7m4MABNfxfpvTfb4YkpiNi+K1X+K2EDEhiKmIhIVxNauil55R6LNUZkZ
-e96fGKQfwBn7jN3xhqZsx8tT9aInUYlOTvSeYrlYoK/3fcRWOdk7wHJxiY8/eBZdPo/X8BZ/XHql
-HG5UM0olvaOtT7yXIprF8fYALmfPfcPwt5dANNgyZ8+PMPzdOJh/wOQx/ii7M6+mSHJU4ahDqfRz
-SqJ5cGIgNR5t3Uv7/gxifbDr7H0kxeNtOxB9A3Aw/jip9EHlCIc8G0VNKpZGdBGiHOI+xODnJ0FC
-xK6AKfDl6ZcgmkOiRcBg9QLJB1qwliYPAIkQKUM4DbYETt1WfSmDWQa7BraKNTXEBohoQADwHNct
-mGD+YSUKMXkc8cFJbhlsFbFrYFYRW8KaDazxQaUJ/XmUoqAEM1wufG/xdkK0xOTICW4v/YKuTmP0
-AjbMEdYWWc3Pcv1KFmMquHWdVJYvW3EY3nrjvfdl27t+qpfKaW5X2slN9VEtLWEiDYDredxT38iu
-treJywB16Q/J/nikHG5UM1tDGlT9c1de9CN/XMK1T8TUrok1ayJWi9hAbLQqYXVUqn+/KUHpa5n5
-7anNO0PyABbj9pi9+UOniNPR8tjxRLgxgvF/xeg5xAY4bhq37gDejhe4db2vVpwb/z2X4Ng2mNZr
-DLjx+w/v2f9aPNX4pIolW0AsoT9LZWXCLmTPaaPXzzQk74JpG84OPQJdWJoBUOQduGCFbTj/C8H3
-uN+XWOgHAAAAAElFTkSuQmCC
-
-
---=-/trEqekWwOEUAfPTdizS--
-
-
-		
-___________________________________________________________ 
-Try the all-new Yahoo! Mail. "The New Version is radically easier to use"  The Wall Street Journal 
-http://uk.docs.yahoo.com/nowyoucan.html
-
-
---===============0980010013==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---===============0980010013==--
-
-
-		
-___________________________________________________________ 
-Try the all-new Yahoo! Mail. "The New Version is radically easier to use"  The Wall Street Journal 
-http://uk.docs.yahoo.com/nowyoucan.html
