@@ -1,21 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+5d1aee805689a037d2dc+1835+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1KaG22-0002I0-9V
-	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 22:29:50 +0200
-Date: Mon, 1 Sep 2008 17:28:43 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jelle De Loecker <skerit@kipdola.com>
-Message-ID: <20080901172843.49387677@mchehab.chehab.org>
-In-Reply-To: <48BC253A.7050409@kipdola.com>
-References: <200809010005.28716.liplianin@tut.by>
-	<48BB0FE7.2010109@linuxtv.org>
-	<a3ef07920809010938h22f71abfgb633ba9f06c2d41e@mail.gmail.com>
-	<48BC253A.7050409@kipdola.com>
+Received: from mail1.radix.net ([207.192.128.31])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <awalls@radix.net>) id 1KfNDX-0001U9-U7
+	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 01:10:55 +0200
+From: Andy Walls <awalls@radix.net>
+To: Julian Scheel <julian@jusst.de>
+In-Reply-To: <48CDF7A1.2020905@jusst.de>
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<48C66829.1010902@grumpydevil.homelinux.org>
+	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
+	<48CC42D8.8080806@gmail.com>
+	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
+	<48CC4D35.3000003@gmail.com>
+	<d9def9db0809140838k2ced5211gc2690e76f53a98be@mail.gmail.com>
+	<48CD43C1.2090902@linuxtv.org>  <48CD5D19.1070700@gmail.com>
+	<1221425146.4278.30.camel@morgan.walls.org> <48CDF7A1.2020905@jusst.de>
+Date: Mon, 15 Sep 2008 19:10:26 -0400
+Message-Id: <1221520226.2773.31.camel@morgan.walls.org>
 Mime-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>, lucian orasanu <o_lucian@yahoo.com>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Cc: linux-dvb@linuxtv.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,95 +35,174 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
-
-Thanks for your feedback.
-
-All of us are waiting for a long time for support for the new DTV standards.
-
-The idea is not to postpone it, but to be sure that the API changes will be
-flexible enough. Once an API change goes to kernel, It may take a large amount
-of time for it to be removed. So extra care is taken on patches adding a
-new kernel to userspace API.
-
-I dunno if you are aware of how kernel development cycles are. 
-
-There is a short period of 2 weeks for merging API changes and driver
-improvements. This starts when a new kernel is released. After that 2 weeks
-period, a bug fix period starts. We are currently under bug fix period for
-kernel 2.6.27, at release candidate 5 (-rc5).
-
-So, the minimum Kernel release that we may expect to add support for other
-protocols is 2.6.28.
-
-In general, a kernel bug fix cycle goes up to -rc8 or -rc9, being one rc
-release by week. So, 2.6.27 kernel is likely to be released sometime after the
-end of Plumbers conf. 
-
-So, there's no gain of merging the API changes and the corresponding DVB-S2
-drivers now.
-
-Since several active Linuxtv maintainers will be at the conf for the Video
-Input Infrastructure Miniconf, this will give us a perfect opportunity for
-working together, carefully examining the technical details of both proposals,
-and finish whatever is needed for the addition of API changes as soon as
-possible and submit feedbacks to the ML.
-
-So, it is very likely that we'll add support for those protocols for 2.6.28
-inclusion.
-
-Thanks,
-Mauro.
-
-
-On Mon, 01 Sep 2008 19:24:10 +0200
-Jelle De Loecker <skerit@kipdola.com> wrote:
-
-> You said everything that needed to be said, I agree with you 100 %
+On Mon, 2008-09-15 at 07:50 +0200, Julian Scheel wrote:
+> Andy,
 > 
-> I vote for the merging of multiproto.
-
-
+> just to clarify things a bit I'll give a short statement now.
 > 
-> /Met vriendelijke groeten,/
-> 
-> *Jelle De Loecker*
-> Kipdola Studios - Tomberg
-> 
-> 
-> VDR User schreef:
-> > After some consideration, I can not ack this new api proposal.  I
-> > believe a lot of the support for it is based in people not knowing the
-> > current state of multiproto and thinking this might be the only path
-> > to new needed drivers.  It hasn't helped that there has been some
-> > misinformation spread such as the binary compatibility and so on.
-> > There is a current pull request for multiproto right now and if done,
-> > drivers could start being developed right now.  In the end that's what
-> > matters to users, especially those of us who've been patiently waiting
-> > several months or even years.
-> >
-> > To my knowledge the multiproto api is very robust and can be easily
-> > updated to accommodate new modulations, etc. From a technical
-> > standpoint, I can't justify disregarding all the work thats been done
-> > on multiproto, especially when it's finally ready to go.  In Mauro's
-> > own response to the pull request, he admits the multiproto code is
-> > complete.  Unless someone can provide legitimate reasons why we should
-> > wait for yet another api to be written when multiproto is (finally)
-> > ready to be pulled now, I'm afraid I can't support the idea.
-> >
-> > People have been waiting to move forward with a new api for a long
-> > time and it seems we can with multiproto right now, today.  I don't
-> > agree that makes a very strong case of too little, too late.  Whether
-> > it's openly admitted or not, I think we're mostly all aware that there
-> > is some personal politics involved in this as well, which is
-> > unfortunate.  Hopefully people will be mature enough to put that aside
-> > and do what's best for us, the linux dvb user base, as a whole.  After
-> > learning that multiproto is ready and there's no technical reason
-> > against it, I wonder how many people still choose to wait for another
-> > api to be written..?
-> >
-> > Best regards guys!
+> Andy Walls schrieb:
+> > Though I can't read much German, after looking at the jusst.de website I
+> > can't help but think that you as well have financial interests driving
+> > your actions.  If so, then your statements display quite a bit of
+> > hypocrisy.
 > >   
+> The role of jusst technologies in the whole multiproto story is as 
+> following:
+> The time when DVB-S2 came up this was of course of major interest for 
+> jusst technologies, so we searched for people working on drivers. At 
+> that not many people did seem to care about this stuff - but Manu did. 
+> So we got in contact and tried to help him as much as we can, which 
+> included making up connections to KNC1 for technical questions and 
+> datasheets, provide a KNC1 testing board and later then give free 
+> web/codespace to Manu.
+
+Julian
+
+First let me acknowledge jusst technologies contribution.  It seems
+generous.  Thank you for clarifying.
+
+
+> Furthermore we of course did lots of testing of multiproto. But never we 
+> did pay Manu for any of this work.
+> Reading that you should recognize that there can't be much financial 
+> interests for Manu.
+
+Manu clarified this.
+
+
+
+> Seeing that you impute hyprocrisy to Manu due to "facts" you don't have 
+> proven in any way makes me a bit contemplative.
+
+This is where you misrepresent my words: "I can't help but think..." is
+phrase that doesn't not imply certainty but indicates my *perception*.
+I did not assert this as fact, as the following statement started "If
+so, ..." which is a conditional clause.
+
+Maybe this subtlety is lost in translation.  
+
+
+
+
+>  I don't like being 
+> political when talking about technical terms (which linuxtv in first 
+> place should be about imho) - anyway this one time I will give a 
+> somewhat political statement, too.
+> All you guys who are blaming Manu to do some wrong or bad stuff,
+
+No.  It was my ill researched, emotive response to Manu attacking
+someone.
+
+
+>  what is 
+> your point?
+
+
+My point was to suggest to Manu that there were more productive ways to
+further his cause than to throw stones at people.
+
+Manu, who you support, BTW, was the one who initially introduced
+allegations of a developer introducing corporate politics. 
+
+
+>  - I see you searching quote where Manu did talk in a 
+> somewhat unpolite manner
+
+There was no searching involved.  That quote was text I cut out in my
+initial response.  I reinserted it to refute Manu's denial.
+
+
+
+>  just to blame him of being the wrong person 
+> introducing a new API? 
+
+
+> - I have no interest in doing the same quoting 
+> with your postings or the so called competitors postings, but I'd bed I 
+> could quote almost any of you in a not less distracting manner than you 
+> like to do with Manu.
+> > Manipulating (i.e. stalling) the timing of Multiproto being merged into
+> > the v4l-dvb tree or kernel, for you or your employer's gain, would be
+> > little different from the motivations you allege Steve of having.
+> >
+> > Since the major gripe I'm reading on the list "is that multiproto has
+> > taken too long" and since it seems to me the only thing that shook it
+> > loose was a competing proposal, please save the venom for when you
+> > actually have some clear moral high-ground to stand on.  I don't see it
+> > from here.
+> >   
+> Using "taking too long" as an argument against an API proposal is really 
+> interesting. What did you expect? - A quick shot which is not well 
+> thought about wouldn't have be a good thing for anyone.
+> I'm absolutely fine if anyone would came up with real technical 
+> arguments, but reading many postings so far I couldn't find much of such 
+> statements.
+
+Let me help you.  Please read these postings of mine and give me your
+honest feedback:
+
+http://linuxtv.org/pipermail/linux-dvb/2008-September/028651.html
+http://linuxtv.org/pipermail/linux-dvb/2008-September/028727.html
+
+
+Are these the emails of someone who doesn't care about the technical
+aspects?
+
+I didn't post them to the LKML because I didn't think the issue needed
+expand to there.
+
+
+
+> > As for the technical superiority of either API proposal; that probably
+> > just doesn't matter.  I've seen policy/political decisions force
+> > suboptimal technical solutions at work time and time again.  If you
+> > really believe you have a superior product technically; then perhaps you
+> > should work to make it superior politically as well.  Mud-slinging can't
+> > be a good long term strategy toward that end.
+> >   
+> To be political again: Thank you for blaming jusst being not interested 
+> in proper technical solutions. What makes you thinking of this?
+
+I said no such thing.  The implication was that politics often
+(tragically IMO) often weigh heavier than technical merit in making
+decision.   This was my recommendation to Manu not to neglect that
+aspect, lest he get shortchanged.  I was trying to help/advise.  Maybe
+that was not clear.
+
+
+
+>  - Just 
+> the fact that you recognize jusst as a commercial company? Very interesting.
+
+
+> I really have a feeling that many people here are mostly interested in 
+> making politics instead of thinking about technical solutions which 
+> makes all this a horrible topic
+
+Then tell Manu not to initiate with unkind allegations, and he won't
+evoke the same in return.  Again, the horror of the whole mess is what
+moved me to respond. 
+
+I couldn't give $0.02 about the new API.  I don't think I'll ever need
+it myself.  That's a selfish US user's perspective, but it also
+validates my motivation for responding: to try and stop the animosity.
+
+
+>  for all that people who are interested 
+> in a working solution (which Manu has proven to deliver) - mainly the users.
+> 
+> So far this is my statement (in representation for jusst technologies) 
+> for the moment.
+
+I'm sorry if you feel I've somehow injured the name of jusst
+technologies.  That certainly wasn't any intention of mine.
+
+Regards,
+Andy
+
+> Best regards,
+> Julian
+> 
 
 
 _______________________________________________
