@@ -1,18 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from ug-out-1314.google.com ([66.249.92.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KhR6y-0002jE-4W
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 17:44:37 +0200
-Message-ID: <48D66BD4.7080606@gmail.com>
-Date: Sun, 21 Sep 2008 19:44:20 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1Kffcm-0000Ey-Tw
+	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 20:50:11 +0200
+Received: by ug-out-1314.google.com with SMTP id 39so389819ugf.16
+	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 11:50:05 -0700 (PDT)
+Message-ID: <412bdbff0809161150v71abb7d0g5232bf0b23284c46@mail.gmail.com>
+Date: Tue, 16 Sep 2008 14:50:05 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Steven Toth" <stoth@linuxtv.org>
+In-Reply-To: <48CFFCE1.4060507@linuxtv.org>
 MIME-Version: 1.0
-To: n.wagenaar@xs4all.nl
-References: <vmime.48d64e98.2764.5267ca3d1c0e6acb@shalafi.ath.cx>
-In-Reply-To: <vmime.48d64e98.2764.5267ca3d1c0e6acb@shalafi.ath.cx>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Full Mantis pull with TerraTec Cinergy S2 PCI HD
- hangs system on boot
+Content-Disposition: inline
+References: <412bdbff0809152102j4faa675cw3134efe5403020bd@mail.gmail.com>
+	<48CF3D97.40805@linuxtv.org>
+	<412bdbff0809160544h28f90d86x81adcb37626fd518@mail.gmail.com>
+	<48CFE09E.2030009@linuxtv.org>
+	<412bdbff0809161002n5ec1eb29k490b638134bf6b3f@mail.gmail.com>
+	<48CFFCE1.4060507@linuxtv.org>
+Cc: linux-dvb <linux-dvb@linuxtv.org>, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [linux-dvb] [FIX] Use correct firmware for the ATI TV Wonder 600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,31 +33,49 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Niels Wagenaar wrote:
-> -----Original message-----
-> From: Manu Abraham <abraham.manu@gmail.com>
-> Sent: Sun 21-09-2008 15:27
-> To: Niels Wagenaar <n.wagenaar@xs4all.nl>; 
-> CC: linux-dvb@linuxtv.org; 
-> Subject: Re: [linux-dvb] Full Mantis pull with TerraTec Cinergy S2 PCI HD hangs system on boot
-> 
->> -- SNIP --
+On Tue, Sep 16, 2008 at 2:37 PM, Steven Toth <stoth@linuxtv.org> wrote:
+> Devin Heitmueller wrote:
 >>
->> Is this the offending changeset ?
+>> On Tue, Sep 16, 2008 at 12:36 PM, Steven Toth <stoth@linuxtv.org> wrote:
+>>>
+>>> Devin Heitmueller wrote:
+>>>>
+>>>> Thanks for your help in getting this pulled in.  The moral of this
+>>>> story seems to have been that it's *way* easier to just buy the damn
+>>>> thing than to add support for someone's device remotely.  92 emails
+>>>> over three weeks to get support added versus 1 evening to get support
+>>>> working right.  :-)
+>>>
+>>> /me nods
+>>>
+>>> Better still, have someone give you a device for free in return for help.
 >>
->> http://jusst.de/hg/mantis/rev/e466a650ef20
->>
-> 
-> I think it is. An other person I know, did a pull on 16 September. And he didn't encounter the problems as I and others had this weekend. And yes, the other three persons tried the installation since last friday(-evening). So it's a good bet, that the changeset is indeed the problematic one.
-> 
-> The reason for why several people had this problems, is because they all wanted to test VDR. And this DVB-S2 card is one of the cheapest to buy over here in the Netherlands.  
-> 
+>> Better still, have a vendor give you a device for free and make the
+>> datasheets available in return for having their device supported.  :-)
+>
+> Believe it or not but I'm starting to see that happen, although with some
+> restrictions.
 
-Applied the fix. Can you please pull and update from the mantis tree and
-try again ?
+Well, sign me up!  I would love to help the efforts to expand device
+support, but at this point I'm personally blocked by the fact that I
+have already bought four tuners in the last year, combined with the
+lack of actual documentation which results in it taking *way* longer
+than it has to.
 
-Regards,
-Manu
+Sure, I got all four of them to work which is progress, but it would
+have gone much faster if the docs were available to me and I wasn't
+laying out my own cash to buy tuners I have no personal use for.
+
+I've spent all this time to learn the codebase and I'd like to
+leverage that knowledge more, but now I have to ask myself, "What am I
+going to do with four tuners?"
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
