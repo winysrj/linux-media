@@ -1,15 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [194.250.18.140] (helo=tv-numeric.com)
+Received: from ffm.saftware.de ([83.141.3.46])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1KipgA-0007sY-Im
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 14:10:42 +0200
-From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
-To: <linux-dvb@linuxtv.org>
-Date: Thu, 25 Sep 2008 14:10:02 +0200
-Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAFWGD+9r2SkGGhLj/rwn00AEAAAAA@tv-numeric.com>
+	(envelope-from <obi@linuxtv.org>) id 1Kfets-0005Zp-A6
+	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 20:03:45 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by ffm.saftware.de (Postfix) with ESMTP id D8367E6DAC
+	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 20:03:40 +0200 (CEST)
+Received: from ffm.saftware.de ([83.141.3.46])
+	by localhost (pinky.saftware.org [127.0.0.1]) (amavisd-new, port 10024)
+	with LMTP id 39pbAx-3UE-S for <linux-dvb@linuxtv.org>;
+	Tue, 16 Sep 2008 20:03:40 +0200 (CEST)
+Received: from [172.22.22.60] (unknown [92.50.81.33])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by ffm.saftware.de (Postfix) with ESMTPSA id 3028CE6DA8
+	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 20:03:39 +0200 (CEST)
+Message-ID: <48CFF4FC.1000005@linuxtv.org>
+Date: Tue, 16 Sep 2008 20:03:40 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-In-Reply-To: <200809251248.20557.janne-dvb@grunau.be>
-Subject: [linux-dvb] RE :  [RFC] Let the future decide between the two.
+To: linux-dvb@linuxtv.org
+References: <20080916173121.202250@gmx.net>
+In-Reply-To: <20080916173121.202250@gmx.net>
+Subject: Re: [linux-dvb] Why Parameter 'INVERSION' is really needed?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,105 +30,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> De : linux-dvb-bounces@linuxtv.org =
+handygewinnspiel@gmx.de wrote:
+> What is the *real need* for giving applications the possibility of I-Q-Inversion? Why this strange one is included in next API's?
+> 
+> If i understand this parameter correctly it swaps I and Q inputs of an qam capable receiver. But otherwise that means that somewhere in the reception chain some real mistake was made, either on hardware or driver side.
+> 
+> And if some inversion is needed it should be corrected inside the dvb frontend, since for such piece of hardware *always* this inversion is needed. Correcting this later on application level is terrible, since somebody may use hardware with different inversion settings inside the same application with the very same channel definition.
 
-> [mailto:linux-dvb-bounces@linuxtv.org] De la part de Janne Grunau
-> Envoy=E9 : jeudi 25 septembre 2008 12:48
-> =C0 : linux-dvb@linuxtv.org
-> Objet : Re: [linux-dvb] [RFC] Let the future decide between the two.
-> =
+If you find two devices which need different inversion settings in the
+same network, then it's a driver bug, which can easily be corrected.
 
-> =
+Spectral inversion depends on the transmitter, too. It can change
+anytime a broadcaster decides to change it. It happens, although not
+very often.
 
-> On Thursday 25 September 2008 08:45:28 Michel Verbraak wrote:
-> [...]
-> > I would like to propose the following:
-> >
-> > - Keep the two different DVB API sets next to one another. Both
-> > having a space on Linuxtv.org to explain their knowledge and how to
-> > use them. - Each with their own respective maintainers to get stuff
-> > into the kernel. I mean V4L had two versions.
-> > - Let driver developers decide which API they will follow. Or even
-> > develop for both.
-> > - Let application developers decide which API they will support.
-> > - Let distribution packagers decide which API they will have
-> > activated by default in their distribution.
-> > - Let the end users decide which one will be used most. (Probably
-> > they will decide on: Is my hardware supported or not).
-> > - If democracy is that strong one of them will win or maybey the two
-> > will get merged and we, the end users, get best of both worlds.
-> >
-> > As the subject says: This is a Request For Comment.
-> =
+Specifying the inversion parameter can speed up the tuning process,
+especially for devices which don't support automatic swapping in
+hardware. But I would not recommend to store this parameter in a service
+list.
 
-> This is complete nonsense, distrobution packagers shouldn't =
+If we decide to keep the parameter, we should probably use four options:
+ INVERSION_OFF, INVERSION_ON, INVERSION_AUTO_OFF_FIRST,
+INVERSION_AUTO_ON_FIRST, which matches the capabilities of most
+demodulators. A typical application would then probably use only the
+last two options, while the first two options would rather be used for
+diagnostics and to read back the detected inversion.
 
-> decide which =
-
-> API should be used, the API and all drivers should be in the kernel. =
-
-> Having two tree is at best fragmentation and at worst a whole lot of =
-
-> duplicated work.
-
-Having the two coexisting API is a COMPLETE SOFTWARE DESIGN NONSENSE.
-
-This would not be a "cathedral to bazaar" transition, as someone wrote
-on the subject, it would be a "bazaat to mess" transition.
-
-I have no technical opinion on Multiproto vs. S2API since I have been
-using only DVT-T device for the last two years. But I have more than
-20 years of experience in software design and that would be for sure
-the worst decision ever.
-
-On a user point of view, Janne's point is the most important one:
-> That should a user do if he has two devices which are only =
-
-> supported by one of the trees? That's bad luck?
-
-And this is not only a Multiproto vs. S2API issue. As I mentioned,
-I use only DVT-T devices. I have 4 of them, all working on Linux
-for months or years and there is no one single repository supporting
-all of them at the same time. Most are supported by
-http://linuxtv.org/hg/v4l-dvb, another one needs
-http://linuxtv.org/hg/~anttip/af9015 plus other patches.
-And this is not a transitional situation, it lasts for months.
-
-This is an endemic but unacceptable situation. And, again, this is
-not only Multiproto vs. S2API. IMHO, linux DVB has a real leadership
-problem. There are just too many different forks which could be accepted
-during transition periods (development and validation of a driver)
-but which cannot survive that long.
-
-All these various trees contains technically good code. So, this
-is not a technical problem. Failing to merge them is a leadership
-problem ("cathedral companies" would say a "management problem").
-
-Imagine what would be the kernel today with that kind of methods?
-But for the kernel, there is Linus, a leader that you may like or
-not but that everyone respect (and respect the decisions of). The
-situation in Linux DVB is not like that, unfortunately.
-
-Since Linux DVB is a subsystem of the kernel and since there is
-no undisputed leader in Linux DVB, why not asking for Linus'
-arbitration? He started to get involved AFAIK.
-
-Currently, all arguments are like:
-- "This API is technically better" (not a technical problem we told you)
-- "Give me technical reasons" (same)
-- "This was voted" (validity of this vote is disputed -> leadership pb)
-- "You don't like me" (personal problems)
-
-One way to get out of this loop is to call for Linus.
-
--Thierry
-
+Regards,
+Andreas
 
 _______________________________________________
 linux-dvb mailing list
