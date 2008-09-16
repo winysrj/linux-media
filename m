@@ -1,14 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <javian@gmx.net>) id 1KeK1g-0005sm-RJ
-	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 03:34:17 +0200
-Date: Sat, 13 Sep 2008 03:27:02 +0200
-From: =?iso-8859-1?Q?=22J=FCrgen_Avian=22?= <javian@gmx.net>
-Message-ID: <20080913012702.8300@gmx.net>
+To: free_beer_for_all@yahoo.com
+References: <48CD1F3E.6080900@linuxtv.org>
+	<564277.58085.qm@web46102.mail.sp1.yahoo.com>
+From: Benny Amorsen <benny+usenet@amorsen.dk>
+Date: Tue, 16 Sep 2008 18:45:03 +0200
+In-Reply-To: <564277.58085.qm@web46102.mail.sp1.yahoo.com> (barry bouwsma's
+	message of "Sun\, 14 Sep 2008 08\:14\:18 -0700 \(PDT\)")
+Message-ID: <m31vzkujjk.fsf@ursa.amorsen.dk>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] ZL10036 and ZL10313 drivers (PCTV Sat Pro PCI 450i)
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Multiproto API/Driver Update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,40 +17,31 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+barry bouwsma <free_beer_for_all@yahoo.com> writes:
 
-I have a Pinnacle PCTV Sat Pro PCI (450i) and I'm trying to find suitable d=
-rivers for this card. As stated in this document
+> There is GPL code distributed as part of *BSD sources,
+> as you can see by reading the licensing in, for example,
+> $ ls /lost+found/CVSUP/BSD/FreeBSD.cvs/src/sys/gnu/dev/sound/pci/
+> Attic       emu10k1-alsa.h,v  maestro3_reg.h,v  p17v-alsa.h,v
+> csaimg.h,v  maestro3_dsp.h,v  p16v-alsa.h,v
 
-ftp://213.252.189.56/Manual/MediaCenter%20-%20TVCenter%20V.4/PCTV_Sat_Pro_P=
-CI_EN.pdf
+Don't read too much into that. C header files are generally interface
+descriptions, and those are generally not copyrightable. I write
+"generally" because like everything else in law, there are exceptions.
 
-the tuner and demodulator used on this card are the ones mentioned in the s=
-ubject of this mail. I'd be pleased to try out the drivers which where post=
-ed in January by Tino, Matthias and others ...
+I doubt that *BSD would allow GPL'd .c-files into their kernel trees.
 
-Unfortunately, I didn't manage to find the necessary source files since I o=
-nly found patches (diff files) that where submitted.
 
-Where can I get the source files for the drivers or the complete and most a=
-ctual diffs and which source tree should be patched with them?
+/Benny
 
-What is the actual status of the driver development?
+P.S. Interesting place you keep your sources...
 
-Thanks!
-
-Best regards,
-Juergen
--- =
-
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
-http://www.gmx.net/de/go/multimessenger
 
 _______________________________________________
 linux-dvb mailing list
