@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <bauner@gmx.de>) id 1Ka6uA-0006zR-8w
-	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 12:45:06 +0200
-Message-ID: <DDF4DB66862A4232A806CE944F6EF1FB@user07>
-From: "Christian Neubauer" <bauner@gmx.de>
-To: <linux-dvb@linuxtv.org>
-Date: Mon, 1 Sep 2008 12:44:29 +0200
-MIME-Version: 1.0
-Subject: [linux-dvb] Works the Cinergy C Pci CI Module with the mantis
-	drivers?
+Date: Tue, 16 Sep 2008 14:37:21 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <412bdbff0809161002n5ec1eb29k490b638134bf6b3f@mail.gmail.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Message-id: <48CFFCE1.4060507@linuxtv.org>
+MIME-version: 1.0
+References: <412bdbff0809152102j4faa675cw3134efe5403020bd@mail.gmail.com>
+	<48CF3D97.40805@linuxtv.org>
+	<412bdbff0809160544h28f90d86x81adcb37626fd518@mail.gmail.com>
+	<48CFE09E.2030009@linuxtv.org>
+	<412bdbff0809161002n5ec1eb29k490b638134bf6b3f@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [linux-dvb] [FIX] Use correct firmware for the ATI TV Wonder 600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,75 +19,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1516626435=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+Devin Heitmueller wrote:
+> On Tue, Sep 16, 2008 at 12:36 PM, Steven Toth <stoth@linuxtv.org> wrote:
+>> Devin Heitmueller wrote:
+>>> Thanks for your help in getting this pulled in.  The moral of this
+>>> story seems to have been that it's *way* easier to just buy the damn
+>>> thing than to add support for someone's device remotely.  92 emails
+>>> over three weeks to get support added versus 1 evening to get support
+>>> working right.  :-)
+>> /me nods
+>>
+>> Better still, have someone give you a device for free in return for help.
+> 
+> Better still, have a vendor give you a device for free and make the
+> datasheets available in return for having their device supported.  :-)
 
---===============1516626435==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_000D_01C90C30.797F5000"
+Believe it or not but I'm starting to see that happen, although with 
+some restrictions.
 
-This is a multi-part message in MIME format.
+- Steve
 
-------=_NextPart_000_000D_01C90C30.797F5000
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-I have an Terratec Cinergy C Pci HD working with the latest mantis =
-drivers from http://jusst.de/hg/mantis.
-
-Now I would like to buy an CI Module.
-
-Works the Cinergy CI Addon Card with these drivers?
-
-greets
-------=_NextPart_000_000D_01C90C30.797F5000
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.6000.16705" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>
-<DIV><FONT face=3DArial size=3D2>I have an Terratec Cinergy C Pci HD =
-working with=20
-the latest mantis drivers from <A=20
-href=3D"http://jusst.de/hg/mantis">http://jusst.de/hg/mantis</A>.</FONT><=
-/DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Now I would like to buy an CI =
-Module.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Works the <FONT face=3D"Times New =
-Roman"=20
-size=3D3>Cinergy CI Addon Card with these drivers?</FONT></FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3DArial =
-size=3D2>greets</FONT></DIV></FONT></DIV></BODY></HTML>
-
-------=_NextPart_000_000D_01C90C30.797F5000--
-
-
-
---===============1516626435==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1516626435==--
