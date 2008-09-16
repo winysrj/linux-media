@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.190])
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1Kfw5G-00076U-5r
-	for linux-dvb@linuxtv.org; Wed, 17 Sep 2008 14:24:39 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so1811786nfb.11
-	for <linux-dvb@linuxtv.org>; Wed, 17 Sep 2008 05:24:34 -0700 (PDT)
-Date: Wed, 17 Sep 2008 14:24:31 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Markus Rechberger <mrechberger@gmail.com>
-In-Reply-To: <d9def9db0809170440g7ed779f9m9331ff9eddb78745@mail.gmail.com>
-Message-ID: <alpine.DEB.1.10.0809171357010.5927@ybpnyubfg.ybpnyqbznva>
-References: <786613.55940.qm@web55106.mail.re4.yahoo.com>
-	<alpine.DEB.1.10.0809171253300.5927@ybpnyubfg.ybpnyqbznva>
-	<d9def9db0809170440g7ed779f9m9331ff9eddb78745@mail.gmail.com>
+	(envelope-from <mkrufky@linuxtv.org>) id 1KfSge-0000Ij-R0
+	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 07:01:19 +0200
+Message-ID: <48CF3D97.40805@linuxtv.org>
+Date: Tue, 16 Sep 2008 01:01:11 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] software radio
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <412bdbff0809152102j4faa675cw3134efe5403020bd@mail.gmail.com>
+In-Reply-To: <412bdbff0809152102j4faa675cw3134efe5403020bd@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [FIX] Use correct firmware for the ATI TV Wonder 600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,48 +25,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 17 Sep 2008, Markus Rechberger wrote:
+Devin Heitmueller wrote:
+> Attached is a patch to use the proper firmware for the ATI TV Wonder
+> 600.  It was previously configured to use the XC3028 firmware, as I
+> did not realize the device had an XC3028L until I got one myself for
+> testing purposes.
+> 
+> This should get pushed in ASAP since the wrong firmware causes the
+> device to overheat and could cause permanent damage.
 
-> >> Is it possible to access the sampling subsystem of a dvb card
-> >> as like skystar 2 or any other ?
+I'll push this in... I like the fact that you defined the xc3028L firmware in the header -- I will also push up a patch to change the HVR1400 (cx23885 ExpressCard) to use XC3028L_DEFAULT_FIRMWARE instead of specifying the filename explicitly.
 
-> have you had a look at:
-> http://www.gnu.org/software/gnuradio/
+Thanks,
 
-I have now  :-)   thanks
-
-And I feel really stupid, thinking this was a beginner question.
-And I wish I had been asleep now.  My foot tastes terrible.
-
-As you see, my understanding of the word `sampling' is based
-on my understanding and work in radio and telephony some 30 years 
-ago, when I didn't even realize that what I was doing would be 
-somehow relevant today.
-
-Anyway, I really do not know, but I would imagine that most
-current sat devices, including the SkyStar, expect to have a 
-hardware demodulator in place, and have no provision to get at
-the signal on the other side of that chip.
-
-
-Which makes me wonder -- the IF of a satellite signal is
-typically 1GHz and up.  Is there a standard second IF
-frequency that various hardware uses?  Given that it is
-possible to have transponders with high symbol rates, I
-wonder if satellite software receivers will be pushing too
-hard on bandwidth of various busses -- which already seem
-to suffer when delivering already-demodulated data.
-
-Those familiar with chip and board design can answer the
-original question far better than I ever could.
-
-
-Then again, I have my head firmly set on 20-year-old
-hardware designs...
-
-
-think i'll quietly close my mailreader
-barry bouwsma
+Mike
 
 _______________________________________________
 linux-dvb mailing list
