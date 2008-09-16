@@ -1,24 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from ug-out-1314.google.com ([66.249.92.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KbbGz-0000wZ-2z
-	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 15:22:50 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6Q00IBC552UOR0@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 05 Sep 2008 09:22:14 -0400 (EDT)
-Date: Fri, 05 Sep 2008 09:22:13 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <e32e0e5d0809041625y22993606vae7f7ee63e936f9c@mail.gmail.com>
-To: Tim Lucas <lucastim@gmail.com>
-Message-id: <48C13285.1040604@linuxtv.org>
-MIME-version: 1.0
-References: <e32e0e5d0809041625y22993606vae7f7ee63e936f9c@mail.gmail.com>
-Cc: linux dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] cx23885 analog TV and audio support for
-	HVR-1500
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KffrB-0001fE-Io
+	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 21:05:03 +0200
+Received: by ug-out-1314.google.com with SMTP id 39so399371ugf.16
+	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 12:04:58 -0700 (PDT)
+Date: Tue, 16 Sep 2008 19:04:56 +0000 (UTC)
+To: Benny Amorsen <benny+usenet@amorsen.dk>
+In-Reply-To: <m31vzkujjk.fsf@ursa.amorsen.dk>
+Message-ID: <alpine.NEB.2.00.0809161818250.4540@Arg.OFQ.QlaQAF.qx>
+References: <48CD1F3E.6080900@linuxtv.org>
+	<564277.58085.qm@web46102.mail.sp1.yahoo.com>
+	<m31vzkujjk.fsf@ursa.amorsen.dk>
+MIME-Version: 1.0
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: [linux-dvb] OT: Dual/BSD Licensing (was: Re: Multiproto API/Driver
+ Update)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,64 +30,109 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Tim Lucas wrote:
->>  Tim Lucas wrote:
->>
->> > For some reason, when I  add the line
->> > options cx23885 card=6
->> > I can no longer boot the machine successfully.
->> > The machine hangs saying that
->> >
->> > (Ctl-alt-F1)
->> > kinit: No resume image, doing normal boot . . .
->> > (Ctl-alt-F8)
->> > udevd-event[3374]: run-program: '/sbin/modprobe' abnormal exit
->> >
->> > After a while it continues to boot, but the messages go by so fast that I
->> > can't read them.  Finally, it just sits on a blank screen.  Since 
-> 2.6.24-19
->> > was originally installed and it updated to 2.6.24-21, I am able to 
-> boot into
->> > the older kernel and then comment out that line.
->> >
->> > I am pretty sure that HVR1500 is card 6, so I am not sure what is wrong.
->> >  I didn't have that problem, the first time I rebooted, but have had that
->> > problem on every succesive reboot.
->> >
->> > Any ideas?
->> >
->>
->>  Please cc the list in all email, which I've done.
->>
->>  Check the /var/log/messages or kern.log files to see what they contain.
->>
->>  Or, if the system isn't booting, remove the module from your
->>  /lib/modules/`uname -r`/kernel/drivers/media/video/cx23885 dir then boot
->>  again.
->>
->>  The card won't get initialised by the driver won't exist, then you can
->>  install the driver with 'make install' which will install it from your
->>  linux-dvb/v4l test tree, then load it at your own leisure with modprobe
->>  cx23885 debug=1.
->>
->>
->>  - Steve
->>
-> 
-> Using your instructions, I figured out that the driver will not load 
-> using modprobe. That is why the computer has trouble booting with that 
-> driver and the HVR-1500 card selected.
-> I also tried copying the relevant code and putting it into the DViCO 
-> FusionHDTV7 Dual Express area to see if that worked. I had the same 
-> results as when I tried loading the card as a HVR-1500. I cannot get any 
-> signal from the card that way.  I know the card is getting a signal 
-> because it shows a signal when loaded as a digital card.  If you have 
-> any suggestions I would appreciate them.  Thank you.
+On Tue, 16 Sep 2008, Benny Amorsen wrote:
 
-Why doesn't the driver load if you force it with card=X? What does dmesg 
-show?
+> I doubt that *BSD would allow GPL'd .c-files into their kernel trees.
 
-- Steve
+Ha.  Found one.  Present (NetBSD) OS does not give me access
+to my up-to-date source repositories, so I don't know if it's
+obsolete now, and I can't grep through DragonFly-, Open-,
+and other derivates along the BSD family tree.
+
+There are, however, numerous dual GPL/BSD license files to
+be found, some with different wordings.
+
+/mnt/usr/local/src/netbsd-current-src/src/NetBSD.cvs/src/sys/dev/pci/if_lmc.c
+is an example of a file has plenty of Linuxisms intact.
+
+/mnt/usr/local/src/netbsd-current-src/src/NetBSD.cvs/src/sys/external/bsd/drm/dist/shared-core/via_drv.c
+has a BSD license atop, and at the end, a Linux kernel module
+GPL license...
+
+/altroot/STABLE-4.4-FreeBSD/usr/local/system/src/sys/kern/kern_random.c
+is quite old -- while I do have later source on this disk,
+my present kernel limits me to the 16 partitions I've defined
+from the 30-odd I can find with Linux (experimental code to
+use BSD disklabels or GPT has not been as successful as I
+would like); this isn't relevant, is it?  Anyway...  I'll
+quote from this file:
+
+ * $FreeBSD: src/sys/kern/kern_random.c,v 1.36.2.4 2002/09/17 17:11:57 sam Exp $
+ * Version 0.95, last modified 18-Oct-95
+ * Copyright Theodore Ts'o, 1994, 1995.  All rights reserved.
+[...]
+ * ALTERNATIVELY, this product may be distributed under the terms of
+ * the GNU Public License, in which case the provisions of the GPL are
+ * required INSTEAD OF the above restrictions.  (This clause is
+ * necessary due to a potential bad interaction between the GPL and
+ * the restrictions contained in a BSD-style copyright.)
+
+Now we take a look at an interesting file:
+ * $FreeBSD: src/sys/dev/dgb/dgm.c,v 1.31.2.3 2001/10/07 09:02:25 brian Exp $
+[...]
+ * There was a copyright confusion: I thought that having read the
+ * GLPed drivers makes me mentally contaminated but in fact it does
+ * not. Since the Linux driver by Troy De Jongh <troyd@digibd.com> or
+ * <troyd@skypoint.com> was used only to learn the Digi's interface,
+ * I've returned this driver to a BSD-style license. I tried to contact
+ * all the contributors and those who replied agreed with license
+ * change. If you did any contribution when the driver was GPLed and do
+ * not agree with the BSD-style re-licensing please contact me.
+ *  -SB
+
+
+``Mentally contaminated''.  Hmmm.  Need to design a suitable
+icon for that, and print up biohazard-like warning signs to
+wear on my jacket.  Anyway, that's an example of the sort of
+flame wars that you can find elsewhere.
+
+
+Now, a bit futher along, again from my old source tree,
+
+/altroot/STABLE-4.4-FreeBSD/usr/local/system/src/sys/gnu/i386/isa/dgb.c
+
+ *  dgb.c $FreeBSD: src/sys/gnu/i386/isa/dgb.c,v 1.56.2.1 2001/02/26 04:23:09 jlemon Exp $
+ *
+ *  Digiboard driver.
+ *
+ *  Stage 1. "Better than nothing".
+ *  Stage 2. "Gee, it works!".
+ *
+ *  Based on sio driver by Bruce Evans and on Linux driver by Troy
+ *  De Jongh <troyd@digibd.com> or <troyd@skypoint.com>
+ *  which is under GNU General Public License version 2 so this driver
+ *  is forced to be under GPL 2 too.
+
+But then, this is under FreeBSD's sys/gnu subdirectory,
+where optional non-BSD-licensed files would be found.
+
+
+Of course, the actual basics of the kernel (memory manglement
+and what not) will not be exclusively GPL -- only those
+optional components for convenience.
+
+
+I hope these licenses help any authors who are
+considering whether a dual-license for their code
+is worthy.  This is all based on `grep', not on an
+intimate knowledge of how these source files interface
+with the kernel.
+
+
+
+> P.S. Interesting place you keep your sources...
+
+Not enough mountpoints, too many external drives with
+too many partitions, never enough consistency to add a
+fixed mountpoint for anything that I might occasionally
+mount, so I just mount it on whatever looks available,
+then it kinda gets hardcoded differently into different
+scripts on different OSen, and anyway, I usually end up
+rearranging or migrating stuff sooner rather than later.
+
+
+med venlig hilsen,
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
