@@ -1,19 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from tuc.ic3s.de ([80.146.164.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1Kex8I-00071g-8s
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 21:19:43 +0200
-Message-ID: <48CD63C5.4020807@gmail.com>
-Date: Sun, 14 Sep 2008 23:19:33 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <thomas@ic3s.de>) id 1Kfa25-0007E6-QE
+	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 14:51:55 +0200
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by tuc.ic3s.de (Postfix) with ESMTP id 0C24014401F
+	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 14:51:49 +0200 (CEST)
+Received: from tuc.ic3s.de ([127.0.0.1])
+	by localhost (tuc.ic3s.de [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id 13474-07 for <linux-dvb@linuxtv.org>;
+	Tue, 16 Sep 2008 14:51:36 +0200 (CEST)
+Received: from [172.17.33.64] (thomasws2.dhcp.ic3s.de [172.17.33.64])
+	by tuc.ic3s.de (Postfix) with ESMTP id EA53D14401E
+	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 14:51:35 +0200 (CEST)
+Message-ID: <48CFABD7.8000202@ic3s.de>
+Date: Tue, 16 Sep 2008 14:51:35 +0200
+From: Thomas <thomas@ic3s.de>
 MIME-Version: 1.0
-To: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
-References: <48C3178F.6050704@gmx.de>	<200809141434.48564.mldvb@mortal-soul.de>	<48CD4B09.8000706@gmx.de>	<200809142001.20702.mldvb@mortal-soul.de>
-	<48CD6040.4030400@freenet.de>
-In-Reply-To: <48CD6040.4030400@freenet.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Problem with mantis drivers for Terratec Cinergy
- C	and CAM
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] problems compiling af9015 on fedora 9
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,28 +32,66 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ruediger Dohmhardt wrote:
->> No, actually I did not. :-) All I said is I had a brief look over the mantis 
->> tree and spotted several known areas which area cicam related. From what I 
->> had seen, I thought everything was already in place and concluded that you 
->> might be suffering from a similar problem like I did for several month 
->> because everything looked very familiar. But it seems like the cicam support 
->> is rather new and still not quite ready. 
->>   
-> Yes, for the 2033 it is not working yet!.
-> And as said several times on this list, I'm waiting for it for a long
-> time already.
-> I wonder why Manu does not finish it. There are several people here
-> waiting for CiCam support.
+Hi List,
 
-It's not something that i am purposefully delaying it. I am also almost
-at wits end. It is indeed a silly bug now, as almost everything is done
-for the "basic CI-CAM" support on the Mantis. The vendor is also helping
-out, by taking a look at the issue, but as said sometimes silly bugs are
-hard to find.
+i get this error:
 
-Regards,
-Manu
+#make
+
+....
+  CC [M]  /root/af9015/v4l/pluto2.o
+  LD [M]  /root/af9015/v4l/sms1xxx.o
+  LD [M]  /root/af9015/v4l/snd-bt87x.o
+  LD [M]  /root/af9015/v4l/snd-tea575x-tuner.o
+  Building modules, stage 2.
+  MODPOST 273 modules
+WARNING: "__udivdi3" [/root/af9015/v4l/af9013.ko] undefined!
+  CC      /root/af9015/v4l/adv7170.mod.o
+  LD [M]  /root/af9015/v4l/adv7170.ko
+  CC      /root/af9015/v4l/adv7175.mod.o
+  LD [M]  /root/af9015/v4l/adv7175.ko
+.....
+
+
+after connecting the device i have no frontend :(
+
+kernel: dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in cold state, will try to load a firmware
+kernel: dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+kernel: usb 2-5: USB disconnect, address 3
+kernel: dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
+kernel: usb 2-5: new high speed USB device using ehci_hcd and address 4
+kernel: usb 2-5: configuration #1 chosen from 1 choice
+kernel: input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:1d.7/usb2/2-5/2-5:1.1/input/input10
+kernel: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:1d.7-5
+kernel: usb 2-5: New USB device found, idVendor=15a4, idProduct=9016
+kernel: usb 2-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+kernel: usb 2-5: Product: DVB-T 2
+kernel: usb 2-5: Manufacturer: Afatech
+kernel: usb 2-5: SerialNumber: 010101010600001
+kernel: dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in warm state.
+kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+kernel: DVB: registering new adapter (Afatech AF9015 DVB-T USB2.0 stick)
+kernel: af9013: Unknown symbol __udivdi3
+modprobe: FATAL: Error inserting af9013 (/lib/modules/2.6.25.14-108.fc9.i686/kernel/drivers/media/dvb/frontends/af9013.ko): Unknown symbol in module, or unknown parameter (see dmesg)
+kernel: DVB: Unable to find symbol af9013_attach()
+kernel: dvb-usb: no frontend was attached by 'Afatech AF9015 DVB-T USB2.0 stick'
+kernel: dvb-usb: Afatech AF9015 DVB-T USB2.0 stick successfully initialized and connected.
+kernel: usbcore: registered new interface driver dvb_usb_af9015
+
+
+can someone explain whats going wrong?
+
+
+
+Best Regards
+
+Thomas
+
+
+-- 
+[:O]###[O:]
+
+
 
 _______________________________________________
 linux-dvb mailing list
