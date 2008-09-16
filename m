@@ -1,24 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Ket7I-00058Q-5S
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 17:02:25 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7600DTGXR1NC10@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sun, 14 Sep 2008 11:01:50 -0400 (EDT)
-Date: Sun, 14 Sep 2008 11:01:49 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200809141646.01263.hftom@free.fr>
-To: Christophe Thommeret <hftom@free.fr>
-Message-id: <48CD275D.7090301@linuxtv.org>
-MIME-version: 1.0
-References: <48CA0355.6080903@linuxtv.org> <200809120826.31108.hftom@free.fr>
-	<48CC12BF.7050803@hauppauge.com> <200809141646.01263.hftom@free.fr>
-Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
+	(envelope-from <crope@iki.fi>) id 1Kfale-0000rf-9s
+	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 15:39:00 +0200
+Message-ID: <48CFB6EC.5080800@iki.fi>
+Date: Tue, 16 Sep 2008 16:38:52 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Thomas <thomas@ic3s.de>
+References: <48CFABD7.8000202@ic3s.de>
+In-Reply-To: <48CFABD7.8000202@ic3s.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] problems compiling af9015 on fedora 9
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,78 +19,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Christophe Thommeret wrote:
-> Le Saturday 13 September 2008 21:21:35 Steven Toth, vous avez =E9crit :
->>> First i tried old api (kaffeine)-> everything works as expected.
->>> Then i tried new API (with latest tune.c) -> nova-t and nova-s work,
->>> cinergyT2 doesn't. I've also noticed that FE_SET_PROPERTY ioctl always
->>> return -1, even when success..
->>> Then i tried old api again -> now dvb-s doesn't lock and dvb-t always
->>> lock on the freq used in tune.c
->> Fixed in the current tree.
-> =
+Thomas wrote:
+> Hi List,
+> 
+> i get this error:
+> 
+> #make
+> 
+> ....
+>   CC [M]  /root/af9015/v4l/pluto2.o
+>   LD [M]  /root/af9015/v4l/sms1xxx.o
+>   LD [M]  /root/af9015/v4l/snd-bt87x.o
+>   LD [M]  /root/af9015/v4l/snd-tea575x-tuner.o
+>   Building modules, stage 2.
+>   MODPOST 273 modules
+> WARNING: "__udivdi3" [/root/af9015/v4l/af9013.ko] undefined!
+>   CC      /root/af9015/v4l/adv7170.mod.o
+>   LD [M]  /root/af9015/v4l/adv7170.ko
+>   CC      /root/af9015/v4l/adv7175.mod.o
+>   LD [M]  /root/af9015/v4l/adv7175.ko
+> .....
 
-> Indeed, cache bug is now fixed, old api works as expected in all cases. (=
-Exept =
+For me it compiles like a charm. I have Fedora 9 x86_64 system. Are you 
+really sure you are using latest tree from 
+http://linuxtv.org/hg/~anttip/af9015 ?
 
-> for the cinergyT2 case off course)
-
-Speaking of which, I looked at this yesterday. I'll post my feedback =
-
-back to Johannes thread, where I said I'd investigate.
-
-> =
-
-> However, i see that GETting DTV_DELIVERY_SYSTEM always returns the cached =
-
-> value, so at first (after modules (re)load) it returns 0. An application =
-
-> really needs to know the delivery system (and others usefull infos) to be =
-
-> able to handle a device, like the old api FE_GET_INFO.
-> =
-
-
-Yes, talking with Darron we're talking about being able to identify the =
-
-existence of the API and capabilities.
-
-We have the DTV_FE_CAPABILITY_COUNT and DTV_FE_CAPABILITY (current =
-
-defined but not connected in dvb-core) which would be the natural place =
-
-to expose every older (and newer) feature of the demods.
-
-The command you're referring to now does exactly what it's supposed to, =
-
-it selects your last SET value (or if the demod has provided a =
-
-.get_proeprty() callback), the demod could chose to answer differently. =
-
-In principle we could add a one line fix to the cx24116 demod =
-
-"c->delivery_system =3D SYS_DVBS2;" to solve your initial problem - but I =
-
-don't that's the correct approach.
-
-When the phase #1 work is done we'll fill out the capabilities changes =
-
-in dvb-core and start to expose interesting features, like LNA, =
-
-diversity, delivery systems, power controls or anything else that the =
-
-linuxtv community thinks is generalized and useful. We will take these =
-
-steps carefully.
-
-- Steve
-
+> after connecting the device i have no frontend :(
+> 
+> kernel: dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in cold state, will try to load a firmware
+> kernel: dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+> kernel: usb 2-5: USB disconnect, address 3
+> kernel: dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
+> kernel: usb 2-5: new high speed USB device using ehci_hcd and address 4
+> kernel: usb 2-5: configuration #1 chosen from 1 choice
+> kernel: input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:1d.7/usb2/2-5/2-5:1.1/input/input10
+> kernel: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:1d.7-5
+> kernel: usb 2-5: New USB device found, idVendor=15a4, idProduct=9016
+> kernel: usb 2-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> kernel: usb 2-5: Product: DVB-T 2
+> kernel: usb 2-5: Manufacturer: Afatech
+> kernel: usb 2-5: SerialNumber: 010101010600001
+> kernel: dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in warm state.
+> kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> kernel: DVB: registering new adapter (Afatech AF9015 DVB-T USB2.0 stick)
+> kernel: af9013: Unknown symbol __udivdi3
+> modprobe: FATAL: Error inserting af9013 (/lib/modules/2.6.25.14-108.fc9.i686/kernel/drivers/media/dvb/frontends/af9013.ko): Unknown symbol in module, or unknown parameter (see dmesg)
+> kernel: DVB: Unable to find symbol af9013_attach()
+> kernel: dvb-usb: no frontend was attached by 'Afatech AF9015 DVB-T USB2.0 stick'
+> kernel: dvb-usb: Afatech AF9015 DVB-T USB2.0 stick successfully initialized and connected.
+> kernel: usbcore: registered new interface driver dvb_usb_af9015
+> 
+> 
+> can someone explain whats going wrong?
+> 
+> 
+> 
+> Best Regards
+> 
+> Thomas
+> 
+> 
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
