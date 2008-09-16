@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bis.amsnet.pl ([195.64.174.7] helo=host.amsnet.pl ident=mail)
+Received: from ey-out-2122.google.com ([74.125.78.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gasiu@konto.pl>) id 1Ki3mb-0005P5-3R
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 11:02:10 +0200
-Message-ID: <48D8B08B.6090602@konto.pl>
-Date: Tue, 23 Sep 2008 11:02:03 +0200
-From: Gasiu <gasiu@konto.pl>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KfRlW-0006VS-TT
+	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 06:02:15 +0200
+Received: by ey-out-2122.google.com with SMTP id 25so1102162eya.17
+	for <linux-dvb@linuxtv.org>; Mon, 15 Sep 2008 21:02:11 -0700 (PDT)
+Message-ID: <412bdbff0809152102j4faa675cw3134efe5403020bd@mail.gmail.com>
+Date: Tue, 16 Sep 2008 00:02:10 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-To: Jaap Crezee <jaap@jcz.nl>, linux-dvb@linuxtv.org
-References: <48D8A4FF.9010502@jcz.nl>
-In-Reply-To: <48D8A4FF.9010502@jcz.nl>
-Subject: Re: [linux-dvb] TT Budget S2-3200 CI: failure with CAM module
+Content-Type: multipart/mixed;
+	boundary="----=_Part_1999_32737026.1221537731020"
+Subject: [linux-dvb] [FIX] Use correct firmware for the ATI TV Wonder 600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,107 +20,72 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jaap Crezee pisze:
-> Hi All,
->
-> I searched all of this maillist for hints on S2-3200 and CAM modules, but found nothing.
-> I hope someone can give me a starting point for debug.
->
-> When I insert my Astoncrypt CAM module into my TT Budget S2-3200 card, scanning is no longer possible. Also getting any 
-> data out of /dev/dvb/adapter0/dvr0 is not working. Tuning is still working (or at least, it seems...), I still can get a 
-> FE_LOCK. No difference when I also insert my Canaldigitaal smartcard in the CAM module; same result.
->
-> I use the current multiproto HG tree (http://jusst.de/hg/multiproto , HEAD)
-> I use the current dvb-apps HG tree (http://linuxtv.org/hg/dvb-apps , HEAD)
->
-> My cam device is initialised:
->
-> <snip>
-> DVB CAM validated successfully
-> dvb_ca_en50221_link_init
-> dvb_ca_en50221_wait_if_status
-> dvb_ca_en50221_wait_if_status succeeded timeout:0
-> dvb_ca_en50221_read_data
-> Received CA packet for slot 0 connection id 0x0 last_frag:1 size:0x2
-> Chosen link buffer size of 16
-> dvb_ca_en50221_wait_if_status
-> dvb_ca_en50221_wait_if_status succeeded timeout:0
-> dvb_ca_en50221_write_data
-> Wrote CA packet for slot 0, connection id 0x0 last_frag:1 size:0x2
-> dvb_ca adapter 0: DVB CAM detected and initialised successfully
-> </snip>
->
-> Again, when I remove the CAM module, everything works fine (as for FTA channels...). Tools like dvbdate, dvbtraffic and 
-> mplayer /dev/dvb/adapter0/dvr0 work fine.
->
-> Any help in where to start debugging whould be very kind!
->
-> Regards,
->
-> Jaap Crezee
->
->
->
-> --------------------
->
->
->
-> Some more info:
->
-> 02:09.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
->          Subsystem: Technotrend Systemtechnik GmbH S2-3200
->
-> jaap@server /dev/dvb/adapter0 $ lsmod | grep -E "dvb|stb|lnb|budget"
-> lnbp21                  1920  1
-> stb6100                 6404  1
-> stb0899                34180  1
-> budget_ci              21636  3
-> firmware_class          7040  1 budget_ci
-> budget_core             9348  1 budget_ci
-> saa7146                15880  2 budget_ci,budget_core
-> ttpci_eeprom            2304  1 budget_core
-> ir_common              40708  1 budget_ci
-> dvb_core               79744  2 budget_ci,budget_core
-> i2c_core               21264  9 lnbp21,stb6100,stb0899,budget_ci,budget_core,ttpci_eeprom,eeprom,i2c_i801,i2c_dev
-> crc32                   4224  3 dvb_core,tun,skge
-> jaap@server /dev/dvb/adapter0 $
->
->
-> Kernel 2.6.26.5 , 'normal' x86 platform....
->
-> jaap@server /dev/dvb/adapter0 $ ls -al
-> total 0
-> drwxr-xr-x 2 root root     140 Sep 23 09:39 .
-> drwxr-xr-x 3 root root      60 Sep 23 09:39 ..
-> crw-rw---- 1 root video 212, 6 Sep 23 09:39 ca0
-> crw-rw---- 1 root video 212, 4 Sep 23 09:39 demux0
-> crw-rw---- 1 root video 212, 5 Sep 23 09:39 dvr0
-> crw-rw---- 1 root video 212, 3 Sep 23 09:39 frontend0
-> crw-rw---- 1 root video 212, 7 Sep 23 09:39 net0
-> jaap@server /dev/dvb/adapter0 $
->
-> jaap@server /dev/dvb/adapter0 $ cat /proc/interrupts | grep saa
->   21:     711348   IO-APIC-fasteoi   sata_sil, saa7146 (0)
-> jaap@server /dev/dvb/adapter0 $
->
-> [and counting up (and not because of the sata_sil...) ...]
->
->   
-I've got SkystarHD+CI Slot+Aston 2.18 and it works OK (for decoding some 
-channels like HBO/MINIMINI I must wait very long time, but it works)
+------=_Part_1999_32737026.1221537731020
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Attached is a patch to use the proper firmware for the ATI TV Wonder
+600.  It was previously configured to use the XC3028 firmware, as I
+did not realize the device had an XC3028L until I got one myself for
+testing purposes.
+
+This should get pushed in ASAP since the wrong firmware causes the
+device to overheat and could cause permanent damage.
+
+Devin
 
 -- 
-Pozdrawiam!
-Gasiu
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
+------=_Part_1999_32737026.1221537731020
+Content-Type: text/x-diff; name=ati_600_xc3028l_tuner.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fl5zxdrz0
+Content-Disposition: attachment; filename=ati_600_xc3028l_tuner.patch
+
+VXNlIGNvcnJlY3QgWEMzMDI4TCBmaXJtd2FyZSBmb3IgQU1EIEFUSSBUViBXb25kZXIgNjAwCgpG
+cm9tOiBEZXZpbiBIZWl0bXVlbGxlciA8ZGV2aW4uaGVpdG11ZWxsZXJAZ21haWwuY29tPgoKVGhl
+IEFNRCBBVEkgVFYgV29uZGVyIDYwMCBoYXMgYW4gWEMzMDI4TCBhbmQgKm5vdCogYW4gWEMzMDI4
+LCBzbyB3ZSBuZWVkIHRvIApsb2FkIHRoZSBwcm9wZXIgZmlybXdhcmUgdG8gcHJldmVudCB0aGUg
+ZGV2aWNlIGZyb20gb3ZlcmhlYXRpbmcuCgpQcmlvcml0eTogaGlnaAoKU2lnbmVkLW9mZi1ieTog
+RGV2aW4gSGVpdG11ZWxsZXIgPGRldmluLmhlaXRtdWVsbGVyQGdtYWlsLmNvbT4KCmRpZmYgLXIg
+ZTVjYTQ1MzRiNTQzIGxpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy90dW5lci14YzIw
+MjguaAotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdHVuZXIteGMyMDI4
+LmgJVHVlIFNlcCAwOSAwODoyOTo1NiAyMDA4IC0wNzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVk
+aWEvY29tbW9uL3R1bmVycy90dW5lci14YzIwMjguaAlNb24gU2VwIDE1IDIzOjUxOjIwIDIwMDgg
+LTA0MDAKQEAgLTEwLDYgKzEwLDcgQEAKICNpbmNsdWRlICJkdmJfZnJvbnRlbmQuaCIKIAogI2Rl
+ZmluZSBYQzIwMjhfREVGQVVMVF9GSVJNV0FSRSAieGMzMDI4LXYyNy5mdyIKKyNkZWZpbmUgWEMz
+MDI4TF9ERUZBVUxUX0ZJUk1XQVJFICJ4YzMwMjhMLXYzNi5mdyIKIAogLyogICAgICBEbW9kdWxl
+cgkJSUYgKGtIeikgKi8KICNkZWZpbmUJWEMzMDI4X0ZFX0RFRkFVTFQJMAkJLyogRG9uJ3QgbG9h
+ZCBTQ09ERSAqLwpkaWZmIC1yIGU1Y2E0NTM0YjU0MyBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
+L2VtMjh4eC9lbTI4eHgtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2Vt
+Mjh4eC9lbTI4eHgtY2FyZHMuYwlUdWUgU2VwIDA5IDA4OjI5OjU2IDIwMDggLTA3MDAKKysrIGIv
+bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4eHgvZW0yOHh4LWNhcmRzLmMJTW9uIFNlcCAx
+NSAyMzo1MToyMCAyMDA4IC0wNDAwCkBAIC0xNTM0LDkgKzE1MzQsMTIgQEAgc3RhdGljIHZvaWQg
+ZW0yOHh4X3NldHVwX3hjMzAyOChzdHJ1Y3QgZQogCQkvKiBkamggLSBOb3Qgc3VyZSB3aGljaCBk
+ZW1vZCB3ZSBuZWVkIGhlcmUgKi8KIAkJY3RsLT5kZW1vZCA9IFhDMzAyOF9GRV9ERUZBVUxUOwog
+CQlicmVhazsKKwljYXNlIEVNMjg4MF9CT0FSRF9BTURfQVRJX1RWX1dPTkRFUl9IRF82MDA6CisJ
+CWN0bC0+ZGVtb2QgPSBYQzMwMjhfRkVfREVGQVVMVDsKKwkJY3RsLT5mbmFtZSA9IFhDMzAyOExf
+REVGQVVMVF9GSVJNV0FSRTsKKwkJYnJlYWs7CiAJY2FzZSBFTTI4ODNfQk9BUkRfSEFVUFBBVUdF
+X1dJTlRWX0hWUl85NTA6CiAJY2FzZSBFTTI4ODBfQk9BUkRfUElOTkFDTEVfUENUVl9IRF9QUk86
+Ci0JY2FzZSBFTTI4ODBfQk9BUkRfQU1EX0FUSV9UVl9XT05ERVJfSERfNjAwOgogCQkvKiBGSVhN
+RTogQmV0dGVyIHRvIHNwZWNpZnkgdGhlIG5lZWRlZCBJRiAqLwogCQljdGwtPmRlbW9kID0gWEMz
+MDI4X0ZFX0RFRkFVTFQ7CiAJCWJyZWFrOwo=
+------=_Part_1999_32737026.1221537731020
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_1999_32737026.1221537731020--
