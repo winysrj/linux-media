@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from ik-out-1112.google.com ([66.249.90.179])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1KaAur-0006Iw-Hs
-	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 17:02:06 +0200
-Date: Mon, 1 Sep 2008 17:01:23 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Eberhard Kaltenhaeuser <ke2705@gmx.de>,
-	Martin Dauskardt <martin.dauskardt@gmx.de>
-In-Reply-To: <48BC00C6.1020006@gmx.de>
-Message-ID: <alpine.LRH.1.10.0809011658130.3828@pub6.ifh.de>
-References: <48BC00C6.1020006@gmx.de>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KfZv7-0006MH-2k
+	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 14:44:43 +0200
+Received: by ik-out-1112.google.com with SMTP id c21so2424712ika.1
+	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 05:44:37 -0700 (PDT)
+Message-ID: <412bdbff0809160544h28f90d86x81adcb37626fd518@mail.gmail.com>
+Date: Tue, 16 Sep 2008 08:44:37 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <48CF3D97.40805@linuxtv.org>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Support of Nova-S SE PCI still uncomplete
+Content-Disposition: inline
+References: <412bdbff0809152102j4faa675cw3134efe5403020bd@mail.gmail.com>
+	<48CF3D97.40805@linuxtv.org>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [FIX] Use correct firmware for the ATI TV Wonder 600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,26 +29,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dear Eberhard and Martin,
+On Tue, Sep 16, 2008 at 1:01 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> I'll push this in... I like the fact that you defined the xc3028L firmware in the header -- I will also push up a patch to change the HVR1400 (cx23885 ExpressCard) to use XC3028L_DEFAULT_FIRMWARE instead of specifying the filename explicitly.
 
-On Mon, 1 Sep 2008, Eberhard Kaltenhaeuser wrote:
+Michael,
 
-> Against my expectation, the Nova-S SE card does still not work, although 
-> the card is recognized by the kernel (see link). Frontend modul is 
-> loaded, but no signal can be received. So VDR exists (emergency exit) 
-> when switching to this device (i.e. to record something)
+Thanks for your help in getting this pulled in.  The moral of this
+story seems to have been that it's *way* easier to just buy the damn
+thing than to add support for someone's device remotely.  92 emails
+over three weeks to get support added versus 1 evening to get support
+working right.  :-)
 
-You would do me a big favour if you could test some patches in order to 
-fix support for your card on the current v4l-dvb.
+Cheers,
 
-Or even better if it is possible to give me remote access on your device - 
-like that I could try patches directly and the issue would be covered with 
-two hours I think.
+Devin
 
-Please contact me privately if this is possible.
-
-Thank you very much in advance for your help,
-Patrick.
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
