@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1006.centrum.cz ([90.183.38.136])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hoppik@centrum.cz>) id 1Kg4Pm-0004a0-NK
-	for linux-dvb@linuxtv.org; Wed, 17 Sep 2008 23:18:24 +0200
-Received: by mail1006.centrum.cz id S671176002AbYIQVSL convert
-	rfc822-to-quoted-printable (ORCPT <rfc822;linux-dvb@linuxtv.org>);
-	Wed, 17 Sep 2008 23:18:11 +0200
-Date: Wed, 17 Sep 2008 23:18:11 +0200
-From: " =?UTF-8?Q?SKO=C4=8CDOPOLE?= =?UTF-8?Q?=20Tom=C3=A1=C5=A1?="
-	<hoppik@centrum.cz>
-To: <linux-dvb@linuxtv.org>, <liplianin@me.by>
+From: Christophe Thommeret <hftom@free.fr>
+To: Johannes Stezenbach <js@linuxtv.org>
+Date: Tue, 16 Sep 2008 04:58:49 +0200
+References: <48CA0355.6080903@linuxtv.org> <200809150414.41360.hftom@free.fr>
+	<20080915114300.GB13335@linuxtv.org>
+In-Reply-To: <20080915114300.GB13335@linuxtv.org>
 MIME-Version: 1.0
-Message-ID: <200809172318.17593@centrum.cz>
-References: <200809031054.6772@centrum.cz>
-In-Reply-To: <200809031054.6772@centrum.cz>
-Subject: Re: [linux-dvb] Measuring signal strench on TT S2-3200
+Content-Disposition: inline
+Message-Id: <200809160458.49923.hftom@free.fr>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,64 +17,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGksIAoKTm93LCBJIGFtIHVzaW5nIGxhdGVzdCBkcml2ZXJzIGZyb20gSWdvciBNLkxpcGxpYW5p
-biBhbmQgdGhlc2UgcHJvYmxlbXMgc2hvdWxkIGJlIGZpeGVkLiBOb3cgdmlkZW8gcnVucyB3aXRo
-b3V0IGFueSBibGFja291dHMgb3IgZXJyb3JzLi4uIEdyZWF0IHdvcmshCgpJZ29yLCBJIHdhbnQg
-dG8gYXNrIHlvdSBhYm91dCBwcm9ncmVzcyBvZiBzY2FuIGFuZCBzemFwIHV0aWxpdGllcyBmb3Ig
-ZHZiLXMyLgoKQmVzdCByZWdhcmRzClRvbWFzCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gT2Q6IGhvcHBpa0BjZW50cnVtLmN6
-Cj4gS29tdTogPGxpbnV4LWR2YkBsaW51eHR2Lm9yZz4KPiBEYXR1bTogMDMuMDkuMjAwOCAxMDo1
-NQo+IFDFmWVkbcSbdDogW2xpbnV4LWR2Yl0gTWVhc3VyaW5nIHNpZ25hbCBzdHJlbmNoIG9uIFRU
-IFMyLTMyMDAKPgo+SGVsbG8sCj4KPkZvciBxdWljayB0ZXN0IEkgdXNlZCBnZXRzdHJlYW0gdXRp
-bGl0eS4gTGF0ZXIgSSBhbSBwbGFubmluZyB0byB1c2UgdmRyIHdpdGggc29tZSBwbHVnaW5zIGZv
-ciBzdHJlYW1pbmcuIAo+Cj5JIGhhdmUgcGFyYWJvbGEgZGlyZWN0ZWQgdG8gMjMuNUUgKEFzdHJh
-IDNBLzFFKS4gSSB0ZXN0ZWQgdHdvIEZUQSBwcm9ncmFtcyBPY2tvIGFuZCBDVDI0LiBPbiBzZWNv
-bmQgY29tcHV0ZXIgdGhlcmUgd2FzIFZMQyBydW5uaW5nLiBJIHRoaW5rIHBhcmFib2xhIGlzIGRp
-cmVjdGVkIGNvcnJlY3RseSwgYmVjYXVzZSBJIGhhdmUgYm9ycm93ZWQgZGVza3RvcCByZWNlaXZl
-ciBhbmQgdGhlcmUgd2FzIG5vIHByb2JsZW0gd2l0aCB0aGVzZSBwcm9ncmFtcy4KPgo+SSB0cmll
-ZCBsYXRlc3QgZHJpdmVycyBmcm9tIElnb3IgTS4gTGlwbGlhbmluIGJ1dCBJIGhhdmUgdGhlIHNh
-bWUgcHJvYmxlbXMgd2l0aCBtdWx0aXByb3RvIGRyaXZlcnMuCj4KPldoZW4gSSB3YXMgc3RyZWFt
-aW5nIE9ja28sIG9uIHNlY29uZCBjb21wdXRlciB0aGVyZSB3YXMgZ29vZCBzY3JlZW4sIGJ1dCBz
-b21ldGltZXMgKGFwcm94IG9uY2UgcGVyIDMwIHNlY29uZHMpIHdhcyBzaG9ydGx5IGJyZWFraW5n
-Lgo+Cj5XaGVuIEkgd2FzIHN0cmVhbWluZyBDVDI0LCBpdCB3YXMgcnVubmluZyBvbmx5IGZvciBt
-YXggMTAgc2Vjb25kcyBhbmQgdGhlbiBnZXRzdHJlYW0gdXRpbGl0eSBzdG9wcGVkIHNlbmRpbmcg
-c3RyZWFtIHBhY2tldHMuCj4KPlRoZXJlIGlzIGRlYnVnIG91dHB1dCBmcm9tIGdldHN0cmVhbSB1
-dGlsaXR5Ogo+MjAwOC0wOC0zMSAyMDoxMTo1OS42NTUgZmU6IEFkYXB0ZXIgMCBTZXR0aW5nIHVw
-IGZyb250ZW5kIHR1bmVyCj4yMDA4LTA4LTMxIDIwOjExOjU5LjY2OCBmZTogRFZCLVMgdG9uZSA9
-IDAKPjIwMDgtMDgtMzEgMjA6MTE6NTkuNjY4IGZlOiBEVkItUyB2b2x0YWdlID0gMAo+MjAwOC0w
-OC0zMSAyMDoxMTo1OS42NjggZmU6IERWQi1TIGRpc2VxYyA9IDAKPjIwMDgtMDgtMzEgMjA6MTE6
-NTkuNjY4IGZlOiBEVkItUyBmcmVxID0gMTI1MjUwMDAKPjIwMDgtMDgtMzEgMjA6MTE6NTkuNjY4
-IGZlOiBEVkItUyBsb2YxID0gOTc1MDAwMAo+MjAwOC0wOC0zMSAyMDoxMTo1OS42NjggZmU6IERW
-Qi1TIGxvZjIgPSAxMDYwMDAwMAo+MjAwOC0wOC0zMSAyMDoxMTo1OS42NjggZmU6IERWQi1TIHNs
-b2YgPSAxMTcwMDAwMAo+MjAwOC0wOC0zMSAyMDoxMTo1OS42NjggZmU6IERWQi1TIGZlcGFyYW1z
-LmZyZXF1ZW5jeSA9IDE5MjUwMDAKPjIwMDgtMDgtMzEgMjA6MTE6NTkuNjY4IGZlOiBEVkItUyBm
-ZXBhcmFtcy5pbnZlcnNpb24gPSAyCj4yMDA4LTA4LTMxIDIwOjExOjU5LjY2OCBmZTogRFZCLVMg
-ZmVwYXJhbXMudS5xcHNrLnN5bWJvbF9yYXRlID0gMjc1MDAwMDAKPjIwMDgtMDgtMzEgMjA6MTE6
-NTkuNjY4IGRteDogU2V0dGluZyBmaWx0ZXIgZm9yIHBpZCA4MTkyIHBlc3R5cGUgMjAKPjIwMDgt
-MDgtMzEgMjA6MTE6NTkuODE2IGZlOiBBZGFwdGVyIDAgU3RhdHVzOiAweDFlIChIQVNfQ0FSUklF
-UiBIQVNfVklURVJCSSBIQVNfU1lOQyBIQVNfTE9DSykKPgo+QW5kIHRoZXJlIGlzIGNvbmZpZ3Vy
-YXRpb24gZmlsZToKPiMgY2F0IC91c3Ivc3JjL2dldHN0cmVhbS9nZXRzdHJlYW0uY29uZi5jc2xp
-bmsKPmh0dHAgewo+ICAgIHBvcnQgODAwMTsKPn07Cj4KPmFkYXB0ZXIgMCB7Cj4gIGJ1ZGdldC1t
-b2RlIDE7Cj4KPiAgICBkdmItcyB7Cj4gICAgICAgIGxuYiB7Cj4gICAgICAgICAgICBsb2YxIDk3
-NTAwMDA7Cj4gICAgICAgICAgICBsb2YyIDEwNjAwMDAwOwo+ICAgICAgICAgICAgc2xvZiAxMTcw
-MDAwMDsKPiAgICAgICAgfTsKPgo+ICAgICAgICB0cmFuc3BvbmRlciB7Cj4gICAgICAgICAgICBm
-cmVxdWVuY3kgMTI1MjUwMDA7Cj4gICAgICAgICAgICBwb2xhcmlzYXRpb24gdjsKPiAgICAgICAg
-ICAgIHN5bWJvbC1yYXRlIDI3NTAwMDAwOwo+ICAgICAgICAgICAgZGlzZXFjIDA7Cj4gICAgICAg
-IH07Cj4gICAgfTsKPgo+ICAgIHN0cmVhbSB7Cj4gICAgICAgIG5hbWUgIkNUMjQiOwo+ICAgICAg
-ICBpbnB1dCB7Cj4gICAgICAgICAgICBwbnIgODAwNjsKPiAgICAgICAgfTsKPiAgICAgICAgb3V0
-cHV0LXJ0cCB7Cj4gICAgICAgICAgICByZW1vdGUtYWRkcmVzcyAxMC4wLjE0OC45ODsKPiAgICAg
-ICAgICAgIHJlbW90ZS1wb3J0IDMwMDA7Cj4gICAgICAgIH07Cj4gICAgICAgIHNhcCB7Cj4gICAg
-ICAgICAgICAgICAgc2NvcGUgZ2xvYmFsOwo+ICAgICAgICAgICAgICAgIHBsYXlncm91cCAidGVz
-dG92YWNpIHNhdCI7Cj4gICAgICAgICAgICAgICAgdHRsIDU7Cj4gICAgICAgIH07Cj4gICAgfTsK
-Pn07Cj4KPgo+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-PmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKPmxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+aHR0cDovL3d3
-dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZiCj4KCgpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFp
-bGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2Nn
-aS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Le Monday 15 September 2008 13:43:00 Johannes Stezenbach, vous avez =E9crit=
+=A0:
+> On Mon, Sep 15, 2008, Christophe Thommeret wrote:
+> > Le Sunday 14 September 2008 20:04:06 Christophe Thommeret, vous avez =
+
+=E9crit=A0:
+> > > as you expected, it's abit buggy and crashes at load ;)
+> > > i've searched for the alternative cinergyT2 driver.
+> > > it's available at: http://linuxtv.org/hg/~tmerle/cinergyT2/
+> > >
+> > > haven't tried it yet but will do (at least several people seems to ha=
+ve
+> > > it working).
+> >
+> > Have it working, not as good as Holger' one (often fails to lock) but it
+> > works, with both old and new api.
+>
+> Looking at the code, cinergyt2_fe_get_tune_settings() should
+> probably set step_size =3D max_drift =3D 0 to defeat
+> dvb_frontend_swzigzag_autotune().
+> c.f. mt352_get_tune_settings()
+
+Thanx for the hint, unfortunately it doesn't help.
+In fact, if i set a larger timeout (time after which kaffeine gives up and =
+
+report tuning failure), say 5000ms, it always locks.
+The average lock time is about 2000ms, but sometimes it goes up to 4000 and =
+
+sometimes it's only 200, randomly for all freqs.
+If you have any idea, you are welcome :)
+
+-- =
+
+Christophe Thommeret
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
