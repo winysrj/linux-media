@@ -1,25 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.173])
+Received: from bay0-omc3-s26.bay0.hotmail.com ([65.54.246.226])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1Kffcm-0000Ey-Tw
-	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 20:50:11 +0200
-Received: by ug-out-1314.google.com with SMTP id 39so389819ugf.16
-	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 11:50:05 -0700 (PDT)
-Message-ID: <412bdbff0809161150v71abb7d0g5232bf0b23284c46@mail.gmail.com>
-Date: Tue, 16 Sep 2008 14:50:05 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <48CFFCE1.4060507@linuxtv.org>
+	(envelope-from <aegyssus@hotmail.com>) id 1Kfy6f-0003AS-05
+	for linux-dvb@linuxtv.org; Wed, 17 Sep 2008 16:34:13 +0200
+Message-ID: <BLU134-DAV80904DC18112615D393CBD34C0@phx.gbl>
+From: "Virgil Mocanu" <aegyssus@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+References: <20080916042956.711261CE825@ws1-6.us4.outblaze.com>
+Date: Wed, 17 Sep 2008 10:33:30 -0400
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <412bdbff0809152102j4faa675cw3134efe5403020bd@mail.gmail.com>
-	<48CF3D97.40805@linuxtv.org>
-	<412bdbff0809160544h28f90d86x81adcb37626fd518@mail.gmail.com>
-	<48CFE09E.2030009@linuxtv.org>
-	<412bdbff0809161002n5ec1eb29k490b638134bf6b3f@mail.gmail.com>
-	<48CFFCE1.4060507@linuxtv.org>
-Cc: linux-dvb <linux-dvb@linuxtv.org>, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] [FIX] Use correct firmware for the ATI TV Wonder 600
+Cc: stev391@email.com
+Subject: Re: [linux-dvb] LeadTek PxPVR2200 drivers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,49 +24,149 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Sep 16, 2008 at 2:37 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> Devin Heitmueller wrote:
->>
->> On Tue, Sep 16, 2008 at 12:36 PM, Steven Toth <stoth@linuxtv.org> wrote:
->>>
->>> Devin Heitmueller wrote:
->>>>
->>>> Thanks for your help in getting this pulled in.  The moral of this
->>>> story seems to have been that it's *way* easier to just buy the damn
->>>> thing than to add support for someone's device remotely.  92 emails
->>>> over three weeks to get support added versus 1 evening to get support
->>>> working right.  :-)
->>>
->>> /me nods
->>>
->>> Better still, have someone give you a device for free in return for help.
->>
->> Better still, have a vendor give you a device for free and make the
->> datasheets available in return for having their device supported.  :-)
+Hi Steven,
+Many thanks for your answer.
+The card is analog only. So no DVB of any kind is supported.
+I tried several <card> options including the Leadtek one that you suggested. 
+I got not luck so far... The typical behaviour is that the cx23885 driver 
+loads, but fails to initialize the frontend. It generates the following log 
+messages and then crashes the kernel when rmmod.
+===
+cx23885 driver version 0.0.1 loaded
+ACPI: PCI Interrupt 0000:07:00.0[A] -> GSI 18 (level, low) -> IRQ 18
+CORE cx23885[0]: subsystem: 107d:6f21, board: Leadtek Winfast PxDVR3200 H 
+[card=12,insmod option]
+cx23885[0]: i2c bus 0 registered
+cx23885[0]: i2c bus 1 registered
+cx23885[0]: i2c bus 2 registered
+cx23885[0]: cx23885 based dvb card
+cx23885[0]: frontend initialization failed
+cx23885_dvb_register() dvb_register failed err = -1
+cx23885_dev_setup() Failed to register dvb on VID_C
+cx23885_dev_checkrevision() Hardware revision = 0xb0
+cx23885[0]/0: found at 0000:07:00.0, rev: 2, irq: 18, latency: 0, mmio: 
+0xfe800000
+PCI: Setting latency timer of device 0000:07:00.0 to 64
+===
+I started an Wiki page for this card:
+http://www.linuxtv.org/wiki/index.php/Leadtek_Winfast_PxPVR_2200
+
+Regards,
+aegyssus
+
+----- Original Message ----- 
+From: <>
+To: <aegyssus@hotmail.com>
+Cc: <linux-dvb@linuxtv.org>
+Sent: Tuesday, September 16, 2008 12:29 AM
+Subject: Re: [linux-dvb] LeadTek PxPVR2200 drivers
+
+
+> Hi,
+> I am just wondering if anybody succeeded to make a LeadTek PxPVR2200 
+> work...
+> It's using Conexant CX23885+CX23417 + Xceive silicon tuner.
+> The card is mostly sold in Eastern Europe but it is only coming with 
+> Windows
+> drivers and v4l does not recognize it:
+> ========================
+> cx23885 driver version 0.0.1 loaded
+> ACPI: PCI Interrupt 0000:07:00.0[A] -> GSI 18 (level, low) -> IRQ 18
+> cx23885[0]: Your board isn't known (yet) to the driver.  You can
+> cx23885[0]: try to pick one of the existing card configs via
+> cx23885[0]: card=<n> insmod option.  Updating to the latest
+> cx23885[0]: version might help as well.
+> cx23885[0]: Here is a list of valid choices for the card=<n> insmod 
+> option:
+> cx23885[0]:    card=0 -> UNKNOWN/GENERIC
+> cx23885[0]:    card=1 -> Hauppauge WinTV-HVR1800lp
+> cx23885[0]:    card=2 -> Hauppauge WinTV-HVR1800
+> cx23885[0]:    card=3 -> Hauppauge WinTV-HVR1250
+> cx23885[0]:    card=4 -> DViCO FusionHDTV5 Express
+> cx23885[0]:    card=5 -> Hauppauge WinTV-HVR1500Q
+> cx23885[0]:    card=6 -> Hauppauge WinTV-HVR1500
+> cx23885[0]:    card=7 -> Hauppauge WinTV-HVR1200
+> cx23885[0]:    card=8 -> Hauppauge WinTV-HVR1700
+> cx23885[0]:    card=9 -> Hauppauge WinTV-HVR1400
+> cx23885[0]:    card=10 -> DViCO FusionHDTV7 Dual Express
+> cx23885[0]:    card=11 -> DViCO FusionHDTV DVB-T Dual Express
+> cx23885[0]:    card=12 -> Leadtek Winfast PxDVR3200 H
+> CORE cx23885[0]: subsystem: 107d:6f21, board: UNKNOWN/GENERIC
+> [card=0,autodetected]
+> cx23885[0]: i2c bus 0 registered
+> tuner' 2-0061: chip found @ 0xc2 (cx23885[0])
+> cx23885[0]: i2c bus 1 registered
+> tvaudio' 3-004c: tea6420 found @ 0x98 (cx23885[0])
+> cx23885[0]: i2c bus 2 registered
+> cx23885_dev_checkrevision() Hardware revision = 0xb0
+> cx23885[0]/0: found at 0000:07:00.0, rev: 2, irq: 18, latency: 0, mmio:
+> 0xfe800000
+> PCI: Setting latency timer of device 0000:07:00.0 to 64
+> ========================
 >
-> Believe it or not but I'm starting to see that happen, although with some
-> restrictions.
+> No video device is created for this card therefore it's totally unusable
+> under Linux.
+> I played with the card by changing <card> option but none of them worked. 
+> I
+> used the latest mercurial drivers but it did not help.
+>
+> lspci -vvv returns this:
+---Snip---
+> ========================
+>
+> Many thanks for any suggestion,
+> aegyssus
+>
 
-Well, sign me up!  I would love to help the efforts to expand device
-support, but at this point I'm personally blocked by the fact that I
-have already bought four tuners in the last year, combined with the
-lack of actual documentation which results in it taking *way* longer
-than it has to.
 
-Sure, I got all four of them to work which is progress, but it would
-have gone much faster if the docs were available to me and I wasn't
-laying out my own cash to buy tuners I have no personal use for.
+Aegyssus,
+Does this card handle DVB? If so try loading the cx23885 with the option 
+card=12.
 
-I've spent all this time to learn the codebase and I'd like to
-leverage that knowledge more, but now I have to ask myself, "What am I
-going to do with four tuners?"
+If it doesn't you will have to wait a little longer for linux support or try 
+writing your own driver.
 
-Devin
+If you have some spare time, please create a wiki page for this card similar 
+to this one:
+http://linuxtv.org/wiki/index.php/Leadtek_Winfast_PxDVR_3200_H
+
+and also update:
+http://linuxtv.org/wiki/index.php/Leadtek
+
+The driver's currently for the cx23885 chipset aren't stable enough to 
+reliably run the analog (well in my personal experience, and analog is not a 
+high priority for me).
+However there is some patches floating around that add support for other 
+similar cards, that have managed to get the analog working near or 
+perfectly.
+
+If you want to attempt to write your own driver look in the source files 
+under
+linux/drivers/media/video/cx23885/
+and try to understand how they work.
+
+If you want to wait to I or someone else has some spare time, then please at 
+least create the wiki page with:
+* High resolution photo of board.
+* Photo of the major chips.
+* output of lspci -vvn
+* A Dscaler Regspy output (see this message to get the right version: 
+http://www.spinics.net/lists/linux-dvb/msg28077.html)
+* i2cdetect -l and also the i2cdetect output for each of the 3 buses on this 
+card.
+
+Thanks, for bringing this to list.
+
+Regards,
+Stephen.
+
 
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Be Yourself @ mail.com!
+Choose From 200+ Email Addresses
+Get a Free Account at www.mail.com
+
+
 
 _______________________________________________
 linux-dvb mailing list
