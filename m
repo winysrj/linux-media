@@ -1,24 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.26])
+Received: from wx-out-0506.google.com ([66.249.82.238])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1Keu2a-0001cV-2s
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 18:01:37 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so761535eya.17
-	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 09:01:32 -0700 (PDT)
-Message-ID: <19a3b7a80809140901u4cc07423t33352022174108c0@mail.gmail.com>
-Date: Sun, 14 Sep 2008 18:01:32 +0200
-From: "Christoph Pfister" <christophpfister@gmail.com>
-To: "=?UTF-8?Q?H=C3=A5kon_Alstadheim?=" <hakon@alstadheim.priv.no>
-In-Reply-To: <48CD2B0E.6050708@alstadheim.priv.no>
+	(envelope-from <mrechberger@gmail.com>) id 1KfvP5-0005SF-TE
+	for linux-dvb@linuxtv.org; Wed, 17 Sep 2008 13:41:05 +0200
+Received: by wx-out-0506.google.com with SMTP id t16so1259995wxc.17
+	for <linux-dvb@linuxtv.org>; Wed, 17 Sep 2008 04:40:58 -0700 (PDT)
+Message-ID: <d9def9db0809170440g7ed779f9m9331ff9eddb78745@mail.gmail.com>
+Date: Wed, 17 Sep 2008 13:40:58 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "BOUWSMA Barry" <freebeer.bouwsma@gmail.com>
+In-Reply-To: <alpine.DEB.1.10.0809171253300.5927@ybpnyubfg.ybpnyqbznva>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <48C0DD05.3070608@alstadheim.priv.no>
-	<200809131200.02589.christophpfister@gmail.com>
-	<48CC1C84.8050103@alstadheim.priv.no>
-	<200809141322.40094.christophpfister@gmail.com>
-	<48CD2B0E.6050708@alstadheim.priv.no>
+References: <786613.55940.qm@web55106.mail.re4.yahoo.com>
+	<alpine.DEB.1.10.0809171253300.5927@ybpnyubfg.ybpnyqbznva>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] =?utf-8?q?dvb-t_scan_file_Norway=2C_Tr=C3=B8ndelag?=
+Subject: Re: [linux-dvb] software radio
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,29 +23,94 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-WyByZS1hZGRpbmcgbGludXgtZHZiIG1sIF0KCjIwMDgvOS8xNCBIw6Vrb24gQWxzdGFkaGVpbSA8
-aGFrb25AYWxzdGFkaGVpbS5wcml2Lm5vPjoKPiBDaHJpc3RvcGggUGZpc3RlciB3cm90ZToKPHNu
-aXA+Cj4+IENvdWxkIHlvdSBwbGVhc2UgY2hlY2sgd2hldGhlciBzY2FuIHN0aWxsIHByb2R1Y2Vz
-IGNvcnJlY3Qgb3V0cHV0IGlmIHlvdQo+PiB1c2UKPj4gdGhlIGF0dGFjaGVkIGZpbGU/Cj4KPiBU
-cmFuc21pdHRlcnMgYXJlIHN0aWxsIGluIGEgYml0IG9mIGEgZmx1eCBhcm91bmQgaGVyZS4gU2Vl
-bXMgdHdvIG9mIHRoZQo+IG9yaWdpbmFsIGZyZXF1ZW5jaWVzIG5vIGxvbmdlciBjb250YWluIGRh
-dGEsIGFuZCBhIHRoaXJkIG9uZSBnZXRzIHBvb3IKPiByZXN1bHRzLiBUaGUgYXR0YWNoZWQgZmls
-ZSBoZXJlIGNvbnRhaW5zIG9ubHkgdGhlIG9uZXMgSSBhbSBzdXJlIG9mIChpLmUuCj4gdGhleSBo
-YXZlIGJlZW4gb24gdGhlIGFpciBhYm91dCBhIHllYXIgbm93LikgRHJvcHBpbmcgdGhlIGlmZnkg
-b25lcyBpcyBubwo+IGdyZWF0IGxvc3MgSSBndWVzcywgYXQgbGVhc3QgcGVvcGxlIHdpbGwgaGF2
-ZSBhIHN0YXJ0aW5nIHBvaW50Lgo+Cj4KPiAjIE5vcndheSAvIFRyb25kZWxhZyAvIFN0am9yZGFs
-Cj4gIyBtb2RpZmllZCBhY2NvcmRpbmcgdG8gZGF0YSBhdXRvbWF0aWNhbGx5IGdlbmVyYXRlZCBi
-eSB3X3NjYW4KPiAjIGZyZWUgKG5yaykgY2hhbm5lbHMgYXJlIG9uIDY1ODAwMDAwMAo+ICMgVCBm
-cmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFs
-IGhpZXJhcmNoeQo+IFQgNjU4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS84IE5PTkUK
-PiBUIDY3NDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvOCBOT05FCj4gVCA2ODIwMDAw
-MDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzggTk9ORQoKQWRkaW5nIHRoZSBmaWxlLCB0aGFu
-a3MhCgpDaHJpc3RvcGgKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDov
-L3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+On Wed, Sep 17, 2008 at 1:20 PM, BOUWSMA Barry
+<freebeer.bouwsma@gmail.com> wrote:
+> On Wed, 17 Sep 2008, alireza ghahremanian wrote:
+>
+>> Is it possible to access the sampling subsystem of a dvb card
+>> as like skystar 2 or any other ?
+>
+> I'm not sure I understand your question.
+>
+> The way a SkyStar 2 card works can be described, in the case
+> of radio -- assuming the same radio which I tune with it is
+> that which you want to demodulate -- is sort of like this...
+>
+> Baseband analogue audio is sampled at 48kHz, 16bit, and then
+> compressed into a stream, usually MPEG 1/2 Layer II, but
+> sometimes Dolby AC3 or similar.  From this, an ES (Elementary
+> Stream) is created.
+>
+> This Elementary Stream is then multiplexed into an MPEG
+> Transport Stream with other services.
+>
+> The resulting datastream is then modulated onto a RF carrier,
+> using something like QPSK or whatever is appropriate to the
+> delivery system, sent to a satellite (SkyStar) and effectively
+> bounced back.  Error correction and whatnot is added at this
+> point.
+>
+> Your hardware tunes into the RF signal, and itself demodulates
+> the QPSK modulation and recovers the Transport Stream, or at
+> least part of it.
+>
+> The Linux-DVB API gives you access to this demodulated signal.
+>
+> Then, an application can work with this TS, extract the payload
+> from it (the Layer II or equivalent audio), and decode that into
+> a PCM stream.
+>
+> OF course, I could be wrong...
+>
+>
+>> I want to make a software radio and i want to do demodulation
+>> and decoding in software?
+>
+> The demodulation is performed by the hardware in your SkyStar
+> card.
+>
+> The demultiplexing and decoding are already handled either by
+> all-in-one programs, or you could chain together building-block
+> tools that already exist, in order to listen to radio...
+>
+> I use separate, existing utilities to control the frontend (tune
+> to a transponder); I'm delivered some part of a transport stream
+> which I can either play, with, for example, `mplayer', or I can
+> hand it to `ts_es_audio_demux' (if that's not part of the DVB
+> libdvb package, then it's a hack based on the existing routines
+> to extract ESen from a TS in that package); that's either an mp2
+> or ac3 stream which I can pass directly to, for example, `mpg123'
+> or in a slightly different fashion, to `ac3dec'
+>
+>
+> The demodulation is performed in the hardware.  You can, of
+> course, re-invent the wheel if you like and perform the
+> demultiplexing and decoding to PCM in software, if that is
+> what you are asking.
+>
+>
+> The sampling is done at the broadcaster/uplink end, and the
+> corresponding samples are the PCM output, if I understand
+> what you are asking.
+>
+>
+> Sorry if I do not understand your question correctly.
+>
+
+Barry,
+
+have you had a look at:
+http://www.gnu.org/software/gnuradio/
+
+Markus
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
