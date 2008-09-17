@@ -1,16 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web52909.mail.re2.yahoo.com ([206.190.49.19])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <rankincj@yahoo.com>) id 1KkIEp-0004rA-Hf
-	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 14:52:34 +0200
-Date: Mon, 29 Sep 2008 05:51:56 -0700 (PDT)
-From: Chris Rankin <rankincj@yahoo.com>
+Received: from mail-gx0-f20.google.com ([209.85.217.20])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <owen.townend@gmail.com>) id 1Kfm01-0000P6-Dm
+	for linux-dvb@linuxtv.org; Wed, 17 Sep 2008 03:38:35 +0200
+Received: by gxk13 with SMTP id 13so27961088gxk.17
+	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 18:37:58 -0700 (PDT)
+Message-ID: <bb72339d0809161837w58ce1256g519306a029e36294@mail.gmail.com>
+Date: Wed, 17 Sep 2008 11:37:58 +1000
+From: "Owen Townend" <owen.townend@gmail.com>
 To: linux-dvb@linuxtv.org
+In-Reply-To: <48D059AE.1060307@rogers.com>
 MIME-Version: 1.0
-Message-ID: <667280.79255.qm@web52909.mail.re2.yahoo.com>
-Subject: Re: [linux-dvb] Hauppauge DVB USB2 Nova-TD stick has a new remote
-	control.
-Reply-To: rankincj@yahoo.com
+Content-Disposition: inline
+References: <48D059AE.1060307@rogers.com>
+Subject: Re: [linux-dvb] Questions on v4l-dvb driver instructions
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,17 +27,57 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> i.e. the same as for the 0x1E and 0x1F blocks used by older
-> Hauppauge-supplied remote controls.
+2008/9/17 Jonathan Coles <jcoles0727@rogers.com>:
+> Your instructions at http://linuxtv.org/repo/ for obtaining v4l-dvb say
+> to execute:
+>
+> hg clone http://linuxtv.org/hg/v4l-dvb
+>
+> But this returns
+>
+> abort: error: Name or service not known
+>
+> Perhaps there is a mistake in the instructions.
 
-Not quite. This new 0x1D block has only 35 buttons, whereas the 0x1E variant currently in the kernel has 45 buttons. But it doesn't matter: the new remote just won't work without the 0x1D block.
+copy and pasting that line here works fine:
 
-Cheers,
-Chris
+% hg clone http://linuxtv.org/hg/v4l-dvb
+destination directory: v4l-dvb
+requesting all changes
+adding changesets
+...etc
 
+>
+> It seems this checkout step is not really required, as you can download
+> the tarball from a link on the page at the URL.
 
+One advantage of using mercurial over the tarball is the ability to
+run `hg pull` and `hg update` rather than re download the entire set.
 
-      
+>
+> I also find it confusing that you mention dvb-apps, but don't talk about
+> compiling it. Is it needed? Optional? An alternative?
+
+dvb-apps AFAIK are optional. I have not yet needed them in normal
+operation of a tuner card.
+
+>
+> Are there additional steps not presented here? I was unable to get my
+> Hauppage HVR-950 to work on Ubuntu 8.04. Does this package support that
+> device?
+
+Do you have the firmware for the device as well as the driver?
+
+On the mythtv-users list there was a success story using one of these
+tuners. It details how they got it working before going into issues
+using two of them:
+http://www.gossamer-threads.com/lists/mythtv/users/349205?search_string=HVR-950;#349205
+He was using the mcentral repository, and Edgy but the steps are
+otherwise the same.
+
+Hope this helps,
+cheers,
+Owen.
 
 _______________________________________________
 linux-dvb mailing list
