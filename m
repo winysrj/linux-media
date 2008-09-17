@@ -1,17 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bay0-omc1-s4.bay0.hotmail.com ([65.54.246.76])
+Received: from vds2011.yellis.net ([79.170.233.11])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <fjonson95@hotmail.com>) id 1Kgdlq-0002cH-9B
-	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 13:03:30 +0200
-Message-ID: <BAY115-W351744C2D44B2B29FB45B2BC4E0@phx.gbl>
-From: Fredrik Jonson <fjonson95@hotmail.com>
-To: Stefan Ellenberger <stefan_ell@hotmail.com>, <linux-dvb@linuxtv.org>
-Date: Fri, 19 Sep 2008 13:02:54 +0200
-In-Reply-To: <BAY108-W49816DC274A6E8D70E62DFE4E0@phx.gbl>
-References: <BAY108-W49816DC274A6E8D70E62DFE4E0@phx.gbl>
+	(envelope-from <frederic.cand@anevia.com>) id 1KfuG0-0001hi-HO
+	for linux-dvb@linuxtv.org; Wed, 17 Sep 2008 12:27:37 +0200
+Received: from goliath.anevia.com (cac94-10-88-170-236-224.fbx.proxad.net
+	[88.170.236.224])
+	by vds2011.yellis.net (Postfix) with ESMTP id 1596E2FA823
+	for <linux-dvb@linuxtv.org>; Wed, 17 Sep 2008 12:27:36 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by goliath.anevia.com (Postfix) with ESMTP id 97E801300188
+	for <linux-dvb@linuxtv.org>; Wed, 17 Sep 2008 12:27:31 +0200 (CEST)
+Received: from goliath.anevia.com ([127.0.0.1])
+	by localhost (goliath.anevia.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id kaDylg3WUzz3 for <linux-dvb@linuxtv.org>;
+	Wed, 17 Sep 2008 12:27:24 +0200 (CEST)
+Received: from [10.0.1.25] (fcand.anevia.com [10.0.1.25])
+	by goliath.anevia.com (Postfix) with ESMTP id 78C4B1300182
+	for <linux-dvb@linuxtv.org>; Wed, 17 Sep 2008 12:27:24 +0200 (CEST)
+Message-ID: <48D0DB83.4050409@anevia.com>
+Date: Wed, 17 Sep 2008 12:27:15 +0200
+From: Frederic CAND <frederic.cand@anevia.com>
 MIME-Version: 1.0
-Subject: [linux-dvb] =?windows-1256?q?_RE=3A___VP_1041_CAM=3A_dvb=5Fca_ada?=
- =?windows-1256?q?pter_0=3A_Invalid_PC_card_inserted=FE?=
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Content-Type: multipart/mixed; boundary="------------030503010508030501040305"
+Subject: [linux-dvb] hvr 1300 mpeg sound / video issues + patches
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,98 +31,147 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1038203519=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1038203519==
-Content-Type: multipart/alternative;
-	boundary="_86088ae0-758b-4f31-bd4b-27c151c6675c_"
+This is a multi-part message in MIME format.
+--------------030503010508030501040305
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
---_86088ae0-758b-4f31-bd4b-27c151c6675c_
-Content-Type: text/plain; charset="windows-1256"
-Content-Transfer-Encoding: 8bit
+Dear all,
 
+I'm experiencing an issue I had experienced previously which I though I 
+got rid of but in fact no.
+The issue is :
 
-Hello
+I tune the card through the [v4l] device (open/ioctls/close), then read 
+the mpeg PS through the [mpeg] device. This is working.
+But closing the mpeg device, retuning the [v4l] device 
+(open/ioctls/close) the reopening for read the [mpeg] device will yield 
+in raspy sound and/or blinking black banner on the top of the video 
+frames ...
 
-I have the same problem but with VP-1034 se my post [linux-dvb] VP-1034 and CI
+I'm using a 2.6.22.19 kernel
+I'm using a quite fresh v4l-dvb snapshot (rev e5ca4534b543 of September 
+9th, changeset 8963)
+I'm using v4l-cx2341x-enc.fw which md5sum is 
+9b39b3d3bba1ce2da40f82ef0c50ef48 from 
+http://ivtvdriver.org/index.php/Firmware
 
-/fjonson
-þ
+By the way the mpeg was not providing anything (i.e only I/O errors) 
+when selecting the analog tv tuner input so I took some time looking for 
+a snapshot with tuner working and I came up with the attached 
+hvr-1300-tuner-fix.patch patch file.
+I don't get why but this is simply a diff between rev b7bb2b116cbb 
+(changeset 7442) and its child rev 13244661a8df (changset 7483) and it 
+worked for me (7442 had tuner working, 7483 had not). Applying this 
+patch on recent snapshots make the analog tuner work for me ... so if 
+anyone can check if it's ok or if I missed an important point ...
 
-> From: stefan_ell@hotmail.com
-> To: linux-dvb@linuxtv.org
-> Date: Fri, 19 Sep 2008 12:41:32 +0200
-> Subject: [linux-dvb]  VP 1041 CAM: dvb_ca adapter 0: Invalid PC card insertedþ
-> 
-> 
-> Hi list
-> 
-> If I attach the Common Interface to the card (Twinhan VP 1041) and reload the mantis modules dmesg output is the following:
-> 
-> [ 6979.969526] ACPI: PCI Interrupt 0000:01:06.0[A] -> Link [APC2] -> GSI 17 (level, low) -> IRQ 21
-> [ 6979.969562] irq: 21, latency: 32
-> [ 6979.969566]  memory: 0xd5100000, mmio: 0xf8c1c000
-> [ 6979.969573] found a VP-1041 PCI DSS/DVB-S/DVB-S2 device on (01:06.0),
-> [ 6979.969576]     Mantis Rev 1 [1822:0031], irq: 21, latency: 32
-> [ 6979.969579]     memory: 0xd5100000, mmio: 0xf8c1c000
-> [ 6979.972276]     MAC Address=[00:08:ca:1c:3f:4c]
-> [ 6979.972312] mantis_alloc_buffers (0): DMA=0x2ef10000 cpu=0xeef10000 size=65536
-> [ 6979.972319] mantis_alloc_buffers (0): RISC=0x13ddc000 cpu=0xd3ddc000 size=1000
-> [ 6979.972323] DVB: registering new adapter (Mantis dvb adapter)
-> [ 6980.520344] stb0899_attach: Attaching STB0899
-> [ 6980.520353] mantis_frontend_init (0): found STB0899 DVB-S/DVB-S2 frontend @0x68
-> [ 6980.520362] stb6100_attach: Attaching STB6100
-> [ 6980.520715] DVB: registering frontend 0 (STB0899 Multistandard)...
-> [ 6980.520778] mantis_ca_init (0): Registering EN50221 device
-> [ 6980.522811] mantis_ca_init (0): Registered EN50221 device
-> [ 6980.522825] mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
-> [ 6981.528828] dvb_ca adapter 0: Invalid PC card inserted :(
-> 
-> Since it is the official Viaccess "red cam" (Rev 1.0) I don't understand the problem - this one worked just fine in any STB I ever used - I know I might have to update the CAMs firmware if I want to watch HD content, but nevertheless: shouldn't this work for any non HD content as it does on my STB?
-> 
-> Anyone has issues with the same CAM Revision and mantis cards?
-> _________________________________________________________________
-> Die neue Generation der Windows Live Services - jetzt downloaden!
-> http://get.live.com
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Another thing : the way I work with the [mpeg] device was polling the 
+device, then read from it if any data is available. But the [mpeg] is 
+not providing anything until a read call has initiated the codec (i.e a 
+call to blackbird_start_codec). So I came up with the attached 
+cx88-blackbird-poll-fix.patch patch file.
+Thus, anyone willing to have a generic implementation of timeout polling 
+before trying to read the device would be glad to be able to.
 
-_________________________________________________________________
+So if anyone has an understanding of my first issue (raspy sound / 
+blinkg black banner on top of the video after some retuning function 
+calls), can reproduce it, and / or has an idea on how to fix this, help 
+would be greatly appreciated !
+
+Greetings
 
 
---_86088ae0-758b-4f31-bd4b-27c151c6675c_
-Content-Type: text/html; charset="windows-1256"
-Content-Transfer-Encoding: 8bit
+-- 
+CAND Frederic
+Product Manager
+ANEVIA
 
-<html>
-<head>
-<style>
-.hmmessage P
-{
-margin:0px;
-padding:0px
-}
-body.hmmessage
-{
-FONT-SIZE: 10pt;
-FONT-FAMILY:Tahoma
-}
-</style>
-</head>
-<body class='hmmessage'>
-Hello<br><br>I have the same problem but with VP-1034 se my post <a href="http://www.linuxtv.org/pipermail/linux-dvb/2008-September/028860.html">[linux-dvb] VP-1034 and CI</a><br><br>/fjonson<br><a href="http://www.linuxtv.org/pipermail/linux-dvb/2008-September/028860.html">þ</a><br><br>&gt; From: stefan_ell@hotmail.com<br>&gt; To: linux-dvb@linuxtv.org<br>&gt; Date: Fri, 19 Sep 2008 12:41:32 +0200<br>&gt; Subject: [linux-dvb]  VP 1041 CAM: dvb_ca adapter 0: Invalid PC card insertedþ<br>&gt; <br>&gt; <br>&gt; Hi list<br>&gt; <br>&gt; If I attach the Common Interface to the card (Twinhan VP 1041) and reload the mantis modules dmesg output is the following:<br>&gt; <br>&gt; [ 6979.969526] ACPI: PCI Interrupt 0000:01:06.0[A] -&gt; Link [APC2] -&gt; GSI 17 (level, low) -&gt; IRQ 21<br>&gt; [ 6979.969562] irq: 21, latency: 32<br>&gt; [ 6979.969566]  memory: 0xd5100000, mmio: 0xf8c1c000<br>&gt; [ 6979.969573] found a VP-1041 PCI DSS/DVB-S/DVB-S2 device on (01:06.0),<br>&gt; [ 6979.969576]     Mantis Rev 1 [1822:0031], irq: 21, latency: 32<br>&gt; [ 6979.969579]     memory: 0xd5100000, mmio: 0xf8c1c000<br>&gt; [ 6979.972276]     MAC Address=[00:08:ca:1c:3f:4c]<br>&gt; [ 6979.972312] mantis_alloc_buffers (0): DMA=0x2ef10000 cpu=0xeef10000 size=65536<br>&gt; [ 6979.972319] mantis_alloc_buffers (0): RISC=0x13ddc000 cpu=0xd3ddc000 size=1000<br>&gt; [ 6979.972323] DVB: registering new adapter (Mantis dvb adapter)<br>&gt; [ 6980.520344] stb0899_attach: Attaching STB0899<br>&gt; [ 6980.520353] mantis_frontend_init (0): found STB0899 DVB-S/DVB-S2 frontend @0x68<br>&gt; [ 6980.520362] stb6100_attach: Attaching STB6100<br>&gt; [ 6980.520715] DVB: registering frontend 0 (STB0899 Multistandard)...<br>&gt; [ 6980.520778] mantis_ca_init (0): Registering EN50221 device<br>&gt; [ 6980.522811] mantis_ca_init (0): Registered EN50221 device<br>&gt; [ 6980.522825] mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface<br>&gt; [ 6981.528828] dvb_ca adapter 0: Invalid PC card inserted :(<br>&gt; <br>&gt; Since it is the official Viaccess "red cam" (Rev 1.0) I don't understand the problem - this one worked just fine in any STB I ever used - I know I might have to update the CAMs firmware if I want to watch HD content, but nevertheless: shouldn't this work for any non HD content as it does on my STB?<br>&gt; <br>&gt; Anyone has issues with the same CAM Revision and mantis cards?<br>&gt; _________________________________________________________________<br>&gt; Die neue Generation der Windows Live Services - jetzt downloaden!<br>&gt; http://get.live.com<br>&gt; <br>&gt; _______________________________________________<br>&gt; linux-dvb mailing list<br>&gt; linux-dvb@linuxtv.org<br>&gt; http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb<br><br /><hr /> <a href='' target='_new'></a></body>
-</html>
---_86088ae0-758b-4f31-bd4b-27c151c6675c_--
+--------------030503010508030501040305
+Content-Type: text/plain;
+ name="hvr-1300-tuner-fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="hvr-1300-tuner-fix.patch"
 
+--- linux/drivers/media/common/tuners/tuner-types.c	2008-09-08 21:42:40.000000000 +0200
++++ linux/drivers/media/common/tuners/tuner-types.c	2008-09-16 10:55:28.000000000 +0200
+@@ -1480,6 +1480,7 @@ struct tunertype tuners[] = {
+ 		.min    = 16 *  57.00,
+ 		.max    = 16 * 858.00,
+ 		.stepsize = 62500,
++		.initdata = tua603x_agc103,
+ 	},
+ 
+ 	/* 50-59 */
+@@ -1494,12 +1495,15 @@ struct tunertype tuners[] = {
+ 		.count  = ARRAY_SIZE(tuner_philips_fm1256_ih3_params),
+ 	},
+ 	[TUNER_THOMSON_DTT7610] = { /* THOMSON ATSC */
++		.initdata = tua603x_agc112,
++		.sleepdata = (u8[]){ 4, 0x9c, 0x60, 0x85, 0x54 },
+ 		.name   = "Thomson DTT 7610 (ATSC/NTSC)",
+ 		.params = tuner_thomson_dtt7610_params,
+ 		.count  = ARRAY_SIZE(tuner_thomson_dtt7610_params),
+ 		.min    = 16 *  44.00,
+ 		.max    = 16 * 958.00,
+ 		.stepsize = 62500,
++		.initdata = tua603x_agc103,
+ 	},
+ 	[TUNER_PHILIPS_FQ1286] = { /* Philips NTSC */
+ 		.name   = "Philips FQ1286",
+@@ -1544,7 +1548,6 @@ struct tunertype tuners[] = {
+ 		.min    = 16 *  57.00,
+ 		.max    = 16 * 863.00,
+ 		.stepsize = 62500,
+-		.initdata = tua603x_agc103,
+ 	},
+ 	[TUNER_TENA_9533_DI] = { /* Philips PAL */
+ 		.name   = "Tena TNF9533-D/IF/TNF9533-B/DF",
+@@ -1562,8 +1565,6 @@ struct tunertype tuners[] = {
+ 		.min = 16 *  50.87,
+ 		.max = 16 * 858.00,
+ 		.stepsize = 166667,
+-		.initdata = tua603x_agc112,
+-		.sleepdata = (u8[]){ 4, 0x9c, 0x60, 0x85, 0x54 },
+ 	},
+ 	[TUNER_LG_TDVS_H06XF] = { /* LGINNOTEK ATSC */
+ 		.name   = "LG TDVS-H06xF", /* H061F, H062F & H064F */
+@@ -1572,7 +1573,6 @@ struct tunertype tuners[] = {
+ 		.min    = 16 *  54.00,
+ 		.max    = 16 * 863.00,
+ 		.stepsize = 62500,
+-		.initdata = tua603x_agc103,
+ 	},
+ 	[TUNER_YMEC_TVF66T5_B_DFF] = { /* Philips PAL */
+ 		.name   = "Ymec TVF66T5-B/DFF",
 
---===============1038203519==
+--------------030503010508030501040305
+Content-Type: text/plain;
+ name="cx88-blackbird-poll-fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="cx88-blackbird-poll-fix.patch"
+
+--- linux/drivers/media/video/cx88/cx88-blackbird.c	2008-09-16 17:05:51.000000000 +0200
++++ linux/drivers/media/video/cx88/cx88-blackbird.c	2008-09-16 16:58:57.000000000 +0200
+@@ -1177,6 +1177,10 @@ static unsigned int
+ mpeg_poll(struct file *file, struct poll_table_struct *wait)
+ {
+ 	struct cx8802_fh *fh = file->private_data;
++	struct cx8802_dev *dev = fh->dev;
++
++	if (!dev->mpeg_active)
++		blackbird_start_codec(file, fh);
+ 
+ 	return videobuf_poll_stream(file, &fh->mpegq, wait);
+ }
+
+--------------030503010508030501040305
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -120,4 +181,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1038203519==--
+--------------030503010508030501040305--
