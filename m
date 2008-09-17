@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1KindT-00048m-HK
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 11:59:48 +0200
-Date: Thu, 25 Sep 2008 11:59:07 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Torgeir Veimo <torgeir@pobox.com>
-In-Reply-To: <01DE66C3-8E94-4DC3-9828-DF2CD7B59EBB@pobox.com>
-Message-ID: <alpine.LRH.1.10.0809251156390.1247@pub1.ifh.de>
-References: <573008.36358.qm@web52908.mail.re2.yahoo.com>
-	<alpine.LRH.1.10.0809251152480.1247@pub1.ifh.de>
-	<01DE66C3-8E94-4DC3-9828-DF2CD7B59EBB@pobox.com>
+	(envelope-from <crope@iki.fi>) id 1Kg3Vt-0001i3-Dv
+	for linux-dvb@linuxtv.org; Wed, 17 Sep 2008 22:20:38 +0200
+Message-ID: <34408.85.23.68.42.1221682831.squirrel@webmail.kapsi.fi>
+In-Reply-To: <200809172115.19851.dirk_vornheder@yahoo.de>
+References: <200809152345.37786.dirk_vornheder@yahoo.de>
+	<48CF85C2.1030806@iki.fi>
+	<200809172115.19851.dirk_vornheder@yahoo.de>
+Date: Wed, 17 Sep 2008 23:20:31 +0300 (EEST)
+From: "Antti Palosaari" <crope@iki.fi>
+To: "Dirk Vornheder" <dirk_vornheder@yahoo.de>
 MIME-Version: 1.0
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] getting rid of input dev in dvb-usb (was: Re: [PATCH]
- Add remote control support to Nova-TD (52009))
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] UNS: Re:  New unspported device AVerMedia DVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,38 +27,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 25 Sep 2008, Torgeir Veimo wrote:
-
+ke 17.9.2008 22:15 Dirk Vornheder kirjoitti:
 >
-> On 25 Sep 2008, at 19:53, Patrick Boettcher wrote:
+> Compile produces undefined symbol:
 >
->>> 
->>> This patch is against the 2.6.26.5 kernel, and adds remote control support 
->>> for the Hauppauge WinTV Nova-TD (Diversity) model. (That's the 52009 
->>> version.) It also adds the key-codes for the credit-card style remote 
->>> control that comes with this particular adapter.
->> 
->> Committed and ask to be pulled, thanks.
->
->
-> Am curious, would it be possible to augment these drivers to provide the raw 
-> IR codes on a raw hid device, eg. /dev/hidraw0 etc, so that other RC5 remotes 
-> than the ones that actually are sold with the card can be used with the card?
+>   Building modules, stage 2.
+>   MODPOST 166 modules
+> WARNING: "__udivdi3" [/backup/privat/kernel/af9015_test-
+> c8583d119095/v4l/af9013.ko] undefined!
 
-I would love that idea. Maybe this is the solution I have searched for so 
-long. I desparately want to put those huge remote-control-table into 
-user-space.
+I fixed this yesterday  but only for af9015 main tree :-( Unfortunately I
+am not in my home so I cannot fix this just now for your test tree. But if
+you can, you can fix it yourself.
 
-If hidraw is the right way, I'm with you. So far I wasn't sure what to 
-do?!
+Open file af9015_test/linux/drivers/media/dvb/frontends/af9013.c
+Remove lines 982-986. Compile and test. Hopefully it works.
+You can remove following lines (982-986).
+	if (total_bit_count) {
+		numerator = error_bit_count * 1000000000;
+		denominator = total_bit_count;
+		state->ber = numerator / denominator;
+	}
 
-How would it work with the key-table onces it is done with hidraw?
+regards
+Antti
 
-Patrick.
 
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
 _______________________________________________
 linux-dvb mailing list
