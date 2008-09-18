@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8EIVaU5012683
-	for <video4linux-list@redhat.com>; Sun, 14 Sep 2008 14:31:36 -0400
-Received: from diyefi.co.uk (diyefi.co.uk [207.192.70.190])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8EIVQgH032501
-	for <video4linux-list@redhat.com>; Sun, 14 Sep 2008 14:31:26 -0400
-Received: from [192.168.0.5] (host-84-9-158-153.dslgb.com [84.9.158.153])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by diyefi.co.uk (Postfix) with ESMTPSA id DD98514F8D
-	for <video4linux-list@redhat.com>; Sun, 14 Sep 2008 19:31:18 +0100 (BST)
-Message-ID: <48CD58B9.5030402@stu.org.uk>
-Date: Sun, 14 Sep 2008 19:32:25 +0100
-From: Stuart Johnson <stuart@stu.org.uk>
-MIME-Version: 1.0
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8I79XjK029120
+	for <video4linux-list@redhat.com>; Thu, 18 Sep 2008 03:09:34 -0400
+Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8I79KgZ009904
+	for <video4linux-list@redhat.com>; Thu, 18 Sep 2008 03:09:20 -0400
+Received: from webmail.xs4all.nl (dovemail5.xs4all.nl [194.109.26.7])
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id m8I79Jwg030501
+	for <video4linux-list@redhat.com>;
+	Thu, 18 Sep 2008 09:09:19 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Message-ID: <14856.208.252.119.63.1221721759.squirrel@webmail.xs4all.nl>
+Date: Thu, 18 Sep 2008 09:09:19 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Nova-HD-S2 HVR4000
+MIME-Version: 1.0
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Subject: Re: Sliced VBI Capture with Memory Mapped Buffers
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,24 +29,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+> Hi All,
+>
+> I want to capture Sliced VBI data using the Memory mapped buffer exchange
+> mechanism with the device node same as that of video capture. The problem
+> is how to distinguish between video buffer and sliced vbi buffer when
+> mapping them since mmap system call takes buffer offset as the argument
+> and querybuf ioclt always provides me the buffer offset starting from 0 so
+> the offset of the first buffer of both video data and sliced vbi data is
+> 0. It looks like i have to create separate device node for the vbi data.
 
-I purchased two Nova-HD-S2 a few months ago for my Linux machine to 
-replace my old Skystar cards.  So far I have been unsuccessful to patch 
-or compile the drivers.
-Seems like I have been having to jump though hoops every step of the way.
+That's correct. You have to create a vbi device for that.
 
-To be honest I haven't really got the time or patience to figure out 
-what's wrong, as I have open source projects of my own to work on.
+> Is there any other way out?
 
-Has anyone got a pre-patched kernel source with support for my Nova-HD-S2?
+No. VBI is always a separate stream from video.
 
-Any idea when support with become mainstream?  I'm wondering if I should 
-sell these devices, and find something else.
+> Is there any way i can synchronize the sliced
+> vbi data with the video data?
 
+Both buffers have timestamps, so that's the way you would synchronize
+them. In practice, though, you can usually safely assume that both video
+and vbi arrive at the same time.
 
+Are you aware of the sliced VBI support that's in the V4L2 API?
 
+http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html#SLICED
 
+Just making sure that you know about this :-)
+
+Regards,
+
+        Hans
 
 --
 video4linux-list mailing list
