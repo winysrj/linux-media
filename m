@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m81JJSJF028477
-	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 15:19:29 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m81JJH3B022328
-	for <video4linux-list@redhat.com>; Mon, 1 Sep 2008 15:19:18 -0400
-Received: by ug-out-1314.google.com with SMTP id m2so1450447uge.13
-	for <video4linux-list@redhat.com>; Mon, 01 Sep 2008 12:19:17 -0700 (PDT)
-Message-ID: <226dee610809011219h4088a062k77a2d0ac1acbc047@mail.gmail.com>
-Date: Tue, 2 Sep 2008 00:49:16 +0530
-From: "JoJo jojo" <onetwojojo@gmail.com>
-To: "Hans de Goede" <j.w.r.degoede@hhs.nl>
-In-Reply-To: <48B7D198.60505@hhs.nl>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8I6xYps026371
+	for <video4linux-list@redhat.com>; Thu, 18 Sep 2008 02:59:34 -0400
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8I6xWkX003691
+	for <video4linux-list@redhat.com>; Thu, 18 Sep 2008 02:59:32 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8I6xOsx014904
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Thu, 18 Sep 2008 01:59:31 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8I6xMqj013674
+	for <video4linux-list@redhat.com>; Thu, 18 Sep 2008 12:29:23 +0530 (IST)
+From: "Jadav, Brijesh R" <brijesh.j@ti.com>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Thu, 18 Sep 2008 12:29:22 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403CD6B7339@dbde02.ent.ti.com>
+Content-Language: en-US
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <48B7D198.60505@hhs.nl>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
-Subject: Re: gspca-sonixb and sn9c102 produce incompatible
-	V4L2_PIX_FMT_SN9C10X
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Subject: Sliced VBI Capture with Memory Mapped Buffers
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,24 +32,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Aug 29, 2008 at 4:08 PM, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
-> Hi all,
-> 1) Fix the gspca driver and libv4l to produce / expect BGGR bayer inside the
-> V4L2_PIX_FMT_SN9C10X data, making gspca compatible with the already released
-> in an official kernel sn9c102 driver. The downside of this is that we loose
-> all the testing done with gspca (both v1 and v2) with the current gspca
-> settings but given that windows uses the sn9c102 settings I don't expect
-> much
-> of a problem from this (and I can test the new settings for 3 of the 7
-> supported sensors).
->
+Hi All,
 
+I want to capture Sliced VBI data using the Memory mapped buffer exchange m=
+echanism with the device node same as that of video capture. The problem is=
+ how to distinguish between video buffer and sliced vbi buffer when mapping=
+ them since mmap system call takes buffer offset as the argument and queryb=
+uf ioclt always provides me the buffer offset starting from 0 so the offset=
+ of the first buffer of both video data and sliced vbi data is 0. It looks =
+like i have to create separate device node for the vbi data. Is there any o=
+ther way out? Is there any way i can synchronize the sliced vbi data with t=
+he video data?
 
-What are the other 4 USB ids of sensors that you can't test yourself?
-Maybe we can help.
-
--JoJo
-
+Thanks,
+Brijesh Jadav
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
