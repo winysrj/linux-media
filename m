@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1Kasvh-0008Jb-QT
-	for linux-dvb@linuxtv.org; Wed, 03 Sep 2008 16:01:55 +0200
-Message-ID: <48BE98CC.1080600@linuxtv.org>
-Date: Wed, 03 Sep 2008 10:01:48 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <handygewinnspiel@gmx.de>) id 1KgMHt-0001T6-Gb
+	for linux-dvb@linuxtv.org; Thu, 18 Sep 2008 18:23:26 +0200
+Message-ID: <48D28052.5000209@gmx.de>
+Date: Thu, 18 Sep 2008 18:22:42 +0200
+From: wk <handygewinnspiel@gmx.de>
 MIME-Version: 1.0
-To: Glenn McGrath <glenn.l.mcgrath@gmail.com>
-References: <141058d50809030655i680f7937o3aa657601d1910a0@mail.gmail.com>
-In-Reply-To: <141058d50809030655i680f7937o3aa657601d1910a0@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Fine tuning app ?
+To: Frederic CAND <frederic.cand@anevia.com>
+References: <48D27B52.2010704@anevia.com>
+In-Reply-To: <48D27B52.2010704@anevia.com>
+Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] hvr 1300 radio
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,27 +25,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Glenn McGrath wrote:
-> Hi all, im very happy to say i have my dvico dual fusion working
-> really well now, all channels work.
-> 
-> I had to manually tweak the frequencies by adding 125kHz to the center
-> frequency, i think i read somewhere that 125kHz is the max they are
-> allowed to vary it.
-> 
-> It would be really useful to have a fine tuning app that can use a
-> table of hard coded frequency values  for different countries and fine
-> tune it until the error rate is minimal.
-> 
-> Does such an app exists.. im tempted to try and code one up myself.
-
-w_scan -- http://wirbel.htpc-forum.de/
-
-...now with ATSC / QAM Annex-B tuning support!
+Frederic CAND wrote:
+> Dear all,
+>
+> has anyone got analog FM radio working with an Hauppauge HVR 1300 ?
+> If yes please tell me how ! I got only noise from /dev/dsp* ... :(
+> This is an issue I've had for some time now ...
+> I tried option radio=63 on cx88xx module but it did not change anything 
+> (except writing cx88[0]: TV tuner type 63, Radio tuner type 63 in dmesg 
+> instead of radio tuner type -1 ...)
+>
+> Is radio support just not implemented ?
+>
+>   
+Load cx88_blackbird and open /dev/radioX.
+I haven't tried radio up to now, but i would expect that only radio *or* 
+dvb works, but not both at the same time. Most probably radio is also 
+not feed trough the mpeg encoder.
 
 Regards,
+Winfried
 
-Mike Krufky
 
 _______________________________________________
 linux-dvb mailing list
