@@ -1,21 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <48CD5D19.1070700@gmail.com>
-Date: Sun, 14 Sep 2008 22:51:05 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
+From: Andy Walls <awalls@radix.net>
 To: Steven Toth <stoth@linuxtv.org>
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-	<48CC42D8.8080806@gmail.com>
-	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
-	<48CC4D35.3000003@gmail.com>
-	<d9def9db0809140838k2ced5211gc2690e76f53a98be@mail.gmail.com>
-	<48CD43C1.2090902@linuxtv.org>
-In-Reply-To: <48CD43C1.2090902@linuxtv.org>
-Cc: linux-dvb@linuxtv.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+In-Reply-To: <48D3E2AB.9010701@linuxtv.org>
+References: <d77717b60809190029p4bdcdda6g55db6a9261673675@mail.gmail.com>
+	<48D3E2AB.9010701@linuxtv.org>
+Date: Fri, 19 Sep 2008 18:52:46 -0400
+Message-Id: <1221864766.2636.15.camel@morgan.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1800 - can't find the card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,147 +22,103 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Steven Toth wrote:
-> Markus Rechberger wrote:
->> On Sun, Sep 14, 2008 at 1:31 AM, Manu Abraham <abraham.manu@gmail.com>
->> wrote:
->>> Markus Rechberger wrote:
->>>> On Sun, Sep 14, 2008 at 12:46 AM, Manu Abraham
->>>> <abraham.manu@gmail.com> wrote:
->>>>> Markus Rechberger wrote:
->>>>>
->>>>>> How many devices are currently supported by the multiproto API
->>>>>> compared with the s2 tree?
->>>>> The initial set of DVB-S2 multistandard devices supported by the
->>>>> multiproto tree is follows. This is just the stb0899 based dvb-s2
->>>>> driver
->>>>> alone. There are more additions by 2 more modules (not devices),
->>>>> but for
->>>>> the simple comparison here is the quick list of them, for which
->>>>> some of
->>>>> the manufacturers have shown support in some way. (There has been
->>>>> quite
->>>>> some contributions from the community as well.):
->>>>>
->>>>> (Also to be noted is that, some BSD chaps also have shown interest in
->>>>> the same)
->>>>>
->>>> they're heavy into moving the whole framework over as far as I've seen
->>>> yes, also including yet unmerged drivers.
->>>
->>> Using the same interface, the same applications will work there as well
->>> which is a bonus, but isn't the existing user interface GPL ? (A bit
->>> confused on that aspect)
->>>
->>>
->>>>> * STB0899 based
->>>>>
->>>>> Anubis
->>>>> Typhoon DVB-S2 PCI
->>>>>
->>>>> Azurewave/Twinhan
->>>>> VP-1041
->>>>> VP-7050
->>>>>
->>>>> Digital Now
->>>>> AD SP400
->>>>> AD SB300
->>>>>
->>>>> KNC1
->>>>> TV Station DVB-S2
->>>>> TV Station DVB-S2 Plus
->>>>>
->>>>> Pinnacle
->>>>> PCTV Sat HDTV Pro USB 452e
->>>>>
->>>>> Satelco
->>>>> TV Station DVB-S2
->>>>> Easywatch HDTV USB CI
->>>>> Easywatch HDTV PCI
->>>>>
->>>>> Technisat
->>>>> Skystar HD
->>>>> Skystar HD2
->>>>> Skystar USB2 HDCI
->>>>>
->>>>> Technotrend
->>>>> TT S2 3200
->>>>> TT S2 3600
->>>>> TT S2 3650
->>>>>
->>>>> Terratec
->>>>> Cinergy S2 PCI HD
->>>>> Cinergy S2 PCI HDCI
->>>>>
->>>> those are pullable now against the current tree?
->>>
->>> These devices, depend upon the DVB API update without which it wouldn't
->>> work as they depend heavily on the DVB API framework. Without the
->>> updated framework, it doesn't make any sense to pull them: they won't
->>> even compile. The last but not least reason is that, the stb0899 driver
->>> is a DVB-S2 multistandard device which requires DVB-S2/DSS support
->>> additionally.
->>>
->>
->> so the framework is available, and the drivers could be pushed in
->> right afterwards, I wonder
->> who is willing to port those drivers to the other API (including
->> testing).
+On Fri, 2008-09-19 at 13:34 -0400, Steven Toth wrote:
+> Bill McCartney wrote:
+> > Well, I'm not sure if it is a DVB problem. The hvr-1800 shows up in my 
+> > lspci, but driver doesn't load. I have tried kernels version 2.26.24 and 
+> > 2.26.25.7 <http://2.26.25.7>, removed all other cards from the system - 
+> > and still have the same problem.
+> > 
+> > Output when I try to install the driver
+> > cx23885 driver version 0.0.1 loaded
+> > cx23885[0]: can't get MMIO memory @ 0x0
+> > CORE cx23885[0] No more PCIe resources for subsystem: 0070:7801
+> > cx23885: probe of 0000:03:00.0 failed with error -22
+> > 
+> > The output of my lspci -v (of the card)
+> > 03:00.0 Multimedia video controller: Conexant Unknown device 8880 (rev 0f)
+> >         Subsystem: Hauppauge computer works Inc. Unknown device 7801
+> >         Flags: bus master, fast devsel, latency 0, IRQ 10
+> >         Memory at <ignored> (64-bit, non-prefetchable)
+> >         Capabilities: [40] Express Endpoint IRQ 0
+> >         Capabilities: [80] Power Management version 2
+> >         Capabilities: [90] Vital Product Data
+> >         Capabilities: [a0] Message Signalled Interrupts: 64bit+ 
+> > Queue=0/0 Enable-
+> > 
+> > In my kernel logs I see this from the bootlogs:
+> > PCI: Cannot allocate resource region 0 of device 0000:03:00.0
+> > 
+> > I've tried several kernel options as far as pci configuration goes -- 
+> > does this mean that I have bad hardware? Should I just return it to the 
+> > store? Is it a conflict with my motherboard?
 > 
-> Me. I'll port the 3200 cards and their derivatives, including the 6100
-> and the 0899. I've already said I'd do that.... but it's manu's code and
-> he retains all rights. He gets to decide first.
-
-
-The STB0899 based devices are much different from the crappy handicapped
-Hauppauge S2 cards and hence the API that you work upon is quite limited
-to what you see with regards to the Hauppauge (CX24116 based) cards.
-
-Even the bare specifications from Conexant point to a handicapped DVB-S2
-demodulator.
-
-Attempts to do so, will break those devices at least for most of the
-features and more yet to come. The DVB-S2 transport is a bit more
-advanced delivery system than what your API based on the CX24116
-demodulator.
-
-At least it will be great for Hauppauge as you can point to people that
-Hauppauge hardware is much better, for the marketing aspects as you have
-done in the past on IRC lists.
-
-Very good marketing strategy, Steven keep it up, you have earned more
-sales for the Hauppauge cards ...
-<claps hands>
-
->> It's not going to happen any time soon I guess, if there's not an
->> agreement with Manu's
->> work. Dumping this code would show another step of ignorance and
->> selfishness against the
->> people who worked on it.
+> Returning this to the store isn't going to fix the problem. You have a 
+> limited about of memory allocated to PCI devices and you have no more 
+> free for the HVR1800.
 > 
+>  From memory the kernel allocates 512MB (?) for PCI address space, which 
+> gets allocated out to devices. The HVR1800 needs 64MB(?) of address 
+> space, and the kernel doesn't have that free. (My numbers are sketchy 
+> but the same principle stands).
 > 
-> The demod/tuners drivers would be merged with S2API within a few days. I
-> have a TT-3200 here. I'd have to re-write various things, and change the
-> demod API a little. but I'm prepared to do that.
+> Check lspci -vn and see which of your devices need large amounts of ram 
+>   (typically video cards).
 
-Just having a TT 3200 won't help working on the STB0899. Almost everyone
-who has a STB0899 based knows that, except you.
+Bill,
 
-No need for you to break the compliant devices in favour of your
-mediocre cards. As i wrote just above, the STB0899 is not the only one
-device using the said features. Also i can guarantee that the CX24116
-(HVR4000) is the most handicapped DVB-S2 device that you are basing the
-DVB-S2 API on: and i can guarantee that what you do will be just be
-broken as you have done for other devices in the past.
+If you're trying to troubleshoot vmalloc address space exhaustion,
+before you pull hardware, you may want to try these commands:
 
-Also i do not understand, why you have to make a lot of noise to port
-the STB0899 drivers to your crap, when all your cards work as expected
-by you with the multiproto tree. I don't see any reason why the STB0899
-has to be ported to the handicapped API of yours, handicapping the
-STB0899 based devices.
+  $ cat /proc/iomem 
 
-HTH
-Manu
+will show you what vmalloc allocations are in use for memory mapped IO
+by what drivers for what PCI bus id.  You'll have to compute sizes
+yourself, if you need to know.
+
+
+   $ grep Vmalloc /proc/meminfo
+
+will show you how much vmalloc address space the kernel sets aside and
+how much is currently in use.
+
+I know the cx18 driver, with which I am familiar, needs to grab a 64 MiB
+continuous chunk for every card.  Since the vmalloc address space is
+dynamically allocated and deallocated, it can fragment and it can be the
+case that a large chunk doesn't exist.
+
+I normally tell cx18 users with ENOMEM problems to add a 'vmalloc=xxxM'
+option to their kernel command line that is at least 128 MiB higher than
+what their kernel sets aside by default.  You might want to try the
+same.
+
+
+vmalloc allocations are also used for module executable code and
+probably other things aside from just memory mapped IO.
+
+
+Good Luck,
+Andy  
+
+
+
+> For test purposes, removing another card to free some PCI space, this 
+> will allow you to test the hardware, loading the driver after this 
+> should be fine. (Again, for test purposes only).
+> 
+> Increasing the amount of PCI ram available for allocation may be a 
+> kernel boot-time setting. I haven't look to be honest, as I don't 
+> experience this issue.... although occasionally other user have (with 
+> different cards and different driver trees).
+> 
+> I'm traveling this week so I have very little access to source code and 
+> hardware numbers, so if anyone has better numbers or can increase the 
+> PCI allocation then I'd be interested to hear their comments.
+> 
+> Regards,
+> 
+> - Steve
+
 
 
 _______________________________________________
