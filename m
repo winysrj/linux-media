@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.30])
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KgZkV-0000vw-KB
-	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 08:45:53 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so49035ywj.41
-	for <linux-dvb@linuxtv.org>; Thu, 18 Sep 2008 23:45:47 -0700 (PDT)
-Message-ID: <d9def9db0809182345n45ac0fdck6165e0f4d3b48b0b@mail.gmail.com>
-Date: Fri, 19 Sep 2008 08:45:46 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Patrick Boettcher" <patrick.boettcher@desy.de>
-In-Reply-To: <alpine.LRH.1.10.0809190830370.8673@pub1.ifh.de>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <alpine.LRH.1.10.0809190830370.8673@pub1.ifh.de>
+	(envelope-from <stoth@linuxtv.org>) id 1Kgjt4-00041k-28
+	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 19:35:23 +0200
+Received: from host-245-80.pubnet.pdx.edu
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7G0007HE5NURC0@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 19 Sep 2008 13:34:37 -0400 (EDT)
+Date: Fri, 19 Sep 2008 13:34:35 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <d77717b60809190029p4bdcdda6g55db6a9261673675@mail.gmail.com>
+To: Bill McCartney <billmccartney@gmail.com>
+Message-id: <48D3E2AB.9010701@linuxtv.org>
+MIME-version: 1.0
+References: <d77717b60809190029p4bdcdda6g55db6a9261673675@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [RFC] cinergyT2 rework final review
+Subject: Re: [linux-dvb] HVR-1800 - can't find the card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,66 +31,65 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Sep 19, 2008 at 8:35 AM, Patrick Boettcher
-<patrick.boettcher@desy.de> wrote:
-> Hi Thierry,
->
-> On Fri, 19 Sep 2008, Thierry Merle wrote:
->
->> Hello all,
->> About the rework from Tomi Orava I stored here:
->> http://linuxtv.org/hg/~tmerle/cinergyT2
->>
->> since there seems to be no bug declared with this driver by testers (I
->> tested this driver on AMD/Intel/ARM platforms for months), it is time for
->> action.
->> If I receive no problem report before 19th of October (in one month), I
->> will push this driver into mainline.
->
-> Are you really sure you want to wait until October 19 with that? You heard
-> Jonathan this morning, he is expecting a new release every day now, so the
-> merge window will start quite soon. Maybe it would be better to shorten
-> your deadline in favour of having the driver in-tree for 2.6.28. When it
-> is inside it is still possible for at least 1.5 months to fix occuring
-> problems.
->
->> This modification uses the dvb-usb framework, this is
->>
->> To give you an idea of the code benefit, here is a diffstat of the
->> cinergyT2 rework patch:
->> linux/drivers/media/dvb/cinergyT2/Kconfig        |   85 -
->> linux/drivers/media/dvb/cinergyT2/Makefile       |    3
->> linux/drivers/media/dvb/cinergyT2/cinergyT2.c    | 1150
->> ---------------------
->> linux/drivers/media/dvb/dvb-usb/cinergyT2-core.c |  230 ++++
->> linux/drivers/media/dvb/dvb-usb/cinergyT2-fe.c   |  351 ++++++
->> linux/drivers/media/dvb/dvb-usb/cinergyT2.h      |   95 +
->> linux/drivers/media/dvb/Kconfig                    |    1
->> linux/drivers/media/dvb/dvb-usb/Kconfig            |    8
->> linux/drivers/media/dvb/dvb-usb/Makefile           |    4
->> 9 files changed, 688 insertions(+), 1239 deletions(-)
->
-> Impressive. It means there are currently around 600 lines boilerplate code
-> in the cinergyT2-driver (I like this word ;) )
->
+Bill McCartney wrote:
+> Well, I'm not sure if it is a DVB problem. The hvr-1800 shows up in my 
+> lspci, but driver doesn't load. I have tried kernels version 2.26.24 and 
+> 2.26.25.7 <http://2.26.25.7>, removed all other cards from the system - 
+> and still have the same problem.
+> 
+> Output when I try to install the driver
+> cx23885 driver version 0.0.1 loaded
+> cx23885[0]: can't get MMIO memory @ 0x0
+> CORE cx23885[0] No more PCIe resources for subsystem: 0070:7801
+> cx23885: probe of 0000:03:00.0 failed with error -22
+> 
+> The output of my lspci -v (of the card)
+> 03:00.0 Multimedia video controller: Conexant Unknown device 8880 (rev 0f)
+>         Subsystem: Hauppauge computer works Inc. Unknown device 7801
+>         Flags: bus master, fast devsel, latency 0, IRQ 10
+>         Memory at <ignored> (64-bit, non-prefetchable)
+>         Capabilities: [40] Express Endpoint IRQ 0
+>         Capabilities: [80] Power Management version 2
+>         Capabilities: [90] Vital Product Data
+>         Capabilities: [a0] Message Signalled Interrupts: 64bit+ 
+> Queue=0/0 Enable-
+> 
+> In my kernel logs I see this from the bootlogs:
+> PCI: Cannot allocate resource region 0 of device 0000:03:00.0
+> 
+> I've tried several kernel options as far as pci configuration goes -- 
+> does this mean that I have bad hardware? Should I just return it to the 
+> store? Is it a conflict with my motherboard?
 
-there was an intention to redesign the dvb framework (make a v3) with
-that driver so it duplicated
-alot code from the core.
+Returning this to the store isn't going to fix the problem. You have a 
+limited about of memory allocated to PCI devices and you have no more 
+free for the HVR1800.
 
-Markus
+ From memory the kernel allocates 512MB (?) for PCI address space, which 
+gets allocated out to devices. The HVR1800 needs 64MB(?) of address 
+space, and the kernel doesn't have that free. (My numbers are sketchy 
+but the same principle stands).
 
-> Patrick.
->
-> --
->   Mail: patrick.boettcher@desy.de
->   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+Check lspci -vn and see which of your devices need large amounts of ram 
+  (typically video cards).
+
+For test purposes, removing another card to free some PCI space, this 
+will allow you to test the hardware, loading the driver after this 
+should be fine. (Again, for test purposes only).
+
+Increasing the amount of PCI ram available for allocation may be a 
+kernel boot-time setting. I haven't look to be honest, as I don't 
+experience this issue.... although occasionally other user have (with 
+different cards and different driver trees).
+
+I'm traveling this week so I have very little access to source code and 
+hardware numbers, so if anyone has better numbers or can increase the 
+PCI allocation then I'd be interested to hear their comments.
+
+Regards,
+
+- Steve
+
 
 _______________________________________________
 linux-dvb mailing list
