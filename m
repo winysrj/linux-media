@@ -1,26 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KhR7J-0002iu-LW
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 17:45:01 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7J0011SYDXP440@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sun, 21 Sep 2008 11:44:22 -0400 (EDT)
-Date: Sun, 21 Sep 2008 11:44:20 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48D6329C.1010309@rogers.com>
-To: Jonathan Coles <jcoles0727@rogers.com>
-Message-id: <48D66BD4.3070804@linuxtv.org>
-MIME-version: 1.0
-References: <48D059AE.1060307@rogers.com>
-	<bb72339d0809161837w58ce1256g519306a029e36294@mail.gmail.com>
-	<48D4DE00.90005@rogers.com> <48D510E8.7080900@linuxtv.org>
-	<48D6329C.1010309@rogers.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Questions on v4l-dvb driver instructions
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <csutor@gmx.de>) id 1Kgolb-0001R2-IS
+	for linux-dvb@linuxtv.org; Sat, 20 Sep 2008 00:48:00 +0200
+Message-ID: <48D42BFB.2000708@gmx.de>
+Date: Sat, 20 Sep 2008 00:47:23 +0200
+From: Clemens Sutor <csutor@gmx.de>
+MIME-Version: 1.0
+To: Fredrik Jonson <fjonson95@hotmail.com>
+References: <BAY108-W49816DC274A6E8D70E62DFE4E0@phx.gbl>	<BAY115-W351744C2D44B2B29FB45B2BC4E0@phx.gbl>
+	<48D41A1E.1040604@gmx.de>
+In-Reply-To: <48D41A1E.1040604@gmx.de>
+Cc: Stefan Ellenberger <stefan_ell@hotmail.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb]
+ =?windows-1256?q?VP_1041_CAM=3A_dvb=5Fca_adapter_0=3A?=
+ =?windows-1256?q?_Invalid_PC_card_inserted=FE?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,130 +22,70 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1256"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jonathan Coles wrote:
-> Steven Toth wrote:
->> Jonathan Coles wrote:
->>> Perhaps I have some other misconfiguration in my system. With the 
->>> wget command I must use the --no-proxy option. Otherwise, I get 
->>> "Error parsing proxy URL http://:8080/: Invalid host name." Very 
->>> strange that port 8080 is assumed when the standard port is 80.
->>>
->>> I couldn't find an equivalent no-proxy option for hg.
->>>
->>> Thanks.
->>
->> Please don't top-post, it's aainst to policy of the mailing list.
->>
->> See below.
->>
->>>
->>> Owen Townend wrote:
->>>> 2008/9/17 Jonathan Coles <jcoles0727@rogers.com>:
->>>>  
->>>>> Your instructions at http://linuxtv.org/repo/ for obtaining v4l-dvb 
->>>>> say
->>>>> to execute:
->>>>>
->>>>> hg clone http://linuxtv.org/hg/v4l-dvb
->>>>>
->>>>> But this returns
->>>>>
->>>>> abort: error: Name or service not known
->>>>>
->>>>> Perhaps there is a mistake in the instructions.
->>>>>     
->>>> copy and pasting that line here works fine:
->>>>
->>>> % hg clone http://linuxtv.org/hg/v4l-dvb
->>>> destination directory: v4l-dvb
->>>> requesting all changes
->>>> adding changesets
->>>> ...etc
->>>>
->>>>  
->>>>> It seems this checkout step is not really required, as you can 
->>>>> download
->>>>> the tarball from a link on the page at the URL.
->>>>>     
->>>> One advantage of using mercurial over the tarball is the ability to
->>>> run `hg pull` and `hg update` rather than re download the entire set.
->>>>
->>>>  
->>>>> I also find it confusing that you mention dvb-apps, but don't talk 
->>>>> about
->>>>> compiling it. Is it needed? Optional? An alternative?
->>>>>     
->>>> dvb-apps AFAIK are optional. I have not yet needed them in normal
->>>> operation of a tuner card.
->>>>
->>>>  
->>>>> Are there additional steps not presented here? I was unable to get my
->>>>> Hauppage HVR-950 to work on Ubuntu 8.04. Does this package support 
->>>>> that
->>>>> device?
->>>>>     
->>>> Do you have the firmware for the device as well as the driver?
->>>>
->>>> On the mythtv-users list there was a success story using one of these
->>>> tuners. It details how they got it working before going into issues
->>>> using two of them:
->>>> http://www.gossamer-threads.com/lists/mythtv/users/349205?search_string=HVR-950;#349205 
->>>>
->>>> He was using the mcentral repository, and Edgy but the steps are
->>>> otherwise the same.
->>>>
->>>> Hope this helps,
->>>> cheers,
->>>> Owen.
->>
->> Read this, it will probably help :)
->>
->> http://www.selenic.com/mercurial/hgrc.5.html
->>
->> - Steve
-> I already have the man page for hg and hgrc. But, admittedly, I had only 
-> looked the one for hg.
-
-No problem :)
-
-> 
-> Assuming the problem was proxy related, as with wget, I added a 
-> [http_proxy] section, with "no=linuxtv.org". That worked! Unfortunately, 
-> "no=*" does not work, so every Mercurial host I ever want to access will 
-> have to be added to the file.
-> 
-> I don't understand why I would use a proxy for downloads. If this is on 
-> one's own machine, what security is gained?
-
-No idea, I don't use proxies to be honest. I did google quickly and 
-found that I thought you needed.
-
-> 
-> Overall, the Mercurial issues are just an unnecessary complication, and 
-> my real problem with v4l-dvb for the HVR-950 is probably something to do 
-> with loading firmware or kernel modules. Linux has come a long way in 
-> the five years or so that I have been using it. But, some things, like 
-> using an off-the-shelf USB device, can still prove impossibly complex 
-> for those of us who are not hard-core computer geeks.
-
-It is getting better but some drivers / products are still confusing for 
-end users. Sorry this didn't work out well for you.
-
-> 
-> Thanks for your help.
-> 
-
-Your welcome.
-
-- Steve
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Q2xlbWVucyBTdXRvciBzY2hyaWViOgo+IEZyZWRyaWsgSm9uc29uIHNjaHJpZWI6Cj4gICAKPj4g
+SGVsbG8KPj4KPj4gSSBoYXZlIHRoZSBzYW1lIHByb2JsZW0gYnV0IHdpdGggVlAtMTAzNCBzZSBt
+eSBwb3N0IFtsaW51eC1kdmJdIAo+PiBWUC0xMDM0IGFuZCBDSSAKPj4gPGh0dHA6Ly93d3cubGlu
+dXh0di5vcmcvcGlwZXJtYWlsL2xpbnV4LWR2Yi8yMDA4LVNlcHRlbWJlci8wMjg4NjAuaHRtbD4K
+Pj4KPj4gL2Zqb25zb24KPj4g/iA8aHR0cDovL3d3dy5saW51eHR2Lm9yZy9waXBlcm1haWwvbGlu
+dXgtZHZiLzIwMDgtU2VwdGVtYmVyLzAyODg2MC5odG1sPgo+Pgo+PiAgICAgCj4+PiBGcm9tOiBz
+dGVmYW5fZWxsQGhvdG1haWwuY29tCj4+PiBUbzogbGludXgtZHZiQGxpbnV4dHYub3JnCj4+PiBE
+YXRlOiBGcmksIDE5IFNlcCAyMDA4IDEyOjQxOjMyICswMjAwCj4+PiBTdWJqZWN0OiBbbGludXgt
+ZHZiXSBWUCAxMDQxIENBTTogZHZiX2NhIGFkYXB0ZXIgMDogSW52YWxpZCBQQyBjYXJkIAo+Pj4g
+ICAgICAgCj4+IGluc2VydGVk/go+PiAgICAgCj4+PiBIaSBsaXN0Cj4+Pgo+Pj4gSWYgSSBhdHRh
+Y2ggdGhlIENvbW1vbiBJbnRlcmZhY2UgdG8gdGhlIGNhcmQgKFR3aW5oYW4gVlAgMTA0MSkgYW5k
+IAo+Pj4gICAgICAgCj4+IHJlbG9hZCB0aGUgbWFudGlzIG1vZHVsZXMgZG1lc2cgb3V0cHV0IGlz
+IHRoZSBmb2xsb3dpbmc6Cj4+ICAgICAKPj4+IFsgNjk3OS45Njk1MjZdIEFDUEk6IFBDSSBJbnRl
+cnJ1cHQgMDAwMDowMTowNi4wW0FdIC0+IExpbmsgW0FQQzJdIC0+IAo+Pj4gICAgICAgCj4+IEdT
+SSAxNyAobGV2ZWwsIGxvdykgLT4gSVJRIDIxCj4+ICAgICAKPj4+IFsgNjk3OS45Njk1NjJdIGly
+cTogMjEsIGxhdGVuY3k6IDMyCj4+PiBbIDY5NzkuOTY5NTY2XSBtZW1vcnk6IDB4ZDUxMDAwMDAs
+IG1taW86IDB4ZjhjMWMwMDAKPj4+IFsgNjk3OS45Njk1NzNdIGZvdW5kIGEgVlAtMTA0MSBQQ0kg
+RFNTL0RWQi1TL0RWQi1TMiBkZXZpY2Ugb24gKDAxOjA2LjApLAo+Pj4gWyA2OTc5Ljk2OTU3Nl0g
+TWFudGlzIFJldiAxIFsxODIyOjAwMzFdLCBpcnE6IDIxLCBsYXRlbmN5OiAzMgo+Pj4gWyA2OTc5
+Ljk2OTU3OV0gbWVtb3J5OiAweGQ1MTAwMDAwLCBtbWlvOiAweGY4YzFjMDAwCj4+PiBbIDY5Nzku
+OTcyMjc2XSBNQUMgQWRkcmVzcz1bMDA6MDg6Y2E6MWM6M2Y6NGNdCj4+PiBbIDY5NzkuOTcyMzEy
+XSBtYW50aXNfYWxsb2NfYnVmZmVycyAoMCk6IERNQT0weDJlZjEwMDAwIAo+Pj4gICAgICAgCj4+
+IGNwdT0weGVlZjEwMDAwIHNpemU9NjU1MzYKPj4gICAgIAo+Pj4gWyA2OTc5Ljk3MjMxOV0gbWFu
+dGlzX2FsbG9jX2J1ZmZlcnMgKDApOiBSSVNDPTB4MTNkZGMwMDAgCj4+PiAgICAgICAKPj4gY3B1
+PTB4ZDNkZGMwMDAgc2l6ZT0xMDAwCj4+ICAgICAKPj4+IFsgNjk3OS45NzIzMjNdIERWQjogcmVn
+aXN0ZXJpbmcgbmV3IGFkYXB0ZXIgKE1hbnRpcyBkdmIgYWRhcHRlcikKPj4+IFsgNjk4MC41MjAz
+NDRdIHN0YjA4OTlfYXR0YWNoOiBBdHRhY2hpbmcgU1RCMDg5OQo+Pj4gWyA2OTgwLjUyMDM1M10g
+bWFudGlzX2Zyb250ZW5kX2luaXQgKDApOiBmb3VuZCBTVEIwODk5IERWQi1TL0RWQi1TMiAKPj4+
+ICAgICAgIAo+PiBmcm9udGVuZCBAMHg2OAo+PiAgICAgCj4+PiBbIDY5ODAuNTIwMzYyXSBzdGI2
+MTAwX2F0dGFjaDogQXR0YWNoaW5nIFNUQjYxMDAKPj4+IFsgNjk4MC41MjA3MTVdIERWQjogcmVn
+aXN0ZXJpbmcgZnJvbnRlbmQgMCAoU1RCMDg5OSBNdWx0aXN0YW5kYXJkKS4uLgo+Pj4gWyA2OTgw
+LjUyMDc3OF0gbWFudGlzX2NhX2luaXQgKDApOiBSZWdpc3RlcmluZyBFTjUwMjIxIGRldmljZQo+
+Pj4gWyA2OTgwLjUyMjgxMV0gbWFudGlzX2NhX2luaXQgKDApOiBSZWdpc3RlcmVkIEVONTAyMjEg
+ZGV2aWNlCj4+PiBbIDY5ODAuNTIyODI1XSBtYW50aXNfaGlmX2luaXQgKDApOiBBZGFwdGVyKDAp
+IEluaXRpYWxpemluZyBNYW50aXMgCj4+PiAgICAgICAKPj4gSG9zdCBJbnRlcmZhY2UKPj4gICAg
+IAo+Pj4gWyA2OTgxLjUyODgyOF0gZHZiX2NhIGFkYXB0ZXIgMDogSW52YWxpZCBQQyBjYXJkIGlu
+c2VydGVkIDooCj4+Pgo+Pj4gU2luY2UgaXQgaXMgdGhlIG9mZmljaWFsIFZpYWNjZXNzICJyZWQg
+Y2FtIiAoUmV2IDEuMCkgSSBkb24ndCAKPj4+ICAgICAgIAo+PiB1bmRlcnN0YW5kIHRoZSBwcm9i
+bGVtIC0gdGhpcyBvbmUgd29ya2VkIGp1c3QgZmluZSBpbiBhbnkgU1RCIEkgZXZlciAKPj4gdXNl
+ZCAtIEkga25vdyBJIG1pZ2h0IGhhdmUgdG8gdXBkYXRlIHRoZSBDQU1zIGZpcm13YXJlIGlmIEkg
+d2FudCB0byAKPj4gd2F0Y2ggSEQgY29udGVudCwgYnV0IG5ldmVydGhlbGVzczogc2hvdWxkbid0
+IHRoaXMgd29yayBmb3IgYW55IG5vbiBIRCAKPj4gY29udGVudCBhcyBpdCBkb2VzIG9uIG15IFNU
+Qj8KPj4gICAgIAo+Pj4gQW55b25lIGhhcyBpc3N1ZXMgd2l0aCB0aGUgc2FtZSBDQU0gUmV2aXNp
+b24gYW5kIG1hbnRpcyBjYXJkcz8KPj4+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4+PiAgICAgICAKPgo+IEhlbGxvLAo+
+Cj4gYXMgZmFyIGFzIEkga25vdywgdGhlIHdob2xlIG1hbnRpcyBkcml2ZXIgdHJlZSBoYXMgbm8g
+d29ya2luZyBDSS9DQU0gCj4gc3VwcG9ydCB5ZXQuIEZvciBzdXJlIEkga25vdyB0aGlzIGZvciB0
+aGUgbWFudGlzIDIwMzMgYW5kIDIwNDAgYmFzZWQgCj4gY2FyZHMgYW5kIGluIGluIHRoZSBzb3Vy
+Y2UgY29kZSB0aGUgQ0kvQ0FNIHN1cHBvcnQgaXMgaW1wbGVtZW50ZWQgdGhlIAo+IHNhbWUgd2F5
+IGZvciBhbGwgbWFudGlzIGJhc2VkIGNhcmRzLgo+Cj4gVGhlIGRlc2NyaXBlZCBwcm9ibGVtIGlz
+IGtub3duLCBidXQgbm93IHNvbHZlZC4gQSBsb3Qgb2YgdGhlIENJIHN1cHBvcnQgCj4gaXMgd29y
+a2luZyBhbGxyZWFkeSwgYnV0IHRoZSBkcml2ZXIgaXMgc3RpbGwgbm90IGZpbmlzaGVkIGFuZCBz
+dGFibGUuIAo+IFRoZSBtYW50YWluZXIgb2YgdGhlIG1hbnRpcyB0cmVlIHRvbGQgaW4gdGhlIG1h
+aWxpbmcgbGlzdCBoZXJlLCB0aGF0IHRoZSAKPiBwcm9ibGVtIGlzIG5vdCBlYXN5IHRvIGZpbmQg
+YW5kIGhlIGNvbnRhY3RlZCB0aGUgdmVuZG9yIHRvIGdldCBzb21lIG1vcmUgCj4gdGVjaG5pY2Fs
+IGRldGFpbHMuIFNvIHdlIGhhdmUgdG8gYmUgcGF0aWVudCB1bnRpbCB0aGVyZSBpcyBhIHdvcmtp
+bmcgCj4gc29sdXRpb24uCj4KPiBCeWUKPiBDbGVtZW5zCj4gICAKU29ycnksIHR5cG8sIG5vdCAi
+bm93IHNvbHZlZCIgIk5PVCBzb2x2ZWQiIDopCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51
+eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9s
+aW51eC1kdmI=
