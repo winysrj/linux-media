@@ -1,12 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Darron Broad <darron@kewl.org>
-To: "Hans Werner" <HWerner4@gmx.de>
-In-reply-to: <20080908000941.310670@gmx.net> 
-References: <20080907230956.310620@gmx.net> <20080908000941.310670@gmx.net>
-Date: Mon, 08 Sep 2008 15:51:10 +0100
-Message-ID: <27703.1220885470@kewl.org>
+Received: from znsun1.ifh.de ([141.34.1.16])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <patrick.boettcher@desy.de>) id 1KgZah-0007vU-Pw
+	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 08:35:45 +0200
+Date: Fri, 19 Sep 2008 08:35:01 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Thierry Merle <thierry.merle@free.fr>
+In-Reply-To: <ce9f20ac2ae714295e7aeef3f4f7730e.squirrel@78.226.152.136:8080>
+Message-ID: <alpine.LRH.1.10.0809190830370.8673@pub1.ifh.de>
+References: <ce9f20ac2ae714295e7aeef3f4f7730e.squirrel@78.226.152.136:8080>
+MIME-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR4000 scratchpad patch
+Subject: Re: [linux-dvb] [RFC] cinergyT2 rework final review
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -14,56 +19,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <20080908000941.310670@gmx.net>, "Hans Werner" wrote:
+Hi Thierry,
+
+On Fri, 19 Sep 2008, Thierry Merle wrote:
+
+> Hello all,
+> About the rework from Tomi Orava I stored here:
+> http://linuxtv.org/hg/~tmerle/cinergyT2
 >
->-------- Original-Nachricht --------
->> Datum: Mon, 08 Sep 2008 01:09:56 +0200
->> Von: "Hans Werner" <HWerner4@gmx.de>
->> An: linux-dvb@linuxtv.org, darron@kewl.org, stoth@linuxtv.org
->> Betreff: [linux-dvb] HVR4000 scratchpad patch
+> since there seems to be no bug declared with this driver by testers (I
+> tested this driver on AMD/Intel/ARM platforms for months), it is time for
+> action.
+> If I receive no problem report before 19th of October (in one month), I
+> will push this driver into mainline.
+
+Are you really sure you want to wait until October 19 with that? You heard 
+Jonathan this morning, he is expecting a new release every day now, so the 
+merge window will start quite soon. Maybe it would be better to shorten 
+your deadline in favour of having the driver in-tree for 2.6.28. When it 
+is inside it is still possible for at least 1.5 months to fix occuring 
+problems.
+
+> This modification uses the dvb-usb framework, this is
 >
->> Does anyone know about the status of the HVR 4000 patch at
->> http://dev.kewl.org/hauppauge/scratchpad-8628.diff ?
->> According to the note from 18th Aug it's a test version for 2.6.26.
->> But it is 5x larger than previous patches so it looks like it was
->> diffed against the wrong revision. Has anyone rebased it?
->> 
->> Thanks,
->> Hans
->
->For example it's smaller when diffed against rev 227984e4b603 or rev fc018c7e7fe3,
->but still 2x as large as the earlier patches. Does anyone know the exact base?
+> To give you an idea of the code benefit, here is a diffstat of the
+> cinergyT2 rework patch:
+> linux/drivers/media/dvb/cinergyT2/Kconfig        |   85 -
+> linux/drivers/media/dvb/cinergyT2/Makefile       |    3
+> linux/drivers/media/dvb/cinergyT2/cinergyT2.c    | 1150
+> ---------------------
+> linux/drivers/media/dvb/dvb-usb/cinergyT2-core.c |  230 ++++
+> linux/drivers/media/dvb/dvb-usb/cinergyT2-fe.c   |  351 ++++++
+> linux/drivers/media/dvb/dvb-usb/cinergyT2.h      |   95 +
+> linux/drivers/media/dvb/Kconfig                    |    1
+> linux/drivers/media/dvb/dvb-usb/Kconfig            |    8
+> linux/drivers/media/dvb/dvb-usb/Makefile           |    4
+> 9 files changed, 688 insertions(+), 1239 deletions(-)
 
-Hi
+Impressive. It means there are currently around 600 lines boilerplate code 
+in the cinergyT2-driver (I like this word ;) )
 
-Does it work as expected or do you have a problem?
-
-The revision is 8628. The reason that you find this patch larger than
-expected is because when I was supplied with some fixes from a fellow user
-Carlo Scarfoglio the updates were against an older tree and when
-added to a more recent tree it meant that a whole bunch of stuff which
-had been added since his patch had to be reverted.
-
-It's a bit messy but it ought to work and has been tested to work.
-
-If you wish to provide a cleaner more up to date multi-frontend diff
-then please go ahead, you are welcome.
-
-cya
+Patrick.
 
 --
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
-
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
 _______________________________________________
 linux-dvb mailing list
