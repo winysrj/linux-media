@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Tue, 2 Sep 2008 00:31:03 +1000 (EST)
-From: Finn Thain <fthain@telegraphics.com.au>
-To: v4l-dvb-maintainer@linuxtv.org
-In-Reply-To: <alpine.LRH.1.10.0808291356540.17297@pub3.ifh.de>
-Message-ID: <Pine.LNX.4.64.0809020025050.2229@loopy.telegraphics.com.au>
-References: <Pine.LNX.4.64.0808291627340.21301@loopy.telegraphics.com.au>
-	<alpine.LRH.1.10.0808291157060.17297@pub3.ifh.de>
-	<Pine.LNX.4.64.0808292129330.21301@loopy.telegraphics.com.au>
-	<alpine.LRH.1.10.0808291356540.17297@pub3.ifh.de>
+Received: from n70.bullet.mail.sp1.yahoo.com ([98.136.44.38])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1Kgg5a-0001ay-2m
+	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 15:32:03 +0200
+Date: Fri, 19 Sep 2008 06:31:20 -0700 (PDT)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org, kless <wunderkless@gmail.com>
+In-Reply-To: <48D2290D.7000808@gmail.com>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: [linux-dvb] [PATCH] Add support for the Gigabyte R8000-HT USB DVB-T
- adapter, take 2
+Message-ID: <227031.8033.qm@web46115.mail.sp1.yahoo.com>
+Subject: Re: [linux-dvb] dvb-t receiver sturm ns-06
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,55 +24,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--- On Thu, 9/18/08, kless <wunderkless@gmail.com> wrote:
 
-Add support for the Gigabyte R8000-HT USB DVB-T adapter.
+> I would like to use my dvb-t usb on linux, is a dvb-t
+> receiver sturm ns-06 .
+> I can find nothing about it, no producer website nothing. I
 
-Thanks to Ilia Penev for the tip-off that this device is much the same as 
-(identical to?) a Terratec Cinergy HT USB XE, and for the firmware hints: 
-http://linuxtv.org/pipermail/linux-dvb/2008-August/028108.html
+For starters, what do you see when you plug it in?
 
-DVB functionality tested OK with xine using the usual dib0700 firmware.
-
-This diff is based on the latest latest linuxtv.org v4l-dvb mercurial 
-repo.
+Also, vendor and product ID will be helpful (if not shown
+as above, then `lsusb' will show this...
 
 
-Signed-off-by: Finn Thain <fthain@telegraphics.com.au>
+barry bouwsma
 
---- linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2008-09-01 22:33:12.000000000 +1000
-+++ linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2008-09-01 22:37:32.000000000 +1000
-@@ -1119,6 +1119,7 @@
- 	{ USB_DEVICE(USB_VID_LEADTEK,   USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
- /* 35 */{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_TD_STICK_52009) },
- 	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_500_3) },
-+	{ USB_DEVICE(USB_VID_GIGABYTE,  USB_PID_GIGABYTE_U8000) },
- 	{ 0 }		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -1408,8 +1409,12 @@
- 			},
- 		},
- 
--		.num_device_descs = 3,
-+		.num_device_descs = 4,
- 		.devices = {
-+			{   "Gigabyte U8000-RH",
-+				{ &dib0700_usb_id_table[37], NULL },
-+				{ NULL },
-+			},
- 			{   "Terratec Cinergy HT USB XE",
- 				{ &dib0700_usb_id_table[27], NULL },
- 				{ NULL },
---- linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2008-09-01 22:33:12.000000000 +1000
-+++ linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2008-09-01 22:37:32.000000000 +1000
-@@ -205,6 +205,7 @@
- #define USB_PID_LIFEVIEW_TV_WALKER_TWIN_COLD		0x0514
- #define USB_PID_LIFEVIEW_TV_WALKER_TWIN_WARM		0x0513
- #define USB_PID_GIGABYTE_U7000				0x7001
-+#define USB_PID_GIGABYTE_U8000				0x7002
- #define USB_PID_ASUS_U3000				0x171f
- #define USB_PID_ASUS_U3100				0x173f
- #define USB_PID_YUAN_EC372S				0x1edc
+
+      
+
 
 _______________________________________________
 linux-dvb mailing list
