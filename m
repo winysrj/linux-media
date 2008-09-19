@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 202.7.249.79.dynamic.rev.aanet.com.au ([202.7.249.79]
-	helo=home.singlespoon.org.au)
+Received: from bay0-omc2-s9.bay0.hotmail.com ([65.54.246.145])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <paulc@singlespoon.org.au>) id 1Khsc3-0005DC-Rp
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 23:06:33 +0200
-Message-ID: <48D8083D.1070703@singlespoon.org.au>
-Date: Tue, 23 Sep 2008 07:03:57 +1000
-From: Paul Chubb <paulc@singlespoon.org.au>
+	(envelope-from <stefan_ell@hotmail.com>) id 1KgdR9-0000MX-Oy
+	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 12:42:10 +0200
+Message-ID: <BAY108-W49816DC274A6E8D70E62DFE4E0@phx.gbl>
+From: Stefan Ellenberger <stefan_ell@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Fri, 19 Sep 2008 12:41:32 +0200
 MIME-Version: 1.0
-To: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>,
-	linux dvb <linux-dvb@linuxtv.org>, larrykathy3@verizon.net
-References: <200809212251.45982.vanessaezekowitz@gmail.com>
-In-Reply-To: <200809212251.45982.vanessaezekowitz@gmail.com>
-Subject: Re: [linux-dvb] Fwd: ubuntu installed geniatech x8000
+Subject: [linux-dvb] =?windows-1256?q?_VP_1041_CAM=3A_dvb=5Fca_adapter_0?=
+ =?windows-1256?q?=3A_Invalid_PC_card_inserted=FE?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,61 +17,44 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGksCiAgICAgIEkgKnRoaW5rKiB0aGUgcHJvYmxlbSBpcyB0aGF0IGl0IGlzIG5vdCBmaW5kaW5n
-IHRoZSAuY29uZmlnIGZpbGUgCmZyb20gYnVpbGRpbmcgdGhlIGtlcm5lbCAtIDIuNi4yNC4xOS4g
-SWYgeW91IGxvb2sgaW4gdGhlIC9ib290IGRpcmVjdG9yeSAKdWJ1bnR1IGluc3RhbGxzIHRoZSAu
-Y29uZmlnIGZpbGUgd2hlbiBpdCBpbnN0YWxscyB0aGUga2VybmVsLiBIb3dldmVyIGl0IAp3aWxs
-IGJlIGNhbGxlZCBzb21ldGhpbmcgbGlrZSBjb25maWctMi42LjI0LTE5LXNlcnZlci4gQ29weSB0
-aGUgZmlsZSB0byAKL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAvYnVpbGQvLmNvbmZpZyBhbmQgdHJ5
-IGFnYWluLgoKSG9wZSB0aGlzIGhlbHBzCgpDaGVlcnMgUGF1bAoKClZhbmVzc2EgRXpla293aXR6
-IHdyb3RlOgo+IExhcnJ5OiAgRm9yIHRoZSBrZXJuZWwsIEknbSB1c2luZyAibGludXgtaW1hZ2Ut
-Mi42LjI0LTE5LWdlbmVyaWMiLCB3aXRoIHRoZSBoZWFkZXJzIHRoYXQgZ28gd2l0aCBpdCAKPiAo
-IiJsaW51eC1oZWFkZXJzLTIuNi4yNC0xOS1nZW5lcmljIikuICAgIEl0IHJlYWxseSAqcmVhbGx5
-KiBzb3VuZHMgbGlrZSB5b3UgYXJlIG1pc3NpbmcgdGhlIGNvcnJlY3QgaGVhZGVycyBwYWNrYWdl
-LCBwbHVzIAo+IHRoaXMgIi1zZXJ2ZXIiIHZhcmlhbnQgb2YgdGhlIGtlcm5lbCBpcyBuZXcgdG8g
-bWUuICBJJ20gZm9yd2FyZGluZyB5b3VyIGVtYWlsIHRvIHRoZSB2NGwtZHZiIG1haWxpbmcgbGlz
-dCB0byBnZXQgbW9yZSBleWVzIG9uIHRoZSAKPiBwcm9ibGVtLiAgSWYgeW91J3ZlIG5vdCBkb25l
-IHNvLCB5b3Ugc2hvdWxkIGpvaW4gdGhlIHY0bC1kdmIgbWFpbGluZyBsaXN0Ogo+Cj4gaHR0cDov
-L3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZiCj4KPiB2
-NGwtZHZiIGZvbGtzOiAgQ2FuIHNvbWVvbmUgaGVscCB0aGlzIGd1eSBvdXQ/ICBMaWtlIHRoZSBw
-cmV2aW91cyB0aHJlYWQgd2l0aCAiQ3VydCBCbGFuayIsIExhcnJ5IGhlcmUgaXMgdHJ5aW5nIHRv
-IGdldCBhIEt3b3JsZCAKPiBBVFNDIDEyMCB3b3JraW5nLCBidXQgSSBkb24ndCBrbm93IGhvdyB0
-byBzb2x2ZSB0aGUgcHJvYmxlbSBoZSdzIGhhdmluZy4gIEF0IGZpcnN0LCBMYXJyeSB3YXMgdXNp
-bmcgU1VTRSwgYnV0IGl0IGp1c3Qgd291bGRuJ3QgCj4gY29vcGVyYXRlIChoZSB3YXMgcmVjZWl2
-aW5nIHRoZSBzYW1lIGVycm9ycyB0aGVyZSBhcyB3ZWxsKS4gIEF0IGxlYXN0IEN1cnQgd2FzIGFi
-bGUgdG8gZ2V0IHRoZSBkcml2ZXIgdG8gYnVpbGQuICBPZmYgdGhlIHRvcCBvZiBteSAKPiBoZWFk
-LCBJIGRvbid0IGtub3cgd2hhdCB0aGUgZGlmZmVyZW5jZXMgYXJlIGJldHdlZW4gdGhlIGtlcm5l
-bCBJJ20gdXNpbmcgYW5kIHRoZSBvbmUgaGUncyB1c2luZywgc2VlaW5nIGFzIHRoZXkncmUgdGhl
-IHNhbWUgCj4gdmVyc2lvbiBudW1iZXIuICBJIGNvdWxkIHN3ZWFyIG9uIGEgc3RhY2sgb2YgcHJv
-Z3JhbW1lcidzIHJlZmVyZW5jZSBndWlkZXMgdGhhdCBJJ3ZlIHNlZW4gdGhlIHNhbWUgZXJyb3Ig
-bXlzZWxmIGF0IGxlYXN0IG9uY2UsIAo+IGJ1dCBJJ2xsIGJlIGRhbW5lZCBpZiBJIGNhbiByZW1l
-bWJlciBob3cgSSBzb2x2ZWQgaXQuCj4KPiAoSG93IGRpZCBJIGJlY29tZSB0aGUgcmVzaWRlbnQg
-ZXhwZXJ0IG9uIHRoaXMgY2FyZCBhbnl3YXk/IDotKSApCj4KPiAtLS0tLSBUZXh0IEltcG9ydCBC
-ZWdpbiAtLS0tLQo+Cj4gU3ViamVjdDogdWJ1bnR1IGluc3RhbGxlZCBnZW5pYXRlY2ggeDgwMDAK
-PiBEYXRlOiBTdW5kYXkgMjEgU2VwdGVtYmVyIDIwMDgKPiBGcm9tOiBSdXRoIEZlcm5hbmRleiA8
-bGFycnlrYXRoeTNAdmVyaXpvbi5uZXQ+Cj4gVG86IHZhbmVzc2FlemVrb3dpdHogPHZhbmVzc2Fl
-emVrb3dpdHpAZ21haWwuY29tPgo+Cj4gV2VsbCBJIGdhdmUgdXAgb24gU3VzZSwgSSBrbm93IGl0
-xZsgYW4gb2xkIHN0b3J5LCBsZWF2ZSB0aG9zZSBnaXJscyBhbG9uZS4gTm93IGl0wrRzIFVidW50
-dS4KPiBBbmQgbm93IG1ha2UgLWo0IGdldCBtZSwgScK0bSB1c2VpbmcgMi42LjI0LTE5LXNlcnZl
-ciBJIGJlbGlldmUgdGhhdCBrZXJuZWwgaXMgdGhlIHByb2JsZW0gCj4gSSBoYXZlIGtlcm5lbCAy
-LjYuMjYtMTktZ2VuZXJpYy4gV2hpY2gga2VybmVsIGFuZCBrZXJuZWwgaGVhZGVyIGRvIHlvdSB1
-c2U/ICBMYXJyeSAKPgo+IG1ha2UgLUMgL2hvbWUvbGFycnkvdjRsLWR2Yi92NGwgCj4gbWFrZVsx
-XTogRW50ZXJpbmcgZGlyZWN0b3J5IGAvaG9tZS9sYXJyeS92NGwtZHZiL3Y0bCcKPiBVcGRhdGlu
-Zy9DcmVhdGluZyAuY29uZmlnCj4gUHJlcGFyaW5nIHRvIGNvbXBpbGUgZm9yIGtlcm5lbCB2ZXJz
-aW9uIDIuNi4yNAo+IEZpbGUgbm90IGZvdW5kOiAvbGliL21vZHVsZXMvMi42LjI0LTE5LXNlcnZl
-ci9idWlsZC8uY29uZmlnIGF0IC4vc2NyaXB0cy9tYWtlX2tjb25maWcucGwgbGluZSAzMiwgPElO
-PiBsaW5lIDQuCj4gbWFrZVsxXTogKioqIE5vIHJ1bGUgdG8gbWFrZSB0YXJnZXQgYC5teWNvbmZp
-ZycsIG5lZWRlZCBieSBgY29uZmlnLWNvbXBhdC5oJy4gIFN0b3AuCj4gbWFrZVsxXTogTGVhdmlu
-ZyBkaXJlY3RvcnkgYC9ob21lL2xhcnJ5L3Y0bC1kdmIvdjRsJwo+IG1ha2U6ICoqKiBbYWxsXSBF
-cnJvciAyCj4KPiAtLS0tLSBUZXh0IEltcG9ydCBFbmQgLS0tLS0KPgo+ICAgCgoKLS0gClRoaXMg
-bWVzc2FnZSBoYXMgYmVlbiBzY2FubmVkIGZvciB2aXJ1c2VzIGFuZApkYW5nZXJvdXMgY29udGVu
-dCBieSBNYWlsU2Nhbm5lciwgYW5kIGlzCmJlbGlldmVkIHRvIGJlIGNsZWFuLgoKCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5n
-IGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJp
-bi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+
+Hi list
+
+If I attach the Common Interface to the card (Twinhan VP 1041) and reload the mantis modules dmesg output is the following:
+
+[ 6979.969526] ACPI: PCI Interrupt 0000:01:06.0[A] -> Link [APC2] -> GSI 17 (level, low) -> IRQ 21
+[ 6979.969562] irq: 21, latency: 32
+[ 6979.969566]  memory: 0xd5100000, mmio: 0xf8c1c000
+[ 6979.969573] found a VP-1041 PCI DSS/DVB-S/DVB-S2 device on (01:06.0),
+[ 6979.969576]     Mantis Rev 1 [1822:0031], irq: 21, latency: 32
+[ 6979.969579]     memory: 0xd5100000, mmio: 0xf8c1c000
+[ 6979.972276]     MAC Address=[00:08:ca:1c:3f:4c]
+[ 6979.972312] mantis_alloc_buffers (0): DMA=0x2ef10000 cpu=0xeef10000 size=65536
+[ 6979.972319] mantis_alloc_buffers (0): RISC=0x13ddc000 cpu=0xd3ddc000 size=1000
+[ 6979.972323] DVB: registering new adapter (Mantis dvb adapter)
+[ 6980.520344] stb0899_attach: Attaching STB0899
+[ 6980.520353] mantis_frontend_init (0): found STB0899 DVB-S/DVB-S2 frontend @0x68
+[ 6980.520362] stb6100_attach: Attaching STB6100
+[ 6980.520715] DVB: registering frontend 0 (STB0899 Multistandard)...
+[ 6980.520778] mantis_ca_init (0): Registering EN50221 device
+[ 6980.522811] mantis_ca_init (0): Registered EN50221 device
+[ 6980.522825] mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
+[ 6981.528828] dvb_ca adapter 0: Invalid PC card inserted :(
+
+Since it is the official Viaccess "red cam" (Rev 1.0) I don't understand the problem - this one worked just fine in any STB I ever used - I know I might have to update the CAMs firmware if I want to watch HD content, but nevertheless: shouldn't this work for any non HD content as it does on my STB?
+
+Anyone has issues with the same CAM Revision and mantis cards?
+_________________________________________________________________
+Die neue Generation der Windows Live Services - jetzt downloaden!
+http://get.live.com
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
