@@ -1,36 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8M5o43K005918
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 01:50:05 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8M5nqNF028849
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 01:49:53 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so1308241fga.7
-	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 22:49:52 -0700 (PDT)
-Message-ID: <48D731FC.8030103@gmail.com>
-Date: Mon, 22 Sep 2008 07:49:48 +0200
-From: "tomlohave@gmail.com" <tomlohave@gmail.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8JIuD7v016840
+	for <video4linux-list@redhat.com>; Fri, 19 Sep 2008 14:56:13 -0400
+Received: from pne-smtpout2-sn1.fre.skanova.net
+	(pne-smtpout2-sn1.fre.skanova.net [81.228.11.159])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8JIu8tX008532
+	for <video4linux-list@redhat.com>; Fri, 19 Sep 2008 14:56:09 -0400
+Message-ID: <48D3F5C6.3050806@gmail.com>
+Date: Fri, 19 Sep 2008 20:56:06 +0200
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <52E25CB7BF4E483089A488BD33B01059@DadyPC>	
-	<BLU121-DAV6F8BF57A7A953B8492CD6C2A60@phx.gbl>	
-	<7E99B38C8E0743AC9433ADCFAE34BC40@DadyPC>	
-	<BLU121-DAV23EF75E8170A0882139E5C2A60@phx.gbl>	
-	<5DFFD9161FC443AFB5D747B0EFA48C1A@DadyPC>	
-	<BLU121-DAV10925F9CFA27DB5428BD48C2A10@phx.gbl>	
-	<AE5A9016310A49F9902FCA896F18CED1@DadyPC>	
-	<BLU116-W707A6B2D87B90CC2FB50AC24E0@phx.gbl>
-	<48D4FA9E.6000802@gmail.com>	
-	<1221930905.2694.23.camel@pc10.localdom.local>	
-	<BLU116-W32B0C75C2CC416FD664FBFC2480@phx.gbl>
-	<1222039247.2671.14.camel@pc10.localdom.local>
-In-Reply-To: <1222039247.2671.14.camel@pc10.localdom.local>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+References: <62e5edd40809180002t248de932g3c3515bf5081993c@mail.gmail.com>
+	<48D3306B.4060001@hhs.nl>
+In-Reply-To: <48D3306B.4060001@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
-Cc: dabby bentam <db260179@hotmail.com>, linux-dvb@linuxtv.org,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: [linux-dvb] FIXME: audio doesn't work on svideo/composite
- -	hvr-1110 S-Video and Composite
+Cc: m560x-driver-devel <m560x-driver-devel@lists.sourceforge.net>,
+	video4linux-list@redhat.com
+Subject: Re: [PATCH][RFC] Add support for the ALi m5602 usb bridge webcam
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -42,157 +30,94 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hermann pitton a écrit :
-> Hi,
->
-> Am Sonntag, den 21.09.2008, 19:12 +0000 schrieb dabby bentam: 
->   
->> Thanks for your assistant.
->>
->> Yes, that makes sense, as the TV sound can be turned on.
->>
->> I'll try your suggestions, changing the code to LINE1.
->>
->> Has anyone tried this - Mostly it is high (0x0200000) for the radio switch, only sometimes the
->>  other way round. Then you must set .gpio = 0x0200000 for the TV input
->>  with the same gpio_mask. < did you try this tom?
->>
->> Thanks to all, i will play around with this, hopefully get a result. Is there anyway to find the exact gpio mask?
->>
->> David
->>     
->
-> please don't top post. I continue below.
->
->   
->> ----------------------------------------
->>     
->>> Subject: Re: [linux-dvb] FIXME: audio doesn't work on svideo/composite -	hvr-1110 S-Video and Composite
->>> From: hermann-pitton@arcor.de
->>> To: tomlohave@gmail.com
->>> CC: db260179@hotmail.com; linux-dvb@linuxtv.org; video4linux-list@redhat.com
->>> Date: Sat, 20 Sep 2008 19:15:05 +0200
->>>
->>> Hello,
->>>
->>> Am Samstag, den 20.09.2008, 15:29 +0200 schrieb tomlohave@gmail.com:
->>>       
->>>> dabby bentam a écrit :
->>>>         
->>>>> Hi Tom,
->>>>>
->>>>> Sorry to bother you like this in this way. I'm emailing because i have 
->>>>> a Wintv hvr-1110 card. In the kernel sources it has
->>>>>
->>>>> FIXME: audio doesn't work on svideo/composite
->>>>>
->>>>> Do you know what is required to get this to work?
->>>>>
->>>>> Can i help in getting this to work?
->>>>>
->>>>> Thanks for your time
->>>>>
->>>>> David Bentham
->>>>>
->>>>>           
->>>> Hi,
->>>>
->>>> first, sorry for my poor english
->>>>
->>>> No sorry not sure what to do, i've try many configurations and 
->>>> modifications in order to have svideo/composite audio but no result
->>>>
->>>> you can try different parameter (see in sources, take example on other 
->>>> cards)
->>>> or ask on linuxtv mailing list
->>>> I forward your precedant mail to this list
->>>>
->>>> Cheers
->>>>
->>>> Thomas
->>>>
->>>>         
->>> there are different models of the HVR-1110 we can see on
->>> hauppauge_eeprom down in saa7134-cards.c.
->>>
->>> Some don't even have analog audio in.
->>>
->>> In case it is there, if the current LINE2 stereo input pair doesn't
->>> work, then it is LINE1.
->>>
->>> If that still does not work, you can expect an external gpio driven mux
->>> chip on the board. On cards with analog audio out it can be fairly easy
->>> tested by unloading the driver. Default is then to loop the sound
->>> through to the analog output of the card to the soundcard, but with the
->>> driver unloaded you can't test, since you need saa7134-alsa for it
->>> without having analog audio out connected on the card.
->>>
->>> In that case regspy.exe from DScaler (deinterlace.sf.net) might help.
->>>
->>> A work around could be to plug the external analog sound directly into
->>> the sound card/chip and record from there.
->>>
->>> Was the radio ever tested? Since the tda8275ac1 has only one RF signal
->>> input pin and the card has two antenna connectors, we usually see that
->>> these inputs are switched on gpio21 including the AutoGainControl and
->>> using the 5.5MHz ceramic filter for radio input.
->>>
->>> See the other cards with TUNER_PHILIPS_TDA8290.
->>>
->>> Mostly it is high (0x0200000) for the radio switch, only sometimes the
->>> other way round. Then you must set .gpio = 0x0200000 for the TV input
->>> with the same gpio_mask.
->>>
->>>       
->
-> For the TV versus radio switch the gpio mask is just 0x0200000.
->
-> With this mask only gpio pin 21 will change.
->
-> By default the driver will set it to 0, only for that input gpio =
-> 0x0200000 is set in the card's config, it will change it to 1.
-> (masked writes, "modinfo saa7134" gpio_tracking=1)
->
-> If changing the amux to LINE1 doesn't help for s-video and composite,
-> testing with saa7134-alsa there and say sox, then regspy might help.
->
-> If you use the supplied m$ app, not DScaler, and save the logs for the
-> card in status unused, TV, composite/s-video and radio, we will see the
-> gpio mask in use there and likely changing gpio pins.
->
-> They often have more pins in the mask and also more that change,
-> but usually one of them will be what we need to add to the mask.
->
-> It looks like manufacturers group their devices together with a gpio
-> mask covering so far all of them, then subsets of devices do appear,
-> which still do more changes on the pins, then for a specific single
-> device would be needed.
->
-> With a high granularity for each device, based on a doubtless and
-> consistent eeprom detection, the gpio settings likely could be single
-> device specific too, if wanted.
->
-> But since we might see unrelated gpio changes there too, dunno, first of
-> all make sure that amux LINE1 does not resolve the problem.
->
-> Cheers,
-> Hermann
->
->
->
->
->
->   
-I remember that regspy shows nothing when i attempted to switch to 
-svideo/composite.
-i haven't got a pc with windows (only linux + freevo on it) so i can't 
-do anything else for now.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Line1 doesn't work for me so it's why there is a FIXME in sources ....
 
-Cheers,
 
-Thomas.
+Hans de Goede wrote:
+| Erik Andr�n wrote:
+|> Hi,
+|> I'm proud to announce the following patch adding support for the ALi
+|> m5602
+|> usb bridge connected to several different sensors.
+|> This driver has been brewing for a long time in the m560x.sf.net
+|> project and
+|> exists due to the hard work of many persons.
+|>
+|> libv4l is needed in order to gain support for multiple pixelformats.
+|>
+|> The patch should apply against the latest v4l-dvb hg tree.
+|>
+|> Thanks for any feedback,
+|> Erik
+|>
+|
+| Hi Erik,
+|
+| Thanks for doing this, unfortunately the driver which you used as a
+| template to start from has various issues (not allowing multiple opens
+| for one, interpreting the v4l2 API in interesting ways in other places).
+|
+| Besides that there is lot of code duplication between isoc mode usb
+| webcams.
+|
+| I would kindly like to ask you to consider porting the m5602 driver to
+| the gspca framework, which provides a generic framework for isoc webcams
+| and takes a lot of stuff out of the driver and into a more generic
+| framework (like try_fmt mode negatiation, isoc mode setup and handling,
+| frame buffer management, etc.).
+|
+| gspca is in the current 2.6.27 kernels, if you look under
+| drivers/media/video/gspca you will see drivers for a lot of different
+| webcams there, you could for example take the pac207 driver as an
+| example, strip it empty and then copy and paste the relevant part of
+| your driver to there.
+|
+| I will help you in anyway I can.
+|
+| Does this sound like a plan?
+
+Hi Hans and thanks for the feedback.
+
+Frankly, I'd rather not refactor the driver for two reasons:
+
+1) I personally think the gspca code is ugly and hard to understand. The
+usb bridge code and sensor code is cludged together. There is a lack of
+structure when one source file may be up to +7k lines of code (think
+zc3xx.c).
+I'm never going to accept to see the m5602 driver be concatenated into
+one big chunk like that.
+The m5602 driver currently has a nice layout with clear defined layers
+and filenames which allow fast integration of new sensors and modularity
+and I intend to keep it so.
+If it's supposed to be a generic framework, why does it still keep the
+name it used when it was a special purpose driver?
+Why not rename it to "webcam-framework" or something more sane?
+
+2) The submitted m5602 driver is stable. Sure, it needs some spit and
+polish and you never know when a notebook with a new, unsupported sensor
+pops out, but it basically works with the libv4l. I haven't investigated
+~  the multiple open issue but I'm sure it could be resolved.
+
+I say, merge this driver. Then let anyone wanting to do the conversion
+work to adapt it for the gspca later on.
+
+Best regards,
+Erik
+
+|
+| Regards,
+|
+| Hans
+|
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFI0/XGN7qBt+4UG0ERAsdIAKCtVNauq75DD/pM2xEA15Da1qi/fgCcD9Iv
+ovWL/NB0ILftYiCAnFWRRqA=
+=dS43
+-----END PGP SIGNATURE-----
 
 --
 video4linux-list mailing list
