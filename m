@@ -1,23 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m891vHYK008145
-	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 21:57:17 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m891uKo4016021
-	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 21:56:20 -0400
-Received: by ug-out-1314.google.com with SMTP id o38so27405ugd.13
-	for <video4linux-list@redhat.com>; Mon, 08 Sep 2008 18:56:19 -0700 (PDT)
-Message-ID: <5387cd30809081856p38ce3d9bie1f0adce06e4b842@mail.gmail.com>
-Date: Tue, 9 Sep 2008 02:56:19 +0100
-From: "Nick Morrott" <knowledgejunkie@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <de8cad4d0809081443o39bf9a17vc804e86981f2170e@mail.gmail.com>
+Received: from ns3.rdu.redhat.com (ns3.rdu.redhat.com [10.11.255.199])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8JDt2E9019627
+	for <video4linux-list@redhat.com>; Fri, 19 Sep 2008 09:55:02 -0400
+Message-ID: <48D3306B.4060001@hhs.nl>
+Date: Fri, 19 Sep 2008 06:54:03 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <de8cad4d0809081443o39bf9a17vc804e86981f2170e@mail.gmail.com>
-Subject: Re: Recommended 2 input hardware encoder
+To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+References: <62e5edd40809180002t248de932g3c3515bf5081993c@mail.gmail.com>
+In-Reply-To: <62e5edd40809180002t248de932g3c3515bf5081993c@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: m560x-driver-devel <m560x-driver-devel@lists.sourceforge.net>,
+	video4linux-list@redhat.com
+Subject: Re: [PATCH][RFC] Add support for the ALi m5602 usb bridge webcam
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,29 +25,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 08/09/2008, Brandon Jenkins <bcjenkins@tvwhere.com> wrote:
-> Hi all,
+Erik Andrén wrote:
+> Hi,
+> I'm proud to announce the following patch adding support for the ALi m5602
+> usb bridge connected to several different sensors.
+> This driver has been brewing for a long time in the m560x.sf.net project and
+> exists due to the hard work of many persons.
+> 
+> libv4l is needed in order to gain support for multiple pixelformats.
+> 
+> The patch should apply against the latest v4l-dvb hg tree.
+> 
+> Thanks for any feedback,
+> Erik
 >
->  I am looking for a Linux compatible board which has 2 analog
->  svideo/composite inputs (NTSC) on a single bracket. Anyone know of
->  such a thing? A tuner is not required, but a hardware encoder for
->  mpeg-2 is.
 
-The Hauppauge PVR-500 has two hardware MPEG-2 encoders onboard, and
-two cable tuner inputs on the mounting bracket. However, as the card
-itself only has one set of baseband inputs, you'll need the additional
-bracket (see http://registration.hauppauge.com/webstore/accessories2.asp?product=av_cable)
-for allow two sets of composite/S-Video connections to be used at the
-same time.
--- 
-Nick Morrott
+Hi Erik,
 
-MythTV Official wiki:
-http://mythtv.org/wiki/
-MythTV users list archive:
-http://www.gossamer-threads.com/lists/mythtv/users
+Thanks for doing this, unfortunately the driver which you used as a 
+template to start from has various issues (not allowing multiple opens 
+for one, interpreting the v4l2 API in interesting ways in other places).
 
-"An investment in knowledge always pays the best interest." - Benjamin Franklin
+Besides that there is lot of code duplication between isoc mode usb webcams.
+
+I would kindly like to ask you to consider porting the m5602 driver to 
+the gspca framework, which provides a generic framework for isoc webcams 
+and takes a lot of stuff out of the driver and into a more generic 
+framework (like try_fmt mode negatiation, isoc mode setup and handling, 
+frame buffer management, etc.).
+
+gspca is in the current 2.6.27 kernels, if you look under
+drivers/media/video/gspca you will see drivers for a lot of different 
+webcams there, you could for example take the pac207 driver as an 
+example, strip it empty and then copy and paste the relevant part of 
+your driver to there.
+
+I will help you in anyway I can.
+
+Does this sound like a plan?
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
