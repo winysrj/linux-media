@@ -1,30 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.185])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <user.vdr@gmail.com>) id 1Kj2MH-00065L-5P
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 03:43:04 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so311732nfb.11
-	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 18:42:57 -0700 (PDT)
-Message-ID: <a3ef07920809251842w23e68fe2ke79cf09b5f97e272@mail.gmail.com>
-Date: Thu, 25 Sep 2008 18:42:57 -0700
-From: "VDR User" <user.vdr@gmail.com>
-To: "hermann pitton" <hermann-pitton@arcor.de>
-In-Reply-To: <1222391910.4589.45.camel@pc10.localdom.local>
+Message-ID: <dec60b9dbdf2adac0b57a3bf0601ef3b.squirrel@78.226.152.136:8080>
+In-Reply-To: <48D34D66.7000200@linuxtv.org>
+References: <alpine.LRH.1.10.0809190830370.8673@pub1.ifh.de>
+	<48D34D66.7000200@linuxtv.org>
+Date: Fri, 19 Sep 2008 14:34:50 +0200 (CEST)
+From: "Thierry Merle" <thierry.merle@free.fr>
+To: "Steven Toth" <stoth@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
-	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
-	<20080925181943.GA12800@halim.local>
-	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
-	<48DBF224.2010109@gmx.de>
-	<37219a840809251340n7c588667xd18982f78e68a2ec@mail.gmail.com>
-	<d9def9db0809251400r331c0667k733486a013eccefe@mail.gmail.com>
-	<1222385832.4589.41.camel@pc10.localdom.local>
-	<a3ef07920809251814r4abbca6lc2e89ed5b3c5f2f0@mail.gmail.com>
-	<1222391910.4589.45.camel@pc10.localdom.local>
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
-	view
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [RFC] cinergyT2 rework final review
+Reply-To: thierry.merle@free.fr
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -38,40 +23,49 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Sep 25, 2008 at 6:18 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> Am Donnerstag, den 25.09.2008, 18:14 -0700 schrieb VDR User:
->> On Thu, Sep 25, 2008 at 4:37 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
->> > Who the hell is VDR User <user.vdr@gmail.com> ?
->> > Klaus himself?
+
+> Patrick Boettcher wrote:
+>> Hi Thierry,
 >>
->> No, I am not Klaus as could be assumed by simply looking at my email
->> address.  I am, however, a long-time linux dvb and VDR user.
+>> On Fri, 19 Sep 2008, Thierry Merle wrote:
 >>
->> > At least he knows nothing about Mauro's real work on video4linux.
+>>> Hello all,
+>>> About the rework from Tomi Orava I stored here:
+>>> http://linuxtv.org/hg/~tmerle/cinergyT2
+>>>
+>>> since there seems to be no bug declared with this driver by testers (I
+>>> tested this driver on AMD/Intel/ARM platforms for months), it is time
+>>> for
+>>> action.
+>>> If I receive no problem report before 19th of October (in one month), I
+>>> will push this driver into mainline.
 >>
->> If that comment was directed towards me then you're very wrong.  You'd
->> be making a terrible mistake if you think I just wandered in off the
->> street the other day.
->>
->> Regards,
->> -Derek
+>> Are you really sure you want to wait until October 19 with that? You
+>> heard
+>> Jonathan this morning, he is expecting a new release every day now, so
+>> the
+>> merge window will start quite soon. Maybe it would be better to shorten
+>> your deadline in favour of having the driver in-tree for 2.6.28. When it
+>> is inside it is still possible for at least 1.5 months to fix occuring
+>> problems.
 >
-> Hi Uwe,
+> Agreed, shorten and aim for 2.6.28 - especially if you've already done a
+> significant amount of personal testing.
 >
-> welcome back.
+> - Steve
 >
-> Cheers,
-> Hermann
+>
+OK. In my mind this patch was not a priority and some users reported bugs
+but we don't have any news from their part. Maybe buggy users :)
+I will wait just a little at least from Tomi and send a pull request to
+Mauro within the middle of the next week.
 
-You should really pay more attention to the part that says:
+Cheers,
+Thierry
 
-Regards,
--Derek
+-- 
+Sent from an ArmedSlack powered NSLU2.
 
-In case you missed it, here it is for the third time....
-
-Regards,
--Derek
 
 _______________________________________________
 linux-dvb mailing list
