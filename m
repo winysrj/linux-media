@@ -1,26 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.234])
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KclQM-0002uG-AJ
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 20:25:19 +0200
-Received: by wx-out-0506.google.com with SMTP id t16so256210wxc.17
-	for <linux-dvb@linuxtv.org>; Mon, 08 Sep 2008 11:25:14 -0700 (PDT)
-Message-ID: <d9def9db0809081125i6a7eb3d1h35af8f3d59059d62@mail.gmail.com>
-Date: Mon, 8 Sep 2008 20:25:14 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <20080908181929.153310@gmx.net>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <48C00822.4030509@gmail.com> <48C1380F.7050705@linuxtv.org>
-	<48C42851.8070005@koala.ie>
-	<d9def9db0809071252x708f1b1ch6c23cb3d2b5796e9@mail.gmail.com>
-	<48C5091F.3050807@koala.ie>
-	<d9def9db0809080521s70d95b65ma277b7f3049193b3@mail.gmail.com>
-	<20080908131913.GA11251@halim.local> <48C54DBF.7080204@linuxtv.org>
-	<48C566E6.2010601@gmail.com> <20080908181929.153310@gmx.net>
+	(envelope-from <stoth@linuxtv.org>) id 1KgZi7-000075-GP
+	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 08:43:25 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7F003BTJZBV2Z0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 19 Sep 2008 02:42:48 -0400 (EDT)
+Date: Fri, 19 Sep 2008 02:42:47 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200809180112.35736.liplianin@tut.by>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Message-id: <48D349E7.5030608@linuxtv.org>
+MIME-version: 1.0
+References: <200809031054.6772@centrum.cz> <200809172318.17593@centrum.cz>
+	<200809180112.35736.liplianin@tut.by>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Subject: Re: [linux-dvb] Measuring signal strench on TT S2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,59 +26,29 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Sep 8, 2008 at 8:19 PM, Hans Werner <HWerner4@gmx.de> wrote:
->
-> -------- Original-Nachricht --------
->> Datum: Mon, 08 Sep 2008 21:54:46 +0400
->> Von: Manu Abraham <abraham.manu@gmail.com>
->> An: linux-dvb@linuxtv.org
->> Betreff: Re: [linux-dvb] Multiproto API/Driver Update
->
->> Steven Toth wrote:
->>
->> > Fragmenting tree's to mcentral.de or Manu's repo (just.de?) shows that
->> > those developers don't want to contribute to the community at
->> linuxtv.org.
->>
->> Since it is another round of spreading lies and false accusations, i
->> will respond.
->>
->> http://thread.gmane.org/gmane.linux.kernel/729892
->>
->> http://thread.gmane.org/gmane.linux.kernel/729969
->>
->> also at
->>
->> http://www.kernel.org/pub/linux/kernel/people/manu/dvb_patches/
->>
->> Normally anyone sane would think that the linux-kernel @kernel.org is
->> just a superset of any smaller Linux-* communities.
->>
->> Maybe you just need to find a newer topic to spread Fear, Uncertainty
->> and Doubt (FUD).
->>
->> Regards,
->> Manu
->
-> Where's the beef? The drivers are missing.
-> http://linuxtv.org/pipermail/linux-dvb/2008-September/028445.html
->
-
-The drivers will come afterwards, first the split out framework
-afterwards the rest.
-(just as far as I understood).
-
-I fully agree with Manu though.
-
-Markus
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SWdvciBNLiBMaXBsaWFuaW4gd3JvdGU6Cj4g0JIg0YHQvtC+0LHRidC10L3QuNC4INC+0YIgMTgg
+U2VwdGVtYmVyIDIwMDggMDA6MTg6MTEgU0tPxIxET1BPTEUgVG9tw6HFoSDQvdCw0L/QuNGB0LDQ
+uyjQsCk6Cj4+IEhpLAo+Pgo+PiBOb3csIEkgYW0gdXNpbmcgbGF0ZXN0IGRyaXZlcnMgZnJvbSBJ
+Z29yIE0uTGlwbGlhbmluIGFuZCB0aGVzZSBwcm9ibGVtcwo+PiBzaG91bGQgYmUgZml4ZWQuIE5v
+dyB2aWRlbyBydW5zIHdpdGhvdXQgYW55IGJsYWNrb3V0cyBvciBlcnJvcnMuLi4gR3JlYXQKPj4g
+d29yayEKPj4KPj4gSWdvciwgSSB3YW50IHRvIGFzayB5b3UgYWJvdXQgcHJvZ3Jlc3Mgb2Ygc2Nh
+biBhbmQgc3phcCB1dGlsaXRpZXMgZm9yCj4+IGR2Yi1zMi4KPiAKPiBIaSBUb21hcwo+IEl0IGlz
+IGluIG15IHByaW9yaXRpZXMgbGlzdCwgYnV0IGFmdGVyIGNvbXBsZXRpbmcgc29tZSBkcml2ZXJz
+Cj4gSSBhbHJlYWR5IHN0YXJ0ZWQgd3JpdGluZyAoIHBhdGNoaW5nPyApIHNjYW4gdXRpbGl0eSBm
+b3IgZHZiLXMyLgo+IHN6YXAyICYgc3phcC1zMiBhcmUgd29ya2luZyBub3cuIFNvLCBsZXQncyB3
+YWl0IGFuZCBzZWUuCj4gSG9wZSB0aGVyZSBhcmUgcGVvcGxlcywgd2hpY2ggbWF5IGRldmVsb3Bp
+bmcgcXVpY2tsaWVyIDotKQo+IE5pZ2h0IGlzIG15IG9ubHkgZnJlZSB0aW1lIDotKAoKSWdvciwg
+eW91IGFyZSBkb2luZyBhIGZhbnRhc3RpYyBqb2IuIEkgdGhhbmsgeW91IGZvciBoZWxwaW5nIHdp
+dGggYWxsIG9mIAp0aGUgcGF0Y2hlcyBhbmQgdGhlIHV0aWxpdGllcy4KCkkgd2lsbCBmcm9tIHRo
+ZSBwbHVtYmVycyBjb25mZXJlbmNlIGluIHRoZSBuZXh0IGZldyBkYXlzIGFuZCBJIGV4cGVjdCB0
+byAKbWVyZ2UgYSBudW1iZXIgb2YgcGF0Y2hlcyB0aGF0IGFyZSBzaXR0aW5nIGluIG15IGluYm94
+LgoKVGhhbmtzIHlvdSBhZ2FpbiBmb3IgaGVscGluZyB3aXRoIHRoaXMuCgpSZWdhcmRzLAoKU3Rl
+dmUKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
+eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4
+dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
