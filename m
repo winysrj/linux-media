@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpauth02.csee.siteprotect.eu ([83.246.86.181])
+Received: from yw-out-2324.google.com ([74.125.46.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roger@beardandsandals.co.uk>) id 1KaZkZ-00076S-2k
-	for linux-dvb@linuxtv.org; Tue, 02 Sep 2008 19:33:08 +0200
-Received: from [192.168.10.241] (unknown [81.168.109.249])
-	(Authenticated sender: roger@beardandsandals.co.uk)
-	by smtpauth02.csee.siteprotect.eu (Postfix) with ESMTP id 12B80C68005
-	for <linux-dvb@linuxtv.org>; Tue,  2 Sep 2008 19:32:31 +0200 (CEST)
-Message-ID: <48BD78B0.6070508@beardandsandals.co.uk>
-Date: Tue, 02 Sep 2008 18:32:32 +0100
-From: Roger James <roger@beardandsandals.co.uk>
+	(envelope-from <mrechberger@gmail.com>) id 1KgZkV-0000vw-KB
+	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 08:45:53 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so49035ywj.41
+	for <linux-dvb@linuxtv.org>; Thu, 18 Sep 2008 23:45:47 -0700 (PDT)
+Message-ID: <d9def9db0809182345n45ac0fdck6165e0f4d3b48b0b@mail.gmail.com>
+Date: Fri, 19 Sep 2008 08:45:46 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Patrick Boettcher" <patrick.boettcher@desy.de>
+In-Reply-To: <alpine.LRH.1.10.0809190830370.8673@pub1.ifh.de>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Help - trying to get multiproto TT03200 driver working
-	via old API
+Content-Disposition: inline
+References: <alpine.LRH.1.10.0809190830370.8673@pub1.ifh.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [RFC] cinergyT2 rework final review
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,56 +22,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1327956799=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1327956799==
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Fri, Sep 19, 2008 at 8:35 AM, Patrick Boettcher
+<patrick.boettcher@desy.de> wrote:
+> Hi Thierry,
+>
+> On Fri, 19 Sep 2008, Thierry Merle wrote:
+>
+>> Hello all,
+>> About the rework from Tomi Orava I stored here:
+>> http://linuxtv.org/hg/~tmerle/cinergyT2
+>>
+>> since there seems to be no bug declared with this driver by testers (I
+>> tested this driver on AMD/Intel/ARM platforms for months), it is time for
+>> action.
+>> If I receive no problem report before 19th of October (in one month), I
+>> will push this driver into mainline.
+>
+> Are you really sure you want to wait until October 19 with that? You heard
+> Jonathan this morning, he is expecting a new release every day now, so the
+> merge window will start quite soon. Maybe it would be better to shorten
+> your deadline in favour of having the driver in-tree for 2.6.28. When it
+> is inside it is still possible for at least 1.5 months to fix occuring
+> problems.
+>
+>> This modification uses the dvb-usb framework, this is
+>>
+>> To give you an idea of the code benefit, here is a diffstat of the
+>> cinergyT2 rework patch:
+>> linux/drivers/media/dvb/cinergyT2/Kconfig        |   85 -
+>> linux/drivers/media/dvb/cinergyT2/Makefile       |    3
+>> linux/drivers/media/dvb/cinergyT2/cinergyT2.c    | 1150
+>> ---------------------
+>> linux/drivers/media/dvb/dvb-usb/cinergyT2-core.c |  230 ++++
+>> linux/drivers/media/dvb/dvb-usb/cinergyT2-fe.c   |  351 ++++++
+>> linux/drivers/media/dvb/dvb-usb/cinergyT2.h      |   95 +
+>> linux/drivers/media/dvb/Kconfig                    |    1
+>> linux/drivers/media/dvb/dvb-usb/Kconfig            |    8
+>> linux/drivers/media/dvb/dvb-usb/Makefile           |    4
+>> 9 files changed, 688 insertions(+), 1239 deletions(-)
+>
+> Impressive. It means there are currently around 600 lines boilerplate code
+> in the cinergyT2-driver (I like this word ;) )
+>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-I am have been trying to get gnutv to drive the TT-3200 driver using
-the old api (gnutv uses dvb-apps/lib which is not patched for multi
-proto). After much head scratching I realised that the fialure of the
-driver to get lock when exercised in this way seemed to be related to
-DVBFE_ALGO_SEARCH_AGAIN not being set when the FE_SET_FRONTEND ioctl
-path was followed rather than than the DVBFE_SET_PARAMS path. A search
-of the list revealed that Anssi Hannula had already worked this out and
-made a patch (<a class="moz-txt-link-freetext" href="http://www.spinics.net/lists/linux-dvb/msg26174.html">http://www.spinics.net/lists/linux-dvb/msg26174.html</a>).
-However it does not look like this patch has made it into the code that
-Manu has asked to be merged into the kernel. Does this mean that the
-merged code will not be compatible with applications such as gnutv
-which use dvb-apps/lib or other apps which use the old api?<br>
-<br>
-To help me carry on with my testing. Is there as version of Anssi's
-patch that can be applied against a recent clone of Manu's code.<br>
-<br>
-I apologise if this has been visited before; but I am finding it
-virtually impossible to unravel the complexities of what patch matches
-what tree.<br>
-<br>
-Help<br>
-<br>
-Roger<br>
-</body>
-</html>
+there was an intention to redesign the dvb framework (make a v3) with
+that driver so it duplicated
+alot code from the core.
 
+Markus
 
---===============1327956799==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> Patrick.
+>
+> --
+>   Mail: patrick.boettcher@desy.de
+>   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1327956799==--
