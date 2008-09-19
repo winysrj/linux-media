@@ -1,14 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.server.beonex.com ([78.46.195.11])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux.news@bucksch.org>) id 1KkSPn-0003xu-22
-	for linux-dvb@linuxtv.org; Tue, 30 Sep 2008 01:44:31 +0200
-Message-ID: <48E1686E.60207@bucksch.org>
-Date: Tue, 30 Sep 2008 01:44:46 +0200
-From: Ben Bucksch <linux.news@bucksch.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <csutor@gmx.de>) id 1KgnZr-0006Eq-1A
+	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 23:31:48 +0200
+Message-ID: <48D41A1E.1040604@gmx.de>
+Date: Fri, 19 Sep 2008 23:31:10 +0200
+From: Clemens Sutor <csutor@gmx.de>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] [Bug] gnutv -cammenu hangs
+To: Fredrik Jonson <fjonson95@hotmail.com>
+References: <BAY108-W49816DC274A6E8D70E62DFE4E0@phx.gbl>
+	<BAY115-W351744C2D44B2B29FB45B2BC4E0@phx.gbl>
+In-Reply-To: <BAY115-W351744C2D44B2B29FB45B2BC4E0@phx.gbl>
+Cc: Stefan Ellenberger <stefan_ell@hotmail.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb]
+ =?windows-1256?q?VP_1041_CAM=3A_dvb=5Fca_adapter_0=3A?=
+ =?windows-1256?q?_Invalid_PC_card_inserted=FE?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,47 +22,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1256"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hey,
-
-I'd like to update the firmware of my CA module, but gnutv -cammenu does 
-nothing, it just sits there without any output.
-
-Environment:
-SkyStar HD (STB0899) with CI, using the multiproto drivers.
-Ubuntu 8.04.1 with self-compiled linuxtv-dvb-apps from hg tip. Same 
-problem on Gentoo.
-
-Reproduction:
-1. Starting "gnutv -adapter 1 -cammenu"
-
-Actual results:
-Nothing. The command prompt does not return (i.e. gnutv runs), and no 
-output comes from gnutv. It just sits there, forever. No error message.
-
-I have no way to resolve the problem, because I have no idea what the 
-problem is.
-
-Expected result:
-Detailled error message pointing me to the problem, so that I can fix it.
-
-E.g. "Driver does not support this operation", "Could not contact CA 
-module - is it inserted?" or "Could not contact smartcard. Check that 
-it's inserted in the right direction and side" or whatever. This is the 
-minimum level of precision, better (e.g. "CA module did not react to 
-command foo") would be good.
-
-Please also report what *did* work, so that I can exclude error causes. 
-E.g. "CA initialization succeeded" tells me that the CI adapter and CA 
-module is inserted correctly.
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+RnJlZHJpayBKb25zb24gc2NocmllYjoKPiBIZWxsbwo+Cj4gSSBoYXZlIHRoZSBzYW1lIHByb2Js
+ZW0gYnV0IHdpdGggVlAtMTAzNCBzZSBteSBwb3N0IFtsaW51eC1kdmJdIAo+IFZQLTEwMzQgYW5k
+IENJIAo+IDxodHRwOi8vd3d3LmxpbnV4dHYub3JnL3BpcGVybWFpbC9saW51eC1kdmIvMjAwOC1T
+ZXB0ZW1iZXIvMDI4ODYwLmh0bWw+Cj4KPiAvZmpvbnNvbgo+IP4gPGh0dHA6Ly93d3cubGludXh0
+di5vcmcvcGlwZXJtYWlsL2xpbnV4LWR2Yi8yMDA4LVNlcHRlbWJlci8wMjg4NjAuaHRtbD4KPgo+
+ID4gRnJvbTogc3RlZmFuX2VsbEBob3RtYWlsLmNvbQo+ID4gVG86IGxpbnV4LWR2YkBsaW51eHR2
+Lm9yZwo+ID4gRGF0ZTogRnJpLCAxOSBTZXAgMjAwOCAxMjo0MTozMiArMDIwMAo+ID4gU3ViamVj
+dDogW2xpbnV4LWR2Yl0gVlAgMTA0MSBDQU06IGR2Yl9jYSBhZGFwdGVyIDA6IEludmFsaWQgUEMg
+Y2FyZCAKPiBpbnNlcnRlZP4KPiA+Cj4gPgo+ID4gSGkgbGlzdAo+ID4KPiA+IElmIEkgYXR0YWNo
+IHRoZSBDb21tb24gSW50ZXJmYWNlIHRvIHRoZSBjYXJkIChUd2luaGFuIFZQIDEwNDEpIGFuZCAK
+PiByZWxvYWQgdGhlIG1hbnRpcyBtb2R1bGVzIGRtZXNnIG91dHB1dCBpcyB0aGUgZm9sbG93aW5n
+Ogo+ID4KPiA+IFsgNjk3OS45Njk1MjZdIEFDUEk6IFBDSSBJbnRlcnJ1cHQgMDAwMDowMTowNi4w
+W0FdIC0+IExpbmsgW0FQQzJdIC0+IAo+IEdTSSAxNyAobGV2ZWwsIGxvdykgLT4gSVJRIDIxCj4g
+PiBbIDY5NzkuOTY5NTYyXSBpcnE6IDIxLCBsYXRlbmN5OiAzMgo+ID4gWyA2OTc5Ljk2OTU2Nl0g
+bWVtb3J5OiAweGQ1MTAwMDAwLCBtbWlvOiAweGY4YzFjMDAwCj4gPiBbIDY5NzkuOTY5NTczXSBm
+b3VuZCBhIFZQLTEwNDEgUENJIERTUy9EVkItUy9EVkItUzIgZGV2aWNlIG9uICgwMTowNi4wKSwK
+PiA+IFsgNjk3OS45Njk1NzZdIE1hbnRpcyBSZXYgMSBbMTgyMjowMDMxXSwgaXJxOiAyMSwgbGF0
+ZW5jeTogMzIKPiA+IFsgNjk3OS45Njk1NzldIG1lbW9yeTogMHhkNTEwMDAwMCwgbW1pbzogMHhm
+OGMxYzAwMAo+ID4gWyA2OTc5Ljk3MjI3Nl0gTUFDIEFkZHJlc3M9WzAwOjA4OmNhOjFjOjNmOjRj
+XQo+ID4gWyA2OTc5Ljk3MjMxMl0gbWFudGlzX2FsbG9jX2J1ZmZlcnMgKDApOiBETUE9MHgyZWYx
+MDAwMCAKPiBjcHU9MHhlZWYxMDAwMCBzaXplPTY1NTM2Cj4gPiBbIDY5NzkuOTcyMzE5XSBtYW50
+aXNfYWxsb2NfYnVmZmVycyAoMCk6IFJJU0M9MHgxM2RkYzAwMCAKPiBjcHU9MHhkM2RkYzAwMCBz
+aXplPTEwMDAKPiA+IFsgNjk3OS45NzIzMjNdIERWQjogcmVnaXN0ZXJpbmcgbmV3IGFkYXB0ZXIg
+KE1hbnRpcyBkdmIgYWRhcHRlcikKPiA+IFsgNjk4MC41MjAzNDRdIHN0YjA4OTlfYXR0YWNoOiBB
+dHRhY2hpbmcgU1RCMDg5OQo+ID4gWyA2OTgwLjUyMDM1M10gbWFudGlzX2Zyb250ZW5kX2luaXQg
+KDApOiBmb3VuZCBTVEIwODk5IERWQi1TL0RWQi1TMiAKPiBmcm9udGVuZCBAMHg2OAo+ID4gWyA2
+OTgwLjUyMDM2Ml0gc3RiNjEwMF9hdHRhY2g6IEF0dGFjaGluZyBTVEI2MTAwCj4gPiBbIDY5ODAu
+NTIwNzE1XSBEVkI6IHJlZ2lzdGVyaW5nIGZyb250ZW5kIDAgKFNUQjA4OTkgTXVsdGlzdGFuZGFy
+ZCkuLi4KPiA+IFsgNjk4MC41MjA3NzhdIG1hbnRpc19jYV9pbml0ICgwKTogUmVnaXN0ZXJpbmcg
+RU41MDIyMSBkZXZpY2UKPiA+IFsgNjk4MC41MjI4MTFdIG1hbnRpc19jYV9pbml0ICgwKTogUmVn
+aXN0ZXJlZCBFTjUwMjIxIGRldmljZQo+ID4gWyA2OTgwLjUyMjgyNV0gbWFudGlzX2hpZl9pbml0
+ICgwKTogQWRhcHRlcigwKSBJbml0aWFsaXppbmcgTWFudGlzIAo+IEhvc3QgSW50ZXJmYWNlCj4g
+PiBbIDY5ODEuNTI4ODI4XSBkdmJfY2EgYWRhcHRlciAwOiBJbnZhbGlkIFBDIGNhcmQgaW5zZXJ0
+ZWQgOigKPiA+Cj4gPiBTaW5jZSBpdCBpcyB0aGUgb2ZmaWNpYWwgVmlhY2Nlc3MgInJlZCBjYW0i
+IChSZXYgMS4wKSBJIGRvbid0IAo+IHVuZGVyc3RhbmQgdGhlIHByb2JsZW0gLSB0aGlzIG9uZSB3
+b3JrZWQganVzdCBmaW5lIGluIGFueSBTVEIgSSBldmVyIAo+IHVzZWQgLSBJIGtub3cgSSBtaWdo
+dCBoYXZlIHRvIHVwZGF0ZSB0aGUgQ0FNcyBmaXJtd2FyZSBpZiBJIHdhbnQgdG8gCj4gd2F0Y2gg
+SEQgY29udGVudCwgYnV0IG5ldmVydGhlbGVzczogc2hvdWxkbid0IHRoaXMgd29yayBmb3IgYW55
+IG5vbiBIRCAKPiBjb250ZW50IGFzIGl0IGRvZXMgb24gbXkgU1RCPwo+ID4KPiA+IEFueW9uZSBo
+YXMgaXNzdWVzIHdpdGggdGhlIHNhbWUgQ0FNIFJldmlzaW9uIGFuZCBtYW50aXMgY2FyZHM/Cj4g
+PiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwo+CgpIZWxsbywKCmFzIGZhciBhcyBJIGtub3csIHRoZSB3aG9sZSBtYW50aXMg
+ZHJpdmVyIHRyZWUgaGFzIG5vIHdvcmtpbmcgQ0kvQ0FNIApzdXBwb3J0IHlldC4gRm9yIHN1cmUg
+SSBrbm93IHRoaXMgZm9yIHRoZSBtYW50aXMgMjAzMyBhbmQgMjA0MCBiYXNlZCAKY2FyZHMgYW5k
+IGluIGluIHRoZSBzb3VyY2UgY29kZSB0aGUgQ0kvQ0FNIHN1cHBvcnQgaXMgaW1wbGVtZW50ZWQg
+dGhlIApzYW1lIHdheSBmb3IgYWxsIG1hbnRpcyBiYXNlZCBjYXJkcy4KClRoZSBkZXNjcmlwZWQg
+cHJvYmxlbSBpcyBrbm93biwgYnV0IG5vdyBzb2x2ZWQuIEEgbG90IG9mIHRoZSBDSSBzdXBwb3J0
+IAppcyB3b3JraW5nIGFsbHJlYWR5LCBidXQgdGhlIGRyaXZlciBpcyBzdGlsbCBub3QgZmluaXNo
+ZWQgYW5kIHN0YWJsZS4gClRoZSBtYW50YWluZXIgb2YgdGhlIG1hbnRpcyB0cmVlIHRvbGQgaW4g
+dGhlIG1haWxpbmcgbGlzdCBoZXJlLCB0aGF0IHRoZSAKcHJvYmxlbSBpcyBub3QgZWFzeSB0byBm
+aW5kIGFuZCBoZSBjb250YWN0ZWQgdGhlIHZlbmRvciB0byBnZXQgc29tZSBtb3JlIAp0ZWNobmlj
+YWwgZGV0YWlscy4gU28gd2UgaGF2ZSB0byBiZSBwYXRpZW50IHVudGlsIHRoZXJlIGlzIGEgd29y
+a2luZyAKc29sdXRpb24uCgpCeWUKQ2xlbWVucwoKCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBs
+aW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5m
+by9saW51eC1kdmI=
