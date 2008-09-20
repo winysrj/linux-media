@@ -1,22 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx30.mail.ru ([194.67.23.238])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KiC0p-0001YY-61
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 19:49:24 +0200
-Received: from [92.101.138.183] (port=62481 helo=localhost.localdomain)
-	by mx30.mail.ru with asmtp id 1KiC0G-000GpB-00
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 21:48:48 +0400
-Date: Tue, 23 Sep 2008 21:49:07 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080923214907.3bcec6f7@bk.ru>
-In-Reply-To: <20080923174305.282400@gmx.net>
-References: <200809211905.34424.hftom@free.fr> <20080921235429.18440@gmx.net>
-	<200809221201.26115.hftom@free.fr> <20080923162757.282370@gmx.net>
-	<alpine.DEB.1.10.0809231848260.26459@ybpnyubfg.ybpnyqbznva>
-	<20080923174305.282400@gmx.net>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] hvr4000-s2api + QAM_AUTO
+Received: from n21.bullet.mail.ukl.yahoo.com ([87.248.110.138])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <dirk_vornheder@yahoo.de>) id 1Kh64W-00060D-Lh
+	for linux-dvb@linuxtv.org; Sat, 20 Sep 2008 19:16:41 +0200
+From: Dirk Vornheder <dirk_vornheder@yahoo.de>
+To: Antti Palosaari <crope@iki.fi>,
+ linux-dvb@linuxtv.org
+Date: Sat, 20 Sep 2008 19:16:01 +0200
+References: <200809152345.37786.dirk_vornheder@yahoo.de>
+	<200809172115.19851.dirk_vornheder@yahoo.de>
+	<48D41D7B.90609@iki.fi> (sfid-20080920_124515_459025_6B4D8025)
+In-Reply-To: <48D41D7B.90609@iki.fi>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200809201916.01736.dirk_vornheder@yahoo.de>
+Subject: Re: [linux-dvb] UNS: Re: UNS: Re: New unspported device AVerMedia
+	DVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,36 +29,58 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > On Tue, 23 Sep 2008, Hans Werner wrote:
-> > 
-> > > My CPU (3ghz core 2 quad) is fast enough to show live HD video
-> > > [...]   ARTE HD throws some errors and stutters a bit. 
-> > 
-> > A suggestion:  Write your arte-HD streams to disk, instead of
-> > trying to decode them real-time.
-> > 
-> > If for some reason your CPU isn't quite fast enough, you can
-> > later decode the arte-HD streams and see if the artifacts you
-> > are observing are still present.
-> 
-> Hi Barry, thanks for the suggestion. 
-> 
-> I have checked this : Arte HD recordings I have just made with Kaffeine
-> play perfectly with mplayer (svn yesterday). So there's no basic
-> problem with my CPU power or with support for the stream by ffmpeg. 
-> When played back in kaffeine/xinelib the sound is missing or jittery.
-> 
-> Simul HD is a different story -- recordings play ok for a few tens of seconds
-> in mplayer (with some errors "warning: first frame is no keyframe") until a
-> hard crash with error "Internal error, picture buffer overflow" from mplayer.
-> In kaffeine it the recordings play with jittery sound and then crash at exactly the
-> same points with the same error.
-> 
-> Any ideas anyone?
+Am Friday 19 September 2008 23:45:31 schrieben Sie:
+> Dirk Vornheder wrote:
+> > Compile produces undefined symbol:
+> >
+> >   Building modules, stage 2.
+> >   MODPOST 166 modules
+> > WARNING: "__udivdi3" [/backup/privat/kernel/af9015_test-
+> > c8583d119095/v4l/af9013.ko] undefined!
+> >   CC      /backup/privat/kernel/af9015_test-c8583d119095/v4l/af9013.mod.o
+> >   LD [M]  /backup/privat/kernel/af9015_test-c8583d119095/v4l/af9013.ko
+> >   CC      /backup/privat/kernel/af9015_test-c8583d119095/v4l/au8522.mod.o
+> >   LD [M]  /backup/privat/kernel/af9015_test-c8583d119095/v4l/au8522.ko
+>
+> That's now fixed, please test: http://linuxtv.org/hg/~anttip/af9015_test
+>
 
-could you play with ffplay from svn and download somewhere the sample with 10 MB size (I will try to play)
+Compile now works.
 
-Goga
+Some messages from booting:
+
+dvb-usb: found a 'AVerMedia DVB-T' in cold state, will try to load a firmware
+firmware: requesting dvb-usb-af9015.fw
+dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+usbcore: registered new interface driver dvb_usb_af9015
+
+lsmod | grep af  shows:
+
+af9013                 17156  0
+dvb_usb_af9015         19108  0
+dvb_usb                14860  1 dvb_usb_af9015
+usbcore               108752  10 
+iforce,usbmouse,usbhid,uvcvideo,dvb_usb_af9015,dvb_usb,btusb,ehci_hcd,uhci_hcd
+i2c_core               18324  52 
+zl10353,ves1x93,ves1820,tua6100,tda826x,tda8083,tda10086,tda1004x,tda10048,tda10023,tda10021,stv0299,stv0297,sp887x,sp8870,s5h1420,s5h1411,s5h1409,or51211,or51132,nxt6000,nxt200x,mt352,mt312,lnbp21,lgs8gl5,lgdt330x,l64781,itd1000,isl6421,isl6405,dvb_pll,drx397xD,dib7000p,dib7000m,dib3000mc,dibx000_common,dib3000mb,dib0070,cx24123,cx24110,cx22702,cx22700,bcm3510,au8522,af9013,dvb_ttpci,ttpci_eeprom,dvb_usb_af9015,dvb_usb,nvidia,i2c_i801
+
+But i found no device entries in /dev/dvb.
+
+> >>> I buy a new notebook HP Pavilion dv7-1070eg which includes one
+>
+> Did you mean that this AverMedia DVB-T device is integrated to the
+> motherboard of your computer?
+>
+
+Yes.
+
+Dirk
+
+
+		
+___________________________________________________________ 
+Telefonate ohne weitere Kosten vom PC zum PC: http://messenger.yahoo.de
+
 
 _______________________________________________
 linux-dvb mailing list
