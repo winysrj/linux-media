@@ -1,32 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8M2SGui023551
-	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 22:28:16 -0400
-Received: from mta3.srv.hcvlny.cv.net (mta3.srv.hcvlny.cv.net [167.206.4.198])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8M2S6n6012566
-	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 22:28:06 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7K009NNS6T4DN0@mta3.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Sun, 21 Sep 2008 22:28:06 -0400 (EDT)
-Date: Sun, 21 Sep 2008 22:28:05 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <9d87242f0809211316g1a34f0e7wed0f8345d5cdd787@mail.gmail.com>
-To: Scott Bronson <bronson@rinspin.com>
-Message-id: <48D702B5.8020800@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <9d87242f0809191425p1adb1e59p417753a4c403a872@mail.gmail.com>
-	<412bdbff0809191428j760ed51cy8fecd68e1cb738a4@mail.gmail.com>
-	<9d87242f0809192005t246311dp796aa28cb744b3af@mail.gmail.com>
-	<9d87242f0809192255t49e112bfvd9c95e66bd3292a8@mail.gmail.com>
-	<48D49A39.5010909@linuxtv.org>
-	<9d87242f0809211316g1a34f0e7wed0f8345d5cdd787@mail.gmail.com>
+Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with SMTP id m8KNTYnY017954
+	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 19:29:34 -0400
+Received: from www.curtronics.com
+	(h69-129-7-18.nwblwi.dedicated.static.tds.net [69.129.7.18])
+	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id m8KNTDt7030497
+	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 19:29:14 -0400
+Message-ID: <48D58708.9040808@curtronics.com>
+Date: Sat, 20 Sep 2008 18:28:08 -0500
+From: Curt Blank <Curt.Blank@curtronics.com>
+MIME-Version: 1.0
+To: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+References: <48D32F0E.1000903@curtronics.com>
+	<200809190435.17646.vanessaezekowitz@gmail.com>
+	<48D3B730.9060204@curtronics.com>
+In-Reply-To: <48D3B730.9060204@curtronics.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Unreliable tuning with HVR-950q
+Subject: Re: Kworld PlusTV HD PCI 120 (ATSC 120)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,34 +30,187 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Scott Bronson wrote:
-> On Fri, Sep 19, 2008 at 11:37 PM, Steven Toth <stoth@linuxtv.org> wrote:
->> I guess it's possible that the frontend is being overwhelmed. What happens
->> if you discinnect the antenna and hold it very close to the antenna
->> connector on the usb device and try locking on a channel that doesn't
->> normally lock (on a very close transmitter).
-> 
-> Yes, that does seem to help.  I can't find a distance that gives locks
-> 100% of the time, but 1mm distance seems to take it from 50% to
-> 80-90%.
-> 
-> It seems to always get a lock if I just keep trying.  I just quickly
-> keep hitting return and escape until I get a picture.  It rarely takes
-> more than 3 attempts.  However, if I just leave it alone as it tries
-> tune, it will sit there forever (well, at least 1/2 hour) and never
-> get it.
-> 
-> Thanks, tell me if there's anything more I can do.
+Curt Blank wrote:
+> Hi,
+>
+> Thanks yo the reply. I had read through all your posts from back in 
+> February and did see you got it working. I've got a few questions.
+>
+> Vanessa Ezekowitz wrote:
+>> On Thursday 18 September 2008 11:48:14 pm Curt Blank wrote:
+>>  
+>>> I'm trying to get this  card working  and I'm having some trouble and
+>>> I'm not sure exactly where. I'm using the 2.6.26.5 kernel gen'd to
+>>> include all the v4l support.
+>>>     
+>>
+>> I don't know if that version of the kernel has the full driver or 
+>> not, however, it would be a good idea to use the v4l-dvb repository 
+>> instead, as that code is more up to date.
+>>
+>> Mauro, does any current kernel contain these drivers yet?  I've not 
+>> been following v4l-dvb-->kernel merges.
+>>   
+> I looked at the cx88_cards.c code and I see it has the Kworld PlusTV 
+> HD PCI 120 (ATSC 120) card listed in it. It looks to me it was 
+> included since 2.6.26. I do have the v4l code fro the repository, I 
+> was experimenting with using it in the 2.6.25.22 kernel but decided 
+> 2.6.26.5 might be better. If I don't have any luck with you 
+> suggestions and the 2.6.26.5 code I'll switch back to the repository 
+> code.
+>>  
+>>> Using Kradio I can manually tune in a station  but the audio only comes
+>>> out the Line Out jack on the card. Alsa is installed and working, I 
+>>> can play CD's, listen to streaming music, KDE sound effects work, so it
+>>> appears my sound subsystem is working. The alsa config in Kradio is set
+>>> to what it determined and it appears to match the device as far as
+>>> things go.
+>>>     
+>>   The first thing that comes to mind here is that Kradio chose the 
+>> wrong audio device but made it look like it chose correctly.  I seem 
+>> to recall it doing the same thing on my box as well.  This card 
+>> provides audio via a digital stream, and the drivers put that stream 
+>> on /dev/dsp1, so you must chose that as your capture card/device, and 
+>> set the playback card/device to use your usual sound card.
+>>   
+> So this card follows the oss format instead of the alas format? I 
+> wasn't sure which one to use. I switched Kradio's V4L Config Options 
+> to use OSS and tried both /dev/dsp and /dev/dsp1 and there is no 
+> sound. I had experimented with this before also.
+>> Also, the current version of the driver no longer provides or 
+>> requires the cx88-alsa module (it has apparently been merged with 
+>> other parts of the driver).  Don't try to load this module, as it 
+>> will probably cause a bunch of errors and break things.  I've just 
+>> updated the KW120 article to reflect this change in driver behavior 
+>> (and to fix some other errors on my part).
+>>  
+>>> When I try to scan for stations it doesn't find any but I can tune 
+>>> to any local station and get it.
+>>>
+>>> I also can't get the video (HDTV) to work either. When it starts up 
+>>> I get
+>>> a:
+>>>     
+>>
+>> At the present, you can't load both the digital- and analog-mode 
+>> drivers at the same time - this card uses a "hybrid" tuner, which the 
+>> drivers can't quite deal with properly yet (this is being worked 
+>> on).  The end result is that neither mode will work at all, or may 
+>> work only intermittently (last time I tried, the result was 
+>> unpredictable).
+>>
+>> You must select one more or the other, and you must reboot the 
+>> computer (actually, a hard power-off is better) when switching modes.
+>>
+>> Basically, it boils down to blacklisting several modules and then 
+>> loading either the cx8800 or cx88-dvb module (for analog or digital, 
+>> respectively).
+>>   
+> I did experiment with the blacklisting and I did notice that I could 
+> listen to the radio (through the cards line out) when the cx8800 was 
+> loaded without the cx88-alsa module loaded. At the moment I have 
+> blacklisted everything, powered down and now only have the cx8800 
+> module loaded.
+>>    
+>>> I also can't get the video (HDTV) to work either. When it starts up 
+>>> I get a:
+>>> [...]
+>>> When I run kdetv in a terminal window I see this:
+>>>     
+>>
+>> [errors snipped]
+>>
+>> Last time I tried to use it, KDETV only worked with analog video/TV 
+>> and other v4l capture devices.  For digital TV, you need to use 
+>> something like Kaffeine/Xine, MythTV, etc.  Basically any video 
+>> player that can read from a DVB device.
+>>
+>> Also note that KDETV, unless it's changed since I last looked, isn't 
+>> aware of that separate digital stream for analog TV, so you probably 
+>> won't get any audio from it.  Most of the other TV programs are like 
+>> this also.  Kradio is aware of it, however, and worked fine for me 
+>> last time I used it.
+>>   
+> I do have kaffine and xine, I will try that when I get a chance later 
+> today.
+>>  
+>>> I've read the Wiki at http://www.linuxtv.org including the
+>>> http://www.linuxtv.org/wiki/index.php/KWorld_ATSC_120 info. I also
+>>> downloaded the archived list messages back to January 2007 and looked
+>>> through them for help.
+>>>     
+>>
+>> I know it sounds a little Windows-ish, but since the driver is still 
+>> experimental, and the ATSC 120 is kinda finicky, a reboot is the 
+>> first thing to do here, just to get the card back into a predictable 
+>> state.  Get the blacklist into place before you do that, check after 
+>> the reboot to make sure that worked, then try just the analog mode.  
+>> One that works, reboot again, enable digital mode, and scan for 
+>> channels with dvbscan or whatever your distro calls it.
+>>
+>> Stuart and I wrote most of what's in the ATSC 120 info page, so if it 
+>> didn't work for you, I'd like to see if we can figure out what went 
+>> wrong, so I can update the page to address the problem.  I'm kinda 
+>> partial to the idea of seeing this card working fully for those who 
+>> have one. :-)
+>>   
+> Thanks. I'll work on all your suggestions more in depth when I have 
+> more time later today and over the weekend and report back. The first 
+> thing I'd like to get working as a stepping stone is the sound not 
+> using the cards line out. I've been trying this in a box using that 
+> MSI MB, it's going to be used in different box with an Asus m3a78-em 
+> MB that should be arriving today so I will probably move to that. I've 
+> had some issues with MSI MB's and media cards (video) in the last year 
+> where they did not work and that's why I've switched back to Asus.
+>
 
-This is really starting to sound like a signal level issue. Try 
-attenuating, this will probably help. Radio shack probably have a 
-selection of 5 and 10db inline connectors that should help.
+I've got the new computer built, with the 2.6.26.5 kernel, v4l not gen'd
+in and using the latest from the repository.
 
-I don't know where our lab guys from ours from.
+Using Kradio I still can only listen to it via the Line Out on the 120's
+board.
 
-This isn't something that we can compensate for in software.
+When I run kaffeine I get a pop up window with this:
 
-- Steve
+No plugin found to handle this resource (/dev/video)
+
+17:59:33: xine: couldn't find demux for >file:///dev/video<
+
+17:59:33: xine: found input plugin : file input plugin
+
+
+When I run xawtv I get this:
+
+# xawtv
+This is xawtv-3.95, running on Linux/x86_64 (2.6.26.5-touch)
+xinerama 0: 1024x768+0+0
+/dev/video0 [v4l2]: no overlay support
+v4l-conf had some trouble, trying to continue anyway
+ioctl: VIDIOC_REQBUFS(count=2;type=VIDEO_CAPTURE;memory=MMAP): Success
+ioctl: VIDIOC_REQBUFS(count=2;type=VIDEO_CAPTURE;memory=MMAP): Resource 
+temporarily unavailable
+
+
+And I still get the "Unable to grab video." pop up form kdetv.
+
+Ideas? Am I missing something?
+
+I blacklisted cx8800, cx8802, cx88-alsa, & cx88-dvb on boot, then moved
+the blacklist file then only modprobed cx8800. That and cx88xx are the
+only ones loaded.
+
+I have this in my modprobe.d/tv file:
+
+alias char-major-81 videodev
+options i2c-algo-bit bit_test=1
+
+alias char-major-81-0 cx8800
+alias char-major-81-1 off
+alias char-major-81-2 off
+alias char-major-81-3 off
+
+Thanks.
+
 
 --
 video4linux-list mailing list
