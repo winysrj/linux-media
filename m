@@ -1,27 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8QMYOZN022957
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 18:34:24 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.154])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8QMYDuC030493
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 18:34:13 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so820611fga.7
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 15:34:12 -0700 (PDT)
-Message-ID: <30353c3d0809261534o2c09033fredd0288a06f9a1bf@mail.gmail.com>
-Date: Fri, 26 Sep 2008 18:34:12 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Jaime Velasco Juan" <jsagarribay@gmail.com>
-In-Reply-To: <30353c3d0809251849t561c6c9dr4fd0ac26bf2924f5@mail.gmail.com>
+Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with SMTP id m8K38DvM018763
+	for <video4linux-list@redhat.com>; Fri, 19 Sep 2008 23:08:13 -0400
+Received: from mail-gx0-f27.google.com (mail-gx0-f27.google.com
+	[209.85.217.27])
+	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id m8K37vTp020043
+	for <video4linux-list@redhat.com>; Fri, 19 Sep 2008 23:07:57 -0400
+Received: by gxk8 with SMTP id 8so336231gxk.3
+	for <video4linux-list@redhat.com>; Fri, 19 Sep 2008 20:05:57 -0700 (PDT)
+Message-ID: <9d87242f0809192005t246311dp796aa28cb744b3af@mail.gmail.com>
+Date: Fri, 19 Sep 2008 20:05:56 -0700
+From: "Scott Bronson" <bronson@rinspin.com>
+To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+In-Reply-To: <412bdbff0809191428j760ed51cy8fecd68e1cb738a4@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_14502_26295344.1222468452290"
-References: <30353c3d0809202112i6f1b7f5do48dd7c9e299ba877@mail.gmail.com>
-	<20080923195137.GA4038@singular.sob>
-	<30353c3d0809251203q4f09a237xd08aa227d96e62b0@mail.gmail.com>
-	<30353c3d0809251849t561c6c9dr4fd0ac26bf2924f5@mail.gmail.com>
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: [PATCH RFT]: stk-webcam: release via video_device release
-	callback
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <9d87242f0809191425p1adb1e59p417753a4c403a872@mail.gmail.com>
+	<412bdbff0809191428j760ed51cy8fecd68e1cb738a4@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Unreliable tuning with HVR-950q
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,114 +32,13 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-------=_Part_14502_26295344.1222468452290
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Fri, Sep 19, 2008 at 2:28 PM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> What application are you using?  Kaffeine?  Scan?
 
-I forgot to fix the typo that I saw in your output. Attached is the
-updated patch with the typo corrected. It replaces the second patch in
-the previous series.
-
-Regards,
-
-David Ellingsworth
-
-------=_Part_14502_26295344.1222468452290
-Content-Type: text/x-diff;
-	name=0002-stkwebcam-free-via-video_device-release-callback.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_flle07893
-Content-Disposition: attachment;
-	filename=0002-stkwebcam-free-via-video_device-release-callback.patch
-
-RnJvbSBiZDY2OWEzMWJjNjI3NjFlZmQ2Yzk4MTg4N2I2MWVjYmE2Mzg5ODUwIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5k
-bnMub3JnPgpEYXRlOiBGcmksIDI2IFNlcCAyMDA4IDE4OjI1OjE0IC0wNDAwClN1YmplY3Q6IFtQ
-QVRDSF0gc3Rrd2ViY2FtOiBmcmVlIHZpYSB2aWRlb19kZXZpY2UgcmVsZWFzZSBjYWxsYmFjawoK
-ClNpZ25lZC1vZmYtYnk6IERhdmlkIEVsbGluZ3N3b3J0aCA8ZGF2aWRAaWRlbnRkLmR5bmRucy5v
-cmc+Ci0tLQogZHJpdmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmMgfCAgIDQ0ICsrKysrKysr
-KysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vc3RrLXdl
-YmNhbS5oIHwgICAgMiAtCiAyIGZpbGVzIGNoYW5nZWQsIDE4IGluc2VydGlvbnMoKyksIDI4IGRl
-bGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vc3RrLXdlYmNhbS5j
-IGIvZHJpdmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmMKaW5kZXggYmJmMzY3Ny4uMGEzYTJk
-ZSAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmMKKysrIGIvZHJp
-dmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmMKQEAgLTY1LDIyICs2NSw2IEBAIHN0YXRpYyBz
-dHJ1Y3QgdXNiX2RldmljZV9pZCBzdGt3ZWJjYW1fdGFibGVbXSA9IHsKIH07CiBNT0RVTEVfREVW
-SUNFX1RBQkxFKHVzYiwgc3Rrd2ViY2FtX3RhYmxlKTsKIAotc3RhdGljIHZvaWQgc3RrX2NhbWVy
-YV9jbGVhbnVwKHN0cnVjdCBrcmVmICprcmVmKQotewotCXN0cnVjdCBzdGtfY2FtZXJhICpkZXYg
-PSB0b19zdGtfY2FtZXJhKGtyZWYpOwotCi0JU1RLX0lORk8oIlN5bnRlayBVU0IyLjAgQ2FtZXJh
-IHJlbGVhc2UgcmVzb3VyY2VzIgotCQkiIHZpZGVvIGRldmljZSAvZGV2L3ZpZGVvJWRcbiIsIGRl
-di0+dmRldi5taW5vcik7Ci0JdmlkZW9fdW5yZWdpc3Rlcl9kZXZpY2UoJmRldi0+dmRldik7Ci0J
-dmlkZW9fc2V0X2RydmRhdGEoJmRldi0+dmRldiwgTlVMTCk7Ci0KLQlpZiAoZGV2LT5zaW9fYnVm
-cyAhPSBOVUxMIHx8IGRldi0+aXNvYnVmcyAhPSBOVUxMKQotCQlTVEtfRVJST1IoIldlIGFyZSBs
-ZWFraW5nIG1lbW9yeVxuIik7Ci0JdXNiX3B1dF9pbnRmKGRldi0+aW50ZXJmYWNlKTsKLQlrZnJl
-ZShkZXYpOwotfQotCi0KIC8qCiAgKiBCYXNpYyBzdHVmZgogICovCkBAIC02OTUsNyArNjc5LDYg
-QEAgc3RhdGljIGludCB2NGxfc3RrX29wZW4oc3RydWN0IGlub2RlICppbm9kZSwgc3RydWN0IGZp
-bGUgKmZwKQogCQlyZXR1cm4gLUVOWElPOwogCX0KIAlmcC0+cHJpdmF0ZV9kYXRhID0gdmRldjsK
-LQlrcmVmX2dldCgmZGV2LT5rcmVmKTsKIAl1c2JfYXV0b3BtX2dldF9pbnRlcmZhY2UoZGV2LT5p
-bnRlcmZhY2UpOwogCXVubG9ja19rZXJuZWwoKTsKIApAQCAtNzIwLDcgKzcwMyw2IEBAIHN0YXRp
-YyBpbnQgdjRsX3N0a19yZWxlYXNlKHN0cnVjdCBpbm9kZSAqaW5vZGUsIHN0cnVjdCBmaWxlICpm
-cCkKIAogCWlmIChkZXYtPm93bmVyICE9IGZwKSB7CiAJCXVzYl9hdXRvcG1fcHV0X2ludGVyZmFj
-ZShkZXYtPmludGVyZmFjZSk7Ci0JCWtyZWZfcHV0KCZkZXYtPmtyZWYsIHN0a19jYW1lcmFfY2xl
-YW51cCk7CiAJCXJldHVybiAwOwogCX0KIApAQCAtNzMxLDcgKzcxMyw2IEBAIHN0YXRpYyBpbnQg
-djRsX3N0a19yZWxlYXNlKHN0cnVjdCBpbm9kZSAqaW5vZGUsIHN0cnVjdCBmaWxlICpmcCkKIAlk
-ZXYtPm93bmVyID0gTlVMTDsKIAogCXVzYl9hdXRvcG1fcHV0X2ludGVyZmFjZShkZXYtPmludGVy
-ZmFjZSk7Ci0Ja3JlZl9wdXQoJmRldi0+a3JlZiwgc3RrX2NhbWVyYV9jbGVhbnVwKTsKIAogCXJl
-dHVybiAwOwogfQpAQCAtMTM1OSw2ICsxMzQwLDEyIEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgdjRs
-Ml9pb2N0bF9vcHMgdjRsX3N0a19pb2N0bF9vcHMgPSB7CiAKIHN0YXRpYyB2b2lkIHN0a192NGxf
-ZGV2X3JlbGVhc2Uoc3RydWN0IHZpZGVvX2RldmljZSAqdmQpCiB7CisJc3RydWN0IHN0a19jYW1l
-cmEgKmRldiA9IHZkZXZfdG9fY2FtZXJhKHZkKTsKKworCWlmIChkZXYtPnNpb19idWZzICE9IE5V
-TEwgfHwgZGV2LT5pc29idWZzICE9IE5VTEwpCisJCVNUS19FUlJPUigiV2UgYXJlIGxlYWtpbmcg
-bWVtb3J5XG4iKTsKKwl1c2JfcHV0X2ludGYoZGV2LT5pbnRlcmZhY2UpOworCWtmcmVlKGRldik7
-CiB9CiAKIHN0YXRpYyBzdHJ1Y3QgdmlkZW9fZGV2aWNlIHN0a192NGxfZGF0YSA9IHsKQEAgLTEz
-OTYsNyArMTM4Myw3IEBAIHN0YXRpYyBpbnQgc3RrX2NhbWVyYV9wcm9iZShzdHJ1Y3QgdXNiX2lu
-dGVyZmFjZSAqaW50ZXJmYWNlLAogCQljb25zdCBzdHJ1Y3QgdXNiX2RldmljZV9pZCAqaWQpCiB7
-CiAJaW50IGk7Ci0JaW50IGVycjsKKwlpbnQgZXJyID0gMDsKIAogCXN0cnVjdCBzdGtfY2FtZXJh
-ICpkZXYgPSBOVUxMOwogCXN0cnVjdCB1c2JfZGV2aWNlICp1ZGV2ID0gaW50ZXJmYWNlX3RvX3Vz
-YmRldihpbnRlcmZhY2UpOwpAQCAtMTQwOSw3ICsxMzk2LDYgQEAgc3RhdGljIGludCBzdGtfY2Ft
-ZXJhX3Byb2JlKHN0cnVjdCB1c2JfaW50ZXJmYWNlICppbnRlcmZhY2UsCiAJCXJldHVybiAtRU5P
-TUVNOwogCX0KIAotCWtyZWZfaW5pdCgmZGV2LT5rcmVmKTsKIAlzcGluX2xvY2tfaW5pdCgmZGV2
-LT5zcGlubG9jayk7CiAJaW5pdF93YWl0cXVldWVfaGVhZCgmZGV2LT53YWl0X2ZyYW1lKTsKIApA
-QCAtMTQ0Miw4ICsxNDI4LDggQEAgc3RhdGljIGludCBzdGtfY2FtZXJhX3Byb2JlKHN0cnVjdCB1
-c2JfaW50ZXJmYWNlICppbnRlcmZhY2UsCiAJfQogCWlmICghZGV2LT5pc29jX2VwKSB7CiAJCVNU
-S19FUlJPUigiQ291bGQgbm90IGZpbmQgaXNvYy1pbiBlbmRwb2ludCIpOwotCQlrcmVmX3B1dCgm
-ZGV2LT5rcmVmLCBzdGtfY2FtZXJhX2NsZWFudXApOwotCQlyZXR1cm4gLUVOT0RFVjsKKwkJZXJy
-ID0gLUVOT0RFVjsKKwkJZ290byBlcnJvcjsKIAl9CiAJZGV2LT52c2V0dGluZ3MuYnJpZ2h0bmVz
-cyA9IDB4N2ZmZjsKIAlkZXYtPnZzZXR0aW5ncy5wYWxldHRlID0gVjRMMl9QSVhfRk1UX1JHQjU2
-NTsKQEAgLTE0NTcsMTQgKzE0NDMsMTcgQEAgc3RhdGljIGludCBzdGtfY2FtZXJhX3Byb2JlKHN0
-cnVjdCB1c2JfaW50ZXJmYWNlICppbnRlcmZhY2UsCiAKIAllcnIgPSBzdGtfcmVnaXN0ZXJfdmlk
-ZW9fZGV2aWNlKGRldik7CiAJaWYgKGVycikgewotCQlrcmVmX3B1dCgmZGV2LT5rcmVmLCBzdGtf
-Y2FtZXJhX2NsZWFudXApOwotCQlyZXR1cm4gZXJyOworCQlnb3RvIGVycm9yOwogCX0KIAogCXN0
-a19jcmVhdGVfc3lzZnNfZmlsZXMoJmRldi0+dmRldik7CiAJdXNiX2F1dG9wbV9lbmFibGUoZGV2
-LT5pbnRlcmZhY2UpOwogCiAJcmV0dXJuIDA7CisKK2Vycm9yOgorCWtmcmVlKGRldik7CisJcmV0
-dXJuIGVycjsKIH0KIAogc3RhdGljIHZvaWQgc3RrX2NhbWVyYV9kaXNjb25uZWN0KHN0cnVjdCB1
-c2JfaW50ZXJmYWNlICppbnRlcmZhY2UpCkBAIC0xNDc3LDcgKzE0NjYsMTAgQEAgc3RhdGljIHZv
-aWQgc3RrX2NhbWVyYV9kaXNjb25uZWN0KHN0cnVjdCB1c2JfaW50ZXJmYWNlICppbnRlcmZhY2Up
-CiAJd2FrZV91cF9pbnRlcnJ1cHRpYmxlKCZkZXYtPndhaXRfZnJhbWUpOwogCXN0a19yZW1vdmVf
-c3lzZnNfZmlsZXMoJmRldi0+dmRldik7CiAKLQlrcmVmX3B1dCgmZGV2LT5rcmVmLCBzdGtfY2Ft
-ZXJhX2NsZWFudXApOworCVNUS19JTkZPKCJTeW50ZWsgVVNCMi4wIENhbWVyYSByZWxlYXNlIHJl
-c291cmNlcyAiCisJCSJ2aWRlbyBkZXZpY2UgL2Rldi92aWRlbyVkXG4iLCBkZXYtPnZkZXYubWlu
-b3IpOworCisJdmlkZW9fdW5yZWdpc3Rlcl9kZXZpY2UoJmRldi0+dmRldik7CiB9CiAKICNpZmRl
-ZiBDT05GSUdfUE0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vc3RrLXdlYmNhbS5o
-IGIvZHJpdmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmgKaW5kZXggZGY0ZGZlZi4uMDg0YTg1
-YiAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmgKKysrIGIvZHJp
-dmVycy9tZWRpYS92aWRlby9zdGstd2ViY2FtLmgKQEAgLTk5LDcgKzk5LDYgQEAgc3RydWN0IHN0
-a19jYW1lcmEgewogCiAJdTggaXNvY19lcDsKIAotCXN0cnVjdCBrcmVmIGtyZWY7CiAJLyogTm90
-IHN1cmUgaWYgdGhpcyBpcyByaWdodCAqLwogCWF0b21pY190IHVyYnNfdXNlZDsKIApAQCAtMTIx
-LDcgKzEyMCw2IEBAIHN0cnVjdCBzdGtfY2FtZXJhIHsKIAl1bnNpZ25lZCBzZXF1ZW5jZTsKIH07
-CiAKLSNkZWZpbmUgdG9fc3RrX2NhbWVyYShkKSBjb250YWluZXJfb2YoZCwgc3RydWN0IHN0a19j
-YW1lcmEsIGtyZWYpCiAjZGVmaW5lIHZkZXZfdG9fY2FtZXJhKGQpIGNvbnRhaW5lcl9vZihkLCBz
-dHJ1Y3Qgc3RrX2NhbWVyYSwgdmRldikKIAogdm9pZCBzdGtfY2FtZXJhX2RlbGV0ZShzdHJ1Y3Qg
-a3JlZiAqKTsKLS0gCjEuNS42Cgo=
-------=_Part_14502_26295344.1222468452290
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+mplayer and MythTV.  They seem to be about equally unreliable.
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-------=_Part_14502_26295344.1222468452290--
