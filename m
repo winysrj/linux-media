@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.31])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <burns.me.uk@googlemail.com>) id 1KbAo4-0005NP-TW
-	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 11:07:14 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so303441ywj.41
-	for <linux-dvb@linuxtv.org>; Thu, 04 Sep 2008 02:07:08 -0700 (PDT)
-Message-ID: <b4057d410809040207n685bb5eejb20d6ace653a2798@mail.gmail.com>
-Date: Thu, 4 Sep 2008 10:07:08 +0100
-From: "Andy Burns" <linuxtv.lists@burns.me.uk>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <141058d50809032204o7b8a70d9jc3fa64b4e2f9ef3@mail.gmail.com>
+	(envelope-from <crope@iki.fi>) id 1Kh6Jk-00083V-Py
+	for linux-dvb@linuxtv.org; Sat, 20 Sep 2008 19:32:25 +0200
+Message-ID: <48D533A4.5060406@iki.fi>
+Date: Sat, 20 Sep 2008 20:32:20 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <141058d50809030655i680f7937o3aa657601d1910a0@mail.gmail.com>
-	<48BE98CC.1080600@linuxtv.org>
-	<141058d50809032204o7b8a70d9jc3fa64b4e2f9ef3@mail.gmail.com>
-Subject: Re: [linux-dvb] Fine tuning app ?
+To: Christoph Pfister <christophpfister@gmail.com>
+References: <4836F51E.7070403@iki.fi>	<200806111910.06038.christophpfister@gmail.com>	<488F2684.2030809@iki.fi>
+	<200808011115.38550.christophpfister@gmail.com>
+In-Reply-To: <200808011115.38550.christophpfister@gmail.com>
+Content-Type: multipart/mixed; boundary="------------090306080304020500060006"
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] update Finland initial DVB-T tuning files
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,27 +21,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/9/4 Glenn McGrath <glenn.l.mcgrath@gmail.com>:
+This is a multi-part message in MIME format.
+--------------090306080304020500060006
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> I did a lot of digging and found i need to check somewhere within
-> 125kHz of the center frequency (usually center +125kHz is best), if i
-> just check the center frequency my tv card doesnt even get a lock.
+hello,
+updating DVB-T fi-* initial tuning files again!
 
-Don't know if it's relevant or useful, but in the UK each MUX is
-transmitted with a channel offset of either -167kHz, zero, or +167kHz,
-to avoid "overspill" to adjacent analogue channels (though I believe
-they will persist after DSO) the details are available per transmitter
-from the OFCOM site, e.g. Crystal Palace
+regards
+Antti
+-- 
+http://palosaari.fi/
 
-http://www.ofcom.org.uk/static/reception_advice/digital_trans_guide/show_transmitter.asp-siteID=66.html
+--------------090306080304020500060006
+Content-Type: text/plain;
+ name="fi-update_2008-09-20.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="fi-update_2008-09-20.patch"
+
+diff -r 07e6a86c9eba util/scan/dvb-t/fi-Salla_Ihistysjanka
+--- a/util/scan/dvb-t/fi-Salla_Ihistysjanka	Sun Sep 14 18:03:01 2008 +0200
++++ b/util/scan/dvb-t/fi-Salla_Ihistysjanka	Sat Sep 20 20:29:48 2008 +0300
+@@ -1,4 +1,4 @@
+ # automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
++T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+ T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+diff -r 07e6a86c9eba util/scan/dvb-t/fi-Salla_Saija
+--- a/util/scan/dvb-t/fi-Salla_Saija	Sun Sep 14 18:03:01 2008 +0200
++++ b/util/scan/dvb-t/fi-Salla_Saija	Sat Sep 20 20:29:48 2008 +0300
+@@ -1,4 +1,4 @@
+ # automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+ T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+-T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
++T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+
+--------------090306080304020500060006
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------090306080304020500060006--
