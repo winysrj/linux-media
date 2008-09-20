@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from fg-out-1718.google.com ([72.14.220.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Kb6s9-0005OK-EP
-	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 06:55:10 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6N005QEMYX7ZM0@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Thu, 04 Sep 2008 00:54:34 -0400 (EDT)
-Date: Thu, 04 Sep 2008 00:54:33 -0400
-From: Steven Toth <stoth@linuxtv.org>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <48BF6A09.3020205@linuxtv.org>
-MIME-version: 1.0
-Subject: [linux-dvb] S2API - First release
+	(envelope-from <a.j.buxton@gmail.com>) id 1Kh7Ye-0004aM-9T
+	for linux-dvb@linuxtv.org; Sat, 20 Sep 2008 20:51:54 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so946454fga.25
+	for <linux-dvb@linuxtv.org>; Sat, 20 Sep 2008 11:51:48 -0700 (PDT)
+Message-ID: <3d374d00809201151w543e17cdm4ca67e5940667f2b@mail.gmail.com>
+Date: Sat, 20 Sep 2008 19:51:48 +0100
+From: "Alistair Buxton" <a.j.buxton@gmail.com>
+To: "Michael Sanders" <msanders@fenza.com>
+In-Reply-To: <5926395e0809200414m186da966g62b4f0f975b46633@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <5926395e0809182212k1454836dq1585f56048ae5404@mail.gmail.com>
+	<3d374d00809190659r123651ffwec3a326367e248e7@mail.gmail.com>
+	<5926395e0809200414m186da966g62b4f0f975b46633@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB USB receiver stopped reporting correct USB ID
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,64 +30,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+2008/9/20 Michael Sanders <msanders@fenza.com>:
 
-It's been a crazy few days, please forgive my short absence.
+> Thanks for you ideas. I have attached the full dmesg as suggested.
+>
+> I don't think the problem is a cold/warm state issue. When I used the
+> device for the first time, I saw a warning that it (correct name was
+> given) was it its cold state and that firmware was not found. Adding
+> the firmware fixed the problem and then it worked fine. i.e. in the
+> cold state, it did not show the EZ-USB id.
 
-What have I been doing? Well, rather than spending time discussing a new 
-S2API on the mailing list, I wanted to actually produce a working series 
-of patches that kernel and application developers could begin to test.
+That's odd. However, there is no difference between cold state and the
+current state. EZ-USB devices usually have a very small I2C eeprom
+which holds nothing except for the device IDs. It looks like that chip
+has either been wiped or has blown.
 
-Here's where all of the new S2API patches will now appear:
+You should still be able to force the firmware loading, after which it
+should go into warm state as normal. There are two ways you could do
+that. There is a tool called "fxload" which can load the firmware, but
+it uses a different format to the kernel drivers for the firmware
+file. It needs intel hex format (ihx). You could alternatively add the
+EZ-USB development ID to the list of IDs for the kernel driver.
 
-http://linuxtv.org/hg/~stoth/s2
+Unfortunately neither of those methods will be a permanent fix. You
+will need to reprogram the I2C eeprom with the correct USB IDs in
+order to do that. That can be done with fxload and a special firmware
+or there is a tool available from Cypress which can do it - although
+it is Windows only.
 
-In addition, here's is a userland application that demonstrates tuning 
-the current DVB-S/T/C and US ATSC modulations types using the new API. 
-(www.steventoth.net/linux/s2/tune-v0.0.1.tgz)
+To the list: Does anyone know how to convert the *.fw files into ihx
+format for use with fxload?
 
-A tuning demo app? What? Obviously, tuning older modulation types via 
-the new API isn't a requirements, but it's a useful validation exercise 
-for the new S2API. What _IS_ important is..... that it also demonstrates 
-using the same tuning mechanism to tune DVB-S2 8PSK / NBC-QPSK 
-modulation types, and also has rudimentary ISDB-T support for any 
-developers specifically interested.
-
-This S2API tree also contains support for the cx24116 demodulator 
-driver, and the Hauppauge HVR4000 family of S2 products. So those 
-interested testers/developers can modify the tune.c app demo and make 
-changes specific to their area, and try experimenting with the new API 
-if they desire. [1]
-
-Obviously, tune.c isn't intelligent, it's not a replacement for szap, 
-tzap or whatever - it's simply a standalone S2API test tool, that 
-demonstrates the important API interface.
-
-QAM/ATSC are working well, the HVR4000 changes look fine according to 
-the debug log (although I have no local satellite feed for testing 
-tonight). DVB-T should just work as-is, but I can't test this for a day 
-or so. I.E. I've tested what I can in the US but we might have a few 
-bugs or gotchas!
-
-If anyone is willing to pull the tree and begin testing with the tune.c 
-app then please post all feedback on this thread. [2]
-
-I've received a lot of good feedback of the original 2007 patches. I 
-expect to start merging those changes of the coming days. Don't be too 
-concerned that your changes are not yet merged, keep watching the S2API 
-tree and they will soon appear ... along with a lot of general code 
-cleanup (checkpatch violations)
-
-I expect to catchup on my older email tomorrow.
-
-Regards to all,
-
-- Steve
-[1] I'll need to review and diff any of the newer HVR4000 driver 
-derivatives that people have been using, before merging those changes 
-into the S2API tree.
-[2] Remember you're going to need the cx24116 firmware if you're 
-specifically testing the HVR4000.... but you probably already know that! :)
+-- 
+Alistair Buxton
+a.j.buxton@gmail.com
 
 _______________________________________________
 linux-dvb mailing list
