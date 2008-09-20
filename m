@@ -1,29 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8SHYEmn002448
-	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 13:34:14 -0400
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8SHXsHN007500
-	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 13:34:00 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8SHXlTf004156
-	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 12:33:53 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8SHXkdD027922
-	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 23:03:47 +0530 (IST)
-From: "Jadav, Brijesh R" <brijesh.j@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Sun, 28 Sep 2008 23:03:46 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403DC087DE4@dbde02.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE4AF7E5CAA@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE4AF7E5CAA@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with SMTP id m8KDTeMj018049
+	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 09:29:40 -0400
+Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.187])
+	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id m8KDTPLK013897
+	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 09:29:26 -0400
+Received: by fk-out-0910.google.com with SMTP id e30so832776fke.3
+	for <video4linux-list@redhat.com>; Sat, 20 Sep 2008 06:29:06 -0700 (PDT)
+Message-ID: <48D4FA9E.6000802@gmail.com>
+Date: Sat, 20 Sep 2008 15:29:02 +0200
+From: "tomlohave@gmail.com" <tomlohave@gmail.com>
 MIME-Version: 1.0
+To: dabby bentam <db260179@hotmail.com>, linux-dvb@linuxtv.org,
+	Linux and Kernel Video <video4linux-list@redhat.com>
+References: <52E25CB7BF4E483089A488BD33B01059@DadyPC>
+	<BLU121-DAV6F8BF57A7A953B8492CD6C2A60@phx.gbl>
+	<7E99B38C8E0743AC9433ADCFAE34BC40@DadyPC>
+	<BLU121-DAV23EF75E8170A0882139E5C2A60@phx.gbl>
+	<5DFFD9161FC443AFB5D747B0EFA48C1A@DadyPC>
+	<BLU121-DAV10925F9CFA27DB5428BD48C2A10@phx.gbl>
+	<AE5A9016310A49F9902FCA896F18CED1@DadyPC>
+	<BLU116-W707A6B2D87B90CC2FB50AC24E0@phx.gbl>
+In-Reply-To: <BLU116-W707A6B2D87B90CC2FB50AC24E0@phx.gbl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 8bit
 Cc: 
-Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
+Subject: Re: FIXME: audio doesn't work on svideo/composite - hvr-1110 S-Video
+ and Composite
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,28 +38,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Murali,
+dabby bentam a écrit :
+> Hi Tom,
+>
+> Sorry to bother you like this in this way. I'm emailing because i have 
+> a Wintv hvr-1110 card. In the kernel sources it has
+>
+> FIXME: audio doesn't work on svideo/composite
+>
+> Do you know what is required to get this to work?
+>
+> Can i help in getting this to work?
+>
+> Thanks for your time
+>
+> David Bentham
+>
 
-I was looking into the video-buf layer and looks like it is difficult to pre-allocate the buffer at the init time and use them at the time of mmap using video-buf-contig layer. The only way out is to implement mmap function in the driver itself so that you can use your pre-allocated buffers and map them. You can use the same implementation as that of video-buf layer except that dma_alloc_coherent will not be called if it is already allocated.
+Hi,
 
-Thanks,
-Brijesh Jadav
-________________________________________
-From: video4linux-list-bounces@redhat.com [video4linux-list-bounces@redhat.com] On Behalf Of Karicheri, Muralidharan
-Sent: Monday, September 22, 2008 2:59 PM
-To: video4linux-list@redhat.com
-Subject: videobuf-dma-contig - buffer allocation at init time ?
+first, sorry for my poor english
 
-Hello,
+No sorry not sure what to do, i've try many configurations and 
+modifications in order to have svideo/composite audio but no result
 
-I am in the process of porting my V4L2 video driver to the latest kernel. I would like to use the contiguous buffer allocation and would like to allocate frame buffers (contiguous) at driver initialization. The contiguous buffer allocation module allocates buffer as part of _videobuf_mmap_mapper() using dma_alloc_coherent() which gets called during mmap() user calls. I have following questions about the design of this module.
-1) Why the allocation of buffer done as part of mmap() not at the init time?  Usually video capture requires big frame buffers of 4M or so, if HD capture is involved. So in our driver (based on 2.6.10) we allocate the buffer at driver initialization and had a hacked version of the buffer allocation module which used this pre-allocated frame buffer address ptrs during mmap. Allocating buffer of such big size during kernel operation is likely to fail due to fragmentation of buffers.
-2) Is there a way I can allocate the buffer using dma_alloc_coherent() at init time and still use the videobuf-dma-contig for mmap and buffer management using the allocated buffers ?
-3) Any other way to address the issue using the existing videobuf-dma-contig module ?
+you can try different parameter (see in sources, take example on other 
+cards)
+or ask on linuxtv mailing list
+I forward your precedant mail to this list
 
-Thanks for your help.
+Cheers
 
-Murali
+Thomas
 
 --
 video4linux-list mailing list
