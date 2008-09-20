@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
+Received: from ey-out-2122.google.com ([74.125.78.24])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KhQCb-0007N8-Ed
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 16:46:24 +0200
-Message-ID: <48D65E36.9070003@linuxtv.org>
-Date: Sun, 21 Sep 2008 10:46:14 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1Kh3T5-0003sX-0a
+	for linux-dvb@linuxtv.org; Sat, 20 Sep 2008 16:29:51 +0200
+Received: by ey-out-2122.google.com with SMTP id 25so252120eya.17
+	for <linux-dvb@linuxtv.org>; Sat, 20 Sep 2008 07:29:47 -0700 (PDT)
+Message-ID: <412bdbff0809200729q551ece09u98fb2c22f680188b@mail.gmail.com>
+Date: Sat, 20 Sep 2008 10:29:47 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Tharsan Bhuvanendran" <me@tharsan.com>
+In-Reply-To: <c64bf6860809200004o1970a939jaa51e543de2ec594@mail.gmail.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-References: <48D658BF.7040807@rogers.com>
-	<412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
-In-Reply-To: <412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
+Content-Disposition: inline
+References: <c64bf6860809200004o1970a939jaa51e543de2ec594@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950
-	and	v4l-dvb
+Subject: Re: [linux-dvb] Support for Pinnacle PCTV mini stick (USB TV Tuner)
+	80e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,42 +29,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Devin Heitmueller wrote:
-> On Sun, Sep 21, 2008 at 10:22 AM, Jonathan Coles <jcoles0727@rogers.com> wrote:
->> It would really help if there was a single set of instructions specific
->> to the HVR-950 with tests at each stage. I'm really confused as to the
->> status of my installation.
->>
->> I compiled the firmware according to the instructions on
->> http://linuxtv.org/repo/. The result:
->>
->> $ lsusb
->> Bus 005 Device 002: ID 2040:7200 Hauppauge
-> 
-> Hold the phone!  You don't have an HVR-950.  You have an HVR-950Q.
-> Please be sure to mention this in all future messages, since it's a
-> totally different device and the HVR-950 directions do not apply.
-> 
-> I'm not sure whether the HVR-950Q support has been merged yet.  Steven
-> could comment on that.  I suspect it's still in a separate branch,
-> which would mean you would need to do an hg clone of a different tree.
+Hello Tharsan,
 
+2008/9/20 Tharsan Bhuvanendran <me@tharsan.com>:
+> Hi,
+>
+> At the moment, there doesn't seem to be any dvb support for the Pinnacle
+> PCTV HD mini stick (USB TV Tuner).
+> The model is 80e.  This appears to be a new model, released about a month
+> ago.
+>
+> The Pinnacle product page is here:
+> http://pinnaclesys.com/PublicSite/us/Products/Consumer+Products/PCTV+Tuners/PCTV+Digital+PVR+(DVB-S_DVB-T)/HD+mini+Stick
 
-HVR950Q ATSC / QAM is supported in the master development repository, and it is in upstream 2.6.26 and later.
+I just finished support for the Pro and Non-Pro versions a couple of
+weeks ago, but judging by the different form factor, I would suspect
+this is a different hardware design.
 
-You need the xc5000 firmware.
+The most useful thing you could do would be to pop the device open and
+take digital photos of the PCBs, and create a page on the LInuxTV DVB
+Wiki for the device.
 
-[   17.247610] usb 5-2: new high speed USB device using ehci_hcd and 
-address 2
-[   17.380387] usb 5-2: unable to read config index 0 descriptor/all
-[   17.380434] usb 5-2: can't read configurations, error -71
+Once we know what components it contains, that will give us some idea
+how much work will be required.
 
+Regards,
 
-^^ This is not a firmware problem, but looks fishy.  If using the latest drivers from linuxtv.org doesnt work for you, then try another USB port, or confirm that it also works in windows.
+Devin
 
-Good Luck,
-
-Mike
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
