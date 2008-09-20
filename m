@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ik-out-1112.google.com ([66.249.90.179])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KfZv7-0006MH-2k
-	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 14:44:43 +0200
-Received: by ik-out-1112.google.com with SMTP id c21so2424712ika.1
-	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 05:44:37 -0700 (PDT)
-Message-ID: <412bdbff0809160544h28f90d86x81adcb37626fd518@mail.gmail.com>
-Date: Tue, 16 Sep 2008 08:44:37 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-In-Reply-To: <48CF3D97.40805@linuxtv.org>
+Received: from smtp129.rog.mail.re2.yahoo.com ([206.190.53.34])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <jcoles0727@rogers.com>) id 1Kh0cd-000254-AR
+	for linux-dvb@linuxtv.org; Sat, 20 Sep 2008 13:27:32 +0200
+Message-ID: <48D4DE00.90005@rogers.com>
+Date: Sat, 20 Sep 2008 07:26:56 -0400
+From: Jonathan Coles <jcoles0727@rogers.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <412bdbff0809152102j4faa675cw3134efe5403020bd@mail.gmail.com>
-	<48CF3D97.40805@linuxtv.org>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [FIX] Use correct firmware for the ATI TV Wonder 600
+To: linux-dvb@linuxtv.org
+References: <48D059AE.1060307@rogers.com>
+	<bb72339d0809161837w58ce1256g519306a029e36294@mail.gmail.com>
+In-Reply-To: <bb72339d0809161837w58ce1256g519306a029e36294@mail.gmail.com>
+Subject: Re: [linux-dvb] Questions on v4l-dvb driver instructions
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,25 +25,79 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Sep 16, 2008 at 1:01 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> I'll push this in... I like the fact that you defined the xc3028L firmware in the header -- I will also push up a patch to change the HVR1400 (cx23885 ExpressCard) to use XC3028L_DEFAULT_FIRMWARE instead of specifying the filename explicitly.
+Perhaps I have some other misconfiguration in my system. With the wget 
+command I must use the --no-proxy option. Otherwise, I get "Error 
+parsing proxy URL http://:8080/: Invalid host name." Very strange that 
+port 8080 is assumed when the standard port is 80.
 
-Michael,
+I couldn't find an equivalent no-proxy option for hg.
 
-Thanks for your help in getting this pulled in.  The moral of this
-story seems to have been that it's *way* easier to just buy the damn
-thing than to add support for someone's device remotely.  92 emails
-over three weeks to get support added versus 1 evening to get support
-working right.  :-)
+Thanks.
 
-Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Owen Townend wrote:
+> 2008/9/17 Jonathan Coles <jcoles0727@rogers.com>:
+>   
+>> Your instructions at http://linuxtv.org/repo/ for obtaining v4l-dvb say
+>> to execute:
+>>
+>> hg clone http://linuxtv.org/hg/v4l-dvb
+>>
+>> But this returns
+>>
+>> abort: error: Name or service not known
+>>
+>> Perhaps there is a mistake in the instructions.
+>>     
+>
+> copy and pasting that line here works fine:
+>
+> % hg clone http://linuxtv.org/hg/v4l-dvb
+> destination directory: v4l-dvb
+> requesting all changes
+> adding changesets
+> ...etc
+>
+>   
+>> It seems this checkout step is not really required, as you can download
+>> the tarball from a link on the page at the URL.
+>>     
+>
+> One advantage of using mercurial over the tarball is the ability to
+> run `hg pull` and `hg update` rather than re download the entire set.
+>
+>   
+>> I also find it confusing that you mention dvb-apps, but don't talk about
+>> compiling it. Is it needed? Optional? An alternative?
+>>     
+>
+> dvb-apps AFAIK are optional. I have not yet needed them in normal
+> operation of a tuner card.
+>
+>   
+>> Are there additional steps not presented here? I was unable to get my
+>> Hauppage HVR-950 to work on Ubuntu 8.04. Does this package support that
+>> device?
+>>     
+>
+> Do you have the firmware for the device as well as the driver?
+>
+> On the mythtv-users list there was a success story using one of these
+> tuners. It details how they got it working before going into issues
+> using two of them:
+> http://www.gossamer-threads.com/lists/mythtv/users/349205?search_string=HVR-950;#349205
+> He was using the mcentral repository, and Edgy but the steps are
+> otherwise the same.
+>
+> Hope this helps,
+> cheers,
+> Owen.
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>   
 
 _______________________________________________
 linux-dvb mailing list
