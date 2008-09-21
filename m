@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from mail.hauppauge.com ([167.206.143.4])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1KhMO9-0000RB-Hr
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 12:42:04 +0200
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	526F518001BF
-	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 10:41:25 +0000 (GMT)
-Content-Disposition: inline
+	(envelope-from <mkrufky@linuxtv.org>) id 1KhRXT-00051Z-Pz
+	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 18:12:01 +0200
+Message-ID: <48D67247.6010904@linuxtv.org>
+Date: Sun, 21 Sep 2008 12:11:51 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-From: stev391@email.com
-To: "Alex Ferrara" <alex@receptiveit.com.au>
-Date: Sun, 21 Sep 2008 20:41:25 +1000
-Message-Id: <20080921104125.3218916429C@ws1-4.us4.outblaze.com>
+To: Jonathan Coles <jcoles0727@rogers.com>
+References: <48D658BF.7040807@rogers.com>
+	<412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
+	<48D65E36.9070003@linuxtv.org> <48D66BE1.7020900@rogers.com>
+In-Reply-To: <48D66BE1.7020900@rogers.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Dvico dual digital express - Poor tuner
+Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950
+	and	v4l-dvb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,50 +28,83 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> On Sun, Sep 21, 2008 at 3:35 PM, Alex Ferrara <alex@receptiveit.com.au> wrote:
-> > I am currently seeing inconsistent performance with the dvico dual
-> > digital express. Some channels tune just fine, and others have the
-> > impression of a very low signal strength.
-> 
-> I have the same card in regional Australia, i had a similar problem
-> problem, its working fine now though.
-> 
-> One of my issue was that i had not scanned the channels properly, did
-> you generate your initial-tuning-data yourself and use scan to
-> generate the channels.conf, or use somebody elses initial-tuning-data
-> ?
-> 
-> It could be that the frequency in your channels.conf isnt accurate
-> enough, from what ive experienced if you set the frequency in the
-> channels.conf to be the center frequency of channel + 125kHz you
-> should be ok.
-> 
-> Also, there is an app called femon from dvb-apps package which will
-> display the signal strength of the currently tunned channel, i just
-> started that going and moved my indoor digital antenna around till i
-> got max strength.
-> 
-> 
-> Glenn
+Jonathan Coles wrote:
+> Michael Krufky wrote:
+>> Devin Heitmueller wrote:
+>>  
+>>> On Sun, Sep 21, 2008 at 10:22 AM, Jonathan Coles
+>>> <jcoles0727@rogers.com> wrote:
+>>>    
+>>>> It would really help if there was a single set of instructions
+>>>> specific
+>>>> to the HVR-950 with tests at each stage. I'm really confused as to the
+>>>> status of my installation.
+>>>>
+>>>> I compiled the firmware according to the instructions on
+>>>> http://linuxtv.org/repo/. The result:
+>>>>
+>>>> $ lsusb
+>>>> Bus 005 Device 002: ID 2040:7200 Hauppauge
+>>>>       
+>>> Hold the phone!  You don't have an HVR-950.  You have an HVR-950Q.
+>>> Please be sure to mention this in all future messages, since it's a
+>>> totally different device and the HVR-950 directions do not apply.
+>>>
+>>> I'm not sure whether the HVR-950Q support has been merged yet.  Steven
+>>> could comment on that.  I suspect it's still in a separate branch,
+>>> which would mean you would need to do an hg clone of a different tree.
+>>>     
+>>
+>>
+>> HVR950Q ATSC / QAM is supported in the master development repository,
+>> and it is in upstream 2.6.26 and later.
+>>
+>> You need the xc5000 firmware.
+>>
+>> [   17.247610] usb 5-2: new high speed USB device using ehci_hcd and
+>> address 2
+>> [   17.380387] usb 5-2: unable to read config index 0 descriptor/all
+>> [   17.380434] usb 5-2: can't read configurations, error -71
+>>
+>>
+>> ^^ This is not a firmware problem, but looks fishy.  If using the
+>> latest drivers from linuxtv.org doesnt work for you, then try another
+>> USB port, or confirm that it also works in windows.
+>>
+>> Good Luck,
+>>
+>> Mike
+>>   
+> Thanks guys!
+>
+> The box says HVR-950 on it and that the device "Cannot receive digital
+> cable TV". However, the device itself is labeled "NTSC/ATSC/QAM HD TV
+> receiver" and there is a small, stylized Q following the "950". Great!
+> I got this on sale. Lack of QAM support was my reason for not buying
+> earlier at the usual price. Perhaps the store didn't realize that this
+> is the newer model.
+>
+> I had added the XC5000 firmware, dvb-fe-xc5000-1.1.fw, in case I had a
+> 950Q. But if, as you say, I need a later kernel, that might be why it
+> doesn't work. I have kernel 2.6.24-19.
+>
+> I'll look for more info on linuxtv.org. Perhaps I just need to wait a
+> little for the support for this to be developed.
+I am telling you that this device is already supported -- You must use
+kernel version 2.6.26 or later, *or* you can use the latest modules from
+linuxtv.org with your older kernel.
 
-Alex,
+Check the howto for info about how to install the drivers:
 
-Does this also happen in windows?
-If so another possible solution is to either turn down your distribution amplifier or install attenuators on the RF input into the card. 
-In my mates setup I had to install a 12db attenuator inline to reduce the signal enough to within the cards dynamic range (An analogy of this is if you are at a rock concert next to the speakers it sounds sh!t due to the high volume however if you move away or muffle the sound slightly it will sound a lot better).
-His older TV cards needed this higher strength signal to operate, if it didn't I would have just gotten rid of his distribution amplifier.
-
-I hope this helps.
-(I have set up a total of 5 of these cards in linux so far and this has been the only issue with the current set of drivers. [Location is Melbourne]).
-
-Stephen.
+http://linuxtv.org/repo
 
 
--- 
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
+...and yes -- your stick does support QAM.
 
+
+Regards,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
