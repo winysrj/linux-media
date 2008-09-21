@@ -1,24 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.229])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <makosoft@googlemail.com>) id 1KbiKW-0002UQ-P8
-	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 22:54:58 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so584880rvf.41
-	for <linux-dvb@linuxtv.org>; Fri, 05 Sep 2008 13:54:51 -0700 (PDT)
-Message-ID: <c8b4dbe10809051354r2747b42atf15b3b6f9346987c@mail.gmail.com>
-Date: Fri, 5 Sep 2008 21:54:51 +0100
-From: "Aidan Thornton" <makosoft@googlemail.com>
-To: "Greg KH" <greg@kroah.com>
-In-Reply-To: <20080831042115.GA21622@kroah.com>
+Received: from smtp108.rog.mail.re2.yahoo.com ([68.142.225.206])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <jcoles0727@rogers.com>) id 1KhSZU-0003eN-7Q
+	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 19:18:10 +0200
+Message-ID: <48D681AD.4070508@rogers.com>
+Date: Sun, 21 Sep 2008 13:17:33 -0400
+From: Jonathan Coles <jcoles0727@rogers.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <48B8400A.9030409@linuxtv.org> <48B98914.1020800@w3z.co.uk>
-	<48B98B89.80803@linuxtv.org>
-	<d9def9db0808302057u25e7ce5yfb2967c893255df0@mail.gmail.com>
-	<20080831042115.GA21622@kroah.com>
-Cc: mrechberger@sundtek.com, linux-dvb@linuxtv.org,
-	Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+To: Michael Krufky <mkrufky@linuxtv.org>
+References: <48D658BF.7040807@rogers.com>
+	<412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
+	<48D65E36.9070003@linuxtv.org> <48D66BE1.7020900@rogers.com>
+	<48D67247.6010904@linuxtv.org>
+In-Reply-To: <48D67247.6010904@linuxtv.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950
+	and	v4l-dvb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,55 +29,103 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Aug 31, 2008 at 5:21 AM, Greg KH <greg@kroah.com> wrote:
-> On Sun, Aug 31, 2008 at 05:57:46AM +0200, Markus Rechberger wrote:
->> Let's put another thing in here: Greg Kroah Hartman Linux Guy reverted
+Michael Krufky wrote:
+> Jonathan Coles wrote:
+>   
+>> Michael Krufky wrote:
+>>     
+>>> Devin Heitmueller wrote:
+>>>  
+>>>       
+>>>> On Sun, Sep 21, 2008 at 10:22 AM, Jonathan Coles
+>>>> <jcoles0727@rogers.com> wrote:
+>>>>    
+>>>>         
+>>>>> It would really help if there was a single set of instructions
+>>>>> specific
+>>>>> to the HVR-950 with tests at each stage. I'm really confused as to the
+>>>>> status of my installation.
+>>>>>
+>>>>> I compiled the firmware according to the instructions on
+>>>>> http://linuxtv.org/repo/. The result:
+>>>>>
+>>>>> $ lsusb
+>>>>> Bus 005 Device 002: ID 2040:7200 Hauppauge
+>>>>>       
+>>>>>           
+>>>> Hold the phone!  You don't have an HVR-950.  You have an HVR-950Q.
+>>>> Please be sure to mention this in all future messages, since it's a
+>>>> totally different device and the HVR-950 directions do not apply.
+>>>>
+>>>> I'm not sure whether the HVR-950Q support has been merged yet.  Steven
+>>>> could comment on that.  I suspect it's still in a separate branch,
+>>>> which would mean you would need to do an hg clone of a different tree.
+>>>>     
+>>>>         
+>>> HVR950Q ATSC / QAM is supported in the master development repository,
+>>> and it is in upstream 2.6.26 and later.
+>>>
+>>> You need the xc5000 firmware.
+>>>
+>>> [   17.247610] usb 5-2: new high speed USB device using ehci_hcd and
+>>> address 2
+>>> [   17.380387] usb 5-2: unable to read config index 0 descriptor/all
+>>> [   17.380434] usb 5-2: can't read configurations, error -71
+>>>
+>>>
+>>> ^^ This is not a firmware problem, but looks fishy.  If using the
+>>> latest drivers from linuxtv.org doesnt work for you, then try another
+>>> USB port, or confirm that it also works in windows.
+>>>
+>>> Good Luck,
+>>>
+>>> Mike
+>>>   
+>>>       
+>> Thanks guys!
+>>
+>> The box says HVR-950 on it and that the device "Cannot receive digital
+>> cable TV". However, the device itself is labeled "NTSC/ATSC/QAM HD TV
+>> receiver" and there is a small, stylized Q following the "950". Great!
+>> I got this on sale. Lack of QAM support was my reason for not buying
+>> earlier at the usual price. Perhaps the store didn't realize that this
+>> is the newer model.
+>>
+>> I had added the XC5000 firmware, dvb-fe-xc5000-1.1.fw, in case I had a
+>> 950Q. But if, as you say, I need a later kernel, that might be why it
+>> doesn't work. I have kernel 2.6.24-19.
+>>
+>> I'll look for more info on linuxtv.org. Perhaps I just need to wait a
+>> little for the support for this to be developed.
+>>     
+> I am telling you that this device is already supported -- You must use
+> kernel version 2.6.26 or later, *or* you can use the latest modules from
+> linuxtv.org with your older kernel.
 >
-> If you're going to spell my full last name out, please get it right, you
-> forgot a '-' :)
+> Check the howto for info about how to install the drivers:
 >
->> my patch in favour of supporting the binary Firmware upload tool of
->> Dell (I fully support Dell here too) although claiming to be
->> opensource but still running after someone (please comment this one -
->> it confused me at 'your' position). It was just like ok let's revert
->> it but not asking why?!
+> http://linuxtv.org/repo
 >
-> What patch specifically are you referring to here?
 >
-> And what does this have to do with v4l and DVB issues?
+> ...and yes -- your stick does support QAM.
 >
-> thanks,
 >
-> greg k-h
+> Regards,
+>
+> Mike
+>   
+You are right! I tried a different USB port and the device was recognized. 
 
-Hi,
+My battle is now with me-tv. Its scan doesn't find anything. The scan 
+program from v4l finds channels, but me-tv complains "There's an invalid 
+channel record in the channels.conf file". If I put the v4l scan 
+channels.conf in my .me-tv directory, me-tv complains that the file is 
+not utf-8 encoded. Always another barrier. :-)
 
-Markus submitted a patch to the firmware loader code that fixed a
-sysfs filename collision by appending a suffix to the sysfs filename
-it used. This bug broke the use of the firmware loader from i2c device
-drivers (specifically, the drivers for the xc3028 TV tuner chip) with
-certain (not particularly unusual) kernel configurations - IIRC, it
-affected kernels with I2C compiled as a module and a particular value
-of some option related to sysfs depreciated support. The patch was
-reverted by you because it broke binary-only firmware upload tools for
-Dell hardware, screwing over normal desktop users in the process.
+As Steve suggests, I'll start specific HVR-950Q threads for additional 
+issues.
 
-See, for example, http://lkml.org/lkml/2008/4/26/319 - this is fairly
-typical. IIRC, the only drivers for the xc3028 that aren't affected
-are Markus' recent ones, since they compile the firmware into the
-driver (ugh). This may have been fixed since, but I'm not sure.
 
-(Incidentally, looking at the conversation, I believe your remark that
-"the i2c devices can fix things by changing their module names so this
-collision doesn't happen :)" may be inaccurate. The firmware loader
-copies the name it uses from the device passed to it, so I'm not sure
-how much can be done, short of hacking around the issue by creating a
-fake device to pass to the firmware loader or making potentially
-compatibility-breaking changes to either the i2c core or the firmware
-loader. Of course, I haven't looked at the issue that closely, so I
-may be wrong.)
-
-Aidan
 
 _______________________________________________
 linux-dvb mailing list
