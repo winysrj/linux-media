@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bay0-omc3-s36.bay0.hotmail.com ([65.54.246.236])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <aegyssus@hotmail.com>) id 1KfIml-0007x7-UV
-	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 20:26:58 +0200
-Message-ID: <BLU134-DAV40A4F7A1645B9CC1B7E9FD3520@phx.gbl>
-From: "Virgil Mocanu" <aegyssus@hotmail.com>
-To: <linux-dvb@linuxtv.org>
-Date: Mon, 15 Sep 2008 14:26:20 -0400
-MIME-Version: 1.0
-Subject: [linux-dvb] LeadTek PxPVR2200 drivers
+Date: Sun, 21 Sep 2008 13:03:13 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48D67247.6010904@linuxtv.org>
+To: Jonathan Coles <jcoles0727@rogers.com>
+Message-id: <48D67E51.6090603@linuxtv.org>
+MIME-version: 1.0
+References: <48D658BF.7040807@rogers.com>
+	<412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
+	<48D65E36.9070003@linuxtv.org> <48D66BE1.7020900@rogers.com>
+	<48D67247.6010904@linuxtv.org>
+Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950
+	and	v4l-dvb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,93 +25,89 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-I am just wondering if anybody succeeded to make a LeadTek PxPVR2200 work... 
-It's using Conexant CX23885+CX23417 + Xceive silicon tuner.
-The card is mostly sold in Eastern Europe but it is only coming with Windows 
-drivers and v4l does not recognize it:
-========================
-cx23885 driver version 0.0.1 loaded
-ACPI: PCI Interrupt 0000:07:00.0[A] -> GSI 18 (level, low) -> IRQ 18
-cx23885[0]: Your board isn't known (yet) to the driver.  You can
-cx23885[0]: try to pick one of the existing card configs via
-cx23885[0]: card=<n> insmod option.  Updating to the latest
-cx23885[0]: version might help as well.
-cx23885[0]: Here is a list of valid choices for the card=<n> insmod option:
-cx23885[0]:    card=0 -> UNKNOWN/GENERIC
-cx23885[0]:    card=1 -> Hauppauge WinTV-HVR1800lp
-cx23885[0]:    card=2 -> Hauppauge WinTV-HVR1800
-cx23885[0]:    card=3 -> Hauppauge WinTV-HVR1250
-cx23885[0]:    card=4 -> DViCO FusionHDTV5 Express
-cx23885[0]:    card=5 -> Hauppauge WinTV-HVR1500Q
-cx23885[0]:    card=6 -> Hauppauge WinTV-HVR1500
-cx23885[0]:    card=7 -> Hauppauge WinTV-HVR1200
-cx23885[0]:    card=8 -> Hauppauge WinTV-HVR1700
-cx23885[0]:    card=9 -> Hauppauge WinTV-HVR1400
-cx23885[0]:    card=10 -> DViCO FusionHDTV7 Dual Express
-cx23885[0]:    card=11 -> DViCO FusionHDTV DVB-T Dual Express
-cx23885[0]:    card=12 -> Leadtek Winfast PxDVR3200 H
-CORE cx23885[0]: subsystem: 107d:6f21, board: UNKNOWN/GENERIC 
-[card=0,autodetected]
-cx23885[0]: i2c bus 0 registered
-tuner' 2-0061: chip found @ 0xc2 (cx23885[0])
-cx23885[0]: i2c bus 1 registered
-tvaudio' 3-004c: tea6420 found @ 0x98 (cx23885[0])
-cx23885[0]: i2c bus 2 registered
-cx23885_dev_checkrevision() Hardware revision = 0xb0
-cx23885[0]/0: found at 0000:07:00.0, rev: 2, irq: 18, latency: 0, mmio: 
-0xfe800000
-PCI: Setting latency timer of device 0000:07:00.0 to 64
-========================
+Michael Krufky wrote:
+> Jonathan Coles wrote:
+>> Michael Krufky wrote:
+>>> Devin Heitmueller wrote:
+>>>  
+>>>> On Sun, Sep 21, 2008 at 10:22 AM, Jonathan Coles
+>>>> <jcoles0727@rogers.com> wrote:
+>>>>    
+>>>>> It would really help if there was a single set of instructions
+>>>>> specific
+>>>>> to the HVR-950 with tests at each stage. I'm really confused as to the
+>>>>> status of my installation.
+>>>>>
+>>>>> I compiled the firmware according to the instructions on
+>>>>> http://linuxtv.org/repo/. The result:
+>>>>>
+>>>>> $ lsusb
+>>>>> Bus 005 Device 002: ID 2040:7200 Hauppauge
+>>>>>       
+>>>> Hold the phone!  You don't have an HVR-950.  You have an HVR-950Q.
+>>>> Please be sure to mention this in all future messages, since it's a
+>>>> totally different device and the HVR-950 directions do not apply.
+>>>>
+>>>> I'm not sure whether the HVR-950Q support has been merged yet.  Steven
+>>>> could comment on that.  I suspect it's still in a separate branch,
+>>>> which would mean you would need to do an hg clone of a different tree.
+>>>>     
+>>>
+>>> HVR950Q ATSC / QAM is supported in the master development repository,
+>>> and it is in upstream 2.6.26 and later.
+>>>
+>>> You need the xc5000 firmware.
+>>>
+>>> [   17.247610] usb 5-2: new high speed USB device using ehci_hcd and
+>>> address 2
+>>> [   17.380387] usb 5-2: unable to read config index 0 descriptor/all
+>>> [   17.380434] usb 5-2: can't read configurations, error -71
+>>>
+>>>
+>>> ^^ This is not a firmware problem, but looks fishy.  If using the
+>>> latest drivers from linuxtv.org doesnt work for you, then try another
+>>> USB port, or confirm that it also works in windows.
+>>>
+>>> Good Luck,
+>>>
+>>> Mike
+>>>   
+>> Thanks guys!
+>>
+>> The box says HVR-950 on it and that the device "Cannot receive digital
+>> cable TV". However, the device itself is labeled "NTSC/ATSC/QAM HD TV
+>> receiver" and there is a small, stylized Q following the "950". Great!
+>> I got this on sale. Lack of QAM support was my reason for not buying
+>> earlier at the usual price. Perhaps the store didn't realize that this
+>> is the newer model.
+>>
+>> I had added the XC5000 firmware, dvb-fe-xc5000-1.1.fw, in case I had a
+>> 950Q. But if, as you say, I need a later kernel, that might be why it
+>> doesn't work. I have kernel 2.6.24-19.
+>>
+>> I'll look for more info on linuxtv.org. Perhaps I just need to wait a
+>> little for the support for this to be developed.
+> I am telling you that this device is already supported -- You must use
+> kernel version 2.6.26 or later, *or* you can use the latest modules from
+> linuxtv.org with your older kernel.
+> 
+> Check the howto for info about how to install the drivers:
+> 
+> http://linuxtv.org/repo
+> 
+> 
+> ...and yes -- your stick does support QAM.
 
-No video device is created for this card therefore it's totally unusable 
-under Linux.
-I played with the card by changing <card> option but none of them worked. I 
-used the latest mercurial drivers but it did not help.
+Jonathan, this sticks works very nicely for me for ATSC and US digital 
+cable services. I think you'll enjoy it!
 
-lspci -vvv returns this:
-========================
-07:00.0 Multimedia video controller: Conexant Unknown device 8852 (rev 02)
-        Subsystem: LeadTek Research Inc. Unknown device 6f21
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
-Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 0, Cache Line Size: 32 bytes
-        Interrupt: pin A routed to IRQ 18
-        Region 0: Memory at fe800000 (64-bit, non-prefetchable) [size=2M]
-        Capabilities: [40] Express (v1) Endpoint, MSI 00
-                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s 
-<64ns, L1 <1us
-                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
-                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- 
-Unsupported-
-                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
-                        MaxPayload 128 bytes, MaxReadReq 512 bytes
-                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- 
-TransPend-
-                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, 
-Latency L0 <2us, L1 <4us
-                        ClockPM- Suprise- LLActRep- BwNot-
-                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- 
-CommClk-
-                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ 
-DLActive- BWMgmt- ABWMgmt-
-        Capabilities: [80] Power Management version 2
-                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA 
-PME(D0+,D1+,D2+,D3hot+,D3cold-)
-                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-        Capabilities: [90] Vital Product Data <?>
-        Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ 
-Queue=0/0 Enable-
-                Address: 0000000000000000  Data: 0000
-        Kernel driver in use: cx23885
-        Kernel modules: cx23885
-========================
+If you have specific hvr-950q issues perhaps you could generate a new 
+thread with the appropriate subject (for future reference to users with 
+similar issues).
 
-Many thanks for any suggestion,
-aegyssus 
+Regards,
+
+Steve
 
 
 _______________________________________________
