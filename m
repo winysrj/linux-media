@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.28])
+Received: from ug-out-1314.google.com ([66.249.92.174])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lucastim@gmail.com>) id 1KdALJ-0002ZM-RB
-	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 23:01:46 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so1239278yxg.41
-	for <linux-dvb@linuxtv.org>; Tue, 09 Sep 2008 14:01:41 -0700 (PDT)
-Message-ID: <e32e0e5d0809091401w75909006uccd7a776d4d5bd35@mail.gmail.com>
-Date: Tue, 9 Sep 2008 14:01:40 -0700
-From: "Tim Lucas" <lucastim@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>, "linux dvb" <linux-dvb@linuxtv.org>,
-	patrbois@magma.ca
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KhPtp-0005bd-KB
+	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 16:26:58 +0200
+Received: by ug-out-1314.google.com with SMTP id 39so3558433ugf.16
+	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 07:26:54 -0700 (PDT)
+Message-ID: <412bdbff0809210726i7118f62et1627e22426771656@mail.gmail.com>
+Date: Sun, 21 Sep 2008 10:26:54 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Jonathan Coles" <jcoles0727@rogers.com>
+In-Reply-To: <48D6329C.1010309@rogers.com>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
+Content-Disposition: inline
+References: <48D059AE.1060307@rogers.com>
+	<bb72339d0809161837w58ce1256g519306a029e36294@mail.gmail.com>
+	<48D4DE00.90005@rogers.com> <48D510E8.7080900@linuxtv.org>
+	<48D6329C.1010309@rogers.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Questions on v4l-dvb driver instructions
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,126 +25,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0058880389=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0058880389==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_37497_24337222.1220994101019"
+On Sun, Sep 21, 2008 at 7:40 AM, Jonathan Coles <jcoles0727@rogers.com> wrote:
+> I already have the man page for hg and hgrc. But, admittedly, I had only
+> looked the one for hg.
+>
+> Assuming the problem was proxy related, as with wget, I added a
+> [http_proxy] section, with "no=linuxtv.org". That worked! Unfortunately,
+> "no=*" does not work, so every Mercurial host I ever want to access will
+> have to be added to the file.
+>
+> I don't understand why I would use a proxy for downloads. If this is on
+> one's own machine, what security is gained?
+>
+> Overall, the Mercurial issues are just an unnecessary complication, and
+> my real problem with v4l-dvb for the HVR-950 is probably something to do
+> with loading firmware or kernel modules. Linux has come a long way in
+> the five years or so that I have been using it. But, some things, like
+> using an off-the-shelf USB device, can still prove impossibly complex
+> for those of us who are not hard-core computer geeks.
 
-------=_Part_37497_24337222.1220994101019
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+That is indeed strange, as Ubuntu does not ship with any proxy support
+enabled by default.
 
-> Message: 5
-> Date: Tue, 09 Sep 2008 10:52:53 -0400
-> From: Steven Toth <stoth@linuxtv.org>
-> Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
-> To: Patrick Boisvenue <patrbois@magma.ca>
-> Cc: linux-dvb@linuxtv.org
-> Message-ID: <48C68DC5.1050400@linuxtv.org>
-> Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+The HVR-950 works in Ubuntu 8.04 (that's what I wrote it under) but be
+forewarned that Ubuntu screwed up their kernel build process in 8.04
+so that the analog audio driver doesn't build from source.  If you're
+planning on using the device for ATSC then you are fine, but if you're
+doing analog audio then you would need to rebuild the kernel from
+source (which is a real pain).
 
-> Patrick Boisvenue wrote:
->> I cannot get my new HVR-1500Q to work at all even though it's recognized
->> as such.  The best I was able to figure out was it does not like the
->> eeprom.  After enabling the debug mode on tveeprom, I got the following
->> when loading cx23885:
+I can certainly appreciate your frustration regarding this stuff
+"working off the shelf".  It was that exact frustration with the
+HVR-950 support that got me involved in the project in the first
+place.  If it's any consolation, since support was merged into the
+kernel it now works in the stock Fedora 9 and it will work in the
+out-of-the-box Ubuntu 8.10 when it comes out.  All you will have to do
+is stick the firmware file into /lib/firmware.
 
-...
-
->> cx23885[0]: warning: unknown hauppauge model #0
->> cx23885[0]: hauppauge eeprom: model=0
->> cx23885[0]: cx23885 based dvb card
-
-...
-
->> Did a hg pull -u http://linuxtv.org/hg/v4l-dvb earlier today so running
->> off recent codebase.
-
->Fixed it, see linuxtv.org/hg/~stoth/v4l-dvb<http://linuxtv.org/hg/%7Estoth/v4l-dvb>
-.
-
->Pull the topmost patch and try again, please post your results back here.
-
->Thanks,
-
->Steve
-
-This is the same problem that I was having
-
-[  589.382427] tveeprom 5-0050: Encountered bad packet header [ff]. Corrupt
-or not a Hauppauge eeprom.
-[  589.382431] cx23885[0]: warning: unknown hauppauge model #0
-[  589.382432] cx23885[0]: hauppauge eeprom: model=0
-
-I was working with the cx23885-audio branch for the analog support.  Could
-these changes be added to that branch as well?  Or could I get things
-working by simply merging with the ~stoth/v4l-dvd branch?
+Devin
 
 -- 
---Tim
-
-------=_Part_37497_24337222.1220994101019
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">&gt; Message: 5<br>
-&gt; Date: Tue, 09 Sep 2008 10:52:53 -0400<br>
-&gt; From: Steven Toth &lt;<a href="mailto:stoth@linuxtv.org" target="_blank">stoth@linuxtv.org</a>&gt;<br>
-&gt; Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly<br>
-&gt; To: Patrick Boisvenue &lt;<a href="mailto:patrbois@magma.ca" target="_blank">patrbois@magma.ca</a>&gt;<br>
-&gt; Cc: <a href="mailto:linux-dvb@linuxtv.org" target="_blank">linux-dvb@linuxtv.org</a><br>&gt; Message-ID: &lt;<a href="mailto:48C68DC5.1050400@linuxtv.org" target="_blank">48C68DC5.1050400@linuxtv.org</a>&gt;<br>
-&gt; Content-Type: text/plain; charset=ISO-8859-1; format=flowed<br>
-<br>
-&gt; Patrick Boisvenue wrote:<br>
-&gt;&gt; I cannot get my new HVR-1500Q to work at all even though it&#39;s recognized<br>
-&gt;&gt; as such. &nbsp;The best I was able to figure out was it does not like the<br>
-&gt;&gt; eeprom. &nbsp;After enabling the debug mode on tveeprom, I got the following<br>
-&gt;&gt; when loading cx23885:<br>
-<br>
-...<br>
-<br>
-&gt;&gt; cx23885[0]: warning: unknown hauppauge model #0<br>
-&gt;&gt; cx23885[0]: hauppauge eeprom: model=0<br>
-&gt;&gt; cx23885[0]: cx23885 based dvb card<br>
-<br>
-...<br>
-<br>
-&gt;&gt; Did a hg pull -u <a href="http://linuxtv.org/hg/v4l-dvb" target="_blank">http://linuxtv.org/hg/v4l-dvb</a> earlier today so running<br>
-&gt;&gt; off recent codebase.<br>
-<br>
-&gt;Fixed it, see <a href="http://linuxtv.org/hg/%7Estoth/v4l-dvb" target="_blank">linuxtv.org/hg/~stoth/v4l-dvb</a>.<br>
-<br>
-&gt;Pull the topmost patch and try again, please post your results back here.<br>
-<br>
-&gt;Thanks,<br>
-<br>
-&gt;Steve<br clear="all"><br>This is the same problem that I was having<br><br><span style="border-collapse: collapse; font-family: Times; font-size: 16px;">[&nbsp; 589.382427] tveeprom 5-0050: Encountered bad packet header [ff]. Corrupt or not a Hauppauge eeprom.<br>
-[&nbsp; 589.382431] cx23885[0]: warning: unknown hauppauge model #0<br>
-
-
-[&nbsp; 589.382432] cx23885[0]: hauppauge eeprom: model=0</span><br><br>I was working with the cx23885-audio branch for the analog support.&nbsp; Could these changes be added to that branch as well?&nbsp; Or could I get things working by simply merging with the ~stoth/v4l-dvd branch?<br>
-
-<br>-- <br> --Tim<br>
-</div>
-
-------=_Part_37497_24337222.1220994101019--
-
-
---===============0058880389==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0058880389==--
