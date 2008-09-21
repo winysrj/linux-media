@@ -1,24 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp27.orange.fr ([80.12.242.95])
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@bercot.org>) id 1KjeL7-0001IY-Ti
-	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 20:16:24 +0200
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2708.orange.fr (SMTP Server) with ESMTP id 0481E1C0008B
-	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 20:15:48 +0200 (CEST)
-Received: from mail.bercot.org (LRouen-151-71-134-185.w193-253.abo.wanadoo.fr
-	[193.253.252.185])
-	by mwinf2708.orange.fr (SMTP Server) with ESMTP id E37D41C00085
-	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 20:15:47 +0200 (CEST)
-Received: from david.huperie (localhost [127.0.0.1])
-	by mail.bercot.org (Postfix) with ESMTP id 1C24D3C05A
-	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 20:25:59 +0200 (CEST)
-Date: Sat, 27 Sep 2008 20:15:47 +0200
-From: David BERCOT <linux-dvb@bercot.org>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080927201547.2fbde736@david.huperie>
+	(envelope-from <n.wagenaar@xs4all.nl>) id 1KhPAA-0002bd-IK
+	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 15:39:47 +0200
+From: =?us-ascii?Q?Niels_Wagenaar?= <n.wagenaar@xs4all.nl>
+To: =?us-ascii?Q?Manu_Abraham?= <abraham.manu@gmail.com>
+Date: Sun, 21 Sep 2008 15:39:36 +0200
 Mime-Version: 1.0
-Subject: [linux-dvb] How installing em28xx ?
+Message-Id: <vmime.48d64e98.2764.5267ca3d1c0e6acb@shalafi.ath.cx>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Full Mantis pull with TerraTec Cinergy S2 PCI HD
+ hangs system on boot
+Reply-To: n.wagenaar@xs4all.nl
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,26 +19,39 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGksCgpJIHVzZWQgZW0yOHh4IGZvciB0aGUgcGFzdCwgYnV0IG5vdywgaXQgc2VlbXMgdG8gYmUg
-bW9yZSBjb21wbGljYXRlZC4uLgpJbiBodHRwOi8vbWNlbnRyYWwuZGUvaGcgSSBmb3VuZCBlbTI4
-eHgtbmV3IChidXQgSSBoYXZlIG1hbnkgZXJyb3JzIDoKWy4uLl0K4oCYZHZiX25ldF9yZWxlYXNl
-4oCZIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6OTc2OiBlcnJldXI6IGltcGxpY2l0CmRl
-Y2xhcmF0aW9uIG9mIGZ1bmN0aW9uCuKAmGR2Yl91bnJlZ2lzdGVyX2Zyb250ZW5k4oCZIC9vcHQv
-ZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6OTc3OiBlcnJldXI6CmltcGxpY2l0IGRlY2xhcmF0aW9u
-IG9mIGZ1bmN0aW9uCuKAmGR2Yl9mcm9udGVuZF9kZXRhY2jigJkgL29wdC9lbTI4eHgtbmV3L2Vt
-Mjg4MC1kdmIuYzo5ODE6IGVycmV1cjoKaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24K
-4oCYZHZiX2RteF9yZWxlYXNl4oCZIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6OTgzOiBl
-cnJldXI6IGltcGxpY2l0CmRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uIOKAmGR2Yl91bnJlZ2lzdGVy
-X2FkYXB0ZXLigJkKWy4uLl0pIGFuZCB0aGUgIm9sZCIgdjRsLWR2Yi1rZXJuZWwgJiB2NGwtZHZi
-LWV4cGVyaW1lbnRhbCBkb2Vzbid0IHdvcmsKYW55IG1vcmUgc2luY2UgMi42LjI2IGtlcm5lbC4K
-SSBzaG91bGQgdXNlIG11bHRpcHJvdG8sIGJ1dCBpdCBzZWVtcyBoZWF2eSwgbm8gPwoKRG8geW91
-IGhhdmUgYW55IHN1Z2dlc3Rpb24gPwoKVGhhbmtzIGEgbG90LgoKRGF2aWQuCgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcg
-bGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmlu
-L21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+-----Original message-----
+From: Manu Abraham <abraham.manu@gmail.com>
+Sent: Sun 21-09-2008 15:27
+To: Niels Wagenaar <n.wagenaar@xs4all.nl>; 
+CC: linux-dvb@linuxtv.org; 
+Subject: Re: [linux-dvb] Full Mantis pull with TerraTec Cinergy S2 PCI HD hangs system on boot
+
+> -- SNIP --
+>
+> Is this the offending changeset ?
+> 
+> http://jusst.de/hg/mantis/rev/e466a650ef20
+> 
+
+I think it is. An other person I know, did a pull on 16 September. And he didn't encounter the problems as I and others had this weekend. And yes, the other three persons tried the installation since last friday(-evening). So it's a good bet, that the changeset is indeed the problematic one.
+
+The reason for why several people had this problems, is because they all wanted to test VDR. And this DVB-S2 card is one of the cheapest to buy over here in the Netherlands.  
+
+> Regards,
+> Manu
+> 
+
+Regards,
+
+Niels Wagenaar
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
