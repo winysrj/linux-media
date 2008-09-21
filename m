@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8F8fCM0027470
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 04:41:13 -0400
-Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8F8eLDr018827
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 04:40:21 -0400
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Mon, 15 Sep 2008 14:10:02 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02C4347B9B@dbde02.ent.ti.com>
-In-Reply-To: <yw1xbpyr3egz.fsf@thrashbarg.mansr.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8LC70oG002533
+	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 08:07:01 -0400
+Received: from mailrelay009.isp.belgacom.be (mailrelay009.isp.belgacom.be
+	[195.238.6.176])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8LC6OWo002219
+	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 08:06:24 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: video4linux-list@redhat.com
+Date: Sun, 21 Sep 2008 14:06:29 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200809211406.30146.laurent.pinchart@skynet.be>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] uvcvideo: Support two new Bison Electronics webcams.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,65 +28,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+This adds required quirks for the Compaq Presario B1200 and Acer Travelmate
+7720 integrated webcams.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
+---
+ drivers/media/video/uvc/uvc_driver.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Måns
-> Rullgård
-> Sent: Sunday, September 14, 2008 3:18 AM
-> To: linux-omap@vger.kernel.org
-> Cc: video4linux-list@redhat.com
-> Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
-> 
-> Koen Kooi <k.kooi@student.utwente.nl> writes:
-> 
-> > Op 12 sep 2008, om 17:29 heeft Daniel Stone het volgende geschreven:
-> >
-> >> On Fri, Sep 12, 2008 at 07:59:44PM +0530, ext Shah, Hardik wrote:
-> >>> It's time to re-design DSS frame buffer driver for the OMAP2/3.
-> >>> Current frame buffer driver is not covering the most of the
-> >>> functionality of the OMAP2/3 DSS Hardware like multiple outputs and
-> >>> multiple overlay managers supported by OMAP2/3 class of SoC. Again
-> >>> there is no V4L2 interface exposed by the DSS drivers for
-> >>> controlling the video pipelines of the DSS which is highly
-> >>> desirable feature as the video pipelines of the DSS hardware is a
-> >>> natural fit to the V4L2 architecture.
-> >>
-> >> If you want to use v4l for video output, don't let me stop you, but I
-> >> don't see that it has much actual wide use beyond TI PowerPoint
-> >> presentations about their graphical architecture.
-> >
-> > That was my thought as well, but I've encountered at least 2 products
-> > this weekend at IBC using the v4l way on omap3. One of the engineers
-> > was complaining about the lack of synchronous updates if you move
-> > various videoplanes around (think resizing video windows) which makes
-> > the video picture end up outside your nice cairo-drawn borders. So
-> > yes, it is getting used outside of TI :)
-> 
-> I'm thinking the best solution is probably to have a low-level
-> internal driver providing access to various planes, exposing as much
-> functionality as is practical.  Various user-space interfaces, such as
-> fbdev and v4l, could then be implemented on top of this with very
-> little code.  If I've understood things correctly, this is essentially
-> what the patch in this thread is doing.  This approach should let the
-> TI people and Koen's mythical friends from IBC use the v4l2 interface,
-> while still allowing the less masochistic among us to use a simpler
-> interface.
-> 
-> What I don't like about the patch posted is its size.  I'm sure the
-> transition could be done in a sequence of smaller patches.  At the
-> very least, it should be possible to move existing functionality to
-> the new architecture, then add the new parts afterwards.  I also see
-> little value in keeping the old model around, as is done in the patch.
-
-Our DSS library is inline with the above model suggested by you.  Following is the link containing DSS library code and small design document, which currently handles only video pipeline.  The next immediate goal is to add the support for graphics pipeline functionality.  
-
-https://omapzoom.org/gf/project/omapkernel/docman/?subdir=10
-
- 
-
-Thanks and Regards,
-Hardik Shah
+diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
+index fee85a2..d7ad060 100644
+--- a/drivers/media/video/uvc/uvc_driver.c
++++ b/drivers/media/video/uvc/uvc_driver.c
+@@ -1912,6 +1912,24 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
++	/* Compaq Presario B1200 - Bison Electronics */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x5986,
++	  .idProduct		= 0x0104,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
++	/* Acer Travelmate 7720 - Bison Electronics */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x5986,
++	  .idProduct		= 0x0105,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+ 	/* Medion Akoya Mini E1210 - Bison Electronics */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
+-- 
+1.5.6.4
 
 --
 video4linux-list mailing list
