@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gordons.ginandtonic.no ([195.159.29.69])
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <anders@ginandtonic.no>) id 1KkFFv-0004jw-Jj
-	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 11:41:50 +0200
-Message-ID: <48E0A2A3.6070109@ginandtonic.no>
-Date: Mon, 29 Sep 2008 11:40:51 +0200
-From: Anders Semb Hermansen <anders@ginandtonic.no>
-MIME-Version: 1.0
-To: Jens.Peder.Terjesen@devoteam.com
-References: <OFF62A17F0.5BC6C425-ONC12574D3.003452D3-C12574D3.003452D6@devoteam.com>
-In-Reply-To: <OFF62A17F0.5BC6C425-ONC12574D3.003452D3-C12574D3.003452D6@devoteam.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-4000 and analogue tv
+	(envelope-from <n.wagenaar@xs4all.nl>) id 1KhOkg-0000ah-0k
+	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 15:13:26 +0200
+Received: from shalafi.ath.cx (shalafi-old.xs4all.nl [82.95.219.165])
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id m8LDDHVe040927
+	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 15:13:22 +0200 (CEST)
+	(envelope-from n.wagenaar@xs4all.nl)
+Received: from shalafi.ath.cx (localhost [127.0.0.1])
+	by shalafi.ath.cx (8.14.2/8.14.2/Debian-2build1) with ESMTP id
+	m8LDDHSk022977
+	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 15:13:17 +0200
+From: =?us-ascii?Q?Niels_Wagenaar?= <n.wagenaar@xs4all.nl>
+To: linux-dvb@linuxtv.org
+Date: Sun, 21 Sep 2008 15:13:17 +0200
+Mime-Version: 1.0
+Message-Id: <vmime.48d6486d.2764.1cf647ed6cec189b@shalafi.ath.cx>
+Subject: Re: [linux-dvb] Full Mantis pull with TerraTec Cinergy S2 PCI HD
+ hangs system on boot
+Reply-To: n.wagenaar@xs4all.nl
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,28 +32,69 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jens.Peder.Terjesen@devoteam.com wrote:
-> I thought that the analogue and DVB-T on this card was quite separate
-> parts?
+Hello All,
 
-I think so yes.
+Currently I have some more information. When using the repo from http://jusst.de/hg/mantis.old and compile it (I didn't change the ID) it works. It boots Linux, it's detected and the /dev/dvb/adapter0 folder has contents.
 
-> The DVB-T broadcast has probably already begun. At least it has in my part
-> of Norway where the official date is also November 11th.
+Next thing is to test if it works with VDR. But I should warn you that other use the location as discribed in the Wiki. And upto three people have problems with the tutorial in combination with the TerraTec Cinergy S2 PCI HD where the system hangs on boot or during a manual modprobe.
 
-I used w_scan yesterday and it returned results. I used scan to get a 
-channels.conf which looks ok (don't have it here, I'm at work). But I 
-could not manage to get it to play. I don't know if this is because of 
-software not supporting frontend1 (DVB-T is on 
-/dev/dvb/adapter0/frontend1), frontend0 is DVB-S or if it does not 
-support the digital standard in norway yet. I tried to play using 
-mplayer directly, and dvbstream with a pipe to mplayer (seems mplayer 
-does not cope with different frontend).
+Regards,
 
-Any suggestion on how to go forward from here is appreceated.
+Niels Wagenaar
 
+-----Original message-----
+From: Niels Wagenaar <n.wagenaar@xs4all.nl>
+Sent: Sun 21-09-2008 13:49
+To: linux-dvb@linuxtv.org; 
+Subject: Re: [linux-dvb] Full Mantis pull with TerraTec Cinergy S2 PCI HD hangs system on boot
 
-Anders
+> On smaller detail, when using modprobe I get fatal errors and the message: 
+> "Mantis disagrees on symbol formats" for about 8 times. The message may not be 
+> entirely correct, because soon the system hang again.
+> 
+> Regards,
+> 
+> Niels Wagenaar
+> 
+> > -----Oorspronkelijk bericht-----
+> > Van: n.wagenaar@xs4all.nl [mailto:linux-dvb-bounces@linuxtv.org] Namens
+> > Niels Wagenaar
+> > Verzonden: zondag 21 september 2008 0:57
+> > Aan: linux-dvb@linuxtv.org
+> > Onderwerp: [linux-dvb] Full Mantis pull with TerraTec Cinergy S2 PCI HD
+> > hangs system on boot
+> > 
+> > Hello All,
+> > 
+> > For a friend of mine, I'm setting up a HTPC based upon Xubuntu 8.04 and
+> > VDR. Currently he has a Terratec TerraTec Cinergy S2 PCI HD and I
+> > followed the Wiki for this card. I pull the latest Mantis and changed
+> > the ID in mantis_vp1041.h as it's told in the Wiki.
+> > 
+> > However. When rebooting, the system hangs and doesn't want to continue
+> > booting. I also found out that other people experience the same
+> > problem.
+> > 
+> > So I think that the Wiki is not entirely up-to-date anymore. Could
+> > somebody give me some more information how to get the TerraTec Cinergy
+> > S2 PCI HD working?
+> > 
+> > Thanks in advance,
+> > 
+> > Niels Wagenaar
+> > 
+> > 
+> > _______________________________________________
+> > linux-dvb mailing list
+> > linux-dvb@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
