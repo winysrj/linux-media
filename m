@@ -1,14 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <48CC4342.90103@singlespoon.org.au>
-Date: Sun, 14 Sep 2008 08:48:34 +1000
-From: Paul Chubb <paulc@singlespoon.org.au>
+Received: from ey-out-2122.google.com ([74.125.78.27])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KhREc-0003Rp-VM
+	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 17:52:32 +0200
+Received: by ey-out-2122.google.com with SMTP id 25so311050eya.17
+	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 08:52:27 -0700 (PDT)
+Date: Sun, 21 Sep 2008 17:52:11 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Jonathan Coles <jcoles0727@rogers.com>
+In-Reply-To: <48D658BF.7040807@rogers.com>
+Message-ID: <alpine.DEB.1.10.0809211744070.13969@ybpnyubfg.ybpnyqbznva>
+References: <48D658BF.7040807@rogers.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>,
-	"linux-dvb >> linux dvb" <linux-dvb@linuxtv.org>
-References: <48CB5D7A.3040403@singlespoon.org.au>
-	<48CC2314.4090800@linuxtv.org>
-In-Reply-To: <48CC2314.4090800@linuxtv.org>
-Subject: Re: [linux-dvb] why opensource will fail
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950 and
+ v4l-dvb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,162 +28,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Steven
-Steven Toth wrote:
-> Paul Chubb wrote:
->> Hi,
->>      now that I have your attention:-{)=
->
-> .... You've also had my attention in the past, if I recall I have you 
-> tips about not using cx_write, instead using cx_set/cx_clear.
->
-> Your latest patch still doesn't have those changes btw. ;)
-Yes I have had your attention. Your two emails were the exception to the 
-rule. On the cx_write issue, I took that advice on board. If you look at 
-the latest patch you will see that the code was changed and then 
-commented out. Remember I was porting a working patch. Since the changes 
-did not fix any of the problems I was having and since the patch was 
-working I commented them out. Once the patch was working I would have 
-returned and put them back. The issue with the advice was the question 
-of whether the patch writer intended to set the other GPIO bits in that 
-code.
->
->
->>
->> I believe that this community has a real problem. There appears to be 
->> little willingness to help and mentor newcomers. This will limit the 
->> effectiveness of the community because it will hinder expansion of 
->> people who are both willing and able to work on the code. Eventually 
->> this issue  will lead to the community dying simply because you have 
->> people leaving but few joining.
->
-> I disagree with everything you've just said, but that's just my opinion.
->
->
->>
->> The card I was working on has been around for  a while now. There 
->> have been three attempts so far to get it working with Linux. Two in 
->> this community and one against the mcentral.de tree. Both attempts in 
->> this community have failed not because of a lack of willingness of 
->> the people involved to do the hard yards but because of the inability 
->> of the community to mentor and help newcomers.
->
->
-> Did I not try to help you? The one piece of initial feedback I gave 
-> you, you ignored. (see my opening statement).
->
-> I'm always willing to help people, but they also have to demonstrate 
-> that they are applying themselves, doing basic research, asking 
-> specific questions ... rather than, here's my patch - and What's Wrong 
-> with it.
-Let me see, 3 weeks work. Reading the communities documentation. Reading 
-the code. Looking up the specific chips. Bottom line is that if you 
-don't know what is normal behavior and what is not it is difficult to 
-ask the right questions. I had never even seen a dmesg of one of these 
-cards starting up and there is very little documentation of the code 
-that is detailed enough to get you over those kind of learning humps.
->>
->> The third attempt by a Czech programmer succeeded, however it is 
->> dependent on the mcentral.de tree and the author appears to have made 
->> no attempt to get the patch into the tree. The original instructions 
->> to produce a driver set are in Czech. However instructions in english 
->> for 2.6.22 are available - ubuntu gutsy. I will soon be putting up 
->> instructions for 2.6.24 - hardy. They may even work  for later 
->> revisions since the big issue was incompatible versioning.
->>
->> I understand from recent posts to this list that many in the 
->> community are disturbed by the existence of mcentral.de. Well every 
->> person from now on who wants to run the Leadtek Winfast DTV1800H will 
->> be using that tree. Since the card is excellent value for what it is, 
->> there should be lots of them. Not helping newcomers who are trying to 
->> add cards has led and will lead to increased fragmentation.
->
-> So port the mcentral.de details into the kernel, I doubt they'll be 
-> significantly different.... we're talking about adding support for an 
-> existing card, it's not a lot of engineering work.
->
-As I said elsewhere. Trivial for someone who knows the code but a couple 
-of weeks effort for someone like me who doesn't
->>
->> And before you say or think that we are all volunteers here, I am a 
->> volunteer also. I have spent close to 3 weeks on this code and it is 
->> very close to working. The biggest difference between working code in 
->> the mcentral.de tree and the patch I was working on is the firmware 
->> that is used.
->
-> ... and your efforts are valuable.
->
-> Markus (mcentral.de) is paid to work on Linux, just to be clear.
-So are many people, Linus included. They generally break down into 
-people who get it and those that don't.
->
-> Your last message on that thread said: "xc2028 2-0061: xc2028/3028 
-> firmware name not set!"
->
-> You could of asked a second time before taking the opportunity to 
-> vent, and taking the community to task.
->
-> Showing patience and perseverance is what most other newcomers 
-> demonstrate.
-I don't believe I have either vented or taken the community to task. I 
-have pointed out, as an outsider, that there is a problem and have done 
-so in a way  that has attempted to be polite but also to paint why it is 
-important. If you found it impolite, please accept my apology.
+On Sun, 21 Sep 2008, Jonathan Coles wrote:
 
-"patience and perseverance" demonstrates the meat of my comment. The 
-higher the bar to contribute the less people will try.
->
->
->>
->> Finally you might consider that if few developers are prepared to 
->> work on the v4l-dvb tree, then much of the fun will disappear because 
->> those few will have to do everything.
->
-> Whether we have 3 people or 30, it's never enough.
->
-> In my experience, people who join the list then vent all over it are 
-> rarely around long enough to make a difference. They often think they 
-> know more about the community than the community itself.
-While I don't agree that I have vented, there is a certain self 
-fulfillment in your observation. And I bet there are also lots of people 
-who try and just disappear off the list.
->
-> On the other hand, the people who join and ask well thought out 
-> questions, describe their failures and working assumptions, then 
-> demonstrate a willingness to learn attract a mentor very quickly.
->
-> ... just my opinion of course :)
->
-> If you want to make progress with the leadtek card then another look 
-> at the feedback I gave you, then approach the group again with a more 
-> insightful email.
-Back when I was young I wanted to do OS development specifically 
-hardware/software interfaces. Since Australia in those days did 
-practically none of this work, I did systems development in C on a NOS 
-called Banyan VINES.
+> [   17.247610] usb 5-2: new high speed USB device using ehci_hcd and 
+> address 2
+> [   17.380387] usb 5-2: unable to read config index 0 descriptor/all
+> [   17.380434] usb 5-2: can't read configurations, error -71
 
-I wanted to have a mythtv setup. The easiest solution was to simply get 
-the Czech patch working. However I believed it to be a better solution 
-to get it into the standard tree. As you pointed out it is not supposed 
-to be a hard job.
+This is a problem (I see it from time to time) when the USB
+stack or hardware wets itself.  Some of my solutions have been
+*  disconnect and reconnect the device...
+*  use a different USB port
+*  if an external USB hub is involved, disconnect and reconnect
+   that (sometimes certain ports fly south for no obvious reason)
+*  if needed, disconnect and reconnect power to any USB hubs or
+   other devices (like if your device gets powered elsewhere)
+*  if nothing else works, reboot your machine,
+*  if that fails, completely power-cycle your machine, so that
+   all hardware has a chance to reset and start from cold state.
 
-At this point I have a working card outside of the standard v4l-dvb 
-tree. Continuing would require love and enthusiasm.
->
-> Maybe someone will help you then.
->
-> - Steve
->
-
->
->
+In exceptional cases, your hardware could have somehow been
+damaged, if a particular USB port always gives this type of error.
 
 
--- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
-
+hope that's useful
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
