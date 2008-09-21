@@ -1,29 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ffm.saftware.de ([83.141.3.46])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <obi@linuxtv.org>) id 1Kg39b-0008N9-E4
-	for linux-dvb@linuxtv.org; Wed, 17 Sep 2008 21:57:38 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by ffm.saftware.de (Postfix) with ESMTP id D58A1E6E39
-	for <linux-dvb@linuxtv.org>; Wed, 17 Sep 2008 21:57:31 +0200 (CEST)
-Received: from ffm.saftware.de ([83.141.3.46])
-	by localhost (pinky.saftware.org [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id BjlHeF2gpesQ for <linux-dvb@linuxtv.org>;
-	Wed, 17 Sep 2008 21:57:30 +0200 (CEST)
-Received: from [172.22.22.60] (unknown [92.50.81.33])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by ffm.saftware.de (Postfix) with ESMTPSA id E2A90E6E32
-	for <linux-dvb@linuxtv.org>; Wed, 17 Sep 2008 21:57:30 +0200 (CEST)
-Message-ID: <48D1612B.3000405@linuxtv.org>
-Date: Wed, 17 Sep 2008 21:57:31 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from smtp126.rog.mail.re2.yahoo.com ([206.190.53.31])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <jcoles0727@rogers.com>) id 1KhPqT-0004xw-Iu
+	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 16:23:30 +0200
+Message-ID: <48D658BF.7040807@rogers.com>
+Date: Sun, 21 Sep 2008 10:22:55 -0400
+From: Jonathan Coles <jcoles0727@rogers.com>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <20080916173121.202250@gmx.net> <48CFF4FC.1000005@linuxtv.org>
-	<48D13BF6.8050500@gmx.de>
-In-Reply-To: <48D13BF6.8050500@gmx.de>
-Subject: Re: [linux-dvb] Why Parameter 'INVERSION' is really needed?
+Subject: [linux-dvb] Still unclear how to use Hauppage HVR-950 and v4l-dvb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,51 +22,37 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-wk wrote:
-> Andreas Oberritter wrote:
->> If you find two devices which need different inversion settings in the
->> same network, then it's a driver bug, which can easily be corrected.
->>
->>   
-> How can this be a drivers bug, if in the dvb api documentation no
-> *default value* for inversion was ever defined?
-> Seems to be a bug inside API (linux-dvb-api-1.0.0.pdf, see
-> http://www.linuxtv.org/docs.php).
+It would really help if there was a single set of instructions specific 
+to the HVR-950 with tests at each stage. I'm really confused as to the 
+status of my installation.
 
-Common sense says that the default value is not inverted.
+I compiled the firmware according to the instructions on 
+http://linuxtv.org/repo/. The result:
 
->> Spectral inversion depends on the transmitter, too. It can change
->> anytime a broadcaster decides to change it. It happens, although not
->> very often.
->>
->> Specifying the inversion parameter can speed up the tuning process,
->> especially for devices which don't support automatic swapping in
->> hardware. But I would not recommend to store this parameter in a service
->> list.
->>
->> If we decide to keep the parameter, we should probably use four options:
->>  INVERSION_OFF, INVERSION_ON, INVERSION_AUTO_OFF_FIRST,
->> INVERSION_AUTO_ON_FIRST, which matches the capabilities of most
->> demodulators. A typical application would then probably use only the
->> last two options, while the first two options would rather be used for
->> diagnostics and to read back the detected inversion.
->>
->>
->>   
-> May be. But since the application cannot get any information about
-> transmitters inversion only AUTO makes sense here, neither ON or OFF.
-> No information field is reserved for inversion inside terrestrial
-> delivery system descriptor and cable delivery system descriptor,
-> so applications are not able to figure out useful settings from NIT.
-> Please try to see this from the application side, not from hardware
-> point of view.
+$ lsusb
+Bus 005 Device 002: ID 2040:7200 Hauppauge
 
-Well, that's essentially what I wrote: Use AUTO in a typical
-application. All frontend devices support it, either in software or in
-hardware.
+On the other hand, dmesg reports:
 
-Regards,
-Andreas
+[   17.247610] usb 5-2: new high speed USB device using ehci_hcd and 
+address 2
+[   17.380387] usb 5-2: unable to read config index 0 descriptor/all
+[   17.380434] usb 5-2: can't read configurations, error -71
+
+Is my firmware is properly installed or not?
+
+I'm trying to follow the instructions on your 
+*How_to_install_DVB_device_drivers* wiki, but some vital details are 
+missing. Which modules do I look for in lsmod? The 
+Hauppauge_Computer_Works Wiki doesn't provide this information for the 
+HVR-950. The instructions at 
+http://u32.net/MythTV/WinTV-HVR-950/index.html indicate that the 
+required modules are either em28xx or au0828 and au8522. I have 
+modprobe'd these, but still have nothing in /dev/dvb.
+
+Any ideas as to what I am missing or how I can troubleshoot this?
+
+
 
 _______________________________________________
 linux-dvb mailing list
