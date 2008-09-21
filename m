@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: VDR User <user.vdr@gmail.com>
-In-Reply-To: <a3ef07920809261210l737493a4ydf68373531073ef8@mail.gmail.com>
-References: <200809241922.16748@orion.escape-edv.de>
-	<1222306125.3323.80.camel@pc10.localdom.local>
-	<200809261714.58188@orion.escape-edv.de>
-	<1222454633.2675.11.camel@pc10.localdom.local>
-	<a3ef07920809261210l737493a4ydf68373531073ef8@mail.gmail.com>
-Date: Fri, 26 Sep 2008 21:31:49 +0200
-Message-Id: <1222457509.2675.13.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, v4l-dvb-maintainer@linuxtv.org, vdr@linuxtv.org
-Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [Wanted] dvb-ttpci maintainer
+Received: from fg-out-1718.google.com ([72.14.220.159])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <msanders@fenza.com>) id 1KhKRJ-0002Pb-GV
+	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 10:37:11 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so1061287fga.25
+	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 01:37:05 -0700 (PDT)
+Message-ID: <5926395e0809210137y7a89a887xa7ca54218d09b1e@mail.gmail.com>
+Date: Sun, 21 Sep 2008 18:07:05 +0930
+From: Michael <m72@fenza.com>
+To: "Alistair Buxton" <a.j.buxton@gmail.com>
+In-Reply-To: <3d374d00809201151w543e17cdm4ca67e5940667f2b@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <5926395e0809182212k1454836dq1585f56048ae5404@mail.gmail.com>
+	<3d374d00809190659r123651ffwec3a326367e248e7@mail.gmail.com>
+	<5926395e0809200414m186da966g62b4f0f975b46633@mail.gmail.com>
+	<3d374d00809201151w543e17cdm4ca67e5940667f2b@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB USB receiver stopped reporting correct USB ID
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,40 +31,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Sun, Sep 21, 2008 at 4:21 AM, Alistair Buxton <a.j.buxton@gmail.com> wrote:
+> 2008/9/20 Michael Sanders <msanders@fenza.com>:
+>
+>> Thanks for you ideas. I have attached the full dmesg as suggested.
+>>
+>> I don't think the problem is a cold/warm state issue. When I used the
+>> device for the first time, I saw a warning that it (correct name was
+>> given) was it its cold state and that firmware was not found. Adding
+>> the firmware fixed the problem and then it worked fine. i.e. in the
+>> cold state, it did not show the EZ-USB id.
+>
+> That's odd. However, there is no difference between cold state and the
+> current state. EZ-USB devices usually have a very small I2C eeprom
+> which holds nothing except for the device IDs. It looks like that chip
+> has either been wiped or has blown.
+>
+> You should still be able to force the firmware loading, after which it
+> should go into warm state as normal. There are two ways you could do
+> that. There is a tool called "fxload" which can load the firmware, but
+> it uses a different format to the kernel drivers for the firmware
+> file. It needs intel hex format (ihx). You could alternatively add the
+> EZ-USB development ID to the list of IDs for the kernel driver.
 
-Am Freitag, den 26.09.2008, 12:10 -0700 schrieb VDR User:
-> On Fri, Sep 26, 2008 at 11:43 AM, hermann pitton
-> <hermann-pitton@arcor.de> wrote:
-> > Put at least a sticker on such guys like Uwe/Derek and Manu should do it
-> > as well.
-> 
-> Why do you keep insisting I am Uwe?  I am not so stop confusing me
-> with someone else.  As you can see here, I've been registered on this
-> list since March 23, 2006.
+Thats very encouraging - sounds like there is hope to fix it. I did
+some googling and concluded that the cold ID for my device should be
+eb2a:17de and that the kernel module that it requires is
+"dvb-usb-dibusb-mb". At the moment, the generic 04b4:8613 seems to
+load the "usbtest" module - how do I force it to load
+dvb-usb-dibusb-mb instead? At least then I can confirm the matter is
+worth pursuing.
 
-Such guys like a/b/c/d/e/F*
+> Unfortunately neither of those methods will be a permanent fix. You
+> will need to reprogram the I2C eeprom with the correct USB IDs in
+> order to do that. That can be done with fxload and a special firmware
+> or there is a tool available from Cypress which can do it - although
+> it is Windows only.
 
-We have no single patch from Derek. Shut up.
+So I looked that this path too and downloaded the SuiteUSB 1.0 - USB
+Development tools for Visual C++ 6.0 from
+http://www.cypress.com/design/RD1076. That had a utility called
+CyConsole. That recognised that Cypress a USB device was plugged in
+and allows data be be manually changed, but unfortunately the
+documentation is written for people who have a better understanding of
+these things than me. There wasn't any obvious way just enter new
+vendor and product IDs. I looked through the datasheet of the
+cy7c68013 (http://download.cypress.com.edgesuite.net/design_resources/datasheets/contents/cy7c68013_8.pdf),
+but didn't see anything obvious. Anyone out there able/willing to give
+me some instructions on how to use the cypress tool to do that?
 
-> =====
-> from	linux-dvb-request@linuxtv.org
-> to	user.vdr@gmail.com
-> date	Thu, Mar 23, 2006 at 5:10 PM
-> subject	Welcome to the "linux-dvb" mailing list (Digest mode)
-> mailing list	linux-dvb.linuxtv.org Filter messages from this mailing list
-> mailed-by	linuxtv.org
-> =====
-> 
-> So you continue to try to tell people I am someone else, said that I
-> have threatened you which I certainly have NOT.  Anyone can easily
-> search ALL my posts here since I first joined and see for themselves I
-> have clearly never done such a thing.
-> 
-> Why you continue making up these lies is beyond me but there's no
-> doubt you are making a complete idiot of yourself by doing it and I
-> doubt anyone with a brain in their head believes such ridiculous
-> nonsense.
+On my linux machine, I installed fxload, but that also didn't provide
+any obvious way to change the IDs (I guess it only for loading the
+firmware)
 
+Thanks for all the help so far.
+
+- Michael
 
 _______________________________________________
 linux-dvb mailing list
