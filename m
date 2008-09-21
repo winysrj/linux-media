@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [84.77.67.98] (helo=ventoso.org)
+Received: from host06.hostingexpert.com ([216.80.70.60])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <luca@ventoso.org>) id 1Kj83V-0006pY-AR
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 09:48:03 +0200
-Received: from [127.0.0.1] (localhost.localdomain [127.0.0.1])
-	by ventoso.org (Postfix) with ESMTP id 6D388CE72CF
-	for <linux-dvb@linuxtv.org>; Fri, 26 Sep 2008 09:47:56 +0200 (CEST)
-Message-ID: <48DC93AA.6010406@ventoso.org>
-Date: Fri, 26 Sep 2008 09:47:54 +0200
-From: Luca Olivetti <luca@ventoso.org>
+	(envelope-from <mkrufky@linuxtv.org>) id 1KhQCb-0007N8-Ed
+	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 16:46:24 +0200
+Message-ID: <48D65E36.9070003@linuxtv.org>
+Date: Sun, 21 Sep 2008 10:46:14 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAFWGD+9r2SkGGhLj/rwn00AEAAAAA@tv-numeric.com>
-	<48DBBF16.7030603@gmx.net>
-In-Reply-To: <48DBBF16.7030603@gmx.net>
-Subject: Re: [linux-dvb] RE :  [RFC] Let the future decide between the two.
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <48D658BF.7040807@rogers.com>
+	<412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
+In-Reply-To: <412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950
+	and	v4l-dvb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,23 +27,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-En/na P. van Gaans ha escrit:
-
+Devin Heitmueller wrote:
+> On Sun, Sep 21, 2008 at 10:22 AM, Jonathan Coles <jcoles0727@rogers.com> wrote:
+>> It would really help if there was a single set of instructions specific
+>> to the HVR-950 with tests at each stage. I'm really confused as to the
+>> status of my installation.
+>>
+>> I compiled the firmware according to the instructions on
+>> http://linuxtv.org/repo/. The result:
+>>
+>> $ lsusb
+>> Bus 005 Device 002: ID 2040:7200 Hauppauge
 > 
-> I still can't help thinking that if I wouldn't have asked why the AF9005 
-> driver a while ago wasn't in hg yet it STILL wouldn't be in hg.
-[.....]
-> I think there are even several driver developers who don't know they 
-> have to send a pull request but assume this happens automagically when 
-> it's known on the list that there is a working driver.
+> Hold the phone!  You don't have an HVR-950.  You have an HVR-950Q.
+> Please be sure to mention this in all future messages, since it's a
+> totally different device and the HVR-950 directions do not apply.
+> 
+> I'm not sure whether the HVR-950Q support has been merged yet.  Steven
+> could comment on that.  I suspect it's still in a separate branch,
+> which would mean you would need to do an hg clone of a different tree.
 
-That was the case for the af9005: I didn't know how to properly do it 
-(in part because many of my queries went unanswered).
 
-Bye
--- 
-Luca
+HVR950Q ATSC / QAM is supported in the master development repository, and it is in upstream 2.6.26 and later.
 
+You need the xc5000 firmware.
+
+[   17.247610] usb 5-2: new high speed USB device using ehci_hcd and 
+address 2
+[   17.380387] usb 5-2: unable to read config index 0 descriptor/all
+[   17.380434] usb 5-2: can't read configurations, error -71
+
+
+^^ This is not a firmware problem, but looks fishy.  If using the latest drivers from linuxtv.org doesnt work for you, then try another USB port, or confirm that it also works in windows.
+
+Good Luck,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
