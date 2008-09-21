@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46])
+Received: from ug-out-1314.google.com ([66.249.92.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1Kj28a-0004rk-20
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 03:28:53 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: "Mitchell, J.G." <jgm11@leicester.ac.uk>
-In-Reply-To: <8477EDDA0355EC429DA077A1FB414E2E1C5FF01D23@EXC-MBX1.cfs.le.ac.uk>
-References: <8477EDDA0355EC429DA077A1FB414E2E1C5FF01D23@EXC-MBX1.cfs.le.ac.uk>
-Date: Fri, 26 Sep 2008 03:23:46 +0200
-Message-Id: <1222392226.4589.49.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Leadtek DTV1000s Development Help
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KhPxC-0006DI-W6
+	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 16:30:29 +0200
+Received: by ug-out-1314.google.com with SMTP id 39so3559824ugf.16
+	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 07:30:23 -0700 (PDT)
+Message-ID: <412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
+Date: Sun, 21 Sep 2008 10:30:23 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Jonathan Coles" <jcoles0727@rogers.com>
+In-Reply-To: <48D658BF.7040807@rogers.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <48D658BF.7040807@rogers.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950 and
+	v4l-dvb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,32 +29,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Sun, Sep 21, 2008 at 10:22 AM, Jonathan Coles <jcoles0727@rogers.com> wrote:
+> It would really help if there was a single set of instructions specific
+> to the HVR-950 with tests at each stage. I'm really confused as to the
+> status of my installation.
+>
+> I compiled the firmware according to the instructions on
+> http://linuxtv.org/repo/. The result:
+>
+> $ lsusb
+> Bus 005 Device 002: ID 2040:7200 Hauppauge
 
-Am Freitag, den 26.09.2008, 02:02 +0100 schrieb Mitchell, J.G.:
-> Hello Everyone,
-> 
-> I bought this card some months back now and I did a bit of research to find out to my dissapointment that it is not supported under Linux. However, I am about to embark on an Embedded Systems Engineering degree and I thought that maybe, developing a device driver for this card would be a good start? Now I have found that this card incorporates the SAA7130, TDA10048 and TDA18271.
-> 
-> I currently run ArchLinux and have some programming experience, I am reading a couple of books at the moment such as Programming Embedded Systems and C Programming (K&R) so I have a good base to work from and can refer to the books if i need some technical help.
-> 
-> At the moment I am at a loss to where to start, would somebody be able to point me in the right direction to start working on this project?
-> 
-> Regards,
-> Jack.
-> 
+Hold the phone!  You don't have an HVR-950.  You have an HVR-950Q.
+Please be sure to mention this in all future messages, since it's a
+totally different device and the HVR-950 directions do not apply.
 
-Hi Jack,
+I'm not sure whether the HVR-950Q support has been merged yet.  Steven
+could comment on that.  I suspect it's still in a separate branch,
+which would mean you would need to do an hg clone of a different tree.
 
-you have some new combinations here.
+Devin
 
-To load the saa7134 with i2c_scan=1 could be a start.
-
-"modinfo saa7134"
-
-Cheers,
-Hermann
-
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
