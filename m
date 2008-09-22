@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpauth02.csee.siteprotect.eu ([83.246.86.181])
+Received: from [195.7.61.12] (helo=killala.koala.ie)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roger@beardandsandals.co.uk>) id 1Kbabz-0006hH-Ci
-	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 14:40:27 +0200
-Received: from [192.168.10.241] (unknown [81.168.109.249])
-	(Authenticated sender: roger@beardandsandals.co.uk)
-	by smtpauth02.csee.siteprotect.eu (Postfix) with ESMTP id 1A196C68028
-	for <linux-dvb@linuxtv.org>; Fri,  5 Sep 2008 14:39:54 +0200 (CEST)
-Message-ID: <48C1289D.90607@beardandsandals.co.uk>
-Date: Fri, 05 Sep 2008 13:39:57 +0100
-From: Roger James <roger@beardandsandals.co.uk>
+	(envelope-from <simon@koala.ie>) id 1KhoDf-0002TQ-RS
+	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 18:25:04 +0200
+Received: from [127.0.0.1] (killala.koala.ie [195.7.61.12])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id m8MGOoUQ014105
+	for <linux-dvb@linuxtv.org>; Mon, 22 Sep 2008 17:24:51 +0100
+Message-ID: <48D7C6CE.7050305@koala.ie>
+Date: Mon, 22 Sep 2008 17:24:46 +0100
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Frontends and phase locked loops
+To: DVB ML <linux-dvb@linuxtv.org>
+References: <20080920052206.312f51d7@areia.chehab.org>
+	<48D7658B.2030103@koala.ie> <48D7AC95.5090009@linuxtv.org>
+In-Reply-To: <48D7AC95.5090009@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] V4L/DVB Miniconf at Linux Plumbers/2008
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,46 +23,21 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1286492970=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1286492970==
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-I have a question about the dvb api architecture and hardware that has
-been puzzling me for some time.<br>
-<br>
-I had thought the idea of a phase locked loop was that it locked onto
-and tracked a frequency compensating for drift in the sending and
-receiving apparatus. I had also assumed that most frontends would use
-PLL technology. So why do we need to have a in kernel thread to keep
-the frontend tuned. I ask this out of curiosity only. I assume that it
-is something to do with the nature of the dvb signal (is it spread
-spectrum?).<br>
-<br>
-Roger<br>
-<br>
-</body>
-</html>
-
-
---===============1286492970==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Steven Toth wrote:
+> Simon Kenyon wrote:
+>> it would be helpful if you could show the names of the people in the 
+>> photograph, so we can put faces to names :-)
+> Rear left to right: Steven T, Brandon P, Hans V, Douglas L
+> Front left to right: Michael K, Mauro C, Manjunath Hadli, Thierry M.
+thank you
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1286492970==--
