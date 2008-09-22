@@ -1,21 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8ONZAYg031214
-	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 19:35:10 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8ONYqMj014996
-	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 19:34:55 -0400
-Message-Id: <200809242334.m8ONYqMj014996@mx3.redhat.com>
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Thu, 25 Sep 2008 00:21:50 +0200
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org
-Subject: [PATCH 2/6] si470x: improvement of module device support
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8MJMOYh021076
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 15:22:25 -0400
+Received: from mta3.srv.hcvlny.cv.net (mta3.srv.hcvlny.cv.net [167.206.4.198])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8MJMDSv027185
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 15:22:13 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7M008TU350ZQ20@mta3.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Mon, 22 Sep 2008 15:22:13 -0400 (EDT)
+Date: Mon, 22 Sep 2008 15:22:12 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <9d87242f0809221206n1d589137v8e1bf77792c31bcf@mail.gmail.com>
+To: Scott Bronson <bronson@rinspin.com>
+Message-id: <48D7F064.4010103@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <9d87242f0809191425p1adb1e59p417753a4c403a872@mail.gmail.com>
+	<412bdbff0809191428j760ed51cy8fecd68e1cb738a4@mail.gmail.com>
+	<9d87242f0809192005t246311dp796aa28cb744b3af@mail.gmail.com>
+	<9d87242f0809192255t49e112bfvd9c95e66bd3292a8@mail.gmail.com>
+	<48D49A39.5010909@linuxtv.org>
+	<9d87242f0809211316g1a34f0e7wed0f8345d5cdd787@mail.gmail.com>
+	<48D702B5.8020800@linuxtv.org>
+	<9d87242f0809221206n1d589137v8e1bf77792c31bcf@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Unreliable tuning with HVR-950q
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,105 +40,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
+Scott Bronson wrote:
+> On Sun, Sep 21, 2008 at 7:28 PM, Steven Toth <stoth@linuxtv.org> wrote:
+>> This is really starting to sound like a signal level issue. Try attenuating,
+>> this will probably help. Radio shack probably have a selection of 5 and 10db
+>> inline connectors that should help.
+> 
+> I'll try that.  It will attenuate distant stations too, right?  I
+> might have to buy two tuners, one for close stations and one for far
+> away ones...?
 
-this patch improves support for multiple radio devices.
-In previous versions all region relevant settings were derived from one module parameter.
-As in future versions, the region and other configuration should be configurable per device from the user space, this patch already retrieves all relevant information from the actual device specific settings.
+That's fairly unusual, unless you're trying to receive TV at the low 
+extremes of the tuner. I guess never say never.
 
-Best regards,
-Toby
+> 
+>> This isn't something that we can compensate for in software.
+> 
+> I'm not sure about that...  Rapidly re-trying seems to always produce
+> a lock.  I suppose the driver could do that automatically when needed.
+>  (yes it's a hack, but drivers have always needed to hack around
+> hardware limitations)
+> 
+> Is there any way to log the tuning metrics, like signal and noise
+> level, etc?  There may be a pattern here.
 
+Watch the SNR value, it's measures in db and expressed in hex with one 
+decimal place. So, 0x102 = 25.8db
 
-Signed-off-by: Tobias Lorenz <tobias.lorenz@gmx.net>
---- a/linux/drivers/media/radio/radio-si470x.c	2008-09-24 22:30:00.000000000 +0200
-+++ b/linux/drivers/media/radio/radio-si470x.c	2008-09-24 22:30:00.000000000 +0200
-@@ -672,23 +672,29 @@ static int si470x_get_freq(struct si470x
- 	int retval;
- 
- 	/* Spacing (kHz) */
--	switch (space) {
-+	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_SPACE) >> 4) {
- 	/* 0: 200 kHz (USA, Australia) */
--	case 0 : spacing = 0.200 * FREQ_MUL; break;
-+	case 0:
-+		spacing = 0.200 * FREQ_MUL; break;
- 	/* 1: 100 kHz (Europe, Japan) */
--	case 1 : spacing = 0.100 * FREQ_MUL; break;
-+	case 1:
-+		spacing = 0.100 * FREQ_MUL; break;
- 	/* 2:  50 kHz */
--	default: spacing = 0.050 * FREQ_MUL; break;
-+	default:
-+		spacing = 0.050 * FREQ_MUL; break;
- 	};
- 
- 	/* Bottom of Band (MHz) */
--	switch (band) {
-+	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
- 	/* 0: 87.5 - 108 MHz (USA, Europe) */
--	case 0 : band_bottom = 87.5 * FREQ_MUL; break;
-+	case 0:
-+		band_bottom = 87.5 * FREQ_MUL; break;
- 	/* 1: 76   - 108 MHz (Japan wide band) */
--	default: band_bottom = 76   * FREQ_MUL; break;
-+	default:
-+		band_bottom = 76   * FREQ_MUL; break;
- 	/* 2: 76   -  90 MHz (Japan) */
--	case 2 : band_bottom = 76   * FREQ_MUL; break;
-+	case 2:
-+		band_bottom = 76   * FREQ_MUL; break;
- 	};
- 
- 	/* read channel */
-@@ -711,23 +717,29 @@ static int si470x_set_freq(struct si470x
- 	unsigned short chan;
- 
- 	/* Spacing (kHz) */
--	switch (space) {
-+	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_SPACE) >> 4) {
- 	/* 0: 200 kHz (USA, Australia) */
--	case 0 : spacing = 0.200 * FREQ_MUL; break;
-+	case 0:
-+		spacing = 0.200 * FREQ_MUL; break;
- 	/* 1: 100 kHz (Europe, Japan) */
--	case 1 : spacing = 0.100 * FREQ_MUL; break;
-+	case 1:
-+		spacing = 0.100 * FREQ_MUL; break;
- 	/* 2:  50 kHz */
--	default: spacing = 0.050 * FREQ_MUL; break;
-+	default:
-+		spacing = 0.050 * FREQ_MUL; break;
- 	};
- 
- 	/* Bottom of Band (MHz) */
--	switch (band) {
-+	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
- 	/* 0: 87.5 - 108 MHz (USA, Europe) */
--	case 0 : band_bottom = 87.5 * FREQ_MUL; break;
-+	case 0:
-+		band_bottom = 87.5 * FREQ_MUL; break;
- 	/* 1: 76   - 108 MHz (Japan wide band) */
--	default: band_bottom = 76   * FREQ_MUL; break;
-+	default:
-+		band_bottom = 76   * FREQ_MUL; break;
- 	/* 2: 76   -  90 MHz (Japan) */
--	case 2 : band_bottom = 76   * FREQ_MUL; break;
-+	case 2:
-+		band_bottom = 76   * FREQ_MUL; break;
- 	};
- 
- 	/* Chan = [ Freq (Mhz) - Bottom of Band (MHz) ] / Spacing (kHz) */
-@@ -1430,7 +1442,8 @@ static int si470x_vidioc_g_tuner(struct 
- 		goto done;
- 
- 	strcpy(tuner->name, "FM");
--	switch (band) {
-+	/* range limits */
-+	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
- 	/* 0: 87.5 - 108 MHz (USA, Europe, default) */
- 	default:
- 		tuner->rangelow  =  87.5 * FREQ_MUL;
+- Steve
 
 --
 video4linux-list mailing list
