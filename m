@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KcDbz-0007x6-Pm
-	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 08:19:04 +0200
-Message-ID: <48C37250.5090902@gmail.com>
-Date: Sun, 07 Sep 2008 10:18:56 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+From: "James Evans" <jrevans1@earthlink.net>
+To: "'Steven Toth'" <stoth@linuxtv.org>
+References: <002001c91c65$939d8b60$bad8a220$@net>
+	<48D71852.5090705@linuxtv.org>
+	<002701c91c6b$6d310fa0$47932ee0$@net>
+	<48D726C9.3030605@linuxtv.org>
+In-Reply-To: <48D726C9.3030605@linuxtv.org>
+Date: Mon, 22 Sep 2008 16:27:13 -0700
+Message-ID: <007d01c91d0a$beb8cb70$3c2a6250$@net>
 MIME-Version: 1.0
-To: Stefan Ellenberger <stefan_ell@hotmail.com>
-References: <mailman.1.1219312801.18695.linux-dvb@linuxtv.org>
-	<BAY108-W34A6237D826B4119100E1AFE6B0@phx.gbl>
-In-Reply-To: <BAY108-W34A6237D826B4119100E1AFE6B0@phx.gbl>
+Content-Language: en-us
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [multiproto patch] add support for using multiproto
- drivers with old api
+Subject: Re: [linux-dvb] DVICO FusionHDTV5 Express Support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,33 +25,137 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Stefan Ellenberger wrote:
-> hello list
+> James Evans wrote:
+> > Thank you for such a quick response.
+> >
+> >> Debug looks OK. If you have another board where you know for certain
+> >> that tuning a specific 8VSB frequency works, then tuning this same
+> >> frequency with the LG should probably work reliably.
+> >
+> > The installed Airstar HD5000 cards both have an LG tuner and can tune perfectly fine.
 > 
-> I'm using Anssi Hannula patch (multiproto-support-old-api.diff from May 23) to use my Azurwave/Twinhan 1041 card with the old dvb api.
+> OK, pick a single frequency and focus on always tuning that for the time
+> being with the Express card.
+
+HD5000 Results:
+% /usr/bin/azap -a 1 -r -c ~/.azap/channels.conf "KTTV DT" 
+using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
+tuning to 779028615 Hz
+video pid 0x0031, audio pid 0x0034
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
+status 1e | signal c6ce | snr 1b2e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1e | signal e4e6 | snr 1f4b | ber 00000000 | unc 0000003d | FE_HAS_LOCK
+status 1e | signal e1b8 | snr 1edc | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1e | signal e86e | snr 1fc7 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1e | signal e86e | snr 1fc7 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1e | signal daef | snr 1dee | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+^C
+
+FusionHDTV5 Results:
+% /usr/bin/azap -a 0 -r -c ~/.azap/channels.conf "KTTV DT" 
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+tuning to 779028615 Hz
+video pid 0x0031, audio pid 0x0034
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
+status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
+^C
+
 > 
-> I can perfectly scan (using modified scan from manu) and tune the card (using szap2), but kaffeine (v0.8.6) and vdr (v1.6.0) show problems tuning with that card. It is sort of unreliable: sometimes tuning works fast and fine (namely if you stay on the sane transponder, just changing the pids) but sometimes output of vdr syslog stays like this:
-
-
-> #lscpi
-> 01:05.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI Bridge Controller [Ver 1.0] (rev 01)
+> >
+> >> In terms of the tuner-to-demod, are you confident that the I/F is set
+> >> correctly? (And inversion for that matter?)
+> >
+> > I am not sure I understand the above question.  How would I go about setting up the interface for
+> the tuner-to-demod?
 > 
-> The mantis sources I applied the patch to are from hg repository: http://www.linuxtv.org/wiki/index.php/Azurewave_AD_SP400_CI_(VP-1041)#Drivers> (Method 2)
+> /me checks the code and thinks it should be working fine.
 > 
-> I hope someone can shatter some light what I'm doing wrong and how it can be fixed to tune a little faster than one station lock per minute :-)
-> 
-> If modular log output is to short I can offer you a "verbosity level = 5"-built mantis module in action... actually it is built with verbosity level=1
+> Specifically, please list here the frequencies that lock reliably for
+> you on 8VSB with other boards. I've seen issues in the past (mainly due
+> to driver issues) where channels tables work reliably for one tuner but
+> not for another.
 
-Please load the modules with the following verbosity
+Here is the working table that the HD5000 boards are using.
 
-stb0899 verbose=5
-stb6100 verbose=5
-mantis verbose=1
+KFLA-LD:183028615:8VSB:4128:4129:1
+HCCN:183028615:8VSB:4130:4131:2
+CVTV:183028615:8VSB:4640:4641:3
+WSTV:183028615:8VSB:80:89:4
+KTBN-DT 1:527028615:8VSB:49:52:3
+KTBN-DT 2:527028615:8VSB:65:68:4
+KTBN-DT 3:527028615:8VSB:81:84:5
+KTBN-DT 4:527028615:8VSB:97:100:6
+KTBN-DT 5:527028615:8VSB:113:116:7
+TeleFutura:563028615:8VSB:49:52:3
+KTLA-DT:575028615:8VSB:49:52:3
+KDOC-HD:581028615:8VSB:49:52:1
+KDOCSD1:581028615:8VSB:65:68:2
+[0004]:581028615:8VSB:81:84:4
+KDOCSD2:581028615:8VSB:81:84:3
+Univision:599028615:8VSB:49:52:3
+NBC-4LA:605028615:8VSB:49:52:3
+WX-Plus:605028615:8VSB:65:68:4
+NewsRaw:605028615:8VSB:81:84:5
+ION:617028615:8VSB:49:52:3
+KPXN qubo:617028615:8VSB:65:68:4
+IONLife:617028615:8VSB:81:84:5
+Worship:617028615:8VSB:97:100:6
+KVEA-HD:623028615:8VSB:49:52:3
+KVEA-SD:623028615:8VSB:65:68:4
+KLCS-DT:635028615:8VSB:49:52:2
+KLCS-DT:635028615:8VSB:65:68:3
+KLCS-DT:635028615:8VSB:81:84:4
+KLCS-DT:635028615:8VSB:97:100:5
+[0006]:635028615:8VSB:113:116:6
+KWHY-HD:641028615:8VSB:49:52:3
+KWHY-SD:641028615:8VSB:65:68:4
+KCAL-DT:647028615:8VSB:49:52:1
+KAZA-DT:671028615:8VSB:49:52:3
+KAZA-TV:671028615:8VSB:0:0:65535
+KOCE-HD:677028615:8VSB:49:52:3
+KOCE-OC:677028615:8VSB:65:68:4
+KOCE-SD:677028615:8VSB:81:84:5
+Daystar:677028615:8VSB:97:100:6
+KOCE-TV:677028615:8VSB:0:0:65535
+KJLA-DT:683028615:8VSB:49:52:3
+KXLA-DT:683028615:8VSB:65:68:4
+KVMD-DT:683028615:8VSB:81:84:5
+LATV:683028615:8VSB:97:100:6
+KXLA-DT:695028615:8VSB:49:52:3
+KVMD-DT:695028615:8VSB:65:68:4
+KABC-DT:707028615:8VSB:49:52:1
+KABC-SD:707028615:8VSB:65:68:2
+KABC-WN:707028615:8VSB:81:84:3
+KCET-HD:743028615:8VSB:49:52:1
+KCET-OC:743028615:8VSB:97:100:2
+KCET-Vm:743028615:8VSB:81:84:3
+KCET-W:743028615:8VSB:65:68:4
+[0009]:743028615:8VSB:0:0:9
+[000a]:743028615:8VSB:0:0:10
+KCBS-DT:749028615:8VSB:49:52:1
+LA18.1:755028615:8VSB:49:52:1
+LA18.8:755028615:8VSB:161:164:8
+LA18.5:755028615:8VSB:113:116:5
+LA18.7:755028615:8VSB:145:148:7
+LA18.3:755028615:8VSB:81:84:3
+LA18.6:755028615:8VSB:129:132:6
+LA18:755028615:8VSB:0:0:65535
+KTTV DT:779028615:8VSB:49:52:3
+KCOP DT:785028615:8VSB:49:52:3
+KRCA-DT:797028615:8VSB:49:52:1
+KRCA-DT:797028615:8VSB:65:68:2
 
-and send the logs
+Thanks again for the help!
+--James Evans
 
-Regards,
-Manu
 
 _______________________________________________
 linux-dvb mailing list
