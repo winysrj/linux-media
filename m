@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from tuc.ic3s.de ([80.146.164.30])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thomas@ic3s.de>) id 1Kff03-0006DS-Os
-	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 20:10:08 +0200
-Message-ID: <48CFF639.40009@ic3s.de>
-Date: Tue, 16 Sep 2008 20:08:57 +0200
-From: Thomas <thomas@ic3s.de>
+Received: from xdsl-83-150-88-111.nebulazone.fi ([83.150.88.111]
+	helo=ncircle.nullnet.fi) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tomimo@ncircle.nullnet.fi>) id 1Khfiz-0003gI-4u
+	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 09:20:49 +0200
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by ncircle.nullnet.fi (Postfix) with ESMTP id A7B381413187
+	for <linux-dvb@linuxtv.org>; Mon, 22 Sep 2008 10:20:45 +0300 (EEST)
+Received: from ncircle.nullnet.fi ([127.0.0.1])
+	by localhost (alderan.ncircle.nullnet.fi [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id mgEg5gXAHHuV for <linux-dvb@linuxtv.org>;
+	Mon, 22 Sep 2008 10:20:42 +0300 (EEST)
+Received: from ncircle.nullnet.fi (localhost.localdomain [127.0.0.1])
+	by ncircle.nullnet.fi (Postfix) with ESMTP
+	for <linux-dvb@linuxtv.org>; Mon, 22 Sep 2008 10:20:42 +0300 (EEST)
+Message-ID: <28756.192.100.124.219.1222068042.squirrel@ncircle.nullnet.fi>
+Date: Mon, 22 Sep 2008 10:20:42 +0300 (EEST)
+From: "Tomi Orava" <tomimo@ncircle.nullnet.fi>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-References: <48CFABD7.8000202@ic3s.de> <48CFB6EC.5080800@iki.fi>
-	<48CFBE0E.6060406@ic3s.de> <48CFEC58.2080402@iki.fi>
-In-Reply-To: <48CFEC58.2080402@iki.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] problems compiling af9015 on fedora 9
+Subject: Re: [linux-dvb] [RFC] cinergyT2 rework final review
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,51 +32,54 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-problem resolved (also the warnings are gone)
 
-thank you
 
-thomas
+Hi,
 
-Antti Palosaari schrieb:
-> Thomas wrote:
->> yes, it is the latest version:
->>
->> hg update
->> 0 files updated, 0 files merged, 0 files removed, 0 files unresolved
->>
->> hg log
->> changeset:   8966:86a15e6b2d89
->> tag:         tip
->> user:        Antti Palosaari <crope@iki.fi>
->> date:        Mon Sep 15 23:18:09 2008 +0300
->> summary:     initial driver for af9015 chipset
->>
->>
->> i have the same error on 2 fedora 9 systems
->> (one of them is running rawhide)
->> and also on my fedora 8 :(
->>
->> these errors appears only on fedora 9:
->>   CC [M]  /home/thomas/af9015-86a15e6b2d89/v4l/af9013.o
->> /home/thomas/af9015-86a15e6b2d89/v4l/af9013.c: In function
->> 'af9013_download_firmware':
->> /home/thomas/af9015-86a15e6b2d89/v4l/af9013.c:1497: warning:
->> assignment discards qualifiers from pointer target type
->>
->>
->>   CC [M]  /home/thomas/af9015-86a15e6b2d89/v4l/af9015.o
->> /home/thomas/af9015-86a15e6b2d89/v4l/af9015.c: In function
->> 'af9015_download_firmware':
->> /home/thomas/af9015-86a15e6b2d89/v4l/af9015.c:665: warning: assignment
->> discards qualifiers from pointer target type
-> 
-> I removed u64 div from af9013, could you test again? It could fix af9013
-> compile error, but it does not remove warning coming from
-> download_firmware.
-> 
-> regards,
-> Antti
+> On Fri, Sep 19, 2008 at 14:34:50 +0200, Thierry Merle wrote:
+>
+> [...]
+>
+>> OK. In my mind this patch was not a priority and some users reported bugs
+>> but we don't have any news from their part. Maybe buggy users :) I will
+wait just a little at least from Tomi and send a pull request to Mauro
+within the middle of the next week.
+>
+> I had 2 issues:
+>
+> - irrecord didn't work
+>
+> - a failure after resume after suspend with the driver loaded, the
+>   keyboard went crazy. Unloading the driver and unplugging the
+>   CinergyT2 helped in this case
+>
+> I don't know if theses issues are still present, though. I don't use the
+> IR receiver anymore, and always unload the driver before suspend. I'll
+> try to update to the current driver and re-test.
+
+I think that the version in Thierry's repository should contain
+the missing key repeat functionality that Thierry added in June.
+This should help to get the irrecord running again.
+
+Could you check what is the firmware version in your device ?
+Check for the "bcdDevice" keyword with lsusb -v -s <busid>:<devnum> I had
+way too many problems with 1.06 firmware version, but the
+newer 1.08 seems to be a little bit better in stability.
+I do think that this device is certainly not the most stable tuner on
+earth but if you don't do suspend/resume with it,
+it should work quite fine.
+
+Regards,
+Tomi Orava
+
+-- 
+
+
+
+
+-- 
+
+
 
 _______________________________________________
 linux-dvb mailing list
