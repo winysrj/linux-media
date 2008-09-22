@@ -1,19 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1KdtlE-0007xw-OA
-	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 23:31:45 +0200
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org
-Date: Fri, 12 Sep 2008 00:30:55 +0300
-References: <48C70F88.4050701@linuxtv.org>
-	<200809112024.24821.liplianin@tut.by>
-	<20080911200931.GA25626@gmail.com>
-In-Reply-To: <20080911200931.GA25626@gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809120030.55445.liplianin@tut.by>
-Subject: Re: [linux-dvb] S2API simple szap-s2 utility
+	(envelope-from <stoth@linuxtv.org>) id 1KhazY-0003FA-J6
+	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 04:17:38 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7K00AAXRODC7J0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sun, 21 Sep 2008 22:17:02 -0400 (EDT)
+Date: Sun, 21 Sep 2008 22:17:01 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200809211905.34424.hftom@free.fr>
+To: Christophe Thommeret <hftom@free.fr>
+Message-id: <48D7001D.7090400@linuxtv.org>
+MIME-version: 1.0
+References: <200809211905.34424.hftom@free.fr>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] hvr4000-s2api + QAM_AUTO
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,18 +25,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMTEgU2VwdGVtYmVyIDIwMDggMjM6MDk6MzEgR3JlZ29pcmUgRmF2cmUg
-zsHQydPBzCjBKToKPiBPbiBUaHUsIFNlcCAxMSwgMjAwOCBhdCAwODoyNDoyNFBNICswMzAwLCBJ
-Z29yIE0uIExpcGxpYW5pbiB3cm90ZToKPiA+IEp1c3Qgbm93IHVwZGF0ZWQgdXRpbGl0eQo+Cj4g
-R3JlYXQsIGlzIGl0ICJoZyIgYXZhaWxhYmxlID8KPgo+IHRoYW5rIHlvdSB2ZXJ5IG11Y2gsCgpT
-b3JyeSA6LSkKRm9yZ290IHRvIHB1c2ggY2hhbmdlcyA6LSkKV2Fpc3RpbmcgNiBob3VycyA6LSkK
-Cmh0dHA6Ly9saXBsaWFuaW5kdmIuc291cmNlZm9yZ2UubmV0L2hnL3N6YXAtczIvCgotLSAKSWdv
-ciBNLiBMaXBsaWFuaW4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6
-Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Christophe Thommeret wrote:
+> Hi Steve,
+> 
+> I've managed to add S2 support to kaffeine, so it can scan and zap.
+> However, i have a little problem with DVB-S:
+> Before tuning to S2, S channels tune well with QAM_AUTO.
+> But after having tuned to S2 channels, i can no more lock on S ones until i 
+> set modulation to QPSK insteed of QAM_AUTO for these S channels.
+> Is this known?
+> 
+
+Other users aren't seeing this, so it could be something odd with 
+Kaffeine. Please collect dmesg output and email me, it should be obvious 
+what's going on with this.
+
+Thanks,
+
+Steve
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
