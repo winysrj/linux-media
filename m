@@ -1,36 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8NFEFY0010124
-	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 11:14:16 -0400
-Received: from mta1.srv.hcvlny.cv.net (mta1.srv.hcvlny.cv.net [167.206.4.196])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8NFE7IA008515
-	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 11:14:07 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7N00GWSMBGS990@mta1.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Tue, 23 Sep 2008 11:14:05 -0400 (EDT)
-Date: Tue, 23 Sep 2008 11:14:03 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <9d87242f0809222335l67860769k6369db5665b10f98@mail.gmail.com>
-To: Scott Bronson <bronson@rinspin.com>
-Message-id: <48D907BB.4020801@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <9d87242f0809191425p1adb1e59p417753a4c403a872@mail.gmail.com>
-	<412bdbff0809191428j760ed51cy8fecd68e1cb738a4@mail.gmail.com>
-	<9d87242f0809192005t246311dp796aa28cb744b3af@mail.gmail.com>
-	<9d87242f0809192255t49e112bfvd9c95e66bd3292a8@mail.gmail.com>
-	<48D49A39.5010909@linuxtv.org>
-	<9d87242f0809211316g1a34f0e7wed0f8345d5cdd787@mail.gmail.com>
-	<48D702B5.8020800@linuxtv.org>
-	<9d87242f0809221206n1d589137v8e1bf77792c31bcf@mail.gmail.com>
-	<48D7F064.4010103@linuxtv.org>
-	<9d87242f0809222335l67860769k6369db5665b10f98@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Unreliable tuning with HVR-950q
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8MIGUx1021097
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 14:16:30 -0400
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8MIGKvK009930
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 14:16:20 -0400
+Message-ID: <48D7E121.50002@hhs.nl>
+Date: Mon, 22 Sep 2008 20:17:05 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+References: <48D7DAE1.7040204@gmail.com>
+In-Reply-To: <48D7DAE1.7040204@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: m560x driver devel <m560x-driver-devel@lists.sourceforge.net>,
+	video4linux-list@redhat.com
+Subject: Re: [GSPCA] A couple of questions
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -42,41 +28,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Scott Bronson wrote:
-> On Mon, Sep 22, 2008 at 12:22 PM, Steven Toth <stoth@linuxtv.org> wrote:
->> Watch the SNR value, it's measures in db and expressed in hex with one
->> decimal place. So, 0x102 = 25.8db
+Erik Andrén wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
 > 
-> OK.  Watching the display in MythTV, when I see this I immediately
-> know that the tuner will never lock.
-> 
->     Signal 0% | S/N 2.4dB | BE 0 | (L__) Partial Lock
-> 
-> 
-> And when I see this, I know that in 1/2 second I'll see a TV picture:
-> 
->     Signal 0% | S/N 2.4dB | BE 0 | (LAM) Lock
-> 
-> 
-> It's always the same: 0% signal, 2.4dB S/N and BE 0.  Does "L__" offer
-> any hints as to why locks are so elusive?
+> Hi,
+> I've begun the working investigating the possibility of converting the
+> m5602 driver to the gspca framework.
 
-Scott, thanks for the info.
+Great! You rock, really you do :)
 
-I'm not actually comfortable trusting the myth display without digging 
-into it's code, I don't know what it does with the values. Try using the 
-azap statistics, which I'm happier to discuss.
+> I currently have the following questions:
+> 1) From my understanding each driver implementing the gspca framework
+> has a static list of v4l2 controls. In the m5602 driver, each sensor has
+> its own set of v4l2 controls with different resolutions.
+> Is there a obious solution to this problem?
+> 
 
-At this point I don't see any software fixes, we're not going to make 
-the driver retune a number of times. You're overwhelming the tuner/demod 
-frontend with high RF levels.
+Yes and no, for now the solution is to make your sd_desc non const and update 
+the ctrls member to point to the right array. In the future I want to add a 
+const struct sd_desc *sensor_ctrls to the main gspca struct, which you can then 
+set at probe time, as there are more subdrivers with this issue.
 
-If you have SNR numbers they would be good to see, but they are for 
-informational purposes at this point. They are a curiosity.
+Feel free todo that now in your patch if that suits you. My idea is to have per 
+bridge controls in sd_desc, and per sensor controls in gspca_dev.
 
-You likely need an attenuator.
+> 2) In the sd_desc struct, is it necessary to implement the dq_callback
+> or does the gspca driver automagically requeue buffers?
 
-- Steve
+There is no need to implement this, its just a callback for when you want todo 
+something each frame from a non interrupt contexts (like software autoexposure).
+
+Don't hesitate to ask more questions!
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
