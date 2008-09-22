@@ -1,27 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8FLw6SA000941
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 17:58:07 -0400
-Received: from mail-in-08.arcor-online.net (mail-in-08.arcor-online.net
-	[151.189.21.48])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8FLvpSE027478
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 17:57:51 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20080915012640.51c86e04@areia.chehab.org>
-References: <48C4FC1F.40509@comcast.net>
-	<20080911103801.52629349@mchehab.chehab.org>
-	<1221359719.6598.31.camel@pc10.localdom.local>
-	<20080915012640.51c86e04@areia.chehab.org>
-Content-Type: text/plain
-Date: Mon, 15 Sep 2008 23:53:53 +0200
-Message-Id: <1221515633.2715.41.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Schultz <n9xmj@yahoo.com>,
-	Henry Wong <henry@stuffedcow.net>, v4ldvb@linuxtv.org,
-	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
-Subject: Re: [PATCH] Add support for MSI TV@nywhere Plus remote
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8M8NiVN010158
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 04:23:44 -0400
+Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8M8NUhW008583
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 04:23:31 -0400
+Message-ID: <22980.24.120.242.223.1222071809.squirrel@webmail.xs4all.nl>
+Date: Mon, 22 Sep 2008 10:23:29 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Video4Linux" <video4linux-list@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: Re: Annoying problem with minors and video_register_device()
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,62 +25,112 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Let me retry this. It's a bad idea to reply at 1:20 am, and I also had one
+Las Vegas cocktail too many :-)
 
-Am Montag, den 15.09.2008, 01:26 -0300 schrieb Mauro Carvalho Chehab:
-> On Sun, 14 Sep 2008 04:35:19 +0200
-> hermann pitton <hermann-pitton@arcor.de> wrote:
-> 
-> > Mauro,
-> > 
-> > this is the oldest and most important outstanding patch we have.
-> > 
-> > There are whole generations of cards still without of any IR support,
-> > since years, because of that.
-> > 
-> > If this one should still hang on coding style violations, please let me
-> > know.
-> 
-> I'll handle this patch soon. I'm currently away (in Portland, due to Plumbers
-> and KS conferences), so, maybe I'll wait until the next week for committing it.
+>> Description:
+>>
+>> I have machine with a CX23416 (ivtv) and CX23418 (cx18) based card.  The
+>> following commands yield the video device node names as I'd prefer to
+>> see them:
+>>
+>> # modprobe cx18 cx18_first_minor=1
+>> # modprobe ivtv ivtv_first_minor=0
+>> # ls -al /dev/video*
+>> lrwxrwxrwx  1 root root      6 2008-09-21 19:37 /dev/video -> video0
+>> crw-rw----+ 1 root root 81,  0 2008-09-21 19:37 /dev/video0
+>> crw-rw----+ 1 root root 81,  1 2008-09-21 19:37 /dev/video1
+>> crw-rw----+ 1 root root 81, 24 2008-09-21 19:37 /dev/video24
+>> crw-rw----+ 1 root root 81, 25 2008-09-21 19:37 /dev/video25
+>> crw-rw----+ 1 root root 81, 32 2008-09-21 19:37 /dev/video32
+>> crw-rw----+ 1 root root 81, 33 2008-09-21 19:37 /dev/video33
+>>
+>>
+>> If I leave off the module options, I get this:
+>>
+>> # modprobe cx18
+>> # modprobe ivtv
+>> # ls -al /dev/video*
+>> lrwxrwxrwx  1 root root      6 2008-09-21 19:43 /dev/video -> video0
+>> crw-rw----+ 1 root root 81,  0 2008-09-21 19:43 /dev/video0
+>> crw-rw----+ 1 root root 81,  1 2008-09-21 19:44 /dev/video1
+>> crw-rw----+ 1 root root 81,  2 2008-09-21 19:44 /dev/video2
+>> crw-rw----+ 1 root root 81, 24 2008-09-21 19:43 /dev/video24
+>> crw-rw----+ 1 root root 81,  3 2008-09-21 19:44 /dev/video3
+>> crw-rw----+ 1 root root 81, 32 2008-09-21 19:43 /dev/video32
+>>
+>> /dev/video2 and /dev/video3 aren't following the convention.
 
-fine. My small other stuff will cause no merge conflicts.
+Hi Andy,
 
-> > If you would ever find time again, have a look at my patch enabling
-> > first support for the new Asus Tiger 3in1, which I have only as an OEM
-> > board, but which is coming up to global distribution now and likely will
-> > cover all newer boards.
-> 
-> Could you please forward it me again any pending patches? Better if you can do
-> it at the beginning of the next week. If I don't answer about a patch in about
-> one week, the better is to ping me about it.
-> 
-> > I wasted some time again, to fit into the 80 columns rule on
-> > saaa7134-dvb.c, and all I can say is, this way not with me.
-> 
-> The 80 cols rule is just a warning. On some cases, it helps to improve
-> readability. Also, it is generally easier to review codes that fit on 80 cols,
-> since it helps me to open a window comparing a file and a patched version with
-> some tool like kdiff3, where the several file revisions are presented side by side.
-> 
-> > Please exercise it yourself now, you have all relevant information, show
-> > the resulting code and explain, why such crap should be looking good.
-> 
-> I did my self some coding style patches and the end result was an easier to
-> read code. As already discussed, such warnings/errors should be used as a hint
-> of troubles, not as absolute rules.
-> 
+Yeah, I know about this. My v4l-dvb-dev tree should work much better in
+this respect. When I'm back home in a week I intend to review my tree and
+will probably ask Mauro to pull it.
 
-I cooled down next day and a patch within 80 columns is on the lists :)
+Additional testing of this tree is welcome in the meantime.
 
-Please pick up this one first and report any issues.
+Regards,
 
-I'll provide the other few patches then next weekend.
+       Hans
 
-Good times in Portland, peace and cooperation.
-
-Cheers,
-Hermann
+>
+>>
+>>
+>> The problem is video_register_device() either gives you the minor for
+>> which the driver asked or it can auto assign the first available but
+>> only starting at an offset 0.
+>>
+>> Perhaps video_register_device() could be modified so that the 3rd
+>> argument, nr, if less than 0, could be interpreted as -(offset+1).
+>> Offset would be the offset from the base at which auto assignment of a
+>> minor could start.  The case of nr being passed in as -1 is then a
+>> backwards compatible case.  In the case of nr greater than or equal to
+>> 0, nothing different would be done so things remain backward compatible.
+>>
+>> So near the middle/bottom of video_register_device_index() one would
+>> have:
+>>
+>>         if (nr >= 0 && nr < end-base) {
+>>                 /* use the one the driver asked for */
+>>                 i = base + nr;
+>>                 if (NULL != video_device[i]) {
+>>                         mutex_unlock(&videodev_lock);
+>>                         return -ENFILE;
+>>                 }
+>>         } else {
+>> -               /* use first free */
+>> -               for (i = base; i < end; i++)
+>> +               if (nr >= 0)
+>> +                       nr = -1;
+>> +               /* use first free from offset -nr - 1 */
+>> +               for (i = base - nr - 1; i < end; i++)
+>>                         if (NULL == video_device[i])
+>>                                 break;
+>> -               if (i == end) {
+>> +               if (i >= end) {
+>>                         mutex_unlock(&videodev_lock);
+>>                         return -ENFILE;
+>>                 }
+>>         }
+>>
+>>
+>> Of course the drivers (ivtv and cx18 in my case) would have to be
+>> modified to use this.
+>>
+>> Any comments?  Is it not worth solving such a rare case when a
+>> workaround with a module parameter exists?
+>>
+>> Regards,
+>> Andy
+>>
+>>
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
 
 --
