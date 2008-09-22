@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpauth02.csee.siteprotect.eu ([83.246.86.181])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roger@beardandsandals.co.uk>) id 1KacAD-0007qB-Sn
-	for linux-dvb@linuxtv.org; Tue, 02 Sep 2008 22:07:46 +0200
-Received: from [192.168.10.241] (unknown [81.168.109.249])
-	(Authenticated sender: roger@beardandsandals.co.uk)
-	by smtpauth02.csee.siteprotect.eu (Postfix) with ESMTP id E571CC68005
-	for <linux-dvb@linuxtv.org>; Tue,  2 Sep 2008 22:07:11 +0200 (CEST)
-Message-ID: <48BD9CF0.9080604@beardandsandals.co.uk>
-Date: Tue, 02 Sep 2008 21:07:12 +0100
-From: Roger James <roger@beardandsandals.co.uk>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <48BD78B0.6070508@beardandsandals.co.uk>	<48BD85FC.6030800@kipdola.com>
-	<48BD96F9.2010901@beardandsandals.co.uk>
-In-Reply-To: <48BD96F9.2010901@beardandsandals.co.uk>
-Subject: Re: [linux-dvb] Help - trying to get multiproto TT03200 driver
- working via old API
+Received: from a-sasl-fastnet.sasl.smtp.pobox.com ([207.106.133.19]
+	helo=sasl.smtp.pobox.com) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <torgeir@pobox.com>) id 1Khua5-0002nE-Ey
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 01:12:39 +0200
+Message-Id: <08377BD9-943F-45B3-9126-0C8092E7437B@pobox.com>
+From: Torgeir Veimo <torgeir@pobox.com>
+To: Darron Broad <darron@kewl.org>, linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <10418.1222087091@kewl.org>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Date: Tue, 23 Sep 2008 09:12:11 +1000
+References: <C8AA13C7-C91C-457F-A53D-386F74787902@pobox.com>
+	<7755.1222066749@kewl.org>
+	<C581EFB1-475B-466C-9B6A-AC8FDD6C0183@pobox.com>
+	<10418.1222087091@kewl.org>
+Subject: Re: [linux-dvb] skystar 2 usb IR receiver with other remotes
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,136 +21,75 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0561463705=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0561463705==
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title></title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-Hmm,<br>
-<br>
-Looking at this further. I think the patch will break compatibility
-with all the old non multi-protocol drivers. That is the last thing I
-want to do. What is needed is something that converts to the new api
-only when needed. I wonder if there is a simple test to see if the
-underlying driver is old or new.<br>
-<br>
-I am somewhat out of my depth here!<br>
-<br>
-I am beginning to think I should have bought a DVB-S card after all.
-Especially as none of the services I want to view are S2!<br>
-<br>
-Roger<br>
-<br>
-Roger James wrote:
-<blockquote cite="mid:48BD96F9.2010901@beardandsandals.co.uk"
- type="cite">
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title></title>
-Thanks,<br>
-  <br>
-Looking at the patch diff is does not appear too complex. I will try
-and see if I can work out a minimal patch against the current tree. If
-not I will fall back on your suggestion. I think it would be desireable
-if what makes it into the kernel supports new cards been driven in the
-old way. <br>
-  <br>
-Roger<br>
-  <br>
-Jelle De Loecker wrote:
-  <blockquote cite="mid:48BD85FC.6030800@kipdola.com" type="cite">
-    <meta content="text/html;charset=ISO-8859-1"
- http-equiv="Content-Type">
-    <title></title>
-I feel your pain, patch-hell isn't a fun place to be :)<br>
-    <br>
-Lots of people make guides on how to fix something, unfortunately they
-forget that trees grow, and a patch that works today probably won't
-work tomorrow.<br>
-Thankfully you can check out different revisions!<br>
-    <br>
-I'd sugest you try this patch out on manu's original multiproto tree,
-revision number 7213 (that was the last update, in april, before she
-made her patch)<br>
-    <br>
-hg clone -r 7213 <a moz-do-not-send="true"
- class="moz-txt-link-freetext" href="http://jusst.de/hg/multiproto">http://jusst.de/hg/multiproto</a><br>
-    <div class="moz-signature"><br>
-    <em>Met vriendelijke groeten,</em> <br>
-    <br>
-    <strong>Jelle De Loecker</strong> <br>
-Kipdola Studios - Tomberg <br>
-    </div>
-    <br>
-    <br>
-Roger James schreef:
-    <blockquote cite="mid:48BD78B0.6070508@beardandsandals.co.uk"
- type="cite">I am have been trying to get gnutv to drive the TT-3200
-driver using
-the old api (gnutv uses dvb-apps/lib which is not patched for multi
-proto). After much head scratching I realised that the fialure of the
-driver to get lock when exercised in this way seemed to be related to
-DVBFE_ALGO_SEARCH_AGAIN not being set when the FE_SET_FRONTEND ioctl
-path was followed rather than than the DVBFE_SET_PARAMS path. A search
-of the list revealed that Anssi Hannula had already worked this out and
-made a patch (<a moz-do-not-send="true" class="moz-txt-link-freetext"
- href="http://www.spinics.net/lists/linux-dvb/msg26174.html">http://www.spinics.net/lists/linux-dvb/msg26174.html</a>).
-However it does not look like this patch has made it into the code that
-Manu has asked to be merged into the kernel. Does this mean that the
-merged code will not be compatible with applications such as gnutv
-which use dvb-apps/lib or other apps which use the old api?<br>
-      <br>
-To help me carry on with my testing. Is there as version of Anssi's
-patch that can be applied against a recent clone of Manu's code.<br>
-      <br>
-I apologise if this has been visited before; but I am finding it
-virtually impossible to unravel the complexities of what patch matches
-what tree.<br>
-      <br>
-Help<br>
-      <br>
-Roger<br>
-      <pre wrap=""><hr size="4" width="90%">
-_______________________________________________
-linux-dvb mailing list
-<a moz-do-not-send="true" class="moz-txt-link-abbreviated"
- href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
-<a moz-do-not-send="true" class="moz-txt-link-freetext"
- href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></pre>
-    </blockquote>
-  </blockquote>
-  <br>
-  <pre wrap="">
-<hr size="4" width="90%">
-_______________________________________________
-linux-dvb mailing list
-<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
-<a class="moz-txt-link-freetext" href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></pre>
-</blockquote>
-<br>
-</body>
-</html>
+On 22 Sep 2008, at 22:38, Darron Broad wrote:
+
+> In message <C581EFB1-475B-466C-9B6A-AC8FDD6C0183@pobox.com>, Torgeir  
+> Veimo wrote:
+>>
+>
+> Lo
+>
+>> On 22 Sep 2008, at 16:59, Darron Broad wrote:
+>>
+>>> In message <C8AA13C7-C91C-457F-A53D-386F74787902@pobox.com>, Torgeir
+>>> Veimo wrote:
+>>>
+>>> lo
+>>>
+>>>> I'm looking for information about how to use a skystar 2 usb IR
+>>>> remote
+>>>> sensor, type USB IR receiver 0900/3704, with other remotes than the
+>>>> originally supplied Technisat TTS35AI remote.
+>>
+>>> Some presses on a hauppauge remote:
+>>>> cat /dev/hidraw5
+>>> "5"5"5"5111222
+>>>
+>>> cya
+>>
+>>
+>> Nice! But which driver is the one to use with lirc?
+>
+> That's a different question.
+>
+>> I tried using a few different ones, and I always get
+>>
+>> kernel:hidraw: unsupported ioctl() 5401
+>>
+>> - when I start irw.
+>
+> Use the dev/input driver.
 
 
---===============0561463705==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hmm, I tried
+
+[root@htpc ~]# lircd -n -H dev/input -d /dev/hidraw0
+lircd-0.8.3[4042]: lircd(userspace) ready
+lircd-0.8.3[4042]: accepted new client on /dev/lircd
+lircd-0.8.3[4042]: initializing '/dev/hidraw0'
+lircd-0.8.3[4042]: can't get exclusive access to events comming from `/ 
+dev/hidraw0' interface
+
+Message from syslogd@htpc at Sep 23 01:07:40 ...
+  kernel:hidraw: unsupported ioctl() 40044590
+
+
+-- 
+Torgeir Veimo
+torgeir@pobox.com
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0561463705==--
