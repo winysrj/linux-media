@@ -1,17 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ffm.saftware.de ([83.141.3.46])
+Received: from anchor-post-33.mail.demon.net ([194.217.242.91])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <obi@linuxtv.org>) id 1Kie6j-0005Vm-Of
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 01:49:22 +0200
-Message-ID: <48DAD1FD.1060801@linuxtv.org>
-Date: Thu, 25 Sep 2008 01:49:17 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1KhuOw-0001yp-FB
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 01:01:08 +0200
+Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
+	helo=pentagram.youmustbejoking.demon.co.uk)
+	by anchor-post-33.mail.demon.net with esmtp (Exim 4.67)
+	id 1KhuOs-0004j0-An
+	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 23:01:02 +0000
+Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
+	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1KhuOh-000840-VL
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 00:01:01 +0100
+Date: Mon, 22 Sep 2008 23:38:31 +0100
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+To: linux-dvb@linuxtv.org
+Message-ID: <4FE87384AC%linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAEH2unQOalpGjvGmwr9GMIQBAAAAAA==@stahurabrenner.com>
+References: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAEH2unQOalpGjvGmwr9GMIQBAAAAAA==@stahurabrenner.com>
 MIME-Version: 1.0
-To: Mika Laitio <lamikr@pilppa.org>
-References: <Pine.LNX.4.64.0809250125040.11057@shogun.pilppa.org>
-In-Reply-To: <Pine.LNX.4.64.0809250125040.11057@shogun.pilppa.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dvb-t fix for hvr-4000 multiproto
+Subject: Re: [linux-dvb] CX88 IRQ Loop
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,27 +29,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mika Laitio wrote:
-> memset and udelay changes from s2-mfe were really not making any visible
-> changes for me, but at least the memset call is a good thing to do.
-
-+	memset(&core->board, 0, sizeof(core->board));
- 	memcpy(&core->board, &cx88_boards[core->boardnr], sizeof(core->board));
-
-Contrary to your opinion, this call to memset is superflous, as all the
-zeroes get overwritten by the call to memcpy.
-
-Regards,
-Andreas
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SSBkZW1hbmQgdGhhdCBUaW1vdGh5IEUuIEtyYW50eiBtYXkgb3IgbWF5IG5vdCBoYXZlIHdyaXR0
+ZW4uLi4KCj4gSSBhbSBnZXR0aW5nIHRoZSBmb2xsb3dpbmcgcHJvYmxlbXMgYXMgcmVwb3J0ZWQg
+aW4gZG1lc2cuCj4gQW55IGhlbHAgd291bGQgYmUgYXBwcmVjaWF0ZWQuCgo+IExpbnV4IHZpZGVv
+IGNhcHR1cmUgaW50ZXJmYWNlOiB2Mi4wMAo+IGN4MjM4OHggYWxzYSBkcml2ZXIgdmVyc2lvbiAw
+LjAuNiBsb2FkZWQKPiBBQ1BJOiBQQ0kgSW50ZXJydXB0IDAwMDA6MDA6MDkuMVtBXSAtPiBHU0kg
+MTcgKGxldmVsLCBsb3cpIC0+IElSUSAyMAo+IGN4ODhbMF06IHN1YnN5c3RlbTogMTFiZDowMDUx
+LCBib2FyZDogUGlubmFjbGUgUENUViBIRCA4MDBpCltzbmlwXQo+IHhjNTAwMDogZmlybXdhcmUg
+dXBsb2FkCltzbmlwXQo+IE5WUk06IGxvYWRpbmcgTlZJRElBIFVOSVggeDg2IEtlcm5lbCBNb2R1
+bGUgIDE2OS4xMiAgVGh1IEZlYiAxNCAxNzo1MzowNyBQU1QgMjAwOApbc25pcF0KPiBuZGlzd3Jh
+cHBlciB2ZXJzaW9uIDEuNTEgbG9hZGVkIChzbXA9eWVzLCBwcmVlbXB0PW5vKQo+IHVzYiAxLTU6
+IHJlc2V0IGhpZ2ggc3BlZWQgVVNCIGRldmljZSB1c2luZyBlaGNpX2hjZCBhbmQgYWRkcmVzcyAy
+Cj4gbmRpc3dyYXBwZXI6IGRyaXZlciBuZXRtdzI0NSAoTWFydmVsbCwxMS8yNy8yMDA2LDEuMC40
+LjkpIGxvYWRlZApbc25pcF0KPiBjeDg4WzBdLzItbXBlZzogZ2VuZXJhbCBlcnJvcnM6IDB4MDAx
+NDAwMDAKPiBjeDg4WzBdLzItbXBlZzogY2xlYXJpbmcgbWFzawo+IGN4ODhbMF0vMDogaXJxIGxv
+b3AgLS0gY2xlYXJpbmcgbWFzawpbc25pcF0KPiBjeDg4WzBdOiBpcnEgbXBlZyAgWzB4YTAwMDBd
+IHBhcl9lcnIqIHBjaV9hYm9ydCoKPiBjeDg4WzBdLzItbXBlZzogZ2VuZXJhbCBlcnJvcnM6IDB4
+MDAwYTAwMDAKPiBpcnEgMjA6IG5vYm9keSBjYXJlZCAodHJ5IGJvb3Rpbmcgd2l0aCB0aGUgImly
+cXBvbGwiIG9wdGlvbikKPiBQaWQ6IDAsIGNvbW06IHN3YXBwZXIgVGFpbnRlZDogUCAgICAgICAg
+Mi42LjI0LjQtNjQuZmM4ICMxCj4gIFs8YzA0NjEyYmU+XSBfX3JlcG9ydF9iYWRfaXJxKzB4MzYv
+MHg3NQo+ICBbPGYxNWEzYTE2Pl0gbnZfa2Vybl9pc3IrMHhhNS8weGIyIFtudmlkaWFdCgpPaCBk
+ZWFyLiBJIGRvIGJlbGlldmUgdGhhdCB0aGF0J3Mgd2l0aGluIG5WaWRpYSdzIHByb3ByaWV0YXJ5
+IGRyaXZlci4KCkFuZCB5b3UncmUgdXNpbmcgbmRpc3dyYXBwZXIsIGFuZCBpdCdzIGxvYWRlZCBh
+IGRyaXZlciBtb2R1bGUuIFRoYXQncyBhbm90aGVyCnNvdXJjZSBvZiBrZXJuZWwgdGFpbnQuIFRo
+aXMgcmFpc2VzIHRoZSBwb3NzaWJpbGl0eSBvZiBzb21lIGludGVyYWN0aW9uCmJldHdlZW4gdGhl
+IHR3bywgd2hpY2ggYmFzaWNhbGx5IFlvdSBEb24ndCBXYW50IFRvIFNlZS4gRXZlci4KCldoaWNo
+IGlzbid0IGdvb2QgYmVjYXVzZSBvbmUgb3Igb3RoZXIsIG9yIHNvbWUgaW50ZXJhY3Rpb24gYmV0
+d2VlbiB0aGVtLCBpcyBhCnBvc3NpYmxlIHNvdXJjZSBvZiB0aGUgcHJvYmxlbS4gU28geW91IG5l
+ZWQgdG8gYmUgYWJsZSB0byBwcm9kdWNlIHRoaXMKd2l0aG91dCBvbmUgb3IgYm90aCB0YWludCBz
+b3VyY2VzOiB3aXRob3V0IG9uZSwgaXQncyBsaWtlbHkgY2F1c2VkIGJ5IHRoZQpvdGhlciBwaWVj
+ZSBvZiB0YWludHdhcmU7IHdpdGhvdXQgYm90aCwgeW91IGtub3cgdGhhdCB0aGUgcHJvYmxlbSBp
+c24ndApjYXVzZWQgYnkgdGFpbnR3YXJlIChpdCdzIGVpdGhlciBhIGN4ODggZHJpdmVyIGJ1ZyBv
+ciBhIGhhcmR3YXJlIGZhdWx0KS4gSWYsCmhvd2V2ZXIsIGl0IG9ubHkgZXZlciBoYXBwZW5zIHdp
+dGggYm90aCBsb3RzIG9mIHRhaW50IGFwcGxpZWQsIHlvdSBoYXZlIGEKcHJvYmxlbSBzb21ld2hl
+cmUgYmV0d2VlbiBuVmlkaWEgYW5kIGVpdGhlciBuZGlzd3JhcHBlciBvciBuZXR3bTI0NSDigJMg
+Z29vZApsdWNrIDstKQoKKFRhaW50IHJlbW92YWw6IHByZXZlbnQgdGhlIHRhaW50d2FyZSBmcm9t
+IGJlaW5nIGxvYWRlZCwgdGhlbiByZWJvb3QuKQoKLS0gCnwgRGFycmVuIFNhbHQgICAgfCBsaW51
+eCBvciBkcyBhdCAgICAgICAgICAgICAgfCBuci4gQXNoaW5ndG9uLCB8IFRvb24KfCBSSVNDIE9T
+LCBMaW51eCB8IHlvdW11c3RiZWpva2luZyxkZW1vbixjbyx1ayB8IE5vcnRodW1iZXJsYW5kIHwg
+QXJteQp8ICsgQXQgbGVhc3QgNDAwMCBtaWxsaW9uIHRvbyBtYW55IHBlb3BsZS4gUE9QVUxBVElP
+TiBMRVZFTCBJUyBVTlNVU1RBSU5BQkxFLgoKSGlyZSB0aGUgbW9yYWxseSBoYW5kaWNhcHBlZC4K
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2
+YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5v
+cmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
