@@ -1,20 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m88Gmal4014162
-	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 12:48:37 -0400
-Received: from mgw-mx09.nokia.com (smtp.nokia.com [192.100.105.134])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m88GmQKv021827
-	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 12:48:26 -0400
-Message-ID: <48C55737.4080804@nokia.com>
-Date: Mon, 08 Sep 2008 19:47:51 +0300
-From: Sakari Ailus <sakari.ailus@nokia.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8M2ZPFk024954
+	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 22:35:25 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.154])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8M2YUMu014966
+	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 22:34:30 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so1269655fga.7
+	for <video4linux-list@redhat.com>; Sun, 21 Sep 2008 19:34:30 -0700 (PDT)
+Message-ID: <d9def9db0809211934s72bbea5ds95b05d45ffd41072@mail.gmail.com>
+Date: Mon, 22 Sep 2008 04:34:29 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Henry Hu" <henry.hu.sh@gmail.com>
+In-Reply-To: <d9def9db0809211921h33cccff1y97477902473fd999@mail.gmail.com>
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
-	"Zutshi Vimarsh \(Nokia-D-MSW/Helsinki\)" <vimarsh.zutshi@nokia.com>
-Subject: [PATCH 0/7] V4L changes for OMAP 3 camera
+Content-Disposition: inline
+References: <200809220018.AAA14502@sopwith.solgatos.com>
+	<53a1e0710809211907i340069f7w4847b2623a48a953@mail.gmail.com>
+	<d9def9db0809211921h33cccff1y97477902473fd999@mail.gmail.com>
+Cc: freebsd-multimedia@freebsd.org, freebsd@sopwith.solgatos.com,
+	Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: Video4Linux2 and BSD
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,27 +33,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Mon, Sep 22, 2008 at 4:21 AM, Markus Rechberger
+<mrechberger@gmail.com> wrote:
+> On Mon, Sep 22, 2008 at 4:07 AM, Henry Hu <henry.hu.sh@gmail.com> wrote:
+>> They've also got a USB video class driver. Hope it would be imported soon.
+>>
+>> 2008/9/22 Dieter <freebsd@sopwith.solgatos.com>:
+>>> FYI, NetBSD now has Video4Linux2.
+>>>
+>>> http://www.netbsd.org/changes/#200809-video
+>>>
+>>> Ob-counterpoint: It isn't obvious from the summary whether
+>>> this addresses the kernel bloat issue raised in
+>>>
+>>> http://video4bsd.sourceforge.net/
+>>> and
+>>> http://wiki.freebsd.org/HDTV
+>>> _______________________________________________
+>>> freebsd-multimedia@freebsd.org mailing list
+>>> http://lists.freebsd.org/mailman/listinfo/freebsd-multimedia
+>>> To unsubscribe, send any mail to "freebsd-multimedia-unsubscribe@freebsd.org"
+>>>
+>
+> great news!
+>
 
-This patchset extends V4L2 interface and especially v4l2-int-if 
-somewhat. The new functionality is there to support the OMAP 3 camera 
-driver.
+btw. I talked to Xceive a while ago regarding BSD, the xc3028 and
+xc5000 tuners which are used for analog and digital TV devices (eg.
+DVB-T, ATSC, analog TV-multistandard) can be licensed under the terms
+of the BSD license.
 
-Our aim is to get these patches into v4l-dvb tree and further to Linus' 
-tree. The OMAP 3 camera driver, which is dependent on these patches, is 
-targeted to linux-omap tree through linux-omap@vger.kernel.org mailing 
-list. It is unlikely that it would be useful (or even compile) without 
-many of the changes in linux-omap tree.
+http://mcentral.de/hg/~mrec/em28xx-new/file/6b0e6877f961/xc3028/
+http://mcentral.de/hg/~mrec/em28xx-new/file/6b0e6877f961/xc5000/
 
-The patches apply against v4l-dvb, Linus' tree or linux-omap.
+I will keep the sources uptodate (there are occasionally firmware updates).
 
-Comments will be appreciated. :-)
+Those ICs are used with numerous devices nowadays. If there are any
+questions just drop me a line.
 
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@nokia.com
+regards,
+Markus
 
 --
 video4linux-list mailing list
