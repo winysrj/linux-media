@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8FKeiM6002159
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 16:40:44 -0400
-Received: from nlpi025.prodigy.net (nlpi025.sbcis.sbc.com [207.115.36.54])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8FKegcG014434
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 16:40:42 -0400
-Message-ID: <48CEC847.8030404@xnet.com>
-Date: Mon, 15 Sep 2008 15:40:39 -0500
-From: stuart <stuart@xnet.com>
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <48CD6F11.8020900@xnet.com>
-	<1221431625.4566.5.camel@pc10.localdom.local>
-In-Reply-To: <1221431625.4566.5.camel@pc10.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Dwaine Garden <dwainegarden@rogers.com>, video4linux-list@redhat.com
-Subject: Re: KWorld 120 IR control?
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8MI0GT4013459
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 14:00:16 -0400
+Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8MI04J9031172
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 14:00:04 -0400
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Erik =?ISO-8859-1?Q?Andr=E9n?= <erik.andren@gmail.com>
+In-Reply-To: <48D7D987.7020107@gmail.com>
+References: <48D7D987.7020107@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Mon, 22 Sep 2008 19:56:19 +0200
+Message-Id: <1222106179.5493.3.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH][GSPCA] Remove some superflous commas
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,43 +27,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-
-hermann pitton wrote:
-> Hi Stuart,
+On Mon, 2008-09-22 at 19:44 +0200, Erik Andrén wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
 > 
-> Am Sonntag, den 14.09.2008, 15:07 -0500 schrieb stuart:
->> Hi...
->>
->> This is my monthly (humm, more like quarterly) bump to see if anyone has 
->> looked at (or can tell me what to do with) the KWorld 120 video4linux 
->> drivers when it comes to getting the IR hardware to work.
->>
->> I would think, by now, there are a lot of these cards out there.  Were 
->> not the KWorld 110 and 115 ATSC tuners popular here?  And haven't they 
->> been replaced by the KWorld 120?  If so, what are people doing for IR?
->>
->> ...thanks
->>
+> Hi,
+> The attached patch removes some superflous commas.
+> More gspca files could be combed for these, I just picked a couple of
+> files when I had some spare minutes over.
 > 
-> Mauro, better we all of course, need to review Brian Rogers latest patch
-> from Thursday on this to get it in.
+> Patch should apply against current v4l-dvb hg tree.
 > 
-> Based on this, likely Dwaine Garden is the one who can further proceed
-> for the Kworld stuff too.
-> 
-> Cheers,
-> Hermann
+> Thanks,
+> Erik
 
-Hey, thanks to all who have contributed to the KWorld-120 v4l driver! 
-If it wasn't obvious, I've been enjoying the sound and video from my v4l 
-driven KWorld-120 for months now.
+Hi Erik,
 
-So, are these IR remote control patches in Staging (the v4l somewhat 
-stable pre-release version).  I've pulled and compiled from that repo 
-before - no problem if that's where the new IR code is.
+Yes, I know there are many commas which may be removed, but, new
+compilers accept them, and, they make things easier when adding new
+elements to a table or structure.
 
-...thanks
+Regards.
+
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
+
 
 --
 video4linux-list mailing list
