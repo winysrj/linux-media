@@ -1,19 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from smtp-out113.alice.it ([85.37.17.113])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KhOAK-0006jZ-24
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 14:35:53 +0200
-Message-ID: <39633.85.23.68.42.1222000546.squirrel@webmail.kapsi.fi>
-In-Reply-To: <200809210904.28192.dirk_vornheder@yahoo.de>
-References: <200809152345.37786.dirk_vornheder@yahoo.de>
-	<200809201953.39006.dirk_vornheder@yahoo.de> <48D53B37.6020001@iki.fi>
-	<200809210904.28192.dirk_vornheder@yahoo.de>
-Date: Sun, 21 Sep 2008 15:35:46 +0300 (EEST)
-From: "Antti Palosaari" <crope@iki.fi>
-To: "Dirk Vornheder" <dirk_vornheder@yahoo.de>
+	(envelope-from <wayneandholly@alice.it>) id 1Khpuu-0001Ly-1e
+	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 20:13:50 +0200
+From: "Wayne and Holly" <wayneandholly@alice.it>
+To: <linux-dvb@linuxtv.org>
+Date: Mon, 22 Sep 2008 20:13:05 +0200
+Message-ID: <000001c91cde$dc02ac90$0202a8c0@speedy>
 MIME-Version: 1.0
-Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] New unspported device AVerMedia DVB-T
+Subject: [linux-dvb] New Formfactor Twinhan vp1020a
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,27 +22,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-su 21.9.2008 10:04 Dirk Vornheder kirjoitti:
-> Sep 21 08:17:51 lappc kernel: dvb-usb: found a 'AVerMedia DVB-T' in cold
-> state, will try to load a firmware
-> Sep 21 08:17:51 lappc kernel: firmware: requesting dvb-usb-af9015.fw
-> Sep 21 08:17:51 lappc kernel: dvb-usb: downloading firmware from file
-> 'dvb-
-> usb-af9015.fw'
-> Sep 21 08:17:51 lappc kernel: usbcore: registered new interface driver
-> dvb_usb_af9015
->
-> But i found no device entries in /dev/dvb.
->
-> Dirk
+Hi there,
+There is a seller on eBay that is advertising the Twinhan vp1020a budget
+DVB-S card however the picture of the card is low profile rather than the
+"old" full size.
 
-Markus Ranne reported this working, see couple of mails back on the list.
+New card:
+http://images.channeladvisor.com/Sell/SSProfiles/82000004/Images/3/DVB-S_2.j
+pg
 
-But anyhow, looks like you has problem that firmware does not run.
-Re-download and install firmware. Hopefully it helps.
+Old card:
+http://www.linuxtv.org/wiki/images/thumb/a/a3/Vp-1020A.jpg/250px-Vp-1020A.jp
+g
 
-regards
-Antti
+If you look carefully at the image of the "new" card it clearly states
+1020a.  I already have a "old" 1020a fitted in my HTPC and it works
+perfectly.  Since my Geniatech DVB-S card just died (it never worked
+properly anyway) I am looking to replace it with another low-profile card
+(it needs to be low-profile to fit).  If this turns out to be geniune it
+would be perfect.  I have emailed the seller for clarification but I am not
+holding my breath for a clear answer.
+
+Has anyone had any experience with the "new" Twinhan vp1020a?
+
+Thanks in advance
+Wayne
 
 
 _______________________________________________
