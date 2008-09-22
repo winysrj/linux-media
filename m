@@ -1,17 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n41.bullet.mail.ukl.yahoo.com ([87.248.110.174])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <horuljo@yahoo.de>) id 1KfMKQ-0006Hr-Hw
-	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 00:13:56 +0200
-Date: Mon, 15 Sep 2008 22:12:58 +0000 (GMT)
-From: Peter Mayer <horuljo@yahoo.de>
-To: Steven Toth <stoth@linuxtv.org>
-In-Reply-To: <48CD2193.2000106@linuxtv.org>
-MIME-Version: 1.0
-Message-ID: <35680.33061.qm@web28404.mail.ukl.yahoo.com>
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1KhbHV-0005gK-EK
+	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 04:36:11 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7K00ADXSJAMN80@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sun, 21 Sep 2008 22:35:35 -0400 (EDT)
+Date: Sun, 21 Sep 2008 22:35:34 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <c64bf6860809211533p7ee768b0j9b36a3ee954034fd@mail.gmail.com>
+To: Tharsan Bhuvanendran <me@tharsan.com>
+Message-id: <48D70476.5040702@linuxtv.org>
+MIME-version: 1.0
+References: <c64bf6860809200004o1970a939jaa51e543de2ec594@mail.gmail.com>
+	<412bdbff0809200729q551ece09u98fb2c22f680188b@mail.gmail.com>
+	<c64bf6860809211533p7ee768b0j9b36a3ee954034fd@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Kernel integration of rtl2831u driver
-Reply-To: horuljo@yahoo.de
+Subject: Re: [linux-dvb] Support for Pinnacle PCTV mini stick (USB TV Tuner)
+	80e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,89 +28,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- Steven Toth <stoth@linuxtv.org> schrieb am So, 14.9.2008:
+Tharsan Bhuvanendran wrote:
+> Devin,
+> 
+> Thanks for the quick response!
+> 
+> I've pried open the device and snapped a few shots with my Nikon D40.  
+> You can get them at http://drop.io/tharsan.
+> 
+> I also created a Wiki page for the device at 
+> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_mini_Stick_(80e).
+> I've documented what I could determine on the Wiki page.
+> 
+> Please let me know if there's anything else you need and I'll do my very 
+> best to get you what you need!
 
-> > So, I wonder now what the next steps are to make
-> this driver available in the linux kernel, and when it will
-> probably happen.
-> > =
+Please don't top post, it's against the list policy. More below.
 
-> =
+> 
+> - Tharsan
+> 
+> On Sat, Sep 20, 2008 at 10:29 AM, Devin Heitmueller 
+> <devin.heitmueller@gmail.com <mailto:devin.heitmueller@gmail.com>> wrote:
+> 
+>     Hello Tharsan,
+> 
+>     2008/9/20 Tharsan Bhuvanendran <me@tharsan.com <mailto:me@tharsan.com>>:
+>      > Hi,
+>      >
+>      > At the moment, there doesn't seem to be any dvb support for the
+>     Pinnacle
+>      > PCTV HD mini stick (USB TV Tuner).
+>      > The model is 80e.  This appears to be a new model, released about
+>     a month
+>      > ago.
+>      >
+>      > The Pinnacle product page is here:
+>      >
+>     http://pinnaclesys.com/PublicSite/us/Products/Consumer+Products/PCTV+Tuners/PCTV+Digital+PVR+(DVB-S_DVB-T)/HD+mini+Stick
+>     <http://pinnaclesys.com/PublicSite/us/Products/Consumer+Products/PCTV+Tuners/PCTV+Digital+PVR+%28DVB-S_DVB-T%29/HD+mini+Stick>
+> 
+>     I just finished support for the Pro and Non-Pro versions a couple of
+>     weeks ago, but judging by the different form factor, I would suspect
+>     this is a different hardware design.
+> 
+>     The most useful thing you could do would be to pop the device open and
+>     take digital photos of the PCBs, and create a page on the LInuxTV DVB
+>     Wiki for the device.
+> 
+>     Once we know what components it contains, that will give us some idea
+>     how much work will be required.
+> 
+>     Regards,
+> 
+>     Devin
 
-> I gather the tree has some significant merge issues,
-> that's probably why it hasn't been merged. Generally if the drivers are
-> legally clean, code clean they get merged in a couple of weeks.
+We have inkernel support for the TDA18271 but not the DRXJ demo I think.
 
-Sorry if I need to ask again, but what does this actually mean with respect=
- to that specific driver rtl2821u? I just wonder.
+Please add the pictures to the wiki so they don't get lost, and other 
+users can benefit from them 12 months form now without having to 
+reference this email.
 
-My problem is that in Ubuntu Hardy I managed to make this stick work, but i=
-n Debian SID I have no idea how to get it work. When I do
+Thanks,
 
-hg clone http://linuxtv.org/hg/v4l-dvb
-make =
-
-make install
-
-the stick is not recognized. The entries in /var/log/syslog are:
-
-Sep 15 23:35:55  kernel: usb 3-3: New USB device found, idVendor=3D14aa, id=
-Product=3D0160
-Sep 15 23:35:55  kernel: usb 3-3: New USB device strings: Mfr=3D1, Product=
-=3D2, SerialNumber=3D3
-Sep 15 23:35:55  kernel: usb 3-3: Product: DTV Receiver
-Sep 15 23:35:55  kernel: usb 3-3: Manufacturer: DTV Receiver
-Sep 15 23:35:55  kernel: usb 3-3: SerialNumber: 0000000000010205
-
-When I unpack and make & make install rtl2831u_dvb-usb_v0.0.2mod, syslog sa=
-ys:
-
-Sep 15 23:40:17  kernel: usb 3-3: new high speed USB device using ehci_hcd =
-and address 3
-Sep 15 23:40:17  kernel: usb 3-3: configuration #1 chosen from 1 choice
-Sep 15 23:40:17  kernel: usb 3-3: New USB device found, idVendor=3D14aa, id=
-Product=3D0160
-Sep 15 23:40:17  kernel: usb 3-3: New USB device strings: Mfr=3D1, Product=
-=3D2, SerialNumber=3D3
-Sep 15 23:40:17  kernel: usb 3-3: Product: DTV Receiver
-Sep 15 23:40:17  kernel: usb 3-3: Manufacturer: DTV Receiver
-Sep 15 23:40:17  kernel: usb 3-3: SerialNumber: 0000000000010205
-Sep 15 23:40:17  NetworkManager: <debug> [1221514817.598859] nm_hal_device_=
-added(): New device added (hal udi is '/org/freedesktop/Hal/devices/usb_dev=
-ice_14aa_160_0000000000010205').
-Sep 15 23:40:17  NetworkManager: <debug> [1221514817.602281] nm_hal_device_=
-added(): New device added (hal udi is '/org/freedesktop/Hal/devices/usb_dev=
-ice_14aa_160_0000000000010205_usbraw').
-Sep 15 23:40:17  kernel: dvb-usb: found a 'Freecom USB 2.0 DVB-T Device' in=
- warm state.
-Sep 15 23:40:17  kernel: dvb-usb: will pass the complete MPEG2 transport st=
-ream to the software demuxer.
-Sep 15 23:40:17  udevd-event[3309]: run_program: '/sbin/modprobe' abnormal =
-exit
-Sep 15 23:40:17  NetworkManager: <debug> [1221514817.795519] nm_hal_device_=
-added(): New device added (hal udi is '/org/freedesktop/Hal/devices/usb_dev=
-ice_14aa_160_0000000000010205_if0').
-
-So, what can I try to make this stick work in Debian SID?
-
-Greetings,
-Peter
-
-
-__________________________________________________
-Do You Yahoo!?
-Sie sind Spam leid? Yahoo! Mail verf=FCgt =FCber einen herausragenden Schut=
-z gegen Massenmails. =
-
-http://mail.yahoo.com =
-
-
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
