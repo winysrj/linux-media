@@ -1,27 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KiDGw-0007vP-Ho
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 21:10:07 +0200
+	(envelope-from <stoth@linuxtv.org>) id 1KhnWz-00070u-S6
+	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 17:40:59 +0200
 Received: from steven-toths-macbook-pro.local
 	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
+	mta2.srv.hcvlny.cv.net
 	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7N00NPAX7U1W90@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 23 Sep 2008 15:09:32 -0400 (EDT)
-Date: Tue, 23 Sep 2008 15:09:29 -0400
+	with ESMTP id <0K7L00FI9SV8G4M0@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 22 Sep 2008 11:40:23 -0400 (EDT)
+Date: Mon, 22 Sep 2008 11:40:20 -0400
 From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200809232204.29984.liplianin@tut.by>
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Message-id: <48D93EE9.7060309@linuxtv.org>
+In-reply-to: <Pine.LNX.4.64.0809221254150.21880@shogun.pilppa.org>
+To: Mika Laitio <lamikr@pilppa.org>
+Message-id: <48D7BC64.2020002@linuxtv.org>
 MIME-version: 1.0
-References: <48CA0355.6080903@linuxtv.org>
-	<200809170037.59770.liplianin@tut.by>
-	<200809232201.06863.liplianin@tut.by>
-	<200809232204.29984.liplianin@tut.by>
-Cc: Georg Acher <acher@baycom.de>, Steven Toth <stoth@hauppauge.com>,
-	linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] S2API - ST stv0288 demodulator support.
+References: <200808181427.36988.ajurik@quick.cz> <48A9BAFE.8020501@linuxtv.org>
+	<Pine.LNX.4.64.0809221254150.21880@shogun.pilppa.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-4000 driver problems - i2c error
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,24 +26,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SWdvciBNLiBMaXBsaWFuaW4gd3JvdGU6Cj4g0JIg0YHQvtC+0LHRidC10L3QuNC4INC+0YIgMjMg
-U2VwdGVtYmVyIDIwMDggMjI6MDE6MDYgSWdvciBNLiBMaXBsaWFuaW4g0L3QsNC/0LjRgdCw0Lso
-0LApOgo+PiBIaSwKPj4KPj4gU2VuZCBwYXRjaCBmb3IgU1Qgc3R2MDI4OCBkZW1vZHVsYXRvciBz
-dXBwb3J0Lgo+PiBBbHNvIHN0YjYwMDAgdHVuZXIsIER2YldvcmxkIERXMjAwMiBQQ0kgbW9kaWZp
-Y2F0aW9uIHdpdGggRWFyZGEgdHVuZXIsCj4+IFRlVmlpIHM0MjAgUENJIGNhcmRzLgo+PiBJdCBp
-cyBTMkFQSSBjb21wbGlhbnQgKCBzaW5nbGUgZnJvbnRlbmQgKQo+PiBJZiBzb21lYm9keSBoYXZl
-IGFueSBvYmplY3Rpb25zLCBsZXQgbWUga25vdwo+Pgo+PiBJZ29yCj4+Cj4+IF9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4+IGxpbnV4LWR2YiBtYWlsaW5n
-IGxpc3QKPj4gbGludXgtZHZiQGxpbnV4dHYub3JnCj4+IGh0dHA6Ly93d3cubGludXh0di5vcmcv
-Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Ygo+IAo+IEZvcmdldCBhdHRhY2htZW50
-Cj4gTmVlZCBtb3JlIHNsZWVwIDotKQoKVGhhbmtzIElnb3IsIEknbGwgbG9vayBhdCB0aGlzIHRv
-bmlnaHQuCgpSZWdhcmRzLAoKU3RldmUKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2
-Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51
-eC1kdmI=
+Mika Laitio wrote:
+>>> - the firmware is loaded into the card at first time the card is 
+>>> opened - it
+>>> is okay?
+>>>
+>>> [  917.660620] cx24116_firmware_ondemand: Waiting for firmware upload
+>>> (dvb-fe-cx24116.fw)...
+>>> [  917.703010] cx24116_firmware_ondemand: Waiting for firmware 
+>>> upload(2)...
+>>> [  922.703870] cx24116_load_firmware: FW version 1.22.82.0
+>>> [  922.703889] cx24116_firmware_ondemand: Firmware upload complete
+>>>
+>>> The result is that only for some channels it is possible to get lock 
+>>> with
+>>> szap2. VDR is hanging (or starting) when trying to tune to initial 
+>>> channel,
+>>> even when this channel is set to channel at which is szap2 
+>>> successfull. I'm
+>>> not able to say criteria which channels are possible to lock.
+>>>
+>>> Any hints are appreciated.
+>>
+>> I fixed an issue with cx88 sometime ago where a value of 0 (taken from
+>> the cards struct) was being written to the GPIO register, resulting in
+>> the same i2c issues.
+>>
+>> It looks a lot like this.
+>>
+>> - Steve
+> 
+> I am trying to get the dvb-t tuner working with my hvr-4000 (dvb-s is 
+> working fine) and have tried both the latest S2 repository and the 
+> latest version of liplianins multiproto repository with 2.6.26 kernels.
+> 
+> It seems that S2 repository does not yet support DVB-T at all, am I 
+> correct?  At least the "options cx88-dvb frontend=1" option in 
+> /etc/modprope.conf prevents adapters to be created at all under
+> /dev/dvb. Without that option adapter is created but it can only be used 
+> for scanning dvb-s.
+
+The ~stoth/hg/s2 has no DVB-T support on the HVR4000 yet. Those patches 
+will appear very shortly in ~stoth/hg/s2-mfe.
+
+> 
+> WIth liplianinis multiproto version the selection between DVB-S and 
+> DVB-T works by using the "options cx88-dvb frontend=1" but I am seeing 
+> the i2c
+> errors described below.
+> 
+> Could you have any URL and changeset tag to patch in some repository 
+> where this I2C thing has been fixed?
+
+I'm speculating that your issue is the same issue I fixed sometime ago 
+(2-3 months in the master repo). I'd suggest you wait for the 
+~stoth/hg/s2-mfe patches to appear later tonight and test again.
+
+That tree (and ~stoth/hg/s2 for that matter) have the i2c fix I'm 
+referring to.
+
+- Steve
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
