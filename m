@@ -1,22 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.31])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1KdlVg-00020t-HG
-	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 14:42:57 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so103943ywj.41
-	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 05:42:52 -0700 (PDT)
-Date: Thu, 11 Sep 2008 14:42:46 +0200
-To: linux-dvb@linuxtv.org
-Message-ID: <20080911124246.GB3263@gmail.com>
-References: <48C70F88.4050701@linuxtv.org>
-	<E1KdLOn-0002ri-00.goga777-bk-ru@f147.mail.ru>
-	<48C80D58.3010705@linuxtv.org>
-	<200809110151.08382.liplianin@tut.by>
+Message-ID: <48D75FA5.90106@anevia.com>
+Date: Mon, 22 Sep 2008 11:04:37 +0200
+From: Frederic CAND <frederic.cand@anevia.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <200809110151.08382.liplianin@tut.by>
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: Re: [linux-dvb] S2API simple szap-s2 utility
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <48D27B52.2010704@anevia.com> <48D28052.5000209@gmx.de>
+	<1221777738.4904.40.camel@pc10.localdom.local>
+In-Reply-To: <1221777738.4904.40.camel@pc10.localdom.local>
+Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] hvr 1300 radio
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,68 +22,144 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Sep 11, 2008 at 01:51:08AM +0300, Igor M. Liplianin wrote:
-> There is a program to zap satellite channels with S2API:
+hermann pitton a =E9crit :
+> Hi,
 > =
 
-> http://liplianindvb.sourceforge.net/cgi-bin/hgwebdir.cgi/szap-s2/archive/=
-tip.tar.gz
+> Am Donnerstag, den 18.09.2008, 18:22 +0200 schrieb wk:
+>> Frederic CAND wrote:
+>>> Dear all,
+>>>
+>>> has anyone got analog FM radio working with an Hauppauge HVR 1300 ?
+>>> If yes please tell me how ! I got only noise from /dev/dsp* ... :(
+>>> This is an issue I've had for some time now ...
+>>> I tried option radio=3D63 on cx88xx module but it did not change anythi=
+ng =
+
+>>> (except writing cx88[0]: TV tuner type 63, Radio tuner type 63 in dmesg =
+
+>>> instead of radio tuner type -1 ...)
+>>>
+>>> Is radio support just not implemented ?
+>>>
+>>>   =
+
+>> Load cx88_blackbird and open /dev/radioX.
+>> I haven't tried radio up to now, but i would expect that only radio *or* =
+
+>> dvb works, but not both at the same time. Most probably radio is also =
+
+>> not feed trough the mpeg encoder.
+>>
 > =
 
-> For easy understanding and quickly testing S2API (and even viewing TV wit=
-h =
+> a fixme still sticks on radio of the HVR1300.
+> =
 
-> mplayer) =
+> 			.audioroute =3D 2,
+> 		},{
+> 			.type	=3D CX88_VMUX_SVIDEO,
+> 			.vmux	=3D 2,
+> 			.gpio0	=3D 0xe780,
+> 			.audioroute =3D 2,
+> 		}},
+> 		/* fixme: Add radio support */
+> 		.mpeg           =3D CX88_MPEG_DVB | CX88_MPEG_BLACKBIRD,
+> 		.radio =3D {
+> 			.type   =3D CX88_RADIO,
+> 			.gpio0	=3D 0xe780,
+> 		},
+> 	},
+> =
+
+> Guess audio routing and switching is not clear yet.
+> =
+
+> The FMD1216ME supports radio over tda9887 and tda7040.
+> =
+
+> On the FM1216ME and FM1236 MK3 we can take the stereo indication bit
+> from the PLL chip and switch the tda9887 into FM stereo mode
+> accordingly. Reading this status information also enables auto scanning
+> for radio broadcasts for the applications. (v4l2 aware like kradio
+> should be preferred)
+> =
+
+> This bit does not work on the hybrid FMD1216ME MK3 and you have to
+> create a station list manually once, but then stereo radio is fine.
+> =
+
+> On the later FMD1216MEX, which can also be on that board, Steve
+> mentioned once that the radio might be slightly different.
+> =
+
+> That one is currently treated like the FMD1216ME, but would need its own
+> separate tuner type entry in that case.
+> =
+
+> We also found hints in tuner specs provided by Steve for ivtv, IIRC,
+> that an AFC narrowing down looping can be used to take this as kind of
+> signal strength detection on the tda9887 alternatively for the stereo
+> bit on the pll. Hartmut was aware of it too, but who likes to work on
+> analog radio these days ...
+
+I do. As we embedd these cards on our servers we'd like to add this =
+
+feature to our products (analog to digital streaming servers).
+Anyway, this is a feature of the card which is lacking under Linux so =
+
+the question of who is interested in analog radio is not a good =
+
+question. The question of why not going as far as possible when =
+
+supporting a card is a good question.
+So yes I am not afraid of saying I'm interested in analgo radio :)
+
+> =
+
+> It is not implemented yet, if it should be related.
+> =
+
+> Cheers,
+> Hermann
+> =
+
+> =
+
+> =
 
 
-Great, I just compiled the s2 driver from
-http://linuxtv.org/hg/~stoth/s2/
-and loaded modules with scripts/rmmod load which shows :
+Ok so if I get it right, what you're saying is that stereo radio isn't =
 
-i2c-adapter i2c-4: SMBus Quick command not supported, can't probe for
-chips
-OmniVision ov7670 sensor driver, at your service
-wm8775' 2-001b: chip found @ 0x36 (cx88[0])
-i2c-adapter i2c-4: SMBus Quick command not supported, can't probe for
-chips
-saa7146: register extension 'budget dvb'.
-saa7146: register extension 'budget_av'.
-cx23885 driver version 0.0.1 loaded
-cx2388x blackbird driver version 0.0.6 loaded
-cx88/2: registering cx8802 driver, type: blackbird access: shared
-cx88[0]/2: subsystem: 0070:6902, board: Hauppauge WinTV-HVR4000
-DVB-S/S2/T/Hybrid [card=3D68]
-cx88[0]/2: cx8802 probe failed, err =3D -19
-cx88[1]/2: subsystem: 14f1:0084, board: Geniatech DVB-S [card=3D52]
-cx88[1]/2: cx8802 probe failed, err =3D -19
+working on HVR 1300 with FMD1216MEX but mono radio is working ? If yes =
 
-So I loose one card in this process which isn't a big problem.
+I'd like to know how ... shouldn't I just set frequency to /dev/radio, =
 
-But my big problem is that with every channel I try, I get an error :
-szap-s2 -n 13
-reading channels from file '/home/greg/.szap/channels.conf'
-zapping to 13 'BBCHD':
-delivery DVB-S, modulation QPSK
-sat 2, frequency 10847 MHz V, symbolrate 22000000, coderate auto,
-rolloff 0.35
-vpid 0x090e, apid 0x090f, sid 0x1b1c
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-FE_SET_PROPERTY failed: Operation not supported
-status 01 | signal 9b02 | snr 81ea | ber 0000ff00 | unc fffffffe | =
+then get it from /dev/dsp ??? This for me isn't working and providing =
 
-status 01 | signal 9fee | snr 82cb | ber 0000ff00 | unc fffffffe | =
+only noise.
 
-status 01 | signal a00c | snr 8283 | ber 0000ff08 | unc fffffffe | =
+Now if you tell me this is just not implemented yet, then how could I =
 
+help you to implement it ? If it's not scheduled to be implemented one =
 
-What did I do wrong ?
+day then I might be able to work on it at my office (maybe not me =
 
-Thanks.
+directly but one of my coworkers).
+
+Btw I tried on my KNC TV Station DVR (FM1216ME MK3, saa7134, saa6752hs) =
+
+with no success : if I tune to an analog TV station through /dev/video, =
+
+I will get sound from /dev/dsp. Then I tune to a radio through =
+
+/dev/radio ... but I still get the TV sound from /dev/dsp ...
+
 -- =
 
-Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
-rg
-               http://picasaweb.google.com/Gregoire.Favre
+CAND Frederic
+Product Manager
+ANEVIA
 
 _______________________________________________
 linux-dvb mailing list
