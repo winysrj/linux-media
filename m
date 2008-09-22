@@ -1,18 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from potassium.iops.versanet.be ([212.53.4.30])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Jo@requestfocus.be>) id 1Ki4wE-0000hC-SP
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 12:16:12 +0200
-From: "Jo Heremans" <Jo@requestfocus.be>
-To: "'Jaap Crezee'" <jaap@jcz.nl>, <linux-dvb@linuxtv.org>
-References: <48D8A4FF.9010502@jcz.nl> <48D8B08B.6090602@konto.pl>
-	<48D8BBED.3010109@jcz.nl>
-In-Reply-To: <48D8BBED.3010109@jcz.nl>
-Date: Tue, 23 Sep 2008 12:15:54 +0200
-Message-ID: <000601c91d65$600989b0$201c9d10$@be>
+Date: Mon, 22 Sep 2008 13:17:46 +0300 (EEST)
+From: Mika Laitio <lamikr@pilppa.org>
+To: Steven Toth <stoth@linuxtv.org>
+In-Reply-To: <48A9BAFE.8020501@linuxtv.org>
+Message-ID: <Pine.LNX.4.64.0809221254150.21880@shogun.pilppa.org>
+References: <200808181427.36988.ajurik@quick.cz> <48A9BAFE.8020501@linuxtv.org>
 MIME-Version: 1.0
-Content-Language: nl-be
-Subject: Re: [linux-dvb] TT Budget S2-3200 CI: failure with CAM module
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-4000 driver problems - i2c error
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,33 +21,70 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->>> Again, when I remove the CAM module, everything works fine (as for 
->>> FTA channels...). Tools like dvbdate, dvbtraffic and mplayer 
->>> /dev/dvb/adapter0/dvr0 work fine.
+>> - the firmware is loaded into the card at first time the card is opened - it
+>> is okay?
+>>
+>> [  917.660620] cx24116_firmware_ondemand: Waiting for firmware upload
+>> (dvb-fe-cx24116.fw)...
+>> [  917.703010] cx24116_firmware_ondemand: Waiting for firmware upload(2)...
+>> [  922.703870] cx24116_load_firmware: FW version 1.22.82.0
+>> [  922.703889] cx24116_firmware_ondemand: Firmware upload complete
+>>
+>> The result is that only for some channels it is possible to get lock with
+>> szap2. VDR is hanging (or starting) when trying to tune to initial channel,
+>> even when this channel is set to channel at which is szap2 successfull. I'm
+>> not able to say criteria which channels are possible to lock.
+>>
+>> Any hints are appreciated.
 >
->I just created a patch to add a budget-ci module param to the driver to
-disable the CI interface at module load time. 
->This way I can still use the card when the CAM module is inserted.
->Maybe it is good enough to integrated it with the current hg tree?
+> I fixed an issue with cx88 sometime ago where a value of 0 (taken from
+> the cards struct) was being written to the GPIO register, resulting in
+> the same i2c issues.
 >
->> I've got SkystarHD+CI Slot+Aston 2.18 and it works OK (for decoding 
->> some channels like HBO/MINIMINI I must wait very long time, but it 
->> works)
+> It looks a lot like this.
 >
->I have waited long enough (more than 6 hours) and still no results.
->Anyone got it working with a TT S2-3200 and AstonCrypt CAM module?
->
->regards,
->
->
->Jaap Crezee
+> - Steve
 
-I have a TT S2-3200 working with the original tv-vlaanderen cam (same as the
-canal-digital cam)
-I use the liplianindvb tree
+I am trying to get the dvb-t tuner working with my hvr-4000 (dvb-s is 
+working fine) and have tried both the latest S2 repository and the latest 
+version of liplianins multiproto repository with 2.6.26 kernels.
 
-Jo
+It seems that S2 repository does not yet support DVB-T at all, am I 
+correct?  At least the "options cx88-dvb frontend=1" option in 
+/etc/modprope.conf prevents adapters to be created at all under
+/dev/dvb. Without that option adapter is created but it can only be used 
+for scanning dvb-s.
 
+WIth liplianinis multiproto version the selection between DVB-S and DVB-T 
+works by using the "options cx88-dvb frontend=1" but I am seeing the i2c
+errors described below.
+
+Could you have any URL and changeset tag to patch in some repository where 
+this I2C thing has been fixed?
+
+Btw, I tested also the HVR-1300 and it seems to be working with S2 but 
+scan (from dvb-apps trunk) is failing to find channels from some 
+frequencies while things with external philips dvb-t work ok.
+(-5 option for scan does not make any difference)
+
+The message I am getting with scan is.:
+
+...
+0x0000 0x1111: pmt_pid 0x0105 YLE -- YLE PEILI (running)
+0x0000 0x1131: pmt_pid 0x0107 YLE -- YLEN KLASSINEN (running)
+0x0000 0x1151: pmt_pid 0x0109 YLE -- YLEMONDO (running)
+Network Name 'Digita Finland'
+>>> tune to: 
+602000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to: 
+602000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE 
+(tuning failed)
+WARNING: filter timeout pid 0x0011
+WARNING: filter timeout pid 0x0000
+WARNING: filter timeout pid 0x0010
+
+Mika
 
 _______________________________________________
 linux-dvb mailing list
