@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n7.bullet.ukl.yahoo.com ([217.146.182.187])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <eallaud@yahoo.fr>) id 1KiCwn-0005cT-UJ
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 20:49:20 +0200
-Date: Tue, 23 Sep 2008 14:48:40 -0400
-From: manu <eallaud@yahoo.fr>
-To: linux-dvb@linuxtv.org
-References: <48D8A4FF.9010502@jcz.nl> <48D8B08B.6090602@konto.pl>
-	<48D8BBED.3010109@jcz.nl>
-In-Reply-To: <48D8BBED.3010109@jcz.nl> (from jaap@jcz.nl on Tue Sep 23
-	05:50:37 2008)
-Message-Id: <1222195720l.6287l.1l@manu-laptop>
+Received: from xdsl-83-150-88-111.nebulazone.fi ([83.150.88.111]
+	helo=ncircle.nullnet.fi) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <tomimo@ncircle.nullnet.fi>) id 1KhsC5-0003IU-Ir
+	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 22:39:42 +0200
+Message-ID: <48D80285.4060707@ncircle.nullnet.fi>
+Date: Mon, 22 Sep 2008 23:39:33 +0300
+From: Tomi Orava <tomimo@ncircle.nullnet.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Re :  TT Budget S2-3200 CI: failure with CAM module
+To: Martin Dauskardt <md001@gmx.de>
+References: <mailman.1.1222077601.9177.linux-dvb@linuxtv.org>
+	<200809222118.38528.md001@gmx.de>
+In-Reply-To: <200809222118.38528.md001@gmx.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [RFC] cinergyT2 rework final review
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,54 +20,44 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le 23.09.2008 05:50:37, Jaap Crezee a =E9crit=A0:
-> > Jaap Crezee wrote:
-> >> Again, when I remove the CAM module, everything works fine (as for
-> FTA =
 
-> >> channels...). Tools like dvbdate, dvbtraffic and mplayer =
+Hi,
 
-> >> /dev/dvb/adapter0/dvr0 work fine.
-> =
+Martin Dauskardt wrote:
+>> This driver has been working in
+>> my own use quite well, especially after upgrading the bios to the latest
+>> available version from TerraTec.
+>>
+>> Regards,
+>> Tomi Orava
+> what "bios" do you mean? the firmware?
 
-> I just created a patch to add a budget-ci module param to the driver
-> to disable the CI interface at module load time. =
+Yes, I meant the usb device firmware.
 
-> This way I can still use the card when the CAM module is inserted.
-> Maybe it is good enough to integrated it with the current hg tree?
-> =
+> 
+>> Could you check what is the firmware version in your device ?
+>> Check for the "bcdDevice" keyword with lsusb -v -s <busid>:<devnum> I had
+>> way too many problems with 1.06 firmware version, but the
+>> newer 1.08 seems to be a little bit better in stability.
+> I was not aware that this device uses a firmware. Do I have to flash it into 
+> the box? Is this possible with Linux? Where do I find the firmware?
 
-> > I've got SkystarHD+CI Slot+Aston 2.18 and it works OK (for decoding
-> some =
+You can get the latest firmware from Terratec ftp-site:
+ftp://ftp.terratec.net/Receiver/CinergyT2/Update/History/CinergyT2_Firmware_Update_1.08.exe
 
-> > channels like HBO/MINIMINI I must wait very long time, but it =
+The very same directory also contains the original proprietary (NOT
+BDA) windows drivers which are needed before you can use the
+included flash loader. Unfortutenaly, I don't know any way to do the
+update in Linux.
 
-> works)
-> =
-
-> I have waited long enough (more than 6 hours) and still no results.
-> Anyone got it working with a TT S2-3200 and AstonCrypt CAM module?
-
-Yes here (CanalSatellite in the French Caribbean Islands): AstonCrypt =
-
-2.18 (IIRC), works great (I can even decode 2 channels =
-
-simultaneously!).
-I use Manu's multiproto treee but I dont think that there is something =
-
-different for the CI/CAM stack in this driver.
-I think I've read that some older AstonCrypt cards (version < 2.18) =
-
-dont play well... =
-
-Bye
-Manu
+Regards,
+Tomi Orava
 
 
 _______________________________________________
