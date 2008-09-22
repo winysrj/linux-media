@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from rn-out-0910.google.com ([64.233.170.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1Kc8A7-0002Pc-Ak
-	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 02:29:57 +0200
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	59E2C1800280
-	for <linux-dvb@linuxtv.org>; Sun,  7 Sep 2008 00:29:19 +0000 (GMT)
-Content-Disposition: inline
+	(envelope-from <javier.galvez.guerrero@gmail.com>)
+	id 1Khk7c-0003PF-Ja
+	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 14:02:34 +0200
+Received: by rn-out-0910.google.com with SMTP id m36so431352rnd.2
+	for <linux-dvb@linuxtv.org>; Mon, 22 Sep 2008 05:02:28 -0700 (PDT)
+Message-ID: <145d4e1a0809220502v56020205o54fd186b227bdee7@mail.gmail.com>
+Date: Mon, 22 Sep 2008 14:02:28 +0200
+From: "=?ISO-8859-1?Q?Javier_G=E1lvez_Guerrero?="
+	<javier.galvez.guerrero@gmail.com>
+To: urishk@yahoo.com
+In-Reply-To: <670024.49326.qm@web38804.mail.mud.yahoo.com>
 MIME-Version: 1.0
-From: stev391@email.com
-To: "Thomas Goerke" <tom@goeng.com.au>, 'jackden' <jackden@gmail.com>
-Date: Sun, 7 Sep 2008 10:29:19 +1000
-Message-Id: <20080907002919.38684104F0@ws1-3.us4.outblaze.com>
+References: <145d4e1a0809220101j4063c300s7ec63ab13362bdf9@mail.gmail.com>
+	<670024.49326.qm@web38804.mail.mud.yahoo.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog
- TV/FM capture card
+Subject: Re: [linux-dvb] DVB-H support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,126 +24,170 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0003870817=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============0003870817==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_57532_23426575.1222084948560"
 
-> ----- Original Message -----
-> From: "Thomas Goerke" <tom@goeng.com.au>
-> To: stev391@email.com, "'jackden'" <jackden@gmail.com>
-> Subject: RE: [linux-dvb] Compro VideoMate E650 hybrid PCIe DVB-T and analog TV/FM capture card
-> Date: Sat, 6 Sep 2008 12:56:15 +0800
-> 
-> 
+------=_Part_57532_23426575.1222084948560
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Hi Uri,
+
+Thanks for your answer.
+
+2008/9/22 Uri Shkolnik <urishk@yahoo.com>
+
+> Hi,
+>
+> yep, you can do it with any Siano chipset based device.
+
+
+Do you know any specific device with Siano chipset that works properly or
+any device will do?
+
+
+> How are you going to deal with ESG and HO?
+>
+
+I want to develop a handover framework for IEEE 802.11 // 3G // DVB-H
+networks, dealing with different parameters depending on what drivers API
+allowed me, but basically the signal strength would be the main one.
+
+Regarding the ESG I don't know how to deal with it as I'm a complete novice
+with LinuxTV/dvb-utils. First I wanted to know if it was possible to get
+DVB-H streams with it and what hardware would be proper. I supposed that
+demuxing and selecting the contents would be nearly the same that in DVB-T,
+as the main difference is the time slicing in DVB-H streams.
+
+Anyway, do you have any idea or piece of advice? Is what I want to do
+possible or not?
+
+>
+>
+>
+> Best Regards,
+>
+> Uri Shkolnik
+>
+>
+>
+> --- On Mon, 9/22/08, Javier G=E1lvez Guerrero <
+> javier.galvez.guerrero@gmail.com> wrote:
+>
+> > From: Javier G=E1lvez Guerrero <javier.galvez.guerrero@gmail.com>
+> > Subject: [linux-dvb] DVB-H support
+> > To: linux-dvb@linuxtv.org
+> > Date: Monday, September 22, 2008, 11:01 AM
+> > Hi everyone,
 > >
-> > Tom,
+> > Has anyone succeed in receiving a DVB-H stream with
+> > dvb-utils? If so, which
+> > hardware have you used?
 > >
-> > So the V0.2 patch worked after a cold reboot (No power to the computer
-> > then starting up again). Is that what you are saying?
-> > (Make sure that the v0.1 modules are not loaded on boot up if you are
-> > testing V0.2)
+> > Any help is much appreciated.
 > >
-> > I was expecting the DMA timeout errors when using V0.2 from a cold
-> > start, it should not have caused it to break for a warm start (i.e.
-> > V0.1 modules loaded, then removed and v0.2 modules loaded).
-> >
-> > Sorry to ask for clarification, as the results were not what I was
-> > expecting.
-> >
-> > Can you try the:
-> > modprobe cx23885 i2c_scan=1
-> > That Steve Suggested.
-> >
-> > Thanks
-> >
-> > Stephen
-> Stephen,
-> 
-> V0.1
-> 	Cold Reset (0ff for 10 second):	No errors from dmesg
-> 							Can tune and watch
-> channels
-> 	Warm Reset (ie sudo reboot):		Many errors in dmesg
-> 							Can tune and watch
-> channels
-> V0.2
-> 	Cold Reset (0ff for 10 second):	No errors from dmesg
-> 							Can tune and watch
-> channels
-> 	Warm Reset (ie sudo reboot):		Many errors in dmesg
-> 							Tuning fails.
-> Unable to watch channels
-> 
-> Wrt sudo modprobe cx23885 i2c_scan=1, where are you expecting the output?
-> Given that the module is already loaded do I need to modify the
-> modprobe.d/cx23885 file to include the option and then reboot?
-> 
-> With regard to ensuring V0.1 modules are not loaded when using V0.2, the
-> method I have used is to have two completely different v4l_dvb source
-> directories and doing a make, sudo make install to use the different
-> versions.  I have assumed that this will copy the modules over the top of
-> the old modules.  Please let me know if this is not correct.
-> 
-> If you want me to reboot with new option let me know.
-> 
-> Thanks
-> 
-> Tom
+> > Regards,
+> > Javi
+> > _______________________________________________
+> > linux-dvb mailing list
+> > linux-dvb@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>
+>
+>
 
-Tom & Jackden,
+------=_Part_57532_23426575.1222084948560
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-to use the i2c_scan:
-sudo rmmod cx23885
-sudo modprobe cx24885 i2c_scan=1
+<div dir=3D"ltr">Hi Uri,<br><br>Thanks for your answer.<br><br><div class=
+=3D"gmail_quote">2008/9/22 Uri Shkolnik <span dir=3D"ltr">&lt;<a href=3D"ma=
+ilto:urishk@yahoo.com">urishk@yahoo.com</a>&gt;</span><br><blockquote class=
+=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, 204, 204); margin=
+: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+Hi,<br>
+<br>
+yep, you can do it with any Siano chipset based device.</blockquote><div><b=
+r>Do you know any specific device with Siano chipset that works properly or=
+ any device will do?<br><br></div><blockquote class=3D"gmail_quote" style=
+=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; p=
+adding-left: 1ex;">
+<br>
+How are you going to deal with ESG and HO?<br>
+</blockquote><div><br>I want to develop a handover framework for IEEE 802.1=
+1 // 3G // DVB-H networks, dealing with different parameters depending on w=
+hat drivers API allowed me, but basically the signal strength would be the =
+main one. <br>
+<br>Regarding the ESG I don&#39;t know how to deal with it as I&#39;m a com=
+plete novice with LinuxTV/dvb-utils. First I wanted to know if it was possi=
+ble to get DVB-H streams with it and what hardware would be proper. I suppo=
+sed that demuxing and selecting the contents would be nearly the same that =
+in DVB-T, as the main difference is the time slicing in DVB-H streams.<br>
+<br>Anyway, do you have any idea or piece of advice? Is what I want to do p=
+ossible or not?<br></div><blockquote class=3D"gmail_quote" style=3D"border-=
+left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left=
+: 1ex;">
+<br>
+<br>
+<br>
+Best Regards,<br>
+<br>
+Uri Shkolnik<br>
+<br>
+<br>
+<br>
+--- On Mon, 9/22/08, Javier G=E1lvez Guerrero &lt;<a href=3D"mailto:javier.=
+galvez.guerrero@gmail.com">javier.galvez.guerrero@gmail.com</a>&gt; wrote:<=
+br>
+<br>
+&gt; From: Javier G=E1lvez Guerrero &lt;<a href=3D"mailto:javier.galvez.gue=
+rrero@gmail.com">javier.galvez.guerrero@gmail.com</a>&gt;<br>
+&gt; Subject: [linux-dvb] DVB-H support<br>
+&gt; To: <a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>=
+<br>
+&gt; Date: Monday, September 22, 2008, 11:01 AM<br>
+<div><div></div><div class=3D"Wj3C7c">&gt; Hi everyone,<br>
+&gt;<br>
+&gt; Has anyone succeed in receiving a DVB-H stream with<br>
+&gt; dvb-utils? If so, which<br>
+&gt; hardware have you used?<br>
+&gt;<br>
+&gt; Any help is much appreciated.<br>
+&gt;<br>
+&gt; Regards,<br>
+&gt; Javi<br>
+</div></div>&gt; _______________________________________________<br>
+&gt; linux-dvb mailing list<br>
+&gt; <a href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+&gt; <a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" =
+target=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb=
+</a><br>
+<br>
+<br>
+<br>
+</blockquote></div><br></div>
 
-dmesg
-
-Now in dmesg you should see something like:
-[ 8235.464732] cx23885[0]: i2c bus 0 registered
-[ 8235.467566] cx23885[0]: i2c scan: found device @ 0x1e  [???]
-[ 8235.476222] cx23885[0]: i2c scan: found device @ 0xa0  [eeprom]
-[ 8235.476698] cx23885[0]: i2c scan: found device @ 0xa4  [???]
-[ 8235.477366] cx23885[0]: i2c scan: found device @ 0xa8  [???]
-[ 8235.477640] cx23885[0]: i2c scan: found device @ 0xac  [???]
-[ 8235.479082] cx23885[0]: i2c scan: found device @ 0xc2  [tuner/mt2131/tda8275/xc5000/xc3028]
-[ 8235.480459] cx23885[0]: i2c scan: found device @ 0xd6  [???]
-[ 8235.480987] cx23885[0]: i2c scan: found device @ 0xde  [???]
-[ 8235.483249] cx23885[0]: i2c bus 1 registered
-[ 8235.485687] cx23885[0]: i2c scan: found device @ 0x1e  [???]
-[ 8235.496382] cx23885[0]: i2c scan: found device @ 0xc2  [tuner/mt2131/tda8275/xc5000/xc3028]
-[ 8235.500428] cx23885[0]: i2c bus 2 registered
-[ 8235.502458] cx23885[0]: i2c scan: found device @ 0x66  [???]
-[ 8235.503269] cx23885[0]: i2c scan: found device @ 0x88  [cx25837]
-[ 8235.503774] cx23885[0]: i2c scan: found device @ 0x98  [???]
-
-This will have the cards initialisation before and after it, I just need the i2c scan results.
-
-Then to get the results from the eeprom scan:
-sudo modprobe i2c-dev
-sudo i2cdetect -l 
-(take note which i2c device matches the one above with the eeprom, this example assumes 0)
-sudo i2cdump 0 0x50 
-(Note the i2c address has to be divided by 2 from what the scan above states, so 0xa0 -> 0x50)
-
-Then you should get an output in the terminal, copy this and send it to me (and the list).
-
-Regards,
-
-Stephen.
+------=_Part_57532_23426575.1222084948560--
 
 
-
-
--- 
-Be Yourself @ mail.com!
-Choose From 200+ Email Addresses
-Get a Free Account at www.mail.com
-
+--===============0003870817==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0003870817==--
