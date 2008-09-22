@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m88GmTjN014107
-	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 12:48:30 -0400
-Received: from mgw-mx06.nokia.com (smtp.nokia.com [192.100.122.233])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m88GmI6G021768
-	for <video4linux-list@redhat.com>; Mon, 8 Sep 2008 12:48:19 -0400
-From: Sakari Ailus <sakari.ailus@nokia.com>
-To: video4linux-list@redhat.com
-Date: Mon,  8 Sep 2008 19:48:13 +0300
-Message-Id: <12208924931940-git-send-email-sakari.ailus@nokia.com>
-In-Reply-To: <12208924934155-git-send-email-sakari.ailus@nokia.com>
-References: <48C55737.4080804@nokia.com>
-	<12208924933529-git-send-email-sakari.ailus@nokia.com>
-	<12208924931107-git-send-email-sakari.ailus@nokia.com>
-	<12208924933015-git-send-email-sakari.ailus@nokia.com>
-	<12208924933079-git-send-email-sakari.ailus@nokia.com>
-	<1220892493727-git-send-email-sakari.ailus@nokia.com>
-	<12208924934155-git-send-email-sakari.ailus@nokia.com>
-Cc: tuukka.o.toivonen@nokia.com, vherkuil@xs4all.nl, vimarsh.zutshi@nokia.com
-Subject: [PATCH 7/7] V4L: Int if: Add enum_framesizes and
-	enum_frameintervals ioctls.
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8MHopmd008779
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 13:50:52 -0400
+Received: from pne-smtpout1-sn2.hy.skanova.net
+	(pne-smtpout1-sn2.hy.skanova.net [81.228.8.83])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8MHodNC024500
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 13:50:40 -0400
+Message-ID: <48D7DAE1.7040204@gmail.com>
+Date: Mon, 22 Sep 2008 19:50:25 +0200
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+MIME-Version: 1.0
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: m560x driver devel <m560x-driver-devel@lists.sourceforge.net>,
+	video4linux-list@redhat.com
+Subject: [GSPCA] A couple of questions
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,35 +27,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
----
- include/media/v4l2-int-device.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index 489808e..62c92cf 100644
---- a/include/media/v4l2-int-device.h
-+++ b/include/media/v4l2-int-device.h
-@@ -205,6 +205,8 @@ enum v4l2_int_ioctl_num {
- 	vidioc_int_g_ifparm_num,
- 	/* Does the slave need to be reset after VIDIOC_DQBUF? */
- 	vidioc_int_g_needs_reset_num,
-+	vidioc_int_enum_framesizes_num,
-+	vidioc_int_enum_frameintervals_num,
- 
- 	/*
- 	 *
-@@ -292,6 +294,8 @@ V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, );
- V4L2_INT_WRAPPER_1(g_priv, void, *);
- V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
- V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
-+V4L2_INT_WRAPPER_1(enum_framesizes, struct v4l2_frmsizeenum, *);
-+V4L2_INT_WRAPPER_1(enum_frameintervals, struct v4l2_frmivalenum, *);
- 
- V4L2_INT_WRAPPER_0(reset);
- V4L2_INT_WRAPPER_0(init);
--- 
-1.5.0.6
+Hi,
+I've begun the working investigating the possibility of converting the
+m5602 driver to the gspca framework.
+I currently have the following questions:
+1) From my understanding each driver implementing the gspca framework
+has a static list of v4l2 controls. In the m5602 driver, each sensor has
+its own set of v4l2 controls with different resolutions.
+Is there a obious solution to this problem?
+
+2) In the sd_desc struct, is it necessary to implement the dq_callback
+or does the gspca driver automagically requeue buffers?
+
+Thanks,
+Erik
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFI19rhN7qBt+4UG0ERAl5wAJ9J/6kc6A2xYivmvl2hkT80ZVv0pgCfVSHR
+oVCp/TzbqoqPOo7l6bS3Ifk=
+=Ky0r
+-----END PGP SIGNATURE-----
 
 --
 video4linux-list mailing list
