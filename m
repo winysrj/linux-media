@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8FBkpji019577
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 07:46:52 -0400
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8FBkeLE030252
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 07:46:40 -0400
-Message-ID: <48CE4B24.30902@hhs.nl>
-Date: Mon, 15 Sep 2008 13:46:44 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8MAB4ku012714
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 06:11:04 -0400
+Received: from blu0-omc3-s16.blu0.hotmail.com (blu0-omc3-s16.blu0.hotmail.com
+	[65.55.116.91])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8MAAmCi004025
+	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 06:10:48 -0400
+Message-ID: <BLU149-W210DC75BDED2B9311FDE09994B0@phx.gbl>
+From: Amol Borawake <borawake_amol@hotmail.com>
+To: <video4linux-list@redhat.com>
+Date: Mon, 22 Sep 2008 15:40:47 +0530
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: libv4l release: 0.5.0
+Content-Transfer-Encoding: 8bit
+Subject: Capturing the Video Data from a Capture Card using V4L2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,24 +25,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All,
 
-libv4l-0.5.0
-------------
-* Add support for enumerating framesizes and frameintervals of emulated
-   formats when the driver supports it for the real format
-* Make sure the video device always gets opened RW even if the application
-   asks for RO
-* Add Genius E-Messenger 112 (093a:2476) to list of cams which have their
-   sensor upside down
+Dear Sir,
 
-Get it here:
-http://people.atrpms.net/~hdegoede/libv4l-0.5.0.tar.gz
+I am having an video capture card which uses Conexant BT878 Chipset.
+I would like to acess the video data from that card. 
+I am working on linux (Suse 10 with Linux Kernel 2.6.16) .
+How do I proceed for this ?
 
-Regards,
+Thanks in advance.
+Waiting for your reply.
 
-Hans
-
+Thanks and Regards,
+Amol Borawake
+_________________________________________________________________
+Searching for weekend getaways? Try Live.com
+http://www.live.com/?scope=video&form=MICOAL
 
 --
 video4linux-list mailing list
