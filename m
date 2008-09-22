@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.170])
+Received: from 202.7.249.79.dynamic.rev.aanet.com.au ([202.7.249.79]
+	helo=home.singlespoon.org.au)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <billmccartney@gmail.com>) id 1KgaQV-0003RV-Mr
-	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 09:29:16 +0200
-Received: by ug-out-1314.google.com with SMTP id 39so2259676ugf.16
-	for <linux-dvb@linuxtv.org>; Fri, 19 Sep 2008 00:29:12 -0700 (PDT)
-Message-ID: <d77717b60809190029p4bdcdda6g55db6a9261673675@mail.gmail.com>
-Date: Fri, 19 Sep 2008 03:29:12 -0400
-From: "Bill McCartney" <billmccartney@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <paulc@singlespoon.org.au>) id 1Khsc3-0005DC-Rp
+	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 23:06:33 +0200
+Message-ID: <48D8083D.1070703@singlespoon.org.au>
+Date: Tue, 23 Sep 2008 07:03:57 +1000
+From: Paul Chubb <paulc@singlespoon.org.au>
 MIME-Version: 1.0
-Subject: [linux-dvb] HVR-1800 - can't find the card
+To: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>,
+	linux dvb <linux-dvb@linuxtv.org>, larrykathy3@verizon.net
+References: <200809212251.45982.vanessaezekowitz@gmail.com>
+In-Reply-To: <200809212251.45982.vanessaezekowitz@gmail.com>
+Subject: Re: [linux-dvb] Fwd: ubuntu installed geniatech x8000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,76 +20,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1756675585=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1756675585==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_15398_28895902.1221809352019"
-
-------=_Part_15398_28895902.1221809352019
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Well, I'm not sure if it is a DVB problem. The hvr-1800 shows up in my
-lspci, but driver doesn't load. I have tried kernels version 2.26.24 and
-2.26.25.7, removed all other cards from the system - and still have the same
-problem.
-
-Output when I try to install the driver
-cx23885 driver version 0.0.1 loaded
-cx23885[0]: can't get MMIO memory @ 0x0
-CORE cx23885[0] No more PCIe resources for subsystem: 0070:7801
-cx23885: probe of 0000:03:00.0 failed with error -22
-
-The output of my lspci -v (of the card)
-03:00.0 Multimedia video controller: Conexant Unknown device 8880 (rev 0f)
-        Subsystem: Hauppauge computer works Inc. Unknown device 7801
-        Flags: bus master, fast devsel, latency 0, IRQ 10
-        Memory at <ignored> (64-bit, non-prefetchable)
-        Capabilities: [40] Express Endpoint IRQ 0
-        Capabilities: [80] Power Management version 2
-        Capabilities: [90] Vital Product Data
-        Capabilities: [a0] Message Signalled Interrupts: 64bit+ Queue=0/0
-Enable-
-
-In my kernel logs I see this from the bootlogs:
-PCI: Cannot allocate resource region 0 of device 0000:03:00.0
-
-I've tried several kernel options as far as pci configuration goes -- does
-this mean that I have bad hardware? Should I just return it to the store? Is
-it a conflict with my motherboard?
-
-Thanks in advanced,
- - Bill
-
-------=_Part_15398_28895902.1221809352019
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">Well, I&#39;m not sure if it is a DVB problem. The hvr-1800 shows up in my lspci, but driver doesn&#39;t load. I have tried kernels version 2.26.24 and <a href="http://2.26.25.7">2.26.25.7</a>, removed all other cards from the system - and still have the same problem.<br>
-<br>Output when I try to install the driver<br>cx23885 driver version 0.0.1 loaded<br>cx23885[0]: can&#39;t get MMIO memory @ 0x0<br>CORE cx23885[0] No more PCIe resources for subsystem: 0070:7801<br>cx23885: probe of 0000:03:00.0 failed with error -22<br>
-<br>The output of my lspci -v (of the card)<br>03:00.0 Multimedia video controller: Conexant Unknown device 8880 (rev 0f)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Subsystem: Hauppauge computer works Inc. Unknown device 7801<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Flags: bus master, fast devsel, latency 0, IRQ 10<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Memory at &lt;ignored&gt; (64-bit, non-prefetchable)<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Capabilities: [40] Express Endpoint IRQ 0<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Capabilities: [80] Power Management version 2<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Capabilities: [90] Vital Product Data<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Capabilities: [a0] Message Signalled Interrupts: 64bit+ Queue=0/0 Enable-<br><br>In my kernel logs I see this from the bootlogs:<br>PCI: Cannot allocate resource region 0 of device 0000:03:00.0<br><br>I&#39;ve tried several kernel options as far as pci configuration goes -- does this mean that I have bad hardware? Should I just return it to the store? Is it a conflict with my motherboard?<br>
-<br>Thanks in advanced,<br>&nbsp;- Bill<br></div>
-
-------=_Part_15398_28895902.1221809352019--
-
-
---===============1756675585==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1756675585==--
+SGksCiAgICAgIEkgKnRoaW5rKiB0aGUgcHJvYmxlbSBpcyB0aGF0IGl0IGlzIG5vdCBmaW5kaW5n
+IHRoZSAuY29uZmlnIGZpbGUgCmZyb20gYnVpbGRpbmcgdGhlIGtlcm5lbCAtIDIuNi4yNC4xOS4g
+SWYgeW91IGxvb2sgaW4gdGhlIC9ib290IGRpcmVjdG9yeSAKdWJ1bnR1IGluc3RhbGxzIHRoZSAu
+Y29uZmlnIGZpbGUgd2hlbiBpdCBpbnN0YWxscyB0aGUga2VybmVsLiBIb3dldmVyIGl0IAp3aWxs
+IGJlIGNhbGxlZCBzb21ldGhpbmcgbGlrZSBjb25maWctMi42LjI0LTE5LXNlcnZlci4gQ29weSB0
+aGUgZmlsZSB0byAKL2xpYi9tb2R1bGVzL2B1bmFtZSAtcmAvYnVpbGQvLmNvbmZpZyBhbmQgdHJ5
+IGFnYWluLgoKSG9wZSB0aGlzIGhlbHBzCgpDaGVlcnMgUGF1bAoKClZhbmVzc2EgRXpla293aXR6
+IHdyb3RlOgo+IExhcnJ5OiAgRm9yIHRoZSBrZXJuZWwsIEknbSB1c2luZyAibGludXgtaW1hZ2Ut
+Mi42LjI0LTE5LWdlbmVyaWMiLCB3aXRoIHRoZSBoZWFkZXJzIHRoYXQgZ28gd2l0aCBpdCAKPiAo
+IiJsaW51eC1oZWFkZXJzLTIuNi4yNC0xOS1nZW5lcmljIikuICAgIEl0IHJlYWxseSAqcmVhbGx5
+KiBzb3VuZHMgbGlrZSB5b3UgYXJlIG1pc3NpbmcgdGhlIGNvcnJlY3QgaGVhZGVycyBwYWNrYWdl
+LCBwbHVzIAo+IHRoaXMgIi1zZXJ2ZXIiIHZhcmlhbnQgb2YgdGhlIGtlcm5lbCBpcyBuZXcgdG8g
+bWUuICBJJ20gZm9yd2FyZGluZyB5b3VyIGVtYWlsIHRvIHRoZSB2NGwtZHZiIG1haWxpbmcgbGlz
+dCB0byBnZXQgbW9yZSBleWVzIG9uIHRoZSAKPiBwcm9ibGVtLiAgSWYgeW91J3ZlIG5vdCBkb25l
+IHNvLCB5b3Ugc2hvdWxkIGpvaW4gdGhlIHY0bC1kdmIgbWFpbGluZyBsaXN0Ogo+Cj4gaHR0cDov
+L3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZiCj4KPiB2
+NGwtZHZiIGZvbGtzOiAgQ2FuIHNvbWVvbmUgaGVscCB0aGlzIGd1eSBvdXQ/ICBMaWtlIHRoZSBw
+cmV2aW91cyB0aHJlYWQgd2l0aCAiQ3VydCBCbGFuayIsIExhcnJ5IGhlcmUgaXMgdHJ5aW5nIHRv
+IGdldCBhIEt3b3JsZCAKPiBBVFNDIDEyMCB3b3JraW5nLCBidXQgSSBkb24ndCBrbm93IGhvdyB0
+byBzb2x2ZSB0aGUgcHJvYmxlbSBoZSdzIGhhdmluZy4gIEF0IGZpcnN0LCBMYXJyeSB3YXMgdXNp
+bmcgU1VTRSwgYnV0IGl0IGp1c3Qgd291bGRuJ3QgCj4gY29vcGVyYXRlIChoZSB3YXMgcmVjZWl2
+aW5nIHRoZSBzYW1lIGVycm9ycyB0aGVyZSBhcyB3ZWxsKS4gIEF0IGxlYXN0IEN1cnQgd2FzIGFi
+bGUgdG8gZ2V0IHRoZSBkcml2ZXIgdG8gYnVpbGQuICBPZmYgdGhlIHRvcCBvZiBteSAKPiBoZWFk
+LCBJIGRvbid0IGtub3cgd2hhdCB0aGUgZGlmZmVyZW5jZXMgYXJlIGJldHdlZW4gdGhlIGtlcm5l
+bCBJJ20gdXNpbmcgYW5kIHRoZSBvbmUgaGUncyB1c2luZywgc2VlaW5nIGFzIHRoZXkncmUgdGhl
+IHNhbWUgCj4gdmVyc2lvbiBudW1iZXIuICBJIGNvdWxkIHN3ZWFyIG9uIGEgc3RhY2sgb2YgcHJv
+Z3JhbW1lcidzIHJlZmVyZW5jZSBndWlkZXMgdGhhdCBJJ3ZlIHNlZW4gdGhlIHNhbWUgZXJyb3Ig
+bXlzZWxmIGF0IGxlYXN0IG9uY2UsIAo+IGJ1dCBJJ2xsIGJlIGRhbW5lZCBpZiBJIGNhbiByZW1l
+bWJlciBob3cgSSBzb2x2ZWQgaXQuCj4KPiAoSG93IGRpZCBJIGJlY29tZSB0aGUgcmVzaWRlbnQg
+ZXhwZXJ0IG9uIHRoaXMgY2FyZCBhbnl3YXk/IDotKSApCj4KPiAtLS0tLSBUZXh0IEltcG9ydCBC
+ZWdpbiAtLS0tLQo+Cj4gU3ViamVjdDogdWJ1bnR1IGluc3RhbGxlZCBnZW5pYXRlY2ggeDgwMDAK
+PiBEYXRlOiBTdW5kYXkgMjEgU2VwdGVtYmVyIDIwMDgKPiBGcm9tOiBSdXRoIEZlcm5hbmRleiA8
+bGFycnlrYXRoeTNAdmVyaXpvbi5uZXQ+Cj4gVG86IHZhbmVzc2FlemVrb3dpdHogPHZhbmVzc2Fl
+emVrb3dpdHpAZ21haWwuY29tPgo+Cj4gV2VsbCBJIGdhdmUgdXAgb24gU3VzZSwgSSBrbm93IGl0
+xZsgYW4gb2xkIHN0b3J5LCBsZWF2ZSB0aG9zZSBnaXJscyBhbG9uZS4gTm93IGl0wrRzIFVidW50
+dS4KPiBBbmQgbm93IG1ha2UgLWo0IGdldCBtZSwgScK0bSB1c2VpbmcgMi42LjI0LTE5LXNlcnZl
+ciBJIGJlbGlldmUgdGhhdCBrZXJuZWwgaXMgdGhlIHByb2JsZW0gCj4gSSBoYXZlIGtlcm5lbCAy
+LjYuMjYtMTktZ2VuZXJpYy4gV2hpY2gga2VybmVsIGFuZCBrZXJuZWwgaGVhZGVyIGRvIHlvdSB1
+c2U/ICBMYXJyeSAKPgo+IG1ha2UgLUMgL2hvbWUvbGFycnkvdjRsLWR2Yi92NGwgCj4gbWFrZVsx
+XTogRW50ZXJpbmcgZGlyZWN0b3J5IGAvaG9tZS9sYXJyeS92NGwtZHZiL3Y0bCcKPiBVcGRhdGlu
+Zy9DcmVhdGluZyAuY29uZmlnCj4gUHJlcGFyaW5nIHRvIGNvbXBpbGUgZm9yIGtlcm5lbCB2ZXJz
+aW9uIDIuNi4yNAo+IEZpbGUgbm90IGZvdW5kOiAvbGliL21vZHVsZXMvMi42LjI0LTE5LXNlcnZl
+ci9idWlsZC8uY29uZmlnIGF0IC4vc2NyaXB0cy9tYWtlX2tjb25maWcucGwgbGluZSAzMiwgPElO
+PiBsaW5lIDQuCj4gbWFrZVsxXTogKioqIE5vIHJ1bGUgdG8gbWFrZSB0YXJnZXQgYC5teWNvbmZp
+ZycsIG5lZWRlZCBieSBgY29uZmlnLWNvbXBhdC5oJy4gIFN0b3AuCj4gbWFrZVsxXTogTGVhdmlu
+ZyBkaXJlY3RvcnkgYC9ob21lL2xhcnJ5L3Y0bC1kdmIvdjRsJwo+IG1ha2U6ICoqKiBbYWxsXSBF
+cnJvciAyCj4KPiAtLS0tLSBUZXh0IEltcG9ydCBFbmQgLS0tLS0KPgo+ICAgCgoKLS0gClRoaXMg
+bWVzc2FnZSBoYXMgYmVlbiBzY2FubmVkIGZvciB2aXJ1c2VzIGFuZApkYW5nZXJvdXMgY29udGVu
+dCBieSBNYWlsU2Nhbm5lciwgYW5kIGlzCmJlbGlldmVkIHRvIGJlIGNsZWFuLgoKCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5n
+IGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJp
+bi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
