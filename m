@@ -1,28 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ffm.saftware.de ([83.141.3.46])
+Received: from wf-out-1314.google.com ([209.85.200.174])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <obi@linuxtv.org>) id 1Kfets-0005Zp-A6
-	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 20:03:45 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by ffm.saftware.de (Postfix) with ESMTP id D8367E6DAC
-	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 20:03:40 +0200 (CEST)
-Received: from ffm.saftware.de ([83.141.3.46])
-	by localhost (pinky.saftware.org [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id 39pbAx-3UE-S for <linux-dvb@linuxtv.org>;
-	Tue, 16 Sep 2008 20:03:40 +0200 (CEST)
-Received: from [172.22.22.60] (unknown [92.50.81.33])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by ffm.saftware.de (Postfix) with ESMTPSA id 3028CE6DA8
-	for <linux-dvb@linuxtv.org>; Tue, 16 Sep 2008 20:03:39 +0200 (CEST)
-Message-ID: <48CFF4FC.1000005@linuxtv.org>
-Date: Tue, 16 Sep 2008 20:03:40 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
+	(envelope-from <dlung0@gmail.com>) id 1KiC8Q-0002JD-Ix
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 19:57:15 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so2453747wfd.17
+	for <linux-dvb@linuxtv.org>; Tue, 23 Sep 2008 10:57:09 -0700 (PDT)
+Message-ID: <78c72afb0809231057m195d1f7dk57195f611357e39d@mail.gmail.com>
+Date: Tue, 23 Sep 2008 10:57:09 -0700
+From: "Doug Lung" <dlung0@gmail.com>
 To: linux-dvb@linuxtv.org
-References: <20080916173121.202250@gmx.net>
-In-Reply-To: <20080916173121.202250@gmx.net>
-Subject: Re: [linux-dvb] Why Parameter 'INVERSION' is really needed?
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: Re: [linux-dvb] Support for Pinnacle PCTV mini stick (USB TV Tuner)
+	80e
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,34 +26,23 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-handygewinnspiel@gmx.de wrote:
-> What is the *real need* for giving applications the possibility of I-Q-Inversion? Why this strange one is included in next API's?
-> 
-> If i understand this parameter correctly it swaps I and Q inputs of an qam capable receiver. But otherwise that means that somewhere in the reception chain some real mistake was made, either on hardware or driver side.
-> 
-> And if some inversion is needed it should be corrected inside the dvb frontend, since for such piece of hardware *always* this inversion is needed. Correcting this later on application level is terrible, since somebody may use hardware with different inversion settings inside the same application with the very same channel definition.
+Thanks, Devin, for your work getting the Pinnacle HD Pro Stick (801e) working!
 
-If you find two devices which need different inversion settings in the
-same network, then it's a driver bug, which can easily be corrected.
+Here is the info Pinnacle gave me regarding the devices in the Mini-Stick:
 
-Spectral inversion depends on the transmitter, too. It can change
-anytime a broadcaster decides to change it. It happens, although not
-very often.
+-          Tuner: NXP TDA18271HD
 
-Specifying the inversion parameter can speed up the tuning process,
-especially for devices which don't support automatic swapping in
-hardware. But I would not recommend to store this parameter in a service
-list.
+-          Demod: Micronas DRX3933J
 
-If we decide to keep the parameter, we should probably use four options:
- INVERSION_OFF, INVERSION_ON, INVERSION_AUTO_OFF_FIRST,
-INVERSION_AUTO_ON_FIRST, which matches the capabilities of most
-demodulators. A typical application would then probably use only the
-last two options, while the first two options would rather be used for
-diagnostics and to read back the detected inversion.
+-          USB controller: EMpia 2874
 
-Regards,
-Andreas
+-          We have included a low-noise amplifier to improve the
+sensitivity in weak-signal situations ("Signal Booster"). To prevent
+overdriving with stronger signals, the LNA can be switched off. The
+switch is provided in software (in our TVCenter Pro application, and
+for Windows Media Center users in a small separate tool).
+
+           ...Doug
 
 _______________________________________________
 linux-dvb mailing list
