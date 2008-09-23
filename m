@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m827qQ9q019077
-	for <video4linux-list@redhat.com>; Tue, 2 Sep 2008 03:52:27 -0400
-Received: from mgw-mx03.nokia.com (smtp.nokia.com [192.100.122.230])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m827qD3Q020027
-	for <video4linux-list@redhat.com>; Tue, 2 Sep 2008 03:52:13 -0400
-Message-ID: <48BCF083.6060200@nokia.com>
-Date: Tue, 02 Sep 2008 10:51:31 +0300
-From: Sakari Ailus <sakari.ailus@nokia.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8NGNeq4015929
+	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 12:23:41 -0400
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8NGNcYS026507
+	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 12:23:38 -0400
+Received: by ug-out-1314.google.com with SMTP id o38so1527372ugd.13
+	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 09:23:38 -0700 (PDT)
+Message-ID: <48D91801.8080403@gmail.com>
+Date: Tue, 23 Sep 2008 18:23:29 +0200
+From: "tomlohave@gmail.com" <tomlohave@gmail.com>
 MIME-Version: 1.0
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-References: <A24693684029E5489D1D202277BE89441191E343@dlee02.ent.ti.com>
-	<200809020832.39530.hverkuil@xs4all.nl>
-In-Reply-To: <200809020832.39530.hverkuil@xs4all.nl>
+To: dabby bentam <db260179@hotmail.com>, linux-dvb@linuxtv.org,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
+	hermann pitton <hermann-pitton@arcor.de>
+References: <BLU116-W110B77DE7660664939D770C24A0@phx.gbl>
+In-Reply-To: <BLU116-W110B77DE7660664939D770C24A0@phx.gbl>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 12/15] OMAP3 camera driver: Add Sensor and Lens Driver.
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: [linux-dvb] FIXME: audio doesn't work on svideo/composite - hvr-1110
+ S-Video and Composite
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,27 +32,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-ext Hans Verkuil wrote:
-> The diff for the Makefile shows the presence of OMAP2 drivers 
-> (omap24xxcam.o and omap24xxcam-dma.o), yet these drivers are not 
-> present in the master v4l-dvb repository. Why not submit these drivers 
-> as well? It would be nice to have the full set. Either that or redo the 
-> Kconfig and Makefile patches against the v4l-dvb master repository 
-> since they currently do not apply cleanly.
+dabby bentam a écrit :
+> oops, sorry, saa7134-cards.c
+>
+>
+>
+>
+>
+> ------------------------------------------------------------------------
+> From: db260179@hotmail.com
+> To: tomlohave@gmail.com
+> Subject: FW: [linux-dvb] FIXME: audio doesn't work on svideo/composite 
+> - hvr-1110 S-Video and Composite
+> Date: Tue, 23 Sep 2008 13:50:52 +0000
+>
+>
+> Thank you
+>
+> See attached file - SAA7133_0none-svideo-comp-audio.txt
+>
+Please can you give a unified diff ?
 
-The patches are against the linux-omap tree. The reason they're being 
-posted here is mostly for review since people understand more V4L here 
-than on linux-omap list. ;)
+Many thanks
 
-<URL:http://www.muru.com/linux/omap/README_OMAP_GIT>
-
-The other drivers are already part of linux-omap tree.
-
-Regards,
-
--- 
-Sakari Ailus
-sakari.ailus@nokia.com
+Thomas
 
 --
 video4linux-list mailing list
