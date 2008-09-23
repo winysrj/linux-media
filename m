@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.227])
+Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KbOJU-0004RX-4t
-	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 01:32:33 +0200
-Received: by wx-out-0506.google.com with SMTP id h27so49627wxd.17
-	for <linux-dvb@linuxtv.org>; Thu, 04 Sep 2008 16:32:27 -0700 (PDT)
-Message-ID: <d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>
-Date: Fri, 5 Sep 2008 01:32:27 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Johannes Stezenbach" <js@linuxtv.org>
-In-Reply-To: <20080904204709.GA32329@linuxtv.org>
+	(envelope-from <liplianin@tut.by>) id 1KiAeY-0002e8-1b
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 18:22:18 +0200
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: Manu Abraham <abraham.manu@gmail.com>
+Date: Tue, 23 Sep 2008 19:15:21 +0300
+References: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAEH2unQOalpGjvGmwr9GMIQBAAAAAA==@stahurabrenner.com>
+	<200809231848.15885.liplianin@tut.by> <48D9126F.8000409@gmail.com>
+In-Reply-To: <48D9126F.8000409@gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <48C00822.4030509@gmail.com> <48C01698.4060503@gmail.com>
-	<48C01A99.402@gmail.com> <20080904204709.GA32329@linuxtv.org>
-Cc: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Message-Id: <200809231915.21494.liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Start making stv0903, stv0900, stv6110 support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,59 +21,26 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-On Thu, Sep 4, 2008 at 10:47 PM, Johannes Stezenbach <js@linuxtv.org> wrote:
-> On Thu, Sep 04, 2008, Manu Abraham wrote:
->>
->> Does it support ISDB-T, ATSC-MH, CMMB, DBM-T/H?
->> Intentionally, no!  Experience with the old api development has proven
->> that making blind assumptions about delivery systems is a bad idea.
->> It's better to add in support for these when the hardware actually arrives
->> and can be properly tested.
->
-
-I have Empia ISDB-T and DMB-T/H hardware and the corresponding signal
-generator for it here,
-it's right on my roadmap and work can be started within a few days.
-
-> Full ACK on this one. Once an API is merged into the mailine
-> kernel we're stuck with it, no matter how ugly and broken it might be.
-> -> NEVER merge untested APIs
-
-should be the rule but there's always an exception for it too . o (
-thinking about KVM )
-
->
->> If you would like to use any of these drivers now, you may pull the
->> tree from http://jusst.de/hg/multiproto.  Drivers may be configured
->> with 'make menuconfig' the same as you've done with v4l.
->>
->> Feedback, bug reports, etc. are welcomed and encouraged!
->
-> I only want to add a bit of historical perspective so people
-> are aware of the reasons why Steve came up with his alternative
-> API proposal, and why a number of developers seem to support it.
->
-> First let's look at the timestamps:
-> http://jusst.de/hg/multiproto/log/2a911b8f9910/linux/include/linux/dvb/frontend.h
-> http://jusst.de/hg/multiproto_api_merge/log/4c62efb08ea6/linux/include/linux/dvb/frontend.h
->
-> Then at some discussion from nearly one year ago:
-> http://article.gmane.org/gmane.linux.drivers.dvb/36643
->
-
-by experience I'm sure most people won't read up the history here...
-
-Markus
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+9yDTz8/C3cXOyckgz9QgMjMgU2VwdGVtYmVyIDIwMDggMTg6NTk6NDMgTWFudSBBYnJhaGFtIM7B
+0MnTwcwowSk6Cj4gSWdvciBNLiBMaXBsaWFuaW4gd3JvdGU6Cj4gPiD3INPPz8Ldxc7JySDP1CAy
+MyBTZXB0ZW1iZXIgMjAwOCAxODoxNjo1NiBNYW51IEFicmFoYW0gzsHQydPBzCjBKToKPiA+PiBJ
+Z29yIE0uIExpcGxpYW5pbiB3cm90ZToKPiA+Pj4gTGludXh0diBjb21tdW5pdHksIGxldCB5b3Ug
+a25vdzoKPiA+Pj4gU3RhcnQgdG8gd29yayBvbiBzdHYwOTAwLCBzdHYwOTAzLCBzdHY2MTEwIGRy
+aXZlcnMKPiA+Pgo+ID4+IEkgaGF2ZSBkb25lIHF1aXRlIHNvbWUgd29yayBvbiB0aGlzIGNvbWJp
+bmF0aW9uLCB3aGljaCBpcyBvZmZpY2lhbGx5Cj4gPj4gc3VwcG9ydGVkIGJ5IFNUTSBhcyB3ZWxs
+LiBJIGNhbiBwdXNoIG91dCB0aGUgZHJpdmVycyBhcyBzb29uIGFzIFNUTQo+ID4+IGdpdmVzIG1l
+IHRoZSBnbyBvbiBpdC4KPiA+Pgo+ID4+IFJlZ2FyZHMsCj4gPj4gTWFudQo+ID4KPiA+IEl0IGlz
+IGdvb2QgbmV3cwo+ID4gTXkgd29ycnkgaXMgb25seSB0aW1lCj4KPiBJIGRvbid0IHRoaW5rIHRo
+ZXJlJ3MgYW55IG5lZWQgdG8gd29ycnkuIFdpbGwgdHJ5IHRvIHB1c2ggaXQgb3V0IGFzCj4gZWFy
+bHkgYXMgcG9zc2libGUuCj4KPiBSZWdhcmRzLAo+IE1hbnUKCkxvb2tpbmcgZm9yd2FyZCB0byBp
+dApBbmQgdGhhbmsgeW91IGJlZm9yZWhhbmQKClRoYXQgaXMgbXkgY2hhcmFjdGVyIC0gSSBhbHdh
+eXMgd29ycnkKClJlZ2FyZHMKSWdvcgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5v
+cmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgt
+ZHZi
