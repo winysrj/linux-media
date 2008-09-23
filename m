@@ -1,27 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.121])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1KfNDX-0001U9-U7
-	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 01:10:55 +0200
-From: Andy Walls <awalls@radix.net>
-To: Julian Scheel <julian@jusst.de>
-In-Reply-To: <48CDF7A1.2020905@jusst.de>
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-	<48CC42D8.8080806@gmail.com>
-	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
-	<48CC4D35.3000003@gmail.com>
-	<d9def9db0809140838k2ced5211gc2690e76f53a98be@mail.gmail.com>
-	<48CD43C1.2090902@linuxtv.org>  <48CD5D19.1070700@gmail.com>
-	<1221425146.4278.30.camel@morgan.walls.org> <48CDF7A1.2020905@jusst.de>
-Date: Mon, 15 Sep 2008 19:10:26 -0400
-Message-Id: <1221520226.2773.31.camel@morgan.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+	(envelope-from <tkrantz@stahurabrenner.com>) id 1Ki7E0-0007IR-6p
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 14:42:41 +0200
+From: "Timothy E. Krantz" <tkrantz@stahurabrenner.com>
+To: "'Darren Salt'" <linux@youmustbejoking.demon.co.uk>,
+	<linux-dvb@linuxtv.org>
+References: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAEH2unQOalpGjvGmwr9GMIQBAAAAAA==@stahurabrenner.com>
+	<4FE87384AC%linux@youmustbejoking.demon.co.uk>
+Date: Tue, 23 Sep 2008 08:42:01 -0400
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAA5pLLanb2xLgYhuuwWOuDoBAAAAAA==@stahurabrenner.com>
+MIME-Version: 1.0
+In-Reply-To: <4FE87384AC%linux@youmustbejoking.demon.co.uk>
+Subject: Re: [linux-dvb] CX88 IRQ Loop
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,174 +26,275 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 2008-09-15 at 07:50 +0200, Julian Scheel wrote:
-> Andy,
+ 
+
+> -----Original Message-----
+> From: linux-dvb-bounces@linuxtv.org 
+> [mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Darren Salt
+> Sent: Monday, September 22, 2008 6:39 PM
+> To: linux-dvb@linuxtv.org
+> Subject: Re: [linux-dvb] CX88 IRQ Loop
 > 
-> just to clarify things a bit I'll give a short statement now.
+> I demand that Timothy E. Krantz may or may not have written...
 > 
-> Andy Walls schrieb:
-> > Though I can't read much German, after looking at the jusst.de website I
-> > can't help but think that you as well have financial interests driving
-> > your actions.  If so, then your statements display quite a bit of
-> > hypocrisy.
-> >   
-> The role of jusst technologies in the whole multiproto story is as 
-> following:
-> The time when DVB-S2 came up this was of course of major interest for 
-> jusst technologies, so we searched for people working on drivers. At 
-> that not many people did seem to care about this stuff - but Manu did. 
-> So we got in contact and tried to help him as much as we can, which 
-> included making up connections to KNC1 for technical questions and 
-> datasheets, provide a KNC1 testing board and later then give free 
-> web/codespace to Manu.
-
-Julian
-
-First let me acknowledge jusst technologies contribution.  It seems
-generous.  Thank you for clarifying.
-
-
-> Furthermore we of course did lots of testing of multiproto. But never we 
-> did pay Manu for any of this work.
-> Reading that you should recognize that there can't be much financial 
-> interests for Manu.
-
-Manu clarified this.
-
-
-
-> Seeing that you impute hyprocrisy to Manu due to "facts" you don't have 
-> proven in any way makes me a bit contemplative.
-
-This is where you misrepresent my words: "I can't help but think..." is
-phrase that doesn't not imply certainty but indicates my *perception*.
-I did not assert this as fact, as the following statement started "If
-so, ..." which is a conditional clause.
-
-Maybe this subtlety is lost in translation.  
-
-
-
-
->  I don't like being 
-> political when talking about technical terms (which linuxtv in first 
-> place should be about imho) - anyway this one time I will give a 
-> somewhat political statement, too.
-> All you guys who are blaming Manu to do some wrong or bad stuff,
-
-No.  It was my ill researched, emotive response to Manu attacking
-someone.
-
-
->  what is 
-> your point?
-
-
-My point was to suggest to Manu that there were more productive ways to
-further his cause than to throw stones at people.
-
-Manu, who you support, BTW, was the one who initially introduced
-allegations of a developer introducing corporate politics. 
-
-
->  - I see you searching quote where Manu did talk in a 
-> somewhat unpolite manner
-
-There was no searching involved.  That quote was text I cut out in my
-initial response.  I reinserted it to refute Manu's denial.
-
-
-
->  just to blame him of being the wrong person 
-> introducing a new API? 
-
-
-> - I have no interest in doing the same quoting 
-> with your postings or the so called competitors postings, but I'd bed I 
-> could quote almost any of you in a not less distracting manner than you 
-> like to do with Manu.
-> > Manipulating (i.e. stalling) the timing of Multiproto being merged into
-> > the v4l-dvb tree or kernel, for you or your employer's gain, would be
-> > little different from the motivations you allege Steve of having.
-> >
-> > Since the major gripe I'm reading on the list "is that multiproto has
-> > taken too long" and since it seems to me the only thing that shook it
-> > loose was a competing proposal, please save the venom for when you
-> > actually have some clear moral high-ground to stand on.  I don't see it
-> > from here.
-> >   
-> Using "taking too long" as an argument against an API proposal is really 
-> interesting. What did you expect? - A quick shot which is not well 
-> thought about wouldn't have be a good thing for anyone.
-> I'm absolutely fine if anyone would came up with real technical 
-> arguments, but reading many postings so far I couldn't find much of such 
-> statements.
-
-Let me help you.  Please read these postings of mine and give me your
-honest feedback:
-
-http://linuxtv.org/pipermail/linux-dvb/2008-September/028651.html
-http://linuxtv.org/pipermail/linux-dvb/2008-September/028727.html
-
-
-Are these the emails of someone who doesn't care about the technical
-aspects?
-
-I didn't post them to the LKML because I didn't think the issue needed
-expand to there.
-
-
-
-> > As for the technical superiority of either API proposal; that probably
-> > just doesn't matter.  I've seen policy/political decisions force
-> > suboptimal technical solutions at work time and time again.  If you
-> > really believe you have a superior product technically; then perhaps you
-> > should work to make it superior politically as well.  Mud-slinging can't
-> > be a good long term strategy toward that end.
-> >   
-> To be political again: Thank you for blaming jusst being not interested 
-> in proper technical solutions. What makes you thinking of this?
-
-I said no such thing.  The implication was that politics often
-(tragically IMO) often weigh heavier than technical merit in making
-decision.   This was my recommendation to Manu not to neglect that
-aspect, lest he get shortchanged.  I was trying to help/advise.  Maybe
-that was not clear.
-
-
-
->  - Just 
-> the fact that you recognize jusst as a commercial company? Very interesting.
-
-
-> I really have a feeling that many people here are mostly interested in 
-> making politics instead of thinking about technical solutions which 
-> makes all this a horrible topic
-
-Then tell Manu not to initiate with unkind allegations, and he won't
-evoke the same in return.  Again, the horror of the whole mess is what
-moved me to respond. 
-
-I couldn't give $0.02 about the new API.  I don't think I'll ever need
-it myself.  That's a selfish US user's perspective, but it also
-validates my motivation for responding: to try and stop the animosity.
-
-
->  for all that people who are interested 
-> in a working solution (which Manu has proven to deliver) - mainly the users.
+> > I am getting the following problems as reported in dmesg.
+> > Any help would be appreciated.
 > 
-> So far this is my statement (in representation for jusst technologies) 
-> for the moment.
-
-I'm sorry if you feel I've somehow injured the name of jusst
-technologies.  That certainly wasn't any intention of mine.
-
-Regards,
-Andy
-
-> Best regards,
-> Julian
+> > Linux video capture interface: v2.00
+> > cx2388x alsa driver version 0.0.6 loaded
+> > ACPI: PCI Interrupt 0000:00:09.1[A] -> GSI 17 (level, low) -> IRQ 20
+> > cx88[0]: subsystem: 11bd:0051, board: Pinnacle PCTV HD 800i
+> [snip]
+> > xc5000: firmware upload
+> [snip]
+> > NVRM: loading NVIDIA UNIX x86 Kernel Module  169.12  Thu Feb 14 
+> > 17:53:07 PST 2008
+> [snip]
+> > ndiswrapper version 1.51 loaded (smp=yes, preempt=no) usb 
+> 1-5: reset 
+> > high speed USB device using ehci_hcd and address 2
+> > ndiswrapper: driver netmw245 (Marvell,11/27/2006,1.0.4.9) loaded
+> [snip]
+> > cx88[0]/2-mpeg: general errors: 0x00140000
+> > cx88[0]/2-mpeg: clearing mask
+> > cx88[0]/0: irq loop -- clearing mask
+> [snip]
+> > cx88[0]: irq mpeg  [0xa0000] par_err* pci_abort*
+> > cx88[0]/2-mpeg: general errors: 0x000a0000 irq 20: nobody 
+> cared (try 
+> > booting with the "irqpoll" option)
+> > Pid: 0, comm: swapper Tainted: P        2.6.24.4-64.fc8 #1
+> >  [<c04612be>] __report_bad_irq+0x36/0x75  [<f15a3a16>] 
+> > nv_kern_isr+0xa5/0xb2 [nvidia]
 > 
+> Oh dear. I do believe that that's within nVidia's proprietary driver.
+> 
+> And you're using ndiswrapper, and it's loaded a driver 
+> module. That's another source of kernel taint. This raises 
+> the possibility of some interaction between the two, which 
+> basically You Don't Want To See. Ever.
+> 
+> Which isn't good because one or other, or some interaction 
+> between them, is a possible source of the problem. So you 
+> need to be able to produce this without one or both taint 
+> sources: without one, it's likely caused by the other piece 
+> of taintware; without both, you know that the problem isn't 
+> caused by taintware (it's either a cx88 driver bug or a 
+> hardware fault). If, however, it only ever happens with both 
+> lots of taint applied, you have a problem somewhere between 
+> nVidia and either ndiswrapper or netwm245 - good luck ;-)
+> 
+> (Taint removal: prevent the taintware from being loaded, then reboot.)
+> 
+> -- 
+> | Darren Salt    | linux or ds at              | nr. Ashington, | Toon
+> | RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
+> | + At least 4000 million too many people. POPULATION LEVEL 
+> IS UNSUSTAINABLE.
+> 
+> Hire the morally handicapped.
+
+Thanks,
+Tried withough the nvidia driver last night and still had the IRQ loop issue
+below.
+
+I will run without both the nvidia driver and the ndiswrapper today.
+
+Linux video capture interface: v2.00
+input: PC Speaker as /class/input/input6
+cx2388x alsa driver version 0.0.6 loaded
+ACPI: PCI Interrupt 0000:00:09.1[A] -> GSI 17 (level, low) -> IRQ 20
+cx88[0]: subsystem: 11bd:0051, board: Pinnacle PCTV HD 800i
+[card=58,autodetecte
+d]
+cx88[0]: TV tuner type 76, Radio tuner type -1
+cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+tuner' 1-0064: chip found @ 0xc8 (cx88[0])
+xc5000: Successfully identified at address 0x64
+xc5000: Firmware has not been loaded previously
+xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+xc5000: firmware read 12332 bytes.
+xc5000: firmware upload
+cx88[0]: Calling XC5000 callback
+input: cx88 IR (Pinnacle PCTV HD 800i) as /class/input/input7
+cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+cx88[0]/2: cx2388x 8802 Driver Manager
+ACPI: PCI Interrupt 0000:00:09.2[A] -> GSI 17 (level, low) -> IRQ 20
+cx88[0]/2: found at 0000:00:09.2, rev: 5, irq: 20, latency: 64, mmio:
+0xde000000
+cx88[1]: subsystem: 11bd:0051, board: Pinnacle PCTV HD 800i
+[card=58,autodetecte
+d]
+cx88[1]: TV tuner type 76, Radio tuner type -1
+tuner' 2-0064: chip found @ 0xc8 (cx88[1])
+xc5000: Successfully identified at address 0x64
+xc5000: Firmware has not been loaded previously
+xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+xc5000: firmware read 12332 bytes.
+xc5000: firmware upload
+cx88[1]: Calling XC5000 callback
+input: cx88 IR (Pinnacle PCTV HD 800i) as /class/input/input8
+cx88[1]/2: cx2388x 8802 Driver Manager
+ACPI: PCI Interrupt 0000:00:0a.2[A] -> GSI 18 (level, low) -> IRQ 21
+cx88[1]/2: found at 0000:00:0a.2, rev: 5, irq: 21, latency: 64, mmio:
+0xdb000000
+ACPI: PCI Interrupt 0000:00:09.0[A] -> GSI 17 (level, low) -> IRQ 20
+cx88[0]/0: found at 0000:00:09.0, rev: 5, irq: 20, latency: 64, mmio:
+0xdc000000
+cx88[0]/0: registered device video0 [v4l2]
+cx88[0]/0: registered device vbi0
+cx88/2: cx2388x dvb driver version 0.0.6 loaded
+cx88/2: registering cx8802 driver, type: dvb access: shared
+cx88[0]/2: subsystem: 11bd:0051, board: Pinnacle PCTV HD 800i [card=58]
+cx88[0]/2: cx2388x based DVB/ATSC card
+xc5000: Successfully identified at address 0x64
+xc5000: Firmware has been loaded previously
+DVB: registering new adapter (cx88[0])
+DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB Frontend)...
+cx88[1]/2: subsystem: 11bd:0051, board: Pinnacle PCTV HD 800i [card=58]
+cx88[1]/2: cx2388x based DVB/ATSC card
+ACPI: PCI Interrupt 0000:00:02.7[C] -> GSI 18 (level, low) -> IRQ 21
+xc5000: Successfully identified at address 0x64
+xc5000: Firmware has been loaded previously
+DVB: registering new adapter (cx88[1])
+DVB: registering frontend 1 (Samsung S5H1409 QAM/8VSB Frontend)...
+intel8x0_measure_ac97_clock: measured 50804 usecs
+intel8x0: clocking to 48000
+ACPI: PCI Interrupt 0000:00:0a.1[A] -> GSI 18 (level, low) -> IRQ 21
+cx88[1]/1: CX88x/1: ALSA support for cx2388x boards
+ACPI: PCI Interrupt 0000:00:0a.0[A] -> GSI 18 (level, low) -> IRQ 21
+cx88[1]/0: found at 0000:00:0a.0, rev: 5, irq: 21, latency: 64, mmio:
+0xd9000000
+cx88[1]/0: registered device video1 [v4l2]
+cx88[1]/0: registered device vbi1
+NET: Registered protocol family 10
+lo: Disabled Privacy Extensions
+ACPI: PCI Interrupt 0000:01:00.0[A] -> GSI 16 (level, low) -> IRQ 19
+loop: module loaded
+EXT3 FS on dm-0, internal journal
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on sda1, internal journal
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on sda1, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on dm-1, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+Adding 1572856k swap on /dev/mapper/VolGroup01-LogVol02.  Priority:-1
+extents:1
+across:1572856k
+warning: process `kudzu' used the deprecated sysctl system call with 1.23.
+RPC: Registered udp transport module.
+RPC: Registered tcp transport module.
+ndiswrapper version 1.51 loaded (smp=yes, preempt=no)
+usb 1-5: reset high speed USB device using ehci_hcd and address 2
+ndiswrapper: driver netmw245 (Marvell,11/27/2006,1.0.4.9) loaded
+wlan0: ethernet device 00:14:d1:39:73:20 using NDIS driver: netmw245,
+version: 0
+x1000308, NDIS version: 0x501, vendor: 'NDIS Network Adapter',
+1286:2006.F.conf
+wlan0: encryption modes supported: WEP; TKIP with WPA, WPA2, WPA2PSK;
+AES/CCMP w
+ith WPA, WPA2, WPA2PSK
+usbcore: registered new interface driver ndiswrapper
+ADDRCONF(NETDEV_UP): wlan0: link is not ready
+ CIFS VFS: Error connecting to IPv4 socket. Aborting operation
+ CIFS VFS: cifs_mount failed w/return code = -113
+ADDRCONF(NETDEV_CHANGE): wlan0: link becomes ready
+ CIFS VFS: Error connecting to IPv4 socket. Aborting operation
+ CIFS VFS: cifs_mount failed w/return code = -113
+wlan0: no IPv6 routers present
+ CIFS VFS: Error connecting to IPv4 socket. Aborting operation
+ CIFS VFS: cifs_mount failed w/return code = -113
+cx88[0]: video y / packed - dma channel status dump
+cx88[0]:   cmds: initial risc: 0x229fc000
+cx88[0]:   cmds: cdt base    : 0x00180440
+cx88[0]:   cmds: cdt size    : 0x0000000c
+cx88[0]:   cmds: iq base     : 0x00180400
+cx88[0]:   cmds: iq size     : 0x00000010
+cx88[0]:   cmds: risc pc     : 0x22a5a958
+cx88[0]:   cmds: iq wr ptr   : 0x0000010b
+cx88[0]:   cmds: iq rd ptr   : 0x0000010f
+cx88[0]:   cmds: cdt current : 0x00000458
+cx88[0]:   cmds: pci target  : 0x22a58440
+cx88[0]:   cmds: line / byte : 0x00f00000
+cx88[0]:   risc0: 0x80008200 [ sync resync count=512 ]
+cx88[0]:   risc1: 0x1c0003c0 [ write sol eol count=960 ]
+cx88[0]:   risc2: 0x229e63c0 [ arg #1 ]
+cx88[0]:   risc3: 0x1c0003c0 [ write sol eol count=960 ]
+cx88[0]:   iq 0: 0x229e63c0 [ skip irq2 23 20 19 18 cnt1 14 13 count=960 ]
+cx88[0]:   iq 1: 0x1c0003c0 [ write sol eol count=960 ]
+cx88[0]:   iq 2: 0x229e6b40 [ arg #1 ]
+cx88[0]:   iq 3: 0x1c0003c0 [ write sol eol count=960 ]
+cx88[0]:   iq 4: 0x229e72c0 [ arg #1 ]
+cx88[0]:   iq 5: 0x1c0003c0 [ write sol eol count=960 ]
+cx88[0]:   iq 6: 0x229e7a40 [ arg #1 ]
+cx88[0]:   iq 7: 0x1c0003c0 [ write sol eol count=960 ]
+cx88[0]:   iq 8: 0x229e81c0 [ arg #1 ]
+cx88[0]:   iq 9: 0x1c0003c0 [ write sol eol count=960 ]
+cx88[0]:   iq a: 0x229e8940 [ arg #1 ]
+cx88[0]:   iq b: 0x22a57900 [ skip irq2 23 21 18 cnt0 14 13 12 count=2304 ]
+cx88[0]:   iq c: 0x1c0003c0 [ write sol eol count=960 ]
+cx88[0]:   iq d: 0x22a58080 [ arg #1 ]
+cx88[0]:   iq e: 0x80008200 [ sync resync count=512 ]
+cx88[0]:   iq f: 0x1c0003c0 [ write sol eol count=960 ]
+cx88[0]:   iq 10: 0x00180c00 [ arg #1 ]
+cx88[0]: fifo: 0x00180c00 -> 0x183400
+cx88[0]: ctrl: 0x00180400 -> 0x180460
+cx88[0]:   ptr1_reg: 0x00181830
+cx88[0]:   ptr2_reg: 0x00180478
+cx88[0]:   cnt1_reg: 0x0000002c
+cx88[0]:   cnt2_reg: 0x00000000
+cx88[0]/0: [e2959300/1] timeout - dma=0x22a5a000
+cx88[0]/0: [e2959540/2] timeout - dma=0x22ad8000
+cx88[0]/0: [e2959240/3] timeout - dma=0x22b56000
+cx88[0]/0: [e2959840/4] timeout - dma=0x22bb8000
+cx88[0]/0: [e2959780/0] timeout - dma=0x229fc000
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1101] dn_risci1* dnf_of dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1000] dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+cx88[1]/1: IRQ loop detected, disabling interrupts
+cx88[1]: irq aud [0x1001] dn_risci1* dn_sync*
+
 
 
 _______________________________________________
