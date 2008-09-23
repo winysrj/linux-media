@@ -1,27 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8QBjGpa010665
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 07:45:17 -0400
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.187])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8QBhfmD012119
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 07:43:41 -0400
-Received: by fk-out-0910.google.com with SMTP id e30so882973fke.3
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 04:43:40 -0700 (PDT)
-Message-ID: <d9def9db0809260443w53d575b7s3857b424163ec1b@mail.gmail.com>
-Date: Fri, 26 Sep 2008 13:43:40 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Eduardo Fontes" <eduardo.fontes@gmail.com>
-In-Reply-To: <d9def9db0809251944g56462217sdc14a57c85db1b97@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <7b6d682a0809251804j1277af44i80c53529a3c33d62@mail.gmail.com>
-	<d9def9db0809251837k126b6b83n2803e56a00a7f961@mail.gmail.com>
-	<7b6d682a0809251923uaacc119u25cf5118625c03d0@mail.gmail.com>
-	<d9def9db0809251944g56462217sdc14a57c85db1b97@mail.gmail.com>
-Cc: video4linux-list@redhat.com, em28xx@mcentral.de
-Subject: Re: Pinnacle PCTV HD Pro Stick
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8NJSqvl001605
+	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 15:29:02 -0400
+Received: from mta1.srv.hcvlny.cv.net (mta1.srv.hcvlny.cv.net [167.206.4.196])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8NJ1wC3013721
+	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 15:01:59 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7N000F1WV6CQ80@mta1.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Tue, 23 Sep 2008 15:01:55 -0400 (EDT)
+Date: Tue, 23 Sep 2008 15:01:53 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <alpine.DEB.1.10.0809231431120.1930@vegas>
+To: Keith Lawson <lawsonk@lawson-tech.com>
+Message-id: <48D93D21.6050903@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <48d9355d.31d.7592.1160783075@uninet.com.br>
+	<alpine.DEB.1.10.0809231431120.1930@vegas>
+Cc: video4linux-list@redhat.com
+Subject: Re: Capture card... please help!
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,29 +34,79 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
-
-On Fri, Sep 26, 2008 at 4:44 AM, Markus Rechberger
-<mrechberger@gmail.com> wrote:
-> On Fri, Sep 26, 2008 at 4:23 AM, Eduardo Fontes
-> <eduardo.fontes@gmail.com> wrote:
->> Hi Markus,
+Keith Lawson wrote:
+> 
+> 
+> On Tue, 23 Sep 2008, danflu@uninet.com.br wrote:
+> 
+>> Hi,
 >>
->> Ok. The .deb package that you send to me + tvtime ".deb" package (
->> http://mcentral.de/tvtime/tvtime_1.0.2-1_i386.deb) my Pinnacle PCTV works
->> with sound, but only in b/w NTSC. Brazil is PAL-M color standard and when I
->> put in this TV Standard I get only noises and a disfigured green image. In
->> NTSC the image is clear but only in grey scale and sound is fine. Some patch
->> for this?
+>> I sent a message yesterday (bellow) asking about a capture
+>> card with
+>> composite video, SVideo and Firewire and supported by
+>> video4linux and got no answer... I made a lot of research
+>> and until now i could not find such a device... The priority
+>> is capture DV Camcorders (by firewire input) and also
+>> capture composite video devices...
 >>
->
-> I'm going to update the package in a few hours with the latest code.
->
+>> As there are several reported incompatibility issues about
+>> missing drivers and related bugs for many cards i'm really
+>> looking for advices about a known working device. It would
+>> be realy usefull to me. I'm using ubuntu 8.04 distribution.
+> 
+> Don't know if this helps you or not but if you look at 
+> "Documentation/video4linux/CARDLIST.*" in the Linux kernel source you'll 
+> find a list of supported cards.
+> 
+> I use Hauppauge cards in my MythTV box and they work well but I don't 
+> have one with firewire.
+> 
+>>
+>> Thank you!
+>> Daniel
+>>
+>>
+>> ----- Mensagem encaminhada -----
+>> De: danflu@uninet.com.br
+>> Para: video4linux-list@redhat.com
+>> Assunto: PINNACLE STUDIO DC-10 PCI AV/DV
+>> Data: Mon, 22 Sep 2008 18:18:53 -0300
+>>
+>> Hello,
+>>
+>> Does anybody know if PINNACLE STUDIO DC-10 PCI AV/DV is well
+>> supported on linux ?
+>> If not, i'm looking for a capture card with the following
+>> inputs:
+>>
+>> - Composite Video
+>> - SVideo
+>> - Firewire input
+>>
+>> Any sugestion ?
+>>
+>> Thank you very much!
+>>
+>> Daniel
+>>
+>> -- 
+>> video4linux-list mailing list
+>> Unsubscribe 
+>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>
+> 
+> -- 
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
-Ok here's the updated i386 package:
-http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-8_i386.deb
+I use standard on-board firewire for myth, and a mix of vendors cards 
+for various other projects. Hauppauge mainly, but some dvico and TT.
 
-Markus
+I'm not aware of any single card with the features you need.
+
+- Steve
 
 --
 video4linux-list mailing list
