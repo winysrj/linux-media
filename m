@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n74b.bullet.mail.sp1.yahoo.com ([98.136.45.47])
+Received: from n7.bullet.ukl.yahoo.com ([217.146.182.187])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1KaVls-0008Qe-Ho
-	for linux-dvb@linuxtv.org; Tue, 02 Sep 2008 15:18:17 +0200
-Date: Tue, 2 Sep 2008 06:17:38 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: Jiri Jansky <janskj1@fel.cvut.cz>
-In-Reply-To: <48BC1323.9030709@fel.cvut.cz>
+	(envelope-from <eallaud@yahoo.fr>) id 1KiCwn-0005cT-UJ
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 20:49:20 +0200
+Date: Tue, 23 Sep 2008 14:48:40 -0400
+From: manu <eallaud@yahoo.fr>
+To: linux-dvb@linuxtv.org
+References: <48D8A4FF.9010502@jcz.nl> <48D8B08B.6090602@konto.pl>
+	<48D8BBED.3010109@jcz.nl>
+In-Reply-To: <48D8BBED.3010109@jcz.nl> (from jaap@jcz.nl on Tue Sep 23
+	05:50:37 2008)
+Message-Id: <1222195720l.6287l.1l@manu-laptop>
 MIME-Version: 1.0
-Message-ID: <240816.27282.qm@web46109.mail.sp1.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] USB Opera DVB-S 1 and diseqc switch
-Reply-To: free_beer_for_all@yahoo.com
+Content-Disposition: inline
+Subject: [linux-dvb] Re :  TT Budget S2-3200 CI: failure with CAM module
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,98 +21,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Mon, 9/1/08, Jiri Jansky <janskj1@fel.cvut.cz> wrote:
+Le 23.09.2008 05:50:37, Jaap Crezee a =E9crit=A0:
+> > Jaap Crezee wrote:
+> >> Again, when I remove the CAM module, everything works fine (as for
+> FTA =
 
-Nazdar!
+> >> channels...). Tools like dvbdate, dvbtraffic and mplayer =
 
-> It's 4/1 DiseqC 2.0 switch.
-> 
-> On linux, I download firmware files from hompege of driver author 
+> >> /dev/dvb/adapter0/dvr0 work fine.
+> =
 
-Here is what I have, as I cannot remember how I got them:
--rw-r--r-- 1 beer besoffen 55024 2007-09-27 20:29 dvb-usb-opera1-fpga-01.fw
--rw-r--r-- 1 beer besoffen  9439 2007-09-27 20:29 dvb-usb-opera-01.fw
+> I just created a patch to add a budget-ci module param to the driver
+> to disable the CI interface at module load time. =
 
+> This way I can still use the card when the CAM module is inserted.
+> Maybe it is good enough to integrated it with the current hg tree?
+> =
 
+> > I've got SkystarHD+CI Slot+Aston 2.18 and it works OK (for decoding
+> some =
 
-I do not have presently a sat setup that does not feed my
-multiswitch, but I have too many 2/1 and 4/1 DiSEqC switches
-from the time before I switched over to the multiswitch.
+> > channels like HBO/MINIMINI I must wait very long time, but it =
 
-So, what I did was connect one 2.0 4/1 and several un-marked
-4/1 as well as a marked 1.1 2/1 (committed) switches to the
-Opera tuner, and then connect a sat-finder (with light and
-tone) to different inputs to indicate that the switch is
-delivering a voltage to that sat-input-position, and one of
-the outputs from the multiswitch to another switch input which
-would give a signal, presumably from the first input to the
-multiswitch, but often itself switched with certain switches
-(normally you can't cascade switches like this successfully).
+> works)
+> =
 
-Then I ran a script I have which allows me to tune and listen
-to the audio from a selected station, and further allows me to
-override the sat position with `-D1' to `-D4' (yes, hacked).
+> I have waited long enough (more than 6 hours) and still no results.
+> Anyone got it working with a TT S2-3200 and AstonCrypt CAM module?
 
-I did not get the proper switch input selected all the time
-with most switches.  But, sometimes I did.
+Yes here (CanalSatellite in the French Caribbean Islands): AstonCrypt =
 
+2.18 (IIRC), works great (I can even decode 2 channels =
 
-Also, I just ran my tuning/scan script, which starts a new
-`scan' for each of a list of frequencies, but which does not
-switch between sat positions.
+simultaneously!).
+I use Manu's multiproto treee but I dont think that there is something =
 
-For sat position 4, less than half the time, did the voltage
-appear on that output.  For position 3, it seemed to be almost
-perfect until some mysterious kernel panic.  At position two,
-it was mostly correct but there seemed to be a few times that
-the switch was sending the voltage somewhere else.
+different for the CI/CAM stack in this driver.
+I think I've read that some older AstonCrypt cards (version < 2.18) =
 
+dont play well... =
 
-If I were motivated, I would wire up a simple LED indicator to
-show me the voltage (and 22kHz?) status of all sat inputs, to
-know which input was active at that time.
-
-
-It looks to me that the Opera tuner *can* switch at least some
-4/1 DiSEqC switches, at least partly correctly.  But there seem
-to be some problems, which may be in part because I am not using
-a real switched LNB setup.
-
-
-Also, I have had some problems with some of these switches in
-the past, when I was switching between multiple LNBs, with
-different tuner cards and receivers.  In particular, often if
-the switch were located at the end of tens of metres of cable,
-the DiSEqC signal would be too weak and would be unable to select
-inputs B, C, or D with certain cards/receivers.  With today's
-test, I have about 1m cable from the Opera to the switch.
-
-
-If you are able to receive a particular station from position
-A (-D 0 for unhacked code, I think), and can still receive this
-same channel for all other values of -D1 and up, then you aren't
-switching.  However, often I saw input C active with (in my case)
--D4 and -D2 and sometimes -D1, and other times not, so often I
-was seeing the wrong switch input selected -- but not consistently.
-
-
-If I manage to set up a multi-LNB+switch dish sometime soon, I
-will try to remember to test again, because I do not trust my
-test results with just the sat-finder.
-
-
-I hope this is helpful...
-
-barry bouwsma
-
-
-      
+Bye
+Manu
 
 
 _______________________________________________
