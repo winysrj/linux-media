@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: "James Evans" <jrevans1@earthlink.net>
-To: "'Steven Toth'" <stoth@linuxtv.org>
-References: <002001c91c65$939d8b60$bad8a220$@net>
-	<48D71852.5090705@linuxtv.org>
-	<002701c91c6b$6d310fa0$47932ee0$@net>
-	<48D726C9.3030605@linuxtv.org>
-In-Reply-To: <48D726C9.3030605@linuxtv.org>
-Date: Mon, 22 Sep 2008 16:27:13 -0700
-Message-ID: <007d01c91d0a$beb8cb70$3c2a6250$@net>
-MIME-Version: 1.0
-Content-Language: en-us
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVICO FusionHDTV5 Express Support
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Frederic CAND <frederic.cand@anevia.com>
+In-Reply-To: <48D8A789.4050904@anevia.com>
+References: <48D27B52.2010704@anevia.com>  <48D28052.5000209@gmx.de>
+	<1221777738.4904.40.camel@pc10.localdom.local>
+	<48D75FA5.90106@anevia.com>
+	<1222123277.2983.53.camel@pc10.localdom.local>
+	<48D8A789.4050904@anevia.com>
+Date: Wed, 24 Sep 2008 01:50:43 +0200
+Message-Id: <1222213843.2998.53.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] hvr 1300 radio
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,145 +19,143 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> James Evans wrote:
-> > Thank you for such a quick response.
-> >
-> >> Debug looks OK. If you have another board where you know for certain
-> >> that tuning a specific 8VSB frequency works, then tuning this same
-> >> frequency with the LG should probably work reliably.
-> >
-> > The installed Airstar HD5000 cards both have an LG tuner and can tune perfectly fine.
-> 
-> OK, pick a single frequency and focus on always tuning that for the time
-> being with the Express card.
-
-HD5000 Results:
-% /usr/bin/azap -a 1 -r -c ~/.azap/channels.conf "KTTV DT" 
-using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
-tuning to 779028615 Hz
-video pid 0x0031, audio pid 0x0034
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 1e | signal c6ce | snr 1b2e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1e | signal e4e6 | snr 1f4b | ber 00000000 | unc 0000003d | FE_HAS_LOCK
-status 1e | signal e1b8 | snr 1edc | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1e | signal e86e | snr 1fc7 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1e | signal e86e | snr 1fc7 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1e | signal daef | snr 1dee | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-^C
-
-FusionHDTV5 Results:
-% /usr/bin/azap -a 0 -r -c ~/.azap/channels.conf "KTTV DT" 
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 779028615 Hz
-video pid 0x0031, audio pid 0x0034
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 | 
-^C
-
-> 
-> >
-> >> In terms of the tuner-to-demod, are you confident that the I/F is set
-> >> correctly? (And inversion for that matter?)
-> >
-> > I am not sure I understand the above question.  How would I go about setting up the interface for
-> the tuner-to-demod?
-> 
-> /me checks the code and thinks it should be working fine.
-> 
-> Specifically, please list here the frequencies that lock reliably for
-> you on 8VSB with other boards. I've seen issues in the past (mainly due
-> to driver issues) where channels tables work reliably for one tuner but
-> not for another.
-
-Here is the working table that the HD5000 boards are using.
-
-KFLA-LD:183028615:8VSB:4128:4129:1
-HCCN:183028615:8VSB:4130:4131:2
-CVTV:183028615:8VSB:4640:4641:3
-WSTV:183028615:8VSB:80:89:4
-KTBN-DT 1:527028615:8VSB:49:52:3
-KTBN-DT 2:527028615:8VSB:65:68:4
-KTBN-DT 3:527028615:8VSB:81:84:5
-KTBN-DT 4:527028615:8VSB:97:100:6
-KTBN-DT 5:527028615:8VSB:113:116:7
-TeleFutura:563028615:8VSB:49:52:3
-KTLA-DT:575028615:8VSB:49:52:3
-KDOC-HD:581028615:8VSB:49:52:1
-KDOCSD1:581028615:8VSB:65:68:2
-[0004]:581028615:8VSB:81:84:4
-KDOCSD2:581028615:8VSB:81:84:3
-Univision:599028615:8VSB:49:52:3
-NBC-4LA:605028615:8VSB:49:52:3
-WX-Plus:605028615:8VSB:65:68:4
-NewsRaw:605028615:8VSB:81:84:5
-ION:617028615:8VSB:49:52:3
-KPXN qubo:617028615:8VSB:65:68:4
-IONLife:617028615:8VSB:81:84:5
-Worship:617028615:8VSB:97:100:6
-KVEA-HD:623028615:8VSB:49:52:3
-KVEA-SD:623028615:8VSB:65:68:4
-KLCS-DT:635028615:8VSB:49:52:2
-KLCS-DT:635028615:8VSB:65:68:3
-KLCS-DT:635028615:8VSB:81:84:4
-KLCS-DT:635028615:8VSB:97:100:5
-[0006]:635028615:8VSB:113:116:6
-KWHY-HD:641028615:8VSB:49:52:3
-KWHY-SD:641028615:8VSB:65:68:4
-KCAL-DT:647028615:8VSB:49:52:1
-KAZA-DT:671028615:8VSB:49:52:3
-KAZA-TV:671028615:8VSB:0:0:65535
-KOCE-HD:677028615:8VSB:49:52:3
-KOCE-OC:677028615:8VSB:65:68:4
-KOCE-SD:677028615:8VSB:81:84:5
-Daystar:677028615:8VSB:97:100:6
-KOCE-TV:677028615:8VSB:0:0:65535
-KJLA-DT:683028615:8VSB:49:52:3
-KXLA-DT:683028615:8VSB:65:68:4
-KVMD-DT:683028615:8VSB:81:84:5
-LATV:683028615:8VSB:97:100:6
-KXLA-DT:695028615:8VSB:49:52:3
-KVMD-DT:695028615:8VSB:65:68:4
-KABC-DT:707028615:8VSB:49:52:1
-KABC-SD:707028615:8VSB:65:68:2
-KABC-WN:707028615:8VSB:81:84:3
-KCET-HD:743028615:8VSB:49:52:1
-KCET-OC:743028615:8VSB:97:100:2
-KCET-Vm:743028615:8VSB:81:84:3
-KCET-W:743028615:8VSB:65:68:4
-[0009]:743028615:8VSB:0:0:9
-[000a]:743028615:8VSB:0:0:10
-KCBS-DT:749028615:8VSB:49:52:1
-LA18.1:755028615:8VSB:49:52:1
-LA18.8:755028615:8VSB:161:164:8
-LA18.5:755028615:8VSB:113:116:5
-LA18.7:755028615:8VSB:145:148:7
-LA18.3:755028615:8VSB:81:84:3
-LA18.6:755028615:8VSB:129:132:6
-LA18:755028615:8VSB:0:0:65535
-KTTV DT:779028615:8VSB:49:52:3
-KCOP DT:785028615:8VSB:49:52:3
-KRCA-DT:797028615:8VSB:49:52:1
-KRCA-DT:797028615:8VSB:65:68:2
-
-Thanks again for the help!
---James Evans
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+CkFtIERpZW5zdGFnLCBkZW4gMjMuMDkuMjAwOCwgMTA6MjMgKzAyMDAgc2NocmllYiBGcmVkZXJp
+YyBDQU5EOgo+IGhlcm1hbm4gcGl0dG9uIGEgw6ljcml0IDoKPiA+IEFtIE1vbnRhZywgZGVuIDIy
+LjA5LjIwMDgsIDExOjA0ICswMjAwIHNjaHJpZWIgRnJlZGVyaWMgQ0FORDoKPiA+PiBoZXJtYW5u
+IHBpdHRvbiBhIMOpY3JpdCA6Cj4gPj4+IEhpLAo+ID4+Pgo+ID4+PiBBbSBEb25uZXJzdGFnLCBk
+ZW4gMTguMDkuMjAwOCwgMTg6MjIgKzAyMDAgc2NocmllYiB3azoKPiA+Pj4+IEZyZWRlcmljIENB
+TkQgd3JvdGU6Cj4gPj4+Pj4gRGVhciBhbGwsCj4gPj4+Pj4KPiA+Pj4+PiBoYXMgYW55b25lIGdv
+dCBhbmFsb2cgRk0gcmFkaW8gd29ya2luZyB3aXRoIGFuIEhhdXBwYXVnZSBIVlIgMTMwMCA/Cj4g
+Pj4+Pj4gSWYgeWVzIHBsZWFzZSB0ZWxsIG1lIGhvdyAhIEkgZ290IG9ubHkgbm9pc2UgZnJvbSAv
+ZGV2L2RzcCogLi4uIDooCj4gPj4+Pj4gVGhpcyBpcyBhbiBpc3N1ZSBJJ3ZlIGhhZCBmb3Igc29t
+ZSB0aW1lIG5vdyAuLi4KPiA+Pj4+PiBJIHRyaWVkIG9wdGlvbiByYWRpbz02MyBvbiBjeDg4eHgg
+bW9kdWxlIGJ1dCBpdCBkaWQgbm90IGNoYW5nZSBhbnl0aGluZyAKPiA+Pj4+PiAoZXhjZXB0IHdy
+aXRpbmcgY3g4OFswXTogVFYgdHVuZXIgdHlwZSA2MywgUmFkaW8gdHVuZXIgdHlwZSA2MyBpbiBk
+bWVzZyAKPiA+Pj4+PiBpbnN0ZWFkIG9mIHJhZGlvIHR1bmVyIHR5cGUgLTEgLi4uKQo+ID4+Pj4+
+Cj4gPj4+Pj4gSXMgcmFkaW8gc3VwcG9ydCBqdXN0IG5vdCBpbXBsZW1lbnRlZCA/Cj4gPj4+Pj4K
+PiA+Pj4+PiAgIAo+ID4+Pj4gTG9hZCBjeDg4X2JsYWNrYmlyZCBhbmQgb3BlbiAvZGV2L3JhZGlv
+WC4KPiA+Pj4+IEkgaGF2ZW4ndCB0cmllZCByYWRpbyB1cCB0byBub3csIGJ1dCBpIHdvdWxkIGV4
+cGVjdCB0aGF0IG9ubHkgcmFkaW8gKm9yKiAKPiA+Pj4+IGR2YiB3b3JrcywgYnV0IG5vdCBib3Ro
+IGF0IHRoZSBzYW1lIHRpbWUuIE1vc3QgcHJvYmFibHkgcmFkaW8gaXMgYWxzbyAKPiA+Pj4+IG5v
+dCBmZWVkIHRyb3VnaCB0aGUgbXBlZyBlbmNvZGVyLgo+ID4+Pj4KPiA+Pj4gYSBmaXhtZSBzdGls
+bCBzdGlja3Mgb24gcmFkaW8gb2YgdGhlIEhWUjEzMDAuCj4gPj4+Cj4gPj4+IAkJCS5hdWRpb3Jv
+dXRlID0gMiwKPiA+Pj4gCQl9LHsKPiA+Pj4gCQkJLnR5cGUJPSBDWDg4X1ZNVVhfU1ZJREVPLAo+
+ID4+PiAJCQkudm11eAk9IDIsCj4gPj4+IAkJCS5ncGlvMAk9IDB4ZTc4MCwKPiA+Pj4gCQkJLmF1
+ZGlvcm91dGUgPSAyLAo+ID4+PiAJCX19LAo+ID4+PiAJCS8qIGZpeG1lOiBBZGQgcmFkaW8gc3Vw
+cG9ydCAqLwo+ID4+PiAJCS5tcGVnICAgICAgICAgICA9IENYODhfTVBFR19EVkIgfCBDWDg4X01Q
+RUdfQkxBQ0tCSVJELAo+ID4+PiAJCS5yYWRpbyA9IHsKPiA+Pj4gCQkJLnR5cGUgICA9IENYODhf
+UkFESU8sCj4gPj4+IAkJCS5ncGlvMAk9IDB4ZTc4MCwKPiA+Pj4gCQl9LAo+ID4+PiAJfSwKPiA+
+Pj4KPiA+Pj4gR3Vlc3MgYXVkaW8gcm91dGluZyBhbmQgc3dpdGNoaW5nIGlzIG5vdCBjbGVhciB5
+ZXQuCj4gPj4+Cj4gPj4+IFRoZSBGTUQxMjE2TUUgc3VwcG9ydHMgcmFkaW8gb3ZlciB0ZGE5ODg3
+IGFuZCB0ZGE3MDQwLgo+ID4+Pgo+ID4+PiBPbiB0aGUgRk0xMjE2TUUgYW5kIEZNMTIzNiBNSzMg
+d2UgY2FuIHRha2UgdGhlIHN0ZXJlbyBpbmRpY2F0aW9uIGJpdAo+ID4+PiBmcm9tIHRoZSBQTEwg
+Y2hpcCBhbmQgc3dpdGNoIHRoZSB0ZGE5ODg3IGludG8gRk0gc3RlcmVvIG1vZGUKPiA+Pj4gYWNj
+b3JkaW5nbHkuIFJlYWRpbmcgdGhpcyBzdGF0dXMgaW5mb3JtYXRpb24gYWxzbyBlbmFibGVzIGF1
+dG8gc2Nhbm5pbmcKPiA+Pj4gZm9yIHJhZGlvIGJyb2FkY2FzdHMgZm9yIHRoZSBhcHBsaWNhdGlv
+bnMuICh2NGwyIGF3YXJlIGxpa2Uga3JhZGlvCj4gPj4+IHNob3VsZCBiZSBwcmVmZXJyZWQpCj4g
+Pj4+Cj4gPj4+IFRoaXMgYml0IGRvZXMgbm90IHdvcmsgb24gdGhlIGh5YnJpZCBGTUQxMjE2TUUg
+TUszIGFuZCB5b3UgaGF2ZSB0bwo+ID4+PiBjcmVhdGUgYSBzdGF0aW9uIGxpc3QgbWFudWFsbHkg
+b25jZSwgYnV0IHRoZW4gc3RlcmVvIHJhZGlvIGlzIGZpbmUuCj4gPj4+Cj4gPj4+IE9uIHRoZSBs
+YXRlciBGTUQxMjE2TUVYLCB3aGljaCBjYW4gYWxzbyBiZSBvbiB0aGF0IGJvYXJkLCBTdGV2ZQo+
+ID4+PiBtZW50aW9uZWQgb25jZSB0aGF0IHRoZSByYWRpbyBtaWdodCBiZSBzbGlnaHRseSBkaWZm
+ZXJlbnQuCj4gPj4+Cj4gPj4+IFRoYXQgb25lIGlzIGN1cnJlbnRseSB0cmVhdGVkIGxpa2UgdGhl
+IEZNRDEyMTZNRSwgYnV0IHdvdWxkIG5lZWQgaXRzIG93bgo+ID4+PiBzZXBhcmF0ZSB0dW5lciB0
+eXBlIGVudHJ5IGluIHRoYXQgY2FzZS4KPiA+Pj4KPiA+Pj4gV2UgYWxzbyBmb3VuZCBoaW50cyBp
+biB0dW5lciBzcGVjcyBwcm92aWRlZCBieSBTdGV2ZSBmb3IgaXZ0diwgSUlSQywKPiA+Pj4gdGhh
+dCBhbiBBRkMgbmFycm93aW5nIGRvd24gbG9vcGluZyBjYW4gYmUgdXNlZCB0byB0YWtlIHRoaXMg
+YXMga2luZCBvZgo+ID4+PiBzaWduYWwgc3RyZW5ndGggZGV0ZWN0aW9uIG9uIHRoZSB0ZGE5ODg3
+IGFsdGVybmF0aXZlbHkgZm9yIHRoZSBzdGVyZW8KPiA+Pj4gYml0IG9uIHRoZSBwbGwuIEhhcnRt
+dXQgd2FzIGF3YXJlIG9mIGl0IHRvbywgYnV0IHdobyBsaWtlcyB0byB3b3JrIG9uCj4gPj4+IGFu
+YWxvZyByYWRpbyB0aGVzZSBkYXlzIC4uLgo+ID4+IEkgZG8uIEFzIHdlIGVtYmVkZCB0aGVzZSBj
+YXJkcyBvbiBvdXIgc2VydmVycyB3ZSdkIGxpa2UgdG8gYWRkIHRoaXMgCj4gPj4gZmVhdHVyZSB0
+byBvdXIgcHJvZHVjdHMgKGFuYWxvZyB0byBkaWdpdGFsIHN0cmVhbWluZyBzZXJ2ZXJzKS4KPiA+
+PiBBbnl3YXksIHRoaXMgaXMgYSBmZWF0dXJlIG9mIHRoZSBjYXJkIHdoaWNoIGlzIGxhY2tpbmcg
+dW5kZXIgTGludXggc28gCj4gPj4gdGhlIHF1ZXN0aW9uIG9mIHdobyBpcyBpbnRlcmVzdGVkIGlu
+IGFuYWxvZyByYWRpbyBpcyBub3QgYSBnb29kIAo+ID4+IHF1ZXN0aW9uLiBUaGUgcXVlc3Rpb24g
+b2Ygd2h5IG5vdCBnb2luZyBhcyBmYXIgYXMgcG9zc2libGUgd2hlbiAKPiA+PiBzdXBwb3J0aW5n
+IGEgY2FyZCBpcyBhIGdvb2QgcXVlc3Rpb24uCj4gPj4gU28geWVzIEkgYW0gbm90IGFmcmFpZCBv
+ZiBzYXlpbmcgSSdtIGludGVyZXN0ZWQgaW4gYW5hbGdvIHJhZGlvIDopCj4gPiAKPiA+IEknbSBp
+bnRlcmVzdGVkIHRvbyA6KSBhbmQgd29ya2VkIHdpdGggb3RoZXJzIG9uIHRoZSB0ZGE5ODg3IHJh
+ZGlvCj4gPiBzdXBwb3J0LCBidXQgb24gdGhlIEZNMTIxNk1FL0kgSC0zIGFuZCBzb21lIG90aGVy
+IE1LMyB0dW5lcnMuCj4gVGhhdCdzIHRoZSBvbmUgcHJlc2VudCBvbiB0aGUgS05DIFRWIFN0YXRp
+b24gRFZSLgo+IAo+ID4gCj4gPiBEb24ndCBoYXZlIGEgSFZSLTEzMDAgYW5kIGNhbiBnaXZlIHlv
+dSBvbmx5IGhpbnRzIGFib3V0IHRoZSBGTUQxMjE2TUUKPiA+IHJhZGlvIHN0YXR1cyBhbmQgdGhh
+dCB5b3Ugc2hvdWxkIGhhdmUgbm90aWNlZCB0aGUgRklYTUUuCj4gPiAKPiA+Pj4gSXQgaXMgbm90
+IGltcGxlbWVudGVkIHlldCwgaWYgaXQgc2hvdWxkIGJlIHJlbGF0ZWQuCj4gPj4+Cj4gPj4+IENo
+ZWVycywKPiA+Pj4gSGVybWFubgo+ID4+Pgo+ID4+Pgo+ID4+Pgo+ID4+IE9rIHNvIGlmIEkgZ2V0
+IGl0IHJpZ2h0LCB3aGF0IHlvdSdyZSBzYXlpbmcgaXMgdGhhdCBzdGVyZW8gcmFkaW8gaXNuJ3Qg
+Cj4gPj4gd29ya2luZyBvbiBIVlIgMTMwMCB3aXRoIEZNRDEyMTZNRVggYnV0IG1vbm8gcmFkaW8g
+aXMgd29ya2luZyA/IElmIHllcyAKPiA+PiBJJ2QgbGlrZSB0byBrbm93IGhvdyAuLi4gc2hvdWxk
+bid0IEkganVzdCBzZXQgZnJlcXVlbmN5IHRvIC9kZXYvcmFkaW8sIAo+ID4+IHRoZW4gZ2V0IGl0
+IGZyb20gL2Rldi9kc3AgPz8/IFRoaXMgZm9yIG1lIGlzbid0IHdvcmtpbmcgYW5kIHByb3ZpZGlu
+ZyAKPiA+PiBvbmx5IG5vaXNlLgo+ID4gCj4gPiBJIGtub3cgbm90aGluZyBhYm91dCB0aGUgcmFk
+aW8gb24gdGhlIEZNRDEyMTZNRVgsIGJ1dCBJIGRpZCBsZXQgeW91IGtub3cKPiA+IHRoYXQgaXQg
+bWlnaHQgYmUgZXZlbnR1YWxseSBkaWZmZXJlbnQgYWNjb3JkaW5nIHRvIFN0ZXZlLgo+ID4gCj4g
+PiBJZiB5b3Ugd291bGQgYmUgb24gdGhlIHJpZ2h0IGxpc3Qgd2l0aCB5b3VyIHF1ZXN0aW9ucywg
+eW91IHdvdWxkIGtub3cKPiA+IHRoYXQgdGhlIEZNRDEyMTZNRSBub3QgWCBkb2Vzbid0IHdvcmsg
+ZWl0aGVyIHlldCBvbiB0aGlzIGNhcmQgZm9yIHJhZGlvLgo+ID4gCj4gPj4gTm93IGlmIHlvdSB0
+ZWxsIG1lIHRoaXMgaXMganVzdCBub3QgaW1wbGVtZW50ZWQgeWV0LCB0aGVuIGhvdyBjb3VsZCBJ
+IAo+ID4+IGhlbHAgeW91IHRvIGltcGxlbWVudCBpdCA/IElmIGl0J3Mgbm90IHNjaGVkdWxlZCB0
+byBiZSBpbXBsZW1lbnRlZCBvbmUgCj4gPj4gZGF5IHRoZW4gSSBtaWdodCBiZSBhYmxlIHRvIHdv
+cmsgb24gaXQgYXQgbXkgb2ZmaWNlIChtYXliZSBub3QgbWUgCj4gPj4gZGlyZWN0bHkgYnV0IG9u
+ZSBvZiBteSBjb3dvcmtlcnMpLgo+ID4gCj4gPiBUaGlzIGlzIG9ubHkgYSBzcGVjdWxhdGlvbiBk
+ZXJpdmVkIGZyb20gRk0xMjE2TUUgYW5kIG9ubHkgYWJvdXQgc2lnbmFsCj4gPiBzdHJlbmd0aCBm
+b3IgYXV0byBzY2FubmluZy4gRWxzZSB0aGUgRk1EMTIxNk1FIGhhcyB3b3JraW5nIHN0ZXJlbyBy
+YWRpbwo+ID4gYWxyZWFkeS4KPiA+IAo+ID4gWW91IHdvdWxkIG5lZWQgZGF0YXNoZWV0cyBhbmQg
+cHJlZmVyYWJseSBzYW1wbGUgY29kZSB0b28gZm9yIHRoZSBGTUQKPiA+IHR1bmVycyBhbmQgdGhh
+dCB5b3UgY2FuIGdldCBvbmx5IHVuZGVyIE5EQSwgQUZBSUsuCj4gPiAKPiA+PiBCdHcgSSB0cmll
+ZCBvbiBteSBLTkMgVFYgU3RhdGlvbiBEVlIgKEZNMTIxNk1FIE1LMywgc2FhNzEzNCwgc2FhNjc1
+MmhzKSAKPiA+PiB3aXRoIG5vIHN1Y2Nlc3MgOiBpZiBJIHR1bmUgdG8gYW4gYW5hbG9nIFRWIHN0
+YXRpb24gdGhyb3VnaCAvZGV2L3ZpZGVvLCAKPiA+PiBJIHdpbGwgZ2V0IHNvdW5kIGZyb20gL2Rl
+di9kc3AuIFRoZW4gSSB0dW5lIHRvIGEgcmFkaW8gdGhyb3VnaCAKPiA+PiAvZGV2L3JhZGlvIC4u
+LiBidXQgSSBzdGlsbCBnZXQgdGhlIFRWIHNvdW5kIGZyb20gL2Rldi9kc3AgLi4uCj4gPiAKPiA+
+IElJUkMsIHdoZW4gdGhhdCByYXJlbHkgc2VlbiBjYXJkIHdhcyBhZGRlZCwgdGhlcmUgd2FzIG5v
+IHJhZGlvIHN1cHBvcnQKPiA+IGZvciB0aGUgTUszIHR1bmVycyB5ZXQuIExpa2VseSBzb21lIHN3
+aXRjaGluZyBpcyB3cm9uZy4KPiA+IAo+ID4gUmFkaW8gaXMgb24gdGhlIHNhbWUgYW11eCBsaWtl
+IFRWIE1PTk8sIHNlZSB0aGUgcHJldmlvdXMgY2FyZC4KPiA+IAo+ID4gSSBrbm93IGZvciBzdXJl
+IHRoYXQgd2UgaGF2ZSByYWRpbyBtb25vIG9uIHRoZSB0ZGE5ODg3IHNpbmNlIGNhcmQ9MTIuCj4g
+PiAKPiA+IEFmdGVyIEhhcnRtdXQgYWRkZWQgdGhlIEZNRDEyMTZNRSB3aXRoIHJhZGlvLCBOaWNr
+b2xheSBhbmQgbWUKPiA+IGltbWVkaWF0ZWx5IHJlYWxpemVkIHRoYXQgb24gc29tZSBwb2ludCBp
+biBvdXIgcHJpb3IgdHJpZXMgZm9yIHN0ZXJlbwo+ID4gcmFkaW8gb24gdGhlIEZNMTIxNk1FIHdl
+IHdlcmUgYWxyZWFkeSByaWdodC4gU2hvcnQgdGltZSBsYXRlciB3ZSBoYWQKPiA+IHN1cHBvcnQg
+Zm9yIGl0Lgo+ID4gCj4gPiBBbGwgb24gdGhlIHZpZGVvNGxpbnV4IGxpc3QgLi4uCj4gPiAKCkhp
+IEZyZWRlcmljLAoKPiBGaW5lLiBJJ2xsIHRyeSB0byBtYWtlIHJhZGlvIHdvcmsgb24gdGhpcyBj
+YXJkIGFzIGl0IHNlZW1zIGl0IGNhbiBiZSBkb25lLgo+IAo+IFJlZ2FyZGluZyB0aGUgRk1EMTIx
+Nk1FIGFuZCBNRVgsIEknbGwgdHJ5IHRvIGNvbnRhY3QgTlhQIGFuZCBzZWUgaWYgSSAKPiBjYW4g
+aGF2ZSBkYXRhc2hlZXRzIGFuZCAvIG9yIHN1cHBvcnQgZnJvbSB0aGVtIGluIG9yZGVyIHRvIHN1
+cHBvcnQgcmFkaW8gCj4gb24gdGhlc2UgdHVuZXJzIHVuZGVyIExpbnV4LiBXZSBoYXZlIGhlcmUg
+YXQgdGhlIG9mZmljZSB0aGUgRk0xMjE2TUUgCj4gZGF0YXNoZWV0cyBmcm9tIE5YUCBidXQgbm90
+IHRoZSBvdGhlciBvbmVzLgo+IAo+IEJ1dCwgaG93IHdhcyBpbXBsZW1lbnRlZCB0diBzdXBwb3J0
+IG9mIHRoZXNlIHR1bmVycyBpbiB2NGwtZHZiID8gd2Fzbid0IAo+IGl0IGFscmVhZHkgdXNpbmcg
+ZGF0YXNoZWV0cyA/IFdobyBkaWQgaXQgPyBNYXliZSB3ZSBjb3VsZCBjb250YWN0IHRoZSAKPiBv
+bnQgd2hvIGluaXRpYWx5IHdvcmtlZCBvbiB0aGVzZSB0dW5lcnMgYW5kIGhhdmUgYSBuaWNlIGNo
+YXQgd2l0aCAKPiBoaW0vaGVyLCB0byBzZWUgaG93IG11Y2ggd29yayBpdCB3b3VsZCBiZSwgYS5z
+Lm8uID8KCnRvIHNvbWUgcG9pbnQgSSBjYW4gdW5kZXJzdGFuZCB5b3VyIGZydXN0cmF0aW9uLCBh
+cyB5b3UgcHJldmlvdXNseSBoYWQKYWxyZWFkeSBmdW4gd2l0aCB0aGUgZW1wcmVzcyBlbmNvZGVy
+LgoKVGhlIFBoaWxpcHMgTUszIHR1bmVycyB3ZXJlIGhhY2tlZC4KCk92ZXIgc2V2ZXJhbCB5ZWFy
+cyBjb3VudGxlc3MgcGVvcGxlLCBubyB0aGF0IGlzIG5vdCB0cnVlLCBJIGNhbiByZW1lbWJlcgpl
+dmVyeSBzaW5nbGUgb25lLCBjb250cmlidXRlZCB0byBnZXQgcG9ydC9xc3MgYW5kIHR1bmVyIHNw
+ZWNpZmljIG9wdGlvbnMKcmlnaHQgYXJvdW5kIHRoZSBnbG9iZS4gQW5kIHdlIGhhZCBpdCBhbGwg
+c28gZmFyLgoKRmluYWxseSBIYXVwcGF1Z2UgcHJvdmlkZWQgZGF0YXNoZWV0cyB0byBpdnR2IGFu
+ZCBIYW5zIGRpZCB0aGUgcmVtYWluaW5nCmNsZWFuIHVwcywgVHJlbnQgYWxzbyBoZWxwZWQgdG8g
+cmVzb2x2ZSByZWdyZXNzaW9ucyB3ZSBpbnRyb2R1Y2VkIGZvcgptaWNyb3R1bmUgc3R1ZmYgZHVy
+aW5nIHRoZSB0cnkgdG8gZ2V0IHRoZSBQaGlsaXBzIHJpZ2h0LgoKSSBrbm93LCBpZiB5b3UgaGF2
+ZSB0aGUgRk0xMjE2TUUgcHJvZ3JhbW1pbmcgaW5zdHJ1Y3Rpb25zLCBpdCBsb29rcyBsaWtlCmp1
+c3QgYSBncmluLCBidXQgd2UgZGlkIG5vdCBoYXZlIHRoZW0gYW5kIGl0IGlzIHN0aWxsIG5vdCB0
+aGF0IGVhc3ksCnNpbmNlIHRoZXJlIGFyZSBvdGhlciB0dW5lcnMgdXNpbmcvYWJ1c2luZyB0aGUg
+dGRhOTg3LzUvNS83IHN0dWZmIHRvby4KCkhhcnRtdXQgaW50cm9kdWNlZCB0aGUgRk1EMTIxNk1F
+IE1LMyB1bmRlciBOREEuCgpJdCBpcyB0cmlja3kgZm9yIGFuYWxvZyBpbml0aWFsaXphdGlvbiBh
+bmQgaGVhdmlseSBleHBvc2VkIHRvIHBvdGVudGlhbApyZWdyZXNzaW9ucyB3aXRoaW4gYSBtb3Zp
+bmcgdHVuZXIgZnJhbWV3b3JrLgoKT2YgY291cnNlIERWQi1UIHdhcyB0aGUgbWFpbiBnb2FsIHRo
+YXQgdGltZSwgYnV0IGJ5IHRoZSB3YXkgaXQgYnJvdWdodApzaWduaWZpY2FudCBpbXByb3ZlbWVu
+dHMgZm9yIHJhZGlvLCBtZWFucyBzb2xpZCBzdGVyZW8gZm9yIHRoZSBmaXJzdAp0aW1lIC4uLiAg
+CgpGZWVsIGZyZWUgdG8gZG8gbW9yZS4KCkNoZWVycywKSGVybWFubgoKCgoKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxp
+c3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
