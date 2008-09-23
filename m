@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8F4QwYl027782
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 00:26:58 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8F4QulZ027384
-	for <video4linux-list@redhat.com>; Mon, 15 Sep 2008 00:26:56 -0400
-Date: Mon, 15 Sep 2008 01:26:40 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080915012640.51c86e04@areia.chehab.org>
-In-Reply-To: <1221359719.6598.31.camel@pc10.localdom.local>
-References: <48C4FC1F.40509@comcast.net>
-	<20080911103801.52629349@mchehab.chehab.org>
-	<1221359719.6598.31.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8N8jwRm004494
+	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 04:45:58 -0400
+Received: from LGEMRELSE7Q.lge.com (LGEMRELSE7Q.lge.com [156.147.1.151])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8N8jfE2018171
+	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 04:45:42 -0400
+From: "Madhusudhan P" <madhusudhan.p@lge.com>
+To: <video4linux-list@redhat.com>
+Date: Tue, 23 Sep 2008 14:15:37 +0530
+MIME-Version: 1.0
+In-Reply-To: <5a459d5e0809230125h3e876de2k51128e5a3724cd35@mail.gmail.com>
+Message-Id: <20080923084538.69A27558013@LGEMRELSE7Q.lge.com>
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Schultz <n9xmj@yahoo.com>,
-	Henry Wong <henry@stuffedcow.net>, v4ldvb@linuxtv.org,
-	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
-Subject: Re: [PATCH] Add support for MSI TV@nywhere Plus remote
+Cc: 'Prasanna R' <prasannabr@lge.com>
+Subject: RE: [directfb-users] V4L2 driver support in DirectFB
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,48 +27,247 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 14 Sep 2008 04:35:19 +0200
-hermann pitton <hermann-pitton@arcor.de> wrote:
+Hi All,
 
-> Mauro,
-> 
-> this is the oldest and most important outstanding patch we have.
-> 
-> There are whole generations of cards still without of any IR support,
-> since years, because of that.
-> 
-> If this one should still hang on coding style violations, please let me
-> know.
+ 
 
-I'll handle this patch soon. I'm currently away (in Portland, due to Plumbers
-and KS conferences), so, maybe I'll wait until the next week for committing it.
+I blocked in the same issue. I am planning to use basic V4L2 driver API's to
+develop the GUI on DM6467 like putpixel, drawline, drawrectangle etc.,
+however quality and performance will not good. This will be my last option.
+Is there any GUI toolkit which support V4L2 driver?  
 
-> If you would ever find time again, have a look at my patch enabling
-> first support for the new Asus Tiger 3in1, which I have only as an OEM
-> board, but which is coming up to global distribution now and likely will
-> cover all newer boards.
+ 
 
-Could you please forward it me again any pending patches? Better if you can do
-it at the beginning of the next week. If I don't answer about a patch in about
-one week, the better is to ping me about it.
+ 
 
-> I wasted some time again, to fit into the 80 columns rule on
-> saaa7134-dvb.c, and all I can say is, this way not with me.
+Regards
 
-The 80 cols rule is just a warning. On some cases, it helps to improve
-readability. Also, it is generally easier to review codes that fit on 80 cols,
-since it helps me to open a window comparing a file and a patched version with
-some tool like kdiff3, where the several file revisions are presented side by side.
+Madhu
 
-> Please exercise it yourself now, you have all relevant information, show
-> the resulting code and explain, why such crap should be looking good.
+ 
 
-I did my self some coding style patches and the end result was an easier to
-read code. As already discussed, such warnings/errors should be used as a hint
-of troubles, not as absolute rules.
+  _____  
 
-Cheers,
-Mauro.
+From: directfb-users-bounces@directfb.org
+[mailto:directfb-users-bounces@directfb.org] On Behalf Of Harinandan S
+Sent: Tuesday, September 23, 2008 1:56 PM
+To: directfb-users@directfb.org
+Subject: Re: [directfb-users] V4L2 driver support in DirectFB
+
+ 
+
+
+Hi All,
+
+ 
+
+I'm also looking for ways to get GUI on DM6467. Is there any possibility?
+I've used DirectFB on DM6446 on OSD window but 6467 doesnt have an OSD
+window so is there a way I can get both video and GUI on video window?
+
+On Mon, Sep 8, 2008 at 6:37 PM, Jadav, Brijesh R <brijesh.j@ti.com> wrote:
+
+Hi,
+
+ 
+
+There is a file available for V4L2. It is idirectfbvideoprovider_v4l.c in
+the directory interfaces/IDirectFBVideoProvider. 
+
+ 
+
+Thanks,
+
+Brijesh Jadav
+
+  _____  
+
+From: Madhusudhan P [mailto:madhusudhan.p@lge.com] 
+Sent: Monday, September 08, 2008 1:39 PM 
+
+
+To: Jadav, Brijesh R
+Cc: directfb-users@directfb.org
+Subject: RE: [directfb-users] V4L2 driver support in DirectFB
+
+ 
+
+Hello,
+
+ 
+
+I looked into the code and saw only reference to a V4L2 driver where actual
+implementation of V4L2 driver is not there in DirectFB source code. :-(
+
+ 
+
+Do you have any idea or approach to implement OSD features using V4L2
+devices in dm6467 board?
+
+ 
+
+Regards
+
+Madhu
+
+  
+
+ 
+
+  _____  
+
+From: Jadav, Brijesh R [mailto:brijesh.j@ti.com] 
+Sent: Monday, September 08, 2008 1:22 PM
+To: Madhusudhan P
+Cc: directfb-users@directfb.org
+Subject: RE: [directfb-users] V4L2 driver support in DirectFB
+
+ 
+
+Hi,
+
+ 
+
+This is true. But from the source code, it looks like this V4L2 option is
+used for the capture not for the display. I am not able to find anything for
+the V4L2 display. All the files contain reference to V4L2 Capture.
+
+ 
+
+Thanks,
+
+Brijesh Jadav
+
+  _____  
+
+From: Madhusudhan P [mailto:madhusudhan.p@lge.com] 
+Sent: Monday, September 08, 2008 10:36 AM
+To: Jadav, Brijesh R
+Cc: directfb-users@directfb.org
+Subject: RE: [directfb-users] V4L2 driver support in DirectFB
+
+ 
+
+Hello Brijesh,
+
+ 
+
+Thanks for the response.
+
+ 
+
+When we look into DirectFB website they clearly specify that it support V4L2
+driver. 
+
+While running ./configure, we have got an option --enable-video4linux2.
+
+ 
+
+I am really confused with it now.
+
+ 
+
+Thanks and Regards
+
+Madhu
+
+ 
+
+ 
+
+  _____  
+
+From: Jadav, Brijesh R [mailto:brijesh.j@ti.com] 
+Sent: Monday, September 08, 2008 10:26 AM
+To: Madhusudhan P
+Cc: directfb-users@directfb.org
+Subject: RE: [directfb-users] V4L2 driver support in DirectFB
+
+ 
+
+Hi,
+
+ 
+
+As far as I know, Support for directfb is not available on dm6467. Actually
+directfb works on frame buffer driver, which is not available on dm6467.
+dm6467 provides only V4L2 driver.
+
+ 
+
+Thanks,
+
+Brijesh Jadav
+
+  _____  
+
+From: directfb-users-bounces@directfb.org
+[mailto:directfb-users-bounces@directfb.org] On Behalf Of Madhusudhan P
+Sent: Monday, September 08, 2008 10:15 AM
+To: directfb-users@directfb.org
+Subject: [directfb-users] V4L2 driver support in DirectFB
+
+ 
+
+Hello,
+
+ 
+
+ 
+
+ 
+
+I am developing GUI on OSD DM6467 board. I am facing some issues regarding
+the DirectFB using V4L2 driver. I ported the DirectFB on DM6467 Davinci
+board and try to execute some test examples, where test program fails to
+recognize the video device.
+
+ 
+
+ 
+
+ 
+
+Does DirectFB have full support of V4L2 driver?
+
+ 
+
+Is it possible to access V4L2 driver to display UI menu using DirectFB?
+
+ 
+
+ 
+
+ 
+
+How to proceed with this? If anyone working on this, please help me.
+
+ 
+
+ 
+
+ 
+
+Thanks and Regards
+
+ 
+
+Madhu
+
+ 
+
+
+_______________________________________________
+directfb-users mailing list
+directfb-users@directfb.org
+http://mail.directfb.org/cgi-bin/mailman/listinfo/directfb-users
+
+
+
+
+-- 
+Regards,
+Harinandan S
 
 --
 video4linux-list mailing list
