@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from elasmtp-masked.atl.sa.earthlink.net ([209.86.89.68])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <piobair@mindspring.com>) id 1Kitix-0007YJ-RG
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 18:29:52 +0200
-Received: from [209.86.224.44] (helo=elwamui-ovcar.atl.sa.earthlink.net)
-	by elasmtp-masked.atl.sa.earthlink.net with esmtpa (Exim 4.67)
-	(envelope-from <piobair@mindspring.com>) id 1KitiO-0003Pw-QG
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 12:29:16 -0400
-Message-ID: <32717496.1222360156765.JavaMail.root@elwamui-ovcar.atl.sa.earthlink.net>
-Date: Thu, 25 Sep 2008 12:29:16 -0400 (EDT)
-From: William Melgaard <piobair@mindspring.com>
-To: linux-dvb@linuxtv.org
-Mime-Version: 1.0
-Subject: [linux-dvb]  DViCO FusionHDTV7 RT Gold
-Reply-To: William Melgaard <piobair@mindspring.com>
+	(envelope-from <abraham.manu@gmail.com>) id 1KiAIn-0001H2-Oo
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 17:59:50 +0200
+Message-ID: <48D9126F.8000409@gmail.com>
+Date: Tue, 23 Sep 2008 19:59:43 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: "Igor M. Liplianin" <liplianin@tut.by>
+References: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAEH2unQOalpGjvGmwr9GMIQBAAAAAA==@stahurabrenner.com>
+	<200809231755.55023.liplianin@tut.by> <48D90868.2020102@gmail.com>
+	<200809231848.15885.liplianin@tut.by>
+In-Reply-To: <200809231848.15885.liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Start making stv0903, stv0900, stv6110 support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,17 +21,22 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Would someone please point me to a "how to" to support the subject card? I'm moderately competent in C, but have never written a driver.
-
-WRM
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SWdvciBNLiBMaXBsaWFuaW4gd3JvdGU6Cj4g9yDTz8/C3cXOyckgz9QgMjMgU2VwdGVtYmVyIDIw
+MDggMTg6MTY6NTYgTWFudSBBYnJhaGFtIM7B0MnTwcwowSk6Cj4+IElnb3IgTS4gTGlwbGlhbmlu
+IHdyb3RlOgo+Pj4gTGludXh0diBjb21tdW5pdHksIGxldCB5b3Uga25vdzoKPj4+IFN0YXJ0IHRv
+IHdvcmsgb24gc3R2MDkwMCwgc3R2MDkwMywgc3R2NjExMCBkcml2ZXJzCj4+IEkgaGF2ZSBkb25l
+IHF1aXRlIHNvbWUgd29yayBvbiB0aGlzIGNvbWJpbmF0aW9uLCB3aGljaCBpcyBvZmZpY2lhbGx5
+Cj4+IHN1cHBvcnRlZCBieSBTVE0gYXMgd2VsbC4gSSBjYW4gcHVzaCBvdXQgdGhlIGRyaXZlcnMg
+YXMgc29vbiBhcyBTVE0KPj4gZ2l2ZXMgbWUgdGhlIGdvIG9uIGl0Lgo+Pgo+PiBSZWdhcmRzLAo+
+PiBNYW51Cj4gCj4gSXQgaXMgZ29vZCBuZXdzCj4gTXkgd29ycnkgaXMgb25seSB0aW1lCgpJIGRv
+bid0IHRoaW5rIHRoZXJlJ3MgYW55IG5lZWQgdG8gd29ycnkuIFdpbGwgdHJ5IHRvIHB1c2ggaXQg
+b3V0IGFzCmVhcmx5IGFzIHBvc3NpYmxlLgoKUmVnYXJkcywKTWFudQoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdAps
+aW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxt
+YW4vbGlzdGluZm8vbGludXgtZHZi
