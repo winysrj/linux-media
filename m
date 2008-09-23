@@ -1,24 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailfe14.swipnet.se ([212.247.155.161] helo=swip.net)
+Received: from wf-out-1314.google.com ([209.85.200.170])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hakon@alstadheim.priv.no>) id 1KbVa2-0002kE-UW
-	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 09:18:07 +0200
-Received: from alstadheim.priv.no (account mc432237@c2i.net [193.216.50.225]
-	verified) by mailfe14.swip.net (CommuniGate Pro SMTP 5.2.6)
-	with ESMTPA id 323323430 for linux-dvb@linuxtv.org;
-	Fri, 05 Sep 2008 09:17:27 +0200
-Received: from [192.168.2.99] (unknown [192.168.2.99])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(Client did not present a certificate)
-	by alstadheim.priv.no (Postfix) with ESMTP id 1ACEDB7699
-	for <linux-dvb@linuxtv.org>; Fri,  5 Sep 2008 09:17:27 +0200 (CEST)
-Message-ID: <48C0DD05.3070608@alstadheim.priv.no>
-Date: Fri, 05 Sep 2008 09:17:25 +0200
-From: =?ISO-8859-1?Q?H=E5kon_Alstadheim?= <hakon@alstadheim.priv.no>
+	(envelope-from <kristiadi.himawan@gmail.com>) id 1Ki5f1-0002aq-11
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 13:02:29 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so2270366wfd.17
+	for <linux-dvb@linuxtv.org>; Tue, 23 Sep 2008 04:02:21 -0700 (PDT)
+Message-ID: <8bc341120809230402x38eabedbgff29b6f9f9f3fe3f@mail.gmail.com>
+Date: Tue, 23 Sep 2008 18:02:20 +0700
+From: "Kristiadi Himawan" <kristiadi.himawan@gmail.com>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+In-Reply-To: <200809222005.21880.liplianin@tut.by>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------080105050405090505070701"
-Subject: [linux-dvb] =?iso-8859-1?q?dvb-t_scan_file_Norway=2C_Tr=F8ndelag?=
+References: <8bc341120809212324r5664bd2dh44decab3b5292af0@mail.gmail.com>
+	<200809221900.43758.liplianin@tut.by>
+	<200809222005.21880.liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVBWorld DW2104
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,41 +23,143 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============0156417418=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------080105050405090505070701
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+--===============0156417418==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_74047_731606.1222167740848"
 
-The attached is raw output from w_scan, with a couple of comments added.
-The frequency I actually use which has the unencrypted channels is 
-658000000.
+------=_Part_74047_731606.1222167740848
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+SGkgSWdvciwKClRoYW5rIHlvdSwgdGhlIGZpcm13YXJlIHdvcmtpbmcgcGVyZmVjdCBhbmQgc21v
+b3RoLgoKZHZiLXVzYjogZm91bmQgYSAnRFZCV29ybGQgRFcyMTA0IFVTQjIuMCcgaW4gY29sZCBz
+dGF0ZSwgd2lsbCB0cnkgdG8gbG9hZCBhCmZpcm13YXJlCmZpcm13YXJlOiByZXF1ZXN0aW5nIGR2
+Yi11c2ItZHcyMTA0LmZ3CmR2Yi11c2I6IGRvd25sb2FkaW5nIGZpcm13YXJlIGZyb20gZmlsZSAn
+ZHZiLXVzYi1kdzIxMDQuZncnCmR3MjEwMjogc3RhcnQgZG93bmxvYWRpbmcgRFcyMTBYIGZpcm13
+YXJlCmR2Yi11c2I6IGZvdW5kIGEgJ0RWQldvcmxkIERXMjEwNCBVU0IyLjAnIGluIHdhcm0gc3Rh
+dGUuCmR2Yi11c2I6IHdpbGwgcGFzcyB0aGUgY29tcGxldGUgTVBFRzIgdHJhbnNwb3J0IHN0cmVh
+bSB0byB0aGUgc29mdHdhcmUKZGVtdXhlci4KRFZCOiByZWdpc3RlcmluZyBuZXcgYWRhcHRlciAo
+RFZCV29ybGQgRFcyMTA0IFVTQjIuMCkKQWRkaW5nIDEwNDQxMmsgc3dhcCBvbiAvZGV2L3NkYTMu
+ICBQcmlvcml0eTotMSBleHRlbnRzOjEgYWNyb3NzOjEwNDQxMmsKZHZiLXVzYjogTUFDIGFkZHJl
+c3M6IDAwOjE4OmJkOjVkOmFjOmEyCmR3MjEwMjogQXR0YWNoZWQgY3gyNDExNiEKCkRWQjogcmVn
+aXN0ZXJpbmcgZnJvbnRlbmQgMCAoQ29uZXhhbnQgQ1gyNDExNi9DWDI0MTE4KS4uLgppbnB1dDog
+SVItcmVjZWl2ZXIgaW5zaWRlIGFuIFVTQiBEVkIgcmVjZWl2ZXIgYXMgL2NsYXNzL2lucHV0L2lu
+cHV0NQpFWFQzIEZTIG9uIHNkYTQsIGludGVybmFsIGpvdXJuYWwKZHZiLXVzYjogc2NoZWR1bGUg
+cmVtb3RlIHF1ZXJ5IGludGVydmFsIHRvIDE1MCBtc2Vjcy4KZHZiLXVzYjogRFZCV29ybGQgRFcy
+MTA0IFVTQjIuMCBzdWNjZXNzZnVsbHkgaW5pdGlhbGl6ZWQgYW5kIGNvbm5lY3RlZC4KdXNiY29y
+ZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBkdzIxMDIKClRoZSByZXN1bHQgb2Yg
+c3phcCA6CgpzdGF0dXMgMWYgfCBzaWduYWwgZDI0MCB8IHNuciAwMDAwIHwgYmVyIDAwMDAwMDAw
+IHwgdW5jIDAwMDAwMDAwIHwKRkVfSEFTX0xPQ0sKCk91dHB1dCBvZiBmZW1vbiA6CgogU3RhdHVz
+IDogMWYKIFNpZ25hbCA6ICA4MiUKIFNOUiA6IDEwMCUKIEJFUiA6IDAwMDAwMDAwCiBVTkMgOiAw
+MDAwMDAwMAogTE9DS0VECgoKT24gVHVlLCBTZXAgMjMsIDIwMDggYXQgMTI6MDUgQU0sIElnb3Ig
+TS4gTGlwbGlhbmluIDxsaXBsaWFuaW5AdHV0LmJ5Pndyb3RlOgoKPiD3INPPz8Ldxc7JySDP1CAy
+MiBTZXB0ZW1iZXIgMjAwOCAxOTowMDo0MyBJZ29yIE0uIExpcGxpYW5pbiDOwdDJ08HMKMEpOgo+
+ID4g9yDTz8/C3cXOyckgz9QgMjIgU2VwdGVtYmVyIDIwMDggMDk6MjQ6MzUgS3Jpc3RpYWRpIEhp
+bWF3YW4gzsHQydPBzCjBKToKPiA+ID4gSGksCj4gPiA+Cj4gPiA+IEkgaGF2ZSB0cnkgRFZCV29y
+bGQgSEQgMjEwNCBDQStDSSBVU0IgQm94IGF0IG15IERlYmlhbiBFdGNoIHVzaW5nIElnb3IKPiA+
+ID4gcGF0Y2ggZHJpdmVyIGZvciAyMTA0IGR2YnMyCj4gPiA+IGJ1dCBmb3VuZCBlcnJvciBtZXNz
+YWdlcyBhYm91dCBmaXJtd2FyZSBmaWxlLgo+ID4gPgo+ID4gPiBkdmItdXNiOiBmb3VuZCBhICdE
+VkJXb3JsZCBEVzIxMDQgVVNCMi4wJyBpbiBjb2xkIHN0YXRlLCB3aWxsIHRyeSB0bwo+IGxvYWQK
+PiA+ID4gYSBmaXJtd2FyZQo+ID4gPiBmaXJtd2FyZTogcmVxdWVzdGluZyBkdmItdXNiLWR3MjEw
+NC5mdwo+ID4gPiBkdmItdXNiOiBkaWQgbm90IGZpbmQgdGhlIGZpcm13YXJlIGZpbGUuIChkdmIt
+dXNiLWR3MjEwNC5mdykgUGxlYXNlIHNlZQo+ID4gPiBsaW51eC9Eb2N1bWVudGF0aW9uL2R2Yi8g
+Zm9yIG1vcmUgZGV0YWlscyBvbiBmaXJtd2FyZS1wcm9ibGVtcy4gKC0yKQo+ID4gPiB1c2IgNS00
+OiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRWZW5kb3I9MDRiNCwgaWRQcm9kdWN0PTIxMDQKPiA+
+ID4gdXNiIDUtNDogTmV3IFVTQiBkZXZpY2Ugc3RyaW5nczogTWZyPTAsIFByb2R1Y3Q9MCwgU2Vy
+aWFsTnVtYmVyPTAKPiA+ID4KPiA+ID4gSXMgdGhpcyBub3JtYWwgPyBiZWNhdXNlIHVzdWFsbHkg
+dGhlcmUncyBmcm9udGVuZCBkZXZpY2UgaW5zdGFsbGVkCj4gYWxzby4KPiA+Cj4gPiBJdCBpcyBj
+bGVhciwgdGhhdCB5b3UgbmVlZCAnZHZiLXVzYi1kdzIxMDQuZncnIGZpcm13YXJlIGZpbGUgaW4K
+PiA+IC9saWIvZmlybXdhcmUuIEkgd2lsbCBzZW5kIHlvdSBpbnN0cnVjdGlvbnMgaG93IHRvIGV4
+dHJhY3QgaXQgdGhpcwo+IGV2ZW5pbmcuCj4gQ29tbWFuZHMgdG8gZXh0cmFjdCBmaXJtd2FyZSBm
+b3IgRFcyMTA0Ogo+Cj4gd2dldCAnaHR0cDovL3d3dy53b3JsZGR2Yi5jb20vZG93bi9WMi4wIERW
+QiBXb3JsZC5yYXInCj4gdW5yYXIgZSAnVjIuMCBEVkIgV29ybGQucmFyJyAnRFZCIFdvcmxkL0RW
+QlMyMTA0IFVTQgo+IERyaXZlci93aW4yMDAwL0RWQlVTQlMyMTA0LnN5cycKPiBkZCBpZj1EVkJV
+U0JTMjEwNC5zeXMgb2Y9L2xpYi9maXJtd2FyZS9kdmItdXNiLWR3MjEwNC5mdyBza2lwPTI1MjI0
+IGJzPTEKPiBjb3VudD04MTkyCj4KPgo+IC0tCj4gSWdvciBNLiBMaXBsaWFuaW4KPgo+IF9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gbGludXgtZHZiIG1h
+aWxpbmcgbGlzdAo+IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+IGh0dHA6Ly93d3cubGludXh0di5v
+cmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Ygo+CgoKCi0tIAoKQlIvS0gK
+------=_Part_74047_731606.1222167740848
+Content-Type: text/html; charset=KOI8-R
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+PGRpdiBkaXI9Imx0ciI+SGkgSWdvciw8YnI+PGJyPlRoYW5rIHlvdSwgdGhlIGZpcm13YXJlIHdv
+cmtpbmcgcGVyZmVjdCBhbmQgc21vb3RoLjxicj48YnI+ZHZiLXVzYjogZm91bmQgYSAmIzM5O0RW
+QldvcmxkIERXMjEwNCBVU0IyLjAmIzM5OyBpbiBjb2xkIHN0YXRlLCB3aWxsIHRyeSB0byBsb2Fk
+IGEgZmlybXdhcmU8YnI+ZmlybXdhcmU6IHJlcXVlc3RpbmcgZHZiLXVzYi1kdzIxMDQuZnc8YnI+
+CmR2Yi11c2I6IGRvd25sb2FkaW5nIGZpcm13YXJlIGZyb20gZmlsZSAmIzM5O2R2Yi11c2ItZHcy
+MTA0LmZ3JiMzOTs8YnI+ZHcyMTAyOiBzdGFydCBkb3dubG9hZGluZyBEVzIxMFggZmlybXdhcmU8
+YnI+ZHZiLXVzYjogZm91bmQgYSAmIzM5O0RWQldvcmxkIERXMjEwNCBVU0IyLjAmIzM5OyBpbiB3
+YXJtIHN0YXRlLjxicj5kdmItdXNiOiB3aWxsIHBhc3MgdGhlIGNvbXBsZXRlIE1QRUcyIHRyYW5z
+cG9ydCBzdHJlYW0gdG8gdGhlIHNvZnR3YXJlIGRlbXV4ZXIuPGJyPgpEVkI6IHJlZ2lzdGVyaW5n
+IG5ldyBhZGFwdGVyIChEVkJXb3JsZCBEVzIxMDQgVVNCMi4wKTxicj5BZGRpbmcgMTA0NDEyayBz
+d2FwIG9uIC9kZXYvc2RhMy4mbmJzcDsgUHJpb3JpdHk6LTEgZXh0ZW50czoxIGFjcm9zczoxMDQ0
+MTJrPGJyPmR2Yi11c2I6IE1BQyBhZGRyZXNzOiAwMDoxODpiZDo1ZDphYzphMjxicj5kdzIxMDI6
+IEF0dGFjaGVkIGN4MjQxMTYhPGJyPjxicj5EVkI6IHJlZ2lzdGVyaW5nIGZyb250ZW5kIDAgKENv
+bmV4YW50IENYMjQxMTYvQ1gyNDExOCkuLi48YnI+CmlucHV0OiBJUi1yZWNlaXZlciBpbnNpZGUg
+YW4gVVNCIERWQiByZWNlaXZlciBhcyAvY2xhc3MvaW5wdXQvaW5wdXQ1PGJyPkVYVDMgRlMgb24g
+c2RhNCwgaW50ZXJuYWwgam91cm5hbDxicj5kdmItdXNiOiBzY2hlZHVsZSByZW1vdGUgcXVlcnkg
+aW50ZXJ2YWwgdG8gMTUwIG1zZWNzLjxicj5kdmItdXNiOiBEVkJXb3JsZCBEVzIxMDQgVVNCMi4w
+IHN1Y2Nlc3NmdWxseSBpbml0aWFsaXplZCBhbmQgY29ubmVjdGVkLjxicj4KdXNiY29yZTogcmVn
+aXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBkdzIxMDI8YnI+PGJyPlRoZSByZXN1bHQgb2Yg
+c3phcCA6PGJyPjxicj5zdGF0dXMgMWYgfCBzaWduYWwgZDI0MCB8IHNuciAwMDAwIHwgYmVyIDAw
+MDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0s8YnI+PGJyPk91dHB1dCBvZiBmZW1v
+biA6PGJyPjxicj4mbmJzcDtTdGF0dXMgOiAxZjxicj4mbmJzcDtTaWduYWwgOiZuYnNwOyA4MiU8
+YnI+CiZuYnNwO1NOUiA6IDEwMCU8YnI+Jm5ic3A7QkVSIDogMDAwMDAwMDA8YnI+Jm5ic3A7VU5D
+IDogMDAwMDAwMDA8YnI+Jm5ic3A7TE9DS0VEPGJyPjxicj48YnI+PGRpdiBjbGFzcz0iZ21haWxf
+cXVvdGUiPk9uIFR1ZSwgU2VwIDIzLCAyMDA4IGF0IDEyOjA1IEFNLCBJZ29yIE0uIExpcGxpYW5p
+biA8c3BhbiBkaXI9Imx0ciI+Jmx0OzxhIGhyZWY9Im1haWx0bzpsaXBsaWFuaW5AdHV0LmJ5Ij5s
+aXBsaWFuaW5AdHV0LmJ5PC9hPiZndDs8L3NwYW4+IHdyb3RlOjxicj4KPGJsb2NrcXVvdGUgY2xh
+c3M9ImdtYWlsX3F1b3RlIiBzdHlsZT0iYm9yZGVyLWxlZnQ6IDFweCBzb2xpZCByZ2IoMjA0LCAy
+MDQsIDIwNCk7IG1hcmdpbjogMHB0IDBwdCAwcHQgMC44ZXg7IHBhZGRpbmctbGVmdDogMWV4OyI+
+9yDTz8/C3cXOyckgz9QgMjIgU2VwdGVtYmVyIDIwMDggMTk6MDA6NDMgSWdvciBNLiBMaXBsaWFu
+aW4gzsHQydPBzCjBKTo8YnI+CjxkaXYgY2xhc3M9IkloMkUzZCI+Jmd0OyD3INPPz8Ldxc7JySDP
+1CAyMiBTZXB0ZW1iZXIgMjAwOCAwOToyNDozNSBLcmlzdGlhZGkgSGltYXdhbiDOwdDJ08HMKMEp
+Ojxicj4KJmd0OyAmZ3Q7IEhpLDxicj4KJmd0OyAmZ3Q7PGJyPgomZ3Q7ICZndDsgSSBoYXZlIHRy
+eSBEVkJXb3JsZCBIRCAyMTA0IENBK0NJIFVTQiBCb3ggYXQgbXkgRGViaWFuIEV0Y2ggdXNpbmcg
+SWdvcjxicj4KJmd0OyAmZ3Q7IHBhdGNoIGRyaXZlciBmb3IgMjEwNCBkdmJzMjxicj4KJmd0OyAm
+Z3Q7IGJ1dCBmb3VuZCBlcnJvciBtZXNzYWdlcyBhYm91dCBmaXJtd2FyZSBmaWxlLjxicj4KJmd0
+OyAmZ3Q7PGJyPgomZ3Q7ICZndDsgZHZiLXVzYjogZm91bmQgYSAmIzM5O0RWQldvcmxkIERXMjEw
+NCBVU0IyLjAmIzM5OyBpbiBjb2xkIHN0YXRlLCB3aWxsIHRyeSB0byBsb2FkPGJyPgomZ3Q7ICZn
+dDsgYSBmaXJtd2FyZTxicj4KJmd0OyAmZ3Q7IGZpcm13YXJlOiByZXF1ZXN0aW5nIGR2Yi11c2It
+ZHcyMTA0LmZ3PGJyPgomZ3Q7ICZndDsgZHZiLXVzYjogZGlkIG5vdCBmaW5kIHRoZSBmaXJtd2Fy
+ZSBmaWxlLiAoZHZiLXVzYi1kdzIxMDQuZncpIFBsZWFzZSBzZWU8YnI+CiZndDsgJmd0OyBsaW51
+eC9Eb2N1bWVudGF0aW9uL2R2Yi8gZm9yIG1vcmUgZGV0YWlscyBvbiBmaXJtd2FyZS1wcm9ibGVt
+cy4gKC0yKTxicj4KJmd0OyAmZ3Q7IHVzYiA1LTQ6IE5ldyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZl
+bmRvcj0wNGI0LCBpZFByb2R1Y3Q9MjEwNDxicj4KJmd0OyAmZ3Q7IHVzYiA1LTQ6IE5ldyBVU0Ig
+ZGV2aWNlIHN0cmluZ3M6IE1mcj0wLCBQcm9kdWN0PTAsIFNlcmlhbE51bWJlcj0wPGJyPgomZ3Q7
+ICZndDs8YnI+CiZndDsgJmd0OyBJcyB0aGlzIG5vcm1hbCA/IGJlY2F1c2UgdXN1YWxseSB0aGVy
+ZSYjMzk7cyBmcm9udGVuZCBkZXZpY2UgaW5zdGFsbGVkIGFsc28uPGJyPgomZ3Q7PGJyPgomZ3Q7
+IEl0IGlzIGNsZWFyLCB0aGF0IHlvdSBuZWVkICYjMzk7ZHZiLXVzYi1kdzIxMDQuZncmIzM5OyBm
+aXJtd2FyZSBmaWxlIGluPGJyPgomZ3Q7IC9saWIvZmlybXdhcmUuIEkgd2lsbCBzZW5kIHlvdSBp
+bnN0cnVjdGlvbnMgaG93IHRvIGV4dHJhY3QgaXQgdGhpcyBldmVuaW5nLjxicj4KPC9kaXY+Q29t
+bWFuZHMgdG8gZXh0cmFjdCBmaXJtd2FyZSBmb3IgRFcyMTA0Ojxicj4KPGJyPgp3Z2V0ICYjMzk7
+PGEgaHJlZj0iaHR0cDovL3d3dy53b3JsZGR2Yi5jb20vZG93bi9WMi4wIiB0YXJnZXQ9Il9ibGFu
+ayI+aHR0cDovL3d3dy53b3JsZGR2Yi5jb20vZG93bi9WMi4wPC9hPiBEVkIgV29ybGQucmFyJiMz
+OTs8YnI+CnVucmFyIGUgJiMzOTtWMi4wIERWQiBXb3JsZC5yYXImIzM5OyAmIzM5O0RWQiBXb3Js
+ZC9EVkJTMjEwNCBVU0IgRHJpdmVyL3dpbjIwMDAvRFZCVVNCUzIxMDQuc3lzJiMzOTs8YnI+CmRk
+IGlmPURWQlVTQlMyMTA0LnN5cyBvZj0vbGliL2Zpcm13YXJlL2R2Yi11c2ItZHcyMTA0LmZ3IHNr
+aXA9MjUyMjQgYnM9MSBjb3VudD04MTkyPGJyPgo8ZGl2PjxkaXY+PC9kaXY+PGRpdiBjbGFzcz0i
+V2ozQzdjIj48YnI+Cjxicj4KLS08YnI+Cklnb3IgTS4gTGlwbGlhbmluPGJyPgo8YnI+Cl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fPGJyPgpsaW51eC1kdmIg
+bWFpbGluZyBsaXN0PGJyPgo8YSBocmVmPSJtYWlsdG86bGludXgtZHZiQGxpbnV4dHYub3JnIj5s
+aW51eC1kdmJAbGludXh0di5vcmc8L2E+PGJyPgo8YSBocmVmPSJodHRwOi8vd3d3LmxpbnV4dHYu
+b3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmIiIHRhcmdldD0iX2JsYW5rIj5o
+dHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI8
+L2E+PC9kaXY+PC9kaXY+PC9ibG9ja3F1b3RlPjwvZGl2Pjxicj48YnIgY2xlYXI9ImFsbCI+PGJy
+Pi0tIDxicj48YnI+QlIvS0g8YnI+Cgo8L2Rpdj4K
+------=_Part_74047_731606.1222167740848--
 
 
---------------080105050405090505070701
-Content-Type: text/plain;
- name="no-Trondelag_Stjordal"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="no-Trondelag_Stjordal"
-
-# file automatically generated by w_scan
-# name dvb/dvb-t/no-Trondelag_Stjordal
-# free (nrk) channels are on 658000000
-# (http://wirbel.htpc-forum.de/w_scan/index2.html)
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-T 474000000 8MHz 2/3 2/3 QAM64 8k 1/8 NONE
-T 506000000 8MHz 2/3 2/3 QAM64 8k 1/8 NONE
-T 554000000 8MHz AUTO AUTO AUTO AUTO AUTO NONE
-T 658000000 8MHz AUTO AUTO AUTO AUTO AUTO NONE
-T 674000000 8MHz AUTO AUTO AUTO AUTO AUTO NONE
-T 682000000 8MHz AUTO AUTO AUTO AUTO AUTO NONE
-T 746000000 8MHz AUTO AUTO AUTO AUTO AUTO NONE
-
---------------080105050405090505070701
+--===============0156417418==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -70,4 +169,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------080105050405090505070701--
+--===============0156417418==--
