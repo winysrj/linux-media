@@ -1,19 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from ns3.rdu.redhat.com (ns3.rdu.redhat.com [10.11.255.199])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8JDt2E9019627
-	for <video4linux-list@redhat.com>; Fri, 19 Sep 2008 09:55:02 -0400
-Message-ID: <48D3306B.4060001@hhs.nl>
-Date: Fri, 19 Sep 2008 06:54:03 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8NIVAZj008008
+	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 14:31:10 -0400
+Received: from d1.scratchtelecom.com (69.42.52.179.scratchtelecom.com
+	[69.42.52.179])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8NIUNwf023352
+	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 14:30:51 -0400
+Received: from vegas (CPE00a02477ff82-CM001225d885d8.cpe.net.cable.rogers.com
+	[99.249.154.65])
+	by d1.scratchtelecom.com (8.13.8/8.13.8/Debian-3) with ESMTP id
+	m8NIUMsk014868
+	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 14:30:22 -0400
+Received: from lawsonk (helo=localhost)
+	by vegas with local-esmtp (Exim 3.36 #1 (Debian)) id 1KiCeR-0000qG-00
+	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 14:30:19 -0400
+Date: Tue, 23 Sep 2008 14:30:18 -0400 (EDT)
+From: Keith Lawson <lawsonk@lawson-tech.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <e1077a62ea0e09bf49282395ebcefe75.squirrel@www.lockie.ca>
+Message-ID: <alpine.DEB.1.10.0809231428180.1930@vegas>
+References: <alpine.DEB.1.10.0809231317360.1930@vegas>
+	<e1077a62ea0e09bf49282395ebcefe75.squirrel@www.lockie.ca>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-References: <62e5edd40809180002t248de932g3c3515bf5081993c@mail.gmail.com>
-In-Reply-To: <62e5edd40809180002t248de932g3c3515bf5081993c@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: m560x-driver-devel <m560x-driver-devel@lists.sourceforge.net>,
-	video4linux-list@redhat.com
-Subject: Re: [PATCH][RFC] Add support for the ALi m5602 usb bridge webcam
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Subject: Re: TM6010/TM5600 firmware file(s)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,48 +35,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Erik Andrén wrote:
-> Hi,
-> I'm proud to announce the following patch adding support for the ALi m5602
-> usb bridge connected to several different sensors.
-> This driver has been brewing for a long time in the m560x.sf.net project and
-> exists due to the hard work of many persons.
-> 
-> libv4l is needed in order to gain support for multiple pixelformats.
-> 
-> The patch should apply against the latest v4l-dvb hg tree.
-> 
-> Thanks for any feedback,
-> Erik
->
 
-Hi Erik,
 
-Thanks for doing this, unfortunately the driver which you used as a 
-template to start from has various issues (not allowing multiple opens 
-for one, interpreting the v4l2 API in interesting ways in other places).
+On Tue, 23 Sep 2008, James wrote:
 
-Besides that there is lot of code duplication between isoc mode usb webcams.
+> On Tue, September 23, 2008 1:20 pm, Keith Lawson wrote:
+>> Hello,
+>>
+>>
+>> I've searched high and low for firmware files or tridvid.sys to work
+>> witha tm5600 chipset capture card I have and have not been able to find
+>> the firmware or the Windows driver. Can anyone point me in the right
+>> direction to find the firmware that will work with Mauro's tm6010 module?
+>>
+>> Thanks,
+>> Keith.
+> http://driverscollection.com/?H=Trident TM5600 USB TV&By=Chronos
+>>
 
-I would kindly like to ask you to consider porting the m5602 driver to 
-the gspca framework, which provides a generic framework for isoc webcams 
-and takes a lot of stuff out of the driver and into a more generic 
-framework (like try_fmt mode negatiation, isoc mode setup and handling, 
-frame buffer management, etc.).
+Ah, thank you! I've been pulling my hair out trying to find that driver.
 
-gspca is in the current 2.6.27 kernels, if you look under
-drivers/media/video/gspca you will see drivers for a lot of different 
-webcams there, you could for example take the pac207 driver as an 
-example, strip it empty and then copy and paste the relevant part of 
-your driver to there.
+I was able to get the firmware out using dd commands from 
+http://www.linuxtv.org/v4lwiki/index.php/Trident_TM6000. I'll test the 
+when I get home tonight.
 
-I will help you in anyway I can.
+Out of curiosity how does one determine the "skip" and "count" parameters 
+for dd to extract the firmware?
 
-Does this sound like a plan?
-
-Regards,
-
-Hans
+Keith.
 
 --
 video4linux-list mailing list
