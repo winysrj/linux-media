@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [85.17.51.120] (helo=master.jcz.nl)
+Received: from rv-out-0506.google.com ([209.85.198.226])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jaap@jcz.nl>) id 1Ki315-0002aC-3J
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 10:13:03 +0200
-Message-ID: <48D8A4FF.9010502@jcz.nl>
-Date: Tue, 23 Sep 2008 10:12:47 +0200
-From: Jaap Crezee <jaap@jcz.nl>
-MIME-Version: 1.0
+	(envelope-from <greblus@gmail.com>) id 1KiDH2-0007xJ-VU
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 21:10:15 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so1993168rvf.41
+	for <linux-dvb@linuxtv.org>; Tue, 23 Sep 2008 12:10:07 -0700 (PDT)
+Message-ID: <912f87b30809231210w45e304d6rbd5ccfb964d36bba@mail.gmail.com>
+Date: Tue, 23 Sep 2008 21:10:06 +0200
+From: "=?ISO-8859-2?Q?Wiktor_Gr=EAbla?=" <greblus@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] TT Budget S2-3200 CI: failure with CAM module
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_114845_21594638.1222197006805"
+Subject: [linux-dvb] em28xx-audio: HVR-900 B3C0 - ID 2040:6502 Hauppauge
+	(audio clicking)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,97 +21,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All,
+------=_Part_114845_21594638.1222197006805
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I searched all of this maillist for hints on S2-3200 and CAM modules, but found nothing.
-I hope someone can give me a starting point for debug.
+Hi.
 
-When I insert my Astoncrypt CAM module into my TT Budget S2-3200 card, scanning is no longer possible. Also getting any 
-data out of /dev/dvb/adapter0/dvr0 is not working. Tuning is still working (or at least, it seems...), I still can get a 
-FE_LOCK. No difference when I also insert my Canaldigitaal smartcard in the CAM module; same result.
+After some diffing I've finally managed to get rid of "audio clicking"
+problem which could be heard when using analog tv or composite input
+of my HVR-900. Additionally, after Mauro's suggestion, I found it
+necessary to change the audio amux value for composite input from 1 to
+3.
 
-I use the current multiproto HG tree (http://jusst.de/hg/multiproto , HEAD)
-I use the current dvb-apps HG tree (http://linuxtv.org/hg/dvb-apps , HEAD)
+Patch against linux-dvb hg repo attached. I hope it's trivial enough
+to be applied quickly. I've been using my tuner for three days without
+any sound issues so far.
 
-My cam device is initialised:
+Cheers,
+W.
 
-<snip>
-DVB CAM validated successfully
-dvb_ca_en50221_link_init
-dvb_ca_en50221_wait_if_status
-dvb_ca_en50221_wait_if_status succeeded timeout:0
-dvb_ca_en50221_read_data
-Received CA packet for slot 0 connection id 0x0 last_frag:1 size:0x2
-Chosen link buffer size of 16
-dvb_ca_en50221_wait_if_status
-dvb_ca_en50221_wait_if_status succeeded timeout:0
-dvb_ca_en50221_write_data
-Wrote CA packet for slot 0, connection id 0x0 last_frag:1 size:0x2
-dvb_ca adapter 0: DVB CAM detected and initialised successfully
-</snip>
+-- 
+Talkers are no good doers.
+http://greblus.net/djangoblog/
 
-Again, when I remove the CAM module, everything works fine (as for FTA channels...). Tools like dvbdate, dvbtraffic and 
-mplayer /dev/dvb/adapter0/dvr0 work fine.
+------=_Part_114845_21594638.1222197006805
+Content-Type: text/x-diff;
+ name=em28xx_audio_clicking_and_composite_amux_change.diff
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_flgwdl5c0
+Content-Disposition: attachment;
+ filename=em28xx_audio_clicking_and_composite_amux_change.diff
 
-Any help in where to start debugging whould be very kind!
-
-Regards,
-
-Jaap Crezee
-
-
-
---------------------
-
-
-
-Some more info:
-
-02:09.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-         Subsystem: Technotrend Systemtechnik GmbH S2-3200
-
-jaap@server /dev/dvb/adapter0 $ lsmod | grep -E "dvb|stb|lnb|budget"
-lnbp21                  1920  1
-stb6100                 6404  1
-stb0899                34180  1
-budget_ci              21636  3
-firmware_class          7040  1 budget_ci
-budget_core             9348  1 budget_ci
-saa7146                15880  2 budget_ci,budget_core
-ttpci_eeprom            2304  1 budget_core
-ir_common              40708  1 budget_ci
-dvb_core               79744  2 budget_ci,budget_core
-i2c_core               21264  9 lnbp21,stb6100,stb0899,budget_ci,budget_core,ttpci_eeprom,eeprom,i2c_i801,i2c_dev
-crc32                   4224  3 dvb_core,tun,skge
-jaap@server /dev/dvb/adapter0 $
-
-
-Kernel 2.6.26.5 , 'normal' x86 platform....
-
-jaap@server /dev/dvb/adapter0 $ ls -al
-total 0
-drwxr-xr-x 2 root root     140 Sep 23 09:39 .
-drwxr-xr-x 3 root root      60 Sep 23 09:39 ..
-crw-rw---- 1 root video 212, 6 Sep 23 09:39 ca0
-crw-rw---- 1 root video 212, 4 Sep 23 09:39 demux0
-crw-rw---- 1 root video 212, 5 Sep 23 09:39 dvr0
-crw-rw---- 1 root video 212, 3 Sep 23 09:39 frontend0
-crw-rw---- 1 root video 212, 7 Sep 23 09:39 net0
-jaap@server /dev/dvb/adapter0 $
-
-jaap@server /dev/dvb/adapter0 $ cat /proc/interrupts | grep saa
-  21:     711348   IO-APIC-fasteoi   sata_sil, saa7146 (0)
-jaap@server /dev/dvb/adapter0 $
-
-[and counting up (and not because of the sata_sil...) ...]
+ZGlmZiAtdXIgdjRsLWR2Yi1vbGQvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4eHgvZW0y
+OHh4LWF1ZGlvLmMgdjRsLWR2Yi1uZXcvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4eHgv
+ZW0yOHh4LWF1ZGlvLmMKLS0tIHY0bC1kdmItb2xkL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8v
+ZW0yOHh4L2VtMjh4eC1hdWRpby5jCTIwMDgtMDktMjEgMjE6MjY6MDQuMDAwMDAwMDAwICswMjAw
+CisrKyB2NGwtZHZiLW5ldy9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9lbTI4eHgt
+YXVkaW8uYwkyMDA4LTA5LTIxIDIxOjI2OjI0LjAwMDAwMDAwMCArMDIwMApAQCAtMTI3LDEwICsx
+MjcsMTAgQEAKIAogCQkJaWYgKG9sZHB0ciArIGxlbmd0aCA+PSBydW50aW1lLT5idWZmZXJfc2l6
+ZSkgewogCQkJCXVuc2lnbmVkIGludCBjbnQgPQotCQkJCSAgICBydW50aW1lLT5idWZmZXJfc2l6
+ZSAtIG9sZHB0ciAtIDE7CisJCQkJICAgIHJ1bnRpbWUtPmJ1ZmZlcl9zaXplIC0gb2xkcHRyOwog
+CQkJCW1lbWNweShydW50aW1lLT5kbWFfYXJlYSArIG9sZHB0ciAqIHN0cmlkZSwgY3AsCiAJCQkJ
+ICAgICAgIGNudCAqIHN0cmlkZSk7Ci0JCQkJbWVtY3B5KHJ1bnRpbWUtPmRtYV9hcmVhLCBjcCAr
+IGNudCwKKwkJCQltZW1jcHkocnVudGltZS0+ZG1hX2FyZWEsIGNwICsgY250ICogc3RyaWRlLAog
+CQkJCSAgICAgICBsZW5ndGggKiBzdHJpZGUgLSBjbnQgKiBzdHJpZGUpOwogCQkJfSBlbHNlIHsK
+IAkJCQltZW1jcHkocnVudGltZS0+ZG1hX2FyZWEgKyBvbGRwdHIgKiBzdHJpZGUsIGNwLApkaWZm
+IC11ciB2NGwtZHZiLW9sZC9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9lbTI4eHgt
+Y2FyZHMuYyB2NGwtZHZiLW5ldy9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9lbTI4
+eHgtY2FyZHMuYwotLS0gdjRsLWR2Yi1vbGQvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4
+eHgvZW0yOHh4LWNhcmRzLmMJMjAwOC0wOS0yMSAyMToyNjowNC4wMDAwMDAwMDAgKzAyMDAKKysr
+IHY0bC1kdmItbmV3L2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC1jYXJk
+cy5jCTIwMDgtMDktMjEgMjE6MjY6MzEuMDAwMDAwMDAwICswMjAwCkBAIC01NzgsNyArNTc4LDcg
+QEAKIAkJfSwgewogCQkJLnR5cGUgICAgID0gRU0yOFhYX1ZNVVhfQ09NUE9TSVRFMSwKIAkJCS52
+bXV4ICAgICA9IFRWUDUxNTBfQ09NUE9TSVRFMSwKLQkJCS5hbXV4ICAgICA9IDEsCisJCQkuYW11
+eCAgICAgPSAzLAogCQl9LCB7CiAJCQkudHlwZSAgICAgPSBFTTI4WFhfVk1VWF9TVklERU8sCiAJ
+CQkudm11eCAgICAgPSBUVlA1MTUwX1NWSURFTywK
+------=_Part_114845_21594638.1222197006805
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_114845_21594638.1222197006805--
