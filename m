@@ -1,19 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+0803fa6ed1e211590f56+1857+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1KiFHi-0007dX-TS
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 23:19:03 +0200
-Received: from [189.74.181.181] (helo=mchehab.chehab.org)
-	by bombadil.infradead.org with esmtpsa (Exim 4.68 #1 (Red Hat Linux))
-	id 1KiFHe-0006Cg-DG
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 21:18:58 +0000
-Date: Tue, 23 Sep 2008 18:16:28 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: DVB ML <linux-dvb@linuxtv.org>
-Message-ID: <20080923181628.10797e0b@mchehab.chehab.org>
-Mime-Version: 1.0
-Subject: [linux-dvb] [ANNOUNCE] DVB API improvements
+Received: from [85.17.51.120] (helo=master.jcz.nl)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jaap@jcz.nl>) id 1Ki315-0002aC-3J
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 10:13:03 +0200
+Message-ID: <48D8A4FF.9010502@jcz.nl>
+Date: Tue, 23 Sep 2008 10:12:47 +0200
+From: Jaap Crezee <jaap@jcz.nl>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] TT Budget S2-3200 CI: failure with CAM module
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,78 +16,97 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-QWZ0ZXIgeWVhcnMgb2YgZGlzY3Vzc2lvbnMsIHNldmVyYWwgcGF0Y2ggc2VyaWVzIGFuZCB0d28g
-ZGlmZmVyZW50IHByb3Bvc2VkCmFwcHJvYWNoZXMsIExpbnV4VFYgZGV2ZWxvcGVycyBmaW5hbGx5
-IGRlY2lkZWQgdGhhdCBTMkFQSSBpcyB0aGUgYmV0dGVyCnRlY2huaWNhbCBwcm9wb3NhbCBhbmQg
-c2hvdWxkIGJlIGFjY2VwdGVkIGFzIHRoZSB3YXkgdG8gYWxsb3cgc3VwcG9ydGluZyBuZXdlcgpE
-VFYgc3RhbmRhcmRzLCBzdGFydGluZyB3aXRoIERWQi1TMi4KCkFzIHByZXZpb3VzbHkgYW5ub3Vu
-Y2VkIGF0IGh0dHA6Ly9saW51eHR2Lm9yZy9uZXdzLnBocD9lbnRyeT0yMDA4LTA5LTE5Lm1jaGVo
-YWIsCmEgcmVwcmVzZW50YXRpdmUgZ3JvdXAgb2YgYWN0aXZlIGRldmVsb3BlcnMgYXQgTGludXhU
-ViBjb21tdW5pdHkgYXR0ZW5kZWQgdGhlCmZpcnN0IFY0TC9EVkIgU3VtbWl0LCB0aGF0IHN0YXJ0
-ZWQgd2l0aCB0aGUgVjRML0RWQiBtaW5pY29uZiBhdCBMaW51eApQbHVtYmVycy8yMDA4LiBTZXZl
-cmFsIG90aGVyIGFkZGl0aW9uYWwgZm9ybWFsIChCT0YncykgYW5kIGluZm9ybWFsIG1lZXRpbmdz
-CmhhcHBlbmVkIHRoZXJlLCBpbiB0aGUgYmVuZWZpdCBvZiB0aGUgaW1wcm92ZW1lbnQgb2YgdGhl
-IGRldmVsb3BtZW50IG9mCm11bHRpbWVkaWEgZHJpdmVycyBhbmQgY29yZS4KCkR1cmluZyB0aGUg
-bWluaWNvbmYsIGJvdGggTXVsdGlwcm90byBBUEkgKHByb3Bvc2VkIGJ5IE1hbnUpIGFuZCBTMkFQ
-SSAocHJvcG9zZWQKYnkgU3RldmVuKSwgd2VyZSBwcmVzZW50ZWQuIEEgdGVjaG5pY2FsIGRpc2N1
-c3Npb24gd2FzIG1hZGUgZHVyaW5nIHRoZSBEVkIgQk9GCnNlc3Npb24gaW4gb3JkZXIgdG8gY29t
-cGFyZSB0aGUgdHdvIHByb3Bvc2FscyBhbmQgY2hlY2sgZm9yIHRoZQpuZWVkL2NvbnZlbmllbmNl
-IG9mIG90aGVyIGNvcmUgaW50ZXJuYWwgY2hhbmdlcyB0byBkcmF3IGFuIGV2b2x1dGlvbiB0aW1l
-bGluZQpmb3IgRFZCLgoKVGhlIERWQiBCT0YgaGFkIHRoZSBwcmVzZW5jZSBvZiB0aGUgZm9sbG93
-aW5nIExpbnV4VFYgbWVtYmVyczoKCglEb3VnbGFzIFNjaGlsbGluZyBMYW5kZ3JhZgoJSGFucyBW
-ZXJrdWlsCglNYXVybyBDYXJ2YWxobyBDaGVoYWIgCglNaWNoYWVsIEtydWZreQoJUGF0cmljayBC
-b2V0dGNoZXIKCVN0ZXZlbiBUb3RoCglUaGllcnJ5IE1lcmxlCglNYW5qdW5hdGggSGFkbGlpCgpX
-ZSBoYWQgYWxzbyBhIHByZXNlbmNlIG9mIGFuIGVuZC11c2VyIGxpc3RlbmluZyB0byB0aGUgQk9G
-IChCcmFuZG9uIEZvdXRzKS4KCkR1cmluZyB0aGUgQk9GLCB0aGUgTGludXhUViBtZW1iZXJzIGNh
-cmVmdWxseSBhbmFseXplZCB0aGUgcHJvcyBhbmQgY29ucyBmb3IKYm90aCBwcm9wb3NhbHMuIEF0
-IHRoZSBlbmQsIGFsbCBwZW9wbGUgcHJlc2VudCB0aGVyZSBhZ3JlZWQgdGhhdCBTMkFQSSBpcwp0
-ZWNobmljYWxseSBtb3JlIHJlbGlhYmxlIGluIHRpbWUgdGhhbiBNdWx0aXByb3RvIHByb3Bvc2Fs
-LiBTbyBpdCB3YXMgZGVjaWRlZAp0aGF0IFMyQVBJIHdpbGwgYmUgbWVyZ2VkIHVwc3RyZWFtLgoK
-VGhlIG1haW4gYXJndW1lbnRzIGluIGZhdm9yIG9mIFMyQVBJIG92ZXIgTXVsdGlwcm90byBhcmU6
-CgoJLSBGdXR1cmUgcHJvb2Yg4oCTIHRoZSBwcm9wb3NhbCBmb3IgUzJBUEkgaXMgbW9yZSBmbGV4
-aWJsZSwgZWFzaWx5CgkgIGFsbG93aW5nIHRoZSBhZGRpdGlvbiBvZiBuZXdlciBmZWF0dXJlcyBh
-bmQgbmV3IHN0YW5kYXJkIHN1cHBvcnQ7CgoJLSBTaW1wbGljaXR5IOKAkyBTMkFQSSBwYXRjaGVz
-IGFyZSB2ZXJ5IHNpbXBsZSwgd2hpbGUgTXVsdGlwcm90bwoJICBwcmVzZW50ZWQgYSB2ZXJ5IGNv
-bXBsZXggc2VyaWVzIG9mIGNoYW5nZXMuIFNpbXBsZXIgYXBwcm9hY2hlcwoJICByZWR1Y2VzIHRo
-ZSB0aW1lIGZvciBtYWludGFpbmluZyB0aGUgc291cmNlIGNvZGU7CgoJLSBDYXBhYmlsaXR5IG9m
-IGFsbG93aW5nIGltcHJvdmVtZW50cyBldmVuIG9uIHRoZSBleGlzdGluZyBzdGFuZGFyZHMsCgkg
-IGxpa2UgYWxsb3dpbmcgZGl2ZXJzaXR5IGNvbnRyb2wgdGhhdCBzdGFydHMgdG8gYXBwZWFyIG9u
-IG5ld2VyIERWQgoJICBkZXZpY2VzLgoKU29tZSBpbXByb3ZlbWVudHMgd2VyZSBwcm9wb3NlZCBi
-eSB0aGUgTGludXhUViBkZXZlbG9wZXJzLCBpbiBvcmRlciB0byBpbXByb3ZlCnRoZSBTMkFQSSwg
-aW5jbHVkaW5nOgoKCS0gQWRkaW5nIGFuIEFQSSBjb21tYW5kIGZvciBxdWVyeWluZyBEVkIgdmVy
-c2lvbiwgdG8gYWxsb3cgYW4gZWFzaWVyCgkgIGRldGVjdGlvbiBieSB1c2Vyc3BhY2UgYXBwbGlj
-YXRpb25zOwoKCS0gTmFtZSB0aGUgRFZCIEFQSSB3aXRoIFMyQVBJIGFzIERWQiB2ZXJzaW9uIDU7
-CgoJLSBVcGRhdGUgRFZCIEFQSSBkb2N1bWVudGF0aW9uIHRvIHJlZmxlY3QgdGhlIEFQSSBjaGFu
-Z2VzOwoKCS0gUmVtb3ZlIGZyb20gRFZCIEFQSSB0aGUgdW51c2VkIEFQSSBpb2N0bHMsIHRvIG1h
-dGNoIHRoZSBBUEkgd2l0aCB0aGUKCSAgZXhpc3RpbmcgaW1wbGVtZW50YXRpb25zLgoKVGhlIGF1
-dGhvciBvZiBTMkFQSSBnb3QgdGhlIHRhc2sgb2YgYWRkaW5nIHRob3NlIHN1Z2dlc3Rpb25zIGF0
-IHRoZSBwcm9wb3NlZApzdGFuZGFyZCBhbmQgc2VuZCBhIHB1bGwgcmVxdWVzdCB0byB0aGUgc3Vi
-c3lzdGVtIG1haW50YWluZXIsIHRvZ2V0aGVyIHdpdGgKcGF0Y2hlcyBmb3IgaGlzIGRyaXZlcnMg
-dGhhdCB1c2UgdGhlIG5ld2VyIEFQSS4KCkl0IHdhcyBhbHNvIGRpc2N1c3NlZCB0aGF0IHNvbWUg
-b2YgdGhlIGludGVybmFsIE11bHRpcHJvdG8gQVBJIGNoYW5nZXMgbWF5IGJlCm5lZWRlZCBpbiBv
-dGhlciB0byBzdXBwb3J0IHNvbWUgb2YgdGhlIG90aGVyIGV4aXN0aW5nIERWQi1TMiBkcml2ZXJz
-IHRoYXQgd2VyZQpkZXZlbG9wZWQgY29uc2lkZXJpbmcgTXVsdGlwcm90byBBUEkuIEludGVybmFs
-IGNoYW5nZXMgY2FuIGJlIGFkZGVkIGF0IGFueSB0aW1lCndpdGhvdXQgcHJvZHVjaW5nIHByb2Js
-ZW1zIGluIHRoZSB1c2VyIEFQSS4KClRoZSBncm91cCBhaW1zIHRvIGhhdmUgYSB1bmlmaWVkIGlu
-LWtlcm5lbCBEVkItUzIgSFZSNDAwMCAvIFRULTMyMDAgdHJlZSAodGhhdAphbHNvIHN1cHBvcnRz
-IGFsbCBvZiB0aGUgZGVyaXZhdGl2ZSBDWDI0MTE2IC8gU1RCMDg5OSBrbm93biBwcm9kdWN0cykg
-d2l0aGluIDQKd2Vla3MgZnJvbSB0aGUgYW5ub3VuY2VtZW50LCBob3BlZnVsbHkgaW4gdGltZSBm
-b3Iga2VybmVsIDIuNi4yOC4gRm9yIHRoYXQsIHdlCndvdWxkIGxpa2UgdG8gYXNrIE1hbnUgdG8g
-cG9ydCBoaXMgZHJpdmVycyB0byB0aGUgbmV3IEFQSS4KClRoZSBlbmQgZ29hbCBpcyB0byBhZGQg
-cHJvcGVyIHN1cHBvcnQgZm9yIGFsbCBkZXZpY2VzIHRoYXQgd291bGQgaGF2ZSBiZWVuCnN1cHBv
-cnRlZCBieSBtdWx0aXByb3RvIGFuZCBTMkFQSSBhbGlrZSBhdmFpbGFibGUuCgpUaGVyZSBhcmUg
-YWxyZWFkeSB2b2x1bnRlZXJzIHdvcmtpbmcgb3IgdGhhdCBoYXZlIG9mZmVyZWQgdG8gd29yayBv
-biBLYWZmZWluZQphbmQgTXl0aFRWIFMyQVBJIHN1cHBvcnQuCgpXZSBzdGlsbCBuZWVkIHZvbHVu
-dGVlcnMgdG8gd29yayBvbiBkdmItYXBwcyBzdXBwb3J0LiBJZiB5b3UgZmVlbCB0aGF0IHlvdSBs
-aWtlCmNvbnRyaWJ1dGUsIHBsZWFzZSBiZSBvdXIgZ3Vlc3QhCgpXZSB3b3VsZCBsaWtlIHRvIHRo
-YW5rIHlvdSBhbGwgdGhhdCBjb250cmlidXRlZCBmb3IgdGhvc2UgZGlzY3Vzc2lvbnMgYW5kCmlt
-cHJvdmVtZW50cyB0byBoYXBwZW4sCgpNYXVybyBDYXJ2YWxobyBDaGVoYWIKVjRML0RWQiBNYWlu
-dGFpbmVyIAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-bGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5s
-aW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+Hi All,
+
+I searched all of this maillist for hints on S2-3200 and CAM modules, but found nothing.
+I hope someone can give me a starting point for debug.
+
+When I insert my Astoncrypt CAM module into my TT Budget S2-3200 card, scanning is no longer possible. Also getting any 
+data out of /dev/dvb/adapter0/dvr0 is not working. Tuning is still working (or at least, it seems...), I still can get a 
+FE_LOCK. No difference when I also insert my Canaldigitaal smartcard in the CAM module; same result.
+
+I use the current multiproto HG tree (http://jusst.de/hg/multiproto , HEAD)
+I use the current dvb-apps HG tree (http://linuxtv.org/hg/dvb-apps , HEAD)
+
+My cam device is initialised:
+
+<snip>
+DVB CAM validated successfully
+dvb_ca_en50221_link_init
+dvb_ca_en50221_wait_if_status
+dvb_ca_en50221_wait_if_status succeeded timeout:0
+dvb_ca_en50221_read_data
+Received CA packet for slot 0 connection id 0x0 last_frag:1 size:0x2
+Chosen link buffer size of 16
+dvb_ca_en50221_wait_if_status
+dvb_ca_en50221_wait_if_status succeeded timeout:0
+dvb_ca_en50221_write_data
+Wrote CA packet for slot 0, connection id 0x0 last_frag:1 size:0x2
+dvb_ca adapter 0: DVB CAM detected and initialised successfully
+</snip>
+
+Again, when I remove the CAM module, everything works fine (as for FTA channels...). Tools like dvbdate, dvbtraffic and 
+mplayer /dev/dvb/adapter0/dvr0 work fine.
+
+Any help in where to start debugging whould be very kind!
+
+Regards,
+
+Jaap Crezee
+
+
+
+--------------------
+
+
+
+Some more info:
+
+02:09.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+         Subsystem: Technotrend Systemtechnik GmbH S2-3200
+
+jaap@server /dev/dvb/adapter0 $ lsmod | grep -E "dvb|stb|lnb|budget"
+lnbp21                  1920  1
+stb6100                 6404  1
+stb0899                34180  1
+budget_ci              21636  3
+firmware_class          7040  1 budget_ci
+budget_core             9348  1 budget_ci
+saa7146                15880  2 budget_ci,budget_core
+ttpci_eeprom            2304  1 budget_core
+ir_common              40708  1 budget_ci
+dvb_core               79744  2 budget_ci,budget_core
+i2c_core               21264  9 lnbp21,stb6100,stb0899,budget_ci,budget_core,ttpci_eeprom,eeprom,i2c_i801,i2c_dev
+crc32                   4224  3 dvb_core,tun,skge
+jaap@server /dev/dvb/adapter0 $
+
+
+Kernel 2.6.26.5 , 'normal' x86 platform....
+
+jaap@server /dev/dvb/adapter0 $ ls -al
+total 0
+drwxr-xr-x 2 root root     140 Sep 23 09:39 .
+drwxr-xr-x 3 root root      60 Sep 23 09:39 ..
+crw-rw---- 1 root video 212, 6 Sep 23 09:39 ca0
+crw-rw---- 1 root video 212, 4 Sep 23 09:39 demux0
+crw-rw---- 1 root video 212, 5 Sep 23 09:39 dvr0
+crw-rw---- 1 root video 212, 3 Sep 23 09:39 frontend0
+crw-rw---- 1 root video 212, 7 Sep 23 09:39 net0
+jaap@server /dev/dvb/adapter0 $
+
+jaap@server /dev/dvb/adapter0 $ cat /proc/interrupts | grep saa
+  21:     711348   IO-APIC-fasteoi   sata_sil, saa7146 (0)
+jaap@server /dev/dvb/adapter0 $
+
+[and counting up (and not because of the sata_sil...) ...]
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
