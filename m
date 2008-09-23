@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from [194.250.18.140] (helo=tv-numeric.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KiSBC-0007V1-Be
-	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 13:05:11 +0200
-Message-ID: <48DA1EDD.3020502@gmail.com>
-Date: Wed, 24 Sep 2008 15:05:01 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1Ki2Vh-0000uA-4U
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 09:40:37 +0200
+From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
+To: <linux-dvb@linuxtv.org>
+Date: Tue, 23 Sep 2008 09:39:57 +0200
+Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAANaAFVszeqk6rYggku+N2CQEAAAAA@tv-numeric.com>
 MIME-Version: 1.0
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-References: <20080923181628.10797e0b@mchehab.chehab.org>	<48D9F6F3.8090501@gmail.com>	<alpine.LRH.1.10.0809241051170.12985@pub3.ifh.de>
-	<48DA15A2.40109@gmail.com>
-In-Reply-To: <48DA15A2.40109@gmail.com>
-Content-Type: multipart/mixed; boundary="------------020203090206080704030001"
-Cc: DVB ML <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
+In-Reply-To: <alpine.DEB.1.10.0809222133560.25926@ybpnyubfg.ybpnyqbznva>
+Subject: [linux-dvb] RE :  DVB-H support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,118 +17,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------020203090206080704030001
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+> On Mon, 22 Sep 2008, Javier G=E1lvez Guerrero wrote:
 
-Manu Abraham wrote:
-> Patrick Boettcher wrote:
->> Manu,
->>
->> On Wed, 24 Sep 2008, Manu Abraham wrote:
->>
->>> Mauro Carvalho Chehab wrote:
->>> [..]
->>>> The main arguments in favor of S2API over Multiproto are:
->>>>
->>> [..]
->>>
->>>>     - Capability of allowing improvements even on the existing
->>>> standards,
->>>>       like allowing diversity control that starts to appear on newer DVB
->>>>       devices.
->>>
->>> I just heard from Patrick, what he meant by this at the meeting and the
->>> reason why he voted for S2API, due to a fact that he was convinced
->>> incorrectly. Multiproto _already_has_ this implementation, while it is
->>> non-existant in S2API.
->> In order to not have people getting me wrong here, I'm stating now in
->> public:
->>
->> 1) I like the idea of having diversity optionally controlled by the
->> application.
->>
->> 2) My vote for S2API is final.
->>
->> It is final, because the S2API is mainly affecting
->> include/linux/dvb/frontend.h to add user-API support for new standards.
->> I prefer the user-API of S2API over the one of multiproto because of 1).
-> 
-> After adding in diversity to frontend.h,
-> 
-> Would you prefer to update the diversity related event on the event list
-> as well ?
+> If I understand what you are asking, as far as I know in the
+> area where I am, all DVB-H services are broadcast with
+> modulation parameters that makes it possible to receive them
+> with any DVB-T device that can be used with Linux-DVB, so
+> you do not need to search for a specific receiver.  Any will
+> work, and I deliberately chose *not* to use my TerraTec to
+> verify that I could tune DVB-H on something else not specifically
+> intended for that as well as DVB-T.
 
-Patch attached for the user space API to multiproto, it updates the
-event list as well. If it looks ok, i will push this changeset out as well.
+> I do not know (without looking) if this is always the case,
+> that DVB-H modulation can always be received by DVB-T --
+> just as I don't know what is the difference between a DVB-H-
+> capable receiver used with Linux-DVB and today's DVB-T devices.
+> Someone else would have to clarify that, if it's important.
 
+I think that the preferred transmission mode for DVB-H is 4K
+while many (most? all?) DVB-T receivers can do 2K and 8K only.
+The current Linux DVB API does not even have a definition for 4K.
 
-Regards,
-Manu
+>From ETSI EN 300 744 ("DVB; Framing structure, channel coding and
+modulation for digital terrestrial television"):
 
---------------020203090206080704030001
-Content-Type: text/x-patch;
- name="diverisity.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="diverisity.diff"
+  Exclusively for use in DVB-H systems, a third transmission mode the
+  "4K mode" is defined in annex F, addressing the specific needs of
+  Handheld terminals. The "4K mode" aims to offer an additional
+  trade-off between transmission cell size and mobile reception
+  capabilities, providing an additional degree of flexibility for
+  DVB-H network planning.
 
---- multiproto.orig/linux/include/linux/dvb/frontend.h	2008-09-24 14:06:49.000000000 +0400
-+++ multiproto/linux/include/linux/dvb/frontend.h	2008-09-24 14:58:02.000000000 +0400
-@@ -466,6 +466,7 @@ struct dvbt_params {
- 	enum dvbfe_hierarchy		hierarchy;
- 	enum dvbfe_alpha		alpha;
- 	enum dvbfe_stream_priority	priority;
-+	__u8				diversity;
- 
- 	__u8				pad[32];
- };
-@@ -502,6 +503,7 @@ struct dvbh_params {
- 	enum dvbfe_mpefec		mpefec;
- 	enum dvbfe_timeslicing		timeslicing;
- 	enum dvbfe_stream_priority	priority;
-+	__u8				diversity;
- 
- 	__u32				bandwidth;
- 	__u8				pad[32];
-@@ -566,6 +568,7 @@ struct dvbfe_dvbc_info {
- struct dvbfe_dvbt_info {
- 	enum dvbfe_modulation		modulation;
- 	enum dvbfe_stream_priority	stream_priority;
-+	__u8				diversity;
- 
- 	__u8				pad[32];
- };
-@@ -574,6 +577,7 @@ struct dvbfe_dvbt_info {
- struct dvbfe_dvbh_info {
- 	enum dvbfe_modulation		modulation;
- 	enum dvbfe_stream_priority	stream_priority;
-+	__u8				diversity;
- 
- 	__u8				pad[32];
- };
-@@ -623,6 +627,7 @@ enum dvbfe_status {
- 	DVBFE_HAS_SYNC			= (1 <<  3),	/*  SYNC found			*/
- 	DVBFE_HAS_LOCK			= (1 <<  4),	/*  OK ..			*/
- 	DVBFE_TIMEDOUT			= (1 <<  5),	/*  no lock in last ~2 s	*/
-+	DVBFE_DIVERSITY_TOGGLE		= (1 <<  6),    /* signal too low, toggling..	*/
- 	DVBFE_STATUS_DUMMY		= (1 << 31)
- };
- 
+See also ETSI EN 302 304 ("DVB; Transmission System for Handheld
+Terminals (DVB-H)").
 
---------------020203090206080704030001
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Here, in France, we won't see DVB-H until next year so I cannot
+tell. There was a field test two or three years ago in the Paris
+area. At that time, I did receive DVB-H on an Hauppauge PCI DVB-T
+receiver in a Linux box but the field test used 2K, not 4K
+(modulator availability issue at this time maybe).
+
+But if your receiver can do 4K or your DVB-H network uses 2K or 8K,
+you can receive DVB-H on a DVB-T receiver device.
+
+-Thierry
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------020203090206080704030001--
