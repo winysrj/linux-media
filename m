@@ -1,28 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from anchor-post-31.mail.demon.net ([194.217.242.89])
+Received: from qw-out-2122.google.com ([74.125.92.24])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1KkoPM-00084P-E0
-	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 01:13:33 +0200
-Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
-	helo=pentagram.youmustbejoking.demon.co.uk)
-	by anchor-post-31.mail.demon.net with esmtp (Exim 4.67)
-	id 1KkoPI-0001Xj-57
-	for linux-dvb@linuxtv.org; Tue, 30 Sep 2008 23:13:28 +0000
-Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
-	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1KkoPD-0007k0-LF
-	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 00:13:27 +0100
-Date: Tue, 30 Sep 2008 23:57:18 +0100
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
-To: linux-dvb@linuxtv.org
-Message-ID: <4FEC93ECE8%linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <alpine.DEB.2.00.0809302137380.4242@ybpnyubfg.ybpnyqbznva>
-References: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
-	<alpine.DEB.2.00.0809302137380.4242@ybpnyubfg.ybpnyqbznva>
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
+	(envelope-from <dougsland@gmail.com>) id 1KiGsZ-0005QB-PB
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 01:01:12 +0200
+Received: by qw-out-2122.google.com with SMTP id 9so258690qwb.17
+	for <linux-dvb@linuxtv.org>; Tue, 23 Sep 2008 16:01:06 -0700 (PDT)
+Date: Tue, 23 Sep 2008 16:00:26 -0400
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: linux-dvb@linuxtv.org, Wiktor =?UTF-8?B?R3LEmWJsYQ==?= <greblus@gmail.com>
+Message-ID: <20080923160026.14585af9@gmail.com>
+In-Reply-To: <912f87b30809231210w45e304d6rbd5ccfb964d36bba@mail.gmail.com>
+References: <912f87b30809231210w45e304d6rbd5ccfb964d36bba@mail.gmail.com>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] em28xx-audio: HVR-900 B3C0 - ID 2040:6502 Hauppauge
+ (audio clicking)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,38 +21,24 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I demand that BOUWSMA Barry may or may not have written...
-
-> On Tue, 30 Sep 2008, Lee Jones wrote:
-[snip]
->> $ tzap -r "BBC FOUR"
->> tuning to 562000000 Hz
->> video pid 0x0000, audio pid 0x0000
->              ^^^^              ^^^^
-> This is wrong -- at least after 19h your-time -- but in case you did the
-> scan before 19h your-time, you may have gotten correct PIDs for
-> CBBC+CBeebies -- but not for BBC3+4, as the correct PIDs are only broadcast
-> during the time those programs are actually on-air, and `tzap' is not smart
-> enough to take the Service ID and derive the up-to-date PIDs from that...
-
-OTOH, each pair (BBC3 and CBBC, BBC4 and CBeebies) use the same PIDs, so a
-little careful copying will fix things.
-
-[snip]
--- 
-| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
-| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
-| + Buy local produce. Try to walk or cycle. TRANSPORT CAUSES GLOBAL WARMING.
-
-The Green Midget Cafe, Bromley. Home to Spam and occasional Viking hordes.
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGVsbG8gV2lrdG9yLAoKT24gVHVlLCAyMyBTZXAgMjAwOCAyMToxMDowNiArMDIwMAoiV2lrdG9y
+IEdyxJlibGEiIDxncmVibHVzQGdtYWlsLmNvbT4gd3JvdGU6Cgo+IEhpLgo+IAo+IEFmdGVyIHNv
+bWUgZGlmZmluZyBJJ3ZlIGZpbmFsbHkgbWFuYWdlZCB0byBnZXQgcmlkIG9mICJhdWRpbyBjbGlj
+a2luZyIKPiBwcm9ibGVtIHdoaWNoIGNvdWxkIGJlIGhlYXJkIHdoZW4gdXNpbmcgYW5hbG9nIHR2
+IG9yIGNvbXBvc2l0ZSBpbnB1dAo+IG9mIG15IEhWUi05MDAuIEFkZGl0aW9uYWxseSwgYWZ0ZXIg
+TWF1cm8ncyBzdWdnZXN0aW9uLCBJIGZvdW5kIGl0Cj4gbmVjZXNzYXJ5IHRvIGNoYW5nZSB0aGUg
+YXVkaW8gYW11eCB2YWx1ZSBmb3IgY29tcG9zaXRlIGlucHV0IGZyb20gMSB0bwo+IDMuCj4gCj4g
+UGF0Y2ggYWdhaW5zdCBsaW51eC1kdmIgaGcgcmVwbyBhdHRhY2hlZC4gSSBob3BlIGl0J3MgdHJp
+dmlhbCBlbm91Z2gKPiB0byBiZSBhcHBsaWVkIHF1aWNrbHkuIAoKRm9yIHN1cmUsIEknbGwgY2hl
+Y2sgeW91ciBwYXRjaC4gVGhhbmtzIGZvciB5b3VyCmhlbHAuCgo+IEkndmUgYmVlbiB1c2luZyBt
+eSB0dW5lciBmb3IgdGhyZWUgZGF5cyB3aXRob3V0Cj4gYW55IHNvdW5kIGlzc3VlcyBzbyBmYXIu
+CgpDb29sIQoKQ2hlZXJzLApEb3VnbGFzCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2
+Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51
+eC1kdmI=
