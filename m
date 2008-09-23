@@ -1,26 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from eazy.amigager.de ([213.239.192.238])
+Received: from potassium.iops.versanet.be ([212.53.4.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tino@tikei.de>) id 1KhXxA-0003lo-Cw
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 01:02:57 +0200
-Received: from dose.home.local (port-212-202-35-74.dynamic.qsc.de
-	[212.202.35.74])
-	by eazy.amigager.de (Postfix) with ESMTP id 98669C8C018
-	for <linux-dvb@linuxtv.org>; Mon, 22 Sep 2008 01:02:52 +0200 (CEST)
-Received: from scorpion by dose.home.local with local (Exim 4.69)
-	(envelope-from <tino.keitel@tikei.de>) id 1KhXy0-0007eg-3G
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 01:03:48 +0200
-Date: Mon, 22 Sep 2008 01:03:48 +0200
-From: Tino Keitel <tino.keitel@tikei.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20080921230348.GA29412@dose.home.local>
-References: <alpine.LRH.1.10.0809190830370.8673@pub1.ifh.de>
-	<48D34D66.7000200@linuxtv.org>
-	<dec60b9dbdf2adac0b57a3bf0601ef3b.squirrel@78.226.152.136:8080>
+	(envelope-from <Jo@requestfocus.be>) id 1Ki4wE-0000hC-SP
+	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 12:16:12 +0200
+From: "Jo Heremans" <Jo@requestfocus.be>
+To: "'Jaap Crezee'" <jaap@jcz.nl>, <linux-dvb@linuxtv.org>
+References: <48D8A4FF.9010502@jcz.nl> <48D8B08B.6090602@konto.pl>
+	<48D8BBED.3010109@jcz.nl>
+In-Reply-To: <48D8BBED.3010109@jcz.nl>
+Date: Tue, 23 Sep 2008 12:15:54 +0200
+Message-ID: <000601c91d65$600989b0$201c9d10$@be>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <dec60b9dbdf2adac0b57a3bf0601ef3b.squirrel@78.226.152.136:8080>
-Subject: Re: [linux-dvb] [RFC] cinergyT2 rework final review
+Content-Language: nl-be
+Subject: Re: [linux-dvb] TT Budget S2-3200 CI: failure with CAM module
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,29 +26,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Sep 19, 2008 at 14:34:50 +0200, Thierry Merle wrote:
+>>> Again, when I remove the CAM module, everything works fine (as for 
+>>> FTA channels...). Tools like dvbdate, dvbtraffic and mplayer 
+>>> /dev/dvb/adapter0/dvr0 work fine.
+>
+>I just created a patch to add a budget-ci module param to the driver to
+disable the CI interface at module load time. 
+>This way I can still use the card when the CAM module is inserted.
+>Maybe it is good enough to integrated it with the current hg tree?
+>
+>> I've got SkystarHD+CI Slot+Aston 2.18 and it works OK (for decoding 
+>> some channels like HBO/MINIMINI I must wait very long time, but it 
+>> works)
+>
+>I have waited long enough (more than 6 hours) and still no results.
+>Anyone got it working with a TT S2-3200 and AstonCrypt CAM module?
+>
+>regards,
+>
+>
+>Jaap Crezee
 
-[...]
+I have a TT S2-3200 working with the original tv-vlaanderen cam (same as the
+canal-digital cam)
+I use the liplianindvb tree
 
-> OK. In my mind this patch was not a priority and some users reported bugs
-> but we don't have any news from their part. Maybe buggy users :)
-> I will wait just a little at least from Tomi and send a pull request to
-> Mauro within the middle of the next week.
+Jo
 
-I had 2 issues:
-
-- irrecord didn't work
-
-- a failure after resume after suspend with the driver loaded, the
-  keyboard went crazy. Unloading the driver and unplugging the
-  CinergyT2 helped in this case
-
-I don't know if theses issues are still present, though. I don't use the IR
-receiver anymore, and always unload the driver before suspend. I'll try
-to update to the current driver and re-test.
-
-Regards,
-Tino
 
 _______________________________________________
 linux-dvb mailing list
