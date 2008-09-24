@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from smtp28.orange.fr ([80.12.242.100])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KhcbV-0001Lu-HM
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 06:00:55 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7K00MAGWGIGK80@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 22 Sep 2008 00:00:19 -0400 (EDT)
-Date: Mon, 22 Sep 2008 00:00:18 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <002001c91c65$939d8b60$bad8a220$@net>
-To: James Evans <jrevans1@earthlink.net>
-Message-id: <48D71852.5090705@linuxtv.org>
-MIME-version: 1.0
-References: <002001c91c65$939d8b60$bad8a220$@net>
+	(envelope-from <hftom@free.fr>) id 1KiVB5-00084v-Ej
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 16:17:16 +0200
+From: Christophe Thommeret <hftom@free.fr>
+To: "Hans Werner" <HWerner4@gmx.de>
+Date: Wed, 24 Sep 2008 16:16:37 +0200
+References: <200809211905.34424.hftom@free.fr>
+	<200809241538.51217.hftom@free.fr> <20080924140821.40890@gmx.net>
+In-Reply-To: <20080924140821.40890@gmx.net>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200809241616.37458.hftom@free.fr>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVICO FusionHDTV5 Express Support
+Subject: Re: [linux-dvb] hvr4000-s2api + QAM_AUTO
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,169 +21,103 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-James Evans wrote:
-> I emailed quite a while ago and have been following the mail list ever since, but I was curious as to what might be the major hurdle
-> to getting support for the DVICO FusionHDTV5 Express card (http://www.fusionhdtv.co.kr/eng/Products/fusion5express.aspx) .  It
-> utilizes the CX23885 Chipset and the 5th Gen. LG Tuner, which both seem to be supported, as well as some PCIx interfaced cards.
-> 
-> Following is my current system stats as well as the relevant portion of the 'messages' file:
-> 
-> Gentoo linux kernel 2.6.26-gentoo-r1 x86_64 Dual Core Athlon 4400+
-> DVICO FusionHDTV5 Express
-> Air2PC/AirStar 2 ATSC 3rd generation (HD5000)  (x2)
-> 
-> #====================== SNIP =======================================================
-> Sep 17 02:32:09 localhost Linux video capture interface: v2.00
-> Sep 17 02:32:09 localhost bttv: driver version 0.9.17 loaded
-> Sep 17 02:32:09 localhost bttv: using 8 buffers with 2080k (520 pages) each for capture
-> Sep 17 02:32:09 localhost saa7130/34: v4l2 driver version 0.2.14 loaded
-> Sep 17 02:32:09 localhost cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-> Sep 17 02:32:09 localhost cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-> Sep 17 02:32:09 localhost cx2388x alsa driver version 0.0.6 loaded
-> Sep 17 02:32:09 localhost cx2388x blackbird driver version 0.0.6 loaded
-> Sep 17 02:32:09 localhost cx88/2: registering cx8802 driver, type: blackbird access: shared
-> Sep 17 02:32:09 localhost cx88/2: cx2388x dvb driver version 0.0.6 loaded
-> Sep 17 02:32:09 localhost cx88/2: registering cx8802 driver, type: dvb access: shared
-> Sep 17 02:32:09 localhost ivtv:  Start initialization, version 1.3.0
-> Sep 17 02:32:09 localhost ivtv:  End initialization
-> Sep 17 02:32:09 localhost ivtvfb:  no cards found<6>cx23885 driver version 0.0.1 loaded
-> Sep 17 02:32:09 localhost ACPI: PCI Interrupt Link [LNEA] enabled at IRQ 19
-> Sep 17 02:32:09 localhost ACPI: PCI Interrupt 0000:02:00.0[A] -> Link [LNEA] -> GSI 19 (level, low) -> IRQ 19
-> Sep 17 02:32:09 localhost CORE cx23885[0]: subsystem: 18ac:d500, board: DViCO FusionHDTV5 Express [card=4,autodetected]
-> Sep 17 02:32:09 localhost input: i2c IR (FusionHDTV) as /class/input/input2
-> Sep 17 02:32:09 localhost ir-kbd-i2c: i2c IR (FusionHDTV) detected at i2c-0/0-006b/ir0 [cx23885[0]]
-> Sep 17 02:32:09 localhost tvaudio' 0-0041: tda8425 found @ 0x82 (cx23885[0])
-> Sep 17 02:32:09 localhost tuner' 0-0043: chip found @ 0x86 (cx23885[0])
-> Sep 17 02:32:09 localhost tda9887 0-0043: creating new instance
-> Sep 17 02:32:09 localhost tda9887 0-0043: tda988[5/6/7] found
-> Sep 17 02:32:09 localhost tuner' 0-0061: chip found @ 0xc2 (cx23885[0])
-> Sep 17 02:32:09 localhost cx23885[0]: i2c bus 0 registered
-> Sep 17 02:32:09 localhost cx23885[0]: i2c bus 1 registered
-> Sep 17 02:32:09 localhost tvaudio' 2-004c: tea6420 found @ 0x98 (cx23885[0])
-> Sep 17 02:32:09 localhost msp3400' 2-0044: MSP164209A-17 found @ 0x88 (cx23885[0])
-> Sep 17 02:32:09 localhost msp3400' 2-0044: msp3400 mode is manual
-> Sep 17 02:32:09 localhost cx23885[0]: i2c bus 2 registered
-> Sep 17 02:32:09 localhost cx23885[0]: cx23885 based dvb card
-> Sep 17 02:32:09 localhost tuner-simple 0-0061: creating new instance
-> Sep 17 02:32:09 localhost tuner-simple 0-0061: type set to 64 (LG TDVS-H06xF)
-> Sep 17 02:32:09 localhost DVB: registering new adapter (cx23885[0])
-> Sep 17 02:32:09 localhost DVB: registering frontend 0 (LG Electronics LGDT3303 VSB/QAM Frontend)...
-> Sep 17 02:32:09 localhost cx23885_dev_checkrevision() Hardware revision = 0xb0
-> Sep 17 02:32:09 localhost cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 19, latency: 0, mmio: 0xfa800000
-> Sep 17 02:32:09 localhost PCI: Setting latency timer of device 0000:02:00.0 to 64
-> Sep 17 02:32:09 localhost b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded successfully
-> Sep 17 02:32:09 localhost flexcop-pci: will use the HW PID filter.
-> Sep 17 02:32:09 localhost flexcop-pci: card revision 2
-> Sep 17 02:32:09 localhost ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 18
-> Sep 17 02:32:09 localhost ACPI: PCI Interrupt 0000:04:08.0[A] -> Link [LNKA] -> GSI 18 (level, low) -> IRQ 18
-> Sep 17 02:32:09 localhost DVB: registering new adapter (FlexCop Digital TV device)
-> Sep 17 02:32:09 localhost i2c-adapter i2c-3: SMBus Quick command not supported, can't probe for chips
-> Sep 17 02:32:09 localhost i2c-adapter i2c-4: SMBus Quick command not supported, can't probe for chips
-> Sep 17 02:32:09 localhost i2c-adapter i2c-5: SMBus Quick command not supported, can't probe for chips
-> Sep 17 02:32:09 localhost b2c2-flexcop: MAC address = 00:d0:d7:0e:a6:c8
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
-> Sep 17 02:32:09 localhost CX24123: wrong demod revision: 87
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost mt352_read_register: readreg error (reg=127, ret==-121)
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -121)
-> Sep 17 02:32:09 localhost Unknown/Unsupported NXT chip: 00 00 00 00 00
-> Sep 17 02:32:09 localhost tuner-simple 3-0061: creating new instance
-> Sep 17 02:32:09 localhost tuner-simple 3-0061: type set to 64 (LG TDVS-H06xF)
-> Sep 17 02:32:09 localhost b2c2-flexcop: found 'LG Electronics LGDT3303 VSB/QAM Frontend' .
-> Sep 17 02:32:09 localhost DVB: registering frontend 1 (LG Electronics LGDT3303 VSB/QAM Frontend)...
-> Sep 17 02:32:09 localhost b2c2-flexcop: initialization of 'Air2PC/AirStar 2 ATSC 3rd generation (HD5000)' at the 'PCI' bus
-> controlled by a 'FlexCopIIb' complete
-> Sep 17 02:32:09 localhost flexcop-pci: will use the HW PID filter.
-> Sep 17 02:32:09 localhost flexcop-pci: card revision 2
-> Sep 17 02:32:09 localhost ACPI: PCI Interrupt Link [LNKB] enabled at IRQ 17
-> Sep 17 02:32:09 localhost ACPI: PCI Interrupt 0000:04:09.0[A] -> Link [LNKB] -> GSI 17 (level, low) -> IRQ 17
-> Sep 17 02:32:09 localhost DVB: registering new adapter (FlexCop Digital TV device)
-> Sep 17 02:32:09 localhost i2c-adapter i2c-6: SMBus Quick command not supported, can't probe for chips
-> Sep 17 02:32:09 localhost i2c-adapter i2c-7: SMBus Quick command not supported, can't probe for chips
-> Sep 17 02:32:09 localhost i2c-adapter i2c-8: SMBus Quick command not supported, can't probe for chips
-> Sep 17 02:32:09 localhost b2c2-flexcop: MAC address = 00:d0:d7:0e:6c:aa
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
-> Sep 17 02:32:09 localhost CX24123: wrong demod revision: 87
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost mt352_read_register: readreg error (reg=127, ret==-121)
-> Sep 17 02:32:09 localhost b2c2-flexcop: i2c master_xfer failed
-> Sep 17 02:32:09 localhost nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -121)
-> Sep 17 02:32:09 localhost Unknown/Unsupported NXT chip: 00 00 00 00 00
-> Sep 17 02:32:09 localhost tuner-simple 6-0061: creating new instance
-> Sep 17 02:32:09 localhost tuner-simple 6-0061: type set to 64 (LG TDVS-H06xF)
-> Sep 17 02:32:09 localhost b2c2-flexcop: found 'LG Electronics LGDT3303 VSB/QAM Frontend' .
-> Sep 17 02:32:09 localhost DVB: registering frontend 2 (LG Electronics LGDT3303 VSB/QAM Frontend)...
-> Sep 17 02:32:09 localhost b2c2-flexcop: initialization of 'Air2PC/AirStar 2 ATSC 3rd generation (HD5000)' at the 'PCI' bus
-> controlled by a 'FlexCopIIb' complete
-> Sep 17 02:32:09 localhost bt878: AUDIO driver version 0.0.0 loaded
-> #====================== SNIP =======================================================
-> 
-> Given the above it looks like it is detected properly and I can even find the adapter under /dev/dvb.  The problem I seem to be
-> having is when it comes to getting it to tune.  I get the following errors:
-> 
-> #====================== BEGIN ======================================================
-> scanning /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->>>> tune to: 57028615:8VSB
-> WARNING: >>> tuning failed!!!
->>>> tune to: 57028615:8VSB (tuning failed)
-> WARNING: >>> tuning failed!!!
->>>> tune to: 63028615:8VSB
-> WARNING: >>> tuning failed!!!
->>>> tune to: 63028615:8VSB (tuning failed)
-> WARNING: >>> tuning failed!!!
->>>> tune to: 69028615:8VSB
-> WARNING: >>> tuning failed!!!
->>>> tune to: 69028615:8VSB (tuning failed)
-> WARNING: >>> tuning failed!!!
->>>> tune to: 79028615:8VSB
-> WARNING: >>> tuning failed!!!
->>>> tune to: 79028615:8VSB (tuning failed)
-> WARNING: >>> tuning failed!!!
->>>> tune to: 85028615:8VSB
-> WARNING: >>> tuning failed!!!
->>>> tune to: 85028615:8VSB (tuning failed)
-> WARNING: >>> tuning failed!!!
->>>> tune to: 177028615:8VSB
-> WARNING: >>> tuning failed!!!
->>>> tune to: 177028615:8VSB (tuning failed)
-> WARNING: >>> tuning failed!!!
->>>> tune to: 183028615:8VSB
-> WARNING: >>> tuning failed!!!
-> #====================== SNIP =======================================================
-> 
-> I figure the problem is really operator error, but I cannot seem to figure it out.  I probably just can't see the forest because of
-> all those dang trees.
-> 
-> Any help, ideas, suggestions, anything would be greatly appreciated.
-> Thanks,
-> --J. Evans
+Le Wednesday 24 September 2008 16:08:21 Hans Werner, vous avez =E9crit=A0:
+> > Le Tuesday 23 September 2008 18:27:57 Hans Werner, vous avez =E9crit :
+> > > > Sure, here it is (patch against current svn
+> > > > http://websvn.kde.org/branches/extragear/kde3/multimedia/)
+> > > >
+> > > > Atm, s2api is only used for S/S2.
+> > > >
+> > > > P.S.
+> > > > In order to play H264/HD with kaffeine/xine, you need a fairly rece=
+nt
+> > > > ffmpeg
+> > > > and xine compiled with --with-external-ffmpeg configure option. (and
+> >
+> > of
+> >
+> > > > course a quite strong cpu, unlike my old athlon-xp-2600 :)
+> > > > However, you can still record and/or broadcast without this update.
+> > >
+> > > Success! Many thanks Christophe.
+> > >
+> > > With the following:
+> > > HVR4000 card
+> > > S2API + multifrontend patch (hg clone
+> >
+> > http://linuxtv.org/hg/~stoth/s2-mfe)
+> >
+> > > ffmpeg from SVN
+> > > xine-lib from mercurial (compiled with --with-external-ffmpeg)
+> > > Kaffeine from SVN + Christophe's S2API patch
+> >
+> > Good :)
+> >
+> > > Scanning to find channels and tuning are working in Kaffeine for =
 
-Debug looks OK. If you have another board where you know for certain 
-that tuning a specific 8VSB frequency works, then tuning this same 
-frequency with the LG should probably work reliably.
+> > > DVB-T, DVB-S and DVB-S2. S/S2 tuning and scanning is with S2API.
+> > >
+> > > My CPU (3ghz core 2 quad) is fast enough to show live HD video so I c=
+an
+> > > watch HD channels live inside Kaffeine,
+> >
+> > Lucky you :)
+> >
+> > > or record to disk and watch
+> > > afterwards. ASTRA HD+ and ANIXE HD are good. ARTE HD throws some erro=
+rs
+> >
+> > and
+> >
+> > > stutters a bit. Simul HD can crash Kaffeine.
+>
+> Does anyone have any info about Arte HD or Simul HD?
+>
+> > > I enabled the two lines in dvbstream.cpp which set modulation to QPSK
+> > > instead of QAM_AUTO for DVB-S.
+> >
+> > So, you see this also. This was my original report, and why i introduced
+> > this
+> > fix.
+> >
+> > > Settings: number of xine threads >=3D 4, de-interlacing(CTRL-I) at
+> > > minimum (is it useful for HD ?
+> >
+> > Yes for 1080i but not for 720p.
+> >
+> > > I don't know). The load isn't always distributed
+> > > well across the 4 cpus -- it can max out one of them sometimes, with
+> > > the others almost idle. Perhaps this can be improved.
+> >
+> > Perhaps, but this is ffmpeg stuff.
+>
+> Yes. The multithreaded decoding does spread the load well for some HD
+> channels.
+>
+> > Btw, while cx24116 single-frontend seems pretty stable, the mfe driver =
+is
+> > not
+> > here. As soon as i switch to dvb-t, the cx24116 firmware crashes (at
+> > least seems so: ~"Firmware doen't respond .." ) and is reloaded on next
+> > S/S2 zap,
+> > and after a while, the dvb-t signal appears more and more noisy. I have
+> > to unload/reload the modules to cure this.
+>
+> Oh. I haven't seen any problems like that or heard it reported before.
+> I am using firmware version 1.23.86.1. Which version are you using?
 
-In terms of the tuner-to-demod, are you confident that the I/F is set 
-correctly? (And inversion for that matter?)
-
-- Steve
+1.20.79.0
 
 
+-- =
+
+Christophe Thommeret
 
 
 _______________________________________________
