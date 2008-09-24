@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Sun, 28 Sep 2008 01:45:48 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Andreas Oberritter <obi@linuxtv.org>
-Message-ID: <20080928014548.5d9493e7@mchehab.chehab.org>
-In-Reply-To: <48DCEBD1.9010003@linuxtv.org>
-References: <200809261129.07494.mldvb@mortal-soul.de>
-	<48DCEBD1.9010003@linuxtv.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] implement proper locking in the dvb ca
- en50221 driver
+Received: from qb-out-0506.google.com ([72.14.204.235])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ian.ravisky@gmail.com>) id 1KiWls-0007Df-VA
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 17:59:22 +0200
+Received: by qb-out-0506.google.com with SMTP id e11so1829657qbe.25
+	for <linux-dvb@linuxtv.org>; Wed, 24 Sep 2008 08:59:15 -0700 (PDT)
+Message-ID: <88eb5e580809240859g3bed70c9x31793fea24cf6285@mail.gmail.com>
+Date: Wed, 24 Sep 2008 17:59:15 +0200
+From: "Ian Ravisky" <ian.ravisky@gmail.com>
+To: linux-dvb@linuxtv.org
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] DVB-S2 and CA
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,35 +25,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 26 Sep 2008 16:04:01 +0200
-Andreas Oberritter <obi@linuxtv.org> wrote:
+Hello list,
 
-> Hello Matthias,
-> 
-> Matthias Dahl wrote:
-> > Since Oliver regrettably resigned from maintaining the dvb-ttpci subtree, I am 
-> > resending this patch which hopefully gets applied to the main tree. It fixes 
-> > a long standing issue with the ci device getting in an semi-undefined state 
-> > where the application needs to be restarted for the ci device to work again. 
-> > 
-> > Attached you'll find the patch for the dvb ca en50221 driver which fixes all 
-> > reported problems without introducing new ones. The patched driver has been 
-> > working for a few weeks now without any sign of trouble. I also got one user 
-> > reporting that at least nothing broke and that he hopes this fixes his issues 
-> > as well. (so far it looks good for him) 
-> 
-> you should CC Mauro for all patches which are not going to be applied
-> through another person.
-> 
-> Mauro, please pick up the patch from Matthias' email. This patch
-> probably needs a wider audience for testing. So I think it's best to
-> apply it on v4l-dvb now and send it to Linus once the next merge window
-> opens.
+We have Technotrend's DVB-S2 TTbudget3200 board with CA CI board.
+While DVB-S2 board does work CA CI slot is not detected.
+We use Multiproto and Debian.
 
-OK, I'll apply it right now.
+Was anybody succeed to make CA CI working with any DVB-S2 receiver ?
+We need to make it running urgently.
 
-Cheers,
-Mauro
+Your help will be greatly appreciated.
+
+Kind Regards
+Ian
 
 _______________________________________________
 linux-dvb mailing list
