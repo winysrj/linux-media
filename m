@@ -1,29 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f20.google.com ([209.85.217.20])
+Received: from gordons.ginandtonic.no ([195.159.29.69])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dougsland@gmail.com>) id 1Kj4wH-0004sr-Jt
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 06:28:25 +0200
-Received: by gxk13 with SMTP id 13so7880963gxk.17
-	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 21:27:42 -0700 (PDT)
-Date: Thu, 25 Sep 2008 21:27:32 -0400
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-ID: <20080925212732.70e70bef@gmail.com>
-In-Reply-To: <1222385832.4589.41.camel@pc10.localdom.local>
-References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
-	<a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>
-	<48DBBAC0.7030201@gmx.de>
-	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
-	<20080925181943.GA12800@halim.local>
-	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
-	<48DBF224.2010109@gmx.de>
-	<37219a840809251340n7c588667xd18982f78e68a2ec@mail.gmail.com>
-	<d9def9db0809251400r331c0667k733486a013eccefe@mail.gmail.com>
-	<1222385832.4589.41.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
- view
+	(envelope-from <anders@ginandtonic.no>) id 1Kia5y-0007vU-Ul
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 21:32:21 +0200
+Message-Id: <05526178-8585-4996-9E3E-24A2BCF33C1B@ginandtonic.no>
+From: Anders Semb Hermansen <anders@ginandtonic.no>
+To: Darron Broad <darron@kewl.org>
+In-Reply-To: <7674.1222283382@kewl.org>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Date: Wed, 24 Sep 2008 21:31:39 +0200
+References: <953A45C4-975B-4A05-8B41-AE8A486D0CA6@ginandtonic.no>
+	<5584.1222273099@kewl.org>
+	<F70AC72F-8DF3-4A9A-BFA1-A4FED9D3EABC@ginandtonic.no>
+	<6380.1222276810@kewl.org>
+	<8C08530B-BAD7-4E83-B1CA-6AB66EE9F53F@ginandtonic.no>
+	<7674.1222283382@kewl.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-4000 and analogue tv
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,50 +30,71 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Den 24. sep.. 2008 kl. 21.09 skrev Darron Broad:
 
-On Fri, 26 Sep 2008 01:37:12 +0200
-hermann pitton <hermann-pitton@arcor.de> wrote:
+<snip>
 
-> 
-> Who the hell is VDR User <user.vdr@gmail.com> ?
-> Klaus himself?
-> 
-> At least he knows nothing about Mauro's real work on video4linux.
+>> I did some more investigating.
+>>
+>> I thought maybe this had something to do with the tuner, since I got
+>> snow. So I enabled debugging for the tuner module (debug=1). What I
+>> saw was that when I started watching TV in myth, there was a
+>> TUNER_SET_STANDBY after frequency and other things was set. This
+>> TUNER_SET_STANDBY did not appear when I was just changing channel  
+>> (and
+>> picture worked).
+>>
+>> So I searched the driver for TUNER_STANDBY and found one which I
+>> tried. Here is what I did:
+>>
+>> diff -r e5ca4534b543 linux/drivers/media/video/cx88/cx88-video.c
+>> --- a/linux/drivers/media/video/cx88/cx88-video.c       Tue Sep 09
+>> 08:29:56 2008 -0700
+>> +++ b/linux/drivers/media/video/cx88/cx88-video.c       Wed Sep 24
+>> 20:35:46 2008 +0200
+>> @@ -1152,7 +1152,8 @@
+>>        file->private_data = NULL;
+>>        kfree(fh);
+>>
+>> -       cx88_call_i2c_clients (dev->core, TUNER_SET_STANDBY, NULL);
+>> +       printk("Don't set standby mode! TUNER_SET_STANDBY NO SIR!");
+>> +       //cx88_call_i2c_clients (dev->core, TUNER_SET_STANDBY, NULL);
+>>
+>>        return 0;
+>> }
+>>
+>>
+>> This fixed it!!
+>>
+>> I don't know what side effects this will have. Or if this is caused  
+>> by
+>> wrong use of v4l by mythtv, or driver not implementing it correctly.
+>> Those who know the codebase can maybe answer that and come up with a
+>> better permanent solution.
+>
+> I admit I found your fix interesting. In fact, you can reproduce
+> this using tvtime and cat.
+>
+> Eg.
+>
+>> tvtime -d /dev/video0 &
+>> cat /dev/video0
 
-Agreed. He's *totally lost* about Mauro's work. 
- 
-> To prepare the kernel sync and give the patchmonkey on Johannes'
-> request for dvb too, are only a very few percent of his work and the
-> "thanks" he had for this so far are it not worth at all ...
-> 
-> On all other major projects, where he is the maintainer, such absurd
-> stuff did never happen.
-> 
-> The dvb guys inside don't get their stuff together and do exclude each
-> other. At least Steve had no other choice than to come up with his own
-> solution.
+It's a big hack yes. It was easier to change and test the driver  
+instead of mythtv. Smaller code base and easier to compile and install.
 
-Definitely.
+> The problem in mythtv appears to be in OpenV4L2DeviceAsInput(void)
+> where is opens the video device twice although I have no confirmed it.
 
-> What a bullshit to accuse Mauro of missing maintainer ship, all asked
-> him to stay out as far as possible to continue to play there own
-> games! 
+A ticket in mythtv someone else had with open twice:
+http://svn.mythtv.org/trac/ticket/5711
+It was closed because it was a feature request without a patch.
 
-For sure, there are people here trying this every single day.
-Insted of spend time improving drivers they prefer attack Mauro and
-people that are working hard in their spare time.
+I don't know if it's related to my problem or not.
 
-> But they just load the daily dirt on him they preferably don't like to
-> care themselves for at all, including patch reviewing in many parts.
-> 
-> Also Mike did more integration work across the frameworks than anyone
-> else during the last year. That by the way.
 
-Agreed.
+Anders
 
-Cheers,
-Douglas
 
 _______________________________________________
 linux-dvb mailing list
