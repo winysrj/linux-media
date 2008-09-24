@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bombadil.infradead.org ([18.85.46.34])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<SRS0+aab6bb3e1a0954efc56a+1859+infradead.org+mchehab@bombadil.srs.infradead.org>)
-	id 1KiqWu-0003Du-UU
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 15:05:13 +0200
-Date: Thu, 25 Sep 2008 09:45:38 -0300 (BRT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Thierry Lelegard <thierry.lelegard@tv-numeric.com>
-In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAFWGD+9r2SkGGhLj/rwn00AEAAAAA@tv-numeric.com>
-Message-ID: <alpine.LFD.1.10.0809250942251.21990@areia.chehab.org>
-References: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAFWGD+9r2SkGGhLj/rwn00AEAAAAA@tv-numeric.com>
+Received: from scing.com ([217.160.110.58])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <janne-dvb@grunau.be>) id 1KiIMd-0002GI-P8
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 02:36:20 +0200
+From: Janne Grunau <janne-dvb@grunau.be>
+To: linux-dvb@linuxtv.org
+Date: Wed, 24 Sep 2008 02:36:14 +0200
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<a3ef07920809231506h722c9fd4h1e3b8c3e40ca32cb@mail.gmail.com>
+In-Reply-To: <a3ef07920809231506h722c9fd4h1e3b8c3e40ca32cb@mail.gmail.com>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] RE : [RFC] Let the future decide between the two.
+Content-Disposition: inline
+Message-Id: <200809240236.15144.janne-dvb@grunau.be>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,30 +20,78 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 25 Sep 2008, Thierry Lelegard wrote:
+On Wednesday 24 September 2008 00:06:59 VDR User wrote:
+> On Tue, Sep 23, 2008 at 2:16 PM, Mauro Carvalho Chehab
+>
+> <mchehab@infradead.org> wrote:
+> > The DVB BOF had the presence of the following LinuxTV members:
+> >
+> >        Douglas Schilling Landgraf
+> >        Hans Verkuil
+> >        Mauro Carvalho Chehab
+> >        Michael Krufky
+> >        Patrick Boettcher
+> >        Steven Toth
+> >        Thierry Merle
+> >        Manjunath Hadlii
+>
+> At least half of that list already pledged their support for S2API
+> and based on past observations, I seriously doubt the meeting was
+> unbiased and a decision made based on strictly technical aspects.
 
-> I use only DVT-T devices. I have 4 of them, all working on Linux
-> for months or years and there is no one single repository supporting
-> all of them at the same time. Most are supported by
-> http://linuxtv.org/hg/v4l-dvb, another one needs
-> http://linuxtv.org/hg/~anttip/af9015 plus other patches.
-> And this is not a transitional situation, it lasts for months.
+So you doubt anyone who previously stated his opinion on multiproto or =
 
-Patches are merged upstream when their authors think they're ready and 
-sends a pull request.
+S2API is unable to make a decision on technical merrits? Since most =
 
-In the case of af9015, Antti sent us a pull request those days and were 
-merged this week at the development tree. It should be available for 
-2.6.28.
+linuxtv devs already gave their opinion on the API proposal nobody is =
 
-Cheers,
-Mauro
+able to make a decision. =
+
+
+> I also believe the panel should consist of people intimately familiar
+> with DVB, not half people who aren't and the other half people who've
+> already made up their mind.  Call me crazy but I don't see how a
+> legitimate discussion can take place under those conditions.
+
+Are you going to sponser and organize a meeting of all linuxtv DVB =
+
+developers?
+I agree that it would have been nice if more developers and especially =
+
+Manu would have been at the DVB BOF. But more than 2/3 (849/1245) of =
+
+the commits to drivers/media/dvb in the last 1000 days were done by =
+
+people present at the meeting. It's not completly unreasonable to treat =
+
+a decision of that group as a decission of the linuxtv developers.
+
+> > The main arguments in favor of S2API over Multiproto are:
+> >
+> >        - Future proof =96 the proposal for S2API is more flexible,
+> > easily allowing the addition of newer features and new standard
+> > support;
+> >
+> >        - Simplicity =96 S2API patches are very simple, while
+> > Multiproto presented a very complex series of changes. Simpler
+> > approaches reduces the time for maintaining the source code;
+> >
+> >        - Capability of allowing improvements even on the existing
+> > standards, like allowing diversity control that starts to appear on
+> > newer DVB devices.
+>
+> My previous comment aside, I would like to ask for a more detailed
+> explanation that justifies these arguments,
+
+I support that, please be more verbose.
+
+Janne
 
 _______________________________________________
 linux-dvb mailing list
