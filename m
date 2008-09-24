@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8ONaiYv031410
-	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 19:36:45 -0400
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8ONZAYg031214
+	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 19:35:10 -0400
 Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8ONYsTa015001
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8ONYqMj014996
 	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 19:34:55 -0400
-Message-Id: <200809242334.m8ONYsTa015001@mx3.redhat.com>
+Message-Id: <200809242334.m8ONYqMj014996@mx3.redhat.com>
 From: Tobias Lorenz <tobias.lorenz@gmx.net>
 To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Thu, 25 Sep 2008 00:33:09 +0200
+Date: Thu, 25 Sep 2008 00:21:50 +0200
 MIME-Version: 1.0
+Content-Disposition: inline
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org
-Subject: [PATCH 6/6] si470x: removement of get/set input/audio
+Subject: [PATCH 2/6] si470x: improvement of module device support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,118 +29,103 @@ List-ID: <video4linux-list@redhat.com>
 
 Hi Mauro,
 
-this patch removes the unnecessary get/set input/audio functions.
-The reason is, that the V4L2 specification says, that if input or audio cannot be switched anyway, the functions doesn't need to be implemented.
-I've tested the new driver with all current radio programs in Debian/testing and found no problems with that.
+this patch improves support for multiple radio devices.
+In previous versions all region relevant settings were derived from one module parameter.
+As in future versions, the region and other configuration should be configurable per device from the user space, this patch already retrieves all relevant information from the actual device specific settings.
 
-In my opinion, the driver is much cleaner by removing these unnecessary functions.
-
-Bye,
+Best regards,
 Toby
+
 
 Signed-off-by: Tobias Lorenz <tobias.lorenz@gmx.net>
 --- a/linux/drivers/media/radio/radio-si470x.c	2008-09-24 22:30:00.000000000 +0200
 +++ b/linux/drivers/media/radio/radio-si470x.c	2008-09-24 22:30:00.000000000 +0200
-@@ -1221,36 +1221,6 @@ static int si470x_vidioc_querycap(struct
+@@ -672,23 +672,29 @@ static int si470x_get_freq(struct si470x
+ 	int retval;
  
+ 	/* Spacing (kHz) */
+-	switch (space) {
++	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_SPACE) >> 4) {
+ 	/* 0: 200 kHz (USA, Australia) */
+-	case 0 : spacing = 0.200 * FREQ_MUL; break;
++	case 0:
++		spacing = 0.200 * FREQ_MUL; break;
+ 	/* 1: 100 kHz (Europe, Japan) */
+-	case 1 : spacing = 0.100 * FREQ_MUL; break;
++	case 1:
++		spacing = 0.100 * FREQ_MUL; break;
+ 	/* 2:  50 kHz */
+-	default: spacing = 0.050 * FREQ_MUL; break;
++	default:
++		spacing = 0.050 * FREQ_MUL; break;
+ 	};
  
- /*
-- * si470x_vidioc_g_input - get input
-- */
--static int si470x_vidioc_g_input(struct file *file, void *priv,
--		unsigned int *i)
--{
--	*i = 0;
--
--	return 0;
--}
--
--
--/*
-- * si470x_vidioc_s_input - set input
-- */
--static int si470x_vidioc_s_input(struct file *file, void *priv, unsigned int i)
--{
--	int retval = 0;
--
--	/* safety checks */
--	if (i != 0)
--		retval = -EINVAL;
--
--	if (retval < 0)
--		printk(KERN_WARNING DRIVER_NAME
--			": set input failed with %d\n", retval);
--	return retval;
--}
--
--
--/*
-  * si470x_vidioc_queryctrl - enumerate control items
-  */
- static int si470x_vidioc_queryctrl(struct file *file, void *priv,
-@@ -1369,44 +1339,13 @@ done:
- static int si470x_vidioc_g_audio(struct file *file, void *priv,
- 		struct v4l2_audio *audio)
- {
--	int retval = 0;
--
--	/* safety checks */
--	if (audio->index != 0) {
--		retval = -EINVAL;
--		goto done;
--	}
--
-+	/* driver constants */
-+	audio->index = 0;
- 	strcpy(audio->name, "Radio");
- 	audio->capability = V4L2_AUDCAP_STEREO;
-+	audio->mode = 0;
+ 	/* Bottom of Band (MHz) */
+-	switch (band) {
++	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
+ 	/* 0: 87.5 - 108 MHz (USA, Europe) */
+-	case 0 : band_bottom = 87.5 * FREQ_MUL; break;
++	case 0:
++		band_bottom = 87.5 * FREQ_MUL; break;
+ 	/* 1: 76   - 108 MHz (Japan wide band) */
+-	default: band_bottom = 76   * FREQ_MUL; break;
++	default:
++		band_bottom = 76   * FREQ_MUL; break;
+ 	/* 2: 76   -  90 MHz (Japan) */
+-	case 2 : band_bottom = 76   * FREQ_MUL; break;
++	case 2:
++		band_bottom = 76   * FREQ_MUL; break;
+ 	};
  
--done:
--	if (retval < 0)
--		printk(KERN_WARNING DRIVER_NAME
--			": get audio failed with %d\n", retval);
--	return retval;
--}
--
--
--/*
-- * si470x_vidioc_s_audio - set audio attributes
-- */
--static int si470x_vidioc_s_audio(struct file *file, void *priv,
--		struct v4l2_audio *audio)
--{
--	int retval = 0;
--
--	/* safety checks */
--	if (audio->index != 0) {
--		retval = -EINVAL;
--		goto done;
--	}
--
--done:
--	if (retval < 0)
--		printk(KERN_WARNING DRIVER_NAME
--			": set audio failed with %d\n", retval);
--	return retval;
-+	return 0;
- }
+ 	/* read channel */
+@@ -711,23 +717,29 @@ static int si470x_set_freq(struct si470x
+ 	unsigned short chan;
  
+ 	/* Spacing (kHz) */
+-	switch (space) {
++	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_SPACE) >> 4) {
+ 	/* 0: 200 kHz (USA, Australia) */
+-	case 0 : spacing = 0.200 * FREQ_MUL; break;
++	case 0:
++		spacing = 0.200 * FREQ_MUL; break;
+ 	/* 1: 100 kHz (Europe, Japan) */
+-	case 1 : spacing = 0.100 * FREQ_MUL; break;
++	case 1:
++		spacing = 0.100 * FREQ_MUL; break;
+ 	/* 2:  50 kHz */
+-	default: spacing = 0.050 * FREQ_MUL; break;
++	default:
++		spacing = 0.050 * FREQ_MUL; break;
+ 	};
  
-@@ -1618,13 +1557,10 @@ done:
-  */
- static const struct v4l2_ioctl_ops si470x_ioctl_ops = {
- 	.vidioc_querycap	= si470x_vidioc_querycap,
--	.vidioc_g_input		= si470x_vidioc_g_input,
--	.vidioc_s_input		= si470x_vidioc_s_input,
- 	.vidioc_queryctrl	= si470x_vidioc_queryctrl,
- 	.vidioc_g_ctrl		= si470x_vidioc_g_ctrl,
- 	.vidioc_s_ctrl		= si470x_vidioc_s_ctrl,
- 	.vidioc_g_audio		= si470x_vidioc_g_audio,
--	.vidioc_s_audio		= si470x_vidioc_s_audio,
- 	.vidioc_g_tuner		= si470x_vidioc_g_tuner,
- 	.vidioc_s_tuner		= si470x_vidioc_s_tuner,
- 	.vidioc_g_frequency	= si470x_vidioc_g_frequency,
+ 	/* Bottom of Band (MHz) */
+-	switch (band) {
++	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
+ 	/* 0: 87.5 - 108 MHz (USA, Europe) */
+-	case 0 : band_bottom = 87.5 * FREQ_MUL; break;
++	case 0:
++		band_bottom = 87.5 * FREQ_MUL; break;
+ 	/* 1: 76   - 108 MHz (Japan wide band) */
+-	default: band_bottom = 76   * FREQ_MUL; break;
++	default:
++		band_bottom = 76   * FREQ_MUL; break;
+ 	/* 2: 76   -  90 MHz (Japan) */
+-	case 2 : band_bottom = 76   * FREQ_MUL; break;
++	case 2:
++		band_bottom = 76   * FREQ_MUL; break;
+ 	};
+ 
+ 	/* Chan = [ Freq (Mhz) - Bottom of Band (MHz) ] / Spacing (kHz) */
+@@ -1430,7 +1442,8 @@ static int si470x_vidioc_g_tuner(struct 
+ 		goto done;
+ 
+ 	strcpy(tuner->name, "FM");
+-	switch (band) {
++	/* range limits */
++	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
+ 	/* 0: 87.5 - 108 MHz (USA, Europe, default) */
+ 	default:
+ 		tuner->rangelow  =  87.5 * FREQ_MUL;
 
 --
 video4linux-list mailing list
