@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m83Lmo6r011034
-	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 17:48:51 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.224])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m83LmLFN022320
-	for <video4linux-list@redhat.com>; Wed, 3 Sep 2008 17:48:40 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so2841404rvb.51
-	for <video4linux-list@redhat.com>; Wed, 03 Sep 2008 14:48:40 -0700 (PDT)
-Message-ID: <2df568dc0809031448y3e70715codb5f3a0be505f6cf@mail.gmail.com>
-Date: Wed, 3 Sep 2008 15:48:39 -0600
-From: "Gordon Smith" <spider.karma+video4linux-list@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8OJs6dK012013
+	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 15:54:06 -0400
+Received: from static.169.44.46.78.clients.your-server.de
+	(static.169.44.46.78.clients.your-server.de [78.46.44.169])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8OJrt1L007417
+	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 15:53:56 -0400
+Received: from [192.168.1.51] (d90-129-47-250.cust.tele2.lu [90.129.47.250])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by static.169.44.46.78.clients.your-server.de (Postfix) with ESMTP id
+	DE3C129A80FC for <video4linux-list@redhat.com>;
+	Wed, 24 Sep 2008 21:53:59 +0200 (CEST)
+Message-ID: <48DA9ACB.1020900@hardfalcon.net>
+Date: Wed, 24 Sep 2008 21:53:47 +0200
+From: hardfalcon <spam@hardfalcon.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: saa7134_empress standard vs input
+Subject: saa7134 PCI card (CTX917): FM radio not working
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,37 +31,68 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Greetings -
+Hi, I got a Creatix CTX917 (there seem to exist multiple versions of
+this card, mine got for example on the outside 2 video in  (one cinch
+and one S-Video), a line in jack and 2 RF connectors, one for TV/DVB-T
+and one for the Radio atenna, on the inside there are 3 of these "4 pin
+CD to soundcard" like connectors, one in white, one in red and one in
+yellow).
 
-I have a RTD Technologies VFG7350 (saa7134 based, two channel,
-hardware encoder per channel, no tuner) running current v4l-dvb in
-2.6.25-gentoo-r7.
+After I got DVB-T and normal TV to work, I wanted to be able to use the
+built-in FM radio, too. The radio tuner seems to be detected, as
+/dev/radio, /dev/radio1 and /dev/v4l/radio1 are created, but the "radio"
+tool isn't working, neither as user nor as root. It tunes, but there
+simply is not sound, and there are no radio signals detected if I use
+the "auto" mode of gqradio, either.
 
-Short form question: Is it necessary to do something to connect an
-input standard to an MPEG encoder?
+My distro is Archlinux 64bit with all the latest updates, including
+those from testing and unstable repositories, so my kernel version is
+2.6.26.5. I'm using the stock kernel from the official Archlinux repos
+(package "kernel26", release "2.6.26.5-1").
 
-I seem to have a disconnect between input signal and the MPEG encoder.
-In this case, there is a NTSC camera signal on the input.
-Raw data and input selection are on video0. Raw data can be read from
-and input selected on video0. MPEG encoder output is on video2. MPEG
-data can be read from video2, but it looks like PAL aspect with NTSC
-data (extra lines at bottom of image repeat uppermost lines).
+I recently got a Hauppauge Nova-T (one of the first ones, with the old
+brown PCB and Philips chips), which is working flawlessly (my only
+problem is that I haven't found a way yet to select the DVB-T card I
+want to use in Kaffeine or any of the other DVB apps I've tried. Perhaps
+somebody could give me a hint?)
+
+Here is some more info:
+-----[lspci]--------------------
+02:0a.0 Multimedia controller: Philips Semiconductors SAA7134/SAA7135HL
+Video Broadcast Decoder (rev 01)
+    Subsystem: Creatix Polymedia GmbH Medion 7134
+    Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B- DisINTx-
+    Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+    Latency: 84 (21000ns min, 8000ns max)
+    Interrupt: pin A routed to IRQ 18
+    Region 0: Memory at efefe000 (32-bit, non-prefetchable) [size=1K]
+    Capabilities: [40] Power Management version 1
+        Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+        Status: D0 PME-Enable- DSel=0 DScale=1 PME-
+    Kernel driver in use: saa7134
+    Kernel modules: saa7134
+--------------------[/lspci]-----
 
 
-$ v4l2-ctl --get-standard --device /dev/video0
-Video Standard = 0x0000b000
-        NTSC-M/M-JP/M-KR
-$ v4l2-ctl --get-standard --device /dev/video2
-Video Standard = 0x000000ff
-        PAL-B/B1/G/H/I/D/D1/K
+Besides my problem with the CTX917, I'd have a more general question:
+(how) would it be possible to use the tuner of a TV card (analogue TV or
+DVB-T) as some kind of "universal receiver" for a software defined
+reciever? For me as a ham radio operator, a receiver being able to
+digitalize radio signals from such a broad spectrum as 800Mhz would be
+very interesting, especially considering that a "real" receiver (even
+just a handheld) would cost 5 times more than a cheap TV card for my
+computer. Of course, the ability to digitalize the "raw" signal from the
+air without any demodulation would be another great advantage over a
+traditional receiever (although I'd also be more than happy if I was
+just able to demodulate FM signals on this broad spectrum).
 
 
-The input standard is automatically selected by the hardware.
-Is there something that needs to be set to match the standard between
-input and encoder?
 
-Thanks,
-Gordon
+Thanks a lot in adavance guys, you're doing a great job here! :)
+Pascal
 
 --
 video4linux-list mailing list
