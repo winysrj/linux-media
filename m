@@ -1,25 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+Received: from wf-out-1314.google.com ([209.85.200.168])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KescM-00089m-BP
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 16:30:27 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K760098RW9RMI20@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sun, 14 Sep 2008 10:29:52 -0400 (EDT)
-Date: Sun, 14 Sep 2008 10:29:51 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <d9def9db0809140651l392282d4u87098881ce4ca382@mail.gmail.com>
-To: free_beer_for_all@yahoo.com
-Message-id: <48CD1FDF.8090106@linuxtv.org>
-MIME-version: 1.0
-References: <d9def9db0809131910h2ff43b9auf86eb340adb2fac8@mail.gmail.com>
-	<391631.73780.qm@web46111.mail.sp1.yahoo.com>
-	<d9def9db0809140651l392282d4u87098881ce4ca382@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+	(envelope-from <lucastim@gmail.com>) id 1KiLOE-0000rv-B0
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 05:50:10 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so2713274wfd.17
+	for <linux-dvb@linuxtv.org>; Tue, 23 Sep 2008 20:50:06 -0700 (PDT)
+Message-ID: <e32e0e5d0809232050s1d0257e3m30c9c055e9d32dd6@mail.gmail.com>
+Date: Tue, 23 Sep 2008 20:50:06 -0700
+From: "Tim Lucas" <lucastim@gmail.com>
+To: "Steven Toth" <stoth@linuxtv.org>, "linux dvb" <linux-dvb@linuxtv.org>
+In-Reply-To: <e32e0e5d0809232045j56bef9ah1ec3ac59401de0d5@mail.gmail.com>
+MIME-Version: 1.0
+References: <e32e0e5d0809171545r3c2e58beh62d58fa6d04dae71@mail.gmail.com>
+	<48D34C69.6050700@linuxtv.org>
+	<e32e0e5d0809232045j56bef9ah1ec3ac59401de0d5@mail.gmail.com>
+Subject: Re: [linux-dvb] Porting analog support from HVR-1500 to the DViCO
+	FusionHDTV7 Dual Express (Read this one)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,44 +23,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1095521318=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus Rechberger wrote:
-> On Sun, Sep 14, 2008 at 12:51 PM, barry bouwsma
-> <free_beer_for_all@yahoo.com> wrote:
->> --- On Sun, 9/14/08, Markus Rechberger <mrechberger@gmail.com> wrote:
->>
->>>>>> (Also to be noted is that, some BSD chaps also have shown interest in
->> Does BSD == NetBSD here?  Or are there other developments
->> as well that I'm not aware of?
->>
-> 
-> for now it's netBSD, we're offering support to everyone who's interested.
-> 
-> 
->>> As for the em28xx driver I agreed with pushing all my code
->> Do you want to have patches for your repository, like the
->> following (just an example, based on the NetBSD SOC source)
->>
-> 
-> If you look at the chipdrivers, manufacturers often have independent
-> code there, as code can be kept independent in that area.
-> The bridge driver will contain operating system dependent code of course,
-> The drx driver which you mention mostly uses the Code which came from
-> Micronas, the module interface code which you looked at is linux
-> specific yes, but it's more or less just a wrapper against the
-> original source. It's the same with upcoming drivers.
+--===============1095521318==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_35596_5761930.1222228206072"
 
-xc5000 and mxl5005 drivers are good examples of this. Basically 
-reference code with a DVB wrapper and whitespace + context passing changes.
+------=_Part_35596_5761930.1222228206072
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-- Steve
+I forgot to mention that I commented out the digital tuner at .portc first.
+ Then I tried to tune channels, but could not.  Then I changed the tuner to
+0xc8 >> 1, leaving .portc commented out.  I still could not tune channels.
+     --Tim
+
+------=_Part_35596_5761930.1222228206072
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">I forgot to mention that I commented out the digital tuner at .portc first. &nbsp;Then I tried to tune channels, but could not. &nbsp;Then I changed the tuner to 0xc8 &gt;&gt; 1, leaving .portc commented out. &nbsp;I still could not tune channels.<div>
+<br></div><div>&nbsp;&nbsp; &nbsp; --Tim<br><br><div class="gmail_quote"><br></div>
+</div></div>
+
+------=_Part_35596_5761930.1222228206072--
+
+
+--===============1095521318==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1095521318==--
