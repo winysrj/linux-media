@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.30])
+Received: from scing.com ([217.160.110.58])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1KexDd-0007hx-7w
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 21:25:14 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so499186yxg.41
-	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 12:25:09 -0700 (PDT)
-Message-ID: <d9def9db0809141225q421828cdn8b97c0e61b99acac@mail.gmail.com>
-Date: Sun, 14 Sep 2008 21:25:08 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Simon Kenyon" <simon@koala.ie>
-In-Reply-To: <1221419319.9803.0.camel@localhost>
+	(envelope-from <janne-dvb@grunau.be>) id 1Kiab2-0001cP-Vv
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 22:04:25 +0200
+From: Janne Grunau <janne-dvb@grunau.be>
+To: linux-dvb@linuxtv.org
+Date: Wed, 24 Sep 2008 22:04:09 +0200
+References: <953A45C4-975B-4A05-8B41-AE8A486D0CA6@ginandtonic.no>
+	<8C08530B-BAD7-4E83-B1CA-6AB66EE9F53F@ginandtonic.no>
+	<7674.1222283382@kewl.org>
+In-Reply-To: <7674.1222283382@kewl.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-	<48CC42D8.8080806@gmail.com> <1221419319.9803.0.camel@localhost>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Message-Id: <200809242204.09153.janne-dvb@grunau.be>
+Subject: Re: [linux-dvb] HVR-4000 and analogue tv
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,28 +27,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Sep 14, 2008 at 9:08 PM, Simon Kenyon <simon@koala.ie> wrote:
-> On Sun, 2008-09-14 at 02:46 +0400, Manu Abraham wrote:
->> The initial set of DVB-S2 multistandard devices supported by the
->> multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
->> alone. There are more additions by 2 more modules (not devices), but for
->> the simple comparison here is the quick list of them, for which some of
->> the manufacturers have shown support in some way. (There has been quite
->> some contributions from the community as well.):
->>
->> (Also to be noted is that, some BSD chaps also have shown interest in
->> the same)
->
-> is there any issue with GPL code being merged into BSD?
-> just asking
+On Wednesday 24 September 2008 21:09:42 Darron Broad wrote:
+> The problem in mythtv appears to be in OpenV4L2DeviceAsInput(void)
+> where is opens the video device twice although I have no confirmed
+> it.
 
-Not with the code which comes from our side. They're at DVB-T right
-now which already works.
-That code is fully duallicensed.
-The Bridge code itself needs to get slightly refactored for analog TV.
-They are getting full technical and HW support.
+If that's the case and the tvtime && cat test supports it it's more a 
+driver issue than an issue in mythtv. Using different fd for 
+controlling (ioctl) and data transfer (read) is fine and works with 
+other drivers.
 
-Markus
+Janne
 
 _______________________________________________
 linux-dvb mailing list
