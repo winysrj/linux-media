@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from ey-out-2122.google.com ([74.125.78.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KedtR-0005ff-2O
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 00:47:06 +0200
-Message-ID: <48CC42D8.8080806@gmail.com>
-Date: Sun, 14 Sep 2008 02:46:48 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KiLcB-0001ym-BC
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 06:04:37 +0200
+Received: by ey-out-2122.google.com with SMTP id 25so672506eya.17
+	for <linux-dvb@linuxtv.org>; Tue, 23 Sep 2008 21:04:31 -0700 (PDT)
+Date: Wed, 24 Sep 2008 06:00:45 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Kristiadi Himawan <kristiadi.himawan@gmail.com>
+In-Reply-To: <8bc341120809231934i3607900dy6456edee75ccd0d7@mail.gmail.com>
+Message-ID: <alpine.DEB.1.10.0809240542470.27597@ybpnyubfg.ybpnyqbznva>
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<200809240236.15144.janne-dvb@grunau.be>
+	<d9def9db0809231755g4f97bdc8r846e40476ca2cd99@mail.gmail.com>
+	<200809240404.45959.janne-dvb@grunau.be>
+	<8bc341120809231934i3607900dy6456edee75ccd0d7@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-In-Reply-To: <d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,64 +31,43 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus Rechberger wrote:
+On Wed, 24 Sep 2008, Kristiadi Himawan wrote:
 
-> How many devices are currently supported by the multiproto API
-> compared with the s2 tree?
+> I want to buy DVB S2 card for my Freebsd machine, does anyone know which
+> card that already supported for Freebsd.
 
-The initial set of DVB-S2 multistandard devices supported by the
-multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
-alone. There are more additions by 2 more modules (not devices), but for
-the simple comparison here is the quick list of them, for which some of
-the manufacturers have shown support in some way. (There has been quite
-some contributions from the community as well.):
+First of all, you are likely to get a better answer to your
+question from the FreeBSD mailing list dedicated to multimedia
+support at <multimedia@freebsd.org>, as this list is primarily
+focused on Linux (which differs greatly from FreeBSD) or the
+Linux-DVB API.
 
-(Also to be noted is that, some BSD chaps also have shown interest in
-the same)
+The Linux-DVB and Video4Linux APIen have not, to my knowledge,
+been ported to FreeBSD.  The latter API has in fact been merged
+into the NetBSD-current tree, and work on the former is underway
+but has not yet been merged, so that there can be in-kernel
+support at some later time in at least NetBSD, with the 
+possibility of merging that into the other BSDen.
 
-* STB0899 based
-
-Anubis
-Typhoon DVB-S2 PCI
-
-Azurewave/Twinhan
-VP-1041
-VP-7050
-
-Digital Now
-AD SP400
-AD SB300
-
-KNC1
-TV Station DVB-S2
-TV Station DVB-S2 Plus
-
-Pinnacle
-PCTV Sat HDTV Pro USB 452e
-
-Satelco
-TV Station DVB-S2
-Easywatch HDTV USB CI
-Easywatch HDTV PCI
-
-Technisat
-Skystar HD
-Skystar HD2
-Skystar USB2 HDCI
-
-Technotrend
-TT S2 3200
-TT S2 3600
-TT S2 3650
-
-Terratec
-Cinergy S2 PCI HD
-Cinergy S2 PCI HDCI
+Thus any FreeBSD support now will be out-of-kernel, and in fact,
+there was mention on the freebsd-multimedia@ list just a few
+weeks ago on support for devices based on the CX2388x cards --
+search for
+Message-ID: <8103ad500809070610k24a0c3c0m981a0c0a82e392d8@mail.gmail.com>
+posted on 07.September of this year, for an actual list of
+devices which should be supported as well as a report on the
+actual status of the support (I haven't looked for any later
+messages than this from that week, though).  Apart from this,
+supported devices are likely to be few and far between.
 
 
-Regards,
-Manu
+If this has not answered your question, then please redirect
+it to the appropriate FreeBSD mailing list(s) to get a correct
+and up-to-date response that is more relevant to your OS...
 
+
+thanks,
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
