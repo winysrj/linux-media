@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp21.orange.fr ([80.12.242.47])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1KiWYG-0005hW-I6
-	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 17:45:18 +0200
-From: Christophe Thommeret <hftom@free.fr>
-To: Darron Broad <darron@kewl.org>
-Date: Wed, 24 Sep 2008 17:44:41 +0200
-References: <200809211905.34424.hftom@free.fr>
-	<200809241538.51217.hftom@free.fr> <4454.1222266662@kewl.org>
-In-Reply-To: <4454.1222266662@kewl.org>
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+d37b05d399b7c5e0b58f+1858+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1KiWBz-0003VV-D5
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 17:22:15 +0200
+Date: Wed, 24 Sep 2008 12:21:19 -0300 (BRT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Manu Abraham <abraham.manu@gmail.com>
+In-Reply-To: <48DA15A2.40109@gmail.com>
+Message-ID: <alpine.LFD.1.10.0809240942250.28125@areia.chehab.org>
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<48D9F6F3.8090501@gmail.com>
+	<alpine.LRH.1.10.0809241051170.12985@pub3.ifh.de>
+	<48DA15A2.40109@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809241744.41604.hftom@free.fr>
-Cc: Hans Werner <HWerner4@gmx.de>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] hvr4000-s2api + QAM_AUTO
+Cc: DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,54 +23,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le Wednesday 24 September 2008 16:31:02 Darron Broad, vous avez =E9crit=A0:
-> In message <200809241538.51217.hftom@free.fr>, Christophe Thommeret wrote:
+Manu,
+
+On Wed, 24 Sep 2008, Manu Abraham wrote:
+
+>> 2) My vote for S2API is final.
+>>
+>> It is final, because the S2API is mainly affecting
+>> include/linux/dvb/frontend.h to add user-API support for new standards.
+>> I prefer the user-API of S2API over the one of multiproto because of 1).
 >
-> hi.
+> After adding in diversity to frontend.h,
 >
-> <snip>
->
-> >Btw, while cx24116 single-frontend seems pretty stable, the mfe driver is
-> > n=3D ot =3D
-> >here. As soon as i switch to dvb-t, the cx24116 firmware crashes (at lea=
-st
-> > =3D seems so: ~"Firmware doen't respond .." ) and is reloaded on next S=
-/S2
-> > zap, =3D and after a while, the dvb-t signal appears more and more nois=
-y. I
-> > have to =3D unload/reload the modules to cure this.
->
-> Can you load dvb_core like this:
->
-> 	dvb_core dvb_powerdown_on_sleep=3D0
->
-> This will stop access to the cx24116 when the bus is in use by the cx2270=
-2.
->
-> This is a workaround until a better fix is found. Tell me if it solves it
-> for you, Thanks.
+> Would you prefer to update the diversity related event on the event list
+> as well ?
 
-Unfortunately, no.
-I will try with newer firmware, as soon as i find it.
+The decision were already taken by the group.
 
+It should be noticed also that the public announcement took some time to 
+be ready, since we all carefully reviewed it to reflect the understanding 
+that the group had.
 
-Btw:
-Darron, all these Eutelsat spec compliant msleep are already implemented by =
+Both API's work, and people needed to choose between one of the proposals.
 
-applications, so adding it in driver just increases diseqc delay :)
-I've removed all these in driver and diseqc works fine.
+Each one there had enough time to read and understand each proposal, since 
+the patches were available more than one week before the meeting, and
+everybody were aware that the decision are scheduled to happen during LPC.
 
+Each one voted based on their own technical analysis, on a meeting that 
+took about 2:30 hours, on the day after the presentations. People had 
+enough time there to discuss, explain their ideas with the help of a 
+whiteboard, decide and improve the proposal.
 
--- =
+S2API was choosen, since it was considered the better proposal for 
+everybody there. None of the presents voted for Multiproto.
 
-Christophe Thommeret
+Now that the decision were already taken, it is not time anymore to argue 
+in favor to any other proposals. We need to move ahead and finally add 
+support for DVB-S2 and the remaining missing digital TV's at kernel.
 
+Thank you and everyone else involved on adding support for the missing 
+standards.
+
+Let's move to the next step: finally add API changes and drivers for 
+DVB-S2 and prepare support for the remaining missing standards.
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
