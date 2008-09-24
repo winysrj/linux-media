@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o.endriss@gmx.de>) id 1KjF4a-0002Wv-JY
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 17:17:37 +0200
-From: Oliver Endriss <o.endriss@gmx.de>
-To: hermann pitton <hermann-pitton@arcor.de>
-Date: Fri, 26 Sep 2008 17:14:57 +0200
-References: <200809241922.16748@orion.escape-edv.de>
-	<1222306125.3323.80.camel@pc10.localdom.local>
-In-Reply-To: <1222306125.3323.80.camel@pc10.localdom.local>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809261714.58188@orion.escape-edv.de>
-Cc: v4l-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org, vdr@linuxtv.org
-Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [Wanted] dvb-ttpci maintainer
+Received: from joan.kewl.org ([212.161.35.248])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <darron@kewl.org>) id 1KiY2A-0005YI-5D
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 19:20:14 +0200
+From: Darron Broad <darron@kewl.org>
+To: Anders Semb Hermansen <anders@ginandtonic.no>
+In-reply-to: <F70AC72F-8DF3-4A9A-BFA1-A4FED9D3EABC@ginandtonic.no> 
+References: <953A45C4-975B-4A05-8B41-AE8A486D0CA6@ginandtonic.no>
+	<5584.1222273099@kewl.org>
+	<F70AC72F-8DF3-4A9A-BFA1-A4FED9D3EABC@ginandtonic.no>
+Date: Wed, 24 Sep 2008 18:20:10 +0100
+Message-ID: <6380.1222276810@kewl.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-4000 and analogue tv
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,50 +20,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hermann pitton wrote:
-> Except of course a majority of plumbers at the same place at the same
-> time can create/propose some facts.
+In message <F70AC72F-8DF3-4A9A-BFA1-A4FED9D3EABC@ginandtonic.no>, Anders Semb Hermansen wrote:
 
-IMO decisions must be made where the community is, i.e. on the mailing
-list. Not at a conference, no matter whether it is at one end of the
-world or on the dark side of the moon. ;-(
+hi.
 
-To make it absolutely clear: 
-I did not leave _because_ S2API was selected.
-I left because it was done _this_way_.
-
-Good for those, who are fine with these methods. I am not.
-
-> If you attack people such hard as Manu did, also behind the visible
-> lines sometimes, Marcel had a copy from me concerning Mauro and did say
-> nothing, you must not wonder about people starting to defend themselves.
-
-I consider flame wars ridiculous. I did not participate, and I will not
-participate in the future.
-
-I believe that I know very well what is going on. (During more than 30
-years in software development I have seen all kinds of problems. I know
-how people react and why things happen.)
-
-> For sure the dirt was not started from v4l people.
+>Den 24. sep.. 2008 kl. 18.18 skrev Darron Broad:
+><snip>
+>> I haven't tested analogue in mythtv, only dvb-s. My only testing has  
+>> been
+>> done with TVTIME for analogue. What happens when you try that?
 >
-> Think it over.
+>It seems to work ok. I struggeld a bit to get sound. Need to run this  
+>also:
+>arecord -f dat -D hw:2,0 | aplay -f dat -
 
-Unlikely. I made this decision after sleeping over it for a few days.
-Now I feel much better.
+This is how i test also.
 
-Oliver
+>I saw this in my logs, but it seems to work okay (maybe these came  
+>when I was trying difference sox and arecord/aplay commands):
+>
+>Sep 24 18:53:46 xpc kernel: [  769.020260] cx88[0]: irq aud [0x1001]  
+>dn_risci1* dn_sync*
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-----------------------------------------------------------------
+It looks like `dn_sync' is triggering that log. I don't know
+anything about this but docs suggest it's a buffer underrun.
+I am sure someone else can explain in full.
+
+<snip>
+>
+>Does this mean that mythtv is doing something weird or maybe just  
+>using the v4l api in a different way which the driver cannot handle?
+
+This is feasable. I will take a look if I get the time but this
+is more than likely to be when I have other reasons to look
+at mythtv so don't expect an immediate response :-)
+
+cya
+
+--
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
+
 
 _______________________________________________
 linux-dvb mailing list
