@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ik-out-1112.google.com ([66.249.90.178])
+Received: from scing.com ([217.160.110.58])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KklVx-0006N6-G2
-	for linux-dvb@linuxtv.org; Tue, 30 Sep 2008 22:08:12 +0200
-Received: by ik-out-1112.google.com with SMTP id c21so172990ika.1
-	for <linux-dvb@linuxtv.org>; Tue, 30 Sep 2008 13:08:05 -0700 (PDT)
-Date: Tue, 30 Sep 2008 22:07:13 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Lee Jones <slothpuck@gmail.com>
-In-Reply-To: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
-Message-ID: <alpine.DEB.2.00.0809302137380.4242@ybpnyubfg.ybpnyqbznva>
-References: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
+	(envelope-from <janne-dvb@grunau.be>) id 1KiJkI-0000vP-Jv
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 04:04:51 +0200
+From: Janne Grunau <janne-dvb@grunau.be>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+Date: Wed, 24 Sep 2008 04:04:45 +0200
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<200809240236.15144.janne-dvb@grunau.be>
+	<d9def9db0809231755g4f97bdc8r846e40476ca2cd99@mail.gmail.com>
+In-Reply-To: <d9def9db0809231755g4f97bdc8r846e40476ca2cd99@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200809240404.45959.janne-dvb@grunau.be>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,68 +28,59 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 30 Sep 2008, Lee Jones wrote:
+On Wednesday 24 September 2008 02:55:48 Markus Rechberger wrote:
+> On Wed, Sep 24, 2008 at 2:36 AM, Janne Grunau <janne-dvb@grunau.be> 
+wrote:
+> > I agree that it would have been nice if more developers and
+> > especially Manu would have been at the DVB BOF. But more than 2/3
+> > (849/1245) of the commits to drivers/media/dvb in the last 1000
+> > days were done by people present at the meeting. It's not completly
+> > unreasonable to treat a decision of that group as a decission of
+> > the linuxtv developers.
+>
+> sorry to strong reply here, what commits? I respect people who wrote
+> code on their own
+> eg. Thierry Merle. But there are just alot commits from other people
+> too. This also takes my code into account which got taken from my
+> repository. My code seems to be good enough for adding other
+> copyrights and hijacking the maintainership (! - em28xx-alsa
+> which got copied including the existing bugs back then).
+>
+> Just don't make it up to those commits.
 
-> The problems seem to occur with scanning, however. While tuning, I get
-> several lines which look like this:
-> >>> tune to: 562166670:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_3_4:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 562166670:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_3_4:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+I've just counted commit to drivers/media/dvb, video/em28xx commits 
+should be excluded. 
 
-Two things:  If you scan with `-v', you should get some
-feedback as to how close your receiver is to locking on
-the frequency.
+> A widely public technical 
+> discussion can be done on the ML and
+> this should be the way to solve that issue.
 
-Second, it may or may not be a problem, as one of my cards
-managed to tune and lock a carrier even when fed totally
-wrong tuning data apart from the correct frequency, but
-are you sure that FEC_3_4 is correct also for the LP code
-rate?  The tuning data I see in recent dvb-apps gives `NONE'
- -- this probably won't affect anything, but in the unlikely 
-chance it might...
+We can try to make that now based on on the second part of this mail to 
+which I will reply seperately.
 
+> 1. S2API adds another question who's going to port the multiproto
+> drivers
 
-> After completion, some channels are missing (e.g. BBC1 is there, but
-> ITV or BBC4 aren't;
+I'm pretty sure that there are enough people to port exiting multiproto 
+drivers if they are available under GPL 2.
 
-The above frequency is for BBC4; ITV uses 64-QAM unlike the
-BBC multiplexes, so I'll assume that is correct in your
-initial tuning data (as the above CRLP value doesn't match
-that based on the OFCOM data in dvb-apps)...
+> 2. who's going to test them, since they are already supported 
+> by eg. vdr
 
+Kaffeine supports the new API and there will be patches available for 
+mythtv shortly. I'm certain we find enough users who would happily test 
+DVB-S2 now. 
 
-> This still produced some "WARNING:>>>tuning failed!!!" messages but
-> appears to have found the 'missing 'channels. But then using the
-> dvbutils' program tzap seemed to tell a different story. Some channels
-> existed but yet didn't produce *any* data (I could confirm that they
+> 3. I know Manu is working on upcoming devices, telling him 
+> to use the S2API would mean to reinvent the wheel I guess, so
+> how to avoid that best.
 
-Can you give the lines with the PIDs of these `missing' channels
-which you have found?  Like BBC4 with which you had problems
-below...
+if it is work in progress he should not need to reinvent the wheel. If 
+it's already done porting the API is minor part of writing a driver and 
+they will be people doing that work if the driver is available under 
+GPL 2.
 
-
-> $ tzap -r "BBC FOUR"
-> tuning to 562000000 Hz
-> video pid 0x0000, audio pid 0x0000
-              ^^^^              ^^^^
-This is wrong -- at least after 19h your-time -- but in case
-you did the scan before 19h your-time, you may have gotten
-correct PIDs for CBBC+CBeebies -- but not for BBC3+4, as the
-correct PIDs are only broadcast during the time those programs
-are actually on-air, and `tzap' is not smart enough to take
-the Service ID and derive the up-to-date PIDs from that...
-
-So, basically, if you could post what you have for Mux B at
-562MHz (ch32), then we can see if you did get correct data
-for the radios and the then-active TV services.
-
-Also you said the ITV Mux 2 caused problems in your initial
-scan, so if you have problems `tzap'ing those channels, then
-posting that data would be useful.
-
-
-thanks
-barry bouwsma
+Janne
 
 _______________________________________________
 linux-dvb mailing list
