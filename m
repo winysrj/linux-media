@@ -1,26 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+Received: from joan.kewl.org ([212.161.35.248])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Khcke-0002Y1-Bm
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 06:10:21 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7K00L41WWAICA0@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 22 Sep 2008 00:09:46 -0400 (EDT)
-Date: Mon, 22 Sep 2008 00:09:45 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200809180127.50686.liplianin@tut.by>
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Message-id: <48D71A89.8080509@linuxtv.org>
-MIME-version: 1.0
-References: <48CA0355.6080903@linuxtv.org> <48CE9E22.9060405@hauppauge.com>
-	<200809170037.59770.liplianin@tut.by>
-	<200809180127.50686.liplianin@tut.by>
-Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] S2API - Add support for USB card
- modification with si2109/2110 demodulator.
+	(envelope-from <darron@kewl.org>) id 1Kibdn-0005Ux-Mh
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 23:11:20 +0200
+From: Darron Broad <darron@kewl.org>
+To: Janne Grunau <janne-dvb@grunau.be>
+In-reply-to: <200809242204.09153.janne-dvb@grunau.be> 
+References: <953A45C4-975B-4A05-8B41-AE8A486D0CA6@ginandtonic.no>
+	<8C08530B-BAD7-4E83-B1CA-6AB66EE9F53F@ginandtonic.no>
+	<7674.1222283382@kewl.org> <200809242204.09153.janne-dvb@grunau.be>
+Date: Wed, 24 Sep 2008 22:11:16 +0100
+Message-ID: <9043.1222290676@kewl.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-4000 and analogue tv
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,21 +20,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SWdvciBNLiBMaXBsaWFuaW4gd3JvdGU6Cj4g0JIg0YHQvtC+0LHRidC10L3QuNC4INC+0YIgMTcg
-U2VwdGVtYmVyIDIwMDggMDA6Mzc6NTkgSWdvciBNLiBMaXBsaWFuaW4g0L3QsNC/0LjRgdCw0Lso
-0LApOgo+PiBIaSBTdGV2ZSwKPj4KPj4gU2VuZCB5b3UgcGF0Y2ggZm9yIFNpbGljb24gTGFib3Jh
-dG9yaWVzIHNpMjEwOS8yMTEwIGRlbW9kdWxhdG9yIHN1cHBvcnQuCj4+Cj4+IGh0dHBzOi8vd3d3
-LnNpbGFicy5jb20vcHJvZHVjdHMvYXVkaW92aWRlby9zYXRlbGxpdGVzdGIvUGFnZXMvZGVmYXVs
-dC5hc3B4Cj4+Cj4+IEl0IGlzIFMyQVBJIGNvbXBsaWFudCwgYXMgb2Ygc2VwdGVtYmVyLCAxNi10
-aAo+Pgo+PiBJZ29yCj4gCj4gQWRkIHN1cHBvcnQgZm9yIFVTQiBjYXJkIG1vZGlmaWNhdGlvbiB3
-aXRoIHNpMjEwOS8yMTEwIGRlbW9kdWxhdG9yLgo+IEl0IGlzIER2YldvcmxkIDIxMDIgYW5kIFRl
-VmlpIHM2MDAgbW9kaWZpY2F0aW9uIHdpdGggU2VyaXQgdHVuZXIuCgpNZXJnZWQsIHRoYW5rcy4K
-Ci0gU3RldmUKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3
-LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+In message <200809242204.09153.janne-dvb@grunau.be>, Janne Grunau wrote:
+
+lo
+
+>On Wednesday 24 September 2008 21:09:42 Darron Broad wrote:
+>> The problem in mythtv appears to be in OpenV4L2DeviceAsInput(void)
+>> where is opens the video device twice although I have no confirmed
+>> it.
+>
+>If that's the case and the tvtime && cat test supports it it's more a 
+>driver issue than an issue in mythtv. Using different fd for 
+>controlling (ioctl) and data transfer (read) is fine and works with 
+>other drivers.
+
+What we are seeing here is in cx88-video and doesn't seem specific
+to any cx88 card as such but I don't have any other card to test
+therefore there is no evidence either way that this is a hvr-4000
+only problem as yet, but more tests ought to be done.
+
+As far as that function is concerned, my point is that it
+appears to be raising the fault.
+
+When testing tvtime & cat /dev/video0 what occurs is an
+an open, EBUSY read, then a release. The release here
+always puts the tuner in standby whether the previous
+read was valid or not. This seems to be the bug as previously
+pointed out.
+
+cya!
+
+--
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
