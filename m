@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n76.bullet.mail.sp1.yahoo.com ([98.136.44.48])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1Kd1vj-0007fi-NE
-	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 14:02:49 +0200
-Date: Tue, 9 Sep 2008 05:02:13 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1220923070.2663.46.camel@pc10.localdom.local>
-MIME-Version: 1.0
-Message-ID: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
-Reply-To: free_beer_for_all@yahoo.com
+Received: from mail-in-14.arcor-online.net ([151.189.21.54])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hermann-pitton@arcor.de>) id 1KiJO9-00063x-SW
+	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 03:42:07 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Markus Rechberger <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0809231755g4f97bdc8r846e40476ca2cd99@mail.gmail.com>
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<a3ef07920809231506h722c9fd4h1e3b8c3e40ca32cb@mail.gmail.com>
+	<200809240236.15144.janne-dvb@grunau.be>
+	<d9def9db0809231755g4f97bdc8r846e40476ca2cd99@mail.gmail.com>
+Date: Wed, 24 Sep 2008 03:37:00 +0200
+Message-Id: <1222220220.2998.67.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,121 +22,92 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Tue, 9/9/08, hermann pitton <hermann-pitton@arcor.de> wrote:
-
-> following your thoughts, you are likely right. DVB-T2 likely indicates
-> that you need new hardware, like it is for sure on DVB-S2.
-
-Servus,
-
-Disclaimer:  I'm only an outsider, not a programmer, and not
-familiar with the digital broadcast specs or the DVB API, so
-I will both not know what I'm talking about, and be asking
-stupid questions.
-
-
-I decided to look again at DVB-T2, as it's likely to be the
-next change that will be in need of Linux support in a year
-or so, at least in the UK, when hardware becomes available.
-
-My stupid question is, will DVB-T2, in Transport Stream mode,
-be similar enough to existing DVB-T, apart from the extended
-modulation parameters, that it can be fit into the existing
-API, or am I overlooking something in my ignorance of the API?
-
-This seems to me somewhat like the case of existing DVB-C,
-where some hardware is incapable of 256QAM and so cannot tune
-all the carriers, but I really haven't tried to understand
-the API or how it can be extended without breaking things...
-
-
-In looking at the Wikipedia article on DVB-T, it appears that
-at least the following diffs to include/dvb/frontend.h might
-be needed to support the additional possibilities that a DVB-T2
-tuner would be likely to support -- diff against the S2API, as
-this file is unchanged in multiproto, while S2API already has
-the additional FEC values present...
-
-goto Disclaimer;
-
-
---- /lost+found/CVSUP/SRC/HG-src/dvb-s2-api/linux/include/linux/dvb/frontend.h  2008-09-04 15:21:59.000000000 +0200
-+++ /tmp/frontend.h     2008-09-09 13:10:29.574976974 +0200
-@@ -171,24 +171,34 @@ typedef enum fe_modulation {
- } fe_modulation_t;
- 
- typedef enum fe_transmit_mode {
-+       TRANSMISSION_MODE_1K,
-        TRANSMISSION_MODE_2K,
-+       TRANSMISSION_MODE_4K,
-        TRANSMISSION_MODE_8K,
-+       TRANSMISSION_MODE_16K,
-+       TRANSMISSION_MODE_32K,
-        TRANSMISSION_MODE_AUTO
- } fe_transmit_mode_t;
- 
- typedef enum fe_bandwidth {
-+       BANDWIDTH_10_MHZ,
-        BANDWIDTH_8_MHZ,
-        BANDWIDTH_7_MHZ,
-        BANDWIDTH_6_MHZ,
-+       BANDWIDTH_5_MHZ,
-+       BANDWIDTH_1.7_MHZ,
-        BANDWIDTH_AUTO
- } fe_bandwidth_t;
- 
- 
- typedef enum fe_guard_interval {
-+       GUARD_INTERVAL_1_128,
-        GUARD_INTERVAL_1_32,
-        GUARD_INTERVAL_1_16,
-        GUARD_INTERVAL_1_8,
-        GUARD_INTERVAL_1_4,
-+       GUARD_INTERVAL_19_256,
-+       GUARD_INTERVAL_19_128,
-        GUARD_INTERVAL_AUTO
- } fe_guard_interval_t;
- 
-@@ -324,6 +334,7 @@ typedef enum fe_delivery_system {
-        SYS_DVBC_ANNEX_AC,
-        SYS_DVBC_ANNEX_B,
-        SYS_DVBT,
-+       SYS_DVBT2,
-        SYS_DVBS,
-        SYS_DVBS2,
-        SYS_DVBH,
-@@ -335,6 +346,7 @@ typedef enum fe_delivery_system {
-        SYS_DMBTH,
-        SYS_CMMB,
-        SYS_DAB,
-+       SYS_TDMB,       /* XXX is different from DMB-TH, no?  */
- } fe_delivery_system_t;
- 
- struct tv_cmds_h {
-
-
- The reason I became interested in this is due to the choice of
- naming -- S2API sounded to me like the focus would be on DVB-S2,
- possibly ignoring -T2 and eventually -C2, not to mention the
- other existing alternatives to DVB, rather than a Second Generation
- (as the specs I've looked at refer to the update) DVB-API, but
- then, I really don't know what I'm talking about.
-
-
- thanks,
- barry bouwsma
-
-
-      
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+CkFtIE1pdHR3b2NoLCBkZW4gMjQuMDkuMjAwOCwgMDI6NTUgKzAyMDAgc2NocmllYiBNYXJrdXMg
+UmVjaGJlcmdlcjoKPiBPbiBXZWQsIFNlcCAyNCwgMjAwOCBhdCAyOjM2IEFNLCBKYW5uZSBHcnVu
+YXUgPGphbm5lLWR2YkBncnVuYXUuYmU+IHdyb3RlOgo+ID4gT24gV2VkbmVzZGF5IDI0IFNlcHRl
+bWJlciAyMDA4IDAwOjA2OjU5IFZEUiBVc2VyIHdyb3RlOgo+ID4+IE9uIFR1ZSwgU2VwIDIzLCAy
+MDA4IGF0IDI6MTYgUE0sIE1hdXJvIENhcnZhbGhvIENoZWhhYgo+ID4+Cj4gPj4gPG1jaGVoYWJA
+aW5mcmFkZWFkLm9yZz4gd3JvdGU6Cj4gPj4gPiBUaGUgRFZCIEJPRiBoYWQgdGhlIHByZXNlbmNl
+IG9mIHRoZSBmb2xsb3dpbmcgTGludXhUViBtZW1iZXJzOgo+ID4+ID4KPiA+PiA+ICAgICAgICBE
+b3VnbGFzIFNjaGlsbGluZyBMYW5kZ3JhZgo+ID4+ID4gICAgICAgIEhhbnMgVmVya3VpbAo+ID4+
+ID4gICAgICAgIE1hdXJvIENhcnZhbGhvIENoZWhhYgo+ID4+ID4gICAgICAgIE1pY2hhZWwgS3J1
+Zmt5Cj4gPj4gPiAgICAgICAgUGF0cmljayBCb2V0dGNoZXIKPiA+PiA+ICAgICAgICBTdGV2ZW4g
+VG90aAo+ID4+ID4gICAgICAgIFRoaWVycnkgTWVybGUKPiA+PiA+ICAgICAgICBNYW5qdW5hdGgg
+SGFkbGlpCj4gPj4KPiA+PiBBdCBsZWFzdCBoYWxmIG9mIHRoYXQgbGlzdCBhbHJlYWR5IHBsZWRn
+ZWQgdGhlaXIgc3VwcG9ydCBmb3IgUzJBUEkKPiA+PiBhbmQgYmFzZWQgb24gcGFzdCBvYnNlcnZh
+dGlvbnMsIEkgc2VyaW91c2x5IGRvdWJ0IHRoZSBtZWV0aW5nIHdhcwo+ID4+IHVuYmlhc2VkIGFu
+ZCBhIGRlY2lzaW9uIG1hZGUgYmFzZWQgb24gc3RyaWN0bHkgdGVjaG5pY2FsIGFzcGVjdHMuCj4g
+Pgo+ID4gU28geW91IGRvdWJ0IGFueW9uZSB3aG8gcHJldmlvdXNseSBzdGF0ZWQgaGlzIG9waW5p
+b24gb24gbXVsdGlwcm90byBvcgo+ID4gUzJBUEkgaXMgdW5hYmxlIHRvIG1ha2UgYSBkZWNpc2lv
+biBvbiB0ZWNobmljYWwgbWVycml0cz8gU2luY2UgbW9zdAo+ID4gbGludXh0diBkZXZzIGFscmVh
+ZHkgZ2F2ZSB0aGVpciBvcGluaW9uIG9uIHRoZSBBUEkgcHJvcG9zYWwgbm9ib2R5IGlzCj4gPiBh
+YmxlIHRvIG1ha2UgYSBkZWNpc2lvbi4KPiA+Cj4gPj4gSSBhbHNvIGJlbGlldmUgdGhlIHBhbmVs
+IHNob3VsZCBjb25zaXN0IG9mIHBlb3BsZSBpbnRpbWF0ZWx5IGZhbWlsaWFyCj4gPj4gd2l0aCBE
+VkIsIG5vdCBoYWxmIHBlb3BsZSB3aG8gYXJlbid0IGFuZCB0aGUgb3RoZXIgaGFsZiBwZW9wbGUg
+d2hvJ3ZlCj4gPj4gYWxyZWFkeSBtYWRlIHVwIHRoZWlyIG1pbmQuICBDYWxsIG1lIGNyYXp5IGJ1
+dCBJIGRvbid0IHNlZSBob3cgYQo+ID4+IGxlZ2l0aW1hdGUgZGlzY3Vzc2lvbiBjYW4gdGFrZSBw
+bGFjZSB1bmRlciB0aG9zZSBjb25kaXRpb25zLgo+ID4KPiA+IEFyZSB5b3UgZ29pbmcgdG8gc3Bv
+bnNlciBhbmQgb3JnYW5pemUgYSBtZWV0aW5nIG9mIGFsbCBsaW51eHR2IERWQgo+ID4gZGV2ZWxv
+cGVycz8KPiA+IEkgYWdyZWUgdGhhdCBpdCB3b3VsZCBoYXZlIGJlZW4gbmljZSBpZiBtb3JlIGRl
+dmVsb3BlcnMgYW5kIGVzcGVjaWFsbHkKPiA+IE1hbnUgd291bGQgaGF2ZSBiZWVuIGF0IHRoZSBE
+VkIgQk9GLiBCdXQgbW9yZSB0aGFuIDIvMyAoODQ5LzEyNDUpIG9mCj4gPiB0aGUgY29tbWl0cyB0
+byBkcml2ZXJzL21lZGlhL2R2YiBpbiB0aGUgbGFzdCAxMDAwIGRheXMgd2VyZSBkb25lIGJ5Cj4g
+PiBwZW9wbGUgcHJlc2VudCBhdCB0aGUgbWVldGluZy4gSXQncyBub3QgY29tcGxldGx5IHVucmVh
+c29uYWJsZSB0byB0cmVhdAo+ID4gYSBkZWNpc2lvbiBvZiB0aGF0IGdyb3VwIGFzIGEgZGVjaXNz
+aW9uIG9mIHRoZSBsaW51eHR2IGRldmVsb3BlcnMuCj4gPgo+IAo+IHNvcnJ5IHRvIHN0cm9uZyBy
+ZXBseSBoZXJlLCB3aGF0IGNvbW1pdHM/IEkgcmVzcGVjdCBwZW9wbGUgd2hvIHdyb3RlCj4gY29k
+ZSBvbiB0aGVpciBvd24KPiBlZy4gVGhpZXJyeSBNZXJsZS4gQnV0IHRoZXJlIGFyZSBqdXN0IGFs
+b3QgY29tbWl0cyBmcm9tIG90aGVyIHBlb3BsZSB0b28uCj4gVGhpcyBhbHNvIHRha2VzIG15IGNv
+ZGUgaW50byBhY2NvdW50IHdoaWNoIGdvdCB0YWtlbiBmcm9tIG15IHJlcG9zaXRvcnkuCj4gTXkg
+Y29kZSBzZWVtcyB0byBiZSBnb29kIGVub3VnaCBmb3IgYWRkaW5nIG90aGVyIGNvcHlyaWdodHMg
+YW5kCj4gaGlqYWNraW5nIHRoZSBtYWludGFpbmVyc2hpcCAoISAtIGVtMjh4eC1hbHNhCj4gd2hp
+Y2ggZ290IGNvcGllZCBpbmNsdWRpbmcgdGhlIGV4aXN0aW5nIGJ1Z3MgYmFjayB0aGVuKS4KPiAK
+PiBKdXN0IGRvbid0IG1ha2UgaXQgdXAgdG8gdGhvc2UgY29tbWl0cy4gQSB3aWRlbHkgcHVibGlj
+IHRlY2huaWNhbAo+IGRpc2N1c3Npb24gY2FuIGJlIGRvbmUgb24gdGhlIE1MIGFuZAo+IHRoaXMg
+c2hvdWxkIGJlIHRoZSB3YXkgdG8gc29sdmUgdGhhdCBpc3N1ZS4KPiAKPiAxLiBTMkFQSSBhZGRz
+IGFub3RoZXIgcXVlc3Rpb24gd2hvJ3MgZ29pbmcgdG8gcG9ydCB0aGUgbXVsdGlwcm90byBkcml2
+ZXJzCj4gMi4gd2hvJ3MgZ29pbmcgdG8gdGVzdCB0aGVtLCBzaW5jZSB0aGV5IGFyZSBhbHJlYWR5
+IHN1cHBvcnRlZCBieSBlZy4gdmRyCj4gMy4gSSBrbm93IE1hbnUgaXMgd29ya2luZyBvbiB1cGNv
+bWluZyBkZXZpY2VzLCB0ZWxsaW5nIGhpbSB0byB1c2UgdGhlCj4gUzJBUEkgd291bGQgbWVhbiB0
+byByZWludmVudCB0aGUgd2hlZWwgSSBndWVzcywgc28KPiBob3cgdG8gYXZvaWQgdGhhdCBiZXN0
+Lgo+IAo+ID4+ID4gVGhlIG1haW4gYXJndW1lbnRzIGluIGZhdm9yIG9mIFMyQVBJIG92ZXIgTXVs
+dGlwcm90byBhcmU6Cj4gPj4gPgo+ID4+ID4gICAgICAgIC0gRnV0dXJlIHByb29mIOKAkyB0aGUg
+cHJvcG9zYWwgZm9yIFMyQVBJIGlzIG1vcmUgZmxleGlibGUsCj4gPj4gPiBlYXNpbHkgYWxsb3dp
+bmcgdGhlIGFkZGl0aW9uIG9mIG5ld2VyIGZlYXR1cmVzIGFuZCBuZXcgc3RhbmRhcmQKPiA+PiA+
+IHN1cHBvcnQ7Cj4gPj4gPgo+ID4+ID4gICAgICAgIC0gU2ltcGxpY2l0eSDigJMgUzJBUEkgcGF0
+Y2hlcyBhcmUgdmVyeSBzaW1wbGUsIHdoaWxlCj4gPj4gPiBNdWx0aXByb3RvIHByZXNlbnRlZCBh
+IHZlcnkgY29tcGxleCBzZXJpZXMgb2YgY2hhbmdlcy4gU2ltcGxlcgo+ID4+ID4gYXBwcm9hY2hl
+cyByZWR1Y2VzIHRoZSB0aW1lIGZvciBtYWludGFpbmluZyB0aGUgc291cmNlIGNvZGU7Cj4gPj4g
+Pgo+ID4+ID4gICAgICAgIC0gQ2FwYWJpbGl0eSBvZiBhbGxvd2luZyBpbXByb3ZlbWVudHMgZXZl
+biBvbiB0aGUgZXhpc3RpbmcKPiA+PiA+IHN0YW5kYXJkcywgbGlrZSBhbGxvd2luZyBkaXZlcnNp
+dHkgY29udHJvbCB0aGF0IHN0YXJ0cyB0byBhcHBlYXIgb24KPiA+PiA+IG5ld2VyIERWQiBkZXZp
+Y2VzLgo+ID4+Cj4gPj4gTXkgcHJldmlvdXMgY29tbWVudCBhc2lkZSwgSSB3b3VsZCBsaWtlIHRv
+IGFzayBmb3IgYSBtb3JlIGRldGFpbGVkCj4gPj4gZXhwbGFuYXRpb24gdGhhdCBqdXN0aWZpZXMg
+dGhlc2UgYXJndW1lbnRzLAo+ID4KPiA+IEkgc3VwcG9ydCB0aGF0LCBwbGVhc2UgYmUgbW9yZSB2
+ZXJib3NlLgo+ID4KPiAKPiBJIGRvbid0IG1pbmQgYWJvdXQgd2hpY2ggc29sdXRpb24gZ2V0cyB1
+c2VkIGFjdHVhbGx5LCBidXQgdGhlCj4gdGVjaG5pY2FsIHBhcnQgb2YgaXQgc2hvdWxkIGVpdGhl
+ciBiZSBtb3JlIHZlcmJvc2UKPiBhbmQgbm90IG9ubHkgYmUgYSBIYXVwcGF1Z2UgTGFiIHNvbHV0
+aW9uIGZvciBfdGhlaXJfIGN1cnJlbnQgcHJvZHVjdHMKPiBvbmx5LCB0aGUgbXVsdGlwcm90byBk
+cml2ZXJzIGhhdmUgYmVlbiBhdmFpbGFibGUKPiBiZWZvcmUgYWxyZWFkeSBzbyB0aGV5IHNob3Vs
+ZCBiZSB3aXNlbHkgdGFrZW4gaW50byBhY2NvdW50IGluIG9yZGVyIHRvCj4gbm90IGRyb3AgdGhl
+bSBhbmQgdGVsbGluZyB0aG9zZSBwZW9wbGUgd2hvIHdvcmtlZAo+IG9uIGl0IHJlZG8gaXQuCj4g
+Cj4gTWFya3VzCj4gCgpNYXJrdXMsCgppdCBpcyBpbnRlcmVzdGluZywgdGhhdCB5b3UgY291bGQg
+bm90IHdlbnQgdHJvdWdoIHdpdGggYWxsIG9mIHlvdXIgc3R1ZmYKYXQgb25jZSwgOTQgcGF0Y2hl
+cyBvciBzbywgSUlSQywgYW5kIE1hbnUgd2FzIHRoZSBvbmUgd2hvIHRyaWVkIHRvCmV4cGxhaW4g
+dG8geW91LCB0aGF0IHRoaXMgY2FuJ3QgaGFwcGVuIHRoaXMgd2F5LCBzaW5jZSB5b3UgYWZmZWN0
+IG90aGVyCmRyaXZlcnMuCgpTaG9ydCB0aW1lIGxhdGVyLCBKb2hhbm5lcyBhbmQgT2xpdmVyIGRp
+ZCBvcGVuIHNpbXBsZSB3YXlzIGZvciB5b3UsIHlvdQpjYW1lIGJhY2sgd2l0aCB0aGUgc2FtZSBh
+bmQgYXNrZWQgTWF1cm8gdG8gcmV2aWV3IGl0IHdpdGhpbiAyNCBob3VycyBvcgp5b3Ugd291bGQg
+bWFkZSB1cCBhIG1ham9yIGxpc3RpbmcgZXZlcnl3aGVyZSwgIHdoYXQgbGFtZXJzIHdlIGFyZSBh
+bmQKdGhhdCB0aGlzIHdvdWxkIGltbWVkaWF0ZWx5IHNob3csIHRoYXQgeW91IGFyZSB0aGUgb25s
+eSBvbmUgd2UgbmVlZCAuLi4KCkl0IGlzIHN0aWxsIHRoZSBzYW1lIC4uLgoKQnkgYWxsIHJlc3Bl
+Y3QsIG5vdCB0aGF0IHdheS4KCkhlcm1hbm4KCgoKCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBs
+aW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5m
+by9saW51eC1kdmI=
