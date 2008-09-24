@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8DMKUKc012153
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 18:20:30 -0400
-Received: from speedy.tutby.com (mail.tut.by [195.137.160.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8DMKHb9001049
-	for <video4linux-list@redhat.com>; Sat, 13 Sep 2008 18:20:17 -0400
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: Steven Toth <stoth@linuxtv.org>
-Date: Sun, 14 Sep 2008 01:19:37 +0300
-References: <E1KdnPr-0002YP-SF@www.linuxtv.org>
-	<200809131623.10155.liplianin@tut.by>
-	<48CC2512.2020502@linuxtv.org>
-In-Reply-To: <48CC2512.2020502@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="koi8-r"
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8OHOL48003975
+	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 13:24:21 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8OHNkOu031685
+	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 13:23:52 -0400
+Date: Wed, 24 Sep 2008 19:23:25 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Johnny <jtriana@msn.com>
+Message-ID: <20080924172325.GA10842@daniel.bse>
+References: <BLU136-DS6B9094AF8EFC2B48BB533AE450@phx.gbl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200809140119.38052.liplianin@tut.by>
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [linux-dvb]  [PATCH] Add support for SDMC DM1105 PCI chip
+In-Reply-To: <BLU136-DS6B9094AF8EFC2B48BB533AE450@phx.gbl>
+Cc: video4linux-list@redhat.com
+Subject: Re: SEARCHING (and ATI TV Wonder Elite)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,30 +27,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-В сообщении от 13 September 2008 23:39:46 Steven Toth написал(а):
-> Igor M. Liplianin wrote:
-> > The patch adds support for SDMC DM1105 PCI chip. There is a lot of
-> > cards based on it, like DvbWorld 2002 DVB-S , 2004 DVB-S2
-> > Source code prepaired to and already tested with cards, which have
-> > si2109, stv0288, cx24116 demods.  Currently enabled only stv0299, as
-> > other demods are not in a v4l-dvb main tree, but I will submit
-> > corresponded patches (si2109, stv0288) next time.
->
-> Igor,
->
-> Cool.
->
-> Master repo does not have cx24116 support so it probably cannot be
-> merged. Do you need me to merge this into the s2api tree?
->
-Steve,
+On Wed, Sep 24, 2008 at 10:36:56AM -0500, Johnny wrote:
+> How do I perform a search on the list?
 
-It would be great !
-Patch is ready to s2api tree.
+http://marc.info/?l=linux-video
 
-So I must prepair next patch, which enables DvbWorld 2004 DVB-S2.
+> I want info on the ATI TV Wonder Elite tuner card.
+> Will it work with Mythbuntu?
 
-Igor
+The ATI TV Wonder Elite uses an ATI Theater 550 Pro chip.
+I can't remember having heard of a Linux driver for this chip.
+
+> I have a ASRock K8NF4G-SATA2 Mobo with a AMD Athlon 64 2800+ cpu;
+> 1GB Kingston KVR400x64C3A PC3200 DDR400 DIMM;
+> and a PNY GeForce 7600GS PCI-e 256MB DDR graphics card.
+
+In 99,9% of all cases this information is irrelevant when talking about
+TV cards. If there is a suitable slot on the board, the problem reduces
+to availability of drivers.
+
+> Do I really need the PNY card, or will the onboard integrated nVidia
+> graphics be good?
+
+The onboard graphics will be good.
+
+  Daniel
 
 --
 video4linux-list mailing list
