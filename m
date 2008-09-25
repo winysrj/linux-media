@@ -1,16 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n68.bullet.mail.sp1.yahoo.com ([98.136.44.44])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <free_beer_for_all@yahoo.com>) id 1Ka9gp-0000Ag-3Q
-	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 15:43:32 +0200
-Date: Mon, 1 Sep 2008 06:42:54 -0700 (PDT)
-From: barry bouwsma <free_beer_for_all@yahoo.com>
-To: linux-dvb@linuxtv.org, Jiri Jansky <janskj1@fel.cvut.cz>
-In-Reply-To: <48BBDFE0.5080000@fel.cvut.cz>
+Date: Thu, 25 Sep 2008 06:55:25 -0300 (BRT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Manu Abraham <abraham.manu@gmail.com>
+In-Reply-To: <48DB0560.1010802@gmail.com>
+Message-ID: <alpine.LFD.1.10.0809250637260.21990@areia.chehab.org>
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<48D9F6F3.8090501@gmail.com>
+	<alpine.LRH.1.10.0809241051170.12985@pub3.ifh.de>
+	<48DA15A2.40109@gmail.com>
+	<alpine.LFD.1.10.0809240942250.28125@areia.chehab.org>
+	<a3ef07920809241441gea2c09al6e2ed32589ad6fa4@mail.gmail.com>
+	<d9def9db0809241901g56a54750kbfccecc77b111ec7@mail.gmail.com>
+	<37219a840809241947w6ca35351xa15920de6ff41aab@mail.gmail.com>
+	<48DB0560.1010802@gmail.com>
 MIME-Version: 1.0
-Message-ID: <125110.94356.qm@web46106.mail.sp1.yahoo.com>
-Subject: Re: [linux-dvb] USB Opera DVB-S 1 and diseqc switch
-Reply-To: free_beer_for_all@yahoo.com
+Cc: Greg KH <greg@kroah.com>, Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Michael Krufky <mkrufky@linuxtv.org>, DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,28 +31,47 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---- On Mon, 9/1/08, Jiri Jansky <janskj1@fel.cvut.cz> wrote:
+On Thu, 25 Sep 2008, Manu Abraham wrote:
 
-> and it run well, but I'm not able switch to different input in my 
-> 4-input diseqc switch. Like driver didn't support it at all.
-> Does anybody run diseqc switch or motor with this usb card?
+> A discussion between people who were already decided what to state
+> beforehand, i must say.
 
-Ahoj,
+Not true at all.
 
-I have one of these cards, and it works fine, connected to a
-multiswitch (select from four sat positions, incl. lo/hi hor/vert)
+Only 3 persons were Americans. Yet, 2 of them living at the oposite coast 
+of US. So, even for they, a long trip (5 hours of time fuse).
 
-I don't remember if I tried it with a normal 2/1 or 4/1
-DiSEqC switch; I'll add it to my list of things to check.
+All the others there came from other continents: Europe, South America, 
+Asia. On most cases, people took 2 days to arrive there, and 2 other days 
+to return back home, for a 2,5 day meeting.
 
-Do you know what level DiSEqC your 4/1 switch is (2.0, 1.something)?
+Some of them even payed the expenses from their own pockets.
 
+We all suffered a lot from Jet Leg effects, geting 5 or more hours of 
+difference at the time fuse.
 
-barry bouwsma
+We all now have a big list of pending work that accumulated due to the 1 
+week spent with the trips.
 
+People woudln't do at all such big efforts just to say: "me too", or to do 
+some sort of political arrangement. If there was a previous decision, it 
+would be a way easy to announce it via email.
 
-      
+People went there because:
+ 	- They want a better future for video input infrastructure;
+ 	- They think that people make difference;
+ 	- They want to solve pending things;
+ 	- They believe that being together is the way for fixing social 
+issues at the community.
 
+So, all people there put a lot of resources for what they believe 
+it is the right way to do. Please respect.
+
+I understand that you are unhappy with the results of the vote, but it 
+was a fair decision.
+
+Cheers,
+Mauro.
 
 _______________________________________________
 linux-dvb mailing list
