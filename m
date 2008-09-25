@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2f.orange.fr ([80.12.242.152])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1KesZY-0007PB-LA
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 16:27:34 +0200
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-dvb@linuxtv.org
-Date: Sun, 14 Sep 2008 16:27:10 +0200
-References: <3C276393607085468A28782D978BA5EE71EC225BCE@w2k8svr1.glcdomain8.local>
-In-Reply-To: <3C276393607085468A28782D978BA5EE71EC225BCE@w2k8svr1.glcdomain8.local>
+	(envelope-from <abraham.manu@gmail.com>) id 1KiibP-0004kK-W1
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 06:37:24 +0200
+Message-ID: <48DB1577.8030503@gmail.com>
+Date: Thu, 25 Sep 2008 08:37:11 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809141627.10734.hftom@free.fr>
-Subject: Re: [linux-dvb] Basic Multiproto Question
+To: Christophe Thommeret <hftom@free.fr>
+References: <4724.24.120.242.223.1222313000.squirrel@webmail.xs4all.nl>
+	<200809250604.44125.hftom@free.fr> <48DB0FDA.1000702@gmail.com>
+	<200809250631.50462.hftom@free.fr>
+In-Reply-To: <200809250631.50462.hftom@free.fr>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,29 +21,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le Sunday 14 September 2008 14:04:59 Michael J. Curtis, vous avez =E9crit=
-=A0:
-> Hi all
->
-> Kernel 2.6.25.10-47.fc8
-> TT S2-3200
-> AMD x86_64
->
-> Now that multiproto has been merged with v4l
+Christophe Thommeret wrote:
 
-It hasn't.
+>> You can read it from the public archives here on the same.
+> 
+> I know the story Manu.
+> But 2 years to get a new API is really too much. And during these 2 years, 2 
+> different trees for 2 differents drivers was totally insane.
 
+Your history is incorrect.
 
--- =
+> We (applications 
+> devs) are always making our best to bring DVB to users as easily as possible. 
+> And trust me, the multiproto story has complicated users life A LOT.
 
-Christophe Thommeret
+True. but much better to state the addition of DVB-S2 delivery system to
+make it general.
 
+> This must NEVER happen again. 
+
+True.
+
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
