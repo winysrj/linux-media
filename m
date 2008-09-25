@@ -1,26 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from anchor-post-37.mail.demon.net ([194.217.242.87])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1KcdTF-0007Kw-J9
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 11:55:46 +0200
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1KcdT7-0005VU-QS
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 09:55:38 +0000
-Received: from c83-254-20-12.bredband.comhem.se ([83.254.20.12])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Mon, 08 Sep 2008 09:55:37 +0000
-Received: from elupus by c83-254-20-12.bredband.comhem.se with local (Gmexim
-	0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Mon, 08 Sep 2008 09:55:37 +0000
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1Kiz2F-0001cx-Np
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 00:10:08 +0200
+Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
+	helo=pentagram.youmustbejoking.demon.co.uk)
+	by anchor-post-37.mail.demon.net with esmtp (Exim 4.69)
+	id 1Kiz2B-00015F-P1
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 22:10:03 +0000
+Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
+	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1Kiz0b-0005Sm-4k
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 23:08:30 +0100
+Date: Thu, 25 Sep 2008 23:04:16 +0100
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
 To: linux-dvb@linuxtv.org
-From: elupus <elupus@ecce.se>
-Date: Mon, 8 Sep 2008 11:55:28 +0200
-Message-ID: <sb81i1fsn44f$.1oh56x1kdxv9f.dlg@40tude.net>
-References: <a86be8e70809062055v6157e476nfbff0cba13dbd444@mail.gmail.com>
-	<ea4209750809070225t7990e924l63c2a5f718d4dcf3@mail.gmail.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] [PATCH] support YUAN High-Tech STK7700D (1164:1f08)
+Message-ID: <4FE9FBE3F0%linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <607427.44664.qm@web52906.mail.re2.yahoo.com>
+References: <607427.44664.qm@web52906.mail.re2.yahoo.com>
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] Hauppauge DVB USB2 Nova-TD stick has a new remote
+	control.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,28 +36,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 7 Sep 2008 11:25:41 +0200, Albert Comerma wrote:
+I demand that Chris Rankin may or may not have written...
 
-> Hi Daniel, it would be great if somebody could test it, just to be sure,
-> before adding it to the current driver. On the analogue there are some
-> efforts on porting the needed api to dvb-usb, but still with no results.
-> Let's hope in a few months...
+> The WinTV Nova-TD is shipping with a new credit card sized remote control
+> that has 35 buttons. The key-codes for these buttons are as follows:
 > 
-> Albert
-> 
-> 2008/9/7 Daniel Oliveira Nascimento <don@syst.com.br>
-> 
->> [20 quoted lines suppressed]
+>         { 0x1d, 0x00, KEY_0 },
+>         { 0x1d, 0x01, KEY_1 },
+[snip]
+>         { 0x1d, 0x3d, KEY_POWER },
 
-I can confirm that my patch works for this card (posted awhile ago), which
-is identical apart from it using tabs instead of spaces as the file in
-general :).
+i.e. the same as for the 0x1E and 0x1F blocks used by older
+Hauppauge-supplied remote controls.
 
-Patric asked for a signed off message on it thou. Will send when i get home
-from work. 
+-- 
+| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
+| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
+| + Output *more* particulate pollutants.      BUFFER AGAINST GLOBAL WARMING.
 
-Cheers
-
+Be alert. The world needs more lerts.
 
 _______________________________________________
 linux-dvb mailing list
