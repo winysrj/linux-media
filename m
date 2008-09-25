@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.emergencycommunicationsystems.com ([24.123.23.170]
-	helo=unifiedpaging.messagenetsystems.com)
+Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rob.krakora@messagenetsystems.com>)
-	id 1KkgfT-00088A-9H
-	for linux-dvb@linuxtv.org; Tue, 30 Sep 2008 16:57:40 +0200
-Message-ID: <48E23E55.4080706@messagenetsystems.com>
-Date: Tue, 30 Sep 2008 10:57:25 -0400
-From: Robert Vincent Krakora <rob.krakora@messagenetsystems.com>
-MIME-Version: 1.0
+	(envelope-from <sonofzev@iinet.net.au>) id 1KiuaH-0002n5-F0
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 19:24:58 +0200
+From: allan k <sonofzev@iinet.net.au>
 To: linux-dvb@linuxtv.org
-References: <48E23B85.10208@messagenetsystems.com>
-In-Reply-To: <48E23B85.10208@messagenetsystems.com>
-Cc: geisj@messagenetsystems.com
-Subject: Re: [linux-dvb] [Fwd: [Alsa-user] alsa kernel module versioning
-	problem]
+In-Reply-To: <1222355498.17944.1.camel@media1>
+References: <1222352934.9701.3.camel@media1> <1222355498.17944.1.camel@media1>
+Date: Fri, 26 Sep 2008 03:24:49 +1000
+Message-Id: <1222363489.23405.3.camel@media1>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] how do i get the bt878 driver to show
+	and	xc-3028	on 2.6.26-gentoo
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,143 +25,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Robert Vincent Krakora wrote:
-> Hello,
->
-> I am experiencing the same problem as described in the link below. How 
-> does one play with the #ifdefs in the compat.h file to negate these 
-> errors?
->
-> http://www.linuxtv.org/pipermail/linux-dvb/2006-September/012747.html
->
-> Thanks in advance.
->
-> Best Regards,
->
-> ------------------------------------------------------------------------
->
-> Subject:
-> [Alsa-user] alsa kernel module versioning problem
-> From:
-> Robert Vincent Krakora <rob.krakora@messagenetsystems.com>
-> Date:
-> Tue, 23 Sep 2008 16:01:55 -0400
-> To:
-> alsa-user@lists.sourceforge.net, geisj@messagenetsystems.com
->
-> To:
-> alsa-user@lists.sourceforge.net, geisj@messagenetsystems.com
->
->
-> I am running alsa on CentOS5 and get the following errors from em28xx_audio:
->
-> How can this be resolved?
->
-> em28xx v4l2 driver version 0.0.1 loaded
-> em28xx new video device (2040:6513): interface 0, class 255
-> em28xx: device is attached to a USB 2.0 bus
-> em28xx: you're using the experimental/unstable tree from mcentral.de
-> em28xx: there's also a stable tree available but which is limited to
-> em28xx: linux <=2.6.19.2
-> em28xx: it's fine to use this driver but keep in mind that it will move
-> em28xx: to http://mcentral.de/hg/~mrec/v4l-dvb-kernel as soon as it's
-> em28xx: proved to be stable
-> em28xx #0: Alternate settings: 8
-> em28xx #0: Alternate setting 0, max size= 0
-> em28xx #0: Alternate setting 1, max size= 0
-> em28xx #0: Alternate setting 2, max size= 1448
-> em28xx #0: Alternate setting 3, max size= 2048
-> em28xx #0: Alternate setting 4, max size= 2304
-> em28xx #0: Alternate setting 5, max size= 2580
-> em28xx #0: Alternate setting 6, max size= 2892
-> em28xx #0: Alternate setting 7, max size= 3072
-> attach_inform: eeprom detected.
-> em28xx #0: i2c eeprom 00: 1a eb 67 95 40 20 13 65 d0 12 5c 03 82 1e 6a 18
-> em28xx #0: i2c eeprom 10: 00 00 24 57 66 07 01 00 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b 1c 00 00
-> em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 01 01 00 00 00 00
-> em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 18 03 34 00 30 00
-> em28xx #0: i2c eeprom 70: 32 00 38 00 35 00 33 00 34 00 37 00 37 00 37 00
-> em28xx #0: i2c eeprom 80: 00 00 1e 03 57 00 69 00 6e 00 54 00 56 00 20 00
-> em28xx #0: i2c eeprom 90: 48 00 56 00 52 00 2d 00 39 00 38 00 30 00 00 00
-> em28xx #0: i2c eeprom a0: 84 12 00 00 05 50 1a 7f d4 78 23 b1 fe d0 18 85
-> em28xx #0: i2c eeprom b0: ff 00 00 00 04 84 0a 00 01 01 20 77 00 40 f9 8f
-> em28xx #0: i2c eeprom c0: 1e f0 74 02 01 00 01 79 00 00 00 00 00 00 00 00
-> em28xx #0: i2c eeprom d0: 84 12 00 00 05 50 1a 7f d4 78 23 b1 fe d0 18 85
-> em28xx #0: i2c eeprom e0: ff 00 00 00 04 84 0a 00 01 01 20 77 00 40 f9 8f
-> em28xx #0: i2c eeprom f0: 1e f0 74 02 01 00 01 79 00 00 00 00 00 00 00 00
-> EEPROM ID= 0x9567eb1a
-> Vendor/Product ID= 2040:6513
-> AC97 audio (5 sample rates)
-> 500mA max power
-> Table at 0x24, strings=0x1e82, 0x186a, 0x0000
-> tveeprom 2-0050: Hauppauge model 65201, rev A1C0, serial# 2002937
-> tveeprom 2-0050: tuner model is Xceive XC3028 (idx 120, type 71)
-> tveeprom 2-0050: TV standards PAL(B/G) PAL(I) PAL(D/D1/K) ATSC/DVB 
-> Digital (eeprom 0xd4)
-> tveeprom 2-0050: audio processor is None (idx 0)
-> tveeprom 2-0050: has radio
-> tuner 2-0061: chip found @ 0xc2 (em28xx #0)
-> attach inform (default): detected I2C address c2
-> /home/silentm/MessageNet/v4l-dvb-kernel-cd030297f684/v4l/tuner-core.c: 
-> setting tuner callback
-> tuner 0x61: Configuration acknowledged
-> /home/silentm/MessageNet/v4l-dvb-kernel-cd030297f684/v4l/tuner-core.c: 
-> setting tuner callback
-> /home/silentm/MessageNet/v4l-dvb-kernel-cd030297f684/v4l/xc3028-tuner.c: 
-> attach request!
-> /home/silentm/MessageNet/v4l-dvb-kernel-cd030297f684/v4l/tuner-core.c: 
-> xc3028 tuner successfully loaded
-> attach_inform: tvp5150 detected.
-> tvp5150 2-005c: tvp5150am1 detected.
-> Loading base firmware: xc3028_init0.i2c.fw
-> Loading default analogue TV settings: xc3028_BG_PAL_A2_A.i2c.fw
-> xc3028-tuner.c: firmware 2.7
-> ANALOG TV REQUEST
-> em28xx #0: V4L2 device registered as /dev/video0
-> em28xx #0: Found Hauppauge WinTV HVR 950
-> usbcore: registered new driver em28xx
-> em28xx_audio: disagrees about version of symbol snd_pcm_new
-> em28xx_audio: Unknown symbol snd_pcm_new
-> em28xx_audio: disagrees about version of symbol snd_card_register
-> em28xx_audio: Unknown symbol snd_card_register
-> em28xx_audio: disagrees about version of symbol snd_card_free
-> em28xx_audio: Unknown symbol snd_card_free
-> em28xx_audio: disagrees about version of symbol snd_card_new
-> em28xx_audio: Unknown symbol snd_card_new
-> em28xx_audio: disagrees about version of symbol snd_pcm_lib_ioctl
-> em28xx_audio: Unknown symbol snd_pcm_lib_ioctl
-> em28xx_audio: disagrees about version of symbol snd_pcm_set_ops
-> em28xx_audio: Unknown symbol snd_pcm_set_ops
-> em28xx_audio: disagrees about version of symbol 
-> snd_pcm_hw_constraint_integer
-> em28xx_audio: Unknown symbol snd_pcm_hw_constraint_integer
-> em28xx_audio: disagrees about version of symbol snd_pcm_period_elapsed
-> em28xx_audio: Unknown symbol snd_pcm_period_elapsed
-> em2880-dvb.c: DVB Init
-> Loading base firmware: xc3028_8MHz_init0.i2c.fw
-> Loading default dtv settings: xc3028_DTV8_2633.i2c.fw
-> xc3028-tuner.c: firmware 2.7
-> Sending extra call for Digital TV!
-> /home/silentm/MessageNet/v4l-dvb-kernel-cd030297f684/v4l/xc3028-tuner.c: 
-> attach request!
-> DVB: registering new adapter (em2880 DVB-T)
-> DVB: registering frontend 0 (LG Electronics LGDT3303 VSB/QAM Frontend)...
-> Em28xx: Initialized (Em2880 DVB Extension) extension
-> [
->   
+Sorry 
+
+I've answered my own questions had to grab the more generic
+xc3028-v27.fw to make the card work on the standard v4l-dvb tree to
+work.
+
+Would be nice for the analog part to work in Mythtv (maybe it works in
+other software) especially the composite input (I guess this is on the
+xc2028 part of the card) to encode all my old VHS tapes. 
+
+cheers
+
+Allan 
 
 
--- 
-Rob Krakora
-Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+
+
+On Fri, 2008-09-26 at 01:11 +1000, allan k wrote:
+> Okay .. 
+> 
+> It seems I had no trouble with the bt-878... but the xc3028 version of
+> the fusion dual express doesn't seem to be in the kernel (not listed in
+> the compatible cards)...
+> 
+> I'm going back to mercurial now. 
+> 
+> cheers
+> 
+> Allan
+> 
+> On Fri, 2008-09-26 at 00:28 +1000, allan k wrote:
+> > Hi all 
+> > 
+> > >From what I understand I should now be able to get both my Fusion HDTV
+> > lite and Fusion Digital Express (cx23885 with xc-3028) to work from
+> > in-kernel drivers and not use the mercurial tree. 
+> > 
+> > Firstly I can't get the bt-878 driver for the lite card to show... I
+> > know I've done this along time ago, but just can't remember...
+> > 
+> > Also I've seen some discussion about the xc3028-dvico-au-01.fw and it's
+> > compatibility with 2.6.26 but can't see an answer as to whether it works
+> > or not... any definitive answer or do need to download new firmware from
+> > somewhere? 
+> > 
+> > 
+> > 
+> > _______________________________________________
+> > linux-dvb mailing list
+> > linux-dvb@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 _______________________________________________
 linux-dvb mailing list
