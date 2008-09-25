@@ -1,24 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+Received: from [194.250.18.140] (helo=tv-numeric.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KciNV-0008E5-Qf
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 17:10:10 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6V00E5NU3V06V0@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 08 Sep 2008 11:09:35 -0400 (EDT)
-Date: Mon, 08 Sep 2008 11:09:31 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080907020131.235250@gmx.net>
-To: Hans Werner <HWerner4@gmx.de>
-Message-id: <48C5402B.70806@linuxtv.org>
-MIME-version: 1.0
-References: <48BF6A09.3020205@linuxtv.org>
-	<200809061457.59955.liplianin@tut.by> <20080907020131.235250@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API - First release
+	(envelope-from <thierry.lelegard@tv-numeric.com>) id 1KirJo-0005Xb-8g
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 15:55:46 +0200
+From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
+To: <linux-dvb@linuxtv.org>
+Date: Thu, 25 Sep 2008 15:55:03 +0200
+Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAMMIN1j3+okaNUJt73+hyGgEAAAAA@tv-numeric.com>
+MIME-Version: 1.0
+In-Reply-To: <alpine.LFD.1.10.0809250942251.21990@areia.chehab.org>
+Subject: [linux-dvb] RE : RE : [RFC] Let the future decide between the two.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,24 +17,55 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Steve,
-> 
-> I have been tracking down the following bug which affects the LNB voltage. I now have
-> signal lock for DVB-S and DVB-S2 (QPSK, Astra HD Promo) with the HVR4000.
+> De : Mauro Carvalho Chehab [mailto:mchehab@infradead.org] =
 
-Hans, thanks for fixing this. I've applied it the ~stoth/s2 tree.
+> Envoy=E9 : jeudi 25 septembre 2008 14:46
+> =
 
-Good to hear you're up and running with the HVR4000!
+> On Thu, 25 Sep 2008, Thierry Lelegard wrote:
+> =
 
-Regards,
+> > I use only DVT-T devices. I have 4 of them, all working on Linux
+> > for months or years and there is no one single repository supporting
+> > all of them at the same time. Most are supported by
+> > http://linuxtv.org/hg/v4l-dvb, another one needs
+> > http://linuxtv.org/hg/~anttip/af9015 plus other patches.
+> > And this is not a transitional situation, it lasts for months.
+> =
 
-Steve
+> Patches are merged upstream when their authors think they're =
+
+> ready and =
+
+> sends a pull request.
+> =
+
+> In the case of af9015, Antti sent us a pull request those =
+
+> days and were =
+
+> merged this week at the development tree. It should be available for =
+
+> 2.6.28.
+
+Thank you for the update. This is good news indeed.
+
+However, this was only an example to illustrate the main point:
+the leadership problem in linux dvb.
+
+The fact that, after years of parallel and uncoordinated development,
+everyone (Manu, now Antti) suddenly feel the urgent need to merge
+everything is another illustration of this lack of leadership.
+"Bazaar" development has never been a synonym for "uncoordinated"
+development. Call it leadership or "coordinatorship", we just need it.
+
+-Thierry
 
 
 _______________________________________________
