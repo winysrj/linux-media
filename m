@@ -1,26 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.230])
+Received: from scing.com ([217.160.110.58])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1Ketfr-0000KF-Vs
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 17:38:09 +0200
-Received: by wx-out-0506.google.com with SMTP id t16so677420wxc.17
-	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 08:38:04 -0700 (PDT)
-Message-ID: <d9def9db0809140838k2ced5211gc2690e76f53a98be@mail.gmail.com>
-Date: Sun, 14 Sep 2008 17:38:03 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Manu Abraham" <abraham.manu@gmail.com>
-In-Reply-To: <48CC4D35.3000003@gmail.com>
+	(envelope-from <janne-dvb@grunau.be>) id 1KioOW-0001Fr-Ou
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 12:48:25 +0200
+From: Janne Grunau <janne-dvb@grunau.be>
+To: linux-dvb@linuxtv.org
+Date: Thu, 25 Sep 2008 12:48:20 +0200
+References: <48DB3388.2030303@verbraak.org>
+In-Reply-To: <48DB3388.2030303@verbraak.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-	<48CC42D8.8080806@gmail.com>
-	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
-	<48CC4D35.3000003@gmail.com>
-Cc: linux-dvb@linuxtv.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Message-Id: <200809251248.20557.janne-dvb@grunau.be>
+Subject: Re: [linux-dvb] [RFC] Let the future decide between the two.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,94 +25,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Sep 14, 2008 at 1:31 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
-> Markus Rechberger wrote:
->> On Sun, Sep 14, 2008 at 12:46 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
->>> Markus Rechberger wrote:
->>>
->>>> How many devices are currently supported by the multiproto API
->>>> compared with the s2 tree?
->>> The initial set of DVB-S2 multistandard devices supported by the
->>> multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
->>> alone. There are more additions by 2 more modules (not devices), but for
->>> the simple comparison here is the quick list of them, for which some of
->>> the manufacturers have shown support in some way. (There has been quite
->>> some contributions from the community as well.):
->>>
->>> (Also to be noted is that, some BSD chaps also have shown interest in
->>> the same)
->>>
->>
->> they're heavy into moving the whole framework over as far as I've seen
->> yes, also including yet unmerged drivers.
+On Thursday 25 September 2008 08:45:28 Michel Verbraak wrote:
+> I have been following the story about the discussion of the future of
+> the DVB API for the last two years and after seen all the discussion
+> I would like to propose the following:
 >
+> - Keep the two different DVB API sets next to one another. Both
+> having a space on Linuxtv.org to explain their knowledge and how to
+> use them. - Each with their own respective maintainers to get stuff
+> into the kernel. I mean V4L had two versions.
+> - Let driver developers decide which API they will follow. Or even
+> develop for both.
+> - Let application developers decide which API they will support.
+> - Let distribution packagers decide which API they will have
+> activated by default in their distribution.
+> - Let the end users decide which one will be used most. (Probably
+> they will decide on: Is my hardware supported or not).
+> - If democracy is that strong one of them will win or maybey the two
+> will get merged and we, the end users, get best of both worlds.
 >
-> Using the same interface, the same applications will work there as well
-> which is a bonus, but isn't the existing user interface GPL ? (A bit
-> confused on that aspect)
->
->
->>> * STB0899 based
->>>
->>> Anubis
->>> Typhoon DVB-S2 PCI
->>>
->>> Azurewave/Twinhan
->>> VP-1041
->>> VP-7050
->>>
->>> Digital Now
->>> AD SP400
->>> AD SB300
->>>
->>> KNC1
->>> TV Station DVB-S2
->>> TV Station DVB-S2 Plus
->>>
->>> Pinnacle
->>> PCTV Sat HDTV Pro USB 452e
->>>
->>> Satelco
->>> TV Station DVB-S2
->>> Easywatch HDTV USB CI
->>> Easywatch HDTV PCI
->>>
->>> Technisat
->>> Skystar HD
->>> Skystar HD2
->>> Skystar USB2 HDCI
->>>
->>> Technotrend
->>> TT S2 3200
->>> TT S2 3600
->>> TT S2 3650
->>>
->>> Terratec
->>> Cinergy S2 PCI HD
->>> Cinergy S2 PCI HDCI
->>>
->>
->> those are pullable now against the current tree?
->
->
-> These devices, depend upon the DVB API update without which it wouldn't
-> work as they depend heavily on the DVB API framework. Without the
-> updated framework, it doesn't make any sense to pull them: they won't
-> even compile. The last but not least reason is that, the stb0899 driver
-> is a DVB-S2 multistandard device which requires DVB-S2/DSS support
-> additionally.
->
+> As the subject says: This is a Request For Comment.
 
-so the framework is available, and the drivers could be pushed in
-right afterwards, I wonder
-who is willing to port those drivers to the other API (including testing).
-It's not going to happen any time soon I guess, if there's not an
-agreement with Manu's
-work. Dumping this code would show another step of ignorance and
-selfishness against the
-people who worked on it.
+This is complete nonsense, distrobution packagers shouldn't decide which 
+API should be used, the API and all drivers should be in the kernel. 
+Having two tree is at best fragmentation and at worst a whole lot of 
+duplicated work.
+That should a user do if he has two devices which are only supported by 
+one of the trees? That's bad luck?
+Users can't decide because they are either forced by hardware or the 
+application to use a tree. The only way to avoid this duplicated work. 
 
-Markus
+This is a stupid compromise proposal appeal both parties. A decision was 
+made S2API is already merged we should just with it.
+
+Janne
 
 _______________________________________________
 linux-dvb mailing list
