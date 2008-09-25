@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2a.orange.fr ([80.12.242.140])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1KfG04-0006jf-H6
-	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 17:28:29 +0200
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-dvb@linuxtv.org
-Date: Mon, 15 Sep 2008 17:28:51 +0200
-References: <466191.65236.qm@web46110.mail.sp1.yahoo.com>
-	<alpine.LFD.1.10.0809151122480.16872@areia.chehab.org>
-	<141058d50809150800l73fe8b67qbc845cd6e01eafe2@mail.gmail.com>
-In-Reply-To: <141058d50809150800l73fe8b67qbc845cd6e01eafe2@mail.gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <joerg.knitter@gmx.de>) id 1KixJ2-0004SE-NL
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 22:19:21 +0200
+Message-ID: <48DBF224.2010109@gmx.de>
+Date: Thu, 25 Sep 2008 22:18:44 +0200
+From: =?ISO-8859-1?Q?J=F6rg_Knitter?= <joerg.knitter@gmx.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809151728.51469.hftom@free.fr>
-Subject: Re: [linux-dvb] xc3028 config issue. Re: Why I need to choose
-	better Subject: headers [was: Re: Why (etc.)]
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <002101c91f1a$b13c4e60$0401a8c0@asrock>	<a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>	<48DBBAC0.7030201@gmx.de>	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>	<20080925181943.GA12800@halim.local>
+	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
+In-Reply-To: <a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
+ view
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,37 +26,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le Monday 15 September 2008 17:00:35 Glenn McGrath, vous avez =E9crit=A0:
-> On Tue, Sep 16, 2008 at 12:30 AM, Mauro Carvalho Chehab
->
-> <mchehab@infradead.org> wrote:
-> > You should also notice that, on Australia, you'll need an extra offset =
-of
-> > 500 KHz for the frequency.
->
-> What is the reason behind this... it took me a week to make an
-> initial-tuning-data file for my tv card.
->
-> I read that Australian broadcasters are allowed to broadcast +/-
-> 125kHz from the center frequency, is it anything to do with that,
-> where does the 500 come from ?
+VDR User wrote:
+> Another option would be to look at both proposals, take the best ideas
+> for each, and marry them into a new hybrid proposal so-to-speak.  By
+> that I don't mean something which must be built completely from the
+> ground up..  Most of the work has already been done.  I think that is
+> a workable solution that can be found somewhere in the middle.
+>   =
 
-Allowed shiftings are n*125 (or n*167 on 8mhz)
+Thinking about all the posts within the last days, I did not propose =
 
-> I started an app called utuner (gna.org/utuner if anyone whats to take
-> a look, afaik nobody else has looked at it yet, so expect it to be
-> rough) still very early, i just want to make something more flexible
-> than w_scan that can generate an initial-tuning-data file, dont care
-> if i have to leave the channel scan going all night and scan the whole
-> spectrum, it will still be quicker than the week it took me to
-> generate my initial-tuning-data file.
+something as this as I don=B4t believe that certain persons are still =
 
-:)
+willing to cooperate or change their point of view. To be more precise: =
 
--- =
+I think it would be a wonder if Steven Toth and Manu Abraham worked =
 
-Christophe Thommeret
+together. ;)
 
+With kind regards
+
+Joerg Knitter
 
 _______________________________________________
 linux-dvb mailing list
