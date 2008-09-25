@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KiiEH-000314-6P
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 06:13:25 +0200
-Message-ID: <48DB0FDA.1000702@gmail.com>
-Date: Thu, 25 Sep 2008 08:13:14 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: linux-dvb@linuxtv.org, Steven Toth <stoth@hauppauge.com>,
+	Steven Toth <stoth@linuxtv.org>,
+	Patrick Boettcher <patrick.boettcher@desy.de>
+Date: Thu, 25 Sep 2008 05:30:37 +0300
+References: <48CA0355.6080903@linuxtv.org>
+	<200809170037.59770.liplianin@tut.by>
+	<200809232201.06863.liplianin@tut.by>
+In-Reply-To: <200809232201.06863.liplianin@tut.by>
 MIME-Version: 1.0
-To: Christophe Thommeret <hftom@free.fr>
-References: <4724.24.120.242.223.1222313000.squirrel@webmail.xs4all.nl>
-	<48DB0C1E.6020605@gmail.com> <200809250604.44125.hftom@free.fr>
-In-Reply-To: <200809250604.44125.hftom@free.fr>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_Ofv2IvsKAP7IZ8i"
+Message-Id: <200809250530.38075.liplianin@tut.by>
+Subject: [linux-dvb] [PATCH] S2API - Kconfig dependency fixes for cards with
+	stv0288 and si21xx.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,55 +21,99 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Christophe Thommeret wrote:
-> Le Thursday 25 September 2008 05:57:18 Manu Abraham, vous avez =E9crit :
->> Hans Verkuil wrote:
->>> Just work with Steve to convert the current devices in the multiproto
->>> tree to use this API. If there is anything missing kick Steve and he'll
->>> have to add whatever is needed. That's *his* responsibility and he
->>> accepted that during the discussions.
->> With the multiproto tree, you _don't_need_ to convert any devices to use
->> the new infrastructure, whereas with S2API you need to do that. This is
->> a major drawback. In the multiproto tree, all devices work just without
->> any conversion of any kind, also it is completely backward compatible.
->>
->> The aspect of backward compatibility and drivers not getting converted
->> had been a major issue, when the original DVB-S2 discussions came up.
->> This had been a design goal for the multiproto tree.
+--Boundary-00=_Ofv2IvsKAP7IZ8i
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
+Hi,
 
-Please do not trim CC's.
+Patches for Kconfig dependencies for cards with stv0288 and si21xx.
 
-> I'm not sure to get you Manu.
-> Do you mean that existing drivers have to be "converted" to work with s2a=
-pi ?
+Thanks to Patrick for paying attention.
 
-Yes, one of the existing drivers had to be converted. eg: CinergyT2
+Igor
 
-Also, the stb0899 driver (from the multiproto tree) also needs to be
-converted, as far as anyone who is able to see, or from the posts
-themselves.
+--Boundary-00=_Ofv2IvsKAP7IZ8i
+Content-Type: text/x-diff;
+  charset="koi8-r";
+  name="8897.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="8897.patch"
 
-The CX24116 is already existing in the multiproto tree, from Steven
-himself. I did not pull this driver into the tree that i used for
-testing because of all those mails Steven wrote: just wanted to stay
-clear of it. But somebody else is having the same tree. Eventhough many
-people had asked me to pull that driver in, because of all those mails,
-i just stood clear of it.
+# HG changeset patch
+# User Igor M. Liplianin <liplianin@me.by>
+# Date 1222307333 -10800
+# Node ID 8de73c0adc5dee549fd7f9d34f80a2ee40ae347e
+# Parent  70b18ec9535dc884fb0e9ff9456aa4f79df14921
+Kconfig correction for USB card modification with SI2109/2110 demodulator.
 
-You can read it from the public archives here on the same.
+From: Igor M. Liplianin <liplianin@me.by>
 
-Regards,
-Manu
+Kconfig correction for USB card modification with SI2109/2110 demodulator.
 
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+
+diff -r 70b18ec9535d -r 8de73c0adc5d linux/drivers/media/dvb/dvb-usb/Kconfig
+--- a/linux/drivers/media/dvb/dvb-usb/Kconfig	Tue Sep 23 21:43:57 2008 +0300
++++ b/linux/drivers/media/dvb/dvb-usb/Kconfig	Thu Sep 25 04:48:53 2008 +0300
+@@ -252,6 +252,7 @@
+ 	select DVB_PLL if !DVB_FE_CUSTOMISE
+ 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
+ 	select DVB_CX24116 if !DVB_FE_CUSTOMISE
++	select DVB_SI21XX if !DVB_FE_CUSTOMISE
+ 	help
+ 	  Say Y here to support the DvbWorld DVB-S/S2 USB2.0 receivers
+ 	  and the TeVii S650.
+
+--Boundary-00=_Ofv2IvsKAP7IZ8i
+Content-Type: text/x-diff;
+  charset="koi8-r";
+  name="8898.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="8898.patch"
+
+# HG changeset patch
+# User Igor M. Liplianin <liplianin@me.by>
+# Date 1222309107 -10800
+# Node ID 5a8329f6c66c8c9a8852245f473ca577a92c602f
+# Parent  8de73c0adc5dee549fd7f9d34f80a2ee40ae347e
+Kconfig dependency fix for DW2002 card with ST STV0288 demodulator.
+
+From: Igor M. Liplianin <liplianin@me.by>
+
+Kconfig dependency fix for DW2002 card with ST STV0288 demodulator.
+
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+
+diff -r 8de73c0adc5d -r 5a8329f6c66c linux/drivers/media/dvb/dm1105/Kconfig
+--- a/linux/drivers/media/dvb/dm1105/Kconfig	Thu Sep 25 04:48:53 2008 +0300
++++ b/linux/drivers/media/dvb/dm1105/Kconfig	Thu Sep 25 05:18:27 2008 +0300
+@@ -3,6 +3,8 @@
+ 	depends on DVB_CORE && PCI && I2C
+ 	select DVB_PLL if !DVB_FE_CUSTOMISE
+ 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
++	select DVB_STV0288 if !DVB_FE_CUSTOMISE
++	select DVB_STB6000 if !DVB_FE_CUSTOMISE
+ 	select DVB_CX24116 if !DVB_FE_CUSTOMISE
+ 	select DVB_SI21XX if !DVB_FE_CUSTOMISE
+ 	help
+
+--Boundary-00=_Ofv2IvsKAP7IZ8i
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_Ofv2IvsKAP7IZ8i--
