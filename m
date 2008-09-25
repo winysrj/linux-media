@@ -1,24 +1,15 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8U0O1up000830
-	for <video4linux-list@redhat.com>; Mon, 29 Sep 2008 20:24:02 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8U0Nop4009692
-	for <video4linux-list@redhat.com>; Mon, 29 Sep 2008 20:23:51 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so1710713fga.7
-	for <video4linux-list@redhat.com>; Mon, 29 Sep 2008 17:23:50 -0700 (PDT)
-Message-ID: <30353c3d0809291723i26eb15c1rea55369750d932c9@mail.gmail.com>
-Date: Mon, 29 Sep 2008 20:23:43 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: v4l <video4linux-list@redhat.com>,
-	"Jaime Velasco Juan" <jsagarribay@gmail.com>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Date: Thu, 25 Sep 2008 07:39:32 -0400
+From: Alan Cox <alan@redhat.com>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Message-ID: <20080925113932.GA21999@shell.devel.redhat.com>
+References: <208cbae30809250429m64c1c552ud18ff5064602e3c0@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Cc: 
-Subject: [PATCH 1/3] stkwebcam: fix crash on close after disconnect
+In-Reply-To: <208cbae30809250429m64c1c552ud18ff5064602e3c0@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: radio-mr800 usb driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,59 +21,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
->From 8d65eca383fffb30259be3a33539ec36b5196c4e Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Mon, 29 Sep 2008 19:59:11 -0400
-Subject: [PATCH] stkwebcam: fix crash on close after disconnect
+On Thu, Sep 25, 2008 at 03:29:55PM +0400, Alexey Klimov wrote:
+> First of all - sorry for my english.
 
+Your English is fine...
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/video/stk-webcam.c |   18 +++++++-----------
- 1 files changed, 7 insertions(+), 11 deletions(-)
+> Driver works fine with kradio & gnomeradio applications. Works normal
+> under Linux kernel  2.6.27-rc6 (released 9 Sep 2008), compiles without
+> warnings with gcc version 4.3.1 (Gentoo 4.3.1-r1 p1.1) on
+> x86-architecture machine.
 
-diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
-index 8dda568..3198549 100644
---- a/drivers/media/video/stk-webcam.c
-+++ b/drivers/media/video/stk-webcam.c
-@@ -576,7 +576,7 @@ static void stk_clean_iso(struct stk_camera *dev)
+Looks nice and clean to me. No obvious mistakes. Probably the warn()
+statements should include the module name so people know which module
+produced them if they ever want to file a bug.
 
- 		urb = dev->isobufs[i].urb;
- 		if (urb) {
--			if (atomic_read(&dev->urbs_used))
-+			if (atomic_read(&dev->urbs_used) && is_present(dev))
- 				usb_kill_urb(urb);
- 			usb_free_urb(urb);
- 		}
-@@ -718,19 +718,15 @@ static int v4l_stk_release(struct inode *inode,
-struct file *fp)
- 		return -ENODEV;
- 	}
-
--	if (dev->owner != fp) {
--		usb_autopm_put_interface(dev->interface);
--		kref_put(&dev->kref, stk_camera_cleanup);
--		return 0;
-+	if (dev->owner == fp) {
-+		stk_stop_stream(dev);
-+		stk_free_buffers(dev);
-+		dev->owner = NULL;
- 	}
-
--	stk_stop_stream(dev);
--
--	stk_free_buffers(dev);
--
--	dev->owner = NULL;
-+	if(is_present(dev))
-+		usb_autopm_put_interface(dev->interface);
-
--	usb_autopm_put_interface(dev->interface);
- 	kref_put(&dev->kref, stk_camera_cleanup);
-
- 	return 0;
--- 
-1.5.6
+Alan
 
 --
 video4linux-list mailing list
