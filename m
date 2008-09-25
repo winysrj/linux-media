@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from mu-out-0910.google.com ([209.85.134.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KggaG-0003VE-9n
-	for linux-dvb@linuxtv.org; Fri, 19 Sep 2008 16:03:45 +0200
-Message-ID: <1115.87.93.154.167.1221833018.squirrel@webmail.kapsi.fi>
-In-Reply-To: <48D2290D.7000808@gmail.com>
-References: <48D2290D.7000808@gmail.com>
-Date: Fri, 19 Sep 2008 17:03:38 +0300 (EEST)
-From: "Antti Palosaari" <crope@iki.fi>
-To: "kless" <wunderkless@gmail.com>
+	(envelope-from <mrechberger@gmail.com>) id 1Kivhq-0007a5-Ia
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 20:36:51 +0200
+Received: by mu-out-0910.google.com with SMTP id g7so451335muf.1
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 11:36:47 -0700 (PDT)
+Message-ID: <d9def9db0809251136p47a97949te3f14f3119711121@mail.gmail.com>
+Date: Thu, 25 Sep 2008 20:36:46 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Halim Sahin" <halim.sahin@t-online.de>
+In-Reply-To: <20080925181943.GA12800@halim.local>
 MIME-Version: 1.0
+Content-Disposition: inline
+References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
+	<a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>
+	<48DBBAC0.7030201@gmx.de>
+	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
+	<20080925181943.GA12800@halim.local>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] dvb-t receiver sturm ns-06
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
+	viwer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,34 +27,186 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-to 18.9.2008 13:10 kless kirjoitti:
-> hi,
-> I would like to use my dvb-t usb on linux, is a dvb-t receiver sturm ns-06
-> .
-> I can find nothing about it, no producer website nothing. I only know
-> that is chines.
-> if someone would like to guide me / to experiment is wellcome.
-> Alberto
+On Thu, Sep 25, 2008 at 8:19 PM, Halim Sahin <halim.sahin@t-online.de> wrot=
+e:
+> Markus,
+> Go on and ask the distributors to package your userspace stuff!
 
-There is many ways to identify chips...
+this has been gone for a long time already, development went into
+another direction form months already.
 
-* lsusb -vv -d <usb:id>
-* examine Windows drivers
- - driver file names
- - driver .inf-file
- - looks strings from driver (use strings command)
-* open device and look prints top of the ICs
-* sniff USB-traffic from Windows and try to determine chips from I2C-data
+-Markus
 
-regards
-Antti
-
+> In fact nobody wants patched applications.
+> standardversion shipped with their distros will be prefered.
+>
+>
+>
+> On Do, Sep 25, 2008 at 07:44:29 +0200, Markus Rechberger wrote:
+>> On Thu, Sep 25, 2008 at 6:22 PM, J=F6rg Knitter <joerg.knitter@gmx.de> w=
+rote:
+>> > VDR User wrote:
+>> >> 2008/9/25 Sacha <sacha@hemmail.se>:
+>> >>
+>> >>> Following your discussion from an end-user point of viwer I must say=
+ that I
+>> >>> wholy agree with this statement:
+>> >>>
+>> >>> <But 2 years to get a new API is really too much. And during these 2=
+ years,
+>> >>> 2
+>> >>>
+>> >>> <different trees for 2 differents drivers was totally insane. We
+>> >>> (applications
+>> >>>
+>> >>> <devs) are always making our best to bring DVB to users as easily as
+>> >>> possible.
+>> >>>
+>> >>> <And trust me, the multiproto story has complicated users life A LOT=
+. This
+>> >>> must NEVER happen again.
+>> >>>
+>> >>> We, end-users want our stuff working now!
+>> >>>
+>> >>
+>> >> I assume you'd also like something that is well-designed, tested, and
+>> >> stable rather then slapped together and rushed...  But you know what
+>> >> they say about assumptions!
+>> >>
+>> >
+>> > I have to agree with the claim Sacha said.
+>> >
+>> > I am also "just" an end-user, got a TT3200 with VDR 1.7 working with a=
+ll
+>> > the guides and even wrote an article on it. But it was and is still a
+>> > pain - for 2 years now.
+>> >
+>> > With the introduction of the alternative S2API I was hoping that this
+>> > long wait is over after waiting endlessly after the announcement,
+>> > multiproto is ready "in a few weeks".
+>> >
+>> > I have followed the discussion all the two (?) years, and I did just
+>> > filter out information about, when the API could be ready, and I was
+>> > shocked by all the really bad personal attacks that happened last year
+>> > (or the year before) and the splits that results now in four
+>> > "repositories" (kernel, multiproto, hvr4000-stuff and mcentral), often
+>> > with dozens of patches postet here or at vdrportal that need to be
+>> > applied to get a DVB card running.
+>> >
+>> > And the main reasons for this is not really technical, it seems to me
+>> > that they are personal. Open source projects claim to be better than
+>> > commercial products, but the things that happened and currently happen
+>> > are a good reason to see also the disadvantage of community developmen=
+t.
+>> >
+>> > I understand all sides:
+>> > 1) Manu does not want to to give up his work that he worked for long 2
+>> > years.
+>> > 2) Markus Rechberger also did a lot of work, but I remember him to be
+>> > very insulting to other developers - and quite uncooperative by starti=
+ng
+>> > his own tree. Linux development with MCC as leader might indeed be hard
+>> > ;)...
+>>
+>> just a small side note here, uncooperative because people wanted me to g=
+o into
+>> a definitely wrong direction back then knowledge was limited by both
+>> parties (this
+>> is the final truth of it back then).
+>> On the other side it was the uncooperativeness and dumping of alot
+>> code and issues
+>> which have been solved back then already with the help of a lot people.
+>> I don't bother anymore I found other ways to have everything be
+>> possible to coexist
+>> in the kernel, and I actually prefer this coexisting solution now
+>> which also provides
+>> full support and even has a higher backward compatibility than the
+>> things which got
+>> pushed through back in time.
+>>
+>> I'd rather prefer to forget about what happened here because it's a
+>> full mess caused
+>> by several people with limited knowledge years ago and todays position
+>> about it is totally
+>> different.
+>> You can also find patched enduser applications on mcentral.de which can =
+be used
+>> with other devices and provide extra features which are required in
+>> order to get devices
+>> work properly.
+>> There's gqradio patched to support lirc and digital audio
+>> automatically, same with vlc and tvtime
+>> (the last one also having different video output plugins which allow
+>> software rendering if xvideo
+>> hardware acceleration isn't available.
+>>
+>> Still one fact till now is that not all devices which have worked in
+>> v4l-dvb-experimental back in time
+>> are now supported by v4l-dvb on linuxtv.org and nor all the em28xx
+>> based devices are yet in the
+>> em28xx-new tree, whereas the second one is the result of heavy
+>> refactoring and better manufacturer
+>> support for some back then reverse engineered components (-which is
+>> good that they got replaced in order
+>> to raise the signal strength).
+>>
+>> Markus
+>>
+>> > 3) The S2API guys are fed up with all the waiting. Maybe there is inde=
+ed
+>> > no technical reason behind the decision for S2API as I am also wonderi=
+ng
+>> > why there is no answer to THE question. But waiting endlessly really is
+>> > no solution...
+>> >
+>> > The situation I see can not be solved by endless discussion, and even =
+if
+>> > MCC would switch to multiproto (again), there discussion would continue
+>> > endlessly.
+>> >
+>> > I just see two options to get a fair decision:
+>> > 1) Allowing both APIs exist parallel for a short time and see who is t=
+he
+>> > winner (as mentioned).
+>> > 2) Let the community decide (all interested developers and even
+>> > end-users like me and Sacha) with some kind of online vote. Communicate
+>> > clearly before which "important" developer favours which API. As none =
+of
+>> > the API seems to have a real advantage/disadvantage, users like me will
+>> > have to vote for both or decide on personal taste ;)
+>> >
+>> > I favour option 2) as I also don=B4t like applications that rely on
+>> > certain hardware (if only one API is supported).
+>> >
+>> > With kind regards
+>> >
+>> > Joerg Knitter
+>> >
+>> > _______________________________________________
+>> > linux-dvb mailing list
+>> > linux-dvb@linuxtv.org
+>> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>> >
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> Halim Sahin
+> E-Mail:
+> halim.sahin (at) t-online.de
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
