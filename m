@@ -1,25 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2e.orange.fr ([80.12.242.112])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1KdmKc-0005Kk-HY
-	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 15:35:35 +0200
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2e14.orange.fr (SMTP Server) with ESMTP id E4CDA700008E
-	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 15:35:00 +0200 (CEST)
-Received: from stratocaster.lan (ANantes-256-1-171-44.w90-25.abo.wanadoo.fr
-	[90.25.242.44])
-	by mwinf2e14.orange.fr (SMTP Server) with ESMTP id BA811700008B
-	for <linux-dvb@linuxtv.org>; Thu, 11 Sep 2008 15:35:00 +0200 (CEST)
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-dvb@linuxtv.org
-Date: Thu, 11 Sep 2008 15:35:19 +0200
-References: <48B8400A.9030409@linuxtv.org> <48C81627.8080409@linuxtv.org>
-	<200809102232.26884.hftom@free.fr>
-In-Reply-To: <200809102232.26884.hftom@free.fr>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <w3ird_n3rd@gmx.net>) id 1KituC-0008Ru-Ja
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 18:41:30 +0200
+Message-ID: <48DBBF16.7030603@gmx.net>
+Date: Thu, 25 Sep 2008 18:40:54 +0200
+From: "P. van Gaans" <w3ird_n3rd@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809111535.19315.hftom@free.fr>
-Subject: [linux-dvb] Multiple frontends on a single adapter support
+To: linux-dvb <linux-dvb@linuxtv.org>
+References: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAFWGD+9r2SkGGhLj/rwn00AEAAAAA@tv-numeric.com>
+In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAFWGD+9r2SkGGhLj/rwn00AEAAAAA@tv-numeric.com>
+Subject: Re: [linux-dvb] RE :  [RFC] Let the future decide between the two.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,92 +24,169 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+On 09/25/2008 02:10 PM, Thierry Lelegard wrote:
+>> De : linux-dvb-bounces@linuxtv.org =
 
-( Please don't mix this thread with the "DVB-S2 / Multiproto and future =
+>> [mailto:linux-dvb-bounces@linuxtv.org] De la part de Janne Grunau
+>> Envoy=E9 : jeudi 25 septembre 2008 12:48
+>> =C0 : linux-dvb@linuxtv.org
+>> Objet : Re: [linux-dvb] [RFC] Let the future decide between the two.
+>>
+>>
+>> On Thursday 25 September 2008 08:45:28 Michel Verbraak wrote:
+>> [...]
+>>> I would like to propose the following:
+>>>
+>>> - Keep the two different DVB API sets next to one another. Both
+>>> having a space on Linuxtv.org to explain their knowledge and how to
+>>> use them. - Each with their own respective maintainers to get stuff
+>>> into the kernel. I mean V4L had two versions.
+>>> - Let driver developers decide which API they will follow. Or even
+>>> develop for both.
+>>> - Let application developers decide which API they will support.
+>>> - Let distribution packagers decide which API they will have
+>>> activated by default in their distribution.
+>>> - Let the end users decide which one will be used most. (Probably
+>>> they will decide on: Is my hardware supported or not).
+>>> - If democracy is that strong one of them will win or maybey the two
+>>> will get merged and we, the end users, get best of both worlds.
+>>>
+>>> As the subject says: This is a Request For Comment.
+>> This is complete nonsense, distrobution packagers shouldn't =
 
-modulation support" thread. )
+>> decide which =
 
-Summary:
+>> API should be used, the API and all drivers should be in the kernel. =
 
-Some devices provide several tuners, even of different types.
-So called "Dual" or "Twin" tuners can be used at the same time.
-Some others (like HVR4000) can't be used at the same time.
+>> Having two tree is at best fragmentation and at worst a whole lot of =
 
-My initial question was: How could an application know that 2 (or more) tun=
-ers =
+>> duplicated work.
+> =
 
-are exclusive (when one is used the other(s) is(are) not free.)
+> Having the two coexisting API is a COMPLETE SOFTWARE DESIGN NONSENSE.
+> =
 
-I suggested the following:
-Since actually all multiple tuners drivers expose several fontend0 in separ=
-ate =
+> This would not be a "cathedral to bazaar" transition, as someone wrote
+> on the subject, it would be a "bazaat to mess" transition.
+> =
 
-adapters, maybe a solution for exclusive tuners could be to have :
-- adapter0/frontend0 -> S/S2 tuner
-- adapter0/frontend1 -> T tuner
-so, an application could assume that these tuners are exclusive.
+> I have no technical opinion on Multiproto vs. S2API since I have been
+> using only DVT-T device for the last two years. But I have more than
+> 20 years of experience in software design and that would be for sure
+> the worst decision ever.
+> =
 
-Janne Grunau acked the idea and said that an experimental driver for HVR400=
-0 =
+> On a user point of view, Janne's point is the most important one:
+>> That should a user do if he has two devices which are only =
 
-is already doing this.
+>> supported by one of the trees? That's bad luck?
+> =
 
-This was confirmed by Steven Toth:
-"Correct, frontend1, demux1, dvr1 etc. All on the same adapter. The =
+> And this is not only a Multiproto vs. S2API issue. As I mentioned,
+> I use only DVT-T devices. I have 4 of them, all working on Linux
+> for months or years and there is no one single repository supporting
+> all of them at the same time. Most are supported by
+> http://linuxtv.org/hg/v4l-dvb, another one needs
+> http://linuxtv.org/hg/~anttip/af9015 plus other patches.
+> And this is not a transitional situation, it lasts for months.
+> =
 
-driver and multi-frontend patches manage exclusive access to the single =
+> This is an endemic but unacceptable situation. And, again, this is
+> not only Multiproto vs. S2API. IMHO, linux DVB has a real leadership
+> problem. There are just too many different forks which could be accepted
+> during transition periods (development and validation of a driver)
+> but which cannot survive that long.
+> =
 
-internal resource."
-	=
+> All these various trees contains technically good code. So, this
+> is not a technical problem. Failing to merge them is a leadership
+> problem ("cathedral companies" would say a "management problem").
+> =
 
-Andreas Oberritter said:
-"This way is used on dual and quad tuner Dreambox models." (non exclusive =
+> Imagine what would be the kernel today with that kind of methods?
+> But for the kernel, there is Linus, a leader that you may like or
+> not but that everyone respect (and respect the decisions of). The
+> situation in Linux DVB is not like that, unfortunately.
+> =
 
-tuners).
-"How about dropping demux1 and dvr1 for this adapter (exclusive tuners), si=
-nce =
+> Since Linux DVB is a subsystem of the kernel and since there is
+> no undisputed leader in Linux DVB, why not asking for Linus'
+> arbitration? He started to get involved AFAIK.
+> =
 
-they don't create any benefit? IMHO the number of demux devices should alwa=
-ys =
+> Currently, all arguments are like:
+> - "This API is technically better" (not a technical problem we told you)
+> - "Give me technical reasons" (same)
+> - "This was voted" (validity of this vote is disputed -> leadership pb)
+> - "You don't like me" (personal problems)
+> =
 
-equal the number of simultaneously usable transport stream inputs."
+> One way to get out of this loop is to call for Linus.
+> =
 
-Uri Shkolnik said:
-"Some of the hardware devices which using our chipset have two tuners per =
+> -Thierry
+> =
 
-instance, and should expose 1-2 tuners with 0-2 demux (TS), since not all D=
-TV =
+> =
 
-standard are TS based, and when they are (TS based), it depends when you ar=
-e =
-
-using two given tuners together (diversity =A0mode, same content) or each o=
-ne =
-
-is used separately (different frequency and modulation, different content, =
-
-etc.)."
-
-
-
-So, here are my questions:
-
-@Steven Toth:
-What do you think of Andreas' suggestion? Do you think it could be done tha=
-t =
-
-way for HVR4000 (and 3000?) ?
-
-@Uri Shkolnik:
-Do you mean that non-TS based standards don't make use of multiplexing at a=
-ll?
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> =
 
 
--- =
+You know, I've been thinking about setting up a new project. It's not =
 
-Christophe Thommeret
+going to happen because I'm not a programmer and it would get very =
 
+messy, but my idea was to fork v4l-dvb and make it support as much as =
+
+possible. The AF9015, TT S2-3200, TT S2-3600. There is code but all in =
+
+seperate repositories and patches. And those three are not all (AF9015 =
+
+is apparently now merged).
+
+I still can't help thinking that if I wouldn't have asked why the AF9005 =
+
+driver a while ago wasn't in hg yet it STILL wouldn't be in hg.
+
+At the dev front, there should be some people with the desire to support =
+
+as many devices as possible (should already be the case), actively =
+
+asking driver developers how the're doing and if their code is ready to =
+
+be merged (or maybe a seperate team is required for such a thing?). And =
+
+possibly help if required. And if there is a driver that's working fine =
+
+_but_ it needs some code cleanup or something else minor like that, it's =
+
+NOT a reason to not include it at all!
+
+I think there are even several driver developers who don't know they =
+
+have to send a pull request but assume this happens automagically when =
+
+it's known on the list that there is a working driver.
+
+I just don't understand what the problem is. Is money required to buy =
+
+the devices to test them properly? Should a team be set up to =
+
+communicate with driver developers? Those shouldn't be unsolveable problems.
+
+And what has happened with Multiproto/S2API.. I hardly understand. Maybe =
+
+we should have asked for Linus a long time ago. Have him take a look at =
+
+everything, let him make a decision and continue his chosen path. Maybe =
+
+not as democratic but it would be a whole lot faster, I think.
+
+P. van Gaans
 
 _______________________________________________
 linux-dvb mailing list
