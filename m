@@ -1,25 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KdUj8-0002d4-WB
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 20:47:44 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6Z00E5UTIFUWF1@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 10 Sep 2008 14:47:09 -0400 (EDT)
-Date: Wed, 10 Sep 2008 14:47:03 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <20080910161222.21640@gmx.net>
-To: Hans Werner <HWerner4@gmx.de>
-Message-id: <48C81627.8080409@linuxtv.org>
-MIME-version: 1.0
-References: <48B8400A.9030409@linuxtv.org> <200809101340.09702.hftom@free.fr>
-	<48C7CDCF.9090300@hauppauge.com> <200809101710.19695.hftom@free.fr>
-	<20080910161222.21640@gmx.net>
-Cc: stoth@hauppauge.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+	(envelope-from <abraham.manu@gmail.com>) id 1KisOn-0001o2-LG
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 17:04:58 +0200
+Message-ID: <48DBA86D.9040206@gmail.com>
+Date: Thu, 25 Sep 2008 19:04:13 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: Halim Sahin <halim.sahin@t-online.de>
+References: <200809241922.16748@orion.escape-edv.de>	<1222306125.3323.80.camel@pc10.localdom.local>	<200809251254.59680@orion.escape-edv.de>	<20080925122857.GA7282@halim.local>
+	<48DB99C5.3090704@gmail.com> <20080925145019.GA10946@halim.local>
+In-Reply-To: <20080925145019.GA10946@halim.local>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [vdr] [v4l-dvb-maintainer]
+	[Wanted]	dvb-ttpci	maintainer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,117 +21,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hans Werner wrote:
-> -------- Original-Nachricht --------
->> Datum: Wed, 10 Sep 2008 17:10:19 +0200
->> Von: Christophe Thommeret <hftom@free.fr>
->> An: Steven Toth <stoth@hauppauge.com>
->> CC: linux-dvb@linuxtv.org
->> Betreff: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation suppo=
-rt
-> =
+Halim Sahin wrote:
+> Hi,
+> 
+> On Do, Sep 25, 2008 at 06:01:41 +0400, Manu Abraham wrote:
+>> http://lwn.net/Articles/297301/
+>  
+> Please read this:
+> 
+> http://www.linuxtv.org/pipermail/vdr/2008-January/015329.html
+> You wrote the merge window is open for 2.6.25.
+> We have now stable 2.6.26 and 2.6.27 is allmost ready.
 
->> Le Wednesday 10 September 2008 15:38:23 Steven Toth, vous avez =E9crit :
->>>> Is this card able to deliver both S and T at the same time?
->>> No, the hardware can do S/S2 or T.
->>> The driver in the S2API tree only has S/S2 enabled (for the time being).
->> So, maybe we have to think a bit about how to add support for this kind =
-of
->> device.
-> =
+As i wrote, fixes came in and had to be fixed. You can see the commit
+history here:
 
-> Yes, absolutely, and I hope this can go in to S2API and the kernel. It wo=
-uld be a lie
-> to claim that linux supports the HVR4000 until this is done. Fortunately =
-Steven
-> and Darron made experimental drivers which do this.
-> =
+http://jusst.de/hg/multiproto/shortlog
 
->> I mean, if the driver provides different adapters/frontends (say =
+In between, i went for vacation due to my marriage. During that period i
+had little access, but did whatever possible to get feedback/patches in
+there, during whatever time and access i had.
 
->> adapter0/frontend0 and adapter1/frontend0), a typical application will s=
-ee
->> these as separate devices, and then when a user watch a S channel, the a=
-pp
->> assumes that the T frontend is free while in fact it's not.
->> For example, Kaffeine updates its channels list according to which
->> channels =
-
->> can be viewed (based on which frontends are free). So, if you are
->> recording a =
-
->> S channel, all channels on this freq are shown as available and all T =
-
->> channels are also shown as available. But in the HVR4000 case, it's fals=
-e,
->> since the T tuner isn't free.
->>
->> Maybe a solution could be to have :
->> - adapter0/frontend0 -> S/S2 tuner
->> - adapter0/frontend1 -> T tuner
-> =
-
-> This is what the multifrontend (mfe) driver at http://dev.kewl.org/hauppa=
-uge does.
-> And Kaffeine is the only major DVB app which correctly finds the two fron=
-tends
-> and uses them correctly (well done!!). Or very nearly -- TV watching is p=
-erfect, but
-> the only slight problem happens when you are recording:
-> =
-
-> (1) record a DVB-T channel:
-> -->all DVB-T channels except those in same multiplex vanish from the avai=
-lable
-> channels list (correct)
-> -->no satellite channels vanish (incorrect)
-> =
-
-> (2) record a DVB-S channel;
-> -->all DVB-S channels except those on the same multiplex vanish from the =
-available
-> channels list (correct)
-> -->no DVB-T channels vanish (incorrect)
-> =
-
-> It's a small problem, easily fixed I would think.
-> =
-
->> So applications could know that these 2 frontends are exclusive.
->> That would not require any API change, but would have to be a rule
->> followed by =
-
->> all drivers.
-> =
-
-> Yes, if we keep to that rule then only frontends which can operate truly
-> simultaneously should have a different adapter number.
-
-If everyone wants this in the S2API tree then it's pretty simple to add, =
-
-I just didn't want to overload the tree with too much baggage that =
-
-causes it to get stuck in the approval process.
-
-We need an S2 API in the next few weeks, and anything that delays that =
-
-is bad news for everyone.
-
-I'll publish a mail about this in a separate thread, and seek feedback =
-
-from everyone.
-
-- Steve
-
-
-
-
+Regards,
+Manu
 
 
 _______________________________________________
