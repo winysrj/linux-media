@@ -1,15 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from blu0-omc3-s33.blu0.hotmail.com ([65.55.116.108])
+Received: from fg-out-1718.google.com ([72.14.220.158])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <db260179@hotmail.com>) id 1KkcWk-0004zd-AX
-	for linux-dvb@linuxtv.org; Tue, 30 Sep 2008 12:32:22 +0200
-Message-ID: <BLU116-W122752EF5297963897FDE5C2430@phx.gbl>
-From: dabby bentam <db260179@hotmail.com>
-To: <linux-dvb@linuxtv.org>
-Date: Tue, 30 Sep 2008 10:31:47 +0000
+	(envelope-from <mrechberger@gmail.com>) id 1KiutF-0004on-Ik
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 19:44:34 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so376818fga.25
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 10:44:30 -0700 (PDT)
+Message-ID: <d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
+Date: Thu, 25 Sep 2008 19:44:29 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "=?ISO-8859-1?Q?J=F6rg_Knitter?=" <joerg.knitter@gmx.de>
+In-Reply-To: <48DBBAC0.7030201@gmx.de>
 MIME-Version: 1.0
-Subject: [linux-dvb] Adding remote support to Avermedia Super 007 - more
-	info needed!
+Content-Disposition: inline
+References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
+	<a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>
+	<48DBBAC0.7030201@gmx.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
+	viwer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,91 +25,150 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1873095306=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1873095306==
-Content-Type: multipart/alternative;
-	boundary="_7f5a1b34-8cd8-4bef-8a0d-d6634a7727f5_"
+On Thu, Sep 25, 2008 at 6:22 PM, J=F6rg Knitter <joerg.knitter@gmx.de> wrot=
+e:
+> VDR User wrote:
+>> 2008/9/25 Sacha <sacha@hemmail.se>:
+>>
+>>> Following your discussion from an end-user point of viwer I must say th=
+at I
+>>> wholy agree with this statement:
+>>>
+>>> <But 2 years to get a new API is really too much. And during these 2 ye=
+ars,
+>>> 2
+>>>
+>>> <different trees for 2 differents drivers was totally insane. We
+>>> (applications
+>>>
+>>> <devs) are always making our best to bring DVB to users as easily as
+>>> possible.
+>>>
+>>> <And trust me, the multiproto story has complicated users life A LOT. T=
+his
+>>> must NEVER happen again.
+>>>
+>>> We, end-users want our stuff working now!
+>>>
+>>
+>> I assume you'd also like something that is well-designed, tested, and
+>> stable rather then slapped together and rushed...  But you know what
+>> they say about assumptions!
+>>
+>
+> I have to agree with the claim Sacha said.
+>
+> I am also "just" an end-user, got a TT3200 with VDR 1.7 working with all
+> the guides and even wrote an article on it. But it was and is still a
+> pain - for 2 years now.
+>
+> With the introduction of the alternative S2API I was hoping that this
+> long wait is over after waiting endlessly after the announcement,
+> multiproto is ready "in a few weeks".
+>
+> I have followed the discussion all the two (?) years, and I did just
+> filter out information about, when the API could be ready, and I was
+> shocked by all the really bad personal attacks that happened last year
+> (or the year before) and the splits that results now in four
+> "repositories" (kernel, multiproto, hvr4000-stuff and mcentral), often
+> with dozens of patches postet here or at vdrportal that need to be
+> applied to get a DVB card running.
+>
+> And the main reasons for this is not really technical, it seems to me
+> that they are personal. Open source projects claim to be better than
+> commercial products, but the things that happened and currently happen
+> are a good reason to see also the disadvantage of community development.
+>
+> I understand all sides:
+> 1) Manu does not want to to give up his work that he worked for long 2
+> years.
+> 2) Markus Rechberger also did a lot of work, but I remember him to be
+> very insulting to other developers - and quite uncooperative by starting
+> his own tree. Linux development with MCC as leader might indeed be hard
+> ;)...
 
---_7f5a1b34-8cd8-4bef-8a0d-d6634a7727f5_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+just a small side note here, uncooperative because people wanted me to go i=
+nto
+a definitely wrong direction back then knowledge was limited by both
+parties (this
+is the final truth of it back then).
+On the other side it was the uncooperativeness and dumping of alot
+code and issues
+which have been solved back then already with the help of a lot people.
+I don't bother anymore I found other ways to have everything be
+possible to coexist
+in the kernel, and I actually prefer this coexisting solution now
+which also provides
+full support and even has a higher backward compatibility than the
+things which got
+pushed through back in time.
 
-I'm currently trying to get remote support added to the Avermedia Super 007=
- card.
+I'd rather prefer to forget about what happened here because it's a
+full mess caused
+by several people with limited knowledge years ago and todays position
+about it is totally
+different.
+You can also find patched enduser applications on mcentral.de which can be =
+used
+with other devices and provide extra features which are required in
+order to get devices
+work properly.
+There's gqradio patched to support lirc and digital audio
+automatically, same with vlc and tvtime
+(the last one also having different video output plugins which allow
+software rendering if xvideo
+hardware acceleration isn't available.
 
-I've turned the ir_debug on and gpio tracking on and enabled i2c_scan. I've=
- added an entry in the saa7134-cards.c and saa7134-input.c - copying the se=
-ttings from other avermedia cards.
+Still one fact till now is that not all devices which have worked in
+v4l-dvb-experimental back in time
+are now supported by v4l-dvb on linuxtv.org and nor all the em28xx
+based devices are yet in the
+em28xx-new tree, whereas the second one is the result of heavy
+refactoring and better manufacturer
+support for some back then reverse engineered components (-which is
+good that they got replaced in order
+to raise the signal strength).
 
-The polling setting makes the card print out loads of ir_builder settings=
-=2C removing the setting no output! - from this i am assuming that this car=
-d has no gpio setting? - possible i2c?
+Markus
 
-I've used regspy (from dscaler) to determine the GPIO STATUS and MASK value=
-. Turning on/off the remote in windows has no value change? - does it chang=
-e?
-
-Any guidance on how to determine the ir code? - without the manufacture cod=
-e book.
-
-Thanks
-
-David Bentham
-
-_________________________________________________________________
-Make a mini you and download it into Windows Live Messenger
-http://clk.atdmt.com/UKM/go/111354029/direct/01/=
-
---_7f5a1b34-8cd8-4bef-8a0d-d6634a7727f5_
-Content-Type: text/html; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-<head>
-<style>
-.hmmessage P
-{
-margin:0px=3B
-padding:0px
-}
-body.hmmessage
-{
-FONT-SIZE: 10pt=3B
-FONT-FAMILY:Tahoma
-}
-</style>
-</head>
-<body class=3D'hmmessage'><div style=3D"text-align: left=3B">I'm currently =
-trying to get remote support added to the Avermedia Super 007 card.<br><br>=
-I've turned the ir_debug on and gpio tracking on and enabled i2c_scan. I've=
- added an entry in the saa7134-cards.c and saa7134-input.c - copying the se=
-ttings from other avermedia cards.<br><br>The polling setting makes the car=
-d print out loads of ir_builder settings=2C removing the setting no output!=
- - from this i am assuming that this card has no gpio setting? - possible i=
-2c?<br><br>I've used regspy (from dscaler) to determine the GPIO STATUS and=
- MASK value. Turning on/off the remote in windows has no value change? - do=
-es it change?<br><br>Any guidance on how to determine the ir code? - withou=
-t the manufacture code book.<br><br>Thanks<br><br>David Bentham<br></div><b=
-r /><hr />Try Facebook in Windows Live Messenger! <a href=3D'http://clk.atd=
-mt.com/UKM/go/111354030/direct/01/' target=3D'_new'>Try it Now!</a></body>
-</html>=
-
---_7f5a1b34-8cd8-4bef-8a0d-d6634a7727f5_--
-
-
---===============1873095306==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> 3) The S2API guys are fed up with all the waiting. Maybe there is indeed
+> no technical reason behind the decision for S2API as I am also wondering
+> why there is no answer to THE question. But waiting endlessly really is
+> no solution...
+>
+> The situation I see can not be solved by endless discussion, and even if
+> MCC would switch to multiproto (again), there discussion would continue
+> endlessly.
+>
+> I just see two options to get a fair decision:
+> 1) Allowing both APIs exist parallel for a short time and see who is the
+> winner (as mentioned).
+> 2) Let the community decide (all interested developers and even
+> end-users like me and Sacha) with some kind of online vote. Communicate
+> clearly before which "important" developer favours which API. As none of
+> the API seems to have a real advantage/disadvantage, users like me will
+> have to vote for both or decide on personal taste ;)
+>
+> I favour option 2) as I also don=B4t like applications that rely on
+> certain hardware (if only one API is supported).
+>
+> With kind regards
+>
+> Joerg Knitter
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1873095306==--
