@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KhmTg-0003fO-Ur
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 16:33:30 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7L00CIQPQT2250@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 22 Sep 2008 10:32:54 -0400 (EDT)
-Date: Mon, 22 Sep 2008 10:32:53 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48D7658B.2030103@koala.ie>
-To: Simon Kenyon <simon@koala.ie>
-Message-id: <48D7AC95.5090009@linuxtv.org>
-MIME-version: 1.0
-References: <20080920052206.312f51d7@areia.chehab.org>
-	<48D7658B.2030103@koala.ie>
-Cc: "linux-dvb@linuxtv.org >> DVB ML" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [ANNOUNCE] V4L/DVB Miniconf at Linux Plumbers/2008
+Received: from web52911.mail.re2.yahoo.com ([206.190.49.21])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <rankincj@yahoo.com>) id 1Kir7y-0004da-VE
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 15:43:32 +0200
+Date: Thu, 25 Sep 2008 06:42:56 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+In-Reply-To: <alpine.LRH.1.10.0809251152480.1247@pub1.ifh.de>
+MIME-Version: 1.0
+Message-ID: <766065.22236.qm@web52911.mail.re2.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add remote control support to Nova-TD
+	(52009)
+Reply-To: rankincj@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,43 +26,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Simon Kenyon wrote:
-> Mauro Carvalho Chehab wrote:
->> I'd like to announce that the V4L/DVB Miniconf at Linux Plumbers/2008 (LPC),
->> handled between Sept, 17 and Sept, 19 2008, had a great success!
->>
->> We've being able to get there the developers that together were responsible for
->> about 60% of the number of patches for the core and device drivers that were
->> committed over the last year to the development tree.
->>
->> You may read the complete announcement at the news part of LinuxTV site, on
->> this link:
->>
->> 	http://linuxtv.org/news.php?entry=2008-09-19.mchehab 
->>
->> I'd like to thank all from the Linux Foundation, from the LPC committee and you
->> developers and maintainers that honored with your presence!
->>
->> I intend to add some links for the presented speeches, some announcements with
->> the results of the discussions, and other related information soon, so stay
->> tuned!
->>
->> Cheers,
->> Mauro.
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->>   
-> it would be helpful if you could show the names of the people in the 
-> photograph, so we can put faces to names :-)
+--- On Thu, 25/9/08, Patrick Boettcher <patrick.boettcher@desy.de> wrote:
+> Committed and ask to be pulled, thanks.
 
-Rear left to right: Steven T, Brandon P, Hans V, Douglas L
-Front left to right: Michael K, Mauro C, Manjunath Hadli, Thierry M.
+Thanks. However, as a further thought, I did notice that I was able to control my new Nova-TD using the same remote control as my Nova-T, and that the dvb-usb-dib0700 driver also recognised the codes for three other remote controls as well! Aren't we opening the door to "remote control wars" by just concatenating the codes from several different remotes into one big list called dib0700_rc_keys[]? Wouldn't it be better to allow the user to pick just one of the available remotes somehow? Maybe we need an array of dvb_usb_rc_key structures instead?
 
-- Steve
+Mind you, I don't know what kind of selection API would be most appropriate. A module parameter would probably work, but I can imagine that a user might want to switch remotes more easily than by reloading the kernel module.
+
+Cheers,
+Chris
+
+
+      
 
 _______________________________________________
 linux-dvb mailing list
