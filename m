@@ -1,18 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from scing.com ([217.160.110.58])
+Received: from fg-out-1718.google.com ([72.14.220.155])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <janne-dvb@grunau.be>) id 1KdRhJ-0000SJ-60
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 17:33:37 +0200
-From: Janne Grunau <janne-dvb@grunau.be>
-To: linux-dvb@linuxtv.org
-Date: Wed, 10 Sep 2008 17:33:29 +0200
-References: <48B8400A.9030409@linuxtv.org> <48C7CDCF.9090300@hauppauge.com>
-	<200809101710.19695.hftom@free.fr>
-In-Reply-To: <200809101710.19695.hftom@free.fr>
+	(envelope-from <mrechberger@gmail.com>) id 1Kip0I-0004Qo-5T
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 13:27:27 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so279632fga.25
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 04:27:23 -0700 (PDT)
+Message-ID: <d9def9db0809250427o338aef56q87fdee87f18ddcb8@mail.gmail.com>
+Date: Thu, 25 Sep 2008 13:27:21 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Janne Grunau" <janne-dvb@grunau.be>
+In-Reply-To: <200809251313.10640.janne-dvb@grunau.be>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200809101733.29910.janne-dvb@grunau.be>
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<48DB6A94.2040508@linuxtv.org>
+	<d9def9db0809250345v674861a0k3d4b5f2c765e4152@mail.gmail.com>
+	<200809251313.10640.janne-dvb@grunau.be>
+Cc: Manu Abraham <abraham.manu@gmail.com>, Greg KH <greg@kroah.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Marcel Siegert <mws@linuxtv.org>, Michael Krufky <mkrufky@linuxtv.org>,
+	Andrew Morton <akpm@linux-foundation.org>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,43 +28,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wednesday 10 September 2008 17:10:19 Christophe Thommeret wrote:
-> Le Wednesday 10 September 2008 15:38:23 Steven Toth, vous avez =E9crit=A0:
-> > > Is this card able to deliver both S and T at the same time?
-> >
-> > No, the hardware can do S/S2 or T.
-> >
-> > The driver in the S2API tree only has S/S2 enabled (for the time
-> > being).
+On Thu, Sep 25, 2008 at 1:13 PM, Janne Grunau <janne-dvb@grunau.be> wrote:
+> On Thursday 25 September 2008 12:45:51 Markus Rechberger wrote:
+>> what's the matter of merging both? please let us discuss that, the
+>> APIs shouldn't have a big impact on each other.
+>> Does it break someone's neck to have both?
 >
-> So, maybe we have to think a bit about how to add support for this
-> kind of device.
+> They will stick both forever in the kernel and either applications or
+> drivers have to support both. Realistically both drivers and
+> applications will support both.
 >
-> Maybe a solution could be to have :
-> - adapter0/frontend0 -> S/S2 tuner
-> - adapter0/frontend1 -> T tuner
+> This is a stupid compromise which doesn't solve anything. A decision was
+> made we should live with it.
 >
-> So applications could know that these 2 frontends are exclusive.
-> That would not require any API change, but would have to be a rule
-> followed by all drivers.
 
-The experimental HVR4000 does this already and we have at least initial =
+Janne, as from my side we already delivered vendor specific drivers
+with vendor specific interfaces
+to a couple of customers and also patched the enduser applications for
+it since the API didn't provide the necessary
+features.
+I don't see that there's a restriction on a single API for it, BSD
+guys simply put a compatibility layer infront of their API
+in order to support linux applications while having the full flexibility.
+Although it's your opinion and I respect it.
 
-support for that in mythtv.
-
-I don't think this was the intended use of multiple frontends in the DVB =
-
-API but AFAIK all dual tuners drivers uses multiple adapters.
-
-I like this approach.
-
-Janne
+Markus
 
 _______________________________________________
 linux-dvb mailing list
