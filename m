@@ -1,26 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KhbHV-0005gK-EK
-	for linux-dvb@linuxtv.org; Mon, 22 Sep 2008 04:36:11 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7K00ADXSJAMN80@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sun, 21 Sep 2008 22:35:35 -0400 (EDT)
-Date: Sun, 21 Sep 2008 22:35:34 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <c64bf6860809211533p7ee768b0j9b36a3ee954034fd@mail.gmail.com>
-To: Tharsan Bhuvanendran <me@tharsan.com>
-Message-id: <48D70476.5040702@linuxtv.org>
-MIME-version: 1.0
-References: <c64bf6860809200004o1970a939jaa51e543de2ec594@mail.gmail.com>
-	<412bdbff0809200729q551ece09u98fb2c22f680188b@mail.gmail.com>
-	<c64bf6860809211533p7ee768b0j9b36a3ee954034fd@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Support for Pinnacle PCTV mini stick (USB TV Tuner)
-	80e
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+aab6bb3e1a0954efc56a+1859+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1KinqL-0005wE-VS
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 12:13:06 +0200
+Date: Thu, 25 Sep 2008 07:12:50 -0300 (BRT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+In-Reply-To: <alpine.LRH.1.10.0809251156390.1247@pub1.ifh.de>
+Message-ID: <alpine.LFD.1.10.0809250708330.21990@areia.chehab.org>
+References: <573008.36358.qm@web52908.mail.re2.yahoo.com>
+	<alpine.LRH.1.10.0809251152480.1247@pub1.ifh.de>
+	<01DE66C3-8E94-4DC3-9828-DF2CD7B59EBB@pobox.com>
+	<alpine.LRH.1.10.0809251156390.1247@pub1.ifh.de>
+MIME-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] getting rid of input dev in dvb-usb (was: Re:
+ [PATCH] Add remote control support to Nova-TD (52009))
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,70 +30,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Tharsan Bhuvanendran wrote:
-> Devin,
-> 
-> Thanks for the quick response!
-> 
-> I've pried open the device and snapped a few shots with my Nikon D40.  
-> You can get them at http://drop.io/tharsan.
-> 
-> I also created a Wiki page for the device at 
-> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_mini_Stick_(80e).
-> I've documented what I could determine on the Wiki page.
-> 
-> Please let me know if there's anything else you need and I'll do my very 
-> best to get you what you need!
+On Thu, 25 Sep 2008, Patrick Boettcher wrote:
 
-Please don't top post, it's against the list policy. More below.
+> On Thu, 25 Sep 2008, Torgeir Veimo wrote:
+>
+>>
+>> On 25 Sep 2008, at 19:53, Patrick Boettcher wrote:
+>>
+>>>>
+>>>> This patch is against the 2.6.26.5 kernel, and adds remote control support
+>>>> for the Hauppauge WinTV Nova-TD (Diversity) model. (That's the 52009
+>>>> version.) It also adds the key-codes for the credit-card style remote
+>>>> control that comes with this particular adapter.
+>>>
+>>> Committed and ask to be pulled, thanks.
+>>
+>>
+>> Am curious, would it be possible to augment these drivers to provide the raw
+>> IR codes on a raw hid device, eg. /dev/hidraw0 etc, so that other RC5 remotes
+>> than the ones that actually are sold with the card can be used with the card?
+>
+> I would love that idea. Maybe this is the solution I have searched for so
+> long. I desparately want to put those huge remote-control-table into
+> user-space.
+>
+> If hidraw is the right way, I'm with you. So far I wasn't sure what to
+> do?!
+>
+> How would it work with the key-table onces it is done with hidraw?
 
-> 
-> - Tharsan
-> 
-> On Sat, Sep 20, 2008 at 10:29 AM, Devin Heitmueller 
-> <devin.heitmueller@gmail.com <mailto:devin.heitmueller@gmail.com>> wrote:
-> 
->     Hello Tharsan,
-> 
->     2008/9/20 Tharsan Bhuvanendran <me@tharsan.com <mailto:me@tharsan.com>>:
->      > Hi,
->      >
->      > At the moment, there doesn't seem to be any dvb support for the
->     Pinnacle
->      > PCTV HD mini stick (USB TV Tuner).
->      > The model is 80e.  This appears to be a new model, released about
->     a month
->      > ago.
->      >
->      > The Pinnacle product page is here:
->      >
->     http://pinnaclesys.com/PublicSite/us/Products/Consumer+Products/PCTV+Tuners/PCTV+Digital+PVR+(DVB-S_DVB-T)/HD+mini+Stick
->     <http://pinnaclesys.com/PublicSite/us/Products/Consumer+Products/PCTV+Tuners/PCTV+Digital+PVR+%28DVB-S_DVB-T%29/HD+mini+Stick>
-> 
->     I just finished support for the Pro and Non-Pro versions a couple of
->     weeks ago, but judging by the different form factor, I would suspect
->     this is a different hardware design.
-> 
->     The most useful thing you could do would be to pop the device open and
->     take digital photos of the PCBs, and create a page on the LInuxTV DVB
->     Wiki for the device.
-> 
->     Once we know what components it contains, that will give us some idea
->     how much work will be required.
-> 
->     Regards,
-> 
->     Devin
+Patrick,
 
-We have inkernel support for the TDA18271 but not the DRXJ demo I think.
+If implemented properly, key code tables can be replaced anytime in 
+userspace.
 
-Please add the pictures to the wiki so they don't get lost, and other 
-users can benefit from them 12 months form now without having to 
-reference this email.
+We have already a tool for this, under v4l2-apps/util. It is called 
+keytable. The tool can be used to get the current key association of an 
+input device, generating a text file, or to load a text file into an input 
+device.
 
-Thanks,
+When you build the tool, the Makefile will parse several keycode tables 
+already existing on V4L and at the common IR files, writing them into 
+keycodes/ dir. It would be really easy to parse other files and create 
+their tables as well.
 
-- Steve
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
