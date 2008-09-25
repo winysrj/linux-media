@@ -1,26 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KfdWe-0006mg-63
-	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 18:35:41 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7A00CGMREFSSD0@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 16 Sep 2008 12:35:04 -0400 (EDT)
-Date: Tue, 16 Sep 2008 12:35:02 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <28a25ce0809160308u79b67730u8a53d5db1d19f87e@mail.gmail.com>
-To: =?ISO-8859-1?Q?Rom=E1n?= <roman.pena.perez@gmail.com>
-Message-id: <48CFE036.4070306@linuxtv.org>
-MIME-version: 1.0
-References: <e32e0e5d0809151515y26eab250x697fea6768af93af@mail.gmail.com>
-	<48CEF1CE.8080202@linuxtv.org>
-	<28a25ce0809160307p50bf7126n1a486374857d5893@mail.gmail.com>
-	<28a25ce0809160308u79b67730u8a53d5db1d19f87e@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Fwd:  why opensource will fail
+Received: from 108.203.233.220.exetel.com.au ([220.233.203.108]
+	helo=hack.id.au) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <christian@hack.id.au>) id 1KigXV-00089F-2B
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 04:25:10 +0200
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by hack.id.au (Postfix) with ESMTP id 7F56921036D
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 12:24:28 +1000 (EST)
+Received: from hack.id.au ([127.0.0.1])
+	by localhost (shonky.hack.id.au [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 6SCbadDlC69h for <linux-dvb@linuxtv.org>;
+	Thu, 25 Sep 2008 12:24:24 +1000 (EST)
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by hack.id.au (Postfix) with ESMTP id D7FA8210DBE
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 12:24:23 +1000 (EST)
+Received: from CHLAPTOP (unknown [192.168.99.157])
+	by hack.id.au (Postfix) with ESMTP id 3D9FE21036D
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 12:24:23 +1000 (EST)
+From: "Christian Hack" <christian@hack.id.au>
+To: <linux-dvb@linuxtv.org>
+Date: Thu, 25 Sep 2008 12:24:16 +1000
+Message-ID: <86B90129E3F44E76B299168B04C98B36@CHLAPTOP>
+MIME-Version: 1.0
+In-Reply-To: <019c01c8bbb7$731d79e0$1c01010a@edmi.local>
+Subject: Re: [linux-dvb] LifeView TV Walker Twin DVB-T (LR540) Problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,246 +30,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Rom=E1n wrote:
-> 2008/9/16 Steven Toth <stoth@linuxtv.org>:
->> Tim Lucas wrote:
->>>     Message: 7
->>>     Date: Sat, 13 Sep 2008 16:31:16 -0400
->>>     From: Steven Toth <stoth@linuxtv.org <mailto:stoth@linuxtv.org>>
->>>     Subject: Re: [linux-dvb] why opensource will fail
->>>     To: Paul Chubb <paulc@singlespoon.org.au
->>>     <mailto:paulc@singlespoon.org.au>>
->>>     Cc: linux dvb <linux-dvb@linuxtv.org <mailto:linux-dvb@linuxtv.org>>
->>>     Message-ID: <48CC2314.4090800@linuxtv.org
->>>     <mailto:48CC2314.4090800@linuxtv.org>>
->>>     Content-Type: text/plain; charset=3DISO-8859-1; format=3Dflowed
->>>
->>>     Paul Chubb wrote:
->>>      > Hi,
->>>      >      now that I have your attention:-{)=3D
->>>
->>>     .... You've also had my attention in the past, if I recall I have y=
-ou
->>>     tips about not using cx_write, instead using cx_set/cx_clear.
->>>
->>>     Your latest patch still doesn't have those changes btw. ;)
->>>
->>>
->>>      >
->>>      > I believe that this community has a real problem. There appears =
-to be
->>>      > little willingness to help and mentor newcomers. This will limit=
- the
->>>      > effectiveness of the community because it will hinder expansion =
-of
->>>      > people who are both willing and able to work on the code. Eventu=
-ally
->>>      > this issue  will lead to the community dying simply because you =
-have
->>>      > people leaving but few joining.
->>>
->>>     I disagree with everything you've just said, but that's just my opi=
-nion.
->>>
->>>
->>>      >
->>>      > The card I was working on has been around for  a while now. There
->>>     have
->>>      > been three attempts so far to get it working with Linux. Two in =
-this
->>>      > community and one against the mcentral.de <http://mcentral.de>
->>>     tree. Both attempts in this
->>>      > community have failed not because of a lack of willingness of the
->>>     people
->>>      > involved to do the hard yards but because of the inability of the
->>>      > community to mentor and help newcomers.
->>>
->>>
->>>     Did I not try to help you? The one piece of initial feedback I gave=
- you,
->>>     you ignored. (see my opening statement).
->>>
->>>     I'm always willing to help people, but they also have to demonstrate
->>>     that they are applying themselves, doing basic research, asking spe=
-cific
->>>     questions ... rather than, here's my patch - and What's Wrong with =
-it.
->>>
->>>
->>>      >
->>>      > The third attempt by a Czech programmer succeeded, however it is
->>>      > dependent on the mcentral.de <http://mcentral.de> tree and the
->>>     author appears to have made no
->>>      > attempt to get the patch into the tree. The original instruction=
-s to
->>>      > produce a driver set are in Czech. However instructions in
->>>     english for
->>>      > 2.6.22 are available - ubuntu gutsy. I will soon be putting up
->>>      > instructions for 2.6.24 - hardy. They may even work  for later
->>>     revisions
->>>      > since the big issue was incompatible versioning.
->>>      >
->>>      > I understand from recent posts to this list that many in the
->>>     community
->>>      > are disturbed by the existence of mcentral.de
->>>     <http://mcentral.de>. Well every person from
->>>      > now on who wants to run the Leadtek Winfast DTV1800H will be
->>>     using that
->>>      > tree. Since the card is excellent value for what it is, there
->>>     should be
->>>      > lots of them. Not helping newcomers who are trying to add cards
->>>     has led
->>>      > and will lead to increased fragmentation.
->>>
->>>     So port the mcentral.de <http://mcentral.de> details into the
->>>     kernel, I doubt they'll be
->>>     significantly different.... we're talking about adding support for =
-an
->>>     existing card, it's not a lot of engineering work.
->>>
->>>
->>>      >
->>>      > And before you say or think that we are all volunteers here, I a=
-m a
->>>      > volunteer also. I have spent close to 3 weeks on this code and i=
-t is
->>>      > very close to working. The biggest difference between working co=
-de in
->>>      > the mcentral.de <http://mcentral.de> tree and the patch I was
->>>     working on is the firmware that
->>>      > is used.
->>>
->>>     ... and your efforts are valuable.
->>>
->>>     Markus (mcentral.de <http://mcentral.de>) is paid to work on Linux,
->>>     just to be clear.
->>>
->>>     Your last message on that thread said: "xc2028 2-0061: xc2028/3028
->>>     firmware name not set!"
->>>
->>>     You could of asked a second time before taking the opportunity to v=
-ent,
->>>     and taking the community to task.
->>>
->>>     Showing patience and perseverance is what most other newcomers
->>>     demonstrate.
->>>
->>>
->>>      >
->>>      > Finally you might consider that if few developers are prepared to
->>>     work
->>>      > on the v4l-dvb tree, then much of the fun will disappear because
->>>     those
->>>      > few will have to do everything.
->>>
->>>     Whether we have 3 people or 30, it's never enough.
->>>
->>>     In my experience, people who join the list then vent all over it are
->>>     rarely around long enough to make a difference. They often think th=
-ey
->>>     know more about the community than the community itself.
->>>
->>>     On the other hand, the people who join and ask well thought out
->>>     questions, describe their failures and working assumptions, then
->>>     demonstrate a willingness to learn attract a mentor very quickly.
->>>
->>>     ... just my opinion of course :)
->>>
->>>     If you want to make progress with the leadtek card then another loo=
-k at
->>>     the feedback I gave you, then approach the group again with a more
->>>     insightful email.
->>>
->>>     Maybe someone will help you then.
->>>
->>>     - Steve
->>>
->>>
->>> I would like to respond to this because I have been sending messages to
->>> the list asking for help, but after a couple initial suggestions, I have
->>> been completely ignored.  I need to work with the cx23885 drivers with
->>> analog support that Steve wrote, because they are the only ones around,
->>> but how am I supposed to get them to work if the person who wrote them
->>> will not help me.   I even reported progress, but I was still ignored.
->>>  In fact, I saw other people get help with questions that were as silly
->>> as mine, but for some reason I cannot get any help from Steve or anyone
->>> else on the list.  I have said before that I am willing to do some of
->>> the work, but there is a steep learning curve.
->>>
->>> If I have done something against the rules or to deserve this treatment,
->>> I would appreciate someone letting me know instead of just ignoring me.
->>>  Where else can I go for help?
->>>
->>> If anyone has any suggestions about what I can do, please see my latest
->>> posts to the list about analog support for cx23885 cards.  Thank you.
->>>
->>>      --Tim
->> Tim,
->>
->> Just to be clear, they're not my patches I just offered to merge them. :)
->>
->> The people who can help are busy working on other projects, that's just
->> the way Linux development works. I tend to work on Hauppauge hardware
->> projects first then anything else if I have time.
->>
->> Too many people come to the list and have their problems solved and give
->> nothing in return. This is bad. They walk away feeling pretty happy but
->> they don't stop behind to help 2 other people. If everyone I helped
->> stopped to help 2 other people then the group would be a better place.
->> Likewise for all of the other developers in this group.
->>
->> In the end, people stop helping each other because it's a non-stop tide
->> of help requests, for little in return.
->>
->> I'm not suggesting that you do that, I'm suggest that's why the group is
->> the way it is.
->>
->> Stick around, when people have enough time you'll get some attention.
->>
->> - Steve
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
-> =
+> -----Original Message-----
+> From: linux-dvb-bounces@linuxtv.org 
+> [mailto:linux-dvb-bounces@linuxtv.org] On Behalf Of Christian Hack
+> Sent: Thursday, 22 May 2008 12:57 PM
+> To: 'Nick Andrew'
+> Cc: linux-dvb@linuxtv.org
+> Subject: Re: [linux-dvb] LifeView TV Walker Twin DVB-T (LR540) Problem
+> 
+> > -----Original Message-----
+> > From: Nick Andrew [mailto:nick-linuxtv@nick-andrew.net] 
+> > Sent: Wednesday, 21 May 2008 11:26 PM
+> > 
+> > On Mon, May 19, 2008 at 07:00:27PM +1000, Christian Hack wrote:
+> > > Hi guys,
+> > > > I can't get any extra info with debug=1. I have tried in both
+> /etc/modprobe.conf and by specifying it on the command line 
+> i.e. "modprobe
+> dvb_usb_m920x debug=1" etc. I am removing dvb_usb tda827x and 
+> dvb_usb_m920x
+> modules before trying each time.
+> 
+> Tzap output (first go is the LR540, second is the Hauppage 
+> Nova-T) using the
+> same aerial:
+> 
+> [root@mythtv tmp]# tzap -c channels.conf -a 2 -f 0 -d 0 "Ten HD"
+> using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
+> tuning to 219500000 Hz
+> video pid 0x0202, audio pid 0x0000
+> status 00 | signal b8b8 | snr c8c8 | ber 0001fffe | unc 00000000 | 
+> status 00 | signal b8b8 | snr d5d5 | ber 0001fffe | unc 00000000 | 
+> status 00 | signal b7b7 | snr d3d3 | ber 0001fffe | unc 00000000 | 
+> status 00 | signal b7b7 | snr d4d4 | ber 0001fffe | unc 00000000 | 
+> 
+After some playing when this original occurred, it started to work just fine
+and continued working fine (even over reboots etc). So I left it for a while
 
-> I think the main problem is not having separate lists for development
-> and help/support. The development efforts suffer a lot from this. I
-> did experience that silence myself when working on adding support for
-> my device; at first, the linuxtv community seemed to ignore me, but
-> after a lot of patience and insistence, I got positive replays from
+The other day it started to play up again. Since I have some time I invested
+more time in debugging the problem. This is what I'm seeing in the debug
+log. I had to modify rsyslog's config to get this. This is interspersed with
+the output from tzap:
 
-Good, so you stuck around and started to reap the benefits. I'm glad, =
+[root@mythtv ~]# tzap -c channels.conf -a 2 -f 0 -d 0 "Ten HD"
+using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
+Sep 25 12:20:58 mythtv kernel: power control: 1
+Sep 25 12:20:58 mythtv kernel: tda1004x: setting up plls for 48MHz sampling
+clock
+tuning to 585625000 Hz
+video pid 0x00a1, audio pid 0x0051
+Sep 25 12:21:00 mythtv kernel: tda1004x: found firmware revision 29 -- ok
+Sep 25 12:21:00 mythtv kernel: tda827x: tda827x_init:
+Sep 25 12:21:00 mythtv kernel: tda827x: tda827xa_set_params:
+Sep 25 12:21:00 mythtv kernel: tda827x: tda827x_config not defined, cannot
+set LNA gain!
+Sep 25 12:21:00 mythtv kernel: tda827x: tda8275a AGC2 gain is: 0
+Sep 25 12:21:00 mythtv kernel: tda827x: tda827x_config not defined, cannot
+set LNA gain!
+status 00 | signal a2a2 | snr c2c2 | ber 0001fffe | unc 00000000 | 
+Sep 25 12:21:02 mythtv kernel: tda827x: tda827xa_set_params:
+Sep 25 12:21:02 mythtv kernel: tda827x: tda827x_config not defined, cannot
+set LNA gain!
+Sep 25 12:21:02 mythtv kernel: tda827x: tda8275a AGC2 gain is: 0
+Sep 25 12:21:02 mythtv kernel: tda827x: tda827x_config not defined, cannot
+set LNA gain!
+status 00 | signal a1a1 | snr d4d4 | ber 0001fffe | unc 00000000 | 
+Sep 25 12:21:03 mythtv kernel: tda827x: tda827xa_set_params:
+Sep 25 12:21:03 mythtv kernel: tda827x: tda827x_config not defined, cannot
+set LNA gain!
+Sep 25 12:21:03 mythtv kernel: tda827x: tda8275a AGC2 gain is: 0
+Sep 25 12:21:03 mythtv kernel: tda827x: tda827x_config not defined, cannot
+set LNA gain!
+Sep 25 12:21:05 mythtv kernel: tda827x: tda827xa_set_params:
+Sep 25 12:21:05 mythtv kernel: tda827x: tda827x_config not defined, cannot
+set LNA gain!
+status 00 | signal a1a1 | snr d6d6 | ber 0001fffe | unc 00000000 | 
 
-and the community is now better for that. Thank you! :)
+This lines up with what I'm seeing i.e. it can't seem to tune correctly.
+Tda827x doesn't seem to have any configuration options. Suggestions?
+Remember this system did work previously.
 
-A common mistake people make is that they join the list, very =
-
-enthusiastic, and receive very little feedback from the long time =
-
-developers, so they get a little grumpy. "Linux will fail, I'm trying to =
-
-help but nobody is helping me.... etc"
-
-If new developers show patience, keep nagging the list, demonstrate that =
-
-they're here to help in various different ways, mentors appear and help =
-
-is given.
-
-Help is not an automatic right, it's a gift given from other users.
-
-Of course, this is only my opinion.
-
-- Steve
+CH
 
 
 _______________________________________________
