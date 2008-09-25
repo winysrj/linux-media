@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.172])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lucastim@gmail.com>) id 1Kj1nc-00035I-TA
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 03:07:13 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so828658wfd.17
-	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 18:07:07 -0700 (PDT)
-Message-ID: <e32e0e5d0809251807l6f0080c3j673af97821454581@mail.gmail.com>
-Date: Thu, 25 Sep 2008 18:07:07 -0700
-From: "Tim Lucas" <lucastim@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>, "linux dvb" <linux-dvb@linuxtv.org>
-In-Reply-To: <48DADA06.9000105@linuxtv.org>
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: Patrick Boettcher <patrick.boettcher@desy.de>,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>,
+	Steven Toth <stoth@hauppauge.com>, Steven Toth <stoth@linuxtv.org>
+Date: Thu, 25 Sep 2008 05:13:38 +0300
+References: <E1KiXdn-0002f3-EV@www.linuxtv.org>
+	<alpine.LRH.1.10.0809242312270.15196@pub1.ifh.de>
+In-Reply-To: <alpine.LRH.1.10.0809242312270.15196@pub1.ifh.de>
 MIME-Version: 1.0
-References: <e32e0e5d0809171545r3c2e58beh62d58fa6d04dae71@mail.gmail.com>
-	<48D34C69.6050700@linuxtv.org>
-	<e32e0e5d0809232045j56bef9ah1ec3ac59401de0d5@mail.gmail.com>
-	<e32e0e5d0809232050s1d0257e3m30c9c055e9d32dd6@mail.gmail.com>
-	<48DA9330.6070005@linuxtv.org>
-	<e32e0e5d0809241315rd423c0dj553812167194d4a3@mail.gmail.com>
-	<48DADA06.9000105@linuxtv.org>
-Subject: Re: [linux-dvb] Porting analog support from HVR-1500 to the DViCO
-	FusionHDTV7 Dual Express (Read this one)
+Content-Disposition: inline
+Message-Id: <200809250513.38892.liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [linuxtv-commits] [hg:v4l-dvb] Add support for USB
+	card modification with SI2109/2110 demodulator.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,141 +20,31 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1776700965=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1776700965==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_2765_2646430.1222391227378"
-
-------=_Part_2765_2646430.1222391227378
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-OK, so I tested both s-video and composite inputs.  I get video for s-video,
-but not composite.  The video seems to flicker a little bit in tv time.  I
-just have standard rca cables plugged in for audio, but I can;t get any
-sound.I tried changing the "tuner-type" to 0xc2, 0xc4, and 0x61.  All three
-gave the same results.
-
-     --Tim
-
-
-On Wed, Sep 24, 2008 at 5:23 PM, Steven Toth <stoth@linuxtv.org> wrote:
-
-> Tim Lucas wrote:
->
->> OK, so I'm a little dumb.  How do you want me to test those.  Should I
->> hook up some device to the S-Video input like my DVD player?
->>     --Tim
->>
->> On Wed, Sep 24, 2008 at 12:21 PM, Steven Toth <stoth@linuxtv.org <mailto:
->> stoth@linuxtv.org>> wrote:
->>
->>    Tim Lucas wrote:
->>
->>        I forgot to mention that I commented out the digital tuner at
->>        .portc first.  Then I tried to tune channels, but could not.
->>         Then I changed the tuner to 0xc8 >> 1, leaving .portc commented
->>        out.  I still could not tune channels.
->>
->>            --Tim
->>
->>
->>
->>    I really need you to test composite or svideo, did you do this?
->>
->>    - Steve
->>
->>
->>
->>
->> --
->> --Tim
->>
->
-> Yes, hook up a dvd player to the svideo adapter cable, then use tvtime to
-> switch the inputs to svideo.
->
-> I suspect (hope?) this should instantly work for you. If not, something is
-> really wrong inside the cx25840 driver.
->
-> Let me know.... also, be sure to try the composite input also.
->
-> Regards,
->
-> Steve
->
-
-
-
--- 
-    --Tim
-
-------=_Part_2765_2646430.1222391227378
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">OK, so I tested both s-video and composite inputs. &nbsp;I get video for s-video, but not composite. &nbsp;The video seems to flicker a little bit in tv time. &nbsp;I just have standard rca cables plugged in for audio, but I can;t get any sound.<div>
-I tried changing the &quot;tuner-type&quot; to 0xc2, 0xc4, and 0x61. &nbsp;All three gave the same results.</div><div><br></div><div>&nbsp;&nbsp; &nbsp; --Tim</div><div><br></div><div><br><div class="gmail_quote">On Wed, Sep 24, 2008 at 5:23 PM, Steven Toth <span dir="ltr">&lt;<a href="mailto:stoth@linuxtv.org">stoth@linuxtv.org</a>&gt;</span> wrote:<br>
-<blockquote class="gmail_quote" style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex;">Tim Lucas wrote:<br>
-<blockquote class="gmail_quote" style="margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex"><div class="Ih2E3d">
-OK, so I&#39;m a little dumb. &nbsp;How do you want me to test those. &nbsp;Should I hook up some device to the S-Video input like my DVD player? &nbsp;<br>
- &nbsp; &nbsp; --Tim<br>
-<br></div><div class="Ih2E3d">
-On Wed, Sep 24, 2008 at 12:21 PM, Steven Toth &lt;<a href="mailto:stoth@linuxtv.org" target="_blank">stoth@linuxtv.org</a> &lt;mailto:<a href="mailto:stoth@linuxtv.org" target="_blank">stoth@linuxtv.org</a>&gt;&gt; wrote:<br>
-
-<br>
- &nbsp; &nbsp;Tim Lucas wrote:<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp;I forgot to mention that I commented out the digital tuner at<br>
- &nbsp; &nbsp; &nbsp; &nbsp;.portc first. &nbsp;Then I tried to tune channels, but could not.<br>
- &nbsp; &nbsp; &nbsp; &nbsp; Then I changed the tuner to 0xc8 &gt;&gt; 1, leaving .portc commented<br>
- &nbsp; &nbsp; &nbsp; &nbsp;out. &nbsp;I still could not tune channels.<br>
-<br>
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;--Tim<br>
-<br>
-<br>
-<br>
- &nbsp; &nbsp;I really need you to test composite or svideo, did you do this?<br>
-<br>
- &nbsp; &nbsp;- Steve<br>
-<br>
-<br>
-<br>
-<br>
--- <br>
---Tim<br>
-</div></blockquote>
-<br>
-Yes, hook up a dvd player to the svideo adapter cable, then use tvtime to switch the inputs to svideo.<br>
-<br>
-I suspect (hope?) this should instantly work for you. If not, something is really wrong inside the cx25840 driver.<br>
-<br>
-Let me know.... also, be sure to try the composite input also.<br>
-<br>
-Regards,<br>
-<br>
-Steve<br>
-</blockquote></div><br><br clear="all"><br>-- <br> &nbsp; &nbsp; --Tim<br>
-</div></div>
-
-------=_Part_2765_2646430.1222391227378--
-
-
---===============1776700965==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1776700965==--
+9yDTz8/C3cXOyckgz9QgMjUgU2VwdGVtYmVyIDIwMDggMDA6MTQ6MzAgUGF0cmljayBCb2V0dGNo
+ZXIgzsHQydPBzCjBKToKPiBIaSBJZ29yLApIaSBQYXRyaWNrLAoKPiA+IEZyb206IElnb3IgTS4g
+TGlwbGlhbmluICA8bGlwbGlhbmluQG1lLmJ5Pgo+ID4gQWRkIHN1cHBvcnQgZm9yIFVTQiBjYXJk
+IG1vZGlmaWNhdGlvbiB3aXRoIFNJMjEwOS8yMTEwIGRlbW9kdWxhdG9yLgo+ID4KPiA+Cj4gPiBB
+ZGQgc3VwcG9ydCBmb3IgVVNCIGNhcmQgbW9kaWZpY2F0aW9uIHdpdGggU0kyMTA5LzIxMTAgZGVt
+b2R1bGF0b3IuCj4gPgo+ID4gU2lnbmVkLW9mZi1ieTogSWdvciBNLiBMaXBsaWFuaW4gPGxpcGxp
+YW5pbkBtZS5ieT4KPiA+Cj4gPiBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2R3MjEw
+Mi5jIHwgIDI3MiArKysrKysrKysrKysrKystLS0tLS0tLQo+ID4gMSBmaWxlIGNoYW5nZWQsIDE3
+OSBpbnNlcnRpb25zKCspLCA5MyBkZWxldGlvbnMoLSkKPiA+Cj4gPiBkaWZmIC1yIDUzNzRhMGRi
+OWM2NSAtciBkZTUyYjU0Yzk2MDQKPiA+IGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2Iv
+ZHcyMTAyLmMgLS0tCj4gPiBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHcyMTAy
+LmMJV2VkIFNlcCAxNyAwMDoyMToxMSAyMDA4ICswMzAwCj4gPiArKysgYi9saW51eC9kcml2ZXJz
+L21lZGlhL2R2Yi9kdmItdXNiL2R3MjEwMi5jCVRodSBTZXAgMTggMDE6MTk6MTkgMjAwOAo+ID4g
+KzAzMDAgQEAgLTExLDYgKzExLDcgQEAKPiA+ICovCj4gPiAjaW5jbHVkZSA8bGludXgvdmVyc2lv
+bi5oPgo+ID4gI2luY2x1ZGUgImR3MjEwMi5oIgo+ID4gKyNpbmNsdWRlICJzaTIxeHguaCIKPgo+
+IE1heWJlIEkgbWlzc2VkIHRoYXQgY29tbWl0LCBidXQgZGlkIHlvdSBhZGQgYSBLY29uZmlnIGRl
+cGVuZGVuY3kgZm9yIHRoaXMKPiBkZW1vZCB0byB0aGlzIFVTQiBkcml2ZXI/Cj4KPiBQYXRyaWNr
+Lgo+Ck15IGZhdWx0LgpKdXN0IGZvdW5kIHNpbWlsYXIgdm9pZCBpbiBkbTExMDUvS2NvbmZpZwpX
+aWxsIHNlbmQgcGF0Y2hlcyBpbW1lZGlhdGVseQoKSWdvcgoKX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1k
+dmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlz
+dGluZm8vbGludXgtZHZi
