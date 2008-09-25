@@ -1,22 +1,33 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpauth02.csee.siteprotect.eu ([83.246.86.181])
+Received: from fg-out-1718.google.com ([72.14.220.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roger@beardandsandals.co.uk>) id 1Kbdfm-0004EG-OQ
-	for linux-dvb@linuxtv.org; Fri, 05 Sep 2008 17:56:35 +0200
-Received: from [192.168.10.241] (unknown [81.168.109.249])
-	(Authenticated sender: roger@beardandsandals.co.uk)
-	by smtpauth02.csee.siteprotect.eu (Postfix) with ESMTP id E3825C6800E
-	for <linux-dvb@linuxtv.org>; Fri,  5 Sep 2008 17:56:00 +0200 (CEST)
-Message-ID: <48C15690.20706@beardandsandals.co.uk>
-Date: Fri, 05 Sep 2008 16:56:00 +0100
-From: Roger James <roger@beardandsandals.co.uk>
+	(envelope-from <mrechberger@gmail.com>) id 1KihMj-00067b-BT
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 05:18:07 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so163712fga.25
+	for <linux-dvb@linuxtv.org>; Wed, 24 Sep 2008 20:18:02 -0700 (PDT)
+Message-ID: <d9def9db0809242018u3f52bcbcl3234b740c99c0853@mail.gmail.com>
+Date: Thu, 25 Sep 2008 05:18:02 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "hermann pitton" <hermann-pitton@arcor.de>
+In-Reply-To: <1222311877.3323.101.camel@pc10.localdom.local>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <48C12136.1060200@beardandsandals.co.uk>
-	<48C12A70.2000304@kipdola.com>
-In-Reply-To: <48C12A70.2000304@kipdola.com>
-Subject: Re: [linux-dvb] [MULTIPROTO PATCH] Allow old apps to use new cards
- (TT-3200)
+Content-Disposition: inline
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<48D9F6F3.8090501@gmail.com>
+	<alpine.LRH.1.10.0809241051170.12985@pub3.ifh.de>
+	<48DA15A2.40109@gmail.com>
+	<alpine.LFD.1.10.0809240942250.28125@areia.chehab.org>
+	<a3ef07920809241441gea2c09al6e2ed32589ad6fa4@mail.gmail.com>
+	<d9def9db0809241901g56a54750kbfccecc77b111ec7@mail.gmail.com>
+	<37219a840809241947w6ca35351xa15920de6ff41aab@mail.gmail.com>
+	<d9def9db0809241949i5b368f01w5f635d59cd19dd1f@mail.gmail.com>
+	<1222311877.3323.101.camel@pc10.localdom.local>
+Cc: Manu Abraham <abraham.manu@gmail.com>, Greg KH <greg@kroah.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,97 +35,175 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1492263665=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1492263665==
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Thu, Sep 25, 2008 at 5:04 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
+>
+> Am Donnerstag, den 25.09.2008, 04:49 +0200 schrieb Markus Rechberger:
+>> On Thu, Sep 25, 2008 at 4:47 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>> > On Wed, Sep 24, 2008 at 10:01 PM, Markus Rechberger
+>> > <mrechberger@gmail.com> wrote:
+>> >> On Wed, Sep 24, 2008 at 11:41 PM, VDR User <user.vdr@gmail.com> wrote:
+>> >>> On Wed, Sep 24, 2008 at 8:21 AM, Mauro Carvalho Chehab
+>> >>> <mchehab@infradead.org> wrote:
+>> >>>> The decision were already taken by the group.
+>> >>>>
+>> >>>> It should be noticed also that the public announcement took some time to
+>> >>>> be ready, since we all carefully reviewed it to reflect the understanding
+>> >>>> that the group had.
+>> >>>>
+>> >>>> Both API's work, and people needed to choose between one of the proposals.
+>> >>>>
+>> >>>> Each one there had enough time to read and understand each proposal, since
+>> >>>> the patches were available more than one week before the meeting, and
+>> >>>> everybody were aware that the decision are scheduled to happen during LPC.
+>> >>>>
+>> >>>> Each one voted based on their own technical analysis, on a meeting that
+>> >>>> took about 2:30 hours, on the day after the presentations. People had
+>> >>>> enough time there to discuss, explain their ideas with the help of a
+>> >>>> whiteboard, decide and improve the proposal.
+>> >>>>
+>> >>>> S2API was choosen, since it was considered the better proposal for
+>> >>>> everybody there. None of the presents voted for Multiproto.
+>> >>>>
+>> >>>> Now that the decision were already taken, it is not time anymore to argue
+>> >>>> in favor to any other proposals. We need to move ahead and finally add
+>> >>>> support for DVB-S2 and the remaining missing digital TV's at kernel.
+>> >>>>
+>> >>>> Thank you and everyone else involved on adding support for the missing
+>> >>>> standards.
+>> >>>>
+>> >>>> Let's move to the next step: finally add API changes and drivers for
+>> >>>> DVB-S2 and prepare support for the remaining missing standards.
+>> >>>
+>> >>> It's no secret to anyone that there has been foul play, and blatantly
+>> >>> clear there is bias against Manu himself, and multiproto as a result,
+>> >>> based on personal differences & past conflicts.  You can't possibly
+>> >>> expect the dvb community to believe a fair & balanced meeting took
+>> >>> place to discuss these proposals when half the people there already
+>> >>> signed on for s2api, and the other half don't have the knowledge &
+>> >>> experience with dvb to make well-informed decisions.  You can't
+>> >>> possibly think people will believe any of you (who've openly admitted
+>> >>> support for s2api) spent 2 seconds defending multiproto, or even
+>> >>> assessing the proposal from an unbias technical standpoint.
+>> >>>
+>> >>> It's very convenient that you've completely ignored multiple requests
+>> >>> for more in-depth details that actually prove your points have real
+>> >>> technical merit and aren't just the result of some self-interest
+>> >>> politics and b.s.  Yet, you had no problem writing paragraphs about
+>> >>> how the decision has been made and everyone should just accept it.
+>> >>> Sorry, people aren't going to just accept it because this whole thing
+>> >>> has been tainted by misleading people, misrepresenting the truth, and
+>> >>> sometimes flat out lying.
+>> >>>
+>> >>> Valuable members of the community have turned, and are turning away
+>> >>> because of how poorly dvb has been maintained, and how self-serving
+>> >>> some people act.  I'm thankful that more people are being exposed &
+>> >>> becoming aware of what's been going on in hopes that at the very least
+>> >>> some kind of steps will be taken to stop the misuse & abuse of power
+>> >>> at the front of the dvb train.
+>> >>>
+>> >>> Again, if there is truth to your claims that s2api is the best
+>> >>> technical solution, then convince us all by providing tangible proof
+>> >>> rather then expecting everyone to take your word for it while ignoring
+>> >>> our requests for such information.  You have an obligation to the
+>> >>> community to justify your actions, and be held accountable for them.
+>> >>>
+>> >>
+>> >> There hasn't been much positive feedback here! How about let's talk to split the
+>> >> v4l and dvb development in order to not give Mauro the full authority
+>> >> over the whole
+>> >> 2 subsystems where he hardly anything contributed (to the second part).
+>> >>
+>> >> Don't see this as a flamewar, Andrew Morton and a few others are
+>> >> following that discussion now.
+>> >>
+>> >> Mauro as for you try to justify your step technically, the only point
+>> >> we've seen for now was from
+>> >> Patrick Boettcher (which was a good one from his side) but also the
+>> >> other involved people (within that
+>> >> 8 people group in Portland should point out their opinion and
+>> >> technical objections/reasons now).
+>> >>
+>> >> Officially it looks like you had 3 people supporting the Stevens
+>> >> proposal and 5 people who didn't know about
+>> >> the framework at all and explaining them that the DVB-S2 step is the
+>> >> better one to go whereas you had
+>> >> noone representing the multiproto path. Such a vote is highly doubtful then.
+>> >>
+>> >> Hans Hverkuil:
+>> >> I saw you in IRC that you support that proposal please also state out
+>> >> your opinion and/or ask your questions
+>> >> what/why things have been done like they are done in the multiproto
+>> >> tree and why you don't support it.
+>> >>
+>> >> It finally can really end up with a good solution either multiproto or
+>> >> S2 but everyone should understand and not only
+>> >> a few people.
+>> >>
+>> >> Markus
+>> >
+>> > Markus,
+>> >
+>> > After over two years, a decision has been made.  Up until now, many
+>> > people have been unhappy.  Now less people can be unhappy.  An
+>> > extension to the api has been merged, and now we can move forward.
+>> >
+>> > There have been enough debates on the mailing lists to date, and there
+>> > is enough information available about each proposal and all of the
+>> > details surrounding them.  We need not hash this out again here.
+>> >
+>> > Nobody wants to debate this any more -- a better use of our time is to
+>> > start working on userspace applications for the new supported
+>> > standards.  Please redirect your energy towards something creative.
+>> >
+>> > Make love, not war.
+>> >
+>>
+>> sure state out technical reasons and that's what it is about otherwise
+>> a serious split should happen asap.
+>> I personally invite you to be the first one here!
+>>
+>> Markus
+>>
+>
+> Markus,
+>
+> you can't invite anybody, since you stay out of kernel by your own
+> decision and because Manu did not let you in the way you came :)
+>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title></title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-Jelle De Loecker wrote:
-<blockquote cite="mid:48C12A70.2000304@kipdola.com" type="cite">Roger
-James schreef:
-  <br>
-  <blockquote type="cite">This is a rework of the patch posted by Anssi
-Hannula some time ago
-(<a class="moz-txt-link-freetext" href="http://www.spinics.net/lists/linux-dvb/msg26174.html">http://www.spinics.net/lists/linux-dvb/msg26174.html</a>). It allows an
-unpatched application such as gnutv to access cards that only have new
-api drivers. The example I have tested is the TT-3200 S2 driver in
-Manu's multiproto tree. The patch requires that the new driver has the
-default modulation type for old api access to be set in the .type field
-of the its frontend info structure. For example for the stb0889
-frontend this is.
-    <br>
-    <br>
-&nbsp;....
-    <br>
-    <br>
-The main patch to be applied is wholly to dvb_frontend.c and is given
-at the end of this message. I would appreciate if people who are more
-familiar with this environment than I am could verify that the approach
-is correct. Sorry about the inline patches but I am cutting and pasting
-from a terminal into a Linux box which is the wrong side of a firewall.
-    <br>
-    <br>
-Roger
-    <br>
-  </blockquote>
-  <br>
-Thank you, Roger!
-  <br>
-  <br>
-I've only decided to use her patch since yesterday (because mythtv
-&amp; the new multiproto api really don't go well together) But I had
-to use a very old revision of the drivers.
-  <br>
-I'll try this patch out first thing when I come home.
-  <br>
-  <br>
-Do you know if this patch would allow regular disecq operations?
-('Cause even with the old patch it wouldn't work in mythtv)
-  <br>
-  <br>
-Greetings,
-  <br>
-  <br>
-Jelle De Loecker
-  <br>
-  <br>
-</blockquote>
-Jelle,<br>
-<br>
-The neither versions of the patch impact on the DISEQC ioctls. If it
-was not working before it may be due to mythtv not sending them.
-However if the frontend module does not implement the DISEQC functions
-they are just silently ignored. As far as I can see the frontends that
-have implementations in the multiproto tree are cx24110, cx24123,
-mt213, s5h1420, stb0899 (this is fe on the TT 3200) stv0299, tda10086,
-tda8083 and tda80xx( 8044/8083?). Although if have not checked these in
-detail.<br>
-<br>
-Roger<br>
-</body>
-</html>
+Hermann,
 
+I never decided to stay outside of the kernel and if only for serious reasons.
+For every pro why my stuff should be in the kernel I can get some
+people up to discuss why it should
+not be in the kernel right now. The split off is independent of the
+rest of the code and won't affect anything else
+and just add support for alot new devices in the end. Follow the
+Mailinglist for the em28xx driver and you might see.
 
---===============1492263665==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+If anyone wants to have the driver code from mcentral.de in the kernel
+as it is (including knowing what the bad things are
+currently) I'm open for an immediately merge. For sure this also
+depends if Linus is open to merge it. BSD people were open
+for a merge without that stupid "submit small patches comment"
+immediately especially since it's only about a driver which runs
+on its own.
+
+The codebase doesn't affect any other driver nor any framework as it
+is right now only the driver itself.
+
+Also think about writing more than 20k lines of code. This won't
+happen over night.
+
+Markus
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1492263665==--
