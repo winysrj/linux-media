@@ -1,17 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from anchor-post-35.mail.demon.net ([194.217.242.85])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1Kfale-0000rf-9s
-	for linux-dvb@linuxtv.org; Tue, 16 Sep 2008 15:39:00 +0200
-Message-ID: <48CFB6EC.5080800@iki.fi>
-Date: Tue, 16 Sep 2008 16:38:52 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1KizDr-0002qn-C5
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 00:22:08 +0200
+Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
+	helo=pentagram.youmustbejoking.demon.co.uk)
+	by anchor-post-35.mail.demon.net with esmtp (Exim 4.67)
+	id 1KizDn-0003Bb-In
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 22:22:03 +0000
+Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
+	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1KizDj-0005Ua-5S
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 23:22:03 +0100
+Date: Thu, 25 Sep 2008 23:13:13 +0100
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+To: linux-dvb@linuxtv.org
+Message-ID: <4FE9FCB5B4%linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <766065.22236.qm@web52911.mail.re2.yahoo.com>
+References: <766065.22236.qm@web52911.mail.re2.yahoo.com>
 MIME-Version: 1.0
-To: Thomas <thomas@ic3s.de>
-References: <48CFABD7.8000202@ic3s.de>
-In-Reply-To: <48CFABD7.8000202@ic3s.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] problems compiling af9015 on fedora 9
+Subject: Re: [linux-dvb] [PATCH] Add remote control support to Nova-TD
+	(52009)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,70 +36,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thomas wrote:
-> Hi List,
-> 
-> i get this error:
-> 
-> #make
-> 
-> ....
->   CC [M]  /root/af9015/v4l/pluto2.o
->   LD [M]  /root/af9015/v4l/sms1xxx.o
->   LD [M]  /root/af9015/v4l/snd-bt87x.o
->   LD [M]  /root/af9015/v4l/snd-tea575x-tuner.o
->   Building modules, stage 2.
->   MODPOST 273 modules
-> WARNING: "__udivdi3" [/root/af9015/v4l/af9013.ko] undefined!
->   CC      /root/af9015/v4l/adv7170.mod.o
->   LD [M]  /root/af9015/v4l/adv7170.ko
->   CC      /root/af9015/v4l/adv7175.mod.o
->   LD [M]  /root/af9015/v4l/adv7175.ko
-> .....
+[text wrapped to <80 columns]
 
-For me it compiles like a charm. I have Fedora 9 x86_64 system. Are you 
-really sure you are using latest tree from 
-http://linuxtv.org/hg/~anttip/af9015 ?
+I demand that Chris Rankin may or may not have written...
 
-> after connecting the device i have no frontend :(
-> 
-> kernel: dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in cold state, will try to load a firmware
-> kernel: dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-> kernel: usb 2-5: USB disconnect, address 3
-> kernel: dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
-> kernel: usb 2-5: new high speed USB device using ehci_hcd and address 4
-> kernel: usb 2-5: configuration #1 chosen from 1 choice
-> kernel: input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:1d.7/usb2/2-5/2-5:1.1/input/input10
-> kernel: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:1d.7-5
-> kernel: usb 2-5: New USB device found, idVendor=15a4, idProduct=9016
-> kernel: usb 2-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> kernel: usb 2-5: Product: DVB-T 2
-> kernel: usb 2-5: Manufacturer: Afatech
-> kernel: usb 2-5: SerialNumber: 010101010600001
-> kernel: dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in warm state.
-> kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> kernel: DVB: registering new adapter (Afatech AF9015 DVB-T USB2.0 stick)
-> kernel: af9013: Unknown symbol __udivdi3
-> modprobe: FATAL: Error inserting af9013 (/lib/modules/2.6.25.14-108.fc9.i686/kernel/drivers/media/dvb/frontends/af9013.ko): Unknown symbol in module, or unknown parameter (see dmesg)
-> kernel: DVB: Unable to find symbol af9013_attach()
-> kernel: dvb-usb: no frontend was attached by 'Afatech AF9015 DVB-T USB2.0 stick'
-> kernel: dvb-usb: Afatech AF9015 DVB-T USB2.0 stick successfully initialized and connected.
-> kernel: usbcore: registered new interface driver dvb_usb_af9015
-> 
-> 
-> can someone explain whats going wrong?
-> 
-> 
-> 
-> Best Regards
-> 
-> Thomas
-> 
-> 
-regards
-Antti
+[snip]
+> Aren't we opening the door to "remote control wars" by just concatenating
+> the codes from several different remotes into one big list called
+> dib0700_rc_keys[]? Wouldn't it be better to allow the user to pick just one
+> of the available remotes somehow? Maybe we need an array of dvb_usb_rc_key
+> structures instead?
+
+It needs to be converted to use the IR input helper code
+(drivers/media/common/ir-{functions,keymaps}.c & <media/ir-common.h>).
+
+[snip]
 -- 
-http://palosaari.fi/
+| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
+| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
+| + Lobby friends, family, business, government.    WE'RE KILLING THE PLANET.
+
+Are you addicted to taglines? Call Tagliners Anonymous *now*!
 
 _______________________________________________
 linux-dvb mailing list
