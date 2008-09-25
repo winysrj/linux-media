@@ -1,24 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KdaYi-0005RT-FN
-	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 03:01:21 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7000JXEAT9NQF0@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 10 Sep 2008 21:00:46 -0400 (EDT)
-Date: Wed, 10 Sep 2008 21:00:45 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200809110201.48935.hftom@free.fr>
-To: Christophe Thommeret <hftom@free.fr>
-Message-id: <48C86DBD.6090108@linuxtv.org>
-MIME-version: 1.0
-References: <48B8400A.9030409@linuxtv.org> <20080910161222.21640@gmx.net>
-	<48C85153.8010205@linuxtv.org> <200809110201.48935.hftom@free.fr>
+Received: from dsl-202-173-134-75.nsw.westnet.com.au ([202.173.134.75]
+	helo=mail.lemonrind.net) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <alex@receptiveit.com.au>) id 1KizC4-0002Lh-Q3
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 00:20:31 +0200
+Message-Id: <6894A2D0-2EC8-4C49-8D63-FA66CCA16E01@receptiveit.com.au>
+From: Alex Ferrara <alex@receptiveit.com.au>
+To: stev391@email.com
+In-Reply-To: <20080921104125.3218916429C@ws1-4.us4.outblaze.com>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Date: Fri, 26 Sep 2008 08:19:36 +1000
+References: <20080921104125.3218916429C@ws1-4.us4.outblaze.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Subject: Re: [linux-dvb] Dvico dual digital express - Poor tuner
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,83 +19,205 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============1856835394=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Christophe Thommeret wrote:
-> Le Thursday 11 September 2008 00:59:31 Andreas Oberritter, vous avez =E9c=
-rit :
->> Hans Werner wrote:
->>>> So applications could know that these 2 frontends are exclusive.
->>>> That would not require any API change, but would have to be a rule
->>>> followed by
->>>> all drivers.
->>> Yes, if we keep to that rule then only frontends which can operate truly
->>> simultaneously should have a different adapter number.
->> An adapter refers to a self-contained piece of hardware, whose parts can
->> not be used by a second adapter (e.g. adapter0/demux0 can not access the
->> data from adapter1/frontend1). In a commonly used setup it means that
->> adapter0 is the first initialized PCI card and adapter1 is the second.
+
+--===============1856835394==
+Content-Type: multipart/alternative; boundary=Apple-Mail-27--739158879
+
+
+--Apple-Mail-27--739158879
+Content-Type: text/plain;
+	charset=US-ASCII;
+	format=flowed;
+	delsp=yes
+Content-Transfer-Encoding: 7bit
+
+On 21/09/2008, at 8:41 PM, stev391@email.com wrote:
+
+>> On Sun, Sep 21, 2008 at 3:35 PM, Alex Ferrara <alex@receptiveit.com.au 
+>> > wrote:
+>>> I am currently seeing inconsistent performance with the dvico dual
+>>> digital express. Some channels tune just fine, and others have the
+>>> impression of a very low signal strength.
 >>
->> Now, if you want a device with two tuners that can be accessed
->> simultaneously to create a second adapter, then you would have to
->> artificially divide its components so that it looks like two independant
->> PCI cards. This might become very complicated and limits the functions
->> of the hardware.
+>> I have the same card in regional Australia, i had a similar problem
+>> problem, its working fine now though.
 >>
->> However, on a setup with multiple accessible tuners you can expect at
->> least the same amount of accessible demux devices on the same adapter
->> (and also dvr devices for that matter). There is an ioctl to connect a
->> frontend to a specific demux (DMX_SET_SOURCE).
+>> One of my issue was that i had not scanned the channels properly, did
+>> you generate your initial-tuning-data yourself and use scan to
+>> generate the channels.conf, or use somebody elses initial-tuning-data
+>> ?
 >>
->> So, if there are demux0, frontend0 and frontend1, then the application
->> knows that it can't use both frontends simultaneously. Otherwise, if =
+>> It could be that the frequency in your channels.conf isnt accurate
+>> enough, from what ive experienced if you set the frequency in the
+>> channels.conf to be the center frequency of channel + 125kHz you
+>> should be ok.
+>>
+>> Also, there is an app called femon from dvb-apps package which will
+>> display the signal strength of the currently tunned channel, i just
+>> started that going and moved my indoor digital antenna around till i
+>> got max strength.
+>>
+>>
+>> Glenn
+>
+> Alex,
+>
+> Does this also happen in windows?
+> If so another possible solution is to either turn down your  
+> distribution amplifier or install attenuators on the RF input into  
+> the card.
+> In my mates setup I had to install a 12db attenuator inline to  
+> reduce the signal enough to within the cards dynamic range (An  
+> analogy of this is if you are at a rock concert next to the speakers  
+> it sounds sh!t due to the high volume however if you move away or  
+> muffle the sound slightly it will sound a lot better).
+> His older TV cards needed this higher strength signal to operate, if  
+> it didn't I would have just gotten rid of his distribution amplifier.
+>
+> I hope this helps.
+> (I have set up a total of 5 of these cards in linux so far and this  
+> has been the only issue with the current set of drivers. [Location  
+> is Melbourne]).
+>
+> Stephen.
+>
+>
+> -- 
+> Be Yourself @ mail.com!
+> Choose From 200+ Email Addresses
+> Get a Free Account at www.mail.com
+>
 
->> there are demux0, demux1, frontend0 and frontend1, then it can use both
->> of them (by using both demux devices and connecting them to the
->> frontends via the ioctl mentioned above).
-> =
 
-> Sounds logical. And that's why Kaffeine search for frontend/demux/dvr > 0=
- and =
+I have had some time to test this fully. Using "dirty" Windows Vista I  
+am able to tune all channels with perfect quality. On the same  
+computer, with nothing changes except for the OS, I can tune most  
+channels and only watch some. I am using Mythbuntu 8.04.1 with the  
+current v4l-dvb mercurial drivers and the extracted firmware using the  
+perl script in the kernel documentation directory. Kernel is 2.6.24  
+incidentally.
 
-> uses demux1 with frontend1. (That was just a guess since i've never seen =
+There must be something going on in the driver or the firmware is not  
+quite right. One of my friends in Canberra also has one of these dual  
+express cards, and he is having very similar issues to me.
 
-> neither any such devices nor comments/recommendations/rules about such ca=
-se).
-> =
+I also tested a Dvico Dual Digital 4 PCI card, and found that it  
+worked perfectly. I believe mine is a v2 card, but I am not 100% sure  
+on that one.
 
-> However, all dual tuners devices drivers i know expose the 2 frontends as =
+Regards
+Alex Ferrara
 
-> frontend0 in separate adapters. But all these devices seems to be USB.
-> =
-
-> The fact that Kaffeine works with the experimental hvr4000 driver indicat=
-es =
-
-> that this driver populates frontend1/demux1/dvr1 and then doesn't follow =
-the =
-
-> way you describe (since the tuners can't be used at once).
-> I would like to hear from Steve on this point.
-> =
-
-> =
+Director
+Receptive IT Solutions
 
 
-Correct, frontend1, demux1, dvr1 etc. All on the same adapter. The =
+--Apple-Mail-27--739158879
+Content-Type: text/html;
+	charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-driver and multi-frontend patches manage exclusive access to the single =
+<html><body style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
+-webkit-line-break: after-white-space; "><div><div><div>On 21/09/2008, =
+at 8:41 PM, <a href=3D"mailto:stev391@email.com">stev391@email.com</a> =
+wrote:</div><br class=3D"Apple-interchange-newline"><blockquote =
+type=3D"cite"><div><blockquote type=3D"cite">On Sun, Sep 21, 2008 at =
+3:35 PM, Alex Ferrara &lt;<a =
+href=3D"mailto:alex@receptiveit.com.au">alex@receptiveit.com.au</a>> =
+wrote:<br></blockquote><blockquote type=3D"cite"><blockquote =
+type=3D"cite">I am currently seeing inconsistent performance with the =
+dvico dual<br></blockquote></blockquote><blockquote =
+type=3D"cite"><blockquote type=3D"cite">digital express. Some channels =
+tune just fine, and others have =
+the<br></blockquote></blockquote><blockquote type=3D"cite"><blockquote =
+type=3D"cite">impression of a very low signal =
+strength.<br></blockquote></blockquote><blockquote =
+type=3D"cite"><br></blockquote><blockquote type=3D"cite">I have the same =
+card in regional Australia, i had a similar =
+problem<br></blockquote><blockquote type=3D"cite">problem, its working =
+fine now though.<br></blockquote><blockquote =
+type=3D"cite"><br></blockquote><blockquote type=3D"cite">One of my issue =
+was that i had not scanned the channels properly, =
+did<br></blockquote><blockquote type=3D"cite">you generate your =
+initial-tuning-data yourself and use scan to<br></blockquote><blockquote =
+type=3D"cite">generate the channels.conf, or use somebody elses =
+initial-tuning-data<br></blockquote><blockquote =
+type=3D"cite">?<br></blockquote><blockquote =
+type=3D"cite"><br></blockquote><blockquote type=3D"cite">It could be =
+that the frequency in your channels.conf isnt =
+accurate<br></blockquote><blockquote type=3D"cite">enough, from what ive =
+experienced if you set the frequency in the<br></blockquote><blockquote =
+type=3D"cite">channels.conf to be the center frequency of channel + =
+125kHz you<br></blockquote><blockquote type=3D"cite">should be =
+ok.<br></blockquote><blockquote type=3D"cite"><br></blockquote><blockquote=
+ type=3D"cite">Also, there is an app called femon from dvb-apps package =
+which will<br></blockquote><blockquote type=3D"cite">display the signal =
+strength of the currently tunned channel, i =
+just<br></blockquote><blockquote type=3D"cite">started that going and =
+moved my indoor digital antenna around till =
+i<br></blockquote><blockquote type=3D"cite">got max =
+strength.<br></blockquote><blockquote =
+type=3D"cite"><br></blockquote><blockquote =
+type=3D"cite"><br></blockquote><blockquote =
+type=3D"cite">Glenn<br></blockquote><br>Alex,<br><br>Does this also =
+happen in windows?<br>If so another possible solution is to either turn =
+down your distribution amplifier or install attenuators on the RF input =
+into the card. <br>In my mates setup I had to install a 12db attenuator =
+inline to reduce the signal enough to within the cards dynamic range (An =
+analogy of this is if you are at a rock concert next to the speakers it =
+sounds sh!t due to the high volume however if you move away or muffle =
+the sound slightly it will sound a lot better).<br>His older TV cards =
+needed this higher strength signal to operate, if it didn't I would have =
+just gotten rid of his distribution amplifier.<br><br>I hope this =
+helps.<br>(I have set up a total of 5 of these cards in linux so far and =
+this has been the only issue with the current set of drivers. [Location =
+is Melbourne]).<br><br>Stephen.<br><br><br>-- <br>Be Yourself @ =
+mail.com!<br>Choose =46rom 200+ Email Addresses<br>Get a Free Account at =
+<a =
+href=3D"http://www.mail.com">www.mail.com</a><br><br></div></blockquote></=
+div><div><br></div>I have had some time to test this fully. Using =
+"dirty" Windows Vista I am able to tune all channels with perfect =
+quality. On the same computer, with nothing changes except for the OS, I =
+can tune most channels and only watch some. I am using Mythbuntu 8.04.1 =
+with the current v4l-dvb mercurial drivers and the extracted firmware =
+using the perl script in the kernel documentation directory. Kernel is =
+2.6.24 incidentally.</div><div><br></div><div>There must be something =
+going on in the driver or the firmware is not quite right. One of my =
+friends in Canberra also has one of these dual express cards, and he is =
+having very similar issues to me.</div><div><br></div><div>I also tested =
+a Dvico Dual Digital 4 PCI card, and found that it worked perfectly. I =
+believe mine is a v2 card, but I am not 100% sure on that =
+one.</div><div><br></div><div><div> <span class=3D"Apple-style-span" =
+style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
+Helvetica; font-size: 12px; font-style: normal; font-variant: normal; =
+font-weight: normal; letter-spacing: normal; line-height: normal; =
+orphans: 2; text-align: auto; text-indent: 0px; text-transform: none; =
+white-space: normal; widows: 2; word-spacing: 0px; =
+-webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: =
+0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0; "><div style=3D"word-wrap: =
+break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
+after-white-space; "><div>Regards</div><div>Alex =
+Ferrara</div><div><br></div><div>Director</div><div>Receptive IT =
+Solutions</div></div></span> </div><br></div></body></html>=
 
-internal resource.
+--Apple-Mail-27--739158879--
 
-- Steve
 
+--===============1856835394==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1856835394==--
