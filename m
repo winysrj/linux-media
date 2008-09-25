@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Frederic CAND <frederic.cand@anevia.com>
-In-Reply-To: <48D75FA5.90106@anevia.com>
-References: <48D27B52.2010704@anevia.com>  <48D28052.5000209@gmx.de>
-	<1221777738.4904.40.camel@pc10.localdom.local>
-	<48D75FA5.90106@anevia.com>
-Date: Tue, 23 Sep 2008 00:41:17 +0200
-Message-Id: <1222123277.2983.53.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] hvr 1300 radio
+Received: from smtp27.orange.fr ([80.12.242.94])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hftom@free.fr>) id 1Kikph-0004TD-6i
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 09:00:14 +0200
+From: Christophe Thommeret <hftom@free.fr>
+To: linux-dvb@linuxtv.org
+Date: Thu, 25 Sep 2008 08:59:37 +0200
+References: <48DB3388.2030303@verbraak.org>
+In-Reply-To: <48DB3388.2030303@verbraak.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200809250859.37476.hftom@free.fr>
+Subject: Re: [linux-dvb] [RFC] Let the future decide between the two.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,104 +19,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CkFtIE1vbnRhZywgZGVuIDIyLjA5LjIwMDgsIDExOjA0ICswMjAwIHNjaHJpZWIgRnJlZGVyaWMg
-Q0FORDoKPiBoZXJtYW5uIHBpdHRvbiBhIMOpY3JpdCA6Cj4gPiBIaSwKPiA+IAo+ID4gQW0gRG9u
-bmVyc3RhZywgZGVuIDE4LjA5LjIwMDgsIDE4OjIyICswMjAwIHNjaHJpZWIgd2s6Cj4gPj4gRnJl
-ZGVyaWMgQ0FORCB3cm90ZToKPiA+Pj4gRGVhciBhbGwsCj4gPj4+Cj4gPj4+IGhhcyBhbnlvbmUg
-Z290IGFuYWxvZyBGTSByYWRpbyB3b3JraW5nIHdpdGggYW4gSGF1cHBhdWdlIEhWUiAxMzAwID8K
-PiA+Pj4gSWYgeWVzIHBsZWFzZSB0ZWxsIG1lIGhvdyAhIEkgZ290IG9ubHkgbm9pc2UgZnJvbSAv
-ZGV2L2RzcCogLi4uIDooCj4gPj4+IFRoaXMgaXMgYW4gaXNzdWUgSSd2ZSBoYWQgZm9yIHNvbWUg
-dGltZSBub3cgLi4uCj4gPj4+IEkgdHJpZWQgb3B0aW9uIHJhZGlvPTYzIG9uIGN4ODh4eCBtb2R1
-bGUgYnV0IGl0IGRpZCBub3QgY2hhbmdlIGFueXRoaW5nIAo+ID4+PiAoZXhjZXB0IHdyaXRpbmcg
-Y3g4OFswXTogVFYgdHVuZXIgdHlwZSA2MywgUmFkaW8gdHVuZXIgdHlwZSA2MyBpbiBkbWVzZyAK
-PiA+Pj4gaW5zdGVhZCBvZiByYWRpbyB0dW5lciB0eXBlIC0xIC4uLikKPiA+Pj4KPiA+Pj4gSXMg
-cmFkaW8gc3VwcG9ydCBqdXN0IG5vdCBpbXBsZW1lbnRlZCA/Cj4gPj4+Cj4gPj4+ICAgCj4gPj4g
-TG9hZCBjeDg4X2JsYWNrYmlyZCBhbmQgb3BlbiAvZGV2L3JhZGlvWC4KPiA+PiBJIGhhdmVuJ3Qg
-dHJpZWQgcmFkaW8gdXAgdG8gbm93LCBidXQgaSB3b3VsZCBleHBlY3QgdGhhdCBvbmx5IHJhZGlv
-ICpvciogCj4gPj4gZHZiIHdvcmtzLCBidXQgbm90IGJvdGggYXQgdGhlIHNhbWUgdGltZS4gTW9z
-dCBwcm9iYWJseSByYWRpbyBpcyBhbHNvIAo+ID4+IG5vdCBmZWVkIHRyb3VnaCB0aGUgbXBlZyBl
-bmNvZGVyLgo+ID4+Cj4gPiAKPiA+IGEgZml4bWUgc3RpbGwgc3RpY2tzIG9uIHJhZGlvIG9mIHRo
-ZSBIVlIxMzAwLgo+ID4gCj4gPiAJCQkuYXVkaW9yb3V0ZSA9IDIsCj4gPiAJCX0sewo+ID4gCQkJ
-LnR5cGUJPSBDWDg4X1ZNVVhfU1ZJREVPLAo+ID4gCQkJLnZtdXgJPSAyLAo+ID4gCQkJLmdwaW8w
-CT0gMHhlNzgwLAo+ID4gCQkJLmF1ZGlvcm91dGUgPSAyLAo+ID4gCQl9fSwKPiA+IAkJLyogZml4
-bWU6IEFkZCByYWRpbyBzdXBwb3J0ICovCj4gPiAJCS5tcGVnICAgICAgICAgICA9IENYODhfTVBF
-R19EVkIgfCBDWDg4X01QRUdfQkxBQ0tCSVJELAo+ID4gCQkucmFkaW8gPSB7Cj4gPiAJCQkudHlw
-ZSAgID0gQ1g4OF9SQURJTywKPiA+IAkJCS5ncGlvMAk9IDB4ZTc4MCwKPiA+IAkJfSwKPiA+IAl9
-LAo+ID4gCj4gPiBHdWVzcyBhdWRpbyByb3V0aW5nIGFuZCBzd2l0Y2hpbmcgaXMgbm90IGNsZWFy
-IHlldC4KPiA+IAo+ID4gVGhlIEZNRDEyMTZNRSBzdXBwb3J0cyByYWRpbyBvdmVyIHRkYTk4ODcg
-YW5kIHRkYTcwNDAuCj4gPiAKPiA+IE9uIHRoZSBGTTEyMTZNRSBhbmQgRk0xMjM2IE1LMyB3ZSBj
-YW4gdGFrZSB0aGUgc3RlcmVvIGluZGljYXRpb24gYml0Cj4gPiBmcm9tIHRoZSBQTEwgY2hpcCBh
-bmQgc3dpdGNoIHRoZSB0ZGE5ODg3IGludG8gRk0gc3RlcmVvIG1vZGUKPiA+IGFjY29yZGluZ2x5
-LiBSZWFkaW5nIHRoaXMgc3RhdHVzIGluZm9ybWF0aW9uIGFsc28gZW5hYmxlcyBhdXRvIHNjYW5u
-aW5nCj4gPiBmb3IgcmFkaW8gYnJvYWRjYXN0cyBmb3IgdGhlIGFwcGxpY2F0aW9ucy4gKHY0bDIg
-YXdhcmUgbGlrZSBrcmFkaW8KPiA+IHNob3VsZCBiZSBwcmVmZXJyZWQpCj4gPiAKPiA+IFRoaXMg
-Yml0IGRvZXMgbm90IHdvcmsgb24gdGhlIGh5YnJpZCBGTUQxMjE2TUUgTUszIGFuZCB5b3UgaGF2
-ZSB0bwo+ID4gY3JlYXRlIGEgc3RhdGlvbiBsaXN0IG1hbnVhbGx5IG9uY2UsIGJ1dCB0aGVuIHN0
-ZXJlbyByYWRpbyBpcyBmaW5lLgo+ID4gCj4gPiBPbiB0aGUgbGF0ZXIgRk1EMTIxNk1FWCwgd2hp
-Y2ggY2FuIGFsc28gYmUgb24gdGhhdCBib2FyZCwgU3RldmUKPiA+IG1lbnRpb25lZCBvbmNlIHRo
-YXQgdGhlIHJhZGlvIG1pZ2h0IGJlIHNsaWdodGx5IGRpZmZlcmVudC4KPiA+IAo+ID4gVGhhdCBv
-bmUgaXMgY3VycmVudGx5IHRyZWF0ZWQgbGlrZSB0aGUgRk1EMTIxNk1FLCBidXQgd291bGQgbmVl
-ZCBpdHMgb3duCj4gPiBzZXBhcmF0ZSB0dW5lciB0eXBlIGVudHJ5IGluIHRoYXQgY2FzZS4KPiA+
-IAo+ID4gV2UgYWxzbyBmb3VuZCBoaW50cyBpbiB0dW5lciBzcGVjcyBwcm92aWRlZCBieSBTdGV2
-ZSBmb3IgaXZ0diwgSUlSQywKPiA+IHRoYXQgYW4gQUZDIG5hcnJvd2luZyBkb3duIGxvb3Bpbmcg
-Y2FuIGJlIHVzZWQgdG8gdGFrZSB0aGlzIGFzIGtpbmQgb2YKPiA+IHNpZ25hbCBzdHJlbmd0aCBk
-ZXRlY3Rpb24gb24gdGhlIHRkYTk4ODcgYWx0ZXJuYXRpdmVseSBmb3IgdGhlIHN0ZXJlbwo+ID4g
-Yml0IG9uIHRoZSBwbGwuIEhhcnRtdXQgd2FzIGF3YXJlIG9mIGl0IHRvbywgYnV0IHdobyBsaWtl
-cyB0byB3b3JrIG9uCj4gPiBhbmFsb2cgcmFkaW8gdGhlc2UgZGF5cyAuLi4KPiAKPiBJIGRvLiBB
-cyB3ZSBlbWJlZGQgdGhlc2UgY2FyZHMgb24gb3VyIHNlcnZlcnMgd2UnZCBsaWtlIHRvIGFkZCB0
-aGlzIAo+IGZlYXR1cmUgdG8gb3VyIHByb2R1Y3RzIChhbmFsb2cgdG8gZGlnaXRhbCBzdHJlYW1p
-bmcgc2VydmVycykuCj4gQW55d2F5LCB0aGlzIGlzIGEgZmVhdHVyZSBvZiB0aGUgY2FyZCB3aGlj
-aCBpcyBsYWNraW5nIHVuZGVyIExpbnV4IHNvIAo+IHRoZSBxdWVzdGlvbiBvZiB3aG8gaXMgaW50
-ZXJlc3RlZCBpbiBhbmFsb2cgcmFkaW8gaXMgbm90IGEgZ29vZCAKPiBxdWVzdGlvbi4gVGhlIHF1
-ZXN0aW9uIG9mIHdoeSBub3QgZ29pbmcgYXMgZmFyIGFzIHBvc3NpYmxlIHdoZW4gCj4gc3VwcG9y
-dGluZyBhIGNhcmQgaXMgYSBnb29kIHF1ZXN0aW9uLgo+IFNvIHllcyBJIGFtIG5vdCBhZnJhaWQg
-b2Ygc2F5aW5nIEknbSBpbnRlcmVzdGVkIGluIGFuYWxnbyByYWRpbyA6KQoKSSdtIGludGVyZXN0
-ZWQgdG9vIDopIGFuZCB3b3JrZWQgd2l0aCBvdGhlcnMgb24gdGhlIHRkYTk4ODcgcmFkaW8Kc3Vw
-cG9ydCwgYnV0IG9uIHRoZSBGTTEyMTZNRS9JIEgtMyBhbmQgc29tZSBvdGhlciBNSzMgdHVuZXJz
-LgoKRG9uJ3QgaGF2ZSBhIEhWUi0xMzAwIGFuZCBjYW4gZ2l2ZSB5b3Ugb25seSBoaW50cyBhYm91
-dCB0aGUgRk1EMTIxNk1FCnJhZGlvIHN0YXR1cyBhbmQgdGhhdCB5b3Ugc2hvdWxkIGhhdmUgbm90
-aWNlZCB0aGUgRklYTUUuCgo+ID4gCj4gPiBJdCBpcyBub3QgaW1wbGVtZW50ZWQgeWV0LCBpZiBp
-dCBzaG91bGQgYmUgcmVsYXRlZC4KPiA+IAo+ID4gQ2hlZXJzLAo+ID4gSGVybWFubgo+ID4gCj4g
-PiAKPiA+IAo+IAo+IE9rIHNvIGlmIEkgZ2V0IGl0IHJpZ2h0LCB3aGF0IHlvdSdyZSBzYXlpbmcg
-aXMgdGhhdCBzdGVyZW8gcmFkaW8gaXNuJ3QgCj4gd29ya2luZyBvbiBIVlIgMTMwMCB3aXRoIEZN
-RDEyMTZNRVggYnV0IG1vbm8gcmFkaW8gaXMgd29ya2luZyA/IElmIHllcyAKPiBJJ2QgbGlrZSB0
-byBrbm93IGhvdyAuLi4gc2hvdWxkbid0IEkganVzdCBzZXQgZnJlcXVlbmN5IHRvIC9kZXYvcmFk
-aW8sIAo+IHRoZW4gZ2V0IGl0IGZyb20gL2Rldi9kc3AgPz8/IFRoaXMgZm9yIG1lIGlzbid0IHdv
-cmtpbmcgYW5kIHByb3ZpZGluZyAKPiBvbmx5IG5vaXNlLgoKSSBrbm93IG5vdGhpbmcgYWJvdXQg
-dGhlIHJhZGlvIG9uIHRoZSBGTUQxMjE2TUVYLCBidXQgSSBkaWQgbGV0IHlvdSBrbm93CnRoYXQg
-aXQgbWlnaHQgYmUgZXZlbnR1YWxseSBkaWZmZXJlbnQgYWNjb3JkaW5nIHRvIFN0ZXZlLgoKSWYg
-eW91IHdvdWxkIGJlIG9uIHRoZSByaWdodCBsaXN0IHdpdGggeW91ciBxdWVzdGlvbnMsIHlvdSB3
-b3VsZCBrbm93CnRoYXQgdGhlIEZNRDEyMTZNRSBub3QgWCBkb2Vzbid0IHdvcmsgZWl0aGVyIHll
-dCBvbiB0aGlzIGNhcmQgZm9yIHJhZGlvLgoKPiBOb3cgaWYgeW91IHRlbGwgbWUgdGhpcyBpcyBq
-dXN0IG5vdCBpbXBsZW1lbnRlZCB5ZXQsIHRoZW4gaG93IGNvdWxkIEkgCj4gaGVscCB5b3UgdG8g
-aW1wbGVtZW50IGl0ID8gSWYgaXQncyBub3Qgc2NoZWR1bGVkIHRvIGJlIGltcGxlbWVudGVkIG9u
-ZSAKPiBkYXkgdGhlbiBJIG1pZ2h0IGJlIGFibGUgdG8gd29yayBvbiBpdCBhdCBteSBvZmZpY2Ug
-KG1heWJlIG5vdCBtZSAKPiBkaXJlY3RseSBidXQgb25lIG9mIG15IGNvd29ya2VycykuCgpUaGlz
-IGlzIG9ubHkgYSBzcGVjdWxhdGlvbiBkZXJpdmVkIGZyb20gRk0xMjE2TUUgYW5kIG9ubHkgYWJv
-dXQgc2lnbmFsCnN0cmVuZ3RoIGZvciBhdXRvIHNjYW5uaW5nLiBFbHNlIHRoZSBGTUQxMjE2TUUg
-aGFzIHdvcmtpbmcgc3RlcmVvIHJhZGlvCmFscmVhZHkuCgpZb3Ugd291bGQgbmVlZCBkYXRhc2hl
-ZXRzIGFuZCBwcmVmZXJhYmx5IHNhbXBsZSBjb2RlIHRvbyBmb3IgdGhlIEZNRAp0dW5lcnMgYW5k
-IHRoYXQgeW91IGNhbiBnZXQgb25seSB1bmRlciBOREEsIEFGQUlLLgoKPiBCdHcgSSB0cmllZCBv
-biBteSBLTkMgVFYgU3RhdGlvbiBEVlIgKEZNMTIxNk1FIE1LMywgc2FhNzEzNCwgc2FhNjc1Mmhz
-KSAKPiB3aXRoIG5vIHN1Y2Nlc3MgOiBpZiBJIHR1bmUgdG8gYW4gYW5hbG9nIFRWIHN0YXRpb24g
-dGhyb3VnaCAvZGV2L3ZpZGVvLCAKPiBJIHdpbGwgZ2V0IHNvdW5kIGZyb20gL2Rldi9kc3AuIFRo
-ZW4gSSB0dW5lIHRvIGEgcmFkaW8gdGhyb3VnaCAKPiAvZGV2L3JhZGlvIC4uLiBidXQgSSBzdGls
-bCBnZXQgdGhlIFRWIHNvdW5kIGZyb20gL2Rldi9kc3AgLi4uCgpJSVJDLCB3aGVuIHRoYXQgcmFy
-ZWx5IHNlZW4gY2FyZCB3YXMgYWRkZWQsIHRoZXJlIHdhcyBubyByYWRpbyBzdXBwb3J0CmZvciB0
-aGUgTUszIHR1bmVycyB5ZXQuIExpa2VseSBzb21lIHN3aXRjaGluZyBpcyB3cm9uZy4KClJhZGlv
-IGlzIG9uIHRoZSBzYW1lIGFtdXggbGlrZSBUViBNT05PLCBzZWUgdGhlIHByZXZpb3VzIGNhcmQu
-CgpJIGtub3cgZm9yIHN1cmUgdGhhdCB3ZSBoYXZlIHJhZGlvIG1vbm8gb24gdGhlIHRkYTk4ODcg
-c2luY2UgY2FyZD0xMi4KCkFmdGVyIEhhcnRtdXQgYWRkZWQgdGhlIEZNRDEyMTZNRSB3aXRoIHJh
-ZGlvLCBOaWNrb2xheSBhbmQgbWUKaW1tZWRpYXRlbHkgcmVhbGl6ZWQgdGhhdCBvbiBzb21lIHBv
-aW50IGluIG91ciBwcmlvciB0cmllcyBmb3Igc3RlcmVvCnJhZGlvIG9uIHRoZSBGTTEyMTZNRSB3
-ZSB3ZXJlIGFscmVhZHkgcmlnaHQuIFNob3J0IHRpbWUgbGF0ZXIgd2UgaGFkCnN1cHBvcnQgZm9y
-IGl0LgoKQWxsIG9uIHRoZSB2aWRlbzRsaW51eCBsaXN0IC4uLgoKQ2hlZXJzLApIZXJtYW5uCgoK
-CgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgt
-ZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2
-Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+Le Thursday 25 September 2008 08:45:28 Michel Verbraak, vous avez =E9crit=
+=A0:
+> I have been following the story about the discussion of the future of
+> the DVB API for the last two years and after seen all the discussion I
+> would like to propose the following:
+>
+> - Keep the two different DVB API sets next to one another. Both having a
+> space on Linuxtv.org to explain their knowledge and how to use them.
+> - Each with their own respective maintainers to get stuff into the
+> kernel. I mean V4L had two versions.
+> - Let driver developers decide which API they will follow. Or even
+> develop for both.
+> - Let application developers decide which API they will support.
+> - Let distribution packagers decide which API they will have activated
+> by default in their distribution.
+> - Let the end users decide which one will be used most. (Probably they
+> will decide on: Is my hardware supported or not).
+> - If democracy is that strong one of them will win or maybey the two
+> will get merged and we, the end users, get best of both worlds.
+>
+> As the subject says: This is a Request For Comment.
+>
+> Regards,
+>
+> Michel (end user and application developer).
+
+2 years ago, i would have said "good idea".
+But 2 years ago.
+
+-- =
+
+Christophe Thommeret
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
