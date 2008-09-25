@@ -1,17 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host06.hostingexpert.com ([216.80.70.60])
+Received: from fg-out-1718.google.com ([72.14.220.159])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KdDzP-000478-2A
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 02:55:24 +0200
-Message-ID: <48C71AF5.2080700@linuxtv.org>
-Date: Tue, 09 Sep 2008 20:55:17 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <mrechberger@gmail.com>) id 1KigvE-0002Ps-1c
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 04:49:43 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so157945fga.25
+	for <linux-dvb@linuxtv.org>; Wed, 24 Sep 2008 19:49:36 -0700 (PDT)
+Message-ID: <d9def9db0809241949i5b368f01w5f635d59cd19dd1f@mail.gmail.com>
+Date: Thu, 25 Sep 2008 04:49:36 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+In-Reply-To: <37219a840809241947w6ca35351xa15920de6ff41aab@mail.gmail.com>
 MIME-Version: 1.0
-To: William Austin <bsdskin@yahoo.com>
-References: <273704.19765.qm@web31108.mail.mud.yahoo.com>
-In-Reply-To: <273704.19765.qm@web31108.mail.mud.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1950 with Ubuntu Intrepid
+Content-Disposition: inline
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<48D9F6F3.8090501@gmail.com>
+	<alpine.LRH.1.10.0809241051170.12985@pub3.ifh.de>
+	<48DA15A2.40109@gmail.com>
+	<alpine.LFD.1.10.0809240942250.28125@areia.chehab.org>
+	<a3ef07920809241441gea2c09al6e2ed32589ad6fa4@mail.gmail.com>
+	<d9def9db0809241901g56a54750kbfccecc77b111ec7@mail.gmail.com>
+	<37219a840809241947w6ca35351xa15920de6ff41aab@mail.gmail.com>
+Cc: Manu Abraham <abraham.manu@gmail.com>, Greg KH <greg@kroah.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,52 +38,131 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-William Austin wrote:
-> I have a Hauppauge WinTV HVR-1950 USB box on a box running Ubuntu Intrepid.  Although I should expect problems from a testing distro, I've tried getting this box working on stable, Live-CD versions of Ubuntu, Open Suse, and Mandriva as well (because they were what I had around the house.)
-> 
-> First, there is a kernel problem in Ubuntu Intrepid where, if the 1950 is plugged into USB, the system will hang on boot.  Yet, if I boot without it and plug it in after boot, the drivers (pvrusb2 et al) seem to load, but no device nodes are created.  I have downloaded the firmware, renamed it properly, and placed it in /lib/firmware.  So I'm at a loss on how to troubleshoot.  Here's the relevant information on plug-in the box in after the system has been booted.
+On Thu, Sep 25, 2008 at 4:47 AM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> On Wed, Sep 24, 2008 at 10:01 PM, Markus Rechberger
+> <mrechberger@gmail.com> wrote:
+>> On Wed, Sep 24, 2008 at 11:41 PM, VDR User <user.vdr@gmail.com> wrote:
+>>> On Wed, Sep 24, 2008 at 8:21 AM, Mauro Carvalho Chehab
+>>> <mchehab@infradead.org> wrote:
+>>>> The decision were already taken by the group.
+>>>>
+>>>> It should be noticed also that the public announcement took some time to
+>>>> be ready, since we all carefully reviewed it to reflect the understanding
+>>>> that the group had.
+>>>>
+>>>> Both API's work, and people needed to choose between one of the proposals.
+>>>>
+>>>> Each one there had enough time to read and understand each proposal, since
+>>>> the patches were available more than one week before the meeting, and
+>>>> everybody were aware that the decision are scheduled to happen during LPC.
+>>>>
+>>>> Each one voted based on their own technical analysis, on a meeting that
+>>>> took about 2:30 hours, on the day after the presentations. People had
+>>>> enough time there to discuss, explain their ideas with the help of a
+>>>> whiteboard, decide and improve the proposal.
+>>>>
+>>>> S2API was choosen, since it was considered the better proposal for
+>>>> everybody there. None of the presents voted for Multiproto.
+>>>>
+>>>> Now that the decision were already taken, it is not time anymore to argue
+>>>> in favor to any other proposals. We need to move ahead and finally add
+>>>> support for DVB-S2 and the remaining missing digital TV's at kernel.
+>>>>
+>>>> Thank you and everyone else involved on adding support for the missing
+>>>> standards.
+>>>>
+>>>> Let's move to the next step: finally add API changes and drivers for
+>>>> DVB-S2 and prepare support for the remaining missing standards.
+>>>
+>>> It's no secret to anyone that there has been foul play, and blatantly
+>>> clear there is bias against Manu himself, and multiproto as a result,
+>>> based on personal differences & past conflicts.  You can't possibly
+>>> expect the dvb community to believe a fair & balanced meeting took
+>>> place to discuss these proposals when half the people there already
+>>> signed on for s2api, and the other half don't have the knowledge &
+>>> experience with dvb to make well-informed decisions.  You can't
+>>> possibly think people will believe any of you (who've openly admitted
+>>> support for s2api) spent 2 seconds defending multiproto, or even
+>>> assessing the proposal from an unbias technical standpoint.
+>>>
+>>> It's very convenient that you've completely ignored multiple requests
+>>> for more in-depth details that actually prove your points have real
+>>> technical merit and aren't just the result of some self-interest
+>>> politics and b.s.  Yet, you had no problem writing paragraphs about
+>>> how the decision has been made and everyone should just accept it.
+>>> Sorry, people aren't going to just accept it because this whole thing
+>>> has been tainted by misleading people, misrepresenting the truth, and
+>>> sometimes flat out lying.
+>>>
+>>> Valuable members of the community have turned, and are turning away
+>>> because of how poorly dvb has been maintained, and how self-serving
+>>> some people act.  I'm thankful that more people are being exposed &
+>>> becoming aware of what's been going on in hopes that at the very least
+>>> some kind of steps will be taken to stop the misuse & abuse of power
+>>> at the front of the dvb train.
+>>>
+>>> Again, if there is truth to your claims that s2api is the best
+>>> technical solution, then convince us all by providing tangible proof
+>>> rather then expecting everyone to take your word for it while ignoring
+>>> our requests for such information.  You have an obligation to the
+>>> community to justify your actions, and be held accountable for them.
+>>>
+>>
+>> There hasn't been much positive feedback here! How about let's talk to split the
+>> v4l and dvb development in order to not give Mauro the full authority
+>> over the whole
+>> 2 subsystems where he hardly anything contributed (to the second part).
+>>
+>> Don't see this as a flamewar, Andrew Morton and a few others are
+>> following that discussion now.
+>>
+>> Mauro as for you try to justify your step technically, the only point
+>> we've seen for now was from
+>> Patrick Boettcher (which was a good one from his side) but also the
+>> other involved people (within that
+>> 8 people group in Portland should point out their opinion and
+>> technical objections/reasons now).
+>>
+>> Officially it looks like you had 3 people supporting the Stevens
+>> proposal and 5 people who didn't know about
+>> the framework at all and explaining them that the DVB-S2 step is the
+>> better one to go whereas you had
+>> noone representing the multiproto path. Such a vote is highly doubtful then.
+>>
+>> Hans Hverkuil:
+>> I saw you in IRC that you support that proposal please also state out
+>> your opinion and/or ask your questions
+>> what/why things have been done like they are done in the multiproto
+>> tree and why you don't support it.
+>>
+>> It finally can really end up with a good solution either multiproto or
+>> S2 but everyone should understand and not only
+>> a few people.
+>>
+>> Markus
+>
+> Markus,
+>
+> After over two years, a decision has been made.  Up until now, many
+> people have been unhappy.  Now less people can be unhappy.  An
+> extension to the api has been merged, and now we can move forward.
+>
+> There have been enough debates on the mailing lists to date, and there
+> is enough information available about each proposal and all of the
+> details surrounding them.  We need not hash this out again here.
+>
+> Nobody wants to debate this any more -- a better use of our time is to
+> start working on userspace applications for the new supported
+> standards.  Please redirect your energy towards something creative.
+>
+> Make love, not war.
+>
 
-What firmware did you " download and rename " ??
+sure state out technical reasons and that's what it is about otherwise
+a serious split should happen asap.
+I personally invite you to be the first one here!
 
-Where did you get " v4l-pvrusb2-73xxx-01.fw " ??  or did you forget it?
-
-
-> 
-> dmesg says:
-> usbcore: registered new interface driver pvrusb2
-> pvrusb2: Hauppauge WinTV-PVR-USB2 MPEG2 Encoder/Tuner : V4L in-tree version
-> pvrusb2: Debug mask is 31 (0x1f)
-
-
-Those lines will show up is you simply "modprobe pvrusb2" even if the device is not present.  What comes next?  It should download firmware, disconnect & reconnect USB automatically, then continue on with driver initialization.
-
-
-> 
-> lsmod (edit):
-> usbcore
-> pvrusb2
-> i2c_core
-> v4l2_common
-> tveeprom
-> dvb_core
-> cx2341x
-> videodev
-> v4l1_compat
-
-
-lsmod doesnt tell us anything.  You can load all those modules by hand, and it says nothing about the device that you have plugged in.
-
-> /proc/devices lists DVB as a character device.
-> 
-> Now, I'm assuming I'm missing some chip drivers.  I think I should have at least three, if memory serves, but only cx2341x is loading on plug-in.  Unfortunately (and I assume this is another Ubuntu problem) I can't unload pvrusb2 once loaded.  It hangs the terminal.  It makes playing around with it a tedious endeavor.
-> 
-> If anyone has had the same problems or could give some advice, I appreciate it in advance.
-
-I think you're best off taking a look at the pvrusb2 home page and reading the information there.  If you are still having trouble, then please just paste your full dmesg into an email so that we can have a better idea of what's wrong.
-
-Good Luck,
-
-Mike
+Markus
 
 _______________________________________________
 linux-dvb mailing list
