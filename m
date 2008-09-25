@@ -1,26 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KdcPb-0002uW-7y
-	for linux-dvb@linuxtv.org; Thu, 11 Sep 2008 05:00:07 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K700011IGB48LJ0@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 10 Sep 2008 22:59:29 -0400 (EDT)
-Date: Wed, 10 Sep 2008 22:59:26 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <1221095822.2663.46.camel@pc10.localdom.local>
-To: hermann pitton <hermann-pitton@arcor.de>
-Message-id: <48C8898E.3040809@linuxtv.org>
-MIME-version: 1.0
-References: <48B8400A.9030409@linuxtv.org> <20080910161222.21640@gmx.net>
-	<48C85153.8010205@linuxtv.org> <200809110201.48935.hftom@free.fr>
-	<48C86DBD.6090108@linuxtv.org>
-	<1221095822.2663.46.camel@pc10.localdom.local>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Received: from a-sasl-quonix.sasl.smtp.pobox.com ([208.72.237.25]
+	helo=sasl.smtp.pobox.com) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <torgeir@pobox.com>) id 1Kina3-0003fW-Iy
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 11:56:18 +0200
+Message-Id: <01DE66C3-8E94-4DC3-9828-DF2CD7B59EBB@pobox.com>
+From: Torgeir Veimo <torgeir@pobox.com>
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+In-Reply-To: <alpine.LRH.1.10.0809251152480.1247@pub1.ifh.de>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Date: Thu, 25 Sep 2008 19:56:02 +1000
+References: <573008.36358.qm@web52908.mail.re2.yahoo.com>
+	<alpine.LRH.1.10.0809251152480.1247@pub1.ifh.de>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [PATCH] Add remote control support to Nova-TD
+ (52009)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,68 +21,38 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-aGVybWFubiBwaXR0b24gd3JvdGU6Cj4gSGksCj4gCj4gQW0gTWl0dHdvY2gsIGRlbiAxMC4wOS4y
-MDA4LCAyMTowMCAtMDQwMCBzY2hyaWViIFN0ZXZlbiBUb3RoOgo+PiBDaHJpc3RvcGhlIFRob21t
-ZXJldCB3cm90ZToKPj4+IExlIFRodXJzZGF5IDExIFNlcHRlbWJlciAyMDA4IDAwOjU5OjMxIEFu
-ZHJlYXMgT2JlcnJpdHRlciwgdm91cyBhdmV6IMOpY3JpdCA6Cj4+Pj4gSGFucyBXZXJuZXIgd3Jv
-dGU6Cj4+Pj4+PiBTbyBhcHBsaWNhdGlvbnMgY291bGQga25vdyB0aGF0IHRoZXNlIDIgZnJvbnRl
-bmRzIGFyZSBleGNsdXNpdmUuCj4+Pj4+PiBUaGF0IHdvdWxkIG5vdCByZXF1aXJlIGFueSBBUEkg
-Y2hhbmdlLCBidXQgd291bGQgaGF2ZSB0byBiZSBhIHJ1bGUKPj4+Pj4+IGZvbGxvd2VkIGJ5Cj4+
-Pj4+PiBhbGwgZHJpdmVycy4KPj4+Pj4gWWVzLCBpZiB3ZSBrZWVwIHRvIHRoYXQgcnVsZSB0aGVu
-IG9ubHkgZnJvbnRlbmRzIHdoaWNoIGNhbiBvcGVyYXRlIHRydWx5Cj4+Pj4+IHNpbXVsdGFuZW91
-c2x5IHNob3VsZCBoYXZlIGEgZGlmZmVyZW50IGFkYXB0ZXIgbnVtYmVyLgo+Pj4+IEFuIGFkYXB0
-ZXIgcmVmZXJzIHRvIGEgc2VsZi1jb250YWluZWQgcGllY2Ugb2YgaGFyZHdhcmUsIHdob3NlIHBh
-cnRzIGNhbgo+Pj4+IG5vdCBiZSB1c2VkIGJ5IGEgc2Vjb25kIGFkYXB0ZXIgKGUuZy4gYWRhcHRl
-cjAvZGVtdXgwIGNhbiBub3QgYWNjZXNzIHRoZQo+Pj4+IGRhdGEgZnJvbSBhZGFwdGVyMS9mcm9u
-dGVuZDEpLiBJbiBhIGNvbW1vbmx5IHVzZWQgc2V0dXAgaXQgbWVhbnMgdGhhdAo+Pj4+IGFkYXB0
-ZXIwIGlzIHRoZSBmaXJzdCBpbml0aWFsaXplZCBQQ0kgY2FyZCBhbmQgYWRhcHRlcjEgaXMgdGhl
-IHNlY29uZC4KPj4+Pgo+Pj4+IE5vdywgaWYgeW91IHdhbnQgYSBkZXZpY2Ugd2l0aCB0d28gdHVu
-ZXJzIHRoYXQgY2FuIGJlIGFjY2Vzc2VkCj4+Pj4gc2ltdWx0YW5lb3VzbHkgdG8gY3JlYXRlIGEg
-c2Vjb25kIGFkYXB0ZXIsIHRoZW4geW91IHdvdWxkIGhhdmUgdG8KPj4+PiBhcnRpZmljaWFsbHkg
-ZGl2aWRlIGl0cyBjb21wb25lbnRzIHNvIHRoYXQgaXQgbG9va3MgbGlrZSB0d28gaW5kZXBlbmRh
-bnQKPj4+PiBQQ0kgY2FyZHMuIFRoaXMgbWlnaHQgYmVjb21lIHZlcnkgY29tcGxpY2F0ZWQgYW5k
-IGxpbWl0cyB0aGUgZnVuY3Rpb25zCj4+Pj4gb2YgdGhlIGhhcmR3YXJlLgo+Pj4+Cj4+Pj4gSG93
-ZXZlciwgb24gYSBzZXR1cCB3aXRoIG11bHRpcGxlIGFjY2Vzc2libGUgdHVuZXJzIHlvdSBjYW4g
-ZXhwZWN0IGF0Cj4+Pj4gbGVhc3QgdGhlIHNhbWUgYW1vdW50IG9mIGFjY2Vzc2libGUgZGVtdXgg
-ZGV2aWNlcyBvbiB0aGUgc2FtZSBhZGFwdGVyCj4+Pj4gKGFuZCBhbHNvIGR2ciBkZXZpY2VzIGZv
-ciB0aGF0IG1hdHRlcikuIFRoZXJlIGlzIGFuIGlvY3RsIHRvIGNvbm5lY3QgYQo+Pj4+IGZyb250
-ZW5kIHRvIGEgc3BlY2lmaWMgZGVtdXggKERNWF9TRVRfU09VUkNFKS4KPj4+Pgo+Pj4+IFNvLCBp
-ZiB0aGVyZSBhcmUgZGVtdXgwLCBmcm9udGVuZDAgYW5kIGZyb250ZW5kMSwgdGhlbiB0aGUgYXBw
-bGljYXRpb24KPj4+PiBrbm93cyB0aGF0IGl0IGNhbid0IHVzZSBib3RoIGZyb250ZW5kcyBzaW11
-bHRhbmVvdXNseS4gT3RoZXJ3aXNlLCBpZiAKPj4+PiB0aGVyZSBhcmUgZGVtdXgwLCBkZW11eDEs
-IGZyb250ZW5kMCBhbmQgZnJvbnRlbmQxLCB0aGVuIGl0IGNhbiB1c2UgYm90aAo+Pj4+IG9mIHRo
-ZW0gKGJ5IHVzaW5nIGJvdGggZGVtdXggZGV2aWNlcyBhbmQgY29ubmVjdGluZyB0aGVtIHRvIHRo
-ZQo+Pj4+IGZyb250ZW5kcyB2aWEgdGhlIGlvY3RsIG1lbnRpb25lZCBhYm92ZSkuCj4+PiBTb3Vu
-ZHMgbG9naWNhbC4gQW5kIHRoYXQncyB3aHkgS2FmZmVpbmUgc2VhcmNoIGZvciBmcm9udGVuZC9k
-ZW11eC9kdnIgPiAwIGFuZCAKPj4+IHVzZXMgZGVtdXgxIHdpdGggZnJvbnRlbmQxLiAoVGhhdCB3
-YXMganVzdCBhIGd1ZXNzIHNpbmNlIGkndmUgbmV2ZXIgc2VlbiAKPj4+IG5laXRoZXIgYW55IHN1
-Y2ggZGV2aWNlcyBub3IgY29tbWVudHMvcmVjb21tZW5kYXRpb25zL3J1bGVzIGFib3V0IHN1Y2gg
-Y2FzZSkuCj4+Pgo+Pj4gSG93ZXZlciwgYWxsIGR1YWwgdHVuZXJzIGRldmljZXMgZHJpdmVycyBp
-IGtub3cgZXhwb3NlIHRoZSAyIGZyb250ZW5kcyBhcyAKPj4+IGZyb250ZW5kMCBpbiBzZXBhcmF0
-ZSBhZGFwdGVycy4gQnV0IGFsbCB0aGVzZSBkZXZpY2VzIHNlZW1zIHRvIGJlIFVTQi4KPj4+Cj4+
-PiBUaGUgZmFjdCB0aGF0IEthZmZlaW5lIHdvcmtzIHdpdGggdGhlIGV4cGVyaW1lbnRhbCBodnI0
-MDAwIGRyaXZlciBpbmRpY2F0ZXMgCj4+PiB0aGF0IHRoaXMgZHJpdmVyIHBvcHVsYXRlcyBmcm9u
-dGVuZDEvZGVtdXgxL2R2cjEgYW5kIHRoZW4gZG9lc24ndCBmb2xsb3cgdGhlIAo+Pj4gd2F5IHlv
-dSBkZXNjcmliZSAoc2luY2UgdGhlIHR1bmVycyBjYW4ndCBiZSB1c2VkIGF0IG9uY2UpLgo+Pj4g
-SSB3b3VsZCBsaWtlIHRvIGhlYXIgZnJvbSBTdGV2ZSBvbiB0aGlzIHBvaW50Lgo+Pj4KPj4+Cj4+
-IENvcnJlY3QsIGZyb250ZW5kMSwgZGVtdXgxLCBkdnIxIGV0Yy4gQWxsIG9uIHRoZSBzYW1lIGFk
-YXB0ZXIuIFRoZSAKPj4gZHJpdmVyIGFuZCBtdWx0aS1mcm9udGVuZCBwYXRjaGVzIG1hbmFnZSBl
-eGNsdXNpdmUgYWNjZXNzIHRvIHRoZSBzaW5nbGUgCj4+IGludGVybmFsIHJlc291cmNlLgo+Pgo+
-IAo+IHRoZW4gcGxlYXNlIGV4cGxhaW4gd2hhdCBpcyBhYm91dCB0aGUgYW5hbG9nIHVzYWdlLCB3
-aGljaCBjYW4gYWx3YXlzIGJlCj4gZmlyc3QgYW5kIGRvbid0IHRlbGwgaXQgaGFzIHRvIHN0YXkg
-YmFjaywgc2luY2UgeW91IGFsd2F5cyBzaXQgb24gdGhhdAo+IGJyaWRnZSBhbmQgZWxzZSBjb21l
-IG5vd2hlcmUgLi4uCgpIZXJtYW5uLCBJJ20gbm90IHN1cmUgSSB1bmRlcnN0YW5kIHlvdXIgcXVl
-c3Rpb24sIGJ1dCBJJ2xsIHRyeS4KClRoaXMgaGFzIG5vdGhpbmcgdG8gZG8gd2l0aCBhbmFsb2cs
-IEkgbmV2ZXIgc3VnZ2VzdGVkIHRoZXNlIHBhdGNoZXMgCmVmZmVjdGVkIGFuYWxvZy4KCkVpdGhl
-ciB5b3UncmUgY29uZnVzZWQsIG9yIEkgYW0gOikKClRoZSBtdWx0aWZyb250ZW5kIHBhdGNoZXMg
-YXJlIHJlbGF0ZWQgdG8gRFZCIG9ubHksIHRoZSBhbmFsb2cgcG9ydHMgb24gCnRoZSBjeDg4IHJl
-bWFpbiB1bnRvdWNoZWQsIHVuY2hhbmdlZC4KCi0gU3RldmUKCgoKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51
-eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4v
-bGlzdGluZm8vbGludXgtZHZi
+
+On 25 Sep 2008, at 19:53, Patrick Boettcher wrote:
+
+>>
+>> This patch is against the 2.6.26.5 kernel, and adds remote control  
+>> support for the Hauppauge WinTV Nova-TD (Diversity) model. (That's  
+>> the 52009 version.) It also adds the key-codes for the credit-card  
+>> style remote control that comes with this particular adapter.
+>
+> Committed and ask to be pulled, thanks.
+
+
+Am curious, would it be possible to augment these drivers to provide  
+the raw IR codes on a raw hid device, eg. /dev/hidraw0 etc, so that  
+other RC5 remotes than the ones that actually are sold with the card  
+can be used with the card?
+
+-- 
+Torgeir Veimo
+torgeir@pobox.com
+
+
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
