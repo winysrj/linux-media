@@ -1,21 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f20.google.com ([209.85.217.20])
+Received: from fg-out-1718.google.com ([72.14.220.153])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1Kd5EC-0003Mt-Co
-	for linux-dvb@linuxtv.org; Tue, 09 Sep 2008 17:34:05 +0200
-Received: by gxk13 with SMTP id 13so11585186gxk.17
-	for <linux-dvb@linuxtv.org>; Tue, 09 Sep 2008 08:33:30 -0700 (PDT)
-Message-ID: <d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-Date: Tue, 9 Sep 2008 17:33:30 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Rudy Zijlstra" <rudy@grumpydevil.homelinux.org>
-In-Reply-To: <48C66829.1010902@grumpydevil.homelinux.org>
+	(envelope-from <mkrufky@gmail.com>) id 1Kigt9-0001sE-VX
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 04:47:34 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so157486fga.25
+	for <linux-dvb@linuxtv.org>; Wed, 24 Sep 2008 19:47:28 -0700 (PDT)
+Message-ID: <37219a840809241947w6ca35351xa15920de6ff41aab@mail.gmail.com>
+Date: Wed, 24 Sep 2008 22:47:28 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0809241901g56a54750kbfccecc77b111ec7@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<48D9F6F3.8090501@gmail.com>
+	<alpine.LRH.1.10.0809241051170.12985@pub3.ifh.de>
+	<48DA15A2.40109@gmail.com>
+	<alpine.LFD.1.10.0809240942250.28125@areia.chehab.org>
+	<a3ef07920809241441gea2c09al6e2ed32589ad6fa4@mail.gmail.com>
+	<d9def9db0809241901g56a54750kbfccecc77b111ec7@mail.gmail.com>
+Cc: Manu Abraham <abraham.manu@gmail.com>, Greg KH <greg@kroah.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,84 +37,127 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Sep 9, 2008 at 2:12 PM, Rudy Zijlstra
-<rudy@grumpydevil.homelinux.org> wrote:
-> barry bouwsma wrote:
->> --- On Tue, 9/9/08, hermann pitton <hermann-pitton@arcor.de> wrote:
->>
->>
->>> following your thoughts, you are likely right. DVB-T2 likely indicates
->>> that you need new hardware, like it is for sure on DVB-S2.
+On Wed, Sep 24, 2008 at 10:01 PM, Markus Rechberger
+<mrechberger@gmail.com> wrote:
+> On Wed, Sep 24, 2008 at 11:41 PM, VDR User <user.vdr@gmail.com> wrote:
+>> On Wed, Sep 24, 2008 at 8:21 AM, Mauro Carvalho Chehab
+>> <mchehab@infradead.org> wrote:
+>>> The decision were already taken by the group.
 >>>
+>>> It should be noticed also that the public announcement took some time to
+>>> be ready, since we all carefully reviewed it to reflect the understanding
+>>> that the group had.
+>>>
+>>> Both API's work, and people needed to choose between one of the proposals.
+>>>
+>>> Each one there had enough time to read and understand each proposal, since
+>>> the patches were available more than one week before the meeting, and
+>>> everybody were aware that the decision are scheduled to happen during LPC.
+>>>
+>>> Each one voted based on their own technical analysis, on a meeting that
+>>> took about 2:30 hours, on the day after the presentations. People had
+>>> enough time there to discuss, explain their ideas with the help of a
+>>> whiteboard, decide and improve the proposal.
+>>>
+>>> S2API was choosen, since it was considered the better proposal for
+>>> everybody there. None of the presents voted for Multiproto.
+>>>
+>>> Now that the decision were already taken, it is not time anymore to argue
+>>> in favor to any other proposals. We need to move ahead and finally add
+>>> support for DVB-S2 and the remaining missing digital TV's at kernel.
+>>>
+>>> Thank you and everyone else involved on adding support for the missing
+>>> standards.
+>>>
+>>> Let's move to the next step: finally add API changes and drivers for
+>>> DVB-S2 and prepare support for the remaining missing standards.
 >>
->> Servus,
+>> It's no secret to anyone that there has been foul play, and blatantly
+>> clear there is bias against Manu himself, and multiproto as a result,
+>> based on personal differences & past conflicts.  You can't possibly
+>> expect the dvb community to believe a fair & balanced meeting took
+>> place to discuss these proposals when half the people there already
+>> signed on for s2api, and the other half don't have the knowledge &
+>> experience with dvb to make well-informed decisions.  You can't
+>> possibly think people will believe any of you (who've openly admitted
+>> support for s2api) spent 2 seconds defending multiproto, or even
+>> assessing the proposal from an unbias technical standpoint.
 >>
->> Disclaimer:  I'm only an outsider, not a programmer, and not
->> familiar with the digital broadcast specs or the DVB API, so
->> I will both not know what I'm talking about, and be asking
->> stupid questions.
+>> It's very convenient that you've completely ignored multiple requests
+>> for more in-depth details that actually prove your points have real
+>> technical merit and aren't just the result of some self-interest
+>> politics and b.s.  Yet, you had no problem writing paragraphs about
+>> how the decision has been made and everyone should just accept it.
+>> Sorry, people aren't going to just accept it because this whole thing
+>> has been tainted by misleading people, misrepresenting the truth, and
+>> sometimes flat out lying.
 >>
+>> Valuable members of the community have turned, and are turning away
+>> because of how poorly dvb has been maintained, and how self-serving
+>> some people act.  I'm thankful that more people are being exposed &
+>> becoming aware of what's been going on in hopes that at the very least
+>> some kind of steps will be taken to stop the misuse & abuse of power
+>> at the front of the dvb train.
 >>
->> I decided to look again at DVB-T2, as it's likely to be the
->> next change that will be in need of Linux support in a year
->> or so, at least in the UK, when hardware becomes available.
+>> Again, if there is truth to your claims that s2api is the best
+>> technical solution, then convince us all by providing tangible proof
+>> rather then expecting everyone to take your word for it while ignoring
+>> our requests for such information.  You have an obligation to the
+>> community to justify your actions, and be held accountable for them.
 >>
-> Likely true, DVB-T2 is well on the way in development.
->> My stupid question is, will DVB-T2, in Transport Stream mode,
->> be similar enough to existing DVB-T, apart from the extended
->> modulation parameters, that it can be fit into the existing
->> API, or am I overlooking something in my ignorance of the API?
->>
-> TS is unchanged from DVB-T, simply higher capacity. The changes are in
-> the modulation (and additional table entries)
->> This seems to me somewhat like the case of existing DVB-C,
->> where some hardware is incapable of 256QAM and so cannot tune
->> all the carriers, but I really haven't tried to understand
->> the API or how it can be extended without breaking things...
->>
-> That is old... QAM256 is pretty standard now. Only rather old HW should
-> be incapable of handling QAM-256.
 >
->>
->> In looking at the Wikipedia article on DVB-T, it appears that
->> at least the following diffs to include/dvb/frontend.h might
->> be needed to support the additional possibilities that a DVB-T2
->> tuner would be likely to support -- diff against the S2API, as
->> this file is unchanged in multiproto, while S2API already has
->>
->> the additional FEC values present...
->>
+> There hasn't been much positive feedback here! How about let's talk to split the
+> v4l and dvb development in order to not give Mauro the full authority
+> over the whole
+> 2 subsystems where he hardly anything contributed (to the second part).
 >
->  From my understanding, S2API is a generic approach, and should not have
-> troubles supporting these standards.
->> goto Disclaimer;
->>
->>
+> Don't see this as a flamewar, Andrew Morton and a few others are
+> following that discussion now.
 >
+> Mauro as for you try to justify your step technically, the only point
+> we've seen for now was from
+> Patrick Boettcher (which was a good one from his side) but also the
+> other involved people (within that
+> 8 people group in Portland should point out their opinion and
+> technical objections/reasons now).
 >
-> DVB-C2, i do not expect to get beyond definition stage, as - unless
-> someone is really willing to pay for it - it seems unlikely there will
-> be a market for it.
-> Too many significantly cheaper solutions to solve the problem on cable.
+> Officially it looks like you had 3 people supporting the Stevens
+> proposal and 5 people who didn't know about
+> the framework at all and explaining them that the DVB-S2 step is the
+> better one to go whereas you had
+> noone representing the multiproto path. Such a vote is highly doubtful then.
 >
+> Hans Hverkuil:
+> I saw you in IRC that you support that proposal please also state out
+> your opinion and/or ask your questions
+> what/why things have been done like they are done in the multiproto
+> tree and why you don't support it.
+>
+> It finally can really end up with a good solution either multiproto or
+> S2 but everyone should understand and not only
+> a few people.
+>
+> Markus
 
-How many devices are currently supported by the multiproto API
-compared with the s2 tree?
-I know the same happened with the em28xx tree initially where a few
-10k lines just got burned in
-favor of having something else. The same should just not happen again I'd say.
-Since I went through retesting many devices and since I'm now still
-not completely done with that
-this should seriously be avoided, especially in terms of delaying
-support for many devices.
-As from my side I have to write it was a good move for the em28xx to
-make it independent especially
-since business customers use the improved version now and don't have
-to fear any uncoordinated
-breakage.
-Although back to the first question - this is the interesting one.
+Markus,
 
-Markus
+After over two years, a decision has been made.  Up until now, many
+people have been unhappy.  Now less people can be unhappy.  An
+extension to the api has been merged, and now we can move forward.
+
+There have been enough debates on the mailing lists to date, and there
+is enough information available about each proposal and all of the
+details surrounding them.  We need not hash this out again here.
+
+Nobody wants to debate this any more -- a better use of our time is to
+start working on userspace applications for the new supported
+standards.  Please redirect your energy towards something creative.
+
+Make love, not war.
+
+Regards,
+
+Mike Krufky
 
 _______________________________________________
 linux-dvb mailing list
