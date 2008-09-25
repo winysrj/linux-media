@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wx-out-0506.google.com ([66.249.82.230])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1Kf09u-0005WY-In
-	for linux-dvb@linuxtv.org; Mon, 15 Sep 2008 00:33:36 +0200
-Received: by wx-out-0506.google.com with SMTP id t16so725990wxc.17
-	for <linux-dvb@linuxtv.org>; Sun, 14 Sep 2008 15:33:30 -0700 (PDT)
-Message-ID: <d9def9db0809141533v12698fa3od765d09a4299f03c@mail.gmail.com>
-Date: Mon, 15 Sep 2008 00:33:30 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <48CD88CF.7060601@linuxtv.org>
+	(envelope-from <patrick.boettcher@desy.de>) id 1KindT-00048m-HK
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 11:59:48 +0200
+Date: Thu, 25 Sep 2008 11:59:07 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Torgeir Veimo <torgeir@pobox.com>
+In-Reply-To: <01DE66C3-8E94-4DC3-9828-DF2CD7B59EBB@pobox.com>
+Message-ID: <alpine.LRH.1.10.0809251156390.1247@pub1.ifh.de>
+References: <573008.36358.qm@web52908.mail.re2.yahoo.com>
+	<alpine.LRH.1.10.0809251152480.1247@pub1.ifh.de>
+	<01DE66C3-8E94-4DC3-9828-DF2CD7B59EBB@pobox.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <564277.58085.qm@web46102.mail.sp1.yahoo.com>
-	<48CD41BD.8040508@linuxtv.org>
-	<d9def9db0809141251r1edece84r96c8becd5a2d4ee3@mail.gmail.com>
-	<48CD88CF.7060601@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] getting rid of input dev in dvb-usb (was: Re: [PATCH]
+ Add remote control support to Nova-TD (52009))
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,67 +28,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Sep 14, 2008 at 11:57 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> Markus Rechberger wrote:
->>
->> On Sun, Sep 14, 2008 at 6:54 PM, Steven Toth <stoth@linuxtv.org> wrote:
->>>
->>> barry bouwsma wrote:
->>>>
->>>> --- On Sun, 9/14/08, Steven Toth <stoth@linuxtv.org> wrote:
->>>>
->>>>> is that the BSD folks can't port the GPL license into BSD because it's
->>>>> not compatible.
->>>>
->>>> I don't want to see any religious war here (trimmed to dvb
->>>> list), but...
->>>>
->>>> There is GPL code distributed as part of *BSD sources,
->>>> as you can see by reading the licensing in, for example,
->>>> $ ls /lost+found/CVSUP/BSD/FreeBSD.cvs/src/sys/gnu/dev/sound/pci/
->>>> Attic       emu10k1-alsa.h,v  maestro3_reg.h,v  p17v-alsa.h,v
->>>> csaimg.h,v  maestro3_dsp.h,v  p16v-alsa.h,v
->>>
->>> Interesting.
->>>
->>>>
->>>>> I owe it to myself to spend somehime reading the BSD licencing. Maybe
->>>>> the GPL is compatible with BSD.
->>>>
->>>> It all depends on the intended use -- whether for optional
->>>> kernel components as above.  In the distributions, though,
->>>> it's kept separated.
->>>>
->>>> It's also possible to dual-licence source, and I see a good
->>>> number of such files in NetBSD under, as an example,
->>>> /lost+found/CVSUP/BSD/NetBSD.cvs/src/sys/dev/ic/
->>>
->>> I'm be quite happy to grant a second license on my work the the BSD
->>> guys, as the copyright owner I can do that. The legal stuff gets messy
->>> quickly and I don't claim to understand all of it.
->>>
->>
->> Great move Steven! Can we move the TDA10048 code over, maybe adding
->> a note that it's dual licensed would be nice?
->
-> In principle yes.
->
-> I'd like to see an example of dual license just to make sure it has no nasty
-> side effects.
->
-> Can you point me at one of your dual-license drivers so I can review the
-> wording?
->
+On Thu, 25 Sep 2008, Torgeir Veimo wrote:
 
-videodev2.h is also dual licensed.
+>
+> On 25 Sep 2008, at 19:53, Patrick Boettcher wrote:
+>
+>>> 
+>>> This patch is against the 2.6.26.5 kernel, and adds remote control support 
+>>> for the Hauppauge WinTV Nova-TD (Diversity) model. (That's the 52009 
+>>> version.) It also adds the key-codes for the credit-card style remote 
+>>> control that comes with this particular adapter.
+>> 
+>> Committed and ask to be pulled, thanks.
+>
+>
+> Am curious, would it be possible to augment these drivers to provide the raw 
+> IR codes on a raw hid device, eg. /dev/hidraw0 etc, so that other RC5 remotes 
+> than the ones that actually are sold with the card can be used with the card?
 
-Markus
+I would love that idea. Maybe this is the solution I have searched for so 
+long. I desparately want to put those huge remote-control-table into 
+user-space.
 
-> Regards,
->
-> Steve
->
->
+If hidraw is the right way, I'm with you. So far I wasn't sure what to 
+do?!
+
+How would it work with the key-table onces it is done with hidraw?
+
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
 
 _______________________________________________
 linux-dvb mailing list
