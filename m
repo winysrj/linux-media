@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.173])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KhPxC-0006DI-W6
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 16:30:29 +0200
-Received: by ug-out-1314.google.com with SMTP id 39so3559824ugf.16
-	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 07:30:23 -0700 (PDT)
-Message-ID: <412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
-Date: Sun, 21 Sep 2008 10:30:23 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Jonathan Coles" <jcoles0727@rogers.com>
-In-Reply-To: <48D658BF.7040807@rogers.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <joerg.knitter@gmx.de>) id 1KiteD-0006r1-On
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 18:24:58 +0200
+Message-ID: <48DBBAC0.7030201@gmx.de>
+Date: Thu, 25 Sep 2008 18:22:24 +0200
+From: =?ISO-8859-1?Q?J=F6rg_Knitter?= <joerg.knitter@gmx.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <48D658BF.7040807@rogers.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950 and
-	v4l-dvb
+To: linux-dvb@linuxtv.org
+References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
+	<a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>
+In-Reply-To: <a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
+ viwer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,37 +20,126 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Sep 21, 2008 at 10:22 AM, Jonathan Coles <jcoles0727@rogers.com> wrote:
-> It would really help if there was a single set of instructions specific
-> to the HVR-950 with tests at each stage. I'm really confused as to the
-> status of my installation.
+VDR User wrote:
+> 2008/9/25 Sacha <sacha@hemmail.se>:
+>   =
+
+>> Following your discussion from an end-user point of viwer I must say tha=
+t I
+>> wholy agree with this statement:
+>>
+>> <But 2 years to get a new API is really too much. And during these 2 yea=
+rs,
+>> 2
+>>
+>> <different trees for 2 differents drivers was totally insane. We
+>> (applications
+>>
+>> <devs) are always making our best to bring DVB to users as easily as
+>> possible.
+>>
+>> <And trust me, the multiproto story has complicated users life A LOT. Th=
+is
+>> must NEVER happen again.
+>>
+>> We, end-users want our stuff working now!
+>>     =
+
 >
-> I compiled the firmware according to the instructions on
-> http://linuxtv.org/repo/. The result:
->
-> $ lsusb
-> Bus 005 Device 002: ID 2040:7200 Hauppauge
+> I assume you'd also like something that is well-designed, tested, and
+> stable rather then slapped together and rushed...  But you know what
+> they say about assumptions!
+>   =
 
-Hold the phone!  You don't have an HVR-950.  You have an HVR-950Q.
-Please be sure to mention this in all future messages, since it's a
-totally different device and the HVR-950 directions do not apply.
 
-I'm not sure whether the HVR-950Q support has been merged yet.  Steven
-could comment on that.  I suspect it's still in a separate branch,
-which would mean you would need to do an hg clone of a different tree.
+I have to agree with the claim Sacha said.
 
-Devin
+I am also "just" an end-user, got a TT3200 with VDR 1.7 working with all =
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+the guides and even wrote an article on it. But it was and is still a =
+
+pain - for 2 years now.
+
+With the introduction of the alternative S2API I was hoping that this =
+
+long wait is over after waiting endlessly after the announcement, =
+
+multiproto is ready "in a few weeks".
+
+I have followed the discussion all the two (?) years, and I did just =
+
+filter out information about, when the API could be ready, and I was =
+
+shocked by all the really bad personal attacks that happened last year =
+
+(or the year before) and the splits that results now in four =
+
+"repositories" (kernel, multiproto, hvr4000-stuff and mcentral), often =
+
+with dozens of patches postet here or at vdrportal that need to be =
+
+applied to get a DVB card running.
+
+And the main reasons for this is not really technical, it seems to me =
+
+that they are personal. Open source projects claim to be better than =
+
+commercial products, but the things that happened and currently happen =
+
+are a good reason to see also the disadvantage of community development.
+
+I understand all sides:
+1) Manu does not want to to give up his work that he worked for long 2 =
+
+years.
+2) Markus Rechberger also did a lot of work, but I remember him to be =
+
+very insulting to other developers - and quite uncooperative by starting =
+
+his own tree. Linux development with MCC as leader might indeed be hard =
+
+;)...
+3) The S2API guys are fed up with all the waiting. Maybe there is indeed =
+
+no technical reason behind the decision for S2API as I am also wondering =
+
+why there is no answer to THE question. But waiting endlessly really is =
+
+no solution...
+
+The situation I see can not be solved by endless discussion, and even if =
+
+MCC would switch to multiproto (again), there discussion would continue =
+
+endlessly.
+
+I just see two options to get a fair decision:
+1) Allowing both APIs exist parallel for a short time and see who is the =
+
+winner (as mentioned).
+2) Let the community decide (all interested developers and even =
+
+end-users like me and Sacha) with some kind of online vote. Communicate =
+
+clearly before which "important" developer favours which API. As none of =
+
+the API seems to have a real advantage/disadvantage, users like me will =
+
+have to vote for both or decide on personal taste ;)
+
+I favour option 2) as I also don=B4t like applications that rely on =
+
+certain hardware (if only one API is supported).
+
+With kind regards
+
+Joerg Knitter
 
 _______________________________________________
 linux-dvb mailing list
