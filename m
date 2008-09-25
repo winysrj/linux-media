@@ -1,26 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from fg-out-1718.google.com ([72.14.220.159])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KefB5-0003eI-8o
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 02:09:25 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K750048WSEDMFK0@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sat, 13 Sep 2008 20:08:38 -0400 (EDT)
-Date: Sat, 13 Sep 2008 20:08:37 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48CC501F.20609@singlespoon.org.au>
-To: Paul Chubb <paulc@singlespoon.org.au>
-Message-id: <48CC5605.7060505@linuxtv.org>
-MIME-version: 1.0
-References: <mailman.757.1221287462.834.linux-dvb@linuxtv.org>
-	<200809130945.11500.joe.djemal@btconnect.com>
-	<48CC501F.20609@singlespoon.org.au>
-Cc: Joe Djemal <joe.djemal@btconnect.com>,
-	"linux-dvb >> linux dvb" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] linux-dvb Digest, Vol 44, Issue 60
+	(envelope-from <mrechberger@gmail.com>) id 1Kiuk7-000446-Oq
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 19:35:08 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so374565fga.25
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 10:35:04 -0700 (PDT)
+Message-ID: <d9def9db0809251035p404c1feaq8491ead805d8b811@mail.gmail.com>
+Date: Thu, 25 Sep 2008 19:35:03 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
+In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAMMIN1j3+okaNUJt73+hyGgEAAAAA@tv-numeric.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <alpine.LFD.1.10.0809250942251.21990@areia.chehab.org>
+	<!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAAMMIN1j3+okaNUJt73+hyGgEAAAAA@tv-numeric.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] RE : RE : [RFC] Let the future decide between the
+	two.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,74 +24,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Paul Chubb wrote:
-> Hi,
->      there is a good book on kernel development by Robert Love - Linux 
-> Kernel Development. I read about two thirds of it. Lots of useful 
-> information but I found it difficult to get a wide viewpoint of the 
-> process. It would be great to have beside you as a reference. Looking on 
-> Amazon - I wanted to check the details - there are several other books 
-> including linux device drivers by Rubini.
-> 
-> HTH
-> 
-> Cheers Paul
-> 
-> Joe Djemal wrote:
->> I concur with the below. I can code in quite a few languages including 
->> assembly languages and I asked for a pointer on where to get started with 
->> learning how to make a Linux driver and there was complete silence as there 
->> was with my previous inquiry.
+On Thu, Sep 25, 2008 at 3:55 PM, Thierry Lelegard
+<thierry.lelegard@tv-numeric.com> wrote:
+>> De : Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
+>> Envoy=E9 : jeudi 25 septembre 2008 14:46
 >>
->> Come on guys, I've been Googling but where do I start?
+>> On Thu, 25 Sep 2008, Thierry Lelegard wrote:
 >>
->> Joe
+>> > I use only DVT-T devices. I have 4 of them, all working on Linux
+>> > for months or years and there is no one single repository supporting
+>> > all of them at the same time. Most are supported by
+>> > http://linuxtv.org/hg/v4l-dvb, another one needs
+>> > http://linuxtv.org/hg/~anttip/af9015 plus other patches.
+>> > And this is not a transitional situation, it lasts for months.
+>>
+>> Patches are merged upstream when their authors think they're
+>> ready and
+>> sends a pull request.
+>>
+>> In the case of af9015, Antti sent us a pull request those
+>> days and were
+>> merged this week at the development tree. It should be available for
+>> 2.6.28.
+>
+> Thank you for the update. This is good news indeed.
+>
+> However, this was only an example to illustrate the main point:
+> the leadership problem in linux dvb.
+>
+> The fact that, after years of parallel and uncoordinated development,
+> everyone (Manu, now Antti) suddenly feel the urgent need to merge
+> everything is another illustration of this lack of leadership.
+> "Bazaar" development has never been a synonym for "uncoordinated"
+> development. Call it leadership or "coordinatorship", we just need it.
+>
 
-Hey Joe, I didn't see your first request, sorry.
+Thierry, I think uncoordinated development is more or less a side effect
+and will happen from time to time (this has nothing to do with
+maintainership as far
+as I would say).
+I think something like that will solve itself automatically when the
+code is mature enough
+of the parties.
+Let the people do their own job wherever they want, the final enduser
+has the advantage
+of a higher quality of the driver in the end (see the broken intel
+driver and the discussion
+about a staging directory on the lkml just in order to avoid to break
+hardware in future).
 
-The Linux Drivers Manual (oreilly) is a good place to start for a 
-generic overview of the kernel driver features. It's also online 
-downloadable for free in PDF form.
+btw. this thread got again hijacked from the initial wanted discussion
+of Michel.
+"Let the future decide between the two."
 
-Jumping head first into linuxtv.org is a steep learning curve if you 
-haven't done driver work before. Get comfortable building the source 
-tree (see the wiki). I'd then suggest you look at the small drivers 
-(common/tuners) would be a good place to start.
-
-Look at the struct_ interfaces that each of the smaller drivers use and 
-you'll start to see the major interfaces between different parts of the 
-kernel (tuners and demodulators) ( files 
-inlinux/drivers/media/dvb/frontends). In the demodulator drivers you'll 
-see dvb_frontend_ops, it contains the callbacks allowing other parts of 
-the kernel (dvb/dvb-core/*.[hc]) to call the demodulators for 
-configuration and tuning purposes. When applications tune then call 
-interfaces in dvb-core, this marshals the data and passes those calls 
-onto the demodulator drivers.
-
-Tuners and demodulators are a good place to start as the drivers are 
-generally fairly small. Get to grips with this before you look at the 
-physical pci/pcie/usb drivers, they get large quickly and can easily 
-confuse. Limit you learning to a specific field (tuners and demods) and 
-submit a few cleanup patches. This is how most people start.
-
-No substitute for look at the source code and finding the common 
-structures that all tuners and demodulators use.
-
-No good book on linux-dvb exists, apart form the spec (see linuxtv.org) 
-and the actual project source code.
-
-This is where I'd suggest you begin your journey.
-
-Welcome, and good luck!
-
-- Steve
-
+Markus
 
 _______________________________________________
 linux-dvb mailing list
