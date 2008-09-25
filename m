@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from smtp27.orange.fr ([80.12.242.96])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1Kk0Z0-000635-9R
-	for linux-dvb@linuxtv.org; Sun, 28 Sep 2008 20:00:11 +0200
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1Kk0Ys-0007lB-II
-	for linux-dvb@linuxtv.org; Sun, 28 Sep 2008 18:00:02 +0000
-Received: from pd9533915.dip0.t-ipconnect.de ([217.83.57.21])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sun, 28 Sep 2008 18:00:02 +0000
-Received: from malte.forkel by pd9533915.dip0.t-ipconnect.de with local
-	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sun, 28 Sep 2008 18:00:02 +0000
-To: linux-dvb@linuxtv.org
-From: Malte Forkel <malte.forkel@berlin.de>
-Date: Sun, 28 Sep 2008 19:47:09 +0200
-Message-ID: <gbofuu$gds$1@ger.gmane.org>
-Mime-Version: 1.0
-Subject: [linux-dvb] Still problems with ttusb_dec / DEC3000-s
+	(envelope-from <hftom@free.fr>) id 1KiiWf-0004ah-Mx
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 06:32:52 +0200
+From: Christophe Thommeret <hftom@free.fr>
+To: Manu Abraham <abraham.manu@gmail.com>
+Date: Thu, 25 Sep 2008 06:31:50 +0200
+References: <4724.24.120.242.223.1222313000.squirrel@webmail.xs4all.nl>
+	<200809250604.44125.hftom@free.fr> <48DB0FDA.1000702@gmail.com>
+In-Reply-To: <48DB0FDA.1000702@gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200809250631.50462.hftom@free.fr>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,39 +21,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Le Thursday 25 September 2008 06:13:14 Manu Abraham, vous avez =E9crit=A0:
+> Christophe Thommeret wrote:
+> > Le Thursday 25 September 2008 05:57:18 Manu Abraham, vous avez =E9crit :
+> >> Hans Verkuil wrote:
+> >>> Just work with Steve to convert the current devices in the multiproto
+> >>> tree to use this API. If there is anything missing kick Steve and he'=
+ll
+> >>> have to add whatever is needed. That's *his* responsibility and he
+> >>> accepted that during the discussions.
+> >>
+> >> With the multiproto tree, you _don't_need_ to convert any devices to u=
+se
+> >> the new infrastructure, whereas with S2API you need to do that. This is
+> >> a major drawback. In the multiproto tree, all devices work just without
+> >> any conversion of any kind, also it is completely backward compatible.
+> >>
+> >> The aspect of backward compatibility and drivers not getting converted
+> >> had been a major issue, when the original DVB-S2 discussions came up.
+> >> This had been a design goal for the multiproto tree.
+>
+> Please do not trim CC's.
+>
+> > I'm not sure to get you Manu.
+> > Do you mean that existing drivers have to be "converted" to work with
+> > s2api ?
+>
+> Yes, one of the existing drivers had to be converted. eg: CinergyT2
 
-I'm trying to get my Hauppauge DEC3000-s working. And I don't seem to be the only one. For an earlier, more accurate account see e.g. http://www.linuxtv.org/pipermail/linux-dvb/2006-April/009259.html. 
+Ok, the cinergyT2 was indeed out of dvb-core, but a dvb-core driver already =
 
-With the patch to ttusbdecfe.c referenced in http://www.linuxtv.org/pipermail/linux-dvb/2008-August/027782.html I got past the
+exists, so no problem :)
 
-ttusbdecfe_read_status: returned unknown value: 0
+> Also, the stb0899 driver (from the multiproto tree) also needs to be
+> converted, as far as anyone who is able to see, or from the posts
+> themselves.
 
-errors. But I still can't scan:
+Of course :)
+But this is not what i call an "existing" (in kernel) driver.
 
-# scan -x0 -t1 /usr/share/dvb/dvb-s/Astra-19.2E | tee channels.conf
-scanning /usr/share/dvb/dvb-s/Astra-19.2E
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 12551500 V 22000000 5
->>> tune to: 12551:v:0:22000
-DVB-S IF freq is 1951500
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
-dumping lists (0 services)
-Done.
+> The CX24116 is already existing in the multiproto tree, from Steven
+> himself. I did not pull this driver into the tree that i used for
+> testing because of all those mails Steven wrote: just wanted to stay
+> clear of it. But somebody else is having the same tree. Eventhough many
+> people had asked me to pull that driver in, because of all those mails,
+> i just stood clear of it.
+>
+> You can read it from the public archives here on the same.
 
-Is anybody successfully using a DEC3000-s or can give some advice?
+I know the story Manu.
+But 2 years to get a new API is really too much. And during these 2 years, =
+2 =
 
-Thanks for your help,
-Malte
+different trees for 2 differents drivers was totally insane. We (applicatio=
+ns =
 
+devs) are always making our best to bring DVB to users as easily as possibl=
+e. =
+
+And trust me, the multiproto story has complicated users life A LOT.
+This must NEVER happen again.
+
+-- =
+
+Christophe Thommeret
 
 
 _______________________________________________
