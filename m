@@ -1,37 +1,33 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from host-03.papagayo.com.pl ([213.134.141.74]
-	helo=secure.papagayo.com.pl)
+Received: from as-10.de ([212.112.241.2] helo=mail.as-10.de)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mincho@interia.pl>) id 1Ka65W-0003nJ-GM
-	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 11:52:48 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by secure.papagayo.com.pl (Postfix) with ESMTP id E69CF3C615
-	for <linux-dvb@linuxtv.org>; Mon,  1 Sep 2008 11:52:11 +0200 (CEST)
-Received: from secure.papagayo.com.pl ([127.0.0.1])
-	by localhost (serwer-01.in.papagayo.com.pl [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id 9qOPYg17P0d8 for <linux-dvb@linuxtv.org>;
-	Mon,  1 Sep 2008 11:52:03 +0200 (CEST)
-Received: from repro.in.papagayo.com.pl (repro.in.papagayo.com.pl
-	[192.168.1.84])
-	by secure.papagayo.com.pl (Postfix) with ESMTP id 3A2973C619
-	for <linux-dvb@linuxtv.org>; Mon,  1 Sep 2008 11:52:02 +0200 (CEST)
-Message-ID: <48BBBB3D.3020402@interia.pl>
-Date: Mon, 01 Sep 2008 11:51:57 +0200
-From: Wieslaw Kierbedz <mincho@interia.pl>
-MIME-Version: 1.0
+	(envelope-from <halim.sahin@t-online.de>) id 1KipyM-00011n-KG
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 14:29:31 +0200
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.as-10.de (Postfix) with ESMTP id 89F8A33A77B
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 14:28:57 +0200 (CEST)
+Received: from mail.as-10.de ([127.0.0.1])
+	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Y18XFNBnmrV2 for <linux-dvb@linuxtv.org>;
+	Thu, 25 Sep 2008 14:28:57 +0200 (CEST)
+Received: from halim.local (p54AE70F2.dip.t-dialin.net [84.174.112.242])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested) (Authenticated sender: web11p28)
+	by mail.as-10.de (Postfix) with ESMTPSA id 5922733A74B
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 14:28:57 +0200 (CEST)
+Date: Thu, 25 Sep 2008 14:28:57 +0200
+From: Halim Sahin <halim.sahin@t-online.de>
 To: linux-dvb@linuxtv.org
-References: <48B59989.4080004@interia.pl>	
-	<bb72339d0808282125g59a24920o6af8b41ccfa1f15c@mail.gmail.com>	
-	<48B7AB83.90802@farba.eu.org>	
-	<bb72339d0808290347l7732b608idaabad895c2488d7@mail.gmail.com>	
-	<48B82D09.60200@interia.pl>	
-	<bb72339d0808291856p487a3fc2p8333e3f16d135a6e@mail.gmail.com>	
-	<48B91E1B.8090408@interia.pl>	
-	<bb72339d0808300714k3393188en77f1fab735936e03@mail.gmail.com>	
-	<48BBA297.5000206@interia.pl>
-	<80bd11420809010128s4f93c666r988da057e226f1c@mail.gmail.com>
-In-Reply-To: <80bd11420809010128s4f93c666r988da057e226f1c@mail.gmail.com>
-Subject: Re: [linux-dvb] [OT] Re: Aver saa7135 cards.
+Message-ID: <20080925122857.GA7282@halim.local>
+References: <200809241922.16748@orion.escape-edv.de>
+	<1222306125.3323.80.camel@pc10.localdom.local>
+	<200809251254.59680@orion.escape-edv.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <200809251254.59680@orion.escape-edv.de>
+Subject: Re: [linux-dvb] [vdr] [v4l-dvb-maintainer] [Wanted] dvb-ttpci
+	maintainer
+Reply-To: VDR Mailing List <vdr@linuxtv.org>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -39,44 +35,55 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Krzysztof Burghardt nagli:
-> 2008/9/1 Wieslaw Kierbedz <mincho@interia.pl>:
->   =
+Hi,
+On Do, Sep 25, 2008 at 12:54:58 +0200, Oliver Endriss wrote:
+> There are basic democratic rules which must be followed in a community:
+> 
+> (1) Make a proposal
 
->> By the way.
->> I thought about MPEG4/H.264 section on wiki pages. In Poland DVB-T+ is
->> most used standard.
->>     =
+Yes We have multiproto, since 2006.
 
->
-> AFAIN there is no _official_ directive or standard for DVB in Poland.
-> There is a only a recommendation form UKE [1]. In short, minimal
-> requirements are DVB-T (v1), MPEG-4 AVC (aka H.264) and DolbyDigital+
-> (EAC3).
->
->   =
 
-There is a decision.
-Due to number of possible programs and frequencies limit polish DBT
-stations will work with H.264.
-Most of test transmiters changed standard from mpeg2 to h264 just in
-this summer.
-http://www.digital-tv.pl/index.php?option=3Dcom_content&task=3Dview&id=3D23=
-5&Itemid=3D32
-and (your link):
-http://www.kigeit.org.pl/stirc/pliki/20080403_parametry_techniczne_DTT.htm
-"4. Standard kodowania sygna=B3u wizji:
-     tylko H.264/AVC".
-Only H.264/AVC.
--- =
+> (2) Discuss the proposal
 
-WK
+Was done since 2006
+
+> (3) Finally, _after_ the discussion: A poll to find a decision.
+
+Great thing. Why was multiproto not merged after your code review
+november 2007????
+
+I thing Manu wanted to do the s2 stuff himself and did not  accept 
+any community help.
+Yes I read most of the old mails from last year.
+In most cases Manu wrote that multiproto is not ready.
+The fact is, that many people are using (not ready multiproto stuff) 
+since two years.
+
+The basic democratic rules should integrate the community 
+and not only two multiproto developers.
+
+Any way,  my compromise for this problem is:
+Manu Abraham and Steven Toth should work on one of the API's (together) and then
+decide which is the better solution for the new upcoming standards!
+
+The current situation is not acceptable for endusers / other
+developers!!!!
+Please don't stop your great work on ttpci Oliver.
+Regards
+Halim
+
+
+_______________________________________________
+vdr mailing list
+vdr@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/vdr
 
 _______________________________________________
 linux-dvb mailing list
