@@ -1,25 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KeE9N-0002sQ-1W
-	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 21:17:52 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K7300AW8K8GW1S0@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Fri, 12 Sep 2008 15:17:06 -0400 (EDT)
-Date: Fri, 12 Sep 2008 15:17:04 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200809122102.27540.liplianin@tut.by>
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Message-id: <48CAC030.1090906@linuxtv.org>
-MIME-version: 1.0
-References: <48C70F88.4050701@linuxtv.org>
-	<200809122102.27540.liplianin@tut.by>
-Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] S2API Bug fix: ioctl
- FE_SET_PROPERTY/FE_GET_PROPERTY always return error
+	(envelope-from <abraham.manu@gmail.com>) id 1Kihyq-0001Nz-HO
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 05:57:29 +0200
+Message-ID: <48DB0C1E.6020605@gmail.com>
+Date: Thu, 25 Sep 2008 07:57:18 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <4724.24.120.242.223.1222313000.squirrel@webmail.xs4all.nl>
+In-Reply-To: <4724.24.120.242.223.1222313000.squirrel@webmail.xs4all.nl>
+Cc: Greg KH <greg@kroah.com>, Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,19 +27,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Igor M. Liplianin wrote:
-> Hi Steven,
-> 
-> It seems a bug - ioctl FE_SET_PROPERTY/FE_GET_PROPERTY always return error.
-> Though it can be fixed by many ways, send you patch
-> 
-> Igor
-> 
+Hans Verkuil wrote:
 
-Thanks Igor.
+> Just work with Steve to convert the current devices in the multiproto tree
+> to use this API. If there is anything missing kick Steve and he'll have to
+> add whatever is needed. That's *his* responsibility and he accepted that
+> during the discussions.
 
-- Steve
+With the multiproto tree, you _don't_need_ to convert any devices to use
+the new infrastructure, whereas with S2API you need to do that. This is
+a major drawback. In the multiproto tree, all devices work just without
+any conversion of any kind, also it is completely backward compatible.
 
+The aspect of backward compatibility and drivers not getting converted
+had been a major issue, when the original DVB-S2 discussions came up.
+This had been a design goal for the multiproto tree.
+
+
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
