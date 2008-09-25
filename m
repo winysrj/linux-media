@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1005.centrum.cz ([90.183.38.135])
+Received: from scing.com ([217.160.110.58])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hoppik@centrum.cz>) id 1Kao85-0003Hi-An
-	for linux-dvb@linuxtv.org; Wed, 03 Sep 2008 10:54:23 +0200
-Received: by mail1005.centrum.cz id S738267175AbYICIyH (ORCPT
-	<rfc822;linux-dvb@linuxtv.org>); Wed, 3 Sep 2008 10:54:07 +0200
-Date: Wed, 03 Sep 2008 10:54:07 +0200
-From: " =?UTF-8?Q?SKO=C4=8CDOPOLE?= =?UTF-8?Q?=20Tom=C3=A1=C5=A1?="
-	<hoppik@centrum.cz>
-To: <linux-dvb@linuxtv.org>
+	(envelope-from <janne-dvb@grunau.be>) id 1KiomY-000319-Sv
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 13:13:16 +0200
+From: Janne Grunau <janne-dvb@grunau.be>
+To: linux-dvb@linuxtv.org
+Date: Thu, 25 Sep 2008 13:13:10 +0200
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<48DB6A94.2040508@linuxtv.org>
+	<d9def9db0809250345v674861a0k3d4b5f2c765e4152@mail.gmail.com>
+In-Reply-To: <d9def9db0809250345v674861a0k3d4b5f2c765e4152@mail.gmail.com>
 MIME-Version: 1.0
-Message-ID: <200809031054.6772@centrum.cz>
-Subject: [linux-dvb] Measuring signal strench on TT S2-3200
+Content-Disposition: inline
+Message-Id: <200809251313.10640.janne-dvb@grunau.be>
+Cc: Manu Abraham <abraham.manu@gmail.com>, Greg KH <greg@kroah.com>,
+	Michael Krufky <mkrufky@linuxtv.org>, Marcel Siegert <mws@linuxtv.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,73 +31,20 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+On Thursday 25 September 2008 12:45:51 Markus Rechberger wrote:
+> what's the matter of merging both? please let us discuss that, the
+> APIs shouldn't have a big impact on each other.
+> Does it break someone's neck to have both?
 
-For quick test I used getstream utility. Later I am planning to use vdr with some plugins for streaming. 
+They will stick both forever in the kernel and either applications or 
+drivers have to support both. Realistically both drivers and 
+applications will support both.
 
-I have parabola directed to 23.5E (Astra 3A/1E). I tested two FTA programs Ocko and CT24. On second computer there was VLC running. I think parabola is directed correctly, because I have borrowed desktop receiver and there was no problem with these programs.
+This is a stupid compromise which doesn't solve anything. A decision was 
+made we should live with it.
 
-I tried latest drivers from Igor M. Liplianin but I have the same problems with multiproto drivers.
+Janne
 
-When I was streaming Ocko, on second computer there was good screen, but sometimes (aprox once per 30 seconds) was shortly breaking.
-
-When I was streaming CT24, it was running only for max 10 seconds and then getstream utility stopped sending stream packets.
-
-There is debug output from getstream utility:
-2008-08-31 20:11:59.655 fe: Adapter 0 Setting up frontend tuner
-2008-08-31 20:11:59.668 fe: DVB-S tone = 0
-2008-08-31 20:11:59.668 fe: DVB-S voltage = 0
-2008-08-31 20:11:59.668 fe: DVB-S diseqc = 0
-2008-08-31 20:11:59.668 fe: DVB-S freq = 12525000
-2008-08-31 20:11:59.668 fe: DVB-S lof1 = 9750000
-2008-08-31 20:11:59.668 fe: DVB-S lof2 = 10600000
-2008-08-31 20:11:59.668 fe: DVB-S slof = 11700000
-2008-08-31 20:11:59.668 fe: DVB-S feparams.frequency = 1925000
-2008-08-31 20:11:59.668 fe: DVB-S feparams.inversion = 2
-2008-08-31 20:11:59.668 fe: DVB-S feparams.u.qpsk.symbol_rate = 27500000
-2008-08-31 20:11:59.668 dmx: Setting filter for pid 8192 pestype 20
-2008-08-31 20:11:59.816 fe: Adapter 0 Status: 0x1e (HAS_CARRIER HAS_VITERBI HAS_SYNC HAS_LOCK)
-
-And there is configuration file:
-# cat /usr/src/getstream/getstream.conf.cslink
-http {
-    port 8001;
-};
-
-adapter 0 {
-  budget-mode 1;
-
-    dvb-s {
-        lnb {
-            lof1 9750000;
-            lof2 10600000;
-            slof 11700000;
-        };
-
-        transponder {
-            frequency 12525000;
-            polarisation v;
-            symbol-rate 27500000;
-            diseqc 0;
-        };
-    };
-
-    stream {
-        name "CT24";
-        input {
-            pnr 8006;
-        };
-        output-rtp {
-            remote-address 10.0.148.98;
-            remote-port 3000;
-        };
-        sap {
-                scope global;
-                playgroup "testovaci sat";
-                ttl 5;
-        };
-    };
-};
 
 
 _______________________________________________
