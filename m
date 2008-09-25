@@ -1,17 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [216.80.70.60] (helo=host06.hostingexpert.com)
+Received: from fg-out-1718.google.com ([72.14.220.155])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KjdIE-0006QG-2C
-	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 19:09:20 +0200
-Message-ID: <48DE68B4.6040704@linuxtv.org>
-Date: Sat, 27 Sep 2008 13:09:08 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <mkrufky@gmail.com>) id 1KixdM-0005aO-HM
+	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 22:40:21 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so420368fga.25
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 13:40:16 -0700 (PDT)
+Message-ID: <37219a840809251340n7c588667xd18982f78e68a2ec@mail.gmail.com>
+Date: Thu, 25 Sep 2008 16:40:16 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "=?ISO-8859-1?Q?J=F6rg_Knitter?=" <joerg.knitter@gmx.de>
+In-Reply-To: <48DBF224.2010109@gmx.de>
 MIME-Version: 1.0
-To: Torben Viets <viets@web.de>
-References: <48DE679C.6090302@web.de>
-In-Reply-To: <48DE679C.6090302@web.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1700 analog Support?
+Content-Disposition: inline
+References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
+	<a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>
+	<48DBBAC0.7030201@gmx.de>
+	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
+	<20080925181943.GA12800@halim.local>
+	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
+	<48DBF224.2010109@gmx.de>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
+	view
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,28 +29,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Torben Viets wrote:
-> Hello,
-> 
-> I've got a Haupauge HVR-1700 PCIe, DVB-T works fine under Linux, but 
-> analog doesn't work, is there a way to get it working or any plans to 
-> support it...
+On Thu, Sep 25, 2008 at 4:18 PM, J=F6rg Knitter <joerg.knitter@gmx.de> wrot=
+e:
+> VDR User wrote:
+>> Another option would be to look at both proposals, take the best ideas
+>> for each, and marry them into a new hybrid proposal so-to-speak.  By
+>> that I don't mean something which must be built completely from the
+>> ground up..  Most of the work has already been done.  I think that is
+>> a workable solution that can be found somewhere in the middle.
+>>
+> Thinking about all the posts within the last days, I did not propose
+> something as this as I don=B4t believe that certain persons are still
+> willing to cooperate or change their point of view. To be more precise:
+> I think it would be a wonder if Steven Toth and Manu Abraham worked
+> together. ;)
+>
+> With kind regards
 
-Analog not yet fully supported on the HVR-1700, but it is a work in progress.
+For the record, Manu did a great job with Multiproto.  Steve worked
+with the multiproto API and added driver support for his devices.
+Steve depended on Multiproto in order for his devices to work.  Steve
+asked Manu when he would merge into the master branch, and waited
+patiently for months.  Manu wouldn't even merge Steve's drivers into
+Manu's own multiproto tree.  After repeatedly asking him to merge with
+no sign of progress, Steve was left in a tough spot and had to come up
+with his own solution.
 
-You might notice some threads on the linux-dvb mailing list about analog on the HVR-1500 and FusionHDTV7 Express boards -- once it works on those properly, it wont be difficult to support HVR-1700 analog as well.
+There is a saying that goes often for Linux development... "release
+early, release often" ..  I first heard this saying from Johannes.  If
+you dont go by this way of thinking, ie:  hold on to code for two and
+a half years without allowing a merge, there is no guarantee that
+somebody else may come up with a better solution.
 
-This will probably take a few weeks / months, but should (hopefully) be ready before the end of the year.
+There was no sign that Multiproto would _ever_ get merged.  All of us
+have waited for two and a half years for this.  The FIRST pull request
+from Manu only appeared after Steve posted his own API proposal.  Had
+Manu requested merge but one day before that, it would have been
+merged and that would have been the end of it.
 
-Stay tuned.
+As it turns out, Steve's API is more flexible, and allows us to
+support more features than Multiproto allows.  If Manu would have
+allowed Multiproto to have been merged into the master branch, Steve
+would never have designed this newer API.  Due to the superior design,
+that was the chosen extension.  This is where we are left today.
 
--Mike Krufky
+I hope that clears things up.
+
+Regards,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
