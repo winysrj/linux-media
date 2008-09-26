@@ -1,21 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.26])
+Received: from wx-out-0506.google.com ([66.249.82.225])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KedbI-0004fy-HR
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 00:28:30 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so638647eya.17
-	for <linux-dvb@linuxtv.org>; Sat, 13 Sep 2008 15:28:16 -0700 (PDT)
-Message-ID: <412bdbff0809131528h22171a3am434cd5e2500f40db@mail.gmail.com>
-Date: Sat, 13 Sep 2008 18:28:16 -0400
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <48CC3651.5040502@linuxtv.org>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <412bdbff0809131441k5f38931cr7d64dc3871c37987@mail.gmail.com>
-	<48CC3651.5040502@linuxtv.org>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Power management and dvb framework
+	(envelope-from <dougsland@gmail.com>) id 1Kj5PH-0006il-0e
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 06:58:19 +0200
+Received: by wx-out-0506.google.com with SMTP id t16so239244wxc.17
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 21:58:15 -0700 (PDT)
+Date: Thu, 25 Sep 2008 21:58:06 -0400
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+Message-ID: <20080925215806.0bb585a3@gmail.com>
+In-Reply-To: <d9def9db0809252150t9dd113axa9acd3d7c3817cb8@mail.gmail.com>
+References: <002101c91f1a$b13c4e60$0401a8c0@asrock> <48DBBAC0.7030201@gmx.de>
+	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
+	<20080925181943.GA12800@halim.local>
+	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
+	<48DBF224.2010109@gmx.de>
+	<37219a840809251340n7c588667xd18982f78e68a2ec@mail.gmail.com>
+	<d9def9db0809251400r331c0667k733486a013eccefe@mail.gmail.com>
+	<1222385832.4589.41.camel@pc10.localdom.local>
+	<20080925212732.70e70bef@gmail.com>
+	<d9def9db0809252150t9dd113axa9acd3d7c3817cb8@mail.gmail.com>
+Mime-Version: 1.0
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
+ view
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,37 +37,50 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello Steven,
+Hello,
 
-On Sat, Sep 13, 2008 at 5:53 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> I looked at some power stuff for the au0828 recently. I added a couple of
-> callbacks in the USB_register struct IIRC, I had those drive the gpios. I
-> don't recall the details but if you look at the definition of the structure
-> you should see some power related callbacks. Actually, I'm not even sure if
-> those patches got merged.
->
-> Also, the demod _init() and _sleep()  callbacks get called by dvb-core when
-> the demod is required (or not). These might help.
->
-> Lastly, depending on how the driver implements DVB, is might use videobuf -
-> or it might do it's own buffer handing. In case of the latter, look at the
-> feed_start() feed_stop() functions and the struct specific feed counter that
-> usually accompanies this... you could probably add some useful power related
-> stuff with these indications.
+On Fri, 26 Sep 2008 06:50:07 +0200
+"Markus Rechberger" <mrechberger@gmail.com> wrote:
 
-Thanks for the suggestions.  At this point my best bet is to just
-litter the code with some printk() messages so I can see what the
-complete workflow is for the life of a device.  That will help alot
-with figuring out where at what point which hooks get called.
+> permanent development for the last couple of months.
+> All you could do there is to take out the usbids copy it to
+> linuxtv.org and play against all the people
+> who contributed to the other tree and which is manufacturer supported.
+> 
+> I'd really better think twice if you want to keep up reverse
+> engineered drivers with linux which are capable
+> of melting devices (this happens with wrong configurations).
+> 
+> Why am I interested in DVB? Because we have devices supporting
+> multiple standards which are yet
+> not directly supported by the DVB framework.
 
-Thanks,
+IMO, since I start in v4l/dvb you are always interested in create new
+flame wars. Sorry my sincerely.
 
-Devin
+If you are really interested about v4l/dvb users why I don't see you in
+plumbers conference to understand your point of view and discuss with
+API is better?  
+ 
+> The lies that I forked off the driver which I initially submitted to
+> linuxtv is ridiculous as you modified the wiki
+> site on linuxtv.org. See all that you and Mauro basically have done is
+> copying the code from mcentral.de
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Yes, "always copying your forked and GPL code".
+
+> and trying to build up a second front against the manufacturer
+> supported work.
+
+It's not true.
+
+> I'm seriously for a new Maintainer election here, let's see what will
+> come up during the next few days.
+
+Keep working Markus.
+ 
+Cheers,
+Douglas
 
 _______________________________________________
 linux-dvb mailing list
