@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from rhebok.le.ac.uk ([143.210.16.38])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1KdC74-0003PZ-63
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 00:55:11 +0200
-Date: Wed, 10 Sep 2008 00:54:31 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: elupus <elupus@ecce.se>
-In-Reply-To: <tih9ovrhiir9$.pski8ckx8xe6.dlg@40tude.net>
-Message-ID: <alpine.LRH.1.10.0809100053001.6602@pub1.ifh.de>
-References: <10d98cn4rdklb.sc6i17qzg4hh.dlg@40tude.net>
-	<ht6lq3h8puvv$.1f20vcvg13w7e.dlg@40tude.net>
-	<alpine.LRH.1.10.0809062106340.6645@pub5.ifh.de>
-	<tih9ovrhiir9$.pski8ckx8xe6.dlg@40tude.net>
+	(envelope-from <jgm11@leicester.ac.uk>) id 1Kj1k2-0002Yn-VY
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 03:03:33 +0200
+Received: from exp-cas2.le.ac.uk ([143.210.133.104]:30242
+	helo=exp-cas2.cfs.le.ac.uk) by rhebok.le.ac.uk with esmtp (Exim 4.63)
+	(envelope-from <jgm11@leicester.ac.uk>) id 1Kj1jz-0008MF-8h
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 02:03:27 +0100
+From: "Mitchell, J.G." <jgm11@leicester.ac.uk>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Date: Fri, 26 Sep 2008 02:02:41 +0100
+Message-ID: <8477EDDA0355EC429DA077A1FB414E2E1C5FF01D23@EXC-MBX1.cfs.le.ac.uk>
+Content-Language: en-GB
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Yuan STK7700D support
+Subject: [linux-dvb] Leadtek DTV1000s Development Help
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,37 +27,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+Hello Everyone,
 
-It seems I already applied something similar to your patch, which was not 
-written by you.
+I bought this card some months back now and I did a bit of research to find out to my dissapointment that it is not supported under Linux. However, I am about to embark on an Embedded Systems Engineering degree and I thought that maybe, developing a device driver for this card would be a good start? Now I have found that this card incorporates the SAA7130, TDA10048 and TDA18271.
 
-thanks anyway and sorry for asking (should have checked more carefully),
-Patrick.
+I currently run ArchLinux and have some programming experience, I am reading a couple of books at the moment such as Programming Embedded Systems and C Programming (K&R) so I have a good base to work from and can refer to the books if i need some technical help.
 
+At the moment I am at a loss to where to start, would somebody be able to point me in the right direction to start working on this project?
 
-On Mon, 8 Sep 2008, elupus wrote:
-
-> On Sat, 6 Sep 2008 21:07:48 +0200 (CEST), Patrick Boettcher wrote:
->
->> Hi,
->>
->> In order to add a patch I need a Signed-off-by line with your name and
->> email-address. See README.patches in v4l-dvb repository for more
->> information.
->>
->
-> Here we go, somebody had gone and added another device since my last patch,
-> so patch had merge conflicts ofcourse.
->
-> People say mercurial should be easier than git. But hey, just adding a
-> Signed-Off-By message was hard. (then again first time I try it).
->
-> Here it is anyway.
->
-> Regards
->
-
+Regards,
+Jack.
 
 _______________________________________________
 linux-dvb mailing list
