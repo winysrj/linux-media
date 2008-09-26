@@ -1,20 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail14.opentransfer.com ([76.162.254.14])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dcoates@systemoverload.net>) id 1KkQCo-0000fm-RC
-	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 23:23:00 +0200
-Message-ID: <48E1470F.6000207@systemoverload.net>
-Date: Mon, 29 Sep 2008 16:22:23 -0500
-From: Dustin Coates <dcoates@systemoverload.net>
-MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <000001c91f6f$e23ab920$a6b02b60$@net>
-	<000001c921f0$7d4aede0$77e0c9a0$@net>
-	<48E11A2F.5030901@linuxtv.org> <48E130EB.20006@systemoverload.net>
-	<48E135F0.60808@systemoverload.net> <48E14224.6090309@linuxtv.org>
-In-Reply-To: <48E14224.6090309@linuxtv.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1800 Analouge Issues
+Received: from mail-gx0-f20.google.com ([209.85.217.20])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <dougsland@gmail.com>) id 1Kj4wH-0004sr-Jt
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 06:28:25 +0200
+Received: by gxk13 with SMTP id 13so7880963gxk.17
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 21:27:42 -0700 (PDT)
+Date: Thu, 25 Sep 2008 21:27:32 -0400
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-ID: <20080925212732.70e70bef@gmail.com>
+In-Reply-To: <1222385832.4589.41.camel@pc10.localdom.local>
+References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
+	<a3ef07920809250815k21948f99m7780e852088b96f@mail.gmail.com>
+	<48DBBAC0.7030201@gmx.de>
+	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
+	<20080925181943.GA12800@halim.local>
+	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
+	<48DBF224.2010109@gmx.de>
+	<37219a840809251340n7c588667xd18982f78e68a2ec@mail.gmail.com>
+	<d9def9db0809251400r331c0667k733486a013eccefe@mail.gmail.com>
+	<1222385832.4589.41.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
+ view
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,150 +31,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Steven Toth wrote:
-> Dustin Coates wrote:
->> Dustin Coates wrote:
->>> Steven Toth wrote:
->>>  =
+Hello,
 
->>>> Dustin Coates wrote:
->>>>   =
+On Fri, 26 Sep 2008 01:37:12 +0200
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
->>>>>  =
+> 
+> Who the hell is VDR User <user.vdr@gmail.com> ?
+> Klaus himself?
+> 
+> At least he knows nothing about Mauro's real work on video4linux.
 
->>>>>
->>>>>  =
+Agreed. He's *totally lost* about Mauro's work. 
+ 
+> To prepare the kernel sync and give the patchmonkey on Johannes'
+> request for dvb too, are only a very few percent of his work and the
+> "thanks" he had for this so far are it not worth at all ...
+> 
+> On all other major projects, where he is the maintainer, such absurd
+> stuff did never happen.
+> 
+> The dvb guys inside don't get their stuff together and do exclude each
+> other. At least Steve had no other choice than to come up with his own
+> solution.
 
->>>>>
->>>>> *From:* linux-dvb-bounces@linuxtv.org =
+Definitely.
 
->>>>> [mailto:linux-dvb-bounces@linuxtv.org] *On Behalf Of *Dustin Coates
->>>>> *Sent:* Thursday, September 25, 2008 7:36 PM
->>>>> *To:* linux-dvb@linuxtv.org
->>>>> *Subject:* [linux-dvb] HVR-1800 Analouge Issues
->>>>>
->>>>>  =
+> What a bullshit to accuse Mauro of missing maintainer ship, all asked
+> him to stay out as far as possible to continue to play there own
+> games! 
 
->>>>>
->>>>> Hi Everyone,
->>>>>
->>>>>  =
+For sure, there are people here trying this every single day.
+Insted of spend time improving drivers they prefer attack Mauro and
+people that are working hard in their spare time.
 
->>>>>
->>>>>                 Ok I=92ve recently decided to start seeing if I can =
+> But they just load the daily dirt on him they preferably don't like to
+> care themselves for at all, including patch reviewing in many parts.
+> 
+> Also Mike did more integration work across the frameworks than anyone
+> else during the last year. That by the way.
 
->>>>> figure out the issue with the Analouge, on this card, first my =
+Agreed.
 
->>>>> normal dmesg.
->>>>>       =
-
->>>> The analog encoder works fine for me.
->>>>
->>>> In my case the basic analog tuner is usually /dev/video0 and the =
-
->>>> encoder is video1.
->>>>
->>>> Launch tvtime (which opens video0) tune and everything is fine, =
-
->>>> then cat /dev/video1 >test.mpg is working as expected.
->>>>
->>>> - Steve
->>>>
->>>>
->>>>     =
-
->>> Ok, TVTime works, still some static on a mostly the lower, and higher
->>> channels.
->>>
->>> Mythtv is only showing a green screen.
->>>
->>>
->>> _______________________________________________
->>> linux-dvb mailing list
->>> linux-dvb@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>   =
-
->> Mythbackend.log is showing these errors.
->>
->> VIDIOCGCHAN: Invalid argument
->> VIDIOCMCAPTUREi0: Invalid argument
->> VIDIOCMCAPTUREi1: Invalid argument
->> VIDIOCMCAPTURE0: Invalid argument
->> VIDIOCMCAPTURE1: Invalid argument
->>
->>
->> I think if i can get past these errors it might just work...
->
-> When tvtime was running can you try cat /dev/video1 >test.mpg as I =
-
-> suggested?
->
-> - Steve
-OK, when i load tvtime as tvtime --device=3D/dev/video1
-
-I get the an error.
-
-Videoinput: Driver refuses to set norm: Invalid argument
-
-When i load tvtime as /dev/video0
-
-I get a picture, but it's interlaced with a lot of static
-
-Then when i try to cat /dev/video0 i get a Device or resource busy
-
-cat /dev/video1, no errors . I play the file, and i get static, barley =
-
-see picture, i can hear audio though.
-
-Uploaded the video file to: (only 14MB) http://systemoverload.net/test.mpg
-
-When  i set it up in mythtv i set it up as an analogue card.
-
-Setting it to /dev/video1 gives me these errors in mythbackend.log.
-
-2008-09-29 16:15:40.761 Channel(/dev/video1) Error: SetInputAndFormat(2, =
-
-NTSC)
-            while setting format (v4l v2)
-            eno: Invalid argument (22)
-2008-09-29 16:15:40.763 Channel(/dev/video1) Error: SetInputAndFormat(2, =
-
-NTSC)
-            while setting format (v4l v2)
-            eno: Invalid argument (22)
-2008-09-29 16:15:40.764 Channel(/dev/video1) Error: SetInputAndFormat(2, =
-
-ATSC)
-            while setting format (v4l v2)
-            eno: Invalid argument (22)
-2008-09-29 16:15:40.765 Channel(/dev/video1): SetInputAndFormat() failed
-2008-09-29 16:15:40.765 TVRec(2) Error: Failed to set channel to 2.
-2008-09-29 16:15:40.787 TVRec(2) Error: GetProgramRingBufferForLiveTV()
-            ProgramInfo is invalid.
-ProgramInfo: channame() startts(Mon Sep 29 16:15:40 2008) endts(Mon Sep =
-
-29 16:15:40 2008)
-             recstartts(Mon Sep 29 16:15:40 2008) recendts(Mon Sep 29 =
-
-16:15:40 2008)
-             title()
-VIDIOCGMBUF:: Invalid argument
-2008-09-29 16:15:41.849 AutoExpire: CalcParams(): Max required Free =
-
-Space: 2.0 GB w/freq: 15 min
-2008-09-29 16:16:21.869 TVRec(2): Changing from WatchingLiveTV to None
-2008-09-29 16:16:21.888 Finished recording : channel 4294967295
-2008-09-29 16:16:21.892 scheduler: Finished recording: : channel 4294967295
-
-Setting it to /dev/video0 gives me the errors posted in my last email.
-
+Cheers,
+Douglas
 
 _______________________________________________
 linux-dvb mailing list
