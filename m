@@ -1,19 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.fisk.me.uk ([87.127.77.141] helo=fisk.me.uk)
+Received: from smtp239.poczta.interia.pl ([217.74.64.239])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nick@fisk.me.uk>) id 1KjZoy-0005W7-K3
-	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 15:26:53 +0200
-Received: from [192.168.1.4] (unknown [192.168.1.4])
-	by fisk.me.uk (Fisk Server) with ESMTPA id AF97D824C
-	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 14:26:49 +0100 (BST)
-From: Nick Fisk <nick@fisk.me.uk>
+	(envelope-from <mincho@interia.pl>) id 1Kj7x7-0005ex-GN
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 09:41:26 +0200
+Received: from poczta.interia.pl (mi04.poczta.interia.pl [10.217.12.4])
+	by smtp239.poczta.interia.pl (INTERIA.PL) with ESMTP id 4FD4931BFD5
+	for <linux-dvb@linuxtv.org>; Fri, 26 Sep 2008 09:41:21 +0200 (CEST)
+Received: from repro.in.papagayo.com.pl (host-05.papagayo.com.pl
+	[213.134.141.76])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by poczta.interia.pl (INTERIA.PL) with ESMTP id A1BB4142BDC
+	for <linux-dvb@linuxtv.org>; Fri, 26 Sep 2008 09:41:18 +0200 (CEST)
+Message-ID: <48DC921D.6010801@interia.pl>
+Date: Fri, 26 Sep 2008 09:41:17 +0200
+From: Wieslaw Kierbedz <mincho@interia.pl>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-In-Reply-To: 
-Date: Sat, 27 Sep 2008 14:26:18 +0100
-Message-Id: <1222521978.23202.5.camel@localhost>
-Mime-Version: 1.0
-Subject: [linux-dvb]  saa7134 ioremap() problem
-Reply-To: nick@fisk.me.uk
+References: <48DBAA96.6070500@interia.pl>
+In-Reply-To: <48DBAA96.6070500@interia.pl>
+Subject: Re: [linux-dvb] tda1004x+saa7162+ PCTV 7010ix
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,43 +27,33 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-2"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Wieslaw Kierbedz wrote:
 
-I also have a card based on the saa7134 chip and I am encountering the
-same problem as described in this thread.
+> Is tda1004x just usable?
+> I compiled and loaded it but it ignored my card.
+> Then, how to force tda1004x to load firmware, check devices and create =
 
-My card:-
+> device file?
+I suppose I found.
+There is only demodulator definition for saa716x_averhc82_zl10353.
+To enable others I have to write saa716x_7010ix_tda1004x_config (for
+example) code?
+Has that some sens to adjust functions from other drivers?
+saa7134-dvb td1316?
 
-00:01.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135
-Video Broadcast Decoder (rev d1)
-	Subsystem: Avermedia Technologies Inc Unknown device 2c00
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B-
-	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64
-	Interrupt: pin A routed to IRQ 16
-	Region 0: Memory at febef800 (32-bit, non-prefetchable) [size=2K]
-	Capabilities: [40] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+-- =
 
+WK
 
-
-
-I was wondering if this fix would be included in 2.6.27?
-
-If there is any testing or other information that I can provide that
-would help please let me know.
-
-Nick
+----------------------------------------------------------------------
+Znajd=BC mieszkanie w Twoim regionie!
+kliknij >>> http://link.interia.pl/f1f19
 
 
 _______________________________________________
