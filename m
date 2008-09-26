@@ -1,16 +1,33 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1Ke6XH-0005qo-0c
-	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 13:10:00 +0200
-Date: Fri, 12 Sep 2008 13:09:25 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <48CA0355.6080903@linuxtv.org>
-Message-ID: <20080912110925.325010@gmx.net>
+Received: from ug-out-1314.google.com ([66.249.92.172])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KjG9B-0007io-2M
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 18:26:28 +0200
+Received: by ug-out-1314.google.com with SMTP id 39so1421231ugf.16
+	for <linux-dvb@linuxtv.org>; Fri, 26 Sep 2008 09:26:21 -0700 (PDT)
+Message-ID: <412bdbff0809260926s26b3da29qfa14a7ea52d7169e@mail.gmail.com>
+Date: Fri, 26 Sep 2008 12:26:21 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "VDR User" <user.vdr@gmail.com>
+In-Reply-To: <a3ef07920809260907g41553398sde5f3e9fba9148f0@mail.gmail.com>
 MIME-Version: 1.0
-References: <48CA0355.6080903@linuxtv.org>
-To: Steven Toth <stoth@linuxtv.org>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
+Content-Disposition: inline
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<48DB0560.1010802@gmail.com>
+	<alpine.LFD.1.10.0809250637260.21990@areia.chehab.org>
+	<48DB6A94.2040508@linuxtv.org>
+	<alpine.LFD.1.10.0809250822390.29643@areia.chehab.org>
+	<a3ef07920809250811n15c620ceg68f9e92c58de403b@mail.gmail.com>
+	<20080925223817.34c81302@gmail.com>
+	<a3ef07920809260812j3dbb3692r3a5c194681425a2a@mail.gmail.com>
+	<412bdbff0809260837l477ff848w5dcf83383f994f42@mail.gmail.com>
+	<a3ef07920809260907g41553398sde5f3e9fba9148f0@mail.gmail.com>
+Cc: Manu Abraham <abraham.manu@gmail.com>, Greg KH <greg@kroah.com>,
+	Michael Krufky <mkrufky@linuxtv.org>, Marcel Siegert <mws@linuxtv.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,85 +35,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Hans Werner sent a large patch for the multifrontend HVR3000/HVR4000 =
+On Fri, Sep 26, 2008 at 12:07 PM, VDR User <user.vdr@gmail.com> wrote:
+> On Fri, Sep 26, 2008 at 8:37 AM, Devin Heitmueller
+> <devin.heitmueller@gmail.com> wrote:
+>> Perhaps your comments would carry more credibility if you would
+>> provide your full name and the number of commits you have made to the
+>> v4l-dvb codebase in the last year.
+>
+> So I'm understand you correctly, can you clarify that only people who
+> provide their full name and number of commits have any "credibility"?
+> As well, I'm under the premise that everyone is entitled to their
+> opinions and free to express them as they see fit.  And in doing so,
+> all others may interpret those opinions any way they choose, but no
+> single opinion is any less or more "valid" then any other.
 
-> combined DVB-T/DVB-S/S2 support for the S2API tree. (Thanks Hans - this =
+Yes, I believe that on an open source developers mailing list, the
+opinions of people who are active contributors to the project are more
+credible than random users who jump on the list occasionally to call
+for ousting of the subsystem maintainer.
 
-> was obviously a lot of manual merge work, it's greatly appreciated.)
-> =
+> Everyone here has the right to post their thoughts whether you
+> (dis)like or (dis)agree with them.  Your opinions are no more valid
+> and mine as no less valid.  As I've stated before, I have no personal
+> or financial interest in what happens and that allows me to speak more
+> freely because I have nothing to lose.  You are welcome to skip over
+> any of my posts or ignore my thoughts completely, but I'm not going to
+> shut up because a couple people don't like what I have to say.  That's
+> not how this works, sorry.
 
-> What would everyone like to see happen with this patch?
-> =
-
-> Would you prefer to see this dealt with outside of the S2API discussion, =
-
-> or would you like to see this included and merged? Let me know your =
-
-> thoughts. Andreas also has the multifrontend thread running, so comment =
-
-> here if you would like to see this as part of the S2API patches, or =
-
-> comment on the Andreas thread of you want this as a separate patchset at =
-
-> a later date.
-
-Some comments for those who have not been following this story closely. I w=
-ill
-try to keep this S2API-relevant.
-
-The reason for considering adding multifrontend support to S2API is that S2=
-API
-will certainly add HVR4000 support, and at that point we need to consider
-how to handle the multiple frontends of that card.  The multifrontend patch=
- is quite
-orthogonal to the S2API changes, both in the sense that it does not interfe=
-re with them,
-and in the sense that it is quite a different subject from changing the API.
-
-The updates I made bring the patch right up to date so that it can be merge=
-d with
-the head of the S2API repository. It is quite general -- it can support all=
- multifrontend
-cards (not just HVR3000/4000). It has been around for about 18 months when =
-Steve
-proposed it. Darron has been maintaining it at dev.kewl.org/hauppauge. I ha=
-ve
-used it for 9 months or so with (unmodified) Kaffeine. Darron's method for
-supporting DVB-S2 features is replaced by the more general S2API.
-
-In the end what the application sees is (for the HVR4000):
-/dev/dvb/adapter0/frontend0: DVB-S/S2
-/dev/dvb/adapter0/frontend1: DVB-T
-Andreas' thread is the place to discuss exactly how this should work. Anywa=
-y =
-
-we have here a concrete implementation of one way to do it.
-
-We need to be careful not to confuse the issues to do with the API. The most
-important thing is to perfect and debug the design of the S2 API. But I hope
-multifrontend support will go in to the kernel when the HVR4000 support is =
-added.
-Perhaps we shouldn't be too scared of trying to make progress by putting it=
- in S2API
-at the most appropriate point in Steve's development schedule.
+Ok.  Keep posting then.  I was just trying to establish whether you
+have made any actual contributions of code to the project.
 
 Regards,
-Hans
 
--- =
+Devin
 
-Release early, release often.
-
-GMX Kostenlose Spiele: Einfach online spielen und Spa=DF haben mit Pastry P=
-assion!
-http://games.entertainment.gmx.net/de/entertainment/games/free/puzzle/61691=
-96
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
