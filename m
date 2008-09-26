@@ -1,25 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m85JGXId006344
-	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 15:16:34 -0400
-Received: from mail4.sea5.speakeasy.net (mail4.sea5.speakeasy.net
-	[69.17.117.6])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m85JGIKB003945
-	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 15:16:19 -0400
-Date: Fri, 5 Sep 2008 12:16:00 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Jean Delvare <jdelvare@suse.de>
-In-Reply-To: <200809021109.31007.jdelvare@suse.de>
-Message-ID: <Pine.LNX.4.58.0809051205480.2423@shell2.speakeasy.net>
-References: <200808251445.22005.jdelvare@suse.de>
-	<200809012126.06532.jdelvare@suse.de>
-	<20080901225450.GA1424@daniel.bse>
-	<200809021109.31007.jdelvare@suse.de>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8QKBHHt005958
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 16:11:18 -0400
+Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.186])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8QKB4aj014475
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 16:11:04 -0400
+Received: by fk-out-0910.google.com with SMTP id e30so1061477fke.3
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 13:11:04 -0700 (PDT)
+Message-ID: <d9def9db0809261311g303979adkf2c44ce44c932e3d@mail.gmail.com>
+Date: Fri, 26 Sep 2008 22:11:04 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "BABAK SEYEDI" <bab.sdn@gmail.com>, video4linux-list@redhat.com,
+	em28xx@mcentral.de
+In-Reply-To: <2ee0f7430809261252v267626b4rc6269a6132cf88c0@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
-Content-Transfer-Encoding: 8bit
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com
-Subject: Re: [v4l-dvb-maintainer] bttv driver questions
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <7b6d682a0809251804j1277af44i80c53529a3c33d62@mail.gmail.com>
+	<7b6d682a0809251923uaacc119u25cf5118625c03d0@mail.gmail.com>
+	<d9def9db0809251944g56462217sdc14a57c85db1b97@mail.gmail.com>
+	<d9def9db0809260443w53d575b7s3857b424163ec1b@mail.gmail.com>
+	<beb91d720809260508vc1e28d0m33daaa289c8cfe0b@mail.gmail.com>
+	<d9def9db0809260517p3ddef5bby47eb52d6bb1fa948@mail.gmail.com>
+	<d9def9db0809260537j2ff6fc98mc133ca37a06c1bc4@mail.gmail.com>
+	<7b6d682a0809261234i71ea0fd5i6709fbc843f40768@mail.gmail.com>
+	<d9def9db0809261239i45c7a9fbu8395a64b0c58bc73@mail.gmail.com>
+	<2ee0f7430809261252v267626b4rc6269a6132cf88c0@mail.gmail.com>
+Cc: 
+Subject: Re: Pinnacle PCTV HD Pro Stick
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,27 +40,80 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 2 Sep 2008, Jean Delvare wrote:
-> Le mardi 02 septembre 2008, Daniel Glöckner a écrit :
-> > If grayscale is not what your customer wants, there is a 8 bit color
-> > mode V4L2_PIX_FMT_HI240.
+On Fri, Sep 26, 2008 at 9:52 PM, BABAK SEYEDI <bab.sdn@gmail.com> wrote:
+> On 9/26/08, Markus Rechberger <mrechberger@gmail.com> wrote:
+>> On Fri, Sep 26, 2008 at 9:34 PM, Eduardo Fontes
+>> <eduardo.fontes@gmail.com> wrote:
+>>> Dear Markus,
+>>>
+>>> This new em28xx driver works li
+>>
+>> great! good to know that PAL-M now works properly too.
 >
-> I've seen this, and BT878 supports that format. But I don't know how
-> to check how it looks like visually... mplayer doesn't seem to
+>
+>
+> Excuseme are these drivers capabable with tt-budget -s2-3200 in
+> ubuntu?  And if i only install these that's enough?
 
-It looks "ok".  I used to use it when I watched tv with overlay and a video
-card in 8-bit pseudocolor.  It will probably compress very poorly.  You can
-turn dithering on and off, on looks better, but jpeg compress will probably
-be much worse with dithering.
+as long as you stick with the default ubuntu modules yes, this debian
+package just adds
+support for the em28xx modules while not upgrading any infrastructure
+so it has no influence
+on anything else.
 
-> support that pixel format. Apparently ffmpeg forces the format to
-> YUV 4:2:0 planar (a pretty bad choice if you ask me), so I can't use
+Markus
 
-Most codecs operate on planar 4:2:0, so it makes the most sense to request
-the right format from the hardware, instead of converting from packed to
-planar in software.  ffmpeg doesn't know that DMA of planar formats is
-harder for the bt8x8 and that you are running out of PCI bandwidth but
-might have lots of memory bandwidth and CPU cycles to use.
+>>
+>> -Markus
+>>
+>>> Thanks a lot.
+>>>
+>>> Eduardo M. Fontes
+>>>
+>>> On Fri, Sep 26, 2008 at 9:37 AM, Markus Rechberger <mrechberger@gmail.com>
+>>> wrote:
+>>>>
+>>>> >>> Ok here's the updated i386 package:
+>>>> >>> http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-8_i386.deb
+>>>> >>>
+>>>> >>> Markus
+>>>> >>>
+>>>> >>> --
+>>>> >>> video4linux-list mailing list
+>>>> >>> Unsubscribe
+>>>> >>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>>>> >>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>>>
+>>>> Just for the completion:
+>>>>
+>>>> amd64:
+>>>> http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-9_amd64.deb
+>>>> i386:
+>>>> http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-8_i386.deb
+>>>>
+>>>> the generic amd64 empia driver is also updated now (i386/amd64 have
+>>>> their own versioning so 8/9
+>>>> has no relation with each other).
+>>>>
+>>>> Markus
+>>>
+>>>
+>>>
+>>> --
+>>> Eduardo Mota Fontes
+>>> Analista de Suporte
+>>>
+>>
+>> --
+>> video4linux-list mailing list
+>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>
+>
+>
+> --
+> babakLINUX
+>
 
 --
 video4linux-list mailing list
