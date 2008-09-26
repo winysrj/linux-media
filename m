@@ -1,21 +1,33 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Andy Walls <awalls@radix.net>
-To: Patrick Boisvenue <patrbois@magma.ca>
-In-Reply-To: <48CFA104.1070602@magma.ca>
-References: <48C659C5.8000902@magma.ca> <48C732DE.2030902@linuxtv.org>
-	<1221087304.2648.7.camel@morgan.walls.org> <48C86857.70603@magma.ca>
-	<1221095447.2648.69.camel@morgan.walls.org>	
-	<48CAB3EA.5050600@magma.ca>
-	<37219a840809121141j2b2cedf9mf5b0edd005a9daba@mail.gmail.com>
-	<48CABF2A.9090407@magma.ca> <48CAC019.9050604@magma.ca>
-	<1221269154.2648.79.camel@morgan.walls.org>
-	<d9def9db0809150935p5fb08b41x1474322a08c3d291@mail.gmail.com>
-	<48CFA104.1070602@magma.ca>
-Date: Tue, 16 Sep 2008 19:35:18 -0400
-Message-Id: <1221608118.4511.2.camel@palomino.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
+Received: from ey-out-2122.google.com ([74.125.78.25])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KjFO8-0004Gg-Qa
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 17:37:50 +0200
+Received: by ey-out-2122.google.com with SMTP id 25so302340eya.17
+	for <linux-dvb@linuxtv.org>; Fri, 26 Sep 2008 08:37:45 -0700 (PDT)
+Message-ID: <412bdbff0809260837l477ff848w5dcf83383f994f42@mail.gmail.com>
+Date: Fri, 26 Sep 2008 11:37:44 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "VDR User" <user.vdr@gmail.com>
+In-Reply-To: <a3ef07920809260812j3dbb3692r3a5c194681425a2a@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <20080923181628.10797e0b@mchehab.chehab.org>
+	<d9def9db0809241901g56a54750kbfccecc77b111ec7@mail.gmail.com>
+	<37219a840809241947w6ca35351xa15920de6ff41aab@mail.gmail.com>
+	<48DB0560.1010802@gmail.com>
+	<alpine.LFD.1.10.0809250637260.21990@areia.chehab.org>
+	<48DB6A94.2040508@linuxtv.org>
+	<alpine.LFD.1.10.0809250822390.29643@areia.chehab.org>
+	<a3ef07920809250811n15c620ceg68f9e92c58de403b@mail.gmail.com>
+	<20080925223817.34c81302@gmail.com>
+	<a3ef07920809260812j3dbb3692r3a5c194681425a2a@mail.gmail.com>
+Cc: Manu Abraham <abraham.manu@gmail.com>, Greg KH <greg@kroah.com>,
+	Michael Krufky <mkrufky@linuxtv.org>, Marcel Siegert <mws@linuxtv.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	DVB ML <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,42 +41,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 2008-09-16 at 08:05 -0400, Patrick Boisvenue wrote:
-> 
-> Markus Rechberger wrote:
-> > On Sat, Sep 13, 2008 at 3:25 AM, Andy Walls <awalls@radix.net> wrote:
-> >> On Fri, 2008-09-12 at 15:16 -0400, Patrick Boisvenue wrote:
-> >>> Patrick Boisvenue wrote:
-> >>>> Michael Krufky wrote:
-> >>>>> On Fri, Sep 12, 2008 at 2:24 PM, Patrick Boisvenue <patrbois@magma.ca> wrote:
-> >>>>>> Andy Walls wrote:
-> >>>>>>> On Wed, 2008-09-10 at 20:37 -0400, Patrick Boisvenue wrote:
-> >>>>>>>> Andy Walls wrote:
-> >>>>>>>>> On Tue, 2008-09-09 at 22:37 -0400, Steven Toth wrote:
-> >>>>>>>>>> Patrick Boisvenue wrote:
-> >>>>>>>>>>> Steven Toth wrote:
-> >>>>>>>>>>>> Patrick Boisvenue wrote:
+Hello Derek,
 
-> > 
-> > don't load i2c-dev
-> > 
-> > Markus
+On Fri, Sep 26, 2008 at 11:12 AM, VDR User <user.vdr@gmail.com> wrote:
+> Regardless of this api mess (which I accept either way), there are
+> many people who are unhappy with Mauro Chehab as dvb maintainer and
+> have been for some time.  I suspect more of this will become public
+> since things have finally reached a point of enough-is-enough.
 
-Markus,
+Perhaps your comments would carry more credibility if you would
+provide your full name and the number of commits you have made to the
+v4l-dvb codebase in the last year.
 
-Nice catch.
+This is a open source developers list, which generally makes it a
+meritocracy.  If Mauro were actually incompetent, I am quite confident
+that the developers who are *actively committing code* would not stand
+for it.  The reality is though that the people who work with him on a
+regular basis are in most cases the same people who have backed the
+S2API proposal.  It's not a coincidence that the same people that
+supported the proposal are major contributors to the project.
 
-Regards,
-Andy
- 
-> 
-> Good call, that was it.  Re-compiling my kenrel without I2C_DEV allowed 
-> the firmware to load and dvbscan to work as expected.
-> 
-> Thanks,
-> ...Patrick
-> 
+Are there communication/personality issues?  Certainly.  However,
+unless you are actively contributing code to the project, please leave
+the developers to work through this issue without your help.
 
+Thank you,
+
+Devin Heitmueller
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
