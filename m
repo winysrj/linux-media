@@ -1,16 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KbHNm-0000by-0Y
-	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 18:08:31 +0200
-Date: Thu, 04 Sep 2008 18:07:56 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <48BF6A09.3020205@linuxtv.org>
-Message-ID: <20080904160756.146270@gmx.net>
-MIME-Version: 1.0
-References: <48BF6A09.3020205@linuxtv.org>
-To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API - First release
+From: hermann pitton <hermann-pitton@arcor.de>
+To: VDR User <user.vdr@gmail.com>
+In-Reply-To: <a3ef07920809251842w23e68fe2ke79cf09b5f97e272@mail.gmail.com>
+References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
+	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
+	<20080925181943.GA12800@halim.local>
+	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
+	<48DBF224.2010109@gmx.de>
+	<37219a840809251340n7c588667xd18982f78e68a2ec@mail.gmail.com>
+	<d9def9db0809251400r331c0667k733486a013eccefe@mail.gmail.com>
+	<1222385832.4589.41.camel@pc10.localdom.local>
+	<a3ef07920809251814r4abbca6lc2e89ed5b3c5f2f0@mail.gmail.com>
+	<1222391910.4589.45.camel@pc10.localdom.local>
+	<a3ef07920809251842w23e68fe2ke79cf09b5f97e272@mail.gmail.com>
+Date: Fri, 26 Sep 2008 04:06:36 +0200
+Message-Id: <1222394796.4589.61.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point
+	of	view
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,57 +32,55 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Hello,
+
+Am Donnerstag, den 25.09.2008, 18:42 -0700 schrieb VDR User:
+> On Thu, Sep 25, 2008 at 6:18 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
+> > Am Donnerstag, den 25.09.2008, 18:14 -0700 schrieb VDR User:
+> >> On Thu, Sep 25, 2008 at 4:37 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
+> >> > Who the hell is VDR User <user.vdr@gmail.com> ?
+> >> > Klaus himself?
+> >>
+> >> No, I am not Klaus as could be assumed by simply looking at my email
+> >> address.  I am, however, a long-time linux dvb and VDR user.
+> >>
+> >> > At least he knows nothing about Mauro's real work on video4linux.
+> >>
+> >> If that comment was directed towards me then you're very wrong.  You'd
+> >> be making a terrible mistake if you think I just wandered in off the
+> >> street the other day.
+> >>
+> >> Regards,
+> >> -Derek
+> >
+> > Hi Uwe,
+> >
+> > welcome back.
+> >
+> > Cheers,
+> > Hermann
 > 
-> It's been a crazy few days, please forgive my short absence.
+> You should really pay more attention to the part that says:
 > 
-> What have I been doing? Well, rather than spending time discussing a new 
-> S2API on the mailing list, I wanted to actually produce a working series 
-> of patches that kernel and application developers could begin to test.
+> Regards,
+> -Derek
 > 
-
-Great, that's good to hear :) .
-
-> In addition, here's is a userland application that demonstrates tuning 
-> the current DVB-S/T/C and US ATSC modulations types using the new API. 
-> (www.steventoth.net/linux/s2/tune-v0.0.1.tgz)
+> In case you missed it, here it is for the third time....
 > 
-> A tuning demo app? What? Obviously, tuning older modulation types via 
-> the new API isn't a requirements, but it's a useful validation exercise 
-> for the new S2API. What _IS_ important is..... that it also demonstrates 
-> using the same tuning mechanism to tune DVB-S2 8PSK / NBC-QPSK 
-> modulation types, and also has rudimentary ISDB-T support for any 
-> developers specifically interested.
-> 
-> This S2API tree also contains support for the cx24116 demodulator 
-> driver, and the Hauppauge HVR4000 family of S2 products. So those 
-> interested testers/developers can modify the tune.c app demo and make 
-> changes specific to their area, and try experimenting with the new API 
-> if they desire. [1]
+> Regards,
+> -Derek
 
-Even better!
- 
-> Obviously, tune.c isn't intelligent, it's not a replacement for szap, 
-> tzap or whatever - it's simply a standalone S2API test tool, that 
-> demonstrates the important API interface.
+Come down, there is really enough work for everyone.
 
-> 
-> If anyone is willing to pull the tree and begin testing with the tune.c 
-> app then please post all feedback on this thread. [2]
+So in the end, you publicly announce to kill me and are sure do to the
+right thing here?
 
-I will test it with the HVR4000.
+Because you are Derek?
 
-Looking at the code in dvb_frontend.c I think TV_SET_TONE and TV_SET_VOLTAGE don't do
-anything. Or am I missing something?
+Think twice.
 
-Regards,
-Hans
+Hermann
 
--- 
-Release early, release often.
 
-Ist Ihr Browser Vista-kompatibel? Jetzt die neuesten 
-Browser-Versionen downloaden: http://www.gmx.net/de/go/browser
 
 _______________________________________________
 linux-dvb mailing list
