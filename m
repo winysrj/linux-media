@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1KiAEZ-0000fB-Ui
-	for linux-dvb@linuxtv.org; Tue, 23 Sep 2008 17:55:28 +0200
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: Manu Abraham <abraham.manu@gmail.com>
-Date: Tue, 23 Sep 2008 18:48:15 +0300
-References: <!&!AAAAAAAAAAAYAAAAAAAAACQaAAE2cqNLuI5vSe3nryTCgAAAEAAAAEH2unQOalpGjvGmwr9GMIQBAAAAAA==@stahurabrenner.com>
-	<200809231755.55023.liplianin@tut.by> <48D90868.2020102@gmail.com>
-In-Reply-To: <48D90868.2020102@gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809231848.15885.liplianin@tut.by>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Start making stv0903, stv0900, stv6110 support
+	(envelope-from <sonofzev@iinet.net.au>) id 1Kj6zg-0002vR-Sz
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 08:40:03 +0200
+From: allan k <sonofzev@iinet.net.au>
+To: Paul Chubb <paulc@singlespoon.org.au>
+In-Reply-To: <48DC7EF0.3050205@singlespoon.org.au>
+References: <1222402903.8329.4.camel@media1>
+	<48DC7EF0.3050205@singlespoon.org.au>
+Date: Fri, 26 Sep 2008 16:39:45 +1000
+Message-Id: <1222411185.8172.2.camel@media1>
+Mime-Version: 1.0
+Cc: linux dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] unknown v4l symbols from dmesg on reboot
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,20 +20,213 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMjMgU2VwdGVtYmVyIDIwMDggMTg6MTY6NTYgTWFudSBBYnJhaGFtIM7B
-0MnTwcwowSk6Cj4gSWdvciBNLiBMaXBsaWFuaW4gd3JvdGU6Cj4gPiBMaW51eHR2IGNvbW11bml0
-eSwgbGV0IHlvdSBrbm93Ogo+ID4gU3RhcnQgdG8gd29yayBvbiBzdHYwOTAwLCBzdHYwOTAzLCBz
-dHY2MTEwIGRyaXZlcnMKPgo+IEkgaGF2ZSBkb25lIHF1aXRlIHNvbWUgd29yayBvbiB0aGlzIGNv
-bWJpbmF0aW9uLCB3aGljaCBpcyBvZmZpY2lhbGx5Cj4gc3VwcG9ydGVkIGJ5IFNUTSBhcyB3ZWxs
-LiBJIGNhbiBwdXNoIG91dCB0aGUgZHJpdmVycyBhcyBzb29uIGFzIFNUTQo+IGdpdmVzIG1lIHRo
-ZSBnbyBvbiBpdC4KPgo+IFJlZ2FyZHMsCj4gTWFudQoKSXQgaXMgZ29vZCBuZXdzCk15IHdvcnJ5
-IGlzIG9ubHkgdGltZQoKUmVnYXJkcwpJZ29yCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51
-eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9s
-aW51eC1kdmI=
+Thanks Paul 
+
+Unfortuately removing all the drivers and doing 'make install' again,
+didn't work. 
+
+For the meantime, I have added the relevant modprobe -r and modprobe
+lines into my /etc/conf.d/local.start file. This is a nice gentoo
+facility that provides a workaround for problems like this
+
+Hopefully before too long the driver I need will be in-kernel. 
+
+cheers
+
+Allan 
+
+
+On Fri, 2008-09-26 at 16:19 +1000, Paul Chubb wrote:
+> Hi Allan,
+> this is caused by mismatch between components of the v4l-dvb drivers. 
+> You see this behaviour when part of the compiled code is replaced by a 
+> new version but some of the old code is still there. Specifically you 
+> generally see this if the kernel has some of the v4l stuff compiled in 
+> and not as modules. The other cause that I personally have seen is where 
+> a driver is removed from the newer code because it is no longer needed 
+> however when you do the make install, the old driver remains. In that 
+> case what I did was to remove everything in the module video directory 
+> before doing a make install.
+> 
+> HTH
+> 
+> Cheers Paul
+> 
+> allan k wrote:
+> > Hi 
+> >
+> > After upgrading to 2.6.26 and updating my v4l-dvb modules last night. I
+> > get alot of messages about unknown symbols and the driver fails to
+> > start. (at end of message)
+> >
+> > IF I do a modprobe -r on my bt878 and cx23885 modules and the reload
+> > them with modprobe everything works fine. 
+> >
+> > Is there a way to fix this?
+> >
+> > cheers
+> >
+> > Allan
+> >
+> > pci 0000:05:00.0: Boot video device
+> > videobuf_dma_sg: disagrees about version of symbol videobuf_alloc
+> > videobuf_dma_sg: Unknown symbol videobuf_alloc
+> > videobuf_dma_sg: disagrees about version of symbol
+> > videobuf_queue_core_init
+> > videobuf_dma_sg: Unknown symbol videobuf_queue_core_init
+> > videobuf_dma_sg: disagrees about version of symbol videobuf_alloc
+> > videobuf_dma_sg: Unknown symbol videobuf_alloc
+> > videobuf_dma_sg: disagrees about version of symbol
+> > videobuf_queue_core_init
+> > videobuf_dma_sg: Unknown symbol videobuf_queue_core_init
+> > videobuf_dvb: disagrees about version of symbol videobuf_read_stop
+> > videobuf_dvb: Unknown symbol videobuf_read_stop
+> > videobuf_dvb: disagrees about version of symbol videobuf_waiton
+> > videobuf_dvb: Unknown symbol videobuf_waiton
+> > videobuf_dvb: disagrees about version of symbol
+> > videobuf_queue_to_vmalloc
+> > videobuf_dvb: Unknown symbol videobuf_queue_to_vmalloc
+> > videobuf_dvb: disagrees about version of symbol videobuf_read_start
+> > videobuf_dvb: Unknown symbol videobuf_read_start
+> > videobuf_dma_sg: disagrees about version of symbol videobuf_alloc
+> > videobuf_dma_sg: Unknown symbol videobuf_alloc
+> > videobuf_dma_sg: disagrees about version of symbol
+> > videobuf_queue_core_init
+> > videobuf_dma_sg: Unknown symbol videobuf_queue_core_init
+> > Linux video capture interface: v2.00
+> > cx23885: disagrees about version of symbol videobuf_streamoff
+> > cx23885: Unknown symbol videobuf_streamoff
+> > cx23885: disagrees about version of symbol videobuf_poll_stream
+> > cx23885: Unknown symbol videobuf_poll_stream
+> > cx23885: disagrees about version of symbol videobuf_read_stop
+> > cx23885: Unknown symbol videobuf_read_stop
+> > cx23885: Unknown symbol videobuf_dma_free
+> > cx23885: disagrees about version of symbol videobuf_reqbufs
+> > cx23885: Unknown symbol videobuf_reqbufs
+> > cx23885: disagrees about version of symbol videobuf_waiton
+> > cx23885: Unknown symbol videobuf_waiton
+> > cx23885: disagrees about version of symbol videobuf_dqbuf
+> > cx23885: Unknown symbol videobuf_dqbuf
+> > cx23885: Unknown symbol videobuf_queue_sg_init
+> > cx23885: Unknown symbol videobuf_dvb_unregister
+> > cx23885: Unknown symbol videobuf_dma_unmap
+> > cx23885: disagrees about version of symbol videobuf_read_stream
+> > cx23885: Unknown symbol videobuf_read_stream
+> > cx23885: Unknown symbol videobuf_dvb_register
+> > cx23885: disagrees about version of symbol videobuf_querybuf
+> > cx23885: Unknown symbol videobuf_querybuf
+> > cx23885: disagrees about version of symbol videobuf_qbuf
+> > cx23885: Unknown symbol videobuf_qbuf
+> > cx23885: disagrees about version of symbol videobuf_read_one
+> > cx23885: Unknown symbol videobuf_read_one
+> > cx23885: disagrees about version of symbol videobuf_iolock
+> > cx23885: Unknown symbol videobuf_iolock
+> > cx23885: disagrees about version of symbol videobuf_streamon
+> > cx23885: Unknown symbol videobuf_streamon
+> > cx23885: disagrees about version of symbol videobuf_queue_cancel
+> > cx23885: Unknown symbol videobuf_queue_cancel
+> > cx23885: disagrees about version of symbol videobuf_mmap_mapper
+> > cx23885: Unknown symbol videobuf_mmap_mapper
+> > cx23885: Unknown symbol videobuf_to_dma
+> > cx23885: disagrees about version of symbol videobuf_mmap_free
+> > cx23885: Unknown symbol videobuf_mmap_free
+> > bttv: disagrees about version of symbol videobuf_streamoff
+> > bttv: Unknown symbol videobuf_streamoff
+> > bttv: disagrees about version of symbol videobuf_poll_stream
+> > bttv: Unknown symbol videobuf_poll_stream
+> > bttv: disagrees about version of symbol __videobuf_mmap_setup
+> > bttv: Unknown symbol __videobuf_mmap_setup
+> > bttv: Unknown symbol videobuf_dma_free
+> > bttv: disagrees about version of symbol videobuf_reqbufs
+> > bttv: Unknown symbol videobuf_reqbufs
+> > bttv: disagrees about version of symbol videobuf_waiton
+> > bttv: Unknown symbol videobuf_waiton
+> > bttv: disagrees about version of symbol videobuf_queue_is_busy
+> > bttv: Unknown symbol videobuf_queue_is_busy
+> > bttv: disagrees about version of symbol videobuf_dqbuf
+> > bttv: Unknown symbol videobuf_dqbuf
+> > bttv: disagrees about version of symbol videobuf_stop
+> > bttv: Unknown symbol videobuf_stop
+> > bttv: Unknown symbol videobuf_queue_sg_init
+> > bttv: Unknown symbol videobuf_dma_unmap
+> > bttv: disagrees about version of symbol videobuf_read_stream
+> > bttv: Unknown symbol videobuf_read_stream
+> > bttv: Unknown symbol videobuf_sg_alloc
+> > bttv: disagrees about version of symbol videobuf_querybuf
+> > bttv: Unknown symbol videobuf_querybuf
+> > bttv: disagrees about version of symbol videobuf_qbuf
+> > bttv: Unknown symbol videobuf_qbuf
+> > bttv: disagrees about version of symbol videobuf_read_one
+> > bttv: Unknown symbol videobuf_read_one
+> > bttv: disagrees about version of symbol videobuf_iolock
+> > bttv: Unknown symbol videobuf_iolock
+> > bttv: disagrees about version of symbol videobuf_streamon
+> > bttv: Unknown symbol videobuf_streamon
+> > bttv: disagrees about version of symbol videobuf_next_field
+> > bttv: Unknown symbol videobuf_next_field
+> > bttv: disagrees about version of symbol videobuf_mmap_mapper
+> > bttv: Unknown symbol videobuf_mmap_mapper
+> > bttv: Unknown symbol videobuf_to_dma
+> > bttv: disagrees about version of symbol videobuf_mmap_free
+> > bttv: Unknown symbol videobuf_mmap_free
+> > bttv: disagrees about version of symbol videobuf_streamoff
+> > bttv: Unknown symbol videobuf_streamoff
+> > bttv: disagrees about version of symbol videobuf_poll_stream
+> > bttv: Unknown symbol videobuf_poll_stream
+> > bttv: disagrees about version of symbol __videobuf_mmap_setup
+> > bttv: Unknown symbol __videobuf_mmap_setup
+> > bttv: Unknown symbol videobuf_dma_free
+> > bttv: disagrees about version of symbol videobuf_reqbufs
+> > bttv: Unknown symbol videobuf_reqbufs
+> > bttv: disagrees about version of symbol videobuf_waiton
+> > bttv: Unknown symbol videobuf_waiton
+> > bttv: disagrees about version of symbol videobuf_queue_is_busy
+> > bttv: Unknown symbol videobuf_queue_is_busy
+> > bttv: disagrees about version of symbol videobuf_dqbuf
+> > bttv: Unknown symbol videobuf_dqbuf
+> > bttv: disagrees about version of symbol videobuf_stop
+> > bttv: Unknown symbol videobuf_stop
+> > bttv: Unknown symbol videobuf_queue_sg_init
+> > bttv: Unknown symbol videobuf_dma_unmap
+> > bttv: disagrees about version of symbol videobuf_read_stream
+> > bttv: Unknown symbol videobuf_read_stream
+> > bttv: Unknown symbol videobuf_sg_alloc
+> > bttv: disagrees about version of symbol videobuf_querybuf
+> > bttv: Unknown symbol videobuf_querybuf
+> > bttv: disagrees about version of symbol videobuf_qbuf
+> > bttv: Unknown symbol videobuf_qbuf
+> > bttv: disagrees about version of symbol videobuf_read_one
+> > bttv: Unknown symbol videobuf_read_one
+> > bttv: disagrees about version of symbol videobuf_iolock
+> > bttv: Unknown symbol videobuf_iolock
+> > bttv: disagrees about version of symbol videobuf_streamon
+> > bttv: Unknown symbol videobuf_streamon
+> > bttv: disagrees about version of symbol videobuf_next_field
+> > bttv: Unknown symbol videobuf_next_field
+> > bttv: disagrees about version of symbol videobuf_mmap_mapper
+> > bttv: Unknown symbol videobuf_mmap_mapper
+> > bttv: Unknown symbol videobuf_to_dma
+> > bttv: disagrees about version of symbol videobuf_mmap_free
+> > bttv: Unknown symbol videobuf_mmap_free
+> >
+> >
+> >
+> > _______________________________________________
+> > linux-dvb mailing list
+> > linux-dvb@linuxtv.org
+> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >
+> >   
+> 
+> 
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
