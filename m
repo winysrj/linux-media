@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from scing.com ([217.160.110.58])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <janne-dvb@grunau.be>) id 1KioOW-0001Fr-Ou
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 12:48:25 +0200
-From: Janne Grunau <janne-dvb@grunau.be>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <o.endriss@gmx.de>) id 1Kj9t7-0004Ic-Rq
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 11:45:30 +0200
+From: Oliver Endriss <o.endriss@gmx.de>
 To: linux-dvb@linuxtv.org
-Date: Thu, 25 Sep 2008 12:48:20 +0200
-References: <48DB3388.2030303@verbraak.org>
-In-Reply-To: <48DB3388.2030303@verbraak.org>
+Date: Fri, 26 Sep 2008 11:44:36 +0200
+References: <200809241922.16748@orion.escape-edv.de>
+In-Reply-To: <200809241922.16748@orion.escape-edv.de>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200809251248.20557.janne-dvb@grunau.be>
-Subject: Re: [linux-dvb] [RFC] Let the future decide between the two.
+Message-Id: <200809261144.36477@orion.escape-edv.de>
+Cc: v4l-dvb-maintainer@linuxtv.org, vdr@linuxtv.org
+Subject: Re: [linux-dvb] [Wanted] dvb-ttpci maintainer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,40 +26,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 25 September 2008 08:45:28 Michel Verbraak wrote:
-> I have been following the story about the discussion of the future of
-> the DVB API for the last two years and after seen all the discussion
-> I would like to propose the following:
->
-> - Keep the two different DVB API sets next to one another. Both
-> having a space on Linuxtv.org to explain their knowledge and how to
-> use them. - Each with their own respective maintainers to get stuff
-> into the kernel. I mean V4L had two versions.
-> - Let driver developers decide which API they will follow. Or even
-> develop for both.
-> - Let application developers decide which API they will support.
-> - Let distribution packagers decide which API they will have
-> activated by default in their distribution.
-> - Let the end users decide which one will be used most. (Probably
-> they will decide on: Is my hardware supported or not).
-> - If democracy is that strong one of them will win or maybey the two
-> will get merged and we, the end users, get best of both worlds.
->
-> As the subject says: This is a Request For Comment.
+Oliver Endriss wrote:
+> ...
 
-This is complete nonsense, distrobution packagers shouldn't decide which 
-API should be used, the API and all drivers should be in the kernel. 
-Having two tree is at best fragmentation and at worst a whole lot of 
-duplicated work.
-That should a user do if he has two devices which are only supported by 
-one of the trees? That's bad luck?
-Users can't decide because they are either forced by hardware or the 
-application to use a tree. The only way to avoid this duplicated work. 
+I would appreciate if people would stop the flame wars - at least
+in this thread.
 
-This is a stupid compromise proposal appeal both parties. A decision was 
-made S2API is already merged we should just with it.
+It was not my objective to start another thread which is worth to be
+redirected to /dev/null.
 
-Janne
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+----------------------------------------------------------------
 
 _______________________________________________
 linux-dvb mailing list
