@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.30])
+Received: from gordons.ginandtonic.no ([195.159.29.69])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1KdF0u-0007pS-ED
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 04:01:02 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so1284981yxg.41
-	for <linux-dvb@linuxtv.org>; Tue, 09 Sep 2008 19:00:56 -0700 (PDT)
-Message-ID: <37219a840809091900u344e61dkc1590179ce052c78@mail.gmail.com>
-Date: Tue, 9 Sep 2008 22:00:55 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "William Austin" <bsdskin@yahoo.com>
-In-Reply-To: <868475.15080.qm@web31102.mail.mud.yahoo.com>
+	(envelope-from <anders@ginandtonic.no>) id 1Kj807-0006Ci-UR
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 09:44:33 +0200
+Message-ID: <48DC92B8.5090406@ginandtonic.no>
+Date: Fri, 26 Sep 2008 09:43:52 +0200
+From: Anders Semb Hermansen <anders@ginandtonic.no>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <868475.15080.qm@web31102.mail.mud.yahoo.com>
+To: Darron Broad <darron@kewl.org>
+References: <953A45C4-975B-4A05-8B41-AE8A486D0CA6@ginandtonic.no>
+	<5584.1222273099@kewl.org>
+	<F70AC72F-8DF3-4A9A-BFA1-A4FED9D3EABC@ginandtonic.no>
+	<6380.1222276810@kewl.org>
+	<8C08530B-BAD7-4E83-B1CA-6AB66EE9F53F@ginandtonic.no>
+	<48DA94F7.1090005@linuxtv.org> <23840.1222386126@kewl.org>
+In-Reply-To: <23840.1222386126@kewl.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Hauppauge HVR-1950 with Ubuntu Intrepid
+Subject: Re: [linux-dvb] HVR-4000 and analogue tv
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,39 +30,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-William,
+Darron Broad wrote:
+> Two issues have been found with what's been highlighted here.
+> 
+> One has been discovered in cx88-video and another in mythtv.
+> 
+> You will be happy to know that both are fixed.
+> 
+> You can find the mythtv fix here:
+> 	http://dev.kewl.org/v4l-dvb/TVRec_TuningNewRecorder_mythtv-0.21-fixes-18432.diff
+> 
+> The cx88-video fix is also available in the same directory:
+> 	http://dev.kewl.org/v4l-dvb/v4l-dvb-cx88-atomic-9029.diff
+> 
+> From what I can see, only the former is necessary in your case but
+> you can apply the latter if you wish.
 
-On Tue, Sep 9, 2008 at 9:52 PM, William Austin <bsdskin@yahoo.com> wrote:
-[snip]
-> If I hadn't already checked out the pvrusb2 home page and read the information there, I wouldn't be feeling patronised on a mailing list asking for help.  But then, I understand requests like this can get tedious, so no worries.
+Thanks Darron. I'll guess I wait and see what happens with:
+http://svn.mythtv.org/trac/ticket/5744
 
-Sorry about that... I couldn't know for sure whether you had seen that
-website or not.
+With working analogue I can look forward to November 11th when DVB-T 
+broadcast begins in my area in Norway.
 
-> I just rebooted with the device unplugged.  Here is the end of my dmesg (the changes after I plugged in the HVR-1950):
-> [ 5115.393036] usb 2-2: new high speed USB device using ehci_hcd and address 12
-> [ 5115.529015] usb 2-2: configuration #1 chosen from 1 choice
-> [ 5115.616658] Linux video capture interface: v2.00
-> [ 5115.672945] usbcore: registered new interface driver pvrusb2
-> [ 5115.674849] pvrusb2: Hauppauge WinTV-PVR-USB2 MPEG2 Encoder/Tuner : V4L in-tree version
-> [ 5115.674857] pvrusb2: Debug mask is 31 (0x1f)
-> [ 5116.673636] firmware: requesting v4l-pvrusb2-73xxx-01.fw
-> [ 5116.697396] pvrusb2: Device microcontroller firmware (re)loaded; it should now reset and reconnect.
-> [ 5116.861037] usb 2-2: USB disconnect, address 12
-> [ 5116.862449] pvrusb2: Device being rendered inoperable
-> [ 5118.488036] usb 2-2: new high speed USB device using ehci_hcd and address 13
-> [ 5118.625005] usb 2-2: configuration #1 chosen from 1 choice
->
-> Now, for the first time (and it'd have to be after I've already written to the list asking about it) it seems to load the firmware correctly; however, I'm still without a device node for it.
 
-Now this is interesting.  Can you show me what lsusb looks like after the above?
-
-Something indeed looks wrong.
-
-Also -- just to confirm -- I am assuming that you are using the stock
-intrepid 2.6.27-2 kernel?  Please show me the output from 'uname -r'
-
--Mike
+Thanks again,
+Anders
 
 _______________________________________________
 linux-dvb mailing list
