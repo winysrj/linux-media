@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1Keea6-0001NK-Fg
-	for linux-dvb@linuxtv.org; Sun, 14 Sep 2008 01:31:11 +0200
-Message-ID: <48CC4D35.3000003@gmail.com>
-Date: Sun, 14 Sep 2008 03:31:01 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+From: Christophe Thommeret <hftom@free.fr>
+To: linux-dvb@linuxtv.org
+Date: Fri, 26 Sep 2008 03:28:09 +0200
+References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
+	<a3ef07920809251814r4abbca6lc2e89ed5b3c5f2f0@mail.gmail.com>
+	<1222391910.4589.45.camel@pc10.localdom.local>
+In-Reply-To: <1222391910.4589.45.camel@pc10.localdom.local>
 MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@gmail.com>
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>	
-	<48C66829.1010902@grumpydevil.homelinux.org>	
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>	
-	<48CC42D8.8080806@gmail.com>
-	<d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
-In-Reply-To: <d9def9db0809131556i6f0d07aci49ab288df38a8d5e@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Content-Disposition: inline
+Message-Id: <200809260328.09362.hftom@free.fr>
+Cc: Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [linux-dvb]
+	=?iso-8859-1?q?=5BANNOUNCE=5D_DVB_API_improvements_En?=
+	=?iso-8859-1?q?d-user_point_of=09view?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,90 +20,44 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Markus Rechberger wrote:
-> On Sun, Sep 14, 2008 at 12:46 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
->> Markus Rechberger wrote:
->>
->>> How many devices are currently supported by the multiproto API
->>> compared with the s2 tree?
->> The initial set of DVB-S2 multistandard devices supported by the
->> multiproto tree is follows. This is just the stb0899 based dvb-s2 driver
->> alone. There are more additions by 2 more modules (not devices), but for
->> the simple comparison here is the quick list of them, for which some of
->> the manufacturers have shown support in some way. (There has been quite
->> some contributions from the community as well.):
->>
->> (Also to be noted is that, some BSD chaps also have shown interest in
->> the same)
->>
-> 
-> they're heavy into moving the whole framework over as far as I've seen
-> yes, also including yet unmerged drivers.
+Le Friday 26 September 2008 03:18:30 hermann pitton, vous avez =E9crit=A0:
+> Am Donnerstag, den 25.09.2008, 18:14 -0700 schrieb VDR User:
+> > On Thu, Sep 25, 2008 at 4:37 PM, hermann pitton <hermann-pitton@arcor.d=
+e> =
+
+wrote:
+> > > Who the hell is VDR User <user.vdr@gmail.com> ?
+> > > Klaus himself?
+> >
+> > No, I am not Klaus as could be assumed by simply looking at my email
+> > address.  I am, however, a long-time linux dvb and VDR user.
+> >
+> > > At least he knows nothing about Mauro's real work on video4linux.
+> >
+> > If that comment was directed towards me then you're very wrong.  You'd
+> > be making a terrible mistake if you think I just wandered in off the
+> > street the other day.
+> >
+> > Regards,
+> > -Derek
+>
+> Hi Uwe,
+>
+> welcome back.
+
+LOL
 
 
-Using the same interface, the same applications will work there as well
-which is a bonus, but isn't the existing user interface GPL ? (A bit
-confused on that aspect)
+-- =
 
+Christophe Thommeret
 
->> * STB0899 based
->>
->> Anubis
->> Typhoon DVB-S2 PCI
->>
->> Azurewave/Twinhan
->> VP-1041
->> VP-7050
->>
->> Digital Now
->> AD SP400
->> AD SB300
->>
->> KNC1
->> TV Station DVB-S2
->> TV Station DVB-S2 Plus
->>
->> Pinnacle
->> PCTV Sat HDTV Pro USB 452e
->>
->> Satelco
->> TV Station DVB-S2
->> Easywatch HDTV USB CI
->> Easywatch HDTV PCI
->>
->> Technisat
->> Skystar HD
->> Skystar HD2
->> Skystar USB2 HDCI
->>
->> Technotrend
->> TT S2 3200
->> TT S2 3600
->> TT S2 3650
->>
->> Terratec
->> Cinergy S2 PCI HD
->> Cinergy S2 PCI HDCI
->>
-> 
-> those are pullable now against the current tree?
-
-
-These devices, depend upon the DVB API update without which it wouldn't
-work as they depend heavily on the DVB API framework. Without the
-updated framework, it doesn't make any sense to pull them: they won't
-even compile. The last but not least reason is that, the stb0899 driver
-is a DVB-S2 multistandard device which requires DVB-S2/DSS support
-additionally.
-
-Regards,
-Manu
 
 _______________________________________________
 linux-dvb mailing list
