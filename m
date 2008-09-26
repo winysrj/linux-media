@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1Kclds-0003xj-9E
-	for linux-dvb@linuxtv.org; Mon, 08 Sep 2008 20:39:19 +0200
-Message-ID: <48C5713C.8080101@gmail.com>
-Date: Mon, 08 Sep 2008 22:38:52 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
-MIME-Version: 1.0
-To: Hans Werner <HWerner4@gmx.de>
-References: <48C00822.4030509@gmail.com>	<48C01698.4060503@gmail.com>	<48C01A99.402@gmail.com>	<20080904204709.GA32329@linuxtv.org>	<d9def9db0809041632q54b734bcm124018d8e0f72635@mail.gmail.com>	<48C1380F.7050705@linuxtv.org>	<48C42851.8070005@koala.ie>	<d9def9db0809071252x708f1b1ch6c23cb3d2b5796e9@mail.gmail.com>	<48C5091F.3050807@koala.ie>	<d9def9db0809080521s70d95b65ma277b7f3049193b3@mail.gmail.com>	<20080908131913.GA11251@halim.local>	<48C54DBF.7080204@linuxtv.org>	<48C566E6.2010601@gmail.com>
-	<20080908181929.153310@gmx.net>
-In-Reply-To: <20080908181929.153310@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Oliver Endriss <o.endriss@gmx.de>
+In-Reply-To: <200809261714.58188@orion.escape-edv.de>
+References: <200809241922.16748@orion.escape-edv.de>
+	<1222306125.3323.80.camel@pc10.localdom.local>
+	<200809261714.58188@orion.escape-edv.de>
+Date: Fri, 26 Sep 2008 20:43:53 +0200
+Message-Id: <1222454633.2675.11.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: v4l-dvb-maintainer@linuxtv.org, linux-dvb@linuxtv.org, vdr@linuxtv.org
+Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [Wanted] dvb-ttpci maintainer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,18 +23,66 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hans Werner wrote:
 
-> Where's the beef? The drivers are missing.
-> http://linuxtv.org/pipermail/linux-dvb/2008-September/028445.html
+Am Freitag, den 26.09.2008, 17:14 +0200 schrieb Oliver Endriss:
+> hermann pitton wrote:
+> > Except of course a majority of plumbers at the same place at the same
+> > time can create/propose some facts.
+> 
+> IMO decisions must be made where the community is, i.e. on the mailing
+> list. Not at a conference, no matter whether it is at one end of the
+> world or on the dark side of the moon. ;-(
+> 
+> To make it absolutely clear: 
+> I did not leave _because_ S2API was selected.
+> I left because it was done _this_way_.
+> 
+> Good for those, who are fine with these methods. I am not.
+
+What the others should have done previously?
+
+They could only wait.
+
+What should Mauro have done better?
+
+Say, after Manu's pull request suddenly appeared, thanks, I merge it now
+over night and forget about all efforts others did.
+
+> > If you attack people such hard as Manu did, also behind the visible
+> > lines sometimes, Marcel had a copy from me concerning Mauro and did say
+> > nothing, you must not wonder about people starting to defend themselves.
+> 
+> I consider flame wars ridiculous. I did not participate, and I will not
+> participate in the future.
+> 
+> I believe that I know very well what is going on. (During more than 30
+> years in software development I have seen all kinds of problems. I know
+> how people react and why things happen.)
+> 
+> > For sure the dirt was not started from v4l people.
+> >
+> > Think it over.
+> 
+> Unlikely. I made this decision after sleeping over it for a few days.
+> Now I feel much better.
+> 
+> Oliver
 > 
 
-If you have read the post or the links what i sent or what i wrote maybe
-you would have understood.
+You are the most trusted guy on linux-dvb for me.
 
-Also, i don't know whether you are the same Hans Werner as in here:
+Markus should have accept your help instead giving Mauro an ultimatum to
+merge his stuff within the next 24 hours and we would have one problem
+less.
 
-http://article.gmane.org/gmane.linux.drivers.dvb/44017
+Put at least a sticker on such guys like Uwe/Derek and Manu should do it
+as well.
+
+I'm open for everything fair to find a solution.
+
+Hermann
+
+
 
 _______________________________________________
 linux-dvb mailing list
