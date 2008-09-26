@@ -1,17 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from fg-out-1718.google.com ([72.14.220.159])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1Kc6BM-0003uZ-SI
-	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 00:23:06 +0200
-Message-ID: <48C302B6.5080503@gmail.com>
-Date: Sun, 07 Sep 2008 02:22:46 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <mrechberger@gmail.com>) id 1Kj5HP-00064w-RI
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 06:50:17 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so532108fga.25
+	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 21:50:08 -0700 (PDT)
+Message-ID: <d9def9db0809252150t9dd113axa9acd3d7c3817cb8@mail.gmail.com>
+Date: Fri, 26 Sep 2008 06:50:07 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Douglas Schilling Landgraf" <dougsland@gmail.com>
+In-Reply-To: <20080925212732.70e70bef@gmail.com>
 MIME-Version: 1.0
-To: Simon Baxter <linuxtv@nzbaxters.com>
-References: <2ef701c91059$12152840$7501010a@ad.sytec.com>
-In-Reply-To: <2ef701c91059$12152840$7501010a@ad.sytec.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT C-1501 patch and multiproto not compile
+Content-Disposition: inline
+References: <002101c91f1a$b13c4e60$0401a8c0@asrock> <48DBBAC0.7030201@gmx.de>
+	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
+	<20080925181943.GA12800@halim.local>
+	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
+	<48DBF224.2010109@gmx.de>
+	<37219a840809251340n7c588667xd18982f78e68a2ec@mail.gmail.com>
+	<d9def9db0809251400r331c0667k733486a013eccefe@mail.gmail.com>
+	<1222385832.4589.41.camel@pc10.localdom.local>
+	<20080925212732.70e70bef@gmail.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
+	view
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,36 +37,85 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Simon Baxter wrote:
-> Hi
-> 
-> I can't get the attached patch to compile with the current or with 7213
-> of the multi-proto branch.  I get the following errors.
-> 
-> Also, is the support for this TechnoTrend variant card going to be
-> included as standard?
-> 
-> [root@freddy multiproto]# make
-
-> 
-> Can anyone help?
+On Fri, Sep 26, 2008 at 3:27 AM, Douglas Schilling Landgraf
+<dougsland@gmail.com> wrote:
+> Hello,
+>
+> On Fri, 26 Sep 2008 01:37:12 +0200
+> hermann pitton <hermann-pitton@arcor.de> wrote:
+>
+>>
+>> Who the hell is VDR User <user.vdr@gmail.com> ?
+>> Klaus himself?
+>>
+>> At least he knows nothing about Mauro's real work on video4linux.
+>
+> Agreed. He's *totally lost* about Mauro's work.
+>
+>> To prepare the kernel sync and give the patchmonkey on Johannes'
+>> request for dvb too, are only a very few percent of his work and the
+>> "thanks" he had for this so far are it not worth at all ...
+>>
+>> On all other major projects, where he is the maintainer, such absurd
+>> stuff did never happen.
+>>
+>> The dvb guys inside don't get their stuff together and do exclude each
+>> other. At least Steve had no other choice than to come up with his own
+>> solution.
+>
+> Definitely.
+>
+>> What a bullshit to accuse Mauro of missing maintainer ship, all asked
+>> him to stay out as far as possible to continue to play there own
+>> games!
+>
+> For sure, there are people here trying this every single day.
+> Insted of spend time improving drivers they prefer attack Mauro and
+> people that are working hard in their spare time.
+>
+>> But they just load the daily dirt on him they preferably don't like to
+>> care themselves for at all, including patch reviewing in many parts.
+>>
+>> Also Mike did more integration work across the frameworks than anyone
+>> else during the last year. That by the way.
+>
+> Agreed.
 >
 
-I have just updated the multiproto tree. Please try a fresh clone.
-Also have applied the patch from Anssi Hannula:
+the merge request has been pushed out for for Manu's code.
 
-"add support for using multiproto drivers with old api"
+I'm also dealing alot with DVB and related issues (eg. the i2c messup,
+as for the cx88 based
+devices pcmcia iomem reservation back then .. and many other issues
+which went through other
+subsystems).
 
-thereby allowing the "multistandard" drivers to use the old applications
-such as szap, scan, (applications supported by the old API) without any
-modifications for the "QPSK" (DVB-S) mode of operation alone.
+That there's no progress at the other sides is not true:
+http://mcentral.de/hg/~mrec/em28xx-new/shortlog
 
-NOTE: The push is going on, it will be a short while for the repository
-to be populated.
+permanent development for the last couple of months.
+All you could do there is to take out the usbids copy it to
+linuxtv.org and play against all the people
+who contributed to the other tree and which is manufacturer supported.
 
-Regards,
-Manu
+I'd really better think twice if you want to keep up reverse
+engineered drivers with linux which are capable
+of melting devices (this happens with wrong configurations).
 
+Why am I interested in DVB? Because we have devices supporting
+multiple standards which are yet
+not directly supported by the DVB framework.
+
+The lies that I forked off the driver which I initially submitted to
+linuxtv is ridiculous as you modified the wiki
+site on linuxtv.org. See all that you and Mauro basically have done is
+copying the code from mcentral.de
+and trying to build up a second front against the manufacturer supported work.
+
+I'm seriously for a new Maintainer election here, let's see what will
+come up during the next few days.
+
+Markus
 
 _______________________________________________
 linux-dvb mailing list
