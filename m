@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8OJs6dK012013
-	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 15:54:06 -0400
-Received: from static.169.44.46.78.clients.your-server.de
-	(static.169.44.46.78.clients.your-server.de [78.46.44.169])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8OJrt1L007417
-	for <video4linux-list@redhat.com>; Wed, 24 Sep 2008 15:53:56 -0400
-Received: from [192.168.1.51] (d90-129-47-250.cust.tele2.lu [90.129.47.250])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by static.169.44.46.78.clients.your-server.de (Postfix) with ESMTP id
-	DE3C129A80FC for <video4linux-list@redhat.com>;
-	Wed, 24 Sep 2008 21:53:59 +0200 (CEST)
-Message-ID: <48DA9ACB.1020900@hardfalcon.net>
-Date: Wed, 24 Sep 2008 21:53:47 +0200
-From: hardfalcon <spam@hardfalcon.net>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8QBjGpa010665
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 07:45:17 -0400
+Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.187])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8QBhfmD012119
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 07:43:41 -0400
+Received: by fk-out-0910.google.com with SMTP id e30so882973fke.3
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 04:43:40 -0700 (PDT)
+Message-ID: <d9def9db0809260443w53d575b7s3857b424163ec1b@mail.gmail.com>
+Date: Fri, 26 Sep 2008 13:43:40 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Eduardo Fontes" <eduardo.fontes@gmail.com>
+In-Reply-To: <d9def9db0809251944g56462217sdc14a57c85db1b97@mail.gmail.com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: saa7134 PCI card (CTX917): FM radio not working
+Content-Disposition: inline
+References: <7b6d682a0809251804j1277af44i80c53529a3c33d62@mail.gmail.com>
+	<d9def9db0809251837k126b6b83n2803e56a00a7f961@mail.gmail.com>
+	<7b6d682a0809251923uaacc119u25cf5118625c03d0@mail.gmail.com>
+	<d9def9db0809251944g56462217sdc14a57c85db1b97@mail.gmail.com>
+Cc: video4linux-list@redhat.com, em28xx@mcentral.de
+Subject: Re: Pinnacle PCTV HD Pro Stick
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,68 +33,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, I got a Creatix CTX917 (there seem to exist multiple versions of
-this card, mine got for example on the outside 2 video in  (one cinch
-and one S-Video), a line in jack and 2 RF connectors, one for TV/DVB-T
-and one for the Radio atenna, on the inside there are 3 of these "4 pin
-CD to soundcard" like connectors, one in white, one in red and one in
-yellow).
+Hi,
 
-After I got DVB-T and normal TV to work, I wanted to be able to use the
-built-in FM radio, too. The radio tuner seems to be detected, as
-/dev/radio, /dev/radio1 and /dev/v4l/radio1 are created, but the "radio"
-tool isn't working, neither as user nor as root. It tunes, but there
-simply is not sound, and there are no radio signals detected if I use
-the "auto" mode of gqradio, either.
+On Fri, Sep 26, 2008 at 4:44 AM, Markus Rechberger
+<mrechberger@gmail.com> wrote:
+> On Fri, Sep 26, 2008 at 4:23 AM, Eduardo Fontes
+> <eduardo.fontes@gmail.com> wrote:
+>> Hi Markus,
+>>
+>> Ok. The .deb package that you send to me + tvtime ".deb" package (
+>> http://mcentral.de/tvtime/tvtime_1.0.2-1_i386.deb) my Pinnacle PCTV works
+>> with sound, but only in b/w NTSC. Brazil is PAL-M color standard and when I
+>> put in this TV Standard I get only noises and a disfigured green image. In
+>> NTSC the image is clear but only in grey scale and sound is fine. Some patch
+>> for this?
+>>
+>
+> I'm going to update the package in a few hours with the latest code.
+>
 
-My distro is Archlinux 64bit with all the latest updates, including
-those from testing and unstable repositories, so my kernel version is
-2.6.26.5. I'm using the stock kernel from the official Archlinux repos
-(package "kernel26", release "2.6.26.5-1").
+Ok here's the updated i386 package:
+http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-8_i386.deb
 
-I recently got a Hauppauge Nova-T (one of the first ones, with the old
-brown PCB and Philips chips), which is working flawlessly (my only
-problem is that I haven't found a way yet to select the DVB-T card I
-want to use in Kaffeine or any of the other DVB apps I've tried. Perhaps
-somebody could give me a hint?)
-
-Here is some more info:
------[lspci]--------------------
-02:0a.0 Multimedia controller: Philips Semiconductors SAA7134/SAA7135HL
-Video Broadcast Decoder (rev 01)
-    Subsystem: Creatix Polymedia GmbH Medion 7134
-    Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B- DisINTx-
-    Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-    Latency: 84 (21000ns min, 8000ns max)
-    Interrupt: pin A routed to IRQ 18
-    Region 0: Memory at efefe000 (32-bit, non-prefetchable) [size=1K]
-    Capabilities: [40] Power Management version 1
-        Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-        Status: D0 PME-Enable- DSel=0 DScale=1 PME-
-    Kernel driver in use: saa7134
-    Kernel modules: saa7134
---------------------[/lspci]-----
-
-
-Besides my problem with the CTX917, I'd have a more general question:
-(how) would it be possible to use the tuner of a TV card (analogue TV or
-DVB-T) as some kind of "universal receiver" for a software defined
-reciever? For me as a ham radio operator, a receiver being able to
-digitalize radio signals from such a broad spectrum as 800Mhz would be
-very interesting, especially considering that a "real" receiver (even
-just a handheld) would cost 5 times more than a cheap TV card for my
-computer. Of course, the ability to digitalize the "raw" signal from the
-air without any demodulation would be another great advantage over a
-traditional receiever (although I'd also be more than happy if I was
-just able to demodulate FM signals on this broad spectrum).
-
-
-
-Thanks a lot in adavance guys, you're doing a great job here! :)
-Pascal
+Markus
 
 --
 video4linux-list mailing list
