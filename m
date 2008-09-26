@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bis.amsnet.pl ([195.64.174.7] helo=host.amsnet.pl ident=mail)
+Received: from nf-out-0910.google.com ([64.233.182.189])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gasiu@konto.pl>) id 1KcL91-0005Qk-Rd
-	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 16:21:41 +0200
-Received: from dxr214.neoplus.adsl.tpnet.pl ([83.22.103.214]
-	helo=[192.168.1.3]) by host.amsnet.pl with esmtpa (Exim 4.67)
-	(envelope-from <gasiu@konto.pl>) id 1KcL95-0004GP-Kx
-	for linux-dvb@linuxtv.org; Sun, 07 Sep 2008 16:21:43 +0200
-Message-ID: <48C3E36E.5090107@konto.pl>
-Date: Sun, 07 Sep 2008 16:21:34 +0200
-From: Gasiu <gasiu@konto.pl>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KjH6b-0003FK-3d
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 19:27:51 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so435426nfb.11
+	for <linux-dvb@linuxtv.org>; Fri, 26 Sep 2008 10:27:45 -0700 (PDT)
+Message-ID: <412bdbff0809261027w501b469ehd0f09d392f600fad@mail.gmail.com>
+Date: Fri, 26 Sep 2008 13:27:45 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Oliver Kleinecke" <okleinecke@web.de>
+In-Reply-To: <1959297291@web.de>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Multiproto+SkystarHD-very slow decoding
+Content-Disposition: inline
+References: <1959297291@web.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Need help getting the remote of a Nova-T USB-Stick
+	to work
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,60 +29,56 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I use SkyStar HD + SkyStar HD CI Slot + Aston v2.18 + Cyfra+ 
-(Poland)(Seca) + Multiproto + Old-Api Patch + Kaffeine, and I've got a 
-strange problem - on some freq. decoding doesn't work fine - I must wait 
-a long time (up to 30min.) to watch program :-( - for example:
+2008/9/26 Oliver Kleinecke <okleinecke@web.de>:
+> I compiled the latest stable v4l-dvb-drivers, everything worked fine, and i`m able to watch tv with kaffeine and mythtv already.
+> Now i would like to get the remote to work .. the ir-receiver shows up during boot, giving the following ouput :
+>
+> "kernel: input: IR-receiver inside an USB DVB receiver as /class/input/input7".
+>
+> If i do a lsinput, the device shows up like this :
+>
+> /dev/input/event7
+>   bustype : BUS_USB
+>   vendor  : 0x2040
+>   product : 0x7070
+>   version : 256
+>   name    : "IR-receiver inside an USB DVB re"
+>   phys    : "usb-0001:10:1b.2-1/ir0"
+>   bits ev : EV_SYN EV_KEY
+>
+>
+> so i`m pretty sure i am not toooo far away from the solution.
+>
+> but if i press a button on the rc, it just gives me kernel messages like this :
+>
+> "kernel: dib0700: Unknown remote controller key: 1D  2  0  0"
+>
+>
+> After a bit of googling, i found out, that there seems to be a solution, using a diff file, which i downloaded already, its attached to this mail.
+>
+> Now i need a bit of support in using this diff-file correctly, and some infos on how to continue then..
 
-Hotbird 7A (13.0E) - 10719.00 V - MINIMINI
-Hotbird 7A (13.0E) - 11278.36 V - HBO, HBO2, HBO Commedy
+That patch looks pretty straightforward.  Where did it come from?
+Have you tried it out:
 
-and on others freq. everything works fine and fast - for example:
+cd v4l-dvb
+patch -p0 < path_to_patch_file
+make
+make install
+reboot
+See if it works...
 
-Hotbird 7A (13.0E) - 10892.00 H  - Canal+ Polska,TVP1
-Hotbird 7A (13.0E) - 11393.44 V  - TVN, TVN24
+(or you might have to do "patch -p1", depending on the patch)
 
-logs from kaffeine on HBO:
+If it works for you, it can be checked in so others won't have to deal
+with the problem in the future.
 
-Tuning to: HBO / autocount: 3
-Using DVB device 0:0 "STB0899 Multistandard"
-tuning DVB-S to 10719000 v 27500000
-inv:2 fecH:3
-DiSEqC: switch pos 0, 13V, loband (index 0)
-DiSEqC: e0 10 38 f0 00 00
-. LOCKED.
-NOUT: 1
-CamThread: started
-CamThread: just using the first cam slot
-PmtThread: started
-dvbEvents 0:0 started
-Tuning delay: 469 ms
-pipe opened
-demux_wavpack: (open_wv_file:127) open_wv_file: non-seekable inputs 
-aren't supported yet.
-xine pipe opened /home/gasiu/.kaxtv1.ts
-CamThread: cam 0 is ready
-CamThread: LLCI cam slot detected
-en50221_tl_handle_sb: Received T_SB for connection not in T_STATE_ACTIVE 
-from module on slot 00
-
-CamThread: [warning] polling the stack failed
-
- >>>> after 15 min. !!!!!!!!!!!
-
-PmtThread: new pmt received
-PmtThread: stopped
-CamThread: pmt sent to cam
-
-
-
-
-Can You tell me what's wrong?
+Devin
 
 -- 
-Pozdrawiam!
-Gasiu
-
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
