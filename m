@@ -1,25 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8Q74FPg017794
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 03:04:16 -0400
-Received: from comal.ext.ti.com (comal.ext.ti.com [198.47.26.152])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8Q745fG023171
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 03:04:05 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8Q73w5F031791
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 02:04:04 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8Q73vVI003006
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 12:33:57 +0530 (IST)
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Fri, 26 Sep 2008 12:33:58 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403DBFE5F43@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8QCc5ri029346
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 08:38:05 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8QCbpMO011511
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 08:37:52 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so668301fga.7
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 05:37:51 -0700 (PDT)
+Message-ID: <d9def9db0809260537j2ff6fc98mc133ca37a06c1bc4@mail.gmail.com>
+Date: Fri, 26 Sep 2008 14:37:51 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Salatiel Filho" <salatiel.filho@gmail.com>
+In-Reply-To: <d9def9db0809260517p3ddef5bby47eb52d6bb1fa948@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: videobuf_iolock function fails for USERPTR?
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <7b6d682a0809251804j1277af44i80c53529a3c33d62@mail.gmail.com>
+	<d9def9db0809251837k126b6b83n2803e56a00a7f961@mail.gmail.com>
+	<7b6d682a0809251923uaacc119u25cf5118625c03d0@mail.gmail.com>
+	<d9def9db0809251944g56462217sdc14a57c85db1b97@mail.gmail.com>
+	<d9def9db0809260443w53d575b7s3857b424163ec1b@mail.gmail.com>
+	<beb91d720809260508vc1e28d0m33daaa289c8cfe0b@mail.gmail.com>
+	<d9def9db0809260517p3ddef5bby47eb52d6bb1fa948@mail.gmail.com>
+Cc: video4linux-list@redhat.com, em28xx@mcentral.de
+Subject: Re: Pinnacle PCTV HD Pro Stick
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,35 +36,83 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Fri, Sep 26, 2008 at 2:17 PM, Markus Rechberger
+<mrechberger@gmail.com> wrote:
+> On Fri, Sep 26, 2008 at 2:08 PM, Salatiel Filho
+> <salatiel.filho@gmail.com> wrote:
+>> On Fri, Sep 26, 2008 at 8:43 AM, Markus Rechberger
+>> <mrechberger@gmail.com> wrote:
+>>> Hi,
+>>>
+>>> On Fri, Sep 26, 2008 at 4:44 AM, Markus Rechberger
+>>> <mrechberger@gmail.com> wrote:
+>>>> On Fri, Sep 26, 2008 at 4:23 AM, Eduardo Fontes
+>>>> <eduardo.fontes@gmail.com> wrote:
+>>>>> Hi Markus,
+>>>>>
+>>>>> Ok. The .deb package that you send to me + tvtime ".deb" package (
+>>>>> http://mcentral.de/tvtime/tvtime_1.0.2-1_i386.deb) my Pinnacle PCTV works
+>>>>> with sound, but only in b/w NTSC. Brazil is PAL-M color standard and when I
+>>>>> put in this TV Standard I get only noises and a disfigured green image. In
+>>>>> NTSC the image is clear but only in grey scale and sound is fine. Some patch
+>>>>> for this?
+>>>>>
+>>>>
+>>>> I'm going to update the package in a few hours with the latest code.
+>>>>
+>>>
+>>> Ok here's the updated i386 package:
+>>> http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-8_i386.deb
+>>>
+>>> Markus
+>>>
+>>> --
+>>> video4linux-list mailing list
+>>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>>
+>>
+>> Just curious , is there a way to get sound automatically using mplayer ?
+>>
+>
+> not yet, although it's on the roadmap to provide patches for this too...
+> The patched tvtime version tries to get a list of available audio
+> devices and tries to connect
+> it automaticaly with the default audio output device and copies the
+> data from A to B.
+> This is why the tvtime version on mcentral.de has automated audio
+> support in general it
+> has a few more features so that it will work guaranteed with most
+> hardware even with bad graphic
+> drivers. I provided an X11 output driver in order to not depend on
+> hardware acceleration support
+> if support is not available. This X11 output plugin uses ffmpeg and
+> optimized CPU algorithms for
+> scaling.
+>
+> You need to pass a parameter to mplayer, it's documented on mcentral.de
+>
+> eg.:
+>    mplayer -vf pp=l5 -tv
+> driver=v4l2:outfmt=yuy2:width=720:height=576:fps=25:chanlist=europe-west:
+>    input=1:forceaudio:alsa:adevice=hw.2:immediatemode=0 tv://
+>
+> you might search for foceaudio on mcentral.de it will show up a few
+> possibilities which endusers posted.
+>
 
-If I understand correctly, the videobuf_iolock function is responsible for 
-mapping user pages to kernel. This works fine as long as user application allocates 
-memory/buffer using some standard API (malloc/memalign).
+Just for the completion:
 
-But it fails where; user application has allocated memory/buffer using ioremap 
-from another driver. The use case scenario is something -
+amd64:
+http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-9_amd64.deb
+i386:
+http://mcentral.de/empia/20080926/empia-2.6.24-19-generic-8_i386.deb
 
-	- Open V4L2 device (which supports scatter gather DMA)
-	- Configure the parameters (especially .memory=V4L2_MEMORY_USERPTR)
-	- Request and query the buffer
-	- open another device which will be responsible for allocating memory
-		Either using ioremap/dma_alloc_coherent/get_free_pages
-	- Queue the buffers with buffer address received from previous step
+the generic amd64 empia driver is also updated now (i386/amd64 have
+their own versioning so 8/9
+has no relation with each other).
 
-Here it internally calls drv_prepare function, which call videobuf_iolock API for mapping the user pages to kernel and will create scatter-gather (dma->sglist) list. But this API returns from videobuf_dma_init_user_locked with -EFAULT.
-
-I found the get_user_pages returns due to flag VM_IO and VM_PFNMAP for the corresponding vma.
-
-Any suggestions on how can I achieve this?
-
-Thanks,
-Vaibhav Hiremath
-Senior Software Engg.
-Platform Support Products
-Texas Instruments Inc
-Ph: +91-80-25099927
-
+Markus
 
 --
 video4linux-list mailing list
