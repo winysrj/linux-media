@@ -1,15 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Christophe Thommeret <hftom@free.fr>
-To: Steven Toth <stoth@linuxtv.org>
-Date: Sun, 14 Sep 2008 17:27:32 +0200
-References: <48CA0355.6080903@linuxtv.org> <200809141646.01263.hftom@free.fr>
-	<48CD275D.7090301@linuxtv.org>
-In-Reply-To: <48CD275D.7090301@linuxtv.org>
+Received: from smtp-4.orange.nl ([193.252.22.249])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <michel@verbraak.org>) id 1Kj74n-0003U3-Lm
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 08:45:19 +0200
+Message-ID: <48DC84D5.2030504@verbraak.org>
+Date: Fri, 26 Sep 2008 08:44:37 +0200
+From: Michel Verbraak <michel@verbraak.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809141727.32436.hftom@free.fr>
-Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] S2API - Status  - Thu Sep 11th
+To: linux-dvb@linuxtv.org
+References: <48DB3388.2030303@verbraak.org>
+	<1222389776.2762.35.camel@morgan.walls.org>
+In-Reply-To: <1222389776.2762.35.camel@morgan.walls.org>
+Subject: Re: [linux-dvb] [RFC] Let the future decide between the two.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,62 +19,104 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le Sunday 14 September 2008 17:01:49 Steven Toth, vous avez =E9crit=A0:
-> Christophe Thommeret wrote:
-> > Le Saturday 13 September 2008 21:21:35 Steven Toth, vous avez =E9crit :
-> >>> First i tried old api (kaffeine)-> everything works as expected.
-> >>> Then i tried new API (with latest tune.c) -> nova-t and nova-s work,
-> >>> cinergyT2 doesn't. I've also noticed that FE_SET_PROPERTY ioctl always
-> >>> return -1, even when success..
-> >>> Then i tried old api again -> now dvb-s doesn't lock and dvb-t always
-> >>> lock on the freq used in tune.c
-> >>
-> >> Fixed in the current tree.
-> >
-> > Indeed, cache bug is now fixed, old api works as expected in all cases.
-> > (Exept for the cinergyT2 case off course)
+Andy Walls schreef:
+> On Thu, 2008-09-25 at 08:45 +0200, Michel Verbraak wrote:
+>   
+>> I have been following the story about the discussion of the future of 
+>> the DVB API for the last two years and after seen all the discussion I 
+>> would like to propose the following:
+>>
+>> - Keep the two different DVB API sets next to one another. Both having a 
+>> space on Linuxtv.org to explain their knowledge and how to use them.
+>> - Each with their own respective maintainers to get stuff into the 
+>> kernel. I mean V4L had two versions.
+>> - Let driver developers decide which API they will follow. Or even 
+>> develop for both.
+>> - Let application developers decide which API they will support.
+>> - Let distribution packagers decide which API they will have activated 
+>> by default in their distribution.
+>> - Let the end users decide which one will be used most. (Probably they 
+>> will decide on: Is my hardware supported or not).
+>>     
 >
-> Speaking of which, I looked at this yesterday. I'll post my feedback
-> back to Johannes thread, where I said I'd investigate.
+> Having two API's is a software maintenance burden both for kernel
+> developers and application dev's that want their stuff to "just work"
+> for the end user in all situations.
 >
-> > However, i see that GETting DTV_DELIVERY_SYSTEM always returns the cach=
-ed
-> > value, so at first (after modules (re)load) it returns 0. An application
-> > really needs to know the delivery system (and others usefull infos) to =
-be
-> > able to handle a device, like the old api FE_GET_INFO.
+> The purpose of an API is to insulate apps developers from kernel
+> changes.  What you propose is, I would think, the worst case scenario
+> for an application developer: an API that can change completely out from
+> under them at any time (e.g. at the choice of a distribution packager).
 >
-> Yes, talking with Darron we're talking about being able to identify the
-> existence of the API and capabilities.
+> If you really want that sort of choice for application developers, you
+> would build a library that is a thunking layer to present a different
+> API to the app than the in kernel API.  (I am not a serious application
+> developer, but for what it's worth, I don't think I would bother with
+> that unless I had a large complex app already written.)
 >
-> We have the DTV_FE_CAPABILITY_COUNT and DTV_FE_CAPABILITY (current
-> defined but not connected in dvb-core) which would be the natural place
-> to expose every older (and newer) feature of the demods.
+> Regards,
+> Andy
 >
-> The command you're referring to now does exactly what it's supposed to,
-> it selects your last SET value (or if the demod has provided a
-> .get_proeprty() callback), the demod could chose to answer differently.
-> In principle we could add a one line fix to the cx24116 demod
-> "c->delivery_system =3D SYS_DVBS2;" to solve your initial problem - but I
-> don't that's the correct approach.
->
-> When the phase #1 work is done we'll fill out the capabilities changes
-> in dvb-core and start to expose interesting features, like LNA,
-> diversity, delivery systems, power controls or anything else that the
-> linuxtv community thinks is generalized and useful. We will take these
-> steps carefully.
+>   
+Andy,
 
-Ok, good.
+I agree that the best solution is to have one working API (Application 
+Programming interface). But as we live in a complex world  we see the 
+same social events happening on the Linux DVB ML as in the real world 
+where we have two groups who think and say their solution is the best 
+and none is willing to cooperate with one another. We see a fight about 
+which group is the strongest measured by send in patches or who is able 
+to attend a single meeting.
 
--- =
+The main thing is that we have hardware developers who, I think, would 
+like their hardware being used by end users.  They spend time in 
+developing their hardware but do not sponsor developers to get the 
+hardware working in non Windows environments. The reason for this is 
+simple Windows is used most and more profitable. What I hear on this ML 
+is that the linux DVB developers do it in their free time and this, I 
+think, is not completely true. I think that for most of the current 
+developers that also respond on this mailing list there is a commercial 
+benefit in it to them or some company and we the end users must be happy 
+with whatever they produce or not produce.
 
-Christophe Thommeret
+What I would like to know from the current Linux DVB driver developers 
+is who is working for which company and gets paid for his work. If their 
+employers/contracters would like to have one common API they would 
+arrange that the developers could meet more.
+
+With DVB on linux we have different groups with different solutions for 
+different hardware but each hardware group has a (partial) working 
+solution. I as an end user will choose one of the hardware groups based 
+on price and user experience and follow the solution for this group.
+
+I as an end user will make the descision on what I think is best for me.
+
+Regards,
+
+Michel.
+
+>> - If democracy is that strong one of them will win or maybey the two 
+>> will get merged and we, the end users, get best of both worlds.
+>>     
+>
+>
+>   
+>> As the subject says: This is a Request For Comment.
+>>
+>> Regards,
+>>
+>> Michel (end user and application developer).
+>>     
+>
+>
+>   
+
 
 
 _______________________________________________
