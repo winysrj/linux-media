@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m855lHNr010899
-	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 01:47:17 -0400
-Received: from smtp-vbr13.xs4all.nl (smtp-vbr13.xs4all.nl [194.109.24.33])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m855l5XG018279
-	for <video4linux-list@redhat.com>; Fri, 5 Sep 2008 01:47:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Fri, 5 Sep 2008 07:47:02 +0200
-References: <2df568dc0809031448y3e70715codb5f3a0be505f6cf@mail.gmail.com>
-	<200809040822.09653.hverkuil@xs4all.nl>
-	<2df568dc0809041506w2c300f56r7b8cae3f2726c70@mail.gmail.com>
-In-Reply-To: <2df568dc0809041506w2c300f56r7b8cae3f2726c70@mail.gmail.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8Q74FPg017794
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 03:04:16 -0400
+Received: from comal.ext.ti.com (comal.ext.ti.com [198.47.26.152])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8Q745fG023171
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 03:04:05 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8Q73w5F031791
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 02:04:04 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8Q73vVI003006
+	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 12:33:57 +0530 (IST)
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Fri, 26 Sep 2008 12:33:58 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403DBFE5F43@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200809050747.02694.hverkuil@xs4all.nl>
-Cc: 
-Subject: Re: saa7134_empress standard vs input
+Content-Transfer-Encoding: 8bit
+Subject: videobuf_iolock function fails for USERPTR?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,64 +31,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 05 September 2008 00:06:00 Gordon Smith wrote:
-> On Thu, Sep 4, 2008 at 12:22 AM, Hans Verkuil <hverkuil@xs4all.nl> 
-wrote:
-> > On Wednesday 03 September 2008 23:48:39 Gordon Smith wrote:
-> > > Greetings -
-> > >
-> > > I have a RTD Technologies VFG7350 (saa7134 based, two channel,
-> > > hardware encoder per channel, no tuner) running current v4l-dvb
-> > > in 2.6.25-gentoo-r7.
-> > >
-> > > Short form question: Is it necessary to do something to connect
-> > > an input standard to an MPEG encoder?
-> > >
-> > > I seem to have a disconnect between input signal and the MPEG
-> > > encoder. In this case, there is a NTSC camera signal on the
-> > > input. Raw data and input selection are on video0. Raw data can
-> > > be read from and input selected on video0. MPEG encoder output is
-> > > on video2. MPEG data can be read from video2, but it looks like
-> > > PAL aspect with NTSC data (extra lines at bottom of image repeat
-> > > uppermost lines).
-> > >
-> > >
-> > > $ v4l2-ctl --get-standard --device /dev/video0
-> > > Video Standard = 0x0000b000
-> > >         NTSC-M/M-JP/M-KR
-> > > $ v4l2-ctl --get-standard --device /dev/video2
-> > > Video Standard = 0x000000ff
-> > >         PAL-B/B1/G/H/I/D/D1/K
-> > >
-> > >
-> > > The input standard is automatically selected by the hardware.
-> > > Is there something that needs to be set to match the standard
-> > > between input and encoder?
-> >
-> > I suspect I know what is wrong. After loading the driver
-> > run 'v4l2-ctl -s ntsc-m' and see if the capture now works. Ignore
-> > the standard as reported by video2: it's bogus and is unused.
-> >
-> > What I believe is happening is that the saa6752 is never told that
-> > the standard is NTSC when it is loaded the first time. But if you
-> > set it explicitly afterwards, then it probably works.
-> >
-> > Let me know what happens. If it is indeed a bug then I'll fix it.
->
-> I set the standard as above as well as just "ntsc" on another
-> attempt, but the the capture is still PAL size.
->
-> {{{
-> $ v4l2-ctl -s ntsc-m --device /dev/video0
-> Standard set to 00001000
-> }}}
+Hi,
 
-Hmm, I'd expected that to work. I'll have to test this myself during the 
-weekend.
+If I understand correctly, the videobuf_iolock function is responsible for 
+mapping user pages to kernel. This works fine as long as user application allocates 
+memory/buffer using some standard API (malloc/memalign).
 
-Regards,
+But it fails where; user application has allocated memory/buffer using ioremap 
+from another driver. The use case scenario is something -
 
-	Hans
+	- Open V4L2 device (which supports scatter gather DMA)
+	- Configure the parameters (especially .memory=V4L2_MEMORY_USERPTR)
+	- Request and query the buffer
+	- open another device which will be responsible for allocating memory
+		Either using ioremap/dma_alloc_coherent/get_free_pages
+	- Queue the buffers with buffer address received from previous step
+
+Here it internally calls drv_prepare function, which call videobuf_iolock API for mapping the user pages to kernel and will create scatter-gather (dma->sglist) list. But this API returns from videobuf_dma_init_user_locked with -EFAULT.
+
+I found the get_user_pages returns due to flag VM_IO and VM_PFNMAP for the corresponding vma.
+
+Any suggestions on how can I achieve this?
+
+Thanks,
+Vaibhav Hiremath
+Senior Software Engg.
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
+
 
 --
 video4linux-list mailing list
