@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8C9oYcs030855
-	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 05:50:34 -0400
-Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.189])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8C9oLql001670
-	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 05:50:22 -0400
-Received: by ti-out-0910.google.com with SMTP id 24so539514tim.7
-	for <video4linux-list@redhat.com>; Fri, 12 Sep 2008 02:50:20 -0700 (PDT)
-Message-ID: <48CB89C2.9020301@gmail.com>
-Date: Sat, 13 Sep 2008 17:37:06 +0800
-From: jianpu <james.s.pu@gmail.com>
-MIME-Version: 1.0
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8Q15CfB028109
+	for <video4linux-list@redhat.com>; Thu, 25 Sep 2008 21:05:12 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.232])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8Q14xjS007135
+	for <video4linux-list@redhat.com>; Thu, 25 Sep 2008 21:04:59 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so689150rvb.51
+	for <video4linux-list@redhat.com>; Thu, 25 Sep 2008 18:04:58 -0700 (PDT)
+Message-ID: <7b6d682a0809251804j1277af44i80c53529a3c33d62@mail.gmail.com>
+Date: Thu, 25 Sep 2008 22:04:57 -0300
+From: "Eduardo Fontes" <eduardo.fontes@gmail.com>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: set capture chip with V4L api?
+Content-Disposition: inline
+Subject: Pinnacle PCTV HD Pro Stick
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,13 +27,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, all
-When i want to change the brightness(etc...) of video stream, could i 
-set  capture chip(like tw9910) with V4L API.
-Thanks in advance
-Regards
-     jpu
+Hello fellows,
 
+I use Ubuntu Hardy (8.04), kernel 2.6.24-19, and I try to install a Pinnacle
+PCTV HD Pro Stick USB2.0 device without success.
+I download the v4l newer source drivers from Mercurial and compile it. When
+module is loaded, it detects the USB device (em28xx #0: Found Pinnacle PCTV
+HD Pro Stick), but sound (em28xx Doesn't have usb audio class).
+I download too the firmware (
+http://konstantin.filtschew.de/v4l-firmware/firmware_v4.tgz) and put it on
+/lib/firmware.
+In V4L Wiki page, inform that EM2880 chips don't have de USB Audio Class,
+only a USB Vendor Class for digital audio, and here is the big question:
+where I find the em28xx-alsa module for the kernel version that I have and
+compatible with firmware and v4l drivers!?
+
+Thanks a lot.
+
+-- 
+Eduardo Mota Fontes
+A brazilian linux user.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
