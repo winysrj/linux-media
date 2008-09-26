@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from fg-out-1718.google.com ([72.14.220.152])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KhRXT-00051Z-Pz
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 18:12:01 +0200
-Message-ID: <48D67247.6010904@linuxtv.org>
-Date: Sun, 21 Sep 2008 12:11:51 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	(envelope-from <mrechberger@gmail.com>) id 1KjIxB-0002IS-Lg
+	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 21:26:14 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so740495fga.25
+	for <linux-dvb@linuxtv.org>; Fri, 26 Sep 2008 12:26:10 -0700 (PDT)
+Message-ID: <d9def9db0809261226r2134c56apcbb2b27552079d2c@mail.gmail.com>
+Date: Fri, 26 Sep 2008 21:26:10 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "hermann pitton" <hermann-pitton@arcor.de>
+In-Reply-To: <1222454633.2675.11.camel@pc10.localdom.local>
 MIME-Version: 1.0
-To: Jonathan Coles <jcoles0727@rogers.com>
-References: <48D658BF.7040807@rogers.com>
-	<412bdbff0809210730i75f835cl54e48f70432dde1b@mail.gmail.com>
-	<48D65E36.9070003@linuxtv.org> <48D66BE1.7020900@rogers.com>
-In-Reply-To: <48D66BE1.7020900@rogers.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Still unclear how to use Hauppage HVR-950
-	and	v4l-dvb
+Content-Disposition: inline
+References: <200809241922.16748@orion.escape-edv.de>
+	<1222306125.3323.80.camel@pc10.localdom.local>
+	<200809261714.58188@orion.escape-edv.de>
+	<1222454633.2675.11.camel@pc10.localdom.local>
+Cc: linux-dvb@linuxtv.org, v4l-dvb-maintainer@linuxtv.org, vdr@linuxtv.org
+Subject: Re: [linux-dvb] [v4l-dvb-maintainer] [Wanted] dvb-ttpci maintainer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,83 +31,120 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jonathan Coles wrote:
-> Michael Krufky wrote:
->> Devin Heitmueller wrote:
->>  
->>> On Sun, Sep 21, 2008 at 10:22 AM, Jonathan Coles
->>> <jcoles0727@rogers.com> wrote:
->>>    
->>>> It would really help if there was a single set of instructions
->>>> specific
->>>> to the HVR-950 with tests at each stage. I'm really confused as to the
->>>> status of my installation.
->>>>
->>>> I compiled the firmware according to the instructions on
->>>> http://linuxtv.org/repo/. The result:
->>>>
->>>> $ lsusb
->>>> Bus 005 Device 002: ID 2040:7200 Hauppauge
->>>>       
->>> Hold the phone!  You don't have an HVR-950.  You have an HVR-950Q.
->>> Please be sure to mention this in all future messages, since it's a
->>> totally different device and the HVR-950 directions do not apply.
->>>
->>> I'm not sure whether the HVR-950Q support has been merged yet.  Steven
->>> could comment on that.  I suspect it's still in a separate branch,
->>> which would mean you would need to do an hg clone of a different tree.
->>>     
->>
->>
->> HVR950Q ATSC / QAM is supported in the master development repository,
->> and it is in upstream 2.6.26 and later.
->>
->> You need the xc5000 firmware.
->>
->> [   17.247610] usb 5-2: new high speed USB device using ehci_hcd and
->> address 2
->> [   17.380387] usb 5-2: unable to read config index 0 descriptor/all
->> [   17.380434] usb 5-2: can't read configurations, error -71
->>
->>
->> ^^ This is not a firmware problem, but looks fishy.  If using the
->> latest drivers from linuxtv.org doesnt work for you, then try another
->> USB port, or confirm that it also works in windows.
->>
->> Good Luck,
->>
->> Mike
->>   
-> Thanks guys!
+On Fri, Sep 26, 2008 at 8:43 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
 >
-> The box says HVR-950 on it and that the device "Cannot receive digital
-> cable TV". However, the device itself is labeled "NTSC/ATSC/QAM HD TV
-> receiver" and there is a small, stylized Q following the "950". Great!
-> I got this on sale. Lack of QAM support was my reason for not buying
-> earlier at the usual price. Perhaps the store didn't realize that this
-> is the newer model.
+> Am Freitag, den 26.09.2008, 17:14 +0200 schrieb Oliver Endriss:
+>> hermann pitton wrote:
+>> > Except of course a majority of plumbers at the same place at the same
+>> > time can create/propose some facts.
+>>
+>> IMO decisions must be made where the community is, i.e. on the mailing
+>> list. Not at a conference, no matter whether it is at one end of the
+>> world or on the dark side of the moon. ;-(
+>>
+>> To make it absolutely clear:
+>> I did not leave _because_ S2API was selected.
+>> I left because it was done _this_way_.
+>>
+>> Good for those, who are fine with these methods. I am not.
 >
-> I had added the XC5000 firmware, dvb-fe-xc5000-1.1.fw, in case I had a
-> 950Q. But if, as you say, I need a later kernel, that might be why it
-> doesn't work. I have kernel 2.6.24-19.
+> What the others should have done previously?
 >
-> I'll look for more info on linuxtv.org. Perhaps I just need to wait a
-> little for the support for this to be developed.
-I am telling you that this device is already supported -- You must use
-kernel version 2.6.26 or later, *or* you can use the latest modules from
-linuxtv.org with your older kernel.
+> They could only wait.
+>
+> What should Mauro have done better?
+>
+> Say, after Manu's pull request suddenly appeared, thanks, I merge it now
+> over night and forget about all efforts others did.
+>
+>> > If you attack people such hard as Manu did, also behind the visible
+>> > lines sometimes, Marcel had a copy from me concerning Mauro and did say
+>> > nothing, you must not wonder about people starting to defend themselves.
+>>
+>> I consider flame wars ridiculous. I did not participate, and I will not
+>> participate in the future.
+>>
+>> I believe that I know very well what is going on. (During more than 30
+>> years in software development I have seen all kinds of problems. I know
+>> how people react and why things happen.)
+>>
+>> > For sure the dirt was not started from v4l people.
+>> >
+>> > Think it over.
+>>
+>> Unlikely. I made this decision after sleeping over it for a few days.
+>> Now I feel much better.
+>>
+>> Oliver
+>>
+>
+> You are the most trusted guy on linux-dvb for me.
+>
+> Markus should have accept your help instead giving Mauro an ultimatum to
+> merge his stuff within the next 24 hours and we would have one problem
+> less.
+>
 
-Check the howto for info about how to install the drivers:
+Hermann,
 
-http://linuxtv.org/repo
+I really have to write that it was a good decision to stay away from
+my code previously.
+Not because I didn't follow some suggestions which seemed to be
+ridiculous to me (and due
+general lack of knowledge others and I had), it's because the code was
+not manufacturer supported
+at that time.
+The supported code which redesigned alot parts of the old driver are
+improved alot and those
+changes were also influenced by business customers who back then
+thought "we could use that work
+since it states out it supports xyz". Those business customers did in
+depth testing of their scenarios
+and requirements and submitted valuable bugreports and or even patches
+(eg VBI support, signal strength
+improvements due wrong firmwares -or even wrong register settings,
+mode switchover testing etc.)
 
+I am not at all angry at anyone denying to merge the code around a
+year ago since the whole situation
+changed, overall the bad communication back then which definitely was
+not driven by any community
+rather than personalities just resulted in that overall bad
+atmosphere. I think all that is far away now
+and many things changed to a positive result for endusers in terms of
+code quality now.
 
-...and yes -- your stick does support QAM.
+There are still some outstanding points on the list, in order to not
+break other devices it requires alot
+testing. It's being worked on I can write. Looking at the work which
+has been done at Xceive even their
+supplied code changed due the firmware upgrades and we supported them
+in order to fix some smaller
+bugs too.
 
+Due the whole development I also have to write that I have alot
+respect of what the Empia
+windows developer is and was doing in order to support all those
+possible device configurations it's a
+very complicated task, and he's also on it fulltime for some good reason.
 
-Regards,
+best regards,
+Markus
 
-Mike
+> Put at least a sticker on such guys like Uwe/Derek and Manu should do it
+> as well.
+>
+> I'm open for everything fair to find a solution.
+>
+> Hermann
+>
+>
+>
+> _______________________________________________
+> v4l-dvb-maintainer mailing list
+> v4l-dvb-maintainer@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/v4l-dvb-maintainer
+>
 
 _______________________________________________
 linux-dvb mailing list
