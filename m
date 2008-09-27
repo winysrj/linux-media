@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from c2beaomr07.btconnect.com ([213.123.26.185])
+Received: from fmmailgate05.web.de ([217.72.192.243])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <joe.djemal@btconnect.com>) id 1KeQlI-0003AE-F6
-	for linux-dvb@linuxtv.org; Sat, 13 Sep 2008 10:45:49 +0200
-From: Joe Djemal <joe.djemal@btconnect.com>
-To: linux-dvb@linuxtv.org
-Date: Sat, 13 Sep 2008 09:45:11 +0100
-References: <mailman.757.1221287462.834.linux-dvb@linuxtv.org>
-In-Reply-To: <mailman.757.1221287462.834.linux-dvb@linuxtv.org>
+	(envelope-from <okleinecke@web.de>) id 1KjOJk-0005yq-A7
+	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 03:09:52 +0200
+Received: from web.de
+	by fmmailgate05.web.de (Postfix) with SMTP id 169725948E84
+	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 03:09:19 +0200 (CEST)
+Date: Sat, 27 Sep 2008 03:09:17 +0200
+Message-Id: <1959677029@web.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809130945.11500.joe.djemal@btconnect.com>
-Subject: Re: [linux-dvb] linux-dvb Digest, Vol 44, Issue 60
+From: Oliver Kleinecke <okleinecke@web.de>
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb]
+ =?iso-8859-15?q?Need_help_getting_the_remote_of_a_Nov?=
+ =?iso-8859-15?q?a-T_USB-Stick_to_work?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,73 +21,110 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I concur with the below. I can code in quite a few languages including 
-assembly languages and I asked for a pointer on where to get started with 
-learning how to make a Linux driver and there was complete silence as there 
-was with my previous inquiry.
+> -----Urspr=FCngliche Nachricht-----
+> Von: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+> Gesendet: 26.09.08 19:27:52
+> An: "Oliver Kleinecke" <okleinecke@web.de>
+> CC: linux-dvb@linuxtv.org
+> Betreff: Re: [linux-dvb] Need help getting the remote of a Nova-T USB-Sti=
+ck to work
 
-Come on guys, I've been Googling but where do I start?
 
-Joe
+> 2008/9/26 Oliver Kleinecke <okleinecke@web.de>:
+> > I compiled the latest stable v4l-dvb-drivers, everything worked fine, a=
+nd i`m able to watch tv with kaffeine and mythtv already.
+> > Now i would like to get the remote to work .. the ir-receiver shows up =
+during boot, giving the following ouput :
+> >
+> > "kernel: input: IR-receiver inside an USB DVB receiver as /class/input/=
+input7".
+> >
+> > If i do a lsinput, the device shows up like this :
+> >
+> > /dev/input/event7
+> >   bustype : BUS_USB
+> >   vendor  : 0x2040
+> >   product : 0x7070
+> >   version : 256
+> >   name    : "IR-receiver inside an USB DVB re"
+> >   phys    : "usb-0001:10:1b.2-1/ir0"
+> >   bits ev : EV_SYN EV_KEY
+> >
+> >
+> > so i`m pretty sure i am not toooo far away from the solution.
+> >
+> > but if i press a button on the rc, it just gives me kernel messages lik=
+e this :
+> >
+> > "kernel: dib0700: Unknown remote controller key: 1D  2  0  0"
+> >
+> >
+> > After a bit of googling, i found out, that there seems to be a solution=
+, using a diff file, which i downloaded already, its attached to this mail.
+> >
+> > Now i need a bit of support in using this diff-file correctly, and some=
+ infos on how to continue then..
+> =
+
+> That patch looks pretty straightforward.  Where did it come from?
+> Have you tried it out:
+> =
+
+> cd v4l-dvb
+> patch -p0 < path_to_patch_file
+> make
+> make install
+> reboot
+> See if it works...
+> =
+
+> (or you might have to do "patch -p1", depending on the patch)
+> =
+
+> If it works for you, it can be checked in so others won't have to deal
+> with the problem in the future.
+> =
+
+> Devin
+> =
+
+> -- =
+
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+> =
 
 
-> Message: 5
-> Date: Sat, 13 Sep 2008 16:28:10 +1000
-> From: Paul Chubb <paulc@singlespoon.org.au>
-> Subject: [linux-dvb] why opensource will fail
-> To: linux dvb <linux-dvb@linuxtv.org>
-> Message-ID: <48CB5D7A.3040403@singlespoon.org.au>
-> Content-Type: text/plain; charset=ISO-8859-1; format=flowed
->
-> Hi,
->      now that I have your attention:-{)=
->
-> I believe that this community has a real problem. There appears to be
-> little willingness to help and mentor newcomers. This will limit the
-> effectiveness of the community because it will hinder expansion of
-> people who are both willing and able to work on the code. Eventually
-> this issue  will lead to the community dying simply because you have
-> people leaving but few joining.
->
-> The card I was working on has been around for  a while now. There have
-> been three attempts so far to get it working with Linux. Two in this
-> community and one against the mcentral.de tree. Both attempts in this
-> community have failed not because of a lack of willingness of the people
-> involved to do the hard yards but because of the inability of the
-> community to mentor and help newcomers.
->
-> The third attempt by a Czech programmer succeeded, however it is
-> dependent on the mcentral.de tree and the author appears to have made no
-> attempt to get the patch into the tree. The original instructions to
-> produce a driver set are in Czech. However instructions in english for
-> 2.6.22 are available - ubuntu gutsy. I will soon be putting up
-> instructions for 2.6.24 - hardy. They may even work  for later revisions
-> since the big issue was incompatible versioning.
->
-> I understand from recent posts to this list that many in the community
-> are disturbed by the existence of mcentral.de. Well every person from
-> now on who wants to run the Leadtek Winfast DTV1800H will be using that
-> tree. Since the card is excellent value for what it is, there should be
-> lots of them. Not helping newcomers who are trying to add cards has led
-> and will lead to increased fragmentation.
->
-> And before you say or think that we are all volunteers here, I am a
-> volunteer also. I have spent close to 3 weeks on this code and it is
-> very close to working. The biggest difference between working code in
-> the mcentral.de tree and the patch I was working on is the firmware that
-> is used.
->
-> Finally you might consider that if few developers are prepared to work
-> on the v4l-dvb tree, then much of the fun will disappear because those
-> few will have to do everything.
->
-> Cheers Paul
+Hi, thanks for the fast answer !
+
+After patching, recompile + install it works now.
+At first i had the problem that the system reacted as if i pressed the rc-b=
+utton constantly, when i just pressed it once, but after a fresh install of=
+ my etch (i think i messed up my system a bit before), it now works perfect=
+ly.
+
+I found this diff file in the following thread : http://mandrihinkvauser.de=
+/viewtopic.php?id=3D22141
+
+Thanks, Oliver
+
+PS : While trying to compile the drivers, i always get an error concerning =
+the file "af9015.c" in the dvb-usb drivers section. Since i don` t need thi=
+s module, i could easily compile the driver using "make -i", but there seem=
+ to be some errors in the case-structur in lines 747 and following of the m=
+entioned file.
+
+_____________________________________________________________________
+Der WEB.DE SmartSurfer hilft bis zu 70% Ihrer Onlinekosten zu sparen!
+http://smartsurfer.web.de/?mc=3D100071&distributionid=3D000000000066
+
 
 _______________________________________________
 linux-dvb mailing list
