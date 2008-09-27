@@ -1,93 +1,78 @@
-Return-path: <freebeer.bouwsma@gmail.com>
-Date: Sun, 14 Sep 2008 10:50:08 -0400
-In-reply-to: <48CC4669.9060407@singlespoon.org.au>
-To: Paul Chubb <paulc@singlespoon.org.au>
-Message-id: <48CD24A0.5020704@linuxtv.org>
-MIME-version: 1.0
-References: <466191.65236.qm@web46110.mail.sp1.yahoo.com>
- <48CC219C.9010007@singlespoon.org.au> <48CC3479.5080706@linuxtv.org>
- <48CC4669.9060407@singlespoon.org.au>
-Cc: linux dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] xc3028 config issue. Re: Why I need to choose better
- Subject: headers [was: Re: Why (etc.)]
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from fg-out-1718.google.com ([72.14.220.152])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mrechberger@gmail.com>) id 1KjgZN-0002SA-62
+	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 22:39:13 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so1010977fga.25
+	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 13:39:10 -0700 (PDT)
+Message-ID: <d9def9db0809271339w70e64903o6a2026840cce5f6f@mail.gmail.com>
+Date: Sat, 27 Sep 2008 22:39:09 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "David BERCOT" <linux-dvb@bercot.org>
+In-Reply-To: <20080927221314.1313010c@david.huperie>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <20080927201547.2fbde736@david.huperie>
+	<d9def9db0809271230p561c022aoa2a32c8806688f68@mail.gmail.com>
+	<20080927221314.1313010c@david.huperie>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] How installing em28xx ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-  <mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
 List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
- <mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Errors-To: linux-dvb-bounces+freebeer.bouwsma=gmail.com@linuxtv.org
-ReSent-Message-ID: <alpine.DEB.1.10.0809141912560.793@ybpnyubfg.ybpnyqbznva>
-From: Steven Toth <freebeer.bouwsma@gmail.com>
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-Mauro, see question below.
-
-Paul Chubb wrote:
-> Steven Toth wrote:
->> Paul Chubb wrote:
->>> Barry,
->>> I drew the line at porting the xc3028 tuner module from mcentral.de 
->>> into v4l-dvb, so no didn't solve the firmware issues. If you know 
->>> what you are doing it should be trivial work - just linking in yet 
->>> another tuner module and then calling it like all the others. For me 
->>> because I don't know the code well it would take a week or two.
+On Sat, Sep 27, 2008 at 10:13 PM, David BERCOT <linux-dvb@bercot.org> wrote:
+> Hi,
+>
+> Le Sat, 27 Sep 2008 21:30:38 +0200,
+> "Markus Rechberger" <mrechberger@gmail.com> a =E9crit :
+>> Hi,
 >>
->> No porting required.
+>> On Sat, Sep 27, 2008 at 8:15 PM, David BERCOT <linux-dvb@bercot.org>
+>> wrote:
+>> > Hi,
+>> >
+>> > I used em28xx for the past, but now, it seems to be more
+>> > complicated... In http://mcentral.de/hg I found em28xx-new (but I
+>> > have many errors : [...]
+>> > 'dvb_net_release' /opt/em28xx-new/em2880-dvb.c:976: erreur: implicit
+>> > declaration of function
+>> > 'dvb_unregister_frontend' /opt/em28xx-new/em2880-dvb.c:977: erreur:
+>> > implicit declaration of function
+>> > 'dvb_frontend_detach' /opt/em28xx-new/em2880-dvb.c:981: erreur:
+>> > implicit declaration of function
+>> > 'dvb_dmx_release' /opt/em28xx-new/em2880-dvb.c:983: erreur: implicit
+>> > declaration of function 'dvb_unregister_adapter'
+>> > [...]) and the "old" v4l-dvb-kernel & v4l-dvb-experimental doesn't
+>> > work any more since 2.6.26 kernel.
+>> > I should use multiproto, but it seems heavy, no ?
+>> >
+>> > Do you have any suggestion ?
 >>
->> xc3028 tuner is already in the kernel, it should just be a case of 
->> configuring the attach/config structs correctly.
->>
->> - Steve
->>
-> Steve,
->           I think we are talking about two different things. Yes the 
-> xc3028 tuner is supported via tuner-xc2028 and works for many xc3028 
-> based cards. This support uses the xc3028-v27.fw file that contains say 
-> 80 firmware modules. This firmware was extracted from a Haupage windows 
-> driver.
+>> do you have a custom kernel? or a default distribution - and which
+>> one?
+>
+> No, it is a classical kernel : 2.6.26-1-686 on Debian Sid.
+> Should I put all the errors ?
+>
 
-Correct.
+>> > 'dvb_unregister_frontend' /opt/em28xx-new/em2880-dvb.c:977: erreur:
+>> > implicit declaration of function
 
-(I changed the subject by the way)
+this means it cannot find some headers, you need to install the full
+kernel sources for your installed
+kernel before compiling the driver.
 
-> 
-> I believe that the 1800H has some incompatibility with this firmware. 
-> The mcentral.de tree has a different firmware loading and tuner support 
-> module for xc3028 that loads individual firmware modules - you literally 
-> put twenty or thirty files into /lib/firmware. This firmware is the 
-> standard firmware from xceive before the card manufacturers get to it. 
-> Comparing the dmesg listing from a working mcentral.de setup and the 
-> non-working v4l tree the only thing that leaps out is the different 
-> firmware. If I was continuing the next step would be to port that tuner 
-> module into the v4l code and set it up in the normal way.
-
-the v27.fw file does contain the correct firmware, so the fact that the 
-inkernel tuner driver isn't select the correct version (or that it needs 
-a hint in the config struct) is probably a very small fix.
-
-Mauro (cc'd) generally maintains that driver and he should be able to 
-help. My suggestion is that you cut/paste the attach/config struct from 
-your leadtek code into this email thread. From you email address I guess 
-you're trying to get DVB-T 7MHz working in Australia. Mauro can review it.
-
-Ideally, we'd point you at a different card struct for the same tuner 
-that we know works in Australia, so you build the leadtek config struct 
-based on something that we know works.
-
-Mauro, what should the attach/config struct look like for a xc2028/3028 
-tune in Australia? Can you point to a working example or suggest a change?
-
-Regards,
-
-- Steve
-
-
-
+Markus
 
 _______________________________________________
 linux-dvb mailing list
