@@ -1,33 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8QMP0am020563
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 18:25:00 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8QMOkdf025816
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 18:24:46 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so818298fga.7
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 15:24:45 -0700 (PDT)
-Message-ID: <d9def9db0809261524w565ce0afy780228090f44f99b@mail.gmail.com>
-Date: Sat, 27 Sep 2008 00:24:45 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Roger Oberholtzer" <roger@opq.se>
-In-Reply-To: <F79A917A-DA6D-47D8-B231-D2390610AA52@opq.se>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8RKsNTw020387
+	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 16:54:26 -0400
+Received: from mailrelay011.isp.belgacom.be (mailrelay011.isp.belgacom.be
+	[195.238.6.178])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8RKrt9M003791
+	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 16:53:56 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: video4linux-list@redhat.com
+Date: Sat, 27 Sep 2008 22:54:02 +0200
+References: <200809232317.44795.laurent.pinchart@skynet.be>
+	<200809271924.58142.laurent.pinchart@skynet.be>
+In-Reply-To: <200809271924.58142.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <7b6d682a0809251804j1277af44i80c53529a3c33d62@mail.gmail.com>
-	<beb91d720809260508vc1e28d0m33daaa289c8cfe0b@mail.gmail.com>
-	<d9def9db0809260517p3ddef5bby47eb52d6bb1fa948@mail.gmail.com>
-	<d9def9db0809260537j2ff6fc98mc133ca37a06c1bc4@mail.gmail.com>
-	<7b6d682a0809261234i71ea0fd5i6709fbc843f40768@mail.gmail.com>
-	<d9def9db0809261239i45c7a9fbu8395a64b0c58bc73@mail.gmail.com>
-	<2ee0f7430809261252v267626b4rc6269a6132cf88c0@mail.gmail.com>
-	<d9def9db0809261311g303979adkf2c44ce44c932e3d@mail.gmail.com>
-	<d9def9db0809261318x49812ce2g38b6b8b74448afd3@mail.gmail.com>
-	<F79A917A-DA6D-47D8-B231-D2390610AA52@opq.se>
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Pinnacle PCTV HD Pro Stick
+Message-Id: <200809272254.03643.laurent.pinchart@skynet.be>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v3] uvcvideo: Fix control cache access when setting
+	composite auto-update controls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,64 +32,76 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Sep 27, 2008 at 12:15 AM, Roger Oberholtzer <roger@opq.se> wrote:
->
-> On Sep 26, 2008, at 10:18 PM, Markus Rechberger wrote:
->
-> Time for a stupid question: I see that the device will capture HDTV
-> (obviously). Does it also capture
-> old fashioned analog NTSC (PAL in Europe)? The pinnacle site implies this.
-> It is so?
->
+Auto-update controls are never marked is loaded to prevent uvc_get_ctrl from
+loading the control value from the cache. When setting a composite (mapped to
+several V4L2 controls) auto-update UVC control, the driver updates the control
+cache value before processing each V4L2 control, overwriting the previously
+set V4L2 control.
 
-remember the topic "Pinnacle PCTV HD Pro Stick" as far as I know pinnacle sold
-this one as ATSC (american version of DVB-T - not compatible with europe).
+This fixes the problem by marking all controls as loaded in uvc_set_ctrl
+regardless of their type and resetting the loaded flag in uvc_commit_ctrl for
+auto-update controls.
 
-But that version supports most worldwide standards I'm aware of
-* PAL
-* PAL-M (NTSC similar)
-* NTSC
-* SECAM
+Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
+---
+ drivers/media/video/uvc/uvc_ctrl.c |   21 +++++++++++++--------
+ 1 files changed, 13 insertions(+), 8 deletions(-)
 
-Pinnacle have had the 330e in their product line, they'll push hybrid
-DVB-C/DVB-T/analogTV/radio
-devices in future which will also be supported by the em28xx driver.
-
-As for Europe there's Terratec with the Terratec Hybrid XS FM
-(AnalogTV(stereo)/analog VBI(videotext)/
-DVB-T/FM radio) currently available. I will check other companies in
-Europe (although Pinnacle and Terratec
-are pushing the linux support of those devices at the moment - the
-future looks bright for people requesting
-drivers in that area)
-
-Markus
-
-
-> Roger Oberholtzer
->
-> OPQ Systems / Ramböll RST
->
-> Ramböll Sverige AB
-> Kapellgränd 7
-> P.O. Box 4205
-> SE-102 65 Stockholm, Sweden
->
-> Office: Int +46 8-615 60 20
-> Mobile: Int +46 70-815 1696
->
-> And remember:
->
-> It is RSofT and there is always something under construction.
-> It is like talking about large city with all constructions finished.
-> Not impossible, but very unlikely.
->
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
+index 6da37cd..b66c95f 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -837,7 +837,17 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
+ 
+ 	for (i = 0; i < entity->ncontrols; ++i) {
+ 		ctrl = &entity->controls[i];
+-		if (ctrl->info == NULL || !ctrl->dirty)
++		if (ctrl->info == NULL)
++			continue;
++
++		/* Reset the loaded flag for auto-update controls that were
++		 * marked as loaded in uvc_ctrl_get/uvc_ctrl_set to prevent
++		 * uvc_ctrl_get from using the cached value.
++		 */
++		if (ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE)
++			ctrl->loaded = 0;
++
++		if (!ctrl->dirty)
+ 			continue;
+ 
+ 		if (!rollback)
+@@ -853,9 +863,6 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
+ 			       uvc_ctrl_data(ctrl, UVC_CTRL_DATA_BACKUP),
+ 			       ctrl->info->size);
+ 
+-		if ((ctrl->info->flags & UVC_CONTROL_GET_CUR) == 0)
+-			ctrl->loaded = 0;
+-
+ 		ctrl->dirty = 0;
+ 
+ 		if (ret < 0)
+@@ -913,8 +920,7 @@ int uvc_ctrl_get(struct uvc_video_device *video,
+ 		if (ret < 0)
+ 			return ret;
+ 
+-		if ((ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE) == 0)
+-			ctrl->loaded = 1;
++		ctrl->loaded = 1;
+ 	}
+ 
+ 	xctrl->value = uvc_get_le_value(
+@@ -965,8 +971,7 @@ int uvc_ctrl_set(struct uvc_video_device *video,
+ 				return ret;
+ 		}
+ 
+-		if ((ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE) == 0)
+-			ctrl->loaded = 1;
++		ctrl->loaded = 1;
+ 	}
+ 
+ 	if (!ctrl->dirty) {
+-- 
+1.5.6.4
 
 --
 video4linux-list mailing list
