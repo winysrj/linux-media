@@ -1,19 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8M8NiVN010158
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 04:23:44 -0400
-Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8M8NUhW008583
-	for <video4linux-list@redhat.com>; Mon, 22 Sep 2008 04:23:31 -0400
-Message-ID: <22980.24.120.242.223.1222071809.squirrel@webmail.xs4all.nl>
-Date: Mon, 22 Sep 2008 10:23:29 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Video4Linux" <video4linux-list@redhat.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8RHP28T005465
+	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 13:25:04 -0400
+Received: from mailrelay012.isp.belgacom.be (mailrelay012.isp.belgacom.be
+	[195.238.6.179])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8RHOopR028879
+	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 13:24:51 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: video4linux-list@redhat.com
+Date: Sat, 27 Sep 2008 19:24:57 +0200
+References: <200809232317.44795.laurent.pinchart@skynet.be>
+In-Reply-To: <200809232317.44795.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: Re: Annoying problem with minors and video_register_device()
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200809271924.58142.laurent.pinchart@skynet.be>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2] uvcvideo: Fix control cache access when setting
+	composite auto-update controls
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,113 +31,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Let me retry this. It's a bad idea to reply at 1:20 am, and I also had one
-Las Vegas cocktail too many :-)
+Auto-update controls are never marked is loaded to prevent uvc_get_ctrl from
+loading the control value from the cache. When setting a composite (mapped to
+several V4L2 controls) auto-update UVC control, the driver updates the control
+cache value before processing each V4L2 control, overwriting the previously
+set V4L2 control.
 
->> Description:
->>
->> I have machine with a CX23416 (ivtv) and CX23418 (cx18) based card.  The
->> following commands yield the video device node names as I'd prefer to
->> see them:
->>
->> # modprobe cx18 cx18_first_minor=1
->> # modprobe ivtv ivtv_first_minor=0
->> # ls -al /dev/video*
->> lrwxrwxrwx  1 root root      6 2008-09-21 19:37 /dev/video -> video0
->> crw-rw----+ 1 root root 81,  0 2008-09-21 19:37 /dev/video0
->> crw-rw----+ 1 root root 81,  1 2008-09-21 19:37 /dev/video1
->> crw-rw----+ 1 root root 81, 24 2008-09-21 19:37 /dev/video24
->> crw-rw----+ 1 root root 81, 25 2008-09-21 19:37 /dev/video25
->> crw-rw----+ 1 root root 81, 32 2008-09-21 19:37 /dev/video32
->> crw-rw----+ 1 root root 81, 33 2008-09-21 19:37 /dev/video33
->>
->>
->> If I leave off the module options, I get this:
->>
->> # modprobe cx18
->> # modprobe ivtv
->> # ls -al /dev/video*
->> lrwxrwxrwx  1 root root      6 2008-09-21 19:43 /dev/video -> video0
->> crw-rw----+ 1 root root 81,  0 2008-09-21 19:43 /dev/video0
->> crw-rw----+ 1 root root 81,  1 2008-09-21 19:44 /dev/video1
->> crw-rw----+ 1 root root 81,  2 2008-09-21 19:44 /dev/video2
->> crw-rw----+ 1 root root 81, 24 2008-09-21 19:43 /dev/video24
->> crw-rw----+ 1 root root 81,  3 2008-09-21 19:44 /dev/video3
->> crw-rw----+ 1 root root 81, 32 2008-09-21 19:43 /dev/video32
->>
->> /dev/video2 and /dev/video3 aren't following the convention.
+This fixes the problem by marking all controls as loaded in uvc_set_ctrl
+regardless of their type and resetting the loaded flag in uvc_commit_ctrl for
+auto-update controls.
 
-Hi Andy,
+Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
+---
+ drivers/media/video/uvc/uvc_ctrl.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-Yeah, I know about this. My v4l-dvb-dev tree should work much better in
-this respect. When I'm back home in a week I intend to review my tree and
-will probably ask Mauro to pull it.
-
-Additional testing of this tree is welcome in the meantime.
-
-Regards,
-
-       Hans
-
->
->>
->>
->> The problem is video_register_device() either gives you the minor for
->> which the driver asked or it can auto assign the first available but
->> only starting at an offset 0.
->>
->> Perhaps video_register_device() could be modified so that the 3rd
->> argument, nr, if less than 0, could be interpreted as -(offset+1).
->> Offset would be the offset from the base at which auto assignment of a
->> minor could start.  The case of nr being passed in as -1 is then a
->> backwards compatible case.  In the case of nr greater than or equal to
->> 0, nothing different would be done so things remain backward compatible.
->>
->> So near the middle/bottom of video_register_device_index() one would
->> have:
->>
->>         if (nr >= 0 && nr < end-base) {
->>                 /* use the one the driver asked for */
->>                 i = base + nr;
->>                 if (NULL != video_device[i]) {
->>                         mutex_unlock(&videodev_lock);
->>                         return -ENFILE;
->>                 }
->>         } else {
->> -               /* use first free */
->> -               for (i = base; i < end; i++)
->> +               if (nr >= 0)
->> +                       nr = -1;
->> +               /* use first free from offset -nr - 1 */
->> +               for (i = base - nr - 1; i < end; i++)
->>                         if (NULL == video_device[i])
->>                                 break;
->> -               if (i == end) {
->> +               if (i >= end) {
->>                         mutex_unlock(&videodev_lock);
->>                         return -ENFILE;
->>                 }
->>         }
->>
->>
->> Of course the drivers (ivtv and cx18 in my case) would have to be
->> modified to use this.
->>
->> Any comments?  Is it not worth solving such a rare case when a
->> workaround with a module parameter exists?
->>
->> Regards,
->> Andy
->>
->>
->
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
-
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c 
+b/drivers/media/video/uvc/uvc_ctrl.c
+index 6da37cd..0516fba 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -853,7 +853,12 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
+ 			       uvc_ctrl_data(ctrl, UVC_CTRL_DATA_BACKUP),
+ 			       ctrl->info->size);
+ 
+-		if ((ctrl->info->flags & UVC_CONTROL_GET_CUR) == 0)
++		/* Reset the loaded flag for auto-update and read-only controls
++		 * that were marked as loaded in uvc_ctrl_set to prevent
++		 * uvc_ctrl_get from using the cached value.
++		 */
++		if (!(ctrl->info->flags & UVC_CONTROL_GET_CUR) ||
++		     (ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE))
+ 			ctrl->loaded = 0;
+ 
+ 		ctrl->dirty = 0;
+@@ -913,8 +918,7 @@ int uvc_ctrl_get(struct uvc_video_device *video,
+ 		if (ret < 0)
+ 			return ret;
+ 
+-		if ((ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE) == 0)
+-			ctrl->loaded = 1;
++		ctrl->loaded = 1;
+ 	}
+ 
+ 	xctrl->value = uvc_get_le_value(
+@@ -965,8 +969,7 @@ int uvc_ctrl_set(struct uvc_video_device *video,
+ 				return ret;
+ 		}
+ 
+-		if ((ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE) == 0)
+-			ctrl->loaded = 1;
++		ctrl->loaded = 1;
+ 	}
+ 
+ 	if (!ctrl->dirty) {
+-- 
+1.5.6.4
 
 --
 video4linux-list mailing list
