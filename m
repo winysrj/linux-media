@@ -1,27 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from fk-out-0910.google.com ([209.85.128.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KdD1a-0006Kd-Qf
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 01:53:37 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6Y00EGOD00VDA0@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 09 Sep 2008 19:52:48 -0400 (EDT)
-Date: Tue, 09 Sep 2008 19:52:48 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200809091931.01831.liplianin@tut.by>
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Message-id: <48C70C50.4010803@linuxtv.org>
-MIME-version: 1.0
-References: <48BF6A09.3020205@linuxtv.org>
-	<200809082334.04511.liplianin@tut.by>
-	<200809091750.38009.liplianin@tut.by>
-	<200809091931.01831.liplianin@tut.by>
+	(envelope-from <mrechberger@gmail.com>) id 1KjfV5-000625-6s
+	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 21:30:44 +0200
+Received: by fk-out-0910.google.com with SMTP id f40so1520959fka.1
+	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 12:30:38 -0700 (PDT)
+Message-ID: <d9def9db0809271230p561c022aoa2a32c8806688f68@mail.gmail.com>
+Date: Sat, 27 Sep 2008 21:30:38 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "David BERCOT" <linux-dvb@bercot.org>
+In-Reply-To: <20080927201547.2fbde736@david.huperie>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <20080927201547.2fbde736@david.huperie>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] S2 cx24116: Above 30000 kSym/s symbol rates
- patch
+Subject: Re: [linux-dvb] How installing em28xx ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,19 +28,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Igor M. Liplianin wrote:
-> Hi Steven,
-> Please apply this patch
-> 
-> Above 30000 kSym/s symbol rates patch
-> Tested on 44948 transponders (Express AM2)
-> 
-> Igor M. Liplianin
-> 
+Hi,
 
-Merged, thanks.
+On Sat, Sep 27, 2008 at 8:15 PM, David BERCOT <linux-dvb@bercot.org> wrote:
+> Hi,
+>
+> I used em28xx for the past, but now, it seems to be more complicated...
+> In http://mcentral.de/hg I found em28xx-new (but I have many errors :
+> [...]
+> 'dvb_net_release' /opt/em28xx-new/em2880-dvb.c:976: erreur: implicit
+> declaration of function
+> 'dvb_unregister_frontend' /opt/em28xx-new/em2880-dvb.c:977: erreur:
+> implicit declaration of function
+> 'dvb_frontend_detach' /opt/em28xx-new/em2880-dvb.c:981: erreur:
+> implicit declaration of function
+> 'dvb_dmx_release' /opt/em28xx-new/em2880-dvb.c:983: erreur: implicit
+> declaration of function 'dvb_unregister_adapter'
+> [...]) and the "old" v4l-dvb-kernel & v4l-dvb-experimental doesn't work
+> any more since 2.6.26 kernel.
+> I should use multiproto, but it seems heavy, no ?
+>
+> Do you have any suggestion ?
+>
 
-- Steve
+do you have a custom kernel? or a default distribution - and which one?
+
+Markus
 
 _______________________________________________
 linux-dvb mailing list
