@@ -1,15 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web55602.mail.re4.yahoo.com ([206.190.58.226])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o_lucian@yahoo.com>) id 1KbJKR-0006pI-C3
-	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 20:13:12 +0200
-Date: Thu, 4 Sep 2008 11:12:37 -0700 (PDT)
-From: lucian orasanu <o_lucian@yahoo.com>
-To: linux-dvb@linuxtv.org
+Received: from fmmailgate01.web.de ([217.72.192.221])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <viets@web.de>) id 1KjdEM-0005mi-K9
+	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 19:05:19 +0200
+Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
+	by fmmailgate01.web.de (Postfix) with ESMTP id 1B84BF211933
+	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 19:04:45 +0200 (CEST)
+Received: from [91.97.122.80] (helo=hellmachine.local)
+	by smtp08.web.de with asmtp (WEB.DE 4.109 #226) id 1KjdDo-0007Dm-00
+	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 19:04:45 +0200
+Message-ID: <48DE679C.6090302@web.de>
+Date: Sat, 27 Sep 2008 19:04:28 +0200
+From: Torben Viets <viets@web.de>
 MIME-Version: 1.0
-Message-ID: <191296.97055.qm@web55602.mail.re4.yahoo.com>
-Subject: [linux-dvb] Multiproto API/Driver Update
-Reply-To: o_lucian@yahoo.com
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Hauppauge HVR-1700 analog Support?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,20 +28,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->Feedback, bug reports, etc. are welcomed and encouraged!  Please feel
->free to
->contact me via email at:  abraham.manu at gmail.com
->
->If you have an unsupported device, please let me know!
->
->Best Regards,
->Manu
+Hello,
 
-Can you solve stb08900 driver bugs?? that was reported in ML when you where away??
+I've got a Haupauge HVR-1700 PCIe, DVB-T works fine under Linux, but 
+analog doesn't work, is there a way to get it working or any plans to 
+support it...
 
-
-
-      
+greetings
+Torben
 
 _______________________________________________
 linux-dvb mailing list
