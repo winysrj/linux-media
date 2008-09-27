@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joan.kewl.org ([212.161.35.248])
+Received: from smtp27.orange.fr ([80.12.242.95])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <darron@kewl.org>) id 1Kibdn-0005Ux-Mh
-	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 23:11:20 +0200
-From: Darron Broad <darron@kewl.org>
-To: Janne Grunau <janne-dvb@grunau.be>
-In-reply-to: <200809242204.09153.janne-dvb@grunau.be> 
-References: <953A45C4-975B-4A05-8B41-AE8A486D0CA6@ginandtonic.no>
-	<8C08530B-BAD7-4E83-B1CA-6AB66EE9F53F@ginandtonic.no>
-	<7674.1222283382@kewl.org> <200809242204.09153.janne-dvb@grunau.be>
-Date: Wed, 24 Sep 2008 22:11:16 +0100
-Message-ID: <9043.1222290676@kewl.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-4000 and analogue tv
+	(envelope-from <linux-dvb@bercot.org>) id 1KjeL7-0001IY-Ti
+	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 20:16:24 +0200
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2708.orange.fr (SMTP Server) with ESMTP id 0481E1C0008B
+	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 20:15:48 +0200 (CEST)
+Received: from mail.bercot.org (LRouen-151-71-134-185.w193-253.abo.wanadoo.fr
+	[193.253.252.185])
+	by mwinf2708.orange.fr (SMTP Server) with ESMTP id E37D41C00085
+	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 20:15:47 +0200 (CEST)
+Received: from david.huperie (localhost [127.0.0.1])
+	by mail.bercot.org (Postfix) with ESMTP id 1C24D3C05A
+	for <linux-dvb@linuxtv.org>; Sat, 27 Sep 2008 20:25:59 +0200 (CEST)
+Date: Sat, 27 Sep 2008 20:15:47 +0200
+From: David BERCOT <linux-dvb@bercot.org>
+To: linux-dvb@linuxtv.org
+Message-ID: <20080927201547.2fbde736@david.huperie>
+Mime-Version: 1.0
+Subject: [linux-dvb] How installing em28xx ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,51 +26,26 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <200809242204.09153.janne-dvb@grunau.be>, Janne Grunau wrote:
-
-lo
-
->On Wednesday 24 September 2008 21:09:42 Darron Broad wrote:
->> The problem in mythtv appears to be in OpenV4L2DeviceAsInput(void)
->> where is opens the video device twice although I have no confirmed
->> it.
->
->If that's the case and the tvtime && cat test supports it it's more a 
->driver issue than an issue in mythtv. Using different fd for 
->controlling (ioctl) and data transfer (read) is fine and works with 
->other drivers.
-
-What we are seeing here is in cx88-video and doesn't seem specific
-to any cx88 card as such but I don't have any other card to test
-therefore there is no evidence either way that this is a hvr-4000
-only problem as yet, but more tests ought to be done.
-
-As far as that function is concerned, my point is that it
-appears to be raising the fault.
-
-When testing tvtime & cat /dev/video0 what occurs is an
-an open, EBUSY read, then a release. The release here
-always puts the tuner in standby whether the previous
-read was valid or not. This seems to be the bug as previously
-pointed out.
-
-cya!
-
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGksCgpJIHVzZWQgZW0yOHh4IGZvciB0aGUgcGFzdCwgYnV0IG5vdywgaXQgc2VlbXMgdG8gYmUg
+bW9yZSBjb21wbGljYXRlZC4uLgpJbiBodHRwOi8vbWNlbnRyYWwuZGUvaGcgSSBmb3VuZCBlbTI4
+eHgtbmV3IChidXQgSSBoYXZlIG1hbnkgZXJyb3JzIDoKWy4uLl0K4oCYZHZiX25ldF9yZWxlYXNl
+4oCZIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6OTc2OiBlcnJldXI6IGltcGxpY2l0CmRl
+Y2xhcmF0aW9uIG9mIGZ1bmN0aW9uCuKAmGR2Yl91bnJlZ2lzdGVyX2Zyb250ZW5k4oCZIC9vcHQv
+ZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6OTc3OiBlcnJldXI6CmltcGxpY2l0IGRlY2xhcmF0aW9u
+IG9mIGZ1bmN0aW9uCuKAmGR2Yl9mcm9udGVuZF9kZXRhY2jigJkgL29wdC9lbTI4eHgtbmV3L2Vt
+Mjg4MC1kdmIuYzo5ODE6IGVycmV1cjoKaW1wbGljaXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24K
+4oCYZHZiX2RteF9yZWxlYXNl4oCZIC9vcHQvZW0yOHh4LW5ldy9lbTI4ODAtZHZiLmM6OTgzOiBl
+cnJldXI6IGltcGxpY2l0CmRlY2xhcmF0aW9uIG9mIGZ1bmN0aW9uIOKAmGR2Yl91bnJlZ2lzdGVy
+X2FkYXB0ZXLigJkKWy4uLl0pIGFuZCB0aGUgIm9sZCIgdjRsLWR2Yi1rZXJuZWwgJiB2NGwtZHZi
+LWV4cGVyaW1lbnRhbCBkb2Vzbid0IHdvcmsKYW55IG1vcmUgc2luY2UgMi42LjI2IGtlcm5lbC4K
+SSBzaG91bGQgdXNlIG11bHRpcHJvdG8sIGJ1dCBpdCBzZWVtcyBoZWF2eSwgbm8gPwoKRG8geW91
+IGhhdmUgYW55IHN1Z2dlc3Rpb24gPwoKVGhhbmtzIGEgbG90LgoKRGF2aWQuCgoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcg
+bGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmlu
+L21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
