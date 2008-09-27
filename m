@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8SBXmBf003807
-	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 07:33:48 -0400
-Received: from hermes.gsix.se (hermes.gsix.se [193.11.224.23])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8SBXWMu002992
-	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 07:33:33 -0400
-Received: from dng-gw.sgsnet.se ([193.11.230.69] helo=[172.16.172.22])
-	by hermes.gsix.se with esmtp (Exim 4.63)
-	(envelope-from <jonatan@akerlind.nu>) id 1KjuWp-0006Sc-Dc
-	for video4linux-list@redhat.com; Sun, 28 Sep 2008 13:33:31 +0200
-From: Jonatan =?ISO-8859-1?Q?=C5kerlind?= <jonatan@akerlind.nu>
-To: video4linux-list@redhat.com
-Content-Type: multipart/mixed; boundary="=-N1D3kKT4B/ohvDV+3opL"
-Date: Sun, 28 Sep 2008 13:33:28 +0200
-Message-Id: <1222601608.22123.18.camel@skoll>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8R4jnkI029672
+	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 00:45:49 -0400
+Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
+	[151.189.21.57])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8R4jSsc001653
+	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 00:45:34 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: dabby bentam <db260179@hotmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <BLU116-W13E3E5DA492C7A08D36C3FC2470@phx.gbl>
+References: <BLU116-W13E3E5DA492C7A08D36C3FC2470@phx.gbl>
+Content-Type: multipart/mixed; boundary="=-ouVoJZx9pOGF3SuZOhvr"
+Date: Sat, 27 Sep 2008 06:39:54 +0200
+Message-Id: <1222490394.2668.10.camel@pc10.localdom.local>
 Mime-Version: 1.0
-Subject: HVR-1300 unable to change analog tuning while watching mpeg-stream
-	(cx88-blackbird) and sound problems with bb mpeg stream
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] saa7134: add support for Tv(working
+	config), radio and analog audio in on the Hauppauge HVR-1110
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,462 +30,142 @@ Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
 
---=-N1D3kKT4B/ohvDV+3opL
+--=-ouVoJZx9pOGF3SuZOhvr
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-Hi,
 
-I have a problem with my HVR-1300 while watching the mpeg stream output
-and trying to change analog channel. I'm not using DVB-t at the moment
-since I live in sweden and have analog cable tv (actually will not have
-this for much longer since I'm moving out of the apartment to my own
-house). My problem seems to be the exact same as described in a thread
-on this list with subject "Tuning channels not working with
-cx88-bb/HVR-1300" dated "Sun, 9 Sep 2007 15:45:45
-+0200" (http://lists-archives.org/video4linux/19554-tuning-channels-not-working-with-cx88-bb-hvr-1300.html )
+Am Freitag, den 26.09.2008, 22:13 +0000 schrieb dabby bentam:
+> This patch fixes the Analog TV tuning issue and adds support of the Radio feature.
+> 
+> It resolves the S-Video and Composite Audio In - FIXME (sound redirect still required via sox etc)
+> 
+> [   30.263288] saa7133[0]: subsystem: 0070:6701, board: Hauppauge WinTV-HVR1110 DVB-T/Hybrid [card=104,autodetected]
+> [   30.263297] saa7133[0]: board init: gpio is 6400000
+> [   30.384637] input: HVR 1110 as /devices/virtual/input/input6
+> [   30.427939] ir-kbd-i2c: HVR 1110 detected at i2c-2/2-0071/ir0 [saa7133[0]]
+> [   30.474512] saa7133[0]: i2c eeprom 00: 70 00 01 67 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> [   30.474521] saa7133[0]: i2c eeprom 10: ff ff ff 0e ff 20 ff ff ff ff ff ff ff ff ff ff
+> [   30.474527] saa7133[0]: i2c eeprom 20: 01 40 01 32 32 01 01 33 88 ff 00 aa ff ff ff ff
+> [   30.474532] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> [   30.474537] saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 32 15 60 ff ff ff ff ff ff
+> [   30.474542] saa7133[0]: i2c eeprom 50: ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [   30.474547] saa7133[0]: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [   30.474552] saa7133[0]: i2c eeprom 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [   30.474557] saa7133[0]: i2c eeprom 80: 84 09 00 04 20 77 00 40 b0 16 35 f0 73 05 29 00
+> [   30.474562] saa7133[0]: i2c eeprom 90: 84 08 00 06 cb 05 01 00 94 48 89 72 07 70 73 09
+> [   30.474568] saa7133[0]: i2c eeprom a0: 23 5f 73 0a fc 72 72 0b 2f 72 0e 01 72 0f 03 72
+> [   30.474573] saa7133[0]: i2c eeprom b0: 10 01 72 11 ff 79 43 00 00 00 00 00 00 00 00 00
+> [   30.474578] saa7133[0]: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [   30.474583] saa7133[0]: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [   30.474588] saa7133[0]: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [   30.474593] saa7133[0]: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [   30.474602] tveeprom 2-0050: Hauppauge model 67019, rev B4B4, serial# 3479216
+> [   30.474605] tveeprom 2-0050: MAC address is 00-0D-FE-35-16-B0
+> [   30.474607] tveeprom 2-0050: tuner model is Philips 8275A (idx 114, type 4)
+> [   30.474609] tveeprom 2-0050: TV standards PAL(B/G) NTSC(M) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xfc)
+> [   30.474612] tveeprom 2-0050: audio processor is SAA7131 (idx 41)
+> [   30.474614] tveeprom 2-0050: decoder processor is SAA7131 (idx 35)
+> [   30.474616] tveeprom 2-0050: has radio, has IR receiver, has IR transmitter
+> [   30.474618] saa7133[0]: hauppauge eeprom: model=67019
+> [   31.047409] tuner 2-004b: chip found @ 0x96 (saa7133[0])
+> [   31.090707] tda8290 2-004b: setting tuner address to 61
+> [   31.183556] tuner 2-004b: type set to tda8290+75a
+> [   31.226853] tda8290 2-004b: setting tuner address to 61
+> [   31.320122] tuner 2-004b: type set to tda8290+75a
+> [   31.322302] saa7133[0]: registered device video0 [v4l2]
+> [   31.322321] saa7133[0]: registered device vbi0
+> [   31.322336] saa7133[0]: registered device radio0
+> [   31.323774] ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 22
+> [   31.323777] ACPI: PCI Interrupt 0000:00:05.0[B] -> Link [AAZA] -> GSI 22 (level, low) -> IRQ 22
+> [   31.323995] PCI: Setting latency timer of device 0000:00:05.0 to 64
+> [   31.556834] saa7134 ALSA driver for DMA sound loaded
+> [   31.556868] saa7133[0]/alsa: saa7133[0] at 0xfb010000 irq 16 registered as card -2
+> [   32.040025] DVB: registering new adapter (saa7133[0])
+> [   32.040031] DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+> [   32.099943] tda1004x: setting up plls for 48MHz sampling clock
+> [   32.356492] tda1004x: found firmware revision 20 -- ok
+> 
+> 
+> Signed-off-by: dabby bentam 
 
-This thread does not however have a solution. The problem is:
+Mauro,
 
-Loading all modules seems to be fine, I can use scantv to find channels
-and (at least some time ago) I used xawtv with the analog device to tune
-to some channels without problems. When using mythtv (and any other
-program) to watch the blackbird mpeg-stream I get good picture (crappy
-sound, see more later), but when trying to tune to another channel the
-picture goes black for about a second and then the some channel I was
-watching before returns. Now just exiting mythtv (back to the
-mythfrontend menu) and reentering livetv I get the new channel tuned. 
+wait a little.
 
-Mythtv is at the moment only configured to know about the cx88-blackbird
-mpeg device node (/dev/video1).
+We likely will have a tested-by from Thomas, the original contributor of
+that card, soon too.
 
-v4l-dvb pulled from http://linuxtv.org/hg/v4l-dvb about one hour ago.
+So far.
 
-It seems like the i2c code cannot access the registers it needs. (see
-the 04- file)
+Reviewed-by: Hermann Pitton <hermann-pitton@arcor.de>
 
------
-The other thing is the sound quality when watching the mpeg stream. It
-seems like the audio is chopped every once in a while, I get static for
-about 2-300 ms every say 5 seconds or so. The behaviour is not regular
-in that the intervals between the static "gaps" is sometimes 2 and other
-times 5-10 seconds. I have disabled cpu frequency scaling and stopped
-ntpd.
------
-
-Attached is the dmesg output:
-01-dmesg_module_load  -- output from loading the modules
-02-dmesg_mythbackend_started  -- output after mythbackend is started
-03-dmesg_mythfrontend_started_watching_one_channel  -- output after
-    starting to wath livetv
-04-dmesg_mythfrontend_tried_changing_channel  -- output after trying to 
-    tune to another channel
-05-dmesg_mythfrontend_exited_and_reentered_livetv  -- output after 
-    exiting livetv and then reentering
-
-
-module parameters:
-tuner debug=2 show_i2c=1
-tda9887 debug=1
-cx22702 debug=1
-
-loaded modules:
-jonatan@brummelina ~ $ lsmod
-Module                  Size  Used by
-cx88_alsa               9096  0 
-cx88_dvb               16388  0 
-cx88_vp3054_i2c         2176  1 cx88_dvb
-videobuf_dvb            4356  1 cx88_dvb
-cx88_blackbird         14212  4 
-dvb_core               67968  2 cx88_dvb,videobuf_dvb
-cx8802                 12804  2 cx88_dvb,cx88_blackbird
-cx2341x                 9732  1 cx88_blackbird
-tuner_simple           11664  2 
-tuner_types            13824  1 tuner_simple
-tda8290                11908  0 
-cx8800                 26060  1 cx88_blackbird
-cx88xx                 61608  5
-cx88_alsa,cx88_dvb,cx88_blackbird,cx8802,cx8800
-tuner                  21700  0 
-tveeprom               10628  1 cx88xx
-videodev               27648  4 cx88_blackbird,cx8800,cx88xx,tuner
-v4l1_compat            12036  1 videodev
-cx22702                 4996  1 
-tda9887                 9092  1 
+Cheers,
+Hermann
 
 
-
-Any help greatly appreciated.
-
-/Jonatan
-
---=-N1D3kKT4B/ohvDV+3opL
-Content-Disposition: attachment; filename=01-dmesg_module_load
-Content-Type: text/plain; name=01-dmesg_module_load; charset=UTF-8
+--=-ouVoJZx9pOGF3SuZOhvr
+Content-Disposition: attachment; filename=hvr-1110-out.patch
+Content-Type: text/x-patch; name=hvr-1110-out.patch; charset=utf-8
 Content-Transfer-Encoding: 7bit
 
-Linux video capture interface: v2.00
-cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-ACPI: PCI Interrupt 0000:00:14.0[A] -> GSI 17 (level, low) -> IRQ 17
-cx88[0]: subsystem: 0070:9601, board: Hauppauge WinTV-HVR1300 DVB-T/Hybrid MPEG Encoder [card=56,autodetected]
-cx88[0]: TV tuner type 63, Radio tuner type -1
-wm8775' 1-001b: chip found @ 0x36 (cx88[0])
-input: i2c IR (CX2388x rem as /class/input/input7
-ir-kbd-i2c: i2c IR (CX2388x rem detected at i2c-1/1-0071/ir0 [cx88[0]]
-tuner' 1-0043: I2C RECV = f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 f0 
-tuner' 1-0043: chip found @ 0x86 (cx88[0])
-tda9887 1-0043: creating new instance
-tda9887 1-0043: tda988[5/6/7] found
-tuner' 1-0043: type set to tda9887
-tuner' 1-0043: tv freq set to 0.00
-tuner' 1-0043: TV freq (0.00) out of range (44-958)
-tda9887 1-0043: Unsupported tvnorm entry - audio muted
-tda9887 1-0043: writing: b=0xc0 c=0x00 e=0x00
-tuner' 1-0043: cx88[0] tuner' I2C addr 0x86 with type 74 used for 0x0e
-tuner' 1-0061: I2C RECV = 70 70 70 70 70 70 70 70 70 70 70 70 70 70 70 70 
-tuner' 1-0061: Setting mode_mask to 0x0e
-tuner' 1-0061: chip found @ 0xc2 (cx88[0])
-tuner' 1-0061: tuner 0x61: Tuner type absent
-tuner' 1-0063: I2C RECV = 00 00 00 00 00 00 00 00 00 00 00 04 00 00 00 00 
-tuner' 1-0063: chip found @ 0xc6 (cx88[0])
-tuner' 1-0063: tuner 0x63: Tuner type absent
-cx88[0]: i2c init: enabling analog demod on HVR1300/3000/4000 tuner
-tveeprom 1-0050: Hauppauge model 96019, rev D6D3, serial# 3218455
-tveeprom 1-0050: MAC address is 00-0D-FE-31-1C-17
-tveeprom 1-0050: tuner model is Philips FMD1216MEX (idx 133, type 63)
-tveeprom 1-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)
-tveeprom 1-0050: audio processor is CX882 (idx 33)
-tveeprom 1-0050: decoder processor is CX882 (idx 25)
-tveeprom 1-0050: has radio, has IR receiver, has IR transmitter
-cx88[0]: hauppauge eeprom: model=96019
-tuner' 1-0043: TUNER_SET_TYPE_ADDR
-tuner' 1-0043: Calling set_type_addr for type=63, addr=0xff, mode=0x0e, config=0x00
-tuner' 1-0043: set addr discarded for type 74, mask e. Asked to change tuner at addr 0xff, with mask e
-tuner' 1-0061: TUNER_SET_TYPE_ADDR
-tuner' 1-0061: Calling set_type_addr for type=63, addr=0xff, mode=0x0e, config=0x00
-tuner' 1-0061: defining GPIO callback
-tuner-simple 1-0061: creating new instance
-tuner-simple 1-0061: type set to 63 (Philips FMD1216ME MK3 Hybrid Tuner)
-tuner' 1-0061: type set to Philips FMD1216ME MK3 Hybrid Tuner
-tuner' 1-0061: tv freq set to 400.00
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: Unsupported tvnorm entry - audio muted
-tda9887 1-0043: writing: b=0x00 c=0x00 e=0x00
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0061: cx88[0] tuner' I2C addr 0xc2 with type 63 used for 0x0e
-tuner' 1-0063: TUNER_SET_TYPE_ADDR
-tuner' 1-0063: Calling set_type_addr for type=63, addr=0xff, mode=0x0e, config=0x00
-tuner' 1-0063: set addr discarded for type -1, mask 0. Asked to change tuner at addr 0xff, with mask e
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: Unsupported tvnorm entry - audio muted
-tda9887 1-0043: writing: b=0xc0 c=0x00 e=0x00
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0043: TUNER_SET_STANDBY
-tuner' 1-0043: Cmd TUNER_SET_STANDBY accepted for analog TV
-tda9887 1-0043: Unsupported tvnorm entry - audio muted
-tda9887 1-0043: writing: b=0xe0 c=0x00 e=0x00
-tuner' 1-0061: TUNER_SET_STANDBY
-tuner' 1-0061: Cmd TUNER_SET_STANDBY accepted for analog TV
-tuner' 1-0063: TUNER_SET_STANDBY
-cx88[0]/0: found at 0000:00:14.0, rev: 5, irq: 17, latency: 32, mmio: 0xfa000000
-cx88[0]/0: registered device video0 [v4l2]
-cx88[0]/0: registered device vbi0
-cx88[0]/0: registered device radio0
-tuner' 1-0043: VIDIOC_S_STD
-tuner' 1-0043: Cmd VIDIOC_S_STD accepted for analog TV
-tuner' 1-0043: switching to v4l2
-tuner' 1-0061: VIDIOC_S_STD
-tuner' 1-0061: Cmd VIDIOC_S_STD accepted for analog TV
-tuner' 1-0061: switching to v4l2
-tuner' 1-0061: tv freq set to 400.00
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: Unsupported tvnorm entry - audio muted
-tda9887 1-0043: writing: b=0x20 c=0x00 e=0x00
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0063: VIDIOC_S_STD
-tuner' 1-0043: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0061: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0063: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0043: TUNER_SET_STANDBY
-tuner' 1-0043: Cmd TUNER_SET_STANDBY accepted for analog TV
-tda9887 1-0043: Unsupported tvnorm entry - audio muted
-tda9887 1-0043: writing: b=0x20 c=0x00 e=0x00
-tuner' 1-0061: TUNER_SET_STANDBY
-tuner' 1-0061: Cmd TUNER_SET_STANDBY accepted for analog TV
-tuner' 1-0063: TUNER_SET_STANDBY
-tuner' 1-0043: AUDC_SET_RADIO
-tuner' 1-0043: Cmd AUDC_SET_RADIO accepted for radio
-tuner' 1-0061: AUDC_SET_RADIO
-tuner' 1-0061: Cmd AUDC_SET_RADIO accepted for radio
-tuner' 1-0061: radio freq set to 87.50
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: Unsupported tvnorm entry - audio muted
-tda9887 1-0043: writing: b=0xa0 c=0x00 e=0x00
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0063: AUDC_SET_RADIO
-cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-cx88[0]/2: cx2388x 8802 Driver Manager
-tuner' 1-0043: <6>ACPI: PCI Interrupt 0000:00:14.2[A] -> GSI 17 (level, low) -> IRQ 17
-cx88[0]/2: found at 0000:00:14.2, rev: 5, irq: 17, latency: 32, mmio: 0xf8000000
-TUNER_SET_STANDBY
-tuner' 1-0043: Cmd TUNER_SET_STANDBY accepted for radio
-tda9887 1-0043: Unsupported tvnorm entry - audio muted
-tda9887 1-0043: writing: b=0xa0 c=0x00 e=0x00
-tuner' 1-0061: TUNER_SET_STANDBY
-tuner' 1-0061: Cmd TUNER_SET_STANDBY accepted for radio
-tuner' 1-0063: TUNER_SET_STANDBY
-cx2388x blackbird driver version 0.0.6 loaded
-cx88/2: registering cx8802 driver, type: blackbird access: shared
-cx88[0]/2: subsystem: 0070:9601, board: Hauppauge WinTV-HVR1300 DVB-T/Hybrid MPEG Encoder [card=56]
-cx88[0]/2: cx23416 based mpeg encoder (blackbird reference design)
-cx88[0]/2-bb: Firmware and/or mailbox pointer not initialized or corrupted
-cx88/2: cx2388x dvb driver version 0.0.6 loaded
-cx88/2: registering cx8802 driver, type: dvb access: shared
-cx88[0]/2: subsystem: 0070:9601, board: Hauppauge WinTV-HVR1300 DVB-T/Hybrid MPEG Encoder [card=56]
-cx88[0]/2: cx2388x based DVB/ATSC card
-cx22702_i2c_gate_ctrl(1)
-cx22702_i2c_gate_ctrl(0)
-tuner-simple 1-0061: attaching existing instance
-tuner-simple 1-0061: type set to 63 (Philips FMD1216ME MK3 Hybrid Tuner)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: TUNER_SET_STANDBY
-tuner' 1-0061: TUNER_SET_STANDBY
-tuner' 1-0063: TUNER_SET_STANDBY
-cx22702_i2c_gate_ctrl(0)
-DVB: registering new adapter (cx88[0])
-DVB: registering frontend 0 (Conexant CX22702 DVB-T)...
-cx88[0]/2-bb: Firmware upload successful.
-cx88[0]/2-bb: Firmware version is 0x02060039
-cx88[0]/2-bb: VIDIOC_TRY_FMT: w: 720, h: 480, f: 4
-cx88[0]/2: registered device video1 [mpeg]
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_S_STD
-tuner' 1-0043: Cmd VIDIOC_S_STD accepted for analog TV
-tuner' 1-0061: VIDIOC_S_STD
-tuner' 1-0061: Cmd VIDIOC_S_STD accepted for analog TV
-tuner' 1-0061: tv freq set to 400.00
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: Unsupported tvnorm entry - audio muted
-tda9887 1-0043: writing: b=0x20 c=0x00 e=0x00
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0063: VIDIOC_S_STD
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0061: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0063: VIDIOC_INT_S_AUDIO_ROUTING
-cx22702_i2c_gate_ctrl(0)
-cx2388x alsa driver version 0.0.6 loaded
-ACPI: PCI Interrupt 0000:00:14.1[A] -> GSI 17 (level, low) -> IRQ 17
-cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+diff -r aa3e5cc1d833 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Wed Sep 24 10:00:37 2008 +0200
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Sep 26 22:31:08 2008 +0100
+@@ -3299,6 +3299,7 @@
+ 	},
+ 	[SAA7134_BOARD_HAUPPAUGE_HVR1110] = {
+ 		/* Thomas Genty <tomlohave@gmail.com> */
++                /* David Bentham <db260179@hotmail.com> */
+ 		.name           = "Hauppauge WinTV-HVR1110 DVB-T/Hybrid",
+ 		.audio_clock    = 0x00187de7,
+ 		.tuner_type     = TUNER_PHILIPS_TDA8290,
+@@ -3307,23 +3308,26 @@
+ 		.radio_addr     = ADDR_UNSET,
+ 		.tuner_config   = 1,
+ 		.mpeg           = SAA7134_MPEG_DVB,
+-		.inputs         = {{
+-			.name = name_tv,
+-			.vmux = 1,
+-			.amux = TV,
+-			.tv   = 1,
+-		},{
+-			.name   = name_comp1,
+-			.vmux   = 3,
+-			.amux   = LINE2, /* FIXME: audio doesn't work on svideo/composite */
+-		},{
+-			.name   = name_svideo,
+-			.vmux   = 8,
+-			.amux   = LINE2, /* FIXME: audio doesn't work on svideo/composite */
+-		}},
+-		.radio = {
+-			.name = name_radio,
+-			.amux   = TV,
++                .gpiomask       = 0x0200100,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = TV,
++			.tv   = 1,
++                        .gpio = 0x0000100,
++		}, {
++			.name   = name_comp1,
++			.vmux   = 3,
++			.amux   = LINE1, 
++		}, {
++			.name   = name_svideo,
++			.vmux   = 8,
++			.amux   = LINE1, 
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux   = TV,
++                        .gpio = 0x0200100,
+ 		},
+ 	},
+ 	[SAA7134_BOARD_CINERGY_HT_PCMCIA] = {
 
---=-N1D3kKT4B/ohvDV+3opL
-Content-Disposition: attachment; filename=02-dmesg_mythbackend_started
-Content-Type: text/plain; name=02-dmesg_mythbackend_started; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0061: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0063: VIDIOC_INT_S_AUDIO_ROUTING
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_S_STD
-tuner' 1-0061: VIDIOC_S_STD
-tuner' 1-0061: tv freq set to 400.00
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: Unsupported tvnorm entry - audio muted
-tda9887 1-0043: writing: b=0x20 c=0x00 e=0x00
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0063: VIDIOC_S_STD
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0061: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0063: VIDIOC_INT_S_AUDIO_ROUTING
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_S_STD
-tuner' 1-0061: VIDIOC_S_STD
-tuner' 1-0061: tv freq set to 400.00
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: Unsupported tvnorm entry - audio muted
-tda9887 1-0043: writing: b=0x20 c=0x00 e=0x00
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0063: VIDIOC_S_STD
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_S_FREQUENCY
-tuner' 1-0043: tv freq set to 154.50
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tuner' 1-0061: VIDIOC_S_FREQUENCY
-tuner' 1-0061: tv freq set to 154.50
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0063: VIDIOC_S_FREQUENCY
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_G_FREQUENCY
-tuner' 1-0043: Cmd VIDIOC_G_FREQUENCY accepted for analog TV
-tuner' 1-0061: VIDIOC_G_FREQUENCY
-tuner' 1-0061: Cmd VIDIOC_G_FREQUENCY accepted for analog TV
-tuner' 1-0063: VIDIOC_G_FREQUENCY
-cx22702_i2c_gate_ctrl(0)
-
---=-N1D3kKT4B/ohvDV+3opL
-Content-Disposition: attachment;
-	filename=03-dmesg_mythfrontend_started_watching_one_channel
-Content-Type: text/plain;
-	name=03-dmesg_mythfrontend_started_watching_one_channel;
-	charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0061: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0063: VIDIOC_INT_S_AUDIO_ROUTING
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_S_STD
-tuner' 1-0043: tv freq set to 154.50
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tuner' 1-0061: VIDIOC_S_STD
-tuner' 1-0061: tv freq set to 154.50
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0063: VIDIOC_S_STD
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_S_FREQUENCY
-tuner' 1-0043: tv freq set to 154.50
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tuner' 1-0061: VIDIOC_S_FREQUENCY
-tuner' 1-0061: tv freq set to 154.50
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0063: VIDIOC_S_FREQUENCY
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_G_FREQUENCY
-tuner' 1-0043: Cmd VIDIOC_G_FREQUENCY accepted for analog TV
-tuner' 1-0061: VIDIOC_G_FREQUENCY
-tuner' 1-0061: Cmd VIDIOC_G_FREQUENCY accepted for analog TV
-tuner' 1-0063: VIDIOC_G_FREQUENCY
-cx22702_i2c_gate_ctrl(0)
-cx88[0]/2-bb: VIDIOC_G_FMT: w: 720, h: 480, f: 4
-cx88[0]/2-bb: VIDIOC_S_FMT: w: 480, h: 480, f: 4
-
---=-N1D3kKT4B/ohvDV+3opL
-Content-Disposition: attachment;
-	filename=04-dmesg_mythfrontend_tried_changing_channel
-Content-Type: text/plain; name=04-dmesg_mythfrontend_tried_changing_channel;
-	charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-cx22702_i2c_gate_ctrl(1)
-cx22702_readreg: readreg error (ret == -121)
-cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)
-tuner' 1-0043: VIDIOC_S_FREQUENCY
-tuner' 1-0043: tv freq set to 147.62
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tda9887 1-0043: i2c i/o error: rc == -121 (should be 4)
-tuner' 1-0061: VIDIOC_S_FREQUENCY
-tuner' 1-0061: tv freq set to 147.62
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tda9887 1-0043: i2c i/o error: rc == -121 (should be 4)
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner-simple 1-0061: i2c i/o error: rc == -121 (should be 4)
-tuner' 1-0063: VIDIOC_S_FREQUENCY
-cx22702_i2c_gate_ctrl(0)
-cx22702_readreg: readreg error (ret == -121)
-cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)
-cx22702_i2c_gate_ctrl(1)
-cx22702_readreg: readreg error (ret == -121)
-cx22702_writereg: writereg error (reg == 0x0d, val == 0x00, ret == -121)
-tuner' 1-0043: VIDIOC_G_FREQUENCY
-tuner' 1-0043: Cmd VIDIOC_G_FREQUENCY accepted for analog TV
-tuner' 1-0061: VIDIOC_G_FREQUENCY
-tuner' 1-0061: Cmd VIDIOC_G_FREQUENCY accepted for analog TV
-tuner' 1-0063: VIDIOC_G_FREQUENCY
-cx22702_i2c_gate_ctrl(0)
-cx22702_readreg: readreg error (ret == -121)
-cx22702_writereg: writereg error (reg == 0x0d, val == 0x01, ret == -121)
-
---=-N1D3kKT4B/ohvDV+3opL
-Content-Disposition: attachment;
-	filename=05-dmesg_mythfrontend_exited_and_reentered_livetv
-Content-Type: text/plain;
-	name=05-dmesg_mythfrontend_exited_and_reentered_livetv;
-	charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0061: VIDIOC_INT_S_AUDIO_ROUTING
-tuner' 1-0063: VIDIOC_INT_S_AUDIO_ROUTING
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_S_STD
-tuner' 1-0043: tv freq set to 147.62
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tuner' 1-0061: VIDIOC_S_STD
-tuner' 1-0061: tv freq set to 147.62
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0063: VIDIOC_S_STD
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_S_FREQUENCY
-tuner' 1-0043: tv freq set to 147.62
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tuner' 1-0061: VIDIOC_S_FREQUENCY
-tuner' 1-0061: tv freq set to 147.62
-tuner' 1-0043: TUNER_SET_CONFIG
-tda9887 1-0043: configure for: PAL-BGHN
-tda9887 1-0043: writing: b=0x14 c=0x70 e=0x49
-tuner' 1-0061: TUNER_SET_CONFIG
-tuner' 1-0063: TUNER_SET_CONFIG
-tuner' 1-0063: VIDIOC_S_FREQUENCY
-cx22702_i2c_gate_ctrl(0)
-cx22702_i2c_gate_ctrl(1)
-tuner' 1-0043: VIDIOC_G_FREQUENCY
-tuner' 1-0043: Cmd VIDIOC_G_FREQUENCY accepted for analog TV
-tuner' 1-0061: VIDIOC_G_FREQUENCY
-tuner' 1-0061: Cmd VIDIOC_G_FREQUENCY accepted for analog TV
-tuner' 1-0063: VIDIOC_G_FREQUENCY
-cx22702_i2c_gate_ctrl(0)
-cx88[0]/2-bb: VIDIOC_G_FMT: w: 480, h: 480, f: 4
-cx88[0]/2-bb: VIDIOC_S_FMT: w: 480, h: 480, f: 4
-
---=-N1D3kKT4B/ohvDV+3opL
+--=-ouVoJZx9pOGF3SuZOhvr
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -494,4 +175,4 @@ Content-Disposition: inline
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---=-N1D3kKT4B/ohvDV+3opL--
+--=-ouVoJZx9pOGF3SuZOhvr--
