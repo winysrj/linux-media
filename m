@@ -1,17 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org
-Date: Fri, 26 Sep 2008 12:31:58 +0300
-References: <002101c91f1a$b13c4e60$0401a8c0@asrock>
-	<1222394796.4589.61.camel@pc10.localdom.local>
-	<a3ef07920809252109uf7c120bne1270895ee7e0371@mail.gmail.com>
-In-Reply-To: <a3ef07920809252109uf7c120bne1270895ee7e0371@mail.gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <sinter.mann@gmx.de>) id 1KjWBG-0005dD-EU
+	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 11:33:39 +0200
+Date: Sat, 27 Sep 2008 11:33:05 +0200
+From: sinter.mann@gmx.de
+Message-ID: <20080927093305.228300@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809261231.58789.liplianin@tut.by>
-Cc: Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
-	view
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Wanted: dvb-ttpci maintainer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,48 +16,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMjYgU2VwdGVtYmVyIDIwMDggMDc6MDk6MjMgVkRSIFVzZXIgzsHQydPB
-zCjBKToKPiBPbiBUaHUsIFNlcCAyNSwgMjAwOCBhdCA3OjA2IFBNLCBoZXJtYW5uIHBpdHRvbiA8
-aGVybWFubi1waXR0b25AYXJjb3IuZGU+IAp3cm90ZToKPiA+IEFtIERvbm5lcnN0YWcsIGRlbiAy
-NS4wOS4yMDA4LCAxODo0MiAtMDcwMCBzY2hyaWViIFZEUiBVc2VyOgo+ID4+IE9uIFRodSwgU2Vw
-IDI1LCAyMDA4IGF0IDY6MTggUE0sIGhlcm1hbm4gcGl0dG9uIDxoZXJtYW5uLXBpdHRvbkBhcmNv
-ci5kZT4gCndyb3RlOgo+ID4+ID4gQW0gRG9ubmVyc3RhZywgZGVuIDI1LjA5LjIwMDgsIDE4OjE0
-IC0wNzAwIHNjaHJpZWIgVkRSIFVzZXI6Cj4gPj4gPj4gT24gVGh1LCBTZXAgMjUsIDIwMDggYXQg
-NDozNyBQTSwgaGVybWFubiBwaXR0b24gCjxoZXJtYW5uLXBpdHRvbkBhcmNvci5kZT4gd3JvdGU6
-Cj4gPj4gPj4gPiBXaG8gdGhlIGhlbGwgaXMgVkRSIFVzZXIgPHVzZXIudmRyQGdtYWlsLmNvbT4g
-Pwo+ID4+ID4+ID4gS2xhdXMgaGltc2VsZj8KPiA+PiA+Pgo+ID4+ID4+IE5vLCBJIGFtIG5vdCBL
-bGF1cyBhcyBjb3VsZCBiZSBhc3N1bWVkIGJ5IHNpbXBseSBsb29raW5nIGF0IG15IGVtYWlsCj4g
-Pj4gPj4gYWRkcmVzcy4gIEkgYW0sIGhvd2V2ZXIsIGEgbG9uZy10aW1lIGxpbnV4IGR2YiBhbmQg
-VkRSIHVzZXIuCj4gPj4gPj4KPiA+PiA+PiA+IEF0IGxlYXN0IGhlIGtub3dzIG5vdGhpbmcgYWJv
-dXQgTWF1cm8ncyByZWFsIHdvcmsgb24gdmlkZW80bGludXguCj4gPj4gPj4KPiA+PiA+PiBJZiB0
-aGF0IGNvbW1lbnQgd2FzIGRpcmVjdGVkIHRvd2FyZHMgbWUgdGhlbiB5b3UncmUgdmVyeSB3cm9u
-Zy4gCj4gPj4gPj4gWW91J2QgYmUgbWFraW5nIGEgdGVycmlibGUgbWlzdGFrZSBpZiB5b3UgdGhp
-bmsgSSBqdXN0IHdhbmRlcmVkIGluCj4gPj4gPj4gb2ZmIHRoZSBzdHJlZXQgdGhlIG90aGVyIGRh
-eS4KPiA+PiA+Pgo+ID4+ID4+IFJlZ2FyZHMsCj4gPj4gPj4gLURlcmVrCj4gPj4gPgo+ID4+ID4g
-SGkgVXdlLAo+ID4+ID4KPiA+PiA+IHdlbGNvbWUgYmFjay4KPiA+PiA+Cj4gPj4gPiBDaGVlcnMs
-Cj4gPj4gPiBIZXJtYW5uCj4gPj4KPiA+PiBZb3Ugc2hvdWxkIHJlYWxseSBwYXkgbW9yZSBhdHRl
-bnRpb24gdG8gdGhlIHBhcnQgdGhhdCBzYXlzOgo+ID4+Cj4gPj4gUmVnYXJkcywKPiA+PiAtRGVy
-ZWsKPiA+Pgo+ID4+IEluIGNhc2UgeW91IG1pc3NlZCBpdCwgaGVyZSBpdCBpcyBmb3IgdGhlIHRo
-aXJkIHRpbWUuLi4uCj4gPj4KPiA+PiBSZWdhcmRzLAo+ID4+IC1EZXJlawo+ID4KPiA+IENvbWUg
-ZG93biwgdGhlcmUgaXMgcmVhbGx5IGVub3VnaCB3b3JrIGZvciBldmVyeW9uZS4KPiA+Cj4gPiBT
-byBpbiB0aGUgZW5kLCB5b3UgcHVibGljbHkgYW5ub3VuY2UgdG8ga2lsbCBtZSBhbmQgYXJlIHN1
-cmUgZG8gdG8gdGhlCj4gPiByaWdodCB0aGluZyBoZXJlPwo+ID4KPiA+IEJlY2F1c2UgeW91IGFy
-ZSBEZXJlaz8KPiA+Cj4gPiBUaGluayB0d2ljZS4KPiA+Cj4gPiBIZXJtYW5uCj4KPiBXaGF0IHRo
-ZSBoZWxsIGFyZSB5b3UgdGFsa2luZyBhYm91dD8gIEFyZSB5b3UgZHJ1bmsgb3Igb24gZHJ1Z3Mg
-cmlnaHQKPiBub3c/ICBTb2JlciB1cCBiZWZvcmUgeW91IHBvc3QgYWdhaW4gYmVjYXVzZSB5b3Vy
-IGltYWdpbmFyeSBub25zZW5zZQo+IGlzIG1ha2luZyB5b3UgbG9vayBhIGJpdCBmb29saXNoLgo+
-Cj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KPiBsaW51
-eC1kdmIgbWFpbGluZyBsaXN0Cj4gbGludXgtZHZiQGxpbnV4dHYub3JnCj4gaHR0cDovL3d3dy5s
-aW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZiCgoKCklzIGl0IHBv
-c3NpYmxlIHRvIGNsZWFuIHVwIG1haWxpbmcgbGlzdCBmcm9tIHN1Y2ggbWVzc2FnZXM/CldoYXQg
-ZG8gcGVvcGxlcyByZWFkIGl0IGZvcj8KSXMgaXQgY29ubmVjdGVkIHRvIERWQj8KCkxldCdzIGZp
-Z2h0IGVhY2ggb3RoZXIsIGhvdCBmaW5uaXNoIGJveXMgOi0pCgpJZ29yIE0uIExpcGxpYW5pbgoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZi
-IG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9y
-Zy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+Pitton,
+
+> On Fri, Sep 26, 2008 at 11:43 AM, hermann pitton
+> <hermann-pitton at arcor.de> wrote:
+> > Put at least a sticker on such guys like Uwe/Derek and Manu should do it
+> > as well.
+
+why only a neutral "sticker", why not a yellow star with three letters on it,
+the first one being a "J"?
+
+"We have no single patch from Derek. Shut up."
+
+This is not only short-minded, but furthermore belongs to the classical segments
+of a right wing brain to reduce a human being's value to his "productivity output".
+
+This is not my opinion, but this is proven by facts in science.
+
+God save the queen
+The fascist regime
+They made you a moron
+Potential H-bomb
+
+God save the queen
+She ain't no human being
+There is no future
+In Pitton's dreaming
+
+Now you know, Pitton!
+
+-- 
+GMX startet ShortView.de. Hier findest Du Leute mit Deinen Interessen!
+Jetzt dabei sein: http://www.shortview.de/wasistshortview.php?mc=sv_ext_mf@gmx
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
