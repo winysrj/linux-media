@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from a-sasl-quonix.sasl.smtp.pobox.com ([208.72.237.25]
-	helo=sasl.smtp.pobox.com) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <torgeir@pobox.com>) id 1Kina3-0003fW-Iy
-	for linux-dvb@linuxtv.org; Thu, 25 Sep 2008 11:56:18 +0200
-Message-Id: <01DE66C3-8E94-4DC3-9828-DF2CD7B59EBB@pobox.com>
-From: Torgeir Veimo <torgeir@pobox.com>
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-In-Reply-To: <alpine.LRH.1.10.0809251152480.1247@pub1.ifh.de>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Date: Thu, 25 Sep 2008 19:56:02 +1000
-References: <573008.36358.qm@web52908.mail.re2.yahoo.com>
-	<alpine.LRH.1.10.0809251152480.1247@pub1.ifh.de>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] Add remote control support to Nova-TD
- (52009)
+Received: from [216.80.70.60] (helo=host06.hostingexpert.com)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mkrufky@linuxtv.org>) id 1KjdIE-0006QG-2C
+	for linux-dvb@linuxtv.org; Sat, 27 Sep 2008 19:09:20 +0200
+Message-ID: <48DE68B4.6040704@linuxtv.org>
+Date: Sat, 27 Sep 2008 13:09:08 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: Torben Viets <viets@web.de>
+References: <48DE679C.6090302@web.de>
+In-Reply-To: <48DE679C.6090302@web.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Hauppauge HVR-1700 analog Support?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,30 +25,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Torben Viets wrote:
+> Hello,
+> 
+> I've got a Haupauge HVR-1700 PCIe, DVB-T works fine under Linux, but 
+> analog doesn't work, is there a way to get it working or any plans to 
+> support it...
 
-On 25 Sep 2008, at 19:53, Patrick Boettcher wrote:
+Analog not yet fully supported on the HVR-1700, but it is a work in progress.
 
->>
->> This patch is against the 2.6.26.5 kernel, and adds remote control  
->> support for the Hauppauge WinTV Nova-TD (Diversity) model. (That's  
->> the 52009 version.) It also adds the key-codes for the credit-card  
->> style remote control that comes with this particular adapter.
->
-> Committed and ask to be pulled, thanks.
+You might notice some threads on the linux-dvb mailing list about analog on the HVR-1500 and FusionHDTV7 Express boards -- once it works on those properly, it wont be difficult to support HVR-1700 analog as well.
 
+This will probably take a few weeks / months, but should (hopefully) be ready before the end of the year.
 
-Am curious, would it be possible to augment these drivers to provide  
-the raw IR codes on a raw hid device, eg. /dev/hidraw0 etc, so that  
-other RC5 remotes than the ones that actually are sold with the card  
-can be used with the card?
+Stay tuned.
 
--- 
-Torgeir Veimo
-torgeir@pobox.com
-
-
-
-
+-Mike Krufky
 
 _______________________________________________
 linux-dvb mailing list
