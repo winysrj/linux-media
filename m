@@ -1,21 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8SNfH3G001858
-	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 19:41:17 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8SNf2iD007059
-	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 19:41:02 -0400
-Date: Mon, 29 Sep 2008 01:40:44 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Joseph Shraibman <video4linux@jks.tupari.net>
-Message-ID: <20080928234044.GA6399@daniel.bse>
-References: <alpine.LFD.2.00.0809281653540.2524@tupari.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0809281653540.2524@tupari.net>
-Cc: video4linux-list@redhat.com
-Subject: Re: What is an ATI Wonder?
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8SHZXhg002940
+	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 13:35:33 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8SHZKV2008424
+	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 13:35:21 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so1254157fga.7
+	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 10:35:19 -0700 (PDT)
+Message-ID: <48DFC052.60005@gmail.com>
+Date: Sun, 28 Sep 2008 19:35:14 +0200
+From: "tomlohave@gmail.com" <tomlohave@gmail.com>
+MIME-Version: 1.0
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <BLU116-W13E3E5DA492C7A08D36C3FC2470@phx.gbl>	
+	<1222490394.2668.10.camel@pc10.localdom.local>	
+	<20080928014346.4da4b86e@mchehab.chehab.org>
+	<1222619391.3423.30.camel@pc10.localdom.local>
+In-Reply-To: <1222619391.3423.30.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: dabby bentam <db260179@hotmail.com>, linux-dvb@linuxtv.org,
+	video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [linux-dvb] [PATCH] saa7134: add support for Tv(working	config),
+ radio and analog audio in on the Hauppauge HVR-1110
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,27 +34,113 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, Sep 28, 2008 at 04:56:21PM -0400, Joseph Shraibman wrote:
-> http://www.linuxtv.org/wiki/index.php/ATSC_PCI_Cards lists "ATI HDTV 
-> Wonder" as supported, but what model is that?  There are two models that 
-> support HDTV, the 650 and the 600.  Are they both supported?
-
-No, neither is supported.
-
-You are talking about the "ATI TV Wonder HD 600" and "ATI TV Wonder HD 650"
-cards listed here: http://ati.amd.com/products/tunermatrix.html
-
-Of the devices listed there only the USB version of the "TV Wonder HD 600"
-is currently supported (by the em28xx driver). (So the "single-chip solution"
-Theater 600 Pro is mainly a conglomerate of other well known chips?)
-
-Supported Wonder cards are:
-- "ATI HDTV Wonder" http://ati.amd.com/products/hdtvwonder/index.html
-- "ATI TV Wonder Pro" http://ati.amd.com/products/tvwonderpro/index.html
-- "ATI TV Wonder VE" http://ati.amd.com/products/tvwonderve/index.html
-- "ATI TV Wonder" http://ati.amd.com/products/tvwonder/index.html
-
-  Daniel
+hermann pitton a écrit :
+> Hi,
+>
+> Am Sonntag, den 28.09.2008, 01:43 -0300 schrieb Mauro Carvalho Chehab:
+>   
+>> On Sat, 27 Sep 2008 06:39:54 +0200
+>> hermann pitton <hermann-pitton@arcor.de> wrote:
+>>
+>>     
+>>> Mauro,
+>>>
+>>> wait a little.
+>>>       
+>> OK. Please forward it to me again, after everything being ok with the patch.
+>>
+>> Cheers,
+>> Mauro
+>>     
+>
+> Thomas mailed me that he has some trouble with his current setup and
+> might not be able to test that soon too.
+>
+> The patch is already OK and tested by David.
+>
+> David,
+> as told, we need also your email in signed-off-by.
+> I take it from the card's entry. Please give your OK.
+>
+> Here is it again with some cleanup for spaces.
+> Mauro, please take it from the attachment.
+> Evolution inline converts tabs to spaces or I must force it into a mode
+> it does not like.
+>
+> Cheers,
+> Hermann
+>
+>
+> saa7134: Hauppauge HVR-1110, support for radio and analog audio in
+>
+> From: David Bentham <db260179@hotmail.com>
+>
+> The audio switch is at 0x100 and radio on gpio 21.
+>
+> Priority: normal
+>
+> Signed-off-by: David Bentham <db260179@hotmail.com>
+> Reviewed-by: Hermann Pitton <hermann-pitton@arcor.de>
+>
+> diff -r 8e6cda021e0e linux/drivers/media/video/saa7134/saa7134-cards.c
+> --- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Sep 26 11:29:03 2008 +0200
+> +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Sep 28 17:21:45 2008 +0200
+> @@ -3299,6 +3299,7 @@
+>  	},
+>  	[SAA7134_BOARD_HAUPPAUGE_HVR1110] = {
+>  		/* Thomas Genty <tomlohave@gmail.com> */
+> +		/* David Bentham <db260179@hotmail.com> */
+>  		.name           = "Hauppauge WinTV-HVR1110 DVB-T/Hybrid",
+>  		.audio_clock    = 0x00187de7,
+>  		.tuner_type     = TUNER_PHILIPS_TDA8290,
+> @@ -3307,23 +3308,26 @@
+>  		.radio_addr     = ADDR_UNSET,
+>  		.tuner_config   = 1,
+>  		.mpeg           = SAA7134_MPEG_DVB,
+> -		.inputs         = {{
+> -			.name = name_tv,
+> -			.vmux = 1,
+> -			.amux = TV,
+> -			.tv   = 1,
+> -		},{
+> -			.name   = name_comp1,
+> -			.vmux   = 3,
+> -			.amux   = LINE2, /* FIXME: audio doesn't work on svideo/composite */
+> -		},{
+> -			.name   = name_svideo,
+> -			.vmux   = 8,
+> -			.amux   = LINE2, /* FIXME: audio doesn't work on svideo/composite */
+> -		}},
+> -		.radio = {
+> -			.name = name_radio,
+> -			.amux   = TV,
+> +		.gpiomask       = 0x0200100,
+> +		.inputs         = {{
+> +			.name = name_tv,
+> +			.vmux = 1,
+> +			.amux = TV,
+> +			.tv   = 1,
+> +			.gpio = 0x0000100,
+> +		}, {
+> +			.name = name_comp1,
+> +			.vmux = 3,
+> +			.amux = LINE1,
+> +		}, {
+> +			.name = name_svideo,
+> +			.vmux = 8,
+> +			.amux = LINE1,
+> +		} },
+> +		.radio = {
+> +			.name = name_radio,
+> +			.amux = TV,
+> +			.gpio = 0x0200100,
+>  		},
+>  	},
+>  	[SAA7134_BOARD_CINERGY_HT_PCMCIA] = {
+>
+>   
+It's ok for me
+Tested-by: Thomas Genty <tomlohave@gmail.com>
 
 --
 video4linux-list mailing list
