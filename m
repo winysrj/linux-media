@@ -1,29 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8NIVAZj008008
-	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 14:31:10 -0400
-Received: from d1.scratchtelecom.com (69.42.52.179.scratchtelecom.com
-	[69.42.52.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8NIUNwf023352
-	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 14:30:51 -0400
-Received: from vegas (CPE00a02477ff82-CM001225d885d8.cpe.net.cable.rogers.com
-	[99.249.154.65])
-	by d1.scratchtelecom.com (8.13.8/8.13.8/Debian-3) with ESMTP id
-	m8NIUMsk014868
-	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 14:30:22 -0400
-Received: from lawsonk (helo=localhost)
-	by vegas with local-esmtp (Exim 3.36 #1 (Debian)) id 1KiCeR-0000qG-00
-	for <video4linux-list@redhat.com>; Tue, 23 Sep 2008 14:30:19 -0400
-Date: Tue, 23 Sep 2008 14:30:18 -0400 (EDT)
-From: Keith Lawson <lawsonk@lawson-tech.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8S0LplA026420
+	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 20:21:52 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.232])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8S0Lel7028164
+	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 20:21:40 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so1590728rvb.51
+	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 17:21:40 -0700 (PDT)
+Message-ID: <208cbae30809271721m4bd152d8gc5b7e404711d9a53@mail.gmail.com>
+Date: Sun, 28 Sep 2008 04:21:40 +0400
+From: "Alexey Klimov" <klimov.linux@gmail.com>
 To: video4linux-list@redhat.com
-In-Reply-To: <e1077a62ea0e09bf49282395ebcefe75.squirrel@www.lockie.ca>
-Message-ID: <alpine.DEB.1.10.0809231428180.1930@vegas>
-References: <alpine.DEB.1.10.0809231317360.1930@vegas>
-	<e1077a62ea0e09bf49282395ebcefe75.squirrel@www.lockie.ca>
+In-Reply-To: <20080925113932.GA21999@shell.devel.redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Subject: Re: TM6010/TM5600 firmware file(s)
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <208cbae30809250429m64c1c552ud18ff5064602e3c0@mail.gmail.com>
+	<20080925113932.GA21999@shell.devel.redhat.com>
+Subject: Re: radio-mr800 usb driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,34 +30,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Thu, Sep 25, 2008 at 3:39 PM, Alan Cox <alan@redhat.com> wrote:
+> On Thu, Sep 25, 2008 at 03:29:55PM +0400, Alexey Klimov wrote:
+>> Driver works fine with kradio & gnomeradio applications. Works normal
+>> under Linux kernel  2.6.27-rc6 (released 9 Sep 2008), compiles without
+>> warnings with gcc version 4.3.1 (Gentoo 4.3.1-r1 p1.1) on
+>> x86-architecture machine.
+>
+> Looks nice and clean to me. No obvious mistakes. Probably the warn()
+> statements should include the module name so people know which module
+> produced them if they ever want to file a bug.
+>
+> Alan
 
+Hello,
+I'm so sorry. I put err() and warn() statements in "static int __init
+amradio_init(void)" section, compile, insmod module and looked at
+dmesg. So i got smth like this:
 
-On Tue, 23 Sep 2008, James wrote:
+radio_mr800: 0.01 AverMedia MR 800 USB FM radio driver
+radio_mr800: Error statement test
+radio_mr800: Warn statement test
 
-> On Tue, September 23, 2008 1:20 pm, Keith Lawson wrote:
->> Hello,
->>
->>
->> I've searched high and low for firmware files or tridvid.sys to work
->> witha tm5600 chipset capture card I have and have not been able to find
->> the firmware or the Windows driver. Can anyone point me in the right
->> direction to find the firmware that will work with Mauro's tm6010 module?
->>
->> Thanks,
->> Keith.
-> http://driverscollection.com/?H=Trident TM5600 USB TV&By=Chronos
->>
+Seems, like warn() statement already includes module name.
+Maybe I configured kernel in debug mode, that's why i got module name
+in dmesg or it's default behaviour of kernel-message logging API ?
 
-Ah, thank you! I've been pulling my hair out trying to find that driver.
-
-I was able to get the firmware out using dd commands from 
-http://www.linuxtv.org/v4lwiki/index.php/Trident_TM6000. I'll test the 
-when I get home tonight.
-
-Out of curiosity how does one determine the "skip" and "count" parameters 
-for dd to extract the firmware?
-
-Keith.
+-- 
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
