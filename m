@@ -1,22 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m880qMtp021223
-	for <video4linux-list@redhat.com>; Sun, 7 Sep 2008 20:52:22 -0400
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m880qAbx014088
-	for <video4linux-list@redhat.com>; Sun, 7 Sep 2008 20:52:10 -0400
-From: Andy Walls <awalls@radix.net>
-To: Jejo Koola <jdkoola@gmail.com>
-In-Reply-To: <ced06bb70809051119v5cb4fc09tc5d06ac6208dd52d@mail.gmail.com>
-References: <ced06bb70809051119v5cb4fc09tc5d06ac6208dd52d@mail.gmail.com>
-Content-Type: text/plain
-Date: Sun, 07 Sep 2008 20:51:58 -0400
-Message-Id: <1220835118.2645.29.camel@morgan.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Hauppauge HVR-1600 (cx18): high pitched audio distortion for
-	ATSC
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8SHYEmn002448
+	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 13:34:14 -0400
+Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8SHXsHN007500
+	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 13:34:00 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8SHXlTf004156
+	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 12:33:53 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8SHXkdD027922
+	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 23:03:47 +0530 (IST)
+From: "Jadav, Brijesh R" <brijesh.j@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Sun, 28 Sep 2008 23:03:46 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403DC087DE4@dbde02.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE4AF7E5CAA@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE4AF7E5CAA@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,37 +35,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 2008-09-05 at 14:19 -0400, Jejo Koola wrote: 
-> I'm using the cx18 driver on a Mythbuntu 8.0.4 system running the HVR-1600.
-> Everything works well for NTSC; however, for OTA ATSC, there are very
-> high-pitched bursts through the speaker that occur every few minutes.
+Hi Murali,
 
-For ATSC, OTA or Cable, the CX23418 essentially acts as a passthrough
-for moving TS packets from the digital demod chip to memory buffers.
+I was looking into the video-buf layer and looks like it is difficult to pre-allocate the buffer at the init time and use them at the time of mmap using video-buf-contig layer. The only way out is to implement mmap function in the driver itself so that you can use your pre-allocated buffers and map them. You can use the same implementation as that of video-buf layer except that dma_alloc_coherent will not be called if it is already allocated.
 
-Here are some things to try:
+Thanks,
+Brijesh Jadav
+________________________________________
+From: video4linux-list-bounces@redhat.com [video4linux-list-bounces@redhat.com] On Behalf Of Karicheri, Muralidharan
+Sent: Monday, September 22, 2008 2:59 PM
+To: video4linux-list@redhat.com
+Subject: videobuf-dma-contig - buffer allocation at init time ?
 
-1. Use the latest cx18 driver from the v4l-dvb repository.  I recently
-fixed some buffer handling problems and that may make a difference.
-(You may have to set the mmio_ndelay module parameter to 0.)
+Hello,
 
-2. Use femon and azap to monitor the signal and see if errors occur
-"every few minutes".  If they do, you may want to take actions to
-improve signal strength.
+I am in the process of porting my V4L2 video driver to the latest kernel. I would like to use the contiguous buffer allocation and would like to allocate frame buffers (contiguous) at driver initialization. The contiguous buffer allocation module allocates buffer as part of _videobuf_mmap_mapper() using dma_alloc_coherent() which gets called during mmap() user calls. I have following questions about the design of this module.
+1) Why the allocation of buffer done as part of mmap() not at the init time?  Usually video capture requires big frame buffers of 4M or so, if HD capture is involved. So in our driver (based on 2.6.10) we allocate the buffer at driver initialization and had a hacked version of the buffer allocation module which used this pre-allocated frame buffer address ptrs during mmap. Allocating buffer of such big size during kernel operation is likely to fail due to fragmentation of buffers.
+2) Is there a way I can allocate the buffer using dma_alloc_coherent() at init time and still use the videobuf-dma-contig for mmap and buffer management using the allocated buffers ?
+3) Any other way to address the issue using the existing videobuf-dma-contig module ?
 
-3. If those don't help, send small sample of the TS with the problem to
-me in an off list e-mail.  I'll can take a look at it to see if I can
-spot anything unusual.
+Thanks for your help.
 
-Regards,
-Andy
-
->   Some
-> channels are worse than others, but it seems to be present on all channels.
-> There are no problems with the video reception.
-> 
-> Any ideas would be appreciated.
-
+Murali
 
 --
 video4linux-list mailing list
