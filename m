@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8B0riNe013944
-	for <video4linux-list@redhat.com>; Wed, 10 Sep 2008 20:53:45 -0400
-Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.187])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8B0rW7Z000912
-	for <video4linux-list@redhat.com>; Wed, 10 Sep 2008 20:53:33 -0400
-Received: by ti-out-0910.google.com with SMTP id 24so37873tim.7
-	for <video4linux-list@redhat.com>; Wed, 10 Sep 2008 17:53:31 -0700 (PDT)
-Message-ID: <48C86B2C.1070700@gmail.com>
-Date: Thu, 11 Sep 2008 08:49:48 +0800
-From: jianpu <james.s.pu@gmail.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8SFfo27015634
+	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 11:41:51 -0400
+Received: from mxb01.ya.com (mxb01.ya.com [62.151.11.208])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8SFeqxH023602
+	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 11:41:19 -0400
+Received: from [89.129.167.125] (helo=[192.168.1.9])
+	by mxb01.ya.com with esmtpa (Exim 4.68)
+	(envelope-from <afarguell@ya.com>) id 1KjyO6-0005vr-SQ
+	for video4linux-list@redhat.com; Sun, 28 Sep 2008 17:40:48 +0200
+Message-ID: <48DFA5F7.8000807@ya.com>
+Date: Sun, 28 Sep 2008 17:42:47 +0200
+From: Albert Farguell <afarguell@ya.com>
 MIME-Version: 1.0
-To: gert.vervoort@hccnet.nl
-References: <48C7AB77.4070701@gmail.com>
-	<03e3cf39db553255525915ca0e5919f1.squirrel@webmail.hccnet.nl>
-In-Reply-To: <03e3cf39db553255525915ca0e5919f1.squirrel@webmail.hccnet.nl>
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: saa7121 driver?
+Subject: Pinnacle PCTV Sat Pro PCI.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,26 +28,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-gert.vervoort@hccnet.nl wrote:
-> Op Wo, 10 september, 2008 1:11 pm schreef jianpu:
->   
->> hi, is  there any saa7121 driver  for linux?  i  will use  saa7121 chip,
->> but  i  can't  find  a  driver.  there  is  just  a  saa7121.h in  the
->> kernel. Thank you in advance
->>     
->
-> The header file is being used by the Stradis MPEG-2 decoder driver:
-> drivers/media/video/stradis.c and in this file there is a function
-> initialize_saa7121().
->
->    Gert
->
->
->
->
->
->   
-Thanks,  Gert
+I can't get this card working. Did someone find the way to achieve it?
+This is what I get with /sbin/lspci, using OpenSUSE 10.3
+
+01:00.0 Multimedia controller: Pinnacle Systems Inc. Royal TS Function 1
+        Subsystem: Pinnacle Systems Inc. Unknown device 0048
+        Flags: bus master, medium devsel, latency 64, IRQ 11
+        Memory at f9ffd000 (32-bit, non-prefetchable) [size=4K]
+        Capabilities: <access denied>
+
+01:00.2 Multimedia controller: Pinnacle Systems Inc. Royal TS Function 3
+        Subsystem: Pinnacle Systems Inc. Unknown device 0048
+        Flags: bus master, medium devsel, latency 64, IRQ 11
+        Memory at f9ffe000 (32-bit, non-prefetchable) [size=4K]
+        Capabilities: <access denied>
+
+Thank you in advance,
+Albert
 
 --
 video4linux-list mailing list
