@@ -1,16 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: "Igor M. Liplianin" <liplianin@tut.by>
+Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1Kk0Z0-000635-9R
+	for linux-dvb@linuxtv.org; Sun, 28 Sep 2008 20:00:11 +0200
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1Kk0Ys-0007lB-II
+	for linux-dvb@linuxtv.org; Sun, 28 Sep 2008 18:00:02 +0000
+Received: from pd9533915.dip0.t-ipconnect.de ([217.83.57.21])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sun, 28 Sep 2008 18:00:02 +0000
+Received: from malte.forkel by pd9533915.dip0.t-ipconnect.de with local
+	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <linux-dvb@linuxtv.org>; Sun, 28 Sep 2008 18:00:02 +0000
 To: linux-dvb@linuxtv.org
-Date: Tue, 9 Sep 2008 20:12:04 +0300
-References: <48BF6A09.3020205@linuxtv.org>
-	<200809082334.04511.liplianin@tut.by>
-	<200809091750.38009.liplianin@tut.by>
-In-Reply-To: <200809091750.38009.liplianin@tut.by>
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_k5qxI8Zr2E6M+2p"
-Message-Id: <200809092012.04927.liplianin@tut.by>
-Subject: [linux-dvb]  [PATCH] S2 cx24116:  MPEG initialization
+From: Malte Forkel <malte.forkel@berlin.de>
+Date: Sun, 28 Sep 2008 19:47:09 +0200
+Message-ID: <gbofuu$gds$1@ger.gmane.org>
+Mime-Version: 1.0
+Subject: [linux-dvb] Still problems with ttusb_dec / DEC3000-s
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,95 +26,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_k5qxI8Zr2E6M+2p
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi,
 
-Hi again Steven,
+I'm trying to get my Hauppauge DEC3000-s working. And I don't seem to be the only one. For an earlier, more accurate account see e.g. http://www.linuxtv.org/pipermail/linux-dvb/2006-April/009259.html. 
 
-Please apply this patch.
-Patch to adjust MPEG initialization in cx24116 in order to accomodate 
-different MPEG CLK positions and polarities for different cards.
+With the patch to ttusbdecfe.c referenced in http://www.linuxtv.org/pipermail/linux-dvb/2008-August/027782.html I got past the
 
-Igor Liplianin
+ttusbdecfe_read_status: returned unknown value: 0
 
---Boundary-00=_k5qxI8Zr2E6M+2p
-Content-Type: text/x-diff;
-  charset="koi8-r";
-  name="8867.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="8867.patch"
+errors. But I still can't scan:
 
-# HG changeset patch
-# User Igor M. Liplianin <liplianin@me.by>
-# Date 1220979467 -10800
-# Node ID 77293218655c3d272705232dc40ad9925473b8c1
-# Parent  ed37fbee40febc38e74833387ec7d317087056d1
-Adjust MPEG initialization in cx24116
+# scan -x0 -t1 /usr/share/dvb/dvb-s/Astra-19.2E | tee channels.conf
+scanning /usr/share/dvb/dvb-s/Astra-19.2E
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 12551500 V 22000000 5
+>>> tune to: 12551:v:0:22000
+DVB-S IF freq is 1951500
+WARNING: filter timeout pid 0x0011
+WARNING: filter timeout pid 0x0000
+WARNING: filter timeout pid 0x0010
+dumping lists (0 services)
+Done.
 
-From: Igor M. Liplianin <liplianin@me.by>
+Is anybody successfully using a DEC3000-s or can give some advice?
 
-Adjust MPEG initialization in cx24116 in order to accomodate different
-MPEG CLK position and polarity in different cards.
+Thanks for your help,
+Malte
 
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
 
-diff -r ed37fbee40fe -r 77293218655c linux/drivers/media/dvb/dvb-usb/dw2102.c
---- a/linux/drivers/media/dvb/dvb-usb/dw2102.c	Tue Sep 09 19:22:29 2008 +0300
-+++ b/linux/drivers/media/dvb/dvb-usb/dw2102.c	Tue Sep 09 19:57:47 2008 +0300
-@@ -284,7 +284,7 @@
- 
- static struct cx24116_config dw2104_config = {
- 	.demod_address = 0x55,
--	/*.mpg_clk_pos_pol = 0x01,*/
-+	.mpg_clk_pos_pol = 0x01,
- };
- 
- static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
-diff -r ed37fbee40fe -r 77293218655c linux/drivers/media/dvb/frontends/cx24116.c
---- a/linux/drivers/media/dvb/frontends/cx24116.c	Tue Sep 09 19:22:29 2008 +0300
-+++ b/linux/drivers/media/dvb/frontends/cx24116.c	Tue Sep 09 19:57:47 2008 +0300
-@@ -478,7 +478,10 @@
- 	cmd.args[0x01] = 0x01;
- 	cmd.args[0x02] = 0x75;
- 	cmd.args[0x03] = 0x00;
--	cmd.args[0x04] = 0x02;
-+	if (state->config->mpg_clk_pos_pol)
-+		cmd.args[0x04] = state->config->mpg_clk_pos_pol;
-+	else
-+		cmd.args[0x04] = 0x02;
- 	cmd.args[0x05] = 0x00;
- 	cmd.len= 0x06;
- 	ret = cx24116_cmd_execute(fe, &cmd);
-diff -r ed37fbee40fe -r 77293218655c linux/drivers/media/dvb/frontends/cx24116.h
---- a/linux/drivers/media/dvb/frontends/cx24116.h	Tue Sep 09 19:22:29 2008 +0300
-+++ b/linux/drivers/media/dvb/frontends/cx24116.h	Tue Sep 09 19:57:47 2008 +0300
-@@ -33,6 +33,9 @@
- 
- 	/* Need to reset device during firmware loading */
- 	int (*reset_device)(struct dvb_frontend* fe);
-+
-+	/* Need to set MPEG parameters */
-+	u8 mpg_clk_pos_pol:0x02;
- };
- 
- #if defined(CONFIG_DVB_CX24116) || defined(CONFIG_DVB_CX24116_MODULE)
-
---Boundary-00=_k5qxI8Zr2E6M+2p
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_k5qxI8Zr2E6M+2p--
