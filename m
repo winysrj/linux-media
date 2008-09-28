@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qb-out-0506.google.com ([72.14.204.235])
+Received: from smtp-out2.tiscali.nl ([195.241.79.177])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ian.ravisky@gmail.com>) id 1KiWls-0007Df-VA
-	for linux-dvb@linuxtv.org; Wed, 24 Sep 2008 17:59:22 +0200
-Received: by qb-out-0506.google.com with SMTP id e11so1829657qbe.25
-	for <linux-dvb@linuxtv.org>; Wed, 24 Sep 2008 08:59:15 -0700 (PDT)
-Message-ID: <88eb5e580809240859g3bed70c9x31793fea24cf6285@mail.gmail.com>
-Date: Wed, 24 Sep 2008 17:59:15 +0200
-From: "Ian Ravisky" <ian.ravisky@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <simon@siemonsma.name>) id 1Kk2Y7-0004Xa-W7
+	for linux-dvb@linuxtv.org; Sun, 28 Sep 2008 22:07:25 +0200
+Received: from [212.123.191.230] (helo=amd64.siemonsma.name)
+	by smtp-out2.tiscali.nl with esmtp id 1Kk2Y4-0002bN-CA
+	for <linux-dvb@linuxtv.org>; Sun, 28 Sep 2008 22:07:20 +0200
+From: Simon Siemonsma <simon@siemonsma.name>
+Date: Sun, 28 Sep 2008 22:07:20 +0200
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] DVB-S2 and CA
+To: linux-dvb@linuxtv.org
+Message-Id: <200809282207.20443.simon@siemonsma.name>
+Subject: [linux-dvb] Can't record an encrypted channel and watch another in
+	the same bouquet. (also teletext doesn't work for encrypted
+	channels)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,19 +28,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello list,
+I have a problem with encrypted channels.
+I have a Conax CAM Module (by Smit)
+Further I use a Technotrend T1500 Budget card with CI cart.
 
-We have Technotrend's DVB-S2 TTbudget3200 board with CA CI board.
-While DVB-S2 board does work CA CI slot is not detected.
-We use Multiproto and Debian.
+With FTA channels everything works just fine.
+With encoded channels some things don't work.
 
-Was anybody succeed to make CA CI working with any DVB-S2 receiver ?
-We need to make it running urgently.
+I can't record one channel and at the same time look at another channel from 
+the same bouquet. (Kaffeine says: "no CAM free", vdr says: "Channel not 
+available"
+Teletext doesn't work (vdr says: "Page 100-00 not found")
+When I start vdr I get the following in the log file:
+"CAM 1: module present
+CAM 1: module ready
+Conax Conditional Access, 01, CAFE, BABE
+CAM 1: doesn't reply to QUERY - only a single channel can be decrypted"
 
-Your help will be greatly appreciated.
+This looks like the CAM can't just encode one channel at a time.
 
-Kind Regards
-Ian
+But on the dvbshop Website they say:
+http://www.dvbshop.net/product_info.php/info/p2194_Conax-CAM--Rev--1-2----4-00e-by-Smit.html
+"MPEG DEMUX: Multi-channel SECTION and PID filter configurable through 
+software"
+in vdr's CAM menu is stated: "Number of sessions: 5"
+
+This looks like the CAM can handle multiple channels at a time isn't it?
+
+Someone at 
+http://www.dvbnetwork.de/index.php?option=com_fireboard&Itemid=27&func=view&catid=2&id=6191#6192 
+(German) pointed me in the direction of the linux drivers.
+
+Is he right?
+
+I understood from 
+http://www.linuxtv.org/docs/dvbapi/Introduction.html#SECTION00230000000000000000 
+that the CAM comes before the Demuxer and: "The complete TS is passed through 
+the CA hardware".
+If I understood this right this means that onces I watch one channel in a 
+bouquet the complets TS is decrypted. So all other channels and teletext are 
+decrypted too. This makes it extra confusing why I can't record one channel 
+and watch another in the same bouquet.
+Do I understand it wrong or are the drivers or the dvb software not mature 
+enough yet.
+I use kernel 2.6.25.
+
+Simon Siemonsma
 
 _______________________________________________
 linux-dvb mailing list
