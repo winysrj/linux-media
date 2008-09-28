@@ -1,15 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web55603.mail.re4.yahoo.com ([206.190.58.227])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <o_lucian@yahoo.com>) id 1KaCdw-000726-9H
-	for linux-dvb@linuxtv.org; Mon, 01 Sep 2008 18:52:46 +0200
-Date: Mon, 1 Sep 2008 09:52:08 -0700 (PDT)
-From: lucian orasanu <o_lucian@yahoo.com>
-To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Message-ID: <538621.26447.qm@web55603.mail.re4.yahoo.com>
-Subject: [linux-dvb] Merge multiproto tree
-Reply-To: o_lucian@yahoo.com
+Date: Sun, 28 Sep 2008 01:50:16 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Andreas Oberritter <obi@linuxtv.org>
+Message-ID: <20080928015016.6b57a1e2@mchehab.chehab.org>
+In-Reply-To: <48DCF1E8.20005@linuxtv.org>
+References: <200809261129.07494.mldvb@mortal-soul.de>
+	<48DCEBD1.9010003@linuxtv.org> <48DCF1E8.20005@linuxtv.org>
+Mime-Version: 1.0
+Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [PATCH] implement proper locking in the dvb ca
+ en50221 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,13 +23,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hy.
+On Fri, 26 Sep 2008 16:30:00 +0200
+Andreas Oberritter <obi@linuxtv.org> wrote:
 
-I'am using vdr with mulltiproto for 7 monts from now, and even plugins got patches and support for multiproto, even mythtv has patches to support multiproto and I'am not hapy to wait another 2 years for new API. 
-So I pull for merge multiproto.
+> Hello again,
+> 
+> Andreas Oberritter wrote:
+> > you should CC Mauro for all patches which are not going to be applied
+> > through another person.
+> 
+> having said that, I realize that part of the CC header got lost
+> somewhere between my mail client and the list.
+> 
+> Mauro, did you receive my last email directly? 
 
+Yes.
 
-      
+> If yes, does the CC
+> header differ from the one received through the mailing list?
+
+I can't see the email you've sent directly to the ML. Maybe my MTA or my emailer is filtering duplicate msgs.
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
