@@ -1,18 +1,32 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.31])
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vanessaezekowitz@gmail.com>) id 1KhHwj-0000Tz-2Q
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 07:57:27 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so156692ywj.41
-	for <linux-dvb@linuxtv.org>; Sat, 20 Sep 2008 22:57:20 -0700 (PDT)
-From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-To: "linux-dvb" <linux-dvb@linuxtv.org>
-Date: Sun, 21 Sep 2008 00:57:31 -0500
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200809210057.31591.vanessaezekowitz@gmail.com>
-Cc: Curt Blank <Curt.Blank@curtronics.com>
-Subject: [linux-dvb] Kworld PlusTV HD PCI 120 (ATSC 120)
+	(envelope-from <stoth@linuxtv.org>) id 1KkN8Y-0003n4-Nl
+	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 20:06:23 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7Y002JEY9HHK60@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 29 Sep 2008 14:05:47 -0400 (EDT)
+Date: Mon, 29 Sep 2008 14:05:41 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <e32e0e5d0809280829l690d076epe62f4d131806a65a@mail.gmail.com>
+To: Tim Lucas <lucastim@gmail.com>
+Message-id: <48E118F5.5090501@linuxtv.org>
+MIME-version: 1.0
+References: <e32e0e5d0809171545r3c2e58beh62d58fa6d04dae71@mail.gmail.com>
+	<48D34C69.6050700@linuxtv.org>
+	<e32e0e5d0809232045j56bef9ah1ec3ac59401de0d5@mail.gmail.com>
+	<e32e0e5d0809232050s1d0257e3m30c9c055e9d32dd6@mail.gmail.com>
+	<48DA9330.6070005@linuxtv.org>
+	<e32e0e5d0809241315rd423c0dj553812167194d4a3@mail.gmail.com>
+	<48DADA06.9000105@linuxtv.org>
+	<e32e0e5d0809251807l6f0080c3j673af97821454581@mail.gmail.com>
+	<e32e0e5d0809280829l690d076epe62f4d131806a65a@mail.gmail.com>
+Cc: linux dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Porting analog support from HVR-1500 to the DViCO
+ FusionHDTV7 Dual Express (Read this one)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,72 +40,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all.  I've been trying to help someone solve a problem with getting their 
-ATSC 120 working, and realized their message went to the wrong list, so I'm 
-forwarding that thread here to try to get more eyes on the problem.
+Tim Lucas wrote:
+> On Thu, Sep 25, 2008 at 6:07 PM, Tim Lucas <lucastim@gmail.com 
+> <mailto:lucastim@gmail.com>> wrote:
+> 
+>     OK, so I tested both s-video and composite inputs.  I get video for
+>     s-video, but not composite.  The video seems to flicker a little bit
+>     in tv time.  I just have standard rca cables plugged in for audio,
+>     but I can;t get any sound.
+>     I tried changing the "tuner-type" to 0xc2, 0xc4, and 0x61.  All
+>     three gave the same results.
+> 
+>          --Tim
+> 
+> 
+> So the good news was that the s-video was working.  I want to make sure 
+> that I hooked up the sound correctly.  I can't imagine that there is any 
+> other way than the rca cables.  So what is next?
 
-Here's his initial message:
+That's a great step forward. That means the tv input will probably 
+produce the correct input if the tuner is set correctly.
 
------ Text Import Begin -----
-Kworld PlusTV HD PCI 120 (ATSC 120)
-From: Curt Blank <Curt.Blank@curtronics.com>
-To: video4linux-list@redhat.com
-Date: Thu Sep 18 23:48:14 2008
+Switch to this tree http://linuxtv.org/hg/~stoth/cx23885-audio and try 
+again with the svideo and audio tests.
 
-I'm trying to get this  card working  and I'm having some trouble and 
-I'm not sure exactly where. I'm using the 2.6.26.5 kernel gen'd to 
-include all the v4l support.
+Mijhail Moreyra wrote some HVR1500 audio patches, which I have not 
+tested yet. Do these produce audio for you via the svideo and breakout 
+RCA audio input cable?
 
-Using Kradio I can manually tune in a station  but the audio only comes 
-out the Line Out jack on the card. Alsa is installed and working, I can 
-play CD's, listen to streaming music, KDE sound effects work, so it 
-appears my sound subsystem is working. The alsa config in Kradio is set 
-to what it determined and it appears to match the device as far as 
-things go. When I try to scan for stations it doesn't find any but I can 
-tune to any local station and get it.
 
-I also can't get the video (HDTV) to work either. When it starts up I get a:
+> 
+> The only things that I can adjust in cx23885-cards.c is the "tuner-type" 
+>  I've tried various suggestions, but had no luck.  Are there other 
+> parameters that can be changed?  
 
-Unable to grab video
+Look at how the HVR1500 analog tuner is setup in this tree, it may help 
+- especially with the tuner setup.
 
-Video display is not possible with the current plugin
-configuration. Try playing with the configuration options of the
-V4L2 plugin.
-
-And the VBI decoder is running is red, along with the Video plugin 
-supports signal strength readbacks and Ok to Scan.
-
-When I run kdetv in a terminal window I see this:
-
-Requesting 16 streaming i/o buffers
-Mapping 16 streaming i/o buffers
-Successful opened /dev/vbi (Kworld PlusTV HD PCI 120 (ATSC )
-stream-read: ERROR: failed to enable streaming
-ASSERT: "_init" 
-in /usr/src/packages/BUILD/kdetv-0.8.9/kdetv/kvideoio/qvideostream.cpp (477)
-(repeated many times)
-Too many errors. Ending V4L2 grabbing.
-
-The MB is a MSI K9N4 SLI with an AMD 64 X2 3800+ cpu and the video card is an 
-ATI x1300 and I've tried it with the fglrx driver and with the vesa driver, it 
-makes no difference.
-
-I've read the Wiki at http://www.linuxtv.org including the 
-http://www.linuxtv.org/wiki/index.php/KWorld_ATSC_120 info. I also downloaded 
-the archived list messages back to January 2007 and looked through them for 
-help.
-
-I'm not sure where to go from here or where to look what to try or even what 
-info to provide that might be of help. So if anyone has any ideas please let 
-me know, I sure could use some ideas.
-
-Thanks.
------ Text Import End -----
-
--- 
-"Life is full of positive and negative events.  Spend
-your time considering the former, not the latter."
-Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
