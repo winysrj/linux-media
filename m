@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.170])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lucastim@gmail.com>) id 1Kg5UX-0001FW-II
-	for linux-dvb@linuxtv.org; Thu, 18 Sep 2008 00:27:22 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so3456434wfd.17
-	for <linux-dvb@linuxtv.org>; Wed, 17 Sep 2008 15:27:17 -0700 (PDT)
-Message-ID: <e32e0e5d0809171527m1f389d46l6e20603462026c81@mail.gmail.com>
-Date: Wed, 17 Sep 2008 15:27:17 -0700
-From: "Tim Lucas" <lucastim@gmail.com>
-To: "linux dvb" <linux-dvb@linuxtv.org>
+Received: from n20.bullet.mail.ukl.yahoo.com ([87.248.110.137])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1KkO9Q-00011J-BA
+	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 21:11:22 +0200
+Date: Mon, 29 Sep 2008 15:10:22 -0400
+From: Emmanuel ALLAUD <eallaud@yahoo.fr>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <1221327465l.12125l.2l@manu-laptop> <48CC4867.1050705@gmail.com>
+	<1221354611l.12125l.3l@manu-laptop> <48E0D490.5030202@kipdola.com>
+	<c74595dc0809290713i7ca11bdfw3424c8347e9a6d9e@mail.gmail.com>
+In-Reply-To: <c74595dc0809290713i7ca11bdfw3424c8347e9a6d9e@mail.gmail.com>
+	(from alex.betis@gmail.com on Mon Sep 29 10:13:27 2008)
+Message-Id: <1222715422l.7695l.1l@manu-laptop>
 MIME-Version: 1.0
-Subject: [linux-dvb] Porting analog support from HVR-1500 to the DViCO
-	FusionHDTV7 Dual Express (ignore previous message)
+Content-Disposition: inline
+Subject: [linux-dvb] Re :  Re : Re : TT S2-3200 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,46 +22,24 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1810775117=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1810775117==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_23050_15399754.1221690437300"
+Le 29.09.2008 10:13:27, Alex Betis a =E9crit=A0:
+> Does that card use stb0899 drivers as Twinhan 1041?
+> =
 
-------=_Part_23050_15399754.1221690437300
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> I've done some changes to the algorithm that provide constant lock.
 
-Oops I hit a send button to early so please ignore my message until I finish
-it.
+Yes it does and I am looking forward to try your changes!
+Bye
+Manu
 
--- 
---Tim
-
-------=_Part_23050_15399754.1221690437300
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">Oops I hit a send button to early so please ignore my message until I finish it.<br clear="all"><br>-- <br> --Tim<br>
-</div>
-
-------=_Part_23050_15399754.1221690437300--
-
-
---===============1810775117==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1810775117==--
