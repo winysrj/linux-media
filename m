@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gateway06.websitewelcome.com ([67.18.144.9])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <skerit@kipdola.com>) id 1KaQxu-0006ls-Le
-	for linux-dvb@linuxtv.org; Tue, 02 Sep 2008 10:10:20 +0200
-Received: from [77.109.104.26] (port=41949 helo=[127.0.0.1])
-	by gator143.hostgator.com with esmtpa (Exim 4.68)
-	(envelope-from <skerit@kipdola.com>) id 1KaQxm-00086D-He
-	for linux-dvb@linuxtv.org; Tue, 02 Sep 2008 03:10:10 -0500
-Message-ID: <48BCF4E4.9070301@kipdola.com>
-Date: Tue, 02 Sep 2008 10:10:12 +0200
-From: Jelle De Loecker <skerit@kipdola.com>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] KNC1 TVStar DVB-S & S2-3200?
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1KkOMz-0002H2-BM
+	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 21:25:23 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7Z007W71X9Z0O0@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 29 Sep 2008 15:24:47 -0400 (EDT)
+Date: Mon, 29 Sep 2008 15:24:44 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <857271.56028.qm@web59911.mail.ac4.yahoo.com>
+To: albatrosmwdvb@yahoo.com
+Message-id: <48E12B7C.9020700@linuxtv.org>
+MIME-version: 1.0
+References: <857271.56028.qm@web59911.mail.ac4.yahoo.com>
+Cc: linux-dvb@linuxtv.org, stev391@email.com
+Subject: Re: [linux-dvb] Compro VideoMate E600F analog PCIe TV/FM capture
+	card
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,24 +32,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi everyone,
+Marek Marek wrote:
+> At the begining I am sorry for misunderstanding... This account was created specially for v4l-dvb mailing list.  I got the previous email from you today so could not answer on it yet. There wasn't any others emails from you eariel in my mailbox. 
+> 
+>>> Other items that you could include on the wiki page:
+>>> * eeprom dump (read this
+>> http://www.linuxtv.org/pipermail/linux-dvb/2008-September/028529.html)
+>>> * regspy dump of all registers in all states (It is
+>> Steven Toths DScaler Regspy version that you require)
+>>> * i2c scan see the other Compro VideoMate wiki pages.
+>>>
+> 
+> As you asked I included some new information about my card on wiki page. The RegSpy output I will include later when install winxp. If those information are correct that's good if not I will be grateful you will tell me that.
+> 
+> Me and my broken english... sorry guy's :)
+> I do my best. Forgive me these problems.
 
-I was wondering if I could run my S2-3200 card besides a KNC1 TVStar 
-DVB-S card.
+:) No problem! I wanted to make sure you'd seen my original response.
 
-Since the S2-3200 still won't work properly under mythtv, and I need a 
-few more tuners at least, I thought it wouldn't be such a bad idea to go 
-with this cheap DVB-S card which I KNOW is supported.
+If you can get some regspy dumps, some i2c scan details and pictures of 
+the silicon on the wiki then we have a good chance of adding support for 
+you.
 
-But the biggest question is: if I install multiproto, will the KNC1 card 
-be recognised? Or do I have to choose between cards?
-
-I know the KNC1 card doesn't have a CI extension, I'd primarily use the 
-S2-3200 for that, and use the KNC1 card for Astra 2 and such.
-
-Kind regards,
-
-Jelle De Loecker
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
