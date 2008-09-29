@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: hermann pitton <hermann-pitton@arcor.de>
+Received: from mail14.opentransfer.com ([76.162.254.14])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <dcoates@systemoverload.net>) id 1KkQCo-0000fm-RC
+	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 23:23:00 +0200
+Message-ID: <48E1470F.6000207@systemoverload.net>
+Date: Mon, 29 Sep 2008 16:22:23 -0500
+From: Dustin Coates <dcoates@systemoverload.net>
+MIME-Version: 1.0
 To: Steven Toth <stoth@linuxtv.org>
-In-Reply-To: <48C8898E.3040809@linuxtv.org>
-References: <48B8400A.9030409@linuxtv.org> <20080910161222.21640@gmx.net>
-	<48C85153.8010205@linuxtv.org> <200809110201.48935.hftom@free.fr>
-	<48C86DBD.6090108@linuxtv.org>
-	<1221095822.2663.46.camel@pc10.localdom.local>
-	<48C8898E.3040809@linuxtv.org>
-Date: Thu, 11 Sep 2008 06:10:30 +0200
-Message-Id: <1221106230.2663.33.camel@pc10.localdom.local>
-Mime-Version: 1.0
+References: <000001c91f6f$e23ab920$a6b02b60$@net>
+	<000001c921f0$7d4aede0$77e0c9a0$@net>
+	<48E11A2F.5030901@linuxtv.org> <48E130EB.20006@systemoverload.net>
+	<48E135F0.60808@systemoverload.net> <48E14224.6090309@linuxtv.org>
+In-Reply-To: <48E14224.6090309@linuxtv.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DVB-S2 / Multiproto and future modulation support
+Subject: Re: [linux-dvb] HVR-1800 Analouge Issues
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,76 +22,152 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CkFtIE1pdHR3b2NoLCBkZW4gMTAuMDkuMjAwOCwgMjI6NTkgLTA0MDAgc2NocmllYiBTdGV2ZW4g
-VG90aDoKPiBoZXJtYW5uIHBpdHRvbiB3cm90ZToKPiA+IEhpLAo+ID4gCj4gPiBBbSBNaXR0d29j
-aCwgZGVuIDEwLjA5LjIwMDgsIDIxOjAwIC0wNDAwIHNjaHJpZWIgU3RldmVuIFRvdGg6Cj4gPj4g
-Q2hyaXN0b3BoZSBUaG9tbWVyZXQgd3JvdGU6Cj4gPj4+IExlIFRodXJzZGF5IDExIFNlcHRlbWJl
-ciAyMDA4IDAwOjU5OjMxIEFuZHJlYXMgT2JlcnJpdHRlciwgdm91cyBhdmV6IMOpY3JpdCA6Cj4g
-Pj4+PiBIYW5zIFdlcm5lciB3cm90ZToKPiA+Pj4+Pj4gU28gYXBwbGljYXRpb25zIGNvdWxkIGtu
-b3cgdGhhdCB0aGVzZSAyIGZyb250ZW5kcyBhcmUgZXhjbHVzaXZlLgo+ID4+Pj4+PiBUaGF0IHdv
-dWxkIG5vdCByZXF1aXJlIGFueSBBUEkgY2hhbmdlLCBidXQgd291bGQgaGF2ZSB0byBiZSBhIHJ1
-bGUKPiA+Pj4+Pj4gZm9sbG93ZWQgYnkKPiA+Pj4+Pj4gYWxsIGRyaXZlcnMuCj4gPj4+Pj4gWWVz
-LCBpZiB3ZSBrZWVwIHRvIHRoYXQgcnVsZSB0aGVuIG9ubHkgZnJvbnRlbmRzIHdoaWNoIGNhbiBv
-cGVyYXRlIHRydWx5Cj4gPj4+Pj4gc2ltdWx0YW5lb3VzbHkgc2hvdWxkIGhhdmUgYSBkaWZmZXJl
-bnQgYWRhcHRlciBudW1iZXIuCj4gPj4+PiBBbiBhZGFwdGVyIHJlZmVycyB0byBhIHNlbGYtY29u
-dGFpbmVkIHBpZWNlIG9mIGhhcmR3YXJlLCB3aG9zZSBwYXJ0cyBjYW4KPiA+Pj4+IG5vdCBiZSB1
-c2VkIGJ5IGEgc2Vjb25kIGFkYXB0ZXIgKGUuZy4gYWRhcHRlcjAvZGVtdXgwIGNhbiBub3QgYWNj
-ZXNzIHRoZQo+ID4+Pj4gZGF0YSBmcm9tIGFkYXB0ZXIxL2Zyb250ZW5kMSkuIEluIGEgY29tbW9u
-bHkgdXNlZCBzZXR1cCBpdCBtZWFucyB0aGF0Cj4gPj4+PiBhZGFwdGVyMCBpcyB0aGUgZmlyc3Qg
-aW5pdGlhbGl6ZWQgUENJIGNhcmQgYW5kIGFkYXB0ZXIxIGlzIHRoZSBzZWNvbmQuCj4gPj4+Pgo+
-ID4+Pj4gTm93LCBpZiB5b3Ugd2FudCBhIGRldmljZSB3aXRoIHR3byB0dW5lcnMgdGhhdCBjYW4g
-YmUgYWNjZXNzZWQKPiA+Pj4+IHNpbXVsdGFuZW91c2x5IHRvIGNyZWF0ZSBhIHNlY29uZCBhZGFw
-dGVyLCB0aGVuIHlvdSB3b3VsZCBoYXZlIHRvCj4gPj4+PiBhcnRpZmljaWFsbHkgZGl2aWRlIGl0
-cyBjb21wb25lbnRzIHNvIHRoYXQgaXQgbG9va3MgbGlrZSB0d28gaW5kZXBlbmRhbnQKPiA+Pj4+
-IFBDSSBjYXJkcy4gVGhpcyBtaWdodCBiZWNvbWUgdmVyeSBjb21wbGljYXRlZCBhbmQgbGltaXRz
-IHRoZSBmdW5jdGlvbnMKPiA+Pj4+IG9mIHRoZSBoYXJkd2FyZS4KPiA+Pj4+Cj4gPj4+PiBIb3dl
-dmVyLCBvbiBhIHNldHVwIHdpdGggbXVsdGlwbGUgYWNjZXNzaWJsZSB0dW5lcnMgeW91IGNhbiBl
-eHBlY3QgYXQKPiA+Pj4+IGxlYXN0IHRoZSBzYW1lIGFtb3VudCBvZiBhY2Nlc3NpYmxlIGRlbXV4
-IGRldmljZXMgb24gdGhlIHNhbWUgYWRhcHRlcgo+ID4+Pj4gKGFuZCBhbHNvIGR2ciBkZXZpY2Vz
-IGZvciB0aGF0IG1hdHRlcikuIFRoZXJlIGlzIGFuIGlvY3RsIHRvIGNvbm5lY3QgYQo+ID4+Pj4g
-ZnJvbnRlbmQgdG8gYSBzcGVjaWZpYyBkZW11eCAoRE1YX1NFVF9TT1VSQ0UpLgo+ID4+Pj4KPiA+
-Pj4+IFNvLCBpZiB0aGVyZSBhcmUgZGVtdXgwLCBmcm9udGVuZDAgYW5kIGZyb250ZW5kMSwgdGhl
-biB0aGUgYXBwbGljYXRpb24KPiA+Pj4+IGtub3dzIHRoYXQgaXQgY2FuJ3QgdXNlIGJvdGggZnJv
-bnRlbmRzIHNpbXVsdGFuZW91c2x5LiBPdGhlcndpc2UsIGlmIAo+ID4+Pj4gdGhlcmUgYXJlIGRl
-bXV4MCwgZGVtdXgxLCBmcm9udGVuZDAgYW5kIGZyb250ZW5kMSwgdGhlbiBpdCBjYW4gdXNlIGJv
-dGgKPiA+Pj4+IG9mIHRoZW0gKGJ5IHVzaW5nIGJvdGggZGVtdXggZGV2aWNlcyBhbmQgY29ubmVj
-dGluZyB0aGVtIHRvIHRoZQo+ID4+Pj4gZnJvbnRlbmRzIHZpYSB0aGUgaW9jdGwgbWVudGlvbmVk
-IGFib3ZlKS4KPiA+Pj4gU291bmRzIGxvZ2ljYWwuIEFuZCB0aGF0J3Mgd2h5IEthZmZlaW5lIHNl
-YXJjaCBmb3IgZnJvbnRlbmQvZGVtdXgvZHZyID4gMCBhbmQgCj4gPj4+IHVzZXMgZGVtdXgxIHdp
-dGggZnJvbnRlbmQxLiAoVGhhdCB3YXMganVzdCBhIGd1ZXNzIHNpbmNlIGkndmUgbmV2ZXIgc2Vl
-biAKPiA+Pj4gbmVpdGhlciBhbnkgc3VjaCBkZXZpY2VzIG5vciBjb21tZW50cy9yZWNvbW1lbmRh
-dGlvbnMvcnVsZXMgYWJvdXQgc3VjaCBjYXNlKS4KPiA+Pj4KPiA+Pj4gSG93ZXZlciwgYWxsIGR1
-YWwgdHVuZXJzIGRldmljZXMgZHJpdmVycyBpIGtub3cgZXhwb3NlIHRoZSAyIGZyb250ZW5kcyBh
-cyAKPiA+Pj4gZnJvbnRlbmQwIGluIHNlcGFyYXRlIGFkYXB0ZXJzLiBCdXQgYWxsIHRoZXNlIGRl
-dmljZXMgc2VlbXMgdG8gYmUgVVNCLgo+ID4+Pgo+ID4+PiBUaGUgZmFjdCB0aGF0IEthZmZlaW5l
-IHdvcmtzIHdpdGggdGhlIGV4cGVyaW1lbnRhbCBodnI0MDAwIGRyaXZlciBpbmRpY2F0ZXMgCj4g
-Pj4+IHRoYXQgdGhpcyBkcml2ZXIgcG9wdWxhdGVzIGZyb250ZW5kMS9kZW11eDEvZHZyMSBhbmQg
-dGhlbiBkb2Vzbid0IGZvbGxvdyB0aGUgCj4gPj4+IHdheSB5b3UgZGVzY3JpYmUgKHNpbmNlIHRo
-ZSB0dW5lcnMgY2FuJ3QgYmUgdXNlZCBhdCBvbmNlKS4KPiA+Pj4gSSB3b3VsZCBsaWtlIHRvIGhl
-YXIgZnJvbSBTdGV2ZSBvbiB0aGlzIHBvaW50Lgo+ID4+Pgo+ID4+Pgo+ID4+IENvcnJlY3QsIGZy
-b250ZW5kMSwgZGVtdXgxLCBkdnIxIGV0Yy4gQWxsIG9uIHRoZSBzYW1lIGFkYXB0ZXIuIFRoZSAK
-PiA+PiBkcml2ZXIgYW5kIG11bHRpLWZyb250ZW5kIHBhdGNoZXMgbWFuYWdlIGV4Y2x1c2l2ZSBh
-Y2Nlc3MgdG8gdGhlIHNpbmdsZSAKPiA+PiBpbnRlcm5hbCByZXNvdXJjZS4KPiA+Pgo+ID4gCj4g
-PiB0aGVuIHBsZWFzZSBleHBsYWluIHdoYXQgaXMgYWJvdXQgdGhlIGFuYWxvZyB1c2FnZSwgd2hp
-Y2ggY2FuIGFsd2F5cyBiZQo+ID4gZmlyc3QgYW5kIGRvbid0IHRlbGwgaXQgaGFzIHRvIHN0YXkg
-YmFjaywgc2luY2UgeW91IGFsd2F5cyBzaXQgb24gdGhhdAo+ID4gYnJpZGdlIGFuZCBlbHNlIGNv
-bWUgbm93aGVyZSAuLi4KPiAKPiBIZXJtYW5uLCBJJ20gbm90IHN1cmUgSSB1bmRlcnN0YW5kIHlv
-dXIgcXVlc3Rpb24sIGJ1dCBJJ2xsIHRyeS4KPiAKPiBUaGlzIGhhcyBub3RoaW5nIHRvIGRvIHdp
-dGggYW5hbG9nLCBJIG5ldmVyIHN1Z2dlc3RlZCB0aGVzZSBwYXRjaGVzIAo+IGVmZmVjdGVkIGFu
-YWxvZy4KPiAKPiBFaXRoZXIgeW91J3JlIGNvbmZ1c2VkLCBvciBJIGFtIDopCj4gCj4gVGhlIG11
-bHRpZnJvbnRlbmQgcGF0Y2hlcyBhcmUgcmVsYXRlZCB0byBEVkIgb25seSwgdGhlIGFuYWxvZyBw
-b3J0cyBvbiAKPiB0aGUgY3g4OCByZW1haW4gdW50b3VjaGVkLCB1bmNoYW5nZWQuCgpTdGV2ZSwK
-Cmxpa2VseSB3ZSBzaG91bGQgaGF2ZSBhbGwgc29tZSBzbGVlcCBwcmV2aW91c2x5IGFnYWluLgoK
-QnV0IEknbSBxdWl0IHN1cmUgd2hhdCBJJ3RhbGtpbmcgYWJvdXQuCgpJZiB1c2luZyB0aGUgZG1h
-IGVuZ2luZXMgb2YgdGhlIHNhYTcxM3ggYXQgb25jZSwgeW91IGNhbid0IHNheSBhbmFsb2cKYW5k
-IGR2YiBhcmUgbm90IHJlbGF0ZWQhCgpUaGVyZSBhcmUgY2xlYXIgcmVzdHJpY3Rpb25zIGFuZCB5
-b3UgY2FuIGNhdXNlIG1ham9yIGRhbW1hZ2UgaWdub3JpbmcKdGhlbS4KCkNoZWVycywKSGVybWFu
-bgoKCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
-bnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGlu
-dXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Steven Toth wrote:
+> Dustin Coates wrote:
+>> Dustin Coates wrote:
+>>> Steven Toth wrote:
+>>>  =
+
+>>>> Dustin Coates wrote:
+>>>>   =
+
+>>>>>  =
+
+>>>>>
+>>>>>  =
+
+>>>>>
+>>>>> *From:* linux-dvb-bounces@linuxtv.org =
+
+>>>>> [mailto:linux-dvb-bounces@linuxtv.org] *On Behalf Of *Dustin Coates
+>>>>> *Sent:* Thursday, September 25, 2008 7:36 PM
+>>>>> *To:* linux-dvb@linuxtv.org
+>>>>> *Subject:* [linux-dvb] HVR-1800 Analouge Issues
+>>>>>
+>>>>>  =
+
+>>>>>
+>>>>> Hi Everyone,
+>>>>>
+>>>>>  =
+
+>>>>>
+>>>>>                 Ok I=92ve recently decided to start seeing if I can =
+
+>>>>> figure out the issue with the Analouge, on this card, first my =
+
+>>>>> normal dmesg.
+>>>>>       =
+
+>>>> The analog encoder works fine for me.
+>>>>
+>>>> In my case the basic analog tuner is usually /dev/video0 and the =
+
+>>>> encoder is video1.
+>>>>
+>>>> Launch tvtime (which opens video0) tune and everything is fine, =
+
+>>>> then cat /dev/video1 >test.mpg is working as expected.
+>>>>
+>>>> - Steve
+>>>>
+>>>>
+>>>>     =
+
+>>> Ok, TVTime works, still some static on a mostly the lower, and higher
+>>> channels.
+>>>
+>>> Mythtv is only showing a green screen.
+>>>
+>>>
+>>> _______________________________________________
+>>> linux-dvb mailing list
+>>> linux-dvb@linuxtv.org
+>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>>   =
+
+>> Mythbackend.log is showing these errors.
+>>
+>> VIDIOCGCHAN: Invalid argument
+>> VIDIOCMCAPTUREi0: Invalid argument
+>> VIDIOCMCAPTUREi1: Invalid argument
+>> VIDIOCMCAPTURE0: Invalid argument
+>> VIDIOCMCAPTURE1: Invalid argument
+>>
+>>
+>> I think if i can get past these errors it might just work...
+>
+> When tvtime was running can you try cat /dev/video1 >test.mpg as I =
+
+> suggested?
+>
+> - Steve
+OK, when i load tvtime as tvtime --device=3D/dev/video1
+
+I get the an error.
+
+Videoinput: Driver refuses to set norm: Invalid argument
+
+When i load tvtime as /dev/video0
+
+I get a picture, but it's interlaced with a lot of static
+
+Then when i try to cat /dev/video0 i get a Device or resource busy
+
+cat /dev/video1, no errors . I play the file, and i get static, barley =
+
+see picture, i can hear audio though.
+
+Uploaded the video file to: (only 14MB) http://systemoverload.net/test.mpg
+
+When  i set it up in mythtv i set it up as an analogue card.
+
+Setting it to /dev/video1 gives me these errors in mythbackend.log.
+
+2008-09-29 16:15:40.761 Channel(/dev/video1) Error: SetInputAndFormat(2, =
+
+NTSC)
+            while setting format (v4l v2)
+            eno: Invalid argument (22)
+2008-09-29 16:15:40.763 Channel(/dev/video1) Error: SetInputAndFormat(2, =
+
+NTSC)
+            while setting format (v4l v2)
+            eno: Invalid argument (22)
+2008-09-29 16:15:40.764 Channel(/dev/video1) Error: SetInputAndFormat(2, =
+
+ATSC)
+            while setting format (v4l v2)
+            eno: Invalid argument (22)
+2008-09-29 16:15:40.765 Channel(/dev/video1): SetInputAndFormat() failed
+2008-09-29 16:15:40.765 TVRec(2) Error: Failed to set channel to 2.
+2008-09-29 16:15:40.787 TVRec(2) Error: GetProgramRingBufferForLiveTV()
+            ProgramInfo is invalid.
+ProgramInfo: channame() startts(Mon Sep 29 16:15:40 2008) endts(Mon Sep =
+
+29 16:15:40 2008)
+             recstartts(Mon Sep 29 16:15:40 2008) recendts(Mon Sep 29 =
+
+16:15:40 2008)
+             title()
+VIDIOCGMBUF:: Invalid argument
+2008-09-29 16:15:41.849 AutoExpire: CalcParams(): Max required Free =
+
+Space: 2.0 GB w/freq: 15 min
+2008-09-29 16:16:21.869 TVRec(2): Changing from WatchingLiveTV to None
+2008-09-29 16:16:21.888 Finished recording : channel 4294967295
+2008-09-29 16:16:21.892 scheduler: Finished recording: : channel 4294967295
+
+Setting it to /dev/video0 gives me the errors posted in my last email.
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
