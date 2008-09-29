@@ -1,28 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8T95adi003224
-	for <video4linux-list@redhat.com>; Mon, 29 Sep 2008 05:05:36 -0400
-Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8T95JcY002855
-	for <video4linux-list@redhat.com>; Mon, 29 Sep 2008 05:05:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@nokia.com>
-Date: Mon, 29 Sep 2008 11:04:59 +0200
-References: <Pine.LNX.4.64.0808201138070.7589@axis700.grange>
-	<200809061840.37997.hverkuil@xs4all.nl>
-	<48E092E0.6020907@nokia.com>
-In-Reply-To: <48E092E0.6020907@nokia.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8TIGlJo020962
+	for <video4linux-list@redhat.com>; Mon, 29 Sep 2008 14:17:02 -0400
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8TE6sVQ010216
+	for <video4linux-list@redhat.com>; Mon, 29 Sep 2008 10:08:17 -0400
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m8TE6nnm031790
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Mon, 29 Sep 2008 09:06:54 -0500
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id m8TE6nP5009966
+	for <video4linux-list@redhat.com>; Mon, 29 Sep 2008 09:06:49 -0500 (CDT)
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Jadav, Brijesh R" <brijesh.j@ti.com>, "video4linux-list@redhat.com"
+	<video4linux-list@redhat.com>
+Date: Mon, 29 Sep 2008 09:06:47 -0500
+Message-ID: <A69FA2915331DC488A831521EAE36FE4AF92B104@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE4AF7E5CAA@dlee06.ent.ti.com>
+	<19F8576C6E063C45BE387C64729E739403DC087DE4@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403DC087DE4@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200809291105.00225.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>, "Nagalla,
-	Hari" <hnagalla@ti.com>
-Subject: Re: Interfaces for composite devices (was: Re: [PATCH v2]
-	soc-camera: add API documentation)
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,164 +37,67 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Sakari!
+Brijesh,
 
-On Monday 29 September 2008 10:33:36 Sakari Ailus wrote:
-> Hello, Hans!
->
-> I'm Cc:ing to Sergio Aguirre and Hari Nagalla as they are working
-> with the OMAP 3 ISP and camera drivers at TI now. I'm also removing
-> Mohit.
->
-> ext Hans Verkuil wrote:
-> > On Friday 05 September 2008 18:08:43 Sakari Ailus wrote:
-> >> How about caller, does the caller need to ensure that a driver
-> >> actually implements a function or how should this be handled?
-> >
-> > Easiest would be a something like this:
-> >
-> > // Note that client->ops is always non-zero, you would have
-> > // gotten a BUG_ON earlier if it wasn't.
-> > #define v4l2_client_call(client, o, f, args...) \
-> > ({ \
-> >         int err = -ENOIOCTLCMD; \
-> >         if (client && client->ops->o && client->ops->o->f) \
-> >                 err = client->ops->o->f(client , ##args); \
-> >         err; \
-> > })
-> >
-> >
-> > struct v4l2_control ctrl = { ... };
-> >
-> > int result = v4l2_client_call(client, core, s_ctrl, &ctrl);
-> >
-> > Alternatively, if you know which client driver you are accessing
-> > you can call it directly without checking:
-> >
-> > int result = client->ops->core->s_ctrl(client, &ctrl);
-> >
-> > There is little advantage in using the second variant so I would
-> > prefer the first.
->
-> I agree. Usually you don't want to know anything useless about the
-> client.
->
-> > There is also a similar define that will call all registered
-> > clients with the same arguments. Similar to i2c_clients_command but
-> > not limited to i2c clients. That obviously also checks whether a
-> > function is present.
->
-> I hope this would still be limited to a single v4l device, right? :)
+Thanks for replying. Does OMAP implements it in the same way as
+you have described? (I am guessing you are working on OMAP drivers).
+I am using the master-slave interface from OMAP for interfacing the
+decoders to SoC controller V4L2 module.
 
-Obviously :-)
+Regards.
 
-> That would be actually needed in the OMAP 3 camera as it doesn't want
-> to know which client implements a given control, for example.
+Murali Karicheri
 
-Right. During the LPC conference the suggestion was made to allow the 
-bridge driver to assign a group ID to clients and use that group ID to 
-call only clients belonging to that group. It allows the bridge driver 
-finer-grained control over which clients should be called. In the 
-current proposal there is only a choice between calling one or all 
-clients, having a group ID fixes this limitation. I will implement 
-this.
-
-> >> Compared to v4l2-int-if --- if there's no slave, you'll get
-> >> -ENODEV, and in case of missing command, you get -ENOIOCTLCMD.
-> >> That's not in the tree yet but it's part of OMAP 3 camera driver
-> >> patches.
-> >
-> > In what use case can you ever have no slave? I can easily return
-> > -ENODEV if client == NULL, but isn't the absence of a slave a
-> > severe error so that you would have bailed out much earlier? Just
-> > wondering.
->
-> There's a valid use case for that.
->
-> The OMAP 3 camera driver can drive a lenses and a flash, too. But
-> lens or flash might not be part of every camera device. For example a
-> secondary camera in a device could be without these.
-
-I think I would prefer it if the bridge driver does the test against 
-client == NULL. But I will have to think about this a bit more.
-
-> > In general clients should stick to the main ops structs and only
-> > add a client specific one if it is really needed. That said, I'm
-> > not sure whether it is such a bad idea to have client specific ops
-> > structs. My original idea was to add an ioctl type function to the
-> > core ops that could be used to make client specific commands.
-> > However, with an ops struct you have strong typing and a more
-> > natural way of calling clients. That's actually quite nice.
->
-> I would prefer the ioctl approach at least in some cases. Why not to
-> allow both?
->
-> Just as an example, consider the OMAP 3 camera again. A slave can
-> quite well implement a private interface that it wants to export to
-> userspace, like the OMAP 3 ISP driver does have ioctls for
-> configuring the statistics collection and for obtaining the
-> statistics. The camera driver does not need nor want to be involved
-> with this. The statistics are used by the automatic white balance,
-> exposure and focus algorithms.
-
-Good point. I'll keep the ioctl for this purpose.
-
-> I don't recognise need for private ops at the moment that would be
-> useful to slave. If the master driver is supposed to be generic it
-> really should not use directly any private operations.
->
-> Dependencies between slaves can be handled in the board code instead.
-> In that case the dependencies are not a problem because they already
-> are inherent to that machine.
->
-> >>  From your last mail I understood that you found the existing
-> >> implementations of frameworks that offer some kind of abstraction
-> >> between devices that make one V4L device more or less bad. I think
-> >> we should first evaluate what is wrong in the current approaches
-> >> so we don't repeat the mistakes done in them.
-> >
-> > The basic idea is the same in all approaches. However, see the
-> > following shortcomings in the existing implementations:
-> >
-> > 1) They are not generic, but built to solve a specific problem. To
-> > be specific: soc-camera.h and v4l2-int-device.h were written for
-> > sensors.
->
-> Not quite; v4l2-int-device is supposed to work with any other kind of
-> devices as well. There are no dependencies to sensors.
-
-You are correct.
-
-> But I agree that different types of slaves are not differentiated so
-> this could cause problems. The other thing is that during about one
-> year no-one else has started to use this interface except the OMAP 1
-> camera driver and one sensor driver that is used with the first.
->
-> If we go with v4l2_client then I suppose we should forget about
-> v4l2-int-if and maybe SoC camera also and convert all the drivers to
-> use v4l2_client instead of unifying the first two. Instead if
-> something would be done to old code that would be to convert it to
-> use v4l2_client instead. That task probably would not be very big as
-> the concepts are quite similar; just the implementation differs.
->
-> (I still should take a closer look at the v4l2_client, sorry.)
->
-> Sincerely,
-
-During the LPC conference everyone liked the ideas behind v4l2_client 
-and v4l2_device and the decision was made that I'll go ahead with it. 
-It will be renamed to media_client since the same approach can also be 
-used in the dvb subsystem in the future, so it is not v4l specific 
-(although it will be initially).
-
-I hope to get most of it into v4l-dvb in the next month. Once that's 
-done it shouldn't be difficult to replace v4l2-int-if with media_client 
-and to modify soc-camera to start using it as well. That should unify 
-all these internal interfaces and simplify future drivers.
-
-Regards,
-
-	Hans
+>>>-----Original Message-----
+>>>From: Jadav, Brijesh R
+>>>Sent: Sunday, September 28, 2008 1:34 PM
+>>>To: Karicheri, Muralidharan; video4linux-list@redhat.com
+>>>Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
+>>>
+>>>Hi Murali,
+>>>
+>>>I was looking into the video-buf layer and looks like it is difficult to
+>>>pre-allocate the buffer at the init time and use them at the time of mmap
+>>>using video-buf-contig layer. The only way out is to implement mmap
+>>>function in the driver itself so that you can use your pre-allocated
+>>>buffers and map them. You can use the same implementation as that of
+>>>video-buf layer except that dma_alloc_coherent will not be called if it
+>>>is already allocated.
+>>>
+>>>Thanks,
+>>>Brijesh Jadav
+>>>________________________________________
+>>>From: video4linux-list-bounces@redhat.com [video4linux-list-
+>>>bounces@redhat.com] On Behalf Of Karicheri, Muralidharan
+>>>Sent: Monday, September 22, 2008 2:59 PM
+>>>To: video4linux-list@redhat.com
+>>>Subject: videobuf-dma-contig - buffer allocation at init time ?
+>>>
+>>>Hello,
+>>>
+>>>I am in the process of porting my V4L2 video driver to the latest kernel.
+>>>I would like to use the contiguous buffer allocation and would like to
+>>>allocate frame buffers (contiguous) at driver initialization. The
+>>>contiguous buffer allocation module allocates buffer as part of
+>>>_videobuf_mmap_mapper() using dma_alloc_coherent() which gets called
+>>>during mmap() user calls. I have following questions about the design of
+>>>this module.
+>>>1) Why the allocation of buffer done as part of mmap() not at the init
+>>>time?  Usually video capture requires big frame buffers of 4M or so, if
+>>>HD capture is involved. So in our driver (based on 2.6.10) we allocate
+>>>the buffer at driver initialization and had a hacked version of the
+>>>buffer allocation module which used this pre-allocated frame buffer
+>>>address ptrs during mmap. Allocating buffer of such big size during
+>>>kernel operation is likely to fail due to fragmentation of buffers.
+>>>2) Is there a way I can allocate the buffer using dma_alloc_coherent() at
+>>>init time and still use the videobuf-dma-contig for mmap and buffer
+>>>management using the allocated buffers ?
+>>>3) Any other way to address the issue using the existing videobuf-dma-
+>>>contig module ?
+>>>
+>>>Thanks for your help.
+>>>
+>>>Murali
 
 --
 video4linux-list mailing list
