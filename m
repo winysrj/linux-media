@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bar.sig21.net ([88.198.146.85])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <js@sig21.net>) id 1KdvCz-0004c8-5C
-	for linux-dvb@linuxtv.org; Fri, 12 Sep 2008 01:04:18 +0200
-Date: Fri, 12 Sep 2008 01:05:07 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Glenn McGrath <glenn.l.mcgrath@gmail.com>
-Message-ID: <20080911230507.GA10179@linuxtv.org>
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-	<1220993974.17270.22.camel@localhost>
-	<d9def9db0809091414t5953e696s521aa2f7525d182d@mail.gmail.com>
-	<1221007328.2647.53.camel@morgan.walls.org>
-	<141058d50809092040m6ccbcer2ff26cf109a63682@mail.gmail.com>
+Received: from mail14.opentransfer.com ([76.162.254.14])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <dcoates@systemoverload.net>) id 1KkP47-0005Fo-0a
+	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 22:09:57 +0200
+Message-ID: <48E135F0.60808@systemoverload.net>
+Date: Mon, 29 Sep 2008 15:09:20 -0500
+From: Dustin Coates <dcoates@systemoverload.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <141058d50809092040m6ccbcer2ff26cf109a63682@mail.gmail.com>
+To: Steven Toth <stoth@linuxtv.org>
+References: <000001c91f6f$e23ab920$a6b02b60$@net>	<000001c921f0$7d4aede0$77e0c9a0$@net>	<48E11A2F.5030901@linuxtv.org>
+	<48E130EB.20006@systemoverload.net>
+In-Reply-To: <48E130EB.20006@systemoverload.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] How to measure API "goodness"?
+Subject: Re: [linux-dvb] HVR-1800 Analouge Issues
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,23 +20,86 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Sep 10, 2008 at 01:40:03PM +1000, Glenn McGrath wrote:
-> On Wed, Sep 10, 2008 at 10:42 AM, Andy Walls <awalls@radix.net> wrote:
-> >
-> > What are the attributes to measure for comparing APIs or API proposals?
-> 
-> Well said, but can the goodness of an API even be measured ?
+Dustin Coates wrote:
+> Steven Toth wrote:
+>   =
 
-Yeah, it seems much easier to measure the badness ;-)
-http://www.osnews.com/images/comics/wtfm.jpg
+>> Dustin Coates wrote:
+>>     =
 
-Johannes
+>>>  =
+
+>>>
+>>>  =
+
+>>>
+>>> *From:* linux-dvb-bounces@linuxtv.org =
+
+>>> [mailto:linux-dvb-bounces@linuxtv.org] *On Behalf Of *Dustin Coates
+>>> *Sent:* Thursday, September 25, 2008 7:36 PM
+>>> *To:* linux-dvb@linuxtv.org
+>>> *Subject:* [linux-dvb] HVR-1800 Analouge Issues
+>>>
+>>>  =
+
+>>>
+>>> Hi Everyone,
+>>>
+>>>  =
+
+>>>
+>>>                 Ok I=92ve recently decided to start seeing if I can =
+
+>>> figure out the issue with the Analouge, on this card, first my normal =
+
+>>> dmesg.
+>>>       =
+
+>> The analog encoder works fine for me.
+>>
+>> In my case the basic analog tuner is usually /dev/video0 and the =
+
+>> encoder is video1.
+>>
+>> Launch tvtime (which opens video0) tune and everything is fine, then =
+
+>> cat /dev/video1 >test.mpg is working as expected.
+>>
+>> - Steve
+>>
+>>
+>>     =
+
+> Ok, TVTime works, still some static on a mostly the lower, and higher
+> channels.
+>
+> Mythtv is only showing a green screen.
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>   =
+
+Mythbackend.log is showing these errors.
+
+VIDIOCGCHAN: Invalid argument
+VIDIOCMCAPTUREi0: Invalid argument
+VIDIOCMCAPTUREi1: Invalid argument
+VIDIOCMCAPTURE0: Invalid argument
+VIDIOCMCAPTURE1: Invalid argument
+
+
+I think if i can get past these errors it might just work...
+
+Thanks,
 
 _______________________________________________
 linux-dvb mailing list
