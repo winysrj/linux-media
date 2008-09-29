@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bane.moelleritberatung.de ([77.37.2.25])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artem@moelleritberatung.de>) id 1KaRAz-0007xU-0B
-	for linux-dvb@linuxtv.org; Tue, 02 Sep 2008 10:23:49 +0200
-Date: Tue, 2 Sep 2008 10:23:45 +0200
-From: Artem Makhutov <artem@makhutov.org>
+Received: from n23.bullet.mail.ukl.yahoo.com ([87.248.110.140])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1KkOAG-0001Al-If
+	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 21:12:13 +0200
+Date: Mon, 29 Sep 2008 15:10:50 -0400
+From: Emmanuel ALLAUD <eallaud@yahoo.fr>
 To: Jelle De Loecker <skerit@kipdola.com>
-Message-ID: <20080902082345.GS7830@moelleritberatung.de>
-References: <48BCF4E4.9070301@kipdola.com>
+References: <1221327465l.12125l.2l@manu-laptop> <48CC4867.1050705@gmail.com>
+	<1221354611l.12125l.3l@manu-laptop> <48E0D490.5030202@kipdola.com>
+In-Reply-To: <48E0D490.5030202@kipdola.com> (from skerit@kipdola.com on Mon
+	Sep 29 09:13:52 2008)
+Message-Id: <1222715450l.7695l.2l@manu-laptop>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <48BCF4E4.9070301@kipdola.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] KNC1 TVStar DVB-S & S2-3200?
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] Re :  Re : Re : TT S2-3200 driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,39 +22,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Le 29.09.2008 09:13:52, Jelle De Loecker a =E9crit=A0:
+> =
 
-On Tue, Sep 02, 2008 at 10:10:12AM +0200, Jelle De Loecker wrote:
-> Hi everyone,
-> 
-> I was wondering if I could run my S2-3200 card besides a KNC1 TVStar 
-> DVB-S card.
-> 
-> Since the S2-3200 still won't work properly under mythtv, and I need a 
-> few more tuners at least, I thought it wouldn't be such a bad idea to go 
-> with this cheap DVB-S card which I KNOW is supported.
-> 
-> But the biggest question is: if I install multiproto, will the KNC1 card 
-> be recognised? Or do I have to choose between cards?
-> 
-> I know the KNC1 card doesn't have a CI extension, I'd primarily use the 
-> S2-3200 for that, and use the KNC1 card for Astra 2 and such.
+> manu schreef:
+> > Le 13.09.2008 19:10:31, Manu Abraham a =E9crit :
+> >   =
 
-I am using a Hauppauge 92500 and a SkyStar 2 together with my S2-3200. It
-works without any problems.
+> >> manu wrote:
+> >>     =
 
-Regards, Artem
+> >>> I forgot the logs...
+> >>>       =
 
--- 
-Artem Makhutov
-Unterort Str. 36
-D-65760 Eschborn
+> >> Taking a look at it. Please do note that, i will have to go =
+
+> through
+> =
+
+> >> it
+> >> very patiently.
+> >>
+> >> Thanks for the logs.
+> >>
+> >>     =
+
+> >
+> > You're more than welcome. I tried to put some printk's but the only =
+
+> > thing I got is that even when the carrier is correctly detected, =
+
+> the
+> =
+
+> > driver does not detect the data (could that be related to the
+> different =
+
+> > FEC?).
+> > Anyway let me know if you need more testing.
+> > Bye
+> > Manu
+> =
+
+> I'm unable to scan the channels on the Astra 23,5 satellite
+> Frequency 11856000
+> Symbol rate 27500000
+> Vertical polarisation
+> FEC 5/6
+> =
+
+> Is this because of the same bug? I should be getting Discovery =
+
+> Channel
+> =
+
+> HD, National Geographic Channel HD, Brava HDTV and Voom HD =
+
+> International, but I'm only getting a time out.
+
+Yes it looks like the same bug.
+Bye
+Manu
+
 
 _______________________________________________
 linux-dvb mailing list
