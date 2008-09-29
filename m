@@ -1,23 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from server30.ukservers.net ([217.10.138.207])
+Received: from mail.server.beonex.com ([78.46.195.11])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stephen@rowles.org.uk>) id 1KbDJq-00049B-NN
-	for linux-dvb@linuxtv.org; Thu, 04 Sep 2008 13:48:13 +0200
-Received: from miner.localdomain (unknown [78.146.23.243])
-	by server30.ukservers.net (Postfix smtp) with ESMTP id D78C659C3B9
-	for <linux-dvb@linuxtv.org>; Thu,  4 Sep 2008 12:48:01 +0100 (BST)
-Received: from manicminer.homeip.net (miner [127.0.0.1])
-	by miner.localdomain (Postfix) with ESMTP id 421E9181F5
-	for <linux-dvb@linuxtv.org>; Thu,  4 Sep 2008 12:06:03 +0100 (BST)
-Message-ID: <37990.81.144.130.125.1220526363.squirrel@manicminer.homeip.net>
-In-Reply-To: <48BFBE68.7070707@beardandsandals.co.uk>
-References: <48BF6A09.3020205@linuxtv.org>
-	<48BFBE68.7070707@beardandsandals.co.uk>
-Date: Thu, 4 Sep 2008 12:06:03 +0100 (BST)
-From: "Stephen Rowles" <stephen@rowles.org.uk>
-To: linux-dvb@linuxtv.org
+	(envelope-from <linux.news@bucksch.org>) id 1KkSPn-0003xu-22
+	for linux-dvb@linuxtv.org; Tue, 30 Sep 2008 01:44:31 +0200
+Message-ID: <48E1686E.60207@bucksch.org>
+Date: Tue, 30 Sep 2008 01:44:46 +0200
+From: Ben Bucksch <linux.news@bucksch.org>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] S2API - First release
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] [Bug] gnutv -cammenu hangs
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,29 +22,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->> Steven Toth wrote:
->> A tuning demo app? What? Obviously, tuning older modulation types via
->> the new API isn't a requirements, but it's a useful validation exercise
->> for the new S2API.
->>
->> Steven
->
-> Your statement about tuning older modulation types not being a
-> requirement worries me. I would have thought it was an important
-> requirement from an application perspective to be able to tune old and
-> new modulation types through one api. The services I use (BSkyB and
-> Freesat) are mostly DVB-S with very little if any S2. But I would like
-> to be able to tune them via my (not so) new S2 card. Maybe I have
-> misinterpreted what you meant.
+Hey,
 
-I imagine that there isn't really any need to use the S2 API to tune older
-modulation types, because you just use the existing API if you want the
-old style tuning.
+I'd like to update the firmware of my CA module, but gnutv -cammenu does 
+nothing, it just sits there without any output.
 
-However I would agree that if the new API supports both old and new style
-tuning, then that is nicer for anyone writing a new app, as they only have
-to code for the S2API, and get support for all tuning styles. Unless I too
-am not understanding :)
+Environment:
+SkyStar HD (STB0899) with CI, using the multiproto drivers.
+Ubuntu 8.04.1 with self-compiled linuxtv-dvb-apps from hg tip. Same 
+problem on Gentoo.
+
+Reproduction:
+1. Starting "gnutv -adapter 1 -cammenu"
+
+Actual results:
+Nothing. The command prompt does not return (i.e. gnutv runs), and no 
+output comes from gnutv. It just sits there, forever. No error message.
+
+I have no way to resolve the problem, because I have no idea what the 
+problem is.
+
+Expected result:
+Detailled error message pointing me to the problem, so that I can fix it.
+
+E.g. "Driver does not support this operation", "Could not contact CA 
+module - is it inserted?" or "Could not contact smartcard. Check that 
+it's inserted in the right direction and side" or whatever. This is the 
+minimum level of precision, better (e.g. "CA module did not react to 
+command foo") would be good.
+
+Please also report what *did* work, so that I can exclude error causes. 
+E.g. "CA initialization succeeded" tells me that the CI adapter and CA 
+module is inserted correctly.
 
 
 _______________________________________________
