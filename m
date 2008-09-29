@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m897WKL5001275
-	for <video4linux-list@redhat.com>; Tue, 9 Sep 2008 03:32:21 -0400
-Received: from smtp-vbr16.xs4all.nl (smtp-vbr16.xs4all.nl [194.109.24.36])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m897W58k007289
-	for <video4linux-list@redhat.com>; Tue, 9 Sep 2008 03:32:06 -0400
-Message-ID: <24048.62.70.2.252.1220945521.squirrel@webmail.xs4all.nl>
-Date: Tue, 9 Sep 2008 09:32:01 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: Sakari Ailus <sakari.ailus@nokia.com>,
-	Linux and Kernel Video <video4linux-list@redhat.com>,
-	Zutshi Vimarsh <vimarsh.zutshi@nokia.com>
-Subject: Re: [PATCH 0/7] V4L changes for OMAP 3 camera
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8T62CIB012873
+	for <video4linux-list@redhat.com>; Mon, 29 Sep 2008 02:02:13 -0400
+Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.228])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8T620U1010273
+	for <video4linux-list@redhat.com>; Mon, 29 Sep 2008 02:02:01 -0400
+Received: by wx-out-0506.google.com with SMTP id i31so402240wxd.6
+	for <video4linux-list@redhat.com>; Sun, 28 Sep 2008 23:02:00 -0700 (PDT)
+Date: Mon, 29 Sep 2008 01:01:51 -0500
+From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+To: linux-dvb@linuxtv.org, video4linux-list@redhat.com
+Message-ID: <20080929010151.111f31a2@rainbird>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: cx88-alsa audio quality?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,46 +27,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> [PATCH 4/7] V4L: Add VIDIOC_G_PRIV_MEM ioctl:
->
-> On Monday 08 September 2008 23:18:14 ext Hans Verkuil wrote:
->> Patch 4/7: I'm having problems with this one. Shouldn't it be better to
->> make this a driver-private ioctl? And then that ioctl can actually
->
-> Do you mean that the ioctl number would be defined inside
-> sensor (=camera module) driver header file?
->
-> Many camera modules have EEPROM and it seems waste to need
-> it to be defined again and again in different drivers.
+I forget if I've already mentioned this yet...
 
-Perhaps, perhaps not. It depends on what sort of information is stored in
-the eeproms and what it is used for.
+I recently started playing around with analog NTSC television again on my system, while trying to help someone solve a problem on their system.  In the process I ran into a problem getting cx88-alsa to build with the rest of the v4l-dvb repository.  As it turned out, mine was one of the stock Ubuntu kernels that have some odd issue with the I2C configuration.   I had to build a vanilla kernel (2.6.26.5), making all the I2C stuff into modules as opposed to built-in.  So, that's fixed - cx88-alsa builds and loads OK now.
 
-Having a EEPROM reading ioctl is all very nice, but it shifts the burden
-of decoding it to the application. Since the eeprom content is device
-specific (right?) I think this belongs in the driver, not in the
-application.
+However, I have a new problem:
 
-Would it perhaps be possible to let the driver create read-only controls
-that contain that information? Similar to say the uvc driver that can
-create controls dynamically based on the camera information.
+Something has broken the output that cx88-alsa creates.  In the case of my Kworld ATSC 120, radio output on all frequencies has a sort of growling "industrial" noise on top of the actual audio, kinda like the background noise of a manufacturing facility.
 
->> return a struct containing those settings, rather than a eeprom dump.
->> It is highly device specific, after all, so let the device extract and
->> return the useful information instead of requiring an application to do
->> that.
->
-> OK, can be done, but it seems likely that the returned structure
-> will need to be updated often, because I think it is likely
-> that new camera modules will have new fields in EEPROM.
+Analog TV on all channels gives clean but very tinny audio, as though the sample rate were really low (~8kHz).
 
-For this reason as well using private controls wouldn't be such a bad idea
-(as long as the extended controls are used as it has a better way of
-dealing with private controls).
+Since other audio sources are working fine, I can't tell if this is a bug in the kernel, or cx88-alsa, or something else entirely.  I've only noticed the problem for a matter of a week or less, so I'm not sure when it started.  The problem persists as of today's pull of the v4l-dvb repository.
 
-Regards,
-
-         Hans
+-- 
+"Life is full of positive and negative events.  Spend
+your time considering the former, not the latter."
+Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
 
 --
 video4linux-list mailing list
