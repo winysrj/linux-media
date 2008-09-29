@@ -1,25 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32])
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <n.wagenaar@xs4all.nl>) id 1KhNRO-00046k-W2
-	for linux-dvb@linuxtv.org; Sun, 21 Sep 2008 13:49:27 +0200
-Received: from shalafi.ath.cx (shalafi-old.xs4all.nl [82.95.219.165])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id m8LBnNaP060184
-	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 13:49:23 +0200 (CEST)
-	(envelope-from n.wagenaar@xs4all.nl)
-Received: from shalafi.ath.cx (localhost [127.0.0.1])
-	by shalafi.ath.cx (8.14.2/8.14.2/Debian-2build1) with ESMTP id
-	m8LBnMQc021878
-	for <linux-dvb@linuxtv.org>; Sun, 21 Sep 2008 13:49:23 +0200
-From: =?us-ascii?Q?Niels_Wagenaar?= <n.wagenaar@xs4all.nl>
-To: linux-dvb@linuxtv.org
-Date: Sun, 21 Sep 2008 13:49:22 +0200
-Mime-Version: 1.0
-In-Reply-To: <vmime.48d57fce.2764.1a77da4d329cf53b@shalafi.ath.cx>
-References: <vmime.48d57fce.2764.1a77da4d329cf53b@shalafi.ath.cx>
-Message-Id: <vmime.48d634c2.2764.3a129d649c016b@shalafi.ath.cx>
-Subject: Re: [linux-dvb] Full Mantis pull with TerraTec Cinergy S2 PCI HD
- hangs system on boot
+	(envelope-from <stoth@linuxtv.org>) id 1KkPsX-0007rk-9w
+	for linux-dvb@linuxtv.org; Mon, 29 Sep 2008 23:02:02 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K7Z005C36EDR8N0@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 29 Sep 2008 17:01:27 -0400 (EDT)
+Date: Mon, 29 Sep 2008 17:01:24 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48E135F0.60808@systemoverload.net>
+To: Dustin Coates <dcoates@systemoverload.net>
+Message-id: <48E14224.6090309@linuxtv.org>
+MIME-version: 1.0
+References: <000001c91f6f$e23ab920$a6b02b60$@net>
+	<000001c921f0$7d4aede0$77e0c9a0$@net> <48E11A2F.5030901@linuxtv.org>
+	<48E130EB.20006@systemoverload.net> <48E135F0.60808@systemoverload.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR-1800 Analouge Issues
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,50 +27,94 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On smaller detail, when using modprobe I get fatal errors and the message: "Mantis disagrees on symbol formats" for about 8 times. The message may not be entirely correct, because soon the system hang again.
+Dustin Coates wrote:
+> Dustin Coates wrote:
+>> Steven Toth wrote:
+>>  =
 
-Regards,
+>>> Dustin Coates wrote:
+>>>    =
 
-Niels Wagenaar
+>>>>  =
 
-> -----Oorspronkelijk bericht-----
-> Van: n.wagenaar@xs4all.nl [mailto:linux-dvb-bounces@linuxtv.org] Namens
-> Niels Wagenaar
-> Verzonden: zondag 21 september 2008 0:57
-> Aan: linux-dvb@linuxtv.org
-> Onderwerp: [linux-dvb] Full Mantis pull with TerraTec Cinergy S2 PCI HD
-> hangs system on boot
-> 
-> Hello All,
-> 
-> For a friend of mine, I'm setting up a HTPC based upon Xubuntu 8.04 and
-> VDR. Currently he has a Terratec TerraTec Cinergy S2 PCI HD and I
-> followed the Wiki for this card. I pull the latest Mantis and changed
-> the ID in mantis_vp1041.h as it's told in the Wiki.
-> 
-> However. When rebooting, the system hangs and doesn't want to continue
-> booting. I also found out that other people experience the same
-> problem.
-> 
-> So I think that the Wiki is not entirely up-to-date anymore. Could
-> somebody give me some more information how to get the TerraTec Cinergy
-> S2 PCI HD working?
-> 
-> Thanks in advance,
-> 
-> Niels Wagenaar
-> 
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>>>
+>>>>  =
+
+>>>>
+>>>> *From:* linux-dvb-bounces@linuxtv.org =
+
+>>>> [mailto:linux-dvb-bounces@linuxtv.org] *On Behalf Of *Dustin Coates
+>>>> *Sent:* Thursday, September 25, 2008 7:36 PM
+>>>> *To:* linux-dvb@linuxtv.org
+>>>> *Subject:* [linux-dvb] HVR-1800 Analouge Issues
+>>>>
+>>>>  =
+
+>>>>
+>>>> Hi Everyone,
+>>>>
+>>>>  =
+
+>>>>
+>>>>                 Ok I=92ve recently decided to start seeing if I can =
+
+>>>> figure out the issue with the Analouge, on this card, first my =
+
+>>>> normal dmesg.
+>>>>       =
+
+>>> The analog encoder works fine for me.
+>>>
+>>> In my case the basic analog tuner is usually /dev/video0 and the =
+
+>>> encoder is video1.
+>>>
+>>> Launch tvtime (which opens video0) tune and everything is fine, then =
+
+>>> cat /dev/video1 >test.mpg is working as expected.
+>>>
+>>> - Steve
+>>>
+>>>
+>>>     =
+
+>> Ok, TVTime works, still some static on a mostly the lower, and higher
+>> channels.
+>>
+>> Mythtv is only showing a green screen.
+>>
+>>
+>> _______________________________________________
+>> linux-dvb mailing list
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>   =
+
+> Mythbackend.log is showing these errors.
+> =
+
+> VIDIOCGCHAN: Invalid argument
+> VIDIOCMCAPTUREi0: Invalid argument
+> VIDIOCMCAPTUREi1: Invalid argument
+> VIDIOCMCAPTURE0: Invalid argument
+> VIDIOCMCAPTURE1: Invalid argument
+> =
+
+> =
+
+> I think if i can get past these errors it might just work...
+
+When tvtime was running can you try cat /dev/video1 >test.mpg as I =
+
+suggested?
+
+- Steve
 
 
 _______________________________________________
