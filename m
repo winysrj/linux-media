@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8RKsNTw020387
-	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 16:54:26 -0400
-Received: from mailrelay011.isp.belgacom.be (mailrelay011.isp.belgacom.be
-	[195.238.6.178])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8RKrt9M003791
-	for <video4linux-list@redhat.com>; Sat, 27 Sep 2008 16:53:56 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: video4linux-list@redhat.com
-Date: Sat, 27 Sep 2008 22:54:02 +0200
-References: <200809232317.44795.laurent.pinchart@skynet.be>
-	<200809271924.58142.laurent.pinchart@skynet.be>
-In-Reply-To: <200809271924.58142.laurent.pinchart@skynet.be>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8UFwfGd018505
+	for <video4linux-list@redhat.com>; Tue, 30 Sep 2008 11:58:41 -0400
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m8UFwYjI024829
+	for <video4linux-list@redhat.com>; Tue, 30 Sep 2008 11:58:35 -0400
+Received: by ey-out-2122.google.com with SMTP id 4so31219eyf.39
+	for <video4linux-list@redhat.com>; Tue, 30 Sep 2008 08:58:34 -0700 (PDT)
+Date: Tue, 30 Sep 2008 17:00:22 +0100
+From: Jaime Velasco Juan <jsagarribay@gmail.com>
+To: David Ellingsworth <david@identd.dyndns.org>
+Message-ID: <20080930160022.GA3301@singular.sob>
+References: <30353c3d0809291721o2a2858b1na0a930a1f75ac4f3@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Message-Id: <200809272254.03643.laurent.pinchart@skynet.be>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v3] uvcvideo: Fix control cache access when setting
-	composite auto-update controls
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <30353c3d0809291721o2a2858b1na0a930a1f75ac4f3@mail.gmail.com>
+Cc: v4l <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/3] stk-webcam updates
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,76 +31,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Auto-update controls are never marked is loaded to prevent uvc_get_ctrl from
-loading the control value from the cache. When setting a composite (mapped to
-several V4L2 controls) auto-update UVC control, the driver updates the control
-cache value before processing each V4L2 control, overwriting the previously
-set V4L2 control.
+El lun. 29 de sep. de 2008, a las 20:21:04 -0400, David Ellingsworth escribió:
+> The following series of patches correct issues identified in
+> stk-webcam. The patches are as follows:
+> 
+> 1. stkwebcam: fix crash on close after disconnect
+> 2. stkwebcam: free via video_device release callback
+> 3. stkwebcam: simplify access to stk_camera struct
+> 
+> The first patch in this series is a bug fix. If it is possible to
+> merge this patch into 2.6.27 I highly recommend it as this bug has
+> existed for quite some time. The second patch restructures the driver
+> and removes the now unnecessary reference count on the stk_camera
+> struct. The third patch simplifies the driver in several areas
+> removing several unnecessary branches.
+> 
+> These patchs should apply cleanly against the working branch of the
+> git v4l-dvb tree. Each of the patches will be submitted independently.
+> 
+> Regards,
+> 
+> David Ellingsworth
 
-This fixes the problem by marking all controls as loaded in uvc_set_ctrl
-regardless of their type and resetting the loaded flag in uvc_commit_ctrl for
-auto-update controls.
+ACK
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
----
- drivers/media/video/uvc/uvc_ctrl.c |   21 +++++++++++++--------
- 1 files changed, 13 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-index 6da37cd..b66c95f 100644
---- a/drivers/media/video/uvc/uvc_ctrl.c
-+++ b/drivers/media/video/uvc/uvc_ctrl.c
-@@ -837,7 +837,17 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
- 
- 	for (i = 0; i < entity->ncontrols; ++i) {
- 		ctrl = &entity->controls[i];
--		if (ctrl->info == NULL || !ctrl->dirty)
-+		if (ctrl->info == NULL)
-+			continue;
-+
-+		/* Reset the loaded flag for auto-update controls that were
-+		 * marked as loaded in uvc_ctrl_get/uvc_ctrl_set to prevent
-+		 * uvc_ctrl_get from using the cached value.
-+		 */
-+		if (ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE)
-+			ctrl->loaded = 0;
-+
-+		if (!ctrl->dirty)
- 			continue;
- 
- 		if (!rollback)
-@@ -853,9 +863,6 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
- 			       uvc_ctrl_data(ctrl, UVC_CTRL_DATA_BACKUP),
- 			       ctrl->info->size);
- 
--		if ((ctrl->info->flags & UVC_CONTROL_GET_CUR) == 0)
--			ctrl->loaded = 0;
--
- 		ctrl->dirty = 0;
- 
- 		if (ret < 0)
-@@ -913,8 +920,7 @@ int uvc_ctrl_get(struct uvc_video_device *video,
- 		if (ret < 0)
- 			return ret;
- 
--		if ((ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE) == 0)
--			ctrl->loaded = 1;
-+		ctrl->loaded = 1;
- 	}
- 
- 	xctrl->value = uvc_get_le_value(
-@@ -965,8 +971,7 @@ int uvc_ctrl_set(struct uvc_video_device *video,
- 				return ret;
- 		}
- 
--		if ((ctrl->info->flags & UVC_CONTROL_AUTO_UPDATE) == 0)
--			ctrl->loaded = 1;
-+		ctrl->loaded = 1;
- 	}
- 
- 	if (!ctrl->dirty) {
--- 
-1.5.6.4
+Regards,
+Jaime
 
 --
 video4linux-list mailing list
