@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Sun, 28 Sep 2008 02:30:41 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Paul Chubb <paulc@singlespoon.org.au>
-Message-ID: <20080928023041.41de802f@mchehab.chehab.org>
-In-Reply-To: <48D6C0BA.4090605@singlespoon.org.au>
-References: <20080915213106.A786B164293@ws1-4.us4.outblaze.com>
-	<48D6C0BA.4090605@singlespoon.org.au>
-Mime-Version: 1.0
-Cc: linux dvb <linux-dvb@linuxtv.org>, stev391@email.com
-Subject: Re: [linux-dvb] xc3028 config issue. Re: Why I need to choose
- better Subject: headers [was: Re: Why (etc.)]
+Received: from n2a.bullet.mail.ac4.yahoo.com ([76.13.13.65])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <albatrosmwdvb@yahoo.com>) id 1Kkjgb-0008JV-At
+	for linux-dvb@linuxtv.org; Tue, 30 Sep 2008 20:11:02 +0200
+Date: Tue, 30 Sep 2008 11:10:26 -0700 (PDT)
+From: Marek Marek <albatrosmwdvb@yahoo.com>
+To: stoth@linuxtv.org
+In-Reply-To: <48E12B7C.9020700@linuxtv.org>
+MIME-Version: 1.0
+Message-ID: <136303.45923.qm@web59906.mail.ac4.yahoo.com>
+Cc: linux-dvb@linuxtv.org, stev391@email.com
+Subject: Re: [linux-dvb] Compro VideoMate E600F analog PCIe TV/FM capture
+	card
+Reply-To: albatrosmwdvb@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,35 +26,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, 22 Sep 2008 07:46:34 +1000
-Paul Chubb <paulc@singlespoon.org.au> wrote:
+> If you can get some regspy dumps, some i2c scan details and
+> pictures of 
+> the silicon on the wiki then we have a good chance of
+> adding support for 
+> you.
+Ok RegSpy dump included on the wiki page
+http://linuxtv.org/wiki/index.php/Compro_VideoMate_E600F
+Please look on it when you will have some free time as you promised and then I'll wait wait and at the end I'll be happy watching analog TV on this great tuner card... First time saw how it is working and must tell you I'm very surprised of the image quality (compare with old bt848 chip card). If anything is necessary on wiki page give me a sign :)
+Again thanks awfully for your time :)
 
-> Hi,
->        I have integrated all the advice give with some success. 
-> Australia has five companies who transmit each having a number of 
-> channels. I am finding that using scan, tzap and mplayer I can always 
-> view all southern cross ten channels however HD is without sound. I can 
-> view all SBS channels.
-> 
-> I have been playing with the offset Mauro suggested in generid_set_freq. 
-
-Ok. I'm assuming that the patch were correct, so I'm applying it.
-
-> 2) in xc2028_set_params in tuner_xc2028.c it adds 200khz to demod
-
-This is needed by design on xc2028/3028. Hmm... xc3028XL has some differences
-here, at the firmware... Maybe you have those newer tuners. If so, you'll need
-firmware v3.6, instead of v2.7.
-
-> 3) in generic_set_freq in the same file it has a -500khz offset which I 
-> was playing with
-
-This is something specific for Australia, based on some tests from one DVB
-developer that used to live there.
+Marek
 
 
-Cheers,
-Mauro
+
+      
+
 
 _______________________________________________
 linux-dvb mailing list
