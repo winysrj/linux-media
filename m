@@ -1,34 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8QGx1Wg012417
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 12:59:02 -0400
-Received: from mail-gx0-f15.google.com (mail-gx0-f15.google.com
-	[209.85.217.15])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m8QGq4Kv007956
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 12:52:24 -0400
-Received: by gxk8 with SMTP id 8so8503575gxk.3
-	for <video4linux-list@redhat.com>; Fri, 26 Sep 2008 09:52:04 -0700 (PDT)
-Message-ID: <9d87242f0809260952h7542a051ud6d539269638d6b4@mail.gmail.com>
-Date: Fri, 26 Sep 2008 09:52:04 -0700
-From: "Scott Bronson" <bronson@rinspin.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <48D907BB.4020801@linuxtv.org>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m8UMiDFd029230
+	for <video4linux-list@redhat.com>; Tue, 30 Sep 2008 18:44:13 -0400
+Received: from zim.mi-connect.com (zim.mi-connect.com [208.73.200.230])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m8UMi1k8005754
+	for <video4linux-list@redhat.com>; Tue, 30 Sep 2008 18:44:01 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by zim.mi-connect.com (Postfix) with ESMTP id C8487233877C
+	for <video4linux-list@redhat.com>; Tue, 30 Sep 2008 18:27:30 -0400 (EDT)
+Received: from zim.mi-connect.com ([127.0.0.1])
+	by localhost (zim.mi-connect.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id gNI8vSA1mqeB for <video4linux-list@redhat.com>;
+	Tue, 30 Sep 2008 18:27:29 -0400 (EDT)
+Received: from [192.168.10.129] (s233-64-68-217.try.wideopenwest.com
+	[64.233.217.68])
+	by zim.mi-connect.com (Postfix) with ESMTP id 77C4523386A1
+	for <video4linux-list@redhat.com>; Tue, 30 Sep 2008 18:27:29 -0400 (EDT)
+Message-ID: <48E2AD84.1090807@rongage.org>
+Date: Tue, 30 Sep 2008 18:51:48 -0400
+From: Ron Gage <ron@rongage.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <9d87242f0809191425p1adb1e59p417753a4c403a872@mail.gmail.com>
-	<9d87242f0809192005t246311dp796aa28cb744b3af@mail.gmail.com>
-	<9d87242f0809192255t49e112bfvd9c95e66bd3292a8@mail.gmail.com>
-	<48D49A39.5010909@linuxtv.org>
-	<9d87242f0809211316g1a34f0e7wed0f8345d5cdd787@mail.gmail.com>
-	<48D702B5.8020800@linuxtv.org>
-	<9d87242f0809221206n1d589137v8e1bf77792c31bcf@mail.gmail.com>
-	<48D7F064.4010103@linuxtv.org>
-	<9d87242f0809222335l67860769k6369db5665b10f98@mail.gmail.com>
-	<48D907BB.4020801@linuxtv.org>
-Cc: video4linux-list@redhat.com
-Subject: Re: Unreliable tuning with HVR-950q
+Subject: BT87x card - audio not working
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,20 +35,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Another data point...
+Greetings:
 
-I bought a used Pinnacle PCTV HD and set it up last night.  It works
-perfectly -- tunes every channel 100% of the time.  No glitches at
-all.  Meanwhile, the HVR-950q is still getting a lock only 50% of the
-time on good days.  The difference between these devices is dramatic.
+I have a BT878 based capture card that is working wonderfully, except 
+for audio.  The card is an Osprey 230 from Viewcast.  The card is 
+supposed to support digital audio input - no need for a loopback cable 
+from the card to the PC's line in.
+
+The card is registering the audio device with the ALSA subsystem but no 
+matter what I try, I can not get audio from the card into the PC.  I 
+know that audio is going to the card as I have checked the signal 
+presence at the input cable.
+
+Kernel is 2.6.26.5  generic with no additional patches.  OS is Slackware 12.
+
+The card is showing up in /proc/asound:
+ root@video:/proc/asound# cat devices
+  1:        : sequencer
+ 32: [ 1]   : control
+ 33:        : timer
+ 56: [ 1- 0]: digital audio capture
+ 57: [ 1- 1]: digital audio capture
+root@video:/proc/asound#
+root@video:/proc/asound/card1# cat id
+Bt878
+root@video:/proc/asound/card1/pcm0c# cat info
+card: 1
+device: 0
+subdevice: 0
+stream: CAPTURE
+id: Bt87x Digital
+name: Bt87x Digital
+subname: subdevice #0
+class: 0
+subclass: 0
+subdevices_count: 1
+subdevices_avail: 1
+root@video:/proc/asound/card1/pcm0c#
 
 
-On Tue, Sep 23, 2008 at 8:14 AM, Steven Toth <stoth@linuxtv.org> wrote:
-> You're overwhelming the tuner/demod
-> frontend with high RF levels.
+Can anyone provide any clues here?
 
-The attenuators are in the mail, 3dB and 6dB...  I'll report back when
-I've tried them.
+Thanks!
+
+Ron Gage
+
 
 --
 video4linux-list mailing list
