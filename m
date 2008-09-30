@@ -1,27 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+Received: from ik-out-1112.google.com ([66.249.90.178])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KdDAb-0007Vh-N1
-	for linux-dvb@linuxtv.org; Wed, 10 Sep 2008 02:02:54 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K6Y00NQ5DFQ38B0@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 09 Sep 2008 20:02:14 -0400 (EDT)
-Date: Tue, 09 Sep 2008 20:02:13 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <d9def9db0809091414t5953e696s521aa2f7525d182d@mail.gmail.com>
-To: Markus Rechberger <mrechberger@gmail.com>
-Message-id: <48C70E85.4050001@linuxtv.org>
-MIME-version: 1.0
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48C66829.1010902@grumpydevil.homelinux.org>
-	<d9def9db0809090833v16d433a1u5ac95ca1b0478c10@mail.gmail.com>
-	<1220993974.17270.22.camel@localhost>
-	<d9def9db0809091414t5953e696s521aa2f7525d182d@mail.gmail.com>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KklVx-0006N6-G2
+	for linux-dvb@linuxtv.org; Tue, 30 Sep 2008 22:08:12 +0200
+Received: by ik-out-1112.google.com with SMTP id c21so172990ika.1
+	for <linux-dvb@linuxtv.org>; Tue, 30 Sep 2008 13:08:05 -0700 (PDT)
+Date: Tue, 30 Sep 2008 22:07:13 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Lee Jones <slothpuck@gmail.com>
+In-Reply-To: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
+Message-ID: <alpine.DEB.2.00.0809302137380.4242@ybpnyubfg.ybpnyqbznva>
+References: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
+MIME-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Multiproto API/Driver Update
+Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,28 +27,68 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Anyway I'd appreciate to get back to the topic again and the question
-> which I pointed out to, how many devices
-> are supported by Steven's patch and how many by the work which Manu
-> used to managed for years with a couple of
-> people. There are multiple ways which can lead to success, the beauty
-> of a patch or framework won't matter too much (nevermind
-> if Steven's or Manu's work seems to be more prettier to someone).
+On Tue, 30 Sep 2008, Lee Jones wrote:
 
-I'm going to post this notice in a new thread, as this is getting long 
-but, to respond generally....
+> The problems seem to occur with scanning, however. While tuning, I get
+> several lines which look like this:
+> >>> tune to: 562166670:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_3_4:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 562166670:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_3_4:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
 
-I merged patches from Igor today, so the S2API tree has five S2 devices.
+Two things:  If you scan with `-v', you should get some
+feedback as to how close your receiver is to locking on
+the frequency.
 
-HVR4000 S/S2 card
-HVR4000LITE (Also known as the S2 Lite) S/S2 card
-TeVii S460 S/S2 card
-TeVii S650 S2 card
-DvbWorld DVB-S/S2 USB2.0 S/S2
+Second, it may or may not be a problem, as one of my cards
+managed to tune and lock a carrier even when fed totally
+wrong tuning data apart from the correct frequency, but
+are you sure that FEC_3_4 is correct also for the LP code
+rate?  The tuning data I see in recent dvb-apps gives `NONE'
+ -- this probably won't affect anything, but in the unlikely 
+chance it might...
 
-It's a pretty good start, thanks to Igor.
 
-- Steve
+> After completion, some channels are missing (e.g. BBC1 is there, but
+> ITV or BBC4 aren't;
+
+The above frequency is for BBC4; ITV uses 64-QAM unlike the
+BBC multiplexes, so I'll assume that is correct in your
+initial tuning data (as the above CRLP value doesn't match
+that based on the OFCOM data in dvb-apps)...
+
+
+> This still produced some "WARNING:>>>tuning failed!!!" messages but
+> appears to have found the 'missing 'channels. But then using the
+> dvbutils' program tzap seemed to tell a different story. Some channels
+> existed but yet didn't produce *any* data (I could confirm that they
+
+Can you give the lines with the PIDs of these `missing' channels
+which you have found?  Like BBC4 with which you had problems
+below...
+
+
+> $ tzap -r "BBC FOUR"
+> tuning to 562000000 Hz
+> video pid 0x0000, audio pid 0x0000
+              ^^^^              ^^^^
+This is wrong -- at least after 19h your-time -- but in case
+you did the scan before 19h your-time, you may have gotten
+correct PIDs for CBBC+CBeebies -- but not for BBC3+4, as the
+correct PIDs are only broadcast during the time those programs
+are actually on-air, and `tzap' is not smart enough to take
+the Service ID and derive the up-to-date PIDs from that...
+
+So, basically, if you could post what you have for Mux B at
+562MHz (ch32), then we can see if you did get correct data
+for the radios and the then-active TV services.
+
+Also you said the ITV Mux 2 caused problems in your initial
+scan, so if you have problems `tzap'ing those channels, then
+posting that data would be useful.
+
+
+thanks
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
