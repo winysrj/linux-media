@@ -1,29 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.159])
+Received: from mailout10.t-online.de ([194.25.134.21])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1Kj5HP-00064w-RI
-	for linux-dvb@linuxtv.org; Fri, 26 Sep 2008 06:50:17 +0200
-Received: by fg-out-1718.google.com with SMTP id e21so532108fga.25
-	for <linux-dvb@linuxtv.org>; Thu, 25 Sep 2008 21:50:08 -0700 (PDT)
-Message-ID: <d9def9db0809252150t9dd113axa9acd3d7c3817cb8@mail.gmail.com>
-Date: Fri, 26 Sep 2008 06:50:07 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Douglas Schilling Landgraf" <dougsland@gmail.com>
-In-Reply-To: <20080925212732.70e70bef@gmail.com>
+	(envelope-from <Ralf.Goos@t-online.de>) id 1KkjXl-0007bj-44
+	for linux-dvb@linuxtv.org; Tue, 30 Sep 2008 20:01:53 +0200
+From: Ralf Goos <Ralf.Goos@t-online.de>
+To: linux-dvb@linuxtv.org
+Date: Tue, 30 Sep 2008 20:01:24 +0200
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <002101c91f1a$b13c4e60$0401a8c0@asrock> <48DBBAC0.7030201@gmx.de>
-	<d9def9db0809251044k7fbcaa1awdf046edb2ca9b020@mail.gmail.com>
-	<20080925181943.GA12800@halim.local>
-	<a3ef07920809251139s41f26f14m76cff970c3373eb5@mail.gmail.com>
-	<48DBF224.2010109@gmx.de>
-	<37219a840809251340n7c588667xd18982f78e68a2ec@mail.gmail.com>
-	<d9def9db0809251400r331c0667k733486a013eccefe@mail.gmail.com>
-	<1222385832.4589.41.camel@pc10.localdom.local>
-	<20080925212732.70e70bef@gmail.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [ANNOUNCE] DVB API improvements End-user point of
-	view
+Message-Id: <200809302001.24424.Ralf.Goos@t-online.de>
+Subject: [linux-dvb] auvisio DVB-T USB2.0 Pen Receiver "WhiteStar" and SUSE
+	10.3
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,85 +24,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Sep 26, 2008 at 3:27 AM, Douglas Schilling Landgraf
-<dougsland@gmail.com> wrote:
-> Hello,
->
-> On Fri, 26 Sep 2008 01:37:12 +0200
-> hermann pitton <hermann-pitton@arcor.de> wrote:
->
->>
->> Who the hell is VDR User <user.vdr@gmail.com> ?
->> Klaus himself?
->>
->> At least he knows nothing about Mauro's real work on video4linux.
->
-> Agreed. He's *totally lost* about Mauro's work.
->
->> To prepare the kernel sync and give the patchmonkey on Johannes'
->> request for dvb too, are only a very few percent of his work and the
->> "thanks" he had for this so far are it not worth at all ...
->>
->> On all other major projects, where he is the maintainer, such absurd
->> stuff did never happen.
->>
->> The dvb guys inside don't get their stuff together and do exclude each
->> other. At least Steve had no other choice than to come up with his own
->> solution.
->
-> Definitely.
->
->> What a bullshit to accuse Mauro of missing maintainer ship, all asked
->> him to stay out as far as possible to continue to play there own
->> games!
->
-> For sure, there are people here trying this every single day.
-> Insted of spend time improving drivers they prefer attack Mauro and
-> people that are working hard in their spare time.
->
->> But they just load the daily dirt on him they preferably don't like to
->> care themselves for at all, including patch reviewing in many parts.
->>
->> Also Mike did more integration work across the frameworks than anyone
->> else during the last year. That by the way.
->
-> Agreed.
->
+Hi all,
 
-the merge request has been pushed out for for Manu's code.
+I bought an auvisio DVB-T USB2.0 Pen Receiver "WhiteStar" from Pearl.
 
-I'm also dealing alot with DVB and related issues (eg. the i2c messup,
-as for the cx88 based
-devices pcmcia iomem reservation back then .. and many other issues
-which went through other
-subsystems).
+At my daughters Desktop PC with Windows XP it works fine with the delivered 
+Software "TV JUKEBOX Version 3.0".
 
-That there's no progress at the other sides is not true:
-http://mcentral.de/hg/~mrec/em28xx-new/shortlog
+Now I try to get it at work at my system:
 
-permanent development for the last couple of months.
-All you could do there is to take out the usbids copy it to
-linuxtv.org and play against all the people
-who contributed to the other tree and which is manufacturer supported.
+Acer Aspire 7520G Laptop (AMD Turion 64 X2 TL56)
+with 17" WXGA+  LCD and NVIDIA GeForce 8400M G witth 256MB VRAM
+SUSE Linux 10.3 Kernel 2.6.22.18-0.2-default i686
+KDE 3.5.9 "release 57.3"
 
-I'd really better think twice if you want to keep up reverse
-engineered drivers with linux which are capable
-of melting devices (this happens with wrong configurations).
+Several video software is running (xine, VLC media player, Kaffeine), so I'm 
+able to look some videos.
 
-Why am I interested in DVB? Because we have devices supporting
-multiple standards which are yet
-not directly supported by the DVB framework.
+I didn't find any information or diskussion about auvisio DVB-T USB2.0 Pen 
+Receiver.
 
-The lies that I forked off the driver which I initially submitted to
-linuxtv is ridiculous as you modified the wiki
-site on linuxtv.org. See all that you and Mauro basically have done is
-copying the code from mcentral.de
-and trying to build up a second front against the manufacturer supported work.
+Is their any chance to get it at work?
 
-I'm seriously for a new Maintainer election here, let's see what will
-come up during the next few days.
+If yes, what do I have to do?
 
-Markus
+Thanks for help.
+
+Ralf Goos
 
 _______________________________________________
 linux-dvb mailing list
