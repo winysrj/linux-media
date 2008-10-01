@@ -1,16 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Sun, 5 Oct 2008 12:35:56 +0300 (EEST)
-From: Mika Laitio <lamikr@pilppa.org>
-To: =?us-ascii?Q?Niels_Wagenaar?= <n.wagenaar@xs4all.nl>
-In-Reply-To: <vmime.48e783ed.1f22.5c54cd2143673187@shalafi.ath.cx>
-Message-ID: <Pine.LNX.4.64.0810051134550.28540@shogun.pilppa.org>
-References: <> <vmime.48e783ed.1f22.5c54cd2143673187@shalafi.ath.cx>
-MIME-Version: 1.0
-Cc: "=?us-ascii?Q?LinuxTV_Mailinglist_=28linux-dvb=40linuxtv.org=29?="
-	<linux-dvb@linuxtv.org>,
-	"=?us-ascii?Q?VDR_Mailinglist_=28vdr=40linuxtv.org=29?=" <vdr@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] S2API for vdr-1.7.0 (04-10-2008 - quickhack
- for DVB-S(2), DVB-T and DVB-C)
+Received: from mail-in-05.arcor-online.net ([151.189.21.45])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hermann-pitton@arcor.de>) id 1Kkphl-0002Yk-Vn
+	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 02:36:39 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Darren Salt <linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <4FEC93ECE8%linux@youmustbejoking.demon.co.uk>
+References: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
+	<alpine.DEB.2.00.0809302137380.4242@ybpnyubfg.ybpnyqbznva>
+	<4FEC93ECE8%linux@youmustbejoking.demon.co.uk>
+Date: Wed, 01 Oct 2008 02:31:18 +0200
+Message-Id: <1222821078.5209.11.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,73 +27,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Hello All,
->
-> Today I finished the patch for DVB-S, DVB-S2, DVB-T and DVB-C support using S2API
-> in combination with VDR 1.7.0.
-> I've tested my code on DVB-S, DVB-S2 and DVB-T transports and they were 
-> all successful. DVB-C is untested (don't have a DVB-C option where I 
-> live) but it should work in *THEORY* ;)
->
-> DVB-S and DVB-S2 were tested on a Hauppauge WinTV-NOVA-HD-S2 card.
-> DVB-T was tested on a Gigabyte GT-U7000-RH USB device.
-> I used the latest v4l pull and viewing was very stable with both DVB
-> devices. I also didn't had any problems any more when switching between 
-> DVB-S(2) and DVB-T, but it can be that this patch will *NOT* work
-> correctly on MFE DVB devices like the HVR-3000 or HVR-4000 (I had to do some hacking because strangely,
-> DVB-T transports were offered to my DVB-S DVB device). Since I can't
-> test this, I hope others can tell me if it works or not.
->
-> Enclosed are two patches. The clean patch is for a clean VDR 1.7.0
-> source tree patched with Reinhard's 
-> vdr-1.7.0-h264-syncearly-framespersec-audioindexer-fielddetection-speedup.diff.bz2 
-> patch. The patched patch is for those who have used Edgar (gimli) 
-> Hucek's patch for VDR 1.7.0. In theory it should also work with my last send 
-> patch.
 
-Hi
+Am Dienstag, den 30.09.2008, 23:57 +0100 schrieb Darren Salt:
+> I demand that BOUWSMA Barry may or may not have written...
+> 
+> > On Tue, 30 Sep 2008, Lee Jones wrote:
+> [snip]
+> >> $ tzap -r "BBC FOUR"
+> >> tuning to 562000000 Hz
+> >> video pid 0x0000, audio pid 0x0000
+> >              ^^^^              ^^^^
+> > This is wrong -- at least after 19h your-time -- but in case you did the
+> > scan before 19h your-time, you may have gotten correct PIDs for
+> > CBBC+CBeebies -- but not for BBC3+4, as the correct PIDs are only broadcast
+> > during the time those programs are actually on-air, and `tzap' is not smart
+> > enough to take the Service ID and derive the up-to-date PIDs from that...
+> 
+> OTOH, each pair (BBC3 and CBBC, BBC4 and CBeebies) use the same PIDs, so a
+> little careful copying will fix things.
+> 
+> [snip]
 
-I tried your patch and vdr fails to show dvb-t channels for me while dvb-s 
-channels works ok.
+If also FEC has changed, we often saw that already, it must be corrected
+or all except frequency and bandwidth should be set to AUTO in the
+initial scanfile for the tda10046.
 
-I have tested with a following setup:
+Also above we see a tuning attempt to 562000000 Hz and previously we saw
+already a positive offset added 562166670:INVERSION_AUTO:BANDWIDTH_8_MHZ
 
-- vdr-1.7.0
-+ vdr-1.7.0-h264-syncearly-framespersec-audioindexer-fielddetection-speedup.diff
-+ vdr-1.7.0-s2api-04102008-clean.patch
-- latest s2-mfe installed for 2.6.27-rc8
-- card-0: hvr-1300 (dvb-t, terrestrial cable connected)
-- card-1: hvr-4000 (dvb-t, dvb-s, dvb-s2, only satellite cable connected)
+IIRC, in the UK, the queen might save you from trolls, spam and vikings,
+usually a negative offset like this is reported more regularly?
 
-[lamikr@tinka ~]$ ls -la /dev/dvb/adapter0/
-total 0
-drwxr-xr-x  2 root   root     120 2008-10-05 10:56 ./
-drwxr-xr-x  4 root   root      80 2008-10-05 10:56 ../
-crw-rw----+ 1 lamikr video 212, 4 2008-10-05 10:56 demux0
-crw-rw----+ 1 lamikr video 212, 5 2008-10-05 10:56 dvr0
-crw-rw----+ 1 lamikr video 212, 3 2008-10-05 10:56 frontend0
-crw-rw----+ 1 lamikr video 212, 7 2008-10-05 10:56 net0
-[lamikr@tinka ~]$ ls -la /dev/dvb/adapter1/
-total 0
-drwxr-xr-x  2 root   root      200 2008-10-05 10:56 ./
-drwxr-xr-x  4 root   root       80 2008-10-05 10:56 ../
-crw-rw----+ 1 lamikr video 212, 68 2008-10-05 10:56 demux0
-crw-rw----+ 1 lamikr video 212, 84 2008-10-05 10:56 demux1
-crw-rw----+ 1 lamikr video 212, 69 2008-10-05 10:56 dvr0
-crw-rw----+ 1 lamikr video 212, 85 2008-10-05 10:56 dvr1
-crw-rw----+ 1 lamikr video 212, 67 2008-10-05 10:56 frontend0
-crw-rw----+ 1 lamikr video 212, 83 2008-10-05 10:56 frontend1
-crw-rw----+ 1 lamikr video 212, 71 2008-10-05 10:56 net0
-crw-rw----+ 1 lamikr video 212, 87 2008-10-05 10:56 net1
+Cheers,
+Hermann
 
-I also tried to connect the terrestrial cable to hvr-4000, but it did not 
-change anything.
 
-If I use tzap, dvbstream and mplayer 
-compination for hvr-1300 or if I use vdr-1.7.0 with liplianis multiptoto 
-drivers, then also dvb-t channels works ok.
-
-Mika
 
 _______________________________________________
 linux-dvb mailing list
