@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp20.orange.fr ([193.252.22.31])
+Received: from ey-out-2122.google.com ([74.125.78.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1Kq9XF-0000Nx-Bo
-	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 18:47:46 +0200
-From: Christophe Thommeret <hftom@free.fr>
-To: Darron Broad <darron@kewl.org>
-Date: Wed, 15 Oct 2008 18:46:58 +0200
-References: <200810141133.36559.hftom@free.fr>
-	<200810141451.02941.hftom@free.fr> <4473.1224003723@kewl.org>
-In-Reply-To: <4473.1224003723@kewl.org>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1Kl4iD-0004iJ-H9
+	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 18:38:11 +0200
+Received: by ey-out-2122.google.com with SMTP id 25so226448eya.17
+	for <linux-dvb@linuxtv.org>; Wed, 01 Oct 2008 09:38:02 -0700 (PDT)
+Message-ID: <412bdbff0810010938g8e115f2y75bf59b63d8e10b3@mail.gmail.com>
+Date: Wed, 1 Oct 2008 12:38:02 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Paul Guzowski" <guzowskip@linuxmail.org>
+In-Reply-To: <20081001161756.860D24476B@ws5-1.us4.outblaze.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200810151846.59042.hftom@free.fr>
+References: <20081001161756.860D24476B@ws5-1.us4.outblaze.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx24116 DVB-S modulation fix
+Subject: Re: [linux-dvb] Linux and Pinnacle HDTV Pro USB Stick
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,84 +22,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le Tuesday 14 October 2008 19:02:03 Darron Broad, vous avez =E9crit=A0:
-> In message <200810141451.02941.hftom@free.fr>, Christophe Thommeret wrote:
+On Wed, Oct 1, 2008 at 12:17 PM, Paul Guzowski <guzowskip@linuxmail.org> wrote:
+> Greetings,
 >
-> LO
+> I have searched all over this web site and its forums for a solution to my dilemma and have not yet found one.  I am at my wit's end so turn to you for assistance.
 >
-> >Le Tuesday 14 October 2008 12:29:49 Darron Broad, vous avez =3DE9crit=3D=
-A0:
-> >> In message <200810141133.36559.hftom@free.fr>, Christophe Thommeret
-> >> wrote:
-> >>
-> >> hi
-> >>
-> >> >Hi,
-> >> >
-> >> >This patch makes cx24116 to behave like other dvb-s frontends.
-> >>
-> >> Unlike most DVB-S cards the those with a cx24116 use S2API
-> >> this makes them somewhat different.
-> >>
-> >> >This is needed especially because QAM_AUTO is used in a lot of scan
-> >> > file=3D
-> >
-> >s.
-> >
-> >> What scan files are you referring to? The
-> >> cx24116 only does PSK, not AM. QAM_AUTO
-> >> doesn't sound right. the cx24116 can't
-> >> auto detect anything, but that's another
-> >> story...
-> >
-> >dvbscan initial tuning data files for DVB-S don't have an entry for=3D20
-> >modulation. So an app like kaffeine simply set modulation to QAM_AUTO.
-> >Why not QPSK, you ask? Simply because DVB-S standard allows QPSK and
-> > 16QAM.=3D
+> I have this Pinnacle USB tuner stick connected via RF to the back of my cable box (Motorola DCH6200 provided by Brighthouse Networks) and via USB 2 to my desktop computer.  With Pinnacle's software in Windoze, I can tune to channel 3 and whatever is selected on the set top box plays fine in a window on the computer monitor.
 >
-> It doesn't include modulation because QPSK is implied.
+> I cannot get the same result in Linux (Ubuntu Hardy Heron).  I have found several websites which say this is basically the same hardware (em28xx device) as Hauppage's 950 stick and that it works with Myth TV.  I followed the instructions explicitly for downloading, compiling, and installing video4linux and appropriate drivers, etc, but cannot get any application I try (MeTV, Myth TV, Kaffeine, MPlayer, etc) to tune that one channel. I have tried all the standard cable, QAM, ATSC frequencies to no avail.
 >
-> >Maybe there is not a single 16QAM TP all over the world, but it's still
-> > a=3D20 valid modulation for DVB-S.
+> I had a look at dmesg and the em28xx device/module loads fine and when I launch a video application the firmware is apparently loaded correctly, as well.  I have also tried connecting the RF end of the stick directly to the cable (bypassing the set top box) and couldn't tune anything that way either.  Without the set top box, there are mainly analog but also some digital signals (local channels in hi-def) but I cannot "find" any of them.  Out of desperation I tried using the little portable antenna that comes with the tuner stick and had no luck there either but that is probably inconclusive since I live quite a ways from the nearest tower.
 >
-> As is said, the cx24116 only does PSK.
+> I do not know how to build a channel.conf file from scratch but even if I did I don't know where to find the frequencies that Brighthouse Networks uses to distribute cable content here in the Florida panhandle.  The only examples of channel.conf files I have been able to find were all for broadcasters in Europe so they were no help.  I am willing to do the scut work to manually build a channel.conf file then post it for others if I can only get the basic information necessary to do so.
 >
-> The driver should return unsupported for anything it can't do.
->
-> If someone out there actually uses 16-QAM (who are you?) and that person
-> switches to an adapter with a cx24116 they should be informed of error
-> when tuning 16-QAM, not acceptance of something it doesn't support.
->
-> >So, we set modulation to QAM_AUTO when it's unknown/unspecified, like
-> > in=3D20 dvbscan files (those being also used by kaffeine). And it works
-> > pretty well=3D ,=3D20
-> >just because most dvb-s can only do QPSK and so force modulation to
-> > QPSK=3D20 instead of returning a notsup.
-> >See this as software QAM_AUTO :)
-> >
-> >P.S.
-> >This is with s2api.
->
-> When you use DVB-S delivery you should set the modulation to QPSK. If
-> an end-user out there really needs 16-QAM then you should allow them
-> the option to change it to QAM_16. I do not think this is going
-> inconvenience many people.
+> So, if anyone out there has successfully gotten this Pinnacle HDTV Pro USB tuner stick to work in Linux (preferably Ubuntu), I would appreciate any and all hints.
 
-Ok, you win :)
+First question:  Which Pinnacle HDTV Pro stick are you referring to?
+There are actually two:
 
-Other subject:
-Would you accept some patch to enhance cx24116 pilot_auto emulation?
+http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_(800e)
+http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Pro_Stick_(801e)
 
--- =
+Only the 800e is an em28xx based device.  The 801e is a dibcom 0700
+based device.
 
-Christophe Thommeret
+The 800e is fully supported in the v4l-dvb codebase.  Support went in
+for the 801e on Sunday, but due to an unrelated bug the kernel will
+panic if you tune to a channel (a patch has already been submitted).
 
+Second question:  are you doing analog or digital?
+
+Once we know the answers to those two questions, we can take it from there.
+
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
