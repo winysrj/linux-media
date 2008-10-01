@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9G6uMYi007683
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:56:22 -0400
-Received: from smtp-vbr3.xs4all.nl (smtp-vbr3.xs4all.nl [194.109.24.23])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9G6tcoY003982
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:55:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Thu, 16 Oct 2008 08:55:35 +0200
-References: <uskqyqg58.wl%morimoto.kuninori@renesas.com>
-	<8763ntf3o8.fsf@free.fr>
-	<aec7e5c30810152346q251c963h7a4419fa59fb6612@mail.gmail.com>
-In-Reply-To: <aec7e5c30810152346q251c963h7a4419fa59fb6612@mail.gmail.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m917STqw026714
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 03:28:29 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m917SIEn029149
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 03:28:18 -0400
+Received: by wf-out-1314.google.com with SMTP id 25so421287wfc.6
+	for <video4linux-list@redhat.com>; Wed, 01 Oct 2008 00:28:18 -0700 (PDT)
+Message-ID: <62e5edd40810010028yba5fa91m6acaf93d3662acb8@mail.gmail.com>
+Date: Wed, 1 Oct 2008 09:28:18 +0200
+From: "=?ISO-8859-1?Q?Erik_Andr=E9n?=" <erik.andren@gmail.com>
+To: "Hans de Goede" <j.w.r.degoede@hhs.nl>
+In-Reply-To: <48E320F0.6030002@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+References: <48E273C3.5030902@gmail.com> <48E320F0.6030002@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
-Message-Id: <200810160855.35749.hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] Add ov772x driver
+Cc: video4linux-list@redhat.com, m560x-driver-devel@sourceforge.net
+Subject: Re: [PATCH]Add support for the ALi m5602 usb bridge
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,67 +30,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thursday 16 October 2008 08:46:31 Magnus Damm wrote:
-> On Thu, Oct 16, 2008 at 3:35 PM, Robert Jarzmik 
-<robert.jarzmik@free.fr> wrote:
-> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> >> Hm, so, to test your camera you have to modify your source and
-> >> rebuild your kernel... And same again to switch back to normal
-> >> operation. Does not sound very convenient to me. OTOH, making it a
-> >> module parameter makes it much easier. In fact, maybe it would be
-> >> a good idea to add a new camera-class control for this mode. Yet
-> >> another possibility is to enable debug register-access in the
-> >> driver and use that to manually set the test mode from user-space.
-> >> A new v4l-control seems best to me, not sure what others will say
-> >> about this. As you probably know, many other cameras also have
-> >> this "test pattern" mode, some even several of them. So, this
-> >> becomes a control with a parameter then.
-> >
-> > Personnaly I'm rather inclined for the debug registers solutions.
-> >
-> > When developping a camera driver, the test pattern alone is not
-> > enough. You have to tweak the registers, see if the specification
-> > is correct, then understand the specification, and then change your
-> > driver code. My experience tells me you never understand correctly
-> > are camera setup from the first time.
->
-> One thing is when people write their driver, but the scenario that
-> I'm thinking about is more when people take an already existing
-> soc_camera sensor driver and hook it up to some soc_camera host.
-> There are all sorts of endian and swapping issues that need to be
-> worked out. They depend on soc_camera host driver, endian setting and
-> userspace. Having a test pattern available would surely help there in
-> my opinion.
->
-> > So IMHO the registers are enough here.
-> >
-> >> Then a new control or raw register access would be a better way, I
-> >> think.
-> >
-> > So do I.
->
-> I dislike the register access option since it requires the developer
-> to have some user space tool that most likely won't ship with the
-> kernel. I think seeing it as yet another video input source is pretty
-> clean. Or maybe it isn't very useful at all, I'm not sure. =)
+2008/10/1 Hans de Goede <j.w.r.degoede@hhs.nl>
 
-Just to give some background: register access can be done via the 
-v4l2-dbg utility (see v4l2-apps/util) which uses the 
-VIDIOC_DBG_G/S_REGISTER ioctls which are only compiled into the driver 
-when the CONFIG_VIDEO_ADV_DEBUG option is set. This is the standard way 
-of accessing registers.
+> Erik Andr=E9n wrote:
+>
+>> -----BEGIN PGP SIGNED MESSAGE-----
+>> Hash: SHA1
+>>
+>> Hi,
+>>
+>> This patch adds support for the ALi m5602 usb bridge and is based on the
+>> gspca framework.
+>> It contains code for communicating with 5 different sensors:
+>> OmniVision OV9650, Pixel Plus PO1030, Samsung S5K83A, S5K4AA and finally
+>> Micron MT9M111.
+>>
+>> Regards,
+>> Erik Andr=E9n
+>>
+>>
+> I like it, thanks for converting this to a gspca sub driver, I assume thi=
+s
+> helped you to reduce the code size somewhat?
 
-An alternative for selecting a test pattern could be to have two inputs: 
-one is the camera and another one is the test pattern. Here too you 
-could enable the test pattern input only if CONFIG_VIDEO_ADV_DEBUG is 
-set.
+Yes, about 20% give or take.
 
-Just some ideas for you.
+
+> If you have any remarks / suggestions to improve the gspca framework plea=
+se
+> say so.
+>
+It fitted in quite nicely, some more inline comments regarding
+implementation would be good.
+Perhaps a skeleton driver could be made to ease implementation.
+
+I have some patches which I intend to send in the next couple of days.
 
 Regards,
+Erik
 
-	Hans
 
+
+
+>
+> Jean Fran=E7ois, can you pick this up and feed it to Mauro through the gs=
+pca
+> tree?
+>
+> Regards,
+>
+> Hans
+>
+>
+>
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
