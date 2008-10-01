@@ -1,22 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m98FiALl001812
-	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 11:44:11 -0400
-Received: from mail-gx0-f15.google.com (mail-gx0-f15.google.com
-	[209.85.217.15])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m98FhNQa008847
-	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 11:43:24 -0400
-Received: by gxk8 with SMTP id 8so8272682gxk.3
-	for <video4linux-list@redhat.com>; Wed, 08 Oct 2008 08:43:23 -0700 (PDT)
-Message-ID: <208cbae30810080843v49e35a66k8ecd3641caa82b5f@mail.gmail.com>
-Date: Wed, 8 Oct 2008 19:43:23 +0400
-From: "Alexey Klimov" <klimov.linux@gmail.com>
-To: tobias.lorenz@gmx.net
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m91Nx89H025880
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 19:59:08 -0400
+Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m91Nwvnx015514
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 19:58:58 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id m91Nwp1Q031507
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 18:58:57 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m91NwnTK013060
+	for <video4linux-list@redhat.com>; Thu, 2 Oct 2008 05:28:50 +0530 (IST)
+From: "Jadav, Brijesh R" <brijesh.j@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Thu, 2 Oct 2008 05:28:48 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403DC087DF2@dbde02.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE4AF7E5CAA@dlee06.ent.ti.com>
+	<19F8576C6E063C45BE387C64729E739403DC087DE4@dbde02.ent.ti.com>,
+	<A69FA2915331DC488A831521EAE36FE4AF92B104@dlee06.ent.ti.com>
+	<19F8576C6E063C45BE387C64729E739403DC087DE6@dbde02.ent.ti.com>,
+	<A69FA2915331DC488A831521EAE36FE4AF9A9E86@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE4AF9A9E86@dlee06.ent.ti.com>
+Content-Language: en-US
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_78554_1615424.1223480603272"
-Cc: video4linux-list@redhat.com
-Subject: [PATCH] radio-si470x: correct module name in radio/Kconfig
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Cc: 
+Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,48 +39,134 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-------=_Part_78554_1615424.1223480603272
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi,
 
-Hello, Tobias and video4linux-list.
-Well, it's very simple patch - just replace module name in Kconfig.
+v4l2_ioctl_ops  has one private function pointer vidioc_default. this funct=
+ion gets called if there is no matching ioctl so you can implement your pri=
+vate ioctls in this function and set SoC specific parameters. Currently, as=
+ far as i know, there is no interface available for proprietary ioctl in v4=
+l2-int-device interface. You may have to add a new function interface in v4=
+l2-int-device for setting specific parameters of slave device.
 
-Please, apply it carefully. It's unsafe to apply it to mainstream
-kernel (may be i'm wrong) because of different end of Kconfig-file.
-It's safe to apply it to development Mercurial repository on linuxtv.org.
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
--- 
-Best regards, Klimov Alexey
+Thanks,
 
-------=_Part_78554_1615424.1223480603272
-Content-Type: application/octet-stream;
-	name=radio-si470x-fix-module-name-Kconfig.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fm24niwu0
-Content-Disposition: attachment;
-	filename=radio-si470x-fix-module-name-Kconfig.patch
+Brijesh Jadav
 
-ZGlmZiAtciA1ZWNkZWFhYTUxNzEgbGludXgvZHJpdmVycy9tZWRpYS9yYWRpby9LY29uZmlnCi0t
-LSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvcmFkaW8vS2NvbmZpZwlNb24gT2N0IDA2IDExOjA3OjQ4
-IDIwMDggLTA0MDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS9yYWRpby9LY29uZmlnCVR1ZSBP
-Y3QgMDcgMTg6NTA6NDMgMjAwOCArMDQwMApAQCAtMzU5LDcgKzM1OSw3IEBACiAJICBjb21wdXRl
-cidzIFVTQiBwb3J0LgogCiAJICBUbyBjb21waWxlIHRoaXMgZHJpdmVyIGFzIGEgbW9kdWxlLCBj
-aG9vc2UgTSBoZXJlOiB0aGUKLQkgIG1vZHVsZSB3aWxsIGJlIGNhbGxlZCByYWRpby1zaWxhYnMu
-CisJICBtb2R1bGUgd2lsbCBiZSBjYWxsZWQgcmFkaW8tc2k0NzB4LgogCiBjb25maWcgVVNCX01S
-ODAwCiAJdHJpc3RhdGUgIkF2ZXJNZWRpYSBNUiA4MDAgVVNCIEZNIHJhZGlvIHN1cHBvcnQiCg==
 
-------=_Part_78554_1615424.1223480603272
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+________________________________________
+From: Karicheri, Muralidharan
+Sent: Wednesday, October 01, 2008 4:06 PM
+To: Jadav, Brijesh R; video4linux-list@redhat.com
+Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
 
+Brijesh,
+
+Do you know which V4L2 IOCTL is used to set/get SoC specific hardware
+parameters as well decoder specific parameters? We have been using
+proprietary IOCTLs for this purpose. Example, SoC has different modules
+for image processing which requires configuration. Similarly sensors
+have configurable parameters such as black compensation etc.
+
+email: m-karicheri2@ti.com
+
+>>>-----Original Message-----
+>>>From: Jadav, Brijesh R
+>>>Sent: Monday, September 29, 2008 7:54 PM
+>>>To: Karicheri, Muralidharan; video4linux-list@redhat.com
+>>>Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
+>>>
+>>>Hi,
+>>>
+>>>Yes, OMAP display driver implements it in the same way as described but
+>>>currently it does not use video-buf-contig layer and master-slave
+>>>interface. OMAP capture driver uses video-buf-sg layer since it can use
+>>>non-contiguous buffers and also it uses master-slave interface.
+>>>
+>>>Thanks,
+>>>Brijesh Jadav
+>>>
+>>>________________________________________
+>>>From: Karicheri, Muralidharan
+>>>Sent: Monday, September 29, 2008 9:06 AM
+>>>To: Jadav, Brijesh R; video4linux-list@redhat.com
+>>>Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
+>>>
+>>>Brijesh,
+>>>
+>>>Thanks for replying. Does OMAP implements it in the same way as
+>>>you have described? (I am guessing you are working on OMAP drivers).
+>>>I am using the master-slave interface from OMAP for interfacing the
+>>>decoders to SoC controller V4L2 module.
+>>>
+>>>Regards.
+>>>
+>>>Murali Karicheri
+>>>
+>>>>>>-----Original Message-----
+>>>>>>From: Jadav, Brijesh R
+>>>>>>Sent: Sunday, September 28, 2008 1:34 PM
+>>>>>>To: Karicheri, Muralidharan; video4linux-list@redhat.com
+>>>>>>Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
+>>>>>>
+>>>>>>Hi Murali,
+>>>>>>
+>>>>>>I was looking into the video-buf layer and looks like it is difficult
+>>>to
+>>>>>>pre-allocate the buffer at the init time and use them at the time of
+>>>mmap
+>>>>>>using video-buf-contig layer. The only way out is to implement mmap
+>>>>>>function in the driver itself so that you can use your pre-allocated
+>>>>>>buffers and map them. You can use the same implementation as that of
+>>>>>>video-buf layer except that dma_alloc_coherent will not be called if
+>>>it
+>>>>>>is already allocated.
+>>>>>>
+>>>>>>Thanks,
+>>>>>>Brijesh Jadav
+>>>>>>________________________________________
+>>>>>>From: video4linux-list-bounces@redhat.com [video4linux-list-
+>>>>>>bounces@redhat.com] On Behalf Of Karicheri, Muralidharan
+>>>>>>Sent: Monday, September 22, 2008 2:59 PM
+>>>>>>To: video4linux-list@redhat.com
+>>>>>>Subject: videobuf-dma-contig - buffer allocation at init time ?
+>>>>>>
+>>>>>>Hello,
+>>>>>>
+>>>>>>I am in the process of porting my V4L2 video driver to the latest
+>>>kernel.
+>>>>>>I would like to use the contiguous buffer allocation and would like t=
+o
+>>>>>>allocate frame buffers (contiguous) at driver initialization. The
+>>>>>>contiguous buffer allocation module allocates buffer as part of
+>>>>>>_videobuf_mmap_mapper() using dma_alloc_coherent() which gets called
+>>>>>>during mmap() user calls. I have following questions about the design
+>>>of
+>>>>>>this module.
+>>>>>>1) Why the allocation of buffer done as part of mmap() not at the ini=
+t
+>>>>>>time?  Usually video capture requires big frame buffers of 4M or so,
+>>>if
+>>>>>>HD capture is involved. So in our driver (based on 2.6.10) we allocat=
+e
+>>>>>>the buffer at driver initialization and had a hacked version of the
+>>>>>>buffer allocation module which used this pre-allocated frame buffer
+>>>>>>address ptrs during mmap. Allocating buffer of such big size during
+>>>>>>kernel operation is likely to fail due to fragmentation of buffers.
+>>>>>>2) Is there a way I can allocate the buffer using dma_alloc_coherent(=
+)
+>>>at
+>>>>>>init time and still use the videobuf-dma-contig for mmap and buffer
+>>>>>>management using the allocated buffers ?
+>>>>>>3) Any other way to address the issue using the existing videobuf-dma=
+-
+>>>>>>contig module ?
+>>>>>>
+>>>>>>Thanks for your help.
+>>>>>>
+>>>>>>Murali
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-------=_Part_78554_1615424.1223480603272--
