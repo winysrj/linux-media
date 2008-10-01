@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9I3VQg8021548
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 23:31:26 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9I3VFdc027341
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 23:31:15 -0400
-Date: Sat, 18 Oct 2008 00:31:02 -0300 (BRT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: David Ellingsworth <david@identd.dyndns.org>
-In-Reply-To: <30353c3d0810171920y154a8bc4w584751acac95ac7b@mail.gmail.com>
-Message-ID: <alpine.LFD.2.00.0810180014300.13825@areia.chehab.org>
-References: <30353c3d0810171920y154a8bc4w584751acac95ac7b@mail.gmail.com>
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m91AqRm7005663
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 06:52:27 -0400
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m91Aq9Fm003805
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 06:52:09 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Date: Wed, 1 Oct 2008 16:21:41 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403DC1A6657@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: ibmcam oops
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,160 +27,170 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 17 Oct 2008, David Ellingsworth wrote:
+Tomi,
 
-> I'm not sure if it matters or not, but the ibmcam driver in the
-> Mauro's linux-2.6 git tree in the for_linus branch is currently
-> broken. I haven't ever gotten this driver to work with my camera and
-> am thus not interested in fixing it. The crash occurred immediately
-> after plugging in the camera. Below is the resulting dmesg info.
+Have you got a chance to review the DSS library and V4l2 driver which we have posted?
 
-The kernel OOPS seem to be caused by -git commit
-a482f327ff56bc3cf53176a7eb736cea47291a1d, from Greg.
 
-It is using uvd->dev->dev, but is equal to NULL during most of the _probe 
-code.
+Thanks,
+Vaibhav Hiremath
+Senior Software Engg.
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
 
-Could you please try the enclosed patch? It is against -hg tree, but will 
-likely apply fine also at -git.
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Monday, September 15, 2008 9:51 PM
+> To: 'Tomi Valkeinen'
+> Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-list@redhat.com
+> Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+> 
+> 
+> 
+> Thanks,
+> Vaibhav Hiremath
+> Senior Software Engg.
+> Platform Support Products
+> Texas Instruments Inc
+> Ph: +91-80-25099927
+> TI IP Ph: 509-9927
+> http://dbdwss01.india.ti.com/pspproducts/
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tomi
+> > Valkeinen
+> > Sent: Monday, September 15, 2008 8:08 PM
+> > To: Hiremath, Vaibhav
+> > Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-list@redhat.com
+> > Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+> >
+> > On Mon, 2008-09-15 at 19:02 +0530, ext Hiremath, Vaibhav wrote:
+> >
+> > > We more concentrated on TV and LCD interface, out design doesn't support DSI as of now. As
+> > mentioned earlier it is easily extendible to support DSI.
+> > >
+> > > If I understand your implementation correctly, right now there is no way you can switch the
+> > outputs, I mean to say from LCD to DVI. The frame buffer driver gets the handle with API
+> > omap_dss_get_display, which will return pointer to omap_display for panel-sdp3430. Henceforth all
+> > your functions will use omap_display configuring for LCD panel. How are you planning to add support
+> > for this? Through some ioctls or sysfs entry? How about switching between multiple overlay
+> managers?
+> >
+> > You can switch the outputs in the DSS driver. You can enable/disable
+> > displays individually, and configure the planes and or L4 pixel source
+> > for the display.
+> >
+> > But yes, the fb driver does not support that currently.
+> >
+> > One idea I had was to present each display with one framebuffer, so
+> > let's say we have 3 displays, we would have fb[0-2]. In addition to
+> > that, we would have two framebuffers for the video overlays. Only one of
+> > the displays can be updated with DISPC, so the overlays would appear
+> > there.
+> >
+> > Then the display that is updated with DISPC could be changed on the fly
+> > to another one, but the framebuffer arrangement would stay the same (so
+> > fb0 would still be seen on display0, even if it's now updated with L4).
+> >
+> > There's still the question how to manage the video overlays, in this
+> > scenario they would automatically move to other LCD's as the DISPC
+> > target is changed. Also the TV-out is problematic.
+> >
+> > > This issue has been addresses with our design, you can change the output either to TV, LCD or to
+> > DVI through sysfs entry. Switching between multiple overlay managers is very well supported in DSS
+> > library. Currently SYSFS is the user interface layer to control the overlay managers. But in future
+> > DSS library will easily be suitable to support media processor interface which is in concept phase
+> > right now.  RFC for the media processor is at
+> >
+> > Does your design support displays that are not updated with DISPC?
+> 
+> Yes, it should. I don't see any reason why it should fail if the display is completely independent.
+> 
+> >
+> > Your design has good points. I have to think about the overlay managers
+> > a bit more. Especially if in some future hardware there were more
+> > overlay managers instead of the current two.
+> >
+> 
+> Let me take this opportunity, shortly I will post the DSS library and V4L2 driver. We can work
+> together to add support for DSI, RFBI and SDI support to it.
+> 
+> > > http://lists-archives.org/video4linux/23652-rfc-add-support-to-query-and-change-connections-
+> inside-
+> > a-media-device.html
+> > >
+> > >
+> > > > I also wanted to be able to change the configuration on the fly,
+> > > > changing where DISPC output is going and which displays are updated with
+> > > > CPU or sDMA.
+> > > >
+> > > > This is why I have the display-concept in my design.
+> > > >
+> > >
+> > >
+> > > Here we both are on same page, you have broken the displays and modes supported into multiple
+> files
+> > registering functions to the display.c file, there are many loopholes though.
+> > >
+> > > > I haven't made support for multiple users of the displays (like separate
+> > > > fb and v4l drivers), but I don't immediately see why it couldn't be
+> > > > done.
+> > > >
+> > >
+> > > How are you going to handle the concurrency between these two?
+> >
+> > In the simple case of just an LCD and a TV-out, what are the concurrency
+> > problems? Each plane is independent of each other. Sure you need to
+> > check that the output is on if there's a plane enabled there and basic
+> > things like that. Are there some other issues I'm not seeing?
+> >
+> 
+> Yes some of the features of the DSS are tied to overlay managers and not the individual planes like
+> global alpha, alpha blending enabling and timing parameters. So while programming of these parameters
+> DSS library will have to maintain the data structures for the same and then any high level drivers
+> can query those data structures.
+> 
+> > > > However, there are some questions regarding that, as the planes do not
+> > > > represent displays, but just overlay planes. What happens when both fb
+> > > > and v4l drivers want to change the resolution or timings of the display?
+> > > >
+> > > > Also I still don't quite know how to present displays to user space.
+> > > > Currently my omapfb just uses the first display, and that's it. I think
+> > > > in the end the user (be it X server, or perhaps some entity over it),
+> > > > needs to have some understanding of what OMAP offers and how it can use
+> > > > the displays. And there probably needs to be some product spesific
+> > > > configuration regarding this in userspace.
+> > > >
+> > >
+> > > Here are you saying application will have hardware specific support? Is this feasible?
+> > >
+> >
+> > I don't see any other way. The displays are not independent of each
+> > other.  For example the OMAP3 SDP has LCD and DVI outputs. They can't be
+> > switched programmatically, but let's say it was possible. Only one of
+> > those displays can be enabled at time. If an application wants to use
+> > them both, it has to understand that they will not both work at the same
+> > time.
+> >
+> > Or if there are two DSI displays, and one is updated with DISPC and the
+> > other via L4. The application has to know that a video overlay can only
+> > be used on the first display, or it has to exchange the DISPC/L4
+> > updating order.
+> >
+> > Of course this is product specific software and configuration, not
+> > something I'm planning to put in the driver. A normal application does
+> > not have to know anything about it. I was just bringing it up to
+> > demonstrate what must be possible.
+> >
+> >  Tomi
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> P.S. If anyone is interested in creating a working driver for this
-> camera, I have begun a rewrite from scratch based on the new v4l2
-> interface and would appreciate the help.
-
-Probably, the better would be develop it as a subdriver of gspca.
-
-Cheers,
-Mauro.
-
-> usb 1-2: new full speed USB device using ohci_hcd and address 2
-> usb 1-2: configuration #1 chosen from 1 choice
-> Linux video capture interface: v2.00
-> BUG: unable to handle kernel NULL pointer dereference at 000001c4
-> IP: [<dcef1e02>] ibmcam_probe+0x121/0x8ef [ibmcam]
-> *pde = 00000000
-> Oops: 0000 [#1]
-> last sysfs file:
-> /sys/devices/pci0000:00/0000:00:02.0/usb1/1-2/1-2:1.0/bInterfaceClass
-> Modules linked in: ibmcam(+) usbvideo videodev v4l1_compat radeon drm
-> binfmt_misc ppdev lp dm_snapshot dm_mirror dm_log dm_mod b43legacy
-> mac80211 cfg80211 led_class i2c_ali1535 snd_ali5451 snd_ac97_codec
-> ac97_bus ssb snd_pcm_oss snd_mixer_oss snd_pcm ati_agp i2c_ali15x3
-> pcmcia snd_timer container battery ac pcspkr evdev psmouse serio_raw
-> video output button agpgart i2c_core yenta_socket rsrc_nonstatic
-> pcmcia_core parport_pc parport snd soundcore snd_page_alloc reiserfs
-> ide_cd_mod cdrom ide_disk_mod alim15x3 ide_pci_generic natsemi
-> ide_core ohci_hcd usbcore thermal processor fan
->
-> Pid: 3069, comm: modprobe Not tainted (2.6.27 #1) Presario 2100 (PF181UA)
-> EIP: 0060:[<dcef1e02>] EFLAGS: 00010216 CPU: 0
-> EIP is at ibmcam_probe+0x121/0x8ef [ibmcam]
-> EAX: dcef378f EBX: d7df2600 ECX: d7e40800 EDX: d7df2600
-> ESI: dcef37b1 EDI: 01000301 EBP: d7df261c ESP: d7e4be00
-> DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
-> Process modprobe (pid: 3069, ti=d7e4a000 task=dac77190 task.ti=d7e4a000)
-> Stack:
-> fffffffe d7df2600 d7e40800 00000003 dcef50c4 dc757c12 dcef50c4 dc0080c5
-> d7df2600 00000000 dcef50c4 d7df261c dc7585a2 d7f2e004 d7e40800 00000001
-> d7df261c 00000000 d7f2e034 d7f2e034 c01f9a21 d7df261c d7f2e034 d7df26c8
-> Call Trace:
-> [<dc757c12>] usb_match_one_id+0x1c/0x71 [usbcore]
-> [<dc7585a2>] usb_probe_interface+0x101/0x135 [usbcore]
-> [<c01f9a21>] driver_probe_device+0x9c/0x12d
-> [<c01f9afb>] __driver_attach+0x49/0x67
-> [<c01f94bc>] bus_for_each_dev+0x35/0x5b
-> [<c01f98d5>] driver_attach+0x11/0x13
-> [<c01f9ab2>] __driver_attach+0x0/0x67
-> [<c01f8f41>] bus_add_driver+0x91/0x1a7
-> [<c01f9c61>] driver_register+0x7d/0xd6
-> [<dc758752>] usb_register_driver+0x56/0xad [usbcore]
-> [<dcdfa841>] usbvideo_register+0x1f8/0x232 [usbvideo]
-> [<dcd4e000>] ibmcam_init+0x0/0x7a [ibmcam]
-> [<dcd4e074>] ibmcam_init+0x74/0x7a [ibmcam]
-> [<dcef1ce1>] ibmcam_probe+0x0/0x8ef [ibmcam]
-> [<dceec6be>] ibmcam_setup_on_open+0x0/0xcd6 [ibmcam]
-> [<dcef0a8d>] ibmcam_video_start+0x0/0x253 [ibmcam]
-> [<dceec418>] ibmcam_video_stop+0x0/0x22e [ibmcam]
-> [<dcef13fa>] ibmcam_ProcessIsocData+0x0/0x8e7 [ibmcam]
-> [<dcdf95c6>] usbvideo_DeinterlaceFrame+0x0/0x103 [usbvideo]
-> [<dceed394>] ibmcam_adjust_picture+0x0/0x542 [ibmcam]
-> [<dceec000>] ibmcam_calculate_fps+0x0/0x1b [ibmcam]
-> [<c010112b>] _stext+0x43/0x107
-> [<c012f52b>] sys_init_module+0x87/0x174
-> [<c010379e>] syscall_call+0x7/0xb
-> Code: ef dc 66 8b 81 96 01 00 00 66 3d 0c 80 74 1c 66 3d 0d 80 be 9d
-> 37 ef dc 74 11 66 3d 02 80 be b1 37 ef dc b8 8f 37 ef dc 0f 44 f0 <8b>
-> 1d c4 01 00 00 8d 43 5c 81 c3 e8 00 00 00 e8 2a 56 30 e3 0f
-> EIP: [<dcef1e02>] ibmcam_probe+0x121/0x8ef [ibmcam] SS:ESP 0068:d7e4be00
-> ---[ end trace 9993ea74c2bfa7fe ]---
-
----
-
-ibmcam: Fix a regression caused by a482f327ff56bc3cf53176a7eb736cea47291a1d
-
-uvd is equal to NULL during most of ibmcam_probe. Due to that, an OOPS is 
-generated at dev_info. This patch replaces uvd->dev->dev to dev->dev 
-inside this routine.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff -r e2a8b9b9c294 linux/drivers/media/video/usbvideo/ibmcam.c
---- a/linux/drivers/media/video/usbvideo/ibmcam.c	Fri Oct 17 19:45:55 2008 +0300
-+++ b/linux/drivers/media/video/usbvideo/ibmcam.c	Sat Oct 18 00:27:23 2008 -0300
-@@ -3695,7 +3695,7 @@
-  	unsigned char video_ep = 0;
-
-  	if (debug >= 1)
--		dev_info(&uvd->dev->dev, "ibmcam_probe(%p,%u.)\n", intf, ifnum);
-+		dev_info(&dev->dev, "ibmcam_probe(%p,%u.)\n", intf, ifnum);
-
-  	/* We don't handle multi-config cameras */
-  	if (dev->descriptor.bNumConfigurations != 1)
-@@ -3746,7 +3746,7 @@
-  			brand = "IBM PC Camera"; /* a.k.a. Xirlink C-It */
-  			break;
-  		}
--		dev_info(&uvd->dev->dev,
-+		dev_info(&dev->dev,
-  			 "%s USB camera found (model %d, rev. 0x%04x)\n",
-  			 brand, model, le16_to_cpu(dev->descriptor.bcdDevice));
-  	} while (0);
-@@ -3754,7 +3754,7 @@
-  	/* Validate found interface: must have one ISO endpoint */
-  	nas = intf->num_altsetting;
-  	if (debug > 0)
--		dev_info(&uvd->dev->dev, "Number of alternate settings=%d.\n",
-+		dev_info(&dev->dev, "Number of alternate settings=%d.\n",
-  			 nas);
-  	if (nas < 2) {
-  		err("Too few alternate settings for this camera!");
-@@ -3799,7 +3799,7 @@
-  				actInterface = i;
-  				maxPS = le16_to_cpu(endpoint->wMaxPacketSize);
-  				if (debug > 0)
--					dev_info(&uvd->dev->dev,
-+					dev_info(&dev->dev,
-  						 "Active setting=%d. "
-  						 "maxPS=%d.\n", i, maxPS);
-  			} else
-@@ -3840,7 +3840,7 @@
-  			RESTRICT_TO_RANGE(framerate, 0, 5);
-  			break;
-  		default:
--			dev_info(&uvd->dev->dev, "IBM camera: using 320x240\n");
-+			dev_info(&dev->dev, "IBM camera: using 320x240\n");
-  			size = SIZE_320x240;
-  			/* No break here */
-  		case SIZE_320x240:
-@@ -3869,7 +3869,7 @@
-  			canvasY = 120;
-  			break;
-  		default:
--			dev_info(&uvd->dev->dev, "IBM NetCamera: using 176x144\n");
-+			dev_info(&dev->dev, "IBM NetCamera: using 176x144\n");
-  			size = SIZE_176x144;
-  			/* No break here */
-  		case SIZE_176x144:
 
 --
 video4linux-list mailing list
