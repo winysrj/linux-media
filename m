@@ -1,14 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpgw01.world4you.com ([80.243.163.21])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <treitmayr@devbase.at>) id 1KozW9-0002x2-UK
-	for linux-dvb@linuxtv.org; Sun, 12 Oct 2008 13:53:53 +0200
-From: Thomas Reitmayr <treitmayr@devbase.at>
-To: linux-dvb@linuxtv.org
-Date: Sun, 12 Oct 2008 13:53:07 +0200
-Message-Id: <1223812387.7633.12.camel@localhost>
-Mime-Version: 1.0
-Subject: [linux-dvb] Oops with dvb-usb-dib0700 on Marvell Orion ARM SOC
+Received: from h69-129-7-18.nwblwi.dedicated.static.tds.net ([69.129.7.18]
+	helo=www.curtronics.com) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <Curt.Blank@curtronics.com>) id 1Kl3ZX-0000kM-9K
+	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 17:25:04 +0200
+Received: from [192.168.10.120] (winprtsrv.curtronics.com [192.168.10.120])
+	by www.curtronics.com (8.14.1/8.14.1/SuSE Linux 0.8) with ESMTP id
+	m91FOrAQ010047
+	for <linux-dvb@linuxtv.org>; Wed, 1 Oct 2008 10:24:55 -0500
+Message-ID: <48E39647.5000005@curtronics.com>
+Date: Wed, 01 Oct 2008 10:24:55 -0500
+From: Curt Blank <Curt.Blank@curtronics.com>
+MIME-Version: 1.0
+To: linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] hg clone http://linuxtv.org/hg/v4l-dvb problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,18 +26,49 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-after installing kernel 2.6.27 I noticed the same kernel Oops described
-here by Info Peukes:
-  http://linuxtv.org/pipermail/linux-dvb/2008-May/025889.html
+Trying to get the latest code and I'm getting this:
 
-The patch from the same mail thread works perfectly on my device (a QNAP
-TS-109 II featuring a Marvell Orion5x ARM SOC) -> no oops anymore and
-perfect reception. As I have not found any follow-ups on this patch and
-as it apparently did not get applied in HG, what is its status?
+# hg clone http://linuxtv.org/hg/v4l-dvb
+destination directory: v4l-dvb
+requesting all changes
+adding changesets
+transaction abort!
+rollback completed
+** unknown exception encountered, details follow
+** report bug details to http://www.selenic.com/mercurial/bts
+** or mercurial@selenic.com
+** Mercurial Distributed SCM (version 1.0)
+Traceback (most recent call last):
+  File "/usr/bin/hg", line 20, in <module>
+    mercurial.dispatch.run()
+  File "/usr/lib64/python2.5/site-packages/mercurial/dispatch.py", line 20, in run
+    sys.exit(dispatch(sys.argv[1:]))
+  File "/usr/lib64/python2.5/site-packages/mercurial/dispatch.py", line 29, in dispatch
+    return _runcatch(u, args)
+  File "/usr/lib64/python2.5/site-packages/mercurial/dispatch.py", line 45, in _runcatch
+    return _dispatch(ui, args)
+  File "/usr/lib64/python2.5/site-packages/mercurial/dispatch.py", line 364, in _dispatch
+    ret = _runcommand(ui, options, cmd, d)
+  File "/usr/lib64/python2.5/site-packages/mercurial/dispatch.py", line 417, in _runcommand
+    return checkargs()
+  File "/usr/lib64/python2.5/site-packages/mercurial/dispatch.py", line 373, in checkargs
+    return cmdfunc()
+  File "/usr/lib64/python2.5/site-packages/mercurial/dispatch.py", line 358, in <lambda>
+    d = lambda: func(ui, *args, **cmdoptions)
+  File "/usr/lib64/python2.5/site-packages/mercurial/commands.py", line 532, in clone
+    update=not opts['noupdate'])
+  File "/usr/lib64/python2.5/site-packages/mercurial/hg.py", line 230, in clone
+    dest_repo.clone(src_repo, heads=revs, stream=stream)
+  File "/usr/lib64/python2.5/site-packages/mercurial/localrepo.py", line 2124, in clone
+    return self.pull(remote, heads)
+  File "/usr/lib64/python2.5/site-packages/mercurial/localrepo.py", line 1484, in pull
+    return self.addchangegroup(cg, 'pull', remote.url())
+  File "/usr/lib64/python2.5/site-packages/mercurial/localrepo.py", line 1992, in addchangegroup
+    if cl.addgroup(chunkiter, csmap, trp, 1) is None and not emptyok:
+  File "/usr/lib64/python2.5/site-packages/mercurial/revlog.py", line 1199, in addgroup
+    textlen = mdiff.patchedsize(textlen, delta)
+mpatch.mpatchError: patch cannot be decoded
 
-Best regards,
--Thomas
 
 
 _______________________________________________
