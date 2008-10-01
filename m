@@ -1,17 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9GJRZ5k018866
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 15:27:35 -0400
-Received: from smtp.unisys.com.br (smtp.unisys.com.br [200.220.64.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9GJRLtc001847
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 15:27:22 -0400
-From: danflu@uninet.com.br
-To: video4linux-list@redhat.com
-Date: Thu, 16 Oct 2008 16:27:20 -0300
-Message-id: <48f79598.2dc.ed1.1231012865@uninet.com.br>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m91IRpiL018676
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 14:27:51 -0400
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.187])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m91IRfY2009363
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 14:27:41 -0400
+Received: by rn-out-0910.google.com with SMTP id k32so266108rnd.7
+	for <video4linux-list@redhat.com>; Wed, 01 Oct 2008 11:27:39 -0700 (PDT)
+Message-ID: <3ebb0dc80810011127v38c55961yd37cd13e32fcc829@mail.gmail.com>
+Date: Wed, 1 Oct 2008 15:27:39 -0300
+From: "Vinicius Kamakura" <thehexa@gmail.com>
+To: "Vinicius Kamakura" <thehexa@gmail.com>, video4linux-list@redhat.com
+In-Reply-To: <20080930121259.GA237@daniel.bse>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Subject: grabing audio from capture card
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+References: <20080908160012.574456184D5@hormel.redhat.com>
+	<48C5948D.5030504@migmasys.com> <20080909190727.GA2184@daniel.bse>
+	<3ebb0dc80809300125n24567d11kf4b414b7909c8270@mail.gmail.com>
+	<20080930121259.GA237@daniel.bse>
+Content-Transfer-Encoding: 8bit
+Cc: 
+Subject: Re: a multichannel capture problem
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,46 +33,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello!
+2008/9/30 Daniel Glöckner <daniel-gl@gmx.net>:
+> On Tue, Sep 30, 2008 at 05:25:27AM -0300, Vinicius Kamakura wrote:
+>> On Tue, Sep 09, 2008 at 09:07:27PM +0200, Daniel Glöckner wrote:
+>> > Some time ago I made some experiments changing the input at random times
+>> > using direct hardware access while capturing. IIRC the chip will skip at
+>> > least one complete frame before it continues to capture.
+>> >
+>>
+>> what do you mean by direct hardware access?
+>
+> I mmap'ed /sys/class/video4linux/video0/device/resource0 and toggled
+> bit 5 of IFORM.
+>
+>  Daniel
+>
 
-I have have a capture card (Prolink Pixelview) and i'm
-currently trying to grab audio samples from it. It has an
-"audio input" and an "audio output" 
+Isn't that the same as using the VIDIOC_S_INPUT ioctl?
+Or is there a performance gain (less field/frame skipping) on doing that?
 
-I tested audio using xawtv (Included a "p2 to rca adaptor"
-to plug a digital camcorder in audio input.) and it worked
-well using the loopback cable that conects "audio out" from
-tv card to the sound card "line in" but did not work without
-using this loopback cable...
-
-My device generates the following output:
-
-cap.driver: bttv
-cap.card: BT878 video (Prolink Pixelview 
-cap.bus_info: PCI:0000:05:01.0
-cap.version: 2321
-
-Printing /dev/video0 capabilities
-
-V4L2_CAP_VIDEO_CAPTURE
-V4L2_CAP_VIDEO_OVERLAY
-V4L2_CAP_VBI_CAPTURE
-V4L2_CAP_TUNER
-V4L2_CAP_READWRITE
-V4L2_CAP_STREAMING
-
-
-What device should i use to grab audio samples (videox ?) ?
-The usage of the v4l api is the same to grab audio ? (memory
-mapping etc?)
-
-I observed that xawtv did not playback any audio without the
-loopback cable, so it seems that it is not possible to
-capture audio using v4l without this cable, is it true ???
-
-Please help !
-Thank you
-Daniel
+- vk
 
 --
 video4linux-list mailing list
