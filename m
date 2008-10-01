@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.188])
+Received: from ey-out-2122.google.com ([74.125.78.26])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1Kmni4-0006PK-8f
-	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 12:53:05 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so1048769nfb.11
-	for <linux-dvb@linuxtv.org>; Mon, 06 Oct 2008 03:53:00 -0700 (PDT)
-Date: Mon, 6 Oct 2008 12:52:36 +0200 (CEST)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KkqiR-0004r9-TA
+	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 03:41:31 +0200
+Received: by ey-out-2122.google.com with SMTP id 25so125313eya.17
+	for <linux-dvb@linuxtv.org>; Tue, 30 Sep 2008 18:41:20 -0700 (PDT)
+Date: Wed, 1 Oct 2008 03:40:59 +0200 (CEST)
 From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Olivier Mueller <om-lists-linux@omx.ch>
-In-Reply-To: <1223288468.4776.42.camel@frosch.local>
-Message-ID: <alpine.DEB.2.00.0810061228250.12701@ybpnyubfg.ybpnyqbznva>
-References: <1223288468.4776.42.camel@frosch.local>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <1222821078.5209.11.camel@pc10.localdom.local>
+Message-ID: <alpine.DEB.2.00.0810010313370.4242@ybpnyubfg.ybpnyqbznva>
+References: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
+	<alpine.DEB.2.00.0809302137380.4242@ybpnyubfg.ybpnyqbznva>
+	<4FEC93ECE8%linux@youmustbejoking.demon.co.uk>
+	<1222821078.5209.11.camel@pc10.localdom.local>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org, em28xx@mcentral.de
-Subject: Re: [linux-dvb] Miglia Eyetv Hybrid 2008?
+Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,48 +29,45 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Gruezi...
+On Wed, 1 Oct 2008, hermann pitton wrote:
 
-On Mon, 6 Oct 2008, Olivier Mueller wrote:
+> Also above we see a tuning attempt to 562000000 Hz and previously we saw
+> already a positive offset added 562166670:INVERSION_AUTO:BANDWIDTH_8_MHZ
 
-> Then I hoped it would be the same for a brand new "Elgato EyeTV
-> Hybrid" (dvb-T + analog,
+> usually a negative offset like this is reported more regularly?
 
-> Just in case, here the information told under OS X's Eyetv.app: 
+The original poster was able to quickly obtain lock in both
+cases -- plus I would imagine that a tuner able to receive
+signals 4MHz either side of the centre frequency can handle
+a couple hundred kHz offset automagically -- certainly my
+sat set-top-boxen handle typically a ten MHz range with most
+full transponders...
 
-> USB Controller:  Empia EM2884
-> Stereo A/V Decoder:  Micronas AVF 49x0B
-> Hybrid Channel Decoder:  Micronas DRX-K DRX3926K:A1 0.8.0
-
-These seem to be the same chips that are used in a tuner which
-I have -- the TerraTec Cinergy HTC USB XS -- apart from the
-tuner, which is found at i2c address 0x60, making me think it
-might be an MT2060, maybe.
-
-The Empia cards are in part being worked on at Markus Rechberger's
-mcentral.de, where I expect you will first see support added.
-
-There's a mailing list, which I've added to the cc: header, in
-case you want to follow that for latest updates.  Not sure if
-you need to subscribe first; gmane has handy archives.
-
-Of course, there could be independent support being written for
-inclusion into the v4l-dvb source tree, but neither the Empia
-chip nor the two demodulators are presently supported by any
-other existing driver.
+In any case, the hg repository copy I have of uk-Rowridge
+matches what I find with a quick giggle search:
+   Rowridge DVB-T Info
+   0 (zero)
+   - (minus) 167000 Hz
+   + (plus) 167000 Hz
+   Mux 1 BBC    channel 23 freq 490000000 - offset = 489833000
+   Mux 5 C      channel 26 freq 514000000 - offset = 513833000
+   Mux 2 ITV/C4 channel 28 freq 530000000 0 offset = 530000000
+   Mux 3 A      channel 30 freq 546000000 - offset = 545833000
+   Mux 4 B      channel 32 freq 562000000 + offset = 562167000
+   Mux 6 D      channel 33 freq 570000000 + offset = 570167000
 
 
-I could give you a couple of lines of source that do little
-more than identifying your card and giving you access to the
-i2c bus with the demodulators et al, but that's pretty useless.
+However, as the original poster's frequency data shows
+two additional significant figures not present in
+either of these (in addition to the LP code rate that
+differs), it obviously isn't the same source as the hg
+repository -- whether obtained by parsing NIT data or
+based on user-specified input frequencies or whatever...
+
+Not that either one is guaranteed 100% reliable, though
 
 
-As I understand it, proper support (with help of the chipset
-manufacturers) is in the pipeline, so keep an eye on em28xx-new
-at mcentral.de as well as linuxtv.org for your card.
-
-
-merci,
+(hope I make sense, when I should be sleeping)
 barry bouwsma
 
 _______________________________________________
