@@ -1,30 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from node01.cambriumhosting.nl ([217.19.16.162])
+Received: from blu0-omc1-s17.blu0.hotmail.com ([65.55.116.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jelledejong@powercraft.nl>) id 1Kw044-0006VM-4S
-	for linux-dvb@linuxtv.org; Fri, 31 Oct 2008 20:53:48 +0100
-Received: from localhost (localhost [127.0.0.1])
-	by node01.cambriumhosting.nl (Postfix) with ESMTP id 7DE6FB0002C5
-	for <linux-dvb@linuxtv.org>; Fri, 31 Oct 2008 20:53:44 +0100 (CET)
-Received: from node01.cambriumhosting.nl ([127.0.0.1])
-	by localhost (node01.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id Ga5G8U8y7f87 for <linux-dvb@linuxtv.org>;
-	Fri, 31 Oct 2008 20:53:38 +0100 (CET)
-Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
-	[84.245.3.195])
-	by node01.cambriumhosting.nl (Postfix) with ESMTP id 94737B0000E4
-	for <linux-dvb@linuxtv.org>; Fri, 31 Oct 2008 20:53:38 +0100 (CET)
-Received: from [192.168.1.180] (unknown [192.168.1.180])
-	by ashley.powercraft.nl (Postfix) with ESMTPSA id 6041023BC352
-	for <linux-dvb@linuxtv.org>; Fri, 31 Oct 2008 20:53:38 +0100 (CET)
-Message-ID: <490B6241.7020102@powercraft.nl>
-Date: Fri, 31 Oct 2008 20:53:37 +0100
-From: Jelle de Jong <jelledejong@powercraft.nl>
+	(envelope-from <db260179@hotmail.com>) id 1KkzQ9-0003RB-Sy
+	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 12:59:08 +0200
+Message-ID: <BLU116-W31A8ACFFBED560E0D80D5AC2420@phx.gbl>
+From: dabby bentam <db260179@hotmail.com>
+To: <darron@kewl.org>, <linux-dvb@linuxtv.org>
+Date: Wed, 1 Oct 2008 10:58:32 +0000
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------010109040601070000050201"
-Subject: [linux-dvb] automated w_scan,
-	duplicated channels and signal strength filtering
+Subject: Re: [linux-dvb] Adding remote support to Avermedia Super 007 - more
+ info needed!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,163 +17,161 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============0027519201=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------010109040601070000050201
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+--===============0027519201==
+Content-Type: multipart/alternative;
+	boundary="_caea435d-a4ae-4804-9496-f2da18af060d_"
 
-Hello everybody,
+--_caea435d-a4ae-4804-9496-f2da18af060d_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-I am using a tool called w_scan [1] to automate scanning for dvb-t
-signals, this kind of works, but its still not enough to be usable for
-non computer literate people. I got the following issues:
 
-When a scan is completed it list all found channels, in the file, (see
-attachment) however this also include duplicated channels with other
-frequencies and strange channels that are from local unusable broadcast.
+-----Original Message-----
+From: darron@kewl.org [mailto:darron@kewl.org]
+Sent: 01 October 2008 02:08
+To: dabby bentam
+Subject: Re: [linux-dvb] Adding remote support to Avermedia Super 007 - mor=
+e info needed!=20
 
-The issue here is that signal strength is not used to filter out
-duplicated channels, only the best strongest signal should come in the
-channel list, and channels without identifiers should be removed.
+In message <BLU116-W122752EF5297963897FDE5C2430@phx.gbl>=2C dabby bentam wr=
+ote:
 
-How can we do this? Is somebody able to fix these issues?
+hello david
 
-Thank in advance for any repose,
+>I'm currently trying to get remote support added to the Avermedia Super=20
+>007=3D  card.
 
-Best regards,
+I have one of these cards also but I have no good news for you unfortunatel=
+y.
 
-Jelle
+I am replying just to confirm that I too saw no activity in the register lo=
+gs in XP when pressing remote key presses. Nor=2C from what I can see will =
+any additions to the saa7134 code as is=2C aide you in reaching remote cont=
+rol nirvana.
 
-[1] http://wirbel.htpc-forum.de/w_scan/index2.html
+It looks as if all remotes on the saa7134 linux driver thus far are trigger=
+ed via an interrupt and that no such interrupt is occuring when you press a=
+ key on the remote for that board. This may require more absolute confirmat=
+ion though as I didn't spend a great deal of time looking.
 
-ps. I can't find any contact info for the developer of w_scan.
+>I've turned the ir_debug on and gpio tracking on and enabled i2c_scan.=20
+>I've=3D  added an entry in the saa7134-cards.c and saa7134-input.c -=20
+>copying the se=3D ttings from other avermedia cards.
+>
+>The polling setting makes the card print out loads of ir_builder=20
+>settings=3D =3D2C removing the setting no output! - from this i am assumin=
+g=20
+>that this car=3D d has no gpio setting? - possible i2c?
+>
+>I've used regspy (from dscaler) to determine the GPIO STATUS and MASK=20
+>value=3D . Turning on/off the remote in windows has no value change? -=20
+>does it chang=3D e?
+>
+>Any guidance on how to determine the ir code? - without the manufacture=20
+>cod=3D e book.
 
---------------010109040601070000050201
-Content-Type: text/plain;
- name="example-channels.conf"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="example-channels.conf"
+I took a photo but didn't identify all the ICs on the board and write them =
+down=2C it may be worthwhie doing so and also tracing from where the IR det=
+ector comes into the card and where it actually ends up.
 
-TmVkZXJsYW5kIDEoRGlnaXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJ
-RFRIXzhfTUhaOkZFQ18xXzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6
-R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjcwMTE6NzAxMjoxMTAxCk5lZGVy
-bGFuZCAyKERpZ2l0ZW5uZSk6NDc0MDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84
-X01IWjpGRUNfMV8yOkZFQ18xXzI6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJE
-X0lOVEVSVkFMXzFfNDpISUVSQVJDSFlfTk9ORTo3MDIxOjcwMjI6MTEwMgpOZWRlcmxhbmQg
-MyhEaWdpdGVubmUpOjQ3NDAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6
-RkVDXzFfMjpGRUNfMV8yOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRF
-UlZBTF8xXzQ6SElFUkFSQ0hZX05PTkU6NzAzMTo3MDMyOjExMDMKVFYgUmlqbm1vbmQoRGln
-aXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18x
-XzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxf
-MV80OkhJRVJBUkNIWV9OT05FOjcwNDE6NzA0MjoxMTA0ClJhZGlvIFJpam5tb25kKERpZ2l0
-ZW5uZSk6NDc0MDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfMV8y
-OkZFQ18xXzI6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFf
-NDpISUVSQVJDSFlfTk9ORTowOjcxMTI6MTExMQpSYWRpbyAxKERpZ2l0ZW5uZSk6NDc0MDAw
-MDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfMV8yOkZFQ18xXzI6UUFN
-XzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfNDpISUVSQVJDSFlf
-Tk9ORTowOjcxMjI6MTExMgpSYWRpbyAyKERpZ2l0ZW5uZSk6NDc0MDAwMDAwOklOVkVSU0lP
-Tl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfMV8yOkZFQ18xXzI6UUFNXzY0OlRSQU5TTUlT
-U0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfNDpISUVSQVJDSFlfTk9ORTowOjcxMzI6
-MTExMwozRk0oRGlnaXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRI
-XzhfTUhaOkZFQ18xXzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VB
-UkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjA6NzE0MjoxMTE0ClJhZGlvIDQoRGln
-aXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18x
-XzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxf
-MV80OkhJRVJBUkNIWV9OT05FOjA6NzE1MjoxMTE1ClJhZGlvIDUoRGlnaXRlbm5lKTo0NzQw
-MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18xXzI6RkVDXzFfMjpR
-QU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNI
-WV9OT05FOjA6NzE2MjoxMTE2ClJhZGlvIDYoRGlnaXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJT
-SU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18xXzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNN
-SVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjA6NzE3
-MjoxMTE3CkNvbmNlcnR6ZW5kZXIoRGlnaXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FV
-VE86QkFORFdJRFRIXzhfTUhaOkZFQ18xXzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9O
-X01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjA6NzE4MjoxMTE4
-CkZ1blgoRGlnaXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhf
-TUhaOkZFQ18xXzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRf
-SU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjA6NzE5MjoxMTE5ClswMDFmXTo0OTgwMDAw
-MDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRPOkZFQ19BVVRPOlFB
-TV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJWQUxfQVVUTzpISUVS
-QVJDSFlfQVVUTzozMDExOjMwMTI6MzEKWzAwMjBdOjQ5ODAwMDAwMDpJTlZFUlNJT05fQVVU
-TzpCQU5EV0lEVEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFNX0FVVE86VFJBTlNNSVNT
-SU9OX01PREVfQVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNIWV9BVVRPOjMwMjE6
-MzAyMjozMgpbMDAyMV06NDk4MDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01I
-WjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1fQVVUTzpUUkFOU01JU1NJT05fTU9ERV9BVVRPOkdV
-QVJEX0lOVEVSVkFMX0FVVE86SElFUkFSQ0hZX0FVVE86MzAzMTozMDMyOjMzClswMDIyXTo0
-OTgwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRPOkZFQ19B
-VVRPOlFBTV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJWQUxfQVVU
-TzpISUVSQVJDSFlfQVVUTzozMDQxOjMwNDI6MzQKWzAwMjNdOjQ5ODAwMDAwMDpJTlZFUlNJ
-T05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFNX0FVVE86VFJB
-TlNNSVNTSU9OX01PREVfQVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNIWV9BVVRP
-OjMwNTE6MzA1MjozNQpbMDAyNF06NDk4MDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURU
-SF84X01IWjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1fQVVUTzpUUkFOU01JU1NJT05fTU9ERV9B
-VVRPOkdVQVJEX0lOVEVSVkFMX0FVVE86SElFUkFSQ0hZX0FVVE86MzA2MTozMDYyOjM2Clsw
-MDI1XTo0OTgwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRP
-OkZFQ19BVVRPOlFBTV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJW
-QUxfQVVUTzpISUVSQVJDSFlfQVVUTzozMDcxOjMwNzI6MzcKWzAwMjZdOjQ5ODAwMDAwMDpJ
-TlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFNX0FV
-VE86VFJBTlNNSVNTSU9OX01PREVfQVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNI
-WV9BVVRPOjMwODE6MzA4MjozOApOZWRlcmxhbmQgMShEaWdpdGVubmUpOjcyMjAwMDAwMDpJ
-TlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFNX0FV
-VE86VFJBTlNNSVNTSU9OX01PREVfQVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNI
-WV9BVVRPOjcwMTE6NzAxMjoxMTAxCk5lZGVybGFuZCAyKERpZ2l0ZW5uZSk6NzIyMDAwMDAw
-OklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1f
-QVVUTzpUUkFOU01JU1NJT05fTU9ERV9BVVRPOkdVQVJEX0lOVEVSVkFMX0FVVE86SElFUkFS
-Q0hZX0FVVE86NzAyMTo3MDIyOjExMDIKTmVkZXJsYW5kIDMoRGlnaXRlbm5lKTo3MjIwMDAw
-MDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRPOkZFQ19BVVRPOlFB
-TV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJWQUxfQVVUTzpISUVS
-QVJDSFlfQVVUTzo3MDMxOjcwMzI6MTEwMwpUViBXZXN0KERpZ2l0ZW5uZSk6NzIyMDAwMDAw
-OklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1f
-QVVUTzpUUkFOU01JU1NJT05fTU9ERV9BVVRPOkdVQVJEX0lOVEVSVkFMX0FVVE86SElFUkFS
-Q0hZX0FVVE86NzA0MTo3MDQyOjExMDQKUmFkaW8gV2VzdChEaWdpdGVubmUpOjcyMjAwMDAw
-MDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFN
-X0FVVE86VFJBTlNNSVNTSU9OX01PREVfQVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJB
-UkNIWV9BVVRPOjA6NzExMjoxMTExClJhZGlvIDEoRGlnaXRlbm5lKTo3MjIwMDAwMDA6SU5W
-RVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRPOkZFQ19BVVRPOlFBTV9BVVRP
-OlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJWQUxfQVVUTzpISUVSQVJDSFlf
-QVVUTzowOjcxMjI6MTExMgpSYWRpbyAyKERpZ2l0ZW5uZSk6NzIyMDAwMDAwOklOVkVSU0lP
-Tl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1fQVVUTzpUUkFO
-U01JU1NJT05fTU9ERV9BVVRPOkdVQVJEX0lOVEVSVkFMX0FVVE86SElFUkFSQ0hZX0FVVE86
-MDo3MTMyOjExMTMKM0ZNKERpZ2l0ZW5uZSk6NzIyMDAwMDAwOklOVkVSU0lPTl9BVVRPOkJB
-TkRXSURUSF84X01IWjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1fQVVUTzpUUkFOU01JU1NJT05f
-TU9ERV9BVVRPOkdVQVJEX0lOVEVSVkFMX0FVVE86SElFUkFSQ0hZX0FVVE86MDo3MTQyOjEx
-MTQKUmFkaW8gNChEaWdpdGVubmUpOjcyMjAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lE
-VEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFNX0FVVE86VFJBTlNNSVNTSU9OX01PREVf
-QVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNIWV9BVVRPOjA6NzE1MjoxMTE1ClJh
-ZGlvIDUoRGlnaXRlbm5lKTo3MjIwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhf
-TUhaOkZFQ19BVVRPOkZFQ19BVVRPOlFBTV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86
-R1VBUkRfSU5URVJWQUxfQVVUTzpISUVSQVJDSFlfQVVUTzowOjcxNjI6MTExNgpSYWRpbyA2
-KERpZ2l0ZW5uZSk6NzIyMDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpG
-RUNfQVVUTzpGRUNfQVVUTzpRQU1fQVVUTzpUUkFOU01JU1NJT05fTU9ERV9BVVRPOkdVQVJE
-X0lOVEVSVkFMX0FVVE86SElFUkFSQ0hZX0FVVE86MDo3MTcyOjExMTcKQ29uY2VydHplbmRl
-cihEaWdpdGVubmUpOjcyMjAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6
-RkVDX0FVVE86RkVDX0FVVE86UUFNX0FVVE86VFJBTlNNSVNTSU9OX01PREVfQVVUTzpHVUFS
-RF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNIWV9BVVRPOjA6NzE4MjoxMTE4CkZ1blgoRGlnaXRl
-bm5lKTo3MjIwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRP
-OkZFQ19BVVRPOlFBTV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJW
-QUxfQVVUTzpISUVSQVJDSFlfQVVUTzowOjcxOTI6MTExOQo=
---------------010109040601070000050201
-Content-Type: application/x-sh;
- name="setup-free-to-air-channels.sh"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="setup-free-to-air-channels.sh"
+If you are determined then you could explore the above but there is still n=
+o guarantee of any eventual success of course as just knowing about it more=
+ is only the first step in actually getting it to work.
 
-#!/bin/bash
+cya!
 
-~/.wscan/wscan -t 3 -E 0 -O 0 -X tzap > ~/.wscan/channels.conf
-geany --new-instance --no-msgwin --no-ctags --no-plugins ~/.wscan/channels.conf
+Hello darron=2C
 
-cp --verbose ~/.wscan/channels.conf ~/.tzap/channels.conf
-cp --verbose ~/.wscan/channels.conf ~/.xine/channels.conf
-cp --verbose ~/.wscan/channels.conf ~/.gstreamer-0.10/dvb-channels.conf
-cp --verbose ~/.wscan/channels.conf ~/.mplayer/channels.conf
+Thanks for the reply. I've established the cards IR port is not GPIO but I2=
+C. Similar to the hvr-1110 card. The I2C readout gives me:-
 
---------------010109040601070000050201
+0x10
+0x96
+
+>From the other I2C cards=2C these functions are used to enable/disable the =
+IR port.
+
+I'll take a closer look at he pins just incase.
+
+Thanks
+
+David
+
+
+_________________________________________________________________
+Make a mini you and download it into Windows Live Messenger
+http://clk.atdmt.com/UKM/go/111354029/direct/01/=
+
+--_caea435d-a4ae-4804-9496-f2da18af060d_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+FONT-SIZE: 10pt=3B
+FONT-FAMILY:Tahoma
+}
+</style>
+</head>
+<body class=3D'hmmessage'>
+-----Original Message-----<br>From: darron@kewl.org [mailto:darron@kewl.org=
+]<br>Sent: 01 October 2008 02:08<br>To: dabby bentam<br>Subject: Re: [linux=
+-dvb] Adding remote support to Avermedia Super 007 - more info needed! <br>=
+<br>In message &lt=3BBLU116-W122752EF5297963897FDE5C2430@phx.gbl&gt=3B=2C d=
+abby bentam wrote:<br><br>hello david<br><br>&gt=3BI'm currently trying to =
+get remote support added to the Avermedia Super <br>&gt=3B007=3D&nbsp=3B ca=
+rd.<br><br>I have one of these cards also but I have no good news for you u=
+nfortunately.<br><br>I am replying just to confirm that I too saw no activi=
+ty in the register logs in XP when pressing remote key presses. Nor=2C from=
+ what I can see will any additions to the saa7134 code as is=2C aide you in=
+ reaching remote control nirvana.<br><br>It looks as if all remotes on the =
+saa7134 linux driver thus far are triggered via an interrupt and that no su=
+ch interrupt is occuring when you press a key on the remote for that board.=
+ This may require more absolute confirmation though as I didn't spend a gre=
+at deal of time looking.<br><br>&gt=3BI've turned the ir_debug on and gpio =
+tracking on and enabled i2c_scan. <br>&gt=3BI've=3D&nbsp=3B added an entry =
+in the saa7134-cards.c and saa7134-input.c - <br>&gt=3Bcopying the se=3D tt=
+ings from other avermedia cards.<br>&gt=3B<br>&gt=3BThe polling setting mak=
+es the card print out loads of ir_builder <br>&gt=3Bsettings=3D =3D2C remov=
+ing the setting no output! - from this i am assuming <br>&gt=3Bthat this ca=
+r=3D d has no gpio setting? - possible i2c?<br>&gt=3B<br>&gt=3BI've used re=
+gspy (from dscaler) to determine the GPIO STATUS and MASK <br>&gt=3Bvalue=
+=3D . Turning on/off the remote in windows has no value change? - <br>&gt=
+=3Bdoes it chang=3D e?<br>&gt=3B<br>&gt=3BAny guidance on how to determine =
+the ir code? - without the manufacture <br>&gt=3Bcod=3D e book.<br><br>I to=
+ok a photo but didn't identify all the ICs on the board and write them down=
+=2C it may be worthwhie doing so and also tracing from where the IR detecto=
+r comes into the card and where it actually ends up.<br><br>If you are dete=
+rmined then you could explore the above but there is still no guarantee of =
+any eventual success of course as just knowing about it more is only the fi=
+rst step in actually getting it to work.<br><br>cya!<br><br>Hello darron=2C=
+<br><br>Thanks for the reply. I've established the cards IR port is not GPI=
+O but I2C. Similar to the hvr-1110 card. The I2C readout gives me:-<br><br>=
+0x10<br>0x96<br><br>From the other I2C cards=2C these functions are used to=
+ enable/disable the IR port.<br><br>I'll take a closer look at he pins just=
+ incase.<br><br>Thanks<br><br>David<br><br><br /><hr />Win =A33000 to spend=
+ on whatever you want at Uni! <a href=3D'http://clk.atdmt.com/UKM/go/111354=
+032/direct/01/' target=3D'_new'>Click here to WIN!</a></body>
+</html>=
+
+--_caea435d-a4ae-4804-9496-f2da18af060d_--
+
+
+--===============0027519201==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -198,4 +181,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------010109040601070000050201--
+--===============0027519201==--
