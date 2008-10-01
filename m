@@ -1,22 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt2.poste.it ([62.241.5.253])
+Received: from anchor-post-36.mail.demon.net ([194.217.242.86])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KoHNt-0008WV-GS
-	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 14:46:23 +0200
-Received: from geppetto.reilabs.com (212.123.91.176) by relay-pt2.poste.it
-	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
-	id 48EE8D3E00006B86 for linux-dvb@linuxtv.org;
-	Fri, 10 Oct 2008 14:46:16 +0200
-Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
-	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KoHMw-0007yU-TP
-	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 14:45:22 +0200
-Date: Fri, 10 Oct 2008 14:45:22 +0200
-From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
-To: linux-dvb Mailing List <linux-dvb@linuxtv.org>
-Message-ID: <20081010124522.GA30145@geppetto>
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1Kl5Gb-00009g-CX
+	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 19:13:38 +0200
+Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
+	helo=pentagram.youmustbejoking.demon.co.uk)
+	by anchor-post-36.mail.demon.net with esmtp (Exim 4.67)
+	id 1Kl5GX-000J5u-MD
+	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 17:13:33 +0000
+Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
+	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
+	(envelope-from <linux@youmustbejoking.demon.co.uk>)
+	id 1Kl4tt-0000Xk-1y
+	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 17:50:15 +0100
+Date: Wed, 01 Oct 2008 17:49:10 +0100
+From: Darren Salt <linux@youmustbejoking.demon.co.uk>
+To: linux-dvb@linuxtv.org
+Message-ID: <4FECF60EC8%linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <4FEC93ECE8%linux@youmustbejoking.demon.co.uk>
+References: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
+	<alpine.DEB.2.00.0809302137380.4242@ybpnyubfg.ybpnyqbznva>
+	<4FEC93ECE8%linux@youmustbejoking.demon.co.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Module modprobing problem
+Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,26 +37,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+Will people NOT CC mail to me? Mail-Followup-To is set for a reason...
 
-I'm trying the latest v4l-dvb mercurial and this is the output I get:
+-- 
+| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
+| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
+| + Buy less and make it last longer.         INDUSTRY CAUSES GLOBAL WARMING.
 
-stefano@geppetto ~> sudo modprobe dib7000m -v
-insmod /lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dibx000_common.ko 
-WARNING: Error inserting dibx000_common (/lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dibx000_common.ko): Invalid module format
-insmod /lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dib7000m.ko 
-FATAL: Error inserting dib7000m (/lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dib7000m.ko): Invalid module format
-
-stefano@geppetto ~> uname -a
-Linux geppetto 2.6.22-3-486 #1 Mon Nov 12 07:53:08 UTC 2007 i686 GNU/Linux
-
-I get in dmesg:
-dibx000_common: disagrees about version of symbol struct_module
-dib7000m: disagrees about version of symbol struct_module
-
-Any hint will be highly appreciated.
-
-Regards.
+"Bother", said Pooh, as he received his telephone bill.
 
 _______________________________________________
 linux-dvb mailing list
