@@ -1,21 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9SIfTn5027084
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 14:41:29 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9SIfFDQ020490
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 14:41:16 -0400
-Message-ID: <49075DA9.3000501@hhs.nl>
-Date: Tue, 28 Oct 2008 19:44:57 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m91IkojT030239
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 14:46:50 -0400
+Received: from mail-gx0-f15.google.com (mail-gx0-f15.google.com
+	[209.85.217.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m91IklJU024215
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 14:46:47 -0400
+Received: by gxk8 with SMTP id 8so557583gxk.3
+	for <video4linux-list@redhat.com>; Wed, 01 Oct 2008 11:46:46 -0700 (PDT)
+Message-ID: <9d87242f0810011146r7c2b2083pdd7d940f4c427382@mail.gmail.com>
+Date: Wed, 1 Oct 2008 11:46:46 -0700
+From: "Scott Bronson" <bronson@rinspin.com>
+To: "Steven Toth" <stoth@linuxtv.org>
+In-Reply-To: <9d87242f0809260952h7542a051ud6d539269638d6b4@mail.gmail.com>
 MIME-Version: 1.0
-To: ian@pickworth.me.uk
-References: <49075186.7090101@pickworth.me.uk>
-In-Reply-To: <49075186.7090101@pickworth.me.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: libv4l: Skype terminates after options dialogue is closed
+Content-Disposition: inline
+References: <9d87242f0809191425p1adb1e59p417753a4c403a872@mail.gmail.com>
+	<9d87242f0809192255t49e112bfvd9c95e66bd3292a8@mail.gmail.com>
+	<48D49A39.5010909@linuxtv.org>
+	<9d87242f0809211316g1a34f0e7wed0f8345d5cdd787@mail.gmail.com>
+	<48D702B5.8020800@linuxtv.org>
+	<9d87242f0809221206n1d589137v8e1bf77792c31bcf@mail.gmail.com>
+	<48D7F064.4010103@linuxtv.org>
+	<9d87242f0809222335l67860769k6369db5665b10f98@mail.gmail.com>
+	<48D907BB.4020801@linuxtv.org>
+	<9d87242f0809260952h7542a051ud6d539269638d6b4@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Unreliable tuning with HVR-950q
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,55 +40,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Ian Pickworth wrote:
-> I have had this problem since I started using libv4l 0.5.1, I've just
-> upgraded to 0.5.3 but it still persists unfortunately.
-> 
-> The process I go through is as follows:
-> 	LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so /usr/bin/skype &
-> 	
-> 	After Skype starts, open the Skype options dialogue
-> 	Select the "Video Devices" tab
-> 	With "Enable Skype Video" enabled, select the Camera device
-> 	Press "test" - which shows the webcam picture correctly
-> 
-> 	Press close
-> 
-> At this point Skype aborts.
-> I get the same result is I use this command:
-> 	LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so /usr/bin/skype &
-> 
-> I'm not sure what diagnostics would be useful here, so if anyone can
-> suggest what is needed I will provide them. I ran it using strace, thus:
-> 
-> 	LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so strace /usr/bin/skype
-> 
-> which ended with this:
-> ------
-> futex(0xa4df064, FUTEX_WAKE, 1)         = 1
-> 
-> gettimeofday({1225216076, 870558}, NULL) = 0
-> 
-> clock_gettime(CLOCK_REALTIME, {1225216076, 870611460}) = 0
-> 
-> futex(0xa88ffd8, FUTEX_WAIT, 1, {9, 999946540}upeek:
-> ptrace(PTRACE_PEEKUSER,26933,44,0): No such process
-> ------
-> 
-> Some details:
-> 
-> ian2 ~ # lsusb
-> ...
-> Bus 002 Device 003: ID 046d:092e Logitech, Inc.
+On Fri, Sep 26, 2008 at 9:52 AM, Scott Bronson <bronson@rinspin.com> wrote:
+> On Tue, Sep 23, 2008 at 8:14 AM, Steven Toth <stoth@linuxtv.org> wrote:
+>> You're overwhelming the tuner/demod
+>> frontend with high RF levels.
+>
+> The attenuators are in the mail, 3dB and 6dB...  I'll report back when
+> I've tried them.
 
-Thats a spca561 cam, I've just run skype with the latest gspca + libv4l on an 
-other spca561 cam with the same revision spca561 asic and it works fine.
+I've now tried the attenuators.  Verdict: didn't help.
 
-So I believe this is caused by something else on your system.
+3dB: no difference that I can detect.
+6dB: probably a little worse
+3dB+6dB in line: definitely worse
 
-Regards,
+If I was overwhelming the tuner, wouldn't it have a hard time keeping
+the lock too?  Because once my 950q locks, it keeps it rock-solid
+forever, perfect video.  It's just getting it in the first place
+that's hard.
 
-Hans
+My Pinnacle PCTV HD works 100% perfectly connected to the same
+antenna.  Locks every time, excellent video for hours.  No problems.
+
+Does anybody else have a 950q?  Does it work?  To me, it appears that
+either its tuner is junk or the Linux driver needs some work.  I guess
+my next step is to set up a Windows machine and try it there.
+
+    - Scott
 
 --
 video4linux-list mailing list
