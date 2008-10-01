@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web38803.mail.mud.yahoo.com ([209.191.125.94])
+Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <krabaey@yahoo.com>) id 1KpnWX-0003fv-IU
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 19:17:37 +0200
-Date: Tue, 14 Oct 2008 10:16:55 -0700 (PDT)
-From: Koen Rabaey <krabaey@yahoo.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <csutor@gmx.de>) id 1Kl5Th-0001Wx-5G
+	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 19:27:09 +0200
+Message-ID: <48E3B2CC.2020408@gmx.de>
+Date: Wed, 01 Oct 2008 19:26:36 +0200
+From: Clemens Sutor <csutor@gmx.de>
 MIME-Version: 1.0
-Message-ID: <360596.65146.qm@web38803.mail.mud.yahoo.com>
-Subject: Re: [linux-dvb] cx88_wakeup message with HVR4000
+To: Jamie Bailey <jgbaileyau@yahoo.com.au>
+References: <136848.87390.qm@web54403.mail.yahoo.com>
+In-Reply-To: <136848.87390.qm@web54403.mail.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Twinhan AD-SP300 (1034) Support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,51 +25,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Jamie Bailey schrieb:
+> Hi,
+>
+> I was wondering if I could get an update on the status of the 
+> development for the Twinhan AD-SP300 (1034) DVB-S card? Is anyone 
+> working on this? I am new to the mailing list, and have never done eny 
+> development for these type of cards - but I am willing to help if I can.
+>
+> Jamie
+>
+Hello Jamie,
 
+I don't know exactly what you mean with "development". What are you 
+missing for this card?
 
+As far as I know there are drivers available from Twinhan, as well as 
+from the mantis tree for this card. So normaly all dvb-apps from v4l 
+should work fine with this card, as well as VDR or MythTV.
 
-
------ Original Message ----
-> From: Steven Toth <stoth@linuxtv.org>
-> To: Koen Rabaey <krabaey@yahoo.com>
-> Cc: linux-dvb@linuxtv.org
-> Sent: Tuesday, October 14, 2008 12:38:26 AM
-> Subject: Re: [linux-dvb] cx88_wakeup message with HVR4000
-> 
-> Koen Rabaey wrote:
-> > Hi,
-> > 
-> > I don't know if it is of any use to anyone, but when I do a dmesg after 
-> booting, 
-> > at the end I get (from time to time, not consistently, the number of buffers 
-> also varies)
-> > 
-> > [  123.601789] cx88_wakeup: 7 buffers handled (should be 1)
-> > [  123.751892] cx88_wakeup: 7 buffers handled (should be 1)
-> > 
-> > This does not seem to interfere with dvb playback however.
-> > 
-> > I'm owning an HVR4000, compiled with http://linuxtv.org/hg/~stoth/s2/ 
-> > on a '2.6.27-4-generic' kernel.
-> 
-> FYI
-> 
-> http://linuxtv.org/hg/~stoth/s2-mfe/rev/6b6e9be35963
-> 
-> I've changed the message into a debug only message. It's still visible
-> when running the driver in debug mode, but for normal users they should 
-> not be bothered by this any more.
-> 
-> It will hopefully be merged this week. Thanks for raising this issue.
-You're welcome
-> 
-> - Steve
-
-Koen
-
-
-
-      
+Bye
+Clemens
 
 _______________________________________________
 linux-dvb mailing list
