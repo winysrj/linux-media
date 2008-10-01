@@ -1,18 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9UI9pU7018602
-	for <video4linux-list@redhat.com>; Thu, 30 Oct 2008 14:09:51 -0400
-Received: from QMTA05.emeryville.ca.mail.comcast.net
-	(qmta05.emeryville.ca.mail.comcast.net [76.96.30.48])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9UI9aLB006599
-	for <video4linux-list@redhat.com>; Thu, 30 Oct 2008 14:09:37 -0400
-Message-ID: <4909F85E.4060900@personnelware.com>
-Date: Thu, 30 Oct 2008 13:09:34 -0500
-From: Carl Karsten <carl@personnelware.com>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m91NbUlh019169
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 19:37:30 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m91NaiGO011999
+	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 19:36:44 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so337890nfc.21
+	for <video4linux-list@redhat.com>; Wed, 01 Oct 2008 16:36:43 -0700 (PDT)
+Message-ID: <10ef49390810011636s76935d83x2523a30e9d866634@mail.gmail.com>
+Date: Thu, 2 Oct 2008 01:36:43 +0200
+From: "=?ISO-8859-1?Q?Jean-Paul_Vall=E9e?=" <jeanpaul.vallee1@gmail.com>
 To: video4linux-list@redhat.com
-Content-Type: multipart/mixed; boundary="------------080901080303080406080905"
-Subject: [patch] vivi version bump
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Subject: dvb-t device sensitivity
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,57 +27,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------080901080303080406080905
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hie,
+I'm not sure it is the good list to post such a question...
+The problem i have is to buy the better device for my location, it seems
+that i am located in a place with some difficulties of reception.
+I would like to know within the list of linux supported usb dvb-t sticks,
+the most sensitive...
+I would like to know if such a project, that classify devive by sensitivity,
+exists... or also if such a list is already available.
 
-New features have been added, so VIVI_MINOR_VERSION gets bumped.
-
-Signed-off-by: Carl Karsten  <carl@personnelware.com>
-
-diff -r 931fa560184d linux/drivers/media/video/vivi.c
---- a/linux/drivers/media/video/vivi.c	Tue Oct 21 20:20:26 2008 -0200
-+++ b/linux/drivers/media/video/vivi.c	Thu Oct 30 13:00:41 2008 -0500
-@@ -53,7 +53,7 @@
- #include "font.h"
-
- #define VIVI_MAJOR_VERSION 0
--#define VIVI_MINOR_VERSION 5
-+#define VIVI_MINOR_VERSION 6
- #define VIVI_RELEASE 0
- #define VIVI_VERSION \
-
-Carl Karsten
-
---------------080901080303080406080905
-Content-Type: text/x-patch;
- name="vivi.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="vivi.c.diff"
-
-diff -r 931fa560184d linux/drivers/media/video/vivi.c
---- a/linux/drivers/media/video/vivi.c	Tue Oct 21 20:20:26 2008 -0200
-+++ b/linux/drivers/media/video/vivi.c	Thu Oct 30 13:04:23 2008 -0500
-@@ -53,7 +53,7 @@
- #include "font.h"
- 
- #define VIVI_MAJOR_VERSION 0
--#define VIVI_MINOR_VERSION 5
-+#define VIVI_MINOR_VERSION 6
- #define VIVI_RELEASE 0
- #define VIVI_VERSION \
- 	KERNEL_VERSION(VIVI_MAJOR_VERSION, VIVI_MINOR_VERSION, VIVI_RELEASE)
-
---------------080901080303080406080905
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
+Thanks
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------080901080303080406080905--
