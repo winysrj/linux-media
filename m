@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bene2.itea.ntnu.no ([129.241.56.57])
+Received: from rv-out-0506.google.com ([209.85.198.226])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mathieu.taillefumier@free.fr>) id 1KtHai-0005bA-E6
-	for linux-dvb@linuxtv.org; Fri, 24 Oct 2008 10:00:17 +0200
-Message-ID: <4901808C.30805@free.fr>
-Date: Fri, 24 Oct 2008 10:00:12 +0200
-From: Mathieu Taillefumier <mathieu.taillefumier@free.fr>
+	(envelope-from <yellowplantain@gmail.com>) id 1KkzqB-0004tK-G6
+	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 13:26:00 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so439212rvf.41
+	for <linux-dvb@linuxtv.org>; Wed, 01 Oct 2008 04:25:52 -0700 (PDT)
+Message-ID: <48E35E38.9040909@gmail.com>
+Date: Wed, 01 Oct 2008 20:55:44 +0930
+From: Plantain <yellowplantain@gmail.com>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-References: <1223741522.48f0d052c956b@webmail.free.fr>	
-	<1223753645.3125.57.camel@palomino.walls.org>	
-	<1223768859.2706.15.camel@pc10.localdom.local>
-	<49004726.4020601@free.fr>
-	<1224799930.4202.17.camel@pc10.localdom.local>
-In-Reply-To: <1224799930.4202.17.camel@pc10.localdom.local>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] saa7134 bug in 64 bits system
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Support for Leadtek DTV1000S ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,29 +24,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Hey,
 
-I located the problem by doing the following experiment. I boot the 
-kernel with only 2G installed and everything worked fine. No if you come 
-back to the initial configuration it crash badly. A little digging on 
-google gave some nice information. It seems that this problem is the 
-combination of a bug in the bios and/or in the pci resource allocation. 
-So I will report this to the kernel list.
+I've luckily come across a Leadtek DTV1000S that I'd like to get working
+under Linux!
 
-> Just a shot into the dark, sorry again.
-> All 28 gpios are set to output, but that is not intended by the driver.
-> Previously seen such devices came up with gpio init 0.
->    
+>From reading the Leadtek specifications
+(http://leadtek.com/eng/tv_tuner/specification.asp?pronameid=382&lineid=6&act=2),
+I now understand it has contained within it the following chips;
+NXP 18271
+TDA10048
+SAA7130
+>From what I can see, all of these chips are supported by one driver or
+another in some shape or form, but I've still been unable to get my card
+to work.
 
-> After that, all IRQs fail and i2c too.
->
-> Maybe the pci=nomsi kernel boot option is worth a try.
->    
-I will try that.
+I'm guessing I have two issues here, 1) Card not being identified by
+saa7134 driver, and 2) No firmware for the tda10048
+As for 1), I'm not sure how best to find the correct card= to feed into
+the modprobe (i2c_scan doesn't seem to do anything useful), although I
+remember there used to be a bash script that would try every value and
+then check for the existence of /dev/dvb/? If anyone has a copy of that
+script, I'd greatly appreciate if you could point me towards it!
 
-Thanks for the help
+2) seems a little trickier, I've found that the Windows XP 64-bit driver
+install at the link below has .sys files within it, which should contain
+the necessary firmware? If anyone has experience extracting the
+firmware, I'd be most appreciative! Driver:
+http://leadtek.com/eng/tv_tuner/download.asp?downlineid=207&pronameid=382&lineid=6&act=3
 
-Mathieu
+I'm keen to help get this card working, so if anyone is especially
+curious I can offer you ssh to Linux/rdp to Windows.
+
+Cheers,
+
+~Plantain~
 
 _______________________________________________
 linux-dvb mailing list
