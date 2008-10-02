@@ -1,25 +1,35 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.27])
+Received: from gaealink.net ([207.244.155.134] helo=smtp.gaealink.net)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1KvslW-0003kF-9u
-	for linux-dvb@linuxtv.org; Fri, 31 Oct 2008 13:06:12 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so465495qwb.17
-	for <linux-dvb@linuxtv.org>; Fri, 31 Oct 2008 05:06:05 -0700 (PDT)
-Message-ID: <c74595dc0810310506y858cec9t1e24cd2f34aa5c6f@mail.gmail.com>
-Date: Fri, 31 Oct 2008 14:06:05 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
-To: Goga777 <goga777@bk.ru>
-In-Reply-To: <20081031145853.2b722c9f@bk.ru>
+	(envelope-from <joe@julianfamily.org>) id 1KlPd6-0006mb-55
+	for linux-dvb@linuxtv.org; Thu, 02 Oct 2008 16:58:13 +0200
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.gaealink.net (Postfix) with ESMTP id 418423D0009
+	for <linux-dvb@linuxtv.org>; Thu,  2 Oct 2008 14:58:03 +0000 (UTC)
+Received: from smtp.gaealink.net ([127.0.0.1])
+	by localhost (gaealink.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id T1HoavYqP8eQ for <linux-dvb@linuxtv.org>;
+	Thu,  2 Oct 2008 07:58:01 -0700 (PDT)
+Received: from smtp.julianfamily.org (c-76-121-237-87.hsd1.wa.comcast.net
+	[76.121.237.87])
+	by smtp.gaealink.net (Postfix) with ESMTP id 9DA013D0003
+	for <linux-dvb@linuxtv.org>; Thu,  2 Oct 2008 07:58:01 -0700 (PDT)
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.julianfamily.org (Postfix) with ESMTP id 4682C67EB2
+	for <linux-dvb@linuxtv.org>; Thu,  2 Oct 2008 14:58:01 +0000 (UTC)
+Received: from smtp.julianfamily.org ([127.0.0.1])
+	by localhost (strabo2.julianfamily.org [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id GrB-o0V4TAS0 for <linux-dvb@linuxtv.org>;
+	Thu,  2 Oct 2008 07:57:56 -0700 (PDT)
+Received: from [192.168.2.101] (questor.julianfamily.org [192.168.2.101])
+	by smtp.julianfamily.org (Postfix) with ESMTP id 8FC8D67EA8
+	for <linux-dvb@linuxtv.org>; Thu,  2 Oct 2008 07:57:56 -0700 (PDT)
+Message-ID: <48E4E175.90403@julianfamily.org>
+Date: Thu, 02 Oct 2008 07:57:57 -0700
+From: Joe Julian <joe@julianfamily.org>
 MIME-Version: 1.0
-References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
-	<b42fca4d0810280227n44d53f03hfaa8237793fc1db9@mail.gmail.com>
-	<c74595dc0810281223j25d78c9eqbcbed70a1b495b43@mail.gmail.com>
-	<b42fca4d0810281305l6e741c25ia25e1f3f348761d5@mail.gmail.com>
-	<c74595dc0810281320r9ef1a1cw172a36738c8a4e8@mail.gmail.com>
-	<c74595dc0810301510t5ae3df6fg28c6a62e999aed83@mail.gmail.com>
-	<20081031145853.2b722c9f@bk.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] HVR2250 / HVR2200 / SAA7164 status
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,120 +37,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1499964451=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1499964451==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_13866_4934251.1225454765558"
+Steven Toth wrote:
 
-------=_Part_13866_4934251.1225454765558
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+    As you know, I'm writing a driver for the SAA7164 chipset, for the
+    HVR2200 DVB-T and HVR2250 ATSC/QAM products.
 
-VGhhdCdzIGRlZmluaXRlbHkgbG9va3Mgc3RyYW5nZS4gQ2FuIHlvdSBjaGVjayB5b3VyIGRyaXZl
-ciBvdXRwdXQgdG8gc2VlIGlmCml0IHJlcG9ydGVkIHNvbWUgZXJyb3JzPwpMb29rcyBsaWtlIHlv
-dXIgZHJpdmVyIGRpZG4ndCB0dW5lIHRvIG90aGVyIGZyZXF1ZW5jaWVzIGF0IGFsbC4KCldoYXQg
-Y2FyZCBkbyB5b3UgaGF2ZT8KRGlkIHlvdSBleGl0IGZyb20gVkRSIHdoZW4geW91IHNjYW5uZWQ/
-CgpUcnkgYWxzbyBhZGRpbmcgIi1rIDMiIHRvIHRoZSBjb21tYW5kIGxpbmUuCgpPbiBGcmksIE9j
-dCAzMSwgMjAwOCBhdCAxOjU4IFBNLCBHb2dhNzc3IDxnb2dhNzc3QGJrLnJ1PiB3cm90ZToKCj4g
-8NLJ18XU09TX1cAsIEFsZXgKPgo+IHRoYW5rcyBmb3IgeW91IHdvcmsuIEJ1dCBmb3IgbWUgc2Nh
-bi1zMiB3b3JrcyBzdHJhbmdlIC0gc2Nhbi1zMiBjb3VsZG4ndAo+IGZpbmQgYSBsb3Qgb2YgZHZi
-LXMyICYgZHZiLXMgY2hhbm5lbHMgZnJvbSBBc3RyYQo+IDE5ZQo+Cj4gSSBoYXZlIGEgbG90IG9m
-IGNvcGllcyBvZiA0dGggY2hhbm5lbHMgd2l0aCBkaWZmZXJlbnQgZnJlcQo+Cj4gUFJFTUlFUkUg
-SEQ7UFJFTUlFUkU6MTE3MjA6aFMwQzM0OlMwLjBXOjI3NTAwOjc2Nzo3NzI7NzcyOjMyOjA6MTI5
-OjA6MDowCj4gRElTQ09WRVJZCj4gSEQ7UFJFTUlFUkU6MTE3MjA6aFMwQzM0OlMwLjBXOjI3NTAw
-OjEwMjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6MDowCj4gQVNUUkEgSEQrO0JldGFEaWdpdGFsOjEx
-NzIwOmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5OjEyODM7MTI4MzowOjA6MTMxOjA6MDowCj4gQU5J
-WEUgSEQ7QmV0YURpZ2l0YWw6MTE3MjA6aFMwQzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUzOTsxNTM5
-OjA6MDoxMzI6MDowOjAKPgo+IGR1bXBpbmcgbGlzdHMgKDEwOCBzZXJ2aWNlcykKPiBQUkVNSUVS
-RSBIRDtQUkVNSUVSRToxMTcyMDpoUzBDMzQ6UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6MzI6MDox
-Mjk6MDowOjAKPiBESVNDT1ZFUlkKPiBIRDtQUkVNSUVSRToxMTcyMDpoUzBDMzQ6UzAuMFc6Mjc1
-MDA6MTAyMzoxMDI3OzEwMjc6MzI6MDoxMzA6MDowOjAKPiBBU1RSQSBIRCs7QmV0YURpZ2l0YWw6
-MTE3MjA6aFMwQzM0OlMwLjBXOjI3NTAwOjEyNzk6MTI4MzsxMjgzOjA6MDoxMzE6MDowOjAKPiBB
-TklYRSBIRDtCZXRhRGlnaXRhbDoxMTcyMDpoUzBDMzQ6UzAuMFc6Mjc1MDA6MTUzNToxNTM5OzE1
-Mzk6MDowOjEzMjowOjA6MAo+IFBSRU1JRVJFIEhEO1BSRU1JRVJFOjExNzU4OmhTMEMzNDpTMC4w
-VzoyNzUwMDo3Njc6NzcyOzc3MjozMjowOjEyOTowOjA6MAo+IERJU0NPVkVSWQo+IEhEO1BSRU1J
-RVJFOjExNzU4OmhTMEMzNDpTMC4wVzoyNzUwMDoxMDIzOjEwMjc7MTAyNzozMjowOjEzMDowOjA6
-MAo+IEFTVFJBIEhEKztCZXRhRGlnaXRhbDoxMTc1ODpoUzBDMzQ6UzAuMFc6Mjc1MDA6MTI3OTox
-MjgzOzEyODM6MDowOjEzMTowOjA6MAo+IEFOSVhFIEhEO0JldGFEaWdpdGFsOjExNzU4OmhTMEMz
-NDpTMC4wVzoyNzUwMDoxNTM1OjE1Mzk7MTUzOTowOjA6MTMyOjA6MDowCj4gUFJFTUlFUkUgSEQ7
-UFJFTUlFUkU6MTE3OTg6aFMwQzM0OlMwLjBXOjI3NTAwOjc2Nzo3NzI7NzcyOjMyOjA6MTI5OjA6
-MDowCj4gRElTQ09WRVJZCj4gSEQ7UFJFTUlFUkU6MTE3OTg6aFMwQzM0OlMwLjBXOjI3NTAwOjEw
-MjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6MDowCj4gQVNUUkEgSEQrO0JldGFEaWdpdGFsOjExNzk4
-OmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5OjEyODM7MTI4MzowOjA6MTMxOjA6MDowCj4gQU5JWEUg
-SEQ7QmV0YURpZ2l0YWw6MTE3OTg6aFMwQzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUzOTsxNTM5OjA6
-MDoxMzI6MDowOjAKPiBQUkVNSUVSRSBIRDtQUkVNSUVSRToxMTgzNjpoUzBDMzQ6UzAuMFc6Mjc1
-MDA6NzY3Ojc3Mjs3NzI6MzI6MDoxMjk6MDowOjAKPgo+IHRoZSBmdWxsIGxvZyBpbgo+IGh0dHA6
-Ly9wYXN0ZS5vcmcucnUvP2cwYjBwbgo+Cj4gSSB0aGluayBzY2FuLXMyIGlzIHNjYW5uaW5nIG9u
-bHkgY3VycmVudCAxMTkxNCB0cmFuc3BvbmRlciAoaW4gbXkgY2FzZSkuCj4gV2l0aCB0aGlzIHRy
-YW5zcG9uZGVyIEkgd29ya2VkIHdpdGggdmRyIGJlZm9yZQo+IHNjYW4yIHN0YXJ0ZWQuCj4KPgo+
-Cj4gR29nYQo+Cg==
-------=_Part_13866_4934251.1225454765558
-Content-Type: text/html; charset=KOI8-R
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
+    People have been asking for status, here's where I am.
 
-PGRpdiBkaXI9Imx0ciI+VGhhdCYjMzk7cyBkZWZpbml0ZWx5IGxvb2tzIHN0cmFuZ2UuIENhbiB5
-b3UgY2hlY2sgeW91ciBkcml2ZXIgb3V0cHV0IHRvIHNlZSBpZiBpdCByZXBvcnRlZCBzb21lIGVy
-cm9ycz88YnI+TG9va3MgbGlrZSB5b3VyIGRyaXZlciBkaWRuJiMzOTt0IHR1bmUgdG8gb3RoZXIg
-ZnJlcXVlbmNpZXMgYXQgYWxsLjxicj48YnI+V2hhdCBjYXJkIGRvIHlvdSBoYXZlPzxicj4KRGlk
-IHlvdSBleGl0IGZyb20gVkRSIHdoZW4geW91IHNjYW5uZWQ/PGJyPjxicj5UcnkgYWxzbyBhZGRp
-bmcgJnF1b3Q7LWsgMyZxdW90OyB0byB0aGUgY29tbWFuZCBsaW5lLjxicj48YnI+PGRpdiBjbGFz
-cz0iZ21haWxfcXVvdGUiPk9uIEZyaSwgT2N0IDMxLCAyMDA4IGF0IDE6NTggUE0sIEdvZ2E3Nzcg
-PHNwYW4gZGlyPSJsdHIiPiZsdDs8YSBocmVmPSJtYWlsdG86Z29nYTc3N0Biay5ydSI+Z29nYTc3
-N0Biay5ydTwvYT4mZ3Q7PC9zcGFuPiB3cm90ZTo8YnI+CjxibG9ja3F1b3RlIGNsYXNzPSJnbWFp
-bF9xdW90ZSIgc3R5bGU9ImJvcmRlci1sZWZ0OiAxcHggc29saWQgcmdiKDIwNCwgMjA0LCAyMDQp
-OyBtYXJnaW46IDBwdCAwcHQgMHB0IDAuOGV4OyBwYWRkaW5nLWxlZnQ6IDFleDsiPvDSydfF1NPU
-19XALCBBbGV4PGJyPgo8YnI+CnRoYW5rcyBmb3IgeW91IHdvcmsuIEJ1dCBmb3IgbWUgc2Nhbi1z
-MiB3b3JrcyBzdHJhbmdlIC0gc2Nhbi1zMiBjb3VsZG4mIzM5O3QgZmluZCBhIGxvdCBvZiBkdmIt
-czIgJmFtcDsgZHZiLXMgY2hhbm5lbHMgZnJvbSBBc3RyYTxicj4KMTllPGJyPgo8YnI+CkkgaGF2
-ZSBhIGxvdCBvZiBjb3BpZXMgb2YgNHRoIGNoYW5uZWxzIHdpdGggZGlmZmVyZW50IGZyZXE8YnI+
-Cjxicj4KUFJFTUlFUkUgSEQ7UFJFTUlFUkU6MTE3MjA6aFMwQzM0OlMwLjBXOjI3NTAwOjc2Nzo3
-NzI7NzcyOjMyOjA6MTI5OjA6MDowPGJyPgpESVNDT1ZFUlkgSEQ7UFJFTUlFUkU6MTE3MjA6aFMw
-QzM0OlMwLjBXOjI3NTAwOjEwMjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6MDowPGJyPgpBU1RSQSBI
-RCs7QmV0YURpZ2l0YWw6MTE3MjA6aFMwQzM0OlMwLjBXOjI3NTAwOjEyNzk6MTI4MzsxMjgzOjA6
-MDoxMzE6MDowOjA8YnI+CkFOSVhFIEhEO0JldGFEaWdpdGFsOjExNzIwOmhTMEMzNDpTMC4wVzoy
-NzUwMDoxNTM1OjE1Mzk7MTUzOTowOjA6MTMyOjA6MDowPGJyPgo8YnI+CmR1bXBpbmcgbGlzdHMg
-KDEwOCBzZXJ2aWNlcyk8YnI+ClBSRU1JRVJFIEhEO1BSRU1JRVJFOjExNzIwOmhTMEMzNDpTMC4w
-VzoyNzUwMDo3Njc6NzcyOzc3MjozMjowOjEyOTowOjA6MDxicj4KRElTQ09WRVJZIEhEO1BSRU1J
-RVJFOjExNzIwOmhTMEMzNDpTMC4wVzoyNzUwMDoxMDIzOjEwMjc7MTAyNzozMjowOjEzMDowOjA6
-MDxicj4KQVNUUkEgSEQrO0JldGFEaWdpdGFsOjExNzIwOmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5
-OjEyODM7MTI4MzowOjA6MTMxOjA6MDowPGJyPgpBTklYRSBIRDtCZXRhRGlnaXRhbDoxMTcyMDpo
-UzBDMzQ6UzAuMFc6Mjc1MDA6MTUzNToxNTM5OzE1Mzk6MDowOjEzMjowOjA6MDxicj4KUFJFTUlF
-UkUgSEQ7UFJFTUlFUkU6MTE3NTg6aFMwQzM0OlMwLjBXOjI3NTAwOjc2Nzo3NzI7NzcyOjMyOjA6
-MTI5OjA6MDowPGJyPgpESVNDT1ZFUlkgSEQ7UFJFTUlFUkU6MTE3NTg6aFMwQzM0OlMwLjBXOjI3
-NTAwOjEwMjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6MDowPGJyPgpBU1RSQSBIRCs7QmV0YURpZ2l0
-YWw6MTE3NTg6aFMwQzM0OlMwLjBXOjI3NTAwOjEyNzk6MTI4MzsxMjgzOjA6MDoxMzE6MDowOjA8
-YnI+CkFOSVhFIEhEO0JldGFEaWdpdGFsOjExNzU4OmhTMEMzNDpTMC4wVzoyNzUwMDoxNTM1OjE1
-Mzk7MTUzOTowOjA6MTMyOjA6MDowPGJyPgpQUkVNSUVSRSBIRDtQUkVNSUVSRToxMTc5ODpoUzBD
-MzQ6UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6MzI6MDoxMjk6MDowOjA8YnI+CkRJU0NPVkVSWSBI
-RDtQUkVNSUVSRToxMTc5ODpoUzBDMzQ6UzAuMFc6Mjc1MDA6MTAyMzoxMDI3OzEwMjc6MzI6MDox
-MzA6MDowOjA8YnI+CkFTVFJBIEhEKztCZXRhRGlnaXRhbDoxMTc5ODpoUzBDMzQ6UzAuMFc6Mjc1
-MDA6MTI3OToxMjgzOzEyODM6MDowOjEzMTowOjA6MDxicj4KQU5JWEUgSEQ7QmV0YURpZ2l0YWw6
-MTE3OTg6aFMwQzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUzOTsxNTM5OjA6MDoxMzI6MDowOjA8YnI+
-ClBSRU1JRVJFIEhEO1BSRU1JRVJFOjExODM2OmhTMEMzNDpTMC4wVzoyNzUwMDo3Njc6NzcyOzc3
-MjozMjowOjEyOTowOjA6MDxicj4KPGJyPgp0aGUgZnVsbCBsb2cgaW48YnI+CjxhIGhyZWY9Imh0
-dHA6Ly9wYXN0ZS5vcmcucnUvP2cwYjBwbiIgdGFyZ2V0PSJfYmxhbmsiPmh0dHA6Ly9wYXN0ZS5v
-cmcucnUvP2cwYjBwbjwvYT48YnI+Cjxicj4KSSB0aGluayBzY2FuLXMyIGlzIHNjYW5uaW5nIG9u
-bHkgY3VycmVudCAxMTkxNCB0cmFuc3BvbmRlciAoaW4gbXkgY2FzZSkuIFdpdGggdGhpcyB0cmFu
-c3BvbmRlciBJIHdvcmtlZCB3aXRoIHZkciBiZWZvcmU8YnI+CnNjYW4yIHN0YXJ0ZWQuPGJyPgo8
-YnI+Cjxicj4KPGJyPgpHb2dhPGJyPgo8L2Jsb2NrcXVvdGU+PC9kaXY+PGJyPjwvZGl2Pgo=
-------=_Part_13866_4934251.1225454765558--
+    Do I have anything to share with people yet? Not yet.
+
+      
+
+    The basic driver framework is done. Firmware is loading, I can
+    talking to the silicon through the proprietary PCIe ring buffer
+    interface. I2C is working, eeprom and tuner/demod access is done.
+    The HVR2250 is responding to azap commands, the tuners and demods
+    are locking, snr looks pretty good... it's going to be a popular
+    board for people. The HVR2200 (DVB-T Version) should also worked
+    with tzap, it's untested and I can't comment on SNR at this stage. I
+    need to add the DMA/buffering code, this is the missing pieces
+    before a first public release. When I have anything to share I'll
+    put up a tree and post a 'testers required' message here. 
 
 
---===============1499964451==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+We're a couple episodes into this fall television season and I'm missing 
+my shows. ;)
+
+Having another month down, I wanted to send a friendly nudge your 
+direction, Steve, to see how this is progressing.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1499964451==--
