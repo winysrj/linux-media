@@ -1,14 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from n33.bullet.mail.mud.yahoo.com ([68.142.201.25])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <rvf16@yahoo.gr>) id 1Kn9pm-000289-8a
-	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 12:30:31 +0200
-Message-ID: <48EB3A07.6050008@yahoo.gr>
-Date: Tue, 07 Oct 2008 13:29:27 +0300
-From: rvf16 <rvf16@yahoo.gr>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] AverMedia AverTV Hybrid Express Slim
+Received: from mail-in-06.arcor-online.net ([151.189.21.46])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hermann-pitton@arcor.de>) id 1KlGjx-0003j2-UB
+	for linux-dvb@linuxtv.org; Thu, 02 Oct 2008 07:28:42 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Darren Salt <linux@youmustbejoking.demon.co.uk>
+In-Reply-To: <4FECF60EC8%linux@youmustbejoking.demon.co.uk>
+References: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
+	<alpine.DEB.2.00.0809302137380.4242@ybpnyubfg.ybpnyqbznva>
+	<4FEC93ECE8%linux@youmustbejoking.demon.co.uk>
+	<4FECF60EC8%linux@youmustbejoking.demon.co.uk>
+Date: Thu, 02 Oct 2008 07:22:53 +0200
+Message-Id: <1222924973.2672.4.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,16 +28,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello to all.
+Hi Darren,
 
-Could anyone please show some interest in this card 
-http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid_Express_Slim_HC81R
+Am Mittwoch, den 01.10.2008, 17:49 +0100 schrieb Darren Salt:
+> Will people NOT CC mail to me? Mail-Followup-To is set for a reason...
 
-and add support for it.
-I am always available to help in any way.
+from my side there was not any intention in that direction.
+Barry must have lost it previously and I did just hit the reply to all
+button.
 
-Thank you.
-Regards.
+Also interesting, unfortunately in German.
+http://www.spiegel.de/politik/ausland/0,1518,581790,00.html
+
+Cheers,
+Hermann
+
 
 
 _______________________________________________
