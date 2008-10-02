@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: "Hans Werner" <HWerner4@gmx.de>
-Date: Sat, 11 Oct 2008 12:40:36 +0300
-References: <48ED0023.8050901@promwad.com>
-	<200810090000.25621.liplianin@tut.by>
-	<20081011021209.99720@gmx.net>
-In-Reply-To: <20081011021209.99720@gmx.net>
+Received: from springbok.le.ac.uk ([143.210.4.39])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jgm11@leicester.ac.uk>) id 1KlPBm-0003qz-2Q
+	for linux-dvb@linuxtv.org; Thu, 02 Oct 2008 16:29:59 +0200
+From: "Mitchell, J.G." <jgm11@leicester.ac.uk>
+To: Plantain <yellowplantain@gmail.com>
+Date: Thu, 2 Oct 2008 15:29:41 +0100
+Message-ID: <8477EDDA0355EC429DA077A1FB414E2E1C5FF01D26@EXC-MBX1.cfs.le.ac.uk>
+References: <48E35E38.9040909@gmail.com> <48E394D0.5010808@linuxtv.org>
+	<48E3A687.9000703@gmail.com> <48E3BBD4.8090304@linuxtv.org>
+	<1222900908.2706.18.camel@pc10.localdom.local>,
+	<48E4A4A4.8030003@gmail.com>
+In-Reply-To: <48E4A4A4.8030003@gmail.com>
+Content-Language: en-GB
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200810111240.36427.liplianin@tut.by>
-Cc: linux-dvb@linuxtv.org, abraham.manu@gmail.com
-Subject: Re: [linux-dvb] stb0899 and tt s2-3200
+Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Support for Leadtek DTV1000S ?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,47 +23,183 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMTEgT2N0b2JlciAyMDA4IDA1OjEyOjA5IEhhbnMgV2VybmVyIM7B0MnT
-wcwowSk6Cj4gLS0tLS0tLS0gT3JpZ2luYWwtTmFjaHJpY2h0IC0tLS0tLS0tCj4KPiA+IERhdHVt
-OiBUaHUsIDkgT2N0IDIwMDggMDA6MDA6MjUgKzAzMDAKPiA+IFZvbjogIklnb3IgTS4gTGlwbGlh
-bmluIiA8bGlwbGlhbmluQHR1dC5ieT4KPiA+IEFuOiBsaW51eC1kdmJAbGludXh0di5vcmcsIFN0
-ZXZlbiBUb3RoIDxzdG90aEBsaW51eHR2Lm9yZz4sIFN0ZXZlbiBUb3RoCj4gPiA8c3RvdGhAaGF1
-cHBhdWdlLmNvbT4sIERhcnJvbiBCcm9hZCA8ZGFycm9uQGtld2wub3JnPiwgTWFudSBBYnJhaGFt
-Cj4gPiA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4sIHZkckBsaW51eHR2Lm9yZyBCZXRyZWZmOiBb
-bGludXgtZHZiXSBzdGIwODk5Cj4gPiBhbmQgdHQgczItMzIwMAo+ID4KPiA+IEkgc3VjY2Vzc2Z1
-bGx5IHBvcnRlZCBzdGIwODk5IHRvIFMyQVBJCj4gPiBGb3Iga25vdyBpdCBpcyBqdXN0IGZvciB0
-ZXN0aW5nIHB1cnBvc2VzLiBGZWVsIGZyZWUgdG8gdGVzdCBpdC4KPiA+IEFueSBmZWVkYmFjayB3
-ZWxjb21lLgo+ID4gTG9ja2luZyBiZXR0ZXIgd2l0aCBzemFwLXMyIChzb3JyeSkKPiA+IEkgaGF2
-ZSB0ZXN0ZWQgd2l0aCBEVkItUzIgOFBTSyBhbmQgRFZCLVMgMjc1MDAga1N5bXMvcwo+ID4KPiA+
-IGh0dHA6L21lcmN1cmlhbC5pbnR1eGljYXRpb24ub3JnL2hnL3MyLWxpcGxpYW5pbgo+ID4gaHR0
-cDovbWVyY3VyaWFsLmludHV4aWNhdGlvbi5vcmcvaGcvc3phcC1zMgo+ID4KPiA+IC0tCj4gPiBJ
-Z29yIE0uIExpcGxpYW5pbgo+Cj4gSWdvciwKPgo+IHRoZSBhdHRhY2hlZCBwYXRjaCAoYWdhaW5z
-dAo+IGh0dHA6Ly9tZXJjdXJpYWwuaW50dXhpY2F0aW9uLm9yZy9oZy9zMi1saXBsaWFuaW4pIGFk
-ZHMgUzJBUEkgc3VwcG9ydCBmb3IKPiB0aGUgU1RCMDg5OStNYW50aXMgYmFzZWQgY2FyZHMgc3Vj
-aCBhcyB0aGUKPiBUd2luaGFuIFZQLTEwNDEgKGFsc28ga25vd24gYXMgQXp1cmV3YXZlIEFEIFNQ
-NDAwIG9yIFRlY2huaXNhdCBTa3lzdGFyIEhEMikKPgo+IENvdWxkIHlvdSBwbGVhc2UgYWRkIGl0
-IHRvIHlvdXIgczItbGlwbGlhbmluIHJlcG9zaXRvcnk/Cj4KPiBJdCBpbmNsdWRlcyBNYW50aXMg
-UENJIGJyaWRnZSwgQ1UxMjE2IGFuZCBGdWppdHN1IE1CODZBMTYgRFZCLVMvRFNTIERDCj4gUmVj
-ZWl2ZXIgc3VwcG9ydC4KPgo+IEl0IGlzIHRoZSBzYW1lIGFzIHRoZSBjb2RlIGZyb20gTWFudSBB
-YnJhaGFtJ3MgbWFudGlzIHRyZWUgYXQKPiBodHRwOi8vanVzc3QuZGUvaGcvbWFudGlzLCBzbyB0
-aGFua3MgdG8gTWFudS4KPgo+IEkgdGVzdGVkIHdpdGggdGhlIFR3aW5oYW4gVlAtMTA0MS4KPiBD
-aGFubmVsIGxvY2tpbmcgd29ya3MgZm9yIG1lIGZvciBzb21lIChidXQgbm90IHlldCBhbGwpIGNo
-YW5uZWxzIHdpdGgKU2FtZSB3aXRoIG15IHMyLTMyMDAsIHNvIEkgbWFya2VkIHRoZSBkcml2ZXIg
-bGlrZSBleHBlcmltZW50YWwoIEkgbXVzdCBzYXkgCmFsbW9zdCB1c2VsZXNzLCBhcyBteSBmYXZv
-cml0ZSBjaGFubmVsIHVud2F0Y2hhYmxlKSBmb3Igbm93LgpJIHF1aWNrbHkgcG9ydGVkIHRvIFMy
-IEFQSSArIHMyLTMyMDAgdGhhdCBjb2RlOgpodHRwOi8vd3d3LnR3aW5oYW4uY29tL2ZpbGVzL0FX
-L0xpbnV4L0FaTGludXhfdjEuNC4yX0NJX0ZDNi50YXIuZ3oKQW5kIGl0IGxvY2tzIGV2ZXJ5IGNo
-YW5uZWwgKD8/PyksIGJ1dCBzdHJlYW0gYXBwZWFycyBicm9rZW4sIHRob3VnaCBJIGNhbiBzZWUs
-IAp0aGF0IGNoYW5uZWwgaXMgcmlnaHQuCkl0IGlzIG5lY2Vzc2FyeSB0byBtYWtlIGRyaXZlciBz
-dGFibGUsIHRoZW4gdG8gYWRkIGFueXRoaW5nLgo+IEthZmZlaW5lIChTMkFQSSBwYXRjaCkuIFBl
-cmhhcHMgaXQgd2lsbCBiZSBiZXR0ZXIgd2l0aCB5b3VyIHN6YXAtczIgd2hlbiBJCj4gaGF2ZSB0
-aW1lIHRvIHRlc3QgdGhhdC4KPgo+IFJlZ2FyZHMsCj4gSGFucwoKCgpSZWdhcmRzCklnb3IKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBt
-YWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcv
-Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Hello,
+
+I also have this card and I would like to get it working under Linux. I'm currently undergoing a bit of a hectic freshers week and have not been able to look into how I would go about doing this, but it seems as though you have done a fair bit of ground work. I'm also currently learning C amongst some other things and hope to be diving into it headfirst asap! If there is anything else that needs to be tested or executed then I also run 32bit XP along with 64bit Archlinux, so i have both those operating systems at my disposal.
+
+Jack
+________________________________________
+From: linux-dvb-bounces@linuxtv.org [linux-dvb-bounces@linuxtv.org] On Behalf Of Plantain [yellowplantain@gmail.com]
+Sent: 02 October 2008 11:38
+To: hermann pitton
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Support for Leadtek DTV1000S ?
+
+hermann pitton wrote:
+> Hi,
+>
+> Am Mittwoch, den 01.10.2008, 14:05 -0400 schrieb Steven Toth:
+>
+>> Plantain wrote:
+>>
+>>> Steven Toth wrote:
+>>>
+>>>> Plantain wrote:
+>>>>
+>>>>> Hey,
+>>>>>
+>>>>> I've luckily come across a Leadtek DTV1000S that I'd like to get working
+>>>>> under Linux!
+>>>>>
+>>>>> From reading the Leadtek specifications
+>>>>> (http://leadtek.com/eng/tv_tuner/specification.asp?pronameid=382&lineid=6&act=2),
+>>>>>
+>>>>> I now understand it has contained within it the following chips;
+>>>>> NXP 18271
+>>>>> TDA10048
+>>>>>
+>>>> Firmware:
+>>>>
+>>>> http://steventoth.net/linux/hvr1700/
+>>>>
+>>>> Good luck!
+>>>>
+>>>> Regards,
+>>>>
+>>>> - Steve
+>>>>
+>>> Hey,
+>>>
+>> Either you or I dropped the mailinglist is CC'd. I've added it back.
+>> Please ensure the mailinglist is CC'd at all times.
+>>
+>>
+>>> So it doesn't matter at all that they are for different cards even
+>>> though the chipsets are the same?
+>>>
+>> Correct.
+>>
+>>
+>>> Even with the firmware, it seems that the tuner is not detected/loaded.
+>>> I've pasted my current modprobe/dmesg below.
+>>>
+>> If it's not found during an i2c scan then it's probably held in reset by
+>> a GPIO. YOu'd need to figure out which GPIO needs to be raised. I don't
+>> know the 7130 framework very well by I suspect running regspy.exe (from
+>> the dscaler project) on a windows system will probably show you the gpio
+>> configuration that windows uses when the TV playback software is running.
+>>
+>
+> for all what I can see we have no analog demodulator on that card like
+> tda8290/95 or a 8290 integrated within a saa7131e chip.
+> All other saa713x chips don't have an internal analog demod with an i2c
+> bridge to control the tuner.
+>
+> That simply means there is no analog tuner and  the correct tuner type
+> for analog is tuner=4 TUNER_ABSENT. We can only configure the card for
+> auto detection as a saa7130 device, enable Composite and S-Video support
+> and maybe the remote if the IR controller is supported.
+>
+> Rest must be found and done within saa7134-dvb.c like pointed.
+> Tuner is at 0x60/0xc0 and tda10048 at 0x08 (0x10 >> 1).
+>
+>
+>>> plantain@plantain-king ~ $ sudo modprobe saa7134 card=104 tuner=54
+>>> plantain@plantain-king ~ $ dmesg
+>>> ...
+>>> saa7130/34: v4l2 driver version 0.2.14 loaded
+>>> saa7130[0]: found at 0000:01:07.0, rev: 1, irq: 19, latency: 32, mmio:
+>>> 0xfc005000
+>>> saa7130[0]: subsystem: 107d:6655, board: Hauppauge WinTV-HVR1110
+>>> DVB-T/Hybrid [card=104,insmod option]
+>>> saa7130[0]: board init: gpio is 222104
+>>> Chip ID is not zero. It is not a TEA5767
+>>> tuner' 2-0060: chip found @ 0xc0 (saa7130[0])
+>>> saa7130[0]: i2c eeprom 00: 7d 10 55 66 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+>>> saa7130[0]: i2c eeprom 10: 00 ff 82 0e ff 20 ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom 20: 01 40 01 01 01 ff 01 03 08 ff 00 8a ff ff ff ff
+>>> saa7130[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom 40: ff 35 00 c0 00 10 03 02 ff 04 ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> saa7130[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>>> tveeprom 2-0050: Encountered bad packet header [ff]. Corrupt or not a
+>>> Hauppauge eeprom.
+>>> saa7130[0]: warning: unknown hauppauge model #0
+>>> saa7130[0]: hauppauge eeprom: model=0
+>>> tuner' 2-0060: Tuner has no way to set tv freq
+>>> tuner' 2-0060: Tuner has no way to set tv freq
+>>> saa7130[0]: registered device video0 [v4l2]
+>>> saa7130[0]: registered device vbi0
+>>> saa7130[0]: registered device radio0
+>>> tda10046: chip is not answering. Giving up.
+>>> tuner' 2-0060: Tuner has no way to set tv freq
+>>> plantain@plantain-king ~ $
+>>>
+>>>
+>>> I believe I am right with the tuner=54 modprobe option for the NXP 18271?
+>>> I've no idea what to actually set card= to, I just guessed HVR1110 since
+>>> it was similar to the firmware from which I've now taken from. If anyone
+>>> can point me towards a better card= setting, that'd be great!
+>>>
+>> I don't normally force load drivers with card=X. I typically just start
+>> patching the [7130] tree with the correct PCI'd, attach structs etc.
+>> It's easier that guessing - which leads to bad assumptions and mistakes.
+>>
+>> You can use the other trees [ cx23885, cx88 ] for reference code to show
+>> how to attach tuners and demods.
+>>
+>> - Steve
+>>
+>>
+> Cheers,
+> Hermann
+>
+>
+Hey,
+
+I'm not actually able to code in C, but I've spent the last 24 hours
+puddling around trying to get somewhere. I believe I've added everything
+that is needed for the card to be detected, but it's not detecting it,
+even if I specify it with card=152 (the ID I've added). I have got the
+code to compile at least, which I'm pretty proud of :)
+
+I managed to get regspy to work (needed to revert 64bit vista to 32bit
+XP), but the viewing software that came with the card just crashes on
+32bit XP. I've built a small wiki page (with highres images) detailing
+my progress, but I've really just hit a brick wall. Wikipage at
+http://www.linuxtv.org/wiki/index.php/WinFast_DTV_1000_S
+
+Short of learning C (which I am very slowly doing), I don't see anyway
+forwards under my direction, so I've attached my efforts in the hope
+someone else can take this forwards. From my limited understanding I've
+provided all the necessary information for someone to finish it, and if
+not I'll happily dig up anything else needed. I'm not familiar with any
+version control system/patching, so I've just hg diff > file.diff, I
+hope this is adequate.
+
+I'm on #linuxtv @ freenode IRC for a significant portion of the day if
+anyone has pointers for me/wants to ask questions about the card.
+
+Cheers,
+
+~Matthew~ (plantain on IRC)
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
