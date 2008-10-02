@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f18.google.com ([209.85.217.18])
+Received: from wf-out-1314.google.com ([209.85.200.170])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <morgan.torvolt@gmail.com>) id 1KuUlg-0003Kk-0x
-	for linux-dvb@linuxtv.org; Mon, 27 Oct 2008 17:16:38 +0100
-Received: by gxk11 with SMTP id 11so223772gxk.17
-	for <linux-dvb@linuxtv.org>; Mon, 27 Oct 2008 09:16:02 -0700 (PDT)
-Message-ID: <3cc3561f0810270916y2f9e07c1v9b9f27823cead38@mail.gmail.com>
-Date: Mon, 27 Oct 2008 16:16:01 +0000
-From: "=?ISO-8859-1?Q?Morgan_T=F8rvolt?=" <morgan.torvolt@gmail.com>
-To: "Andy Walls" <awalls@radix.net>
-In-Reply-To: <1225122896.3124.13.camel@palomino.walls.org>
+	(envelope-from <websdaleandrew@googlemail.com>) id 1KlUrw-0003se-5G
+	for linux-dvb@linuxtv.org; Thu, 02 Oct 2008 22:33:53 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so1359236wfd.17
+	for <linux-dvb@linuxtv.org>; Thu, 02 Oct 2008 13:33:46 -0700 (PDT)
+Message-ID: <e37d7f810810021333j79a2469draaed9c0858bbc516@mail.gmail.com>
+Date: Thu, 2 Oct 2008 21:33:46 +0100
+From: "Andrew Websdale" <websdaleandrew@googlemail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
-	<49033440.6090609@gmx.de>
-	<3cc3561f0810270337h4c33dd80n9b779a8dc3c8f8ce@mail.gmail.com>
-	<20081027140348.GE9657@localhost>
-	<1225122896.3124.13.camel@palomino.walls.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [RFC] SNR units in tuners
+Content-Type: multipart/mixed;
+	boundary="----=_Part_5884_20433671.1222979626619"
+Subject: [linux-dvb] DPosh m9206 USB DVB-T stick with MT2060
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,55 +20,114 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->> My guess is that it is possible. Actually, it is quite easy for QPSK ;-) You
->> only need to calculate the distance of the IQ-value from the ideal symbol
->> center ( (sqrt(0.5),sqrt(0.5)) or whatever) after the
->> rotator/retiming-block.
->>
->
-> Isn't that just Error Vector Magnitude (EVM)?
->
-> <musing>
-> I suppose over a number of samples, EVM gives you an idea of the noise
-> power + source transmitter deformation, if the received signal remains
-> at a constant power.  I suppose you could estimate signal strength by
-> examining amplifier gain settings.
-> </musing>
+------=_Part_5884_20433671.1222979626619
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Easy and possible as it might be, my experience, this is not done.
-Since one can _very_ easily get the actual bit-error rate using FEC
-error corrections, there is no need to implement anything but the very
-simplest demodulator. The formula converting from BER to SNR is quite
-accurate and not very calculation intensive. You could just have a
-small look-up table for it if you wanted.
+     Some time ago I had a brief correspondence on here with Antii
+about adding support for the MT2060 tuner to the DPosh driver( there's
+recently been a load of these on sale in several places for 10 GBP
+ish). I had a go at hacking something together, which although
+definitely poorly written, did appear to work. However, my signal at
+home is currently just not quite good enough to test it properly, so I
+let the matter rest for the moment.
+     Then I was contacted by a guy who'd bought the same stick & been
+following my posts - he tried it & is definitely receiving TV
+stations(with plenty of room for improvement), so it seems that its
+worth going further with it.
+      I've attached a diff of m920x.c -  I'd like some help with a)the
+correct mechanism for detecting which tuner chip is present (i.e.
+QT1010/MT2060) , b) what to tweak to improve output quality & c)
+whether my whole approach is wrong or what?- I have no experience of
+driver programming or C, though I know a little about C++ app
+development. Hugh (the guy with another DPosh stick) will be able to
+test any changes as will I (if I can improve my Freeview signal).
+Regards Andrew Websdale
 
-As for the signal level, then yes, it is usually "measured" by the
-needed preamp gain. Since this is highly temperature dependent, most
-professional equipment do not give you a signal level measurement.
+------=_Part_5884_20433671.1222979626619
+Content-Type: text/x-patch; name=m920x.diff
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fltu3up20
+Content-Disposition: attachment; filename=m920x.diff
 
-I can list a few equipment names that does the one or the other if
-anyone is interested. NEC actually measure the SNR properly in some of
-their equipment, which makes it possible to compare the SNR and BER to
-figure out if something is wrong (like a interference carrier hidden
-inside the data carrier).
-
-I must say that if any low-end equipment acutally measures the SNR
-properly, I will be very surprised. To get this feature usually costs
-thousands of dollars. If anyone could point me to a low cost DVB
-receiver that actually does this right, I would very much like to
-know.
-
-
-Regards
-Morgan
+LS0tIC4uL3Y0bC1kdmIub3JpZy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL205MjB4
+LmMJMjAwOC0wOS0yNCAyMzozNjo0Ny4wMDAwMDAwMDAgKzAxMDAKKysrIGxpbnV4L2RyaXZlcnMv
+bWVkaWEvZHZiL2R2Yi11c2IvbTkyMHguYwkyMDA4LTA3LTA0IDIzOjE3OjE5LjAwMDAwMDAwMCAr
+MDEwMApAQCAtMTAsNyArMTAsNyBAQAogICovCiAKICNpbmNsdWRlICJtOTIweC5oIgotCisjaW5j
+bHVkZSAibXQyMDYwLmgiCiAjaW5jbHVkZSAibXQzNTIuaCIKICNpbmNsdWRlICJtdDM1Ml9wcml2
+LmgiCiAjaW5jbHVkZSAicXQxMDEwLmgiCkBAIC0yMCw2ICsyMCw3IEBACiAKIC8qIGRlYnVnICov
+CiBzdGF0aWMgaW50IGR2Yl91c2JfbTkyMHhfZGVidWc7CitzdGF0aWMgYm9vbCBiZHBvc2hfd2Fy
+bSA9IGZhbHNlOwogbW9kdWxlX3BhcmFtX25hbWVkKGRlYnVnLGR2Yl91c2JfbTkyMHhfZGVidWcs
+IGludCwgMDY0NCk7CiBNT0RVTEVfUEFSTV9ERVNDKGRlYnVnLCAic2V0IGRlYnVnZ2luZyBsZXZl
+bCAoMT1yYyAob3ItYWJsZSkpLiIgRFZCX1VTQl9ERUJVR19TVEFUVVMpOwogCkBAIC00NzcsNiAr
+NDc4LDEwIEBACiAJLmkyY19hZGRyZXNzID0gMHg2MgogfTsKIAorc3RhdGljIHN0cnVjdCBtdDIw
+NjBfY29uZmlnIG05MjB4X210MjA2MF9jb25maWcgPSB7CisJLmkyY19hZGRyZXNzID0gMHg2MCAg
+ICAgICAgICAKK307CisKIC8qIENhbGxiYWNrcyBmb3IgRFZCIFVTQiAqLwogc3RhdGljIGludCBt
+OTIweF9tdDM1Ml9mcm9udGVuZF9hdHRhY2goc3RydWN0IGR2Yl91c2JfYWRhcHRlciAqYWRhcCkK
+IHsKQEAgLTU0NCw2ICs1NDksMTkgQEAKIAlyZXR1cm4gMDsKIH0KIAorc3RhdGljIGludCBtOTIw
+eF9tdDIwNjBfdHVuZXJfYXR0YWNoKHN0cnVjdCBkdmJfdXNiX2FkYXB0ZXIgKmFkYXApCit7CisJ
+dTE2IGlmMTsKKwkKKwlkZWIoIiVzXG4iLF9fZnVuY19fKTsKKwkKKwlpZjEgPSAxMjIwOworCQor
+CWlmIChkdmJfYXR0YWNoKG10MjA2MF9hdHRhY2gsIGFkYXAtPmZlLCAmYWRhcC0+ZGV2LT5pMmNf
+YWRhcCwgJm05MjB4X210MjA2MF9jb25maWcsIGlmMSkgPT0gTlVMTCkKKwkJcmV0dXJuIC1FTk9E
+RVY7CisKKwlyZXR1cm4gMDsKK30KIC8qIGRldmljZS1zcGVjaWZpYyBpbml0aWFsaXphdGlvbiAq
+Lwogc3RhdGljIHN0cnVjdCBtOTIweF9pbml0cyBtZWdhc2t5X3JjX2luaXQgW10gPSB7CiAJeyBN
+OTIwNl9SQ19JTklUMiwgMHhhOCB9LApAQCAtNjA0LDcgKzYyMiw4IEBACiBzdGF0aWMgc3RydWN0
+IGR2Yl91c2JfZGV2aWNlX3Byb3BlcnRpZXMgbWVnYXNreV9wcm9wZXJ0aWVzOwogc3RhdGljIHN0
+cnVjdCBkdmJfdXNiX2RldmljZV9wcm9wZXJ0aWVzIGRpZ2l2b3hfbWluaV9paV9wcm9wZXJ0aWVz
+Owogc3RhdGljIHN0cnVjdCBkdmJfdXNiX2RldmljZV9wcm9wZXJ0aWVzIHR2d2Fsa2VydHdpbl9w
+cm9wZXJ0aWVzOwotc3RhdGljIHN0cnVjdCBkdmJfdXNiX2RldmljZV9wcm9wZXJ0aWVzIGRwb3No
+X3Byb3BlcnRpZXM7CitzdGF0aWMgc3RydWN0IGR2Yl91c2JfZGV2aWNlX3Byb3BlcnRpZXMgZHBv
+c2hfcHJvcGVydGllczsvL3F0MTAxMAorc3RhdGljIHN0cnVjdCBkdmJfdXNiX2RldmljZV9wcm9w
+ZXJ0aWVzIGRwb3NoX210X3Byb3BlcnRpZXM7Ly9mb3IgbXQyMDYwCiAKIHN0YXRpYyBpbnQgbTky
+MHhfcHJvYmUoc3RydWN0IHVzYl9pbnRlcmZhY2UgKmludGYsCiAJCSAgICAgICBjb25zdCBzdHJ1
+Y3QgdXNiX2RldmljZV9pZCAqaWQpCkBAIC02NDIsMTMgKzY2MSwyNSBAQAogCQkJcmNfaW5pdF9z
+ZXEgPSB0dndhbGtlcnR3aW5fcmNfaW5pdDsKIAkJCWdvdG8gZm91bmQ7CiAJCX0KLQotCQlyZXQg
+PSBkdmJfdXNiX2RldmljZV9pbml0KGludGYsICZkcG9zaF9wcm9wZXJ0aWVzLAorCQkKKwkJcmV0
+ID0gZHZiX3VzYl9kZXZpY2VfaW5pdChpbnRmLCAmZHBvc2hfbXRfcHJvcGVydGllcywKIAkJCQkJ
+ICBUSElTX01PRFVMRSwgJmQsIGFkYXB0ZXJfbnIpOwogCQlpZiAocmV0ID09IDApIHsKIAkJCS8q
+IFJlbW90ZSBjb250cm9sbGVyIG5vdCBzdXBwb3J0ZWQgeWV0LiAqLworCQkJYmRwb3NoX3dhcm0g
+PSB0cnVlOwkJCQogCQkJZ290byBmb3VuZDsKIAkJfQorCQkKKwkJaWYgKGJkcG9zaF93YXJtICE9
+IHRydWUpeyAJCQorCQkJcmV0ID0gZHZiX3VzYl9kZXZpY2VfaW5pdChpbnRmLCAmZHBvc2hfcHJv
+cGVydGllcywKKwkJCQkJICBUSElTX01PRFVMRSwgJmQsIGFkYXB0ZXJfbnIpOworCQkJaWYgKHJl
+dCA9PSAwKSB7CisJCQkvKiBSZW1vdGUgY29udHJvbGxlciBub3Qgc3VwcG9ydGVkIHlldC4gKi8K
+KwkJCQlnb3RvIGZvdW5kOworCQkJfQorCQl9CisKKwogCiAJCXJldHVybiByZXQ7CiAJfSBlbHNl
+IHsKQEAgLTg4NiwxNCArOTE3LDU5IEBACiAKIAkubnVtX2RldmljZV9kZXNjcyA9IDEsCiAJLmRl
+dmljZXMgPSB7Ci0JCSB7ICAgLm5hbWUgPSAiRHBvc2ggRFZCLVQgVVNCMi4wIiwKKwkJIHsgICAu
+bmFtZSA9ICJEcG9zaChxdDEwMTAgdHVuZXIpIERWQi1UIFVTQjIuMCIsCisJCSAgICAgLmNvbGRf
+aWRzID0geyAmbTkyMHhfdGFibGVbNF0sIE5VTEwgfSwKKwkJICAgICAud2FybV9pZHMgPSB7ICZt
+OTIweF90YWJsZVs1XSwgTlVMTCB9LAorCQkgfSwKKwkgfQorfTsKKworCitzdGF0aWMgc3RydWN0
+IGR2Yl91c2JfZGV2aWNlX3Byb3BlcnRpZXMgZHBvc2hfbXRfcHJvcGVydGllcyA9IHsKKwkuY2Fw
+cyA9IERWQl9VU0JfSVNfQU5fSTJDX0FEQVBURVIsCisKKwkudXNiX2N0cmwgPSBERVZJQ0VfU1BF
+Q0lGSUMsCisJLmZpcm13YXJlID0gImR2Yi11c2ItZHBvc2gtMDEuZnciLAorCS5kb3dubG9hZF9m
+aXJtd2FyZSA9IG05MjB4X2Zpcm13YXJlX2Rvd25sb2FkLAorCisJLnNpemVfb2ZfcHJpdiAgICAg
+PSBzaXplb2Yoc3RydWN0IG05MjB4X3N0YXRlKSwKKworCS5pZGVudGlmeV9zdGF0ZSAgID0gbTky
+MHhfaWRlbnRpZnlfc3RhdGUsCisJLm51bV9hZGFwdGVycyA9IDEsCisJLmFkYXB0ZXIgPSB7ewor
+CisJCS5mcm9udGVuZF9hdHRhY2ggID0gbTkyMHhfbXQzNTJfZnJvbnRlbmRfYXR0YWNoLAorCQku
+dHVuZXJfYXR0YWNoICAgICA9IG05MjB4X210MjA2MF90dW5lcl9hdHRhY2gsCisKKwkJLnN0cmVh
+bSA9IHsKKwkJCS50eXBlID0gVVNCX0JVTEssCisJCQkuY291bnQgPSA3LAorCQkJLmVuZHBvaW50
+ID0gMHg4MSwKKwkJCS51ID0geworCQkJCSAuYnVsayA9IHsKKwkJCQkJIC5idWZmZXJzaXplID0g
+NTEyLAorCQkJCSB9CisJCQl9CisJCX0sCisJfX0sCisJLmkyY19hbGdvICAgICAgICAgPSAmbTky
+MHhfaTJjX2FsZ28sCisKKwkubnVtX2RldmljZV9kZXNjcyA9IDEsCisJLmRldmljZXMgPSB7CisJ
+CSB7ICAgLm5hbWUgPSAiRHBvc2gobXQyMDYwIHR1bmVyKSBEVkItVCBVU0IyLjAiLAogCQkgICAg
+IC5jb2xkX2lkcyA9IHsgJm05MjB4X3RhYmxlWzRdLCBOVUxMIH0sCiAJCSAgICAgLndhcm1faWRz
+ID0geyAmbTkyMHhfdGFibGVbNV0sIE5VTEwgfSwKIAkJIH0sCiAJIH0KKworCiB9OwogCisKIHN0
+YXRpYyBzdHJ1Y3QgdXNiX2RyaXZlciBtOTIweF9kcml2ZXIgPSB7CisjaWYgTElOVVhfVkVSU0lP
+Tl9DT0RFIDw9ICBLRVJORUxfVkVSU0lPTigyLDYsMTUpCisJLm93bmVyCQk9IFRISVNfTU9EVUxF
+LAorI2VuZGlmCiAJLm5hbWUJCT0gImR2Yl91c2JfbTkyMHgiLAogCS5wcm9iZQkJPSBtOTIweF9w
+cm9iZSwKIAkuZGlzY29ubmVjdAk9IGR2Yl91c2JfZGV2aWNlX2V4aXQsCg==
+------=_Part_5884_20433671.1222979626619
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_5884_20433671.1222979626619--
