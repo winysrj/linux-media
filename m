@@ -1,13 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-To: linux-dvb@linuxtv.org, Steven Toth <stoth@linuxtv.org>,
-	Steven Toth <stoth@hauppauge.com>
-From: "Igor M. Liplianin" <liplianin@tut.by>
-Date: Sun, 5 Oct 2008 15:28:57 +0300
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_JML6IQ3tQMj1+/s"
-Message-Id: <200810051528.57446.liplianin@tut.by>
-Subject: [linux-dvb] [PATCH] S2API  Remove NULL pointer in stb6000 driver.
+Received: from mail1.radix.net ([207.192.128.31])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <awalls@radix.net>) id 1KlCMZ-0002Ps-LZ
+	for linux-dvb@linuxtv.org; Thu, 02 Oct 2008 02:48:16 +0200
+From: Andy Walls <awalls@radix.net>
+To: David Cintron <loudestnoise@gmail.com>
+In-Reply-To: <2D4C0F1E-D73D-475C-BF64-91EF4A6E0BFE@gmail.com>
+References: <2D4C0F1E-D73D-475C-BF64-91EF4A6E0BFE@gmail.com>
+Date: Wed, 01 Oct 2008 20:47:05 -0400
+Message-Id: <1222908425.2641.37.camel@morgan.walls.org>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx18: Testers needed for patch to solve	non-working
+	CX23418 cards	under linux (Re: cx18: Possible
+	causal	realtionship for HVR-1600 I2C	errors)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -15,72 +21,105 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_JML6IQ3tQMj1+/s
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Mon, 2008-09-29 at 23:08 -0500, David Cintron wrote:
+> > > > To all the users of CX23418 based cards that currently don't  
+> seem to
+> work, showing some of the above symptoms, please test my latest changes
+> at: http://linuxtv.org/hg/~awalls/v4l-dvb
 
-Steve,
+This repo should be OK for getting over initial problems (but it has a
+buffering change that I probably won't ask to be pulled).  I would
+however encourage you to use the main repo at
 
-Remove NULL pointer in stb6000 driver,
-as it raises error for DvbWorld USB card.
+http://linuxtv.org/hg/v4l-dvb
 
-Igor
+or this one which has a patch to improve reliability for some older
+systems:
 
---Boundary-00=_JML6IQ3tQMj1+/s
-Content-Type: text/x-diff;
-  charset="koi8-r";
-  name="9076.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="9076.patch"
+http://linuxtv.org/hg/~awalls/cx18-mmio-fixes
 
-# HG changeset patch
-# User Igor M. Liplianin <liplianin@me.by>
-# Date 1223207831 -10800
-# Node ID 4b968f970a42a266179113bb3280250e42ccd2f3
-# Parent  8dc74aaea8b20dea5b42c32873984c2c28a8ab6e
-Remove NULL pointer in stb6000 driver.
 
-From: Igor M. Liplianin <liplianin@me.by>
 
-Remove NULL pointer in stb6000 driver,
-as it raises error for DvbWorld USB card.
 
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+> I can't seem to get the HVR-1600 working on my system and I've tried  
+> awalls' revisions.  I already have a working PVR-500 in my system and  
+> have am wondering if this is contributing to my problems.
 
-diff -r 8dc74aaea8b2 -r 4b968f970a42 linux/drivers/media/dvb/frontends/stb6000.c
---- a/linux/drivers/media/dvb/frontends/stb6000.c	Sun Oct 05 14:52:18 2008 +0300
-+++ b/linux/drivers/media/dvb/frontends/stb6000.c	Sun Oct 05 14:57:11 2008 +0300
-@@ -202,12 +202,13 @@
- 						struct i2c_adapter *i2c)
- {
- 	struct stb6000_priv *priv = NULL;
-+	u8 b0[] = { 0 };
- 	u8 b1[] = { 0, 0 };
- 	struct i2c_msg msg[2] = {
- 		{
- 			.addr = addr,
- 			.flags = 0,
--			.buf = NULL,
-+			.buf = b0,
- 			.len = 0
- 		}, {
- 			.addr = addr,
+Maybe, but not likely.
 
---Boundary-00=_JML6IQ3tQMj1+/s
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+
+>  I can't seem  
+> to get the card to initialize.  dmesg | grep cx18 returns nothing.
+
+OK.  Let me ask some basic questions that you may have already verified:
+
+
+1.  Does the following command show a cx18.ko module installed?
+
+$ find /lib/modules -name cx18.ko -print
+
+
+
+2. Does this command:
+
+$ /sbin/lspci -vv
+
+show a
+
+"Multimedia video controller: Conexant CX23418 Single-Chip MPEG-2 Encoder with Integrated Analog Video/Broadcast Audio Decoder
+Subsystem: Hauppauge computer works Inc. Unknown device 7444"
+
+?
+
+
+3. Have you installed the firmware from this archive:
+
+http://dl.ivtvdriver.org/ivtv/firmware/cx18-firmware.tar.gz
+
+into the proper directory (e.g. /lib/firmware) for your distribution?
+
+
+
+4.  When you perform these commands as root:
+
+# modprobe -r cx18
+# modprobe cx18 debug=3
+
+does modporbe emit any errors and what does 'dmesg' or /var/log/messages
+show?  (Please don't grep on cx18, as not all relevant messages will
+have cx18 in them.)
+
+
+5.  When the module is loaded, it should always blurt out at least
+"cx18:  Start initialization, version 1.0.0" in dmesg and messages,
+unless the kernel couldn't load the module.  If the kernel couldn't load
+the module, it should log an error message: what is that message?
+
+
+> Also, I get the errors when running make unload:
+> loudestnoise@loudestnoise-desktop:~/v4l-dvb-fc3285e4b3fa$ sudo make  
+> unload
+
+I wouldn't worry about those.  I get them too.  As long as lsmod shows
+the modules have been unloaded, you're fine.
+
+
+
+Regards,
+Andy
+
+> - David C. (loudestnoise)
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_JML6IQ3tQMj1+/s--
