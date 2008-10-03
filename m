@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web38806.mail.mud.yahoo.com ([209.191.125.97])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <krabaey@yahoo.com>) id 1Kow9n-00008I-W8
-	for linux-dvb@linuxtv.org; Sun, 12 Oct 2008 10:18:35 +0200
-Date: Sun, 12 Oct 2008 01:17:56 -0700 (PDT)
-From: Koen Rabaey <krabaey@yahoo.com>
-To: linux-dvb@linuxtv.org
+Received: from ey-out-2122.google.com ([74.125.78.26])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1Klq7c-0000MW-I9
+	for linux-dvb@linuxtv.org; Fri, 03 Oct 2008 21:15:31 +0200
+Received: by ey-out-2122.google.com with SMTP id 25so668977eya.17
+	for <linux-dvb@linuxtv.org>; Fri, 03 Oct 2008 12:15:25 -0700 (PDT)
+Date: Fri, 3 Oct 2008 21:15:04 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Lee Jones <slothpuck@gmail.com>
+In-Reply-To: <c362cb880810011000u2a9f7e5n6cb3b81a7fbec24c@mail.gmail.com>
+Message-ID: <alpine.DEB.2.00.0810032006290.4242@ybpnyubfg.ybpnyqbznva>
+References: <c362cb880810011000u2a9f7e5n6cb3b81a7fbec24c@mail.gmail.com>
 MIME-Version: 1.0
-Message-ID: <442626.63058.qm@web38806.mail.mud.yahoo.com>
-Subject: [linux-dvb] cx88_wakeup message with HVR4000
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,25 +27,126 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Wed, 1 Oct 2008, Lee Jones wrote:
 
-I don't know if it is of any use to anyone, but when I do a dmesg after booting, 
-at the end I get (from time to time, not consistently, the number of buffers also varies)
+> all the responses. FIrst of alll what does "PID" stand for?
 
-[  123.601789] cx88_wakeup: 7 buffers handled (should be 1)
-[  123.751892] cx88_wakeup: 7 buffers handled (should be 1)
+As I have used it, it is the numbers used to identify the
+video and audio streams that can be found highlighted
+below.
 
-This does not seem to interfere with dvb playback however.
-
-I'm owning an HVR4000, compiled with http://linuxtv.org/hg/~stoth/s2/ 
-on a '2.6.27-4-generic' kernel.
-
-Kind regards,
-
-Koen
+As for what it means, rather than post bogus information
+from the top of my head, you can probably learn more
+details than you want, by searching for MPEG Transport
+Stream Audio Video PID or something similar.
 
 
-      
+> btw, first of all here's the tuning details that w_scan originally found;
+
+Thanks.  Now I owe it to everyone to figure out exactly
+what w_scan is and how it differs from my hacked `scan'...
+
+
+> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> T 530000000 8MHz AUTO AUTO AUTO AUTO AUTO NONE
+> T 562000000 8MHz AUTO AUTO AUTO AUTO AUTO NONE
+> T 570000000 8MHz AUTO AUTO AUTO AUTO AUTO NONE
+
+Hmmm, that's it?  You seem to be missing a few of the
+frequencies, like half of them, posted in my earlier
+reply, sent from this transmitter...
+
+What is interesting to me is that the missing freqs
+all have a negative offset (490, 546, & 514MHz nominal)
+so perhaps this scan can handle no-offset 530 and the
++1/6MHz offsets of 562 and 570MHz.
+
+
+You posted earlier some `tzap' signal-strength and bit-
+error-rate values.  You also said your other DVB-T card
+received all stations without problems.  Do you see similar
+error rates, or even better, from this other card?
+
+I can't say anything about the signal strength, as there
+is no fixed reference against which all linux drivers are
+calibrated, but `9e' is near the middle of the range
+between `00' and `ff'.
+
+It's possible there's a sensitivity problem that needs to
+be tweaked by the driver (a LNA or something).
+
+(Let me connect a simple short antenna and see how one of
+my tuner cards works against two line-of-sight transmitters
+within my Faraday-cage-type room.  Hmmm.  Oh yes.  Oh, yes!)
+
+At least for me, `ff' means no useful signal, `9x' has a
+few errors, and I do well at `7x'.  My BER rate is zero,
+except when I have a horribly weak signal.  Ooh, that one
+blasts in compared with the others.  So why did my recent
+recording of that frequency with an amplified yagi get all
+messed up?  Hmmm...
+
+You didn't say anything about your distance from the
+transmitter, the terrain, and so on -- given that the services
+I receive all post-DSO and are full-strength, while you are
+receiving a lower-power signal until your DSO, I'd like to
+see the `tzap' output from each of the six frequencies with
+your other card, if possible.
+
+By me, I can get `ffff' for SNR and uncorrected BER of 0
+with a simple stub of an antenna, and I would hope you would
+see the same.
+
+
+> And a few lines from channels.conf,  generated by scan;
+> ITV1:530000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO
+ [snip]:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:520:521:8270
+                                           ^^^ ^^^
+I've highlighted the video and audio PIDs respectively above
+(fixed-width font of course).
+  
+
+> BBC FOUR:562000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:
+ GUARD_INTERVAL_AUTO:HIERARCHY_NONE:0:0:16832
+                                    ^ ^
+As this scan was done sometime in the day (before 19h your-
+time), you don't get the BBC Four PIDs -- as was noted by
+another poster, these are shared with CBeebies, for which
+you will (should!) have obtained correct values.
+
+
+> And I'm guessing this is Mux B (C34); not sure though!
+
+> 0x0000 0x41c0: pmt_pid 0x02be BBC -- BBC FOUR (running)
+> 0x0000 0x4240: pmt_pid 0x02bf BBC -- CBeebies (running)
+
+No problems tuning.  Interesting, though -- by satellite,
+the status of BBC3/4 CBBC/CBeebies is such that by day,
+the first two are tagged as `(not running)', and by night,
+the latter two...
+
+In any case, you should be able to ``tune'' into BBC4 by
+instead tuning to CBeebies after 19h.  Or you can permanently
+fix this by copying the PID values from CBeebies by day to
+the 0-values of BBC4 -- repeat for CBBC and BBC3.  Doing so
+will give you the correct Service ID (following the video+
+audio PIDs).
+
+
+> I hope that is the correct infos!
+
+Close enough  ;-)
+
+First question:  if you download the latest tuning file from
+../HG-src/dvb-apps/util/scan/dvb-t/uk-Rowridge
+are you able to receive all six frequencies with both cards?
+
+Second:  How do the `tzap' values for both cards for all
+frequencies compare, with the same aerial input -- in particular,
+the signal strength, BER, and SNR values?
+
+
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
