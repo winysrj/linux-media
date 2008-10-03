@@ -1,14 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-To: linux-dvb@linuxtv.org, Steven Toth <stoth@linuxtv.org>,
-	Steven Toth <stoth@hauppauge.com>
-From: "Igor M. Liplianin" <liplianin@tut.by>
-Date: Sun, 5 Oct 2008 15:26:19 +0300
+Received: from nf-out-0910.google.com ([64.233.182.189])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1Klo14-0000eo-Nv
+	for linux-dvb@linuxtv.org; Fri, 03 Oct 2008 19:00:35 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so723609nfb.11
+	for <linux-dvb@linuxtv.org>; Fri, 03 Oct 2008 10:00:31 -0700 (PDT)
+Date: Fri, 3 Oct 2008 19:00:03 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Simon Siemonsma <simon@siemonsma.name>
+In-Reply-To: <200810031359.02734.simon@siemonsma.name>
+Message-ID: <alpine.DEB.2.00.0810031856190.4242@ybpnyubfg.ybpnyqbznva>
+References: <200809282207.20443.simon@siemonsma.name>
+	<200810031359.02734.simon@siemonsma.name>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_rJL6I2z0Fzw/yji"
-Message-Id: <200810051526.19653.liplianin@tut.by>
-Subject: [linux-dvb] [PATCH] S2API Allow custom inittab for ST STV0288
-	demodulator.
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Can't record an encrypted channel and watch another
+ in the same bouquet. (also teletext doesn't work for encrypted channels)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,63 +23,31 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_rJL6I2z0Fzw/yji
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Fri, 3 Oct 2008, Simon Siemonsma wrote:
 
-Steve,
+> I understood:
 
-Allow custom inittab for ST STV0288 demodulator,
-as it is needed for DvbWorld USB card.
+> -teletext is encrypted in the Netherlands while it normaly shouldn't.
 
-Igor
+I don't think so -- I've had no problems viewing NOS-text with
+a FTA receiver -- if you could give me names of particular
+channels from which you want to view ttx, I can check at
+19E2 or 23E5 (DVB-S).
 
---Boundary-00=_rJL6I2z0Fzw/yji
-Content-Type: text/x-diff;
-  charset="koi8-r";
-  name="9036.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="9036.patch"
+It could be that some subscription services do encrypt the
+teletext, as I've seen that with a few other channels.
 
-# HG changeset patch
-# User Igor M. Liplianin <liplianin@me.by>
-# Date 1222957999 -10800
-# Node ID 63aceadbc87a5ae27c68c5e5698b327757aaf5f5
-# Parent  c6088a57a2714ba67a6e7c88d449d05d60053e91
-Makefile fix for ST STV0288 demodulator.
 
-From: Igor M. Liplianin <liplianin@me.by>
-
-Makefile fix for ST STV0288 demodulator.
-
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
-
-diff -r c6088a57a271 -r 63aceadbc87a linux/drivers/media/dvb/frontends/Makefile
---- a/linux/drivers/media/dvb/frontends/Makefile	Thu Sep 25 23:29:49 2008 -0400
-+++ b/linux/drivers/media/dvb/frontends/Makefile	Thu Oct 02 17:33:19 2008 +0300
-@@ -53,5 +53,5 @@
- obj-$(CONFIG_DVB_AF9013) += af9013.o
- obj-$(CONFIG_DVB_CX24116) += cx24116.o
- obj-$(CONFIG_DVB_SI21XX) += si21xx.o
--obj-$(CONFIG_DVB_STV0299) += stv0288.o
-+obj-$(CONFIG_DVB_STV0288) += stv0288.o
- obj-$(CONFIG_DVB_STB6000) += stb6000.o
-
---Boundary-00=_rJL6I2z0Fzw/yji
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+thanks,
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_rJL6I2z0Fzw/yji--
