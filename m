@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9OJ7g8B019203
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 15:07:42 -0400
-Received: from smtp1-g19.free.fr (smtp1-g19.free.fr [212.27.42.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9OJ7U5W000841
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 15:07:30 -0400
-Message-ID: <49021D07.802@free.fr>
-Date: Fri, 24 Oct 2008 21:07:51 +0200
-From: Thierry Merle <thierry.merle@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m93EGTlO014288
+	for <video4linux-list@redhat.com>; Fri, 3 Oct 2008 10:16:29 -0400
+Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m93EGIRv004609
+	for <video4linux-list@redhat.com>; Fri, 3 Oct 2008 10:16:19 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Date: Fri, 3 Oct 2008 19:46:05 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403DC1A6A39@dbde02.ent.ti.com>
+In-Reply-To: <20081003133400.GA6251@atomide.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-To: Thomas Kaiser <linux-dvb@kaiser-linux.li>
-References: <4900DA6B.4050902@kaiser-linux.li> <4900EDA7.6070000@free.fr>
-	<4901010C.1020708@kaiser-linux.li>
-In-Reply-To: <4901010C.1020708@kaiser-linux.li>
-Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
-Cc: Video 4 Linux <video4linux-list@redhat.com>
-Subject: Re: gspca, what do I am wrong?
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,91 +28,195 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thomas Kaiser a écrit :
-> Thierry Merle wrote:
->> Hi Thomas,
->>
->> Thomas Kaiser a écrit :
->>> Hey
->>>
->>> I think this mail came not through, so I send it again. Sorry, when it
->>> comes twice.
->>>
->>> I just pasted the interesting things into this email (With some comments
->>> inline). Hope somebody can help:
->>>
->>> thomas@LAPI01:~$ lsb_release -a
->>> No LSB modules are available.
->>> Distributor ID:    Ubuntu
->>> Description:    Ubuntu 8.04.1
->>> Release:    8.04
->>> Codename:    hardy
->>>
->>> thomas@LAPI01:~$ uname -a
->>> Linux LAPI01 2.6.24-21-generic #1 SMP Mon Aug 25 17:32:09 UTC 2008 i686
->>> GNU/Linux
->>>
->>> thomas@LAPI01:~/Projects/webcams$ hg clone http://linuxtv.org/hg/v4l-dvb
->>> to get the newest v4l source.
->>>
->>> make menuconfig in ~/Projects/webcams/v4l-dvb and remove all stuff
->>> except the gspca and V4l2.
->>> After this, I did not find a .config file in the
->>> ~/Projects/webcams/v4l-dvb folder. Where is the .config stored?
->> ~/Projects/webcams/v4l-dvb/v4l/.config
-> 
-> OK, I found it, thanks.
-> 
->>
->>> Several dvb and/or analog capture driver where made. Why?, I disabled!
->>>
->> Look at the .config, perhaps you forgot to disable some additional
->> modules
-> 
-> When I did "make menuconfig" I only choose the v4l2 and gspca modules.
-> But looking in .config in ...../v4l/ there are still some more modules
-> enabled. I can manually remove them from the .config file, but that
-> should not be the way to go, or I am mistaken?
-> 
-Well, if you disable all options, you will see that no module are compiled.
-If you enable just 1 gspca webcam or whatever module, some modules like tuners are compiled by default.
-Some options need to be checked in order to able to remove some modules.
-For example the option "Customize analog and hybrid tuner modules to build" must be checked to see the list of tuners, and to allow you to disable them one by one.
 
->>> thomas@LAPI01:~/Projects/webcams/v4l-dvb$ make
->>> ¨make -C /home/thomas/Projects/webcams/v4l-dvb/v4l
->>> make[1]: Entering directory `/home/thomas/Projects/webcams/v4l-dvb/v4l'
->>> creating symbolic links...
->>> Kernel build directory is /lib/modules/2.6.24-21-generic/build
->>> make -C /lib/modules/2.6.24-21-generic/build
->>> SUBDIRS=/home/thomas/Projects/webcams/v4l-dvb/v4l  modules
->> [SNIP]
->>> After plugging the cam in the kernel log:
->>>
->>> Oct 23 20:52:54 LAPI01 kernel: [ 2015.905111] usb 1-1: new full speed
->>> USB device using uhci_hcd and address 5
->>> Oct 23 20:52:54 LAPI01 kernel: [ 2016.075400] usb 1-1: configuration #1
->>> chosen from 1 choice
->>> Oct 23 20:52:54 LAPI01 kernel: [ 2016.078879] usb 1-1: ZC0301[P] Image
->>> Processor and Control Chip detected (vid/pid 0x041E:0x401C)
->>> Oct 23 20:52:55 LAPI01 kernel: [ 2016.164172] usb 1-1: No supported
->>> image sensor detected
->>> Oct 23 20:52:55 LAPI01 kernel: [ 2016.194043] gspca_main: disagrees
->>> about version of symbol video_ioctl2
->> Please try make rmmod before plugging-in your device and check that no
->> v4l-dvb module is loaded.
->> This will remove any old v4l-dvb module already present.
-> 
-> I did several "sudo modprobe -r gspca-...." and check afterward that no
-> gspca module is loaded anymore (lsmod |grep gspca).
-> 
-Well, the problem is the kernel version taken from the build script is different from the running kernel.
-It is a very common problem on debian/ubuntu distributions that add some extra version information in kernel version but not in /usr/src/linux/Makefile
-There may be a clean method to build modules with these distributions, you might look for that on corresponding ML.
-To see the problem, do a modinfo gspca and a modinfo video_ioctl2 or a modinfo videodev and compare the vermagic.
-Hope that this will help you in finding the solution.
 
-Thierry
+Thanks,
+Vaibhav Hiremath
+Senior Software Engg.
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
+
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, October 03, 2008 7:04 PM
+> To: Tomi Valkeinen
+> Cc: Hiremath, Vaibhav; hverkuil@xs4all.nl; Shah, Hardik; linux-
+> omap@vger.kernel.org; video4linux-list@redhat.com
+> Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
+> 
+> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [081003 16:26]:
+> > Hi,
+> >
+> > > > -----Original Message-----
+> > > > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > > > Sent: Thursday, October 02, 2008 1:55 PM
+> > > > To: Hiremath, Vaibhav
+> > > > Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-
+> list@redhat.com
+> > > > Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+> > > >
+> > > > Hi Vaibhav,
+> > > >
+> > > > On Wed, 2008-10-01 at 16:21 +0530, ext Hiremath, Vaibhav
+> wrote:
+> > > > > Tomi,
+> > > > >
+> > > > > Have you got a chance to review the DSS library and V4l2
+> driver which we have posted?
+> > > >
+> > > > Unfortunately not very much. I've been glancing the DSS side
+> of the
+> > > > driver, but not the v4l side as I don't know much about it.
+> > > >
+> > > > There seems to be awfully lot ifdefs for board/cpu types in
+> the code.
+> > >
+> > > As far as ifdefs are concerned, they are added to take care of
+> OMAP2/3 variants. Especially you will find many instances of
+> CONFIG_ARCH_OMAP3410 and the reason is obvious, OMAP3410 doesn't
+> have VENC. As I have mentioned before, DSS library is designed to
+> support both LCD, TV, and many more.
+> >
+> > They make the code unclear. I have divided the functionality to
+> separate
+> > files, that can easily be left out. So for OMAP3410 I would just
+> disable
+> > the VENC config option. And then I can test for CONFIG_DSS_VENC,
+> instead
+> > of OMAP3410 || OMAP2410 || OMAPwhatnot. Of course you can't do
+> this for
+> > all things, but at least VENC is not one of these.
+> >
+> > And all board specific code should, in my opinion, be in board
+> files. I
+> > don't have any board specific definitions in the DSS driver or the
+> > LCD/controller drivers. (well, ok, there is something in the DSI
+> driver,
+> > it's still quite raw).
+> 
+> Yeah we should be able to compile in any combination of omap boards
+> with
+> whatever configuration from board-*.c files as platform_data.
+> 
+> So ifdefs will totally break this.
+> 
+
+Point taken, we will try to avoid ifdefs as much as possible and will divide depending on the functionality.
+
+> > > > My biased and superficial view of the differences between my
+> DSS and
+> > > > yours is that:
+> > >
+> > > Tomi, here I differ from you. There should not be biased
+> opinion. What we are looking here is a good design which will
+> fulfill all our requirements/use case, like LCD, DVI, HDMI and TV
+> for us and DSI, RFBI for you.
+> >
+> > Agreed. I was just pointing out that I haven't used enough time to
+> study
+> > your DSS to really comment on it, and that a coder tends to like
+> his own
+> > code =).
+> >
+> > > > - My implementation is cleaner, better organized and more
+> generic
+> > >
+> > > Again, here both of us will be having biased comments to support
+> our own design, so I would prefer not to comment on this. Lets
+> people on the community decide whose design is better.
+> > >
+> > > > - My implementation has support for DSI, SDI, RFBI, L4 updates
+> > >
+> > > DSI, SDI and RFBI are the modes, which we can add anytime to the
+> system depending as per our requirement.
+> > > It is again driven by use case; you have use cases for DSI, SDI
+> and RFBI. We have for TV, DVI, HDMI and LCD, so we strongly
+> concentrated on these.
+> > >
+> > > We can very well add these supports to DSS Library with minimal
+> effort.
+> >
+> > SDI is quite easy, but I wouldn't say adding RFBI and DSI is
+> minimal
+> > effort. DSI is quite complex in itself, and the manual update mode
+> > changes how the DSS has to handle things.
+> >
+> > > > - Your implementation has better support for "extra" things
+> like VRFB,
+> > > > color conversions, alpha etc.
+> > > > - Your implementation most likely has better power management
+> support.
+> > > > - And of course what is most visible to the user, my version
+> uses only
+> > > > framebuffers, and yours uses also v4l2 devices.
+> > > >
+> > >
+> > > You really can't deny the V4L2 framework advantages over
+> framebuffer, especially for streaming kind of applications. Looking
+> towards the hardware features OMAP supports; we would really require
+> to have such support/capabilities. Community is also in agreement
+> for the V4L2 interface on OMAP-DSS.
+> >
+> > Well, I'm not the best one to comment on V4L2 as I don't know much
+> about
+> > it. But I remember seeing quite negative comments about V4L2 a
+> while ago
+> > in this or related mail thread, so I'm not yet ready to change to
+> V4L2
+> > camp.
+> >
+> > The best option would be, of course, to have both =).
+> >
+> > > Tony/Hans,
+> > > Your comments would be helpful here.
+> 
+> I'd rather not get too involved in the fb or v4l stuff, I already
+> have
+> enough things to look at. But I can certainly comment on stuff that
+> will
+> break booting multiple omaps the same time once the patches are
+> posted.
+> 
+> > > > As for the future, I have no choice but to keep using my DSS
+> as we need
+> > > > the features it has. I feel it would be quite a big job to get
+> those in
+> > > > to your driver. And even if I had a choice, I (unsurprisingly
+> =) think
+> > > > that my version is better and would stick to it.
+> > > >
+> > >
+> > > It's your personal choice to stick to whichever code base you
+> want, I don't want to comment on that. But what I believe is, with
+> your design we are limiting ourselves from supporting most of the
+> features which hardware provides.
+> >
+> > Is the limiting factor here the missing V4L2 interface? Or
+> something in
+> > the core DSS driver? To my knowledge you can have all the HW
+> features
+> > supported with framebuffers, even though V4L2 device can perhaps
+> make
+> > the use easier for some applications.
+> >
+> > Well, one thing comes to my mind, and it's sharing the framebuffer
+> > memory between, for example, display and camera drivers. I believe
+> you
+> > can do that with V4L2. Something else?
+> >
+> > > We can work together to add more support to DSS library.
+> >
+> > Sure, I don't really care which version is accepted, as long as we
+> get
+> > all the features =). So if you see something usable in my code,
+> just
+> > take it and add to your version.
+> 
+> Regards,
+> 
+> Tony
+
 
 --
 video4linux-list mailing list
