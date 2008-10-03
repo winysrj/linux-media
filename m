@@ -1,28 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from node02.cambriumhosting.nl ([217.19.16.163])
+Received: from nf-out-0910.google.com ([64.233.182.187])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jelledejong@powercraft.nl>) id 1KpefG-000512-G0
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 09:50:03 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by node02.cambriumhosting.nl (Postfix) with ESMTP id 42A58B000176
-	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 09:49:53 +0200 (CEST)
-Received: from node02.cambriumhosting.nl ([127.0.0.1])
-	by localhost (node02.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id xwEdTfeEiWCG for <linux-dvb@linuxtv.org>;
-	Tue, 14 Oct 2008 09:49:51 +0200 (CEST)
-Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
-	[84.245.3.195])
-	by node02.cambriumhosting.nl (Postfix) with ESMTP id 225DCB00013E
-	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 09:49:51 +0200 (CEST)
-Received: from [192.168.1.180] (unknown [192.168.1.180])
-	by ashley.powercraft.nl (Postfix) with ESMTPSA id E88B223BC186
-	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 09:49:50 +0200 (CEST)
-Message-ID: <48F44F1D.4080301@powercraft.nl>
-Date: Tue, 14 Oct 2008 09:49:49 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1Kll9y-0001bg-0d
+	for linux-dvb@linuxtv.org; Fri, 03 Oct 2008 15:57:35 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so682098nfb.11
+	for <linux-dvb@linuxtv.org>; Fri, 03 Oct 2008 06:57:30 -0700 (PDT)
+Message-ID: <412bdbff0810030657p69ad9207kd68bd9bd1f989cc9@mail.gmail.com>
+Date: Fri, 3 Oct 2008 09:57:30 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: Linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] mplayer dvb-t startup problems
+Content-Type: multipart/mixed;
+	boundary="----=_Part_19563_8821697.1223042250188"
+Subject: [linux-dvb] Pinnacle 801e users: Don't update!
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,49 +20,84 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+------=_Part_19563_8821697.1223042250188
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hello everybody,
+If you are a user of the Pinnacle 801e, the changes supporting this
+device went in to the mainline on Sunday morning.  However, due to a
+subsequent commit, the code will cause a kernel panic if you actually
+try to use it.
 
-I am trying to build a dvb-t system and I am currently using mplayer to
-tune into the channels and watch and listen to them. However I got some
-startup problems. Mplayer does not always detect the TS file stream and
-the audio is sometimes distorted. I posted an more detailed description
-of the problem on the mplayer mailinglist, but there was not much
-response, so I am trying this channel since the change somebody reading
-this and has solved the issue is much greater:
+I would have brought this to users' attention sooner, but I wasn't
+expecting the two line patch I submitted Sunday night to sit in
+Mauro's queue for four days (and counting).
 
-http://lists.mplayerhq.hu/pipermail/mplayer-users/2008-October/074693.html
+If you're a Pinnacle 801e user, you can either hold off on updating or
+use the attached patch.
 
-I hope somebody know how to fix the issues,
+Regards,
 
-If there is more information needed please tell me what is needed and
-how to retrieve the information.
+Devin
 
-Thanks in advance,
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
-Kind regards,
+------=_Part_19563_8821697.1223042250188
+Content-Type: text/x-diff; name=801e_xc5000_panic.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fluvnp1g0
+Content-Disposition: attachment; filename=801e_xc5000_panic.patch
 
-Jelle
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+UHV0IGNhbGxiYWNrIGRlZmluaXRpb24gYmVmb3JlIGZ1bmN0aW9uIHJldHVybiBhbmQgY2xlYW51
+cCBjYWxsYmFjay4KCkZyb206IERldmluIEhlaXRtdWVsbGVyIDxkZXZpbi5oZWl0bXVlbGxlckBn
+bWFpbC5jb20+CgpGaXggYSBidWcgd2hlcmUgdGhlIHhjNTAwMCBjYWxsYmFjayB3YXMgYmVpbmcg
+c2V0ICphZnRlciogdGhlIHJldHVybiBjYWxsIChlc3NlbnRpYWxseSByZXN1bHRpbmcgaW4gZGVh
+ZCBjb2RlKS4gIAoKQWxzbyBjbGVhbnVwIHRoZSBjYWxsYmFjayBmdW5jdGlvbiB0byBkZXRlY3Qg
+dW5rbm93biBjb21tYW5kcy4KCkJ1ZyB3YXMgaW50cm9kdWNlZCBkdXJpbmcgY2FsbGJhY2sgcmVm
+YWN0b3JpbmcgaW4gaGcgOTA1MS4KClNpZ25lZC1vZmYtYnk6IERldmluIEhlaXRtdWVsbGVyIDxk
+ZXZpbi5oZWl0bXVlbGxlckBnbWFpbC5jb20+CgpkaWZmIC1yIDhlNmNkYTAyMWUwZSBsaW51eC9k
+cml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfZGV2aWNlcy5jCi0tLSBhL2xpbnV4L2Ry
+aXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGliMDcwMF9kZXZpY2VzLmMJRnJpIFNlcCAyNiAxMToy
+OTowMyAyMDA4ICswMjAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGli
+MDcwMF9kZXZpY2VzLmMJU3VuIFNlcCAyOCAyMzowNzoyOCAyMDA4IC0wNDAwCkBAIC0xMTgxLDEx
+ICsxMTgxLDE2IEBAIHN0YXRpYyBpbnQgZGliMDcwMF94YzUwMDBfdHVuZXJfY2FsbGJhY2sKIHsK
+IAlzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwID0gcHJpdjsKIAotCS8qIFJlc2V0IHRoZSB0
+dW5lciAqLwotCWRpYjA3MDBfc2V0X2dwaW8oYWRhcC0+ZGV2LCBHUElPMSwgR1BJT19PVVQsIDAp
+OwotCW1zbGVlcCgzMzApOyAvKiBmcm9tIFdpbmRvd3MgVVNCIHRyYWNlICovCi0JZGliMDcwMF9z
+ZXRfZ3BpbyhhZGFwLT5kZXYsIEdQSU8xLCBHUElPX09VVCwgMSk7Ci0JbXNsZWVwKDMzMCk7IC8q
+IGZyb20gV2luZG93cyBVU0IgdHJhY2UgKi8KKwlpZiAoY29tbWFuZCA9PSBYQzUwMDBfVFVORVJf
+UkVTRVQpIHsKKwkJLyogUmVzZXQgdGhlIHR1bmVyICovCisJCWRpYjA3MDBfc2V0X2dwaW8oYWRh
+cC0+ZGV2LCBHUElPMSwgR1BJT19PVVQsIDApOworCQltc2xlZXAoMzMwKTsgLyogZnJvbSBXaW5k
+b3dzIFVTQiB0cmFjZSAqLworCQlkaWIwNzAwX3NldF9ncGlvKGFkYXAtPmRldiwgR1BJTzEsIEdQ
+SU9fT1VULCAxKTsKKwkJbXNsZWVwKDMzMCk7IC8qIGZyb20gV2luZG93cyBVU0IgdHJhY2UgKi8K
+Kwl9IGVsc2UgeworCQllcnIoInhjNTAwMDogdW5rbm93biB0dW5lciBjYWxsYmFjayBjb21tYW5k
+OiAlZFxuIiwgY29tbWFuZCk7CisJCXJldHVybiAtRUlOVkFMOworCX0KIAogCXJldHVybiAwOwog
+fQpAQCAtMTE5NywxMiArMTIwMiwxMiBAQCBzdGF0aWMgc3RydWN0IHhjNTAwMF9jb25maWcgczVo
+MTQxMV94YzUwCiAKIHN0YXRpYyBpbnQgeGM1MDAwX3R1bmVyX2F0dGFjaChzdHJ1Y3QgZHZiX3Vz
+Yl9hZGFwdGVyICphZGFwKQogeworCS8qIEZJWE1FOiBnZW5lcmFsaXplICYgbW92ZSB0byBjb21t
+b24gYXJlYSAqLworCWFkYXAtPmZlLT5jYWxsYmFjayA9IGRpYjA3MDBfeGM1MDAwX3R1bmVyX2Nh
+bGxiYWNrOworCiAJcmV0dXJuIGR2Yl9hdHRhY2goeGM1MDAwX2F0dGFjaCwgYWRhcC0+ZmUsICZh
+ZGFwLT5kZXYtPmkyY19hZGFwLAogCQkJICAmczVoMTQxMV94YzUwMDBfdHVuZXJjb25maWcpCiAJ
+CT09IE5VTEwgPyAtRU5PREVWIDogMDsKLQotCS8qIEZJWE1FOiBnZW5lcmFsaXplICYgbW92ZSB0
+byBjb21tb24gYXJlYSAqLwotCWFkYXAtPmZlLT5jYWxsYmFjayA9IGRpYjA3MDBfeGM1MDAwX3R1
+bmVyX2NhbGxiYWNrOwogfQogCiAvKiBEVkItVVNCIGFuZCBVU0Igc3R1ZmYgZm9sbG93cyAqLwo=
 
-iJwEAQECAAYFAkj0TxsACgkQ1WclBW9j5HnOmAP8D3BnOTcBwQnjd/uMi4LPAsep
-gyPxagIBVtNGmHkVawWaY9Z4InuuRGw9SONLadOmsUoUWkNGgPyFJkpMiR3neLoB
-wyReL3OdDYZTNHQXUNy4BHySwPaMSf2+6j613cr3y031+u7ktKl2mrBJC3DMiyvi
-AjE3TqTbtWrXRTNbdgw=
-=yWOn
------END PGP SIGNATURE-----
+------=_Part_19563_8821697.1223042250188
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_19563_8821697.1223042250188--
