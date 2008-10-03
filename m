@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9KHNb2U025597
-	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 13:23:37 -0400
-Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.24])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9KHNQMw021689
-	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 13:23:26 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so565171eyf.39
-	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 10:23:25 -0700 (PDT)
-Message-ID: <30353c3d0810201023j3464c9b5udc58b0c0966ad0f2@mail.gmail.com>
-Date: Mon, 20 Oct 2008 13:23:25 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: Linos <info@linos.es>
-In-Reply-To: <48FCB94C.90505@linos.es>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m93E3qqH006580
+	for <video4linux-list@redhat.com>; Fri, 3 Oct 2008 10:03:53 -0400
+Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m93E3ZGc029180
+	for <video4linux-list@redhat.com>; Fri, 3 Oct 2008 10:03:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Fri, 3 Oct 2008 16:03:22 +0200
+References: <19F8576C6E063C45BE387C64729E739403DC1A6A02@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403DC1A6A02@dbde02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <48FC8DF1.8010807@linos.es> <20081020161436.GB1298@daniel.bse>
-	<48FCB94C.90505@linos.es>
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: bttv 2.6.26 problem
+Message-Id: <200810031603.22778.hverkuil@xs4all.nl>
+Cc: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,80 +31,370 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Oct 20, 2008 at 1:01 PM, Linos <info@linos.es> wrote:
-> Daniel Glöckner escribió:
->>
->> On Mon, Oct 20, 2008 at 03:56:01PM +0200, Linos wrote:
->>>
->>> Error: Could not set image size to 352x288 for color format I420 (15)
->>> (VIDIOCMCAPTURE: buffer 0)
->>
->> The problem is that the v4l1-compat code for VIDIOCMCAPTURE calls
->> VIDIOC_S_FMT. At the beginning of bttv_s_fmt_vid_cap the call to
->> bttv_switch_type fails because the buffers have already been mmap'ed
->> by the application. I'd say this is a bug in bttv.
->>
->> In which case does the videobuf_queue_is_busy test prevent bad things
->> from happening?
->>
->>
->> A workaround is to set the resolution and image format before the
->> buffers are mapped, f.ex. with this small program:
->> --------------
->> #include <sys/ioctl.h>
->> #include <fcntl.h>
->> #include <unistd.h>
->> #include <linux/videodev.h>
->>
->> void main()
->> {
->>  struct video_mmap vmm;
->>  vmm.height=352;
->>  vmm.width=288;
->>  vmm.format=VIDEO_PALETTE_YUV420P;
->>  vmm.frame=0;
->>  ioctl(open("/dev/video",O_RDWR),VIDIOCMCAPTURE,&vmm);
->> }
->> --------------
->>
->>  Daniel
->>
->
-> Hi Daniel,
->        thanks for help, i have tried the code you have posted, but it does
-> not works or i have not understand you correctly, i have compiled the code,
-> i have tried directly with /dev/video (like your example) or changing it
-> with /dev/video0 (the video dev i am using), after compile it and execute it
-> i launch the helix producer but still the same error.
->
-> webcontrol:~# gcc -o test_video test_video.c
-> test_video.c: In function 'main':
-> test_video.c:7: warning: return type of 'main' is not 'int'
-> webcontrol:~# ./test_video
-> webcontrol:~# producer -vc /dev/video0 -ad 128k -vp "0" -dt -vm sharp -o
-> /tmp/test.rm
-> Helix DNA(TM) Producer 11.0 Build number: 11.0.0.2013
-> Info: Starting encode
-> Error: Could not set image size to 352x288 for color format I420 (15)
-> (VIDIOCMCAPTURE: buffer 0)
-> Warning: Capture Buffer is empty at 455505251ms for last 61 times
->
-> do i am doing anything wrong?
->
-> Regards,
-> Miguel Angel.
->
+Hi Vaibhav,
 
-Miguel,
+Hmm, this is getting quite confusing for me :-)
 
-I believe the changes Daniel suggested would have to be applied to the
-source of helix producer in order to work. None the less, the proper
-fix would be to fix the associated bug in the driver which is the real
-cause of the problem.
+If I understand it correctly, TI posted two patches while I was on 
+vacation: one for the DSS library and one for the V4L2 driver. I 
+quickly looked at the DSS library patch, but I cannot really comment on 
+that one as it is very omap specific, so as far as I am concerned it is 
+pretty much up to TI to decide how to set this up. If I understand it 
+correctly the DSS 'library' basically provides v4l2/fb drivers with the 
+low-level platform functionality those drivers need. So I'm not sure 
+whether 'library' is really the right term here. 'DSS platform code' is 
+more appropriate.
+
+I definitely have questions regarding the V4L2 driver, but I'll reply to 
+that patch separately.
+
+I also understand that there is an alternative DSS implementation from 
+Tomi? But I can't seem to find any link to that code. A link to the 
+code would be appreciated.
+
+Regarding v4l2 vs fb: the normal way such things are implemented is that 
+the V4L2 API is used for video streaming while the FB API is used to 
+interface to displays and/or menu overlays. The FB API is a natural fit 
+for graphics applications like X and Qt, whereas the V4L2 API is meant 
+to handle video streaming in an efficient manner and with correct 
+timings. You can be creative and use a FB device to stream video or a 
+V4L2 device for graphics/overlay output, but you only make it hard on 
+yourself and the application writers.
 
 Regards,
 
-David Ellingsworth
+	Hans
+
+On Friday 03 October 2008 14:47:23 Hiremath, Vaibhav wrote:
+> Hi Tomi,
+>
+> Thanks,
+> Vaibhav Hiremath
+> Senior Software Engg.
+> Platform Support Products
+> Texas Instruments Inc
+> Ph: +91-80-25099927
+>
+> > -----Original Message-----
+> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > Sent: Thursday, October 02, 2008 1:55 PM
+> > To: Hiremath, Vaibhav
+> > Cc: Shah, Hardik; linux-omap@vger.kernel.org;
+> > video4linux-list@redhat.com Subject: RE: [PREVIEW] New display
+> > subsystem for OMAP2/3
+> >
+> > Hi Vaibhav,
+> >
+> > On Wed, 2008-10-01 at 16:21 +0530, ext Hiremath, Vaibhav wrote:
+> > > Tomi,
+> > >
+> > > Have you got a chance to review the DSS library and V4l2 driver
+> > > which we have posted?
+> >
+> > Unfortunately not very much. I've been glancing the DSS side of the
+> > driver, but not the v4l side as I don't know much about it.
+> >
+> > There seems to be awfully lot ifdefs for board/cpu types in the
+> > code.
+>
+> As far as ifdefs are concerned, they are added to take care of
+> OMAP2/3 variants. Especially you will find many instances of
+> CONFIG_ARCH_OMAP3410 and the reason is obvious, OMAP3410 doesn't have
+> VENC. As I have mentioned before, DSS library is designed to support
+> both LCD, TV, and many more.
+>
+> > Also there are strange things defined, like L4_VIRT
+>
+> You are right; the code requires little-bit cleaning. There are some
+> macros defined which driver or library doesn't use. We are in the
+> process of cleaning and soon will be posting patches.
+>
+> > My biased and superficial view of the differences between my DSS
+> > and yours is that:
+>
+> Tomi, here I differ from you. There should not be biased opinion.
+> What we are looking here is a good design which will fulfill all our
+> requirements/use case, like LCD, DVI, HDMI and TV for us and DSI,
+> RFBI for you.
+>
+> > - My implementation is cleaner, better organized and more generic
+>
+> Again, here both of us will be having biased comments to support our
+> own design, so I would prefer not to comment on this. Lets people on
+> the community decide whose design is better.
+>
+> > - My implementation has support for DSI, SDI, RFBI, L4 updates
+>
+> DSI, SDI and RFBI are the modes, which we can add anytime to the
+> system depending as per our requirement. It is again driven by use
+> case; you have use cases for DSI, SDI and RFBI. We have for TV, DVI,
+> HDMI and LCD, so we strongly concentrated on these.
+>
+> We can very well add these supports to DSS Library with minimal
+> effort.
+>
+> > - Your implementation has better support for "extra" things like
+> > VRFB, color conversions, alpha etc.
+> > - Your implementation most likely has better power management
+> > support. - And of course what is most visible to the user, my
+> > version uses only framebuffers, and yours uses also v4l2 devices.
+>
+> You really can't deny the V4L2 framework advantages over framebuffer,
+> especially for streaming kind of applications. Looking towards the
+> hardware features OMAP supports; we would really require to have such
+> support/capabilities. Community is also in agreement for the V4L2
+> interface on OMAP-DSS.
+>
+> Tony/Hans,
+> Your comments would be helpful here.
+>
+> > As for the future, I have no choice but to keep using my DSS as we
+> > need the features it has. I feel it would be quite a big job to get
+> > those in to your driver. And even if I had a choice, I
+> > (unsurprisingly =) think that my version is better and would stick
+> > to it.
+>
+> It's your personal choice to stick to whichever code base you want, I
+> don't want to comment on that. But what I believe is, with your
+> design we are limiting ourselves from supporting most of the features
+> which hardware provides.
+>
+> We can work together to add more support to DSS library.
+>
+> > Have you had time to look at my code after I changed the overlay
+> > handling? I've put the most recent version to a public git tree at
+> > http://www.bat.org/~tomba/git/linux-omap-dss.git/ and I'll try to
+> > keep that up to date.
+>
+> Definitely I will review this code base, and will appreciate if I
+> found something good.
+>
+> >  Tomi
+> >
+> > > Thanks,
+> > > Vaibhav Hiremath
+> > > Senior Software Engg.
+> > > Platform Support Products
+> > > Texas Instruments Inc
+> > > Ph: +91-80-25099927
+> > >
+> > > > -----Original Message-----
+> > > > From: Hiremath, Vaibhav
+> > > > Sent: Monday, September 15, 2008 9:51 PM
+> > > > To: 'Tomi Valkeinen'
+> > > > Cc: Shah, Hardik; linux-omap@vger.kernel.org;
+> > > > video4linux-list@redhat.com Subject: RE: [PREVIEW] New display
+> > > > subsystem for OMAP2/3
+> > > >
+> > > >
+> > > >
+> > > > Thanks,
+> > > > Vaibhav Hiremath
+> > > > Senior Software Engg.
+> > > > Platform Support Products
+> > > > Texas Instruments Inc
+> > > > Ph: +91-80-25099927
+> > > > TI IP Ph: 509-9927
+> > > > http://dbdwss01.india.ti.com/pspproducts/
+> > > >
+> > > > > -----Original Message-----
+> > > > > From: linux-omap-owner@vger.kernel.org
+> > > > > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+> >
+> > Tomi
+> >
+> > > > > Valkeinen
+> > > > > Sent: Monday, September 15, 2008 8:08 PM
+> > > > > To: Hiremath, Vaibhav
+> > > > > Cc: Shah, Hardik; linux-omap@vger.kernel.org;
+> > > > > video4linux-list@redhat.com Subject: RE: [PREVIEW] New
+> > > > > display subsystem for OMAP2/3
+> > > > >
+> > > > > On Mon, 2008-09-15 at 19:02 +0530, ext Hiremath, Vaibhav 
+wrote:
+> > > > > > We more concentrated on TV and LCD interface, out design
+> > > > > > doesn't support DSI as of now. As
+> > > > >
+> > > > > mentioned earlier it is easily extendible to support DSI.
+> > > > >
+> > > > > > If I understand your implementation correctly, right now
+> > > > > > there is no way you can switch the
+> > > > >
+> > > > > outputs, I mean to say from LCD to DVI. The frame buffer
+> > > > > driver gets the handle with API omap_dss_get_display, which
+> > > > > will return pointer to omap_display for panel-sdp3430.
+> > > > > Henceforth
+> >
+> > all
+> >
+> > > > > your functions will use omap_display configuring for LCD
+> > > > > panel. How are you planning to add
+> >
+> > support
+> >
+> > > > > for this? Through some ioctls or sysfs entry? How about
+> > > > > switching between multiple overlay
+> > > >
+> > > > managers?
+> > > >
+> > > > > You can switch the outputs in the DSS driver. You can
+> > > > > enable/disable displays individually, and configure the
+> > > > > planes and or L4 pixel source for the display.
+> > > > >
+> > > > > But yes, the fb driver does not support that currently.
+> > > > >
+> > > > > One idea I had was to present each display with one
+> > > > > framebuffer, so let's say we have 3 displays, we would have
+> > > > > fb[0-2]. In addition to that, we would have two framebuffers
+> > > > > for the video overlays. Only one of the displays can be
+> > > > > updated with DISPC, so the overlays would appear there.
+> > > > >
+> > > > > Then the display that is updated with DISPC could be changed
+> > > > > on the fly to another one, but the framebuffer arrangement
+> > > > > would stay the same (so fb0 would still be seen on display0,
+> > > > > even if it's now updated with L4).
+> > > > >
+> > > > > There's still the question how to manage the video overlays,
+> > > > > in this scenario they would automatically move to other LCD's
+> > > > > as the DISPC target is changed. Also the TV-out is
+> > > > > problematic.
+> > > > >
+> > > > > > This issue has been addresses with our design, you can
+> > > > > > change the output either to TV, LCD or
+> >
+> > to
+> >
+> > > > > DVI through sysfs entry. Switching between multiple overlay
+> > > > > managers is very well supported in
+> >
+> > DSS
+> >
+> > > > > library. Currently SYSFS is the user interface layer to
+> > > > > control the overlay managers. But in
+> >
+> > future
+> >
+> > > > > DSS library will easily be suitable to support media
+> > > > > processor interface which is in concept
+> >
+> > phase
+> >
+> > > > > right now.  RFC for the media processor is at
+> > > > >
+> > > > > Does your design support displays that are not updated with
+> > > > > DISPC?
+> > > >
+> > > > Yes, it should. I don't see any reason why it should fail if
+> > > > the display is completely
+> >
+> > independent.
+> >
+> > > > > Your design has good points. I have to think about the
+> > > > > overlay managers a bit more. Especially if in some future
+> > > > > hardware there were more overlay managers instead of the
+> > > > > current two.
+> > > >
+> > > > Let me take this opportunity, shortly I will post the DSS
+> > > > library and V4L2 driver. We can work together to add support
+> > > > for DSI, RFBI and SDI support to it.
+> > > >
+> > > > > > http://lists-archives.org/video4linux/23652-rfc-add-support
+> > > > > >-to-query-and-change-connections-
+> > > >
+> > > > inside-
+> > > >
+> > > > > a-media-device.html
+> > > > >
+> > > > > > > I also wanted to be able to change the configuration on
+> > > > > > > the fly, changing where DISPC output is going and which
+> > > > > > > displays are updated with CPU or sDMA.
+> > > > > > >
+> > > > > > > This is why I have the display-concept in my design.
+> > > > > >
+> > > > > > Here we both are on same page, you have broken the displays
+> > > > > > and modes supported into multiple
+> > > >
+> > > > files
+> > > >
+> > > > > registering functions to the display.c file, there are many
+> > > > > loopholes though.
+> > > > >
+> > > > > > > I haven't made support for multiple users of the displays
+> > > > > > > (like separate fb and v4l drivers), but I don't
+> > > > > > > immediately see why it couldn't be done.
+> > > > > >
+> > > > > > How are you going to handle the concurrency between these
+> > > > > > two?
+> > > > >
+> > > > > In the simple case of just an LCD and a TV-out, what are the
+> > > > > concurrency problems? Each plane is independent of each
+> > > > > other. Sure you need to check that the output is on if
+> > > > > there's a plane enabled there and basic things like that. Are
+> > > > > there some other issues I'm not seeing?
+> > > >
+> > > > Yes some of the features of the DSS are tied to overlay
+> > > > managers and not the individual planes
+> >
+> > like
+> >
+> > > > global alpha, alpha blending enabling and timing parameters. So
+> > > > while programming of these
+> >
+> > parameters
+> >
+> > > > DSS library will have to maintain the data structures for the
+> > > > same and then any high level
+> >
+> > drivers
+> >
+> > > > can query those data structures.
+> > > >
+> > > > > > > However, there are some questions regarding that, as the
+> > > > > > > planes do not represent displays, but just overlay
+> > > > > > > planes. What happens when both fb and v4l drivers want to
+> > > > > > > change the resolution or timings of the display?
+> > > > > > >
+> > > > > > > Also I still don't quite know how to present displays to
+> > > > > > > user space. Currently my omapfb just uses the first
+> > > > > > > display, and that's it. I think in the end the user (be
+> > > > > > > it X server, or perhaps some entity over it), needs to
+> > > > > > > have some understanding of what OMAP offers and how it
+> > > > > > > can use the displays. And there probably needs to be some
+> > > > > > > product spesific configuration regarding this in
+> > > > > > > userspace.
+> > > > > >
+> > > > > > Here are you saying application will have hardware specific
+> > > > > > support? Is this feasible?
+> > > > >
+> > > > > I don't see any other way. The displays are not independent
+> > > > > of each other.  For example the OMAP3 SDP has LCD and DVI
+> > > > > outputs. They can't be switched programmatically, but let's
+> > > > > say it was possible. Only one of those displays can be
+> > > > > enabled at time. If an application wants to use them both, it
+> > > > > has to understand that they will not both work at the same
+> > > > > time.
+> > > > >
+> > > > > Or if there are two DSI displays, and one is updated with
+> > > > > DISPC and the other via L4. The application has to know that
+> > > > > a video overlay can only be used on the first display, or it
+> > > > > has to exchange the DISPC/L4 updating order.
+> > > > >
+> > > > > Of course this is product specific software and
+> > > > > configuration, not something I'm planning to put in the
+> > > > > driver. A normal application does not have to know anything
+> > > > > about it. I was just bringing it up to demonstrate what must
+> > > > > be possible.
+> > > > >
+> > > > >  Tomi
+> > > > >
+> > > > >
+> > > > > --
+> > > > > To unsubscribe from this list: send the line "unsubscribe
+> > > > > linux-omap" in the body of a message to
+> > > > > majordomo@vger.kernel.org
+> > > > > More majordomo info at 
+> > > > > http://vger.kernel.org/majordomo-info.html
+
 
 --
 video4linux-list mailing list
