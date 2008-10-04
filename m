@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51])
+Received: from mailout1.informatik.tu-muenchen.de ([131.159.0.12])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1KlZui-0001Ou-PP
-	for linux-dvb@linuxtv.org; Fri, 03 Oct 2008 03:57:06 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Darren Salt <linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <1222924973.2672.4.camel@pc10.localdom.local>
-References: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
-	<alpine.DEB.2.00.0809302137380.4242@ybpnyubfg.ybpnyqbznva>
-	<4FEC93ECE8%linux@youmustbejoking.demon.co.uk>
-	<4FECF60EC8%linux@youmustbejoking.demon.co.uk>
-	<1222924973.2672.4.camel@pc10.localdom.local>
-Date: Fri, 03 Oct 2008 03:50:57 +0200
-Message-Id: <1222998657.2672.11.camel@pc10.localdom.local>
+	(envelope-from <acher@acher.org>) id 1KmBxr-0002wn-Ue
+	for linux-dvb@linuxtv.org; Sat, 04 Oct 2008 20:34:52 +0200
+Received: from braindead1.acher.org (unknown [77.20.156.68])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.in.tum.de (Postfix) with ESMTP id 5F0067C96
+	for <linux-dvb@linuxtv.org>; Sat,  4 Oct 2008 20:34:48 +0200 (CEST)
+Date: Sat, 4 Oct 2008 20:34:43 +0200
+From: Georg Acher <acher@in.tum.de>
+To: linux-dvb@linuxtv.org
+Message-ID: <20081004183442.GM28168@braindead1.acher>
+References: <20081004204740.571e84d9@bk.ru>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
+Content-Disposition: inline
+In-Reply-To: <20081004204740.571e84d9@bk.ru>
+Subject: Re: [linux-dvb] cx24116 & BER for dvb-s2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,39 +30,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-Am Donnerstag, den 02.10.2008, 07:22 +0200 schrieb hermann pitton:
-> Hi Darren,
+On Sat, Oct 04, 2008 at 08:47:40PM +0400, Goga777 wrote:
+> 	Hi
 > 
-> Am Mittwoch, den 01.10.2008, 17:49 +0100 schrieb Darren Salt:
-> > Will people NOT CC mail to me? Mail-Followup-To is set for a reason...
+> my old questions :)
 > 
-> from my side there was not any intention in that direction.
-> Barry must have lost it previously and I did just hit the reply to all
-> button.
-> 
-> Also interesting, unfortunately in German.
-> http://www.spiegel.de/politik/ausland/0,1518,581790,00.html
+> Is it possible to implement the BER's support in cx24116 for dvb-s2 ?
 
-to stay OT a little more.
+The data sheet only mentions the registers c6-c9 for that purpose
+"Reed-Solomon or BCH Corrected Bit Error Count (NBC, DVB-S, or DTV Legacy)".
+There is a possibility to increase the integration window, but the contents
+are still mostly 0 in S2-modes, even when UNC is !=0. Unfortunately, the
+data sheet and the sample code also are not very clear or consistent at
+dealing with the BER counter...
 
-I'm following what happens in the prior colonies with interest.
-
-They have driven it against that well known wall for the second time
-now.
-
-And what publicly comes over is: the problem is drilling licenses ...
-
-...
-
-Cheers,
-Hermann
-
-
-
-
-
-
+-- 
+         Georg Acher, acher@in.tum.de         
+         http://www.lrr.in.tum.de/~acher
+         "Oh no, not again !" The bowl of petunias          
 
 _______________________________________________
 linux-dvb mailing list
