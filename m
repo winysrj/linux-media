@@ -1,15 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtpd4.aruba.it ([62.149.128.209] helo=smtp4.aruba.it)
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <a.venturi@avalpa.com>) id 1Kns8m-0001iB-HZ
-	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 11:49:06 +0200
-Message-ID: <48EDD354.3090506@avalpa.com>
-Date: Thu, 09 Oct 2008 11:48:04 +0200
-From: Andrea Venturi <a.venturi@avalpa.com>
-MIME-Version: 1.0
+Received: from smtp-out2.tiscali.nl ([195.241.79.177])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <simon@siemonsma.name>) id 1Km2Cb-0006sB-Mi
+	for linux-dvb@linuxtv.org; Sat, 04 Oct 2008 10:09:26 +0200
+Received: from [212.123.191.230] (helo=amd64.siemonsma.name)
+	by smtp-out2.tiscali.nl with esmtp id 1Km2CY-0004KC-5f
+	for <linux-dvb@linuxtv.org>; Sat, 04 Oct 2008 10:09:22 +0200
+From: Simon Siemonsma <simon@siemonsma.name>
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------050708050702050905050503"
-Subject: [linux-dvb] siano sms1xxx driver not T-DMB ready?
+Date: Sat, 4 Oct 2008 10:09:26 +0200
+References: <200809282207.20443.simon@siemonsma.name>
+	<200810031359.02734.simon@siemonsma.name>
+	<alpine.DEB.2.00.0810031856190.4242@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.00.0810031856190.4242@ybpnyubfg.ybpnyqbznva>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200810041009.26381.simon@siemonsma.name>
+Subject: Re: [linux-dvb] Can't record an encrypted channel and watch another
+	in the same bouquet. (also teletext doesn't work for
+	encrypted channels)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,114 +26,41 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------050708050702050905050503
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Friday 3 October 2008 19:00:03 you wrote:
+> On Fri, 3 Oct 2008, Simon Siemonsma wrote:
+> > I understood:
+> >
+> > -teletext is encrypted in the Netherlands while it normaly shouldn't.
+>
+> I don't think so -- I've had no problems viewing NOS-text with
+> a FTA receiver -- if you could give me names of particular
+> channels from which you want to view ttx, I can check at
+> 19E2 or 23E5 (DVB-S).
+>
+> It could be that some subscription services do encrypt the
+> teletext, as I've seen that with a few other channels.
+>
+>
+> thanks,
+> barry bouwsma
 
-here in Italy (bologna) we have a T-DMB trial from Rai and other 
-broadcasters.
+I understand you are saying that teletext is not encrypted on satelite 
+broadcasting aimed for the Netherlands.
+P. van Gaans understood from my problems that I must be living in the 
+Netherlands. As teletext on Digitenne is encrypted contrary to what is 
+normally done.
+So you are talking about DVB-S (Canal digital) while I'm talking about DVB-T 
+(Digitenne).
 
-i got one Terratec Cinergy Piranha based on a Siano SMS1xxx chip and 
-indeed the  T-DMB stream works on the "other OS".. (and the DVB-T works too)
-
-this T-DMB stuff is still based on Transport Stream:
-
-  http://en.wikipedia.org/wiki/Digital_Multimedia_Broadcast
-
-as i'd like to dump a full TS of the stream, i was thinking that it was 
-just setting the proper mode (2) in the sms1xxx module, i would have 
-been able to use the same "dvb-tools" like dvbstream to tune the right 
-frequency and dump the whole TS.
-
-too easy, it seems! there were my steps:
-
-1. i put the firmware file for T-DMB demodulation with the right name  
-"tdmb_stellar_usb.inp" in /lib/firmware
-
-2. i loaded the module with the supposed right default mode: modprobe 
-sms1xxx default_mode=2
-
-3. i put my stick on the linux,  but the module didn't got up with this 
-error:
-
-  "SMS Device mode is not set for DVB operation."
-
-I'm halted.
-
-The showstopper come from this smsdvb.c where there's this control:
-
-====================
-        if (smscore_get_devicke_mode(coredev) != 4) {
-#if 1 /* new siano drop (1.2.17) does this -- yuck */
-                sms_err("SMS Device mode is not set for "
-                        "DVB operation.");
-                return 0;
-#else
-====================
-
-of course, this seems only a safety check.
-
-let's hope it's not just a "marketing" showstopper (i'm going anyway to 
-try to relax this control, i bet i'm not going to burn anything inside 
-the device!)
-
-probably there's more to be implemented to driver correctly the Siano 
-chip when not in DVB mode. but how much? ask here could be useful..
-
-it should be easy to "implement" the T-DMB stuff inside the same DVB 
-scenario!
-it's already a system based on transport stream. right?
-
-sadly there are no open specs about it on the siano web site, just this 
-brief:
-
-  http://www.*siano-ms*.com/*pdf*s/00_Siano_SMS*1010*.*pd*f
-
-does anyone know a solution about this issue?
-
-is it so though to implement T-DMB decoding inside the DVB architecture?
-
-are the specs available somewhere?
-
-bye
-
-andrea venturi
-
-
---------------050708050702050905050503
-Content-Type: text/x-vcard; charset=utf-8;
- name="a_venturi.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="a_venturi.vcf"
-
-begin:vcard
-fn:Andrea Venturi
-n:;Andrea Venturi
-org:Avalpa Digital Engineering SRL
-adr;dom:;;Via dell'Arcoveggio 49/5;Bologna;BO;40129
-email;internet:a.venturi@avalpa.com
-title:CEO
-tel;work:+39 0514187531
-tel;cell:+39 3477142994
-url:www.avalpa.com
-version:2.1
-end:vcard
-
-
---------------050708050702050905050503
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Simon Siemonma
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------050708050702050905050503--
