@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LJc2Lt029029
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 15:38:02 -0400
-Received: from mailrelay007.isp.belgacom.be (mailrelay007.isp.belgacom.be
-	[195.238.6.173])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9LJbqdF025200
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 15:37:52 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m95LFc2m019711
+	for <video4linux-list@redhat.com>; Sun, 5 Oct 2008 17:15:38 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.239])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m95LFLUt000343
+	for <video4linux-list@redhat.com>; Sun, 5 Oct 2008 17:15:22 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so2473628rvb.51
+	for <video4linux-list@redhat.com>; Sun, 05 Oct 2008 14:15:21 -0700 (PDT)
+Message-ID: <301701230810051415mf800b3dh183c172eb1e1c638@mail.gmail.com>
+Date: Sun, 5 Oct 2008 22:15:21 +0100
+From: "Barney Gale" <barney.gale@gmail.com>
 To: video4linux-list@redhat.com
-Date: Tue, 21 Oct 2008 21:38:03 +0200
-References: <489AD045.7030404@hhs.nl> <48A81B11.3080308@hhs.nl>
-	<200810211341.m9LDf0cX000636@mx3.redhat.com>
-In-Reply-To: <200810211341.m9LDf0cX000636@mx3.redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200810212138.03496.laurent.pinchart@skynet.be>
-Cc: 
-Subject: Re: RFC: adding a flag to indicate a webcam sensor is installed
-	upside down
+Subject: Issues with LifeView FlyDVB-T Duo (PCI not CardBus)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,51 +27,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi everyone. Today I've been setting up my FlyDVB-T Duo. The card
+seems to work for the most part. The only issue I've had is that I can
+only get some of the channels.
 
-On Tuesday 21 October 2008, Pádraig Brady wrote:
-> Hans de Goede wrote:
-> > I agree that this is a per device thing, and that the flag thus should
-> > be moved to v4l2_capability. I'll redo a new patch against the gspca
-> > zc3xx driver with the flag moved to v4l2_capability.
-> >
-> >
-> > About adding fake controls for HFLIP VFLIP to libv4l for devices which
-> > don't do this natively. This might be good to have, but my current patch
-> > for the upside down issue only supports. 180 degree rotation so, both
-> > vflip and hflip in one go.
->
-> you're referring flipping in hardware above right?
->
-> > Adding support for doing just vflip or just hflip is possible, but will
-> > take some time.
->
-> Any update on this.
->
-> Personally I'm using a 0402:5606 webcam with the latest uvcvideo.ko
-> There is a firmware update available for the webcam to flip the image,
-> so I'm presuming that is just changing the appropriate setting
-> to tell the hardware to flip the image.
+I live in the UK, which uses freeview. My nearest transmitter is in
+Hannington. It's details are listed here:
+http://www.ukfree.tv/txdetail.php?a=SU527568
 
-Most image sensors support vertical and horizontal flipping (or at least image 
-rotation). So it's really a matter of setting the image sensor parameters 
-correctly.
+Unfortunately, I can only pick up stuff from "Mux 1". I've tried the
+following programs to find other channels:
 
-> There is no mention of *FLIP* capability in the uvcvideo driver at all.
-> Is there a standard way to get/set that in the camera?
+Me-TV
+Kaffeine
+scan
+w_scan
 
-Unfortunately the upside-down cameras don't export any hflip/vflip control, so 
-there's no (known) way to control image rotation from the host.
+None of them turn up any channels other than the Mux 1 channels. When
+I run the card in Vista, it picks up these other channels fine.
 
-> > Also faking v4l2 controls currently is not done yet in libv4l, so doing
-> > this requires adding some infrastructure. All doable, but not at the top
-> > of my todo list at the moment.
->
-> So there is no software support yet.
+There's details, logs, etc here:
+http://www.linuxtv.org/wiki/index.php/LifeView_FlyDVB-T_Duo under
+"Mini how-to".
 
-Best regards,
+I got partially through writing the howto when I hit problems. That's
+why the details are there.
 
-Laurent Pinchart
+I'm happy to supply any more details, but please check the wiki page first.
+
+Any help would be really appreciated! :)
+
+ - Barney Gale
 
 --
 video4linux-list mailing list
