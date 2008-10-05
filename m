@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m93CX1ki017915
-	for <video4linux-list@redhat.com>; Fri, 3 Oct 2008 08:33:01 -0400
-Received: from smtp-vbr17.xs4all.nl (smtp-vbr17.xs4all.nl [194.109.24.37])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m93CVRZQ007592
-	for <video4linux-list@redhat.com>; Fri, 3 Oct 2008 08:31:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Date: Fri, 3 Oct 2008 14:31:23 +0200
-References: <200810031313.36607.hverkuil@xs4all.nl>
-	<1223035626.3121.38.camel@palomino.walls.org>
-In-Reply-To: <1223035626.3121.38.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m95JGJVJ013692
+	for <video4linux-list@redhat.com>; Sun, 5 Oct 2008 15:16:19 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m95JG5dT010957
+	for <video4linux-list@redhat.com>; Sun, 5 Oct 2008 15:16:05 -0400
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200810051738.m95HcnWJ070581@smtp-vbr3.xs4all.nl>
+References: <200810051738.m95HcnWJ070581@smtp-vbr3.xs4all.nl>
+Content-Type: text/plain
+Date: Sun, 05 Oct 2008 15:15:27 -0400
+Message-Id: <1223234127.2794.27.camel@morgan.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200810031431.23882.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: RFC: move zoran/core/i2c drivers to separate directories
+Cc: v4l-dvb-maintainer@linuxtv.org,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: Q: standard method to output statistics from a driver? (Re:
+	[v4l-dvb-maintainer] [cron job] ERRORS: armv5 armv5-ixp i686 m32r
+	mips powerpc64 x86_64 v4l-dvb build)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,106 +30,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Friday 03 October 2008 14:07:06 Andy Walls wrote:
-> On Fri, 2008-10-03 at 13:13 +0200, Hans Verkuil wrote:
-> > Hi all,
-> >
-> > It looks like 2.6.27 is nearing completion, so this is a good time
-> > to reorganize the video tree. IMHO it's getting rather messy in the
-> > media/video directory and I propose to make the following changes:
-> >
-> > 1) the zoran driver sources are moved into a video/zoran directory.
-> > 2) the v4l core sources (v4l* and videobuf*) are moved into a
-> > video/core directory. Since I'll be adding more v4l core sources in
-> > the near future this would keep everything together nicely.
-> >
-> > 3) the i2c drivers are moved to either media/video/i2c or media/i2c
-> > (I have no preference). This should make it easier to see what is
-> > the actual v4l driver and what is a supporting i2c driver. It's
-> > rather mixed up right now.
->
-> If the i2c drivers can be shared with Digital Video cards, then
-> media/video/i2c probably isn't the best.  media/i2c or
-> media/common/i2c might be better.
+On Sun, 2008-10-05 at 19:38 +0200, Hans Verkuil wrote:
 
-They can in theory, but it will take quite some time before that becomes 
-reality (if ever). Personally I think that we should keep it for now 
-within the video directory and move it up as soon as dvb will start 
-using it. But I have no strong preference.
+> Results of the daily build of v4l-dvb:
+> 
+> date:        Sun Oct  5 19:00:08 CEST 2008
+> path:        http://www.linuxtv.org/hg/v4l-dvb
+> changeset:   9113:979d14edeb2e
+> gcc version: gcc (GCC) 4.3.1
+> hardware:    x86_64
+> host os:     2.6.26
+> 
 
-> <thinking out loud>
->
-> Would there be something more descriptive than "i2c"? That describes
-> the bus to which the support chips connect, but lumps together audio
-> multiplexers, eeproms, analog broadcast decoders, etc., right?
->
-> Classification by bus interface doesn't seem to have a strong
-> precedent. The rest of the kernel generally doesn't appear to lump
-> every device with a common interface under a directory, but instead
-> devices with common functions (drivers/scsi, drivers/video,
-> drivers/net).  I should note though that the drivers/char directory
-> has survived with a big pile of "stuff" for quite some time.
->
-> How about media/video/ancillary or media/common/ancillary to cover
-> ancillary support chips and functions that are otherwise unclassified
-> in the directory structure/taxonomy?
->
-> </thinking out loud>
+> sparse (linux-2.6.26): ERRORS
+> sparse (linux-2.6.27-rc8): ERRORS
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Hmm, ancillary is a bit long. What about clients? Since these are all 
-(i2c) clients on a (usually i2c) bus. Besides, I'll be introducing a 
-struct media_client soon that all these drivers will support. 'struct 
-media_ancillary' sounds weird to me.
+To make the sparse build cx18 warnings go away, add "__iomem" to the
+third argument of these functions in cx18-io.h:
 
->
-> To bring it up a level, you have identified a requirement to simplify
-> something and have an implicit measure of complexity (logically
-> unrelated files in the host driver directory?) that you'd like to
-> reduce.  So what does it take to meet that requirement without
-> increasing some other undesirable measure: the count of directories
-> under linux/drivers/media or how many files do my "grep -R" searches
-> have to wade through now? :)
+void cx18_log_write_retries(struct cx18 *cx, int i, const void *addr)
+void cx18_log_read_retries(struct cx18 *cx, int i, const void *addr)
 
-1) Moving zoran sources into a zoran directory reflects current 
-practice.
-2) We could prefix all core files with a common prefix (v4l2_) as an 
-alternative. But I think it is cleaner to have a core directory 
-instead.
-3) Ditto for all i2c drivers, but there are so many that I think these 
-really should be moved to their own directory.
+They are just statistics gathering functions.
 
-> > There are probably some sources where it is not clear where they
-> > should go (e.g. ir-kbd-i2c.c), when in doubt I prefer to keep them
-> > where they are now, they can always be moved later.
->
-> "ancillary", or something similar, covers ancillary support chips and
-> functions like ir-kdb-i2c.c and tveeprom.c.
 
-I agree.
+But that leads me to this question:
 
-Thank you for the feedback.
+Is there a preferred or standard way to present gathered statistics to a
+user-space for v4l-dvb drivers?
+
+For example, I recall (circa 1997) the g_NCR5380 driver built /proc
+entries where one could view statistics for that SCSI driver.
+
+Right now, I have the cx18 module output collected statistics when the
+"debug" module param has "info" set and a) the module is unloaded (done
+for when init fails and I can't get a device node, but need statistics)
+and b) when using v4l2-ctl --log-status.
+
+
 
 Regards,
-
-	Hans
-
-> But it's all semantics I suppose.
->
-> Regards,
-> Andy
->
-> > Are there any objections? Suggestions?
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> > --
-> > video4linux-list mailing list
-> > Unsubscribe
-> > mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> > https://www.redhat.com/mailman/listinfo/video4linux-list
-
+Andy
 
 --
 video4linux-list mailing list
