@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m997PucU012988
-	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 03:25:56 -0400
-Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m997PiT9017179
-	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 03:25:44 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so1262456eyf.39
-	for <video4linux-list@redhat.com>; Thu, 09 Oct 2008 00:25:43 -0700 (PDT)
-Date: Thu, 9 Oct 2008 17:27:06 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-dvb@linuxtv.org, "video4linux-list@redhat.com"
-	<video4linux-list@redhat.com>
-Message-ID: <20081009172706.68251375@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m958rHhp003043
+	for <video4linux-list@redhat.com>; Sun, 5 Oct 2008 04:53:17 -0400
+Received: from blu0-omc3-s25.blu0.hotmail.com (blu0-omc3-s25.blu0.hotmail.com
+	[65.55.116.100])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m958r2nt031395
+	for <video4linux-list@redhat.com>; Sun, 5 Oct 2008 04:53:02 -0400
+Message-ID: <BLU116-W130C1B0A38B28150A3A558C23E0@phx.gbl>
+Content-Type: multipart/mixed;
+	boundary="_a4212fc9-40e5-4c7c-8fe9-a071fa8f493a_"
+From: dabby bentam <db260179@hotmail.com>
+To: <linux-dvb@linuxtv.org>, <video4linux-list@redhat.com>
+Date: Sun, 5 Oct 2008 08:53:01 +0000
+MIME-Version: 1.0
 Cc: 
-Subject: ZL10353 config
+Subject: [PATCH] saa7134: add support for IR interface on the Avermedia
+ Super 007
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,20 +27,126 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All
+--_a4212fc9-40e5-4c7c-8fe9-a071fa8f493a_
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
 
-The ZL10353 is a DVB-T demod. It has internal I2C bus for a tuner.
-If no any device on the second I2C bus switch ZL19353 internal I2C bridge to pass-thru mode
-kill the main I2C bus. Main I2C bus has state BUSY all time.
 
-For solve this problem I set checking no_tuner config of the ZL10353 chip. If no any tuners
-don't switch ON I2C bridge.
+This Patch adds support for the IR interface found on the Avermedia Super 0=
+07 card.
 
-Is this solution correct?? May be add new parametr second_bus_empty??
+This card uses the NEC RC5 IR protocol - i2c scan and gpio debug couldn't f=
+ind the IR port.
 
-With my best regards, Dmitry.
+The remote is a combinational keypad=2C meaning - 2 is also UP arrow functi=
+on.
+
+The 'Teletext'. 'Power'=2C 'Channel+' and 'Skip' Function share the same GP=
+IO code. I've prioritized 'Channel+' and the 'Skip' function. Hopefully a w=
+orkaround will be developed.
+
+The remote is fully usable.
+
+Remember to use the irrecord to create a mapping for this remote!
+
+Signed-off-by: David Bentham=20
+
+_________________________________________________________________
+Win New York holidays with Kellogg=92s & Live Search
+http://clk.atdmt.com/UKM/go/111354033/direct/01/=
+
+--_a4212fc9-40e5-4c7c-8fe9-a071fa8f493a_
+Content-Type: text/x-patch
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="avermedia_super007IR.patch"
+
+ZGlmZiAtciA5NzlkMTRlZGViMmUgbGludXgvZHJpdmVycy9tZWRpYS9jb21tb24vaXIta2V5bWFw
+cy5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL2lyLWtleW1hcHMuYwlTYXQgT2N0
+IDA0IDIxOjM3OjM2IDIwMDggLTAzMDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS9jb21tb24v
+aXIta2V5bWFwcy5jCVN1biBPY3QgMDUgMDk6MjQ6NDMgMjAwOCArMDEwMApAQCAtMTUzLDYgKzE1
+Myw1MyBAQCBJUl9LRVlUQUJfVFlQRSBpcl9jb2Rlc19hdmVybWVkaWFfbTEzNWFbCiAJWzB4MWJd
+ID0gS0VZX1NUT1AsCiB9OwogRVhQT1JUX1NZTUJPTF9HUEwoaXJfY29kZXNfYXZlcm1lZGlhX20x
+MzVhKTsKKworLyogRGF2aWQgQmVudGhhbSA8ZGIyNjAxNzlAaG90bWFpbC5jb20gKi8KKy8qCisg
+KiBGSVhNRTogVW5hYmxlIHRvIHVzZSBrZXljb2Rlcz8KKyAqCisgKiBbIDB4MDMgXSA9IEtFWV9U
+RVhULCAgICAgICAgLy8gJ3RlbGV0ZXh0JworICogWyAweDAwIF0gPSBLRVlfUE9XRVIsICAgICAg
+IC8vICdwb3dlcicKKyAqCisgKgorICoKKyAqLworSVJfS0VZVEFCX1RZUEUgaXJfY29kZXNfYXZl
+cm1lZGlhX3N1cGVyMDA3W0lSX0tFWVRBQl9TSVpFXSA9IHsKKworCVsweDExXSA9IEtFWV8wLCAg
+ICAgICAgIC8qIDAgKi8gIC8qIGVudGVyICovCisJWzB4MDVdID0gS0VZXzEsICAgICAgICAgLyog
+MSAqLworCVsweDA2XSA9IEtFWV8yLCAgICAgICAgIC8qIDIgKi8gIC8qIHVwIGFycm93ICovCisJ
+WzB4MDddID0gS0VZXzMsICAgICAgICAgLyogMyAqLworCVsweDA5XSA9IEtFWV80LCAgICAgICAg
+IC8qIDQgKi8gIC8qIGxlZnQgYXJyb3cgKi8KKwlbMHgwYV0gPSBLRVlfNSwgICAgICAgICAvKiA1
+ICovCisJWzB4MGJdID0gS0VZXzYsICAgICAgICAgLyogNiAqLyAgLyogcmlnaHQgYXJyb3cgKi8K
+KwlbMHgwZF0gPSBLRVlfNywgICAgICAgICAvKiA3ICovCisJWzB4MGVdID0gS0VZXzgsICAgICAg
+ICAgLyogOCAqLyAgLyogZG93biBhcnJvdyAqLworCVsweDBmXSA9IEtFWV85LCAgICAgICAgIC8q
+IDkgKi8KKworCVsweDAxXSA9IEtFWV9MSVNULCAgICAgICAgLyogc291cmNlICovCisJWzB4MDhd
+ID0gS0VZX0FVRElPLCAgICAgICAvKiBhdWRpbyAqLworCVsweDBjXSA9IEtFWV9aT09NLCAgICAg
+ICAgLyogZnVsbCBzY3JlZW4gKi8KKwlbMHgxMl0gPSBLRVlfVklERU8sICAgICAgIC8qIGRpc3Bs
+YXkgKi8KKwlbMHgxMF0gPSBLRVlfSU5GTywgICAgICAgIC8qIDE2Y2ggcHJldmlldyAqLworCVsw
+eDFkXSA9IEtFWV9SRVdJTkQsICAgICAgLyogJ2JhY2t3YXJkIDw8ICovCisJWzB4MWNdID0gS0VZ
+X0ZBU1RGT1JXQVJELCAvKiBmb3J3YXJkID4+ICovCisJWzB4MTRdID0gS0VZX01VVEUsICAgICAg
+ICAvKiBtdXRlICovCisJWzB4MTldID0gS0VZX1JFQ09SRCwgICAgICAvKiByZWNvcmQgKi8KKwlb
+MHgxYV0gPSBLRVlfUEFVU0UsICAgICAgIC8qIHBhdXNlICovCisJWzB4MWJdID0gS0VZX1NUT1As
+ICAgICAgICAvKiBzdG9wICovCisJWzB4MThdID0gS0VZX1BMQVksICAgICAgICAvKiBwbGF5ICov
+CisJWzB4MDJdID0gS0VZX0NIQU5ORUxET1dOLCAvKiBjaGFubmVsIC0gKi8KKwlbMHgwM10gPSBL
+RVlfQ0hBTk5FTFVQLCAgIC8qIGNoYW5uZWwgKyAqLyAvKiBUZWxldGV4dCBGSVhNRTogKi8KKwlb
+MHgxZV0gPSBLRVlfVk9MVU1FRE9XTiwgIC8qIHZvbHVtZSAtICovCisJWzB4MWZdID0gS0VZX1ZP
+TFVNRVVQLCAgICAvKiB2b2x1bWUgKyAqLworCVsweDAwXSA9IEtFWV9ORVhULCAgICAgICAgLyog
+c2tpcCAqLyAvKiBQb3dlciBGSVhNRTogKi8KKwlbMHgwMV0gPSBLRVlfUFJFVklPVVMsICAgIC8q
+IHJlcGxheSAqLworCVsweDA0XSA9IEtFWV9FUEcsICAgICAgICAgLyogZXBnICovCisJWzB4MWFd
+ID0gS0VZX0FSQ0hJVkUsICAgICAvKiB0aW1lc2hpZnQgKi8KK307CitFWFBPUlRfU1lNQk9MX0dQ
+TChpcl9jb2Rlc19hdmVybWVkaWFfc3VwZXIwMDcpOworCiAKIC8qIEF0dGlsYSBLb25kb3JvcyA8
+YXR0aWxhLmtvbmRvcm9zQGNoZWxsby5odT4gKi8KIElSX0tFWVRBQl9UWVBFIGlyX2NvZGVzX2Fw
+YWNfdmlld2NvbXBbSVJfS0VZVEFCX1NJWkVdID0gewpkaWZmIC1yIDk3OWQxNGVkZWIyZSBsaW51
+eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jYXJkcy5jCi0tLSBhL2xpbnV4
+L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWNhcmRzLmMJU2F0IE9jdCAwNCAy
+MTozNzozNiAyMDA4IC0wMzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEz
+NC9zYWE3MTM0LWNhcmRzLmMJU3VuIE9jdCAwNSAwOToyNDo0MyAyMDA4ICswMTAwCkBAIC0zNzAz
+LDggKzM3MDMsOSBAQCBzdHJ1Y3Qgc2FhNzEzNF9ib2FyZCBzYWE3MTM0X2JvYXJkc1tdID0gCiAJ
+CS5yYWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQsCiAJCS50dW5lcl9jb25maWcgICA9IDAsCiAJ
+CS5tcGVnICAgICAgICAgICA9IFNBQTcxMzRfTVBFR19EVkIsCisJCS5ncGlvbWFzayAgICAgICA9
+IDB4MDIwMzgwMCwKIAkJLmlucHV0cyA9IHt7Ci0JCQkubmFtZSAgID0gbmFtZV90diwgLyogRklY
+TUU6IGFuYWxvZyB0diB1bnRlc3RlZCAqLworCQkJLm5hbWUgICA9IG5hbWVfdHYsIC8qIERWQiBj
+YXJkIG9ubHkgKi8KIAkJCS52bXV4ICAgPSAxLAogCQkJLmFtdXggICA9IFRWLAogCQkJLnR2ICAg
+ICA9IDEsCkBAIC01OTQxLDYgKzU5NDIsNyBAQCBpbnQgc2FhNzEzNF9ib2FyZF9pbml0MShzdHJ1
+Y3Qgc2FhNzEzNF9kCiAJY2FzZSBTQUE3MTM0X0JPQVJEX0FWRVJNRURJQV9HT18wMDdfRk06CiAJ
+Y2FzZSBTQUE3MTM0X0JPQVJEX0FWRVJNRURJQV83Nzc6CiAJY2FzZSBTQUE3MTM0X0JPQVJEX0FW
+RVJNRURJQV9NMTM1QToKKwljYXNlIFNBQTcxMzRfQk9BUkRfQVZFUk1FRElBX1NVUEVSXzAwNzoK
+IC8qICAgICAgY2FzZSBTQUE3MTM0X0JPQVJEX1NBQlJFTlRfU0JUVFZGTTogICovIC8qIG5vdCBm
+aW5pc2hlZCB5ZXQgKi8KIAljYXNlIFNBQTcxMzRfQk9BUkRfVklERU9NQVRFX1RWX1BWUjoKIAlj
+YXNlIFNBQTcxMzRfQk9BUkRfVklERU9NQVRFX0dPTERfUExVUzoKZGlmZiAtciA5NzlkMTRlZGVi
+MmUgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaW5wdXQuYwotLS0g
+YS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1pbnB1dC5jCVNhdCBP
+Y3QgMDQgMjE6Mzc6MzYgMjAwOCAtMDMwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
+L3NhYTcxMzQvc2FhNzEzNC1pbnB1dC5jCVN1biBPY3QgMDUgMDk6MjQ6NDMgMjAwOCArMDEwMApA
+QCAtNDA3LDYgKzQwNywxMiBAQCBpbnQgc2FhNzEzNF9pbnB1dF9pbml0MShzdHJ1Y3Qgc2FhNzEz
+NF9kCiAJCW1hc2tfa2V5Y29kZSA9IDB4MDAwMTNmOwogCQluZWNfZ3BpbyAgICAgPSAxOwogCQli
+cmVhazsKKwljYXNlIFNBQTcxMzRfQk9BUkRfQVZFUk1FRElBX1NVUEVSXzAwNzoKKwkJaXJfY29k
+ZXMgPSBpcl9jb2Rlc19hdmVybWVkaWFfc3VwZXIwMDc7CisJCW1hc2tfa2V5Y29kZSA9IDB4MDAw
+MDNmOworCQltYXNrX2tleWRvd24gPSAweDAwNDAwMDA7CisJCW5lY19ncGlvID0gMTsKKwkJYnJl
+YWs7CiAJY2FzZSBTQUE3MTM0X0JPQVJEX0FWRVJNRURJQV83Nzc6CiAJY2FzZSBTQUE3MTM0X0JP
+QVJEX0FWRVJNRURJQV9BMTZBUjoKIAkJaXJfY29kZXMgICAgID0gaXJfY29kZXNfYXZlcm1lZGlh
+OwpkaWZmIC1yIDk3OWQxNGVkZWIyZSBsaW51eC9pbmNsdWRlL21lZGlhL2lyLWNvbW1vbi5oCi0t
+LSBhL2xpbnV4L2luY2x1ZGUvbWVkaWEvaXItY29tbW9uLmgJU2F0IE9jdCAwNCAyMTozNzozNiAy
+MDA4IC0wMzAwCisrKyBiL2xpbnV4L2luY2x1ZGUvbWVkaWEvaXItY29tbW9uLmgJU3VuIE9jdCAw
+NSAwOToyNDo0MyAyMDA4ICswMTAwCkBAIC0xMTEsNiArMTExLDcgQEAgZXh0ZXJuIElSX0tFWVRB
+Ql9UWVBFIGlyX2NvZGVzX2F2ZXJtZWRpYQogZXh0ZXJuIElSX0tFWVRBQl9UWVBFIGlyX2NvZGVz
+X2F2ZXJtZWRpYVtJUl9LRVlUQUJfU0laRV07CiBleHRlcm4gSVJfS0VZVEFCX1RZUEUgaXJfY29k
+ZXNfYXZlcm1lZGlhX2R2YnRbSVJfS0VZVEFCX1NJWkVdOwogZXh0ZXJuIElSX0tFWVRBQl9UWVBF
+IGlyX2NvZGVzX2F2ZXJtZWRpYV9tMTM1YVtJUl9LRVlUQUJfU0laRV07CitleHRlcm4gSVJfS0VZ
+VEFCX1RZUEUgaXJfY29kZXNfYXZlcm1lZGlhX3N1cGVyMDA3W0lSX0tFWVRBQl9TSVpFXTsKIGV4
+dGVybiBJUl9LRVlUQUJfVFlQRSBpcl9jb2Rlc19hcGFjX3ZpZXdjb21wW0lSX0tFWVRBQl9TSVpF
+XTsKIGV4dGVybiBJUl9LRVlUQUJfVFlQRSBpcl9jb2Rlc19waXhlbHZpZXdbSVJfS0VZVEFCX1NJ
+WkVdOwogZXh0ZXJuIElSX0tFWVRBQl9UWVBFIGlyX2NvZGVzX3BpeGVsdmlld19uZXdbSVJfS0VZ
+VEFCX1NJWkVdOwo=
+
+--_a4212fc9-40e5-4c7c-8fe9-a071fa8f493a_
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--_a4212fc9-40e5-4c7c-8fe9-a071fa8f493a_--
