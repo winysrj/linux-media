@@ -1,21 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from poplet2.per.eftel.com ([203.24.100.45] ident=postfix)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <the.teasdales@yahoo.com.au>) id 1KrlgD-0006Sw-3k
-	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 05:43:42 +0200
-Received: from mail.aanet.com.au (mail.aanet.com.au [203.24.100.34])
-	by poplet2.per.eftel.com (Postfix) with ESMTP id 2173F1734AF
-	for <linux-dvb@linuxtv.org>; Mon, 20 Oct 2008 11:43:33 +0800 (WST)
-Received: from [192.168.1.2] (202.7.249.240.dynamic.rev.aanet.com.au
-	[202.7.249.240])
-	by mail.aanet.com.au (Postfix) with ESMTP id 93513460380
-	for <linux-dvb@linuxtv.org>; Mon, 20 Oct 2008 11:43:32 +0800 (WST)
-From: Rob Teasdale <the.teasdales@yahoo.com.au>
-To: linux-dvb@linuxtv.org
-Date: Mon, 20 Oct 2008 14:43:34 +1100
-Message-Id: <1224474214.6898.13.camel@rob-desktop>
-Mime-Version: 1.0
-Subject: [linux-dvb] Asus MyCinema U3000 mini
+To: linux-dvb@linuxtv.org, Steven Toth <stoth@linuxtv.org>,
+	Steven Toth <stoth@hauppauge.com>
+From: "Igor M. Liplianin" <liplianin@tut.by>
+Date: Sun, 5 Oct 2008 15:28:57 +0300
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_JML6IQ3tQMj1+/s"
+Message-Id: <200810051528.57446.liplianin@tut.by>
+Subject: [linux-dvb] [PATCH] S2API  Remove NULL pointer in stb6000 driver.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,49 +15,72 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+--Boundary-00=_JML6IQ3tQMj1+/s
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I am relatively new to linux and I have been trying to get my USB tuner
-to work in ubuntu (kernel 2.6.24-21-generic).  According to my searches
-this tuner should be supported in this kernel however it is not working.
+Steve,
 
-Oct 20 11:39:04 rob-desktop kernel:
-[ 6942.035771] /build/buildd/linux-2.6.24/drivers/hid/usbhid/hid-core.c:
-timeout initializing reports
-Oct 20 11:39:04 rob-desktop kernel: [ 6942.035917] input: ASUS  U3000
-as /devices/pci0000:00/0000:00:03.3/usb4/4-7/4-7:1.1/input/input8
-Oct 20 11:39:04 rob-desktop kernel: [ 6942.063272]
-input,hiddev96,hidraw0: USB HID v1.11 Keyboard [ASUS  U3000 ] on
-usb-0000:00:03.3-7
+Remove NULL pointer in stb6000 driver,
+as it raises error for DvbWorld USB card.
 
-and also
+Igor
 
-rob@rob-desktop:~$ lsusb
-Bus 004 Device 006: ID 0b05:1713 ASUSTek Computer, Inc. 
-...
+--Boundary-00=_JML6IQ3tQMj1+/s
+Content-Type: text/x-diff;
+  charset="koi8-r";
+  name="9076.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="9076.patch"
 
-As can be seen the vendor id is correct, however the device id is
-different to that on the linuxtv
-wiki(http://www.linuxtv.org/wiki/index.php/Asus_My-Cinema-U3000_Mini). I
-would assume that this would cause problems and needs to be resolved, I
-am just not sure how and would appreciate any assistance. I think that
-this problem is leading to my device being recognised as a keyboard?
+# HG changeset patch
+# User Igor M. Liplianin <liplianin@me.by>
+# Date 1223207831 -10800
+# Node ID 4b968f970a42a266179113bb3280250e42ccd2f3
+# Parent  8dc74aaea8b20dea5b42c32873984c2c28a8ab6e
+Remove NULL pointer in stb6000 driver.
 
-I would really like to get this device working, and would appreciate any
-pointers as to how to get this device working.  
+From: Igor M. Liplianin <liplianin@me.by>
 
-Cheers
-Rob
+Remove NULL pointer in stb6000 driver,
+as it raises error for DvbWorld USB card.
 
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
 
+diff -r 8dc74aaea8b2 -r 4b968f970a42 linux/drivers/media/dvb/frontends/stb6000.c
+--- a/linux/drivers/media/dvb/frontends/stb6000.c	Sun Oct 05 14:52:18 2008 +0300
++++ b/linux/drivers/media/dvb/frontends/stb6000.c	Sun Oct 05 14:57:11 2008 +0300
+@@ -202,12 +202,13 @@
+ 						struct i2c_adapter *i2c)
+ {
+ 	struct stb6000_priv *priv = NULL;
++	u8 b0[] = { 0 };
+ 	u8 b1[] = { 0, 0 };
+ 	struct i2c_msg msg[2] = {
+ 		{
+ 			.addr = addr,
+ 			.flags = 0,
+-			.buf = NULL,
++			.buf = b0,
+ 			.len = 0
+ 		}, {
+ 			.addr = addr,
+
+--Boundary-00=_JML6IQ3tQMj1+/s
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_JML6IQ3tQMj1+/s--
