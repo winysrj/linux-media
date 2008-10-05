@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9NMuJ9h020358
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 18:56:19 -0400
-Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9NMuDsN030012
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 18:56:13 -0400
-Message-ID: <4901010C.1020708@kaiser-linux.li>
-Date: Fri, 24 Oct 2008 00:56:12 +0200
-From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m95AnLN0001866
+	for <video4linux-list@redhat.com>; Sun, 5 Oct 2008 06:49:21 -0400
+Received: from mailrelay007.isp.belgacom.be (mailrelay007.isp.belgacom.be
+	[195.238.6.173])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m95AnAWb009233
+	for <video4linux-list@redhat.com>; Sun, 5 Oct 2008 06:49:11 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: video4linux-list@redhat.com
+Date: Sun, 5 Oct 2008 12:49:21 +0200
+References: <200809211406.30146.laurent.pinchart@skynet.be>
+In-Reply-To: <200809211406.30146.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
-To: Thierry Merle <thierry.merle@free.fr>
-References: <4900DA6B.4050902@kaiser-linux.li> <4900EDA7.6070000@free.fr>
-In-Reply-To: <4900EDA7.6070000@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: Video 4 Linux <video4linux-list@redhat.com>
-Subject: Re: gspca, what do I am wrong?
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200810051249.21375.laurent.pinchart@skynet.be>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] uvcvideo: Support two new Bison Electronics webcams.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,79 +30,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thierry Merle wrote:
-> Hi Thomas,
-> 
-> Thomas Kaiser a écrit :
->> Hey
->>
->> I think this mail came not through, so I send it again. Sorry, when it
->> comes twice.
->>
->> I just pasted the interesting things into this email (With some comments
->> inline). Hope somebody can help:
->>
->> thomas@LAPI01:~$ lsb_release -a
->> No LSB modules are available.
->> Distributor ID:    Ubuntu
->> Description:    Ubuntu 8.04.1
->> Release:    8.04
->> Codename:    hardy
->>
->> thomas@LAPI01:~$ uname -a
->> Linux LAPI01 2.6.24-21-generic #1 SMP Mon Aug 25 17:32:09 UTC 2008 i686
->> GNU/Linux
->>
->> thomas@LAPI01:~/Projects/webcams$ hg clone http://linuxtv.org/hg/v4l-dvb
->> to get the newest v4l source.
->>
->> make menuconfig in ~/Projects/webcams/v4l-dvb and remove all stuff
->> except the gspca and V4l2.
->> After this, I did not find a .config file in the
->> ~/Projects/webcams/v4l-dvb folder. Where is the .config stored?
-> ~/Projects/webcams/v4l-dvb/v4l/.config
+Hi Mauro,
 
-OK, I found it, thanks.
+On Sunday 21 September 2008, Laurent Pinchart wrote:
+> This adds required quirks for the Compaq Presario B1200 and Acer Travelmate
+> 7720 integrated webcams.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
 
-> 
->> Several dvb and/or analog capture driver where made. Why?, I disabled!
->>
-> Look at the .config, perhaps you forgot to disable some additional modules
+I think you forgot to pick this one up.
 
-When I did "make menuconfig" I only choose the v4l2 and gspca modules. 
-But looking in .config in ...../v4l/ there are still some more modules 
-enabled. I can manually remove them from the .config file, but that 
-should not be the way to go, or I am mistaken?
+Best regards,
 
->> thomas@LAPI01:~/Projects/webcams/v4l-dvb$ make
->> ¨make -C /home/thomas/Projects/webcams/v4l-dvb/v4l
->> make[1]: Entering directory `/home/thomas/Projects/webcams/v4l-dvb/v4l'
->> creating symbolic links...
->> Kernel build directory is /lib/modules/2.6.24-21-generic/build
->> make -C /lib/modules/2.6.24-21-generic/build
->> SUBDIRS=/home/thomas/Projects/webcams/v4l-dvb/v4l  modules
-> [SNIP]
->> After plugging the cam in the kernel log:
->>
->> Oct 23 20:52:54 LAPI01 kernel: [ 2015.905111] usb 1-1: new full speed
->> USB device using uhci_hcd and address 5
->> Oct 23 20:52:54 LAPI01 kernel: [ 2016.075400] usb 1-1: configuration #1
->> chosen from 1 choice
->> Oct 23 20:52:54 LAPI01 kernel: [ 2016.078879] usb 1-1: ZC0301[P] Image
->> Processor and Control Chip detected (vid/pid 0x041E:0x401C)
->> Oct 23 20:52:55 LAPI01 kernel: [ 2016.164172] usb 1-1: No supported
->> image sensor detected
->> Oct 23 20:52:55 LAPI01 kernel: [ 2016.194043] gspca_main: disagrees
->> about version of symbol video_ioctl2
-> Please try make rmmod before plugging-in your device and check that no
-> v4l-dvb module is loaded.
-> This will remove any old v4l-dvb module already present.
-
-I did several "sudo modprobe -r gspca-...." and check afterward that no 
-gspca module is loaded anymore (lsmod |grep gspca).
-
-
-Thomas
+Laurent Pinchart
 
 --
 video4linux-list mailing list
