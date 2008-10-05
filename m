@@ -1,13 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-To: linux-dvb@linuxtv.org, Steven Toth <stoth@linuxtv.org>,
-	Steven Toth <stoth@hauppauge.com>
-From: "Igor M. Liplianin" <liplianin@tut.by>
-Date: Sun, 5 Oct 2008 15:23:33 +0300
+Received: from monty.telenet-ops.be ([195.130.132.56])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <dvb2@bsc-bvba.be>) id 1KmWtS-0003OP-EF
+	for linux-dvb@linuxtv.org; Sun, 05 Oct 2008 18:55:43 +0200
+Message-ID: <48E8F186.6070505@bsc-bvba.be>
+Date: Sun, 05 Oct 2008 18:55:34 +0200
+From: Luc Brosens <dvb2@bsc-bvba.be>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_GHL6I+V1KkCz1d3"
-Message-Id: <200810051523.34335.liplianin@tut.by>
-Subject: [linux-dvb] [PATCH] S2API Makefile fix for ST STV0288 demodulator.
+To: Jelle de Jong <jelledejong@powercraft.nl>
+References: <48E7CDC1.9010905@powercraft.nl> <48E7D5BB.9040001@braice.net>
+	<48E7DB3B.3070700@powercraft.nl>
+In-Reply-To: <48E7DB3B.3070700@powercraft.nl>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Scrambled/encrypted dvb-t channels under linux with
+ a	CI CAM?
+Reply-To: dvb2@bsc-bvba.be
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -15,63 +22,60 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_GHL6I+V1KkCz1d3
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi Steve,
-
-Makefile fix for ST STV0288 demodulator.
-Resend it, as it somehow disappears 
-
-Igor
-
---Boundary-00=_GHL6I+V1KkCz1d3
-Content-Type: text/x-diff;
-  charset="koi8-r";
-  name="9036.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="9036.patch"
-
-# HG changeset patch
-# User Igor M. Liplianin <liplianin@me.by>
-# Date 1222957999 -10800
-# Node ID 63aceadbc87a5ae27c68c5e5698b327757aaf5f5
-# Parent  c6088a57a2714ba67a6e7c88d449d05d60053e91
-Makefile fix for ST STV0288 demodulator.
-
-From: Igor M. Liplianin <liplianin@me.by>
-
-Makefile fix for ST STV0288 demodulator.
-
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
-
-diff -r c6088a57a271 -r 63aceadbc87a linux/drivers/media/dvb/frontends/Makefile
---- a/linux/drivers/media/dvb/frontends/Makefile	Thu Sep 25 23:29:49 2008 -0400
-+++ b/linux/drivers/media/dvb/frontends/Makefile	Thu Oct 02 17:33:19 2008 +0300
-@@ -53,5 +53,5 @@
- obj-$(CONFIG_DVB_AF9013) += af9013.o
- obj-$(CONFIG_DVB_CX24116) += cx24116.o
- obj-$(CONFIG_DVB_SI21XX) += si21xx.o
--obj-$(CONFIG_DVB_STV0299) += stv0288.o
-+obj-$(CONFIG_DVB_STV0288) += stv0288.o
- obj-$(CONFIG_DVB_STB6000) += stb6000.o
-
---Boundary-00=_GHL6I+V1KkCz1d3
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_GHL6I+V1KkCz1d3--
+CgpKZWxsZSBkZSBKb25nIHdyb3RlOgo+IEJyaWNlIERVQk9TVCB3cm90ZToKPj4gSmVsbGUgZGUg
+Sm9uZyBhIO+/vWNyaXQgOgo+Pj4gSGVsbG8gZXZlcnlib2R5LAo+Pj4KPj4+IEkgYW0gc2VhcmNo
+aW5nIGZvciBzb21lIHNvbHV0aW9ucyB0byBiZSBhYmxlIHRvIHdhdGNoCj4+PiBzY3JhbWJsZWQv
+ZW5jcnlwdGVkIGR2Yi10IGNoYW5uZWxzIG9uIExpbnV4IHN5c3RlbXMuCj4+Pgo+Pj4gSSBkb24n
+dCBrbm93IHdoYXQgbXkgb3B0aW9ucyBhcmUuLi4sIGJ1dCBJIGZvdW5kIHRoaXMgd2lraSBwYWdl
+Ogo+Pj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy93aWtpL2luZGV4LnBocC9EVkJfQ29uZGl0aW9u
+YWxfQWNjZXNzX01vZHVsZXMKPj4+Cj4+PiBUaGUgc2l0dWF0aW9uIGlzIHRoYXQgSSBoYXZlIHNl
+cGFyYXRlIHVzYiBlbmFibGVkIGR2Yi10IGRldmljZXMgdGhhdCBkbwo+Pj4gYWxsIHdvcmsgZm9y
+IG5vbiBzY3JhbWJsZWQgY2hhbm5lbHMuCj4+Pgo+Pj4gSSB3b3VsZCBsaWtlIHRvIGJlIGFibGUg
+dG8gYWRkIGFuIHVzYiBkZXZpY2UgdGhhdCBtYWtlcyBpdCBwb3NzaWJsZSB0bwo+Pj4gYWxzbyB3
+YXRjaCB0aGUgc2NyYW1ibGVkIGNoYW5uZWxzLCBJIGRvbid0IGtub3cgaWYgdGhpcyBpcyBwb3Nz
+aWJsZS4KPj4+IFdoYXQgaXMgdGhlIGV4YWN0IGZ1bmN0aW9uIG9mIGEgQ0FNPyBEb2VzIGl0IGRl
+Y3J5cHQgZGF0ZSByZWFsdGltZSBvcgo+Pj4gZG9lcyBpdCBnaXZlIG91dCBzb21lIHNwZWNpYWwg
+a2V5IHRoYXQgYW4gb3RoZXIgYXBwbGljYXRpb24gY2FuIHVzZT8KPj4+Cj4+IFRoZSBDQU0gZGVj
+cnlwdCB0aGUgc3RyZWFtcywgdGhlIGtleSBzdGF5cyBpbnNpZGUgdGhlIGNhbS4KPj4KPj4gVGhl
+IGZ1bGwgc3RyZWFtIGlzIGdpdmVuIHRvIHRoZSBjYW0gYW5kIHlvdSBhc2sgdGhlIGNhbSBmb3Ig
+dGhlIHByb2dyYW1zCj4+IHlvdSB3YW50IHRvIGJlIGRlY3J5cHRlZAo+Pgo+Pj4gSSBkbyBoYXZl
+IGEgdXNiIHNtYXJ0Y2FyZCByZWFkZXIgdGhhdCBJIHVzZSBmb3IgZ251cGcgZW5jcnlwdGlvbgo+
+Pj4gc3lzdGVtcy4gQXJlIHRoZXJlIHBvc3NpYmlsaXR5IHRvIHVzZSB0aGlzIGRldmljZSB3aXRo
+IGFuIGNhYmxlLXByb3ZpZGVyCj4+PiBzbWFydGNhcmRzPwo+Pj4KPj4gTm9ybWFsbHkgbm8uCj4+
+Cj4+IElmIHlvdSBjYW4gaXQncyBnZW5lcnJhbGx5IGlsbGVnYWwgdG8gZXh0cmFjdCB0aGUga2V5
+cyBmcm9tIHRoZSBzbWFydGNhcmQuCj4+Cj4+PiBBbnkgaW5mb3JtYXRpb24gaXMgYXBwcmVjaWF0
+ZWQsCj4+Pgo+PiBIb3BlIHRoaXMgd2lsbCBoZWxwIHlvdQo+Pgo+IAo+IFRoYW5rIHlvdSBmb3Ig
+dGhlIGluZm9ybWF0aW9uLAo+IAo+IFNvIHdoYXQgYXJlIG15IG9wdGlvbnMgdG8gYmVjb21lIGFi
+bGUgdG8gd2F0Y2ggc2NyYW1ibGVkIGNoYW5uZWxzPyBXaGF0Cj4gaXMgdGhlIHBlcmZvcm1hbmNl
+IHBlbmFseSBmb3IgdXNpbmcgdXNiIGJhc2VkIHR1bmVycyBhbmQgY2FtcyBvbiBvbmUKPiBzeXN0
+ZW0/IFdpbGwgYW4gZWVlcGMgNzAxIG9yIGFuIGF0b20gcGxhdGZvcm0gYmUgZW5vdWdoIHRvIGhh
+bmRsZSBib3RoCj4gc3RyZWFtcz8gVGhlIGNwdSB1c2UgZm9yIHRoZSB0dW5lciBhbmQgeG9yZyBy
+ZW5kZXJpbmcgaXMgYXJvdW5kIDUwJSBvbgo+IG15IGN1cnJlbnQgZWVlcGMgNzAxLgo+IAo+IEJl
+c3QgcmVnYXJkcywKPiAKPiBKZWxsZQo+IAo+IF9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCj4gbGludXgtZHZiIG1haWxpbmcgbGlzdAo+IGxpbnV4LWR2YkBs
+aW51eHR2Lm9yZwo+IGh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3Rp
+bmZvL2xpbnV4LWR2YgoKCkplbGxlLAoKb25lIGRheSwgSSBob3BlIHRvIGJlIGFibGUgdG8gdXNl
+IHRoZSBXaW5UVi1DSSBkZXZpY2UgZnJvbSBIYXVwcGF1Z2UgZm9yIHRoaXMuIEl0IGlzIGEgVVNC
+Mi1iYXNlZCBkZXZpY2UgdGhhdCB3aWxsIHJldHVybiBhCmRlY3J5cHRlZCB2ZXJzaW9uIG9mIHRo
+ZSBzdHJlYW0geW91IGZlZWQgaXQuClRoZSBpZGVhIGlzIHRoYXQgeW91J2QgcmVjb3JkIGVuY3J5
+cHRlZCBzdHJlYW1zIHRvIGhhcmRkaXNrLCBwb3NzaWJseSBmcm9tIG11bHRpcGxlIGNhcmRzLCBh
+bmQgZGVjcnlwdCB0aGUgaW50ZXJlc3RpbmcgYml0cwphZnRlcndhcmRzIChsaWtlIG15IEFyaW9u
+IEFGLTkyODBQVlIgZG9lcyBkYWlseSkKCk15IGF0dGVtcHRzIHRvIHdyaXRlIGEgTGludXggZGV2
+aWNlIGRyaXZlciBmb3IgdGhlIFdpblRWLUNJIGhhdmUgYmVlbiB1bnN1Y2Nlc3NmdWwgdW50aWwg
+bm93LCB5b3UgY2FuIGZpbmQgd2hhdCBJIGhhdmUgaGVyZSA6Cmh0dHA6Ly93d3cuYnNjLWJ2YmEu
+YmUvbGludXgvZHZiLwooaW4gYSBudXRzaGVsbCA6IEkgaGF2ZSBzbm9vcGVkIHRoZSBYUC1kcml2
+ZXIsIGlkZW50aWZpZWQgdGhlIGZpcm13YXJlLCB3cm90ZSBhIHByb2dyYW0gdG8gZXh0cmFjdCBp
+dCBmcm9tIG11bHRpcGxlIHZlcnNpb25zIG9mCkhhdXBwYXVnZSdzIGRyaXZlciwgYW5kIGNyZWF0
+ZWQgdGhlIGJlZ2lubmluZyBvZiBhIGRldmljZSBkcml2ZXIgKHdoaWNoIGN1cnJlbnRseSBmYWls
+cyBoYWxmd2F5IHRocm91Z2ggdGhlIGZpcm13YXJlIGxvYWQpKQoKSSBhbSBhIGEgbG9zcyBhcyB0
+byB3aHkgdGhlIGZpcm13YXJlIGxvYWQgZmFpbHMsIGFsbCBoZWxwIGlzIGdyZWF0bHkgYXBwcmVj
+aWF0ZWQgLi4uCgpncmVldHosCgpMdWMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYu
+b3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LWR2Yg==
