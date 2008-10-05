@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bubo.tul.cz ([147.230.16.1])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <petr.cvek@tul.cz>) id 1KmmRO-0006ao-An
-	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 11:31:46 +0200
-Received: from webmail.vslib.cz (webmail.tul.cz [147.230.16.50])
-	by bubo.tul.cz (Postfix) with ESMTP id E484D5F404
-	for <linux-dvb@linuxtv.org>; Mon,  6 Oct 2008 11:31:34 +0200 (CEST)
-Message-ID: <20081006113134.rpgzq4gpno40cowg@webmail.tul.cz>
-Date: Mon,  6 Oct 2008 11:31:34 +0200
-From: petr.cvek@tul.cz
-To: linux-dvb@linuxtv.org
+Date: Sun, 5 Oct 2008 12:46:03 +0300 (EEST)
+From: Mika Laitio <lamikr@pilppa.org>
+To: =?us-ascii?Q?Niels_Wagenaar?= <n.wagenaar@xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.0810051134550.28540@shogun.pilppa.org>
+Message-ID: <Pine.LNX.4.64.0810051244050.28540@shogun.pilppa.org>
+References: <> <vmime.48e783ed.1f22.5c54cd2143673187@shalafi.ath.cx>
+	<Pine.LNX.4.64.0810051134550.28540@shogun.pilppa.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="=_4ccy89e3eb6s"
-Content-Transfer-Encoding: 7bit
-Subject: [linux-dvb] [PATCH] Add support for Winfast Dongle Hybrid
+Cc: "=?us-ascii?Q?LinuxTV_Mailinglist_=28linux-dvb=40linuxtv.org=29?="
+	<linux-dvb@linuxtv.org>,
+	"=?us-ascii?Q?VDR_Mailinglist_=28vdr=40linuxtv.org=29?=" <vdr@linuxtv.org>
+Subject: Re: [linux-dvb] [PATCH] S2API for vdr-1.7.0 (04-10-2008 - quickhack
+ for DVB-S(2), DVB-T and DVB-C)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,101 +19,172 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This message is in MIME format.
+On Sun, 5 Oct 2008, Mika Laitio wrote:
 
---=_4ccy89e3eb6s
-Content-Type: text/plain;
-	charset=ISO-8859-2;
-	DelSp="Yes";
-	format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+>> Hello All,
+>>
+>> Today I finished the patch for DVB-S, DVB-S2, DVB-T and DVB-C support using S2API
+>> in combination with VDR 1.7.0.
+>> I've tested my code on DVB-S, DVB-S2 and DVB-T transports and they were
+>> all successful. DVB-C is untested (don't have a DVB-C option where I
+>> live) but it should work in *THEORY* ;)
+>>
+>> DVB-S and DVB-S2 were tested on a Hauppauge WinTV-NOVA-HD-S2 card.
+>> DVB-T was tested on a Gigabyte GT-U7000-RH USB device.
+>> I used the latest v4l pull and viewing was very stable with both DVB
+>> devices. I also didn't had any problems any more when switching between
+>> DVB-S(2) and DVB-T, but it can be that this patch will *NOT* work
+>> correctly on MFE DVB devices like the HVR-3000 or HVR-4000 (I had to do some hacking because strangely,
+>> DVB-T transports were offered to my DVB-S DVB device). Since I can't
+>> test this, I hope others can tell me if it works or not.
+>>
+>> Enclosed are two patches. The clean patch is for a clean VDR 1.7.0
+>> source tree patched with Reinhard's
+>> vdr-1.7.0-h264-syncearly-framespersec-audioindexer-fielddetection-speedup.diff.bz2
+>> patch. The patched patch is for those who have used Edgar (gimli)
+>> Hucek's patch for VDR 1.7.0. In theory it should also work with my last send
+>> patch.
+>
+> Hi
+>
+> I tried your patch and vdr fails to show dvb-t channels for me while dvb-s
+> channels works ok.
+>
+> I have tested with a following setup:
+>
+> - vdr-1.7.0
+> + vdr-1.7.0-h264-syncearly-framespersec-audioindexer-fielddetection-speedup.diff
+> + vdr-1.7.0-s2api-04102008-clean.patch
+> - latest s2-mfe installed for 2.6.27-rc8
+> - card-0: hvr-1300 (dvb-t, terrestrial cable connected)
+> - card-1: hvr-4000 (dvb-t, dvb-s, dvb-s2, only satellite cable connected)
+>
+> [lamikr@tinka ~]$ ls -la /dev/dvb/adapter0/
+> total 0
+> drwxr-xr-x  2 root   root     120 2008-10-05 10:56 ./
+> drwxr-xr-x  4 root   root      80 2008-10-05 10:56 ../
+> crw-rw----+ 1 lamikr video 212, 4 2008-10-05 10:56 demux0
+> crw-rw----+ 1 lamikr video 212, 5 2008-10-05 10:56 dvr0
+> crw-rw----+ 1 lamikr video 212, 3 2008-10-05 10:56 frontend0
+> crw-rw----+ 1 lamikr video 212, 7 2008-10-05 10:56 net0
+> [lamikr@tinka ~]$ ls -la /dev/dvb/adapter1/
+> total 0
+> drwxr-xr-x  2 root   root      200 2008-10-05 10:56 ./
+> drwxr-xr-x  4 root   root       80 2008-10-05 10:56 ../
+> crw-rw----+ 1 lamikr video 212, 68 2008-10-05 10:56 demux0
+> crw-rw----+ 1 lamikr video 212, 84 2008-10-05 10:56 demux1
+> crw-rw----+ 1 lamikr video 212, 69 2008-10-05 10:56 dvr0
+> crw-rw----+ 1 lamikr video 212, 85 2008-10-05 10:56 dvr1
+> crw-rw----+ 1 lamikr video 212, 67 2008-10-05 10:56 frontend0
+> crw-rw----+ 1 lamikr video 212, 83 2008-10-05 10:56 frontend1
+> crw-rw----+ 1 lamikr video 212, 71 2008-10-05 10:56 net0
+> crw-rw----+ 1 lamikr video 212, 87 2008-10-05 10:56 net1
+>
+> I also tried to connect the terrestrial cable to hvr-4000, but it did not
+> change anything.
+>
+> If I use tzap, dvbstream and mplayer
+> compination for hvr-1300 or if I use vdr-1.7.0 with liplianis multiptoto
+> drivers, then also dvb-t channels works ok.
+>
+> Mika
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-Hello,
-This patch adds USB ID of DVB-T and analog card Winfast Dongle Hybrid
-(0x60f6). It is diffed against v4l-dvb-979d14edeb2e
+And here is the output from syslog after trying to switch channel:
 
-
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
-
-
---=_4ccy89e3eb6s
-Content-Type: text/x-diff;
-	charset=UTF-8;
-	name="winfast_dongle_hybrid.patch"
-Content-Disposition: attachment;
-	filename="winfast_dongle_hybrid.patch"
-Content-Transfer-Encoding: quoted-printable
-
-From: Petr Cvek  <petr.cvek@tul.cz>
-
-Add support for Leadtek Winfast Dongle H (DVB and analog TV USB card).
-
-Signed-off-by: Petr Cvek  <petr.cvek@tul.cz>
-
-diff -ruN v4l-dvb-979d14edeb2e_old/linux/drivers/media/dvb/dvb-usb/dib0700_d=
-evices.c v4l-dvb-979d14edeb2e_new/linux/drivers/media/dvb/dvb-usb/dib0700_de=
-vices.c
---- v4l-dvb-979d14edeb2e_old/linux/drivers/media/dvb/dvb-usb/dib0700_devices=
-.c=092008-10-05 02:37:36.000000000 +0200
-+++ v4l-dvb-979d14edeb2e_new/linux/drivers/media/dvb/dvb-usb/dib0700_devices=
-.c=092008-10-06 03:06:51.000000000 +0200
-@@ -1251,6 +1251,7 @@
- =09{ USB_DEVICE(USB_VID_ASUS,=09USB_PID_ASUS_U3000H) },
- /* 40 */{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E) },
- =09{ USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV801E_SE) },
-+=09{ USB_DEVICE(USB_VID_LEADTEK,   USB_PID_WINFAST_DTV_DONGLE_HYBRID) },=09
- =09{ 0 }=09=09/* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -1545,7 +1546,7 @@
- =09=09=09},
- =09=09},
-=20
--=09=09.num_device_descs =3D 5,
-+=09=09.num_device_descs =3D 6,
- =09=09.devices =3D {
- =09=09=09{   "Terratec Cinergy HT USB XE",
- =09=09=09=09{ &dib0700_usb_id_table[27], NULL },
-@@ -1571,6 +1572,10 @@
- =09=09=09=09{ &dib0700_usb_id_table[39], NULL },
- =09=09=09=09{ NULL },
- =09=09=09},
-+=09=09=09{   "Leadtek Winfast Dongle Hybrid",
-+=09=09=09=09{ &dib0700_usb_id_table[42], NULL },
-+=09=09=09=09{ NULL },
-+=09=09=09},
- =09=09},
- =09=09.rc_interval      =3D DEFAULT_RC_INTERVAL,
- =09=09.rc_key_map       =3D dib0700_rc_keys,
-diff -ruN v4l-dvb-979d14edeb2e_old/linux/drivers/media/dvb/dvb-usb/dvb-usb-i=
-ds.h v4l-dvb-979d14edeb2e_new/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
---- v4l-dvb-979d14edeb2e_old/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h=
-=092008-10-05 02:37:36.000000000 +0200
-+++ v4l-dvb-979d14edeb2e_new/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h=
-=092008-10-06 03:05:14.000000000 +0200
-@@ -232,5 +232,6 @@
- #define USB_PID_DW2102=09=09=09=09=090x2102
- #define USB_PID_XTENSIONS_XD_380=09=09=090x0381
- #define USB_PID_TELESTAR_STARSTICK_2=09=09=090x8000
-+#define USB_PID_WINFAST_DTV_DONGLE_HYBRID=09=090x60f6
-=20
- #endif
-
---=_4ccy89e3eb6s
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Oct  5 12:43:20 tinka vdr: [21353] switching to channel 1
+Oct  5 12:43:21 tinka vdr: [21446] transfer thread ended (pid=21353, 
+tid=21446)
+Oct  5 12:43:21 tinka vdr: [21353] buffer stats: 0 (0%) used
+Oct  5 12:43:21 tinka vdr: [21486] transfer thread started (pid=21353, 
+tid=21486)
+Oct  5 12:43:21 tinka vdr: [21448] TS buffer on device 1 thread ended 
+(pid=21353, tid=21448)
+Oct  5 12:43:21 tinka vdr: [21447] buffer stats: 0 (0%) used
+Oct  5 12:43:21 tinka vdr: [21447] receiver on device 1 thread ended 
+(pid=21353, tid=21447)
+Oct  5 12:43:21 tinka vdr: [21487] receiver on device 1 thread started 
+(pid=21353, tid=21487)
+Oct  5 12:43:21 tinka vdr: [21488] TS buffer on device 1 thread started 
+(pid=21353, tid=21488)
+Oct  5 12:43:22 tinka vdr: [21357] frontend 0 timed out while tuning to 
+channel 1, tp 706
+Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
+FE_SET_PROPERTY
+Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
+properties.num = 1
+Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
+properties.props = 0000000042682d00
+Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000002 
+(DTV_CLEAR)
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000000
+Oct  5 12:43:22 tinka kernel: dtv_property_process_set() Flushing property 
+cache
+Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
+FE_SET_PROPERTY
+Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
+properties.num = 6
+Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
+properties.props = 0000000042682d00
+Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000002 
+(DTV_CLEAR)
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000000
+Oct  5 12:43:22 tinka kernel: dtv_property_process_set() Flushing property 
+cache
+Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
+FE_SET_PROPERTY
+Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
+properties.num = 6
+Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
+properties.props = 0000000042682d00
+Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000011 
+(DTV_DELIVERY_SYSTEM)
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000003
+Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000003 
+(DTV_FREQUENCY)
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x2a14b480
+Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000006 
+(DTV_INVERSION)
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000002
+Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000005 
+(DTV_BANDWIDTH_HZ)
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000000
+Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000004 
+(DTV_MODULATION)
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000003
+Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000001 
+(DTV_TUNE)
+Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000000
+Oct  5 12:43:22 tinka kernel: dtv_property_process_set() Finalised 
+property cache
+Oct  5 12:43:22 tinka kernel: dtv_property_cache_submit()
+Oct  5 12:43:22 tinka kernel: dtv_property_cache_submit() legacy, 
+modulation = 3
+Oct  5 12:43:22 tinka kernel: dtv_property_legacy_params_sync()
+Oct  5 12:43:22 tinka kernel: dtv_property_legacy_params_sync() Preparing 
+OFDM req
+Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() Property 
+cache is full, tuning
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---=_4ccy89e3eb6s--
