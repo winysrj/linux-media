@@ -1,25 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt1.poste.it ([62.241.4.164])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KqZsx-0002U3-0P
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 22:55:58 +0200
-Received: from geppetto.reilabs.com (78.15.189.104) by relay-pt1.poste.it
-	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
-	id 48F6844E00009C30 for linux-dvb@linuxtv.org;
-	Thu, 16 Oct 2008 22:55:51 +0200
-Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
-	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KqZry-00020C-SJ
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 22:54:54 +0200
-Date: Thu, 16 Oct 2008 22:54:54 +0200
-From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
-To: linux-dvb@linuxtv.org
-Message-ID: <20081016205454.GA32397@geppetto>
-References: <20081014212402.GB11745@geppetto> <20081015232121.GA8831@geppetto>
-	<48F73F56.7060805@verizonbusiness.com>
+To: linux-dvb@linuxtv.org, Steven Toth <stoth@linuxtv.org>,
+	Steven Toth <stoth@hauppauge.com>
+From: "Igor M. Liplianin" <liplianin@tut.by>
+Date: Sun, 5 Oct 2008 15:23:33 +0300
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <48F73F56.7060805@verizonbusiness.com>
-Subject: Re: [linux-dvb] Unable to query frontend status with dvbscan
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_GHL6I+V1KkCz1d3"
+Message-Id: <200810051523.34335.liplianin@tut.by>
+Subject: [linux-dvb] [PATCH] S2API Makefile fix for ST STV0288 demodulator.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,125 +15,63 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On date Thursday 2008-10-16 07:19:18 -0600, Mark Paulus wrote:
-> Stefano Sabatini wrote:
->> On date Tuesday 2008-10-14 23:24:02 +0200, Stefano Sabatini wrote:
->>> Hi all,
->>>
->>> can you say what's the meaning of such a message?
->>>
->>> I'm using it with:
->>> dvbscan  /usr/share/dvb/dvb-t/it-MyCity
->>> Unable to query frontend status
->>>
->>> using a TerraTec Electronic GmbH with dvb-usb-dib0700 driver.
->>>
->>> The module seems to be loaded correctly, indeed I get this in the
->>> kernel log:
->>>
->>> [ 1834.456051] dib0700: loaded with support for 7 different device-types
->>> [ 1834.456051] dvb-usb: found a 'Terratec Cinergy HT USB XE' in cold state, will try to load a firmware
->>> [ 1834.456051] firmware: requesting dvb-usb-dib0700-1.10.fw
->>> [ 1834.464197] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
->>> [ 1834.662979] dib0700: firmware started successfully.
->>> [ 1835.168928] dvb-usb: found a 'Terratec Cinergy HT USB XE' in warm state.
->>> [ 1835.168997] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
->>> [ 1835.169355] DVB: registering new adapter (Terratec Cinergy HT USB XE)
->>> [ 1835.419963] DVB: registering frontend 0 (DiBcom 7000PC)...
->>> [ 1835.499932] xc2028 1-0061: creating new instance
->>> [ 1835.499932] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
->>> [ 1835.499932] input: IR-receiver inside an USB DVB receiver as /class/input/input7
->>> [ 1835.510406] dvb-usb: schedule remote query interval to 150 msecs.
->>> [ 1835.510416] dvb-usb: Terratec Cinergy HT USB XE successfully initialized and connected.
->>> [ 1835.510696] usbcore: registered new interface driver dvb_usb_dib0700
->>>
->>> The led on the device switched on when I performed the first scan.
->>
->> Other meaningful info:
->> stefano@geppetto ~> dvbscan  /usr/share/dvb/dvb-t/it-Cagliari
->> Unable to query frontend status
->> stefano@geppetto ~> sudo dvbscan  /usr/share/dvb/dvb-t/it-Cagliari
->> Unable to query frontend status
->> stefano@geppetto ~> ls -l /dev/dvb/adapter0/
->> total 0
->> crw-rw---- 1 root video 212, 1 2008-09-23 00:04 audio0
->> crw-rw---- 1 root video 212, 6 2008-09-23 00:04 ca0
->> crw-rw---- 1 root video 212, 4 2008-09-23 00:04 demux0
->> crw-rw---- 1 root video 212, 5 2008-09-23 00:04 dvr0
->> crw-rw---- 1 root video 212, 3 2008-09-23 00:04 frontend0
->> crw-rw---- 1 root video 212, 7 2008-09-23 00:04 net0
->> crw-rw---- 1 root video 212, 8 2008-09-23 00:04 osd0
->> crw-rw---- 1 root video 212, 0 2008-09-23 00:04 video0
->>
->> stefano@geppetto ~> uname -a
->> Linux geppetto 2.6.26-1-686 #1 SMP Thu Oct 9 15:18:09 UTC 2008 i686 GNU/Linux
->>
->> The device is reported to be supported on the DVB wiki:
->> http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_HT_USB_XE
->>
->> Help or hints will be appreciated.
->>
->> Regards.
->
-> I believe I have seen a message like this when something else
-> is talking to the card already.  For instance, I run my cards in a Mythtv 
-> system, and in mythtv there is a setting to only attach to the card when 
-> actually using the card.  If that
-> setting is set incorrectly, mythtv will attach to the card at startup, 
-> and keep exclusive use of the card, not allowing
-> anyone else to access the card at all.
+--Boundary-00=_GHL6I+V1KkCz1d3
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-lsof didn't show any device accessing to device inside /dev/dvb.
+Hi Steve,
 
-But digging again in the web I found this:
-http://forums.opensuse.org/archives/sf-archives/archives-software/archives-multimedia/340016-dvb-t-card-cant-scan-10-3-a.html
+Makefile fix for ST STV0288 demodulator.
+Resend it, as it somehow disappears 
 
-So the problem seems a regression in the dvb-apps.
+Igor
 
-And precisely the problem seems to be in the function:
-libdvb/dvbfe.c:dvbfe_get_info()
+--Boundary-00=_GHL6I+V1KkCz1d3
+Content-Type: text/x-diff;
+  charset="koi8-r";
+  name="9036.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="9036.patch"
 
-Debugging I get this in dvbfe_get_info (second invocation during the
-running of the application):
+# HG changeset patch
+# User Igor M. Liplianin <liplianin@me.by>
+# Date 1222957999 -10800
+# Node ID 63aceadbc87a5ae27c68c5e5698b327757aaf5f5
+# Parent  c6088a57a2714ba67a6e7c88d449d05d60053e91
+Makefile fix for ST STV0288 demodulator.
 
-dvbfe_get_info (fehandle=0x8beb008, 
-               querymask=DVBFE_INFO_LOCKSTATUS,
-               result=0xbfada108, 
-               querytype=DVBFE_INFO_QUERYTYPE_IMMEDIATE,
-               timeout=0) at dvbfe.c:23
+From: Igor M. Liplianin <liplianin@me.by>
 
-		if (querymask & DVBFE_INFO_LOCKSTATUS) {
-			if (!ioctl(fehandle->fd, FE_READ_STATUS, &kevent.status)) {
-				returnval |= DVBFE_INFO_LOCKSTATUS;
-			}
-		}
+Makefile fix for ST STV0288 demodulator.
 
-The result of the ioctl is 0 so the returnval is ored with
-DVBFE_INFO_LOCKSTATUS (so set to 1), then we have in the main:
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
 
-				if (dvbfe_get_info(fe, DVBFE_INFO_LOCKSTATUS, &feinfo,
-				    			DVBFE_INFO_QUERYTYPE_IMMEDIATE, 0) !=
-					DVBFE_INFO_QUERYTYPE_IMMEDIATE) {
-					fprintf(stderr, "Unable to query frontend status\n");
-					exit(1);
-				}
+diff -r c6088a57a271 -r 63aceadbc87a linux/drivers/media/dvb/frontends/Makefile
+--- a/linux/drivers/media/dvb/frontends/Makefile	Thu Sep 25 23:29:49 2008 -0400
++++ b/linux/drivers/media/dvb/frontends/Makefile	Thu Oct 02 17:33:19 2008 +0300
+@@ -53,5 +53,5 @@
+ obj-$(CONFIG_DVB_AF9013) += af9013.o
+ obj-$(CONFIG_DVB_CX24116) += cx24116.o
+ obj-$(CONFIG_DVB_SI21XX) += si21xx.o
+-obj-$(CONFIG_DVB_STV0299) += stv0288.o
++obj-$(CONFIG_DVB_STV0288) += stv0288.o
+ obj-$(CONFIG_DVB_STB6000) += stb6000.o
 
-
-
-which is different from DVBFE_INFO_QUERYTYPE_IMMEDIATE = 0, so the
-exit, but I can really understand the logic here.
-
-So what's the expected exit of the ioctl with FE_READ_STATUS?
-
-Regards.
+--Boundary-00=_GHL6I+V1KkCz1d3
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_GHL6I+V1KkCz1d3--
