@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out2.iol.cz ([194.228.2.87])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ajurik@quick.cz>) id 1KnwIu-0007hU-DE
-	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 16:15:52 +0200
-From: Ales Jurik <ajurik@quick.cz>
-To: Alex Betis <alex.betis@gmail.com>
-Date: Thu, 9 Oct 2008 16:15:05 +0200
-References: <17614.72727.qm@web23205.mail.ird.yahoo.com>
-	<200810091404.05506.ajurik@quick.cz>
-	<c74595dc0810090656t3201f883n323a995ecc33d661@mail.gmail.com>
-In-Reply-To: <c74595dc0810090656t3201f883n323a995ecc33d661@mail.gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <sinter.mann@gmx.de>) id 1KmNbU-0004u9-6f
+	for linux-dvb@linuxtv.org; Sun, 05 Oct 2008 09:00:33 +0200
+From: sinter <sinter.mann@gmx.de>
+To: hermann pitton <hermann-pitton@arcor.de>,
+ linux-dvb@linuxtv.org
+Date: Sun, 5 Oct 2008 09:02:10 +0200
+References: <20080927093305.228300@gmx.net>
+	<1223160157.2675.13.camel@pc10.localdom.local>
+In-Reply-To: <1223160157.2675.13.camel@pc10.localdom.local>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200810091615.05700.ajurik@quick.cz>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [vdr] stb0899 and tt s2-3200
-Reply-To: ajurik@quick.cz
+Message-Id: <200810050902.11029.sinter.mann@gmx.de>
+Subject: Re: [linux-dvb] Wanted: dvb-ttpci maintainer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,20 +27,60 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 09 of October 2008, Alex Betis wrote:
-> Hi Ales,
+Am Sunday 05 October 2008 00:42:37 schrieben Sie:
+> Hi,
 >
-> Could you share the stb6100 documentation or point me to a place where I
-> can find it?
+> Am Samstag, den 27.09.2008, 11:33 +0200 schrieb sinter.mann@gmx.de:
+> > Pitton,
+> >
+> > > On Fri, Sep 26, 2008 at 11:43 AM, hermann pitton
+> > >
+> > > <hermann-pitton at arcor.de> wrote:
+> > > > Put at least a sticker on such guys like Uwe/Derek and Manu should do
+> > > > it as well.
+> >
+> > why only a neutral "sticker", why not a yellow star with three letters on
+> > it, the first one being a "J"?
 >
-> Thanks.
+> because I suspect it could be THE same again and no one else was seen so
+> far ever, taking a right he does not have such frankly.
 >
+> > "We have no single patch from Derek. Shut up."
+> >
+> > This is not only short-minded, but furthermore belongs to the classical
+> > segments of a right wing brain to reduce a human being's value to his
+> > "productivity output".
+>
+> I did not vote for anything, but trust to driver developers over years
+> here. Why you should have a vote at all and counting even more?
+>
+> > This is not my opinion, but this is proven by facts in science.
+>
+> Not at all, that science I know very well.
+>
+> > God save the queen
+> > The fascist regime
+> > They made you a moron
+> > Potential H-bomb
+> >
+> > God save the queen
+> > She ain't no human being
+> > There is no future
+> > In Pitton's dreaming
+> >
+> > Now you know, Pitton!
+>
+> You don't even get the joke.
+>
+> Cheers,
+> Hermann
 
-I't under NDA. But I'm ready to cooperate.
+Thanks for your answer.
+You could not have done better.
+Now everyone knows who you are.
+It's best for everybody to consequently ignore all your entries from now on.
 
-Regards,
-
-Ales
+sinter
 
 
 _______________________________________________
