@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qb-out-0506.google.com ([72.14.204.231])
+Received: from smtp-1.orange.nl ([193.252.22.241])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <oroitburd@gmail.com>) id 1KukrA-0007th-VT
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 10:27:21 +0100
-Received: by qb-out-0506.google.com with SMTP id e11so2051239qbe.25
-	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 02:27:17 -0700 (PDT)
-Message-ID: <b42fca4d0810280227n44d53f03hfaa8237793fc1db9@mail.gmail.com>
-Date: Tue, 28 Oct 2008 10:27:16 +0100
-From: "oleg roitburd" <oroitburd@gmail.com>
-To: "Alex Betis" <alex.betis@gmail.com>
-In-Reply-To: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
+	(envelope-from <michel@verbraak.org>) id 1KmQtL-0000ZV-Eo
+	for linux-dvb@linuxtv.org; Sun, 05 Oct 2008 12:31:13 +0200
+Message-ID: <48E89747.40406@verbraak.org>
+Date: Sun, 05 Oct 2008 12:30:31 +0200
+From: Michel Verbraak <michel@verbraak.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
+To: Jelle de Jong <jelledejong@powercraft.nl>, linux-dvb@linuxtv.org
+References: <48E7CDC1.9010905@powercraft.nl>
+In-Reply-To: <48E7CDC1.9010905@powercraft.nl>
+Subject: Re: [linux-dvb] Scrambled/encrypted dvb-t channels under linux with
+ a	CI CAM?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,50 +25,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Jelle de Jong schreef:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>
+> Hello everybody,
+>
+> I am searching for some solutions to be able to watch
+> scrambled/encrypted dvb-t channels on Linux systems.
+>
+> I don't know what my options are..., but I found this wiki page:
+> http://www.linuxtv.org/wiki/index.php/DVB_Conditional_Access_Modules
+>
+> The situation is that I have separate usb enabled dvb-t devices that do
+> all work for non scrambled channels.
+>
+> I would like to be able to add an usb device that makes it possible to
+> also watch the scrambled channels, I don't know if this is possible.
+> What is the exact function of a CAM? Does it decrypt date realtime or
+> does it give out some special key that an other application can use?
+>
+> I do have a usb smartcard reader that I use for gnupg encryption
+> systems. Are there possibility to use this device with an cable-provider
+> smartcards?
+>
+> Any information is appreciated,
+>
+> Thank in advance,
+>
+> Jelle
+>
+>
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.9 (GNU/Linux)
+> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+>
+> iJwEAQECAAYFAkjnzb8ACgkQ1WclBW9j5HkjAQP/V/zowVaiJZkD4/YdVovfFkQa
+> d5DXie2a36mNCQRT9d5Eh551cIUYspZsHx3iJf0MGbT4dqiAE1AGgOhfUXTpOp6w
+> /QfnzVkprhkWCM+llTu78Pgp78vLtKx1PYFKn4gUjVq8GKOMImKpAsxAOOAh9PjL
+> MYdIi6dyL8iqZ7Qq1jQ=
+> =b5wU
+> -----END PGP SIGNATURE-----
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>   
+Jelle,
 
-2008/10/25 Alex Betis <alex.betis@gmail.com>:
-> Hello all,
->
-> I've setup the http://mercurial.intuxication.org/hg/scan-s2/ repository with
-> scan utility ported to work with Igor's S2API driver.
-> Driver is available here: http://mercurial.intuxication.org/hg/s2-liplianin/
->
-> Special thanks to Igor for his driver and for szap-s2 utility that I've used
-> as a reference for scan-s2.
-> Thanks also to someone from the net that posted his changes to scan utility
-> that allowed it to work with uncommitted diseqc.
->
-> Pay attention to parameters (see README as well), I've added some and
-> removed some that I don't think are needed.
->
-> Scan results gave me the same channels as with multiproto driver on all my
-> satellites, so that confirms also that Igor's driver is working well.
->
-> I didn't yet tested the output files with szap-s2 or with VDR, don't have
-> time right now.
-> Please test and let me know if changes are needed.
->
-> I have only Twinhan 1041 card (stb0899), so I can't test it with DVB-T,
-> DVB-C and ATSC standarts, but theoretically it should work.
->
-> Enjoy,
-> Alex.
+do a search for "sasc-ng" in google. You should be able to use your usb 
+smartcard reader.
 
-Thank you for this usefull tool. I have tried them with TT S2-3200.
-It works with s2-liplianin.
-Some question
-Is it possible to implement in vdr-dump
-1. Options for Modulation (MN where N=2  is QPSK if DVB-S and N=2 for
-QPSK and N=5 for 8PSK)
-2. Options for FEC. As I know cx24116 can't FEC AUTO for DVB-S2
-3. ROLLOFF?
-4. CAID dump.  http://arvdr-dev.free-x.de:8080/freex-dvb-apps/rev/47e9dbb968fc
-5. Channel Name encoding to UTF.
-http://arvdr-dev.free-x.de:8080/freex-dvb-apps/rev/55bf7441a602
+Regards,
 
-Thx a lot
-Oleg Roitburd
+Michel.
+
 
 _______________________________________________
 linux-dvb mailing list
