@@ -1,28 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9KIbItj003928
-	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 14:37:18 -0400
-Received: from mta1.srv.hcvlny.cv.net (mta1.srv.hcvlny.cv.net [167.206.4.196])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9KIaRML031398
-	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 14:36:28 -0400
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K910023KVOQ31G1@mta1.srv.hcvlny.cv.net> for
-	video4linux-list@redhat.com; Mon, 20 Oct 2008 14:36:27 -0400 (EDT)
-Date: Mon, 20 Oct 2008 14:36:25 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48FCB570.2050906@messagenetsystems.com>
-To: Robert Vincent Krakora <rob.krakora@messagenetsystems.com>
-Message-id: <48FCCFA9.8060105@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <48FAA9A1.3090906@myecho.ca> <48FC9F9D.5030107@linuxtv.org>
-	<48FCB570.2050906@messagenetsystems.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: hvr950q analog support
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m96B8UDV002989
+	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 07:08:30 -0400
+Received: from mgw-mx09.nokia.com (smtp.nokia.com [192.100.105.134])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m96B8JQ9008041
+	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 07:08:20 -0400
+From: Sakari Ailus <sakari.ailus@nokia.com>
+To: video4linux-list@redhat.com
+Date: Mon,  6 Oct 2008 14:07:50 +0300
+Message-Id: <1223291272973-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <12232912721943-git-send-email-sakari.ailus@nokia.com>
+References: <48E9F178.50507@nokia.com>
+	<12232912722008-git-send-email-sakari.ailus@nokia.com>
+	<12232912722050-git-send-email-sakari.ailus@nokia.com>
+	<12232912721943-git-send-email-sakari.ailus@nokia.com>
+Cc: vimarsh.zutshi@nokia.com, tuukka.o.toivonen@nokia.com, hnagalla@ti.com
+Subject: [PATCH] V4L: Int if: Define new power state changes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,37 +27,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Robert Vincent Krakora wrote:
-> Steven Toth wrote:
->> Jacek Pawlowski wrote:
->>> Hi,
->>> The digital part for hvr950a works fine (driver au0828).  From other 
->>> posts it looks like the analog part is nor ready yet.  Will be  the 
->>> analog part for HVR950q (2040:7200) ready soon (or maybe it is 
->>> already available and I just don't know how to set it up :-) - I am 
->>> running 2.6.26.5-28.fc8 x86_64
->>
->> Nobody is working on analog support, as far as I know.
->>
->> - Steve
->>
->> -- 
->> video4linux-list mailing list
->> Unsubscribe 
->> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->>
-> I have both the HVR950 and HVR950Q.  Analog works fine on the HVR950 as 
-> does terrestrial digital (8VSB ATSC).  However, on the HVR950Q only 
-> digital works for both terrestrial (8VSB ATSC) and cable (QAM256).  Are 
-> there any plans to have someone work on analog for the HVR950Q?
-> 
+Use enum v4l2_power instead of int as second argument to
+vidioc_int_s_power. The new functionality is that standby state is also
+recognised.
 
-I repeat my earlier HVR950Q statement: Nobody is working on analog 
-support, as far as I know.
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+---
+ include/media/v4l2-int-device.h |   24 ++++++++++++++++++++++--
+ 1 files changed, 22 insertions(+), 2 deletions(-)
 
-- Steve
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index cee941c..bf11de7 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -96,6 +96,26 @@ int v4l2_int_ioctl_1(struct v4l2_int_device *d, int cmd, void *arg);
+  *
+  */
+ 
++/*
++ * Slave power state & commands
++ *
++ * V4L2_POWER_OFF, V4L2_POWER_ON and V4L2_POWER_STANDBY are the slave
++ * power states. Resume is a command for transitioning form
++ * V4L2_POWER_STANDBY to V4L2_POWER_ON.
++ *
++ * Possible state transitions:
++ *
++ * V4L2_POWER_OFF: V4L2_POWER_ON
++ * V4L2_POWER_ON: V4L2_POWER_OFF, V4L2_POWER_STANDBY
++ * V4L2_POWER_STANDBY: V4L2_POWER_OFF, V4L2_POWER_ON (V4L2_POWER_RESUME)
++ */
++enum v4l2_power {
++	V4L2_POWER_OFF = 0,
++	V4L2_POWER_ON,
++	V4L2_POWER_STANDBY,
++	V4L2_POWER_RESUME,
++};
++
+ /* Slave interface type. */
+ enum v4l2_if_type {
+ 	/*
+@@ -185,7 +205,7 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_dev_init_num = 1000,
+ 	/* Delinitialise the device at slave detach. */
+ 	vidioc_int_dev_exit_num,
+-	/* Set device power state: 0 is off, non-zero is on. */
++	/* Set device power state. */
+ 	vidioc_int_s_power_num,
+ 	/*
+ 	* Get slave private data, e.g. platform-specific slave
+@@ -277,7 +297,7 @@ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
+ 
+ V4L2_INT_WRAPPER_0(dev_init);
+ V4L2_INT_WRAPPER_0(dev_exit);
+-V4L2_INT_WRAPPER_1(s_power, int, );
++V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, );
+ V4L2_INT_WRAPPER_1(g_priv, void, *);
+ V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
+ V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
+-- 
+1.5.0.6
 
 --
 video4linux-list mailing list
