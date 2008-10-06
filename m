@@ -1,15 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Thu, 16 Oct 2008 10:27:43 -0400
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1KmzrB-0008Q9-RU
+	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 01:51:20 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K8C00LMZCWH94X0@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 06 Oct 2008 19:50:42 -0400 (EDT)
+Date: Mon, 06 Oct 2008 19:50:40 -0400
 From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <37219a840810151612g7345eab6t9290273e750338fd@mail.gmail.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Message-id: <48F74F5F.30807@linuxtv.org>
+In-reply-to: <200810051535.47206.liplianin@tut.by>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Message-id: <48EAA450.3010700@linuxtv.org>
 MIME-version: 1.0
-References: <E3C12FE3-4050-4C71-9CC5-CB67A67DA6C8@receptiveit.com.au>
-	<48F671E0.6080002@linuxtv.org>
-	<37219a840810151612g7345eab6t9290273e750338fd@mail.gmail.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Dvico HDTV Dual Express
+References: <200810051535.47206.liplianin@tut.by>
+Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] S2API Add support for DvbWorld USB cards
+ with STV0288 demodulator.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,21 +32,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Michael Krufky wrote:
-> On Wed, Oct 15, 2008 at 6:42 PM, Steven Toth <stoth@linuxtv.org> wrote:
->> Alex Ferrara wrote:
->>> As reported by an earlier email, I have had poor tuner results with my
->>> dual express card. I have tried playing with the RF amplification,
->>> removing it completely, and testing the card in the same environment
->>> running Vista. Vista works great, Linux does not.
->> This card works perfectly for me, I use it all of the time under Linux.
+Igor M. Liplianin wrote:
+> Steve,
+> And, finally
+> Add support for DvbWorld USB cards with STV0288 demodulator.
+> Those cards use Earda EDS-1547 tuner.
 > 
-> Steve, you have the FusionHDTV 7 Dual Express, which is *not* the
-> FusionHDTV Dual Digital 4.
+> Igor
+> 
 
-Look at the subject header and re-read his original post.
-
-- Steve
+Merged, thanks.
 
 _______________________________________________
 linux-dvb mailing list
