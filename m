@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9S8fEgA000964
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 04:41:14 -0400
-Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9S8f2Hl023436
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 04:41:03 -0400
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Gatis <gatisl@inbox.lv>
-In-Reply-To: <1225182362.4906cc9a38cb1@www.inbox.lv>
-References: <1225182362.4906cc9a38cb1@www.inbox.lv>
-Content-Type: text/plain; charset=ISO-8859-1
-Date: Tue, 28 Oct 2008 09:37:41 +0100
-Message-Id: <1225183061.1729.3.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Creative Vista IM (VF0420) - green pictures
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m96B8YaU002999
+	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 07:08:34 -0400
+Received: from mgw-mx03.nokia.com (smtp.nokia.com [192.100.122.230])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m96B8JW8008037
+	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 07:08:20 -0400
+From: Sakari Ailus <sakari.ailus@nokia.com>
+To: video4linux-list@redhat.com
+Date: Mon,  6 Oct 2008 14:07:49 +0300
+Message-Id: <12232912721943-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <12232912722050-git-send-email-sakari.ailus@nokia.com>
+References: <48E9F178.50507@nokia.com>
+	<12232912722008-git-send-email-sakari.ailus@nokia.com>
+	<12232912722050-git-send-email-sakari.ailus@nokia.com>
+Cc: vimarsh.zutshi@nokia.com, tuukka.o.toivonen@nokia.com, hnagalla@ti.com
+Subject: [PATCH] V4L: Add 10-bit RAW Bayer formats
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,37 +26,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 2008-10-28 at 10:26 +0200, Gatis wrote:
-> Hello!
+Add 10-bit raw bayer format expanded to 16 bits. Adds also definition
+for 10-bit raw bayer format dpcm-compressed to 8 bits.
 
-Hello Gatis,
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ include/linux/videodev2.h |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-> I set up usb webcam [ Creative Live! Cam Vista IM (VF0420) ] with
-> "EasyCam" automatic driver installer. OS - Ubuntu 8.
-> I use v4lctl command line tool to periodically take snapshots:
-> v4lctl snap jpeg full test.jpg
-> Problem:
-> 20% of taken pictures are heavily colored in green. This is true also
-> when using xawtv. I couldn't find any connection between start of this
-> problem and any surrounding conditions. If I restart PC, or cover
-> webcam with hand for a while, webcam returns to normal operation.
-> When tested with official windows drivers on winXP, there was no such
-> problems.
-> Question:
-> Is this driver, camera or settings problem?
-	[snip]
-
-May you give more information:
-- what is the version of your kernel?
-- what driver do you use?
-- what are the (20) last lines of dmesg after your plug the webcam?
-
-Regards.
-
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 303d93f..b80e5ca 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -315,6 +315,13 @@ struct v4l2_pix_format {
+ /* see http://www.siliconimaging.com/RGB%20Bayer.htm */
+ #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
+ #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
++/*
++ * 10bit raw bayer, expanded to 16 bits
++ * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
++ */
++#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0')
++/* 10bit raw bayer DPCM compressed to 8 bits */
++#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+ #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
+ 
+ /* compressed formats */
 -- 
-Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-Jef             |               http://moinejf.free.fr/
-
+1.5.0.6
 
 --
 video4linux-list mailing list
