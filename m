@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.29])
+Received: from nf-out-0910.google.com ([64.233.182.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <kosio.dimitrov@gmail.com>) id 1KnyeQ-0008Ip-5e
-	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 18:46:13 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so28394ywj.41
-	for <linux-dvb@linuxtv.org>; Thu, 09 Oct 2008 09:46:05 -0700 (PDT)
-Message-ID: <8103ad500810090946m15f6f5a3k4d78becd6232ff52@mail.gmail.com>
-Date: Thu, 9 Oct 2008 19:46:05 +0300
-From: "Konstantin Dimitrov" <kosio.dimitrov@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <8103ad500810090926i7b506822o9ece29bc5725fc9b@mail.gmail.com>
+	(envelope-from <mkrufky@gmail.com>) id 1Kmwjv-0004ge-9o
+	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 22:31:36 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so1179712nfb.11
+	for <linux-dvb@linuxtv.org>; Mon, 06 Oct 2008 13:31:31 -0700 (PDT)
+Message-ID: <37219a840810061331jc29b051l1a6223d946391db6@mail.gmail.com>
+Date: Mon, 6 Oct 2008 16:31:31 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Herbert Graeber" <lists@graeber-clan.de>
+In-Reply-To: <200810062216.18729.lists@graeber-clan.de>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <455973.84516.qm@web23203.mail.ird.yahoo.com>
-	<c74595dc0810090845h656f143r8519e8fe54669b6d@mail.gmail.com>
-	<c74595dc0810090848k14ede67fu81c9c2d0423d2849@mail.gmail.com>
-	<8103ad500810090926i7b506822o9ece29bc5725fc9b@mail.gmail.com>
-Subject: Re: [linux-dvb] [vdr] stb0899 and tt s2-3200
+References: <200810062216.18729.lists@graeber-clan.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] MSI Digi Vox mini III
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,59 +28,34 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-btw looking with hex editor in the TT S2-3200 Windows drivers
-(ttbudget2.sys) shows that the STB0899 function names are the same as
-in stb0899_chip.c from the Twinhan Linux drivers, which makes me
-convinced that the code in the Twinhan Linux drivers is really the
-reference Microelectronics code for STB0899 and STB6100ST on which the
-Technotrend Windows drivers are based.
+2008/10/6 Herbert Graeber <lists@graeber-clan.de>:
+> Current linux dvb doesn't support the MSI Digi VOX mini III DVB-T usb stick
+> (1462:8807).
+>
+> I have got the af9015 driver from the mercurial repository
+> http://linuxtv.org/hg/~anttip/af9015, added the USB ID mentioned above to
+> the file af9015/linux/drivers/media/dvb/dvb-usb/af9015.c and then the DVB-T
+> stick works fine.
 
-On Thu, Oct 9, 2008 at 7:26 PM, Konstantin Dimitrov
-<kosio.dimitrov@gmail.com> wrote:
-> the STB0899 (and STB6100) code in the Twinhan Linux drivers is different:
->
-> http://www.twinhan.com/files/AW/Linux/AZLinux_v1.4.2_CI_FC6.tar.gz
->
-> most of the files don't have copyright notice, but in one of the files
-> there is "Copyright STMicroelectronics".
->
-> so, maybe Twinhan Linux drivers include the reference STB0899 and
-> STB6100 code from STMicroelectronics.
->
-> 2008/10/9 Alex Betis <alex.betis@gmail.com>:
->> cheched = checked :)
->>
->> Typing too fast...
->>
->> Since tuner lock is more reliable, I'll try to remove some of my workarounds
->> on DVB-S search algorithm.
->>
->>
->> On Thu, Oct 9, 2008 at 5:45 PM, Alex Betis <alex.betis@gmail.com> wrote:
->>>
->>> On Thu, Oct 9, 2008 at 5:17 PM, Newsy Paper
->>> <newspaperman_germany@yahoo.com> wrote:
->>>>
->>>> I have Alex Betis' + Ales Jurik's patch running with liplianindvb, but
->>>> still the same problem with those DVB-S2 8PSK transponders.
->>>>
->>>
->>> Same here. Although I see improvements on signal lock. With Ales's tuner
->>> changes the signal is constantly found on all S2 transponders I've cheched,
->>> FEC is locked and dropped very fast (that gives the result of bad or no
->>> image).
->>> Now we need someone with scope and logic on stb0899 chip :)
->>> This time I'll be happy to receive stb0899 documentation.
->>>
->>> Thanks Ales, one step to the right direction!
->>
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->
+You can really help out other users by posting a patch to this mailing
+list, so that others can also benefit from your work.
+
+To generate a patch, do "hg diff > msi-digivox-mini-iii.patch"
+
+You should also include your sign-off with your patch, so that it can
+be included in the official development repository, and eventually be
+merged into the linux kernel.  You should provide the sign-off in the
+form:
+
+Signed-off-by: Your Name <email@addre.ss>
+
+For more info, please see:
+
+http://linuxtv.org/hg/v4l-dvb/file/tip/README.patches
+
+Cheers,
+
+Mike
 
 _______________________________________________
 linux-dvb mailing list
