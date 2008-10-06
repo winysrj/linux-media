@@ -1,27 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1Knzft-0004fn-0i
-	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 19:51:47 +0200
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1Knzfm-0003jL-Rd
-	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 17:51:38 +0000
-Received: from pd953215b.dip0.t-ipconnect.de ([217.83.33.91])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Thu, 09 Oct 2008 17:51:38 +0000
-Received: from malte.forkel by pd953215b.dip0.t-ipconnect.de with local
-	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Thu, 09 Oct 2008 17:51:38 +0000
+Received: from n27.bullet.mail.ukl.yahoo.com ([87.248.110.144])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <btanastasov@yahoo.co.uk>) id 1Kmqez-0008NV-NN
+	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 16:02:08 +0200
+Message-ID: <48EA1A38.3080006@yahoo.co.uk>
+Date: Mon, 06 Oct 2008 17:01:28 +0300
+From: Boyan <btanastasov@yahoo.co.uk>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-From: Malte Forkel <malte.forkel@berlin.de>
-Date: Thu, 09 Oct 2008 19:51:26 +0200
-Message-ID: <gclgb0$m3j$1@ger.gmane.org>
-References: <gbofuu$gds$1@ger.gmane.org>
-	<alpine.DEB.2.00.0809282207220.6275@ybpnyubfg.ybpnyqbznva>
-Mime-Version: 1.0
-In-Reply-To: <alpine.DEB.2.00.0809282207220.6275@ybpnyubfg.ybpnyqbznva>
-Subject: Re: [linux-dvb] Still problems with ttusb_dec / DEC3000-s
+Subject: [linux-dvb] Oops with mantis driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,189 +22,224 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-BOUWSMA Barry schrieb:
-> On Sun, 28 Sep 2008, Malte Forkel wrote:
-> 
->> I'm trying to get my Hauppauge DEC3000-s working. And I don't seem to be the only one. For an earlier, more accurate account see e.g. http://www.linuxtv.org/pipermail/linux-dvb/2006-April/009259.html. 
-> 
-> Please, wrap your lines at around 70 characters or less, or
-> fix your mailer to do that -- in my quoting of you here, I see
 
-I hope I managed to fix at least that problem :-)
 
->> I'm trying to get my Hauppauge DEC3000-s working. And I don't seem to be the $
-> without re-formatting, and that makes it hard for me to address
-> what you write if I've forgotten what it was...
-> 
-> 
->> errors. But I still can't scan:
->> # scan -x0 -t1 /usr/share/dvb/dvb-s/Astra-19.2E | tee channels.conf
->> scanning /usr/share/dvb/dvb-s/Astra-19.2E
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> initial transponder 12551500 V 22000000 5
->>>>> tune to: 12551:v:0:22000
-> 
->> Is anybody successfully using a DEC3000-s or can give some advice?
-> 
-> Yes, I use the DEC3000-s with ``success'', for some values
-> of ``success''...
-> 
-> You are probably running into the problem I had, that it does
-> not appear to generate the 22kHz bandswitch tone normally
-> needed to tune in what are essentially all interesting
-> high-band transponders.
-> 
-> I used to feed it with the loop-through output of a receiver
-> tuned to a horizontal+hi-band transponder to enable me to
-> receive what were then all german channels of interest to me.
-> 
-> I'm now connected via a Multischalter; this somehow permits
-> me to tune all bands of four sat positions successfully,
-> without help from other hardware.
-> 
-> If you are experiencing this problem, then you can only
-> tune in the transponders below 11700MHz of any satellite
-> without help -- and the starting frequency for the NIT
-> data you quoted is not in this range.
-> 
-> You can hand-craft an initial data file with, say, the ARD
-> transponder at 10744MHz at 19E2, and see if that gets you
-> a few channels (largely spanish).
-> 
-> If you get this, then your device is ``working'', and I
-> would have to ask, for what purpose do you intend to use
-> it (which channels do you want to watch/record)?
-> 
-> In particular, the USB1 bandwidth limitation prevents me
-> from using it for other than radio, except for a handful
-> of channels (largely commercial/private) with limited
-> bandwidth that don't get corrupted by packet-loss -- the
-> only german public-service broadcasts not affected are
-> Bayern-alpha (you can not hear the AC3 5.1 channel such
-> as on the jazz broadcast which just finished, but that is
-> a different problem) and Suedwest-Saarland, both of which
-> for me require either my multiswitch, or the loop-through
-> hack.
-> 
-> 
-> thanks,
-> barry bouwsma
+Hi,
 
-I'm sorry for the late replay. I thought, testing the DEC3000-s by
-setting up a Windows box shouldn't take that long. Silly me.
+I'm not sure this is the correct mailing list for Mantis driver, ignore 
+my message if it's not.
 
-First though, I tried to follow your suggestions. I tuned to a channel
-with a frequency below the 11700MHz barrier:
+I'm hitting an Oops with the latest Mantis driver 303b1d29d735.
 
-# szap -a 0 -c channels_byname.conf arte
-reading channels from file 'channels_byname.conf'
-zapping to 90 'arte':
-sat 0, frequency = 10743 MHz H, symbolrate 22000000, vpid = 0x0191, apid
-= 0x0192 sid = 0x7034
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-FE_DISEQC_SEND_BURST failed: Operation not supported
-DMX_SET_PES_FILTER failed (PID = 0x0191): 110 Connection timed out
-DMX_SET_PES_FILTER failed (PID = 0x0192): 110 Connection timed out
-status 1f | signal fffe | snr fffe | ber fffffffe | unc fffffffe |
-FE_HAS_LOCK
-status 1f | signal fffe | snr fffe | ber fffffffe | unc fffffffe |
-FE_HAS_LOCK
-status 1f | signal fffe | snr fffe | ber fffffffe | unc fffffffe |
-FE_HAS_LOCK
-^C
 
-Then, I wrote a new start file
+Modules linked in: mantis lnbp21 mb86a16 stb6100 stb0899 stv0299 
+dvb_core i2c_core
+CPU:    0
+EIP:    0060:[<c0481343>]    Not tainted VLI
+EFLAGS: 00010082   (2.6.23.16 #8)
+EIP is at _spin_lock_irqsave+0x3/0x30
+eax: 00000068   ebx: 00000068   ecx: 00000001   edx: 00000282
+esi: 00000000   edi: 00000001   ebp: c05cff2c   esp: c05cff0c
+ds: 007b   es: 007b   fs: 00d8  gs: 0000  ss: 0068
+Process swapper (pid: 0, ti=c05ce000 task=c0573be0 task.ti=c05ce000)
 
-# Astra 19.2E SDT info service transponder
-# freq pol sr fec
-S 10743800 H 22000000 5/6
+Stack:
+c011977e c13f5e00 00000068 04080401 00000003 00000030 04080401 df4a8000
+00000000 e00d9e52 00000000 00000000 00000068 d7bd7f00 00000000 00000017
+00000000 c0141405 c05c2900 00000017 00000000 c05c2930 c0142801 00000000
 
-and tried scanning with that
+Call Trace:
+  [<c011977e>] __wake_up+0x1e/0x50
+  [<e00d9e52>] mantis_pci_irq+0xc2/0x330 [mantis]
+  [<c0141405>] handle_IRQ_event+0x25/0x60
+  [<c0142801>] handle_fasteoi_irq+0x71/0xe0
+  [<c0105899>] do_IRQ+0x39/0x70
+  [<c0103b43>] common_interrupt+0x23/0x30
+  [<c01600d8>] kmem_cache_destroy+0x58/0xc0
+  [<c0100bfe>] mwait_idle_with_hints+0x3e/0x50
+  [<c0100a62>] cpu_idle+0x32/0x80
+  [<c05d4a7b>] start_kernel+0x1bb/0x220
+  [<c05d4460>] unknown_bootoption+0x0/0x130
+  =======================
+Code: 00 00 00 01 31 c9 89 c8 c3 eb 0d 90 90 90 90 90 90 90 90 90 90 90 
+90 90 f0 83 28 01 79 05 e8 55 fd ff ff c3 8d 74 26 00 9c 5a fa f0> fe 08 
+79 1c f7 c2 00 02 00 00 74 0b fb f3 90 80 38 00 7e f9
 
-# scan -a1 -x0 -t1 Astra-19.2E_low | tee channels.conf
-scanning Astra-19.2E_low
-using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
-initial transponder 10743800 H 22000000 5
->>> tune to: 10743:h:0:22000
-DVB-S IF freq is 993800
-0x0000 0x7031: pmt_pid 0x0000 ARD -- EinsExtra (running)
-0x0000 0x7032: pmt_pid 0x0000 ARD -- EinsFestival (running)
-0x0000 0x7033: pmt_pid 0x0000 ARD -- EinsPlus (running)
-0x0000 0x7034: pmt_pid 0x0000 ARD -- arte (running)
-0x0000 0x7035: pmt_pid 0x0000 ARD -- Phoenix (running)
-Network Name 'ASTRA'
->>> tune to: 12070:h:0:27500
-DVB-S IF freq is 1470500
-start_filter:1350: ERROR: ioctl DMX_SET_FILTER failed: 110 Connection
-timed out
-start_filter:1350: ERROR: ioctl DMX_SET_FILTER failed: 110 Connection
-timed out
-WARNING: filter timeout pid 0x0010
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
->>> tune to: 11797:h:0:27500
-DVB-S IF freq is 1197500
-start_filter:1350: ERROR: ioctl DMX_SET_FILTER failed: 110 Connection
-timed out
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
->>> tune to: 11719:h:0:27500
-DVB-S IF freq is 1119500
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
->>> tune to: 12031:h:0:27500
-DVB-S IF freq is 1431500
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
->>> tune to: 12460:h:0:27500
-DVB-S IF freq is 1860500
-start_filter:1350: ERROR: ioctl DMX_SET_FILTER failed: 110 Connection
-timed out
-start_filter:1350: ERROR: ioctl DMX_SET_FILTER failed: 110 Connection
-timed out
-start_filter:1350: ERROR: ioctl DMX_SET_FILTER failed: 110 Connection
-timed out
-^CERROR: interrupted by SIGINT, dumping partial result...
-dumping lists (5 services)
-Done.
+EIP: [<c0481343>] _spin_lock_irqsave+0x3/0x30
+SS:ESP 0068:c05cff0c
+Kernel panic - not syncing: Fatal exception in interrupt
 
-The resulting channels.conf looks like this
 
-EinsExtra:10743:h:0:22000:101:102:28721
-EinsFestival:10743:h:0:22000:201:202:28722
-EinsPlus:10743:h:0:22000:301:302:28723
-arte:10743:h:0:22000:401:402:28724
-Phoenix:10743:h:0:22000:501:502:28725
 
-And when I try to tune to one of those channels, I get
+The machine have two cards - first is SkyStar 2 rev2.6, the second is
+SkyStar HD2 for which I'm testing the mantis driver. The machine is SMP,
+but no difrerence if command line option max_cpus=1 is used.
 
-# szap -a 1 -c channels.conf arte
-reading channels from file 'channels.conf'
-zapping to 4 'arte':
-sat 0, frequency = 10743 MHz H, symbolrate 22000000, vpid = 0x0191, apid
-= 0x0192 sid = 0x7034
-using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
-FE_DISEQC_SEND_BURST failed: Operation not supported
-status 1f | signal fffe | snr fffe | ber fffffffe | unc fffffffe |
-FE_HAS_LOCK
-status 1f | signal fffe | snr fffe | ber fffffffe | unc fffffffe |
-FE_HAS_LOCK
-status 1f | signal fffe | snr fffe | ber fffffffe | unc fffffffe |
-FE_HAS_LOCK
+The oops is happening right after loading the driver for the second or 
+more times. I don't know the source well but poked around a bit and I
+think that it migth be because the interrupts are enabled too early
+before initialization of mantis_ca in the mantis_pci structure.
 
-With my Windows setup, everything seemed to work fine, though. I
-installed Hauppauge dec218c, the latest software I could find, on a
-Windows 2000 box. I got a nice picture, despite the USB bottleneck, and
-I could tune to any channel, regardless of the 11700MHz frequency barrier.
+In linux/drivers/media/dvb/mantis/mantis_pci.c
+there is a function:
+static irqreturn_t mantis_pci_irq(int irq, void *dev_id)
 
-Doesn't that suggest that the DEC3000-s is ok and that the problems are
-caused by a Linux driver bug?
+which do:
 
-Thanks,
-Malte
+.......
+        ca = mantis->mantis_ca;
+.......
+and then:
+
+         if (stat & MANTIS_INT_IRQ0) {
+                 dprintk(verbose, MANTIS_DEBUG, 0, "* INT IRQ-0 *");
+                 mantis->gpif_status = rst_stat;
+                 wake_up(&ca->hif_write_wq);
+                 schedule_work(&ca->hif_evm_work);
+         }
+
+which appears to be NULL in the moment of initialization of the driver.
+
+In function:
+
+static int __devinit mantis_pci_probe(struct pci_dev *pdev,
+                                       const struct pci_device_id 
+*mantis_pci_table)
+
+
+mantis->mantis_ca is initialized too late:
+
+............
+        if (request_irq(pdev->irq,
+                         mantis_pci_irq,
+                         IRQF_SHARED,
+                         DRIVER_NAME,
+                         mantis) < 0) {
+
+                 dprintk(verbose, MANTIS_ERROR, 1, "Mantis IRQ reg failed");
+                 ret = -ENODEV;
+                 goto err2;
+         }
+...........
+        // No more PCI specific stuff !
+         if (mantis_core_init(mantis) < 0) {
+                 dprintk(verbose, MANTIS_ERROR, 1, "Mantis core init 
+failed");
+                 ret = -ENODEV;
+                 goto err2;
+         }
+
+mantis_core_init is from mantis_core.c, which is calling mantis_dvb_init
+from mantis_dvb.c, which is calling mantis_ca_init from mantis_ca.c 
+where mantis_ca is initialized:
+
+         if (!(ca = kzalloc(sizeof (struct mantis_ca), GFP_KERNEL))) {
+                 dprintk(verbose, MANTIS_ERROR, 1, "Out of memory!, 
+exiting ..");
+                 result = -ENOMEM;
+                 goto err;
+         }
+
+         ca->ca_priv = mantis;
+         mantis->mantis_ca = ca;
+
+
+
+So it looks like there is a time interval between enabling interrupts
+and actually allocating the mantis_ca, which then is dereferenced in the
+mantis_pci_irq.
+
+The strange thing is that this is not happening when loading the driver
+for the first time. After that if the driver is removed and then
+reloaded it hits the checks in mantis_pci_irq but only once:
+
+        if (stat & MANTIS_INT_IRQ0) {
+                 dprintk(verbose, MANTIS_DEBUG, 0, "* INT IRQ-0 *");
+                 mantis->gpif_status = rst_stat;
+                 wake_up(&ca->hif_write_wq);
+                 schedule_work(&ca->hif_evm_work);
+         }
+
+(tested with enabling the debug message):
+
+
+first loading:
+
+ACPI: PCI Interrupt 0000:06:00.0[A] ->
+GSI 21 (level, low) -> IRQ 23
+irq: 23, latency: 32
+  memory: 0x30000000, mmio: 0xe0090000
+found a VP-1041 PCI DSS/DVB-S/DVB-S2 device on (06:00.0),
+     Mantis Rev 1 [1ae4:0001],
+irq: 23, latency: 32
+     memory: 0x30000000, mmio: 0xe0090000
+     MAC Address=[00:08:c9:e0:11:a1]
+mantis_alloc_buffers (0): DMA=0x2260000 cpu=0xc2260000 size=65536
+mantis_alloc_buffers (0): RISC=0x3dcb000 cpu=0xc3dcb000 size=1000
+DVB: registering new adapter (Mantis dvb adapter)
+stb0899_attach: Attaching STB0899
+mantis_frontend_init (0): found STB0899 DVB-S/DVB-S2 frontend @0x68
+stb6100_attach: Attaching STB6100
+DVB: registering frontend 0 (STB0899 Multistandard)...
+mantis_ca_init (0): Registering EN50221 device
+mantis_ca_init (0): Registered EN50221 device
+mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
+
+second loading:
+ACPI: PCI Interrupt 0000:06:00.0[A] ->
+GSI 21 (level, low) -> IRQ 23
+irq: 23, latency: 32
+  memory: 0x30000000, mmio: 0xe0092000
+found a VP-1041 PCI DSS/DVB-S/DVB-S2 device on (06:00.0),
+     Mantis Rev 1 [1ae4:0001],
+irq: 23, latency: 32
+     memory: 0x30000000, mmio: 0xe0092000
+     MAC Address=[00:08:c9:e0:11:a1]
+mantis_alloc_buffers (0): DMA=0x1930000 cpu=0xc1930000 size=65536
+mantis_alloc_buffers (0): RISC=0x1d9b000 cpu=0xc1d9b000 size=1000
+DVB: registering new adapter (Mantis dvb adapter)
+
+* INT IRQ-0 *
+^^^^^^^^^^^^^
+
+stb0899_attach: Attaching STB0899
+mantis_frontend_init (0): found STB0899 DVB-S/DVB-S2 frontend @0x68
+stb6100_attach: Attaching STB6100
+DVB: registering frontend 0 (STB0899 Multistandard)...
+mantis_ca_init (0): Registering EN50221 device
+mantis_ca_init (0): Registered EN50221 device
+mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
+
+
+The other thing I've tested is adding IRQF_DISABLED flag to request_irq,
+but no difference - in mantis_pci_irq stat has MANTIS_INT_IRQ0 bit set.
+
+I don't know if mantis_core_init can be called before request_irq, but
+if it can't because of some dependencies, there should be check
+if ca not NULL in mantis_pci_irq:
+
+before:
+         if (stat & MANTIS_INT_IRQ0) {
+                 dprintk(verbose, MANTIS_DEBUG, 0, "* INT IRQ-0 *");
+                 mantis->gpif_status = rst_stat;
+                 wake_up(&ca->hif_write_wq);
+                 schedule_work(&ca->hif_evm_work);
+         }
+
+after:
+         if (ca && stat & MANTIS_INT_IRQ0) {
+                 dprintk(verbose, MANTIS_DEBUG, 0, "* INT IRQ-0 *");
+                 mantis->gpif_status = rst_stat;
+                 wake_up(&ca->hif_write_wq);
+                 schedule_work(&ca->hif_evm_work);
+         }
+
+
+-- 
+Boyan
+
+
+
 
 
 
