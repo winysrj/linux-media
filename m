@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m99J06Tv011276
-	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 15:00:06 -0400
-Received: from unifiedpaging.messagenetsystems.com
-	(www.digitalsignage.messagenetsystems.com [24.123.23.170] (may
-	be forged))
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m99Ix2tY018736
-	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 14:59:03 -0400
-Message-ID: <48EE5488.7030706@messagenetsystems.com>
-Date: Thu, 09 Oct 2008 14:59:20 -0400
-From: Robert Vincent Krakora <rob.krakora@messagenetsystems.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m96GcuBK013823
+	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 12:38:56 -0400
+Received: from smtp-vbr11.xs4all.nl (smtp-vbr11.xs4all.nl [194.109.24.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m96Gci2s022451
+	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 12:38:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Mon, 6 Oct 2008 18:38:38 +0200
+References: <48E9F178.50507@nokia.com>
+	<12232912721943-git-send-email-sakari.ailus@nokia.com>
+	<1223291272973-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <1223291272973-git-send-email-sakari.ailus@nokia.com>
 MIME-Version: 1.0
-To: Ming Liu <mliu@migmasys.com>
-References: <20081009160014.DA2F761AA01@hormel.redhat.com>
-	<48EE4FE4.6080002@migmasys.com>
-In-Reply-To: <48EE4FE4.6080002@migmasys.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: USB grabber
+Content-Disposition: inline
+Message-Id: <200810061838.38551.hverkuil@xs4all.nl>
+Cc: vimarsh.zutshi@nokia.com, Sakari Ailus <sakari.ailus@nokia.com>,
+	tuukka.o.toivonen@nokia.com, hnagalla@ti.com
+Subject: Re: [PATCH] V4L: Int if: Define new power state changes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,50 +32,82 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Ming Liu wrote:
-> Hello,
->
-> I am working on a USB grabber from Campusa. The item number of this 
-> grabber is VC-211A with a S/N 0025544.
-> It relies on an EM 2820 chip.
->
-> I have a DSL-N system with kernel 2.6.12, and the grabber is not 
-> reflected on the dmesg.
->
-> Is there any driver available for this grabber? Any example that I can 
-> follow to make it work?
->
-> Thank you for advance.
->
-> Sincerely yours
-> Ming
->
->
-> -- 
-> video4linux-list mailing list
-> Unsubscribe 
-> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
->
-Ming:
+Hi Sakari,
 
-I use a USB Analyzer from Totalphase www.totalphase.com.  It works with 
-Winblows and Linux as it utilizes userspace libusb-win32 and libusb 
-drivers respectively.  There are two flavors.  A USB 1.1 unit that is 
-~$400 and a USB 2.0 unit that is ~$1200.  I have the USB 2.0 unit and I 
-love it.  Free lifetime upgrades for firmware and application software.  
-USB realtime capture display and USB Class decoding is on the way.
+I'm OK with the other changes, but the V4L2_POWER_RESUME command in this 
+patch is still really very ugly. In my opinion you should either let 
+the slave store the old powerstate (this seems to be the more logical 
+approach), or let s_power pass the old powerstate as an extra argument 
+if you think it is really needed. But the RESUME command is just 
+unnecessary. Without the RESUME there is no more need to document 
+anything, since then it is suddenly self-documenting.
 
-Best Regards,
--- 
-Rob Krakora
-Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+Regards,
+
+	Hans
+
+On Monday 06 October 2008 13:07:50 Sakari Ailus wrote:
+> Use enum v4l2_power instead of int as second argument to
+> vidioc_int_s_power. The new functionality is that standby state is
+> also recognised.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+> ---
+>  include/media/v4l2-int-device.h |   24 ++++++++++++++++++++++--
+>  1 files changed, 22 insertions(+), 2 deletions(-)
+>
+> diff --git a/include/media/v4l2-int-device.h
+> b/include/media/v4l2-int-device.h index cee941c..bf11de7 100644
+> --- a/include/media/v4l2-int-device.h
+> +++ b/include/media/v4l2-int-device.h
+> @@ -96,6 +96,26 @@ int v4l2_int_ioctl_1(struct v4l2_int_device *d,
+> int cmd, void *arg); *
+>   */
+>
+> +/*
+> + * Slave power state & commands
+> + *
+> + * V4L2_POWER_OFF, V4L2_POWER_ON and V4L2_POWER_STANDBY are the
+> slave 
+> + * power states. Resume is a command for transitioning form 
+> + * V4L2_POWER_STANDBY to V4L2_POWER_ON.
+> + *
+> + * Possible state transitions:
+> + *
+> + * V4L2_POWER_OFF: V4L2_POWER_ON
+> + * V4L2_POWER_ON: V4L2_POWER_OFF, V4L2_POWER_STANDBY
+> + * V4L2_POWER_STANDBY: V4L2_POWER_OFF, V4L2_POWER_ON
+> (V4L2_POWER_RESUME) + */
+> +enum v4l2_power {
+> +	V4L2_POWER_OFF = 0,
+> +	V4L2_POWER_ON,
+> +	V4L2_POWER_STANDBY,
+> +	V4L2_POWER_RESUME,
+> +};
+> +
+>  /* Slave interface type. */
+>  enum v4l2_if_type {
+>  	/*
+> @@ -185,7 +205,7 @@ enum v4l2_int_ioctl_num {
+>  	vidioc_int_dev_init_num = 1000,
+>  	/* Delinitialise the device at slave detach. */
+>  	vidioc_int_dev_exit_num,
+> -	/* Set device power state: 0 is off, non-zero is on. */
+> +	/* Set device power state. */
+>  	vidioc_int_s_power_num,
+>  	/*
+>  	* Get slave private data, e.g. platform-specific slave
+> @@ -277,7 +297,7 @@ V4L2_INT_WRAPPER_1(s_parm, struct
+> v4l2_streamparm, *);
+>
+>  V4L2_INT_WRAPPER_0(dev_init);
+>  V4L2_INT_WRAPPER_0(dev_exit);
+> -V4L2_INT_WRAPPER_1(s_power, int, );
+> +V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, );
+>  V4L2_INT_WRAPPER_1(g_priv, void, *);
+>  V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
+>  V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
+
 
 --
 video4linux-list mailing list
