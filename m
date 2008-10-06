@@ -1,23 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+Received: from mail2.m00h.eu ([83.246.72.85])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KpPpQ-0005ju-Np
-	for linux-dvb@linuxtv.org; Mon, 13 Oct 2008 17:59:29 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K8O00DYQPP2BHK0@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 13 Oct 2008 11:58:54 -0400 (EDT)
-Date: Mon, 13 Oct 2008 11:58:14 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200810131145.01604.jareguero@telefonica.net>
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-Message-id: <48F37016.6070905@linuxtv.org>
-MIME-version: 1.0
-References: <200810131145.01604.jareguero@telefonica.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Fix initialization in mxl5005s
+	(envelope-from <christian@heidingsfelder.eu>) id 1KmnOB-0001mV-Jo
+	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 12:32:32 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by mail2.m00h.eu (Postfix) with ESMTP id 547FBF058DAC
+	for <linux-dvb@linuxtv.org>; Mon,  6 Oct 2008 12:32:27 +0200 (CEST)
+Received: from mail2.m00h.eu ([127.0.0.1])
+	by localhost (mail2.m00h.eu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id NtX-dGsrmyGJ for <linux-dvb@linuxtv.org>;
+	Mon,  6 Oct 2008 12:32:10 +0200 (CEST)
+Received: from [192.168.2.50] (dummy.nutze-deinen-tag.de [80.152.217.184])
+	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: christian@heidingsfelder.eu)
+	by mail2.m00h.eu (Postfix) with ESMTPSA id 1FF5CF058DAB
+	for <linux-dvb@linuxtv.org>; Mon,  6 Oct 2008 12:32:08 +0200 (CEST)
+From: christian heidingsfelder <christian@heidingsfelder.eu>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <1223288468.4776.42.camel@frosch.local>
+References: <1223288468.4776.42.camel@frosch.local>
+Date: Mon, 06 Oct 2008 12:30:14 +0200
+Message-Id: <1223289014.22653.8.camel@localhost>
+Mime-Version: 1.0
+Subject: [linux-dvb] Technotrend TT-Connect S2-3650-CI
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,23 +37,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jose Alberto Reguero wrote:
-> I think that the initialization in the mxl5005s driver is wrong.
+Hi all,
 
-Great, thanks. :)
+i hope this is not the totally wrong place to ask.
+Is there any driver for that DVB-S Reciever available.
+If not, does somebody work on that and/or needing informations about
+that it ?
 
-I'm curious, why do you think it's wrong? It _could_ actually be wrong, 
-but I'd like to understand your rationale and testing. In principle this 
-patch shouldn't matter, the tuner should get reconfigured if the caller 
-requests anything other than QAM.
-
-Which board are you testing, and what configuration is the tuner 
-expected to be running in?
-
-Regards,
-
-Steve
-
+Regard Chris 
 
 
 _______________________________________________
