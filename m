@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from node03.cambriumhosting.nl ([217.19.16.164])
+Received: from nf-out-0910.google.com ([64.233.182.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jelledejong@powercraft.nl>) id 1KplTq-0004uN-7A
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 17:06:41 +0200
-Message-ID: <48F4B576.8010509@powercraft.nl>
-Date: Tue, 14 Oct 2008 17:06:30 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1Kmni4-0006PK-8f
+	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 12:53:05 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so1048769nfb.11
+	for <linux-dvb@linuxtv.org>; Mon, 06 Oct 2008 03:53:00 -0700 (PDT)
+Date: Mon, 6 Oct 2008 12:52:36 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Olivier Mueller <om-lists-linux@omx.ch>
+In-Reply-To: <1223288468.4776.42.camel@frosch.local>
+Message-ID: <alpine.DEB.2.00.0810061228250.12701@ybpnyubfg.ybpnyqbznva>
+References: <1223288468.4776.42.camel@frosch.local>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-References: <48F48920.1000206@powercraft.nl> <48F48F67.2020802@powercraft.nl>
-	<48F4A5D9.7010701@powercraft.nl> <48F4B25B.9070109@iki.fi>
-In-Reply-To: <48F4B25B.9070109@iki.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Afatech DVB-T - Installation Guide - v0.1.1j (not
- working)
+Cc: linux-dvb@linuxtv.org, em28xx@mcentral.de
+Subject: Re: [linux-dvb] Miglia Eyetv Hybrid 2008?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,91 +27,49 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Antti Palosaari wrote:
-> hello Jelle,
-> sorry for top-posting...
-> 
-> Error from attached file:
-> 
-> [   57.163981] DVB: registering frontend 0 (Afatech AF9013 DVB-T)...
-> [   57.277990] af9015: command failed:2
-> [   57.278001] mt2060 I2C read failed
-> 
-> goes to the fact that I2C-communication towards tuner is behind I2C-gate 
-> of the AF9015/AF9013. MT2060 you use does not have I2C-gate implemented. 
-> Use newer MT2060 module for correct functionality.
-> 
-> See for more information:
-> http://palosaari.fi/linux/v4l-dvb/controlling_tuner.txt
-> http://palosaari.fi/linux/v4l-dvb/controlling_tuner_af9015_dual_demod.txt
-> 
-> reagrds
-> Antti
+Gruezi...
 
-Thanks for the information, since one of my specializations is embedded
-hardware development, I do understand the presented issues.
+On Mon, 6 Oct 2008, Olivier Mueller wrote:
 
-Should there not be an option to the MT2060 module to use the I2C-gate
-or not? What can I do to get this device working now?
+> Then I hoped it would be the same for a brand new "Elgato EyeTV
+> Hybrid" (dvb-T + analog,
 
-> 
-> Jelle de Jong wrote:
-> Jelle de Jong wrote:
->>>> Jelle de Jong wrote:
->>>>> Hello everybody,
->>>>>
->>>>> I bought an other usb dvb-t stick (number 5) with the hope it would work
->>>>> out of the box under Debian Linux Sid because I could not efficiently
->>>>> maintain all the custom build drivers on my systems.
->>>>>
->>>>> The distributer, tried to create something that would work on Linux but
->>>>> he kind of missed the point of Linux sustainable driver model. There was
->>>>> an cdrom included with an "autoself" installation script. That tried to
->>>>> heavily rape my debian box..
->>>>>
->>>>> http://filebin.ca/rydcgt/treiber.tar.gz
->>>>>
->>>>> I would like to know if this device can work out of the box? and if not
->>>>> what is needed to get the device working out of the box?
->>>>>
->>>>> See the attachment for the device information. If more information is
->>>>> needed please tell me how to gather it.
->>>>>
->>>>> Best regards,
->>>>>
->>>>> Jelle
->>>> I found some additional information, but all my above questions remain
->>>> the same.
->>>>
->>>> http://openlab.savonia-amk.fi/wiki/index.php/Afatech_9016_DVB-T_USB
->>>>
->>>> Best regards,
->>>>
->>>> Jelle
->>>>
-> Hello everybody,
-> 
-> Even while the device does not yet work out of the box and I don't know
-> why this is the case, i tried to get the device working. I created some
-> documentation of my steps, but the device refuses to find any dvb-t
-> signals, while I am sure there are there.
-> 
-> Please see the attachment for far more detailed information.
-> 
-> Any help is really appreciated.
-> 
-> Kind regards,
-> 
-> Jelle
->>
->>
-------------------------------------------------------------------------
->>
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> Just in case, here the information told under OS X's Eyetv.app: 
 
+> USB Controller:  Empia EM2884
+> Stereo A/V Decoder:  Micronas AVF 49x0B
+> Hybrid Channel Decoder:  Micronas DRX-K DRX3926K:A1 0.8.0
+
+These seem to be the same chips that are used in a tuner which
+I have -- the TerraTec Cinergy HTC USB XS -- apart from the
+tuner, which is found at i2c address 0x60, making me think it
+might be an MT2060, maybe.
+
+The Empia cards are in part being worked on at Markus Rechberger's
+mcentral.de, where I expect you will first see support added.
+
+There's a mailing list, which I've added to the cc: header, in
+case you want to follow that for latest updates.  Not sure if
+you need to subscribe first; gmane has handy archives.
+
+Of course, there could be independent support being written for
+inclusion into the v4l-dvb source tree, but neither the Empia
+chip nor the two demodulators are presently supported by any
+other existing driver.
+
+
+I could give you a couple of lines of source that do little
+more than identifying your card and giving you access to the
+i2c bus with the demodulators et al, but that's pretty useless.
+
+
+As I understand it, proper support (with help of the chipset
+manufacturers) is in the pipeline, so keep an eye on em28xx-new
+at mcentral.de as well as linuxtv.org for your card.
+
+
+merci,
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
