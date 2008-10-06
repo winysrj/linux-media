@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9SHsgWg029686
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 13:54:42 -0400
-Received: from ian.pickworth.me.uk (ian.pickworth.me.uk [81.187.248.227])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9SHrBkU023944
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 13:53:12 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by ian.pickworth.me.uk (Postfix) with ESMTP id AB1B513123F9
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 17:53:11 +0000 (GMT)
-Received: from ian.pickworth.me.uk ([127.0.0.1])
-	by localhost (ian.pickworth.me.uk [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id bnx2zHWrVFbo for <video4linux-list@redhat.com>;
-	Tue, 28 Oct 2008 17:53:11 +0000 (GMT)
-Received: from [192.168.1.11] (ian2.pickworth.me.uk [192.168.1.11])
-	by ian.pickworth.me.uk (Postfix) with ESMTP id 66BF513123F6
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 17:53:11 +0000 (GMT)
-Message-ID: <49075186.7090101@pickworth.me.uk>
-Date: Tue, 28 Oct 2008 17:53:10 +0000
-From: Ian Pickworth <ian@pickworth.me.uk>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m96DT3Op011797
+	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 09:29:03 -0400
+Received: from po-out-1718.google.com (po-out-1718.google.com [72.14.252.157])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m96DSqEu030617
+	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 09:28:53 -0400
+Received: by po-out-1718.google.com with SMTP id y22so4134294pof.1
+	for <video4linux-list@redhat.com>; Mon, 06 Oct 2008 06:28:52 -0700 (PDT)
+Message-ID: <19619f3b0810060628w5dcea635t8ccb7aeae75d58d7@mail.gmail.com>
+Date: Mon, 6 Oct 2008 17:28:52 +0400
+From: OJ <olejl77@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Subject: libv4l: Skype terminates after options dialogue is closed
-Reply-To: ian@pickworth.me.uk
+Content-Disposition: inline
+Subject: Problem with TT-Budget S-1500 DVB-S card (saa7146)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,56 +27,87 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I have had this problem since I started using libv4l 0.5.1, I've just
-upgraded to 0.5.3 but it still persists unfortunately.
+I'm running FC9 with the following kernel:
+2.6.26.5-45.fc9.x86_64
 
-The process I go through is as follows:
-	LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so /usr/bin/skype &
-	
-	After Skype starts, open the Skype options dialogue
-	Select the "Video Devices" tab
-	With "Enable Skype Video" enabled, select the Camera device
-	Press "test" - which shows the webcam picture correctly
+I had my DVB card up and working "out of box" a couple of months ago.
+Now I am trying again, and things are not working any more.
 
-	Press close
+There is no dvb0 in my /dev folder. (It used to be when things were working).
 
-At this point Skype aborts.
-I get the same result is I use this command:
-	LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so /usr/bin/skype &
+'/sbin/lspci -nn' gives me:
+00:00.0 Host bridge [0600]: Intel Corporation 82G33/G31/P35/P31
+Express DRAM Controller [8086:29c0] (rev 02)
+00:01.0 PCI bridge [0604]: Intel Corporation 82G33/G31/P35/P31 Express
+PCI Express Root Port [8086:29c1] (rev 02)
+00:1a.0 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
+USB UHCI Controller #4 [8086:2937] (rev 02)
+00:1a.1 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
+USB UHCI Controller #5 [8086:2938] (rev 02)
+00:1a.2 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
+USB UHCI Controller #6 [8086:2939] (rev 02)
+00:1a.7 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
+USB2 EHCI Controller #2 [8086:293c] (rev 02)
+00:1b.0 Audio device [0403]: Intel Corporation 82801I (ICH9 Family) HD
+Audio Controller [8086:293e] (rev 02)
+00:1c.0 PCI bridge [0604]: Intel Corporation 82801I (ICH9 Family) PCI
+Express Port 1 [8086:2940] (rev 02)
+00:1c.4 PCI bridge [0604]: Intel Corporation 82801I (ICH9 Family) PCI
+Express Port 5 [8086:2948] (rev 02)
+00:1c.5 PCI bridge [0604]: Intel Corporation 82801I (ICH9 Family) PCI
+Express Port 6 [8086:294a] (rev 02)
+00:1d.0 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
+USB UHCI Controller #1 [8086:2934] (rev 02)
+00:1d.1 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
+USB UHCI Controller #2 [8086:2935] (rev 02)
+00:1d.2 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
+USB UHCI Controller #3 [8086:2936] (rev 02)
+00:1d.7 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
+USB2 EHCI Controller #1 [8086:293a] (rev 02)
+00:1e.0 PCI bridge [0604]: Intel Corporation 82801 PCI Bridge
+[8086:244e] (rev 92)
+00:1f.0 ISA bridge [0601]: Intel Corporation 82801IR (ICH9R) LPC
+Interface Controller [8086:2916] (rev 02)
+00:1f.2 IDE interface [0101]: Intel Corporation 82801IR/IO/IH
+(ICH9R/DO/DH) 4 port SATA IDE Controller [8086:2920] (rev 02)
+00:1f.3 SMBus [0c05]: Intel Corporation 82801I (ICH9 Family) SMBus
+Controller [8086:2930] (rev 02)
+00:1f.5 IDE interface [0101]: Intel Corporation 82801I (ICH9 Family) 2
+port SATA IDE Controller [8086:2926] (rev 02)
+01:00.0 VGA compatible controller [0300]: nVidia Corporation NV44
+[GeForce 6200 TurboCache(TM)] [10de:0161] (rev a1)
+02:00.0 Ethernet controller [0200]: Marvell Technology Group Ltd.
+88E8056 PCI-E Gigabit Ethernet Controller [11ab:4364] (rev 12)
+03:00.0 SATA controller [0106]: JMicron Technologies, Inc. JMicron
+20360/20363 AHCI Controller [197b:2363] (rev 03)
+03:00.1 IDE interface [0101]: JMicron Technologies, Inc. JMicron
+20360/20363 AHCI Controller [197b:2363] (rev 03)
+05:00.0 Network controller [0280]: Broadcom Corporation BCM4318
+[AirForce One 54g] 802.11g Wireless LAN Controller [14e4:4318] (rev
+02)
+05:02.0 Multimedia controller [0480]: Philips Semiconductors SAA7146
+[1131:7146] (rev 01)
+05:03.0 FireWire (IEEE 1394) [0c00]: Agere Systems FW323 [11c1:5811] (rev 70)
+05:04.0 Ethernet controller [0200]: Realtek Semiconductor Co., Ltd.
+RTL-8110SC/8169SC Gigabit Ethernet [10ec:8167] (rev 10)
 
-I'm not sure what diagnostics would be useful here, so if anyone can
-suggest what is needed I will provide them. I ran it using strace, thus:
+(one strange thing is the gap from 05:00.0 to 05:02.0....)
 
-	LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so strace /usr/bin/skype
+'dmesg | grep saa' gives me:
+Audiowerk 2 sound card (saa7146 chipset) detected and managed
+saa7146: register extension 'budget_ci dvb'.
 
-which ended with this:
-------
-futex(0xa4df064, FUTEX_WAKE, 1)         = 1
+'dmesg | grep dvb' gives me:
+saa7146: register extension 'budget_ci dvb'.
 
-gettimeofday({1225216076, 870558}, NULL) = 0
+Can someone please help me configure this card properly? I'm running
+out of options... At first I suspected that the card was loose or even
+not working. I have verified that the card is not loose. I have also
+changed PCI slot without success.
 
-clock_gettime(CLOCK_REALTIME, {1225216076, 870611460}) = 0
-
-futex(0xa88ffd8, FUTEX_WAIT, 1, {9, 999946540}upeek:
-ptrace(PTRACE_PEEKUSER,26933,44,0): No such process
-------
-
-Some details:
-
-ian2 ~ # lsusb
-...
-Bus 002 Device 003: ID 046d:092e Logitech, Inc.
-...
-ian2 ~ # uname -r
-2.6.27-gentoo-r1
-
-I am using the gspca modules as provided in this kernel.
-I have tried the latest version from hg - there is no change with that,
-which makes me think this may be to do with the compatibility layer.
-
-Thanks
-Regards
-Ian
+(I just verified that the card is working by installing MediaPortal on
+Windows Vista. The card was detected and I could watch my satellite
+channels.)
 
 --
 video4linux-list mailing list
