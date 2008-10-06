@@ -1,26 +1,37 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9ELBXSG008759
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 17:11:33 -0400
-Received: from mail-in-09.arcor-online.net (mail-in-09.arcor-online.net
-	[151.189.21.49])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9ELBHFg017475
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 17:11:17 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: stuart <stuart@xnet.com>
-In-Reply-To: <48F4F552.7060800@xnet.com>
-References: <48CD6F11.8020900@xnet.com>
-	<1221431625.4566.5.camel@pc10.localdom.local>
-	<48CEC847.8030404@xnet.com> <48F4AD7B.7050802@xnet.com>
-	<1224011459.5486.19.camel@pc10.localdom.local>
-	<48F4F552.7060800@xnet.com>
-Content-Type: text/plain
-Date: Tue, 14 Oct 2008 23:04:42 +0200
-Message-Id: <1224018283.5486.28.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: Dwaine Garden <dwainegarden@rogers.com>, video4linux-list@redhat.com
-Subject: Re: KWorld 120 IR control?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m96Fipp0009247
+	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 11:44:51 -0400
+Received: from mta5.srv.hcvlny.cv.net (mta5.srv.hcvlny.cv.net [167.206.4.200])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m96FhJu4015800
+	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 11:43:19 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K8B00CLKQC66W51@mta5.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Mon, 06 Oct 2008 11:43:19 -0400 (EDT)
+Date: Mon, 06 Oct 2008 11:43:18 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <9d87242f0810011146r7c2b2083pdd7d940f4c427382@mail.gmail.com>
+To: Scott Bronson <bronson@rinspin.com>
+Message-id: <48EA3216.90407@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <9d87242f0809191425p1adb1e59p417753a4c403a872@mail.gmail.com>
+	<9d87242f0809192255t49e112bfvd9c95e66bd3292a8@mail.gmail.com>
+	<48D49A39.5010909@linuxtv.org>
+	<9d87242f0809211316g1a34f0e7wed0f8345d5cdd787@mail.gmail.com>
+	<48D702B5.8020800@linuxtv.org>
+	<9d87242f0809221206n1d589137v8e1bf77792c31bcf@mail.gmail.com>
+	<48D7F064.4010103@linuxtv.org>
+	<9d87242f0809222335l67860769k6369db5665b10f98@mail.gmail.com>
+	<48D907BB.4020801@linuxtv.org>
+	<9d87242f0809260952h7542a051ud6d539269638d6b4@mail.gmail.com>
+	<9d87242f0810011146r7c2b2083pdd7d940f4c427382@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Unreliable tuning with HVR-950q
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,147 +43,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Scott Bronson wrote:
+> On Fri, Sep 26, 2008 at 9:52 AM, Scott Bronson <bronson@rinspin.com> wrote:
+>> On Tue, Sep 23, 2008 at 8:14 AM, Steven Toth <stoth@linuxtv.org> wrote:
+>>> You're overwhelming the tuner/demod
+>>> frontend with high RF levels.
+>> The attenuators are in the mail, 3dB and 6dB...  I'll report back when
+>> I've tried them.
+> 
+> I've now tried the attenuators.  Verdict: didn't help.
+> 
+> 3dB: no difference that I can detect.
+> 6dB: probably a little worse
+> 3dB+6dB in line: definitely worse
+> 
+> If I was overwhelming the tuner, wouldn't it have a hard time keeping
+> the lock too?  Because once my 950q locks, it keeps it rock-solid
+> forever, perfect video.  It's just getting it in the first place
+> that's hard.
 
-Am Dienstag, den 14.10.2008, 14:38 -0500 schrieb stuart:
-> 
-> hermann pitton wrote:
-> > Hi,
-> > 
-> > Am Dienstag, den 14.10.2008, 09:32 -0500 schrieb stuart:
-> >> stuart wrote:
-> >>> hermann pitton wrote:
-> >>>> stuart wrote:
-> >>>>> hermann pitton wrote:
-> >>>>> Hi Stuart,
-> >>>>>
-> >>>>> Am Sonntag, den 14.09.2008, 15:07 -0500 schrieb stuart:
-> >>>>>> Hi...
-> >>>>>>
-> >>>>>> This is my monthly (humm, more like quarterly) bump to see if anyone 
-> >>>>>> has looked at (or can tell me what to do with) the KWorld 120 
-> >>>>>> video4linux drivers when it comes to getting the IR hardware to work.
-> >>>>>>
-> >>>>>> I would think, by now, there are a lot of these cards out there.  
-> >>>>>> Were not the KWorld 110 and 115 ATSC tuners popular here?  And 
-> >>>>>> haven't they been replaced by the KWorld 120?  If so, what are people 
-> >>>>>> doing for IR?
-> >>>>>>
-> >>>>>> ...thanks
-> >>>>>>
-> >>>>> Mauro, better we all of course, need to review Brian Rogers latest patch
-> >>>>> from Thursday on this to get it in.
-> >>>>>
-> >>>>> Based on this, likely Dwaine Garden is the one who can further proceed
-> >>>>> for the Kworld stuff too.
-> >>>>>
-> >>>>> Cheers,
-> >>>>> Hermann
-> >>>> Hey, thanks to all who have contributed to the KWorld-120 v4l driver! If 
-> >>>> it wasn't obvious, I've been enjoying the sound and video from my v4l 
-> >>>> driven KWorld-120 for months now.
-> >>>>
-> >>>> So, are these IR remote control patches in Staging (the v4l somewhat 
-> >>>> stable pre-release version).  I've pulled and compiled from that repo 
-> >>>> before - no problem if that's where the new IR code is.
-> >>>>
-> >>>> ...thanks
-> >>> there have been patches on the lists for KS003 and KS007 i2c driven
-> >>> remotes, but nothing is in yet.
-> >>>
-> >>> Brian Rogers current version likely will make it in now for the saa7134
-> >>> MSI TV@nywhere, based on Henry Wong's old patch.
-> >>>
-> >>> Mauro will have a look at it again next week after Portland.
-> >>>
-> >>> It likely can provide the base for other cards and drivers too then.
-> >>>
-> >>> Cheers,
-> >>> Hermann
-> >>
-> >> Re: KWorld 120 IR control "Montly Bump"...
-> >>
-> >> Sorry to bother you guys again.  But some Brick and Mortar Frys stores 
-> >> (on line it's still the full $60) have this card on sale.
-> >>
-> >> Perhaps if you could tell me (us) what to watch for in the different v4l 
-> >> repositories we could track this feature our selves.
-> >>
-> >> ...thanks
-> >>
-> > 
-> > hmm, you called it successor/replacement of the Kworld saa7134 ATSC
-> > cards and I thought this would indicate that there is a KS003 or KS007
-> > i2c controller with 16 pins at 0x30.
-> > 
-> > This is likely wrong.
-> > 
-> > The patch for the KS003 on the saa7134 MSI TV@nywhere is in v4l-dvb now.
-> > 
-> > I think it was not reported yet, what IR controller is on the ATSC 120.
-> > Maybe it is some known stuff and support can be added easily, but dunno.
-> > 
-> > Please be patient, can't tell if Mauro had any time to look at the
-> > remote at all so far.
-> > 
-> > You can try to identify the remote and controller chip by searching
-> > through http://www.bttv-gallery.de.
-> > 
-> > You find already supported Kworld cards then in cx88-input.c,
-> > saa7134-input.c ...
-> > 
-> > Cheers,
-> > Hermann
-> > 
-> 
-> Hi Hermann...
-> 
-> Thanks for taking the time to write back...
-> 
-> There is extensive information about the Kworld 120 here:
-> http://www.mythtv.org/wiki/index.php/Kworld_ATSC_120
-> ...we've added information to it down through the months.
-> 
-> [From the above page:]
-> ---------------------
-> Major components used
-> 
->      * Xceive XC3028 (tuner & analog IF demodulator)
->      * Samsung S5H1409 (digital demodulator, Conexant CX24227 compatible)
->      * Conexant cx23880 (A/V Decoder & PCI bridge)
-> ---------------------
-> Status
-> 
-> As of 27 Mar 2008 and revision 7448 of the main v4l-dvb repository, this 
-> card can be used in both analog and digital ATSC modes via a set of 
-> experimental drivers. The FM radio, composite video, and S-Video inputs 
-> all work when the card is initialized into analog mode. Due to a 
-> resource conflict in the driver caused by this card's architecture, a 
-> reboot is necessary to switch between analog and ATSC modes. The cause 
-> of this issue has been located, and work is ongoing to fix it.
-> 
-> The remote control is not currently supported in any mode, yet.
-> 
-> The Line-out jack is somewhat functional, but is not considered ready to 
-> use, yet.
-> ---------------------
+No, not necessarily. My comments to you were based on the fact that 
+you're 1 mile from the broadcast antenna. Assuming your antenna is in 
+good shape then I'd expect the hvr950q to be a great choice. It's got 
+great sensitivity (xc5000 + AU8522) and I use it all the time (for 
+digital cable).
 
-Hi Stuart,
+Good result btw.
 
-thanks, I tried to look it up better this time and saw this already at
-the linuxtv wiki. Also found a reasonable picture, but not good enough.
-At least no 16 pins KS007 so far.
+We've also done extensive testing on ATSC and we have no obvious issues.
 
-We must identify the IR controller chip.
+> 
+> My Pinnacle PCTV HD works 100% perfectly connected to the same
+> antenna.  Locks every time, excellent video for hours.  No problems.
 
-Guessing doesn't help any further.
+Hmm. Maybe we really are talking about a bad stick. Can you try this in 
+a windows box?
 
-The only thing you can blindly try, see the v4l-wiki about remotes, is
-to start with a mask of 0x0 for key codes and hope something happens on
-the GPIOs.
+I'd expect the performance to be the same under Linux and Windows. If it 
+isn't then we have driver issues.
 
-Cheers,
-Hermann
+Can you try this?
 
+> 
+> Does anybody else have a 950q?  Does it work?  To me, it appears that
+> either its tuner is junk or the Linux driver needs some work.  I guess
+> my next step is to set up a Windows machine and try it there.
+
+We _do_ have rock solid HVR950q support for digital, on lots of 
+platforms in various locations.
+
+Based on the facts so far it's probably something specific to your 
+stick, your location or your testing. Try windows and report back if you 
+can.
+
+Regards,
+
+Steve
 
 --
 video4linux-list mailing list
