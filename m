@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from ug-out-1314.google.com ([66.249.92.173])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1KokCX-00058R-L8
-	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 21:32:37 +0200
-From: Andy Walls <awalls@radix.net>
-To: mathieu.taillefumier@free.fr
-In-Reply-To: <1223741522.48f0d052c956b@webmail.free.fr>
-References: <1223741522.48f0d052c956b@webmail.free.fr>
-Date: Sat, 11 Oct 2008 15:34:05 -0400
-Message-Id: <1223753645.3125.57.camel@palomino.walls.org>
+	(envelope-from <vansterpc@gmail.com>) id 1Kn5Ub-0006nN-GL
+	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 07:52:22 +0200
+Received: by ug-out-1314.google.com with SMTP id 39so167763ugf.16
+	for <linux-dvb@linuxtv.org>; Mon, 06 Oct 2008 22:52:17 -0700 (PDT)
+To: linux-dvb@linuxtv.org
+Date: Tue, 07 Oct 2008 07:52:19 +0200
+Message-Id: <1223358739.7694.0.camel@vanster-laptop>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] saa7134 bug in 64 bits system
+From: Pieter <vansterpc@gmail.com>
+Subject: [linux-dvb] cx88 Maintainers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,83 +24,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 2008-10-11 at 18:12 +0200, mathieu.taillefumier@free.fr wrote:
-> Hi devs,
-> 
-> I discover an annoying bug in the saa7134 module after using my tv card again.
-> The card is a cinergy ht pcmcia which works perfectly on both XP and fedora 10
-> (with a customized kernel 2.7.27-rc8) but fail to initialize the card correctly
-> on 64bits kernel (it is a lfs in this case with the same version of the kernel
-> and the same drivers for the tv card). The drivers I am using are the last
-> version of the mercurial repository. I attached the dmesg files for both 32bits
-> and 64bits (same arch).
+Hi all,
 
-With a diff of the dmesg files, I noticed things are being detected and
-configured slightly differently.  I'm not sure that's important, but
-this one in particular caught my eye:
+can anyone advise as to how to contact the current maintainers of the
+cx88 drivers?
 
-    ACPI: LAPIC_NMI (acpi_id[0x01] high edge lint[0x1])
-   -ACPI: Skipping IOAPIC probe due to 'noapic' option.
-   +ACPI: IOAPIC (id[0x01] address[0xfec00000] gsi_base[0])
-   +IOAPIC[0]: apic_id 1, version 0, address 0xfec00000, GSI 0-23
-
-
-Any particular reason you're specifying noapic for 32 bit and not for 64
-bit?
-
-Again, I'm not sure if it's important, but if you are troubleshooting
-between 2 setups, you want to eliminate as many unknowns as possible by
-keeping things the same as much as you can.
-
-
-
-> I try to track the problem and it seems that it is coming from the init function
-> of the driver in particular the line saa_readl(SAA7134_GPIO_GPSTATUS0>>2). the
-> gpio is wrong on 64 bits. The kernel indicates gpio is ffffffff instead of gpio
-> is 0 (which is the correct value).
-
-The devices on a PCI bus return 0xffffffff when there is a PCI bus read
-error.
-
-Given the error messages from line 731 on in the dmesg-64 file, I'd say
-the PCI bus is returning a lot of PCI read errors to the driver.  To
-verify, one could probably modify the saa_readl() macro in saa7134.h to
-a static inline function that also printk()'s out what was just read.
-(Not that that will help solve the problem.)
-
-
->  So I do not know if it is problem in the
-> drivers or if the problem is coming from the kernel itself. 
-
-I'm wagering it's a PCI bus configuration/setup problem.  (*guess*)
-
-Given that it looks like your video card is a PCMCIA/CardBus card, maybe
-something with the Yenta driver is not right. (*Wild guess*)
-
-This message, that only appeared in dmesg-64, may be of concern, since
-you're using a PCMCIA/CardBus card:
-
-   cs: pcmcia_socket0: unable to apply power.
-   pccard: CardBus card inserted into slot 0
-
-
-
-> I am willing to help
-> the devs to track down this bug so please let me know if you need some help.
-
-Those are just WAGs as to what might be wrong.  More differential
-analysis of the dmesg and dmesg-64 files may help you narrow things
-down.  I will think you'll need to expand your search beyond the saa7134
-driver messages - to me they appear to be symptoms caused by a problem
-with something else.  Good luck.  
-
-Regards,
-Andy
-
-> Regards
-> 
-> Mathieu
-
+Thank you
+Regards
+Pieter
 
 
 _______________________________________________
