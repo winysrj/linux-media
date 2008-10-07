@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9DDtgQY003351
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 09:55:42 -0400
-Received: from aa002msb.fastweb.it (aa002msb.fastweb.it [85.18.95.81])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9DDtNHU014209
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 09:55:26 -0400
-Received: from ess-server.Ess.local (37.253.89.168) by aa002msb.fastweb.it
-	(8.0.013.8) id 48E3500E020F2ED8 for video4linux-list@redhat.com;
-	Mon, 13 Oct 2008 15:55:23 +0200
-Content-Disposition: inline
-From: Daniele Paganelli <d.paganelli@expertsystemsolutions.it>
-To: video4linux-list@redhat.com
-Date: Mon, 13 Oct 2008 15:55:14 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Message-Id: <200810131555.14721.d.paganelli@expertsystemsolutions.it>
-Content-Transfer-Encoding: 8bit
-Subject: Fwd: [Linux-uvc-devel] inconsistency with video4linux2 MENU control
-	type
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m97GIlq9023415
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:47 -0400
+Received: from mgw-mx06.nokia.com (smtp.nokia.com [192.100.122.233])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m97GIaaD021738
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:36 -0400
+From: Sakari Ailus <sakari.ailus@nokia.com>
+To: hverkuil@xs4all.nl, video4linux-list@redhat.com
+Date: Tue,  7 Oct 2008 19:18:15 +0300
+Message-Id: <12233962962976-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <12233962962059-git-send-email-sakari.ailus@nokia.com>
+References: <48EB8BAC.90706@nokia.com>
+	<12233962961256-git-send-email-sakari.ailus@nokia.com>
+	<1223396296101-git-send-email-sakari.ailus@nokia.com>
+	<12233962962104-git-send-email-sakari.ailus@nokia.com>
+	<12233962962059-git-send-email-sakari.ailus@nokia.com>
+Cc: vimarsh.zutshi@nokia.com, tuukka.o.toivonen@nokia.com, hnagalla@ti.com
+Subject: [PATCH 5/6] V4L: Int if: Export more interfaces to modules
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,76 +28,69 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
-	I forward also to this list the message I sent to linux-uvc.
-Maybe there is a deep video4linux2 meaning to this strange response I got from 
-uvcvideo driver with logitech webcams.
+Export v4l2_int_device_try_attach_all. This allows initiating the
+initialisation of int if device after the drivers have been registered.
 
+Also allow drivers to call ioctls if v4l2-int-if was compiled as
+module.
 
-Regards,
---
-Daniele Paganelli
- Researcher
- Expert System Solutions S.r.l.
- Via Virgilio 58/L - 41100 Modena (ITALY)
- Tel: +39 0598860020 - Fax: +39 0598860024
- Email: d.paganelli@expertsystemsolutions.it
- Web: www.expertsystemsolutions.it
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+---
+ drivers/media/video/v4l2-int-device.c |    5 ++++-
+ include/media/v4l2-int-device.h       |    2 ++
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-
-
-----------  Messaggio inoltrato  ----------
-
-Oggetto: [Linux-uvc-devel] inconsistency with video4linux2 MENU control type
-Data: venerdì 10 ottobre 2008
-Da: Daniele Paganelli <d.paganelli@expertsystemsolutions.it>
-A: linux-uvc-devel@lists.berlios.de
-
-Dear UVC developers,
-	I'm trying to program UVC devices using the video4linux2 API. 
-I have problems understanding the output UVC driver give for a 
-VIDIOC_QUERYCTRL ioctl.
-
-Response struct (v4l2_queryctrl):
-id: V4L2_CID_EXPOSURE
-type: V4L2_CTRL_TYPE_MENU
-name: 'Exposure, Auto' 
-minimum: 0
-maximum: 0
-step: 9
-default_value: 8
-flags: 0 
-
-The video4linux2 api specification states that, for a Menu type, the meaning 
-of the queryctrl response given by the driver should be:
-
-min: 0
-step: 1
-max: N-1
-
-where N is the number of menu choices.
-
-So how should I interpret the UVC response min=0/max=0/step=9???
-
-I got this response for Logitech QuickCam Pro for Notebooks
-and 
-Logitech QuickCam Deluxe for Notebooks
-
-Best regards
-and thanks for the great driver ;)
-
-
-
-
-_______________________________________________
-Linux-uvc-devel mailing list
-Linux-uvc-devel@lists.berlios.de
-https://lists.berlios.de/mailman/listinfo/linux-uvc-devel
-
-
-
-
--------------------------------------------------------
+diff --git a/drivers/media/video/v4l2-int-device.c b/drivers/media/video/v4l2-int-device.c
+index 0e45499..a935bae 100644
+--- a/drivers/media/video/v4l2-int-device.c
++++ b/drivers/media/video/v4l2-int-device.c
+@@ -32,7 +32,7 @@
+ static DEFINE_MUTEX(mutex);
+ static LIST_HEAD(int_list);
+ 
+-static void v4l2_int_device_try_attach_all(void)
++void v4l2_int_device_try_attach_all(void)
+ {
+ 	struct v4l2_int_device *m, *s;
+ 
+@@ -66,6 +66,7 @@ static void v4l2_int_device_try_attach_all(void)
+ 		}
+ 	}
+ }
++EXPORT_SYMBOL_GPL(v4l2_int_device_try_attach_all);
+ 
+ static int ioctl_sort_cmp(const void *a, const void *b)
+ {
+@@ -144,6 +145,7 @@ int v4l2_int_ioctl_0(struct v4l2_int_device *d, int cmd)
+ 		find_ioctl(d->u.slave, cmd,
+ 			   (v4l2_int_ioctl_func *)no_such_ioctl_0))(d);
+ }
++EXPORT_SYMBOL_GPL(v4l2_int_ioctl_0);
+ 
+ static int no_such_ioctl_1(struct v4l2_int_device *d, void *arg)
+ {
+@@ -156,5 +158,6 @@ int v4l2_int_ioctl_1(struct v4l2_int_device *d, int cmd, void *arg)
+ 		find_ioctl(d->u.slave, cmd,
+ 			   (v4l2_int_ioctl_func *)no_such_ioctl_1))(d, arg);
+ }
++EXPORT_SYMBOL_GPL(v4l2_int_ioctl_1);
+ 
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index 3351dcf..b5cee89 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -84,6 +84,8 @@ struct v4l2_int_device {
+ 	void *priv;
+ };
+ 
++void v4l2_int_device_try_attach_all(void);
++
+ int v4l2_int_device_register(struct v4l2_int_device *d);
+ void v4l2_int_device_unregister(struct v4l2_int_device *d);
+ 
+-- 
+1.5.0.6
 
 --
 video4linux-list mailing list
