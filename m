@@ -1,31 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9F83lrG005894
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 04:03:47 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9F837Sl030027
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 04:03:10 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so2544979wfc.6
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 01:03:07 -0700 (PDT)
-Message-ID: <aec7e5c30810150103p7ed810ccyc815ad578d64feac@mail.gmail.com>
-Date: Wed, 15 Oct 2008 17:03:07 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0810150836100.3896@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m97Ii36x026939
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 14:44:03 -0400
+Received: from zim.mi-connect.com (zim.mi-connect.com [208.73.200.230])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m97IgYXL019386
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 14:42:34 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by zim.mi-connect.com (Postfix) with ESMTP id 100312338781
+	for <video4linux-list@redhat.com>; Tue,  7 Oct 2008 14:25:52 -0400 (EDT)
+Received: from zim.mi-connect.com ([127.0.0.1])
+	by localhost (zim.mi-connect.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id D4BLzWTtty36 for <video4linux-list@redhat.com>;
+	Tue,  7 Oct 2008 14:25:46 -0400 (EDT)
+Received: from [127.0.0.1] (unknown [8.2.183.242])
+	by zim.mi-connect.com (Postfix) with ESMTP id 2B5E1233877B
+	for <video4linux-list@redhat.com>; Tue,  7 Oct 2008 14:25:46 -0400 (EDT)
+Message-ID: <48EBAD93.5010301@rongage.org>
+Date: Tue, 07 Oct 2008 14:42:27 -0400
+From: Ron Gage <ron@rongage.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <20081014183936.GB4710@cs181140183.pp.htv.fi>
-	<Pine.LNX.4.64.0810142335400.10458@axis700.grange>
-	<20081015033303.GC4710@cs181140183.pp.htv.fi>
-	<20081015052026.GC20183@cs181140183.pp.htv.fi>
-	<aec7e5c30810142328n1563163bw636b8baf1a47ad8b@mail.gmail.com>
-	<Pine.LNX.4.64.0810150836100.3896@axis700.grange>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org,
-	lethal@linux-sh.org, Magnus Damm <damm@igel.co.jp>
-Subject: Re: [PATCH] soc-camera: fix compile breakage on SH
+Subject: V4L Help Needed
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,34 +34,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Guennadi,
+Can someone please point me to some place where I can get support for a 
+V4L/V4L2 problem I am having.
 
-On Wed, Oct 15, 2008 at 3:41 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi Magnus
->
-> On Wed, 15 Oct 2008, Magnus Damm wrote:
->
->> Thanks for working on fixing the breakage. I'd prefer to wait a bit
->> since there are quite a few pinmux patches queued up that may break if
->> we merge a fix right now. I can fix it up later on.
->
-> no, I would not leave the kernel in a non-compilable state even if just
-> for one board. Please, test a new version of the patch below. And yes, You
-> will have to rebase your patches, sorry. Another thing, could you also,
-> please, add a license / copyright header to
-> include/media/soc_camera_platform.h?
+I have a BT878 based card - a Viewcast Osprey 230.  The video works 
+great.  The audio does not.  The audio device (/dev/dsp1) is coming up, 
+but no audio is coming out.  Changing settings via alsamixer - any 
+setting(s) - makes no difference.
 
-I'm not asking you to keep the board broken forever. It's just a
-question of in which order the trees are getting merged. Again, I'd
-rather see that this fix is put _on_top_ of the patches that are
-already queued up in the SuperH tree. Merging it before doesn't help
-anything in my opinion - especially since the change should go though
-the SuperH tree anyway.
+Can someone please help me here!
 
-Feel free to add any header you like. =)
+OS is Slackware 12, kernel 2.6.26.5, test app is vlc.
 
-/ magnus
+Ron Gage
 
 --
 video4linux-list mailing list
