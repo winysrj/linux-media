@@ -1,27 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9N85TtE000514
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 04:05:29 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9N85OEk023817
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 04:05:24 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so38161ywb.81
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 01:05:24 -0700 (PDT)
-Message-ID: <aec7e5c30810230105l7d8be417h783c62ff9ee1d6d0@mail.gmail.com>
-Date: Thu, 23 Oct 2008 17:05:23 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Jadav, Brijesh R" <brijesh.j@ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403DC31BF9C@dbde02.ent.ti.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m97DvgZe023888
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 09:57:42 -0400
+Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m97DvTKT020766
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 09:57:29 -0400
+Received: by yx-out-2324.google.com with SMTP id 31so519298yxl.81
+	for <video4linux-list@redhat.com>; Tue, 07 Oct 2008 06:57:29 -0700 (PDT)
+Message-ID: <ea3b75ed0810070657i2f673bb1ub858b2871d7b387a@mail.gmail.com>
+Date: Tue, 7 Oct 2008 09:57:28 -0400
+From: "Brian Phelps" <lm317t@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <19F8576C6E063C45BE387C64729E739403DC2A8962@dbde02.ent.ti.com>
-	<Pine.LNX.4.64.0810182237230.30019@axis700.grange>
-	<19F8576C6E063C45BE387C64729E739403DC31BF9C@dbde02.ent.ti.com>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: Physically Contiguous Buffer
+Subject: Re: capture.c example (multiple inputs)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,49 +27,93 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Jadav,
+I did some digging and it looks like this single chip bt878 card must
+cut the frame rate when switching inputs.  Is this correct?
 
-Please try to avoid top-posting. It makes it difficult to follow the
-conversation.
+I found a 4-chip version from bluecherry.com that seems to do this at
+full 30 FPS per channel.
 
-On Tue, Oct 21, 2008 at 1:11 PM, Jadav, Brijesh R <brijesh.j@ti.com> wrote:
->> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->> On Sat, 18 Oct 2008, Jadav, Brijesh R wrote:
->>> I am working with a device, which can work with physically
->>> non-contiguous buffer. Since physically contiguous buffer can also be
->>> treated as non-contiguous buffer, device can also work with contiguous
->>> buffer. I am using videobuf-dma-sg layer for the buffer manager of
->>> non-contiguous buffer. The problem I am facing is since this layer does
->>> not handle physically contiguous buffers, whenever I pass pointer to the
->>> physically contiguous buffer to the videobuf_iolock function through
->>> VIDIOC_QBUF ioctl, it returns me error. Since videobuf_iolock function
->>> always calls get_user_pages to get the user land pages, it returns error
->>> for this buffer. Can someone help in solving this problem? Is it
->>> possible to treat physically contiguous buffer as non-contiguous buffer
->>> and create a scatter-gather list in this layer?
->>
->> Wouldn't videobuf-dma-contig.c solve your problem?
->>
->> Thank you for your reply. I think videobuf layer videobuf-dma-contig is for the physically contiguous buffer. It does not handle non-contiguous buffer so I will not be able to use it because my device handles non-contiguous buffer. Isn't it possible to handle in videobuf-dma-sg layer such that it makes scatter gather list out of physically contiguous buffer also?
+On Tue, Oct 7, 2008 at 9:15 AM, Brian Phelps <lm317t@gmail.com> wrote:
+> Hi, I have a 4 input Hauppage ImpactVCB.
+>
+> I have modified capture.c to display frames from an input using SDL
+> and the mmap method and this seems to work great.  I would like to
+> modify capture.c to display video using 2 inputs.  The problem is that
+> if I change inputs, I have to wait for another frame to enter the
+> buffer.  This cuts the frame rate in half.
+>
+> How do I capture frames from two inputs without cutting the frame rate?
+>
+>
+> static void
+> mainloop                        (void)
+> {
+>   unsigned int count;
+>
+>   count = 1000;
+>
+>   //Frame_timer = SDL_AddTimer(INTERVAL, process_image, NULL);
+>   while (count-- > 0)
+>   {
+>      for (;;)
+>      {
+>         fd_set fds;
+>         struct timeval tv;
+>         int r;
+>
+>         FD_ZERO (&fds);
+>         FD_SET (fd, &fds);
+>
+>         /* Timeout. */
+>         tv.tv_sec = 2;
+>         tv.tv_usec = 0;
+>
+>         r = select (fd + 1, &fds, NULL, NULL, &tv);
+>
+>         if (-1 == r)
+>         {
+>            if (EINTR == errno)
+>               continue;
+>
+>            errno_exit ("select");
+>         }
+>
+>         if (0 == r)
+>         {
+>            fprintf (stderr, "select timeout\n");
+>            exit (EXIT_FAILURE);
+>         }
+>
+> //         if (read_frame (0))
+>         {
+>            ;
+>            //r = select (fd + 1, &fds, NULL, NULL, &tv);
+>         }
+>
+>
+>         while(read_frame (0)==0)  // I modified read_frame to change
+> the input: read_frame(int input_number)
+>            r = select (fd + 1, &fds, NULL, NULL, &tv);
+>
+>         while(read_frame (1)==0)
+>            r = select (fd + 1, &fds, NULL, NULL, &tv);
+>            break;
+>
+>         /* EAGAIN - continue select loop. */
+>      }
+>      printf("Count is %d\n", count);
+>   }
+> }
+>
 
-Please look at how videobuf_to_dma() is used in pxa_camera.c. That's a
-good example for non-contiguous memory. The sh_mobile_ceu driver is a
-good example driver using physically contiguous memory.
 
-It sounds like you want to use something similar to extents from the
-filesystem world. So you want to have a list of ranges of physically
-contiguous pages. I don't think the videobuf-dma-sg helper code
-supports that today.
 
-I recommend you write and submit code that is as simple as possible.
-If your hardware can do scatter gather on N physically contiguous
-pages then you can easily use the videobuf-dma-contig code and just
-program your hardware to do a single range. Or you can use the
-videobuf-dma-sg code. It's up to you. =)
-
-Cheers,
-
-/ magnus
+-- 
+Brian Phelps
+System Design Engineer
+Custom Light and Sound
+919-286-0011
+http://customlightandsound.com
 
 --
 video4linux-list mailing list
