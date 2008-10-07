@@ -1,25 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9G6agYc001410
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:36:44 -0400
-Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9G6ZL2T027219
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:35:21 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <uskqyqg58.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0810160041250.8535@axis700.grange>
-	<aec7e5c30810151921v53ab947aq8e1dd6c6ee834eaa@mail.gmail.com>
-	<Pine.LNX.4.64.0810160814190.3892@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Thu, 16 Oct 2008 08:35:19 +0200
-In-Reply-To: <Pine.LNX.4.64.0810160814190.3892@axis700.grange> (Guennadi
-	Liakhovetski's message of "Thu\,
-	16 Oct 2008 08\:24\:40 +0200 \(CEST\)")
-Message-ID: <8763ntf3o8.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add ov772x driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m97GIpNL023448
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:51 -0400
+Received: from mgw-mx06.nokia.com (smtp.nokia.com [192.100.122.233])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m97GIcNN021757
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:38 -0400
+From: Sakari Ailus <sakari.ailus@nokia.com>
+To: hverkuil@xs4all.nl, video4linux-list@redhat.com
+Date: Tue,  7 Oct 2008 19:18:13 +0300
+Message-Id: <12233962962104-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <1223396296101-git-send-email-sakari.ailus@nokia.com>
+References: <48EB8BAC.90706@nokia.com>
+	<12233962961256-git-send-email-sakari.ailus@nokia.com>
+	<1223396296101-git-send-email-sakari.ailus@nokia.com>
+Cc: vimarsh.zutshi@nokia.com, tuukka.o.toivonen@nokia.com, hnagalla@ti.com
+Subject: [PATCH 3/6] V4L: Add 10-bit RAW Bayer formats
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,35 +26,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+Add 10-bit raw bayer format expanded to 16 bits. Adds also definition
+for 10-bit raw bayer format dpcm-compressed to 8 bits.
 
-> Hm, so, to test your camera you have to modify your source and rebuild 
-> your kernel... And same again to switch back to normal operation. Does not 
-> sound very convenient to me. OTOH, making it a module parameter makes it 
-> much easier. In fact, maybe it would be a good idea to add a new 
-> camera-class control for this mode. Yet another possibility is to enable 
-> debug register-access in the driver and use that to manually set the test 
-> mode from user-space. A new v4l-control seems best to me, not sure what 
-> others will say about this. As you probably know, many other cameras also 
-> have this "test pattern" mode, some even several of them. So, this becomes 
-> a control with a parameter then.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ include/linux/videodev2.h |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-Personnaly I'm rather inclined for the debug registers solutions.
-
-When developping a camera driver, the test pattern alone is not enough. You have
-to tweak the registers, see if the specification is correct, then understand the
-specification, and then change your driver code. My experience tells me you
-never understand correctly are camera setup from the first time.
-
-So IMHO the registers are enough here.
-
-> Then a new control or raw register access would be a better way, I think.
-So do I.
-
-Cheers.
-
---
-Robert
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 303d93f..b80e5ca 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -315,6 +315,13 @@ struct v4l2_pix_format {
+ /* see http://www.siliconimaging.com/RGB%20Bayer.htm */
+ #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
+ #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
++/*
++ * 10bit raw bayer, expanded to 16 bits
++ * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
++ */
++#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0')
++/* 10bit raw bayer DPCM compressed to 8 bits */
++#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+ #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
+ 
+ /* compressed formats */
+-- 
+1.5.0.6
 
 --
 video4linux-list mailing list
