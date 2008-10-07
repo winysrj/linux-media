@@ -1,77 +1,72 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9NMZmnN012851
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 18:35:48 -0400
-Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
-	[151.189.21.57])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9NMZaVc021463
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 18:35:36 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jean Delvare <khali@linux-fr.org>
-In-Reply-To: <20081014113031.739068f8@hyperion.delvare>
-References: <20080711231113.13054808@hyperion.delvare>
-	<20080729121938.3d4668f4@gaivota>
-	<1217385358.2671.28.camel@pc10.localdom.local>
-	<20080730001956.15c67493@gaivota>
-	<1217424068.3085.13.camel@pc10.localdom.local>
-	<20080730104955.377dfce5@gaivota>
-	<20081014113031.739068f8@hyperion.delvare>
-Content-Type: text/plain
-Date: Fri, 24 Oct 2008 00:27:18 +0200
-Message-Id: <1224800838.4202.20.camel@pc10.localdom.local>
-Mime-Version: 1.0
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stoth@linuxtv.org>) id 1Kn12z-0004dw-Fg
+	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 03:07:34 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K8C00JDWGFH0N41@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 06 Oct 2008 21:06:53 -0400 (EDT)
+Date: Mon, 06 Oct 2008 21:06:52 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200810061422.38176.jareguero@telefonica.net>
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+Message-id: <48EAB62C.8060208@linuxtv.org>
+MIME-version: 1.0
+References: <200810061422.38176.jareguero@telefonica.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Problems with new S2API and DVB-T
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: v4l-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: bt832 driver
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Jose Alberto Reguero wrote:
+> I am trying to use the new API for DVB-T and I have some problems. They are 
+> not way to set code_rate_HP, code_rate_LP, transmission_mode, and 
+> guard_interval , and the default values are 0, that are not the AUTO ones.
+> Also the bandwidth is not treated well. The attached patch is a workaround 
+> that works for me.
 
-Am Dienstag, den 14.10.2008, 11:30 +0200 schrieb Jean Delvare:
-> Hi Mauro,
-> 
-> On Wed, 30 Jul 2008 10:49:55 -0300, Mauro Carvalho Chehab wrote:
-> > 
-> > > I know there is nothing meant personal and the technical arguments seem
-> > > to be all correct.
-> > > 
-> > > Just, if we have some last known email address, we try to inform the
-> > > author, reachable or not, directly too.
-> > > 
-> > > This happened now and I think you can proceed.
-> > > 
-> > > An answer from Gunther, who is not around on the lists since a while,
-> > > would of course be even better.
-> > > 
-> > > I also would like to send him documentation about some new cards,
-> > > but also don't know if mails really come through currently.
-> > 
-> > Ok. Let's wait some days to give him a chance to read this and send us an
-> > answer. It seems better to wait until the end of the next week, since we might
-> > be in vacations during July.
-> 
-> It has been a long time now and apparently nobody cares about the
-> broken bt832 driver, so I think it's time to delete it?
-> 
-> Thanks,
+Hi Jose,
 
-Mauro, Jean, please proceed as announced.
+Thanks for your patch.
 
-Cheers,
-Hermann
+I've taken a different approach and added support for 
+DTV_TRANSMISSION_MODE, DTV_HIERARCHY, DTV_GUARD_INTERVAL, 
+DTV_CODE_RATE_HP and DTV_CODE_RATE_LP, so this will probably help.
 
+In terms of the bandwidth changes, you realise that you have to 
+bandwidth in units of HZ via the S2API? If you're doing this then I do 
+not see why the bandwidth code is failing. We have some backward compat 
+code which should be cleanly taking care of this, proving you pass HZ 
+into the S2API.
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+One interest point is that we may want to pick sensible defaults for the 
+cache values during initialisation (which doesn't currently happen). 
+Applications that rely on default behaviour could be failing... although 
+Kaffeine, Myth, VDR and tzap applications are not experiencing this issue.
+
+http://linuxtv.org/hg/~stoth/s2
+
+Could you pull this tree and try again? (Remember to change your 
+bandwidth values to HZ, I.e. 8000000.
+
+Thanks again,
+
+Steve
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
