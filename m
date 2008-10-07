@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.elion.ee ([88.196.160.57])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artlov@gmail.com>) id 1Kqm67-0003tm-I6
-	for linux-dvb@linuxtv.org; Fri, 17 Oct 2008 11:58:20 +0200
-Message-ID: <48F86199.1000607@gmail.com>
-Date: Fri, 17 Oct 2008 12:57:45 +0300
-From: Arthur Konovalov <artlov@gmail.com>
+	(envelope-from <crope@iki.fi>) id 1KnCKk-0002x9-MT
+	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 15:10:39 +0200
+Received: from dyn3-82-128-187-134.psoas.suomi.net ([82.128.187.134]
+	helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA:32)
+	(Exim 4.50) id 1KnCKh-0006ib-7w
+	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 16:10:35 +0300
+Message-ID: <48EB5FAB.2030008@iki.fi>
+Date: Tue, 07 Oct 2008 16:10:03 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: klaas de waal <klaas.de.waal@gmail.com>
-References: <7b41dd970809290235x48f63938ic56318ba3064a71b@mail.gmail.com>	<c4d80f839f7e2e838b04f6c37c68d9c0@10.0.0.2>	<7b41dd970810091315h1433fa7du56e5754a1684019d@mail.gmail.com>	<1223598995.4825.12.camel@pc10.localdom.local>	<7b41dd970810121321m715f7a81nf2c6e07485603571@mail.gmail.com>	<48F3A113.50805@gmail.com>	<7b41dd970810140027h41924a98oe343fb5d8c2ef485@mail.gmail.com>
-	<48F47ACE.5060807@gmail.com>
-In-Reply-To: <48F47ACE.5060807@gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
+To: linux-dvb@linuxtv.org
+References: <200809302001.24424.Ralf.Goos@t-online.de>
+	<48EA8AB2.20201@hoogenraad.net>
+In-Reply-To: <48EA8AB2.20201@hoogenraad.net>
+Subject: Re: [linux-dvb] auvisio DVB-T USB2.0 Pen Receiver "WhiteStar" and
+ SUSE	10.3
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,15 +31,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi!
+Jan Hoogenraad wrote:
+> Please post output of
+> 	lsusb
+> and
+> 	lsusb -v
+> 
 
-Your patch works at 386MHz too!
+Also driver .inf-file and file names could be interesting to see.
 
-Problem was in my dvb drivers startup script: tda827x module left unloaded :(
-My bad and sorry about false alarm.
-
-Regards,
-AK
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
