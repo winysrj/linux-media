@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9HE0W8k005144
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 10:00:32 -0400
-Received: from mail1.mxsweep.com (mail150.ix.emailantidote.com
-	[89.167.219.150])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9HE0Sig001021
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 10:00:28 -0400
-Message-ID: <48F89A75.1000100@draigBrady.com>
-Date: Fri, 17 Oct 2008 15:00:21 +0100
-From: =?ISO-8859-1?Q?P=E1draig_Brady?= <P@draigBrady.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m97DFdPe029276
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 09:15:40 -0400
+Received: from mail-gx0-f15.google.com (mail-gx0-f15.google.com
+	[209.85.217.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m97DFT4R027537
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 09:15:29 -0400
+Received: by gxk8 with SMTP id 8so6523926gxk.3
+	for <video4linux-list@redhat.com>; Tue, 07 Oct 2008 06:15:29 -0700 (PDT)
+Message-ID: <ea3b75ed0810070615h59da2784pc77c3e99950a2041@mail.gmail.com>
+Date: Tue, 7 Oct 2008 09:15:29 -0400
+From: "Brian Phelps" <lm317t@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-To: ian@pickworth.me.uk
-References: <48F895F9.5010205@pickworth.me.uk>
-In-Reply-To: <48F895F9.5010205@pickworth.me.uk>
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: How to force the device assignment with V4l V2.0?
+Content-Disposition: inline
+Subject: capture.c example
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,24 +28,76 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Ian Pickworth wrote:
-> I have two devices - a CX88 based Hauppauge TV PCI card, and a USB
-> webcam. In the "old" style drivers, I could force the loading of the two
-> modules (cx8800 and gspca) in a set sequence, using blacklist and
-> modules.autoload. This is enough to ensure that cx88 gets /dev/video0,
-> and the usb webcam gets /dev/video1.
+Hi, I have a 4 input Hauppage ImpactVCB.
 
-I use udev rules to give persistent names.
+I have modified capture.c to display frames from an input using SDL
+and the mmap method and this seems to work great.  I would like to
+modify capture.c to display video using 2 inputs.  The problem is that
+if I change inputs, I have to wait for another frame to enter the
+buffer.  This cuts the frame rate in half.
 
-Here is my /etc/udev/rules.d/video.rules file,
-which creates /dev/webcam and /dev/tvtuner as appropriate.
+How do I capture frames from two inputs without cutting the frame rate?
 
-KERNEL=="video*" SYSFS{name}=="USB2.0 Camera", NAME="video%n", SYMLINK+="webcam"
-KERNEL=="video*" SYSFS{name}=="em28xx*", NAME="video%n", SYMLINK+="tvtuner"
 
-To find distinguishing attributes to match on use:
+static void
+mainloop                        (void)
+{
+   unsigned int count;
 
-echo /sys/class/video4linux/video* | xargs -n1 udevinfo -a -p
+   count = 1000;
+
+   //Frame_timer = SDL_AddTimer(INTERVAL, process_image, NULL);
+   while (count-- > 0)
+   {
+      for (;;)
+      {
+         fd_set fds;
+         struct timeval tv;
+         int r;
+
+         FD_ZERO (&fds);
+         FD_SET (fd, &fds);
+
+         /* Timeout. */
+         tv.tv_sec = 2;
+         tv.tv_usec = 0;
+
+         r = select (fd + 1, &fds, NULL, NULL, &tv);
+
+         if (-1 == r)
+         {
+            if (EINTR == errno)
+               continue;
+
+            errno_exit ("select");
+         }
+
+         if (0 == r)
+         {
+            fprintf (stderr, "select timeout\n");
+            exit (EXIT_FAILURE);
+         }
+
+//         if (read_frame (0))
+         {
+            ;
+            //r = select (fd + 1, &fds, NULL, NULL, &tv);
+         }
+
+
+         while(read_frame (0)==0)  // I modified read_frame to change
+the input: read_frame(int input_number)
+            r = select (fd + 1, &fds, NULL, NULL, &tv);
+
+         while(read_frame (1)==0)
+            r = select (fd + 1, &fds, NULL, NULL, &tv);
+            break;
+
+         /* EAGAIN - continue select loop. */
+      }
+      printf("Count is %d\n", count);
+   }
+}
 
 --
 video4linux-list mailing list
