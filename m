@@ -1,26 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9G751wh011018
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 03:05:01 -0400
-Received: from mail-in-05.arcor-online.net (mail-in-05.arcor-online.net
-	[151.189.21.45])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9G74lsm007632
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 03:04:47 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: stuart <stuart@xnet.com>
-In-Reply-To: <48F6BC28.9070703@xnet.com>
-References: <48CD6F11.8020900@xnet.com> <48F4F552.7060800@xnet.com>
-	<1224018283.5486.28.camel@pc10.localdom.local>
-	<200810141854.09820.vanessaezekowitz@gmail.com>
-	<1224102756.2683.67.camel@pc10.localdom.local>
-	<48F6BC28.9070703@xnet.com>
-Content-Type: text/plain
-Date: Thu, 16 Oct 2008 08:57:11 +0200
-Message-Id: <1224140231.3577.5.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: KWorld 120 IR control?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m97GIkqt023412
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:46 -0400
+Received: from mgw-mx06.nokia.com (smtp.nokia.com [192.100.122.233])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m97GIZW1021730
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:35 -0400
+From: Sakari Ailus <sakari.ailus@nokia.com>
+To: hverkuil@xs4all.nl, video4linux-list@redhat.com
+Date: Tue,  7 Oct 2008 19:18:12 +0300
+Message-Id: <1223396296101-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <12233962961256-git-send-email-sakari.ailus@nokia.com>
+References: <48EB8BAC.90706@nokia.com>
+	<12233962961256-git-send-email-sakari.ailus@nokia.com>
+Cc: vimarsh.zutshi@nokia.com, tuukka.o.toivonen@nokia.com, hnagalla@ti.com
+Subject: [PATCH 2/6] V4L: Int if: Add cropcap, g_crop and s_crop commands.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,95 +25,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Signed-off-by: Sameer Venkatraman <sameerv@ti.com>
+Signed-off-by: Mohit Jalori <mjalori@ti.com>
+---
+ include/media/v4l2-int-device.h |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-Am Mittwoch, den 15.10.2008, 22:59 -0500 schrieb stuart:
-> 
-> hermann pitton wrote:
-> > Hi Vanessa,
-> > 
-> > Am Dienstag, den 14.10.2008, 18:54 -0500 schrieb Vanessa Ezekowitz:
-> >> On Tuesday 14 October 2008 4:04:42 pm hermann pitton wrote:
-> >>> thanks, I tried to look it up better this time and saw this already at
-> >>> the linuxtv wiki. Also found a reasonable picture, but not good enough.
-> >>> At least no 16 pins KS007 so far.
-> > 
-> > this needs correction. KS003 and KS007 both have 18 pins and are clearly
-> > marked with these names. They are on many recent Kworld products.
-> > 
-> >> I have sent Hermann some high resolution photos of my Kworld ATSC 120 by direct email.
-> >>
-> >> Hermann, feel free to pass these around if you need to; if you need better ones, or you want me to direct my camera to a particular spot on the card, please let me know.
-> > 
-> > Thanks, but no luck on the bttv-gallery so far.
-> > Maybe somebody else saw it already.
-> > 
-> > It should be the chip with 20 pins in position U9, unfortunately only
-> > marked with a green colored spot and connected to the xtal X0 16MHz in
-> > front of the radio RF input.
-> > 
-> > We have an unknown gpio remote controller marked with a grey spot on the
-> > saa7131e Kworld TV Studio Terminator, but 18 pins and 20MHz clock and
-> > that smaller grey remote with 36 keys. Usually RM-Kum01 and xtal 4MHz.
-> > Also one only with a blue spot on Kworld Creator TV MCE 100 Pro and
-> > remote with 32 keys. (BTW, some rare KS008 is on Cinergy 250 PCI)
-> > 
-> > 	case SAA7134_BOARD_KWORLD_TERMINATOR:
-> > 		ir_codes     = ir_codes_pixelview;
-> > 		mask_keycode = 0x00001f;
-> > 		mask_keyup   = 0x000060;
-> > 		polling      = 50; // ms
-> > 		break;
-> > 
-> > On cx88-input.c all Kworld stuff has that too.
-> > 
-> > 		ir->gpio_addr = MO_GP1_IO;
-> > 		ir->mask_keycode = 0x1f;
-> > 		ir->mask_keyup = 0x60;
-> > 
-> > But you switch already some pins within mask_keycode on MO_GP1_IO.
-> > Maybe on MO_GP0_IO. Is that gpio0 and gpio2 stuff needed at all in the
-> > card's entry? If not, but some of the first 8 gpios are connected, might
-> > be the remote. Needs to have the cx23880 pinning at hand, but seems
-> > there are no simply visible connections from that green marked chip.
-> > Maybe worth to try with mask_keycode = 0x0.
-> > 
-> > On the other hand, on the backside seem to be two lines from that chip
-> > more in direction to the tuner. Could hang on i2c there, but can't tell.
-> > Does any unknown device show up with cx88xx i2c_scan=1?
-> > 
-> > For now, known Kworld stuff has various IR controllers with 18 pins.
-> > It is not one of the newer KS00x i2c devices here and a controller with
-> > 20 pins and 16MHz clock seems to be new. How many keys/buttons has the
-> > remote?
-> > 
-> > That is not much, but hopefully better than nothing.
-> > I can't exclude that the controller needs some sort of
-> > initialization/activation or maybe even uses a new IR protocol,
-> > but testing in the above directions should not be too much work.
-> > 
-> > Cheers,
-> > Hermann
-> > 
-> 
-> I looked and found an 8 and 16 pin SMD IC on my kworld 120.  The 16 pin 
-> device turned out to be a multi-bit A/D converter, not an I2C 
-> controller.  After reading the above again I believe I understand what 
-> 20 pin device you are talking about.  Just right of the composite video 
-> input past the Xtl in this photo:
-> http://c1.neweggimages.com/NeweggImage/productimage/15-260-007-15.jpg
-> ...I'll have to take another look.
-
-It looks like composite input, but indeed is radio RF input.
-We have this on many boards with silicon tuners since a while.
-
-> The remote for my kworld 120 has 35 keys. (My kworld 110 remote has 
-> about 45 keys.)
-
-Something new, but still could be something simple.
-
-Good Luck,
-Hermann
-
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index d9a0053..cee941c 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -170,6 +170,9 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_queryctrl_num,
+ 	vidioc_int_g_ctrl_num,
+ 	vidioc_int_s_ctrl_num,
++	vidioc_int_cropcap_num,
++	vidioc_int_g_crop_num,
++	vidioc_int_s_crop_num,
+ 	vidioc_int_g_parm_num,
+ 	vidioc_int_s_parm_num,
+ 
+@@ -266,6 +269,9 @@ V4L2_INT_WRAPPER_1(try_fmt_cap, struct v4l2_format, *);
+ V4L2_INT_WRAPPER_1(queryctrl, struct v4l2_queryctrl, *);
+ V4L2_INT_WRAPPER_1(g_ctrl, struct v4l2_control, *);
+ V4L2_INT_WRAPPER_1(s_ctrl, struct v4l2_control, *);
++V4L2_INT_WRAPPER_1(cropcap, struct v4l2_cropcap, *);
++V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
++V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
+ V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
+ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
+ 
+-- 
+1.5.0.6
 
 --
 video4linux-list mailing list
