@@ -1,29 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail2.m00h.eu ([83.246.72.85])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christian@heidingsfelder.eu>) id 1KmnOB-0001mV-Jo
-	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 12:32:32 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by mail2.m00h.eu (Postfix) with ESMTP id 547FBF058DAC
-	for <linux-dvb@linuxtv.org>; Mon,  6 Oct 2008 12:32:27 +0200 (CEST)
-Received: from mail2.m00h.eu ([127.0.0.1])
-	by localhost (mail2.m00h.eu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id NtX-dGsrmyGJ for <linux-dvb@linuxtv.org>;
-	Mon,  6 Oct 2008 12:32:10 +0200 (CEST)
-Received: from [192.168.2.50] (dummy.nutze-deinen-tag.de [80.152.217.184])
-	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: christian@heidingsfelder.eu)
-	by mail2.m00h.eu (Postfix) with ESMTPSA id 1FF5CF058DAB
-	for <linux-dvb@linuxtv.org>; Mon,  6 Oct 2008 12:32:08 +0200 (CEST)
-From: christian heidingsfelder <christian@heidingsfelder.eu>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <1223288468.4776.42.camel@frosch.local>
-References: <1223288468.4776.42.camel@frosch.local>
-Date: Mon, 06 Oct 2008 12:30:14 +0200
-Message-Id: <1223289014.22653.8.camel@localhost>
+From: =?us-ascii?Q?Niels_Wagenaar?= <n.wagenaar@xs4all.nl>
+To: "=?us-ascii?Q?VDR_Mailinglist_=28vdr=40linuxtv.org=29?=" <vdr@linuxtv.org>
+Date: Tue, 7 Oct 2008 21:09:59 +0200
 Mime-Version: 1.0
-Subject: [linux-dvb] Technotrend TT-Connect S2-3650-CI
+Content-Type: multipart/mixed;
+	boundary="=_7gXWmteEqYXISfQNWJIfmqbEq7PcSYt3W8lKmTlNqOUAS9ZY"
+In-Reply-To: <>
+References: <>
+Message-Id: <vmime.48ebb407.2855.1adbdd16588fcf5a@shalafi.ath.cx>
+Cc: "=?us-ascii?Q?LinuxTV_Mailinglist_=28linux-dvb=40linuxtv.org=29?="
+	<linux-dvb@linuxtv.org>
+Subject: [linux-dvb] [PATCH] S2API for vdr-1.7.0 (07-10-2008 - quickhack for
+ DVB-S(2), DVB-T and DVB-C)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,23 +19,231 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+This is a multi-part message in MIME format. Your mail reader does not
+understand MIME message format.
+--=_7gXWmteEqYXISfQNWJIfmqbEq7PcSYt3W8lKmTlNqOUAS9ZY
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-i hope this is not the totally wrong place to ask.
-Is there any driver for that DVB-S Reciever available.
-If not, does somebody work on that and/or needing informations about
-that it ?
+Hello All,
 
-Regard Chris 
+This patch gives VDR 1.7.0 support for DVB-C (untested), DVB-S (tested), DVB-S2 (tested) and DVB-T (tested) using S2API. The patch itself is still based upon Igor M. Liplianin's S2API patch. Today Steven Toth made some changes to the HG repo of S2API, so it was time for a new patch :)
 
+Here's what's new:
+
+- Added the new DTV commands for use with DVB-T;
+- Added DTV_ROLLOFF en ROLLOFF_35 frontend command/data for DVB-S (required to get a lock with DVB-S);
+- Removed NBC_QPSK modulation-hack since it was not needed anymore;
+- Removed QAM_AUTO modulation-hack for DVB-C and DVB-T (DVB-T doesn't require it anymore with the new DTV commands);
+
+Enclosed are two patches. The clean patch is for a clean VDR 1.7.0 source tree patched with Reinhard's vdr-1.7.0-h264-syncearly-framespersec-audioindexer-fielddetection-speedup.diff.bz2 patch. The diff patch is for those who have used the patch from 05-10-2008. Please only use this patch if you have updated to the latest S2API from http://linuxtv.org/hg/~stoth/s2!=20
+
+Thanks goes out to Igor, Darron Broad and Edgar (gimli) Hucek for the help and suggestions with the previous and current patches. Again, any feedback on this patch is highly appreciated!
+
+Regards,
+
+Niels Wagenaar
+
+
+--=_7gXWmteEqYXISfQNWJIfmqbEq7PcSYt3W8lKmTlNqOUAS9ZY
+Content-Type: application/octet-stream;
+ name=vdr-1.7.0-s2api-07102008-05102008-diff.patch.gz
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename=vdr-1.7.0-s2api-07102008-05102008-diff.patch.gz
+
+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
+--=_7gXWmteEqYXISfQNWJIfmqbEq7PcSYt3W8lKmTlNqOUAS9ZY
+Content-Type: application/octet-stream;
+ name=vdr-1.7.0-s2api-07102008-h264-clean.patch.gz
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename=vdr-1.7.0-s2api-07102008-h264-clean.patch.gz
+
+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
+8sVP+gTqWKe36S7Vs6YH/wLR/qJ25pQAAA==
+--=_7gXWmteEqYXISfQNWJIfmqbEq7PcSYt3W8lKmTlNqOUAS9ZY
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--=_7gXWmteEqYXISfQNWJIfmqbEq7PcSYt3W8lKmTlNqOUAS9ZY--
