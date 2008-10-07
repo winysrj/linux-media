@@ -1,18 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joan.kewl.org ([212.161.35.248])
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <darron@kewl.org>) id 1Kr4Zp-0001BP-Ia
-	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 07:42:15 +0200
-From: Darron Broad <darron@kewl.org>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-In-reply-to: <412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com> 
-References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
-	<2207.1224273353@kewl.org>
-	<412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com>
-Date: Sat, 18 Oct 2008 06:42:08 +0100
-Message-ID: <5905.1224308528@kewl.org>
-Cc: Linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [RFC] SNR units in tuners
+	(envelope-from <stoth@linuxtv.org>) id 1KnDoC-0001Hd-7R
+	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 16:45:09 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta4.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K8D00DRYIA6S5G0@mta4.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 07 Oct 2008 10:44:33 -0400 (EDT)
+Date: Tue, 07 Oct 2008 10:44:30 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200810071134.06020.jareguero@telefonica.net>
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+Message-id: <48EB75CE.30107@linuxtv.org>
+MIME-version: 1.0
+References: <200810061422.38176.jareguero@telefonica.net>
+	<48EAB62C.8060208@linuxtv.org>
+	<200810071134.06020.jareguero@telefonica.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Problems with new S2API and DVB-T
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,73 +27,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com>, "Devin Heitmueller" wrote:
-
-hi
-
->On Fri, Oct 17, 2008 at 3:55 PM, Darron Broad <darron@kewl.org> wrote:
->>>===
->> <SNIP>
->>>cx24116.c       percent scaled to 0-0xffff, support for ESN0
->> <SNIP>
+Jose Alberto Reguero wrote:
+> El Martes, 7 de Octubre de 2008, Steven Toth escribi=F3:
+>> Jose Alberto Reguero wrote:
+>>> I am trying to use the new API for DVB-T and I have some problems. They
+>>> are not way to set code_rate_HP, code_rate_LP, transmission_mode, and
+>>> guard_interval , and the default values are 0, that are not the AUTO
+>>> ones. Also the bandwidth is not treated well. The attached patch is a
+>>> workaround that works for me.
+>> Hi Jose,
 >>
->> There is no hole here but I thought I would pass you by some
->> history with this.
+>> Thanks for your patch.
 >>
->> The scaled value was calibrated against two domestic satellite
->> receivers. The first being a nokia 9600s with dvb2000 and
->> the other being a Fortec star beta. At the time there was
->> no knowledge of what the cx24116 value represented and no
->> great idea of what the domestic box values represented.
->> However, the scaling function matches very closely to those
->> two machines. What this means in essence is not much but
->> may be useful to you.
->
->By all means, if you have information to share about how the
->calculation was arrived at, please do.
->
->At this point the goal is to understand what the value means for
->different demods.  For the simple cases where the answer is "it's the
->SNR in 0.1db as provided by register X", then it's easy.  If it's "I
->don't really know and I just guessed based on empirical testing, then
->that is useful information too.
->
->Once people have reported in with the information, I will see about
->submitting a patch reflecting this information as a comment in the
->driver source for the various demods.
+>> I've taken a different approach and added support for
+>> DTV_TRANSMISSION_MODE, DTV_HIERARCHY, DTV_GUARD_INTERVAL,
+>> DTV_CODE_RATE_HP and DTV_CODE_RATE_LP, so this will probably help.
+>>
+>> In terms of the bandwidth changes, you realise that you have to
+>> bandwidth in units of HZ via the S2API? If you're doing this then I do
+>> not see why the bandwidth code is failing. We have some backward compat
+>> code which should be cleanly taking care of this, proving you pass HZ
+>> into the S2API.
+>>
+>> One interest point is that we may want to pick sensible defaults for the
+>> cache values during initialisation (which doesn't currently happen).
+>> Applications that rely on default behaviour could be failing... although
+>> Kaffeine, Myth, VDR and tzap applications are not experiencing this issu=
+e.
+>>
+>> http://linuxtv.org/hg/~stoth/s2
+>>
+>> Could you pull this tree and try again? (Remember to change your
+>> bandwidth values to HZ, I.e. 8000000.
+>>
+>> Thanks again,
+>>
+>> Steve
+> =
 
-The trouble there is that the scaling for the cx24116 already works
-from an end-user perspective. The value derived in the code is
-a possible maximum of 160 from the chip. REELBOX decided on 176
-which may be more accurate.
+> It works ok.
+> Thanks.
 
-A quick glance here:
-http://www.mathworks.com/matlabcentral/files/19717/ExactBER.jpg
-Would suggest that if that 160 equates to around 10 esn0 (QPSK)
-then the register on that chip may equal -5 when 0. I have no real
-idea of course as I have no access to any confidential information.
+Thanks for testing Jose, regards.
 
-Also, if you refer to that graph, we can see that to scale esn0
-for the end user it also needs to take into account that it's
-maximum requirement varies per modulation scheme.
-
-I am no expert on this but it doesn't seem as simple as it
-may do on first sight.
-
-cya
-
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
+- Steve
 
 
 _______________________________________________
