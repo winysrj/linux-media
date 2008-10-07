@@ -1,27 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m91IOctR016483
-	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 14:24:38 -0400
-Received: from topnetmail3.outgw.tn (topnetmail3.outgw.tn [193.95.97.76])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m91IOP5A007014
-	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 14:24:25 -0400
-Received: from mail1.topnet.tn (smtp.topnet.tn [213.150.176.204])
-	by tounes-27.ati.tn (Postfix) with ESMTP id C66E625B0154
-	for <video4linux-list@redhat.com>;
-	Wed,  1 Oct 2008 20:24:21 +0200 (CEST)
-From: Nicolas <progweb@free.fr>
-To: David Ellingsworth <david@identd.dyndns.org>
-In-Reply-To: <30353c3d0810010928u2a4f17d7y2f922905659982ec@mail.gmail.com>
-References: <30353c3d0809301604p393ee1bbh29d8b9f3be424f22@mail.gmail.com>
-	<34E2ED35C2EB67499BA8591290AF20D506B237@pnd-iet-msg.wipro.com>
-	<30353c3d0810010928u2a4f17d7y2f922905659982ec@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Date: Wed, 01 Oct 2008 20:24:20 +0200
-Message-Id: <1222885460.5488.7.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, mchehab@redhat.com
-Subject: Re: mic issue in usb webcam
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m97GImuR023426
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:48 -0400
+Received: from mgw-mx06.nokia.com (smtp.nokia.com [192.100.122.233])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m97GIbIU021754
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:38 -0400
+From: Sakari Ailus <sakari.ailus@nokia.com>
+To: hverkuil@xs4all.nl, video4linux-list@redhat.com
+Date: Tue,  7 Oct 2008 19:18:14 +0300
+Message-Id: <12233962962059-git-send-email-sakari.ailus@nokia.com>
+In-Reply-To: <12233962962104-git-send-email-sakari.ailus@nokia.com>
+References: <48EB8BAC.90706@nokia.com>
+	<12233962961256-git-send-email-sakari.ailus@nokia.com>
+	<1223396296101-git-send-email-sakari.ailus@nokia.com>
+	<12233962962104-git-send-email-sakari.ailus@nokia.com>
+Cc: vimarsh.zutshi@nokia.com, tuukka.o.toivonen@nokia.com, hnagalla@ti.com
+Subject: [PATCH 4/6] V4L: Int if: Define new power state changes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,53 +27,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Use enum v4l2_power instead of int as second argument to
+vidioc_int_s_power. The new functionality is that standby state is also
+recognised.
 
-I'm the maintener of the stk11xx project. stk11xx can't integrated to
-kernel tree, because I use image process in the driver (bayer2rgb /
-bayer2yuv...). But stk11xx support several camera who aren't supported
-by stkwebcam.
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+---
+ include/media/v4l2-int-device.h |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-So, stkwebcam uses the work from this project (for the device 174f:a311)
-
-As far as I'm concerned, I have never seen a camera (based on the syntek
-chipsets) used the mic interface. Whereas the syntek chipsets have a USB
-audio interface.
-
-The mic is plugged to the sound card (by hardware).
-
-So it's quiet difficult to make the devel and add the audio support ;
-because we haven't datasheet and we can't make tests.
-
-Regards,
-
-Nicolas VIVIEN
-
-Le mercredi 01 octobre 2008 à 12:28 -0400, David Ellingsworth a écrit :
-> On Wed, Oct 1, 2008 at 2:59 AM,  <desktop1.peg@wipro.com> wrote:
-> > Hi I m using Logitech webcam in RHEL5.0, its working fine but the
-> > inbuilt mic is not working when I record a video. Pls find a solution.
-> >
-> 
-> The mic input is not currently supported by the driver. I do not own a
-> camera that works with this driver and am therefore unable to make any
-> additions to it nor do I have any interest in doing so at this time.
-> The patches I recently submitted merely correct issues I identified
-> while reviewing the driver's source. If you want mic support you will
-> either have to add support yourself or persuade Jamie, the official
-> maintainer, to do so.
-> 
-> Regards,
-> 
-> David Ellingsworth
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index cee941c..3351dcf 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -96,6 +96,12 @@ int v4l2_int_ioctl_1(struct v4l2_int_device *d, int cmd, void *arg);
+  *
+  */
+ 
++enum v4l2_power {
++	V4L2_POWER_OFF = 0,
++	V4L2_POWER_ON,
++	V4L2_POWER_STANDBY,
++};
++
+ /* Slave interface type. */
+ enum v4l2_if_type {
+ 	/*
+@@ -185,7 +191,7 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_dev_init_num = 1000,
+ 	/* Delinitialise the device at slave detach. */
+ 	vidioc_int_dev_exit_num,
+-	/* Set device power state: 0 is off, non-zero is on. */
++	/* Set device power state. */
+ 	vidioc_int_s_power_num,
+ 	/*
+ 	* Get slave private data, e.g. platform-specific slave
+@@ -277,7 +283,7 @@ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
+ 
+ V4L2_INT_WRAPPER_0(dev_init);
+ V4L2_INT_WRAPPER_0(dev_exit);
+-V4L2_INT_WRAPPER_1(s_power, int, );
++V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, );
+ V4L2_INT_WRAPPER_1(g_priv, void, *);
+ V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
+ V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
 -- 
-Nicolas VIVIEN
+1.5.0.6
 
 --
 video4linux-list mailing list
