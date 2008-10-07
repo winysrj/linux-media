@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mu-out-0910.google.com ([209.85.134.189])
+Received: from wx-out-0506.google.com ([66.249.82.232])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mrechberger@gmail.com>) id 1Ko7bM-0000cE-1m
-	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 04:19:37 +0200
-Received: by mu-out-0910.google.com with SMTP id g7so243167muf.1
-	for <linux-dvb@linuxtv.org>; Thu, 09 Oct 2008 19:19:32 -0700 (PDT)
-Message-ID: <d9def9db0810091919x2aa763bey15e39e74508763e9@mail.gmail.com>
-Date: Fri, 10 Oct 2008 04:19:31 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Chris Russell" <v4l@therussellhome.us>
-In-Reply-To: <20081009221330.3e355773@arwen.therussellhome.us>
+	(envelope-from <gregoire.favre@gmail.com>) id 1KnDCc-0006i1-6H
+	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 16:06:20 +0200
+Received: by wx-out-0506.google.com with SMTP id t16so934141wxc.17
+	for <linux-dvb@linuxtv.org>; Tue, 07 Oct 2008 07:06:14 -0700 (PDT)
+Date: Tue, 7 Oct 2008 16:06:08 +0200
+To: linux-dvb@linuxtv.org
+Message-ID: <20081007140608.GK3219@gmail.com>
+References: <44838.194.48.84.1.1223383227.squirrel@webmail.dark-green.com>
+	<48EB5A9D.1090609@jcz.nl>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <20081009221330.3e355773@arwen.therussellhome.us>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] em28xx - analog tv audio on kworld 305U
+In-Reply-To: <48EB5A9D.1090609@jcz.nl>
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Subject: Re: [linux-dvb] S2API vs Multiproto vs TT 3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,37 +22,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Oct 10, 2008 at 4:13 AM, Chris Russell <v4l@therussellhome.us> wrote:
->        I have a KWorld DVB-T 305U on Gentoo using the v4l-dvb-hg
-> package (live development version of v4l&dvb-driver for Kernel 2.6)
-> that I updated today (03Oct08).
->
->        The analog TV looks great but I cannot get the sound to work.
-> I have tried just about everything I could find searching including:
-> $ arecord -D hw:1 -f dat | aplay -f dat
->        and
-> $ mplayer tv:// -tv driver=v4l2:device=/dev/video0:chanlist=us-cable:alsa:adevice=hw.1,0:amode=1:audiorate=32000:forceaudio:volume=100:immediatemode=0:norm=NTSC
->        and
-> $ v4lctl volume mute off; v4lctl volume 31
->        and
-> even attempting a manual cat from /dev/audio1 to /dev/audio
->
-> So what am I missing or is audio for the 305U not working yet?
->
+On Tue, Oct 07, 2008 at 02:48:29PM +0200, Jaap Crezee wrote:
 
-Hi,
+Hello,
 
-you need the em28xx-new code from mcentral.de in order to get audio
-work with it, audio for it is still in progress but it should work
-fine as long as you have attached one device only.
+TT S2-3200 is of special interest for VDR's user because Klaus himself
+has one of those cards, and don't want to switch to a non working (for
+him) tree... so from my point of view the support for this card is a top
+priority :-)
 
-Markus
+> With this in mind, I would like to work on porting the TT S2-3200 driver =
+stuff to S2API. I have done a little bit of =
+
+> research and found out that it is hard to find what the differences are b=
+etween both API's on a source/technical level.
+> Can anyone offer some insight into differences or give some starting poin=
+t (or maybe even an example) of how to port =
+
+> Multiproto drivers to the S2API?
+> =
+
+> I own a TT S2-3200 card and would like to see it supported by kernel.org =
+vanille kernel... For now, everything works =
+
+> fine (Scanning, tuning, CAM module, Diseq), except I haven't tried S2 cha=
+nnels yet.
+-- =
+
+Gr=E9goire FAVRE  http://gregoire.favre.googlepages.com  http://www.gnupg.o=
+rg
+               http://picasaweb.google.com/Gregoire.Favre
 
 _______________________________________________
 linux-dvb mailing list
