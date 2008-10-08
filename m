@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m97GImuR023426
-	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:48 -0400
-Received: from mgw-mx06.nokia.com (smtp.nokia.com [192.100.122.233])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m97GIbIU021754
-	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:38 -0400
-From: Sakari Ailus <sakari.ailus@nokia.com>
-To: hverkuil@xs4all.nl, video4linux-list@redhat.com
-Date: Tue,  7 Oct 2008 19:18:14 +0300
-Message-Id: <12233962962059-git-send-email-sakari.ailus@nokia.com>
-In-Reply-To: <12233962962104-git-send-email-sakari.ailus@nokia.com>
-References: <48EB8BAC.90706@nokia.com>
-	<12233962961256-git-send-email-sakari.ailus@nokia.com>
-	<1223396296101-git-send-email-sakari.ailus@nokia.com>
-	<12233962962104-git-send-email-sakari.ailus@nokia.com>
-Cc: vimarsh.zutshi@nokia.com, tuukka.o.toivonen@nokia.com, hnagalla@ti.com
-Subject: [PATCH 4/6] V4L: Int if: Define new power state changes
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m98FiALl001812
+	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 11:44:11 -0400
+Received: from mail-gx0-f15.google.com (mail-gx0-f15.google.com
+	[209.85.217.15])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m98FhNQa008847
+	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 11:43:24 -0400
+Received: by gxk8 with SMTP id 8so8272682gxk.3
+	for <video4linux-list@redhat.com>; Wed, 08 Oct 2008 08:43:23 -0700 (PDT)
+Message-ID: <208cbae30810080843v49e35a66k8ecd3641caa82b5f@mail.gmail.com>
+Date: Wed, 8 Oct 2008 19:43:23 +0400
+From: "Alexey Klimov" <klimov.linux@gmail.com>
+To: tobias.lorenz@gmx.net
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_78554_1615424.1223480603272"
+Cc: video4linux-list@redhat.com
+Subject: [PATCH] radio-si470x: correct module name in radio/Kconfig
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,54 +28,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Use enum v4l2_power instead of int as second argument to
-vidioc_int_s_power. The new functionality is that standby state is also
-recognised.
+------=_Part_78554_1615424.1223480603272
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
----
- include/media/v4l2-int-device.h |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+Hello, Tobias and video4linux-list.
+Well, it's very simple patch - just replace module name in Kconfig.
 
-diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index cee941c..3351dcf 100644
---- a/include/media/v4l2-int-device.h
-+++ b/include/media/v4l2-int-device.h
-@@ -96,6 +96,12 @@ int v4l2_int_ioctl_1(struct v4l2_int_device *d, int cmd, void *arg);
-  *
-  */
- 
-+enum v4l2_power {
-+	V4L2_POWER_OFF = 0,
-+	V4L2_POWER_ON,
-+	V4L2_POWER_STANDBY,
-+};
-+
- /* Slave interface type. */
- enum v4l2_if_type {
- 	/*
-@@ -185,7 +191,7 @@ enum v4l2_int_ioctl_num {
- 	vidioc_int_dev_init_num = 1000,
- 	/* Delinitialise the device at slave detach. */
- 	vidioc_int_dev_exit_num,
--	/* Set device power state: 0 is off, non-zero is on. */
-+	/* Set device power state. */
- 	vidioc_int_s_power_num,
- 	/*
- 	* Get slave private data, e.g. platform-specific slave
-@@ -277,7 +283,7 @@ V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
- 
- V4L2_INT_WRAPPER_0(dev_init);
- V4L2_INT_WRAPPER_0(dev_exit);
--V4L2_INT_WRAPPER_1(s_power, int, );
-+V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, );
- V4L2_INT_WRAPPER_1(g_priv, void, *);
- V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
- V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
+Please, apply it carefully. It's unsafe to apply it to mainstream
+kernel (may be i'm wrong) because of different end of Kconfig-file.
+It's safe to apply it to development Mercurial repository on linuxtv.org.
+
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+
 -- 
-1.5.0.6
+Best regards, Klimov Alexey
+
+------=_Part_78554_1615424.1223480603272
+Content-Type: application/octet-stream;
+	name=radio-si470x-fix-module-name-Kconfig.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fm24niwu0
+Content-Disposition: attachment;
+	filename=radio-si470x-fix-module-name-Kconfig.patch
+
+ZGlmZiAtciA1ZWNkZWFhYTUxNzEgbGludXgvZHJpdmVycy9tZWRpYS9yYWRpby9LY29uZmlnCi0t
+LSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvcmFkaW8vS2NvbmZpZwlNb24gT2N0IDA2IDExOjA3OjQ4
+IDIwMDggLTA0MDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS9yYWRpby9LY29uZmlnCVR1ZSBP
+Y3QgMDcgMTg6NTA6NDMgMjAwOCArMDQwMApAQCAtMzU5LDcgKzM1OSw3IEBACiAJICBjb21wdXRl
+cidzIFVTQiBwb3J0LgogCiAJICBUbyBjb21waWxlIHRoaXMgZHJpdmVyIGFzIGEgbW9kdWxlLCBj
+aG9vc2UgTSBoZXJlOiB0aGUKLQkgIG1vZHVsZSB3aWxsIGJlIGNhbGxlZCByYWRpby1zaWxhYnMu
+CisJICBtb2R1bGUgd2lsbCBiZSBjYWxsZWQgcmFkaW8tc2k0NzB4LgogCiBjb25maWcgVVNCX01S
+ODAwCiAJdHJpc3RhdGUgIkF2ZXJNZWRpYSBNUiA4MDAgVVNCIEZNIHJhZGlvIHN1cHBvcnQiCg==
+
+------=_Part_78554_1615424.1223480603272
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_78554_1615424.1223480603272--
