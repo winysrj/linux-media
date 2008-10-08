@@ -1,29 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9G6ke2V004318
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:46:40 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.170])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9G6kW2r031775
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:46:32 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so3044736wfc.6
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 23:46:32 -0700 (PDT)
-Message-ID: <aec7e5c30810152346q251c963h7a4419fa59fb6612@mail.gmail.com>
-Date: Thu, 16 Oct 2008 15:46:31 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Robert Jarzmik" <robert.jarzmik@free.fr>
-In-Reply-To: <8763ntf3o8.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m98BRNmw021570
+	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 07:27:23 -0400
+Received: from fmmailgate04.web.de (fmmailgate04.web.de [217.72.192.242])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m98BR9VI006920
+	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 07:27:09 -0400
+Date: Wed, 08 Oct 2008 13:27:07 +0200
+Message-Id: <799308491@web.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <uskqyqg58.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0810160041250.8535@axis700.grange>
-	<aec7e5c30810151921v53ab947aq8e1dd6c6ee834eaa@mail.gmail.com>
-	<Pine.LNX.4.64.0810160814190.3892@axis700.grange>
-	<8763ntf3o8.fsf@free.fr>
-Cc: V4L <video4linux-list@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] Add ov772x driver
+From: Stefan Lange <sailer22@web.de>
+To: Markus Rechberger <mrechberger@gmail.com>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com,
+	Marco Crociani - Tyrael <marco.crociani@gmail.com>, em28xx@mcentral.de
+Subject: Re: [Em28xx] Terratec Cinergy XS unsupported Device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,45 +26,73 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Oct 16, 2008 at 3:35 PM, Robert Jarzmik <robert.jarzmik@free.fr> wrote:
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
->
->> Hm, so, to test your camera you have to modify your source and rebuild
->> your kernel... And same again to switch back to normal operation. Does not
->> sound very convenient to me. OTOH, making it a module parameter makes it
->> much easier. In fact, maybe it would be a good idea to add a new
->> camera-class control for this mode. Yet another possibility is to enable
->> debug register-access in the driver and use that to manually set the test
->> mode from user-space. A new v4l-control seems best to me, not sure what
->> others will say about this. As you probably know, many other cameras also
->> have this "test pattern" mode, some even several of them. So, this becomes
->> a control with a parameter then.
->
-> Personnaly I'm rather inclined for the debug registers solutions.
->
-> When developping a camera driver, the test pattern alone is not enough. You have
-> to tweak the registers, see if the specification is correct, then understand the
-> specification, and then change your driver code. My experience tells me you
-> never understand correctly are camera setup from the first time.
+Hi Markus, Hi Marco,
 
-One thing is when people write their driver, but the scenario that I'm
-thinking about is more when people take an already existing soc_camera
-sensor driver and hook it up to some soc_camera host. There are all
-sorts of endian and swapping issues that need to be worked out. They
-depend on soc_camera host driver, endian setting and userspace. Having
-a test pattern available would surely help there in my opinion.
+i saw that 5 days ago Markus made some changes for the Terratec Cinergy XS Support.
 
-> So IMHO the registers are enough here.
->
->> Then a new control or raw register access would be a better way, I think.
-> So do I.
+@Markus: Will my stick now be supported ??
 
-I dislike the register access option since it requires the developer
-to have some user space tool that most likely won't ship with the
-kernel. I think seeing it as yet another video input source is pretty
-clean. Or maybe it isn't very useful at all, I'm not sure. =)
+Best Regards
+Stefan
 
-/ magnus
+> -----Ursprüngliche Nachricht-----
+> Von: "Markus Rechberger" <mrechberger@gmail.com>
+> Gesendet: 25.08.08 20:50:59
+> An: "Stefan Lange" <sailer22@web.de>
+> CC: "Marco Crociani - Tyrael" <marco.crociani@gmail.com>,  video4linux-list@redhat.com, em28xx@mcentral.de
+> Betreff: Re: [Em28xx] Terratec Cinergy XS unsupported Device
+
+
+> On Mon, Aug 25, 2008 at 8:20 PM, Stefan Lange <sailer22@web.de> wrote:
+> > Hi Marco,
+> >
+> > i cant move the changes from v4l to the em28xx-new. I am just a newbie and
+> > an End User.
+> >
+> > So i am just waiting if some would implement the Cinergy XS in the
+> > em28xx-new.
+> >
+> > Sorry.
+> >
+> 
+> we can check this week, the current priority is to get rid of the alsa
+> driver since too many different problems came up with alsa now...
+> 
+> Markus
+> 
+> > Stefan
+> >
+> > Marco Crociani - Tyrael wrote:
+> >>
+> >> On Wed, Aug 13, 2008 at 12:39 PM, Markus Rechberger <mrechberger@gmail.com
+> >> <mailto:mrechberger@gmail.com>> wrote:
+> >>
+> >>    On Wed, Aug 13, 2008 at 12:36 PM, Stefan Lange <sailer22@web.de
+> >>    <mailto:sailer22@web.de>> wrote:
+> >>    > So i have to wait for your next release right ? Or can i do it
+> >>    by myself ?
+> >>    >
+> >>
+> >>    yes you have to wait a bit for it... you can try to move the changes
+> >>    from v4l-dvb-experimental to em28xx-new on mcentral.de
+> >>    <http://mcentral.de>, there are
+> >>    still a few things missing in the latest repository; although I'm
+> >>    trying to take care that no other drivers will break with any updates.
+> >>
+> >>    Markus
+> >>
+> >>  Hi Stefan,
+> >> have you tried to move the changes from v4l-dvb-experimental to
+> >> em28xx-new?
+> >>
+> >> --
+> >> Marco Lorenzo Crociani,
+> >> marco.crociani@gmail.com <mailto:marco.crociani@gmail.com>
+> >
+> >
+> 
+
+
 
 --
 video4linux-list mailing list
