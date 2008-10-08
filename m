@@ -1,20 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9RCit3D011173
-	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 08:44:55 -0400
-Received: from root.phytec.de (mail.microcatalog.org.uk [217.6.246.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9RChxDd028186
-	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 08:44:00 -0400
-Received: from idefix.phytec.de (idefix.phytec.de [172.16.0.10])
-	by root.phytec.de (Postfix) with ESMTP id AFDBABF0E9
-	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 13:20:08 +0100 (CET)
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m981fijH007924
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 21:41:44 -0400
+Received: from smtp4.int-evry.fr (smtp4.int-evry.fr [157.159.10.71])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m981fNc4015079
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 21:41:26 -0400
+Received: from smtp2.int-evry.fr (smtp2.int-evry.fr [157.159.10.45])
+	by smtp4.int-evry.fr (Postfix) with ESMTP id 254B8FE38C6
+	for <video4linux-list@redhat.com>;
+	Wed,  8 Oct 2008 03:41:23 +0200 (CEST)
+Received: from smtp-ext.int-evry.fr (smtp-ext.int-evry.fr [157.159.11.17])
+	by smtp2.int-evry.fr (Postfix) with ESMTP id B3AD8405239
+	for <video4linux-list@redhat.com>;
+	Wed,  8 Oct 2008 03:41:15 +0200 (CEST)
+Received: from [192.168.10.2] (unknown [157.159.43.13])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by smtp-ext.int-evry.fr (Postfix) with ESMTP id 9984490001
+	for <video4linux-list@redhat.com>;
+	Wed,  8 Oct 2008 03:41:15 +0200 (CEST)
+Message-ID: <48EC0FBB.9000300@minet.net>
+Date: Wed, 08 Oct 2008 03:41:15 +0200
+From: Yann Sionneau <yann@minet.net>
 MIME-Version: 1.0
-Message-ID: <OFCC904212.642A003E-ONC12574EF.00458E69-C12574EF.0045EFB0@phytec.de>
-From: Dirk Heer <D.Heer@phytec.de>
-Date: Mon, 27 Oct 2008 13:43:53 +0100
-Content-Type: multipart/mixed; boundary="=_mixed 0045EFACC12574EF_="
-Subject: patch for bttv driver  (bttv-cards.c and bttv.h)
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Subject: Problem using ov534
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,112 +38,95 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---=_mixed 0045EFACC12574EF_=
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: quoted-printable
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Hello,
+Hi everybody !
 
-i build a patch for the bttv driver.
+i have an usb webcam "Hercules dualpix hd" which ID is 06f8:3003
 
+I am under ubuntu linux Intrepid, kernel 2.6.27
 
+When i plug my webcam it makes the little blue light on the webcam blink
+and modprobes automatically the module "ov534" i installed using the
+EasyCam2 project ( http://blognux.free.fr/?p=13 &
+http://forum.ubuntu-fr.org/viewtopic.php?id=16670 sorry it's in French ).
 
-I hope some one can build them into the Kernel.
+i get this in the dmesg :
 
-The patch is made with the 2.6.25.16-0.1-pae Kernel version.
-
-
-Yours faithfully,
-
-Dipl.-Ing. (FH) Dirk Heer
-
-
-++++++++++++++++++++++++++
-PHYTEC Messtechnik GmbH
-Abteilung Bildverarbeitung
-Robert-Koch-Str. 39
-D-55129 Mainz
-
-Tel:   +49 (6131) / 9221-0
-Fax:  +49 (6131) / 9221-33
-
-E-Mail: d.heer@phytec.de
-Internet: http://www.phytec.de
-
-Handelsregister Mainz HRB 4656
-Gesch=E4ftsf=FChrer: Dipl.-Ing. Michael Mitezki
-+++++++++++++++++++++++++
+[  268.452160] usb 5-1: new high speed USB device using ehci_hcd and
+address 2
+[  268.596393] usb 5-1: configuration #1 chosen from 1 choice
+[  269.035481] Linux video capture interface: v2.00
+[  269.089552] ov534: OmniVision OV534 compatible webcam detected
+[  269.089572] ov534: 06f8:3003 Hercules Dualpix HD Webcam found
+[  269.219459] ov534: ov534 controlling video device 0
+[  269.224432] ov534: OmniVision OV534 compatible webcam detected
+[  269.224452] ov534: 06f8:3003 Hercules Dualpix HD Webcam found
+[  269.327940] ov534: ov534 controlling video device 1
+[  269.328853] ov534: OmniVision OV534 compatible webcam detected
+[  269.328862] ov534: 06f8:3003 Hercules Dualpix HD Webcam found
+[  269.424565] ov534: ov534 controlling video device 2
+[  269.425476] usbcore: registered new interface driver ov534
+[  269.427512] ov534: ov534 v0.0.5 module loaded
+[  269.514057] usbcore: registered new interface driver snd-usb-audio
 
 
---=_mixed 0045EFACC12574EF_=
-Content-Type: application/octet-stream; name="phytec_bttv_patch"
-Content-Disposition: attachment; filename="phytec_bttv_patch"
-Content-Transfer-Encoding: base64
+and this
 
-ZGlmZiAtdSAtciBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2J0OHh4L2J0dHYtY2FyZHMuYyBi
-dHR2X3BhdGNoL2RyaXZlcnMvbWVkaWEvdmlkZW8vYnQ4eHgvYnR0di1jYXJkcy5jCi0tLSBsaW51
-eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2J0OHh4L2J0dHYtY2FyZHMuYwkyMDA4LTA0LTE3IDA0OjQ5
-OjQ0LjAwMDAwMDAwMCArMDIwMAorKysgYnR0dl9wYXRjaC9kcml2ZXJzL21lZGlhL3ZpZGVvL2J0
-OHh4L2J0dHYtY2FyZHMuYwkyMDA4LTEwLTI3IDEyOjU3OjM2LjAwMDAwMDAwMCArMDEwMApAQCAt
-Mjk5Miw2ICsyOTkyLDY5IEBACiAJCS50dW5lcl9hZGRyICAgICA9IEFERFJfVU5TRVQsCiAJCS5y
-YWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQsCiAJfSwKKwkKKwkJW0JUVFZfQk9BUkRfVkQwMTFf
-TUlOSURJTl0gPSB7CisJCS8qQEQuSGVlckBweXRlYy5kZSAqLworCQkubmFtZSAgICAgICAgICAg
-PSAiUEhZVEVDIFZELTAxMSBNaW5pRElOIChidDg3OCkiLAorCQkudmlkZW9faW5wdXRzICAgPSA0
-LAorCQkuYXVkaW9faW5wdXRzICAgPSAwLAorCQkudHVuZXIgICAgICAgICAgPSBVTlNFVCwgLyog
-Y2FyZCBoYXMgbm8gdHVuZXIgKi8KKwkJLnN2aHMgICAgICAgICAgID0gMywKKwkJLmdwaW9tYXNr
-ICAgICAgID0gMHgwMCwKKwkJLm11eHNlbCAgICAgICAgID0geyAyLCAzLCAxLCAwIH0sCisJCS5n
-cGlvbXV4ICAgICAgICA9IHsgMCwgMCwgMCwgMCB9LCAvKiBjYXJkIGhhcyBubyBhdWRpbyAqLwor
-CQkubmVlZHNfdHZhdWRpbyAgPSAxLAorCQkucGxsICAgICAgICAgICAgPSBQTExfMjgsCisJCS50
-dW5lcl90eXBlICAgICA9IFVOU0VULAorCQkudHVuZXJfYWRkcgk9IEFERFJfVU5TRVQsCisJCS5y
-YWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQsCisJfSwJCisJCVtCVFRWX0JPQVJEX1ZEMDEyXSA9
-IHsKKwkJLypARC5IZWVyQHB5dGVjLmRlICovCisJCS5uYW1lICAgICAgICAgICA9ICJQSFlURUMg
-VkQtMDEyIChidDg3OCkiLAorCQkudmlkZW9faW5wdXRzICAgPSA0LAorCQkuYXVkaW9faW5wdXRz
-ICAgPSAwLAorCQkudHVuZXIgICAgICAgICAgPSBVTlNFVCwgLyogY2FyZCBoYXMgbm8gdHVuZXIg
-Ki8KKwkJLnN2aHMgICAgICAgICAgID0gVU5TRVQsIC8qIGNhcmQgaGFzIG5vIHN2aHMgKi8KKwkJ
-LmdwaW9tYXNrICAgICAgID0gMHgwMCwKKwkJLm11eHNlbCAgICAgICAgID0geyAwLCAyLCAzLCAx
-IH0sCisJCS5ncGlvbXV4ICAgICAgICA9IHsgMCwgMCwgMCwgMCB9LCAvKiBjYXJkIGhhcyBubyBh
-dWRpbyAqLworCQkubmVlZHNfdHZhdWRpbyAgPSAxLAorCQkucGxsICAgICAgICAgICAgPSBQTExf
-MjgsCisJCS50dW5lcl90eXBlICAgICA9IFVOU0VULAorCQkudHVuZXJfYWRkcgk9IEFERFJfVU5T
-RVQsCisJCS5yYWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQsCisJfSwJCVtCVFRWX0JPQVJEX1ZE
-MDEyX1gxXSA9IHsKKwkJLypARC5IZWVyQHB5dGVjLmRlICovCisJCS5uYW1lICAgICAgICAgICA9
-ICJQSFlURUMgVkQtMDEyLVgxIChidDg3OCkiLAorCQkudmlkZW9faW5wdXRzICAgPSA0LAorCQku
-YXVkaW9faW5wdXRzICAgPSAwLAorCQkudHVuZXIgICAgICAgICAgPSBVTlNFVCwgLyogY2FyZCBo
-YXMgbm8gdHVuZXIgKi8KKwkJLnN2aHMgICAgICAgICAgID0gMywKKwkJLmdwaW9tYXNrICAgICAg
-ID0gMHgwMCwKKwkJLm11eHNlbCAgICAgICAgID0geyAyLCAzLCAxIH0sCisJCS5ncGlvbXV4ICAg
-ICAgICA9IHsgMCwgMCwgMCwgMCB9LCAvKiBjYXJkIGhhcyBubyBhdWRpbyAqLworCQkubmVlZHNf
-dHZhdWRpbyAgPSAxLAorCQkucGxsICAgICAgICAgICAgPSBQTExfMjgsCisJCS50dW5lcl90eXBl
-ICAgICA9IFVOU0VULAorCQkudHVuZXJfYWRkcgk9IEFERFJfVU5TRVQsCisJCS5yYWRpb19hZGRy
-ICAgICA9IEFERFJfVU5TRVQsCisJfSwJCVtCVFRWX0JPQVJEX1ZEMDEyX1gyXSA9IHsKKwkJLypA
-RC5IZWVyQHB5dGVjLmRlICovCisJCS5uYW1lICAgICAgICAgICA9ICJQSFlURUMgVkQtMDEyLVgy
-IChidDg3OCkiLAorCQkudmlkZW9faW5wdXRzICAgPSA0LAorCQkuYXVkaW9faW5wdXRzICAgPSAw
-LAorCQkudHVuZXIgICAgICAgICAgPSBVTlNFVCwgLyogY2FyZCBoYXMgbm8gdHVuZXIgKi8KKwkJ
-LnN2aHMgICAgICAgICAgID0gMywKKwkJLmdwaW9tYXNrICAgICAgID0gMHgwMCwKKwkJLm11eHNl
-bCAgICAgICAgID0geyAzLCAyLCAxIH0sCisJCS5ncGlvbXV4ICAgICAgICA9IHsgMCwgMCwgMCwg
-MCB9LCAvKiBjYXJkIGhhcyBubyBhdWRpbyAqLworCQkubmVlZHNfdHZhdWRpbyAgPSAxLAorCQku
-cGxsICAgICAgICAgICAgPSBQTExfMjgsCisJCS50dW5lcl90eXBlICAgICA9IFVOU0VULAorCQku
-dHVuZXJfYWRkcgk9IEFERFJfVU5TRVQsCisJCS5yYWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQs
-CisJfSwKIH07CiAKIHN0YXRpYyBjb25zdCB1bnNpZ25lZCBpbnQgYnR0dl9udW1fdHZjYXJkcyA9
-IEFSUkFZX1NJWkUoYnR0dl90dmNhcmRzKTsKZGlmZiAtdSAtciBsaW51eC9kcml2ZXJzL21lZGlh
-L3ZpZGVvL2J0OHh4L2J0dHYuaCBidHR2X3BhdGNoL2RyaXZlcnMvbWVkaWEvdmlkZW8vYnQ4eHgv
-YnR0di5oCi0tLSBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2J0OHh4L2J0dHYuaAkyMDA4LTA0
-LTE3IDA0OjQ5OjQ0LjAwMDAwMDAwMCArMDIwMAorKysgYnR0dl9wYXRjaC9kcml2ZXJzL21lZGlh
-L3ZpZGVvL2J0OHh4L2J0dHYuaAkyMDA4LTEwLTI3IDEyOjU3OjM2LjAwMDAwMDAwMCArMDEwMApA
-QCAtMTczLDcgKzE3MywxMCBAQAogI2RlZmluZSBCVFRWX0JPQVJEX1ZPT0RPT1RWXzIwMAkJICAg
-MHg5MwogI2RlZmluZSBCVFRWX0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfMgkgICAweDk0CiAjZGVm
-aW5lIEJUVFZfQk9BUkRfVFlQSE9PTl9UVlRVTkVSUENJCSAgIDB4OTUKLQorI2RlZmluZSBCVFRW
-X0JPQVJEX1ZEMDExX01JTklESU4gICAgICAgICAgIDB4OTYKKyNkZWZpbmUgQlRUVl9CT0FSRF9W
-RDAxMgkJICAgMHg5NworI2RlZmluZSBCVFRWX0JPQVJEX1ZEMDEyX1gxCQkgICAweDk4CisjZGVm
-aW5lIEJUVFZfQk9BUkRfVkQwMTJfWDIJCSAgIDB4OTkKIAogLyogbW9yZSBjYXJkLXNwZWNpZmlj
-IGRlZmluZXMgKi8KICNkZWZpbmUgUFQyMjU0X0xfQ0hBTk5FTCAweDEwCg==
+fallen@laptop:~$ lsmod | grep ov
+ov534                  27696  0
+videodev               41344  1 ov534
+compat_ioctl32          9344  1 ov534
+videobuf_vmalloc       14852  1 ov534
+videobuf_core          26628  2 ov534,videobuf_vmalloc
+usbcore               148848  7
+snd_usb_audio,snd_usb_lib,ov534,ohci_hcd,uhci_hcd,ehci_hcd
 
---=_mixed 0045EFACC12574EF_=
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+fallen@laptop:~$ lsmod | grep v4l
+v4l1_compat            22404  1 videodev
+
+then i try using the webcam with vlc (with v4l or v4l2) and it doesn't
+work, so i try gstreamer-properties and i click on "Video" and i test
+each /dev/video* with v4l2 and it shows some strange green snow things
+but it does make the little blue light switch on on the webcam
+
+I have nothing more than that, am i doing something wrong ?
+
+I tried modprobing v4l2-common but it doesn't change anything, same
+thing with the module v4l2-int-device
+
+
+ps : when i test my webcam using gstreamer-properties i get this in dmesg :
+[  674.941551] ov534: open called (minor=0)
+[  674.943197] ov534: open called (minor=1)
+[  674.945343] ov534: open called (minor=2)
+[  674.946928] ov534: open called (minor=0)
+[  674.949190] ov534: open called (minor=1)
+[  674.951083] ov534: open called (minor=2)
+[  674.959171] ov534: open called (minor=0)
+[  674.962525] ov534: open called (minor=1)
+[  674.964377] ov534: open called (minor=2)
+[  680.379005] ov534: open called (minor=0)
+
+looking forward to hearing from you :)
+
+- --
+Yann Sionneau
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iQEcBAEBAgAGBQJI7A+6AAoJEBkasY8500ICLO0H/0WBNDesT5JZ2crNUh7Pafth
+Bcvo0jdNAh6GwoGbaBXuL0mFfeCYA7NUgWrG/66KcdFTfbMBJ3oRrtygA4AGya6D
+jfjK0iLtCL44JgfpodMeicalRnFQJ4+j9yJE+1wwVIHV0nMCILO/6HLvSmGl2UhS
+pIl41u3qOwmXR0+BhmgkyySMhDa2Nq8UGkFXxx0dSaM6C8yM00JkukT1Ew+NxoC+
+Qslujt9w4/gSEm8UxZo4VpWzjOGw9jENzaMJnmbJ2tPOW4J4hInuQ4qbQYhC5dO5
+F/JhccZO8kC8m1my8SgIQnJATThHptuQ3ORdc1EJ0m+g4ZLrMGLXO+6jUC27cSU=
+=H83L
+-----END PGP SIGNATURE-----
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---=_mixed 0045EFACC12574EF_=--
