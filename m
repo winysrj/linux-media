@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LCjfCE020731
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 08:45:41 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9LCjVCa030016
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 08:45:32 -0400
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: "Alexey Klimov" <klimov.linux@gmail.com>
-Date: Tue, 21 Oct 2008 14:45:28 +0200
-References: <208cbae30810191610s74b0dbeejef57ffd3d43cc3a4@mail.gmail.com>
-In-Reply-To: <208cbae30810191610s74b0dbeejef57ffd3d43cc3a4@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m986ZUt5010896
+	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 02:35:30 -0400
+Received: from swip.net (mailfe14.tele2.se [212.247.155.161])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m986X1S5011153
+	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 02:33:02 -0400
+Received: from [62.113.135.118] (account mc467741@c2i.net [62.113.135.118]
+	verified) by mailfe14.swip.net (CommuniGate Pro SMTP 5.2.6)
+	with ESMTPA id 364372834 for video4linux-list@redhat.com;
+	Wed, 08 Oct 2008 08:33:00 +0200
 Content-Disposition: inline
-Message-Id: <200810211445.29008.tobias.lorenz@gmx.net>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] radio-si470x: add support for kworld usb-radio
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Date: Wed, 8 Oct 2008 08:34:56 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200810080834.57128.hselasky@c2i.net>
+Subject: Fwd: Re: Video4Linux header files (and unnamed unions)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,31 +30,54 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Alexey,
+Hi,
 
-> There is chip in there named "silabs something", so i tried to add
-> support in Tobias' driver radio-si470x. Have success. Works fine with
-> kradio and gnomeradio under 2.6.27-git5 kernel. Thanks Tobias for
-> consideration.
-> (Tobias, if you want that patch change version of driver just ask and
-> i can re-make the patch)
+Would you accept the following patch to the videodev2.h file, that all unnamed 
+unions are appended "MY_UNION" or something like that?
 
-Very nice patch. Approved.
+--HPS
 
-> I think it's not critical right now, i used "arecord -D hw:2,0 -r96000
-> -c2 -f S16_LE | artsdsp aplay -B -" and periodically get "underrun"
-> messages:
+----------  Forwarded Message  ----------
 
-I have the same problems with the usbaudio or snd-usb-audio drivers. Maybe we should get in contact with them. But I don't want to open another building site for me.
+On Saturday 19 May 2007, Luigi Rizzo wrote:
+> On Sat, May 19, 2007 at 11:24:34PM +0200, Hans Petter Selasky wrote:
+> > On Saturday 19 May 2007 21:14, Luigi Rizzo wrote:
+>
+> ...
+>
+> > > - i don't know how problematic is this, but v4l2 headers seem to use
+> > >   unnamed unions which, last time i tried, conflict with the compiler
+> > >   setting used to build the kernel. While this is possibly an
+> > > orthogonal problem which we may have to address at some point (as
+> > > unnamed unions seem to be a common paradigm in linux headers), it is
+> > > yet another hurdle.
+> >
+> > Unnamed unions are not so good. I suggest that we terminate unnamed
+> > unions with an "u".
 
-> So, we have two patches. Patches attached to letter. Patch that
-> touches HID-subsystem is created to be applied against -git tree on
-> kernel.org.
+We can make this a compile time option:
 
-Mauro can you apply the two patches in v4l-dvb?
+#ifdef NOT_GCC_4X
+#define MY_UNION u
+#else
+#define MY_UNION 
+#endif
 
-Thanks,
-Toby
+union {
+
+} MY_UNION;
+
+I see no problem about that. Else it will be a nightmare to port the code to 
+other and especially older compilers.
+
+>
+> It is not our choice. Linux v4l2 headers use these unions,
+> software is written against these headers, we can't change the
+> names unless we want to make extensive changes to the sources.
+
+We can be compatible with both!
+
+--HPS
 
 --
 video4linux-list mailing list
