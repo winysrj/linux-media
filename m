@@ -1,20 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9N1wxfY006198
-	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 21:59:04 -0400
-Received: from smtp128.rog.mail.re2.yahoo.com (smtp128.rog.mail.re2.yahoo.com
-	[206.190.53.33])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9N1wAEg027599
-	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 21:58:10 -0400
-Message-ID: <48FFDA32.1020206@rogers.com>
-Date: Wed, 22 Oct 2008 21:58:10 -0400
-From: CityK <cityk@rogers.com>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com, lee_alkureishi@hotmail.com
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m98LZnFe011722
+	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 17:35:49 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m98LZf5i006365
+	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 17:35:42 -0400
+From: Andy Walls <awalls@radix.net>
+To: Dale Pontius <DEPontius@edgehp.net>
+In-Reply-To: <48EC18D7.3070807@edgehp.net>
+References: <1222651357.2640.21.camel@morgan.walls.org>
+	<48EC18D7.3070807@edgehp.net>
+Content-Type: text/plain
+Date: Wed, 08 Oct 2008 17:35:31 -0400
+Message-Id: <1223501731.2807.9.camel@morgan.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: HDTV Wonder - analog portion isn't working
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: Re: cx18: Fix needs test: more robust solution to get CX23418
+	based cards to work reliably
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,32 +29,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Lee Alkureishi wrote:
+On Tue, 2008-10-07 at 22:20 -0400, Dale Pontius wrote:
+> Andy Walls wrote:
+> > cx18 driver users:
+> > 
+> > In this repository:
+> > 
+> > http://linuxtv.org/hg/~awalls/cx18-mmio-fixes/
+> > 
+> Can't get there from here:
 
-> I'm hoping someone might be able to help me get the analogue portion of
-> my ATI HDTV Wonder up and running. ...When I try to watch tv using the second coaxial input ...I just get a 
-> black screen. Scanning for channels produces timeouts at every station 
-> (no signal). I'm mainly using mythtv (mythbuntu 8.04, mythtv 0.21, fully 
-> updated), but the same thing happens in tvtime and xawtv. I'm unable to 
-> find any channels.....I don't know what to do next, to get this analogue input 
-> working!
->   
-and then in:  http://marc.info/?l=linux-video&m=122264501207938&w=2
-you wrote:
-> The HDTVwonder is partially working - the digital ATSC input works,
-> while the
-> analogue NTSC input does not. If anyone can deny the bit about the 
-> analogue tuner, I'd love to hear about it (because I can't get it 
-> working!).
->   
+Yeah, I nuked that repo once Mauro merged the change into the main repo.
 
-Lee, did you try scanning for analog channels on both RF inputs ?  What
-is written on the PCI riser applies to the expected operation under a
-Windows environment.  Under Linux, this may differ.  In fact, going
-beyond the default behaviour one may observe under Linux, note that
-mkrufky also added an option for dual RF input devices so that the user
-can specify which input they want used for analog and digital. See
-"modinfo tuner-simple"
+
+> I've been getting help from you with problems with my HVR-1600, and have
+> a friend with WinXP machines who can likely help me out testing it, but
+> he's been on vacation, and shortly I'll be gone for a bit.
+> 
+> In the meantime, since it appears that I've been having i2c problems and
+> the mmio_ndelay gave me marginally better operation, I'd like to give
+> this patch a try.  (Or is it folded into the main repository, already.)
+
+Yes, it is in the main v4l-dvb repo now.
+
+
+> Thanks,
+> Dale Pontius
+
+You're welcome.  Have fun testing.
+
+Regards,
+Andy
+
+
 
 --
 video4linux-list mailing list
