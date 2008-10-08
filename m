@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9SFTewF022065
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 11:29:40 -0400
-Received: from gate.crashing.org (gate.crashing.org [63.228.1.57])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9SFSQji026106
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 11:28:27 -0400
-Date: Tue, 28 Oct 2008 10:28:25 -0500
-From: Matt Porter <mporter@kernel.crashing.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <20081028152825.GA25654@gate.crashing.org>
-References: <20081027211837.GA20197@gate.crashing.org>
-	<200810272259.43058.hverkuil@xs4all.nl>
-	<20081028020021.GA3684@gate.crashing.org>
-	<200810280820.03931.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m98388dU005023
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 23:08:08 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.225])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9837vXj020057
+	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 23:07:57 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so3744610rvb.51
+	for <video4linux-list@redhat.com>; Tue, 07 Oct 2008 20:07:57 -0700 (PDT)
+Message-ID: <19619f3b0810072007h65733a1ekda49ae5eada73206@mail.gmail.com>
+Date: Wed, 8 Oct 2008 07:07:57 +0400
+From: OJ <olejl77@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <19619f3b0810060628w5dcea635t8ccb7aeae75d58d7@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <200810280820.03931.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com
-Subject: Re: output overlay driver and pix format
+References: <19619f3b0810060628w5dcea635t8ccb7aeae75d58d7@mail.gmail.com>
+Subject: Re: Problem with TT-Budget S-1500 DVB-S card (saa7146)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,75 +29,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Oct 28, 2008 at 08:20:03AM +0100, Hans Verkuil wrote:
-> On Tuesday 28 October 2008 03:00:21 Matt Porter wrote:
-> > Ok. I guess it does make sense. I've been used to think in terms of
-> > real-world outputs on previous driver work so that's where the
-> > confusion set in. I can define an output that is the internal target
-> > buffer as you suggest. Since it requires the standards ioctls it
-> > seems I'll have to define a driver specific standard id for a "system
-> > buffer". Perhaps that should be generic...
-> 
-> If there are a fixed number of possible target buffers, then you can 
-> associate each output with each buffer. But without knowing the precise 
-> architecture it's hard for me to comment on this.
- 
-Ok, the hardware can only be programmed with a fixed target buffer. It
-seems the best mapping is to have multiple outputs depending on the
-functionality of the target buffer. The normal case is that the output
-target buffer is the source for the LCD h/w interface.
+>> quoting Oliver and Michael from the linux-dvb ML might help.
+>>
+>>
+>>> Complain to the developers of the Audiowerk2 driver for this:
+>>>
+>>> | static struct pci_device_id snd_aw2_ids[] = {
+>>> |       {PCI_VENDOR_ID_SAA7146, PCI_DEVICE_ID_SAA7146, PCI_ANY_ID,
+>>> PCI_ANY_ID,
+>>> |        0, 0, 0},
+>>> |       {0}
+>>> | };
+>>>
+>>> This will grab _all_ saa7146-based cards. :-(
+>>>
+>>> For now you should blacklist that driver.
+>>>
+>>> CU
+>>> Oliver
+>>>
+>>
+>>
+>>> Hi Tom,
+>>>
+>>> The name of module is snd_aw2. Just add it to
+>>> the /etc/modprobe.d/blacklist
+>>
+>> Or remove it and "depmod -a".
+>>
+>> Cheers,
+>> Hermann
+>>
+>>
+>>
 
-<snip>
-
-> > > In this case I don't think it makes sense. But as I said, I think
-> > > adding an OUTPUT capability is not a problem.
-> >
-> > Yes, seems reasonable to me now. There's one other thing this brings
-> > up. Since my hardware can handle 5 different pixelformats as input
-> > I'll obviously S_FMT those on the OUTPUT device. However, it is
-> > possible to configure hardware such that the processed results in the
-> > target buffer are in 4 different pixel formats. Within V4L, it seems
-> > that the way to handle this would be to have 4 different custom
-> > (driver specific) standards that correspond to the 4 possible pixel
-> > formats. Does that sound right?
-> 
-> That seems to be the only way to do this at the moment. Is the target 
-> buffer's pixel format in any way related to the pixel format of the 
-> framebuffer? Or are they independent?
-
-They are completely independent with regards to the hardware capabilities.
-However, the normal usage case would be to set the target (output) buffer
-configuration the same as the framebuffer.
-
-Specifically, here's what it can do:
-
-On the video input side it handles YUV420, YUV422P, RGB24, RGB555, RGB565
-The framebuffer input handles ARGB32, RGB32, ARGB1555, RGB555, RGB565
-Target (output) buffer may be ARGB32, RGB32, RGB24, ARGB1555, RGB555, RGB565
-
-So we could feed it YUV420 video, overlay an RGB565 FB, and output RGB555
-if desired. I could simply force the output buffer to be the same as
-the framebuffer configuration which will probably be the usual usage
-model.
-
-> It feels rather like a hack to abuse S_STD for this. Can you tell a bit 
-> more about the sort of formats this device can handle? Is it limited to 
-> PAL/NTSC type images only or can it be different sizes as well? I'm 
-> planning on adding a new ioctl to support HDTV and it sounds like this 
-> is something that new ioctl might support as well.
-
-It does feel like a hack for S_STD. It can output more than PAL/NTSC compatible
-images. It can also drive an LCD interface with popular progressive formats
-like 800x480, 480x272, etc. Since it can crop and scale, the output size
-doesn't need to be the same as the framebuffer size. The end result is that
-the output isn't necessarily in the form of something that conforms to
-the definition of analog standards. I'm not sure handling arbitrary LCD formats
-is appropriate for the HDTV ioctl, but maybe another interface could handle
-this type of output. Do you have a pointer to some spec for this new ioctl?
-I'm not sure if I missed it on the list before.
-
-Thanks,
-Matt
+Thanks, that did the trick for me. I added snd_aw2 in
+/etc/modprobe.d/blacklist, and restarted. Then everything was working.
 
 --
 video4linux-list mailing list
