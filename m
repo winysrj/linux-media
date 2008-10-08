@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from qb-out-0506.google.com ([72.14.204.233])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1Kpld6-0006Oc-Do
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 17:16:13 +0200
-Message-ID: <48F4B7B7.4080107@iki.fi>
-Date: Tue, 14 Oct 2008 18:16:07 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <henrik.list@gmail.com>) id 1KnVtq-0007w6-9a
+	for linux-dvb@linuxtv.org; Wed, 08 Oct 2008 12:04:14 +0200
+Received: by qb-out-0506.google.com with SMTP id e11so2768499qbe.25
+	for <linux-dvb@linuxtv.org>; Wed, 08 Oct 2008 03:04:05 -0700 (PDT)
+Message-ID: <af2e95fa0810080304r2554900fi9e062781de233c92@mail.gmail.com>
+Date: Wed, 8 Oct 2008 12:04:05 +0200
+From: "Henrik Beckman" <henrik.list@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-To: Jelle de Jong <jelledejong@powercraft.nl>
-References: <48F48920.1000206@powercraft.nl>
-	<48F48F67.2020802@powercraft.nl>	<48F4A5D9.7010701@powercraft.nl>
-	<48F4B25B.9070109@iki.fi> <48F4B576.8010509@powercraft.nl>
-In-Reply-To: <48F4B576.8010509@powercraft.nl>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Afatech DVB-T - Installation Guide - v0.1.1j (not
- working)
+Subject: [linux-dvb] Status on Nova-T 500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,61 +18,43 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0079918551=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jelle de Jong wrote:
-> Antti Palosaari wrote:
->> hello Jelle,
->> sorry for top-posting...
->>
->> Error from attached file:
->>
->> [   57.163981] DVB: registering frontend 0 (Afatech AF9013 DVB-T)...
->> [   57.277990] af9015: command failed:2
->> [   57.278001] mt2060 I2C read failed
->>
->> goes to the fact that I2C-communication towards tuner is behind I2C-gate 
->> of the AF9015/AF9013. MT2060 you use does not have I2C-gate implemented. 
->> Use newer MT2060 module for correct functionality.
->>
->> See for more information:
->> http://palosaari.fi/linux/v4l-dvb/controlling_tuner.txt
->> http://palosaari.fi/linux/v4l-dvb/controlling_tuner_af9015_dual_demod.txt
->>
->> reagrds
->> Antti
-> 
-> Thanks for the information, since one of my specializations is embedded
-> hardware development, I do understand the presented issues.
-> 
-> Should there not be an option to the MT2060 module to use the I2C-gate
-> or not? What can I do to get this device working now?
+--===============0079918551==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_50211_20346012.1223460245114"
 
-There is no option for I2C-gate, gate will be called every time when 
-access to tuner is needed. If you already use MT2060 coming with AF9015 
-driver it should work. I doubt that you are mixing em2880 driver and 
-af9015 and wrong tuner driver is coming from em2880. But I am not sure. 
-Could you make clean install to see whether or not it is working.
+------=_Part_50211_20346012.1223460245114
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-hg clone http://linuxtv.org/hg/v4l-dvb/
-make
-make install (root privileges)
-replug stick
-reboot
-plug stick
+Is the card stable now or is there still the occasional disconnects?
 
-It should work (hopefully)
+/Henrik
 
-reagrds
-Antti
--- 
-http://palosaari.fi/
+------=_Part_50211_20346012.1223460245114
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr"><br>Is the card stable now or is there still the occasional disconnects?<br><br>/Henrik<br></div>
+
+------=_Part_50211_20346012.1223460245114--
+
+
+--===============0079918551==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0079918551==--
