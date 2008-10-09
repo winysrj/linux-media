@@ -1,24 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt1.poste.it ([62.241.4.164])
+Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stefano.sabatini-lala@poste.it>) id 1Ks3PF-0006tX-91
-	for linux-dvb@linuxtv.org; Tue, 21 Oct 2008 00:39:22 +0200
-Received: from geppetto.reilabs.com (78.15.179.122) by relay-pt1.poste.it
-	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
-	id 48FBCA4D0000BB6B for linux-dvb@linuxtv.org;
-	Tue, 21 Oct 2008 00:39:17 +0200
-Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
-	(envelope-from <stefano.sabatini-lala@poste.it>) id 1Ks3OD-0002OR-VM
-	for linux-dvb@linuxtv.org; Tue, 21 Oct 2008 00:38:17 +0200
-Date: Tue, 21 Oct 2008 00:38:17 +0200
-From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
+	(envelope-from <liplianin@tut.by>) id 1Ko3yX-0006Sy-30
+	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 00:27:19 +0200
+From: "Igor M. Liplianin" <liplianin@tut.by>
 To: linux-dvb@linuxtv.org
-Message-ID: <20081020223817.GB5164@geppetto>
-References: <48FCA270.8C56.0056.0@matc.edu>
+Date: Fri, 10 Oct 2008 01:26:46 +0300
+References: <455973.84516.qm@web23203.mail.ird.yahoo.com>
+	<c74595dc0810090848k14ede67fu81c9c2d0423d2849@mail.gmail.com>
+	<8103ad500810090926i7b506822o9ece29bc5725fc9b@mail.gmail.com>
+In-Reply-To: <8103ad500810090926i7b506822o9ece29bc5725fc9b@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <48FCA270.8C56.0056.0@matc.edu>
-Subject: Re: [linux-dvb] Unresolved symbols
+Message-Id: <200810100126.46270.liplianin@tut.by>
+Subject: Re: [linux-dvb] [vdr] stb0899 and tt s2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,48 +21,15 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On date Monday 2008-10-20 15:23:22 -0500, Jonathan Johnson wrote:
-> Hello all,
-> 
->    I have tried to use the drivers and have gotten everything to compile.
-> I followed the posted instruction and then........
-> I then make "rmmod" and make "insmod" and after the "make insmod" I look at dmesg|more
-> It is filled with unresolved symbols.  I have tried rebooting (at nauseam) and no change.
-> I have upgraded the kernel and done all the steps all over again with the same results.
-> If someone wants to look at about 5 screen fulls of unresolved symbols I can post the relevant parts of dmesg.
-> 
-> IF any one has any suggestions I will try them and report the results.
-
-You should check:
-
-1) that you're compiling against the same linux headers of the linux
-kernel you're using.
-
-Use uname -a to get the linux kernel in use, and verify that the
-headers used during compilation are the correct ones. On a
-Debian/Ubuntu based system for each pre-compiled linux-image package there is
-a corresponding linux-headers package, eventually install it.
-
-2) that you don't have a conflict with some already installed
-module. For example I experienced this when installing the v4l-dvb
-modules which conflicted with the old standalone gspca module (gspca
-V1). Since you can't have both installed you have either to remove the
-old module and reinstall the v4l-dvb modules either to remove the
-v4l-dvb modules and reinstall the old standalone module.
-
-Unfortunately I think there isn't a make uninstall rule, so I think
-the only solution to revert a system is to reinstall the kernel
-(easily done with a package management).
-
-HTH, regards.
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+9yDTz8/C3cXOyckgz9QgOSBPY3RvYmVyIDIwMDggMTk6MjY6NTEgS29uc3RhbnRpbiBEaW1pdHJv
+diDOwdDJ08HMKMEpOgo+IGh0dHA6Ly93d3cudHdpbmhhbi5jb20vZmlsZXMvQVcvTGludXgvQVpM
+aW51eF92MS40LjJfQ0lfRkM2LnRhci5negoKUmVhbGx5IGFtYXppbmcgbGluayEKCi0tIApJZ29y
+IE0uIExpcGxpYW5pbgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDov
+L3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
