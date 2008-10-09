@@ -1,25 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.wa.amnet.net.au ([203.161.124.50])
+Received: from f141.mail.ru ([194.67.57.134])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mark@lostcow.com>) id 1KrVXT-0000wp-O2
-	for linux-dvb@linuxtv.org; Sun, 19 Oct 2008 12:29:37 +0200
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by smtp1.wa.amnet.net.au (Postfix) with ESMTP id C499F7FB75
-	for <linux-dvb@linuxtv.org>; Sun, 19 Oct 2008 18:29:22 +0800 (WST)
-Received: from smtp1.wa.amnet.net.au ([127.0.0.1])
-	by localhost (smtp1.wa.amnet.net.au [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id wWmLYvjvZZu5 for <linux-dvb@linuxtv.org>;
-	Sun, 19 Oct 2008 18:29:21 +0800 (WST)
-Received: from callaghan.local (203.161.84.230.static.amnet.net.au
-	[203.161.84.230])
-	by smtp1.wa.amnet.net.au (Postfix) with SMTP id 9976C7F8E2
-	for <linux-dvb@linuxtv.org>; Sun, 19 Oct 2008 18:29:21 +0800 (WST)
-Message-ID: <00023E2CD2444D05AFE501BA0439DCCF@marklaptop>
-From: "Mark Callaghan" <mark@lostcow.com>
-To: <linux-dvb@linuxtv.org>
-Date: Sun, 19 Oct 2008 18:28:48 +0800
-MIME-Version: 1.0
-Subject: [linux-dvb] Dvico Dual Digital 4 rev 2 broken in October?
+	(envelope-from <goga777@bk.ru>) id 1Knvgh-0004KP-92
+	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 15:36:19 +0200
+Received: from mail by f141.mail.ru with local id 1Knvg5-000LDW-00
+	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 17:35:41 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Mime-Version: 1.0
+Date: Thu, 09 Oct 2008 17:35:41 +0400
+References: <200810091507.50544.ajurik@quick.cz>
+In-Reply-To: <200810091507.50544.ajurik@quick.cz>
+Message-Id: <E1Knvg5-000LDW-00.goga777-bk-ru@f141.mail.ru>
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?W3Zkcl0gc3RiMDg5OSBhbmQgdHQgczItMzIwMA==?=
+Reply-To: Goga777 <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,90 +22,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1814488108=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
-
---===============1814488108==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_002C_01C93218.872DA810"
-
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_002C_01C93218.872DA810
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-I have been trying to install drivers for my DVICO Dual Digital 4 rev 2 =
-on ubuntu 8.04 (2.6.24-21-generic), following the farly consistent =
-instructions here & there. e.g. =
-https://help.ubuntu.com/community/DViCO_Dual_Digital_4 . But with no =
-success. The v4l_dvb system builds & installs OK, but the card is not =
-found on boot.
-
-I went back to the tip of Sept 28 - and had immediate success.
-
-Perhaps something has broken since then?
-
-Cheers,
-Mark
-
-
-
-------=_NextPart_000_002C_01C93218.872DA810
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.6001.18148" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>I have been trying to install drivers =
-for my DVICO=20
-Dual Digital 4 rev 2 on ubuntu 8.04 (2.6.24-21-generic), following the =
-farly=20
-consistent instructions here &amp; there. e.g. <A=20
-href=3D"https://help.ubuntu.com/community/DViCO_Dual_Digital_4">https://h=
-elp.ubuntu.com/community/DViCO_Dual_Digital_4</A>&nbsp;.=20
-But with no success. The v4l_dvb system builds &amp; installs OK, but =
-the card=20
-is not found on boot.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>I went back to the tip of Sept 28 - and =
-had=20
-immediate success.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Perhaps something has broken since=20
-then?</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Cheers,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>Mark</FONT></DIV>
-<DIV>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
-
-------=_NextPart_000_002C_01C93218.872DA810--
+> > > > it's not working with SR 30000 FEC 3/4 dvb-s2 8PSK, still the same
+> > > > problem.
+> > > >
+> > > > kind regards
+> > > >
+> > > > Newsy
+> > >
+> > > It seems that patch from
+> > > http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027264.html is not
+> > > applied. The internal PLL must be disabled when setting new frequency as
+> > > is written in stb6100 documentation.
+> >
+> > has your July-patch any relation with stb0899 patches from Alex Betis ?
+> >
+> > http://www.linuxtv.org/pipermail/linux-dvb/2008-October/029455.html
+> > http://www.linuxtv.org/pipermail/linux-dvb/2008-September/029361.html
+> >
+> > Goga
+> 
+> I don't think so as Alex's patches are for demodulator (stb0899) but my was 
+> for tuner (stb6100). 
+> 
+> Regarding stb6100 doc the tuning procedure should be:
+> 1. Disable PLL (LPEN_LPEN)
+> 2. Set-up the tuner
+> 3. Start PLL
+> 4. Start VCO search
+> 5. Wait for 5 ms
+> 6. Disable VCO search, turn off VCO search clock and disable LPF BW clock
+> 
+> The steps 1-5 should be done in 5 steps (not less) and as I remeber I've got 
+> better result when inserting small delay between steps 1 and 2 and the delay 
+> from step 5 was set to 10ms. In stb6100.c are steps 1 and 2 done together 
+> within 1 write to stb6100 registers and this seems to be not optimal for some 
+> modulations.
 
 
+that's why TT3200 owners have to try both patches together - from you and from Alex Betis ?
+is it correct ?
 
---===============1814488108==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Goga
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1814488108==--
