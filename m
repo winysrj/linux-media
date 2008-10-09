@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1KpTk8-00005R-IL
-	for linux-dvb@linuxtv.org; Mon, 13 Oct 2008 22:10:19 +0200
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: "Hans Werner" <HWerner4@gmx.de>
-Date: Mon, 13 Oct 2008 23:09:35 +0300
-References: <48ED0023.8050901@promwad.com> <20081011021209.99720@gmx.net>
-	<20081013143414.71060@gmx.net>
-In-Reply-To: <20081013143414.71060@gmx.net>
+Received: from smtpd4.aruba.it ([62.149.128.209] helo=smtp4.aruba.it)
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <a.venturi@avalpa.com>) id 1Kns8m-0001iB-HZ
+	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 11:49:06 +0200
+Message-ID: <48EDD354.3090506@avalpa.com>
+Date: Thu, 09 Oct 2008 11:48:04 +0200
+From: Andrea Venturi <a.venturi@avalpa.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200810132309.35471.liplianin@tut.by>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] stb0899 and tt s2-3200
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="------------050708050702050905050503"
+Subject: [linux-dvb] siano sms1xxx driver not T-DMB ready?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,50 +17,114 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMTMgT2N0b2JlciAyMDA4IDE3OjM0OjE0IEhhbnMgV2VybmVyIM7B0MnT
-wcwowSk6Cj4gLS0tLS0tLS0gT3JpZ2luYWwtTmFjaHJpY2h0IC0tLS0tLS0tCj4KPiA+IERhdHVt
-OiBTYXQsIDExIE9jdCAyMDA4IDA0OjEyOjA5ICswMjAwCj4gPiBWb246ICJIYW5zIFdlcm5lciIg
-PEhXZXJuZXI0QGdteC5kZT4KPiA+IEFuOiAiSWdvciBNLiBMaXBsaWFuaW4iIDxsaXBsaWFuaW5A
-dHV0LmJ5PiwgYWJyYWhhbS5tYW51QGdtYWlsLmNvbSwKPiA+IGRhcnJvbkBrZXdsLm9yZywgc3Rv
-dGhAbGludXh0di5vcmcsIGxpbnV4LWR2YkBsaW51eHR2Lm9yZyBCZXRyZWZmOiBSZToKPiA+IFts
-aW51eC1kdmJdIHN0YjA4OTkgYW5kIHR0IHMyLTMyMDAKPiA+Cj4gPiAtLS0tLS0tLSBPcmlnaW5h
-bC1OYWNocmljaHQgLS0tLS0tLS0KPiA+Cj4gPiA+IERhdHVtOiBUaHUsIDkgT2N0IDIwMDggMDA6
-MDA6MjUgKzAzMDAKPiA+ID4gVm9uOiAiSWdvciBNLiBMaXBsaWFuaW4iIDxsaXBsaWFuaW5AdHV0
-LmJ5Pgo+ID4gPiBBbjogbGludXgtZHZiQGxpbnV4dHYub3JnLCBTdGV2ZW4gVG90aCA8c3RvdGhA
-bGludXh0di5vcmc+LCBTdGV2ZW4gVG90aAo+ID4KPiA+IDxzdG90aEBoYXVwcGF1Z2UuY29tPiwg
-RGFycm9uIEJyb2FkIDxkYXJyb25Aa2V3bC5vcmc+LCBNYW51IEFicmFoYW0KPiA+IDxhYnJhaGFt
-Lm1hbnVAZ21haWwuY29tPiwgdmRyQGxpbnV4dHYub3JnCj4gPgo+ID4gPiBCZXRyZWZmOiBbbGlu
-dXgtZHZiXSBzdGIwODk5IGFuZCB0dCBzMi0zMjAwCj4gPiA+Cj4gPiA+IEkgc3VjY2Vzc2Z1bGx5
-IHBvcnRlZCBzdGIwODk5IHRvIFMyQVBJCj4gPiA+IEZvciBrbm93IGl0IGlzIGp1c3QgZm9yIHRl
-c3RpbmcgcHVycG9zZXMuIEZlZWwgZnJlZSB0byB0ZXN0IGl0Lgo+ID4gPiBBbnkgZmVlZGJhY2sg
-d2VsY29tZS4KPiA+ID4gTG9ja2luZyBiZXR0ZXIgd2l0aCBzemFwLXMyIChzb3JyeSkKPiA+ID4g
-SSBoYXZlIHRlc3RlZCB3aXRoIERWQi1TMiA4UFNLIGFuZCBEVkItUyAyNzUwMCBrU3ltcy9zCj4g
-PiA+Cj4gPiA+IGh0dHA6L21lcmN1cmlhbC5pbnR1eGljYXRpb24ub3JnL2hnL3MyLWxpcGxpYW5p
-bgo+ID4gPiBodHRwOi9tZXJjdXJpYWwuaW50dXhpY2F0aW9uLm9yZy9oZy9zemFwLXMyCj4gPiA+
-Cj4gPiA+IC0tCj4gPiA+IElnb3IgTS4gTGlwbGlhbmluCj4gPgo+ID4gSWdvciwKPiA+Cj4gPiB0
-aGUgYXR0YWNoZWQgcGF0Y2ggKGFnYWluc3QKPiA+IGh0dHA6Ly9tZXJjdXJpYWwuaW50dXhpY2F0
-aW9uLm9yZy9oZy9zMi1saXBsaWFuaW4pCj4gPiBhZGRzIFMyQVBJIHN1cHBvcnQgZm9yIHRoZSBT
-VEIwODk5K01hbnRpcyBiYXNlZCBjYXJkcyBzdWNoIGFzIHRoZQo+ID4gVHdpbmhhbiBWUC0xMDQx
-IChhbHNvIGtub3duIGFzIEF6dXJld2F2ZSBBRCBTUDQwMCBvciBUZWNobmlzYXQgU2t5c3Rhcgo+
-ID4gSEQyKQo+ID4KPiA+IENvdWxkIHlvdSBwbGVhc2UgYWRkIGl0IHRvIHlvdXIgczItbGlwbGlh
-bmluIHJlcG9zaXRvcnk/Cj4gPgo+ID4gSXQgaW5jbHVkZXMgTWFudGlzIFBDSSBicmlkZ2UsIENV
-MTIxNiBhbmQgRnVqaXRzdSBNQjg2QTE2IERWQi1TL0RTUyBEQwo+ID4gUmVjZWl2ZXIgc3VwcG9y
-dC4KPiA+Cj4gPiBJdCBpcyB0aGUgc2FtZSBhcyB0aGUgY29kZSBmcm9tIE1hbnUgQWJyYWhhbSdz
-IG1hbnRpcyB0cmVlIGF0Cj4gPiBodHRwOi8vanVzc3QuZGUvaGcvbWFudGlzLAo+ID4gc28gdGhh
-bmtzIHRvIE1hbnUuCj4gPgo+ID4gSSB0ZXN0ZWQgd2l0aCB0aGUgVHdpbmhhbiBWUC0xMDQxLgo+
-ID4gQ2hhbm5lbCBsb2NraW5nIHdvcmtzIGZvciBtZSBmb3Igc29tZSAoYnV0IG5vdCB5ZXQgYWxs
-KSBjaGFubmVscyB3aXRoCj4gPiBLYWZmZWluZSAoUzJBUEkgcGF0Y2gpLgo+ID4gUGVyaGFwcyBp
-dCB3aWxsIGJlIGJldHRlciB3aXRoIHlvdXIgc3phcC1zMiB3aGVuIEkgaGF2ZSB0aW1lIHRvIHRl
-c3QKPiA+IHRoYXQuCj4gPgo+ID4gUmVnYXJkcywKPiA+IEhhbnMKPgo+IFNvcnJ5LCB0d28gZmls
-ZXMgd2VyZSBtaXNzaW5nIGZyb20gdGhhdCBwYXRjaC4gVGhlIGNvcnJlY3RlZCBtYW50aXMgcGF0
-Y2gKPiBpcyBhdHRhY2hlZCB0byB0aGlzIG1lc3NhZ2UuIEhhbnMKCkkgd2lsbCBtZXJnZSBpdCB0
-b25pZ3RoIG9yIHRvbW9ycm93LiBMZXQgcGVvcGxlcyB0cnlpbmcKClJlZ2FyZHMgCklnb3IKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBt
-YWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcv
-Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+This is a multi-part message in MIME format.
+--------------050708050702050905050503
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+here in Italy (bologna) we have a T-DMB trial from Rai and other 
+broadcasters.
+
+i got one Terratec Cinergy Piranha based on a Siano SMS1xxx chip and 
+indeed the  T-DMB stream works on the "other OS".. (and the DVB-T works too)
+
+this T-DMB stuff is still based on Transport Stream:
+
+  http://en.wikipedia.org/wiki/Digital_Multimedia_Broadcast
+
+as i'd like to dump a full TS of the stream, i was thinking that it was 
+just setting the proper mode (2) in the sms1xxx module, i would have 
+been able to use the same "dvb-tools" like dvbstream to tune the right 
+frequency and dump the whole TS.
+
+too easy, it seems! there were my steps:
+
+1. i put the firmware file for T-DMB demodulation with the right name  
+"tdmb_stellar_usb.inp" in /lib/firmware
+
+2. i loaded the module with the supposed right default mode: modprobe 
+sms1xxx default_mode=2
+
+3. i put my stick on the linux,  but the module didn't got up with this 
+error:
+
+  "SMS Device mode is not set for DVB operation."
+
+I'm halted.
+
+The showstopper come from this smsdvb.c where there's this control:
+
+====================
+        if (smscore_get_devicke_mode(coredev) != 4) {
+#if 1 /* new siano drop (1.2.17) does this -- yuck */
+                sms_err("SMS Device mode is not set for "
+                        "DVB operation.");
+                return 0;
+#else
+====================
+
+of course, this seems only a safety check.
+
+let's hope it's not just a "marketing" showstopper (i'm going anyway to 
+try to relax this control, i bet i'm not going to burn anything inside 
+the device!)
+
+probably there's more to be implemented to driver correctly the Siano 
+chip when not in DVB mode. but how much? ask here could be useful..
+
+it should be easy to "implement" the T-DMB stuff inside the same DVB 
+scenario!
+it's already a system based on transport stream. right?
+
+sadly there are no open specs about it on the siano web site, just this 
+brief:
+
+  http://www.*siano-ms*.com/*pdf*s/00_Siano_SMS*1010*.*pd*f
+
+does anyone know a solution about this issue?
+
+is it so though to implement T-DMB decoding inside the DVB architecture?
+
+are the specs available somewhere?
+
+bye
+
+andrea venturi
+
+
+--------------050708050702050905050503
+Content-Type: text/x-vcard; charset=utf-8;
+ name="a_venturi.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="a_venturi.vcf"
+
+begin:vcard
+fn:Andrea Venturi
+n:;Andrea Venturi
+org:Avalpa Digital Engineering SRL
+adr;dom:;;Via dell'Arcoveggio 49/5;Bologna;BO;40129
+email;internet:a.venturi@avalpa.com
+title:CEO
+tel;work:+39 0514187531
+tel;cell:+39 3477142994
+url:www.avalpa.com
+version:2.1
+end:vcard
+
+
+--------------050708050702050905050503
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------050708050702050905050503--
