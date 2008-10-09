@@ -1,27 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9JF2pFd005471
-	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 11:02:51 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.158])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9JF1sUn002650
-	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 11:01:54 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so1087833fga.7
-	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 08:01:54 -0700 (PDT)
-Message-ID: <30353c3d0810190801y6dce8824gc4348323c7550ea9@mail.gmail.com>
-Date: Sun, 19 Oct 2008 11:01:54 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Greg KH" <gregkh@suse.de>
-In-Reply-To: <20081018034100.GA12142@suse.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m99K85oY018280
+	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 16:08:06 -0400
+Received: from unifiedpaging.messagenetsystems.com
+	(www.emergencycommunicationsystems.com [24.123.23.170])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m99K6Wf7028611
+	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 16:06:32 -0400
+Message-ID: <48EE6460.1010709@messagenetsystems.com>
+Date: Thu, 09 Oct 2008 16:06:56 -0400
+From: Robert Vincent Krakora <rob.krakora@messagenetsystems.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Ming Liu <mliu@migmasys.com>
+References: <20081009160014.DA2F761AA01@hormel.redhat.com>
+	<48EE4FE4.6080002@migmasys.com>
+In-Reply-To: <48EE4FE4.6080002@migmasys.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <30353c3d0810171920y154a8bc4w584751acac95ac7b@mail.gmail.com>
-	<alpine.LFD.2.00.0810180014300.13825@areia.chehab.org>
-	<20081018034100.GA12142@suse.de>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: ibmcam oops
+Cc: video4linux-list@redhat.com
+Subject: Re: USB grabber
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,39 +29,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Oct 17, 2008 at 11:41 PM, Greg KH <gregkh@suse.de> wrote:
-> On Sat, Oct 18, 2008 at 12:31:02AM -0300, Mauro Carvalho Chehab wrote:
->> On Fri, 17 Oct 2008, David Ellingsworth wrote:
->>
->>> I'm not sure if it matters or not, but the ibmcam driver in the
->>> Mauro's linux-2.6 git tree in the for_linus branch is currently
->>> broken. I haven't ever gotten this driver to work with my camera and
->>> am thus not interested in fixing it. The crash occurred immediately
->>> after plugging in the camera. Below is the resulting dmesg info.
->>
->> The kernel OOPS seem to be caused by -git commit
->> a482f327ff56bc3cf53176a7eb736cea47291a1d, from Greg.
->>
->> It is using uvd->dev->dev, but is equal to NULL during most of the _probe
->> code.
->>
->> Could you please try the enclosed patch? It is against -hg tree, but will
->> likely apply fine also at -git.
+Ming Liu wrote:
+> Hello,
 >
-> Ick, sorry about that, your patch looks fine.
+> I am working on a USB grabber from Campusa. The item number of this 
+> grabber is VC-211A with a S/N 0025544.
+> It relies on an EM 2820 chip.
 >
-> thanks,
+> I have a DSL-N system with kernel 2.6.12, and the grabber is not 
+> reflected on the dmesg.
 >
-> greg k-h
+> Is there any driver available for this grabber? Any example that I can 
+> follow to make it work?
 >
+> Thank you for advance.
+>
+> Sincerely yours
+> Ming
+>
+>
+> -- 
+> video4linux-list mailing list
+> Unsubscribe 
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+>
+Oops...you mean a video grabber...my bad...
 
-Yes, this patch seems to fix the oops.
-
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
-
-Regards,
-
-David Ellingsworth
+-- 
+Rob Krakora
+Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
 
 --
 video4linux-list mailing list
