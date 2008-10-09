@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KoeTX-0003nU-VN
-	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 15:25:47 +0200
-Date: Sat, 11 Oct 2008 15:25:17 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <20081011110130.2d917eb3@bk.ru>
-Message-ID: <20081011132517.175440@gmx.net>
+Received: from qw-out-2122.google.com ([74.125.92.25])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <alex.betis@gmail.com>) id 1Knxl0-00058o-EN
+	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 17:48:56 +0200
+Received: by qw-out-2122.google.com with SMTP id 9so26771qwb.17
+	for <linux-dvb@linuxtv.org>; Thu, 09 Oct 2008 08:48:48 -0700 (PDT)
+Message-ID: <c74595dc0810090848k14ede67fu81c9c2d0423d2849@mail.gmail.com>
+Date: Thu, 9 Oct 2008 17:48:48 +0200
+From: "Alex Betis" <alex.betis@gmail.com>
+To: newspaperman_germany@yahoo.com
+In-Reply-To: <c74595dc0810090845h656f143r8519e8fe54669b6d@mail.gmail.com>
 MIME-Version: 1.0
-References: <48ED0023.8050901@promwad.com>
-	<200810090000.25621.liplianin@tut.by>	<20081011021209.99720@gmx.net>
-	<20081011110130.2d917eb3@bk.ru>
-To: Goga777 <goga777@bk.ru>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] stb0899 and tt s2-3200
+References: <455973.84516.qm@web23203.mail.ird.yahoo.com>
+	<c74595dc0810090845h656f143r8519e8fe54669b6d@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [vdr] stb0899 and tt s2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,51 +22,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============2121508365=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Cj4g0J/RgNC40LLQtdGC0YHRgtCy0YPRjiwgSGFucwo+IAo+ID4gLS0tLS0tLS0gT3JpZ2luYWwt
-TmFjaHJpY2h0IC0tLS0tLS0tCj4gPiA+IERhdHVtOiBUaHUsIDkgT2N0IDIwMDggMDA6MDA6MjUg
-KzAzMDAKPiA+ID4gVm9uOiAiSWdvciBNLiBMaXBsaWFuaW4iIDxsaXBsaWFuaW5AdHV0LmJ5Pgo+
-ID4gPiBBbjogbGludXgtZHZiQGxpbnV4dHYub3JnLCBTdGV2ZW4gVG90aCA8c3RvdGhAbGludXh0
-di5vcmc+LCBTdGV2ZW4KPiBUb3RoIDxzdG90aEBoYXVwcGF1Z2UuY29tPiwgRGFycm9uIEJyb2Fk
-Cj4gPiA+IDxkYXJyb25Aa2V3bC5vcmc+LCBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFp
-bC5jb20+LAo+IHZkckBsaW51eHR2Lm9yZyBCZXRyZWZmOiBbbGludXgtZHZiXSBzdGIwODk5IGFu
-ZCB0dCBzMi0zMjAwCj4gPiAKPiA+ID4gSSBzdWNjZXNzZnVsbHkgcG9ydGVkIHN0YjA4OTkgdG8g
-UzJBUEkKPiA+ID4gRm9yIGtub3cgaXQgaXMganVzdCBmb3IgdGVzdGluZyBwdXJwb3Nlcy4gRmVl
-bCBmcmVlIHRvIHRlc3QgaXQuCj4gPiA+IEFueSBmZWVkYmFjayB3ZWxjb21lLgo+ID4gPiBMb2Nr
-aW5nIGJldHRlciB3aXRoIHN6YXAtczIgKHNvcnJ5KQo+ID4gPiBJIGhhdmUgdGVzdGVkIHdpdGgg
-RFZCLVMyIDhQU0sgYW5kIERWQi1TIDI3NTAwIGtTeW1zL3MKPiA+ID4gCj4gPiA+IGh0dHA6L21l
-cmN1cmlhbC5pbnR1eGljYXRpb24ub3JnL2hnL3MyLWxpcGxpYW5pbgo+ID4gPiBodHRwOi9tZXJj
-dXJpYWwuaW50dXhpY2F0aW9uLm9yZy9oZy9zemFwLXMyCj4gPiA+IAo+ID4gPiAtLSAKPiA+ID4g
-SWdvciBNLiBMaXBsaWFuaW4KPiA+ID4gCj4gPiAKPiA+IElnb3IsCj4gPiAKPiA+IHRoZSBhdHRh
-Y2hlZCBwYXRjaCAoYWdhaW5zdAo+IGh0dHA6Ly9tZXJjdXJpYWwuaW50dXhpY2F0aW9uLm9yZy9o
-Zy9zMi1saXBsaWFuaW4pCj4gPiBhZGRzIFMyQVBJIHN1cHBvcnQgZm9yIHRoZSBTVEIwODk5K01h
-bnRpcyBiYXNlZCBjYXJkcyBzdWNoIGFzIHRoZQo+ID4gVHdpbmhhbiBWUC0xMDQxIChhbHNvIGtu
-b3duIGFzIEF6dXJld2F2ZSBBRCBTUDQwMCBvciBUZWNobmlzYXQgU2t5c3Rhcgo+IEhEMikKPiA+
-ICAKPiA+IENvdWxkIHlvdSBwbGVhc2UgYWRkIGl0IHRvIHlvdXIgczItbGlwbGlhbmluIHJlcG9z
-aXRvcnk/Cj4gPiAKPiA+IEl0IGluY2x1ZGVzIE1hbnRpcyBQQ0kgYnJpZGdlLCBDVTEyMTYgYW5k
-IEZ1aml0c3UgTUI4NkExNiBEVkItUy9EU1MgREMKPiBSZWNlaXZlciBzdXBwb3J0Lgo+ID4gCj4g
-PiBJdCBpcyB0aGUgc2FtZSBhcyB0aGUgY29kZSBmcm9tIE1hbnUgQWJyYWhhbSdzIG1hbnRpcyB0
-cmVlIGF0Cj4gaHR0cDovL2p1c3N0LmRlL2hnL21hbnRpcywKPiA+IHNvIHRoYW5rcyB0byBNYW51
-Lgo+ID4gCj4gPiBJIHRlc3RlZCB3aXRoIHRoZSBUd2luaGFuIFZQLTEwNDEuCj4gPiBDaGFubmVs
-IGxvY2tpbmcgd29ya3MgZm9yIG1lIGZvciBzb21lIChidXQgbm90IHlldCBhbGwpIGNoYW5uZWxz
-IHdpdGgKPiBLYWZmZWluZSAoUzJBUEkgcGF0Y2gpLgo+ID4gUGVyaGFwcyBpdCB3aWxsIGJlIGJl
-dHRlciB3aXRoIHlvdXIgc3phcC1zMiB3aGVuIEkgaGF2ZSB0aW1lIHRvIHRlc3QKPiB0aGF0Lgo+
-IAo+IGRpZCB5b3UgdHJ5IHRvIHVzZSBzdGIwODk5L3N0YjYxMDAgY3VtdWxhdGl2ZSBwYXRjaCBm
-cm9tIEFsZXggQmV0aXMgPwo+IGh0dHA6Ly9saW51eHR2Lm9yZy9waXBlcm1haWwvbGludXgtZHZi
-LzIwMDgtT2N0b2Jlci8wMjk2MTMuaHRtbAoKSGkgR29nYSwKCm5vLCBidXQgSSB3YXMgYXdhcmUg
-b2YgQWxleCdzIHBhdGNoIGFuZCBJIGp1c3QgbmVlZCB0byBmaW5kIHRoZSB0aW1lIHRvIGxvb2sg
-aW50byBpdC4KVGhlIHBhdGNoIEkgc2VudCBkb2VzIG5vdCBjaGFuZ2UgYW55IHN0YjA4OTkgb3Ig
-c3RiNjEwMCBjb2RlIGluIHMyLWxpcGxpYW5pbiwgaXQganVzdAphZGRzIHRoZSBtYW50aXMgY29k
-ZSB3aGljaCB3YXMgYWJzZW50LCBzbyB0aGUgc3RiMDg5OS9zdGI2MTAwIHBpZWNlcyBhcmUgbm8g
-YmV0dGVyCm9yIHdvcnNlIHRoYW4gczItbGlwbGlhbmluLgoKUmVnYXJkcywKSGFucwoKLS0gClJl
-bGVhc2UgZWFybHksIHJlbGVhc2Ugb2Z0ZW4uCgpHTVggS29zdGVubG9zZSBTcGllbGU6IEVpbmZh
-Y2ggb25saW5lIHNwaWVsZW4gdW5kIFNwYcOfIGhhYmVuIG1pdCBQYXN0cnkgUGFzc2lvbiEKaHR0
-cDovL2dhbWVzLmVudGVydGFpbm1lbnQuZ214Lm5ldC9kZS9lbnRlcnRhaW5tZW50L2dhbWVzL2Zy
-ZWUvcHV6emxlLzYxNjkxOTYKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0
-dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+--===============2121508365==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_53911_21280654.1223567328724"
+
+------=_Part_53911_21280654.1223567328724
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+cheched = checked :)
+
+Typing too fast...
+
+Since tuner lock is more reliable, I'll try to remove some of my workarounds
+on DVB-S search algorithm.
+
+
+On Thu, Oct 9, 2008 at 5:45 PM, Alex Betis <alex.betis@gmail.com> wrote:
+
+> On Thu, Oct 9, 2008 at 5:17 PM, Newsy Paper <
+> newspaperman_germany@yahoo.com> wrote:
+>
+>> I have Alex Betis' + Ales Jurik's patch running with liplianindvb, but
+>> still the same problem with those DVB-S2 8PSK transponders.
+>>
+>>
+> Same here. Although I see improvements on signal lock. With Ales's tuner
+> changes the signal is constantly found on all S2 transponders I've cheched,
+> FEC is locked and dropped very fast (that gives the result of bad or no
+> image).
+> Now we need someone with scope and logic on stb0899 chip :)
+> This time I'll be happy to receive stb0899 documentation.
+>
+> Thanks Ales, one step to the right direction!
+>
+
+------=_Part_53911_21280654.1223567328724
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr">cheched = checked :)<br><br>Typing too fast...<br><br>Since tuner lock is more reliable, I&#39;ll try to remove some of my workarounds on DVB-S search algorithm.<br><br><br><div class="gmail_quote">On Thu, Oct 9, 2008 at 5:45 PM, Alex Betis <span dir="ltr">&lt;<a href="mailto:alex.betis@gmail.com">alex.betis@gmail.com</a>&gt;</span> wrote:<br>
+<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div dir="ltr"><div class="Ih2E3d">On Thu, Oct 9, 2008 at 5:17 PM, Newsy Paper <span dir="ltr">&lt;<a href="mailto:newspaperman_germany@yahoo.com" target="_blank">newspaperman_germany@yahoo.com</a>&gt;</span> wrote:<br>
+<div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+<div>I have Alex Betis&#39; + Ales Jurik&#39;s patch running with liplianindvb, but still the same problem with those DVB-S2 8PSK transponders.<br>
+<br>
+</div></blockquote></div><br></div>Same here. Although I see improvements on signal lock. With Ales&#39;s tuner changes the signal is constantly found on all S2 transponders I&#39;ve cheched, FEC is locked and dropped very fast (that gives the result of bad or no image).<br>
+
+Now we need someone with scope and logic on stb0899 chip :)<br>This time I&#39;ll be happy to receive stb0899 documentation.<br><br>Thanks Ales, one step to the right direction!<br></div>
+</blockquote></div><br></div>
+
+------=_Part_53911_21280654.1223567328724--
+
+
+--===============2121508365==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2121508365==--
