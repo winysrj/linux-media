@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <48F86120.2020203@linuxtv.org>
-Date: Fri, 17 Oct 2008 11:55:44 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from rv-out-0506.google.com ([209.85.198.224])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hansson.patrik@gmail.com>) id 1KntSy-00063q-Do
+	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 13:14:01 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so4172724rvf.41
+	for <linux-dvb@linuxtv.org>; Thu, 09 Oct 2008 04:13:55 -0700 (PDT)
+Message-ID: <8ad9209c0810090413s8a8e6a3n6e428365b67e72e@mail.gmail.com>
+Date: Thu, 9 Oct 2008 13:13:54 +0200
+From: "Patrik Hansson" <patrik@wintergatan.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <617be8890810090307k50f51728g6f90d8cdb3d77673@mail.gmail.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <412bdbff0810150724h2ab46767ib7cfa52e3fdbc5fa@mail.gmail.com>	<48F5FE80.5010106@linuxtv.org>	<412bdbff0810150740h61049f5fvb679bdebbcd4084d@mail.gmail.com>
-	<48F633FA.4000106@linuxtv.org>
-In-Reply-To: <48F633FA.4000106@linuxtv.org>
-Cc: Linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Revisiting the SNR/Strength issue
+Content-Disposition: inline
+References: <617be8890810090307k50f51728g6f90d8cdb3d77673@mail.gmail.com>
+Subject: Re: [linux-dvb] Status on Nova-T 500
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,45 +21,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Steven Toth wrote:
-> Devin Heitmueller wrote:
->> Certainly I'm in favor of expressing that there is a preferred unit
->> that new frontends should use (whether that be ESNO or db), but the
->> solution I'm suggesting would allow the field to become useful *now*.
->> This would hold us over until all the other frontends are converted to
->> db (which I have doubts will ever actually happen).
-> 
-> I'm not in favour of this.
-> 
-> I'd rather see a single unit of measure agreed up, and each respective 
-> maintainer go back and perform the necessary code changes. I'm speaking 
-> as a developer of eight (?) different demod drivers in the kernel. 
-> That's no small task, but I'd happily conform if I could.
-> 
-> Lastly, for the sake of this discussion, assuming that db is agreed 
-> upon, if the driver cannot successfully delivery SNR in terms of db then 
->   the bogus function returning junk should be removed.
-> 
-> Those two changes alone would be a better long term approach, I think.
+Mine has been working without problems for a couple of months now.
+1.10 firmware and disabled the "all the time EIT scanning" in Mythtv.
+Can=B4t remember if i used som patch that was available on the wiki at
+that time but i think so.
 
-How about adding a new command instead (and a similar one for S2API)? 
-
-/* Read SNR in units of dB/100 */
-#define FE_READ_SNR_DB _IOR('o', 74, __u16)
-
-Then it's no problem to slowly migrate the drivers to this interface. The
-old interface can still stay for some time without changes. Applications
-can try this ioctl, and if it returns an error, then it is not implemented
-for the used device.
-
-Regards,
-Andreas
+2008/10/9 Eduard Huguet <eduardhc@gmail.com>:
+>> ---------- Missatge reenviat ----------
+>> From: "Henrik Beckman" <henrik.list@gmail.com>
+>> To: linux-dvb <linux-dvb@linuxtv.org>
+>> Date: Wed, 8 Oct 2008 12:04:05 +0200
+>> Subject: [linux-dvb] Status on Nova-T 500
+>>
+>> Is the card stable now or is there still the occasional disconnects?
+>>
+>> /Henrik
+>
+> Hi,
+>    Rock-solid for me, using HG drivers (although I think that current ker=
+nel
+> version include yet the final version). I must point that I'm not using t=
+he
+> lastest firmware that appeared some month ago,
+>  but the previous one (1.10). Check wiki page for more details.
+>
+> Regards,
+>   Eduard
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
