@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9IMPqOt020583
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 18:25:52 -0400
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.191])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9IMPfep032481
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 18:25:41 -0400
-Received: by fk-out-0910.google.com with SMTP id e30so1308039fke.3
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 15:25:41 -0700 (PDT)
-Message-ID: <d9def9db0810181525l51d7b03fg4555ecf4e7b490e1@mail.gmail.com>
-Date: Sun, 19 Oct 2008 00:25:40 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Stephen C Weston" <stephencweston@gmail.com>
-In-Reply-To: <48FA5A6F.9000407@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m99Ie8Yq031820
+	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 14:40:09 -0400
+Received: from smtp109.biz.mail.re2.yahoo.com (smtp109.biz.mail.re2.yahoo.com
+	[206.190.53.8])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m99IdYfE005935
+	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 14:39:48 -0400
+Message-ID: <48EE4FE4.6080002@migmasys.com>
+Date: Thu, 09 Oct 2008 14:39:32 -0400
+From: Ming Liu <mliu@migmasys.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: video4linux-list@redhat.com
+References: <20081009160014.DA2F761AA01@hormel.redhat.com>
+In-Reply-To: <20081009160014.DA2F761AA01@hormel.redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <48FA5A6F.9000407@gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Leadtek VC100 U Video Editor device (em28xx driver)
+Subject: USB grabber
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,43 +27,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Oct 18, 2008 at 11:51 PM, Stephen C Weston
-<stephencweston@gmail.com> wrote:
-> Hi,
->
-> Would it be at all possible to support the 'Leadtek VC100 U' video capture
-> dongle. I understand the device is based on the em2861 chip set. The
-> device's ID appears in lsusb as '0413:6f07 Leadtek Research, Inc.'
->
-> After doing a Google image search I have found the device looks very similar
-> to the 'Yakumo MovieMixer' device. Indeed it advertises with the same specs
-> and features and is bundled with the same software for windows. It could
-> quite possibly be exactly the same hardware inside.
->
-> I have tried modifying the em28xx-cards.c in the v4l-dvb folder to get it to
-> recognize the device as the 'Yakumo MovieMaker', but this has only been of
-> limited success. The output from the 'dmesg |grep em28xx' command looks
-> promising and the device registers as /dev/video0, but when trying to view a
-> composite video input from the device in mplayer I get a distorted picture
-> (the colour is fine, but the picture is all skewed, especially at the top).
-> The composite video is in PAL-BG format. I also have no sound.
->
-> Any advice to enable me to fix the problem or if someone else with greater
-> expertise could have go, then I would be very appreciative!!
->
+Hello,
 
-can you submit a screenshot?
+I am working on a USB grabber from Campusa. The item number of this 
+grabber is VC-211A with a S/N 0025544.
+It relies on an EM 2820 chip.
 
-Markus
+I have a DSL-N system with kernel 2.6.12, and the grabber is not 
+reflected on the dmesg.
 
-> Thank you for all your continued work.
-> Stephen
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+Is there any driver available for this grabber? Any example that I can 
+follow to make it work?
+
+Thank you for advance.
+
+Sincerely yours
+Ming
+
 
 --
 video4linux-list mailing list
