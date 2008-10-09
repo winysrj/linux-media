@@ -1,22 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from smtp-out2.iol.cz ([194.228.2.87])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1Kpsxh-0003C6-3K
-	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 01:05:59 +0200
-Received: from [212.12.32.49] (helo=smtp.work.de)
-	by mail.work.de with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1Kpsxc-0007Vz-Kk
-	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 01:05:52 +0200
-Received: from [86.97.4.10] (helo=[192.168.1.10])
-	by smtp.work.de with esmtpa (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1Kpsxc-0006cH-CZ
-	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 01:05:52 +0200
-Message-ID: <48F525CD.70801@gmail.com>
-Date: Wed, 15 Oct 2008 03:05:49 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <ajurik@quick.cz>) id 1KnuFz-00089L-Mx
+	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 14:04:40 +0200
+From: Ales Jurik <ajurik@quick.cz>
+To: linux-dvb@linuxtv.org,
+ newspaperman_germany@yahoo.com
+Date: Thu, 9 Oct 2008 14:04:05 +0200
+References: <17614.72727.qm@web23205.mail.ird.yahoo.com>
+In-Reply-To: <17614.72727.qm@web23205.mail.ird.yahoo.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] STB0899 update  (TT S2 3200)
+Content-Disposition: inline
+Message-Id: <200810091404.05506.ajurik@quick.cz>
+Subject: Re: [linux-dvb] [vdr] stb0899 and tt s2-3200
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,21 +27,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi all,
+On Thursday 09 of October 2008, Newsy Paper wrote:
+> Hi Igor, hi Goga777,
+>
+> it's not working with SR 30000 FEC 3/4 dvb-s2 8PSK, still the same problem.
+>
+> kind regards
+>
+> Newsy
+>
 
-can you please verify whether the stb0899 update for TT S2 3200 alone
-for now
-
-http://jusst.de/hg/v4l-dvb-test
-
-works the same as http://jusst.de/hg/multiproto
-
-Haven't tested the changes yet, while being remote ..
+It seems that patch from 
+http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027264.html is not 
+applied. The internal PLL must be disabled when setting new frequency as is 
+written in stb6100 documentation.
 
 Regards,
-Manu
 
-
+Ales
 
 _______________________________________________
 linux-dvb mailing list
