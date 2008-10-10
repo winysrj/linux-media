@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1Koena-0005Qe-DV
-	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 15:46:32 +0200
-Date: Sat, 11 Oct 2008 15:46:00 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <200810111240.36427.liplianin@tut.by>
-Message-ID: <20081011134600.175420@gmx.net>
-MIME-Version: 1.0
-References: <48ED0023.8050901@promwad.com>
-	<200810090000.25621.liplianin@tut.by>	<20081011021209.99720@gmx.net>
-	<200810111240.36427.liplianin@tut.by>
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Cc: linux-dvb@linuxtv.org, abraham.manu@gmail.com
-Subject: Re: [linux-dvb] stb0899 and tt s2-3200
+Received: from mail-in-05.arcor-online.net ([151.189.21.45])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <hermann-pitton@arcor.de>) id 1Ko65a-0003iv-Jd
+	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 02:42:44 +0200
+From: hermann pitton <hermann-pitton@arcor.de>
+To: klaas de waal <klaas.de.waal@gmail.com>
+In-Reply-To: <7b41dd970810091315h1433fa7du56e5754a1684019d@mail.gmail.com>
+References: <7b41dd970809290235x48f63938ic56318ba3064a71b@mail.gmail.com>
+	<c4d80f839f7e2e838b04f6c37c68d9c0@10.0.0.2>
+	<7b41dd970810091315h1433fa7du56e5754a1684019d@mail.gmail.com>
+Date: Fri, 10 Oct 2008 02:36:35 +0200
+Message-Id: <1223598995.4825.12.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org, jerremy@wordtgek.nl
+Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,59 +21,193 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Cj4g0JIg0YHQvtC+0LHRidC10L3QuNC4INC+0YIgMTEgT2N0b2JlciAyMDA4IDA1OjEyOjA5IEhh
-bnMgV2VybmVyCj4g0L3QsNC/0LjRgdCw0Lso0LApOgo+ID4gLS0tLS0tLS0gT3JpZ2luYWwtTmFj
-aHJpY2h0IC0tLS0tLS0tCj4gPgo+ID4gPiBEYXR1bTogVGh1LCA5IE9jdCAyMDA4IDAwOjAwOjI1
-ICswMzAwCj4gPiA+IFZvbjogIklnb3IgTS4gTGlwbGlhbmluIiA8bGlwbGlhbmluQHR1dC5ieT4K
-PiA+ID4gQW46IGxpbnV4LWR2YkBsaW51eHR2Lm9yZywgU3RldmVuIFRvdGggPHN0b3RoQGxpbnV4
-dHYub3JnPiwgU3RldmVuCj4gVG90aAo+ID4gPiA8c3RvdGhAaGF1cHBhdWdlLmNvbT4sIERhcnJv
-biBCcm9hZCA8ZGFycm9uQGtld2wub3JnPiwgTWFudSBBYnJhaGFtCj4gPiA+IDxhYnJhaGFtLm1h
-bnVAZ21haWwuY29tPiwgdmRyQGxpbnV4dHYub3JnIEJldHJlZmY6IFtsaW51eC1kdmJdIHN0YjA4
-OTkKPiA+ID4gYW5kIHR0IHMyLTMyMDAKPiA+ID4KPiA+ID4gSSBzdWNjZXNzZnVsbHkgcG9ydGVk
-IHN0YjA4OTkgdG8gUzJBUEkKPiA+ID4gRm9yIGtub3cgaXQgaXMganVzdCBmb3IgdGVzdGluZyBw
-dXJwb3Nlcy4gRmVlbCBmcmVlIHRvIHRlc3QgaXQuCj4gPiA+IEFueSBmZWVkYmFjayB3ZWxjb21l
-Lgo+ID4gPiBMb2NraW5nIGJldHRlciB3aXRoIHN6YXAtczIgKHNvcnJ5KQo+ID4gPiBJIGhhdmUg
-dGVzdGVkIHdpdGggRFZCLVMyIDhQU0sgYW5kIERWQi1TIDI3NTAwIGtTeW1zL3MKPiA+ID4KPiA+
-ID4gaHR0cDovbWVyY3VyaWFsLmludHV4aWNhdGlvbi5vcmcvaGcvczItbGlwbGlhbmluCj4gPiA+
-IGh0dHA6L21lcmN1cmlhbC5pbnR1eGljYXRpb24ub3JnL2hnL3N6YXAtczIKPiA+ID4KPiA+ID4g
-LS0KPiA+ID4gSWdvciBNLiBMaXBsaWFuaW4KPiA+Cj4gPiBJZ29yLAo+ID4KPiA+IHRoZSBhdHRh
-Y2hlZCBwYXRjaCAoYWdhaW5zdAo+ID4gaHR0cDovL21lcmN1cmlhbC5pbnR1eGljYXRpb24ub3Jn
-L2hnL3MyLWxpcGxpYW5pbikgYWRkcyBTMkFQSSBzdXBwb3J0Cj4gZm9yCj4gPiB0aGUgU1RCMDg5
-OStNYW50aXMgYmFzZWQgY2FyZHMgc3VjaCBhcyB0aGUKPiA+IFR3aW5oYW4gVlAtMTA0MSAoYWxz
-byBrbm93biBhcyBBenVyZXdhdmUgQUQgU1A0MDAgb3IgVGVjaG5pc2F0IFNreXN0YXIKPiBIRDIp
-Cj4gPgo+ID4gQ291bGQgeW91IHBsZWFzZSBhZGQgaXQgdG8geW91ciBzMi1saXBsaWFuaW4gcmVw
-b3NpdG9yeT8KPiA+Cj4gPiBJdCBpbmNsdWRlcyBNYW50aXMgUENJIGJyaWRnZSwgQ1UxMjE2IGFu
-ZCBGdWppdHN1IE1CODZBMTYgRFZCLVMvRFNTIERDCj4gPiBSZWNlaXZlciBzdXBwb3J0Lgo+ID4K
-PiA+IEl0IGlzIHRoZSBzYW1lIGFzIHRoZSBjb2RlIGZyb20gTWFudSBBYnJhaGFtJ3MgbWFudGlz
-IHRyZWUgYXQKPiA+IGh0dHA6Ly9qdXNzdC5kZS9oZy9tYW50aXMsIHNvIHRoYW5rcyB0byBNYW51
-Lgo+ID4KPiA+IEkgdGVzdGVkIHdpdGggdGhlIFR3aW5oYW4gVlAtMTA0MS4KPiA+IENoYW5uZWwg
-bG9ja2luZyB3b3JrcyBmb3IgbWUgZm9yIHNvbWUgKGJ1dCBub3QgeWV0IGFsbCkgY2hhbm5lbHMg
-d2l0aAo+IFNhbWUgd2l0aCBteSBzMi0zMjAwLCBzbyBJIG1hcmtlZCB0aGUgZHJpdmVyIGxpa2Ug
-ZXhwZXJpbWVudGFsKCBJIG11c3Qgc2F5Cj4gYWxtb3N0IHVzZWxlc3MsIGFzIG15IGZhdm9yaXRl
-IGNoYW5uZWwgdW53YXRjaGFibGUpIGZvciBub3cuCgpUaGUgcGF0Y2ggSSBzZW50IGRvZXNuJ3Qg
-Y2hhbmdlIGFueSBzdGIwODk5IG9yIHN0YjYxMDAgY29kZSBvZiBjb3Vyc2UgLS0gaXQganVzdAph
-ZGRzIGNoaXAgc3VwcG9ydCB3aGljaCB3YXMgYWJzZW50IC0tIHNvIHdlIHNob3VsZCBleHBlY3Qg
-dGhlIHNhbWUgcmVzdWx0cyBJIGd1ZXNzLgoKPiBJIHF1aWNrbHkgcG9ydGVkIHRvIFMyIEFQSSAr
-IHMyLTMyMDAgdGhhdCBjb2RlOgo+IGh0dHA6Ly93d3cudHdpbmhhbi5jb20vZmlsZXMvQVcvTGlu
-dXgvQVpMaW51eF92MS40LjJfQ0lfRkM2LnRhci5nego+IEFuZCBpdCBsb2NrcyBldmVyeSBjaGFu
-bmVsICg/Pz8pLCAKClRoYXQncyBnb29kIG5ld3MuIAoKQnkgdGhlIHdheSwgdGhlcmUgYXJlIGRp
-ZmZlcmVuY2VzIGJldHdlZW4gdGhlIG1hbnRpcywgY3UxMjE2IGFuZCBtYjg2YTE2IGNvZGUKYXQg
-anVzc3QuZGUgYW5kIHR3aW5oYW4uY29tIHRvby4KCj5idXQgc3RyZWFtIGFwcGVhcnMgYnJva2Vu
-LCB0aG91Z2ggSSBjYW4KPiBzZWUsIAo+IHRoYXQgY2hhbm5lbCBpcyByaWdodC4KCk5vdCBzbyBn
-b29kIGJ1dCBmaXhhYmxlIEkgZ3Vlc3MgYnkgY29tcGFyaW5nIHRoZSB0d28gZHJpdmVycy4KCj4g
-SXQgaXMgbmVjZXNzYXJ5IHRvIG1ha2UgZHJpdmVyIHN0YWJsZSwgdGhlbiB0byBhZGQgYW55dGhp
-bmcuCgpVbmRlcnN0b29kLiBIb3BlZnVsbHkgdGhlcmUgaXMgZW5vdWdoIGNvZGUgb3V0IHRoZXJl
-IGFscmVhZHkgdG8gYmUgYWJsZSB0byBwdXQKdG9nZXRoZXIgYSB3b3JraW5nIGRyaXZlci4KCj4g
-Cj4gUmVnYXJkcwo+IElnb3IKClRoYW5rcywKSGFucwotLSAKUmVsZWFzZSBlYXJseSwgcmVsZWFz
-ZSBvZnRlbi4KCkdNWCBLb3N0ZW5sb3NlIFNwaWVsZTogRWluZmFjaCBvbmxpbmUgc3BpZWxlbiB1
-bmQgU3Bhw58gaGFiZW4gbWl0IFBhc3RyeSBQYXNzaW9uIQpodHRwOi8vZ2FtZXMuZW50ZXJ0YWlu
-bWVudC5nbXgubmV0L2RlL2VudGVydGFpbm1lbnQvZ2FtZXMvZnJlZS9wdXp6bGUvNjE2OTE5NgoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZi
-IG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9y
-Zy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+Hi,
+
+Am Donnerstag, den 09.10.2008, 22:15 +0200 schrieb klaas de waal:
+> Hi Jeremy,
+> 
+> I have the Technotrend C-1501 now locking at 388MHz.
+> The table tda827xa_dvbt contains the settings for each frequency
+> segment.
+> The frequency values (first column) are for  the frequency plus the
+> IF, so for 388MHz
+> this is 388+5 gives 393 MHz. The table starts a new segment at 390MHz,
+> it then
+> starts to use VCO2 instead of VCO1.
+> I have now (hack, hack) changed the segment start from 390 to 395MHz
+> so
+> that the 388MHz is still tuned with VCO1, and this works OK!!
+> Like this:
+> 
+> static const struct tda827xa_data tda827xa_dvbt[] = {
+>     { .lomax =  56875000, .svco = 3, .spd = 4, .scr = 0, .sbs =
+> 0, .gc3 = 1},
+>     { .lomax =  67250000, .svco = 0, .spd = 3, .scr = 0, .sbs =
+> 0, .gc3 = 1},
+>     { .lomax =  81250000, .svco = 1, .spd = 3, .scr = 0, .sbs =
+> 0, .gc3 = 1},
+>     { .lomax =  97500000, .svco = 2, .spd = 3, .scr = 0, .sbs =
+> 0, .gc3 = 1},
+>     { .lomax = 113750000, .svco = 3, .spd = 3, .scr = 0, .sbs =
+> 1, .gc3 = 1},
+>     { .lomax = 134500000, .svco = 0, .spd = 2, .scr = 0, .sbs =
+> 1, .gc3 = 1},
+>     { .lomax = 154000000, .svco = 1, .spd = 2, .scr = 0, .sbs =
+> 1, .gc3 = 1},
+>     { .lomax = 162500000, .svco = 1, .spd = 2, .scr = 0, .sbs =
+> 1, .gc3 = 1},
+>     { .lomax = 183000000, .svco = 2, .spd = 2, .scr = 0, .sbs =
+> 1, .gc3 = 1},
+>     { .lomax = 195000000, .svco = 2, .spd = 2, .scr = 0, .sbs =
+> 2, .gc3 = 1},
+>     { .lomax = 227500000, .svco = 3, .spd = 2, .scr = 0, .sbs =
+> 2, .gc3 = 1},
+>     { .lomax = 269000000, .svco = 0, .spd = 1, .scr = 0, .sbs =
+> 2, .gc3 = 1},
+>     { .lomax = 290000000, .svco = 1, .spd = 1, .scr = 0, .sbs =
+> 2, .gc3 = 1},
+>     { .lomax = 325000000, .svco = 1, .spd = 1, .scr = 0, .sbs =
+> 3, .gc3 = 1},
+> #ifdef ORIGINAL // KdW test
+>     { .lomax = 390000000, .svco = 2, .spd = 1, .scr = 0, .sbs =
+> 3, .gc3 = 1},
+> #else
+>     { .lomax = 395000000, .svco = 2, .spd = 1, .scr = 0, .sbs =
+> 3, .gc3 = 1},
+> #endif
+>     { .lomax = 455000000, .svco = 3, .spd = 1, .scr = 0, .sbs =
+> 3, .gc3 = 1},
+> etc etc
+> 
+> I plan to do a test on the all frequencies in the near future, at
+> least on all the Dutch Ziggo frequencies.
+> Because I cannot test what will happen if the driver is used for DVB-T
+> (what
+> the name of the table suggests) it might be best to make a separate
+> tda827xa_dvbc table.
+> 
+> About the timeout messages, they come from the SAA7134 and they happen
+> fairly random. I have looked at debug traces and everytime it happens
+> it
+> does a retry and then succeeds, so I think this can be ignored for the
+> time being.
+> Maybe you can check if the fix/hack also works for you?
+> If there is an official maintainer of this driver, maybe he can
+> comment?
+> 
+> Groetjes,
+> Klaas
+> 
+
+just scrolling through mails and did not look it up yet.
+
+But you likely mean tda8274a DVB-C, tda10023 and saa7146.
+
+Are we still here?
+http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025634.html
+
+Please don't top post, you get more readers.
+
+Cheers,
+Hermann
+
+
+> 
+> On Tue, Sep 30, 2008 at 11:18 AM, <jerremy@wordtgek.nl> wrote:
+>         Hi Klaas,
+>         
+>         Perhaps its an idea to post this on the linux-dvb mailing
+>         list, if anything
+>         it keeps the subject alive.
+>         
+>         I've spent an hour or so playing with several of the
+>         parameters of the
+>         demodulator (the tda10023), mostly because this was suggest in
+>         one of the
+>         older posts about this issue. However none of my efforts gave
+>         any desired
+>         result and quickly got tired of unloading / reloading my
+>         drivers (which
+>         every so often required a hard reset as well).
+>         
+>         But if you find anything, that would be great ;)
+>         
+>         Gr. Jerremy
+>         
+>         
+>         On Mon, 29 Sep 2008 11:35:03 +0200, "klaas de waal"
+>         <klaas.de.waal@gmail.com> wrote:
+>         > Hallo Jeremy,
+>         > I have exactly the same problem with my C-1501 card: tuning
+>         problems on
+>         > 388
+>         > MHz but OK on most other frequencies.
+>         > It works OK with WIndowsXP on all frequencies including the
+>         388MHz, so
+>         the
+>         > hardware is OK and it must be a software issue.
+>         > I have over the weekend put in a lot of printk for debugging
+>         but have not
+>         > found it yet.
+>         > I will keep you updated.
+>         >
+>         > Groetjes,
+>         > Klaas
+>         >
+>         >
+>         > On Thu, Sep 11, 2008 at 5:50 PM, <jerremy@wordtgek.nl>
+>         wrote:
+>         >
+>         >> Hi,
+>         >>
+>         >> This issue has come up at least once a bit more then a
+>         month ago and is
+>         >> still present in the current release of the V4L-DVB
+>         drivers. The
+>         >> Technotrend C-1501 drivers are unable to get a lock on
+>         388Mhz (and a
+>         > couple
+>         >> of other frequencies, like 682Mhz and 322Mhz, but I can
+>         only test
+>         > 388Mhz).
+>         >>
+>         >> The dmesg will mention an I2C timeout when this occurs, I'm
+>         not sure if
+>         > its
+>         >> related (as it'll randomly give those timeouts when viewing
+>         working
+>         >> channels too).
+>         >>
+>         >> I have two seperate installs of Linux (Ubuntu 8.04 64-Bit
+>         with 1
+>         > received
+>         >> and Ubuntu 8.04 32-Bit with 2 receivers) which both suffer
+>         the same
+>         >> inability to lock onto that frequency. So its unlikely to
+>         be a hardware
+>         >> problem, also the Windows drivers do not seem to have any
+>         issues.
+>         >>
+>         >> Is anyone looking into this issue? If not, what would be
+>         the place to
+>         >> experiment?
+>         >>
+>         >> Gr,
+>         >>
+>         >> Jerremy Koot
+>         >>
+>         >>
+
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
