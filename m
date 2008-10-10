@@ -1,28 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9T3I4cv026281
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 23:18:04 -0400
-Received: from mail-gx0-f12.google.com (mail-gx0-f12.google.com
-	[209.85.217.12])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9T3HNv5022893
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 23:17:23 -0400
-Received: by gxk5 with SMTP id 5so5241702gxk.3
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 20:17:23 -0700 (PDT)
-Message-ID: <68cac7520810282017i454905a5y561ad9f0b1a0e876@mail.gmail.com>
-Date: Wed, 29 Oct 2008 01:17:22 -0200
-From: "Douglas Schilling Landgraf" <dougsland@gmail.com>
-To: "Alexey Klimov" <klimov.linux@gmail.com>, david@identd.dyndns.org
-In-Reply-To: <20081028180552.GA2677@tux>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9AJTcFt020680
+	for <video4linux-list@redhat.com>; Fri, 10 Oct 2008 15:29:38 -0400
+Received: from ik-out-1112.google.com (ik-out-1112.google.com [66.249.90.180])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9AJTJjh009871
+	for <video4linux-list@redhat.com>; Fri, 10 Oct 2008 15:29:19 -0400
+Received: by ik-out-1112.google.com with SMTP id c29so583126ika.3
+	for <video4linux-list@redhat.com>; Fri, 10 Oct 2008 12:29:15 -0700 (PDT)
+Message-ID: <30353c3d0810101229l3a73acb7mb7c220ac9e8c5b03@mail.gmail.com>
+Date: Fri, 10 Oct 2008 15:29:15 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Jaime Velasco Juan" <jsagarribay@gmail.com>
+In-Reply-To: <20080930160022.GA3301@singular.sob>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
-	<208cbae30810190758x2f0c70f5m5856ce9ea84b26ae@mail.gmail.com>
-	<30353c3d0810191711y7be7c7f2i83d6a3a8ff46b6a0@mail.gmail.com>
-	<20081028180552.GA2677@tux>
-Cc: video4linux-list@redhat.com
-Subject: Re: [patch] radio-mr800: remove warn- and err- messages
+References: <30353c3d0809291721o2a2858b1na0a930a1f75ac4f3@mail.gmail.com>
+	<20080930160022.GA3301@singular.sob>
+Content-Transfer-Encoding: 8bit
+Cc: v4l <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/3] stk-webcam updates
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,25 +32,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello guys,
+On Tue, Sep 30, 2008 at 12:00 PM, Jaime Velasco Juan
+<jsagarribay@gmail.com> wrote:
+> El lun. 29 de sep. de 2008, a las 20:21:04 -0400, David Ellingsworth escribió:
+>> The following series of patches correct issues identified in
+>> stk-webcam. The patches are as follows:
+>>
+>> 1. stkwebcam: fix crash on close after disconnect
+>> 2. stkwebcam: free via video_device release callback
+>> 3. stkwebcam: simplify access to stk_camera struct
+>>
+>> The first patch in this series is a bug fix. If it is possible to
+>> merge this patch into 2.6.27 I highly recommend it as this bug has
+>> existed for quite some time. The second patch restructures the driver
+>> and removes the now unnecessary reference count on the stk_camera
+>> struct. The third patch simplifies the driver in several areas
+>> removing several unnecessary branches.
+>>
+>> These patchs should apply cleanly against the working branch of the
+>> git v4l-dvb tree. Each of the patches will be submitted independently.
+>>
+>> Regards,
+>>
+>> David Ellingsworth
+>
+> ACK
+>
+> Regards,
+> Jaime
+>
 
-On Tue, Oct 28, 2008 at 4:05 PM, Alexey Klimov <klimov.linux@gmail.com> wrote:
-> Hello, all
->
-> Here is new patch, reformatted. Also KBUILD_MODNAME added.
->
-> radio-mr800: remove warn-, err- and info-messages
->
-> Patch removes warn(), err() and info() statements in radio/radio-mr800.c,
-> and place dev_warn, dev_info in right places.
-> Printk changed on pr_info and pr_err macro.
->
-> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+Mauro,
 
-Seems sane to my eyes.
+Please apply these for 2.6.28
 
-Cheers,
-Douglas
+Regards,
+
+David Ellingsworth
 
 --
 video4linux-list mailing list
