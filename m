@@ -1,19 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9TMQ6UZ009316
-	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 18:26:06 -0400
-Received: from smtp-out112.alice.it (smtp-out112.alice.it [85.37.17.112])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9TMPkwq022952
-	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 18:25:46 -0400
-Date: Wed, 29 Oct 2008 23:25:44 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: video4linux-list@redhat.com
-Message-Id: <20081029232544.661b8f17.ospite@studenti.unina.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9AD1qvC027485
+	for <video4linux-list@redhat.com>; Fri, 10 Oct 2008 09:01:52 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9AD1oxd024718
+	for <video4linux-list@redhat.com>; Fri, 10 Oct 2008 09:01:50 -0400
+Date: Fri, 10 Oct 2008 15:01:24 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: "luisan82@gmail.com" <luisan82@gmail.com>
+Message-ID: <20081010130124.GA850@daniel.bse>
+References: <1223640548.5171.64.camel@luis>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH] mt9m111: Fix YUYV format for pxa-camera
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1223640548.5171.64.camel@luis>
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: analize ASI with dvbnoop and dektec 140
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,46 +27,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Use 16 bit depth for YUYV so the pxa-camera image buffer has the correct size,
-see the formula:
+On Fri, Oct 10, 2008 at 02:09:08PM +0200, luisan82@gmail.com wrote:
+> I've been trying to analyze a ts with dvbsnoop through an ASI input
+> unsuccessfully.
+> When I execute dvbsnoop, it tries to read from a location (/dev/dvb/...)
+> wich doesn't exists.
 
-	*size = icd->width * icd->height *
-		((icd->current_fmt->depth + 7) >> 3);
+The drivers provided by DekTec do not implement the Linux DVB API.
+You can't use dvbsnoop.
+You need to write your own program using their proprietary DTAPI library.
+At least their drivers are open source...
 
-in drivers/media/video/pxa_camera.c: pxa_videobuf_setup().
-
-Don't swap Cb and Cr components, to respect PXA Quick Capture Interface
-data format.
-
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
-
----
- drivers/media/video/mt9m111.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index da0b2d5..76fb0cb 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -130,7 +130,7 @@
- 	COL_FMT(_name, _depth, _fourcc, V4L2_COLORSPACE_SRGB)
- 
- static const struct soc_camera_data_format mt9m111_colour_formats[] = {
--	COL_FMT("YCrYCb 8 bit", 8, V4L2_PIX_FMT_YUYV, V4L2_COLORSPACE_JPEG),
-+	COL_FMT("YCrYCb 16 bit", 16, V4L2_PIX_FMT_YUYV, V4L2_COLORSPACE_JPEG),
- 	RGB_FMT("RGB 565", 16, V4L2_PIX_FMT_RGB565),
- 	RGB_FMT("RGB 555", 16, V4L2_PIX_FMT_RGB555),
- 	RGB_FMT("Bayer (sRGB) 10 bit", 10, V4L2_PIX_FMT_SBGGR16),
-@@ -864,6 +864,9 @@ static int mt9m111_video_probe(struct soc_camera_device *icd)
- 	mt9m111->swap_rgb_even_odd = 1;
- 	mt9m111->swap_rgb_red_blue = 1;
- 
-+	mt9m111->swap_yuv_y_chromas = 1;
-+	mt9m111->swap_yuv_cb_cr = 0;
-+
- 	return 0;
- eisis:
- ei2c:
+  Daniel
 
 --
 video4linux-list mailing list
