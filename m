@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <francesco.fumanti@gmx.net>) id 1KuC0k-0002SF-95
-	for linux-dvb@linuxtv.org; Sun, 26 Oct 2008 21:14:55 +0100
-Message-ID: <4904CF95.9030703@gmx.net>
-Date: Sun, 26 Oct 2008 21:14:13 +0100
-From: Francesco Fumanti <francesco.fumanti@gmx.net>
-MIME-Version: 1.0
-To: Darron Broad <darron@kewl.org>
-References: <49038A28.4040601@gmx.net> <19118.1224969301@kewl.org>
-In-Reply-To: <19118.1224969301@kewl.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] kaffeine s2api v2 patch
+Received: from mx27.mail.ru ([194.67.23.23])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <goga777@bk.ru>) id 1KoN11-0006R9-KG
+	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 20:47:08 +0200
+Received: from [92.101.159.32] (port=47078 helo=localhost.localdomain)
+	by mx27.mail.ru with asmtp id 1KoN0T-000BPM-00
+	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 22:46:33 +0400
+Date: Fri, 10 Oct 2008 22:47:53 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20081010224753.4205c007@bk.ru>
+Mime-Version: 1.0
+Subject: [linux-dvb] radio-mr800.o -  Error 1
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,104 +19,30 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello Darron,
-
-
-I followed your instructions below which solved the compilation problem 
-and I was able to compile and install kaffeine. Thanks.
-
-A new scan found also the dvb-s2 channels (Anixe HD, Simul HD,...).
-
-When I try to watch them, there are a lot of artifacts and picture 
-hangers which is surely normal for a Pentium 4 and a nvidia 6610 XL.
-
-However, kaffeine also crashes when watching hd content and in the last 
-lines in the terminal (I launched it from terminal to have feedback), 
-there is a "Internal error: picture buffer overflow".
-
-As the crashes did not occur during channel switches, but while watching 
-hd content, I suppose that the problem is rather due to xine than to the 
-s2api patch.
-
-
-Cheers,
-
-Francesco
-
-
-Darron Broad wrote:
-> In message <49038A28.4040601@gmx.net>, Francesco Fumanti wrote:
->> Hello,
-> 
-> Hi Francesco.
-> 
->> Did anybody succeed to compile kaffeine from svn with the s2api patch on 
->> Ubuntu 8.10 (not Kubuntu) ?
->>
->> I have been using the instructions on http://kaffeine.kde.org/?q=devel 
->> but I get the following error:
->> make[6]: Entering directory 
->> `/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
->> /bin/bash ../../../../libtool --silent --tag=CXX   --mode=compile g++ 
->> -DHAVE_CONFIG_H -I. -I../../../.. -I../../../../kaffeine/src/input/ 
->> -I../../../../kaffeine/src/input/dvb/lib 
->> -I../../../../kaffeine/src/input/dvb/plugins/stream 
->> -I../../../../kaffeine/src/input/dvb/plugins/epg 
->> -I../../../../kaffeine/src -I/usr/include/kde -I/usr/share/qt3/include 
->> -I.   -DQT_THREAD_SUPPORT  -D_REENTRANT  -Wno-long-long -Wundef -ansi 
->> -D_XOPEN_SOURCE=500 -D_BSD_SOURCE -Wcast-align -Wchar-subscripts -Wall 
->> -W -Wpointer-arith -O2 -Wformat-security -Wmissing-format-attribute 
->> -Wno-non-virtual-dtor -fno-exceptions -fno-check-new -fno-common 
->> -DQT_CLEAN_NAMESPACE -DQT_NO_ASCII_CAST -DQT_NO_STL -DQT_NO_COMPAT 
->> -DQT_NO_TRANSLATION  -MT audioeditor.lo -MD -MP -MF 
->> .deps/audioeditor.Tpo -c -o audioeditor.lo audioeditor.cpp
->> In file included from audioeditor.h:24,
->>                  from audioeditor.cpp:30:
->> channeldesc.h:104: error: 'fe_rolloff_t' does not name a type
->> make[6]: *** [audioeditor.lo] Error 1
->> make[6]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
->> make[5]: *** [all-recursive] Error 1
->> make[5]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
->> make[4]: *** [all-recursive] Error 1
->> make[4]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input'
->> make[3]: *** [all-recursive] Error 1
->> make[3]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src'
->> make[2]: *** [all-recursive] Error 1
->> make[2]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine'
->> make[1]: *** [all-recursive] Error 1
->> make[1]: Leaving directory `/home/frafu/kaffeine-svn'
->> make: *** [all] Error 2
->>
->> You might perhaps also want to know that the application of the patch 
->> worked without error.
-> 
-> You need to update frontend.h in /usr/include/linux/dvb/
-> 
-> eg.
-> 
-> mv /usr/include/linux/dvb/frontend.h /usr/include/linux/dvb/frontend.h.bak
-> cp /???/v4l-dvb/linux/include/linux/dvb/frontend.h /usr/include/linux/dvb/frontend.h
-> 
-> Then recompile. Obviously replace ??? with the path to your v4l-dvb source
-> files.
-> 
-> Good luck.
-> 
-> --
-> 
->  // /
-> {:)==={ Darron Broad <darron@kewl.org>
->  \\ \ 
-> 
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGkKCkkgY2FuJ3QgY29tcGlsZSB0aGUgczJhcGkgZnJvbSBodHRwOi8vbGludXh0di5vcmcvaGcv
+fnN0b3RoL3MyLwp0aGVyZSdzIHNvbWUgcHJvYmxlbSB3aXRoIHJhZGlvLW1yODAwIG1vZHVsZQoK
+ICBDQyBbTV0gIC91c3Ivc3JjL3MyL3Y0bC9yYWRpby1zaTQ3MHgubwogIENDIFtNXSAgL3Vzci9z
+cmMvczIvdjRsL3JhZGlvLW1yODAwLm8KL3Vzci9zcmMvczIvdjRsL3JhZGlvLW1yODAwLmM6MTQ4
+OiB3YXJuaW5nOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAnVVNCX0RFVklDRV9B
+TkRfSU5URVJGQUNFX0lORk8nCi91c3Ivc3JjL3MyL3Y0bC9yYWRpby1tcjgwMC5jOjE0OTogZXJy
+b3I6IGluaXRpYWxpemVyIGVsZW1lbnQgaXMgbm90IGNvbnN0YW50Ci91c3Ivc3JjL3MyL3Y0bC9y
+YWRpby1tcjgwMC5jOjE0OTogZXJyb3I6IChuZWFyIGluaXRpYWxpemF0aW9uIGZvciAndXNiX2Ft
+cmFkaW9fZGV2aWNlX3RhYmxlWzBdLm1hdGNoX2ZsYWdzJykKL3Vzci9zcmMvczIvdjRsL3JhZGlv
+LW1yODAwLmM6MTYyOiBlcnJvcjogdW5rbm93biBmaWVsZCAncmVzZXRfcmVzdW1lJyBzcGVjaWZp
+ZWQgaW4gaW5pdGlhbGl6ZXIKL3Vzci9zcmMvczIvdjRsL3JhZGlvLW1yODAwLmM6MTYyOiB3YXJu
+aW5nOiBpbml0aWFsaXphdGlvbiBmcm9tIGluY29tcGF0aWJsZSBwb2ludGVyIHR5cGUKbWFrZVsz
+XTogKioqIFsvdXNyL3NyYy9zMi92NGwvcmFkaW8tbXI4MDAub10gRXJyb3IgMQptYWtlWzJdOiAq
+KiogW19tb2R1bGVfL3Vzci9zcmMvczIvdjRsXSBFcnJvciAyCm1ha2VbMl06IExlYXZpbmcgZGly
+ZWN0b3J5IGAvdXNyL3NyYy9saW51eC1oZWFkZXJzLTIuNi4yMi0yLTY4NicKbWFrZVsxXTogKioq
+IFtkZWZhdWx0XSDv28nCy8EgMgptYWtlWzFdOiBMZWF2aW5nIGRpcmVjdG9yeSBgL3Vzci9zcmMv
+czIvdjRsJwptYWtlOiAqKiogW2FsbF0g79vJwsvBIDIKCgoKQlRXIC0gaG93IGNhbiBJIGRpc2Fi
+bGUgdGhlIGNvbXBpbGF0aW9uIGZvciB0aGlzIG1vZHVsZSAsIGJlY2F1c2UgSSBkb24ndCBoYXZl
+IHRoaXMgZGV2aWNlCgpHb2dhCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcK
+aHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
