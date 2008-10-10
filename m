@@ -1,32 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9HFprJY016298
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 11:51:53 -0400
-Received: from ian.pickworth.me.uk (ian.pickworth.me.uk [81.187.248.227])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9HFpgrg016630
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 11:51:43 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by ian.pickworth.me.uk (Postfix) with ESMTP id EB31812E27E0
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 16:51:41 +0100 (BST)
-Received: from ian.pickworth.me.uk ([127.0.0.1])
-	by localhost (ian.pickworth.me.uk [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id WDlfypx2xraY for <video4linux-list@redhat.com>;
-	Fri, 17 Oct 2008 16:51:41 +0100 (BST)
-Received: from [192.168.1.11] (ian2.pickworth.me.uk [192.168.1.11])
-	by ian.pickworth.me.uk (Postfix) with ESMTP id C22BA12CF9BD
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 16:51:41 +0100 (BST)
-Message-ID: <48F8B48D.7000309@pickworth.me.uk>
-Date: Fri, 17 Oct 2008 16:51:41 +0100
-From: Ian Pickworth <ian@pickworth.me.uk>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9A0IY97008396
+	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 20:18:34 -0400
+Received: from mho-02-bos.mailhop.org (mho-02-bos.mailhop.org [63.208.196.179])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9A0ILS7008874
+	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 20:18:21 -0400
+Message-ID: <48EE9FC0.6080400@edgehp.net>
+Date: Thu, 09 Oct 2008 20:20:16 -0400
+From: Dale Pontius <DEPontius@edgehp.net>
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-References: <48F895F9.5010205@pickworth.me.uk>	<48F89A75.1000100@draigBrady.com>
-	<48F89CAD.5080202@pickworth.me.uk>
-In-Reply-To: <48F89CAD.5080202@pickworth.me.uk>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+References: <1222651357.2640.21.camel@morgan.walls.org>
+	<48EC18D7.3070807@edgehp.net>
+	<1223501731.2807.9.camel@morgan.walls.org>
+In-Reply-To: <1223501731.2807.9.camel@morgan.walls.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Subject: Re: How to force the device assignment with V4l V2.0?
-Reply-To: ian@pickworth.me.uk
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: Re: cx18: Fix needs test: more robust solution to get CX23418 based
+ cards to work reliably
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,46 +30,94 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Ian Pickworth wrote:
-> Pádraig Brady wrote:
->   
->> Ian Pickworth wrote:
->>     
->>> I have two devices - a CX88 based Hauppauge TV PCI card, and a USB
->>> webcam. In the "old" style drivers, I could force the loading of the two
->>> modules (cx8800 and gspca) in a set sequence, using blacklist and
->>> modules.autoload. This is enough to ensure that cx88 gets /dev/video0,
->>> and the usb webcam gets /dev/video1.
->>>       
->> I use udev rules to give persistent names.
+Andy Walls wrote:
+> On Tue, 2008-10-07 at 22:20 -0400, Dale Pontius wrote:
+>> Andy Walls wrote:
+>>> cx18 driver users:
+>>>
+>>> In this repository:
+>>>
+>>> http://linuxtv.org/hg/~awalls/cx18-mmio-fixes/
+>>>
+>> Can't get there from here:
+> 
+> Yeah, I nuked that repo once Mauro merged the change into the main repo.
+> 
+> 
+>> I've been getting help from you with problems with my HVR-1600, and have
+>> a friend with WinXP machines who can likely help me out testing it, but
+>> he's been on vacation, and shortly I'll be gone for a bit.
 >>
->> Here is my /etc/udev/rules.d/video.rules file,
->> which creates /dev/webcam and /dev/tvtuner as appropriate.
->>
->> KERNEL=="video*" SYSFS{name}=="USB2.0 Camera", NAME="video%n", SYMLINK+="webcam"
->> KERNEL=="video*" SYSFS{name}=="em28xx*", NAME="video%n", SYMLINK+="tvtuner"
->>
->> To find distinguishing attributes to match on use:
->>
->> echo /sys/class/video4linux/video* | xargs -n1 udevinfo -a -p
->>     
->
-> I did think about that, but the problem is that applications want to see
-> /dev/video(n) style names. Especially TV Time that (I think) uses
-> /dev/video - set to link to /dev/video0 by the standard udev rules.
->   
-A bit more research and I can see how to set TVTIME to use a different
+>> In the meantime, since it appears that I've been having i2c problems and
+>> the mmio_ndelay gave me marginally better operation, I'd like to give
+>> this patch a try.  (Or is it folded into the main repository, already.)
+> 
+> Yes, it is in the main v4l-dvb repo now.
+> 
+Just grabbed and built.  No significant change.  Listing for dmesg
+follows.  The driver still took practically forever to load, "i2cdetect
+-y 7" still takes forever on timeouts full of "--".
 
-device:
-    In ~/.tvtime/tvtime.xml set this line:
-    <option name="V4LDevice" value="/dev/v4l/video0"/>
-    or whatever the device is you want.
+My next move, when I can connect with this friend, will be to plug the
+card into one of his machines.  Has anyone else gotten one of these
+cards and NEVER tried it with Windows?  I'm wondering if there is some
+one-time initialization that the Windows drivers do, or it's still
+possible that what I really need is an RMA.
+> 
+> You're welcome.  Have fun testing.
+> 
+> Regards,
+> Andy
 
-So I can have a go at the udev solution - I'll try it a bit later.
-
-Thanks
-Regards
-Ian
+Thanks,
+Dale
+--------------------------------------------------------------------------
+cx18:  Start initialization, version 1.0.1
+cx18-0: Initializing card #0
+cx18-0: Autodetected Hauppauge card
+cx18-0 info: base addr: 0xd0000000
+cx18-0 info: Enabling pci device
+ACPI: PCI Interrupt 0000:05:08.0[A] -> Link [APC3] -> GSI 18 (level,
+low) -> IRQ 18
+cx18-0: Unreasonably low latency timer, setting to 64 (was 32)
+cx18-0 info: cx23418 (rev 0) at 05:08.0, irq: 18, latency: 64, memory:
+0xd0000000
+cx18-0 info: attempting ioremap at 0xd0000000 len 0x04000000
+cx18-0: cx23418 revision 01010000 (B)
+cx18-0 info: GPIO initial dir: 0000ffff/0000ffff out: 00000000/00000000
+cx18-0 info: activating i2c...
+cx18-0 i2c: i2c init
+cx18-0 info: Active card count: 1.
+tveeprom 6-0050: Hauppauge model 74041, rev C6B2, serial# 3334244
+tveeprom 6-0050: MAC address is 00-0D-FE-32-E0-64
+tveeprom 6-0050: tuner model is TCL M2523_5N_E (idx 112, type 50)
+tveeprom 6-0050: TV standards NTSC(M) (eeprom 0x08)
+tveeprom 6-0050: audio processor is CX23418 (idx 38)
+tveeprom 6-0050: decoder processor is CX23418 (idx 31)
+tveeprom 6-0050: has no radio, has IR receiver, has IR transmitter
+cx18-0: Autodetected Hauppauge HVR-1600
+cx18-0 info: NTSC tuner detected
+cx18-0: VBI is not yet supported
+cx18-0 info: Loaded module tuner
+cx18-0 info: Loaded module cs5345
+cx18-0 i2c: i2c client register
+cx18-0 i2c: i2c client register
+cs5345 6-004c: chip found @ 0x98 (cx18 i2c driver #0-0)
+cx18-0 info: Allocate encoder MPEG stream: 63 x 32768 buffers (2016kB total)
+cx18-0 info: Allocate TS stream: 32 x 32768 buffers (1024kB total)
+cx18-0 info: Allocate encoder YUV stream: 16 x 131072 buffers (2048kB total)
+cx18-0 info: Allocate encoder PCM audio stream: 63 x 16384 buffers
+(1008kB total)
+cx18-0: Disabled encoder IDX device
+cx18-0: Registered device video1 for encoder MPEG (2 MB)
+DVB: registering new adapter (cx18)
+MXL5005S: Attached at address 0x63
+DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB Frontend)...
+cx18-0: DVB Frontend registered
+cx18-0: Registered device video32 for encoder YUV (2 MB)
+cx18-0: Registered device video24 for encoder PCM audio (1 MB)
+cx18-0: Initialized card #0: Hauppauge HVR-1600
+cx18:  End initialization
 
 
 --
