@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.26])
+Received: from yw-out-2324.google.com ([74.125.46.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1Ktr47-0005xq-Ua
-	for linux-dvb@linuxtv.org; Sat, 25 Oct 2008 23:53:00 +0200
-Received: by qw-out-2122.google.com with SMTP id 9so635178qwb.17
-	for <linux-dvb@linuxtv.org>; Sat, 25 Oct 2008 14:52:55 -0700 (PDT)
-Message-ID: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
-Date: Sat, 25 Oct 2008 23:52:54 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
+	(envelope-from <britney.fransen@gmail.com>) id 1KoRDU-0000p3-1y
+	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 01:16:19 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so252128ywj.41
+	for <linux-dvb@linuxtv.org>; Fri, 10 Oct 2008 16:16:10 -0700 (PDT)
+Message-Id: <4D1DA692-ECF0-44E5-AC73-C804E19D6F31@gmail.com>
+From: Britney Fransen <britney.fransen@gmail.com>
 To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Subject: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Date: Fri, 10 Oct 2008 18:16:08 -0500
+Subject: [linux-dvb] DVICO FusionHDTV 5 Lite Reception Corruption
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,71 +18,41 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1119210976=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1119210976==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_83131_29233875.1224971574975"
+Hello,
 
-------=_Part_83131_29233875.1224971574975
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I am seeing some reception corruption on only one QAM channel with my  
+DVICO FusionHDTV5 Lite and the latest tip of the v4l-dvb driver.  At  
+first I thought that the problem was my cable company however the  
+reception of that channel is perfect on all other digital tuners in  
+the house.  Then I stumbled across this YouTube video: http://www.youtube.com/watch?v=rH1tsiPB8us 
+  showing the same issue I have experienced.
 
-Hello all,
+In testing I found when I roll back to rev 6557 of the driver all the  
+artifacts go away and the channel reception is perfectly clear.   From  
+the current revision (9114) of the driver if I roll back to 6558 I  
+still see the artifacts.  6557 always fixes the problem.  Another  
+oddity is once I am at 6557 I can upgrade to 6600 I think and not have  
+an issue. But again once I get up to a certain revision (haven't taken  
+the time to narrow it down exactly which number it is) I get the  
+reception problems and downgrading just 1 or 2 revisions won't fix it,  
+I have to go back to 6557.
 
-I've setup the http://mercurial.intuxication.org/hg/scan-s2/ repository with
-scan utility ported to work with Igor's S2API driver.
-Driver is available here: http://mercurial.intuxication.org/hg/s2-liplianin/
+I am considering adding a usb tuner to my setup and that would require  
+me to run a later revision of the v4l-dvb driver to support the new  
+tuner but I don't want to loose the functionality of my Fusion 5 lite  
+card.  If anyone has any suggestions or if I can provide info to help  
+troubleshoot and squash this bug let me know.
 
-Special thanks to Igor for his driver and for szap-s2 utility that I've used
-as a reference for scan-s2.
-Thanks also to someone from the net that posted his changes to scan utility
-that allowed it to work with uncommitted diseqc.
-
-Pay attention to parameters (see README as well), I've added some and
-removed some that I don't think are needed.
-
-Scan results gave me the same channels as with multiproto driver on all my
-satellites, so that confirms also that Igor's driver is working well.
-
-I didn't yet tested the output files with szap-s2 or with VDR, don't have
-time right now.
-Please test and let me know if changes are needed.
-
-I have only Twinhan 1041 card (stb0899), so I can't test it with DVB-T,
-DVB-C and ATSC standarts, but theoretically it should work.
-
-Enjoy,
-Alex.
-
-------=_Part_83131_29233875.1224971574975
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div dir="ltr">Hello all,<br><br>I&#39;ve setup the <a href="http://mercurial.intuxication.org/hg/scan-s2/">http://mercurial.intuxication.org/hg/scan-s2/</a> repository with scan utility ported to work with Igor&#39;s S2API driver.<br>
-Driver is available here: <a href="http://mercurial.intuxication.org/hg/s2-liplianin/">http://mercurial.intuxication.org/hg/s2-liplianin/</a><br><br>Special thanks to Igor for his driver and for szap-s2 utility that I&#39;ve used as a reference for scan-s2.<br>
-Thanks also to someone from the net that posted his changes to scan utility that allowed it to work with uncommitted diseqc.<br><br>Pay attention to parameters (see README as well), I&#39;ve added some and removed some that I don&#39;t think are needed.<br>
-<br>Scan results gave me the same channels as with multiproto driver on all my satellites, so that confirms also that Igor&#39;s driver is working well.<br><br>I didn&#39;t yet tested the output files with szap-s2 or with VDR, don&#39;t have time right now. <br>
-Please test and let me know if changes are needed.<br><br>I have only Twinhan 1041 card (stb0899), so I can&#39;t test it with DVB-T, DVB-C and ATSC standarts, but theoretically it should work.<br><br>Enjoy,<br>Alex.<br><br>
-</div>
-
-------=_Part_83131_29233875.1224971574975--
-
-
---===============1119210976==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks,
+Britney
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1119210976==--
