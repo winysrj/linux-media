@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.27])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KtxYu-0004Yh-C5
-	for linux-dvb@linuxtv.org; Sun, 26 Oct 2008 05:49:14 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so689614eya.17
-	for <linux-dvb@linuxtv.org>; Sat, 25 Oct 2008 21:49:08 -0700 (PDT)
-Date: Sun, 26 Oct 2008 05:49:00 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: =?ISO-8859-15?Q?Julian_G=FCrtler?= <julian.guertler@uni-ulm.de>
-In-Reply-To: <4903070D.7050402@uni-ulm.de>
-Message-ID: <alpine.DEB.2.00.0810252132190.20415@ybpnyubfg.ybpnyqbznva>
-References: <4903070D.7050402@uni-ulm.de>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1KoIk8-0007HC-He
+	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 16:13:26 +0200
+Date: Fri, 10 Oct 2008 16:12:52 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <48EF3BC3.4050802@hemmail.se>
+Message-ID: <20081010141252.107560@gmx.net>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Update de-Illerkirchberg
+References: <48EF3BC3.4050802@hemmail.se>
+To: sacha <sacha@hemmail.se>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Twinhan 1041 (SP 400) and S2API
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,76 +18,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, 25 Oct 2008, Julian G=FCrtler wrote:
 
-> now I've found out, that the broadcast station is in Ulm.
+> Hello
+> =
 
-Ulm and Neu-Ulm are in Baden-Wuertt./Bayern -- and in general,
-each Bundesland uses three frequencies for ARD+co., ZDFmobil,
-and each Dritte Programme mux from each sender.
+> I tried my card with I.Liplianin sources without any luck. Have I missed =
 
-In addition to the local Ulm-Ermingen multiplexes, you are
-apparently receiving some nearby Bayern from a favourable
-high altitude.
-
-
-B*gger, your list has disappeared from my reply, so I need to
-postpone this message and correlate your frequencies with the
-known-to-me broadcasts...
-
-But in addition, the use of `AUTO' for practically everything
-is not a good idea, and you should at least parse the NIT info
-to get correct and up-to-date details -- although these are
-readily found online and rather standard between senders.
+> something?
+> Driver for my card seems not to be there
+> KR
+> =
 
 
-Cut'n'pasta:
+I believe the driver code for the mantis PCI bridge chip is missing from Ig=
+or's
+STB0899 S2API patch. That code is available here
+http://jusst.de/hg/mantis
+and here
+http://www.twinhan.com/files/AW/Linux/AZLinux_v1.4.2_CI_FC6.tar.gz
 
-T 482000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-ZDF multiplex Ulm, (Donaueschingen, Raichberg, Ravensburg) K22
-In my notes for Donaueschingen I wrote 50kW hor, 16QAM 2/3 8k 1/4
+so it ought to be possible to add it.
 
-T 530000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-ZDF multiplex Gruenten, (Hohenpeissenberg) (Bayern) K28
+Regards,
+Hans
+ =
 
-T 594000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-ARD Multiplex Augsburg (Bayern) K36
+-- =
 
-T 626000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-SWR Multiplex Ulm, (Raichberg, Ravensburg) K40
+Release early, release often.
 
-T 650000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-ARD Multiplex Ulm, (Raichberg, Ravensburg) K43
-
-T 658000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-ZDF Multiplex Augsburg (Bayern) K44
-
-T 666000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-ARD Multiplex Gruenten (Bayern) K45
-
-T 674000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-Bayerischer Rundfunk Sender Gruenten K46
-
-T 690000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
-K48, not sure.  What channels are you seeing here?
-
-
-Apparently the Augsburg mux is not received on K25 (BR)
-
-
-I have no idea if you are using a short simple antenna for
-reception, or if you are connected to a high-gain rooftop
-aerial which may have been installed during analogue times
-and aimed towards sender Gruenten for BR.
-
-
-barry bouwsma
+GMX Kostenlose Spiele: Einfach online spielen und Spa=DF haben mit Pastry P=
+assion!
+http://games.entertainment.gmx.net/de/entertainment/games/free/puzzle/61691=
+96
 
 _______________________________________________
 linux-dvb mailing list
