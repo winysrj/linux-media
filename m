@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <stefan.gehrer@gmx.de>) id 1KvFyG-00010l-G0
-	for linux-dvb@linuxtv.org; Wed, 29 Oct 2008 19:40:45 +0100
-Message-ID: <4908ADFD.6040502@gmx.de>
-Date: Wed, 29 Oct 2008 19:39:57 +0100
-From: Stefan Gehrer <stefan.gehrer@gmx.de>
-MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Key map for new remote control that came with Terratec
- Cinergy T USB XXS
+Received: from qmta02.emeryville.ca.mail.comcast.net ([76.96.30.24])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <v4l@therussellhome.us>) id 1KoQwo-0005xY-Dr
+	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 00:59:05 +0200
+Date: Fri, 10 Oct 2008 18:58:25 -0400
+From: Chris Russell <v4l@therussellhome.us>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+Message-ID: <20081010185825.37790e23@arwen.therussellhome.us>
+In-Reply-To: <d9def9db0810091919x2aa763bey15e39e74508763e9@mail.gmail.com>
+References: <20081009221330.3e355773@arwen.therussellhome.us>
+	<d9def9db0810091919x2aa763bey15e39e74508763e9@mail.gmail.com>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] em28xx - analog tv audio on kworld 305U
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,81 +26,76 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+On Fri, 10 Oct 2008 04:19:31 +0200
+"Markus Rechberger" <mrechberger@gmail.com> wrote:
 
-I recently bought a Terratec Cinergy T USB XXS device
-and found that the remote control doesn't work correctly
-with kernel 2.7.27, so I had to make the below key table
-to get it to work.
-In function dib0700_rc_query() in file dib0700_devices.c,
-I then activate this keymap with
+> On Fri, Oct 10, 2008 at 4:13 AM, Chris Russell <v4l@therussellhome.us> wrote:
+> >        I have a KWorld DVB-T 305U on Gentoo using the v4l-dvb-hg
+> > package (live development version of v4l&dvb-driver for Kernel 2.6)
+> > that I updated today (03Oct08).
+> >
+> >        The analog TV looks great but I cannot get the sound to work.
+> > I have tried just about everything I could find searching including:
+> > $ arecord -D hw:1 -f dat | aplay -f dat
+> >        and
+> > $ mplayer tv:// -tv driver=v4l2:device=/dev/video0:chanlist=us-cable:alsa:adevice=hw.1,0:amode=1:audiorate=32000:forceaudio:volume=100:immediatemode=0:norm=NTSC
+> >        and
+> > $ v4lctl volume mute off; v4lctl volume 31
+> >        and
+> > even attempting a manual cat from /dev/audio1 to /dev/audio
+> >
+> > So what am I missing or is audio for the 305U not working yet?
+> >
+> 
+> Hi,
+> 
+> you need the em28xx-new code from mcentral.de in order to get audio
+> work with it, audio for it is still in progress but it should work
+> fine as long as you have attached one device only.
+> 
+> Markus
 
-     if(dvb_usb_dib0700_ir_proto == 1)
-         keymap = xxs_new_rc_keys;
+Thanks for the reply.  Unfortunately, I still end up with the same
+result.  I un-installed v4l-dvb-hg, added back v4l support in my kernel
+(2.6.26) and pulled down the latest em28xx-new driver (based on the
+sunshine overlay which pulls from
+http://mcentral.de/hg/~mrec/em28xx-new/).  Again, tv works but audio
+does not.  Did I miss something?
 
-Something like this is necessary as otherwise key codes
-overlap with the key table already in the driver.
-But if other remotes also have dvb_usb_dib0700_ir_proto
-equal to one this is obviously a problem.
-Please advise me if you need any further information
-for getting support for that remote into the driver.
+Soli Deo Gloria,
+Chris
 
-And one small problem my approach currently has:
-I see neither key repeats nor a key release, so there
-is no way to register long presses. So maybe some more
-changes are required for proper support.
-
-Best regards
-Stefan Gehrer
-
-static struct dvb_usb_rc_key xxs_new_rc_keys[] = {
-     { 0x0f, 0x7e, KEY_POWER },
-     { 0x07, 0x7c, KEY_1 },
-     { 0x08, 0x40, KEY_2 },
-     { 0x03, 0x7d, KEY_3 },
-     { 0x0c, 0x41, KEY_4 },
-     { 0x04, 0x43, KEY_5 },
-     { 0x0b, 0x7f, KEY_6 },
-     { 0x01, 0x7d, KEY_7 },
-     { 0x0e, 0x41, KEY_8 },
-     { 0x06, 0x43, KEY_9 },
-     { 0x02, 0x42, KEY_0 },
-     { 0x0f, 0x71, KEY_HOME },
-     { 0x07, 0x73, KEY_MENU }, /* DVD Menu */
-     { 0x08, 0x4f, KEY_SUBTITLE },
-     { 0x03, 0x72, KEY_TEXT }, /* Teletext */
-     { 0x0c, 0x4e, KEY_DELETE },
-     { 0x04, 0x4c, KEY_TV },
-     { 0x0b, 0x70, KEY_DVD },
-     { 0x0e, 0x4e, KEY_VIDEO },
-     { 0x06, 0x4c, KEY_AUDIO }, /* Music */
-     { 0x09, 0x700, KEY_SCREEN }, /* Pic */
-     { 0x00, 0x7d, KEY_UP },
-     { 0x0f, 0x41, KEY_LEFT },
-     { 0x07, 0x43, KEY_OK },
-     { 0x08, 0x7f, KEY_RIGHT },
-     { 0x03, 0x42, KEY_DOWN },
-     { 0x0a, 0x40, KEY_EPG },
-     { 0x04, 0x7c, KEY_INFO },
-     { 0x0d, 0x71, KEY_BACK },
-     { 0x02, 0x7d, KEY_VOLUMEUP },
-     { 0x05, 0x43, KEY_VOLUMEDOWN },
-     { 0x02, 0x4d, KEY_PLAY },
-     { 0x0d, 0x41, KEY_MUTE },
-     { 0x09, 0x40, KEY_CHANNELUP },
-     { 0x0a, 0x7f, KEY_CHANNELDOWN },
-     { 0x0b, 0x40, KEY_RED },
-     { 0x01, 0x42, KEY_GREEN },
-     { 0x0e, 0x7e, KEY_YELLOW },
-     { 0x06, 0x7c, KEY_BLUE },
-     { 0x01, 0x4d, KEY_RECORD },
-     { 0x01, 0x72, KEY_STOP },
-     { 0x00, 0x4d, KEY_PAUSE },
-     { 0x03, 0x4d, KEY_LAST },
-     { 0x05, 0x73, KEY_REWIND },
-     { 0x0a, 0x4f, KEY_FASTFORWARD },
-     { 0x02, 0x72, KEY_NEXT }
-};
+-- dmesg output --
+usb 2-5: new high speed USB device using ehci_hcd and address 5
+usb 2-5: configuration #1 chosen from 1 choice
+em28xx v4l2 driver version 0.0.1 loaded
+em28xx: new video device (eb1a:e305): interface 0, class 255
+em28xx: device is attached to a USB 2.0 bus
+em28xx #0: Alternate settings: 8
+em28xx #0: Alternate setting 0, max size= 0
+em28xx #0: Alternate setting 1, max size= 0
+em28xx #0: Alternate setting 2, max size= 1448
+em28xx #0: Alternate setting 3, max size= 2048
+em28xx #0: Alternate setting 4, max size= 2304
+em28xx #0: Alternate setting 5, max size= 2580
+em28xx #0: Alternate setting 6, max size= 2892
+em28xx #0: Alternate setting 7, max size= 3072
+attach_inform: tvp5150 detected.
+tvp5150 1-005c: tvp5150am1 detected.
+successfully attached tuner
+em28xx #0: V4L2 VBI device registered as /dev/vbi0
+em28xx #0: V4L2 device registered as /dev/video0
+em28xx #0: Found KWorld DVB-T 305U
+usbcore: registered new interface driver em28xx
+em2880-dvb.c: DVB Init
+em2880-dvb.c: unsupported device
+Em28xx: Initialized (Em2880 DVB Extension) extension
+tvp5150 1-005c: tvp5150am1 detected.
+Em28xx: Removed (Em2880 DVB Extension) extension
+usbcore: deregistering interface driver em28xx
+em28xx #0: disconnecting em28xx#0 video
+em28xx #0: V4L2 VIDEO devices /dev/video0 deregistered
+em28xx #0: V4L2 VBI devices /dev/vbi0 deregistered
 
 _______________________________________________
 linux-dvb mailing list
