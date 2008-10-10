@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m92HQV6b025131
-	for <video4linux-list@redhat.com>; Thu, 2 Oct 2008 13:26:31 -0400
-Received: from eldar.vidconference.de (dns.vs-node5.de [87.106.133.120])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m92HQQ5q004090
-	for <video4linux-list@redhat.com>; Thu, 2 Oct 2008 13:26:27 -0400
-Date: Thu, 2 Oct 2008 19:26:23 +0200
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Message-ID: <20081002172623.GC28699@vidsoft.de>
-References: <48CE4B24.30902@hhs.nl>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="MGYHOYXEY6WxJCY8"
-Content-Disposition: inline
-In-Reply-To: <48CE4B24.30902@hhs.nl>
-From: Gregor Jasny <jasny@vidsoft.de>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: libv4l release: 0.5.0
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9ACBBUH001515
+	for <video4linux-list@redhat.com>; Fri, 10 Oct 2008 08:11:11 -0400
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.187])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9AC9YSi026621
+	for <video4linux-list@redhat.com>; Fri, 10 Oct 2008 08:09:35 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so245343nfc.21
+	for <video4linux-list@redhat.com>; Fri, 10 Oct 2008 05:09:34 -0700 (PDT)
+From: "luisan82@gmail.com" <luisan82@gmail.com>
+To: linux-dvb@linuxtv.org, video4linux-list@redhat.com
+Date: Fri, 10 Oct 2008 14:09:08 +0200
+Message-Id: <1223640548.5171.64.camel@luis>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: analize ASI with dvbnoop and dektec 140
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,75 +27,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+I've been trying to analyze a ts with dvbsnoop through an ASI input
+unsuccessfully.
+When I execute dvbsnoop, it tries to read from a location (/dev/dvb/...)
+wich doesn't exists.
 
---MGYHOYXEY6WxJCY8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+# dvbsnoop -s pidscan
+dvbsnoop V1.4.52 -- http://dvbsnoop.sourceforge.net/ 
 
-Hi,
+---------------------------------------------------------
+Transponder PID-Scan...
+---------------------------------------------------------
+Error(2): /dev/dvb/adapter0/dvr0: No such file or directory
 
-attached you'll find a patch to not link the wrapper libs against
-libphread.
+My /dev contains the following:
 
-Thanks,
-Gregor
+bus/        Dta1xx1     Dta1xx5     Dta1xx9     loop/       pts/
+disk/       Dta1xx2     Dta1xx6     fd/         MAKEDEV     shm/
+dri/        Dta1xx3     Dta1xx7     .initramfs/ mapper/     .static/
+Dta1xx0     Dta1xx4     Dta1xx8     input/      net/        .udev/
 
---MGYHOYXEY6WxJCY8
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment;
-	filename="dont-link-wrappers-against-libpthread.diff"
+Dektec commands are located at: /home/optiva/DTA1xx/LinuxSDK_feb08/
 
-diff -r 10a002640754 v4l2-apps/lib/libv4l/libv4l1/Makefile
---- a/v4l2-apps/lib/libv4l/libv4l1/Makefile	Mon Sep 15 13:48:21 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/libv4l1/Makefile	Thu Oct 02 18:45:27 2008 +0200
-@@ -3,7 +3,7 @@ CFLAGS := -g -O1
- CFLAGS := -g -O1
- CFLAGS += -Wall -Wno-unused -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes
- 
--LIBS = -lpthread
-+LIBS_libv4l1  = -lpthread
- 
- V4L1_OBJS     = libv4l1.o log.o
- V4L1COMPAT    = v4l1compat.so
-@@ -75,7 +75,7 @@ clean::
- 	$(CC) -c -MMD $(CPPFLAGS) $(CFLAGS) -o $@ $<
- 
- %.so:
--	$(CC) -shared $(LDFLAGS) -Wl,-soname,$@.$(LIB_RELEASE) -o $@.$(LIB_RELEASE) $^ $(LIBS)
-+	$(CC) -shared $(LDFLAGS) -Wl,-soname,$@.$(LIB_RELEASE) -o $@.$(LIB_RELEASE) $^ $(LIBS_$*)
- 	ln -f -s $@.$(LIB_RELEASE) $@
- 
- %.a:
-diff -r 10a002640754 v4l2-apps/lib/libv4l/libv4l2/Makefile
---- a/v4l2-apps/lib/libv4l/libv4l2/Makefile	Mon Sep 15 13:48:21 2008 +0200
-+++ b/v4l2-apps/lib/libv4l/libv4l2/Makefile	Thu Oct 02 18:44:24 2008 +0200
-@@ -3,7 +3,7 @@ CFLAGS := -g -O1
- CFLAGS := -g -O1
- CFLAGS += -Wall -Wno-unused -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes
- 
--LIBS = -lpthread
-+LIBS_libv4l2  = -lpthread
- 
- V4L2_OBJS     = libv4l2.o log.o
- V4L2CONVERT   = v4l2convert.so
-@@ -74,7 +74,7 @@ clean::
- 	$(CC) -c -MMD $(CPPFLAGS) $(CFLAGS) -o $@ $<
- 
- %.so:
--	$(CC) -shared $(LDFLAGS) -Wl,-soname,$@.$(LIB_RELEASE) -o $@.$(LIB_RELEASE) $^ $(LIBS)
-+	$(CC) -shared $(LDFLAGS) -Wl,-soname,$@.$(LIB_RELEASE) -o $@.$(LIB_RELEASE) $^ $(LIBS_$*)
- 	ln -f -s $@.$(LIB_RELEASE) $@
- 
- %.a:
+Dta1xx/    Dta1xxNw/  DTAPI/     DtPlay/    DtRecord/  DtRmxUtil/
+Dtu2xx/
 
---MGYHOYXEY6WxJCY8
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I think may be two alternatives to solve this (at least). First one and
+cleaner is to have drivers and dektec software installed as must, that
+is drivers at /dev/dvb and software at /usr (included in the path). The
+other way could be use the dvb options to select the appropriate device,
+but I've no idea how to use it.
 
+ -demux device: demux device [/dev/dvb/adapter0/demux0]
+   -dvr device:   dvr device [/dev/dvb/adapter0/dvr0]
+   -frontend device: frontend   device [/dev/dvb/adapter0/frontend0]
+   -adapter n:    select dvb adapter/card no. <n> using default path
+   -devnr n:      select device no. <n> using default dvb adapter/card
+ 
+Thanks in advance,
+
+Luis Martinez
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---MGYHOYXEY6WxJCY8--
