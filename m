@@ -1,20 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+Received: from relay-pt2.poste.it ([62.241.5.253])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1KsnjR-0005rk-CV
-	for linux-dvb@linuxtv.org; Thu, 23 Oct 2008 02:07:19 +0200
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: ajurik@quick.cz,
- linux-dvb@linuxtv.org
-Date: Thu, 23 Oct 2008 03:07:05 +0300
-References: <200810091507.50544.ajurik@quick.cz>
-	<E1Knvg5-000LDW-00.goga777-bk-ru@f141.mail.ru>
-	<200810091547.31992.ajurik@quick.cz>
-In-Reply-To: <200810091547.31992.ajurik@quick.cz>
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KoHNt-0008WV-GS
+	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 14:46:23 +0200
+Received: from geppetto.reilabs.com (212.123.91.176) by relay-pt2.poste.it
+	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
+	id 48EE8D3E00006B86 for linux-dvb@linuxtv.org;
+	Fri, 10 Oct 2008 14:46:16 +0200
+Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KoHMw-0007yU-TP
+	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 14:45:22 +0200
+Date: Fri, 10 Oct 2008 14:45:22 +0200
+From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
+To: linux-dvb Mailing List <linux-dvb@linuxtv.org>
+Message-ID: <20081010124522.GA30145@geppetto>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200810230307.05903.liplianin@tut.by>
-Subject: Re: [linux-dvb] [vdr] stb0899 and tt s2-3200
+Subject: [linux-dvb] Module modprobing problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,52 +24,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gOSDPy9TRwtLRIDIwMDgsIGxpbnV4LWR2YkBsaW51eHR2Lm9yZywgR29nYTc3NyA8Z29nYTc3
-N0Biay5ydT4gd3JvdGU6Cj4gT24gVGh1cnNkYXkgMDkgb2YgT2N0b2JlciAyMDA4LCBHb2dhNzc3
-IHdyb3RlOgo+ID4gPiA+ID4gPiBpdCdzIG5vdCB3b3JraW5nIHdpdGggU1IgMzAwMDAgRkVDIDMv
-NCBkdmItczIgOFBTSywgc3RpbGwgdGhlCj4gPiA+ID4gPiA+IHNhbWUgcHJvYmxlbS4KPiA+ID4g
-PiA+ID4KPiA+ID4gPiA+ID4ga2luZCByZWdhcmRzCj4gPiA+ID4gPiA+Cj4gPiA+ID4gPiA+IE5l
-d3N5Cj4gPiA+ID4gPgo+ID4gPiA+ID4gSXQgc2VlbXMgdGhhdCBwYXRjaCBmcm9tCj4gPiA+ID4g
-PiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL3BpcGVybWFpbC9saW51eC1kdmIvMjAwOC1KdWx5LzAy
-NzI2NC5odG1sIGlzCj4gPiA+ID4gPiBub3QgYXBwbGllZC4gVGhlIGludGVybmFsIFBMTCBtdXN0
-IGJlIGRpc2FibGVkIHdoZW4gc2V0dGluZyBuZXcKPiA+ID4gPiA+IGZyZXF1ZW5jeSBhcyBpcyB3
-cml0dGVuIGluIHN0YjYxMDAgZG9jdW1lbnRhdGlvbi4KPiA+ID4gPgo+ID4gPiA+IGhhcyB5b3Vy
-IEp1bHktcGF0Y2ggYW55IHJlbGF0aW9uIHdpdGggc3RiMDg5OSBwYXRjaGVzIGZyb20gQWxleCBC
-ZXRpcwo+ID4gPiA+ID8KPiA+ID4gPgo+ID4gPiA+IGh0dHA6Ly93d3cubGludXh0di5vcmcvcGlw
-ZXJtYWlsL2xpbnV4LWR2Yi8yMDA4LU9jdG9iZXIvMDI5NDU1Lmh0bWwKPiA+ID4gPiBodHRwOi8v
-d3d3LmxpbnV4dHYub3JnL3BpcGVybWFpbC9saW51eC1kdmIvMjAwOC1TZXB0ZW1iZXIvMDI5MzYx
-Lmh0bWwKPiA+ID4gPgo+ID4gPiA+IEdvZ2EKPiA+ID4KPiA+ID4gSSBkb24ndCB0aGluayBzbyBh
-cyBBbGV4J3MgcGF0Y2hlcyBhcmUgZm9yIGRlbW9kdWxhdG9yIChzdGIwODk5KSBidXQgbXkKPiA+
-ID4gd2FzIGZvciB0dW5lciAoc3RiNjEwMCkuCj4gPiA+Cj4gPiA+IFJlZ2FyZGluZyBzdGI2MTAw
-IGRvYyB0aGUgdHVuaW5nIHByb2NlZHVyZSBzaG91bGQgYmU6Cj4gPiA+IDEuIERpc2FibGUgUExM
-IChMUEVOX0xQRU4pCj4gPiA+IDIuIFNldC11cCB0aGUgdHVuZXIKPiA+ID4gMy4gU3RhcnQgUExM
-Cj4gPiA+IDQuIFN0YXJ0IFZDTyBzZWFyY2gKPiA+ID4gNS4gV2FpdCBmb3IgNSBtcwo+ID4gPiA2
-LiBEaXNhYmxlIFZDTyBzZWFyY2gsIHR1cm4gb2ZmIFZDTyBzZWFyY2ggY2xvY2sgYW5kIGRpc2Fi
-bGUgTFBGIEJXCj4gPiA+IGNsb2NrCj4gPiA+Cj4gPiA+IFRoZSBzdGVwcyAxLTUgc2hvdWxkIGJl
-IGRvbmUgaW4gNSBzdGVwcyAobm90IGxlc3MpIGFuZCBhcyBJIHJlbWViZXIKPiA+ID4gSSd2ZSBn
-b3QgYmV0dGVyIHJlc3VsdCB3aGVuIGluc2VydGluZyBzbWFsbCBkZWxheSBiZXR3ZWVuIHN0ZXBz
-IDEgYW5kIDIKPiA+ID4gYW5kIHRoZSBkZWxheSBmcm9tIHN0ZXAgNSB3YXMgc2V0IHRvIDEwbXMu
-IEluIHN0YjYxMDAuYyBhcmUgc3RlcHMgMSBhbmQKPiA+ID4gMiBkb25lIHRvZ2V0aGVyIHdpdGhp
-biAxIHdyaXRlIHRvIHN0YjYxMDAgcmVnaXN0ZXJzIGFuZCB0aGlzIHNlZW1zIHRvCj4gPiA+IGJl
-IG5vdCBvcHRpbWFsIGZvciBzb21lIG1vZHVsYXRpb25zLgo+ID4KPiA+IHRoYXQncyB3aHkgVFQz
-MjAwIG93bmVycyBoYXZlIHRvIHRyeSBib3RoIHBhdGNoZXMgdG9nZXRoZXIgLSBmcm9tIHlvdSBh
-bmQKPiA+IGZyb20gQWxleCBCZXRpcyA/IGlzIGl0IGNvcnJlY3QgPwo+ID4KPiA+IEdvZ2EKPgo+
-IFllcywgSSB0aGluayBzbywgYnV0IG5vdyBJJ20gbm90IGFibGUgdG8gdGVzdCBpdCBhcyBJIGRv
-bid0IGhhdmUgdGhlIFRUCj4gUzItMzIwMCBtb3JlIGluIG15IFBDLiBJZiBub2JvZHkgd2lsbCBi
-ZSBhYmxlIHRvIHRlc3QgaXQgSSdsbCB0cnkgdG8gZG8gaXQKPiB0aGlzIHdlZWtlbmQuCj4KPiBS
-ZWdhcmRzLAo+Cj4gQWxlcwo+Cj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KPiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4gbGludXgtZHZiQGxpbnV4dHYu
-b3JnCj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGlu
-dXgtZHZiCkhpIEFsZXMKCkkgKHdlIGFsbCkgbmVlZCB5b3VyIHNpZ25lZC1vZmYtYnkgbGluZSBs
-aWtlIHRoaXM6CgpTaWduZWQtb2ZmLWJ5OiBZb3VyIE5hbWUgSGVyZSA8eW91ciBlLW1haWwgaGVy
-ZT4KCkl0IGlzIG5lY2Vzc2FyeSBmb3IgZnV0dXJlIGNvbW1pdCB0byB2NGwtZHZiIChhbmQga2Vy
-bmVsKSB0cmVlCgpJIHRlc3RlZCB5b3VyIHBhdGNoIGFuZCBmb3VuZCBpdCB2ZXJ5IHVzZWZ1bCwg
-c28gdGhhbmsgeW91IQoKSWdvcgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcK
-aHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+Hi all,
+
+I'm trying the latest v4l-dvb mercurial and this is the output I get:
+
+stefano@geppetto ~> sudo modprobe dib7000m -v
+insmod /lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dibx000_common.ko 
+WARNING: Error inserting dibx000_common (/lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dibx000_common.ko): Invalid module format
+insmod /lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dib7000m.ko 
+FATAL: Error inserting dib7000m (/lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dib7000m.ko): Invalid module format
+
+stefano@geppetto ~> uname -a
+Linux geppetto 2.6.22-3-486 #1 Mon Nov 12 07:53:08 UTC 2007 i686 GNU/Linux
+
+I get in dmesg:
+dibx000_common: disagrees about version of symbol struct_module
+dib7000m: disagrees about version of symbol struct_module
+
+Any hint will be highly appreciated.
+
+Regards.
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
