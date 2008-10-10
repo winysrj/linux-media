@@ -1,28 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail2.m00h.eu ([83.246.72.85])
+Received: from mail.ukfsn.org ([77.75.108.10])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christian@heidingsfelder.eu>) id 1KpOmm-0000h0-KF
-	for linux-dvb@linuxtv.org; Mon, 13 Oct 2008 16:52:42 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by mail2.m00h.eu (Postfix) with ESMTP id 76EF7F16EA5D
-	for <linux-dvb@linuxtv.org>; Mon, 13 Oct 2008 16:52:36 +0200 (CEST)
-Received: from mail2.m00h.eu ([127.0.0.1])
-	by localhost (mail2.m00h.eu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id FYnmBhwtjhza for <linux-dvb@linuxtv.org>;
-	Mon, 13 Oct 2008 16:52:33 +0200 (CEST)
-Received: from [192.168.2.50] (dummy.nutze-deinen-tag.de [80.152.217.184])
-	(Authenticated sender: christian@heidingsfelder.eu)
-	by mail2.m00h.eu (Postfix) with ESMTPA id 6CD60F16EA5C
-	for <linux-dvb@linuxtv.org>; Mon, 13 Oct 2008 16:52:33 +0200 (CEST)
-Message-ID: <48F360B1.7070705@heidingsfelder.eu>
-Date: Mon, 13 Oct 2008 16:52:33 +0200
-From: "Christian Heidingsfelder [Heidingsfelder + Partner]"
-	<christian@heidingsfelder.eu>
-MIME-Version: 1.0
+	(envelope-from <mail@thedesignshop.biz>) id 1KoGD2-0002zr-0U
+	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 13:31:07 +0200
+Received: from localhost (smtp-filter.ukfsn.org [192.168.54.205])
+	by mail.ukfsn.org (Postfix) with ESMTP id 09AB2DF35E
+	for <linux-dvb@linuxtv.org>; Fri, 10 Oct 2008 12:31:02 +0100 (BST)
+Received: from mail.ukfsn.org ([192.168.54.25])
+	by localhost (smtp-filter.ukfsn.org [192.168.54.205]) (amavisd-new,
+	port 10024) with ESMTP id yB1rtaAydzxX for <linux-dvb@linuxtv.org>;
+	Fri, 10 Oct 2008 12:28:59 +0100 (BST)
+Received: from [10.0.1.2] (unknown [87.127.119.158])
+	by mail.ukfsn.org (Postfix) with ESMTP id CCA40DF348
+	for <linux-dvb@linuxtv.org>; Fri, 10 Oct 2008 12:31:01 +0100 (BST)
+Mime-Version: 1.0 (Apple Message framework v753.1)
+Message-Id: <C2BB3D74-2181-4019-9BA3-128805A25931@thedesignshop.biz>
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------050805050707020402090305"
-Subject: [linux-dvb] Technotrend TT-Connect S2-3650 CI
-Reply-To: christian@heidingsfelder.eu
+From: Public Email <mail@thedesignshop.biz>
+Date: Fri, 10 Oct 2008 12:30:58 +0100
+Subject: [linux-dvb] Nova-T-500 Remote & dvb-usb-dib0700-1.20.fw
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,103 +26,33 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------050805050707020402090305
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Hi. I have just updated to the new firmware and updated the v4l-dvb  
+drivers, installed the new modules and done a cold boot.
 
-Hi all,
+Everything is working nicely except for the remote. Pressing any key  
+once results in constant key repeats. Killing lircd and restarting it  
+doesn't stop them (it just carries on repeating the key that was  
+pressed before killing lircd). It isn't the remote as removing the  
+battery has no effect.
 
-again, if somebody is
-working on
-or interested in
-that DVB-S USB Reciever with Card Interface he can msg me for=20
-informations or whatever :- )
+It all worked fine with dvb-usb-dib0700-1.10.fw
 
-Regards Chris
+Also dmesg is still being flooded with "dib0700: Unknown remote  
+controller key:" with both firmwares and the latest drivers and there  
+are several "dtv_property_cache_sync()" appearing every 5 mins too.
 
---=20
-Mit freundlichen Gr=FC=DFen
-Christian Heidingsfelder
- =20
-+---------------------------------+--------------------------------+
-| Heidingsfelder + Partner        | Heidingsfelder + Partner       |
-|                                 | Tel: +49 7577 933864           |
-| Kirchgasse 9                    | Fax: +49 7577 933863           |
-| 72474 Winterlingen-Benzingen    | christian@heidingsfelder.eu    |
-| DE                              |                                |
-|                                 |                                |
-+---------------------------------+--------------------------------+
+I am using gentoo with 2.6.24-tuxonice-r9 kernel.
 
-***********************************
-Diese eMailadresse ist keine Zustelladresse.
-Aus technischen Gruenden kann ich Ihre eMail nicht sofort nach=20
-Eingang darauf =FCberpruefen, ob sie Fristen oder Termine enthaelt.=20
-Daher uebernehme ich keine Gewaehr, da=DF Ihre Nachricht so=20
-rechtzeitig gelesen wird, da=DF alle zur Einhaltung von etwaigen=20
-Fristen oder Terminen notwendigen Massnahmen ergriffen werden=20
-koennen.=20
-Bitte uebermitteln Sie solche Schriftstuecke per Fax oder Brief an=20
-die weiter obenstehende Anschrift.
-***********************************
-Hiermit widerspreche ich ausdruecklich jeglicher Nutzung oder=20
-Uebermittlung meiner Daten, gleichgueltig, zu welchen Zwecken oder=20
-an welchen Empfaenger sie erfolgt. Insbesondere widerspreche ich=20
-der Nutzung oder Uebermittlung meiner Daten fuer Werbe, Markt-=20
-oder Meinungsforschungszwecken gemaess=20
-=A7 28 Absatz 3 Bundesdatenschutzgesetz.
-***********************************
-Sicherheitshinweis:
-Wie Sie wissen, k=F6nnen eMails missbr=E4uchlich unter fremden Namen=20
-erstellt oder ver=E4ndert werden. Aus diesem Grunde bitte ich um=20
-Verst=E4ndnis daf=FCr, da=DF ich zu Ihrem und meinem Schutz die=20
-rechtliche Verbindlichkeit der in dieser eMail gemachten=20
-Erkl=E4rungen ausschliessen mu=DF. Diese Regelung gilt nur dann nicht,=20
-wenn ich mit Ihnen eine anderweitige schriftliche Vereinbarung=20
-=FCber die Einhaltung von Sicherheits- und=20
-Verschl=FCsselungstandards getroffen habe.
-***********************************
-
-Si forte in alienas manus oberraverit hec peregrina epistola=20
-incertis ventis dimissa, sed Deo commendata, precamur ut ei=20
-reddatur cui soli destinata, nec preripiat quisquam non sibi=20
-parata.
-
-
---------------050805050707020402090305
-Content-Type: text/x-vcard; charset=utf-8;
- name="christian.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="christian.vcf"
-
-begin:vcard
-fn:Christian Heidingsfelder [Heidingsfelder + Partner]
-n:Heidingsfelder;Christian
-org:Heidingsfelder + Partner
-adr:;;Kirchgasse 9;Winterlingen-Benzingen;BW;72474;Deutschland
-email;internet:christian@heidigsfelder.eu
-title:CEO
-tel;work:+49 7577 933 864
-tel;fax:+49 7577 933 863
-tel;home:+49 7577 933 862
-x-mozilla-html:TRUE
-version:2.1
-end:vcard
-
-
---------------050805050707020402090305
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks
+Alex
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------050805050707020402090305--
