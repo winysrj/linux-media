@@ -1,29 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9FAqgOn019809
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 06:52:42 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9FApsSn019427
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 06:51:54 -0400
-Date: Wed, 15 Oct 2008 12:52:00 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Magnus Damm <magnus.damm@gmail.com>
-In-Reply-To: <aec7e5c30810150155q244834c0i65b2f3b927ba2d37@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0810151247230.5361@axis700.grange>
-References: <20081014183936.GB4710@cs181140183.pp.htv.fi>
-	<Pine.LNX.4.64.0810142335400.10458@axis700.grange>
-	<20081015033303.GC4710@cs181140183.pp.htv.fi>
-	<20081015052026.GC20183@cs181140183.pp.htv.fi>
-	<aec7e5c30810142328n1563163bw636b8baf1a47ad8b@mail.gmail.com>
-	<Pine.LNX.4.64.0810150836100.3896@axis700.grange>
-	<aec7e5c30810150103p7ed810ccyc815ad578d64feac@mail.gmail.com>
-	<Pine.LNX.4.64.0810151011450.3896@axis700.grange>
-	<aec7e5c30810150155q244834c0i65b2f3b927ba2d37@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9BLQB4p014212
+	for <video4linux-list@redhat.com>; Sat, 11 Oct 2008 17:26:11 -0400
+Received: from icweb02oc.mail2world.com (icweb02oc.mail2world.com
+	[209.67.128.184])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9BLPu2L007099
+	for <video4linux-list@redhat.com>; Sat, 11 Oct 2008 17:25:56 -0400
+From: "peter helldog" <k1ngf1sher@mail2atom.com>
+To: <video4linux-list@redhat.com>
+Date: Sat, 11 Oct 2008 14:25:16 -0700
+Message-ID: <0e8e01c92be7$db05f410$026a010a@mail2world.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, lethal@linux-sh.org
-Subject: [PATCH v2] soc-camera: fix compile breakage on SH
+Content-Class: urn:content-classes:message
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Subject: Card 153b:1177
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,117 +27,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Fix Migo-R compile breakage caused by incomplete merge. Also remove 
-redundant soc_camera_platform_info struct definition from 
-drivers/media/video/soc_camera_platform.c
+How are things with this card???
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Tested-by: Magnus Damm <damm@igel.co.jp>
+Card 153b:1177
 
----
+00:0b.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video
+and Audio Decoder (rev 05)
+00:0b.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and
+Audio Decoder [Audio Port] (rev 05)
+00:0b.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and
+Audio Decoder [MPEG Port] (rev 05)
 
-Paul, Mauro, as this patch closes a compile-breakage, I'd like to get it 
-upstream asap. What would be the fastest way: get your both Acked-by and 
-send it directly to Andrew / Linus, or an Acked-by from one of you and 
-let the other one merge (you can decide who does what:-)) Splitting it 
-into two patches and merging separately seems suboptimal to me in this 
-case.
+00:0b.0 "Multimedia video controller" "Conexant" "CX23880/1/2/3 PCI
+Video and Audio Decoder" -r05 "TERRATEC Electronic GmbH" "Unknown device
+1177"
+00:0b.1 "Multimedia controller" "Conexant" "CX23880/1/2/3 PCI Video and
+Audio Decoder [Audio Port]" -r05 "TERRATEC Electronic GmbH" "Unknown
+device 1177"
+00:0b.2 "Multimedia controller" "Conexant" "CX23880/1/2/3 PCI Video and
+Audio Decoder [MPEG Port]" -r05 "TERRATEC Electronic GmbH" "Unknown
+device 1177
 
-Thanks
-Guennadi
+greets 
+k1ngf1sher 
 
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index 714dce9..95459f3 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -312,6 +312,14 @@ static void camera_power_off(void)
- 	ctrl_outb(ctrl_inb(PORT_PTDR) & ~0x08, PORT_PTDR);
- }
- 
-+static void camera_power(int mode)
-+{
-+	if (mode)
-+		camera_power_on();
-+	else
-+		camera_power_off();
-+}
-+
- #ifdef CONFIG_I2C
- static unsigned char camera_ov772x_magic[] =
- {
-@@ -391,6 +399,7 @@ static struct soc_camera_platform_info ov772x_info = {
- 	},
- 	.bus_param =  SOCAM_PCLK_SAMPLE_RISING | SOCAM_HSYNC_ACTIVE_HIGH |
- 	SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_MASTER | SOCAM_DATAWIDTH_8,
-+	.power = camera_power,
- 	.set_capture = ov772x_set_capture,
- };
- 
-@@ -405,8 +414,6 @@ static struct platform_device migor_camera_device = {
- static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
- 	.flags = SOCAM_MASTER | SOCAM_DATAWIDTH_8 | SOCAM_PCLK_SAMPLE_RISING \
- 	| SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH,
--	.enable_camera = camera_power_on,
--	.disable_camera = camera_power_off,
- };
- 
- static struct resource migor_ceu_resources[] = {
-diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
-index 1adc257..bb7a9d4 100644
---- a/drivers/media/video/soc_camera_platform.c
-+++ b/drivers/media/video/soc_camera_platform.c
-@@ -18,15 +18,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-common.h>
- #include <media/soc_camera.h>
--
--struct soc_camera_platform_info {
--	int iface;
--	char *format_name;
--	unsigned long format_depth;
--	struct v4l2_pix_format format;
--	unsigned long bus_param;
--	int (*set_capture)(struct soc_camera_platform_info *info, int enable);
--};
-+#include <media/soc_camera_platform.h>
- 
- struct soc_camera_platform_priv {
- 	struct soc_camera_platform_info *info;
-@@ -44,11 +36,21 @@ soc_camera_platform_get_info(struct soc_camera_device *icd)
- 
- static int soc_camera_platform_init(struct soc_camera_device *icd)
- {
-+	struct soc_camera_platform_info *p = soc_camera_platform_get_info(icd);
-+
-+	if (p->power)
-+		p->power(1);
-+
- 	return 0;
- }
- 
- static int soc_camera_platform_release(struct soc_camera_device *icd)
- {
-+	struct soc_camera_platform_info *p = soc_camera_platform_get_info(icd);
-+
-+	if (p->power)
-+		p->power(0);
-+
- 	return 0;
- }
- 
-diff --git a/include/media/soc_camera_platform.h b/include/media/soc_camera_platform.h
-index 851f182..7c81ad3 100644
---- a/include/media/soc_camera_platform.h
-+++ b/include/media/soc_camera_platform.h
-@@ -9,6 +9,7 @@ struct soc_camera_platform_info {
- 	unsigned long format_depth;
- 	struct v4l2_pix_format format;
- 	unsigned long bus_param;
-+	void (*power)(int);
- 	int (*set_capture)(struct soc_camera_platform_info *info, int enable);
- };
- 
 
+<span id=m2wTl><p><font face="Arial, Helvetica, sans-serif" size="2" style="font-size:13.5px">_______________________________________________________________<BR>Get the Free email that has everyone talking at <a href=http://www.mail2world.com target=new>http://www.mail2world.com</a><br>  <font color=#999999>Unlimited Email Storage &#150; POP3 &#150; Calendar &#150; SMS &#150; Translator &#150; Much More!</font></font></span>
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
