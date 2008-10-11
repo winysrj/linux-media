@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.175])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bokola@gmail.com>) id 1KuUtO-0004ka-VL
-	for linux-dvb@linuxtv.org; Mon, 27 Oct 2008 17:24:36 +0100
-Received: by wf-out-1314.google.com with SMTP id 27so2309524wfd.17
-	for <linux-dvb@linuxtv.org>; Mon, 27 Oct 2008 09:24:29 -0700 (PDT)
-Message-ID: <854d46170810270924r43304f49o98fff08ea7049372@mail.gmail.com>
-Date: Mon, 27 Oct 2008 17:24:27 +0100
-From: "Faruk A" <fa@elwak.com>
-To: Bitte_antworten@will-hier-weg.de
-In-Reply-To: <20081027140211.168320@gmx.net>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1KoeTX-0003nU-VN
+	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 15:25:47 +0200
+Date: Sat, 11 Oct 2008 15:25:17 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <20081011110130.2d917eb3@bk.ru>
+Message-ID: <20081011132517.175440@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20081025141920.87960@gmx.net> <200810251712.00078.dkuhlen@gmx.net>
-	<20081027140211.168320@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cinergyT2 renamed drivers (was Re: stb0899 drivers)
+References: <48ED0023.8050901@promwad.com>
+	<200810090000.25621.liplianin@tut.by>	<20081011021209.99720@gmx.net>
+	<20081011110130.2d917eb3@bk.ru>
+To: Goga777 <goga777@bk.ru>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] stb0899 and tt s2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,40 +20,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Mon, Oct 27, 2008 at 3:02 PM,  <Bitte_antworten@will-hier-weg.de> wrote:
-> Thanks Dominik, I found it out yesterday. The CinergyT2 is working fine now, but it is nearly impossible to use the PCTV452e with (an unmodified) kaffeine. It simply doesn't lock in more than 90% of my tests. The only channel that works sometimes is "Das Erste" and the lock takes appr. 1 minute.
-> So I reverted to multiproto again which works fine (except "NDR")
-> Dirk
-
-Hi!
-
-Try this since Dominik's patch not included in Igor's repo, you should
-get faster locks on all your channels.
-
-hg clone -r 9263 http://mercurial.intuxication.org/hg/s2-liplianin
-wget http://hem.passagen.se/faruks/3650/my_s2api_pctv452e.txt
-cd s2-liplianin
-patch -p1 < ../my_s2api_pctv452e.txt
-make ; # there might be a few warnings.
-cd v4l
-insmod dvb-core.ko
-insmod stb6100.ko verbose=0
-insmod stb0899.ko verbose=0
-insmod lnbp22.ko
-insmod ttpci-eeprom.ko
-insmod dvb-usb.ko
-insmod dvb-usb-pctv452e.ko
-
-
-Faruk
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Cj4g0J/RgNC40LLQtdGC0YHRgtCy0YPRjiwgSGFucwo+IAo+ID4gLS0tLS0tLS0gT3JpZ2luYWwt
+TmFjaHJpY2h0IC0tLS0tLS0tCj4gPiA+IERhdHVtOiBUaHUsIDkgT2N0IDIwMDggMDA6MDA6MjUg
+KzAzMDAKPiA+ID4gVm9uOiAiSWdvciBNLiBMaXBsaWFuaW4iIDxsaXBsaWFuaW5AdHV0LmJ5Pgo+
+ID4gPiBBbjogbGludXgtZHZiQGxpbnV4dHYub3JnLCBTdGV2ZW4gVG90aCA8c3RvdGhAbGludXh0
+di5vcmc+LCBTdGV2ZW4KPiBUb3RoIDxzdG90aEBoYXVwcGF1Z2UuY29tPiwgRGFycm9uIEJyb2Fk
+Cj4gPiA+IDxkYXJyb25Aa2V3bC5vcmc+LCBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFp
+bC5jb20+LAo+IHZkckBsaW51eHR2Lm9yZyBCZXRyZWZmOiBbbGludXgtZHZiXSBzdGIwODk5IGFu
+ZCB0dCBzMi0zMjAwCj4gPiAKPiA+ID4gSSBzdWNjZXNzZnVsbHkgcG9ydGVkIHN0YjA4OTkgdG8g
+UzJBUEkKPiA+ID4gRm9yIGtub3cgaXQgaXMganVzdCBmb3IgdGVzdGluZyBwdXJwb3Nlcy4gRmVl
+bCBmcmVlIHRvIHRlc3QgaXQuCj4gPiA+IEFueSBmZWVkYmFjayB3ZWxjb21lLgo+ID4gPiBMb2Nr
+aW5nIGJldHRlciB3aXRoIHN6YXAtczIgKHNvcnJ5KQo+ID4gPiBJIGhhdmUgdGVzdGVkIHdpdGgg
+RFZCLVMyIDhQU0sgYW5kIERWQi1TIDI3NTAwIGtTeW1zL3MKPiA+ID4gCj4gPiA+IGh0dHA6L21l
+cmN1cmlhbC5pbnR1eGljYXRpb24ub3JnL2hnL3MyLWxpcGxpYW5pbgo+ID4gPiBodHRwOi9tZXJj
+dXJpYWwuaW50dXhpY2F0aW9uLm9yZy9oZy9zemFwLXMyCj4gPiA+IAo+ID4gPiAtLSAKPiA+ID4g
+SWdvciBNLiBMaXBsaWFuaW4KPiA+ID4gCj4gPiAKPiA+IElnb3IsCj4gPiAKPiA+IHRoZSBhdHRh
+Y2hlZCBwYXRjaCAoYWdhaW5zdAo+IGh0dHA6Ly9tZXJjdXJpYWwuaW50dXhpY2F0aW9uLm9yZy9o
+Zy9zMi1saXBsaWFuaW4pCj4gPiBhZGRzIFMyQVBJIHN1cHBvcnQgZm9yIHRoZSBTVEIwODk5K01h
+bnRpcyBiYXNlZCBjYXJkcyBzdWNoIGFzIHRoZQo+ID4gVHdpbmhhbiBWUC0xMDQxIChhbHNvIGtu
+b3duIGFzIEF6dXJld2F2ZSBBRCBTUDQwMCBvciBUZWNobmlzYXQgU2t5c3Rhcgo+IEhEMikKPiA+
+ICAKPiA+IENvdWxkIHlvdSBwbGVhc2UgYWRkIGl0IHRvIHlvdXIgczItbGlwbGlhbmluIHJlcG9z
+aXRvcnk/Cj4gPiAKPiA+IEl0IGluY2x1ZGVzIE1hbnRpcyBQQ0kgYnJpZGdlLCBDVTEyMTYgYW5k
+IEZ1aml0c3UgTUI4NkExNiBEVkItUy9EU1MgREMKPiBSZWNlaXZlciBzdXBwb3J0Lgo+ID4gCj4g
+PiBJdCBpcyB0aGUgc2FtZSBhcyB0aGUgY29kZSBmcm9tIE1hbnUgQWJyYWhhbSdzIG1hbnRpcyB0
+cmVlIGF0Cj4gaHR0cDovL2p1c3N0LmRlL2hnL21hbnRpcywKPiA+IHNvIHRoYW5rcyB0byBNYW51
+Lgo+ID4gCj4gPiBJIHRlc3RlZCB3aXRoIHRoZSBUd2luaGFuIFZQLTEwNDEuCj4gPiBDaGFubmVs
+IGxvY2tpbmcgd29ya3MgZm9yIG1lIGZvciBzb21lIChidXQgbm90IHlldCBhbGwpIGNoYW5uZWxz
+IHdpdGgKPiBLYWZmZWluZSAoUzJBUEkgcGF0Y2gpLgo+ID4gUGVyaGFwcyBpdCB3aWxsIGJlIGJl
+dHRlciB3aXRoIHlvdXIgc3phcC1zMiB3aGVuIEkgaGF2ZSB0aW1lIHRvIHRlc3QKPiB0aGF0Lgo+
+IAo+IGRpZCB5b3UgdHJ5IHRvIHVzZSBzdGIwODk5L3N0YjYxMDAgY3VtdWxhdGl2ZSBwYXRjaCBm
+cm9tIEFsZXggQmV0aXMgPwo+IGh0dHA6Ly9saW51eHR2Lm9yZy9waXBlcm1haWwvbGludXgtZHZi
+LzIwMDgtT2N0b2Jlci8wMjk2MTMuaHRtbAoKSGkgR29nYSwKCm5vLCBidXQgSSB3YXMgYXdhcmUg
+b2YgQWxleCdzIHBhdGNoIGFuZCBJIGp1c3QgbmVlZCB0byBmaW5kIHRoZSB0aW1lIHRvIGxvb2sg
+aW50byBpdC4KVGhlIHBhdGNoIEkgc2VudCBkb2VzIG5vdCBjaGFuZ2UgYW55IHN0YjA4OTkgb3Ig
+c3RiNjEwMCBjb2RlIGluIHMyLWxpcGxpYW5pbiwgaXQganVzdAphZGRzIHRoZSBtYW50aXMgY29k
+ZSB3aGljaCB3YXMgYWJzZW50LCBzbyB0aGUgc3RiMDg5OS9zdGI2MTAwIHBpZWNlcyBhcmUgbm8g
+YmV0dGVyCm9yIHdvcnNlIHRoYW4gczItbGlwbGlhbmluLgoKUmVnYXJkcywKSGFucwoKLS0gClJl
+bGVhc2UgZWFybHksIHJlbGVhc2Ugb2Z0ZW4uCgpHTVggS29zdGVubG9zZSBTcGllbGU6IEVpbmZh
+Y2ggb25saW5lIHNwaWVsZW4gdW5kIFNwYcOfIGhhYmVuIG1pdCBQYXN0cnkgUGFzc2lvbiEKaHR0
+cDovL2dhbWVzLmVudGVydGFpbm1lbnQuZ214Lm5ldC9kZS9lbnRlcnRhaW5tZW50L2dhbWVzL2Zy
+ZWUvcHV6emxlLzYxNjkxOTYKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0
+dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
