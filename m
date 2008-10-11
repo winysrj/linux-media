@@ -1,16 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from kelvin.aketzu.net ([81.22.244.161] ident=postfix)
+Received: from qmta04.emeryville.ca.mail.comcast.net ([76.96.30.40])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <akolehma@aketzu.net>) id 1KohSX-00010d-Ur
-	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 18:36:57 +0200
-Date: Sat, 11 Oct 2008 19:36:49 +0300
-From: Anssi Kolehmainen <anssi@aketzu.net>
-To: linux-dvb@linuxtv.org
-Message-ID: <20081011163649.GU15309@aketzu.net>
-MIME-Version: 1.0
-Content-Disposition: inline
-Cc: abraham.manu@gmail.com
-Subject: [linux-dvb] Mantis and CAM problems
+	(envelope-from <v4l@therussellhome.us>) id 1KoSON-0005gU-Fh
+	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 02:31:37 +0200
+Date: Fri, 10 Oct 2008 20:30:56 -0400
+From: "Chris Russell" <v4l@therussellhome.us>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+Message-ID: <20081010203056.190ab2ce@arwen.therussellhome.us>
+In-Reply-To: <d9def9db0810101606w46265c2bs1e81f7dfd2751039@mail.gmail.com>
+References: <20081009221330.3e355773@arwen.therussellhome.us>
+	<d9def9db0810091919x2aa763bey15e39e74508763e9@mail.gmail.com>
+	<20081010185825.37790e23@arwen.therussellhome.us>
+	<d9def9db0810101606w46265c2bs1e81f7dfd2751039@mail.gmail.com>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] em28xx - analog tv audio on kworld 305U
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,67 +28,66 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have Terratec Cinergy C (dvb-c, 1822:4e35) card and when I try to use CAM I
-just get TS continuity errors with vdr and cannot watch any channel. I'm using
-latest driver from jusst.de/hg/mantis and it feels rather unstable at times
-(previous versions crashed machine almost instantly with CAM...)
+On Sat, 11 Oct 2008 01:06:01 +0200
+"Markus Rechberger" <mrechberger@gmail.com> wrote:
 
-I can access CAM menu in vdr but after a while it says CAM not responding. If I
-do rmmod & modprobe mantis after that I get "dvb_ca adapter 0: Invalid PC card
-inserted :(". Removing & reattaching CAM doesn't do any better, after modprobe
-mantis everything freezes and caps+scroll lock blink on the keyboard.
+> On Sat, Oct 11, 2008 at 12:58 AM, Chris Russell <v4l@therussellhome.us> wrote:
+> > On Fri, 10 Oct 2008 04:19:31 +0200
+> > "Markus Rechberger" <mrechberger@gmail.com> wrote:
+> >
+> >> On Fri, Oct 10, 2008 at 4:13 AM, Chris Russell <v4l@therussellhome.us> wrote:
+> >> >        I have a KWorld DVB-T 305U on Gentoo using the v4l-dvb-hg
+> >> > package (live development version of v4l&dvb-driver for Kernel 2.6)
+> >> > that I updated today (03Oct08).
+> >> >
+> >> >        The analog TV looks great but I cannot get the sound to work.
+> >> > I have tried just about everything I could find searching including:
+> >> > $ arecord -D hw:1 -f dat | aplay -f dat
+> >> >        and
+> >> > $ mplayer tv:// -tv driver=v4l2:device=/dev/video0:chanlist=us-cable:alsa:adevice=hw.1,0:amode=1:audiorate=32000:forceaudio:volume=100:immediatemode=0:norm=NTSC
+> >> >        and
+> >> > $ v4lctl volume mute off; v4lctl volume 31
+> >> >        and
+> >> > even attempting a manual cat from /dev/audio1 to /dev/audio
+> >> >
+> >> > So what am I missing or is audio for the 305U not working yet?
+> >> >
+> >>
+> >> Hi,
+> >>
+> >> you need the em28xx-new code from mcentral.de in order to get audio
+> >> work with it, audio for it is still in progress but it should work
+> >> fine as long as you have attached one device only.
+> >>
+> >> Markus
+> >
+> > Thanks for the reply.  Unfortunately, I still end up with the same
+> > result.  I un-installed v4l-dvb-hg, added back v4l support in my kernel
+> > (2.6.26) and pulled down the latest em28xx-new driver (based on the
+> > sunshine overlay which pulls from
+> > http://mcentral.de/hg/~mrec/em28xx-new/).  Again, tv works but audio
+> > does not.  Did I miss something?
+> >
+> 
+> I think you have to look at em28xx-audioep.ko for this device.
+> 
+> Markus
+> 
 
-Linux 2.6.24i-1-686, Debian package
-Oct 11 19:08:18 ampere kernel: ACPI: PCI Interrupt 0000:02:09.0[A] -> Link [APC4] -> GSI 19 (level, low) -> IRQ 20
-Oct 11 19:08:18 ampere kernel: irq: 20, latency: 32
-Oct 11 19:08:18 ampere kernel:  memory: 0xdf000000, mmio: 0xf8a76000
-Oct 11 19:08:18 ampere kernel: found a VP-2040 PCI DVB-C device on (02:09.0),
-Oct 11 19:08:18 ampere kernel:     Mantis Rev 1 [153b:1178], irq: 20, latency: 32
-Oct 11 19:08:18 ampere kernel:     memory: 0xdf000000, mmio: 0xf8a76000
-Oct 11 19:08:18 ampere kernel:     MAC Address=[00:08:ca:1c:87:ea]
-Oct 11 19:08:18 ampere kernel: mantis_alloc_buffers (0): DMA=0x36c70000 cpu=0xf6c70000 size=65536
-Oct 11 19:08:18 ampere kernel: mantis_alloc_buffers (0): RISC=0x1582f000 cpu=0xd582f000 size=1000
-Oct 11 19:08:18 ampere kernel: DVB: registering new adapter (Mantis dvb adapter)
-Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): Probing for CU1216 (DVB-C)
-Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): found Philips CU1216 DVB-C frontend (TDA10023) @ 0x0c
-Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): Mantis DVB-C Philips CU1216 frontend attach success
-Oct 11 19:08:18 ampere kernel: DVB: registering frontend 0 (Philips TDA10023 DVB-C)...
-Oct 11 19:08:18 ampere kernel: mantis_ca_init (0): Registering EN50221 device
-Oct 11 19:08:18 ampere kernel: mantis_ca_init (0): Registered EN50221 device
-Oct 11 19:08:18 ampere kernel: mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
-Oct 11 19:08:22 ampere kernel: dvb_ca adapter 0: DVB CAM detected and initialised successfully
-Oct 11 19:08:27 ampere kernel: mantis start feed & dma
-Oct 11 19:08:35 ampere kernel: mantis stop feed and dma
+I loaded the em28xx-audioep module with no change.  Then I loaded the
+em28xx-audio module and again no change.  Anything else I should try?
 
-start vdr
-Oct 11 19:10:26 ampere vdr: [23112] CI adapter on device 0 thread started (pid=23108, tid=23112)
-Oct 11 19:10:26 ampere vdr: [23112] CAM 1: module present
-Oct 11 19:10:27 ampere vdr: [23108] device 1 provides: DVBC
-Oct 11 19:10:30 ampere kernel: dvb_ca adapter 0: DVB CAM detected and initialised successfully
-Oct 11 19:10:30 ampere vdr: [23112] CAM 1: module ready
-Oct 11 19:10:32 ampere vdr: [23112] CAM 1: Conax 4.00e, 01, 0B00, 04B1
-Oct 11 19:10:36 ampere vdr: [23112] CAM 1: doesn't reply to QUERY - only a single channel can be decrypted
-Oct 11 19:10:36 ampere vdr: [23108] switching to channel 1
-Oct 11 19:10:36 ampere kernel: mantis start feed & dma
-Oct 11 19:10:36 ampere vdr: [23121] transfer thread started (pid=23108, tid=23121)
-Oct 11 19:10:36 ampere vdr: [23122] receiver on device 1 thread started (pid=23108, tid=23122)
-Oct 11 19:10:36 ampere vdr: [23123] TS buffer on device 1 thread started (pid=23108, tid=23123)
-Oct 11 19:10:36 ampere kernel: dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
-Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (5)
-Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (15)
-Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (1)
-Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (6)
-Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (9)
-Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (12)
+Soli Deo Gloria,
+Chris
 
-Something like ~150 TS continuity errors per sec. Video is pretty much garbage.
-However if I remove CAM then everything works perfectly (except I can't watch
-encrypted channels).
-
--- 
-Anssi Kolehmainen
-anssi.kolehmainen@iki.fi
-040-5085390
+-- lsmod output --
+Module                  Size  Used by
+em28xx_audio            4740  0 
+em28xx_audioep          3460  0 
+em28xx_dvb             11268  0 
+tuner_xc3028            3584  1 
+tvp5150                15504  0 
+em28xx                330944  2 em28xx_audio,em28xx_dvb
 
 _______________________________________________
 linux-dvb mailing list
