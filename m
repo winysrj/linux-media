@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45])
+Received: from mail1.radix.net ([207.192.128.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1Ko65a-0003iv-Jd
-	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 02:42:44 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: klaas de waal <klaas.de.waal@gmail.com>
-In-Reply-To: <7b41dd970810091315h1433fa7du56e5754a1684019d@mail.gmail.com>
-References: <7b41dd970809290235x48f63938ic56318ba3064a71b@mail.gmail.com>
-	<c4d80f839f7e2e838b04f6c37c68d9c0@10.0.0.2>
-	<7b41dd970810091315h1433fa7du56e5754a1684019d@mail.gmail.com>
-Date: Fri, 10 Oct 2008 02:36:35 +0200
-Message-Id: <1223598995.4825.12.camel@pc10.localdom.local>
+	(envelope-from <awalls@radix.net>) id 1KokCX-00058R-L8
+	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 21:32:37 +0200
+From: Andy Walls <awalls@radix.net>
+To: mathieu.taillefumier@free.fr
+In-Reply-To: <1223741522.48f0d052c956b@webmail.free.fr>
+References: <1223741522.48f0d052c956b@webmail.free.fr>
+Date: Sat, 11 Oct 2008 15:34:05 -0400
+Message-Id: <1223753645.3125.57.camel@palomino.walls.org>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org, jerremy@wordtgek.nl
-Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] saa7134 bug in 64 bits system
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,183 +25,82 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-Am Donnerstag, den 09.10.2008, 22:15 +0200 schrieb klaas de waal:
-> Hi Jeremy,
+On Sat, 2008-10-11 at 18:12 +0200, mathieu.taillefumier@free.fr wrote:
+> Hi devs,
 > 
-> I have the Technotrend C-1501 now locking at 388MHz.
-> The table tda827xa_dvbt contains the settings for each frequency
-> segment.
-> The frequency values (first column) are for  the frequency plus the
-> IF, so for 388MHz
-> this is 388+5 gives 393 MHz. The table starts a new segment at 390MHz,
-> it then
-> starts to use VCO2 instead of VCO1.
-> I have now (hack, hack) changed the segment start from 390 to 395MHz
-> so
-> that the 388MHz is still tuned with VCO1, and this works OK!!
-> Like this:
+> I discover an annoying bug in the saa7134 module after using my tv card again.
+> The card is a cinergy ht pcmcia which works perfectly on both XP and fedora 10
+> (with a customized kernel 2.7.27-rc8) but fail to initialize the card correctly
+> on 64bits kernel (it is a lfs in this case with the same version of the kernel
+> and the same drivers for the tv card). The drivers I am using are the last
+> version of the mercurial repository. I attached the dmesg files for both 32bits
+> and 64bits (same arch).
+
+With a diff of the dmesg files, I noticed things are being detected and
+configured slightly differently.  I'm not sure that's important, but
+this one in particular caught my eye:
+
+    ACPI: LAPIC_NMI (acpi_id[0x01] high edge lint[0x1])
+   -ACPI: Skipping IOAPIC probe due to 'noapic' option.
+   +ACPI: IOAPIC (id[0x01] address[0xfec00000] gsi_base[0])
+   +IOAPIC[0]: apic_id 1, version 0, address 0xfec00000, GSI 0-23
+
+
+Any particular reason you're specifying noapic for 32 bit and not for 64
+bit?
+
+Again, I'm not sure if it's important, but if you are troubleshooting
+between 2 setups, you want to eliminate as many unknowns as possible by
+keeping things the same as much as you can.
+
+
+
+> I try to track the problem and it seems that it is coming from the init function
+> of the driver in particular the line saa_readl(SAA7134_GPIO_GPSTATUS0>>2). the
+> gpio is wrong on 64 bits. The kernel indicates gpio is ffffffff instead of gpio
+> is 0 (which is the correct value).
+
+The devices on a PCI bus return 0xffffffff when there is a PCI bus read
+error.
+
+Given the error messages from line 731 on in the dmesg-64 file, I'd say
+the PCI bus is returning a lot of PCI read errors to the driver.  To
+verify, one could probably modify the saa_readl() macro in saa7134.h to
+a static inline function that also printk()'s out what was just read.
+(Not that that will help solve the problem.)
+
+
+>  So I do not know if it is problem in the
+> drivers or if the problem is coming from the kernel itself. 
+
+I'm wagering it's a PCI bus configuration/setup problem.  (*guess*)
+
+Given that it looks like your video card is a PCMCIA/CardBus card, maybe
+something with the Yenta driver is not right. (*Wild guess*)
+
+This message, that only appeared in dmesg-64, may be of concern, since
+you're using a PCMCIA/CardBus card:
+
+   cs: pcmcia_socket0: unable to apply power.
+   pccard: CardBus card inserted into slot 0
+
+
+
+> I am willing to help
+> the devs to track down this bug so please let me know if you need some help.
+
+Those are just WAGs as to what might be wrong.  More differential
+analysis of the dmesg and dmesg-64 files may help you narrow things
+down.  I will think you'll need to expand your search beyond the saa7134
+driver messages - to me they appear to be symptoms caused by a problem
+with something else.  Good luck.  
+
+Regards,
+Andy
+
+> Regards
 > 
-> static const struct tda827xa_data tda827xa_dvbt[] = {
->     { .lomax =  56875000, .svco = 3, .spd = 4, .scr = 0, .sbs =
-> 0, .gc3 = 1},
->     { .lomax =  67250000, .svco = 0, .spd = 3, .scr = 0, .sbs =
-> 0, .gc3 = 1},
->     { .lomax =  81250000, .svco = 1, .spd = 3, .scr = 0, .sbs =
-> 0, .gc3 = 1},
->     { .lomax =  97500000, .svco = 2, .spd = 3, .scr = 0, .sbs =
-> 0, .gc3 = 1},
->     { .lomax = 113750000, .svco = 3, .spd = 3, .scr = 0, .sbs =
-> 1, .gc3 = 1},
->     { .lomax = 134500000, .svco = 0, .spd = 2, .scr = 0, .sbs =
-> 1, .gc3 = 1},
->     { .lomax = 154000000, .svco = 1, .spd = 2, .scr = 0, .sbs =
-> 1, .gc3 = 1},
->     { .lomax = 162500000, .svco = 1, .spd = 2, .scr = 0, .sbs =
-> 1, .gc3 = 1},
->     { .lomax = 183000000, .svco = 2, .spd = 2, .scr = 0, .sbs =
-> 1, .gc3 = 1},
->     { .lomax = 195000000, .svco = 2, .spd = 2, .scr = 0, .sbs =
-> 2, .gc3 = 1},
->     { .lomax = 227500000, .svco = 3, .spd = 2, .scr = 0, .sbs =
-> 2, .gc3 = 1},
->     { .lomax = 269000000, .svco = 0, .spd = 1, .scr = 0, .sbs =
-> 2, .gc3 = 1},
->     { .lomax = 290000000, .svco = 1, .spd = 1, .scr = 0, .sbs =
-> 2, .gc3 = 1},
->     { .lomax = 325000000, .svco = 1, .spd = 1, .scr = 0, .sbs =
-> 3, .gc3 = 1},
-> #ifdef ORIGINAL // KdW test
->     { .lomax = 390000000, .svco = 2, .spd = 1, .scr = 0, .sbs =
-> 3, .gc3 = 1},
-> #else
->     { .lomax = 395000000, .svco = 2, .spd = 1, .scr = 0, .sbs =
-> 3, .gc3 = 1},
-> #endif
->     { .lomax = 455000000, .svco = 3, .spd = 1, .scr = 0, .sbs =
-> 3, .gc3 = 1},
-> etc etc
-> 
-> I plan to do a test on the all frequencies in the near future, at
-> least on all the Dutch Ziggo frequencies.
-> Because I cannot test what will happen if the driver is used for DVB-T
-> (what
-> the name of the table suggests) it might be best to make a separate
-> tda827xa_dvbc table.
-> 
-> About the timeout messages, they come from the SAA7134 and they happen
-> fairly random. I have looked at debug traces and everytime it happens
-> it
-> does a retry and then succeeds, so I think this can be ignored for the
-> time being.
-> Maybe you can check if the fix/hack also works for you?
-> If there is an official maintainer of this driver, maybe he can
-> comment?
-> 
-> Groetjes,
-> Klaas
-> 
-
-just scrolling through mails and did not look it up yet.
-
-But you likely mean tda8274a DVB-C, tda10023 and saa7146.
-
-Are we still here?
-http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025634.html
-
-Please don't top post, you get more readers.
-
-Cheers,
-Hermann
-
-
-> 
-> On Tue, Sep 30, 2008 at 11:18 AM, <jerremy@wordtgek.nl> wrote:
->         Hi Klaas,
->         
->         Perhaps its an idea to post this on the linux-dvb mailing
->         list, if anything
->         it keeps the subject alive.
->         
->         I've spent an hour or so playing with several of the
->         parameters of the
->         demodulator (the tda10023), mostly because this was suggest in
->         one of the
->         older posts about this issue. However none of my efforts gave
->         any desired
->         result and quickly got tired of unloading / reloading my
->         drivers (which
->         every so often required a hard reset as well).
->         
->         But if you find anything, that would be great ;)
->         
->         Gr. Jerremy
->         
->         
->         On Mon, 29 Sep 2008 11:35:03 +0200, "klaas de waal"
->         <klaas.de.waal@gmail.com> wrote:
->         > Hallo Jeremy,
->         > I have exactly the same problem with my C-1501 card: tuning
->         problems on
->         > 388
->         > MHz but OK on most other frequencies.
->         > It works OK with WIndowsXP on all frequencies including the
->         388MHz, so
->         the
->         > hardware is OK and it must be a software issue.
->         > I have over the weekend put in a lot of printk for debugging
->         but have not
->         > found it yet.
->         > I will keep you updated.
->         >
->         > Groetjes,
->         > Klaas
->         >
->         >
->         > On Thu, Sep 11, 2008 at 5:50 PM, <jerremy@wordtgek.nl>
->         wrote:
->         >
->         >> Hi,
->         >>
->         >> This issue has come up at least once a bit more then a
->         month ago and is
->         >> still present in the current release of the V4L-DVB
->         drivers. The
->         >> Technotrend C-1501 drivers are unable to get a lock on
->         388Mhz (and a
->         > couple
->         >> of other frequencies, like 682Mhz and 322Mhz, but I can
->         only test
->         > 388Mhz).
->         >>
->         >> The dmesg will mention an I2C timeout when this occurs, I'm
->         not sure if
->         > its
->         >> related (as it'll randomly give those timeouts when viewing
->         working
->         >> channels too).
->         >>
->         >> I have two seperate installs of Linux (Ubuntu 8.04 64-Bit
->         with 1
->         > received
->         >> and Ubuntu 8.04 32-Bit with 2 receivers) which both suffer
->         the same
->         >> inability to lock onto that frequency. So its unlikely to
->         be a hardware
->         >> problem, also the Windows drivers do not seem to have any
->         issues.
->         >>
->         >> Is anyone looking into this issue? If not, what would be
->         the place to
->         >> experiment?
->         >>
->         >> Gr,
->         >>
->         >> Jerremy Koot
->         >>
->         >>
-
+> Mathieu
 
 
 
