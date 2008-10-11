@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out2.iol.cz ([194.228.2.87])
+Received: from kelvin.aketzu.net ([81.22.244.161] ident=postfix)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ajurik@quick.cz>) id 1Knvvc-0005P8-8u
-	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 15:51:47 +0200
-From: Ales Jurik <ajurik@quick.cz>
-To: linux-dvb@linuxtv.org,
- Goga777 <goga777@bk.ru>
-Date: Thu, 9 Oct 2008 15:47:31 +0200
-References: <200810091507.50544.ajurik@quick.cz>
-	<E1Knvg5-000LDW-00.goga777-bk-ru@f141.mail.ru>
-In-Reply-To: <E1Knvg5-000LDW-00.goga777-bk-ru@f141.mail.ru>
+	(envelope-from <akolehma@aketzu.net>) id 1KohSX-00010d-Ur
+	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 18:36:57 +0200
+Date: Sat, 11 Oct 2008 19:36:49 +0300
+From: Anssi Kolehmainen <anssi@aketzu.net>
+To: linux-dvb@linuxtv.org
+Message-ID: <20081011163649.GU15309@aketzu.net>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200810091547.31992.ajurik@quick.cz>
-Subject: Re: [linux-dvb] =?iso-8859-1?q?=5Bvdr=5D_stb0899_and_tt_s2-3200?=
-Reply-To: ajurik@quick.cz
+Cc: abraham.manu@gmail.com
+Subject: [linux-dvb] Mantis and CAM problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,55 +24,67 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 09 of October 2008, Goga777 wrote:
-> > > > > it's not working with SR 30000 FEC 3/4 dvb-s2 8PSK, still the same
-> > > > > problem.
-> > > > >
-> > > > > kind regards
-> > > > >
-> > > > > Newsy
-> > > >
-> > > > It seems that patch from
-> > > > http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027264.html is
-> > > > not applied. The internal PLL must be disabled when setting new
-> > > > frequency as is written in stb6100 documentation.
-> > >
-> > > has your July-patch any relation with stb0899 patches from Alex Betis ?
-> > >
-> > > http://www.linuxtv.org/pipermail/linux-dvb/2008-October/029455.html
-> > > http://www.linuxtv.org/pipermail/linux-dvb/2008-September/029361.html
-> > >
-> > > Goga
-> >
-> > I don't think so as Alex's patches are for demodulator (stb0899) but my
-> > was for tuner (stb6100).
-> >
-> > Regarding stb6100 doc the tuning procedure should be:
-> > 1. Disable PLL (LPEN_LPEN)
-> > 2. Set-up the tuner
-> > 3. Start PLL
-> > 4. Start VCO search
-> > 5. Wait for 5 ms
-> > 6. Disable VCO search, turn off VCO search clock and disable LPF BW clock
-> >
-> > The steps 1-5 should be done in 5 steps (not less) and as I remeber I've
-> > got better result when inserting small delay between steps 1 and 2 and
-> > the delay from step 5 was set to 10ms. In stb6100.c are steps 1 and 2
-> > done together within 1 write to stb6100 registers and this seems to be
-> > not optimal for some modulations.
->
-> that's why TT3200 owners have to try both patches together - from you and
-> from Alex Betis ? is it correct ?
->
-> Goga
+I have Terratec Cinergy C (dvb-c, 1822:4e35) card and when I try to use CAM I
+just get TS continuity errors with vdr and cannot watch any channel. I'm using
+latest driver from jusst.de/hg/mantis and it feels rather unstable at times
+(previous versions crashed machine almost instantly with CAM...)
 
-Yes, I think so, but now I'm not able to test it as I don't have the TT 
-S2-3200 more in my PC. If nobody will be able to test it I'll try to do it 
-this weekend.
+I can access CAM menu in vdr but after a while it says CAM not responding. If I
+do rmmod & modprobe mantis after that I get "dvb_ca adapter 0: Invalid PC card
+inserted :(". Removing & reattaching CAM doesn't do any better, after modprobe
+mantis everything freezes and caps+scroll lock blink on the keyboard.
 
-Regards,
+Linux 2.6.24i-1-686, Debian package
+Oct 11 19:08:18 ampere kernel: ACPI: PCI Interrupt 0000:02:09.0[A] -> Link [APC4] -> GSI 19 (level, low) -> IRQ 20
+Oct 11 19:08:18 ampere kernel: irq: 20, latency: 32
+Oct 11 19:08:18 ampere kernel:  memory: 0xdf000000, mmio: 0xf8a76000
+Oct 11 19:08:18 ampere kernel: found a VP-2040 PCI DVB-C device on (02:09.0),
+Oct 11 19:08:18 ampere kernel:     Mantis Rev 1 [153b:1178], irq: 20, latency: 32
+Oct 11 19:08:18 ampere kernel:     memory: 0xdf000000, mmio: 0xf8a76000
+Oct 11 19:08:18 ampere kernel:     MAC Address=[00:08:ca:1c:87:ea]
+Oct 11 19:08:18 ampere kernel: mantis_alloc_buffers (0): DMA=0x36c70000 cpu=0xf6c70000 size=65536
+Oct 11 19:08:18 ampere kernel: mantis_alloc_buffers (0): RISC=0x1582f000 cpu=0xd582f000 size=1000
+Oct 11 19:08:18 ampere kernel: DVB: registering new adapter (Mantis dvb adapter)
+Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): Probing for CU1216 (DVB-C)
+Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): found Philips CU1216 DVB-C frontend (TDA10023) @ 0x0c
+Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): Mantis DVB-C Philips CU1216 frontend attach success
+Oct 11 19:08:18 ampere kernel: DVB: registering frontend 0 (Philips TDA10023 DVB-C)...
+Oct 11 19:08:18 ampere kernel: mantis_ca_init (0): Registering EN50221 device
+Oct 11 19:08:18 ampere kernel: mantis_ca_init (0): Registered EN50221 device
+Oct 11 19:08:18 ampere kernel: mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
+Oct 11 19:08:22 ampere kernel: dvb_ca adapter 0: DVB CAM detected and initialised successfully
+Oct 11 19:08:27 ampere kernel: mantis start feed & dma
+Oct 11 19:08:35 ampere kernel: mantis stop feed and dma
 
-Ales
+start vdr
+Oct 11 19:10:26 ampere vdr: [23112] CI adapter on device 0 thread started (pid=23108, tid=23112)
+Oct 11 19:10:26 ampere vdr: [23112] CAM 1: module present
+Oct 11 19:10:27 ampere vdr: [23108] device 1 provides: DVBC
+Oct 11 19:10:30 ampere kernel: dvb_ca adapter 0: DVB CAM detected and initialised successfully
+Oct 11 19:10:30 ampere vdr: [23112] CAM 1: module ready
+Oct 11 19:10:32 ampere vdr: [23112] CAM 1: Conax 4.00e, 01, 0B00, 04B1
+Oct 11 19:10:36 ampere vdr: [23112] CAM 1: doesn't reply to QUERY - only a single channel can be decrypted
+Oct 11 19:10:36 ampere vdr: [23108] switching to channel 1
+Oct 11 19:10:36 ampere kernel: mantis start feed & dma
+Oct 11 19:10:36 ampere vdr: [23121] transfer thread started (pid=23108, tid=23121)
+Oct 11 19:10:36 ampere vdr: [23122] receiver on device 1 thread started (pid=23108, tid=23122)
+Oct 11 19:10:36 ampere vdr: [23123] TS buffer on device 1 thread started (pid=23108, tid=23123)
+Oct 11 19:10:36 ampere kernel: dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
+Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (5)
+Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (15)
+Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (1)
+Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (6)
+Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (9)
+Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (12)
+
+Something like ~150 TS continuity errors per sec. Video is pretty much garbage.
+However if I remove CAM then everything works perfectly (except I can't watch
+encrypted channels).
+
+-- 
+Anssi Kolehmainen
+anssi.kolehmainen@iki.fi
+040-5085390
 
 _______________________________________________
 linux-dvb mailing list
