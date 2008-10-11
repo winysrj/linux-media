@@ -1,29 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mtaout02-winn.ispmail.ntl.com ([81.103.221.48])
+Received: from nf-out-0910.google.com ([64.233.182.189])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <david.may10@ntlworld.com>) id 1KtkA3-000889-Tu
-	for linux-dvb@linuxtv.org; Sat, 25 Oct 2008 16:30:41 +0200
-Received: from aamtaout02-winn.ispmail.ntl.com ([81.103.221.35])
-	by mtaout02-winn.ispmail.ntl.com
-	(InterMail vM.7.05.02.00 201-2174-114-20060621) with ESMTP id
-	<20081025143000.YJUE21103.mtaout02-winn.ispmail.ntl.com@aamtaout02-winn.ispmail.ntl.com>
-	for <linux-dvb@linuxtv.org>; Sat, 25 Oct 2008 15:30:00 +0100
-Received: from video1 ([62.254.12.213]) by aamtaout02-winn.ispmail.ntl.com
-	(InterMail vG.2.02.00.01 201-2161-120-102-20060912) with ESMTP
-	id <20081025142959.PGEV21638.aamtaout02-winn.ispmail.ntl.com@video1>
-	for <linux-dvb@linuxtv.org>; Sat, 25 Oct 2008 15:29:59 +0100
-Date: Sat, 25 Oct 2008 15:31:14 +0100
-From: david may <david.may10@ntlworld.com>
-Message-ID: <954863512.20081025153114@ntlworld.com>
+	(envelope-from <softnhard.es@gmail.com>) id 1KocjM-0004df-MH
+	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 13:33:58 +0200
+Received: by nf-out-0910.google.com with SMTP id g13so474507nfb.11
+	for <linux-dvb@linuxtv.org>; Sat, 11 Oct 2008 04:33:52 -0700 (PDT)
+Message-ID: <d2f7e03e0810110433y277c4410s874d0681abecfe37@mail.gmail.com>
+Date: Sat, 11 Oct 2008 15:03:52 +0330
+From: "Seyyed Mohammad mohammadzadeh" <softnhard.es@gmail.com>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <20081025170207.492f28bb@bk.ru>
-References: <200810251101.11569@centrum.cz> <200810251102.1298@centrum.cz>
-	<200810251103.27574@centrum.cz> <200810251103.16869@centrum.cz>
-	<20081025103126.5524db0f@pedra.chehab.org>
-	<20081025170207.492f28bb@bk.ru>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] S2API: Future support for DVB-T2
-Reply-To: david may <david.may10@ntlworld.com>
+Subject: [linux-dvb] .:: Trouble with StarSat 2 ::.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,51 +18,129 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0224286776=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello Goga777,
+--===============0224286776==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_14783_16485572.1223724832922"
 
-Saturday, October 25, 2008, 2:02:07 PM, you wrote:
+------=_Part_14783_16485572.1223724832922
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
->> > according to www.dvb.org: DVB-T2 standard was released.
->> > I want to ask there: is S2API ready for this standard? Or it needs some relative big chagnes?
->> 
->> S2API currently doesn't support DVB-T2. However, it were designed in a way that
->> it should be easy to extend to support any standard.
+I have installed a StarSat2 DVB-S2 PCI card. on SuSE 11.0 with kernel
+version equal to 2.6.25.16-0.1-pae. the system recognise the card as follow:
 
-> I'm wondering where is dvb-t2 broadcasting ? is it in h264 ?
+lspci -vv:
+------------
+03:02.0 Multimedia video controller: Trigem Computer Inc. Device 036f (rev
+01)
+        Subsystem: Device 0001:2004
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 32 (4000ns min, 8000ns max), Cache Line Size: 32 bytes
+        Interrupt: pin A routed to IRQ 22
+        Region 0: I/O ports at 6000 [size=256]
+        Kernel driver in use: dm1105
+        Kernel modules: dm1105
+======================
 
-> Goga
+dmesg:
+----------
+DVB: registering new adapter (dm1105)
+dm1105 0000:03:02.0: MAC 00:18:bd:00:6c:bb
+DVB: registering frontend 0 (Conexant CX24116/CX24118)...
+===========================================
 
-see:
-"http://www.tivocommunity.com/tivo-vb/showthread.php?s=aa1a55bd8c8ae60d668b4501352fea0b&p=6711180#post6711180
+but when i want to tune it I got DISEqC error:
 
-"Sneals2000 said: 09-25-2008, 06:07 AM
+linux-kluk:~ # dvbtune -f 11555 -p v -s 27500
+Using DVB card "Conexant CX24116/CX24118", freq=11555
+tuning DVB-S to Freq: 1805000, Pol:V Srate=27500000, 22kHz tone=off, LNB: 0
+Setting only tone OFF and voltage 13V
+DISEQC SETTING FAILED
 
-The BBC are currently running the first proper live tests of DVB-T2 from a real transmitter
-(using BBC designed modulators and demodulators) in Guildford.
+I tested it with kaffeine and got this message:
+Tuning to: algo / autocount: 1
+DvbCam::probe(): /dev/dvb/adapter0/ca0: : No such file or directory
+Using DVB device 0:0 "Conexant CX24116/CX24118"
+tuning DVB-S to 11555000 v 27500000
+inv:2 fecH:9
+DiSEqC: switch pos 0, 13V, loband (index 0)
+FE_SET_TONE failed: Connection timed out
+DiSEqC: e0 10 38 f0 00 00
+FE_DISEQC_SEND_MASTER_CMD failed: Connection timed out
+FE_DISEQC_SEND_MASTER_CMD failed: Connection timed out
+FE_SET_TONE failed: Connection timed out
+. LOCKED.
+NOUT: 1
+dvbEvents 0:0 started
+Tuning delay: 4243 ms
+pipe opened
+xine pipe opened /home/user/.kaxtv1.ts
 
-It is carrying 3x11Mbs H.264 1080/50i HD video streams (using a new Thompson encoder -
-and delivering higher quality video than the 16.5Mbs BBC HD on DSat...)
-in a 36Mbs DVB-T2 mux (32k carriers and 256QAM rather than 2k/8k carriers and 16/64QAM as
-used by DVB-T)
+But no video is played. Szap output seems to be fake because no data is
+received on /dev/dvb/adapter0/dvr0:
 
-"
+zapping to 5 'Traffic':
+sat 0, frequency = 11137 MHz V, symbolrate 30000000, vpid = 0x1fff, apid =
+0x1fff sid = 0x03e8
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+FE_SET_TONE failed: Connection timed out
+FE_DISEQC_SEND_MASTER_CMD failed: Connection timed out
+FE_SET_TONE failed: Connection timed out
+status 19 | signal  99% | snr  70% | ber 101940526 | unc 36167 | FE_HAS_LOCK
+status 19 | signal  99% | snr  70% | ber 101940526 | unc 36167 | FE_HAS_LOCK
+status 19 | signal  99% | snr  70% | ber 101940526 | unc 36167 | FE_HAS_LOCK
+status 19 | signal  99% | snr  70% | ber 101940526 | unc 36167 | FE_HAS_LOCK
+status 19 | signal  99% | snr  70% | ber 101940526 | unc 36167 | FE_HAS_LOCK
 
-its clear we need DVB-T2 ASAP or we in the UK cant see this T2 when
-it soon moves off the limited Guildford transmitter and on to the
-UK winterhill /NW transmitters later this year.
+Anybody helps?
 
 -- 
-Best regards,
- david             
+Best Regards
+Mehran
 
+Softnhard = Software & Hardware expert
+
+------=_Part_14783_16485572.1223724832922
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div dir="ltr"><br clear="all">I have installed a StarSat2 DVB-S2 PCI card. on SuSE 11.0 with kernel version equal to 2.6.25.16-0.1-pae. the system recognise the card as follow:<br><br>lspci -vv:<br>------------<br>03:02.0 Multimedia video controller: Trigem Computer Inc. Device 036f (rev 01)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Subsystem: Device 0001:2004<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR- INTx-<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Latency: 32 (4000ns min, 8000ns max), Cache Line Size: 32 bytes<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Interrupt: pin A routed to IRQ 22<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Region 0: I/O ports at 6000 [size=256]<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Kernel driver in use: dm1105<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Kernel modules: dm1105<br>
+======================<br><br>dmesg:<br>----------<br>DVB: registering new adapter (dm1105)<br>dm1105 0000:03:02.0: MAC 00:18:bd:00:6c:bb<br>DVB: registering frontend 0 (Conexant CX24116/CX24118)...<br>===========================================<br>
+<br>but when i want to tune it I got DISEqC error:<br><br>linux-kluk:~ # dvbtune -f 11555 -p v -s 27500<br>Using DVB card &quot;Conexant CX24116/CX24118&quot;, freq=11555<br>tuning DVB-S to Freq: 1805000, Pol:V Srate=27500000, 22kHz tone=off, LNB: 0<br>
+Setting only tone OFF and voltage 13V<br>DISEQC SETTING FAILED<br><br>I tested it with kaffeine and got this message:<br>Tuning to: algo / autocount: 1<br>DvbCam::probe(): /dev/dvb/adapter0/ca0: : No such file or directory<br>
+Using DVB device 0:0 &quot;Conexant CX24116/CX24118&quot;<br>tuning DVB-S to 11555000 v 27500000<br>inv:2 fecH:9<br>DiSEqC: switch pos 0, 13V, loband (index 0)<br>FE_SET_TONE failed: Connection timed out<br>DiSEqC: e0 10 38 f0 00 00<br>
+FE_DISEQC_SEND_MASTER_CMD failed: Connection timed out<br>FE_DISEQC_SEND_MASTER_CMD failed: Connection timed out<br>FE_SET_TONE failed: Connection timed out<br>. LOCKED.<br>NOUT: 1<br>dvbEvents 0:0 started<br>Tuning delay: 4243 ms<br>
+pipe opened<br>xine pipe opened /home/user/.kaxtv1.ts<br><br>But no video is played. Szap output seems to be fake because no data is received on /dev/dvb/adapter0/dvr0:<br><br>zapping to 5 &#39;Traffic&#39;:<br>sat 0, frequency = 11137 MHz V, symbolrate 30000000, vpid = 0x1fff, apid = 0x1fff sid = 0x03e8<br>
+using &#39;/dev/dvb/adapter0/frontend0&#39; and &#39;/dev/dvb/adapter0/demux0&#39;<br>FE_SET_TONE failed: Connection timed out<br>FE_DISEQC_SEND_MASTER_CMD failed: Connection timed out<br>FE_SET_TONE failed: Connection timed out<br>
+status 19 | signal&nbsp; 99% | snr&nbsp; 70% | ber 101940526 | unc 36167 | FE_HAS_LOCK<br>status 19 | signal&nbsp; 99% | snr&nbsp; 70% | ber 101940526 | unc 36167 | FE_HAS_LOCK<br>status 19 | signal&nbsp; 99% | snr&nbsp; 70% | ber 101940526 | unc 36167 | FE_HAS_LOCK<br>
+status 19 | signal&nbsp; 99% | snr&nbsp; 70% | ber 101940526 | unc 36167 | FE_HAS_LOCK<br>status 19 | signal&nbsp; 99% | snr&nbsp; 70% | ber 101940526 | unc 36167 | FE_HAS_LOCK<br><br>Anybody helps?<br><br>-- <br>Best Regards<br>Mehran<br><br>
+Softnhard = Software &amp; Hardware expert<br>
+</div>
+
+------=_Part_14783_16485572.1223724832922--
+
+
+--===============0224286776==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0224286776==--
