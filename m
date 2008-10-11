@@ -1,20 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.27])
+Received: from fk-out-0910.google.com ([209.85.128.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1KuuA9-00064V-NU
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 20:23:34 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so1293250qwb.17
-	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 12:23:28 -0700 (PDT)
-Message-ID: <c74595dc0810281223j25d78c9eqbcbed70a1b495b43@mail.gmail.com>
-Date: Tue, 28 Oct 2008 21:23:28 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
-To: "oleg roitburd" <oroitburd@gmail.com>
-In-Reply-To: <b42fca4d0810280227n44d53f03hfaa8237793fc1db9@mail.gmail.com>
+	(envelope-from <mrechberger@gmail.com>) id 1KoVuK-0007m1-Ur
+	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 06:16:54 +0200
+Received: by fk-out-0910.google.com with SMTP id f40so833972fka.1
+	for <linux-dvb@linuxtv.org>; Fri, 10 Oct 2008 21:16:45 -0700 (PDT)
+Message-ID: <d9def9db0810102116y20565255qd89ecc02538b43df@mail.gmail.com>
+Date: Sat, 11 Oct 2008 06:16:45 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Chris Russell" <v4l@therussellhome.us>
+In-Reply-To: <20081010203056.190ab2ce@arwen.therussellhome.us>
 MIME-Version: 1.0
-References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
-	<b42fca4d0810280227n44d53f03hfaa8237793fc1db9@mail.gmail.com>
+Content-Disposition: inline
+References: <20081009221330.3e355773@arwen.therussellhome.us>
+	<d9def9db0810091919x2aa763bey15e39e74508763e9@mail.gmail.com>
+	<20081010185825.37790e23@arwen.therussellhome.us>
+	<d9def9db0810101606w46265c2bs1e81f7dfd2751039@mail.gmail.com>
+	<20081010203056.190ab2ce@arwen.therussellhome.us>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
+Subject: Re: [linux-dvb] em28xx - analog tv audio on kworld 305U
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,159 +26,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0003631542=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0003631542==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_129173_14231309.1225221808557"
-
-------=_Part_129173_14231309.1225221808557
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hi Oleg,
-
-I had plans to do most of the things you've requested, but had no time and
-decided to release the utility without those options so it will be tested.
-I'll send an update when it will be ready.
-
-A question about modulation. Can you point me to a place that describe what
-modulation number N means what?
-"man 5 vdr" lists the options, but its impossible to understand the mapping:
-"M   Modulation (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 32, 64, 128, 256,
-512, 998, 1024)"
-
-FEC you can specify in the frequency file as "AUTO", "1/3", "2/3" and so on.
-I'll update README to make it clear. All frequency files samples show that
-option.
-
-
-
-On Tue, Oct 28, 2008 at 11:27 AM, oleg roitburd <oroitburd@gmail.com> wrote:
-
-> Hi,
+On Sat, Oct 11, 2008 at 2:30 AM, Chris Russell <v4l@therussellhome.us> wrote:
+> On Sat, 11 Oct 2008 01:06:01 +0200
+> "Markus Rechberger" <mrechberger@gmail.com> wrote:
 >
-> 2008/10/25 Alex Betis <alex.betis@gmail.com>:
-> > Hello all,
-> >
-> > I've setup the http://mercurial.intuxication.org/hg/scan-s2/ repository
-> with
-> > scan utility ported to work with Igor's S2API driver.
-> > Driver is available here:
-> http://mercurial.intuxication.org/hg/s2-liplianin/
-> >
-> > Special thanks to Igor for his driver and for szap-s2 utility that I've
-> used
-> > as a reference for scan-s2.
-> > Thanks also to someone from the net that posted his changes to scan
-> utility
-> > that allowed it to work with uncommitted diseqc.
-> >
-> > Pay attention to parameters (see README as well), I've added some and
-> > removed some that I don't think are needed.
-> >
-> > Scan results gave me the same channels as with multiproto driver on all
-> my
-> > satellites, so that confirms also that Igor's driver is working well.
-> >
-> > I didn't yet tested the output files with szap-s2 or with VDR, don't have
-> > time right now.
-> > Please test and let me know if changes are needed.
-> >
-> > I have only Twinhan 1041 card (stb0899), so I can't test it with DVB-T,
-> > DVB-C and ATSC standarts, but theoretically it should work.
-> >
-> > Enjoy,
-> > Alex.
+>> On Sat, Oct 11, 2008 at 12:58 AM, Chris Russell <v4l@therussellhome.us> wrote:
+>> > On Fri, 10 Oct 2008 04:19:31 +0200
+>> > "Markus Rechberger" <mrechberger@gmail.com> wrote:
+>> >
+>> >> On Fri, Oct 10, 2008 at 4:13 AM, Chris Russell <v4l@therussellhome.us> wrote:
+>> >> >        I have a KWorld DVB-T 305U on Gentoo using the v4l-dvb-hg
+>> >> > package (live development version of v4l&dvb-driver for Kernel 2.6)
+>> >> > that I updated today (03Oct08).
+>> >> >
+>> >> >        The analog TV looks great but I cannot get the sound to work.
+>> >> > I have tried just about everything I could find searching including:
+>> >> > $ arecord -D hw:1 -f dat | aplay -f dat
+>> >> >        and
+>> >> > $ mplayer tv:// -tv driver=v4l2:device=/dev/video0:chanlist=us-cable:alsa:adevice=hw.1,0:amode=1:audiorate=32000:forceaudio:volume=100:immediatemode=0:norm=NTSC
+>> >> >        and
+>> >> > $ v4lctl volume mute off; v4lctl volume 31
+>> >> >        and
+>> >> > even attempting a manual cat from /dev/audio1 to /dev/audio
+>> >> >
+>> >> > So what am I missing or is audio for the 305U not working yet?
+>> >> >
+>> >>
+>> >> Hi,
+>> >>
+>> >> you need the em28xx-new code from mcentral.de in order to get audio
+>> >> work with it, audio for it is still in progress but it should work
+>> >> fine as long as you have attached one device only.
+>> >>
+>> >> Markus
+>> >
+>> > Thanks for the reply.  Unfortunately, I still end up with the same
+>> > result.  I un-installed v4l-dvb-hg, added back v4l support in my kernel
+>> > (2.6.26) and pulled down the latest em28xx-new driver (based on the
+>> > sunshine overlay which pulls from
+>> > http://mcentral.de/hg/~mrec/em28xx-new/).  Again, tv works but audio
+>> > does not.  Did I miss something?
+>> >
+>>
+>> I think you have to look at em28xx-audioep.ko for this device.
+>>
+>> Markus
+>>
 >
-> Thank you for this usefull tool. I have tried them with TT S2-3200.
-> It works with s2-liplianin.
-> Some question
-> Is it possible to implement in vdr-dump
-> 1. Options for Modulation (MN where N=2  is QPSK if DVB-S and N=2 for
-> QPSK and N=5 for 8PSK)
-> 2. Options for FEC. As I know cx24116 can't FEC AUTO for DVB-S2
-> 3. ROLLOFF?
-> 4. CAID dump.
-> http://arvdr-dev.free-x.de:8080/freex-dvb-apps/rev/47e9dbb968fc
-> 5. Channel Name encoding to UTF.
-> http://arvdr-dev.free-x.de:8080/freex-dvb-apps/rev/55bf7441a602
->
-> Thx a lot
-> Oleg Roitburd
+> I loaded the em28xx-audioep module with no change.  Then I loaded the
+> em28xx-audio module and again no change.  Anything else I should try?
 >
 
-------=_Part_129173_14231309.1225221808557
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+what does arecord -l show up?
 
-<div dir="ltr">Hi Oleg,<br><br>I had plans to do most of the things you&#39;ve requested, but had no time and decided to release the utility without those options so it will be tested. I&#39;ll send an update when it will be ready.<br>
-<br>A question about modulation. Can you point me to a place that describe what modulation number N means what?<br>&quot;man 5 vdr&quot; lists the options, but its impossible to understand the mapping:<br>&quot;M&nbsp;&nbsp; Modulation (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 32, 64, 128, 256, 512, 998, 1024)&quot;<br>
-<br>FEC you can specify in the frequency file as &quot;AUTO&quot;, &quot;1/3&quot;, &quot;2/3&quot; and so on. I&#39;ll update README to make it clear. All frequency files samples show that option.<br><br><br><br><div class="gmail_quote">
-On Tue, Oct 28, 2008 at 11:27 AM, oleg roitburd <span dir="ltr">&lt;<a href="mailto:oroitburd@gmail.com">oroitburd@gmail.com</a>&gt;</span> wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-Hi,<br>
-<br>
-2008/10/25 Alex Betis &lt;<a href="mailto:alex.betis@gmail.com">alex.betis@gmail.com</a>&gt;:<br>
-<div><div></div><div class="Wj3C7c">&gt; Hello all,<br>
-&gt;<br>
-&gt; I&#39;ve setup the <a href="http://mercurial.intuxication.org/hg/scan-s2/" target="_blank">http://mercurial.intuxication.org/hg/scan-s2/</a> repository with<br>
-&gt; scan utility ported to work with Igor&#39;s S2API driver.<br>
-&gt; Driver is available here: <a href="http://mercurial.intuxication.org/hg/s2-liplianin/" target="_blank">http://mercurial.intuxication.org/hg/s2-liplianin/</a><br>
-&gt;<br>
-&gt; Special thanks to Igor for his driver and for szap-s2 utility that I&#39;ve used<br>
-&gt; as a reference for scan-s2.<br>
-&gt; Thanks also to someone from the net that posted his changes to scan utility<br>
-&gt; that allowed it to work with uncommitted diseqc.<br>
-&gt;<br>
-&gt; Pay attention to parameters (see README as well), I&#39;ve added some and<br>
-&gt; removed some that I don&#39;t think are needed.<br>
-&gt;<br>
-&gt; Scan results gave me the same channels as with multiproto driver on all my<br>
-&gt; satellites, so that confirms also that Igor&#39;s driver is working well.<br>
-&gt;<br>
-&gt; I didn&#39;t yet tested the output files with szap-s2 or with VDR, don&#39;t have<br>
-&gt; time right now.<br>
-&gt; Please test and let me know if changes are needed.<br>
-&gt;<br>
-&gt; I have only Twinhan 1041 card (stb0899), so I can&#39;t test it with DVB-T,<br>
-&gt; DVB-C and ATSC standarts, but theoretically it should work.<br>
-&gt;<br>
-&gt; Enjoy,<br>
-&gt; Alex.<br>
-<br>
-</div></div>Thank you for this usefull tool. I have tried them with TT S2-3200.<br>
-It works with s2-liplianin.<br>
-Some question<br>
-Is it possible to implement in vdr-dump<br>
-1. Options for Modulation (MN where N=2 &nbsp;is QPSK if DVB-S and N=2 for<br>
-QPSK and N=5 for 8PSK)<br>
-2. Options for FEC. As I know cx24116 can&#39;t FEC AUTO for DVB-S2<br>
-3. ROLLOFF?<br>
-4. CAID dump. &nbsp;<a href="http://arvdr-dev.free-x.de:8080/freex-dvb-apps/rev/47e9dbb968fc" target="_blank">http://arvdr-dev.free-x.de:8080/freex-dvb-apps/rev/47e9dbb968fc</a><br>
-5. Channel Name encoding to UTF.<br>
-<a href="http://arvdr-dev.free-x.de:8080/freex-dvb-apps/rev/55bf7441a602" target="_blank">http://arvdr-dev.free-x.de:8080/freex-dvb-apps/rev/55bf7441a602</a><br>
-<br>
-Thx a lot<br>
-<font color="#888888">Oleg Roitburd<br>
-</font></blockquote></div><br></div>
+I know I have to push some patches upstream to the tv applications
+(not kernel level)...
+there's still tvtime from mcentral.de available which should
+autodetect the correct audio device
+if you have one em28xx based device plugged in...
 
-------=_Part_129173_14231309.1225221808557--
-
-
---===============0003631542==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Markus
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0003631542==--
