@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.187])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <superjem.fr@gmail.com>) id 1KtKcy-0005Py-Vk
-	for linux-dvb@linuxtv.org; Fri, 24 Oct 2008 13:14:49 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so355612nfb.11
-	for <linux-dvb@linuxtv.org>; Fri, 24 Oct 2008 04:14:45 -0700 (PDT)
-Message-ID: <f23213140810240414k7bdd9dc2s2d9126fddbe2c3fa@mail.gmail.com>
-Date: Fri, 24 Oct 2008 13:14:44 +0200
-From: superjem <superjem.fr@gmail.com>
-To: linux-dvb@linuxtv.org
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: "Hans Werner" <HWerner4@gmx.de>
+Date: Sat, 11 Oct 2008 12:40:36 +0300
+References: <48ED0023.8050901@promwad.com>
+	<200810090000.25621.liplianin@tut.by>
+	<20081011021209.99720@gmx.net>
+In-Reply-To: <20081011021209.99720@gmx.net>
 MIME-Version: 1.0
-Subject: [linux-dvb] dvbstream + Technotrend S-1500 + CI CAM for pay TV
-	don't work.
+Content-Disposition: inline
+Message-Id: <200810111240.36427.liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org, abraham.manu@gmail.com
+Subject: Re: [linux-dvb] stb0899 and tt s2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,70 +18,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2017396805=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2017396805==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_6335_24737833.1224846885381"
-
-------=_Part_6335_24737833.1224846885381
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hello,
-
-I use a Technotrend S-1500 + CI CAM for pay TV + dvbstream to record ts
-stream on an ubuntu hardy server.
-I can record ts from non-scambled programs but not from scrambled programs.
-descrambeling doesn't work.
-
-Part of my dmesg :
-
-[   28.895851] saa7146: register extension 'budget_ci dvb'.
-[   28.895903] saa7146: found saa7146 @ mem ffffc200004fe400 (revision 1,
-irq 20) (0x13c2,0x1017).
-[   28.895907] saa7146 (0): dma buffer size 192512
-[   28.895908] DVB: registering new adapter (TT-Budget/S-1500 PCI)
-[   28.955156] adapter has MAC addr = 00:d0:5c:64:b6:dd
-[   28.955365] input: Budget-CI dvb ir receiver saa7146 (0) as
-/devices/pci0000:00/0000:00:1e.0/0000:05:05.0/input/input4
-[   29.044072] budget_ci: CI interface initialised
-[   29.233781] dvb_ca adapter 0: DVB CAM detected and initialised
-successfully
-[   29.307354] DVB: registering frontend 0 (ST STV0299 DVB-S)...
-
-How can I record scrambled programs in command line with dvbstream (or
-other) ?
-
-Thanks !
-
-------=_Part_6335_24737833.1224846885381
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Hello,<br><br>I use a Technotrend S-1500 + CI CAM for pay TV + dvbstream to record ts stream on an ubuntu hardy server.<br>I can record ts from non-scambled programs but not from scrambled programs. descrambeling doesn&#39;t work.<br>
-<br>Part of my dmesg :<br><br>[&nbsp;&nbsp; 28.895851] saa7146: register extension &#39;budget_ci dvb&#39;.<br>[&nbsp;&nbsp; 28.895903] saa7146: found saa7146 @ mem ffffc200004fe400 (revision 1, irq 20) (0x13c2,0x1017).<br>[&nbsp;&nbsp; 28.895907] saa7146 (0): dma buffer size 192512<br>
-[&nbsp;&nbsp; 28.895908] DVB: registering new adapter (TT-Budget/S-1500 PCI)<br>[&nbsp;&nbsp; 28.955156] adapter has MAC addr = 00:d0:5c:64:b6:dd<br>[&nbsp;&nbsp; 28.955365] input: Budget-CI dvb ir receiver saa7146 (0) as /devices/pci0000:00/0000:00:1e.0/0000:05:05.0/input/input4<br>
-[&nbsp;&nbsp; 29.044072] budget_ci: CI interface initialised<br>[&nbsp;&nbsp; 29.233781] dvb_ca adapter 0: DVB CAM detected and initialised successfully<br>[&nbsp;&nbsp; 29.307354] DVB: registering frontend 0 (ST STV0299 DVB-S)...<br><br>How can I record scrambled programs in command line with dvbstream (or other) ?<br>
-<br>Thanks !<br><br><br>
-
-------=_Part_6335_24737833.1224846885381--
-
-
---===============2017396805==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2017396805==--
+9yDTz8/C3cXOyckgz9QgMTEgT2N0b2JlciAyMDA4IDA1OjEyOjA5IEhhbnMgV2VybmVyIM7B0MnT
+wcwowSk6Cj4gLS0tLS0tLS0gT3JpZ2luYWwtTmFjaHJpY2h0IC0tLS0tLS0tCj4KPiA+IERhdHVt
+OiBUaHUsIDkgT2N0IDIwMDggMDA6MDA6MjUgKzAzMDAKPiA+IFZvbjogIklnb3IgTS4gTGlwbGlh
+bmluIiA8bGlwbGlhbmluQHR1dC5ieT4KPiA+IEFuOiBsaW51eC1kdmJAbGludXh0di5vcmcsIFN0
+ZXZlbiBUb3RoIDxzdG90aEBsaW51eHR2Lm9yZz4sIFN0ZXZlbiBUb3RoCj4gPiA8c3RvdGhAaGF1
+cHBhdWdlLmNvbT4sIERhcnJvbiBCcm9hZCA8ZGFycm9uQGtld2wub3JnPiwgTWFudSBBYnJhaGFt
+Cj4gPiA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4sIHZkckBsaW51eHR2Lm9yZyBCZXRyZWZmOiBb
+bGludXgtZHZiXSBzdGIwODk5Cj4gPiBhbmQgdHQgczItMzIwMAo+ID4KPiA+IEkgc3VjY2Vzc2Z1
+bGx5IHBvcnRlZCBzdGIwODk5IHRvIFMyQVBJCj4gPiBGb3Iga25vdyBpdCBpcyBqdXN0IGZvciB0
+ZXN0aW5nIHB1cnBvc2VzLiBGZWVsIGZyZWUgdG8gdGVzdCBpdC4KPiA+IEFueSBmZWVkYmFjayB3
+ZWxjb21lLgo+ID4gTG9ja2luZyBiZXR0ZXIgd2l0aCBzemFwLXMyIChzb3JyeSkKPiA+IEkgaGF2
+ZSB0ZXN0ZWQgd2l0aCBEVkItUzIgOFBTSyBhbmQgRFZCLVMgMjc1MDAga1N5bXMvcwo+ID4KPiA+
+IGh0dHA6L21lcmN1cmlhbC5pbnR1eGljYXRpb24ub3JnL2hnL3MyLWxpcGxpYW5pbgo+ID4gaHR0
+cDovbWVyY3VyaWFsLmludHV4aWNhdGlvbi5vcmcvaGcvc3phcC1zMgo+ID4KPiA+IC0tCj4gPiBJ
+Z29yIE0uIExpcGxpYW5pbgo+Cj4gSWdvciwKPgo+IHRoZSBhdHRhY2hlZCBwYXRjaCAoYWdhaW5z
+dAo+IGh0dHA6Ly9tZXJjdXJpYWwuaW50dXhpY2F0aW9uLm9yZy9oZy9zMi1saXBsaWFuaW4pIGFk
+ZHMgUzJBUEkgc3VwcG9ydCBmb3IKPiB0aGUgU1RCMDg5OStNYW50aXMgYmFzZWQgY2FyZHMgc3Vj
+aCBhcyB0aGUKPiBUd2luaGFuIFZQLTEwNDEgKGFsc28ga25vd24gYXMgQXp1cmV3YXZlIEFEIFNQ
+NDAwIG9yIFRlY2huaXNhdCBTa3lzdGFyIEhEMikKPgo+IENvdWxkIHlvdSBwbGVhc2UgYWRkIGl0
+IHRvIHlvdXIgczItbGlwbGlhbmluIHJlcG9zaXRvcnk/Cj4KPiBJdCBpbmNsdWRlcyBNYW50aXMg
+UENJIGJyaWRnZSwgQ1UxMjE2IGFuZCBGdWppdHN1IE1CODZBMTYgRFZCLVMvRFNTIERDCj4gUmVj
+ZWl2ZXIgc3VwcG9ydC4KPgo+IEl0IGlzIHRoZSBzYW1lIGFzIHRoZSBjb2RlIGZyb20gTWFudSBB
+YnJhaGFtJ3MgbWFudGlzIHRyZWUgYXQKPiBodHRwOi8vanVzc3QuZGUvaGcvbWFudGlzLCBzbyB0
+aGFua3MgdG8gTWFudS4KPgo+IEkgdGVzdGVkIHdpdGggdGhlIFR3aW5oYW4gVlAtMTA0MS4KPiBD
+aGFubmVsIGxvY2tpbmcgd29ya3MgZm9yIG1lIGZvciBzb21lIChidXQgbm90IHlldCBhbGwpIGNo
+YW5uZWxzIHdpdGgKU2FtZSB3aXRoIG15IHMyLTMyMDAsIHNvIEkgbWFya2VkIHRoZSBkcml2ZXIg
+bGlrZSBleHBlcmltZW50YWwoIEkgbXVzdCBzYXkgCmFsbW9zdCB1c2VsZXNzLCBhcyBteSBmYXZv
+cml0ZSBjaGFubmVsIHVud2F0Y2hhYmxlKSBmb3Igbm93LgpJIHF1aWNrbHkgcG9ydGVkIHRvIFMy
+IEFQSSArIHMyLTMyMDAgdGhhdCBjb2RlOgpodHRwOi8vd3d3LnR3aW5oYW4uY29tL2ZpbGVzL0FX
+L0xpbnV4L0FaTGludXhfdjEuNC4yX0NJX0ZDNi50YXIuZ3oKQW5kIGl0IGxvY2tzIGV2ZXJ5IGNo
+YW5uZWwgKD8/PyksIGJ1dCBzdHJlYW0gYXBwZWFycyBicm9rZW4sIHRob3VnaCBJIGNhbiBzZWUs
+IAp0aGF0IGNoYW5uZWwgaXMgcmlnaHQuCkl0IGlzIG5lY2Vzc2FyeSB0byBtYWtlIGRyaXZlciBz
+dGFibGUsIHRoZW4gdG8gYWRkIGFueXRoaW5nLgo+IEthZmZlaW5lIChTMkFQSSBwYXRjaCkuIFBl
+cmhhcHMgaXQgd2lsbCBiZSBiZXR0ZXIgd2l0aCB5b3VyIHN6YXAtczIgd2hlbiBJCj4gaGF2ZSB0
+aW1lIHRvIHRlc3QgdGhhdC4KPgo+IFJlZ2FyZHMsCj4gSGFucwoKCgpSZWdhcmRzCklnb3IKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBt
+YWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcv
+Y2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
