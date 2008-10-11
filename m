@@ -1,31 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Darron Broad <darron@kewl.org>
-To: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48F36B32.5060006@linuxtv.org> 
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48CD87B1.5010702@linuxtv.org> <20080915121606.111520@gmx.net>
-	<48CE7838.2060702@linuxtv.org> <23602.1221904652@kewl.org>
-	<48D51000.3060006@linuxtv.org> <25577.1221924224@kewl.org>
-	<20080921234339.18450@gmx.net> <8002.1222068668@kewl.org>
-	<20080922124908.203800@gmx.net> <10822.1222089271@kewl.org>
-	<48D7C15E.5060509@linuxtv.org> <20080922164108.203780@gmx.net>
-	<20022.1222162539@kewl.org> <20080923142509.86330@gmx.net>
-	<4025.1222264419@kewl.org> <4284.1222265835@kewl.org>
-	<20080925145223.47290@gmx.net> <18599.1222354652@kewl.org>
-	<Pine.LNX.4.64.0809261117150.21806@trider-g7>
-	<21180.1223610119@kewl.org> <20081010132352.273810@gmx.net>
-	<48EF7E78.6040102@linuxtv.org> <30863.1223711672@kewl.org>
-	<48F0AA35.6020005@linuxtv.org> <773.1223732259@kewl.org>
-	<48F0AEA3.50704@linuxtv.org> <989.1223733525@kewl.org>
-	<48F0B6C5.5090505@linuxtv.org> <1506.1223737964@kewl.org>
-	<48F0E516.303@linuxtv.org> <20081011190015.175420@gmx.net>
-	<48F36B32.5060006@linuxtv.org>
-Date: Mon, 13 Oct 2008 17:07:23 +0100
-Message-ID: <20744.1223914043@kewl.org>
-Cc: Hans Werner <HWerner4@gmx.de>, fabbione@fabbione.net,
-	linux-dvb <linux-dvb@linuxtv.org>, scarfoglio@arpacoop.it
-Subject: Re: [linux-dvb] Multi-frontend patch merge (TESTERS FEEDBACK) was:
-	Re: [PATCH] S2API: add multifrontend
+Received: from mx34.mail.ru ([194.67.23.200])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <goga777@bk.ru>) id 1KoZCj-0007Vi-BP
+	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 09:48:01 +0200
+Received: from [92.101.134.111] (port=40155 helo=localhost.localdomain)
+	by mx34.mail.ru with asmtp id 1KoZCB-000M5A-00
+	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 11:47:27 +0400
+Date: Sat, 11 Oct 2008 11:48:49 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Message-ID: <20081011114849.616ef8c5@bk.ru>
+In-Reply-To: <1223675397.17097.5.camel@palomino.walls.org>
+References: <20081010224753.4205c007@bk.ru>
+	<1223675397.17097.5.camel@palomino.walls.org>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] radio-mr800.o -  Error 1
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,97 +22,71 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <48F36B32.5060006@linuxtv.org>, Steven Toth wrote:
-
-hi.
-
-<snip>
->> 
->> Hi guys,
->> 
->> thank you Steve and Darron for your work on the repositories today!
->> 
->> I have pulled the latest s2-mfe and retested with the HVR4000 on DVB-T, 
->> DVB-S, DVB-S2 and analogue TV. 
->> 
->> No problems so far.
->
->I'm mutating the subject thread, and cc'ing the public mailing list into 
->this conversion. Now is the time to announce the intension to merge 
->multi-frontend patches, and show that we have tested and are satisfied 
->with it's reliability across many trees.
->
->(For those of you not familiar with the patch set, it adds 
->'multiple-frontends to a single transport bus' support for the HVR3000 
->and HVR4000, and potentially another 7134 based design (the 6 way medion 
->board?).
->
->For my part, I was asked to test the cx23885 changes and I responded to 
->that with a series of patches to fix some OOPS initialisation errors. 
->The MFE patches work correctly with the cx23885 tree now.
->
->Over time I've heard constant suggestions that the patches are ready for 
->merge, the cx88 and saa7134 trees are working correctly. Now is the time 
->that I need you all to announce this. I need you each in turn to 
->describe you testing, and state whether you think the patches are ready 
->for merge.
->
->Hans Werner <HWerner4@gmx.de>
->darron@kewl.org
-
-The test machine I have here utilises an HVR-4000 and AVERMEDIA
-SUPER 007.
-
-Multi-frontend works with both adapters with the HVR-4000 containing
-analogue, DVB-S and DVB-T frontends, the AVERMEDIA solely DVB-T.
-
-At this time with some further FM updates (see: http://hg.kewl.org/s2-mfe-fm/)
-I can now reliably and consitently receive DVB-S/S2, DVB-T, analogue TV
-and FM radio on the HVR-4000. DVB-T works on the AVERMEDIA as per
-normal.
-
-Applications which have been under test by include the command
-line dvb-utils, dvbtraffic, dvbsnoop, GUI apps kaffeine and
-mythtv. No obvious side effects have been witnessed of using
-MFE and the applications themselves do not see any difference
-except that they are unable to simultaneously open multiple
-frontends due to the hardware limitation of such cards.
-
-A couple of problems exist which may be present in all hybrid cards
-is that you are able to concurrently open analogue and DVB-T where
-these share the same tuner section. Another issue with shared
-tuners is where both analogue and digital sections share a sleep
-method which in some circumstances is incompatible.
-
-At this time I am happy with the performance of this MFE card
-(HVR-4000) and to be honest, I am looking at attending to other
-activities. Bugs where present ought to be picked up by others,
-I have done all that has been reasonable to test and determine
-that MFE works.
-
->scarfoglio@arpacoop.it
->fabbione@fabbione.net
->
->If you're not normally members of this list then please say so, I'll 
->ensure your response is cc'd back to the list.
-
-Thanks, cya!
-
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+8NLJ18XU09TX1cAsIEFuZHkKPiBPbiBGcmksIDIwMDgtMTAtMTAgYXQgMjI6NDcgKzA0MDAsIEdv
+Z2E3Nzcgd3JvdGU6Cj4gPiBIaQo+ID4gCj4gPiBJIGNhbid0IGNvbXBpbGUgdGhlIHMyYXBpIGZy
+b20gaHR0cDovL2xpbnV4dHYub3JnL2hnL35zdG90aC9zMi8KPiA+IHRoZXJlJ3Mgc29tZSBwcm9i
+bGVtIHdpdGggcmFkaW8tbXI4MDAgbW9kdWxlCj4gPiAKPiA+ICAgQ0MgW01dICAvdXNyL3NyYy9z
+Mi92NGwvcmFkaW8tc2k0NzB4Lm8KPiA+ICAgQ0MgW01dICAvdXNyL3NyYy9zMi92NGwvcmFkaW8t
+bXI4MDAubwo+ID4gL3Vzci9zcmMvczIvdjRsL3JhZGlvLW1yODAwLmM6MTQ4OiB3YXJuaW5nOiBp
+bXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAnVVNCX0RFVklDRV9BTkRfSU5URVJGQUNF
+X0lORk8nCj4gPiAvdXNyL3NyYy9zMi92NGwvcmFkaW8tbXI4MDAuYzoxNDk6IGVycm9yOiBpbml0
+aWFsaXplciBlbGVtZW50IGlzIG5vdCBjb25zdGFudAo+ID4gL3Vzci9zcmMvczIvdjRsL3JhZGlv
+LW1yODAwLmM6MTQ5OiBlcnJvcjogKG5lYXIgaW5pdGlhbGl6YXRpb24gZm9yICd1c2JfYW1yYWRp
+b19kZXZpY2VfdGFibGVbMF0ubWF0Y2hfZmxhZ3MnKQo+ID4gL3Vzci9zcmMvczIvdjRsL3JhZGlv
+LW1yODAwLmM6MTYyOiBlcnJvcjogdW5rbm93biBmaWVsZCAncmVzZXRfcmVzdW1lJyBzcGVjaWZp
+ZWQgaW4gaW5pdGlhbGl6ZXIKPiA+IC91c3Ivc3JjL3MyL3Y0bC9yYWRpby1tcjgwMC5jOjE2Mjog
+d2FybmluZzogaW5pdGlhbGl6YXRpb24gZnJvbSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlCj4g
+PiBtYWtlWzNdOiAqKiogWy91c3Ivc3JjL3MyL3Y0bC9yYWRpby1tcjgwMC5vXSBFcnJvciAxCj4g
+PiBtYWtlWzJdOiAqKiogW19tb2R1bGVfL3Vzci9zcmMvczIvdjRsXSBFcnJvciAyCj4gPiBtYWtl
+WzJdOiBMZWF2aW5nIGRpcmVjdG9yeSBgL3Vzci9zcmMvbGludXgtaGVhZGVycy0yLjYuMjItMi02
+ODYnCj4gPiBtYWtlWzFdOiAqKiogW2RlZmF1bHRdIO/bycLLwSAyCj4gPiBtYWtlWzFdOiBMZWF2
+aW5nIGRpcmVjdG9yeSBgL3Vzci9zcmMvczIvdjRsJwo+ID4gbWFrZTogKioqIFthbGxdIO/bycLL
+wSAyCj4gPiAKPiA+IAo+ID4gCj4gPiBCVFcgLSBob3cgY2FuIEkgZGlzYWJsZSB0aGUgY29tcGls
+YXRpb24gZm9yIHRoaXMgbW9kdWxlICwgYmVjYXVzZSBJIGRvbid0IGhhdmUgdGhpcyBkZXZpY2UK
+PiAKPiBJIHRoaW5rIHRoaXMgc2hvdWxkIHdvcms6Cj4gCj4gJCBjZCAvdXNyL3NyYy9zMgo+ICQg
+bXYgdjRsLy5jb25maWcgdjRsLy5jb25maWcuYmFrCj4gJCBzZWQgLWUgJ3MvXkNPTkZJR19VU0Jf
+TVI4MDAvIyBDT05GSUdfVVNCX01SODAwLycgdjRsLy5jb25maWcuYmFrID4gdjRsLy5jb25maWcK
+CgpubywgaXQgZG9lc24ndCBoZWxwIG1lCgoKZ29nYTovdXNyL3NyYy9zMiMgbXYgdjRsLy5jb25m
+aWcgdjRsLy5jb25maWcuYmFrCmdvZ2E6L3Vzci9zcmMvczIjIHNlZCAtZSAncy9eQ09ORklHX1VT
+Ql9NUjgwMC8jIENPTkZJR19VU0JfTVI4MDAvJyB2NGwvLmNvbmZpZy5iYWsgPiB2NGwvLmNvbmZp
+Zwpnb2dhOi91c3Ivc3JjL3MyIyBtYWtlCm1ha2UgLUMgL3Vzci9zcmMvczIvdjRsCm1ha2VbMV06
+IEVudGVyaW5nIGRpcmVjdG9yeSBgL3Vzci9zcmMvczIvdjRsJwouL3NjcmlwdHMvbWFrZV9teWNv
+bmZpZy5wbAptYWtlWzFdOiBMZWF2aW5nIGRpcmVjdG9yeSBgL3Vzci9zcmMvczIvdjRsJwptYWtl
+WzFdOiBFbnRlcmluZyBkaXJlY3RvcnkgYC91c3Ivc3JjL3MyL3Y0bCcKcGVybCBzY3JpcHRzL21h
+a2VfY29uZmlnX2NvbXBhdC5wbCAvbGliL21vZHVsZXMvMi42LjIyLTItNjg2L2J1aWxkIC4vLm15
+Y29uZmlnIC4vY29uZmlnLWNvbXBhdC5oCmNyZWF0aW5nIHN5bWJvbGljIGxpbmtzLi4uCktlcm5l
+bCBidWlsZCBkaXJlY3RvcnkgaXMgL2xpYi9tb2R1bGVzLzIuNi4yMi0yLTY4Ni9idWlsZAptYWtl
+IC1DIC9saWIvbW9kdWxlcy8yLjYuMjItMi02ODYvYnVpbGQgU1VCRElSUz0vdXNyL3NyYy9zMi92
+NGwgIG1vZHVsZXMKbWFrZVsyXTogRW50ZXJpbmcgZGlyZWN0b3J5IGAvdXNyL3NyYy9saW51eC1o
+ZWFkZXJzLTIuNi4yMi0yLTY4NicKICBDQyBbTV0gIC91c3Ivc3JjL3MyL3Y0bC90dW5lci14YzIw
+MjgubwogIENDIFtNXSAgL3Vzci9zcmMvczIvdjRsL3R1bmVyLXNpbXBsZS5vCiAgQ0MgW01dICAv
+dXNyL3NyYy9zMi92NGwvdHVuZXItdHlwZXMubwoKW3NraXBdCgogIENDIFtNXSAgL3Vzci9zcmMv
+czIvdjRsL3JhZGlvLWFpbXNsYWIubwogIENDIFtNXSAgL3Vzci9zcmMvczIvdjRsL3JhZGlvLXpv
+bHRyaXgubwogIENDIFtNXSAgL3Vzci9zcmMvczIvdjRsL3JhZGlvLWdlbXRlay5vCiAgQ0MgW01d
+ICAvdXNyL3NyYy9zMi92NGwvcmFkaW8tZ2VtdGVrLXBjaS5vCiAgQ0MgW01dICAvdXNyL3NyYy9z
+Mi92NGwvcmFkaW8tdHJ1c3QubwogIENDIFtNXSAgL3Vzci9zcmMvczIvdjRsL3JhZGlvLW1hZXN0
+cm8ubwogIENDIFtNXSAgL3Vzci9zcmMvczIvdjRsL2RzYnIxMDAubwogIENDIFtNXSAgL3Vzci9z
+cmMvczIvdjRsL3JhZGlvLXNpNDcweC5vCiBDQyBbTV0gIC91c3Ivc3JjL3MyL3Y0bC9yYWRpby1t
+cjgwMC5vCi91c3Ivc3JjL3MyL3Y0bC9yYWRpby1tcjgwMC5jOjE0ODogd2FybmluZzogaW1wbGlj
+aXQgZGVjbGFyYXRpb24gb2YgZnVuY3Rpb24gJ1VTQl9ERVZJQ0VfQU5EX0lOVEVSRkFDRV9JTkZP
+JwovdXNyL3NyYy9zMi92NGwvcmFkaW8tbXI4MDAuYzoxNDk6IGVycm9yOiBpbml0aWFsaXplciBl
+bGVtZW50IGlzIG5vdCBjb25zdGFudAovdXNyL3NyYy9zMi92NGwvcmFkaW8tbXI4MDAuYzoxNDk6
+IGVycm9yOiAobmVhciBpbml0aWFsaXphdGlvbiBmb3IgJ3VzYl9hbXJhZGlvX2RldmljZV90YWJs
+ZVswXS5tYXRjaF9mbGFncycpCi91c3Ivc3JjL3MyL3Y0bC9yYWRpby1tcjgwMC5jOjE2MjogZXJy
+b3I6IHVua25vd24gZmllbGQgJ3Jlc2V0X3Jlc3VtZScgc3BlY2lmaWVkIGluIGluaXRpYWxpemVy
+Ci91c3Ivc3JjL3MyL3Y0bC9yYWRpby1tcjgwMC5jOjE2Mjogd2FybmluZzogaW5pdGlhbGl6YXRp
+b24gZnJvbSBpbmNvbXBhdGlibGUgcG9pbnRlciB0eXBlCm1ha2VbM106ICoqKiBbL3Vzci9zcmMv
+czIvdjRsL3JhZGlvLW1yODAwLm9dIEVycm9yIDEKbWFrZVsyXTogKioqIFtfbW9kdWxlXy91c3Iv
+c3JjL3MyL3Y0bF0gRXJyb3IgMgptYWtlWzJdOiBMZWF2aW5nIGRpcmVjdG9yeSBgL3Vzci9zcmMv
+bGludXgtaGVhZGVycy0yLjYuMjItMi02ODYnCm1ha2VbMV06ICoqKiBbZGVmYXVsdF0g79vJwsvB
+IDIKbWFrZVsxXTogTGVhdmluZyBkaXJlY3RvcnkgYC91c3Ivc3JjL3MyL3Y0bCcKbWFrZTogKioq
+IFthbGxdIO/bycLLwSAyCmdvZ2E6L3Vzci9zcmMvczIjIAoKCgpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4
+LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1kdmI=
