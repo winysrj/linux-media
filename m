@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9SFM0b5017357
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 11:22:01 -0400
-Received: from bar.sig21.net (bar.sig21.net [88.198.146.85])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9SFLmAB021199
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 11:21:49 -0400
-Date: Tue, 28 Oct 2008 16:21:52 +0100
-From: Johannes Stezenbach <js@linuxtv.org>
-To: CityK <cityk@rogers.com>
-Message-ID: <20081028152152.GA22100@linuxtv.org>
-References: <490525EA.4020608@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9BJnsIU019279
+	for <video4linux-list@redhat.com>; Sat, 11 Oct 2008 15:49:54 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9BJncLt031827
+	for <video4linux-list@redhat.com>; Sat, 11 Oct 2008 15:49:39 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so760563fga.7
+	for <video4linux-list@redhat.com>; Sat, 11 Oct 2008 12:49:38 -0700 (PDT)
+Message-ID: <d9def9db0810111249v5b8603afudeb96a64b4e6f0ef@mail.gmail.com>
+Date: Sat, 11 Oct 2008 21:49:38 +0200
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: rafael2k <rafael@riseup.net>
+In-Reply-To: <200810111551.13338.rafael@riseup.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Disposition: inline
-In-Reply-To: <490525EA.4020608@rogers.com>
+References: <1223640548.5171.64.camel@luis> <20081010130124.GA850@daniel.bse>
+	<200810111551.13338.rafael@riseup.net>
+Content-Transfer-Encoding: 8bit
 Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Announcement: wiki merger and some loose ends
+Subject: Re: analize ASI with dvbnoop and dektec 140
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,40 +31,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi CityK,
+2008/10/11 rafael2k <rafael@riseup.net>:
+> I think you could write a v4l2 wrapper using the dektec API.
+>
 
-On Sun, Oct 26, 2008 at 10:22:34PM -0400, CityK wrote:
-> 
-> 1) I've started the merger of the V4L and DVB wikis.  I posted an
-> announcement on the main page of both.
+v4l2 has nothing to do with dvbsnoop :-)
 
-Thanks for doing this! I also hope the design drafts
-on User:CityK will manifest itself on the main page
-sometime.
+you might read the manual how you can get access to the mpeg-ts stream
+and simply pipe it to dvbsnoop
 
-> 3) For your viewing pleasure (and in the spirit of Halloween) I 
-> resurrect an older thread that I'd like to see some meaning movement
-> made upon :
-> 
-> http://marc.info/?l=linux-dvb&m=120000803816050&w=2
+eg.:
+dvbstream -o 8192 | dvbsnoop -s ts -if /dev/stdin
 
-(about merging the linux-dvb and video4linux-list)
+note you have to replace the dvbstream command with something specific
+from dektec I guess.
 
-Maybe it would be a good idea to create a new
-list on vger.kernel.org which assimilates
-linux-dvb, video4linux-list and v4l-dvb-maintainer.
-vger.kernel.org has outstanding spam filters so their
-lists generally allow postings from non-subscribers.
-
-How about just creating such a list as a replacement
-for v4l-dvb-maintainer, and then see if linux-dvb
-and video4linux-list users accept it and move
-their discussions over?
-
-
-Best Regards
-
-Johannes
+Markus
+> bye,
+> rafael diniz
+>
+> Em Friday 10 October 2008, Daniel Glöckner escreveu:
+>> On Fri, Oct 10, 2008 at 02:09:08PM +0200, luisan82@gmail.com wrote:
+>> > I've been trying to analyze a ts with dvbsnoop through an ASI input
+>> > unsuccessfully.
+>> > When I execute dvbsnoop, it tries to read from a location (/dev/dvb/...)
+>> > wich doesn't exists.
+>>
+>> The drivers provided by DekTec do not implement the Linux DVB API.
+>> You can't use dvbsnoop.
+>> You need to write your own program using their proprietary DTAPI library.
+>> At least their drivers are open source...
+>
+>
+> --
+> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+> Ciência da Computação @  Unicamp
+> Rádio Muda, radiolivre.org, TV Piolho, tvlivre.org, www.midiaindependente.org
+> Chave PGP: http://pgp.mit.edu:11371/pks/lookup?op=get&search=0x2FF86098
+> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
 --
 video4linux-list mailing list
