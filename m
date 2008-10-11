@@ -1,21 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.24])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KlooX-0003sn-TK
-	for linux-dvb@linuxtv.org; Fri, 03 Oct 2008 19:51:44 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so654021eya.17
-	for <linux-dvb@linuxtv.org>; Fri, 03 Oct 2008 10:51:38 -0700 (PDT)
-Date: Fri, 3 Oct 2008 19:51:17 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Artem Makhutov <artem@makhutov.org>
-In-Reply-To: <48E5CFEF.7010308@makhutov.org>
-Message-ID: <alpine.DEB.2.00.0810031904110.4242@ybpnyubfg.ybpnyqbznva>
-References: <20080926180112.GI28383@moelleritberatung.de>
-	<alpine.DEB.1.10.0809272011420.15691@ybpnyubfg.ybpnyqbznva>
-	<48E5CFEF.7010308@makhutov.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1Koena-0005Qe-DV
+	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 15:46:32 +0200
+Date: Sat, 11 Oct 2008 15:46:00 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <200810111240.36427.liplianin@tut.by>
+Message-ID: <20081011134600.175420@gmx.net>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Find out max used bandwidth in video stream
+References: <48ED0023.8050901@promwad.com>
+	<200810090000.25621.liplianin@tut.by>	<20081011021209.99720@gmx.net>
+	<200810111240.36427.liplianin@tut.by>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org, abraham.manu@gmail.com
+Subject: Re: [linux-dvb] stb0899 and tt s2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,129 +21,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 3 Oct 2008, Artem Makhutov wrote:
-
-> Better I explain you, what I want to do:
-
-Thanks, this is helpful:
-
-> According to the specs, the receiver is capable of decoding this formats:
-> MPEG-4 H.264 MP@L3.0 (ISO 14496-10): up to 10 Mbps
-
-Sounds like SD video...
-
-> MPEG-4 H.264 HP@L4.0 (ISO 14496-10): up to 25 Mbps
-
-Sounds like HD video...
-
-> Microsoft VC-1 MP@HL (WMV9), AP@L3: up to 25 Mbps
-
-Sounds like Evil...
-
-I would have to look to find out the actual details of each
-profile and level to see if there might be any incompatibilities
-that would be obvious to someone who knows the specs by heart,
-but I am lazy...
-
-In general, SD video of decent quality (or, compared to what
-else is out there, superb quality), is sent over sat in MPEG-2
-by ZDF/3sat, especially overnight when Theatre takes a pause,
-or the ARD Dritte programs at 12110MHz, at up to 10Mbit/sec.
-
-I have read that comparable quality H.264 SD video needs about
-half the bandwidth.  In practice, I've seen quoted 2Mbit/sec or
-so for the few SD channels currently sent in H.264.
-
-The rates I've seen quoted for HD video from the UK range from
-10Mbit/sec for ITV-HD to 15Mbit/sec for BBC-HD and up to 
-20Mbit/sec for some Sky UK channels.  These are all 1080i
-(some source material is progressive).
-
-
-> So what I want to do is to fake my providers "IP-TV-Network", as the box is
-> using HTTP to communicate whis the ISP this should not be the problem.
-> 
-> And then stream my DVB-S2 / H264 recordings to the IPTV receiver.
-
-Sounds interesting.  Good luck  :-)
-
-I don't think you need to worry about broadcast bandwidth.
-
-
-> I am living in Germany, and my satellite dish is setup to Astra 19,2 E.
-> I did some recording from Arte HD, Astra HD promo and Anixe HD.
-
-Another thing to note is that while the UK services I mention
-use resolution of 1080, many continental broadcasters have for
-the moment settled on using 720p50 -- although bandwidth should
-be comparable (also of note is that the transmitted resolution
-of BBC-HD is currently 1440x1080, so that it needs somewhat
-less bandwidth than if it were sent 1-to-1 as 1920x1080).
-
-A further source of information on bandwidth (that you can also
-see from your file sizes) would be several internet sat-DX sites
-which give lots of information about the bandwidth of the audio
-and video streams at time of sampling.  I can't name names off
-the top of my head which I know give this info, but I've seen
-the data (which has not always been 100% accurate)...
-
-
-> My PC, Athlon X2 6000+ (2x 3GHz),  is too slow to playback the recordings
-> smoothly.
-
-It would be really nice, as soon as there is a way to use the
-hardware acceleration in today's graphics cards, to offload
-much of the work from your CPU, the way that X11's XvMC for
-MPEG-2 helps a few vendors' cards play smoothly on hardware
-as old and slow as mine (still need to dig up my arte-HD tests
-from a year or three ago sent as MPEG-2 and try them) ...
-
-
-
-> > However, in the case of the BBC `Planet Erde' as broadcast,
-> > the frames I looked at were all identical every two frames,
-
-> > Other material which likely originated from the BBC was
-> > in fact 720p at 50 frames/second -- though it may well
-> > have been originally recorded at 1080i or 1080p, and
-> > either up- or downscaled, and to me did not look very
-
-> I see, the DVB-Providers are changing the transmission "parameters" during the
-> stream... hmmm, that's not good.
-
-Not really -- certainly they do not change (switch) the
-parameters during the stream (broadcast) -- but if they
-have received a master at 1080i, they need to change (convert)
-it to the 720p which is broadcast.
-
-Or it may be that the production is all done in 1080p, and
-then from this, masters at 1080i and 720p are made to be
-sold to the various broadcasters.  I don't know the details
-of the production business.
-
-In any case, the streams you record will always be Xx720p
-or Xx1080i, where X is stretched appropriately for display
-if needed, the way that 720x or 704x576 SD video is stretched
-to the 16:9 aspect ratio 1024x576.  That won't change.
-
-
-> > Boy, do I type a lot.
-> >   
-> Yes, you do :)
-
-And with one finger, other hand holding my beer bottle, in
-the dark, by the dim glow of my monitor with a black background.
-
-that's why i make so many typing errors, sorry
-barry bouwsma
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Cj4g0JIg0YHQvtC+0LHRidC10L3QuNC4INC+0YIgMTEgT2N0b2JlciAyMDA4IDA1OjEyOjA5IEhh
+bnMgV2VybmVyCj4g0L3QsNC/0LjRgdCw0Lso0LApOgo+ID4gLS0tLS0tLS0gT3JpZ2luYWwtTmFj
+aHJpY2h0IC0tLS0tLS0tCj4gPgo+ID4gPiBEYXR1bTogVGh1LCA5IE9jdCAyMDA4IDAwOjAwOjI1
+ICswMzAwCj4gPiA+IFZvbjogIklnb3IgTS4gTGlwbGlhbmluIiA8bGlwbGlhbmluQHR1dC5ieT4K
+PiA+ID4gQW46IGxpbnV4LWR2YkBsaW51eHR2Lm9yZywgU3RldmVuIFRvdGggPHN0b3RoQGxpbnV4
+dHYub3JnPiwgU3RldmVuCj4gVG90aAo+ID4gPiA8c3RvdGhAaGF1cHBhdWdlLmNvbT4sIERhcnJv
+biBCcm9hZCA8ZGFycm9uQGtld2wub3JnPiwgTWFudSBBYnJhaGFtCj4gPiA+IDxhYnJhaGFtLm1h
+bnVAZ21haWwuY29tPiwgdmRyQGxpbnV4dHYub3JnIEJldHJlZmY6IFtsaW51eC1kdmJdIHN0YjA4
+OTkKPiA+ID4gYW5kIHR0IHMyLTMyMDAKPiA+ID4KPiA+ID4gSSBzdWNjZXNzZnVsbHkgcG9ydGVk
+IHN0YjA4OTkgdG8gUzJBUEkKPiA+ID4gRm9yIGtub3cgaXQgaXMganVzdCBmb3IgdGVzdGluZyBw
+dXJwb3Nlcy4gRmVlbCBmcmVlIHRvIHRlc3QgaXQuCj4gPiA+IEFueSBmZWVkYmFjayB3ZWxjb21l
+Lgo+ID4gPiBMb2NraW5nIGJldHRlciB3aXRoIHN6YXAtczIgKHNvcnJ5KQo+ID4gPiBJIGhhdmUg
+dGVzdGVkIHdpdGggRFZCLVMyIDhQU0sgYW5kIERWQi1TIDI3NTAwIGtTeW1zL3MKPiA+ID4KPiA+
+ID4gaHR0cDovbWVyY3VyaWFsLmludHV4aWNhdGlvbi5vcmcvaGcvczItbGlwbGlhbmluCj4gPiA+
+IGh0dHA6L21lcmN1cmlhbC5pbnR1eGljYXRpb24ub3JnL2hnL3N6YXAtczIKPiA+ID4KPiA+ID4g
+LS0KPiA+ID4gSWdvciBNLiBMaXBsaWFuaW4KPiA+Cj4gPiBJZ29yLAo+ID4KPiA+IHRoZSBhdHRh
+Y2hlZCBwYXRjaCAoYWdhaW5zdAo+ID4gaHR0cDovL21lcmN1cmlhbC5pbnR1eGljYXRpb24ub3Jn
+L2hnL3MyLWxpcGxpYW5pbikgYWRkcyBTMkFQSSBzdXBwb3J0Cj4gZm9yCj4gPiB0aGUgU1RCMDg5
+OStNYW50aXMgYmFzZWQgY2FyZHMgc3VjaCBhcyB0aGUKPiA+IFR3aW5oYW4gVlAtMTA0MSAoYWxz
+byBrbm93biBhcyBBenVyZXdhdmUgQUQgU1A0MDAgb3IgVGVjaG5pc2F0IFNreXN0YXIKPiBIRDIp
+Cj4gPgo+ID4gQ291bGQgeW91IHBsZWFzZSBhZGQgaXQgdG8geW91ciBzMi1saXBsaWFuaW4gcmVw
+b3NpdG9yeT8KPiA+Cj4gPiBJdCBpbmNsdWRlcyBNYW50aXMgUENJIGJyaWRnZSwgQ1UxMjE2IGFu
+ZCBGdWppdHN1IE1CODZBMTYgRFZCLVMvRFNTIERDCj4gPiBSZWNlaXZlciBzdXBwb3J0Lgo+ID4K
+PiA+IEl0IGlzIHRoZSBzYW1lIGFzIHRoZSBjb2RlIGZyb20gTWFudSBBYnJhaGFtJ3MgbWFudGlz
+IHRyZWUgYXQKPiA+IGh0dHA6Ly9qdXNzdC5kZS9oZy9tYW50aXMsIHNvIHRoYW5rcyB0byBNYW51
+Lgo+ID4KPiA+IEkgdGVzdGVkIHdpdGggdGhlIFR3aW5oYW4gVlAtMTA0MS4KPiA+IENoYW5uZWwg
+bG9ja2luZyB3b3JrcyBmb3IgbWUgZm9yIHNvbWUgKGJ1dCBub3QgeWV0IGFsbCkgY2hhbm5lbHMg
+d2l0aAo+IFNhbWUgd2l0aCBteSBzMi0zMjAwLCBzbyBJIG1hcmtlZCB0aGUgZHJpdmVyIGxpa2Ug
+ZXhwZXJpbWVudGFsKCBJIG11c3Qgc2F5Cj4gYWxtb3N0IHVzZWxlc3MsIGFzIG15IGZhdm9yaXRl
+IGNoYW5uZWwgdW53YXRjaGFibGUpIGZvciBub3cuCgpUaGUgcGF0Y2ggSSBzZW50IGRvZXNuJ3Qg
+Y2hhbmdlIGFueSBzdGIwODk5IG9yIHN0YjYxMDAgY29kZSBvZiBjb3Vyc2UgLS0gaXQganVzdAph
+ZGRzIGNoaXAgc3VwcG9ydCB3aGljaCB3YXMgYWJzZW50IC0tIHNvIHdlIHNob3VsZCBleHBlY3Qg
+dGhlIHNhbWUgcmVzdWx0cyBJIGd1ZXNzLgoKPiBJIHF1aWNrbHkgcG9ydGVkIHRvIFMyIEFQSSAr
+IHMyLTMyMDAgdGhhdCBjb2RlOgo+IGh0dHA6Ly93d3cudHdpbmhhbi5jb20vZmlsZXMvQVcvTGlu
+dXgvQVpMaW51eF92MS40LjJfQ0lfRkM2LnRhci5nego+IEFuZCBpdCBsb2NrcyBldmVyeSBjaGFu
+bmVsICg/Pz8pLCAKClRoYXQncyBnb29kIG5ld3MuIAoKQnkgdGhlIHdheSwgdGhlcmUgYXJlIGRp
+ZmZlcmVuY2VzIGJldHdlZW4gdGhlIG1hbnRpcywgY3UxMjE2IGFuZCBtYjg2YTE2IGNvZGUKYXQg
+anVzc3QuZGUgYW5kIHR3aW5oYW4uY29tIHRvby4KCj5idXQgc3RyZWFtIGFwcGVhcnMgYnJva2Vu
+LCB0aG91Z2ggSSBjYW4KPiBzZWUsIAo+IHRoYXQgY2hhbm5lbCBpcyByaWdodC4KCk5vdCBzbyBn
+b29kIGJ1dCBmaXhhYmxlIEkgZ3Vlc3MgYnkgY29tcGFyaW5nIHRoZSB0d28gZHJpdmVycy4KCj4g
+SXQgaXMgbmVjZXNzYXJ5IHRvIG1ha2UgZHJpdmVyIHN0YWJsZSwgdGhlbiB0byBhZGQgYW55dGhp
+bmcuCgpVbmRlcnN0b29kLiBIb3BlZnVsbHkgdGhlcmUgaXMgZW5vdWdoIGNvZGUgb3V0IHRoZXJl
+IGFscmVhZHkgdG8gYmUgYWJsZSB0byBwdXQKdG9nZXRoZXIgYSB3b3JraW5nIGRyaXZlci4KCj4g
+Cj4gUmVnYXJkcwo+IElnb3IKClRoYW5rcywKSGFucwotLSAKUmVsZWFzZSBlYXJseSwgcmVsZWFz
+ZSBvZnRlbi4KCkdNWCBLb3N0ZW5sb3NlIFNwaWVsZTogRWluZmFjaCBvbmxpbmUgc3BpZWxlbiB1
+bmQgU3Bhw58gaGFiZW4gbWl0IFBhc3RyeSBQYXNzaW9uIQpodHRwOi8vZ2FtZXMuZW50ZXJ0YWlu
+bWVudC5nbXgubmV0L2RlL2VudGVydGFpbm1lbnQvZ2FtZXMvZnJlZS9wdXp6bGUvNjE2OTE5NgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZi
+IG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9y
+Zy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
