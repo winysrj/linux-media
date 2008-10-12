@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ti-out-0910.google.com ([209.85.142.184])
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1KqYZU-0006j0-PL
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 21:31:46 +0200
-Received: by ti-out-0910.google.com with SMTP id w7so72920tib.13
-	for <linux-dvb@linuxtv.org>; Thu, 16 Oct 2008 12:31:38 -0700 (PDT)
-Date: Thu, 16 Oct 2008 21:31:31 +0200
-To: linux-dvb@linuxtv.org
-Message-ID: <20081016193131.GA4413@gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: [linux-dvb] rmmod s2-mfe crash my 2.6.27
+	(envelope-from <stoth@linuxtv.org>) id 1Kp3i6-0007X8-AR
+	for linux-dvb@linuxtv.org; Sun, 12 Oct 2008 18:22:27 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta1.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K8M009SBW4F2G40@mta1.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Sun, 12 Oct 2008 12:21:52 -0400 (EDT)
+Date: Sun, 12 Oct 2008 12:21:51 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <442626.63058.qm@web38806.mail.mud.yahoo.com>
+To: Koen Rabaey <krabaey@yahoo.com>
+Message-id: <48F2241F.4090903@linuxtv.org>
+MIME-version: 1.0
+References: <442626.63058.qm@web38806.mail.mud.yahoo.com>
+Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] cx88_wakeup message with HVR4000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,39 +25,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Koen Rabaey wrote:
+> Hi,
+> 
+> I don't know if it is of any use to anyone, but when I do a dmesg after booting, 
+> at the end I get (from time to time, not consistently, the number of buffers also varies)
+> 
+> [  123.601789] cx88_wakeup: 7 buffers handled (should be 1)
+> [  123.751892] cx88_wakeup: 7 buffers handled (should be 1)
+> 
+> This does not seem to interfere with dvb playback however.
+> 
+> I'm owning an HVR4000, compiled with http://linuxtv.org/hg/~stoth/s2/ 
+> on a '2.6.27-4-generic' kernel.
 
-I just wanted to try s2-mfe under 2.6.27, and something really strange
-happened : issuing a scripts/rmmod.pl unload crash my computer hard (so
-hard I can't use any of the MagicSyRq keys).
+Koen,
 
-My system has three cards :
-04:01.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-04:02.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video
-and Audio Decoder (rev 05)
-04:02.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and
-Audio Decoder [Audio Port] (rev 05)
-04:02.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and
-Audio Decoder [MPEG Port] (rev 05)
-04:02.4 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and
-Audio Decoder [IR Port] (rev 05)
-04:05.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video
-and Audio Decoder (rev 03)
-04:05.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and
-Audio Decoder [MPEG Port] (rev 03)
+We've see this intermittently with cx88 drivers for the last couple of 
+years. It should probably be removed if the impact is zero.
 
-I haven't tested s2-mfe with my "stable" 2.6.26 kernel which still run
-multiproto (lipliandvb).
--- =
+I'll put this on my todo list.
 
-Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
-               http://picasaweb.google.com/Gregoire.Favre
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
