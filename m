@@ -1,22 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1011.centrum.cz ([90.183.38.141])
+Received: from smtpgw01.world4you.com ([80.243.163.21])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hoppik@centrum.cz>) id 1KsgZZ-0008Ht-CM
-	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 18:28:38 +0200
-Received: by mail1011.centrum.cz id S537197498AbYJVQ2b (ORCPT
-	<rfc822;linux-dvb@linuxtv.org>); Wed, 22 Oct 2008 18:28:31 +0200
-Date: Wed, 22 Oct 2008 18:28:31 +0200
-From: " =?UTF-8?Q?SKO=C4=8CDOPOLE?= =?UTF-8?Q?=20Tom=C3=A1=C5=A1?="
-	<hoppik@centrum.cz>
-To: <linux-dvb@linuxtv.org>
-MIME-Version: 1.0
-Message-ID: <200810221828.18158@centrum.cz>
-References: <200810221822.25471@centrum.cz> <200810221823.25612@centrum.cz>
-	<200810221824.15484@centrum.cz> <200810221825.30723@centrum.cz>
-	<200810221826.30746@centrum.cz> <200810221827.22837@centrum.cz>
-	<200810221828.28744@centrum.cz>
-In-Reply-To: <200810221828.28744@centrum.cz>
-Subject: [linux-dvb] Actual status for TT S2-3200
+	(envelope-from <treitmayr@devbase.at>) id 1KozW9-0002x2-UK
+	for linux-dvb@linuxtv.org; Sun, 12 Oct 2008 13:53:53 +0200
+From: Thomas Reitmayr <treitmayr@devbase.at>
+To: linux-dvb@linuxtv.org
+Date: Sun, 12 Oct 2008 13:53:07 +0200
+Message-Id: <1223812387.7633.12.camel@localhost>
+Mime-Version: 1.0
+Subject: [linux-dvb] Oops with dvb-usb-dib0700 on Marvell Orion ARM SOC
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,16 +22,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello all,
+Hi,
+after installing kernel 2.6.27 I noticed the same kernel Oops described
+here by Info Peukes:
+  http://linuxtv.org/pipermail/linux-dvb/2008-May/025889.html
 
-I want to ask there about actual situation of TT S2-3200 drivers.
-Are still there any problems (with PLL and so on)?
+The patch from the same mail thread works perfectly on my device (a QNAP
+TS-109 II featuring a Marvell Orion5x ARM SOC) -> no oops anymore and
+perfect reception. As I have not found any follow-ups on this patch and
+as it apparently did not get applied in HG, what is its status?
 
-And where can I find actually drivers (in official S2API repository or in Igor's repository)?
-
-Thanks
-
-Best regards Tomas
+Best regards,
+-Thomas
 
 
 _______________________________________________
