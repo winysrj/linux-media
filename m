@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9G6OlAH029160
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:24:47 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9G6OZi9022210
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:24:35 -0400
-Date: Thu, 16 Oct 2008 08:24:40 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Magnus Damm <magnus.damm@gmail.com>
-In-Reply-To: <aec7e5c30810151921v53ab947aq8e1dd6c6ee834eaa@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0810160814190.3892@axis700.grange>
-References: <uskqyqg58.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0810160041250.8535@axis700.grange>
-	<aec7e5c30810151921v53ab947aq8e1dd6c6ee834eaa@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9D54xtO006106
+	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 01:04:59 -0400
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9D54mZU006116
+	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 01:04:49 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9D54fI7005467
+	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 00:04:47 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9D54fOl018952
+	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 10:34:41 +0530 (IST)
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Mon, 13 Oct 2008 10:34:19 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D61A0CC2@dbde02.ent.ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02D61A0CBB@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add ov772x driver
+Content-Transfer-Encoding: 8bit
+Subject: RE: Cloning the V4L2 branch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,64 +32,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Magnus
+Sorry forgot to mention the error,
+Error coming is 
 
-On Thu, 16 Oct 2008, Magnus Damm wrote:
+Initialize master/.git
+Initialized empty Git repository in /db/psp_git/users/a0393759/master/.git/
+warning: remote HEAD refers to nonexistent ref, unable to checkout.
 
-> >> +     /*
-> >> +      * color bar mode
-> >> +      */
-> >> +     if (priv->info->color_bar) {
-> >> +             ret = ov772x_mask_set(priv->client,
-> >> +                             DSP_CTRL3, CBAR_MASK  , CBAR_ON);
-> >> +             if (ret < 0)
-> >> +                     goto start_end;
-> >> +     }
-> >
-> > What is this "color bar mode" and why do you think you need it to be
-> > specified by the platform data (also see below)?
+> -----Original Message-----
+> From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-bounces@redhat.com] On Behalf Of
+> Shah, Hardik
+> Sent: Monday, October 13, 2008 10:32 AM
+> To: video4linux-list@redhat.com
+> Subject: Cloning the V4L2 branch
 > 
-> The color bar mode is a camera test mode where color bars similar to
-> the vivi driver are output instead of the camera image. It's very
-> useful for testing and getting byte order issues resolved. Ideally I'd
-> like to have it as a second output, but I have to extend the SoC
-> camera framework first to get that in place.
+> Hi All,
 > 
-> I'm not sure if platform data is the best place to enable this, but I
-> guess it's good enough.
-
-Hm, so, to test your camera you have to modify your source and rebuild 
-your kernel... And same again to switch back to normal operation. Does not 
-sound very convenient to me. OTOH, making it a module parameter makes it 
-much easier. In fact, maybe it would be a good idea to add a new 
-camera-class control for this mode. Yet another possibility is to enable 
-debug register-access in the driver and use that to manually set the test 
-mode from user-space. A new v4l-control seems best to me, not sure what 
-others will say about this. As you probably know, many other cameras also 
-have this "test pattern" mode, some even several of them. So, this becomes 
-a control with a parameter then.
-
-> > Now, this one. Please, use struct soc_camera_link. It also provides bus_id
-> > (your iface), power, ok, I admit, the inclusion of the "gpio" member in it
-> > was a mistake of mine, it is too specific, we might remove it at some
-> > point. I am not sure you really need color_bar and bus_width. I think,
-> > cameras are more or less exchangeable parts, and if they need some
-> > parameters, that cannot be autoprobed and do not belong to the camera
-> > itself, it might be better to make them module parameters, like the
-> > sensor_type parameter in mt9v022. Even if in your case the sensor chip is
-> > soldered on the board, in another configuration it might not be.
+> I am trying to clone the V4L2 branch using below command
 > 
-> Using soc_camera_link sounds like a good idea. I don't agree with you
-> regarding the module parameters - doing that removes the
-> per-camera-instance configuration that the platform data gives us.
+> $git clone http://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
+> 
+> But it is giving me following error.  So is there any  other way to clone to V4L2 branch.
+> 
+> Thanks and Regards,
+> Hardik
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
-Then a new control or raw register access would be a better way, I think.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
