@@ -1,22 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.171])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bokola@gmail.com>) id 1KrHyN-00086E-IO
-	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 22:00:28 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so1265946wfd.17
-	for <linux-dvb@linuxtv.org>; Sat, 18 Oct 2008 13:00:22 -0700 (PDT)
-Message-ID: <854d46170810181300v41ef5ab3o48ee11bebf252e6e@mail.gmail.com>
-Date: Sat, 18 Oct 2008 22:00:22 +0200
-From: "Faruk A" <fa@elwak.com>
-To: "Dominik Kuhlen" <dkuhlen@gmx.net>
-In-Reply-To: <200810181714.52505.dkuhlen@gmx.net>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <200810181405.42620.dkuhlen@gmx.net>
-	<854d46170810180708l5d109c9chdd97399f2f3c60e0@mail.gmail.com>
-	<200810181714.52505.dkuhlen@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API pctv452e stb0899 simples2apitune
+Date: Mon, 13 Oct 2008 12:38:09 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <200810090000.25621.liplianin@tut.by>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Message-id: <48F37971.7070006@linuxtv.org>
+MIME-version: 1.0
+References: <48ED0023.8050901@promwad.com>
+	<200810090000.25621.liplianin@tut.by>
+Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org,
+	Manu Abraham <abraham.manu@gmail.com>, vdr@linuxtv.org
+Subject: Re: [linux-dvb] stb0899 and tt s2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,18 +23,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->> Dominik are you too facing packet losses from TS?
-> Not in the streams i have tested so far.
-> how often and on which channels do you get errors?
-> what is the SNR for them?
+Igor M. Liplianin wrote:
+> I successfully ported stb0899 to S2API
+> For know it is just for testing purposes. Feel free to test it.
+> Any feedback welcome.
+> Locking better with szap-s2 (sorry)
+> I have tested with DVB-S2 8PSK and DVB-S 27500 kSyms/s
+> 
+> http:/mercurial.intuxication.org/hg/s2-liplianin
+> http:/mercurial.intuxication.org/hg/szap-s2
+> 
 
-Never mind that, i think there is something wrong with my device. I
-have the same problem in windows xp and vista.
-The channels are working fine on my set top box (Samsung DSR 9500 VIA
-CI) which i haven't used in months
-since i bought the tt-s2-3650.
+I haven't had any time to look at this, I'm busy trying to cleanup and 
+get S2API, MFE and general cleanups merged.
 
-Faruk
+Igor, how has the feedback been for these patches? Are they ready for 
+merge, working  only for some people, or badly broken and not for this 
+kernel release?
+
+Thanks,
+
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
