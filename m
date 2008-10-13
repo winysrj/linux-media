@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9SITCsu017865
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 14:29:12 -0400
-Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.183])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9SIT253012959
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 14:29:02 -0400
-Received: by el-out-1112.google.com with SMTP id j27so820200elf.9
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 11:29:02 -0700 (PDT)
-Message-ID: <37219a840810281129k3a713b75w6419b7b5c526df2f@mail.gmail.com>
-Date: Tue, 28 Oct 2008 14:29:00 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Johannes Stezenbach" <js@linuxtv.org>
-In-Reply-To: <20081028152152.GA22100@linuxtv.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9DBXC8u020074
+	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 07:33:12 -0400
+Received: from QMTA04.westchester.pa.mail.comcast.net
+	(qmta04.westchester.pa.mail.comcast.net [76.96.62.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9DBWth7032375
+	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 07:32:58 -0400
+Message-ID: <48F331EE.8080309@comcast.net>
+Date: Mon, 13 Oct 2008 04:33:02 -0700
+From: Brian Rogers <brian_rogers@comcast.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <48C4FC1F.40509@comcast.net>	<20080911103801.52629349@mchehab.chehab.org>	<1221359719.6598.31.camel@pc10.localdom.local>
+	<20080915012640.51c86e04@areia.chehab.org>
+In-Reply-To: <20080915012640.51c86e04@areia.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <490525EA.4020608@rogers.com> <20081028152152.GA22100@linuxtv.org>
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
-	CityK <cityk@rogers.com>
-Subject: Re: [linux-dvb] Announcement: wiki merger and some loose ends
+Cc: video4linux-list@redhat.com, Schultz <n9xmj@yahoo.com>,
+	Henry Wong <henry@stuffedcow.net>, v4ldvb@linuxtv.org,
+	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
+Subject: Re: [PATCH] Add support for MSI TV@nywhere Plus remote
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,43 +31,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Oct 28, 2008 at 11:21 AM, Johannes Stezenbach <js@linuxtv.org> wrote:
-> Hi CityK,
->
-> On Sun, Oct 26, 2008 at 10:22:34PM -0400, CityK wrote:
-> (about merging the linux-dvb and video4linux-list)
->
-> Maybe it would be a good idea to create a new
-> list on vger.kernel.org which assimilates
-> linux-dvb, video4linux-list and v4l-dvb-maintainer.
-> vger.kernel.org has outstanding spam filters so their
-> lists generally allow postings from non-subscribers.
->
-> How about just creating such a list as a replacement
-> for v4l-dvb-maintainer, and then see if linux-dvb
-> and video4linux-list users accept it and move
-> their discussions over?
-
-Mauro and I were discussing this face to face at the Linux Plumbers
-conference...
-
-What we would like to do is leave the video4linux and linux-dvb
-mailing lists as user lists, create a new -devel mailing list, and
-redirect v4l-dvb-maintainer to the new list.  (Probably hosted on
-vger, but that hasnt yet been determined)
-
-The devel list would be an open list for developers only.  Any
-tech-support related stuff would remain on the lists that are still
-used today.
-
-Specifically, we wanted to move the "v4l-dvb-maintainer" list to
-somewhere with spam filtering and turn this into a list where all
-development discussions and pull requests can take place.  We want a
-separation between user requests and developer discussion, so merging
-everything into a single list is not the direction that we want to
-take.
-
--Mike
+Mauro Carvalho Chehab wrote:
+> On Sun, 14 Sep 2008 04:35:19 +0200
+> hermann pitton <hermann-pitton@arcor.de> wrote:
+>   
+>> Mauro,
+>>
+>> this is the oldest and most important outstanding patch we have.
+>>
+>> There are whole generations of cards still without of any IR support,
+>> since years, because of that.
+>>
+>> If this one should still hang on coding style violations, please let me
+>> know.
+>>     
+> I'll handle this patch soon. I'm currently away (in Portland, due to Plumbers
+> and KS conferences), so, maybe I'll wait until the next week for committing it.
+>   
+The patch doesn't appear to be in any of the v4l trees yet, so here's a 
+ping to remind you.
 
 --
 video4linux-list mailing list
