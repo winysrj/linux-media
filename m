@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1.nijcomplesk5.nl ([83.172.148.40])
+Received: from gv-out-0910.google.com ([216.239.58.184])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jean-paul@goedee.nl>) id 1KuoQ5-0001Il-Pu
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 14:15:41 +0100
-Message-ID: <20081028141538.zjktyzkuoc8kowg0@webmail.goedee.nl>
-Date: Tue, 28 Oct 2008 14:15:38 +0100
-From: jean-paul@goedee.nl
-Cc: linux-dvb@linuxtv.org
-References: <20081028111538.1yl7p80uo0cggo80@webmail.goedee.nl>
-	<4906E9CC.2040408@gmail.com>
-	<20081028124505.tvjko4bvkgk4kg4o@webmail.goedee.nl>
-	<b42fca4d0810280453j652a531ag94f1d3137e540f6c@mail.gmail.com>
-In-Reply-To: <b42fca4d0810280453j652a531ag94f1d3137e540f6c@mail.gmail.com>
+	(envelope-from <artlov@gmail.com>) id 1KpT4e-0004Wa-GR
+	for linux-dvb@linuxtv.org; Mon, 13 Oct 2008 21:27:27 +0200
+Received: by gv-out-0910.google.com with SMTP id n29so387091gve.16
+	for <linux-dvb@linuxtv.org>; Mon, 13 Oct 2008 12:27:19 -0700 (PDT)
+Message-ID: <48F3A113.50805@gmail.com>
+Date: Mon, 13 Oct 2008 22:27:15 +0300
+From: Arthur Konovalov <artlov@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: Re: [linux-dvb] S2API & TT3200
+To: linux-dvb@linuxtv.org
+References: <7b41dd970809290235x48f63938ic56318ba3064a71b@mail.gmail.com>	<c4d80f839f7e2e838b04f6c37c68d9c0@10.0.0.2>	<7b41dd970810091315h1433fa7du56e5754a1684019d@mail.gmail.com>	<1223598995.4825.12.camel@pc10.localdom.local>
+	<7b41dd970810121321m715f7a81nf2c6e07485603571@mail.gmail.com>
+In-Reply-To: <7b41dd970810121321m715f7a81nf2c6e07485603571@mail.gmail.com>
+Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,180 +27,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-If I install from http://mercurial.intuxication.org/hg/s2-liplianin/ I  
-get some compile problems but it can overwrite by empty the problem  
-cx88*.*  files. Compile with jusst.de/hg/v4l-dvb without errors.
+klaas de waal wrote:
+> I have now put in a frequency map table tda827x_dvbc 
+> for DVB-C tuners only. This works OK for me and it should not modify the 
+> behaviour with other non-DVB-C demodulators.
 
-Stage two: Try to scan some channels from the first lnb (19.2E)
+Unfortunately still does not works with 386MHz, at least in my case.
+No lock, no picture...
+Is it possible that 386MHz and 388MHz are in different frequency 
+segments? Which values I should tune? Any hint, please.
 
-With v4l-dvb drivers I get some strange errors. With the S2 drivers I  
-get (see below)
-
-
-API major 5, minor 0
-scanning Astra-19.2E
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 12551500 V 22000000 22000000
-----------------------------------> Using DVB-S
->>> tune to: 12551:vS0C56:S19.2E:22000:
-DiSEqC: uncommitted switch pos 0
-DiSEqC: switch pos 0, 13V, hiband (index 2)
-DVB-S IF freq is 1951500
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 12551:vS0C56:S19.2E:22000: (tuning failed)
-DiSEqC: uncommitted switch pos 0
-DiSEqC: switch pos 0, 13V, hiband (index 2)
-DVB-S IF freq is 1951500
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
-----------------------------------> Using DVB-S2
->>> tune to: 12551:vS1C56:S19.2E:22000: (tuning failed)
-DiSEqC: uncommitted switch pos 0
-DiSEqC: switch pos 0, 13V, hiband (index 2)
-DVB-S IF freq is 1951500
->>> tuning status == 0x1f
->>> parse_section, section number 0 out of 0...!
-parse_pat......
-PAT
-service_id = 0x0
-service_id = 0xc
-pmt_pid = 0x2a
-service_id = 0xf98
-pmt_pid = 0x34
-service_id = 0xf9a
-pmt_pid = 0x26
-service_id = 0xf9d
-pmt_pid = 0x31
-service_id = 0x2f44
-pmt_pid = 0x27
-service_id = 0x2f58
-pmt_pid = 0x23
-service_id = 0x2f59
-pmt_pid = 0x800
-service_id = 0x2f5a
-pmt_pid = 0x20
-service_id = 0x2f5b
-pmt_pid = 0x2f
-service_id = 0x2f5d
-pmt_pid = 0x1392
-service_id = 0x2f80
-pmt_pid = 0x30
-service_id = 0x2f94
-pmt_pid = 0x24
-service_id = 0x2fa4
-pmt_pid = 0x33
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x0024 for service 0x2f94
-VIDEO:PID 0x0037
-AUDIO:PID 0x0038
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x1392 for service 0x2f5d
-VIDEO:PID 0x1393
-AUDIO:PID 0x1395
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x0020 for service 0x2f5a
-VIDEO:PID 0x0021
-AUDIO:PID 0x0022
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x0800 for service 0x2f59
-VIDEO:PID 0x0802
-AUDIO:PID 0x0803
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x0023 for service 0x2f58
-VIDEO:PID 0x03ad
-AUDIO:PID 0x03af
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x0027 for service 0x2f44
-VIDEO:PID 0x00a5
-AUDIO:PID 0x00a6
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x0026 for service 0x0f9a
-AUDIO:PID 0x0090
-AUDIO:PID 0x0092
-VIDEO:PID 0x00a8
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x0033 for service 0x2fa4
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x0030 for service 0x2f80
-AUDIO:PID 0x0063
-VIDEO:PID 0x00a2
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x002f for service 0x2f5b
-VIDEO:PID 0x01cc
-AUDIO:PID 0x01d6
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x0031 for service 0x0f9d
-AUDIO:PID 0x0090
-AUDIO:PID 0x0092
-VIDEO:PID 0x00a8
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x0034 for service 0x0f98
-VIDEO:PID 0x0062
-AUDIO:PID 0x1163
-AUDIO:PID 0x1165
-AUDIO:PID 0x116b
->>> parse_section, section number 0 out of 0...!
-parse_pmt......
-PMT 0x002a for service 0x000c
-WARNING: filter timeout pid 0x1ffb
-dumping lists (13 services)
-Done.
-
-
-gives the output:
-
-(null) -  
-[0f98]:12551:vS1C56:S19.2E:22000:98:4451=deu,4453=fra,4459=spa:0:0:3992:0:0:0
-(null) - [0f9a]:12551:vS1C56:S19.2E:22000:168:144=ltz,146=fre:301:0:3994:0:0:0
-(null) - [0f9d]:12551:vS1C56:S19.2E:22000:168:144=ltz,146=fre:74:0:3997:0:0:0
-(null) - [2f44]:12551:vS1C56:S19.2E:22000:165:166:167:0:12100:0:0:0
-(null) - [2f58]:12551:vS1C56:S19.2E:22000:941:943=fre:0:0:12120:0:0:0
-(null) - [2f59]:12551:vS1C56:S19.2E:22000:2050:2051=fre:0:0:12121:0:0:0
-(null) - [2f5a]:12551:vS1C56:S19.2E:22000:33:34=deu:0:0:12122:0:0:0
-(null) - [2f5b]:12551:vS1C56:S19.2E:22000:460+511:470:0:0:12123:0:0:0
-(null) - [2f5d]:12551:vS1C56:S19.2E:22000:5011:5013=ger:0:0:12125:0:0:0
-(null) - [2f80]:12551:vS1C56:S19.2E:22000:162:99=ger:0:0:12160:0:0:0
-(null) - [2f94]:12551:vS1C56:S19.2E:22000:55:56=ltz:0:0:12180:0:0:0
-
-The second one (-s 1) gives noting.
-
-
-For so far. I?m not able to watch any channel.
-
-
-Jean-Paul
-
+AK
 
 
 _______________________________________________
