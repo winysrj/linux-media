@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46])
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hermann-pitton@arcor.de>) id 1KlGjx-0003j2-UB
-	for linux-dvb@linuxtv.org; Thu, 02 Oct 2008 07:28:42 +0200
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Darren Salt <linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <4FECF60EC8%linux@youmustbejoking.demon.co.uk>
-References: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
-	<alpine.DEB.2.00.0809302137380.4242@ybpnyubfg.ybpnyqbznva>
-	<4FEC93ECE8%linux@youmustbejoking.demon.co.uk>
-	<4FECF60EC8%linux@youmustbejoking.demon.co.uk>
-Date: Thu, 02 Oct 2008 07:22:53 +0200
-Message-Id: <1222924973.2672.4.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	(envelope-from <stoth@linuxtv.org>) id 1KpW46-0002np-Q3
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 00:39:04 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta3.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K8P00IB08823E31@mta3.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Mon, 13 Oct 2008 18:38:28 -0400 (EDT)
+Date: Mon, 13 Oct 2008 18:38:26 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <442626.63058.qm@web38806.mail.mud.yahoo.com>
+To: Koen Rabaey <krabaey@yahoo.com>
+Message-id: <48F3CDE2.5010706@linuxtv.org>
+MIME-version: 1.0
+References: <442626.63058.qm@web38806.mail.mud.yahoo.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
+Subject: Re: [linux-dvb] cx88_wakeup message with HVR4000
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,21 +31,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Darren,
+Koen Rabaey wrote:
+> Hi,
+> 
+> I don't know if it is of any use to anyone, but when I do a dmesg after booting, 
+> at the end I get (from time to time, not consistently, the number of buffers also varies)
+> 
+> [  123.601789] cx88_wakeup: 7 buffers handled (should be 1)
+> [  123.751892] cx88_wakeup: 7 buffers handled (should be 1)
+> 
+> This does not seem to interfere with dvb playback however.
+> 
+> I'm owning an HVR4000, compiled with http://linuxtv.org/hg/~stoth/s2/ 
+> on a '2.6.27-4-generic' kernel.
 
-Am Mittwoch, den 01.10.2008, 17:49 +0100 schrieb Darren Salt:
-> Will people NOT CC mail to me? Mail-Followup-To is set for a reason...
+FYI
 
-from my side there was not any intention in that direction.
-Barry must have lost it previously and I did just hit the reply to all
-button.
+http://linuxtv.org/hg/~stoth/s2-mfe/rev/6b6e9be35963
 
-Also interesting, unfortunately in German.
-http://www.spiegel.de/politik/ausland/0,1518,581790,00.html
+I've changed the message into a debug only message. It's still visible
+when running the driver in debug mode, but for normal users they should 
+not be bothered by this any more.
 
-Cheers,
-Hermann
+It will hopefully be merged this week. Thanks for raising this issue.
 
+- Steve
 
 
 _______________________________________________
