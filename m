@@ -1,14 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mout.perfora.net ([74.208.4.194])
+Received: from rv-out-0506.google.com ([209.85.198.232])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <j.craig@aggiemail.usu.edu>) id 1Ks0RE-0008U0-Uk
-	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 21:29:18 +0200
-Message-ID: <48FCDC13.7070303@aggiemail.usu.edu>
-Date: Mon, 20 Oct 2008 13:29:23 -0600
-From: Jason Craig <j.craig@aggiemail.usu.edu>
-MIME-Version: 1.0
+	(envelope-from <the.masch@gmail.com>) id 1KpCaP-0003sA-Gl
+	for linux-dvb@linuxtv.org; Mon, 13 Oct 2008 03:51:07 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so1266431rvf.41
+	for <linux-dvb@linuxtv.org>; Sun, 12 Oct 2008 18:51:00 -0700 (PDT)
+Message-ID: <93d66b780810121851j661a81ebjbe192f6fcea2ea08@mail.gmail.com>
+Date: Sun, 12 Oct 2008 22:51:00 -0300
+From: "Mario Chacon" <the.masch@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] ATI TV Wonder HD 600
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Trouble with D-LINK DUB-T210
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,22 +25,12 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi everyone-
+HI!
+I'm trying to make it works my D-LINK DUB-T210 TV Card.It's fedoraoubl
+beta 10 compatibly with Module em2880_dvd?...
+What do i need to make it works??
 
-I purchased this card because it would fit in my low profile box and I
-mistook it for the "HDTV Wonder" that I had seen on the linuxtv.org and
-mythtv Wikis, only to find out that it wasn't (after banging my head
-against the wall for a few hours).  Anyways, my ragged mind is now at a
-bit of a loss as to if (how) I can get my TV Wonder HD 600 PCI working. 
-I noticed in the September archive for this list there was a patch
-posted to "Use correct firmware for the ATI TV Wonder 600", so I assume
-the card is (going to be) supported.
-
-Is there any way currently to use this card?  Do I need a newer kernel? 
-If so, what version?  Any help would be appreciated.
-
-thank you all,
---Jason
+Salu2...
 
 _______________________________________________
 linux-dvb mailing list
