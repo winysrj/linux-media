@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from an-out-0708.google.com ([209.85.132.245])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1Ksa5h-0004Wc-C7
-	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 11:33:24 +0200
-Message-ID: <48FEF358.1040401@iki.fi>
-Date: Wed, 22 Oct 2008 12:33:12 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <bokola@gmail.com>) id 1KpPRP-0003tr-9L
+	for linux-dvb@linuxtv.org; Mon, 13 Oct 2008 17:34:42 +0200
+Received: by an-out-0708.google.com with SMTP id c18so134696anc.125
+	for <linux-dvb@linuxtv.org>; Mon, 13 Oct 2008 08:34:32 -0700 (PDT)
+Message-ID: <854d46170810130834p6118793co49ecb6ed8809062@mail.gmail.com>
+Date: Mon, 13 Oct 2008 17:34:32 +0200
+From: "Faruk A" <fa@elwak.com>
+To: christian@heidingsfelder.eu
+In-Reply-To: <48F360B1.7070705@heidingsfelder.eu>
 MIME-Version: 1.0
-To: Andrej Podzimek <andrej@podzimek.org>
-References: <48FE2872.3070105@podzimek.org> <48FE3553.5080009@iki.fi>
-	<48FE6351.2000805@podzimek.org>
-In-Reply-To: <48FE6351.2000805@podzimek.org>
+Content-Disposition: inline
+References: <48F360B1.7070705@heidingsfelder.eu>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] MSI DigiVox mini II V3.0 stopped working
+Subject: Re: [linux-dvb] Technotrend TT-Connect S2-3650 CI
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,24 +28,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Andrej Podzimek kirjoitti:
-> One more little note about the firmware:
-> 
-> 	[andrej@xandrej firmware]$ sha1sum dvb-usb-af9015.fw
-> 	6a0edcc65f490d69534d4f071915fc73f5461560  dvb-usb-af9015.fw
-> 
-> That file can be found here: http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
-> 
-> Is it the right one? Shell I try something else?
+> Hi all,
+>
+> again, if somebody is
+> working on
+> or interested in
+> that DVB-S USB Reciever with Card Interface he can msg me for informations
+> or whatever :- )
+>
+> Regards Chris
 
-thats the correct one
-> 
-> Andrej
+Hi Chris!
 
-Antti
+As i told you before this card is working with multiproto with kernel
+2.6.25 and under.
 
--- 
-http://palosaari.fi/
+driver support:
+- Remote Control
+- LNB Power (13/18V)
+- 22kHz
+- DiSEqC
+- DVB-S
+- DVB-S2
+- Common Interface
+more info @ http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI
+and search this mailing list.
+
+S2 API support you have to wait i think because this card depends
+stb0899 and stb6100
+which as far as i know is not ported yet.
+
+Regards
+Faruk
 
 _______________________________________________
 linux-dvb mailing list
