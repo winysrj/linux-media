@@ -1,19 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9DK7aw6002448
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 16:07:36 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9DK7PKx028211
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 16:07:25 -0400
-Message-ID: <48F3AA76.6030003@gmx.net>
-Date: Mon, 13 Oct 2008 22:07:18 +0200
-From: Roman <muzungu@gmx.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9DMVQLe029412
+	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 18:31:26 -0400
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9DMVF8T008361
+	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 18:31:16 -0400
+Received: by ug-out-1314.google.com with SMTP id o38so601681ugd.13
+	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 15:31:15 -0700 (PDT)
+Message-ID: <30353c3d0810131531p1d69d656t2dfd136866ecc8c1@mail.gmail.com>
+Date: Mon, 13 Oct 2008 18:31:15 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	v4l <video4linux-list@redhat.com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: ASUSTeK P7131 Analog remote control does not work due to init
-	sequence?
+Content-Type: multipart/mixed;
+	boundary="----=_Part_31866_18248630.1223937075096"
+Cc: 
+Subject: [PATCH 2/2] stk-webcam: fix crash on close after disconnect
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,237 +28,115 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi  everyone
+------=_Part_31866_18248630.1223937075096
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I am running a SUSE 11 and resently bought me a AsusTek My Cinema P7131
-Analog TV tuner card. The system (and so Yast) recognizes the card as a
-TV FM-7135 due to the Manufacturer ID codes. I have no clue why they did
-not give it a unique ID instead of sharing it with the FM-7135.
+This patch prevents stk-webcam from updating usb device information
+once the camera has been removed. This prevents a crash that would
+otherwise occur if the camera is disconnected while it is still in
+use.
 
-So I downloaded the lastest stable v4l archive and found that the card
-had been added to the saa7134 driver, deciding it to be a AsusTek My
-Cinema P7131 Analog according to the eeprom content. Since the archive
-did not compile on my machine, I started patching the changes into my
-source files (Kernel SUSE11/linux-2.6.25.16-0.1) manually.
+Regards,
 
-Now what I found was that the saa7134_input_init1 takes place before
-reading the eeprom and re-adjusting the device from FM-7135 to P7131 Analog.
-What I did then, was:
-- set the has_remote field again, just after when it is decided that the
-FM-7135 is rather a P7131 Analog due to the eeprom.
-- I moved the saa7134_input_init1 from the init1 section to the init2
-section
+David Ellingsworth
 
-For my card it now seems to work, but I have no clue what consequences
-this could have on others and if this is a proper solution. If the
-eeprom data is needed to recognize a card, may be all the init stuff
-should be done after that?
-
-The numbers below where typed by remote conrtol, so I guess it is
-working with my patches:
-
-earth:/usr/src/linux # 1234567890
-bash: 1234567890: command not found
+==========================================================
+>From 2e456d9bbe370d4019a991b193df1e869df9d532 Mon Sep 17 00:00:00 2001
+From: David Ellingsworth <david@identd.dyndns.org>
+Date: Mon, 13 Oct 2008 16:58:58 -0400
+Subject: [PATCH] stk-webcam: fix crash on close after disconnect
 
 
-I: Bus=0001 Vendor=1043 Product=4845 Version=0001
-N: Name="saa7134 IR (ASUSTeK P7131 Analo"
-P: Phys=pci-0000:03:00.0/ir0
-S: Sysfs=/devices/pci0000:00/0000:00:10.0/0000:03:00.0/input/input6
-U: Uniq=
-H: Handlers=kbd event5
-B: EV=100003
-B: KEY=108c0322 2104000 0 0 0 0 10000 4180 801 9f16c0 0 0 10000ffc
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/video/stk-webcam.c |   18 +++++++-----------
+ 1 files changed, 7 insertions(+), 11 deletions(-)
 
-What would you suggest is a proper solution?
+diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
+index f1d5b3e..edaea49 100644
+--- a/drivers/media/video/stk-webcam.c
++++ b/drivers/media/video/stk-webcam.c
+@@ -559,7 +559,7 @@ static void stk_clean_iso(struct stk_camera *dev)
 
-I attached the manually patched and the original SUSE file plus a diff
-of the saa7134 directory and  /var/log/messages prints of some of my
-tests (with the additions of me)
+ 		urb = dev->isobufs[i].urb;
+ 		if (urb) {
+-			if (atomic_read(&dev->urbs_used))
++			if (atomic_read(&dev->urbs_used) && is_present(dev))
+ 				usb_kill_urb(urb);
+ 			usb_free_urb(urb);
+ 		}
+@@ -688,18 +688,14 @@ static int v4l_stk_release(struct inode *inode,
+struct file *fp)
+ {
+ 	struct stk_camera *dev = fp->private_data;
 
-Just another suggestion which will not help in my case:
-Why not taking the "has_remote" indicator in the saa7134_boards[] array
-of structs instead of switch-casing in int saa7134_board_init1(struct
-saa7134_dev *dev)? I would see this as some kind of device property,
-hence nothing dynamic. No critics, just an idea.
+-	if (dev->owner != fp) {
+-		usb_autopm_put_interface(dev->interface);
+-		return 0;
++	if (dev->owner == fp) {
++		stk_stop_stream(dev);
++		stk_free_buffers(dev);
++		dev->owner = NULL;
+ 	}
 
-I would appreciate responses to what the driver developer see as a good
-solution and if you see the this little flaw in the driver the same way 
-I do.
+-	stk_stop_stream(dev);
+-
+-	stk_free_buffers(dev);
+-
+-	dev->owner = NULL;
+-
+-	usb_autopm_put_interface(dev->interface);
++	if(is_present(dev))
++		usb_autopm_put_interface(dev->interface);
 
-Greets
+ 	return 0;
+ }
+-- 
+1.5.6.5
 
-Roman
+------=_Part_31866_18248630.1223937075096
+Content-Type: application/octet-stream;
+	name=0002-stk-webcam-fix-crash-on-close-after-disconnect.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fm9oj0he0
+Content-Disposition: attachment;
+	filename=0002-stk-webcam-fix-crash-on-close-after-disconnect.patch
 
-PS: I can provide the code and a diff.
-
-
-Oct 11 13:34:08 earth kernel: saa7130/34: v4l2 driver version 0.2.14 loaded
-Oct 11 13:34:08 earth kernel: saa7133[0]: found at 0000:03:00.0, rev:
-209, irq: 18, latency: 64, mmio: 0xfebff800
-Oct 11 13:34:08 earth kernel: saa7133[0]: subsystem: 1043:4845, board:
-ASUS TV-FM 7135 [card=53,autodetected]
-Oct 11 13:34:08 earth kernel: saa7133[0]: board init: gpio is 240000
-Oct 11 13:34:08 earth kernel: saa7133[0]/ir: saa7134_input_init1
-Oct 11 13:34:08 earth kernel: saa7133[0]/ir: saa7134_input_init1
-dev->has_remote=0
-Oct 11 13:34:09 earth kernel: tuner' 2-004b: chip found @ 0x96 (saa7133[0])
-Oct 11 13:34:09 earth kernel: tda8290 2-004b: setting tuner address to 61
-Oct 11 13:34:09 earth kernel: tda8290 2-004b: type set to tda8290+75a
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom 00: 43 10 45 48 54
-20 1c 00 43 43 a9 1c 55 d2 b2 92
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom 10: 00 ff e2 0f ff
-20 ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom 20: 01 40 01 02 03
-01 01 03 08 ff 00 88 ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom 30: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom 40: ff 22 00 c2 96
-ff 02 30 15 ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom 50: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom 60: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom 70: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom 80: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom 90: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom a0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom b0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom c0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom d0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom e0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: i2c eeprom f0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:34:10 earth kernel: saa7133[0]: P7131 analog only, using entry
-of ASUSTeK P7131 Analog
-Oct 11 13:34:13 earth kernel: saa7133[0]: registered device video0 [v4l2]
-Oct 11 13:34:13 earth kernel: saa7133[0]: registered device vbi0
-Oct 11 13:34:13 earth kernel: saa7133[0]: registered device radio0
-Oct 11 13:34:56 earth dhcpcd[2661]: eth1: renewing lease of 192.168.1.2
-
-Oct 11 13:40:13 earth kernel: saa7130/34: v4l2 driver version 0.2.14 loaded
-Oct 11 13:40:13 earth kernel: saa7133[0]: found at 0000:03:00.0, rev:
-209, irq: 18, latency: 64, mmio: 0xfebff800
-Oct 11 13:40:13 earth kernel: saa7133[0]: subsystem: 1043:4845, board:
-ASUS TV-FM 7135 [card=53,autodetected]
-Oct 11 13:40:13 earth kernel: saa7133[0]: board init: gpio is 240000
-Oct 11 13:40:13 earth kernel: saa7133[0]/ir: saa7134_input_init1
-Oct 11 13:40:13 earth kernel: saa7133[0]/ir: saa7134_input_init1
-dev->has_remote=0
-Oct 11 13:40:13 earth kernel: tuner' 2-004b: chip found @ 0x96 (saa7133[0])
-Oct 11 13:40:13 earth kernel: tda8290 2-004b: setting tuner address to 61
-Oct 11 13:40:13 earth kernel: tda8290 2-004b: type set to tda8290+75a
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom 00: 43 10 45 48 54
-20 1c 00 43 43 a9 1c 55 d2 b2 92
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom 10: 00 ff e2 0f ff
-20 ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom 20: 01 40 01 02 03
-01 01 03 08 ff 00 88 ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom 30: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom 40: ff 22 00 c2 96
-ff 02 30 15 ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom 50: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom 60: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom 70: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom 80: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom 90: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom a0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom b0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom c0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom d0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom e0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: i2c eeprom f0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 13:40:15 earth kernel: saa7133[0]: P7131 analog only, using entry
-of ASUSTeK P7131 Analog
-Oct 11 13:40:15 earth kernel: saa7134_board_init2: dev->has_remote=1.
-Oct 11 13:40:17 earth kernel: saa7133[0]: registered device video0 [v4l2]
-Oct 11 13:40:17 earth kernel: saa7133[0]: registered device vbi0
-Oct 11 13:40:17 earth kernel: saa7133[0]: registered device radio0
-Oct 11 13:42:40 earth kernel: type=1503 audit(1223725360.081:53):
-operation="inode_permission" requested_mask="::r" denied_mask="::r"
-fsuid=74 name="/var/lib/ntp/proc/3524/net/if_inet6" pid=3524
-profile="/usr/sbin/ntpd"
-Oct 11 13:45:01 earth /usr/sbin/cron[22497]: (roman) CMD
-(/etc/rke/mdstat/mdck.sh /etc/rke/mdstat/mdstat_ok.log)
-
-Oct 11 14:13:00 earth kernel: saa7130/34: v4l2 driver version 0.2.14 loaded
-Oct 11 14:13:00 earth kernel: saa7133[0]: found at 0000:03:00.0, rev:
-209, irq: 18, latency: 64, mmio: 0xfebff800
-Oct 11 14:13:00 earth kernel: saa7133[0]: subsystem: 1043:4845, board:
-ASUS TV-FM 7135 [card=53,autodetected]
-Oct 11 14:13:00 earth kernel: saa7133[0]: board init: gpio is 240000
-Oct 11 14:13:00 earth kernel: saa7134_hwinit1:733: removed call to
-saa7134_input_init1(dev) here!
-Oct 11 14:13:00 earth kernel: tuner' 2-004b: chip found @ 0x96 (saa7133[0])
-Oct 11 14:13:00 earth kernel: tda8290 2-004b: setting tuner address to 61
-Oct 11 14:13:01 earth kernel: tda8290 2-004b: type set to tda8290+75a
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom 00: 43 10 45 48 54
-20 1c 00 43 43 a9 1c 55 d2 b2 92
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom 10: 00 ff e2 0f ff
-20 ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom 20: 01 40 01 02 03
-01 01 03 08 ff 00 88 ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom 30: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom 40: ff 22 00 c2 96
-ff 02 30 15 ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom 50: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom 60: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom 70: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom 80: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom 90: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom a0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom b0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom c0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom d0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom e0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: i2c eeprom f0: ff ff ff ff ff
-ff ff ff ff ff ff ff ff ff ff ff
-Oct 11 14:13:02 earth kernel: saa7133[0]: P7131 analog only, using entry
-of ASUSTeK P7131 Analog
-Oct 11 14:13:02 earth kernel: saa7134_board_init2:5367: dev->has_remote=1.
-Oct 11 14:13:02 earth kernel: saa7134_hwinit2:776: added call to
-saa7134_input_init1(dev) here!
-Oct 11 14:13:02 earth kernel: saa7133[0]/ir: saa7134_input_init1
-Oct 11 14:13:02 earth kernel: saa7133[0]/ir: saa7134_input_init1:402:
-SAA7134_BOARD_ASUSTeK_P7131_ANALOG
-Oct 11 14:13:02 earth kernel: input: saa7134 IR (ASUSTeK P7131 Analo as
-/devices/pci0000:00/0000:00:10.0/0000:03:00.0/input/input6
-Oct 11 14:13:04 earth kernel: saa7133[0]: registered device video0 [v4l2]
-Oct 11 14:13:04 earth kernel: saa7133[0]: registered device vbi0
-Oct 11 14:13:04 earth kernel: saa7133[0]: registered device radio0
+RnJvbSAyZTQ1NmQ5YmJlMzcwZDQwMTlhOTkxYjE5M2RmMWU4NjlkZjlkNTMyIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5k
+bnMub3JnPgpEYXRlOiBNb24sIDEzIE9jdCAyMDA4IDE2OjU4OjU4IC0wNDAwClN1YmplY3Q6IFtQ
+QVRDSF0gc3RrLXdlYmNhbTogZml4IGNyYXNoIG9uIGNsb3NlIGFmdGVyIGRpc2Nvbm5lY3QKCgpT
+aWduZWQtb2ZmLWJ5OiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5kbnMub3Jn
+PgotLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vc3RrLXdlYmNhbS5jIHwgICAxOCArKysrKysrLS0t
+LS0tLS0tLS0KIDEgZmlsZXMgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspLCAxMSBkZWxldGlvbnMo
+LSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3N0ay13ZWJjYW0uYyBiL2RyaXZl
+cnMvbWVkaWEvdmlkZW8vc3RrLXdlYmNhbS5jCmluZGV4IGYxZDViM2UuLmVkYWVhNDkgMTAwNjQ0
+Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vc3RrLXdlYmNhbS5jCisrKyBiL2RyaXZlcnMvbWVk
+aWEvdmlkZW8vc3RrLXdlYmNhbS5jCkBAIC01NTksNyArNTU5LDcgQEAgc3RhdGljIHZvaWQgc3Rr
+X2NsZWFuX2lzbyhzdHJ1Y3Qgc3RrX2NhbWVyYSAqZGV2KQogCiAJCXVyYiA9IGRldi0+aXNvYnVm
+c1tpXS51cmI7CiAJCWlmICh1cmIpIHsKLQkJCWlmIChhdG9taWNfcmVhZCgmZGV2LT51cmJzX3Vz
+ZWQpKQorCQkJaWYgKGF0b21pY19yZWFkKCZkZXYtPnVyYnNfdXNlZCkgJiYgaXNfcHJlc2VudChk
+ZXYpKQogCQkJCXVzYl9raWxsX3VyYih1cmIpOwogCQkJdXNiX2ZyZWVfdXJiKHVyYik7CiAJCX0K
+QEAgLTY4OCwxOCArNjg4LDE0IEBAIHN0YXRpYyBpbnQgdjRsX3N0a19yZWxlYXNlKHN0cnVjdCBp
+bm9kZSAqaW5vZGUsIHN0cnVjdCBmaWxlICpmcCkKIHsKIAlzdHJ1Y3Qgc3RrX2NhbWVyYSAqZGV2
+ID0gZnAtPnByaXZhdGVfZGF0YTsKIAotCWlmIChkZXYtPm93bmVyICE9IGZwKSB7Ci0JCXVzYl9h
+dXRvcG1fcHV0X2ludGVyZmFjZShkZXYtPmludGVyZmFjZSk7Ci0JCXJldHVybiAwOworCWlmIChk
+ZXYtPm93bmVyID09IGZwKSB7CisJCXN0a19zdG9wX3N0cmVhbShkZXYpOworCQlzdGtfZnJlZV9i
+dWZmZXJzKGRldik7CisJCWRldi0+b3duZXIgPSBOVUxMOwogCX0KIAotCXN0a19zdG9wX3N0cmVh
+bShkZXYpOwotCi0Jc3RrX2ZyZWVfYnVmZmVycyhkZXYpOwotCi0JZGV2LT5vd25lciA9IE5VTEw7
+Ci0KLQl1c2JfYXV0b3BtX3B1dF9pbnRlcmZhY2UoZGV2LT5pbnRlcmZhY2UpOworCWlmKGlzX3By
+ZXNlbnQoZGV2KSkKKwkJdXNiX2F1dG9wbV9wdXRfaW50ZXJmYWNlKGRldi0+aW50ZXJmYWNlKTsK
+IAogCXJldHVybiAwOwogfQotLSAKMS41LjYuNQoK
+------=_Part_31866_18248630.1223937075096
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_Part_31866_18248630.1223937075096--
