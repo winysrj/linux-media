@@ -1,34 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m91IkojT030239
-	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 14:46:50 -0400
-Received: from mail-gx0-f15.google.com (mail-gx0-f15.google.com
-	[209.85.217.15])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m91IklJU024215
-	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 14:46:47 -0400
-Received: by gxk8 with SMTP id 8so557583gxk.3
-	for <video4linux-list@redhat.com>; Wed, 01 Oct 2008 11:46:46 -0700 (PDT)
-Message-ID: <9d87242f0810011146r7c2b2083pdd7d940f4c427382@mail.gmail.com>
-Date: Wed, 1 Oct 2008 11:46:46 -0700
-From: "Scott Bronson" <bronson@rinspin.com>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <9d87242f0809260952h7542a051ud6d539269638d6b4@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9DDtgQY003351
+	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 09:55:42 -0400
+Received: from aa002msb.fastweb.it (aa002msb.fastweb.it [85.18.95.81])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9DDtNHU014209
+	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 09:55:26 -0400
+Received: from ess-server.Ess.local (37.253.89.168) by aa002msb.fastweb.it
+	(8.0.013.8) id 48E3500E020F2ED8 for video4linux-list@redhat.com;
+	Mon, 13 Oct 2008 15:55:23 +0200
 Content-Disposition: inline
-References: <9d87242f0809191425p1adb1e59p417753a4c403a872@mail.gmail.com>
-	<9d87242f0809192255t49e112bfvd9c95e66bd3292a8@mail.gmail.com>
-	<48D49A39.5010909@linuxtv.org>
-	<9d87242f0809211316g1a34f0e7wed0f8345d5cdd787@mail.gmail.com>
-	<48D702B5.8020800@linuxtv.org>
-	<9d87242f0809221206n1d589137v8e1bf77792c31bcf@mail.gmail.com>
-	<48D7F064.4010103@linuxtv.org>
-	<9d87242f0809222335l67860769k6369db5665b10f98@mail.gmail.com>
-	<48D907BB.4020801@linuxtv.org>
-	<9d87242f0809260952h7542a051ud6d539269638d6b4@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Unreliable tuning with HVR-950q
+From: Daniele Paganelli <d.paganelli@expertsystemsolutions.it>
+To: video4linux-list@redhat.com
+Date: Mon, 13 Oct 2008 15:55:14 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Message-Id: <200810131555.14721.d.paganelli@expertsystemsolutions.it>
+Content-Transfer-Encoding: 8bit
+Subject: Fwd: [Linux-uvc-devel] inconsistency with video4linux2 MENU control
+	type
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,33 +30,76 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Sep 26, 2008 at 9:52 AM, Scott Bronson <bronson@rinspin.com> wrote:
-> On Tue, Sep 23, 2008 at 8:14 AM, Steven Toth <stoth@linuxtv.org> wrote:
->> You're overwhelming the tuner/demod
->> frontend with high RF levels.
->
-> The attenuators are in the mail, 3dB and 6dB...  I'll report back when
-> I've tried them.
+Hi,
+	I forward also to this list the message I sent to linux-uvc.
+Maybe there is a deep video4linux2 meaning to this strange response I got from 
+uvcvideo driver with logitech webcams.
 
-I've now tried the attenuators.  Verdict: didn't help.
 
-3dB: no difference that I can detect.
-6dB: probably a little worse
-3dB+6dB in line: definitely worse
+Regards,
+--
+Daniele Paganelli
+ Researcher
+ Expert System Solutions S.r.l.
+ Via Virgilio 58/L - 41100 Modena (ITALY)
+ Tel: +39 0598860020 - Fax: +39 0598860024
+ Email: d.paganelli@expertsystemsolutions.it
+ Web: www.expertsystemsolutions.it
 
-If I was overwhelming the tuner, wouldn't it have a hard time keeping
-the lock too?  Because once my 950q locks, it keeps it rock-solid
-forever, perfect video.  It's just getting it in the first place
-that's hard.
 
-My Pinnacle PCTV HD works 100% perfectly connected to the same
-antenna.  Locks every time, excellent video for hours.  No problems.
 
-Does anybody else have a 950q?  Does it work?  To me, it appears that
-either its tuner is junk or the Linux driver needs some work.  I guess
-my next step is to set up a Windows machine and try it there.
+----------  Messaggio inoltrato  ----------
 
-    - Scott
+Oggetto: [Linux-uvc-devel] inconsistency with video4linux2 MENU control type
+Data: venerdì 10 ottobre 2008
+Da: Daniele Paganelli <d.paganelli@expertsystemsolutions.it>
+A: linux-uvc-devel@lists.berlios.de
+
+Dear UVC developers,
+	I'm trying to program UVC devices using the video4linux2 API. 
+I have problems understanding the output UVC driver give for a 
+VIDIOC_QUERYCTRL ioctl.
+
+Response struct (v4l2_queryctrl):
+id: V4L2_CID_EXPOSURE
+type: V4L2_CTRL_TYPE_MENU
+name: 'Exposure, Auto' 
+minimum: 0
+maximum: 0
+step: 9
+default_value: 8
+flags: 0 
+
+The video4linux2 api specification states that, for a Menu type, the meaning 
+of the queryctrl response given by the driver should be:
+
+min: 0
+step: 1
+max: N-1
+
+where N is the number of menu choices.
+
+So how should I interpret the UVC response min=0/max=0/step=9???
+
+I got this response for Logitech QuickCam Pro for Notebooks
+and 
+Logitech QuickCam Deluxe for Notebooks
+
+Best regards
+and thanks for the great driver ;)
+
+
+
+
+_______________________________________________
+Linux-uvc-devel mailing list
+Linux-uvc-devel@lists.berlios.de
+https://lists.berlios.de/mailman/listinfo/linux-uvc-devel
+
+
+
+
+-------------------------------------------------------
 
 --
 video4linux-list mailing list
