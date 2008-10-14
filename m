@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt3.poste.it ([62.241.4.129])
+Received: from mail2.elion.ee ([88.196.160.58])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KqFh5-0006i8-VZ
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 01:22:22 +0200
-Received: from geppetto.reilabs.com (78.15.185.20) by relay-pt3.poste.it
-	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
-	id 48F6763600000100 for linux-dvb@linuxtv.org;
-	Thu, 16 Oct 2008 01:22:16 +0200
-Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
-	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KqFg9-00061B-GC
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 01:21:21 +0200
-Date: Thu, 16 Oct 2008 01:21:21 +0200
-From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
-To: linux-dvb@linuxtv.org
-Message-ID: <20081015232121.GA8831@geppetto>
-References: <20081014212402.GB11745@geppetto>
+	(envelope-from <artlov@gmail.com>) id 1Kpha6-0005jP-Cl
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 12:56:53 +0200
+Message-ID: <48F47ACE.5060807@gmail.com>
+Date: Tue, 14 Oct 2008 13:56:14 +0300
+From: Arthur Konovalov <artlov@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20081014212402.GB11745@geppetto>
-Subject: Re: [linux-dvb] Unable to query frontend status with dvbscan
+To: klaas de waal <klaas.de.waal@gmail.com>
+References: <7b41dd970809290235x48f63938ic56318ba3064a71b@mail.gmail.com>	<c4d80f839f7e2e838b04f6c37c68d9c0@10.0.0.2>	<7b41dd970810091315h1433fa7du56e5754a1684019d@mail.gmail.com>	<1223598995.4825.12.camel@pc10.localdom.local>	<7b41dd970810121321m715f7a81nf2c6e07485603571@mail.gmail.com>	<48F3A113.50805@gmail.com>
+	<7b41dd970810140027h41924a98oe343fb5d8c2ef485@mail.gmail.com>
+In-Reply-To: <7b41dd970810140027h41924a98oe343fb5d8c2ef485@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,63 +26,62 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On date Tuesday 2008-10-14 23:24:02 +0200, Stefano Sabatini wrote:
-> Hi all,
-> 
-> can you say what's the meaning of such a message?
-> 
-> I'm using it with:
-> dvbscan  /usr/share/dvb/dvb-t/it-MyCity
-> Unable to query frontend status
-> 
-> using a TerraTec Electronic GmbH with dvb-usb-dib0700 driver.
-> 
-> The module seems to be loaded correctly, indeed I get this in the
-> kernel log:
-> 
-> [ 1834.456051] dib0700: loaded with support for 7 different device-types
-> [ 1834.456051] dvb-usb: found a 'Terratec Cinergy HT USB XE' in cold state, will try to load a firmware
-> [ 1834.456051] firmware: requesting dvb-usb-dib0700-1.10.fw
-> [ 1834.464197] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
-> [ 1834.662979] dib0700: firmware started successfully.
-> [ 1835.168928] dvb-usb: found a 'Terratec Cinergy HT USB XE' in warm state.
-> [ 1835.168997] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> [ 1835.169355] DVB: registering new adapter (Terratec Cinergy HT USB XE)
-> [ 1835.419963] DVB: registering frontend 0 (DiBcom 7000PC)...
-> [ 1835.499932] xc2028 1-0061: creating new instance
-> [ 1835.499932] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-> [ 1835.499932] input: IR-receiver inside an USB DVB receiver as /class/input/input7
-> [ 1835.510406] dvb-usb: schedule remote query interval to 150 msecs.
-> [ 1835.510416] dvb-usb: Terratec Cinergy HT USB XE successfully initialized and connected.
-> [ 1835.510696] usbcore: registered new interface driver dvb_usb_dib0700
-> 
-> The led on the device switched on when I performed the first scan.
+klaas de waal wrote:
+> Question: which provider do you have?
+I have local cable provider Starman.
 
-Other meaningful info:
-stefano@geppetto ~> dvbscan  /usr/share/dvb/dvb-t/it-Cagliari
-Unable to query frontend status
-stefano@geppetto ~> sudo dvbscan  /usr/share/dvb/dvb-t/it-Cagliari
-Unable to query frontend status
-stefano@geppetto ~> ls -l /dev/dvb/adapter0/
-total 0
-crw-rw---- 1 root video 212, 1 2008-09-23 00:04 audio0
-crw-rw---- 1 root video 212, 6 2008-09-23 00:04 ca0
-crw-rw---- 1 root video 212, 4 2008-09-23 00:04 demux0
-crw-rw---- 1 root video 212, 5 2008-09-23 00:04 dvr0
-crw-rw---- 1 root video 212, 3 2008-09-23 00:04 frontend0
-crw-rw---- 1 root video 212, 7 2008-09-23 00:04 net0
-crw-rw---- 1 root video 212, 8 2008-09-23 00:04 osd0
-crw-rw---- 1 root video 212, 0 2008-09-23 00:04 video0
+> 
+> Assuming you use "zap" to tune, you have a configuration file like this 
+> (valid for some Dutch UPC regio's):
+> Ned1:386750000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:2001:2012:12141
+> Ned2:386750000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:2301:2312:12142
+> Ned3:386750000:INVERSION_AUTO:6900000:FEC_AUTO:QAM_64:2601:2612:12143
 
-stefano@geppetto ~> uname -a
-Linux geppetto 2.6.26-1-686 #1 SMP Thu Oct 9 15:18:09 UTC 2008 i686 GNU/Linux
+Sample of my channels.conf:
+TV3:386000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64:703:803:1003
+ETV:386000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64:704:804:1001
+Kanal11:386000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64:58:769:1006
 
-The device is reported to be supported on the DVB wiki:
-http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_HT_USB_XE
+I have 2 dvb-c cards KNC1 and Technotrend C-1501. KNC1 works flawlessly on all 
+frequency's  with same channels.conf
 
-Help or hints will be appreciated.
+It strange that at some time czap has lock, but picture missing.
 
-Regards.
+C-1501:
+~/szap# czap -a3 -c /root/szap/Starman TV3
+using '/dev/dvb/adapter3/frontend0' and '/dev/dvb/adapter3/demux0'
+reading channels from file '/root/szap/Starman'
+   1 TV3:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:703:803:1003
+   1 TV3: f 386000000, s 6875000, i 2, fec 9, qam 3, v 0x2bf, a 0x323
+status 00 | signal 8f8f | snr b8b8 | ber 000fffff | unc 00000027 |
+status 00 | signal 8f8f | snr b6b6 | ber 000fffff | unc 00000027 |
+status 00 | signal 8f8f | snr b5b5 | ber 000fffff | unc 00000028 |
+status 00 | signal 8f8f | snr b7b7 | ber 000fffff | unc 00000027 |
+status 00 | signal 8f8f | snr b8b8 | ber 000fffff | unc 00000027 |
+status 00 | signal 8f8f | snr b6b6 | ber 000fffff | unc 00000027 |
+status 1f | signal e7e7 | snr e4e4 | ber 000fffff | unc 0000022e | FE_HAS_LOCK
+status 1f | signal e7e7 | snr ecec | ber 0000000c | unc 00000000 | FE_HAS_LOCK
+status 1f | signal e7e7 | snr eaea | ber 00000009 | unc 000009f3 | FE_HAS_LOCK
+status 1f | signal e7e7 | snr eded | ber 00000009 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal e7e7 | snr f2f2 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal e7e7 | snr eded | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+
+KNC1:
+~/szap# czap -a2 -c /root/szap/Starman TV3
+using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
+reading channels from file '/root/szap/Starman'
+   1 TV3:386000000:INVERSION_AUTO:6875000:FEC_AUTO:QAM_64:703:803:1003
+   1 TV3: f 386000000, s 6875000, i 2, fec 9, qam 3, v 0x2bf, a 0x323
+status 1f | signal 7d7d | snr f6f6 | ber 00000000 | unc 0000003b | FE_HAS_LOCK
+status 1f | signal 7d7d | snr f6f6 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 7d7d | snr f6f6 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 7d7d | snr f5f5 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 7d7d | snr f6f6 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 7d7d | snr f6f6 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+
+
+
+Thank You for response.
 
 _______________________________________________
 linux-dvb mailing list
