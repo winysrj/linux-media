@@ -1,26 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m93BDlIK015754
-	for <video4linux-list@redhat.com>; Fri, 3 Oct 2008 07:13:47 -0400
-Received: from smtp-vbr14.xs4all.nl (smtp-vbr14.xs4all.nl [194.109.24.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m93BDbjn001581
-	for <video4linux-list@redhat.com>; Fri, 3 Oct 2008 07:13:37 -0400
-Received: from tschai.lan (cm-84.208.85.194.getinternet.no [84.208.85.194])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id m93BDbKe017370
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>; Fri, 3 Oct 2008 13:13:37 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>
-Date: Fri, 3 Oct 2008 13:13:36 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200810031313.36607.hverkuil@xs4all.nl>
-Subject: RFC: move zoran/core/i2c drivers to separate directories
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9ECmC3W028207
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:48:12 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.239])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9ECm02B005686
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:48:00 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so2182413rvb.51
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 05:47:59 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
+To: video4linux-list@redhat.com
+Date: Tue, 14 Oct 2008 21:46:51 +0900
+Message-Id: <20081014124651.5194.93168.sendpatchset@rx1.opensource.se>
+Cc: v4l-dvb-maintainer@linuxtv.org, mchehab@infradead.org
+Subject: [PATCH 00/05] video: Extended vivi pixel format support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,30 +24,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+Extended vivi pixel format support
 
-It looks like 2.6.27 is nearing completion, so this is a good time to 
-reorganize the video tree. IMHO it's getting rather messy in the 
-media/video directory and I propose to make the following changes:
+[PATCH 01/05] video: Precalculate vivi yuv values
+[PATCH 02/05] video: Teach vivi about multiple pixel formats
+[PATCH 03/05] video: Add uyvy pixel format support to vivi
+[PATCH 04/05] video: Add support for rgb565 pixel formats to vivi
+[PATCH 05/05] video: Add support for rgb555 pixel formats to vivi
 
-1) the zoran driver sources are moved into a video/zoran directory.
-2) the v4l core sources (v4l* and videobuf*) are moved into a video/core 
-directory. Since I'll be adding more v4l core sources in the near 
-future this would keep everything together nicely.
-3) the i2c drivers are moved to either media/video/i2c or media/i2c (I 
-have no preference). This should make it easier to see what is the 
-actual v4l driver and what is a supporting i2c driver. It's rather 
-mixed up right now.
+These patches improve the RGB->YUV color space conversion code
+in vivi.c and also add support for the following pixel formats:
 
-There are probably some sources where it is not clear where they should 
-go (e.g. ir-kbd-i2c.c), when in doubt I prefer to keep them where they 
-are now, they can always be moved later.
+V4L2_PIX_FMT_UYVY
+V4L2_PIX_FMT_RGB565  /* gggbbbbb rrrrrggg */
+V4L2_PIX_FMT_RGB565X /* rrrrrggg gggbbbbb */
+V4L2_PIX_FMT_RGB555  /* gggbbbbb arrrrrgg */
+V4L2_PIX_FMT_RGB555X /* arrrrrgg gggbbbbb */
 
-Are there any objections? Suggestions?
+With these patches the vivi driver can be used as a reference for
+testing the byte order of 16-bit pixel formats. This allows testing
+of user space software without actual capture hardware. It is also
+useful for people who are developing new drivers and have doubts
+which 16-bit RGB interpretation is the valid one (RGB vs BGR).
 
-Regards,
+The color space conversion code is updated to use precalculated YUV
+values instead of doing RGB->YUV calculation for every two pixels.
 
-	Hans
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+---
+
+ drivers/media/video/vivi.c |  314 +++++++++++++++++++++++++++++++-------------
+ 1 file changed, 225 insertions(+), 89 deletions(-)
 
 --
 video4linux-list mailing list
