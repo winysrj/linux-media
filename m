@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m966B4Je008627
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 02:11:04 -0400
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9669wYJ013478
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 02:09:58 -0400
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Date: Mon, 6 Oct 2008 11:36:30 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D610739F@dbde02.ent.ti.com>
-In-Reply-To: <20081005081931.1dfdd7b4@pedra.chehab.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9EFV9Rr016606
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 11:31:09 -0400
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.169])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9EFUsM5026371
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 11:30:54 -0400
+Received: by ug-out-1314.google.com with SMTP id o38so795726ugd.13
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:30:54 -0700 (PDT)
+Message-ID: <226dee610810140830i113118ecre455821efadeeeeb@mail.gmail.com>
+Date: Tue, 14 Oct 2008 21:00:53 +0530
+From: "JoJo jojo" <onetwojojo@gmail.com>
+To: jj@ds.pg.gda.pl
+In-Reply-To: <48f4b3d25c6e39.82979954@wp.pl>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Disposition: inline
+References: <48f4b3d25c6e39.82979954@wp.pl>
 Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-fbdev-devel@lists.sourceforge.net"
-	<linux-fbdev-devel@lists.sourceforge.net>
-Subject: RE: [PATCH] OMAP 2/3 V4L2 display driver on video planes
+Cc: video4linux-list@redhat.com
+Subject: Re: [Spca50x-devs] sonixj problems
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,85 +30,82 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi Janusz
+
+try posting your query here
+video4linux-list@redhat.com
+
+then let us know at microdia groups if your issue was resolved
 
 
-> -----Original Message-----
-> From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
-> Sent: Sunday, October 05, 2008 4:50 PM
-> To: Shah, Hardik
-> Cc: Hans Verkuil; video4linux-list@redhat.com; linux-omap@vger.kernel.org; linux-fbdev-
-> devel@lists.sourceforge.net
-> Subject: Re: [PATCH] OMAP 2/3 V4L2 display driver on video planes
-> 
-> On Fri, 3 Oct 2008 20:10:36 +0530
-> "Shah, Hardik" <hardik.shah@ti.com> wrote:
-> 
-> 
- 
-> I don't like the idea of having private ioctls. This generally means that only
-> a very restricted subset of userspace apps that are aware of the that API will
-> work. This is really bad.
-> 
-> So, I prefer to discuss the need for newer ioctls and add it into the standard
-> whenever make some sense (ok, maybe you might have some ioctls that are really
-> very specific for your app and that won't break userspace apps - I've acked
-> with 2 private ioctls on uvc driver in the past due to that).
-> 
-[Shah, Hardik] Following are the custom IOCTLs used in the V4L2 display driver of DSS.
+-JoJo
 
-1.  VIDIOC_S/G_OMAP2_MIRROR: This ioctl is used to enable the mirroring of the image. Hardware supports mirroring. As pointed out by Hans it will be better to move it to VIDIOC_S_CTRL ioctl. we can add the new control id for the mirroring.
-
-2.  VIDIOC_S/G_OMAP2_ROTATION: Rotation is used to enable the rotation of the image. This also can be moved to the VIDIOC_S_CTRL ioctl.  Need to add new control id for the rotation also. 
-
-3.  VIDIOC_S/G_OMAP2_LINK: This feature is software provided. OMAP DSS is having two video pipelines.  Using this feature user can link the two video pipelines. This means the streaming of the video on one pipeline will be linked to the other pipeline with the same parameters as the original pipeline.  Same image can be streamed on both the pipelines, one of the pipeline's output going to TV and other one to LCD.  I believe this feature is very specific to OMAP, and should remain as the custom ioctl.
-
-4.  VIDIOC_S/G_OMAP2_COLORKEY:  Color keying allows the pixels with the defined color on the video pipelines to be replaced with the pixels on the graphics pipelines.  I believe similar feature must be available on almost all next generation of video hardware. We can add new ioctl for this feature in V4L2 framework. I think VIDIOC_S_FBUF ioctl is used for setting up the buffer parameters on per buffer basis.  So IMHO this ioctl is not a natural fit for the above functionality. Please provide your comments on same.
-
-5. VIDIOC_S/G_OMAP2_BGCOLOR: This ioctl is used to set the Background color on either TV or LCD. It takes two inputs, first is the output device second is the color to be set. I think this can be added to the standard ioctl list but is it ok to have the output device as one of the parameters in the input structure? Instead we can set the background color for the current output.
-
-6. VIDIOC_OMAP2_COLORKEY_ENABLE/DISABLE.  This ioctl is used to enable or the disable the color keying feature described above. This can be added as the one of the control using VIDIOC_S_CTRL ioctl.
-
-7.  VIDIOC_S/G_OMAP2_COLORCONV:  This is a hardware feature.  Video pipelines of the DSS are capable of getting the buffer in the YUV/UYVY format. But internally DSS operates on RGB format.  So hardware has a capability to convert the YUV format to RGB format.  This is done using the color conversion matrix in the hardware.  It accepts the structure as input which has 9 unsigned short variables representing the coefficients for color conversion.  I think this feature will also be present in many new devices. So we can have the standard ioctl for this.
-
-8.  VIDIOC_S_OMAP2_DEFCOLORCONV:  This ioctl just programs the default color conversion matrix defined by the driver.  This we can have as one of the controls using VIDIOC_S_CTRL ioctl.
-
-Please let me know your view/thoughts on above custom ioctls added in the driver.
-
-> 
-> So, if you are having several points where you're violating the rule, probably
-> your code is very complex or you are using long names instead of short ones. On
-> the fisrt case, try to break the complex stuff  into smaller and simpler static
-> functions. The compiler will deal with those functions like inline, so this
-> won't cost cpu cycles, but it will make easier for people to understand what
-> you're doing.
-> 
-[Shah, Hardik] I will revisit the code and structure it properly.
-
-> 
-> Perhaps the better would be for you to have one public machine where you all
-> can work and merge your work. I'm OK on pulling and seeing patches outside LinuxTV.
-> 
-> > [Shah, Hardik] we are in process of coordinating this.
+2008/10/14 Janusz Jurski <jurskij@wp.pl>:
+> Hi,
 >
-
-> One option in the future is to base your work on a git tree. I've changed a lot
-> the proccess of submitting patches upstream, to avoid having to rebase my tree
-> (Yet, I had to do two rebases during 2.6.27 cycle). If I can keep my tree
-> without rebase, the developers may rely on it and start sending me git pull
-> requests also. Let's see if I can do this for 2.6.28.
-> 
-> I think we should start discussing using git trees as the reference for
-> v4l/dvb development, and start moving developers tree to git. This would solve
-> the issues with complex projects like OMAP, where you need to touch not only on
-> V4L/DVB subsystem.
-> 
-> This topic deserves some more discussion,
-[Shah, Hardik] Right now Manju is on travel.  I will confirm with him once he comes back.
- 
-> Cheers,
-> Mauro.
-
+> I am trying to get my USB camera working on Debian (regular Etch install
+> with all updates). gspca compiles well and when I plug in the camera the
+> sonixj module gets loaded to support this camera (0c45:612a Microdia)
+> and the /dev/video0 device appears - no errors or suspicious messages in
+> kernel log returned by dmesg.
+>
+> However, when I start streamer, I get the following errors:
+>
+> jj@piw:~$ ./streamer -ddddd -c /dev/video0 -o a.jpeg
+> checking writer files [multiple image files] ...
+>  video name=ppm ext=ppm: ext mismatch [need jpeg]
+>  video name=pgm ext=pgm: ext mismatch [need jpeg]
+>  video name=jpeg ext=jpeg: OK
+> files / video: JPEG (JFIF) / audio: none
+> vid-open: trying: v4l2-old...
+> vid-open: failed: v4l2-old
+> vid-open: trying: v4l2...
+> ioctl:
+> VIDIOC_QUERYCAP(driver="";card="";bus_info="";version=0.0.0;capabilities=0x0
+> []): Invalid argument
+> vid-open: failed: v4l2
+> vid-open: trying: v4l...
+> vid-open: failed: v4l
+> no grabber device available
+> jj@piw:~$
+>
+> A problem (similar?) with motion as well:
+>
+> jj@piw:/mnt/dane/samba/motion.src/motion-3.2.3$ ./motion -n -ddd -c
+> `pwd`/motion.conf
+> [0] Processing thread 0 - config file
+> /mnt/dane/samba/motion.src/motion-3.2.3/motion.conf
+> [1] Thread is from /mnt/dane/samba/motion.src/motion-3.2.3/motion.conf
+> [1] Thread started
+> [1] ioctl (VIDIOCGCAP): Invalid argument
+> [1] Capture error calling vid_start
+> [1] Thread finishing...
+> jj@piw:/mnt/dane/samba/motion.src/motion-3.2.3$
+>
+> The same problem when starting stream or motion from root account. Any
+> Idea what is wrong?
+>
+> Thanks,
+> JJ
+>
+> ----------------------------------------------------
+> Masters of Dirt - mistrzostwie Freestyle Motocrossu
+> z ca³ego ¶wiata w Katowickim Spodku!
+> Zobacz to z nami:
+> http://klik.wp.pl/?adr=http%3A%2F%2Fcorto.www.wp.pl%2Fas%2Fextrema10338501.html&sid=518
+>
+>
+>
+> -------------------------------------------------------------------------
+> This SF.Net email is sponsored by the Moblin Your Move Developer's challenge
+> Build the coolest Linux based applications with Moblin SDK & win great prizes
+> Grand prize is a trip for two to an Open Source event anywhere in the world
+> http://moblin-contest.org/redirect.php?banner_id=100&url=/
+> _______________________________________________
+> Spca50x-devs mailing list
+> Spca50x-devs@lists.sourceforge.net
+> https://lists.sourceforge.net/lists/listinfo/spca50x-devs
+>
 
 --
 video4linux-list mailing list
