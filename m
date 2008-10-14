@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]
-	helo=shogun.pilppa.org) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lamikr@pilppa.org>) id 1KvDLS-00026C-5e
-	for linux-dvb@linuxtv.org; Wed, 29 Oct 2008 16:52:32 +0100
-Date: Wed, 29 Oct 2008 17:51:31 +0200 (EET)
-From: Mika Laitio <lamikr@pilppa.org>
-To: Alex Betis <alex.betis@gmail.com>
-In-Reply-To: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0810291745410.13299@shogun.pilppa.org>
-References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
+Received: from qb-out-0506.google.com ([72.14.204.226])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <a.s.zakharin@gmail.com>) id 1Kpogj-00083v-FM
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 20:32:12 +0200
+Received: by qb-out-0506.google.com with SMTP id e11so2163374qbe.25
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 11:32:05 -0700 (PDT)
+Message-ID: <48F4E5A2.7080509@gmail.com>
+Date: Tue, 14 Oct 2008 22:32:02 +0400
+From: =?UTF-8?B?0JDQvdGC0L7QvQ==?= <a.s.zakharin@gmail.com>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb]  AverMedia AverTV Hybrid Express Slim
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,22 +24,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Hello all,
->
-> I've setup the http://mercurial.intuxication.org/hg/scan-s2/ repository with
-> scan utility ported to work with Igor's S2API driver.
-> Driver is available here: http://mercurial.intuxication.org/hg/s2-liplianin/
+Hello to all.
 
-Hi
+I also have this card:
+http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid_Express_Slim_HC81R
 
-Sorry for a stupid question but as also the dv-apps version of scan and 
-szap seems to work with S2API due to api's backward compatibility,
-is the finding and locking of of S2 channels the "new" 
-features that are visible for the end users?
+I found all kernel modules for chips in this card (CX23885 XC3028 AF9013)
+But nothing happened when I load them. For example when I load tuner-xc2028 or tuner-xc3028,
+it seems that firmware doesn't loaded.
+Only when I load cx23885 card=2 I found video0 and video1 in /dev
+And if card=4 there is dvb/adapter0 folder and  "demux0  dvr0  frontend0  net0" on it.
+They doesn't work in tvtime/kdetv. May be I do something wrong? It is my first tuner.
+Can I test it otherwise?
 
-I mean is the output of scan and scan-2 commands for example the same?
+P.S. Sorry for bad English.
 
-Mika
+Best regards,
+Anton
+
 
 _______________________________________________
 linux-dvb mailing list
