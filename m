@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fortimail.matc.edu ([148.8.129.21] helo=matc.edu)
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <johnsonn@matc.edu>) id 1Kqcew-0005UT-Fx
-	for linux-dvb@linuxtv.org; Fri, 17 Oct 2008 01:53:41 +0200
-Received: from GWISE1.matc.edu (gwise1.matc.edu [148.8.29.22])
-	by Fortimail2000-1.fortimail.matc.edu  with ESMTP id m9GNr2GW025839
-	for <linux-dvb@linuxtv.org>; Thu, 16 Oct 2008 18:53:02 -0500
-Message-Id: <48F78D8A020000560001A654@GWISE1.matc.edu>
-Date: Thu, 16 Oct 2008 18:52:58 -0500
-From: "Jonathan Johnson" <johnsonn@matc.edu>
-To: <linux-dvb@linuxtv.org>
-Mime-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Fusion HDTV 7 Dual Express
+	(envelope-from <abraham.manu@gmail.com>) id 1Kpt1L-0003il-M0
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 01:09:44 +0200
+Message-ID: <48F526B1.8040807@gmail.com>
+Date: Wed, 15 Oct 2008 03:09:37 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: Emmanuel ALLAUD <eallaud@yahoo.fr>
+References: <c74595dc0810012238p6eb5ea9fg30d8cc296a803a32@mail.gmail.com>	<1223212383l.6064l.0l@manu-laptop>	<c74595dc0810050654j1e4519cbn2c4a996cb5c3d03c@mail.gmail.com>	<1223254834l.7216l.0l@manu-laptop>	<c74595dc0810060333x80a0472n5e9779fb16446b35@mail.gmail.com>
+	<1224014045l.11287l.1l@manu-laptop>
+In-Reply-To: <1224014045l.11287l.1l@manu-laptop>
+Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Re : Re : Re : Re : Twinhan 1041 (SP 400) lock and
+ scan problems - the solution [not quite :(]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,62 +21,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello linux-dvb members,
+Hi,
 
-I know another person posted a message similar to mine, but offered no diagnostic info, so I am.
+Emmanuel ALLAUD wrote:
+> Le 06.10.2008 06:33:56, Alex Betis a =E9crit :
+>> Emmanuel,
+>>
+>> As I wrote:
+>>> Just to clarify it, the changes mostly affect DVB-S channels
+>>> scanning,
+>>> it
+>>> doesn't help with DVB-S2 locking problem since the code is totally
+>>> different
+>>> for S and S2 signal search.
+>> The 11495 channel you reported as bad is DVB-S2, so my changes =
 
-DViCO device d618 using driver cx23885
-Conexant Device 8852 (rev 02)
-Base OS: SuSE 11.0
-kernel manually upgraded to 2.6.27
-checked dmesg, and all firmware(s) load.
+>> doesn't
+>> help
+>> for that channel.
+>>
+>> I hope Manu will find a solution since I don't have any documentation
+>> for
+>> that chip and solving the DVB-S2 problem needs knowledge in chip
+>> internals.
+> =
 
- I have a FusionHDTV Dual 7 tuner, and it gets no signal at all, and some times no channels appear
-when I scan from with in mythtv, and sometimes some of the channels appear.
+> OK so here are the 2 logs using simpledvbtune, one using dvb-s2 and the =
 
-1. First I tried hooking a ATI 650 to Vista and got 100% strength all the time, so it wasn't the antenna.
-2. I then hooked up the FusionHDTV card to Vista and it also reported 100% signal strength.
-Therefore the card is not broken.
-3. I have 2 ATI HDTV Wonder that have always worked perfectly, so signal strength is good.
+> other dvb-s (and I check the tables from the other transponders of this =
 
+> sat, this transponder is declared as DVB-S).
+> In any case you will see that something is picked up in both cases but =
 
-When trying to record w/ MythTV I get
----------
-This occurs a couple times.
-DVBSM(/dev/dvb/adapter1/frontend0), Warning can not measuer S/N
-The following occurs many times:
-DVBChan(3:/dev/dvb/adapter1/frontend0) Error:  Tune(): Setting Frontend using tuning parameters failed.
-"eno: Invalid argument (22)"
------------
+> nothing comes out fine finally.
+> I CCed Manu to see if he can shed some light!
+> This is done with a clean multiproto tree IIRC, verbose=3D5 for both =
 
-Spent 1/2 hour looking thru google results.
-I decided despite how horrible luck I have with compiling certain things, I would give it a go anyway.
-The kernel always compiles for me at least.  I went to linuxtv.org and followed the instructions.
-I did the make and make install and got the invalid symbols mentioned on the website, and it said
-reboot.  So I did, and I recompiled again, for the heck of it, and still have invalid symbols. Read the
-INSTALL text file, and tried a bunch of options.    I tried make kernel-(something), and recompile the
-kernel(completely), and reboot,and still no go.  I tried re-compiling v4l-dvb and still nothing.
-I eventually tried "make all" and the compile failed with errors.  Could not get it to compile, and now
-v4l-dvb was un-usable.
-
-I then installed and did a full compile of kernel 2.6.27.1 (released last night), and at least everything
-now works.
-
-I would like to try the development version to see if that fixes things, but I am not skilled enough to
-resolved the unresolved symbol problem.  insmod and modprobe failed with the same error.
+> stbxxxx modules.
 
 
-Later,
-Jonathan
+I will take a look at this. BTW, any idea what FEC you are using for the
+  transponder you are trying to tune to ?
 
 
-------------------------------------------- 
+Regards,
+Manu
 
 _______________________________________________
 linux-dvb mailing list
