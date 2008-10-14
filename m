@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [85.17.51.120] (helo=master.jcz.nl)
+Received: from mail-gx0-f20.google.com ([209.85.217.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jaap@jcz.nl>) id 1KnC09-000165-LU
-	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 14:49:22 +0200
-Message-ID: <48EB5A9D.1090609@jcz.nl>
-Date: Tue, 07 Oct 2008 14:48:29 +0200
-From: Jaap Crezee <jaap@jcz.nl>
+	(envelope-from <christophpfister@gmail.com>) id 1Kpl8m-0002Oe-EZ
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 16:44:54 +0200
+Received: by gxk13 with SMTP id 13so4896195gxk.17
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 07:44:17 -0700 (PDT)
+Message-ID: <19a3b7a80810140744n65a8153bg1b862962c5a795f2@mail.gmail.com>
+Date: Tue, 14 Oct 2008 16:44:17 +0200
+From: "Christoph Pfister" <christophpfister@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: gimli@dark-green.com
-References: <44838.194.48.84.1.1223383227.squirrel@webmail.dark-green.com>
-In-Reply-To: <44838.194.48.84.1.1223383227.squirrel@webmail.dark-green.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API vs Multiproto vs TT 3200
+Content-Type: multipart/mixed;
+	boundary="----=_Part_3181_15909065.1223995457336"
+Subject: [linux-dvb] scan files for de-Baden-Baden and de-Mannheim
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,36 +20,122 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello everyone,
+------=_Part_3181_15909065.1223995457336
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-gimli wrote:
-> Hi All,
-> 
+>From kaffeine users ...
 
-<snip>
+Christoph
 
-> was made. Please cool down and bring the pieces together to give the
-> user the widest driver base and support for S2API.
+------=_Part_3181_15909065.1223995457336
+Content-Type: application/octet-stream; name=de-Baden-Baden
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fmana5nw0
+Content-Disposition: attachment; filename=de-Baden-Baden
 
-With this in mind, I would like to work on porting the TT S2-3200 driver stuff to S2API. I have done a little bit of 
-research and found out that it is hard to find what the differences are between both API's on a source/technical level.
-Can anyone offer some insight into differences or give some starting point (or maybe even an example) of how to port 
-Multiproto drivers to the S2API?
+IyBEVkItVCBCYWRlbi1CYWRlbgojIE9rdG9iZXIgMjAwOAojIFQgZnJlcSBidyBmZWNfaGkgZmVj
+X2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKVCA1NzAw
+MDAwMDAgOE1IeiAyLzMgTk9ORSBRQU0xNiA4ayAxLzQgTk9ORQpUIDY5ODAwMDAwMCA4TUh6IDIv
+MyBOT05FIFFBTTE2IDhrIDEvNCBOT05FClQgNzg2MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYg
+OGsgMS80IE5PTkUK
+------=_Part_3181_15909065.1223995457336
+Content-Type: application/octet-stream; name=de-Mannheim
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fmanaa2d1
+Content-Disposition: attachment; filename=de-Mannheim
 
-I own a TT S2-3200 card and would like to see it supported by kernel.org vanille kernel... For now, everything works 
-fine (Scanning, tuning, CAM module, Diseq), except I haven't tried S2 channels yet.
-
-Regards,
-
-Jaap Crezee
+IyBNaXQgZWluZXIgRG9wcGVsLUh5YnJpZC1RdWFkLUFudGVubmUgaXN0IGRlciBFbXBmYW5nIGFs
+bGVyCiMgU2VuZGVyIGluIE1hbm5oZWltIGdhciBrZWluIFByb2JsZW0uIExpbmtzIHNpZWhlIHVu
+dGVuLgojIGh0dHA6Ly9lbGVjdHJvbmljYnVkZS5kZS9CYXN0ZWxlY2tlL0Jhc3RlbGVja2UlMjBJ
+bnRyby9lbGVjdHJvbmljJTIwQmFzdGVsbi5odG0KIyBodHRwOi8vZWxlY3Ryb25pY2J1ZGUuZGUv
+QmFzdGVsZWNrZS9IeWJyaWQlMjBRdWFkL0h5YnJpZCUyMFF1YWQlMjAtJTIwVGVpbCUyMDElMjAt
+JTIwRGllJTIwS29lbmlnc2tsYXNzZS5odG0KCiMgdXNlcjp+PiBzY2FuIGRlLU1hbm5oZWltCgoj
+ID4+PiB0dW5lIHRvOiA0ODIwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZF
+Q18yXzM6RkVDX0FVVE86UUFNXzE2OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFM
+XzFfNDpISUVSQVJDSFlfTk9ORQojIDB4MDAwMCAweDAyMDM6IHBtdF9waWQgMHgwMjMwIFpERm1v
+YmlsIC0tIDNzYXQgKHJ1bm5pbmcpCiMgMHgwMDAwIDB4MDIwNTogcG10X3BpZCAweDAyNTAgWkRG
+bW9iaWwgLS0gRG9rdS9LaUthIChydW5uaW5nKQojIDB4MDAwMCAweDAyMDI6IHBtdF9waWQgMHgw
+MjIwIFpERm1vYmlsIC0tIFpERiAocnVubmluZykKIyAweDAwMDAgMHgwMjA0OiBwbXRfcGlkIDB4
+MDI0MCBaREZtb2JpbCAtLSBaREZpbmZva2FuYWwgKHJ1bm5pbmcpCiMgTmV0d29yayBOYW1lICda
+REYnClQgNDgyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUKCiMgPj4+IHR1
+bmUgdG86IDUyMjAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDXzJfMzpG
+RUNfQVVUTzpRQU1fMTY6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJ
+RVJBUkNIWV9OT05FCiMgMHgwMDAwIDB4MDIwMzogcG10X3BpZCAweDAyMzAgWkRGbW9iaWwgLS0g
+M3NhdCAocnVubmluZykKIyAweDAwMDAgMHgwMjA1OiBwbXRfcGlkIDB4MDI1MCBaREZtb2JpbCAt
+LSBEb2t1L0tpS2EgKHJ1bm5pbmcpCiMgMHgwMDAwIDB4MDIwMjogcG10X3BpZCAweDAyMjAgWkRG
+bW9iaWwgLS0gWkRGIChydW5uaW5nKQojIDB4MDAwMCAweDAyMDQ6IHBtdF9waWQgMHgwMjQwIFpE
+Rm1vYmlsIC0tIFpERmluZm9rYW5hbCAocnVubmluZykKIyBOZXR3b3JrIE5hbWUgJ1pERicKVCA1
+MjIwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU0xNiA4ayAxLzQgTk9ORQoKIyA+Pj4gdHVuZSB0bzog
+NTQ2MDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfMl8zOkZFQ19BVVRP
+OlFBTV8xNjpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzQ6SElFUkFSQ0hZ
+X05PTkUKIyAweDAwMDAgMHgwMjAzOiBwbXRfcGlkIDB4MDIzMCBaREZtb2JpbCAtLSAzc2F0IChy
+dW5uaW5nKQojIDB4MDAwMCAweDAyMDU6IHBtdF9waWQgMHgwMjUwIFpERm1vYmlsIC0tIERva3Uv
+S2lLYSAocnVubmluZykKIyAweDAwMDAgMHgwMjAyOiBwbXRfcGlkIDB4MDIyMCBaREZtb2JpbCAt
+LSBaREYgKHJ1bm5pbmcpCiMgMHgwMDAwIDB4MDIwNDogcG10X3BpZCAweDAyNDAgWkRGbW9iaWwg
+LS0gWkRGaW5mb2thbmFsIChydW5uaW5nKQojIE5ldHdvcmsgTmFtZSAnWkRGJwpUIDU0NjAwMDAw
+MCA4TUh6IDIvMyBOT05FIFFBTTE2IDhrIDEvNCBOT05FCgojID4+PiB0dW5lIHRvOiA1NzgwMDAw
+MDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18yXzM6RkVDX0FVVE86UUFNXzE2
+OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfNDpISUVSQVJDSFlfTk9ORQoj
+IDB4MDAwMCAweDQwMTU6IHBtdF9waWQgMHgwMTUwIFJUTCBXb3JsZCAtLSBSVEwgVGVsZXZpc2lv
+biAocnVubmluZykKIyAweDAwMDAgMHg0MDE2OiBwbXRfcGlkIDB4MDE2MCBSVEwgV29ybGQgLS0g
+UlRMMiAocnVubmluZykKIyAweDAwMDAgMHg0MDFiOiBwbXRfcGlkIDB4MDE3MCBSVEwgV29ybGQg
+LS0gU3VwZXIgUlRMIChydW5uaW5nKQojIDB4MDAwMCAweDQwMjI6IHBtdF9waWQgMHgwMjIwIFJU
+TCBXb3JsZCAtLSBWT1ggKHJ1bm5pbmcpCiMgTmV0d29yayBOYW1lICdNRURJQSBCUk9BRENBU1Qn
+ClQgNTc4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUKCiMgPj4+IHR1bmUg
+dG86IDYwMjAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDXzJfMzpGRUNf
+QVVUTzpRQU1fMTY6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJB
+UkNIWV9OT05FCiMgMHgwMDAwIDB4MDAwMTogcG10X3BpZCAweDAwNjQgQVJEIC0tIERhcyBFcnN0
+ZSAocnVubmluZykKIyAweDAwMDAgMHgwMDQxOiBwbXRfcGlkIDB4MDE5MCBBUkQgLS0gaHItZmVy
+bnNlaGVuIChydW5uaW5nKQojIDB4MDAwMCAweDAwNDY6IHBtdF9waWQgMHgwMGM4IEFSRCAtLSBh
+cnRlL0VpbnNFeHRyYSAocnVubmluZykKIyBOZXR3b3JrIE5hbWUgJ0FSRC1IZXNzZW4nClQgNjAy
+MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUKCiMgPj4+IHR1bmUgdG86IDY1
+ODAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDXzJfMzpGRUNfQVVUTzpR
+QU1fMTY6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9O
+T05FCiMgMHgwMDAwIDB4MDAyMjogcG10X3BpZCAweDA0MDAgU1dSIC0tIEJheWVyaXNjaGVzIEZT
+IChydW5uaW5nKQojIDB4MDAwMCAweDAwNDE6IHBtdF9waWQgMHgwMjAwIFNXUiAtLSBoci1mZXJu
+c2VoZW4gKHJ1bm5pbmcpCiMgMHgwMDAwIDB4MDBlMjogcG10X3BpZCAweDAxMDAgU1dSIC0tIFNX
+UiBGZXJuc2VoZW4gUlAgKHJ1bm5pbmcpCiMgMHgwMDAwIDB4MDEwNjogcG10X3BpZCAweDAzMDAg
+U1dSIC0tIFdEUiBGZXJuc2VoZW4gKHJ1bm5pbmcpCiMgTmV0d29yayBOYW1lICdTV1IgUlAnClQg
+NjU4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUKCiMgPj4+IHR1bmUgdG86
+IDcwNjAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDXzJfMzpGRUNfQVVU
+TzpRQU1fMTY6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNI
+WV9OT05FCiMgMHgwMDAwIDB4MDAwMjogcG10X3BpZCAweDAyMDAgU1dSIC0tIGFydGUgKHJ1bm5p
+bmcpCiMgMHgwMDAwIDB4MDAwMzogcG10X3BpZCAweDAzMDAgU1dSIC0tIFBob2VuaXggKHJ1bm5p
+bmcpCiMgMHgwMDAwIDB4MDAwNjogcG10X3BpZCAweDA0MDAgU1dSIC0tIEVpbnNQbHVzIChydW5u
+aW5nKQojIDB4MDAwMCAweDAwZTA6IHBtdF9waWQgMHgwMTAwIFNXUiAtLSBEYXMgRXJzdGUgKHJ1
+bm5pbmcpCiMgTmV0d29yayBOYW1lICdBUkQnClQgNzA2MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFN
+MTYgOGsgMS80IE5PTkUKCiMgPj4+IHR1bmUgdG86IDczODAwMDAwMDpJTlZFUlNJT05fQVVUTzpC
+QU5EV0lEVEhfOF9NSFo6RkVDXzJfMzpGRUNfQVVUTzpRQU1fMTY6VFJBTlNNSVNTSU9OX01PREVf
+OEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FCiMgMHgwMDAwIDB4NDAxMzogcG10
+X3BpZCAweDAxMzAgUHJvU2llYmVuU2F0LjEgLS0gUHJvU2llYmVuIChydW5uaW5nKQojIDB4MDAw
+MCAweDQwMGE6IHBtdF9waWQgMHgwMGEwIFByb1NpZWJlblNhdC4xIC0tIGthYmVsIGVpbnMgKHJ1
+bm5pbmcpCiMgMHgwMDAwIDB4NDAwZTogcG10X3BpZCAweDAwZTAgUHJvU2llYmVuU2F0LjEgLS0g
+TjI0IChydW5uaW5nKQojIDB4MDAwMCAweDQwMTg6IHBtdF9waWQgMHgwMTgwIFByb1NpZWJlblNh
+dC4xIC0tIFNBVC4xIChydW5uaW5nKQojIE5ldHdvcmsgTmFtZSAnTUVESUEgQlJPQURDQVNUJwpU
+IDczODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTE2IDhrIDEvNCBOT05FCgojID4+PiB0dW5lIHRv
+OiA4MTgwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18yXzM6RkVDX0FV
+VE86UUFNXzE2OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfNDpISUVSQVJD
+SFlfTk9ORQojIDB4MDAwMCAweDQwMWQ6IHBtdF9waWQgMHgwMWQwIEJldGFEaWdpdGFsIC0tIFRF
+TEUgNSAocnVubmluZykKIyAweDAwMDAgMHg0MDI0OiBwbXRfcGlkIDB4MDI0MCBNRURJQSBCUk9B
+RENBU1QgLS0gRXVyb3Nwb3J0IChydW5uaW5nKQojIDB4MDAwMCAweDgwMDI6IHBtdF9waWQgMHgw
+MDIwIHR2dHYgLS0gdHZ0diBESUdJVEFMIChydW5uaW5nKQojIDB4MDAwMCAweDRiMDA6IHBtdF9w
+aWQgMHgwYjAwIE1FRElBIEJST0FEQ0FTVCAtLSByaGVpbm1haW50diAocnVubmluZykKIyBOZXR3
+b3JrIE5hbWUgJ01FRElBIEJST0FEQ0FTVCcKVCA4MTgwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU0x
+NiA4ayAxLzQgTk9ORQo=
+------=_Part_3181_15909065.1223995457336
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+------=_Part_3181_15909065.1223995457336--
