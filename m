@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9OKvCcx013044
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 16:57:12 -0400
-Received: from hermes.gsix.se (hermes.gsix.se [193.11.224.23])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9OKv0g0024387
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 16:57:00 -0400
-Received: from dng-gw.sgsnet.se ([193.11.230.69] helo=[172.16.172.22])
-	by hermes.gsix.se with esmtp (Exim 4.63)
-	(envelope-from <jonatan@akerlind.nu>) id 1KtTiN-00074t-MQ
-	for video4linux-list@redhat.com; Fri, 24 Oct 2008 22:56:59 +0200
-From: Jonatan =?ISO-8859-1?Q?=C5kerlind?= <jonatan@akerlind.nu>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9ECmuhA028439
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:48:56 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.239])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9ECm02D005686
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:48:44 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so2182413rvb.51
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 05:48:44 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
 To: video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Fri, 24 Oct 2008 22:56:57 +0200
-Message-Id: <1224881817.20411.4.camel@skoll>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: HVR-1300 analog and mythtv error opening device
+Date: Tue, 14 Oct 2008 21:47:35 +0900
+Message-Id: <20081014124735.5194.46887.sendpatchset@rx1.opensource.se>
+In-Reply-To: <20081014124651.5194.93168.sendpatchset@rx1.opensource.se>
+References: <20081014124651.5194.93168.sendpatchset@rx1.opensource.se>
+Cc: v4l-dvb-maintainer@linuxtv.org, mchehab@infradead.org
+Subject: [PATCH 04/05] video: Add support for rgb565 pixel formats to vivi
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,20 +26,82 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+From: Magnus Damm <damm@igel.co.jp>
 
-thought I should give the card a try without using the mpeg encoder so I
-removed the blackbird device from my mythtv and added the v4l device
-instead. Now when opening the tv feed in mythtv i get this in dmesg:
+This patch adds RGB565 pixel format support to the vivi driver. Both
+little endian and big endian versions are added. The driver follows
+the RGB pixel format described in Table 2-2 of the V4L2 API spec,
+_not_ the older BGR interpretation described in Table 2-1.
 
-BUG: cx88 can't find device struct. Can't proceed with open
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+---
 
-I seem to be able to open the video stream in xawtv (i get a picture
-that moves when running xawtv on a remote X display on my laptop). So is
-this a problem with mythtv doing the wrong thing or is there something
-lacking in the v4l module?
+ drivers/media/video/vivi.c |   40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
 
-/Jonatan
+--- 0018/drivers/media/video/vivi.c
++++ work/drivers/media/video/vivi.c	2008-10-14 20:28:17.000000000 +0900
+@@ -139,6 +139,16 @@ static struct vivi_fmt formats[] = {
+ 		.fourcc   = V4L2_PIX_FMT_UYVY,
+ 		.depth    = 16,
+ 	},
++	{
++		.name     = "RGB565 (LE)",
++		.fourcc   = V4L2_PIX_FMT_RGB565, /* gggbbbbb rrrrrggg */
++		.depth    = 16,
++	},
++	{
++		.name     = "RGB565 (BE)",
++		.fourcc   = V4L2_PIX_FMT_RGB565X, /* rrrrrggg gggbbbbb */
++		.depth    = 16,
++	},
+ };
+ 
+ static struct vivi_fmt *get_format(struct v4l2_format *f)
+@@ -301,6 +311,30 @@ static void gen_twopix(struct vivi_fh *f
+ 				break;
+ 			}
+ 			break;
++		case V4L2_PIX_FMT_RGB565:
++			switch (color) {
++			case 0:
++			case 2:
++				*p = (g_u << 5) | b_v;
++				break;
++			case 1:
++			case 3:
++				*p = (r_y << 3) | (g_u >> 3);
++				break;
++			}
++			break;
++		case V4L2_PIX_FMT_RGB565X:
++			switch (color) {
++			case 0:
++			case 2:
++				*p = (r_y << 3) | (g_u >> 3);
++				break;
++			case 1:
++			case 3:
++				*p = (g_u << 5) | b_v;
++				break;
++			}
++			break;
+ 		}
+ 	}
+ }
+@@ -778,6 +812,12 @@ static int vidioc_s_fmt_vid_cap(struct f
+ 		case V4L2_PIX_FMT_UYVY:
+ 			is_yuv = 1;
+ 			break;
++		case V4L2_PIX_FMT_RGB565:
++		case V4L2_PIX_FMT_RGB565X:
++			r >>= 3;
++			g >>= 2;
++			b >>= 3;
++			break;
+ 		}
+ 
+ 		if (is_yuv) {
 
 --
 video4linux-list mailing list
