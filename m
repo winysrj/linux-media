@@ -1,23 +1,32 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.26])
+Received: from node03.cambriumhosting.nl ([217.19.16.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1KmnPc-0002Xl-R4
-	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 12:34:01 +0200
-Received: by qw-out-2122.google.com with SMTP id 9so593760qwb.17
-	for <linux-dvb@linuxtv.org>; Mon, 06 Oct 2008 03:33:56 -0700 (PDT)
-Message-ID: <c74595dc0810060333x80a0472n5e9779fb16446b35@mail.gmail.com>
-Date: Mon, 6 Oct 2008 12:33:56 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
-To: "Emmanuel ALLAUD" <eallaud@yahoo.fr>
-In-Reply-To: <1223254834l.7216l.0l@manu-laptop>
+	(envelope-from <jelledejong@powercraft.nl>) id 1KpkRL-0008Lv-J1
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 16:00:03 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by node03.cambriumhosting.nl (Postfix) with ESMTP id E8A9AB000079
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 15:59:55 +0200 (CEST)
+Received: from node03.cambriumhosting.nl ([127.0.0.1])
+	by localhost (node03.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id E+BtBo3YZ5gK for <linux-dvb@linuxtv.org>;
+	Tue, 14 Oct 2008 15:59:55 +0200 (CEST)
+Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
+	[84.245.3.195])
+	by node03.cambriumhosting.nl (Postfix) with ESMTP id D356FB000053
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 15:59:54 +0200 (CEST)
+Received: from [192.168.1.180] (unknown [192.168.1.180])
+	by ashley.powercraft.nl (Postfix) with ESMTPSA id A20EF23BC543
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 15:59:54 +0200 (CEST)
+Message-ID: <48F4A5D9.7010701@powercraft.nl>
+Date: Tue, 14 Oct 2008 15:59:53 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-References: <c74595dc0810012238p6eb5ea9fg30d8cc296a803a32@mail.gmail.com>
-	<1223212383l.6064l.0l@manu-laptop>
-	<c74595dc0810050654j1e4519cbn2c4a996cb5c3d03c@mail.gmail.com>
-	<1223254834l.7216l.0l@manu-laptop>
-Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Re : Re : Re : Twinhan 1041 (SP 400) lock and scan
-	problems - the solution [not quite :(]
+To: linux-dvb@linuxtv.org
+References: <48F48920.1000206@powercraft.nl> <48F48F67.2020802@powercraft.nl>
+In-Reply-To: <48F48F67.2020802@powercraft.nl>
+Content-Type: multipart/mixed; boundary="------------060301030503060803020507"
+Subject: Re: [linux-dvb] Afatech DVB-T - Installation Guide - v0.1.1j (not
+ working)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,129 +34,238 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1887839064=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1887839064==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_20693_30269998.1223289236688"
+This is a multi-part message in MIME format.
+--------------060301030503060803020507
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-------=_Part_20693_30269998.1223289236688
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-Emmanuel,
+Jelle de Jong wrote:
+> Jelle de Jong wrote:
+>>
+>> Hello everybody,
+>>
+>> I bought an other usb dvb-t stick (number 5) with the hope it would work
+>> out of the box under Debian Linux Sid because I could not efficiently
+>> maintain all the custom build drivers on my systems.
+>>
+>> The distributer, tried to create something that would work on Linux but
+>> he kind of missed the point of Linux sustainable driver model. There was
+>> an cdrom included with an "autoself" installation script. That tried to
+>> heavily rape my debian box..
+>>
+>> http://filebin.ca/rydcgt/treiber.tar.gz
+>>
+>> I would like to know if this device can work out of the box? and if not
+>> what is needed to get the device working out of the box?
+>>
+>> See the attachment for the device information. If more information is
+>> needed please tell me how to gather it.
+>>
+>> Best regards,
+>>
+>> Jelle
+> 
+> I found some additional information, but all my above questions remain
+> the same.
+> 
+> http://openlab.savonia-amk.fi/wiki/index.php/Afatech_9016_DVB-T_USB
+> 
+> Best regards,
+> 
+> Jelle
+> 
 
-As I wrote:
-> Just to clarify it, the changes mostly affect DVB-S channels
-> scanning,
-> it
-> doesn't help with DVB-S2 locking problem since the code is totally
-> different
-> for S and S2 signal search.
+Hello everybody,
 
-The 11495 channel you reported as bad is DVB-S2, so my changes doesn't help
-for that channel.
+Even while the device does not yet work out of the box and I don't know
+why this is the case, i tried to get the device working. I created some
+documentation of my steps, but the device refuses to find any dvb-t
+signals, while I am sure there are there.
 
-I hope Manu will find a solution since I don't have any documentation for
-that chip and solving the DVB-S2 problem needs knowledge in chip internals.
+Please see the attachment for far more detailed information.
 
+Any help is really appreciated.
 
+Kind regards,
 
-On Mon, Oct 6, 2008 at 3:00 AM, Emmanuel ALLAUD <eallaud@yahoo.fr> wrote:
+Jelle
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
 
-> Le 05.10.2008 09:54:39, Alex Betis a =E9crit :
-> > So where are the logs?
->
-> I will post the tomorrow probably (I have some network problems).
->
-> > Can you give me the link to the sattelite you're using on lyngsat
-> > site?
-> > There are many Atlantic (Birds) sats so I don't know which one you're
-> > referring to.
->
-> Oh yes sorry: it is intelsat 903; but all the freqs in lyngsat are a
-> bit off compared to what you get IN the tables from the feed.
->
-> > I'm sure Manu knows much more about that driver than I am, but I
-> > think
-> > the
-> > code takes the clock into consideration when calculating parameters
-> > for
-> > search algorithm.
->
-> Yes that's what he told me. Anyway I think I saw that both cards (1041
-> and TT-3200) have locking problems, so a fix for one could well make
-> the others happy ;-)
->  Bye
-> Manu
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+iJwEAQECAAYFAkj0pdcACgkQ1WclBW9j5HmiqwQAlypHrucNNZK7m0rxAoMgG/U+
+jybxQChrQTQPlso0Vt5H2U1HsPUD1gGQQEv6jk9dqjO66+dc+npEa85qGV/VtTFl
+JLlpA0WEl+UBx2PmCt9CINljuNUGXMifg7CoPdnz42B00bl3TAbEtE7QEWdPTMG0
+mu1dZ3/fw+X+Y6kxK9s=
+=gQvK
+-----END PGP SIGNATURE-----
 
-------=_Part_20693_30269998.1223289236688
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+--------------060301030503060803020507
+Content-Type: text/plain;
+ name="Afatech DVB-T - Installation Guide - v0.1.1j.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="Afatech DVB-T - Installation Guide - v0.1.1j.txt"
 
-<div dir=3D"ltr"><div>Emmanuel,</div>
-<div>&nbsp;</div>
-<div>As I wrote:</div>
-<div>&gt; Just to clarify it, the changes mostly affect DVB-S channels<br>&=
-gt; scanning,<br>&gt; it<br>&gt; doesn&#39;t help with DVB-S2 locking probl=
-em since the code is totally<br>&gt; different<br>&gt; for S and S2 signal =
-search.</div>
-
-<div>&nbsp;</div>
-<div>The 11495 channel you reported as bad is DVB-S2, so my changes doesn&#=
-39;t help for that channel.</div>
-<div>&nbsp;</div>
-<div>I hope Manu will find a solution since I don&#39;t have any documentat=
-ion for that chip and solving the DVB-S2 problem needs knowledge in chip in=
-ternals.</div>
-<div><br><br>&nbsp;</div>
-<div class=3D"gmail_quote">On Mon, Oct 6, 2008 at 3:00 AM, Emmanuel ALLAUD =
-<span dir=3D"ltr">&lt;<a href=3D"mailto:eallaud@yahoo.fr">eallaud@yahoo.fr<=
-/a>&gt;</span> wrote:<br>
-<blockquote class=3D"gmail_quote" style=3D"PADDING-LEFT: 1ex; MARGIN: 0px 0=
-px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid">Le 05.10.2008 09:54:39, Alex Bet=
-is a =E9crit&nbsp;:<br>
-<div class=3D"Ih2E3d">&gt; So where are the logs?<br><br></div>I will post =
-the tomorrow probably (I have some network problems).<br>
-<div class=3D"Ih2E3d"><br>&gt; Can you give me the link to the sattelite yo=
-u&#39;re using on lyngsat<br>&gt; site?<br>&gt; There are many Atlantic (Bi=
-rds) sats so I don&#39;t know which one you&#39;re<br>&gt; referring to.<br=
->
-<br></div>Oh yes sorry: it is intelsat 903; but all the freqs in lyngsat ar=
-e a<br>bit off compared to what you get IN the tables from the feed.<br>
-<div class=3D"Ih2E3d"><br>&gt; I&#39;m sure Manu knows much more about that=
- driver than I am, but I<br>&gt; think<br>&gt; the<br>&gt; code takes the c=
-lock into consideration when calculating parameters<br>&gt; for<br>&gt; sea=
-rch algorithm.<br>
-<br></div>Yes that&#39;s what he told me. Anyway I think I saw that both ca=
-rds (1041<br>and TT-3200) have locking problems, so a fix for one could wel=
-l make<br>the others happy ;-)<br>
-<div>
-<div></div>
-<div class=3D"Wj3C7c">Bye<br>Manu<br><br><br>______________________________=
-_________________<br>linux-dvb mailing list<br><a href=3D"mailto:linux-dvb@=
-linuxtv.org">linux-dvb@linuxtv.org</a><br><a href=3D"http://www.linuxtv.org=
-/cgi-bin/mailman/listinfo/linux-dvb" target=3D"_blank">http://www.linuxtv.o=
-rg/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</div></div></blockquote></div><br></div>
-
-------=_Part_20693_30269998.1223289236688--
-
-
---===============1887839064==
+77u/IyEvYmluL2Jhc2ggIyBqdXN0IGZvciBoaWdobGl0aW5nCgojIEFmYXRlY2ggRFZCLVQg
+LSBJbnN0YWxsYXRpb24gR3VpZGUgLSB2MC4xLjFqLnR4dAojCiMgQ29weXJpZ2h0IDIwMDgg
+SmVsbGUgZGUgSm9uZyA8amVsbGVkZWpvbmcgYXQgcG93ZXJjcmFmdCBkb3Qgbmw+CiMKIyBU
+aGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3RyaWJ1dGUgaXQg
+YW5kL29yIG1vZGlmeQojIGl0IHVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwg
+UHVibGljIExpY2Vuc2UgYXMgcHVibGlzaGVkIGJ5CiMgdGhlIEZyZWUgU29mdHdhcmUgRm91
+bmRhdGlvbjsgZWl0aGVyIHZlcnNpb24gMiBvZiB0aGUgTGljZW5zZSwgb3IKIyAoYXQgeW91
+ciBvcHRpb24pIGFueSBsYXRlciB2ZXJzaW9uLgojCiMgVGhpcyBwcm9ncmFtIGlzIGRpc3Ry
+aWJ1dGVkIGluIHRoZSBob3BlIHRoYXQgaXQgd2lsbCBiZSB1c2VmdWwsCiMgYnV0IFdJVEhP
+VVQgQU5ZIFdBUlJBTlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxpZWQgd2FycmFudHkgb2YK
+IyBNRVJDSEFOVEFCSUxJVFkgb3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBPU0Uu
+ICBTZWUgdGhlCiMgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgZm9yIG1vcmUgZGV0YWls
+cy4KIwojIFlvdSBzaG91bGQgaGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5l
+cmFsIFB1YmxpYyBMaWNlbnNlCiMgYWxvbmcgd2l0aCB0aGlzIHByb2dyYW07IGlmIG5vdCwg
+d3JpdGUgdG8gdGhlIEZyZWUgU29mdHdhcmUKIyBGb3VuZGF0aW9uLCBJbmMuLCA1MSBGcmFu
+a2xpbiBTdHJlZXQsIEZpZnRoIEZsb29yLCBCb3N0b24sCiMgTUEgMDIxMTAtMTMwMSwgVVNB
+LgoKY2Qgfgp3Z2V0IGh0dHA6Ly93d3cub3RpdC5maS9+Y3JvcGUvdjRsLWR2Yi9hZjkwMTUv
+YWY5MDE1X2Zpcm13YXJlX2N1dHRlci9maXJtd2FyZV9maWxlcy80Ljk1LjAvZHZiLXVzYi1h
+ZjkwMTUuZncKc3VkbyBtdiAtLXZlcmJvc2UgZHZiLXVzYi1hZjkwMTUuZncgL2xpYi9maXJt
+d2FyZS8Kc3VkbyBjaG1vZCA1NTUgL2xpYi9maXJtd2FyZS9kdmItdXNiLWFmOTAxNS5mdwps
+cyAtaGFsIC9saWIvZmlybXdhcmUvZHZiLXVzYi1hZjkwMTUuZncKICAgIC1yLXhyLXhyLXgg
+MSBqZWxsZSBqZWxsZSAxNksgMjAwNy0xMS0xNiAyMTowNiAvbGliL2Zpcm13YXJlL2R2Yi11
+c2ItYWY5MDE1LmZ3CgojIG9yaWdpbmFsIGZpcndhcmUgaW5jbHVkZWQgb24gY2Ryb20KY2Qg
+fgpzdWRvIGNwIC0tdmVyYm9zZSAiL21lZGlhL0RJR0lUVFJBREUgRFZCLVQvSW5zdGFsbGF0
+aW9uc2RhdGVpZW4vbGludXgvZHZiLXVzYi1hZjkwMTUuZnciIC9saWIvZmlybXdhcmUvCnN1
+ZG8gY2htb2QgNTU1IC9saWIvZmlybXdhcmUvZHZiLXVzYi1hZjkwMTUuZncKbHMgLWhhbCAv
+bGliL2Zpcm13YXJlL2R2Yi11c2ItYWY5MDE1LmZ3CiAgICAtci14ci14ci14IDEgamVsbGUg
+cm9vdCAxM0sgMjAwOC0xMC0xNCAxNTozNiAvbGliL2Zpcm13YXJlL2R2Yi11c2ItYWY5MDE1
+LmZ3CgpzdWRvIGFwdC1nZXQgaW5zdGFsbCBsaW51eC1oZWFkZXJzLSQodW5hbWUgLXIpIGJ1
+aWxkLWVzc2VudGlhbCBtZXJjdXJpYWwKCmNkIH4KWyAtZSBhZjkwMTUgXSAmJiBybSAtLXJl
+Y3Vyc2l2ZSBhZjkwMTUKaGcgY2xvbmUgaHR0cDovL2xpbnV4dHYub3JnL2hnL35hbnR0aXAv
+YWY5MDE1CmNkIGFmOTAxNQptYWtlCnN1ZG8gbWFrZSBpbnN0YWxsCnN1ZG8gZGVwbW9kIC1h
+CmNkIH4KCnN1ZG8gc2h1dGRvd24gLXIgbm93CgpscyAtaGFsIC9kZXYvZHZiL2FkYXB0ZXIw
+LwogICAgdG90YWwgMAogICAgZHJ3eHIteHIteCAyIHJvb3Qgcm9vdCAgICAgMTIwIDIwMDgt
+MTAtMTQgMTU6MzggLgogICAgZHJ3eHIteHIteCAzIHJvb3Qgcm9vdCAgICAgIDYwIDIwMDgt
+MTAtMTQgMTU6MzggLi4KICAgIGNydy1ydy0tLS0gMSByb290IHZpZGVvIDIxMiwgNCAyMDA4
+LTEwLTE0IDE1OjM4IGRlbXV4MAogICAgY3J3LXJ3LS0tLSAxIHJvb3QgdmlkZW8gMjEyLCA1
+IDIwMDgtMTAtMTQgMTU6MzggZHZyMAogICAgY3J3LXJ3LS0tLSAxIHJvb3QgdmlkZW8gMjEy
+LCAzIDIwMDgtMTAtMTQgMTU6MzggZnJvbnRlbmQwCiAgICBjcnctcnctLS0tIDEgcm9vdCB2
+aWRlbyAyMTIsIDcgMjAwOC0xMC0xNCAxNTozOCBuZXQwCgpkbWVzZyB8IGdyZXAgYWY5MApk
+bWVzZwoKIyBmaXJtd2FyZSB2ZXJzaW9uOjQuOTUuMApbICAgNDQuMTMyMDU5XSBmaXJtd2Fy
+ZTogcmVxdWVzdGluZyBkdmItdXNiLWFmOTAxNS5mdwpbICAgNDQuMTQxODI3XSBkdmItdXNi
+OiBkb3dubG9hZGluZyBmaXJtd2FyZSBmcm9tIGZpbGUgJ2R2Yi11c2ItYWY5MDE1LmZ3Jwpb
+ICAgNDQuMjE5NTAwXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVy
+IGR2Yl91c2JfYWY5MDE1ClsgICA0NS4xNTc3ODldIGFmOTAxMzogZmlybXdhcmUgdmVyc2lv
+bjo0Ljk1LjAKWyAgIDQ1LjI4MDU1Nl0gYWY5MDE1OiBjb21tYW5kIGZhaWxlZDoyCgpbICAg
+NDMuNTUyMDU3XSB1c2IgNS00OiBuZXcgaGlnaCBzcGVlZCBVU0IgZGV2aWNlIHVzaW5nIGVo
+Y2lfaGNkIGFuZCBhZGRyZXNzIDkKWyAgIDQzLjY4ODEyOF0gdXNiIDUtNDogY29uZmlndXJh
+dGlvbiAjMSBjaG9zZW4gZnJvbSAxIGNob2ljZQpbICAgNDMuNjk2ODM2XSBBZmF0ZWNoIERW
+Qi1UOiBGaXhpbmcgZnVsbHNwZWVkIHRvIGhpZ2hzcGVlZCBpbnRlcnZhbDogMTYgLT4gOApb
+ICAgNDMuNzAzOTEyXSBpbnB1dDogQWZhdGVjaCBEVkItVCBhcyAvY2xhc3MvaW5wdXQvaW5w
+dXQxMApbICAgNDMuNzMyMjM5XSBpbnB1dCxoaWRyYXczOiBVU0IgSElEIHYxLjAxIEtleWJv
+YXJkIFtBZmF0ZWNoIERWQi1UXSBvbiB1c2ItMDAwMDowMDoxZC43LTQKWyAgIDQzLjczMjUw
+M10gdXNiIDUtNDogTmV3IFVTQiBkZXZpY2UgZm91bmQsIGlkVmVuZG9yPTE1YTQsIGlkUHJv
+ZHVjdD05MDE2ClsgICA0My43MzI1MTJdIHVzYiA1LTQ6IE5ldyBVU0IgZGV2aWNlIHN0cmlu
+Z3M6IE1mcj0xLCBQcm9kdWN0PTIsIFNlcmlhbE51bWJlcj0wClsgICA0My43MzI1MjBdIHVz
+YiA1LTQ6IFByb2R1Y3Q6IERWQi1UClsgICA0My43MzI1MjVdIHVzYiA1LTQ6IE1hbnVmYWN0
+dXJlcjogQWZhdGVjaApbICAgNDQuMTMyMDQ2XSBkdmItdXNiOiBmb3VuZCBhICdBZmF0ZWNo
+IEFGOTAxNSBEVkItVCBVU0IyLjAgc3RpY2snIGluIGNvbGQgc3RhdGUsIHdpbGwgdHJ5IHRv
+IGxvYWQgYSBmaXJtd2FyZQpbICAgNDQuMTMyMDU5XSBmaXJtd2FyZTogcmVxdWVzdGluZyBk
+dmItdXNiLWFmOTAxNS5mdwpbICAgNDQuMTQxODI3XSBkdmItdXNiOiBkb3dubG9hZGluZyBm
+aXJtd2FyZSBmcm9tIGZpbGUgJ2R2Yi11c2ItYWY5MDE1LmZ3JwpbICAgNDQuMjEzNDcwXSB1
+c2IgNS00OiBVU0IgZGlzY29ubmVjdCwgYWRkcmVzcyA5ClsgICA0NC4yMTY0MThdIGR2Yi11
+c2I6IGdlbmVyaWMgRFZCLVVTQiBtb2R1bGUgc3VjY2Vzc2Z1bGx5IGRlaW5pdGlhbGl6ZWQg
+YW5kIGRpc2Nvbm5lY3RlZC4KWyAgIDQ0LjIxOTUwMF0gdXNiY29yZTogcmVnaXN0ZXJlZCBu
+ZXcgaW50ZXJmYWNlIGRyaXZlciBkdmJfdXNiX2FmOTAxNQpbICAgNDQuNDcyMDc0XSB1c2Ig
+NS00OiBuZXcgaGlnaCBzcGVlZCBVU0IgZGV2aWNlIHVzaW5nIGVoY2lfaGNkIGFuZCBhZGRy
+ZXNzIDEwClsgICA0NC42MDg3MTNdIHVzYiA1LTQ6IGNvbmZpZ3VyYXRpb24gIzEgY2hvc2Vu
+IGZyb20gMSBjaG9pY2UKWyAgIDQ0LjY1NTkyMV0gZHZiLXVzYjogZm91bmQgYSAnQWZhdGVj
+aCBBRjkwMTUgRFZCLVQgVVNCMi4wIHN0aWNrJyBpbiB3YXJtIHN0YXRlLgpbICAgNDQuNjU2
+MDYzXSBkdmItdXNiOiB3aWxsIHBhc3MgdGhlIGNvbXBsZXRlIE1QRUcyIHRyYW5zcG9ydCBz
+dHJlYW0gdG8gdGhlIHNvZnR3YXJlIGRlbXV4ZXIuClsgICA0NC42NTY0MzldIERWQjogcmVn
+aXN0ZXJpbmcgbmV3IGFkYXB0ZXIgKEFmYXRlY2ggQUY5MDE1IERWQi1UIFVTQjIuMCBzdGlj
+aykKWyAgIDQ1LjE1Nzc4OV0gYWY5MDEzOiBmaXJtd2FyZSB2ZXJzaW9uOjQuOTUuMApbICAg
+NDUuMTYzNzk1XSBEVkI6IHJlZ2lzdGVyaW5nIGZyb250ZW5kIDAgKEFmYXRlY2ggQUY5MDEz
+IERWQi1UKS4uLgpbICAgNDUuMjgwNTU2XSBhZjkwMTU6IGNvbW1hbmQgZmFpbGVkOjIKWyAg
+IDQ1LjI4MDU2Nl0gbXQyMDYwIEkyQyByZWFkIGZhaWxlZApbICAgNDUuMjgwNjc1XSBkdmIt
+dXNiOiBBZmF0ZWNoIEFGOTAxNSBEVkItVCBVU0IyLjAgc3RpY2sgc3VjY2Vzc2Z1bGx5IGlu
+aXRpYWxpemVkIGFuZCBjb25uZWN0ZWQuClsgICA0NS4yOTQ4NDJdIEFmYXRlY2ggRFZCLVQ6
+IEZpeGluZyBmdWxsc3BlZWQgdG8gaGlnaHNwZWVkIGludGVydmFsOiAxNiAtPiA4ClsgICA0
+NS4yOTUzMzddIGlucHV0OiBBZmF0ZWNoIERWQi1UIGFzIC9jbGFzcy9pbnB1dC9pbnB1dDEx
+ClsgICA0NS4zMjAyNTBdIGlucHV0LGhpZHJhdzM6IFVTQiBISUQgdjEuMDEgS2V5Ym9hcmQg
+W0FmYXRlY2ggRFZCLVRdIG9uIHVzYi0wMDAwOjAwOjFkLjctNApbICAgNDUuMzIwNTI3XSB1
+c2IgNS00OiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRWZW5kb3I9MTVhNCwgaWRQcm9kdWN0
+PTkwMTYKWyAgIDQ1LjMyMDUzNl0gdXNiIDUtNDogTmV3IFVTQiBkZXZpY2Ugc3RyaW5nczog
+TWZyPTEsIFByb2R1Y3Q9MiwgU2VyaWFsTnVtYmVyPTAKWyAgIDQ1LjMyMDU0NF0gdXNiIDUt
+NDogUHJvZHVjdDogRFZCLVQKWyAgIDQ1LjMyMDU0OV0gdXNiIDUtNDogTWFudWZhY3R1cmVy
+OiBBZmF0ZWNoCgojIGZpcm13YXJlIHZlcnNpb246NC42NS4wClsgICA1Ni4xNTg3NDFdIGZp
+cm13YXJlOiByZXF1ZXN0aW5nIGR2Yi11c2ItYWY5MDE1LmZ3ClsgICA1Ni4xNzYxNDVdIGR2
+Yi11c2I6IGRvd25sb2FkaW5nIGZpcm13YXJlIGZyb20gZmlsZSAnZHZiLXVzYi1hZjkwMTUu
+ZncnClsgICA1Ni4yMzE0NTJdIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBk
+cml2ZXIgZHZiX3VzYl9hZjkwMTUKWyAgIDU3LjE1Nzk3OF0gYWY5MDEzOiBmaXJtd2FyZSB2
+ZXJzaW9uOjQuNjUuMApbICAgNTcuMjc3OTkwXSBhZjkwMTU6IGNvbW1hbmQgZmFpbGVkOjIK
+ClsgICA1NS41ODQwNjhdIHVzYiA1LTQ6IG5ldyBoaWdoIHNwZWVkIFVTQiBkZXZpY2UgdXNp
+bmcgZWhjaV9oY2QgYW5kIGFkZHJlc3MgOApbICAgNTUuNzIwMDY3XSB1c2IgNS00OiBjb25m
+aWd1cmF0aW9uICMxIGNob3NlbiBmcm9tIDEgY2hvaWNlClsgICA1NS43Mjg3NDVdIEFmYXRl
+Y2ggRFZCLVQ6IEZpeGluZyBmdWxsc3BlZWQgdG8gaGlnaHNwZWVkIGludGVydmFsOiAxNiAt
+PiA4ClsgICA1NS43MzU4MjFdIGlucHV0OiBBZmF0ZWNoIERWQi1UIGFzIC9jbGFzcy9pbnB1
+dC9pbnB1dDEwClsgICA1NS43NjQyMjhdIGlucHV0LGhpZHJhdzM6IFVTQiBISUQgdjEuMDEg
+S2V5Ym9hcmQgW0FmYXRlY2ggRFZCLVRdIG9uIHVzYi0wMDAwOjAwOjFkLjctNApbICAgNTUu
+NzY0NDk2XSB1c2IgNS00OiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRWZW5kb3I9MTVhNCwg
+aWRQcm9kdWN0PTkwMTYKWyAgIDU1Ljc2NDUwNV0gdXNiIDUtNDogTmV3IFVTQiBkZXZpY2Ug
+c3RyaW5nczogTWZyPTEsIFByb2R1Y3Q9MiwgU2VyaWFsTnVtYmVyPTAKWyAgIDU1Ljc2NDUx
+M10gdXNiIDUtNDogUHJvZHVjdDogRFZCLVQKWyAgIDU1Ljc2NDUxOV0gdXNiIDUtNDogTWFu
+dWZhY3R1cmVyOiBBZmF0ZWNoClsgICA1Ni4xNTg3MjhdIGR2Yi11c2I6IGZvdW5kIGEgJ0Fm
+YXRlY2ggQUY5MDE1IERWQi1UIFVTQjIuMCBzdGljaycgaW4gY29sZCBzdGF0ZSwgd2lsbCB0
+cnkgdG8gbG9hZCBhIGZpcm13YXJlClsgICA1Ni4xNTg3NDFdIGZpcm13YXJlOiByZXF1ZXN0
+aW5nIGR2Yi11c2ItYWY5MDE1LmZ3ClsgICA1Ni4xNzYxNDVdIGR2Yi11c2I6IGRvd25sb2Fk
+aW5nIGZpcm13YXJlIGZyb20gZmlsZSAnZHZiLXVzYi1hZjkwMTUuZncnClsgICA1Ni4yMzE0
+NTJdIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgZHZiX3VzYl9h
+ZjkwMTUKWyAgIDU2LjIzMTUzM10gdXNiIDUtNDogVVNCIGRpc2Nvbm5lY3QsIGFkZHJlc3Mg
+OApbICAgNTYuMjMyNjkwXSBkdmItdXNiOiBnZW5lcmljIERWQi1VU0IgbW9kdWxlIHN1Y2Nl
+c3NmdWxseSBkZWluaXRpYWxpemVkIGFuZCBkaXNjb25uZWN0ZWQuClsgICA1Ni41MDQwNzNd
+IHVzYiA1LTQ6IG5ldyBoaWdoIHNwZWVkIFVTQiBkZXZpY2UgdXNpbmcgZWhjaV9oY2QgYW5k
+IGFkZHJlc3MgOQpbICAgNTYuNjQwNzgyXSB1c2IgNS00OiBjb25maWd1cmF0aW9uICMxIGNo
+b3NlbiBmcm9tIDEgY2hvaWNlClsgICA1Ni42NTQ2MDJdIGR2Yi11c2I6IGZvdW5kIGEgJ0Fm
+YXRlY2ggQUY5MDE1IERWQi1UIFVTQjIuMCBzdGljaycgaW4gd2FybSBzdGF0ZS4KWyAgIDU2
+LjY1NDcyMF0gZHZiLXVzYjogd2lsbCBwYXNzIHRoZSBjb21wbGV0ZSBNUEVHMiB0cmFuc3Bv
+cnQgc3RyZWFtIHRvIHRoZSBzb2Z0d2FyZSBkZW11eGVyLgpbICAgNTYuNjU1MTQ1XSBEVkI6
+IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChBZmF0ZWNoIEFGOTAxNSBEVkItVCBVU0IyLjAg
+c3RpY2spClsgICA1Ny4xNTc5NzhdIGFmOTAxMzogZmlybXdhcmUgdmVyc2lvbjo0LjY1LjAK
+WyAgIDU3LjE2Mzk4MV0gRFZCOiByZWdpc3RlcmluZyBmcm9udGVuZCAwIChBZmF0ZWNoIEFG
+OTAxMyBEVkItVCkuLi4KWyAgIDU3LjI3Nzk5MF0gYWY5MDE1OiBjb21tYW5kIGZhaWxlZDoy
+ClsgICA1Ny4yNzgwMDFdIG10MjA2MCBJMkMgcmVhZCBmYWlsZWQKWyAgIDU3LjI3ODExOF0g
+ZHZiLXVzYjogQWZhdGVjaCBBRjkwMTUgRFZCLVQgVVNCMi4wIHN0aWNrIHN1Y2Nlc3NmdWxs
+eSBpbml0aWFsaXplZCBhbmQgY29ubmVjdGVkLgpbICAgNTcuMjkyNjIzXSBBZmF0ZWNoIERW
+Qi1UOiBGaXhpbmcgZnVsbHNwZWVkIHRvIGhpZ2hzcGVlZCBpbnRlcnZhbDogMTYgLT4gOApb
+ICAgNTcuMjkzMTQ3XSBpbnB1dDogQWZhdGVjaCBEVkItVCBhcyAvY2xhc3MvaW5wdXQvaW5w
+dXQxMQpbICAgNTcuMzI0MjEyXSBpbnB1dCxoaWRyYXczOiBVU0IgSElEIHYxLjAxIEtleWJv
+YXJkIFtBZmF0ZWNoIERWQi1UXSBvbiB1c2ItMDAwMDowMDoxZC43LTQKWyAgIDU3LjMyNDQ4
+Ml0gdXNiIDUtNDogTmV3IFVTQiBkZXZpY2UgZm91bmQsIGlkVmVuZG9yPTE1YTQsIGlkUHJv
+ZHVjdD05MDE2ClsgICA1Ny4zMjQ0OTJdIHVzYiA1LTQ6IE5ldyBVU0IgZGV2aWNlIHN0cmlu
+Z3M6IE1mcj0xLCBQcm9kdWN0PTIsIFNlcmlhbE51bWJlcj0wClsgICA1Ny4zMjQ1MDBdIHVz
+YiA1LTQ6IFByb2R1Y3Q6IERWQi1UClsgICA1Ny4zMjQ1MDVdIHVzYiA1LTQ6IE1hbnVmYWN0
+dXJlcjogQWZhdGVjaAoKIyBjbGVhbnVwCmNkIH4KWyAtZSBhZjkwMTUgXSAmJiBybSAtLXJl
+Y3Vyc2l2ZSBhZjkwMTUKc3VkbyBhcHQtZ2V0IHJlbW92ZSAtLXB1cmdlIGxpbnV4LWhlYWRl
+cnMtJCh1bmFtZSAtcikgYnVpbGQtZXNzZW50aWFsIG1lcmN1cmlhbAoKIyBzY2FubmluZyBj
+aGFubmVscyAuLi4uIChub3RpbmcgZm91bmQsIGRldmljZSBkb2VzIG5vdCBzZWVtIHRvIHdv
+cmspCiMgaSB1c2VkIGRpZmZyZW50IGFudGVubmEncywgaW5jbHVkaW5nIGFjdGl2ZSBvbmVz
+IGFuZCB0aGUgb3JpZ25hbAojIG15IGVtMjh4eCBkZXZpY2VzIGRvIHdvcmsgc28gdGhlIHNp
+Z25hbCBpcyBzdHJvbmcgZW5vdWdoCgpiYXNoIC5zY3JpcHRzL2R2Yi10L3NldHVwLWZyZWUt
+dG8tYWlyLWNoYW5uZWxzLnNoCndfc2NhbiB2ZXJzaW9uIDIwMDgwODE1CkluZm86IHVzaW5n
+IERWQiBhZGFwdGVyIGF1dG8gZGV0ZWN0aW9uLgogICBGb3VuZCBEVkItVCBmcm9udGVuZC4g
+VXNpbmcgYWRhcHRlciAvZGV2L2R2Yi9hZGFwdGVyMC9mcm9udGVuZDAKLV8tXy1fLV8gR2V0
+dGluZyBmcm9udGVuZCBjYXBhYmlsaXRpZXMtXy1fLV8tXwpmcm9udGVuZCBBZmF0ZWNoIEFG
+OTAxMyBEVkItVCBzdXBwb3J0cwpJTlZFUlNJT05fQVVUTwpRQU1fQVVUTwpUUkFOU01JU1NJ
+T05fTU9ERV9BVVRPCkdVQVJEX0lOVEVSVkFMX0FVVE8KSElFUkFSQ0hZX0FVVE8KRkVDX0FV
+VE8KLV8tXy1fLV8tXy1fLV8tXy1fLV8tXy1fLV8tXy1fLV8tXy1fLV8tXy1fLV8tXwoxNzc1
+MDA6Cjxza2lwPgo4NTgwMDA6CkVSUk9SOiBTb3JyeSAtIGkgY291bGRuJ3QgZ2V0IGFueSB3
+b3JraW5nIGZyZXF1ZW5jeS90cmFuc3BvbmRlcgogTm90aGluZyB0byBzY2FuISEKZHVtcGlu
+ZyBsaXN0cyAoMCBzZXJ2aWNlcykKRG9uZS4K
+--------------060301030503060803020507
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -157,4 +275,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1887839064==--
+--------------060301030503060803020507--
