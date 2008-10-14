@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2b.orange.fr ([80.12.242.146])
+Received: from node03.cambriumhosting.nl ([217.19.16.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1KpjNM-0003Wc-PO
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 14:51:50 +0200
-From: Christophe Thommeret <hftom@free.fr>
-To: Darron Broad <darron@kewl.org>
-Date: Tue, 14 Oct 2008 14:51:02 +0200
-References: <200810141133.36559.hftom@free.fr> <1985.1223980189@kewl.org>
-In-Reply-To: <1985.1223980189@kewl.org>
+	(envelope-from <jelledejong@powercraft.nl>) id 1KplTq-0004uN-7A
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 17:06:41 +0200
+Message-ID: <48F4B576.8010509@powercraft.nl>
+Date: Tue, 14 Oct 2008 17:06:30 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200810141451.02941.hftom@free.fr>
+To: Antti Palosaari <crope@iki.fi>
+References: <48F48920.1000206@powercraft.nl> <48F48F67.2020802@powercraft.nl>
+	<48F4A5D9.7010701@powercraft.nl> <48F4B25B.9070109@iki.fi>
+In-Reply-To: <48F4B25B.9070109@iki.fi>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx24116 DVB-S modulation fix
+Subject: Re: [linux-dvb] Afatech DVB-T - Installation Guide - v0.1.1j (not
+ working)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,57 +21,96 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le Tuesday 14 October 2008 12:29:49 Darron Broad, vous avez =E9crit=A0:
-> In message <200810141133.36559.hftom@free.fr>, Christophe Thommeret wrote:
->
-> hi
->
-> >Hi,
-> >
-> >This patch makes cx24116 to behave like other dvb-s frontends.
->
-> Unlike most DVB-S cards the those with a cx24116 use S2API
-> this makes them somewhat different.
->
-> >This is needed especially because QAM_AUTO is used in a lot of scan file=
-s.
->
-> What scan files are you referring to? The
-> cx24116 only does PSK, not AM. QAM_AUTO
-> doesn't sound right. the cx24116 can't
-> auto detect anything, but that's another
-> story...
+Antti Palosaari wrote:
+> hello Jelle,
+> sorry for top-posting...
+> 
+> Error from attached file:
+> 
+> [   57.163981] DVB: registering frontend 0 (Afatech AF9013 DVB-T)...
+> [   57.277990] af9015: command failed:2
+> [   57.278001] mt2060 I2C read failed
+> 
+> goes to the fact that I2C-communication towards tuner is behind I2C-gate 
+> of the AF9015/AF9013. MT2060 you use does not have I2C-gate implemented. 
+> Use newer MT2060 module for correct functionality.
+> 
+> See for more information:
+> http://palosaari.fi/linux/v4l-dvb/controlling_tuner.txt
+> http://palosaari.fi/linux/v4l-dvb/controlling_tuner_af9015_dual_demod.txt
+> 
+> reagrds
+> Antti
 
-dvbscan initial tuning data files for DVB-S don't have an entry for =
+Thanks for the information, since one of my specializations is embedded
+hardware development, I do understand the presented issues.
 
-modulation. So an app like kaffeine simply set modulation to QAM_AUTO.
-Why not QPSK, you ask? Simply because DVB-S standard allows QPSK and 16QAM. =
+Should there not be an option to the MT2060 module to use the I2C-gate
+or not? What can I do to get this device working now?
 
-Maybe there is not a single 16QAM TP all over the world, but it's still a =
-
-valid modulation for DVB-S.
-So, we set modulation to QAM_AUTO when it's unknown/unspecified, like in =
-
-dvbscan files (those being also used by kaffeine). And it works pretty well=
-, =
-
-just because most dvb-s can only do QPSK and so force modulation to QPSK =
-
-instead of returning a notsup.
-See this as software QAM_AUTO :)
-
-P.S.
-This is with s2api.
-
--- =
-
-Christophe Thommeret
+> 
+> Jelle de Jong wrote:
+> Jelle de Jong wrote:
+>>>> Jelle de Jong wrote:
+>>>>> Hello everybody,
+>>>>>
+>>>>> I bought an other usb dvb-t stick (number 5) with the hope it would work
+>>>>> out of the box under Debian Linux Sid because I could not efficiently
+>>>>> maintain all the custom build drivers on my systems.
+>>>>>
+>>>>> The distributer, tried to create something that would work on Linux but
+>>>>> he kind of missed the point of Linux sustainable driver model. There was
+>>>>> an cdrom included with an "autoself" installation script. That tried to
+>>>>> heavily rape my debian box..
+>>>>>
+>>>>> http://filebin.ca/rydcgt/treiber.tar.gz
+>>>>>
+>>>>> I would like to know if this device can work out of the box? and if not
+>>>>> what is needed to get the device working out of the box?
+>>>>>
+>>>>> See the attachment for the device information. If more information is
+>>>>> needed please tell me how to gather it.
+>>>>>
+>>>>> Best regards,
+>>>>>
+>>>>> Jelle
+>>>> I found some additional information, but all my above questions remain
+>>>> the same.
+>>>>
+>>>> http://openlab.savonia-amk.fi/wiki/index.php/Afatech_9016_DVB-T_USB
+>>>>
+>>>> Best regards,
+>>>>
+>>>> Jelle
+>>>>
+> Hello everybody,
+> 
+> Even while the device does not yet work out of the box and I don't know
+> why this is the case, i tried to get the device working. I created some
+> documentation of my steps, but the device refuses to find any dvb-t
+> signals, while I am sure there are there.
+> 
+> Please see the attachment for far more detailed information.
+> 
+> Any help is really appreciated.
+> 
+> Kind regards,
+> 
+> Jelle
+>>
+>>
+------------------------------------------------------------------------
+>>
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
 _______________________________________________
