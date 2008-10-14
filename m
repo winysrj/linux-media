@@ -1,17 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from emh05.mail.saunalahti.fi ([62.142.5.111])
+Received: from qmta06.westchester.pa.mail.comcast.net ([76.96.62.56])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marko.ristola@kolumbus.fi>) id 1KpTi5-0007yf-1J
-	for linux-dvb@linuxtv.org; Mon, 13 Oct 2008 22:08:11 +0200
-Message-ID: <48F3AAA0.6040301@kolumbus.fi>
-Date: Mon, 13 Oct 2008 23:08:00 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+	(envelope-from <htmoore@comcast.net>) id 1KptYv-00071X-3P
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 01:44:27 +0200
+From: "Tom Moore" <htmoore@comcast.net>
+To: <linux-dvb@linuxtv.org>
+Date: Tue, 14 Oct 2008 18:43:21 -0500
+Message-ID: <001501c92e56$a4903870$edb0a950$@net>
 MIME-Version: 1.0
-To: Anssi Kolehmainen <anssi@aketzu.net>
-References: <20081011163649.GU15309@aketzu.net>
-In-Reply-To: <20081011163649.GU15309@aketzu.net>
-Cc: linux-dvb@linuxtv.org, abraham.manu@gmail.com
-Subject: Re: [linux-dvb] Mantis and CAM problems
+Content-Language: en-us
+Subject: [linux-dvb] Duel Hauppauge HVR-1600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,98 +17,369 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0007638048=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+This is a multipart message in MIME format.
 
-Hi
+--===============0007638048==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0016_01C92E2C.BBBA3070"
+Content-Language: en-us
 
-My patch has helped for Terratec Cinergy C HD card stability problems.
-Maybe somebody of you want to try or look at it? With Terratec card 
-there were small
-dropouts while saving data to disk. My patch fixed them (Jouni said so).
-He didn't have any reboots or something, just small dropouts.
+This is a multipart message in MIME format.
 
-I suspect that the problem that my patch fixes is that the DMA transfer
-from DVB to memory broke video/audio stream somehow.
+------=_NextPart_000_0016_01C92E2C.BBBA3070
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Maybe if you have small dropouts (corrupted packets) in original data 
-while feeding CAM,
-you will have large dropouts after decrypting has been done?
+I just bought two Hauppauge HVR-1600 cards and I'm trying to set them up in 
 
-Here is the patch:
-http://linuxtv.org/pipermail/linux-dvb/2008-July/027226.html
+Mythdorra 5. I have the cx18 drivers installed but it is only initializing
+one 
 
-I don't have CAM module to test Anssi your case.
+card. I'm getting the following message when I do a dmesg | grep cx18. Has 
 
-Regards,
-Marko Ristola
+anyone ran accross this problem before with duel cards of the same model and
+if 
 
-Anssi Kolehmainen kirjoitti:
-> I have Terratec Cinergy C (dvb-c, 1822:4e35) card and when I try to use CAM I
-> just get TS continuity errors with vdr and cannot watch any channel. I'm using
-> latest driver from jusst.de/hg/mantis and it feels rather unstable at times
-> (previous versions crashed machine almost instantly with CAM...)
->
-> I can access CAM menu in vdr but after a while it says CAM not responding. If I
-> do rmmod & modprobe mantis after that I get "dvb_ca adapter 0: Invalid PC card
-> inserted :(". Removing & reattaching CAM doesn't do any better, after modprobe
-> mantis everything freezes and caps+scroll lock blink on the keyboard.
->
-> Linux 2.6.24i-1-686, Debian package
-> Oct 11 19:08:18 ampere kernel: ACPI: PCI Interrupt 0000:02:09.0[A] -> Link [APC4] -> GSI 19 (level, low) -> IRQ 20
-> Oct 11 19:08:18 ampere kernel: irq: 20, latency: 32
-> Oct 11 19:08:18 ampere kernel:  memory: 0xdf000000, mmio: 0xf8a76000
-> Oct 11 19:08:18 ampere kernel: found a VP-2040 PCI DVB-C device on (02:09.0),
-> Oct 11 19:08:18 ampere kernel:     Mantis Rev 1 [153b:1178], irq: 20, latency: 32
-> Oct 11 19:08:18 ampere kernel:     memory: 0xdf000000, mmio: 0xf8a76000
-> Oct 11 19:08:18 ampere kernel:     MAC Address=[00:08:ca:1c:87:ea]
-> Oct 11 19:08:18 ampere kernel: mantis_alloc_buffers (0): DMA=0x36c70000 cpu=0xf6c70000 size=65536
-> Oct 11 19:08:18 ampere kernel: mantis_alloc_buffers (0): RISC=0x1582f000 cpu=0xd582f000 size=1000
-> Oct 11 19:08:18 ampere kernel: DVB: registering new adapter (Mantis dvb adapter)
-> Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): Probing for CU1216 (DVB-C)
-> Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): found Philips CU1216 DVB-C frontend (TDA10023) @ 0x0c
-> Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): Mantis DVB-C Philips CU1216 frontend attach success
-> Oct 11 19:08:18 ampere kernel: DVB: registering frontend 0 (Philips TDA10023 DVB-C)...
-> Oct 11 19:08:18 ampere kernel: mantis_ca_init (0): Registering EN50221 device
-> Oct 11 19:08:18 ampere kernel: mantis_ca_init (0): Registered EN50221 device
-> Oct 11 19:08:18 ampere kernel: mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
-> Oct 11 19:08:22 ampere kernel: dvb_ca adapter 0: DVB CAM detected and initialised successfully
-> Oct 11 19:08:27 ampere kernel: mantis start feed & dma
-> Oct 11 19:08:35 ampere kernel: mantis stop feed and dma
->
-> start vdr
-> Oct 11 19:10:26 ampere vdr: [23112] CI adapter on device 0 thread started (pid=23108, tid=23112)
-> Oct 11 19:10:26 ampere vdr: [23112] CAM 1: module present
-> Oct 11 19:10:27 ampere vdr: [23108] device 1 provides: DVBC
-> Oct 11 19:10:30 ampere kernel: dvb_ca adapter 0: DVB CAM detected and initialised successfully
-> Oct 11 19:10:30 ampere vdr: [23112] CAM 1: module ready
-> Oct 11 19:10:32 ampere vdr: [23112] CAM 1: Conax 4.00e, 01, 0B00, 04B1
-> Oct 11 19:10:36 ampere vdr: [23112] CAM 1: doesn't reply to QUERY - only a single channel can be decrypted
-> Oct 11 19:10:36 ampere vdr: [23108] switching to channel 1
-> Oct 11 19:10:36 ampere kernel: mantis start feed & dma
-> Oct 11 19:10:36 ampere vdr: [23121] transfer thread started (pid=23108, tid=23121)
-> Oct 11 19:10:36 ampere vdr: [23122] receiver on device 1 thread started (pid=23108, tid=23122)
-> Oct 11 19:10:36 ampere vdr: [23123] TS buffer on device 1 thread started (pid=23108, tid=23123)
-> Oct 11 19:10:36 ampere kernel: dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (5)
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (15)
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (1)
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (6)
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (9)
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (12)
->
-> Something like ~150 TS continuity errors per sec. Video is pretty much garbage.
-> However if I remove CAM then everything works perfectly (except I can't watch
-> encrypted channels).
->
->   
+so, how do I fix it? Any help will be greatly appreciated.
 
+ 
+
+Thanks,
+
+Tom Moore
+
+Houston, TX
+
+ 
+
+dmesg | grep cx18
+
+cx18:  Start initialization, version 1.0.1
+
+cx18-0: Initializing card #0
+
+cx18-0: Autodetected Hauppauge card
+
+cx18-0: Unreasonably low latency timer, setting to 64 (was 32)
+
+cx18-0: cx23418 revision 01010000 (B)
+
+cx18-0: Autodetected Hauppauge HVR-1600
+
+cx18-0: VBI is not yet supported
+
+tuner 2-0061: chip found @ 0xc2 (cx18 i2c driver #0-1)
+
+cs5345 1-004c: chip found @ 0x98 (cx18 i2c driver #0-0)
+
+cx18-0: Disabled encoder IDX device
+
+cx18-0: Registered device video0 for encoder MPEG (2 MB)
+
+DVB: registering new adapter (cx18)
+
+cx18-0: DVB Frontend registered
+
+cx18-0: Registered device video32 for encoder YUV (2 MB)
+
+cx18-0: Registered device video24 for encoder PCM audio (1 MB)
+
+cx18-0: Initialized card #0: Hauppauge HVR-1600
+
+cx18-1: Initializing card #1
+
+cx18-1: Autodetected Hauppauge card
+
+cx18-1: Unreasonably low latency timer, setting to 64 (was 32)
+
+cx18-1: ioremap failed, perhaps increasing __VMALLOC_RESERVE in page.h
+
+cx18-1: or disabling CONFIG_HIGHMEM4G into the kernel would help
+
+cx18-1: Error -12 on initialization
+
+cx18: probe of 0000:02:04.0 failed with error -12
+
+cx18:  End initialization
+
+ 
+
+
+------=_NextPart_000_0016_01C92E2C.BBBA3070
+Content-Type: text/html;
+	charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+
+<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
+xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
+xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
+xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
+xmlns=3D"http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Dus-ascii">
+<meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:11.0pt;
+	font-family:"Calibri","sans-serif";}
+a:link, span.MsoHyperlink
+	{mso-style-priority:99;
+	color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{mso-style-priority:99;
+	color:purple;
+	text-decoration:underline;}
+span.EmailStyle17
+	{mso-style-type:personal-compose;
+	font-family:"Calibri","sans-serif";
+	color:windowtext;}
+.MsoChpDefault
+	{mso-style-type:export-only;}
+@page Section1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.Section1
+	{page:Section1;}
+-->
+</style>
+<!--[if gte mso 9]><xml>
+ <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
+</xml><![endif]--><!--[if gte mso 9]><xml>
+ <o:shapelayout v:ext=3D"edit">
+  <o:idmap v:ext=3D"edit" data=3D"1" />
+ </o:shapelayout></xml><![endif]-->
+</head>
+
+<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
+
+<div class=3DSection1>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>I just bought two Hauppauge HVR-1600 =
+cards
+and I'm trying to set them up in <o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>Mythdorra 5. I have the cx18 drivers
+installed but it is only initializing one <o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>card. I'm getting the following =
+message when
+I do a dmesg | grep cx18. Has <o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>anyone ran accross this problem before =
+with
+duel cards of the same model and if <o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>so, how do I fix it? Any help will be =
+greatly
+appreciated.<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>Thanks,<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>Tom Moore<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>Houston, TX<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'><o:p>&nbsp;</o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>dmesg | grep =
+cx18<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18:&nbsp; Start initialization, =
+version
+1.0.1<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: Initializing card =
+#0<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: Autodetected Hauppauge =
+card<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: Unreasonably low latency =
+timer,
+setting to 64 (was 32)<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: cx23418 revision 01010000 =
+(B)<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: Autodetected Hauppauge =
+HVR-1600<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: VBI is not yet =
+supported<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>tuner 2-0061: chip found @ 0xc2 (cx18 =
+i2c
+driver #0-1)<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cs5345 1-004c: chip found @ 0x98 (cx18 =
+i2c
+driver #0-0)<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: Disabled encoder IDX =
+device<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: Registered device video0 for =
+encoder
+MPEG (2 MB)<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>DVB: registering new adapter =
+(cx18)<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: DVB Frontend =
+registered<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: Registered device video32 for =
+encoder
+YUV (2 MB)<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: Registered device video24 for =
+encoder
+PCM audio (1 MB)<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-0: Initialized card #0: Hauppauge
+HVR-1600<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-1: Initializing card =
+#1<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-1: Autodetected Hauppauge =
+card<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-1: Unreasonably low latency =
+timer,
+setting to 64 (was 32)<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-1: ioremap failed, perhaps =
+increasing
+__VMALLOC_RESERVE in page.h<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-1: or disabling CONFIG_HIGHMEM4G =
+into
+the kernel would help<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18-1: Error -12 on =
+initialization<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18: probe of 0000:02:04.0 failed =
+with error
+-12<o:p></o:p></span></p>
+
+<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
+style=3D'font-size:12.0pt;
+font-family:"Arial","sans-serif"'>cx18:&nbsp; End =
+initialization<o:p></o:p></span></p>
+
+<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
+
+</div>
+
+</body>
+
+</html>
+
+------=_NextPart_000_0016_01C92E2C.BBBA3070--
+
+
+
+--===============0007638048==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0007638048==--
