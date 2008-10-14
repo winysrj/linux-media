@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9NCAFGH021758
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 08:10:15 -0400
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9NCA1Wf030904
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 08:10:02 -0400
-Message-ID: <49006A60.3090906@hhs.nl>
-Date: Thu, 23 Oct 2008 14:13:20 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9EGtsGg007029
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 12:55:54 -0400
+Received: from mail11e.verio-web.com (mail11e.verio-web.com [204.202.242.84])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9EGtZO2020860
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 12:55:38 -0400
+Received: from mx57.stngva01.us.mxservers.net (204.202.242.80)
+	by mail11e.verio-web.com (RS ver 1.0.95vs) with SMTP id 1-0679823331
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 12:55:31 -0400 (EDT)
+Message-ID: <48F4CF01.8020602@sensoray.com>
+Date: Tue, 14 Oct 2008 09:55:29 -0700
+From: dean <dean@sensoray.com>
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>
+To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: libv4l release: 0.5.2
+Subject: v4l2 field types
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,35 +27,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-<and once more with the correct subject, sorry for the spam>
+Re: http://v4l2spec.bytesex.org/spec/x6386.htm
 
-Hi All,
+Is there a v4l2_field if the capture hardware does the "de-interlacing" 
+to compensate for motion artifacts for full size NTSC/PAL video?
 
-Nothing special just a small bugfix release mainly fixing some bad interactions
-between the pwc driver and libv4l (due to pwc driver bugs). More in general
-this release makes libv4l more robust against drivers who promise they can
-handle foo when calling try_fmt and then actually give you bar when you do a s_fmt.
+Our hardware has 2 modes for full size.  One where it outputs the top 
+and bottom fields interlaced without modification(default 2255 setting). 
+  The other where it compensates for motion by removing "comb" or 
+"feathering" artifacts in the hardware.  This second mode still 
+transmits both fields at the same time interlaced in one buffer.
 
-libv4l-0.5.2
-------------
-* Add Philips SPC210NC to list of cams with upside down sensor, reported by
-   Rieker Flaik
-* Work around some drivers (pwc) not properly reflecting what one gets after a
-   s_fmt in their try_fmt answer
-* Check that s_fmt atleast gives us the width, height and pixelformat try_fmt
-   promised us, and if not disable conversion
-* Only check width, height and pixelformat when checking if we are doing
-   conversion, instead of doing a memcmp, as that are the only things which
-   the convert code checks
-* Take into account that the buffers only contain half of the lines when
-   field is V4L2_FIELD_ALTERNATE
 
-Get it here:
-http://people.atrpms.net/~hdegoede/libv4l-0.5.2.tar.gz
 
-Regards,
 
-Hans
+
 
 
 --
