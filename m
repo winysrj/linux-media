@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Ksh5L-0001SR-4c
-	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 19:01:28 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta4.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K950010AGLF9BT0@mta4.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 22 Oct 2008 13:00:52 -0400 (EDT)
-Date: Wed, 22 Oct 2008 13:00:51 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <412bdbff0810220607x588735f2v780104a5cafc3b8a@mail.gmail.com>
-To: Linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <48FF5C43.9090309@linuxtv.org>
-MIME-version: 1.0
-References: <412bdbff0810220607x588735f2v780104a5cafc3b8a@mail.gmail.com>
-Subject: Re: [linux-dvb] Attention user: CityK
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1Kpt3v-0004FA-SU
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 01:12:25 +0200
+Date: Wed, 15 Oct 2008 01:11:49 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <200810132309.35471.liplianin@tut.by>
+Message-ID: <20081014231149.15830@gmx.net>
+MIME-Version: 1.0
+References: <48ED0023.8050901@promwad.com> <20081011021209.99720@gmx.net>
+	<20081013143414.71060@gmx.net> <200810132309.35471.liplianin@tut.by>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] stb0899 and tt s2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,30 +20,62 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Devin Heitmueller wrote:
-> Sorry to bother the other members of the mailing list.
-> 
-> Will user "CityK" please contact me off-list regarding some
-> questionable edits to the linux-dvb wiki?  I attempted to contact you
-> via the address in your linux-dvb wiki account, but the email address
-> associated with that username is no longer valid.
-> 
-> Thank you, and again apologies to the other list members.
-
-CityK: It goes without saying, but I will anyway, can you also please 
-update your wiki email addr?
-
-Thanks,
-
-Steve
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Ci0tLS0tLS0tIE9yaWdpbmFsLU5hY2hyaWNodCAtLS0tLS0tLQo+IERhdHVtOiBNb24sIDEzIE9j
+dCAyMDA4IDIzOjA5OjM1ICswMzAwCj4gVm9uOiAiSWdvciBNLiBMaXBsaWFuaW4iIDxsaXBsaWFu
+aW5AdHV0LmJ5Pgo+IEFuOiAiSGFucyBXZXJuZXIiIDxIV2VybmVyNEBnbXguZGU+Cj4gQ0M6IGxp
+bnV4LWR2YkBsaW51eHR2Lm9yZwo+IEJldHJlZmY6IFJlOiBbbGludXgtZHZiXSBzdGIwODk5IGFu
+ZCB0dCBzMi0zMjAwCgo+INCSINGB0L7QvtCx0YnQtdC90LjQuCDQvtGCIDEzIE9jdG9iZXIgMjAw
+OCAxNzozNDoxNCBIYW5zIFdlcm5lcgo+INC90LDQv9C40YHQsNC7KNCwKToKPiA+IC0tLS0tLS0t
+IE9yaWdpbmFsLU5hY2hyaWNodCAtLS0tLS0tLQo+ID4KPiA+ID4gRGF0dW06IFNhdCwgMTEgT2N0
+IDIwMDggMDQ6MTI6MDkgKzAyMDAKPiA+ID4gVm9uOiAiSGFucyBXZXJuZXIiIDxIV2VybmVyNEBn
+bXguZGU+Cj4gPiA+IEFuOiAiSWdvciBNLiBMaXBsaWFuaW4iIDxsaXBsaWFuaW5AdHV0LmJ5Piwg
+YWJyYWhhbS5tYW51QGdtYWlsLmNvbSwKPiA+ID4gZGFycm9uQGtld2wub3JnLCBzdG90aEBsaW51
+eHR2Lm9yZywgbGludXgtZHZiQGxpbnV4dHYub3JnIEJldHJlZmY6IFJlOgo+ID4gPiBbbGludXgt
+ZHZiXSBzdGIwODk5IGFuZCB0dCBzMi0zMjAwCj4gPiA+Cj4gPiA+IC0tLS0tLS0tIE9yaWdpbmFs
+LU5hY2hyaWNodCAtLS0tLS0tLQo+ID4gPgo+ID4gPiA+IERhdHVtOiBUaHUsIDkgT2N0IDIwMDgg
+MDA6MDA6MjUgKzAzMDAKPiA+ID4gPiBWb246ICJJZ29yIE0uIExpcGxpYW5pbiIgPGxpcGxpYW5p
+bkB0dXQuYnk+Cj4gPiA+ID4gQW46IGxpbnV4LWR2YkBsaW51eHR2Lm9yZywgU3RldmVuIFRvdGgg
+PHN0b3RoQGxpbnV4dHYub3JnPiwgU3RldmVuCj4gVG90aAo+ID4gPgo+ID4gPiA8c3RvdGhAaGF1
+cHBhdWdlLmNvbT4sIERhcnJvbiBCcm9hZCA8ZGFycm9uQGtld2wub3JnPiwgTWFudSBBYnJhaGFt
+Cj4gPiA+IDxhYnJhaGFtLm1hbnVAZ21haWwuY29tPiwgdmRyQGxpbnV4dHYub3JnCj4gPiA+Cj4g
+PiA+ID4gQmV0cmVmZjogW2xpbnV4LWR2Yl0gc3RiMDg5OSBhbmQgdHQgczItMzIwMAo+ID4gPiA+
+Cj4gPiA+ID4gSSBzdWNjZXNzZnVsbHkgcG9ydGVkIHN0YjA4OTkgdG8gUzJBUEkKPiA+ID4gPiBG
+b3Iga25vdyBpdCBpcyBqdXN0IGZvciB0ZXN0aW5nIHB1cnBvc2VzLiBGZWVsIGZyZWUgdG8gdGVz
+dCBpdC4KPiA+ID4gPiBBbnkgZmVlZGJhY2sgd2VsY29tZS4KPiA+ID4gPiBMb2NraW5nIGJldHRl
+ciB3aXRoIHN6YXAtczIgKHNvcnJ5KQo+ID4gPiA+IEkgaGF2ZSB0ZXN0ZWQgd2l0aCBEVkItUzIg
+OFBTSyBhbmQgRFZCLVMgMjc1MDAga1N5bXMvcwo+ID4gPiA+Cj4gPiA+ID4gaHR0cDovbWVyY3Vy
+aWFsLmludHV4aWNhdGlvbi5vcmcvaGcvczItbGlwbGlhbmluCj4gPiA+ID4gaHR0cDovbWVyY3Vy
+aWFsLmludHV4aWNhdGlvbi5vcmcvaGcvc3phcC1zMgo+ID4gPiA+Cj4gPiA+ID4gLS0KPiA+ID4g
+PiBJZ29yIE0uIExpcGxpYW5pbgo+ID4gPgo+ID4gPiBJZ29yLAo+ID4gPgo+ID4gPiB0aGUgYXR0
+YWNoZWQgcGF0Y2ggKGFnYWluc3QKPiA+ID4gaHR0cDovL21lcmN1cmlhbC5pbnR1eGljYXRpb24u
+b3JnL2hnL3MyLWxpcGxpYW5pbikKPiA+ID4gYWRkcyBTMkFQSSBzdXBwb3J0IGZvciB0aGUgU1RC
+MDg5OStNYW50aXMgYmFzZWQgY2FyZHMgc3VjaCBhcyB0aGUKPiA+ID4gVHdpbmhhbiBWUC0xMDQx
+IChhbHNvIGtub3duIGFzIEF6dXJld2F2ZSBBRCBTUDQwMCBvciBUZWNobmlzYXQgU2t5c3Rhcgo+
+ID4gPiBIRDIpCj4gPiA+Cj4gPiA+IENvdWxkIHlvdSBwbGVhc2UgYWRkIGl0IHRvIHlvdXIgczIt
+bGlwbGlhbmluIHJlcG9zaXRvcnk/Cj4gPiA+Cj4gPiA+IEl0IGluY2x1ZGVzIE1hbnRpcyBQQ0kg
+YnJpZGdlLCBDVTEyMTYgYW5kIEZ1aml0c3UgTUI4NkExNiBEVkItUy9EU1MgREMKPiA+ID4gUmVj
+ZWl2ZXIgc3VwcG9ydC4KPiA+ID4KPiA+ID4gSXQgaXMgdGhlIHNhbWUgYXMgdGhlIGNvZGUgZnJv
+bSBNYW51IEFicmFoYW0ncyBtYW50aXMgdHJlZSBhdAo+ID4gPiBodHRwOi8vanVzc3QuZGUvaGcv
+bWFudGlzLAo+ID4gPiBzbyB0aGFua3MgdG8gTWFudS4KPiA+ID4KPiA+ID4gSSB0ZXN0ZWQgd2l0
+aCB0aGUgVHdpbmhhbiBWUC0xMDQxLgo+ID4gPiBDaGFubmVsIGxvY2tpbmcgd29ya3MgZm9yIG1l
+IGZvciBzb21lIChidXQgbm90IHlldCBhbGwpIGNoYW5uZWxzIHdpdGgKPiA+ID4gS2FmZmVpbmUg
+KFMyQVBJIHBhdGNoKS4KPiA+ID4gUGVyaGFwcyBpdCB3aWxsIGJlIGJldHRlciB3aXRoIHlvdXIg
+c3phcC1zMiB3aGVuIEkgaGF2ZSB0aW1lIHRvIHRlc3QKPiA+ID4gdGhhdC4KPiA+ID4KPiA+ID4g
+UmVnYXJkcywKPiA+ID4gSGFucwo+ID4KPiA+IFNvcnJ5LCB0d28gZmlsZXMgd2VyZSBtaXNzaW5n
+IGZyb20gdGhhdCBwYXRjaC4gVGhlIGNvcnJlY3RlZCBtYW50aXMKPiBwYXRjaAo+ID4gaXMgYXR0
+YWNoZWQgdG8gdGhpcyBtZXNzYWdlLiBIYW5zCj4gCj4gSSB3aWxsIG1lcmdlIGl0IHRvbmlndGgg
+b3IgdG9tb3Jyb3cuIExldCBwZW9wbGVzIHRyeWluZwo+IAo+IFJlZ2FyZHMgCj4gSWdvcgoKVGhh
+bmtzLCBpdCB3aWxsIGJyaW5nIGEgd2lkZXIgYXVkaWVuY2Ugb2YgdGVzdGVycyBmb3IgeW91ciBz
+dGIwODk5IGRyaXZlciBzaW5jZSB0aG9zZSB3aXRoCm1hbnRpcyBjYXJkcyB3aWxsIGFsc28gYmUg
+dXNpbmcgaXQuClJlZ2FyZHMsCkhhbnMKLS0gClJlbGVhc2UgZWFybHksIHJlbGVhc2Ugb2Z0ZW4u
+CgpJc3QgSWhyIEJyb3dzZXIgVmlzdGEta29tcGF0aWJlbD8gSmV0enQgZGllIG5ldWVzdGVuIApC
+cm93c2VyLVZlcnNpb25lbiBkb3dubG9hZGVuOiBodHRwOi8vd3d3LmdteC5uZXQvZGUvZ28vYnJv
+d3NlcgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGlu
+dXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51
+eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
