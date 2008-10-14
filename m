@@ -1,17 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.171])
+Received: from node02.cambriumhosting.nl ([217.19.16.163])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vrodic@gmail.com>) id 1KvU5n-00064Z-IO
-	for linux-dvb@linuxtv.org; Thu, 30 Oct 2008 10:45:28 +0100
-Received: by wf-out-1314.google.com with SMTP id 27so523734wfd.17
-	for <linux-dvb@linuxtv.org>; Thu, 30 Oct 2008 02:45:23 -0700 (PDT)
-Message-ID: <8ccf2e9c0810300245v64954641yafe9e7b29f243e84@mail.gmail.com>
-Date: Thu, 30 Oct 2008 10:45:23 +0100
-From: "Vedran Rodic" <vrodic@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <jelledejong@powercraft.nl>) id 1KpiWn-0008Tf-0k
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 13:57:38 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by node02.cambriumhosting.nl (Postfix) with ESMTP id 58FFEB000079
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 13:57:25 +0200 (CEST)
+Received: from node02.cambriumhosting.nl ([127.0.0.1])
+	by localhost (node02.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id jr+PF2PgxOBS for <linux-dvb@linuxtv.org>;
+	Tue, 14 Oct 2008 13:57:21 +0200 (CEST)
+Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
+	[84.245.3.195])
+	by node02.cambriumhosting.nl (Postfix) with ESMTP id 82E16B0000EB
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 13:57:21 +0200 (CEST)
+Received: from [192.168.1.180] (unknown [192.168.1.180])
+	by ashley.powercraft.nl (Postfix) with ESMTPSA id 3200623BC543
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 13:57:21 +0200 (CEST)
+Message-ID: <48F48920.1000206@powercraft.nl>
+Date: Tue, 14 Oct 2008 13:57:20 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Gigabyte U7000 (dvb_usb_dib0700) power management
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="------------010206060608060503010206"
+Subject: [linux-dvb] Digittrade DVB-T (Afatech DVB-T) (af9015.fw) - Device
+	Information
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,33 +32,153 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello.
+This is a multi-part message in MIME format.
+--------------010206060608060503010206
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-I have a gigabyte u7000 USB dvb-t receiver with dib0700 and mt2060.
+This message contains the following attachment(s):
+Afatech DVB-T - Device Information - v0.1.1j.txt
 
-It's working fine (debian linux 2.6.26-1 stock kernel, firmware
-dvb-usb-dib0700-1.10.fw or dvb-usb-dib0700-03-pre1.fw), but the device
-is not powering down when the frontend and other device files are
-closed.
-The device has a LED diode indicating power state and it's warm all
-the time in Linux after the driver has been loaded. In  Windows the
-LED is only on when the TV Viewing software is used, and the device is
-cold when not used.
+Hello everybody,
 
-I've tried unloading all dvb/dib/tuner etc modules but the LED is
-still on. Are there any sysfs/proc control files to power it down when
-not used? Should I try the latest v4l-dvb tree?
+I bought an other usb dvb-t stick (number 5) with the hope it would work
+out of the box under Debian Linux Sid because I could not efficiently
+maintain all the custom build drivers on my systems.
 
-Thanks,
-Vedran
+The distributer, tried to create something that would work on Linux but
+he kind of missed the point of Linux sustainable driver model. There was
+an cdrom included with an "autoself" installation script. That tried to
+heavily rape my debian box..
+
+http://filebin.ca/rydcgt/treiber.tar.gz
+
+I would like to know if this device can work out of the box? and if not
+what is needed to get the device working out of the box?
+
+See the attachment for the device information. If more information is
+needed please tell me how to gather it.
+
+Best regards,
+
+Jelle
+
+--------------010206060608060503010206
+Content-Type: text/plain;
+ name="Afatech DVB-T - Device Information - v0.1.1j.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="Afatech DVB-T - Device Information - v0.1.1j.txt"
+
+77u/QWxpYXM6IERpZ2l0dHJhZGUgRFZCLVQgVVNCIFN0aWNrIChBZmF0ZWNoIERWQi1UKSAo
+YWY5MDE1LmZ3KQpTb3VyY2VsaW5rOiBodHRwOi8vd3d3LmVpbmZhY2gtZWVlLmRlL2VlZS1w
+Yy16dWJlaG9lci8KRGlnaXR0cmFkZTogaHR0cDovL3d3dy5kaWdpdHRyYWRlLmRlL3Nob3Av
+cHJvZHVjdF9pbmZvLnBocC9pbmZvL3A2Nl9ESUdJVFRSQURFLURWQi1ULVN0aWNrLVVTQi0y
+LTAtMS0xLURWQlQtV2luZG93cy1MaW51eC1NQUMuaHRtbAoKWyAgIDM4LjIzNjAzNl0gdXNi
+IDUtNDogbmV3IGhpZ2ggc3BlZWQgVVNCIGRldmljZSB1c2luZyBlaGNpX2hjZCBhbmQgYWRk
+cmVzcyA4ClsgICAzOC4zNzIxMTFdIHVzYiA1LTQ6IGNvbmZpZ3VyYXRpb24gIzEgY2hvc2Vu
+IGZyb20gMSBjaG9pY2UKWyAgIDM4LjM4MDY5Ml0gQWZhdGVjaCBEVkItVDogRml4aW5nIGZ1
+bGxzcGVlZCB0byBoaWdoc3BlZWQgaW50ZXJ2YWw6IDE2IC0+IDgKWyAgIDM4LjM4Nzc2OV0g
+aW5wdXQ6IEFmYXRlY2ggRFZCLVQgYXMgL2NsYXNzL2lucHV0L2lucHV0MTAKWyAgIDM4LjQx
+NjE5Ml0gaW5wdXQsaGlkcmF3MzogVVNCIEhJRCB2MS4wMSBLZXlib2FyZCBbQWZhdGVjaCBE
+VkItVF0gb24gdXNiLTAwMDA6MDA6MWQuNy00ClsgICAzOC40MTY0NDhdIHVzYiA1LTQ6IE5l
+dyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0xNWE0LCBpZFByb2R1Y3Q9OTAxNgpbICAg
+MzguNDE2NDU3XSB1c2IgNS00OiBOZXcgVVNCIGRldmljZSBzdHJpbmdzOiBNZnI9MSwgUHJv
+ZHVjdD0yLCBTZXJpYWxOdW1iZXI9MApbICAgMzguNDE2NDY2XSB1c2IgNS00OiBQcm9kdWN0
+OiBEVkItVApbICAgMzguNDE2NDcxXSB1c2IgNS00OiBNYW51ZmFjdHVyZXI6IEFmYXRlY2gK
+CmNhdCAvcHJvYy92ZXJzaW9uCkxpbnV4IHZlcnNpb24gMi42LjI2LTEtNjg2IChEZWJpYW4g
+Mi42LjI2LTcpICh3YWxkaUBkZWJpYW4ub3JnKSAoZ2NjIHZlcnNpb24gNC4xLjMgMjAwODA2
+MjMgKHByZXJlbGVhc2UpIChEZWJpYW4gNC4xLjItMjMpKSAjMSBTTVAgV2VkIE9jdCAxIDEy
+OjAzOjE0IFVUQyAyMDA4CgpscyAtaGFsIC9saWIvZmlybXdhcmUvZHZiLXVzYi1hZjkwMTUu
+ZncKICAgIC1ydy0tLS0tLS0gMSByb290IHJvb3QgMTNLIDIwMDgtMTAtMTQgMTM6MTcgL2xp
+Yi9maXJtd2FyZS9kdmItdXNiLWFmOTAxNS5mdwoKc3VkbyBsc3VzYiAtdnZ2IC1kIDE1YTQ6
+OTAxNgpEZXZpY2UgRGVzY3JpcHRvcjoKICBiTGVuZ3RoICAgICAgICAgICAgICAgIDE4CiAg
+YkRlc2NyaXB0b3JUeXBlICAgICAgICAgMQogIGJjZFVTQiAgICAgICAgICAgICAgIDIuMDAK
+ICBiRGV2aWNlQ2xhc3MgICAgICAgICAgICAwIChEZWZpbmVkIGF0IEludGVyZmFjZSBsZXZl
+bCkKICBiRGV2aWNlU3ViQ2xhc3MgICAgICAgICAwCiAgYkRldmljZVByb3RvY29sICAgICAg
+ICAgMAogIGJNYXhQYWNrZXRTaXplMCAgICAgICAgNjQKICBpZFZlbmRvciAgICAgICAgICAg
+MHgxNWE0CiAgaWRQcm9kdWN0ICAgICAgICAgIDB4OTAxNgogIGJjZERldmljZSAgICAgICAg
+ICAgIDIuMDAKICBpTWFudWZhY3R1cmVyICAgICAgICAgICAxIEFmYXRlY2gKICBpUHJvZHVj
+dCAgICAgICAgICAgICAgICAyIERWQi1UCiAgaVNlcmlhbCAgICAgICAgICAgICAgICAgMAog
+IGJOdW1Db25maWd1cmF0aW9ucyAgICAgIDEKICBDb25maWd1cmF0aW9uIERlc2NyaXB0b3I6
+CiAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICBiRGVzY3JpcHRvclR5cGUgICAg
+ICAgICAyCiAgICB3VG90YWxMZW5ndGggICAgICAgICAgIDcxCiAgICBiTnVtSW50ZXJmYWNl
+cyAgICAgICAgICAyCiAgICBiQ29uZmlndXJhdGlvblZhbHVlICAgICAxCiAgICBpQ29uZmln
+dXJhdGlvbiAgICAgICAgICAwCiAgICBibUF0dHJpYnV0ZXMgICAgICAgICAweDgwCiAgICAg
+IChCdXMgUG93ZXJlZCkKICAgIE1heFBvd2VyICAgICAgICAgICAgICA1MDBtQQogICAgSW50
+ZXJmYWNlIERlc2NyaXB0b3I6CiAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDkKICAg
+ICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNAogICAgICBiSW50ZXJmYWNlTnVtYmVyICAg
+ICAgICAwCiAgICAgIGJBbHRlcm5hdGVTZXR0aW5nICAgICAgIDAKICAgICAgYk51bUVuZHBv
+aW50cyAgICAgICAgICAgNAogICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgMjU1IFZlbmRv
+ciBTcGVjaWZpYyBDbGFzcwogICAgICBiSW50ZXJmYWNlU3ViQ2xhc3MgICAgICAwCiAgICAg
+IGJJbnRlcmZhY2VQcm90b2NvbCAgICAgIDAKICAgICAgaUludGVyZmFjZSAgICAgICAgICAg
+ICAgMAogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAg
+ICAgICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAg
+YkVuZHBvaW50QWRkcmVzcyAgICAgMHg4MSAgRVAgMSBJTgogICAgICAgIGJtQXR0cmlidXRl
+cyAgICAgICAgICAgIDIKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxr
+CiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNh
+Z2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAg
+MHgwMjAwICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAw
+CiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAg
+ICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5k
+cG9pbnRBZGRyZXNzICAgICAweDAyICBFUCAyIE9VVAogICAgICAgIGJtQXR0cmlidXRlcyAg
+ICAgICAgICAgIDIKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxrCiAg
+ICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2Ug
+VHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgw
+MjAwICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAwCiAg
+ICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAg
+ICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9p
+bnRBZGRyZXNzICAgICAweDg0ICBFUCA0IElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAg
+ICAgICAgMgogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIEJ1bGsKICAgICAg
+ICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBl
+ICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAyMDAg
+IDF4IDUxMiBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDAKICAgICAg
+RW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3
+CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFk
+ZHJlc3MgICAgIDB4ODUgIEVQIDUgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAg
+ICAyCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgQnVsawogICAgICAgICAg
+U3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAg
+ICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDIwMCAgMXgg
+NTEyIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgMAogICAgSW50ZXJm
+YWNlIERlc2NyaXB0b3I6CiAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDkKICAgICAg
+YkRlc2NyaXB0b3JUeXBlICAgICAgICAgNAogICAgICBiSW50ZXJmYWNlTnVtYmVyICAgICAg
+ICAxCiAgICAgIGJBbHRlcm5hdGVTZXR0aW5nICAgICAgIDAKICAgICAgYk51bUVuZHBvaW50
+cyAgICAgICAgICAgMQogICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgICAzIEh1bWFuIElu
+dGVyZmFjZSBEZXZpY2UKICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgICAgMCBObyBTdWJj
+bGFzcwogICAgICBiSW50ZXJmYWNlUHJvdG9jb2wgICAgICAxIEtleWJvYXJkCiAgICAgIGlJ
+bnRlcmZhY2UgICAgICAgICAgICAgIDAKICAgICAgICBISUQgRGV2aWNlIERlc2NyaXB0b3I6
+CiAgICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICAgICAgICBiRGVzY3Jp
+cHRvclR5cGUgICAgICAgIDMzCiAgICAgICAgICBiY2RISUQgICAgICAgICAgICAgICAxLjAx
+CiAgICAgICAgICBiQ291bnRyeUNvZGUgICAgICAgICAgICAwIE5vdCBzdXBwb3J0ZWQKICAg
+ICAgICAgIGJOdW1EZXNjcmlwdG9ycyAgICAgICAgIDEKICAgICAgICAgIGJEZXNjcmlwdG9y
+VHlwZSAgICAgICAgMzQgUmVwb3J0CiAgICAgICAgICB3RGVzY3JpcHRvckxlbmd0aCAgICAg
+IDY1CiAgICAgICAgIFJlcG9ydCBEZXNjcmlwdG9yczoKICAgICAgICAgICAqKiBVTkFWQUlM
+QUJMRSAqKgogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAg
+ICAgICAgICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAg
+ICAgYkVuZHBvaW50QWRkcmVzcyAgICAgMHg4MyAgRVAgMyBJTgogICAgICAgIGJtQXR0cmli
+dXRlcyAgICAgICAgICAgIDMKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJ
+bnRlcnJ1cHQKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAg
+ICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRT
+aXplICAgICAweDAwNDAgIDF4IDY0IGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAg
+ICAgICAxNgpEZXZpY2UgUXVhbGlmaWVyIChmb3Igb3RoZXIgZGV2aWNlIHNwZWVkKToKICBi
+TGVuZ3RoICAgICAgICAgICAgICAgIDEwCiAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNgog
+IGJjZFVTQiAgICAgICAgICAgICAgIDIuMDAKICBiRGV2aWNlQ2xhc3MgICAgICAgICAgICAw
+IChEZWZpbmVkIGF0IEludGVyZmFjZSBsZXZlbCkKICBiRGV2aWNlU3ViQ2xhc3MgICAgICAg
+ICAwCiAgYkRldmljZVByb3RvY29sICAgICAgICAgMAogIGJNYXhQYWNrZXRTaXplMCAgICAg
+ICAgNjQKICBiTnVtQ29uZmlndXJhdGlvbnMgICAgICAxCkRldmljZSBTdGF0dXM6ICAgICAw
+eDAwMDAKICAoQnVzIFBvd2VyZWQpCg==
+--------------010206060608060503010206
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------010206060608060503010206--
