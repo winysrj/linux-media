@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9MK8Vqj026105
-	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 16:08:31 -0400
-Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.188])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9MK8CI7024559
-	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 16:08:12 -0400
-Received: by ti-out-0910.google.com with SMTP id 24so1670855tim.7
-	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 13:08:11 -0700 (PDT)
-Message-ID: <65b651b40810221308g2642db2aq3f95d60b991cf375@mail.gmail.com>
-Date: Thu, 23 Oct 2008 01:38:11 +0530
-From: "Rakesh Peter" <raxpeter@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <65b651b40810201228k435cff91x58a67417eb0882c2@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9ECFdMT011645
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:15:39 -0400
+Received: from ik-out-1112.google.com (ik-out-1112.google.com [66.249.90.177])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9ECF1jH019245
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:15:23 -0400
+Received: by ik-out-1112.google.com with SMTP id c29so1616596ika.3
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 05:15:01 -0700 (PDT)
+Message-ID: <30353c3d0810140515i10bba955w847af1058071b1d@mail.gmail.com>
+Date: Tue, 14 Oct 2008 08:15:01 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Thierry Merle" <thierry.merle@free.fr>
+In-Reply-To: <48F3AAC7.7050402@free.fr>
 MIME-Version: 1.0
-References: <65b651b40810201228k435cff91x58a67417eb0882c2@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Subject: TM5600/XC2028 based USB Tv Tuner
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02D61A0CC2@dbde02.ent.ti.com>
+	<48F3AAC7.7050402@free.fr>
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Cloning the V4L2 branch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,33 +32,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello there...
+On Mon, Oct 13, 2008 at 4:08 PM, Thierry Merle <thierry.merle@free.fr> wrote:
+> Hello,
+>
+> Shah, Hardik a écrit :
+>> Sorry forgot to mention the error,
+>> Error coming is
+>>
+>> Initialize master/.git
+>> Initialized empty Git repository in /db/psp_git/users/a0393759/master/.git/
+>> warning: remote HEAD refers to nonexistent ref, unable to checkout.
+>>
+> Right, I have the same error with git-1.6.0.2 (please upgrade your git version):
+> git clone http://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git
+> Initialized empty Git repository in /home/tmerle/v4l-dvb/.git/
+> fatal: http://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git/info/refs not found: did you run git update-server-info on the server?
+>
+> The little I know from git is that at least this directory:
+> http://www.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git/objects/pack/
+> should not be empty on the server...
+>
+> Cheers,
+> Thierry
+>
 
-I've been trying to get my Enter Multimedia E-220U USB TV Tuner Stick up and
-running in Linux. I've downloaded your dev-branch on the same from linuxtv
-mercurial repository. But I'm yet to figure out how to go about extracting
-the firmware from the device driver.
-
-The driver file found in the CD is uploaded here:
-
-http://www.esnips.com/doc/b042f5cd-1eca-4616-a875-5f7791eabd8d/e220u-driver
-
-The photos of the device is available at:
-
-http://www.flickr.com/photos/31592772@N04/
-
-For lsusb, the device is showing up as
-
-Bus 005 Device 007: ID 6000:560a
-
-If you can provide me some idea on how to proceed with detecting and
-extracting the firmware content, it will be great.
-
-Awaiting your kind response...
+Use "git clone git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git"
+but note that this repository doesn't contain all of the latest
+patches.
 
 Regards,
 
-Rakesh Peter
+David Ellingsworth
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
