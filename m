@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1Kpu1n-0000mU-1B
-	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 02:14:16 +0200
-From: Andy Walls <awalls@radix.net>
-To: Tom Moore <htmoore@comcast.net>
-In-Reply-To: <001501c92e56$a4903870$edb0a950$@net>
-References: <001501c92e56$a4903870$edb0a950$@net>
-Date: Tue, 14 Oct 2008 20:15:52 -0400
-Message-Id: <1224029752.3248.34.camel@palomino.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Duel Hauppauge HVR-1600
+	(envelope-from <stoth@linuxtv.org>) id 1Kpl8j-0002OV-AO
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 16:44:52 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K8Q00M44GXO3F21@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Tue, 14 Oct 2008 10:44:14 -0400 (EDT)
+Date: Tue, 14 Oct 2008 10:44:12 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <1.3.200810140105.23818@arpacoop.it>
+To: Carlo Scarfoglio <scarfoglio@arpacoop.it>,
+	linux-dvb <linux-dvb@linuxtv.org>
+Message-id: <48F4B03C.1000509@linuxtv.org>
+MIME-version: 1.0
+References: <1.3.200810140105.23818@arpacoop.it>
+Subject: Re: [linux-dvb] Multi-frontend patch merge (TESTERS FEEDBACK) was:
+ Re: [PATCH] S2API:
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,68 +32,51 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 2008-10-14 at 18:43 -0500, Tom Moore wrote:
-> I just bought two Hauppauge HVR-1600 cards and I'm trying to set them
-> up in 
+>> Over time I've heard constant suggestions that the patches are 
+>> ready for
+>> merge, the cx88 and saa7134 trees are working correctly. Now 
+>> is the time
+>> that I need you all to announce this. I need you each in turn 
+>> to
+>> describe you testing, and state whether you think the patches 
+>> are ready
+>> for merge.
+>>
+>> Hans Werner <HWerner4@gmx.de>
+>> darron@kewl.org
+>> scarfoglio@arpacoop.it
+>> fabbione@fabbione.net
+>>
+>> If you're not normally members of this list then please say so, 
+>> I'll
+>> ensure your response is cc'd back to the list.
+>>
+>> Thanks,
+>>
+>> Steve
+>>
+> Well, I've been using the HVR4000 for over one year with the mfe driver.
+> I use it daily for watching DVB-T TV and listening to DVB radio, occasionally
+> for analogue TV, and now for listening to FM radio. I have also recorded DVB-T HD programs. 
+> Kaffeine, kdetv. tvtime, fmtools and kradio work without issues. Only caveat is
+> the analog audio routing with arecord/aplay.
+> Stability is excellent. I had problems about 12 months ago with AGC and DVB-T, but
+> they were solved. I use it to record TV programs and watch them later. I have recorded
+> for 5-6 hours many times and never had issues.
+> From the user perspective mfe is very convenient. No need to change configs.
+> A KDE user finds in kaffeine DVB-T, DVB-S/S2 and DVB radio. For analog he has
+> got kdetv and kradio. 
+> IMHO it should be merged into kernel 2.6.28.
 > 
-> Mythdorra 5. I have the cx18 drivers installed but it is only
-> initializing one 
+> Great thanks to all developers.
 > 
-> card. I'm getting the following message when I do a dmesg | grep cx18.
-> Has 
-> 
-> anyone ran accross this problem before with duel cards of the same
-> model and if 
-> 
-> so, how do I fix it? Any help will be greatly appreciated.
-> 
->  
-> 
-> Thanks,
-> 
-> Tom Moore
-> 
-> Houston, TX
-> 
->  
-> 
-> dmesg | grep cx18
-> 
-> cx18:  Start initialization, version 1.0.1
+> Carlo Scarfoglio
 
-> cx18-1: Initializing card #1
-> 
-> cx18-1: Autodetected Hauppauge card
-> 
-> cx18-1: Unreasonably low latency timer, setting to 64 (was 32)
-> 
-> cx18-1: ioremap failed, perhaps increasing __VMALLOC_RESERVE in page.h
-> 
-> cx18-1: or disabling CONFIG_HIGHMEM4G into the kernel would help
-> 
-> cx18-1: Error -12 on initialization
-> 
-> cx18: probe of 0000:02:04.0 failed with error -12
-> 
-> cx18:  End initialization
-> 
-
-You're out of vmalloc address space.  Each cx18 needs 64 MB of vmalloc
-space for MMIO mappings.
-
-Do this:
-
-$ cat /proc/meminfo | grep Vmalloc
-
-Edit your bootloader's config file to add a 'vmalloc=xxxM' option to
-your kernel commandline.  Use a value that is 128M greater than your
-current VmallocTotal. 
-
+Thanks Carlo, I've cc'd the mailing list so they can share your feedback.
 
 Regards,
-Andy
 
-
+Steve
 
 _______________________________________________
 linux-dvb mailing list
