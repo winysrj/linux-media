@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp3.voila.fr ([193.252.22.173])
+Received: from wf-out-1314.google.com ([209.85.200.170])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abdouniang@voila.fr>) id 1KqXKa-00021W-Ps
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 20:12:18 +0200
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf4202.voila.fr (SMTP Server) with ESMTP id E7AD81C00088
-	for <linux-dvb@linuxtv.org>; Thu, 16 Oct 2008 20:11:40 +0200 (CEST)
-Received: from wwinf4601 (wwinf4601 [10.232.13.28])
-	by mwinf4202.voila.fr (SMTP Server) with ESMTP id DED651C00082
-	for <linux-dvb@linuxtv.org>; Thu, 16 Oct 2008 20:11:40 +0200 (CEST)
-From: Abdou NIANG <abdouniang@voila.fr>
-To: linux-dvb@linuxtv.org
-Message-ID: <18525181.135641224180700905.JavaMail.www@wwinf4601>
+	(envelope-from <bokola@gmail.com>) id 1KpeDL-0002sD-Mg
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 09:21:10 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so1927534wfd.17
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 00:21:03 -0700 (PDT)
+Message-ID: <854d46170810140021m12afb219ta6286c1109fd5bcb@mail.gmail.com>
+Date: Tue, 14 Oct 2008 09:21:02 +0200
+From: "Faruk A" <fa@elwak.com>
+To: "Harald Becherer" <harald.becherer@gmx.de>
+In-Reply-To: <20081014014428.103770@gmx.net>
 MIME-Version: 1.0
-Date: Thu, 16 Oct 2008 20:11:40 +0200 (CEST)
-Subject: [linux-dvb] Generate DVB-T transport stream
-Reply-To: abdouniang@voila.fr
+Content-Disposition: inline
+References: <20081014014428.103770@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TechnoTrend TT-3650 CI
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,28 +22,33 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkgZXZlcnlib2J5CgpJIHdhbnQgdG8gZ2VuZXJhdGUgbXkgb3duIERWQi1UIHRyYW5zcG9ydCBz
-dHJlYW1zIGZvciB0ZXN0cy4gCk5vcm1hbGx5IHdoYXQgaSBuZWVkIGlzIGEgY29ycmVjdCBvYmpl
-Y3QgY2Fyb3Vzc2VsLCB2aWRlbyBhbmQgYXVkaW8gZmlsZXMgdW5kZXIgbXBlZzIgdG8gaGF2ZSBj
-b3JyZWN0IHRyYW5zcG9ydCBzdHJlYW1zLgpBYm91dCBvYmplY3QgY2Fyb3Vzc2VsIGknbSB3b3Jr
-aW5nIHdpdGggImRzbWNjLW1ocC10b29scyAtIERTTS1DQyBNSFAgT2JqZWN0Q2Fyb3VzZWwgTVBF
-RzIgZW5jb2RpbmcgdG9vbHMiIHByb2plY3QuIFRoYW5rcyB0byBNYXJlay4KQW5kIGkgdXNlIG1w
-bGV4MTM4MTggcHJvamVjdCBpbiBvcmRlciB0byBtdWx0aXBsZXggYXVkaW8sIHZpZGVvIGFuZCBv
-YmplY3QgY2Fyb3Vzc2VsIGZpbGVzIHRvIGNyZWF0ZSB0cmFuc3BvcnQgc3RyZWFtLgoKSSBjYW4n
-dCBnZW5lcmF0ZSBjb3JyZWN0IHRyYW5zcG9ydCBzdHJlYW1zIHVzaW5nIG1wbGV4MTM4MTguIEFm
-dGVyIGEgbG9vayBvbiBtYW4gcGFnZSBoZXJlIGlzIHRoZSBjb21tYW5kIGkgdXNlOgoKaXNvMTM4
-MTggLXYgLS1wZXMgb2MubTJ0IDEwMCAtLXBlcyBwcmcxLm1wdiAxMDEgLS1wZXMgcHJnMS5tcGEg
-MTAyID4gb3V0cHV0LnRzCgpEb2VzIGFueW9uZSBrbm93cyBob3cgdG8gdXNlIGl0IGNvcnJlY3Rs
-eSA/CgpUaGFua3MKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KCsOJY291dGV6IGdyYXR1aXRlbWVudCBBbXkgV2luZWhvdXNlIHN1ciBWb2lsYSBl
-dCBkw6ljb3V2cmV6IGQnYXV0cmVzIHRpdHJlcyBlbiBhZmZpbml0w6kgYXZlYyB2b3MgZ2/Du3Rz
-IG11c2ljYXV4ICEgaHR0cDovL211c2lsaW5lLnZvaWxhLmZyL3Jlc3VtZS8zNTk5CgoKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWls
-aW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dp
-LWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+> I cannot go through all the repositories on http://www.linuxtv.org/hg
+> Does one exist with (alpha, beta,...) TechnoTrend TT-3650 CI support?
+>
+> Cheers,
+>
+> Harald
+>
+
+Hi Harald!
+
+You can find how to get this card working here
+http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI
+
+but it won't work with kaffeine, you need to patch kaffeine to support
+multiproto or patch the drivers with old api patch
+which can be found here on this list.
+
+bye
+Faruk
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
