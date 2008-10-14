@@ -1,13 +1,31 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <48F8FC70.6070904@linuxtv.org>
-Date: Fri, 17 Oct 2008 16:58:24 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: Felix Kolotinsky <Felix.Kolotinsky@avermedia.com>
-References: <53F810EF6C2171468FEBEE7B91F672DF0DF8F7@USEXV01.avermediausa.com>
-In-Reply-To: <53F810EF6C2171468FEBEE7B91F672DF0DF8F7@USEXV01.avermediausa.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Initial support for AVerTVHD Volar
+From: Darron Broad <darron@kewl.org>
+To: Andreas Oberritter <obi@linuxtv.org>
+In-reply-to: <48F42D5C.7090908@linuxtv.org> 
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<20080915121606.111520@gmx.net> <48CE7838.2060702@linuxtv.org>
+	<23602.1221904652@kewl.org> <48D51000.3060006@linuxtv.org>
+	<25577.1221924224@kewl.org> <20080921234339.18450@gmx.net>
+	<8002.1222068668@kewl.org> <20080922124908.203800@gmx.net>
+	<10822.1222089271@kewl.org> <48D7C15E.5060509@linuxtv.org>
+	<20080922164108.203780@gmx.net> <20022.1222162539@kewl.org>
+	<20080923142509.86330@gmx.net> <4025.1222264419@kewl.org>
+	<4284.1222265835@kewl.org> <20080925145223.47290@gmx.net>
+	<18599.1222354652@kewl.org>
+	<Pine.LNX.4.64.0809261117150.21806@trider-g7>
+	<21180.1223610119@kewl.org> <20081010132352.273810@gmx.net>
+	<48EF7E78.6040102@linuxtv.org> <30863.1223711672@kewl.org>
+	<48F0AA35.6020005@linuxtv.org> <773.1223732259@kewl.org>
+	<48F0AEA3.50704@linuxtv.org> <989.1223733525@kewl.org>
+	<48F0B6C5.5090505@linuxtv.org> <1506.1223737964@kewl.org>
+	<48F0E516.303@linuxtv.org> <20081011190015.175420@gmx.net>
+	<48F36B32.5060006@linuxtv.org> <48F42D5C.7090908@linuxtv.org>
+Date: Tue, 14 Oct 2008 11:42:28 +0100
+Message-ID: <2073.1223980948@kewl.org>
+Cc: fabbione@fabbione.net, scarfoglio@arpacoop.it,
+	Hans Werner <HWerner4@gmx.de>, linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Multi-frontend patch merge (TESTERS FEEDBACK) was:
+	Re: [PATCH] S2API: add multifrontend
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -15,77 +33,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Felix Kolotinsky wrote:
->
-> Hi Daniel and Mike
->
->  
->
-> My name is Felix Kolotinsky and I am product manager at AVerMeia Tech 
-> USA office and I am in Bay area too.
->
+In message <48F42D5C.7090908@linuxtv.org>, Andreas Oberritter wrote:
 
-Hello, Felix.
+hi.
 
->  
+>Hello Steve,
 >
-> I came across your posting for AVerTVHD Volar A868 and sound like you 
-> were able to get this tuner to work in Linux and  I would like to get 
-> more info from you:
+>Steven Toth wrote:
+>> I'm mutating the subject thread, and cc'ing the public mailing list into 
+>> this conversion. Now is the time to announce the intension to merge 
+>> multi-frontend patches, and show that we have tested and are satisfied 
+>> with it's reliability across many trees.
+>> 
+>> (For those of you not familiar with the patch set, it adds 
+>> 'multiple-frontends to a single transport bus' support for the HVR3000 
+>> and HVR4000, and potentially another 7134 based design (the 6 way medion 
+>> board?).
 >
-> 1.       What kernel did you use
->
+>is this code still using more than one demux device per transport bus, or
+>has it already been changed to make use of the DMX_SET_SOURCE command?
 
-We merged support for the device into kernel 2.6.27
+At this time it duplicates all the device nodes along with
+the frontends.
 
-> 2.       What Linux flavor is it
->
+I have looked into this somewhat, and appreciate what you
+are referring to. There would seem to be quite some 
+significant reworking needed in videobuf-dvb to achieve
+this requirement of one mux with multi-frontends in a
+clean fashion.
 
-We merged support for the device into the official vanilla kernel 
-2.6.27, which means that all distributions based on 2.6.27 or later will 
-have support.
+If this is show-stopper, then so be it.
 
-> 3.       What application
->
+cya!
 
-Support was added to the dvb-usb-cxusb driver, which uses the linux-dvb 
-standard API.  Any linux-dvb standard compliant application will work 
-with the device.
+--
 
-> 4.       How is performance of this tuner?
->
-As I understand it, not very good.  I helped Daniel merge the code, but 
-I don't have one of these devices of my own -- if you'd like to send me 
-one, I can test it out myself and make improvements as necessary.  We 
-suspect that the issue lies in driver for the MaxLinear tuner.
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
 
-If you want to send me a device, please email me privately off-list and 
-I'll give you a mailing address.
-
-> 5.       And some other questions J
->
->  
->
-> I have a few questions to you about your post for AVerTVHD Volar with 
-> Linux.
->
-> Would you please let get back to me either by email or call me at my 
-> cell below.
->
-
-I'm a bit busy right now -- lets keep it on email.  If this is a private 
-matter, please feel free to email me privately off-list.  mkrufky at 
-linuxtv dot org
-
-Regards,
-
-Mike
 
 _______________________________________________
 linux-dvb mailing list
