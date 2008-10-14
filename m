@@ -1,18 +1,32 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f20.google.com ([209.85.217.20])
+Received: from node03.cambriumhosting.nl ([217.19.16.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1Kpl8m-0002Oe-EZ
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 16:44:54 +0200
-Received: by gxk13 with SMTP id 13so4896195gxk.17
-	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 07:44:17 -0700 (PDT)
-Message-ID: <19a3b7a80810140744n65a8153bg1b862962c5a795f2@mail.gmail.com>
-Date: Tue, 14 Oct 2008 16:44:17 +0200
-From: "Christoph Pfister" <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <jelledejong@powercraft.nl>) id 1KphXs-0005Cx-1X
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 12:54:35 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by node03.cambriumhosting.nl (Postfix) with ESMTP id 70D7EB000103
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 12:54:28 +0200 (CEST)
+Received: from node03.cambriumhosting.nl ([127.0.0.1])
+	by localhost (node03.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id EdZAgr9JklCW for <linux-dvb@linuxtv.org>;
+	Tue, 14 Oct 2008 12:54:27 +0200 (CEST)
+Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
+	[84.245.3.195])
+	by node03.cambriumhosting.nl (Postfix) with ESMTP id DE6B3B0001AA
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 12:54:26 +0200 (CEST)
+Received: from [192.168.1.180] (unknown [192.168.1.180])
+	by ashley.powercraft.nl (Postfix) with ESMTPSA id 292AC23BC50D
+	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 12:54:26 +0200 (CEST)
+Message-ID: <48F47A60.5080506@powercraft.nl>
+Date: Tue, 14 Oct 2008 12:54:24 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_3181_15909065.1223995457336"
-Subject: [linux-dvb] scan files for de-Baden-Baden and de-Mannheim
+To: linux-dvb@linuxtv.org
+References: <48F44F1D.4080301@powercraft.nl> <200810141137.17034.hftom@free.fr>
+	<48F47305.5090801@powercraft.nl>
+In-Reply-To: <48F47305.5090801@powercraft.nl>
+Content-Type: multipart/mixed; boundary="------------050403090201020900050009"
+Subject: Re: [linux-dvb] mplayer dvb-t startup problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,111 +38,106 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_3181_15909065.1223995457336
+This is a multi-part message in MIME format.
+--------------050403090201020900050009
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Jelle de Jong wrote:
+> Christophe Thommeret wrote:
+>> Le Tuesday 14 October 2008 09:49:49 Jelle de Jong, vous avez =EF=BF=BD=
+crit=EF=BF=BD:
+>>> Hello everybody,
+>>>
+>>> I am trying to build a dvb-t system and I am currently using mplayer =
+to
+>>> tune into the channels and watch and listen to them. However I got so=
+me
+>>> startup problems. Mplayer does not always detect the TS file stream a=
+nd
+>>> the audio is sometimes distorted. I posted an more detailed descripti=
+on
+>>> of the problem on the mplayer mailinglist, but there was not much
+>>> response, so I am trying this channel since the change somebody readi=
+ng
+>>> this and has solved the issue is much greater:
+>>>
+>>> http://lists.mplayerhq.hu/pipermail/mplayer-users/2008-October/074693=
+.html
+>>>
+>>> I hope somebody know how to fix the issues,
+>> -cache 4096
+>>
+>=20
+> Thank you Christophem for responding.
+>=20
+> I changed my cache from 512 to 4096. The problem still occurs, but  I
+> got feeling it happens a little bit less, but this can also be because
+> it takes a hole lot longer to startup the dvb-t channel (especially wit=
+h
+> audio only streams, but with audio only there is also no TS detection
+> starup problem)
+>=20
+> I attached my mplayer dvb-t wrapper script for some extra info.
+>=20
+> Kind regards,
+>=20
+> Jelle
+>=20
+
+(I attached wrong version of the wrapper script in my last email, this
+is the correct version)
+
+
+--------------050403090201020900050009
+Content-Type: application/x-sh;
+ name="mplayer-dvb-play-channel.sh"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Disposition: inline;
+ filename="mplayer-dvb-play-channel.sh"
 
->From kaffeine users ...
+#!/bin/bash
 
-Christoph
+number="$1"
 
-------=_Part_3181_15909065.1223995457336
-Content-Type: application/octet-stream; name=de-Baden-Baden
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fmana5nw0
-Content-Disposition: attachment; filename=de-Baden-Baden
+if [ -z "$number" ]
+then
+    number="1"
+fi
 
-IyBEVkItVCBCYWRlbi1CYWRlbgojIE9rdG9iZXIgMjAwOAojIFQgZnJlcSBidyBmZWNfaGkgZmVj
-X2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKVCA1NzAw
-MDAwMDAgOE1IeiAyLzMgTk9ORSBRQU0xNiA4ayAxLzQgTk9ORQpUIDY5ODAwMDAwMCA4TUh6IDIv
-MyBOT05FIFFBTTE2IDhrIDEvNCBOT05FClQgNzg2MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYg
-OGsgMS80IE5PTkUK
-------=_Part_3181_15909065.1223995457336
-Content-Type: application/octet-stream; name=de-Mannheim
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fmanaa2d1
-Content-Disposition: attachment; filename=de-Mannheim
+if [ "$number" == "0" ]
+then
+    file="$HOME/.mplayer/channels.conf"
+    count=1
+    while read line
+    do
+        if [ -n "$line" ]
+        then
+            channel=$(cat ~/.mplayer/channels.conf | sed -n "$count"p  | cut -f 1 -d ':')
+            count=$(($count+1))
+            channel_query+=("dvb://$channel" )
+        fi
+    done < "$file"
+    /usr/bin/mplayer -cache 4096 -dvbin timeout=5 "${channel_query[@]}"
+else
+    echo "number: $number"
+    channel=$(cat ~/.mplayer/channels.conf | sed -n "$number"p  | cut -f 1 -d ':')
+    # there are startup problems and syncronization issues, any solutions?
+    echo "command: /usr/bin/mplayer -cache 4096 -dvbin timeout=5 dvb://$channel"
+    /usr/bin/mplayer -cache 4096 -dvbin timeout=5 dvb://"$channel"
+fi
 
-IyBNaXQgZWluZXIgRG9wcGVsLUh5YnJpZC1RdWFkLUFudGVubmUgaXN0IGRlciBFbXBmYW5nIGFs
-bGVyCiMgU2VuZGVyIGluIE1hbm5oZWltIGdhciBrZWluIFByb2JsZW0uIExpbmtzIHNpZWhlIHVu
-dGVuLgojIGh0dHA6Ly9lbGVjdHJvbmljYnVkZS5kZS9CYXN0ZWxlY2tlL0Jhc3RlbGVja2UlMjBJ
-bnRyby9lbGVjdHJvbmljJTIwQmFzdGVsbi5odG0KIyBodHRwOi8vZWxlY3Ryb25pY2J1ZGUuZGUv
-QmFzdGVsZWNrZS9IeWJyaWQlMjBRdWFkL0h5YnJpZCUyMFF1YWQlMjAtJTIwVGVpbCUyMDElMjAt
-JTIwRGllJTIwS29lbmlnc2tsYXNzZS5odG0KCiMgdXNlcjp+PiBzY2FuIGRlLU1hbm5oZWltCgoj
-ID4+PiB0dW5lIHRvOiA0ODIwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZF
-Q18yXzM6RkVDX0FVVE86UUFNXzE2OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFM
-XzFfNDpISUVSQVJDSFlfTk9ORQojIDB4MDAwMCAweDAyMDM6IHBtdF9waWQgMHgwMjMwIFpERm1v
-YmlsIC0tIDNzYXQgKHJ1bm5pbmcpCiMgMHgwMDAwIDB4MDIwNTogcG10X3BpZCAweDAyNTAgWkRG
-bW9iaWwgLS0gRG9rdS9LaUthIChydW5uaW5nKQojIDB4MDAwMCAweDAyMDI6IHBtdF9waWQgMHgw
-MjIwIFpERm1vYmlsIC0tIFpERiAocnVubmluZykKIyAweDAwMDAgMHgwMjA0OiBwbXRfcGlkIDB4
-MDI0MCBaREZtb2JpbCAtLSBaREZpbmZva2FuYWwgKHJ1bm5pbmcpCiMgTmV0d29yayBOYW1lICda
-REYnClQgNDgyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUKCiMgPj4+IHR1
-bmUgdG86IDUyMjAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDXzJfMzpG
-RUNfQVVUTzpRQU1fMTY6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJ
-RVJBUkNIWV9OT05FCiMgMHgwMDAwIDB4MDIwMzogcG10X3BpZCAweDAyMzAgWkRGbW9iaWwgLS0g
-M3NhdCAocnVubmluZykKIyAweDAwMDAgMHgwMjA1OiBwbXRfcGlkIDB4MDI1MCBaREZtb2JpbCAt
-LSBEb2t1L0tpS2EgKHJ1bm5pbmcpCiMgMHgwMDAwIDB4MDIwMjogcG10X3BpZCAweDAyMjAgWkRG
-bW9iaWwgLS0gWkRGIChydW5uaW5nKQojIDB4MDAwMCAweDAyMDQ6IHBtdF9waWQgMHgwMjQwIFpE
-Rm1vYmlsIC0tIFpERmluZm9rYW5hbCAocnVubmluZykKIyBOZXR3b3JrIE5hbWUgJ1pERicKVCA1
-MjIwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU0xNiA4ayAxLzQgTk9ORQoKIyA+Pj4gdHVuZSB0bzog
-NTQ2MDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfMl8zOkZFQ19BVVRP
-OlFBTV8xNjpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRFUlZBTF8xXzQ6SElFUkFSQ0hZ
-X05PTkUKIyAweDAwMDAgMHgwMjAzOiBwbXRfcGlkIDB4MDIzMCBaREZtb2JpbCAtLSAzc2F0IChy
-dW5uaW5nKQojIDB4MDAwMCAweDAyMDU6IHBtdF9waWQgMHgwMjUwIFpERm1vYmlsIC0tIERva3Uv
-S2lLYSAocnVubmluZykKIyAweDAwMDAgMHgwMjAyOiBwbXRfcGlkIDB4MDIyMCBaREZtb2JpbCAt
-LSBaREYgKHJ1bm5pbmcpCiMgMHgwMDAwIDB4MDIwNDogcG10X3BpZCAweDAyNDAgWkRGbW9iaWwg
-LS0gWkRGaW5mb2thbmFsIChydW5uaW5nKQojIE5ldHdvcmsgTmFtZSAnWkRGJwpUIDU0NjAwMDAw
-MCA4TUh6IDIvMyBOT05FIFFBTTE2IDhrIDEvNCBOT05FCgojID4+PiB0dW5lIHRvOiA1NzgwMDAw
-MDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18yXzM6RkVDX0FVVE86UUFNXzE2
-OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfNDpISUVSQVJDSFlfTk9ORQoj
-IDB4MDAwMCAweDQwMTU6IHBtdF9waWQgMHgwMTUwIFJUTCBXb3JsZCAtLSBSVEwgVGVsZXZpc2lv
-biAocnVubmluZykKIyAweDAwMDAgMHg0MDE2OiBwbXRfcGlkIDB4MDE2MCBSVEwgV29ybGQgLS0g
-UlRMMiAocnVubmluZykKIyAweDAwMDAgMHg0MDFiOiBwbXRfcGlkIDB4MDE3MCBSVEwgV29ybGQg
-LS0gU3VwZXIgUlRMIChydW5uaW5nKQojIDB4MDAwMCAweDQwMjI6IHBtdF9waWQgMHgwMjIwIFJU
-TCBXb3JsZCAtLSBWT1ggKHJ1bm5pbmcpCiMgTmV0d29yayBOYW1lICdNRURJQSBCUk9BRENBU1Qn
-ClQgNTc4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUKCiMgPj4+IHR1bmUg
-dG86IDYwMjAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDXzJfMzpGRUNf
-QVVUTzpRQU1fMTY6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJB
-UkNIWV9OT05FCiMgMHgwMDAwIDB4MDAwMTogcG10X3BpZCAweDAwNjQgQVJEIC0tIERhcyBFcnN0
-ZSAocnVubmluZykKIyAweDAwMDAgMHgwMDQxOiBwbXRfcGlkIDB4MDE5MCBBUkQgLS0gaHItZmVy
-bnNlaGVuIChydW5uaW5nKQojIDB4MDAwMCAweDAwNDY6IHBtdF9waWQgMHgwMGM4IEFSRCAtLSBh
-cnRlL0VpbnNFeHRyYSAocnVubmluZykKIyBOZXR3b3JrIE5hbWUgJ0FSRC1IZXNzZW4nClQgNjAy
-MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUKCiMgPj4+IHR1bmUgdG86IDY1
-ODAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDXzJfMzpGRUNfQVVUTzpR
-QU1fMTY6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9O
-T05FCiMgMHgwMDAwIDB4MDAyMjogcG10X3BpZCAweDA0MDAgU1dSIC0tIEJheWVyaXNjaGVzIEZT
-IChydW5uaW5nKQojIDB4MDAwMCAweDAwNDE6IHBtdF9waWQgMHgwMjAwIFNXUiAtLSBoci1mZXJu
-c2VoZW4gKHJ1bm5pbmcpCiMgMHgwMDAwIDB4MDBlMjogcG10X3BpZCAweDAxMDAgU1dSIC0tIFNX
-UiBGZXJuc2VoZW4gUlAgKHJ1bm5pbmcpCiMgMHgwMDAwIDB4MDEwNjogcG10X3BpZCAweDAzMDAg
-U1dSIC0tIFdEUiBGZXJuc2VoZW4gKHJ1bm5pbmcpCiMgTmV0d29yayBOYW1lICdTV1IgUlAnClQg
-NjU4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUKCiMgPj4+IHR1bmUgdG86
-IDcwNjAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDXzJfMzpGRUNfQVVU
-TzpRQU1fMTY6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNI
-WV9OT05FCiMgMHgwMDAwIDB4MDAwMjogcG10X3BpZCAweDAyMDAgU1dSIC0tIGFydGUgKHJ1bm5p
-bmcpCiMgMHgwMDAwIDB4MDAwMzogcG10X3BpZCAweDAzMDAgU1dSIC0tIFBob2VuaXggKHJ1bm5p
-bmcpCiMgMHgwMDAwIDB4MDAwNjogcG10X3BpZCAweDA0MDAgU1dSIC0tIEVpbnNQbHVzIChydW5u
-aW5nKQojIDB4MDAwMCAweDAwZTA6IHBtdF9waWQgMHgwMTAwIFNXUiAtLSBEYXMgRXJzdGUgKHJ1
-bm5pbmcpCiMgTmV0d29yayBOYW1lICdBUkQnClQgNzA2MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFN
-MTYgOGsgMS80IE5PTkUKCiMgPj4+IHR1bmUgdG86IDczODAwMDAwMDpJTlZFUlNJT05fQVVUTzpC
-QU5EV0lEVEhfOF9NSFo6RkVDXzJfMzpGRUNfQVVUTzpRQU1fMTY6VFJBTlNNSVNTSU9OX01PREVf
-OEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FCiMgMHgwMDAwIDB4NDAxMzogcG10
-X3BpZCAweDAxMzAgUHJvU2llYmVuU2F0LjEgLS0gUHJvU2llYmVuIChydW5uaW5nKQojIDB4MDAw
-MCAweDQwMGE6IHBtdF9waWQgMHgwMGEwIFByb1NpZWJlblNhdC4xIC0tIGthYmVsIGVpbnMgKHJ1
-bm5pbmcpCiMgMHgwMDAwIDB4NDAwZTogcG10X3BpZCAweDAwZTAgUHJvU2llYmVuU2F0LjEgLS0g
-TjI0IChydW5uaW5nKQojIDB4MDAwMCAweDQwMTg6IHBtdF9waWQgMHgwMTgwIFByb1NpZWJlblNh
-dC4xIC0tIFNBVC4xIChydW5uaW5nKQojIE5ldHdvcmsgTmFtZSAnTUVESUEgQlJPQURDQVNUJwpU
-IDczODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTE2IDhrIDEvNCBOT05FCgojID4+PiB0dW5lIHRv
-OiA4MTgwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18yXzM6RkVDX0FV
-VE86UUFNXzE2OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfNDpISUVSQVJD
-SFlfTk9ORQojIDB4MDAwMCAweDQwMWQ6IHBtdF9waWQgMHgwMWQwIEJldGFEaWdpdGFsIC0tIFRF
-TEUgNSAocnVubmluZykKIyAweDAwMDAgMHg0MDI0OiBwbXRfcGlkIDB4MDI0MCBNRURJQSBCUk9B
-RENBU1QgLS0gRXVyb3Nwb3J0IChydW5uaW5nKQojIDB4MDAwMCAweDgwMDI6IHBtdF9waWQgMHgw
-MDIwIHR2dHYgLS0gdHZ0diBESUdJVEFMIChydW5uaW5nKQojIDB4MDAwMCAweDRiMDA6IHBtdF9w
-aWQgMHgwYjAwIE1FRElBIEJST0FEQ0FTVCAtLSByaGVpbm1haW50diAocnVubmluZykKIyBOZXR3
-b3JrIE5hbWUgJ01FRElBIEJST0FEQ0FTVCcKVCA4MTgwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU0x
-NiA4ayAxLzQgTk9ORQo=
-------=_Part_3181_15909065.1223995457336
+sleep 1
+
+exit
+
+# debugging:
+mplayer -dumpfile ~/dump-1.ts -dumpstream dvb://"Nederland 1(Digitenne)"
+lftp
+open ftp://upload.mplayerhq.hu/MPlayer/incoming/
+put dump-1.ts dump-2.ts dump-3.ts dump-4.ts
+
+--------------050403090201020900050009
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -138,4 +147,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_3181_15909065.1223995457336--
+--------------050403090201020900050009--
