@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <csutor@gmx.de>) id 1Koxtq-0006mi-A5
-	for linux-dvb@linuxtv.org; Sun, 12 Oct 2008 12:10:13 +0200
-Message-ID: <48F1CCE2.90104@gmx.de>
-Date: Sun, 12 Oct 2008 12:09:38 +0200
-From: Clemens Sutor <csutor@gmx.de>
+Received: from relay-pt3.poste.it ([62.241.4.129])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KprNz-0003Qm-Q4
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 23:25:02 +0200
+Received: from geppetto.reilabs.com (78.15.177.222) by relay-pt3.poste.it
+	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
+	id 48F3D3360000873B for linux-dvb@linuxtv.org;
+	Tue, 14 Oct 2008 23:24:56 +0200
+Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KprN4-0003Hp-I1
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 23:24:02 +0200
+Date: Tue, 14 Oct 2008 23:24:02 +0200
+From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
+To: linux-dvb Mailing List <linux-dvb@linuxtv.org>
+Message-ID: <20081014212402.GB11745@geppetto>
 MIME-Version: 1.0
-To: Anssi Kolehmainen <anssi@aketzu.net>
-References: <20081011163649.GU15309@aketzu.net>
-In-Reply-To: <20081011163649.GU15309@aketzu.net>
-Cc: linux-dvb@linuxtv.org, abraham.manu@gmail.com
-Subject: Re: [linux-dvb] Mantis and CAM problems
+Content-Disposition: inline
+Subject: [linux-dvb] Unable to query frontend status with dvbscan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,77 +30,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Anssi Kolehmainen schrieb:
-> I have Terratec Cinergy C (dvb-c, 1822:4e35) card and when I try to use CAM I
-> just get TS continuity errors with vdr and cannot watch any channel. I'm using
-> latest driver from jusst.de/hg/mantis and it feels rather unstable at times
-> (previous versions crashed machine almost instantly with CAM...)
->
-> I can access CAM menu in vdr but after a while it says CAM not responding. If I
-> do rmmod & modprobe mantis after that I get "dvb_ca adapter 0: Invalid PC card
-> inserted :(". Removing & reattaching CAM doesn't do any better, after modprobe
-> mantis everything freezes and caps+scroll lock blink on the keyboard.
->
-> Linux 2.6.24i-1-686, Debian package
-> Oct 11 19:08:18 ampere kernel: ACPI: PCI Interrupt 0000:02:09.0[A] -> Link [APC4] -> GSI 19 (level, low) -> IRQ 20
-> Oct 11 19:08:18 ampere kernel: irq: 20, latency: 32
-> Oct 11 19:08:18 ampere kernel:  memory: 0xdf000000, mmio: 0xf8a76000
-> Oct 11 19:08:18 ampere kernel: found a VP-2040 PCI DVB-C device on (02:09.0),
-> Oct 11 19:08:18 ampere kernel:     Mantis Rev 1 [153b:1178], irq: 20, latency: 32
-> Oct 11 19:08:18 ampere kernel:     memory: 0xdf000000, mmio: 0xf8a76000
-> Oct 11 19:08:18 ampere kernel:     MAC Address=[00:08:ca:1c:87:ea]
-> Oct 11 19:08:18 ampere kernel: mantis_alloc_buffers (0): DMA=0x36c70000 cpu=0xf6c70000 size=65536
-> Oct 11 19:08:18 ampere kernel: mantis_alloc_buffers (0): RISC=0x1582f000 cpu=0xd582f000 size=1000
-> Oct 11 19:08:18 ampere kernel: DVB: registering new adapter (Mantis dvb adapter)
-> Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): Probing for CU1216 (DVB-C)
-> Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): found Philips CU1216 DVB-C frontend (TDA10023) @ 0x0c
-> Oct 11 19:08:18 ampere kernel: mantis_frontend_init (0): Mantis DVB-C Philips CU1216 frontend attach success
-> Oct 11 19:08:18 ampere kernel: DVB: registering frontend 0 (Philips TDA10023 DVB-C)...
-> Oct 11 19:08:18 ampere kernel: mantis_ca_init (0): Registering EN50221 device
-> Oct 11 19:08:18 ampere kernel: mantis_ca_init (0): Registered EN50221 device
-> Oct 11 19:08:18 ampere kernel: mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
-> Oct 11 19:08:22 ampere kernel: dvb_ca adapter 0: DVB CAM detected and initialised successfully
-> Oct 11 19:08:27 ampere kernel: mantis start feed & dma
-> Oct 11 19:08:35 ampere kernel: mantis stop feed and dma
->
-> start vdr
-> Oct 11 19:10:26 ampere vdr: [23112] CI adapter on device 0 thread started (pid=23108, tid=23112)
-> Oct 11 19:10:26 ampere vdr: [23112] CAM 1: module present
-> Oct 11 19:10:27 ampere vdr: [23108] device 1 provides: DVBC
-> Oct 11 19:10:30 ampere kernel: dvb_ca adapter 0: DVB CAM detected and initialised successfully
-> Oct 11 19:10:30 ampere vdr: [23112] CAM 1: module ready
-> Oct 11 19:10:32 ampere vdr: [23112] CAM 1: Conax 4.00e, 01, 0B00, 04B1
-> Oct 11 19:10:36 ampere vdr: [23112] CAM 1: doesn't reply to QUERY - only a single channel can be decrypted
-> Oct 11 19:10:36 ampere vdr: [23108] switching to channel 1
-> Oct 11 19:10:36 ampere kernel: mantis start feed & dma
-> Oct 11 19:10:36 ampere vdr: [23121] transfer thread started (pid=23108, tid=23121)
-> Oct 11 19:10:36 ampere vdr: [23122] receiver on device 1 thread started (pid=23108, tid=23122)
-> Oct 11 19:10:36 ampere vdr: [23123] TS buffer on device 1 thread started (pid=23108, tid=23123)
-> Oct 11 19:10:36 ampere kernel: dvb_frontend_ioctl: FESTATE_RETUNE: fepriv->state=2
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (5)
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (15)
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (1)
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (6)
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (9)
-> Oct 11 19:10:36 ampere vdr: [23121] TS continuity error (12)
->
-> Something like ~150 TS continuity errors per sec. Video is pretty much garbage.
-> However if I remove CAM then everything works perfectly (except I can't watch
-> encrypted channels).
->
->   
-Hello Anssi,
+Hi all,
 
-please see:
+can you say what's the meaning of such a message?
 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-September/028555.html
-and
-http://www.linuxtv.org/pipermail/linux-dvb/2008-September/028851.html.
-and all following threads.
+I'm using it with:
+dvbscan  /usr/share/dvb/dvb-t/it-MyCity
+Unable to query frontend status
 
-The facts are still the same.
+using a TerraTec Electronic GmbH with dvb-usb-dib0700 driver.
 
-Bye Clemens
+The module seems to be loaded correctly, indeed I get this in the
+kernel log:
+
+[ 1834.456051] dib0700: loaded with support for 7 different device-types
+[ 1834.456051] dvb-usb: found a 'Terratec Cinergy HT USB XE' in cold state, will try to load a firmware
+[ 1834.456051] firmware: requesting dvb-usb-dib0700-1.10.fw
+[ 1834.464197] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
+[ 1834.662979] dib0700: firmware started successfully.
+[ 1835.168928] dvb-usb: found a 'Terratec Cinergy HT USB XE' in warm state.
+[ 1835.168997] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+[ 1835.169355] DVB: registering new adapter (Terratec Cinergy HT USB XE)
+[ 1835.419963] DVB: registering frontend 0 (DiBcom 7000PC)...
+[ 1835.499932] xc2028 1-0061: creating new instance
+[ 1835.499932] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[ 1835.499932] input: IR-receiver inside an USB DVB receiver as /class/input/input7
+[ 1835.510406] dvb-usb: schedule remote query interval to 150 msecs.
+[ 1835.510416] dvb-usb: Terratec Cinergy HT USB XE successfully initialized and connected.
+[ 1835.510696] usbcore: registered new interface driver dvb_usb_dib0700
+
+The led on the device switched on when I performed the first scan.
+
+Thanks for any help.
+
+Regards.
 
 _______________________________________________
 linux-dvb mailing list
