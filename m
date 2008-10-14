@@ -1,17 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dd16712.kasserver.com ([85.13.137.159])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vdr@helmutauer.de>) id 1Kr6fW-0006bz-GJ
-	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 09:56:17 +0200
-Received: from [192.168.178.120] (p50813953.dip0.t-ipconnect.de [80.129.57.83])
-	by dd16712.kasserver.com (Postfix) with ESMTP id C2329180CCF66
-	for <linux-dvb@linuxtv.org>; Sat, 18 Oct 2008 09:56:10 +0200 (CEST)
-Message-ID: <48F9969D.90305@helmutauer.de>
-Date: Sat, 18 Oct 2008 09:56:13 +0200
-From: Helmut Auer <vdr@helmutauer.de>
+Received: from n9a.bullet.ukl.yahoo.com ([217.146.183.157])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <eallaud@yahoo.fr>) id 1KptTA-0005oc-Hp
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 01:38:32 +0200
+Date: Tue, 14 Oct 2008 19:37:50 -0400
+From: Emmanuel ALLAUD <eallaud@yahoo.fr>
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <c74595dc0810012238p6eb5ea9fg30d8cc296a803a32@mail.gmail.com>
+	<1223212383l.6064l.0l@manu-laptop>
+	<c74595dc0810050654j1e4519cbn2c4a996cb5c3d03c@mail.gmail.com>
+	<1223254834l.7216l.0l@manu-laptop>
+	<c74595dc0810060333x80a0472n5e9779fb16446b35@mail.gmail.com>
+	<1224014045l.11287l.1l@manu-laptop> <48F526B1.8040807@gmail.com>
+In-Reply-To: <48F526B1.8040807@gmail.com> (from abraham.manu@gmail.com on
+	Tue Oct 14 19:09:37 2008)
+Message-Id: <1224027470l.20196l.1l@manu-laptop>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Problems with conexant CX24123/CX24109
+Content-Disposition: inline
+Subject: [linux-dvb] Re : Re : Re : Re : Re : Twinhan 1041 (SP 400) lock and
+ scan problems - the solution [not quite :(]
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,52 +26,71 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Le 14.10.2008 19:09:37, Manu Abraham a =E9crit=A0:
+> Hi,
+> =
 
-I have a Geniatech PCI DVB-s with CX24123/CX24109.
-This card cannot zap to the german ARD transponder, all other channels 
-are running fine.
-The card runs fine under windows .
-dmesg shows at loading:
+> Emmanuel ALLAUD wrote:
+> > Le 06.10.2008 06:33:56, Alex Betis a =E9crit :
+> >> Emmanuel,
+> >>
+> >> As I wrote:
+> >>> Just to clarify it, the changes mostly affect DVB-S channels
+> >>> scanning,
+> >>> it
+> >>> doesn't help with DVB-S2 locking problem since the code is =
 
-cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-ACPI: PCI Interrupt 0000:01:09.0[A] -> Link [LNKC] -> GSI 10 (level, 
-low) -> IRQ 10
-cx88[0]: subsystem: 14f1:0084, board: Geniatech DVB-S [card=52,autodetected]
-cx88[0]: TV tuner type 4, Radio tuner type -1
-cx88[0]/0: found at 0000:01:09.0, rev: 5, irq: 10, latency: 165, mmio: 
-0xfc000000
-cx88[0]/0: registered device video0 [v4l2]
-cx88[0]/0: registered device vbi0
-cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-cx88[0]/2: cx2388x 8802 Driver Manager
-ACPI: PCI Interrupt 0000:01:09.2[A] -> Link [LNKC] -> GSI 10 (level, 
-low) -> IRQ 10
-cx88[0]/2: found at 0000:01:09.2, rev: 5, irq: 10, latency: 64, mmio: 
-0xfd000000
-cx88/2: cx2388x dvb driver version 0.0.6 loaded
-cx88/2: registering cx8802 driver, type: dvb access: shared
-cx88[0]/2: subsystem: 14f1:0084, board: Geniatech DVB-S [card=52]
-cx88[0]/2: cx2388x based DVB/ATSC card
-CX24123: detected CX24123
-DVB: registering new adapter (cx88[0])
-DVB: registering frontend 0 (Conexant CX24123/CX24109)...
+> totally
+> >>> different
+> >>> for S and S2 signal search.
+> >> The 11495 channel you reported as bad is DVB-S2, so my changes =
 
-and when the error occurs:
+> >> doesn't
+> >> help
+> >> for that channel.
+> >>
+> >> I hope Manu will find a solution since I don't have any
+> documentation
+> >> for
+> >> that chip and solving the DVB-S2 problem needs knowledge in chip
+> >> internals.
+> > =
 
-cx88[0]: irq mpeg [0x100000] ts_err?*
-cx88[0]/2-mpeg: general errors: 0x00100000
+> > OK so here are the 2 logs using simpledvbtune, one using dvb-s2 and
+> the =
 
-Any hints where I can tune some parameters ?
+> > other dvb-s (and I check the tables from the other transponders of
+> this =
 
--- 
-Helmut Auer, helmut@helmutauer.de 
+> > sat, this transponder is declared as DVB-S).
+> > In any case you will see that something is picked up in both cases
+> but =
+
+> > nothing comes out fine finally.
+> > I CCed Manu to see if he can shed some light!
+> > This is done with a clean multiproto tree IIRC, verbose=3D5 for both =
+
+> > stbxxxx modules.
+> =
+
+> =
+
+> I will take a look at this. BTW, any idea what FEC you are using for
+> the
+>   transponder you are trying to tune to ?
+
+It is marked in the tables as 5/6 (all the other transiponders are 3/4 =
+
+and they work so this should be the problem).
+Thanks,
+Bye
+Manu
 
 
 _______________________________________________
