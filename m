@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9GLR9Wv020090
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 17:27:09 -0400
-Received: from spunkymail-a9.g.dreamhost.com (sd-green-bigip-83.dreamhost.com
-	[208.97.132.83])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9GLQvgM031899
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 17:26:57 -0400
-Received: from localhost (c-24-22-133-183.hsd1.wa.comcast.net [24.22.133.183])
-	by spunkymail-a9.g.dreamhost.com (Postfix) with ESMTP id 2DFC61FC8B
-	for <video4linux-list@redhat.com>;
-	Thu, 16 Oct 2008 14:26:56 -0700 (PDT)
-Date: Thu, 16 Oct 2008 14:26:58 -0700 (PDT)
-From: Dave Huseby <dave@linuxprogrammer.org>
-To: video4linux-list@redhat.com
-Message-ID: <29997427.911224192415143.JavaMail.dave@mycroft>
-In-Reply-To: <16931514.881224192286407.JavaMail.dave@mycroft>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9EJdOTx012132
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 15:39:24 -0400
+Received: from nlpi025.prodigy.net (nlpi025.sbcis.sbc.com [207.115.36.54])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9EJdAAl027244
+	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 15:39:10 -0400
+Message-ID: <48F4F552.7060800@xnet.com>
+Date: Tue, 14 Oct 2008 14:38:58 -0500
+From: stuart <stuart@xnet.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <48CD6F11.8020900@xnet.com>	
+	<1221431625.4566.5.camel@pc10.localdom.local>
+	<48CEC847.8030404@xnet.com>	 <48F4AD7B.7050802@xnet.com>
+	<1224011459.5486.19.camel@pc10.localdom.local>
+In-Reply-To: <1224011459.5486.19.camel@pc10.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: strange hauppauge wintv device number
+Cc: Dwaine Garden <dwainegarden@rogers.com>, video4linux-list@redhat.com
+Subject: Re: KWorld 120 IR control?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,78 +30,128 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Everybody,
-
-I just bought an old hauppauge wintv card off of ebay and even though it is a model 401--which everybody claims to be supported by linux--it isn't working with tvtime or xawtv.  I noticed that its subsystem id is not detected by the bttv driver in the 2.6 kernel.  Here's the lspci dump:
-
-01:01.0 Multimedia video controller: Brooktree Corporation Bt878 Video Capture (rev 11)
-        Subsystem: Hauppauge computer works Inc. Unknown device 03eb    <----- 03eb instead of the usual 13eb
-        Flags: bus master, medium devsel, latency 64, IRQ 21
-        Memory at cfdfe000 (32-bit, prefetchable) [size=4K]
-        Capabilities: [44] Vital Product Data
-        Capabilities: [4c] Power Management version 2
-
-01:01.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture (rev 11)
-        Subsystem: Hauppauge computer works Inc. Unknown device 03eb    <----- 03eb instead of the usual 13eb
-        Flags: medium devsel, IRQ 21
-        Memory at cfdff000 (32-bit, prefetchable) [size=4K]
-        Capabilities: [44] Vital Product Data
-        Capabilities: [4c] Power Management version 2
-
-And here's the syslog output from loading the bttv driver:
-
-Oct 16 08:18:52 mycroft kernel: [38883.101978] bttv: driver version 0.9.17 loaded
-Oct 16 08:18:52 mycroft kernel: [38883.101981] bttv: using 8 buffers with 2080k (520 pages) each for capture
-Oct 16 08:18:52 mycroft kernel: [38883.102021] bttv: Bt8xx card found (0).
-Oct 16 08:18:52 mycroft kernel: [38883.102031] bttv0: Bt878 (rev 17) at 0000:01:01.0, irq: 21, latency: 64, mmio: 0xcfdfe000
-Oct 16 08:18:52 mycroft kernel: [38883.102380] bttv0: subsystem: 0070:03eb (UNKNOWN)
-Oct 16 08:18:52 mycroft kernel: [38883.102382] please mail id, board name and the correct card= insmod option to video4linux-list@redhat.com
-Oct 16 08:18:52 mycroft kernel: [38883.102384] bttv0: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
-Oct 16 08:18:52 mycroft kernel: [38883.102408] bttv0: gpio: en=00000000, out=00000000 in=00ffffdb [init]
-Oct 16 08:18:52 mycroft kernel: [38883.107044] tuner 0-0061: chip found @ 0xc2 (bt878 #0 [sw])
-Oct 16 08:18:52 mycroft kernel: [38883.151676] bttv0: detected by eeprom: Hauppauge (bt848) [card=2]
-Oct 16 08:18:52 mycroft kernel: [38883.182590] tveeprom 0-0050: Hauppauge model 61381, rev D423, serial# 1908220
-Oct 16 08:18:52 mycroft kernel: [38883.182593] tveeprom 0-0050: tuner model is Philips FM1236 (idx 23, type 2)
-Oct 16 08:18:52 mycroft kernel: [38883.182596] tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
-Oct 16 08:18:52 mycroft kernel: [38883.182598] tveeprom 0-0050: audio processor is MSP3430 (idx 7)
-Oct 16 08:18:52 mycroft kernel: [38883.182600] tveeprom 0-0050: has radio
-Oct 16 08:18:52 mycroft kernel: [38883.182601] bttv0: Hauppauge eeprom indicates model#61381
-Oct 16 08:18:52 mycroft kernel: [38883.182603] bttv0: tuner type=2
-Oct 16 08:18:52 mycroft kernel: [38883.182608] tuner-simple 0-0061: type set to 2 (Philips NTSC (FI1236,FM1236 and compatibles))
-Oct 16 08:18:52 mycroft kernel: [38883.182611] tuner 0-0061: type set to Philips NTSC (FI123
-Oct 16 08:18:52 mycroft kernel: [38883.182614] bttv0: i2c: checking for MSP34xx @ 0x80... not found
-Oct 16 08:18:52 mycroft kernel: [38883.183217] bttv0: i2c: checking for TDA9875 @ 0xb0... not found
-Oct 16 08:18:52 mycroft kernel: [38883.183820] bttv0: i2c: checking for TDA7432 @ 0x8a... not found
-Oct 16 08:18:52 mycroft kernel: [38883.193182] bttv0: registered device video0
-Oct 16 08:18:52 mycroft kernel: [38883.193307] bttv0: registered device vbi0
-Oct 16 08:18:52 mycroft kernel: [38883.193410] bttv0: registered device radio0
-Oct 16 08:18:52 mycroft kernel: [38883.198385] bt878: AUDIO driver version 0.0.0 loaded
-Oct 16 08:18:52 mycroft kernel: [38883.198413] bt878: Bt878 AUDIO function found (0).
-Oct 16 08:18:52 mycroft kernel: [38883.198426] ACPI: PCI Interrupt 0000:01:01.1[A] -> GSI 22 (level, low) -> IRQ 21
-Oct 16 08:18:52 mycroft kernel: [38883.198432] bt878_probe: card id=[0x3eb0070], Unknown card.
-Oct 16 08:18:52 mycroft kernel: [38883.198432] Exiting..
-Oct 16 08:18:52 mycroft kernel: [38883.198435] ACPI: PCI interrupt for device 0000:01:01.1 disabled
-Oct 16 08:18:52 mycroft kernel: [38883.198440] bt878: probe of 0000:01:01.1 failed with error -22
-Oct 16 08:19:38 mycroft kernel: [38928.738571] bttv0: SCERROCERR @ 24c4d014,bits: FMTCHG* VSYNC* HSYNC* OFLOW* HLOCK* VPRES* 6* 7* I2CDONE* GPINT* 10* RISCI* FBUS* FTRGT* FDSR* PPERR* RIPERR* PABORT* OCERR* SCERR*
 
 
-As you can see, the subsystem id is 0070:03eb instead of the usual 0070:13eb as defined in the bttv-cards.c file.  I must have a really old card or one that was recalled or something.  Have anybody ever seen a 03eb?
+hermann pitton wrote:
+> Hi,
+> 
+> Am Dienstag, den 14.10.2008, 09:32 -0500 schrieb stuart:
+>> stuart wrote:
+>>> hermann pitton wrote:
+>>>> stuart wrote:
+>>>>> hermann pitton wrote:
+>>>>> Hi Stuart,
+>>>>>
+>>>>> Am Sonntag, den 14.09.2008, 15:07 -0500 schrieb stuart:
+>>>>>> Hi...
+>>>>>>
+>>>>>> This is my monthly (humm, more like quarterly) bump to see if anyone 
+>>>>>> has looked at (or can tell me what to do with) the KWorld 120 
+>>>>>> video4linux drivers when it comes to getting the IR hardware to work.
+>>>>>>
+>>>>>> I would think, by now, there are a lot of these cards out there.  
+>>>>>> Were not the KWorld 110 and 115 ATSC tuners popular here?  And 
+>>>>>> haven't they been replaced by the KWorld 120?  If so, what are people 
+>>>>>> doing for IR?
+>>>>>>
+>>>>>> ...thanks
+>>>>>>
+>>>>> Mauro, better we all of course, need to review Brian Rogers latest patch
+>>>>> from Thursday on this to get it in.
+>>>>>
+>>>>> Based on this, likely Dwaine Garden is the one who can further proceed
+>>>>> for the Kworld stuff too.
+>>>>>
+>>>>> Cheers,
+>>>>> Hermann
+>>>> Hey, thanks to all who have contributed to the KWorld-120 v4l driver! If 
+>>>> it wasn't obvious, I've been enjoying the sound and video from my v4l 
+>>>> driven KWorld-120 for months now.
+>>>>
+>>>> So, are these IR remote control patches in Staging (the v4l somewhat 
+>>>> stable pre-release version).  I've pulled and compiled from that repo 
+>>>> before - no problem if that's where the new IR code is.
+>>>>
+>>>> ...thanks
+>>> there have been patches on the lists for KS003 and KS007 i2c driven
+>>> remotes, but nothing is in yet.
+>>>
+>>> Brian Rogers current version likely will make it in now for the saa7134
+>>> MSI TV@nywhere, based on Henry Wong's old patch.
+>>>
+>>> Mauro will have a look at it again next week after Portland.
+>>>
+>>> It likely can provide the base for other cards and drivers too then.
+>>>
+>>> Cheers,
+>>> Hermann
+>>
+>> Re: KWorld 120 IR control "Montly Bump"...
+>>
+>> Sorry to bother you guys again.  But some Brick and Mortar Frys stores 
+>> (on line it's still the full $60) have this card on sale.
+>>
+>> Perhaps if you could tell me (us) what to watch for in the different v4l 
+>> repositories we could track this feature our selves.
+>>
+>> ...thanks
+>>
+> 
+> hmm, you called it successor/replacement of the Kworld saa7134 ATSC
+> cards and I thought this would indicate that there is a KS003 or KS007
+> i2c controller with 16 pins at 0x30.
+> 
+> This is likely wrong.
+> 
+> The patch for the KS003 on the saa7134 MSI TV@nywhere is in v4l-dvb now.
+> 
+> I think it was not reported yet, what IR controller is on the ATSC 120.
+> Maybe it is some known stuff and support can be added easily, but dunno.
+> 
+> Please be patient, can't tell if Mauro had any time to look at the
+> remote at all so far.
+> 
+> You can try to identify the remote and controller chip by searching
+> through http://www.bttv-gallery.de.
+> 
+> You find already supported Kworld cards then in cx88-input.c,
+> saa7134-input.c ...
+> 
+> Cheers,
+> Hermann
+> 
 
-I have tried a couple things to try to get it to work.  The first thing I tried was passing the card and tuner parameters to the bttv driver for the usual Hauppauge WinTV config.  That didn't work.  The next thing I tried was editing the bttv-cards.c file in the driver so that it would detect a 03eb device as if it were a 13eb device.  That didn't work either.
+Hi Hermann...
 
-In both cases I keep getting a bunch of errors in my syslog:
+Thanks for taking the time to write back...
 
-Oct 16 10:11:38 mycroft kernel: [45633.943060] bttv0: SCERROCERR @ 05e3701c,bits: FMTCHG* VSYNC* HSYNC* OFLOW* HLOCK* VPRES* 6* 7* I2CDONE* GPINT* 10* RISCI* FBUS* FTRGT* FDSR* PPERR* RIPERR* PABORT* OCERR* SCERR*
-Oct 16 10:11:38 mycroft kernel: [45633.943091] bttv0: OCERR @ 05e37000,bits: VSYNC HSYNC OFLOW PPERR OCERR*
-Oct 16 10:11:38 mycroft kernel: [45634.004337] bttv0: SCERR @ 05e37014,bits: VSYNC HSYNC OFLOW FBUS PPERR PABORT SCERR*
-Oct 16 10:11:38 mycroft kernel: [45634.004347] bttv0: SCERR @ 05e37000,bits: OFLOW FBUS PPERR SCERR*
-Oct 16 10:11:38 mycroft kernel: [45634.064318] bttv0: SCERR @ 05e37014,bits: VSYNC HSYNC OFLOW FBUS PPERR PABORT SCERR*
-Oct 16 10:11:38 mycroft kernel: [45634.093110] bttv0: OCERR @ 05e37014,bits: VSYNC HSYNC OFLOW FBUS PPERR OCERR*
+There is extensive information about the Kworld 120 here:
+http://www.mythtv.org/wiki/index.php/Kworld_ATSC_120
+...we've added information to it down through the months.
 
-Does anybody have any ideas on how to fix this?  I'd love to update the driver to support my card, but I'd have to get the documentation on the EPROM format.
+[From the above page:]
+---------------------
+Major components used
 
-Thanks ahead of time,
-Dave
+     * Xceive XC3028 (tuner & analog IF demodulator)
+     * Samsung S5H1409 (digital demodulator, Conexant CX24227 compatible)
+     * Conexant cx23880 (A/V Decoder & PCI bridge)
+---------------------
+Status
+
+As of 27 Mar 2008 and revision 7448 of the main v4l-dvb repository, this 
+card can be used in both analog and digital ATSC modes via a set of 
+experimental drivers. The FM radio, composite video, and S-Video inputs 
+all work when the card is initialized into analog mode. Due to a 
+resource conflict in the driver caused by this card's architecture, a 
+reboot is necessary to switch between analog and ATSC modes. The cause 
+of this issue has been located, and work is ongoing to fix it.
+
+The remote control is not currently supported in any mode, yet.
+
+The Line-out jack is somewhat functional, but is not considered ready to 
+use, yet.
+---------------------
 
 --
 video4linux-list mailing list
