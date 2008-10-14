@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dd16712.kasserver.com ([85.13.137.159])
+Received: from ti-out-0910.google.com ([209.85.142.191])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vdr@helmutauer.de>) id 1Kryy7-0000a8-En
-	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 19:55:05 +0200
-Received: from [192.168.178.120] (p508101BD.dip0.t-ipconnect.de [80.129.1.189])
-	by dd16712.kasserver.com (Postfix) with ESMTP id 9CEE41805C4B6
-	for <linux-dvb@linuxtv.org>; Mon, 20 Oct 2008 19:55:02 +0200 (CEST)
-Message-ID: <48FCC5FB.1030706@helmutauer.de>
-Date: Mon, 20 Oct 2008 19:55:07 +0200
-From: Helmut Auer <vdr@helmutauer.de>
-MIME-Version: 1.0
+	(envelope-from <ydgoo9@gmail.com>) id 1Kpa9X-0003Aj-3v
+	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 05:00:57 +0200
+Received: by ti-out-0910.google.com with SMTP id w7so1183735tib.13
+	for <linux-dvb@linuxtv.org>; Mon, 13 Oct 2008 20:00:46 -0700 (PDT)
+Message-ID: <38dc7fce0810132000x426cf910j3b91413206fec3ab@mail.gmail.com>
+Date: Tue, 14 Oct 2008 12:00:45 +0900
+From: YD <ydgoo9@gmail.com>
 To: linux-dvb@linuxtv.org
-References: <48F9969D.90305@helmutauer.de>
-In-Reply-To: <48F9969D.90305@helmutauer.de>
-Subject: Re: [linux-dvb] Problems with conexant CX24123/CX24109
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] question about demuxing from hdd or memory
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,52 +25,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Helmut Auer schrieb:
-> Hi,
->
-> I have a Geniatech PCI DVB-s with CX24123/CX24109.
-> This card cannot zap to the german ARD transponder, all other channels 
-> are running fine.
-> The card runs fine under windows .
-> dmesg shows at loading:
->
-> cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
-> ACPI: PCI Interrupt 0000:01:09.0[A] -> Link [LNKC] -> GSI 10 (level, 
-> low) -> IRQ 10
-> cx88[0]: subsystem: 14f1:0084, board: Geniatech DVB-S [card=52,autodetected]
-> cx88[0]: TV tuner type 4, Radio tuner type -1
-> cx88[0]/0: found at 0000:01:09.0, rev: 5, irq: 10, latency: 165, mmio: 
-> 0xfc000000
-> cx88[0]/0: registered device video0 [v4l2]
-> cx88[0]/0: registered device vbi0
-> cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-> cx88[0]/2: cx2388x 8802 Driver Manager
-> ACPI: PCI Interrupt 0000:01:09.2[A] -> Link [LNKC] -> GSI 10 (level, 
-> low) -> IRQ 10
-> cx88[0]/2: found at 0000:01:09.2, rev: 5, irq: 10, latency: 64, mmio: 
-> 0xfd000000
-> cx88/2: cx2388x dvb driver version 0.0.6 loaded
-> cx88/2: registering cx8802 driver, type: dvb access: shared
-> cx88[0]/2: subsystem: 14f1:0084, board: Geniatech DVB-S [card=52]
-> cx88[0]/2: cx2388x based DVB/ATSC card
-> CX24123: detected CX24123
-> DVB: registering new adapter (cx88[0])
-> DVB: registering frontend 0 (Conexant CX24123/CX24109)...
->
-> and when the error occurs:
->
-> cx88[0]: irq mpeg [0x100000] ts_err?*
-> cx88[0]/2-mpeg: general errors: 0x00100000
->
-> Any hints where I can tune some parameters ?
->
->   
-No one an idea whats wrong with the driver ?
+Hello all,
 
+I got a question on dvb-api driver.
 
--- 
-Helmut Auer, helmut@helmutauer.de 
+If I want to use the hardware demux when I play the file from hdd or memory,
+Do I need to change the code in dvb_dvr_write() and some more  at dmxdev.c ?
 
+In my understanding, linux dvb api only supports software demux(filtering)
+when we filter the section or packet from hdd or memory.
+
+Thanks,
+youngduk
 
 _______________________________________________
 linux-dvb mailing list
