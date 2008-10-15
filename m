@@ -1,23 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from f31.mail.ru ([194.67.57.70])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KlSms-000659-KK
-	for linux-dvb@linuxtv.org; Thu, 02 Oct 2008 20:20:31 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K8400D4JIWS61G0@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Thu, 02 Oct 2008 14:19:41 -0400 (EDT)
-Date: Thu, 02 Oct 2008 14:19:40 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48E4E175.90403@julianfamily.org>
-To: Joe Julian <joe@julianfamily.org>
-Message-id: <48E510BC.7040902@linuxtv.org>
-MIME-version: 1.0
-References: <48E4E175.90403@julianfamily.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR2250 / HVR2200 / SAA7164 status
+	(envelope-from <goga777@bk.ru>) id 1Kpzef-0004vL-9X
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 08:14:48 +0200
+Received: from mail by f31.mail.ru with local id 1Kpze6-0007qk-00
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 10:14:10 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Mime-Version: 1.0
+Date: Wed, 15 Oct 2008 10:14:10 +0400
+In-Reply-To: <48F4E054.4080304@linuxtv.org>
+References: <48F4E054.4080304@linuxtv.org>
+Message-Id: <E1Kpze6-0007qk-00.goga777-bk-ru@f31.mail.ru>
+Subject: Re: [linux-dvb]
+	=?koi8-r?b?UzJBUEkgLyBUVDMyMDAgLyBTVEIwODk5IHN1cHBv?=
+	=?koi8-r?b?cnQ=?=
+Reply-To: Goga777 <goga777@bk.ru>
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,46 +29,27 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Joe Julian wrote:
-> Steven Toth wrote:
-> 
->     As you know, I'm writing a driver for the SAA7164 chipset, for the
->     HVR2200 DVB-T and HVR2250 ATSC/QAM products.
-> 
->     People have been asking for status, here's where I am.
-> 
->     Do I have anything to share with people yet? Not yet.
-> 
->       
-> 
->     The basic driver framework is done. Firmware is loading, I can
->     talking to the silicon through the proprietary PCIe ring buffer
->     interface. I2C is working, eeprom and tuner/demod access is done.
->     The HVR2250 is responding to azap commands, the tuners and demods
->     are locking, snr looks pretty good... it's going to be a popular
->     board for people. The HVR2200 (DVB-T Version) should also worked
->     with tzap, it's untested and I can't comment on SNR at this stage. I
->     need to add the DMA/buffering code, this is the missing pieces
->     before a first public release. When I have anything to share I'll
->     put up a tree and post a 'testers required' message here. 
-> 
-> 
-> We're a couple episodes into this fall television season and I'm missing 
-> my shows. ;)
-> 
-> Having another month down, I wanted to send a friendly nudge your 
-> direction, Steve, to see how this is progressing.
+Hi
 
-:)
+FYI - nobody reported about of succes with dvb-s2 8psk channels with SR=30 000
 
-I hear you!
+Goga
 
-Nothing to report lately. The S2API and the Plumbers conf took a lot of 
-my time, I'm only now getting back into a regular linux schedule.
+-----Original Message-----
+From: Steven Toth <stoth@linuxtv.org>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Date: Tue, 14 Oct 2008 14:09:24 -0400
+Subject: [linux-dvb] S2API / TT3200 / STB0899 support
 
-Feel free to ping me through this mailing list every few weeks.
+> 
+> As you have all seen on the list recently, on the 'stb0899 and TT 
+> s2-3200' thread, Igor has ported Manu's TT3200 drivers to the S2API.
+> 
+> Personally, I have not had the time to test, but I hear they are working 
+> very well for some people, OK for others, and bad for some people.
+> 
+> Can everyone please post their comments into this thread?
 
-- Steve
 
 _______________________________________________
 linux-dvb mailing list
