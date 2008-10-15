@@ -1,22 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out2.iol.cz ([194.228.2.87])
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ajurik@quick.cz>) id 1KnvFi-0002yJ-BY
-	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 15:08:29 +0200
-Received: from ales-debian.local (unknown [88.103.120.47])
-	by smtp-out2.iol.cz (Postfix) with ESMTP id B660D93BEE
-	for <linux-dvb@linuxtv.org>; Thu,  9 Oct 2008 15:07:50 +0200 (CEST)
-From: Ales Jurik <ajurik@quick.cz>
-To: linux-dvb@linuxtv.org
-Date: Thu, 9 Oct 2008 15:07:50 +0200
-References: <200810091404.05506.ajurik@quick.cz>
-	<E1Knuqz-000KNf-00.goga777-bk-ru@f134.mail.ru>
-In-Reply-To: <E1Knuqz-000KNf-00.goga777-bk-ru@f134.mail.ru>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200810091507.50544.ajurik@quick.cz>
-Subject: Re: [linux-dvb] =?iso-8859-1?q?=5Bvdr=5D_stb0899_and_tt_s2-3200?=
-Reply-To: ajurik@quick.cz
+	(envelope-from <stoth@linuxtv.org>) id 1KqAxi-0007HR-Kz
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 20:19:12 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K8S00CE8LIYDDI0@mta2.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 15 Oct 2008 14:18:35 -0400 (EDT)
+Date: Wed, 15 Oct 2008 14:18:34 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <412bdbff0810150740h61049f5fvb679bdebbcd4084d@mail.gmail.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Message-id: <48F633FA.4000106@linuxtv.org>
+MIME-version: 1.0
+References: <412bdbff0810150724h2ab46767ib7cfa52e3fdbc5fa@mail.gmail.com>
+	<48F5FE80.5010106@linuxtv.org>
+	<412bdbff0810150740h61049f5fvb679bdebbcd4084d@mail.gmail.com>
+Cc: Linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Revisiting the SNR/Strength issue
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,46 +33,53 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 09 of October 2008, Goga777 wrote:
-> > > it's not working with SR 30000 FEC 3/4 dvb-s2 8PSK, still the same
-> > > problem.
-> > >
-> > > kind regards
-> > >
-> > > Newsy
-> >
-> > It seems that patch from
-> > http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027264.html is not
-> > applied. The internal PLL must be disabled when setting new frequency as
-> > is written in stb6100 documentation.
->
-> has your July-patch any relation with stb0899 patches from Alex Betis ?
->
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-October/029455.html
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-September/029361.html
->
-> Goga
+Devin Heitmueller wrote:
+> On Wed, Oct 15, 2008 at 10:30 AM, Steven Toth <stoth@linuxtv.org> wrote:
+>> The SNR units should be standardized into a single metric, something
+>> actually useful like ESNO or db. If that isn't available then we should aim
+>> to eyeball / manually calibrate impossible boards against known reliable
+>> demods on the same feed, it should be close enough.
+>>
+>> This requires patience and time from the right people with the right
+>> hardware.
+> 
+> I agree that standardizing on a particular unit would be the ideal
+> scenario.  Realistically though, do you have any confidence that this
+> would actually happen?  Many frontends would have to change, reverse
 
-I don't think so as Alex's patches are for demodulator (stb0899) but my was 
-for tuner (stb6100). 
+It will happen when someone cares enough to do it, that's the Linux mantra.
 
-Regarding stb6100 doc the tuning procedure should be:
-1. Disable PLL (LPEN_LPEN)
-2. Set-up the tuner
-3. Start PLL
-4. Start VCO search
-5. Wait for 5 ms
-6. Disable VCO search, turn off VCO search clock and disable LPF BW clock
+Let's quantify this. How many frontends would have to change?
 
-The steps 1-5 should be done in 5 steps (not less) and as I remeber I've got 
-better result when inserting small delay between steps 1 and 2 and the delay 
-from step 5 was set to 10ms. In stb6100.c are steps 1 and 2 done together 
-within 1 write to stb6100 registers and this seems to be not optimal for some 
-modulations.
+> engineering would have to be done, and in many cases without a signal
+> generator this would be very difficult.  This could take months or
+> years, or might never happen.
 
-Regards,
+You don't need a signal generator, you _do_ need a comparison product 
+that is reliably reporting db.
 
-Ales
+> 
+> Certainly I'm in favor of expressing that there is a preferred unit
+> that new frontends should use (whether that be ESNO or db), but the
+> solution I'm suggesting would allow the field to become useful *now*.
+> This would hold us over until all the other frontends are converted to
+> db (which I have doubts will ever actually happen).
+
+I'm not in favour of this.
+
+I'd rather see a single unit of measure agreed up, and each respective 
+maintainer go back and perform the necessary code changes. I'm speaking 
+as a developer of eight (?) different demod drivers in the kernel. 
+That's no small task, but I'd happily conform if I could.
+
+Lastly, for the sake of this discussion, assuming that db is agreed 
+upon, if the driver cannot successfully delivery SNR in terms of db then 
+  the bogus function returning junk should be removed.
+
+Those two changes alone would be a better long term approach, I think.
+
+- Steve
+
 
 _______________________________________________
 linux-dvb mailing list
