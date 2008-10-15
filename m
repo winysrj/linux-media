@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m91NbUlh019169
-	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 19:37:30 -0400
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.184])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m91NaiGO011999
-	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 19:36:44 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so337890nfc.21
-	for <video4linux-list@redhat.com>; Wed, 01 Oct 2008 16:36:43 -0700 (PDT)
-Message-ID: <10ef49390810011636s76935d83x2523a30e9d866634@mail.gmail.com>
-Date: Thu, 2 Oct 2008 01:36:43 +0200
-From: "=?ISO-8859-1?Q?Jean-Paul_Vall=E9e?=" <jeanpaul.vallee1@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9FAJkod006264
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 06:19:46 -0400
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.186])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9FAJYK3003883
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 06:19:34 -0400
+Received: by rn-out-0910.google.com with SMTP id k32so1273804rnd.7
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 03:19:34 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
 To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: dvb-t device sensitivity
+Date: Wed, 15 Oct 2008 19:18:24 +0900
+Message-Id: <20081015101824.23072.11963.sendpatchset@rx1.opensource.se>
+Cc: v4l-dvb-maintainer@linuxtv.org, g.liakhovetski@gmx.de,
+	mchehab@infradead.org
+Subject: [PATCH] video: add header to soc_camera_platform include file
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,16 +25,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hie,
-I'm not sure it is the good list to post such a question...
-The problem i have is to buy the better device for my location, it seems
-that i am located in a place with some difficulties of reception.
-I would like to know within the list of linux supported usb dvb-t sticks,
-the most sensitive...
-I would like to know if such a project, that classify devive by sensitivity,
-exists... or also if such a list is already available.
+From: Magnus Damm <damm@igel.co.jp>
 
-Thanks
+Update the soc_camera_platform header with licensing information.
+
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+---
+
+ include/media/soc_camera_platform.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+--- 0002/include/media/soc_camera_platform.h
++++ work/include/media/soc_camera_platform.h	2008-10-15 18:35:33.000000000 +0900
+@@ -1,3 +1,13 @@
++/*
++ * Generic Platform Camera Driver Header
++ *
++ * Copyright (C) 2008 Magnus Damm
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
+ #ifndef __SOC_CAMERA_H__
+ #define __SOC_CAMERA_H__
+ 
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
