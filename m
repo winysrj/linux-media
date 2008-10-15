@@ -1,23 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from smtp23.orange.fr ([193.252.22.126])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KnCKk-0002x9-MT
-	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 15:10:39 +0200
-Received: from dyn3-82-128-187-134.psoas.suomi.net ([82.128.187.134]
-	helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA:32)
-	(Exim 4.50) id 1KnCKh-0006ib-7w
-	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 16:10:35 +0300
-Message-ID: <48EB5FAB.2030008@iki.fi>
-Date: Tue, 07 Oct 2008 16:10:03 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <hftom@free.fr>) id 1KqBbS-0001sI-0Z
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 21:00:16 +0200
+From: Christophe Thommeret <hftom@free.fr>
+To: Darron Broad <darron@kewl.org>
+Date: Wed, 15 Oct 2008 20:59:26 +0200
+References: <200810141133.36559.hftom@free.fr>
+	<200810151846.59042.hftom@free.fr> <13726.1224091355@kewl.org>
+In-Reply-To: <13726.1224091355@kewl.org>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <200809302001.24424.Ralf.Goos@t-online.de>
-	<48EA8AB2.20201@hoogenraad.net>
-In-Reply-To: <48EA8AB2.20201@hoogenraad.net>
-Subject: Re: [linux-dvb] auvisio DVB-T USB2.0 Pen Receiver "WhiteStar" and
- SUSE	10.3
+Content-Disposition: inline
+Message-Id: <200810152059.27034.hftom@free.fr>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] cx24116 DVB-S modulation fix
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,25 +21,80 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jan Hoogenraad wrote:
-> Please post output of
-> 	lsusb
-> and
-> 	lsusb -v
-> 
+Le Wednesday 15 October 2008 19:22:35 Darron Broad, vous avez =E9crit=A0:
+> In message <200810151846.59042.hftom@free.fr>, Christophe Thommeret wrote:
+>
+> hi.
+>
+> <snip>
+>
+> >Other subject:
+> >Would you accept some patch to enhance cx24116 pilot_auto emulation?
+>
+> If you present your patch and it enhances or fixes something
+> then I am sure people will support it.
 
-Also driver .inf-file and file names could be interesting to see.
+I don't know to which tree to apply, so i give the code as is (it's pretty =
 
-regards
-Antti
--- 
-http://palosaari.fi/
+simple):
+
+Since 8PSK (and higher mod) signals are very likely to have pilot symbols, =
+
+pilot_auto should start with pilot_on for 8PSK.
+And since QPSK signals are unlikely to have pilot, pilot_auto should start =
+
+with pilot_off for QPSK.
+
+Without the patch:
+QPSK tuning delay: ~100ms
+8PSK tuning delay: ~900ms
+with patch:
+QPSK tuning delay: ~100ms
+8PSK tuning delay: ~100ms
+
+
+static int cx24116_set_frontend(struct dvb_frontend* fe, struct =
+
+dvb_frontend_parameters *p)
+....
+....
+case SYS_DVBS2:
+...
+...
+switch(c->pilot) {
+				case PILOT_AUTO:	/* Not supported but emulated */
+					retune =3D 2;	/* Fall-through */
+					if ( c->modulation=3D=3DQPSK )
+						state->dnxt.pilot_val =3D CX24116_PILOT_OFF;
+					else
+						state->dnxt.pilot_val =3D CX24116_PILOT_ON;
+					break;
+...
+...
+/* Toggle pilot bit when in auto-pilot */
+		if(state->dcur.pilot =3D=3D PILOT_AUTO) {
+			if ( state->dnxt.pilot_val=3D=3D CX24116_PILOT_OFF )
+				cmd.args[0x07] ^=3D CX24116_PILOT_ON;
+			else
+				cmd.args[0x07] ^=3D CX24116_PILOT_OFF;
+		}
+
+....
+...
+
+
+
+
+-- =
+
+Christophe Thommeret
+
 
 _______________________________________________
 linux-dvb mailing list
