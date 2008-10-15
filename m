@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Thu, 23 Oct 2008 20:53:38 +0400
-From: Goga777 <goga777@bk.ru>
-Cc: linux-dvb@linuxtv.org
-Message-ID: <20081023205338.3a1784ca@bk.ru>
-In-Reply-To: <200810230300.43637.liplianin@tut.by>
-References: <412bdbff0810220607x588735f2v780104a5cafc3b8a@mail.gmail.com>
-	<48FF5C43.9090309@linuxtv.org>
-	<200810230300.43637.liplianin@tut.by>
+Received: from mail1.radix.net ([207.192.128.31])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <awalls@radix.net>) id 1Kq3zK-00073b-GG
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 12:52:24 +0200
+From: Andy Walls <awalls@radix.net>
+To: Tom Moore <htmoore@comcast.net>
+In-Reply-To: <003101c92e68$fe5e5000$fb1af000$@net>
+References: <001501c92e56$a4903870$edb0a950$@net>
+	<1224029752.3248.34.camel@palomino.walls.org>
+	<003101c92e68$fe5e5000$fb1af000$@net>
+Date: Wed, 15 Oct 2008 06:51:13 -0400
+Message-Id: <1224067873.5059.15.camel@morgan.walls.org>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] stb0899 drivers
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Duel Hauppauge HVR-1600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -16,28 +21,156 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-8NLJ18XU09TX1cAsIG9sZWcKPiAyMDA4LzEwLzIzIElnb3IgTS4gTGlwbGlhbmluIDxsaXBsaWFu
-aW5AdHV0LmJ5PjoKPiA+IEhpIFN0ZXZlbiBhbmQgTWF1cm8KPiA+Cj4gPiBBcyBJIHVuZGVyc3Rh
-bmQsIG5vdyB3ZSBhbGwgd2FpdGluZyAoYWdhaW4hKSBmb3IgTWFudSBBYnJhaGFtIHRvIGNvbW1p
-dD8KPiA+IFRydWx5IGhpcyBjb2RlIGFyZSBodWdlIGFuZCBuZWVkcyBsb25nIHRpbWUgdG8gY2xl
-YW4gdXAsIGJ1dCBJIG1hZGUKPiA+IGh0dHA6Ly9tZXJjdXJpYWwuaW50dXhpY2F0aW9uLm9yZy9o
-Zy9zMi1saXBsaWFuaW4KPiA+IGluIG9yZGVyIHRvIGhlbHAgdG8gY29udmVydCBpdC4KPiA+IFJp
-Z2h0IG5vdyBJIHN0YXRlIHRoZSBjb2RlIGlzIHN0YWJsZSBhbmQgd29ya3MgYWJzb2x1dGVseSBv
-ZiBubyBkaWZmZXJlbmNlIHdpdGggbXVsdGlwcm90bwo+ID4gdmVyc2lvbi4KPiA+IEkgbWVhbiBp
-dCBsb2NrcyBhbGwgY2hhbm5lbHMsIHdoaWNoIG11bHRpcHJvdG8gdmVyc2lvbiBsb2NrcywgYnV0
-IHdpdGhvdXQgYW55IG1vZGlmaWNhdGlvbnMgdG8KPiA+IGN1cnJlbnQgRFZCIEFQSS4KPiA+IFdo
-YXQgY2FuIEkgZG8gbm93Pwo+ID4KPiA+IElnb3IKPiAKPiBUaHggYSBsb3QuIEl0IHdvcmtzIGZp
-bmUuIEknbSB2b3RpbmcgZm9yIG1lcmdlIHlvdXIgdHJlZSB0byB2NGwtZHZiLgoKbWUgdG9vCgpJ
-IGNhbiBjb25maXJtIHRoYXQgb24gb3VyIFJ1c3NpYW4gZHZiLWxpbnV4IGZvcnVtIHRoZXJlJ3Mg
-b25seSBnb29kIHJlcG9ydHMgYWJvdXQKaHR0cDovL21lcmN1cmlhbC5pbnR1eGljYXRpb24ub3Jn
-L2hnL3MyLWxpcGxpYW5pbiBmcm9tIG93bmVycyB3aG8gaGF2ZSBzdGIwODk5IGFuZCBjeDI0MTE2
-IGJhc2VkIGNhcmRzCgpASWdvcgp0aGFua3MgYSBsb3QgZm9yIHlvdXIgY29udHJpYnV0aW9uICAK
-CkdvZ2EKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
-bnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGlu
-dXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Tom,
+
+Just a note: please don't top post.  Per list convention, please just
+respond in-line.
+
+On Tue, 2008-10-14 at 20:54 -0500, Tom Moore wrote:
+> Thanks Andy for the reply.
+> 
+> I did what you said and now I'm getting an memory error message when booting
+> 
+> 
+> The message reads:
+> Initrd extends beyond end of memory (0x37fef23a > 0x30000000)
+
+Well, that's a new one on me.
+
+> I tried lowering the amount but anything over 128M and I get the error
+> message.
+
+So since vmalloc addresses are used for dynamic kernel mappings for
+things like loadable module code and for IO mappings, 128 MB of
+addresses will never be sufficient to support two cards that want 64 MB
+of addresses each, along with other kernel vmalloc needs.
+
+So until this problem is resolved, you won't get the second card
+running.  The good news is, the problem appears to be fixable with the
+proper kernel configuration.
+
+The driver did make some suggestions in it's original error message:
+
+
+> > cx18-1: ioremap failed, perhaps increasing __VMALLOC_RESERVE in page.h
+> > 
+> > cx18-1: or disabling CONFIG_HIGHMEM4G into the kernel would help
+> > 
+> > cx18-1: Error -12 on initialization
+
+both of which you could try.  They involve building a custom kernel.
+
+There may be other ways, but I'm no expert in Linux memory management.
+I suspect someone over on the LKML is.
+
+To help solve your problem, people will likely need to see the output of
+'cat /proc/meminfo' and 'dmesg' for your system.  If I had that info, I
+could try to help, I'm not sure I'd be able to help effectively.
+
+
+Regards,
+Andy
+
+
+> Here is my config file:
+> # grub.conf generated by anaconda
+> #
+> # Note that you do not have to rerun grub after making changes to this file
+> # NOTICE:  You have a /boot partition.  This means that
+> #          all kernel and initrd paths are relative to /boot/, eg.
+> #          root (hd0,0)
+> #          kernel /vmlinuz-version ro root=/dev/VolGroup00/LogVol00
+> #          initrd /initrd-version.img
+> #boot=/dev/sda
+> default=0
+> timeout=5
+> splashimage=(hd0,0)/grub/splash.xpm.gz
+> hiddenmenu
+> title MythDora (2.6.24.4-64.fc8)
+> 	root (hd0,0)
+> 	kernel /vmlinuz-2.6.24.4-64.fc8 ro root=/dev/VolGroup00/LogVol00
+> rhgb quiet vmalloc=256M
+> 	initrd /initrd-2.6.24.4-64.fc8.img
+> 
+> -----Original Message-----
+> From: Andy Walls [mailto:awalls@radix.net] 
+> Sent: Tuesday, October 14, 2008 7:16 PM
+> To: Tom Moore
+> Cc: linux-dvb@linuxtv.org
+> Subject: Re: [linux-dvb] Duel Hauppauge HVR-1600
+> 
+> On Tue, 2008-10-14 at 18:43 -0500, Tom Moore wrote:
+> > I just bought two Hauppauge HVR-1600 cards and I'm trying to set them
+> > up in 
+> > 
+> > Mythdorra 5. I have the cx18 drivers installed but it is only
+> > initializing one 
+> > 
+> > card. I'm getting the following message when I do a dmesg | grep cx18.
+> > Has 
+> > 
+> > anyone ran accross this problem before with duel cards of the same
+> > model and if 
+> > 
+> > so, how do I fix it? Any help will be greatly appreciated.
+> > 
+> >  
+> > 
+> > Thanks,
+> > 
+> > Tom Moore
+> > 
+> > Houston, TX
+> > 
+> >  
+> > 
+> > dmesg | grep cx18
+> > 
+> > cx18:  Start initialization, version 1.0.1
+> 
+> > cx18-1: Initializing card #1
+> > 
+> > cx18-1: Autodetected Hauppauge card
+> > 
+> > cx18-1: Unreasonably low latency timer, setting to 64 (was 32)
+> > 
+> > cx18-1: ioremap failed, perhaps increasing __VMALLOC_RESERVE in page.h
+> > 
+> > cx18-1: or disabling CONFIG_HIGHMEM4G into the kernel would help
+> > 
+> > cx18-1: Error -12 on initialization
+> > 
+> > cx18: probe of 0000:02:04.0 failed with error -12
+> > 
+> > cx18:  End initialization
+> > 
+> 
+> You're out of vmalloc address space.  Each cx18 needs 64 MB of vmalloc
+> space for MMIO mappings.
+> 
+> Do this:
+> 
+> $ cat /proc/meminfo | grep Vmalloc
+> 
+> Edit your bootloader's config file to add a 'vmalloc=xxxM' option to
+> your kernel commandline.  Use a value that is 128M greater than your
+> current VmallocTotal. 
+> 
+> 
+> Regards,
+> Andy
+> 
+> 
+> 
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
