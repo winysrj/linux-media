@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp02.lnh.mail.rcn.net ([207.172.157.102])
-	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from <smh@rs.tc>)
-	id 1KngZO-00046G-8v
-	for linux-dvb@linuxtv.org; Wed, 08 Oct 2008 23:27:47 +0200
-From: Steve Havelka <smh@rs.tc>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <48ECBE81.5010307@linuxtv.org>
-References: <1223438160.8812.9.camel@superbad> <48ECBE81.5010307@linuxtv.org>
-Date: Wed, 08 Oct 2008 16:27:40 -0500
-Message-Id: <1223501260.13079.38.camel@superbad>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] geniatech u6010a
+Received: from host06.hostingexpert.com ([216.80.70.60])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mkrufky@linuxtv.org>) id 1KpuKl-0001rc-KA
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 02:33:53 +0200
+Message-ID: <48F53A68.4070506@linuxtv.org>
+Date: Tue, 14 Oct 2008 20:33:44 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: korey_avail@yahoo.com
+References: <359313.45387.qm@web57511.mail.re1.yahoo.com>
+In-Reply-To: <359313.45387.qm@web57511.mail.re1.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Dvico HDTV7 Dual Express signal strength
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,35 +25,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 2008-10-08 at 10:06 -0400, Steven Toth wrote:
-> Steve Havelka wrote:
-[snipped]
-> 
-> I have no idea whether this product is current supported. I guess not.
-> 
-> Check the wiki at linuxtv.org. If this product doesn't have a page then 
-> please create one. If you can, open up the device and take some detailed 
-> pictures so we can understand what the chips are.
-> 
-> That's your first step.
-> 
-> - Steve
+Korey ODell wrote:
+> Does reading this card's signal strength work for anyone? I've tried femon, azap with the latest v4l drivers and a 2.6.26 kernel. Card reports a lock and otherwise works fine but basically reports 0 for a strength reading.
 
 
+There are two versions of this card -- one that uses a s5h1409, and the other uses a s5h1411.  Which version do you have?
 
-Hi Steve, and thanks for the quick reply.  I've taken a few photos of
-the device and put together a preliminary wiki page:
+(dmesg output will indicate which board you have)
 
-http://linuxtv.org/wiki/index.php/Geniatech_HDTV_THRILLER_USB_U6010A
-
-
-As I said, if there is any other way I can help, I'm willing to do so.
-
-
-Thanks,
-S Havelka
-
-
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
