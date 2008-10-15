@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from ffm.saftware.de ([83.141.3.46])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KuXyV-0001X0-GM
-	for linux-dvb@linuxtv.org; Mon, 27 Oct 2008 20:42:28 +0100
-Message-ID: <49061983.3070800@gmail.com>
-Date: Mon, 27 Oct 2008 23:41:55 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <obi@linuxtv.org>) id 1KqBxh-0003e1-Ni
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 21:23:14 +0200
+Message-ID: <48F6431D.6070503@linuxtv.org>
+Date: Wed, 15 Oct 2008 21:23:09 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: Matthias Schwarzott <zzam@gentoo.org>
-References: <200810272023.23513.zzam@gentoo.org>
-In-Reply-To: <200810272023.23513.zzam@gentoo.org>
+To: Christophe Thommeret <hftom@free.fr>
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>	<48F42D5C.7090908@linuxtv.org>
+	<48F4B366.7050508@linuxtv.org> <200810151844.36276.hftom@free.fr>
+In-Reply-To: <200810151844.36276.hftom@free.fr>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] commit 9344:aa3a67b658e8 (DVB-Core update) breaks
-	tuning of cx24123
+Subject: Re: [linux-dvb] Multi-frontend patch merge (TESTERS FEEDBACK) was:
+ Re: [PATCH] S2API: add multifrontend
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,67 +27,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Mathias,
+Christophe Thommeret wrote:
+> I think that the actual way of populating multiple adpaters is to make these 
+> devices working with current apps without any modifications.
 
-Matthias Schwarzott wrote:
-> Hi Manu, hi Steven!
-> 
-> It seems an update of dvb-core breaks tuning of cx24123.
-> After updating to latest v4l-dvb the nova-s plus card just did no longer lock 
-> to any channel. So I bisected it, and found this commit:
-> 
-> changeset:   9344:aa3a67b658e8
-> parent:      9296:e2a8b9b9c294
-> user:        Manu Abraham <manu@linuxtv.org>
-> date:        Tue Oct 14 23:34:07 2008 +0400
-> summary:     DVB-Core update
-> 
-> http://linuxtv.org/hg/v4l-dvb/rev/aa3a67b658e8
-> 
-> It basically did update the dvb-kernel-thread and enhanced the code using 
-> get_frontend_algo.
-> 
-> The codepath when get_frontend_algo returns *_ALGO_HW stayed the same, only 
-> one line got removed: params = &fepriv->parameter
-> 
-> Just re-adding that line made my card working again. Either this was lost, or 
-> the last two lines using "params" should also be converted to directly 
-> use "&fepriv->parameters".
+For sure.
 
-True. In the port, the one line got missed out. Thanks for taking the
-time to look at it.
+> On the other hand, since only dreambox drivers seem to use multiple frontends 
+> on single adapter, maybe this actual (and bad, i agree) way should be kept 
+> and multiple frontends on single adapter reserved for exclusive frontends  
+> until the api provide such properties query, so applications can assume these 
+> frontends to be exclusive.
 
-BTW, i don't see any reason why cx24123 should be using HW_ALGO as it is
-a standard demodulator. When we have a dedicated microcontroller
-employed to do that check, we might like to use HW_ALGO, since it would
-simply handle it. Not in the case of standard demodulators. As an
-example i could say cinergyT2, dst etc would be candidates for HW_ALGO,
-where tuning is offloaded to a onboard microcontroller.
+Actually, the way it is implemented on the Dreambox is not that bad, because
+there is at least one demux available for each frontend and you can choose
+which frontend to connect to which demux(es), to use one demux for live tv,
+and other ones for PIP or recording. But that doesn't really match PC
+peripherials.
 
-But overall, the fix looks fine though, for the devices that make use of
-HW_ALGO
-
-
-Please do have a Signed-off-by line so that it can be applied.
-
-Reviewed-by: Manu Abraham <manu@linuxtv.org>
-
-Thanks,
-Manu
-
-> ------------------------------------------------------------------------
-> 
-> --- v4l-dvb.orig/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
-> +++ v4l-dvb/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
-> @@ -584,6 +584,7 @@ restart:
->  
->  				if (fepriv->state & FESTATE_RETUNE) {
->  					dprintk("%s: Retune requested, FESTATE_RETUNE\n", __func__);
-> +					params = &fepriv->parameters;
->  					fepriv->state = FESTATE_TUNED;
->  				}
->  
-
+Regards,
+Andreas
 
 _______________________________________________
 linux-dvb mailing list
