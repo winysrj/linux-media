@@ -1,25 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9IBI4ha002200
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 07:18:04 -0400
-Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9IBHrp0019696
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 07:17:54 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9IBHlRZ027990
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 06:17:53 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9IBHjjU003074
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 16:47:46 +0530 (IST)
-From: "Jadav, Brijesh R" <brijesh.j@ti.com>
-To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Sat, 18 Oct 2008 16:47:47 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403DC2A8962@dbde02.ent.ti.com>
-Content-Language: en-US
+Date: Wed, 15 Oct 2008 08:20:26 +0300
+From: Adrian Bunk <bunk@kernel.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <20081015052026.GC20183@cs181140183.pp.htv.fi>
+References: <20081014183936.GB4710@cs181140183.pp.htv.fi>
+	<Pine.LNX.4.64.0810142335400.10458@axis700.grange>
+	<20081015033303.GC4710@cs181140183.pp.htv.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Subject: Physically Contiguous Buffer
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20081015033303.GC4710@cs181140183.pp.htv.fi>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org,
+	lethal@linux-sh.org, Magnus Damm <damm@igel.co.jp>
+Subject: Re: [PATCH] soc-camera: fix compile breakage on SH
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,22 +26,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All,
+On Wed, Oct 15, 2008 at 06:33:03AM +0300, Adrian Bunk wrote:
+> On Tue, Oct 14, 2008 at 11:53:37PM +0200, Guennadi Liakhovetski wrote:
+> > Fix Migo-R compile breakage caused by incomplete merge.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > 
+> > ---
+> > 
+> > Hi Adrian,
+> 
+> Hi Guennadi,
+> 
+> > please see, if the patch below fixes it. Completely untested. Magnus, 
+> > could you please verify if it also works (of course, if it at least 
+> > compiles:-)) If it doesn't, please fix it along these lines, if it suits 
+> > your needs.
+> >...
+> 
+> it does compile.
+>...
 
-I am working with a device, which can work with physically non-contiguous b=
-uffer. Since physically contiguous buffer can also be treated as non-contig=
-uous buffer, device can also work with contiguous buffer. I am using videob=
-uf-dma-sg layer for the buffer manager of non-contiguous buffer. The proble=
-m I am facing is since this layer does not handle physically contiguous buf=
-fers, whenever I pass pointer to the physically contiguous buffer to the vi=
-deobuf_iolock function through VIDIOC_QBUF ioctl, it returns me error. Sinc=
-e videobuf_iolock function always calls get_user_pages to get the user land=
- pages, it returns error for this buffer. Can someone help in solving this =
-problem? Is it possible to treat physically contiguous buffer as non-contig=
-uous buffer and create a scatter-gather list in this layer?
+But it causes compile breakage elsewhere:
 
-Thanks,
-Brijesh Jadav
+<--  snip  -->
+
+...
+  CC      drivers/media/video/soc_camera_platform.o
+drivers/media/video/soc_camera_platform.c: In function ‘soc_camera_platform_init’:
+drivers/media/video/soc_camera_platform.c:49: error: ‘struct soc_camera_platform_info’ has no member named ‘power’
+drivers/media/video/soc_camera_platform.c:50: error: ‘struct soc_camera_platform_info’ has no member named ‘power’
+drivers/media/video/soc_camera_platform.c: In function ‘soc_camera_platform_release’:
+drivers/media/video/soc_camera_platform.c:59: error: ‘struct soc_camera_platform_info’ has no member named ‘power’
+drivers/media/video/soc_camera_platform.c:60: error: ‘struct soc_camera_platform_info’ has no member named ‘power’
+make[4]: *** [drivers/media/video/soc_camera_platform.o] Error 1
+
+<--  snip  -->
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
 --
 video4linux-list mailing list
