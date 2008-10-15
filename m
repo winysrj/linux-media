@@ -1,22 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outmailhost.telefonica.net ([213.4.149.242]
-	helo=ctsmtpout3.frontal.correo)
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jareguero@telefonica.net>) id 1Kmp7J-00074Z-He
-	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 14:23:14 +0200
-Received: from jar.dominio (80.25.230.35) by ctsmtpout3.frontal.correo
-	(7.3.135) (authenticated as jareguero$telefonica.net)
-	id 48E8006C00179A9E for linux-dvb@linuxtv.org;
-	Mon, 6 Oct 2008 14:22:39 +0200
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: linux-dvb@linuxtv.org
-Date: Mon, 6 Oct 2008 14:22:37 +0200
-MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_OMg6I/28+j3guAq"
-Message-Id: <200810061422.38176.jareguero@telefonica.net>
-Subject: [linux-dvb] Problems with new S2API and DVB-T
+	(envelope-from <stoth@linuxtv.org>) id 1Kq7Ow-0001LV-EI
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 16:31:04 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K8S00KR9AYOQF30@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 15 Oct 2008 10:30:26 -0400 (EDT)
+Date: Wed, 15 Oct 2008 10:30:24 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <412bdbff0810150724h2ab46767ib7cfa52e3fdbc5fa@mail.gmail.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Message-id: <48F5FE80.5010106@linuxtv.org>
+MIME-version: 1.0
+References: <412bdbff0810150724h2ab46767ib7cfa52e3fdbc5fa@mail.gmail.com>
+Cc: Linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Revisiting the SNR/Strength issue
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,89 +25,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_OMg6I/28+j3guAq
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Devin Heitmueller wrote:
+> I know that this has been brought up before, but would it be possible
+> to revisit the issue with SNR and strength units of measure being
+> inconsistent across frontends?
+> 
+> I know that we don't always know what the units of measure are for
+> some frontends, but perhaps we could at least find a way to tell
+> applications what the units are for those frontends where it is known?
 
-I am trying to use the new API for DVB-T and I have some problems. They are 
-not way to set code_rate_HP, code_rate_LP, transmission_mode, and 
-guard_interval , and the default values are 0, that are not the AUTO ones.
-Also the bandwidth is not treated well. The attached patch is a workaround 
-that works for me.
+The SNR units should be standardized into a single metric, something 
+actually useful like ESNO or db. If that isn't available then we should 
+aim to eyeball / manually calibrate impossible boards against known 
+reliable demods on the same feed, it should be close enough.
 
-Thanks.
-Jose Alberto
+This requires patience and time from the right people with the right 
+hardware.
 
-
-
---Boundary-00=_OMg6I/28+j3guAq
-Content-Type: text/x-patch;
-  charset="us-ascii";
-  name="dvb_frontend.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="dvb_frontend.diff"
-
-diff -r 979d14edeb2e linux/drivers/media/dvb/dvb-core/dvb_frontend.c
---- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c	Sat Oct 04 21:37:36 2008 -0300
-+++ b/linux/drivers/media/dvb/dvb-core/dvb_frontend.c	Mon Oct 06 14:14:39 2008 +0200
-@@ -974,15 +974,7 @@
- 		c->delivery_system = SYS_DVBC_ANNEX_AC;
- 		break;
- 	case FE_OFDM:
--		if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
--			c->bandwidth_hz = 6000000;
--		else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
--			c->bandwidth_hz = 7000000;
--		else if (p->u.ofdm.bandwidth == BANDWIDTH_8_MHZ)
--			c->bandwidth_hz = 8000000;
--		else
--			/* Including BANDWIDTH_AUTO */
--			c->bandwidth_hz = 0;
-+		c->bandwidth_hz = p->u.ofdm.bandwidth;
- 		c->code_rate_HP = p->u.ofdm.code_rate_HP;
- 		c->code_rate_LP = p->u.ofdm.code_rate_LP;
- 		c->modulation = p->u.ofdm.constellation;
-@@ -1031,19 +1023,12 @@
- 		break;
- 	case FE_OFDM:
- 		printk("%s() Preparing OFDM req\n", __FUNCTION__);
--		if (c->bandwidth_hz == 6000000)
--			p->u.ofdm.bandwidth = BANDWIDTH_6_MHZ;
--		else if (c->bandwidth_hz == 7000000)
--			p->u.ofdm.bandwidth = BANDWIDTH_7_MHZ;
--		else if (c->bandwidth_hz == 8000000)
--			p->u.ofdm.bandwidth = BANDWIDTH_8_MHZ;
--		else
--			p->u.ofdm.bandwidth = BANDWIDTH_AUTO;
--		p->u.ofdm.code_rate_HP = c->code_rate_HP;
--		p->u.ofdm.code_rate_LP = c->code_rate_LP;
-+		p->u.ofdm.bandwidth = c->bandwidth_hz;
-+		p->u.ofdm.code_rate_HP = FEC_AUTO;
-+		p->u.ofdm.code_rate_LP = FEC_AUTO;
- 		p->u.ofdm.constellation = c->modulation;
--		p->u.ofdm.transmission_mode = c->transmission_mode;
--		p->u.ofdm.guard_interval = c->guard_interval;
-+		p->u.ofdm.transmission_mode = TRANSMISSION_MODE_AUTO;
-+		p->u.ofdm.guard_interval = GUARD_INTERVAL_AUTO;
- 		p->u.ofdm.hierarchy_information = c->hierarchy;
- 		c->delivery_system = SYS_DVBT;
- 		break;
-
---Boundary-00=_OMg6I/28+j3guAq
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_OMg6I/28+j3guAq--
