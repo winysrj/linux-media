@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LLAYvi014924
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 17:10:34 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9LLAMGw008483
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 17:10:22 -0400
-Date: Tue, 21 Oct 2008 19:09:40 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Message-ID: <20081021190940.3d8700bb@pedra.chehab.org>
-In-Reply-To: <200810212149.58105.laurent.pinchart@skynet.be>
-References: <200810211916.47434.hverkuil@xs4all.nl>
-	<200810212149.58105.laurent.pinchart@skynet.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Proposal to rename compat_ioctl32.c to v4l2-compat-ioctl32.c
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9FAIVTw005929
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 06:18:31 -0400
+Received: from mu-out-0910.google.com (mu-out-0910.google.com [209.85.134.191])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9FAHpAV003020
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 06:18:21 -0400
+Received: by mu-out-0910.google.com with SMTP id g7so2644558muf.1
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 03:18:20 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
+To: video4linux-list@redhat.com
+Date: Wed, 15 Oct 2008 19:17:09 +0900
+Message-Id: <20081015101709.22905.30106.sendpatchset@rx1.opensource.se>
+Cc: v4l-dvb-maintainer@linuxtv.org, g.liakhovetski@gmx.de,
+	mchehab@infradead.org
+Subject: [PATCH] video: improve sh_mobile_ceu buffer handling
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,39 +25,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 21 Oct 2008 21:49:57 +0200
-Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+From: Magnus Damm <damm@igel.co.jp>
 
-> On Tuesday 21 October 2008, Hans Verkuil wrote:
-> > Hi Mauro,
-> >
-> > The compat_ioctl32.c is the only v4l2 core source whose name does not
-> > begin with v4l2-. Because of that it is often overlooked (I certainly
-> > did in the past!) when adding new ioctls.
-> >
-> > I propose to rename it to v4l2-compat-ioctl32.c. What I'm not sure of is
-> > whether it is OK to rename the module as well to
-> > v4l2_compat_ioctl32.ko? Or should that remain compat_ioctl32.ko?
-> >
-> > Personally I think it would be nice if this rename could go into 2.6.28.
-> > This file is rarely touched so the chances of merge conflicts seem
-> > remote to me.
-> >
-> > Note that I'm abroad from tomorrow until Sunday, so if you agree then
-> > it's probably quicker if you make the change rather than waiting for me
-> > to return. It's trivial anyway.
-> 
-> I'm in favour of the change. Renaming the module should not be an issue as it 
-> should be pulled in by modprobe as a dependency anyway.
+This patch improves the buffer handling in the sh_mobile_ceu driver.
 
-I agree. This seems to be a good idea.
+Instead of marking all queued buffers as VIDEOBUF_ACTIVE the code now
+marks queued-but-not-active buffers as VIDEOBUF_QUEUED and buffers
+involved in dma as VIDEOBUF_ACTIVE. The code is also updated with
+code to cancel active buffers, thanks to Morimoto-san.
 
-I'll try to find some time for doing it this week. We should not forget to
-update obsolete.txt to be sure that "make rmmod" and "make rminstall" will
-properly remove the previous name.
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Test-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+---
 
-Cheers,
-Mauro
+ drivers/media/video/sh_mobile_ceu_camera.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+--- 0004/drivers/media/video/sh_mobile_ceu_camera.c
++++ work/drivers/media/video/sh_mobile_ceu_camera.c	2008-10-15 18:26:29.000000000 +0900
+@@ -165,6 +165,7 @@ static void sh_mobile_ceu_capture(struct
+ 	ceu_write(pcdev, CETCR, 0x0317f313 ^ 0x10);
+ 
+ 	if (pcdev->active) {
++		pcdev->active->state = VIDEOBUF_ACTIVE;
+ 		ceu_write(pcdev, CDAYR, videobuf_to_dma_contig(pcdev->active));
+ 		ceu_write(pcdev, CAPSR, 0x1); /* start capture */
+ 	}
+@@ -236,7 +237,7 @@ static void sh_mobile_ceu_videobuf_queue
+ 	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %zd\n", __func__,
+ 		vb, vb->baddr, vb->bsize);
+ 
+-	vb->state = VIDEOBUF_ACTIVE;
++	vb->state = VIDEOBUF_QUEUED;
+ 	spin_lock_irqsave(&pcdev->lock, flags);
+ 	list_add_tail(&vb->queue, &pcdev->capture);
+ 
+@@ -323,12 +324,24 @@ static void sh_mobile_ceu_remove_device(
+ {
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+ 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
++	unsigned long flags;
+ 
+ 	BUG_ON(icd != pcdev->icd);
+ 
+ 	/* disable capture, disable interrupts */
+ 	ceu_write(pcdev, CEIER, 0);
+ 	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
++
++	/* make sure active buffer is canceled */
++	spin_lock_irqsave(&pcdev->lock, flags);
++	if (pcdev->active) {
++		list_del(&pcdev->active->queue);
++		pcdev->active->state = VIDEOBUF_ERROR;
++		wake_up_all(&pcdev->active->done);
++		pcdev->active = NULL;
++	}
++	spin_unlock_irqrestore(&pcdev->lock, flags);
++
+ 	icd->ops->release(icd);
+ 
+ 	dev_info(&icd->dev,
 
 --
 video4linux-list mailing list
