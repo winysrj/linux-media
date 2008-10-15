@@ -1,22 +1,32 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KuklC-0007JD-8H
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 10:21:10 +0100
-Message-ID: <4906D97D.5050603@gmail.com>
-Date: Tue, 28 Oct 2008 13:21:01 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+Message-ID: <48F640DA.7060009@linuxtv.org>
+Date: Wed, 15 Oct 2008 21:13:30 +0200
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: oleg roitburd <oroitburd@gmail.com>
-References: <48F525CD.70801@gmail.com>	
-	<20081015224128.5320eaee@pedra.chehab.org>	
-	<4900CB6B.4010005@linuxtv.org>	
-	<b42fca4d0810280113q6045f284v167ab234367d8a97@mail.gmail.com>	
-	<4906D19B.7080800@gmail.com>
-	<b42fca4d0810280207s54d6a81er691d2ea58d2d04a3@mail.gmail.com>
-In-Reply-To: <b42fca4d0810280207s54d6a81er691d2ea58d2d04a3@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] STB0899 update (TT S2 3200)
+To: Steven Toth <stoth@linuxtv.org>
+References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
+	<23602.1221904652@kewl.org> <48D51000.3060006@linuxtv.org>
+	<25577.1221924224@kewl.org> <20080921234339.18450@gmx.net>
+	<8002.1222068668@kewl.org> <20080922124908.203800@gmx.net>
+	<10822.1222089271@kewl.org> <48D7C15E.5060509@linuxtv.org>
+	<20080922164108.203780@gmx.net> <20022.1222162539@kewl.org>
+	<20080923142509.86330@gmx.net> <4025.1222264419@kewl.org>
+	<4284.1222265835@kewl.org> <20080925145223.47290@gmx.net>
+	<18599.1222354652@kewl.org>
+	<Pine.LNX.4.64.0809261117150.21806@trider-g7>
+	<21180.1223610119@kewl.org> <20081010132352.273810@gmx.net>
+	<48EF7E78.6040102@linuxtv.org> <30863.1223711672@kewl.org>
+	<48F0AA35.6020005@linuxtv.org> <773.1223732259@kewl.org>
+	<48F0AEA3.50704@linuxtv.org> <989.1223733525@kewl.org>
+	<48F0B6C5.5090505@linuxtv.org> <1506.1223737964@kewl.org>
+	<48F0E516.303@linuxtv.org> <20081011190015.175420@gmx.net>
+	<48F36B32.5060006@linuxtv.org> <48F42D5C.7090908@linuxtv.org>
+	<48F4B366.7050508@linuxtv.org>
+In-Reply-To: <48F4B366.7050508@linuxtv.org>
+Cc: Hans Werner <HWerner4@gmx.de>, fabbione@fabbione.net,
+	linux-dvb <linux-dvb@linuxtv.org>, scarfoglio@arpacoop.it
+Subject: Re: [linux-dvb] Multi-frontend patch merge (TESTERS FEEDBACK) was:
+ Re: [PATCH] S2API: add multifrontend
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,35 +40,48 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-oleg roitburd wrote:
-> 2008/10/28 Manu Abraham <abraham.manu@gmail.com>:
->> oleg roitburd wrote:
->>
->>> I have tried driver from v4l-dvb tree ( http://linuxtv.org/hg/v4l-dvb/
->>> , changeset 9471      8486cbf6af4e)
->>> Driver is not working. Thank you Manu. I hope you have this card and
->>> tried your driver before you make PULL request.
->> People have reported success. Care to state what doesn't work ?
->>
-> 
-> I have tried with scan-s2 (http://mercurial.intuxication.org/hg/scan-s2/)
-> It has tuned only one transponder on Astra 19.2. All other failed
-> (HotBird 13E, Sirius 5E)
-> 
-> ./scan-s2 -o vdr -t 3 dvb-s/Astra-19.2E > ../channels.conf-19.2E
-> API major 5, minor 0
-> scanning dvb-s/Astra-19.2E
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder 12551500 V 22000000 22000000
-> ----------------------------------> Using DVB-S
->>>> tune to: 12551:vS0C56:S0.0W:22000:
-> DVB-S IF freq is 1951500
-> WARNING: >>> tuning failed!!!
+Steven Toth wrote:
+> A good example of this in the current kernel (without any MFE patches)
+> is the current cx23885 driver, that registers adapter0 and adapter1 with
+> two different ATSC frontends. I question (and argue) that it should
+> really be /dev/dvb/adapter0/demux{0,1}
 
-Please try again from http://jusst.de/hg/v4l-dvb
+Did you mean frontend{0,1} here?
+
+> The same is also true for the for the multi-frontend patches, it should
+> probably change (as part of an overall adapterX overhaul) to match the
+> LinuxTV DVB API and register only one demux device.
+> 
+> That's a much larger project, and has not been addressed yet. Many users
+> will probably also argue that it's unimportant work, when application
+> are currently working.
+> 
+> My opinion is that we would review the adapter usage and determine
+> whether we need or want to change that. If we do change it we should
+> probably add some better application interfaces from the adapter inode -
+> In a model similar to the S2API has done for frontends. Applications
+> would then be able to query board specific details in a way that cannot
+> be easily done now.
+
+Yes, such an interface is definitely missing.
+
+> However, regardless of my opinions, it would be a mistake to hold back a
+> merge of the current multi-frontend patches. Instead, we should merge
+> the large number of MFE patches and start a larger adapter level
+> discussion and slowly evolve with smaller patches. (We'll need someone
+> to draft an RFC).
+
+There's no need to hold back the merge. Even if someone decides to change
+the code to match the DVB API later, then it wouldn't be a change to the
+API itself. (Or is there any change being done to the user interface now?)
+Application developers can already add support for DMX_SET_SOURCE now.
+
+> Are you volunteering to address this larger subject?
+
+No.
 
 Regards,
-Manu
+Andreas
 
 _______________________________________________
 linux-dvb mailing list
