@@ -1,18 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9TBZ0kH027566
-	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 07:35:00 -0400
-Received: from smtp-out25.alice.it (smtp-out25.alice.it [85.33.2.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9TBYnWc022581
-	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 07:34:50 -0400
-Date: Wed, 29 Oct 2008 12:34:46 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: video4linux-list@redhat.com
-Message-Id: <20081029123446.540dcd2e.ospite@studenti.unina.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Subject: [PATCH, RFC] mt9m111: Fix YUYV format for pxa-camera
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9FDWrGp009789
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 09:32:53 -0400
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9FDWh7C016159
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 09:32:44 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Jadav, Brijesh R" <brijesh.j@ti.com>, Magnus Damm <magnus.damm@gmail.com>
+Date: Wed, 15 Oct 2008 08:32:36 -0500
+Message-ID: <A69FA2915331DC488A831521EAE36FE4AFB7CAD5@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE4AF7E5CAA@dlee06.ent.ti.com>
+	<200810031635.40168.robk@starhub.net.sg>
+	<19F8576C6E063C45BE387C64729E739403DC087DFD@dbde02.ent.ti.com>
+	<aec7e5c30810140546g4fa97f6br2a6bd3b84e083329@mail.gmail.com>
+	<19F8576C6E063C45BE387C64729E739403DC2A806B@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403DC2A806B@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,62 +34,82 @@ List-ID: <video4linux-list@redhat.com>
 
 Hi,
 
-I'd like to discuss this change to mt9m111, but I am not sure if the
-first hunk of the following patch is a proper fix for the problem I had:
-when using YUYV the output buffer has to be WIDTH*HEIGHT*2,
-and not WIDTH*HEIGHT as it is now using 8bit YUYV format.
-Maybe the proper fix belongs to pxa-camera.c?
+I think this will resolve our issue as well. I will use this for my port.
 
-Anyway, with the following changes I have the right output from mt9m111
-interfaced to pxa-camera on a Motorola A910 phone:
-http://people.openezx.org/ao2/a910-camera-working.jpg
-http://wiki.openezx.org/A910
 
-Regards,
-   Antonio Ospite.
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+Phone : 301-515-3736
+email: m-karicheri2@ti.com
 
-Here's the patch:
+>>>-----Original Message-----
+>>>From: Jadav, Brijesh R
+>>>Sent: Wednesday, October 15, 2008 7:54 AM
+>>>To: Magnus Damm
+>>>Cc: video4linux-list@redhat.com; Karicheri, Muralidharan
+>>>Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
+>>>
+>>>Hi,
+>>>
+>>>Thank you very much for providing me the solution to this problem. This
+>>>will solve our problem for which we struggled a lot.
+>>>
+>>>Brijesh Jadav
+>>>
+>>>-----Original Message-----
+>>>From: Magnus Damm [mailto:magnus.damm@gmail.com]
+>>>Sent: Tuesday, October 14, 2008 6:17 PM
+>>>To: Jadav, Brijesh R
+>>>Cc: Rob Kramer; video4linux-list@redhat.com; Karicheri, Muralidharan
+>>>Subject: Re: videobuf-dma-contig - buffer allocation at init time ?
+>>>
+>>>Hi there,
+>>>
+>>>On Sat, Oct 4, 2008 at 2:41 AM, Jadav, Brijesh R <brijesh.j@ti.com>
+>>>wrote:
+>>>> Hi,
+>>>>
+>>>> Even dma_alloc_coherent fails after some time because of the memory
+>>>fragmentation for the large buffer, which is required for the HD modes.
+>>>This is typically in the Embedded devices because they have less memory.
+>>>Is it possible to have a hook from the video-buf layer to the driver for
+>>>allocating contiguous buffer so that allocation and de-allocation is
+>>>managed in the driver completely?
+>>>
+>>>Yes, you are correct that fragmentation will be an issue. To avoid
+>>>that you could allocate a static buffer at boot up and use that buffer
+>>>with dma_declare_coherent_memory().
+>>>
+>>>Look at how platform_resource_setup_memory() is being used in the
+>>>board specific code here:
+>>>
+>>>http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-
+>>>2.6.git;a=blob;f=arch/sh/boards/mach-
+>>>migor/setup.c;h=714dce91cc9bbb30684764c33eef963c09844866;hb=HEAD
+>>>
+>>>This SuperH specific function is used at boot up time to allocate a
+>>>chunk of physically contiguous memory for on-chip IP blocks:
+>>>
+>>>http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-
+>>>2.6.git;a=blob;f=arch/sh/mm/consistent.c;h=64b8f7f96f9aed038e87be11ee374d
+>>>5b0797f239;hb=HEAD
+>>>
+>>>This memory chunk is passed to the V4L2 driver as a platform resource.
+>>>The V4L2 driver performs a dma_declare_coherent_memory() call to make
+>>>sure all future dma_alloc_coherent() calls will be allocated from this
+>>>memory.
+>>>
+>>>http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-
+>>>2.6.git;a=blob;f=drivers/media/video/sh_mobile_ceu_camera.c;h=76838091dc6
+>>>6ce05140b63912ec106422e2bc542;hb=HEAD
+>>>
+>>>Look at Documentation/DMA-API.txt for more information. Not sure if
+>>>your architecture support this mechanism though.
+>>>
+>>>/ magnus
 
-Use 16 bit depth for YUYV so the pxa-camera image buffer has the correct size,
-see the formula:
-
-	*size = icd->width * icd->height *
-		((icd->current_fmt->depth + 7) >> 3);
-
-in drivers/media/video/pxa_camera.c: pxa_videobuf_setup().
-
-Don't swap Cb and Cr components, to respect PXA Quick Capture Interface
-data format.
-
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
-
----
- drivers/media/video/mt9m111.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index da0b2d5..76fb0cb 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -130,7 +130,7 @@
- 	COL_FMT(_name, _depth, _fourcc, V4L2_COLORSPACE_SRGB)
- 
- static const struct soc_camera_data_format mt9m111_colour_formats[] = {
--	COL_FMT("YCrYCb 8 bit", 8, V4L2_PIX_FMT_YUYV, V4L2_COLORSPACE_JPEG),
-+	COL_FMT("YCrYCb 16 bit", 16, V4L2_PIX_FMT_YUYV, V4L2_COLORSPACE_JPEG),
- 	RGB_FMT("RGB 565", 16, V4L2_PIX_FMT_RGB565),
- 	RGB_FMT("RGB 555", 16, V4L2_PIX_FMT_RGB555),
- 	RGB_FMT("Bayer (sRGB) 10 bit", 10, V4L2_PIX_FMT_SBGGR16),
-@@ -864,6 +864,9 @@ static int mt9m111_video_probe(struct soc_camera_device *icd)
- 	mt9m111->swap_rgb_even_odd = 1;
- 	mt9m111->swap_rgb_red_blue = 1;
- 
-+	mt9m111->swap_yuv_y_chromas = 1;
-+	mt9m111->swap_yuv_cb_cr = 0;
-+
- 	return 0;
- eisis:
- ei2c:
 
 --
 video4linux-list mailing list
