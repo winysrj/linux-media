@@ -1,26 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9D54xtO006106
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 01:04:59 -0400
-Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9D54mZU006116
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 01:04:49 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9D54fI7005467
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 00:04:47 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9D54fOl018952
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 10:34:41 +0530 (IST)
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Mon, 13 Oct 2008 10:34:19 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D61A0CC2@dbde02.ent.ti.com>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02D61A0CBB@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
+Date: Wed, 15 Oct 2008 06:33:03 +0300
+From: Adrian Bunk <bunk@kernel.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <20081015033303.GC4710@cs181140183.pp.htv.fi>
+References: <20081014183936.GB4710@cs181140183.pp.htv.fi>
+	<Pine.LNX.4.64.0810142335400.10458@axis700.grange>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: RE: Cloning the V4L2 branch
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0810142335400.10458@axis700.grange>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org,
+	lethal@linux-sh.org, Magnus Damm <damm@igel.co.jp>
+Subject: Re: [PATCH] soc-camera: fix compile breakage on SH
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,36 +24,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Sorry forgot to mention the error,
-Error coming is 
+On Tue, Oct 14, 2008 at 11:53:37PM +0200, Guennadi Liakhovetski wrote:
+> Fix Migo-R compile breakage caused by incomplete merge.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> ---
+> 
+> Hi Adrian,
 
-Initialize master/.git
-Initialized empty Git repository in /db/psp_git/users/a0393759/master/.git/
-warning: remote HEAD refers to nonexistent ref, unable to checkout.
+Hi Guennadi,
 
-> -----Original Message-----
-> From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-bounces@redhat.com] On Behalf Of
-> Shah, Hardik
-> Sent: Monday, October 13, 2008 10:32 AM
-> To: video4linux-list@redhat.com
-> Subject: Cloning the V4L2 branch
-> 
-> Hi All,
-> 
-> I am trying to clone the V4L2 branch using below command
-> 
-> $git clone http://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git master
-> 
-> But it is giving me following error.  So is there any  other way to clone to V4L2 branch.
-> 
-> Thanks and Regards,
-> Hardik
-> 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
+> please see, if the patch below fixes it. Completely untested. Magnus, 
+> could you please verify if it also works (of course, if it at least 
+> compiles:-)) If it doesn't, please fix it along these lines, if it suits 
+> your needs.
+>...
 
+it does compile.
+
+I cannot verify whether it also works.
+
+cu
+Adrian
+
+-- 
+
+       "Is there not promise of rain?" Ling Tan asked suddenly out
+        of the darkness. There had been need of rain for many days.
+       "Only a promise," Lao Er said.
+                                       Pearl S. Buck - Dragon Seed
 
 --
 video4linux-list mailing list
