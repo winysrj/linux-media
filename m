@@ -1,29 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2.wa.amnet.net.au ([203.161.124.51])
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mark@lostcow.com>) id 1KsbCN-0008Ia-5i
-	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 12:44:21 +0200
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by smtp2.wa.amnet.net.au (Postfix) with ESMTP id 09739C3C7D
-	for <linux-dvb@linuxtv.org>; Wed, 22 Oct 2008 18:44:07 +0800 (WST)
-Received: from smtp2.wa.amnet.net.au ([127.0.0.1])
-	by localhost (smtp2.wa.amnet.net.au [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id iuzz6OXTx5tt for <linux-dvb@linuxtv.org>;
-	Wed, 22 Oct 2008 18:44:05 +0800 (WST)
-Received: from callaghan.local (203.161.84.230.static.amnet.net.au
-	[203.161.84.230])
-	by smtp2.wa.amnet.net.au (Postfix) with SMTP id 82186C47D6
-	for <linux-dvb@linuxtv.org>; Wed, 22 Oct 2008 18:44:05 +0800 (WST)
-Message-ID: <452AD5616A1D4A2EB6BB6329DEF41E58@marklaptop>
-From: "Mark Callaghan" <mark@lostcow.com>
-To: "Alex Ferrara" <alex@receptiveit.com.au>
-References: <00023E2CD2444D05AFE501BA0439DCCF@marklaptop>
-	<12A846AD-5D7A-4021-BE5B-063A7AEB70E9@receptiveit.com.au>
-In-Reply-To: <12A846AD-5D7A-4021-BE5B-063A7AEB70E9@receptiveit.com.au>
-Date: Wed, 22 Oct 2008 18:43:53 +0800
-MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Dvico Dual Digital 4 rev 2 broken in October?
+	(envelope-from <stoth@linuxtv.org>) id 1KqF5M-0004cj-U8
+	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 00:43:22 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K8S00M6GXR45DU0@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Wed, 15 Oct 2008 18:42:41 -0400 (EDT)
+Date: Wed, 15 Oct 2008 18:42:40 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <E3C12FE3-4050-4C71-9CC5-CB67A67DA6C8@receptiveit.com.au>
+To: Alex Ferrara <alex@receptiveit.com.au>
+Message-id: <48F671E0.6080002@linuxtv.org>
+MIME-version: 1.0
+References: <E3C12FE3-4050-4C71-9CC5-CB67A67DA6C8@receptiveit.com.au>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Dvico HDTV Dual Express
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,93 +25,23 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1991441438=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+Alex Ferrara wrote:
+> As reported by an earlier email, I have had poor tuner results with my  
+> dual express card. I have tried playing with the RF amplification,  
+> removing it completely, and testing the card in the same environment  
+> running Vista. Vista works great, Linux does not.
 
---===============1991441438==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0024_01C93476.2198D820"
+This card works perfectly for me, I use it all of the time under Linux.
 
-This is a multi-part message in MIME format.
-
-------=_NextPart_000_0024_01C93476.2198D820
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-Thanks Alex. I deleted one of the firmware files (Chris's) and my rev2 =
-is good now. (I had a few fw files in place.)
-
-But I have been having other problems - only one of the two tuners would =
-work, the other reporting "partial lock". Various searches and much =
-digging turned up a suggestion to disable EIT scanning. I disabled the =
-EIT scan in the backend setup (video sources, I think?). But this had no =
-effect. I then went into the database with phpmyadmin, and disabled =
-dvb_eitscan in the capturecard table. And now I get both tuners.
-
-So there is something strange happening, but I'm happy.
-
-Cheers,
-Mark
-
-------=_NextPart_000_0024_01C93476.2198D820
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML><HEAD>
-<META http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Diso-8859-1">
-<META content=3D"MSHTML 6.00.6001.18148" name=3DGENERATOR>
-<STYLE></STYLE>
-</HEAD>
-<BODY=20
-style=3D"WORD-WRAP: break-word; -webkit-nbsp-mode: space; =
--webkit-line-break: after-white-space"=20
-bgColor=3D#ffffff>
-<DIV><FONT face=3DArial size=3D2>Thanks Alex. I deleted one of the =
-firmware files=20
-(Chris's) and my rev2 is good now. (I had a few fw files in =
-place.)</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>But I have been having other problems - =
-only one of=20
-the two tuners would work, the other reporting "partial lock". Various =
-searches=20
-and much digging turned up a suggestion to disable EIT scanning. I =
-disabled the=20
-EIT scan in the backend setup (video sources, I think?). But this had no =
-effect.=20
-I then went into the database with phpmyadmin, and disabled dvb_eitscan =
-in the=20
-capturecard table. And now I get both tuners.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>So there is something strange =
-happening, but I'm=20
-happy.</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
-<DIV><FONT face=3DArial size=3D2>Cheers,</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2>Mark</FONT></DIV>
-<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
-
-------=_NextPart_000_0024_01C93476.2198D820--
-
-
-
---===============1991441438==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1991441438==--
