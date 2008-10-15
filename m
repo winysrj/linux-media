@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fk-out-0910.google.com ([209.85.128.188])
+Received: from srv5.sysproserver.de ([78.46.249.130])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <oroitburd@gmail.com>) id 1Kujho-0001xh-Jk
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 09:13:37 +0100
-Received: by fk-out-0910.google.com with SMTP id f40so3040823fka.1
-	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 01:13:33 -0700 (PDT)
-Message-ID: <b42fca4d0810280113q6045f284v167ab234367d8a97@mail.gmail.com>
-Date: Tue, 28 Oct 2008 09:13:32 +0100
-From: "oleg roitburd" <oroitburd@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <4900CB6B.4010005@linuxtv.org>
+	(envelope-from <nicolai@xeve.de>) id 1KqACV-0003tp-05
+	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 19:30:23 +0200
+Received: from [192.168.2.4] (p4FDB4B01.dip.t-dialin.net [79.219.75.1])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by srv5.sysproserver.de (Postfix) with ESMTP id 29EB12FCEA30
+	for <linux-dvb@linuxtv.org>; Wed, 15 Oct 2008 19:30:19 +0200 (CEST)
+Message-ID: <48F628AE.9000308@xeve.de>
+Date: Wed, 15 Oct 2008 19:30:22 +0200
+From: Nicolai Spohrer <nicolai@xeve.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <48F525CD.70801@gmail.com>
-	<20081015224128.5320eaee@pedra.chehab.org>
-	<4900CB6B.4010005@linuxtv.org>
-Cc: Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] STB0899 update (TT S2 3200)
+CC: linux-dvb@linuxtv.org
+References: <48F502D7.5070607@xeve.de>
+	<E1KpyCw-0002md-00.goga777-bk-ru@f110.mail.ru>
+In-Reply-To: <E1KpyCw-0002md-00.goga777-bk-ru@f110.mail.ru>
+Subject: Re: [linux-dvb] S2API / TT3200 / STB0899 support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,21 +30,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/10/23 Steven Toth <stoth@linuxtv.org>:
+Goga777 wrote:
+> You can use the ffplay instead of mplayer. Ffplay can play h.264 stream from dvb-s2 channel
+>   
 
->
-> Manu, how close are you to issuing a pull request on your TT3200 tree?
->
+How?
+When I dump the stream (dd if=/dev/..../dvr0 of=hd.ts) and use "ffplay 
+hd.ts", I get
+hd.ts: could not open codecs
 
+ffplay - < /dev/..../dvr0
+and ffplay /dev/..../dvr0
 
-I have tried driver from v4l-dvb tree ( http://linuxtv.org/hg/v4l-dvb/
-, changeset 9471	8486cbf6af4e)
-Driver is not working. Thank you Manu. I hope you have this card and
-tried your driver before you make PULL request.
-I made fallback again to s2-liplianin.
+don't output anything (they run forever, I can neither see the video nor 
+see the audio.
 
-Regards
-Oleg Roitburd
+N.S.
 
 _______________________________________________
 linux-dvb mailing list
