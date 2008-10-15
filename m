@@ -1,22 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9DMVQLe029412
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 18:31:26 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9DMVF8T008361
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 18:31:16 -0400
-Received: by ug-out-1314.google.com with SMTP id o38so601681ugd.13
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 15:31:15 -0700 (PDT)
-Message-ID: <30353c3d0810131531p1d69d656t2dfd136866ecc8c1@mail.gmail.com>
-Date: Mon, 13 Oct 2008 18:31:15 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	v4l <video4linux-list@redhat.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9F98B8r002775
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 05:08:11 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9F97Naj030331
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 05:07:23 -0400
+Date: Wed, 15 Oct 2008 11:07:27 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Magnus Damm <magnus.damm@gmail.com>
+In-Reply-To: <aec7e5c30810150155q244834c0i65b2f3b927ba2d37@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0810151101330.5361@axis700.grange>
+References: <20081014183936.GB4710@cs181140183.pp.htv.fi>
+	<Pine.LNX.4.64.0810142335400.10458@axis700.grange>
+	<20081015033303.GC4710@cs181140183.pp.htv.fi>
+	<20081015052026.GC20183@cs181140183.pp.htv.fi>
+	<aec7e5c30810142328n1563163bw636b8baf1a47ad8b@mail.gmail.com>
+	<Pine.LNX.4.64.0810150836100.3896@axis700.grange>
+	<aec7e5c30810150103p7ed810ccyc815ad578d64feac@mail.gmail.com>
+	<Pine.LNX.4.64.0810151011450.3896@axis700.grange>
+	<aec7e5c30810150155q244834c0i65b2f3b927ba2d37@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_31866_18248630.1223937075096"
-Cc: 
-Subject: [PATCH 2/2] stk-webcam: fix crash on close after disconnect
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org,
+	lethal@linux-sh.org, Magnus Damm <damm@igel.co.jp>
+Subject: Re: [PATCH] soc-camera: fix compile breakage on SH
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,115 +36,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-------=_Part_31866_18248630.1223937075096
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Wed, 15 Oct 2008, Magnus Damm wrote:
 
-This patch prevents stk-webcam from updating usb device information
-once the camera has been removed. This prevents a crash that would
-otherwise occur if the camera is disconnected while it is still in
-use.
+> Yeah, that one plus a patch for the smc91x platform data and another
+> one for mmc (which needs updating anyway). So maybe it's not such a
+> big deal. And I see your point with closing the window ASAP to do
+> damage control. Otoh I wonder how big difference it will be extending
+> the breakage window with one commit - there must be zillions of
+> commits in after the breakage already.
 
-Regards,
+So, let's close it ASAP.
 
-David Ellingsworth
+> Paul, any strong feelings regarding merging things though the SuperH tree?
 
-==========================================================
->From 2e456d9bbe370d4019a991b193df1e869df9d532 Mon Sep 17 00:00:00 2001
-From: David Ellingsworth <david@identd.dyndns.org>
-Date: Mon, 13 Oct 2008 16:58:58 -0400
-Subject: [PATCH] stk-webcam: fix crash on close after disconnect
+Hm, I think, soc_camera_platform parts would have to go through v4l tree. 
+Unless we ask Andrew / Linus apply a fix directly to minimize the window, 
+after you test it of course:-)
 
+> > Thanks, but no thanks:-) I cannot add your copyright, at least not without
+> > your explicit agreement (I think). So, I'd prefer you submit a patch for
+> > that.
+> 
+> I wonder if it's a large enough bit sequence to actually copyright. =)
+> But sure, I'll do that.
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+Good, thanks.
+
+> Is this .29 material, or will there be a second v4l round with trivial
+> driver changes for .28?
+> 
+> I've already posted some vivi patches and two simple patches for the
+> sh_mobile_ceu driver - sorry about the timing - and i have one more
+> sh_mobile_ceu patch outstanding. Also, I think one of my coworkers may
+> post a soc_camera driver for ov772x chips soon too.
+> 
+> Is there any chance that can get included in .28?
+
+I think there is still a chane, if we are fast enough. In any case I 
+queued your sh_mobile_ceu patches, will try to push them on to Mauro 
+latest this weekend.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/stk-webcam.c |   18 +++++++-----------
- 1 files changed, 7 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
-index f1d5b3e..edaea49 100644
---- a/drivers/media/video/stk-webcam.c
-+++ b/drivers/media/video/stk-webcam.c
-@@ -559,7 +559,7 @@ static void stk_clean_iso(struct stk_camera *dev)
-
- 		urb = dev->isobufs[i].urb;
- 		if (urb) {
--			if (atomic_read(&dev->urbs_used))
-+			if (atomic_read(&dev->urbs_used) && is_present(dev))
- 				usb_kill_urb(urb);
- 			usb_free_urb(urb);
- 		}
-@@ -688,18 +688,14 @@ static int v4l_stk_release(struct inode *inode,
-struct file *fp)
- {
- 	struct stk_camera *dev = fp->private_data;
-
--	if (dev->owner != fp) {
--		usb_autopm_put_interface(dev->interface);
--		return 0;
-+	if (dev->owner == fp) {
-+		stk_stop_stream(dev);
-+		stk_free_buffers(dev);
-+		dev->owner = NULL;
- 	}
-
--	stk_stop_stream(dev);
--
--	stk_free_buffers(dev);
--
--	dev->owner = NULL;
--
--	usb_autopm_put_interface(dev->interface);
-+	if(is_present(dev))
-+		usb_autopm_put_interface(dev->interface);
-
- 	return 0;
- }
--- 
-1.5.6.5
-
-------=_Part_31866_18248630.1223937075096
-Content-Type: application/octet-stream;
-	name=0002-stk-webcam-fix-crash-on-close-after-disconnect.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fm9oj0he0
-Content-Disposition: attachment;
-	filename=0002-stk-webcam-fix-crash-on-close-after-disconnect.patch
-
-RnJvbSAyZTQ1NmQ5YmJlMzcwZDQwMTlhOTkxYjE5M2RmMWU4NjlkZjlkNTMyIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5k
-bnMub3JnPgpEYXRlOiBNb24sIDEzIE9jdCAyMDA4IDE2OjU4OjU4IC0wNDAwClN1YmplY3Q6IFtQ
-QVRDSF0gc3RrLXdlYmNhbTogZml4IGNyYXNoIG9uIGNsb3NlIGFmdGVyIGRpc2Nvbm5lY3QKCgpT
-aWduZWQtb2ZmLWJ5OiBEYXZpZCBFbGxpbmdzd29ydGggPGRhdmlkQGlkZW50ZC5keW5kbnMub3Jn
-PgotLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vc3RrLXdlYmNhbS5jIHwgICAxOCArKysrKysrLS0t
-LS0tLS0tLS0KIDEgZmlsZXMgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspLCAxMSBkZWxldGlvbnMo
-LSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3N0ay13ZWJjYW0uYyBiL2RyaXZl
-cnMvbWVkaWEvdmlkZW8vc3RrLXdlYmNhbS5jCmluZGV4IGYxZDViM2UuLmVkYWVhNDkgMTAwNjQ0
-Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vc3RrLXdlYmNhbS5jCisrKyBiL2RyaXZlcnMvbWVk
-aWEvdmlkZW8vc3RrLXdlYmNhbS5jCkBAIC01NTksNyArNTU5LDcgQEAgc3RhdGljIHZvaWQgc3Rr
-X2NsZWFuX2lzbyhzdHJ1Y3Qgc3RrX2NhbWVyYSAqZGV2KQogCiAJCXVyYiA9IGRldi0+aXNvYnVm
-c1tpXS51cmI7CiAJCWlmICh1cmIpIHsKLQkJCWlmIChhdG9taWNfcmVhZCgmZGV2LT51cmJzX3Vz
-ZWQpKQorCQkJaWYgKGF0b21pY19yZWFkKCZkZXYtPnVyYnNfdXNlZCkgJiYgaXNfcHJlc2VudChk
-ZXYpKQogCQkJCXVzYl9raWxsX3VyYih1cmIpOwogCQkJdXNiX2ZyZWVfdXJiKHVyYik7CiAJCX0K
-QEAgLTY4OCwxOCArNjg4LDE0IEBAIHN0YXRpYyBpbnQgdjRsX3N0a19yZWxlYXNlKHN0cnVjdCBp
-bm9kZSAqaW5vZGUsIHN0cnVjdCBmaWxlICpmcCkKIHsKIAlzdHJ1Y3Qgc3RrX2NhbWVyYSAqZGV2
-ID0gZnAtPnByaXZhdGVfZGF0YTsKIAotCWlmIChkZXYtPm93bmVyICE9IGZwKSB7Ci0JCXVzYl9h
-dXRvcG1fcHV0X2ludGVyZmFjZShkZXYtPmludGVyZmFjZSk7Ci0JCXJldHVybiAwOworCWlmIChk
-ZXYtPm93bmVyID09IGZwKSB7CisJCXN0a19zdG9wX3N0cmVhbShkZXYpOworCQlzdGtfZnJlZV9i
-dWZmZXJzKGRldik7CisJCWRldi0+b3duZXIgPSBOVUxMOwogCX0KIAotCXN0a19zdG9wX3N0cmVh
-bShkZXYpOwotCi0Jc3RrX2ZyZWVfYnVmZmVycyhkZXYpOwotCi0JZGV2LT5vd25lciA9IE5VTEw7
-Ci0KLQl1c2JfYXV0b3BtX3B1dF9pbnRlcmZhY2UoZGV2LT5pbnRlcmZhY2UpOworCWlmKGlzX3By
-ZXNlbnQoZGV2KSkKKwkJdXNiX2F1dG9wbV9wdXRfaW50ZXJmYWNlKGRldi0+aW50ZXJmYWNlKTsK
-IAogCXJldHVybiAwOwogfQotLSAKMS41LjYuNQoK
-------=_Part_31866_18248630.1223937075096
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-------=_Part_31866_18248630.1223937075096--
