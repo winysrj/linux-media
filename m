@@ -1,19 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1.nijcomplesk5.nl ([83.172.148.40])
+Received: from relay-pt1.poste.it ([62.241.4.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jean-paul@goedee.nl>) id 1Kun0S-0002nz-KN
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 12:45:05 +0100
-Message-ID: <20081028124505.tvjko4bvkgk4kg4o@webmail.goedee.nl>
-Date: Tue, 28 Oct 2008 12:45:05 +0100
-From: jean-paul@goedee.nl
-To: Manu Abraham <abraham.manu@gmail.com>
-References: <20081028111538.1yl7p80uo0cggo80@webmail.goedee.nl>
-	<4906E9CC.2040408@gmail.com>
-In-Reply-To: <4906E9CC.2040408@gmail.com>
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KqZsx-0002U3-0P
+	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 22:55:58 +0200
+Received: from geppetto.reilabs.com (78.15.189.104) by relay-pt1.poste.it
+	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
+	id 48F6844E00009C30 for linux-dvb@linuxtv.org;
+	Thu, 16 Oct 2008 22:55:51 +0200
+Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KqZry-00020C-SJ
+	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 22:54:54 +0200
+Date: Thu, 16 Oct 2008 22:54:54 +0200
+From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
+To: linux-dvb@linuxtv.org
+Message-ID: <20081016205454.GA32397@geppetto>
+References: <20081014212402.GB11745@geppetto> <20081015232121.GA8831@geppetto>
+	<48F73F56.7060805@verizonbusiness.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API & TT3200
+In-Reply-To: <48F73F56.7060805@verizonbusiness.com>
+Subject: Re: [linux-dvb] Unable to query frontend status with dvbscan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,56 +33,117 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ok clone the repo and its compiling again. Thanx. Now I want to scan  
-channels (scab-s2) on both lnb;s (astra 1 & 3). First transponder  
-scans only 13 services and  Diseqc doesn?t work with the second lnb.
-
-WARNING: >>> tuning failed!!!
->>> tune to: 11856:vS1C56:S23.5E:27500: (tuning failed)
-DiSEqC: uncommitted switch pos 0
-DiSEqC: switch pos 1, 13V, hiband (index 6)
-DVB-S IF freq is 1256000
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
-
-
-Citeren Manu Abraham <abraham.manu@gmail.com>:
-
-> jean-paul@goedee.nl wrote:
->> Ok again.
+On date Thursday 2008-10-16 07:19:18 -0600, Mark Paulus wrote:
+> Stefano Sabatini wrote:
+>> On date Tuesday 2008-10-14 23:24:02 +0200, Stefano Sabatini wrote:
+>>> Hi all,
+>>>
+>>> can you say what's the meaning of such a message?
+>>>
+>>> I'm using it with:
+>>> dvbscan  /usr/share/dvb/dvb-t/it-MyCity
+>>> Unable to query frontend status
+>>>
+>>> using a TerraTec Electronic GmbH with dvb-usb-dib0700 driver.
+>>>
+>>> The module seems to be loaded correctly, indeed I get this in the
+>>> kernel log:
+>>>
+>>> [ 1834.456051] dib0700: loaded with support for 7 different device-types
+>>> [ 1834.456051] dvb-usb: found a 'Terratec Cinergy HT USB XE' in cold state, will try to load a firmware
+>>> [ 1834.456051] firmware: requesting dvb-usb-dib0700-1.10.fw
+>>> [ 1834.464197] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
+>>> [ 1834.662979] dib0700: firmware started successfully.
+>>> [ 1835.168928] dvb-usb: found a 'Terratec Cinergy HT USB XE' in warm state.
+>>> [ 1835.168997] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+>>> [ 1835.169355] DVB: registering new adapter (Terratec Cinergy HT USB XE)
+>>> [ 1835.419963] DVB: registering frontend 0 (DiBcom 7000PC)...
+>>> [ 1835.499932] xc2028 1-0061: creating new instance
+>>> [ 1835.499932] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+>>> [ 1835.499932] input: IR-receiver inside an USB DVB receiver as /class/input/input7
+>>> [ 1835.510406] dvb-usb: schedule remote query interval to 150 msecs.
+>>> [ 1835.510416] dvb-usb: Terratec Cinergy HT USB XE successfully initialized and connected.
+>>> [ 1835.510696] usbcore: registered new interface driver dvb_usb_dib0700
+>>>
+>>> The led on the device switched on when I performed the first scan.
 >>
->> I using now vdr 1.7.0 and multiproto from  manu to make my two tt
->> 3200-ci working with streamdev. Vdr zapper en MPC. Its working fine
->> except some judder  but its more a vdr issue.
+>> Other meaningful info:
+>> stefano@geppetto ~> dvbscan  /usr/share/dvb/dvb-t/it-Cagliari
+>> Unable to query frontend status
+>> stefano@geppetto ~> sudo dvbscan  /usr/share/dvb/dvb-t/it-Cagliari
+>> Unable to query frontend status
+>> stefano@geppetto ~> ls -l /dev/dvb/adapter0/
+>> total 0
+>> crw-rw---- 1 root video 212, 1 2008-09-23 00:04 audio0
+>> crw-rw---- 1 root video 212, 6 2008-09-23 00:04 ca0
+>> crw-rw---- 1 root video 212, 4 2008-09-23 00:04 demux0
+>> crw-rw---- 1 root video 212, 5 2008-09-23 00:04 dvr0
+>> crw-rw---- 1 root video 212, 3 2008-09-23 00:04 frontend0
+>> crw-rw---- 1 root video 212, 7 2008-09-23 00:04 net0
+>> crw-rw---- 1 root video 212, 8 2008-09-23 00:04 osd0
+>> crw-rw---- 1 root video 212, 0 2008-09-23 00:04 video0
 >>
->> For now I have a development system with an TT 3200 to and try to let
->> vdr run with S2API drivers.  After getting the drivers from
->> http://mercurial.intuxication.org/hg/s2-liplianin/ the compile ends
->> with a error:
+>> stefano@geppetto ~> uname -a
+>> Linux geppetto 2.6.26-1-686 #1 SMP Thu Oct 9 15:18:09 UTC 2008 i686 GNU/Linux
+>>
+>> The device is reported to be supported on the DVB wiki:
+>> http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_HT_USB_XE
+>>
+>> Help or hints will be appreciated.
+>>
+>> Regards.
 >
-> You can simply clone http://jusst.de/hg/v4l-dvb
-> or http://linuxtv.org/hg/v4l-dvb and check
->
-> The former contains two more fixes, so better try to test with that.
->
-> Regards,
-> Manu
->
+> I believe I have seen a message like this when something else
+> is talking to the card already.  For instance, I run my cards in a Mythtv 
+> system, and in mythtv there is a setting to only attach to the card when 
+> actually using the card.  If that
+> setting is set incorrectly, mythtv will attach to the card at startup, 
+> and keep exclusive use of the card, not allowing
+> anyone else to access the card at all.
+
+lsof didn't show any device accessing to device inside /dev/dvb.
+
+But digging again in the web I found this:
+http://forums.opensuse.org/archives/sf-archives/archives-software/archives-multimedia/340016-dvb-t-card-cant-scan-10-3-a.html
+
+So the problem seems a regression in the dvb-apps.
+
+And precisely the problem seems to be in the function:
+libdvb/dvbfe.c:dvbfe_get_info()
+
+Debugging I get this in dvbfe_get_info (second invocation during the
+running of the application):
+
+dvbfe_get_info (fehandle=0x8beb008, 
+               querymask=DVBFE_INFO_LOCKSTATUS,
+               result=0xbfada108, 
+               querytype=DVBFE_INFO_QUERYTYPE_IMMEDIATE,
+               timeout=0) at dvbfe.c:23
+
+		if (querymask & DVBFE_INFO_LOCKSTATUS) {
+			if (!ioctl(fehandle->fd, FE_READ_STATUS, &kevent.status)) {
+				returnval |= DVBFE_INFO_LOCKSTATUS;
+			}
+		}
+
+The result of the ioctl is 0 so the returnval is ored with
+DVBFE_INFO_LOCKSTATUS (so set to 1), then we have in the main:
+
+				if (dvbfe_get_info(fe, DVBFE_INFO_LOCKSTATUS, &feinfo,
+				    			DVBFE_INFO_QUERYTYPE_IMMEDIATE, 0) !=
+					DVBFE_INFO_QUERYTYPE_IMMEDIATE) {
+					fprintf(stderr, "Unable to query frontend status\n");
+					exit(1);
+				}
 
 
 
+which is different from DVBFE_INFO_QUERYTYPE_IMMEDIATE = 0, so the
+exit, but I can really understand the logic here.
+
+So what's the expected exit of the ioctl with FE_READ_STATUS?
+
+Regards.
 
 _______________________________________________
 linux-dvb mailing list
