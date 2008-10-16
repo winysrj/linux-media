@@ -1,21 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.24])
+Received: from qmta03.westchester.pa.mail.comcast.net ([76.96.62.32])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1Knw2G-0006YN-Ar
-	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 15:58:36 +0200
-Received: by qw-out-2122.google.com with SMTP id 9so9790qwb.17
-	for <linux-dvb@linuxtv.org>; Thu, 09 Oct 2008 06:58:32 -0700 (PDT)
-Message-ID: <c74595dc0810090658q4282f4b2w2e399d2a0c17c0a9@mail.gmail.com>
-Date: Thu, 9 Oct 2008 15:58:32 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
-To: ajurik@quick.cz
-In-Reply-To: <200810091547.31992.ajurik@quick.cz>
+	(envelope-from <htmoore@comcast.net>) id 1KqIam-0004c0-B9
+	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 04:28:01 +0200
+From: "Tom Moore" <htmoore@comcast.net>
+To: "'Andy Walls'" <awalls@radix.net>
+References: <001501c92e56$a4903870$edb0a950$@net>	
+	<1224029752.3248.34.camel@palomino.walls.org>	
+	<003101c92e68$fe5e5000$fb1af000$@net>
+	<1224067873.5059.15.camel@morgan.walls.org>
+In-Reply-To: <1224067873.5059.15.camel@morgan.walls.org>
+Date: Wed, 15 Oct 2008 21:26:52 -0500
+Message-ID: <001501c92f36$a7112d30$f5338790$@net>
 MIME-Version: 1.0
-References: <200810091507.50544.ajurik@quick.cz>
-	<E1Knvg5-000LDW-00.goga777-bk-ru@f141.mail.ru>
-	<200810091547.31992.ajurik@quick.cz>
+Content-Language: en-us
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [vdr] stb0899 and tt s2-3200
+Subject: Re: [linux-dvb] Duel Hauppauge HVR-1600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,159 +23,178 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0334279940=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0334279940==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_52670_25749759.1223560712261"
 
-------=_Part_52670_25749759.1223560712261
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-I will try that patch together with mine soon. Will update with results.
+-----Original Message-----
+From: Andy Walls [mailto:awalls@radix.net] 
+Sent: Wednesday, October 15, 2008 5:51 AM
+To: Tom Moore
+Cc: linux-dvb@linuxtv.org
+Subject: RE: [linux-dvb] Duel Hauppauge HVR-1600
 
-On Thu, Oct 9, 2008 at 3:47 PM, Ales Jurik <ajurik@quick.cz> wrote:
+Tom,
 
-> On Thursday 09 of October 2008, Goga777 wrote:
-> > > > > > it's not working with SR 30000 FEC 3/4 dvb-s2 8PSK, still the
-> same
-> > > > > > problem.
-> > > > > >
-> > > > > > kind regards
-> > > > > >
-> > > > > > Newsy
-> > > > >
-> > > > > It seems that patch from
-> > > > > http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027264.htmlis
-> > > > > not applied. The internal PLL must be disabled when setting new
-> > > > > frequency as is written in stb6100 documentation.
-> > > >
-> > > > has your July-patch any relation with stb0899 patches from Alex Betis
-> ?
-> > > >
-> > > > http://www.linuxtv.org/pipermail/linux-dvb/2008-October/029455.html
-> > > >
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-September/029361.html
-> > > >
-> > > > Goga
-> > >
-> > > I don't think so as Alex's patches are for demodulator (stb0899) but my
-> > > was for tuner (stb6100).
-> > >
-> > > Regarding stb6100 doc the tuning procedure should be:
-> > > 1. Disable PLL (LPEN_LPEN)
-> > > 2. Set-up the tuner
-> > > 3. Start PLL
-> > > 4. Start VCO search
-> > > 5. Wait for 5 ms
-> > > 6. Disable VCO search, turn off VCO search clock and disable LPF BW
-> clock
-> > >
-> > > The steps 1-5 should be done in 5 steps (not less) and as I remeber
-> I've
-> > > got better result when inserting small delay between steps 1 and 2 and
-> > > the delay from step 5 was set to 10ms. In stb6100.c are steps 1 and 2
-> > > done together within 1 write to stb6100 registers and this seems to be
-> > > not optimal for some modulations.
-> >
-> > that's why TT3200 owners have to try both patches together - from you and
-> > from Alex Betis ? is it correct ?
-> >
-> > Goga
->
-> Yes, I think so, but now I'm not able to test it as I don't have the TT
-> S2-3200 more in my PC. If nobody will be able to test it I'll try to do it
-> this weekend.
->
+Just a note: please don't top post.  Per list convention, please just
+respond in-line.
+
+On Tue, 2008-10-14 at 20:54 -0500, Tom Moore wrote:
+> Thanks Andy for the reply.
+> 
+> I did what you said and now I'm getting an memory error message when
+booting
+> 
+> 
+> The message reads:
+> Initrd extends beyond end of memory (0x37fef23a > 0x30000000)
+
+Well, that's a new one on me.
+
+> I tried lowering the amount but anything over 128M and I get the error
+> message.
+
+So since vmalloc addresses are used for dynamic kernel mappings for
+things like loadable module code and for IO mappings, 128 MB of
+addresses will never be sufficient to support two cards that want 64 MB
+of addresses each, along with other kernel vmalloc needs.
+
+So until this problem is resolved, you won't get the second card
+running.  The good news is, the problem appears to be fixable with the
+proper kernel configuration.
+
+The driver did make some suggestions in it's original error message:
+
+
+> > cx18-1: ioremap failed, perhaps increasing __VMALLOC_RESERVE in page.h
+> > 
+> > cx18-1: or disabling CONFIG_HIGHMEM4G into the kernel would help
+> > 
+> > cx18-1: Error -12 on initialization
+
+both of which you could try.  They involve building a custom kernel.
+
+There may be other ways, but I'm no expert in Linux memory management.
+I suspect someone over on the LKML is.
+
+To help solve your problem, people will likely need to see the output of
+'cat /proc/meminfo' and 'dmesg' for your system.  If I had that info, I
+could try to help, I'm not sure I'd be able to help effectively.
+
+
+Regards,
+Andy
+
+
+> Here is my config file:
+> # grub.conf generated by anaconda
+> #
+> # Note that you do not have to rerun grub after making changes to this
+file
+> # NOTICE:  You have a /boot partition.  This means that
+> #          all kernel and initrd paths are relative to /boot/, eg.
+> #          root (hd0,0)
+> #          kernel /vmlinuz-version ro root=/dev/VolGroup00/LogVol00
+> #          initrd /initrd-version.img
+> #boot=/dev/sda
+> default=0
+> timeout=5
+> splashimage=(hd0,0)/grub/splash.xpm.gz
+> hiddenmenu
+> title MythDora (2.6.24.4-64.fc8)
+> 	root (hd0,0)
+> 	kernel /vmlinuz-2.6.24.4-64.fc8 ro root=/dev/VolGroup00/LogVol00
+> rhgb quiet vmalloc=256M
+> 	initrd /initrd-2.6.24.4-64.fc8.img
+> 
+> -----Original Message-----
+> From: Andy Walls [mailto:awalls@radix.net] 
+> Sent: Tuesday, October 14, 2008 7:16 PM
+> To: Tom Moore
+> Cc: linux-dvb@linuxtv.org
+> Subject: Re: [linux-dvb] Duel Hauppauge HVR-1600
+> 
+> On Tue, 2008-10-14 at 18:43 -0500, Tom Moore wrote:
+> > I just bought two Hauppauge HVR-1600 cards and I'm trying to set them
+> > up in 
+> > 
+> > Mythdorra 5. I have the cx18 drivers installed but it is only
+> > initializing one 
+> > 
+> > card. I'm getting the following message when I do a dmesg | grep cx18.
+> > Has 
+> > 
+> > anyone ran accross this problem before with duel cards of the same
+> > model and if 
+> > 
+> > so, how do I fix it? Any help will be greatly appreciated.
+> > 
+> >  
+> > 
+> > Thanks,
+> > 
+> > Tom Moore
+> > 
+> > Houston, TX
+> > 
+> >  
+> > 
+> > dmesg | grep cx18
+> > 
+> > cx18:  Start initialization, version 1.0.1
+> 
+> > cx18-1: Initializing card #1
+> > 
+> > cx18-1: Autodetected Hauppauge card
+> > 
+> > cx18-1: Unreasonably low latency timer, setting to 64 (was 32)
+> > 
+> > cx18-1: ioremap failed, perhaps increasing __VMALLOC_RESERVE in page.h
+> > 
+> > cx18-1: or disabling CONFIG_HIGHMEM4G into the kernel would help
+> > 
+> > cx18-1: Error -12 on initialization
+> > 
+> > cx18: probe of 0000:02:04.0 failed with error -12
+> > 
+> > cx18:  End initialization
+> > 
+> 
+> You're out of vmalloc address space.  Each cx18 needs 64 MB of vmalloc
+> space for MMIO mappings.
+> 
+> Do this:
+> 
+> $ cat /proc/meminfo | grep Vmalloc
+> 
+> Edit your bootloader's config file to add a 'vmalloc=xxxM' option to
+> your kernel commandline.  Use a value that is 128M greater than your
+> current VmallocTotal. 
+> 
+> 
 > Regards,
->
-> Ales
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+> Andy
+> 
+> 
+Andy,
+> Thanks Andy for all your help. Instead of headache of TRYING to build a
+custom kernel, I swopped-out hard drives and installed Mythbuntu. After
+installing the cx18 drivers it also only initialized one card. I then
+modified the bootloader with "vmalloc=256M" and it worked like a champ. I
+think I will put my other hard drive back in and try to update the kernel in
+Mythdora 5 (even though the docs recommend against it). Anyway I posted at
+the bottom as you said and I REALLY appreciate you taking the time to help
+me. Maybe one day I can return the favor.
 
-------=_Part_52670_25749759.1223560712261
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Have a great day,
+Tom
 
-<div dir="ltr">I will try that patch together with mine soon. Will update with results.<br><br><div class="gmail_quote">On Thu, Oct 9, 2008 at 3:47 PM, Ales Jurik <span dir="ltr">&lt;<a href="mailto:ajurik@quick.cz">ajurik@quick.cz</a>&gt;</span> wrote:<br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><div class="Ih2E3d">On Thursday 09 of October 2008, Goga777 wrote:<br>
-</div><div><div></div><div class="Wj3C7c">&gt; &gt; &gt; &gt; &gt; it&#39;s not working with SR 30000 FEC 3/4 dvb-s2 8PSK, still the same<br>
-&gt; &gt; &gt; &gt; &gt; problem.<br>
-&gt; &gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt; &gt; kind regards<br>
-&gt; &gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt; &gt; Newsy<br>
-&gt; &gt; &gt; &gt;<br>
-&gt; &gt; &gt; &gt; It seems that patch from<br>
-&gt; &gt; &gt; &gt; <a href="http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027264.html" target="_blank">http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027264.html</a> is<br>
-&gt; &gt; &gt; &gt; not applied. The internal PLL must be disabled when setting new<br>
-&gt; &gt; &gt; &gt; frequency as is written in stb6100 documentation.<br>
-&gt; &gt; &gt;<br>
-&gt; &gt; &gt; has your July-patch any relation with stb0899 patches from Alex Betis ?<br>
-&gt; &gt; &gt;<br>
-&gt; &gt; &gt; <a href="http://www.linuxtv.org/pipermail/linux-dvb/2008-October/029455.html" target="_blank">http://www.linuxtv.org/pipermail/linux-dvb/2008-October/029455.html</a><br>
-&gt; &gt; &gt; <a href="http://www.linuxtv.org/pipermail/linux-dvb/2008-September/029361.html" target="_blank">http://www.linuxtv.org/pipermail/linux-dvb/2008-September/029361.html</a><br>
-&gt; &gt; &gt;<br>
-&gt; &gt; &gt; Goga<br>
-&gt; &gt;<br>
-&gt; &gt; I don&#39;t think so as Alex&#39;s patches are for demodulator (stb0899) but my<br>
-&gt; &gt; was for tuner (stb6100).<br>
-&gt; &gt;<br>
-&gt; &gt; Regarding stb6100 doc the tuning procedure should be:<br>
-&gt; &gt; 1. Disable PLL (LPEN_LPEN)<br>
-&gt; &gt; 2. Set-up the tuner<br>
-&gt; &gt; 3. Start PLL<br>
-&gt; &gt; 4. Start VCO search<br>
-&gt; &gt; 5. Wait for 5 ms<br>
-&gt; &gt; 6. Disable VCO search, turn off VCO search clock and disable LPF BW clock<br>
-&gt; &gt;<br>
-&gt; &gt; The steps 1-5 should be done in 5 steps (not less) and as I remeber I&#39;ve<br>
-&gt; &gt; got better result when inserting small delay between steps 1 and 2 and<br>
-&gt; &gt; the delay from step 5 was set to 10ms. In stb6100.c are steps 1 and 2<br>
-&gt; &gt; done together within 1 write to stb6100 registers and this seems to be<br>
-&gt; &gt; not optimal for some modulations.<br>
-&gt;<br>
-&gt; that&#39;s why TT3200 owners have to try both patches together - from you and<br>
-&gt; from Alex Betis ? is it correct ?<br>
-&gt;<br>
-&gt; Goga<br>
-<br>
-</div></div>Yes, I think so, but now I&#39;m not able to test it as I don&#39;t have the TT<br>
-S2-3200 more in my PC. If nobody will be able to test it I&#39;ll try to do it<br>
-this weekend.<br>
-<br>
-Regards,<br>
-<font color="#888888"><br>
-Ales<br>
-</font><div><div></div><div class="Wj3C7c"><br>
-_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
-</div></div></blockquote></div><br></div>
-
-------=_Part_52670_25749759.1223560712261--
-
-
---===============0334279940==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0334279940==--
