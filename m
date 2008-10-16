@@ -1,18 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9KDuF0x015960
-	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 09:56:15 -0400
-Received: from linos.es (centrodatos.linos.es [86.109.105.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9KDu3m0019222
-	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 09:56:04 -0400
-Message-ID: <48FC8DF1.8010807@linos.es>
-Date: Mon, 20 Oct 2008 15:56:01 +0200
-From: Linos <info@linos.es>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9G6agYc001410
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:36:44 -0400
+Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9G6ZL2T027219
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:35:21 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <uskqyqg58.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0810160041250.8535@axis700.grange>
+	<aec7e5c30810151921v53ab947aq8e1dd6c6ee834eaa@mail.gmail.com>
+	<Pine.LNX.4.64.0810160814190.3892@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Thu, 16 Oct 2008 08:35:19 +0200
+In-Reply-To: <Pine.LNX.4.64.0810160814190.3892@axis700.grange> (Guennadi
+	Liakhovetski's message of "Thu\,
+	16 Oct 2008 08\:24\:40 +0200 \(CEST\)")
+Message-ID: <8763ntf3o8.fsf@free.fr>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: bttv 2.6.26 problem
+Content-Type: text/plain; charset=us-ascii
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: [PATCH] Add ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,24 +31,35 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello, i have upgraded a debian machine from kernel 2.6.24 to 2.6.26 and now i 
-have this error when try to launch helix producer on the capture input.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-producer -vc /dev/video0 -ad 128k -vp "0" -dt -vm sharp -o /tmp/test.rm
-Helix DNA(TM) Producer 11.0 Build number: 11.0.0.2013
-Info: Starting encode
-Error: Could not set image size to 352x288 for color format I420 (15) 
-(VIDIOCMCAPTURE: buffer 0)
-Warning: Capture Buffer is empty at 445090329ms for last 61 times
-Warning: Capture Buffer is empty at 445091549ms for last 61 times
+> Hm, so, to test your camera you have to modify your source and rebuild 
+> your kernel... And same again to switch back to normal operation. Does not 
+> sound very convenient to me. OTOH, making it a module parameter makes it 
+> much easier. In fact, maybe it would be a good idea to add a new 
+> camera-class control for this mode. Yet another possibility is to enable 
+> debug register-access in the driver and use that to manually set the test 
+> mode from user-space. A new v4l-control seems best to me, not sure what 
+> others will say about this. As you probably know, many other cameras also 
+> have this "test pattern" mode, some even several of them. So, this becomes 
+> a control with a parameter then.
 
-exactly the same producer version with the same command line works ok in 2.6.24, 
-previously i have saw this error when i was trying to use from 2 different 
-capture programs the same video input but this is not the case, it is the only 
-program using /dev/video0, what can be happening?
+Personnaly I'm rather inclined for the debug registers solutions.
 
-Regards,
-Miguel Angel.
+When developping a camera driver, the test pattern alone is not enough. You have
+to tweak the registers, see if the specification is correct, then understand the
+specification, and then change your driver code. My experience tells me you
+never understand correctly are camera setup from the first time.
+
+So IMHO the registers are enough here.
+
+> Then a new control or raw register access would be a better way, I think.
+So do I.
+
+Cheers.
+
+--
+Robert
 
 --
 video4linux-list mailing list
