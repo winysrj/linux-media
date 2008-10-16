@@ -1,26 +1,17 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9AJTcFt020680
-	for <video4linux-list@redhat.com>; Fri, 10 Oct 2008 15:29:38 -0400
-Received: from ik-out-1112.google.com (ik-out-1112.google.com [66.249.90.180])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9AJTJjh009871
-	for <video4linux-list@redhat.com>; Fri, 10 Oct 2008 15:29:19 -0400
-Received: by ik-out-1112.google.com with SMTP id c29so583126ika.3
-	for <video4linux-list@redhat.com>; Fri, 10 Oct 2008 12:29:15 -0700 (PDT)
-Message-ID: <30353c3d0810101229l3a73acb7mb7c220ac9e8c5b03@mail.gmail.com>
-Date: Fri, 10 Oct 2008 15:29:15 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Jaime Velasco Juan" <jsagarribay@gmail.com>
-In-Reply-To: <20080930160022.GA3301@singular.sob>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9GJRZ5k018866
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 15:27:35 -0400
+Received: from smtp.unisys.com.br (smtp.unisys.com.br [200.220.64.9])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9GJRLtc001847
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 15:27:22 -0400
+From: danflu@uninet.com.br
+To: video4linux-list@redhat.com
+Date: Thu, 16 Oct 2008 16:27:20 -0300
+Message-id: <48f79598.2dc.ed1.1231012865@uninet.com.br>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-References: <30353c3d0809291721o2a2858b1na0a930a1f75ac4f3@mail.gmail.com>
-	<20080930160022.GA3301@singular.sob>
-Content-Transfer-Encoding: 8bit
-Cc: v4l <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 0/3] stk-webcam updates
+Content-Type: text/plain; charset="iso-8859-1"
+Subject: grabing audio from capture card
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,43 +23,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Sep 30, 2008 at 12:00 PM, Jaime Velasco Juan
-<jsagarribay@gmail.com> wrote:
-> El lun. 29 de sep. de 2008, a las 20:21:04 -0400, David Ellingsworth escribió:
->> The following series of patches correct issues identified in
->> stk-webcam. The patches are as follows:
->>
->> 1. stkwebcam: fix crash on close after disconnect
->> 2. stkwebcam: free via video_device release callback
->> 3. stkwebcam: simplify access to stk_camera struct
->>
->> The first patch in this series is a bug fix. If it is possible to
->> merge this patch into 2.6.27 I highly recommend it as this bug has
->> existed for quite some time. The second patch restructures the driver
->> and removes the now unnecessary reference count on the stk_camera
->> struct. The third patch simplifies the driver in several areas
->> removing several unnecessary branches.
->>
->> These patchs should apply cleanly against the working branch of the
->> git v4l-dvb tree. Each of the patches will be submitted independently.
->>
->> Regards,
->>
->> David Ellingsworth
->
-> ACK
->
-> Regards,
-> Jaime
->
+Hello!
 
-Mauro,
+I have have a capture card (Prolink Pixelview) and i'm
+currently trying to grab audio samples from it. It has an
+"audio input" and an "audio output" 
 
-Please apply these for 2.6.28
+I tested audio using xawtv (Included a "p2 to rca adaptor"
+to plug a digital camcorder in audio input.) and it worked
+well using the loopback cable that conects "audio out" from
+tv card to the sound card "line in" but did not work without
+using this loopback cable...
 
-Regards,
+My device generates the following output:
 
-David Ellingsworth
+cap.driver: bttv
+cap.card: BT878 video (Prolink Pixelview 
+cap.bus_info: PCI:0000:05:01.0
+cap.version: 2321
+
+Printing /dev/video0 capabilities
+
+V4L2_CAP_VIDEO_CAPTURE
+V4L2_CAP_VIDEO_OVERLAY
+V4L2_CAP_VBI_CAPTURE
+V4L2_CAP_TUNER
+V4L2_CAP_READWRITE
+V4L2_CAP_STREAMING
+
+
+What device should i use to grab audio samples (videox ?) ?
+The usage of the v4l api is the same to grab audio ? (memory
+mapping etc?)
+
+I observed that xawtv did not playback any audio without the
+loopback cable, so it seems that it is not possible to
+capture audio using v4l without this cable, is it true ???
+
+Please help !
+Thank you
+Daniel
 
 --
 video4linux-list mailing list
