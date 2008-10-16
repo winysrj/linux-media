@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m917STqw026714
-	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 03:28:29 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m917SIEn029149
-	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 03:28:18 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so421287wfc.6
-	for <video4linux-list@redhat.com>; Wed, 01 Oct 2008 00:28:18 -0700 (PDT)
-Message-ID: <62e5edd40810010028yba5fa91m6acaf93d3662acb8@mail.gmail.com>
-Date: Wed, 1 Oct 2008 09:28:18 +0200
-From: "=?ISO-8859-1?Q?Erik_Andr=E9n?=" <erik.andren@gmail.com>
-To: "Hans de Goede" <j.w.r.degoede@hhs.nl>
-In-Reply-To: <48E320F0.6030002@hhs.nl>
-MIME-Version: 1.0
-References: <48E273C3.5030902@gmail.com> <48E320F0.6030002@hhs.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
-Cc: video4linux-list@redhat.com, m560x-driver-devel@sourceforge.net
-Subject: Re: [PATCH]Add support for the ALi m5602 usb bridge
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9GMrw5n022893
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 18:53:58 -0400
+Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net
+	[151.189.21.42])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9GMrEDt006388
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 18:53:15 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+In-Reply-To: <200810161510.48208.vanessaezekowitz@gmail.com>
+References: <48CD6F11.8020900@xnet.com>
+	<1224140231.3577.5.camel@pc10.localdom.local>
+	<48F753FC.4030901@xnet.com>
+	<200810161510.48208.vanessaezekowitz@gmail.com>
+Content-Type: text/plain
+Date: Fri, 17 Oct 2008 00:45:42 +0200
+Message-Id: <1224197142.4124.73.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: KWorld 120 IR control?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,59 +31,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-2008/10/1 Hans de Goede <j.w.r.degoede@hhs.nl>
 
-> Erik Andr=E9n wrote:
->
->> -----BEGIN PGP SIGNED MESSAGE-----
->> Hash: SHA1
->>
->> Hi,
->>
->> This patch adds support for the ALi m5602 usb bridge and is based on the
->> gspca framework.
->> It contains code for communicating with 5 different sensors:
->> OmniVision OV9650, Pixel Plus PO1030, Samsung S5K83A, S5K4AA and finally
->> Micron MT9M111.
->>
->> Regards,
->> Erik Andr=E9n
->>
->>
-> I like it, thanks for converting this to a gspca sub driver, I assume thi=
-s
-> helped you to reduce the code size somewhat?
+Am Donnerstag, den 16.10.2008, 15:10 -0500 schrieb Vanessa Ezekowitz:
+> On Thursday 16 October 2008 9:47:24 am stuart wrote:
+> > 
+> > [off list - as this doesn't add much additional info]
+> > 
+> > >> I looked and found an 8 and 16 pin SMD IC on my kworld 120.  The 16 pin 
+> > >> device turned out to be a multi-bit A/D converter, not an I2C 
+> > >> controller.  After reading the above again I believe I understand what 
+> > >> 20 pin device you are talking about.  Just right of the composite video 
+> > >> input past the Xtl in this photo:
+> > >> http://c1.neweggimages.com/NeweggImage/productimage/15-260-007-15.jpg
+> > >> ...I'll have to take another look.
+> > 
+> > Interesting, I can not read any writing on that chip.  All I see is a 
+> > green dot probably identifying pin 1.  If this is a common i2c 
+> > controller - why bother? Or are the KS003 and KS007 custom chips?
+> > 
+> > > Does any unknown device show up with cx88xx i2c_scan=1?
+> 
+> If by this you mean to add an appropriate line to /etc/modprobe.d/options...  Here's what I got in dmesg when I did this (after a clean reboot with no cx88-related modules loaded):
+> 
+> cx88[0]: i2c scan: found device @ 0x32  [???]
+> cx88[0]: i2c scan: found device @ 0x34  [???]
+> cx88[0]: i2c scan: found device @ 0x66  [???]
+> cx88[0]: i2c scan: found device @ 0xa0  [eeprom]
+> cx88[0]: i2c scan: found device @ 0xc2  [tuner (analog/dvb)]
+> 
+> If you need more from the dmesg output, let me know.
 
-Yes, about 20% give or take.
+Yes, that is what should be examined.
+
+Can't say anything offhand, since I don't have the card and there are
+also lots of devices using the same subset of i2c addresses.
+
+These are addresses in read mode. In write mode they change binary >> 1
+and in hex /2. Means 0x34 becomes 0x1a.
+
+I don't believe it is related, but in ir-kbd-i2c there is an old
+Hauppauge bttv device at 0x1a, but might be the demod or whatever here.
+
+Cheers,
+Hermann
+
+BTW, there is an i2c_debug option I guess
 
 
-> If you have any remarks / suggestions to improve the gspca framework plea=
-se
-> say so.
->
-It fitted in quite nicely, some more inline comments regarding
-implementation would be good.
-Perhaps a skeleton driver could be made to ease implementation.
-
-I have some patches which I intend to send in the next couple of days.
-
-Regards,
-Erik
 
 
-
-
->
-> Jean Fran=E7ois, can you pick this up and feed it to Mauro through the gs=
-pca
-> tree?
->
-> Regards,
->
-> Hans
->
->
->
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
