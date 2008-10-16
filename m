@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LJDHDS015361
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 15:13:17 -0400
-Received: from tsysmx2.t-systems.co.za (tsysmx2.t-systems.co.za
-	[196.13.142.12])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9LJBQrJ010612
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 15:11:27 -0400
-Content-class: urn:content-classes:message
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9G2LWtB005116
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 22:21:33 -0400
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9G2LMw8016797
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 22:21:22 -0400
+Received: by wf-out-1314.google.com with SMTP id 25so2957818wfc.6
+	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 19:21:21 -0700 (PDT)
+Message-ID: <aec7e5c30810151921v53ab947aq8e1dd6c6ee834eaa@mail.gmail.com>
+Date: Thu, 16 Oct 2008 11:21:21 +0900
+From: "Magnus Damm" <magnus.damm@gmail.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+In-Reply-To: <Pine.LNX.4.64.0810160041250.8535@axis700.grange>
 MIME-Version: 1.0
-Date: Tue, 21 Oct 2008 21:15:01 +0200
-Message-ID: <9D14A4B03ED2FD43A59EDD4038F9699B1089CDAE@s4zam1syex01.za01.t-systems.com>
-From: "Cobus van Rooyen" <Cobus.vanRooyen@t-systems.co.za>
-To: <video4linux-list@redhat.com>
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Subject: Kworld vs-usb2800d on Fedora 9
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <uskqyqg58.wl%morimoto.kuninori@renesas.com>
+	<Pine.LNX.4.64.0810160041250.8535@axis700.grange>
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: [PATCH] Add ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,89 +31,122 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi;
-I wish I could say I'm a newbie to Linux but alas...  I know enough to
-both enjoy and get myself in trouble when playing with Linux.
-=20
-I bought an IR security camera and want to connect it to my laptop which
-will store the video feed via USB.  I use the KWorld vs-usb2800
-<http://www.tigerdirect.com/applications/SearchTools/item-details.asp?Ed
-pNo=3D612720&Sku=3DO38-1022>  DVD Maker device.  I think I have sorted ou=
-t
-ZoneMinder's dependancies but now have a problem with getting a video
-feed.  I see that Clinton
-<http://lists-archives.org/video4linux/22630-kworld-vs-usb2800d.html>
-did get it to work but on 64 bit.  I have tried to follow his steps and
-am short of the v4l-dvb only - can get it next week when I can connect
-my laptop to the 'net again.
-=20
-I think however that my problem can be solved without the dvb software -
-I just need to figure out how to modprobe and change the card type.=20
-=20
-I have tried to modprobe - r but get a "in use" error...
-=20
-I'm positive that I will be able to set up my security solution using
-Linux and would be most happy.  Just as an aside - I'm using Fedora
-because it apparently is the only distro currently picking up the EM28xx
-chip but I'm actualy an openSuSE fan.  Does anyone here know if I can
-get it working in openSuSE?
-=20
-Below is an excerpt of my dmesg:
-=20
-ACPI: Video Device [VID] (multi-head: yes  rom: no  post: no)
-em28xx #0: Your board has no unique USB ID and thus need a hint to be
-detected.
-em28xx #0: You may try to use card=3D<n> insmod option to workaround that=
-.
-em28xx #0: Please send an email with this log to:
-em28xx #0:  V4L Mailing List <video4linux-list@redhat.com>
-em28xx #0: Board eeprom hash is 0x00000000
-em28xx #0: Board i2c devicelist hash is 0x1ba50080
-em28xx #0: Here is a list of valid choices for the card=3D<n> insmod
-option:
-em28xx #0:     card=3D0 -> Unknown EM2800 video grabber
-em28xx #0:     card=3D1 -> Unknown EM2750/28xx video grabber
-em28xx #0:     card=3D2 -> Terratec Cinergy 250 USB
-em28xx #0:     card=3D3 -> Pinnacle PCTV USB 2
-em28xx #0:     card=3D4 -> Hauppauge WinTV USB 2
-em28xx #0:     card=3D5 -> MSI VOX USB 2.0
-em28xx #0:     card=3D6 -> Terratec Cinergy 200 USB
-em28xx #0:     card=3D7 -> Leadtek Winfast USB II
-em28xx #0:     card=3D8 -> Kworld USB2800
-em28xx #0:     card=3D9 -> Pinnacle Dazzle DVC 90/DVC 100
-em28xx #0:     card=3D10 -> Hauppauge WinTV HVR 900
-em28xx #0:     card=3D11 -> Terratec Hybrid XS
-em28xx #0:     card=3D12 -> Kworld PVR TV 2800 RF
-em28xx #0:     card=3D13 -> Terratec Prodigy XS
-em28xx #0:     card=3D14 -> Pixelview Prolink PlayTV USB 2.0
-em28xx #0:     card=3D15 -> V-Gear PocketTV
-em28xx #0:     card=3D16 -> Hauppauge WinTV HVR 950
-ath5k phy0: Atheros AR5213 chip found (MAC: 0x56, PHY: 0x41)
-ath5k phy0: RF5111 5GHz radio found (0x17)
-ath5k phy0: RF2111 2GHz radio found (0x23)
-em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-em28xx #0: Found Unknown EM2750/28xx video grabber
-usbcore: registered new interface driver em28xx
+Hi Guennadi,
 
+On Thu, Oct 16, 2008 at 8:41 AM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi, and thanks for the patch! A couple of notes:
+>
+> (Magnus, see a note for you at the bottom:-))
+>
+> first, you didn't add an ID for your sensor to
+> include/media/v4l2-chip-ident.h, it is not reqlly required for your driver
+> functionality, but you can use it to provide as a reply to the
+> .vidioc_g_chip_ident request (.get_chip_id in struct soc_camera_ops).
+>
+> On Wed, 15 Oct 2008, Kuninori Morimoto wrote:
+>
+>> This patch adds ov772x driver that use soc_camera framework.
+>> It was tested on SH Migo-r board.
+>>
+>> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
 
-This message and/or attachment(s) may contain privileged or confidential =
-=20      =20
-information. If you are not the intended recipient you may not disclose o=
-r       =20
-distribute any of the information contained within this message. In such
-case you must destroy this message and inform the sender of the error.
-T-Systems does not accept liability for any errors, omissions, informatio=
-n
-and viruses contained in the transmission of this message. Any opinions, =
+[snip]
 
-conclusions and other information contained within this message not relat=
-ed=20
-to T-Systems' official business is deemed to be that of the individual on=
-ly=20
-and is not endorsed by T-Systems.       =20
-=20                                                                      =
-=20         =20
-T-Systems - Business Flexibility
+>> +static struct regval_list ov772x_default_regs[] =
+>> +{
+>> +     { COM3,  ZERO },
+>> +     { COM4,  PLL_4x | 0x01 },
+>> +     { 0x16,  0x00 },  /* Mystery */
+>> +     { COM11, B4 },    /* Mystery */
+>> +     { 0x28,  0x00 },  /* Mystery */
+>> +     { HREF,  0x00 },
+>> +     { COM13, 0xe2 },  /* Mystery */
+>
+> Those "Mystery" register - are they not documented, or has the driver been
+> reverse-engineered?
+
+The data sheet does not cover them, but I think they come from the
+magic init sequence in the Migo-R board code.
+
+>> +     /*
+>> +      * color bar mode
+>> +      */
+>> +     if (priv->info->color_bar) {
+>> +             ret = ov772x_mask_set(priv->client,
+>> +                             DSP_CTRL3, CBAR_MASK  , CBAR_ON);
+>> +             if (ret < 0)
+>> +                     goto start_end;
+>> +     }
+>
+> What is this "color bar mode" and why do you think you need it to be
+> specified by the platform data (also see below)?
+
+The color bar mode is a camera test mode where color bars similar to
+the vivi driver are output instead of the camera image. It's very
+useful for testing and getting byte order issues resolved. Ideally I'd
+like to have it as a second output, but I have to extend the SoC
+camera framework first to get that in place.
+
+I'm not sure if platform data is the best place to enable this, but I
+guess it's good enough.
+
+>> +static int ov772x_set_bus_param(struct soc_camera_device *icd,
+>> +                             unsigned long             flags)
+>> +{
+>> +     int ret = 0;
+>> +
+>> +     /*
+>> +      * check bus width
+>> +      */
+>> +     switch (flags & SOCAM_DATAWIDTH_MASK) {
+>> +     case SOCAM_DATAWIDTH_10:
+>> +     case SOCAM_DATAWIDTH_8:
+>
+> How does it work in both 8- and 10-bit modes without any reconfiguration?
+> Are then just the upper 8 bits connected to the interface? Is it
+> hard-wired, or software-switchable at runtime?
+
+The device has 10 data pins but we use 8 on Migo-R. I think some extra
+pixel formats are available with 10-bit interface but I'm not sure.
+The data sheet is not very clear.
+
+>> +
+>> +struct ov772x_camera_info {
+>> +     int             iface;
+>> +     unsigned long   buswidth;
+>> +     int             color_bar;
+>> +     void (*power)(int);
+>> +};
+>
+> Now, this one. Please, use struct soc_camera_link. It also provides bus_id
+> (your iface), power, ok, I admit, the inclusion of the "gpio" member in it
+> was a mistake of mine, it is too specific, we might remove it at some
+> point. I am not sure you really need color_bar and bus_width. I think,
+> cameras are more or less exchangeable parts, and if they need some
+> parameters, that cannot be autoprobed and do not belong to the camera
+> itself, it might be better to make them module parameters, like the
+> sensor_type parameter in mt9v022. Even if in your case the sensor chip is
+> soldered on the board, in another configuration it might not be.
+
+Using soc_camera_link sounds like a good idea. I don't agree with you
+regarding the module parameters - doing that removes the
+per-camera-instance configuration that the platform data gives us.
+
+> Magnus, I think, we should switch soc_camera_platform to use
+> soc_camera_link too.
+
+Sure.
+
+> In both ov772x and soc_camera_platform cases, if you do need extra
+> platform information, just embed soc_camera_link in your struct.
+
+That seems the best way forward.
+
+Cheers,
+
+/ magnus
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
