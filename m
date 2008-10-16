@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.acc.umu.se ([130.239.18.156])
+Received: from relay-pt1.poste.it ([62.241.4.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nikke@acc.umu.se>) id 1Kum0o-00070I-7c
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 11:41:23 +0100
-Date: Tue, 28 Oct 2008 11:41:09 +0100 (MET)
-From: Niklas Edmundsson <nikke@acc.umu.se>
-To: =?iso-8859-1?Q?M=E5rten_Gustafsson?= <reklam@holisticode.se>
-In-Reply-To: <44DBF3264FE24C6CBCD74E9A61EB414A@xplap>
-Message-ID: <Pine.GSO.4.64.0810281132250.5603@hatchepsut.acc.umu.se>
-References: <mailman.1.1224410403.28932.linux-dvb@linuxtv.org>
-	<44DBF3264FE24C6CBCD74E9A61EB414A@xplap>
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KqYFC-0005MD-HE
+	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 21:10:48 +0200
+Received: from geppetto.reilabs.com (78.15.189.104) by relay-pt1.poste.it
+	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
+	id 48F6844E00008E00 for linux-dvb@linuxtv.org;
+	Thu, 16 Oct 2008 21:10:42 +0200
+Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KqYEE-0007au-GI
+	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 21:09:46 +0200
+Date: Thu, 16 Oct 2008 21:09:46 +0200
+From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
+To: linux-dvb Mailing List <linux-dvb@linuxtv.org>
+Message-ID: <20081016190946.GB25806@geppetto>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Mantis 2033 dvb-tuning problems
+Content-Disposition: inline
+Subject: [linux-dvb] kernel sources location and gspca module version
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,96 +24,103 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 23 Oct 2008, M=E5rten Gustafsson wrote:
+Hi all,
 
-> Nikke
->
-> I tried your patch, and it "improve" things a bit. Kaffeine is able to sc=
-an
-> a few channels now without any entries in /var/log/messages. w_scan finds=
- a
-> few frequencies, but no services. Scan results are different between scan=
-s.
-> w_scan works "better" if timeout settings are increased.
->
-> The channels found by Kaffeine are not viewable, there is something movin=
-g,
-> but I guess the driver is unable to descramble the signal.
->
-> My system is an Ubuntu 8.10 amd64. The network is ComHem and the CI is fr=
-om
-> Conax. I also have the AzureWave AD-CP300.
+I'm having this problem when trying to compile the modules for linux
+2.6.26 on a Debian system:
 
-I'm running it on the Debian 2.6.18 kernel, viewing free channels (our =
+|stefano@geppetto ~/s/v4l-dvb> make 
+|make -C /home/stefano/src/v4l-dvb/v4l 
+|make[1]: Entering directory `/home/stefano/src/v4l-dvb/v4l'
+|No version yet, using 2.6.26-1-686
+|make[1]: Leaving directory `/home/stefano/src/v4l-dvb/v4l'
+|make[1]: Entering directory `/home/stefano/src/v4l-dvb/v4l'
+|scripts/make_makefile.pl
+|Updating/Creating .config
+|Preparing to compile for kernel version 2.6.26
+|
+|***WARNING:*** You do not have the full kernel sources installed.
+|This does not prevent you from building the v4l-dvb tree if you have the
+|kernel headers, but the full kernel source may be required in order to use
+|make menuconfig / xconfig / qconfig.
+|
+|If you are experiencing problems building the v4l-dvb tree, please try
+|building against a vanilla kernel before reporting a bug.
+|
+|Vanilla kernels are available at http://kernel.org.
+|On most distros, this will compile a newly downloaded kernel:
 
-provider Kommunicera gives us the standard channels via analog and =
+I'm on a Debian sytem with kernel and headers at version 2.6.26, so I
+suppose it should find the complete kernel tree.
 
-unencrypted DVB-C).
+|stefano@geppetto /l/modules> uname -a
+|Linux geppetto 2.6.26-1-686 #1 SMP Thu Oct 9 15:18:09 UTC 2008 i686 GNU/Linux
+|stefano@geppetto /l/modules> ls -l /lib/modules/
+|total 36
+|drwxr-xr-x 2 root root 4096 2008-10-14 20:08 2.6.21-2-686/
+|drwxr-xr-x 4 root root 4096 2008-08-23 13:04 2.6.22-2-686/
+|drwxr-xr-x 5 root root 4096 2008-10-13 08:57 2.6.22-3-486/
+|drwxr-xr-x 3 root root 4096 2008-10-13 08:57 2.6.22-3-686/
+|drwxr-xr-x 2 root root 4096 2008-09-24 20:11 2.6.24-etchnhalf.1-686/
+|drwxr-xr-x 2 root root 4096 2008-09-24 20:12 2.6.25-2-486/
+|drwxr-xr-x 3 root root 4096 2008-09-24 20:12 2.6.25-2-686/
+|drwxr-xr-x 3 root root 4096 2008-10-15 11:29 2.6.26-1-486/
+|drwxr-xr-x 4 root root 4096 2008-10-16 20:50 2.6.26-1-686/
 
-Scanning still sucks for me, but since I did the initial scan using a =
+Then when I attach a gspca webcam I get this output in dmesg:
+|[43518.309407] usb 2-2: USB disconnect, address 10
+|[43520.040151] usb 2-2: new full speed USB device using uhci_hcd and address 11
+|[43520.231991] usb 2-2: configuration #1 chosen from 1 choice
+|[43520.256243] usb 2-2: New USB device found, idVendor=046d, idProduct=08d9
+|[43520.256243] usb 2-2: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+|[43520.290979] Linux video capture interface: v2.00
+|[43520.292764] gspca: disagrees about version of symbol video_devdata
+|[43520.292773] gspca: Unknown symbol video_devdata
+|[43520.293829] gspca: disagrees about version of symbol video_unregister_device
+|[43520.293829] gspca: Unknown symbol video_unregister_device
+|[43520.293829] gspca: disagrees about version of symbol video_device_alloc
+|[43520.293829] gspca: Unknown symbol video_device_alloc
+|[43520.293829] gspca: disagrees about version of symbol video_register_device
+|[43520.293829] gspca: Unknown symbol video_register_device
+|[43520.293829] gspca: disagrees about version of symbol video_usercopy
+|[43520.293829] gspca: Unknown symbol video_usercopy
+|[43520.293829] gspca: disagrees about version of symbol video_device_release
+|[43520.293829] gspca: Unknown symbol video_device_release
+|[43520.301833] gspca: main v2.3.0 registered
+|[43520.301833] gspca: disagrees about version of symbol video_devdata
+|[43520.301833] gspca: Unknown symbol video_devdata
+|[43520.301833] gspca: disagrees about version of symbol video_unregister_device
+|[43520.301833] gspca: Unknown symbol video_unregister_device
+|[43520.301833] gspca: disagrees about version of symbol video_device_alloc
+|[43520.301833] gspca: Unknown symbol video_device_alloc
+|[43520.301833] gspca: disagrees about version of symbol video_register_device
+|[43520.301833] gspca: Unknown symbol video_register_device
+|[43520.301833] gspca: disagrees about version of symbol video_usercopy
+|[43520.301833] gspca: Unknown symbol video_usercopy
+|[43520.301833] gspca: disagrees about version of symbol video_device_release
+|[43520.301833] gspca: Unknown symbol video_device_release
+|[43520.307220] gspca: probing 046d:08d9
+|[43521.944222] zc3xx: probe 2wr ov vga 0x0000
+|[43521.987916] zc3xx: probe sensor -> 11
+|[43521.987916] zc3xx: Find Sensor HV7131R(c)
+|[43521.992836] gspca: probe ok
+|[43521.992836] usbcore: registered new interface driver zc3xx
+|[43521.992836] zc3xx: registered
 
-borrowed DVB-C card (something 1500 something) I'm happy for the =
+Strangely enough I don't have the same problem when I try to load
+another module from the same v4l-dvb source.
 
-moment. It would be nice if scanning worked tho, then I might be able =
+I'm using 4vl-dvb mercurial.
 
-to run myth-setup to completion (currently I use mplayer combined with =
+I'll be grateful for any help you can provide.
 
-at to record programs).
-
-I'd suggest you find someone that can provide you with a =
-
-ComHem channels.conf to circumvent the scanning problem for now...
-
-> Since this is an improvement I agree with you, Manu should apply the patc=
-h.
-
-He said he will, I suspect he's just not had the time to do it.
-
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> On Wed, 15 Oct 2008, Hans Bergersen wrote:
->
->> Hi,
->>
->
->> I have got a Twinhan vp-2033 based card. I run Ubuntu 8.04. I have
->> downloaded the driver from http://jusst.de/hg/mantis and it compiled
->> just fine. But when i try to tune a channel the tuning fails. It is
->> a newer card with the tda10023 tuner but when the driver loads it
->> uses the tda10021. What do I have to do to make it use the right
->> tuner? Can i give some options when compiling or when loading the
->> module?
-> <snip>
->> Any ideas?
->
-> Try the attached patch which fixes this for my Azurewave AD-CP300 (at
-> least last time I compiled it).
->
-> I've sent it to Manu and he was going to apply it, but it hasn't shown
-> up on http://jusst.de/hg/mantis/ yet...
->
->
-> /Nikke
->
-
-
-/Nikke
--- =
-
--=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-
-  Niklas Edmundsson, Admin @ {acc,hpc2n}.umu.se      |     nikke@acc.umu.se
----------------------------------------------------------------------------
-  If turning it on doesn't help, plug it in.
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
--=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=
-=3D
+Regards.
 
 _______________________________________________
 linux-dvb mailing list
