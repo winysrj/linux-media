@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9G6IMW2026238
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:18:22 -0400
-Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9G6HZvO019105
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:17:35 -0400
-From: "R, Sivaraj" <sivaraj@ti.com>
-To: Amol Borawake <borawake_amol@hotmail.com>, "video4linux-list@redhat.com"
-	<video4linux-list@redhat.com>
-Date: Thu, 16 Oct 2008 11:47:09 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB028C86EC3D@dbde02.ent.ti.com>
-References: <BLU149-W7855B29CEEB1B1B0CF9B2C99330@phx.gbl>
-In-Reply-To: <BLU149-W7855B29CEEB1B1B0CF9B2C99330@phx.gbl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9G6uMYi007683
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:56:22 -0400
+Received: from smtp-vbr3.xs4all.nl (smtp-vbr3.xs4all.nl [194.109.24.23])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9G6tcoY003982
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 02:55:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Thu, 16 Oct 2008 08:55:35 +0200
+References: <uskqyqg58.wl%morimoto.kuninori@renesas.com>
+	<8763ntf3o8.fsf@free.fr>
+	<aec7e5c30810152346q251c963h7a4419fa59fb6612@mail.gmail.com>
+In-Reply-To: <aec7e5c30810152346q251c963h7a4419fa59fb6612@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: RE: Using V4L2 Drivers for Capturing Video Data in YUV420P data
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200810160855.35749.hverkuil@xs4all.nl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] Add ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,55 +31,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Amol,
+On Thursday 16 October 2008 08:46:31 Magnus Damm wrote:
+> On Thu, Oct 16, 2008 at 3:35 PM, Robert Jarzmik 
+<robert.jarzmik@free.fr> wrote:
+> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> >> Hm, so, to test your camera you have to modify your source and
+> >> rebuild your kernel... And same again to switch back to normal
+> >> operation. Does not sound very convenient to me. OTOH, making it a
+> >> module parameter makes it much easier. In fact, maybe it would be
+> >> a good idea to add a new camera-class control for this mode. Yet
+> >> another possibility is to enable debug register-access in the
+> >> driver and use that to manually set the test mode from user-space.
+> >> A new v4l-control seems best to me, not sure what others will say
+> >> about this. As you probably know, many other cameras also have
+> >> this "test pattern" mode, some even several of them. So, this
+> >> becomes a control with a parameter then.
+> >
+> > Personnaly I'm rather inclined for the debug registers solutions.
+> >
+> > When developping a camera driver, the test pattern alone is not
+> > enough. You have to tweak the registers, see if the specification
+> > is correct, then understand the specification, and then change your
+> > driver code. My experience tells me you never understand correctly
+> > are camera setup from the first time.
+>
+> One thing is when people write their driver, but the scenario that
+> I'm thinking about is more when people take an already existing
+> soc_camera sensor driver and hook it up to some soc_camera host.
+> There are all sorts of endian and swapping issues that need to be
+> worked out. They depend on soc_camera host driver, endian setting and
+> userspace. Having a test pattern available would surely help there in
+> my opinion.
+>
+> > So IMHO the registers are enough here.
+> >
+> >> Then a new control or raw register access would be a better way, I
+> >> think.
+> >
+> > So do I.
+>
+> I dislike the register access option since it requires the developer
+> to have some user space tool that most likely won't ship with the
+> kernel. I think seeing it as yet another video input source is pretty
+> clean. Or maybe it isn't very useful at all, I'm not sure. =)
 
-The TI Davinci DM6446 hardware supports only YUV 422 interleaved format. 
-It doesn't support YUV422 or YUV420 planar formats.
+Just to give some background: register access can be done via the 
+v4l2-dbg utility (see v4l2-apps/util) which uses the 
+VIDIOC_DBG_G/S_REGISTER ioctls which are only compiled into the driver 
+when the CONFIG_VIDEO_ADV_DEBUG option is set. This is the standard way 
+of accessing registers.
 
-This is the reason why the Davinci V4L2 driver doesn't the format you wanted.
-Format conversion should be done in application only.
+An alternative for selecting a test pattern could be to have two inputs: 
+one is the camera and another one is the test pattern. Here too you 
+could enable the test pattern input only if CONFIG_VIDEO_ADV_DEBUG is 
+set.
+
+Just some ideas for you.
 
 Regards,
-Sivaraj R
 
-Sivaraj R
-Platform Support Products
-Texas Instruments India - Bangalore
-Desk     : +91-80-25099767     Cubicle : 1F-078
-IP-Phone : 5099767             Extn    : 1767
-Mobile   : +91-9980911151      E-mail  : sivaraj@ti.com
-
-
------Original Message-----
-From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-bounces@redhat.com] On Behalf Of Amol Borawake
-Sent: Thursday, October 16, 2008 11:35 AM
-To: video4linux-list@redhat.com
-Subject: Using V4L2 Drivers for Capturing Video Data in YUV420P data
-
-
-Hello All,
-
-I am using TI DaVinci DM6446 EVM Board. The sample program provided with Board allow me capture the  YUV 422 Interleved data. The Pixel format in V4L2 drivers for this is set like V4L2_PIX_FMT_YUYV.
-
-I need YUV420 Planer Data using V4L2. I tried setting the pixel format in V4L2 for YUV420 Planer data as V4L2_PIX_FMT_YUV420.
-But, the data I am getting from V4L2 is bit shifted by some offset.
-
-Any solution to resolve this problem ?
-Since, converting YUV422 Interleved to YUV420 Planer on board takes CPU as well as FPS . So getting YUV420 Planer data directly from the V4L2 would be much better .
-
-Waiting for reply.
-
-Thanks,
-Amol Borawake
-_________________________________________________________________
-Search for videos of Bollywood, Hollywood, Mollywood and every other wood, only on Live.com 
-http://www.live.com/?scope=video&form=MICOAL
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
+	Hans
 
 --
 video4linux-list mailing list
