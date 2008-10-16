@@ -1,26 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m986A6sU002331
-	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 02:10:06 -0400
-Received: from smtp-vbr1.xs4all.nl (smtp-vbr1.xs4all.nl [194.109.24.21])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m986A4Mu000712
-	for <video4linux-list@redhat.com>; Wed, 8 Oct 2008 02:10:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@nokia.com>
-Date: Wed, 8 Oct 2008 08:09:53 +0200
-References: <48E9F178.50507@nokia.com> <200810061838.38551.hverkuil@xs4all.nl>
-	<48EB8BAC.90706@nokia.com>
-In-Reply-To: <48EB8BAC.90706@nokia.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9GKB4Ms012404
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 16:11:04 -0400
+Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.179])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9GKAp3p027060
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 16:10:52 -0400
+Received: by wa-out-1112.google.com with SMTP id j4so136456wah.19
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 13:10:51 -0700 (PDT)
+From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+To: stuart <stuart@xnet.com>, video4linux-list@redhat.com
+Date: Thu, 16 Oct 2008 15:10:48 -0500
+References: <48CD6F11.8020900@xnet.com>
+	<1224140231.3577.5.camel@pc10.localdom.local>
+	<48F753FC.4030901@xnet.com>
+In-Reply-To: <48F753FC.4030901@xnet.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200810080809.53698.hverkuil@xs4all.nl>
-Cc: vimarsh.zutshi@nokia.com, video4linux-list@redhat.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	tuukka.o.toivonen@nokia.com, hnagalla@ti.com
-Subject: Re: [PATCH] V4L: Int if: Define new power state changes
+Message-Id: <200810161510.48208.vanessaezekowitz@gmail.com>
+Cc: 
+Subject: Re: KWorld 120 IR control?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,37 +33,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 07 October 2008 18:17:48 Sakari Ailus wrote:
-> ext Hans Verkuil wrote:
-> > Hi Sakari,
-> >
-> > I'm OK with the other changes, but the V4L2_POWER_RESUME command in
-> > this patch is still really very ugly. In my opinion you should
-> > either let the slave store the old powerstate (this seems to be the
-> > more logical approach), or let s_power pass the old powerstate as
-> > an extra argument if you think it is really needed. But the RESUME
-> > command is just unnecessary. Without the RESUME there is no more
-> > need to document anything, since then it is suddenly
-> > self-documenting.
->
-> Yeah, I agree. I'll remove that and send a new patchset, this time
-> with git-format-patch -n. :-)
->
-> Ps. Last time the first patch got caught by a spam filter and my
-> hunch is that it'll happen again.
+On Thursday 16 October 2008 9:47:24 am stuart wrote:
+> 
+> [off list - as this doesn't add much additional info]
+> 
+> >> I looked and found an 8 and 16 pin SMD IC on my kworld 120.  The 16 pin 
+> >> device turned out to be a multi-bit A/D converter, not an I2C 
+> >> controller.  After reading the above again I believe I understand what 
+> >> 20 pin device you are talking about.  Just right of the composite video 
+> >> input past the Xtl in this photo:
+> >> http://c1.neweggimages.com/NeweggImage/productimage/15-260-007-15.jpg
+> >> ...I'll have to take another look.
+> 
+> Interesting, I can not read any writing on that chip.  All I see is a 
+> green dot probably identifying pin 1.  If this is a common i2c 
+> controller - why bother? Or are the KS003 and KS007 custom chips?
+> 
+> > Does any unknown device show up with cx88xx i2c_scan=1?
 
-No problems this time.
+If by this you mean to add an appropriate line to /etc/modprobe.d/options...  Here's what I got in dmesg when I did this (after a clean reboot with no cx88-related modules loaded):
 
-Anyway, here is my SoB for this series of 6 patches:
+cx88[0]: i2c scan: found device @ 0x32  [???]
+cx88[0]: i2c scan: found device @ 0x34  [???]
+cx88[0]: i2c scan: found device @ 0x66  [???]
+cx88[0]: i2c scan: found device @ 0xa0  [eeprom]
+cx88[0]: i2c scan: found device @ 0xc2  [tuner (analog/dvb)]
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+If you need more from the dmesg output, let me know.
 
-Mauro, can you merge there patches directly, or do you want me to setup 
-a v4l-dvb tree for you that you can merge from?
-
-Thanks,
-
-	Hans
+-- 
+"Life is full of positive and negative events.  Spend
+your time considering the former, not the latter."
+Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
 
 --
 video4linux-list mailing list
