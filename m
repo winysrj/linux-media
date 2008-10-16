@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9RNGNEV001145
-	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 19:16:23 -0400
-Received: from mailrelay012.isp.belgacom.be (mailrelay012.isp.belgacom.be
-	[195.238.6.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9RNGDrs018554
-	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 19:16:14 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: video4linux-list@redhat.com
-Date: Tue, 28 Oct 2008 00:03:03 +0100
-References: <200810191632.36406.hverkuil@xs4all.nl>
-In-Reply-To: <200810191632.36406.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9GLu5su000764
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 17:56:05 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9GLtsD5013911
+	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 17:55:54 -0400
+From: Andy Walls <awalls@radix.net>
+To: Dave Huseby <dave@linuxprogrammer.org>
+In-Reply-To: <29997427.911224192415143.JavaMail.dave@mycroft>
+References: <29997427.911224192415143.JavaMail.dave@mycroft>
+Content-Type: text/plain
+Date: Thu, 16 Oct 2008 17:57:37 -0400
+Message-Id: <1224194257.3119.5.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200810280003.03265.laurent.pinchart@skynet.be>
-Cc: Jean Delvare <khali@linux-fr.org>
-Subject: Re: Feedback wanted: V4L2 framework additions
+Cc: video4linux-list@redhat.com
+Subject: Re: strange hauppauge wintv device number
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,150 +27,94 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
+On Thu, 2008-10-16 at 14:26 -0700, Dave Huseby wrote:
+> Hi Everybody,
+> 
+> I just bought an old hauppauge wintv card off of ebay and even though it is a model 401--which everybody claims to be supported by linux--it isn't working with tvtime or xawtv.  I noticed that its subsystem id is not detected by the bttv driver in the 2.6 kernel.  Here's the lspci dump:
+> 
+> 01:01.0 Multimedia video controller: Brooktree Corporation Bt878 Video Capture (rev 11)
+>         Subsystem: Hauppauge computer works Inc. Unknown device 03eb    <----- 03eb instead of the usual 13eb
+>         Flags: bus master, medium devsel, latency 64, IRQ 21
+>         Memory at cfdfe000 (32-bit, prefetchable) [size=4K]
+>         Capabilities: [44] Vital Product Data
+>         Capabilities: [4c] Power Management version 2
+> 
+> 01:01.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture (rev 11)
+>         Subsystem: Hauppauge computer works Inc. Unknown device 03eb    <----- 03eb instead of the usual 13eb
+>         Flags: medium devsel, IRQ 21
+>         Memory at cfdff000 (32-bit, prefetchable) [size=4K]
+>         Capabilities: [44] Vital Product Data
+>         Capabilities: [4c] Power Management version 2
 
-first of all, sorry for the late reply.
+A user on the list had a similar problem in early May of this year.  His
+device Vendor ID was coming across as 009e instead of 109e for
+Brooktree.  He resolved his problem by pulling the card out, blowing the
+dust out of the slot, and reinstalling the card.  
 
-On Sunday 19 October 2008, Hans Verkuil wrote:
-> Hi all,
->
-> During the Linux Plumbers Conference I proposed additions to the V4L2
-> framework that should simplify driver development and ensure better
-> consistency between drivers.
->
-> The last few days I worked to get this framework in place and I would
-> like to get feedback on what I have right now.
->
-> The repository is here:
->
-> http://linuxtv.org/hg/~hverkuil/v4l-dvb-media2/
->
-> The documentation is in:
->
-> linux/Documentation/video4linux/v4l2-framework.txt
->
-> The documentation is pretty complete, so that's probably a good place to
-> start.
->
-> The purpose of the framework is to move common administrative tasks to
-> the framework so that drivers do not have to do that themselves. In
-> addition, having all drivers use the same basic structures will make it
-> much easier to write new helper functions that only use those basic
-> structures and so can be independent of the driver-specific structs.
+Regards,
+Andy
 
-Just to make things clear, I'm very much in favour of a proper kernel-side 
-media framework. The various subsystems we currently have don't suffer from 
-serious design flaws by themselves, but they are simply not integrated.
 
-> In fact, even though at the moment the new structs and functions are
-> prefixed with 'v4l2_', they are actually completely generic and could
-> also be used with other subsystems if desired.
->
-> For now I keep the 'v4l2_' prefix, but this might become something more
-> generic like 'media_' in the future. I might do that anyway to clearly
-> distinguish between the generic and v4l2-specific parts of the
-> framework. I'm not sure yet.
-
-I like media_ much better, as v4l2 is probably not the right prefix. Your 
-proposal deals with composite devices that not only implement video 
-input/output but also offer sound, input events and video frame buffer 
-functions (among others). The framework should reflect that by using a new 
-prefix.
-
-> The new structs are:
->
-> v4l2_driver: basic driver support, provides a standardized way of
-> numbering device instances.
-
-The driver id and name are redundant. Beside, maintaining a global driver ID 
-registry will introduce compatibility issues with out-of-tree drivers. The 
-I2C subsystem has gone that way and is now coming back. Jean should probably 
-be able to comment on this with more details.
-
-The name field is also redundant, as drivers currently instantiate a 
-usb_driver/pci_driver/whatever structure and set the driver name there. 
-Wouldn't it be possible to retrieve the driver name from the 'physical driver 
-structure' (usb/pci/whatever as opposed to the class driver) ?
-
-What's the rationale behind the instance counter ? If I understand things 
-correctly, the counter is used to number instances and give them a unique 
-name. As the counter is monotonic, instance numbers will always increase. 
-With hotpluggable devices such as webcams the instance number will become 
-quite meaningless for end-users.
-
-Instead of maintaining a global list of devices that can be searched using 
-v4l2_device_iterate, it might be better to use the device list available in 
-struct device_driver. Except if you have a specific use-case in mind, 
-restricting device iteration to the related driver is probably a good thing.
-
-> v4l2_device: this is a device instance, usually embedded in a larger
-> struct. Keeps track of sub-devices and provides a generic way of
-> communicating with sub-devices. v4l2_device structs are registered with
-> a global list which allows e.g. alsa or fb drivers to find the 'parent'
-> device. It also removes artificial limits regarding the maximum number
-> of supported devices since all device instances are now stored in a
-> list.
-
-So that's a meta-device (at the same level as the pci or usb device) that 
-gathers related sub-devices (mostly i2c chips) and class devices (v4l2, 
-alsa, ...) ? If so, why do we need a separate list of sub devices instead of 
-using the struct device children list ?
-
-> v4l2_subdev: provides communication with sub-devices (usually i2c
-> devices). By using v4l2_subdev it is possible to easily command
-> sub-devices, regardless of the bus they are on. For i2c devices
-> additional helper functions are provided to easily load and create the
-> i2c_clients.
-
-I'll have to think some more about it. My general impression is that we're 
-trying to reinvent the wheel already available in drivers/base, but there 
-might be a good reason to do so.
-
-> In the future the framework will be expanded with a v4l2_fh struct for
-> filehandle-private data and a v4l2_mc for the mediacontroller (needed
-> for Texas Instruments hardware). Also, video_device needs a pointer to
-> v4l2_device.
-
-I think the media controller is actually the most interesting part of the 
-framework and will shape everything else.
-
-As composite devices are becoming more common, Linux will need a way to report 
-the device topology to userspace, and let userspace applications interact 
-with that topology when applicable (to route video streams for instance). 
-Even USB Video Class devices conform to that model: their USB descriptors 
-report a graph of connected blocks (connexions are fixed), and individual 
-blocks can be accessed by the host.
-
-We will also need a way to corelate streams coming from multiple logical 
-devices part of the same physical device. For instance, USB webcams usually 
-provide video and audio interfaces that map to a v4l2 device and an alsa 
-device. Both interfaces support timestamping the data they carry, but Linux 
-provides no way to synchronise those timestamps. The two streams are thus 
-hard to synchronise.
-
-> To test the code I've converted ivtv and the i2c modules that it uses to
-> the new framework. In particular it shows how to setup a v4l2_subdev
-> implementation for the gpio pins, so ivtv supports both gpio and i2c
-> devices all controlled by v4l2_subdev.
-
-As a side note, I think pure video device drivers should be allowed to create 
-a video_device instance only and should not be required to instantiate a 
-media controller or composite media device (v4l2_device). Only drivers that 
-create multiple devices (video, alsa, i2c bus master, ...) should use the 
-composite device.
-
-> Depending on the feedback I'll make a final version in 1-2 weeks. I hope
-> to merge it in v4l-dvb soon after the 2.6.28 merge window closes.
-
-As a summary, I really think a kernel media framework will be a big step 
-forward for Linux. As such a framework can become quite complex, adhering to 
-the KISS philosophy is probably the best solution. Designing the architecture 
-around real drivers and making it evolve with time has always been a good 
-decision.
-
-Best regards,
-
-Laurent Pinchart
+> And here's the syslog output from loading the bttv driver:
+> 
+> Oct 16 08:18:52 mycroft kernel: [38883.101978] bttv: driver version 0.9.17 loaded
+> Oct 16 08:18:52 mycroft kernel: [38883.101981] bttv: using 8 buffers with 2080k (520 pages) each for capture
+> Oct 16 08:18:52 mycroft kernel: [38883.102021] bttv: Bt8xx card found (0).
+> Oct 16 08:18:52 mycroft kernel: [38883.102031] bttv0: Bt878 (rev 17) at 0000:01:01.0, irq: 21, latency: 64, mmio: 0xcfdfe000
+> Oct 16 08:18:52 mycroft kernel: [38883.102380] bttv0: subsystem: 0070:03eb (UNKNOWN)
+> Oct 16 08:18:52 mycroft kernel: [38883.102382] please mail id, board name and the correct card= insmod option to video4linux-list@redhat.com
+> Oct 16 08:18:52 mycroft kernel: [38883.102384] bttv0: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
+> Oct 16 08:18:52 mycroft kernel: [38883.102408] bttv0: gpio: en=00000000, out=00000000 in=00ffffdb [init]
+> Oct 16 08:18:52 mycroft kernel: [38883.107044] tuner 0-0061: chip found @ 0xc2 (bt878 #0 [sw])
+> Oct 16 08:18:52 mycroft kernel: [38883.151676] bttv0: detected by eeprom: Hauppauge (bt848) [card=2]
+> Oct 16 08:18:52 mycroft kernel: [38883.182590] tveeprom 0-0050: Hauppauge model 61381, rev D423, serial# 1908220
+> Oct 16 08:18:52 mycroft kernel: [38883.182593] tveeprom 0-0050: tuner model is Philips FM1236 (idx 23, type 2)
+> Oct 16 08:18:52 mycroft kernel: [38883.182596] tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
+> Oct 16 08:18:52 mycroft kernel: [38883.182598] tveeprom 0-0050: audio processor is MSP3430 (idx 7)
+> Oct 16 08:18:52 mycroft kernel: [38883.182600] tveeprom 0-0050: has radio
+> Oct 16 08:18:52 mycroft kernel: [38883.182601] bttv0: Hauppauge eeprom indicates model#61381
+> Oct 16 08:18:52 mycroft kernel: [38883.182603] bttv0: tuner type=2
+> Oct 16 08:18:52 mycroft kernel: [38883.182608] tuner-simple 0-0061: type set to 2 (Philips NTSC (FI1236,FM1236 and compatibles))
+> Oct 16 08:18:52 mycroft kernel: [38883.182611] tuner 0-0061: type set to Philips NTSC (FI123
+> Oct 16 08:18:52 mycroft kernel: [38883.182614] bttv0: i2c: checking for MSP34xx @ 0x80... not found
+> Oct 16 08:18:52 mycroft kernel: [38883.183217] bttv0: i2c: checking for TDA9875 @ 0xb0... not found
+> Oct 16 08:18:52 mycroft kernel: [38883.183820] bttv0: i2c: checking for TDA7432 @ 0x8a... not found
+> Oct 16 08:18:52 mycroft kernel: [38883.193182] bttv0: registered device video0
+> Oct 16 08:18:52 mycroft kernel: [38883.193307] bttv0: registered device vbi0
+> Oct 16 08:18:52 mycroft kernel: [38883.193410] bttv0: registered device radio0
+> Oct 16 08:18:52 mycroft kernel: [38883.198385] bt878: AUDIO driver version 0.0.0 loaded
+> Oct 16 08:18:52 mycroft kernel: [38883.198413] bt878: Bt878 AUDIO function found (0).
+> Oct 16 08:18:52 mycroft kernel: [38883.198426] ACPI: PCI Interrupt 0000:01:01.1[A] -> GSI 22 (level, low) -> IRQ 21
+> Oct 16 08:18:52 mycroft kernel: [38883.198432] bt878_probe: card id=[0x3eb0070], Unknown card.
+> Oct 16 08:18:52 mycroft kernel: [38883.198432] Exiting..
+> Oct 16 08:18:52 mycroft kernel: [38883.198435] ACPI: PCI interrupt for device 0000:01:01.1 disabled
+> Oct 16 08:18:52 mycroft kernel: [38883.198440] bt878: probe of 0000:01:01.1 failed with error -22
+> Oct 16 08:19:38 mycroft kernel: [38928.738571] bttv0: SCERROCERR @ 24c4d014,bits: FMTCHG* VSYNC* HSYNC* OFLOW* HLOCK* VPRES* 6* 7* I2CDONE* GPINT* 10* RISCI* FBUS* FTRGT* FDSR* PPERR* RIPERR* PABORT* OCERR* SCERR*
+> 
+> 
+> As you can see, the subsystem id is 0070:03eb instead of the usual 0070:13eb as defined in the bttv-cards.c file.  I must have a really old card or one that was recalled or something.  Have anybody ever seen a 03eb?
+> 
+> I have tried a couple things to try to get it to work.  The first thing I tried was passing the card and tuner parameters to the bttv driver for the usual Hauppauge WinTV config.  That didn't work.  The next thing I tried was editing the bttv-cards.c file in the driver so that it would detect a 03eb device as if it were a 13eb device.  That didn't work either.
+> 
+> In both cases I keep getting a bunch of errors in my syslog:
+> 
+> Oct 16 10:11:38 mycroft kernel: [45633.943060] bttv0: SCERROCERR @ 05e3701c,bits: FMTCHG* VSYNC* HSYNC* OFLOW* HLOCK* VPRES* 6* 7* I2CDONE* GPINT* 10* RISCI* FBUS* FTRGT* FDSR* PPERR* RIPERR* PABORT* OCERR* SCERR*
+> Oct 16 10:11:38 mycroft kernel: [45633.943091] bttv0: OCERR @ 05e37000,bits: VSYNC HSYNC OFLOW PPERR OCERR*
+> Oct 16 10:11:38 mycroft kernel: [45634.004337] bttv0: SCERR @ 05e37014,bits: VSYNC HSYNC OFLOW FBUS PPERR PABORT SCERR*
+> Oct 16 10:11:38 mycroft kernel: [45634.004347] bttv0: SCERR @ 05e37000,bits: OFLOW FBUS PPERR SCERR*
+> Oct 16 10:11:38 mycroft kernel: [45634.064318] bttv0: SCERR @ 05e37014,bits: VSYNC HSYNC OFLOW FBUS PPERR PABORT SCERR*
+> Oct 16 10:11:38 mycroft kernel: [45634.093110] bttv0: OCERR @ 05e37014,bits: VSYNC HSYNC OFLOW FBUS PPERR OCERR*
+> 
+> Does anybody have any ideas on how to fix this?  I'd love to update the driver to support my card, but I'd have to get the documentation on the EPROM format.
+> 
+> Thanks ahead of time,
+> Dave
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
 
 --
 video4linux-list mailing list
