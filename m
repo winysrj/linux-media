@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1Kok8T-0004RT-1e
-	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 21:28:23 +0200
-From: "Igor M. Liplianin" <liplianin@tut.by>
+From: Christophe Thommeret <hftom@free.fr>
 To: linux-dvb@linuxtv.org
-Date: Sat, 11 Oct 2008 22:27:51 +0300
-References: <24FD17B66348C84282C591AA9BE3602E490EA8@paq-cft-exc01.Arqiva.Local>
-	<200810111530.01594.liplianin@tut.by>
-	<24FD17B66348C84282C591AA9BE3602E490EAA@paq-cft-exc01.Arqiva.Local>
-In-Reply-To: <24FD17B66348C84282C591AA9BE3602E490EAA@paq-cft-exc01.Arqiva.Local>
+Date: Fri, 17 Oct 2008 11:40:15 +0200
+References: <412bdbff0810150724h2ab46767ib7cfa52e3fdbc5fa@mail.gmail.com>
+	<48F633FA.4000106@linuxtv.org>
+	<412bdbff0810160728w396fd41ek4bb9818e191305e5@mail.gmail.com>
+In-Reply-To: <412bdbff0810160728w396fd41ek4bb9818e191305e5@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200810112227.52151.liplianin@tut.by>
-Subject: Re: [linux-dvb] TechnoTrend S2-3600
+Message-Id: <200810171140.15670.hftom@free.fr>
+Subject: Re: [linux-dvb] Revisiting the SNR/Strength issue
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,21 +17,89 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMTEgT2N0b2JlciAyMDA4IDIwOjQ1OjU2IEJvYiBNYXJ0aW4gzsHQydPB
-zCjBKToKPiBSZS1wb3N0IGR1ZSB0byBlcnJvciBpbiBlLW1haWwgYWRkcmVzc2luZy4gIEFwb2xv
-Z2llcy4KPgo+IEhpIElnb3IsCj4KPiBQbGVhc2UgZmluZCBhdHRhY2hlZCB0aGUgcGFyc2VkIGxv
-Zy4gIEkgaG9wZSBpdCBjb250YWlucyBlbm91Z2gKPiBpbmZvcm1hdGlvbi4gIElmIEkgbGVmdCB0
-aGUgV2luZG93cyBhcHBsaWNhdGlvbiBydW5uaW5nIHRvbyBsb25nIFdpbmRvd3MKPiB3b3VsZCBj
-cmFzaCBhbmQgSSB3b3VsZCBnZXQgdGhlIGJsdWUgc2NyZWVuLiAgVGhpcyBvbmx5IGhhcHBlbmVk
-IHdoZW4gdGhlCj4gc25pZmZpbmcgd2FzIGluc3RhbGxlZC4KPgo+IElmIGl0J3Mgbm90IGVub3Vn
-aCBJJ2xsIHRyeSBhZ2Fpbi4KPgo+IFJlZ2FyZHMsCj4gQm9iLgpJIHJlY2VpdmVkIGxvZy4KClJl
-Z2FyZHMgCklnb3IgTS4gTGlwbGlhbmluCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2
-Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51
-eC1kdmI=
+Le Thursday 16 October 2008 16:28:04 Devin Heitmueller, vous avez =E9crit=
+=A0:
+> On Wed, Oct 15, 2008 at 2:18 PM, Steven Toth <stoth@linuxtv.org> wrote:
+> > It will happen when someone cares enough to do it, that's the Linux
+> > mantra.
+>
+> I care enough to do it, but I'm trying to see if there's a solution
+> that doesn't require me to learn the intimate details of how SNR is
+> computed for every demodulator in the codebase (and then change that
+> representation to dB).
+>
+> I think it's actually really important that regular users be able to
+> use their application of choice (Kaffeine/MythTV/other) and be able to
+> tell whether they have a descent signal without having to look at the
+> kernel driver source code for the demodulator that is in their tuner
+> (that sentence alone has six words most regular users couldn't even
+> define).
+
+Have to add that most users even don't know what "dB" is. So, whatever the =
+
+unit, an application would have to translate it in an understandable form, =
+
+which could be as simple as :
+"Very bad signal quality"
+"Bad signal quality"
+"Good signal quality"
+"Very good signal quality"
+
+> > Let's quantify this. How many frontends would have to change?
+>
+> I didn't get a chance to do a count last night.  I will do this
+> tonight when I get home.
+>
+> >> engineering would have to be done, and in many cases without a signal
+> >> generator this would be very difficult.  This could take months or
+> >> years, or might never happen.
+> >
+> > You don't need a signal generator, you _do_ need a comparison product
+> > that is reliably reporting db.
+> >
+> >> Certainly I'm in favor of expressing that there is a preferred unit
+> >> that new frontends should use (whether that be ESNO or db), but the
+> >> solution I'm suggesting would allow the field to become useful *now*.
+> >> This would hold us over until all the other frontends are converted to
+> >> db (which I have doubts will ever actually happen).
+> >
+> > I'm not in favour of this.
+> >
+> > I'd rather see a single unit of measure agreed up, and each respective
+> > maintainer go back and perform the necessary code changes. I'm speaking
+> > as a developer of eight (?) different demod drivers in the kernel. That=
+'s
+> > no small task, but I'd happily conform if I could.
+> >
+> > Lastly, for the sake of this discussion, assuming that db is agreed upo=
+n,
+> > if the driver cannot successfully delivery SNR in terms of db then  the
+> > bogus function returning junk should be removed.
+> >
+> > Those two changes alone would be a better long term approach, I think.
+>
+> I'll see tonight how many demods we're talking about.  Certainly in
+> the long term I agree that this would be a better approach - I'm just
+> concerned that "long term" could mean "never".
+
+Yep it could, seeing how much time this issue has been discussed and still =
+no =
+
+solution.
+
+
+-- =
+
+Christophe Thommeret
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
