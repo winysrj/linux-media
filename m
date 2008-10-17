@@ -1,19 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out2.iol.cz ([194.228.2.87])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ajurik@quick.cz>) id 1KnuFz-00089L-Mx
-	for linux-dvb@linuxtv.org; Thu, 09 Oct 2008 14:04:40 +0200
-From: Ales Jurik <ajurik@quick.cz>
-To: linux-dvb@linuxtv.org,
- newspaperman_germany@yahoo.com
-Date: Thu, 9 Oct 2008 14:04:05 +0200
-References: <17614.72727.qm@web23205.mail.ird.yahoo.com>
-In-Reply-To: <17614.72727.qm@web23205.mail.ird.yahoo.com>
+Message-ID: <48F8FC70.6070904@linuxtv.org>
+Date: Fri, 17 Oct 2008 16:58:24 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200810091404.05506.ajurik@quick.cz>
-Subject: Re: [linux-dvb] [vdr] stb0899 and tt s2-3200
-Reply-To: ajurik@quick.cz
+To: Felix Kolotinsky <Felix.Kolotinsky@avermedia.com>
+References: <53F810EF6C2171468FEBEE7B91F672DF0DF8F7@USEXV01.avermediausa.com>
+In-Reply-To: <53F810EF6C2171468FEBEE7B91F672DF0DF8F7@USEXV01.avermediausa.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Initial support for AVerTVHD Volar
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,24 +21,71 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thursday 09 of October 2008, Newsy Paper wrote:
-> Hi Igor, hi Goga777,
+Felix Kolotinsky wrote:
 >
-> it's not working with SR 30000 FEC 3/4 dvb-s2 8PSK, still the same problem.
+> Hi Daniel and Mike
 >
-> kind regards
+>  
 >
-> Newsy
+> My name is Felix Kolotinsky and I am product manager at AVerMeia Tech 
+> USA office and I am in Bay area too.
 >
 
-It seems that patch from 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027264.html is not 
-applied. The internal PLL must be disabled when setting new frequency as is 
-written in stb6100 documentation.
+Hello, Felix.
+
+>  
+>
+> I came across your posting for AVerTVHD Volar A868 and sound like you 
+> were able to get this tuner to work in Linux and  I would like to get 
+> more info from you:
+>
+> 1.       What kernel did you use
+>
+
+We merged support for the device into kernel 2.6.27
+
+> 2.       What Linux flavor is it
+>
+
+We merged support for the device into the official vanilla kernel 
+2.6.27, which means that all distributions based on 2.6.27 or later will 
+have support.
+
+> 3.       What application
+>
+
+Support was added to the dvb-usb-cxusb driver, which uses the linux-dvb 
+standard API.  Any linux-dvb standard compliant application will work 
+with the device.
+
+> 4.       How is performance of this tuner?
+>
+As I understand it, not very good.  I helped Daniel merge the code, but 
+I don't have one of these devices of my own -- if you'd like to send me 
+one, I can test it out myself and make improvements as necessary.  We 
+suspect that the issue lies in driver for the MaxLinear tuner.
+
+If you want to send me a device, please email me privately off-list and 
+I'll give you a mailing address.
+
+> 5.       And some other questions J
+>
+>  
+>
+> I have a few questions to you about your post for AVerTVHD Volar with 
+> Linux.
+>
+> Would you please let get back to me either by email or call me at my 
+> cell below.
+>
+
+I'm a bit busy right now -- lets keep it on email.  If this is a private 
+matter, please feel free to email me privately off-list.  mkrufky at 
+linuxtv dot org
 
 Regards,
 
-Ales
+Mike
 
 _______________________________________________
 linux-dvb mailing list
