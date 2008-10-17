@@ -1,25 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9DBXC8u020074
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 07:33:12 -0400
-Received: from QMTA04.westchester.pa.mail.comcast.net
-	(qmta04.westchester.pa.mail.comcast.net [76.96.62.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9DBWth7032375
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 07:32:58 -0400
-Message-ID: <48F331EE.8080309@comcast.net>
-Date: Mon, 13 Oct 2008 04:33:02 -0700
-From: Brian Rogers <brian_rogers@comcast.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9HG84u8026685
+	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 12:08:04 -0400
+Received: from mail11b.verio-web.com (mail11b.verio-web.com [204.202.242.87])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9HG7pua029713
+	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 12:07:51 -0400
+Received: from mx88.stngva01.us.mxservers.net (198.173.112.5)
+	by mail11b.verio-web.com (RS ver 1.0.95vs) with SMTP id 3-0248729668
+	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 12:07:48 -0400 (EDT)
+Message-ID: <48F8B84D.7000204@sensoray.com>
+Date: Fri, 17 Oct 2008 09:07:41 -0700
+From: Dean Anderson <dean@sensoray.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <48C4FC1F.40509@comcast.net>	<20080911103801.52629349@mchehab.chehab.org>	<1221359719.6598.31.camel@pc10.localdom.local>
-	<20080915012640.51c86e04@areia.chehab.org>
-In-Reply-To: <20080915012640.51c86e04@areia.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+References: <1224256911.6327.11.camel@pete-desktop>
+	<200810171736.53826.hverkuil@xs4all.nl>
+In-Reply-To: <200810171736.53826.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Schultz <n9xmj@yahoo.com>,
-	Henry Wong <henry@stuffedcow.net>, v4ldvb@linuxtv.org,
-	v4l-dvb maintainer list <v4l-dvb-maintainer@linuxtv.org>
-Subject: Re: [PATCH] Add support for MSI TV@nywhere Plus remote
+Cc: Greg KH <greg@kroah.com>, video4linux-list@redhat.com
+Subject: Re: go7007 development
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,25 +31,97 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mauro Carvalho Chehab wrote:
-> On Sun, 14 Sep 2008 04:35:19 +0200
-> hermann pitton <hermann-pitton@arcor.de> wrote:
+Hans Verkuil wrote:
+> Hi Pete,
+>
+> On Friday 17 October 2008 17:21:51 Pete wrote:
 >   
->> Mauro,
+>> Hello,
 >>
->> this is the oldest and most important outstanding patch we have.
+>> I am working on adding the Sensoray 2250 to the go7007 staging tree,
+>> starting from GregKH's staging patch here:
+>> http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/
+>> gregkh-05-staging-2.6.27.patch
 >>
->> There are whole generations of cards still without of any IR support,
->> since years, because of that.
+>> In particular, we are stuck how to change the MPEG format with
+>> standard IOCTL calls.  In particular, this comment in the driver
+>> go7007.h below needs explanation:
 >>
->> If this one should still hang on coding style violations, please let me
->> know.
+>> /* DEPRECATED -- use V4L2_PIX_FMT_MPEG and then call
+>> GO7007IOC_S_MPEG_PARAMS * to select between MPEG1, MPEG2, and MPEG4
+>> */
+>> #define V4L2_PIX_FMT_MPEG4     v4l2_fourcc('M','P','G','4') /* MPEG4 
+>>        */
+>>
+>> The existing driver, for backward-compatibility , allowed
+>> V4L2_PIX_FMT_MPEG4 to be used for v4l2_format.pixelformat with
+>> VIDIOC_S_FMT.
+>>
+>> GO7007IOC_S_MPEG_PARAMS is a custom ioctl call and we would rather
+>> have this done through v4l2 calls. We also can't seem to find where
+>> MPEG1, MPEG2, and MPEG4 elementary streams are defined in the V4L2
+>> API.  We checked other drivers, but could not find anything.  The
+>> closest thing we found was the V4L2_CID_MPEG_STREAM_TYPE control, but
+>> the enums do not define elementary streams nor MPEG4.
+>>
+>> Your advice is appreciated.
+>>
+>> Thanks.
 >>     
-> I'll handle this patch soon. I'm currently away (in Portland, due to Plumbers
-> and KS conferences), so, maybe I'll wait until the next week for committing it.
+>
+> It would be really nice to have this driver in the kernel.
+>
+> All MPEG streams use V4L2_PIX_FMT_MPEG and set the exact stream type 
+> through V4L2_CID_MPEG_STREAM_TYPE. You probably need to add a few new 
+> stream types to this control for the elementary streams. I think 
+> something like TYPE_MPEG_ELEM might do the trick, and then you can use 
+> the audio and video encoding controls to select the precise audio/video 
+> encoding.
+>
+> I don't know enough about the capabilities, so perhaps 
+> TYPE_MPEG1/2/4_ELEM is required instead of a more generic 
+> TYPE_MPEG_ELEM.
+>
 >   
-The patch doesn't appear to be in any of the v4l trees yet, so here's a 
-ping to remind you.
+The generic approach seems better.  There will be boards with H264 
+encapsulated in MPEG2 transport stream.  I'd recommend keeping the 
+encapsulation/mux format in V4L2_CID_MPEG_STREAM_TYPE, but not 
+necessarily the encoding. 
+
+Otherwise you'll have V4L2_MPEG_STREAM_TYPE_MPEG2_TS_MPEG4_ENCODING, 
+etc..  Maybe V4L2_CID_MPEG_STREAM_TYPE needs a comment that it is the 
+encapsulation(or mux format), and the encoding should be defined in 
+V4L2_CID_MPEG_VIDEO_ENCODING?
+
+So for this Go7007, we suggest adding V4L2_MPEG_STREAM_TYPE_ELEM to 
+V4L2_CID_MPEG_STREAM_TYPE.
+We also suggest adding V4L2_MPEG_VIDEO_ENCODING_MPEG_4 to 
+V4L2_CID_MPEG_VIDEO_ENCODING.  Of course, there is the question of what 
+version of MPEG4, but we'll leave that for another day.
+
+What do you think?
+
+> Since I designed the MPEG API for V4L2 I guess I'm the right person to 
+> help you. I also have a Plextor TV402U since I always wanted to get the 
+> go7007 driver into the kernel, but I never had the time so I'm glad 
+> you've picked it up.
+>
+> Regards,
+>
+> 	Hans
+>
+>   
+Good to hear, and thanks for the quick response.
+
+Dean
+
+-- 
+Dean Anderson
+Sensoray Co., Inc.
+Email: dean@sensoray.com
+http://www.sensoray.com
+
+
 
 --
 video4linux-list mailing list
