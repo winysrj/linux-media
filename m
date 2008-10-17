@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m97GZ8YU001843
-	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:35:08 -0400
-Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.239])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m97GYpmO000780
-	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:34:51 -0400
-Received: by wx-out-0506.google.com with SMTP id h30so389148wxd.6
-	for <video4linux-list@redhat.com>; Tue, 07 Oct 2008 09:34:51 -0700 (PDT)
-Message-ID: <ea3b75ed0810070934y6fd6a720g42173e0b93eca578@mail.gmail.com>
-Date: Tue, 7 Oct 2008 12:34:50 -0400
-From: "Brian Phelps" <lm317t@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9HFboLY007808
+	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 11:37:50 -0400
+Received: from smtp-vbr16.xs4all.nl (smtp-vbr16.xs4all.nl [194.109.24.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9HFb0gs003132
+	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 11:37:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: video4linux-list@redhat.com
-In-Reply-To: <20081007145206.GA1664@daniel.bse>
+Date: Fri, 17 Oct 2008 17:36:53 +0200
+References: <1224256911.6327.11.camel@pete-desktop>
+In-Reply-To: <1224256911.6327.11.camel@pete-desktop>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <ea3b75ed0810070657i2f673bb1ub858b2871d7b387a@mail.gmail.com>
-	<20081007145206.GA1664@daniel.bse>
-Content-Transfer-Encoding: 8bit
-Subject: Re: capture.c example (multiple inputs)
+Message-Id: <200810171736.53826.hverkuil@xs4all.nl>
+Cc: Greg KH <greg@kroah.com>, Dean Anderson <dean@sensoray.com>
+Subject: Re: go7007 development
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,66 +29,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Daniel,
+Hi Pete,
 
-
-On Tue, Oct 7, 2008 at 10:52 AM, Daniel Glöckner <daniel-gl@gmx.net> wrote:
-> On Tue, Oct 07, 2008 at 09:57:28AM -0400, Brian Phelps wrote:
->> I did some digging and it looks like this single chip bt878 card must
->> cut the frame rate when switching inputs.  Is this correct?
+On Friday 17 October 2008 17:21:51 Pete wrote:
+> Hello,
 >
-> correct.
+> I am working on adding the Sensoray 2250 to the go7007 staging tree,
+> starting from GregKH's staging patch here:
+> http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/
+> gregkh-05-staging-2.6.27.patch
 >
->> I found a 4-chip version from bluecherry.com that seems to do this at
->> full 30 FPS per channel.
+> In particular, we are stuck how to change the MPEG format with
+> standard IOCTL calls.  In particular, this comment in the driver
+> go7007.h below needs explanation:
 >
-> You mean .net, not .com?
-Yes its bluecherry.net, I was in a hurry
+> /* DEPRECATED -- use V4L2_PIX_FMT_MPEG and then call
+> GO7007IOC_S_MPEG_PARAMS * to select between MPEG1, MPEG2, and MPEG4
+> */
+> #define V4L2_PIX_FMT_MPEG4     v4l2_fourcc('M','P','G','4') /* MPEG4 
+>        */
 >
-> Be warned, depending on your system there may be dropped pixels when
-> capturing four inputs at high resolution in inefficient color spaces.
-> Especially when you try to write the videos to harddisk while the
-> harddisk controller shares a PCI bus with the capture card.
-
-Thanks for the advice Dan.
-I am a bit of a newbie the concept of PCI buses. In this example (not
-mine) is the 1e that the bt878 card is on, on a different bus than the
-IDE controller, 1f?:
-# lspci -tv
--[00]-+-00.0  Intel Corporation 82845G/GL[Brookdale-G]/GE/PE DRAM
-Controller/Host-Hub Interface
-      +-02.0  Intel Corporation 82845G/GL[Brookdale-G]/GE Chipset
-Integrated Graphics Device
-      +-1d.0  Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M)
-USB UHCI Controller #1
-      +-1d.1  Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M)
-USB UHCI Controller #2
-      +-1d.2  Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M)
-USB UHCI Controller #3
-      +-1d.7  Intel Corporation 82801DB/DBM (ICH4/ICH4-M) USB2 EHCI Controller
-      +-1e.0-[01]--+-02.0  Brooktree Corporation Bt878 Video Capture
-      |            +-02.1  Brooktree Corporation Bt878 Audio Capture
-      |            \-05.0  Realtek Semiconductor Co., Ltd. RTL-8139/8139C/8139C+
-      +-1f.0  Intel Corporation 82801DB/DBL (ICH4/ICH4-L) LPC Interface Bridge
-      +-1f.1  Intel Corporation 82801DB (ICH4) IDE Controller
-      +-1f.3  Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M)
-SMBus Controller
-      \-1f.5  Intel Corporation 82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M)
-AC'97 Audio Controller
-
-
+> The existing driver, for backward-compatibility , allowed
+> V4L2_PIX_FMT_MPEG4 to be used for v4l2_format.pixelformat with
+> VIDIOC_S_FMT.
 >
->  Daniel
+> GO7007IOC_S_MPEG_PARAMS is a custom ioctl call and we would rather
+> have this done through v4l2 calls. We also can't seem to find where
+> MPEG1, MPEG2, and MPEG4 elementary streams are defined in the V4L2
+> API.  We checked other drivers, but could not find anything.  The
+> closest thing we found was the V4L2_CID_MPEG_STREAM_TYPE control, but
+> the enums do not define elementary streams nor MPEG4.
 >
+> Your advice is appreciated.
+>
+> Thanks.
 
+It would be really nice to have this driver in the kernel.
 
+All MPEG streams use V4L2_PIX_FMT_MPEG and set the exact stream type 
+through V4L2_CID_MPEG_STREAM_TYPE. You probably need to add a few new 
+stream types to this control for the elementary streams. I think 
+something like TYPE_MPEG_ELEM might do the trick, and then you can use 
+the audio and video encoding controls to select the precise audio/video 
+encoding.
 
--- 
-Brian Phelps
-System Design Engineer
-Custom Light and Sound
-919-286-0011
-http://customlightandsound.com
+I don't know enough about the capabilities, so perhaps 
+TYPE_MPEG1/2/4_ELEM is required instead of a more generic 
+TYPE_MPEG_ELEM.
+
+Since I designed the MPEG API for V4L2 I guess I'm the right person to 
+help you. I also have a Plextor TV402U since I always wanted to get the 
+go7007 driver into the kernel, but I never had the time so I'm glad 
+you've picked it up.
+
+Regards,
+
+	Hans
 
 --
 video4linux-list mailing list
