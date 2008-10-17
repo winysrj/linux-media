@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1KuUQ7-0001q7-Ov
-	for linux-dvb@linuxtv.org; Mon, 27 Oct 2008 16:54:20 +0100
-From: Andy Walls <awalls@radix.net>
-To: Georg Acher <acher@in.tum.de>
-In-Reply-To: <20081027140348.GE9657@localhost>
+	(envelope-from <stoth@linuxtv.org>) id 1KqtqH-0005t1-9n
+	for linux-dvb@linuxtv.org; Fri, 17 Oct 2008 20:14:33 +0200
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta5.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K8W00A6MAMS9LW0@mta5.srv.hcvlny.cv.net> for
+	linux-dvb@linuxtv.org; Fri, 17 Oct 2008 14:13:42 -0400 (EDT)
+Date: Fri, 17 Oct 2008 14:13:40 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Message-id: <48F8D5D4.2030203@linuxtv.org>
+MIME-version: 1.0
 References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
-	<49033440.6090609@gmx.de>
-	<3cc3561f0810270337h4c33dd80n9b779a8dc3c8f8ce@mail.gmail.com>
-	<20081027140348.GE9657@localhost>
-Date: Mon, 27 Oct 2008 11:54:56 -0400
-Message-Id: <1225122896.3124.13.camel@palomino.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
+Cc: Linux-dvb <linux-dvb@linuxtv.org>
 Subject: Re: [linux-dvb] [RFC] SNR units in tuners
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,31 +25,109 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gTW9uLCAyMDA4LTEwLTI3IGF0IDE1OjAzICswMTAwLCBHZW9yZyBBY2hlciB3cm90ZToKPiBP
-biBNb24sIE9jdCAyNywgMjAwOCBhdCAxMDozNzo1MkFNICswMDAwLCBNb3JnYW4gVMO4cnZvbHQg
-d3JvdGU6Cj4gIAo+ID4gQXMgSSB1c2VkIHRvIHdvcmsgd2l0aCBzYXRlbGxpdGUgc2lnbmFscyBv
-biBhbiBlYXJ0aCBzdGF0aW9uLCBhbmQgd2FzCj4gPiByZXNwb25zaWJsZSBmb3IgdGhlIGRldmVs
-b3BtZW50IG9mIG1lYXN1cmVtZW50IHRlY2huaXF1ZXMsIEkgdGhvdWdodCBJCj4gPiBzaG91bGQg
-am9pbiBpbiBoZXJlIGZvciBzb21lIGhvcGVmdWxseSByZXZlbGFpbmcgaW5mby4KPiA+IAo+ID4g
-SSBhbSBndWVzc2luZyBoZXJlIG9mIGNvdXJzZSwgYnV0IEkgYmVsaWV2ZSB0aGF0IHRoZXJlIGlz
-IG5vIHJlYWwgU05SCj4gPiBtZWFzdXJlbWVudCBpbiBhbnkgb2YgdGhlIHR1bmVycyBhdmFpbGFi
-bGUgZm9yIGNvbXB1dGVycy4gCj4gCj4gTXkgZ3Vlc3MgaXMgdGhhdCBpdCBpcyBwb3NzaWJsZS4g
-QWN0dWFsbHksIGl0IGlzIHF1aXRlIGVhc3kgZm9yIFFQU0sgOy0pIFlvdQo+IG9ubHkgbmVlZCB0
-byBjYWxjdWxhdGUgdGhlIGRpc3RhbmNlIG9mIHRoZSBJUS12YWx1ZSBmcm9tIHRoZSBpZGVhbCBz
-eW1ib2wKPiBjZW50ZXIgKCAoc3FydCgwLjUpLHNxcnQoMC41KSkgb3Igd2hhdGV2ZXIpIGFmdGVy
-IHRoZQo+IHJvdGF0b3IvcmV0aW1pbmctYmxvY2suCj4gCgpJc24ndCB0aGF0IGp1c3QgRXJyb3Ig
-VmVjdG9yIE1hZ25pdHVkZSAoRVZNKT8KCjxtdXNpbmc+Ckkgc3VwcG9zZSBvdmVyIGEgbnVtYmVy
-IG9mIHNhbXBsZXMsIEVWTSBnaXZlcyB5b3UgYW4gaWRlYSBvZiB0aGUgbm9pc2UKcG93ZXIgKyBz
-b3VyY2UgdHJhbnNtaXR0ZXIgZGVmb3JtYXRpb24sIGlmIHRoZSByZWNlaXZlZCBzaWduYWwgcmVt
-YWlucwphdCBhIGNvbnN0YW50IHBvd2VyLiAgSSBzdXBwb3NlIHlvdSBjb3VsZCBlc3RpbWF0ZSBz
-aWduYWwgc3RyZW5ndGggYnkKZXhhbWluaW5nIGFtcGxpZmllciBnYWluIHNldHRpbmdzLgo8L211
-c2luZz4KClJlZ2FyZHMsCkFuZHkKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9y
-ZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1k
-dmI=
+Devin Heitmueller wrote:
+> Hello,
+> 
+> In response to Steven Toth's suggestion regarding figuring out what
+> the various units are across demodulators, I took a quick inventory
+
+Cool.
+
+> and came up with the following list.  Note that this is just a first
+> pass by taking a quick look at the source for each demodulator (I
+> haven't looked for the datasheets for any of them yet or done sample
+> captures to see what the reported ranges are).
+> 
+> Could everybody who is responsible for a demod please take a look at
+> the list and see if you can fill in the holes?
+
+Some minor comments in line, basically confirming your assessment. When 
+I can get some time I'll go back and do the cx22702.
+
+> 
+> Having a definitive list of the current state is important to being
+> able to provide unified reporting of SNR.
+
+Indeed, good work, thanks.
+
+> 
+> Thank you,
+> 
+> Devin
+> 
+> ===
+> af9013.c        dB
+> at76c651.c      unknown
+
+Old code, being removed I think.
+
+> au8522.c        0.1 dB
+
+Correct.
+
+> bcm3510.c       unknown (vals > 1000)
+> cx22700.c       unknown
+> cx22702.c       unknown
+
+I need to add dB support for this.
+
+> cx24110.c       ESN0
+> cx24116.c       percent scaled to 0-0xffff, support for ESN0
+> cx24123.c       Inverted ESN0
+> dib3000mb.c     unknown
+> dib3000mc.c     always zero
+> dib7000m.c      always zero
+> dib7000p.c      always zero
+> drx397xD.c      always zero
+> dvb_dummy_fe.c  always zero
+> l64781.c        unknown
+> lgdt330x.c      dB scaled to 0-0xffff
+> lgs8gl5.c       unknown
+> mt312.c         unknown
+> mt352.c         unknown
+> nxt200x.c       dB
+> nxt6000.c       unknown
+> or51132.c       dB
+> or51211.c       dB
+> s5h1409.c       0.1 dB
+> s5h1411.c       0.1 dB
+
+Correct.
+
+> s5h1420.c       unsupported
+> si21xx.c        unknown (scaled to 0-0xffff)
+> sp8870.c        unsupported
+> sp887x.c        unknown
+> stv0288.c       unknown
+> stv0297.c       unknown
+> stv0299.c       unknown
+> tda10021.c      unknown
+> tda10023.c      unknown
+> tda10048.c      unknown (looks like 0.1dB)
+
+Correct.
+
+> tda1004x.c      unknown
+> tda10086.c      unknown
+> tda8083.c       unknown
+> tda80xx.c       unknown
+
+Old code, being removed I think.
+
+> ves1820.c       unknown
+> ves1x93.c       unknown
+> zl10353.c       unknown
+> 
+> 
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
