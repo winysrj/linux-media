@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gv-out-0910.google.com ([216.239.58.188])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1KshoN-0005h7-EE
-	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 19:47:59 +0200
-Received: by gv-out-0910.google.com with SMTP id n29so569752gve.16
-	for <linux-dvb@linuxtv.org>; Wed, 22 Oct 2008 10:47:55 -0700 (PDT)
-Date: Wed, 22 Oct 2008 19:47:24 +0200
-To: linux-dvb@linuxtv.org
-Message-ID: <20081022174724.GJ30832@gmail.com>
-References: <20081022171809.GI30832@gmail.com>
-MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20081022171809.GI30832@gmail.com>
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: Re: [linux-dvb] Undefined symbols in hg v4l-dvb
+Date: Fri, 17 Oct 2008 09:31:15 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48F86120.2020203@linuxtv.org>
+To: Andreas Oberritter <obi@linuxtv.org>
+Message-id: <48F893A3.4060607@linuxtv.org>
+MIME-version: 1.0
+References: <412bdbff0810150724h2ab46767ib7cfa52e3fdbc5fa@mail.gmail.com>
+	<48F5FE80.5010106@linuxtv.org>
+	<412bdbff0810150740h61049f5fvb679bdebbcd4084d@mail.gmail.com>
+	<48F633FA.4000106@linuxtv.org> <48F86120.2020203@linuxtv.org>
+Cc: Linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Revisiting the SNR/Strength issue
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,166 +18,69 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, Oct 22, 2008 at 07:18:09PM +0200, Gregoire Favre wrote:
+Andreas Oberritter wrote:
+> Steven Toth wrote:
+>> Devin Heitmueller wrote:
+>>> Certainly I'm in favor of expressing that there is a preferred unit
+>>> that new frontends should use (whether that be ESNO or db), but the
+>>> solution I'm suggesting would allow the field to become useful *now*.
+>>> This would hold us over until all the other frontends are converted to
+>>> db (which I have doubts will ever actually happen).
+>> I'm not in favour of this.
+>>
+>> I'd rather see a single unit of measure agreed up, and each respective 
+>> maintainer go back and perform the necessary code changes. I'm speaking 
+>> as a developer of eight (?) different demod drivers in the kernel. 
+>> That's no small task, but I'd happily conform if I could.
+>>
+>> Lastly, for the sake of this discussion, assuming that db is agreed 
+>> upon, if the driver cannot successfully delivery SNR in terms of db then 
+>>   the bogus function returning junk should be removed.
+>>
+>> Those two changes alone would be a better long term approach, I think.
+> 
+> How about adding a new command instead (and a similar one for S2API)? 
+> 
+> /* Read SNR in units of dB/100 */
+> #define FE_READ_SNR_DB _IOR('o', 74, __u16)
+> 
+> Then it's no problem to slowly migrate the drivers to this interface. The
+> old interface can still stay for some time without changes. Applications
+> can try this ioctl, and if it returns an error, then it is not implemented
+> for the used device.
 
-I forgot to say that if I first load the i2c modules, it works ;-)
+Devin has offered to review the demods and snr code, to see the differences.
 
-> Just compiled v4l-dvb and :
->   Building modules, stage 2.
->   MODPOST 118 modules
-> WARNING: "i2c_bit_add_bus" [/usr/src/CVS/v4l-dvb/v4l/cx88xx.ko] undefined!
-> WARNING: "i2c_bit_add_bus" [/usr/src/CVS/v4l-dvb/v4l/cx88-vp3054-i2c.ko] =
-undefined!
-> WARNING: "i2c_bit_add_bus" [/usr/src/CVS/v4l-dvb/v4l/cx18.ko] undefined!
-> =
+BTW, I like a couple of the ideas mentioned so far.
 
-> But sudo make install
-> Stripping debug info from files
-> =
+Many of the recent Linux demods drivers were written from datasheets, so 
+we have access to real credible numbers. I suspect I can also push NXP 
+for datasheets on older parts if the maintainers of other demods are 
+willing to go the extra mile and add add the code. Other vendors, maybe 
+not - let's see.
 
-> Removing obsolete files from /lib/modules/2.6.27-gentoo/kernel/drivers/me=
-dia/video:
-> =
+You can't really judge good / better / best or db if you don't have 
+credible esno / db registers, that's should be the first step - to 
+understand how many demods have issues and how many are fixable.
 
-> =
+The user-facing API is only any good after we know the demods are 
+standardized. I tend to think we can get > 80% of the demods reporting 
+db or esno, which in turn can easily be abstracted via dvb-core into 
+good / better / best or a more appropriate user view.
 
-> Removing obsolete files from /lib/modules/2.6.27-gentoo/kernel/drivers/me=
-dia/dvb/frontends:
-> =
+I don't agree to blindly massaging the demod values and trying to add a 
+fake user facing API is a real solution.
 
-> Installing kernel modules under /lib/modules/2.6.27-gentoo/kernel/drivers=
-/media/:
->         video/cx18/: cx18.ko =
+I do like that people are talking again, and I will certainly be willing 
+to help in fixing demods.
 
->         common/tuners/: tuner-xc2028.ko tda9887.ko mt2131.ko =
-
->                 mt20xx.ko tda827x.ko tda18271.ko =
-
->                 xc5000.ko tea5761.ko tuner-types.ko =
-
->                 tda8290.ko tuner-simple.ko tea5767.ko =
-
->                 mxl5005s.ko =
-
->         dvb/dvb-core/: dvb-core.ko =
-
->         video/: videobuf-dma-sg.ko upd64083.ko videobuf-core.ko =
-
->                 tda9840.ko cx2341x.ko wm8775.ko =
-
->                 tuner.ko videobuf-dvb.ko tvaudio.ko =
-
->                 tea6420.ko msp3400.ko tcm825x.ko =
-
->                 wm8739.ko tda7432.ko upd64031a.ko =
-
->                 ir-kbd-i2c.ko tea6415c.ko videodev.ko =
-
->                 tda9875.ko cs53l32a.ko btcx-risc.ko =
-
->                 saa7115.ko v4l2-common.ko tvp5150.ko =
-
->                 vp27smpx.ko ov7670.ko saa7127.ko =
-
->                 m52790.ko v4l1-compat.ko compat_ioctl32.ko =
-
->                 v4l2-int-device.ko tveeprom.ko cs5345.ko =
-
->                 saa717x.ko tlv320aic23b.ko =
-
->         video/cx23885/: cx23885.ko =
-
->         video/cx25840/: cx25840.ko =
-
->         dvb/ttpci/: ttpci-eeprom.ko budget-av.ko budget.ko =
-
->                 budget-core.ko budget-ci.ko =
-
->         dvb/frontends/: nxt6000.ko dib7000m.ko drx397xD.ko =
-
->                 s5h1411.ko si21xx.ko au8522.ko =
-
->                 s5h1420.ko stv0288.ko nxt200x.ko =
-
->                 mt352.ko isl6405.ko s5h1409.ko =
-
->                 sp887x.ko dibx000_common.ko isl6421.ko =
-
->                 mt312.ko or51132.ko dib3000mb.ko =
-
->                 tda1004x.ko lgs8gl5.ko dib3000mc.ko =
-
->                 itd1000.ko sp8870.ko l64781.ko =
-
->                 dib7000p.ko ves1x93.ko tda8083.ko =
-
->                 dib0070.ko ves1820.ko stv0297.ko =
-
->                 tda10086.ko cx22700.ko zl10353.ko =
-
->                 cx24110.ko stv0299.ko dvb_dummy_fe.ko =
-
->                 dvb-pll.ko lgdt330x.ko cx24123.ko =
-
->                 lnbp21.ko cx22702.ko stb6000.ko =
-
->                 cx24116.ko tda10023.ko tua6100.ko =
-
->                 bcm3510.ko tda10021.ko tda10048.ko =
-
->                 or51211.ko tda826x.ko af9013.ko =
-
->         video/cx88/: cx8802.ko cx8800.ko cx88-blackbird.ko =
-
->                 cx88-alsa.ko cx88xx.ko cx88-vp3054-i2c.ko =
-
->                 cx88-dvb.ko =
-
->         common/: saa7146_vv.ko ir-common.ko saa7146.ko =
-
-> /sbin/depmod -a 2.6.27-gentoo =
-
-> =
-
-> And then sudo scripts/rmmod.pl load ended like this :
-> /sbin/insmod ./cx88xx.ko
-> insmod: error inserting './cx88xx.ko': -1 Unknown symbol in module
-> /sbin/insmod ./msp3400.ko
-> /sbin/insmod ./budget-ci.ko
-> /sbin/insmod ./compat_ioctl32.ko
-> /sbin/insmod ./cx18.ko
-> insmod: error inserting './cx18.ko': -1 Unknown symbol in module
-> /sbin/insmod ./cx8800.ko
-> insmod: error inserting './cx8800.ko': -1 Unknown symbol in module
-> /sbin/insmod ./budget-av.ko
-> /sbin/insmod ./cx8802.ko
-> insmod: error inserting './cx8802.ko': -1 Unknown symbol in module
-> /sbin/insmod ./cx23885.ko
-> /sbin/insmod ./cx88-alsa.ko
-> insmod: error inserting './cx88-alsa.ko': -1 Unknown symbol in module
-> /sbin/insmod ./cx88-dvb.ko
-> insmod: error inserting './cx88-dvb.ko': -1 Unknown symbol in module
-> /sbin/insmod ./cx88-blackbird.ko
-> insmod: error inserting './cx88-blackbird.ko': -1 Unknown symbol in module
-> =
-
-> So only one of my cards get recognized...
-> -- =
-
-> Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.o=
-rg
->                http://picasaweb.google.com/Gregoire.Favre
-
--- =
-
-Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
-               http://picasaweb.google.com/Gregoire.Favre
+- Steve
 
 _______________________________________________
 linux-dvb mailing list
