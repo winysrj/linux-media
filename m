@@ -1,28 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9THCxtF003086
-	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 13:12:59 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9THC75S028722
-	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 13:12:07 -0400
-Received: by ug-out-1314.google.com with SMTP id j30so1552713ugc.13
-	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 10:12:06 -0700 (PDT)
-Message-ID: <30353c3d0810291012y5c9a4c54x480fdb0fa807dd0c@mail.gmail.com>
-Date: Wed, 29 Oct 2008 13:12:06 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Alexey Klimov" <klimov.linux@gmail.com>
-In-Reply-To: <30353c3d0810291008mc73e3ady3fdabc5adc0eacd5@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9H8cDeW032013
+	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 04:38:14 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9H8cBhE014603
+	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 04:38:12 -0400
+Date: Fri, 17 Oct 2008 10:38:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Magnus Damm <magnus.damm@gmail.com>
+In-Reply-To: <aec7e5c30810170055o4496accbnc856c27a3fcc9423@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0810171003421.4600@axis700.grange>
+References: <u63nt9mvx.wl%morimoto.kuninori@renesas.com>
+	<20081016102701.1bcb2c59.ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0810162114030.8422@axis700.grange>
+	<200810162258.28993.hverkuil@xs4all.nl>
+	<aec7e5c30810161947n57851272i4204dcce515a8ec4@mail.gmail.com>
+	<Pine.LNX.4.64.0810170844420.4600@axis700.grange>
+	<aec7e5c30810170055o4496accbnc856c27a3fcc9423@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
-	<208cbae30810190758x2f0c70f5m5856ce9ea84b26ae@mail.gmail.com>
-	<30353c3d0810191711y7be7c7f2i83d6a3a8ff46b6a0@mail.gmail.com>
-	<20081028180552.GA2677@tux>
-	<30353c3d0810291008mc73e3ady3fdabc5adc0eacd5@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: [patch] radio-mr800: remove warn- and err- messages
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com, Michael Schimek <mschimek@gmx.at>
+Subject: Re: [PATCH] Add ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,46 +32,85 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Oct 29, 2008 at 1:08 PM, David Ellingsworth
-<david@identd.dyndns.org> wrote:
-> On Tue, Oct 28, 2008 at 1:05 PM, Alexey Klimov <klimov.linux@gmail.com> wrote:
->> Hello, all
->>
->> Here is new patch, reformatted. Also KBUILD_MODNAME added.
->>
->> radio-mr800: remove warn-, err- and info-messages
->>
->> Patch removes warn(), err() and info() statements in radio/radio-mr800.c,
->> and place dev_warn, dev_info in right places.
->> Printk changed on pr_info and pr_err macro.
->>
->> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
->>
->
-> NACK. KBIULD_MODNAME should not be used except from within module
-> specific function (IE module_init and module_exit routines). It is my
-> understanding that KBUILD_MODNAME expands to the name module when the
-> driver is compiled as a module and the name of the file otherwise.
-> While I understand this is how the previous warn() and err() macros
-> were defined in usb.h I don't believe it's the right thing to do. If
-> you want my ack, you have the following options:
->
-> 1. Use the same name used in the usb_driver struct
-> 2. Remove the name altogether
->
-> If I were writing it, I'd do the following:
->
-> #define DRVNAME "radio-mr800"
-> #define amradio_dev_err(dev, fmt, arg...) dev_err(dev, DRVNAME fmt, ##arg)
-> #define amradio_dev_warn(dev, fmt, arg...) dev_warn(dev, DRVNAME fmt, ##arg)
-Minor correction here ^^^^^
+On Fri, 17 Oct 2008, Magnus Damm wrote:
 
-It should be:
-#define amradio_dev_err(dev, fmt, arg...) dev_err(dev, DRVNAME ": " fmt, ##arg)
-#define amradio_dev_warn(dev, fmt, arg...) dev_warn(dev, DRVNAME ": "
-fmt, ##arg)
+> Hi Guennadi,
+> 
+> Thanks for your feedback!
+> 
+> On Fri, Oct 17, 2008 at 3:50 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > On Fri, 17 Oct 2008, Magnus Damm wrote:
+> >> Hans,  any chance of that framework including pixel format helper
+> >> code? I've hacked a bit on using a bitmap to represent pixel formats
+> >> supported by a certain driver. The attached very rough patch maybe
+> >> shows what i'm trying to do.
+> >>
+> >> Basically, I need a simple way to determine if a camera sensor
+> >> supports a certain pixel format, and if so then i'd like to add a
+> >> bunch of pixel formats supported by the soc_camera host.
+> >
+> > Thanks for the code, but, unfortunately, I don't understand what you are
+> > trying to do there, and why the current soc-camera pixel-format
+> > enumeration code doesn't suit your needs.
+> 
+> I need to check for certain pixel formats in my sh_mobile_ceu driver,
+> and if available then i should add a set of NVxx pixel formats and
+> switch the CEU hardware block to a certain operating mode. The patch
+> doesn't contain that part though - only the ground work to manage
+> pixel formats represented as a bitmap.
+> 
+> I _can_ do what i want to do with the current list of structs
+> approach, but using lists to represent supported modes seems overly
+> complicated. A bitmap may be a good fit since the number of pixel
+> modes we support through V4L2 is finite. Such a change will most
+> likely simplify the code and on top of that also reduce the memory
+> footprint.
+> 
+> I don't know if it fits will with your plans though.
 
-- David Ellingsworth
+Hm, well, let's try to think about it a bit, if I haven't forgotten yet 
+how one does this:-)
+
+We have to be able to describe the kind data that is being transferred 
+from the sensor to the host, and the way how it is being transferred.
+
+The "kind of data" is a pixel format, right?
+
+Now, the "way it is being transferred" includes bus width, byte order, and  
+packing information.
+
+For example, the sensor driver can specify, that the sensor supports 
+RGB444, is connected in 8 bit parallel mode, is sending data in BE order, 
+and is leaving the highest bits 0 (example taken from MT9M111).
+
+Now, how do we represent this? ATM we have a V4L2_PIX_FMT_RGB444 fourcc 
+format. Do we introduce one more format V4L2_PIX_FMT_RGB444X for lowest 4 
+bits = 0, or do we use the same fourcc code and use an additional 
+enumeration to specify its packing?
+
+I would say, it's a different fourcc format, but I'd love to hear what 
+others think, Michael?
+
+Packing all this in a single enumeration to then maintain all the formats 
+in bitmaps doesn't seem very optimal to me, sorry.
+
+Let's decide, what information uniquely describes the data and its 
+on-the-wire representation, then we can think about implementing a 
+negotiation algorithm in soc-camera.
+
+> Apart from that, I can probably convince my employer that I should
+> spend a bit of time on this. =)
+
+That'd be good, let's see what the decision regarding the format 
+representation and negotiation is, then you can start implementing it, if 
+you like:-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
