@@ -1,20 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9ILpxHn012539
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 17:51:59 -0400
-Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9ILplhH021337
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 17:51:47 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so364804eyf.39
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 14:51:46 -0700 (PDT)
-Message-ID: <48FA5A6F.9000407@gmail.com>
-Date: Sat, 18 Oct 2008 22:51:43 +0100
-From: Stephen C Weston <stephencweston@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9HMGwxr028810
+	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 18:16:58 -0400
+Received: from cicero4.cybercity.dk (cicero4.cybercity.dk [212.242.40.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9HMGuLH012217
+	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 18:16:56 -0400
+Received: from jakob.b4net.dk (port157.ds1-taa.adsl.cybercity.dk
+	[212.242.111.226])
+	by cicero4.cybercity.dk (Postfix) with ESMTP id 7610B3CBC65
+	for <video4linux-list@redhat.com>;
+	Sat, 18 Oct 2008 00:16:55 +0200 (CEST)
+Received: from [10.0.0.2] (ugle [10.0.0.2])
+	by jakob.b4net.dk (Postfix) with ESMTP id A21F11318043
+	for <video4linux-list@redhat.com>;
+	Sat, 18 Oct 2008 00:16:52 +0200 (CEST)
+Message-ID: <48F90ED4.8030907@b4net.dk>
+Date: Sat, 18 Oct 2008 00:16:52 +0200
+From: Per Baekgaard <baekgaard@b4net.dk>
 MIME-Version: 1.0
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Leadtek VC100 U Video Editor device (em28xx driver)
+Subject: Hauppauge PVR-150 MCE vs HVR-1300
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,32 +33,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Still struggling with my unknown card (see earlier mails), although I
+have now got it to work somewhat more reliable based on input here on
+the list, thanks!
 
-Would it be at all possible to support the 'Leadtek VC100 U' video 
-capture dongle. I understand the device is based on the em2861 chip set. 
-The device's ID appears in lsusb as '0413:6f07 Leadtek Research, Inc.'
+So, to avoid a similar situation when building another Myth-TV box, I'm
+now wondering which card to get.
 
-After doing a Google image search I have found the device looks very 
-similar to the 'Yakumo MovieMixer' device. Indeed it advertises with the 
-same specs and features and is bundled with the same software for 
-windows. It could quite possibly be exactly the same hardware inside.
+I need analog input (PAL), but wouldn't mind DVB-T support either. As
+such, the Hauppauge HVR-1300 would fit the bill nicely, but I'm
+wondering if the MPEG encoder is really supported or not, and whether
+this card can be brough to work relatively easily without any major
+hassles? I just don't want to go through all sorts of trial and error
+again to get it running stable.
 
-I have tried modifying the em28xx-cards.c in the v4l-dvb folder to get 
-it to recognize the device as the 'Yakumo MovieMaker', but this has only 
-been of limited success. The output from the 'dmesg |grep em28xx' 
-command looks promising and the device registers as /dev/video0, but 
-when trying to view a composite video input from the device in mplayer I 
-get a distorted picture (the colour is fine, but the picture is all 
-skewed, especially at the top). The composite video is in PAL-BG format. 
-I also have no sound.
+If not, I guess the Hauppauge PVR-150 MCE appears to be a well supported
+and stable workhorse?
 
-Any advice to enable me to fix the problem or if someone else with 
-greater expertise could have go, then I would be very appreciative!!
+Comments or recommendations much appreciated, thanks.
 
-Thank you for all your continued work.
-Stephen
 
+-- Per.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
