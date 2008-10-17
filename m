@@ -1,16 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.28])
+Received: from [211.144.200.87] (helo=mail.magima.com.cn)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <softnhard.es@gmail.com>) id 1KqO7S-0001EW-9v
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 10:22:07 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so690770yxg.41
-	for <linux-dvb@linuxtv.org>; Thu, 16 Oct 2008 01:22:01 -0700 (PDT)
-Message-ID: <d2f7e03e0810160122j49f7618dr9a571b140da9806b@mail.gmail.com>
-Date: Thu, 16 Oct 2008 11:52:01 +0330
-From: "Seyyed Mohammad mohammadzadeh" <softnhard.es@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <shenyue@magima.com.cn>) id 1KqkW7-0006cD-RF
+	for linux-dvb@linuxtv.org; Fri, 17 Oct 2008 10:17:04 +0200
+Message-ID: <000d01c93030$e7fd4b30$61016b0a@ex.magima.com>
+From: "karma shen" <shenyue@magima.com.cn>
+To: <linux-dvb@linuxtv.org>
+Date: Fri, 17 Oct 2008 16:18:13 +0800
 MIME-Version: 1.0
-Subject: [linux-dvb] .:: TT3200 doesn't work on 8PSK channels::.
+Subject: [linux-dvb] hardware section filter support in dvb-usb
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,68 +16,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0276209004=="
+Content-Type: multipart/mixed; boundary="===============0140937677=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0276209004==
+This is a multi-part message in MIME format.
+
+--===============0140937677==
 Content-Type: multipart/alternative;
-	boundary="----=_Part_28446_12243940.1224145321283"
+	boundary="----=_NextPart_000_000A_01C93073.F449A850"
 
-------=_Part_28446_12243940.1224145321283
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+This is a multi-part message in MIME format.
 
-I'm using a TT3200 and I installed drivers using
-http://linuxtv.org/wiki/index.php/TechnoTrend_TT-budget_S2-3200 manual.
-using standard szap program I can tune to most of the QPSK channels on
-Hotbird but none of the 8PSK channels.
-After installing drivers from
-http://mercurial.intuxication.org/hg/s2-liplianin no difference could be
-notified and also no 8PSK channels can be tunned via szap/dvbtune/dvbstream.
-I have tested szap2 from http://mercurial.intuxication.org/hg/szap2  and got
-the following error for a QPSK channel:
+------=_NextPart_000_000A_01C93073.F449A850
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 
-reading channels from file '/root/.szap/channels.conf'
-zapping to 4 'HBQPSK2':
-sat 0, frequency = 10723 MHz V, symbolrate 27500000, vpid = 0x0430, apid =
-0x04f8 sid = 0x0001 (fec = -2147483648, mod = 2)
-Querying info .. Delivery system=DVB-S
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-ioctl DVBFE_GET_INFO failed: Operation not supported
+hello everyone,
 
-I have tried to compile szap-s2 from
-http://mercurial.intuxication.org/hg/szap-s2<http://mercurial.intuxication.org/hg/szap2>but
-seems that the new szap programs needs Linux DVB API version 5 that I
-couldn't find it.
+I'm a newbie in linux dvb. Now I'm developing driver for our own dvb-usb =
+chip, which has hardware section filter. But I found no interface in =
+linux dvb-usb that I can use to control hardware section filter, only =
+software section filter is provided in dvb-usb code.
 
--- 
-Best Regards
-Mehran
+So is there any hardware section filter support in dvb-usb? If no, is =
+there any plan to add support for hardware section filter in dvb-usb?
 
-------=_Part_28446_12243940.1224145321283
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+The second question is, why DMX_MAX_FILTER_SIZE is 18? not 14 or any =
+other length?
 
-<div dir="ltr"><br clear="all">I&#39;m using a TT3200 and I installed drivers using <a title="http://linuxtv.org/wiki/index.php/TechnoTrend_TT-budget_S2-3200" href="http://linuxtv.org/wiki/index.php/TechnoTrend_TT-budget_S2-3200" target="_blank">http://linuxtv.org/wiki/index.php/TechnoTrend_TT-budget_S2-3200</a> manual. using standard szap program I can tune to most of the QPSK channels on Hotbird but none of the 8PSK channels. <br>
+thanks a lot.
 
-After installing drivers from <a href="http://mercurial.intuxication.org/hg/s2-liplianin" target="_blank">http://mercurial.intuxication.org/hg/s2-liplianin</a> no difference could be notified and also no 8PSK channels can be tunned via szap/dvbtune/dvbstream. I have tested szap2 from <a href="http://mercurial.intuxication.org/hg/szap2" target="_blank">http://mercurial.intuxication.org/hg/szap2</a>&nbsp; and got the following error for a QPSK channel:<br>
+karma
+------=_NextPart_000_000A_01C93073.F449A850
+Content-Type: text/html;
+	charset="gb2312"
+Content-Transfer-Encoding: quoted-printable
 
-<br>reading channels from file &#39;/root/.szap/channels.conf&#39;<br>zapping to 4 &#39;HBQPSK2&#39;:<br>sat 0, frequency = 10723 MHz V, symbolrate 27500000, vpid = 0x0430, apid = 0x04f8 sid = 0x0001 (fec = -2147483648, mod = 2)<br>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dgb2312">
+<META content=3D"MSHTML 6.00.2900.3429" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>hello everyone,</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>I'm a newbie in linux dvb. Now I'm =
+developing=20
+driver for our own dvb-usb chip, which has hardware section filter. But =
+I found=20
+no interface in linux dvb-usb that I can use to control hardware section =
+filter,=20
+only software section filter is provided in dvb-usb code.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>So is there any hardware section filter =
+support in=20
+dvb-usb? If no, is there any plan to add support for hardware section =
+filter in=20
+dvb-usb?</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>The second question is, why =
+DMX_MAX_FILTER_SIZE is=20
+18? not 14 or any other length?</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>thanks a lot.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>karma</FONT></DIV></BODY></HTML>
 
-Querying info .. Delivery system=DVB-S<br>using &#39;/dev/dvb/adapter0/frontend0&#39; and &#39;/dev/dvb/adapter0/demux0&#39;<br>ioctl DVBFE_GET_INFO failed: Operation not supported<br><br>I have tried to compile szap-s2 from <a href="http://mercurial.intuxication.org/hg/szap2" target="_blank">http://mercurial.intuxication.org/hg/szap-s2</a> but seems that the new szap programs needs Linux DVB API version 5 that I couldn&#39;t find it. <br>
-
-<br>-- <br>Best Regards<br>Mehran<br><br><br>
-</div>
-
-------=_Part_28446_12243940.1224145321283--
+------=_NextPart_000_000A_01C93073.F449A850--
 
 
---===============0276209004==
+
+--===============0140937677==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -89,4 +101,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0276209004==--
+--===============0140937677==--
