@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9PGVwRY012361
-	for <video4linux-list@redhat.com>; Sat, 25 Oct 2008 12:31:58 -0400
-Received: from nlpi053.prodigy.net (nlpi053.sbcis.sbc.com [207.115.36.82])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9PGVkGk024290
-	for <video4linux-list@redhat.com>; Sat, 25 Oct 2008 12:31:47 -0400
-Message-ID: <490349F1.9000100@xnet.com>
-Date: Sat, 25 Oct 2008 11:31:45 -0500
-From: stuart <stuart@xnet.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9HGLcX8003159
+	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 12:21:38 -0400
+Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9HGLMd3006863
+	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 12:21:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Dean Anderson <dean@sensoray.com>
+Date: Fri, 17 Oct 2008 18:21:17 +0200
+References: <1224256911.6327.11.camel@pete-desktop>
+	<200810171736.53826.hverkuil@xs4all.nl>
+	<48F8B84D.7000204@sensoray.com>
+In-Reply-To: <48F8B84D.7000204@sensoray.com>
 MIME-Version: 1.0
-To: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-References: <200810231238.34963.vanessaezekowitz@gmail.com>
-In-Reply-To: <200810231238.34963.vanessaezekowitz@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: KWorld 120 IR control?
+Content-Disposition: inline
+Message-Id: <200810171821.17275.hverkuil@xs4all.nl>
+Cc: Greg KH <greg@kroah.com>, video4linux-list@redhat.com
+Subject: Re: go7007 development
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,32 +31,105 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Friday 17 October 2008 18:07:41 Dean Anderson wrote:
+> Hans Verkuil wrote:
+> > Hi Pete,
+> >
+> > On Friday 17 October 2008 17:21:51 Pete wrote:
+> >> Hello,
+> >>
+> >> I am working on adding the Sensoray 2250 to the go7007 staging
+> >> tree, starting from GregKH's staging patch here:
+> >> http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/
+> >> gregkh-05-staging-2.6.27.patch
+> >>
+> >> In particular, we are stuck how to change the MPEG format with
+> >> standard IOCTL calls.  In particular, this comment in the driver
+> >> go7007.h below needs explanation:
+> >>
+> >> /* DEPRECATED -- use V4L2_PIX_FMT_MPEG and then call
+> >> GO7007IOC_S_MPEG_PARAMS * to select between MPEG1, MPEG2, and
+> >> MPEG4 */
+> >> #define V4L2_PIX_FMT_MPEG4     v4l2_fourcc('M','P','G','4') /*
+> >> MPEG4 */
+> >>
+> >> The existing driver, for backward-compatibility , allowed
+> >> V4L2_PIX_FMT_MPEG4 to be used for v4l2_format.pixelformat with
+> >> VIDIOC_S_FMT.
+> >>
+> >> GO7007IOC_S_MPEG_PARAMS is a custom ioctl call and we would rather
+> >> have this done through v4l2 calls. We also can't seem to find
+> >> where MPEG1, MPEG2, and MPEG4 elementary streams are defined in
+> >> the V4L2 API.  We checked other drivers, but could not find
+> >> anything.  The closest thing we found was the
+> >> V4L2_CID_MPEG_STREAM_TYPE control, but the enums do not define
+> >> elementary streams nor MPEG4.
+> >>
+> >> Your advice is appreciated.
+> >>
+> >> Thanks.
+> >
+> > It would be really nice to have this driver in the kernel.
+> >
+> > All MPEG streams use V4L2_PIX_FMT_MPEG and set the exact stream
+> > type through V4L2_CID_MPEG_STREAM_TYPE. You probably need to add a
+> > few new stream types to this control for the elementary streams. I
+> > think something like TYPE_MPEG_ELEM might do the trick, and then
+> > you can use the audio and video encoding controls to select the
+> > precise audio/video encoding.
+> >
+> > I don't know enough about the capabilities, so perhaps
+> > TYPE_MPEG1/2/4_ELEM is required instead of a more generic
+> > TYPE_MPEG_ELEM.
+>
+> The generic approach seems better.  There will be boards with H264
+> encapsulated in MPEG2 transport stream.  I'd recommend keeping the
+> encapsulation/mux format in V4L2_CID_MPEG_STREAM_TYPE, but not
+> necessarily the encoding.
+>
+> Otherwise you'll have V4L2_MPEG_STREAM_TYPE_MPEG2_TS_MPEG4_ENCODING,
+> etc..  Maybe V4L2_CID_MPEG_STREAM_TYPE needs a comment that it is the
+> encapsulation(or mux format), and the encoding should be defined in
+> V4L2_CID_MPEG_VIDEO_ENCODING?
 
+I think the v4l2 spec is clear enough on this topic.
 
-Vanessa Ezekowitz wrote:
-> (forgot to cc the list)
-> 
-> On Thursday 16 October 2008 5:45:42 pm Hermann Pitton wrote:
-> 
->>>> Interesting, I can not read any writing on that chip.  All I see is a 
->>>> green dot probably identifying pin 1.  If this is a common i2c 
->>>> controller - why bother? Or are the KS003 and KS007 custom chips?
-> 
-> The chip on  my card has been chemically wiped I think - there aren't any scratches or scrapes on it.  Despite my best efforts with multiple light sources, I still can't identify it.  In the meantime, I wrote to Kworld asking them to identify the chip in question, or to provide some kind of details allowing us to communicate with whatever device handles the remote control.  They responded a few days ago indicating that they would pass my request on to the engineering department.  That department has not responded yet.
-> 
+> So for this Go7007, we suggest adding V4L2_MPEG_STREAM_TYPE_ELEM to
+> V4L2_CID_MPEG_STREAM_TYPE.
+> We also suggest adding V4L2_MPEG_VIDEO_ENCODING_MPEG_4 to
+> V4L2_CID_MPEG_VIDEO_ENCODING.  Of course, there is the question of
+> what version of MPEG4, but we'll leave that for another day.
+>
+> What do you think?
 
-Thanks for trying Vanessa.
+Agreed. Note that V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC already exists in 
+the master v4l-dvb tree http://linuxtv.org/hg/v4l-dvb, also some newer 
+audio encodings. These are merged in the latest 2.6.28 git tree as 
+well.
 
-If none of the developers have this board (Kworld - 120 ATSC/NTSC tuner 
-card) to play with ...  well, if someone would give me "turn-by-turn" 
-(airport talk for "I'm sitting on the tarmac, how do I get to the gate) 
-directions I can try to probe the card to find out more.  I just don't 
-have the time to research the tools to do the job and how to go about 
-using them.  My board is in a Mythtv SBE Debian/Unstable system and is 
-working great if only to capture ATSC OTA broadcasts (i.e. no IR control 
-and no NTSC).
+When the go7007 driver has stabilized a bit and switched to the generic 
+ioctls rather than using custom ioctls then you probably want to have 
+you code merged in v4l-dvb. I expect a lot of internal API additions 
+and improvements in the coming months so it's probably good to pay 
+attention to the master tree to see what is happening there.
 
-...thanks
+>
+> > Since I designed the MPEG API for V4L2 I guess I'm the right person
+> > to help you. I also have a Plextor TV402U since I always wanted to
+> > get the go7007 driver into the kernel, but I never had the time so
+> > I'm glad you've picked it up.
+> >
+> > Regards,
+> >
+> > 	Hans
+>
+> Good to hear, and thanks for the quick response.
+
+No problem.
+
+Regards,
+
+	Hans
 
 --
 video4linux-list mailing list
