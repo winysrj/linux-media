@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+Received: from mail1.elion.ee ([88.196.160.57])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KqF5M-0004cj-U8
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 00:43:22 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K8S00M6GXR45DU0@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 15 Oct 2008 18:42:41 -0400 (EDT)
-Date: Wed, 15 Oct 2008 18:42:40 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <E3C12FE3-4050-4C71-9CC5-CB67A67DA6C8@receptiveit.com.au>
-To: Alex Ferrara <alex@receptiveit.com.au>
-Message-id: <48F671E0.6080002@linuxtv.org>
-MIME-version: 1.0
-References: <E3C12FE3-4050-4C71-9CC5-CB67A67DA6C8@receptiveit.com.au>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Dvico HDTV Dual Express
+	(envelope-from <artlov@gmail.com>) id 1Kqm67-0003tm-I6
+	for linux-dvb@linuxtv.org; Fri, 17 Oct 2008 11:58:20 +0200
+Message-ID: <48F86199.1000607@gmail.com>
+Date: Fri, 17 Oct 2008 12:57:45 +0300
+From: Arthur Konovalov <artlov@gmail.com>
+MIME-Version: 1.0
+To: klaas de waal <klaas.de.waal@gmail.com>
+References: <7b41dd970809290235x48f63938ic56318ba3064a71b@mail.gmail.com>	<c4d80f839f7e2e838b04f6c37c68d9c0@10.0.0.2>	<7b41dd970810091315h1433fa7du56e5754a1684019d@mail.gmail.com>	<1223598995.4825.12.camel@pc10.localdom.local>	<7b41dd970810121321m715f7a81nf2c6e07485603571@mail.gmail.com>	<48F3A113.50805@gmail.com>	<7b41dd970810140027h41924a98oe343fb5d8c2ef485@mail.gmail.com>
+	<48F47ACE.5060807@gmail.com>
+In-Reply-To: <48F47ACE.5060807@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,15 +26,15 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Alex Ferrara wrote:
-> As reported by an earlier email, I have had poor tuner results with my  
-> dual express card. I have tried playing with the RF amplification,  
-> removing it completely, and testing the card in the same environment  
-> running Vista. Vista works great, Linux does not.
+Hi!
 
-This card works perfectly for me, I use it all of the time under Linux.
+Your patch works at 386MHz too!
 
-- Steve
+Problem was in my dvb drivers startup script: tda827x module left unloaded :(
+My bad and sorry about false alarm.
+
+Regards,
+AK
 
 _______________________________________________
 linux-dvb mailing list
