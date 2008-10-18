@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9SKcHw6031342
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 16:38:17 -0400
-Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9SKbueT027547
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 16:37:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Tue, 28 Oct 2008 21:37:49 +0100
-References: <490525EA.4020608@rogers.com>
-	<37219a840810281129k3a713b75w6419b7b5c526df2f@mail.gmail.com>
-	<20081028192739.GA23476@linuxtv.org>
-In-Reply-To: <20081028192739.GA23476@linuxtv.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9IBI4ha002200
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 07:18:04 -0400
+Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9IBHrp0019696
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 07:17:54 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id m9IBHlRZ027990
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 06:17:53 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id m9IBHjjU003074
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 16:47:46 +0530 (IST)
+From: "Jadav, Brijesh R" <brijesh.j@ti.com>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Sat, 18 Oct 2008 16:47:47 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403DC2A8962@dbde02.ent.ti.com>
+Content-Language: en-US
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200810282137.49214.hverkuil@xs4all.nl>
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>,
-	CityK <cityk@rogers.com>
-Subject: Re: [linux-dvb] Announcement: wiki merger and some loose ends
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Subject: Physically Contiguous Buffer
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,56 +31,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 28 October 2008 20:27:39 Johannes Stezenbach wrote:
-> On Tue, Oct 28, 2008 at 02:29:00PM -0400, Michael Krufky wrote:
-> > What we would like to do is leave the video4linux and linux-dvb
-> > mailing lists as user lists, create a new -devel mailing list, and
-> > redirect v4l-dvb-maintainer to the new list.  (Probably hosted on
-> > vger, but that hasnt yet been determined)
-> >
-> > The devel list would be an open list for developers only.  Any
-> > tech-support related stuff would remain on the lists that are still
-> > used today.
-> >
-> > Specifically, we wanted to move the "v4l-dvb-maintainer" list to
-> > somewhere with spam filtering and turn this into a list where all
-> > development discussions and pull requests can take place.  We want
-> > a separation between user requests and developer discussion, so
-> > merging everything into a single list is not the direction that we
-> > want to take.
->
-> Personally I'm generally not in favour of splitting an
-> open source community in "users" and "developers", but
-> I guess I'm the odd man out with that POV...
+Hi All,
 
-I think that keeping only one list will generate too much traffic. I 
-find it useful to have separate user and devel lists (provided people 
-do read the user list and not just the devel list).
+I am working with a device, which can work with physically non-contiguous b=
+uffer. Since physically contiguous buffer can also be treated as non-contig=
+uous buffer, device can also work with contiguous buffer. I am using videob=
+uf-dma-sg layer for the buffer manager of non-contiguous buffer. The proble=
+m I am facing is since this layer does not handle physically contiguous buf=
+fers, whenever I pass pointer to the physically contiguous buffer to the vi=
+deobuf_iolock function through VIDIOC_QBUF ioctl, it returns me error. Sinc=
+e videobuf_iolock function always calls get_user_pages to get the user land=
+ pages, it returns error for this buffer. Can someone help in solving this =
+problem? Is it possible to treat physically contiguous buffer as non-contig=
+uous buffer and create a scatter-gather list in this layer?
 
-> However, similar to that there should be ONE developer
-> list, I think there should be ONE user list, and not
-> two. Maybe we should just shut linux-dvb down and ask
-> users to subscribe to the video4linux list? Or do
-> people think it's still useful to have distinct lists
-> for analog and digital?
-
-I'm very much in favor of having one v4l-dvb-user and one v4l-dvb-devel 
-list. I've always disliked it that there were separate lists. Certainly 
-the average user doesn't care whether his card is digital or analog or 
-both, so one user list is very much desired IMHO.
-
-> Either way, IMHO you can't go wrong with moving v4l-dvb-maintainer
-> to vger so if you agree I'd like to encourage you to go forward with
-> that.
-
-I agree as well. As far as I am concerned we should end up with two 
-lists on vger: v4l-dvb-user and v4l-dvb-devel. Should be a nice 
-improvement, certainly for the video4linux list which is still with 
-redhat.com and with hard to access archives.
-
-Regards,
-
-	Hans
+Thanks,
+Brijesh Jadav
 
 --
 video4linux-list mailing list
