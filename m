@@ -1,31 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from node02.cambriumhosting.nl ([217.19.16.163])
+Received: from dd16712.kasserver.com ([85.13.137.159])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jelledejong@powercraft.nl>) id 1Kpiwg-0001yR-3p
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 14:24:17 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by node02.cambriumhosting.nl (Postfix) with ESMTP id 8026EB0000EC
-	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 14:24:10 +0200 (CEST)
-Received: from node02.cambriumhosting.nl ([127.0.0.1])
-	by localhost (node02.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id xcuMnsLvBO2c for <linux-dvb@linuxtv.org>;
-	Tue, 14 Oct 2008 14:24:08 +0200 (CEST)
-Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
-	[84.245.3.195])
-	by node02.cambriumhosting.nl (Postfix) with ESMTP id 7F4E1B0000EB
-	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 14:24:08 +0200 (CEST)
-Received: from [192.168.1.180] (unknown [192.168.1.180])
-	by ashley.powercraft.nl (Postfix) with ESMTPSA id 4726923BC50D
-	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 14:24:08 +0200 (CEST)
-Message-ID: <48F48F67.2020802@powercraft.nl>
-Date: Tue, 14 Oct 2008 14:24:07 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+	(envelope-from <vdr@helmutauer.de>) id 1Kr6hC-00077D-BK
+	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 09:57:59 +0200
+Received: from [192.168.178.120] (p50813953.dip0.t-ipconnect.de [80.129.57.83])
+	by dd16712.kasserver.com (Postfix) with ESMTP id 0A9EB180CCF66
+	for <linux-dvb@linuxtv.org>; Sat, 18 Oct 2008 09:57:54 +0200 (CEST)
+Message-ID: <48F99706.2080905@helmutauer.de>
+Date: Sat, 18 Oct 2008 09:57:58 +0200
+From: Helmut Auer <vdr@helmutauer.de>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <48F48920.1000206@powercraft.nl>
-In-Reply-To: <48F48920.1000206@powercraft.nl>
-Subject: Re: [linux-dvb] Digittrade DVB-T (Afatech DVB-T) (af9015.fw) -
- Device Information
+References: <48F9969D.90305@helmutauer.de>
+In-Reply-To: <48F9969D.90305@helmutauer.de>
+Subject: Re: [linux-dvb] Problems with conexant CX24123/CX24109
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -39,41 +27,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jelle de Jong wrote:
-> This message contains the following attachment(s):
-> Afatech DVB-T - Device Information - v0.1.1j.txt
-> 
-> Hello everybody,
-> 
-> I bought an other usb dvb-t stick (number 5) with the hope it would work
-> out of the box under Debian Linux Sid because I could not efficiently
-> maintain all the custom build drivers on my systems.
-> 
-> The distributer, tried to create something that would work on Linux but
-> he kind of missed the point of Linux sustainable driver model. There was
-> an cdrom included with an "autoself" installation script. That tried to
-> heavily rape my debian box..
-> 
-> http://filebin.ca/rydcgt/treiber.tar.gz
-> 
-> I would like to know if this device can work out of the box? and if not
-> what is needed to get the device working out of the box?
-> 
-> See the attachment for the device information. If more information is
-> needed please tell me how to gather it.
-> 
-> Best regards,
-> 
-> Jelle
+Helmut Auer schrieb:
+> Hi,
+>
+> I have a Geniatech PCI DVB-s with CX24123/CX24109.
+> This card cannot zap to the german ARD transponder, all other channels 
+> are running fine.
+> The card runs fine under windows .
+> dmesg shows at loading:
+>
+> cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+> ACPI: PCI Interrupt 0000:01:09.0[A] -> Link [LNKC] -> GSI 10 (level, 
+> low) -> IRQ 10
+> cx88[0]: subsystem: 14f1:0084, board: Geniatech DVB-S [card=52,autodetected]
+> cx88[0]: TV tuner type 4, Radio tuner type -1
+> cx88[0]/0: found at 0000:01:09.0, rev: 5, irq: 10, latency: 165, mmio: 
+> 0xfc000000
+> cx88[0]/0: registered device video0 [v4l2]
+> cx88[0]/0: registered device vbi0
+> cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+> cx88[0]/2: cx2388x 8802 Driver Manager
+> ACPI: PCI Interrupt 0000:01:09.2[A] -> Link [LNKC] -> GSI 10 (level, 
+> low) -> IRQ 10
+> cx88[0]/2: found at 0000:01:09.2, rev: 5, irq: 10, latency: 64, mmio: 
+> 0xfd000000
+> cx88/2: cx2388x dvb driver version 0.0.6 loaded
+> cx88/2: registering cx8802 driver, type: dvb access: shared
+> cx88[0]/2: subsystem: 14f1:0084, board: Geniatech DVB-S [card=52]
+> cx88[0]/2: cx2388x based DVB/ATSC card
+> CX24123: detected CX24123
+> DVB: registering new adapter (cx88[0])
+> DVB: registering frontend 0 (Conexant CX24123/CX24109)...
+>
+> and when the error occurs:
+>
+> cx88[0]: irq mpeg [0x100000] ts_err?*
+> cx88[0]/2-mpeg: general errors: 0x00100000
+>
+> Any hints where I can tune some parameters ?
+>
+>   
+P.S. The problem occurs with current v4l-hg and also with a 1 year old 
+hg snapshot.
 
-I found some additional information, but all my above questions remain
-the same.
+-- 
+Helmut Auer, helmut@helmutauer.de 
 
-http://openlab.savonia-amk.fi/wiki/index.php/Afatech_9016_DVB-T_USB
-
-Best regards,
-
-Jelle
 
 _______________________________________________
 linux-dvb mailing list
