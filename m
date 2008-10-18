@@ -1,14 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp107.rog.mail.re2.yahoo.com ([68.142.225.205])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cityk@rogers.com>) id 1Ksp9a-00024U-FG
-	for linux-dvb@linuxtv.org; Thu, 23 Oct 2008 03:38:25 +0200
-Message-ID: <48FFD56D.5000705@rogers.com>
-Date: Wed, 22 Oct 2008 21:37:49 -0400
-From: CityK <cityk@rogers.com>
+Received: from rv-out-0506.google.com ([209.85.198.227])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <bokola@gmail.com>) id 1KrCTz-00036B-I6
+	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 16:08:44 +0200
+Received: by rv-out-0506.google.com with SMTP id b25so960353rvf.41
+	for <linux-dvb@linuxtv.org>; Sat, 18 Oct 2008 07:08:38 -0700 (PDT)
+Message-ID: <854d46170810180708l5d109c9chdd97399f2f3c60e0@mail.gmail.com>
+Date: Sat, 18 Oct 2008 16:08:37 +0200
+From: "Faruk A" <fa@elwak.com>
+To: "Dominik Kuhlen" <dkuhlen@gmx.net>
+In-Reply-To: <200810181405.42620.dkuhlen@gmx.net>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] ATI TV Wonder HD 600
+Content-Disposition: inline
+References: <200810181405.42620.dkuhlen@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API pctv452e stb0899 simples2apitune
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,35 +28,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I purchased this card because it would fit in my low profile box and I
-> mistook it for the "HDTV Wonder" that I had seen on the linuxtv.org and
-> mythtv Wikis, only to find out that it wasn't (after banging my head
-> against the wall for a few hours).
+Hi Dominik!
 
 
-Well, Jason, at least you have some company in that regard; see the
-following recent threads:
+> - fast and always lock for DVB-S (up to 8MHz frequency offset allowed) (only tested with symrates: 22 and 27.5)
 
-- http://marc.info/?l=linux-video&m=122263544930251&w=2
-- http://marc.info/?l=linux-dvb&m=122348769130906&w=2
-- http://marc.info/?l=linux-dvb&m=122064478030476&w=2
+yes channel lock is very fast and it always locks, i had no problem
+locking on DVB-S with 30000 symrate.
 
-> Is there any way currently to use this card? 
+> - DVB-S2 checked 19.2E 11915 H 27500 only (I cant test others)
 
-No.   At this point, I doubt that support for the Theater 550, 600 & 650
-component parts, and consequently any of the devices that use them, will
-ever be ascertained  ...  specifically, I doubt AMD/ATI  will ever
-provide documentation for these chips, and, as they're not simplistic
-parts, can understand why any developer would loathe the idea of trying
-to reverse engineer support for them on their own.
+it locks fine on 13E DVB-S2 channels (27500)
 
-Unlike their support for the graphics card end, it hasn't struck me that
-AMD/ATI are too concerned about support for their multimedia product
-portfolio....hmm, and now that I think about it, I wonder if rights to
-these products also fell under a part of the recent Broadcom purchase
-(of some ATI assets).
- 
+> - PCTV452e LED  green: FE open    orange: FE closed
+>  does the TT S2 3600 (3650CI) also have this led and is it attached to the same GPIO?
 
+The LED is working on TT-S2-3650CI
+
+> also attached simples2apitune which is same as simpledvbtune but for S2API
+
+simples2apitune is not working for me on both DVB-S and DVB-S2.
+
+[faruk@archer simples2apitune]$ ./simples2apitune -f 10975 -p h -s 27500
+using '/dev/dvb/adapter0/frontend0' as frontend
+frontend fd=3: type=0 name=STB0899 Multistandard
+ioclt: FE_SET_VOLTAGE : 1
+Low band
+set tone: 0
+set symbol rate: 27500000 Sym/s
+set frequency: 1225000 kHz
+do tune....
+tuning qpsk failed
+
+Dominik are you too facing packet losses from TS?
+
+Thanks
+Faruk
 
 _______________________________________________
 linux-dvb mailing list
