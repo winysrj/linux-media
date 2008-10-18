@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9I4vuox009798
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 00:58:06 -0400
-Received: from hs-out-0708.google.com (hs-out-0708.google.com [64.233.178.241])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9I4ubgp020621
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 00:56:58 -0400
-Received: by hs-out-0708.google.com with SMTP id x43so334263hsb.3
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 21:56:27 -0700 (PDT)
-Message-ID: <8519cbc80810172156r1efbb5c1t6626b21ecf09ef7b@mail.gmail.com>
-Date: Fri, 17 Oct 2008 21:56:26 -0700
-From: "Brandon Philips" <brandon@ifup.org>
-To: ian@pickworth.me.uk
-In-Reply-To: <48F895F9.5010205@pickworth.me.uk>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9ILpxHn012539
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 17:51:59 -0400
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9ILplhH021337
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 17:51:47 -0400
+Received: by ey-out-2122.google.com with SMTP id 4so364804eyf.39
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 14:51:46 -0700 (PDT)
+Message-ID: <48FA5A6F.9000407@gmail.com>
+Date: Sat, 18 Oct 2008 22:51:43 +0100
+From: Stephen C Weston <stephencweston@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <48F895F9.5010205@pickworth.me.uk>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>
-Subject: Re: How to force the device assignment with V4l V2.0?
+Subject: Leadtek VC100 U Video Editor device (em28xx driver)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,37 +26,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Oct 17, 2008 at 6:41 AM, Ian Pickworth <ian@pickworth.me.uk> wrote:
-> I'm having a play with the latest code from hg on the 2.6.27 kernel,
-> Gentoo installation. This is triggered by the gspca driver being
-> absorbed into the main tree (which is a great move by the way).
->
-> I have two devices - a CX88 based Hauppauge TV PCI card, and a USB
-> webcam. In the "old" style drivers, I could force the loading of the two
-> modules (cx8800 and gspca) in a set sequence, using blacklist and
-> modules.autoload. This is enough to ensure that cx88 gets /dev/video0,
-> and the usb webcam gets /dev/video1.
->
-> However, when trying a recent hg snapshot, the sequence of loading the
-> modules does not change what the V4l driver is doing when loaded.
-> Looking at dmesg, I see that the new drivers are doing quite a lot of
-> detecting work themselves - it looks like they pick up the USB device
-> first regardless of the module blacklist/load sequence I have specified.
->
-> So, question is: Is there a preferred way of forcing the sequence of
-> device assignment in V4L these days? I need the cx88 to be /dev/video0
-> and the USB webcam to be /dev/video1 - otherwise all sorts of programs
-> get confused.
+Hi,
 
-If you have an up to date udev you should have rules that creates
-persistent symlinks in /dev/v4l/by-path/
+Would it be at all possible to support the 'Leadtek VC100 U' video 
+capture dongle. I understand the device is based on the em2861 chip set. 
+The device's ID appears in lsusb as '0413:6f07 Leadtek Research, Inc.'
 
-See the patches and rules here:
-http://marc.info/?l=linux-video&m=120936768608839&w=2
+After doing a Google image search I have found the device looks very 
+similar to the 'Yakumo MovieMixer' device. Indeed it advertises with the 
+same specs and features and is bundled with the same software for 
+windows. It could quite possibly be exactly the same hardware inside.
 
-Cheers,
+I have tried modifying the em28xx-cards.c in the v4l-dvb folder to get 
+it to recognize the device as the 'Yakumo MovieMaker', but this has only 
+been of limited success. The output from the 'dmesg |grep em28xx' 
+command looks promising and the device registers as /dev/video0, but 
+when trying to view a composite video input from the device in mplayer I 
+get a distorted picture (the colour is fine, but the picture is all 
+skewed, especially at the top). The composite video is in PAL-BG format. 
+I also have no sound.
 
-Brandon
+Any advice to enable me to fix the problem or if someone else with 
+greater expertise could have go, then I would be very appreciative!!
+
+Thank you for all your continued work.
+Stephen
 
 --
 video4linux-list mailing list
