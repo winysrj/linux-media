@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [88.116.226.179] (helo=mognix.dark-green.com)
+Received: from dd16712.kasserver.com ([85.13.137.159])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gimli@dark-green.com>) id 1KnBrY-0000Jb-JC
-	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 14:40:30 +0200
-Received: from webmail.dark-green.com
-	(83-64-96-243.bad-voeslau.xdsl-line.inode.at [83.64.96.243])
-	by mognix.dark-green.com (Postfix) with ESMTP id C40A75AC0B6
-	for <linux-dvb@linuxtv.org>; Tue,  7 Oct 2008 14:42:00 +0200 (CEST)
-Message-ID: <44838.194.48.84.1.1223383227.squirrel@webmail.dark-green.com>
-Date: Tue, 7 Oct 2008 14:40:27 +0200 (CEST)
-From: "gimli" <gimli@dark-green.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <vdr@helmutauer.de>) id 1Kr6fW-0006bz-GJ
+	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 09:56:17 +0200
+Received: from [192.168.178.120] (p50813953.dip0.t-ipconnect.de [80.129.57.83])
+	by dd16712.kasserver.com (Postfix) with ESMTP id C2329180CCF66
+	for <linux-dvb@linuxtv.org>; Sat, 18 Oct 2008 09:56:10 +0200 (CEST)
+Message-ID: <48F9969D.90305@helmutauer.de>
+Date: Sat, 18 Oct 2008 09:56:13 +0200
+From: Helmut Auer <vdr@helmutauer.de>
 MIME-Version: 1.0
-Subject: [linux-dvb] S2API vs Multiproto vs TT 3200
-Reply-To: gimli@dark-green.com
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Problems with conexant CX24123/CX24109
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,22 +25,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All,
+Hi,
 
-i was reading with intrest thet there was a decission made to
-get DVB S2 support into the mainline kernel. What makes me unhappy
-from a user point of view is, how people on this list are acting.
-The only thing i can see is digging in history, but no solution.
-Do not waste time to search what happend, take your time to bring
-things together. User don't care about the tecnical decission if
-S2API or Multiproto, they only wanna see working drivers. It is
-not in the sense of the userbase to whimm around why the decission
-was made. Please cool down and bring the pieces together to give the
-user the widest driver base and support for S2API.
+I have a Geniatech PCI DVB-s with CX24123/CX24109.
+This card cannot zap to the german ARD transponder, all other channels 
+are running fine.
+The card runs fine under windows .
+dmesg shows at loading:
 
-cu
+cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+ACPI: PCI Interrupt 0000:01:09.0[A] -> Link [LNKC] -> GSI 10 (level, 
+low) -> IRQ 10
+cx88[0]: subsystem: 14f1:0084, board: Geniatech DVB-S [card=52,autodetected]
+cx88[0]: TV tuner type 4, Radio tuner type -1
+cx88[0]/0: found at 0000:01:09.0, rev: 5, irq: 10, latency: 165, mmio: 
+0xfc000000
+cx88[0]/0: registered device video0 [v4l2]
+cx88[0]/0: registered device vbi0
+cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+cx88[0]/2: cx2388x 8802 Driver Manager
+ACPI: PCI Interrupt 0000:01:09.2[A] -> Link [LNKC] -> GSI 10 (level, 
+low) -> IRQ 10
+cx88[0]/2: found at 0000:01:09.2, rev: 5, irq: 10, latency: 64, mmio: 
+0xfd000000
+cx88/2: cx2388x dvb driver version 0.0.6 loaded
+cx88/2: registering cx8802 driver, type: dvb access: shared
+cx88[0]/2: subsystem: 14f1:0084, board: Geniatech DVB-S [card=52]
+cx88[0]/2: cx2388x based DVB/ATSC card
+CX24123: detected CX24123
+DVB: registering new adapter (cx88[0])
+DVB: registering frontend 0 (Conexant CX24123/CX24109)...
 
-Edgar (gimli) Hucek
+and when the error occurs:
+
+cx88[0]: irq mpeg [0x100000] ts_err?*
+cx88[0]/2-mpeg: general errors: 0x00100000
+
+Any hints where I can tune some parameters ?
+
+-- 
+Helmut Auer, helmut@helmutauer.de 
 
 
 _______________________________________________
