@@ -1,20 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9ECmuhA028439
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:48:56 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.239])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9ECm02D005686
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:48:44 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so2182413rvb.51
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 05:48:44 -0700 (PDT)
-From: Magnus Damm <magnus.damm@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9IN0Ftb028011
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 19:00:15 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9IN047N010671
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 19:00:04 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1KrKmA-0006K6-Vj
+	for video4linux-list@redhat.com; Sat, 18 Oct 2008 23:00:03 +0000
+Received: from cpe-124-182-209-226.sa.bigpond.net.au ([124.182.209.226])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 23:00:02 +0000
+Received: from arthur.marsh by cpe-124-182-209-226.sa.bigpond.net.au with
+	local (Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 23:00:02 +0000
 To: video4linux-list@redhat.com
-Date: Tue, 14 Oct 2008 21:47:35 +0900
-Message-Id: <20081014124735.5194.46887.sendpatchset@rx1.opensource.se>
-In-Reply-To: <20081014124651.5194.93168.sendpatchset@rx1.opensource.se>
-References: <20081014124651.5194.93168.sendpatchset@rx1.opensource.se>
-Cc: v4l-dvb-maintainer@linuxtv.org, mchehab@infradead.org
-Subject: [PATCH 04/05] video: Add support for rgb565 pixel formats to vivi
+From: Arthur Marsh <arthur.marsh@internode.on.net>
+Date: Sun, 19 Oct 2008 09:18:39 +1030
+Message-ID: <48FA67C7.2040307@internode.on.net>
+References: <15770467.41224260830600.JavaMail.dave@mycroft>
+	<1224276614.3124.7.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <1224276614.3124.7.camel@palomino.walls.org>
+Subject: searching list archives via gmane.org [was Re: strange hauppauge
+ wintv device number]
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,82 +38,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Magnus Damm <damm@igel.co.jp>
+Andy Walls wrote, on 2008-10-18 07:20:
 
-This patch adds RGB565 pixel format support to the vivi driver. Both
-little endian and big endian versions are added. The driver follows
-the RGB pixel format described in Table 2-2 of the V4L2 API spec,
-_not_ the older BGR interpretation described in Table 2-1.
+[edit]
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
----
+> Cool.  Just copying the list for posterity, in case someone else has the
+> problem in the future.  Not that it's easy for non-list subscribers to
+> check the v4l list archives.
+> 
+> Regards,
+> Andy
 
- drivers/media/video/vivi.c |   40 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+On the contrary, one can go to http://gmane.org and search on newsgroup:
 
---- 0018/drivers/media/video/vivi.c
-+++ work/drivers/media/video/vivi.c	2008-10-14 20:28:17.000000000 +0900
-@@ -139,6 +139,16 @@ static struct vivi_fmt formats[] = {
- 		.fourcc   = V4L2_PIX_FMT_UYVY,
- 		.depth    = 16,
- 	},
-+	{
-+		.name     = "RGB565 (LE)",
-+		.fourcc   = V4L2_PIX_FMT_RGB565, /* gggbbbbb rrrrrggg */
-+		.depth    = 16,
-+	},
-+	{
-+		.name     = "RGB565 (BE)",
-+		.fourcc   = V4L2_PIX_FMT_RGB565X, /* rrrrrggg gggbbbbb */
-+		.depth    = 16,
-+	},
- };
- 
- static struct vivi_fmt *get_format(struct v4l2_format *f)
-@@ -301,6 +311,30 @@ static void gen_twopix(struct vivi_fh *f
- 				break;
- 			}
- 			break;
-+		case V4L2_PIX_FMT_RGB565:
-+			switch (color) {
-+			case 0:
-+			case 2:
-+				*p = (g_u << 5) | b_v;
-+				break;
-+			case 1:
-+			case 3:
-+				*p = (r_y << 3) | (g_u >> 3);
-+				break;
-+			}
-+			break;
-+		case V4L2_PIX_FMT_RGB565X:
-+			switch (color) {
-+			case 0:
-+			case 2:
-+				*p = (r_y << 3) | (g_u >> 3);
-+				break;
-+			case 1:
-+			case 3:
-+				*p = (g_u << 5) | b_v;
-+				break;
-+			}
-+			break;
- 		}
- 	}
- }
-@@ -778,6 +812,12 @@ static int vidioc_s_fmt_vid_cap(struct f
- 		case V4L2_PIX_FMT_UYVY:
- 			is_yuv = 1;
- 			break;
-+		case V4L2_PIX_FMT_RGB565:
-+		case V4L2_PIX_FMT_RGB565X:
-+			r >>= 3;
-+			g >>= 2;
-+			b >>= 3;
-+			break;
- 		}
- 
- 		if (is_yuv) {
+gmane.comp.video.video4linux
+
+Regards,
+
+Arthur.
 
 --
 video4linux-list mailing list
