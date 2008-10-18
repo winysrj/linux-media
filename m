@@ -1,20 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LLslLx005316
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 17:54:47 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9LLsEW3031826
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 17:54:14 -0400
-Date: Tue, 21 Oct 2008 19:54:00 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Message-ID: <20081021195400.45c513b8@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: linux-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
-	linux-kernel@vger.kernel.org
-Subject: [GIT PATCHES for 2.6.28] V4L/DVB updates and fixes
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9INa9Ud004018
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 19:36:09 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9INZHLD021675
+	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 19:35:18 -0400
+Date: Sun, 19 Oct 2008 01:35:23 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <uzll4930b.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0810180054180.9365@axis700.grange>
+References: <uzll4930b.wl%morimoto.kuninori@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: V4L <video4linux-list@redhat.com>, mchehab@infradead.org
+Subject: Re: [PATCH v3] Add ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,163 +26,219 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Linus,
+Hello,
 
-Please pull from:
-        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
+On Thu, 16 Oct 2008, Kuninori Morimoto wrote:
 
-Most of this series are fixes at drivers:
-   - cx18: memory leak, warnings, returned error codes;
-   - pvrusb2: deadlock and keep MPEG PTSs from drifting away;
-   - dsbr100: Correct bus_info string and CodingStyle;
-   - radio-mr800: Add BKL for usb_amradio_open();
-   - dsbr100: Add frequency check;
-   - s5h1411: several demod locking fixes and some cleanups. Also save 
-     some energy when not in use;
-   - ivtv: use unlocked_ioctl and avoid led flashing when loading;
-   - ivtvfb: FB_BLANK_POWERDOWN turns off video output;
-   - cx88: fix compilation breakage and some memory leaks;
-   - use video_device.num instead of minor in video%d at several drivers;
+> This patch adds ov772x driver that use soc_camera framework.
+> It was tested on SH Migo-r board.
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
 
-There is also a few internal API improvements and fixes:
-   - A few additions at v4l2-int-if, in order to support some OMAP devices;
-   - videobuf: split unregister bus to avoid memory leaks on errors.
+Thanks for the update and for fixing issues I pointed out in a previous 
+review. Unfortunately, two of issues I commented upon stayed unfixed: 
+space beore a comma in four places (just search for " ,"), and no 
+copyright / license in the header. A couple more notes below - new ones, 
+introduced with the current changes, and old ones, that I didn't mention 
+in the first review. Still, they are all quite easy to fix and we still 
+have a chance to get it in for 2.6.28, if we are quick enough:-)
 
-There's also a trivial, but bigger patch that removes an unused "inode"
-parameter that used to be present on several calls inside v4l1-compat module.
-This simplified the KABI for v4l_compat_translate_ioctl() and video_ioctl2.
+> diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+> new file mode 100644
+> index 0000000..92ef9de
+> --- /dev/null
+> +++ b/drivers/media/video/ov772x.c
+> @@ -0,0 +1,982 @@
+> +/*
+> + * ov772x Camera Driver
+> + *
+> + * Copyright (C) 2008 Renesas Solutions Corp.
+> + * Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> + *
+> + * Based on ov7670 and soc_camera_platform driver,
+> + *
+> + * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
+> + * Copyright (C) 2008 Magnus Damm
+> + * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/module.h>
+> +#include <linux/i2c.h>
+> +#include <linux/slab.h>
+> +#include <linux/delay.h>
+> +#include <media/v4l2-chip-ident.h>
+> +#include <linux/videodev2.h>
 
-Cheers,
-Mauro.
+Purely cosmetic, but it would look better, if you swap these two headers - 
+first all under linux/ then under media/
 
+> +#include <media/v4l2-common.h>
+> +#include <media/soc_camera.h>
+> +#include <media/ov772x.h>
+> +
+> +/*
+> + * bit defines
+> + */
+> +#define ZERO 0x00
+> +#define B0   0x01
+> +#define B1   0x02
+> +#define B2   0x04
+> +#define B3   0x08
+> +
+> +#define B4   0x10
+> +#define B5   0x20
+> +#define B6   0x40
+> +#define B7   0x80
+
+Please, remove these defines, IMHO, they only obfuscate the code. Just use 
+respective hexadecimal numbers or something like (1UL << 0), (1UL << 1), 
+etc. if you prefer.
+
+> +#define ENDMARKER { 0xff, 0xff }
+> +
+> +static struct regval_list ov772x_default_regs[] =
+> +{
+> +	{ COM3,  ZERO },
+> +	{ COM4,  PLL_4x | 0x01 },
+> +	{ 0x16,  0x00 },  /* Mystery */
+> +	{ COM11, B4 },    /* Mystery */
+> +	{ 0x28,  0x00 },  /* Mystery */
+> +	{ HREF,  0x00 },
+> +	{ COM13, 0xe2 },  /* Mystery */
+> +	{ AREF0, 0xef },
+> +	{ AREF2, 0x60 },
+> +	{ AREF6, 0x7a },
+> +	ENDMARKER,
+> +};
+> +
+> +/*
+> + * register setting for color format
+> + */
+> +static struct regval_list ov772x_RGB555_regs[] = {
+> +	{ COM7, FMT_RGB555 | OFMT_RGB },
+> +	ENDMARKER,
+> +};
+> +
+> +static struct regval_list ov772x_RGB565_regs[] = {
+> +	{ COM7, FMT_RGB565 | OFMT_RGB },
+> +	ENDMARKER,
+> +};
+> +
+> +static struct regval_list ov772x_YYUV_regs[] = {
+> +	{ COM3, SWAP_YUV },
+> +	{ COM7, OFMT_YUV },
+> +	ENDMARKER,
+> +};
+> +
+> +static struct regval_list ov772x_UVYY_regs[] = {
+> +	{ COM7, OFMT_YUV },
+> +	ENDMARKER,
+> +};
+> +
+> +
+> +/*
+> + * register setting for window size
+> + */
+> +static struct regval_list ov772x_qvga_regs[] = {
+> +	{ HSTART,   HST_QVGA },
+> +	{ HSIZE,    HSZ_QVGA },
+> +	{ VSTART,   VST_QVGA },
+> +	{ VSIZE,    VSZ_QVGA  },
+> +	{ HOUTSIZE, HOSZ_QVGA },
+> +	{ VOUTSIZE, VOSZ_QVGA },
+> +	ENDMARKER,
+> +};
+> +
+> +static struct regval_list ov772x_vga_regs[] = {
+> +	{ HSTART,   HST_VGA },
+> +	{ HSIZE,    HSZ_VGA },
+> +	{ VSTART,   VST_VGA },
+> +	{ VSIZE,    VSZ_VGA },
+> +	{ HOUTSIZE, HOSZ_VGA },
+> +	{ VOUTSIZE, VOSZ_VGA },
+> +	ENDMARKER ,
+> +};
+
+As far as I understand, these structs do not change at runtime, right? If 
+so, would be nice to mark them const. Then you would certainly have to 
+mark the regs pointer in struct ov772x_color_format, struct 
+ov772x_win_size and the vals parameter to ov772x_write_array() const too, 
+maybe there are more. The advantages of doing so is 1) it makes it clear, 
+that these data doesn't change, 2) the compiler gets a chance to optimize 
+these (no idea if it does), 3) your use of the ENDMARKER becomes more 
+justified then - the structs do not change, 4) then you can simplify the 
+test in ov772x_write_array() to just (vals->reg_num != 0xff). But this is 
+just an idea, you may disagree:-)
+
+[snip]
+
+> +/*
+> + * general function
+> + */
+> +
+> +static int ov772x_write_array(struct i2c_client  *client,
+> +			      struct regval_list *vals)
+> +{
+> +	while (vals->reg_num != 0xff || vals->value != 0xff) {
+
+This is the loop I meant above.
+
+[snip]
+
+> +static int ov772x_video_probe(struct soc_camera_device *icd)
+> +{
+> +	struct ov772x_priv *priv = container_of(icd, struct ov772x_priv, icd);
+> +
+> +	/*
+> +	 * We must have a parent by now. And it cannot be a wrong one.
+> +	 * So this entire test is completely redundant.
+> +	 */
+> +	if (!icd->dev.parent ||
+> +	    to_soc_camera_host(icd->dev.parent)->nr != icd->iface)
+> +		return -ENODEV;
+> +
+> +	/*
+> +	 * ov772x only use 8 or 10 bit bus width
+> +	 */
+> +	if (SOCAM_DATAWIDTH_10 != priv->info->buswidth &&
+> +	    SOCAM_DATAWIDTH_8  != priv->info->buswidth) {
+> +		dev_err(&icd->dev, "bus width error\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	/*
+> +	 * show product ID and manufacturer ID
+> +	 */
+> +	dev_info(&icd->dev,
+> +		 "ov772x Product ID %0x:%0x Manufacturer ID %x:%x\n" ,
+> +		 i2c_smbus_read_byte_data(priv->client, PID),
+> +		 i2c_smbus_read_byte_data(priv->client, VER),
+> +		 i2c_smbus_read_byte_data(priv->client, MIDH),
+> +		 i2c_smbus_read_byte_data(priv->client, MIDL));
+
+Would be good to verify that the ID(s) read from the hardware match 
+expectation and fail probe otherwise.
+
+> +
+> +	icd->formats     = ov772x_fmt_lists;
+> +	icd->num_formats = ARRAY_SIZE(ov772x_fmt_lists);
+> +
+> +	if (priv->info->link.power)
+> +		priv->info->link.power(&priv->client->dev, 1);
+
+This doesn't look right. You first read out IDs and then power the camera 
+on?...
+
+Thanks
+Guennadi
 ---
-
- drivers/media/common/saa7146_fops.c             |    4 +-
- drivers/media/common/saa7146_video.c            |   12 +-
- drivers/media/dvb/frontends/s5h1411.c           |   84 ++++++---
- drivers/media/dvb/frontends/s5h1411.h           |    2 +-
- drivers/media/radio/dsbr100.c                   |   62 ++++---
- drivers/media/radio/radio-mr800.c               |    5 +
- drivers/media/video/arv.c                       |    2 +-
- drivers/media/video/bt8xx/bttv-driver.c         |    6 +-
- drivers/media/video/c-qcam.c                    |    2 +-
- drivers/media/video/cafe_ccic.c                 |    4 +-
- drivers/media/video/cpia.c                      |    6 +-
- drivers/media/video/cpia2/cpia2_v4l.c           |    2 +-
- drivers/media/video/cx18/cx18-driver.c          |   11 +-
- drivers/media/video/cx18/cx18-io.h              |    4 +-
- drivers/media/video/cx18/cx18-streams.c         |   36 +++--
- drivers/media/video/cx23885/cx23885-417.c       |    2 +-
- drivers/media/video/cx23885/cx23885-video.c     |    2 +-
- drivers/media/video/cx88/cx88-blackbird.c       |    2 +-
- drivers/media/video/cx88/cx88-cards.c           |    4 +-
- drivers/media/video/cx88/cx88-dvb.c             |   11 +-
- drivers/media/video/cx88/cx88-i2c.c             |    2 +
- drivers/media/video/cx88/cx88-mpeg.c            |   15 +-
- drivers/media/video/cx88/cx88-video.c           |    6 +-
- drivers/media/video/em28xx/em28xx-video.c       |    2 +-
- drivers/media/video/et61x251/et61x251_core.c    |   24 ++--
- drivers/media/video/ivtv/ivtv-driver.c          |   12 ++
- drivers/media/video/ivtv/ivtv-i2c.c             |    1 +
- drivers/media/video/ivtv/ivtv-ioctl.c           |   13 +-
- drivers/media/video/ivtv/ivtv-ioctl.h           |    3 +-
- drivers/media/video/ivtv/ivtv-streams.c         |    4 +-
- drivers/media/video/ivtv/ivtvfb.c               |    6 +
- drivers/media/video/pvrusb2/pvrusb2-encoder.c   |    4 +
- drivers/media/video/pvrusb2/pvrusb2-hdw.c       |    6 -
- drivers/media/video/pvrusb2/pvrusb2-v4l2.c      |   17 ++-
- drivers/media/video/pwc/pwc-if.c                |    2 +-
- drivers/media/video/saa7134/saa7134-core.c      |    6 +-
- drivers/media/video/saa7134/saa7134-empress.c   |    2 +-
- drivers/media/video/se401.c                     |    2 +-
- drivers/media/video/sn9c102/sn9c102_core.c      |   24 ++--
- drivers/media/video/stk-webcam.c                |    4 +-
- drivers/media/video/stv680.c                    |    3 +-
- drivers/media/video/usbvideo/usbvideo.c         |    2 +-
- drivers/media/video/usbvideo/vicam.c            |    3 +-
- drivers/media/video/usbvision/usbvision-i2c.c   |    2 +-
- drivers/media/video/usbvision/usbvision-video.c |   12 +-
- drivers/media/video/uvc/uvc_v4l2.c              |   12 +-
- drivers/media/video/v4l1-compat.c               |  221 ++++++++++-------------
- drivers/media/video/v4l2-int-device.c           |    5 +-
- drivers/media/video/v4l2-ioctl.c                |   19 ++-
- drivers/media/video/videobuf-dvb.c              |   52 +++---
- drivers/media/video/vivi.c                      |    6 +-
- drivers/media/video/w9968cf.c                   |   16 +-
- drivers/media/video/zc0301/zc0301_core.c        |   24 ++--
- drivers/media/video/zr364xx.c                   |    2 +-
- include/linux/videodev2.h                       |    7 +
- include/media/v4l2-int-device.h                 |   28 +++-
- include/media/v4l2-ioctl.h                      |   24 ++-
- include/media/videobuf-dvb.h                    |    1 +
- 58 files changed, 495 insertions(+), 362 deletions(-)
-
-Alexey Klimov (4):
-      V4L/DVB (9303): dsbr100: Correct bus_info string
-      V4L/DVB (9304): dsbr100: CodingStyle issue
-      V4L/DVB (9305): radio-mr800: Add BKL for usb_amradio_open()
-      V4L/DVB (9306): dsbr100: Add frequency check
-
-Andy Walls (3):
-      V4L/DVB (9297): cx18: Fix memory leak on card initialization failure
-      V4L/DVB (9298): cx18: Add __iomem address space qualifier to cx18_log_*_retries() argument
-      V4L/DVB (9299): cx18: Don't mask many real init error codes by mapping them to ENOMEM
-
-Boris Dores (1):
-      V4L/DVB (9301): pvrusb2: Keep MPEG PTSs from drifting away
-
-Darron Broad (4):
-      V4L/DVB (9332): cx88: initial fix for analogue only compilation
-      V4L/DVB (9334): cx88: dvb_remove debug output
-      V4L/DVB (9335): videobuf: split unregister bus creating self-contained frontend de-allocator
-      V4L/DVB (9336): cx88: always de-alloc frontends on fault condition
-
-Devin Heitmueller (3):
-      V4L/DVB (9314): s5h1411: Perform s5h1411 soft reset after tuning
-      V4L/DVB (9315): s5h1411: Skip reconfiguring demod modulation if already at the desired modulation
-      V4L/DVB (9316): s5h1411: Power down s5h1411 when not in use
-
-Hans Verkuil (3):
-      V4L/DVB (9324): v4l2: add video_ioctl2_unlocked for unlocked_ioctl support.
-      V4L/DVB (9325): ivtv: switch to unlocked_ioctl.
-      V4L/DVB (9327): v4l: use video_device.num instead of minor in video%d
-
-Ian Armstrong (1):
-      V4L/DVB (9328): ivtvfb: FB_BLANK_POWERDOWN turns off video output
-
-Martin Dauskardt (1):
-      V4L/DVB (9326): ivtv: avoid green flashing when loading ivtv
-
-Mauro Carvalho Chehab (3):
-      V4L/DVB (9330): Get rid of inode parameter at v4l_compat_translate_ioctl()
-      V4L/DVB (9331): Remove unused inode parameter from video_ioctl2
-      V4L/DVB (9333): cx88: Not all boards that requires cx88-mpeg has frontends
-
-Mike Isely (1):
-      V4L/DVB (9300): pvrusb2: Fix deadlock problem
-
-Sakari Ailus (4):
-      V4L/DVB (9318): v4l2-int-if: Add command to get slave private data.
-      V4L/DVB (9321): v4l2-int-if: Define new power state changes
-      V4L/DVB (9322): v4l2-int-if: Export more interfaces to modules
-      V4L/DVB (9323): v4l2-int-if: Add enum_framesizes and enum_frameintervals ioctls.
-
-Sameer Venkatraman (1):
-      V4L/DVB (9319): v4l2-int-if: Add cropcap, g_crop and s_crop commands.
-
-Sergio Aguirre (1):
-      V4L/DVB (9320): v4l2: Add 10-bit RAW Bayer formats
-
-Steven Toth (6):
-      V4L/DVB (9308): s5h1411: Improvements to the default registers
-      V4L/DVB (9309): s5h1411: I/F related bugfix for 3.25 and remove spurious define
-      V4L/DVB (9310): s5h1411: read_status() locking detection fixes.
-      V4L/DVB (9311): s5h1411: bugfix: Setting serial or parallel mode could destroy bits
-      V4L/DVB (9312): s5h1411: Remove meaningless code
-      V4L/DVB (9313): s5h1411: Add the #define for an existing supporting I/F
-
----------------------------------------------------
-V4L/DVB development is hosted at http://linuxtv.org
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
