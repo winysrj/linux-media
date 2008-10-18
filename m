@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-1.orange.nl ([193.252.22.241])
+Received: from wf-out-1314.google.com ([209.85.200.174])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <michel@verbraak.org>) id 1KmQtL-0000ZV-Eo
-	for linux-dvb@linuxtv.org; Sun, 05 Oct 2008 12:31:13 +0200
-Message-ID: <48E89747.40406@verbraak.org>
-Date: Sun, 05 Oct 2008 12:30:31 +0200
-From: Michel Verbraak <michel@verbraak.org>
+	(envelope-from <bokola@gmail.com>) id 1KrGcC-00019I-Fa
+	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 20:33:30 +0200
+Received: by wf-out-1314.google.com with SMTP id 27so1242673wfd.17
+	for <linux-dvb@linuxtv.org>; Sat, 18 Oct 2008 11:33:22 -0700 (PDT)
+Message-ID: <854d46170810181133x13e44446g31dc02422446911d@mail.gmail.com>
+Date: Sat, 18 Oct 2008 20:33:22 +0200
+From: "Faruk A" <fa@elwak.com>
+To: "Dominik Kuhlen" <dkuhlen@gmx.net>
+In-Reply-To: <200810181714.52505.dkuhlen@gmx.net>
 MIME-Version: 1.0
-To: Jelle de Jong <jelledejong@powercraft.nl>, linux-dvb@linuxtv.org
-References: <48E7CDC1.9010905@powercraft.nl>
-In-Reply-To: <48E7CDC1.9010905@powercraft.nl>
-Subject: Re: [linux-dvb] Scrambled/encrypted dvb-t channels under linux with
- a	CI CAM?
+Content-Disposition: inline
+References: <200810181405.42620.dkuhlen@gmx.net>
+	<854d46170810180708l5d109c9chdd97399f2f3c60e0@mail.gmail.com>
+	<200810181714.52505.dkuhlen@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API pctv452e stb0899 simples2apitune
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,62 +30,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jelle de Jong schreef:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->
-> Hello everybody,
->
-> I am searching for some solutions to be able to watch
-> scrambled/encrypted dvb-t channels on Linux systems.
->
-> I don't know what my options are..., but I found this wiki page:
-> http://www.linuxtv.org/wiki/index.php/DVB_Conditional_Access_Modules
->
-> The situation is that I have separate usb enabled dvb-t devices that do
-> all work for non scrambled channels.
->
-> I would like to be able to add an usb device that makes it possible to
-> also watch the scrambled channels, I don't know if this is possible.
-> What is the exact function of a CAM? Does it decrypt date realtime or
-> does it give out some special key that an other application can use?
->
-> I do have a usb smartcard reader that I use for gnupg encryption
-> systems. Are there possibility to use this device with an cable-provider
-> smartcards?
->
-> Any information is appreciated,
->
-> Thank in advance,
->
-> Jelle
->
->
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.4.9 (GNU/Linux)
-> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
->
-> iJwEAQECAAYFAkjnzb8ACgkQ1WclBW9j5HkjAQP/V/zowVaiJZkD4/YdVovfFkQa
-> d5DXie2a36mNCQRT9d5Eh551cIUYspZsHx3iJf0MGbT4dqiAE1AGgOhfUXTpOp6w
-> /QfnzVkprhkWCM+llTu78Pgp78vLtKx1PYFKn4gUjVq8GKOMImKpAsxAOOAh9PjL
-> MYdIi6dyL8iqZ7Qq1jQ=
-> =b5wU
-> -----END PGP SIGNATURE-----
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->   
-Jelle,
+>> Dominik are you too facing packet losses from TS?
+> Not in the streams i have tested so far.
+> how often and on which channels do you get errors?
+> what is the SNR for them?
 
-do a search for "sasc-ng" in google. You should be able to use your usb 
-smartcard reader.
+I get image distortions on all channels.
+I have tested with vdr, kaffeine and szap-s2 + mplayer/vlc/xine.
 
-Regards,
+Is the same problem we had before back in February/March and then you
+fixed in the final release.
 
-Michel.
+[faruk@archer szap-s2]$ ./szap-s2 -r -p -V -c ~/.vdr/channels.conf -n 115
+reading channels from file '/home/faruk/.vdr/channels.conf'
+zapping to 115 'FOLKLOR TV;EUTELSAT':
+delivery DVB-S, modulation QPSK
+sat 0, frequency 11304 MHz V, symbolrate 30000000, coderate auto, rolloff auto
+vpid 0x0dc1, apid 0x0dc2, sid 0x0005
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal 011e | snr 0080 | ber 00000000 | unc fffffffe | FE_HAS_LOCK
+status 1f | signal 0122 | snr 007f | ber 00000000 | unc fffffffe | FE_HAS_LOCK
+status 1f | signal 011e | snr 007e | ber 00000000 | unc fffffffe | FE_HAS_LOCK
+status 1f | signal 0122 | snr 0081 | ber 00000000 | unc fffffffe | FE_HAS_LOCK
+status 1f | signal 0122 | snr 0080 | ber 00000000 | unc fffffffe | FE_HAS_LOCK
 
+[faruk@archer ~]$ femon
+FE: STB0899 Multistandard (DVBS)
+Problem retrieving frontend information: Operation not supported
+status SCVYL | signal 011e | snr 008a | ber 00000000 | unc bff876cc |
+FE_HAS_LOCK
+Problem retrieving frontend information: Operation not supported
+status SCVYL | signal 0122 | snr 0087 | ber 00000000 | unc bff876cc |
+FE_HAS_LOCK
+Problem retrieving frontend information: Operation not supported
+status SCVYL | signal 011e | snr 0087 | ber 00000000 | unc bff876cc |
+FE_HAS_LOCK
+Problem retrieving frontend information: Operation not supported
+status SCVYL | signal 0122 | snr 008c | ber 00000000 | unc bff876cc |
+FE_HAS_LOCK
 
 _______________________________________________
 linux-dvb mailing list
