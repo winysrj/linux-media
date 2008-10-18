@@ -1,28 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail2.m00h.eu ([83.246.72.85])
+Received: from relay-pt1.poste.it ([62.241.4.164])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christian@heidingsfelder.eu>) id 1Ks0Qs-0008Pp-Q5
-	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 21:29:00 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by mail2.m00h.eu (Postfix) with ESMTP id BB1BBF0DF236
-	for <linux-dvb@linuxtv.org>; Mon, 20 Oct 2008 21:28:46 +0200 (CEST)
-Received: from mail2.m00h.eu ([127.0.0.1])
-	by localhost (mail2.m00h.eu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 0jRortysp439 for <linux-dvb@linuxtv.org>;
-	Mon, 20 Oct 2008 21:28:37 +0200 (CEST)
-Received: from [192.168.2.50] (dummy.nutze-deinen-tag.de [80.152.217.184])
-	(Authenticated sender: christian@heidingsfelder.eu)
-	by mail2.m00h.eu (Postfix) with ESMTPA id 794D2F0DF232
-	for <linux-dvb@linuxtv.org>; Mon, 20 Oct 2008 21:28:37 +0200 (CEST)
-Message-ID: <48FCDBE5.1090501@heidingsfelder.eu>
-Date: Mon, 20 Oct 2008 21:28:37 +0200
-From: "Christian Heidingsfelder [Heidingsfelder + Partner]"
-	<christian@heidingsfelder.eu>
-MIME-Version: 1.0
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1Kr9xy-0002GF-9N
+	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 13:27:32 +0200
+Received: from geppetto.reilabs.com (78.15.196.35) by relay-pt1.poste.it
+	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
+	id 48F92748000033FB for linux-dvb@linuxtv.org;
+	Sat, 18 Oct 2008 13:27:26 +0200
+Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1Kr9wv-0002oL-Ci
+	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 13:26:25 +0200
+Date: Sat, 18 Oct 2008 13:26:24 +0200
+From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------070805010206010303050003"
-Subject: [linux-dvb] Technotrend TT-Connect S2-3650 CI
-Reply-To: christian@heidingsfelder.eu
+Message-ID: <20081018112624.GA9646@geppetto>
+References: <20081014212402.GB11745@geppetto> <20081015232121.GA8831@geppetto>
+	<48F73F56.7060805@verizonbusiness.com>
+	<20081016205454.GA32397@geppetto>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <20081016205454.GA32397@geppetto>
+Subject: Re: [linux-dvb] Unable to query frontend status with dvbscan
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,284 +28,134 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------070805010206010303050003
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: quoted-printable
+On date Thursday 2008-10-16 22:54:54 +0200, Stefano Sabatini wrote:
+> On date Thursday 2008-10-16 07:19:18 -0600, Mark Paulus wrote:
+> > Stefano Sabatini wrote:
+> >> On date Tuesday 2008-10-14 23:24:02 +0200, Stefano Sabatini wrote:
+> >>> Hi all,
+> >>>
+> >>> can you say what's the meaning of such a message?
+> >>>
+> >>> I'm using it with:
+> >>> dvbscan  /usr/share/dvb/dvb-t/it-MyCity
+> >>> Unable to query frontend status
+> >>>
+> >>> using a TerraTec Electronic GmbH with dvb-usb-dib0700 driver.
+> >>>
+> >>> The module seems to be loaded correctly, indeed I get this in the
+> >>> kernel log:
+> >>>
+> >>> [ 1834.456051] dib0700: loaded with support for 7 different device-types
+> >>> [ 1834.456051] dvb-usb: found a 'Terratec Cinergy HT USB XE' in cold state, will try to load a firmware
+> >>> [ 1834.456051] firmware: requesting dvb-usb-dib0700-1.10.fw
+> >>> [ 1834.464197] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.10.fw'
+> >>> [ 1834.662979] dib0700: firmware started successfully.
+> >>> [ 1835.168928] dvb-usb: found a 'Terratec Cinergy HT USB XE' in warm state.
+> >>> [ 1835.168997] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> >>> [ 1835.169355] DVB: registering new adapter (Terratec Cinergy HT USB XE)
+> >>> [ 1835.419963] DVB: registering frontend 0 (DiBcom 7000PC)...
+> >>> [ 1835.499932] xc2028 1-0061: creating new instance
+> >>> [ 1835.499932] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+> >>> [ 1835.499932] input: IR-receiver inside an USB DVB receiver as /class/input/input7
+> >>> [ 1835.510406] dvb-usb: schedule remote query interval to 150 msecs.
+> >>> [ 1835.510416] dvb-usb: Terratec Cinergy HT USB XE successfully initialized and connected.
+> >>> [ 1835.510696] usbcore: registered new interface driver dvb_usb_dib0700
+> >>>
+> >>> The led on the device switched on when I performed the first scan.
+> >>
+> >> Other meaningful info:
+> >> stefano@geppetto ~> dvbscan  /usr/share/dvb/dvb-t/it-Cagliari
+> >> Unable to query frontend status
+> >> stefano@geppetto ~> sudo dvbscan  /usr/share/dvb/dvb-t/it-Cagliari
+> >> Unable to query frontend status
+> >> stefano@geppetto ~> ls -l /dev/dvb/adapter0/
+> >> total 0
+> >> crw-rw---- 1 root video 212, 1 2008-09-23 00:04 audio0
+> >> crw-rw---- 1 root video 212, 6 2008-09-23 00:04 ca0
+> >> crw-rw---- 1 root video 212, 4 2008-09-23 00:04 demux0
+> >> crw-rw---- 1 root video 212, 5 2008-09-23 00:04 dvr0
+> >> crw-rw---- 1 root video 212, 3 2008-09-23 00:04 frontend0
+> >> crw-rw---- 1 root video 212, 7 2008-09-23 00:04 net0
+> >> crw-rw---- 1 root video 212, 8 2008-09-23 00:04 osd0
+> >> crw-rw---- 1 root video 212, 0 2008-09-23 00:04 video0
+> >>
+> >> stefano@geppetto ~> uname -a
+> >> Linux geppetto 2.6.26-1-686 #1 SMP Thu Oct 9 15:18:09 UTC 2008 i686 GNU/Linux
+> >>
+> >> The device is reported to be supported on the DVB wiki:
+> >> http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_HT_USB_XE
+> >>
+> >> Help or hints will be appreciated.
+> >>
+> >> Regards.
+> >
+> > I believe I have seen a message like this when something else
+> > is talking to the card already.  For instance, I run my cards in a Mythtv 
+> > system, and in mythtv there is a setting to only attach to the card when 
+> > actually using the card.  If that
+> > setting is set incorrectly, mythtv will attach to the card at startup, 
+> > and keep exclusive use of the card, not allowing
+> > anyone else to access the card at all.
+> 
+> lsof didn't show any device accessing to device inside /dev/dvb.
+> 
+> But digging again in the web I found this:
+> http://forums.opensuse.org/archives/sf-archives/archives-software/archives-multimedia/340016-dvb-t-card-cant-scan-10-3-a.html
+> 
+> So the problem seems a regression in the dvb-apps.
+> 
+> And precisely the problem seems to be in the function:
+> libdvb/dvbfe.c:dvbfe_get_info()
+> 
+> Debugging I get this in dvbfe_get_info (second invocation during the
+> running of the application):
+> 
+> dvbfe_get_info (fehandle=0x8beb008, 
+>                querymask=DVBFE_INFO_LOCKSTATUS,
+>                result=0xbfada108, 
+>                querytype=DVBFE_INFO_QUERYTYPE_IMMEDIATE,
+>                timeout=0) at dvbfe.c:23
+> 
+> 		if (querymask & DVBFE_INFO_LOCKSTATUS) {
+> 			if (!ioctl(fehandle->fd, FE_READ_STATUS, &kevent.status)) {
+> 				returnval |= DVBFE_INFO_LOCKSTATUS;
+> 			}
+> 		}
+> 
+> The result of the ioctl is 0 so the returnval is ored with
+> DVBFE_INFO_LOCKSTATUS (so set to 1), then we have in the main:
+> 
+> 				if (dvbfe_get_info(fe, DVBFE_INFO_LOCKSTATUS, &feinfo,
+> 				    			DVBFE_INFO_QUERYTYPE_IMMEDIATE, 0) !=
+> 					DVBFE_INFO_QUERYTYPE_IMMEDIATE) {
+> 					fprintf(stderr, "Unable to query frontend status\n");
+> 					exit(1);
+> 				}
+> 
+> 
+> 
+> which is different from DVBFE_INFO_QUERYTYPE_IMMEDIATE = 0, so the
+> exit, but I can really understand the logic here.
+> 
+> So what's the expected exit of the ioctl with FE_READ_STATUS?
 
-Hi all,
+I read the log, and I see that apparently no changes has been
+performed in the last two years on the affected code, so I tend to
+believe that this isn't a regression in the utility but rather some
+problem in the module/kernel.
 
-after getting this url
+So a pointer to the documentation of that ioctl would be nice,
+meaninwhile I'll check for the w_scan application.
 
-http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI
-from faruk i tried to install the modules for my technotrend.
-Heres the hole session :
-
--------------------
-
-
-scheffe@scheffenote ~ $ mkdir 3650
-scheffe@scheffenote ~ $ cd 3650/
-scheffe@scheffenote ~/3650 $ hg clone -r 9263=20
-http://mercurial.intuxication.org/hg/s2-liplianin
-destination directory: s2-liplianin
-requesting all changes
-adding changesets
-adding manifests
-adding file changes
-added 9264 changesets with 24422 changes to 1647 files
-updating working directory
-1189 files updated, 0 files merged, 0 files removed, 0 files unresolved
-scheffe@scheffenote ~/3650 $ wget=20
-http://hem.passagen.se/faruks/3650/my_s2api_pctv452e.txt
---2008-10-20 19:14:13-- =20
-http://hem.passagen.se/faruks/3650/my_s2api_pctv452e.txt
-Aufl=F6sen des Hostnamen =BBhem.passagen.se=AB.... 80.76.152.146
-Verbindungsaufbau zu hem.passagen.se|80.76.152.146|:80... verbunden.
-HTTP Anforderung gesendet, warte auf Antwort... 200 OK
-L=E4nge: 43373 (42K) [text/plain]
-In =BBmy_s2api_pctv452e.txt=AB speichern.
-
-100%[=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D>] 43.373       106K/s   in=20
-0,4s =20
-2008-10-20 19:14:14 (106 KB/s) - =BBmy_s2api_pctv452e.txt=AB gespeichert=20
-[43373/43373]
-
-scheffe@scheffenote ~/3650 $ cd s2-liplianin/
-scheffe@scheffenote ~/3650/s2-liplianin $ patch -p1 <=20
-../my_s2api_pctv452e.txt
-patching file linux/drivers/media/dvb/dvb-usb/pctv452e.c
-patching file linux/drivers/media/dvb/frontends/lnbp22.c
-patching file linux/drivers/media/dvb/frontends/stb0899_algo.c
-patching file linux/drivers/media/dvb/frontends/stb0899_drv.c
-patching file linux/drivers/media/dvb/frontends/stb0899_drv.h
-patching file linux/drivers/media/dvb/frontends/stb0899_priv.h
-patching file linux/drivers/media/dvb/frontends/stb6100.c
-patching file linux/drivers/media/dvb/frontends/stb6100.h
-patching file linux/drivers/media/dvb/frontends/stb6100_cfg.h
-patching file linux/include/linux/dvb/frontend.h
-scheffe@scheffenote ~/3650/s2-liplianin $ cd v4l
-scheffe@scheffenote ~/3650/s2-liplianin/v4l $ nano .config
-scheffe@scheffenote ~/3650/s2-liplianin/v4l $ cd ..
-scheffe@scheffenote ~/3650/s2-liplianin $ make
-make -C /home/scheffe/3650/s2-liplianin/v4l
-make[1]: Entering directory `/home/scheffe/3650/s2-liplianin/v4l'
-No version yet, using 2.6.27-gentoo
-make[1]: Leaving directory `/home/scheffe/3650/s2-liplianin/v4l'
-make[1]: Entering directory `/home/scheffe/3650/s2-liplianin/v4l'
-scripts/make_makefile.pl
-Updating/Creating .config
-./scripts/make_kconfig.pl /lib/modules/2.6.27-gentoo/build=20
-/lib/modules/2.6.27-gentoo/source
-Preparing to compile for kernel version 2.6.27
-./scripts/make_myconfig.pl
-make[1]: Leaving directory `/home/scheffe/3650/s2-liplianin/v4l'
-make[1]: Entering directory `/home/scheffe/3650/s2-liplianin/v4l'
-perl scripts/make_config_compat.pl /lib/modules/2.6.27-gentoo/source=20
-./.myconfig ./config-compat.h
-creating symbolic links...
-ln -sf . oss
-Kernel build directory is /lib/modules/2.6.27-gentoo/build
-make -C /lib/modules/2.6.27-gentoo/build=20
-SUBDIRS=3D/home/scheffe/3650/s2-liplianin/v4l  modules
-make[2]: Entering directory `/usr/src/linux-2.6.27-gentoo'
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvbdev.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dmxdev.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb_demux.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb_filter.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb_ca_en50221.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb_frontend.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb_net.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb_ringbuffer.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb_math.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/pctv452e.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-usb-firmware.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-usb-init.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-usb-urb.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-usb-i2c.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-usb-dvb.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-usb-remote.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/usb-urb.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/stb0899_drv.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/stb0899_algo.o
- LD [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-core.o
- LD [M]  /home/scheffe/3650/s2-liplianin/v4l/stb0899.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/stb6100.o
-/home/scheffe/3650/s2-liplianin/v4l/stb6100.c: In function=20
-'stb6100_set_params':
-/home/scheffe/3650/s2-liplianin/v4l/stb6100.c:486: warning: unused=20
-variable 'state'
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/lnbp22.o
- CC [M]  /home/scheffe/3650/s2-liplianin/v4l/ttpci-eeprom.o
- LD [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-usb.o
- LD [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-usb-pctv452e.o
- Building modules, stage 2.
- MODPOST 7 modules
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_unregister_adapter' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_register_adapter' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_unregister_device' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_register_device' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_generic_ioctl' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_generic_release' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_generic_open' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_dmxdev_release' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core: 'dvb_dmxdev_init'=20
-exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core: 'dvb_dmx_release'=20
-exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core: 'dvb_dmx_init'=20
-exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_dmx_swfilter_204' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_dmx_swfilter' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_dmx_swfilter_packets' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_filter_pes2ts' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_filter_pes2ts_init' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_filter_get_ac3info' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ca_en50221_release' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ca_en50221_init' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ca_en50221_frda_irq' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ca_en50221_camready_irq' exported twice. Previous export was in=20
-vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ca_en50221_camchange_irq' exported twice. Previous export was in=20
-vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_frontend_detach' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_unregister_frontend' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_register_frontend' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_frontend_sleep_until' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'timeval_usec_diff' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_frontend_reinitialise' exported twice. Previous export was in vmlinu=
-x
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core: 'dvb_net_init'=20
-exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core: 'dvb_net_release'=20
-exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ringbuffer_write' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ringbuffer_read' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ringbuffer_read_user' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ringbuffer_flush_spinlock_wakeup' exported twice. Previous export=20
-was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ringbuffer_avail' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ringbuffer_free' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ringbuffer_empty' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core:=20
-'dvb_ringbuffer_init' exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core: 'intlog10'=20
-exported twice. Previous export was in vmlinux
-WARNING: /home/scheffe/3650/s2-liplianin/v4l/dvb-core: 'intlog2'=20
-exported twice. Previous export was in vmlinux
- CC      /home/scheffe/3650/s2-liplianin/v4l/dvb-core.mod.o
- LD [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-core.ko
- CC      /home/scheffe/3650/s2-liplianin/v4l/dvb-usb-pctv452e.mod.o
- LD [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-usb-pctv452e.ko
- CC      /home/scheffe/3650/s2-liplianin/v4l/dvb-usb.mod.o
- LD [M]  /home/scheffe/3650/s2-liplianin/v4l/dvb-usb.ko
- CC      /home/scheffe/3650/s2-liplianin/v4l/lnbp22.mod.o
- LD [M]  /home/scheffe/3650/s2-liplianin/v4l/lnbp22.ko
- CC      /home/scheffe/3650/s2-liplianin/v4l/stb0899.mod.o
- LD [M]  /home/scheffe/3650/s2-liplianin/v4l/stb0899.ko
- CC      /home/scheffe/3650/s2-liplianin/v4l/stb6100.mod.o
- LD [M]  /home/scheffe/3650/s2-liplianin/v4l/stb6100.ko
- CC      /home/scheffe/3650/s2-liplianin/v4l/ttpci-eeprom.mod.o
- LD [M]  /home/scheffe/3650/s2-liplianin/v4l/ttpci-eeprom.ko
-make[2]: Leaving directory `/usr/src/linux-2.6.27-gentoo'
-./scripts/rmmod.pl check
-found 7 modules
-make[1]: Leaving directory `/home/scheffe/3650/s2-liplianin/v4l'
-scheffe@scheffenote ~/3650/s2-liplianin $ su
-SSH passphrase:
-scheffenote s2-liplianin # insmod dvb-core.ko
-insmod: can't read 'dvb-core.ko': No such file or directory
-scheffenote s2-liplianin # cd v4l
-scheffenote v4l # insmod dvb-core.ko
-insmod: error inserting 'dvb-core.ko': -1 Invalid parameters
-scheffenote v4l # insmod stb6100.ko verbose=3D0
-scheffenote v4l # insmod stb0899.ko verbose=3D0
-scheffenote v4l # insmod lnbp22.ko
-scheffenote v4l # insmod ttpci-eeprom.ko
-scheffenote v4l # insmod dvb-usb.ko
-insmod: error inserting 'dvb-usb.ko': -1 Unknown symbol in module
-scheffenote v4l # insmod dvb-usb-pctv452e.ko
-insmod: error inserting 'dvb-usb-pctv452e.ko': -1 Unknown symbol in modul=
-e
-----------------------------
-----------------------------
-lsmod :
-http://rafb.net/p/zFADSp45.html
----------------------------
-Many thanks to Igor and  Dominik for dealing with that and to faruk for=20
-dealing with me  :-)
-
-If you need more infos , let me know
-
-Regards Chris
-
---------------070805010206010303050003
-Content-Type: text/x-vcard; charset=utf-8;
- name="christian.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="christian.vcf"
-
-begin:vcard
-fn:Christian Heidingsfelder [Heidingsfelder + Partner]
-n:Heidingsfelder;Christian
-org:Heidingsfelder + Partner
-adr:;;Kirchgasse 9;Winterlingen-Benzingen;BW;72474;Deutschland
-email;internet:christian@heidigsfelder.eu
-title:CEO
-tel;work:+49 7577 933 864
-tel;fax:+49 7577 933 863
-tel;home:+49 7577 933 862
-x-mozilla-html:TRUE
-version:2.1
-end:vcard
-
-
---------------070805010206010303050003
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Thanks in advance, regards.
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------070805010206010303050003--
