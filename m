@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from smtp.sauce.co.nz ([210.48.49.72])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KpoLJ-0006L0-Cv
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 20:10:03 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K8Q001Q2QFPRU40@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 14 Oct 2008 14:09:26 -0400 (EDT)
-Date: Tue, 14 Oct 2008 14:09:24 -0400
-From: Steven Toth <stoth@linuxtv.org>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <48F4E054.4080304@linuxtv.org>
-MIME-version: 1.0
-Subject: [linux-dvb] S2API / TT3200 / STB0899 support
+	(envelope-from <r.scobie@clear.net.nz>) id 1KrGzT-0003bo-TR
+	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 20:57:33 +0200
+Message-ID: <48FA314B.5040203@clear.net.nz>
+Date: Sun, 19 Oct 2008 07:56:11 +1300
+From: Richard Scobie <r.scobie@clear.net.nz>
+MIME-Version: 1.0
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
+	<2207.1224273353@kewl.org>
+	<412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com>
+In-Reply-To: <412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [RFC] SNR units in tuners
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,17 +27,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-As you have all seen on the list recently, on the 'stb0899 and TT 
-s2-3200' thread, Igor has ported Manu's TT3200 drivers to the S2API.
+Devin Heitmueller wrote:
 
-Personally, I have not had the time to test, but I hear they are working 
-very well for some people, OK for others, and bad for some people.
+> At this point the goal is to understand what the value means for
+> different demods.  For the simple cases where the answer is "it's the
+> SNR in 0.1db as provided by register X", then it's easy.  If it's "I
+> don't really know and I just guessed based on empirical testing, then
+> that is useful information too.
 
-Can everyone please post their comments into this thread?
 
-Thanks,
+According to the datasheet, the carrier to noise ratio for the BSRU6 
+front end, (which contains an stv0299), can be calculated in dB using 
+the following information:
 
-Steve
+Register ADD 24 NIRH 8 bits (MSB of noise indicator)
+
+Register ADD 25 NIRL 8 bits (LSB of noise indicator)
+
+C/N (dB) = -0.0017 * NIR + 19.02
+
+Regards,
+
+Richard
 
 _______________________________________________
 linux-dvb mailing list
