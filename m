@@ -1,27 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197])
+Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Krzlo-0005Yf-TF
-	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 20:46:27 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta2.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K9100GA8W4D9R00@mta2.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Mon, 20 Oct 2008 14:45:50 -0400 (EDT)
-Date: Mon, 20 Oct 2008 14:45:48 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <200810200141.629@centrum.cz>
-To: sustmi <sustmidown@centrum.cz>
-Message-id: <48FCD1DC.3010701@linuxtv.org>
-MIME-version: 1.0
-References: <200810200120.28590@centrum.cz> <200810200121.3906@centrum.cz>
-	<200810200122.4044@centrum.cz> <200810200123.28880@centrum.cz>
-	<200810200124.8475@centrum.cz> <200810200125.8958@centrum.cz>
-	<200810200126.978@centrum.cz> <200810200127.29920@centrum.cz>
-	<200810200141.629@centrum.cz>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Leadtek WinFast DTV-1800H support
+	(envelope-from <liplianin@tut.by>) id 1KrAuI-0006KD-RA
+	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 14:27:48 +0200
+From: "Igor M. Liplianin" <liplianin@tut.by>
+To: linux-dvb@linuxtv.org
+Date: Sat, 18 Oct 2008 15:27:05 +0300
+References: <200810181405.42620.dkuhlen@gmx.net>
+In-Reply-To: <200810181405.42620.dkuhlen@gmx.net>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200810181527.05290.liplianin@tut.by>
+Subject: Re: [linux-dvb] S2API pctv452e stb0899 simples2apitune
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,60 +19,32 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-sustmi wrote:
-> Hi,
-> 
-> I was working on support for Leadtek WinFast DTV-1800H.
-> First I made it work with Markus Rechberger's v4l repository (there was
-> better XC3028-tunner code).
-> 
-> Few weeks ago Markus Rechberger announced that he is no going to
-> support non-ex28xx cards anymore and that I have to focus on the linuxtv
-> linux-dvb repository.
-> 
-> So I (cooperating with Paul Chubb) made a patch against linuxtv linux-dvb.
-> (attached file: leadtek_winfast_dtv1800h.patch)
-> 
-> It enables support for DVB-T, analogue TV, radio and IR remote control.
-> 
-> I have tried to use existing parts of code as much as possible.
-> The creation of 'cx88_xc3028_winfast1800h_callback' function was
-> necessary. Function 'cx88_xc3028_geniatech_tuner_callback' is similar,
-> but the extra GPIO code makes IR remote control not work.
-> 
-> It will be great if patch is merged into the repository.
-> 
-> There is one question I want to ask you in terms of this message:
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-August/028117.html
-> Why is using of cx_write() risky?
-
- From my orig email: "Don't call cx_write() inside the gpio card setup, 
-you're potentially destroying the other bits, it's risky."
-
-cx_write destroys the content of the GPIO direction-enablement and 
-values bits. That's a bad thing, and can lead to unexpected behaviors if 
-used generally in drivers.
-
-It's better to have a driver read the previous register value, and/or in 
-the appropriate bit and write the value back to the gpio registers. This 
-is what cx_set/clear do. That way parts of the driver can toggle GPIO's 
-for important pieces, without having to understand GPIO usage in other 
-disconnected/unrelated parts of the driver.
-
-Your patch uses set/clear, which is good.
-
-Incidently, you patch cannot be merged as-is, it has C99 style comments 
-'//' are not allowed, change to /* */ etc.
-
-- Steve
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+9yDTz8/C3cXOyckgz9QgMTggT2N0b2JlciAyMDA4IDE1OjA1OjQyIERvbWluaWsgS3VobGVuIM7B
+0MnTwcwowSk6Cj4gSGksCj4KPiBBdHRhY2hlZCBwYXRjaCBtYWtlcyB0aGUgcGN0NDUyZSB3b3Jr
+aW5nIGZvciBtZSB3aXRoIFMyQVBJCj4gYmFzZWQgb24gY2hhbmdlc2V0IDkyNjMKPiBodHRwOi8v
+bWVyY3VyaWFsLmludHV4aWNhdGlvbi5vcmcvaGcvczItbGlwbGlhbmluCj4KPiAtIG1vc3RseSBj
+bGVhbnVwIChyZW1vdmUgY29tbWVudGVkIGNvZGUpCj4gLSBwcm9wZXIgZnJlcXVlbmN5IHJlcG9y
+dGluZyBmb3Igc3RiMDg5OSAoZHZiLXMgYW5kIGR2Yi1zMikKPiAtIGZhc3QgYW5kIGFsd2F5cyBs
+b2NrIGZvciBEVkItUyAodXAgdG8gOE1IeiBmcmVxdWVuY3kgb2Zmc2V0IGFsbG93ZWQpCj4gKG9u
+bHkgdGVzdGVkIHdpdGggc3ltcmF0ZXM6IDIyIGFuZCAyNy41KSAtIERWQi1TMiBjaGVja2VkIDE5
+LjJFIDExOTE1IEgKPiAyNzUwMCBvbmx5IChJIGNhbnQgdGVzdCBvdGhlcnMpCj4gLSBQQ1RWNDUy
+ZSBMRUQgIGdyZWVuOiBGRSBvcGVuICAgIG9yYW5nZTogRkUgY2xvc2VkCj4gICBkb2VzIHRoZSBU
+VCBTMiAzNjAwICgzNjUwQ0kpIGFsc28gaGF2ZSB0aGlzIGxlZCBhbmQgaXMgaXQgYXR0YWNoZWQg
+dG8gdGhlCj4gc2FtZSBHUElPPwo+Cj4gV2hhdCBJIHN0aWxsIGRpc2xpa2UgaXMgdGhlIHZlcnkg
+bG9uZyBibG9ja2luZyBpZiBubyBzaWduYWwgaXMgZm91bmQgb3IKPiB3cm9uZyBwYXJhbWV0ZXJz
+IHdlcmUgc3BlY2lmaWVkLiBUaGlzIGNvdWxkIGJlIGVhc2lseSBhdm9pZDogaWYgdGhlcmUgd2Vy
+ZQo+IGEgc2lnbmFsIGxvY2tpbmcgd291bGQgYmUgcXVpdGUgZmFzdCA7KSBCdXQgaSBoYXZlbid0
+IGhhZCB0aW1lIHRvIHNlYXJjaAo+IGZvciB0aGUgc29sdXRpb24gdG8gc3BlZWQgdXAuLi4KPgo+
+IGFsc28gYXR0YWNoZWQgc2ltcGxlczJhcGl0dW5lIHdoaWNoIGlzIHNhbWUgYXMgc2ltcGxlZHZi
+dHVuZSBidXQgZm9yIFMyQVBJCj4KPiBoYXBweSB0ZXN0aW5nLAo+ICBEb21pbmlrCkhpIERvbWlu
+aWsKCkkgd2lsbCB0ZXN0IGl0IHRvZGF5IHdpdGggczItMzIwMCBhbmQgZ2l2ZSB5b3UgZmVlZGJh
+Y2sKQW5kIHRoYW5rIHlvdS4KCklnb3IKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYu
+b3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LWR2Yg==
