@@ -1,30 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail2.m00h.eu ([83.246.72.85])
+Received: from mail1007.centrum.cz ([90.183.38.137])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christian@heidingsfelder.eu>) id 1Kmo8y-00039B-Vp
-	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 13:20:55 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by mail2.m00h.eu (Postfix) with ESMTP id 56D29F058DBD
-	for <linux-dvb@linuxtv.org>; Mon,  6 Oct 2008 13:20:49 +0200 (CEST)
-Received: from mail2.m00h.eu ([127.0.0.1])
-	by localhost (mail2.m00h.eu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id UiBeKLjURa42 for <linux-dvb@linuxtv.org>;
-	Mon,  6 Oct 2008 13:20:30 +0200 (CEST)
-Received: from [192.168.2.50] (dummy.nutze-deinen-tag.de [80.152.217.184])
-	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: christian@heidingsfelder.eu)
-	by mail2.m00h.eu (Postfix) with ESMTPSA id 3BF23F058DBA
-	for <linux-dvb@linuxtv.org>; Mon,  6 Oct 2008 13:20:30 +0200 (CEST)
-From: christian heidingsfelder <christian@heidingsfelder.eu>
-To: linux-dvb@linuxtv.org
-Date: Mon, 06 Oct 2008 13:18:37 +0200
-Message-Id: <1223291917.22653.15.camel@localhost>
-Mime-Version: 1.0
-Subject: [linux-dvb] Currently Unsupported DVB-S2 USB Devices. If you own
-	one or more	devices from the following list and you want to
-	help with support	development,
-	please contact the linux-dvb Mailing list.
+	(envelope-from <sustmidown@centrum.cz>) id 1Krhth-0006sC-1N
+	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 01:41:29 +0200
+Received: by mail1007.centrum.cz id S738213437AbYJSXlK (ORCPT
+	<rfc822;linux-dvb@linuxtv.org>); Mon, 20 Oct 2008 01:41:10 +0200
+Date: Mon, 20 Oct 2008 01:41:10 +0200
+From: "sustmi" <sustmidown@centrum.cz>
+To: <linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Message-ID: <200810200141.629@centrum.cz>
+References: <200810200120.28590@centrum.cz> <200810200121.3906@centrum.cz>
+	<200810200122.4044@centrum.cz> <200810200123.28880@centrum.cz>
+	<200810200124.8475@centrum.cz> <200810200125.8958@centrum.cz>
+	<200810200126.978@centrum.cz> <200810200127.29920@centrum.cz>
+In-Reply-To: <200810200127.29920@centrum.cz>
+Content-Type: multipart/mixed; boundary="-------=_42F4231E.51F3E6F"
+Subject: [linux-dvb] Leadtek WinFast DTV-1800H support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,19 +24,153 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I own a TechnoTrend TT-connect S2-3650 CI .. well right now it owns
-me :-)
+This is a multi-part message in MIME format
 
-Regards  Chris
+---------=_42F4231E.51F3E6F
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
+Hi,
+
+I was working on support for Leadtek WinFast DTV-1800H.
+First I made it work with Markus Rechberger's v4l repository (there was
+better XC3028-tunner code).
+
+Few weeks ago Markus Rechberger announced that he is no going to
+support non-ex28xx cards anymore and that I have to focus on the linuxtv
+linux-dvb repository.
+
+So I (cooperating with Paul Chubb) made a patch against linuxtv linux-dvb.
+(attached file: leadtek_winfast_dtv1800h.patch)
+
+It enables support for DVB-T, analogue TV, radio and IR remote control.
+
+I have tried to use existing parts of code as much as possible.
+The creation of 'cx88_xc3028_winfast1800h_callback' function was
+necessary. Function 'cx88_xc3028_geniatech_tuner_callback' is similar,
+but the extra GPIO code makes IR remote control not work.
+
+It will be great if patch is merged into the repository.
+
+There is one question I want to ask you in terms of this message:
+http://www.linuxtv.org/pipermail/linux-dvb/2008-August/028117.html
+Why is using of cx_write() risky?
+
+Thank you for your reply.
+
+- Miroslav Šustek
+
+---------=_42F4231E.51F3E6F
+Content-Type: text/x-patch; name="leadtek_winfast_dtv1800h.patch"
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtciBlMmE4YjliOWMyOTQgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4
+ODgtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1j
+YXJkcy5jCUZyaSBPY3QgMTcgMTk6NDU6NTUgMjAwOCArMDMwMAorKysgYi9saW51eC9kcml2
+ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCU1vbiBPY3QgMjAgMDE6MTU6Mjkg
+MjAwOCArMDIwMApAQCAtMTkwNCw2ICsxOTA0LDQ3IEBACiAJCX0gfSwKIAkJLm1wZWcgICAg
+ICAgICAgID0gQ1g4OF9NUEVHX0RWQiwKIAl9LAorCVtDWDg4X0JPQVJEX1dJTkZBU1RfRFRW
+MTgwMEhdID0geworCQkubmFtZSAgICAgICAgICAgPSAiTGVhZHRlayBXaW5GYXN0IERUVjE4
+MDAgSHlicmlkIiwKKwkJLnR1bmVyX3R5cGUgICAgID0gVFVORVJfWEMyMDI4LAorCQkucmFk
+aW9fdHlwZSAgICAgPSBUVU5FUl9YQzIwMjgsCisJCS50dW5lcl9hZGRyICAgICA9IDB4NjEs
+CisJCS5yYWRpb19hZGRyICAgICA9IDB4NjEsCisJCS8qCisJCSAqIEdQSU8gc2V0dGluZwor
+CQkgKgorCQkgKiAgMjogbXV0ZSAoMD1vZmYsMT1vbikKKwkJICogMTI6IHR1bmVyIHJlc2V0
+IHBpbgorCQkgKiAxMzogYXVkaW8gc291cmNlICgwPXR1bmVyIGF1ZGlvLDE9bGluZSBpbikK
+KwkJICogMTQ6IEZNICgwPW9uLDE9b2ZmID8/PykKKwkJICovCisJCS5pbnB1dCAgICAgICAg
+ICA9IHt7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCisJCQkudm11eCAg
+ID0gMCwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAgICAgIC8vcGluIDIgPSAwCisJCQkuZ3Bp
+bzEgID0gMHg2MDQwLCAgICAgICAvL3BpbiAxMyA9IDAsIHBpbiAxNCA9IDEKKwkJCS5ncGlv
+MiAgPSAweDAwMDAsCisJCX0seworCQkJLnR5cGUgICA9IENYODhfVk1VWF9DT01QT1NJVEUx
+LAorCQkJLnZtdXggICA9IDEsCisJCQkuZ3BpbzAgID0gMHgwNDAwLCAgICAgICAvL3BpbiAy
+ID0gMAorCQkJLmdwaW8xICA9IDB4NjA2MCwgICAgICAgLy9waW4gMTMgPSAxLCBwaW4gMTQg
+PSAxCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9LHsKKwkJCS50eXBlICAgPSBDWDg4X1ZN
+VVhfU1ZJREVPLAorCQkJLnZtdXggICA9IDIsCisJCQkuZ3BpbzAgID0gMHgwNDAwLCAgICAg
+ICAvL3BpbiAyID0gMAorCQkJLmdwaW8xICA9IDB4NjA2MCwgICAgICAgLy9waW4gMTMgPSAx
+LCBwaW4gMTQgPSAxCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9fSwKKwkJLnJhZGlvID0g
+eworCQkJLnR5cGUgICA9IENYODhfUkFESU8sCisJCQkuZ3BpbzAgID0gMHgwNDAwLCAgICAg
+ICAvL3BpbiAyID0gMAorCQkJLmdwaW8xICA9IDB4NjAwMCwgICAgICAgLy9waW4gMTMgPSAw
+LCBwaW4gMTQgPSAwCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9LAorCQkubXBlZyAgICAg
+ICAgICAgPSBDWDg4X01QRUdfRFZCLAorCX0sCiB9OwogCiAvKiAtLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8K
+QEAgLTIyOTcsNiArMjMzOCwxMCBAQAogCQkuc3VidmVuZG9yID0gMHhCMDMzLAogCQkuc3Vi
+ZGV2aWNlID0gMHgzMDMzLAogCQkuY2FyZCAgICAgID0gQ1g4OF9CT0FSRF9QUk9GXzczMDAs
+CisJfSwgeworCQkuc3VidmVuZG9yID0gMHgxMDdkLAorCQkuc3ViZGV2aWNlID0gMHg2NjU0
+LAorCQkuY2FyZCAgICAgID0gQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBILAogCX0sCiB9
+OwogCkBAIC0yNDk0LDYgKzI1MzksMjMgQEAKIAlyZXR1cm4gLUVJTlZBTDsKIH0KIAorc3Rh
+dGljIGludCBjeDg4X3hjMzAyOF93aW5mYXN0MTgwMGhfY2FsbGJhY2soc3RydWN0IGN4ODhf
+Y29yZSAqY29yZSwKKwkJCQkJICAgICBpbnQgY29tbWFuZCwgaW50IGFyZykKK3sKKwlzd2l0
+Y2ggKGNvbW1hbmQpIHsKKwljYXNlIFhDMjAyOF9UVU5FUl9SRVNFVDoKKwkJLy8gR1BJTyAx
+MiA9IHhjMzAyOCB0dW5lciByZXNldAorCQljeF9zZXQoTU9fR1AxX0lPLCAweDEwMTApOyAg
+Ly9ncGlvIDEyID0gMTogcG93ZXJ1cCBYQzMwMjgKKwkJbWRlbGF5KDUwKTsKKwkJY3hfY2xl
+YXIoTU9fR1AxX0lPLCAweDEwKTsgIC8vZ3BpbyAxMiA9IDA6IHBvd2VyZG93biBYQzMwMjgK
+KwkJbWRlbGF5KDUwKTsKKwkJY3hfc2V0KE1PX0dQMV9JTywgMHgxMCk7ICAvL2dwaW8gMTIg
+PSAxOiBwb3dlcnVwIFhDMzAyOAorCQltZGVsYXkoNTApOworCQlyZXR1cm4gMDsKKwl9CisJ
+cmV0dXJuIC1FSU5WQUw7Cit9CisKIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KIC8qIHNvbWUgRGl2
+Y28gc3BlY2lmaWMgc3R1ZmYgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgKi8KIHN0YXRpYyBpbnQgY3g4OF9wdl84MDAwZ3RfY2FsbGJhY2soc3RydWN0IGN4
+ODhfY29yZSAqY29yZSwKQEAgLTI1NjYsNiArMjYyOCw4IEBACiAJY2FzZSBDWDg4X0JPQVJE
+X0RWSUNPX0ZVU0lPTkhEVFZfRFZCX1RfUFJPOgogCWNhc2UgQ1g4OF9CT0FSRF9EVklDT19G
+VVNJT05IRFRWXzVfUENJX05BTk86CiAJCXJldHVybiBjeDg4X2R2aWNvX3hjMjAyOF9jYWxs
+YmFjayhjb3JlLCBjb21tYW5kLCBhcmcpOworCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RU
+VjE4MDBIOgorCQlyZXR1cm4gY3g4OF94YzMwMjhfd2luZmFzdDE4MDBoX2NhbGxiYWNrKGNv
+cmUsIGNvbW1hbmQsIGFyZyk7CiAJfQogCiAJc3dpdGNoIChjb21tYW5kKSB7CkBAIC0yNzQw
+LDYgKzI4MDQsMTUgQEAKIAkJY3hfc2V0KE1PX0dQMF9JTywgMHgwMDAwMDA4MCk7IC8qIDcw
+MiBvdXQgb2YgcmVzZXQgKi8KIAkJdWRlbGF5KDEwMDApOwogCQlicmVhazsKKworCWNhc2Ug
+Q1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIOgorCQljeF9zZXQoTU9fR1AxX0lPLCAweDEw
+MTApOyAgLy9ncGlvIDEyID0gMTogcG93ZXJ1cCBYQzMwMjgKKwkJbWRlbGF5KDUwKTsKKwkJ
+Y3hfY2xlYXIoTU9fR1AxX0lPLCAweDEwKTsgIC8vZ3BpbyAxMiA9IDA6IHBvd2VyZG93biBY
+QzMwMjgKKwkJbWRlbGF5KDUwKTsKKwkJY3hfc2V0KE1PX0dQMV9JTywgMHgxMCk7ICAvL2dw
+aW8gMTIgPSAxOiBwb3dlcnVwIFhDMzAyOAorCQltZGVsYXkoNTApOworCQlicmVhazsKIAl9
+CiB9CiAKQEAgLTI3NjAsNiArMjgzMyw3IEBACiAJCQljb3JlLT5pMmNfYWxnby51ZGVsYXkg
+PSAxNjsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfRFZC
+X1RfUFJPOgorCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIOgogCQljdGwtPmRl
+bW9kID0gWEMzMDI4X0ZFX1pBUkxJTks0NTY7CiAJCWJyZWFrOwogCWNhc2UgQ1g4OF9CT0FS
+RF9LV09STERfQVRTQ18xMjA6CmRpZmYgLXIgZTJhOGI5YjljMjk0IGxpbnV4L2RyaXZlcnMv
+bWVkaWEvdmlkZW8vY3g4OC9jeDg4LWR2Yi5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3g4OC9jeDg4LWR2Yi5jCUZyaSBPY3QgMTcgMTk6NDU6NTUgMjAwOCArMDMwMAor
+KysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYwlNb24gT2N0
+IDIwIDAxOjE1OjI5IDIwMDggKzAyMDAKQEAgLTk2Myw2ICs5NjMsNyBAQAogCQl9CiAJCWJy
+ZWFrOwogCSBjYXNlIENYODhfQk9BUkRfUElOTkFDTEVfSFlCUklEX1BDVFY6CisJY2FzZSBD
+WDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEg6CiAJCWZlMC0+ZHZiLmZyb250ZW5kID0gZHZi
+X2F0dGFjaCh6bDEwMzUzX2F0dGFjaCwKIAkJCQkJICAgICAgICZjeDg4X3Bpbm5hY2xlX2h5
+YnJpZF9wY3R2LAogCQkJCQkgICAgICAgJmNvcmUtPmkyY19hZGFwKTsKZGlmZiAtciBlMmE4
+YjliOWMyOTQgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYwot
+LS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1pbnB1dC5jCUZyaSBP
+Y3QgMTcgMTk6NDU6NTUgMjAwOCArMDMwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3Zp
+ZGVvL2N4ODgvY3g4OC1pbnB1dC5jCU1vbiBPY3QgMjAgMDE6MTU6MjkgMjAwOCArMDIwMApA
+QCAtOTMsNiArOTMsNyBAQAogCQlncGlvPShncGlvICYgMHg3ZmQpICsgKGF1eGdwaW8gJiAw
+eGVmKTsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTAwMDoKKwlj
+YXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSDoKIAkJZ3BpbyA9IChncGlvICYgMHg2
+ZmYpIHwgKChjeF9yZWFkKE1PX0dQMV9JTykgPDwgOCkgJiAweDkwMCk7CiAJCWF1eGdwaW8g
+PSBncGlvOwogCQlicmVhazsKQEAgLTI0NCw2ICsyNDUsNyBAQAogCQlpci0+c2FtcGxpbmcg
+PSAxOwogCQlicmVhazsKIAljYXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYyMDAwSDoKKwlj
+YXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSDoKIAkJaXJfY29kZXMgPSBpcl9jb2Rl
+c193aW5mYXN0OwogCQlpci0+Z3Bpb19hZGRyID0gTU9fR1AwX0lPOwogCQlpci0+bWFza19r
+ZXljb2RlID0gMHg4Zjg7CmRpZmYgLXIgZTJhOGI5YjljMjk0IGxpbnV4L2RyaXZlcnMvbWVk
+aWEvdmlkZW8vY3g4OC9jeDg4LmgKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9j
+eDg4L2N4ODguaAlGcmkgT2N0IDE3IDE5OjQ1OjU1IDIwMDggKzAzMDAKKysrIGIvbGludXgv
+ZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaAlNb24gT2N0IDIwIDAxOjE1OjI5IDIw
+MDggKzAyMDAKQEAgLTIzMCw2ICsyMzAsNyBAQAogI2RlZmluZSBDWDg4X0JPQVJEX1RFVklJ
+X1M0MjAgICAgICAgICAgICAgIDczCiAjZGVmaW5lIENYODhfQk9BUkRfUFJPTElOS19QVl9H
+TE9CQUxfWFRSRU1FIDc0CiAjZGVmaW5lIENYODhfQk9BUkRfUFJPRl83MzAwICAgICAgICAg
+ICAgICAgNzUKKyNkZWZpbmUgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIICAgICAgICA3
+NgogCiBlbnVtIGN4ODhfaXR5cGUgewogCUNYODhfVk1VWF9DT01QT1NJVEUxID0gMSwK
+
+
+
+---------=_42F4231E.51F3E6F
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+---------=_42F4231E.51F3E6F--
