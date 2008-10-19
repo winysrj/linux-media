@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KvZGB-0003Rw-5q
-	for linux-dvb@linuxtv.org; Thu, 30 Oct 2008 16:16:33 +0100
-Date: Thu, 30 Oct 2008 16:15:57 +0100
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <200810241945.34719.zzam@gentoo.org>
-Message-ID: <20081030151557.257560@gmx.net>
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+5732111c8df9d91d3240+1883+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1KrNxQ-00085A-Vl
+	for linux-dvb@linuxtv.org; Sun, 19 Oct 2008 04:23:53 +0200
+Date: Sat, 18 Oct 2008 23:23:26 -0300 (BRT)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Artem Makhutov <artem@makhutov.org>
+In-Reply-To: <20081017140958.GA4502@moelleritberatung.de>
+Message-ID: <alpine.LFD.2.00.0810182323190.11136@areia.chehab.org>
+References: <20081017140958.GA4502@moelleritberatung.de>
 MIME-Version: 1.0
-References: <200810241945.34719.zzam@gentoo.org>
-To: liplianin@tut.by, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] compat code: Fix compile failure of
- av7110.c on	Kernel 2.6.27
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API merge for 2.6.28
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,47 +20,22 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Fri, 17 Oct 2008, Artem Makhutov wrote:
 
-> Hi list!
-> =
+> Hello,
+>
+> was the S2API already commited to be included in 2.6.28?
 
-> av7110.c does not compile against a 2.6.27 kernel, as the inclusion of =
+Yes. Both S2API and MPE are already upstream.
 
-> linux/byteorder/swabb.h is now conditional with
-> =
-
-> #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 27)
-> =
-
-> But the byteorder changes in kernel took place after Kernel 2.6.27, so the
-> compat code needs to look like this:
-> =
-
-> #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 28)
-> =
-
-> Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-
-Igor,
-this patch hasn't been applied to s2-liplianin yet so compilation fails wit=
-h 2.6.27.
-Could you please sync with v4l-dvb which has it?
-Thanks,
-Hans
--- =
-
-Release early, release often.
-
-GMX Download-Spiele: Preizsturz! Alle Puzzle-Spiele Deluxe =FCber 60% billi=
-ger.
-http://games.entertainment.gmx.net/de/entertainment/games/download/puzzle/i=
-ndex.html
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
