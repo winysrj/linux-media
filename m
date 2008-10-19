@@ -1,16 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <Bitte_antworten@will-hier-weg.de>)
-	id 1Ktjzd-0006zq-PU
-	for linux-dvb@linuxtv.org; Sat, 25 Oct 2008 16:19:55 +0200
-Date: Sat, 25 Oct 2008 16:19:20 +0200
-From: Bitte_antworten@will-hier-weg.de
-Message-ID: <20081025141920.87960@gmx.net>
-MIME-Version: 1.0
-To: Igor M. Liplianin <liplianin@tut.by>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] stb0899 drivers
+Received: from joan.kewl.org ([212.161.35.248])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <darron@kewl.org>) id 1Krf81-0006JH-DU
+	for linux-dvb@linuxtv.org; Sun, 19 Oct 2008 22:43:58 +0200
+From: Darron Broad <darron@kewl.org>
+To: Georg Acher <acher@in.tum.de>
+In-reply-to: <20081019195409.GW6792@braindead1.acher> 
+References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
+	<2207.1224273353@kewl.org>
+	<412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com>
+	<5905.1224308528@kewl.org> <20081019195409.GW6792@braindead1.acher>
+Date: Sun, 19 Oct 2008 21:43:53 +0100
+Message-ID: <19262.1224449033@kewl.org>
+Cc: Linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [RFC] SNR units in tuners
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,44 +21,68 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkgSWdvciwKCkkgdHJpZWQgeW91ciB0cmVlIHdpdGggbXkgUGlubmFjbGUgUENUViBTYXQgSERU
-ViBQcm8gVVNCIChQQ1RWNDUyZSkgYW5kIGl0IHdvcmtzIHdpdGggdGhlIG1vZGlmaWVkIHN6YXAu
-ClVuZm9ydHVuYXRlbHkgbXkgVGVycmF0ZWMgQ2luZXJneVQyIGRvZXNuJ3Qgd29yayBhbnltb3Jl
-LiBJIGNhbid0IGxvYWQgdGhlIG1vZHVsIGJlY2F1c2Ugb2YgbWFueSB1bmRlZmluZWQgc3ltYm9s
-cy4gU28gSSByZXZlcnRlZCBldmVyeXRoaW5nIHRvIG11bHRpcHJvdG8gYW5kIGJvdGggZGV2aWNl
-cyBhcmUgd29ya2luZyBhZ2Fpbi4gV2hhdCBzaG91bGQgSSBkbz8gClRoYW5rcyAKRGlyawoKLS0t
-LS0tLS0gT3JpZ2luYWwtTmFjaHJpY2h0IC0tLS0tLS0tCj4gRGF0dW06IFRodSwgMjMgT2N0IDIw
-MDggMjA6NTM6MzggKzA0MDAKPiBWb246IEdvZ2E3NzcgPGdvZ2E3NzdAYmsucnU+Cj4gQW46IAo+
-IENDOiBsaW51eC1kdmJAbGludXh0di5vcmcKPiBCZXRyZWZmOiBSZTogW2xpbnV4LWR2Yl0gc3Ri
-MDg5OSBkcml2ZXJzCgo+INCf0YDQuNCy0LXRgtGB0YLQstGD0Y4sIG9sZWcKPiA+IDIwMDgvMTAv
-MjMgSWdvciBNLiBMaXBsaWFuaW4gPGxpcGxpYW5pbkB0dXQuYnk+Ogo+ID4gPiBIaSBTdGV2ZW4g
-YW5kIE1hdXJvCj4gPiA+Cj4gPiA+IEFzIEkgdW5kZXJzdGFuZCwgbm93IHdlIGFsbCB3YWl0aW5n
-IChhZ2FpbiEpIGZvciBNYW51IEFicmFoYW0gdG8KPiBjb21taXQ/Cj4gPiA+IFRydWx5IGhpcyBj
-b2RlIGFyZSBodWdlIGFuZCBuZWVkcyBsb25nIHRpbWUgdG8gY2xlYW4gdXAsIGJ1dCBJIG1hZGUK
-PiA+ID4gaHR0cDovL21lcmN1cmlhbC5pbnR1eGljYXRpb24ub3JnL2hnL3MyLWxpcGxpYW5pbgo+
-ID4gPiBpbiBvcmRlciB0byBoZWxwIHRvIGNvbnZlcnQgaXQuCj4gPiA+IFJpZ2h0IG5vdyBJIHN0
-YXRlIHRoZSBjb2RlIGlzIHN0YWJsZSBhbmQgd29ya3MgYWJzb2x1dGVseSBvZiBubwo+IGRpZmZl
-cmVuY2Ugd2l0aCBtdWx0aXByb3RvCj4gPiA+IHZlcnNpb24uCj4gPiA+IEkgbWVhbiBpdCBsb2Nr
-cyBhbGwgY2hhbm5lbHMsIHdoaWNoIG11bHRpcHJvdG8gdmVyc2lvbiBsb2NrcywgYnV0Cj4gd2l0
-aG91dCBhbnkgbW9kaWZpY2F0aW9ucyB0bwo+ID4gPiBjdXJyZW50IERWQiBBUEkuCj4gPiA+IFdo
-YXQgY2FuIEkgZG8gbm93Pwo+ID4gPgo+ID4gPiBJZ29yCj4gPiAKPiA+IFRoeCBhIGxvdC4gSXQg
-d29ya3MgZmluZS4gSSdtIHZvdGluZyBmb3IgbWVyZ2UgeW91ciB0cmVlIHRvIHY0bC1kdmIuCj4g
-Cj4gbWUgdG9vCj4gCj4gSSBjYW4gY29uZmlybSB0aGF0IG9uIG91ciBSdXNzaWFuIGR2Yi1saW51
-eCBmb3J1bSB0aGVyZSdzIG9ubHkgZ29vZAo+IHJlcG9ydHMgYWJvdXQKPiBodHRwOi8vbWVyY3Vy
-aWFsLmludHV4aWNhdGlvbi5vcmcvaGcvczItbGlwbGlhbmluIGZyb20gb3duZXJzIHdobyBoYXZl
-Cj4gc3RiMDg5OSBhbmQgY3gyNDExNiBiYXNlZCBjYXJkcwo+IAo+IEBJZ29yCj4gdGhhbmtzIGEg
-bG90IGZvciB5b3VyIGNvbnRyaWJ1dGlvbiAgCj4gCj4gR29nYQo+IAo+IF9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gbGludXgtZHZiIG1haWxpbmcgbGlz
-dAo+IGxpbnV4LWR2YkBsaW51eHR2Lm9yZwo+IGh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJp
-bi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2YgoKLS0gClBzc3NzdCEgU2Nob24gdm9tIG5ldWVu
-IEdNWCBNdWx0aU1lc3NlbmdlciBnZWjDtnJ0PyBEZXIga2FubmBzIG1pdCBhbGxlbjogaHR0cDov
-L3d3dy5nbXgubmV0L2RlL2dvL211bHRpbWVzc2VuZ2VyCgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2
-YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0
-aW5mby9saW51eC1kdmI=
+In message <20081019195409.GW6792@braindead1.acher>, Georg Acher wrote:
+
+hi
+
+>On Sat, Oct 18, 2008 at 06:42:08AM +0100, Darron Broad wrote:
+><cx24116> 
+>> The trouble there is that the scaling for the cx24116 already works
+>> from an end-user perspective. The value derived in the code is
+>> a possible maximum of 160 from the chip. REELBOX decided on 176
+>> which may be more accurate.
+>
+>The reelbox code was just a heuristic approach to scale the value so that
+>less than 30-40% is where the trouble starts... I've more or less matched it
+>to femon's colors. There was no intention to indicate dBs, as end users
+>don't understand dBs anyway ;-)
+
+All sat receivers I see just scale to fit. We can read lots of forum
+posts where people exchange % readings for sats :-)
+
+>The docs for the 24116 say that the snr is measured in 0.1dB steps. The
+>absolute range of registers a3:d5 is 0 to 300, so full scale is 30dB. I
+>doubt we will see the 30dB in a real-world setup...
+
+Okay, so we know the step size of 0.1 per bit and that's measured
+within a range of 0 to 300 but that doesn't actually say what it's
+value is? Ie, is 50=5dB or something else?
+
+All the graphs I see for QPSK and 8PSK in use in the real-world
+suggest the theoretical limit of esn0 is a lot less than that available
+range. I don't know what is the accepted error rate to set this limit.
+Perhaps someone who has authority on this subject can chime in?
+
+On the cx24116 testing observed that a register max of 160 from QPSK
+gave good approximation to that given by regular sat-kit sitting
+around 100%. If that really means 16dB then it doesn't look right
+compared to the graphs I see, what's wrong here?
+
+>The signal strength in 9e/9d is the value of the AGC voltage. Register da
+>seems to contain the estimated power level (-25 to -70dBm), but there's no
+>further information about that (step size etc). I guess the firmware derives
+>it from the AGC settings.
+
+Okay. All that's done in cx24116.c is take that val and invert
+it, which is enough I suppose.
+
+cya!
+
+--
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
