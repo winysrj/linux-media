@@ -1,19 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from mailout1.informatik.tu-muenchen.de ([131.159.0.12])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KsaAH-000595-G0
-	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 11:38:08 +0200
-Message-ID: <48FEF474.50803@iki.fi>
-Date: Wed, 22 Oct 2008 12:37:56 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Darron Broad <darron@kewl.org>
-References: <48FE2872.3070105@podzimek.org>
-	<48FE3553.5080009@iki.fi>	<48FE6351.2000805@podzimek.org>
-	<10307.1224636523@kewl.org>
-In-Reply-To: <10307.1224636523@kewl.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] MSI DigiVox mini II V3.0 stopped working
+	(envelope-from <acher@acher.org>) id 1KreLw-0002q5-ON
+	for linux-dvb@linuxtv.org; Sun, 19 Oct 2008 21:54:19 +0200
+Received: from braindead1.acher.org (91-65-149-111-dynip.superkabel.de
+	[91.65.149.111])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.in.tum.de (Postfix) with ESMTP id E2E00AF42
+	for <linux-dvb@linuxtv.org>; Sun, 19 Oct 2008 21:54:12 +0200 (CEST)
+Date: Sun, 19 Oct 2008 21:54:10 +0200
+From: Georg Acher <acher@in.tum.de>
+To: Linux-dvb <linux-dvb@linuxtv.org>
+Message-ID: <20081019195409.GW6792@braindead1.acher>
+References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
+	<2207.1224273353@kewl.org>
+	<412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com>
+	<5905.1224308528@kewl.org>
+Mime-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <5905.1224308528@kewl.org>
+Subject: Re: [linux-dvb] [RFC] SNR units in tuners
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,33 +34,30 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Darron Broad kirjoitti:
-> In message <48FE6351.2000805@podzimek.org>, Andrej Podzimek wrote:
->> One more little note about the firmware:
->>
->> 	[andrej@xandrej firmware]$ sha1sum dvb-usb-af9015.fw
->> 	6a0edcc65f490d69534d4f071915fc73f5461560  dvb-usb-af9015.fw
->>
->> That file can be found here: http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
->>
->> Is it the right one? Shell I try something else?
-> 
-> Lo
-> 
-> try this patch (WARNING, although I have one of these devices
-> and this looked to fix it, I have no idea what this actually means).
+On Sat, Oct 18, 2008 at 06:42:08AM +0100, Darron Broad wrote:
+<cx24116> 
+> The trouble there is that the scaling for the cx24116 already works
+> from an end-user perspective. The value derived in the code is
+> a possible maximum of 160 from the chip. REELBOX decided on 176
+> which may be more accurate.
 
-Your patch means it does not reconnect stick on USB-bus after firmware 
-download. Anyhow, it should reconnect, there is reconnect command in 
-af9015 driver after firmware download. I have no idea why functionality 
-seems to be changed (stick does not reconnect anymore).
+The reelbox code was just a heuristic approach to scale the value so that
+less than 30-40% is where the trouble starts... I've more or less matched it
+to femon's colors. There was no intention to indicate dBs, as end users
+don't understand dBs anyway ;-)
 
-Is that problem coming from after new Kernel?
+The docs for the 24116 say that the snr is measured in 0.1dB steps. The
+absolute range of registers a3:d5 is 0 to 300, so full scale is 30dB. I
+doubt we will see the 30dB in a real-world setup...
 
-regards
-Antti
+The signal strength in 9e/9d is the value of the AGC voltage. Register da
+seems to contain the estimated power level (-25 to -70dBm), but there's no
+further information about that (step size etc). I guess the firmware derives
+it from the AGC settings.
 -- 
-http://palosaari.fi/
+         Georg Acher, acher@in.tum.de         
+         http://www.lrr.in.tum.de/~acher
+         "Oh no, not again !" The bowl of petunias          
 
 _______________________________________________
 linux-dvb mailing list
