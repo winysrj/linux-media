@@ -1,19 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9BIpUGh004150
-	for <video4linux-list@redhat.com>; Sat, 11 Oct 2008 14:51:30 -0400
-Received: from mx1.riseup.net (mx1.riseup.net [204.13.164.18])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9BIpEcs008009
-	for <video4linux-list@redhat.com>; Sat, 11 Oct 2008 14:51:14 -0400
-From: rafael2k <rafael@riseup.net>
-To: video4linux-list@redhat.com
-Date: Sat, 11 Oct 2008 15:51:05 -0300
-References: <1223640548.5171.64.camel@luis> <20081010130124.GA850@daniel.bse>
-In-Reply-To: <20081010130124.GA850@daniel.bse>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9JIojcb002745
+	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 14:50:45 -0400
+Received: from ian.pickworth.me.uk (ian.pickworth.me.uk [81.187.248.227])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9JIoVTw019199
+	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 14:50:32 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by ian.pickworth.me.uk (Postfix) with ESMTP id 64ECB11CF8B0
+	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 19:50:30 +0100 (BST)
+Received: from ian.pickworth.me.uk ([127.0.0.1])
+	by localhost (ian.pickworth.me.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 7bXYiYCUiJU9 for <video4linux-list@redhat.com>;
+	Sun, 19 Oct 2008 19:50:30 +0100 (BST)
+Received: from [192.168.1.11] (ian2.pickworth.me.uk [192.168.1.11])
+	by ian.pickworth.me.uk (Postfix) with ESMTP id 18BE6118C1C5
+	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 19:50:30 +0100 (BST)
+Message-ID: <48FB8175.7070006@pickworth.me.uk>
+Date: Sun, 19 Oct 2008 19:50:29 +0100
+From: Ian Pickworth <ian@pickworth.me.uk>
 MIME-Version: 1.0
-Message-Id: <200810111551.13338.rafael@riseup.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: analize ASI with dvbnoop and dektec 140
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+References: <48FB6377.40707@pickworth.me.uk> <48FB73BA.1040608@hhs.nl>
+In-Reply-To: <48FB73BA.1040608@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Subject: Re: gspca_spca561/gspca-main on 2.6.27-gentoo: webcam doesn't work,
+ and udev attribute missing
+Reply-To: ian@pickworth.me.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -21,74 +34,102 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0598709466=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---===============0598709466==
-Content-Type: multipart/signed; boundary="nextPart3402860.9NTEpNBeE6";
-	protocol="application/pgp-signature"; micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+Hans de Goede wrote:
+> Ian Pickworth wrote:
+>> 
+>> In the "old" driver in a kernel 2.6.26, there was an attribute that
+>> showed this
+>>     ATTR{model}=="Logitech QuickCam EC"
+>> 
+> There are 2 things here which you seem to be mixing:
+> 1) the udev ATTR{model} is no longer getting set, which is interesting,
+> do you
+> know where udev gets this from / what udev expects from a driver to provide
+> this?
 
---nextPart3402860.9NTEpNBeE6
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+I'm just a reasonably dumb user unfortunately. I see what udev produces
+rather than knowing where it comes from. If I were to guess, I would say
+its from the driver, but your next statement seems to say not...
 
-I think you could write a v4l2 wrapper using the dektec API.
+> 
+> 2) The string shown in the application to identify a Camera. Applications
+> should show the string provided by the driver through the QUERYCAP
+> ioctl, this string indeed has changed. We used to have a list of
+> hardcoded strings matched to USB-ID's, this however was wrong as many
+> webcam bridges have only one usb-id, yet get used in many different
+> cams. So now we show the string provided by the cam itself over USB (see
+> dmesg after plug in to see if your cam provides one). If the cam
+> manufacturer has been cheap and didn't put an eeprom in the cam to
+> provide an USB model string, then we use a generic string in the form
+> of: "USB Camera (093a:2476)"
 
-bye,
-rafael diniz
+Don't see a "USB Camera (093a:2476)" anywhere in the applications
+presenting choices - just "Camera", which is what the udev attribute says:
+    ATTRS{manufacturer}=="        "
+    ATTRS{product}=="Camera"
 
-Em Friday 10 October 2008, Daniel Gl=F6ckner escreveu:
-> On Fri, Oct 10, 2008 at 02:09:08PM +0200, luisan82@gmail.com wrote:
-> > I've been trying to analyze a ts with dvbsnoop through an ASI input
-> > unsuccessfully.
-> > When I execute dvbsnoop, it tries to read from a location (/dev/dvb/...)
-> > wich doesn't exists.
->
-> The drivers provided by DekTec do not implement the Linux DVB API.
-> You can't use dvbsnoop.
-> You need to write your own program using their proprietary DTAPI library.
-> At least their drivers are open source...
+> 
+>> Second problem is the biggy. The camera doesn't work :-(.
+> 
+> Which is to be expected, the gspca561 bridge delivers frames in a custom
+> huffman compressed bayer format. The old gspca driver did format
+> conversion inside the kernel. Which is a very bad thing to do and thus
+> has been removed in the new version.
+> 
+> Gstreamer, or almost any other app / library for that matter does not
+> know how to handle this format. For this I've written libv4l:
+> http://hansdegoede.livejournal.com/3636.html
+> 
+> Get the latest version here:
+> http://people.atrpms.net/~hdegoede/libv4l-0.5.1.tar.gz
 
+Gentoo has an ebuild for this - media-libs/libv4l - neat.
+I emerged it, and the Gentoo developer has put a nice comment in the ebuild:
 
-=2D-=20
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+=
-=2D+-+-
-Ci=EAncia da Computa=E7=E3o @  Unicamp
-R=E1dio Muda, radiolivre.org, TV Piolho, tvlivre.org, www.midiaindependente=
-=2Eorg
-Chave PGP: http://pgp.mit.edu:11371/pks/lookup?op=3Dget&search=3D0x2FF86098
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+=
-=2D+-+-
+ *
+ * libv4l includes wrapper libraries for compatibility and pixel format
+ * conversion, which are especially useful for users of the gspca usb
+ * webcam driver in kernel 2.6.27 and higher.
+ *
+ * To add v4l2 compatibility to a v4l application 'myapp', launch it via
+ * LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so myapp
+ * To add automatic pixel format conversion to a v4l2 application, use
+ * LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so myapp
+ *
 
+So, the gstreamer pipe now works:
+	LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so gst-launch-0.10 v4lsrc
+device="/dev/video_webcam" ! xvimagesink
 
---nextPart3402860.9NTEpNBeE6
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+mplayer, spcaview and skype all work with
+	LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+cheese works with
+	LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so
 
-iEYEABECAAYFAkjw9ZoACgkQoZ5YIC/4YJgWGwCfd5yH0E8ru/aBYm5+VxdYLOU9
-UCcAoJRioa8uugJs7nqO959Rg05nFTZd
-=o99/
------END PGP SIGNATURE-----
+So that's all my apps working again - thanks.
 
---nextPart3402860.9NTEpNBeE6--
+> 
+> FOSS applications can be easily adapted to instead use the library
+> directly, a coordinated cross distro effort is underway to make this
+> happen (including pushing patches upstream), see:
+> http://linuxtv.org/v4lwiki/index.php/Libv4l_Progress
+> 
+> You can find patches for quite a few applications here. Help in patching
+> others is very much welcome! If you need some quick instructions what to
+> change exactly let me know.
 
+I am not a C/C++ coder unfortunately, although I will look at trying to
+help if I can.
 
---===============0598709466==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Regards
+Ian
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---===============0598709466==--
