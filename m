@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m96DT3Op011797
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 09:29:03 -0400
-Received: from po-out-1718.google.com (po-out-1718.google.com [72.14.252.157])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m96DSqEu030617
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 09:28:53 -0400
-Received: by po-out-1718.google.com with SMTP id y22so4134294pof.1
-	for <video4linux-list@redhat.com>; Mon, 06 Oct 2008 06:28:52 -0700 (PDT)
-Message-ID: <19619f3b0810060628w5dcea635t8ccb7aeae75d58d7@mail.gmail.com>
-Date: Mon, 6 Oct 2008 17:28:52 +0400
-From: OJ <olejl77@gmail.com>
-To: video4linux-list@redhat.com
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9JHn86I018310
+	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 13:49:08 -0400
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9JHmrXb030113
+	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 13:48:53 -0400
+Message-ID: <48FB73BA.1040608@hhs.nl>
+Date: Sun, 19 Oct 2008 19:51:54 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+To: ian@pickworth.me.uk
+References: <48FB6377.40707@pickworth.me.uk>
+In-Reply-To: <48FB6377.40707@pickworth.me.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: Problem with TT-Budget S-1500 DVB-S card (saa7146)
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
+Subject: Re: gspca_spca561/gspca-main on 2.6.27-gentoo: webcam doesn't work,
+ and udev attribute missing
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,87 +28,74 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I'm running FC9 with the following kernel:
-2.6.26.5-45.fc9.x86_64
+Ian Pickworth wrote:
+> I'm having a go at the latest hg (pulled at 16:00 today - 19 October).
+> This is because I previously used the gspcav1-20071224 drivers for my
+> webcam, and these no longer compile under 2.6.27, so have to change.
+> 
+> The two modules that are relevant are gspca_main and gspca_spca561
+> 
+> Two problems. First is that my udev rule for the web cam no longer
+> works. Checking the device attributes, it shows:
+> 
 
-I had my DVB card up and working "out of box" a couple of months ago.
-Now I am trying again, and things are not working any more.
+<snip>
 
-There is no dvb0 in my /dev folder. (It used to be when things were working).
+> In the "old" driver in a kernel 2.6.26, there was an attribute that
+> showed this
+> 	ATTR{model}=="Logitech QuickCam EC"
+> which allowed various applications to display its full device name. Now
+> they can just show "Camera" - which is sort of no good if you have more
+> than one.
 
-'/sbin/lspci -nn' gives me:
-00:00.0 Host bridge [0600]: Intel Corporation 82G33/G31/P35/P31
-Express DRAM Controller [8086:29c0] (rev 02)
-00:01.0 PCI bridge [0604]: Intel Corporation 82G33/G31/P35/P31 Express
-PCI Express Root Port [8086:29c1] (rev 02)
-00:1a.0 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
-USB UHCI Controller #4 [8086:2937] (rev 02)
-00:1a.1 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
-USB UHCI Controller #5 [8086:2938] (rev 02)
-00:1a.2 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
-USB UHCI Controller #6 [8086:2939] (rev 02)
-00:1a.7 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
-USB2 EHCI Controller #2 [8086:293c] (rev 02)
-00:1b.0 Audio device [0403]: Intel Corporation 82801I (ICH9 Family) HD
-Audio Controller [8086:293e] (rev 02)
-00:1c.0 PCI bridge [0604]: Intel Corporation 82801I (ICH9 Family) PCI
-Express Port 1 [8086:2940] (rev 02)
-00:1c.4 PCI bridge [0604]: Intel Corporation 82801I (ICH9 Family) PCI
-Express Port 5 [8086:2948] (rev 02)
-00:1c.5 PCI bridge [0604]: Intel Corporation 82801I (ICH9 Family) PCI
-Express Port 6 [8086:294a] (rev 02)
-00:1d.0 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
-USB UHCI Controller #1 [8086:2934] (rev 02)
-00:1d.1 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
-USB UHCI Controller #2 [8086:2935] (rev 02)
-00:1d.2 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
-USB UHCI Controller #3 [8086:2936] (rev 02)
-00:1d.7 USB Controller [0c03]: Intel Corporation 82801I (ICH9 Family)
-USB2 EHCI Controller #1 [8086:293a] (rev 02)
-00:1e.0 PCI bridge [0604]: Intel Corporation 82801 PCI Bridge
-[8086:244e] (rev 92)
-00:1f.0 ISA bridge [0601]: Intel Corporation 82801IR (ICH9R) LPC
-Interface Controller [8086:2916] (rev 02)
-00:1f.2 IDE interface [0101]: Intel Corporation 82801IR/IO/IH
-(ICH9R/DO/DH) 4 port SATA IDE Controller [8086:2920] (rev 02)
-00:1f.3 SMBus [0c05]: Intel Corporation 82801I (ICH9 Family) SMBus
-Controller [8086:2930] (rev 02)
-00:1f.5 IDE interface [0101]: Intel Corporation 82801I (ICH9 Family) 2
-port SATA IDE Controller [8086:2926] (rev 02)
-01:00.0 VGA compatible controller [0300]: nVidia Corporation NV44
-[GeForce 6200 TurboCache(TM)] [10de:0161] (rev a1)
-02:00.0 Ethernet controller [0200]: Marvell Technology Group Ltd.
-88E8056 PCI-E Gigabit Ethernet Controller [11ab:4364] (rev 12)
-03:00.0 SATA controller [0106]: JMicron Technologies, Inc. JMicron
-20360/20363 AHCI Controller [197b:2363] (rev 03)
-03:00.1 IDE interface [0101]: JMicron Technologies, Inc. JMicron
-20360/20363 AHCI Controller [197b:2363] (rev 03)
-05:00.0 Network controller [0280]: Broadcom Corporation BCM4318
-[AirForce One 54g] 802.11g Wireless LAN Controller [14e4:4318] (rev
-02)
-05:02.0 Multimedia controller [0480]: Philips Semiconductors SAA7146
-[1131:7146] (rev 01)
-05:03.0 FireWire (IEEE 1394) [0c00]: Agere Systems FW323 [11c1:5811] (rev 70)
-05:04.0 Ethernet controller [0200]: Realtek Semiconductor Co., Ltd.
-RTL-8110SC/8169SC Gigabit Ethernet [10ec:8167] (rev 10)
+There are 2 things here which you seem to be mixing:
+1) the udev ATTR{model} is no longer getting set, which is interesting, do you
+know where udev gets this from / what udev expects from a driver to provide
+this?
 
-(one strange thing is the gap from 05:00.0 to 05:02.0....)
+2) The string shown in the application to identify a Camera. Applications
+should show the string provided by the driver through the QUERYCAP ioctl, this 
+string indeed has changed. We used to have a list of hardcoded strings matched 
+to USB-ID's, this however was wrong as many webcam bridges have only one 
+usb-id, yet get used in many different cams. So now we show the string provided 
+by the cam itself over USB (see dmesg after plug in to see if your cam provides 
+one). If the cam manufacturer has been cheap and didn't put an eeprom in the 
+cam to provide an USB model string, then we use a generic string in the form 
+of: "USB Camera (093a:2476)"
 
-'dmesg | grep saa' gives me:
-Audiowerk 2 sound card (saa7146 chipset) detected and managed
-saa7146: register extension 'budget_ci dvb'.
+> Second problem is the biggy. The camera doesn't work :-(.
 
-'dmesg | grep dvb' gives me:
-saa7146: register extension 'budget_ci dvb'.
+Which is to be expected, the gspca561 bridge delivers frames in a custom 
+huffman compressed bayer format. The old gspca driver did format conversion 
+inside the kernel. Which is a very bad thing to do and thus has been removed in 
+the new version.
 
-Can someone please help me configure this card properly? I'm running
-out of options... At first I suspected that the card was loose or even
-not working. I have verified that the card is not loose. I have also
-changed PCI slot without success.
+Gstreamer, or almost any other app / library for that matter does not know how 
+to handle this format. For this I've written libv4l:
+http://hansdegoede.livejournal.com/3636.html
 
-(I just verified that the card is working by installing MediaPortal on
-Windows Vista. The card was detected and I could watch my satellite
-channels.)
+Get the latest version here:
+http://people.atrpms.net/~hdegoede/libv4l-0.5.1.tar.gz
+
+Then read:
+http://moinejf.free.fr/gspca_README.txt
+or the included README for install instructions.
+
+As described in the documents you can make existing applications use this lib 
+with an LD_PRELOAD loadable wrapper.
+
+FOSS applications can be easily adapted to instead use the library directly, a 
+coordinated cross distro effort is underway to make this happen (including 
+pushing patches upstream), see:
+http://linuxtv.org/v4lwiki/index.php/Libv4l_Progress
+
+You can find patches for quite a few applications here. Help in patching others 
+is very much welcome! If you need some quick instructions what to change 
+exactly let me know.
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
