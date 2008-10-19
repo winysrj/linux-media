@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joan.kewl.org ([212.161.35.248])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <darron@kewl.org>) id 1KpnHd-0002jz-7R
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 19:02:12 +0200
-From: Darron Broad <darron@kewl.org>
-To: Christophe Thommeret <hftom@free.fr>
-In-reply-to: <200810141451.02941.hftom@free.fr> 
-References: <200810141133.36559.hftom@free.fr> <1985.1223980189@kewl.org>
-	<200810141451.02941.hftom@free.fr>
-Date: Tue, 14 Oct 2008 18:02:03 +0100
-Message-ID: <4473.1224003723@kewl.org>
+Received: from dsl-202-173-134-75.nsw.westnet.com.au ([202.173.134.75]
+	helo=mail.lemonrind.net) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <alex@receptiveit.com.au>) id 1Krf8O-0006Ig-Aj
+	for linux-dvb@linuxtv.org; Sun, 19 Oct 2008 22:44:23 +0200
+Message-Id: <12A846AD-5D7A-4021-BE5B-063A7AEB70E9@receptiveit.com.au>
+From: Alex Ferrara <alex@receptiveit.com.au>
+To: Mark Callaghan <mark@lostcow.com>
+In-Reply-To: <00023E2CD2444D05AFE501BA0439DCCF@marklaptop>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Date: Mon, 20 Oct 2008 07:43:39 +1100
+References: <00023E2CD2444D05AFE501BA0439DCCF@marklaptop>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx24116 DVB-S modulation fix
+Subject: Re: [linux-dvb] Dvico Dual Digital 4 rev 2 broken in October?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,81 +19,141 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0257223908=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <200810141451.02941.hftom@free.fr>, Christophe Thommeret wrote:
 
-LO
+--===============0257223908==
+Content-Type: multipart/alternative; boundary=Apple-Mail-8--818799807
 
->Le Tuesday 14 October 2008 12:29:49 Darron Broad, vous avez =E9crit=A0:
->> In message <200810141133.36559.hftom@free.fr>, Christophe Thommeret wrote:
->>
->> hi
->>
->> >Hi,
->> >
->> >This patch makes cx24116 to behave like other dvb-s frontends.
->>
->> Unlike most DVB-S cards the those with a cx24116 use S2API
->> this makes them somewhat different.
->>
->> >This is needed especially because QAM_AUTO is used in a lot of scan file=
->s.
->>
->> What scan files are you referring to? The
->> cx24116 only does PSK, not AM. QAM_AUTO
->> doesn't sound right. the cx24116 can't
->> auto detect anything, but that's another
->> story...
+
+--Apple-Mail-8--818799807
+Content-Type: text/plain;
+	charset=US-ASCII;
+	format=flowed;
+	delsp=yes
+Content-Transfer-Encoding: 7bit
+
+
+On 19/10/2008, at 9:28 PM, Mark Callaghan wrote:
+
+> I have been trying to install drivers for my DVICO Dual Digital 4  
+> rev 2 on ubuntu 8.04 (2.6.24-21-generic), following the farly  
+> consistent instructions here & there. e.g. https://help.ubuntu.com/community/DViCO_Dual_Digital_4 
+>  . But with no success. The v4l_dvb system builds & installs OK, but  
+> the card is not found on boot.
 >
->dvbscan initial tuning data files for DVB-S don't have an entry for=20
->modulation. So an app like kaffeine simply set modulation to QAM_AUTO.
->Why not QPSK, you ask? Simply because DVB-S standard allows QPSK and 16QAM.=
+> I went back to the tip of Sept 28 - and had immediate success.
 >
+> Perhaps something has broken since then?
+>
+> Cheers,
+> Mark
+>
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-It doesn't include modulation because QPSK is implied.
 
->Maybe there is not a single 16QAM TP all over the world, but it's still a=20
->valid modulation for DVB-S.
+I have one of these cards in my system. The Ubuntu website asks you to  
+download and install certain firmware files, and I believe this is  
+where your problem is. The firmware files refer to Chris Pascoes  
+original driver, and the new one uses an extracted firmware from a  
+Hauppauge card.
 
-As is said, the cx24116 only does PSK.
+Unfortunately I am writing this email in a hurry as I am late for  
+work, but I would check your dmesg output to see if there are any  
+messages relating to firmware. The script for extracting the current  
+firmware has been put into the kernel source and written by Steve Toth  
+I believe.
 
-The driver should return unsupported for anything it can't do.
+Regards
+Alex Ferrara
 
-If someone out there actually uses 16-QAM (who are you?) and that person
-switches to an adapter with a cx24116 they should be informed of error
-when tuning 16-QAM, not acceptance of something it doesn't support.
+Director
+Receptive IT Solutions
 
->So, we set modulation to QAM_AUTO when it's unknown/unspecified, like in=20
->dvbscan files (those being also used by kaffeine). And it works pretty well=
->,=20
->just because most dvb-s can only do QPSK and so force modulation to QPSK=20
->instead of returning a notsup.
->See this as software QAM_AUTO :)
 
->P.S.
->This is with s2api.
+--Apple-Mail-8--818799807
+Content-Type: text/html;
+	charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-When you use DVB-S delivery you should set the modulation to QPSK. If
-an end-user out there really needs 16-QAM then you should allow them
-the option to change it to QAM_16. I do not think this is going
-inconvenience many people.
+<html><body style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
+-webkit-line-break: after-white-space; "><br><div><div>On 19/10/2008, at =
+9:28 PM, Mark Callaghan wrote:</div><br =
+class=3D"Apple-interchange-newline"><blockquote type=3D"cite"><span =
+class=3D"Apple-style-span" style=3D"border-collapse: separate; color: =
+rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: =
+normal; font-variant: normal; font-weight: normal; letter-spacing: =
+normal; line-height: normal; orphans: 2; text-align: auto; text-indent: =
+0px; text-transform: none; white-space: normal; widows: 2; word-spacing: =
+0px; -webkit-border-horizontal-spacing: 0px; =
+-webkit-border-vertical-spacing: 0px; =
+-webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0; "><div bgcolor=3D"#ffffff"><div><font =
+face=3D"Arial" size=3D"2">I have been trying to install drivers for my =
+DVICO Dual Digital 4 rev 2 on ubuntu 8.04 (2.6.24-21-generic), following =
+the farly consistent instructions here &amp; there. e.g.<span =
+class=3D"Apple-converted-space">&nbsp;</span><a =
+href=3D"https://help.ubuntu.com/community/DViCO_Dual_Digital_4">https://he=
+lp.ubuntu.com/community/DViCO_Dual_Digital_4</a>&nbsp;. But with no =
+success. The v4l_dvb system builds &amp; installs OK, but the card is =
+not found on boot.</font></div><div><font face=3D"Arial" =
+size=3D"2"></font>&nbsp;</div><div><font face=3D"Arial" size=3D"2">I =
+went back to the tip of Sept 28 - and had immediate =
+success.</font></div><div><font face=3D"Arial" =
+size=3D"2"></font>&nbsp;</div><div><font face=3D"Arial" size=3D"2">Perhaps=
+ something has broken since then?</font></div><div><font face=3D"Arial" =
+size=3D"2"></font>&nbsp;</div><div><font face=3D"Arial" =
+size=3D"2">Cheers,</font></div><div><font face=3D"Arial" =
+size=3D"2">Mark</font></div><div>&nbsp;</div><div><font face=3D"Arial" =
+size=3D"2"></font>&nbsp;</div><div><font face=3D"Arial" =
+size=3D"2"></font>&nbsp;</div>____________________________________________=
+___<br>linux-dvb mailing list<br><a =
+href=3D"mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br><a =
+href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://=
+www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a></div></span></block=
+quote></div><div><br></div>I have one of these cards in my system. The =
+Ubuntu website asks you to download and install certain firmware files, =
+and I believe this is where your problem is. The firmware files refer to =
+Chris Pascoes original driver, and the new one uses an extracted =
+firmware from a Hauppauge card.<div><br></div><div>Unfortunately I am =
+writing this email in a hurry as I am late for work, but I would check =
+your dmesg output to see if there are any messages relating to firmware. =
+The script for extracting the current firmware has been put into the =
+kernel source and written by Steve Toth I believe.</div><div><br><div> =
+<span class=3D"Apple-style-span" style=3D"border-collapse: separate; =
+color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; =
+font-style: normal; font-variant: normal; font-weight: normal; =
+letter-spacing: normal; line-height: normal; orphans: 2; text-align: =
+auto; text-indent: 0px; text-transform: none; white-space: normal; =
+widows: 2; word-spacing: 0px; -webkit-border-horizontal-spacing: 0px; =
+-webkit-border-vertical-spacing: 0px; =
+-webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0; "><div style=3D"word-wrap: =
+break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
+after-white-space; "><div>Regards</div><div>Alex =
+Ferrara</div><div><br></div><div>Director</div><div>Receptive IT =
+Solutions</div></div></span> </div><br></div></body></html>=
 
-cya
+--Apple-Mail-8--818799807--
 
---
 
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
-
+--===============0257223908==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0257223908==--
