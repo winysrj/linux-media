@@ -1,23 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9O9oiOT032744
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 05:50:44 -0400
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9O9oXdG020539
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 05:50:33 -0400
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>,
-	Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Date: Fri, 24 Oct 2008 15:20:16 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D6297929@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403DC1A6A39@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9KMasJo017821
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 18:36:54 -0400
+Received: from ian.pickworth.me.uk (ian.pickworth.me.uk [81.187.248.227])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9KMahSj031775
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 18:36:44 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by ian.pickworth.me.uk (Postfix) with ESMTP id C32BA11A2BF8
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 23:36:42 +0100 (BST)
+Received: from ian.pickworth.me.uk ([127.0.0.1])
+	by localhost (ian.pickworth.me.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id palRd0t49slt for <video4linux-list@redhat.com>;
+	Mon, 20 Oct 2008 23:36:42 +0100 (BST)
+Received: from [192.168.1.11] (ian2.pickworth.me.uk [192.168.1.11])
+	by ian.pickworth.me.uk (Postfix) with ESMTP id 83A6C118C140
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 23:36:42 +0100 (BST)
+Message-ID: <48FD07FA.9090402@pickworth.me.uk>
+Date: Mon, 20 Oct 2008 23:36:42 +0100
+From: Ian Pickworth <ian@pickworth.me.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Subject: gspca V2 vs V1: webcam picture very dark
+Reply-To: ian@pickworth.me.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,227 +35,183 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Running my Logitec cheapo webcam on gspca V2, the result is not as good
+as when I previously used gspca V1 freestanding (20071224).
+
+Specifically, under V2:
+	The picture is very, very dark - can hardly make it out.
+	The webcam light switches off after first use, and stays off.
+
+The second may or may not be a problem, but I'm assuming that the light
+is signaling something useful, thus its state seems important.
+
+To test the webcam, I'm using spcaview.
+
+Using the freestanding (V1) gspca module on kernel 2.6.26, I see output
+below (gspca V1 run). The webcam light switches on when the gspca module
+loads, stays on throughout, and after the application finishes as well.
+The brightness is normal, ie I can see myself clearly.
+
+Using the new gspca_main/gspca_spca561 modules on kernel 2.6.27 I see
+output below (gspca_main/gspca_spca561 run). The webcam light switches
+on when the modules are loaded, stays on until spcaview exits, at which
+point it switches off. It then stays off until the modules are reloaded.
+The brightness is very low indeed - I can hardly make myself out.
+
+The main difference between the two outputs (old then new) seems to be:
+
+---------------------------------------------------
+Camera found: Logitech QuickCam EC
+Bridge found: SPCA561
+Bridge find SPCA561 number 9
+StreamId: GBRG Camera
+quality 0 autoexpo 1 Timeframe 0 lightfreq 50
+Bridge find SPCA561 number 9
+
+vs
+
+Camera found: Camera
+Bridge found: spca561
+Unable to find a StreamId !!
+StreamId: -1 Unknow Camera
+----
+
+and
+
+----
+VIDIOCGPICT
+brightnes=16384 hue=0 color=0 contrast=8192 whiteness=0
+depth=12 palette=15
+
+vs
+
+VIDIOCGPICT
+brightnes=0 hue=0 color=0 contrast=0 whiteness=0
+depth=8 palette=15
+--------------------------------
+
+brightness and contrast seem to be way off for the new modules.
+
+So, I'm guessing that some attributes that previously were detected by
+gspca are being missed by gspca_spca561.
+
+I am very keen to help make this work properly for gspca V2, but... I am
+not much of a C coder. If someone can tell me how to produce useful
+diagnostics, and/or point me at some code to fiddle I'm willing to have
+a go. However - I'd be best at testing someone else's patches!
+
+dmesg for the gspca_main/gspca_spca561 modules is:
+[   28.308979] gspca: main v2.3.0 registered
+[   28.333195] gspca: probing 046d:092e
+[   28.531364] gspca: probe ok
+[   28.531603] spca561: registered
+
+dmesg for the gspca module is:
+[   40.140033] gspca: USB GSPCA camera found.(SPCA561A)
+[   40.140033] gspca: [spca5xx_probe:4275] Camera type S561
+[   40.153846] gspca: [spca5xx_getcapability:1249] maxw 352 maxh 288
+minw 160 minh 120
+[   40.153907] usbcore: registered new interface driver gspca
+[   40.153910] gspca: gspca driver 01.00.20 registered
+[   65.614301] gspca: [spca561_init:467] Find spca561 USB Product ID 92e
+[   65.828003] gspca: [spca5xx_set_light_freq:1932] Sensor currently not
+support light frequency banding filters.
 
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Friday, October 03, 2008 7:46 PM
-> To: Tony Lindgren; Tomi Valkeinen
-> Cc: hverkuil@xs4all.nl; Shah, Hardik; linux-omap@vger.kernel.org; video4linux-
-> list@redhat.com
-> Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
-> 
-> 
-> 
-> Thanks,
-> Vaibhav Hiremath
-> Senior Software Engg.
-> Platform Support Products
-> Texas Instruments Inc
-> Ph: +91-80-25099927
-> 
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Friday, October 03, 2008 7:04 PM
-> > To: Tomi Valkeinen
-> > Cc: Hiremath, Vaibhav; hverkuil@xs4all.nl; Shah, Hardik; linux-
-> > omap@vger.kernel.org; video4linux-list@redhat.com
-> > Subject: Re: [PREVIEW] New display subsystem for OMAP2/3
-> >
-> > * Tomi Valkeinen <tomi.valkeinen@nokia.com> [081003 16:26]:
-> > > Hi,
-> > >
-> > > > > -----Original Message-----
-> > > > > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > > > > Sent: Thursday, October 02, 2008 1:55 PM
-> > > > > To: Hiremath, Vaibhav
-> > > > > Cc: Shah, Hardik; linux-omap@vger.kernel.org; video4linux-
-> > list@redhat.com
-> > > > > Subject: RE: [PREVIEW] New display subsystem for OMAP2/3
-> > > > >
-> > > > > Hi Vaibhav,
-> > > > >
-> > > > > On Wed, 2008-10-01 at 16:21 +0530, ext Hiremath, Vaibhav
-> > wrote:
-> > > > > > Tomi,
-> > > > > >
-> > > > > > Have you got a chance to review the DSS library and V4l2
-> > driver which we have posted?
-> > > > >
-> > > > > Unfortunately not very much. I've been glancing the DSS side
-> > of the
-> > > > > driver, but not the v4l side as I don't know much about it.
-> > > > >
-> > > > > There seems to be awfully lot ifdefs for board/cpu types in
-> > the code.
-> > > >
-> > > > As far as ifdefs are concerned, they are added to take care of
-> > OMAP2/3 variants. Especially you will find many instances of
-> > CONFIG_ARCH_OMAP3410 and the reason is obvious, OMAP3410 doesn't
-> > have VENC. As I have mentioned before, DSS library is designed to
-> > support both LCD, TV, and many more.
-> > >
-> > > They make the code unclear. I have divided the functionality to
-> > separate
-> > > files, that can easily be left out. So for OMAP3410 I would just
-> > disable
-> > > the VENC config option. And then I can test for CONFIG_DSS_VENC,
-> > instead
-> > > of OMAP3410 || OMAP2410 || OMAPwhatnot. Of course you can't do
-> > this for
-> > > all things, but at least VENC is not one of these.
-> > >
-> > > And all board specific code should, in my opinion, be in board
-> > files. I
-> > > don't have any board specific definitions in the DSS driver or the
-> > > LCD/controller drivers. (well, ok, there is something in the DSI
-> > driver,
-> > > it's still quite raw).
-> >
-> > Yeah we should be able to compile in any combination of omap boards
-> > with
-> > whatever configuration from board-*.c files as platform_data.
-> >
-> > So ifdefs will totally break this.
-> >
-> 
-> Point taken, we will try to avoid ifdefs as much as possible and will divide
-> depending on the functionality.
-> 
-> > > > > My biased and superficial view of the differences between my
-> > DSS and
-> > > > > yours is that:
-> > > >
-> > > > Tomi, here I differ from you. There should not be biased
-> > opinion. What we are looking here is a good design which will
-> > fulfill all our requirements/use case, like LCD, DVI, HDMI and TV
-> > for us and DSI, RFBI for you.
-> > >
-> > > Agreed. I was just pointing out that I haven't used enough time to
-> > study
-> > > your DSS to really comment on it, and that a coder tends to like
-> > his own
-> > > code =).
-> > >
-> > > > > - My implementation is cleaner, better organized and more
-> > generic
-> > > >
-> > > > Again, here both of us will be having biased comments to support
-> > our own design, so I would prefer not to comment on this. Lets
-> > people on the community decide whose design is better.
-> > > >
-> > > > > - My implementation has support for DSI, SDI, RFBI, L4 updates
-> > > >
-> > > > DSI, SDI and RFBI are the modes, which we can add anytime to the
-> > system depending as per our requirement.
-> > > > It is again driven by use case; you have use cases for DSI, SDI
-> > and RFBI. We have for TV, DVI, HDMI and LCD, so we strongly
-> > concentrated on these.
-> > > >
-> > > > We can very well add these supports to DSS Library with minimal
-> > effort.
-> > >
-> > > SDI is quite easy, but I wouldn't say adding RFBI and DSI is
-> > minimal
-> > > effort. DSI is quite complex in itself, and the manual update mode
-> > > changes how the DSS has to handle things.
-> > >
-> > > > > - Your implementation has better support for "extra" things
-> > like VRFB,
-> > > > > color conversions, alpha etc.
-> > > > > - Your implementation most likely has better power management
-> > support.
-> > > > > - And of course what is most visible to the user, my version
-> > uses only
-> > > > > framebuffers, and yours uses also v4l2 devices.
-> > > > >
-> > > >
-> > > > You really can't deny the V4L2 framework advantages over
-> > framebuffer, especially for streaming kind of applications. Looking
-> > towards the hardware features OMAP supports; we would really require
-> > to have such support/capabilities. Community is also in agreement
-> > for the V4L2 interface on OMAP-DSS.
-> > >
-> > > Well, I'm not the best one to comment on V4L2 as I don't know much
-> > about
-> > > it. But I remember seeing quite negative comments about V4L2 a
-> > while ago
-> > > in this or related mail thread, so I'm not yet ready to change to
-> > V4L2
-> > > camp.
-> > >
-> > > The best option would be, of course, to have both =).
-> > >
-> > > > Tony/Hans,
-> > > > Your comments would be helpful here.
-> >
-> > I'd rather not get too involved in the fb or v4l stuff, I already
-> > have
-> > enough things to look at. But I can certainly comment on stuff that
-> > will
-> > break booting multiple omaps the same time once the patches are
-> > posted.
-> >
-> > > > > As for the future, I have no choice but to keep using my DSS
-> > as we need
-> > > > > the features it has. I feel it would be quite a big job to get
-> > those in
-> > > > > to your driver. And even if I had a choice, I (unsurprisingly
-> > =) think
-> > > > > that my version is better and would stick to it.
-> > > > >
-> > > >
-> > > > It's your personal choice to stick to whichever code base you
-> > want, I don't want to comment on that. But what I believe is, with
-> > your design we are limiting ourselves from supporting most of the
-> > features which hardware provides.
-> > >
-> > > Is the limiting factor here the missing V4L2 interface? Or
-> > something in
-> > > the core DSS driver? To my knowledge you can have all the HW
-> > features
-> > > supported with framebuffers, even though V4L2 device can perhaps
-> > make
-> > > the use easier for some applications.
-> > >
-> > > Well, one thing comes to my mind, and it's sharing the framebuffer
-> > > memory between, for example, display and camera drivers. I believe
-> > you
-> > > can do that with V4L2. Something else?
-> > >
-> > > > We can work together to add more support to DSS library.
-> > >
-> > > Sure, I don't really care which version is accepted, as long as we
-> > get
-> > > all the features =). So if you see something usable in my code,
-> > just
-> > > take it and add to your version.
+Regards
+Ian
 
-Hi All,
-I will be posting the version 2 of the DSS library and V4L2 display driver 
-with almost all the comments from the community taken care of.
-It will be series of 4 patches containing
 
-OMAP 2/3 DSS Library
-OMAP3 EVM TV encoder Driver.
-New IOCTLS added to V4L2 Framework (Already posted on V4L2 mailing list)
-OMAP 2/3 V4L2 Display driver on the Video planes of DSS hardware.
+---------------------
+gspca V1 run
+---------------------
 
-We are enhancing the DSS library.  This is the first post containing the
-features like power management, video pipeline, Digital overlay manager,
-clock management support.
+ipic@ian2 ~/bin $ spcaview -d /dev/video_webcam
+ Spcaview version: 1.1.7 date: 06:11:2006 (C) mxhaard@magic.fr
+Initializing SDL.
+SDL initialized.
+bpp 3 format 15
+Using video device /dev/video_webcam.
+Initializing v4l.
+**************** PROBING CAMERA *********************
+Camera found: Logitech QuickCam EC
+Bridge found: SPCA561
+Bridge find SPCA561 number 9
+StreamId: GBRG Camera
+quality 0 autoexpo 1 Timeframe 0 lightfreq 50
+Bridge find SPCA561 number 9
+Available Resolutions width 352  heigth 288 native
+Available Resolutions width 320  heigth 240 native *
+Available Resolutions width 176  heigth 144 native
+Available Resolutions width 160  heigth 120 native
+unable to probe size !!
+*****************************************************
+ grabbing method default MMAP asked
+VIDIOCGMBUF size 2457616  frames 2  offets[0]=0 offsets[1]=1228808
+VIDIOCGPICT
+brightnes=16384 hue=0 color=0 contrast=8192 whiteness=0
+depth=12 palette=15
+VIDIOCSPICT
+brightness=16384 hue=0 color=0 contrast=8192 whiteness=0
+depth=24 palette=15
 
-Further plan is to add graphics pipeline, LCD overlay manager, RFBI, DSI,
-support and frame buffer interface for graphics pipeline
 
-Please let us know your comments on further enhancements of the DSS Library
-and V4L2 display driver.
+Stop asked
 
-Thanks and Regards,
-Hardik Shah> > Regards,
-> >
-> > Tony
+Used 19966ms for 244 images => 81ms/image 12fps.
+Quiting SDL.
+Decoded frames:244 Average decode time: 1.000000
+unmapping
+closing
+closed
+Destroy Picture thread ...
+Quiting....
 
+
+----------------------------
+gspca_main/gspca_spca561 run
+----------------------------
+ipic@ian2 ~/bin $ LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so spcaview -d
+/dev/video_webcam
+
+ Spcaview version: 1.1.7 date: 06:11:2006 (C) mxhaard@magic.fr
+Initializing SDL.
+SDL initialized.
+bpp 3 format 15
+Using video device /dev/video_webcam.
+Initializing v4l.
+**************** PROBING CAMERA *********************
+Camera found: Camera
+Bridge found: spca561
+Unable to find a StreamId !!
+StreamId: -1 Unknow Camera
+Available Resolutions width 640  heigth 480 native
+Available Resolutions width 352  heigth 288 native
+Available Resolutions width 320  heigth 240 native *
+Available Resolutions width 176  heigth 144 native
+Available Resolutions width 160  heigth 120 native
+unable to probe size !!
+*****************************************************
+ grabbing method default MMAP asked
+VIDIOCGMBUF size 67108864  frames 4  offets[0]=0 offsets[1]=16777216
+VIDIOCGPICT
+brightnes=0 hue=0 color=0 contrast=0 whiteness=0
+depth=8 palette=15
+VIDIOCSPICT
+brightness=0 hue=0 color=0 contrast=0 whiteness=0
+depth=24 palette=15
+
+
+Stop asked
+
+Used 2131ms for 63 images => 33ms/image 29fps.
+Quiting SDL.
+Decoded frames:63 Average decode time: 0.000000
+unmapping
+closing
+closed
+Destroy Picture thread ...
+Quiting....
 
 --
 video4linux-list mailing list
