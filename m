@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9DMFKMv022646
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 18:15:20 -0400
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9DMEWxr031859
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 18:14:33 -0400
-Received: by ug-out-1314.google.com with SMTP id o38so597599ugd.13
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 15:14:28 -0700 (PDT)
-Message-ID: <30353c3d0810131514o5b0a6819q9444ad4cc28c1601@mail.gmail.com>
-Date: Mon, 13 Oct 2008 18:14:28 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	v4l <video4linux-list@redhat.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9KGj5YF032077
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 12:45:05 -0400
+Received: from unifiedpaging.messagenetsystems.com
+	(mail.emergencycommunicationsystems.com [24.123.23.170])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9KGisL8028868
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 12:44:54 -0400
+Message-ID: <48FCB570.2050906@messagenetsystems.com>
+Date: Mon, 20 Oct 2008 12:44:32 -0400
+From: Robert Vincent Krakora <rob.krakora@messagenetsystems.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Steven Toth <stoth@linuxtv.org>
+References: <48FAA9A1.3090906@myecho.ca> <48FC9F9D.5030107@linuxtv.org>
+In-Reply-To: <48FC9F9D.5030107@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Cc: 
-Subject: [PATCH 0/2] stk-webcam corrections
+Cc: video4linux-list@redhat.com
+Subject: Re: hvr950q analog support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,19 +28,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-The following series of patches address issues in the current
-for_linus branch of the mchehab's linux-2.6 tree.
+Steven Toth wrote:
+> Jacek Pawlowski wrote:
+>> Hi,
+>> The digital part for hvr950a works fine (driver au0828).  From other 
+>> posts it looks like the analog part is nor ready yet.  Will be  the 
+>> analog part for HVR950q (2040:7200) ready soon (or maybe it is 
+>> already available and I just don't know how to set it up :-) - I am 
+>> running 2.6.26.5-28.fc8 x86_64
+>
+> Nobody is working on analog support, as far as I know.
+>
+> - Steve
+>
+> -- 
+> video4linux-list mailing list
+> Unsubscribe 
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+>
+I have both the HVR950 and HVR950Q.  Analog works fine on the HVR950 as 
+does terrestrial digital (8VSB ATSC).  However, on the HVR950Q only 
+digital works for both terrestrial (8VSB ATSC) and cable (QAM256).  Are 
+there any plans to have someone work on analog for the HVR950Q?
 
-1. Minor corrections to mercurial revision 9034 which was a patch
-submitted for testing.
-2. Corrects a crash in stk-webcam during close if the camera has been
-disconnected while open.
-
-These patches have been well tested and should be applied for 2.6.28
-
-Regards,
-
-David Ellingsworth
+-- 
+Rob Krakora
+Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
 
 --
 video4linux-list mailing list
