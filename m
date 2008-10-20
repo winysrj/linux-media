@@ -1,16 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KoIk8-0007HC-He
-	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 16:13:26 +0200
-Date: Fri, 10 Oct 2008 16:12:52 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <48EF3BC3.4050802@hemmail.se>
-Message-ID: <20081010141252.107560@gmx.net>
+Received: from smtp0.lie-comtel.li ([217.173.238.80])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <linux-dvb@kaiser-linux.li>) id 1Ks1N4-0006H0-5C
+	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 22:29:01 +0200
+Received: from localhost (localhost.lie-comtel.li [127.0.0.1])
+	by smtp0.lie-comtel.li (Postfix) with ESMTP id A729D9FEC19
+	for <linux-dvb@linuxtv.org>; Mon, 20 Oct 2008 21:28:54 +0100 (GMT-1)
+Received: from [192.168.0.16] (217-173-228-198.cmts.powersurf.li
+	[217.173.228.198])
+	by smtp0.lie-comtel.li (Postfix) with ESMTP id 754CA9FEC16
+	for <linux-dvb@linuxtv.org>; Mon, 20 Oct 2008 21:28:54 +0100 (GMT-1)
+Message-ID: <48FCEA05.7060600@kaiser-linux.li>
+Date: Mon, 20 Oct 2008 22:28:53 +0200
+From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
 MIME-Version: 1.0
-References: <48EF3BC3.4050802@hemmail.se>
-To: sacha <sacha@hemmail.se>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Twinhan 1041 (SP 400) and S2API
+To: linux-dvb@linuxtv.org
+References: <20081016190946.GB25806@geppetto>
+	<20081019142030.GA10261@geppetto>	<28a25ce0810191325r7b1e3903jae703a79477e2758@mail.gmail.com>
+	<20081020193632.GA5685@geppetto>
+In-Reply-To: <20081020193632.GA5685@geppetto>
+Subject: Re: [linux-dvb] v4l-dvb gspca modules conflict
+ with	standalone	gspca module
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,39 +34,75 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
-> Hello
+Stefano Sabatini wrote:
+> On date Sunday 2008-10-19 22:25:29 +0200, Rom=E1n wrote:
+>> 2008/10/19 Stefano Sabatini <stefano.sabatini-lala@poste.it>:
+>>> BTW I wonder why v4l-dvb includes the gspca modules, which seem to be
+>>> related more to the gspca cameras than to DVB devices
+> [...]
+>> I wonder as well. The standalone driver works with my webcam, but the
+>> v4l-dvb one provokes a kernel panic on my system, after a short period
+>> of using it (or it used to; admittedly it's been quite a while -a few
+>> months- since I last tried).
 > =
 
-> I tried my card with I.Liplianin sources without any luck. Have I missed =
-
-> something?
-> Driver for my card seems not to be there
-> KR
+> For the archive: gspca based cameras finally stopped to work with the
+> v4l-dvb modules on linux-2.6.26, reinstalling the kernel and the
+> standalone module fixed it.
 > =
 
+> Please could the core devs clarify the situation for what regards
+> gscpa modules in v4l-dvb?
+> =
 
-I believe the driver code for the mantis PCI bridge chip is missing from Ig=
-or's
-STB0899 S2API patch. That code is available here
-http://jusst.de/hg/mantis
-and here
-http://www.twinhan.com/files/AW/Linux/AZLinux_v1.4.2_CI_FC6.tar.gz
+> Thanks, regards.
+> =
 
-so it ought to be possible to add it.
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-Regards,
-Hans
- =
+Hello Stefano
 
--- =
+The gspca module V1 was developed outside of the kernel tree. Therefor, =
 
-Release early, release often.
+it was possible to add "in kernel" video decompression/decoding, which =
 
-GMX Kostenlose Spiele: Einfach online spielen und Spa=DF haben mit Pastry P=
-assion!
-http://games.entertainment.gmx.net/de/entertainment/games/free/puzzle/61691=
-96
+is not allowed and not good to do in kernel space. But this was a great =
+
+success to add more than 220 webcams to the Linux World.
+
+Now, gspca V1 is moving to gspca V2 to support V4L2. Jean-Francois Moine =
+
+(moinejf@free.fr) did a rewrite to support V4L2 with gspca. Thus, its =
+
+called gspca V2. He removed all the not allowed decoding process which =
+
+was done in kernel space with the old gspca.
+
+Now, gspca V2 got included into the kernel! (Big step forward)
+
+Hans de Goede (j.w.r.degoede@hhs.nl) is writing a user space lib to =
+
+convert/decode all the stuff which was done in the old gspca in kernel =
+
+space, his lib does it now in user space. That's the way to go!
+
+The development of this is rather new and I think it is not included in =
+
+any distro at the moment. But it will be soon.
+
+So, please drop the the old gspca V1 and help testing gspca V2!
+
+BTW: gspca is in v4l-dvb because v4l is for analogue deceives and dvb is =
+
+for digital devices. gspca fits perfect into v4l!
+
+Thomas
+
+PS: Pixart, but now free time to do more, sorry.
+
 
 _______________________________________________
 linux-dvb mailing list
