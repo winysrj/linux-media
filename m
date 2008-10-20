@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m96B8aHA003015
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 07:08:36 -0400
-Received: from mgw-mx09.nokia.com (smtp.nokia.com [192.100.105.134])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m96B8Q5L008107
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 07:08:26 -0400
-From: Sakari Ailus <sakari.ailus@nokia.com>
-To: video4linux-list@redhat.com
-Date: Mon,  6 Oct 2008 14:07:52 +0300
-Message-Id: <12232912722650-git-send-email-sakari.ailus@nokia.com>
-In-Reply-To: <12232912721018-git-send-email-sakari.ailus@nokia.com>
-References: <48E9F178.50507@nokia.com>
-	<12232912722008-git-send-email-sakari.ailus@nokia.com>
-	<12232912722050-git-send-email-sakari.ailus@nokia.com>
-	<12232912721943-git-send-email-sakari.ailus@nokia.com>
-	<1223291272973-git-send-email-sakari.ailus@nokia.com>
-	<12232912721018-git-send-email-sakari.ailus@nokia.com>
-Cc: vimarsh.zutshi@nokia.com, tuukka.o.toivonen@nokia.com, hnagalla@ti.com
-Subject: [PATCH] V4L: Int if: Add enum_framesizes and enum_frameintervals
-	ioctls.
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9KIQ6hQ030007
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 14:26:06 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9KIPtTE025401
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 14:25:56 -0400
+Date: Mon, 20 Oct 2008 20:25:36 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: David Ellingsworth <david@identd.dyndns.org>
+Message-ID: <20081020182536.GA1750@daniel.bse>
+References: <48FC8DF1.8010807@linos.es> <20081020161436.GB1298@daniel.bse>
+	<48FCB94C.90505@linos.es>
+	<30353c3d0810201023j3464c9b5udc58b0c0966ad0f2@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <30353c3d0810201023j3464c9b5udc58b0c0966ad0f2@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: bttv 2.6.26 problem
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,35 +30,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
----
- include/media/v4l2-int-device.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+On Mon, Oct 20, 2008 at 01:23:25PM -0400, David Ellingsworth wrote:
+> On Mon, Oct 20, 2008 at 1:01 PM, Linos <info@linos.es> wrote:
+> > Daniel Glöckner escribió:
+> >>  vmm.height=352;
+> >>  vmm.width=288;
 
-diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index 9b7b008..1356055 100644
---- a/include/media/v4l2-int-device.h
-+++ b/include/media/v4l2-int-device.h
-@@ -218,6 +218,8 @@ enum v4l2_int_ioctl_num {
- 	vidioc_int_g_ifparm_num,
- 	/* Does the slave need to be reset after VIDIOC_DQBUF? */
- 	vidioc_int_g_needs_reset_num,
-+	vidioc_int_enum_framesizes_num,
-+	vidioc_int_enum_frameintervals_num,
- 
- 	/*
- 	 *
-@@ -303,6 +305,8 @@ V4L2_INT_WRAPPER_1(s_power, enum v4l2_power, );
- V4L2_INT_WRAPPER_1(g_priv, void, *);
- V4L2_INT_WRAPPER_1(g_ifparm, struct v4l2_ifparm, *);
- V4L2_INT_WRAPPER_1(g_needs_reset, void, *);
-+V4L2_INT_WRAPPER_1(enum_framesizes, struct v4l2_frmsizeenum, *);
-+V4L2_INT_WRAPPER_1(enum_frameintervals, struct v4l2_frmivalenum, *);
- 
- V4L2_INT_WRAPPER_0(reset);
- V4L2_INT_WRAPPER_0(init);
--- 
-1.5.0.6
+D'oh!
+I swapped width and height..
+
+> I believe the changes Daniel suggested would have to be applied to the
+> source of helix producer in order to work.
+
+I didn't test helix producer, but with my simple test app and correct
+width and height it works.
+
+> None the less, the proper
+> fix would be to fix the associated bug in the driver which is the real
+> cause of the problem.
+
+Agreed
+
+  Daniel
 
 --
 video4linux-list mailing list
