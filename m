@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joan.kewl.org ([212.161.35.248])
+Received: from fmmailgate04.web.de ([217.72.192.242])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <darron@kewl.org>) id 1KqA52-000372-5Q
-	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 19:22:42 +0200
-From: Darron Broad <darron@kewl.org>
-To: Christophe Thommeret <hftom@free.fr>
-In-reply-to: <200810151846.59042.hftom@free.fr> 
-References: <200810141133.36559.hftom@free.fr>
-	<200810141451.02941.hftom@free.fr> <4473.1224003723@kewl.org>
-	<200810151846.59042.hftom@free.fr>
-Date: Wed, 15 Oct 2008 18:22:35 +0100
-Message-ID: <13726.1224091355@kewl.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] cx24116 DVB-S modulation fix
+	(envelope-from <SebastianMarskamp@web.de>) id 1KruBS-00029C-Cu
+	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 14:48:30 +0200
+Received: from web.de
+	by fmmailgate04.web.de (Postfix) with SMTP id A9DB85F0D937
+	for <linux-dvb@linuxtv.org>; Mon, 20 Oct 2008 14:47:56 +0200 (CEST)
+Date: Mon, 20 Oct 2008 14:47:44 +0200
+Message-Id: <1546986099@web.de>
+MIME-Version: 1.0
+From: Sebastian Marskamp <SebastianMarskamp@web.de>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] [ERROR] New Alsa misses snd_assert macro
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,34 +19,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <200810151846.59042.hftom@free.fr>, Christophe Thommeret wrote:
+When you try to build a driver for a dvb-t device which uses the  afatech 9=
+015 chip, and maybe for others too  , you will get an error,cos  in alsa  1=
+.0.18 , snd_assert macro is replaced by a snd_BUG_ON , which needs diffrent=
+ paramters .
 
-hi.
 
-<snip>
+make[2]: Entering directory `/usr/src/linux-2.6.27-desktop586-0.rc8.2mnb'
+CC [M] /home/dosenpfand/af9015/v4l/saa7134-alsa.o
+/home/dosenpfand/af9015/v4l/saa7134-alsa.c: In function 'snd_card_saa7134_h=
+w_params':
+/home/dosenpfand/af9015/v4l/saa7134-alsa.c:496: error: implicit declaration=
+ of function 'snd_assert'
+/home/dosenpfand/af9015/v4l/saa7134-alsa.c:497: error: expected expression =
+before 'return'
+/home/dosenpfand/af9015/v4l/saa7134-alsa.c:498: error: expected expression =
+before 'return'
+/home/dosenpfand/af9015/v4l/saa7134-alsa.c:499: error: expected expression =
+before 'return'
+/home/dosenpfand/af9015/v4l/saa7134-alsa.c: In function 'snd_card_saa7134_n=
+ew_mixer':
+/home/dosenpfand/af9015/v4l/saa7134-alsa.c:950: error: expected expression =
+before 'return'
+make[3]: *** [/home/dosenpfand/af9015/v4l/saa7134-alsa.o] Error 1
+make[2]: *** [_module_/home/dosenpfand/af9015/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.27-desktop586-0.rc8.2mnb'
+make[1]: *** [default] Fehler 2
+make[1]: Leaving directory `/home/dosenpfand/af9015/v4l'
+make: *** [all] Fehler 2 =
 
->Other subject:
->Would you accept some patch to enhance cx24116 pilot_auto emulation?
+__________________________________________________________________________
+Verschicken Sie SMS direkt vom Postfach aus - in alle deutschen und viele =
 
-If you present your patch and it enhances or fixes something
-then I am sure people will support it.
+ausl=E4ndische Netze zum gleichen Preis! =
 
-good luck.
+https://produkte.web.de/webde_sms/sms
 
-cya!
 
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
 
 
 _______________________________________________
