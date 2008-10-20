@@ -1,25 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m91GTODx029632
-	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 12:29:24 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.235])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m91GSPdd028430
-	for <video4linux-list@redhat.com>; Wed, 1 Oct 2008 12:29:06 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so616784rvb.51
-	for <video4linux-list@redhat.com>; Wed, 01 Oct 2008 09:28:25 -0700 (PDT)
-Message-ID: <30353c3d0810010928u2a4f17d7y2f922905659982ec@mail.gmail.com>
-Date: Wed, 1 Oct 2008 12:28:25 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: desktop1.peg@wipro.com
-In-Reply-To: <34E2ED35C2EB67499BA8591290AF20D506B237@pnd-iet-msg.wipro.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9KH14bG009981
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 13:01:04 -0400
+Received: from linos.es (centrodatos.linos.es [86.109.105.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9KH123m006135
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 13:01:02 -0400
+Message-ID: <48FCB94C.90505@linos.es>
+Date: Mon, 20 Oct 2008 19:01:00 +0200
+From: Linos <info@linos.es>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <30353c3d0809301604p393ee1bbh29d8b9f3be424f22@mail.gmail.com>
-	<34E2ED35C2EB67499BA8591290AF20D506B237@pnd-iet-msg.wipro.com>
-Cc: video4linux-list@redhat.com, mchehab@redhat.com
-Subject: Re: mic issue in usb webcam
+To: video4linux-list@redhat.com
+References: <48FC8DF1.8010807@linos.es> <20081020161436.GB1298@daniel.bse>
+In-Reply-To: <20081020161436.GB1298@daniel.bse>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Subject: Re: bttv 2.6.26 problem
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,22 +26,65 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Oct 1, 2008 at 2:59 AM,  <desktop1.peg@wipro.com> wrote:
-> Hi I m using Logitech webcam in RHEL5.0, its working fine but the
-> inbuilt mic is not working when I record a video. Pls find a solution.
->
+Daniel Glöckner escribió:
+> On Mon, Oct 20, 2008 at 03:56:01PM +0200, Linos wrote:
+>> Error: Could not set image size to 352x288 for color format I420 (15) 
+>> (VIDIOCMCAPTURE: buffer 0)
+> 
+> The problem is that the v4l1-compat code for VIDIOCMCAPTURE calls
+> VIDIOC_S_FMT. At the beginning of bttv_s_fmt_vid_cap the call to
+> bttv_switch_type fails because the buffers have already been mmap'ed
+> by the application. I'd say this is a bug in bttv.
+> 
+> In which case does the videobuf_queue_is_busy test prevent bad things
+> from happening?
+> 
+> 
+> A workaround is to set the resolution and image format before the
+> buffers are mapped, f.ex. with this small program:
+> --------------
+> #include <sys/ioctl.h>
+> #include <fcntl.h>
+> #include <unistd.h>
+> #include <linux/videodev.h>
+> 
+> void main()
+> {
+>   struct video_mmap vmm;
+>   vmm.height=352;
+>   vmm.width=288;
+>   vmm.format=VIDEO_PALETTE_YUV420P;
+>   vmm.frame=0;
+>   ioctl(open("/dev/video",O_RDWR),VIDIOCMCAPTURE,&vmm);
+> }
+> --------------
+> 
+>   Daniel
+> 
 
-The mic input is not currently supported by the driver. I do not own a
-camera that works with this driver and am therefore unable to make any
-additions to it nor do I have any interest in doing so at this time.
-The patches I recently submitted merely correct issues I identified
-while reviewing the driver's source. If you want mic support you will
-either have to add support yourself or persuade Jamie, the official
-maintainer, to do so.
+Hi Daniel,
+	thanks for help, i have tried the code you have posted, but it does not works 
+or i have not understand you correctly, i have compiled the code, i have tried 
+directly with /dev/video (like your example) or changing it with /dev/video0 
+(the video dev i am using), after compile it and execute it i launch the helix 
+producer but still the same error.
+
+webcontrol:~# gcc -o test_video test_video.c
+test_video.c: In function 'main':
+test_video.c:7: warning: return type of 'main' is not 'int'
+webcontrol:~# ./test_video
+webcontrol:~# producer -vc /dev/video0 -ad 128k -vp "0" -dt -vm sharp -o 
+/tmp/test.rm
+Helix DNA(TM) Producer 11.0 Build number: 11.0.0.2013
+Info: Starting encode
+Error: Could not set image size to 352x288 for color format I420 (15) 
+(VIDIOCMCAPTURE: buffer 0)
+Warning: Capture Buffer is empty at 455505251ms for last 61 times
+
+do i am doing anything wrong?
 
 Regards,
-
-David Ellingsworth
+Miguel Angel.
 
 --
 video4linux-list mailing list
