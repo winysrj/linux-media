@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qmta06.westchester.pa.mail.comcast.net ([76.96.62.56])
+Received: from joan.kewl.org ([212.161.35.248])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <htmoore@comcast.net>) id 1KptYv-00071X-3P
-	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 01:44:27 +0200
-From: "Tom Moore" <htmoore@comcast.net>
-To: <linux-dvb@linuxtv.org>
-Date: Tue, 14 Oct 2008 18:43:21 -0500
-Message-ID: <001501c92e56$a4903870$edb0a950$@net>
-MIME-Version: 1.0
-Content-Language: en-us
-Subject: [linux-dvb] Duel Hauppauge HVR-1600
+	(envelope-from <darron@kewl.org>) id 1KriD4-0007vS-4l
+	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 02:01:23 +0200
+From: Darron Broad <darron@kewl.org>
+To: Darron Broad <darron@kewl.org>
+In-reply-to: <5905.1224308528@kewl.org> 
+References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
+	<2207.1224273353@kewl.org>
+	<412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com>
+	<5905.1224308528@kewl.org>
+Date: Mon, 20 Oct 2008 01:01:18 +0100
+Message-ID: <21253.1224460878@kewl.org>
+Cc: Linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [RFC] SNR units in tuners
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,369 +21,88 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0007638048=="
-Mime-version: 1.0
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multipart message in MIME format.
+In message <5905.1224308528@kewl.org>, Darron Broad wrote:
+>In message <412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com>, "Devin Heitmueller" wrote:
+
+hi.
+
+>
+>hi
+>
+>>On Fri, Oct 17, 2008 at 3:55 PM, Darron Broad <darron@kewl.org> wrote:
+>>>>===
+>>> <SNIP>
+>>>>cx24116.c       percent scaled to 0-0xffff, support for ESN0
+>>> <SNIP>
+>>>
+>>> There is no hole here but I thought I would pass you by some
+>>> history with this.
+>>>
+>>> The scaled value was calibrated against two domestic satellite
+>>> receivers. The first being a nokia 9600s with dvb2000 and
+>>> the other being a Fortec star beta. At the time there was
+>>> no knowledge of what the cx24116 value represented and no
+>>> great idea of what the domestic box values represented.
+>>> However, the scaling function matches very closely to those
+>>> two machines. What this means in essence is not much but
+>>> may be useful to you.
+>>
+>>By all means, if you have information to share about how the
+>>calculation was arrived at, please do.
+>>
+>>At this point the goal is to understand what the value means for
+>>different demods.  For the simple cases where the answer is "it's the
+>>SNR in 0.1db as provided by register X", then it's easy.  If it's "I
+>>don't really know and I just guessed based on empirical testing, then
+>>that is useful information too.
+>>
+>>Once people have reported in with the information, I will see about
+>>submitting a patch reflecting this information as a comment in the
+>>driver source for the various demods.
+>
+>The trouble there is that the scaling for the cx24116 already works
+>from an end-user perspective. The value derived in the code is
+>a possible maximum of 160 from the chip. REELBOX decided on 176
+>which may be more accurate.
+>
+>A quick glance here:
+>http://www.mathworks.com/matlabcentral/files/19717/ExactBER.jpg
+>Would suggest that if that 160 equates to around 10 esn0 (QPSK)
+>then the register on that chip may equal -5 when 0. I have no real
+>idea of course as I have no access to any confidential information.
+>
+>Also, if you refer to that graph, we can see that to scale esn0
+>for the end user it also needs to take into account that it's
+>maximum requirement varies per modulation scheme.
+>
+>I am no expert on this but it doesn't seem as simple as it
+>may do on first sight.
+
+LOL. not only am I no expert on this I am also stupid. Please
+forgive the ramblings of an old man who totally misread this.
+Please refer to other post where Georg has clarified all of
+this simply without pointing out the obvious flaws in my
+pursuit of signal nirvana.
+
+I wish you well, sorry for the rambling.
+
+darron
+
+--
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
 
---===============0007638048==
-Content-Type: multipart/alternative;
-	boundary="----=_NextPart_000_0016_01C92E2C.BBBA3070"
-Content-Language: en-us
-
-This is a multipart message in MIME format.
-
-------=_NextPart_000_0016_01C92E2C.BBBA3070
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-
-I just bought two Hauppauge HVR-1600 cards and I'm trying to set them up in 
-
-Mythdorra 5. I have the cx18 drivers installed but it is only initializing
-one 
-
-card. I'm getting the following message when I do a dmesg | grep cx18. Has 
-
-anyone ran accross this problem before with duel cards of the same model and
-if 
-
-so, how do I fix it? Any help will be greatly appreciated.
-
- 
-
-Thanks,
-
-Tom Moore
-
-Houston, TX
-
- 
-
-dmesg | grep cx18
-
-cx18:  Start initialization, version 1.0.1
-
-cx18-0: Initializing card #0
-
-cx18-0: Autodetected Hauppauge card
-
-cx18-0: Unreasonably low latency timer, setting to 64 (was 32)
-
-cx18-0: cx23418 revision 01010000 (B)
-
-cx18-0: Autodetected Hauppauge HVR-1600
-
-cx18-0: VBI is not yet supported
-
-tuner 2-0061: chip found @ 0xc2 (cx18 i2c driver #0-1)
-
-cs5345 1-004c: chip found @ 0x98 (cx18 i2c driver #0-0)
-
-cx18-0: Disabled encoder IDX device
-
-cx18-0: Registered device video0 for encoder MPEG (2 MB)
-
-DVB: registering new adapter (cx18)
-
-cx18-0: DVB Frontend registered
-
-cx18-0: Registered device video32 for encoder YUV (2 MB)
-
-cx18-0: Registered device video24 for encoder PCM audio (1 MB)
-
-cx18-0: Initialized card #0: Hauppauge HVR-1600
-
-cx18-1: Initializing card #1
-
-cx18-1: Autodetected Hauppauge card
-
-cx18-1: Unreasonably low latency timer, setting to 64 (was 32)
-
-cx18-1: ioremap failed, perhaps increasing __VMALLOC_RESERVE in page.h
-
-cx18-1: or disabling CONFIG_HIGHMEM4G into the kernel would help
-
-cx18-1: Error -12 on initialization
-
-cx18: probe of 0000:02:04.0 failed with error -12
-
-cx18:  End initialization
-
- 
-
-
-------=_NextPart_000_0016_01C92E2C.BBBA3070
-Content-Type: text/html;
-	charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-
-<html xmlns:v=3D"urn:schemas-microsoft-com:vml" =
-xmlns:o=3D"urn:schemas-microsoft-com:office:office" =
-xmlns:w=3D"urn:schemas-microsoft-com:office:word" =
-xmlns:m=3D"http://schemas.microsoft.com/office/2004/12/omml" =
-xmlns=3D"http://www.w3.org/TR/REC-html40">
-
-<head>
-<meta http-equiv=3DContent-Type content=3D"text/html; =
-charset=3Dus-ascii">
-<meta name=3DGenerator content=3D"Microsoft Word 12 (filtered medium)">
-<style>
-<!--
- /* Font Definitions */
- @font-face
-	{font-family:"Cambria Math";
-	panose-1:2 4 5 3 5 4 6 3 2 4;}
-@font-face
-	{font-family:Calibri;
-	panose-1:2 15 5 2 2 2 4 3 2 4;}
- /* Style Definitions */
- p.MsoNormal, li.MsoNormal, div.MsoNormal
-	{margin:0in;
-	margin-bottom:.0001pt;
-	font-size:11.0pt;
-	font-family:"Calibri","sans-serif";}
-a:link, span.MsoHyperlink
-	{mso-style-priority:99;
-	color:blue;
-	text-decoration:underline;}
-a:visited, span.MsoHyperlinkFollowed
-	{mso-style-priority:99;
-	color:purple;
-	text-decoration:underline;}
-span.EmailStyle17
-	{mso-style-type:personal-compose;
-	font-family:"Calibri","sans-serif";
-	color:windowtext;}
-.MsoChpDefault
-	{mso-style-type:export-only;}
-@page Section1
-	{size:8.5in 11.0in;
-	margin:1.0in 1.0in 1.0in 1.0in;}
-div.Section1
-	{page:Section1;}
--->
-</style>
-<!--[if gte mso 9]><xml>
- <o:shapedefaults v:ext=3D"edit" spidmax=3D"1026" />
-</xml><![endif]--><!--[if gte mso 9]><xml>
- <o:shapelayout v:ext=3D"edit">
-  <o:idmap v:ext=3D"edit" data=3D"1" />
- </o:shapelayout></xml><![endif]-->
-</head>
-
-<body lang=3DEN-US link=3Dblue vlink=3Dpurple>
-
-<div class=3DSection1>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>I just bought two Hauppauge HVR-1600 =
-cards
-and I'm trying to set them up in <o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>Mythdorra 5. I have the cx18 drivers
-installed but it is only initializing one <o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>card. I'm getting the following =
-message when
-I do a dmesg | grep cx18. Has <o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>anyone ran accross this problem before =
-with
-duel cards of the same model and if <o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>so, how do I fix it? Any help will be =
-greatly
-appreciated.<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'><o:p>&nbsp;</o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>Thanks,<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>Tom Moore<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>Houston, TX<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'><o:p>&nbsp;</o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>dmesg | grep =
-cx18<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18:&nbsp; Start initialization, =
-version
-1.0.1<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: Initializing card =
-#0<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: Autodetected Hauppauge =
-card<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: Unreasonably low latency =
-timer,
-setting to 64 (was 32)<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: cx23418 revision 01010000 =
-(B)<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: Autodetected Hauppauge =
-HVR-1600<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: VBI is not yet =
-supported<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>tuner 2-0061: chip found @ 0xc2 (cx18 =
-i2c
-driver #0-1)<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cs5345 1-004c: chip found @ 0x98 (cx18 =
-i2c
-driver #0-0)<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: Disabled encoder IDX =
-device<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: Registered device video0 for =
-encoder
-MPEG (2 MB)<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>DVB: registering new adapter =
-(cx18)<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: DVB Frontend =
-registered<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: Registered device video32 for =
-encoder
-YUV (2 MB)<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: Registered device video24 for =
-encoder
-PCM audio (1 MB)<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-0: Initialized card #0: Hauppauge
-HVR-1600<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-1: Initializing card =
-#1<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-1: Autodetected Hauppauge =
-card<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-1: Unreasonably low latency =
-timer,
-setting to 64 (was 32)<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-1: ioremap failed, perhaps =
-increasing
-__VMALLOC_RESERVE in page.h<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-1: or disabling CONFIG_HIGHMEM4G =
-into
-the kernel would help<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18-1: Error -12 on =
-initialization<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18: probe of 0000:02:04.0 failed =
-with error
--12<o:p></o:p></span></p>
-
-<p class=3DMsoNormal style=3D'line-height:19.2pt'><span =
-style=3D'font-size:12.0pt;
-font-family:"Arial","sans-serif"'>cx18:&nbsp; End =
-initialization<o:p></o:p></span></p>
-
-<p class=3DMsoNormal><o:p>&nbsp;</o:p></p>
-
-</div>
-
-</body>
-
-</html>
-
-------=_NextPart_000_0016_01C92E2C.BBBA3070--
-
-
-
---===============0007638048==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0007638048==--
