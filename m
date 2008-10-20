@@ -1,24 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+Received: from fortimail.matc.edu ([148.8.129.21] helo=matc.edu)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1KnEAo-0003Ka-NI
-	for linux-dvb@linuxtv.org; Tue, 07 Oct 2008 17:08:31 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K8D00L7KJBT5CR1@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Tue, 07 Oct 2008 11:07:56 -0400 (EDT)
-Date: Tue, 07 Oct 2008 11:07:04 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <48EB5A9D.1090609@jcz.nl>
-To: Jaap Crezee <jaap@jcz.nl>
-Message-id: <48EB7B18.50703@linuxtv.org>
-MIME-version: 1.0
-References: <44838.194.48.84.1.1223383227.squirrel@webmail.dark-green.com>
-	<48EB5A9D.1090609@jcz.nl>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API vs Multiproto vs TT 3200
+	(envelope-from <johnsonn@matc.edu>) id 1Ks1IP-0005V6-MF
+	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 22:24:13 +0200
+Received: from GWISE1.matc.edu (gwise1.matc.edu [148.8.29.22])
+	by Fortimail2000-1.fortimail.matc.edu  with ESMTP id m9KKNTlf015181
+	for <linux-dvb@linuxtv.org>; Mon, 20 Oct 2008 15:23:29 -0500
+Message-Id: <48FCA270.8C56.0056.0@matc.edu>
+Date: Mon, 20 Oct 2008 15:23:22 -0500
+From: "Jonathan Johnson" <johnsonn@matc.edu>
+To: <linux-dvb@linuxtv.org>
+Mime-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Unresolved symbols
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,36 +26,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Jaap Crezee wrote:
-> Hello everyone,
-> 
-> gimli wrote:
->> Hi All,
->>
-> 
-> <snip>
-> 
->> was made. Please cool down and bring the pieces together to give the
->> user the widest driver base and support for S2API.
-> 
-> With this in mind, I would like to work on porting the TT S2-3200 driver stuff to S2API. I have done a little bit of 
-> research and found out that it is hard to find what the differences are between both API's on a source/technical level.
-> Can anyone offer some insight into differences or give some starting point (or maybe even an example) of how to port 
-> Multiproto drivers to the S2API?
+Hello all,
 
-Great!
+   I have tried to use the drivers and have gotten everything to compile.
+I followed the posted instruction and then........
+I then make "rmmod" and make "insmod" and after the "make insmod" I look at dmesg|more
+It is filled with unresolved symbols.  I have tried rebooting (at nauseam) and no change.
+I have upgraded the kernel and done all the steps all over again with the same results.
+If someone wants to look at about 5 screen fulls of unresolved symbols I can post the relevant parts of dmesg.
 
-Check the cx24116.c inkernel driver, see the set_frontend callback. 
-You'll see how it queries a dtv_property_cache held in the frontend.
+IF any one has any suggestions I will try them and report the results.
 
-This is the best place to begin.
 
-Let me know if you have any other questions. If you do plan to port the 
-drivers, I suggest you create another thread with an appropriate subject 
-"porting TT3200 to S2API" or something similar, if you want people to 
-comment and help.
+Later,
+Jonathan
 
-- Steve
 
 _______________________________________________
 linux-dvb mailing list
