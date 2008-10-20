@@ -1,27 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9O5H77V015176
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 01:17:07 -0400
-Received: from hermes.gsix.se (hermes.gsix.se [193.11.224.23])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9O5GtCI022979
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 01:16:55 -0400
-Received: from dng-gw.sgsnet.se ([193.11.230.69] helo=[172.16.172.22])
-	by hermes.gsix.se with esmtp (Exim 4.63)
-	(envelope-from <jonatan@akerlind.nu>) id 1KtF2c-0004sT-6n
-	for video4linux-list@redhat.com; Fri, 24 Oct 2008 07:16:54 +0200
-From: Jonatan =?ISO-8859-1?Q?=C5kerlind?= <jonatan@akerlind.nu>
-To: video4linux-list@redhat.com
-In-Reply-To: <48FCA1A5.4000906@linuxtv.org>
-References: <48F90ED4.8030907@b4net.dk>
-	<alpine.DEB.1.10.0810181408370.18626@vegas> <48FA41C1.3030501@b4net.dk>
-	<1224481594.4265.8.camel@skoll>  <48FCA1A5.4000906@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
-Date: Fri, 24 Oct 2008 07:16:53 +0200
-Message-Id: <1224825413.6475.2.camel@skoll>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: Re: Hauppauge PVR-150 MCE vs HVR-1300
-Reply-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9KFBfOt002416
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 11:11:41 -0400
+Received: from mta2.srv.hcvlny.cv.net (mta2.srv.hcvlny.cv.net [167.206.4.197])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9KFBRHb031749
+	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 11:11:27 -0400
+Received: from steven-toths-macbook-pro.local
+	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
+	mta2.srv.hcvlny.cv.net
+	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+	with ESMTP id <0K91004TSM71OZQ0@mta2.srv.hcvlny.cv.net> for
+	video4linux-list@redhat.com; Mon, 20 Oct 2008 11:11:26 -0400 (EDT)
+Date: Mon, 20 Oct 2008 11:11:25 -0400
+From: Steven Toth <stoth@linuxtv.org>
+In-reply-to: <48FAA9A1.3090906@myecho.ca>
+To: Jacek Pawlowski <jacek@myecho.ca>
+Message-id: <48FC9F9D.5030107@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <48FAA9A1.3090906@myecho.ca>
+Cc: video4linux-list@redhat.com
+Subject: Re: hvr950q analog support
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,22 +33,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On mån, 2008-10-20 at 11:20 -0400, Steven Toth wrote:
-> 
-> Pull the latest master repro, test again. Report back. A number of audio 
-> related fixes were just merged.
-> 
-> Thanks,
-> 
-> - Steve
+Jacek Pawlowski wrote:
+> Hi,
+> The digital part for hvr950a works fine (driver au0828).  From other 
+> posts it looks like the analog part is nor ready yet.  Will be  the 
+> analog part for HVR950q (2040:7200) ready soon (or maybe it is already 
+> available and I just don't know how to set it up :-) - I am running 
+> 2.6.26.5-28.fc8 x86_64
 
-Ok, sorry for the delay, I was out of town for a conference. Have now
-tried with the latest sources (v4l-dvb repo) but I still experience the
-audio glitches while watching the blackbird mpeg stream.
+Nobody is working on analog support, as far as I know.
 
--- 
-Jonatan Åkerlind <jonatan@akerlind.nu>
-
+- Steve
 
 --
 video4linux-list mailing list
