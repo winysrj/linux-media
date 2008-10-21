@@ -1,28 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9II9gLV017336
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 14:09:43 -0400
-Received: from d1.scratchtelecom.com (69.42.52.179.scratchtelecom.com
-	[69.42.52.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9II9Svr002812
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 14:09:28 -0400
-Received: from vegas (CPE00a02477ff82-CM001225d885d8.cpe.net.cable.rogers.com
-	[99.249.154.65])
-	by d1.scratchtelecom.com (8.13.8/8.13.8/Debian-3) with ESMTP id
-	m9II9RTY026274
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 14:09:27 -0400
-Received: from lawsonk (helo=localhost)
-	by vegas with local-esmtp (Exim 3.36 #1 (Debian)) id 1KrGEu-0004sW-00
-	for <video4linux-list@redhat.com>; Sat, 18 Oct 2008 14:09:24 -0400
-Date: Sat, 18 Oct 2008 14:09:24 -0400 (EDT)
-From: Keith Lawson <lawsonk@lawson-tech.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LJc2Lt029029
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 15:38:02 -0400
+Received: from mailrelay007.isp.belgacom.be (mailrelay007.isp.belgacom.be
+	[195.238.6.173])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9LJbqdF025200
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 15:37:52 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
 To: video4linux-list@redhat.com
-In-Reply-To: <48F90ED4.8030907@b4net.dk>
-Message-ID: <alpine.DEB.1.10.0810181408370.18626@vegas>
-References: <48F90ED4.8030907@b4net.dk>
+Date: Tue, 21 Oct 2008 21:38:03 +0200
+References: <489AD045.7030404@hhs.nl> <48A81B11.3080308@hhs.nl>
+	<200810211341.m9LDf0cX000636@mx3.redhat.com>
+In-Reply-To: <200810211341.m9LDf0cX000636@mx3.redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Subject: Re: Hauppauge PVR-150 MCE vs HVR-1300
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+Message-Id: <200810212138.03496.laurent.pinchart@skynet.be>
+Cc: 
+Subject: Re: RFC: adding a flag to indicate a webcam sensor is installed
+	upside down
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,41 +32,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi,
 
+On Tuesday 21 October 2008, Pádraig Brady wrote:
+> Hans de Goede wrote:
+> > I agree that this is a per device thing, and that the flag thus should
+> > be moved to v4l2_capability. I'll redo a new patch against the gspca
+> > zc3xx driver with the flag moved to v4l2_capability.
+> >
+> >
+> > About adding fake controls for HFLIP VFLIP to libv4l for devices which
+> > don't do this natively. This might be good to have, but my current patch
+> > for the upside down issue only supports. 180 degree rotation so, both
+> > vflip and hflip in one go.
+>
+> you're referring flipping in hardware above right?
+>
+> > Adding support for doing just vflip or just hflip is possible, but will
+> > take some time.
+>
+> Any update on this.
+>
+> Personally I'm using a 0402:5606 webcam with the latest uvcvideo.ko
+> There is a firmware update available for the webcam to flip the image,
+> so I'm presuming that is just changing the appropriate setting
+> to tell the hardware to flip the image.
 
-On Sat, 18 Oct 2008, Per Baekgaard wrote:
+Most image sensors support vertical and horizontal flipping (or at least image 
+rotation). So it's really a matter of setting the image sensor parameters 
+correctly.
 
-> Still struggling with my unknown card (see earlier mails), although I
-> have now got it to work somewhat more reliable based on input here on
-> the list, thanks!
->
-> So, to avoid a similar situation when building another Myth-TV box, I'm
-> now wondering which card to get.
->
+> There is no mention of *FLIP* capability in the uvcvideo driver at all.
+> Is there a standard way to get/set that in the camera?
 
-The hardware documentation on mythtv's site may help:
+Unfortunately the upside-down cameras don't export any hflip/vflip control, so 
+there's no (known) way to control image rotation from the host.
 
-http://www.mythtv.org/docs/mythtv-HOWTO-3.html#video_capture_device
+> > Also faking v4l2 controls currently is not done yet in libv4l, so doing
+> > this requires adding some infrastructure. All doable, but not at the top
+> > of my todo list at the moment.
+>
+> So there is no software support yet.
 
-> I need analog input (PAL), but wouldn't mind DVB-T support either. As
-> such, the Hauppauge HVR-1300 would fit the bill nicely, but I'm
-> wondering if the MPEG encoder is really supported or not, and whether
-> this card can be brough to work relatively easily without any major
-> hassles? I just don't want to go through all sorts of trial and error
-> again to get it running stable.
->
-> If not, I guess the Hauppauge PVR-150 MCE appears to be a well supported
-> and stable workhorse?
->
-> Comments or recommendations much appreciated, thanks.
->
->
-> -- Per.
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+Best regards,
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
