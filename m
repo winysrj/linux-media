@@ -1,20 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m96B8YaU002999
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 07:08:34 -0400
-Received: from mgw-mx03.nokia.com (smtp.nokia.com [192.100.122.230])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m96B8JW8008037
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 07:08:20 -0400
-From: Sakari Ailus <sakari.ailus@nokia.com>
-To: video4linux-list@redhat.com
-Date: Mon,  6 Oct 2008 14:07:49 +0300
-Message-Id: <12232912721943-git-send-email-sakari.ailus@nokia.com>
-In-Reply-To: <12232912722050-git-send-email-sakari.ailus@nokia.com>
-References: <48E9F178.50507@nokia.com>
-	<12232912722008-git-send-email-sakari.ailus@nokia.com>
-	<12232912722050-git-send-email-sakari.ailus@nokia.com>
-Cc: vimarsh.zutshi@nokia.com, tuukka.o.toivonen@nokia.com, hnagalla@ti.com
-Subject: [PATCH] V4L: Add 10-bit RAW Bayer formats
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LCjfCE020731
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 08:45:41 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9LCjVCa030016
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 08:45:32 -0400
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: "Alexey Klimov" <klimov.linux@gmail.com>
+Date: Tue, 21 Oct 2008 14:45:28 +0200
+References: <208cbae30810191610s74b0dbeejef57ffd3d43cc3a4@mail.gmail.com>
+In-Reply-To: <208cbae30810191610s74b0dbeejef57ffd3d43cc3a4@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200810211445.29008.tobias.lorenz@gmx.net>
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] radio-si470x: add support for kworld usb-radio
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,34 +29,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Add 10-bit raw bayer format expanded to 16 bits. Adds also definition
-for 10-bit raw bayer format dpcm-compressed to 8 bits.
+Hi Alexey,
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- include/linux/videodev2.h |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+> There is chip in there named "silabs something", so i tried to add
+> support in Tobias' driver radio-si470x. Have success. Works fine with
+> kradio and gnomeradio under 2.6.27-git5 kernel. Thanks Tobias for
+> consideration.
+> (Tobias, if you want that patch change version of driver just ask and
+> i can re-make the patch)
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 303d93f..b80e5ca 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -315,6 +315,13 @@ struct v4l2_pix_format {
- /* see http://www.siliconimaging.com/RGB%20Bayer.htm */
- #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
- #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
-+/*
-+ * 10bit raw bayer, expanded to 16 bits
-+ * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
-+ */
-+#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0')
-+/* 10bit raw bayer DPCM compressed to 8 bits */
-+#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
- 
- /* compressed formats */
--- 
-1.5.0.6
+Very nice patch. Approved.
+
+> I think it's not critical right now, i used "arecord -D hw:2,0 -r96000
+> -c2 -f S16_LE | artsdsp aplay -B -" and periodically get "underrun"
+> messages:
+
+I have the same problems with the usbaudio or snd-usb-audio drivers. Maybe we should get in contact with them. But I don't want to open another building site for me.
+
+> So, we have two patches. Patches attached to letter. Patch that
+> touches HID-subsystem is created to be applied against -git tree on
+> kernel.org.
+
+Mauro can you apply the two patches in v4l-dvb?
+
+Thanks,
+Toby
 
 --
 video4linux-list mailing list
