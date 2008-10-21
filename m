@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from f204.mail.ru ([194.67.57.195])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KqKLW-0008UP-Qc
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 06:20:25 +0200
-Received: from mail by f204.mail.ru with local id 1KqKKy-0002tL-00
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 08:19:48 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Mime-Version: 1.0
-Date: Thu, 16 Oct 2008 08:19:48 +0400
-References: <48F628AE.9000308@xeve.de>
-In-Reply-To: <48F628AE.9000308@xeve.de>
-Message-Id: <E1KqKKy-0002tL-00.goga777-bk-ru@f204.mail.ru>
-Subject: Re: [linux-dvb]
-	=?koi8-r?b?UzJBUEkgLyBUVDMyMDAgLyBTVEIwODk5IHN1cHBv?=
-	=?koi8-r?b?cnQ=?=
-Reply-To: Goga777 <goga777@bk.ru>
+	(envelope-from <crope@iki.fi>) id 1KsNR6-00086K-Tp
+	for linux-dvb@linuxtv.org; Tue, 21 Oct 2008 22:02:40 +0200
+Message-ID: <48FE3553.5080009@iki.fi>
+Date: Tue, 21 Oct 2008 23:02:27 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Andrej Podzimek <andrej@podzimek.org>
+References: <48FE2872.3070105@podzimek.org>
+In-Reply-To: <48FE2872.3070105@podzimek.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] MSI DigiVox mini II V3.0 stopped working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,24 +19,77 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> How?
-> When I dump the stream (dd if=/dev/..../dvr0 of=hd.ts) and use "ffplay 
-> hd.ts", I get
-> hd.ts: could not open codecs
-
-ffplay hd.ts should work well. Do you use the latest ffplay version ?
-
-Goga
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+QW5kcmVqIFBvZHppbWVrIGtpcmpvaXR0aToKPiBIZWxsbywKPiAKPiBJJ3ZlIGJlZW4gdXNpbmcg
+dGhpcyBkZXZpY2UgdW5kZXIgTGludXggc2luY2UgQXByaWwgd2l0aCBubyBwcm9ibGVtcyBhdCBh
+bGwuIE5vdyBpdCBzdG9wcGVkIHdvcmtpbmcg4oCeb3Zlcm5pZ2h04oCcLiBQbGVhc2UgaGVscCBt
+ZSBmaW5kIG91dCB3aGV0aGVyIHRoaXMgaXMgbXkgbWlzdGFrZSwgYSBoYXJkd2FyZSBmYWlsdXJl
+IG9yIGEgYnVnIGluIHRoZSBkcml2ZXIuCj4gCj4gS2VybmVsOiAyLjYuMjcuMSAodmFuaWxsYSkK
+PiBhZjkwMTU6IGFmOTAxNS1jY2IzNzM2ZTQzYmEgKHRoZSBjdXJyZW50IG9uZSkKPiAKPiBUaGUg
+ZG1lc2cgb3V0cHV0IGlzIGludGVyZXN0aW5nLiBUaGlzIG9uZSBpcyBmcm9tIHllc3RlcmRheSB3
+aGVuIGl0IHdvcmtlZDoKPiAKPiAJT2N0IDIwIDIyOjMyOjA3IHhhbmRyZWogdXNiIDQtMi40OiBu
+ZXcgaGlnaCBzcGVlZCBVU0IgZGV2aWNlIHVzaW5nIGVoY2lfaGNkIGFuZCBhZGRyZXNzIDEyCj4g
+CU9jdCAyMCAyMjozMjowNyB4YW5kcmVqIHVzYiA0LTIuNDogY29uZmlndXJhdGlvbiAjMSBjaG9z
+ZW4gZnJvbSAxIGNob2ljZQo+IAlPY3QgMjAgMjI6MzI6MDcgeGFuZHJlaiBkdmItdXNiOiBmb3Vu
+ZCBhICdBZmF0ZWNoIEFGOTAxNSBEVkItVCBVU0IyLjAgc3RpY2snIGluIGNvbGQgc3RhdGUsIHdp
+bGwgdHJ5IHRvIGxvYWQgYSBmaXJtd2FyZQo+IAlPY3QgMjAgMjI6MzI6MDcgeGFuZHJlaiBmaXJt
+d2FyZTogcmVxdWVzdGluZyBkdmItdXNiLWFmOTAxNS5mdwo+IAlPY3QgMjAgMjI6MzI6MDcgeGFu
+ZHJlaiBkdmItdXNiOiBkb3dubG9hZGluZyBmaXJtd2FyZSBmcm9tIGZpbGUgJ2R2Yi11c2ItYWY5
+MDE1LmZ3Jwo+IAlPY3QgMjAgMjI6MzI6MDcgeGFuZHJlaiB1c2IgNC0yLjQ6IFVTQiBkaXNjb25u
+ZWN0LCBhZGRyZXNzIDEyCj4gCU9jdCAyMCAyMjozMjowNyB4YW5kcmVqIGR2Yi11c2I6IGdlbmVy
+aWMgRFZCLVVTQiBtb2R1bGUgc3VjY2Vzc2Z1bGx5IGRlaW5pdGlhbGl6ZWQgYW5kIGRpc2Nvbm5l
+Y3RlZC4KPiAJT2N0IDIwIDIyOjMyOjA3IHhhbmRyZWogZHZiLXVzYjogZ2VuZXJpYyBEVkItVVNC
+IG1vZHVsZSBzdWNjZXNzZnVsbHkgZGVpbml0aWFsaXplZCBhbmQgZGlzY29ubmVjdGVkLgo+IAlP
+Y3QgMjAgMjI6MzI6MDcgeGFuZHJlaiB1c2IgNC0yLjQ6IG5ldyBoaWdoIHNwZWVkIFVTQiBkZXZp
+Y2UgdXNpbmcgZWhjaV9oY2QgYW5kIGFkZHJlc3MgMTMKPiAJT2N0IDIwIDIyOjMyOjA3IHhhbmRy
+ZWogdXNiIDQtMi40OiBjb25maWd1cmF0aW9uICMxIGNob3NlbiBmcm9tIDEgY2hvaWNlCj4gCU9j
+dCAyMCAyMjozMjowNyB4YW5kcmVqIGR2Yi11c2I6IGZvdW5kIGEgJ0FmYXRlY2ggQUY5MDE1IERW
+Qi1UIFVTQjIuMCBzdGljaycgaW4gd2FybSBzdGF0ZS4KPiAJT2N0IDIwIDIyOjMyOjA3IHhhbmRy
+ZWogZHZiLXVzYjogd2lsbCBwYXNzIHRoZSBjb21wbGV0ZSBNUEVHMiB0cmFuc3BvcnQgc3RyZWFt
+IHRvIHRoZSBzb2Z0d2FyZSBkZW11eGVyLgo+IAlPY3QgMjAgMjI6MzI6MDcgeGFuZHJlaiBEVkI6
+IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChBZmF0ZWNoIEFGOTAxNSBEVkItVCBVU0IyLjAgc3Rp
+Y2spCj4gCU9jdCAyMCAyMjozMjowOCB4YW5kcmVqIGFmOTAxMzogZmlybXdhcmUgdmVyc2lvbjo0
+Ljk1LjAKPiAJT2N0IDIwIDIyOjMyOjA4IHhhbmRyZWogRFZCOiByZWdpc3RlcmluZyBmcm9udGVu
+ZCAwIChBZmF0ZWNoIEFGOTAxMyBEVkItVCkuLi4KPiAJT2N0IDIwIDIyOjMyOjA4IHhhbmRyZWog
+dGRhMTgyNzEgMS0wMGMwOiBjcmVhdGluZyBuZXcgaW5zdGFuY2UKPiAJT2N0IDIwIDIyOjMyOjA4
+IHhhbmRyZWogVERBMTgyNzFIRC9DMSBkZXRlY3RlZCBAIDEtMDBjMAo+IAlPY3QgMjAgMjI6MzI6
+MDggeGFuZHJlaiBkdmItdXNiOiBBZmF0ZWNoIEFGOTAxNSBEVkItVCBVU0IyLjAgc3RpY2sgc3Vj
+Y2Vzc2Z1bGx5IGluaXRpYWxpemVkIGFuZCBjb25uZWN0ZWQuCj4gCU9jdCAyMCAyMjozMjowOCB4
+YW5kcmVqIEFmYXRlY2ggRFZCLVQgMjogRml4aW5nIGZ1bGxzcGVlZCB0byBoaWdoc3BlZWQgaW50
+ZXJ2YWw6IDE2IC0+IDgKPiAJT2N0IDIwIDIyOjMyOjA4IHhhbmRyZWogaW5wdXQ6IEFmYXRlY2gg
+RFZCLVQgMiBhcyAvY2xhc3MvaW5wdXQvaW5wdXQxMAo+IAlPY3QgMjAgMjI6MzI6MDggeGFuZHJl
+aiBpbnB1dDogVVNCIEhJRCB2MS4wMSBLZXlib2FyZCBbQWZhdGVjaCBEVkItVCAyXSBvbiB1c2It
+MDAwMDowMDoxZC43LTIuNAo+IAo+IEFuZCB0aGlzIGlzIHdoYXQgaXQgbG9va3MgbGlrZSBub3c6
+Cj4gCj4gCU9jdCAyMSAyMDo0NjowOSB4YW5kcmVqIHVzYiA0LTI6IG5ldyBoaWdoIHNwZWVkIFVT
+QiBkZXZpY2UgdXNpbmcgZWhjaV9oY2QgYW5kIGFkZHJlc3MgOQo+IAlPY3QgMjEgMjA6NDY6MDkg
+eGFuZHJlaiB1c2IgNC0yOiBjb25maWd1cmF0aW9uICMxIGNob3NlbiBmcm9tIDEgY2hvaWNlCj4g
+CU9jdCAyMSAyMDo0NjowOSB4YW5kcmVqIGR2Yi11c2I6IGZvdW5kIGEgJ0FmYXRlY2ggQUY5MDE1
+IERWQi1UIFVTQjIuMCBzdGljaycgaW4gY29sZCBzdGF0ZSwgd2lsbCB0cnkgdG8gbG9hZCBhIGZp
+cm13YXJlCj4gCU9jdCAyMSAyMDo0NjowOSB4YW5kcmVqIGZpcm13YXJlOiByZXF1ZXN0aW5nIGR2
+Yi11c2ItYWY5MDE1LmZ3Cj4gCU9jdCAyMSAyMDo0NjowOSB4YW5kcmVqIGR2Yi11c2I6IGRvd25s
+b2FkaW5nIGZpcm13YXJlIGZyb20gZmlsZSAnZHZiLXVzYi1hZjkwMTUuZncnCj4gCU9jdCAyMSAy
+MDo0NjoxMCB4YW5kcmVqIEFmYXRlY2ggRFZCLVQgMjogRml4aW5nIGZ1bGxzcGVlZCB0byBoaWdo
+c3BlZWQgaW50ZXJ2YWw6IDE2IC0+IDgKPiAJT2N0IDIxIDIwOjQ2OjEwIHhhbmRyZWogaW5wdXQ6
+IEFmYXRlY2ggRFZCLVQgMiBhcyAvY2xhc3MvaW5wdXQvaW5wdXQxMwo+IAlPY3QgMjEgMjA6NDY6
+MTAgeGFuZHJlaiBpbnB1dDogVVNCIEhJRCB2MS4wMSBLZXlib2FyZCBbQWZhdGVjaCBEVkItVCAy
+XSBvbiB1c2ItMDAwMDowMDoxZC43LTIKPiAKPiBBcyB5b3UgY2FuIHNlZSwgdGhlIG1vZHVsZSB0
+ZGExODI3MSBkb2VzIG5vdCBsb2FkIGF0IGFsbC4gUHJlc3VtYWJseSwgbG9hZGluZyBpdCBtYW51
+YWxseSBkb2VzIG5vdCBoZWxwLiAoTm8gb3V0cHV0IGlzIHByb2R1Y2VkLikKCkxvb2tzIGxpa2Ug
+ZXZlbiBmaXJtd2FyZSBkb2VzIG5vdCByYW4uIENvdWxkIHlvdSB0cnkgZGVidWcsIGxvYWQgZHJp
+dmVyIApieSBtb2Rwcm9iZSBkdmItdXNiLWFmOTAxNSBkZWJ1Zz0zCgo+IFRoaXMgc2VlbXMgKmlu
+ZXhwbGljYWJsZSogdG8gbWUuIEkgYW0gdGhlIG9ubHkgdXNlciBvZiB0aGlzIGNvbXB1dGVyLiBU
+aGVyZSB3ZXJlIG5vIGtlcm5lbCB1cGRhdGVzIGJldHdlZW4gdGhlIHR3byBzZXNzaW9ucy4gRXZl
+cnl0aGluZyByZW1haW5lZCB1bmNoYW5nZWQsIGFzIGZhciBhcyBzb2Z0d2FyZSBpcyBjb25jZXJu
+ZWQuIEhvd2V2ZXIsIG15IGRldmljZSBpcyBzaW1seSBkZWFkIG5vdyBhbmQgS2FmZmVpbmUgZG9l
+cyBub3QgZmluZCBpdCBhbnkgbW9yZS4gQW55IHBpZWNlIG9mIGFkdmljZSB3b3VsZCBiZSB3ZWxj
+b21lLgoKSFcgY291bGQgYmUgZGVhZC4uLiBJZiB5b3UgY2FuLCB0ZXN0IGl0IHdpdGggV2luZG93
+cy4KCj4gCj4gUmVnYXJkcywKPiAKPiBBbmRyZWogUG9kemltZWsKCnJlZ2FyZHMKQW50dGkKCi0t
+IApodHRwOi8vcGFsb3NhYXJpLmZpLwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5v
+cmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgt
+ZHZi
