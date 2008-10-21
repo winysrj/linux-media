@@ -1,27 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9HMGwxr028810
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 18:16:58 -0400
-Received: from cicero4.cybercity.dk (cicero4.cybercity.dk [212.242.40.52])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9HMGuLH012217
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 18:16:56 -0400
-Received: from jakob.b4net.dk (port157.ds1-taa.adsl.cybercity.dk
-	[212.242.111.226])
-	by cicero4.cybercity.dk (Postfix) with ESMTP id 7610B3CBC65
-	for <video4linux-list@redhat.com>;
-	Sat, 18 Oct 2008 00:16:55 +0200 (CEST)
-Received: from [10.0.0.2] (ugle [10.0.0.2])
-	by jakob.b4net.dk (Postfix) with ESMTP id A21F11318043
-	for <video4linux-list@redhat.com>;
-	Sat, 18 Oct 2008 00:16:52 +0200 (CEST)
-Message-ID: <48F90ED4.8030907@b4net.dk>
-Date: Sat, 18 Oct 2008 00:16:52 +0200
-From: Per Baekgaard <baekgaard@b4net.dk>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LCrvHO024883
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 08:53:58 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9LCrbia002143
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 08:53:37 -0400
+Date: Tue, 21 Oct 2008 10:53:22 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Tobias Lorenz <tobias.lorenz@gmx.net>
+Message-ID: <20081021105322.5079ddad@pedra.chehab.org>
+In-Reply-To: <200810211445.29008.tobias.lorenz@gmx.net>
+References: <208cbae30810191610s74b0dbeejef57ffd3d43cc3a4@mail.gmail.com>
+	<200810211445.29008.tobias.lorenz@gmx.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Subject: Hauppauge PVR-150 MCE vs HVR-1300
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] radio-si470x: add support for kworld usb-radio
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,27 +28,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Still struggling with my unknown card (see earlier mails), although I
-have now got it to work somewhat more reliable based on input here on
-the list, thanks!
 
-So, to avoid a similar situation when building another Myth-TV box, I'm
-now wondering which card to get.
+On Tue, 21 Oct 2008 14:45:28 +0200
+Tobias Lorenz <tobias.lorenz@gmx.net> wrote:
 
-I need analog input (PAL), but wouldn't mind DVB-T support either. As
-such, the Hauppauge HVR-1300 would fit the bill nicely, but I'm
-wondering if the MPEG encoder is really supported or not, and whether
-this card can be brough to work relatively easily without any major
-hassles? I just don't want to go through all sorts of trial and error
-again to get it running stable.
+> Hi Alexey,
+> 
+> > There is chip in there named "silabs something", so i tried to add
+> > support in Tobias' driver radio-si470x. Have success. Works fine with
+> > kradio and gnomeradio under 2.6.27-git5 kernel. Thanks Tobias for
+> > consideration.
+> > (Tobias, if you want that patch change version of driver just ask and
+> > i can re-make the patch)
+> 
+> Very nice patch. Approved.
+> 
+> > I think it's not critical right now, i used "arecord -D hw:2,0 -r96000
+> > -c2 -f S16_LE | artsdsp aplay -B -" and periodically get "underrun"
+> > messages:
+> 
+> I have the same problems with the usbaudio or snd-usb-audio drivers. Maybe we should get in contact with them. But I don't want to open another building site for me.
+> 
+> > So, we have two patches. Patches attached to letter. Patch that
+> > touches HID-subsystem is created to be applied against -git tree on
+> > kernel.org.
+> 
+> Mauro can you apply the two patches in v4l-dvb?
 
-If not, I guess the Hauppauge PVR-150 MCE appears to be a well supported
-and stable workhorse?
+Sure. Could you send me your acked-by?
+> 
+> Thanks,
+> Toby
 
-Comments or recommendations much appreciated, thanks.
 
 
--- Per.
+
+Cheers,
+Mauro
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
