@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <guzowskip@linuxmail.org>) id 1KpiYJ-0000YF-F0
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 13:59:06 +0200
-Received: from wfilter.us4.outblaze.com.int (wfilter.us4.outblaze.com.int
-	[192.168.9.180])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	2E950180013C
-	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 11:58:55 +0000 (GMT)
-Content-Disposition: inline
+Received: from 217-112-173-73.cust.avonet.cz ([217.112.173.73]
+	helo=podzimek.org) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <andrej@podzimek.org>) id 1KsQ39-0002yz-6q
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 00:50:05 +0200
+Message-ID: <48FE5C78.2030301@podzimek.org>
+Date: Wed, 22 Oct 2008 00:49:28 +0200
+From: Andrej Podzimek <andrej@podzimek.org>
 MIME-Version: 1.0
-From: "Paul Guzowski" <guzowskip@linuxmail.org>
-To: linux-dvb@linuxtv.org
-Date: Tue, 14 Oct 2008 05:58:55 -0600
-Message-Id: <20081014115855.1E8D37BD4F@ws5-10.us4.outblaze.com>
-Subject: [linux-dvb] Ubuntu 8.10 and Pinnacle HDTV Pro usb stick
+To: Sebastian Marskamp <SebastianMarskamp@web.de>
+References: <1550114954@web.de>
+In-Reply-To: <1550114954@web.de>
+Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] MSI DigiVox mini II V3.0 stopped working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,65 +19,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Greetings,
+Sebastian Marskamp wrote:
+> Same here  ..Problem occures with Kernel  	2.6.27   . Firmware is installed correct , hardware is working under windows . No error Message at all. 
+> 
+> [ 2696.610565] af9015_usb_probe: interface:0
+> [ 2696.611970] af9015_read_config: IR mode:1
+> [ 2696.614463] af9015_read_config: TS mode:0
+> [ 2696.615839] af9015_read_config: [0] xtal:2 set adc_clock:28000
+> [ 2696.618595] af9015_read_config: [0] IF1:43000
+> [ 2696.621344] af9015_read_config: [0] MT2060 IF1:0
+> [ 2696.622718] af9015_read_config: [0] tuner id:156
+> [ 2696.623093] af9015_identify_state: reply:01
+> [ 2696.623097] dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in cold state, will try to load a firmware
+> [ 2696.623100] firmware: requesting dvb-usb-af9015.fw
+> [ 2696.634547] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+> [ 2696.634552] af9015_download_firmware:
+> [ 2696.701890] usbcore: registered new interface driver dvb_usb_af9015
+> 
+> Its just not working anymore 
 
-I'm trying to use a Pinnacle HDTV Pro USB stick to take an RF-out (US chann=
-el 3) from my cable company's set-top box to allow me to watch TV in a wind=
-ow on my computer which is running Ubuntu Linux.  I found several ways to g=
-et video but was missing audio then finally found a way to get both with MP=
-layer using the following command:
+Well, in my case, it *did* work just normally. I watched TV for about three hours yesterday evening, using exactly the same SW and machine as now. Will try to set debug=3 for that module in modprobe.conf.
 
-mplayer -vo xv tv:// -tv driver=3Dv4l2:alsa:immediatemode=3D0:adevice=3Dhw.=
-1,0:norm=3Dntsc:chanlist=3Dus-cable
+Andrej
 
-I was running Ubuntu 8.04 (Hardy Heron) then I upgraded to the Beta for Ubu=
-ntu 8.10.  MPlayer TV with video and sound worked for a while but, as with =
-all Beta releases, the updates were coming hot and heavy and now I=92m righ=
-t back where I started with video and no audio. Now when I run that command=
-, I get the following error messages regarding audio:
-
-v4l2: current audio mode is : MONO
-ALSA lib pcm_hw.c:1429:(_snd_pcm_hw_open) Invalid value for card
-Error opening audio: No such file or directory
-ALSA lib pcm_hw.c:1429:(_snd_pcm_hw_open) Invalid value for card
-Error opening audio: No such file or directory
-ALSA lib pcm_hw.c:1429:(_snd_pcm_hw_open) Invalid value for card
-Error opening audio: No such file or directory
-v4l2: 0 frames successfully processed, 0 frames dropped.
-
-Results of cat /proc/asound/cards:
-
-paul@Kris-desktop:~/Desktop$ cat /proc/asound/cards
-0 [SI7012 ]: ICH - SiS SI7012
-SiS SI7012 with YMF753 at irq 18
-1 [Em28xx Audio ]: Empia Em28xx AudEm28xx Audio - Em28xx Audio
-Empia Em28xx Audio
-
-Can anyone give me any idea why this was working and has now stopped or wha=
-t I need to do to get audio back? I'm not tied to MPlayer so TvTime should =
-work OK but the base Ubuntu package has no sound and I cannot get the sourc=
-e to compile on my system. I'm open to any/all suggestions and am willing t=
-o try any other software packages. Thanks in advance.
-
-Polo
-
-
-=3D
-The New Yorker Online
-An Intelligent Approach to the Business Report. Read Now.
-http://a8-asy.a8ww.net/a8-ads/adftrclick?redirectid=3D072b6a986f0b98b481fa5=
-f50993a47ad
-
-
--- =
-
-Powered by Outblaze
 
 _______________________________________________
 linux-dvb mailing list
