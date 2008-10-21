@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joan.kewl.org ([212.161.35.248])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <darron@kewl.org>) id 1KriD4-0007vS-4l
-	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 02:01:23 +0200
-From: Darron Broad <darron@kewl.org>
-To: Darron Broad <darron@kewl.org>
-In-reply-to: <5905.1224308528@kewl.org> 
-References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
-	<2207.1224273353@kewl.org>
-	<412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com>
-	<5905.1224308528@kewl.org>
-Date: Mon, 20 Oct 2008 01:01:18 +0100
-Message-ID: <21253.1224460878@kewl.org>
-Cc: Linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [RFC] SNR units in tuners
+Received: from 217-112-173-73.cust.avonet.cz ([217.112.173.73]
+	helo=podzimek.org) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <andrej@podzimek.org>) id 1KsQVR-00051i-Av
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 01:19:17 +0200
+Message-ID: <48FE6351.2000805@podzimek.org>
+Date: Wed, 22 Oct 2008 01:18:41 +0200
+From: Andrej Podzimek <andrej@podzimek.org>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+References: <48FE2872.3070105@podzimek.org> <48FE3553.5080009@iki.fi>
+In-Reply-To: <48FE3553.5080009@iki.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] MSI DigiVox mini II V3.0 stopped working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,85 +19,22 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <5905.1224308528@kewl.org>, Darron Broad wrote:
->In message <412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com>, "Devin Heitmueller" wrote:
+One more little note about the firmware:
 
-hi.
+	[andrej@xandrej firmware]$ sha1sum dvb-usb-af9015.fw
+	6a0edcc65f490d69534d4f071915fc73f5461560  dvb-usb-af9015.fw
 
->
->hi
->
->>On Fri, Oct 17, 2008 at 3:55 PM, Darron Broad <darron@kewl.org> wrote:
->>>>===
->>> <SNIP>
->>>>cx24116.c       percent scaled to 0-0xffff, support for ESN0
->>> <SNIP>
->>>
->>> There is no hole here but I thought I would pass you by some
->>> history with this.
->>>
->>> The scaled value was calibrated against two domestic satellite
->>> receivers. The first being a nokia 9600s with dvb2000 and
->>> the other being a Fortec star beta. At the time there was
->>> no knowledge of what the cx24116 value represented and no
->>> great idea of what the domestic box values represented.
->>> However, the scaling function matches very closely to those
->>> two machines. What this means in essence is not much but
->>> may be useful to you.
->>
->>By all means, if you have information to share about how the
->>calculation was arrived at, please do.
->>
->>At this point the goal is to understand what the value means for
->>different demods.  For the simple cases where the answer is "it's the
->>SNR in 0.1db as provided by register X", then it's easy.  If it's "I
->>don't really know and I just guessed based on empirical testing, then
->>that is useful information too.
->>
->>Once people have reported in with the information, I will see about
->>submitting a patch reflecting this information as a comment in the
->>driver source for the various demods.
->
->The trouble there is that the scaling for the cx24116 already works
->from an end-user perspective. The value derived in the code is
->a possible maximum of 160 from the chip. REELBOX decided on 176
->which may be more accurate.
->
->A quick glance here:
->http://www.mathworks.com/matlabcentral/files/19717/ExactBER.jpg
->Would suggest that if that 160 equates to around 10 esn0 (QPSK)
->then the register on that chip may equal -5 when 0. I have no real
->idea of course as I have no access to any confidential information.
->
->Also, if you refer to that graph, we can see that to scale esn0
->for the end user it also needs to take into account that it's
->maximum requirement varies per modulation scheme.
->
->I am no expert on this but it doesn't seem as simple as it
->may do on first sight.
+That file can be found here: http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
 
-LOL. not only am I no expert on this I am also stupid. Please
-forgive the ramblings of an old man who totally misread this.
-Please refer to other post where Georg has clarified all of
-this simply without pointing out the obvious flaws in my
-pursuit of signal nirvana.
+Is it the right one? Shell I try something else?
 
-I wish you well, sorry for the rambling.
-
-darron
-
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
+Andrej
 
 
 _______________________________________________
