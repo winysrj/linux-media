@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qb-out-0506.google.com ([72.14.204.238])
+Received: from mail-out.m-online.net ([212.18.0.10])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <oroitburd@gmail.com>) id 1Kun8Y-0003bB-Uc
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 12:53:27 +0100
-Received: by qb-out-0506.google.com with SMTP id e11so2085423qbe.25
-	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 04:53:23 -0700 (PDT)
-Message-ID: <b42fca4d0810280453j652a531ag94f1d3137e540f6c@mail.gmail.com>
-Date: Tue, 28 Oct 2008 12:53:22 +0100
-From: "oleg roitburd" <oroitburd@gmail.com>
-To: jean-paul@goedee.nl
-In-Reply-To: <20081028124505.tvjko4bvkgk4kg4o@webmail.goedee.nl>
+	(envelope-from <zzam@gentoo.org>) id 1KsBf0-0001Zm-AK
+	for linux-dvb@linuxtv.org; Tue, 21 Oct 2008 09:28:12 +0200
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-dvb@linuxtv.org
+Date: Tue, 21 Oct 2008 09:28:02 +0200
+References: <20081016190946.GB25806@geppetto> <20081020193632.GA5685@geppetto>
+	<48FCEA05.7060600@kaiser-linux.li>
+In-Reply-To: <48FCEA05.7060600@kaiser-linux.li>
 MIME-Version: 1.0
 Content-Disposition: inline
-References: <20081028111538.1yl7p80uo0cggo80@webmail.goedee.nl>
-	<4906E9CC.2040408@gmail.com>
-	<20081028124505.tvjko4bvkgk4kg4o@webmail.goedee.nl>
-Cc: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-dvb] S2API & TT3200
+Message-Id: <200810210928.03029.zzam@gentoo.org>
+Subject: Re: [linux-dvb]
+	=?iso-8859-1?q?v4l-dvb_gspca_modules_conflict_with=09?=
+	=?iso-8859-1?q?standalone=09gspca_module?=
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,36 +28,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/10/28  <jean-paul@goedee.nl>:
-> Ok clone the repo and its compiling again. Thanx. Now I want to scan
-> channels (scab-s2) on both lnb;s (astra 1 & 3). First transponder
-> scans only 13 services and  Diseqc doesn?t work with the second lnb.
->
-> WARNING: >>> tuning failed!!!
->>>> tune to: 11856:vS1C56:S23.5E:27500: (tuning failed)
-> DiSEqC: uncommitted switch pos 0
-> DiSEqC: switch pos 1, 13V, hiband (index 6)
-> DVB-S IF freq is 1256000
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
-> WARNING: >>> tuning failed!!!
-> ERROR: initial tuning failed
-> dumping lists (0 services)
-> Done.
+On Montag, 20. Oktober 2008, Thomas Kaiser wrote:
 
-I can confirm this issue with jusst.de/hg/v4l-dvb. Take a look another thread.
-Ok. I'm not alone ;)
+>
+> Hans de Goede (j.w.r.degoede@hhs.nl) is writing a user space lib to
+> convert/decode all the stuff which was done in the old gspca in kernel
+> space, his lib does it now in user space. That's the way to go!
+>
+> The development of this is rather new and I think it is not included in
+> any distro at the moment. But it will be soon.
+>
+
+Well, gentoo already has it since october, 18th :)
 
 Regards
-Oleg Roitburd
+Matthias
 
 _______________________________________________
 linux-dvb mailing list
