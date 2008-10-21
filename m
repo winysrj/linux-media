@@ -1,20 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9BK8imR024337
-	for <video4linux-list@redhat.com>; Sat, 11 Oct 2008 16:08:44 -0400
-Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9BK8W5K007028
-	for <video4linux-list@redhat.com>; Sat, 11 Oct 2008 16:08:32 -0400
-Message-ID: <48F107D1.2020902@free.fr>
-Date: Sat, 11 Oct 2008 22:08:49 +0200
-From: Thierry Merle <thierry.merle@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9L97axx015853
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 05:07:36 -0400
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9L97L2D012646
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 05:07:21 -0400
+Message-ID: <48FD9C85.5040102@hhs.nl>
+Date: Tue, 21 Oct 2008 11:10:29 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: Linux DVB Mailing List <linux-dvb@linuxtv.org>,
-	Linux and Kernel Video <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Andrew Morton <akpm@linux-foundation.org>
+References: <bug-11776-10286@http.bugzilla.kernel.org/>
+	<20081020165537.9bb9ae8a.akpm@linux-foundation.org>
+In-Reply-To: <20081020165537.9bb9ae8a.akpm@linux-foundation.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: [PATCH] em28xx-dvb: dvb_init() code factorization
+Cc: video4linux-list@redhat.com, linuxkernel@lanrules.de,
+	bugme-daemon@bugzilla.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [Bugme-new] [Bug 11776] New: Regression: Hardware working with
+ old stock gspca module fails with 2.6.27 module
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,62 +31,67 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello all,
-here is a trivial patch that does code factorization between cases in dvb_init() function of the em28xx-dvb component.
-Is there a reason not to do that?
+Andrew Morton wrote:
+> (switched to email.  Please respond via emailed reply-to-all, not via the
+> bugzilla web interface).
+> 
+> gspca doesn't seem to have a MAINTAINERS record.  Or it is entered
+> under something unobvious so my search failed?
+> 
 
-Cheers,
-Thierry
+We need to fix that then, gspca is maintained by Jean-Francois Moine, with me 
+co-maintaining.
 
-patch description:
+<snip>
 
-In dvb_init(),
-        case EM2880_BOARD_TERRATEC_HYBRID_XS:
-        case EM2880_BOARD_KWORLD_DVB_310U:
-can be put in the same case than EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900
-since they do the same thing.
+>> This is the information about the webcam given by the old gspca module, still
+>> working with 2.6.26:
+>> Camera found: lenovo MI1310_SOC
+>> Bridge found: VC0323
+>> StreamId: JPEG Camera
+>> quality 7 autoexpo 1 Timeframe 0 lightfreq 50
+>> Available Resolutions width 640  heigth 480 native
+>> Available Resolutions width 352  heigth 288 native
+>> Available Resolutions width 320  heigth 240 native *
+>> Available Resolutions width 176  heigth 144 native
+>> Available Resolutions width 160  heigth 120 native
+>> unable to probe size !! 
+>>
 
-Priority: normal
+Ok, so from this I gather that you are using spcaview to watch images from the 
+cam. spcaview by default asks the driver for yv12 format video data.
 
-Signed-off-by: Thierry MERLE <thierry.merle@free.fr>
+However the vc0323 cam in your laptop delivers video data in JPEG format. The 
+old gspca driver did format conversion inside the kernel. Which is a very bad 
+thing to do and thus has been removed in the new version.
 
-diff -r 1e7e0b56d97b -r 5da1a92af6a1 linux/drivers/media/video/em28xx/em28xx-dvb.c
---- a/linux/drivers/media/video/em28xx/em28xx-dvb.c	Sat Oct 11 12:44:38 2008 -0300
-+++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c	Sat Oct 11 21:56:13 2008 +0200
-@@ -422,6 +422,8 @@
- 		}
- 		break;
- 	case EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900:
-+	case EM2880_BOARD_TERRATEC_HYBRID_XS:
-+	case EM2880_BOARD_KWORLD_DVB_310U:
- 		dvb->frontend = dvb_attach(zl10353_attach,
- 					   &em28xx_zl10353_with_xc3028,
- 					   &dev->i2c_adap);
-@@ -443,24 +445,6 @@
- 		}
- 		break;
- #endif
--	case EM2880_BOARD_TERRATEC_HYBRID_XS:
--		dvb->frontend = dvb_attach(zl10353_attach,
--						&em28xx_zl10353_with_xc3028,
--						&dev->i2c_adap);
--		if (attach_xc3028(0x61, dev) < 0) {
--			 result = -EINVAL;
--			goto out_free;
--		}
--		break;
--	case EM2880_BOARD_KWORLD_DVB_310U:
--		dvb->frontend = dvb_attach(zl10353_attach,
--						&em28xx_zl10353_with_xc3028,
--						&dev->i2c_adap);
--		if (attach_xc3028(0x61, dev) < 0) {
--			result = -EINVAL;
--			goto out_free;
--		}
--		break;
- 	default:
- 		printk(KERN_ERR "%s/2: The frontend of your DVB/ATSC card"
- 				" isn't supported yet\n",
+Most apps / libraries do not know how to handle the multitude of video formats 
+webcams can produce. For this I've written libv4l:
+http://hansdegoede.livejournal.com/3636.html
+
+Get the latest version here:
+http://people.atrpms.net/~hdegoede/libv4l-0.5.1.tar.gz
+
+Then read:
+http://moinejf.free.fr/gspca_README.txt
+or the included README for install instructions.
+
+As described in the documents you can make existing applications use this lib 
+with an LD_PRELOAD loadable wrapper.
+
+FOSS applications can be easily adapted to instead use the library directly, a 
+coordinated cross distro effort is underway to make this happen (including 
+pushing patches upstream), see:
+http://linuxtv.org/v4lwiki/index.php/Libv4l_Progress
+
+You can find patches for quite a few applications here. Help in patching others 
+is very much welcome! If you need some quick instructions what to change 
+exactly let me know.
+
+Regards,
+
+Hans
+
 
 --
 video4linux-list mailing list
