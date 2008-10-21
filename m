@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m97GIpNL023448
-	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:51 -0400
-Received: from mgw-mx06.nokia.com (smtp.nokia.com [192.100.122.233])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m97GIcNN021757
-	for <video4linux-list@redhat.com>; Tue, 7 Oct 2008 12:18:38 -0400
-From: Sakari Ailus <sakari.ailus@nokia.com>
-To: hverkuil@xs4all.nl, video4linux-list@redhat.com
-Date: Tue,  7 Oct 2008 19:18:13 +0300
-Message-Id: <12233962962104-git-send-email-sakari.ailus@nokia.com>
-In-Reply-To: <1223396296101-git-send-email-sakari.ailus@nokia.com>
-References: <48EB8BAC.90706@nokia.com>
-	<12233962961256-git-send-email-sakari.ailus@nokia.com>
-	<1223396296101-git-send-email-sakari.ailus@nokia.com>
-Cc: vimarsh.zutshi@nokia.com, tuukka.o.toivonen@nokia.com, hnagalla@ti.com
-Subject: [PATCH 3/6] V4L: Add 10-bit RAW Bayer formats
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LLAYvi014924
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 17:10:34 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9LLAMGw008483
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 17:10:22 -0400
+Date: Tue, 21 Oct 2008 19:09:40 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Message-ID: <20081021190940.3d8700bb@pedra.chehab.org>
+In-Reply-To: <200810212149.58105.laurent.pinchart@skynet.be>
+References: <200810211916.47434.hverkuil@xs4all.nl>
+	<200810212149.58105.laurent.pinchart@skynet.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Proposal to rename compat_ioctl32.c to v4l2-compat-ioctl32.c
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,34 +28,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Add 10-bit raw bayer format expanded to 16 bits. Adds also definition
-for 10-bit raw bayer format dpcm-compressed to 8 bits.
+On Tue, 21 Oct 2008 21:49:57 +0200
+Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- include/linux/videodev2.h |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+> On Tuesday 21 October 2008, Hans Verkuil wrote:
+> > Hi Mauro,
+> >
+> > The compat_ioctl32.c is the only v4l2 core source whose name does not
+> > begin with v4l2-. Because of that it is often overlooked (I certainly
+> > did in the past!) when adding new ioctls.
+> >
+> > I propose to rename it to v4l2-compat-ioctl32.c. What I'm not sure of is
+> > whether it is OK to rename the module as well to
+> > v4l2_compat_ioctl32.ko? Or should that remain compat_ioctl32.ko?
+> >
+> > Personally I think it would be nice if this rename could go into 2.6.28.
+> > This file is rarely touched so the chances of merge conflicts seem
+> > remote to me.
+> >
+> > Note that I'm abroad from tomorrow until Sunday, so if you agree then
+> > it's probably quicker if you make the change rather than waiting for me
+> > to return. It's trivial anyway.
+> 
+> I'm in favour of the change. Renaming the module should not be an issue as it 
+> should be pulled in by modprobe as a dependency anyway.
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 303d93f..b80e5ca 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -315,6 +315,13 @@ struct v4l2_pix_format {
- /* see http://www.siliconimaging.com/RGB%20Bayer.htm */
- #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
- #define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
-+/*
-+ * 10bit raw bayer, expanded to 16 bits
-+ * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
-+ */
-+#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0')
-+/* 10bit raw bayer DPCM compressed to 8 bits */
-+#define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
- 
- /* compressed formats */
--- 
-1.5.0.6
+I agree. This seems to be a good idea.
+
+I'll try to find some time for doing it this week. We should not forget to
+update obsolete.txt to be sure that "make rmmod" and "make rminstall" will
+properly remove the previous name.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
