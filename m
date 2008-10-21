@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9OINu9Q028819
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 14:23:56 -0400
-Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9OIMAX4008474
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 14:22:11 -0400
-Message-ID: <49021251.8020402@kaiser-linux.li>
-Date: Fri, 24 Oct 2008 20:22:09 +0200
-From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-References: <4900DA6B.4050902@kaiser-linux.li>
-	<1224831699.1761.13.camel@localhost>
-In-Reply-To: <1224831699.1761.13.camel@localhost>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LLslLx005316
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 17:54:47 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9LLsEW3031826
+	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 17:54:14 -0400
+Date: Tue, 21 Oct 2008 19:54:00 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Message-ID: <20081021195400.45c513b8@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Video 4 Linux <video4linux-list@redhat.com>
-Subject: Re: gspca, what do I am wrong?
+Cc: linux-dvb-maintainer@linuxtv.org, video4linux-list@redhat.com,
+	linux-kernel@vger.kernel.org
+Subject: [GIT PATCHES for 2.6.28] V4L/DVB updates and fixes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,245 +26,163 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello Jean-Francois
+Linus,
 
-Thanks for you comments. More from me inline.
+Please pull from:
+        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
 
-Jean-Francois Moine wrote:
---- snip ---
-> You may copy the /boot/config to <hg root>/vl4/ and do a make menuconfig
-> (but this will not work without the kernel sources).
+Most of this series are fixes at drivers:
+   - cx18: memory leak, warnings, returned error codes;
+   - pvrusb2: deadlock and keep MPEG PTSs from drifting away;
+   - dsbr100: Correct bus_info string and CodingStyle;
+   - radio-mr800: Add BKL for usb_amradio_open();
+   - dsbr100: Add frequency check;
+   - s5h1411: several demod locking fixes and some cleanups. Also save 
+     some energy when not in use;
+   - ivtv: use unlocked_ioctl and avoid led flashing when loading;
+   - ivtvfb: FB_BLANK_POWERDOWN turns off video output;
+   - cx88: fix compilation breakage and some memory leaks;
+   - use video_device.num instead of minor in video%d at several drivers;
 
-I did, but shouldn't it be possible to just download the the v4l-dvb 
-source and compile and install without fiddling around with the 
-distribution's config file?
+There is also a few internal API improvements and fixes:
+   - A few additions at v4l2-int-if, in order to support some OMAP devices;
+   - videobuf: split unregister bus to avoid memory leaks on errors.
 
-I could compile everything just with the kernel-headers. The complete 
-kernel source was not required.
+There's also a trivial, but bigger patch that removes an unused "inode"
+parameter that used to be present on several calls inside v4l1-compat module.
+This simplified the KABI for v4l_compat_translate_ioctl() and video_ioctl2.
 
-Now some logs after copy the config-2.6.24-21-generic to v4l/.config and 
-do a new compile and install. I rebooted after this was done:
+Cheers,
+Mauro.
 
-kernel log after reboot:
-thomas@LAPI01:~$ tail -f /var/log/kern.log
-Oct 24 19:01:48 LAPI01 kernel: [   91.928973] NET: Registered protocol 
-family 17
-Oct 24 19:01:49 LAPI01 kernel: [   92.987881] wlan0: Initial auth_alg=0
-Oct 24 19:01:49 LAPI01 kernel: [   92.987911] wlan0: authenticate with 
-AP 00:18:9b:4d:71:06
-Oct 24 19:01:49 LAPI01 kernel: [   92.990154] wlan0: RX authentication 
-from 00:18:9b:4d:71:06 (alg=0 transaction=2 status=0)
-Oct 24 19:01:49 LAPI01 kernel: [   92.990179] wlan0: authenticated
-Oct 24 19:01:49 LAPI01 kernel: [   92.990183] wlan0: associate with AP 
-00:18:9b:4d:71:06
-Oct 24 19:01:49 LAPI01 kernel: [   92.992507] wlan0: RX AssocResp from 
-00:18:9b:4d:71:06 (capab=0x1 status=0 aid=1)
-Oct 24 19:01:49 LAPI01 kernel: [   92.992532] wlan0: associated
-Oct 24 19:01:49 LAPI01 kernel: [   92.993633] ADDRCONF(NETDEV_CHANGE): 
-wlan0: link becomes ready
-Oct 24 19:02:05 LAPI01 kernel: [  111.931267] wlan0: no IPv6 routers present
+---
 
-Then check loaded modules:
-thomas@LAPI01:~$ lsmod
-Module                  Size  Used by
-af_packet              23812  4
-i915                   32512  2
-drm                    82452  3 i915
-rfcomm                 41744  2
-l2cap                  25728  13 rfcomm
-bluetooth              61156  4 rfcomm,l2cap
-rfkill_input            5760  0
-ppdev                  10372  0
-ipv6                  267780  10
-speedstep_lib           6532  0
-cpufreq_powersave       2688  0
-cpufreq_conservative     8712  0
-cpufreq_ondemand        9740  0
-cpufreq_stats           7104  0
-freq_table              5536  2 cpufreq_ondemand,cpufreq_stats
-cpufreq_userspace       5284  0
-dock                   11280  0
-sbs                    15112  0
-container               5632  0
-sbshc                   7680  1 sbs
-iptable_filter          3840  0
-ip_tables              14820  1 iptable_filter
-x_tables               16132  1 ip_tables
-parport_pc             36260  0
-lp                     12324  0
-parport                37832  3 ppdev,parport_pc,lp
-joydev                 13120  0
-pcmcia                 40876  0
-evdev                  13056  8
-arc4                    2944  2
-dcdbas                  9504  0
-ecb                     4480  2
-blkcipher               8324  1 ecb
-snd_intel8x0           35356  3
-snd_ac97_codec        101028  1 snd_intel8x0
-ac97_bus                3072  1 snd_ac97_codec
-snd_pcm_oss            42144  0
-snd_mixer_oss          17920  1 snd_pcm_oss
-serio_raw               7940  0
-snd_pcm                78596  3 snd_intel8x0,snd_ac97_codec,snd_pcm_oss
-pcspkr                  4224  0
-psmouse                40336  0
-b43                   144548  0
-rfkill                  8596  3 rfkill_input,b43
-mac80211              165652  1 b43
-cfg80211               15112  1 mac80211
-led_class               6020  1 b43
-input_polldev           5896  1 b43
-snd_seq_dummy           4868  0
-video                  19856  0
-output                  4736  1 video
-snd_seq_oss            35584  0
-snd_seq_midi            9376  0
-snd_rawmidi            25760  1 snd_seq_midi
-yenta_socket           27276  1
-rsrc_nonstatic         13696  1 yenta_socket
-pcmcia_core            40596  3 pcmcia,yenta_socket,rsrc_nonstatic
-snd_seq_midi_event      8320  2 snd_seq_oss,snd_seq_midi
-snd_seq                54224  6 
-snd_seq_dummy,snd_seq_oss,snd_seq_midi,snd_seq_midi_event
-snd_timer              24836  2 snd_pcm,snd_seq
-snd_seq_device          9612  5 
-snd_seq_dummy,snd_seq_oss,snd_seq_midi,snd_rawmidi,snd_seq
-button                  9232  0
-snd                    56996  17 
-snd_intel8x0,snd_ac97_codec,snd_pcm_oss,snd_mixer_oss,snd_pcm,snd_seq_dummy,snd_seq_oss,snd_rawmidi,snd_seq,snd_timer,snd_seq_device
-battery                14212  0
-ac                      6916  0
-soundcore               8800  1 snd
-snd_page_alloc         11400  2 snd_intel8x0,snd_pcm
-iTCO_wdt               13092  0
-iTCO_vendor_support     4868  1 iTCO_wdt
-shpchp                 34452  0
-pci_hotplug            30880  1 shpchp
-intel_agp              25492  1
-agpgart                34760  3 drm,intel_agp
-ext3                  136840  2
-jbd                    48404  1 ext3
-mbcache                 9600  1 ext3
-sg                     36880  0
-sd_mod                 30720  4
-sr_mod                 17956  0
-cdrom                  37408  1 sr_mod
-pata_acpi               8320  0
-b44                    28432  0
-ata_piix               19588  3
-ata_generic             8324  0
-ssb                    34308  2 b43,b44
-libata                159344  3 pata_acpi,ata_piix,ata_generic
-ehci_hcd               37900  0
-mii                     6400  1 b44
-uhci_hcd               27024  0
-scsi_mod              151436  4 sg,sd_mod,sr_mod,libata
-usbcore               146412  3 ehci_hcd,uhci_hcd
-thermal                16796  0
-processor              37384  2 thermal
-fan                     5636  0
-fbcon                  42912  0
-tileblit                3456  1 fbcon
-font                    9472  1 fbcon
-bitblit                 6784  1 fbcon
-softcursor              3072  1 bitblit
-fuse                   50708  3
+ drivers/media/common/saa7146_fops.c             |    4 +-
+ drivers/media/common/saa7146_video.c            |   12 +-
+ drivers/media/dvb/frontends/s5h1411.c           |   84 ++++++---
+ drivers/media/dvb/frontends/s5h1411.h           |    2 +-
+ drivers/media/radio/dsbr100.c                   |   62 ++++---
+ drivers/media/radio/radio-mr800.c               |    5 +
+ drivers/media/video/arv.c                       |    2 +-
+ drivers/media/video/bt8xx/bttv-driver.c         |    6 +-
+ drivers/media/video/c-qcam.c                    |    2 +-
+ drivers/media/video/cafe_ccic.c                 |    4 +-
+ drivers/media/video/cpia.c                      |    6 +-
+ drivers/media/video/cpia2/cpia2_v4l.c           |    2 +-
+ drivers/media/video/cx18/cx18-driver.c          |   11 +-
+ drivers/media/video/cx18/cx18-io.h              |    4 +-
+ drivers/media/video/cx18/cx18-streams.c         |   36 +++--
+ drivers/media/video/cx23885/cx23885-417.c       |    2 +-
+ drivers/media/video/cx23885/cx23885-video.c     |    2 +-
+ drivers/media/video/cx88/cx88-blackbird.c       |    2 +-
+ drivers/media/video/cx88/cx88-cards.c           |    4 +-
+ drivers/media/video/cx88/cx88-dvb.c             |   11 +-
+ drivers/media/video/cx88/cx88-i2c.c             |    2 +
+ drivers/media/video/cx88/cx88-mpeg.c            |   15 +-
+ drivers/media/video/cx88/cx88-video.c           |    6 +-
+ drivers/media/video/em28xx/em28xx-video.c       |    2 +-
+ drivers/media/video/et61x251/et61x251_core.c    |   24 ++--
+ drivers/media/video/ivtv/ivtv-driver.c          |   12 ++
+ drivers/media/video/ivtv/ivtv-i2c.c             |    1 +
+ drivers/media/video/ivtv/ivtv-ioctl.c           |   13 +-
+ drivers/media/video/ivtv/ivtv-ioctl.h           |    3 +-
+ drivers/media/video/ivtv/ivtv-streams.c         |    4 +-
+ drivers/media/video/ivtv/ivtvfb.c               |    6 +
+ drivers/media/video/pvrusb2/pvrusb2-encoder.c   |    4 +
+ drivers/media/video/pvrusb2/pvrusb2-hdw.c       |    6 -
+ drivers/media/video/pvrusb2/pvrusb2-v4l2.c      |   17 ++-
+ drivers/media/video/pwc/pwc-if.c                |    2 +-
+ drivers/media/video/saa7134/saa7134-core.c      |    6 +-
+ drivers/media/video/saa7134/saa7134-empress.c   |    2 +-
+ drivers/media/video/se401.c                     |    2 +-
+ drivers/media/video/sn9c102/sn9c102_core.c      |   24 ++--
+ drivers/media/video/stk-webcam.c                |    4 +-
+ drivers/media/video/stv680.c                    |    3 +-
+ drivers/media/video/usbvideo/usbvideo.c         |    2 +-
+ drivers/media/video/usbvideo/vicam.c            |    3 +-
+ drivers/media/video/usbvision/usbvision-i2c.c   |    2 +-
+ drivers/media/video/usbvision/usbvision-video.c |   12 +-
+ drivers/media/video/uvc/uvc_v4l2.c              |   12 +-
+ drivers/media/video/v4l1-compat.c               |  221 ++++++++++-------------
+ drivers/media/video/v4l2-int-device.c           |    5 +-
+ drivers/media/video/v4l2-ioctl.c                |   19 ++-
+ drivers/media/video/videobuf-dvb.c              |   52 +++---
+ drivers/media/video/vivi.c                      |    6 +-
+ drivers/media/video/w9968cf.c                   |   16 +-
+ drivers/media/video/zc0301/zc0301_core.c        |   24 ++--
+ drivers/media/video/zr364xx.c                   |    2 +-
+ include/linux/videodev2.h                       |    7 +
+ include/media/v4l2-int-device.h                 |   28 +++-
+ include/media/v4l2-ioctl.h                      |   24 ++-
+ include/media/videobuf-dvb.h                    |    1 +
+ 58 files changed, 495 insertions(+), 362 deletions(-)
 
-thomas@LAPI01:~$ lsmod |grep vi
-video                  19856  0
-output                  4736  1 video
-snd_seq_device          9612  5 
-snd_seq_dummy,snd_seq_oss,snd_seq_midi,snd_rawmidi,snd_seq
-snd                    56996  17 
-snd_intel8x0,snd_ac97_codec,snd_pcm_oss,snd_mixer_oss,snd_pcm,snd_seq_dummy,snd_seq_oss,snd_rawmidi,snd_seq,snd_timer,snd_seq_device 
+Alexey Klimov (4):
+      V4L/DVB (9303): dsbr100: Correct bus_info string
+      V4L/DVB (9304): dsbr100: CodingStyle issue
+      V4L/DVB (9305): radio-mr800: Add BKL for usb_amradio_open()
+      V4L/DVB (9306): dsbr100: Add frequency check
 
+Andy Walls (3):
+      V4L/DVB (9297): cx18: Fix memory leak on card initialization failure
+      V4L/DVB (9298): cx18: Add __iomem address space qualifier to cx18_log_*_retries() argument
+      V4L/DVB (9299): cx18: Don't mask many real init error codes by mapping them to ENOMEM
 
-After I plug the cam I got the following in the kernel log:
+Boris Dores (1):
+      V4L/DVB (9301): pvrusb2: Keep MPEG PTSs from drifting away
 
-Oct 24 19:12:59 LAPI01 kernel: [  766.468483] usb 1-1: new full speed 
-USB device using uhci_hcd and address 2
-Oct 24 19:12:59 LAPI01 kernel: [  766.638907] usb 1-1: configuration #1 
-chosen from 1 choice
-Oct 24 19:13:00 LAPI01 kernel: [  766.814457] Linux video capture 
-interface: v2.00
-Oct 24 19:13:00 LAPI01 kernel: [  766.839641] gspca: main v2.3.0 registered
-Oct 24 19:13:00 LAPI01 kernel: [  766.858908] gspca: probing 041e:401c
-Oct 24 19:13:00 LAPI01 kernel: [  767.091713] zc3xx: probe sif 0x0007
-Oct 24 19:13:00 LAPI01 kernel: [  767.095711] zc3xx: probe sensor -> 0f
-Oct 24 19:13:00 LAPI01 kernel: [  767.095721] zc3xx: Find Sensor PAS106
-Oct 24 19:13:00 LAPI01 kernel: [  767.100806] gspca: probe ok
-Oct 24 19:13:00 LAPI01 kernel: [  767.100839] usbcore: registered new 
-interface driver zc3xx
-Oct 24 19:13:00 LAPI01 kernel: [  767.100844] zc3xx: registered
-Oct 24 19:13:00 LAPI01 kernel: [  767.189428] gspca: disagrees about 
-version of symbol video_devdata
-Oct 24 19:13:00 LAPI01 kernel: [  767.189444] gspca: Unknown symbol 
-video_devdata
-Oct 24 19:13:00 LAPI01 kernel: [  767.189906] gspca: disagrees about 
-version of symbol video_unregister_device
-Oct 24 19:13:00 LAPI01 kernel: [  767.189910] gspca: Unknown symbol 
-video_unregister_device
-Oct 24 19:13:00 LAPI01 kernel: [  767.190082] gspca: disagrees about 
-version of symbol video_device_alloc
-Oct 24 19:13:00 LAPI01 kernel: [  767.190085] gspca: Unknown symbol 
-video_device_alloc
-Oct 24 19:13:00 LAPI01 kernel: [  767.190130] gspca: disagrees about 
-version of symbol video_register_device
-Oct 24 19:13:00 LAPI01 kernel: [  767.190132] gspca: Unknown symbol 
-video_register_device
-Oct 24 19:13:00 LAPI01 kernel: [  767.190449] gspca: disagrees about 
-version of symbol video_usercopy
-Oct 24 19:13:00 LAPI01 kernel: [  767.190452] gspca: Unknown symbol 
-video_usercopy
-Oct 24 19:13:00 LAPI01 kernel: [  767.190496] gspca: disagrees about 
-version of symbol video_device_release
-Oct 24 19:13:00 LAPI01 kernel: [  767.190499] gspca: Unknown symbol 
-video_device_release
+Darron Broad (4):
+      V4L/DVB (9332): cx88: initial fix for analogue only compilation
+      V4L/DVB (9334): cx88: dvb_remove debug output
+      V4L/DVB (9335): videobuf: split unregister bus creating self-contained frontend de-allocator
+      V4L/DVB (9336): cx88: always de-alloc frontends on fault condition
 
-And the loaded modules now:
+Devin Heitmueller (3):
+      V4L/DVB (9314): s5h1411: Perform s5h1411 soft reset after tuning
+      V4L/DVB (9315): s5h1411: Skip reconfiguring demod modulation if already at the desired modulation
+      V4L/DVB (9316): s5h1411: Power down s5h1411 when not in use
 
-thomas@LAPI01:~$ lsmod |grep vi
-videodev               34304  1 gspca_main
-video                  19856  0
-output                  4736  1 video
-snd_seq_device          9612  5 
-snd_seq_dummy,snd_seq_oss,snd_seq_midi,snd_rawmidi,snd_seq
-snd                    56996  17 
-snd_intel8x0,snd_ac97_codec,snd_pcm_oss,snd_mixer_oss,snd_pcm,snd_seq_dummy,snd_seq_oss,snd_rawmidi,snd_seq,snd_timer,snd_seq_device
+Hans Verkuil (3):
+      V4L/DVB (9324): v4l2: add video_ioctl2_unlocked for unlocked_ioctl support.
+      V4L/DVB (9325): ivtv: switch to unlocked_ioctl.
+      V4L/DVB (9327): v4l: use video_device.num instead of minor in video%d
 
-thomas@LAPI01:~$ lsmod |grep gs
-gspca_zc3xx            48512  0
-gspca_main             24448  1 gspca_zc3xx
-videodev               34304  1 gspca_main
-usbcore               146412  5 gspca_zc3xx,gspca_main,ehci_hcd,uhci_hcd
+Ian Armstrong (1):
+      V4L/DVB (9328): ivtvfb: FB_BLANK_POWERDOWN turns off video output
 
-thomas@LAPI01:~$ lsmod |grep zc
-gspca_zc3xx            48512  0
-gspca_main             24448  1 gspca_zc3xx
-usbcore               146412  5 gspca_zc3xx,gspca_main,ehci_hcd,uhci_hcd
-thomas@LAPI01:~$
+Martin Dauskardt (1):
+      V4L/DVB (9326): ivtv: avoid green flashing when loading ivtv
 
-Looks like the correct modules are loaded but I still have the "Unknown 
-symbol" problem.
+Mauro Carvalho Chehab (3):
+      V4L/DVB (9330): Get rid of inode parameter at v4l_compat_translate_ioctl()
+      V4L/DVB (9331): Remove unused inode parameter from video_ioctl2
+      V4L/DVB (9333): cx88: Not all boards that requires cx88-mpeg has frontends
 
-At these times as I was contributing to the gspcaV1 project, I never had 
-such kind of problems.
+Mike Isely (1):
+      V4L/DVB (9300): pvrusb2: Fix deadlock problem
 
-I have to stress this one more: It should be possible to _just_ compile 
-the source downloaded from linuxtv.org!
+Sakari Ailus (4):
+      V4L/DVB (9318): v4l2-int-if: Add command to get slave private data.
+      V4L/DVB (9321): v4l2-int-if: Define new power state changes
+      V4L/DVB (9322): v4l2-int-if: Export more interfaces to modules
+      V4L/DVB (9323): v4l2-int-if: Add enum_framesizes and enum_frameintervals ioctls.
 
-I got some time and I would like to test the new gspca V2 v4l2 driver 
-but with this issues I will get up soon :-(
+Sameer Venkatraman (1):
+      V4L/DVB (9319): v4l2-int-if: Add cropcap, g_crop and s_crop commands.
 
-I have about 20 webcams laying around which I would like to test with 
-the new gspca V2 "in kernel" drive with a "stock distribution (Ubuntu)" 
-kernel.
+Sergio Aguirre (1):
+      V4L/DVB (9320): v4l2: Add 10-bit RAW Bayer formats
 
-Sorry, I am a bit frustrated right now. Even I am frustrated, 
-Jean-Francois, you did a great job. Hans with his v4l_lib, too :-)
+Steven Toth (6):
+      V4L/DVB (9308): s5h1411: Improvements to the default registers
+      V4L/DVB (9309): s5h1411: I/F related bugfix for 3.25 and remove spurious define
+      V4L/DVB (9310): s5h1411: read_status() locking detection fixes.
+      V4L/DVB (9311): s5h1411: bugfix: Setting serial or parallel mode could destroy bits
+      V4L/DVB (9312): s5h1411: Remove meaningless code
+      V4L/DVB (9313): s5h1411: Add the #define for an existing supporting I/F
 
-Regards, Thomas
+---------------------------------------------------
+V4L/DVB development is hosted at http://linuxtv.org
 
 --
 video4linux-list mailing list
