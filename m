@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9JEwebj004049
-	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 10:58:40 -0400
-Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9JEwRJs001213
-	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 10:58:27 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so410669eyf.39
-	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 07:58:27 -0700 (PDT)
-Message-ID: <208cbae30810190758x2f0c70f5m5856ce9ea84b26ae@mail.gmail.com>
-Date: Sun, 19 Oct 2008 18:58:26 +0400
-From: "Alexey Klimov" <klimov.linux@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9MHvGQo010364
+	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 13:57:16 -0400
+Received: from sk.insite.com.br (sk.insite.com.br [66.135.32.93])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9MHubuo009783
+	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 13:56:37 -0400
+Received: from [201.82.105.195] (helo=[192.168.1.101])
+	by sk.insite.com.br with esmtps (TLSv1:AES256-SHA:256) (Exim 4.69)
+	(envelope-from <diniz@wimobilis.com.br>) id 1Kshvs-00062P-D7
+	for video4linux-list@redhat.com; Wed, 22 Oct 2008 15:55:45 -0200
+From: Rafael Diniz <diniz@wimobilis.com.br>
 To: video4linux-list@redhat.com
-In-Reply-To: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
+Date: Wed, 22 Oct 2008 16:02:09 -0200
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_136892_4332562.1224428307008"
-References: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
-Cc: 
-Subject: Re: [patch] radio-mr800: remove warn- and err- messages
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_hq2/IbV89pPxA8b"
+Message-Id: <200810221602.09913.diniz@wimobilis.com.br>
+Subject: [PATCH] Documentation update for cx88
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,87 +28,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-------=_Part_136892_4332562.1224428307008
-Content-Type: text/plain; charset=ISO-8859-1
+--Boundary-00=_hq2/IbV89pPxA8b
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hello, all
-Thanks for input.
-This is re-created version of patch. What do you think about this version ?
+Attached is a patch that updates the cx88 documentation to add the fact the 
+closed caption works for at least NTSC capture.
 
-radio-mr800: remove warn-, err- and info-messages
+ps: I also updated the wiki at:
+http://www.linuxtv.org/v4lwiki/index.php/Text_capture#cx88_devices
 
-Patch removes warn(), err() and info() statements in
-radio/radio-mr800.c, and place dev_warn, dev_info in right places.
-Printk changed on pr_info and pr_err macro.
+Thanks,
+Rafael Diniz
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
-
--- 
-Best regards, Klimov Alexey
-
-------=_Part_136892_4332562.1224428307008
-Content-Type: application/octet-stream;
-	name=radio-mr800-remove-warn-info-err.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fmhsyrvd1
+--Boundary-00=_hq2/IbV89pPxA8b
+Content-Type: text/x-diff; charset="us-ascii"; name="cx88-doc-update.diff"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
-	filename=radio-mr800-remove-warn-info-err.patch
+	filename="cx88-doc-update.diff"
 
-ZGlmZiAtciBlM2IyOGE5ZDk2MzUgbGludXgvZHJpdmVycy9tZWRpYS9yYWRpby9yYWRpby1tcjgw
-MC5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvcmFkaW8vcmFkaW8tbXI4MDAuYwlTYXQgT2N0
-IDE4IDE4OjE1OjU0IDIwMDggKzA0MDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS9yYWRpby9y
-YWRpby1tcjgwMC5jCVNhdCBPY3QgMTggMTg6NTU6MjggMjAwOCArMDQwMApAQCAtMzYyLDcgKzM2
-Miw4IEBACiAKIAlyYWRpby0+Y3VyZnJlcSA9IGYtPmZyZXF1ZW5jeTsKIAlpZiAoYW1yYWRpb19z
-ZXRmcmVxKHJhZGlvLCByYWRpby0+Y3VyZnJlcSkgPCAwKQotCQl3YXJuKCJTZXQgZnJlcXVlbmN5
-IGZhaWxlZCIpOworCQlkZXZfd2FybigmcmFkaW8tPnZpZGVvZGV2LT5kZXYsCisJCQkicmFkaW8t
-bXI4MDA6IFNldCBmcmVxdWVuY3kgZmFpbGVkXG4iKTsKIAlyZXR1cm4gMDsKIH0KIApAQCAtMzg1
-LDggKzM4Niw3IEBACiAKIAlmb3IgKGkgPSAwOyBpIDwgQVJSQVlfU0laRShyYWRpb19xY3RybCk7
-IGkrKykgewogCQlpZiAocWMtPmlkICYmIHFjLT5pZCA9PSByYWRpb19xY3RybFtpXS5pZCkgewot
-CQkJbWVtY3B5KHFjLCAmKHJhZGlvX3FjdHJsW2ldKSwKLQkJCQkJCXNpemVvZigqcWMpKTsKKwkJ
-CW1lbWNweShxYywgJihyYWRpb19xY3RybFtpXSksIHNpemVvZigqcWMpKTsKIAkJCXJldHVybiAw
-OwogCQl9CiAJfQpAQCAtNDE3LDEyICs0MTcsMTQgQEAKIAljYXNlIFY0TDJfQ0lEX0FVRElPX01V
-VEU6CiAJCWlmIChjdHJsLT52YWx1ZSkgewogCQkJaWYgKGFtcmFkaW9fc3RvcChyYWRpbykgPCAw
-KSB7Ci0JCQkJd2FybigiYW1yYWRpb19zdG9wKCkgZmFpbGVkIik7CisJCQkJZGV2X3dhcm4oJnJh
-ZGlvLT52aWRlb2Rldi0+ZGV2LAorCQkJCQkicmFkaW8tbXI4MDA6IGFtcmFkaW9fc3RvcCBmYWls
-ZWRcbiIpOwogCQkJCXJldHVybiAtMTsKIAkJCX0KIAkJfSBlbHNlIHsKIAkJCWlmIChhbXJhZGlv
-X3N0YXJ0KHJhZGlvKSA8IDApIHsKLQkJCQl3YXJuKCJhbXJhZGlvX3N0YXJ0KCkgZmFpbGVkIik7
-CisJCQkJZGV2X3dhcm4oJnJhZGlvLT52aWRlb2Rldi0+ZGV2LAorCQkJCQkicmFkaW8tbXI4MDA6
-IGFtcmFkaW9fc3RhcnQgZmFpbGVkXG4iKTsKIAkJCQlyZXR1cm4gLTE7CiAJCQl9CiAJCX0KQEAg
-LTQ3OCwxMyArNDgwLDE1IEBACiAJcmFkaW8tPm11dGVkID0gMTsKIAogCWlmIChhbXJhZGlvX3N0
-YXJ0KHJhZGlvKSA8IDApIHsKLQkJd2FybigiUmFkaW8gZGlkIG5vdCBzdGFydCB1cCBwcm9wZXJs
-eSIpOworCQlkZXZfd2FybigmcmFkaW8tPnZpZGVvZGV2LT5kZXYsCisJCQkicmFkaW8tbXI4MDA6
-IFJhZGlvIGRpZCBub3Qgc3RhcnQgdXAgcHJvcGVybHlcbiIpOwogCQlyYWRpby0+dXNlcnMgPSAw
-OwogCQl1bmxvY2tfa2VybmVsKCk7CiAJCXJldHVybiAtRUlPOwogCX0KIAlpZiAoYW1yYWRpb19z
-ZXRmcmVxKHJhZGlvLCByYWRpby0+Y3VyZnJlcSkgPCAwKQotCQl3YXJuKCJTZXQgZnJlcXVlbmN5
-IGZhaWxlZCIpOworCQlkZXZfd2FybigmcmFkaW8tPnZpZGVvZGV2LT5kZXYsCisJCQkicmFkaW8t
-bXI4MDA6IFNldCBmcmVxdWVuY3kgZmFpbGVkXG4iKTsKIAogCXVubG9ja19rZXJuZWwoKTsKIAly
-ZXR1cm4gMDsKQEAgLTUxMSw5ICs1MTUsOSBAQAogCXN0cnVjdCBhbXJhZGlvX2RldmljZSAqcmFk
-aW8gPSB1c2JfZ2V0X2ludGZkYXRhKGludGYpOwogCiAJaWYgKGFtcmFkaW9fc3RvcChyYWRpbykg
-PCAwKQotCQl3YXJuKCJhbXJhZGlvX3N0b3AoKSBmYWlsZWQiKTsKKwkJZGV2X3dhcm4oJmludGYt
-PmRldiwgImFtcmFkaW9fc3RvcCBmYWlsZWRcbiIpOwogCi0JaW5mbygicmFkaW8tbXI4MDA6IEdv
-aW5nIGludG8gc3VzcGVuZC4uIik7CisJZGV2X2luZm8oJmludGYtPmRldiwgIkdvaW5nIGludG8g
-c3VzcGVuZC4uXG4iKTsKIAogCXJldHVybiAwOwogfQpAQCAtNTI0LDkgKzUyOCw5IEBACiAJc3Ry
-dWN0IGFtcmFkaW9fZGV2aWNlICpyYWRpbyA9IHVzYl9nZXRfaW50ZmRhdGEoaW50Zik7CiAKIAlp
-ZiAoYW1yYWRpb19zdGFydChyYWRpbykgPCAwKQotCQl3YXJuKCJhbXJhZGlvX3N0YXJ0KCkgZmFp
-bGVkIik7CisJCWRldl93YXJuKCZpbnRmLT5kZXYsICJhbXJhZGlvX3N0YXJ0IGZhaWxlZFxuIik7
-CiAKLQlpbmZvKCJyYWRpby1tcjgwMDogQ29taW5nIG91dCBvZiBzdXNwZW5kLi4iKTsKKwlkZXZf
-aW5mbygmaW50Zi0+ZGV2LCAiQ29taW5nIG91dCBvZiBzdXNwZW5kLi5cbiIpOwogCiAJcmV0dXJu
-IDA7CiB9CkBAIC02MDUsNyArNjA5LDcgQEAKIAogCXZpZGVvX3NldF9kcnZkYXRhKHJhZGlvLT52
-aWRlb2RldiwgcmFkaW8pOwogCWlmICh2aWRlb19yZWdpc3Rlcl9kZXZpY2UocmFkaW8tPnZpZGVv
-ZGV2LCBWRkxfVFlQRV9SQURJTywgcmFkaW9fbnIpKSB7Ci0JCXdhcm4oIkNvdWxkIG5vdCByZWdp
-c3RlciB2aWRlbyBkZXZpY2UiKTsKKwkJZGV2X3dhcm4oJmludGYtPmRldiwgIkNvdWxkIG5vdCBy
-ZWdpc3RlciB2aWRlbyBkZXZpY2VcbiIpOwogCQl2aWRlb19kZXZpY2VfcmVsZWFzZShyYWRpby0+
-dmlkZW9kZXYpOwogCQlrZnJlZShyYWRpby0+YnVmZmVyKTsKIAkJa2ZyZWUocmFkaW8pOwpAQCAt
-NjIwLDkgKzYyNCwxMyBAQAogewogCWludCByZXR2YWwgPSB1c2JfcmVnaXN0ZXIoJnVzYl9hbXJh
-ZGlvX2RyaXZlcik7CiAKLQlpbmZvKERSSVZFUl9WRVJTSU9OICIgIiBEUklWRVJfREVTQyk7CisJ
-cHJfaW5mbyhLQlVJTERfTU9ETkFNRQorCQkiOiB2ZXJzaW9uICIgRFJJVkVSX1ZFUlNJT04gIiAi
-IERSSVZFUl9ERVNDICJcbiIpOworCiAJaWYgKHJldHZhbCkKLQkJZXJyKCJ1c2JfcmVnaXN0ZXIg
-ZmFpbGVkLiBFcnJvciBudW1iZXIgJWQiLCByZXR2YWwpOworCQlwcl9lcnIoS0JVSUxEX01PRE5B
-TUUKKwkJCSI6IHVzYl9yZWdpc3RlciBmYWlsZWQuIEVycm9yIG51bWJlciAlZFxuIiwgcmV0dmFs
-KTsKKwogCXJldHVybiByZXR2YWw7CiB9CiAK
-------=_Part_136892_4332562.1224428307008
+diff -r 963a30f13bbf linux/Documentation/video4linux/README.cx88
+--- a/linux/Documentation/video4linux/README.cx88	Wed Sep 03 09:49:20 2008 +0100
++++ b/linux/Documentation/video4linux/README.cx88	Wed Oct 22 15:58:09 2008 -0200
+@@ -27,8 +27,8 @@
+ 	  sound card) should be possible, but there is no code yet ...
+ 
+ vbi
+-	- some code present.  Doesn't crash any more, but also doesn't
+-	  work yet ...
++	- Code present. Works for NTSC closed caption. PAL and other
++	  TV norms may or may not work.
+ 
+ 
+ how to add support for new cards
+
+--Boundary-00=_hq2/IbV89pPxA8b
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -119,4 +74,4 @@ Content-Disposition: inline
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
-------=_Part_136892_4332562.1224428307008--
+--Boundary-00=_hq2/IbV89pPxA8b--
