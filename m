@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+Received: from mail1011.centrum.cz ([90.183.38.141])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1Kodc3-0000T4-TS
-	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 14:30:31 +0200
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org
-Date: Sat, 11 Oct 2008 15:30:01 +0300
-References: <24FD17B66348C84282C591AA9BE3602E490EA8@paq-cft-exc01.Arqiva.Local>
-In-Reply-To: <24FD17B66348C84282C591AA9BE3602E490EA8@paq-cft-exc01.Arqiva.Local>
+	(envelope-from <hoppik@centrum.cz>) id 1KsgZZ-0008Ht-CM
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 18:28:38 +0200
+Received: by mail1011.centrum.cz id S537197498AbYJVQ2b (ORCPT
+	<rfc822;linux-dvb@linuxtv.org>); Wed, 22 Oct 2008 18:28:31 +0200
+Date: Wed, 22 Oct 2008 18:28:31 +0200
+From: " =?UTF-8?Q?SKO=C4=8CDOPOLE?= =?UTF-8?Q?=20Tom=C3=A1=C5=A1?="
+	<hoppik@centrum.cz>
+To: <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200810111530.01594.liplianin@tut.by>
-Subject: Re: [linux-dvb] TechnoTrend S2-3600
+Message-ID: <200810221828.18158@centrum.cz>
+References: <200810221822.25471@centrum.cz> <200810221823.25612@centrum.cz>
+	<200810221824.15484@centrum.cz> <200810221825.30723@centrum.cz>
+	<200810221826.30746@centrum.cz> <200810221827.22837@centrum.cz>
+	<200810221828.28744@centrum.cz>
+In-Reply-To: <200810221828.28744@centrum.cz>
+Subject: [linux-dvb] Actual status for TT S2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,69 +24,25 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMTEgT2N0b2JlciAyMDA4IDEzOjQ0OjU0IEJvYiBNYXJ0aW4gzsHQydPB
-zCjBKToKPiBIaSBJZ29yLAo+Cj4gIFRlc3RpbmcgdGhpcyBpdCB3YXMgZm91bmQgdG8gd29yayBh
-ZnRlciBpdCBoYWQgYmVlbiBwcmV2aW91c2x5IHJ1biB3aXRoCj4gV2luZG93cyBvbiBhIGR1YWwg
-Ym9vdCBtYWNoaW5lLCBidXQgbm90IGlmIHVzZWQgY29sZC4KPgo+ICBUaGUgZm9sbG93aW5nIHdh
-cyBzZWVuLpogUGxlYXNlIGxldCBtZSBrbm93IGhvdyBJIGNhbiBwcm92aWRlIGFueQo+IGFkZGl0
-aW9uYWwgZGVidWcgaW5mb3JtYXRpb24gb3IgYXNzaXN0YW5jZS4KSGkgQm9iLApVc2VmdWwgbGlu
-a3MKCmh0dHA6Ly93d3cudXNiLm9yZwoKRkFRIFVzYnNub29wOiBodHRwOi8vbXhoYWFyZC5mcmVl
-LmZyL3NwY2E1MHgvRG93bmxvYWQvc25vb3B5LnBkZgoKVVNCIHNuaWZmZXIgdG8gc25pZmYgV2lu
-ZG93cyBVU0IgZHJpdmVycywgd2hpY2ggbWFrZXMgbG9nczogCmh0dHA6Ly9iZW5vaXQucGFwaWxs
-YXVsdC5mcmVlLmZyL3VzYnNub29wL3NuaWZmLWJpbi0xLjguemlwCgpQYXJzZXIgZm9yIHVzYnNu
-b29wLmxvZzogaHR0cDovL3d3dy5pc2VseS5uZXQvZG93bmxvYWRzL3B2cnVzYjItbWNpLTIwMDcw
-NDI4YS50YXIuYnoyCgpQcm9qZWN0IFVzYnJlcGxheSAoYW5kIHlldCBhbm90aGVyIHBhcnNlciBm
-b3IgdXNic25vb3AgbG9nIGZpbGVzKTogCmh0dHA6Ly9tY2VudHJhbC5kZS93aWtpL2luZGV4LnBo
-cC9Vc2JyZXBsYXkKCkNvbW1hbmQ6CgpwZXJsIHBhcnNlci5wbCA8IHVzYnNub29wLmxvZyA+IHVz
-YnNub29wcGFyc2VkLmxvZwoKTm93IHdlIGhhdmUgdXNic25vb3BwYXJzZWQubG9nLiAKSXQgaXMg
-dmVyeSBpbmZvcm1hdGl2ZSA6KQpHZW5lcmFsbHksIFlvdSBzdGFydCBzbm9vcGluZywgdGhlbiBp
-bnNlcnQgY2FyZCwgdHVuZSB0byBjaGFubmVsIGFuZCBjbG9zZSBzbmlmZmVyLgpVc3VhbGx5LCBs
-b2cgaXMgYWJvdXQgMTAwTUIsIGJ1dCBtb3N0IHBhcnQgaXMgRFZCIGRhdGEsIHRoYXQgY2FuIGJl
-IG9taXR0ZWQuCklmIFlvdSBtYWtlIGxvZyBpbiBXaW5kb3dzIGFuZCBjb21wcmVzcyBpdCwgWW91
-IG1heSBzZW5kIGl0IHRvIG1lIGFuZCBJIHdpbGwgbG9vayBvbiBpdC4KQnV0IGJldHRlciBwYXJz
-aW5nIGl0IGZpcnN0IHdpdGggcGFyc2VyLiBUaGF0IG1ha2VzIGxvZyBzbWFsbGVyIGFuZCBtb3Jl
-IGNsZWFuLgo+Cj4gIFJlZ2FyZHMsCj4gIEJvYi4KPgo+Cj4gIEFmdGVyIGhhdmluZyBydW4gV2lu
-ZG93cyBYUCBhbmQgdGhlIFRUIHZpZXdlciBhcHBsaWNhdGlvbi4KPgo+ICByb2JlcnQubWFydGlu
-QHBoZW5vbTAwMTp+L2Rvd25sb2Fkcy9kdmIvc3RiMDg5OS9zemFwLXMyLTgwNzAzZjk1OTMzNT4K
-PiAuL3N6YXAtczIgLVMgMCAtQyA1NiAtTSAyIC1jIGNoYW5uZWxzLmNvbmYtZHZicy1zaXJpdXMg
-LW4gMSAtRCAtbCBVTklWRVJTQUwKPiByZWFkaW5nIGNoYW5uZWxzIGZyb20gZmlsZSAnY2hhbm5l
-bHMuY29uZi1kdmJzLXNpcml1cycKPiAgemFwcGluZyB0byAxICdFbnQnOgo+ICBkZWxpdmVyeSAw
-eDQsIG1vZHVsYXRpb24gMHgwCj4gIHNhdCA1LCBmcmVxdWVuY3kgMTIxMTEgTUh6IEgsIHN5bWJv
-bHJhdGUgMjc1MDAwMDAsIGNvZGVyYXRlIDB4NSwgcm9sbG9mZgo+IDB4MCB2cGlkIDB4MDA2NSwg
-YXBpZCAweDAwNjYsIHNpZCAweDAwMDEKPiAgdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zyb250
-ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAnCj4gIHN0YXR1cyAwMCB8IHNpZ25h
-bCBmZmZlIHwgc25yIGZmZmUgfCBiZXIgZmZmZmZmZmUgfCB1bmMgZmZmZmZmZmUgfAo+ICBzdGF0
-dXMgMWUgfCBzaWduYWwgMDFhMCB8IHNuciAwMDY5IHwgYmVyIDAwMDAwMDAwIHwgdW5jIGZmZmZm
-ZmZlIHwKPiBGRV9IQVNfTE9DSyBzdGF0dXMgMWUgfCBzaWduYWwgMDFhMCB8IHNuciAwMDY4IHwg
-YmVyIDAwMDAwMDAwIHwgdW5jCj4gZmZmZmZmZmUgfCBGRV9IQVNfTE9DSyBzdGF0dXMgMWUgfCBz
-aWduYWwgMDFhMCB8IHNuciAwMDY3IHwgYmVyIDAwMDAwMDAwIHwKPiB1bmMgZmZmZmZmZmUgfCBG
-RV9IQVNfTE9DSyBzdGF0dXMgMWUgfCBzaWduYWwgMDFhMCB8IHNuciAwMDY5IHwgYmVyCj4gMDAw
-MDAwMDAgfCB1bmMgZmZmZmZmZmUgfCBGRV9IQVNfTE9DSyBeQwo+ICByb2JlcnQubWFydGluQHBo
-ZW5vbTAwMTp+L2Rvd25sb2Fkcy9kdmIvc3RiMDg5OS9zemFwLXMyLTgwNzAzZjk1OTMzNT4KPgo+
-Cj4gIERpc2Nvbm5lY3QgVVNCIGNhYmxlLCBidXQgdW5pdCBpcyBsZWZ0IHBvd2VyZWQuCj4KPiAg
-cm9iZXJ0Lm1hcnRpbkBwaGVub20wMDE6fi9kb3dubG9hZHMvZHZiL3N0YjA4OTkvc3phcC1zMi04
-MDcwM2Y5NTkzMzU+Cj4gLi9zemFwLXMyIC1TIDAgLUMgNTYgLU0gMiAtYyBjaGFubmVscy5jb25m
-LWR2YnMtc2lyaXVzIC1uIDEgLUQgLWwgVU5JVkVSU0FMCj4gcmVhZGluZyBjaGFubmVscyBmcm9t
-IGZpbGUgJ2NoYW5uZWxzLmNvbmYtZHZicy1zaXJpdXMnCj4gIHphcHBpbmcgdG8gMSAnRW50JzoK
-PiAgZGVsaXZlcnkgMHg0LCBtb2R1bGF0aW9uIDB4MAo+ICBzYXQgNSwgZnJlcXVlbmN5IDEyMTEx
-IE1IeiBILCBzeW1ib2xyYXRlIDI3NTAwMDAwLCBjb2RlcmF0ZSAweDUsIHJvbGxvZmYKPiAweDAg
-dnBpZCAweDAwNjUsIGFwaWQgMHgwMDY2LCBzaWQgMHgwMDAxCj4gIHVzaW5nICcvZGV2L2R2Yi9h
-ZGFwdGVyMC9mcm9udGVuZDAnIGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJwo+ICBzdGF0
-dXMgMDAgfCBzaWduYWwgZmZmZSB8IHNuciBmZmZlIHwgYmVyIGZmZmZmZmZlIHwgdW5jIGZmZmZm
-ZmZlIHwKPiAgc3RhdHVzIDAwIHwgc2lnbmFsIGZmZmUgfCBzbnIgZmZmZSB8IGJlciAwMDAwMDAw
-MCB8IHVuYyBmZmZmZmZmZSB8Cj4gIHN0YXR1cyAwMCB8IHNpZ25hbCBmZmZlIHwgc25yIGZmZmUg
-fCBiZXIgMDAwMDAwMDAgfCB1bmMgZmZmZmZmZmUgfAo+ICBzdGF0dXMgMDAgfCBzaWduYWwgZmZm
-ZSB8IHNuciBmZmZlIHwgYmVyIDAwMDAwMDAwIHwgdW5jIGZmZmZmZmZlIHwKPiAgc3RhdHVzIDAw
-IHwgc2lnbmFsIGZmZmUgfCBzbnIgZmZmZSB8IGJlciAwMDAwMDAwMCB8IHVuYyBmZmZmZmZmZSB8
-Cj4gIHN0YXR1cyAwMCB8IHNpZ25hbCBmZmZlIHwgc25yIGZmZmUgfCBiZXIgMDAwMDAwMDAgfCB1
-bmMgZmZmZmZmZmUgfAo+ICBeQwo+ICByb2JlcnQubWFydGluQHBoZW5vbTAwMTp+L2Rvd25sb2Fk
-cy9kdmIvc3RiMDg5OS9zemFwLXMyLTgwNzAzZjk1OTMzNT4KCgoKLS0gCklnb3IgTS4gTGlwbGlh
-bmluCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
-eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4
-dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Hello all,
+
+I want to ask there about actual situation of TT S2-3200 drivers.
+Are still there any problems (with PLL and so on)?
+
+And where can I find actually drivers (in official S2API repository or in Igor's repository)?
+
+Thanks
+
+Best regards Tomas
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
