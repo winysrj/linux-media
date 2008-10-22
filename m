@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.26])
+Received: from mail1002.centrum.cz ([90.183.38.132])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1Klq7c-0000MW-I9
-	for linux-dvb@linuxtv.org; Fri, 03 Oct 2008 21:15:31 +0200
-Received: by ey-out-2122.google.com with SMTP id 25so668977eya.17
-	for <linux-dvb@linuxtv.org>; Fri, 03 Oct 2008 12:15:25 -0700 (PDT)
-Date: Fri, 3 Oct 2008 21:15:04 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Lee Jones <slothpuck@gmail.com>
-In-Reply-To: <c362cb880810011000u2a9f7e5n6cb3b81a7fbec24c@mail.gmail.com>
-Message-ID: <alpine.DEB.2.00.0810032006290.4242@ybpnyubfg.ybpnyqbznva>
-References: <c362cb880810011000u2a9f7e5n6cb3b81a7fbec24c@mail.gmail.com>
+	(envelope-from <sustmidown@centrum.cz>) id 1KsjOv-0002nY-BX
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 21:29:49 +0200
+Received: by mail1002.centrum.cz id S1342392346AbYJVT3l (ORCPT
+	<rfc822;linux-dvb@linuxtv.org>); Wed, 22 Oct 2008 21:29:41 +0200
+Date: Wed, 22 Oct 2008 21:29:41 +0200
+From: "Miroslav  =?UTF-8?Q?=20=C5=A0ustek?=" <sustmidown@centrum.cz>
+To: <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
+Message-ID: <200810222129.24894@centrum.cz>
+References: <200810200122.4044@centrum.cz> <200810200123.28880@centrum.cz>
+	<200810200124.8475@centrum.cz> <200810200125.8958@centrum.cz>
+	<200810200126.978@centrum.cz> <200810200127.29920@centrum.cz>
+	<200810200141.629@centrum.cz> <48FCD1DC.3010701@linuxtv.org>
+In-Reply-To: <48FCD1DC.3010701@linuxtv.org>
+Content-Type: multipart/mixed; boundary="-------=_44A21A41.55502A8C"
+Subject: Re: [linux-dvb] Leadtek WinFast DTV-1800H support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,134 +24,157 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 1 Oct 2008, Lee Jones wrote:
+This is a multi-part message in MIME format
 
-> all the responses. FIrst of alll what does "PID" stand for?
+---------=_44A21A41.55502A8C
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-As I have used it, it is the numbers used to identify the
-video and audio streams that can be found highlighted
-below.
+>sustmi wrote:
+>> Hi,
+...
+>> http://www.linuxtv.org/pipermail/linux-dvb/2008-August/028117.html
+>> Why is using of cx_write() risky?
+>
+> From my orig email: "Don't call cx_write() inside the gpio card setup, you're potentially destroying the other bits, it's risky."
+>
+>cx_write destroys the content of the GPIO direction-enablement and values bits. That's a bad thing, and can lead to unexpected behaviors if used generally in drivers.
+>
+>It's better to have a driver read the previous register value, and/or in the appropriate bit and write the value back to the gpio registers. This is what cx_set/clear do. That way parts of the driver can toggle GPIO's for important pieces, without having to understand GPIO usage in other disconnected/unrelated parts of the driver.
+>
+>Your patch uses set/clear, which is good.
+>
 
-As for what it means, rather than post bogus information
-from the top of my head, you can probably learn more
-details than you want, by searching for MPEG Transport
-Stream Audio Video PID or something similar.
+>From datasheet (www.domenech.org/datasheets/cx23880-cx23881-cx23882-cx23883-datasheet-08-2002.pdf),
+Chapter 2.3.3:
+GP{x}_IO register:
+bits [23:16] = GP{x}_BWE
 
+"If this field is equal to 8’h00, then the whole GPIO byte
+register operates in normal RW mode. If any bit is set, then
+the corresponding GP_OE and GP_IO bit locations are
+enabled for writing. If the bit write enable is not set, the
+corresponding GPIO bits will be unaffected."
 
-> btw, first of all here's the tuning details that w_scan originally found;
+So I think this is just like (this is) mask. I don't see any possibility of unexpected behavior.
+You only have to know which bits you want change (=how to set the mask)...
+Ok, persuaded me, using cx_set and cx_clear is prettier :) .
 
-Thanks.  Now I owe it to everyone to figure out exactly
-what w_scan is and how it differs from my hacked `scan'...
+>Incidently, you patch cannot be merged as-is, it has C99 style comments '//' are not allowed, change to /* */ etc.
+>
+>- Steve
+>
 
-
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> T 530000000 8MHz AUTO AUTO AUTO AUTO AUTO NONE
-> T 562000000 8MHz AUTO AUTO AUTO AUTO AUTO NONE
-> T 570000000 8MHz AUTO AUTO AUTO AUTO AUTO NONE
-
-Hmmm, that's it?  You seem to be missing a few of the
-frequencies, like half of them, posted in my earlier
-reply, sent from this transmitter...
-
-What is interesting to me is that the missing freqs
-all have a negative offset (490, 546, & 514MHz nominal)
-so perhaps this scan can handle no-offset 530 and the
-+1/6MHz offsets of 562 and 570MHz.
-
-
-You posted earlier some `tzap' signal-strength and bit-
-error-rate values.  You also said your other DVB-T card
-received all stations without problems.  Do you see similar
-error rates, or even better, from this other card?
-
-I can't say anything about the signal strength, as there
-is no fixed reference against which all linux drivers are
-calibrated, but `9e' is near the middle of the range
-between `00' and `ff'.
-
-It's possible there's a sensitivity problem that needs to
-be tweaked by the driver (a LNA or something).
-
-(Let me connect a simple short antenna and see how one of
-my tuner cards works against two line-of-sight transmitters
-within my Faraday-cage-type room.  Hmmm.  Oh yes.  Oh, yes!)
-
-At least for me, `ff' means no useful signal, `9x' has a
-few errors, and I do well at `7x'.  My BER rate is zero,
-except when I have a horribly weak signal.  Ooh, that one
-blasts in compared with the others.  So why did my recent
-recording of that frequency with an amplified yagi get all
-messed up?  Hmmm...
-
-You didn't say anything about your distance from the
-transmitter, the terrain, and so on -- given that the services
-I receive all post-DSO and are full-strength, while you are
-receiving a lower-power signal until your DSO, I'd like to
-see the `tzap' output from each of the six frequencies with
-your other card, if possible.
-
-By me, I can get `ffff' for SNR and uncorrected BER of 0
-with a simple stub of an antenna, and I would hope you would
-see the same.
+Of course, new patch is attached.
 
 
-> And a few lines from channels.conf,  generated by scan;
-> ITV1:530000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO
- [snip]:GUARD_INTERVAL_AUTO:HIERARCHY_NONE:520:521:8270
-                                           ^^^ ^^^
-I've highlighted the video and audio PIDs respectively above
-(fixed-width font of course).
-  
+---------=_44A21A41.55502A8C
+Content-Type: text/x-patch; name="leadtek_winfast_dtv1800h_2.patch"
+Content-Transfer-Encoding: base64
 
-> BBC FOUR:562000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_AUTO:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:
- GUARD_INTERVAL_AUTO:HIERARCHY_NONE:0:0:16832
-                                    ^ ^
-As this scan was done sometime in the day (before 19h your-
-time), you don't get the BBC Four PIDs -- as was noted by
-another poster, these are shared with CBeebies, for which
-you will (should!) have obtained correct values.
+ZGlmZiAtciBlMmE4YjliOWMyOTQgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4
+ODgtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1j
+YXJkcy5jCUZyaSBPY3QgMTcgMTk6NDU6NTUgMjAwOCArMDMwMAorKysgYi9saW51eC9kcml2
+ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCVdlZCBPY3QgMjIgMjA6MjI6MjQg
+MjAwOCArMDIwMApAQCAtMTkwNCw2ICsxOTA0LDQ3IEBACiAJCX0gfSwKIAkJLm1wZWcgICAg
+ICAgICAgID0gQ1g4OF9NUEVHX0RWQiwKIAl9LAorCVtDWDg4X0JPQVJEX1dJTkZBU1RfRFRW
+MTgwMEhdID0geworCQkubmFtZSAgICAgICAgICAgPSAiTGVhZHRlayBXaW5GYXN0IERUVjE4
+MDAgSHlicmlkIiwKKwkJLnR1bmVyX3R5cGUgICAgID0gVFVORVJfWEMyMDI4LAorCQkucmFk
+aW9fdHlwZSAgICAgPSBUVU5FUl9YQzIwMjgsCisJCS50dW5lcl9hZGRyICAgICA9IDB4NjEs
+CisJCS5yYWRpb19hZGRyICAgICA9IDB4NjEsCisJCS8qCisJCSAqIEdQSU8gc2V0dGluZwor
+CQkgKgorCQkgKiAgMjogbXV0ZSAoMD1vZmYsMT1vbikKKwkJICogMTI6IHR1bmVyIHJlc2V0
+IHBpbgorCQkgKiAxMzogYXVkaW8gc291cmNlICgwPXR1bmVyIGF1ZGlvLDE9bGluZSBpbikK
+KwkJICogMTQ6IEZNICgwPW9uLDE9b2ZmID8/PykKKwkJICovCisJCS5pbnB1dCAgICAgICAg
+ICA9IHt7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCisJCQkudm11eCAg
+ID0gMCwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAgICAgIC8qIHBpbiAyID0gMCAqLworCQkJ
+LmdwaW8xICA9IDB4NjA0MCwgICAgICAgLyogcGluIDEzID0gMCwgcGluIDE0ID0gMSAqLwor
+CQkJLmdwaW8yICA9IDB4MDAwMCwKKwkJfSx7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX0NP
+TVBPU0lURTEsCisJCQkudm11eCAgID0gMSwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAgICAg
+IC8qIHBpbiAyID0gMCAqLworCQkJLmdwaW8xICA9IDB4NjA2MCwgICAgICAgLyogcGluIDEz
+ID0gMSwgcGluIDE0ID0gMSAqLworCQkJLmdwaW8yICA9IDB4MDAwMCwKKwkJfSx7CisJCQku
+dHlwZSAgID0gQ1g4OF9WTVVYX1NWSURFTywKKwkJCS52bXV4ICAgPSAyLAorCQkJLmdwaW8w
+ICA9IDB4MDQwMCwgICAgICAgLyogcGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg2MDYw
+LCAgICAgICAvKiBwaW4gMTMgPSAxLCBwaW4gMTQgPSAxICovCisJCQkuZ3BpbzIgID0gMHgw
+MDAwLAorCQl9fSwKKwkJLnJhZGlvID0geworCQkJLnR5cGUgICA9IENYODhfUkFESU8sCisJ
+CQkuZ3BpbzAgID0gMHgwNDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAg
+PSAweDYwMDAsICAgICAgIC8qIHBpbiAxMyA9IDAsIHBpbiAxNCA9IDAgKi8KKwkJCS5ncGlv
+MiAgPSAweDAwMDAsCisJCX0sCisJCS5tcGVnICAgICAgICAgICA9IENYODhfTVBFR19EVkIs
+CisJfSwKIH07CiAKIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwpAQCAtMjI5Nyw2ICsyMzM4LDEwIEBA
+CiAJCS5zdWJ2ZW5kb3IgPSAweEIwMzMsCiAJCS5zdWJkZXZpY2UgPSAweDMwMzMsCiAJCS5j
+YXJkICAgICAgPSBDWDg4X0JPQVJEX1BST0ZfNzMwMCwKKwl9LCB7CisJCS5zdWJ2ZW5kb3Ig
+PSAweDEwN2QsCisJCS5zdWJkZXZpY2UgPSAweDY2NTQsCisJCS5jYXJkICAgICAgPSBDWDg4
+X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEgsCiAJfSwKIH07CiAKQEAgLTI0OTQsNiArMjUzOSwy
+MyBAQAogCXJldHVybiAtRUlOVkFMOwogfQogCitzdGF0aWMgaW50IGN4ODhfeGMzMDI4X3dp
+bmZhc3QxODAwaF9jYWxsYmFjayhzdHJ1Y3QgY3g4OF9jb3JlICpjb3JlLAorCQkJCQkgICAg
+IGludCBjb21tYW5kLCBpbnQgYXJnKQoreworCXN3aXRjaCAoY29tbWFuZCkgeworCWNhc2Ug
+WEMyMDI4X1RVTkVSX1JFU0VUOgorCQkvKiBHUElPIDEyICh4YzMwMjggdHVuZXIgcmVzZXQp
+ICovCisJCWN4X3NldChNT19HUDFfSU8sIDB4MTAxMCk7CisJCW1kZWxheSg1MCk7CisJCWN4
+X2NsZWFyKE1PX0dQMV9JTywgMHgxMCk7CisJCW1kZWxheSg1MCk7CisJCWN4X3NldChNT19H
+UDFfSU8sIDB4MTApOworCQltZGVsYXkoNTApOworCQlyZXR1cm4gMDsKKwl9CisJcmV0dXJu
+IC1FSU5WQUw7Cit9CisKIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KIC8qIHNvbWUgRGl2Y28gc3Bl
+Y2lmaWMgc3R1ZmYgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+Ki8KIHN0YXRpYyBpbnQgY3g4OF9wdl84MDAwZ3RfY2FsbGJhY2soc3RydWN0IGN4ODhfY29y
+ZSAqY29yZSwKQEAgLTI1NjYsNiArMjYyOCw4IEBACiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNP
+X0ZVU0lPTkhEVFZfRFZCX1RfUFJPOgogCWNhc2UgQ1g4OF9CT0FSRF9EVklDT19GVVNJT05I
+RFRWXzVfUENJX05BTk86CiAJCXJldHVybiBjeDg4X2R2aWNvX3hjMjAyOF9jYWxsYmFjayhj
+b3JlLCBjb21tYW5kLCBhcmcpOworCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBI
+OgorCQlyZXR1cm4gY3g4OF94YzMwMjhfd2luZmFzdDE4MDBoX2NhbGxiYWNrKGNvcmUsIGNv
+bW1hbmQsIGFyZyk7CiAJfQogCiAJc3dpdGNoIChjb21tYW5kKSB7CkBAIC0yNzQwLDYgKzI4
+MDQsMTYgQEAKIAkJY3hfc2V0KE1PX0dQMF9JTywgMHgwMDAwMDA4MCk7IC8qIDcwMiBvdXQg
+b2YgcmVzZXQgKi8KIAkJdWRlbGF5KDEwMDApOwogCQlicmVhazsKKworCWNhc2UgQ1g4OF9C
+T0FSRF9XSU5GQVNUX0RUVjE4MDBIOgorCQkvKiBHUElPIDEyICh4YzMwMjggdHVuZXIgcmVz
+ZXQpICovCisJCWN4X3NldChNT19HUDFfSU8sIDB4MTAxMCk7CisJCW1kZWxheSg1MCk7CisJ
+CWN4X2NsZWFyKE1PX0dQMV9JTywgMHgxMCk7CisJCW1kZWxheSg1MCk7CisJCWN4X3NldChN
+T19HUDFfSU8sIDB4MTApOworCQltZGVsYXkoNTApOworCQlicmVhazsKIAl9CiB9CiAKQEAg
+LTI3NjAsNiArMjgzNCw3IEBACiAJCQljb3JlLT5pMmNfYWxnby51ZGVsYXkgPSAxNjsKIAkJ
+YnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfRFZCX1RfUFJPOgor
+CWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIOgogCQljdGwtPmRlbW9kID0gWEMz
+MDI4X0ZFX1pBUkxJTks0NTY7CiAJCWJyZWFrOwogCWNhc2UgQ1g4OF9CT0FSRF9LV09STERf
+QVRTQ18xMjA6CmRpZmYgLXIgZTJhOGI5YjljMjk0IGxpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vY3g4OC9jeDg4LWR2Yi5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4
+OC9jeDg4LWR2Yi5jCUZyaSBPY3QgMTcgMTk6NDU6NTUgMjAwOCArMDMwMAorKysgYi9saW51
+eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYwlXZWQgT2N0IDIyIDIwOjIy
+OjI0IDIwMDggKzAyMDAKQEAgLTk2Myw2ICs5NjMsNyBAQAogCQl9CiAJCWJyZWFrOwogCSBj
+YXNlIENYODhfQk9BUkRfUElOTkFDTEVfSFlCUklEX1BDVFY6CisJY2FzZSBDWDg4X0JPQVJE
+X1dJTkZBU1RfRFRWMTgwMEg6CiAJCWZlMC0+ZHZiLmZyb250ZW5kID0gZHZiX2F0dGFjaCh6
+bDEwMzUzX2F0dGFjaCwKIAkJCQkJICAgICAgICZjeDg4X3Bpbm5hY2xlX2h5YnJpZF9wY3R2
+LAogCQkJCQkgICAgICAgJmNvcmUtPmkyY19hZGFwKTsKZGlmZiAtciBlMmE4YjliOWMyOTQg
+bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYwotLS0gYS9saW51
+eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1pbnB1dC5jCUZyaSBPY3QgMTcgMTk6
+NDU6NTUgMjAwOCArMDMwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgv
+Y3g4OC1pbnB1dC5jCVdlZCBPY3QgMjIgMjA6MjI6MjQgMjAwOCArMDIwMApAQCAtOTMsNiAr
+OTMsNyBAQAogCQlncGlvPShncGlvICYgMHg3ZmQpICsgKGF1eGdwaW8gJiAweGVmKTsKIAkJ
+YnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTAwMDoKKwljYXNlIENYODhf
+Qk9BUkRfV0lORkFTVF9EVFYxODAwSDoKIAkJZ3BpbyA9IChncGlvICYgMHg2ZmYpIHwgKChj
+eF9yZWFkKE1PX0dQMV9JTykgPDwgOCkgJiAweDkwMCk7CiAJCWF1eGdwaW8gPSBncGlvOwog
+CQlicmVhazsKQEAgLTI0NCw2ICsyNDUsNyBAQAogCQlpci0+c2FtcGxpbmcgPSAxOwogCQli
+cmVhazsKIAljYXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYyMDAwSDoKKwljYXNlIENYODhf
+Qk9BUkRfV0lORkFTVF9EVFYxODAwSDoKIAkJaXJfY29kZXMgPSBpcl9jb2Rlc193aW5mYXN0
+OwogCQlpci0+Z3Bpb19hZGRyID0gTU9fR1AwX0lPOwogCQlpci0+bWFza19rZXljb2RlID0g
+MHg4Zjg7CmRpZmYgLXIgZTJhOGI5YjljMjk0IGxpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8v
+Y3g4OC9jeDg4LmgKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgu
+aAlGcmkgT2N0IDE3IDE5OjQ1OjU1IDIwMDggKzAzMDAKKysrIGIvbGludXgvZHJpdmVycy9t
+ZWRpYS92aWRlby9jeDg4L2N4ODguaAlXZWQgT2N0IDIyIDIwOjIyOjI0IDIwMDggKzAyMDAK
+QEAgLTIzMCw2ICsyMzAsNyBAQAogI2RlZmluZSBDWDg4X0JPQVJEX1RFVklJX1M0MjAgICAg
+ICAgICAgICAgIDczCiAjZGVmaW5lIENYODhfQk9BUkRfUFJPTElOS19QVl9HTE9CQUxfWFRS
+RU1FIDc0CiAjZGVmaW5lIENYODhfQk9BUkRfUFJPRl83MzAwICAgICAgICAgICAgICAgNzUK
+KyNkZWZpbmUgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIICAgICAgICA3NgogCiBlbnVt
+IGN4ODhfaXR5cGUgewogCUNYODhfVk1VWF9DT01QT1NJVEUxID0gMSwK
 
-
-> And I'm guessing this is Mux B (C34); not sure though!
-
-> 0x0000 0x41c0: pmt_pid 0x02be BBC -- BBC FOUR (running)
-> 0x0000 0x4240: pmt_pid 0x02bf BBC -- CBeebies (running)
-
-No problems tuning.  Interesting, though -- by satellite,
-the status of BBC3/4 CBBC/CBeebies is such that by day,
-the first two are tagged as `(not running)', and by night,
-the latter two...
-
-In any case, you should be able to ``tune'' into BBC4 by
-instead tuning to CBeebies after 19h.  Or you can permanently
-fix this by copying the PID values from CBeebies by day to
-the 0-values of BBC4 -- repeat for CBBC and BBC3.  Doing so
-will give you the correct Service ID (following the video+
-audio PIDs).
-
-
-> I hope that is the correct infos!
-
-Close enough  ;-)
-
-First question:  if you download the latest tuning file from
-../HG-src/dvb-apps/util/scan/dvb-t/uk-Rowridge
-are you able to receive all six frequencies with both cards?
-
-Second:  How do the `tzap' values for both cards for all
-frequencies compare, with the same aerial input -- in particular,
-the signal strength, BER, and SNR values?
-
-
-barry bouwsma
+---------=_44A21A41.55502A8C
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+---------=_44A21A41.55502A8C--
