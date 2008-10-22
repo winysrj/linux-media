@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-out.m-online.net ([212.18.0.10])
+Received: from as3.mho.net ([64.58.4.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <zzam@gentoo.org>) id 1KsBf0-0001Zm-AK
-	for linux-dvb@linuxtv.org; Tue, 21 Oct 2008 09:28:12 +0200
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-dvb@linuxtv.org
-Date: Tue, 21 Oct 2008 09:28:02 +0200
-References: <20081016190946.GB25806@geppetto> <20081020193632.GA5685@geppetto>
-	<48FCEA05.7060600@kaiser-linux.li>
-In-Reply-To: <48FCEA05.7060600@kaiser-linux.li>
+	(envelope-from <mlnx@mho.com>) id 1KsSbO-0002UU-8z
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 03:33:34 +0200
+Received: from smtp.mho.com (localhost [127.0.0.1])
+	by as3.mho.net (Spam Firewall) with SMTP id 28CE06CC08C
+	for <linux-dvb@linuxtv.org>; Tue, 21 Oct 2008 19:33:26 -0600 (MDT)
+Received: from smtp.mho.com (a.smtp.mho.net [64.58.4.6]) by as3.mho.net with
+	SMTP id du60gBCBIpaej7zS for <linux-dvb@linuxtv.org>;
+	Tue, 21 Oct 2008 19:33:26 -0600 (MDT)
+Message-ID: <48FED6CB.7030603@mho.com>
+Date: Wed, 22 Oct 2008 01:31:23 -0600
+From: Mike Adolf <mlnx@mho.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200810210928.03029.zzam@gentoo.org>
-Subject: Re: [linux-dvb]
-	=?iso-8859-1?q?v4l-dvb_gspca_modules_conflict_with=09?=
-	=?iso-8859-1?q?standalone=09gspca_module?=
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Problem making v4l driver tree
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,21 +28,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Montag, 20. Oktober 2008, Thomas Kaiser wrote:
+According to the Mythtv Wiki on the pctv 800i card you need to extract
+firmware from windows file and download "v4l-dvb-c800683faf86.tar.gz",
+and do a make and make install to get the latest tree of drivers
+installed.  However, when I did the make I got the following  error.
+------
+Updating/Creating .config
+Preparing to compile for kernel version 2.6.25
+File not found: /lib/modules/2.6.25.16-0.1-pae/build/.config at
+./scripts/make_kconfig.pl line 32, <IN> line 4.
+make[1]: *** No rule to make target `.myconfig', needed by
+`config-compat.h'.  Stop.
+-----
+I am use to resolving dependency errors but don't know what to do with
+this one. I am using SuSe 11.   Since I do get good video but no sound,
+would it be a good idea to do an 'Install-sound' only-once I get it to make?
 
->
-> Hans de Goede (j.w.r.degoede@hhs.nl) is writing a user space lib to
-> convert/decode all the stuff which was done in the old gspca in kernel
-> space, his lib does it now in user space. That's the way to go!
->
-> The development of this is rather new and I think it is not included in
-> any distro at the moment. But it will be soon.
->
+Mike
 
-Well, gentoo already has it since october, 18th :)
-
-Regards
-Matthias
 
 _______________________________________________
 linux-dvb mailing list
