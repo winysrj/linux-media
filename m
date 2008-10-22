@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <w3ird_n3rd@gmx.net>) id 1KmV41-00049Q-6a
-	for linux-dvb@linuxtv.org; Sun, 05 Oct 2008 16:58:31 +0200
-Message-ID: <48E8D5F3.3030507@gmx.net>
-Date: Sun, 05 Oct 2008 16:57:55 +0200
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
-MIME-Version: 1.0
-To: linux-dvb <linux-dvb@linuxtv.org>
-References: <200809282207.20443.simon@siemonsma.name>
-In-Reply-To: <200809282207.20443.simon@siemonsma.name>
-Subject: Re: [linux-dvb] Can't record an encrypted channel and watch another
- in	the same bouquet. (also teletext doesn't work for encrypted	channels)
+Received: from dsl-202-173-134-75.nsw.westnet.com.au ([202.173.134.75]
+	helo=mail.lemonrind.net) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <alex@receptiveit.com.au>) id 1Ksc7M-0002rB-MT
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 13:43:15 +0200
+Message-Id: <8A7DC3C9-BE07-4E5D-9069-C409F990853A@receptiveit.com.au>
+From: Alex Ferrara <alex@receptiveit.com.au>
+To: "Mark Callaghan" <mark@lostcow.com>
+In-Reply-To: <452AD5616A1D4A2EB6BB6329DEF41E58@marklaptop>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Date: Wed, 22 Oct 2008 22:42:32 +1100
+References: <00023E2CD2444D05AFE501BA0439DCCF@marklaptop>
+	<12A846AD-5D7A-4021-BE5B-063A7AEB70E9@receptiveit.com.au>
+	<452AD5616A1D4A2EB6BB6329DEF41E58@marklaptop>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Dvico Dual Digital 4 rev 2 broken in October?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,92 +21,122 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0548781388=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 09/28/2008 10:07 PM, Simon Siemonsma wrote:
-> I have a problem with encrypted channels.
-> I have a Conax CAM Module (by Smit)
-> Further I use a Technotrend T1500 Budget card with CI cart.
-> 
-> With FTA channels everything works just fine.
-> With encoded channels some things don't work.
-> 
-> I can't record one channel and at the same time look at another channel from 
-> the same bouquet. (Kaffeine says: "no CAM free", vdr says: "Channel not 
-> available"
-> Teletext doesn't work (vdr says: "Page 100-00 not found")
-> When I start vdr I get the following in the log file:
-> "CAM 1: module present
-> CAM 1: module ready
-> Conax Conditional Access, 01, CAFE, BABE
-> CAM 1: doesn't reply to QUERY - only a single channel can be decrypted"
-> 
-> This looks like the CAM can't just encode one channel at a time.
-> 
-> But on the dvbshop Website they say:
-> http://www.dvbshop.net/product_info.php/info/p2194_Conax-CAM--Rev--1-2----4-00e-by-Smit.html
-> "MPEG DEMUX: Multi-channel SECTION and PID filter configurable through 
-> software"
-> in vdr's CAM menu is stated: "Number of sessions: 5"
-> 
-> This looks like the CAM can handle multiple channels at a time isn't it?
-> 
-> Someone at 
-> http://www.dvbnetwork.de/index.php?option=com_fireboard&Itemid=27&func=view&catid=2&id=6191#6192 
-> (German) pointed me in the direction of the linux drivers.
-> 
-> Is he right?
-> 
-> I understood from 
-> http://www.linuxtv.org/docs/dvbapi/Introduction.html#SECTION00230000000000000000 
-> that the CAM comes before the Demuxer and: "The complete TS is passed through 
-> the CA hardware".
-> If I understood this right this means that onces I watch one channel in a 
-> bouquet the complets TS is decrypted. So all other channels and teletext are 
-> decrypted too. This makes it extra confusing why I can't record one channel 
-> and watch another in the same bouquet.
-> Do I understand it wrong or are the drivers or the dvb software not mature 
-> enough yet.
-> I use kernel 2.6.25.
-> 
-> Simon Siemonsma
-> 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
 
-You likely live in The Netherlands. Teletext on Digitenne is encrypted, 
-and you are not the only one with problems. The teletext simply 
-shouldn't be encrypted, but we can't control KPN. In some cases this can 
-be solved by changing settings in the CAM menu.
+--===============0548781388==
+Content-Type: multipart/alternative; boundary=Apple-Mail-12--592067384
 
-When saying the whole transport stream goes to the CAM, this means 
-everything connected to the requested service ID gets decrypted (if the 
-CAM is capable). So not just audio and video, but also extra audio 
-tracks, teletext etc.
 
-To descramble multiple channels you usually need a more expensive CAM. 
-For example 
-http://www.made-in-china.com/china-products/productviewJqSxvLmUREWp/Professional-Irdeto-CI-Module.html 
-shows a "professional Irdeto CAM" that will descramble 4 TV channels at 
-the same time. Not usefull for you because you need Conax, but I don't 
-know which Conax module could descamble multiple channels.
+--Apple-Mail-12--592067384
+Content-Type: text/plain;
+	charset=US-ASCII;
+	format=flowed;
+	delsp=yes
+Content-Transfer-Encoding: 7bit
 
-This is no linux-DVB problem.
+On 22/10/2008, at 9:43 PM, Mark Callaghan wrote:
 
-P. van Gaans
+> Thanks Alex. I deleted one of the firmware files (Chris's) and my  
+> rev2 is good now. (I had a few fw files in place.)
+>
+> But I have been having other problems - only one of the two tuners  
+> would work, the other reporting "partial lock". Various searches and  
+> much digging turned up a suggestion to disable EIT scanning. I  
+> disabled the EIT scan in the backend setup (video sources, I  
+> think?). But this had no effect. I then went into the database with  
+> phpmyadmin, and disabled dvb_eitscan in the capturecard table. And  
+> now I get both tuners.
+>
+> So there is something strange happening, but I'm happy.
+>
+> Cheers,
+> Mark
+>
 
--- note: this is an old message, but I just found out I *AGAIN* forgot 
-to send it to the list. Linux-dvb missing in the reply-to field is very, 
-very, very annoying. --
+
+I'm not sure if I mentioned it, but I am running kernel 2.6.27 from  
+Ubuntu Intrepid
+
+Good to see that you are having some joy.
+
+Regards
+Alex Ferrara
+
+Director
+Receptive IT Solutions
+
+
+--Apple-Mail-12--592067384
+Content-Type: text/html;
+	charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
+
+<html><body style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
+-webkit-line-break: after-white-space; "><div><div><div>On 22/10/2008, =
+at 9:43 PM, Mark Callaghan wrote:</div><br =
+class=3D"Apple-interchange-newline"><blockquote type=3D"cite"><span =
+class=3D"Apple-style-span" style=3D"border-collapse: separate; color: =
+rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: =
+normal; font-variant: normal; font-weight: normal; letter-spacing: =
+normal; line-height: normal; orphans: 2; text-align: auto; text-indent: =
+0px; text-transform: none; white-space: normal; widows: 2; word-spacing: =
+0px; -webkit-border-horizontal-spacing: 0px; =
+-webkit-border-vertical-spacing: 0px; =
+-webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0; "><div bgcolor=3D"#ffffff" =
+style=3D"word-wrap: break-word; -webkit-nbsp-mode: space; =
+-webkit-line-break: after-white-space; "><div><font face=3D"Arial" =
+size=3D"2">Thanks Alex. I deleted one of the firmware files (Chris's) =
+and my rev2 is good now. (I had a few fw files in =
+place.)</font></div><div><font face=3D"Arial" =
+size=3D"2"></font>&nbsp;</div><div><font face=3D"Arial" size=3D"2">But I =
+have been having other problems - only one of the two tuners would work, =
+the other reporting "partial lock". Various searches and much digging =
+turned up a suggestion to disable EIT scanning. I disabled the EIT scan =
+in the backend setup (video sources, I think?). But this had no effect. =
+I then went into the database with phpmyadmin, and disabled dvb_eitscan =
+in the capturecard table. And now I get both =
+tuners.</font></div><div><font face=3D"Arial" =
+size=3D"2"></font>&nbsp;</div><div><font face=3D"Arial" size=3D"2">So =
+there is something strange happening, but I'm =
+happy.</font></div><div><font face=3D"Arial" =
+size=3D"2"></font>&nbsp;</div><div><font face=3D"Arial" =
+size=3D"2">Cheers,</font></div><div><font face=3D"Arial" =
+size=3D"2">Mark</font></div><div><font face=3D"Arial" =
+size=3D"2"></font>&nbsp;</div></div></span></blockquote></div><div><br></d=
+iv>I'm not sure if I mentioned it, but I am running kernel 2.6.27 from =
+Ubuntu Intrepid<div><br></div><div>Good to see that you are having some =
+joy.</div><div><br></div><div>Regards</div><div =
+apple-content-edited=3D"true"><span class=3D"Apple-style-span" =
+style=3D"border-collapse: separate; color: rgb(0, 0, 0); font-family: =
+Helvetica; font-size: 12px; font-style: normal; font-variant: normal; =
+font-weight: normal; letter-spacing: normal; line-height: normal; =
+orphans: 2; text-align: auto; text-indent: 0px; text-transform: none; =
+white-space: normal; widows: 2; word-spacing: 0px; =
+-webkit-border-horizontal-spacing: 0px; -webkit-border-vertical-spacing: =
+0px; -webkit-text-decorations-in-effect: none; -webkit-text-size-adjust: =
+auto; -webkit-text-stroke-width: 0; "><div style=3D"word-wrap: =
+break-word; -webkit-nbsp-mode: space; -webkit-line-break: =
+after-white-space; "><div>Alex =
+Ferrara</div><div><br></div><div>Director</div><div>Receptive IT =
+Solutions</div></div></span> </div><br></div></body></html>=
+
+--Apple-Mail-12--592067384--
+
+
+--===============0548781388==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0548781388==--
