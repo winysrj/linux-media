@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail2.m00h.eu ([83.246.72.85])
+Received: from 202.7.249.79.dynamic.rev.aanet.com.au ([202.7.249.79]
+	helo=home.singlespoon.org.au)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christian@heidingsfelder.eu>) id 1KpPte-0006LZ-Al
-	for linux-dvb@linuxtv.org; Mon, 13 Oct 2008 18:03:53 +0200
-Message-ID: <48F37150.6090809@heidingsfelder.eu>
-Date: Mon, 13 Oct 2008 18:03:28 +0200
-From: "Christian Heidingsfelder [Heidingsfelder + Partner]"
-	<christian@heidingsfelder.eu>
+	(envelope-from <paulc@singlespoon.org.au>) id 1KsX6m-0004ks-Cn
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 08:22:18 +0200
+Message-ID: <48FEC5F6.8000809@singlespoon.org.au>
+Date: Wed, 22 Oct 2008 17:19:34 +1100
+From: Paul Chubb <paulc@singlespoon.org.au>
 MIME-Version: 1.0
-To: Faruk A <fa@elwak.com>
-References: <48F360B1.7070705@heidingsfelder.eu>
-	<854d46170810130834p6118793co49ecb6ed8809062@mail.gmail.com>
-In-Reply-To: <854d46170810130834p6118793co49ecb6ed8809062@mail.gmail.com>
-Content-Type: multipart/mixed; boundary="------------050805060606070209000601"
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technotrend TT-Connect S2-3650 CI
-Reply-To: christian@heidingsfelder.eu
+To: Mike Adolf <mlnx@mho.com>, linux dvb <linux-dvb@linuxtv.org>
+References: <48FED6CB.7030603@mho.com>
+In-Reply-To: <48FED6CB.7030603@mho.com>
+Subject: Re: [linux-dvb] Problem making v4l driver tree
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,132 +19,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------050805060606070209000601
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Mike,
+          the make file is looking for the .config from your installed 
+kernel. On some distributions like Gentoo it is where it is expected 
+because Gentoo users compile another kernel at the drop of a hat. Other 
+distros like ubuntu ship the config file but it is not in the right 
+place. For ubuntu you would look in the /boot directory. It will be 
+called something like config-<kernel revision>. Copy it to the name 
+.config in the specified directory:
 
-Faruk A schrieb:
->> Hi all,
->>
->> again, if somebody is
->> working on
->> or interested in
->> that DVB-S USB Reciever with Card Interface he can msg me for informat=
-ions
->> or whatever :- )
->>
->> Regards Chris
->>    =20
+/lib/modules/2.6.25.16-0.1-pae/build/.config
+
+You will need to find out what your distro does to ship the config file, 
+get a copy and put it there.
+
+HTH
+
+Paul
+
+Mike Adolf wrote:
+> According to the Mythtv Wiki on the pctv 800i card you need to extract
+> firmware from windows file and download "v4l-dvb-c800683faf86.tar.gz",
+> and do a make and make install to get the latest tree of drivers
+> installed.  However, when I did the make I got the following  error.
+> ------
+> Updating/Creating .config
+> Preparing to compile for kernel version 2.6.25
+> File not found: /lib/modules/2.6.25.16-0.1-pae/build/.config at
+> ./scripts/make_kconfig.pl line 32, <IN> line 4.
+> make[1]: *** No rule to make target `.myconfig', needed by
+> `config-compat.h'.  Stop.
+> -----
+> I am use to resolving dependency errors but don't know what to do with
+> this one. I am using SuSe 11.   Since I do get good video but no sound,
+> would it be a good idea to do an 'Install-sound' only-once I get it to make?
 >
-> Hi Chris!
+> Mike
 >
-> As i told you before this card is working with multiproto with kernel
-> 2.6.25 and under.
 >
-> driver support:
-> - Remote Control
-> - LNB Power (13/18V)
-> - 22kHz
-> - DiSEqC
-> - DVB-S
-> - DVB-S2
-> - Common Interface
-> more info @ http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connec=
-t_S2-3650_CI
-> and search this mailing list.
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >
-> S2 API support you have to wait i think because this card depends
-> stb0899 and stb6100
-> which as far as i know is not ported yet.
->
-> Regards
-> Faruk
->  =20
+>   
 
 
---=20
-Mit freundlichen Gr=FC=DFen
-Christian Heidingsfelder
- =20
-+---------------------------------+--------------------------------+
-| Heidingsfelder + Partner        | Heidingsfelder + Partner       |
-|                                 | Tel: +49 7577 933864           |
-| Kirchgasse 9                    | Fax: +49 7577 933863           |
-| 72474 Winterlingen-Benzingen    | christian@heidingsfelder.eu    |
-| DE                              |                                |
-|                                 |                                |
-+---------------------------------+--------------------------------+
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
 
-***********************************
-Diese eMailadresse ist keine Zustelladresse.
-Aus technischen Gruenden kann ich Ihre eMail nicht sofort nach=20
-Eingang darauf =FCberpruefen, ob sie Fristen oder Termine enthaelt.=20
-Daher uebernehme ich keine Gewaehr, da=DF Ihre Nachricht so=20
-rechtzeitig gelesen wird, da=DF alle zur Einhaltung von etwaigen=20
-Fristen oder Terminen notwendigen Massnahmen ergriffen werden=20
-koennen.=20
-Bitte uebermitteln Sie solche Schriftstuecke per Fax oder Brief an=20
-die weiter obenstehende Anschrift.
-***********************************
-Hiermit widerspreche ich ausdruecklich jeglicher Nutzung oder=20
-Uebermittlung meiner Daten, gleichgueltig, zu welchen Zwecken oder=20
-an welchen Empfaenger sie erfolgt. Insbesondere widerspreche ich=20
-der Nutzung oder Uebermittlung meiner Daten fuer Werbe, Markt-=20
-oder Meinungsforschungszwecken gemaess=20
-=A7 28 Absatz 3 Bundesdatenschutzgesetz.
-***********************************
-Sicherheitshinweis:
-Wie Sie wissen, k=F6nnen eMails missbr=E4uchlich unter fremden Namen=20
-erstellt oder ver=E4ndert werden. Aus diesem Grunde bitte ich um=20
-Verst=E4ndnis daf=FCr, da=DF ich zu Ihrem und meinem Schutz die=20
-rechtliche Verbindlichkeit der in dieser eMail gemachten=20
-Erkl=E4rungen ausschliessen mu=DF. Diese Regelung gilt nur dann nicht,=20
-wenn ich mit Ihnen eine anderweitige schriftliche Vereinbarung=20
-=FCber die Einhaltung von Sicherheits- und=20
-Verschl=FCsselungstandards getroffen habe.
-***********************************
-
-Si forte in alienas manus oberraverit hec peregrina epistola=20
-incertis ventis dimissa, sed Deo commendata, precamur ut ei=20
-reddatur cui soli destinata, nec preripiat quisquam non sibi=20
-parata.
-
-
---------------050805060606070209000601
-Content-Type: text/x-vcard; charset=utf-8;
- name="christian.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="christian.vcf"
-
-begin:vcard
-fn:Christian Heidingsfelder [Heidingsfelder + Partner]
-n:Heidingsfelder;Christian
-org:Heidingsfelder + Partner
-adr:;;Kirchgasse 9;Winterlingen-Benzingen;BW;72474;Deutschland
-email;internet:christian@heidigsfelder.eu
-title:CEO
-tel;work:+49 7577 933 864
-tel;fax:+49 7577 933 863
-tel;home:+49 7577 933 862
-x-mozilla-html:TRUE
-version:2.1
-end:vcard
-
-
---------------050805060606070209000601
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------050805060606070209000601--
