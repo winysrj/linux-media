@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.28])
+Received: from mail1007.centrum.cz ([90.183.38.137])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gregoire.favre@gmail.com>) id 1Kt4uw-00025o-Jy
-	for linux-dvb@linuxtv.org; Thu, 23 Oct 2008 20:28:19 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so143312yxg.41
-	for <linux-dvb@linuxtv.org>; Thu, 23 Oct 2008 11:28:13 -0700 (PDT)
-Date: Thu, 23 Oct 2008 20:28:05 +0200
-To: linux-dvb@linuxtv.org
-Message-ID: <20081023182805.GK30832@gmail.com>
-References: <412bdbff0810220607x588735f2v780104a5cafc3b8a@mail.gmail.com>
-	<48FF5C43.9090309@linuxtv.org>
-	<200810230300.43637.liplianin@tut.by>
-	<20081023205338.3a1784ca@bk.ru>
+	(envelope-from <sustmidown@centrum.cz>) id 1KsjjD-0003uu-0v
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 21:50:51 +0200
+Received: by mail1007.centrum.cz id S738270229AbYJVTug (ORCPT
+	<rfc822;linux-dvb@linuxtv.org>); Wed, 22 Oct 2008 21:50:36 +0200
+Date: Wed, 22 Oct 2008 21:50:36 +0200
+From: "Miroslav  =?UTF-8?Q?=20=C5=A0ustek?=" <sustmidown@centrum.cz>
+To: <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20081023205338.3a1784ca@bk.ru>
-From: Gregoire Favre <gregoire.favre@gmail.com>
-Subject: Re: [linux-dvb] stb0899 drivers
+Message-ID: <200810222150.2662@centrum.cz>
+References: <200810200122.4044@centrum.cz> <200810200123.28880@centrum.cz>
+	<200810200124.8475@centrum.cz> <200810200125.8958@centrum.cz>
+	<200810200126.978@centrum.cz> <200810200127.29920@centrum.cz>
+	<200810200141.629@centrum.cz> <48FCD1DC.3010701@linuxtv.org>
+In-Reply-To: <48FCD1DC.3010701@linuxtv.org>
+Content-Type: multipart/mixed; boundary="-------=_1C4F795A.730940A1"
+Subject: Re: [linux-dvb] Leadtek WinFast DTV-1800H support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,27 +24,151 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Oct 23, 2008 at 08:53:38PM +0400, Goga777 wrote:
+This is a multi-part message in MIME format
 
-What's the change from v4l-dvb ?
+---------=_1C4F795A.730940A1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-> I can confirm that on our Russian dvb-linux forum there's only good repor=
-ts about
-> http://mercurial.intuxication.org/hg/s2-liplianin from owners who have st=
-b0899 and cx24116 based cards
+*Sorry for double-post, but first one was cut off.*
 
--- =
+Steven Toth wrote:
+>
+> From my orig email: "Don't call cx_write() inside the gpio card setup, you're potentially destroying the other bits, it's risky."
+>
+>cx_write destroys the content of the GPIO direction-enablement and values bits. That's a bad thing, and can lead to unexpected behaviors if used generally in drivers.
+>
+>It's better to have a driver read the previous register value, and/or in the appropriate bit and write the value back to the gpio registers. This is what cx_set/clear do. That way parts of the driver can toggle GPIO's for important pieces, without having to understand GPIO usage in other disconnected/unrelated parts of the driver.
+>
+>Your patch uses set/clear, which is good.
 
-Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
-               http://picasaweb.google.com/Gregoire.Favre
+>From datasheet (http://www.domenech.org/datasheets/cx23880-cx23881-cx23882-cx23883-datasheet-08-2002.pdf),
+Chapter 2.3.3:
+GP{x}_IO register:
+bits [23:16] = GP{x}_BWE
+
+"If this field is equal to 8’h00, then the whole GPIO byte
+register operates in normal RW mode. If any bit is set, then
+the corresponding GP_OE and GP_IO bit locations are
+enabled for writing. If the bit write enable is not set, the
+corresponding GPIO bits will be unaffected."
+
+So I think this is just like (this is) mask. I don't see any possibility of unexpected behavior.
+You only have to know which bits you want change (=how to set the mask)...
+Ok, persuaded me, using cx_set and cx_clear is prettier :) .
+
+>Incidently, you patch cannot be merged as-is, it has C99 style comments '//' are not allowed, change to /* */ etc.
+
+Of course, new patch is attached.
+
+
+---------=_1C4F795A.730940A1
+Content-Type: text/x-patch; name="leadtek_winfast_dtv1800h_2.patch"
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtciBlMmE4YjliOWMyOTQgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4
+ODgtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1j
+YXJkcy5jCUZyaSBPY3QgMTcgMTk6NDU6NTUgMjAwOCArMDMwMAorKysgYi9saW51eC9kcml2
+ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCVdlZCBPY3QgMjIgMjA6MjI6MjQg
+MjAwOCArMDIwMApAQCAtMTkwNCw2ICsxOTA0LDQ3IEBACiAJCX0gfSwKIAkJLm1wZWcgICAg
+ICAgICAgID0gQ1g4OF9NUEVHX0RWQiwKIAl9LAorCVtDWDg4X0JPQVJEX1dJTkZBU1RfRFRW
+MTgwMEhdID0geworCQkubmFtZSAgICAgICAgICAgPSAiTGVhZHRlayBXaW5GYXN0IERUVjE4
+MDAgSHlicmlkIiwKKwkJLnR1bmVyX3R5cGUgICAgID0gVFVORVJfWEMyMDI4LAorCQkucmFk
+aW9fdHlwZSAgICAgPSBUVU5FUl9YQzIwMjgsCisJCS50dW5lcl9hZGRyICAgICA9IDB4NjEs
+CisJCS5yYWRpb19hZGRyICAgICA9IDB4NjEsCisJCS8qCisJCSAqIEdQSU8gc2V0dGluZwor
+CQkgKgorCQkgKiAgMjogbXV0ZSAoMD1vZmYsMT1vbikKKwkJICogMTI6IHR1bmVyIHJlc2V0
+IHBpbgorCQkgKiAxMzogYXVkaW8gc291cmNlICgwPXR1bmVyIGF1ZGlvLDE9bGluZSBpbikK
+KwkJICogMTQ6IEZNICgwPW9uLDE9b2ZmID8/PykKKwkJICovCisJCS5pbnB1dCAgICAgICAg
+ICA9IHt7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCisJCQkudm11eCAg
+ID0gMCwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAgICAgIC8qIHBpbiAyID0gMCAqLworCQkJ
+LmdwaW8xICA9IDB4NjA0MCwgICAgICAgLyogcGluIDEzID0gMCwgcGluIDE0ID0gMSAqLwor
+CQkJLmdwaW8yICA9IDB4MDAwMCwKKwkJfSx7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX0NP
+TVBPU0lURTEsCisJCQkudm11eCAgID0gMSwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAgICAg
+IC8qIHBpbiAyID0gMCAqLworCQkJLmdwaW8xICA9IDB4NjA2MCwgICAgICAgLyogcGluIDEz
+ID0gMSwgcGluIDE0ID0gMSAqLworCQkJLmdwaW8yICA9IDB4MDAwMCwKKwkJfSx7CisJCQku
+dHlwZSAgID0gQ1g4OF9WTVVYX1NWSURFTywKKwkJCS52bXV4ICAgPSAyLAorCQkJLmdwaW8w
+ICA9IDB4MDQwMCwgICAgICAgLyogcGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg2MDYw
+LCAgICAgICAvKiBwaW4gMTMgPSAxLCBwaW4gMTQgPSAxICovCisJCQkuZ3BpbzIgID0gMHgw
+MDAwLAorCQl9fSwKKwkJLnJhZGlvID0geworCQkJLnR5cGUgICA9IENYODhfUkFESU8sCisJ
+CQkuZ3BpbzAgID0gMHgwNDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAg
+PSAweDYwMDAsICAgICAgIC8qIHBpbiAxMyA9IDAsIHBpbiAxNCA9IDAgKi8KKwkJCS5ncGlv
+MiAgPSAweDAwMDAsCisJCX0sCisJCS5tcGVnICAgICAgICAgICA9IENYODhfTVBFR19EVkIs
+CisJfSwKIH07CiAKIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwpAQCAtMjI5Nyw2ICsyMzM4LDEwIEBA
+CiAJCS5zdWJ2ZW5kb3IgPSAweEIwMzMsCiAJCS5zdWJkZXZpY2UgPSAweDMwMzMsCiAJCS5j
+YXJkICAgICAgPSBDWDg4X0JPQVJEX1BST0ZfNzMwMCwKKwl9LCB7CisJCS5zdWJ2ZW5kb3Ig
+PSAweDEwN2QsCisJCS5zdWJkZXZpY2UgPSAweDY2NTQsCisJCS5jYXJkICAgICAgPSBDWDg4
+X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEgsCiAJfSwKIH07CiAKQEAgLTI0OTQsNiArMjUzOSwy
+MyBAQAogCXJldHVybiAtRUlOVkFMOwogfQogCitzdGF0aWMgaW50IGN4ODhfeGMzMDI4X3dp
+bmZhc3QxODAwaF9jYWxsYmFjayhzdHJ1Y3QgY3g4OF9jb3JlICpjb3JlLAorCQkJCQkgICAg
+IGludCBjb21tYW5kLCBpbnQgYXJnKQoreworCXN3aXRjaCAoY29tbWFuZCkgeworCWNhc2Ug
+WEMyMDI4X1RVTkVSX1JFU0VUOgorCQkvKiBHUElPIDEyICh4YzMwMjggdHVuZXIgcmVzZXQp
+ICovCisJCWN4X3NldChNT19HUDFfSU8sIDB4MTAxMCk7CisJCW1kZWxheSg1MCk7CisJCWN4
+X2NsZWFyKE1PX0dQMV9JTywgMHgxMCk7CisJCW1kZWxheSg1MCk7CisJCWN4X3NldChNT19H
+UDFfSU8sIDB4MTApOworCQltZGVsYXkoNTApOworCQlyZXR1cm4gMDsKKwl9CisJcmV0dXJu
+IC1FSU5WQUw7Cit9CisKIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KIC8qIHNvbWUgRGl2Y28gc3Bl
+Y2lmaWMgc3R1ZmYgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+Ki8KIHN0YXRpYyBpbnQgY3g4OF9wdl84MDAwZ3RfY2FsbGJhY2soc3RydWN0IGN4ODhfY29y
+ZSAqY29yZSwKQEAgLTI1NjYsNiArMjYyOCw4IEBACiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNP
+X0ZVU0lPTkhEVFZfRFZCX1RfUFJPOgogCWNhc2UgQ1g4OF9CT0FSRF9EVklDT19GVVNJT05I
+RFRWXzVfUENJX05BTk86CiAJCXJldHVybiBjeDg4X2R2aWNvX3hjMjAyOF9jYWxsYmFjayhj
+b3JlLCBjb21tYW5kLCBhcmcpOworCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBI
+OgorCQlyZXR1cm4gY3g4OF94YzMwMjhfd2luZmFzdDE4MDBoX2NhbGxiYWNrKGNvcmUsIGNv
+bW1hbmQsIGFyZyk7CiAJfQogCiAJc3dpdGNoIChjb21tYW5kKSB7CkBAIC0yNzQwLDYgKzI4
+MDQsMTYgQEAKIAkJY3hfc2V0KE1PX0dQMF9JTywgMHgwMDAwMDA4MCk7IC8qIDcwMiBvdXQg
+b2YgcmVzZXQgKi8KIAkJdWRlbGF5KDEwMDApOwogCQlicmVhazsKKworCWNhc2UgQ1g4OF9C
+T0FSRF9XSU5GQVNUX0RUVjE4MDBIOgorCQkvKiBHUElPIDEyICh4YzMwMjggdHVuZXIgcmVz
+ZXQpICovCisJCWN4X3NldChNT19HUDFfSU8sIDB4MTAxMCk7CisJCW1kZWxheSg1MCk7CisJ
+CWN4X2NsZWFyKE1PX0dQMV9JTywgMHgxMCk7CisJCW1kZWxheSg1MCk7CisJCWN4X3NldChN
+T19HUDFfSU8sIDB4MTApOworCQltZGVsYXkoNTApOworCQlicmVhazsKIAl9CiB9CiAKQEAg
+LTI3NjAsNiArMjgzNCw3IEBACiAJCQljb3JlLT5pMmNfYWxnby51ZGVsYXkgPSAxNjsKIAkJ
+YnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfRFZCX1RfUFJPOgor
+CWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIOgogCQljdGwtPmRlbW9kID0gWEMz
+MDI4X0ZFX1pBUkxJTks0NTY7CiAJCWJyZWFrOwogCWNhc2UgQ1g4OF9CT0FSRF9LV09STERf
+QVRTQ18xMjA6CmRpZmYgLXIgZTJhOGI5YjljMjk0IGxpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vY3g4OC9jeDg4LWR2Yi5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4
+OC9jeDg4LWR2Yi5jCUZyaSBPY3QgMTcgMTk6NDU6NTUgMjAwOCArMDMwMAorKysgYi9saW51
+eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYwlXZWQgT2N0IDIyIDIwOjIy
+OjI0IDIwMDggKzAyMDAKQEAgLTk2Myw2ICs5NjMsNyBAQAogCQl9CiAJCWJyZWFrOwogCSBj
+YXNlIENYODhfQk9BUkRfUElOTkFDTEVfSFlCUklEX1BDVFY6CisJY2FzZSBDWDg4X0JPQVJE
+X1dJTkZBU1RfRFRWMTgwMEg6CiAJCWZlMC0+ZHZiLmZyb250ZW5kID0gZHZiX2F0dGFjaCh6
+bDEwMzUzX2F0dGFjaCwKIAkJCQkJICAgICAgICZjeDg4X3Bpbm5hY2xlX2h5YnJpZF9wY3R2
+LAogCQkJCQkgICAgICAgJmNvcmUtPmkyY19hZGFwKTsKZGlmZiAtciBlMmE4YjliOWMyOTQg
+bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYwotLS0gYS9saW51
+eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1pbnB1dC5jCUZyaSBPY3QgMTcgMTk6
+NDU6NTUgMjAwOCArMDMwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgv
+Y3g4OC1pbnB1dC5jCVdlZCBPY3QgMjIgMjA6MjI6MjQgMjAwOCArMDIwMApAQCAtOTMsNiAr
+OTMsNyBAQAogCQlncGlvPShncGlvICYgMHg3ZmQpICsgKGF1eGdwaW8gJiAweGVmKTsKIAkJ
+YnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTAwMDoKKwljYXNlIENYODhf
+Qk9BUkRfV0lORkFTVF9EVFYxODAwSDoKIAkJZ3BpbyA9IChncGlvICYgMHg2ZmYpIHwgKChj
+eF9yZWFkKE1PX0dQMV9JTykgPDwgOCkgJiAweDkwMCk7CiAJCWF1eGdwaW8gPSBncGlvOwog
+CQlicmVhazsKQEAgLTI0NCw2ICsyNDUsNyBAQAogCQlpci0+c2FtcGxpbmcgPSAxOwogCQli
+cmVhazsKIAljYXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYyMDAwSDoKKwljYXNlIENYODhf
+Qk9BUkRfV0lORkFTVF9EVFYxODAwSDoKIAkJaXJfY29kZXMgPSBpcl9jb2Rlc193aW5mYXN0
+OwogCQlpci0+Z3Bpb19hZGRyID0gTU9fR1AwX0lPOwogCQlpci0+bWFza19rZXljb2RlID0g
+MHg4Zjg7CmRpZmYgLXIgZTJhOGI5YjljMjk0IGxpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8v
+Y3g4OC9jeDg4LmgKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgu
+aAlGcmkgT2N0IDE3IDE5OjQ1OjU1IDIwMDggKzAzMDAKKysrIGIvbGludXgvZHJpdmVycy9t
+ZWRpYS92aWRlby9jeDg4L2N4ODguaAlXZWQgT2N0IDIyIDIwOjIyOjI0IDIwMDggKzAyMDAK
+QEAgLTIzMCw2ICsyMzAsNyBAQAogI2RlZmluZSBDWDg4X0JPQVJEX1RFVklJX1M0MjAgICAg
+ICAgICAgICAgIDczCiAjZGVmaW5lIENYODhfQk9BUkRfUFJPTElOS19QVl9HTE9CQUxfWFRS
+RU1FIDc0CiAjZGVmaW5lIENYODhfQk9BUkRfUFJPRl83MzAwICAgICAgICAgICAgICAgNzUK
+KyNkZWZpbmUgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIICAgICAgICA3NgogCiBlbnVt
+IGN4ODhfaXR5cGUgewogCUNYODhfVk1VWF9DT01QT1NJVEUxID0gMSwK
+
+---------=_1C4F795A.730940A1
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+---------=_1C4F795A.730940A1--
