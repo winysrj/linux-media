@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx27.mail.ru ([194.67.23.23])
+Received: from yx-out-2324.google.com ([74.125.44.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KoN11-0006R9-KG
-	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 20:47:08 +0200
-Received: from [92.101.159.32] (port=47078 helo=localhost.localdomain)
-	by mx27.mail.ru with asmtp id 1KoN0T-000BPM-00
-	for linux-dvb@linuxtv.org; Fri, 10 Oct 2008 22:46:33 +0400
-Date: Fri, 10 Oct 2008 22:47:53 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20081010224753.4205c007@bk.ru>
-Mime-Version: 1.0
-Subject: [linux-dvb] radio-mr800.o -  Error 1
+	(envelope-from <fnagato@gmail.com>) id 1KsdDN-00061G-79
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 14:53:39 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so588791yxg.41
+	for <linux-dvb@linuxtv.org>; Wed, 22 Oct 2008 05:51:54 -0700 (PDT)
+Message-ID: <1F2104E0FBD146A092E4CD3644D46282@Nagasoft>
+From: "Felippe Nagato" <fnagato@gmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Wed, 22 Oct 2008 10:51:41 -0300
+MIME-Version: 1.0
+Subject: [linux-dvb] dsmcc-mhp-tools - npt stream
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,30 +18,95 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0409803947=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-SGkKCkkgY2FuJ3QgY29tcGlsZSB0aGUgczJhcGkgZnJvbSBodHRwOi8vbGludXh0di5vcmcvaGcv
-fnN0b3RoL3MyLwp0aGVyZSdzIHNvbWUgcHJvYmxlbSB3aXRoIHJhZGlvLW1yODAwIG1vZHVsZQoK
-ICBDQyBbTV0gIC91c3Ivc3JjL3MyL3Y0bC9yYWRpby1zaTQ3MHgubwogIENDIFtNXSAgL3Vzci9z
-cmMvczIvdjRsL3JhZGlvLW1yODAwLm8KL3Vzci9zcmMvczIvdjRsL3JhZGlvLW1yODAwLmM6MTQ4
-OiB3YXJuaW5nOiBpbXBsaWNpdCBkZWNsYXJhdGlvbiBvZiBmdW5jdGlvbiAnVVNCX0RFVklDRV9B
-TkRfSU5URVJGQUNFX0lORk8nCi91c3Ivc3JjL3MyL3Y0bC9yYWRpby1tcjgwMC5jOjE0OTogZXJy
-b3I6IGluaXRpYWxpemVyIGVsZW1lbnQgaXMgbm90IGNvbnN0YW50Ci91c3Ivc3JjL3MyL3Y0bC9y
-YWRpby1tcjgwMC5jOjE0OTogZXJyb3I6IChuZWFyIGluaXRpYWxpemF0aW9uIGZvciAndXNiX2Ft
-cmFkaW9fZGV2aWNlX3RhYmxlWzBdLm1hdGNoX2ZsYWdzJykKL3Vzci9zcmMvczIvdjRsL3JhZGlv
-LW1yODAwLmM6MTYyOiBlcnJvcjogdW5rbm93biBmaWVsZCAncmVzZXRfcmVzdW1lJyBzcGVjaWZp
-ZWQgaW4gaW5pdGlhbGl6ZXIKL3Vzci9zcmMvczIvdjRsL3JhZGlvLW1yODAwLmM6MTYyOiB3YXJu
-aW5nOiBpbml0aWFsaXphdGlvbiBmcm9tIGluY29tcGF0aWJsZSBwb2ludGVyIHR5cGUKbWFrZVsz
-XTogKioqIFsvdXNyL3NyYy9zMi92NGwvcmFkaW8tbXI4MDAub10gRXJyb3IgMQptYWtlWzJdOiAq
-KiogW19tb2R1bGVfL3Vzci9zcmMvczIvdjRsXSBFcnJvciAyCm1ha2VbMl06IExlYXZpbmcgZGly
-ZWN0b3J5IGAvdXNyL3NyYy9saW51eC1oZWFkZXJzLTIuNi4yMi0yLTY4NicKbWFrZVsxXTogKioq
-IFtkZWZhdWx0XSDv28nCy8EgMgptYWtlWzFdOiBMZWF2aW5nIGRpcmVjdG9yeSBgL3Vzci9zcmMv
-czIvdjRsJwptYWtlOiAqKiogW2FsbF0g79vJwsvBIDIKCgoKQlRXIC0gaG93IGNhbiBJIGRpc2Fi
-bGUgdGhlIGNvbXBpbGF0aW9uIGZvciB0aGlzIG1vZHVsZSAsIGJlY2F1c2UgSSBkb24ndCBoYXZl
-IHRoaXMgZGV2aWNlCgpHb2dhCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcK
-aHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+This is a multi-part message in MIME format.
+
+--===============0409803947==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0086_01C93434.2ACFE060"
+
+This is a multi-part message in MIME format.
+
+------=_NextPart_000_0086_01C93434.2ACFE060
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+hi,
+
+in dsmcc-mhp-tools source code, when i generate a npt stream, the =
+descriptor tag used is 0x17. but iso13818-6 says that npt reference =
+descriptor should be 0x01. does anybody know the reason to this? am i =
+saying something wrong?
+
+another question: i generated a npt stream with zero in numerator and =
+any number in denominator. it means that the stream is "paused". but =
+when i open the stream in a hex viewer, i see that the npt reference =
+field is still being incremented. is it correct? in my opinion, this =
+field should be freezed with some value while the scale =
+numerador/denominator is 0/1, for example.
+
+im not sure if im posting this thread in the correct topic...
+
+thanks!
+------=_NextPart_000_0086_01C93434.2ACFE060
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.6000.16386" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>hi,</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>in dsmcc-mhp-tools&nbsp;source code, =
+when i=20
+generate a&nbsp;npt stream, the descriptor tag used is 0x17. =
+but&nbsp;iso13818-6=20
+says that npt reference descriptor&nbsp;should be&nbsp;0x01. does =
+anybody know=20
+the reason to this? am i&nbsp;saying something wrong?</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>another question: i generated =
+a&nbsp;npt stream=20
+with&nbsp;zero in numerator and any number in denominator. it means that =
+the=20
+stream is "paused". but when i open the stream in a hex viewer, i see =
+that the=20
+npt reference field is still being incremented. is it correct? in my =
+opinion,=20
+this field should be freezed with some value while the scale=20
+numerador/denominator is 0/1, for example.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>
+<DIV><FONT face=3DArial size=3D2>im not sure if im posting this thread =
+in the=20
+correct topic...</FONT></DIV>
+<DIV>&nbsp;</DIV>
+<DIV>thanks!</DIV></FONT></DIV></BODY></HTML>
+
+------=_NextPart_000_0086_01C93434.2ACFE060--
+
+
+
+--===============0409803947==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0409803947==--
