@@ -1,31 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9F6TDbO032622
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 02:29:13 -0400
-Received: from mail-gx0-f15.google.com (mail-gx0-f15.google.com
-	[209.85.217.15])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9F6SqL5019931
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 02:28:52 -0400
-Received: by gxk8 with SMTP id 8so5426390gxk.3
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 23:28:52 -0700 (PDT)
-Message-ID: <aec7e5c30810142328n1563163bw636b8baf1a47ad8b@mail.gmail.com>
-Date: Wed, 15 Oct 2008 15:28:51 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Adrian Bunk" <bunk@kernel.org>
-In-Reply-To: <20081015052026.GC20183@cs181140183.pp.htv.fi>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9MHYga9026958
+	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 13:34:42 -0400
+Received: from sk.insite.com.br (sk.insite.com.br [66.135.32.93])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9MHYPJG027325
+	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 13:34:26 -0400
+Received: from [201.82.105.195] (helo=[192.168.1.101])
+	by sk.insite.com.br with esmtps (TLSv1:AES256-SHA:256) (Exim 4.69)
+	(envelope-from <diniz@wimobilis.com.br>) id 1KshaO-0001eH-8H
+	for video4linux-list@redhat.com; Wed, 22 Oct 2008 15:33:33 -0200
+From: Rafael Diniz <diniz@wimobilis.com.br>
+To: video4linux-list@redhat.com
+Date: Wed, 22 Oct 2008 15:39:42 -0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <20081014183936.GB4710@cs181140183.pp.htv.fi>
-	<Pine.LNX.4.64.0810142335400.10458@axis700.grange>
-	<20081015033303.GC4710@cs181140183.pp.htv.fi>
-	<20081015052026.GC20183@cs181140183.pp.htv.fi>
-Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org,
-	lethal@linux-sh.org, Magnus Damm <damm@igel.co.jp>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] soc-camera: fix compile breakage on SH
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_eV2/I//GcOoU4TU"
+Message-Id: <200810221539.42999.diniz@wimobilis.com.br>
+Subject: [PATCH] VBI fix for cx88 cards
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,43 +28,69 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Oct 15, 2008 at 2:20 PM, Adrian Bunk <bunk@kernel.org> wrote:
-> On Wed, Oct 15, 2008 at 06:33:03AM +0300, Adrian Bunk wrote:
->> On Tue, Oct 14, 2008 at 11:53:37PM +0200, Guennadi Liakhovetski wrote:
->> > Fix Migo-R compile breakage caused by incomplete merge.
->> >
->> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> >
->> > ---
->> >
->> > Hi Adrian,
->>
->> Hi Guennadi,
->>
->> > please see, if the patch below fixes it. Completely untested. Magnus,
->> > could you please verify if it also works (of course, if it at least
->> > compiles:-)) If it doesn't, please fix it along these lines, if it suits
->> > your needs.
->> >...
->>
->> it does compile.
->>...
->
-> But it causes compile breakage elsewhere:
->
-> <--  snip  -->
+--Boundary-00=_eV2/I//GcOoU4TU
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hi guys,
+The attached patch fix VBI support cx88 card.
+I'm running a capture for hours, getting the closed caption from it[1], and 
+it's working perfect - the output is the same of a bttv card.
+Please apply this patch as soon as possible.
 
-Thanks for working on fixing the breakage. I'd prefer to wait a bit
-since there are quite a few pinmux patches queued up that may break if
-we merge a fix right now. I can fix it up later on.
+[1] - using zvbi-ntsc-cc of zvbi project.
+
 
 Thanks,
+Rafael Diniz
 
-/ magnus
+
+--Boundary-00=_eV2/I//GcOoU4TU
+Content-Type: text/x-diff; charset="us-ascii";
+	name="cx88-video-vbi-support.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="cx88-video-vbi-support.diff"
+
+diff -r 931fa560184d linux/drivers/media/video/cx88/cx88-video.c
+--- a/linux/drivers/media/video/cx88/cx88-video.c	Tue Oct 21 20:20:26 2008 -0200
++++ b/linux/drivers/media/video/cx88/cx88-video.c	Wed Oct 22 15:28:44 2008 -0200
+@@ -1453,8 +1453,12 @@ static int vidioc_streamon(struct file *
+ 	struct cx8800_fh  *fh   = priv;
+ 	struct cx8800_dev *dev  = fh->dev;
+ 
+-	if (unlikely(fh->type != V4L2_BUF_TYPE_VIDEO_CAPTURE))
++	/* We should remember that this driver also supports teletext,  */
++	/* so we have to test if the v4l2_buf_type is VBI capture data. */
++	if (unlikely((fh->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) && 
++		     (fh->type != V4L2_BUF_TYPE_VBI_CAPTURE)))
+ 		return -EINVAL;
++
+ 	if (unlikely(i != fh->type))
+ 		return -EINVAL;
+ 
+@@ -1469,8 +1473,10 @@ static int vidioc_streamoff(struct file 
+ 	struct cx8800_dev *dev  = fh->dev;
+ 	int               err, res;
+ 
+-	if (fh->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++	if ((fh->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
++	    (fh->type != V4L2_BUF_TYPE_VBI_CAPTURE))
+ 		return -EINVAL;
++
+ 	if (i != fh->type)
+ 		return -EINVAL;
+ 
+
+--Boundary-00=_eV2/I//GcOoU4TU
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--Boundary-00=_eV2/I//GcOoU4TU--
