@@ -1,26 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from fg-out-1718.google.com ([72.14.220.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1Kmte5-0002Qi-Cj
-	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 19:13:23 +0200
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1Kmte0-00010T-LT
-	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 17:13:16 +0000
-Received: from 89-96-108-157.ip12.fastwebnet.it ([89.96.108.157])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Mon, 06 Oct 2008 17:13:16 +0000
-Received: from kaboom by 89-96-108-157.ip12.fastwebnet.it with local (Gmexim
-	0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Mon, 06 Oct 2008 17:13:16 +0000
+	(envelope-from <ariken@gmail.com>) id 1Kskgk-0006N8-Df
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 22:52:18 +0200
+Received: by fg-out-1718.google.com with SMTP id e21so429820fga.25
+	for <linux-dvb@linuxtv.org>; Wed, 22 Oct 2008 13:52:15 -0700 (PDT)
+Message-ID: <8d4787ed0810221352g66a4daa0n288db633777998f0@mail.gmail.com>
+Date: Wed, 22 Oct 2008 22:52:14 +0200
+From: Ariken <ariken@gmail.com>
 To: linux-dvb@linuxtv.org
-From: Francesco Schiavarelli <kaboom@tiscalinet.it>
-Date: Mon, 06 Oct 2008 19:13:05 +0200
-Message-ID: <gcdgv4$gsu$1@ger.gmane.org>
-References: <g072jh$h25$1@ger.gmane.org> <g0sact$e6d$1@ger.gmane.org>
-Mime-Version: 1.0
-In-Reply-To: <g0sact$e6d$1@ger.gmane.org>
-Subject: Re: [linux-dvb] dvbnet not working anymore with 2.6.25
+MIME-Version: 1.0
+Subject: [linux-dvb] mantis and stb6100 RACK failed solved
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,41 +18,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1569496837=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Francesco Schiavarelli wrote:
-> I've done a bit of testing and seems like the problem it's related to 
-> kernel version and not v4l-dvb.
-> I've managed to compile actual v4l-dvb (rev7901) against debian kernel 
-> 2.6.18-4-486 and everything works.
-> Next step is checking every kernel between 2.6.22-3 and 2.6.25-1 trying 
-> to isolate the problem.
-> 
-> Anyone guessing which change in the kernel tree may have broken dvbnet?
-> Suggestions are more than welcome.
-> 
-> Francesco
+--===============1569496837==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_2655_7151360.1224708734863"
 
-OK, now I have an update on the subject.
-With older kernels (<2.6.24) ifconfig was happy even if the mac address 
-of dvb0_0 was all zero.
-With never kernel you need to supply the mac address explicitly, like this:
+------=_Part_2655_7151360.1224708734863
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-dvbnet -p 1909
-ifconfig dvb0_0 hw ether 00:30:1D:01:02:01
-ifconfig dvb0_0 10.0.0.1 netmask 255.255.255.255 promisc up allmulti
+This is a patch for http://mercurial.intuxication.org/hg/s2-liplianin
 
-and then everything works again as expected.
-Many thanks to ChengHsin Hsu for the fix.
+mantis:
+added SKYSTAR HD2 with 0x03 device id.
+02:0d.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI
+Bridge Controller [Ver 1.0] (rev 01)
+        Subsystem: Device 1ae4:0003
 
-Francesco
+stb6100:
+*mantis_ack_wait* (*0*): *Slave RACK Fail*
+The I2C Repeater must enabled to communicate with the stb6100 via 0x60.
 
+
+Andrea
+
+------=_Part_2655_7151360.1224708734863
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+This is a patch for <a href="http://mercurial.intuxication.org/hg/s2-liplianin">http://mercurial.intuxication.org/hg/s2-liplianin</a><br><br>mantis: <br>added SKYSTAR HD2 with 0x03 device id.<br>02:0d.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI Bridge Controller [Ver 1.0] (rev 01)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Subsystem: Device 1ae4:0003<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>stb6100:<br><em>mantis_ack_wait</em> (<em>0</em>): <em>Slave RACK Fail</em> <br>The I2C Repeater must enabled to communicate with the stb6100 via 0x60.<br><br><br>Andrea<br>
+
+
+------=_Part_2655_7151360.1224708734863--
+
+
+--===============1569496837==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1569496837==--
