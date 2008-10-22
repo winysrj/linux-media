@@ -1,19 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from znsun1.ifh.de ([141.34.1.16])
+Received: from joan.kewl.org ([212.161.35.248])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <patrick.boettcher@desy.de>) id 1Ku6np-0001BO-FM
-	for linux-dvb@linuxtv.org; Sun, 26 Oct 2008 15:41:14 +0100
-Date: Sun, 26 Oct 2008 15:40:31 +0100 (CET)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: =?ISO-8859-2?Q?SKO=C8DOPOLE_Tom=E1=B9?= <hoppik@centrum.cz>
-In-Reply-To: <200810251103.16869@centrum.cz>
-Message-ID: <alpine.LRH.1.10.0810261537420.8807@pub2.ifh.de>
-References: <200810251101.11569@centrum.cz> <200810251102.1298@centrum.cz>
-	<200810251103.27574@centrum.cz> <200810251103.16869@centrum.cz>
+	(envelope-from <darron@kewl.org>) id 1KsRu4-0000iV-Bl
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 02:48:49 +0200
+From: Darron Broad <darron@kewl.org>
+To: Andrej Podzimek <andrej@podzimek.org>
+In-reply-to: <48FE6351.2000805@podzimek.org> 
+References: <48FE2872.3070105@podzimek.org> <48FE3553.5080009@iki.fi>
+	<48FE6351.2000805@podzimek.org>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="579715087-411395888-1225032031=:8807"
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API: Future support for DVB-T2
+Content-Type: multipart/mixed; boundary="----- =_aaaaaaaaaa0"
+Content-ID: <10305.1224636434.0@kewl.org>
+Date: Wed, 22 Oct 2008 01:48:43 +0100
+Message-ID: <10307.1224636523@kewl.org>
+Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] MSI DigiVox mini II V3.0 stopped working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,37 +26,66 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+------- =_aaaaaaaaaa0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <10305.1224636434.1@kewl.org>
 
---579715087-411395888-1225032031=:8807
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: quoted-printable
-X-MIME-Autoconverted: from 8bit to quoted-printable by znsun1.ifh.de id m9QEeVNh008963
-
-On Sat, 25 Oct 2008, SKO?DOPOLE Tom=E1=A8 wrote:
-
-> Hello,
+In message <48FE6351.2000805@podzimek.org>, Andrej Podzimek wrote:
+>One more little note about the firmware:
 >
-> according to www.dvb.org: DVB-T2 standard was released.
-> I want to ask there: is S2API ready for this standard? Or it needs some=
- relative big chagnes?
+>	[andrej@xandrej firmware]$ sha1sum dvb-usb-af9015.fw
+>	6a0edcc65f490d69534d4f071915fc73f5461560  dvb-usb-af9015.fw
+>
+>That file can be found here: http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
+>
+>Is it the right one? Shell I try something else?
 
-Adding support to the API is only part of the job. The question is which=20
-currently available receiver hardware is supporting DVB-T2 and where can=20
-we get a driver for this hardware?
+Lo
 
-Don't get me wrong, surely we can add support for a standard without=20
-having any hardware or drivers available. But it would be much more=20
-interesting with ;) .
+try this patch (WARNING, although I have one of these devices
+and this looked to fix it, I have no idea what this actually means).
 
-best regards,
-Patrick.
+------- =_aaaaaaaaaa0
+Content-Type: text/x-diff; name="dmb.diff"; charset="us-ascii"
+Content-ID: <10305.1224636434.2@kewl.org>
+Content-Transfer-Encoding: quoted-printable
+
+diff -r 964e3eafa442 linux/drivers/media/dvb/dvb-usb/af9015.c
+--- a/linux/drivers/media/dvb/dvb-usb/af9015.c	Tue Oct 21 21:09:38 2008 +0=
+100
++++ b/linux/drivers/media/dvb/dvb-usb/af9015.c	Wed Oct 22 01:45:41 2008 +0=
+100
+@@ -1204,6 +1204,7 @@
+ static struct dvb_usb_device_properties af9015_properties[] =3D {
+ 	{
+ 		.caps =3D DVB_USB_IS_AN_I2C_ADAPTER,
++		.no_reconnect =3D 1,
+ =
+
+ 		.usb_ctrl =3D DEVICE_SPECIFIC,
+ 		.download_firmware =3D af9015_download_firmware,
+@@ -1302,6 +1303,7 @@
+ 		}
+ 	}, {
+ 		.caps =3D DVB_USB_IS_AN_I2C_ADAPTER,
++		.no_reconnect =3D 1,
+ =
+
+ 		.usb_ctrl =3D DEVICE_SPECIFIC,
+ 		.download_firmware =3D af9015_download_firmware,
+
+------- =_aaaaaaaaaa0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <10305.1224636434.3@kewl.org>
 
 --
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
---579715087-411395888-1225032031=:8807
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
+
+
+------- =_aaaaaaaaaa0
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -65,4 +95,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---579715087-411395888-1225032031=:8807--
+------- =_aaaaaaaaaa0--
