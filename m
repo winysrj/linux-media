@@ -1,18 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <jan.burgmeier@gmx.de>) id 1Kvr2k-0006GU-Ui
-	for linux-dvb@linuxtv.org; Fri, 31 Oct 2008 11:15:51 +0100
-Received: from [193.196.7.49] (helo=[172.16.125.240])
-	by router.archaon.ath.cx with esmtpsa (SSLv3:CAMELLIA256-SHA:256)
-	(Exim 4.69) (envelope-from <jan@archaon.ath.cx>) id 1Kvr2B-0000xn-Sx
-	for linux-dvb@linuxtv.org; Fri, 31 Oct 2008 11:15:16 +0100
-From: Jan Burgmeier <jan@archaon.ath.cx>
-To: linux-dvb@linuxtv.org
-Date: Fri, 31 Oct 2008 11:15:08 +0100
-Message-Id: <1225448108.5202.12.camel@archaon-laptop>
-Mime-Version: 1.0
-Subject: [linux-dvb] TechnoTrend C-1501 timed out waiting for end of xfer
+Received: from smtp2.wa.amnet.net.au ([203.161.124.51])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mark@lostcow.com>) id 1KsbCN-0008Ia-5i
+	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 12:44:21 +0200
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp2.wa.amnet.net.au (Postfix) with ESMTP id 09739C3C7D
+	for <linux-dvb@linuxtv.org>; Wed, 22 Oct 2008 18:44:07 +0800 (WST)
+Received: from smtp2.wa.amnet.net.au ([127.0.0.1])
+	by localhost (smtp2.wa.amnet.net.au [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id iuzz6OXTx5tt for <linux-dvb@linuxtv.org>;
+	Wed, 22 Oct 2008 18:44:05 +0800 (WST)
+Received: from callaghan.local (203.161.84.230.static.amnet.net.au
+	[203.161.84.230])
+	by smtp2.wa.amnet.net.au (Postfix) with SMTP id 82186C47D6
+	for <linux-dvb@linuxtv.org>; Wed, 22 Oct 2008 18:44:05 +0800 (WST)
+Message-ID: <452AD5616A1D4A2EB6BB6329DEF41E58@marklaptop>
+From: "Mark Callaghan" <mark@lostcow.com>
+To: "Alex Ferrara" <alex@receptiveit.com.au>
+References: <00023E2CD2444D05AFE501BA0439DCCF@marklaptop>
+	<12A846AD-5D7A-4021-BE5B-063A7AEB70E9@receptiveit.com.au>
+In-Reply-To: <12A846AD-5D7A-4021-BE5B-063A7AEB70E9@receptiveit.com.au>
+Date: Wed, 22 Oct 2008 18:43:53 +0800
+MIME-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Dvico Dual Digital 4 rev 2 broken in October?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,48 +31,93 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1991441438=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+This is a multi-part message in MIME format.
 
-I own a TechnoTrend C-1501 budget card. I'am using the driver in the
-kernel. My kernel version is gentoo-sources-2.6.27-r2 which is based on
-the 2.6.27.4 release.
+--===============1991441438==
+Content-Type: multipart/alternative;
+	boundary="----=_NextPart_000_0024_01C93476.2198D820"
 
-I think the TechnoTren C-1501 should be supported upstream since the
-2.6.27 release is this correct?
+This is a multi-part message in MIME format.
 
-I use these models:
+------=_NextPart_000_0024_01C93476.2198D820
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-tda826x
-tda10023
-budget_ci
-budget_core
-dvb_core
-saa7146
-ttpci_eeprom
+Thanks Alex. I deleted one of the firmware files (Chris's) and my rev2 =
+is good now. (I had a few fw files in place.)
 
-the modules get loaded automaticly at boot time.
+But I have been having other problems - only one of the two tuners would =
+work, the other reporting "partial lock". Various searches and much =
+digging turned up a suggestion to disable EIT scanning. I disabled the =
+EIT scan in the backend setup (video sources, I think?). But this had no =
+effect. I then went into the database with phpmyadmin, and disabled =
+dvb_eitscan in the capturecard table. And now I get both tuners.
 
-After boot my logs get flooded with these message:
-saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of
-xfer
+So there is something strange happening, but I'm happy.
 
-I'm using mythTV to watch TV but i don't get any picture or audio. I get
-error message about "chanel lock" or something like that.
+Cheers,
+Mark
 
-When you need some more information feel free to ask.
+------=_NextPart_000_0024_01C93476.2198D820
+Content-Type: text/html;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Greetings
-Jan Burgmeier
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML><HEAD>
+<META http-equiv=3DContent-Type content=3D"text/html; =
+charset=3Diso-8859-1">
+<META content=3D"MSHTML 6.00.6001.18148" name=3DGENERATOR>
+<STYLE></STYLE>
+</HEAD>
+<BODY=20
+style=3D"WORD-WRAP: break-word; -webkit-nbsp-mode: space; =
+-webkit-line-break: after-white-space"=20
+bgColor=3D#ffffff>
+<DIV><FONT face=3DArial size=3D2>Thanks Alex. I deleted one of the =
+firmware files=20
+(Chris's) and my rev2 is good now. (I had a few fw files in =
+place.)</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>But I have been having other problems - =
+only one of=20
+the two tuners would work, the other reporting "partial lock". Various =
+searches=20
+and much digging turned up a suggestion to disable EIT scanning. I =
+disabled the=20
+EIT scan in the backend setup (video sources, I think?). But this had no =
+effect.=20
+I then went into the database with phpmyadmin, and disabled dvb_eitscan =
+in the=20
+capturecard table. And now I get both tuners.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>So there is something strange =
+happening, but I'm=20
+happy.</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>
+<DIV><FONT face=3DArial size=3D2>Cheers,</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2>Mark</FONT></DIV>
+<DIV><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV></BODY></HTML>
+
+------=_NextPart_000_0024_01C93476.2198D820--
 
 
+
+--===============1991441438==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1991441438==--
