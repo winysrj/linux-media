@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9JEXfBh029775
-	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 10:33:41 -0400
-Received: from smtp-vbr14.xs4all.nl (smtp-vbr14.xs4all.nl [194.109.24.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9JEWdut024790
-	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 10:32:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>
-Date: Sun, 19 Oct 2008 16:32:36 +0200
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9NLXOjc017275
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 17:33:24 -0400
+Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9NLX6GN023713
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 17:33:06 -0400
+Message-ID: <4900EDA7.6070000@free.fr>
+Date: Thu, 23 Oct 2008 23:33:27 +0200
+From: Thierry Merle <thierry.merle@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200810191632.36406.hverkuil@xs4all.nl>
-Cc: Jean Delvare <khali@linux-fr.org>
-Subject: Feedback wanted: V4L2 framework additions
+To: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+References: <4900DA6B.4050902@kaiser-linux.li>
+In-Reply-To: <4900DA6B.4050902@kaiser-linux.li>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: Video 4 Linux <video4linux-list@redhat.com>
+Subject: Re: gspca, what do I am wrong?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,76 +27,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+Hi Thomas,
 
-During the Linux Plumbers Conference I proposed additions to the V4L2 
-framework that should simplify driver development and ensure better 
-consistency between drivers.
+Thomas Kaiser a écrit :
+> Hey
+> 
+> I think this mail came not through, so I send it again. Sorry, when it
+> comes twice.
+> 
+> I just pasted the interesting things into this email (With some comments
+> inline). Hope somebody can help:
+> 
+> thomas@LAPI01:~$ lsb_release -a
+> No LSB modules are available.
+> Distributor ID:    Ubuntu
+> Description:    Ubuntu 8.04.1
+> Release:    8.04
+> Codename:    hardy
+> 
+> thomas@LAPI01:~$ uname -a
+> Linux LAPI01 2.6.24-21-generic #1 SMP Mon Aug 25 17:32:09 UTC 2008 i686
+> GNU/Linux
+> 
+> thomas@LAPI01:~/Projects/webcams$ hg clone http://linuxtv.org/hg/v4l-dvb
+> to get the newest v4l source.
+> 
+> make menuconfig in ~/Projects/webcams/v4l-dvb and remove all stuff
+> except the gspca and V4l2.
+> After this, I did not find a .config file in the
+> ~/Projects/webcams/v4l-dvb folder. Where is the .config stored?
+~/Projects/webcams/v4l-dvb/v4l/.config
 
-The last few days I worked to get this framework in place and I would 
-like to get feedback on what I have right now.
+> Several dvb and/or analog capture driver where made. Why?, I disabled!
+> 
+Look at the .config, perhaps you forgot to disable some additional modules
+> thomas@LAPI01:~/Projects/webcams/v4l-dvb$ make
+> ¨make -C /home/thomas/Projects/webcams/v4l-dvb/v4l
+> make[1]: Entering directory `/home/thomas/Projects/webcams/v4l-dvb/v4l'
+> creating symbolic links...
+> Kernel build directory is /lib/modules/2.6.24-21-generic/build
+> make -C /lib/modules/2.6.24-21-generic/build
+> SUBDIRS=/home/thomas/Projects/webcams/v4l-dvb/v4l  modules
+[SNIP]
+> After plugging the cam in the kernel log:
+> 
+> Oct 23 20:52:54 LAPI01 kernel: [ 2015.905111] usb 1-1: new full speed
+> USB device using uhci_hcd and address 5
+> Oct 23 20:52:54 LAPI01 kernel: [ 2016.075400] usb 1-1: configuration #1
+> chosen from 1 choice
+> Oct 23 20:52:54 LAPI01 kernel: [ 2016.078879] usb 1-1: ZC0301[P] Image
+> Processor and Control Chip detected (vid/pid 0x041E:0x401C)
+> Oct 23 20:52:55 LAPI01 kernel: [ 2016.164172] usb 1-1: No supported
+> image sensor detected
+> Oct 23 20:52:55 LAPI01 kernel: [ 2016.194043] gspca_main: disagrees
+> about version of symbol video_ioctl2
+Please try make rmmod before plugging-in your device and check that no
+v4l-dvb module is loaded.
+This will remove any old v4l-dvb module already present.
 
-The repository is here: 
-
-http://linuxtv.org/hg/~hverkuil/v4l-dvb-media2/
-
-The documentation is in:
-
-linux/Documentation/video4linux/v4l2-framework.txt
-
-The documentation is pretty complete, so that's probably a good place to 
-start.
-
-The purpose of the framework is to move common administrative tasks to 
-the framework so that drivers do not have to do that themselves. In 
-addition, having all drivers use the same basic structures will make it 
-much easier to write new helper functions that only use those basic 
-structures and so can be independent of the driver-specific structs.
-
-In fact, even though at the moment the new structs and functions are 
-prefixed with 'v4l2_', they are actually completely generic and could 
-also be used with other subsystems if desired.
-
-For now I keep the 'v4l2_' prefix, but this might become something more 
-generic like 'media_' in the future. I might do that anyway to clearly 
-distinguish between the generic and v4l2-specific parts of the 
-framework. I'm not sure yet.
-
-The new structs are:
-
-v4l2_driver: basic driver support, provides a standardized way of 
-numbering device instances.
-
-v4l2_device: this is a device instance, usually embedded in a larger 
-struct. Keeps track of sub-devices and provides a generic way of 
-communicating with sub-devices. v4l2_device structs are registered with 
-a global list which allows e.g. alsa or fb drivers to find the 'parent' 
-device. It also removes artificial limits regarding the maximum number 
-of supported devices since all device instances are now stored in a 
-list.
-
-v4l2_subdev: provides communication with sub-devices (usually i2c 
-devices). By using v4l2_subdev it is possible to easily command 
-sub-devices, regardless of the bus they are on. For i2c devices 
-additional helper functions are provided to easily load and create the 
-i2c_clients.
-
-In the future the framework will be expanded with a v4l2_fh struct for 
-filehandle-private data and a v4l2_mc for the mediacontroller (needed 
-for Texas Instruments hardware). Also, video_device needs a pointer to 
-v4l2_device.
-
-To test the code I've converted ivtv and the i2c modules that it uses to 
-the new framework. In particular it shows how to setup a v4l2_subdev 
-implementation for the gpio pins, so ivtv supports both gpio and i2c 
-devices all controlled by v4l2_subdev.
-
-Depending on the feedback I'll make a final version in 1-2 weeks. I hope 
-to merge it in v4l-dvb soon after the 2.6.28 merge window closes.
-
-Regards,
-
-        Hans
+Cheers,
+Thierry
 
 --
 video4linux-list mailing list
