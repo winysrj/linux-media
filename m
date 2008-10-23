@@ -1,26 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout1.informatik.tu-muenchen.de ([131.159.0.12])
+Received: from smtp.seznam.cz ([77.75.72.43])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <acher@acher.org>) id 1KreLw-0002q5-ON
-	for linux-dvb@linuxtv.org; Sun, 19 Oct 2008 21:54:19 +0200
-Received: from braindead1.acher.org (91-65-149-111-dynip.superkabel.de
-	[91.65.149.111])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.in.tum.de (Postfix) with ESMTP id E2E00AF42
-	for <linux-dvb@linuxtv.org>; Sun, 19 Oct 2008 21:54:12 +0200 (CEST)
-Date: Sun, 19 Oct 2008 21:54:10 +0200
-From: Georg Acher <acher@in.tum.de>
-To: Linux-dvb <linux-dvb@linuxtv.org>
-Message-ID: <20081019195409.GW6792@braindead1.acher>
-References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
-	<2207.1224273353@kewl.org>
-	<412bdbff0810171306n5f8768a2g48255db266d16aa8@mail.gmail.com>
-	<5905.1224308528@kewl.org>
-Mime-Version: 1.0
+	(envelope-from <oldium.pro@seznam.cz>) id 1KsxLL-0006mH-UU
+	for linux-dvb@linuxtv.org; Thu, 23 Oct 2008 12:23:06 +0200
+From: Oldrich Jedlicka <oldium.pro@seznam.cz>
+To: linux-dvb@linuxtv.org
+Date: Thu, 23 Oct 2008 12:21:35 +0200
+References: <48C659C5.8000902@magma.ca> <48CFA104.1070602@magma.ca>
+	<1221608118.4511.2.camel@palomino.walls.org>
+In-Reply-To: <1221608118.4511.2.camel@palomino.walls.org>
+MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <5905.1224308528@kewl.org>
-Subject: Re: [linux-dvb] [RFC] SNR units in tuners
+Message-Id: <200810231221.35329.oldium.pro@seznam.cz>
+Subject: Re: [linux-dvb] HVR-1500Q eeprom not being parsed correctly
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,30 +26,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sat, Oct 18, 2008 at 06:42:08AM +0100, Darron Broad wrote:
-<cx24116> 
-> The trouble there is that the scaling for the cx24116 already works
-> from an end-user perspective. The value derived in the code is
-> a possible maximum of 160 from the chip. REELBOX decided on 176
-> which may be more accurate.
+On Wednesday 17 of September 2008 at 01:35:18, Andy Walls wrote:
+> On Tue, 2008-09-16 at 08:05 -0400, Patrick Boisvenue wrote:
+> > Markus Rechberger wrote:
+> > > On Sat, Sep 13, 2008 at 3:25 AM, Andy Walls <awalls@radix.net> wrote:
+> > >> On Fri, 2008-09-12 at 15:16 -0400, Patrick Boisvenue wrote:
+> > >>> Patrick Boisvenue wrote:
+> > >>>> Michael Krufky wrote:
+> > >>>>> On Fri, Sep 12, 2008 at 2:24 PM, Patrick Boisvenue 
+<patrbois@magma.ca> wrote:
+> > >>>>>> Andy Walls wrote:
+> > >>>>>>> On Wed, 2008-09-10 at 20:37 -0400, Patrick Boisvenue wrote:
+> > >>>>>>>> Andy Walls wrote:
+> > >>>>>>>>> On Tue, 2008-09-09 at 22:37 -0400, Steven Toth wrote:
+> > >>>>>>>>>> Patrick Boisvenue wrote:
+> > >>>>>>>>>>> Steven Toth wrote:
+> > >>>>>>>>>>>> Patrick Boisvenue wrote:
+> > >
+> > > don't load i2c-dev
+> > >
+> > > Markus
+>
+> Markus,
+>
+> Nice catch.
+>
+> Regards,
+> Andy
+>
+> > Good call, that was it.  Re-compiling my kenrel without I2C_DEV allowed
+> > the firmware to load and dvbscan to work as expected.
+> >
+> > Thanks,
+> > ...Patrick
 
-The reelbox code was just a heuristic approach to scale the value so that
-less than 30-40% is where the trouble starts... I've more or less matched it
-to femon's colors. There was no intention to indicate dBs, as end users
-don't understand dBs anyway ;-)
+Hi,
 
-The docs for the 24116 say that the snr is measured in 0.1dB steps. The
-absolute range of registers a3:d5 is 0 to 300, so full scale is 30dB. I
-doubt we will see the 30dB in a real-world setup...
+I've just got into the sane trouble with i2c-dev and firmware loading 
+(saa7134-dvb wanted xc3028-v27.fw). I've solved it with 2.6.27 by making the 
+firmware statically loaded in the kernel as a binary blob - Device 
+Drivers/Generic Driver Options/Include in-kernel firmware blobs in kernel 
+binary. The firmware loading code just takes the binary blob and doesn't load 
+it dynamically (it initializes devices in the dynamically loading path - that 
+was causing problems).
 
-The signal strength in 9e/9d is the value of the AGC voltage. Register da
-seems to contain the estimated power level (-25 to -70dBm), but there's no
-further information about that (step size etc). I guess the firmware derives
-it from the AGC settings.
--- 
-         Georg Acher, acher@in.tum.de         
-         http://www.lrr.in.tum.de/~acher
-         "Oh no, not again !" The bowl of petunias          
+Regards,
+Oldrich.
 
 _______________________________________________
 linux-dvb mailing list
