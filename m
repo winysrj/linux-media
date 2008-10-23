@@ -1,23 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail2.m00h.eu ([83.246.72.85])
+Received: from yx-out-2324.google.com ([74.125.44.28])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christian@heidingsfelder.eu>) id 1KpQgl-0002pO-B4
-	for linux-dvb@linuxtv.org; Mon, 13 Oct 2008 18:54:36 +0200
-Message-ID: <48F37D3F.7010803@heidingsfelder.eu>
-Date: Mon, 13 Oct 2008 18:54:23 +0200
-From: "Christian Heidingsfelder [Heidingsfelder + Partner]"
-	<christian@heidingsfelder.eu>
+	(envelope-from <gregoire.favre@gmail.com>) id 1Kt4uw-00025o-Jy
+	for linux-dvb@linuxtv.org; Thu, 23 Oct 2008 20:28:19 +0200
+Received: by yx-out-2324.google.com with SMTP id 8so143312yxg.41
+	for <linux-dvb@linuxtv.org>; Thu, 23 Oct 2008 11:28:13 -0700 (PDT)
+Date: Thu, 23 Oct 2008 20:28:05 +0200
+To: linux-dvb@linuxtv.org
+Message-ID: <20081023182805.GK30832@gmail.com>
+References: <412bdbff0810220607x588735f2v780104a5cafc3b8a@mail.gmail.com>
+	<48FF5C43.9090309@linuxtv.org>
+	<200810230300.43637.liplianin@tut.by>
+	<20081023205338.3a1784ca@bk.ru>
 MIME-Version: 1.0
-To: Faruk A <fa@elwak.com>
-References: <48F360B1.7070705@heidingsfelder.eu>	
-	<854d46170810130834p6118793co49ecb6ed8809062@mail.gmail.com>	
-	<48F371C6.3040401@heidingsfelder.eu>
-	<854d46170810130933jab08cdetd16a11654615bf7c@mail.gmail.com>
-In-Reply-To: <854d46170810130933jab08cdetd16a11654615bf7c@mail.gmail.com>
-Content-Type: multipart/mixed; boundary="------------020401060201080009050907"
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Technotrend TT-Connect S2-3650 CI
-Reply-To: christian@heidingsfelder.eu
+Content-Disposition: inline
+In-Reply-To: <20081023205338.3a1784ca@bk.ru>
+From: Gregoire Favre <gregoire.favre@gmail.com>
+Subject: Re: [linux-dvb] stb0899 drivers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,76 +24,27 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------020401060201080009050907
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Thu, Oct 23, 2008 at 08:53:38PM +0400, Goga777 wrote:
 
-Faruk A schrieb:
->> Yes , i read that.
->> Unfortunately my hardware (Toshiba M-60 167) works perfectly with the .26
->> kernel and i dont want to downgrade the kernel to .25 .
->> I am lucky that all  works now as i a am not that linux  Expert (using
->> gentoo  since 2 Months).
->> Thanks for answering :-)
->> --
->>     
->
-> Unfortunately there has been changes with linux-dvb this past 2-3 weeks they
-> switched api from multiproto to S2, so we have to wait untill someone port the
-> drivers.
-> The old drivers is for multiproto and i don't think they will get
-> support for the latest
-> and future kernels.
-> But you can try talking to "Dominik Kuhlen", dkuhlen (at) gmx.net he
-> wrote the driver
-> maybe he can provide a patch to support latest kernels.
-> Try "Michael H. Schimek" too mschimek (at) gmx.at  he wrote the Common
-> Interface support.
->
-> Faruk
->   
-I wrote him some secs ago :-)
-Lets wait :-)
-Thanks again for answering.
+What's the change from v4l-dvb ?
 
-Regards chris
+> I can confirm that on our Russian dvb-linux forum there's only good repor=
+ts about
+> http://mercurial.intuxication.org/hg/s2-liplianin from owners who have st=
+b0899 and cx24116 based cards
 
+-- =
 
---------------020401060201080009050907
-Content-Type: text/x-vcard; charset=utf-8;
- name="christian.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="christian.vcf"
-
-begin:vcard
-fn:Christian Heidingsfelder [Heidingsfelder + Partner]
-n:Heidingsfelder;Christian
-org:Heidingsfelder + Partner
-adr:;;Kirchgasse 9;Winterlingen-Benzingen;BW;72474;Deutschland
-email;internet:christian@heidigsfelder.eu
-title:CEO
-tel;work:+49 7577 933 864
-tel;fax:+49 7577 933 863
-tel;home:+49 7577 933 862
-x-mozilla-html:TRUE
-version:2.1
-end:vcard
-
-
---------------020401060201080009050907
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Gr=E9goire FAVRE http://gregoire.favre.googlepages.com http://www.gnupg.org
+               http://picasaweb.google.com/Gregoire.Favre
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------020401060201080009050907--
