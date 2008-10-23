@@ -1,17 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Sun, 5 Oct 2008 12:46:03 +0300 (EEST)
-From: Mika Laitio <lamikr@pilppa.org>
-To: =?us-ascii?Q?Niels_Wagenaar?= <n.wagenaar@xs4all.nl>
-In-Reply-To: <Pine.LNX.4.64.0810051134550.28540@shogun.pilppa.org>
-Message-ID: <Pine.LNX.4.64.0810051244050.28540@shogun.pilppa.org>
-References: <> <vmime.48e783ed.1f22.5c54cd2143673187@shalafi.ath.cx>
-	<Pine.LNX.4.64.0810051134550.28540@shogun.pilppa.org>
+Received: from yw-out-2324.google.com ([74.125.46.29])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ernstp@gmail.com>) id 1Kt5ij-0005lO-16
+	for linux-dvb@linuxtv.org; Thu, 23 Oct 2008 21:19:48 +0200
+Received: by yw-out-2324.google.com with SMTP id 3so155998ywj.41
+	for <linux-dvb@linuxtv.org>; Thu, 23 Oct 2008 12:19:40 -0700 (PDT)
+Message-ID: <8e2e399f0810231219y449bea51u8476494783fb3e7c@mail.gmail.com>
+Date: Thu, 23 Oct 2008 21:19:40 +0200
+From: "Ernst Persson" <ernstp@gmail.com>
+To: "=?UTF-8?Q?M=C3=A5rten_Gustafsson?=" <reklam@holisticode.se>
+In-Reply-To: <44DBF3264FE24C6CBCD74E9A61EB414A@xplap>
 MIME-Version: 1.0
-Cc: "=?us-ascii?Q?LinuxTV_Mailinglist_=28linux-dvb=40linuxtv.org=29?="
-	<linux-dvb@linuxtv.org>,
-	"=?us-ascii?Q?VDR_Mailinglist_=28vdr=40linuxtv.org=29?=" <vdr@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] S2API for vdr-1.7.0 (04-10-2008 - quickhack
- for DVB-S(2), DVB-T and DVB-C)
+Content-Disposition: inline
+References: <mailman.1.1224410403.28932.linux-dvb@linuxtv.org>
+	<44DBF3264FE24C6CBCD74E9A61EB414A@xplap>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Mantis 2033 dvb-tuning problems
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,172 +23,83 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 5 Oct 2008, Mika Laitio wrote:
-
->> Hello All,
->>
->> Today I finished the patch for DVB-S, DVB-S2, DVB-T and DVB-C support using S2API
->> in combination with VDR 1.7.0.
->> I've tested my code on DVB-S, DVB-S2 and DVB-T transports and they were
->> all successful. DVB-C is untested (don't have a DVB-C option where I
->> live) but it should work in *THEORY* ;)
->>
->> DVB-S and DVB-S2 were tested on a Hauppauge WinTV-NOVA-HD-S2 card.
->> DVB-T was tested on a Gigabyte GT-U7000-RH USB device.
->> I used the latest v4l pull and viewing was very stable with both DVB
->> devices. I also didn't had any problems any more when switching between
->> DVB-S(2) and DVB-T, but it can be that this patch will *NOT* work
->> correctly on MFE DVB devices like the HVR-3000 or HVR-4000 (I had to do some hacking because strangely,
->> DVB-T transports were offered to my DVB-S DVB device). Since I can't
->> test this, I hope others can tell me if it works or not.
->>
->> Enclosed are two patches. The clean patch is for a clean VDR 1.7.0
->> source tree patched with Reinhard's
->> vdr-1.7.0-h264-syncearly-framespersec-audioindexer-fielddetection-speedup.diff.bz2
->> patch. The patched patch is for those who have used Edgar (gimli)
->> Hucek's patch for VDR 1.7.0. In theory it should also work with my last send
->> patch.
->
-> Hi
->
-> I tried your patch and vdr fails to show dvb-t channels for me while dvb-s
-> channels works ok.
->
-> I have tested with a following setup:
->
-> - vdr-1.7.0
-> + vdr-1.7.0-h264-syncearly-framespersec-audioindexer-fielddetection-speedup.diff
-> + vdr-1.7.0-s2api-04102008-clean.patch
-> - latest s2-mfe installed for 2.6.27-rc8
-> - card-0: hvr-1300 (dvb-t, terrestrial cable connected)
-> - card-1: hvr-4000 (dvb-t, dvb-s, dvb-s2, only satellite cable connected)
->
-> [lamikr@tinka ~]$ ls -la /dev/dvb/adapter0/
-> total 0
-> drwxr-xr-x  2 root   root     120 2008-10-05 10:56 ./
-> drwxr-xr-x  4 root   root      80 2008-10-05 10:56 ../
-> crw-rw----+ 1 lamikr video 212, 4 2008-10-05 10:56 demux0
-> crw-rw----+ 1 lamikr video 212, 5 2008-10-05 10:56 dvr0
-> crw-rw----+ 1 lamikr video 212, 3 2008-10-05 10:56 frontend0
-> crw-rw----+ 1 lamikr video 212, 7 2008-10-05 10:56 net0
-> [lamikr@tinka ~]$ ls -la /dev/dvb/adapter1/
-> total 0
-> drwxr-xr-x  2 root   root      200 2008-10-05 10:56 ./
-> drwxr-xr-x  4 root   root       80 2008-10-05 10:56 ../
-> crw-rw----+ 1 lamikr video 212, 68 2008-10-05 10:56 demux0
-> crw-rw----+ 1 lamikr video 212, 84 2008-10-05 10:56 demux1
-> crw-rw----+ 1 lamikr video 212, 69 2008-10-05 10:56 dvr0
-> crw-rw----+ 1 lamikr video 212, 85 2008-10-05 10:56 dvr1
-> crw-rw----+ 1 lamikr video 212, 67 2008-10-05 10:56 frontend0
-> crw-rw----+ 1 lamikr video 212, 83 2008-10-05 10:56 frontend1
-> crw-rw----+ 1 lamikr video 212, 71 2008-10-05 10:56 net0
-> crw-rw----+ 1 lamikr video 212, 87 2008-10-05 10:56 net1
->
-> I also tried to connect the terrestrial cable to hvr-4000, but it did not
-> change anything.
->
-> If I use tzap, dvbstream and mplayer
-> compination for hvr-1300 or if I use vdr-1.7.0 with liplianis multiptoto
-> drivers, then also dvb-t channels works ok.
->
-> Mika
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-And here is the output from syslog after trying to switch channel:
-
-Oct  5 12:43:20 tinka vdr: [21353] switching to channel 1
-Oct  5 12:43:21 tinka vdr: [21446] transfer thread ended (pid=21353, 
-tid=21446)
-Oct  5 12:43:21 tinka vdr: [21353] buffer stats: 0 (0%) used
-Oct  5 12:43:21 tinka vdr: [21486] transfer thread started (pid=21353, 
-tid=21486)
-Oct  5 12:43:21 tinka vdr: [21448] TS buffer on device 1 thread ended 
-(pid=21353, tid=21448)
-Oct  5 12:43:21 tinka vdr: [21447] buffer stats: 0 (0%) used
-Oct  5 12:43:21 tinka vdr: [21447] receiver on device 1 thread ended 
-(pid=21353, tid=21447)
-Oct  5 12:43:21 tinka vdr: [21487] receiver on device 1 thread started 
-(pid=21353, tid=21487)
-Oct  5 12:43:21 tinka vdr: [21488] TS buffer on device 1 thread started 
-(pid=21353, tid=21488)
-Oct  5 12:43:22 tinka vdr: [21357] frontend 0 timed out while tuning to 
-channel 1, tp 706
-Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
-FE_SET_PROPERTY
-Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
-properties.num = 1
-Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
-properties.props = 0000000042682d00
-Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000002 
-(DTV_CLEAR)
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000000
-Oct  5 12:43:22 tinka kernel: dtv_property_process_set() Flushing property 
-cache
-Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
-FE_SET_PROPERTY
-Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
-properties.num = 6
-Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
-properties.props = 0000000042682d00
-Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000002 
-(DTV_CLEAR)
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000000
-Oct  5 12:43:22 tinka kernel: dtv_property_process_set() Flushing property 
-cache
-Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
-FE_SET_PROPERTY
-Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
-properties.num = 6
-Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() 
-properties.props = 0000000042682d00
-Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000011 
-(DTV_DELIVERY_SYSTEM)
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000003
-Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000003 
-(DTV_FREQUENCY)
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x2a14b480
-Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000006 
-(DTV_INVERSION)
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000002
-Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000005 
-(DTV_BANDWIDTH_HZ)
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000000
-Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000004 
-(DTV_MODULATION)
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000003
-Oct  5 12:43:22 tinka kernel: dtv_property_process_set()
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.cmd    = 0x00000001 
-(DTV_TUNE)
-Oct  5 12:43:22 tinka kernel: dtv_property_dump() tvp.u.data = 0x00000000
-Oct  5 12:43:22 tinka kernel: dtv_property_process_set() Finalised 
-property cache
-Oct  5 12:43:22 tinka kernel: dtv_property_cache_submit()
-Oct  5 12:43:22 tinka kernel: dtv_property_cache_submit() legacy, 
-modulation = 3
-Oct  5 12:43:22 tinka kernel: dtv_property_legacy_params_sync()
-Oct  5 12:43:22 tinka kernel: dtv_property_legacy_params_sync() Preparing 
-OFDM req
-Oct  5 12:43:22 tinka kernel: dvb_frontend_ioctl_properties() Property 
-cache is full, tuning
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGksCgp0aGlzIHNvdW5kcyBsaWtlIGV4YWN0bHkgbXkgcHJvYmxlbSEgSSBoYXZlIGEgVHdpbkhh
+biAvIEF6dXJlV2F2ZQpBRC1DUDQwMCBDSSBEVkItQwp3aXRoIGEgQ29uYXggQ0EgbW9kdWxlIGFu
+ZCBJJ20gdXNpbmcgdGhlIENvbUhlbSBuZXR3b3JrIGFsc28uIFdpbGwgdHJ5Cm91dCB0aGUgcGF0
+Y2ggc29vbiEKCkkgZG9uJ3Qga25vdyB3aGljaCB0dW5lciBpcyBpbiB0aGUgQ1A0MDAgYnV0IHRo
+aXMgaXMgd2hhdCBpdCBkZXRlY3RzOgoKWyAgIDEyLjQ1MzA4MF0gICAgIE1hbnRpcyBSZXYgMSBb
+MTgyMjowMDQzXSwgaXJxOiAyMCwgbGF0ZW5jeTogMzIKWyAgIDEyLjQ1MzA4Ml0gICAgIG1lbW9y
+eTogMHhmZGJmZjAwMCwgbW1pbzogMHhmODhiMjAwMApbICAgMTIuNDU2MDAwXSAgICAgTUFDIEFk
+ZHJlc3M9WzAwOjA4OmNhOjFjOjY1OmEwXQpbICAgMTIuNDU2MDMzXSBtYW50aXNfYWxsb2NfYnVm
+ZmVycyAoMCk6IERNQT0weDM2MjgwMDAwIGNwdT0weGY2MjgwMDAwCnNpemU9NjU1MzYKWyAgIDEy
+LjQ1NjAzOF0gbWFudGlzX2FsbG9jX2J1ZmZlcnMgKDApOiBSSVNDPTB4Mzc4ZWMwMDAKY3B1PTB4
+Zjc4ZWMwMDAgc2l6ZT0xMDAwClsgICAxMi40NTYwNDFdIERWQjogcmVnaXN0ZXJpbmcgbmV3IGFk
+YXB0ZXIgKE1hbnRpcyBkdmIgYWRhcHRlcikKWyAgIDEyLjQ3MzMzNV0gbGlyY19kZXY6IGxpcmNf
+cmVnaXN0ZXJfcGx1Z2luOiBzYW1wbGVfcmF0ZTogMApbICAgMTIuNDc3MjkzXSBsaXJjX21jZXVz
+YjJbMl06IFBoaWxpcHMgZUhvbWUgSW5mcmFyZWQgVHJhbnNjZWl2ZXIgb24gdXNiMjoyClsgICAx
+Mi40NzczNDRdIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgbGlyY19t
+Y2V1c2IyClsgICAxMi45NzI2MTddIG1hbnRpc19mcm9udGVuZF9pbml0ICgwKTogUHJvYmluZyBm
+b3IgQ1UxMjE2IChEVkItQykKWyAgIDEyLjk3NDcxMF0gbWFudGlzX2Zyb250ZW5kX2luaXQgKDAp
+OiBmb3VuZCBQaGlsaXBzIENVMTIxNiBEVkItQwpmcm9udGVuZCAoVERBMTAwMjMpIEAgMHgwYwpb
+ICAgMTIuOTc0NzEzXSBtYW50aXNfZnJvbnRlbmRfaW5pdCAoMCk6IE1hbnRpcyBEVkItQyBQaGls
+aXBzIENVMTIxNgpmcm9udGVuZCBhdHRhY2ggc3VjY2VzcwpbICAgMTIuOTc0NzE4XSBEVkI6IHJl
+Z2lzdGVyaW5nIGZyb250ZW5kIDAgKFBoaWxpcHMgVERBMTAwMjMgRFZCLUMpLi4uClsgICAxMi45
+NzQ4NjhdIG1hbnRpc19jYV9pbml0ICgwKTogUmVnaXN0ZXJpbmcgRU41MDIyMSBkZXZpY2UKWyAg
+IDEyLjk3NDk1OF0gbWFudGlzX2NhX2luaXQgKDApOiBSZWdpc3RlcmVkIEVONTAyMjEgZGV2aWNl
+ClsgICAxMi45NzQ5NzBdIG1hbnRpc19oaWZfaW5pdCAoMCk6IEFkYXB0ZXIoMCkgSW5pdGlhbGl6
+aW5nIE1hbnRpcwpIb3N0IEludGVyZmFjZQpbICAgMTQuMTA2NTc2XSBkdmJfY2EgYWRhcHRlciAw
+OiBEVkIgQ0FNIGRldGVjdGVkIGFuZCBpbml0aWFsaXNlZCBzdWNjZXNzZnVsbHkKCnJlZ2FyZHMK
+L0VybnN0CgpPbiBUaHUsIE9jdCAyMywgMjAwOCBhdCAxNToxMywgTcOlcnRlbiBHdXN0YWZzc29u
+IDxyZWtsYW1AaG9saXN0aWNvZGUuc2U+IHdyb3RlOgo+Cj4gTmlra2UKPgo+IEkgdHJpZWQgeW91
+ciBwYXRjaCwgYW5kIGl0ICJpbXByb3ZlIiB0aGluZ3MgYSBiaXQuIEthZmZlaW5lIGlzIGFibGUg
+dG8gc2Nhbgo+IGEgZmV3IGNoYW5uZWxzIG5vdyB3aXRob3V0IGFueSBlbnRyaWVzIGluIC92YXIv
+bG9nL21lc3NhZ2VzLiB3X3NjYW4gZmluZHMgYQo+IGZldyBmcmVxdWVuY2llcywgYnV0IG5vIHNl
+cnZpY2VzLiBTY2FuIHJlc3VsdHMgYXJlIGRpZmZlcmVudCBiZXR3ZWVuIHNjYW5zLgo+IHdfc2Nh
+biB3b3JrcyAiYmV0dGVyIiBpZiB0aW1lb3V0IHNldHRpbmdzIGFyZSBpbmNyZWFzZWQuCj4KPiBU
+aGUgY2hhbm5lbHMgZm91bmQgYnkgS2FmZmVpbmUgYXJlIG5vdCB2aWV3YWJsZSwgdGhlcmUgaXMg
+c29tZXRoaW5nIG1vdmluZywKPiBidXQgSSBndWVzcyB0aGUgZHJpdmVyIGlzIHVuYWJsZSB0byBk
+ZXNjcmFtYmxlIHRoZSBzaWduYWwuCj4KPiBNeSBzeXN0ZW0gaXMgYW4gVWJ1bnR1IDguMTAgYW1k
+NjQuIFRoZSBuZXR3b3JrIGlzIENvbUhlbSBhbmQgdGhlIENJIGlzIGZyb20KPiBDb25heC4gSSBh
+bHNvIGhhdmUgdGhlIEF6dXJlV2F2ZSBBRC1DUDMwMC4KPgo+IFNpbmNlIHRoaXMgaXMgYW4gaW1w
+cm92ZW1lbnQgSSBhZ3JlZSB3aXRoIHlvdSwgTWFudSBzaG91bGQgYXBwbHkgdGhlIHBhdGNoLgo+
+Cj4gTcOlcnRlbgo+Cj4gLS0tLS1VcnNwcnVuZ2xpZ3QgbWVkZGVsYW5kZS0tLS0tCj4KPgo+ID09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KPiBPbiBXZWQs
+IDE1IE9jdCAyMDA4LCBIYW5zIEJlcmdlcnNlbiB3cm90ZToKPgo+ID4gSGksCj4gPgo+Cj4gPiBJ
+IGhhdmUgZ290IGEgVHdpbmhhbiB2cC0yMDMzIGJhc2VkIGNhcmQuIEkgcnVuIFVidW50dSA4LjA0
+LiBJIGhhdmUKPiA+IGRvd25sb2FkZWQgdGhlIGRyaXZlciBmcm9tIGh0dHA6Ly9qdXNzdC5kZS9o
+Zy9tYW50aXMgYW5kIGl0IGNvbXBpbGVkCj4gPiBqdXN0IGZpbmUuIEJ1dCB3aGVuIGkgdHJ5IHRv
+IHR1bmUgYSBjaGFubmVsIHRoZSB0dW5pbmcgZmFpbHMuIEl0IGlzCj4gPiBhIG5ld2VyIGNhcmQg
+d2l0aCB0aGUgdGRhMTAwMjMgdHVuZXIgYnV0IHdoZW4gdGhlIGRyaXZlciBsb2FkcyBpdAo+ID4g
+dXNlcyB0aGUgdGRhMTAwMjEuIFdoYXQgZG8gSSBoYXZlIHRvIGRvIHRvIG1ha2UgaXQgdXNlIHRo
+ZSByaWdodAo+ID4gdHVuZXI/IENhbiBpIGdpdmUgc29tZSBvcHRpb25zIHdoZW4gY29tcGlsaW5n
+IG9yIHdoZW4gbG9hZGluZyB0aGUKPiA+IG1vZHVsZT8KPiA8c25pcD4KPiA+IEFueSBpZGVhcz8K
+Pgo+IFRyeSB0aGUgYXR0YWNoZWQgcGF0Y2ggd2hpY2ggZml4ZXMgdGhpcyBmb3IgbXkgQXp1cmV3
+YXZlIEFELUNQMzAwIChhdAo+IGxlYXN0IGxhc3QgdGltZSBJIGNvbXBpbGVkIGl0KS4KPgo+IEkn
+dmUgc2VudCBpdCB0byBNYW51IGFuZCBoZSB3YXMgZ29pbmcgdG8gYXBwbHkgaXQsIGJ1dCBpdCBo
+YXNuJ3Qgc2hvd24KPiB1cCBvbiBodHRwOi8vanVzc3QuZGUvaGcvbWFudGlzLyB5ZXQuLi4KPgo+
+Cj4gL05pa2tlCj4gLS0KPiAtPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09
+LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS0KPiAgTmlrbGFzIEVkbXVuZHNzb24s
+IEFkbWluIEAge2FjYyxocGMybn0udW11LnNlICAgICAgfCAgICAgbmlra2VAYWNjLnVtdS5zZQo+
+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLQo+ICAiSSBkb24ndCBiZWxpZXZlIGl0LiBUaGVyZSBhcmUgbm8g
+cmVzcGVjdGVkIHBsYXN0aWMgc3VyZ2VvbnMuIiAtIExvZ2FuCj4gPS09LT0tPS09LT0tPS09LT0t
+PS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09
+Cj4gLS0tLS0tLS0tLS0tLS0gbmV4dCBwYXJ0IC0tLS0tLS0tLS0tLS0tCj4KPiBGaXggdGRhMTAw
+MjEgdG8gbm90IGNsYWltIHRkYTEwMDIzLgo+Cj4gUHJldmlvdXNseSBtYW50aXNfZnJvbnRlbmRf
+aW5pdCgpIHJlbGllZCBvbiB0aGUgUENJIElEIGFsb25lLCB0aGlzCj4gY2F1c2VzIHRyb3VibGUg
+d2hlbiBhIGNhcmQgaGFzIGEgZGlmZmVyZW50IGNoaXAgZGVwZW5kaW5nIG9uCj4gdGhlIG1hbnVm
+YWN0dXJpbmcgZGF0ZS4gVGhpcyBtYXRjaCBtYWtlcyBpdCB3b3JrIHdpdGggbmV3ZXIKPiBBenVy
+ZXdhdmUgQUQtQ1AzMDAgY2FyZHMgd2hpbGUgKGhvcGVmdWxseSkgbWFpbnRhaW5pbmcgY29tcGF0
+aWJpbGl0eQo+IHdpdGggb2xkZXIgY2FyZHMuCj4KPgo+Cj4gX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KPiBsaW51eC1kdmIgbWFpbGluZyBsaXN0Cj4gbGlu
+dXgtZHZiQGxpbnV4dHYub3JnCj4gaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxt
+YW4vbGlzdGluZm8vbGludXgtZHZiCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3Jn
+Cmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2
+Yg==
