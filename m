@@ -1,15 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Date: Sun, 5 Oct 2008 14:41:36 +0300 (EEST)
-From: Mika Laitio <lamikr@pilppa.org>
-To: VDR Mailing List <vdr@linuxtv.org>
-In-Reply-To: <20081005145219.79a89a5c@bk.ru>
-Message-ID: <Pine.LNX.4.64.0810051425330.28540@shogun.pilppa.org>
-References: <vmime.48e89669.1f22.634e7ad135612f57@shalafi.ath.cx>
-	<48E89837.6000102@cadsoft.de> <20081005145219.79a89a5c@bk.ru>
+Received: from mail1009.centrum.cz ([90.183.38.139])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jan_kus@centrum.cz>) id 1KszwG-0005sT-Hk
+	for linux-dvb@linuxtv.org; Thu, 23 Oct 2008 15:09:23 +0200
+Received: by mail1009.centrum.cz id S738258445AbYJWNJG (ORCPT
+	<rfc822;linux-dvb@linuxtv.org>); Thu, 23 Oct 2008 15:09:06 +0200
+Date: Thu, 23 Oct 2008 15:09:06 +0200
+From: "Jan  =?UTF-8?Q?=20K=C5=AFs?=" <jan_kus@centrum.cz>
+To: <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [vdr] [PATCH] S2API for vdr-1.7.0 (05-10-2008 -
- quickhack for DVB-S(2), DVB-T and DVB-C)
+Message-ID: <200810231509.31804@centrum.cz>
+Subject: [linux-dvb] MSI TV @nywhere A/D v1.1 - digital not working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,60 +24,109 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->>> Enclosed are two patches. The clean patch is for a clean VDR 1.7.0 source tree patched with Reinhard's
->>> vdr-1.7.0-h264-syncearly-framespersec-audioindexer-fielddetection-speedup.diff.bz2 patch. The patched patch is for
->>> those who have used the patch from 04-10-2008.
->>
->> I'm about to begin setting up my new VDR with DVB-S2 support, so I was wondering
->>
->> - where is the ultimate S2API driver source?
->
-> http://linuxtv.org/hg/v4l-dvb/
-> http://linuxtv.org/hg/~stoth/s2/
-> http://linuxtv.org/hg/~stoth/s2-mfe/ - s2api with multifrontend support
+Hi,
+should anybody help me with MSI TV @nywhere A/D v1.1. Analog is working now, 
+but digital not. Here is my lsmod and dmesg logs.
 
-Steve can you comment the differences between s2 and s2-mfe trees and 
-whether those are planned to be compined in near future?
+pat pat # dmesg
+...
+saa7130/34: v4l2 driver version 0.2.14 loaded
+saa7133[0]: found at 0000:01:09.0, rev: 209, irq: 17, latency: 255, mmio: 
+0xfdef
+e000
+saa7133[0]: subsystem: 1462:8625, board: MSI TV@nywhere A/D v1.1 
+[card=135,autod
+etected]
+saa7133[0]: board init: gpio is 100
+tuner' 2-004b: chip found @ 0x96 (saa7133[0])
+saa7133[0]: i2c eeprom 00: 62 14 25 86 ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+tda829x 2-004b: setting tuner address to 61
+tda829x 2-004b: type set to tda8290+75a
+saa7133[0]: registered device video0 [v4l2]
+saa7133[0]: registered device vbi0
+saa7133[0]: registered device radio0
+saa7134 ALSA driver for DMA sound loaded
+saa7133[0]/alsa: saa7133[0] at 0xfdefe000 irq 17 registered as card -1
+DVB: registering new adapter (saa7133[0])
+DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 29 -- ok
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 29 -- ok
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 29 -- ok
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 29 -- ok
 
-To my understanding the only difference between s2 and s2-mfe branches 
-is the support for hvr-4000 style of devices. So:
+pat pat # lsmod
+Module                  Size  Used by
+saa7134_dvb            21900  0 
+videobuf_dvb            7044  1 saa7134_dvb
+dvb_core               75380  2 saa7134_dvb,videobuf_dvb
+dvb_pll                11784  0 
+saa7134_alsa           14368  0 
+saa7134               148316  2 saa7134_dvb,saa7134_alsa
+compat_ioctl32          9920  1 saa7134
+videobuf_dma_sg        13508  3 saa7134_dvb,saa7134_alsa,saa7134
+videobuf_core          18244  3 videobuf_dvb,saa7134,videobuf_dma_sg
+ir_kbd_i2c             10448  1 saa7134
+ir_common              38852  2 saa7134,ir_kbd_i2c
+tveeprom               15364  1 saa7134
+tuner                  26572  0 
+videodev               34368  3 saa7134,compat_ioctl32,tuner
+v4l1_compat            14852  1 videodev
+v4l2_common            12352  2 saa7134,tuner
+snd_seq_oss            30912  0 
+snd_seq_device          8080  1 snd_seq_oss
+snd_seq_midi_event      8768  1 snd_seq_oss
+snd_seq                49824  4 snd_seq_oss,snd_seq_midi_event
+snd_pcm_oss            39744  0 
+snd_mixer_oss          16576  1 snd_pcm_oss
+snd_intel8x0           33576  3 
+snd_ac97_codec        111256  1 snd_intel8x0
+snd_pcm                72328  5 
+saa7134_alsa,snd_pcm_oss,snd_intel8x0,snd_ac97_codec
+snd_timer              21648  3 snd_seq,snd_pcm
+snd                    56136  14 
+saa7134_alsa,snd_seq_oss,snd_seq_device,snd_seq,snd_pcm_oss,snd_mixer_oss,snd_intel8x0,snd_ac97_codec,snd_pcm,snd_timer
+snd_page_alloc         10064  2 snd_intel8x0,snd_pcm
+isl6421                 4096  0 
+tda826x                 5572  0 
+lirc_serial            12328  0 
+lirc_dev               12936  1 lirc_serial
+tda1004x               17284  1 
+tda827x                12036  2 
+tda9887                12484  0 
+tda8290                15428  1 
+tda18271               35976  0 
+nvidia               8101328  24 
+ac97_bus                3968  1 snd_ac97_codec
+parport_pc             26024  0 
+forcedeth              51344  0 
+soundcore               8544  1 snd
+psmouse                40028  0 
+i2c_nforce2             8576  0 
 
-- s2:
- 	--> would support only 1 frontend for 1 card at a time. Therefore 
-one would need to select during the driver loading time whether to want to use 
-hvr-4000 in DVB-S/S2 mode or in DVB-T mode.
+But  dvbtune could not tune anything :( Can anybody help me with this?
 
-So in dev-tree following are available:
+Thanks,
+Jan Kus
 
-[root@tinka vdr-1.7.0]# ls -la /dev/dvb/adapter0/
-total 0
-drwxr-xr-x  2 root   root     120 2008-10-05 10:56 ./
-drwxr-xr-x  4 root   root      80 2008-10-05 10:56 ../
-crw-rw----+ 1 lamikr video 212, 4 2008-10-05 10:56 demux0
-crw-rw----+ 1 lamikr video 212, 5 2008-10-05 10:56 dvr0
-crw-rw----+ 1 lamikr video 212, 3 2008-10-05 10:56 frontend0
-crw-rw----+ 1 lamikr video 212, 7 2008-10-05 10:56 net0
-
-- s2-mfe:
- 	--> can create multiple fronends for single card eventhoughg only 
-one of those can in reality to be used simultaneously. Thus one 
-does not need to select between DVB-S/S2 mode and DVB-T mode 
-during the driver load time. So following nodes are available:
-
-[root@tinka vdr-1.7.0]# ls -la /dev/dvb/adapter0/
-total 0
-drwxr-xr-x  2 root   root      200 2008-10-05 10:56 ./
-drwxr-xr-x  4 root   root       80 2008-10-05 10:56 ../
-crw-rw----+ 1 lamikr video 212, 68 2008-10-05 10:56 demux0
-crw-rw----+ 1 lamikr video 212, 84 2008-10-05 10:56 demux1
-crw-rw----+ 1 lamikr video 212, 69 2008-10-05 10:56 dvr0
-crw-rw----+ 1 lamikr video 212, 85 2008-10-05 10:56 dvr1
-crw-rw----+ 1 lamikr video 212, 67 2008-10-05 10:56 frontend0
-crw-rw----+ 1 lamikr video 212, 83 2008-10-05 10:56 frontend1
-crw-rw----+ 1 lamikr video 212, 71 2008-10-05 10:56 net0
-crw-rw----+ 1 lamikr video 212, 87 2008-10-05 10:56 net1
-
-Mika
 
 _______________________________________________
 linux-dvb mailing list
