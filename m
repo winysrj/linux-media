@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9DBlVtX026626
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 07:47:31 -0400
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9DBlHTK006905
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 07:47:17 -0400
-Message-ID: <48F335D9.5020104@hhs.nl>
-Date: Mon, 13 Oct 2008 13:49:45 +0200
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9NJT7dG031883
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 15:29:07 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9NJSt4P021254
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 15:28:55 -0400
+Date: Thu, 23 Oct 2008 21:28:50 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+In-Reply-To: <uhc77mucm.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0810232120010.9657@axis700.grange>
+References: <uhc77mucm.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: libv4l release: 0.5.1 (The Skype release)
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: khali@linux-fr.org, V4L <video4linux-list@redhat.com>, i2c@lm-sensors.org,
+	mchehab@infradead.org
+Subject: Re: [PATCH v7] Add ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,35 +27,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All,
+On Mon, 20 Oct 2008, Kuninori Morimoto wrote:
 
-After much frustration about the very poor implementation of v4l in skype, I'm 
-happy to announce libv4l-0.5.1, in which after much pain, I've managed to 
-implemented a fix for the skype problem in a way which does not make me feel dirty.
+> This patch adds ov772x driver that use soc_camera framework.
+> It was tested on SH Migo-r board.
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+> PATCH v6 -> v7
+> fix ov772x_get/set_register return value.
+> fix error message of I2C_FUNC_SMBUS_BYTE_DATA.
+>  (error message become 2 line. because of 80 char)
+> 
+> # I always test with CONFIG_VIDEO_ADV_DEBUG=y.
+> # but compiler didn't warn... I think.
 
-libv4l-0.5.1
-------------
-* Add support for software cropping from 352x288 -> 320x240 / 176x144 ->
-   160x120, so that apps which will only work with vga resolutions like
-   320x240 (Skype!) will work with cams/drivers which do not support cropping
-   CIF resolutions to VGA resolutions in hardware. This makes all 2.6.27 gspca
-   supported cams, except for the pac7302 which only does 640x480 (and skype
-   wants 320x240), work with skype
-* The v4lconvert_convert function was becoming a bit of a mess, so split the
-   functionailiy into separate v4lconvert_convert_pixfmt, v4lconvert_rotate and
-   v4lconvert_crop functions, and make v4lconvert_convert a frontend to
-   these
-* Do not link the wrapper libs against libpthread (patch from Gregor Jasny)
+[snip]
 
+> +/* COM3 */
+> +#define SWAP_MASK       (BIT_MASK(3) << 3)
 
-Get it here:
-http://people.atrpms.net/~hdegoede/libv4l-0.5.1.tar.gz
+Ohhoh... This equals 0x40. In v3 this used to be
 
-Regards,
+#define SWAP_MASK       (B5|B4|B3)
 
-Hans
+i.e., 0x38. Is this a correction? And even if so, why such an "unusual" 
+form "BIT_MASK(3) << 3"? Doesn't look good:-(
 
+> +static unsigned long ov772x_query_bus_param(struct soc_camera_device *icd)
+> +{
+> +
+> +	struct ov772x_priv *priv = container_of(icd, struct ov772x_priv, icd);
+> +
+> +	return  SOCAM_PCLK_SAMPLE_RISING |
+> +		SOCAM_HSYNC_ACTIVE_HIGH  |
+> +		SOCAM_VSYNC_ACTIVE_HIGH  |
+> +		SOCAM_MASTER             |
+> +		priv->info->buswidth;
+> +}
+> +
+> +static int ov772x_get_chip_id(struct soc_camera_device *icd,
+> +			      struct v4l2_chip_ident   *id)
+> +{
+> +
+> +	id->ident    = V4L2_IDENT_OV772X;
+> +	id->revision = 0;
+> +
+> +	return 0;
+> +}
 
+And if the above is indeed a mistake and there's going to be a v8, please, 
+also remove these empty lines at the very beginning of the above two 
+functions.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
