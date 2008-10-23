@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9ONi4R6007930
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 19:44:04 -0400
-Received: from mail11b.verio-web.com (mail11b.verio-web.com [204.202.242.87])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9ONhnqp026001
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 19:43:49 -0400
-Received: from mx17.stngva01.us.mxservers.net (204.202.242.70)
-	by mail11b.verio-web.com (RS ver 1.0.95vs) with SMTP id 3-0281881828
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 19:43:48 -0400 (EDT)
-From: Pete Eberlein <pete@sensoray.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200810171736.53826.hverkuil@xs4all.nl>
-References: <1224256911.6327.11.camel@pete-desktop>
-	<200810171736.53826.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Fri, 24 Oct 2008 16:43:47 -0700
-Message-Id: <1224891827.19159.17.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, Dean Anderson <dean@sensoray.com>
-Subject: [PATCH] Add MPEG4 and Elementary streams (was Re: go7007
-	development)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9NMuJ9h020358
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 18:56:19 -0400
+Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9NMuDsN030012
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 18:56:13 -0400
+Message-ID: <4901010C.1020708@kaiser-linux.li>
+Date: Fri, 24 Oct 2008 00:56:12 +0200
+From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+MIME-Version: 1.0
+To: Thierry Merle <thierry.merle@free.fr>
+References: <4900DA6B.4050902@kaiser-linux.li> <4900EDA7.6070000@free.fr>
+In-Reply-To: <4900EDA7.6070000@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: Video 4 Linux <video4linux-list@redhat.com>
+Subject: Re: gspca, what do I am wrong?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,59 +27,79 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello Hans,
+Thierry Merle wrote:
+> Hi Thomas,
+> 
+> Thomas Kaiser a écrit :
+>> Hey
+>>
+>> I think this mail came not through, so I send it again. Sorry, when it
+>> comes twice.
+>>
+>> I just pasted the interesting things into this email (With some comments
+>> inline). Hope somebody can help:
+>>
+>> thomas@LAPI01:~$ lsb_release -a
+>> No LSB modules are available.
+>> Distributor ID:    Ubuntu
+>> Description:    Ubuntu 8.04.1
+>> Release:    8.04
+>> Codename:    hardy
+>>
+>> thomas@LAPI01:~$ uname -a
+>> Linux LAPI01 2.6.24-21-generic #1 SMP Mon Aug 25 17:32:09 UTC 2008 i686
+>> GNU/Linux
+>>
+>> thomas@LAPI01:~/Projects/webcams$ hg clone http://linuxtv.org/hg/v4l-dvb
+>> to get the newest v4l source.
+>>
+>> make menuconfig in ~/Projects/webcams/v4l-dvb and remove all stuff
+>> except the gspca and V4l2.
+>> After this, I did not find a .config file in the
+>> ~/Projects/webcams/v4l-dvb folder. Where is the .config stored?
+> ~/Projects/webcams/v4l-dvb/v4l/.config
 
-On Fri, 2008-10-17 at 17:36 +0200, Hans Verkuil wrote:
-> All MPEG streams use V4L2_PIX_FMT_MPEG and set the exact stream type 
-> through V4L2_CID_MPEG_STREAM_TYPE. You probably need to add a few new 
-> stream types to this control for the elementary streams. I think 
-> something like TYPE_MPEG_ELEM might do the trick, and then you can use 
-> the audio and video encoding controls to select the precise audio/video 
-> encoding.
+OK, I found it, thanks.
 
-Here is a patch that adds the two defines we need for the go7007 driver
-extended MPEG controls.  Please consider it for inclusion in the v4l-dvb
-tree.
+> 
+>> Several dvb and/or analog capture driver where made. Why?, I disabled!
+>>
+> Look at the .config, perhaps you forgot to disable some additional modules
 
-V4L2_MPEG_STREAM_TYPE_MPEG_ELEM will be used for elementary MPEG
-streams, whose type and encoding will be determined by examining a
-header in the stream.  For more information, see
-http://en.wikipedia.org/wiki/Elementary_stream
+When I did "make menuconfig" I only choose the v4l2 and gspca modules. 
+But looking in .config in ...../v4l/ there are still some more modules 
+enabled. I can manually remove them from the .config file, but that 
+should not be the way to go, or I am mistaken?
 
-V4L2_MPEG_VIDEO_ENCODING_MPEG_4 will be used for MPEG-4 Part 2 (Simple
-Profile, Advanced Simple Profile, etc) encoding.  This is not the same
-as MPEG-4 AVC (Part 10, Advanced Video Coding).
+>> thomas@LAPI01:~/Projects/webcams/v4l-dvb$ make
+>> ¨make -C /home/thomas/Projects/webcams/v4l-dvb/v4l
+>> make[1]: Entering directory `/home/thomas/Projects/webcams/v4l-dvb/v4l'
+>> creating symbolic links...
+>> Kernel build directory is /lib/modules/2.6.24-21-generic/build
+>> make -C /lib/modules/2.6.24-21-generic/build
+>> SUBDIRS=/home/thomas/Projects/webcams/v4l-dvb/v4l  modules
+> [SNIP]
+>> After plugging the cam in the kernel log:
+>>
+>> Oct 23 20:52:54 LAPI01 kernel: [ 2015.905111] usb 1-1: new full speed
+>> USB device using uhci_hcd and address 5
+>> Oct 23 20:52:54 LAPI01 kernel: [ 2016.075400] usb 1-1: configuration #1
+>> chosen from 1 choice
+>> Oct 23 20:52:54 LAPI01 kernel: [ 2016.078879] usb 1-1: ZC0301[P] Image
+>> Processor and Control Chip detected (vid/pid 0x041E:0x401C)
+>> Oct 23 20:52:55 LAPI01 kernel: [ 2016.164172] usb 1-1: No supported
+>> image sensor detected
+>> Oct 23 20:52:55 LAPI01 kernel: [ 2016.194043] gspca_main: disagrees
+>> about version of symbol video_ioctl2
+> Please try make rmmod before plugging-in your device and check that no
+> v4l-dvb module is loaded.
+> This will remove any old v4l-dvb module already present.
 
-Thanks.
--- 
-Pete Eberlein
-Sensoray Co., Inc.
-Email: pete@sensoray.com
-http://www.sensoray.com
+I did several "sudo modprobe -r gspca-...." and check afterward that no 
+gspca module is loaded anymore (lsmod |grep gspca).
 
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
----
-
-diff -r fe810917c6ca linux/include/linux/videodev2.h
---- a/linux/include/linux/videodev2.h	Fri Oct 24 13:19:14 2008 -0200
-+++ b/linux/include/linux/videodev2.h	Fri Oct 24 09:57:46 2008 -0700
-@@ -892,6 +892,7 @@ enum v4l2_mpeg_stream_type {
- 	V4L2_MPEG_STREAM_TYPE_MPEG2_DVD  = 3, /* MPEG-2 DVD-compatible stream */
- 	V4L2_MPEG_STREAM_TYPE_MPEG1_VCD  = 4, /* MPEG-1 VCD-compatible stream */
- 	V4L2_MPEG_STREAM_TYPE_MPEG2_SVCD = 5, /* MPEG-2 SVCD-compatible stream */
-+	V4L2_MPEG_STREAM_TYPE_MPEG_ELEM  = 6, /* MPEG elementary stream */
- };
- #define V4L2_CID_MPEG_STREAM_PID_PMT 		(V4L2_CID_MPEG_BASE+1)
- #define V4L2_CID_MPEG_STREAM_PID_AUDIO 		(V4L2_CID_MPEG_BASE+2)
-@@ -1027,6 +1028,7 @@ enum v4l2_mpeg_video_encoding {
- 	V4L2_MPEG_VIDEO_ENCODING_MPEG_1     = 0,
- 	V4L2_MPEG_VIDEO_ENCODING_MPEG_2     = 1,
- 	V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC = 2,
-+	V4L2_MPEG_VIDEO_ENCODING_MPEG_4     = 3,
- };
- #define V4L2_CID_MPEG_VIDEO_ASPECT 		(V4L2_CID_MPEG_BASE+201)
- enum v4l2_mpeg_video_aspect {
+Thomas
 
 --
 video4linux-list mailing list
