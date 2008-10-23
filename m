@@ -1,20 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wienczny.de ([83.246.72.188])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Stephan@wienczny.de>) id 1Kuc3J-0003TG-RC
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 01:03:21 +0100
-Received: from fugo.wienczny.de (ip-78-94-92-8.unitymediagroup.de [78.94.92.8])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by wienczny.de (Postfix) with ESMTPSA id B711456BF
-	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 01:02:42 +0100 (CET)
-From: Stephan Wienczny <Stephan@wienczny.de>
-To: linux-dvb@linuxtv.org
-Date: Tue, 28 Oct 2008 01:02:33 +0100
+Received: from smtp107.rog.mail.re2.yahoo.com ([68.142.225.205])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1KspyK-00047R-2G
+	for linux-dvb@linuxtv.org; Thu, 23 Oct 2008 04:30:50 +0200
+Message-ID: <48FFE1B1.80403@rogers.com>
+Date: Wed, 22 Oct 2008 22:30:09 -0400
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200810280102.40359.Stephan@wienczny.de>
-Subject: [linux-dvb] Terratec Cinergy HT PCI (mk2-153b:1177)
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] [PATCH] Add syntek corp device to au0828
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,15 +22,36 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Mark Kimsal wrote:
 
-I'd liked to know the current state of development for the above card. Is 
-somebody working on this? I recently bought such a card and would like to get 
-it working.
-Is there something I could do to help you? Debugging, testing, maybe coding?
+> mkrufky wrote:
+> > can you give me the exact name of the device (from the retail package) ?
+> As per my other email (sabrent/auvitek unknown usb device) I'm not
+> entirely
+> sure of the brand name.  The Web store lists it as "sabrent".  lsusb says 
+> it's "syntek", but Windows and the device manager says it's an "auvitek".  
+> The box has literally no brand name.  The only "brand" looking things are 
+> just acronyms like NTSC and ATSC.  The windows .inf file for the driver is 
+> littered with the words "auvitek international", "copyright auvitek" and the 
+> like....
+>
+> Although I didn't buy the device, the first brand name that I identified would 
+> be "auvitek".  Sabrent was only found after back tracking to the the retailer 
+> and seeing the product page.  I don't think that "Syntek" is the proper 
+> coporation for the usb vendor ID of 05e1.
 
-Regards
-Stephan Wienczny
+http://www.linuxtv.org/wiki/index.php/Sabrent_TV-USBHD
+
+
+
+mkrufky wrote:
+
+> I thought this stick had an MT2130 inside -- looks like you've got
+> another revision with a TDA18271... very interesting :-)
+
+
+I believe that the AnyTV sticks, from Shenzhen Forward Video, are configured with the MT213x part too. 
+
 
 _______________________________________________
 linux-dvb mailing list
