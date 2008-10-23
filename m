@@ -1,23 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196])
+Received: from gv-out-0910.google.com ([216.239.58.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Kp3i6-0007X8-AR
-	for linux-dvb@linuxtv.org; Sun, 12 Oct 2008 18:22:27 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta1.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K8M009SBW4F2G40@mta1.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Sun, 12 Oct 2008 12:21:52 -0400 (EDT)
-Date: Sun, 12 Oct 2008 12:21:51 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <442626.63058.qm@web38806.mail.mud.yahoo.com>
-To: Koen Rabaey <krabaey@yahoo.com>
-Message-id: <48F2241F.4090903@linuxtv.org>
-MIME-version: 1.0
-References: <442626.63058.qm@web38806.mail.mud.yahoo.com>
-Cc: Steven Toth <stoth@hauppauge.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cx88_wakeup message with HVR4000
+	(envelope-from <oroitburd@gmail.com>) id 1Kt2EI-0003Rw-Iv
+	for linux-dvb@linuxtv.org; Thu, 23 Oct 2008 17:36:07 +0200
+Received: by gv-out-0910.google.com with SMTP id n29so20890gve.16
+	for <linux-dvb@linuxtv.org>; Thu, 23 Oct 2008 08:36:02 -0700 (PDT)
+Message-ID: <b42fca4d0810230836r76947a97qb6356c86e7e9917c@mail.gmail.com>
+Date: Thu, 23 Oct 2008 17:36:02 +0200
+From: "oleg roitburd" <oroitburd@gmail.com>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+In-Reply-To: <200810230300.43637.liplianin@tut.by>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <412bdbff0810220607x588735f2v780104a5cafc3b8a@mail.gmail.com>
+	<48FF5C43.9090309@linuxtv.org> <200810230300.43637.liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] stb0899 drivers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,28 +29,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Koen Rabaey wrote:
-> Hi,
-> 
-> I don't know if it is of any use to anyone, but when I do a dmesg after booting, 
-> at the end I get (from time to time, not consistently, the number of buffers also varies)
-> 
-> [  123.601789] cx88_wakeup: 7 buffers handled (should be 1)
-> [  123.751892] cx88_wakeup: 7 buffers handled (should be 1)
-> 
-> This does not seem to interfere with dvb playback however.
-> 
-> I'm owning an HVR4000, compiled with http://linuxtv.org/hg/~stoth/s2/ 
-> on a '2.6.27-4-generic' kernel.
+2008/10/23 Igor M. Liplianin <liplianin@tut.by>:
+> Hi Steven and Mauro
+>
+> As I understand, now we all waiting (again!) for Manu Abraham to commit?
+> Truly his code are huge and needs long time to clean up, but I made
+> http://mercurial.intuxication.org/hg/s2-liplianin
+> in order to help to convert it.
+> Right now I state the code is stable and works absolutely of no difference with multiproto
+> version.
+> I mean it locks all channels, which multiproto version locks, but without any modifications to
+> current DVB API.
+> What can I do now?
+>
+> Igor
 
-Koen,
+Thx a lot. It works fine. I'm voting for merge your tree to v4l-dvb.
 
-We've see this intermittently with cx88 drivers for the last couple of 
-years. It should probably be removed if the impact is zero.
 
-I'll put this on my todo list.
-
-- Steve
+Regards
+Oleg Roitburd
 
 _______________________________________________
 linux-dvb mailing list
