@@ -1,22 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9NHd7Ul023388
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 13:39:07 -0400
-Received: from wx-out-0506.google.com (wx-out-0506.google.com [66.249.82.224])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9NHcbSJ018205
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 13:38:37 -0400
-Received: by wx-out-0506.google.com with SMTP id h30so212206wxd.6
-	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 10:38:37 -0700 (PDT)
-From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9NCa0Co002021
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 08:36:09 -0400
+Received: from d1.scratchtelecom.com (69.42.52.179.scratchtelecom.com
+	[69.42.52.179])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9NCZ1Md012668
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 08:35:02 -0400
+Received: from vegas (CPE00a02477ff82-CM001225d885d8.cpe.net.cable.rogers.com
+	[99.249.154.65])
+	by d1.scratchtelecom.com (8.13.8/8.13.8/Debian-3) with ESMTP id
+	m9NCZ1mV012558
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 08:35:01 -0400
+Received: from lawsonk (helo=localhost)
+	by vegas with local-esmtp (Exim 3.36 #1 (Debian)) id 1KszP0-00045g-00
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 08:34:58 -0400
+Date: Thu, 23 Oct 2008 08:34:58 -0400 (EDT)
+From: Keith Lawson <lawsonk@lawson-tech.com>
 To: video4linux-list@redhat.com
-Date: Thu, 23 Oct 2008 12:38:34 -0500
+In-Reply-To: <65b651b40810221308g2642db2aq3f95d60b991cf375@mail.gmail.com>
+Message-ID: <alpine.DEB.1.10.0810230832170.15646@vegas>
+References: <65b651b40810201228k435cff91x58a67417eb0882c2@mail.gmail.com>
+	<65b651b40810221308g2642db2aq3f95d60b991cf375@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200810231238.34963.vanessaezekowitz@gmail.com>
-Subject: Re: KWorld 120 IR control?
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Subject: Re: TM5600/XC2028 based USB Tv Tuner
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,20 +35,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-(forgot to cc the list)
 
-On Thursday 16 October 2008 5:45:42 pm Hermann Pitton wrote:
 
-> > > Interesting, I can not read any writing on that chip.  All I see is a 
-> > > green dot probably identifying pin 1.  If this is a common i2c 
-> > > controller - why bother? Or are the KS003 and KS007 custom chips?
+On Thu, 23 Oct 2008, Rakesh Peter wrote:
 
-The chip on  my card has been chemically wiped I think - there aren't any scratches or scrapes on it.  Despite my best efforts with multiple light sources, I still can't identify it.  In the meantime, I wrote to Kworld asking them to identify the chip in question, or to provide some kind of details allowing us to communicate with whatever device handles the remote control.  They responded a few days ago indicating that they would pass my request on to the engineering department.  That department has not responded yet.
+> Hello there...
+>
+> I've been trying to get my Enter Multimedia E-220U USB TV Tuner Stick up and
+> running in Linux. I've downloaded your dev-branch on the same from linuxtv
+> mercurial repository. But I'm yet to figure out how to go about extracting
+> the firmware from the device driver.
+>
+> The driver file found in the CD is uploaded here:
+>
+> http://www.esnips.com/doc/b042f5cd-1eca-4616-a875-5f7791eabd8d/e220u-driver
+>
+> The photos of the device is available at:
+>
+> http://www.flickr.com/photos/31592772@N04/
+>
+> For lsusb, the device is showing up as
+>
+> Bus 005 Device 007: ID 6000:560a
+>
+> If you can provide me some idea on how to proceed with detecting and
+> extracting the firmware content, it will be great.
+>
 
--- 
-"Life is full of positive and negative events.  Spend
-your time considering the former, not the latter."
-Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+I was able to extract the firmware for my TM5600 based device using the dd 
+commands documented here (at bottom of page):
+
+http://www.linuxtv.org/v4lwiki/index.php/Trident_TM6000
+
+My thread regarding the issue:
+
+http://lists-archives.org/video4linux/24483-tm6010-tm5600-firmware-file-s.html
+
+> Awaiting your kind response...
+>
+> Regards,
+>
+> Rakesh Peter
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
 --
 video4linux-list mailing list
