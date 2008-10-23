@@ -1,31 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m968gCWm021833
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 04:42:12 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m968g0kd027925
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 04:42:01 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1KmlfD-0004RR-G7
-	for video4linux-list@redhat.com; Mon, 06 Oct 2008 08:41:59 +0000
-Received: from thrashbarg.mansr.com ([78.86.181.100])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Mon, 06 Oct 2008 08:41:59 +0000
-Received: from mans by thrashbarg.mansr.com with local (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Mon, 06 Oct 2008 08:41:59 +0000
-To: video4linux-list@redhat.com
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Date: Mon, 06 Oct 2008 09:41:48 +0100
-Message-ID: <yw1x63o6cdyr.fsf@thrashbarg.mansr.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D610739F@dbde02.ent.ti.com>
-	<200810060829.25055.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
-Subject: Re: [PATCH] OMAP 2/3 V4L2 display driver on video planes
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9NC9lgn020791
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 08:09:47 -0400
+Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9NC9Nq2030348
+	for <video4linux-list@redhat.com>; Thu, 23 Oct 2008 08:09:23 -0400
+Message-ID: <49006A3A.3030504@hhs.nl>
+Date: Thu, 23 Oct 2008 14:12:42 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
+MIME-Version: 1.0
+To: Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: libv4l release: 0.5.1 (The Skype release)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,31 +27,33 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+Hi All,
 
-> On Monday 06 October 2008 08:06:30 Shah, Hardik wrote:
->> 4.  VIDIOC_S/G_OMAP2_COLORKEY:  Color keying allows the pixels with
->> the defined color on the video pipelines to be replaced with the
->> pixels on the graphics pipelines.  I believe similar feature must be
->> available on almost all next generation of video hardware. We can add
->> new ioctl for this feature in V4L2 framework. I think VIDIOC_S_FBUF
->> ioctl is used for setting up the buffer parameters on per buffer
->> basis.  So IMHO this ioctl is not a natural fit for the above
->> functionality. Please provide your comments on same.
->
-> Do I understand correctly that if the color in the *video* streams 
-> matches the colorkey, then it is replaced by the color in the 
-> *framebuffer* (aka menu/overlay)? Usually it is the other way around: 
-> if the framebuffer (menu) has chromakey pixels, then those pixels are 
-> replaced by pixels from the video stream. That's what the current API 
-> does.
+Nothing special just a small bugfix release mainly fixing some bad interactions 
+between the pwc driver and libv4l (due to pwc driver bugs). More in general 
+this release makes libv4l more robust against drivers who promise they can 
+handle foo when calling try_fmt and then actually give you bar when you do a s_fmt.
 
-The OMAP3 hardware supports both type of keying, but not
-simultaneously.
+libv4l-0.5.2
+------------
+* Add Philips SPC210NC to list of cams with upside down sensor, reported by
+   Rieker Flaik
+* Work around some drivers (pwc) not properly reflecting what one gets after a
+   s_fmt in their try_fmt answer
+* Check that s_fmt atleast gives us the width, height and pixelformat try_fmt
+   promised us, and if not disable conversion
+* Only check width, height and pixelformat when checking if we are doing
+   conversion, instead of doing a memcmp, as that are the only things which
+   the convert code checks
+* Take into account that the buffers only contain half of the lines when
+   field is V4L2_FIELD_ALTERNATE
 
--- 
-Måns Rullgård
-mans@mansr.com
+Get it here:
+http://people.atrpms.net/~hdegoede/libv4l-0.5.2.tar.gz
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
