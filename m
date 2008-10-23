@@ -1,17 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp19.orange.fr ([80.12.242.17])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hftom@free.fr>) id 1KpgLq-0000Tu-1z
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 11:38:08 +0200
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-dvb@linuxtv.org
-Date: Tue, 14 Oct 2008 11:37:16 +0200
-References: <48F44F1D.4080301@powercraft.nl>
-In-Reply-To: <48F44F1D.4080301@powercraft.nl>
+Received: from smtp107.rog.mail.re2.yahoo.com ([68.142.225.205])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1Ksp9a-00024U-FG
+	for linux-dvb@linuxtv.org; Thu, 23 Oct 2008 03:38:25 +0200
+Message-ID: <48FFD56D.5000705@rogers.com>
+Date: Wed, 22 Oct 2008 21:37:49 -0400
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200810141137.17034.hftom@free.fr>
-Subject: Re: [linux-dvb] mplayer dvb-t startup problems
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] ATI TV Wonder HD 600
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,33 +16,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Le Tuesday 14 October 2008 09:49:49 Jelle de Jong, vous avez =E9crit=A0:
-> Hello everybody,
->
-> I am trying to build a dvb-t system and I am currently using mplayer to
-> tune into the channels and watch and listen to them. However I got some
-> startup problems. Mplayer does not always detect the TS file stream and
-> the audio is sometimes distorted. I posted an more detailed description
-> of the problem on the mplayer mailinglist, but there was not much
-> response, so I am trying this channel since the change somebody reading
-> this and has solved the issue is much greater:
->
-> http://lists.mplayerhq.hu/pipermail/mplayer-users/2008-October/074693.html
->
-> I hope somebody know how to fix the issues,
-
--cache 4096
+> I purchased this card because it would fit in my low profile box and I
+> mistook it for the "HDTV Wonder" that I had seen on the linuxtv.org and
+> mythtv Wikis, only to find out that it wasn't (after banging my head
+> against the wall for a few hours).
 
 
--- =
+Well, Jason, at least you have some company in that regard; see the
+following recent threads:
 
-Christophe Thommeret
+- http://marc.info/?l=linux-video&m=122263544930251&w=2
+- http://marc.info/?l=linux-dvb&m=122348769130906&w=2
+- http://marc.info/?l=linux-dvb&m=122064478030476&w=2
+
+> Is there any way currently to use this card? 
+
+No.   At this point, I doubt that support for the Theater 550, 600 & 650
+component parts, and consequently any of the devices that use them, will
+ever be ascertained  ...  specifically, I doubt AMD/ATI  will ever
+provide documentation for these chips, and, as they're not simplistic
+parts, can understand why any developer would loathe the idea of trying
+to reverse engineer support for them on their own.
+
+Unlike their support for the graphics card end, it hasn't struck me that
+AMD/ATI are too concerned about support for their multimedia product
+portfolio....hmm, and now that I think about it, I wonder if rights to
+these products also fell under a part of the recent Broadcom purchase
+(of some ATI assets).
+ 
 
 
 _______________________________________________
