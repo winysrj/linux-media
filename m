@@ -1,20 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.152])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <oroitburd@gmail.com>) id 1Kulks-0005HL-Jy
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 11:24:55 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so2263289fga.25
-	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 03:24:51 -0700 (PDT)
-Message-ID: <b42fca4d0810280324q10187d6dwff7f117d62fa3ed7@mail.gmail.com>
-Date: Tue, 28 Oct 2008 11:24:50 +0100
-From: "oleg roitburd" <oroitburd@gmail.com>
-To: jean-paul@goedee.nl
-In-Reply-To: <20081028111538.1yl7p80uo0cggo80@webmail.goedee.nl>
+Received: from n23.bullet.mail.ukl.yahoo.com ([87.248.110.140])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <btanastasov@yahoo.co.uk>) id 1KsyG7-0001GJ-1f
+	for linux-dvb@linuxtv.org; Thu, 23 Oct 2008 13:21:46 +0200
+Message-ID: <49005E1C.3010104@yahoo.co.uk>
+Date: Thu, 23 Oct 2008 14:21:00 +0300
+From: Boyan <btanastasov@yahoo.co.uk>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20081028111538.1yl7p80uo0cggo80@webmail.goedee.nl>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API & TT3200
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] [REGRESSION] - Cable2PC/CableStar 2 DVB-C not detected
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,46 +22,99 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-2008/10/28  <jean-paul@goedee.nl>:
-> Ok again.
->
-> I using now vdr 1.7.0 and multiproto from  manu to make my two tt
-> 3200-ci working with streamdev. Vdr zapper en MPC. Its working fine
-> except some judder  but its more a vdr issue.
->
-> For now I have a development system with an TT 3200 to and try to let
-> vdr run with S2API drivers.  After getting the drivers from
-> http://mercurial.intuxication.org/hg/s2-liplianin/ the compile ends
-> with a error:
->
->   CC [M]  /usr/local/src/dvb/v4l/cx88-vbi.o
->   CC [M]  /usr/local/src/dvb/v4l/cx88-mpeg.o
->   CC [M]  /usr/local/src/dvb/v4l/cx88-cards.o
-> /usr/local/src/dvb/v4l/cx88-cards.c:2314: error: request for member
-> 'subdevice' in something not a structure or union
-> make[4]: *** [/usr/local/src/dvb/v4l/cx88-cards.o] Error 1
-> make[3]: *** [_module_/usr/local/src/dvb/v4l] Error
-> make[2]: *** [sub-make] Error 2
-> make[1]: *** [all] Error 2
-> make[1]: Leaving directory `/usr/src/linux-2.6.25.16-0.1-obj/x86_64/default'
-> make: *** [default] Error 2
->
->
-> Remove those stuff I?m not using and compile it again.
 
-Try this patch http://arvdr-dev.free-x.de:8080/freex-s2/raw-rev/4b6a6a9dbf85
+Hello,
 
-> Reboot the
-> system and try to use scan-s2. Next problem. Diseqc doesn?t work
-> anymore and I?m   able to scan one transponder.
+There is a regression regarding this DVB-C card from the subject, which 
+as it looks is not very new, but nobody noticed the problem.
+After bisecting I've found the commit which is responsible for this 
+problem - that the card is not detected.
+By the way mercurial bisect was not very useful because some commits 
+does not compile or load, so I had to "simulate" bisecting.
 
-I have tried with DiseqC 1.0
-It works for me
-./scan-s2 -s 1 -o vdr -t 3 dvb-s/myHotbird-13.0E > ../channels.conf-13.0E
-HotBird is on second port ( -s 1)
+Bad version:
+
+changeset:   7484:0b82bb67fb80
+parent:      7482:4fcb2ce44347
+parent:      7483:13244661a8df
+user:        Mauro Carvalho Chehab <mchehab@infradead.org>
+date:        Tue Apr 01 18:59:34 2008 -0300
+summary:     merge: http://linuxtv.org/hg/~mkrufky/tuner
+
+
+b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded 
+successfully
+flexcop-pci: will use the HW PID filter.
+flexcop-pci: card revision 2
+ACPI: PCI Interrupt 0000:06:00.0[A] -> GSI 21 (level, low) -> IRQ 22
+DVB: registering new adapter (FlexCop Digital TV device)
+b2c2-flexcop: MAC address = 00:d0:d7:13:c4:e4
+b2c2-flexcop: i2c master_xfer failed
+CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
+CX24123: wrong demod revision: 87
+b2c2-flexcop: i2c master_xfer failed
+b2c2-flexcop: i2c master_xfer failed
+b2c2-flexcop: i2c master_xfer failed
+mt352_read_register: readreg error (reg=127, ret==-121)
+b2c2-flexcop: i2c master_xfer failed
+nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -121)
+Unknown/Unsupported NXT chip: 00 00 00 00 00
+b2c2-flexcop: i2c master_xfer failed
+lgdt330x: i2c_read_demod_bytes: addr 0x59 select 0x02 error (ret == -121)
+b2c2-flexcop: i2c master_xfer failed
+b2c2-flexcop: i2c master_xfer failed
+stv0297_readreg: readreg error (reg == 0x80, ret == -121)
+b2c2-flexcop: i2c master_xfer failed
+mt312_read: ret == -121
+b2c2-flexcop: no frontend driver found for this B2C2/FlexCop adapter
+ACPI: PCI interrupt for device 0000:06:00.0 disabled
+
+
+Good version:
+
+changeset:   7483:13244661a8df
+parent:      7442:b7bb2b116cbb
+user:        Michael Krufky <mkrufky@linuxtv.org>
+date:        Sun Mar 30 13:00:45 2008 -0400
+summary:     tuner-simple: fix broken build dependency
+
+
+b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded 
+successfully
+flexcop-pci: will use the HW PID filter.
+flexcop-pci: card revision 2
+ACPI: PCI Interrupt 0000:06:00.0[A] -> GSI 21 (level, low) -> IRQ 22
+DVB: registering new adapter (FlexCop Digital TV device)
+b2c2-flexcop: MAC address = 00:d0:d7:13:c4:e4
+b2c2-flexcop: i2c master_xfer failed
+b2c2-flexcop: i2c master_xfer failed
+b2c2-flexcop: i2c master_xfer failed
+mt352_read_register: readreg error (reg=127, ret==-121)
+b2c2-flexcop: i2c master_xfer failed
+nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -121)
+Unknown/Unsupported NXT chip: 00 00 00 00 00
+b2c2-flexcop: i2c master_xfer failed
+lgdt330x: i2c_read_demod_bytes: addr 0x59 select 0x02 error (ret == -121)
+b2c2-flexcop: i2c master_xfer failed
+b2c2-flexcop: found the stv0297 at i2c address: 0x1c
+DVB: registering frontend 0 (ST STV0297 DVB-C)...
+b2c2-flexcop: initialization of 'Cable2PC/CableStar 2 DVB-C' at the 
+'PCI' bus controlled by a 'FlexCopIIb' complete
+
+
+The changeset 7484:0b82bb67fb80 is rather big, but I'm just guessing 
+that removing/integrating of this file with other flexcop files is the 
+cause:
+
+linux/drivers/media/dvb/b2c2/stv0297_cs2.c
+
+Kernel version 2.6.23. Currently can't test with newer kernel on this 
+computer.
+I can give more info if needed.
+
 
 Regards
-Oleg Roitburd
+
 
 _______________________________________________
 linux-dvb mailing list
