@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.170])
+Received: from bene2.itea.ntnu.no ([129.241.56.57])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <websdaleandrew@googlemail.com>) id 1KlUrw-0003se-5G
-	for linux-dvb@linuxtv.org; Thu, 02 Oct 2008 22:33:53 +0200
-Received: by wf-out-1314.google.com with SMTP id 27so1359236wfd.17
-	for <linux-dvb@linuxtv.org>; Thu, 02 Oct 2008 13:33:46 -0700 (PDT)
-Message-ID: <e37d7f810810021333j79a2469draaed9c0858bbc516@mail.gmail.com>
-Date: Thu, 2 Oct 2008 21:33:46 +0100
-From: "Andrew Websdale" <websdaleandrew@googlemail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <mathieu.taillefumier@free.fr>) id 1KtHai-0005bA-E6
+	for linux-dvb@linuxtv.org; Fri, 24 Oct 2008 10:00:17 +0200
+Message-ID: <4901808C.30805@free.fr>
+Date: Fri, 24 Oct 2008 10:00:12 +0200
+From: Mathieu Taillefumier <mathieu.taillefumier@free.fr>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_5884_20433671.1222979626619"
-Subject: [linux-dvb] DPosh m9206 USB DVB-T stick with MT2060
+To: hermann pitton <hermann-pitton@arcor.de>
+References: <1223741522.48f0d052c956b@webmail.free.fr>	
+	<1223753645.3125.57.camel@palomino.walls.org>	
+	<1223768859.2706.15.camel@pc10.localdom.local>
+	<49004726.4020601@free.fr>
+	<1224799930.4202.17.camel@pc10.localdom.local>
+In-Reply-To: <1224799930.4202.17.camel@pc10.localdom.local>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] saa7134 bug in 64 bits system
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,114 +23,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_5884_20433671.1222979626619
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi,
 
-     Some time ago I had a brief correspondence on here with Antii
-about adding support for the MT2060 tuner to the DPosh driver( there's
-recently been a load of these on sale in several places for 10 GBP
-ish). I had a go at hacking something together, which although
-definitely poorly written, did appear to work. However, my signal at
-home is currently just not quite good enough to test it properly, so I
-let the matter rest for the moment.
-     Then I was contacted by a guy who'd bought the same stick & been
-following my posts - he tried it & is definitely receiving TV
-stations(with plenty of room for improvement), so it seems that its
-worth going further with it.
-      I've attached a diff of m920x.c -  I'd like some help with a)the
-correct mechanism for detecting which tuner chip is present (i.e.
-QT1010/MT2060) , b) what to tweak to improve output quality & c)
-whether my whole approach is wrong or what?- I have no experience of
-driver programming or C, though I know a little about C++ app
-development. Hugh (the guy with another DPosh stick) will be able to
-test any changes as will I (if I can improve my Freeview signal).
-Regards Andrew Websdale
+I located the problem by doing the following experiment. I boot the 
+kernel with only 2G installed and everything worked fine. No if you come 
+back to the initial configuration it crash badly. A little digging on 
+google gave some nice information. It seems that this problem is the 
+combination of a bug in the bios and/or in the pci resource allocation. 
+So I will report this to the kernel list.
 
-------=_Part_5884_20433671.1222979626619
-Content-Type: text/x-patch; name=m920x.diff
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fltu3up20
-Content-Disposition: attachment; filename=m920x.diff
+> Just a shot into the dark, sorry again.
+> All 28 gpios are set to output, but that is not intended by the driver.
+> Previously seen such devices came up with gpio init 0.
+>    
 
-LS0tIC4uL3Y0bC1kdmIub3JpZy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL205MjB4
-LmMJMjAwOC0wOS0yNCAyMzozNjo0Ny4wMDAwMDAwMDAgKzAxMDAKKysrIGxpbnV4L2RyaXZlcnMv
-bWVkaWEvZHZiL2R2Yi11c2IvbTkyMHguYwkyMDA4LTA3LTA0IDIzOjE3OjE5LjAwMDAwMDAwMCAr
-MDEwMApAQCAtMTAsNyArMTAsNyBAQAogICovCiAKICNpbmNsdWRlICJtOTIweC5oIgotCisjaW5j
-bHVkZSAibXQyMDYwLmgiCiAjaW5jbHVkZSAibXQzNTIuaCIKICNpbmNsdWRlICJtdDM1Ml9wcml2
-LmgiCiAjaW5jbHVkZSAicXQxMDEwLmgiCkBAIC0yMCw2ICsyMCw3IEBACiAKIC8qIGRlYnVnICov
-CiBzdGF0aWMgaW50IGR2Yl91c2JfbTkyMHhfZGVidWc7CitzdGF0aWMgYm9vbCBiZHBvc2hfd2Fy
-bSA9IGZhbHNlOwogbW9kdWxlX3BhcmFtX25hbWVkKGRlYnVnLGR2Yl91c2JfbTkyMHhfZGVidWcs
-IGludCwgMDY0NCk7CiBNT0RVTEVfUEFSTV9ERVNDKGRlYnVnLCAic2V0IGRlYnVnZ2luZyBsZXZl
-bCAoMT1yYyAob3ItYWJsZSkpLiIgRFZCX1VTQl9ERUJVR19TVEFUVVMpOwogCkBAIC00NzcsNiAr
-NDc4LDEwIEBACiAJLmkyY19hZGRyZXNzID0gMHg2MgogfTsKIAorc3RhdGljIHN0cnVjdCBtdDIw
-NjBfY29uZmlnIG05MjB4X210MjA2MF9jb25maWcgPSB7CisJLmkyY19hZGRyZXNzID0gMHg2MCAg
-ICAgICAgICAKK307CisKIC8qIENhbGxiYWNrcyBmb3IgRFZCIFVTQiAqLwogc3RhdGljIGludCBt
-OTIweF9tdDM1Ml9mcm9udGVuZF9hdHRhY2goc3RydWN0IGR2Yl91c2JfYWRhcHRlciAqYWRhcCkK
-IHsKQEAgLTU0NCw2ICs1NDksMTkgQEAKIAlyZXR1cm4gMDsKIH0KIAorc3RhdGljIGludCBtOTIw
-eF9tdDIwNjBfdHVuZXJfYXR0YWNoKHN0cnVjdCBkdmJfdXNiX2FkYXB0ZXIgKmFkYXApCit7CisJ
-dTE2IGlmMTsKKwkKKwlkZWIoIiVzXG4iLF9fZnVuY19fKTsKKwkKKwlpZjEgPSAxMjIwOworCQor
-CWlmIChkdmJfYXR0YWNoKG10MjA2MF9hdHRhY2gsIGFkYXAtPmZlLCAmYWRhcC0+ZGV2LT5pMmNf
-YWRhcCwgJm05MjB4X210MjA2MF9jb25maWcsIGlmMSkgPT0gTlVMTCkKKwkJcmV0dXJuIC1FTk9E
-RVY7CisKKwlyZXR1cm4gMDsKK30KIC8qIGRldmljZS1zcGVjaWZpYyBpbml0aWFsaXphdGlvbiAq
-Lwogc3RhdGljIHN0cnVjdCBtOTIweF9pbml0cyBtZWdhc2t5X3JjX2luaXQgW10gPSB7CiAJeyBN
-OTIwNl9SQ19JTklUMiwgMHhhOCB9LApAQCAtNjA0LDcgKzYyMiw4IEBACiBzdGF0aWMgc3RydWN0
-IGR2Yl91c2JfZGV2aWNlX3Byb3BlcnRpZXMgbWVnYXNreV9wcm9wZXJ0aWVzOwogc3RhdGljIHN0
-cnVjdCBkdmJfdXNiX2RldmljZV9wcm9wZXJ0aWVzIGRpZ2l2b3hfbWluaV9paV9wcm9wZXJ0aWVz
-Owogc3RhdGljIHN0cnVjdCBkdmJfdXNiX2RldmljZV9wcm9wZXJ0aWVzIHR2d2Fsa2VydHdpbl9w
-cm9wZXJ0aWVzOwotc3RhdGljIHN0cnVjdCBkdmJfdXNiX2RldmljZV9wcm9wZXJ0aWVzIGRwb3No
-X3Byb3BlcnRpZXM7CitzdGF0aWMgc3RydWN0IGR2Yl91c2JfZGV2aWNlX3Byb3BlcnRpZXMgZHBv
-c2hfcHJvcGVydGllczsvL3F0MTAxMAorc3RhdGljIHN0cnVjdCBkdmJfdXNiX2RldmljZV9wcm9w
-ZXJ0aWVzIGRwb3NoX210X3Byb3BlcnRpZXM7Ly9mb3IgbXQyMDYwCiAKIHN0YXRpYyBpbnQgbTky
-MHhfcHJvYmUoc3RydWN0IHVzYl9pbnRlcmZhY2UgKmludGYsCiAJCSAgICAgICBjb25zdCBzdHJ1
-Y3QgdXNiX2RldmljZV9pZCAqaWQpCkBAIC02NDIsMTMgKzY2MSwyNSBAQAogCQkJcmNfaW5pdF9z
-ZXEgPSB0dndhbGtlcnR3aW5fcmNfaW5pdDsKIAkJCWdvdG8gZm91bmQ7CiAJCX0KLQotCQlyZXQg
-PSBkdmJfdXNiX2RldmljZV9pbml0KGludGYsICZkcG9zaF9wcm9wZXJ0aWVzLAorCQkKKwkJcmV0
-ID0gZHZiX3VzYl9kZXZpY2VfaW5pdChpbnRmLCAmZHBvc2hfbXRfcHJvcGVydGllcywKIAkJCQkJ
-ICBUSElTX01PRFVMRSwgJmQsIGFkYXB0ZXJfbnIpOwogCQlpZiAocmV0ID09IDApIHsKIAkJCS8q
-IFJlbW90ZSBjb250cm9sbGVyIG5vdCBzdXBwb3J0ZWQgeWV0LiAqLworCQkJYmRwb3NoX3dhcm0g
-PSB0cnVlOwkJCQogCQkJZ290byBmb3VuZDsKIAkJfQorCQkKKwkJaWYgKGJkcG9zaF93YXJtICE9
-IHRydWUpeyAJCQorCQkJcmV0ID0gZHZiX3VzYl9kZXZpY2VfaW5pdChpbnRmLCAmZHBvc2hfcHJv
-cGVydGllcywKKwkJCQkJICBUSElTX01PRFVMRSwgJmQsIGFkYXB0ZXJfbnIpOworCQkJaWYgKHJl
-dCA9PSAwKSB7CisJCQkvKiBSZW1vdGUgY29udHJvbGxlciBub3Qgc3VwcG9ydGVkIHlldC4gKi8K
-KwkJCQlnb3RvIGZvdW5kOworCQkJfQorCQl9CisKKwogCiAJCXJldHVybiByZXQ7CiAJfSBlbHNl
-IHsKQEAgLTg4NiwxNCArOTE3LDU5IEBACiAKIAkubnVtX2RldmljZV9kZXNjcyA9IDEsCiAJLmRl
-dmljZXMgPSB7Ci0JCSB7ICAgLm5hbWUgPSAiRHBvc2ggRFZCLVQgVVNCMi4wIiwKKwkJIHsgICAu
-bmFtZSA9ICJEcG9zaChxdDEwMTAgdHVuZXIpIERWQi1UIFVTQjIuMCIsCisJCSAgICAgLmNvbGRf
-aWRzID0geyAmbTkyMHhfdGFibGVbNF0sIE5VTEwgfSwKKwkJICAgICAud2FybV9pZHMgPSB7ICZt
-OTIweF90YWJsZVs1XSwgTlVMTCB9LAorCQkgfSwKKwkgfQorfTsKKworCitzdGF0aWMgc3RydWN0
-IGR2Yl91c2JfZGV2aWNlX3Byb3BlcnRpZXMgZHBvc2hfbXRfcHJvcGVydGllcyA9IHsKKwkuY2Fw
-cyA9IERWQl9VU0JfSVNfQU5fSTJDX0FEQVBURVIsCisKKwkudXNiX2N0cmwgPSBERVZJQ0VfU1BF
-Q0lGSUMsCisJLmZpcm13YXJlID0gImR2Yi11c2ItZHBvc2gtMDEuZnciLAorCS5kb3dubG9hZF9m
-aXJtd2FyZSA9IG05MjB4X2Zpcm13YXJlX2Rvd25sb2FkLAorCisJLnNpemVfb2ZfcHJpdiAgICAg
-PSBzaXplb2Yoc3RydWN0IG05MjB4X3N0YXRlKSwKKworCS5pZGVudGlmeV9zdGF0ZSAgID0gbTky
-MHhfaWRlbnRpZnlfc3RhdGUsCisJLm51bV9hZGFwdGVycyA9IDEsCisJLmFkYXB0ZXIgPSB7ewor
-CisJCS5mcm9udGVuZF9hdHRhY2ggID0gbTkyMHhfbXQzNTJfZnJvbnRlbmRfYXR0YWNoLAorCQku
-dHVuZXJfYXR0YWNoICAgICA9IG05MjB4X210MjA2MF90dW5lcl9hdHRhY2gsCisKKwkJLnN0cmVh
-bSA9IHsKKwkJCS50eXBlID0gVVNCX0JVTEssCisJCQkuY291bnQgPSA3LAorCQkJLmVuZHBvaW50
-ID0gMHg4MSwKKwkJCS51ID0geworCQkJCSAuYnVsayA9IHsKKwkJCQkJIC5idWZmZXJzaXplID0g
-NTEyLAorCQkJCSB9CisJCQl9CisJCX0sCisJfX0sCisJLmkyY19hbGdvICAgICAgICAgPSAmbTky
-MHhfaTJjX2FsZ28sCisKKwkubnVtX2RldmljZV9kZXNjcyA9IDEsCisJLmRldmljZXMgPSB7CisJ
-CSB7ICAgLm5hbWUgPSAiRHBvc2gobXQyMDYwIHR1bmVyKSBEVkItVCBVU0IyLjAiLAogCQkgICAg
-IC5jb2xkX2lkcyA9IHsgJm05MjB4X3RhYmxlWzRdLCBOVUxMIH0sCiAJCSAgICAgLndhcm1faWRz
-ID0geyAmbTkyMHhfdGFibGVbNV0sIE5VTEwgfSwKIAkJIH0sCiAJIH0KKworCiB9OwogCisKIHN0
-YXRpYyBzdHJ1Y3QgdXNiX2RyaXZlciBtOTIweF9kcml2ZXIgPSB7CisjaWYgTElOVVhfVkVSU0lP
-Tl9DT0RFIDw9ICBLRVJORUxfVkVSU0lPTigyLDYsMTUpCisJLm93bmVyCQk9IFRISVNfTU9EVUxF
-LAorI2VuZGlmCiAJLm5hbWUJCT0gImR2Yl91c2JfbTkyMHgiLAogCS5wcm9iZQkJPSBtOTIweF9w
-cm9iZSwKIAkuZGlzY29ubmVjdAk9IGR2Yl91c2JfZGV2aWNlX2V4aXQsCg==
-------=_Part_5884_20433671.1222979626619
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> After that, all IRQs fail and i2c too.
+>
+> Maybe the pci=nomsi kernel boot option is worth a try.
+>    
+I will try that.
+
+Thanks for the help
+
+Mathieu
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_5884_20433671.1222979626619--
