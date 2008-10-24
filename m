@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LE7gHC011490
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 10:07:42 -0400
-Received: from unifiedpaging.messagenetsystems.com
-	(www.emergencycommunicationsystems.com [24.123.23.170])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9LE7WdX019361
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 10:07:32 -0400
-Message-ID: <48FDE20F.3070407@messagenetsystems.com>
-Date: Tue, 21 Oct 2008 10:07:11 -0400
-From: Robert Vincent Krakora <rob.krakora@messagenetsystems.com>
-MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <48FAA9A1.3090906@myecho.ca> <48FC9F9D.5030107@linuxtv.org>
-	<48FCB570.2050906@messagenetsystems.com>
-	<48FCCFA9.8060105@linuxtv.org>
-In-Reply-To: <48FCCFA9.8060105@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9OHZQMu003254
+	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 13:35:26 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9OHZF1F013551
+	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 13:35:15 -0400
+Date: Fri, 24 Oct 2008 15:35:09 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+Message-ID: <20081024153509.0f51d676@pedra.chehab.org>
+In-Reply-To: <d9def9db0810221359h5118b8d2pd6d2b3f4f95496ce@mail.gmail.com>
+References: <d9def9db0810221359h5118b8d2pd6d2b3f4f95496ce@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: hvr950q analog support
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	em28xx <em28xx@mcentral.de>
+Subject: Re: [PATCH 1/7] Adding empia base driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,55 +28,61 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Steven Toth wrote:
-> Robert Vincent Krakora wrote:
->> Steven Toth wrote:
->>> Jacek Pawlowski wrote:
->>>> Hi,
->>>> The digital part for hvr950a works fine (driver au0828).  From 
->>>> other posts it looks like the analog part is nor ready yet.  Will 
->>>> be  the analog part for HVR950q (2040:7200) ready soon (or maybe it 
->>>> is already available and I just don't know how to set it up :-) - I 
->>>> am running 2.6.26.5-28.fc8 x86_64
->>>
->>> Nobody is working on analog support, as far as I know.
->>>
->>> - Steve
->>>
->>> -- 
->>> video4linux-list mailing list
->>> Unsubscribe 
->>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>
->>>
->> I have both the HVR950 and HVR950Q.  Analog works fine on the HVR950 
->> as does terrestrial digital (8VSB ATSC).  However, on the HVR950Q 
->> only digital works for both terrestrial (8VSB ATSC) and cable 
->> (QAM256).  Are there any plans to have someone work on analog for the 
->> HVR950Q?
->>
->
-> I repeat my earlier HVR950Q statement: Nobody is working on analog 
-> support, as far as I know.
->
-> - Steve
->
->
-Steve:
+On Wed, 22 Oct 2008 22:59:00 +0200
+"Markus Rechberger" <mrechberger@gmail.com> wrote:
 
-I will take a look at it here shortly.  I am going to have some time and 
-I have a need to get analog going with the HVR950Q. ;-)
+>     em2880-dvb:
+>     * supporting the digital part of Empia based devices, which
+> includes ATSC, ISDB-T and DVB-T
+> 
+>     em28xx-aad.c:
+>     * alternative audio driver, can be used instead of em28xx-audio if
+> alsa is not available
+>     or not compiled into the kernel, it provides a raw interface to
+> the PCM samples
+> 
+>     em28xx-audio.c:
+>     * em28xx alsa driver and audio driver for FM radio
+> 
+>     em28xx-audioep.c:
+>     * em28xx alsa driver for devices which are set to vendor specific
+> audio on interface 1,
+>     in that case snd-usb-audio will not attach to the interface and
+> em28xx-audioep will be needed
+> 
+>     em28xx-cards.c:
+>     * card definition and initial setup of devices.
+> 
+>     em28xx-core.c:
+>     * core videohandling and VBI frame slicing
+> 
+>     em28xx-i2c.c:
+>     * i2c setup and GPIO setup handling of the devices (including
+> em2888 based ones)
+> 
+>     em28xx-input.c:
+>     * currently mostly disabled since the linuxtv input handling is
+> broken by design and racy
+> 
+>     em28xx-keymaps.c:
+>     * keymap references of some remotes (could be merged into
+> ir-common, although as mentioned
+>     this should be in userland done by lirc).
+> 
+>     em28xx-video.c:
+>     * inode handling for analog TV, radio and VBI, also some device probing
+> 
+>     em28xx-webcam.c:
+>     * videology webcam specific i2c commands
 
-Best Regards,
--- 
-Rob Krakora
-Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+NACK.
+
+There's already a driver for em28xx. Be welcome sending incremental patches to
+improve, like other developers do. But another driver for the same chip would
+just create a mess.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
