@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9KAuUe1011187
-	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 06:56:30 -0400
-Received: from shark4.inbox.lv (shark4.inbox.lv [89.111.3.84])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9KAuFTT018092
-	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 06:56:16 -0400
-Received: from localhost (w16 [10.0.1.26])
-	by shark4-plain-b64d2.inbox.lv (Postfix) with ESMTP id C7BED1B7C1
-	for <video4linux-list@redhat.com>;
-	Mon, 20 Oct 2008 13:56:14 +0300 (EEST)
-Message-ID: <1224500174.48fc63cec8239@www.inbox.lv>
-Date: Mon, 20 Oct 2008 13:56:14 +0300
-From: Gatis <gatisl@inbox.lv>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9OIhu27006643
+	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 14:43:56 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9OIeWeW019186
+	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 14:40:39 -0400
+Date: Fri, 24 Oct 2008 20:40:47 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Magnus Damm <magnus.damm@gmail.com>
+In-Reply-To: <aec7e5c30810222026g4622aafcrf70cde31bcb0c602@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0810242035130.7996@axis700.grange>
+References: <uhc77mucm.wl%morimoto.kuninori@renesas.com>
+	<aec7e5c30810222026g4622aafcrf70cde31bcb0c602@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Subject: Python script + v4lctl
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: khali@linux-fr.org, V4L <video4linux-list@redhat.com>, i2c@lm-sensors.org,
+	mchehab@infradead.org
+Subject: Re: [i2c] [PATCH v7] Add ov772x driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,32 +28,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello!
-Intro:
-I wrote script that in case of some event takes picture using usb=0Awebcam =
-[Creative Live! Cam Vista IM (VF0420)] and command line utility=0Av4lctl (f=
-rom package xawtv).
-Problem:
-When script is run from /etc/init.d (in runlevel 2) during boot, no=0Apictu=
-res are taken. I can't tell error message, because I have not yet=0Amanaged=
- to get error messages into logfile.
-If I execute v4lctl now from commandline (while my script is running=0Ain b=
-ackground), picture is taken.
-If script is restarted (using same init.d startup script that was=0Aused by=
- pc to start my python script) pictures are taken - all works.
-I set in rc2.d that script starts at the end of boot - "S99script" -=0Aso i=
-t starts after webcam drivers are loaded.
-I set delay of minute at the begining of script to allow pc to finish=0Aboo=
-t - no results.
-In dmesg there are error messages:
-"v4lctl: segm: ...... : error 4"
-Command executed: v4lctl -c /dev/video0 snap jpeg full test.jpg
-Using Linux Ubuntu 8.
-Drivers for webcam - using EasyCam=0A[https://help.ubuntu.com/community/Eas=
-yCam].
-Where can be found v4lctl return codes?
-Best regards,
-Gatis Liepins
+Magnus,
+
+thanks for the Acked-by, but, unfortunately, as the contents of the driver 
+has changed in -v8 (0x38 instead of 0x40), I cannot use this for the new 
+version. If you want, you can re-test and re-send for -v8. You might also 
+consider using Tested-by instead-of Acked-by (see 
+Documentation/SubmittingPatches) - decide for yourself whichever you 
+prefer. I'll push it now, but if you're fast enough, maybe Mauro will pick 
+up your *-by on the way to Linus.
+
+Thanks
+Guennadi
+
+On Thu, 23 Oct 2008, Magnus Damm wrote:
+
+> On Mon, Oct 20, 2008 at 7:09 PM, Kuninori Morimoto
+> <morimoto.kuninori@renesas.com> wrote:
+> > This patch adds ov772x driver that use soc_camera framework.
+> > It was tested on SH Migo-r board.
+> >
+> > Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> > ---
+> > PATCH v6 -> v7
+> 
+> This works just fine on my Migo-R board as well. Much better than my
+> old soc_camera_platform hack.
+> 
+> Acked-by: Magnus Damm <damm@igel.co.jp>
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
