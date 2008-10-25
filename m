@@ -1,16 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.170])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vansterpc@gmail.com>) id 1Km5To-0006GS-Na
-	for linux-dvb@linuxtv.org; Sat, 04 Oct 2008 13:39:25 +0200
-Received: by ug-out-1314.google.com with SMTP id 39so4554918ugf.16
-	for <linux-dvb@linuxtv.org>; Sat, 04 Oct 2008 04:39:20 -0700 (PDT)
-To: linux-dvb@linuxtv.org
-Date: Sat, 04 Oct 2008 13:39:14 +0200
-Message-Id: <1223120354.6788.5.camel@vanster-laptop>
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+58e04052c4dd4717db75+1889+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1KtaWv-00060w-8m
+	for linux-dvb@linuxtv.org; Sat, 25 Oct 2008 06:13:37 +0200
+Date: Sat, 25 Oct 2008 02:13:31 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Erik Boritsch <borych@gmx.de>
+Message-ID: <20081025021331.35651bac@pedra.chehab.org>
+In-Reply-To: <200810241441.40928.borych@gmx.de>
+References: <200810241441.40928.borych@gmx.de>
 Mime-Version: 1.0
-From: Pieter <vansterpc@gmail.com>
-Subject: [linux-dvb] Leadtek Winfast TV2000 XP Global Remote Control
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] tm6000/tm6010 progress?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,18 +26,42 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all,
+On Fri, 24 Oct 2008 14:41:40 +0200
+Erik Boritsch <borych@gmx.de> wrote:
 
-I am currently setting up a Mythbuntu system using a Winfast TV2000 XP
-Global card. Everything works great except I can't get the remote
-control working. I am making use of the cx88 driver modules and I am
-using kernel 2.6.26-5, any help will be greatly appreciated!
+> Hello,
+> 
+> I am willing to help the devel opment of tm6000/tm6010 drivers as I am a 
+> "happy" owner of Freecom Hybrid USB stick (14aa:0620 AVerMedia (again) 
+> or C&E). Last entry in tm6010mercurial is 5 month ago and I cannot 
+> compile the tm6010 tree.
 
-Thanks in advance
+I passed to a period of time were I couldn't dedicate to it. Let's see if I
+would have more time those days.
 
-Regards
-Pieter van Schaik
+> I am computer science student so I might be able to help with driver 
+> development although I have close to no experience in this area. I will 
+> sure be able to help testing drivers on my hardware.
 
+Any help is welcome.
+
+> The question is, what is the progress  and status of tm6010 
+> development? I am particulary interested in analog an remote control 
+> status. 
+
+Analog:
+
+There's a serious bug at URB decoding routines, causing kernel Panic, caused by
+one of my trials to avoid loosing parts of the URB's. I didn't have time yet to
+track where the problem is.
+
+IR: There's no IR code yet. This chip doesn't support the standard way to probe
+devices at I2C bus. The better would be to convert it to the new i2c way, where
+the driver knows what devices are at what addresses. With this change, it
+shouldn't be hard to implement IR support.
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
