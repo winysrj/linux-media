@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.189])
+Received: from mail.uni-ulm.de ([134.60.1.11])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1Klo14-0000eo-Nv
-	for linux-dvb@linuxtv.org; Fri, 03 Oct 2008 19:00:35 +0200
-Received: by nf-out-0910.google.com with SMTP id g13so723609nfb.11
-	for <linux-dvb@linuxtv.org>; Fri, 03 Oct 2008 10:00:31 -0700 (PDT)
-Date: Fri, 3 Oct 2008 19:00:03 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Simon Siemonsma <simon@siemonsma.name>
-In-Reply-To: <200810031359.02734.simon@siemonsma.name>
-Message-ID: <alpine.DEB.2.00.0810031856190.4242@ybpnyubfg.ybpnyqbznva>
-References: <200809282207.20443.simon@siemonsma.name>
-	<200810031359.02734.simon@siemonsma.name>
+	(envelope-from <julian.guertler@uni-ulm.de>) id 1KthbD-0004nm-9j
+	for linux-dvb@linuxtv.org; Sat, 25 Oct 2008 13:46:32 +0200
+Received: from [10.2.104.5] (p5B2FDA92.dip.t-dialin.net [91.47.218.146])
+	by mail.uni-ulm.de (8.14.2/8.14.2) with ESMTP id m9PBkQcN010856
+	for <linux-dvb@linuxtv.org>; Sat, 25 Oct 2008 13:46:27 +0200 (MEST)
+Message-ID: <4903070D.7050402@uni-ulm.de>
+Date: Sat, 25 Oct 2008 13:46:21 +0200
+From: =?ISO-8859-15?Q?Julian_G=FCrtler?= <julian.guertler@uni-ulm.de>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Can't record an encrypted channel and watch another
- in the same bouquet. (also teletext doesn't work for encrypted channels)
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="------------000103090407030205000904"
+Subject: [linux-dvb] Update de-Illerkirchberg
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,31 +20,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, 3 Oct 2008, Simon Siemonsma wrote:
+This is a multi-part message in MIME format.
+--------------000103090407030205000904
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> I understood:
+Hello,
+now I've found out, that the broadcast station is in Ulm.
+The correct name of the File has to be de-Ulm.
+The corrected file is in the attachment.
 
-> -teletext is encrypted in the Netherlands while it normaly shouldn't.
+Greetings
+Julian
 
-I don't think so -- I've had no problems viewing NOS-text with
-a FTA receiver -- if you could give me names of particular
-channels from which you want to view ttx, I can check at
-19E2 or 23E5 (DVB-S).
+--------------000103090407030205000904
+Content-Type: text/plain;
+ name="de-Ulm"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="de-Ulm"
 
-It could be that some subscription services do encrypt the
-teletext, as I've seen that with a few other channels.
+# DVB-T Ulm
+# created: 10/25/2008
 
+T 482000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+T 530000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+T 594000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+T 626000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+T 650000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+T 658000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+T 666000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+T 674000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+T 690000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
 
-thanks,
-barry bouwsma
+--------------000103090407030205000904
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------000103090407030205000904--
