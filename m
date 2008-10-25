@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KukEd-0004K9-Ro
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 09:47:32 +0100
-Message-ID: <4906D19B.7080800@gmail.com>
-Date: Tue, 28 Oct 2008 12:47:23 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <handygewinnspiel@gmx.de>) id 1KtkcK-00028T-1U
+	for linux-dvb@linuxtv.org; Sat, 25 Oct 2008 16:59:53 +0200
+Message-ID: <49033440.6090609@gmx.de>
+Date: Sat, 25 Oct 2008 16:59:12 +0200
+From: wk <handygewinnspiel@gmx.de>
 MIME-Version: 1.0
-To: oleg roitburd <oroitburd@gmail.com>
-References: <48F525CD.70801@gmail.com>	
-	<20081015224128.5320eaee@pedra.chehab.org>	
-	<4900CB6B.4010005@linuxtv.org>
-	<b42fca4d0810280113q6045f284v167ab234367d8a97@mail.gmail.com>
-In-Reply-To: <b42fca4d0810280113q6045f284v167ab234367d8a97@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] STB0899 update (TT S2 3200)
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
+In-Reply-To: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
+Cc: Linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [RFC] SNR units in tuners
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,14 +25,76 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-oleg roitburd wrote:
+Devin Heitmueller schrieb:
+> Hello,
+>
+> In response to Steven Toth's suggestion regarding figuring out what
+> the various units are across demodulators, I took a quick inventory
+> and came up with the following list.  Note that this is just a first
+> pass by taking a quick look at the source for each demodulator (I
+> haven't looked for the datasheets for any of them yet or done sample
+> captures to see what the reported ranges are).
+>
+> Could everybody who is responsible for a demod please take a look at
+> the list and see if you can fill in the holes?
+>
+> Having a definitive list of the current state is important to being
+> able to provide unified reporting of SNR.
+>
+> Thank you,
+>
+> Devin
+>
+> ===
+> af9013.c        dB
+> at76c651.c      unknown
+> au8522.c        0.1 dB
+> bcm3510.c       unknown (vals > 1000)
+> cx22700.c       unknown
+> cx22702.c       unknown
+> cx24110.c       ESN0
+> cx24116.c       percent scaled to 0-0xffff, support for ESN0
+> cx24123.c       Inverted ESN0
+> dib3000mb.c     unknown
+> dib3000mc.c     always zero
+> dib7000m.c      always zero
+> dib7000p.c      always zero
+> drx397xD.c      always zero
+> dvb_dummy_fe.c  always zero
+> l64781.c        unknown
+> lgdt330x.c      dB scaled to 0-0xffff
+> lgs8gl5.c       unknown
+> mt312.c         unknown
+> mt352.c         unknown
+> nxt200x.c       dB
+> nxt6000.c       unknown
+> or51132.c       dB
+> or51211.c       dB
+> s5h1409.c       0.1 dB
+> s5h1411.c       0.1 dB
+> s5h1420.c       unsupported
+> si21xx.c        unknown (scaled to 0-0xffff)
+> sp8870.c        unsupported
+> sp887x.c        unknown
+> stv0288.c       unknown
+> stv0297.c       unknown
+> stv0299.c       unknown
+> tda10021.c      unknown
+> tda10023.c      unknown
+> tda10048.c      unknown (looks like 0.1dB)
+> tda1004x.c      unknown
+> tda10086.c      unknown
+> tda8083.c       unknown
+> tda80xx.c       unknown
+> ves1820.c       unknown
+> ves1x93.c       unknown
+> zl10353.c       unknown
+>
+>
+>   
+What about cinergyT2? Seems to be missing in list.
 
-> I have tried driver from v4l-dvb tree ( http://linuxtv.org/hg/v4l-dvb/
-> , changeset 9471	8486cbf6af4e)
-> Driver is not working. Thank you Manu. I hope you have this card and
-> tried your driver before you make PULL request.
-
-People have reported success. Care to state what doesn't work ?
+Regards, Winfried
 
 _______________________________________________
 linux-dvb mailing list
