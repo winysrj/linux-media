@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9GLPR50019211
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 17:25:27 -0400
-Received: from mx1.wp.pl (mx1.wp.pl [212.77.101.5])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m9GLPCi2027359
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 17:25:13 -0400
-Received: from poczta-15.free.wp-sa.pl (HELO localhost) ([10.1.1.43])
-	(envelope-sender <jurskij@wp.pl>) by smtp.wp.pl (WP-SMTPD) with SMTP
-	for <video4linux-list@redhat.com>; 16 Oct 2008 23:25:03 +0200
-Date: Thu, 16 Oct 2008 23:25:02 +0200
-From: "Janusz Jurski" <jurskij@wp.pl>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9PCWghC009410
+	for <video4linux-list@redhat.com>; Sat, 25 Oct 2008 08:32:42 -0400
+Received: from lilzmailso02.liwest.at (lilzmailso02.liwest.at [212.33.55.13])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9PCVxpv022538
+	for <video4linux-list@redhat.com>; Sat, 25 Oct 2008 08:32:23 -0400
+Received: from cpe90-146-116-125.liwest.at ([90.146.116.125]
+	helo=[192.168.0.2])
+	by lilzmailso02.liwest.at with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69) (envelope-from <mario.frauscher@liwest.at>)
+	id 1KtkBB-0004lr-FY
+	for video4linux-list@redhat.com; Sat, 25 Oct 2008 16:31:50 +0200
 To: video4linux-list@redhat.com
-Message-ID: <48f7b12e150698.01964229@wp.pl>
+From: Mario Frauscher <mario.frauscher@liwest.at>
+Date: Sat, 25 Oct 2008 14:32:04 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
-Content-Disposition: inline
-Subject: Problem with gspca driver
-Reply-To: jj@ds.pg.gda.pl
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_EHxAJglqthttpRx"
+Message-Id: <200810251432.04907.mario.frauscher@liwest.at>
+Subject: Problem with cx88-alsa?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,74 +30,7686 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I have a problem with gspca driver for my USB camera. My kernel is 
-2.6.18. I followed the instructions at 
-http://moinejf.free.fr/gspca_README.txt to build and install the driver 
-and v4l library. When I plug in my camera the sonixj module gets loaded 
-to support it (0c45:612a Microdia) and the /dev/video0 device appears - 
-no errors or suspicious messages in kernel log returned by dmesg:
+Hello !
 
-usb 1-1: new full speed USB device using uhci_hcd and address 2
-usb 1-1: configuration #1 chosen from 1 choice
+It's my first mail to this list and i'm from Austria, my english is not the 
+best. So please be gentle.
+
+I own a "Terratec Cinergy HT PCI MK2" tv-card and it was very hard, but now i 
+can watch analog-tv.I used 2.6.24-r8 gentoo-x86_64-kernel with 
+v4l-experimental and a patch 
+(http://www.linuxtv.org/pipermail/linux-dvb/2007-October/021378.html).
+The patch is old and i reconfigured it.2.6.25 kernels and newer doesnt 
+work.When i try the same procedure with this kernels, i get an i2c-error and 
+the firmware dont load.
+
+But back to my problem.I can watch tv and tune channels but without audio.I 
+only get a loud noise at every channel. I try to get audio over cx88-alsa, 
+because this card doesnt have a analog output. I grep audio with: "arecord -D 
+hw:1 -c 2 -r 48000 -f S16_LE -t wav | aplay -" and watch tv with 
+xaw-tv.Mplayer also works: "mplayer tv:// -tv 
+driver=v4l2:alsa:adevice=hw.1:amode=1:audiorate=48000:volume=100:immediatemode=0:norm=PAL-BG:mjpeg" 
+When i switch the channels in xaw-tv, the noise interupts and come back at 
+next channel.When i close xaw-tv, the noise get out.So i mean it is the sound 
+of the tv-card.But only a Loud noise?
+
+I have made some logs to attach.
+
+Maybe somewone can help me, i try it now for some months without any success.
+
+Thanks,
+Mario Frauscher
+
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/x-log;
+  charset="us-ascii";
+  name="aplay_-l.log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="aplay_-l.log"
+
+**** List of PLAYBACK Hardware Devices ****
+card 0: NVidia [HDA NVidia], device 0: ALC883 Analog [ALC883 Analog]
+  Subdevices: 0/1
+  Subdevice #0: subdevice #0
+card 0: NVidia [HDA NVidia], device 1: ALC883 Digital [ALC883 Digital]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 2: Dummy [Dummy], device 0: Dummy PCM [Dummy PCM]
+  Subdevices: 8/8
+  Subdevice #0: subdevice #0
+  Subdevice #1: subdevice #1
+  Subdevice #2: subdevice #2
+  Subdevice #3: subdevice #3
+  Subdevice #4: subdevice #4
+  Subdevice #5: subdevice #5
+  Subdevice #6: subdevice #6
+  Subdevice #7: subdevice #7
+
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/x-log;
+  charset="us-ascii";
+  name="aplay_-L.log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="aplay_-L.log"
+
+default:CARD=NVidia
+    HDA NVidia, ALC883 Analog
+    Default Audio Device
+front:CARD=NVidia,DEV=0
+    HDA NVidia, ALC883 Analog
+    Front speakers
+surround40:CARD=NVidia,DEV=0
+    HDA NVidia, ALC883 Analog
+    4.0 Surround output to Front and Rear speakers
+surround41:CARD=NVidia,DEV=0
+    HDA NVidia, ALC883 Analog
+    4.1 Surround output to Front, Rear and Subwoofer speakers
+surround50:CARD=NVidia,DEV=0
+    HDA NVidia, ALC883 Analog
+    5.0 Surround output to Front, Center and Rear speakers
+surround51:CARD=NVidia,DEV=0
+    HDA NVidia, ALC883 Analog
+    5.1 Surround output to Front, Center, Rear and Subwoofer speakers
+surround71:CARD=NVidia,DEV=0
+    HDA NVidia, ALC883 Analog
+    7.1 Surround output to Front, Center, Side, Rear and Woofer speakers
+iec958:CARD=NVidia,DEV=0
+    HDA NVidia, ALC883 Digital
+    IEC958 (S/PDIF) Digital Audio Output
+null
+    Discard all samples (playback) or generate zero samples (capture)
+default:CARD=CX8801
+    Conexant CX8801, CX88 Digital
+    Default Audio Device
+default:CARD=Dummy
+    Dummy, Dummy PCM
+    Default Audio Device
+
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/x-log;
+  charset="us-ascii";
+  name="arecord_-l.log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="arecord_-l.log"
+
+**** List of CAPTURE Hardware Devices ****
+card 0: NVidia [HDA NVidia], device 0: ALC883 Analog [ALC883 Analog]
+  Subdevices: 2/2
+  Subdevice #0: subdevice #0
+  Subdevice #1: subdevice #1
+card 0: NVidia [HDA NVidia], device 1: ALC883 Digital [ALC883 Digital]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 0: NVidia [HDA NVidia], device 2: ALC883 Analog [ALC883 Analog]
+  Subdevices: 2/2
+  Subdevice #0: subdevice #0
+  Subdevice #1: subdevice #1
+card 1: CX8801 [Conexant CX8801], device 0: CX88 Digital [CX88 Digital]
+  Subdevices: 1/1
+  Subdevice #0: subdevice #0
+card 2: Dummy [Dummy], device 0: Dummy PCM [Dummy PCM]
+  Subdevices: 8/8
+  Subdevice #0: subdevice #0
+  Subdevice #1: subdevice #1
+  Subdevice #2: subdevice #2
+  Subdevice #3: subdevice #3
+  Subdevice #4: subdevice #4
+  Subdevice #5: subdevice #5
+  Subdevice #6: subdevice #6
+  Subdevice #7: subdevice #7
+
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/plain; charset="us-ascii"; name="config-2.6.24-gentoo-r8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="config-2.6.24-gentoo-r8"
+
+#
+# Automatically generated make config: don't edit
+# Linux kernel version: 2.6.24-gentoo-r8
+# Tue Oct 14 20:55:47 2008
+#
+CONFIG_64BIT=y
+# CONFIG_X86_32 is not set
+CONFIG_X86_64=y
+CONFIG_X86=y
+CONFIG_GENERIC_TIME=y
+CONFIG_GENERIC_CMOS_UPDATE=y
+CONFIG_CLOCKSOURCE_WATCHDOG=y
+CONFIG_GENERIC_CLOCKEVENTS=y
+CONFIG_GENERIC_CLOCKEVENTS_BROADCAST=y
+CONFIG_LOCKDEP_SUPPORT=y
+CONFIG_STACKTRACE_SUPPORT=y
+CONFIG_SEMAPHORE_SLEEPERS=y
+CONFIG_MMU=y
+CONFIG_ZONE_DMA=y
+# CONFIG_QUICKLIST is not set
+CONFIG_GENERIC_ISA_DMA=y
+CONFIG_GENERIC_IOMAP=y
+CONFIG_GENERIC_BUG=y
+CONFIG_GENERIC_HWEIGHT=y
+CONFIG_ARCH_MAY_HAVE_PC_FDC=y
+CONFIG_DMI=y
+CONFIG_RWSEM_GENERIC_SPINLOCK=y
+# CONFIG_RWSEM_XCHGADD_ALGORITHM is not set
+# CONFIG_ARCH_HAS_ILOG2_U32 is not set
+# CONFIG_ARCH_HAS_ILOG2_U64 is not set
+CONFIG_GENERIC_CALIBRATE_DELAY=y
+CONFIG_GENERIC_TIME_VSYSCALL=y
+CONFIG_ARCH_SUPPORTS_OPROFILE=y
+CONFIG_DEFCONFIG_LIST="arch/x86/configs/x86_64_defconfig"
+CONFIG_ZONE_DMA32=y
+CONFIG_ARCH_POPULATES_NODE_MAP=y
+CONFIG_AUDIT_ARCH=y
+CONFIG_GENERIC_HARDIRQS=y
+CONFIG_GENERIC_IRQ_PROBE=y
+CONFIG_GENERIC_PENDING_IRQ=y
+# CONFIG_KTIME_SCALAR is not set
+
+#
+# General setup
+#
+CONFIG_EXPERIMENTAL=y
+CONFIG_LOCK_KERNEL=y
+CONFIG_INIT_ENV_ARG_LIMIT=32
+CONFIG_LOCALVERSION=""
+CONFIG_LOCALVERSION_AUTO=y
+CONFIG_SWAP=y
+CONFIG_SYSVIPC=y
+CONFIG_SYSVIPC_SYSCTL=y
+CONFIG_POSIX_MQUEUE=y
+CONFIG_BSD_PROCESS_ACCT=y
+CONFIG_BSD_PROCESS_ACCT_V3=y
+# CONFIG_TASKSTATS is not set
+# CONFIG_USER_NS is not set
+# CONFIG_PID_NS is not set
+# CONFIG_AUDIT is not set
+CONFIG_IKCONFIG=y
+CONFIG_IKCONFIG_PROC=y
+CONFIG_LOG_BUF_SHIFT=15
+# CONFIG_CGROUPS is not set
+CONFIG_FAIR_GROUP_SCHED=y
+CONFIG_FAIR_USER_SCHED=y
+# CONFIG_FAIR_CGROUP_SCHED is not set
+CONFIG_SYSFS_DEPRECATED=y
+CONFIG_RELAY=y
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_INITRAMFS_SOURCE=""
+# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+CONFIG_SYSCTL=y
+# CONFIG_EMBEDDED is not set
+CONFIG_UID16=y
+CONFIG_SYSCTL_SYSCALL=y
+CONFIG_KALLSYMS=y
+# CONFIG_KALLSYMS_EXTRA_PASS is not set
+CONFIG_HOTPLUG=y
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_ELF_CORE=y
+CONFIG_BASE_FULL=y
+CONFIG_FUTEX=y
+CONFIG_ANON_INODES=y
+CONFIG_EPOLL=y
+CONFIG_SIGNALFD=y
+CONFIG_EVENTFD=y
+CONFIG_SHMEM=y
+CONFIG_VM_EVENT_COUNTERS=y
+CONFIG_SLAB=y
+# CONFIG_SLUB is not set
+# CONFIG_SLOB is not set
+CONFIG_SLABINFO=y
+CONFIG_RT_MUTEXES=y
+# CONFIG_TINY_SHMEM is not set
+CONFIG_BASE_SMALL=0
+CONFIG_MODULES=y
+CONFIG_MODULE_UNLOAD=y
+CONFIG_MODULE_FORCE_UNLOAD=y
+# CONFIG_MODVERSIONS is not set
+# CONFIG_MODULE_SRCVERSION_ALL is not set
+CONFIG_KMOD=y
+CONFIG_STOP_MACHINE=y
+CONFIG_BLOCK=y
+# CONFIG_BLK_DEV_IO_TRACE is not set
+# CONFIG_BLK_DEV_BSG is not set
+CONFIG_BLOCK_COMPAT=y
+
+#
+# IO Schedulers
+#
+CONFIG_IOSCHED_NOOP=y
+# CONFIG_IOSCHED_AS is not set
+CONFIG_IOSCHED_DEADLINE=y
+CONFIG_IOSCHED_CFQ=y
+# CONFIG_DEFAULT_AS is not set
+# CONFIG_DEFAULT_DEADLINE is not set
+CONFIG_DEFAULT_CFQ=y
+# CONFIG_DEFAULT_NOOP is not set
+CONFIG_DEFAULT_IOSCHED="cfq"
+CONFIG_PREEMPT_NOTIFIERS=y
+
+#
+# Processor type and features
+#
+# CONFIG_TICK_ONESHOT is not set
+# CONFIG_NO_HZ is not set
+# CONFIG_HIGH_RES_TIMERS is not set
+CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
+CONFIG_SMP=y
+CONFIG_X86_PC=y
+# CONFIG_X86_ELAN is not set
+# CONFIG_X86_VOYAGER is not set
+# CONFIG_X86_NUMAQ is not set
+# CONFIG_X86_SUMMIT is not set
+# CONFIG_X86_BIGSMP is not set
+# CONFIG_X86_VISWS is not set
+# CONFIG_X86_GENERICARCH is not set
+# CONFIG_X86_ES7000 is not set
+# CONFIG_X86_VSMP is not set
+# CONFIG_M386 is not set
+# CONFIG_M486 is not set
+# CONFIG_M586 is not set
+# CONFIG_M586TSC is not set
+# CONFIG_M586MMX is not set
+# CONFIG_M686 is not set
+# CONFIG_MPENTIUMII is not set
+# CONFIG_MPENTIUMIII is not set
+# CONFIG_MPENTIUMM is not set
+# CONFIG_MPENTIUM4 is not set
+# CONFIG_MK6 is not set
+# CONFIG_MK7 is not set
+CONFIG_MK8=y
+# CONFIG_MCRUSOE is not set
+# CONFIG_MEFFICEON is not set
+# CONFIG_MWINCHIPC6 is not set
+# CONFIG_MWINCHIP2 is not set
+# CONFIG_MWINCHIP3D is not set
+# CONFIG_MGEODEGX1 is not set
+# CONFIG_MGEODE_LX is not set
+# CONFIG_MCYRIXIII is not set
+# CONFIG_MVIAC3_2 is not set
+# CONFIG_MVIAC7 is not set
+# CONFIG_MPSC is not set
+# CONFIG_MCORE2 is not set
+# CONFIG_GENERIC_CPU is not set
+CONFIG_X86_L1_CACHE_BYTES=64
+CONFIG_X86_INTERNODE_CACHE_BYTES=64
+CONFIG_X86_CMPXCHG=y
+CONFIG_X86_L1_CACHE_SHIFT=6
+CONFIG_X86_GOOD_APIC=y
+CONFIG_X86_INTEL_USERCOPY=y
+CONFIG_X86_USE_PPRO_CHECKSUM=y
+CONFIG_X86_TSC=y
+CONFIG_X86_MINIMUM_CPU_FAMILY=64
+CONFIG_HPET_TIMER=y
+CONFIG_GART_IOMMU=y
+# CONFIG_CALGARY_IOMMU is not set
+CONFIG_SWIOTLB=y
+CONFIG_NR_CPUS=8
+# CONFIG_SCHED_SMT is not set
+CONFIG_SCHED_MC=y
+# CONFIG_PREEMPT_NONE is not set
+# CONFIG_PREEMPT_VOLUNTARY is not set
+CONFIG_PREEMPT=y
+CONFIG_PREEMPT_BKL=y
+CONFIG_X86_LOCAL_APIC=y
+CONFIG_X86_IO_APIC=y
+CONFIG_X86_MCE=y
+# CONFIG_X86_MCE_INTEL is not set
+CONFIG_X86_MCE_AMD=y
+# CONFIG_MICROCODE is not set
+CONFIG_X86_MSR=y
+CONFIG_X86_CPUID=y
+CONFIG_NUMA=y
+CONFIG_K8_NUMA=y
+CONFIG_X86_64_ACPI_NUMA=y
+# CONFIG_NUMA_EMU is not set
+CONFIG_NODES_SHIFT=6
+CONFIG_ARCH_DISCONTIGMEM_ENABLE=y
+CONFIG_ARCH_DISCONTIGMEM_DEFAULT=y
+CONFIG_ARCH_SPARSEMEM_ENABLE=y
+CONFIG_SELECT_MEMORY_MODEL=y
+# CONFIG_FLATMEM_MANUAL is not set
+# CONFIG_DISCONTIGMEM_MANUAL is not set
+CONFIG_SPARSEMEM_MANUAL=y
+CONFIG_SPARSEMEM=y
+CONFIG_NEED_MULTIPLE_NODES=y
+CONFIG_HAVE_MEMORY_PRESENT=y
+# CONFIG_SPARSEMEM_STATIC is not set
+CONFIG_SPARSEMEM_EXTREME=y
+CONFIG_SPARSEMEM_VMEMMAP_ENABLE=y
+CONFIG_SPARSEMEM_VMEMMAP=y
+# CONFIG_MEMORY_HOTPLUG is not set
+CONFIG_SPLIT_PTLOCK_CPUS=4
+CONFIG_MIGRATION=y
+CONFIG_RESOURCES_64BIT=y
+CONFIG_ZONE_DMA_FLAG=1
+CONFIG_BOUNCE=y
+CONFIG_VIRT_TO_BUS=y
+CONFIG_MTRR=y
+CONFIG_SECCOMP=y
+# CONFIG_CC_STACKPROTECTOR is not set
+# CONFIG_HZ_100 is not set
+# CONFIG_HZ_250 is not set
+# CONFIG_HZ_300 is not set
+CONFIG_HZ_1000=y
+CONFIG_HZ=1000
+# CONFIG_KEXEC is not set
+# CONFIG_CRASH_DUMP is not set
+CONFIG_PHYSICAL_START=0x200000
+# CONFIG_RELOCATABLE is not set
+CONFIG_PHYSICAL_ALIGN=0x200000
+CONFIG_HOTPLUG_CPU=y
+CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
+CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID=y
+
+#
+# Power management options
+#
+CONFIG_PM=y
+# CONFIG_PM_LEGACY is not set
+# CONFIG_PM_DEBUG is not set
+CONFIG_PM_SLEEP_SMP=y
+CONFIG_PM_SLEEP=y
+CONFIG_SUSPEND_SMP_POSSIBLE=y
+CONFIG_SUSPEND=y
+CONFIG_HIBERNATION_SMP_POSSIBLE=y
+# CONFIG_HIBERNATION is not set
+CONFIG_ACPI=y
+CONFIG_ACPI_SLEEP=y
+# CONFIG_ACPI_PROCFS is not set
+CONFIG_ACPI_PROCFS_POWER=y
+CONFIG_ACPI_SYSFS_POWER=y
+CONFIG_ACPI_PROC_EVENT=y
+# CONFIG_ACPI_AC is not set
+# CONFIG_ACPI_BATTERY is not set
+CONFIG_ACPI_BUTTON=y
+CONFIG_ACPI_FAN=y
+CONFIG_ACPI_DOCK=y
+# CONFIG_ACPI_BAY is not set
+CONFIG_ACPI_PROCESSOR=y
+CONFIG_ACPI_HOTPLUG_CPU=y
+CONFIG_ACPI_THERMAL=y
+CONFIG_ACPI_NUMA=y
+# CONFIG_ACPI_ASUS is not set
+# CONFIG_ACPI_TOSHIBA is not set
+CONFIG_ACPI_BLACKLIST_YEAR=0
+# CONFIG_ACPI_DEBUG is not set
+CONFIG_ACPI_EC=y
+CONFIG_ACPI_POWER=y
+CONFIG_ACPI_SYSTEM=y
+CONFIG_X86_PM_TIMER=y
+CONFIG_ACPI_CONTAINER=y
+# CONFIG_ACPI_SBS is not set
+
+#
+# CPU Frequency scaling
+#
+CONFIG_CPU_FREQ=y
+CONFIG_CPU_FREQ_TABLE=y
+# CONFIG_CPU_FREQ_DEBUG is not set
+CONFIG_CPU_FREQ_STAT=y
+# CONFIG_CPU_FREQ_STAT_DETAILS is not set
+CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
+# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE is not set
+CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
+CONFIG_CPU_FREQ_GOV_POWERSAVE=y
+CONFIG_CPU_FREQ_GOV_USERSPACE=y
+CONFIG_CPU_FREQ_GOV_ONDEMAND=y
+CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
+
+#
+# CPUFreq processor drivers
+#
+CONFIG_X86_ACPI_CPUFREQ=y
+CONFIG_X86_POWERNOW_K8=y
+CONFIG_X86_POWERNOW_K8_ACPI=y
+# CONFIG_X86_SPEEDSTEP_CENTRINO is not set
+# CONFIG_X86_P4_CLOCKMOD is not set
+
+#
+# shared options
+#
+# CONFIG_X86_ACPI_CPUFREQ_PROC_INTF is not set
+# CONFIG_X86_SPEEDSTEP_LIB is not set
+# CONFIG_CPU_IDLE is not set
+
+#
+# Bus options (PCI etc.)
+#
+CONFIG_PCI=y
+CONFIG_PCI_DIRECT=y
+CONFIG_PCI_MMCONFIG=y
+CONFIG_PCI_DOMAINS=y
+# CONFIG_DMAR is not set
+CONFIG_PCIEPORTBUS=y
+# CONFIG_PCIEAER is not set
+CONFIG_ARCH_SUPPORTS_MSI=y
+CONFIG_PCI_MSI=y
+CONFIG_PCI_LEGACY=y
+CONFIG_HT_IRQ=y
+CONFIG_ISA_DMA_API=y
+CONFIG_K8_NB=y
+# CONFIG_PCCARD is not set
+# CONFIG_HOTPLUG_PCI is not set
+
+#
+# Executable file formats / Emulations
+#
+CONFIG_BINFMT_ELF=y
+CONFIG_BINFMT_MISC=y
+CONFIG_IA32_EMULATION=y
+CONFIG_IA32_AOUT=y
+CONFIG_COMPAT=y
+CONFIG_COMPAT_FOR_U64_ALIGNMENT=y
+CONFIG_SYSVIPC_COMPAT=y
+
+#
+# Networking
+#
+CONFIG_NET=y
+
+#
+# Networking options
+#
+CONFIG_PACKET=y
+CONFIG_PACKET_MMAP=y
+CONFIG_UNIX=y
+# CONFIG_NET_KEY is not set
+CONFIG_INET=y
+CONFIG_IP_MULTICAST=y
+# CONFIG_IP_ADVANCED_ROUTER is not set
+CONFIG_IP_FIB_HASH=y
+# CONFIG_IP_PNP is not set
+CONFIG_NET_IPIP=y
+# CONFIG_NET_IPGRE is not set
+# CONFIG_IP_MROUTE is not set
+# CONFIG_ARPD is not set
+# CONFIG_SYN_COOKIES is not set
+# CONFIG_INET_AH is not set
+# CONFIG_INET_ESP is not set
+# CONFIG_INET_IPCOMP is not set
+# CONFIG_INET_XFRM_TUNNEL is not set
+CONFIG_INET_TUNNEL=y
+# CONFIG_INET_XFRM_MODE_TRANSPORT is not set
+# CONFIG_INET_XFRM_MODE_TUNNEL is not set
+# CONFIG_INET_XFRM_MODE_BEET is not set
+# CONFIG_INET_LRO is not set
+CONFIG_INET_DIAG=y
+CONFIG_INET_TCP_DIAG=y
+# CONFIG_TCP_CONG_ADVANCED is not set
+CONFIG_TCP_CONG_CUBIC=y
+CONFIG_DEFAULT_TCP_CONG="cubic"
+# CONFIG_TCP_MD5SIG is not set
+# CONFIG_IP_VS is not set
+CONFIG_IPV6=y
+# CONFIG_IPV6_PRIVACY is not set
+# CONFIG_IPV6_ROUTER_PREF is not set
+# CONFIG_IPV6_OPTIMISTIC_DAD is not set
+# CONFIG_INET6_AH is not set
+# CONFIG_INET6_ESP is not set
+# CONFIG_INET6_IPCOMP is not set
+# CONFIG_IPV6_MIP6 is not set
+# CONFIG_INET6_XFRM_TUNNEL is not set
+CONFIG_INET6_TUNNEL=y
+# CONFIG_INET6_XFRM_MODE_TRANSPORT is not set
+# CONFIG_INET6_XFRM_MODE_TUNNEL is not set
+# CONFIG_INET6_XFRM_MODE_BEET is not set
+# CONFIG_INET6_XFRM_MODE_ROUTEOPTIMIZATION is not set
+CONFIG_IPV6_SIT=y
+CONFIG_IPV6_TUNNEL=y
+# CONFIG_IPV6_MULTIPLE_TABLES is not set
+# CONFIG_NETWORK_SECMARK is not set
+CONFIG_NETFILTER=y
+# CONFIG_NETFILTER_DEBUG is not set
+
+#
+# Core Netfilter Configuration
+#
+CONFIG_NETFILTER_NETLINK=y
+CONFIG_NETFILTER_NETLINK_QUEUE=y
+CONFIG_NETFILTER_NETLINK_LOG=y
+# CONFIG_NF_CONNTRACK_ENABLED is not set
+# CONFIG_NF_CONNTRACK is not set
+CONFIG_NETFILTER_XTABLES=y
+CONFIG_NETFILTER_XT_TARGET_CLASSIFY=y
+# CONFIG_NETFILTER_XT_TARGET_DSCP is not set
+CONFIG_NETFILTER_XT_TARGET_MARK=y
+CONFIG_NETFILTER_XT_TARGET_NFQUEUE=y
+CONFIG_NETFILTER_XT_TARGET_NFLOG=y
+# CONFIG_NETFILTER_XT_TARGET_TRACE is not set
+CONFIG_NETFILTER_XT_TARGET_TCPMSS=y
+CONFIG_NETFILTER_XT_MATCH_COMMENT=y
+CONFIG_NETFILTER_XT_MATCH_DCCP=y
+CONFIG_NETFILTER_XT_MATCH_DSCP=y
+CONFIG_NETFILTER_XT_MATCH_ESP=y
+CONFIG_NETFILTER_XT_MATCH_LENGTH=y
+CONFIG_NETFILTER_XT_MATCH_LIMIT=y
+CONFIG_NETFILTER_XT_MATCH_MAC=y
+CONFIG_NETFILTER_XT_MATCH_MARK=y
+CONFIG_NETFILTER_XT_MATCH_MULTIPORT=y
+CONFIG_NETFILTER_XT_MATCH_PKTTYPE=y
+CONFIG_NETFILTER_XT_MATCH_QUOTA=y
+CONFIG_NETFILTER_XT_MATCH_REALM=y
+CONFIG_NETFILTER_XT_MATCH_SCTP=y
+CONFIG_NETFILTER_XT_MATCH_STATISTIC=y
+CONFIG_NETFILTER_XT_MATCH_STRING=y
+CONFIG_NETFILTER_XT_MATCH_TCPMSS=y
+# CONFIG_NETFILTER_XT_MATCH_TIME is not set
+# CONFIG_NETFILTER_XT_MATCH_U32 is not set
+CONFIG_NETFILTER_XT_MATCH_HASHLIMIT=y
+
+#
+# IP: Netfilter Configuration
+#
+CONFIG_IP_NF_QUEUE=y
+CONFIG_IP_NF_IPTABLES=y
+# CONFIG_IP_NF_MATCH_IPRANGE is not set
+# CONFIG_IP_NF_MATCH_TOS is not set
+CONFIG_IP_NF_MATCH_RECENT=y
+CONFIG_IP_NF_MATCH_ECN=y
+CONFIG_IP_NF_MATCH_AH=y
+CONFIG_IP_NF_MATCH_TTL=y
+# CONFIG_IP_NF_MATCH_OWNER is not set
+CONFIG_IP_NF_MATCH_ADDRTYPE=y
+CONFIG_IP_NF_FILTER=y
+CONFIG_IP_NF_TARGET_REJECT=y
+CONFIG_IP_NF_TARGET_LOG=y
+CONFIG_IP_NF_TARGET_ULOG=y
+CONFIG_IP_NF_MANGLE=y
+# CONFIG_IP_NF_TARGET_TOS is not set
+CONFIG_IP_NF_TARGET_ECN=y
+CONFIG_IP_NF_TARGET_TTL=y
+CONFIG_IP_NF_RAW=y
+CONFIG_IP_NF_ARPTABLES=y
+CONFIG_IP_NF_ARPFILTER=y
+CONFIG_IP_NF_ARP_MANGLE=y
+
+#
+# IPv6: Netfilter Configuration (EXPERIMENTAL)
+#
+CONFIG_IP6_NF_QUEUE=y
+CONFIG_IP6_NF_IPTABLES=y
+CONFIG_IP6_NF_MATCH_RT=y
+CONFIG_IP6_NF_MATCH_OPTS=y
+CONFIG_IP6_NF_MATCH_FRAG=y
+CONFIG_IP6_NF_MATCH_HL=y
+# CONFIG_IP6_NF_MATCH_OWNER is not set
+CONFIG_IP6_NF_MATCH_IPV6HEADER=y
+CONFIG_IP6_NF_MATCH_AH=y
+CONFIG_IP6_NF_MATCH_MH=y
+CONFIG_IP6_NF_MATCH_EUI64=y
+CONFIG_IP6_NF_FILTER=y
+CONFIG_IP6_NF_TARGET_LOG=y
+CONFIG_IP6_NF_TARGET_REJECT=y
+CONFIG_IP6_NF_MANGLE=y
+CONFIG_IP6_NF_TARGET_HL=y
+CONFIG_IP6_NF_RAW=y
+# CONFIG_IP_DCCP is not set
+# CONFIG_IP_SCTP is not set
+# CONFIG_TIPC is not set
+# CONFIG_ATM is not set
+# CONFIG_BRIDGE is not set
+# CONFIG_VLAN_8021Q is not set
+# CONFIG_DECNET is not set
+CONFIG_LLC=y
+# CONFIG_LLC2 is not set
+CONFIG_IPX=y
+CONFIG_IPX_INTERN=y
+# CONFIG_ATALK is not set
+# CONFIG_X25 is not set
+# CONFIG_LAPB is not set
+# CONFIG_ECONET is not set
+# CONFIG_WAN_ROUTER is not set
+# CONFIG_NET_SCHED is not set
+CONFIG_NET_CLS_ROUTE=y
+
+#
+# Network testing
+#
+# CONFIG_NET_PKTGEN is not set
+# CONFIG_HAMRADIO is not set
+CONFIG_IRDA=y
+
+#
+# IrDA protocols
+#
+CONFIG_IRLAN=y
+# CONFIG_IRNET is not set
+CONFIG_IRCOMM=y
+CONFIG_IRDA_ULTRA=y
+
+#
+# IrDA options
+#
+CONFIG_IRDA_CACHE_LAST_LSAP=y
+CONFIG_IRDA_FAST_RR=y
+# CONFIG_IRDA_DEBUG is not set
+
+#
+# Infrared-port device drivers
+#
+
+#
+# SIR device drivers
+#
+CONFIG_IRTTY_SIR=y
+
+#
+# Dongle support
+#
+CONFIG_DONGLE=y
+# CONFIG_ESI_DONGLE is not set
+# CONFIG_ACTISYS_DONGLE is not set
+# CONFIG_TEKRAM_DONGLE is not set
+# CONFIG_TOIM3232_DONGLE is not set
+# CONFIG_LITELINK_DONGLE is not set
+# CONFIG_MA600_DONGLE is not set
+# CONFIG_GIRBIL_DONGLE is not set
+# CONFIG_MCP2120_DONGLE is not set
+# CONFIG_OLD_BELKIN_DONGLE is not set
+# CONFIG_ACT200L_DONGLE is not set
+# CONFIG_KINGSUN_DONGLE is not set
+# CONFIG_KSDAZZLE_DONGLE is not set
+# CONFIG_KS959_DONGLE is not set
+
+#
+# Old SIR device drivers
+#
+
+#
+# Old Serial dongle support
+#
+
+#
+# FIR device drivers
+#
+CONFIG_USB_IRDA=y
+CONFIG_SIGMATEL_FIR=y
+# CONFIG_NSC_FIR is not set
+# CONFIG_WINBOND_FIR is not set
+# CONFIG_SMC_IRCC_FIR is not set
+# CONFIG_ALI_FIR is not set
+# CONFIG_VLSI_FIR is not set
+# CONFIG_VIA_FIR is not set
+# CONFIG_MCS_FIR is not set
+CONFIG_BT=y
+CONFIG_BT_L2CAP=y
+CONFIG_BT_SCO=y
+CONFIG_BT_RFCOMM=y
+CONFIG_BT_RFCOMM_TTY=y
+CONFIG_BT_BNEP=y
+CONFIG_BT_BNEP_MC_FILTER=y
+CONFIG_BT_BNEP_PROTO_FILTER=y
+CONFIG_BT_HIDP=y
+
+#
+# Bluetooth device drivers
+#
+CONFIG_BT_HCIUSB=y
+CONFIG_BT_HCIUSB_SCO=y
+# CONFIG_BT_HCIBTSDIO is not set
+CONFIG_BT_HCIUART=y
+CONFIG_BT_HCIUART_H4=y
+CONFIG_BT_HCIUART_BCSP=y
+# CONFIG_BT_HCIUART_LL is not set
+# CONFIG_BT_HCIBCM203X is not set
+# CONFIG_BT_HCIBPA10X is not set
+# CONFIG_BT_HCIBFUSB is not set
+# CONFIG_BT_HCIVHCI is not set
+# CONFIG_AF_RXRPC is not set
+
+#
+# Wireless
+#
+# CONFIG_CFG80211 is not set
+# CONFIG_WIRELESS_EXT is not set
+# CONFIG_MAC80211 is not set
+# CONFIG_IEEE80211 is not set
+# CONFIG_RFKILL is not set
+# CONFIG_NET_9P is not set
+
+#
+# Device Drivers
+#
+
+#
+# Generic Driver Options
+#
+CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
+CONFIG_STANDALONE=y
+CONFIG_PREVENT_FIRMWARE_BUILD=y
+CONFIG_FW_LOADER=y
+# CONFIG_SYS_HYPERVISOR is not set
+CONFIG_CONNECTOR=y
+CONFIG_PROC_EVENTS=y
+# CONFIG_MTD is not set
+CONFIG_PARPORT=y
+CONFIG_PARPORT_PC=y
+CONFIG_PARPORT_SERIAL=y
+CONFIG_PARPORT_PC_FIFO=y
+CONFIG_PARPORT_PC_SUPERIO=y
+# CONFIG_PARPORT_GSC is not set
+# CONFIG_PARPORT_AX88796 is not set
+CONFIG_PARPORT_1284=y
+CONFIG_PNP=y
+# CONFIG_PNP_DEBUG is not set
+
+#
+# Protocols
+#
+CONFIG_PNPACPI=y
+CONFIG_BLK_DEV=y
+CONFIG_BLK_DEV_FD=y
+# CONFIG_PARIDE is not set
+# CONFIG_BLK_CPQ_DA is not set
+# CONFIG_BLK_CPQ_CISS_DA is not set
+# CONFIG_BLK_DEV_DAC960 is not set
+# CONFIG_BLK_DEV_UMEM is not set
+# CONFIG_BLK_DEV_COW_COMMON is not set
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_BLK_DEV_CRYPTOLOOP=y
+# CONFIG_BLK_DEV_NBD is not set
+# CONFIG_BLK_DEV_SX8 is not set
+# CONFIG_BLK_DEV_UB is not set
+CONFIG_BLK_DEV_RAM=y
+CONFIG_BLK_DEV_RAM_COUNT=16
+CONFIG_BLK_DEV_RAM_SIZE=4096
+CONFIG_BLK_DEV_RAM_BLOCKSIZE=1024
+CONFIG_CDROM_PKTCDVD=y
+CONFIG_CDROM_PKTCDVD_BUFFERS=8
+CONFIG_CDROM_PKTCDVD_WCACHE=y
+# CONFIG_ATA_OVER_ETH is not set
+CONFIG_MISC_DEVICES=y
+# CONFIG_IBM_ASM is not set
+# CONFIG_PHANTOM is not set
+# CONFIG_EEPROM_93CX6 is not set
+# CONFIG_SGI_IOC4 is not set
+CONFIG_TIFM_CORE=y
+CONFIG_TIFM_7XX1=y
+# CONFIG_SONY_LAPTOP is not set
+# CONFIG_THINKPAD_ACPI is not set
+CONFIG_IDE=y
+CONFIG_BLK_DEV_IDE=y
+
+#
+# Please see Documentation/ide.txt for help/info on IDE drives
+#
+# CONFIG_BLK_DEV_IDE_SATA is not set
+# CONFIG_BLK_DEV_HD_IDE is not set
+CONFIG_BLK_DEV_IDEDISK=y
+CONFIG_IDEDISK_MULTI_MODE=y
+CONFIG_BLK_DEV_IDECD=y
+# CONFIG_BLK_DEV_IDETAPE is not set
+# CONFIG_BLK_DEV_IDEFLOPPY is not set
+# CONFIG_BLK_DEV_IDESCSI is not set
+CONFIG_BLK_DEV_IDEACPI=y
+CONFIG_IDE_TASK_IOCTL=y
+CONFIG_IDE_PROC_FS=y
+
+#
+# IDE chipset support/bugfixes
+#
+CONFIG_IDE_GENERIC=y
+# CONFIG_BLK_DEV_PLATFORM is not set
+# CONFIG_BLK_DEV_CMD640 is not set
+CONFIG_BLK_DEV_IDEPNP=y
+
+#
+# PCI IDE chipsets support
+#
+CONFIG_BLK_DEV_IDEPCI=y
+# CONFIG_IDEPCI_SHARE_IRQ is not set
+CONFIG_IDEPCI_PCIBUS_ORDER=y
+# CONFIG_BLK_DEV_GENERIC is not set
+# CONFIG_BLK_DEV_OPTI621 is not set
+# CONFIG_BLK_DEV_RZ1000 is not set
+CONFIG_BLK_DEV_IDEDMA_PCI=y
+# CONFIG_BLK_DEV_AEC62XX is not set
+# CONFIG_BLK_DEV_ALI15X3 is not set
+CONFIG_BLK_DEV_AMD74XX=y
+# CONFIG_BLK_DEV_ATIIXP is not set
+# CONFIG_BLK_DEV_CMD64X is not set
+# CONFIG_BLK_DEV_TRIFLEX is not set
+# CONFIG_BLK_DEV_CY82C693 is not set
+# CONFIG_BLK_DEV_CS5520 is not set
+# CONFIG_BLK_DEV_CS5530 is not set
+# CONFIG_BLK_DEV_HPT34X is not set
+# CONFIG_BLK_DEV_HPT366 is not set
+# CONFIG_BLK_DEV_JMICRON is not set
+# CONFIG_BLK_DEV_SC1200 is not set
+# CONFIG_BLK_DEV_PIIX is not set
+# CONFIG_BLK_DEV_IT8213 is not set
+# CONFIG_BLK_DEV_IT821X is not set
+# CONFIG_BLK_DEV_NS87415 is not set
+# CONFIG_BLK_DEV_PDC202XX_OLD is not set
+# CONFIG_BLK_DEV_PDC202XX_NEW is not set
+# CONFIG_BLK_DEV_SVWKS is not set
+# CONFIG_BLK_DEV_SIIMAGE is not set
+# CONFIG_BLK_DEV_SIS5513 is not set
+# CONFIG_BLK_DEV_SLC90E66 is not set
+# CONFIG_BLK_DEV_TRM290 is not set
+# CONFIG_BLK_DEV_VIA82CXXX is not set
+# CONFIG_BLK_DEV_TC86C001 is not set
+# CONFIG_IDE_ARM is not set
+CONFIG_BLK_DEV_IDEDMA=y
+CONFIG_IDE_ARCH_OBSOLETE_INIT=y
+# CONFIG_BLK_DEV_HD is not set
+
+#
+# SCSI device support
+#
+# CONFIG_RAID_ATTRS is not set
+CONFIG_SCSI=y
+CONFIG_SCSI_DMA=y
+# CONFIG_SCSI_TGT is not set
+CONFIG_SCSI_NETLINK=y
+CONFIG_SCSI_PROC_FS=y
+
+#
+# SCSI support type (disk, tape, CD-ROM)
+#
+CONFIG_BLK_DEV_SD=y
+# CONFIG_CHR_DEV_ST is not set
+# CONFIG_CHR_DEV_OSST is not set
+CONFIG_BLK_DEV_SR=y
+# CONFIG_BLK_DEV_SR_VENDOR is not set
+CONFIG_CHR_DEV_SG=y
+# CONFIG_CHR_DEV_SCH is not set
+
+#
+# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
+#
+CONFIG_SCSI_MULTI_LUN=y
+# CONFIG_SCSI_CONSTANTS is not set
+# CONFIG_SCSI_LOGGING is not set
+# CONFIG_SCSI_SCAN_ASYNC is not set
+CONFIG_SCSI_WAIT_SCAN=m
+
+#
+# SCSI Transports
+#
+CONFIG_SCSI_SPI_ATTRS=y
+CONFIG_SCSI_FC_ATTRS=y
+# CONFIG_SCSI_ISCSI_ATTRS is not set
+# CONFIG_SCSI_SAS_LIBSAS is not set
+# CONFIG_SCSI_SRP_ATTRS is not set
+CONFIG_SCSI_LOWLEVEL=y
+# CONFIG_ISCSI_TCP is not set
+# CONFIG_BLK_DEV_3W_XXXX_RAID is not set
+# CONFIG_SCSI_3W_9XXX is not set
+# CONFIG_SCSI_ACARD is not set
+# CONFIG_SCSI_AACRAID is not set
+# CONFIG_SCSI_AIC7XXX is not set
+# CONFIG_SCSI_AIC7XXX_OLD is not set
+# CONFIG_SCSI_AIC79XX is not set
+# CONFIG_SCSI_AIC94XX is not set
+# CONFIG_SCSI_ADVANSYS is not set
+# CONFIG_SCSI_ARCMSR is not set
+# CONFIG_MEGARAID_NEWGEN is not set
+# CONFIG_MEGARAID_LEGACY is not set
+# CONFIG_MEGARAID_SAS is not set
+# CONFIG_SCSI_HPTIOP is not set
+# CONFIG_SCSI_BUSLOGIC is not set
+# CONFIG_SCSI_DMX3191D is not set
+# CONFIG_SCSI_EATA is not set
+# CONFIG_SCSI_FUTURE_DOMAIN is not set
+# CONFIG_SCSI_GDTH is not set
+# CONFIG_SCSI_IPS is not set
+# CONFIG_SCSI_INITIO is not set
+# CONFIG_SCSI_INIA100 is not set
+# CONFIG_SCSI_PPA is not set
+# CONFIG_SCSI_IMM is not set
+# CONFIG_SCSI_STEX is not set
+# CONFIG_SCSI_SYM53C8XX_2 is not set
+# CONFIG_SCSI_IPR is not set
+# CONFIG_SCSI_QLOGIC_1280 is not set
+# CONFIG_SCSI_QLA_FC is not set
+# CONFIG_SCSI_QLA_ISCSI is not set
+# CONFIG_SCSI_LPFC is not set
+# CONFIG_SCSI_DC395x is not set
+# CONFIG_SCSI_DC390T is not set
+# CONFIG_SCSI_DEBUG is not set
+# CONFIG_SCSI_SRP is not set
+CONFIG_ATA=y
+# CONFIG_ATA_NONSTANDARD is not set
+CONFIG_ATA_ACPI=y
+CONFIG_SATA_AHCI=y
+# CONFIG_SATA_SVW is not set
+# CONFIG_ATA_PIIX is not set
+# CONFIG_SATA_MV is not set
+CONFIG_SATA_NV=y
+# CONFIG_PDC_ADMA is not set
+# CONFIG_SATA_QSTOR is not set
+# CONFIG_SATA_PROMISE is not set
+# CONFIG_SATA_SX4 is not set
+# CONFIG_SATA_SIL is not set
+# CONFIG_SATA_SIL24 is not set
+# CONFIG_SATA_SIS is not set
+# CONFIG_SATA_ULI is not set
+# CONFIG_SATA_VIA is not set
+# CONFIG_SATA_VITESSE is not set
+# CONFIG_SATA_INIC162X is not set
+# CONFIG_PATA_ACPI is not set
+# CONFIG_PATA_ALI is not set
+CONFIG_PATA_AMD=y
+# CONFIG_PATA_ARTOP is not set
+# CONFIG_PATA_ATIIXP is not set
+# CONFIG_PATA_CMD640_PCI is not set
+# CONFIG_PATA_CMD64X is not set
+# CONFIG_PATA_CS5520 is not set
+# CONFIG_PATA_CS5530 is not set
+# CONFIG_PATA_CYPRESS is not set
+# CONFIG_PATA_EFAR is not set
+# CONFIG_ATA_GENERIC is not set
+# CONFIG_PATA_HPT366 is not set
+# CONFIG_PATA_HPT37X is not set
+# CONFIG_PATA_HPT3X2N is not set
+# CONFIG_PATA_HPT3X3 is not set
+# CONFIG_PATA_IT821X is not set
+# CONFIG_PATA_IT8213 is not set
+# CONFIG_PATA_JMICRON is not set
+# CONFIG_PATA_TRIFLEX is not set
+# CONFIG_PATA_MARVELL is not set
+# CONFIG_PATA_MPIIX is not set
+# CONFIG_PATA_OLDPIIX is not set
+# CONFIG_PATA_NETCELL is not set
+# CONFIG_PATA_NS87410 is not set
+# CONFIG_PATA_NS87415 is not set
+# CONFIG_PATA_OPTI is not set
+# CONFIG_PATA_OPTIDMA is not set
+# CONFIG_PATA_PDC_OLD is not set
+# CONFIG_PATA_RADISYS is not set
+# CONFIG_PATA_RZ1000 is not set
+# CONFIG_PATA_SC1200 is not set
+# CONFIG_PATA_SERVERWORKS is not set
+# CONFIG_PATA_PDC2027X is not set
+# CONFIG_PATA_SIL680 is not set
+# CONFIG_PATA_SIS is not set
+# CONFIG_PATA_VIA is not set
+# CONFIG_PATA_WINBOND is not set
+CONFIG_MD=y
+# CONFIG_BLK_DEV_MD is not set
+CONFIG_BLK_DEV_DM=y
+# CONFIG_DM_DEBUG is not set
+# CONFIG_DM_CRYPT is not set
+# CONFIG_DM_SNAPSHOT is not set
+# CONFIG_DM_MIRROR is not set
+# CONFIG_DM_ZERO is not set
+# CONFIG_DM_MULTIPATH is not set
+# CONFIG_DM_DELAY is not set
+# CONFIG_DM_UEVENT is not set
+# CONFIG_BLK_DEV_DM_BBR is not set
+# CONFIG_FUSION is not set
+
+#
+# IEEE 1394 (FireWire) support
+#
+# CONFIG_FIREWIRE is not set
+CONFIG_IEEE1394=y
+
+#
+# Subsystem Options
+#
+# CONFIG_IEEE1394_VERBOSEDEBUG is not set
+
+#
+# Controllers
+#
+# CONFIG_IEEE1394_PCILYNX is not set
+CONFIG_IEEE1394_OHCI1394=y
+
+#
+# Protocols
+#
+CONFIG_IEEE1394_VIDEO1394=y
+CONFIG_IEEE1394_SBP2=y
+# CONFIG_IEEE1394_SBP2_PHYS_DMA is not set
+# CONFIG_IEEE1394_ETH1394_ROM_ENTRY is not set
+# CONFIG_IEEE1394_ETH1394 is not set
+# CONFIG_IEEE1394_DV1394 is not set
+CONFIG_IEEE1394_RAWIO=y
+CONFIG_I2O=y
+CONFIG_I2O_LCT_NOTIFY_ON_CHANGES=y
+CONFIG_I2O_EXT_ADAPTEC=y
+CONFIG_I2O_EXT_ADAPTEC_DMA64=y
+CONFIG_I2O_CONFIG=y
+CONFIG_I2O_CONFIG_OLD_IOCTL=y
+CONFIG_I2O_BUS=y
+CONFIG_I2O_BLOCK=y
+CONFIG_I2O_SCSI=y
+CONFIG_I2O_PROC=y
+# CONFIG_MACINTOSH_DRIVERS is not set
+CONFIG_NETDEVICES=y
+# CONFIG_NETDEVICES_MULTIQUEUE is not set
+# CONFIG_DUMMY is not set
+# CONFIG_BONDING is not set
+# CONFIG_MACVLAN is not set
+# CONFIG_EQUALIZER is not set
+CONFIG_TUN=y
+# CONFIG_VETH is not set
+# CONFIG_NET_SB1000 is not set
+# CONFIG_ARCNET is not set
+CONFIG_PHYLIB=y
+
+#
+# MII PHY device drivers
+#
+# CONFIG_MARVELL_PHY is not set
+# CONFIG_DAVICOM_PHY is not set
+# CONFIG_QSEMI_PHY is not set
+# CONFIG_LXT_PHY is not set
+# CONFIG_CICADA_PHY is not set
+CONFIG_VITESSE_PHY=y
+# CONFIG_SMSC_PHY is not set
+# CONFIG_BROADCOM_PHY is not set
+# CONFIG_ICPLUS_PHY is not set
+CONFIG_FIXED_PHY=y
+# CONFIG_FIXED_MII_10_FDX is not set
+# CONFIG_FIXED_MII_100_FDX is not set
+# CONFIG_FIXED_MII_1000_FDX is not set
+CONFIG_FIXED_MII_AMNT=1
+# CONFIG_MDIO_BITBANG is not set
+CONFIG_NET_ETHERNET=y
+CONFIG_MII=y
+# CONFIG_HAPPYMEAL is not set
+# CONFIG_SUNGEM is not set
+# CONFIG_CASSINI is not set
+# CONFIG_NET_VENDOR_3COM is not set
+# CONFIG_NET_TULIP is not set
+# CONFIG_HP100 is not set
+# CONFIG_IBM_NEW_EMAC_ZMII is not set
+# CONFIG_IBM_NEW_EMAC_RGMII is not set
+# CONFIG_IBM_NEW_EMAC_TAH is not set
+# CONFIG_IBM_NEW_EMAC_EMAC4 is not set
+CONFIG_NET_PCI=y
+# CONFIG_PCNET32 is not set
+# CONFIG_AMD8111_ETH is not set
+# CONFIG_ADAPTEC_STARFIRE is not set
+# CONFIG_B44 is not set
+CONFIG_FORCEDETH=y
+# CONFIG_FORCEDETH_NAPI is not set
+# CONFIG_EEPRO100 is not set
+# CONFIG_E100 is not set
+# CONFIG_FEALNX is not set
+# CONFIG_NATSEMI is not set
+# CONFIG_NE2K_PCI is not set
+# CONFIG_8139CP is not set
+# CONFIG_8139TOO is not set
+# CONFIG_SIS900 is not set
+# CONFIG_EPIC100 is not set
+# CONFIG_SUNDANCE is not set
+# CONFIG_VIA_RHINE is not set
+# CONFIG_SC92031 is not set
+# CONFIG_NET_POCKET is not set
+# CONFIG_NETDEV_1000 is not set
+# CONFIG_NETDEV_10000 is not set
+# CONFIG_TR is not set
+
+#
+# Wireless LAN
+#
+# CONFIG_WLAN_PRE80211 is not set
+# CONFIG_WLAN_80211 is not set
+
+#
+# USB Network Adapters
+#
+# CONFIG_USB_CATC is not set
+# CONFIG_USB_KAWETH is not set
+# CONFIG_USB_PEGASUS is not set
+# CONFIG_USB_RTL8150 is not set
+CONFIG_USB_USBNET=y
+# CONFIG_USB_NET_AX8817X is not set
+CONFIG_USB_NET_CDCETHER=y
+# CONFIG_USB_NET_DM9601 is not set
+# CONFIG_USB_NET_GL620A is not set
+# CONFIG_USB_NET_NET1080 is not set
+# CONFIG_USB_NET_PLUSB is not set
+# CONFIG_USB_NET_MCS7830 is not set
+CONFIG_USB_NET_RNDIS_HOST=y
+# CONFIG_USB_NET_CDC_SUBSET is not set
+# CONFIG_USB_NET_ZAURUS is not set
+# CONFIG_WAN is not set
+# CONFIG_FDDI is not set
+# CONFIG_HIPPI is not set
+# CONFIG_PLIP is not set
+CONFIG_PPP=y
+# CONFIG_PPP_MULTILINK is not set
+# CONFIG_PPP_FILTER is not set
+CONFIG_PPP_ASYNC=y
+# CONFIG_PPP_SYNC_TTY is not set
+# CONFIG_PPP_DEFLATE is not set
+# CONFIG_PPP_BSDCOMP is not set
+# CONFIG_PPP_MPPE is not set
+# CONFIG_PPPOE is not set
+# CONFIG_PPPOL2TP is not set
+# CONFIG_SLIP is not set
+CONFIG_SLHC=y
+# CONFIG_NET_FC is not set
+# CONFIG_SHAPER is not set
+CONFIG_NETCONSOLE=y
+# CONFIG_NETCONSOLE_DYNAMIC is not set
+CONFIG_NETPOLL=y
+# CONFIG_NETPOLL_TRAP is not set
+CONFIG_NET_POLL_CONTROLLER=y
+# CONFIG_ISDN is not set
+# CONFIG_PHONE is not set
+
+#
+# Input device support
+#
+CONFIG_INPUT=y
+# CONFIG_INPUT_FF_MEMLESS is not set
+# CONFIG_INPUT_POLLDEV is not set
+
+#
+# Userland interfaces
+#
+CONFIG_INPUT_MOUSEDEV=y
+CONFIG_INPUT_MOUSEDEV_PSAUX=y
+CONFIG_INPUT_MOUSEDEV_SCREEN_X=1024
+CONFIG_INPUT_MOUSEDEV_SCREEN_Y=768
+# CONFIG_INPUT_JOYDEV is not set
+CONFIG_INPUT_EVDEV=y
+# CONFIG_INPUT_EVBUG is not set
+
+#
+# Input Device Drivers
+#
+CONFIG_INPUT_KEYBOARD=y
+CONFIG_KEYBOARD_ATKBD=y
+# CONFIG_KEYBOARD_SUNKBD is not set
+# CONFIG_KEYBOARD_LKKBD is not set
+# CONFIG_KEYBOARD_XTKBD is not set
+# CONFIG_KEYBOARD_NEWTON is not set
+# CONFIG_KEYBOARD_STOWAWAY is not set
+CONFIG_INPUT_MOUSE=y
+CONFIG_MOUSE_PS2=y
+CONFIG_MOUSE_PS2_ALPS=y
+CONFIG_MOUSE_PS2_LOGIPS2PP=y
+CONFIG_MOUSE_PS2_SYNAPTICS=y
+CONFIG_MOUSE_PS2_LIFEBOOK=y
+CONFIG_MOUSE_PS2_TRACKPOINT=y
+# CONFIG_MOUSE_PS2_TOUCHKIT is not set
+# CONFIG_MOUSE_SERIAL is not set
+# CONFIG_MOUSE_APPLETOUCH is not set
+# CONFIG_MOUSE_VSXXXAA is not set
+# CONFIG_INPUT_JOYSTICK is not set
+# CONFIG_INPUT_TABLET is not set
+# CONFIG_INPUT_TOUCHSCREEN is not set
+CONFIG_INPUT_MISC=y
+CONFIG_INPUT_PCSPKR=y
+# CONFIG_INPUT_ATLAS_BTNS is not set
+# CONFIG_INPUT_ATI_REMOTE is not set
+# CONFIG_INPUT_ATI_REMOTE2 is not set
+# CONFIG_INPUT_KEYSPAN_REMOTE is not set
+# CONFIG_INPUT_POWERMATE is not set
+# CONFIG_INPUT_YEALINK is not set
+CONFIG_INPUT_UINPUT=y
+
+#
+# Hardware I/O ports
+#
+CONFIG_SERIO=y
+CONFIG_SERIO_I8042=y
+CONFIG_SERIO_SERPORT=y
+# CONFIG_SERIO_CT82C710 is not set
+# CONFIG_SERIO_PARKBD is not set
+# CONFIG_SERIO_PCIPS2 is not set
+CONFIG_SERIO_LIBPS2=y
+CONFIG_SERIO_RAW=y
+# CONFIG_GAMEPORT is not set
+
+#
+# Character devices
+#
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
+CONFIG_HW_CONSOLE=y
+# CONFIG_VT_HW_CONSOLE_BINDING is not set
+# CONFIG_SERIAL_NONSTANDARD is not set
+
+#
+# Serial drivers
+#
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_FIX_EARLYCON_MEM=y
+CONFIG_SERIAL_8250_PCI=y
+CONFIG_SERIAL_8250_PNP=y
+CONFIG_SERIAL_8250_NR_UARTS=4
+CONFIG_SERIAL_8250_RUNTIME_UARTS=4
+CONFIG_SERIAL_8250_EXTENDED=y
+# CONFIG_SERIAL_8250_MANY_PORTS is not set
+CONFIG_SERIAL_8250_SHARE_IRQ=y
+# CONFIG_SERIAL_8250_DETECT_IRQ is not set
+# CONFIG_SERIAL_8250_RSA is not set
+
+#
+# Non-8250 serial port support
+#
+CONFIG_SERIAL_CORE=y
+CONFIG_SERIAL_CORE_CONSOLE=y
+# CONFIG_SERIAL_JSM is not set
+CONFIG_UNIX98_PTYS=y
+CONFIG_LEGACY_PTYS=y
+CONFIG_LEGACY_PTY_COUNT=256
+CONFIG_PRINTER=m
+CONFIG_LP_CONSOLE=y
+CONFIG_PPDEV=m
+# CONFIG_IPMI_HANDLER is not set
+CONFIG_HW_RANDOM=y
+# CONFIG_HW_RANDOM_INTEL is not set
+CONFIG_HW_RANDOM_AMD=y
+CONFIG_NVRAM=y
+# CONFIG_RTC is not set
+# CONFIG_GEN_RTC is not set
+# CONFIG_R3964 is not set
+# CONFIG_APPLICOM is not set
+# CONFIG_MWAVE is not set
+# CONFIG_PC8736x_GPIO is not set
+CONFIG_RAW_DRIVER=y
+CONFIG_MAX_RAW_DEVS=256
+CONFIG_HPET=y
+# CONFIG_HPET_RTC_IRQ is not set
+CONFIG_HPET_MMAP=y
+# CONFIG_HANGCHECK_TIMER is not set
+# CONFIG_TCG_TPM is not set
+# CONFIG_TELCLOCK is not set
+CONFIG_DEVPORT=y
+CONFIG_I2C=y
+CONFIG_I2C_BOARDINFO=y
+CONFIG_I2C_CHARDEV=y
+
+#
+# I2C Algorithms
+#
+CONFIG_I2C_ALGOBIT=y
+CONFIG_I2C_ALGOPCF=y
+CONFIG_I2C_ALGOPCA=y
+
+#
+# I2C Hardware Bus support
+#
+CONFIG_I2C_ALI1535=y
+CONFIG_I2C_ALI1563=y
+CONFIG_I2C_ALI15X3=y
+CONFIG_I2C_AMD756=y
+# CONFIG_I2C_AMD756_S4882 is not set
+CONFIG_I2C_AMD8111=y
+# CONFIG_I2C_I801 is not set
+# CONFIG_I2C_I810 is not set
+# CONFIG_I2C_PIIX4 is not set
+CONFIG_I2C_NFORCE2=y
+CONFIG_I2C_OCORES=y
+# CONFIG_I2C_PARPORT is not set
+# CONFIG_I2C_PARPORT_LIGHT is not set
+# CONFIG_I2C_PROSAVAGE is not set
+# CONFIG_I2C_SAVAGE4 is not set
+CONFIG_I2C_SIMTEC=y
+# CONFIG_I2C_SIS5595 is not set
+# CONFIG_I2C_SIS630 is not set
+# CONFIG_I2C_SIS96X is not set
+# CONFIG_I2C_TAOS_EVM is not set
+# CONFIG_I2C_STUB is not set
+CONFIG_I2C_TINY_USB=y
+# CONFIG_I2C_VIA is not set
+# CONFIG_I2C_VIAPRO is not set
+# CONFIG_I2C_VOODOO3 is not set
+
+#
+# Miscellaneous I2C Chip support
+#
+# CONFIG_SENSORS_DS1337 is not set
+# CONFIG_SENSORS_DS1374 is not set
+# CONFIG_DS1682 is not set
+CONFIG_SENSORS_EEPROM=y
+CONFIG_SENSORS_PCF8574=y
+CONFIG_SENSORS_PCA9539=y
+CONFIG_SENSORS_PCF8591=y
+CONFIG_SENSORS_MAX6875=y
+# CONFIG_SENSORS_TSL2550 is not set
+# CONFIG_I2C_DEBUG_CORE is not set
+# CONFIG_I2C_DEBUG_ALGO is not set
+# CONFIG_I2C_DEBUG_BUS is not set
+# CONFIG_I2C_DEBUG_CHIP is not set
+
+#
+# SPI support
+#
+# CONFIG_SPI is not set
+# CONFIG_SPI_MASTER is not set
+# CONFIG_W1 is not set
+CONFIG_POWER_SUPPLY=y
+# CONFIG_POWER_SUPPLY_DEBUG is not set
+# CONFIG_PDA_POWER is not set
+# CONFIG_BATTERY_DS2760 is not set
+CONFIG_HWMON=y
+CONFIG_HWMON_VID=y
+# CONFIG_SENSORS_ABITUGURU is not set
+# CONFIG_SENSORS_ABITUGURU3 is not set
+# CONFIG_SENSORS_AD7418 is not set
+# CONFIG_SENSORS_ADM1021 is not set
+# CONFIG_SENSORS_ADM1025 is not set
+# CONFIG_SENSORS_ADM1026 is not set
+# CONFIG_SENSORS_ADM1029 is not set
+# CONFIG_SENSORS_ADM1031 is not set
+# CONFIG_SENSORS_ADM9240 is not set
+# CONFIG_SENSORS_ADT7470 is not set
+CONFIG_SENSORS_K8TEMP=y
+# CONFIG_SENSORS_ASB100 is not set
+# CONFIG_SENSORS_ATXP1 is not set
+# CONFIG_SENSORS_DS1621 is not set
+# CONFIG_SENSORS_I5K_AMB is not set
+# CONFIG_SENSORS_F71805F is not set
+# CONFIG_SENSORS_F71882FG is not set
+# CONFIG_SENSORS_F75375S is not set
+# CONFIG_SENSORS_FSCHER is not set
+# CONFIG_SENSORS_FSCPOS is not set
+# CONFIG_SENSORS_FSCHMD is not set
+# CONFIG_SENSORS_GL518SM is not set
+# CONFIG_SENSORS_GL520SM is not set
+# CONFIG_SENSORS_CORETEMP is not set
+# CONFIG_SENSORS_IT87 is not set
+# CONFIG_SENSORS_LM63 is not set
+# CONFIG_SENSORS_LM75 is not set
+# CONFIG_SENSORS_LM77 is not set
+# CONFIG_SENSORS_LM78 is not set
+# CONFIG_SENSORS_LM80 is not set
+# CONFIG_SENSORS_LM83 is not set
+# CONFIG_SENSORS_LM85 is not set
+# CONFIG_SENSORS_LM87 is not set
+# CONFIG_SENSORS_LM90 is not set
+# CONFIG_SENSORS_LM92 is not set
+# CONFIG_SENSORS_LM93 is not set
+# CONFIG_SENSORS_MAX1619 is not set
+# CONFIG_SENSORS_MAX6650 is not set
+# CONFIG_SENSORS_PC87360 is not set
+# CONFIG_SENSORS_PC87427 is not set
+# CONFIG_SENSORS_SIS5595 is not set
+# CONFIG_SENSORS_DME1737 is not set
+# CONFIG_SENSORS_SMSC47M1 is not set
+# CONFIG_SENSORS_SMSC47M192 is not set
+# CONFIG_SENSORS_SMSC47B397 is not set
+# CONFIG_SENSORS_THMC50 is not set
+# CONFIG_SENSORS_VIA686A is not set
+# CONFIG_SENSORS_VT1211 is not set
+# CONFIG_SENSORS_VT8231 is not set
+# CONFIG_SENSORS_W83781D is not set
+# CONFIG_SENSORS_W83791D is not set
+# CONFIG_SENSORS_W83792D is not set
+# CONFIG_SENSORS_W83793 is not set
+# CONFIG_SENSORS_W83L785TS is not set
+# CONFIG_SENSORS_W83627HF is not set
+CONFIG_SENSORS_W83627EHF=y
+# CONFIG_SENSORS_HDAPS is not set
+# CONFIG_SENSORS_APPLESMC is not set
+# CONFIG_HWMON_DEBUG_CHIP is not set
+# CONFIG_WATCHDOG is not set
+
+#
+# Sonics Silicon Backplane
+#
+CONFIG_SSB_POSSIBLE=y
+# CONFIG_SSB is not set
+
+#
+# Multifunction device drivers
+#
+# CONFIG_MFD_SM501 is not set
+
+#
+# Multimedia devices
+#
+# CONFIG_VIDEO_DEV is not set
+# CONFIG_DVB_CORE is not set
+# CONFIG_DAB is not set
+
+#
+# Graphics support
+#
+CONFIG_AGP=y
+CONFIG_AGP_AMD64=y
+CONFIG_AGP_INTEL=y
+# CONFIG_AGP_SIS is not set
+# CONFIG_AGP_VIA is not set
+# CONFIG_DRM is not set
+# CONFIG_VGASTATE is not set
+CONFIG_VIDEO_OUTPUT_CONTROL=m
+CONFIG_FB=y
+CONFIG_FIRMWARE_EDID=y
+# CONFIG_FB_DDC is not set
+CONFIG_FB_CFB_FILLRECT=y
+CONFIG_FB_CFB_COPYAREA=y
+CONFIG_FB_CFB_IMAGEBLIT=y
+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
+# CONFIG_FB_SYS_FILLRECT is not set
+# CONFIG_FB_SYS_COPYAREA is not set
+# CONFIG_FB_SYS_IMAGEBLIT is not set
+# CONFIG_FB_SYS_FOPS is not set
+CONFIG_FB_DEFERRED_IO=y
+# CONFIG_FB_SVGALIB is not set
+# CONFIG_FB_MACMODES is not set
+# CONFIG_FB_BACKLIGHT is not set
+CONFIG_FB_MODE_HELPERS=y
+# CONFIG_FB_TILEBLITTING is not set
+
+#
+# Frame buffer hardware drivers
+#
+# CONFIG_FB_CIRRUS is not set
+# CONFIG_FB_PM2 is not set
+# CONFIG_FB_CYBER2000 is not set
+# CONFIG_FB_ARC is not set
+# CONFIG_FB_ASILIANT is not set
+# CONFIG_FB_IMSTT is not set
+# CONFIG_FB_VGA16 is not set
+# CONFIG_FB_UVESA is not set
+CONFIG_FB_VESA=y
+# CONFIG_FB_EFI is not set
+# CONFIG_FB_HECUBA is not set
+# CONFIG_FB_HGA is not set
+# CONFIG_FB_S1D13XXX is not set
+# CONFIG_FB_NVIDIA is not set
+# CONFIG_FB_RIVA is not set
+# CONFIG_FB_LE80578 is not set
+# CONFIG_FB_INTEL is not set
+# CONFIG_FB_MATROX is not set
+# CONFIG_FB_RADEON is not set
+# CONFIG_FB_ATY128 is not set
+# CONFIG_FB_ATY is not set
+# CONFIG_FB_S3 is not set
+# CONFIG_FB_SAVAGE is not set
+# CONFIG_FB_SIS is not set
+# CONFIG_FB_NEOMAGIC is not set
+# CONFIG_FB_KYRO is not set
+# CONFIG_FB_3DFX is not set
+# CONFIG_FB_VOODOO1 is not set
+# CONFIG_FB_VT8623 is not set
+# CONFIG_FB_TRIDENT is not set
+# CONFIG_FB_ARK is not set
+# CONFIG_FB_PM3 is not set
+# CONFIG_FB_GEODE is not set
+# CONFIG_FB_VIRTUAL is not set
+# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+
+#
+# Display device support
+#
+CONFIG_DISPLAY_SUPPORT=y
+
+#
+# Display hardware drivers
+#
+
+#
+# Console display driver support
+#
+CONFIG_VGA_CONSOLE=y
+CONFIG_VGACON_SOFT_SCROLLBACK=y
+CONFIG_VGACON_SOFT_SCROLLBACK_SIZE=256
+CONFIG_VIDEO_SELECT=y
+CONFIG_DUMMY_CONSOLE=y
+CONFIG_FRAMEBUFFER_CONSOLE=y
+# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
+CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
+# CONFIG_FB_CON_DECOR is not set
+# CONFIG_FONTS is not set
+CONFIG_FONT_8x8=y
+CONFIG_FONT_8x16=y
+CONFIG_LOGO=y
+# CONFIG_LOGO_LINUX_MONO is not set
+# CONFIG_LOGO_LINUX_VGA16 is not set
+CONFIG_LOGO_LINUX_CLUT224=y
+
+#
+# Sound
+#
+CONFIG_SOUND=m
+
+#
+# Advanced Linux Sound Architecture
+#
+CONFIG_SND=m
+CONFIG_SND_TIMER=m
+CONFIG_SND_PCM=m
+CONFIG_SND_HWDEP=m
+CONFIG_SND_RAWMIDI=m
+CONFIG_SND_SEQUENCER=m
+CONFIG_SND_SEQ_DUMMY=m
+CONFIG_SND_OSSEMUL=y
+CONFIG_SND_MIXER_OSS=m
+CONFIG_SND_PCM_OSS=m
+CONFIG_SND_PCM_OSS_PLUGINS=y
+CONFIG_SND_SEQUENCER_OSS=y
+CONFIG_SND_DYNAMIC_MINORS=y
+CONFIG_SND_SUPPORT_OLD_API=y
+# CONFIG_SND_VERBOSE_PROCFS is not set
+# CONFIG_SND_VERBOSE_PRINTK is not set
+# CONFIG_SND_DEBUG is not set
+
+#
+# Generic devices
+#
+CONFIG_SND_AC97_CODEC=m
+CONFIG_SND_DUMMY=m
+# CONFIG_SND_VIRMIDI is not set
+# CONFIG_SND_MTPAV is not set
+# CONFIG_SND_MTS64 is not set
+# CONFIG_SND_SERIAL_U16550 is not set
+# CONFIG_SND_MPU401 is not set
+# CONFIG_SND_PORTMAN2X4 is not set
+
+#
+# PCI devices
+#
+# CONFIG_SND_AD1889 is not set
+# CONFIG_SND_ALS300 is not set
+# CONFIG_SND_ALS4000 is not set
+# CONFIG_SND_ALI5451 is not set
+# CONFIG_SND_ATIIXP is not set
+# CONFIG_SND_ATIIXP_MODEM is not set
+# CONFIG_SND_AU8810 is not set
+# CONFIG_SND_AU8820 is not set
+# CONFIG_SND_AU8830 is not set
+# CONFIG_SND_AZT3328 is not set
+CONFIG_SND_BT87X=m
+# CONFIG_SND_BT87X_OVERCLOCK is not set
+# CONFIG_SND_CA0106 is not set
+# CONFIG_SND_CMIPCI is not set
+# CONFIG_SND_CS4281 is not set
+# CONFIG_SND_CS46XX is not set
+# CONFIG_SND_CS5530 is not set
+# CONFIG_SND_DARLA20 is not set
+# CONFIG_SND_GINA20 is not set
+# CONFIG_SND_LAYLA20 is not set
+# CONFIG_SND_DARLA24 is not set
+# CONFIG_SND_GINA24 is not set
+# CONFIG_SND_LAYLA24 is not set
+# CONFIG_SND_MONA is not set
+# CONFIG_SND_MIA is not set
+# CONFIG_SND_ECHO3G is not set
+# CONFIG_SND_INDIGO is not set
+# CONFIG_SND_INDIGOIO is not set
+# CONFIG_SND_INDIGODJ is not set
+CONFIG_SND_EMU10K1=m
+# CONFIG_SND_EMU10K1X is not set
+# CONFIG_SND_ENS1370 is not set
+# CONFIG_SND_ENS1371 is not set
+# CONFIG_SND_ES1938 is not set
+# CONFIG_SND_ES1968 is not set
+# CONFIG_SND_FM801 is not set
+CONFIG_SND_HDA_INTEL=m
+# CONFIG_SND_HDA_HWDEP is not set
+CONFIG_SND_HDA_CODEC_REALTEK=y
+CONFIG_SND_HDA_CODEC_ANALOG=y
+CONFIG_SND_HDA_CODEC_SIGMATEL=y
+CONFIG_SND_HDA_CODEC_VIA=y
+CONFIG_SND_HDA_CODEC_ATIHDMI=y
+CONFIG_SND_HDA_CODEC_CONEXANT=y
+CONFIG_SND_HDA_CODEC_CMEDIA=y
+CONFIG_SND_HDA_CODEC_SI3054=y
+CONFIG_SND_HDA_GENERIC=y
+# CONFIG_SND_HDA_POWER_SAVE is not set
+# CONFIG_SND_HDSP is not set
+# CONFIG_SND_HDSPM is not set
+# CONFIG_SND_ICE1712 is not set
+# CONFIG_SND_ICE1724 is not set
+# CONFIG_SND_INTEL8X0 is not set
+# CONFIG_SND_INTEL8X0M is not set
+# CONFIG_SND_KORG1212 is not set
+# CONFIG_SND_MAESTRO3 is not set
+# CONFIG_SND_MIXART is not set
+# CONFIG_SND_NM256 is not set
+# CONFIG_SND_PCXHR is not set
+# CONFIG_SND_RIPTIDE is not set
+# CONFIG_SND_RME32 is not set
+# CONFIG_SND_RME96 is not set
+# CONFIG_SND_RME9652 is not set
+# CONFIG_SND_SONICVIBES is not set
+# CONFIG_SND_TRIDENT is not set
+# CONFIG_SND_VIA82XX is not set
+# CONFIG_SND_VIA82XX_MODEM is not set
+# CONFIG_SND_VX222 is not set
+# CONFIG_SND_YMFPCI is not set
+CONFIG_SND_AC97_POWER_SAVE=y
+CONFIG_SND_AC97_POWER_SAVE_DEFAULT=0
+
+#
+# USB devices
+#
+# CONFIG_SND_USB_AUDIO is not set
+# CONFIG_SND_USB_USX2Y is not set
+# CONFIG_SND_USB_CAIAQ is not set
+
+#
+# System on Chip audio support
+#
+# CONFIG_SND_SOC is not set
+
+#
+# SoC Audio support for SuperH
+#
+
+#
+# Open Sound System
+#
+# CONFIG_SOUND_PRIME is not set
+CONFIG_AC97_BUS=m
+CONFIG_HID_SUPPORT=y
+CONFIG_HID=y
+# CONFIG_HID_DEBUG is not set
+# CONFIG_HIDRAW is not set
+
+#
+# USB Input Devices
+#
+CONFIG_USB_HID=y
+# CONFIG_USB_HIDINPUT_POWERBOOK is not set
+# CONFIG_HID_FF is not set
+# CONFIG_USB_HIDDEV is not set
+CONFIG_USB_SUPPORT=y
+CONFIG_USB_ARCH_HAS_HCD=y
+CONFIG_USB_ARCH_HAS_OHCI=y
+CONFIG_USB_ARCH_HAS_EHCI=y
+CONFIG_USB=y
+# CONFIG_USB_DEBUG is not set
+
+#
+# Miscellaneous USB options
+#
+CONFIG_USB_DEVICEFS=y
+CONFIG_USB_DEVICE_CLASS=y
+# CONFIG_USB_DYNAMIC_MINORS is not set
+# CONFIG_USB_SUSPEND is not set
+# CONFIG_USB_PERSIST is not set
+# CONFIG_USB_OTG is not set
+
+#
+# USB Host Controller Drivers
+#
+CONFIG_USB_EHCI_HCD=y
+# CONFIG_USB_EHCI_SPLIT_ISO is not set
+CONFIG_USB_EHCI_ROOT_HUB_TT=y
+CONFIG_USB_EHCI_TT_NEWSCHED=y
+# CONFIG_USB_ISP116X_HCD is not set
+CONFIG_USB_OHCI_HCD=y
+# CONFIG_USB_OHCI_BIG_ENDIAN_DESC is not set
+# CONFIG_USB_OHCI_BIG_ENDIAN_MMIO is not set
+CONFIG_USB_OHCI_LITTLE_ENDIAN=y
+# CONFIG_USB_UHCI_HCD is not set
+# CONFIG_USB_SL811_HCD is not set
+# CONFIG_USB_R8A66597_HCD is not set
+
+#
+# USB Device Class drivers
+#
+# CONFIG_USB_ACM is not set
+CONFIG_USB_PRINTER=y
+
+#
+# NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support'
+#
+
+#
+# may also be needed; see USB_STORAGE Help for more information
+#
+CONFIG_USB_STORAGE=y
+# CONFIG_USB_STORAGE_DEBUG is not set
+# CONFIG_USB_STORAGE_DATAFAB is not set
+# CONFIG_USB_STORAGE_FREECOM is not set
+# CONFIG_USB_STORAGE_ISD200 is not set
+# CONFIG_USB_STORAGE_DPCM is not set
+# CONFIG_USB_STORAGE_USBAT is not set
+# CONFIG_USB_STORAGE_SDDR09 is not set
+# CONFIG_USB_STORAGE_SDDR55 is not set
+# CONFIG_USB_STORAGE_JUMPSHOT is not set
+# CONFIG_USB_STORAGE_ALAUDA is not set
+# CONFIG_USB_STORAGE_KARMA is not set
+# CONFIG_USB_LIBUSUAL is not set
+
+#
+# USB Imaging devices
+#
+# CONFIG_USB_MDC800 is not set
+# CONFIG_USB_MICROTEK is not set
+CONFIG_USB_MON=y
+
+#
+# USB port drivers
+#
+# CONFIG_USB_USS720 is not set
+
+#
+# USB Serial Converter support
+#
+CONFIG_USB_SERIAL=y
+# CONFIG_USB_SERIAL_CONSOLE is not set
+# CONFIG_USB_SERIAL_GENERIC is not set
+# CONFIG_USB_SERIAL_AIRCABLE is not set
+# CONFIG_USB_SERIAL_AIRPRIME is not set
+# CONFIG_USB_SERIAL_ARK3116 is not set
+# CONFIG_USB_SERIAL_BELKIN is not set
+# CONFIG_USB_SERIAL_CH341 is not set
+# CONFIG_USB_SERIAL_WHITEHEAT is not set
+# CONFIG_USB_SERIAL_DIGI_ACCELEPORT is not set
+# CONFIG_USB_SERIAL_CP2101 is not set
+# CONFIG_USB_SERIAL_CYPRESS_M8 is not set
+# CONFIG_USB_SERIAL_EMPEG is not set
+# CONFIG_USB_SERIAL_FTDI_SIO is not set
+# CONFIG_USB_SERIAL_FUNSOFT is not set
+# CONFIG_USB_SERIAL_VISOR is not set
+CONFIG_USB_SERIAL_IPAQ=y
+CONFIG_USB_SERIAL_IR=y
+# CONFIG_USB_SERIAL_EDGEPORT is not set
+# CONFIG_USB_SERIAL_EDGEPORT_TI is not set
+# CONFIG_USB_SERIAL_GARMIN is not set
+# CONFIG_USB_SERIAL_IPW is not set
+# CONFIG_USB_SERIAL_KEYSPAN_PDA is not set
+# CONFIG_USB_SERIAL_KEYSPAN is not set
+# CONFIG_USB_SERIAL_KLSI is not set
+# CONFIG_USB_SERIAL_KOBIL_SCT is not set
+# CONFIG_USB_SERIAL_MCT_U232 is not set
+# CONFIG_USB_SERIAL_MOS7720 is not set
+# CONFIG_USB_SERIAL_MOS7840 is not set
+# CONFIG_USB_SERIAL_NAVMAN is not set
+# CONFIG_USB_SERIAL_PL2303 is not set
+# CONFIG_USB_SERIAL_OTI6858 is not set
+# CONFIG_USB_SERIAL_HP4X is not set
+# CONFIG_USB_SERIAL_SAFE is not set
+# CONFIG_USB_SERIAL_SIERRAWIRELESS is not set
+# CONFIG_USB_SERIAL_TI is not set
+# CONFIG_USB_SERIAL_CYBERJACK is not set
+# CONFIG_USB_SERIAL_XIRCOM is not set
+CONFIG_USB_SERIAL_OPTION=y
+# CONFIG_USB_SERIAL_OMNINET is not set
+# CONFIG_USB_SERIAL_DEBUG is not set
+
+#
+# USB Miscellaneous drivers
+#
+# CONFIG_USB_EMI62 is not set
+# CONFIG_USB_EMI26 is not set
+# CONFIG_USB_ADUTUX is not set
+# CONFIG_USB_AUERSWALD is not set
+# CONFIG_USB_RIO500 is not set
+# CONFIG_USB_LEGOTOWER is not set
+# CONFIG_USB_LCD is not set
+# CONFIG_USB_BERRY_CHARGE is not set
+# CONFIG_USB_LED is not set
+# CONFIG_USB_CYPRESS_CY7C63 is not set
+# CONFIG_USB_CYTHERM is not set
+# CONFIG_USB_PHIDGET is not set
+# CONFIG_USB_IDMOUSE is not set
+# CONFIG_USB_FTDI_ELAN is not set
+# CONFIG_USB_APPLEDISPLAY is not set
+# CONFIG_USB_SISUSBVGA is not set
+# CONFIG_USB_LD is not set
+# CONFIG_USB_TRANCEVIBRATOR is not set
+# CONFIG_USB_IOWARRIOR is not set
+# CONFIG_USB_TEST is not set
+
+#
+# USB DSL modem support
+#
+
+#
+# USB Gadget Support
+#
+# CONFIG_USB_GADGET is not set
+CONFIG_MMC=y
+# CONFIG_MMC_DEBUG is not set
+# CONFIG_MMC_UNSAFE_RESUME is not set
+
+#
+# MMC/SD Card Drivers
+#
+CONFIG_MMC_BLOCK=y
+CONFIG_MMC_BLOCK_BOUNCE=y
+# CONFIG_SDIO_UART is not set
+
+#
+# MMC/SD Host Controller Drivers
+#
+CONFIG_MMC_SDHCI=y
+# CONFIG_MMC_RICOH_MMC is not set
+CONFIG_MMC_WBSD=y
+CONFIG_MMC_TIFM_SD=y
+# CONFIG_NEW_LEDS is not set
+# CONFIG_INFINIBAND is not set
+# CONFIG_EDAC is not set
+CONFIG_RTC_LIB=y
+CONFIG_RTC_CLASS=y
+CONFIG_RTC_HCTOSYS=y
+CONFIG_RTC_HCTOSYS_DEVICE="rtc0"
+# CONFIG_RTC_DEBUG is not set
+
+#
+# RTC interfaces
+#
+CONFIG_RTC_INTF_SYSFS=y
+CONFIG_RTC_INTF_PROC=y
+CONFIG_RTC_INTF_DEV=y
+# CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
+# CONFIG_RTC_DRV_TEST is not set
+
+#
+# I2C RTC drivers
+#
+CONFIG_RTC_DRV_DS1307=y
+# CONFIG_RTC_DRV_DS1374 is not set
+CONFIG_RTC_DRV_DS1672=y
+CONFIG_RTC_DRV_MAX6900=y
+CONFIG_RTC_DRV_RS5C372=y
+CONFIG_RTC_DRV_ISL1208=y
+CONFIG_RTC_DRV_X1205=y
+CONFIG_RTC_DRV_PCF8563=y
+CONFIG_RTC_DRV_PCF8583=y
+# CONFIG_RTC_DRV_M41T80 is not set
+
+#
+# SPI RTC drivers
+#
+
+#
+# Platform RTC drivers
+#
+CONFIG_RTC_DRV_CMOS=y
+CONFIG_RTC_DRV_DS1553=y
+# CONFIG_RTC_DRV_STK17TA8 is not set
+CONFIG_RTC_DRV_DS1742=y
+CONFIG_RTC_DRV_M48T86=y
+# CONFIG_RTC_DRV_M48T59 is not set
+CONFIG_RTC_DRV_V3020=y
+
+#
+# on-CPU RTC drivers
+#
+# CONFIG_DMADEVICES is not set
+# CONFIG_AUXDISPLAY is not set
+CONFIG_VIRTUALIZATION=y
+CONFIG_KVM=y
+# CONFIG_KVM_INTEL is not set
+CONFIG_KVM_AMD=y
+
+#
+# Userspace I/O
+#
+# CONFIG_UIO is not set
+
+#
+# Firmware Drivers
+#
+# CONFIG_EDD is not set
+# CONFIG_DELL_RBU is not set
+# CONFIG_DCDBAS is not set
+CONFIG_DMIID=y
+
+#
+# File systems
+#
+CONFIG_EXT2_FS=y
+CONFIG_EXT2_FS_XATTR=y
+CONFIG_EXT2_FS_POSIX_ACL=y
+# CONFIG_EXT2_FS_SECURITY is not set
+# CONFIG_EXT2_FS_XIP is not set
+CONFIG_EXT3_FS=y
+CONFIG_EXT3_FS_XATTR=y
+CONFIG_EXT3_FS_POSIX_ACL=y
+# CONFIG_EXT3_FS_SECURITY is not set
+CONFIG_EXT4DEV_FS=y
+CONFIG_EXT4DEV_FS_XATTR=y
+CONFIG_EXT4DEV_FS_POSIX_ACL=y
+# CONFIG_EXT4DEV_FS_SECURITY is not set
+CONFIG_JBD=y
+CONFIG_JBD2=y
+CONFIG_FS_MBCACHE=y
+CONFIG_REISERFS_FS=y
+# CONFIG_REISERFS_CHECK is not set
+CONFIG_REISERFS_PROC_INFO=y
+CONFIG_REISERFS_FS_XATTR=y
+CONFIG_REISERFS_FS_POSIX_ACL=y
+# CONFIG_REISERFS_FS_SECURITY is not set
+# CONFIG_JFS_FS is not set
+CONFIG_FS_POSIX_ACL=y
+# CONFIG_XFS_FS is not set
+# CONFIG_GFS2_FS is not set
+# CONFIG_OCFS2_FS is not set
+# CONFIG_MINIX_FS is not set
+CONFIG_ROMFS_FS=y
+CONFIG_INOTIFY=y
+CONFIG_INOTIFY_USER=y
+# CONFIG_QUOTA is not set
+CONFIG_DNOTIFY=y
+# CONFIG_AUTOFS_FS is not set
+CONFIG_AUTOFS4_FS=y
+CONFIG_FUSE_FS=y
+CONFIG_GENERIC_ACL=y
+
+#
+# CD-ROM/DVD Filesystems
+#
+CONFIG_ISO9660_FS=y
+CONFIG_JOLIET=y
+CONFIG_ZISOFS=y
+CONFIG_UDF_FS=y
+CONFIG_UDF_NLS=y
+
+#
+# DOS/FAT/NT Filesystems
+#
+CONFIG_FAT_FS=y
+CONFIG_MSDOS_FS=y
+CONFIG_VFAT_FS=y
+CONFIG_FAT_DEFAULT_CODEPAGE=437
+CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
+# CONFIG_NTFS_FS is not set
+
+#
+# Pseudo filesystems
+#
+CONFIG_PROC_FS=y
+# CONFIG_PROC_KCORE is not set
+CONFIG_PROC_SYSCTL=y
+CONFIG_SYSFS=y
+CONFIG_TMPFS=y
+CONFIG_TMPFS_POSIX_ACL=y
+CONFIG_HUGETLBFS=y
+CONFIG_HUGETLB_PAGE=y
+CONFIG_CONFIGFS_FS=y
+
+#
+# Miscellaneous filesystems
+#
+# CONFIG_ADFS_FS is not set
+# CONFIG_AFFS_FS is not set
+# CONFIG_HFS_FS is not set
+# CONFIG_HFSPLUS_FS is not set
+# CONFIG_BEFS_FS is not set
+# CONFIG_BFS_FS is not set
+# CONFIG_EFS_FS is not set
+CONFIG_CRAMFS=y
+# CONFIG_SQUASHFS is not set
+# CONFIG_VXFS_FS is not set
+# CONFIG_HPFS_FS is not set
+# CONFIG_QNX4FS_FS is not set
+# CONFIG_SYSV_FS is not set
+# CONFIG_UFS_FS is not set
+CONFIG_NETWORK_FILESYSTEMS=y
+CONFIG_NFS_FS=y
+CONFIG_NFS_V3=y
+CONFIG_NFS_V3_ACL=y
+CONFIG_NFS_V4=y
+# CONFIG_NFS_DIRECTIO is not set
+CONFIG_NFSD=y
+CONFIG_NFSD_V2_ACL=y
+CONFIG_NFSD_V3=y
+CONFIG_NFSD_V3_ACL=y
+CONFIG_NFSD_V4=y
+CONFIG_NFSD_TCP=y
+CONFIG_LOCKD=y
+CONFIG_LOCKD_V4=y
+CONFIG_EXPORTFS=y
+CONFIG_NFS_ACL_SUPPORT=y
+CONFIG_NFS_COMMON=y
+CONFIG_SUNRPC=y
+CONFIG_SUNRPC_GSS=y
+# CONFIG_SUNRPC_BIND34 is not set
+CONFIG_RPCSEC_GSS_KRB5=y
+# CONFIG_RPCSEC_GSS_SPKM3 is not set
+# CONFIG_SMB_FS is not set
+CONFIG_CIFS=y
+# CONFIG_CIFS_STATS is not set
+# CONFIG_CIFS_WEAK_PW_HASH is not set
+CONFIG_CIFS_XATTR=y
+CONFIG_CIFS_POSIX=y
+# CONFIG_CIFS_DEBUG2 is not set
+CONFIG_CIFS_EXPERIMENTAL=y
+# CONFIG_NCP_FS is not set
+CONFIG_CODA_FS=y
+CONFIG_CODA_FS_OLD_API=y
+# CONFIG_AFS_FS is not set
+
+#
+# Partition Types
+#
+# CONFIG_PARTITION_ADVANCED is not set
+CONFIG_MSDOS_PARTITION=y
+CONFIG_NLS=y
+CONFIG_NLS_DEFAULT="utf8"
+CONFIG_NLS_CODEPAGE_437=y
+# CONFIG_NLS_CODEPAGE_737 is not set
+# CONFIG_NLS_CODEPAGE_775 is not set
+CONFIG_NLS_CODEPAGE_850=y
+# CONFIG_NLS_CODEPAGE_852 is not set
+# CONFIG_NLS_CODEPAGE_855 is not set
+# CONFIG_NLS_CODEPAGE_857 is not set
+# CONFIG_NLS_CODEPAGE_860 is not set
+# CONFIG_NLS_CODEPAGE_861 is not set
+# CONFIG_NLS_CODEPAGE_862 is not set
+# CONFIG_NLS_CODEPAGE_863 is not set
+# CONFIG_NLS_CODEPAGE_864 is not set
+# CONFIG_NLS_CODEPAGE_865 is not set
+# CONFIG_NLS_CODEPAGE_866 is not set
+# CONFIG_NLS_CODEPAGE_869 is not set
+# CONFIG_NLS_CODEPAGE_936 is not set
+# CONFIG_NLS_CODEPAGE_950 is not set
+# CONFIG_NLS_CODEPAGE_932 is not set
+# CONFIG_NLS_CODEPAGE_949 is not set
+# CONFIG_NLS_CODEPAGE_874 is not set
+# CONFIG_NLS_ISO8859_8 is not set
+# CONFIG_NLS_CODEPAGE_1250 is not set
+# CONFIG_NLS_CODEPAGE_1251 is not set
+CONFIG_NLS_ASCII=y
+CONFIG_NLS_ISO8859_1=y
+# CONFIG_NLS_ISO8859_2 is not set
+# CONFIG_NLS_ISO8859_3 is not set
+# CONFIG_NLS_ISO8859_4 is not set
+# CONFIG_NLS_ISO8859_5 is not set
+# CONFIG_NLS_ISO8859_6 is not set
+# CONFIG_NLS_ISO8859_7 is not set
+# CONFIG_NLS_ISO8859_9 is not set
+# CONFIG_NLS_ISO8859_13 is not set
+# CONFIG_NLS_ISO8859_14 is not set
+CONFIG_NLS_ISO8859_15=y
+# CONFIG_NLS_KOI8_R is not set
+# CONFIG_NLS_KOI8_U is not set
+CONFIG_NLS_UTF8=y
+# CONFIG_DLM is not set
+CONFIG_INSTRUMENTATION=y
+CONFIG_PROFILING=y
+# CONFIG_OPROFILE is not set
+# CONFIG_KPROBES is not set
+# CONFIG_MARKERS is not set
+
+#
+# Kernel hacking
+#
+CONFIG_TRACE_IRQFLAGS_SUPPORT=y
+# CONFIG_PRINTK_TIME is not set
+CONFIG_ENABLE_WARN_DEPRECATED=y
+# CONFIG_ENABLE_MUST_CHECK is not set
+CONFIG_MAGIC_SYSRQ=y
+CONFIG_UNUSED_SYMBOLS=y
+# CONFIG_DEBUG_FS is not set
+# CONFIG_HEADERS_CHECK is not set
+# CONFIG_DEBUG_KERNEL is not set
+CONFIG_DEBUG_BUGVERBOSE=y
+# CONFIG_SAMPLES is not set
+CONFIG_EARLY_PRINTK=y
+
+#
+# Security options
+#
+# CONFIG_KEYS is not set
+# CONFIG_SECURITY is not set
+# CONFIG_SECURITY_FILE_CAPABILITIES is not set
+CONFIG_CRYPTO=y
+CONFIG_CRYPTO_ALGAPI=y
+CONFIG_CRYPTO_BLKCIPHER=y
+CONFIG_CRYPTO_MANAGER=y
+# CONFIG_CRYPTO_HMAC is not set
+# CONFIG_CRYPTO_XCBC is not set
+# CONFIG_CRYPTO_NULL is not set
+# CONFIG_CRYPTO_MD4 is not set
+CONFIG_CRYPTO_MD5=y
+# CONFIG_CRYPTO_SHA1 is not set
+# CONFIG_CRYPTO_SHA256 is not set
+# CONFIG_CRYPTO_SHA512 is not set
+# CONFIG_CRYPTO_WP512 is not set
+# CONFIG_CRYPTO_TGR192 is not set
+# CONFIG_CRYPTO_GF128MUL is not set
+# CONFIG_CRYPTO_ECB is not set
+CONFIG_CRYPTO_CBC=y
+# CONFIG_CRYPTO_PCBC is not set
+# CONFIG_CRYPTO_LRW is not set
+# CONFIG_CRYPTO_XTS is not set
+# CONFIG_CRYPTO_CRYPTD is not set
+CONFIG_CRYPTO_DES=y
+# CONFIG_CRYPTO_FCRYPT is not set
+# CONFIG_CRYPTO_BLOWFISH is not set
+# CONFIG_CRYPTO_TWOFISH is not set
+# CONFIG_CRYPTO_TWOFISH_X86_64 is not set
+# CONFIG_CRYPTO_SERPENT is not set
+CONFIG_CRYPTO_AES=y
+CONFIG_CRYPTO_AES_X86_64=y
+# CONFIG_CRYPTO_CAST5 is not set
+# CONFIG_CRYPTO_CAST6 is not set
+# CONFIG_CRYPTO_TEA is not set
+# CONFIG_CRYPTO_ARC4 is not set
+# CONFIG_CRYPTO_KHAZAD is not set
+# CONFIG_CRYPTO_ANUBIS is not set
+# CONFIG_CRYPTO_SEED is not set
+# CONFIG_CRYPTO_DEFLATE is not set
+# CONFIG_CRYPTO_MICHAEL_MIC is not set
+CONFIG_CRYPTO_CRC32C=y
+# CONFIG_CRYPTO_CAMELLIA is not set
+# CONFIG_CRYPTO_TEST is not set
+# CONFIG_CRYPTO_AUTHENC is not set
+CONFIG_CRYPTO_HW=y
+
+#
+# Library routines
+#
+CONFIG_BITREVERSE=y
+CONFIG_CRC_CCITT=y
+CONFIG_CRC16=y
+CONFIG_CRC_ITU_T=y
+CONFIG_CRC32=y
+# CONFIG_CRC7 is not set
+CONFIG_LIBCRC32C=y
+CONFIG_ZLIB_INFLATE=y
+CONFIG_TEXTSEARCH=y
+CONFIG_TEXTSEARCH_KMP=y
+CONFIG_TEXTSEARCH_BM=y
+CONFIG_TEXTSEARCH_FSM=y
+CONFIG_PLIST=y
+CONFIG_HAS_IOMEM=y
+CONFIG_HAS_IOPORT=y
+CONFIG_HAS_DMA=y
+
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/x-chdr;
+  charset="us-ascii";
+  name="cx88.h"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="cx88.h"
+
+/*
+ *
+ * v4l2 device driver for cx2388x based TV cards
+ *
+ * (c) 2003,04 Gerd Knorr <kraxel@bytesex.org> [SUSE Labs]
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+#include <linux/pci.h>
+#include <linux/i2c.h>
+#include <linux/i2c-algo-bit.h>
+#include <linux/videodev2.h>
+#include <linux/kdev_t.h>
+
+#include <media/v4l2-common.h>
+#include <media/tuner.h>
+#include <media/tveeprom.h>
+#include <media/videobuf-dma-sg.h>
+#include <media/v4l2-chip-ident.h>
+#include <media/cx2341x.h>
+#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
+#include <media/videobuf-dvb.h>
+#endif
+#include "compat.h"
+
+#include "btcx-risc.h"
+#include "cx88-reg.h"
+#include "tuner-xc2028.h"
+
+#include <linux/version.h>
+#include <linux/mutex.h>
+#define CX88_VERSION_CODE KERNEL_VERSION(0,0,6)
+
+#define UNSET (-1U)
+
+#define CX88_MAXBOARDS 8
+
+/* Max number of inputs by card */
+#define MAX_CX88_INPUT 8
+
+/* ----------------------------------------------------------- */
+/* defines and enums                                           */
+
+/* Currently unsupported by the driver: PAL/H, NTSC/Kr, SECAM B/G/H/LC */
+#define CX88_NORMS (\
+	V4L2_STD_NTSC_M|  V4L2_STD_NTSC_M_JP|  V4L2_STD_NTSC_443 | \
+	V4L2_STD_PAL_BG|  V4L2_STD_PAL_DK   |  V4L2_STD_PAL_I    | \
+	V4L2_STD_PAL_M |  V4L2_STD_PAL_N    |  V4L2_STD_PAL_Nc   | \
+	V4L2_STD_PAL_60|  V4L2_STD_SECAM_L  |  V4L2_STD_SECAM_DK )
+
+#define FORMAT_FLAGS_PACKED       0x01
+#define FORMAT_FLAGS_PLANAR       0x02
+
+#define VBI_LINE_COUNT              17
+#define VBI_LINE_LENGTH           2048
+
+/* need "shadow" registers for some write-only ones ... */
+#define SHADOW_AUD_VOL_CTL           1
+#define SHADOW_AUD_BAL_CTL           2
+#define SHADOW_MAX                   3
+
+/* FM Radio deemphasis type */
+enum cx88_deemph_type {
+	FM_NO_DEEMPH = 0,
+	FM_DEEMPH_50,
+	FM_DEEMPH_75
+};
+
+enum cx88_board_type {
+	CX88_BOARD_NONE = 0,
+	CX88_MPEG_DVB,
+	CX88_MPEG_BLACKBIRD
+};
+
+enum cx8802_board_access {
+	CX8802_DRVCTL_SHARED    = 1,
+	CX8802_DRVCTL_EXCLUSIVE = 2,
+};
+
+/* ----------------------------------------------------------- */
+/* tv norms                                                    */
+
+static unsigned int inline norm_maxw(v4l2_std_id norm)
+{
+	return (norm & (V4L2_STD_MN & ~V4L2_STD_PAL_Nc)) ? 720 : 768;
+}
+
+
+static unsigned int inline norm_maxh(v4l2_std_id norm)
+{
+	return (norm & V4L2_STD_625_50) ? 576 : 480;
+}
+
+/* ----------------------------------------------------------- */
+/* static data                                                 */
+
+struct cx8800_fmt {
+	char  *name;
+	u32   fourcc;          /* v4l2 format id */
+	int   depth;
+	int   flags;
+	u32   cxformat;
+};
+
+struct cx88_ctrl {
+	struct v4l2_queryctrl  v;
+	u32                    off;
+	u32                    reg;
+	u32                    sreg;
+	u32                    mask;
+	u32                    shift;
+};
+
+/* ----------------------------------------------------------- */
+/* SRAM memory management data (see cx88-core.c)               */
+
+#define SRAM_CH21 0   /* video */
+#define SRAM_CH22 1
+#define SRAM_CH23 2
+#define SRAM_CH24 3   /* vbi   */
+#define SRAM_CH25 4   /* audio */
+#define SRAM_CH26 5
+#define SRAM_CH28 6   /* mpeg */
+/* more */
+
+struct sram_channel {
+	char *name;
+	u32  cmds_start;
+	u32  ctrl_start;
+	u32  cdt;
+	u32  fifo_start;
+	u32  fifo_size;
+	u32  ptr1_reg;
+	u32  ptr2_reg;
+	u32  cnt1_reg;
+	u32  cnt2_reg;
+};
+extern struct sram_channel cx88_sram_channels[];
+
+/* ----------------------------------------------------------- */
+/* card configuration                                          */
+
+#define CX88_BOARD_NOAUTO               UNSET
+#define CX88_BOARD_UNKNOWN                  0
+#define CX88_BOARD_HAUPPAUGE                1
+#define CX88_BOARD_GDI                      2
+#define CX88_BOARD_PIXELVIEW                3
+#define CX88_BOARD_ATI_WONDER_PRO           4
+#define CX88_BOARD_WINFAST2000XP_EXPERT     5
+#define CX88_BOARD_AVERTV_STUDIO_303        6
+#define CX88_BOARD_MSI_TVANYWHERE_MASTER    7
+#define CX88_BOARD_WINFAST_DV2000           8
+#define CX88_BOARD_LEADTEK_PVR2000          9
+#define CX88_BOARD_IODATA_GVVCP3PCI        10
+#define CX88_BOARD_PROLINK_PLAYTVPVR       11
+#define CX88_BOARD_ASUS_PVR_416            12
+#define CX88_BOARD_MSI_TVANYWHERE          13
+#define CX88_BOARD_KWORLD_DVB_T            14
+#define CX88_BOARD_DVICO_FUSIONHDTV_DVB_T1 15
+#define CX88_BOARD_KWORLD_LTV883           16
+#define CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q  17
+#define CX88_BOARD_HAUPPAUGE_DVB_T1        18
+#define CX88_BOARD_CONEXANT_DVB_T1         19
+#define CX88_BOARD_PROVIDEO_PV259          20
+#define CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PLUS 21
+#define CX88_BOARD_PCHDTV_HD3000           22
+#define CX88_BOARD_DNTV_LIVE_DVB_T         23
+#define CX88_BOARD_HAUPPAUGE_ROSLYN        24
+#define CX88_BOARD_DIGITALLOGIC_MEC        25
+#define CX88_BOARD_IODATA_GVBCTV7E         26
+#define CX88_BOARD_PIXELVIEW_PLAYTV_ULTRA_PRO 27
+#define CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_T  28
+#define CX88_BOARD_ADSTECH_DVB_T_PCI          29
+#define CX88_BOARD_TERRATEC_CINERGY_1400_DVB_T1  30
+#define CX88_BOARD_DVICO_FUSIONHDTV_5_GOLD 31
+#define CX88_BOARD_AVERMEDIA_ULTRATV_MC_550 32
+#define CX88_BOARD_KWORLD_VSTREAM_EXPERT_DVD 33
+#define CX88_BOARD_ATI_HDTVWONDER          34
+#define CX88_BOARD_WINFAST_DTV1000         35
+#define CX88_BOARD_AVERTV_303              36
+#define CX88_BOARD_HAUPPAUGE_NOVASPLUS_S1  37
+#define CX88_BOARD_HAUPPAUGE_NOVASE2_S1    38
+#define CX88_BOARD_KWORLD_DVBS_100         39
+#define CX88_BOARD_HAUPPAUGE_HVR1100       40
+#define CX88_BOARD_HAUPPAUGE_HVR1100LP     41
+#define CX88_BOARD_DNTV_LIVE_DVB_T_PRO     42
+#define CX88_BOARD_KWORLD_DVB_T_CX22702    43
+#define CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL 44
+#define CX88_BOARD_KWORLD_HARDWARE_MPEG_TV_XPERT 45
+#define CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_HYBRID 46
+#define CX88_BOARD_PCHDTV_HD5500           47
+#define CX88_BOARD_KWORLD_MCE200_DELUXE    48
+#define CX88_BOARD_PIXELVIEW_PLAYTV_P7000  49
+#define CX88_BOARD_NPGTECH_REALTV_TOP10FM  50
+#define CX88_BOARD_WINFAST_DTV2000H        51
+#define CX88_BOARD_GENIATECH_DVBS          52
+#define CX88_BOARD_HAUPPAUGE_HVR3000       53
+#define CX88_BOARD_NORWOOD_MICRO           54
+#define CX88_BOARD_TE_DTV_250_OEM_SWANN    55
+#define CX88_BOARD_HAUPPAUGE_HVR1300       56
+#define CX88_BOARD_ADSTECH_PTV_390         57
+#define CX88_BOARD_PINNACLE_PCTV_HD_800i   58
+#define CX88_BOARD_DVICO_FUSIONHDTV_5_PCI_NANO 59
+#define CX88_BOARD_PINNACLE_HYBRID_PCTV    60
+#define CX88_BOARD_WINFAST_TV2000_XP_GLOBAL 61
+#define CX88_BOARD_POWERCOLOR_REAL_ANGEL   62
+#define CX88_BOARD_GENIATECH_X8000_MT      63
+#define CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PRO 64
+#define CX88_BOARD_DVICO_FUSIONHDTV_7_GOLD 65
+#define CX88_BOARD_PROLINK_PV_8000GT       66
+#define CX88_BOARD_KWORLD_ATSC_120         67
+#define CX88_BOARD_TERRATEC_CINERGY_HT_PCI  68
+
+enum cx88_itype {
+	CX88_VMUX_COMPOSITE1 = 1,
+	CX88_VMUX_COMPOSITE2,
+	CX88_VMUX_COMPOSITE3,
+	CX88_VMUX_COMPOSITE4,
+	CX88_VMUX_SVIDEO,
+	CX88_VMUX_TELEVISION,
+	CX88_VMUX_CABLE,
+	CX88_VMUX_DVB,
+	CX88_VMUX_DEBUG,
+	CX88_RADIO,
+};
+
+struct cx88_input {
+	enum cx88_itype type;
+	u32             gpio0, gpio1, gpio2, gpio3;
+	unsigned int    vmux:2;
+	unsigned int    audioroute:2;
+};
+
+struct cx88_board {
+	char                    *name;
+	unsigned int            tuner_type;
+	unsigned int		radio_type;
+	unsigned char		tuner_addr;
+	unsigned char		radio_addr;
+	int                     tda9887_conf;
+	struct cx88_input       input[MAX_CX88_INPUT];
+	struct cx88_input       radio;
+	enum cx88_board_type    mpeg;
+	unsigned int            audio_chip;
+};
+
+struct cx88_subid {
+	u16     subvendor;
+	u16     subdevice;
+	u32     card;
+};
+
+#define INPUT(nr) (core->board.input[nr])
+
+/* ----------------------------------------------------------- */
+/* device / file handle status                                 */
+
+#define RESOURCE_OVERLAY       1
+#define RESOURCE_VIDEO         2
+#define RESOURCE_VBI           4
+
+#define BUFFER_TIMEOUT     msecs_to_jiffies(500)  /* 0.5 seconds */
+#if 0
+#define BUFFER_TIMEOUT     msecs_to_jiffies(2000)
+#endif
+
+/* buffer for one video frame */
+struct cx88_buffer {
+	/* common v4l buffer stuff -- must be first */
+	struct videobuf_buffer vb;
+
+	/* cx88 specific */
+	unsigned int           bpl;
+	struct btcx_riscmem    risc;
+	struct cx8800_fmt      *fmt;
+	u32                    count;
+};
+
+struct cx88_dmaqueue {
+	struct list_head       active;
+	struct list_head       queued;
+	struct timer_list      timeout;
+	struct btcx_riscmem    stopper;
+	u32                    count;
+};
+
+struct cx88_core {
+	struct list_head           devlist;
+	atomic_t                   refcount;
+
+	/* board name */
+	int                        nr;
+	char                       name[32];
+
+	/* pci stuff */
+	int                        pci_bus;
+	int                        pci_slot;
+	u32                        __iomem *lmmio;
+	u8                         __iomem *bmmio;
+	u32                        shadow[SHADOW_MAX];
+	int                        pci_irqmask;
+
+	/* i2c i/o */
+	struct i2c_adapter         i2c_adap;
+	struct i2c_algo_bit_data   i2c_algo;
+	struct i2c_client          i2c_client;
+	u32                        i2c_state, i2c_rc;
+
+	/* config info -- analog */
+	unsigned int               boardnr;
+	struct cx88_board	   board;
+
+	/* Supported V4L _STD_ tuner formats */
+	unsigned int               tuner_formats;
+
+	/* config info -- dvb */
+#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
+	int 			   (*prev_set_voltage)(struct dvb_frontend* fe, fe_sec_voltage_t voltage);
+#endif
+
+	/* state info */
+	struct task_struct         *kthread;
+	v4l2_std_id                tvnorm;
+	u32                        tvaudio;
+	u32                        audiomode_manual;
+	u32                        audiomode_current;
+	u32                        input;
+	u32                        astat;
+	u32			   use_nicam;
+
+	/* IR remote control state */
+	struct cx88_IR             *ir;
+
+	struct mutex               lock;
+	/* various v4l controls */
+	u32                        freq;
+
+	/* cx88-video needs to access cx8802 for hybrid tuner pll access. */
+	struct cx8802_dev          *dvbdev;
+	enum cx88_board_type       active_type_id;
+	int			   active_ref;
+};
+
+struct cx8800_dev;
+struct cx8802_dev;
+
+/* ----------------------------------------------------------- */
+/* function 0: video stuff                                     */
+
+struct cx8800_fh {
+	struct cx8800_dev          *dev;
+	enum v4l2_buf_type         type;
+	int                        radio;
+	unsigned int               resources;
+
+	/* video overlay */
+	struct v4l2_window         win;
+	struct v4l2_clip           *clips;
+	unsigned int               nclips;
+
+	/* video capture */
+	struct cx8800_fmt          *fmt;
+	unsigned int               width,height;
+	struct videobuf_queue      vidq;
+
+	/* vbi capture */
+	struct videobuf_queue      vbiq;
+};
+
+struct cx8800_suspend_state {
+	int                        disabled;
+};
+
+struct cx8800_dev {
+	struct cx88_core           *core;
+	struct list_head           devlist;
+#if 0
+	/* moved to cx88_core */
+	struct semaphore           lock;
+#endif
+	spinlock_t                 slock;
+
+	/* various device info */
+	unsigned int               resources;
+	struct video_device        *video_dev;
+	struct video_device        *vbi_dev;
+	struct video_device        *radio_dev;
+
+	/* pci i/o */
+	struct pci_dev             *pci;
+	unsigned char              pci_rev,pci_lat;
+
+#if 0
+	/* video overlay */
+	struct v4l2_framebuffer    fbuf;
+	struct cx88_buffer         *screen;
+#endif
+
+	/* capture queues */
+	struct cx88_dmaqueue       vidq;
+	struct cx88_dmaqueue       vbiq;
+
+	/* various v4l controls */
+#if 0
+	/* moved to cx88_core */
+	u32                        freq;
+#endif
+
+	/* other global state info */
+	struct cx8800_suspend_state state;
+};
+
+/* ----------------------------------------------------------- */
+/* function 1: audio/alsa stuff                                */
+/* =============> moved to cx88-alsa.c <====================== */
+
+
+/* ----------------------------------------------------------- */
+/* function 2: mpeg stuff                                      */
+
+struct cx8802_fh {
+	struct cx8802_dev          *dev;
+	struct videobuf_queue      mpegq;
+};
+
+struct cx8802_suspend_state {
+	int                        disabled;
+};
+
+struct cx8802_driver {
+	struct cx88_core *core;
+
+	/* List of drivers attached to device */
+	struct list_head drvlist;
+
+	/* Type of driver and access required */
+	enum cx88_board_type type_id;
+	enum cx8802_board_access hw_access;
+
+	/* MPEG 8802 internal only */
+	int (*suspend)(struct pci_dev *pci_dev, pm_message_t state);
+	int (*resume)(struct pci_dev *pci_dev);
+
+	/* MPEG 8802 -> mini driver - Driver probe and configuration */
+	int (*probe)(struct cx8802_driver *drv);
+	int (*remove)(struct cx8802_driver *drv);
+
+	/* MPEG 8802 -> mini driver - Access for hardware control */
+	int (*advise_acquire)(struct cx8802_driver *drv);
+	int (*advise_release)(struct cx8802_driver *drv);
+
+	/* MPEG 8802 <- mini driver - Access for hardware control */
+	int (*request_acquire)(struct cx8802_driver *drv);
+	int (*request_release)(struct cx8802_driver *drv);
+};
+
+struct cx8802_dev {
+	struct cx88_core           *core;
+#if 0
+	/* moved to cx88_core ? */
+	struct semaphore           lock;
+#endif
+	spinlock_t                 slock;
+
+	/* pci i/o */
+	struct pci_dev             *pci;
+	unsigned char              pci_rev,pci_lat;
+
+	/* dma queues */
+	struct cx88_dmaqueue       mpegq;
+	u32                        ts_packet_size;
+	u32                        ts_packet_count;
+
+	/* other global state info */
+	struct cx8802_suspend_state state;
+
+	/* for blackbird only */
+	struct list_head           devlist;
+#if defined(CONFIG_VIDEO_CX88_BLACKBIRD) || \
+    defined(CONFIG_VIDEO_CX88_BLACKBIRD_MODULE)
+	struct video_device        *mpeg_dev;
+	u32                        mailbox;
+	int                        width;
+	int                        height;
+	unsigned char              mpeg_active; /* nonzero if mpeg encoder is active */
+
+	/* mpeg params */
+	struct cx2341x_mpeg_params params;
+#endif
+
+#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
+	/* for dvb only */
+	struct videobuf_dvb        dvb;
+#endif
+
+#if defined(CONFIG_VIDEO_CX88_VP3054) || \
+    defined(CONFIG_VIDEO_CX88_VP3054_MODULE)
+	/* For VP3045 secondary I2C bus support */
+	struct vp3054_i2c_state	   *vp3054;
+#endif
+	/* for switching modulation types */
+	unsigned char              ts_gen_cntrl;
+
+	/* List of attached drivers */
+	struct list_head	   drvlist;
+	struct work_struct	   request_module_wk;
+};
+
+/* ----------------------------------------------------------- */
+
+#define cx_read(reg)             readl(core->lmmio + ((reg)>>2))
+#define cx_write(reg,value)      writel((value), core->lmmio + ((reg)>>2))
+#define cx_writeb(reg,value)     writeb((value), core->bmmio + (reg))
+
+#define cx_andor(reg,mask,value) \
+  writel((readl(core->lmmio+((reg)>>2)) & ~(mask)) |\
+  ((value) & (mask)), core->lmmio+((reg)>>2))
+#define cx_set(reg,bit)          cx_andor((reg),(bit),(bit))
+#define cx_clear(reg,bit)        cx_andor((reg),(bit),0)
+
+#define cx_wait(d) { if (need_resched()) schedule(); else udelay(d); }
+
+/* shadow registers */
+#define cx_sread(sreg)		    (core->shadow[sreg])
+#define cx_swrite(sreg,reg,value) \
+  (core->shadow[sreg] = value, \
+   writel(core->shadow[sreg], core->lmmio + ((reg)>>2)))
+#define cx_sandor(sreg,reg,mask,value) \
+  (core->shadow[sreg] = (core->shadow[sreg] & ~(mask)) | ((value) & (mask)), \
+   writel(core->shadow[sreg], core->lmmio + ((reg)>>2)))
+
+/* ----------------------------------------------------------- */
+/* cx88-core.c                                                 */
+
+extern void cx88_print_irqbits(char *name, char *tag, char **strings,
+			       int len, u32 bits, u32 mask);
+
+extern int cx88_core_irq(struct cx88_core *core, u32 status);
+extern void cx88_wakeup(struct cx88_core *core,
+			struct cx88_dmaqueue *q, u32 count);
+extern void cx88_shutdown(struct cx88_core *core);
+extern int cx88_reset(struct cx88_core *core);
+
+extern int
+cx88_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+		 struct scatterlist *sglist,
+		 unsigned int top_offset, unsigned int bottom_offset,
+		 unsigned int bpl, unsigned int padding, unsigned int lines);
+extern int
+cx88_risc_databuffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+		     struct scatterlist *sglist, unsigned int bpl,
+		     unsigned int lines, unsigned int lpi);
+extern int
+cx88_risc_stopper(struct pci_dev *pci, struct btcx_riscmem *risc,
+		  u32 reg, u32 mask, u32 value);
+extern void
+cx88_free_buffer(struct videobuf_queue *q, struct cx88_buffer *buf);
+
+extern void cx88_risc_disasm(struct cx88_core *core,
+			     struct btcx_riscmem *risc);
+extern int cx88_sram_channel_setup(struct cx88_core *core,
+				   struct sram_channel *ch,
+				   unsigned int bpl, u32 risc);
+extern void cx88_sram_channel_dump(struct cx88_core *core,
+				   struct sram_channel *ch);
+
+extern int cx88_set_scale(struct cx88_core *core, unsigned int width,
+			  unsigned int height, enum v4l2_field field);
+extern int cx88_set_tvnorm(struct cx88_core *core, v4l2_std_id norm);
+
+extern struct video_device *cx88_vdev_init(struct cx88_core *core,
+					   struct pci_dev *pci,
+					   struct video_device *template,
+					   char *type);
+extern struct cx88_core* cx88_core_get(struct pci_dev *pci);
+extern void cx88_core_put(struct cx88_core *core,
+			  struct pci_dev *pci);
+
+extern int cx88_start_audio_dma(struct cx88_core *core);
+extern int cx88_stop_audio_dma(struct cx88_core *core);
+
+
+/* ----------------------------------------------------------- */
+/* cx88-vbi.c                                                  */
+
+/* Can be used as g_vbi_fmt, try_vbi_fmt and s_vbi_fmt */
+int cx8800_vbi_fmt (struct file *file, void *priv,
+					struct v4l2_format *f);
+
+/*
+int cx8800_start_vbi_dma(struct cx8800_dev    *dev,
+			 struct cx88_dmaqueue *q,
+			 struct cx88_buffer   *buf);
+*/
+int cx8800_stop_vbi_dma(struct cx8800_dev *dev);
+int cx8800_restart_vbi_queue(struct cx8800_dev    *dev,
+			     struct cx88_dmaqueue *q);
+void cx8800_vbi_timeout(unsigned long data);
+
+extern struct videobuf_queue_ops cx8800_vbi_qops;
+
+/* ----------------------------------------------------------- */
+/* cx88-i2c.c                                                  */
+
+extern int cx88_i2c_init(struct cx88_core *core, struct pci_dev *pci);
+extern void cx88_call_i2c_clients(struct cx88_core *core,
+				  unsigned int cmd, void *arg);
+
+
+/* ----------------------------------------------------------- */
+/* cx88-cards.c                                                */
+
+extern int cx88_tuner_callback(void *dev, int command, int arg);
+extern int cx88_get_resources(const struct cx88_core *core,
+			      struct pci_dev *pci);
+extern struct cx88_core *cx88_core_create(struct pci_dev *pci, int nr);
+extern void cx88_setup_xc3028(struct cx88_core *core, struct xc2028_ctrl *ctl);
+
+/* ----------------------------------------------------------- */
+/* cx88-tvaudio.c                                              */
+
+#define WW_NONE		 1
+#define WW_BTSC		 2
+#define WW_BG		 3
+#define WW_DK		 4
+#define WW_I		 5
+#define WW_L		 6
+#define WW_EIAJ		 7
+#define WW_I2SPT	 8
+#define WW_FM		 9
+
+void cx88_set_tvaudio(struct cx88_core *core);
+void cx88_newstation(struct cx88_core *core);
+void cx88_get_stereo(struct cx88_core *core, struct v4l2_tuner *t);
+void cx88_set_stereo(struct cx88_core *core, u32 mode, int manual);
+int cx88_audio_thread(void *data);
+
+int cx8802_register_driver(struct cx8802_driver *drv);
+int cx8802_unregister_driver(struct cx8802_driver *drv);
+struct cx8802_dev * cx8802_get_device(struct inode *inode);
+struct cx8802_driver * cx8802_get_driver(struct cx8802_dev *dev, enum cx88_board_type btype);
+
+/* ----------------------------------------------------------- */
+/* cx88-input.c                                                */
+
+int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci);
+int cx88_ir_fini(struct cx88_core *core);
+void cx88_ir_irq(struct cx88_core *core);
+void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir);
+void cx88_ir_stop(struct cx88_core *core, struct cx88_IR *ir);
+
+/* ----------------------------------------------------------- */
+/* cx88-mpeg.c                                                 */
+
+int cx8802_buf_prepare(struct videobuf_queue *q,struct cx8802_dev *dev,
+			struct cx88_buffer *buf, enum v4l2_field field);
+void cx8802_buf_queue(struct cx8802_dev *dev, struct cx88_buffer *buf);
+void cx8802_cancel_buffers(struct cx8802_dev *dev);
+
+/* ----------------------------------------------------------- */
+/* cx88-video.c*/
+extern const u32 cx88_user_ctrls[];
+extern int cx8800_ctrl_query(struct cx88_core *core,
+			     struct v4l2_queryctrl *qctrl);
+int cx88_enum_input (struct cx88_core  *core,struct v4l2_input *i);
+int cx88_set_freq (struct cx88_core  *core,struct v4l2_frequency *f);
+int cx88_get_control(struct cx88_core *core, struct v4l2_control *ctl);
+int cx88_set_control(struct cx88_core *core, struct v4l2_control *ctl);
+int cx88_video_mux(struct cx88_core *core, unsigned int input);
+
+/*
+ * Local variables:
+ * c-basic-offset: 8
+ * End:
+ * kate: eol "unix"; indent-width 3; remove-trailing-space on; replace-trailing-space-save on; tab-width 8; replace-tabs off; space-indent off; mixed-indent off
+ */
+
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/x-csrc;
+  charset="us-ascii";
+  name="cx88-cards.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="cx88-cards.c"
+
+/*
+ *
+ * device driver for Conexant 2388x based TV cards
+ * card-specific stuff.
+ *
+ * (c) 2003 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
+
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/pci.h>
+#include <linux/delay.h>
+
+#include "compat.h"
+#include "cx88.h"
+#include "tea5767.h"
+
+static unsigned int tuner[] = {[0 ... (CX88_MAXBOARDS - 1)] = UNSET };
+static unsigned int radio[] = {[0 ... (CX88_MAXBOARDS - 1)] = UNSET };
+static unsigned int card[]  = {[0 ... (CX88_MAXBOARDS - 1)] = UNSET };
+
+module_param_array(tuner, int, NULL, 0444);
+module_param_array(radio, int, NULL, 0444);
+module_param_array(card,  int, NULL, 0444);
+
+MODULE_PARM_DESC(tuner,"tuner type");
+MODULE_PARM_DESC(radio,"radio tuner type");
+MODULE_PARM_DESC(card,"card type");
+
+static unsigned int latency = UNSET;
+module_param(latency,int,0444);
+MODULE_PARM_DESC(latency,"pci latency timer");
+
+#define info_printk(core, fmt, arg...) \
+	printk(KERN_INFO "%s: " fmt, core->name , ## arg)
+
+#define warn_printk(core, fmt, arg...) \
+	printk(KERN_WARNING "%s: " fmt, core->name , ## arg)
+
+#define err_printk(core, fmt, arg...) \
+	printk(KERN_ERR "%s: " fmt, core->name , ## arg)
+
+
+/* ------------------------------------------------------------------ */
+/* board config info                                                  */
+
+/* If radio_type !=UNSET, radio_addr should be specified
+ */
+
+static const struct cx88_board cx88_boards[] = {
+	[CX88_BOARD_UNKNOWN] = {
+		.name		= "UNKNOWN/GENERIC",
+		.tuner_type     = UNSET,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 0,
+		},{
+			.type   = CX88_VMUX_COMPOSITE2,
+			.vmux   = 1,
+		},{
+			.type   = CX88_VMUX_COMPOSITE3,
+			.vmux   = 2,
+		},{
+			.type   = CX88_VMUX_COMPOSITE4,
+			.vmux   = 3,
+		}},
+	},
+	[CX88_BOARD_HAUPPAUGE] = {
+		.name		= "Hauppauge WinTV 34xxx models",
+		.tuner_type     = UNSET,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0xff00,  // internal decoder
+		},{
+			.type   = CX88_VMUX_DEBUG,
+			.vmux   = 0,
+			.gpio0  = 0xff01,  // mono from tuner chip
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0xff02,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0xff02,
+		}},
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0xff01,
+		},
+	},
+	[CX88_BOARD_GDI] = {
+		.name		= "GDI Black Gold",
+		.tuner_type     = UNSET,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+		}},
+	},
+	[CX88_BOARD_PIXELVIEW] = {
+		.name           = "PixelView",
+		.tuner_type     = TUNER_PHILIPS_PAL,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0xff00,  // internal decoder
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+		}},
+		.radio = {
+			 .type  = CX88_RADIO,
+			 .gpio0 = 0xff10,
+		},
+	},
+	[CX88_BOARD_ATI_WONDER_PRO] = {
+		.name           = "ATI TV Wonder Pro",
+		.tuner_type     = TUNER_PHILIPS_4IN1,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT | TDA9887_INTERCARRIER,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x03ff,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x03fe,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x03fe,
+		}},
+	},
+	[CX88_BOARD_WINFAST2000XP_EXPERT] = {
+		.name           = "Leadtek Winfast 2000XP Expert",
+		.tuner_type     = TUNER_PHILIPS_4IN1,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0	= 0x00F5e700,
+			.gpio1  = 0x00003004,
+			.gpio2  = 0x00F5e700,
+			.gpio3  = 0x02000000,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0	= 0x00F5c700,
+			.gpio1  = 0x00003004,
+			.gpio2  = 0x00F5c700,
+			.gpio3  = 0x02000000,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0	= 0x00F5c700,
+			.gpio1  = 0x00003004,
+			.gpio2  = 0x00F5c700,
+			.gpio3  = 0x02000000,
+		}},
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0	= 0x00F5d700,
+			.gpio1  = 0x00003004,
+			.gpio2  = 0x00F5d700,
+			.gpio3  = 0x02000000,
+		},
+	},
+	[CX88_BOARD_AVERTV_STUDIO_303] = {
+		.name           = "AverTV Studio 303 (M126)",
+		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio1  = 0xe09f,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio1  = 0xe05f,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio1  = 0xe05f,
+		}},
+		.radio = {
+			.gpio1  = 0xe0df,
+			.type   = CX88_RADIO,
+		},
+	},
+	[CX88_BOARD_MSI_TVANYWHERE_MASTER] = {
+		// added gpio values thanks to Michal
+		// values for PAL from DScaler
+		.name           = "MSI TV-@nywhere Master",
+		.tuner_type     = TUNER_MT2032,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf	= TDA9887_PRESENT | TDA9887_INTERCARRIER_NTSC,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x000040bf,
+			.gpio1  = 0x000080c0,
+			.gpio2  = 0x0000ff40,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x000040bf,
+			.gpio1  = 0x000080c0,
+			.gpio2  = 0x0000ff40,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x000040bf,
+			.gpio1  = 0x000080c0,
+			.gpio2  = 0x0000ff40,
+		}},
+		.radio = {
+			 .type   = CX88_RADIO,
+			 .vmux   = 3,
+			 .gpio0  = 0x000040bf,
+			 .gpio1  = 0x000080c0,
+			 .gpio2  = 0x0000ff20,
+		},
+	},
+	[CX88_BOARD_WINFAST_DV2000] = {
+		.name           = "Leadtek Winfast DV2000",
+		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x0035e700,
+			.gpio1  = 0x00003004,
+			.gpio2  = 0x0035e700,
+			.gpio3  = 0x02000000,
+		},{
+
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x0035c700,
+			.gpio1  = 0x00003004,
+			.gpio2  = 0x0035c700,
+			.gpio3  = 0x02000000,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x0035c700,
+			.gpio1  = 0x0035c700,
+			.gpio2  = 0x02000000,
+			.gpio3  = 0x02000000,
+		}},
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x0035d700,
+			.gpio1  = 0x00007004,
+			.gpio2  = 0x0035d700,
+			.gpio3  = 0x02000000,
+		},
+	},
+	[CX88_BOARD_LEADTEK_PVR2000] = {
+		// gpio values for PAL version from regspy by DScaler
+		.name           = "Leadtek PVR 2000",
+		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x0000bde2,
+			.audioroute = 1,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x0000bde6,
+			.audioroute = 1,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x0000bde6,
+			.audioroute = 1,
+		}},
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x0000bd62,
+			.audioroute = 1,
+		},
+		.mpeg           = CX88_MPEG_BLACKBIRD,
+	},
+	[CX88_BOARD_IODATA_GVVCP3PCI] = {
+		.name		= "IODATA GV-VCP3/PCI",
+		.tuner_type     = TUNER_ABSENT,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 0,
+		},{
+			.type   = CX88_VMUX_COMPOSITE2,
+			.vmux   = 1,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+		}},
+	},
+	[CX88_BOARD_PROLINK_PLAYTVPVR] = {
+		.name           = "Prolink PlayTV PVR",
+		.tuner_type     = TUNER_PHILIPS_FM1236_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf	= TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0xbff0,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0xbff3,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0xbff3,
+		}},
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0xbff0,
+		},
+	},
+	[CX88_BOARD_ASUS_PVR_416] = {
+		.name		= "ASUS PVR-416",
+		.tuner_type     = TUNER_PHILIPS_FM1236_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x0000fde6,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x0000fde6, // 0x0000fda6 L,R RCA audio in?
+			.audioroute = 1,
+		}},
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x0000fde2,
+		},
+		.mpeg           = CX88_MPEG_BLACKBIRD,
+	},
+	[CX88_BOARD_MSI_TVANYWHERE] = {
+		.name           = "MSI TV-@nywhere",
+		.tuner_type     = TUNER_MT2032,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x00000fbf,
+			.gpio2  = 0x0000fc08,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x00000fbf,
+			.gpio2  = 0x0000fc68,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x00000fbf,
+			.gpio2  = 0x0000fc68,
+		}},
+	},
+	[CX88_BOARD_KWORLD_DVB_T] = {
+		.name           = "KWorld/VStream XPert DVB-T",
+		.tuner_type     = TUNER_ABSENT,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x0700,
+			.gpio2  = 0x0101,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x0700,
+			.gpio2  = 0x0101,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_DVICO_FUSIONHDTV_DVB_T1] = {
+		.name           = "DViCO FusionHDTV DVB-T1",
+		.tuner_type     = TUNER_ABSENT, /* No analog tuner */
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x000027df,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x000027df,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_KWORLD_LTV883] = {
+		.name           = "KWorld LTV883RF",
+		.tuner_type     = TUNER_TNF_8831BGFF,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x07f8,
+		},{
+			.type   = CX88_VMUX_DEBUG,
+			.vmux   = 0,
+			.gpio0  = 0x07f9,  // mono from tuner chip
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x000007fa,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x000007fa,
+		}},
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x000007f8,
+		},
+	},
+	[CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q] = {
+		.name		= "DViCO FusionHDTV 3 Gold-Q",
+		.tuner_type     = TUNER_MICROTUNE_4042FI5,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		/*
+		   GPIO[0] resets DT3302 DTV receiver
+		    0 - reset asserted
+		    1 - normal operation
+		   GPIO[1] mutes analog audio output connector
+		    0 - enable selected source
+		    1 - mute
+		   GPIO[2] selects source for analog audio output connector
+		    0 - analog audio input connector on tab
+		    1 - analog DAC output from CX23881 chip
+		   GPIO[3] selects RF input connector on tuner module
+		    0 - RF connector labeled CABLE
+		    1 - RF connector labeled ANT
+		   GPIO[4] selects high RF for QAM256 mode
+		    0 - normal RF
+		    1 - high RF
+		*/
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0	= 0x0f0d,
+		},{
+			.type   = CX88_VMUX_CABLE,
+			.vmux   = 0,
+			.gpio0	= 0x0f05,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0	= 0x0f00,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0	= 0x0f00,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_HAUPPAUGE_DVB_T1] = {
+		.name           = "Hauppauge Nova-T DVB-T",
+		.tuner_type     = TUNER_ABSENT,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_DVB,
+			.vmux   = 0,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_CONEXANT_DVB_T1] = {
+		.name           = "Conexant DVB-T reference design",
+		.tuner_type     = TUNER_ABSENT,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_DVB,
+			.vmux   = 0,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_PROVIDEO_PV259] = {
+		.name		= "Provideo PV259",
+		.tuner_type     = TUNER_PHILIPS_FQ1216ME,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.audioroute = 1,
+		}},
+		.mpeg           = CX88_MPEG_BLACKBIRD,
+	},
+	[CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PLUS] = {
+		.name           = "DViCO FusionHDTV DVB-T Plus",
+		.tuner_type     = TUNER_ABSENT, /* No analog tuner */
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x000027df,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x000027df,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_DNTV_LIVE_DVB_T] = {
+		.name		= "digitalnow DNTV Live! DVB-T",
+		.tuner_type     = TUNER_ABSENT,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input		= {{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x00000700,
+			.gpio2  = 0x00000101,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x00000700,
+			.gpio2  = 0x00000101,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_PCHDTV_HD3000] = {
+		.name           = "pcHDTV HD3000 HDTV",
+		.tuner_type     = TUNER_THOMSON_DTT761X,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		/* GPIO[2] = audio source for analog audio out connector
+		 *  0 = analog audio input connector
+		 *  1 = CX88 audio DACs
+		 *
+		 * GPIO[7] = input to CX88's audio/chroma ADC
+		 *  0 = FM 10.7 MHz IF
+		 *  1 = Sound 4.5 MHz IF
+		 *
+		 * GPIO[1,5,6] = Oren 51132 pins 27,35,28 respectively
+		 *
+		 * GPIO[16] = Remote control input
+		 */
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x00008484,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x00008400,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x00008400,
+		}},
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x00008404,
+		},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_HAUPPAUGE_ROSLYN] = {
+		// entry added by Kaustubh D. Bhalerao <bhalerao.1@osu.edu>
+		// GPIO values obtained from regspy, courtesy Sean Covel
+		.name           = "Hauppauge WinTV 28xxx (Roslyn) models",
+		.tuner_type     = UNSET,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0xed1a,
+			.gpio2  = 0x00ff,
+		},{
+			.type   = CX88_VMUX_DEBUG,
+			.vmux   = 0,
+			.gpio0  = 0xff01,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0xff02,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0xed92,
+			.gpio2  = 0x00ff,
+		}},
+		.radio = {
+			 .type   = CX88_RADIO,
+			 .gpio0  = 0xed96,
+			 .gpio2  = 0x00ff,
+		 },
+		.mpeg           = CX88_MPEG_BLACKBIRD,
+	},
+	[CX88_BOARD_DIGITALLOGIC_MEC] = {
+		.name           = "Digital-Logic MICROSPACE Entertainment Center (MEC)",
+		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x00009d80,
+			.audioroute = 1,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x00009d76,
+			.audioroute = 1,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x00009d76,
+			.audioroute = 1,
+		}},
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x00009d00,
+			.audioroute = 1,
+		},
+		.mpeg           = CX88_MPEG_BLACKBIRD,
+	},
+	[CX88_BOARD_IODATA_GVBCTV7E] = {
+		.name           = "IODATA GV/BCTV7E",
+		.tuner_type     = TUNER_PHILIPS_FQ1286,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 1,
+			.gpio1  = 0x0000e03f,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 2,
+			.gpio1  = 0x0000e07f,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 3,
+			.gpio1  = 0x0000e07f,
+		}}
+	},
+	[CX88_BOARD_PIXELVIEW_PLAYTV_ULTRA_PRO] = {
+		.name           = "PixelView PlayTV Ultra Pro (Stereo)",
+		/* May be also TUNER_YMEC_TVF_5533MF for NTSC/M or PAL/M */
+		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0xbf61,  /* internal decoder */
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0	= 0xbf63,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0	= 0xbf63,
+		}},
+		.radio = {
+			 .type  = CX88_RADIO,
+			 .gpio0 = 0xbf60,
+		 },
+	},
+	[CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_T] = {
+		.name           = "DViCO FusionHDTV 3 Gold-T",
+		.tuner_type     = TUNER_THOMSON_DTT761X,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x97ed,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x97e9,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x97e9,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_ADSTECH_DVB_T_PCI] = {
+		.name           = "ADS Tech Instant TV DVB-T PCI",
+		.tuner_type     = TUNER_ABSENT,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x0700,
+			.gpio2  = 0x0101,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x0700,
+			.gpio2  = 0x0101,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_TERRATEC_CINERGY_1400_DVB_T1] = {
+		.name           = "TerraTec Cinergy 1400 DVB-T",
+		.tuner_type     = TUNER_ABSENT,
+		.input          = {{
+			.type   = CX88_VMUX_DVB,
+			.vmux   = 0,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 2,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_DVICO_FUSIONHDTV_5_GOLD] = {
+		.name           = "DViCO FusionHDTV 5 Gold",
+		.tuner_type     = TUNER_LG_TDVS_H06XF, /* TDVS-H062F */
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x87fd,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x87f9,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x87f9,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_AVERMEDIA_ULTRATV_MC_550] = {
+		.name           = "AverMedia UltraTV Media Center PCI 550",
+		.tuner_type     = TUNER_PHILIPS_FM1236_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr     = ADDR_UNSET,
+		.radio_addr     = ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 0,
+			.gpio0  = 0x0000cd73,
+			.audioroute = 1,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 1,
+			.gpio0  = 0x0000cd73,
+			.audioroute = 1,
+		},{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 3,
+			.gpio0  = 0x0000cdb3,
+			.audioroute = 1,
+		}},
+		.radio = {
+			.type   = CX88_RADIO,
+			.vmux   = 2,
+			.gpio0  = 0x0000cdf3,
+			.audioroute = 1,
+		},
+		.mpeg           = CX88_MPEG_BLACKBIRD,
+	},
+	[CX88_BOARD_KWORLD_VSTREAM_EXPERT_DVD] = {
+		 /* Alexander Wold <awold@bigfoot.com> */
+		 .name           = "Kworld V-Stream Xpert DVD",
+		 .tuner_type     = UNSET,
+		 .input          = {{
+			 .type   = CX88_VMUX_COMPOSITE1,
+			 .vmux   = 1,
+			 .gpio0  = 0x03000000,
+			 .gpio1  = 0x01000000,
+			 .gpio2  = 0x02000000,
+			 .gpio3  = 0x00100000,
+		 },{
+			 .type   = CX88_VMUX_SVIDEO,
+			 .vmux   = 2,
+			 .gpio0  = 0x03000000,
+			 .gpio1  = 0x01000000,
+			 .gpio2  = 0x02000000,
+			 .gpio3  = 0x00100000,
+		 }},
+	},
+	[CX88_BOARD_ATI_HDTVWONDER] = {
+		.name           = "ATI HDTV Wonder",
+		.tuner_type     = TUNER_PHILIPS_TUV1236D,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x00000ff7,
+			.gpio1  = 0x000000ff,
+			.gpio2  = 0x00000001,
+			.gpio3  = 0x00000000,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x00000ffe,
+			.gpio1  = 0x000000ff,
+			.gpio2  = 0x00000001,
+			.gpio3  = 0x00000000,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x00000ffe,
+			.gpio1  = 0x000000ff,
+			.gpio2  = 0x00000001,
+			.gpio3  = 0x00000000,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_WINFAST_DTV1000] = {
+		.name           = "WinFast DTV1000-T",
+		.tuner_type     = TUNER_ABSENT,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_DVB,
+			.vmux   = 0,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_AVERTV_303] = {
+		.name           = "AVerTV 303 (M126)",
+		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x00ff,
+			.gpio1  = 0xe09f,
+			.gpio2  = 0x0010,
+			.gpio3  = 0x0000,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x00ff,
+			.gpio1  = 0xe05f,
+			.gpio2  = 0x0010,
+			.gpio3  = 0x0000,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x00ff,
+			.gpio1  = 0xe05f,
+			.gpio2  = 0x0010,
+			.gpio3  = 0x0000,
+		}},
+	},
+	[CX88_BOARD_HAUPPAUGE_NOVASPLUS_S1] = {
+		.name		= "Hauppauge Nova-S-Plus DVB-S",
+		.tuner_type	= TUNER_ABSENT,
+		.radio_type	= UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input		= {{
+			.type	= CX88_VMUX_DVB,
+			.vmux	= 0,
+		},{
+			.type	= CX88_VMUX_COMPOSITE1,
+			.vmux	= 1,
+		},{
+			.type	= CX88_VMUX_SVIDEO,
+			.vmux	= 2,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_HAUPPAUGE_NOVASE2_S1] = {
+		.name		= "Hauppauge Nova-SE2 DVB-S",
+		.tuner_type	= TUNER_ABSENT,
+		.radio_type	= UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input		= {{
+			.type	= CX88_VMUX_DVB,
+			.vmux	= 0,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_KWORLD_DVBS_100] = {
+		.name		= "KWorld DVB-S 100",
+		.tuner_type	= TUNER_ABSENT,
+		.radio_type	= UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input		= {{
+			.type	= CX88_VMUX_DVB,
+			.vmux	= 0,
+		},{
+			.type	= CX88_VMUX_COMPOSITE1,
+			.vmux	= 1,
+		},{
+			.type	= CX88_VMUX_SVIDEO,
+			.vmux	= 2,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_HAUPPAUGE_HVR1100] = {
+		.name		= "Hauppauge WinTV-HVR1100 DVB-T/Hybrid",
+		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
+		.radio_type	= UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input		= {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+		},{
+			.type	= CX88_VMUX_COMPOSITE1,
+			.vmux	= 1,
+		},{
+			.type	= CX88_VMUX_SVIDEO,
+			.vmux	= 2,
+		}},
+		/* fixme: Add radio support */
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_HAUPPAUGE_HVR1100LP] = {
+		.name		= "Hauppauge WinTV-HVR1100 DVB-T/Hybrid (Low Profile)",
+		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
+		.radio_type	= UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input		= {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+		},{
+			.type	= CX88_VMUX_COMPOSITE1,
+			.vmux	= 1,
+		}},
+		/* fixme: Add radio support */
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_DNTV_LIVE_DVB_T_PRO] = {
+		.name           = "digitalnow DNTV Live! DVB-T Pro",
+		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE |
+				  TDA9887_PORT2_ACTIVE,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0xf80808,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0	= 0xf80808,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0	= 0xf80808,
+		}},
+		.radio = {
+			 .type  = CX88_RADIO,
+			 .gpio0 = 0xf80808,
+		},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_KWORLD_DVB_T_CX22702] = {
+		/* Kworld V-stream Xpert DVB-T with Thomson tuner */
+		/* DTT 7579 Conexant CX22702-19 Conexant CX2388x  */
+		/* Manenti Marco <marco_manenti@colman.it> */
+		.name           = "KWorld/VStream XPert DVB-T with cx22702",
+		.tuner_type     = TUNER_ABSENT,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x0700,
+			.gpio2  = 0x0101,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x0700,
+			.gpio2  = 0x0101,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL] = {
+		.name           = "DViCO FusionHDTV DVB-T Dual Digital",
+		.tuner_type     = TUNER_ABSENT, /* No analog tuner */
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x000067df,
+		 },{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x000067df,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_KWORLD_HARDWARE_MPEG_TV_XPERT] = {
+		.name           = "KWorld HardwareMpegTV XPert",
+		.tuner_type     = TUNER_PHILIPS_TDA8290,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x3de2,
+			.gpio2  = 0x00ff,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x3de6,
+			.audioroute = 1,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x3de6,
+			.audioroute = 1,
+		}},
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x3de6,
+			.gpio2  = 0x00ff,
+		},
+		.mpeg           = CX88_MPEG_BLACKBIRD,
+	},
+	[CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_HYBRID] = {
+		.name           = "DViCO FusionHDTV DVB-T Hybrid",
+		.tuner_type     = TUNER_THOMSON_FE6600,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x0000a75f,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x0000a75b,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x0000a75b,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_PCHDTV_HD5500] = {
+		.name           = "pcHDTV HD5500 HDTV",
+		.tuner_type     = TUNER_LG_TDVS_H06XF, /* TDVS-H064F */
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x87fd,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x87f9,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x87f9,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_KWORLD_MCE200_DELUXE] = {
+		/* FIXME: tested TV input only, disabled composite,
+		   svideo and radio until they can be tested also. */
+		.name           = "Kworld MCE 200 Deluxe",
+		.tuner_type     = TUNER_TENA_9533_DI,
+		.radio_type     = UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.tuner_addr     = ADDR_UNSET,
+		.radio_addr     = ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x0000BDE6
+#if 0
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x0000BDE6,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x0000BDE6,
+#endif
+		}},
+#if 0
+		.radio = {
+			.gpio0  = 0x0000BDE6,
+			.type   = CX88_RADIO,
+		},
+#endif
+		.mpeg           = CX88_MPEG_BLACKBIRD,
+	},
+	[CX88_BOARD_PIXELVIEW_PLAYTV_P7000] = {
+		/* FIXME: SVideo, Composite and FM inputs are untested */
+		.name           = "PixelView PlayTV P7000",
+		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE |
+				  TDA9887_PORT2_ACTIVE,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x5da6,
+#if 0
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0	= 0x5da4,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0	= 0x5da5,
+#endif
+		}},
+#if 0
+		.radio = {
+			 .type  = CX88_RADIO,
+			 .gpio0 = 0x5da3,
+		},
+#endif
+		.mpeg           = CX88_MPEG_BLACKBIRD,
+	},
+	[CX88_BOARD_NPGTECH_REALTV_TOP10FM] = {
+		.name           = "NPG Tech Real TV FM Top 10",
+		.tuner_type     = TUNER_TNF_5335MF, /* Actually a TNF9535 */
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0	= 0x0788,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0	= 0x078b,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0	= 0x078b,
+		}},
+		.radio = {
+			 .type  = CX88_RADIO,
+			 .gpio0 = 0x074a,
+		},
+	},
+	[CX88_BOARD_WINFAST_DTV2000H] = {
+		/* video inputs and radio still in testing */
+		.name           = "WinFast DTV2000 H",
+		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr     = ADDR_UNSET,
+		.radio_addr     = ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x00017304,
+			.gpio1  = 0x00008203,
+			.gpio2  = 0x00017304,
+			.gpio3  = 0x02000000,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_GENIATECH_DVBS] = {
+		.name          = "Geniatech DVB-S",
+		.tuner_type    = TUNER_ABSENT,
+		.radio_type    = UNSET,
+		.tuner_addr    = ADDR_UNSET,
+		.radio_addr    = ADDR_UNSET,
+		.input  = {{
+			.type  = CX88_VMUX_DVB,
+			.vmux  = 0,
+		},{
+			.type  = CX88_VMUX_COMPOSITE1,
+			.vmux  = 1,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_HAUPPAUGE_HVR3000] = {
+		/* FIXME: Add dvb & radio support */
+		.name           = "Hauppauge WinTV-HVR3000 TriMode Analog/DVB-S/DVB-T",
+		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
+		.radio_type     = UNSET,
+		.tuner_addr     = ADDR_UNSET,
+		.radio_addr     = ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x84bf,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x84bf,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x84bf,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_NORWOOD_MICRO] = {
+		.name           = "Norwood Micro TV Tuner",
+		.tuner_type     = TUNER_TNF_5335MF,
+		.radio_type     = UNSET,
+		.tuner_addr     = ADDR_UNSET,
+		.radio_addr     = ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x0709,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x070b,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x070b,
+		}},
+	},
+	[CX88_BOARD_TE_DTV_250_OEM_SWANN] = {
+		.name           = "Shenzhen Tungsten Ages Tech TE-DTV-250 / Swann OEM",
+		.tuner_type     = TUNER_LG_PAL_NEW_TAPC,
+		.radio_type     = UNSET,
+		.tuner_addr     = ADDR_UNSET,
+		.radio_addr     = ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x003fffff,
+			.gpio1  = 0x00e00000,
+			.gpio2  = 0x003fffff,
+			.gpio3  = 0x02000000,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x003fffff,
+			.gpio1  = 0x00e00000,
+			.gpio2  = 0x003fffff,
+			.gpio3  = 0x02000000,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x003fffff,
+			.gpio1  = 0x00e00000,
+			.gpio2  = 0x003fffff,
+			.gpio3  = 0x02000000,
+		}},
+	},
+	[CX88_BOARD_HAUPPAUGE_HVR1300] = {
+		.name		= "Hauppauge WinTV-HVR1300 DVB-T/Hybrid MPEG Encoder",
+		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
+		.radio_type	= UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.tda9887_conf   = TDA9887_PRESENT,
+		.audio_chip     = V4L2_IDENT_WM8775,
+		.input		= {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0	= 0xe780,
+			.audioroute = 1,
+		},{
+			.type	= CX88_VMUX_COMPOSITE1,
+			.vmux	= 1,
+			.gpio0	= 0xe780,
+			.audioroute = 2,
+		},{
+			.type	= CX88_VMUX_SVIDEO,
+			.vmux	= 2,
+			.gpio0	= 0xe780,
+			.audioroute = 2,
+		}},
+		/* fixme: Add radio support */
+		.mpeg           = CX88_MPEG_DVB | CX88_MPEG_BLACKBIRD,
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0	= 0xe780,
+		},
+	},
+	[CX88_BOARD_ADSTECH_PTV_390] = {
+		.name           = "ADS Tech Instant Video PCI",
+		.tuner_type     = TUNER_ABSENT,
+		.radio_type     = UNSET,
+		.tuner_addr     = ADDR_UNSET,
+		.radio_addr     = ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_DEBUG,
+			.vmux   = 3,
+			.gpio0  = 0x04ff,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x07fa,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x07fa,
+		}},
+	},
+	[CX88_BOARD_PINNACLE_PCTV_HD_800i] = {
+		.name           = "Pinnacle PCTV HD 800i",
+		.tuner_type     = TUNER_XC5000,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x04fb,
+			.gpio1  = 0x10ff,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x04fb,
+			.gpio1  = 0x10ef,
+			.audioroute = 1,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x04fb,
+			.gpio1  = 0x10ef,
+			.audioroute = 1,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_DVICO_FUSIONHDTV_5_PCI_NANO] = {
+		.name           = "DViCO FusionHDTV 5 PCI nano",
+		/* xc3008 tuner, digital only for now */
+		.tuner_type     = TUNER_ABSENT,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x000027df, /* Unconfirmed */
+		}, {
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x000027df, /* Unconfirmed */
+			.audioroute = 1,
+		}, {
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x000027df, /* Unconfirmed */
+			.audioroute = 1,
+		} },
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_PINNACLE_HYBRID_PCTV] = {
+		.name           = "Pinnacle Hybrid PCTV",
+		.tuner_type     = TUNER_XC2028,
+		.tuner_addr     = 0x61,
+		.input          = { {
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+		}, {
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+		}, {
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+		} },
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x004ff,
+			.gpio1  = 0x010ff,
+			.gpio2  = 0x0ff,
+		},
+#if 0
+		/* needs some more GPIO work */
+		.mpeg           = CX88_MPEG_DVB,
+#endif
+	},
+	[CX88_BOARD_WINFAST_TV2000_XP_GLOBAL] = {
+		.name           = "Winfast TV2000 XP Global",
+		.tuner_type     = TUNER_XC2028,
+		.tuner_addr     = 0x61,
+		.input          = { {
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x0400, /* pin 2:mute = 0 (off?) */
+			.gpio1  = 0x0000,
+			.gpio2  = 0x0800, /* pin 19:audio = 0 (tv) */
+
+		}, {
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x0400, /* probably?  or 0x0404 to turn mute on */
+			.gpio1  = 0x0000,
+			.gpio2  = 0x0808, /* pin 19:audio = 1 (line) */
+
+		}, {
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+		} },
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x004ff,
+			.gpio1  = 0x010ff,
+			.gpio2  = 0x0ff,
+		},
+	},
+	[CX88_BOARD_POWERCOLOR_REAL_ANGEL] = {
+		.name           = "PowerColor RA330",	/* Long names may confuse LIRC. */
+		.tuner_type     = TUNER_XC2028,
+		.tuner_addr     = 0x61,
+		.input          = { {
+			.type   = CX88_VMUX_DEBUG,
+			.vmux   = 3,		/* Due to the way the cx88 driver is written,	*/
+			.gpio0 = 0x00ff,	/* there is no way to deactivate audio pass-	*/
+			.gpio1 = 0xf39d,	/* through without this entry. Furthermore, if	*/
+			.gpio3 = 0x0000,	/* the TV mux entry is first, you get audio	*/
+		}, {				/* from the tuner on boot for a little while.	*/
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0 = 0x00ff,
+			.gpio1 = 0xf35d,
+			.gpio3 = 0x0000,
+		}, {
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0 = 0x00ff,
+			.gpio1 = 0xf37d,
+			.gpio3 = 0x0000,
+		}, {
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x000ff,
+			.gpio1  = 0x0f37d,
+			.gpio3  = 0x00000,
+		} },
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x000ff,
+			.gpio1  = 0x0f35d,
+			.gpio3  = 0x00000,
+		},
+	},
+	[CX88_BOARD_GENIATECH_X8000_MT] = {
+		/* Also PowerColor Real Angel 330 and Geniatech X800 OEM */
+		.name           = "Geniatech X8000-MT DVBT",
+		.tuner_type     = TUNER_XC2028,
+		.tuner_addr     = 0x61,
+		.input          = { {
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x00000000,
+			.gpio1  = 0x00e3e341,
+			.gpio2  = 0x00000000,
+			.gpio3  = 0x00000000,
+		}, {
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x00000000,
+			.gpio1  = 0x00e3e361,
+			.gpio2  = 0x00000000,
+			.gpio3  = 0x00000000,
+		}, {
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x00000000,
+			.gpio1  = 0x00e3e361,
+			.gpio2  = 0x00000000,
+			.gpio3  = 0x00000000,
+		} },
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x00000000,
+			.gpio1  = 0x00e3e341,
+			.gpio2  = 0x00000000,
+			.gpio3  = 0x00000000,
+		},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PRO] = {
+		.name           = "DViCO FusionHDTV DVB-T PRO",
+		.tuner_type     = TUNER_ABSENT, /* XXX: Has XC3028 */
+		.radio_type     = UNSET,
+		.tuner_addr     = ADDR_UNSET,
+		.radio_addr     = ADDR_UNSET,
+		.input          = { {
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x000067df,
+		}, {
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x000067df,
+		} },
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_DVICO_FUSIONHDTV_7_GOLD] = {
+		.name           = "DViCO FusionHDTV 7 Gold",
+		.tuner_type     = TUNER_XC5000,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x10df,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x16d9,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x16d9,
+		}},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_PROLINK_PV_8000GT] = {
+		.name           = "Prolink Pixelview MPEG 8000GT",
+		.tuner_type     = TUNER_XC2028,
+		.tuner_addr     = 0x61,
+		.input          = { {
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0 = 0x0ff,
+			.gpio2 = 0x0cfb,
+		}, {
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio2 = 0x0cfb,
+		}, {
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio2 = 0x0cfb,
+		} },
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio2 = 0x0cfb,
+		},
+	},
+	/* Both radio, analog and ATSC work with this board.
+	   However, for analog to work, s5h1409 gate should be open,
+	   otherwise, tuner-xc3028 won't be detected.
+	   A proper fix require using the newer i2c methods to add
+	   tuner-xc3028 without doing an i2c probe.
+	 */
+	[CX88_BOARD_KWORLD_ATSC_120] = {
+		.name           = "Kworld PlusTV HD PCI 120 (ATSC 120)",
+		.tuner_type     = TUNER_XC2028,
+		.radio_type     = UNSET,
+		.tuner_addr	= ADDR_UNSET,
+		.radio_addr	= ADDR_UNSET,
+		.input          = { {
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+			.gpio0  = 0x000000ff,
+			.gpio1  = 0x0000f35d,
+			.gpio2  = 0x00000000,
+		}, {
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 1,
+			.gpio0  = 0x000000ff,
+			.gpio1  = 0x0000f37e,
+			.gpio2  = 0x00000000,
+		}, {
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+			.gpio0  = 0x000000ff,
+			.gpio1  = 0x0000f37e,
+			.gpio2  = 0x00000000,
+		} },
+		.radio = {
+			.type   = CX88_RADIO,
+			.gpio0  = 0x000000ff,
+			.gpio1  = 0x0000f35d,
+			.gpio2  = 0x00000000,
+		},
+		.mpeg           = CX88_MPEG_DVB,
+	},
+	[CX88_BOARD_TERRATEC_CINERGY_HT_PCI] = {
+		.name		= "TerraTec Cinergy HT PCI MK2",
+		.tuner_type     = TUNER_XC2028,
+		.radio_type     = TUNER_XC2028,
+		.tuner_addr	= 0x61,
+		.radio_addr	= 0x61,
+		.input          = {{
+			.type   = CX88_VMUX_TELEVISION,
+			.vmux   = 0,
+		},{
+			.type   = CX88_VMUX_COMPOSITE1,
+			.vmux   = 2,
+		},{
+			.type   = CX88_VMUX_SVIDEO,
+			.vmux   = 2,
+		}},
+		.mpeg		= CX88_MPEG_DVB,
+	},
+};
+
+/* ------------------------------------------------------------------ */
+/* PCI subsystem IDs                                                  */
+
+static const struct cx88_subid cx88_subids[] = {
+	{
+		.subvendor = 0x153b,
+		.subdevice = 0x1177,
+		.card      = CX88_BOARD_TERRATEC_CINERGY_HT_PCI,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x3400,
+		.card      = CX88_BOARD_HAUPPAUGE,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x3401,
+		.card      = CX88_BOARD_HAUPPAUGE,
+	},{
+		.subvendor = 0x14c7,
+		.subdevice = 0x0106,
+		.card      = CX88_BOARD_GDI,
+	},{
+		.subvendor = 0x14c7,
+		.subdevice = 0x0107, /* with mpeg encoder */
+		.card      = CX88_BOARD_GDI,
+	},{
+		.subvendor = PCI_VENDOR_ID_ATI,
+		.subdevice = 0x00f8,
+		.card      = CX88_BOARD_ATI_WONDER_PRO,
+	},{
+		.subvendor = 0x107d,
+		.subdevice = 0x6611,
+		.card      = CX88_BOARD_WINFAST2000XP_EXPERT,
+	},{
+		.subvendor = 0x107d,
+		.subdevice = 0x6613,	/* NTSC */
+		.card      = CX88_BOARD_WINFAST2000XP_EXPERT,
+	},{
+		.subvendor = 0x107d,
+		.subdevice = 0x6620,
+		.card      = CX88_BOARD_WINFAST_DV2000,
+	},{
+		.subvendor = 0x107d,
+		.subdevice = 0x663b,
+		.card      = CX88_BOARD_LEADTEK_PVR2000,
+	},{
+		.subvendor = 0x107d,
+		.subdevice = 0x663c,
+		.card      = CX88_BOARD_LEADTEK_PVR2000,
+	},{
+		.subvendor = 0x1461,
+		.subdevice = 0x000b,
+		.card      = CX88_BOARD_AVERTV_STUDIO_303,
+	},{
+		.subvendor = 0x1462,
+		.subdevice = 0x8606,
+		.card      = CX88_BOARD_MSI_TVANYWHERE_MASTER,
+	},{
+		.subvendor = 0x10fc,
+		.subdevice = 0xd003,
+		.card      = CX88_BOARD_IODATA_GVVCP3PCI,
+	},{
+		.subvendor = 0x1043,
+		.subdevice = 0x4823,  /* with mpeg encoder */
+		.card      = CX88_BOARD_ASUS_PVR_416,
+	},{
+		.subvendor = 0x17de,
+		.subdevice = 0x08a6,
+		.card      = CX88_BOARD_KWORLD_DVB_T,
+	},{
+		.subvendor = 0x18ac,
+		.subdevice = 0xd810,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
+	},{
+		.subvendor = 0x18ac,
+		.subdevice = 0xd820,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_T,
+	},{
+		.subvendor = 0x18ac,
+		.subdevice = 0xdb00,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_DVB_T1,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9002,
+		.card      = CX88_BOARD_HAUPPAUGE_DVB_T1,
+	},{
+		.subvendor = 0x14f1,
+		.subdevice = 0x0187,
+		.card      = CX88_BOARD_CONEXANT_DVB_T1,
+	},{
+		.subvendor = 0x1540,
+		.subdevice = 0x2580,
+		.card      = CX88_BOARD_PROVIDEO_PV259,
+	},{
+		.subvendor = 0x18ac,
+		.subdevice = 0xdb10,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PLUS,
+	},{
+		.subvendor = 0x1554,
+		.subdevice = 0x4811,
+		.card      = CX88_BOARD_PIXELVIEW,
+	},{
+		.subvendor = 0x7063,
+		.subdevice = 0x3000, /* HD-3000 card */
+		.card      = CX88_BOARD_PCHDTV_HD3000,
+	},{
+		.subvendor = 0x17de,
+		.subdevice = 0xa8a6,
+		.card      = CX88_BOARD_DNTV_LIVE_DVB_T,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x2801,
+		.card      = CX88_BOARD_HAUPPAUGE_ROSLYN,
+	},{
+		.subvendor = 0x14f1,
+		.subdevice = 0x0342,
+		.card      = CX88_BOARD_DIGITALLOGIC_MEC,
+	},{
+		.subvendor = 0x10fc,
+		.subdevice = 0xd035,
+		.card      = CX88_BOARD_IODATA_GVBCTV7E,
+	},{
+		.subvendor = 0x1421,
+		.subdevice = 0x0334,
+		.card      = CX88_BOARD_ADSTECH_DVB_T_PCI,
+	},{
+		.subvendor = 0x153b,
+		.subdevice = 0x1166,
+		.card      = CX88_BOARD_TERRATEC_CINERGY_1400_DVB_T1,
+	},{
+		.subvendor = 0x18ac,
+		.subdevice = 0xd500,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_5_GOLD,
+	},{
+		.subvendor = 0x1461,
+		.subdevice = 0x8011,
+		.card      = CX88_BOARD_AVERMEDIA_ULTRATV_MC_550,
+	},{
+		.subvendor = PCI_VENDOR_ID_ATI,
+		.subdevice = 0xa101,
+		.card      = CX88_BOARD_ATI_HDTVWONDER,
+	},{
+		.subvendor = 0x107d,
+		.subdevice = 0x665f,
+		.card      = CX88_BOARD_WINFAST_DTV1000,
+	},{
+		.subvendor = 0x1461,
+		.subdevice = 0x000a,
+		.card      = CX88_BOARD_AVERTV_303,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9200,
+		.card      = CX88_BOARD_HAUPPAUGE_NOVASE2_S1,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9201,
+		.card      = CX88_BOARD_HAUPPAUGE_NOVASPLUS_S1,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9202,
+		.card      = CX88_BOARD_HAUPPAUGE_NOVASPLUS_S1,
+	},{
+		.subvendor = 0x17de,
+		.subdevice = 0x08b2,
+		.card      = CX88_BOARD_KWORLD_DVBS_100,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9400,
+		.card      = CX88_BOARD_HAUPPAUGE_HVR1100,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9402,
+		.card      = CX88_BOARD_HAUPPAUGE_HVR1100,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9800,
+		.card      = CX88_BOARD_HAUPPAUGE_HVR1100LP,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9802,
+		.card      = CX88_BOARD_HAUPPAUGE_HVR1100LP,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9001,
+		.card      = CX88_BOARD_HAUPPAUGE_DVB_T1,
+	},{
+		.subvendor = 0x1822,
+		.subdevice = 0x0025,
+		.card      = CX88_BOARD_DNTV_LIVE_DVB_T_PRO,
+	},{
+		.subvendor = 0x17de,
+		.subdevice = 0x08a1,
+		.card      = CX88_BOARD_KWORLD_DVB_T_CX22702,
+	},{
+		.subvendor = 0x18ac,
+		.subdevice = 0xdb50,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL,
+	},{
+		.subvendor = 0x18ac,
+		.subdevice = 0xdb54,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL,
+		/* Re-branded DViCO: DigitalNow DVB-T Dual */
+	},{
+		.subvendor = 0x18ac,
+		.subdevice = 0xdb11,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PLUS,
+		/* Re-branded DViCO: UltraView DVB-T Plus */
+	}, {
+		.subvendor = 0x18ac,
+		.subdevice = 0xdb30,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PRO,
+	}, {
+		.subvendor = 0x17de,
+		.subdevice = 0x0840,
+		.card      = CX88_BOARD_KWORLD_HARDWARE_MPEG_TV_XPERT,
+	},{
+		.subvendor = 0x1421,
+		.subdevice = 0x0305,
+		.card      = CX88_BOARD_KWORLD_HARDWARE_MPEG_TV_XPERT,
+	},{
+		.subvendor = 0x18ac,
+		.subdevice = 0xdb40,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_HYBRID,
+	},{
+		.subvendor = 0x18ac,
+		.subdevice = 0xdb44,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_HYBRID,
+	},{
+		.subvendor = 0x7063,
+		.subdevice = 0x5500,
+		.card      = CX88_BOARD_PCHDTV_HD5500,
+	},{
+		.subvendor = 0x17de,
+		.subdevice = 0x0841,
+		.card      = CX88_BOARD_KWORLD_MCE200_DELUXE,
+	},{
+		.subvendor = 0x1822,
+		.subdevice = 0x0019,
+		.card      = CX88_BOARD_DNTV_LIVE_DVB_T_PRO,
+	},{
+		.subvendor = 0x1554,
+		.subdevice = 0x4813,
+		.card      = CX88_BOARD_PIXELVIEW_PLAYTV_P7000,
+	},{
+		.subvendor = 0x14f1,
+		.subdevice = 0x0842,
+		.card      = CX88_BOARD_NPGTECH_REALTV_TOP10FM,
+	},{
+		.subvendor = 0x107d,
+		.subdevice = 0x665e,
+		.card      = CX88_BOARD_WINFAST_DTV2000H,
+	},{
+		.subvendor = 0x18ac,
+		.subdevice = 0xd800, /* FusionHDTV 3 Gold (original revision) */
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
+	},{
+		.subvendor = 0x14f1,
+		.subdevice = 0x0084,
+		.card      = CX88_BOARD_GENIATECH_DVBS,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x1404,
+		.card      = CX88_BOARD_HAUPPAUGE_HVR3000,
+	},{
+		.subvendor = 0x1461,
+		.subdevice = 0xc111, /* AverMedia M150-D */
+		/* This board is known to work with the ASUS PVR416 config */
+		.card      = CX88_BOARD_ASUS_PVR_416,
+	},{
+		.subvendor = 0xc180,
+		.subdevice = 0xc980,
+		.card      = CX88_BOARD_TE_DTV_250_OEM_SWANN,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9600,
+		.card      = CX88_BOARD_HAUPPAUGE_HVR1300,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9601,
+		.card      = CX88_BOARD_HAUPPAUGE_HVR1300,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9602,
+		.card      = CX88_BOARD_HAUPPAUGE_HVR1300,
+	},{
+		.subvendor = 0x107d,
+		.subdevice = 0x6632,
+		.card      = CX88_BOARD_LEADTEK_PVR2000,
+	},{
+		.subvendor = 0x12ab,
+		.subdevice = 0x2300, /* Club3D Zap TV2100 */
+		.card      = CX88_BOARD_KWORLD_DVB_T_CX22702,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x9000,
+		.card      = CX88_BOARD_HAUPPAUGE_DVB_T1,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x1400,
+		.card      = CX88_BOARD_HAUPPAUGE_HVR3000,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x1401,
+		.card      = CX88_BOARD_HAUPPAUGE_HVR3000,
+	},{
+		.subvendor = 0x0070,
+		.subdevice = 0x1402,
+		.card      = CX88_BOARD_HAUPPAUGE_HVR3000,
+	},{
+		.subvendor = 0x1421,
+		.subdevice = 0x0341, /* ADS Tech InstantTV DVB-S */
+		.card      = CX88_BOARD_KWORLD_DVBS_100,
+	},{
+		.subvendor = 0x1421,
+		.subdevice = 0x0390,
+		.card      = CX88_BOARD_ADSTECH_PTV_390,
+	},{
+		.subvendor = 0x11bd,
+		.subdevice = 0x0051,
+		.card      = CX88_BOARD_PINNACLE_PCTV_HD_800i,
+	}, {
+		.subvendor = 0x18ac,
+		.subdevice = 0xd530,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_5_PCI_NANO,
+	}, {
+		.subvendor = 0x12ab,
+		.subdevice = 0x1788,
+		.card      = CX88_BOARD_PINNACLE_HYBRID_PCTV,
+	}, {
+		.subvendor = 0x14f1,
+		.subdevice = 0xea3d,
+		.card      = CX88_BOARD_POWERCOLOR_REAL_ANGEL,
+	}, {
+		.subvendor = 0x107d,
+		.subdevice = 0x6f18,
+		.card      = CX88_BOARD_WINFAST_TV2000_XP_GLOBAL,
+	}, {
+		.subvendor = 0x14f1,
+		.subdevice = 0x8852,
+		.card      = CX88_BOARD_GENIATECH_X8000_MT,
+	}, {
+		.subvendor = 0x18ac,
+		.subdevice = 0xd610,
+		.card      = CX88_BOARD_DVICO_FUSIONHDTV_7_GOLD,
+	}, {
+		.subvendor = 0x1554,
+		.subdevice = 0x4935,
+		.card      = CX88_BOARD_PROLINK_PV_8000GT,
+	}, {
+		.subvendor = 0x17de,
+		.subdevice = 0x08c1,
+		.card      = CX88_BOARD_KWORLD_ATSC_120,
+	},
+};
+
+/* ----------------------------------------------------------------------- */
+/* some leadtek specific stuff                                             */
+
+static void leadtek_eeprom(struct cx88_core *core, u8 *eeprom_data)
+{
+	/* This is just for the "Winfast 2000XP Expert" board ATM; I don't have data on
+	 * any others.
+	 *
+	 * Byte 0 is 1 on the NTSC board.
+	 */
+
+	if (eeprom_data[4] != 0x7d ||
+	    eeprom_data[5] != 0x10 ||
+	    eeprom_data[7] != 0x66) {
+		warn_printk(core, "Leadtek eeprom invalid.\n");
+		return;
+	}
+
+	core->board.tuner_type = (eeprom_data[6] == 0x13) ?
+		TUNER_PHILIPS_FM1236_MK3 : TUNER_PHILIPS_FM1216ME_MK3;
+
+	info_printk(core, "Leadtek Winfast 2000XP Expert config: "
+		    "tuner=%d, eeprom[0]=0x%02x\n",
+		    core->board.tuner_type, eeprom_data[0]);
+}
+
+static void hauppauge_eeprom(struct cx88_core *core, u8 *eeprom_data)
+{
+	struct tveeprom tv;
+
+	tveeprom_hauppauge_analog(&core->i2c_client, &tv, eeprom_data);
+	core->board.tuner_type = tv.tuner_type;
+	core->tuner_formats = tv.tuner_formats;
+	core->board.radio.type = tv.has_radio ? CX88_RADIO : 0;
+
+	/* Make sure we support the board model */
+	switch (tv.model)
+	{
+	case 14009: /* WinTV-HVR3000 (Retail, IR, b/panel video, 3.5mm audio in) */
+	case 14019: /* WinTV-HVR3000 (Retail, IR Blaster, b/panel video, 3.5mm audio in) */
+	case 14029: /* WinTV-HVR3000 (Retail, IR, b/panel video, 3.5mm audio in - 880 bridge) */
+	case 14109: /* WinTV-HVR3000 (Retail, IR, b/panel video, 3.5mm audio in - low profile) */
+	case 14129: /* WinTV-HVR3000 (Retail, IR, b/panel video, 3.5mm audio in - 880 bridge - LP) */
+	case 14559: /* WinTV-HVR3000 (OEM, no IR, b/panel video, 3.5mm audio in) */
+	case 14569: /* WinTV-HVR3000 (OEM, no IR, no back panel video) */
+	case 14659: /* WinTV-HVR3000 (OEM, no IR, b/panel video, RCA audio in - Low profile) */
+	case 14669: /* WinTV-HVR3000 (OEM, no IR, no b/panel video - Low profile) */
+	case 28552: /* WinTV-PVR 'Roslyn' (No IR) */
+	case 34519: /* WinTV-PCI-FM */
+	case 90002: /* Nova-T-PCI (9002) */
+	case 92001: /* Nova-S-Plus (Video and IR) */
+	case 92002: /* Nova-S-Plus (Video and IR) */
+	case 90003: /* Nova-T-PCI (9002 No RF out) */
+	case 90500: /* Nova-T-PCI (oem) */
+	case 90501: /* Nova-T-PCI (oem/IR) */
+	case 92000: /* Nova-SE2 (OEM, No Video or IR) */
+	case 94009: /* WinTV-HVR1100 (Video and IR Retail) */
+	case 94501: /* WinTV-HVR1100 (Video and IR OEM) */
+	case 96009: /* WinTV-HVR1300 (PAL Video, MPEG Video and IR RX) */
+	case 96019: /* WinTV-HVR1300 (PAL Video, MPEG Video and IR RX/TX) */
+	case 96559: /* WinTV-HVR1300 (PAL Video, MPEG Video no IR) */
+	case 96569: /* WinTV-HVR1300 () */
+	case 96659: /* WinTV-HVR1300 () */
+	case 98559: /* WinTV-HVR1100LP (Video no IR, Retail - Low Profile) */
+		/* known */
+		break;
+	default:
+		warn_printk(core, "warning: unknown hauppauge model #%d\n",
+			    tv.model);
+		break;
+	}
+
+	info_printk(core, "hauppauge eeprom: model=%d\n", tv.model);
+}
+
+/* ----------------------------------------------------------------------- */
+/* some GDI (was: Modular Technology) specific stuff                       */
+
+static struct {
+	int  id;
+	int  fm;
+	char *name;
+} gdi_tuner[] = {
+	[ 0x01 ] = { .id   = TUNER_ABSENT,
+		     .name = "NTSC_M" },
+	[ 0x02 ] = { .id   = TUNER_ABSENT,
+		     .name = "PAL_B" },
+	[ 0x03 ] = { .id   = TUNER_ABSENT,
+		     .name = "PAL_I" },
+	[ 0x04 ] = { .id   = TUNER_ABSENT,
+		     .name = "PAL_D" },
+	[ 0x05 ] = { .id   = TUNER_ABSENT,
+		     .name = "SECAM" },
+
+	[ 0x10 ] = { .id   = TUNER_ABSENT,
+		     .fm   = 1,
+		     .name = "TEMIC_4049" },
+	[ 0x11 ] = { .id   = TUNER_TEMIC_4136FY5,
+		     .name = "TEMIC_4136" },
+	[ 0x12 ] = { .id   = TUNER_ABSENT,
+		     .name = "TEMIC_4146" },
+
+	[ 0x20 ] = { .id   = TUNER_PHILIPS_FQ1216ME,
+		     .fm   = 1,
+		     .name = "PHILIPS_FQ1216_MK3" },
+	[ 0x21 ] = { .id   = TUNER_ABSENT, .fm = 1,
+		     .name = "PHILIPS_FQ1236_MK3" },
+	[ 0x22 ] = { .id   = TUNER_ABSENT,
+		     .name = "PHILIPS_FI1236_MK3" },
+	[ 0x23 ] = { .id   = TUNER_ABSENT,
+		     .name = "PHILIPS_FI1216_MK3" },
+};
+
+static void gdi_eeprom(struct cx88_core *core, u8 *eeprom_data)
+{
+	char *name = (eeprom_data[0x0d] < ARRAY_SIZE(gdi_tuner))
+		? gdi_tuner[eeprom_data[0x0d]].name : NULL;
+
+	info_printk(core, "GDI: tuner=%s\n", name ? name : "unknown");
+	if (NULL == name)
+		return;
+	core->board.tuner_type = gdi_tuner[eeprom_data[0x0d]].id;
+	core->board.radio.type = gdi_tuner[eeprom_data[0x0d]].fm ?
+		CX88_RADIO : 0;
+}
+
+/* ------------------------------------------------------------------- */
+/* some Divco specific stuff                                           */
+static int cx88_dvico_xc2028_callback(struct cx88_core *core,
+				      int command, int arg)
+{
+	switch (command) {
+	case XC2028_TUNER_RESET:
+		cx_write(MO_GP0_IO, 0x101000);
+		mdelay(5);
+		cx_set(MO_GP0_IO, 0x101010);
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+
+/* ----------------------------------------------------------------------- */
+/* some Geniatech specific stuff                                           */
+
+static int cx88_xc3028_geniatech_tuner_callback(struct cx88_core *core,
+						int command, int mode)
+{
+	switch (command) {
+	case XC2028_TUNER_RESET:
+		switch (INPUT(core->input).type) {
+		case CX88_RADIO:
+			break;
+		case CX88_VMUX_DVB:
+			cx_write(MO_GP1_IO, 0x030302);
+			mdelay(50);
+			break;
+		default:
+			cx_write(MO_GP1_IO, 0x030301);
+			mdelay(50);
+		}
+		cx_write(MO_GP1_IO, 0x101010);
+		mdelay(50);
+		cx_write(MO_GP1_IO, 0x101000);
+		mdelay(50);
+		cx_write(MO_GP1_IO, 0x101010);
+		mdelay(50);
+		return 0;
+	}
+	return -EINVAL;
+}
+
+/* ------------------------------------------------------------------- */
+/* some Divco specific stuff                                           */
+static int cx88_pv_8000gt_callback(struct cx88_core *core,
+				   int command, int arg)
+{
+	switch (command) {
+	case XC2028_TUNER_RESET:
+		cx_write(MO_GP2_IO, 0xcf7);
+		mdelay(50);
+		cx_write(MO_GP2_IO, 0xef5);
+		mdelay(50);
+		cx_write(MO_GP2_IO, 0xcf7);
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+/* ----------------------------------------------------------------------- */
+/* some DViCO specific stuff                                               */
+
+static void dvico_fusionhdtv_hybrid_init(struct cx88_core *core)
+{
+	struct i2c_msg msg = { .addr = 0x45, .flags = 0 };
+	int i, err;
+	static u8 init_bufs[13][5] = {
+		{ 0x10, 0x00, 0x20, 0x01, 0x03 },
+		{ 0x10, 0x10, 0x01, 0x00, 0x21 },
+		{ 0x10, 0x10, 0x10, 0x00, 0xCA },
+		{ 0x10, 0x10, 0x12, 0x00, 0x08 },
+		{ 0x10, 0x10, 0x13, 0x00, 0x0A },
+		{ 0x10, 0x10, 0x16, 0x01, 0xC0 },
+		{ 0x10, 0x10, 0x22, 0x01, 0x3D },
+		{ 0x10, 0x10, 0x73, 0x01, 0x2E },
+		{ 0x10, 0x10, 0x72, 0x00, 0xC5 },
+		{ 0x10, 0x10, 0x71, 0x01, 0x97 },
+		{ 0x10, 0x10, 0x70, 0x00, 0x0F },
+		{ 0x10, 0x10, 0xB0, 0x00, 0x01 },
+		{ 0x03, 0x0C },
+	};
+
+	for (i = 0; i < ARRAY_SIZE(init_bufs); i++) {
+		msg.buf = init_bufs[i];
+		msg.len = (i != 12 ? 5 : 2);
+		err = i2c_transfer(&core->i2c_adap, &msg, 1);
+		if (err != 1) {
+			warn_printk(core, "dvico_fusionhdtv_hybrid_init buf %d "
+					  "failed (err = %d)!\n", i, err);
+			return;
+		}
+	}
+}
+
+static int cx88_xc2028_tuner_callback(struct cx88_core *core,
+				      int command, int arg)
+{
+	/* Board-specific callbacks */
+	switch (core->boardnr) {
+	case CX88_BOARD_WINFAST_TV2000_XP_GLOBAL:
+	case CX88_BOARD_POWERCOLOR_REAL_ANGEL:
+	case CX88_BOARD_GENIATECH_X8000_MT:
+	case CX88_BOARD_KWORLD_ATSC_120:
+		return cx88_xc3028_geniatech_tuner_callback(core,
+							command, arg);
+	case CX88_BOARD_PROLINK_PV_8000GT:
+		return cx88_pv_8000gt_callback(core, command, arg);
+	case CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PRO:
+		return cx88_dvico_xc2028_callback(core, command, arg);
+	}
+
+	switch (command) {
+	case XC2028_TUNER_RESET:
+		switch (INPUT(core->input).type) {
+		case CX88_RADIO:
+			info_printk(core, "setting GPIO to radio!\n");
+			cx_write(MO_GP0_IO, 0x4ff);
+			mdelay(250);
+			cx_write(MO_GP2_IO, 0xff);
+			mdelay(250);
+			break;
+		case CX88_VMUX_DVB:	/* Digital TV*/
+		default:		/* Analog TV */
+			info_printk(core, "setting GPIO to TV!\n");
+			break;
+		}
+		cx_write(MO_GP1_IO, 0x101010);
+		mdelay(250);
+		cx_write(MO_GP1_IO, 0x101000);
+		mdelay(250);
+		cx_write(MO_GP1_IO, 0x101010);
+		mdelay(250);
+		return 0;
+	}
+	return -EINVAL;
+}
+
+/* ----------------------------------------------------------------------- */
+/* Tuner callback function. Currently only needed for the Pinnacle 	   *
+ * PCTV HD 800i with an xc5000 sillicon tuner. This is used for both	   *
+ * analog tuner attach (tuner-core.c) and dvb tuner attach (cx88-dvb.c)    */
+
+static int cx88_xc5000_tuner_callback(struct cx88_core *core,
+				      int command, int arg)
+{
+	switch (core->boardnr) {
+	case CX88_BOARD_PINNACLE_PCTV_HD_800i:
+		if (command == 0) { /* This is the reset command from xc5000 */
+			/* Reset XC5000 tuner via SYS_RSTO_pin */
+			cx_write(MO_SRST_IO, 0);
+			msleep(10);
+			cx_write(MO_SRST_IO, 1);
+			return 0;
+		} else {
+			err_printk(core, "xc5000: unknown tuner "
+				   "callback command.\n");
+			return -EINVAL;
+		}
+		break;
+	case CX88_BOARD_DVICO_FUSIONHDTV_7_GOLD:
+		if (command == 0) { /* This is the reset command from xc5000 */
+			cx_clear(MO_GP0_IO, 0x00000010);
+			msleep(10);
+			cx_set(MO_GP0_IO, 0x00000010);
+			return 0;
+		} else {
+			printk(KERN_ERR
+				"xc5000: unknown tuner callback command.\n");
+			return -EINVAL;
+		}
+		break;
+	}
+	return 0; /* Should never be here */
+}
+
+int cx88_tuner_callback(void *priv, int command, int arg)
+{
+	struct i2c_algo_bit_data *i2c_algo = priv;
+	struct cx88_core *core;
+
+	if (!i2c_algo) {
+		printk(KERN_ERR "cx88: Error - i2c private data undefined.\n");
+		return -EINVAL;
+	}
+
+	core = i2c_algo->data;
+
+	if (!core) {
+		printk(KERN_ERR "cx88: Error - device struct undefined.\n");
+		return -EINVAL;
+	}
+
+	switch (core->board.tuner_type) {
+		case TUNER_XC2028:
+			info_printk(core, "Calling XC2028/3028 callback\n");
+			return cx88_xc2028_tuner_callback(core, command, arg);
+		case TUNER_XC5000:
+			info_printk(core, "Calling XC5000 callback\n");
+			return cx88_xc5000_tuner_callback(core, command, arg);
+	}
+	err_printk(core, "Error: Calling callback for tuner %d\n",
+		   core->board.tuner_type);
+	return -EINVAL;
+}
+EXPORT_SYMBOL(cx88_tuner_callback);
+
+/* ----------------------------------------------------------------------- */
+
+static void cx88_card_list(struct cx88_core *core, struct pci_dev *pci)
+{
+	int i;
+
+	if (0 == pci->subsystem_vendor &&
+	    0 == pci->subsystem_device) {
+		printk(KERN_ERR
+		       "%s: Your board has no valid PCI Subsystem ID and thus can't\n"
+		       "%s: be autodetected.  Please pass card=<n> insmod option to\n"
+		       "%s: workaround that.  Redirect complaints to the vendor of\n"
+		       "%s: the TV card.  Best regards,\n"
+		       "%s:         -- tux\n",
+		       core->name,core->name,core->name,core->name,core->name);
+	} else {
+		printk(KERN_ERR
+		       "%s: Your board isn't known (yet) to the driver.  You can\n"
+		       "%s: try to pick one of the existing card configs via\n"
+		       "%s: card=<n> insmod option.  Updating to the latest\n"
+		       "%s: version might help as well.\n",
+		       core->name,core->name,core->name,core->name);
+	}
+	err_printk(core, "Here is a list of valid choices for the card=<n> "
+		   "insmod option:\n");
+	for (i = 0; i < ARRAY_SIZE(cx88_boards); i++)
+		printk(KERN_ERR "%s:    card=%d -> %s\n",
+		       core->name, i, cx88_boards[i].name);
+}
+
+static void cx88_card_setup_pre_i2c(struct cx88_core *core)
+{
+	switch (core->boardnr) {
+	case CX88_BOARD_HAUPPAUGE_HVR1300:
+		/* Bring the 702 demod up before i2c scanning/attach or devices are hidden */
+		/* We leave here with the 702 on the bus */
+		cx_write(MO_GP0_IO, 0x0000e780);
+		udelay(1000);
+		cx_clear(MO_GP0_IO, 0x00000080);
+		udelay(50);
+		cx_set(MO_GP0_IO, 0x00000080); /* 702 out of reset */
+		udelay(1000);
+		break;
+
+	case CX88_BOARD_PROLINK_PV_8000GT:
+		cx_write(MO_GP2_IO, 0xcf7);
+		mdelay(50);
+		cx_write(MO_GP2_IO, 0xef5);
+		mdelay(50);
+		cx_write(MO_GP2_IO, 0xcf7);
+		msleep(10);
+		break;
+
+	 case CX88_BOARD_DVICO_FUSIONHDTV_7_GOLD:
+		/* Enable the xc5000 tuner */
+		cx_set(MO_GP0_IO, 0x00001010);
+		break;
+	}
+}
+
+/*
+ * Sets board-dependent xc3028 configuration
+ */
+void cx88_setup_xc3028(struct cx88_core *core, struct xc2028_ctrl *ctl)
+{
+	memset(ctl, 0, sizeof(*ctl));
+
+	ctl->fname   = XC2028_DEFAULT_FIRMWARE;
+	ctl->max_len = 64;
+
+	switch (core->boardnr) {
+	case CX88_BOARD_POWERCOLOR_REAL_ANGEL:
+		/* Now works with firmware version 2.7 */
+		if (core->i2c_algo.udelay < 16)
+			core->i2c_algo.udelay = 16;
+		break;
+	case CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PRO:
+		ctl->scode_table = XC3028_FE_ZARLINK456;
+		break;
+	case CX88_BOARD_KWORLD_ATSC_120:
+	case CX88_BOARD_DVICO_FUSIONHDTV_5_PCI_NANO:
+		ctl->demod = XC3028_FE_OREN538;
+		break;
+	case CX88_BOARD_PROLINK_PV_8000GT:
+		/*
+		 * This board uses non-MTS firmware
+		 */
+		break;
+	default:
+		ctl->demod = XC3028_FE_OREN538;
+		ctl->mts = 1;
+	}
+}
+EXPORT_SYMBOL_GPL(cx88_setup_xc3028);
+
+static void cx88_card_setup(struct cx88_core *core)
+{
+	static u8 eeprom[256];
+	struct tuner_setup tun_setup;
+	unsigned int mode_mask = T_RADIO     |
+				 T_ANALOG_TV |
+				 T_DIGITAL_TV;
+
+	memset(&tun_setup, 0, sizeof(tun_setup));
+
+	if (0 == core->i2c_rc) {
+		core->i2c_client.addr = 0xa0 >> 1;
+		tveeprom_read(&core->i2c_client, eeprom, sizeof(eeprom));
+	}
+
+	switch (core->boardnr) {
+	case CX88_BOARD_HAUPPAUGE:
+	case CX88_BOARD_HAUPPAUGE_ROSLYN:
+		if (0 == core->i2c_rc)
+			hauppauge_eeprom(core, eeprom+8);
+		break;
+	case CX88_BOARD_GDI:
+		if (0 == core->i2c_rc)
+			gdi_eeprom(core, eeprom);
+		break;
+	case CX88_BOARD_WINFAST2000XP_EXPERT:
+		if (0 == core->i2c_rc)
+			leadtek_eeprom(core, eeprom);
+		break;
+	case CX88_BOARD_HAUPPAUGE_NOVASPLUS_S1:
+	case CX88_BOARD_HAUPPAUGE_NOVASE2_S1:
+	case CX88_BOARD_HAUPPAUGE_DVB_T1:
+	case CX88_BOARD_HAUPPAUGE_HVR1100:
+	case CX88_BOARD_HAUPPAUGE_HVR1100LP:
+	case CX88_BOARD_HAUPPAUGE_HVR3000:
+	case CX88_BOARD_HAUPPAUGE_HVR1300:
+		if (0 == core->i2c_rc)
+			hauppauge_eeprom(core, eeprom);
+		break;
+	case CX88_BOARD_KWORLD_DVBS_100:
+		cx_write(MO_GP0_IO, 0x000007f8);
+		cx_write(MO_GP1_IO, 0x00000001);
+		break;
+	case CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PRO:
+		/* GPIO0:0 is hooked to demod reset */
+		/* GPIO0:4 is hooked to xc3028 reset */
+		cx_write(MO_GP0_IO, 0x00111100);
+		msleep(1);
+		cx_write(MO_GP0_IO, 0x00111111);
+		break;
+	case CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL:
+		/* GPIO0:6 is hooked to FX2 reset pin */
+		cx_set(MO_GP0_IO, 0x00004040);
+		cx_clear(MO_GP0_IO, 0x00000040);
+		msleep(1000);
+		cx_set(MO_GP0_IO, 0x00004040);
+		/* FALLTHROUGH */
+	case CX88_BOARD_DVICO_FUSIONHDTV_DVB_T1:
+	case CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PLUS:
+	case CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_HYBRID:
+		/* GPIO0:0 is hooked to mt352 reset pin */
+		cx_set(MO_GP0_IO, 0x00000101);
+		cx_clear(MO_GP0_IO, 0x00000001);
+		msleep(1);
+		cx_set(MO_GP0_IO, 0x00000101);
+		if (0 == core->i2c_rc &&
+		    core->boardnr == CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_HYBRID)
+			dvico_fusionhdtv_hybrid_init(core);
+		break;
+	case CX88_BOARD_KWORLD_DVB_T:
+	case CX88_BOARD_DNTV_LIVE_DVB_T:
+		cx_set(MO_GP0_IO, 0x00000707);
+		cx_set(MO_GP2_IO, 0x00000101);
+		cx_clear(MO_GP2_IO, 0x00000001);
+		msleep(1);
+		cx_clear(MO_GP0_IO, 0x00000007);
+		cx_set(MO_GP2_IO, 0x00000101);
+		break;
+	case CX88_BOARD_DNTV_LIVE_DVB_T_PRO:
+		cx_write(MO_GP0_IO, 0x00080808);
+		break;
+	case CX88_BOARD_ATI_HDTVWONDER:
+		if (0 == core->i2c_rc) {
+			/* enable tuner */
+			int i;
+			static const u8 buffer [][2] = {
+				{0x10,0x12},
+				{0x13,0x04},
+				{0x16,0x00},
+				{0x14,0x04},
+				{0x17,0x00}
+			};
+			core->i2c_client.addr = 0x0a;
+
+			for (i = 0; i < ARRAY_SIZE(buffer); i++)
+				if (2 != i2c_master_send(&core->i2c_client,
+							buffer[i],2))
+					warn_printk(core, "Unable to enable "
+						    "tuner(%i).\n", i);
+		}
+		break;
+	case CX88_BOARD_MSI_TVANYWHERE_MASTER:
+	{
+		struct v4l2_priv_tun_config tea5767_cfg;
+		struct tea5767_ctrl ctl;
+
+		memset(&ctl, 0, sizeof(ctl));
+
+		ctl.high_cut  = 1;
+		ctl.st_noise  = 1;
+		ctl.deemph_75 = 1;
+		ctl.xtal_freq = TEA5767_HIGH_LO_13MHz;
+
+		tea5767_cfg.tuner = TUNER_TEA5767;
+		tea5767_cfg.priv  = &ctl;
+
+		cx88_call_i2c_clients(core, TUNER_SET_CONFIG, &tea5767_cfg);
+	}
+	} /*end switch() */
+
+
+	/* Setup tuners */
+	if ((core->board.radio_type != UNSET)) {
+		tun_setup.mode_mask      = T_RADIO;
+		tun_setup.type           = core->board.radio_type;
+		tun_setup.addr           = core->board.radio_addr;
+		tun_setup.tuner_callback = cx88_tuner_callback;
+		cx88_call_i2c_clients(core, TUNER_SET_TYPE_ADDR, &tun_setup);
+		mode_mask &= ~T_RADIO;
+	}
+
+	if (core->board.tuner_type != TUNER_ABSENT) {
+		tun_setup.mode_mask      = mode_mask;
+		tun_setup.type           = core->board.tuner_type;
+		tun_setup.addr           = core->board.tuner_addr;
+		tun_setup.tuner_callback = cx88_tuner_callback;
+
+		cx88_call_i2c_clients(core, TUNER_SET_TYPE_ADDR, &tun_setup);
+	}
+
+	if (core->board.tda9887_conf) {
+		struct v4l2_priv_tun_config tda9887_cfg;
+
+		tda9887_cfg.tuner = TUNER_TDA9887;
+		tda9887_cfg.priv  = &core->board.tda9887_conf;
+
+		cx88_call_i2c_clients(core, TUNER_SET_CONFIG, &tda9887_cfg);
+	}
+
+	if (core->board.tuner_type == TUNER_XC2028) {
+		struct v4l2_priv_tun_config  xc2028_cfg;
+		struct xc2028_ctrl           ctl;
+
+		/* Fills device-dependent initialization parameters */
+		cx88_setup_xc3028(core, &ctl);
+
+		/* Sends parameters to xc2028/3028 tuner */
+		memset(&xc2028_cfg, 0, sizeof(xc2028_cfg));
+		xc2028_cfg.tuner = TUNER_XC2028;
+		xc2028_cfg.priv  = &ctl;
+		info_printk(core, "Asking xc2028/3028 to load firmware %s\n",
+			    ctl.fname);
+		cx88_call_i2c_clients(core, TUNER_SET_CONFIG, &xc2028_cfg);
+	}
+	cx88_call_i2c_clients (core, TUNER_SET_STANDBY, NULL);
+}
+
+/* ------------------------------------------------------------------ */
+
+static int cx88_pci_quirks(const char *name, struct pci_dev *pci)
+{
+	unsigned int lat = UNSET;
+	u8 ctrl = 0;
+	u8 value;
+
+	/* check pci quirks */
+	if (pci_pci_problems & PCIPCI_TRITON) {
+		printk(KERN_INFO "%s: quirk: PCIPCI_TRITON -- set TBFX\n",
+		       name);
+		ctrl |= CX88X_EN_TBFX;
+	}
+	if (pci_pci_problems & PCIPCI_NATOMA) {
+		printk(KERN_INFO "%s: quirk: PCIPCI_NATOMA -- set TBFX\n",
+		       name);
+		ctrl |= CX88X_EN_TBFX;
+	}
+	if (pci_pci_problems & PCIPCI_VIAETBF) {
+		printk(KERN_INFO "%s: quirk: PCIPCI_VIAETBF -- set TBFX\n",
+		       name);
+		ctrl |= CX88X_EN_TBFX;
+	}
+	if (pci_pci_problems & PCIPCI_VSFX) {
+		printk(KERN_INFO "%s: quirk: PCIPCI_VSFX -- set VSFX\n",
+		       name);
+		ctrl |= CX88X_EN_VSFX;
+	}
+#ifdef PCIPCI_ALIMAGIK
+	if (pci_pci_problems & PCIPCI_ALIMAGIK) {
+		printk(KERN_INFO "%s: quirk: PCIPCI_ALIMAGIK -- latency fixup\n",
+		       name);
+		lat = 0x0A;
+	}
+#endif
+
+	/* check insmod options */
+	if (UNSET != latency)
+		lat = latency;
+
+	/* apply stuff */
+	if (ctrl) {
+		pci_read_config_byte(pci, CX88X_DEVCTRL, &value);
+		value |= ctrl;
+		pci_write_config_byte(pci, CX88X_DEVCTRL, value);
+	}
+	if (UNSET != lat) {
+		printk(KERN_INFO "%s: setting pci latency timer to %d\n",
+		       name, latency);
+		pci_write_config_byte(pci, PCI_LATENCY_TIMER, latency);
+	}
+	return 0;
+}
+
+int cx88_get_resources(const struct cx88_core *core, struct pci_dev *pci)
+{
+	if (request_mem_region(pci_resource_start(pci,0),
+			       pci_resource_len(pci,0),
+			       core->name))
+		return 0;
+	printk(KERN_ERR
+	       "%s/%d: Can't get MMIO memory @ 0x%llx, subsystem: %04x:%04x\n",
+	       core->name, PCI_FUNC(pci->devfn),
+	       (unsigned long long)pci_resource_start(pci, 0),
+	       pci->subsystem_vendor, pci->subsystem_device);
+	return -EBUSY;
+}
+
+/* Allocate and initialize the cx88 core struct.  One should hold the
+ * devlist mutex before calling this.  */
+struct cx88_core *cx88_core_create(struct pci_dev *pci, int nr)
+{
+	struct cx88_core *core;
+	int i;
+
+	core = kzalloc(sizeof(*core), GFP_KERNEL);
+
+	atomic_inc(&core->refcount);
+	core->pci_bus  = pci->bus->number;
+	core->pci_slot = PCI_SLOT(pci->devfn);
+	core->pci_irqmask = PCI_INT_RISC_RD_BERRINT | PCI_INT_RISC_WR_BERRINT |
+			    PCI_INT_BRDG_BERRINT | PCI_INT_SRC_DMA_BERRINT |
+			    PCI_INT_DST_DMA_BERRINT | PCI_INT_IPB_DMA_BERRINT;
+	mutex_init(&core->lock);
+
+	core->nr = nr;
+	sprintf(core->name, "cx88[%d]", core->nr);
+	if (0 != cx88_get_resources(core, pci)) {
+		kfree(core);
+		return NULL;
+	}
+
+	/* PCI stuff */
+	cx88_pci_quirks(core->name, pci);
+	core->lmmio = ioremap(pci_resource_start(pci, 0),
+			      pci_resource_len(pci, 0));
+	core->bmmio = (u8 __iomem *)core->lmmio;
+
+	/* board config */
+	core->boardnr = UNSET;
+	if (card[core->nr] < ARRAY_SIZE(cx88_boards))
+		core->boardnr = card[core->nr];
+	for (i = 0; UNSET == core->boardnr && i < ARRAY_SIZE(cx88_subids); i++)
+		if (pci->subsystem_vendor == cx88_subids[i].subvendor &&
+		    pci->subsystem_device == cx88_subids[i].subdevice)
+			core->boardnr = cx88_subids[i].card;
+	if (UNSET == core->boardnr) {
+		core->boardnr = CX88_BOARD_UNKNOWN;
+		cx88_card_list(core, pci);
+	}
+
+	memcpy(&core->board, &cx88_boards[core->boardnr], sizeof(core->board));
+
+	info_printk(core, "subsystem: %04x:%04x, board: %s [card=%d,%s]\n",
+		pci->subsystem_vendor, pci->subsystem_device, core->board.name,
+		core->boardnr, card[core->nr] == core->boardnr ?
+		"insmod option" : "autodetected");
+
+	if (tuner[core->nr] != UNSET)
+		core->board.tuner_type = tuner[core->nr];
+	if (radio[core->nr] != UNSET)
+		core->board.radio_type = radio[core->nr];
+
+	info_printk(core, "TV tuner type %d, Radio tuner type %d\n",
+		    core->board.tuner_type, core->board.radio_type);
+
+	/* init hardware */
+	cx88_reset(core);
+	cx88_card_setup_pre_i2c(core);
+	cx88_i2c_init(core, pci);
+
+	/* load tuner module, if needed */
+	if (TUNER_ABSENT != core->board.tuner_type)
+		request_module("tuner");
+
+	cx88_card_setup(core);
+	cx88_ir_init(core, pci);
+
+	return core;
+}
+
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/x-log;
+  charset="us-ascii";
+  name="dmesg.log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="dmesg.log"
+
+ 000000000009fc00 (usable)
+ BIOS-e820: 000000000009fc00 - 00000000000a0000 (reserved)
+ BIOS-e820: 00000000000e0000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 00000000bffd0000 (usable)
+ BIOS-e820: 00000000bffd0000 - 00000000bffde000 (ACPI data)
+ BIOS-e820: 00000000bffde000 - 00000000c0000000 (ACPI NVS)
+ BIOS-e820: 00000000d0000000 - 00000000e0000000 (reserved)
+ BIOS-e820: 00000000fec00000 - 00000000fec01000 (reserved)
+ BIOS-e820: 00000000fee00000 - 00000000fef00000 (reserved)
+ BIOS-e820: 00000000ff780000 - 0000000100000000 (reserved)
+ BIOS-e820: 0000000100000000 - 0000000140000000 (usable)
+Entering add_active_range(0, 0, 159) 0 entries of 3200 used
+Entering add_active_range(0, 256, 786384) 1 entries of 3200 used
+Entering add_active_range(0, 1048576, 1310720) 2 entries of 3200 used
+end_pfn_map = 1310720
+DMI present.
+ACPI: RSDP 000F98B0, 0014 (r0 ACPIAM)
+ACPI: RSDT BFFD0000, 003C (r1 MSIISM OEMRSDT   4000807 MSFT       97)
+ACPI: FACP BFFD0200, 0084 (r2 MSIISM OEMFACP   4000807 MSFT       97)
+ACPI: DSDT BFFD0440, 5045 (r1  1ADGH 1ADGH013       13 INTL 20051117)
+ACPI: FACS BFFDE000, 0040
+ACPI: APIC BFFD0390, 0070 (r1 MSIISM OEMAPIC   4000807 MSFT       97)
+ACPI: MCFG BFFD0400, 003C (r1 MSIISM OEMMCFG   4000807 MSFT       97)
+ACPI: OEMB BFFDE040, 0061 (r1 MSIISM AMI_OEM   4000807 MSFT       97)
+ACPI: HPET BFFD5490, 0038 (r1 MSIISM OEMHPET0  4000807 MSFT       97)
+ACPI: SSDT BFFD54D0, 0350 (r1 A M I  POWERNOW        1 AMD         1)
+Scanning NUMA topology in Northbridge 24
+CPU has 2 num_cores
+No NUMA configuration found
+Faking a node at 0000000000000000-0000000140000000
+Entering add_active_range(0, 0, 159) 0 entries of 3200 used
+Entering add_active_range(0, 256, 786384) 1 entries of 3200 used
+Entering add_active_range(0, 1048576, 1310720) 2 entries of 3200 used
+Bootmem setup node 0 0000000000000000-0000000140000000
+ [ffffe20000000000-ffffe200001fffff] PMD ->ffff810001200000 on node 0
+ [ffffe20000200000-ffffe200003fffff] PMD ->ffff810001600000 on node 0
+ [ffffe20000400000-ffffe200005fffff] PMD ->ffff810001a00000 on node 0
+ [ffffe20000600000-ffffe200007fffff] PMD ->ffff810001e00000 on node 0
+ [ffffe20000800000-ffffe200009fffff] PMD ->ffff810002200000 on node 0
+ [ffffe20000a00000-ffffe20000bfffff] PMD ->ffff810002600000 on node 0
+ [ffffe20000c00000-ffffe20000dfffff] PMD ->ffff810002a00000 on node 0
+ [ffffe20000e00000-ffffe20000ffffff] PMD ->ffff810002e00000 on node 0
+ [ffffe20001000000-ffffe200011fffff] PMD ->ffff810003200000 on node 0
+ [ffffe20001200000-ffffe200013fffff] PMD ->ffff810003600000 on node 0
+ [ffffe20001400000-ffffe200015fffff] PMD ->ffff810003a00000 on node 0
+ [ffffe20001600000-ffffe200017fffff] PMD ->ffff810003e00000 on node 0
+ [ffffe20001800000-ffffe200019fffff] PMD ->ffff810004200000 on node 0
+ [ffffe20001a00000-ffffe20001bfffff] PMD ->ffff810004600000 on node 0
+ [ffffe20001c00000-ffffe20001dfffff] PMD ->ffff810004a00000 on node 0
+ [ffffe20001e00000-ffffe20001ffffff] PMD ->ffff810004e00000 on node 0
+ [ffffe20002000000-ffffe200021fffff] PMD ->ffff810005200000 on node 0
+ [ffffe20002200000-ffffe200023fffff] PMD ->ffff810005600000 on node 0
+ [ffffe20002400000-ffffe200025fffff] PMD ->ffff810005a00000 on node 0
+ [ffffe20002600000-ffffe200027fffff] PMD ->ffff810005e00000 on node 0
+ [ffffe20002800000-ffffe200029fffff] PMD ->ffff810006200000 on node 0
+ [ffffe20003800000-ffffe200039fffff] PMD ->ffff810006600000 on node 0
+ [ffffe20003a00000-ffffe20003bfffff] PMD ->ffff810006a00000 on node 0
+ [ffffe20003c00000-ffffe20003dfffff] PMD ->ffff810006e00000 on node 0
+ [ffffe20003e00000-ffffe20003ffffff] PMD ->ffff810007200000 on node 0
+ [ffffe20004000000-ffffe200041fffff] PMD ->ffff810007600000 on node 0
+ [ffffe20004200000-ffffe200043fffff] PMD ->ffff810007a00000 on node 0
+ [ffffe20004400000-ffffe200045fffff] PMD ->ffff810007e00000 on node 0
+Zone PFN ranges:
+  DMA             0 ->     4096
+  DMA32        4096 ->  1048576
+  Normal    1048576 ->  1310720
+Movable zone start PFN for each node
+early_node_map[3] active PFN ranges
+    0:        0 ->      159
+    0:      256 ->   786384
+    0:  1048576 ->  1310720
+On node 0 totalpages: 1048431
+  DMA zone: 56 pages used for memmap
+  DMA zone: 1998 pages reserved
+  DMA zone: 1945 pages, LIFO batch:0
+  DMA32 zone: 14280 pages used for memmap
+  DMA32 zone: 768008 pages, LIFO batch:31
+  Normal zone: 3584 pages used for memmap
+  Normal zone: 258560 pages, LIFO batch:31
+  Movable zone: 0 pages used for memmap
+ACPI: PM-Timer IO Port: 0x2008
+ACPI: Local APIC address 0xfee00000
+ACPI: LAPIC (acpi_id[0x01] lapic_id[0x00] enabled)
+Processor #0 (Bootup-CPU)
+ACPI: LAPIC (acpi_id[0x02] lapic_id[0x01] enabled)
+Processor #1
+ACPI: IOAPIC (id[0x02] address[0xfec00000] gsi_base[0])
+IOAPIC[0]: apic_id 2, address 0xfec00000, GSI 0-23
+ACPI: INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 14 global_irq 14 high edge)
+ACPI: INT_SRC_OVR (bus 0 bus_irq 15 global_irq 15 high edge)
+ACPI: IRQ0 used by override.
+ACPI: IRQ2 used by override.
+ACPI: IRQ9 used by override.
+ACPI: IRQ14 used by override.
+ACPI: IRQ15 used by override.
+Setting APIC routing to flat
+ACPI: HPET id: 0x10de8201 base: 0xfed00000
+Using ACPI (MADT) for SMP configuration information
+Allocating PCI resources starting at e2000000 (gap: e0000000:1ec00000)
+SMP: Allowing 2 CPUs, 0 hotplug CPUs
+PERCPU: Allocating 29792 bytes of per cpu data
+Built 1 zonelists in Node order, mobility grouping on.  Total pages: 1028513
+Policy zone: Normal
+Kernel command line: root=/dev/sda2 vga=0x31B video=vesafb:mtrr:3,ywrap
+Initializing CPU#0
+PID hash table entries: 4096 (order: 12, 32768 bytes)
+hpet clockevent registered
+TSC calibrated against HPET
+Marking TSC unstable due to TSCs unsynchronized
+time.c: Detected 3392.453 MHz processor.
+Console: colour dummy device 80x25
+console [tty0] enabled
+Checking aperture...
+CPU 0: aperture @ ebc0000000 size 32 MB
+Aperture too small (32 MB)
+No AGP bridge found
+Your BIOS doesn't leave a aperture memory hole
+Please enable the IOMMU option in the BIOS setup
+This costs you 64 MB of RAM
+Mapping aperture over 65536 KB of RAM @ c000000
+Memory: 4062468k/5242880k available (5025k kernel code, 131256k reserved, 1891k data, 400k init)
+Calibrating delay using timer specific routine.. 6788.64 BogoMIPS (lpj=3394321)
+Dentry cache hash table entries: 524288 (order: 10, 4194304 bytes)
+Inode-cache hash table entries: 262144 (order: 9, 2097152 bytes)
+Mount-cache hash table entries: 256
+CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
+CPU: L2 Cache: 1024K (64 bytes/line)
+CPU 0/0 -> Node 0
+CPU: Physical Processor ID: 0
+CPU: Processor Core ID: 0
+SMP alternatives: switching to UP code
+ACPI: Core revision 20070126
+Using local APIC timer interrupts.
+APIC timer calibration result 13251764
+Detected 13.251 MHz APIC timer.
+SMP alternatives: switching to SMP code
+Booting processor 1/2 APIC 0x1
+Initializing CPU#1
+Calibrating delay using timer specific routine.. 6784.59 BogoMIPS (lpj=3392297)
+CPU: L1 I Cache: 64K (64 bytes/line), D cache 64K (64 bytes/line)
+CPU: L2 Cache: 1024K (64 bytes/line)
+CPU 1/1 -> Node 0
+CPU: Physical Processor ID: 0
+CPU: Processor Core ID: 1
+AMD Athlon(tm) 64 X2 Dual Core Processor 6400+ stepping 03
+Brought up 2 CPUs
+net_namespace: 120 bytes
+NET: Registered protocol family 16
+No dock devices found.
+ACPI: bus type pci registered
+PCI: BIOS Bug: MCFG area at e0000000 is not E820-reserved
+PCI: Not using MMCONFIG.
+PCI: Using configuration type 1
+ACPI: EC: Look up EC in DSDT
+ACPI: Interpreter enabled
+ACPI: (supports S0 S1 S3 S5)
+ACPI: Using IOAPIC for interrupt routing
+Error attaching device data
+Error attaching device data
+ACPI: PCI Root Bridge [PCI0] (0000:00)
+PCI: Transparent bridge - 0000:00:06.0
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.P0P1._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.BR10._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.BR11._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.BR12._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.BR13._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.BR14._PRT]
+ACPI: PCI Interrupt Routing Table [\_SB_.PCI0.BR15._PRT]
+ACPI: PCI Interrupt Link [LNKA] (IRQs 16 17 18 19) *10
+ACPI: PCI Interrupt Link [LNKB] (IRQs 16 17 18 19) *10
+ACPI: PCI Interrupt Link [LNKC] (IRQs 16 17 18 19) *11
+ACPI: PCI Interrupt Link [LNKD] (IRQs 16 17 18 19) *0, disabled.
+ACPI: PCI Interrupt Link [LNEA] (IRQs 16 17 18 19) *0, disabled.
+ACPI: PCI Interrupt Link [LNEB] (IRQs 16 17 18 19) *10
+ACPI: PCI Interrupt Link [LNEC] (IRQs 16 17 18 19) *0, disabled.
+ACPI: PCI Interrupt Link [LNED] (IRQs 16 17 18 19) *0, disabled.
+ACPI: PCI Interrupt Link [LUB0] (IRQs 21 22 23) *10
+ACPI: PCI Interrupt Link [LMAD] (IRQs 20) *5
+ACPI: PCI Interrupt Link [LUB2] (IRQs 21 22 23) *11
+ACPI: PCI Interrupt Link [LMAC] (IRQs 20) *0, disabled.
+ACPI: PCI Interrupt Link [LAZA] (IRQs 21 22 23) *11
+ACPI: PCI Interrupt Link [LSMB] (IRQs 21 22 23) *11
+ACPI: PCI Interrupt Link [LPMU] (IRQs 21 22 23) *5
+ACPI: PCI Interrupt Link [LSA0] (IRQs 21 22 23) *5
+ACPI: PCI Interrupt Link [LSA1] (IRQs 21 22 23) *10
+ACPI: PCI Interrupt Link [LATA] (IRQs 21 22 23) *0, disabled.
+ACPI: PCI Interrupt Link [LSA2] (IRQs 21 22 23) *10
+ACPI Warning (tbutils-0217): Incorrect checksum in table [OEMB] -  0A, should be FD [20070126]
+Linux Plug and Play Support v0.97 (c) Adam Belay
+pnp: PnP ACPI init
+ACPI: bus type pnp registered
+pnp: PnP ACPI: found 17 devices
+ACPI: ACPI bus type pnp unregistered
+SCSI subsystem initialized
+libata version 3.00 loaded.
+usbcore: registered new interface driver usbfs
+usbcore: registered new interface driver hub
+usbcore: registered new device driver usb
+PCI: Using ACPI for IRQ routing
+PCI: If a device doesn't work, try "pci=routeirq".  If it helps, post a report
+NET: Registered protocol family 23
+Bluetooth: Core ver 2.11
+NET: Registered protocol family 31
+Bluetooth: HCI device and connection manager initialized
+Bluetooth: HCI socket layer initialized
+PCI-DMA: Disabling AGP.
+PCI-DMA: aperture base @ c000000 size 65536 KB
+PCI-DMA: using GART IOMMU.
+PCI-DMA: Reserving 64MB of IOMMU area in the AGP aperture
+hpet0: at MMIO 0xfed00000, IRQs 2, 8, 31
+hpet0: 3 32-bit timers, 25000000 Hz
+ACPI: RTC can wake from S4
+Time: hpet clocksource has been installed.
+system 00:08: ioport range 0x4d0-0x4d1 has been reserved
+system 00:08: ioport range 0x800-0x80f has been reserved
+system 00:08: ioport range 0x2000-0x207f has been reserved
+system 00:08: ioport range 0x2080-0x20ff has been reserved
+system 00:08: ioport range 0x2400-0x247f has been reserved
+system 00:08: ioport range 0x2480-0x24ff has been reserved
+system 00:08: ioport range 0x2800-0x287f has been reserved
+system 00:08: ioport range 0x2880-0x28ff has been reserved
+system 00:08: ioport range 0x2c00-0x2c7f has been reserved
+system 00:08: ioport range 0x2c80-0x2cff has been reserved
+system 00:08: iomem range 0xf1f80000-0xf1fbffff has been reserved
+system 00:08: iomem range 0xfee01000-0xfeefffff has been reserved
+system 00:0a: iomem range 0xfec00000-0xfec00fff could not be reserved
+system 00:0a: iomem range 0xfee00000-0xfee00fff could not be reserved
+system 00:0d: ioport range 0xa00-0xa0f has been reserved
+system 00:0d: ioport range 0xa10-0xa1f has been reserved
+system 00:0e: iomem range 0xe0000000-0xefffffff has been reserved
+system 00:0f: iomem range 0xd0000000-0xdfffffff could not be reserved
+system 00:10: iomem range 0x0-0x9ffff could not be reserved
+system 00:10: iomem range 0xc0000-0xcffff has been reserved
+system 00:10: iomem range 0xe0000-0xfffff could not be reserved
+system 00:10: iomem range 0x100000-0xbfffffff could not be reserved
+system 00:10: iomem range 0xfec00000-0xffffffff could not be reserved
+PCI: Bridge: 0000:00:06.0
+  IO window: d000-dfff
+  MEM window: f2000000-f9ffffff
+  PREFETCH window: disabled.
+PCI: Bridge: 0000:00:0a.0
+  IO window: disabled.
+  MEM window: disabled.
+  PREFETCH window: disabled.
+PCI: Bridge: 0000:00:0b.0
+  IO window: disabled.
+  MEM window: disabled.
+  PREFETCH window: disabled.
+PCI: Bridge: 0000:00:0c.0
+  IO window: disabled.
+  MEM window: disabled.
+  PREFETCH window: disabled.
+PCI: Bridge: 0000:00:0d.0
+  IO window: disabled.
+  MEM window: disabled.
+  PREFETCH window: disabled.
+PCI: Bridge: 0000:00:0e.0
+  IO window: disabled.
+  MEM window: disabled.
+  PREFETCH window: disabled.
+PCI: Bridge: 0000:00:0f.0
+  IO window: e000-efff
+  MEM window: fa000000-febfffff
+  PREFETCH window: c0000000-cfffffff
+PCI: Setting latency timer of device 0000:00:06.0 to 64
+PCI: Setting latency timer of device 0000:00:0a.0 to 64
+PCI: Setting latency timer of device 0000:00:0b.0 to 64
+PCI: Setting latency timer of device 0000:00:0c.0 to 64
+PCI: Setting latency timer of device 0000:00:0d.0 to 64
+PCI: Setting latency timer of device 0000:00:0e.0 to 64
+PCI: Setting latency timer of device 0000:00:0f.0 to 64
+NET: Registered protocol family 2
+IP route cache hash table entries: 131072 (order: 8, 1048576 bytes)
+TCP established hash table entries: 524288 (order: 11, 8388608 bytes)
+TCP bind hash table entries: 65536 (order: 8, 1048576 bytes)
+TCP: Hash tables configured (established 524288 bind 65536)
+TCP reno registered
+Total HugeTLB memory allocated, 0
+Installing knfsd (copyright (C) 1996 okir@monad.swb.de).
+fuse init (API version 7.9)
+io scheduler noop registered
+io scheduler deadline registered
+io scheduler cfq registered (default)
+Boot video device is 0000:07:00.0
+PCI: Setting latency timer of device 0000:00:0a.0 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[0000:00:0a.0:pcie00]
+PCI: Setting latency timer of device 0000:00:0b.0 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[0000:00:0b.0:pcie00]
+PCI: Setting latency timer of device 0000:00:0c.0 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[0000:00:0c.0:pcie00]
+PCI: Setting latency timer of device 0000:00:0d.0 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[0000:00:0d.0:pcie00]
+PCI: Setting latency timer of device 0000:00:0e.0 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[0000:00:0e.0:pcie00]
+PCI: Setting latency timer of device 0000:00:0f.0 to 64
+assign_interrupt_mode Found MSI capability
+Allocate Port Service[0000:00:0f.0:pcie00]
+hpet_resources: 0xfed00000 is busy
+Non-volatile memory driver v1.2
+Linux agpgart interface v0.102
+vesafb: framebuffer at 0xfb000000, mapped to 0xffffc20001080000, using 10240k, total 14336k
+vesafb: mode is 1280x1024x32, linelength=5120, pages=1
+vesafb: scrolling: redraw
+vesafb: Truecolor: size=8:8:8:8, shift=24:16:8:0
+Console: switching to colour frame buffer device 160x64
+fb0: VESA VGA frame buffer device
+input: Power Button (FF) as /class/input/input0
+ACPI: Power Button (FF) [PWRF]
+input: Power Button (CM) as /class/input/input1
+ACPI: Power Button (CM) [PWRB]
+Serial: 8250/16550 driver $Revision: 1.90 $ 4 ports, IRQ sharing enabled
+serial8250: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+00:05: ttyS0 at I/O 0x3f8 (irq = 4) is a 16550A
+parport_pc 00:07: reported by Plug and Play ACPI
+parport0: PC-style at 0x378 (0x778), irq 7, dma 3 [PCSPP,TRISTATE,COMPAT,ECP,DMA]
+Floppy drive(s): fd0 is 1.44M
+FDC 0 is a post-1991 82077
+RAMDISK driver initialized: 16 RAM disks of 4096K size 1024 blocksize
+loop: module loaded
+forcedeth: Reverse Engineered nForce ethernet driver. Version 0.61.
+ACPI: PCI Interrupt Link [LMAD] enabled at IRQ 20
+ACPI: PCI Interrupt 0000:00:09.0[A] -> Link [LMAD] -> GSI 20 (level, low) -> IRQ 20
+PCI: Setting latency timer of device 0000:00:09.0 to 64
+forcedeth 0000:00:09.0: ifname eth0, PHY OUI 0x1c1 @ 1, addr 00:16:17:d5:d6:8f
+forcedeth 0000:00:09.0: highdma csum vlan pwrctl mgmt timirq gbit lnktim msi desc-v3
+PPP generic driver version 2.4.2
+tun: Universal TUN/TAP device driver, 1.6
+tun: (C) 1999-2004 Max Krasnyansky <maxk@qualcomm.com>
+usbcore: registered new interface driver cdc_ether
+usbcore: registered new interface driver rndis_host
+usbcore: registered new interface driver irda-usb
+USB IrDA support registered
+usbcore: registered new interface driver stir4200
+console [netcon0] enabled
+netconsole: network logging started
+Uniform Multi-Platform E-IDE driver Revision: 7.00alpha2
+ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
+NFORCE-MCP55: IDE controller (0x10de:0x036e rev 0xa1) at  PCI slot 0000:00:04.0
+NFORCE-MCP55: not 100% native mode: will probe irqs later
+NFORCE-MCP55: 0000:00:04.0 (rev a1) UDMA133 controller
+    ide0: BM-DMA at 0xffa0-0xffa7, BIOS settings: hda:DMA, hdb:pio
+NFORCE-MCP55: IDE port disabled
+Probing IDE interface ide0...
+hda: HL-DT-ST DVDRAM GSA-4163B, ATAPI CD/DVD-ROM drive
+hda: host max PIO5 wanted PIO255(auto-tune) selected PIO4
+hda: UDMA/33 mode selected
+ide0 at 0x1f0-0x1f7,0x3f6 on irq 14
+Probing IDE interface ide1...
+hda: ATAPI 40X DVD-ROM DVD-R-RAM CD-R/RW drive, 2048kB Cache
+Uniform CD-ROM driver Revision: 3.20
+Driver 'sd' needs updating - please use bus_type methods
+Driver 'sr' needs updating - please use bus_type methods
+sata_nv 0000:00:05.0: version 3.5
+ACPI: PCI Interrupt Link [LSA0] enabled at IRQ 23
+ACPI: PCI Interrupt 0000:00:05.0[A] -> Link [LSA0] -> GSI 23 (level, low) -> IRQ 23
+PCI: Setting latency timer of device 0000:00:05.0 to 64
+scsi0 : sata_nv
+scsi1 : sata_nv
+ata1: SATA max UDMA/133 cmd 0xc480 ctl 0xc400 bmdma 0xbc00 irq 23
+ata2: SATA max UDMA/133 cmd 0xc080 ctl 0xc000 bmdma 0xbc08 irq 23
+ata1: SATA link up 3.0 Gbps (SStatus 123 SControl 300)
+ata1.00: HPA detected: current 976771055, native 976773168
+ata1.00: ATA-8: SAMSUNG HD501LJ, CR100-12, max UDMA7
+ata1.00: 976771055 sectors, multi 16: LBA48 NCQ (depth 0/32)
+ata1.00: configured for UDMA/133
+ata2: SATA link up 3.0 Gbps (SStatus 123 SControl 300)
+ata2.00: ATA-7: SAMSUNG HD250HJ, FH100-06, max UDMA7
+ata2.00: 488397168 sectors, multi 16: LBA48 NCQ (depth 0/32)
+ata2.00: configured for UDMA/133
+scsi 0:0:0:0: Direct-Access     ATA      SAMSUNG HD501LJ  CR10 PQ: 0 ANSI: 5
+sd 0:0:0:0: [sda] 976771055 512-byte hardware sectors (500107 MB)
+sd 0:0:0:0: [sda] Write Protect is off
+sd 0:0:0:0: [sda] Mode Sense: 00 3a 00 00
+sd 0:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+sd 0:0:0:0: [sda] 976771055 512-byte hardware sectors (500107 MB)
+sd 0:0:0:0: [sda] Write Protect is off
+sd 0:0:0:0: [sda] Mode Sense: 00 3a 00 00
+sd 0:0:0:0: [sda] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+ sda: sda1 sda2 sda3 sda4 < sda5 sda6 >
+sd 0:0:0:0: [sda] Attached SCSI disk
+sd 0:0:0:0: Attached scsi generic sg0 type 0
+scsi 1:0:0:0: Direct-Access     ATA      SAMSUNG HD250HJ  FH10 PQ: 0 ANSI: 5
+sd 1:0:0:0: [sdb] 488397168 512-byte hardware sectors (250059 MB)
+sd 1:0:0:0: [sdb] Write Protect is off
+sd 1:0:0:0: [sdb] Mode Sense: 00 3a 00 00
+sd 1:0:0:0: [sdb] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+sd 1:0:0:0: [sdb] 488397168 512-byte hardware sectors (250059 MB)
+sd 1:0:0:0: [sdb] Write Protect is off
+sd 1:0:0:0: [sdb] Mode Sense: 00 3a 00 00
+sd 1:0:0:0: [sdb] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+ sdb: sdb1 sdb2 sdb3
+sd 1:0:0:0: [sdb] Attached SCSI disk
+sd 1:0:0:0: Attached scsi generic sg1 type 0
+ACPI: PCI Interrupt Link [LSA1] enabled at IRQ 22
+ACPI: PCI Interrupt 0000:00:05.1[B] -> Link [LSA1] -> GSI 22 (level, low) -> IRQ 22
+PCI: Setting latency timer of device 0000:00:05.1 to 64
+scsi2 : sata_nv
+scsi3 : sata_nv
+ata3: SATA max UDMA/133 cmd 0xb880 ctl 0xb800 bmdma 0xb080 irq 22
+ata4: SATA max UDMA/133 cmd 0xb480 ctl 0xb400 bmdma 0xb088 irq 22
+ata3: SATA link down (SStatus 0 SControl 300)
+ata4: SATA link down (SStatus 0 SControl 300)
+ACPI: PCI Interrupt Link [LSA2] enabled at IRQ 21
+ACPI: PCI Interrupt 0000:00:05.2[C] -> Link [LSA2] -> GSI 21 (level, low) -> IRQ 21
+PCI: Setting latency timer of device 0000:00:05.2 to 64
+scsi4 : sata_nv
+scsi5 : sata_nv
+ata5: SATA max UDMA/133 cmd 0xb000 ctl 0xac00 bmdma 0xa480 irq 21
+ata6: SATA max UDMA/133 cmd 0xa880 ctl 0xa800 bmdma 0xa488 irq 21
+ata5: SATA link down (SStatus 0 SControl 300)
+ata6: SATA link down (SStatus 0 SControl 300)
+ACPI: PCI Interrupt Link [LNKA] enabled at IRQ 19
+ACPI: PCI Interrupt 0000:01:00.0[A] -> Link [LNKA] -> GSI 19 (level, low) -> IRQ 19
+ohci1394: fw-host0: OHCI-1394 1.0 (PCI): IRQ=[19]  MMIO=[f9fff800-f9ffffff]  Max Packet=[2048]  IR/IT contexts=[4/8]
+video1394: Installed video1394 module
+ieee1394: raw1394: /dev/raw1394 device initialized
+usbmon: debugfs is not available
+ACPI: PCI Interrupt Link [LUB2] enabled at IRQ 23
+ACPI: PCI Interrupt 0000:00:02.1[B] -> Link [LUB2] -> GSI 23 (level, low) -> IRQ 23
+PCI: Setting latency timer of device 0000:00:02.1 to 64
+ehci_hcd 0000:00:02.1: EHCI Host Controller
+ehci_hcd 0000:00:02.1: new USB bus registered, assigned bus number 1
+ehci_hcd 0000:00:02.1: debug port 1
+PCI: cache line size of 64 is not supported by device 0000:00:02.1
+ehci_hcd 0000:00:02.1: irq 23, io mem 0xf1ffac00
+ehci_hcd 0000:00:02.1: USB 2.0 started, EHCI 1.00, driver 10 Dec 2004
+usb usb1: configuration #1 chosen from 1 choice
+hub 1-0:1.0: USB hub found
+hub 1-0:1.0: 10 ports detected
+ohci_hcd: 2006 August 04 USB 1.1 'Open' Host Controller (OHCI) Driver
+ACPI: PCI Interrupt Link [LUB0] enabled at IRQ 22
+ACPI: PCI Interrupt 0000:00:02.0[A] -> Link [LUB0] -> GSI 22 (level, low) -> IRQ 22
+PCI: Setting latency timer of device 0000:00:02.0 to 64
+ohci_hcd 0000:00:02.0: OHCI Host Controller
+ohci_hcd 0000:00:02.0: new USB bus registered, assigned bus number 2
+ohci_hcd 0000:00:02.0: irq 22, io mem 0xf1ffb000
+usb usb2: configuration #1 chosen from 1 choice
+hub 2-0:1.0: USB hub found
+hub 2-0:1.0: 10 ports detected
+usb 1-9: new high speed USB device using ehci_hcd and address 4
+usb 1-9: configuration #1 chosen from 1 choice
+usb 2-3: new full speed USB device using ohci_hcd and address 2
+ieee1394: Host added: ID:BUS[0-00:1023]  GUID[0011060001514801]
+usb 2-3: configuration #1 chosen from 1 choice
+usb 2-4: new full speed USB device using ohci_hcd and address 3
+usb 2-4: configuration #1 chosen from 1 choice
+usblp0: USB Bidirectional printer dev 2 if 0 alt 0 proto 2 vid 0x03F0 pid 0x1002
+usblp1: USB Bidirectional printer dev 3 if 0 alt 0 proto 2 vid 0x04A9 pid 0x108D
+usbcore: registered new interface driver usblp
+Initializing USB Mass Storage driver...
+scsi6 : SCSI emulation for USB Mass Storage devices
+usb-storage: device found at 4
+usb-storage: waiting for device to settle before scanning
+scsi7 : SCSI emulation for USB Mass Storage devices
+usb-storage: device found at 2
+usb-storage: waiting for device to settle before scanning
+usbcore: registered new interface driver usb-storage
+USB Mass Storage support registered.
+usbcore: registered new interface driver usbserial
+drivers/usb/serial/usb-serial.c: USB Serial Driver core
+drivers/usb/serial/usb-serial.c: USB Serial support registered for PocketPC PDA
+drivers/usb/serial/ipaq.c: USB PocketPC PDA driver v0.5
+usbcore: registered new interface driver ipaq
+drivers/usb/serial/usb-serial.c: USB Serial support registered for IR Dongle
+usbcore: registered new interface driver ir-usb
+drivers/usb/serial/ir-usb.c: USB IR Dongle driver v0.4
+drivers/usb/serial/usb-serial.c: USB Serial support registered for GSM modem (1-port)
+usbcore: registered new interface driver option
+drivers/usb/serial/option.c: USB Driver for GSM modems: v0.7.1
+PNP: PS/2 Controller [PNP0303:PS2K,PNP0f03:PS2M] at 0x60,0x64 irq 1,12
+serio: i8042 KBD port at 0x60,0x64 irq 1
+serio: i8042 AUX port at 0x60,0x64 irq 12
+mice: PS/2 mouse device common for all mice
+input: AT Translated Set 2 keyboard as /class/input/input2
+input: PC Speaker as /class/input/input3
+input: ImExPS/2 Generic Explorer Mouse as /class/input/input4
+I2O subsystem v1.325
+i2o: max drivers = 8
+I2O Configuration OSM v1.323
+I2O Bus Adapter OSM v1.317
+I2O Block Device OSM v1.325
+I2O SCSI Peripheral OSM v1.316
+I2O ProcFS OSM v1.316
+rtc_cmos 00:02: rtc core: registered rtc_cmos as rtc0
+rtc0: alarms up to one year, y3k
+i2c /dev entries driver
+i2c-adapter i2c-0: nForce2 SMBus adapter at 0x2d00
+i2c-adapter i2c-1: nForce2 SMBus adapter at 0x2e00
+usbcore: registered new interface driver i2c-tiny-usb
+w83627ehf: Found W83627EHG chip at 0xa10
+device-mapper: ioctl: 4.12.0-ioctl (2007-10-02) initialised: dm-devel@redhat.com
+Bluetooth: HCI USB driver ver 2.9
+usbcore: registered new interface driver hci_usb
+Bluetooth: HCI UART driver ver 2.2
+Bluetooth: HCI H4 protocol initialized
+Bluetooth: HCI BCSP protocol initialized
+sdhci: Secure Digital Host Controller Interface driver
+sdhci: Copyright(c) Pierre Ossman
+wbsd: Winbond W83L51xD SD/MMC card interface driver
+wbsd: Copyright(c) Pierre Ossman
+usbcore: registered new interface driver usbhid
+drivers/hid/usbhid/hid-core.c: v2.6:USB HID core driver
+Netfilter messages via NETLINK v0.30.
+IPv4 over IPv4 tunneling driver
+ip_tables: (C) 2000-2006 Netfilter Core Team
+arp_tables: (C) 2002 David S. Miller
+TCP cubic registered
+NET: Registered protocol family 1
+NET: Registered protocol family 10
+ip6_tables: (C) 2000-2006 Netfilter Core Team
+IPv6 over IPv4 tunneling driver
+NET: Registered protocol family 17
+NET: Registered protocol family 4
+IrCOMM protocol (Dag Brattli)
+Bluetooth: L2CAP ver 2.9
+Bluetooth: L2CAP socket layer initialized
+Bluetooth: SCO (Voice Link) ver 0.5
+Bluetooth: SCO socket layer initialized
+Bluetooth: RFCOMM socket layer initialized
+Bluetooth: RFCOMM TTY layer initialized
+Bluetooth: RFCOMM ver 1.8
+Bluetooth: BNEP (Ethernet Emulation) ver 1.2
+Bluetooth: BNEP filters: protocol multicast
+Bluetooth: HIDP (Human Interface Emulation) ver 1.2
+RPC: Registered udp transport module.
+RPC: Registered tcp transport module.
+powernow-k8: Found 1 AMD Athlon(tm) 64 X2 Dual Core Processor 6400+ processors (2 cpu cores) (version 2.20.00)
+powernow-k8:    0 : fid 0x18 (3200 MHz), vid 0x6
+powernow-k8:    1 : fid 0x16 (3000 MHz), vid 0x8
+powernow-k8:    2 : fid 0x14 (2800 MHz), vid 0xa
+powernow-k8:    3 : fid 0x12 (2600 MHz), vid 0xc
+powernow-k8:    4 : fid 0x10 (2400 MHz), vid 0xe
+powernow-k8:    5 : fid 0xe (2200 MHz), vid 0x10
+powernow-k8:    6 : fid 0xc (2000 MHz), vid 0x10
+powernow-k8:    7 : fid 0xa (1800 MHz), vid 0x10
+powernow-k8:    8 : fid 0x2 (1000 MHz), vid 0x12
+rtc_cmos 00:02: setting system clock to 2008-10-25 12:17:10 UTC (1224937030)
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs: mounted filesystem with ordered data mode.
+VFS: Mounted root (ext3 filesystem) readonly.
+Freeing unused kernel memory: 400k freed
+nvidia: module license 'NVIDIA' taints kernel.
 Linux video capture interface: v2.00
-gspca: main v2.3.0 registered
-gspca: probing 0c45:612a
-sonixj: Sonix chip id: 12
-videodev: "" has no release callback. Please fix your driver for proper 
-sysfs support, see http://lwn.net/Articles/36850/
-gspca: probe ok
-usbcore: registered new driver sonixj
-sonixj: registered
+ACPI: PCI Interrupt Link [LAZA] enabled at IRQ 21
+ACPI: PCI Interrupt 0000:00:06.1[B] -> Link [LAZA] -> GSI 21 (level, low) -> IRQ 21
+PCI: Setting latency timer of device 0000:00:06.1 to 64
+cx2388x alsa driver version 0.0.6 loaded
+cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+ACPI: PCI Interrupt Link [LNKC] enabled at IRQ 18
+ACPI: PCI Interrupt 0000:01:02.1[A] -> Link [LNKC] -> GSI 18 (level, low) -> IRQ 18
+cx88[0]: subsystem: 153b:1177, board: TerraTec Cinergy HT PCI MK2 [card=68,autodetected]
+cx88[0]: TV tuner type 71, Radio tuner type 71
+pcf8583 2-0050: rtc core: registered pcf8583 as rtc1
+tuner' 2-0061: chip found @ 0xc2 (cx88[0])
+xc2028 2-0061: creating new instance
+xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
+xc2028 2-0061: destroying instance
+xc2028 2-0061: creating new instance
+xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
+cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
+cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+cx88[0]/2: cx2388x 8802 Driver Manager
+ACPI: PCI Interrupt 0000:01:02.2[A] -> Link [LNKC] -> GSI 18 (level, low) -> IRQ 18
+cx88[0]/2: found at 0000:01:02.2, rev: 5, irq: 18, latency: 64, mmio: 0xf2000000
+ACPI: PCI Interrupt 0000:01:02.0[A] -> Link [LNKC] -> GSI 18 (level, low) -> IRQ 18
+cx88[0]/0: found at 0000:01:02.0, rev: 5, irq: 18, latency: 64, mmio: 0xf8000000
+cx88[0]/0: registered device video0 [v4l2]
+cx88[0]/0: registered device vbi0
+cx88/2: cx2388x dvb driver version 0.0.6 loaded
+cx88/2: registering cx8802 driver, type: dvb access: shared
+cx88[0]/2: subsystem: 153b:1177, board: TerraTec Cinergy HT PCI MK2 [card=68]
+cx88[0]/2: cx2388x based DVB/ATSC card
+cx88[0]/2: The frontend of your DVB/ATSC card isn't supported yet
+cx88[0]/2: frontend initialization failed
+cx88[0]/2: dvb_register failed (err = -22)
+cx88[0]/2: cx8802 probe failed, err = -22
+xc2028 2-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+cx88[0]: Calling XC2028/3028 callback
+cx88[0]: setting GPIO to TV!
+scsi 6:0:0:0: Direct-Access     TRUST    CR-3300    CF    0200 PQ: 0 ANSI: 0
+sd 6:0:0:0: [sdc] Attached SCSI removable disk
+sd 6:0:0:0: Attached scsi generic sg2 type 0
+scsi 6:0:0:1: Direct-Access     TRUST    CR-3300    SM XD 0200 PQ: 0 ANSI: 0
+scsi 7:0:0:0: Direct-Access     HP       photosmart 140 s 1.00 PQ: 0 ANSI: 2
+sd 6:0:0:1: [sdd] 256000 512-byte hardware sectors (131 MB)
+sd 6:0:0:1: [sdd] Write Protect is off
+sd 6:0:0:1: [sdd] Mode Sense: 03 00 00 00
+sd 6:0:0:1: [sdd] Assuming drive cache: write through
+xc2028 2-0061: Loading firmware for type=BASE MTS (5), id 0000000000000000.
+cx88[0]: Calling XC2028/3028 callback
+cx88[0]: setting GPIO to TV!
+sd 7:0:0:0: [sde] Attached SCSI removable disk
+sd 7:0:0:0: Attached scsi generic sg3 type 0
+usb-storage: device scan complete
+sd 6:0:0:1: [sdd] 256000 512-byte hardware sectors (131 MB)
+sd 6:0:0:1: [sdd] Write Protect is off
+sd 6:0:0:1: [sdd] Mode Sense: 03 00 00 00
+sd 6:0:0:1: [sdd] Assuming drive cache: write through
+ sdd: sdd1
+sd 6:0:0:1: [sdd] Attached SCSI removable disk
+sd 6:0:0:1: Attached scsi generic sg4 type 0
+scsi 6:0:0:2: Direct-Access     TRUST    CR-3300    MS    0200 PQ: 0 ANSI: 0
+sd 6:0:0:2: [sdf] Attached SCSI removable disk
+sd 6:0:0:2: Attached scsi generic sg5 type 0
+scsi 6:0:0:3: Direct-Access     TRUST    CR-3300    SD    0200 PQ: 0 ANSI: 0
+sd 6:0:0:3: [sdg] Attached SCSI removable disk
+sd 6:0:0:3: Attached scsi generic sg6 type 0
+usb-storage: device scan complete
+xc2028 2-0061: Loading firmware for type=MTS (4), id 000000000000b700.
+xc2028 2-0061: Loading SCODE for type=MTS LCD NOGD MONO IF SCODE HAS_IF_4500 (6002b004), id 000000000000b700.
+cx88[0]: Calling XC2028/3028 callback
+ACPI: PCI Interrupt Link [LNEB] enabled at IRQ 17
+ACPI: PCI Interrupt 0000:07:00.0[A] -> Link [LNEB] -> GSI 17 (level, low) -> IRQ 17
+PCI: Setting latency timer of device 0000:07:00.0 to 64
+NVRM: loading NVIDIA UNIX x86_64 Kernel Module  177.80  Wed Oct  1 14:43:46 PDT 2008
+EXT3 FS on sda2, internal journal
+lp0: using parport0 (interrupt-driven).
+lp0: console ready
+ppdev: user-space parallel port driver
+kjournald starting.  Commit interval 5 seconds
+EXT3 FS on sda6, internal journal
+EXT3-fs: mounted filesystem with ordered data mode.
+Adding 8393952k swap on /dev/sdb2.  Priority:-1 extents:1 across:8393952k
+eth0: no IPv6 routers present
 
-But when I start streamer, I get the following errors:
-jj@piw:/mnt/dane/samba/motion.src$
-LD_PRELOAD=/usr/local/lib/libv4l/v4l1compat.so streamer -ddd -o a.jpeg
-checking writer files [multiple image files] ...
-  video name=ppm ext=ppm: ext mismatch [need jpeg]
-  video name=pgm ext=pgm: ext mismatch [need jpeg]
-  video name=jpeg ext=jpeg: OK
-files / video: JPEG (JFIF) / audio: none
-vid-open: trying: v4l2-old...
-vid-open: failed: v4l2-old
-vid-open: trying: v4l2...
-ioctl: 
-VIDIOC_QUERYCAP(driver="";card="";bus_info="";version=0.0.0;capabilities=0x0[]): 
-Invalid argument
-vid-open: failed: v4l2
-vid-open: trying: v4l...
-vid-open: failed: v4l
-no grabber device available
-jj@piw:/mnt/dane/samba/motion.src$
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/x-log;
+  charset="us-ascii";
+  name="lsmod.log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="lsmod.log"
 
-A similar error when starting motion:
-jj@piw:/mnt/dane/samba/motion.src/motion-3.2.3$
-LD_PRELOAD=/usr/local/lib/libv4l/v4l1compat.so ./motion -n -ddd -c 
-`pwd`/motion.conf
-[0] Processing thread 0 - config file 
-/mnt/dane/samba/motion.src/motion-3.2.3/motion.conf
-[1] Thread is from /mnt/dane/samba/motion.src/motion-3.2.3/motion.conf
-[1] Thread started
-[1] ioctl (VIDIOCGCAP): Invalid argument
-[1] Capture error calling vid_start
-[1] Thread finishing...
-jj@piw:/mnt/dane/samba/motion.src/motion-3.2.3$
+Module                  Size  Used by
+scsi_wait_scan          1984  0 
+output                  3968  0 
+ppdev                   9224  0 
+lp                     12356  0 
+snd_bt87x              15332  0 
+snd_emu10k1_synth       7552  0 
+snd_emu10k1           145952  1 snd_emu10k1_synth
+snd_ac97_codec        117592  1 snd_emu10k1
+snd_dummy              12288  0 
+ac97_bus                2944  1 snd_ac97_codec
+snd_emux_synth         36416  1 snd_emu10k1_synth
+snd_util_mem            4608  2 snd_emu10k1,snd_emux_synth
+snd_seq_virmidi         6784  1 snd_emux_synth
+snd_seq_midi            8000  0 
+snd_rawmidi            23360  3 snd_emu10k1,snd_seq_virmidi,snd_seq_midi
+snd_seq_midi_emul       7488  1 snd_emux_synth
+snd_seq_dummy           3780  0 
+snd_seq_oss            33088  0 
+snd_seq_midi_event      7872  3 snd_seq_virmidi,snd_seq_midi,snd_seq_oss
+snd_seq                55904  9 snd_emux_synth,snd_seq_virmidi,snd_seq_midi,snd_seq_midi_emul,snd_seq_dummy,snd_seq_oss,snd_seq_midi_event
+snd_seq_device          7700  8 snd_emu10k1_synth,snd_emu10k1,snd_emux_synth,snd_seq_midi,snd_rawmidi,snd_seq_dummy,snd_seq_oss,snd_seq
+snd_pcm_oss            40128  0 
+snd_mixer_oss          16896  1 snd_pcm_oss
+snd_hwdep               8904  2 snd_emu10k1,snd_emux_synth
+cx88_vp3054_i2c         3328  0 
+videobuf_dvb            5828  0 
+dvb_core               84652  1 videobuf_dvb
+tuner_xc2028           21680  1 
+tuner                  27724  0 
+cx8802                 17220  0 
+cx8800                 35556  0 
+cx88_alsa              13128  0 
+cx88xx                 69928  3 cx8802,cx8800,cx88_alsa
+snd_hda_intel         364324  3 
+compat_ioctl32          9600  1 cx8800
+videodev               36160  4 tuner,cx8800,cx88xx,compat_ioctl32
+snd_pcm                75464  8 snd_bt87x,snd_emu10k1,snd_ac97_codec,snd_dummy,snd_pcm_oss,cx88_alsa,snd_hda_intel
+snd_timer              22280  4 snd_emu10k1,snd_seq,snd_pcm
+v4l2_common            12736  2 tuner,cx8800
+snd                    57832  21 snd_bt87x,snd_emu10k1,snd_ac97_codec,snd_dummy,snd_emux_synth,snd_seq_virmidi,snd_rawmidi,snd_seq_oss,snd_seq,snd_seq_device,snd_pcm_oss,snd_mixer_oss,snd_hwdep,cx88_alsa,snd_hda_intel,snd_pcm,snd_timer
+v4l1_compat            15748  1 videodev
+ir_common              38916  1 cx88xx
+tveeprom               15236  1 cx88xx
+videobuf_dma_sg        12932  4 cx8802,cx8800,cx88_alsa,cx88xx
+videobuf_core          18372  5 videobuf_dvb,cx8802,cx8800,cx88xx,videobuf_dma_sg
+soundcore               7904  1 snd
+nvidia               7797024  26 
+snd_page_alloc          9040  4 snd_bt87x,snd_emu10k1,snd_hda_intel,snd_pcm
+btcx_risc               5000  4 cx8802,cx8800,cx88_alsa,cx88xx
 
-The same problem when starting streamer or motion with root privileges. 
-Any idea what is wrong? What is the reason of the errors
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/x-log;
+  charset="us-ascii";
+  name="lspci.log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="lspci.log"
 
-Regards,
-JJ
+00:00.0 RAM memory: nVidia Corporation MCP55 Memory Controller (rev a1)
+00:01.0 ISA bridge: nVidia Corporation MCP55 LPC Bridge (rev a2)
+00:01.1 SMBus: nVidia Corporation MCP55 SMBus (rev a2)
+00:02.0 USB Controller: nVidia Corporation MCP55 USB Controller (rev a1)
+00:02.1 USB Controller: nVidia Corporation MCP55 USB Controller (rev a2)
+00:04.0 IDE interface: nVidia Corporation MCP55 IDE (rev a1)
+00:05.0 IDE interface: nVidia Corporation MCP55 SATA Controller (rev a2)
+00:05.1 IDE interface: nVidia Corporation MCP55 SATA Controller (rev a2)
+00:05.2 IDE interface: nVidia Corporation MCP55 SATA Controller (rev a2)
+00:06.0 PCI bridge: nVidia Corporation MCP55 PCI bridge (rev a2)
+00:06.1 Audio device: nVidia Corporation MCP55 High Definition Audio (rev a2)
+00:09.0 Bridge: nVidia Corporation MCP55 Ethernet (rev a2)
+00:0a.0 PCI bridge: nVidia Corporation MCP55 PCI Express bridge (rev a2)
+00:0b.0 PCI bridge: nVidia Corporation MCP55 PCI Express bridge (rev a2)
+00:0c.0 PCI bridge: nVidia Corporation MCP55 PCI Express bridge (rev a2)
+00:0d.0 PCI bridge: nVidia Corporation MCP55 PCI Express bridge (rev a2)
+00:0e.0 PCI bridge: nVidia Corporation MCP55 PCI Express bridge (rev a2)
+00:0f.0 PCI bridge: nVidia Corporation MCP55 PCI Express bridge (rev a2)
+00:18.0 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] HyperTransport Technology Configuration
+00:18.1 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] Address Map
+00:18.2 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] DRAM Controller
+00:18.3 Host bridge: Advanced Micro Devices [AMD] K8 [Athlon64/Opteron] Miscellaneous Control
+01:00.0 FireWire (IEEE 1394): VIA Technologies, Inc. IEEE 1394 Host Controller (rev 46)
+01:01.0 Multimedia audio controller: Creative Labs SB X-Fi
+01:02.0 Multimedia video controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder (rev 05)
+01:02.1 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder [Audio Port] (rev 05)
+01:02.2 Multimedia controller: Conexant CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] (rev 05)
+07:00.0 VGA compatible controller: nVidia Corporation G80 [GeForce 8800 GTS] (rev a2)
 
-----------------------------------------------------
-Kto jest bardziej SEXY?! 
-Tysi±ce zdjêæ i profili 
-najseksowaniejszych Polaków! 
-Do³±cz do nich: http://klik.wp.pl/?adr=http%3A%2F%2Fcorto.www.wp.pl%2Fas%2Famisexy.html&sid=523
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/x-log; charset="us-ascii"; name="lspci_-nnv_-d_14f1:*.log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="lspci_-nnv_-d_14f1:*.log"
 
+01:02.0 Multimedia video controller [0400]: Conexant CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
+	Subsystem: TERRATEC Electronic GmbH Device [153b:1177]
+	Flags: bus master, medium devsel, latency 64, IRQ 18
+	Memory at f8000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [44] Vital Product Data <?>
+	Capabilities: [4c] Power Management version 2
+	Kernel driver in use: cx8800
+	Kernel modules: cx8800
+
+01:02.1 Multimedia controller [0480]: Conexant CX23880/1/2/3 PCI Video and Audio Decoder [Audio Port] [14f1:8801] (rev 05)
+	Subsystem: TERRATEC Electronic GmbH Device [153b:1177]
+	Flags: bus master, medium devsel, latency 64, IRQ 18
+	Memory at f3000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+	Kernel driver in use: cx88_audio
+	Kernel modules: cx88-alsa
+
+01:02.2 Multimedia controller [0480]: Conexant CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] [14f1:8802] (rev 05)
+	Subsystem: TERRATEC Electronic GmbH Device [153b:1177]
+	Flags: bus master, medium devsel, latency 64, IRQ 18
+	Memory at f2000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+	Kernel driver in use: cx88-mpeg driver manager
+	Kernel modules: cx8802
+
+
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: application/octet-stream;
+  name="xc3028-v27.fw"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="xc3028-v27.fw"
+
+eGMyMDI4IGZpcm13YXJlAAAAAAAAAAAAAAAAAAAAAAAHAlAAAwAAAAAAAAAAAAAADiIAAAAAqQsq
+AurgAAf00AHAcOAAB+PTD3Ej8QEE19Bg0QDBQNILAALwHKAD0QDwHNAB0QPSA9MB4AAHvdSepEXV
+EMUB9FzVQMULpEP0XNMAw/DV1tQA4AMH0tMBw/DVA8UZ1AHgAwfS0wPD8NUA1ADgAwfS0wTD8NUA
+1ADgAwfS0wXD8NUA1ADgAwfS0wbD8NUA1ADgAwfS0wfD8NUA1ADgAwfS0wnD8NUA1ADgAwfS0w7D
+8NUA1ADgAwfS0w/D8NUA1ADgAwfS1hT2CdD/wAPRVNMBw/DVA8WZ1AHE8OADB9LWFPYJ0wHDcOAD
+B+MswIRG0gDCQjRC9RjgBAX78UyhE9UAxRnUAdMBw/DgAwfS1hT2CdUAxZnUAdMBw/DgAwfS1hT2
+CdMBw3DgAwfjLMCERtIAwkA0QvUY4AQF+/FMoRPVI8UZ1ALE8NMBw/DgAwfS1hT2CdUjxZnUAsTw
+0wHD8OADB9LWFPYJ0wHDcOADB+MswIRG0gDCQjRC9RjgBAX78UyhE9UgxRnUAtMBw/DgAwfS1hT2
+CdUgxZnUAtMBw/DgAwfS1hT2CdMBw3DgAwfjLMCERtIAwkI0QvUY4AQF+/FMoRPVI8UZ1APE8NMB
+w/DgAwfS1hT2CdUjxZnUA8Tw0wHD8OADB9LWFPYJ0wHDcOADB+MswIRG0gDCQjRC9RjgBAX78Uyh
+E9UgxRnUA9MBw/DgAwfS1hT2CdUgxZnUA9MBw/DgAwfS1hT2CdMBw3DgAwfjLMCERtIAwkI0QvUY
+4AQF+/FMoRPVI8UZ1ATE8NMBw/DgAwfS1hT2CdUjxZnUBMTw0wHD8OADB9LWFPYJ0wHDcOADB+Ms
+wIRG0gDCQjRC9RjgBAX78UyhE9UgxRnUBNMBw/DgAwfS1hT2CdUgxZnUBNMBw/DgAwfS1hT2CdMB
+w3DgAwfjLMCERtIAwkI0QvUY4AQF+/FMoRPVI8UZ1AXE8NMBw/DgAwfS1hT2CdUjxZnUBcTw0wHD
+8OADB9LWFPYJ0wHDcOADB+MswIRG0gDCQjRC9RjgBAX78UyhE9UgxRnUBdMBw/DgAwfS1hT2CdUg
+xZnUBdMBw/DgAwfS1hT2CdMBw3DgAwfjLMCERtIAwkI0QvUY4AQF+/FMoRPVI8UZ1AbE8NMBw/Dg
+AwfS1hT2CdUjxZnUBsTw0wHD8OADB9LWFPYJ0wHDcOADB+MswIRG0gDCQjRC9RjgBAX78UyhE9Ug
+xRnUBtMBw/DgAwfS1hT2CdUgxZnUBtMBw/DgAwfS1hT2CdMBw3DgAwfjLMCERtIAwkI0QvUY4AQF
++/FMoRPVANQA0wHD8OADB9LtB9FU0qDxLKET0pDCAfEsoRPSRMIB8SyhE9LcwgLxLKET0jzCAvEs
+oRPSWMIE8SyhE9IswgPxLKET0jzCBvEsoRPSiMIE8SyhE9IEwgnxLKET0tDCBvEsoRPSIMIN8Syh
+E9UO1gDXA9gO4AUHvdUP1hLXFOAFB6HWDtcO4AUHodX/xf/1CdUBxYDWAuAFB9LUD8Tw1QHFAdYw
+xkDgBwcvh3zYvPh8HuvgBAfS0ADRFtIW0wHgAAe90AHRB9II0wDgAAe94AQHptQAxKD0CdAA4AAH
+veAEB6bUD8Tw1f7F/tYwxkDgBwcvh3we6+AEB9LGwOAEB9LU/8T/9AnUD8Rw4AQH49r/J24tWohf
+iIOHeNqOqqf6fKqp+oyqqfqc1A/E8NX+xf7WP8bA1jDGQOAHBy+HfB7r4AQH0tAB4AAHvdAB0RbS
+FtMB4AAHveAEB6bQYKAD8QigA/II4AQHNvAssALwHNDTwAHR4MEBMgSiI4IjMxWjM4Mz1oAUJiZE
+hm8YRta69ozWgBQmJkSGbxhG2QMpiZmemIYZiamXiZKokNZBxiT4AQWrBmnYu/hs1oAUJiZEhm8Y
+RtkMKYmZntYSKIaYjgmJ+Q2pn6mb1w9Ml1Z9JpZGh9cI2AvZBOAGB73WgBQmJkSGbxhG2QYpiZme
+uZz5DdcPTJdWfSmWSYenkCaX1xjYG9kF4AYHvdUOxXDgBQfjh3SHf4d/1QH3AQXr1QK3dvcBBevV
+ANYM1w3YDuAFB73VANYO1w7YDuAFB6HWEtcU4AUHve4H0gDCEzMSBBMVE1zAXQ0jzfMFBgagEfAC
+8A7wDuAAB/jgAAf08A7uaPAK+wj5GLqatmIcthyK9hj4AQZN+wEGfLmS+QUGIdoT+Cj6hLuy+wEG
+fLu4+wEGUdcAx5T3eNkAyf8ZefkBBn7XAMfQ+XjYAPeM+QUGTdgS+IjyjKiD2QD4nNoQ+qiog/is
+2ADXAMdk94zYEfiI9IzYAMiM2QH4nPAG8ALZE/qY8qzuQNgA1wDHYPeM2A74iPSM2A/4iPKMqIPZ
+APic2g36qKiD+KzYAMiM2QX4nPAG8ALZAMms2Az6gPms2QDJCNcAxzT3nMk41wDHRPecySDXAMdI
+95zYFfKM8AbuffAK1xXYAMgw+HzXAMeY9njYGvhs2ADIrNog+KzZINoKyvD5rKmT2hTK1/msqZPa
+Ecr3+aypk9oVytf5rKmT2gDK2PmsqZPaMMrI+aypk9p8yvj5rKmT2gDK1/msqZPalMrH+aypk9p4
+yvf5rKmT2gDK2PmsqZPamMrI+aypk9qIyvn5rKmT2pzK+PmsqZPaAMra+aypk9oAytv5rKmT2mTK
+y/msqZParMr7+aypk9r/ytj5rKmT2gfKyPmsqZPabMom+aypk9p8yvb5rKmT2mPKpvmsqZPabMom
++aypk9qcyvb5rKmT2mPKpvmsqZPaFcrX+aypk9pnyhf5rKmT2gHK9/msqZPaQ/msqZPacsq3+ayp
+k9oByvf5rKmT2kP5rKmT2gbK8PmsqZPaQsro+aypk9rsytf5rKmT2v/Kx/msqZPaEcr3+aypk9r/
+yu/5rPd82ADXAMdk94zXFPcR7nzwDtABwHDgAAfj0Q9wIfAC0gDTAuACB0jTANQB4AMHSNQB1QLg
+BAdIgiWERYM1ICMhQ/AC0wDDwNQA1Q/WAOADB73TxsMQ1BDVH9YA4AMHveADB6bTxsMQhx6Hdh/3
+hw6HfB/31BDVH9YA4AMHveADB6bTEMMn8wnTAdQf1R/WAOADB73gAwem0xDDJ/MJ0wDDcOADB+PT
+/8MDLE/TANQf1R/WAOADB73gAwem8AKkQ/QN1wEty9YQXg72AQeU1hAWBmd2ZVYf9z/175hncGVQ
+Huc+5RcQVdyFUrVSAAWEQ/cFB4fwAuAAB73gBAem8ALQYPEI1gDG8NMB0hCgA/cIoAP4CCTf9AEH
+teAGB9KmY4ETsiLyBQes0GDwHPACqgGmEach1GD1SNsBa7MVX/RcpEOLMgRL+EikQ/lI4AYHhfSc
+tEL0jPAC8ArTAMOc8xzTAMOg8yzTAMOk8wzTAMOo8zjzAQfc8AbwAvAK0wDDpPMM0wDDqPI48gEH
+6dMAw5zxONMAw6DyOPAG8ALRAMGY8QzwAtAAwJTwCNEAwZjxGPAC7g6QAIgAMAA0ACQAbAAAAAAA
+AAAAAAAAAAAGDz4JABUAGgrqAB4ARwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoAF2ATgCwAIwBCADYAZcBLwJ
+YAecDXD//37/EK5zpSJ8AAAAAB4XAAQsRwAAAwAGACfFIfAWJ4AAAAAAADxnAsAAAAAAAAAAAAAA
+AAAAAAAABw4AHP7+gD8AAAAAAAAAAQAAAAAAAAAAAAAQJwAAAAAAAAAwADAADAgwAAAAKgACACEA
+AAAMAAQAIQAAACsAAQAAAAAAAABGAwAAAAAAAAoAPAAAAAAAUACwAAAAAAMKA6kABAAIAAgADwAO
+AAAAAAAAAAAAAAAAAAAAAAAAAAACAAICAgACAwIAAIwEAAAAAABkgAQA/wAAzQQA4AAHuQQA8QUB
+dwQAgAK4BAQA+AEA5gQAsgjyAQQAAOayLAQAsizyAQQAAOTSAAQAwkASAgQA8gUBdwQA4AAGrQQA
+6XfgAAQABc3gAQQAB7XwEgQA4AAHuQQAogDyAQQAAM/4AQQAASzTDAQAYAMMzwQA8A3ThQQA8wzg
+AQQAB7XgAQQABTvThgQA8xzTiQQA8xzgAQQABZXgAAQABsGhMQQA4AMEsAQA0A/gAAQABQDgAAQA
+Ar/QhwQA8AjRAQQALdzxBQQAAWjQKAQAwRPxCQQA4AIHrAQA8gEBHAQAsALwBQQAARHQAAQA6R3Q
+AQQA0QDgAAQABfbwAQQAASmwAgQA8AEBAAQAsALwAQQAASnpdwQA4AAGswQA6TzThwQA8wzTiAQA
+8xzgAAQAB5bgAQQABq3gAQQAB7XwEgQA4AEHtQQA4AAFlQQA6QDQEAQA0SjgAgQABZ7yAQQAAV7g
+AgQAB6zVKAQAIyEDNQQApFMkQgQAETTUAQQAkxHgAwQABfbzAQQAAVOzMgQA8wEBAAQA8gUBYgQA
+4AIH0QQAwwZf7wQAxAlcwgQAL/TzBQQAAWLgAgQABePQBQQA6RGwAgQA8AEBaAQA4AICXwQA6W7Q
+EAQA04nzOAQA0gHgAgQABQDShwQA8ijTAQQAL/7zAQQAAT7C/wQA8gnpYgQA4AQHtQQA8A7wDgQA
+4AAHuQQA0QF9zQQAsh7yAQQAAeGyIgQA0QDyAQQAAbyyIgQA8gEBuwQAsiLyAQQAAbOyIgQA8gEB
+sAQAsiLyAQQAAa2yIgQA8gEBqgQAsiLyAQQAAaOyIgQA8gEBnwQAgAqACwQA8Ajp4wQA4AAH3wQA
+8A3p4wQA0bnxGAQAkhE83gQAgiI8zgQA6ePQigQA8Ajp4wQA0NTACwQA6ePgAAQAB9Hp4wQA0APA
+QAQA4AAHwAQAgBqACwQAsALp4wQA0QPXBQQAx2DgBwQAB8CqcQQA4AoHwAQAdNfVEAQAFUX1AQQA
+Acq2RgQA6c10xwQA1Q0GRQQAi7h09wQAhEIVZAQA1w0iVwQAgiXTCwQAAiPTQAQAX/4iIwQAoyAi
+IwQA07nzOAQAozQiIwQAcCHp4wQA4AAH9AQA4AAHtQQA8A7qOAQA8Ar7CAQA+Ri6mgQAtmIctgQA
+HIr2GAQA+AECHQQA+wECTAQAuZL5BQQAAfnaEwQA+Cj6hAQAu7L7AQQAAky7uAQA+wECIQQA1wDH
+0AQA+XjYAAQA94z5BQQAAh3YEgQA+IjyjAQAqIPZAAQA+JzaEAQA+qiogwQA+KzYAAQA1wDHZAQA
+94zYEQQA+Ij0jAQA2ADIjAQA2QH4nAQA8AbwAgQA2RP6mAQA8qzqEAQA2ADXAAQAx2D3jAQA2A74
+iAQA9IzYDwQA+IjyjAQAqIPZAAQA+JzaDQQA+qiogwQA+KzYAAQAyIzZBQQA+JzwBgQA8ALZAAQA
+yazYDAQA+oD5rAQA2QDJCAQA1wDHNAQA95zJOAQA1wDHRAQA95zJIAQA1wDHSAQA95zYFQQA8ozw
+BgQA6k3wDgQA0QDQswQAoAPyCAQA8gUCXQQAoAXyCAQA8gUCXQQAoAXyCAQA8gECXgQA0QHwAgQA
+4AACTwQA8QUCpwQAsBLRAQQA4AAD0wQA1hLGgAQA1wHgBgQAB4XHCgQA9wnXcQQA4AYHhQQA0ADR
+BAQA046iCAQA8gUCugQAqFH2OAQApwHgBgQAA5v1OAQAozP4OAQAozcahQQAuGIcigQAqmMdpQQA
+KYn5AQQAAor2BQQAAoygAwQA6nShAwQAohjyBQQAApypUQQA9zioEQQA4AcDmwQA9TgSZwQA8gUC
+nAQAoROjOQQA6o0ldwQAomLYAQQAGIIkAgQARBgjEgQAQwjgAwQAAwzqugQA0wDwPAQAsALxCAQA
+0I7TBAQAQBPzCAQAAzLwPAQA4AEEHwQA4AACTwQA8QUCXwQA0Q/gAQQABALgAAQAAk/xBQQAAl/w
+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
+cOAEB+Pa/yduLVqIX4iDh3jajqqn+nyqqfqMqqn6nNQPxPDV/sX+1j/GwNYwxkDgBwcvh3we6+AE
+B9LQAeAAB73QAdEW0hbTAeAAB73gBAem0GCgA/EIoAPyCOAEBzbwLLAC8BzQ08AB0eDBATIEoiOC
+IzMVozODM9aAFCYmRIZvGEbWuvaM1oAUJiZEhm8YRtkDKYmZnpiGGYmpl4mSqJDWQcYk+AEFqwZp
+2Lv4bNaAFCYmRIZvGEbZDCmJmZ7WEiiGmI4JifkNqZ+pm9cPTJdWfSaWRofXCNgL2QTgBge91oAU
+JiZEhm8YRtkGKYmZnrmc+Q3XD0yXVn0plkmHp5Aml9cY2BvZBeAGB73VDsVw4AUH44d0h3+Hf9UB
+9wEF69UCt3b3AQXr1QDWDNcN2A7gBQe91QDWDtcO2A7gBQeh1hLXFOAFB73uB9IAwhMzEgQTFRNc
+wF0NI83zBQYGoBHwAvAO8A7gAAf44AAH9PAO7mjwCvsI+Ri6mrZiHLYcivYY+AEGTfsBBny5kvkF
+BiHaE/go+oS7svsBBny7uPsBBlHXAMeU93jZAMn/GXn5AQZ+1wDH0Pl42AD3jPkFBk3YEviI8oyo
+g9kA+JzaEPqoqIP4rNgA1wDHZPeM2BH4iPSM2ADIjNkB+JzwBvAC2RP6mPKs7kDYANcAx2D3jNgO
++Ij0jNgP+IjyjKiD2QD4nNoN+qiog/is2ADIjNkF+JzwBvAC2QDJrNgM+oD5rNkAyQjXAMc095zJ
+ONcAx0T3nMkg1wDHSPec2BXyjPAG7n3wCtcV2ADIMPh81wDHmPZ42Br4bNgAyKzaIPis2SDaCsrw
++aypk9oUytf5rKmT2hHK9/msqZPaFcrX+aypk9oAytj5rKmT2jDKyPmsqZPafMr4+aypk9oAytf5
+rKmT2pTKx/msqZPaeMr3+aypk9oAytj5rKmT2pjKyPmsqZPaiMr5+aypk9qcyvj5rKmT2gDK2vms
+qZPaAMrb+aypk9pkysv5rKmT2qzK+/msqZPa/8rY+aypk9oHysj5rKmT2mzKJvmsqZPafMr2+ayp
+k9pjyqb5rKmT2mzKJvmsqZPanMr2+aypk9pjyqb5rKmT2hXK1/msqZPaZ8oX+aypk9oByvf5rKmT
+2kP5rKmT2nLKt/msqZPaAcr3+aypk9pD+aypk9oGyvD5rKmT2kLK6PmsqZPa7MrX+aypk9r/ysf5
+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
+8OADB9LWFPYJ1SPFmdQFxPDTAcPw4AMH0tYU9gnTAcNw4AMH4yzAhEbSAMJCNEL1GOAEBfvxTKET
+1SDFGdQF0wHD8OADB9LWFPYJ1SDFmdQF0wHD8OADB9LWFPYJ0wHDcOADB+MswIRG0gDCQjRC9Rjg
+BAX78UyhE9UjxRnUBsTw0wHD8OADB9LWFPYJ1SPFmdQGxPDTAcPw4AMH0tYU9gnTAcNw4AMH4yzA
+hEbSAMJCNEL1GOAEBfvxTKET1SDFGdQG0wHD8OADB9LWFPYJ1SDFmdQG0wHD8OADB9LWFPYJ0wHD
+cOADB+MswIRG0gDCQjRC9RjgBAX78UyhE9UA1ADTAcPw4AMH0u0H0VTSoPEsoRPSkMIB8SyhE9JE
+wgHxLKET0tzCAvEsoRPSPMIC8SyhE9JYwgTxLKET0izCA/EsoRPSPMIG8SyhE9KIwgTxLKET0gTC
+CfEsoRPS0MIG8SyhE9Igwg3xLKET1Q7WANcD2A7gBQe91Q/WEtcU4AUHodYO1w7gBQeh1f/F//UJ
+1QHFgNYC4AUH0tQPxPDVAcUB1jDGQOAHBy+HfNi8+Hwe6+AEB9LQANEW0hbTAeAAB73QAdEH0gjT
+AOAAB73gBAem1ADEoPQJ0ADgAAe94AQHptQPxPDV/sX+1jDGQOAHBy+HfB7r4AQH0sbA4AQH0tT/
+xP/0CdQPxHDgBAfj2v8nbi1aiF+Ig4d42o6qp/p8qqn6jKqp+pzUD8Tw1f7F/tY/xsDWMMZA4AcH
+L4d8HuvgBAfS0AHgAAe90AHRFtIW0wHgAAe94AQHptBgoAPxCKAD8gjgBAc28CywAvAc0NPAAdHg
+wQEyBKIjgiMzFaMzgzPWgBQmJkSGbxhG1rr2jNaAFCYmRIZvGEbZAymJmZ6YhhmJqZeJkqiQ1kHG
+JPgBBasGadi7+GzWgBQmJkSGbxhG2QwpiZme1hIohpiOCYn5DamfqZvXD0yXVn0mlkaH1wjYC9kE
+4AYHvdaAFCYmRIZvGEbZBimJmZ65nPkN1w9Ml1Z9KZZJh6eQJpfXGNgb2QXgBge91Q7FcOAFB+OH
+dId/h3/VAfcBBevVArd29wEF69UA1gzXDdgO4AUHvdUA1g7XDtgO4AUHodYS1xTgBQe97gfSAMIT
+MxIEExUTXMBdDSPN8wUGBqAR8ALwDvAO4AAH+OAAB/TwDu5o8Ar7CPkYupq2Yhy2HIr2GPgBBk37
+AQZ8uZL5BQYh2hP4KPqEu7L7AQZ8u7j7AQZR1wDHlPd42QDJ/xl5+QEGftcAx9D5eNgA94z5BQZN
+2BL4iPKMqIPZAPic2hD6qKiD+KzYANcAx2T3jNgR+Ij0jNgAyIzZAfic8AbwAtkT+pjyrO5A2ADX
+AMdg94zYDviI9IzYD/iI8oyog9kA+JzaDfqoqIP4rNgAyIzZBfic8AbwAtkAyazYDPqA+azZAMkI
+1wDHNPecyTjXAMdE95zJINcAx0j3nNgV8ozwBu598ArXFdgAyDD4fNcAx5j2eNga+GzYAMis2iD4
+rNkg2grK8PmsqZPaFMrX+aypk9oRyvf5rKmT2hXK1/msqZPaAMrY+aypk9owysj5rKmT2nzK+Pms
+qZPaAMrX+aypk9qUysf5rKmT2njK9/msqZPaAMrY+aypk9qYysj5rKmT2ojK+fmsqZPanMr4+ayp
+k9oAytr5rKmT2gDK2/msqZPaZMrL+aypk9qsyvv5rKmT2v/K2PmsqZPaB8rI+aypk9psyib5rKmT
+2nzK9vmsqZPaY8qm+aypk9psyib5rKmT2pzK9vmsqZPaY8qm+aypk9oVytf5rKmT2mfKF/msqZPa
+Acr3+aypk9pD+aypk9pyyrf5rKmT2gHK9/msqZPaQ/msqZPaBsrw+aypk9pCyuj5rKmT2uzK1/ms
+qZPa/8rH+aypk9oRyvf5rKmT2v/K7/ms93zYANcAx2T3jNcU9xHufPAO0AHAcOAAB+PRD3Ah8ALS
+ANMC4AIHSNMA1AHgAwdI1AHVAuAEB0iCJYRFgzUgIyFD8ALTAMPA1ADVD9YA4AMHvdPGwxDUENUf
+1gDgAwe94AMHptPGwxCHHod2H/eHDod8H/fUENUf1gDgAwe94AMHptMQwyfzCdMB1B/VH9YA4AMH
+veADB6bTEMMn8wnTAMNw4AMH49P/wwMsT9MA1B/VH9YA4AMHveADB6bwAqRD9A3XAS3L1hBeDvYB
+B5TWEBYGZ3ZlVh/3P/XvmGdwZVAe5z7lFxBV3IVStVIABYRD9wUHh/AC4AAHveAEB6bwAtBg8QjW
+AMbw0wHSEKAD9wigA/gIJN/0AQe14AYH0qZjgROyIvIFB6zQYPAc8AKqAaYRpyHUYPVI2wFrsxVf
+9FykQ4syBEv4SKRD+UjgBgeF9Jy0QvSM8ALwCtMAw5zzHNMAw6DzLNMAw6TzDNMAw6jzOPMBB9zw
+BvAC8ArTAMOk8wzTAMOo8jjyAQfp0wDDnPE40wDDoPI48AbwAtEAwZjxDPAC0ADAlPAI0QDBmPEY
+8ALuDpAAiAAwADQAJABsAAAAAAAAAAAAAAAAAAYPPgkAFQAaCuoAHgBHAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AACgAXYBOALAAjAEIANgBlwEvAlgB5wNcP//fv8QrnOlInwAAAAAHhcABCxHAAADAAYAJ8Uh8BYn
+gAAAAAAAPGcCwAAAAAAAAAAAAAAAAAAAAAAHDgAc/v6APwAAAAAAAAABAAAAAAAAAAAAABAnAAAA
+AAAAADAAMAAMCDAAAAAqAAIAIQAAAAwABAAhAAAAKwABAAAAAAAAAEYDAAAAAAAACgA8AAAAAABQ
+ALAAAAAAAwoDqQAEAAgACAAPAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAIAAgICAAIDAgAAjAQAAAAA
+AGSABAD/AAEBBADgAAe5BADxBQG1BACAArgEBAD4AQEmBACyCPIBBAABJrIsBACyLPIBBAABG7Io
+BADyAQEeBADSAMJABAASAvIFBAABteAABAAGrum1BADgAAXOBADptdIHBADTCNQABADgAQdiBADg
+AQdLBADpteABBAAHtfASBADgAAe5BACiAPIBBAABA/gBBAABZdOGBADzHNOJBADzHOABBAAHteAB
+BAAFxeAABAAGwqExBADgAwTuBADQD+AABAAFPuAABAAC/eAABAAF5NCHBADwCNEBBAAt3OmkBADQ
+CsETBADxCeACBAAHrPIBBAABVbACBADwBQFKBADQAOlWBADQAdEABADgAAX3BADwAQFiBACwAvAB
+BAABOLACBADwAQFiBADpteAABAAGtOl9BADTh/MMBADTiPMcBADRAtIHBADTCNQABADgAQdiBADg
+AQdLBADgAAeIBADgAQauBADgAQe1BADwEuABBAAHteAABAAFxek4BADQENEoBACgAeACBAAHrNUo
+BAAjIQM1BACkUyRCBAARNNQBBACTEeADBAAF9/MBBAABkbMyBADzAQE4BADyBQGdBADgAgfRBADD
+BV/vBADzBQGdBADgAgXkBADQBelKBACgAbACBADwAQGkBADgAgKdBADpqtAQBADTifM4BADSAeAC
+BAAFPtKHBADyKNMBBAAv/tIUBADDJ/MJBACyIvIFBAABr+meBADgBAe1BADwDvAOBADgAAe5BADR
+AX3NBACyHvIBBAACH7IiBADRAPIBBAAB+rIiBADyAQH5BACyIvIBBAAB8bIiBADyAQHuBACyIvIB
+BAAB67IiBADyAQHoBACyIvIBBAAB4bIiBADyAQHdBACACoALBADwCOohBADgAAffBADwDeohBADR
+ufEYBACSETzeBACCIjzOBADqIdCKBADwCOohBADQ1MALBADqIeAABAAH0eohBADQA8BABADgAAfA
+BACAGoALBACwAuohBADRA9cFBADHYOAHBAAHwKpxBADgCgfABAB019UQBAAVRfUBBAACCLZGBADq
+C3THBADVDQZFBACLuHT3BACEQhVkBADXDSJXBACCJdMLBAACI9NABABf/iIjBACjICIjBADTufM4
+BACjNCIjBABwIeohBADgAAf0BADgAAe1BADwDup2BADwCvsIBAD5GLqaBAC2Yhy2BAAcivYYBAD4
+AQJbBAD7AQKKBAC5kvkFBAACN9oTBAD4KPqEBAC7svsBBAACiru4BAD7AQJfBADXAMfQBAD5eNgA
+BAD3jPkFBAACW9gSBAD4iPKMBACog9kABAD4nNoQBAD6qKiDBAD4rNgABADXAMdkBAD3jNgRBAD4
+iPSMBADYAMiMBADZAficBADwBvACBADZE/qYBADyrOpOBADYANcABADHYPeMBADYDviIBAD0jNgP
+BAD4iPKMBACog9kABAD4nNoNBAD6qKiDBAD4rNgABADIjNkFBAD4nPAGBADwAtkABADJrNgMBAD6
+gPmsBADZAMkIBADXAMc0BAD3nMk4BADXAMdEBAD3nMkgBADXAMdIBAD3nNgVBADyjPAGBADqi/AO
+BADRANCzBACgA/IIBADyBQKbBACgBfIIBADyBQKbBACgBfIIBADyAQKcBADRAfACBADgAAKNBADx
+BQLlBACwEtEBBADgAAQRBADWEsaABADXAeAGBAAHd8cKBAD3CddxBADgBgd3BADQANEEBADTjqII
+BADyBQL4BACoUfY4BACnAeAGBAAD2fU4BACjM/g4BACjNxqFBAC4YhyKBACqYx2lBAApifkBBAAC
+yPYFBAACyqADBADqsqEDBACiGPIFBAAC2qlRBAD3OKgRBADgBwPZBAD1OBJnBADyBQLaBAChE6M5
+BADqyyV3BACiYtgBBAAYgiQCBABEGCMSBABDCOADBAADSur4BADTAPA8BACwAvEIBADQjtMEBABA
+E/MIBAADMvA8BADgAQRdBADgAAKNBADxBQKdBADRD+ABBAAEQOAABAACjfEFBAACnfACBADQANKe
+BADTs6IjBACjM9QDBADRAMEQBADyHPMMBACiKaM1BAC0QvQFBAADBdAABADSjtYMBADRANcABAD0
+KIRFBACERLMoBAD4OKMjBAD1OKkRBADaAOAJBAAEXdkPBADgCQRABADgCQXkBADJCvkJBAC5ktoA
+BADgCQQRBACpQaoRBACzKPs4BADgCQPZBABEaQd5BABeVCd6BADaAE+pBAAXf6pABAAneid5BAD3
+AQM8BADyTKeRBADrGJpBBAAQDpcTBAAnfy/wBAD3BQMMBACiKdYEBAChE7oYBAD6BQMRBADwAtQE
+BADbjtezBAAZAfkBBAADx5mRBAD5AQOMBABLFPa4BACls/lYBAAZlvkFBAADYaETBABdEC2SBAD5
+AQNKBADRBOtKBACnefccBACnc6W1BAD4WPeMBACiExkCBAD5AQN/BACZJ/kFBAADf7d2BAD3LKVV
+BAD2WKVVBAD5WBmJBABeabqiBAAblkm6BACakSmaBAD5DadzBAD3nAiJBACZB/kFBAADx9ezBAD3
+DNuOBABLBPa4BACltflYBADgBgPIBADrx0sEBAD2uPYFBAADl6ADBABdAS2SBAD5AQNKBADQBOtK
+BAD3DKW1BAD4WPgNBACnc/eMBACiAxkSBAD5AQO3BACZJ/kFBAADt6dzBAD3LKVVBAD2WKVVBAD5
+WBmJBAC1UvpYBAAWpl5pBAC6ohuWBABJupqRBAApmqdzBAD3nAiJBACZF/kFBAADx9ezBACnefcc
+BADbjksUBAD2uKWzBAD6WKW1BAD5WBamBADgBgPIBADwApQhBACEQrRCBAAiQqUxBAD1DQVTBABe
+0l/QBAAf+vcBBAADzqETBAD1DSVUBADxXPACBADTAF4yBAAQDl4wBACpE9KeBADVANcABAAd0/Qo
+BACiI/soBACiI/MoBACiI/YoBACDNoZmBAAzsza2BACDNjOzBABc9EPOBAC5kvcBBAAD+NbyBADG
+A07KBAAf9hADBACiI5RzBAAjNKdzBAD5BQPhBACyLvsoBAD1BQQJBAAjOvMBBAAECcRwBAA7S/K8
+BACrs8UQBABOWyoaBAD6AQQQBADyvPACBADgBQf0BADXD8dwBADgBwfABADX/yLXBAAkx4OPBACD
+M4IoBADXjqd3BAD4eEKABACnefh4BABDgKd5BAD4eESABADWnpghBAAiKCABBADwAQQxBAD3aNgH
+BABCeIInBAD2LKZpBAD2PKZpBAD2TKZpBAD2XNcIBADHIOAHBAAHwIiDBACmY/aMBADwAta8BAD2
+aNMPBADD8NQBBADEAdUwBAAd2uADBAAHd8XABAAd0OADBAAHd9YSBADGgNcBBADgBgd3BADEFPQJ
+BADXceAGBAAHd9T+BADE/uADBAAHd/ACBADS48IiBADTW8MLBADxDaQfBACkS/QBBAAEajMyBACD
+NLRCBADsZKMxBADUCMQgBADgBAfABACDM4VTBAAxNYMZBADSEcKABADgAgd3BADSjvMoBADVEk3T
+BADWGtcaBADYAeAFBAAHYtQqBABOw9ceBABN84VSBAAFVtYdBADXHuAFBAAHYk08BADUCSVUBADW
+BNcHBADgBQdiBADUjfVIBADUrpY9BAAERpZTBACGYgRGBAD0SNUSBADWFdcBBACTAfMBBAAE2qIp
+BACTA/MFBAAEvfQoBACEQ5VLBAD1AQSqBAC0TNYBBADXAdgEBADgBQdiBAA92tYFBADXBeAFBAAH
+YtYXBADXF9gBBADgBQdGBADVDNYJBADXA+zaBACiKfQoBACERdUIBADWCdcHBACTBfMBBAAE2qIp
+BAD1KIRVBAC0RpJBBAAkQvIBBAAE0tIDBAAt0tIMBAAFUtYKBADXDdgHBADgBQdiBADVBdYHBADX
+B+AEBAAHYtQABADE8BzLBADYYKiDBACHcgiHBAD1iKiDBAD2iOAEBAAHd9IRBADCgIMYBADgAgd3
+BADwAtJUBAD1KBZQBABd0EBlBACjL6M5BAD1OBZQBABdDUBlBACyItEABACiJaETBAD0KE0MBAD1
+BQT7BACyIvMoBADVAYZPBAB96dYQBAAVZXRFBABzNXAFBAAgACMzBAAkRIAPBACDP4RPBAAVQBZD
+BAAjUyRgBADVCdAABADAQIIDBAA2BF7jBACGYrZiBAAmYhAGBACCI7VSBAD1BQUZBADFcjYFBADF
+AQZlBACGb4BlBADSANMCBADUAeABBAAHYtONBADzHGFBBAChFYEVBADSB9MDBADUA+ABBAAHYtEM
+BADSEdMBBADgAAdiBADwAtWLBADzWLICBADyAQVZBACzFNQABADVC9YGBADgAwdiBADCBTMSBADU
+FNUbBADgAwdiBADSaDMSBADUH9UcBADWBuADBAAHRsUnBAD1CbACBADVBsVwBADgBQfABACFc4Z1
+BADUAS3YBAAu6NQPBABMwyZkBACUMSVUBAATNQM2BAAf6ZUhBAAd+SAFBADwAQV1BAAiJ6MzBAAT
+N4Q5BAATNO1RBAAQ7dWLBAD1PPACBADYAS0YBACLkrYyBACnM6oxBADSgNQBBADVEAVaBACFW9pA
+BADKAV6jBADb/csBBABcO1+zBAAvuB6rBADTAdsKBADRASu6BAAZGSu5BAAqUqqlBACKpVymBABd
+eiyJBACpUyqSBACqpYqlBABdehyJBAC5UiqSBACqpYqlBABdphyJBAD4AQWvBAACJPENBACjMyQT
+BABNO/kBBAAFk9KABADTgBMyBADahfo8BAAJOCpSBACKpBagBAD5BQXABACpYNgBBACJkhmJBADb
+AMsBBABGm4ZiBAAGaNqMBAD6bPACBADQFsCABADRDOAABAAHd9C5BADRAPAcBADwAuAABAAHtcL/
+BADyCdMABADRK8GABADgAQd3BADRAMHwBADQDuABBAAHd7ACBAChE/AFBAAF2tMjBADgAQd3BADw
+AtEBBADQAsCABADgAAd3BADRA+AABAAHd/ACBADQh/AIBACBD9ICBAAt3vENBAChE9CCBADwHPAC
+BADgAgffBADTcET+BADzDUXvBAAtySzFBADwAQYqBADgAgffBADVCl/TBAD3AQYXBAD1DV49BAD2
+AQYXBADVCl/YBADbAfcBBAAGIPUNBABeyfsNBAD2AQYgBADQAO5EBADaifmoBADQgvAIBAArMAmb
+BAD6nNABBADuRNqDBAD1qAVbBAD6XNQVBADEgOAEBAAHd9ACBADuRNqGBADzqNqJBADxAQYzBACp
+MfqcBADQAe5EBAD5qNswBABH00Y9BAD3BQZABAD2AQZBBADaudsBBAD6vNEBBADuKvsNBAAJO/qc
+BADQAfACBACLOBYLBACrYPsFBAAGS/YNBADUhPRIBACKKdsDBAAvq6m2BAD5BQZaBACptPkFBAAG
+XdsABADVAMUBBADuX9UABADbsO5fBADVANtwBABGtNmFBAD5mCppBACargZqBAC0QvQFBAAGbdcA
+BADHCBd1BAAXdu5uBAAXZdkABADJAgmVBAAJm9qMBAD6qNsBBAAvupqiBAAZmtoABADKCBapBABH
+m9kIBAAJeYiZBACJiBWXBADZgflcBADZg/mMBADXFceABADgBwd3BAD7AQaVBADZCAlpBACImYmI
+BAAVltmBBAD5XKd1BADgBwd3BADXh/d4BADYCXd4BACIthd8BADWHcaABADgBgd3BADwAtaCBAD2
+aKZjBADXCAQHBACESfYFBAAGqwNBBADYAe6tBAATQdgABADwAtAABADAgNEsBADgAAd3BADwAtAs
+BADAgNEBBADgAAd3BADQFsCABADREuAABAAHd9C5BADRAvAcBADwAtCJBADwCNGyBADxGNKHBADy
+KOADBAAF7eAABAAGoNaABADGAV8+BACIggWHBADWBtcHBADYBOAFBAAHYtUBBADFcOAFBAAHwNYP
+BAB3dvcFBAAG8NZABADGC9WJBABfPvcFBAAG69WGBADWYMYJBABfPvcFBAAG69UCBADWAdcIBADY
+BeAFBAAHYqchBACpQaYBBADgBgV5BACkgdmCBABNSYopBADbAS+rBACrsym5BADYGciABADgCAd3
+BADVghVFBADWANcDBADYDuAFBAAHYtaABAAWRtUPBADVANYOBADXDuAFBAAHRtYSBADXFOAFBAAH
+Yu8VBADgAAZFBADZAS2SBACJVNpPBADKBQmaBADbANoPBADKoOAKBAAHd9cIBAB7l+AKBAAHd2uX
+BADgCgd3BADwAqRDBAD0DdcBBAAty9YQBABeDvYBBAAHOdYQBAAWBmd2BABlVh/3BAA/9e89BABn
+cGVQBAAe5z7lBAAXEFXcBACFUrVSBAAABYRDBAD3BQcsBADwAuAABAAHYuAEBAAHS/ACBADQYPEI
+BADWAMbwBADTAdIQBACgA/cIBACgA/gIBAAk3/QBBAAHWuAGBAAHd6ZjBACBE7IiBADyBQdRBADQ
+YPAcBADwAqoBBACmEachBADUYPVIBADbAWuzBAAVX/RcBACkQ4syBAAES/hIBACkQ/lIBADgBgcq
+BAD0nLRCBAD0jPACBADwCtMABADDnPMcBADTAMOgBADzLNMABADDpPMMBADTAMOoBADzOPMBBAAH
+gfAGBADwAtQBBAAtTNJnBADCPNPABADDAvEBBAAHlNJHBADCJNOABADDjdEJBADB8OABBAAHd9a6
+BAD2aNIDBAAnYpd+BACWZBZnBAACJqQgBAAiJNMABADUA9UHBADgAgdiBADQYNH/BADB/fAcBADw
+AtACBADAIOAABAAHwNIDBAAt3oATBAAszfACBADRAMGYBADxDPACBADQAMCUBADwCNEABADBmPEY
+BADwAvAKBADTAMOkBADzDNMABADDqPI4BADyAQfGBADTAMOcBADxONMABADDoPI4BADwBvACBADS
+CMIIBADTC8MgBADgAwfABACUSAAkBADVhfVYBAAmBZZuBAAQBvACBADRgvEYBADxDdKGBADzKNKJ
+BAD1KNYBBADGIOAGBAAHwId4BACXfKJxBADUgfhIBAAXeBA1BABAcaFxBADwAtAJBADAIOAABAAH
+wNQIBAAO1GMUBAAP9BEjBACAFPACBADqJJAABACIADAABAA0ACQABABsAAAABAAAAAAABAAAAAAA
+BAAAAAIlBAA5uQAVBAAAJAkBBAAAKABRBAAAAAAACoAEACAAAAACABI5CwAMgPD3PnXBiuQCAAcA
+BRPuql/qkAsABgAKTYzy2M8weZ8EAAsEpGwQAAoBIyRACMMgEGQ8+vfhDCwCAAkLAgAQEwIAFhIC
+AB8AAgAhAgIAAQICACsQAgACAgIAAgMCAACMAQwAAAAAAAAAAAAAgCEAAAAAqQsqAurgAAf00AHA
+cOAAB+PTD3Ej8QEE19Bg0QDBQNILAALwHKAD0QDwHNAB0QPSA9MB4AAHvdSepEXVEMUB9FzVQMUL
+pEP0XNMAw/DV1tQA4AMH0tMBw/DVA8UZ1AHgAwfS0wPD8NUA1ADgAwfS0wTD8NUA1ADgAwfS0wXD
+8NUA1ADgAwfS0wbD8NUA1ADgAwfS0wfD8NUA1ADgAwfS0wnD8NUA1ADgAwfS0w7D8NUA1ADgAwfS
+0w/D8NUA1ADgAwfS1hT2CdD/wAPRVNMBw/DVA8WZ1AHE8OADB9LWFPYJ0wHDcOADB+MswIRG0gDC
+QjRC9RjgBAX78UyhE9UAxRnUAdMBw/DgAwfS1hT2CdUAxZnUAdMBw/DgAwfS1hT2CdMBw3DgAwfj
+LMCERtIAwkA0QvUY4AQF+/FMoRPVI8UZ1ALE8NMBw/DgAwfS1hT2CdUjxZnUAsTw0wHD8OADB9LW
+FPYJ0wHDcOADB+MswIRG0gDCQjRC9RjgBAX78UyhE9UgxRnUAtMBw/DgAwfS1hT2CdUgxZnUAtMB
+w/DgAwfS1hT2CdMBw3DgAwfjLMCERtIAwkI0QvUY4AQF+/FMoRPVI8UZ1APE8NMBw/DgAwfS1hT2
+CdUjxZnUA8Tw0wHD8OADB9LWFPYJ0wHDcOADB+MswIRG0gDCQjRC9RjgBAX78UyhE9UgxRnUA9MB
+w/DgAwfS1hT2CdUgxZnUA9MBw/DgAwfS1hT2CdMBw3DgAwfjLMCERtIAwkI0QvUY4AQF+/FMoRPV
+I8UZ1ATE8NMBw/DgAwfS1hT2CdUjxZnUBMTw0wHD8OADB9LWFPYJ0wHDcOADB+MswIRG0gDCQjRC
+9RjgBAX78UyhE9UgxRnUBNMBw/DgAwfS1hT2CdUgxZnUBNMBw/DgAwfS1hT2CdMBw3DgAwfjLMCE
+RtIAwkI0QvUY4AQF+/FMoRPVI8UZ1AXE8NMBw/DgAwfS1hT2CdUjxZnUBcTw0wHD8OADB9LWFPYJ
+0wHDcOADB+MswIRG0gDCQjRC9RjgBAX78UyhE9UgxRnUBdMBw/DgAwfS1hT2CdUgxZnUBdMBw/Dg
+AwfS1hT2CdMBw3DgAwfjLMCERtIAwkI0QvUY4AQF+/FMoRPVI8UZ1AbE8NMBw/DgAwfS1hT2CdUj
+xZnUBsTw0wHD8OADB9LWFPYJ0wHDcOADB+MswIRG0gDCQjRC9RjgBAX78UyhE9UgxRnUBtMBw/Dg
+AwfS1hT2CdUgxZnUBtMBw/DgAwfS1hT2CdMBw3DgAwfjLMCERtIAwkI0QvUY4AQF+/FMoRPVANQA
+0wHD8OADB9LtB9FU0qDxLKET0pDCAfEsoRPSRMIB8SyhE9LcwgLxLKET0jzCAvEsoRPSWMIE8Syh
+E9IswgPxLKET0jzCBvEsoRPSiMIE8SyhE9IEwgnxLKET0tDCBvEsoRPSIMIN8SyhE9UO1gDXA9gO
+4AUHvdUP1hLXFOAFB6HWDtcO4AUHodX/xf/1CdUBxYDWAuAFB9LUD8Tw1QHFAdYwxkDgBwcvh3zY
+vPh8HuvgBAfS0ADRFtIW0wHgAAe90AHRB9II0wDgAAe94AQHptQAxKD0CdAA4AAHveAEB6bUD8Tw
+1f7F/tYwxkDgBwcvh3we6+AEB9LGwOAEB9LU/8T/9AnUD8Rw4AQH49r/J24tWohfiIOHeNqOqqf6
+fKqp+oyqqfqc1A/E8NX+xf7WP8bA1jDGQOAHBy+HfB7r4AQH0tAB4AAHvdAB0RbSFtMB4AAHveAE
+B6bQYKAD8QigA/II4AQHNvAssALwHNDTwAHR4MEBMgSiI4IjMxWjM4Mz1oAUJiZEhm8YRta69ozW
+gBQmJkSGbxhG2QMpiZmemIYZiamXiZKokNZBxiT4AQWrBmnYu/hs1oAUJiZEhm8YRtkMKYmZntYS
+KIaYjgmJ+Q2pn6mb1w9Ml1Z9JpZGh9cI2AvZBOAGB73WgBQmJkSGbxhG2QYpiZmeuZz5DdcPTJdW
+fSmWSYenkCaX1xjYG9kF4AYHvdUOxXDgBQfjh3SHf4d/1QH3AQXr1QK3dvcBBevVANYM1w3YDuAF
+B73VANYO1w7YDuAFB6HWEtcU4AUHve4H0gDCEzMSBBMVE1zAXQ0jzfMFBgagEfAC8A7wDuAAB/jg
+AAf08A7uaPAK+wj5GLqatmIcthyK9hj4AQZN+wEGfLmS+QUGIdoT+Cj6hLuy+wEGfLu4+wEGUdcA
+x5T3eNkAyf8ZefkBBn7XAMfQ+XjYAPeM+QUGTdgS+IjyjKiD2QD4nNoQ+qiog/is2ADXAMdk94zY
+EfiI9IzYAMiM2QH4nPAG8ALZE/qY8qzuQNgA1wDHYPeM2A74iPSM2A/4iPKMqIPZAPic2g36qKiD
++KzYAMiM2QX4nPAG8ALZAMms2Az6gPms2QDJCNcAxzT3nMk41wDHRPecySDXAMdI95zYFfKM8Abu
+ffAK1xXYAMgw+HzXAMeY9njYGvhs2ADIrNog+KzZINoKyvD5rKmT2hTK1/msqZPaEcr3+aypk9oV
+ytf5rKmT2gDK2PmsqZPaMMrI+aypk9p8yvj5rKmT2gDK1/msqZPalMrH+aypk9p4yvf5rKmT2gDK
+2PmsqZPamMrI+aypk9qIyvn5rKmT2pzK+PmsqZPaAMra+aypk9oAytv5rKmT2mTKy/msqZParMr7
++aypk9r/ytj5rKmT2gfKyPmsqZPabMom+aypk9p8yvb5rKmT2mPKpvmsqZPabMom+aypk9qcyvb5
+rKmT2mPKpvmsqZPaFcrX+aypk9pnyhf5rKmT2gHK9/msqZPaQ/msqZPacsq3+aypk9oByvf5rKmT
+2kP5rKmT2gbK8PmsqZPaQsro+aypk9rsytf5rKmT2v/Kx/msqZPaEcr3+aypk9r/yu/5rPd82ADX
+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
+FPYJ0wHDcOADB+MswIRG0gDCQjRC9RjgBAX78UyhE9UgxRnUBtMBw/DgAwfS1hT2CdUgxZnUBtMB
+w/DgAwfS1hT2CdMBw3DgAwfjLMCERtIAwkI0QvUY4AQF+/FMoRPVANQA0wHD8OADB9LtB9FU0qDx
+LKET0pDCAfEsoRPSRMIB8SyhE9LcwgLxLKET0jzCAvEsoRPSWMIE8SyhE9IswgPxLKET0jzCBvEs
+oRPSiMIE8SyhE9IEwgnxLKET0tDCBvEsoRPSIMIN8SyhE9UO1gDXA9gO4AUHvdUP1hLXFOAFB6HW
+DtcO4AUHodX/xf/1CdUBxYDWAuAFB9LUD8Tw1QHFAdYwxkDgBwcvh3zYvPh8HuvgBAfS0ADRFtIW
+0wHgAAe90AHRB9II0wDgAAe94AQHptQAxKD0CdAA4AAHveAEB6bUD8Tw1f7F/tYwxkDgBwcvh3we
+6+AEB9LGwOAEB9LU/8T/9AnUD8Rw4AQH49r/J24tWohfiIOHeNqOqqf6fKqp+oyqqfqc1A/E8NX+
+xf7WP8bA1jDGQOAHBy+HfB7r4AQH0tAB4AAHvdAB0RbSFtMB4AAHveAEB6bQYKAD8QigA/II4AQH
+NvAssALwHNDTwAHR4MEBMgSiI4IjMxWjM4Mz1oAUJiZEhm8YRta69ozWgBQmJkSGbxhG2QMpiZme
+mIYZiamXiZKokNZBxiT4AQWrBmnYu/hs1oAUJiZEhm8YRtkMKYmZntYSKIaYjgmJ+Q2pn6mb1w9M
+l1Z9JpZGh9cI2AvZBOAGB73WgBQmJkSGbxhG2QYpiZmeuZz5DdcPTJdWfSmWSYenkCaX1xjYG9kF
+4AYHvdUOxXDgBQfjh3SHf4d/1QH3AQXr1QK3dvcBBevVANYM1w3YDuAFB73VANYO1w7YDuAFB6HW
+EtcU4AUHve4H0gDCEzMSBBMVE1zAXQ0jzfMFBgagEfAC8A7wDuAAB/jgAAf08A7uaPAK+wj5GLqa
+tmIcthyK9hj4AQZN+wEGfLmS+QUGIdoT+Cj6hLuy+wEGfLu4+wEGUdcAx5T3eNkAyf8ZefkBBn7X
+AMfQ+XjYAPeM+QUGTdgS+IjyjKiD2QD4nNoQ+qiog/is2ADXAMdk94zYEfiI9IzYAMiM2QH4nPAG
+8ALZE/qY8qzuQNgA1wDHYPeM2A74iPSM2A/4iPKMqIPZAPic2g36qKiD+KzYAMiM2QX4nPAG8ALZ
+AMms2Az6gPms2QDJCNcAxzT3nMk41wDHRPecySDXAMdI95zYFfKM8AbuffAK1xXYAMgw+HzXAMeY
+9njYGvhs2ADIrNog+KzZINoKyvD5rKmT2hTK1/msqZPaEcr3+aypk9oVytf5rKmT2gDK2PmsqZPa
+MMrI+aypk9p8yvj5rKmT2gDK1/msqZPalMrH+aypk9p4yvf5rKmT2gDK2PmsqZPamMrI+aypk9qI
+yvn5rKmT2pzK+PmsqZPaAMra+aypk9oAytv5rKmT2mTKy/msqZParMr7+aypk9r/ytj5rKmT2gfK
+yPmsqZPabMom+aypk9p8yvb5rKmT2mPKpvmsqZPabMom+aypk9qcyvb5rKmT2mPKpvmsqZPaFcrX
++aypk9pnyhf5rKmT2gHK9/msqZPaQ/msqZPacsq3+aypk9oByvf5rKmT2kP5rKmT2gbK8PmsqZPa
+Qsro+aypk9rsytf5rKmT2v/Kx/msqZPaEcr3+aypk9r/yu/5rPd82ADXAMdk94zXFPcR7nzwDtAB
+wHDgAAfj0Q9wIfAC0gDTAuACB0jTANQB4AMHSNQB1QLgBAdIgiWERYM1ICMhQ/AC0wDDwNQA1Q/W
+AOADB73TxsMQ1BDVH9YA4AMHveADB6bTxsMQhx6Hdh/3hw6HfB/31BDVH9YA4AMHveADB6bTEMMn
+8wnTAdQf1R/WAOADB73gAwem0xDDJ/MJ0wDDcOADB+PT/8MDLE/TANQf1R/WAOADB73gAwem8AKk
+Q/QN1wEty9YQXg72AQeU1hAWBmd2ZVYf9z/175hncGVQHuc+5RcQVdyFUrVSAAWEQ/cFB4fwAuAA
+B73gBAem8ALQYPEI1gDG8NMB0hCgA/cIoAP4CCTf9AEHteAGB9KmY4ETsiLyBQes0GDwHPACqgGm
+Each1GD1SNsBa7MVX/RcpEOLMgRL+EikQ/lI4AYHhfSctEL0jPAC8ArTAMOc8xzTAMOg8yzTAMOk
+8wzTAMOo8zjzAQfc8AbwAvAK0wDDpPMM0wDDqPI48gEH6dMAw5zxONMAw6DyOPAG8ALRAMGY8Qzw
+AtAAwJTwCNEAwZjxGPAC7g6QAIgAMAA0ACQAbAAAAAAAAAAAAAAAAAAGDz4JABUAGgrqAB4ARwAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+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
+/sX+1j/GwNYwxkDgBwcvh3we6+AEB9LQAeAAB73QAdEW0hbTAeAAB73gBAem0GCgA/EIoAPyCOAE
+BzbwLLAC8BzQ08AB0eDBATIEoiOCIzMVozODM9aAFCYmRIZvGEbWuvaM1oAUJiZEhm8YRtkDKYmZ
+npiGGYmpl4mSqJDWQcYk+AEFqwZp2Lv4bNaAFCYmRIZvGEbZDCmJmZ7WEiiGmI4JifkNqZ+pm9cP
+TJdWfSaWRofXCNgL2QTgBge91oAUJiZEhm8YRtkGKYmZnrmc+Q3XD0yXVn0plkmHp5Aml9cY2BvZ
+BeAGB73VDsVw4AUH44d0h3+Hf9UB9wEF69UCt3b3AQXr1QDWDNcN2A7gBQe91QDWDtcO2A7gBQeh
+1hLXFOAFB73uB9IAwhMzEgQTFRNcwF0NI83zBQYGoBHwAvAO8A7gAAf44AAH9PAO7mjwCvsI+Ri6
+mrZiHLYcivYY+AEGTfsBBny5kvkFBiHaE/go+oS7svsBBny7uPsBBlHXAMeU93jZAMn/GXn5AQZ+
+1wDH0Pl42AD3jPkFBk3YEviI8oyog9kA+JzaEPqoqIP4rNgA1wDHZPeM2BH4iPSM2ADIjNkB+Jzw
+BvAC2RP6mPKs7kDYANcAx2D3jNgO+Ij0jNgP+IjyjKiD2QD4nNoN+qiog/is2ADIjNkF+JzwBvAC
+2QDJrNgM+oD5rNkAyQjXAMc095zJONcAx0T3nMkg1wDHSPec2BXyjPAG7n3wCtcV2ADIMPh81wDH
+mPZ42Br4bNgAyKzaIPis2SDaCsrw+aypk9oUytf5rKmT2hHK9/msqZPaFcrX+aypk9oAytj5rKmT
+2jDKyPmsqZPafMr4+aypk9oAytf5rKmT2pTKx/msqZPaeMr3+aypk9oAytj5rKmT2pjKyPmsqZPa
+iMr5+aypk9qcyvj5rKmT2gDK2vmsqZPaAMrb+aypk9pkysv5rKmT2qzK+/msqZPa/8rY+aypk9oH
+ysj5rKmT2mzKJvmsqZPafMr2+aypk9pjyqb5rKmT2mzKJvmsqZPanMr2+aypk9pjyqb5rKmT2hXK
+1/msqZPaZ8oX+aypk9oByvf5rKmT2kP5rKmT2nLKt/msqZPaAcr3+aypk9pD+aypk9oGyvD5rKmT
+2kLK6PmsqZPa7MrX+aypk9r/ysf5rKmT2hHK9/msqZPa/8rv+az3fNgA1wDHZPeM1xT3Ee588A7Q
+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
+VYZlCh4cckkuAN7BWZZaEx4QsktyAN3BWVZpCx4e0kpsAWjBVkZiCx4d8klYASQBVYaYCx4A8AAA
+AODBqlaSIx4VcAAkgJDBqVaRGgCAAGAAgAAAAAAAAOAQwAAAAB4bIkpJADjBVWYSCh4MUkkpgT8B
+VaaYEx4K8ABOAO7BqpapLB4dkAAFAJJJqaaZax4dIAGQAKShqkalIx4fkAKSAJJJqZappR4VkAW0
+AErBpUaaFB4cwAJSAFJxpZaaXB4a8ltsAFNxZUZZSh4OQkYAAGWhRAZlAh4JcluYAElJWYZlUh4M
+IlLgAEklWgZqVB4NglW0AJzBVUZaAx4KYkkpAJtxWpZqXB4OgkpuAO3BWpZVGR4bkk0YATbBVEZZ
+AgAAAGAAAAAAAAAAAGIRwAAAAB4NglW0AJzBVUZaAx4B0klSAJORWqZmYx4OgkpuAO3BWpZVGR4b
+kk0YATbBVEZZAh4bIkpJADjBVWYSCh4MUkkpgT8BVaaYEx4M0AApgMbBqmaGKx4VcAAkgJDBqVaR
+Gh4LEkp0AAAlZYZlUh4a4lJKAAbBaqZqLB4GclW0AAAlZkZqVB4MclySAEklalZZWh4dImYYAFtt
+ZEZWix4W0m4AAF7BWAZpCx4OUlyQAEktWUZmjB4MIlLgAEklWgZqVASwAmAAtwAAAAAAAJQRwAAA
+AB4JAltsAEuBVkZpCx4CslTgAJJtWQZZix4dwlKSAKSRVpZmlB4ZQklUANttWUZVSR4PcktuAOSB
+WlZqFB4d4ku0ASSRVYZpSx4Y0klUAW8BVkaYCx4boAAJANyhqpaWKx4GskqSABJJaVZqlR4aAksA
+AAkxZAZpjB4eskluAAFJZZZmlB4M0lMYAAEpaIZqnR4LIlJuAEphZmZVGR4aElwAAFKRZAZWix4A
+cm3YAG2hZkZWEh4J4mXYAFSRVoZplAAwAmAAgAAAAAAAAPgRwAAAAB4aglvYAFSRZkZWkx4OQkYA
+AGWhRAZlAh4dMmTYAFNxVoZqVB4JAltsAEuBVkZpCx4CslTgAJJtWQZZix4dwlKSAKSRVpZmlB4Z
+QklUANttWUZVSR4PcktuAOSBWlZqFB4MMpuAAAuRVQZZQh4fUpTYABJtVkZajB4Owkl4AByBaoZm
+Ix4NIkpQAAlhaUZlEh4Bskp4AAklZoZqnR4REklNgAJtZWZlUh4YwlWgAAAlagZpnB4P4lJyAEsB
+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
+
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/x-log; charset="us-ascii";
+	name="cat___proc__asound__cards.log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="cat___proc__asound__cards.log"
+
+ 0 [NVidia         ]: HDA-Intel - HDA NVidia
+                      HDA NVidia at 0xf1ff0000 irq 21
+ 1 [CX8801         ]: CX88x - Conexant CX8801
+                      Conexant CX8801 at 0xf3000000
+ 2 [Dummy          ]: Dummy - Dummy
+                      Dummy 1
+
+--Boundary-00=_EHxAJglqthttpRx
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--Boundary-00=_EHxAJglqthttpRx--
