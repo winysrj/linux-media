@@ -1,31 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9MIeDkM006290
-	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 14:40:13 -0400
-Received: from mail-gx0-f15.google.com (mail-gx0-f15.google.com
-	[209.85.217.15])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9MIdwTj003970
-	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 14:40:00 -0400
-Received: by gxk8 with SMTP id 8so2647gxk.3
-	for <video4linux-list@redhat.com>; Wed, 22 Oct 2008 11:39:58 -0700 (PDT)
-Message-ID: <d9def9db0810221139w12ba033g360292d9624a1f91@mail.gmail.com>
-Date: Wed, 22 Oct 2008 20:39:51 +0200
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Alex Riesen" <raa.lkml@gmail.com>
-In-Reply-To: <20081022182924.GA4626@blimp.localdomain>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9PGVwRY012361
+	for <video4linux-list@redhat.com>; Sat, 25 Oct 2008 12:31:58 -0400
+Received: from nlpi053.prodigy.net (nlpi053.sbcis.sbc.com [207.115.36.82])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9PGVkGk024290
+	for <video4linux-list@redhat.com>; Sat, 25 Oct 2008 12:31:47 -0400
+Message-ID: <490349F1.9000100@xnet.com>
+Date: Sat, 25 Oct 2008 11:31:45 -0500
+From: stuart <stuart@xnet.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+References: <200810231238.34963.vanessaezekowitz@gmail.com>
+In-Reply-To: <200810231238.34963.vanessaezekowitz@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <d9def9db0810221034v3bf4dabt6aa905b8a3ebd5a@mail.gmail.com>
-	<d9def9db0810221038g156871e1u200abb90b774ad28@mail.gmail.com>
-	<81b0412b0810221059w2e02b1c1ubd894b22f7991242@mail.gmail.com>
-	<d9def9db0810221110g6f104b17g36a74704d43c5693@mail.gmail.com>
-	<20081022182924.GA4626@blimp.localdomain>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	em28xx@mcentral.de
-Subject: Re: [PATCH] em28xx patches against the latest git tree
+Cc: video4linux-list@redhat.com
+Subject: Re: KWorld 120 IR control?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,64 +27,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Oct 22, 2008 at 8:29 PM, Alex Riesen <raa.lkml@gmail.com> wrote:
-> Markus Rechberger, Wed, Oct 22, 2008 20:10:49 +0200:
->> On Wed, Oct 22, 2008 at 7:59 PM, Alex Riesen <raa.lkml@gmail.com> wrote:
->> > 2008/10/22 Markus Rechberger <mrechberger@gmail.com>:
->> >>> commit history is available at:
->> >> http://mcentral.de/hg/~mrec/em28xx-new/shortlog
->> >>
->> >
->> > There is already an Empia EM28XX driver in the official tree. If your driver
->> > is based on it, could you point at the first commit in *your* tree at
->> > mcentral.de which
->> > corresponds to that driver? (if you do, your history can be moved into
->> > central Git
->> > repo completely, every commit of it)
->> >
->>
->> The development has been split off for 3 years from the original
->> repository. The internal driver differs alot.
->
-> So it is more like a new driver. I tried merging them about half a
-> year ago (unsuccessfully, of course). In the end your driver worked
-> with that piece of hardware I have (it seem to produce an awful lot of
-> tracing though) and I stayed with it.
->
->> The driver has a long and rather bad history, which I'd like to avoid
->> by using the different directory.
->
-> You could submit patches depricating it. Does the old driver support
-> something yours does not?
->
 
-There are some devices with a knob available that reading that
-register is currently
-not implemented in the newer driver, netBSD people figured out that
-interrupts are delivered
-when a key gets pressed (even on the remote control). This is a
-construction side at the moment
-and it should be changed to something appropriate like the netBSD
-people implemented.
 
->> Some patches got ported from my repository into the kernel although
->> most devices don't work at all with the current inkernel driver (eg.
->> em2888, flash based, isdb-t, cx25843, some saa7114.. based devices).
->
-> Mine (a Pinnacle-Apple-something, USB) does not work with it at all.
->
->
+Vanessa Ezekowitz wrote:
+> (forgot to cc the list)
+> 
+> On Thursday 16 October 2008 5:45:42 pm Hermann Pitton wrote:
+> 
+>>>> Interesting, I can not read any writing on that chip.  All I see is a 
+>>>> green dot probably identifying pin 1.  If this is a common i2c 
+>>>> controller - why bother? Or are the KS003 and KS007 custom chips?
+> 
+> The chip on  my card has been chemically wiped I think - there aren't any scratches or scrapes on it.  Despite my best efforts with multiple light sources, I still can't identify it.  In the meantime, I wrote to Kworld asking them to identify the chip in question, or to provide some kind of details allowing us to communicate with whatever device handles the remote control.  They responded a few days ago indicating that they would pass my request on to the engineering department.  That department has not responded yet.
+> 
 
-There's one limitation I cut out the drx3975d (might re-add it within
-the next week
-to the git repository)
-I know this one is required for the Pinnacle 330e and an Hauppauge based device.
+Thanks for trying Vanessa.
 
-If you have problems with your device please start a thread on the em28xx ML:
-http://mcentral.de/pipermail/em28xx/
+If none of the developers have this board (Kworld - 120 ATSC/NTSC tuner 
+card) to play with ...  well, if someone would give me "turn-by-turn" 
+(airport talk for "I'm sitting on the tarmac, how do I get to the gate) 
+directions I can try to probe the card to find out more.  I just don't 
+have the time to research the tools to do the job and how to go about 
+using them.  My board is in a Mythtv SBE Debian/Unstable system and is 
+working great if only to capture ATSC OTA broadcasts (i.e. no IR control 
+and no NTSC).
 
-regards,
-Markus
+...thanks
 
 --
 video4linux-list mailing list
