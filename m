@@ -1,18 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joan.kewl.org ([212.161.35.248])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <darron@kewl.org>) id 1KsaEg-0005ki-Kk
-	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 11:42:42 +0200
-From: Darron Broad <darron@kewl.org>
-To: Antti Palosaari <crope@iki.fi>
-In-reply-to: <48FEF474.50803@iki.fi> 
-References: <48FE2872.3070105@podzimek.org> <48FE3553.5080009@iki.fi>
-	<48FE6351.2000805@podzimek.org> <10307.1224636523@kewl.org>
-	<48FEF474.50803@iki.fi>
-Date: Wed, 22 Oct 2008 10:42:34 +0100
-Message-ID: <13799.1224668554@kewl.org>
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+58e04052c4dd4717db75+1889+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1KtiIl-0007hj-Pz
+	for linux-dvb@linuxtv.org; Sat, 25 Oct 2008 14:31:31 +0200
+Date: Sat, 25 Oct 2008 10:31:26 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: " =?us-ascii?B?U0tPX19ET1BPTEUgVG9tX19fXw==?="  <hoppik@centrum.cz>
+Message-ID: <20081025103126.5524db0f@pedra.chehab.org>
+In-Reply-To: <200810251103.16869@centrum.cz>
+References: <200810251101.11569@centrum.cz> <200810251102.1298@centrum.cz>
+	<200810251103.27574@centrum.cz> <200810251103.16869@centrum.cz>
+Mime-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] MSI DigiVox mini II V3.0 stopped working
+Subject: Re: [linux-dvb] S2API: Future support for DVB-T2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,63 +21,19 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <48FEF474.50803@iki.fi>, Antti Palosaari wrote:
-
-hi
-
->Darron Broad kirjoitti:
->> In message <48FE6351.2000805@podzimek.org>, Andrej Podzimek wrote:
->>> One more little note about the firmware:
->>>
->>> 	[andrej@xandrej firmware]$ sha1sum dvb-usb-af9015.fw
->>> 	6a0edcc65f490d69534d4f071915fc73f5461560  dvb-usb-af9015.fw
->>>
->>> That file can be found here: http://www.otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/4.95.0/dvb-usb-af9015.fw
->>>
->>> Is it the right one? Shell I try something else?
->> 
->> Lo
->> 
->> try this patch (WARNING, although I have one of these devices
->> and this looked to fix it, I have no idea what this actually means).
->
->Your patch means it does not reconnect stick on USB-bus after firmware 
->download. Anyhow, it should reconnect, there is reconnect command in 
->af9015 driver after firmware download. I have no idea why functionality 
->seems to be changed (stick does not reconnect anymore).
-
-Okay, thanks for the overview.
-
->Is that problem coming from after new Kernel?
-
-This is using:
-Linux beethoven 2.6.27.1 #1 SMP PREEMPT Thu Oct 16 23:29:23 BST 2008 x86_64 GNU/Linux
-
-With http://linuxtv.org/hg/v4l-dvb/
-
-I admit, I haven't used this device as yet, it's been in my
-drawer waiting to be tested on my TV computer, hopefully
-replacing two tuners with the one stick... :-)
-
-Thanks for your efforts with this.
-
-Cya
-
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+T24gU2F0LCAyNSBPY3QgMjAwOCAxMTowMzo1NCArMDIwMAoiIFNLT8SMRE9QT0xFIFRvbcOhxaEi
+ICA8aG9wcGlrQGNlbnRydW0uY3o+IHdyb3RlOgoKPiBIZWxsbywKPiAKPiBhY2NvcmRpbmcgdG8g
+d3d3LmR2Yi5vcmc6IERWQi1UMiBzdGFuZGFyZCB3YXMgcmVsZWFzZWQuCj4gSSB3YW50IHRvIGFz
+ayB0aGVyZTogaXMgUzJBUEkgcmVhZHkgZm9yIHRoaXMgc3RhbmRhcmQ/IE9yIGl0IG5lZWRzIHNv
+bWUgcmVsYXRpdmUgYmlnIGNoYWduZXM/CgpTMkFQSSBjdXJyZW50bHkgZG9lc24ndCBzdXBwb3J0
+IERWQi1UMi4gSG93ZXZlciwgaXQgd2VyZSBkZXNpZ25lZCBpbiBhIHdheSB0aGF0Cml0IHNob3Vs
+ZCBiZSBlYXN5IHRvIGV4dGVuZCB0byBzdXBwb3J0IGFueSBzdGFuZGFyZC4KCgpDaGVlcnMsCk1h
+dXJvCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
+eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4
+dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
