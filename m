@@ -1,19 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9S8bmtf031956
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 04:38:50 -0400
-Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9S8LxM6013197
-	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 04:21:59 -0400
-Message-ID: <20914.62.70.2.252.1225182118.squirrel@webmail.xs4all.nl>
-Date: Tue, 28 Oct 2008 09:21:58 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Jean Delvare" <khali@linux-fr.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9P7FNAF022083
+	for <video4linux-list@redhat.com>; Sat, 25 Oct 2008 03:15:23 -0400
+Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9P7EV6H023832
+	for <video4linux-list@redhat.com>; Sat, 25 Oct 2008 03:14:31 -0400
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Date: Sat, 25 Oct 2008 12:44:14 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D6297A8C@dbde02.ent.ti.com>
+In-Reply-To: <20081024191325.GF16354@atomide.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Feedback wanted: V4L2 framework additions
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-fbdev-devel@lists.sourceforge.net"
+	<linux-fbdev-devel@lists.sourceforge.net>
+Subject: RE: [Linux-fbdev-devel] [PATCHv2 1/4] OMAP 2/3 DSS Library
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,119 +30,132 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Jean,
 
-> Hi Laurent, hi Hans,
->
-> As Laurent suggested that I share my experience of what worked and what
-> did not work in the i2c subsystem, here you go. Note that I am not
-> claiming that everything I say applies to the V4L2 case.
->
-> On Tue, 28 Oct 2008 00:03:03 +0100, Laurent Pinchart wrote:
->> On Sunday 19 October 2008, Hans Verkuil wrote:
->> > The new structs are:
->> >
->> > v4l2_driver: basic driver support, provides a standardized way of
->> > numbering device instances.
->>
->> The driver id and name are redundant. Beside, maintaining a global
->> driver ID
->> registry will introduce compatibility issues with out-of-tree drivers.
->> The
->> I2C subsystem has gone that way and is now coming back. Jean should
->> probably
->> be able to comment on this with more details.
->
-> This is true. The i2c subsystem originally used arbitrary IDs for both
-> chip drivers and bus drivers (and even algorithm drivers but I managed
-> to kill that years ago.) We are slowly moving to a device name-based
-> approach instead.
->
-> The problems I saw with ID-based approach were:
-> * Hard to maintain. People were either asking for IDs they would
->   never use because they would give up driver development without
->   telling me, or forget to ask for IDs and either abuse already
->   assigned IDs or use reserved IDs. So I spent quite some time
->   assigning IDs and cleaning up the list.
-> * Developers usually used the ID for things it wasn't meant for. For
->   example, instead of checking if an I2C adapter was able to do raw I2C
->   transactions using i2c_check_functionality() which is generic, they
->   would test for specific i2c adapter IDs, so the test would need to be
->   updated with each new V4L driver. Another misuse of the IDs is that
->   they are driver IDs while developers wanted to test for a specific
->   chip. As a given driver can support several chips, testing for the
->   driver ID may not be enough. And things get worse when support for a
->   given chip moves from one driver to another (remember the saa711x
->   family of chips.)
->
-> So when converting the i2c subsystem to the standard device driver
-> binding model, we made sure to not rely on arbitrary IDs anywhere.
-> Instead we use device name strings. They are also arbitrary, but at
-> least:
-> * They don't need a look-up. It's pretty clear what a device named
->   "saa7115" is.
-> * They don't need a central, maintained list. Every developer can guess
->   what the name of his device must be. The only problem is when two
->   developers write support for the same device: virtually both drivers
->   can bind to the device. But this is a problem that needs to be solved
->   anyway, as we don't want to have several drivers for the same device
->   in the first place.
-> * They really designate the device, not the driver, so when you move
->   support for a device from a driver to another, the other drivers do
->   not need to be updated.
 
-I had already decided to drop the driver ID. I agree that using names is
-the better solution.
-
->> (...)
->> What's the rationale behind the instance counter ? If I understand
->> things
->> correctly, the counter is used to number instances and give them a
->> unique
->> name. As the counter is monotonic, instance numbers will always
->> increase.
->> With hotpluggable devices such as webcams the instance number will
->> become
->> quite meaningless for end-users.
->
-> We used to have a per-driver instance counter as well for i2c devices.
-> That's one of the first things I dropped when I started working on the
-> i2c subsystem. These counters were adding code and I never could
-> understand what purpose they were serving. As Laurent said, these
-> counters are unstable by nature, as reloading the drivers or unplugging
-> the devices will make them increase. Each i2c device already has a
-> unique identifier (used in /sys/bus/i2c/device) which is (or should be)
-> stable, so no need for an instance counter.
-
-I'll look into this. The reason for the instance number was to have a
-short prefix when logging (e.g. ivtv0, ivtv1, etc) rather than a longer
-PCI/USB ID. However, I think I should move to that anyway.
-
->> Instead of maintaining a global list of devices that can be searched
->> using
->> v4l2_device_iterate, it might be better to use the device list available
->> in
->> struct device_driver. Except if you have a specific use-case in mind,
->> restricting device iteration to the related driver is probably a good
->> thing.
->
-> This is also where the i2c subsystem is going. We have been using
-> internal lists of devices and drivers for historical reasons, but the
-> driver core is maintaining such lists for a long time now so this is
-> redundant. And the duplication makes out locking model very ugly and
-> fragile. Some features (e.g. I2C bus multiplexing) can't be implemented
-> properly until this is all cleaned up.
-
-I'll be looking at this as well. Based on other input from Andy I'll drop
-the global device list. But I do need to have a global driver list and for
-each driver I need to setup a list of devices. I'll see whether existing
-structures can be used for that.
-
-Thank you all for the feedback!
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Saturday, October 25, 2008 12:43 AM
+> To: Shah, Hardik
+> Cc: linux-omap@vger.kernel.org; linux-fbdev-devel@lists.sourceforge.net;
+> video4linux-list@redhat.com
+> Subject: Re: [Linux-fbdev-devel] [PATCHv2 1/4] OMAP 2/3 DSS Library
+> 
+> Hi,
+> 
+> * Hardik Shah <hardik.shah@ti.com> [081024 03:16]:
+> > Cleaned up the DSS Library according to open source comments
+> >
+> > Removed unused #ifdefs
+> > Removed unused #defines
+> > Minor cleanups done
+> > Removed Architecture specific #ifdefs
+> >
+> > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> > 		Hari Nagalla <hnagalla@ti.com>
+> > 		Hardik Shah <hardik.shah@ti.com>
+> > 		Manjunath Hadli <mrh@ti.com>
+> > 		R Sivaraj <sivaraj@ti.com>
+> > 		Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> > ---
+> >  arch/arm/plat-omap/Kconfig                 |    7 +
+> >  arch/arm/plat-omap/Makefile                |    2 +-
+> >  arch/arm/plat-omap/include/mach/io.h       |    2 +-
+> >  arch/arm/plat-omap/include/mach/omap-dss.h |  921 ++++++++++++
+> >  arch/arm/plat-omap/omap-dss.c              | 2248
+> ++++++++++++++++++++++++++++
+> >  5 files changed, 3178 insertions(+), 2 deletions(-)
+> >  create mode 100644 arch/arm/plat-omap/include/mach/omap-dss.h
+> >  create mode 100644 arch/arm/plat-omap/omap-dss.c
+> >
+> > diff --git a/arch/arm/plat-omap/include/mach/io.h b/arch/arm/plat-
+> omap/include/mach/io.h
+> > index ea55267..2495656 100644
+> > --- a/arch/arm/plat-omap/include/mach/io.h
+> > +++ b/arch/arm/plat-omap/include/mach/io.h
+> > @@ -142,11 +142,11 @@
+> >  #define OMAP343X_SDRC_VIRT	0xFD000000
+> >  #define OMAP343X_SDRC_SIZE	SZ_1M
+> >
+> > -
+> >  #define IO_OFFSET		0x90000000
+> >  #define __IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L3 and L4 */
+> >  #define __OMAP2_IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L3 and L4
+> */
+> >  #define io_v2p(va)		((va) - IO_OFFSET)/* Works for L3 and L4 */
+> > +#define io_p2v(pa)		__IO_ADDRESS(pa)/* Works for L3 and L4 */
+> >
+> >  /* DSP */
+> >  #define DSP_MEM_34XX_PHYS	OMAP34XX_DSP_MEM_BASE	/* 0x58000000 */
+> 
+> NAK for adding back io_p2v(). See below.
+> 
+> 
+> > diff --git a/arch/arm/plat-omap/include/mach/omap-dss.h b/arch/arm/plat-
+> omap/include/mach/omap-dss.h
+> > new file mode 100644
+> > index 0000000..d9a33bd
+> > --- /dev/null
+> > +++ b/arch/arm/plat-omap/include/mach/omap-dss.h
+> > @@ -0,0 +1,921 @@
+> > +/*
+> > + * arch/arm/plat-omap/include/mach/omap-dss.h
+> > + *
+> > + * Copyright (C) 2004-2005 Texas Instruments.
+> > + * Copyright (C) 2006 Texas Instruments.
+> > + *
+> > + * This file is licensed under the terms of the GNU General Public License
+> > + * version 2. This program is licensed "as is" without any warranty of any
+> > + * kind, whether express or implied.
+> > +
+> > + * Leveraged from original Linux 2.6 framebuffer driver for OMAP24xx
+> > + * Author: Andy Lowe (source@mvista.com)
+> > + * Copyright (C) 2004 MontaVista Software, Inc.
+> > + *
+> > + */
+> > +
+> > +#ifndef	__ASM_ARCH_OMAP_DISP_H
+> > +#define	__ASM_ARCH_OMAP_DISP_H
+> > +
+> > +/* 16 bit uses LDRH/STRH, base +/- offset_8 */
+> > +typedef struct {
+> > +	volatile u16 offset[256];
+> > +} __regbase16;
+> > +#define __REGV16(vaddr)		(((__regbase16 *)((vaddr)&~0xff)) \
+> > +					->offset[((vaddr)&0xff)>>1])
+> > +#define __REG16(paddr)		 __REGV16(io_p2v(paddr))
+> > +
+> > +/* 8/32 bit uses LDR/STR, base +/- offset_12 */
+> > +typedef struct {
+> > +	volatile u8 offset[4096];
+> > +} __regbase8;
+> > +#define __REGV8(vaddr)		(((__regbase8  *)((vaddr)&~4095)) \
+> > +					->offset[((vaddr)&4095)>>0])
+> > +#define __REG8(paddr)		 __REGV8(io_p2v(paddr))
+> > +
+> > +typedef struct {
+> > +	volatile u32 offset[4096];
+> > +} __regbase32;
+> > +#define __REGV32(vaddr)		(((__regbase32 *)((vaddr)&~4095)) \
+> > +					->offset[((vaddr)&4095)>>2])
+> > +#define __REG32(paddr)		__REGV32(io_p2v(paddr))
+> > +
+> 
+> NAK for adding back the __REG stuff. We've just spent quite a bit of
+> effort to remove these. The __REG stuff is not portable.
+> 
+> Please use ioremap and then __raw_read/write instead.
+> 
+[Shah, Hardik] Hi Tony,
+Please let me know if there are any other obvious issues you can see for pushing onto git.  I will clear this all the send you the final version for pushing.
 
 Regards,
+Hardik 
 
-          Hans
+> Regards,
+> 
+> Tony
+
 
 --
 video4linux-list mailing list
