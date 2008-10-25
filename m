@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 202.7.249.79.dynamic.rev.aanet.com.au ([202.7.249.79]
-	helo=home.singlespoon.org.au)
+Received: from joan.kewl.org ([212.161.35.248])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <paulc@singlespoon.org.au>) id 1KsX6m-0004ks-Cn
-	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 08:22:18 +0200
-Message-ID: <48FEC5F6.8000809@singlespoon.org.au>
-Date: Wed, 22 Oct 2008 17:19:34 +1100
-From: Paul Chubb <paulc@singlespoon.org.au>
-MIME-Version: 1.0
-To: Mike Adolf <mlnx@mho.com>, linux dvb <linux-dvb@linuxtv.org>
-References: <48FED6CB.7030603@mho.com>
-In-Reply-To: <48FED6CB.7030603@mho.com>
-Subject: Re: [linux-dvb] Problem making v4l driver tree
+	(envelope-from <darron@kewl.org>) id 1KtqTQ-0003aY-Ku
+	for linux-dvb@linuxtv.org; Sat, 25 Oct 2008 23:15:06 +0200
+From: Darron Broad <darron@kewl.org>
+To: Francesco Fumanti <francesco.fumanti@gmx.net>
+In-reply-to: <49038A28.4040601@gmx.net> 
+References: <49038A28.4040601@gmx.net>
+Date: Sat, 25 Oct 2008 22:15:01 +0100
+Message-ID: <19118.1224969301@kewl.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] kaffeine s2api v2 patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,62 +18,75 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mike,
-          the make file is looking for the .config from your installed 
-kernel. On some distributions like Gentoo it is where it is expected 
-because Gentoo users compile another kernel at the drop of a hat. Other 
-distros like ubuntu ship the config file but it is not in the right 
-place. For ubuntu you would look in the /boot directory. It will be 
-called something like config-<kernel revision>. Copy it to the name 
-.config in the specified directory:
+In message <49038A28.4040601@gmx.net>, Francesco Fumanti wrote:
+>Hello,
 
-/lib/modules/2.6.25.16-0.1-pae/build/.config
+Hi Francesco.
 
-You will need to find out what your distro does to ship the config file, 
-get a copy and put it there.
-
-HTH
-
-Paul
-
-Mike Adolf wrote:
-> According to the Mythtv Wiki on the pctv 800i card you need to extract
-> firmware from windows file and download "v4l-dvb-c800683faf86.tar.gz",
-> and do a make and make install to get the latest tree of drivers
-> installed.  However, when I did the make I got the following  error.
-> ------
-> Updating/Creating .config
-> Preparing to compile for kernel version 2.6.25
-> File not found: /lib/modules/2.6.25.16-0.1-pae/build/.config at
-> ./scripts/make_kconfig.pl line 32, <IN> line 4.
-> make[1]: *** No rule to make target `.myconfig', needed by
-> `config-compat.h'.  Stop.
-> -----
-> I am use to resolving dependency errors but don't know what to do with
-> this one. I am using SuSe 11.   Since I do get good video but no sound,
-> would it be a good idea to do an 'Install-sound' only-once I get it to make?
+>Did anybody succeed to compile kaffeine from svn with the s2api patch on 
+>Ubuntu 8.10 (not Kubuntu) ?
 >
-> Mike
+>I have been using the instructions on http://kaffeine.kde.org/?q=devel 
+>but I get the following error:
+>make[6]: Entering directory 
+>`/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
+>/bin/bash ../../../../libtool --silent --tag=CXX   --mode=compile g++ 
+>-DHAVE_CONFIG_H -I. -I../../../.. -I../../../../kaffeine/src/input/ 
+>-I../../../../kaffeine/src/input/dvb/lib 
+>-I../../../../kaffeine/src/input/dvb/plugins/stream 
+>-I../../../../kaffeine/src/input/dvb/plugins/epg 
+>-I../../../../kaffeine/src -I/usr/include/kde -I/usr/share/qt3/include 
+>-I.   -DQT_THREAD_SUPPORT  -D_REENTRANT  -Wno-long-long -Wundef -ansi 
+>-D_XOPEN_SOURCE=500 -D_BSD_SOURCE -Wcast-align -Wchar-subscripts -Wall 
+>-W -Wpointer-arith -O2 -Wformat-security -Wmissing-format-attribute 
+>-Wno-non-virtual-dtor -fno-exceptions -fno-check-new -fno-common 
+>-DQT_CLEAN_NAMESPACE -DQT_NO_ASCII_CAST -DQT_NO_STL -DQT_NO_COMPAT 
+>-DQT_NO_TRANSLATION  -MT audioeditor.lo -MD -MP -MF 
+>.deps/audioeditor.Tpo -c -o audioeditor.lo audioeditor.cpp
+>In file included from audioeditor.h:24,
+>                  from audioeditor.cpp:30:
+>channeldesc.h:104: error: 'fe_rolloff_t' does not name a type
+>make[6]: *** [audioeditor.lo] Error 1
+>make[6]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
+>make[5]: *** [all-recursive] Error 1
+>make[5]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
+>make[4]: *** [all-recursive] Error 1
+>make[4]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input'
+>make[3]: *** [all-recursive] Error 1
+>make[3]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src'
+>make[2]: *** [all-recursive] Error 1
+>make[2]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine'
+>make[1]: *** [all-recursive] Error 1
+>make[1]: Leaving directory `/home/frafu/kaffeine-svn'
+>make: *** [all] Error 2
 >
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
+>You might perhaps also want to know that the application of the patch 
+>worked without error.
 
+You need to update frontend.h in /usr/include/linux/dvb/
 
--- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
+eg.
+
+mv /usr/include/linux/dvb/frontend.h /usr/include/linux/dvb/frontend.h.bak
+cp /???/v4l-dvb/linux/include/linux/dvb/frontend.h /usr/include/linux/dvb/frontend.h
+
+Then recompile. Obviously replace ??? with the path to your v4l-dvb source
+files.
+
+Good luck.
+
+--
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
 
 
 _______________________________________________
