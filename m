@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web38801.mail.mud.yahoo.com ([209.191.125.92])
+Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <urishk@yahoo.com>) id 1KunKg-0004xA-BO
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 13:06:00 +0100
-Date: Tue, 28 Oct 2008 05:05:23 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-To: Andrea Venturi <a.venturi@avalpa.com>, Michael Krufky <mkrufky@linuxtv.org>
-In-Reply-To: <48EE16E4.4000107@linuxtv.org>
+	(envelope-from <francesco.fumanti@gmx.net>) id 1KuC0k-0002SF-95
+	for linux-dvb@linuxtv.org; Sun, 26 Oct 2008 21:14:55 +0100
+Message-ID: <4904CF95.9030703@gmx.net>
+Date: Sun, 26 Oct 2008 21:14:13 +0100
+From: Francesco Fumanti <francesco.fumanti@gmx.net>
 MIME-Version: 1.0
-Message-ID: <304316.49334.qm@web38801.mail.mud.yahoo.com>
+To: Darron Broad <darron@kewl.org>
+References: <49038A28.4040601@gmx.net> <19118.1224969301@kewl.org>
+In-Reply-To: <19118.1224969301@kewl.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] siano sms1xxx driver not T-DMB ready?
-Reply-To: urishk@yahoo.com
+Subject: Re: [linux-dvb] kaffeine s2api v2 patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,141 +25,96 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hello Darron,
 
---- On Thu, 10/9/08, Michael Krufky <mkrufky@linuxtv.org> wrote:
 
-> From: Michael Krufky <mkrufky@linuxtv.org>
-> Subject: Re: [linux-dvb] siano sms1xxx driver not T-DMB ready?
-> To: "Andrea Venturi" <a.venturi@avalpa.com>
-> Cc: linux-dvb@linuxtv.org
-> Date: Thursday, October 9, 2008, 4:36 PM
-> Andrea Venturi wrote:
-> > here in Italy (bologna) we have a T-DMB trial from Rai
-> and other 
-> > broadcasters.
-> > 
-> > i got one Terratec Cinergy Piranha based on a Siano
-> SMS1xxx chip and 
-> > indeed the  T-DMB stream works on the "other
-> OS".. (and the DVB-T works 
-> > too)
-> > 
-> > this T-DMB stuff is still based on Transport Stream:
-> > 
-> > 
-> http://en.wikipedia.org/wiki/Digital_Multimedia_Broadcast
-> > 
-> > as i'd like to dump a full TS of the stream, i was
-> thinking that it was 
-> > just setting the proper mode (2) in the sms1xxx
-> module, i would have 
-> > been able to use the same "dvb-tools" like
-> dvbstream to tune the right 
-> > frequency and dump the whole TS.
-> > 
-> > too easy, it seems! there were my steps:
-> > 
-> > 1. i put the firmware file for T-DMB demodulation with
-> the right name  
-> > "tdmb_stellar_usb.inp" in /lib/firmware
-> > 
-> > 2. i loaded the module with the supposed right default
-> mode: modprobe 
-> > sms1xxx default_mode=2
-> > 
-> > 3. i put my stick on the linux,  but the module
-> didn't got up with this 
-> > error:
-> > 
-> >  "SMS Device mode is not set for DVB
-> operation."
-> > 
-> > I'm halted.
-> > 
-> > The showstopper come from this smsdvb.c where
-> there's this control:
-> > 
-> > ====================
-> >        if (smscore_get_devicke_mode(coredev) != 4) {
-> > #if 1 /* new siano drop (1.2.17) does this -- yuck */
-> >                sms_err("SMS Device mode is not
-> set for "
-> >                        "DVB operation.");
-> >                return 0;
-> > #else
-> > ====================
-> > 
-> > of course, this seems only a safety check.
-> > 
-> > let's hope it's not just a
-> "marketing" showstopper (i'm going anyway to 
-> > try to relax this control, i bet i'm not going to
-> burn anything inside 
-> > the device!)
-> > 
-> > probably there's more to be implemented to driver
-> correctly the Siano 
-> > chip when not in DVB mode. but how much? ask here
-> could be useful..
-> > 
-> > it should be easy to "implement" the T-DMB
-> stuff inside the same DVB 
-> > scenario!
-> > it's already a system based on transport stream.
-> right?
-> > 
-> > sadly there are no open specs about it on the siano
-> web site, just this 
-> > brief:
-> > 
-> > 
-> http://www.*siano-ms*.com/*pdf*s/00_Siano_SMS*1010*.*pd*f
-> > 
-> > does anyone know a solution about this issue?
-> > 
-> > is it so though to implement T-DMB decoding inside the
-> DVB architecture?
-> > 
-> > are the specs available somewhere?
+I followed your instructions below which solved the compilation problem 
+and I was able to compile and install kaffeine. Thanks.
+
+A new scan found also the dvb-s2 channels (Anixe HD, Simul HD,...).
+
+When I try to watch them, there are a lot of artifacts and picture 
+hangers which is surely normal for a Pentium 4 and a nvidia 6610 XL.
+
+However, kaffeine also crashes when watching hd content and in the last 
+lines in the terminal (I launched it from terminal to have feedback), 
+there is a "Internal error: picture buffer overflow".
+
+As the crashes did not occur during channel switches, but while watching 
+hd content, I suppose that the problem is rather due to xine than to the 
+s2api patch.
+
+
+Cheers,
+
+Francesco
+
+
+Darron Broad wrote:
+> In message <49038A28.4040601@gmx.net>, Francesco Fumanti wrote:
+>> Hello,
 > 
+> Hi Francesco.
 > 
-> I am working with Siano to expose all functionality of the
-> silicon through the linux-dvb api.
+>> Did anybody succeed to compile kaffeine from svn with the s2api patch on 
+>> Ubuntu 8.10 (not Kubuntu) ?
+>>
+>> I have been using the instructions on http://kaffeine.kde.org/?q=devel 
+>> but I get the following error:
+>> make[6]: Entering directory 
+>> `/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
+>> /bin/bash ../../../../libtool --silent --tag=CXX   --mode=compile g++ 
+>> -DHAVE_CONFIG_H -I. -I../../../.. -I../../../../kaffeine/src/input/ 
+>> -I../../../../kaffeine/src/input/dvb/lib 
+>> -I../../../../kaffeine/src/input/dvb/plugins/stream 
+>> -I../../../../kaffeine/src/input/dvb/plugins/epg 
+>> -I../../../../kaffeine/src -I/usr/include/kde -I/usr/share/qt3/include 
+>> -I.   -DQT_THREAD_SUPPORT  -D_REENTRANT  -Wno-long-long -Wundef -ansi 
+>> -D_XOPEN_SOURCE=500 -D_BSD_SOURCE -Wcast-align -Wchar-subscripts -Wall 
+>> -W -Wpointer-arith -O2 -Wformat-security -Wmissing-format-attribute 
+>> -Wno-non-virtual-dtor -fno-exceptions -fno-check-new -fno-common 
+>> -DQT_CLEAN_NAMESPACE -DQT_NO_ASCII_CAST -DQT_NO_STL -DQT_NO_COMPAT 
+>> -DQT_NO_TRANSLATION  -MT audioeditor.lo -MD -MP -MF 
+>> .deps/audioeditor.Tpo -c -o audioeditor.lo audioeditor.cpp
+>> In file included from audioeditor.h:24,
+>>                  from audioeditor.cpp:30:
+>> channeldesc.h:104: error: 'fe_rolloff_t' does not name a type
+>> make[6]: *** [audioeditor.lo] Error 1
+>> make[6]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
+>> make[5]: *** [all-recursive] Error 1
+>> make[5]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
+>> make[4]: *** [all-recursive] Error 1
+>> make[4]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input'
+>> make[3]: *** [all-recursive] Error 1
+>> make[3]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src'
+>> make[2]: *** [all-recursive] Error 1
+>> make[2]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine'
+>> make[1]: *** [all-recursive] Error 1
+>> make[1]: Leaving directory `/home/frafu/kaffeine-svn'
+>> make: *** [all] Error 2
+>>
+>> You might perhaps also want to know that the application of the patch 
+>> worked without error.
 > 
-> We didn't get up to T-DMB yet.  Give a few months and
-> there should be better info to report.
+> You need to update frontend.h in /usr/include/linux/dvb/
 > 
-> Regards,
+> eg.
 > 
-> Mike
+> mv /usr/include/linux/dvb/frontend.h /usr/include/linux/dvb/frontend.h.bak
+> cp /???/v4l-dvb/linux/include/linux/dvb/frontend.h /usr/include/linux/dvb/frontend.h
 > 
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> Then recompile. Obviously replace ??? with the path to your v4l-dvb source
+> files.
+> 
+> Good luck.
+> 
+> --
+> 
+>  // /
+> {:)==={ Darron Broad <darron@kewl.org>
+>  \\ \ 
+> 
 
-Hi Andrea,
-
-Sorry for the delay to answer you, I had a month long, wonderful, great, splendid vacation @ Vietnam.
-
-Some notes about the Terratec you try to run -
-1) It contains Siano's SMS10xx chipset.
-2) Till now, FIB parsing and device control are done in a user space library. 
-3) The control and the data paths run via character devices that bypass the DVB sub-system (for DAB-family standards), the main obstacle to move them via the DVB is, that the user-space library performs lots of logical work that does not currently exist in DVB/S2API/etc. 
-
-Q: Do you have a FIB parser?
-
-
-Regards,
-
-Uri Shkolnik
-Software Architect
-Siano Mobile Silicon
-
-
-
-
-      
 
 _______________________________________________
 linux-dvb mailing list
