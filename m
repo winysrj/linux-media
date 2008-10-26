@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from znsun1.ifh.de ([141.34.1.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1KulqW-0005y7-EC
-	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 11:30:44 +0100
-Message-ID: <4906E9CC.2040408@gmail.com>
-Date: Tue, 28 Oct 2008 14:30:36 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <patrick.boettcher@desy.de>) id 1Ku6np-0001BO-FM
+	for linux-dvb@linuxtv.org; Sun, 26 Oct 2008 15:41:14 +0100
+Date: Sun, 26 Oct 2008 15:40:31 +0100 (CET)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: =?ISO-8859-2?Q?SKO=C8DOPOLE_Tom=E1=B9?= <hoppik@centrum.cz>
+In-Reply-To: <200810251103.16869@centrum.cz>
+Message-ID: <alpine.LRH.1.10.0810261537420.8807@pub2.ifh.de>
+References: <200810251101.11569@centrum.cz> <200810251102.1298@centrum.cz>
+	<200810251103.27574@centrum.cz> <200810251103.16869@centrum.cz>
 MIME-Version: 1.0
-To: jean-paul@goedee.nl
-References: <20081028111538.1yl7p80uo0cggo80@webmail.goedee.nl>
-In-Reply-To: <20081028111538.1yl7p80uo0cggo80@webmail.goedee.nl>
+Content-Type: MULTIPART/MIXED; BOUNDARY="579715087-411395888-1225032031=:8807"
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API & TT3200
+Subject: Re: [linux-dvb] S2API: Future support for DVB-T2
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,33 +21,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-jean-paul@goedee.nl wrote:
-> Ok again.
-> 
-> I using now vdr 1.7.0 and multiproto from  manu to make my two tt  
-> 3200-ci working with streamdev. Vdr zapper en MPC. Its working fine  
-> except some judder  but its more a vdr issue.
-> 
-> For now I have a development system with an TT 3200 to and try to let  
-> vdr run with S2API drivers.  After getting the drivers from  
-> http://mercurial.intuxication.org/hg/s2-liplianin/ the compile ends  
-> with a error:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-You can simply clone http://jusst.de/hg/v4l-dvb
-or http://linuxtv.org/hg/v4l-dvb and check
+--579715087-411395888-1225032031=:8807
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-MIME-Autoconverted: from 8bit to quoted-printable by znsun1.ifh.de id m9QEeVNh008963
 
-The former contains two more fixes, so better try to test with that.
+On Sat, 25 Oct 2008, SKO?DOPOLE Tom=E1=A8 wrote:
 
-Regards,
-Manu
+> Hello,
+>
+> according to www.dvb.org: DVB-T2 standard was released.
+> I want to ask there: is S2API ready for this standard? Or it needs some=
+ relative big chagnes?
+
+Adding support to the API is only part of the job. The question is which=20
+currently available receiver hardware is supporting DVB-T2 and where can=20
+we get a driver for this hardware?
+
+Don't get me wrong, surely we can add support for a standard without=20
+having any hardware or drivers available. But it would be much more=20
+interesting with ;) .
+
+best regards,
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+--579715087-411395888-1225032031=:8807
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--579715087-411395888-1225032031=:8807--
