@@ -1,18 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fortimail.matc.edu ([148.8.129.21] helo=matc.edu)
+Received: from mail.acc.umu.se ([130.239.18.156])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <johnsonn@matc.edu>) id 1Ks1IP-0005V6-MF
-	for linux-dvb@linuxtv.org; Mon, 20 Oct 2008 22:24:13 +0200
-Received: from GWISE1.matc.edu (gwise1.matc.edu [148.8.29.22])
-	by Fortimail2000-1.fortimail.matc.edu  with ESMTP id m9KKNTlf015181
-	for <linux-dvb@linuxtv.org>; Mon, 20 Oct 2008 15:23:29 -0500
-Message-Id: <48FCA270.8C56.0056.0@matc.edu>
-Date: Mon, 20 Oct 2008 15:23:22 -0500
-From: "Jonathan Johnson" <johnsonn@matc.edu>
-To: <linux-dvb@linuxtv.org>
-Mime-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Unresolved symbols
+	(envelope-from <andreas@acc.umu.se>) id 1KuAMe-0004jO-TI
+	for linux-dvb@linuxtv.org; Sun, 26 Oct 2008 19:29:26 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by amavisd-new (Postfix) with ESMTP id 10D1F798
+	for <linux-dvb@linuxtv.org>; Sun, 26 Oct 2008 19:29:20 +0100 (MET)
+Received: from suiko.acc.umu.se (suiko.acc.umu.se [130.239.18.162])
+	by mail.acc.umu.se (Postfix) with ESMTP id 318DA795
+	for <linux-dvb@linuxtv.org>; Sun, 26 Oct 2008 19:29:13 +0100 (MET)
+Received: from localhost (localhost [127.0.0.1])
+	by suiko.acc.umu.se (Postfix) with ESMTP id E48B297
+	for <linux-dvb@linuxtv.org>; Sun, 26 Oct 2008 19:29:08 +0100 (CET)
+Date: Sun, 26 Oct 2008 19:29:08 +0100 (CET)
+From: Andreas Lindkvist <andreas@acc.umu.se>
+To: linux-dvb@linuxtv.org
+Message-ID: <Pine.LNX.4.64.0810261923340.21924@suiko.acc.umu.se>
+MIME-Version: 1.0
+Subject: [linux-dvb] Terratec Cinergy C PCI HD
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,21 +31,66 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello all,
+Hi
+Im am trying to get my Cinergy C PCI card to work using the following wiki:
 
-   I have tried to use the drivers and have gotten everything to compile.
-I followed the posted instruction and then........
-I then make "rmmod" and make "insmod" and after the "make insmod" I look at dmesg|more
-It is filled with unresolved symbols.  I have tried rebooting (at nauseam) and no change.
-I have upgraded the kernel and done all the steps all over again with the same results.
-If someone wants to look at about 5 screen fulls of unresolved symbols I can post the relevant parts of dmesg.
+   http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_C_DVB-C
 
-IF any one has any suggestions I will try them and report the results.
+The problem is that I get the following "error" when running 
+"modprobe mantis":
 
+   found a UNKNOWN PCI UNKNOWN device on (01:06.0),
+       Mantis Rev 1 [153b:0178], irq: 19, latency: 96
+       memory: 0xebfff000, mmio: 0xf88fe000
+       MAC Address=[ff:ff:ff:ff:ff:ff]
 
-Later,
-Jonathan
+When running lspci i get the following information:
 
+> lspci -v -s 01:06.0
+
+   01:06.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI
+         Bridge Controller [Ver 1.0] (rev 01)
+         Subsystem: TERRATEC Electronic GmbH Device 0178
+         Flags: bus master, medium devsel, latency 96, IRQ 19
+         Memory at ebfff000 (32-bit, prefetchable) [size=4K]
+         Kernel driver in use: Mantis
+         Kernel modules: mantis
+
+> lspci -vvn -s 01:06.0
+
+01:06.0 0480: 1822:4e35 (rev 01)
+         Subsystem: 153b:0178
+         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
+Stepping- SERR+ FastB2B- DisINTx-
+         Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- 
+<TAbort- <MAbort- >SERR+ <PERR+ INTx-
+         Latency: 96 (2000ns min, 59750ns max)
+         Interrupt: pin A routed to IRQ 19
+         Region 0: Memory at ebfff000 (32-bit, prefetchable) [size=4K]
+         Kernel driver in use: Mantis
+         Kernel modules: mantis
+
+which is not the same as the ID on the wiki page:
+
+$ lspci -vvn -s 01:01.0
+01:01.0 0480: 1822:4e35 (rev 01)
+         Subsystem: 153b:1178
+         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
+Stepping- SERR- FastB2B-
+         Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- 
+<TAbort+ <MAbort- >SERR- <PERR-
+         Latency: 64 (2000ns min, 63750ns max)
+         Interrupt: pin A routed to IRQ 22
+         Region 0: Memory at cfdff000 (32-bit, prefetchable) [size=4K]
+
+Is this another version of the card not supported by the driver or am I 
+missing something or doing something wrong?
+
+I am greatful for any help.
+
+Regards,
+
+   Andreas
 
 _______________________________________________
 linux-dvb mailing list
