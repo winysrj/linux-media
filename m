@@ -1,31 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: Darron Broad <darron@kewl.org>
-To: Andreas Oberritter <obi@linuxtv.org>
-In-reply-to: <48F42D5C.7090908@linuxtv.org> 
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<20080915121606.111520@gmx.net> <48CE7838.2060702@linuxtv.org>
-	<23602.1221904652@kewl.org> <48D51000.3060006@linuxtv.org>
-	<25577.1221924224@kewl.org> <20080921234339.18450@gmx.net>
-	<8002.1222068668@kewl.org> <20080922124908.203800@gmx.net>
-	<10822.1222089271@kewl.org> <48D7C15E.5060509@linuxtv.org>
-	<20080922164108.203780@gmx.net> <20022.1222162539@kewl.org>
-	<20080923142509.86330@gmx.net> <4025.1222264419@kewl.org>
-	<4284.1222265835@kewl.org> <20080925145223.47290@gmx.net>
-	<18599.1222354652@kewl.org>
-	<Pine.LNX.4.64.0809261117150.21806@trider-g7>
-	<21180.1223610119@kewl.org> <20081010132352.273810@gmx.net>
-	<48EF7E78.6040102@linuxtv.org> <30863.1223711672@kewl.org>
-	<48F0AA35.6020005@linuxtv.org> <773.1223732259@kewl.org>
-	<48F0AEA3.50704@linuxtv.org> <989.1223733525@kewl.org>
-	<48F0B6C5.5090505@linuxtv.org> <1506.1223737964@kewl.org>
-	<48F0E516.303@linuxtv.org> <20081011190015.175420@gmx.net>
-	<48F36B32.5060006@linuxtv.org> <48F42D5C.7090908@linuxtv.org>
-Date: Tue, 14 Oct 2008 11:42:28 +0100
-Message-ID: <2073.1223980948@kewl.org>
-Cc: fabbione@fabbione.net, scarfoglio@arpacoop.it,
-	Hans Werner <HWerner4@gmx.de>, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Multi-frontend patch merge (TESTERS FEEDBACK) was:
-	Re: [PATCH] S2API: add multifrontend
+Received: from ey-out-2122.google.com ([74.125.78.27])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KtxYu-0004Yh-C5
+	for linux-dvb@linuxtv.org; Sun, 26 Oct 2008 05:49:14 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so689614eya.17
+	for <linux-dvb@linuxtv.org>; Sat, 25 Oct 2008 21:49:08 -0700 (PDT)
+Date: Sun, 26 Oct 2008 05:49:00 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: =?ISO-8859-15?Q?Julian_G=FCrtler?= <julian.guertler@uni-ulm.de>
+In-Reply-To: <4903070D.7050402@uni-ulm.de>
+Message-ID: <alpine.DEB.2.00.0810252132190.20415@ybpnyubfg.ybpnyqbznva>
+References: <4903070D.7050402@uni-ulm.de>
+MIME-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Update de-Illerkirchberg
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,52 +21,76 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <48F42D5C.7090908@linuxtv.org>, Andreas Oberritter wrote:
+On Sat, 25 Oct 2008, Julian G=FCrtler wrote:
 
-hi.
+> now I've found out, that the broadcast station is in Ulm.
 
->Hello Steve,
->
->Steven Toth wrote:
->> I'm mutating the subject thread, and cc'ing the public mailing list into 
->> this conversion. Now is the time to announce the intension to merge 
->> multi-frontend patches, and show that we have tested and are satisfied 
->> with it's reliability across many trees.
->> 
->> (For those of you not familiar with the patch set, it adds 
->> 'multiple-frontends to a single transport bus' support for the HVR3000 
->> and HVR4000, and potentially another 7134 based design (the 6 way medion 
->> board?).
->
->is this code still using more than one demux device per transport bus, or
->has it already been changed to make use of the DMX_SET_SOURCE command?
+Ulm and Neu-Ulm are in Baden-Wuertt./Bayern -- and in general,
+each Bundesland uses three frequencies for ARD+co., ZDFmobil,
+and each Dritte Programme mux from each sender.
 
-At this time it duplicates all the device nodes along with
-the frontends.
+In addition to the local Ulm-Ermingen multiplexes, you are
+apparently receiving some nearby Bayern from a favourable
+high altitude.
 
-I have looked into this somewhat, and appreciate what you
-are referring to. There would seem to be quite some 
-significant reworking needed in videobuf-dvb to achieve
-this requirement of one mux with multi-frontends in a
-clean fashion.
 
-If this is show-stopper, then so be it.
+B*gger, your list has disappeared from my reply, so I need to
+postpone this message and correlate your frequencies with the
+known-to-me broadcasts...
 
-cya!
+But in addition, the use of `AUTO' for practically everything
+is not a good idea, and you should at least parse the NIT info
+to get correct and up-to-date details -- although these are
+readily found online and rather standard between senders.
 
---
 
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
+Cut'n'pasta:
 
+T 482000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+ZDF multiplex Ulm, (Donaueschingen, Raichberg, Ravensburg) K22
+In my notes for Donaueschingen I wrote 50kW hor, 16QAM 2/3 8k 1/4
+
+T 530000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+ZDF multiplex Gruenten, (Hohenpeissenberg) (Bayern) K28
+
+T 594000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+ARD Multiplex Augsburg (Bayern) K36
+
+T 626000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+SWR Multiplex Ulm, (Raichberg, Ravensburg) K40
+
+T 650000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+ARD Multiplex Ulm, (Raichberg, Ravensburg) K43
+
+T 658000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+ZDF Multiplex Augsburg (Bayern) K44
+
+T 666000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+ARD Multiplex Gruenten (Bayern) K45
+
+T 674000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+Bayerischer Rundfunk Sender Gruenten K46
+
+T 690000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO
+K48, not sure.  What channels are you seeing here?
+
+
+Apparently the Augsburg mux is not received on K25 (BR)
+
+
+I have no idea if you are using a short simple antenna for
+reception, or if you are connected to a high-gain rooftop
+aerial which may have been installed during analogue times
+and aimed towards sender Gruenten for BR.
+
+
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
