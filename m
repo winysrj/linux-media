@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.227])
+Received: from qb-out-0506.google.com ([72.14.204.237])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bokola@gmail.com>) id 1KrCTz-00036B-I6
-	for linux-dvb@linuxtv.org; Sat, 18 Oct 2008 16:08:44 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so960353rvf.41
-	for <linux-dvb@linuxtv.org>; Sat, 18 Oct 2008 07:08:38 -0700 (PDT)
-Message-ID: <854d46170810180708l5d109c9chdd97399f2f3c60e0@mail.gmail.com>
-Date: Sat, 18 Oct 2008 16:08:37 +0200
-From: "Faruk A" <fa@elwak.com>
-To: "Dominik Kuhlen" <dkuhlen@gmx.net>
-In-Reply-To: <200810181405.42620.dkuhlen@gmx.net>
+	(envelope-from <hbomb.ustc@gmail.com>) id 1KuIYb-0004Yi-JJ
+	for linux-dvb@linuxtv.org; Mon, 27 Oct 2008 04:14:19 +0100
+Received: by qb-out-0506.google.com with SMTP id e11so1603013qbe.25
+	for <linux-dvb@linuxtv.org>; Sun, 26 Oct 2008 20:14:12 -0700 (PDT)
+Message-ID: <1130eaa20810262014x1198875dldb6dec672ae16c3e@mail.gmail.com>
+Date: Mon, 27 Oct 2008 11:14:12 +0800
+From: "hbomb ustc" <hbomb.ustc@gmail.com>
+To: everybody <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <200810181405.42620.dkuhlen@gmx.net>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] S2API pctv452e stb0899 simples2apitune
+Subject: [linux-dvb] How to contribute my driver code to V4L-DVB or Kernel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,50 +18,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1697065424=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Dominik!
+--===============1697065424==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_5348_32759401.1225077252314"
+
+------=_Part_5348_32759401.1225077252314
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+Hello,
+
+I have written the V4L-DVB driver of DTV/ATV receiver for my company. And I
+want to contribute the soure code of it to V4L-DVB or linux kernel. Could
+someone tell me how to do this?  Thanks.
+
+Hbomb
+
+------=_Part_5348_32759401.1225077252314
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+<div>Hello, </div>
+<div>&nbsp;</div>
+<div>I have written the V4L-DVB driver of DTV/ATV receiver for my company. And I want to contribute the soure code of it to V4L-DVB or linux kernel. Could someone tell me how to do this?&nbsp; Thanks.</div>
+<div>&nbsp;</div>
+<div>Hbomb</div>
+<div>&nbsp;</div>
+
+------=_Part_5348_32759401.1225077252314--
 
 
-> - fast and always lock for DVB-S (up to 8MHz frequency offset allowed) (only tested with symrates: 22 and 27.5)
-
-yes channel lock is very fast and it always locks, i had no problem
-locking on DVB-S with 30000 symrate.
-
-> - DVB-S2 checked 19.2E 11915 H 27500 only (I cant test others)
-
-it locks fine on 13E DVB-S2 channels (27500)
-
-> - PCTV452e LED  green: FE open    orange: FE closed
->  does the TT S2 3600 (3650CI) also have this led and is it attached to the same GPIO?
-
-The LED is working on TT-S2-3650CI
-
-> also attached simples2apitune which is same as simpledvbtune but for S2API
-
-simples2apitune is not working for me on both DVB-S and DVB-S2.
-
-[faruk@archer simples2apitune]$ ./simples2apitune -f 10975 -p h -s 27500
-using '/dev/dvb/adapter0/frontend0' as frontend
-frontend fd=3: type=0 name=STB0899 Multistandard
-ioclt: FE_SET_VOLTAGE : 1
-Low band
-set tone: 0
-set symbol rate: 27500000 Sym/s
-set frequency: 1225000 kHz
-do tune....
-tuning qpsk failed
-
-Dominik are you too facing packet losses from TS?
-
-Thanks
-Faruk
+--===============1697065424==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1697065424==--
