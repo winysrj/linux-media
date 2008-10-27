@@ -1,18 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9ECxcMp002795
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:59:38 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.226])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9ECxL1Z012775
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:59:22 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so2186740rvb.51
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 05:59:21 -0700 (PDT)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: video4linux-list@redhat.com
-Date: Tue, 14 Oct 2008 21:58:12 +0900
-Message-Id: <20081014125812.5224.67473.sendpatchset@rx1.opensource.se>
-Cc: v4l-dvb-maintainer@linuxtv.org, mchehab@infradead.org
-Subject: [PATCH] video: add sh_mobile_ceu comments
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9RFEEYj008831
+	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 11:14:14 -0400
+Received: from lxorguk.ukuu.org.uk (earthlight.etchedpixels.co.uk
+	[81.2.110.250])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9RFDeB7023509
+	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 11:13:40 -0400
+Date: Mon, 27 Oct 2008 15:13:47 +0000
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: mchehab@infradead.org, video4linux-list@redhat.com
+Message-ID: <20081027151347.47a26642@lxorguk.ukuu.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: [PATCH] rationalise addresses to one common one
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,111 +26,192 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Magnus Damm <damm@igel.co.jp>
+Signed-off-by: Alan Cox <alan@redhat.com>
 
-This patch adds CEU hardware block comments to the sh_mobile_ceu driver.
-
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
----
-
- drivers/media/video/sh_mobile_ceu_camera.c |   79 ++++++++++++++++------------
- 1 file changed, 46 insertions(+), 33 deletions(-)
-
---- 0001/drivers/media/video/sh_mobile_ceu_camera.c
-+++ work/drivers/media/video/sh_mobile_ceu_camera.c	2008-10-14 15:41:48.000000000 +0900
-@@ -40,39 +40,39 @@
+diff --git a/drivers/media/radio/radio-aimslab.c b/drivers/media/radio/radio-aimslab.c
+index 9305e95..dd6d3df 100644
+--- a/drivers/media/radio/radio-aimslab.c
++++ b/drivers/media/radio/radio-aimslab.c
+@@ -1,7 +1,7 @@
+ /* radiotrack (radioreveal) driver for Linux radio support
+  * (c) 1997 M. Kirkwood
+  * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
+- * Converted to new API by Alan Cox <Alan.Cox@linux.org>
++ * Converted to new API by Alan Cox <alan@lxorguk.ukuu.org.uk>
+  * Various bugfixes and enhancements by Russell Kroll <rkroll@exploits.org>
+  *
+  * History:
+diff --git a/drivers/media/radio/radio-cadet.c b/drivers/media/radio/radio-cadet.c
+index 0490a1f..bfd37f3 100644
+--- a/drivers/media/radio/radio-cadet.c
++++ b/drivers/media/radio/radio-cadet.c
+@@ -23,7 +23,7 @@
+  * 2002-01-17	Adam Belay <ambx1@neo.rr.com>
+  *		Updated to latest pnp code
+  *
+- * 2003-01-31	Alan Cox <alan@redhat.com>
++ * 2003-01-31	Alan Cox <alan@lxorguk.ukuu.org.uk>
+  *		Cleaned up locking, delay code, general odds and ends
+  *
+  * 2006-07-30	Hans J. Koch <koch@hjk-az.de>
+diff --git a/drivers/media/radio/radio-gemtek.c b/drivers/media/radio/radio-gemtek.c
+index d131a5d..e13118d 100644
+--- a/drivers/media/radio/radio-gemtek.c
++++ b/drivers/media/radio/radio-gemtek.c
+@@ -8,7 +8,7 @@
+  *    RadioTrack II driver for Linux radio support (C) 1998 Ben Pfaff
+  *
+  *    Based on RadioTrack I/RadioReveal (C) 1997 M. Kirkwood
+- *    Converted to new API by Alan Cox <Alan.Cox@linux.org>
++ *    Converted to new API by Alan Cox <alan@lxorguk.ukuu.org.uk>
+  *    Various bugfixes and enhancements by Russell Kroll <rkroll@exploits.org>
+  *
+  * TODO: Allow for more than one of these foolish entities :-)
+diff --git a/drivers/media/radio/radio-rtrack2.c b/drivers/media/radio/radio-rtrack2.c
+index a670797..7704f24 100644
+--- a/drivers/media/radio/radio-rtrack2.c
++++ b/drivers/media/radio/radio-rtrack2.c
+@@ -1,7 +1,7 @@
+ /* RadioTrack II driver for Linux radio support (C) 1998 Ben Pfaff
+  *
+  * Based on RadioTrack I/RadioReveal (C) 1997 M. Kirkwood
+- * Converted to new API by Alan Cox <Alan.Cox@linux.org>
++ * Converted to new API by Alan Cox <alan@lxorguk.ukuu.org.uk>
+  * Various bugfixes and enhancements by Russell Kroll <rkroll@exploits.org>
+  *
+  * TODO: Allow for more than one of these foolish entities :-)
+diff --git a/drivers/media/radio/radio-sf16fmi.c b/drivers/media/radio/radio-sf16fmi.c
+index 329c90b..834d436 100644
+--- a/drivers/media/radio/radio-sf16fmi.c
++++ b/drivers/media/radio/radio-sf16fmi.c
+@@ -3,7 +3,7 @@
+  * (c) 1997 M. Kirkwood
+  * (c) 1998 Petr Vandrovec, vandrove@vc.cvut.cz
+  *
+- * Fitted to new interface by Alan Cox <alan.cox@linux.org>
++ * Fitted to new interface by Alan Cox <alan@lxorguk.ukuu.org.uk>
+  * Made working and cleaned up functions <mikael.hedin@irf.se>
+  * Support for ISAPnP by Ladislav Michl <ladis@psi.cz>
+  *
+diff --git a/drivers/media/video/cpia2/cpia2_core.c b/drivers/media/video/cpia2/cpia2_core.c
+index 7e791b6..1cc0df8 100644
+--- a/drivers/media/video/cpia2/cpia2_core.c
++++ b/drivers/media/video/cpia2/cpia2_core.c
+@@ -25,7 +25,7 @@
+  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  *
+  *  Stripped of 2.4 stuff ready for main kernel submit by
+- *		Alan Cox <alan@redhat.com>
++ *		Alan Cox <alan@lxorguk.ukuu.org.uk>
+  *
+  ****************************************************************************/
  
- /* register offsets for sh7722 / sh7723 */
+diff --git a/drivers/media/video/cpia2/cpia2_usb.c b/drivers/media/video/cpia2/cpia2_usb.c
+index 73511a5..dc5b07a 100644
+--- a/drivers/media/video/cpia2/cpia2_usb.c
++++ b/drivers/media/video/cpia2/cpia2_usb.c
+@@ -25,7 +25,7 @@
+  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  *
+  *  Stripped of 2.4 stuff ready for main kernel submit by
+- *		Alan Cox <alan@redhat.com>
++ *		Alan Cox <alan@lxorguk.ukuu.org.uk>
+  ****************************************************************************/
  
--#define CAPSR  0x00
--#define CAPCR  0x04
--#define CAMCR  0x08
--#define CMCYR  0x0c
--#define CAMOR  0x10
--#define CAPWR  0x14
--#define CAIFR  0x18
--#define CSTCR  0x20 /* not on sh7723 */
--#define CSECR  0x24 /* not on sh7723 */
--#define CRCNTR 0x28
--#define CRCMPR 0x2c
--#define CFLCR  0x30
--#define CFSZR  0x34
--#define CDWDR  0x38
--#define CDAYR  0x3c
--#define CDACR  0x40
--#define CDBYR  0x44
--#define CDBCR  0x48
--#define CBDSR  0x4c
--#define CFWCR  0x5c
--#define CLFCR  0x60
--#define CDOCR  0x64
--#define CDDCR  0x68
--#define CDDAR  0x6c
--#define CEIER  0x70
--#define CETCR  0x74
--#define CSTSR  0x7c
--#define CSRTR  0x80
--#define CDSSR  0x84
--#define CDAYR2 0x90
--#define CDACR2 0x94
--#define CDBYR2 0x98
--#define CDBCR2 0x9c
-+#define CAPSR  0x00 /* Capture start register */
-+#define CAPCR  0x04 /* Capture control register */
-+#define CAMCR  0x08 /* Capture interface control register */
-+#define CMCYR  0x0c /* Capture interface cycle  register */
-+#define CAMOR  0x10 /* Capture interface offset register */
-+#define CAPWR  0x14 /* Capture interface width register */
-+#define CAIFR  0x18 /* Capture interface input format register */
-+#define CSTCR  0x20 /* Camera strobe control register (<= sh7722) */
-+#define CSECR  0x24 /* Camera strobe emission count register (<= sh7722) */
-+#define CRCNTR 0x28 /* CEU register control register */
-+#define CRCMPR 0x2c /* CEU register forcible control register */
-+#define CFLCR  0x30 /* Capture filter control register */
-+#define CFSZR  0x34 /* Capture filter size clip register */
-+#define CDWDR  0x38 /* Capture destination width register */
-+#define CDAYR  0x3c /* Capture data address Y register */
-+#define CDACR  0x40 /* Capture data address C register */
-+#define CDBYR  0x44 /* Capture data bottom-field address Y register */
-+#define CDBCR  0x48 /* Capture data bottom-field address C register */
-+#define CBDSR  0x4c /* Capture bundle destination size register */
-+#define CFWCR  0x5c /* Firewall operation control register */
-+#define CLFCR  0x60 /* Capture low-pass filter control register */
-+#define CDOCR  0x64 /* Capture data output control register */
-+#define CDDCR  0x68 /* Capture data complexity level register */
-+#define CDDAR  0x6c /* Capture data complexity level address register */
-+#define CEIER  0x70 /* Capture event interrupt enable register */
-+#define CETCR  0x74 /* Capture event flag clear register */
-+#define CSTSR  0x7c /* Capture status register */
-+#define CSRTR  0x80 /* Capture software reset register */
-+#define CDSSR  0x84 /* Capture data size register */
-+#define CDAYR2 0x90 /* Capture data address Y register 2 */
-+#define CDACR2 0x94 /* Capture data address C register 2 */
-+#define CDBYR2 0x98 /* Capture data bottom-field address Y register 2 */
-+#define CDBCR2 0x9c /* Capture data bottom-field address C register 2 */
+ #include <linux/kernel.h>
+diff --git a/drivers/media/video/cpia2/cpia2_v4l.c b/drivers/media/video/cpia2/cpia2_v4l.c
+index 1c6bd63..d9de2e8 100644
+--- a/drivers/media/video/cpia2/cpia2_v4l.c
++++ b/drivers/media/video/cpia2/cpia2_v4l.c
+@@ -26,7 +26,7 @@
+  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  *
+  *  Stripped of 2.4 stuff ready for main kernel submit by
+- *		Alan Cox <alan@redhat.com>
++ *		Alan Cox <alan@lxorguk.ukuu.org.uk>
+  ****************************************************************************/
  
- static DEFINE_MUTEX(camera_lock);
+ #include <linux/version.h>
+diff --git a/drivers/media/video/pms.c b/drivers/media/video/pms.c
+index 9948078..8062d00 100644
+--- a/drivers/media/video/pms.c
++++ b/drivers/media/video/pms.c
+@@ -10,8 +10,8 @@
+  *	14478 Potsdam, Germany
+  *
+  *	Most of this code is directly derived from his userspace driver.
+- *	His driver works so send any reports to alan@redhat.com unless the
+- *	userspace driver also doesn't work for you...
++ *	His driver works so send any reports to alan@lxorguk.ukuu.org.uk
++ *	unless the userspace driver also doesn't work for you...
+  *
+  *      Changes:
+  *      08/07/2003        Daniele Bellucci <bellucda@tiscali.it>
+diff --git a/drivers/media/video/saa5246a.c b/drivers/media/video/saa5246a.c
+index 4a21b8a..9d45826 100644
+--- a/drivers/media/video/saa5246a.c
++++ b/drivers/media/video/saa5246a.c
+@@ -15,7 +15,7 @@
+  * <richard.guenther@student.uni-tuebingen.de>
+  *
+  * with changes by
+- * Alan Cox <Alan.Cox@linux.org>
++ * Alan Cox <alan@lxorguk.ukuu.org.uk>
+  *
+  * and
+  *
+diff --git a/drivers/media/video/saa5249.c b/drivers/media/video/saa5249.c
+index 3bb959c..1594773 100644
+--- a/drivers/media/video/saa5249.c
++++ b/drivers/media/video/saa5249.c
+@@ -8,7 +8,7 @@
+  *	you can add arbitary multiple teletext devices to Linux video4linux
+  *	now (well 32 anyway).
+  *
+- *	Alan Cox <Alan.Cox@linux.org>
++ *	Alan Cox <alan@lxorguk.ukuu.org.uk>
+  *
+  *	The original driver was heavily modified to match the i2c interface
+  *	It was truncated to use the WinTV boards, too.
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index 846763d..fdc8871 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -28,7 +28,7 @@
+  *		as published by the Free Software Foundation; either version
+  *		2 of the License, or (at your option) any later version.
+  *
+- * Author:	Alan Cox, <alan@redhat.com>
++ * Author:	Alan Cox, <alan@lxorguk.ukuu.org.uk>
+  *
+  * Fixes:
+  */
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index ccd6566..ead6d18 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -9,7 +9,7 @@
+  *	as published by the Free Software Foundation; either version
+  *	2 of the License, or (at your option) any later version.
+  *
+- * Authors:	Alan Cox, <alan@redhat.com> (version 1)
++ * Authors:	Alan Cox, <alan@lxorguk.ukuu.org.uk> (version 1)
+  *              Mauro Carvalho Chehab <mchehab@infradead.org> (version 2)
+  *
+  * Fixes:	20000516  Claudio Matsuoka <claudio@conectiva.com>
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 710e1a4..eef5814 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -8,7 +8,7 @@
+  * as published by the Free Software Foundation; either version
+  * 2 of the License, or (at your option) any later version.
+  *
+- * Authors:	Alan Cox, <alan@redhat.com> (version 1)
++ * Authors:	Alan Cox, <alan@lxorguk.ukuu.org.uk> (version 1)
+  *              Mauro Carvalho Chehab <mchehab@infradead.org> (version 2)
+  */
  
-@@ -396,6 +396,19 @@ static int sh_mobile_ceu_set_bus_param(s
- 	ceu_write(pcdev, CFLCR, 0); /* data fetch mode - no scaling */
- 	ceu_write(pcdev, CFSZR, (icd->height << 16) | cfszr_width);
- 	ceu_write(pcdev, CLFCR, 0); /* data fetch mode - no lowpass filter */
-+
-+	/* A few words about byte order (observed in Big Endian mode)
-+	 *
-+	 * In data fetch mode bytes are received in chunks of 8 bytes.
-+	 * D0, D1, D2, D3, D4, D5, D6, D7 (D0 received first)
-+	 *
-+	 * The data is however by default written to memory in reverse order:
-+	 * D7, D6, D5, D4, D3, D2, D1, D0 (D7 written to lowest byte)
-+	 *
-+	 * The lowest three bits of CDOCR allows us to do swapping,
-+	 * right now we swap the data bytes to the following order:
-+	 * D1, D0, D3, D2, D5, D4, D7, D6
-+	 */
- 	ceu_write(pcdev, CDOCR, 0x00000016);
- 
- 	ceu_write(pcdev, CDWDR, cdwdr_width);
 
 --
 video4linux-list mailing list
