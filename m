@@ -1,16 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.226])
+Received: from mailout1.informatik.tu-muenchen.de ([131.159.0.12])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <yellowplantain@gmail.com>) id 1KkzqB-0004tK-G6
-	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 13:26:00 +0200
-Received: by rv-out-0506.google.com with SMTP id b25so439212rvf.41
-	for <linux-dvb@linuxtv.org>; Wed, 01 Oct 2008 04:25:52 -0700 (PDT)
-Message-ID: <48E35E38.9040909@gmail.com>
-Date: Wed, 01 Oct 2008 20:55:44 +0930
-From: Plantain <yellowplantain@gmail.com>
-MIME-Version: 1.0
+	(envelope-from <acher@in.tum.de>) id 1KuSdI-0002mh-5b
+	for linux-dvb@linuxtv.org; Mon, 27 Oct 2008 14:59:49 +0100
+Date: Mon, 27 Oct 2008 15:03:48 +0100
+From: Georg Acher <acher@in.tum.de>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Support for Leadtek DTV1000S ?
+Message-ID: <20081027140348.GE9657@localhost>
+References: <412bdbff0810171104ob627994me2876504b43c18d8@mail.gmail.com>
+	<49033440.6090609@gmx.de>
+	<3cc3561f0810270337h4c33dd80n9b779a8dc3c8f8ce@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <3cc3561f0810270337h4c33dd80n9b779a8dc3c8f8ce@mail.gmail.com>
+Subject: Re: [linux-dvb] [RFC] SNR units in tuners
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,47 +21,34 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hey,
+On Mon, Oct 27, 2008 at 10:37:52AM +0000, Morgan T=F8rvolt wrote:
+ =
 
-I've luckily come across a Leadtek DTV1000S that I'd like to get working
-under Linux!
+> As I used to work with satellite signals on an earth station, and was
+> responsible for the development of measurement techniques, I thought I
+> should join in here for some hopefully revelaing info.
+> =
 
->From reading the Leadtek specifications
-(http://leadtek.com/eng/tv_tuner/specification.asp?pronameid=382&lineid=6&act=2),
-I now understand it has contained within it the following chips;
-NXP 18271
-TDA10048
-SAA7130
->From what I can see, all of these chips are supported by one driver or
-another in some shape or form, but I've still been unable to get my card
-to work.
+> I am guessing here of course, but I believe that there is no real SNR
+> measurement in any of the tuners available for computers. =
 
-I'm guessing I have two issues here, 1) Card not being identified by
-saa7134 driver, and 2) No firmware for the tda10048
-As for 1), I'm not sure how best to find the correct card= to feed into
-the modprobe (i2c_scan doesn't seem to do anything useful), although I
-remember there used to be a bash script that would try every value and
-then check for the existence of /dev/dvb/? If anyone has a copy of that
-script, I'd greatly appreciate if you could point me towards it!
 
-2) seems a little trickier, I've found that the Windows XP 64-bit driver
-install at the link below has .sys files within it, which should contain
-the necessary firmware? If anyone has experience extracting the
-firmware, I'd be most appreciative! Driver:
-http://leadtek.com/eng/tv_tuner/download.asp?downlineid=207&pronameid=382&lineid=6&act=3
+My guess is that it is possible. Actually, it is quite easy for QPSK ;-) You
+only need to calculate the distance of the IQ-value from the ideal symbol
+center ( (sqrt(0.5),sqrt(0.5)) or whatever) after the
+rotator/retiming-block.
 
-I'm keen to help get this card working, so if anyone is especially
-curious I can offer you ssh to Linux/rdp to Windows.
+-- =
 
-Cheers,
-
-~Plantain~
+         Georg Acher, acher@in.tum.de
+         http://www.lrr.in.tum.de/~acher
+         "Oh no, not again !" The bowl of petunias
 
 _______________________________________________
 linux-dvb mailing list
