@@ -1,17 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9O9wg1R003341
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 05:58:42 -0400
-Received: from bear.ext.ti.com (bear.ext.ti.com [192.94.94.41])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9O9vml6024219
-	for <video4linux-list@redhat.com>; Fri, 24 Oct 2008 05:57:49 -0400
-From: Hardik Shah <hardik.shah@ti.com>
-To: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net,
-	video4linux-list@redhat.com
-Date: Fri, 24 Oct 2008 15:23:19 +0530
-Message-Id: <1224841999-24632-1-git-send-email-hardik.shah@ti.com>
-Cc: 
-Subject: [PATCHv2 3/4] V4L2 New IOCTLs for OMAP V4L2 Display Driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9RCit3D011173
+	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 08:44:55 -0400
+Received: from root.phytec.de (mail.microcatalog.org.uk [217.6.246.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9RChxDd028186
+	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 08:44:00 -0400
+Received: from idefix.phytec.de (idefix.phytec.de [172.16.0.10])
+	by root.phytec.de (Postfix) with ESMTP id AFDBABF0E9
+	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 13:20:08 +0100 (CET)
+To: video4linux-list@redhat.com
+MIME-Version: 1.0
+Message-ID: <OFCC904212.642A003E-ONC12574EF.00458E69-C12574EF.0045EFB0@phytec.de>
+From: Dirk Heer <D.Heer@phytec.de>
+Date: Mon, 27 Oct 2008 13:43:53 +0100
+Content-Type: multipart/mixed; boundary="=_mixed 0045EFACC12574EF_="
+Subject: patch for bttv driver  (bttv-cards.c and bttv.h)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,121 +26,112 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-New IOCTLs added to the V4L2 framework according to the
-comments received from the open source.
+--=_mixed 0045EFACC12574EF_=
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-		Hari Nagalla <hnagalla@ti.com>
-		Hardik Shah <hardik.shah@ti.com>
-		Manjunath Hadli <mrh@ti.com>
-		R Sivaraj <sivaraj@ti.com>
-		Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/v4l2-ioctl.c |   19 +++++++++++++++++++
- include/linux/videodev2.h        |   18 +++++++++++++++++-
- include/media/v4l2-ioctl.h       |    4 ++++
- 3 files changed, 40 insertions(+), 1 deletions(-)
+Hello,
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 140ef92..39d1d6d 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -269,6 +269,8 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_G_CHIP_IDENT)]     = "VIDIOC_G_CHIP_IDENT",
- 	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
- #endif
-+	[_IOC_NR(VIDIOC_S_COLOR_SPACE_CONV)]   = "VIDIOC_S_COLOR_SPACE_CONV",
-+	[_IOC_NR(VIDIOC_G_COLOR_SPACE_CONV)]   = "VIDIOC_G_COLOR_SPACE_CONV",
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
- 
-@@ -1761,6 +1763,23 @@ static int __video_do_ioctl(struct inode *inode, struct file *file,
- 		ret = ops->vidioc_s_hw_freq_seek(file, fh, p);
- 		break;
- 	}
-+	/*---------------Color space conversion------------------------------*/
-+	case VIDIOC_S_COLOR_SPACE_CONV:
-+	{
-+		struct v4l2_color_space_conversion *p = arg;
-+		if (!ops->vidioc_s_color_space_conv)
-+			break;
-+		ret = ops->vidioc_s_color_space_conv(file, fh, p);
-+		break;
-+	}
-+	case VIDIOC_G_COLOR_SPACE_CONV:
-+	{
-+		struct v4l2_color_space_conversion *p = arg;
-+		if (!ops->vidioc_g_color_space_conv)
-+			break;
-+		ret = ops->vidioc_g_color_space_conv(file, fh, p);
-+		break;
-+	}
- 	default:
- 	{
- 		if (!ops->vidioc_default)
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 303d93f..3112cc0 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -869,8 +869,10 @@ enum v4l2_power_line_frequency {
- #define V4L2_CID_BACKLIGHT_COMPENSATION 	(V4L2_CID_BASE+28)
- #define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
- #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
-+#define V4L2_CID_ROTATION			(V4L2_CID_BASE+31)
-+#define V4L2_CID_BG_COLOR			(V4L2_CID_BASE+32)
- /* last CID + 1 */
--#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+31)
-+#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+33)
- 
- /*  MPEG-class control IDs defined by V4L2 */
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
-@@ -1150,6 +1152,18 @@ struct v4l2_hw_freq_seek {
- };
- 
- /*
-+ * Color conversion
-+ * User needs to pass pointer to color conversion matrix
-+ * defined by hardware
-+ */
-+struct v4l2_color_space_conversion {
-+	__s32 coefficients[3][3];
-+	__s32 const_factor;
-+	__s32 input_offs[3];
-+	__s32 output_offs[3];
-+};
-+
-+/*
-  *	A U D I O
-  */
- struct v4l2_audio {
-@@ -1425,6 +1439,8 @@ struct v4l2_chip_ident {
- #define VIDIOC_G_CHIP_IDENT     _IOWR('V', 81, struct v4l2_chip_ident)
- #endif
- #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
-+#define VIDIOC_S_COLOR_SPACE_CONV	 _IOW('V', 83, struct v4l2_color_space_conversion)
-+#define VIDIOC_G_COLOR_SPACE_CONV	 _IOR('V', 84, struct v4l2_color_space_conversion)
- 
- #ifdef __OLD_VIDIOC_
- /* for compatibility, will go away some day */
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index dc64046..62771af 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -240,6 +240,10 @@ struct v4l2_ioctl_ops {
- 	/* For other private ioctls */
- 	int (*vidioc_default)	       (struct file *file, void *fh,
- 					int cmd, void *arg);
-+	int (*vidioc_s_color_space_conv)     (struct file *file, void *fh,
-+					struct v4l2_color_space_conversion *a);
-+	int (*vidioc_g_color_space_conv)     (struct file *file, void *fh,
-+					struct v4l2_color_space_conversion *a);
- };
- 
- 
--- 
-1.5.6
+i build a patch for the bttv driver.
+
+
+
+I hope some one can build them into the Kernel.
+
+The patch is made with the 2.6.25.16-0.1-pae Kernel version.
+
+
+Yours faithfully,
+
+Dipl.-Ing. (FH) Dirk Heer
+
+
+++++++++++++++++++++++++++
+PHYTEC Messtechnik GmbH
+Abteilung Bildverarbeitung
+Robert-Koch-Str. 39
+D-55129 Mainz
+
+Tel:   +49 (6131) / 9221-0
+Fax:  +49 (6131) / 9221-33
+
+E-Mail: d.heer@phytec.de
+Internet: http://www.phytec.de
+
+Handelsregister Mainz HRB 4656
+Gesch=E4ftsf=FChrer: Dipl.-Ing. Michael Mitezki
++++++++++++++++++++++++++
+
+
+--=_mixed 0045EFACC12574EF_=
+Content-Type: application/octet-stream; name="phytec_bttv_patch"
+Content-Disposition: attachment; filename="phytec_bttv_patch"
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtdSAtciBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2J0OHh4L2J0dHYtY2FyZHMuYyBi
+dHR2X3BhdGNoL2RyaXZlcnMvbWVkaWEvdmlkZW8vYnQ4eHgvYnR0di1jYXJkcy5jCi0tLSBsaW51
+eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2J0OHh4L2J0dHYtY2FyZHMuYwkyMDA4LTA0LTE3IDA0OjQ5
+OjQ0LjAwMDAwMDAwMCArMDIwMAorKysgYnR0dl9wYXRjaC9kcml2ZXJzL21lZGlhL3ZpZGVvL2J0
+OHh4L2J0dHYtY2FyZHMuYwkyMDA4LTEwLTI3IDEyOjU3OjM2LjAwMDAwMDAwMCArMDEwMApAQCAt
+Mjk5Miw2ICsyOTkyLDY5IEBACiAJCS50dW5lcl9hZGRyICAgICA9IEFERFJfVU5TRVQsCiAJCS5y
+YWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQsCiAJfSwKKwkKKwkJW0JUVFZfQk9BUkRfVkQwMTFf
+TUlOSURJTl0gPSB7CisJCS8qQEQuSGVlckBweXRlYy5kZSAqLworCQkubmFtZSAgICAgICAgICAg
+PSAiUEhZVEVDIFZELTAxMSBNaW5pRElOIChidDg3OCkiLAorCQkudmlkZW9faW5wdXRzICAgPSA0
+LAorCQkuYXVkaW9faW5wdXRzICAgPSAwLAorCQkudHVuZXIgICAgICAgICAgPSBVTlNFVCwgLyog
+Y2FyZCBoYXMgbm8gdHVuZXIgKi8KKwkJLnN2aHMgICAgICAgICAgID0gMywKKwkJLmdwaW9tYXNr
+ICAgICAgID0gMHgwMCwKKwkJLm11eHNlbCAgICAgICAgID0geyAyLCAzLCAxLCAwIH0sCisJCS5n
+cGlvbXV4ICAgICAgICA9IHsgMCwgMCwgMCwgMCB9LCAvKiBjYXJkIGhhcyBubyBhdWRpbyAqLwor
+CQkubmVlZHNfdHZhdWRpbyAgPSAxLAorCQkucGxsICAgICAgICAgICAgPSBQTExfMjgsCisJCS50
+dW5lcl90eXBlICAgICA9IFVOU0VULAorCQkudHVuZXJfYWRkcgk9IEFERFJfVU5TRVQsCisJCS5y
+YWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQsCisJfSwJCisJCVtCVFRWX0JPQVJEX1ZEMDEyXSA9
+IHsKKwkJLypARC5IZWVyQHB5dGVjLmRlICovCisJCS5uYW1lICAgICAgICAgICA9ICJQSFlURUMg
+VkQtMDEyIChidDg3OCkiLAorCQkudmlkZW9faW5wdXRzICAgPSA0LAorCQkuYXVkaW9faW5wdXRz
+ICAgPSAwLAorCQkudHVuZXIgICAgICAgICAgPSBVTlNFVCwgLyogY2FyZCBoYXMgbm8gdHVuZXIg
+Ki8KKwkJLnN2aHMgICAgICAgICAgID0gVU5TRVQsIC8qIGNhcmQgaGFzIG5vIHN2aHMgKi8KKwkJ
+LmdwaW9tYXNrICAgICAgID0gMHgwMCwKKwkJLm11eHNlbCAgICAgICAgID0geyAwLCAyLCAzLCAx
+IH0sCisJCS5ncGlvbXV4ICAgICAgICA9IHsgMCwgMCwgMCwgMCB9LCAvKiBjYXJkIGhhcyBubyBh
+dWRpbyAqLworCQkubmVlZHNfdHZhdWRpbyAgPSAxLAorCQkucGxsICAgICAgICAgICAgPSBQTExf
+MjgsCisJCS50dW5lcl90eXBlICAgICA9IFVOU0VULAorCQkudHVuZXJfYWRkcgk9IEFERFJfVU5T
+RVQsCisJCS5yYWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQsCisJfSwJCVtCVFRWX0JPQVJEX1ZE
+MDEyX1gxXSA9IHsKKwkJLypARC5IZWVyQHB5dGVjLmRlICovCisJCS5uYW1lICAgICAgICAgICA9
+ICJQSFlURUMgVkQtMDEyLVgxIChidDg3OCkiLAorCQkudmlkZW9faW5wdXRzICAgPSA0LAorCQku
+YXVkaW9faW5wdXRzICAgPSAwLAorCQkudHVuZXIgICAgICAgICAgPSBVTlNFVCwgLyogY2FyZCBo
+YXMgbm8gdHVuZXIgKi8KKwkJLnN2aHMgICAgICAgICAgID0gMywKKwkJLmdwaW9tYXNrICAgICAg
+ID0gMHgwMCwKKwkJLm11eHNlbCAgICAgICAgID0geyAyLCAzLCAxIH0sCisJCS5ncGlvbXV4ICAg
+ICAgICA9IHsgMCwgMCwgMCwgMCB9LCAvKiBjYXJkIGhhcyBubyBhdWRpbyAqLworCQkubmVlZHNf
+dHZhdWRpbyAgPSAxLAorCQkucGxsICAgICAgICAgICAgPSBQTExfMjgsCisJCS50dW5lcl90eXBl
+ICAgICA9IFVOU0VULAorCQkudHVuZXJfYWRkcgk9IEFERFJfVU5TRVQsCisJCS5yYWRpb19hZGRy
+ICAgICA9IEFERFJfVU5TRVQsCisJfSwJCVtCVFRWX0JPQVJEX1ZEMDEyX1gyXSA9IHsKKwkJLypA
+RC5IZWVyQHB5dGVjLmRlICovCisJCS5uYW1lICAgICAgICAgICA9ICJQSFlURUMgVkQtMDEyLVgy
+IChidDg3OCkiLAorCQkudmlkZW9faW5wdXRzICAgPSA0LAorCQkuYXVkaW9faW5wdXRzICAgPSAw
+LAorCQkudHVuZXIgICAgICAgICAgPSBVTlNFVCwgLyogY2FyZCBoYXMgbm8gdHVuZXIgKi8KKwkJ
+LnN2aHMgICAgICAgICAgID0gMywKKwkJLmdwaW9tYXNrICAgICAgID0gMHgwMCwKKwkJLm11eHNl
+bCAgICAgICAgID0geyAzLCAyLCAxIH0sCisJCS5ncGlvbXV4ICAgICAgICA9IHsgMCwgMCwgMCwg
+MCB9LCAvKiBjYXJkIGhhcyBubyBhdWRpbyAqLworCQkubmVlZHNfdHZhdWRpbyAgPSAxLAorCQku
+cGxsICAgICAgICAgICAgPSBQTExfMjgsCisJCS50dW5lcl90eXBlICAgICA9IFVOU0VULAorCQku
+dHVuZXJfYWRkcgk9IEFERFJfVU5TRVQsCisJCS5yYWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQs
+CisJfSwKIH07CiAKIHN0YXRpYyBjb25zdCB1bnNpZ25lZCBpbnQgYnR0dl9udW1fdHZjYXJkcyA9
+IEFSUkFZX1NJWkUoYnR0dl90dmNhcmRzKTsKZGlmZiAtdSAtciBsaW51eC9kcml2ZXJzL21lZGlh
+L3ZpZGVvL2J0OHh4L2J0dHYuaCBidHR2X3BhdGNoL2RyaXZlcnMvbWVkaWEvdmlkZW8vYnQ4eHgv
+YnR0di5oCi0tLSBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2J0OHh4L2J0dHYuaAkyMDA4LTA0
+LTE3IDA0OjQ5OjQ0LjAwMDAwMDAwMCArMDIwMAorKysgYnR0dl9wYXRjaC9kcml2ZXJzL21lZGlh
+L3ZpZGVvL2J0OHh4L2J0dHYuaAkyMDA4LTEwLTI3IDEyOjU3OjM2LjAwMDAwMDAwMCArMDEwMApA
+QCAtMTczLDcgKzE3MywxMCBAQAogI2RlZmluZSBCVFRWX0JPQVJEX1ZPT0RPT1RWXzIwMAkJICAg
+MHg5MwogI2RlZmluZSBCVFRWX0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfMgkgICAweDk0CiAjZGVm
+aW5lIEJUVFZfQk9BUkRfVFlQSE9PTl9UVlRVTkVSUENJCSAgIDB4OTUKLQorI2RlZmluZSBCVFRW
+X0JPQVJEX1ZEMDExX01JTklESU4gICAgICAgICAgIDB4OTYKKyNkZWZpbmUgQlRUVl9CT0FSRF9W
+RDAxMgkJICAgMHg5NworI2RlZmluZSBCVFRWX0JPQVJEX1ZEMDEyX1gxCQkgICAweDk4CisjZGVm
+aW5lIEJUVFZfQk9BUkRfVkQwMTJfWDIJCSAgIDB4OTkKIAogLyogbW9yZSBjYXJkLXNwZWNpZmlj
+IGRlZmluZXMgKi8KICNkZWZpbmUgUFQyMjU0X0xfQ0hBTk5FTCAweDEwCg==
+
+--=_mixed 0045EFACC12574EF_=
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--=_mixed 0045EFACC12574EF_=--
