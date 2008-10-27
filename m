@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from u15184586.onlinehome-server.com ([82.165.244.70])
+Received: from bane.moelleritberatung.de ([77.37.2.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mark@metrofindings.com>) id 1KohSq-00017Z-F6
-	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 18:37:15 +0200
-From: Mark Kimsal <mark@metrofindings.com>
-To: linux-dvb@linuxtv.org
-Date: Sat, 11 Oct 2008 12:37:03 -0400
+	(envelope-from <artem@moelleritberatung.de>) id 1KuSq0-0004SJ-7F
+	for linux-dvb@linuxtv.org; Mon, 27 Oct 2008 15:12:57 +0100
+Date: Mon, 27 Oct 2008 15:12:52 +0100
+From: Artem Makhutov <artem@makhutov.org>
+To: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
+Message-ID: <20081027141252.GN4747@moelleritberatung.de>
+References: <49038A28.4040601@gmx.net> <19118.1224969301@kewl.org>
+	<4904CF95.9030703@gmx.net> <4905C15E.20502@chaosmedia.org>
 MIME-Version: 1.0
 Content-Disposition: inline
-Message-Id: <200810111237.03155.mark@metrofindings.com>
-Subject: [linux-dvb] Sabrent/Auvitek unknown USB device
+In-Reply-To: <4905C15E.20502@chaosmedia.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] kaffeine s2api v2 patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,38 +27,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have this generic USB TV-ATSC, NTSC, QAM tuner/decoder.  Tiger direct lists 
-the brand as "sabrent".  These are the products specs I believe
+Hi,
 
-http://www.sabrent.com/products/specs/TV-USBHD.htm
+On Mon, Oct 27, 2008 at 02:25:50PM +0100, ChaosMedia > WebDev wrote:
+> As for your HD crash problem, you should try to use the latest ffmpeg 
+> svn as well as current xine hg with external ffmpeg and you should get a 
+> very stable h264 HD sat stream display. Of course you will need some 
+> real muscle to decode them, not mentionning to turn off deinterlace for 
+> 1080i streams if you're a bit short of cpu power on a single core..
 
-When I plug it in, lsusb tells me 
+How can the deinterlace be disabled?
 
-Bus 001 Device 004: ID 05e1:0400 Syntek Semiconductor Co., Ltd
-Bus 001 Device 001: ID 0000:0000
-Bus 003 Device 001: ID 0000:0000
-Bus 002 Device 001: ID 0000:0000
-
-The 0400 product ID is unknown in my distro.  05e1 is the manufacturer ID 
-for "syntek", but I think that syntek just makes the USB interface for the 
-entire HDTV stick.
-
-when I plug it in, dmesg tells me
-
-usb 1-2: new high speed USB device using ehci_hcd and address 4
-usb 1-2: configuration #1 chosen from 1 choice
-
-Windows recognizes the device as "AUVITEK" brand and lists an auvitek audio 
-and video decoder in the Windows' device manager.
-
-I have Windows 32bit, and Mandriva 2008.1 64 bit.  What do I need to do to get 
-this thing working?  I hope it's as simple as recompiling one of the auvitek 
-drivers with a new USB ID, but I'm not sure.
-
--- 
-Mark Kimsal
-http://biz.metrofindings.com/
-Fax: 866-375-1590
+Thanks, Artem
 
 _______________________________________________
 linux-dvb mailing list
