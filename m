@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.28])
+Received: from ns218.ovh.net ([213.186.34.114])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <christophpfister@gmail.com>) id 1KozCb-0001fL-4U
-	for linux-dvb@linuxtv.org; Sun, 12 Oct 2008 13:33:40 +0200
-Received: by yx-out-2324.google.com with SMTP id 8so316610yxg.41
-	for <linux-dvb@linuxtv.org>; Sun, 12 Oct 2008 04:33:32 -0700 (PDT)
-Message-ID: <19a3b7a80810120433p3df962a6t4d540bc984ff69e5@mail.gmail.com>
-Date: Sun, 12 Oct 2008 13:33:29 +0200
-From: "Christoph Pfister" <christophpfister@gmail.com>
-To: linux-dvb@linuxtv.org
+	(envelope-from <webdev@chaosmedia.org>) id 1KuVJV-0007Qn-PW
+	for linux-dvb@linuxtv.org; Mon, 27 Oct 2008 17:51:34 +0100
+Message-ID: <4905F173.20107@chaosmedia.org>
+Date: Mon, 27 Oct 2008 17:50:59 +0100
+From: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] mail archive trouble with some mails
+To: Artem Makhutov <artem@makhutov.org>
+References: <49038A28.4040601@gmx.net> <19118.1224969301@kewl.org>
+	<4904CF95.9030703@gmx.net> <4905C15E.20502@chaosmedia.org>
+	<20081027141252.GN4747@moelleritberatung.de>
+In-Reply-To: <20081027141252.GN4747@moelleritberatung.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] kaffeine s2api v2 patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,22 +27,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Just happened to me again:
+There's a keyboard shortcut, in my config it's "i" but it may not be the 
+default key, check kaffeine Settings > Configure shortcut
 
-http://linuxtv.org/pipermail/linux-dvb/2008-October/029528.html
-http://linuxtv.org/pipermail/linux-dvb/2008-July/027465.html
+I haven't tried s2api and kaffeine yet but i've built both of them so 
+i'll test that with my tt s2-3200 to see how it works..
 
-vs.
+Marc
 
-http://marc.info/?l=linux-dvb&m=122321704618419
-http://marc.info/?l=linux-dvb&m=121725417917368
 
-Seems to be a problem with my forwarded mails - would be nice if you
-could take a look at it.
-
-Thanks,
-
-Christoph
+Artem Makhutov wrote:
+> Hi,
+>
+> On Mon, Oct 27, 2008 at 02:25:50PM +0100, ChaosMedia > WebDev wrote:
+>   
+>> As for your HD crash problem, you should try to use the latest ffmpeg 
+>> svn as well as current xine hg with external ffmpeg and you should get a 
+>> very stable h264 HD sat stream display. Of course you will need some 
+>> real muscle to decode them, not mentionning to turn off deinterlace for 
+>> 1080i streams if you're a bit short of cpu power on a single core..
+>>     
+>
+> How can the deinterlace be disabled?
+>
+> Thanks, Artem
+>
+>   
 
 _______________________________________________
 linux-dvb mailing list
