@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9GJO3dV016551
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 15:24:03 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9GJO0LK032132
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 15:24:01 -0400
-Date: Thu, 16 Oct 2008 21:23:59 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Antonio Ospite <ospite@studenti.unina.it>
-In-Reply-To: <20081016102701.1bcb2c59.ospite@studenti.unina.it>
-Message-ID: <Pine.LNX.4.64.0810162114030.8422@axis700.grange>
-References: <u63nt9mvx.wl%morimoto.kuninori@renesas.com>
-	<20081016102701.1bcb2c59.ospite@studenti.unina.it>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Add ov772x driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9RGJdIc019228
+	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 12:19:39 -0400
+Received: from mail11e.verio-web.com (mail11e.verio-web.com [204.202.242.84])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9RGIXIi001364
+	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 12:19:00 -0400
+Received: from mx120.stngva01.us.mxservers.net (198.173.112.49)
+	by mail11e.verio-web.com (RS ver 1.0.95vs) with SMTP id 3-051784313
+	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 12:18:33 -0400 (EDT)
+From: Pete Eberlein <pete@sensoray.com>
+To: video4linux-list@redhat.com
+Content-Type: text/plain
+Date: Mon, 27 Oct 2008 09:18:32 -0700
+Message-Id: <1225124312.4423.21.camel@pete-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: saa7134 empress: simultaneous capture
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,41 +27,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 16 Oct 2008, Antonio Ospite wrote:
+I'm working with a board that has a saa7134 chip with a go7007 mpeg
+encoder.  I've modified the saa7134 driver to detect the board and load
+the saa7134 go7007 driver from GregKH's staging patch.  I think this
+works similar to the saa7134 empress driver.
 
-> On Thu, 16 Oct 2008 13:28:52 +0900
-> Kuninori Morimoto <morimoto.kuninori@renesas.com> wrote:
-> 
-> > This patch adds ov772x driver that use soc_camera framework.
-> 
-> Hi, this sensor is used also in some usb cameras (Playstation Eye, for
-> instance), and this code can be reused to improve the previously posted
-> ov534 driver.
-> 
-> The question is: is there any mechanism to share sensor code between
-> usb and i2c drivers or we have to copy and paste?
+The raw video is on /dev/video0 and the mpeg compressed video is
+on /dev/video1.  Video capture from each video device works fine
+individually, but when I try to capture from both devices
+simultaneously, the mpeg compressed stream goes blank (select timeout -
+as if there is no video signal.)
 
-Well, this is not the first time this idea / question appears... I think, 
-it might be possible to re-use soc-camera sensor drivers with USB-cameras, 
-at least with those, that export their internal i2c bus to the system. 
-Then, as Magnus Damm noticed, you have to register your USB driver as a 
-soc-camera host driver, and you will have to register the sensor as a 
-normal i2c device with the i2c subsystem. That's about it:-) Hans Verkuil 
-will, probably, notice, that soc-camera is not universal enough for many 
-video applications, but it might well be enough for the cideo part of a 
-simple USB web-camera, I think. OTOH, Hans is working on a new API, that 
-should unify the host / device interface in v4l applications, at which 
-time soc-camera drivers will have to be converted, as well as multiple 
-other currently existing APIs.
+Can anyone tell me if simultaneous capture works for a saa7134 empress
+based board?  Is there a reason I shouldn't expect this to work?
 
-Just out of curiosity, I would be interested to see a USB camera driver, 
-using the soc-camera framework:-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Thanks.
+-- 
+Pete Eberlein
+Sensoray Co., Inc.
+Email: pete@sensoray.com
+http://www.sensoray.com
 
 --
 video4linux-list mailing list
