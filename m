@@ -1,34 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1KpWlo-0004vl-F4
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 01:24:14 +0200
-Date: Tue, 14 Oct 2008 01:23:38 +0200
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <48F374D8.7000902@linuxtv.org>
-Message-ID: <20081013232338.239630@gmx.net>
+Received: from ns218.ovh.net ([213.186.34.114])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <webdev@chaosmedia.org>) id 1KuS7A-0008A3-Cv
+	for linux-dvb@linuxtv.org; Mon, 27 Oct 2008 14:26:36 +0100
+Received: from [192.168.0.50] (droid.chaosmedia.org [82.225.228.49])
+	by ns218.ovh.net (Postfix) with ESMTP id 61BA57D49
+	for <linux-dvb@linuxtv.org>; Mon, 27 Oct 2008 14:25:51 +0100 (CET)
+Message-ID: <4905C15E.20502@chaosmedia.org>
+Date: Mon, 27 Oct 2008 14:25:50 +0100
+From: "ChaosMedia > WebDev" <webdev@chaosmedia.org>
 MIME-Version: 1.0
-References: <466109.26020.qm@web46101.mail.sp1.yahoo.com>
-	<48CE7838.2060702@linuxtv.org> <23602.1221904652@kewl.org>
-	<48D51000.3060006@linuxtv.org> <25577.1221924224@kewl.org>
-	<20080921234339.18450@gmx.net> <8002.1222068668@kewl.org>
-	<20080922124908.203800@gmx.net> <10822.1222089271@kewl.org>
-	<48D7C15E.5060509@linuxtv.org> <20080922164108.203780@gmx.net>
-	<20022.1222162539@kewl.org> <20080923142509.86330@gmx.net>
-	<4025.1222264419@kewl.org> <4284.1222265835@kewl.org>
-	<20080925145223.47290@gmx.net> <18599.1222354652@kewl.org>
-	<Pine.LNX.4.64.0809261117150.21806@trider-g7>	<21180.1223610119@kewl.org>
-	<20081010132352.273810@gmx.net> <48EF7E78.6040102@linuxtv.org>
-	<30863.1223711672@kewl.org> <48F0AA35.6020005@linuxtv.org>
-	<773.1223732259@kewl.org> <48F0AEA3.50704@linuxtv.org>
-	<989.1223733525@kewl.org> <48F0B6C5.5090505@linuxtv.org>
-	<1506.1223737964@kewl.org> <48F0E516.303@linuxtv.org>
-	<20081011190015.175420@gmx.net> <48F36B32.5060006@linuxtv.org>
-	<20744.1223914043@kewl.org> <48F374D8.7000902@linuxtv.org>
-To: Steven Toth <stoth@linuxtv.org>, darron@kewl.org
-Cc: fabbione@fabbione.net, linux-dvb@linuxtv.org, scarfoglio@arpacoop.it
-Subject: Re: [linux-dvb] Multi-frontend patch merge (TESTERS FEEDBACK) was:
- Re: [PATCH] S2API: add multifrontend
+To: linux-dvb@linuxtv.org
+References: <49038A28.4040601@gmx.net> <19118.1224969301@kewl.org>
+	<4904CF95.9030703@gmx.net>
+In-Reply-To: <4904CF95.9030703@gmx.net>
+Subject: Re: [linux-dvb] kaffeine s2api v2 patch
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -42,120 +28,132 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+You can also configure kaffeine with an extra parameter :
 
-Hi,
+--with-extra-includes=/usr/src/s2api/s2-liplianin/linux/include/
 
+of course replace this path with the path of your dvb lib, just make 
+sure that the directory you specify is on top of this : linux/dvb/frontend.h
+
+in my case the full path is 
+/usr/src/s2api/s2-liplianin/linux/include/linux/dvb/frontend.h
+
+that will tell the compiler to use include files located at that 
+location first.
+
+
+As for your HD crash problem, you should try to use the latest ffmpeg 
+svn as well as current xine hg with external ffmpeg and you should get a 
+very stable h264 HD sat stream display. Of course you will need some 
+real muscle to decode them, not mentionning to turn off deinterlace for 
+1080i streams if you're a bit short of cpu power on a single core..
+
+Marc
+
+
+
+Francesco Fumanti wrote:
+> Hello Darron,
+>
+>
+> I followed your instructions below which solved the compilation problem 
+> and I was able to compile and install kaffeine. Thanks.
+>
+> A new scan found also the dvb-s2 channels (Anixe HD, Simul HD,...).
+>
+> When I try to watch them, there are a lot of artifacts and picture 
+> hangers which is surely normal for a Pentium 4 and a nvidia 6610 XL.
+>
+> However, kaffeine also crashes when watching hd content and in the last 
+> lines in the terminal (I launched it from terminal to have feedback), 
+> there is a "Internal error: picture buffer overflow".
+>
+> As the crashes did not occur during channel switches, but while watching 
+> hd content, I suppose that the problem is rather due to xine than to the 
+> s2api patch.
+>
+>
+> Cheers,
+>
+> Francesco
+>
+>
 > Darron Broad wrote:
-> > In message <48F36B32.5060006@linuxtv.org>, Steven Toth wrote:
-> > 
-> > hi.
-> > 
-> > <snip>
-> >>> Hi guys,
-> >>>
-> >>> thank you Steve and Darron for your work on the repositories today!
-> >>>
-> >>> I have pulled the latest s2-mfe and retested with the HVR4000 on
-> DVB-T, 
-> >>> DVB-S, DVB-S2 and analogue TV. 
-> >>>
-> >>> No problems so far.
-> >> I'm mutating the subject thread, and cc'ing the public mailing list
-> into 
-> >> this conversion. Now is the time to announce the intension to merge 
-> >> multi-frontend patches, and show that we have tested and are satisfied 
-> >> with it's reliability across many trees.
-> >>
-> >> (For those of you not familiar with the patch set, it adds 
-> >> 'multiple-frontends to a single transport bus' support for the HVR3000 
-> >> and HVR4000, and potentially another 7134 based design (the 6 way
-> medion 
-> >> board?).
-> >>
-> >> For my part, I was asked to test the cx23885 changes and I responded to
-> >> that with a series of patches to fix some OOPS initialisation errors. 
-> >> The MFE patches work correctly with the cx23885 tree now.
-> >>
-> >> Over time I've heard constant suggestions that the patches are ready
-> for 
-> >> merge, the cx88 and saa7134 trees are working correctly. Now is the
-> time 
-> >> that I need you all to announce this. I need you each in turn to 
-> >> describe you testing, and state whether you think the patches are ready
-> >> for merge.
-> >>
-> >> Hans Werner <HWerner4@gmx.de>
-> >> darron@kewl.org
-> > 
-> > The test machine I have here utilises an HVR-4000 and AVERMEDIA
-> > SUPER 007.
-> > 
-> > Multi-frontend works with both adapters with the HVR-4000 containing
-> > analogue, DVB-S and DVB-T frontends, the AVERMEDIA solely DVB-T.
-> > 
-> > At this time with some further FM updates (see:
-> http://hg.kewl.org/s2-mfe-fm/)
-> > I can now reliably and consitently receive DVB-S/S2, DVB-T, analogue TV
-> > and FM radio on the HVR-4000. DVB-T works on the AVERMEDIA as per
-> > normal.
-> > 
-
-I have tested with the HVR4000 on many iterations of the MFE drivers and retested with
-the latest s2-mfe tree yesterday. I found no problems for DVB-S, DVB-S2 (both QPSK
-and PSK_8), DVB-T and analogue TV.
-
-I will test the latest FM radio patch.
-
-> > Applications which have been under test by include the command
-> > line dvb-utils, dvbtraffic, dvbsnoop, GUI apps kaffeine and
-> > mythtv. No obvious side effects have been witnessed of using
-> > MFE and the applications themselves do not see any difference
-> > except that they are unable to simultaneously open multiple
-> > frontends due to the hardware limitation of such cards.
-
-I tested with Kaffeine with a version of Christophe's S2API patch. It recognises both
-S/S2 and T frontends on startup, and reliably scans S/S2 and T channels and tunes
-between channels. I have at various times done some testing with MythTV, VDR,
-Steve's tune.c and Igor's szap-s2. Apps see two normal frontends but should not hold both
-open as Darron said. Closing and opening frontends as necessary seems to work cleanly
-from the userspace point of view.
-
-> > 
-> > A couple of problems exist which may be present in all hybrid cards
-> > is that you are able to concurrently open analogue and DVB-T where
-> > these share the same tuner section. Another issue with shared
-> > tuners is where both analogue and digital sections share a sleep
-> > method which in some circumstances is incompatible.
-> 
-> Some common hybrid issues we've seen across many cards, regardless of MFE.
-
-It seems relatively benign : if you run say kaffeine and tvtime together, either a DVB-T
-or an analogue channel is shown (the other is blank) but neither app crashes and either
-takes over on a tune action.
-
-> 
-> > 
-> > At this time I am happy with the performance of this MFE card
-> > (HVR-4000) and to be honest, I am looking at attending to other
-> > activities. Bugs where present ought to be picked up by others,
-> > I have done all that has been reasonable to test and determine
-> > that MFE works.
-
-I am also happy with the performance of the card with the MFE driver and would 
-like to see it released. It is in daily use in my household without any trouble.
-
-Hans
-
-> 
-> Thanks Darron.
-> 
-> - Steve
-
--- 
-Release early, release often.
-
-GMX startet ShortView.de. Hier findest Du Leute mit Deinen Interessen!
-Jetzt dabei sein: http://www.shortview.de/wasistshortview.php?mc=sv_ext_mf@gmx
+>   
+>> In message <49038A28.4040601@gmx.net>, Francesco Fumanti wrote:
+>>     
+>>> Hello,
+>>>       
+>> Hi Francesco.
+>>
+>>     
+>>> Did anybody succeed to compile kaffeine from svn with the s2api patch on 
+>>> Ubuntu 8.10 (not Kubuntu) ?
+>>>
+>>> I have been using the instructions on http://kaffeine.kde.org/?q=devel 
+>>> but I get the following error:
+>>> make[6]: Entering directory 
+>>> `/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
+>>> /bin/bash ../../../../libtool --silent --tag=CXX   --mode=compile g++ 
+>>> -DHAVE_CONFIG_H -I. -I../../../.. -I../../../../kaffeine/src/input/ 
+>>> -I../../../../kaffeine/src/input/dvb/lib 
+>>> -I../../../../kaffeine/src/input/dvb/plugins/stream 
+>>> -I../../../../kaffeine/src/input/dvb/plugins/epg 
+>>> -I../../../../kaffeine/src -I/usr/include/kde -I/usr/share/qt3/include 
+>>> -I.   -DQT_THREAD_SUPPORT  -D_REENTRANT  -Wno-long-long -Wundef -ansi 
+>>> -D_XOPEN_SOURCE=500 -D_BSD_SOURCE -Wcast-align -Wchar-subscripts -Wall 
+>>> -W -Wpointer-arith -O2 -Wformat-security -Wmissing-format-attribute 
+>>> -Wno-non-virtual-dtor -fno-exceptions -fno-check-new -fno-common 
+>>> -DQT_CLEAN_NAMESPACE -DQT_NO_ASCII_CAST -DQT_NO_STL -DQT_NO_COMPAT 
+>>> -DQT_NO_TRANSLATION  -MT audioeditor.lo -MD -MP -MF 
+>>> .deps/audioeditor.Tpo -c -o audioeditor.lo audioeditor.cpp
+>>> In file included from audioeditor.h:24,
+>>>                  from audioeditor.cpp:30:
+>>> channeldesc.h:104: error: 'fe_rolloff_t' does not name a type
+>>> make[6]: *** [audioeditor.lo] Error 1
+>>> make[6]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
+>>> make[5]: *** [all-recursive] Error 1
+>>> make[5]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input/dvb'
+>>> make[4]: *** [all-recursive] Error 1
+>>> make[4]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src/input'
+>>> make[3]: *** [all-recursive] Error 1
+>>> make[3]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine/src'
+>>> make[2]: *** [all-recursive] Error 1
+>>> make[2]: Leaving directory `/home/frafu/kaffeine-svn/kaffeine'
+>>> make[1]: *** [all-recursive] Error 1
+>>> make[1]: Leaving directory `/home/frafu/kaffeine-svn'
+>>> make: *** [all] Error 2
+>>>
+>>> You might perhaps also want to know that the application of the patch 
+>>> worked without error.
+>>>       
+>> You need to update frontend.h in /usr/include/linux/dvb/
+>>
+>> eg.
+>>
+>> mv /usr/include/linux/dvb/frontend.h /usr/include/linux/dvb/frontend.h.bak
+>> cp /???/v4l-dvb/linux/include/linux/dvb/frontend.h /usr/include/linux/dvb/frontend.h
+>>
+>> Then recompile. Obviously replace ??? with the path to your v4l-dvb source
+>> files.
+>>
+>> Good luck.
+>>
+>> --
+>>
+>>  // /
+>> {:)==={ Darron Broad <darron@kewl.org>
+>>  \\ \ 
+>>
+>>     
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>   
 
 _______________________________________________
 linux-dvb mailing list
