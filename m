@@ -1,29 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9H7tnaw012823
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 03:55:49 -0400
-Received: from hs-out-0708.google.com (hs-out-0708.google.com [64.233.178.250])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9H7tPpm026274
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 03:55:30 -0400
-Received: by hs-out-0708.google.com with SMTP id x43so144518hsb.3
-	for <video4linux-list@redhat.com>; Fri, 17 Oct 2008 00:55:25 -0700 (PDT)
-Message-ID: <aec7e5c30810170055o4496accbnc856c27a3fcc9423@mail.gmail.com>
-Date: Fri, 17 Oct 2008 16:55:24 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0810170844420.4600@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9SITCsu017865
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 14:29:12 -0400
+Received: from el-out-1112.google.com (el-out-1112.google.com [209.85.162.183])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9SIT253012959
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 14:29:02 -0400
+Received: by el-out-1112.google.com with SMTP id j27so820200elf.9
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 11:29:02 -0700 (PDT)
+Message-ID: <37219a840810281129k3a713b75w6419b7b5c526df2f@mail.gmail.com>
+Date: Tue, 28 Oct 2008 14:29:00 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Johannes Stezenbach" <js@linuxtv.org>
+In-Reply-To: <20081028152152.GA22100@linuxtv.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <u63nt9mvx.wl%morimoto.kuninori@renesas.com>
-	<20081016102701.1bcb2c59.ospite@studenti.unina.it>
-	<Pine.LNX.4.64.0810162114030.8422@axis700.grange>
-	<200810162258.28993.hverkuil@xs4all.nl>
-	<aec7e5c30810161947n57851272i4204dcce515a8ec4@mail.gmail.com>
-	<Pine.LNX.4.64.0810170844420.4600@axis700.grange>
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Add ov772x driver
+References: <490525EA.4020608@rogers.com> <20081028152152.GA22100@linuxtv.org>
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	CityK <cityk@rogers.com>
+Subject: Re: [linux-dvb] Announcement: wiki merger and some loose ends
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,76 +31,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Guennadi,
-
-Thanks for your feedback!
-
-On Fri, Oct 17, 2008 at 3:50 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Fri, 17 Oct 2008, Magnus Damm wrote:
->> Hans,  any chance of that framework including pixel format helper
->> code? I've hacked a bit on using a bitmap to represent pixel formats
->> supported by a certain driver. The attached very rough patch maybe
->> shows what i'm trying to do.
->>
->> Basically, I need a simple way to determine if a camera sensor
->> supports a certain pixel format, and if so then i'd like to add a
->> bunch of pixel formats supported by the soc_camera host.
+On Tue, Oct 28, 2008 at 11:21 AM, Johannes Stezenbach <js@linuxtv.org> wrote:
+> Hi CityK,
 >
-> Thanks for the code, but, unfortunately, I don't understand what you are
-> trying to do there, and why the current soc-camera pixel-format
-> enumeration code doesn't suit your needs.
+> On Sun, Oct 26, 2008 at 10:22:34PM -0400, CityK wrote:
+> (about merging the linux-dvb and video4linux-list)
+>
+> Maybe it would be a good idea to create a new
+> list on vger.kernel.org which assimilates
+> linux-dvb, video4linux-list and v4l-dvb-maintainer.
+> vger.kernel.org has outstanding spam filters so their
+> lists generally allow postings from non-subscribers.
+>
+> How about just creating such a list as a replacement
+> for v4l-dvb-maintainer, and then see if linux-dvb
+> and video4linux-list users accept it and move
+> their discussions over?
 
-I need to check for certain pixel formats in my sh_mobile_ceu driver,
-and if available then i should add a set of NVxx pixel formats and
-switch the CEU hardware block to a certain operating mode. The patch
-doesn't contain that part though - only the ground work to manage
-pixel formats represented as a bitmap.
+Mauro and I were discussing this face to face at the Linux Plumbers
+conference...
 
-I _can_ do what i want to do with the current list of structs
-approach, but using lists to represent supported modes seems overly
-complicated. A bitmap may be a good fit since the number of pixel
-modes we support through V4L2 is finite. Such a change will most
-likely simplify the code and on top of that also reduce the memory
-footprint.
+What we would like to do is leave the video4linux and linux-dvb
+mailing lists as user lists, create a new -devel mailing list, and
+redirect v4l-dvb-maintainer to the new list.  (Probably hosted on
+vger, but that hasnt yet been determined)
 
-I don't know if it fits will with your plans though.
+The devel list would be an open list for developers only.  Any
+tech-support related stuff would remain on the lists that are still
+used today.
 
-> I know there is a problem with it, it has been discussed before on this
-> list, look at this thread: http://marc.info/?t=121767492900001&r=1&w=2 but
-> that's a bit of a different problem from what you are trying to do in your
-> patch, AFAICS. And why are you trying to switch to some multiple arrays
-> and bitmaps instead of the curent array / list of structs?
+Specifically, we wanted to move the "v4l-dvb-maintainer" list to
+somewhere with spam filtering and turn this into a list where all
+development discussions and pull requests can take place.  We want a
+separation between user requests and developer discussion, so merging
+everything into a single list is not the direction that we want to
+take.
 
-Sorry about the rough code. =) The arrays should contain centralized
-knowledge about the different formats.  And I'm just using a single
-bitmap to represent the supported modes that both the sensor and the
-host support. Doing set_bit()/clear_bit() on a bitmap to enable and
-disable formats is much easier compared to searching and modifying
-lists. It's also O(1), but I don't think scalability matters here. =)
-
-> As for the format negotation code we have been discussing in that thread,
-> unfortunately, up to now I haven't found time to try and implement it, and
-> now my schedule doesn't look better than then:-( I'll see if I can find
-> some time during the 2.6.29 development time-frame (i.e., before 2.6.28 is
-> released), but, unfortunately, cannot promise anything.
-
-That's ok. I understand you're busy. =)
-
-> But that is not your problem anyway, or is it?
-
-No? I need to add NVxx support to the CEU driver, and to add that
-cleanly it would be great with a simple way to represent the pixel
-formats that are supported. I think the lists of structs are overly
-complicated, and if Hans is rewriting things maybe the bitmap strategy
-fits well, I'm not sure.
-
-Apart from that, I can probably convince my employer that I should
-spend a bit of time on this. =)
-
-Cheers,
-
-/ magnus
+-Mike
 
 --
 video4linux-list mailing list
