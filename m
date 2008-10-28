@@ -1,16 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org
-Date: Sun, 5 Oct 2008 15:31:38 +0300
-References: <200810051526.19653.liplianin@tut.by>
-In-Reply-To: <200810051526.19653.liplianin@tut.by>
+Received: from qw-out-2122.google.com ([74.125.92.25])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <alex.betis@gmail.com>) id 1Kuuq6-0001Yl-VF
+	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 21:06:57 +0100
+Received: by qw-out-2122.google.com with SMTP id 9so1306694qwb.17
+	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 13:06:50 -0700 (PDT)
+Message-ID: <c74595dc0810281306q641acc70vc3f7ce2d8070fc2c@mail.gmail.com>
+Date: Tue, 28 Oct 2008 22:06:50 +0200
+From: "Alex Betis" <alex.betis@gmail.com>
+To: jean-paul@goedee.nl
+In-Reply-To: <20081028141538.zjktyzkuoc8kowg0@webmail.goedee.nl>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_qOL6IelS0/uSjAD"
-Message-Id: <200810051531.38731.liplianin@tut.by>
-Cc: Steven Toth <stoth@hauppauge.com>
-Subject: Re: [linux-dvb] [PATCH] S2API Allow custom inittab for ST STV0288
-	demodulator.
+References: <20081028111538.1yl7p80uo0cggo80@webmail.goedee.nl>
+	<4906E9CC.2040408@gmail.com>
+	<20081028124505.tvjko4bvkgk4kg4o@webmail.goedee.nl>
+	<b42fca4d0810280453j652a531ag94f1d3137e540f6c@mail.gmail.com>
+	<20081028141538.zjktyzkuoc8kowg0@webmail.goedee.nl>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API & TT3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,103 +25,414 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============0494200851=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_qOL6IelS0/uSjAD
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: quoted-printable
+--===============0494200851==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_129727_23639981.1225224410722"
+
+------=_Part_129727_23639981.1225224410722
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-=F7 =D3=CF=CF=C2=DD=C5=CE=C9=C9 =CF=D4 5 October 2008 15:26:19 Igor M. Lipl=
-ianin =CE=C1=D0=C9=D3=C1=CC(=C1):
-> Steve,
+Hi,
+
+Are you using the frequency files the come with the scan-s2? I wrote in
+README that those are sample files and you'll have to change them. Try to
+change the frequency to 12552000 and scan again. According to lyngsat it's
+suppose to be DVB-S channel.
+I don't have a dish to Astra 19.2 so I can't test it myself.
+
+Regarding the other LNB that doesn't work for you, maybe that's the same
+problem that you don't have correct frequencies in the file?
+
+
+On Tue, Oct 28, 2008 at 3:15 PM, <jean-paul@goedee.nl> wrote:
+
+> If I install from http://mercurial.intuxication.org/hg/s2-liplianin/ I
+> get some compile problems but it can overwrite by empty the problem
+> cx88*.*  files. Compile with jusst.de/hg/v4l-dvb without errors.
 >
-> Allow custom inittab for ST STV0288 demodulator,
-> as it is needed for DvbWorld USB card.
+> Stage two: Try to scan some channels from the first lnb (19.2E)
 >
-> Igor
+> With v4l-dvb drivers I get some strange errors. With the S2 drivers I
+> get (see below)
+>
+>
+> API major 5, minor 0
+> scanning Astra-19.2E
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 12551500 V 22000000 22000000
+> ----------------------------------> Using DVB-S
+> >>> tune to: 12551:vS0C56:S19.2E:22000:
+> DiSEqC: uncommitted switch pos 0
+> DiSEqC: switch pos 0, 13V, hiband (index 2)
+> DVB-S IF freq is 1951500
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 12551:vS0C56:S19.2E:22000: (tuning failed)
+> DiSEqC: uncommitted switch pos 0
+> DiSEqC: switch pos 0, 13V, hiband (index 2)
+> DVB-S IF freq is 1951500
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> WARNING: >>> tuning failed!!!
+> ----------------------------------> Using DVB-S2
+> >>> tune to: 12551:vS1C56:S19.2E:22000: (tuning failed)
+> DiSEqC: uncommitted switch pos 0
+> DiSEqC: switch pos 0, 13V, hiband (index 2)
+> DVB-S IF freq is 1951500
+> >>> tuning status == 0x1f
+> >>> parse_section, section number 0 out of 0...!
+> parse_pat......
+> PAT
+> service_id = 0x0
+> service_id = 0xc
+> pmt_pid = 0x2a
+> service_id = 0xf98
+> pmt_pid = 0x34
+> service_id = 0xf9a
+> pmt_pid = 0x26
+> service_id = 0xf9d
+> pmt_pid = 0x31
+> service_id = 0x2f44
+> pmt_pid = 0x27
+> service_id = 0x2f58
+> pmt_pid = 0x23
+> service_id = 0x2f59
+> pmt_pid = 0x800
+> service_id = 0x2f5a
+> pmt_pid = 0x20
+> service_id = 0x2f5b
+> pmt_pid = 0x2f
+> service_id = 0x2f5d
+> pmt_pid = 0x1392
+> service_id = 0x2f80
+> pmt_pid = 0x30
+> service_id = 0x2f94
+> pmt_pid = 0x24
+> service_id = 0x2fa4
+> pmt_pid = 0x33
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x0024 for service 0x2f94
+> VIDEO:PID 0x0037
+> AUDIO:PID 0x0038
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x1392 for service 0x2f5d
+> VIDEO:PID 0x1393
+> AUDIO:PID 0x1395
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x0020 for service 0x2f5a
+> VIDEO:PID 0x0021
+> AUDIO:PID 0x0022
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x0800 for service 0x2f59
+> VIDEO:PID 0x0802
+> AUDIO:PID 0x0803
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x0023 for service 0x2f58
+> VIDEO:PID 0x03ad
+> AUDIO:PID 0x03af
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x0027 for service 0x2f44
+> VIDEO:PID 0x00a5
+> AUDIO:PID 0x00a6
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x0026 for service 0x0f9a
+> AUDIO:PID 0x0090
+> AUDIO:PID 0x0092
+> VIDEO:PID 0x00a8
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x0033 for service 0x2fa4
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x0030 for service 0x2f80
+> AUDIO:PID 0x0063
+> VIDEO:PID 0x00a2
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x002f for service 0x2f5b
+> VIDEO:PID 0x01cc
+> AUDIO:PID 0x01d6
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x0031 for service 0x0f9d
+> AUDIO:PID 0x0090
+> AUDIO:PID 0x0092
+> VIDEO:PID 0x00a8
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x0034 for service 0x0f98
+> VIDEO:PID 0x0062
+> AUDIO:PID 0x1163
+> AUDIO:PID 0x1165
+> AUDIO:PID 0x116b
+> >>> parse_section, section number 0 out of 0...!
+> parse_pmt......
+> PMT 0x002a for service 0x000c
+> WARNING: filter timeout pid 0x1ffb
+> dumping lists (13 services)
+> Done.
+>
+>
+> gives the output:
+>
+> (null) -
+>
+> [0f98]:12551:vS1C56:S19.2E:22000:98:4451=deu,4453=fra,4459=spa:0:0:3992:0:0:0
+> (null) -
+> [0f9a]:12551:vS1C56:S19.2E:22000:168:144=ltz,146=fre:301:0:3994:0:0:0
+> (null) -
+> [0f9d]:12551:vS1C56:S19.2E:22000:168:144=ltz,146=fre:74:0:3997:0:0:0
+> (null) - [2f44]:12551:vS1C56:S19.2E:22000:165:166:167:0:12100:0:0:0
+> (null) - [2f58]:12551:vS1C56:S19.2E:22000:941:943=fre:0:0:12120:0:0:0
+> (null) - [2f59]:12551:vS1C56:S19.2E:22000:2050:2051=fre:0:0:12121:0:0:0
+> (null) - [2f5a]:12551:vS1C56:S19.2E:22000:33:34=deu:0:0:12122:0:0:0
+> (null) - [2f5b]:12551:vS1C56:S19.2E:22000:460+511:470:0:0:12123:0:0:0
+> (null) - [2f5d]:12551:vS1C56:S19.2E:22000:5011:5013=ger:0:0:12125:0:0:0
+> (null) - [2f80]:12551:vS1C56:S19.2E:22000:162:99=ger:0:0:12160:0:0:0
+> (null) - [2f94]:12551:vS1C56:S19.2E:22000:55:56=ltz:0:0:12180:0:0:0
+>
+> The second one (-s 1) gives noting.
+>
+>
+> For so far. I?m not able to watch any channel.
+>
+>
+> Jean-Paul
+>
+>
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-Exuse me, wrong attachement.=20
-Real patch to allow custom inittab for ST STV0288 demodulator.
-
-=2D-=20
-Igor M. Liplianin
-
---Boundary-00=_qOL6IelS0/uSjAD
-Content-Type: text/x-diff;
-  charset="koi8-r";
-  name="9075.patch"
+------=_Part_129727_23639981.1225224410722
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="9075.patch"
+Content-Disposition: inline
 
-# HG changeset patch
-# User Igor M. Liplianin <liplianin@me.by>
-# Date 1223207538 -10800
-# Node ID 8dc74aaea8b20dea5b42c32873984c2c28a8ab6e
-# Parent  ecd33495acbd3a621180309ebde0d8e3476d8985
-Allow custom inittab for ST STV0288 demodulator.
+<div dir="ltr">Hi,<br><br>Are you using the frequency files the come with the scan-s2? I wrote in README that those are sample files and you&#39;ll have to change them. Try to change the frequency to 12552000 and scan again. According to lyngsat it&#39;s suppose to be DVB-S channel.<br>
+I don&#39;t have a dish to Astra 19.2 so I can&#39;t test it myself.<br><br>Regarding the other LNB that doesn&#39;t work for you, maybe that&#39;s the same problem that you don&#39;t have correct frequencies in the file?<br>
+<br><br><div class="gmail_quote">On Tue, Oct 28, 2008 at 3:15 PM,  <span dir="ltr">&lt;<a href="mailto:jean-paul@goedee.nl">jean-paul@goedee.nl</a>&gt;</span> wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+If I install from <a href="http://mercurial.intuxication.org/hg/s2-liplianin/" target="_blank">http://mercurial.intuxication.org/hg/s2-liplianin/</a> I<br>
+get some compile problems but it can overwrite by empty the problem<br>
+cx88*.* &nbsp;files. Compile with <a href="http://jusst.de/hg/v4l-dvb" target="_blank">jusst.de/hg/v4l-dvb</a> without errors.<br>
+<br>
+Stage two: Try to scan some channels from the first lnb (19.2E)<br>
+<br>
+With v4l-dvb drivers I get some strange errors. With the S2 drivers I<br>
+get (see below)<br>
+<br>
+<br>
+API major 5, minor 0<br>
+scanning Astra-19.2E<br>
+using &#39;/dev/dvb/adapter0/frontend0&#39; and &#39;/dev/dvb/adapter0/demux0&#39;<br>
+initial transponder 12551500 V 22000000 22000000<br>
+----------------------------------&gt; Using DVB-S<br>
+&gt;&gt;&gt; tune to: 12551:vS0C56:S19.2E:22000:<br>
+<div class="Ih2E3d">DiSEqC: uncommitted switch pos 0<br>
+DiSEqC: switch pos 0, 13V, hiband (index 2)<br>
+</div>DVB-S IF freq is 1951500<br>
+<div class="Ih2E3d">&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+WARNING: &gt;&gt;&gt; tuning failed!!!<br>
+</div>&gt;&gt;&gt; tune to: 12551:vS0C56:S19.2E:22000: (tuning failed)<br>
+<div class="Ih2E3d">DiSEqC: uncommitted switch pos 0<br>
+DiSEqC: switch pos 0, 13V, hiband (index 2)<br>
+</div>DVB-S IF freq is 1951500<br>
+<div class="Ih2E3d">&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+&gt;&gt;&gt; tuning status == 0x00<br>
+WARNING: &gt;&gt;&gt; tuning failed!!!<br>
+</div>----------------------------------&gt; Using DVB-S2<br>
+&gt;&gt;&gt; tune to: 12551:vS1C56:S19.2E:22000: (tuning failed)<br>
+<div class="Ih2E3d">DiSEqC: uncommitted switch pos 0<br>
+DiSEqC: switch pos 0, 13V, hiband (index 2)<br>
+</div>DVB-S IF freq is 1951500<br>
+&gt;&gt;&gt; tuning status == 0x1f<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pat......<br>
+PAT<br>
+service_id = 0x0<br>
+service_id = 0xc<br>
+pmt_pid = 0x2a<br>
+service_id = 0xf98<br>
+pmt_pid = 0x34<br>
+service_id = 0xf9a<br>
+pmt_pid = 0x26<br>
+service_id = 0xf9d<br>
+pmt_pid = 0x31<br>
+service_id = 0x2f44<br>
+pmt_pid = 0x27<br>
+service_id = 0x2f58<br>
+pmt_pid = 0x23<br>
+service_id = 0x2f59<br>
+pmt_pid = 0x800<br>
+service_id = 0x2f5a<br>
+pmt_pid = 0x20<br>
+service_id = 0x2f5b<br>
+pmt_pid = 0x2f<br>
+service_id = 0x2f5d<br>
+pmt_pid = 0x1392<br>
+service_id = 0x2f80<br>
+pmt_pid = 0x30<br>
+service_id = 0x2f94<br>
+pmt_pid = 0x24<br>
+service_id = 0x2fa4<br>
+pmt_pid = 0x33<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x0024 for service 0x2f94<br>
+VIDEO:PID 0x0037<br>
+AUDIO:PID 0x0038<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x1392 for service 0x2f5d<br>
+VIDEO:PID 0x1393<br>
+AUDIO:PID 0x1395<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x0020 for service 0x2f5a<br>
+VIDEO:PID 0x0021<br>
+AUDIO:PID 0x0022<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x0800 for service 0x2f59<br>
+VIDEO:PID 0x0802<br>
+AUDIO:PID 0x0803<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x0023 for service 0x2f58<br>
+VIDEO:PID 0x03ad<br>
+AUDIO:PID 0x03af<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x0027 for service 0x2f44<br>
+VIDEO:PID 0x00a5<br>
+AUDIO:PID 0x00a6<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x0026 for service 0x0f9a<br>
+AUDIO:PID 0x0090<br>
+AUDIO:PID 0x0092<br>
+VIDEO:PID 0x00a8<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x0033 for service 0x2fa4<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x0030 for service 0x2f80<br>
+AUDIO:PID 0x0063<br>
+VIDEO:PID 0x00a2<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x002f for service 0x2f5b<br>
+VIDEO:PID 0x01cc<br>
+AUDIO:PID 0x01d6<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x0031 for service 0x0f9d<br>
+AUDIO:PID 0x0090<br>
+AUDIO:PID 0x0092<br>
+VIDEO:PID 0x00a8<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x0034 for service 0x0f98<br>
+VIDEO:PID 0x0062<br>
+AUDIO:PID 0x1163<br>
+AUDIO:PID 0x1165<br>
+AUDIO:PID 0x116b<br>
+&gt;&gt;&gt; parse_section, section number 0 out of 0...!<br>
+parse_pmt......<br>
+PMT 0x002a for service 0x000c<br>
+WARNING: filter timeout pid 0x1ffb<br>
+dumping lists (13 services)<br>
+Done.<br>
+<br>
+<br>
+gives the output:<br>
+<br>
+(null) -<br>
+[0f98]:12551:vS1C56:S19.2E:22000:98:4451=deu,4453=fra,4459=spa:0:0:3992:0:0:0<br>
+(null) - [0f9a]:12551:vS1C56:S19.2E:22000:168:144=ltz,146=fre:301:0:3994:0:0:0<br>
+(null) - [0f9d]:12551:vS1C56:S19.2E:22000:168:144=ltz,146=fre:74:0:3997:0:0:0<br>
+(null) - [2f44]:12551:vS1C56:S19.2E:22000:165:166:167:0:12100:0:0:0<br>
+(null) - [2f58]:12551:vS1C56:S19.2E:22000:941:943=fre:0:0:12120:0:0:0<br>
+(null) - [2f59]:12551:vS1C56:S19.2E:22000:2050:2051=fre:0:0:12121:0:0:0<br>
+(null) - [2f5a]:12551:vS1C56:S19.2E:22000:33:34=deu:0:0:12122:0:0:0<br>
+(null) - [2f5b]:12551:vS1C56:S19.2E:22000:460+511:470:0:0:12123:0:0:0<br>
+(null) - [2f5d]:12551:vS1C56:S19.2E:22000:5011:5013=ger:0:0:12125:0:0:0<br>
+(null) - [2f80]:12551:vS1C56:S19.2E:22000:162:99=ger:0:0:12160:0:0:0<br>
+(null) - [2f94]:12551:vS1C56:S19.2E:22000:55:56=ltz:0:0:12180:0:0:0<br>
+<br>
+The second one (-s 1) gives noting.<br>
+<br>
+<br>
+For so far. I?m not able to watch any channel.<br>
+<br>
+<br>
+Jean-Paul<br>
+<div><div></div><div class="Wj3C7c"><br>
+<br>
+<br>
+_______________________________________________<br>
+linux-dvb mailing list<br>
+<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
+<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br>
+</div></div></blockquote></div><br></div>
 
-From: Igor M. Liplianin <liplianin@me.by>
+------=_Part_129727_23639981.1225224410722--
 
-Allow custom inittab for ST STV0288 demodulator,
-as it is needed for DvbWorld USB card.
 
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
-
-diff -r ecd33495acbd -r 8dc74aaea8b2 linux/drivers/media/dvb/frontends/stv0288.c
---- a/linux/drivers/media/dvb/frontends/stv0288.c	Thu Oct 02 17:33:19 2008 +0300
-+++ b/linux/drivers/media/dvb/frontends/stv0288.c	Sun Oct 05 14:52:18 2008 +0300
-@@ -328,16 +328,28 @@
- {
- 	struct stv0288_state *state = fe->demodulator_priv;
- 	int i;
-+	u8 reg;
-+	u8 val;
- 
- 	dprintk("stv0288: init chip\n");
- 	stv0288_writeregI(state, 0x41, 0x04);
- 	msleep(50);
- 
--	for (i = 0; !(stv0288_inittab[i] == 0xff &&
-+	/* we have default inittab */
-+	if (state->config->inittab == NULL) {
-+		for (i = 0; !(stv0288_inittab[i] == 0xff &&
- 				stv0288_inittab[i + 1] == 0xff); i += 2)
--		stv0288_writeregI(state, stv0288_inittab[i],
--						stv0288_inittab[i + 1]);
--
-+			stv0288_writeregI(state, stv0288_inittab[i],
-+					stv0288_inittab[i + 1]);
-+	} else {
-+		for (i = 0; ; i += 2)  {
-+			reg = state->config->inittab[i];
-+			val = state->config->inittab[i+1];
-+			if (reg == 0xff && val == 0xff)
-+				break;
-+			stv0288_writeregI(state, reg, val);
-+		}
-+	}
- 	return 0;
- }
- 
-diff -r ecd33495acbd -r 8dc74aaea8b2 linux/drivers/media/dvb/frontends/stv0288.h
---- a/linux/drivers/media/dvb/frontends/stv0288.h	Thu Oct 02 17:33:19 2008 +0300
-+++ b/linux/drivers/media/dvb/frontends/stv0288.h	Sun Oct 05 14:52:18 2008 +0300
-@@ -34,6 +34,8 @@
- 	/* the demodulator's i2c address */
- 	u8 demod_address;
- 
-+	u8* inittab;
-+
- 	/* minimum delay before retuning */
- 	int min_delay_ms;
- 
-
---Boundary-00=_qOL6IelS0/uSjAD
+--===============0494200851==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -124,4 +442,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_qOL6IelS0/uSjAD--
+--===============0494200851==--
