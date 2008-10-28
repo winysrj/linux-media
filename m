@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.29])
+Received: from qb-out-0506.google.com ([72.14.204.238])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <arianus@gmail.com>) id 1Kvpwp-00036b-7n
-	for linux-dvb@linuxtv.org; Fri, 31 Oct 2008 10:05:39 +0100
-Received: by yw-out-2324.google.com with SMTP id 3so446866ywj.41
-	for <linux-dvb@linuxtv.org>; Fri, 31 Oct 2008 02:05:35 -0700 (PDT)
-Message-ID: <fca40140810310205n574ac1baje639411e8395dbd2@mail.gmail.com>
-Date: Fri, 31 Oct 2008 11:05:35 +0200
-From: "Bunyamin VICIL" <bvicil@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <fca40140810310204u12c38827w237bf6a060702b72@mail.gmail.com>
+	(envelope-from <oroitburd@gmail.com>) id 1Kun8Y-0003bB-Uc
+	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 12:53:27 +0100
+Received: by qb-out-0506.google.com with SMTP id e11so2085423qbe.25
+	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 04:53:23 -0700 (PDT)
+Message-ID: <b42fca4d0810280453j652a531ag94f1d3137e540f6c@mail.gmail.com>
+Date: Tue, 28 Oct 2008 12:53:22 +0100
+From: "oleg roitburd" <oroitburd@gmail.com>
+To: jean-paul@goedee.nl
+In-Reply-To: <20081028124505.tvjko4bvkgk4kg4o@webmail.goedee.nl>
 MIME-Version: 1.0
-References: <fca40140810310204u12c38827w237bf6a060702b72@mail.gmail.com>
-Subject: [linux-dvb] tm6000 compling issues
+Content-Disposition: inline
+References: <20081028111538.1yl7p80uo0cggo80@webmail.goedee.nl>
+	<4906E9CC.2040408@gmail.com>
+	<20081028124505.tvjko4bvkgk4kg4o@webmail.goedee.nl>
+Cc: linux-dvb@linuxtv.org, Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] S2API & TT3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,74 +24,44 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1313012823=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1313012823==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_19087_21710554.1225443935261"
+2008/10/28  <jean-paul@goedee.nl>:
+> Ok clone the repo and its compiling again. Thanx. Now I want to scan
+> channels (scab-s2) on both lnb;s (astra 1 & 3). First transponder
+> scans only 13 services and  Diseqc doesn?t work with the second lnb.
+>
+> WARNING: >>> tuning failed!!!
+>>>> tune to: 11856:vS1C56:S23.5E:27500: (tuning failed)
+> DiSEqC: uncommitted switch pos 0
+> DiSEqC: switch pos 1, 13V, hiband (index 6)
+> DVB-S IF freq is 1256000
+>>>> tuning status == 0x00
+>>>> tuning status == 0x00
+>>>> tuning status == 0x00
+>>>> tuning status == 0x00
+>>>> tuning status == 0x00
+>>>> tuning status == 0x00
+>>>> tuning status == 0x00
+>>>> tuning status == 0x00
+>>>> tuning status == 0x00
+>>>> tuning status == 0x00
+> WARNING: >>> tuning failed!!!
+> ERROR: initial tuning failed
+> dumping lists (0 services)
+> Done.
 
-------=_Part_19087_21710554.1225443935261
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I can confirm this issue with jusst.de/hg/v4l-dvb. Take a look another thread.
+Ok. I'm not alone ;)
 
-hi there, i am new member of this list. my friend bring me a usb tvbox that
-has trident tv master 5600 chipset. i am using Pardus Linux. when i search
-how can i install it to my operating system i found linuxtv.org wiki
-message[1]. i make all of these but when i give "make" command, the making
-process fails and give me an error. then i found linuxtv.org maillist
-message[2]. i made changes but now there is an another error message
-appears.
-
-"
-~/setups/v4l-dvb/v4l/tm6000.c: In function 'probe':
-~/setups/v4l-dvb/v4l/tm6000.c:2005: error: 'adapter_nums' undeclared (first
-use in this function)
-~/setups/v4l-dvb/v4l/tm6000.c:2005: error: (Each undeclared identifier is
-reported only once
-~/setups/v4l-dvb/v4l/tm6000.c:2005: error: for each function it appears in.)
-~/setups/v4l-dvb/v4l/tm6000.c:2059: warning: label 'err' defined but not
-used
-"
-
-i googled but have no search results. what must i do to fix this?
-
-thanks lot
-
-
-[1] http://linuxtv.org/v4lwiki/index.php/Trident_TM6000#TM6000_based_Devices
-[2] http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025687.html
-
-------=_Part_19087_21710554.1225443935261
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<div class="gmail_quote">hi there, i am new member of this list. my friend bring me a usb tvbox that has trident tv master 5600 chipset. i am using Pardus Linux. when i search how can i install it to my operating system i found <a href="http://linuxtv.org" target="_blank">linuxtv.org</a> wiki message[1]. i make all of these but when i give &quot;make&quot; command, the making process fails and give me an error. then i found <a href="http://linuxtv.org" target="_blank">linuxtv.org</a> maillist message[2]. i made changes but now there is an another error message appears. <br>
-
-<br>&quot;<br>~/setups/v4l-dvb/v4l/tm6000.c: In function &#39;probe&#39;:<br>~/setups/v4l-dvb/v4l/tm6000.c:2005: error: &#39;adapter_nums&#39; undeclared (first use in this function)<br>~/setups/v4l-dvb/v4l/tm6000.c:2005: error: (Each undeclared identifier is reported only once<br>
-
-~/setups/v4l-dvb/v4l/tm6000.c:2005: error: for each function it appears in.)<br>~/setups/v4l-dvb/v4l/tm6000.c:2059: warning: label &#39;err&#39; defined but not used<br>&quot;<br><br>i googled but have no search results. what must i do to fix this?<br>
-
-<br>thanks lot<br><br><br>[1] <a href="http://linuxtv.org/v4lwiki/index.php/Trident_TM6000#TM6000_based_Devices" target="_blank">http://linuxtv.org/v4lwiki/index.php/Trident_TM6000#TM6000_based_Devices</a><br>[2] <a href="http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025687.html" target="_blank">http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025687.html</a><br>
-
-</div><br>
-
-------=_Part_19087_21710554.1225443935261--
-
-
---===============1313012823==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Regards
+Oleg Roitburd
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1313012823==--
