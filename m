@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail14.opentransfer.com ([76.162.254.14])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dcoates@systemoverload.net>) id 1KktjQ-0004Ox-QO
-	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 06:54:48 +0200
-Message-ID: <48E3026A.6050904@systemoverload.net>
-Date: Tue, 30 Sep 2008 23:54:02 -0500
-From: Dustin Coates <dcoates@systemoverload.net>
+Received: from qb-out-0506.google.com ([72.14.204.231])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <oroitburd@gmail.com>) id 1KukrA-0007th-VT
+	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 10:27:21 +0100
+Received: by qb-out-0506.google.com with SMTP id e11so2051239qbe.25
+	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 02:27:17 -0700 (PDT)
+Message-ID: <b42fca4d0810280227n44d53f03hfaa8237793fc1db9@mail.gmail.com>
+Date: Tue, 28 Oct 2008 10:27:16 +0100
+From: "oleg roitburd" <oroitburd@gmail.com>
+To: "Alex Betis" <alex.betis@gmail.com>
+In-Reply-To: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <000001c91f6f$e23ab920$a6b02b60$@net>	<000001c921f0$7d4aede0$77e0c9a0$@net>	<48E11A2F.5030901@linuxtv.org>	<48E130EB.20006@systemoverload.net>	<48E135F0.60808@systemoverload.net>	<48E14224.6090309@linuxtv.org>	<48E1470F.6000207@systemoverload.net>	<48E2EADB.3050209@systemoverload.net>
-	<48E2FAC4.2020202@systemoverload.net>
-In-Reply-To: <48E2FAC4.2020202@systemoverload.net>
+Content-Disposition: inline
+References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1800 Analouge Issues
+Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,342 +22,56 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dustin Coates wrote:
-> Dustin Coates wrote:
->   =
+Hi,
 
->> Dustin Coates wrote:
->>   =
-
->>     =
-
->>> Steven Toth wrote:
->>>     =
-
->>>       =
-
->>>> Dustin Coates wrote:
->>>>       =
-
->>>>         =
-
->>>>> Dustin Coates wrote:
->>>>>         =
-
->>>>>           =
-
->>>>>> Steven Toth wrote:
->>>>>>  =
-
->>>>>>           =
-
->>>>>>             =
-
->>>>>>> Dustin Coates wrote:
->>>>>>>  =
-
->>>>>>>             =
-
->>>>>>>               =
-
->>>>>>>>  =
-
->>>>>>>>
->>>>>>>>  =
-
->>>>>>>>
->>>>>>>> *From:* linux-dvb-bounces@linuxtv.org =
-
->>>>>>>> [mailto:linux-dvb-bounces@linuxtv.org] *On Behalf Of *Dustin Coates
->>>>>>>> *Sent:* Thursday, September 25, 2008 7:36 PM
->>>>>>>> *To:* linux-dvb@linuxtv.org
->>>>>>>> *Subject:* [linux-dvb] HVR-1800 Analouge Issues
->>>>>>>>
->>>>>>>>  =
-
->>>>>>>>
->>>>>>>> Hi Everyone,
->>>>>>>>
->>>>>>>>  =
-
->>>>>>>>
->>>>>>>>                 Ok I=92ve recently decided to start seeing if I ca=
-n =
-
->>>>>>>> figure out the issue with the Analouge, on this card, first my =
-
->>>>>>>> normal dmesg.
->>>>>>>>       =
-
->>>>>>>>               =
-
->>>>>>>>                 =
-
->>>>>>> The analog encoder works fine for me.
->>>>>>>
->>>>>>> In my case the basic analog tuner is usually /dev/video0 and the =
-
->>>>>>> encoder is video1.
->>>>>>>
->>>>>>> Launch tvtime (which opens video0) tune and everything is fine, =
-
->>>>>>> then cat /dev/video1 >test.mpg is working as expected.
->>>>>>>
->>>>>>> - Steve
->>>>>>>
->>>>>>>
->>>>>>>     =
-
->>>>>>>             =
-
->>>>>>>               =
-
->>>>>> Ok, TVTime works, still some static on a mostly the lower, and higher
->>>>>> channels.
->>>>>>
->>>>>> Mythtv is only showing a green screen.
->>>>>>
->>>>>>
->>>>>> _______________________________________________
->>>>>> linux-dvb mailing list
->>>>>> linux-dvb@linuxtv.org
->>>>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>>>>   =
-
->>>>>>           =
-
->>>>>>             =
-
->>>>> Mythbackend.log is showing these errors.
->>>>>
->>>>> VIDIOCGCHAN: Invalid argument
->>>>> VIDIOCMCAPTUREi0: Invalid argument
->>>>> VIDIOCMCAPTUREi1: Invalid argument
->>>>> VIDIOCMCAPTURE0: Invalid argument
->>>>> VIDIOCMCAPTURE1: Invalid argument
->>>>>
->>>>>
->>>>> I think if i can get past these errors it might just work...
->>>>>         =
-
->>>>>           =
-
->>>> When tvtime was running can you try cat /dev/video1 >test.mpg as I =
-
->>>> suggested?
->>>>
->>>> - Steve
->>>>       =
-
->>>>         =
-
->>> OK, when i load tvtime as tvtime --device=3D/dev/video1
->>>
->>> I get the an error.
->>>
->>> Videoinput: Driver refuses to set norm: Invalid argument
->>>
->>> When i load tvtime as /dev/video0
->>>
->>> I get a picture, but it's interlaced with a lot of static
->>>
->>> Then when i try to cat /dev/video0 i get a Device or resource busy
->>>
->>> cat /dev/video1, no errors . I play the file, and i get static, barley =
-
->>> see picture, i can hear audio though.
->>>
->>> Uploaded the video file to: (only 14MB) =
-
->>> http://systemoverload.net/test.mpg
->>>
->>> When  i set it up in mythtv i set it up as an analogue card.
->>>
->>> Setting it to /dev/video1 gives me these errors in mythbackend.log.
->>>
->>> 2008-09-29 16:15:40.761 Channel(/dev/video1) Error: =
-
->>> SetInputAndFormat(2, NTSC)
->>>            while setting format (v4l v2)
->>>            eno: Invalid argument (22)
->>> 2008-09-29 16:15:40.763 Channel(/dev/video1) Error: =
-
->>> SetInputAndFormat(2, NTSC)
->>>            while setting format (v4l v2)
->>>            eno: Invalid argument (22)
->>> 2008-09-29 16:15:40.764 Channel(/dev/video1) Error: =
-
->>> SetInputAndFormat(2, ATSC)
->>>            while setting format (v4l v2)
->>>            eno: Invalid argument (22)
->>> 2008-09-29 16:15:40.765 Channel(/dev/video1): SetInputAndFormat() failed
->>> 2008-09-29 16:15:40.765 TVRec(2) Error: Failed to set channel to 2.
->>> 2008-09-29 16:15:40.787 TVRec(2) Error: GetProgramRingBufferForLiveTV()
->>>            ProgramInfo is invalid.
->>> ProgramInfo: channame() startts(Mon Sep 29 16:15:40 2008) endts(Mon =
-
->>> Sep 29 16:15:40 2008)
->>>             recstartts(Mon Sep 29 16:15:40 2008) recendts(Mon Sep 29 =
-
->>> 16:15:40 2008)
->>>             title()
->>> VIDIOCGMBUF:: Invalid argument
->>> 2008-09-29 16:15:41.849 AutoExpire: CalcParams(): Max required Free =
-
->>> Space: 2.0 GB w/freq: 15 min
->>> 2008-09-29 16:16:21.869 TVRec(2): Changing from WatchingLiveTV to None
->>> 2008-09-29 16:16:21.888 Finished recording : channel 4294967295
->>> 2008-09-29 16:16:21.892 scheduler: Finished recording: : channel =
-
->>> 4294967295
->>>
->>> Setting it to /dev/video0 gives me the errors posted in my last email.
->>>
->>>
->>>     =
-
->>>       =
-
->> To update myself.
->>
->> I got it working in mythtv. Still *alot *of static. Hangs on changing =
-
->> channels in mythtv.
->>
->> Errors in dmesg are these.
->>
->> [ 4538.192246] format_by_fourcc(0x32315559) NOT FOUND
->> [ 4538.193849] format_by_fourcc(0x32315559) NOT FOUND
->> [ 4538.195655] format_by_fourcc(0x32315559) NOT FOUND
->> [ 4538.204829] format_by_fourcc(0x32315559) NOT FOUND
->> [ 4538.206956] format_by_fourcc(0x32315559) NOT FOUND
->> [ 4538.208796] format_by_fourcc(0x32315559) NOT FOUND
->> [ 4538.231697] format_by_fourcc(0x32315559) NOT FOUND
->> [ 4538.250161] format_by_fourcc(0x32315559) NOT FOUND
->> [ 4909.035067] Firmware and/or mailbox pointer not initialized or =
-
->> corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
->> [ 4909.035089] Firmware and/or mailbox pointer not initialized or =
-
->> corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
->> [ 4909.035106] Firmware and/or mailbox pointer not initialized or =
-
->> corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
->> [ 4909.035123] Firmware and/or mailbox pointer not initialized or =
-
->> corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
->> [ 4909.035138] Firmware and/or mailbox pointer not initialized or =
-
->> corrupted, signature =3D 0xfeffffff, cmd =3D SET_AUDIO_PROPERTIES
->> [ 4909.035880] Firmware and/or mailbox pointer not initialized or =
-
->> corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
->> [ 4909.035897] Firmware and/or mailbox pointer not initialized or =
-
->> corrupted, signature =3D 0xfeffffff, cmd =3D SET_BIT_RATE
->> [ 4909.037081] Firmware and/or mailbox pointer not initialized or =
-
->> corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
->> [ 4909.037097] Firmware and/or mailbox pointer not initialized or =
-
->> corrupted, signature =3D 0xfeffffff, cmd =3D SET_BIT_RATE
->> [ 4909.038460] Firmware and/or mailbox pointer not initialized or =
-
->> corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
->> [ 4910.041384] Firmware and/or mailbox pointer not initialized or =
-
->> corrupted, signature =3D 0xfeffffff, cmd =3D PING_FW
->>
->>
->> I belive if we can get these sorted out....it will be working good
->>
->>
->> _______________________________________________
->> linux-dvb mailing list
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>   =
-
->>     =
-
-> I figured out the format_by_fourcc errors are due to an incorrect =
-
-> compression format set in cx23885-video.c. Refering to this post, =
-
-> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg29935.html. I made =
-
-> the changes suggest. The errors are gone, but video is black, audio is =
-
-> static on and off. Akin to switching channels when the cable is out.
+2008/10/25 Alex Betis <alex.betis@gmail.com>:
+> Hello all,
 >
-> So question. How would i go about finding the correct compression format =
-
-> for the HVR-1800. I think this would bring us one step closer...
+> I've setup the http://mercurial.intuxication.org/hg/scan-s2/ repository with
+> scan utility ported to work with Igor's S2API driver.
+> Driver is available here: http://mercurial.intuxication.org/hg/s2-liplianin/
 >
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->   =
+> Special thanks to Igor for his driver and for szap-s2 utility that I've used
+> as a reference for scan-s2.
+> Thanks also to someone from the net that posted his changes to scan utility
+> that allowed it to work with uncommitted diseqc.
+>
+> Pay attention to parameters (see README as well), I've added some and
+> removed some that I don't think are needed.
+>
+> Scan results gave me the same channels as with multiproto driver on all my
+> satellites, so that confirms also that Igor's driver is working well.
+>
+> I didn't yet tested the output files with szap-s2 or with VDR, don't have
+> time right now.
+> Please test and let me know if changes are needed.
+>
+> I have only Twinhan 1041 card (stb0899), so I can't test it with DVB-T,
+> DVB-C and ATSC standarts, but theoretically it should work.
+>
+> Enjoy,
+> Alex.
 
-With a little tinkering i got rid of the forcecc error by changing one =
+Thank you for this usefull tool. I have tried them with TT S2-3200.
+It works with s2-liplianin.
+Some question
+Is it possible to implement in vdr-dump
+1. Options for Modulation (MN where N=2  is QPSK if DVB-S and N=2 for
+QPSK and N=5 for 8PSK)
+2. Options for FEC. As I know cx24116 can't FEC AUTO for DVB-S2
+3. ROLLOFF?
+4. CAID dump.  http://arvdr-dev.free-x.de:8080/freex-dvb-apps/rev/47e9dbb968fc
+5. Channel Name encoding to UTF.
+http://arvdr-dev.free-x.de:8080/freex-dvb-apps/rev/55bf7441a602
 
-line in the cx23885-video.c,  while keeping the video as it is...
-
-diff -r cx23885-video.c cx23885-video.bak
-148c148
-<         .depth    =3D 16,
----
- >         .depth    =3D 32,
-
-
-Still same old static picture on the video (refer to uploaded video =
-
-earlier post). Hangs while changing channels. Still getting the firmware =
-
-errors.
-
-[  170.043529] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[  170.043552] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[  170.043568] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[  170.043584] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[  170.043600] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_AUDIO_PROPERTIES
-[  170.044920] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[  170.044937] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_BIT_RATE
-[  170.046521] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[  170.046536] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_BIT_RATE
-[  170.047762] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[  171.045396] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D PING_FW
-
-
+Thx a lot
+Oleg Roitburd
 
 _______________________________________________
 linux-dvb mailing list
