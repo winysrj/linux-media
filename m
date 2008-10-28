@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9VIjuVY006096
-	for <video4linux-list@redhat.com>; Fri, 31 Oct 2008 14:45:56 -0400
-Received: from smtp5-g19.free.fr (smtp5-g19.free.fr [212.27.42.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9VIjeaq012741
-	for <video4linux-list@redhat.com>; Fri, 31 Oct 2008 14:45:40 -0400
-To: fpantaleao@mobisensesystems.com
-References: <20081031160520.2cc7whghs0gs8osk@webmail.hebergement.com>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Fri, 31 Oct 2008 19:45:38 +0100
-In-Reply-To: <20081031160520.2cc7whghs0gs8osk@webmail.hebergement.com>
-	(fpantaleao@mobisensesystems.com's message of "Fri\,
-	31 Oct 2008 16\:05\:20 +0100")
-Message-ID: <87vdv8mwml.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9SJR8qL021777
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 15:27:08 -0400
+Received: from bar.sig21.net (bar.sig21.net [88.198.146.85])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9SJQuoY015392
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 15:26:56 -0400
+Date: Tue, 28 Oct 2008 20:27:39 +0100
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Message-ID: <20081028192739.GA23476@linuxtv.org>
+References: <490525EA.4020608@rogers.com> <20081028152152.GA22100@linuxtv.org>
+	<37219a840810281129k3a713b75w6419b7b5c526df2f@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: About CITOR register value for pxa_camera
+Content-Disposition: inline
+In-Reply-To: <37219a840810281129k3a713b75w6419b7b5c526df2f@mail.gmail.com>
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org,
+	CityK <cityk@rogers.com>
+Subject: Re: [linux-dvb] Announcement: wiki merger and some loose ends
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,29 +29,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-fpantaleao@mobisensesystems.com writes:
+On Tue, Oct 28, 2008 at 02:29:00PM -0400, Michael Krufky wrote:
+> 
+> What we would like to do is leave the video4linux and linux-dvb
+> mailing lists as user lists, create a new -devel mailing list, and
+> redirect v4l-dvb-maintainer to the new list.  (Probably hosted on
+> vger, but that hasnt yet been determined)
+> 
+> The devel list would be an open list for developers only.  Any
+> tech-support related stuff would remain on the lists that are still
+> used today.
+> 
+> Specifically, we wanted to move the "v4l-dvb-maintainer" list to
+> somewhere with spam filtering and turn this into a list where all
+> development discussions and pull requests can take place.  We want a
+> separation between user requests and developer discussion, so merging
+> everything into a single list is not the direction that we want to
+> take.
 
-> Hi all,
->
-> While testing, I think I have found one reason why overruns occur with
-> pxa_camera.
-> I propose to set CITOR to a non-null value.
-Yes, seconded.
+Personally I'm generally not in favour of splitting an
+open source community in "users" and "developers", but
+I guess I'm the odd man out with that POV...
 
-> I would appreciate any comment about this.
-Well, at first sight I would advice to test some corner case to see if DMA
-trailing bytes are handled well. I know this can be a pain, but you seem to be
-testing thouroughly ..
+However, similar to that there should be ONE developer
+list, I think there should be ONE user list, and not
+two. Maybe we should just shut linux-dvb down and ask
+users to subscribe to the video4linux list? Or do
+people think it's still useful to have distinct lists
+for analog and digital?
 
-So, if your configuration/sensor is able to, try some funny resolution like
-"1619 x 1", and then "67 x 1", and see what happens. If you don't have any
-capture issue, you're done, and post a patch (only CITOR or CITOR + trailling
-bytes handling).
+Either way, IMHO you can't go wrong with moving v4l-dvb-maintainer
+to vger so if you agree I'd like to encourage you to go forward with that.
 
-Have fun.
 
---
-Robert
+Johannes
 
 --
 video4linux-list mailing list
