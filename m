@@ -1,23 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from fk-out-0910.google.com ([209.85.128.188])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1Kmo45-0002Vw-0y
-	for linux-dvb@linuxtv.org; Mon, 06 Oct 2008 13:15:49 +0200
-From: Andy Walls <awalls@radix.net>
-To: David Cintron <loudestnoise@gmail.com>
-In-Reply-To: <b5a60d170810051917t3d0a3ad8oe861f05aea37827b@mail.gmail.com>
-References: <2D4C0F1E-D73D-475C-BF64-91EF4A6E0BFE@gmail.com>
-	<1222908425.2641.37.camel@morgan.walls.org>
-	<b5a60d170810012025m72e86270r4f24dce08300bb28@mail.gmail.com>
-	<1222986819.2650.21.camel@morgan.walls.org>
-	<b5a60d170810051917t3d0a3ad8oe861f05aea37827b@mail.gmail.com>
-Date: Mon, 06 Oct 2008 07:17:19 -0400
-Message-Id: <1223291839.3127.1.camel@palomino.walls.org>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] cx18: Testers needed for patch to solve	non-working
-	CX23418 cards under linux (Re: cx18: Possible
-	causal	realtionship for HVR-1600 I2C errors)
+	(envelope-from <oroitburd@gmail.com>) id 1Kujho-0001xh-Jk
+	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 09:13:37 +0100
+Received: by fk-out-0910.google.com with SMTP id f40so3040823fka.1
+	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 01:13:33 -0700 (PDT)
+Message-ID: <b42fca4d0810280113q6045f284v167ab234367d8a97@mail.gmail.com>
+Date: Tue, 28 Oct 2008 09:13:32 +0100
+From: "oleg roitburd" <oroitburd@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <4900CB6B.4010005@linuxtv.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <48F525CD.70801@gmail.com>
+	<20081015224128.5320eaee@pedra.chehab.org>
+	<4900CB6B.4010005@linuxtv.org>
+Cc: Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-dvb] STB0899 update (TT S2 3200)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,17 +30,21 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 2008-10-05 at 21:17 -0500, David Cintron wrote:
-> Well since lspci -v still doesn't recognize my HVR-1600 after
-> switching around card positions and even removing my other tuner card
-> should I assume I have a bum card?
+2008/10/23 Steven Toth <stoth@linuxtv.org>:
 
-It's a strong indication that it's bad.  If possible, you may also wish
-to try it in a different system just to be sure.
+>
+> Manu, how close are you to issuing a pull request on your TT3200 tree?
+>
 
-Regards,
-Andy
 
+I have tried driver from v4l-dvb tree ( http://linuxtv.org/hg/v4l-dvb/
+, changeset 9471	8486cbf6af4e)
+Driver is not working. Thank you Manu. I hope you have this card and
+tried your driver before you make PULL request.
+I made fallback again to s2-liplianin.
+
+Regards
+Oleg Roitburd
 
 _______________________________________________
 linux-dvb mailing list
