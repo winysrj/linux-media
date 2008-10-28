@@ -1,21 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail14.opentransfer.com ([76.162.254.14])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <dcoates@systemoverload.net>) id 1KksAC-00083n-GJ
-	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 05:14:10 +0200
-Message-ID: <48E2EADB.3050209@systemoverload.net>
-Date: Tue, 30 Sep 2008 22:13:31 -0500
-From: Dustin Coates <dcoates@systemoverload.net>
+Received: from fg-out-1718.google.com ([72.14.220.156])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <oroitburd@gmail.com>) id 1KulfI-0004Vy-0d
+	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 11:19:09 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so2261676fga.25
+	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 03:19:04 -0700 (PDT)
+Message-ID: <b42fca4d0810280319v4e1b71e9k6321904473cc8f52@mail.gmail.com>
+Date: Tue, 28 Oct 2008 11:19:04 +0100
+From: "oleg roitburd" <oroitburd@gmail.com>
+To: "Manu Abraham" <abraham.manu@gmail.com>
+In-Reply-To: <4906D97D.5050603@gmail.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-References: <000001c91f6f$e23ab920$a6b02b60$@net>
-	<000001c921f0$7d4aede0$77e0c9a0$@net>
-	<48E11A2F.5030901@linuxtv.org> <48E130EB.20006@systemoverload.net>
-	<48E135F0.60808@systemoverload.net> <48E14224.6090309@linuxtv.org>
-	<48E1470F.6000207@systemoverload.net>
-In-Reply-To: <48E1470F.6000207@systemoverload.net>
+Content-Disposition: inline
+References: <48F525CD.70801@gmail.com>
+	<20081015224128.5320eaee@pedra.chehab.org>
+	<4900CB6B.4010005@linuxtv.org>
+	<b42fca4d0810280113q6045f284v167ab234367d8a97@mail.gmail.com>
+	<4906D19B.7080800@gmail.com>
+	<b42fca4d0810280207s54d6a81er691d2ea58d2d04a3@mail.gmail.com>
+	<4906D97D.5050603@gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] HVR-1800 Analouge Issues
+Subject: Re: [linux-dvb] STB0899 update (TT S2 3200)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,212 +28,169 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dustin Coates wrote:
-> Steven Toth wrote:
->> Dustin Coates wrote:
->>> Dustin Coates wrote:
->>>> Steven Toth wrote:
->>>>  =
-
->>>>> Dustin Coates wrote:
->>>>>  =
-
->>>>>>  =
-
->>>>>>
->>>>>>  =
-
->>>>>>
->>>>>> *From:* linux-dvb-bounces@linuxtv.org =
-
->>>>>> [mailto:linux-dvb-bounces@linuxtv.org] *On Behalf Of *Dustin Coates
->>>>>> *Sent:* Thursday, September 25, 2008 7:36 PM
->>>>>> *To:* linux-dvb@linuxtv.org
->>>>>> *Subject:* [linux-dvb] HVR-1800 Analouge Issues
->>>>>>
->>>>>>  =
-
->>>>>>
->>>>>> Hi Everyone,
->>>>>>
->>>>>>  =
-
->>>>>>
->>>>>>                 Ok I=92ve recently decided to start seeing if I can =
-
->>>>>> figure out the issue with the Analouge, on this card, first my =
-
->>>>>> normal dmesg.
->>>>>>       =
-
->>>>> The analog encoder works fine for me.
->>>>>
->>>>> In my case the basic analog tuner is usually /dev/video0 and the =
-
->>>>> encoder is video1.
->>>>>
->>>>> Launch tvtime (which opens video0) tune and everything is fine, =
-
->>>>> then cat /dev/video1 >test.mpg is working as expected.
->>>>>
->>>>> - Steve
->>>>>
->>>>>
->>>>>     =
-
->>>> Ok, TVTime works, still some static on a mostly the lower, and higher
->>>> channels.
->>>>
->>>> Mythtv is only showing a green screen.
->>>>
->>>>
->>>> _______________________________________________
->>>> linux-dvb mailing list
->>>> linux-dvb@linuxtv.org
->>>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>>   =
-
->>> Mythbackend.log is showing these errors.
->>>
->>> VIDIOCGCHAN: Invalid argument
->>> VIDIOCMCAPTUREi0: Invalid argument
->>> VIDIOCMCAPTUREi1: Invalid argument
->>> VIDIOCMCAPTURE0: Invalid argument
->>> VIDIOCMCAPTURE1: Invalid argument
->>>
->>>
->>> I think if i can get past these errors it might just work...
->>
->> When tvtime was running can you try cat /dev/video1 >test.mpg as I =
-
->> suggested?
->>
->> - Steve
-> OK, when i load tvtime as tvtime --device=3D/dev/video1
->
-> I get the an error.
->
-> Videoinput: Driver refuses to set norm: Invalid argument
->
-> When i load tvtime as /dev/video0
->
-> I get a picture, but it's interlaced with a lot of static
->
-> Then when i try to cat /dev/video0 i get a Device or resource busy
->
-> cat /dev/video1, no errors . I play the file, and i get static, barley =
-
-> see picture, i can hear audio though.
->
-> Uploaded the video file to: (only 14MB) =
-
-> http://systemoverload.net/test.mpg
->
-> When  i set it up in mythtv i set it up as an analogue card.
->
-> Setting it to /dev/video1 gives me these errors in mythbackend.log.
->
-> 2008-09-29 16:15:40.761 Channel(/dev/video1) Error: =
-
-> SetInputAndFormat(2, NTSC)
->            while setting format (v4l v2)
->            eno: Invalid argument (22)
-> 2008-09-29 16:15:40.763 Channel(/dev/video1) Error: =
-
-> SetInputAndFormat(2, NTSC)
->            while setting format (v4l v2)
->            eno: Invalid argument (22)
-> 2008-09-29 16:15:40.764 Channel(/dev/video1) Error: =
-
-> SetInputAndFormat(2, ATSC)
->            while setting format (v4l v2)
->            eno: Invalid argument (22)
-> 2008-09-29 16:15:40.765 Channel(/dev/video1): SetInputAndFormat() failed
-> 2008-09-29 16:15:40.765 TVRec(2) Error: Failed to set channel to 2.
-> 2008-09-29 16:15:40.787 TVRec(2) Error: GetProgramRingBufferForLiveTV()
->            ProgramInfo is invalid.
-> ProgramInfo: channame() startts(Mon Sep 29 16:15:40 2008) endts(Mon =
-
-> Sep 29 16:15:40 2008)
->             recstartts(Mon Sep 29 16:15:40 2008) recendts(Mon Sep 29 =
-
-> 16:15:40 2008)
->             title()
-> VIDIOCGMBUF:: Invalid argument
-> 2008-09-29 16:15:41.849 AutoExpire: CalcParams(): Max required Free =
-
-> Space: 2.0 GB w/freq: 15 min
-> 2008-09-29 16:16:21.869 TVRec(2): Changing from WatchingLiveTV to None
-> 2008-09-29 16:16:21.888 Finished recording : channel 4294967295
-> 2008-09-29 16:16:21.892 scheduler: Finished recording: : channel =
-
-> 4294967295
->
-> Setting it to /dev/video0 gives me the errors posted in my last email.
->
->
-
-To update myself.
-
-I got it working in mythtv. Still *alot *of static. Hangs on changing =
-
-channels in mythtv.
-
-Errors in dmesg are these.
-
-[ 4538.192246] format_by_fourcc(0x32315559) NOT FOUND
-[ 4538.193849] format_by_fourcc(0x32315559) NOT FOUND
-[ 4538.195655] format_by_fourcc(0x32315559) NOT FOUND
-[ 4538.204829] format_by_fourcc(0x32315559) NOT FOUND
-[ 4538.206956] format_by_fourcc(0x32315559) NOT FOUND
-[ 4538.208796] format_by_fourcc(0x32315559) NOT FOUND
-[ 4538.231697] format_by_fourcc(0x32315559) NOT FOUND
-[ 4538.250161] format_by_fourcc(0x32315559) NOT FOUND
-[ 4909.035067] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[ 4909.035089] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[ 4909.035106] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[ 4909.035123] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[ 4909.035138] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_AUDIO_PROPERTIES
-[ 4909.035880] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[ 4909.035897] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_BIT_RATE
-[ 4909.037081] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[ 4909.037097] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_BIT_RATE
-[ 4909.038460] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D SET_OUTPUT_PORT
-[ 4910.041384] Firmware and/or mailbox pointer not initialized or =
-
-corrupted, signature =3D 0xfeffffff, cmd =3D PING_FW
-
-
-I belive if we can get these sorted out....it will be working good
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+MjAwOC8xMC8yOCBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+OgoKPiBQbGVh
+c2UgdHJ5IGFnYWluIGZyb20gaHR0cDovL2p1c3N0LmRlL2hnL3Y0bC1kdmIKCkkgaGF2ZW4ndCBm
+b3VuZCBhbnkgaW1wcm92ZW1lbnRzCgouL3NjYW4tczIgLW8gdmRyIC10IDMgZHZiLXMvQXN0cmEt
+MTkuMkUgPiAuLi9jaGFubmVscy5jb25mLTE5LjJFCkFQSSBtYWpvciA1LCBtaW5vciAwCnNjYW5u
+aW5nIGR2Yi1zL0FzdHJhLTE5LjJFCnVzaW5nICcvZGV2L2R2Yi9hZGFwdGVyMC9mcm9udGVuZDAn
+IGFuZCAnL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwJwppbml0aWFsIHRyYW5zcG9uZGVyIDEyNTUx
+NTAwIFYgMjIwMDAwMDAgMjIwMDAwMDAKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDEyNTUxOnZTMEM1NjpTMC4wVzoyMjAwMDoKRFZC
+LVMgSUYgZnJlcSBpcyAxOTUxNTAwCl9fdHVuZV90b190cmFuc3BvbmRlcjoxNTU0OiBFUlJPUjog
+RkVfUkVBRF9TVEFUVVMgZmFpbGVkOiAyMiBJbnZhbGlkIGFyZ3VtZW50Cj4+PiB0dW5lIHRvOiAx
+MjU1MTp2UzBDNTY6UzAuMFc6MjIwMDA6CkRWQi1TIElGIGZyZXEgaXMgMTk1MTUwMAo+Pj4gcGFy
+c2Vfc2VjdGlvbiwgc2VjdGlvbiBudW1iZXIgMCBvdXQgb2YgMC4uLiEKcGFyc2VfcGF0Li4uLi4u
+CnNlcnZpY2VfaWQgPSAweDAKc2VydmljZV9pZCA9IDB4YwpwbXRfcGlkID0gMHgyYQpzZXJ2aWNl
+X2lkID0gMHhmOTgKcG10X3BpZCA9IDB4MzQKc2VydmljZV9pZCA9IDB4ZjlhCnBtdF9waWQgPSAw
+eDI2CnNlcnZpY2VfaWQgPSAweGY5ZApwbXRfcGlkID0gMHgzMQpzZXJ2aWNlX2lkID0gMHgyZjQ0
+CnBtdF9waWQgPSAweDI3CnNlcnZpY2VfaWQgPSAweDJmNTgKcG10X3BpZCA9IDB4MjMKc2Vydmlj
+ZV9pZCA9IDB4MmY1OQpwbXRfcGlkID0gMHg4MDAKc2VydmljZV9pZCA9IDB4MmY1YQpwbXRfcGlk
+ID0gMHgyMApzZXJ2aWNlX2lkID0gMHgyZjViCnBtdF9waWQgPSAweDJmCnNlcnZpY2VfaWQgPSAw
+eDJmNWQKcG10X3BpZCA9IDB4MTM5MgpzZXJ2aWNlX2lkID0gMHgyZjgwCnBtdF9waWQgPSAweDMw
+CnNlcnZpY2VfaWQgPSAweDJmOTQKcG10X3BpZCA9IDB4MjQKc2VydmljZV9pZCA9IDB4MmZhNApw
+bXRfcGlkID0gMHgzMwo+Pj4gcGFyc2Vfc2VjdGlvbiwgc2VjdGlvbiBudW1iZXIgMCBvdXQgb2Yg
+MC4uLiEKcGFyc2VfcG10Li4uLi4uCj4+PiBwYXJzZV9zZWN0aW9uLCBzZWN0aW9uIG51bWJlciAw
+IG91dCBvZiAwLi4uIQpwYXJzZV9wbXQuLi4uLi4KVklERU86UElEIDB4MDAzNwpBVURJTzpQSUQg
+MHgwMDM4Cj4+PiBwYXJzZV9zZWN0aW9uLCBzZWN0aW9uIG51bWJlciAwIG91dCBvZiAwLi4uIQpw
+YXJzZV9wbXQuLi4uLi4KQVVESU86UElEIDB4MDA2MwpWSURFTzpQSUQgMHgwMGEyCj4+PiBwYXJz
+ZV9zZWN0aW9uLCBzZWN0aW9uIG51bWJlciAwIG91dCBvZiAwLi4uIQpwYXJzZV9wbXQuLi4uLi4K
+VklERU86UElEIDB4MTM5MwpBVURJTzpQSUQgMHgxMzk1Cj4+PiBwYXJzZV9zZWN0aW9uLCBzZWN0
+aW9uIG51bWJlciAwIG91dCBvZiAwLi4uIQpwYXJzZV9wbXQuLi4uLi4KVklERU86UElEIDB4MDFj
+YwpBVURJTzpQSUQgMHgwMWQ2Cj4+PiBwYXJzZV9zZWN0aW9uLCBzZWN0aW9uIG51bWJlciAwIG91
+dCBvZiAwLi4uIQpwYXJzZV9wbXQuLi4uLi4KVklERU86UElEIDB4MDAyMQpBVURJTzpQSUQgMHgw
+MDIyCj4+PiBwYXJzZV9zZWN0aW9uLCBzZWN0aW9uIG51bWJlciAwIG91dCBvZiAwLi4uIQpwYXJz
+ZV9wbXQuLi4uLi4KVklERU86UElEIDB4MDgwMgpBVURJTzpQSUQgMHgwODAzCj4+PiBwYXJzZV9z
+ZWN0aW9uLCBzZWN0aW9uIG51bWJlciAwIG91dCBvZiAwLi4uIQpwYXJzZV9wbXQuLi4uLi4KVklE
+RU86UElEIDB4MDNhZApBVURJTzpQSUQgMHgwM2FmCj4+PiBwYXJzZV9zZWN0aW9uLCBzZWN0aW9u
+IG51bWJlciAwIG91dCBvZiAwLi4uIQpwYXJzZV9wbXQuLi4uLi4KVklERU86UElEIDB4MDBhNQpB
+VURJTzpQSUQgMHgwMGE2Cj4+PiBwYXJzZV9zZWN0aW9uLCBzZWN0aW9uIG51bWJlciAwIG91dCBv
+ZiAwLi4uIQpwYXJzZV9wbXQuLi4uLi4KQVVESU86UElEIDB4MDA5MApBVURJTzpQSUQgMHgwMDky
+ClZJREVPOlBJRCAweDAwYTgKPj4+IHBhcnNlX3NlY3Rpb24sIHNlY3Rpb24gbnVtYmVyIDAgb3V0
+IG9mIDAuLi4hCnBhcnNlX3BtdC4uLi4uLgpBVURJTzpQSUQgMHgwMDkwCkFVRElPOlBJRCAweDAw
+OTIKVklERU86UElEIDB4MDBhOAo+Pj4gcGFyc2Vfc2VjdGlvbiwgc2VjdGlvbiBudW1iZXIgMCBv
+dXQgb2YgMC4uLiEKcGFyc2VfcG10Li4uLi4uClZJREVPOlBJRCAweDAwNjIKQVVESU86UElEIDB4
+MTE2MwpBVURJTzpQSUQgMHgxMTY1CkFVRElPOlBJRCAweDExNmIKPj4+IHBhcnNlX3NlY3Rpb24s
+IHNlY3Rpb24gbnVtYmVyIDAgb3V0IG9mIDAuLi4hCnBhcnNlX3BtdC4uLi4uLgo+Pj4gcGFyc2Vf
+c2VjdGlvbiwgc2VjdGlvbiBudW1iZXIgMCBvdXQgb2YgMC4uLiEKcGFyc2Vfc2R0Li4uLi4uCjB4
+MDAwMCAweDAwMGM6IHBtdF9waWQgMHgwMDJhIFNFUyBBU1RSQSAtLSBBU1RSQSBTRFQgKHJ1bm5p
+bmcpCjB4MDAwMCAweDBmOTg6IHBtdF9waWQgMHgwMDM0IERWTC5UViAtLSBMVVhFLlRWIFNEIChy
+dW5uaW5nKQoweDAwMDAgMHgwZjlhOiBwbXRfcGlkIDB4MDAyNiAobnVsbCkgLS0gUlRMIFRlbGUg
+TGV0emVidWVyZyAocnVubmluZykKMHgwMDAwIDB4MGY5ZDogcG10X3BpZCAweDAwMzEgU0VTIEFT
+VFJBIC0tIEFzdHJhIFZpc2lvbiAocnVubmluZykKMHgwMDAwIDB4MmY0NDogcG10X3BpZCAweDAw
+MjcgUVZDIC0tIFFWQyBEZXV0c2NobGFuZCAocnVubmluZykKMHgwMDAwIDB4MmY1ODogcG10X3Bp
+ZCAweDAwMjMgTGliZXJ0eVRWLmNvbSAtLSBMaWJlcnR5VFYgRlIgKHJ1bm5pbmcpCjB4MDAwMCAw
+eDJmNTk6IHBtdF9waWQgMHgwODAwIFBSVkRSIC0tIE1lZGkxU0FUIChydW5uaW5nKQoweDAwMDAg
+MHgyZjVhOiBwbXRfcGlkIDB4MDAyMCBCaWJlbCBUViAtLSBbdHJ1Ol0geW91bmcgdHYgKHJ1bm5p
+bmcpCjB4MDAwMCAweDJmNWI6IHBtdF9waWQgMHgwMDJmIE5ldGVycmEgLS0gZVVyb3RpYyBORVUg
+KHJ1bm5pbmcpCjB4MDAwMCAweDJmODA6IHBtdF9waWQgMHgwMDMwIEJsb29tYmVyZyAtLSBCbG9v
+bWJlcmcgVFYgR2VybWFueSAocnVubmluZykKMHgwMDAwIDB4MmY5NDogcG10X3BpZCAweDAwMjQg
+Q2hhbWJyZSBkZXMgRO+/vXB1dO+/vWVzIC0tIENoYW1iZXIgVFYgKHJ1bm5pbmcpCjB4MDAwMCAw
+eDJmYTQ6IHBtdF9waWQgMHgwMDMzIEdJU1QgLS0gUFZSIHNlcnZpY2UgKHJ1bm5pbmcpCjB4MDAw
+MCAweDJmNWQ6IHBtdF9waWQgMHgxMzkyIChudWxsKSAtLSBlbTI0IChydW5uaW5nKQo+Pj4gcGFy
+c2Vfc2VjdGlvbiwgc2VjdGlvbiBudW1iZXIgMSBvdXQgb2YgMS4uLiEKcGFyc2Vfbml0Li4uLi4u
+Cj4+PiBwYXJzZV9zZWN0aW9uLCBzZWN0aW9uIG51bWJlciAwIG91dCBvZiAxLi4uIQpwYXJzZV9u
+aXQuLi4uLi4KTmV0d29yayBOYW1lICdBU1RSQScKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDEyNjkyOmhTMDpTMTkuMkU6MjIwMDA6
+CkRWQi1TIElGIGZyZXEgaXMgMjA5MjI1MApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQo+
+Pj4gdHVuZSB0bzogMTI2OTI6aFMwOlMxOS4yRToyMjAwMDogKHR1bmluZyBmYWlsZWQpCkRWQi1T
+IElGIGZyZXEgaXMgMjA5MjI1MApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQotLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPiBVc2luZyBEVkItUzIKPj4+IHR1bmUgdG86IDEy
+NjkyOmhTMTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDIw
+OTIyNTAKV0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKPj4+IHR1bmUgdG86IDEyNjkyOmhT
+MTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDIwOTIyNTAK
+V0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDEyNjQwOnZTMDpTMTkuMkU6MjIwMDA6
+CkRWQi1TIElGIGZyZXEgaXMgMjA0MDAwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQo+
+Pj4gdHVuZSB0bzogMTI2NDA6dlMwOlMxOS4yRToyMjAwMDogKHR1bmluZyBmYWlsZWQpCkRWQi1T
+IElGIGZyZXEgaXMgMjA0MDAwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQotLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPiBVc2luZyBEVkItUzIKPj4+IHR1bmUgdG86IDEy
+NjQwOnZTMTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDIw
+NDAwMDAKV0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKPj4+IHR1bmUgdG86IDEyNjQwOnZT
+MTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDIwNDAwMDAK
+V0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDExNjg1OnZTMDpTMTkuMkU6MjIwMDA6
+CkRWQi1TIElGIGZyZXEgaXMgMTkzNTUwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQo+
+Pj4gdHVuZSB0bzogMTE2ODU6dlMwOlMxOS4yRToyMjAwMDogKHR1bmluZyBmYWlsZWQpCkRWQi1T
+IElGIGZyZXEgaXMgMTkzNTUwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQotLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPiBVc2luZyBEVkItUzIKPj4+IHR1bmUgdG86IDEx
+Njg1OnZTMTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDE5
+MzU1MDAKV0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKPj4+IHR1bmUgdG86IDExNjg1OnZT
+MTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDE5MzU1MDAK
+V0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDEyNTgwOnZTMDpTMTkuMkU6MjIwMDA6
+CkRWQi1TIElGIGZyZXEgaXMgMTk4MDk5MApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQo+
+Pj4gdHVuZSB0bzogMTI1ODA6dlMwOlMxOS4yRToyMjAwMDogKHR1bmluZyBmYWlsZWQpCkRWQi1T
+IElGIGZyZXEgaXMgMTk4MDk5MApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQotLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPiBVc2luZyBEVkItUzIKPj4+IHR1bmUgdG86IDEy
+NTgwOnZTMTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDE5
+ODA5OTAKV0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKPj4+IHR1bmUgdG86IDEyNTgwOnZT
+MTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDE5ODA5OTAK
+V0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDEwOTc5OnZTMDpTMTkuMkU6MjIwMDA6
+CkRWQi1TIElGIGZyZXEgaXMgMTIyOTAwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQo+
+Pj4gdHVuZSB0bzogMTA5Nzk6dlMwOlMxOS4yRToyMjAwMDogKHR1bmluZyBmYWlsZWQpCkRWQi1T
+IElGIGZyZXEgaXMgMTIyOTAwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQotLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPiBVc2luZyBEVkItUzIKPj4+IHR1bmUgdG86IDEw
+OTc5OnZTMTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDEy
+MjkwMDAKV0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKPj4+IHR1bmUgdG86IDEwOTc5OnZT
+MTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDEyMjkwMDAK
+V0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDEwODc2OnZTMDpTMTkuMkU6MjIwMDA6
+CkRWQi1TIElGIGZyZXEgaXMgMTEyNjUwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQo+
+Pj4gdHVuZSB0bzogMTA4NzY6dlMwOlMxOS4yRToyMjAwMDogKHR1bmluZyBmYWlsZWQpCkRWQi1T
+IElGIGZyZXEgaXMgMTEyNjUwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQotLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPiBVc2luZyBEVkItUzIKPj4+IHR1bmUgdG86IDEw
+ODc2OnZTMTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDEx
+MjY1MDAKV0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKPj4+IHR1bmUgdG86IDEwODc2OnZT
+MTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDExMjY1MDAK
+V0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDEwNzczOmhTMDpTMTkuMkU6MjIwMDA6
+CkRWQi1TIElGIGZyZXEgaXMgMTAyMzI1MApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQo+
+Pj4gdHVuZSB0bzogMTA3NzM6aFMwOlMxOS4yRToyMjAwMDogKHR1bmluZyBmYWlsZWQpCkRWQi1T
+IElGIGZyZXEgaXMgMTAyMzI1MApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQotLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPiBVc2luZyBEVkItUzIKPj4+IHR1bmUgdG86IDEw
+NzczOmhTMTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDEw
+MjMyNTAKV0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKPj4+IHR1bmUgdG86IDEwNzczOmhT
+MTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDEwMjMyNTAK
+V0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDExODU2OnZTMDpTMTkuMkU6Mjc1MDA6
+CkRWQi1TIElGIGZyZXEgaXMgMTI1NjAwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQo+
+Pj4gdHVuZSB0bzogMTE4NTY6dlMwOlMxOS4yRToyNzUwMDogKHR1bmluZyBmYWlsZWQpCkRWQi1T
+IElGIGZyZXEgaXMgMTI1NjAwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQotLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPiBVc2luZyBEVkItUzIKPj4+IHR1bmUgdG86IDEx
+ODU2OnZTMTpTMTkuMkU6Mjc1MDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDEy
+NTYwMDAKV0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKPj4+IHR1bmUgdG86IDExODU2OnZT
+MTpTMTkuMkU6Mjc1MDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDEyNTYwMDAK
+V0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDExMDk3OnZTMDpTMTkuMkU6MjIwMDA6
+CkRWQi1TIElGIGZyZXEgaXMgMTM0NzAwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQo+
+Pj4gdHVuZSB0bzogMTEwOTc6dlMwOlMxOS4yRToyMjAwMDogKHR1bmluZyBmYWlsZWQpCkRWQi1T
+IElGIGZyZXEgaXMgMTM0NzAwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQotLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPiBVc2luZyBEVkItUzIKPj4+IHR1bmUgdG86IDEx
+MDk3OnZTMTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDEz
+NDcwMDAKV0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKPj4+IHR1bmUgdG86IDExMDk3OnZT
+MTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDEzNDcwMDAK
+V0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDEwNzg4OnZTMDpTMTkuMkU6MjIwMDA6
+CkRWQi1TIElGIGZyZXEgaXMgMTAzODAwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQo+
+Pj4gdHVuZSB0bzogMTA3ODg6dlMwOlMxOS4yRToyMjAwMDogKHR1bmluZyBmYWlsZWQpCkRWQi1T
+IElGIGZyZXEgaXMgMTAzODAwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQotLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tPiBVc2luZyBEVkItUzIKPj4+IHR1bmUgdG86IDEw
+Nzg4OnZTMTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDEw
+MzgwMDAKV0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKPj4+IHR1bmUgdG86IDEwNzg4OnZT
+MTpTMTkuMkU6MjIwMDA6ICh0dW5pbmcgZmFpbGVkKQpEVkItUyBJRiBmcmVxIGlzIDEwMzgwMDAK
+V0FSTklORzogPj4+IHR1bmluZyBmYWlsZWQhISEKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLT4gVXNpbmcgRFZCLVMKPj4+IHR1bmUgdG86IDExNTA4OnZTMDpTMTkuMkU6MjIwMDA6
+CkRWQi1TIElGIGZyZXEgaXMgMTc1ODUwMApXQVJOSU5HOiA+Pj4gdHVuaW5nIGZhaWxlZCEhIQo+
+Pj4gdHVuZSB0bzogMTE1MDg6dlMwOlMxOS4yRToyMjAwMDogKHR1bmluZyBmYWlsZWQpCkRWQi1T
+IElGIGZyZXEgaXMgMTc1ODUwMApFUlJPUjogaW50ZXJydXB0ZWQgYnkgU0lHSU5ULCBkdW1waW5n
+IHBhcnRpYWwgcmVzdWx0Li4uCgpSZWdhcmRzCk9sZWcgUm9pdGJ1cmQKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdAps
+aW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxt
+YW4vbGlzdGluZm8vbGludXgtZHZi
