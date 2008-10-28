@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9DDPZcI015451
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 09:25:35 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9DDPOVk027341
-	for <video4linux-list@redhat.com>; Mon, 13 Oct 2008 09:25:24 -0400
-Date: Mon, 13 Oct 2008 10:25:00 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Message-ID: <20081013102500.62522327@pedra.chehab.org>
-In-Reply-To: <200810051249.21375.laurent.pinchart@skynet.be>
-References: <200809211406.30146.laurent.pinchart@skynet.be>
-	<200810051249.21375.laurent.pinchart@skynet.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9S218fJ027746
+	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 22:01:08 -0400
+Received: from gate.crashing.org (gate.crashing.org [63.228.1.57])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9S20Muj022993
+	for <video4linux-list@redhat.com>; Mon, 27 Oct 2008 22:00:53 -0400
+Date: Mon, 27 Oct 2008 21:00:21 -0500
+From: Matt Porter <mporter@kernel.crashing.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <20081028020021.GA3684@gate.crashing.org>
+References: <20081027211837.GA20197@gate.crashing.org>
+	<200810272259.43058.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200810272259.43058.hverkuil@xs4all.nl>
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] uvcvideo: Support two new Bison Electronics webcams.
+Subject: Re: output overlay driver and pix format
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,24 +28,79 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 5 Oct 2008 12:49:21 +0200
-Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+On Mon, Oct 27, 2008 at 10:59:43PM +0100, Hans Verkuil wrote:
+> Hi Matt,
 
-> Hi Mauro,
-> 
-> On Sunday 21 September 2008, Laurent Pinchart wrote:
-> > This adds required quirks for the Compaq Presario B1200 and Acer Travelmate
-> > 7720 integrated webcams.
+Hi Hans,
+ 
+> On Monday 27 October 2008 22:18:37 Matt Porter wrote:
+> > I'm working on a driver for an internal image processing block in an
+> > SoC. This functionality can combine a buffer stream in various
+> > YUV/RGB formats (selectable) with the framebuffer (or any arbitrary
+> > buffer one wishes to overlay).
 > >
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
+> > This fits quite well into the OUTPUT_OVERLAY support for the most
+> > part. However, the driver will not have OUTPUT capability at all.
+> > That is, there is not a direct external output from the image
+> > processor so it doesn't not make sense to define OUTPUT capability.
+> > The results of the image processing are left in a target buffer that
+> > may be used for tv/lcd encoding or fed back in for additional image
+> > processing operations.
 > 
-> I think you forgot to pick this one up.
+> Why wouldn't it make sense to define the OUTPUT capability? Based on 
+> your description I would say that it definitely is an output device. 
+> Whether the data ends up on a TV-out connector or in an internal target 
+> buffer is irrelevant.
 
-Hmm.. I think I got confused since two uvcvideo emails had a similar subject...
-Applied, thanks.
+Ok. I guess it does make sense. I've been used to think in terms of
+real-world outputs on previous driver work so that's where the confusion
+set in. I can define an output that is the internal target buffer as you
+suggest. Since it requires the standards ioctls it seems I'll have to 
+define a driver specific standard id for a "system buffer". Perhaps that
+should be generic...
+ 
+> > So the idea is to set the OUTPUT_OVERLAY pix format to one of the
+> > supported formats, set cropping/scaling/blending. Feed it buffers and
+> > it blends with the framebuffer, shoving the result to the internal
+> > target buffer.
+> 
+> Overlays use the v4l2_window struct, so you need the output capability 
+> to be able to select the pix format.
 
-Cheers,
-Mauro
+Ok, that clarifies it. :)
+
+> > The problem is that the V4L2 spec seems to imply that an
+> > OUTPUT_OVERLAY device should not touch the fmtdesc pix fields.
+> 
+> Correct, VIDIOC_S_FMT for an overlay uses v4l2_window struct.
+
+Ok
+
+> > In my 
+> > case, the user needs to configure 1 of N pixelformat types that can
+> > be fed to the OUTPUT_OVERLAY device. Is this allowed or am I using
+> > OUTPUT_OVERLAY differently than intended? It seems that overlay
+> > devices may only be intended to be used with an associated OUTPUT (or
+> > INPUT) device that defines the pix format.
+> 
+> Correct.
+> 
+> > The bottom line is: does it make sense to have a driver with only
+> > OUTPUT_OVERLAY capability?
+> 
+> In this case I don't think it makes sense. But as I said, I think adding 
+> an OUTPUT capability is not a problem.
+
+Yes, seems reasonable to me now. There's one other thing this brings up.
+Since my hardware can handle 5 different pixelformats as input I'll
+obviously S_FMT those on the OUTPUT device. However, it is possible
+to configure hardware such that the processed results in the target buffer
+are in 4 different pixel formats. Within V4L, it seems that the
+way to handle this would be to have 4 different custom (driver specific)
+standards that correspond to the 4 possible pixel formats. Does that sound
+right?
+
+-Matt
 
 --
 video4linux-list mailing list
