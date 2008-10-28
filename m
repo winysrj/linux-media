@@ -1,23 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9KIhbhP007770
-	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 14:43:37 -0400
-Received: from linos.es (centrodatos.linos.es [86.109.105.97])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9KIge8X002379
-	for <video4linux-list@redhat.com>; Mon, 20 Oct 2008 14:42:40 -0400
-Message-ID: <48FCD11F.1020604@linos.es>
-Date: Mon, 20 Oct 2008 20:42:39 +0200
-From: Linos <info@linos.es>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9SJm9sA003020
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 15:48:09 -0400
+Received: from ian.pickworth.me.uk (ian.pickworth.me.uk [81.187.248.227])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9SJlwcU029255
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 15:47:59 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by ian.pickworth.me.uk (Postfix) with ESMTP id 8D1EC13123FB
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 19:47:58 +0000 (GMT)
+Received: from ian.pickworth.me.uk ([127.0.0.1])
+	by localhost (ian.pickworth.me.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id mndL1b16omis for <video4linux-list@redhat.com>;
+	Tue, 28 Oct 2008 19:47:58 +0000 (GMT)
+Received: from [192.168.1.11] (ian2.pickworth.me.uk [192.168.1.11])
+	by ian.pickworth.me.uk (Postfix) with ESMTP id 4E9EC13123FA
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 19:47:58 +0000 (GMT)
+Message-ID: <49076C6D.7080509@pickworth.me.uk>
+Date: Tue, 28 Oct 2008 19:47:57 +0000
+From: Ian Pickworth <ian@pickworth.me.uk>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <48FC8DF1.8010807@linos.es> <20081020161436.GB1298@daniel.bse>
-	<48FCB94C.90505@linos.es>
-	<30353c3d0810201023j3464c9b5udc58b0c0966ad0f2@mail.gmail.com>
-	<20081020182536.GA1750@daniel.bse>
-In-Reply-To: <20081020182536.GA1750@daniel.bse>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: Re: bttv 2.6.26 problem
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+References: <49075186.7090101@pickworth.me.uk> <49075DA9.3000501@hhs.nl>
+In-Reply-To: <49075DA9.3000501@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Subject: Re: libv4l: Skype terminates after options dialogue is closed
+Reply-To: ian@pickworth.me.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,36 +37,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Daniel Glöckner escribió:
-> On Mon, Oct 20, 2008 at 01:23:25PM -0400, David Ellingsworth wrote:
->> On Mon, Oct 20, 2008 at 1:01 PM, Linos <info@linos.es> wrote:
->>> Daniel Glöckner escribió:
->>>>  vmm.height=352;
->>>>  vmm.width=288;
+Hans de Goede wrote:
+> Ian Pickworth wrote:
+>> The process I go through is as follows:
+>>     LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so /usr/bin/skype &
+>>     
+>>     After Skype starts, open the Skype options dialogue
+>>     Select the "Video Devices" tab
+>>     With "Enable Skype Video" enabled, select the Camera device
+>>     Press "test" - which shows the webcam picture correctly
+>>
+>>     Press close
+>>
+>> At this point Skype aborts.
+>> ...
+>> Bus 002 Device 003: ID 046d:092e Logitech, Inc.
 > 
-> D'oh!
-> I swapped width and height..
+> Thats a spca561 cam, I've just run skype with the latest gspca + libv4l
+> on an other spca561 cam with the same revision spca561 asic and it works
+> fine.
 > 
->> I believe the changes Daniel suggested would have to be applied to the
->> source of helix producer in order to work.
-> 
-> I didn't test helix producer, but with my simple test app and correct
-> width and height it works.
-> 
->> None the less, the proper
->> fix would be to fix the associated bug in the driver which is the real
->> cause of the problem.
-> 
-> Agreed
-> 
->   Daniel
-> 
+> So I believe this is caused by something else on your system.
 
-Yes now works, thanks Daniel, i should have try to read the source anyway, the
-name can not be clearer hehehe.
+I think you are correct. This happens when I run Skype in a Gnome
+session, with compiz-fusion, and Kaffiene has been active.
 
-Regards,
-Miguel Angel.
+If I go to a FVWM session, and just start Skype and nothing else, it
+works fine. If I then Start Kaffiene Skype will abort soon after (if
+I've used the webcam in Skype).
+
+So, some wierd clash/timing issue. I'll just have to try and pin it down.
+Thanks for the help,
+Regards
+Ian
+
 
 --
 video4linux-list mailing list
