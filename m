@@ -1,26 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9FBsLBq016453
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 07:54:21 -0400
-Received: from comal.ext.ti.com (comal.ext.ti.com [198.47.26.152])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9FBsBxi021129
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 07:54:11 -0400
-From: "Jadav, Brijesh R" <brijesh.j@ti.com>
-To: Magnus Damm <magnus.damm@gmail.com>
-Date: Wed, 15 Oct 2008 17:24:00 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403DC2A806B@dbde02.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE4AF7E5CAA@dlee06.ent.ti.com>
-	<200810031635.40168.robk@starhub.net.sg>
-	<19F8576C6E063C45BE387C64729E739403DC087DFD@dbde02.ent.ti.com>
-	<aec7e5c30810140546g4fa97f6br2a6bd3b84e083329@mail.gmail.com>
-In-Reply-To: <aec7e5c30810140546g4fa97f6br2a6bd3b84e083329@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9S7KVti002837
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 03:20:31 -0400
+Received: from smtp-vbr13.xs4all.nl (smtp-vbr13.xs4all.nl [194.109.24.33])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9S7KJeH015562
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 03:20:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Matt Porter <mporter@kernel.crashing.org>
+Date: Tue, 28 Oct 2008 08:20:03 +0100
+References: <20081027211837.GA20197@gate.crashing.org>
+	<200810272259.43058.hverkuil@xs4all.nl>
+	<20081028020021.GA3684@gate.crashing.org>
+In-Reply-To: <20081028020021.GA3684@gate.crashing.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Karicheri,
-	Muralidharan" <m-karicheri2@ti.com>
-Subject: RE: videobuf-dma-contig - buffer allocation at init time ?
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200810280820.03931.hverkuil@xs4all.nl>
+Cc: video4linux-list@redhat.com
+Subject: Re: output overlay driver and pix format
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,52 +31,96 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
-
-Thank you very much for providing me the solution to this problem. This will solve our problem for which we struggled a lot.
-
-Brijesh Jadav
-
------Original Message-----
-From: Magnus Damm [mailto:magnus.damm@gmail.com] 
-Sent: Tuesday, October 14, 2008 6:17 PM
-To: Jadav, Brijesh R
-Cc: Rob Kramer; video4linux-list@redhat.com; Karicheri, Muralidharan
-Subject: Re: videobuf-dma-contig - buffer allocation at init time ?
-
-Hi there,
-
-On Sat, Oct 4, 2008 at 2:41 AM, Jadav, Brijesh R <brijesh.j@ti.com> wrote:
-> Hi,
+On Tuesday 28 October 2008 03:00:21 Matt Porter wrote:
+> On Mon, Oct 27, 2008 at 10:59:43PM +0100, Hans Verkuil wrote:
+> > Hi Matt,
 >
-> Even dma_alloc_coherent fails after some time because of the memory fragmentation for the large buffer, which is required for the HD modes. This is typically in the Embedded devices because they have less memory. Is it possible to have a hook from the video-buf layer to the driver for allocating contiguous buffer so that allocation and de-allocation is managed in the driver completely?
+> Hi Hans,
+>
+> > On Monday 27 October 2008 22:18:37 Matt Porter wrote:
+> > > I'm working on a driver for an internal image processing block in
+> > > an SoC. This functionality can combine a buffer stream in various
+> > > YUV/RGB formats (selectable) with the framebuffer (or any
+> > > arbitrary buffer one wishes to overlay).
+> > >
+> > > This fits quite well into the OUTPUT_OVERLAY support for the most
+> > > part. However, the driver will not have OUTPUT capability at all.
+> > > That is, there is not a direct external output from the image
+> > > processor so it doesn't not make sense to define OUTPUT
+> > > capability. The results of the image processing are left in a
+> > > target buffer that may be used for tv/lcd encoding or fed back in
+> > > for additional image processing operations.
+> >
+> > Why wouldn't it make sense to define the OUTPUT capability? Based
+> > on your description I would say that it definitely is an output
+> > device. Whether the data ends up on a TV-out connector or in an
+> > internal target buffer is irrelevant.
+>
+> Ok. I guess it does make sense. I've been used to think in terms of
+> real-world outputs on previous driver work so that's where the
+> confusion set in. I can define an output that is the internal target
+> buffer as you suggest. Since it requires the standards ioctls it
+> seems I'll have to define a driver specific standard id for a "system
+> buffer". Perhaps that should be generic...
 
-Yes, you are correct that fragmentation will be an issue. To avoid
-that you could allocate a static buffer at boot up and use that buffer
-with dma_declare_coherent_memory().
+If there are a fixed number of possible target buffers, then you can 
+associate each output with each buffer. But without knowing the precise 
+architecture it's hard for me to comment on this.
 
-Look at how platform_resource_setup_memory() is being used in the
-board specific code here:
+> > > So the idea is to set the OUTPUT_OVERLAY pix format to one of the
+> > > supported formats, set cropping/scaling/blending. Feed it buffers
+> > > and it blends with the framebuffer, shoving the result to the
+> > > internal target buffer.
+> >
+> > Overlays use the v4l2_window struct, so you need the output
+> > capability to be able to select the pix format.
+>
+> Ok, that clarifies it. :)
+>
+> > > The problem is that the V4L2 spec seems to imply that an
+> > > OUTPUT_OVERLAY device should not touch the fmtdesc pix fields.
+> >
+> > Correct, VIDIOC_S_FMT for an overlay uses v4l2_window struct.
+>
+> Ok
+>
+> > > In my
+> > > case, the user needs to configure 1 of N pixelformat types that
+> > > can be fed to the OUTPUT_OVERLAY device. Is this allowed or am I
+> > > using OUTPUT_OVERLAY differently than intended? It seems that
+> > > overlay devices may only be intended to be used with an
+> > > associated OUTPUT (or INPUT) device that defines the pix format.
+> >
+> > Correct.
+> >
+> > > The bottom line is: does it make sense to have a driver with only
+> > > OUTPUT_OVERLAY capability?
+> >
+> > In this case I don't think it makes sense. But as I said, I think
+> > adding an OUTPUT capability is not a problem.
+>
+> Yes, seems reasonable to me now. There's one other thing this brings
+> up. Since my hardware can handle 5 different pixelformats as input
+> I'll obviously S_FMT those on the OUTPUT device. However, it is
+> possible to configure hardware such that the processed results in the
+> target buffer are in 4 different pixel formats. Within V4L, it seems
+> that the way to handle this would be to have 4 different custom
+> (driver specific) standards that correspond to the 4 possible pixel
+> formats. Does that sound right?
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/sh/boards/mach-migor/setup.c;h=714dce91cc9bbb30684764c33eef963c09844866;hb=HEAD
+That seems to be the only way to do this at the moment. Is the target 
+buffer's pixel format in any way related to the pixel format of the 
+framebuffer? Or are they independent?
 
-This SuperH specific function is used at boot up time to allocate a
-chunk of physically contiguous memory for on-chip IP blocks:
+It feels rather like a hack to abuse S_STD for this. Can you tell a bit 
+more about the sort of formats this device can handle? Is it limited to 
+PAL/NTSC type images only or can it be different sizes as well? I'm 
+planning on adding a new ioctl to support HDTV and it sounds like this 
+is something that new ioctl might support as well.
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=arch/sh/mm/consistent.c;h=64b8f7f96f9aed038e87be11ee374d5b0797f239;hb=HEAD
+Regards,
 
-This memory chunk is passed to the V4L2 driver as a platform resource.
-The V4L2 driver performs a dma_declare_coherent_memory() call to make
-sure all future dma_alloc_coherent() calls will be allocated from this
-memory.
-
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=drivers/media/video/sh_mobile_ceu_camera.c;h=76838091dc66ce05140b63912ec106422e2bc542;hb=HEAD
-
-Look at Documentation/DMA-API.txt for more information. Not sure if
-your architecture support this mechanism though.
-
-/ magnus
-
+	Hans
 
 --
 video4linux-list mailing list
