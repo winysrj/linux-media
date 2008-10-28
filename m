@@ -1,24 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt2.poste.it ([62.241.5.253])
+Received: from mail.work.de ([212.12.32.20])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KprF7-0002cb-IE
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 23:15:52 +0200
-Received: from geppetto.reilabs.com (78.15.177.222) by relay-pt2.poste.it
-	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
-	id 48F3D33E0000B677 for linux-dvb@linuxtv.org;
-	Tue, 14 Oct 2008 23:15:43 +0200
-Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
-	(envelope-from <stefano.sabatini-lala@poste.it>) id 1KprE9-00037m-J6
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 23:14:49 +0200
-Date: Tue, 14 Oct 2008 23:14:49 +0200
-From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
-To: linux-dvb@linuxtv.org
-Message-ID: <20081014211449.GA11745@geppetto>
-References: <20081010124522.GA30145@geppetto>
+	(envelope-from <abraham.manu@gmail.com>) id 1KukEd-0004K9-Ro
+	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 09:47:32 +0100
+Message-ID: <4906D19B.7080800@gmail.com>
+Date: Tue, 28 Oct 2008 12:47:23 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20081010124522.GA30145@geppetto>
-Subject: Re: [linux-dvb] Module modprobing problem
+To: oleg roitburd <oroitburd@gmail.com>
+References: <48F525CD.70801@gmail.com>	
+	<20081015224128.5320eaee@pedra.chehab.org>	
+	<4900CB6B.4010005@linuxtv.org>
+	<b42fca4d0810280113q6045f284v167ab234367d8a97@mail.gmail.com>
+In-Reply-To: <b42fca4d0810280113q6045f284v167ab234367d8a97@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] STB0899 update (TT S2 3200)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,36 +28,14 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On date Friday 2008-10-10 14:45:22 +0200, Stefano Sabatini wrote:
-> Hi all,
-> 
-> I'm trying the latest v4l-dvb mercurial and this is the output I get:
-> 
-> stefano@geppetto ~> sudo modprobe dib7000m -v
-> insmod /lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dibx000_common.ko 
-> WARNING: Error inserting dibx000_common (/lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dibx000_common.ko): Invalid module format
-> insmod /lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dib7000m.ko 
-> FATAL: Error inserting dib7000m (/lib/modules/2.6.22-3-486/kernel/drivers/media/dvb/frontends/dib7000m.ko): Invalid module format
-> 
-> stefano@geppetto ~> uname -a
-> Linux geppetto 2.6.22-3-486 #1 Mon Nov 12 07:53:08 UTC 2007 i686 GNU/Linux
-> 
-> I get in dmesg:
-> dibx000_common: disagrees about version of symbol struct_module
-> dib7000m: disagrees about version of symbol struct_module
-> 
-> Any hint will be highly appreciated.
+oleg roitburd wrote:
 
-For the archive: the problem was due to the linux headers used when
-compiling don't match the effective kernel version. In my case (Debian
-system) I had installed linux-headers-2.6.22-3 and running a kernel
-2.6.22-2, that was apparently sufficient to get a version symbol
-mismatch.
+> I have tried driver from v4l-dvb tree ( http://linuxtv.org/hg/v4l-dvb/
+> , changeset 9471	8486cbf6af4e)
+> Driver is not working. Thank you Manu. I hope you have this card and
+> tried your driver before you make PULL request.
 
-Updated kernel and headers to 2.6.26 and now I can compile and
-modprobe them safely.
-
-Regards.
+People have reported success. Care to state what doesn't work ?
 
 _______________________________________________
 linux-dvb mailing list
