@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200])
+Received: from joan.kewl.org ([212.161.35.248])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Kq7Ow-0001LV-EI
-	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 16:31:04 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-18bfe594.dyn.optonline.net [24.191.229.148]) by
-	mta5.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0K8S00KR9AYOQF30@mta5.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Wed, 15 Oct 2008 10:30:26 -0400 (EDT)
-Date: Wed, 15 Oct 2008 10:30:24 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <412bdbff0810150724h2ab46767ib7cfa52e3fdbc5fa@mail.gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Message-id: <48F5FE80.5010106@linuxtv.org>
-MIME-version: 1.0
-References: <412bdbff0810150724h2ab46767ib7cfa52e3fdbc5fa@mail.gmail.com>
-Cc: Linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Revisiting the SNR/Strength issue
+	(envelope-from <darron@kewl.org>) id 1KurId-0003Dh-HS
+	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 17:20:08 +0100
+Received: from joan ([10.44.0.1] helo=kewl.org)
+	by joan.kewl.org with esmtp (Exim 4.61)
+	(envelope-from <darron@kewl.org>) id 1KurIa-0007AR-6b
+	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 16:20:04 +0000
+To: linux-dvb@linuxtv.org
+From: Darron Broad <darron@kewl.org>
+Date: Tue, 28 Oct 2008 16:20:04 +0000
+Message-ID: <27554.1225210804@kewl.org>
+Subject: [linux-dvb] hauppauge DVB-S + ISL6421 + diseqc
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,30 +19,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Devin Heitmueller wrote:
-> I know that this has been brought up before, but would it be possible
-> to revisit the issue with SNR and strength units of measure being
-> inconsistent across frontends?
-> 
-> I know that we don't always know what the units of measure are for
-> some frontends, but perhaps we could at least find a way to tell
-> applications what the units are for those frontends where it is known?
 
-The SNR units should be standardized into a single metric, something 
-actually useful like ESNO or db. If that isn't available then we should 
-aim to eyeball / manually calibrate impossible boards against known 
-reliable demods on the same feed, it should be close enough.
+Hi.
 
-This requires patience and time from the right people with the right 
-hardware.
+Whilst debugging issues with HVR-4000 users it was found
+that during attachment of the ISL6421 part the config
+ISL6421_DCL was required for users with diseqc switches.
 
-- Steve
+Since the HVR-4000 has been added at linuxtv attachment
+there has also inherited this configuration for 
+hauppauge devices.
+
+This was until recently how the hauppauge windows drivers
+configured the part. They have since made it a registry option.
+This may be due to mishandling of cabling by users.
+
+The ISL6421 datasheet recommends this setting, but only
+during the tuning phase whereafter it should be turned off.
+
+During development this was left on, but there would appear
+to be a need now to either allow experts to select what
+they require else a more dynamic method to alter it.
+
+At present, there is no way to configure this on the fly
+as per the spec, so it's either always on (now) or
+reverted to always off (before).
+
+I have no proposal for how to go forward with this but
+prefer to open the question for debate.
+
+Your comments are appreciated.
+
+Thanks.
+
+--
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \
+
 
 _______________________________________________
 linux-dvb mailing list
