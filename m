@@ -1,23 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from gv-out-0910.google.com ([216.239.58.188])
+Received: from nf-out-0910.google.com ([64.233.182.185])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1KqTti-00007y-Kp
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 16:32:20 +0200
-Received: by gv-out-0910.google.com with SMTP id n29so13215gve.16
-	for <linux-dvb@linuxtv.org>; Thu, 16 Oct 2008 07:32:14 -0700 (PDT)
-Message-ID: <37219a840810160732p6cdee2f8q237f80ea180d1297@mail.gmail.com>
-Date: Thu, 16 Oct 2008 10:32:14 -0400
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Steven Toth" <stoth@linuxtv.org>
-In-Reply-To: <48F74F5F.30807@linuxtv.org>
+	(envelope-from <e9hack@googlemail.com>) id 1Kuv0W-0002Ws-4X
+	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 21:17:41 +0100
+Received: by nf-out-0910.google.com with SMTP id g13so1180113nfb.11
+	for <linux-dvb@linuxtv.org>; Tue, 28 Oct 2008 13:17:36 -0700 (PDT)
+Message-ID: <4907735C.3070603@googlemail.com>
+Date: Tue, 28 Oct 2008 21:17:32 +0100
+From: e9hack <e9hack@googlemail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <E3C12FE3-4050-4C71-9CC5-CB67A67DA6C8@receptiveit.com.au>
-	<48F671E0.6080002@linuxtv.org>
-	<37219a840810151612g7345eab6t9290273e750338fd@mail.gmail.com>
-	<48F74F5F.30807@linuxtv.org>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Dvico HDTV Dual Express
+To: linux-dvb@linuxtv.org
+References: <490525EA.4020608@rogers.com>
+	<20081028152152.GA22100@linuxtv.org>	<37219a840810281129k3a713b75w6419b7b5c526df2f@mail.gmail.com>
+	<20081028192739.GA23476@linuxtv.org>
+In-Reply-To: <20081028192739.GA23476@linuxtv.org>
+Subject: Re: [linux-dvb] Announcement: wiki merger and some loose ends
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -31,33 +28,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Oct 16, 2008 at 10:27 AM, Steven Toth <stoth@linuxtv.org> wrote:
-> Michael Krufky wrote:
->>
->> On Wed, Oct 15, 2008 at 6:42 PM, Steven Toth <stoth@linuxtv.org> wrote:
->>>
->>> Alex Ferrara wrote:
->>>>
->>>> As reported by an earlier email, I have had poor tuner results with my
->>>> dual express card. I have tried playing with the RF amplification,
->>>> removing it completely, and testing the card in the same environment
->>>> running Vista. Vista works great, Linux does not.
->>>
->>> This card works perfectly for me, I use it all of the time under Linux.
->>
->> Steve, you have the FusionHDTV 7 Dual Express, which is *not* the
->> FusionHDTV Dual Digital 4.
->
-> Look at the subject header and re-read his original post.
->
-> - Steve
->
+Johannes Stezenbach schrieb:
+> 
+> However, similar to that there should be ONE developer
+> list, I think there should be ONE user list, and not
+> two. Maybe we should just shut linux-dvb down and ask
+> users to subscribe to the video4linux list?
 
-My bad.
+Please don't do this. Some (many) people, including me, are not able to post to the
+video4linux list. The answer is always 'Your message to video4linux-list awaits moderator
+approval' and nothing does happen. It seems, nobody from redhat is responsible for this issue.
 
-Alex, Please disregard my previous message.
-
--Mike
+-Hartmut
 
 _______________________________________________
 linux-dvb mailing list
