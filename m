@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yw-out-2324.google.com ([74.125.46.28])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <britney.fransen@gmail.com>) id 1KoRDU-0000p3-1y
-	for linux-dvb@linuxtv.org; Sat, 11 Oct 2008 01:16:19 +0200
-Received: by yw-out-2324.google.com with SMTP id 3so252128ywj.41
-	for <linux-dvb@linuxtv.org>; Fri, 10 Oct 2008 16:16:10 -0700 (PDT)
-Message-Id: <4D1DA692-ECF0-44E5-AC73-C804E19D6F31@gmail.com>
-From: Britney Fransen <britney.fransen@gmail.com>
-To: linux-dvb@linuxtv.org
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Date: Fri, 10 Oct 2008 18:16:08 -0500
-Subject: [linux-dvb] DVICO FusionHDTV 5 Lite Reception Corruption
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+b6341f62251611e1d35d+1892+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1Kumme-0001mZ-Uo
+	for linux-dvb@linuxtv.org; Tue, 28 Oct 2008 12:30:49 +0100
+Date: Tue, 28 Oct 2008 09:29:49 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Eddi De Pieri <eddi@depieri.net>
+Message-ID: <20081028092949.5aacb553@pedra.chehab.org>
+In-Reply-To: <1225191933.8398.40.camel@uvdr>
+References: <200810241441.40928.borych@gmx.de>
+	<20081025021331.35651bac@pedra.chehab.org>
+	<20081025104025.01f7a074@pedra.chehab.org>
+	<1225191933.8398.40.camel@uvdr>
+Mime-Version: 1.0
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] tm6000/tm6010 progress?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,33 +29,59 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Hi Eddi,
 
-I am seeing some reception corruption on only one QAM channel with my  
-DVICO FusionHDTV5 Lite and the latest tip of the v4l-dvb driver.  At  
-first I thought that the problem was my cable company however the  
-reception of that channel is perfect on all other digital tuners in  
-the house.  Then I stumbled across this YouTube video: http://www.youtube.com/watch?v=rH1tsiPB8us 
-  showing the same issue I have experienced.
+On Tue, 28 Oct 2008 12:05:33 +0100
+Eddi De Pieri <eddi@depieri.net> wrote:
 
-In testing I found when I roll back to rev 6557 of the driver all the  
-artifacts go away and the channel reception is perfectly clear.   From  
-the current revision (9114) of the driver if I roll back to 6558 I  
-still see the artifacts.  6557 always fixes the problem.  Another  
-oddity is once I am at 6557 I can upgrade to 6600 I think and not have  
-an issue. But again once I get up to a certain revision (haven't taken  
-the time to narrow it down exactly which number it is) I get the  
-reception problems and downgrading just 1 or 2 revisions won't fix it,  
-I have to go back to 6557.
+> I report you some problem:
+> 
+> With DVB support active build fail on tm6000-dvb.o
+>   CC [M]  /data/devel/tm6010/v4l/tm6000-dvb.o
+> /data/devel/tm6010/v4l/tm6000-dvb.c: In function 'tm6000_dvb_register':
+> /data/devel/tm6010/v4l/tm6000-dvb.c:240: error: unknown field
+> 'video_dev' specified in initializer
+> /data/devel/tm6010/v4l/tm6000-dvb.c:240: warning: initialization makes
+> integer from pointer without a cast
+> 
+> I've tried changing the line..
+> -                      .video_dev = dev,
+> +                      .i2c_addr  = 0x61,
+> Now it build but the decoder is not detected.
 
-I am considering adding a usb tuner to my setup and that would require  
-me to run a later revision of the v4l-dvb driver to support the new  
-tuner but I don't want to loose the functionality of my Fusion 5 lite  
-card.  If anyone has any suggestions or if I can provide info to help  
-troubleshoot and squash this bug let me know.
+Hmm.. Ok, I'll check this.
 
-Thanks,
-Britney
+The DVB part deserves some work. I'm currently trying to fix the streaming
+routine to use the same model for DVB as we did on em28xx-dvb.
+
+> insmod tm6000-alsa.ko
+> insmod: error inserting 'tm6000-alsa.ko': -1 Unknown symbol in module
+
+> # dmesg
+> [ 1785.667726] tm6000_alsa: Unknown symbol tm6000_get_reg
+> [ 1785.667930] tm6000_alsa: Unknown symbol tm6000_set_reg
+> 
+
+tm6000-alsa is just a cleaned copy of the dummy alsa prototype. It never
+worked. I need first to have the streaming routines working fine for making the
+binding between stream reception and audio.
+
+> 
+> Without dvb it build but  mplayer show green screen and no image.
+
+One of the hardest part of tm6000 is the streaming decoding. If you take a look
+at the history, most of the latest patches were meant to fix streaming reception.
+
+On analog mode, tm6000 produces frames with 180 bytes wide. The 3rd byte is the
+header identifier (why they didn't use the first byte?). since the frames are
+broken into several URB's, and even can be broken into different URB sets, a
+complex logic is required to avoid double-buffering and to recover the original
+image. That part of the code is currently broken. It used to work in the past,
+but, on some cases, I was losing some URB's, causing very bad effects at the
+image. We need this fixed in order to have the driver properly working.
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
