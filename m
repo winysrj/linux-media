@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9LCrvHO024883
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 08:53:58 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9LCrbia002143
-	for <video4linux-list@redhat.com>; Tue, 21 Oct 2008 08:53:37 -0400
-Date: Tue, 21 Oct 2008 10:53:22 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Tobias Lorenz <tobias.lorenz@gmx.net>
-Message-ID: <20081021105322.5079ddad@pedra.chehab.org>
-In-Reply-To: <200810211445.29008.tobias.lorenz@gmx.net>
-References: <208cbae30810191610s74b0dbeejef57ffd3d43cc3a4@mail.gmail.com>
-	<200810211445.29008.tobias.lorenz@gmx.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9SKcHw6031342
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 16:38:17 -0400
+Received: from smtp-vbr5.xs4all.nl (smtp-vbr5.xs4all.nl [194.109.24.25])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9SKbueT027547
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 16:37:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Tue, 28 Oct 2008 21:37:49 +0100
+References: <490525EA.4020608@rogers.com>
+	<37219a840810281129k3a713b75w6419b7b5c526df2f@mail.gmail.com>
+	<20081028192739.GA23476@linuxtv.org>
+In-Reply-To: <20081028192739.GA23476@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] radio-si470x: add support for kworld usb-radio
+Content-Disposition: inline
+Message-Id: <200810282137.49214.hverkuil@xs4all.nl>
+Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>,
+	CityK <cityk@rogers.com>
+Subject: Re: [linux-dvb] Announcement: wiki merger and some loose ends
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,43 +32,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Tuesday 28 October 2008 20:27:39 Johannes Stezenbach wrote:
+> On Tue, Oct 28, 2008 at 02:29:00PM -0400, Michael Krufky wrote:
+> > What we would like to do is leave the video4linux and linux-dvb
+> > mailing lists as user lists, create a new -devel mailing list, and
+> > redirect v4l-dvb-maintainer to the new list.  (Probably hosted on
+> > vger, but that hasnt yet been determined)
+> >
+> > The devel list would be an open list for developers only.  Any
+> > tech-support related stuff would remain on the lists that are still
+> > used today.
+> >
+> > Specifically, we wanted to move the "v4l-dvb-maintainer" list to
+> > somewhere with spam filtering and turn this into a list where all
+> > development discussions and pull requests can take place.  We want
+> > a separation between user requests and developer discussion, so
+> > merging everything into a single list is not the direction that we
+> > want to take.
+>
+> Personally I'm generally not in favour of splitting an
+> open source community in "users" and "developers", but
+> I guess I'm the odd man out with that POV...
 
-On Tue, 21 Oct 2008 14:45:28 +0200
-Tobias Lorenz <tobias.lorenz@gmx.net> wrote:
+I think that keeping only one list will generate too much traffic. I 
+find it useful to have separate user and devel lists (provided people 
+do read the user list and not just the devel list).
 
-> Hi Alexey,
-> 
-> > There is chip in there named "silabs something", so i tried to add
-> > support in Tobias' driver radio-si470x. Have success. Works fine with
-> > kradio and gnomeradio under 2.6.27-git5 kernel. Thanks Tobias for
-> > consideration.
-> > (Tobias, if you want that patch change version of driver just ask and
-> > i can re-make the patch)
-> 
-> Very nice patch. Approved.
-> 
-> > I think it's not critical right now, i used "arecord -D hw:2,0 -r96000
-> > -c2 -f S16_LE | artsdsp aplay -B -" and periodically get "underrun"
-> > messages:
-> 
-> I have the same problems with the usbaudio or snd-usb-audio drivers. Maybe we should get in contact with them. But I don't want to open another building site for me.
-> 
-> > So, we have two patches. Patches attached to letter. Patch that
-> > touches HID-subsystem is created to be applied against -git tree on
-> > kernel.org.
-> 
-> Mauro can you apply the two patches in v4l-dvb?
+> However, similar to that there should be ONE developer
+> list, I think there should be ONE user list, and not
+> two. Maybe we should just shut linux-dvb down and ask
+> users to subscribe to the video4linux list? Or do
+> people think it's still useful to have distinct lists
+> for analog and digital?
 
-Sure. Could you send me your acked-by?
-> 
-> Thanks,
-> Toby
+I'm very much in favor of having one v4l-dvb-user and one v4l-dvb-devel 
+list. I've always disliked it that there were separate lists. Certainly 
+the average user doesn't care whether his card is digital or analog or 
+both, so one user list is very much desired IMHO.
 
+> Either way, IMHO you can't go wrong with moving v4l-dvb-maintainer
+> to vger so if you agree I'd like to encourage you to go forward with
+> that.
 
+I agree as well. As far as I am concerned we should end up with two 
+lists on vger: v4l-dvb-user and v4l-dvb-devel. Should be a nice 
+improvement, certainly for the video4linux list which is still with 
+redhat.com and with hard to access archives.
 
+Regards,
 
-Cheers,
-Mauro
+	Hans
 
 --
 video4linux-list mailing list
