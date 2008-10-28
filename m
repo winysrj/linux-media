@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9P7FNAF022083
-	for <video4linux-list@redhat.com>; Sat, 25 Oct 2008 03:15:23 -0400
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9P7EV6H023832
-	for <video4linux-list@redhat.com>; Sat, 25 Oct 2008 03:14:31 -0400
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: Tony Lindgren <tony@atomide.com>
-Date: Sat, 25 Oct 2008 12:44:14 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02D6297A8C@dbde02.ent.ti.com>
-In-Reply-To: <20081024191325.GF16354@atomide.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9SI7mAs005531
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 14:11:01 -0400
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9SI69g3031219
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 14:06:25 -0400
+Received: by ug-out-1314.google.com with SMTP id j30so774441ugc.13
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 11:06:08 -0700 (PDT)
+Date: Tue, 28 Oct 2008 21:05:53 +0300
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: video4linux-list@redhat.com
+Message-ID: <20081028180552.GA2677@tux>
+References: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
+	<208cbae30810190758x2f0c70f5m5856ce9ea84b26ae@mail.gmail.com>
+	<30353c3d0810191711y7be7c7f2i83d6a3a8ff46b6a0@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-fbdev-devel@lists.sourceforge.net"
-	<linux-fbdev-devel@lists.sourceforge.net>
-Subject: RE: [Linux-fbdev-devel] [PATCHv2 1/4] OMAP 2/3 DSS Library
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <30353c3d0810191711y7be7c7f2i83d6a3a8ff46b6a0@mail.gmail.com>
+Cc: 
+Subject: Re: [patch] radio-mr800: remove warn- and err- messages
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,132 +31,133 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hello, all
 
+Here is new patch, reformatted. Also KBUILD_MODNAME added.
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Saturday, October 25, 2008 12:43 AM
-> To: Shah, Hardik
-> Cc: linux-omap@vger.kernel.org; linux-fbdev-devel@lists.sourceforge.net;
-> video4linux-list@redhat.com
-> Subject: Re: [Linux-fbdev-devel] [PATCHv2 1/4] OMAP 2/3 DSS Library
-> 
-> Hi,
-> 
-> * Hardik Shah <hardik.shah@ti.com> [081024 03:16]:
-> > Cleaned up the DSS Library according to open source comments
-> >
-> > Removed unused #ifdefs
-> > Removed unused #defines
-> > Minor cleanups done
-> > Removed Architecture specific #ifdefs
-> >
-> > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> > 		Hari Nagalla <hnagalla@ti.com>
-> > 		Hardik Shah <hardik.shah@ti.com>
-> > 		Manjunath Hadli <mrh@ti.com>
-> > 		R Sivaraj <sivaraj@ti.com>
-> > 		Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > ---
-> >  arch/arm/plat-omap/Kconfig                 |    7 +
-> >  arch/arm/plat-omap/Makefile                |    2 +-
-> >  arch/arm/plat-omap/include/mach/io.h       |    2 +-
-> >  arch/arm/plat-omap/include/mach/omap-dss.h |  921 ++++++++++++
-> >  arch/arm/plat-omap/omap-dss.c              | 2248
-> ++++++++++++++++++++++++++++
-> >  5 files changed, 3178 insertions(+), 2 deletions(-)
-> >  create mode 100644 arch/arm/plat-omap/include/mach/omap-dss.h
-> >  create mode 100644 arch/arm/plat-omap/omap-dss.c
-> >
-> > diff --git a/arch/arm/plat-omap/include/mach/io.h b/arch/arm/plat-
-> omap/include/mach/io.h
-> > index ea55267..2495656 100644
-> > --- a/arch/arm/plat-omap/include/mach/io.h
-> > +++ b/arch/arm/plat-omap/include/mach/io.h
-> > @@ -142,11 +142,11 @@
-> >  #define OMAP343X_SDRC_VIRT	0xFD000000
-> >  #define OMAP343X_SDRC_SIZE	SZ_1M
-> >
-> > -
-> >  #define IO_OFFSET		0x90000000
-> >  #define __IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L3 and L4 */
-> >  #define __OMAP2_IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L3 and L4
-> */
-> >  #define io_v2p(va)		((va) - IO_OFFSET)/* Works for L3 and L4 */
-> > +#define io_p2v(pa)		__IO_ADDRESS(pa)/* Works for L3 and L4 */
-> >
-> >  /* DSP */
-> >  #define DSP_MEM_34XX_PHYS	OMAP34XX_DSP_MEM_BASE	/* 0x58000000 */
-> 
-> NAK for adding back io_p2v(). See below.
-> 
-> 
-> > diff --git a/arch/arm/plat-omap/include/mach/omap-dss.h b/arch/arm/plat-
-> omap/include/mach/omap-dss.h
-> > new file mode 100644
-> > index 0000000..d9a33bd
-> > --- /dev/null
-> > +++ b/arch/arm/plat-omap/include/mach/omap-dss.h
-> > @@ -0,0 +1,921 @@
-> > +/*
-> > + * arch/arm/plat-omap/include/mach/omap-dss.h
-> > + *
-> > + * Copyright (C) 2004-2005 Texas Instruments.
-> > + * Copyright (C) 2006 Texas Instruments.
-> > + *
-> > + * This file is licensed under the terms of the GNU General Public License
-> > + * version 2. This program is licensed "as is" without any warranty of any
-> > + * kind, whether express or implied.
-> > +
-> > + * Leveraged from original Linux 2.6 framebuffer driver for OMAP24xx
-> > + * Author: Andy Lowe (source@mvista.com)
-> > + * Copyright (C) 2004 MontaVista Software, Inc.
-> > + *
-> > + */
-> > +
-> > +#ifndef	__ASM_ARCH_OMAP_DISP_H
-> > +#define	__ASM_ARCH_OMAP_DISP_H
-> > +
-> > +/* 16 bit uses LDRH/STRH, base +/- offset_8 */
-> > +typedef struct {
-> > +	volatile u16 offset[256];
-> > +} __regbase16;
-> > +#define __REGV16(vaddr)		(((__regbase16 *)((vaddr)&~0xff)) \
-> > +					->offset[((vaddr)&0xff)>>1])
-> > +#define __REG16(paddr)		 __REGV16(io_p2v(paddr))
-> > +
-> > +/* 8/32 bit uses LDR/STR, base +/- offset_12 */
-> > +typedef struct {
-> > +	volatile u8 offset[4096];
-> > +} __regbase8;
-> > +#define __REGV8(vaddr)		(((__regbase8  *)((vaddr)&~4095)) \
-> > +					->offset[((vaddr)&4095)>>0])
-> > +#define __REG8(paddr)		 __REGV8(io_p2v(paddr))
-> > +
-> > +typedef struct {
-> > +	volatile u32 offset[4096];
-> > +} __regbase32;
-> > +#define __REGV32(vaddr)		(((__regbase32 *)((vaddr)&~4095)) \
-> > +					->offset[((vaddr)&4095)>>2])
-> > +#define __REG32(paddr)		__REGV32(io_p2v(paddr))
-> > +
-> 
-> NAK for adding back the __REG stuff. We've just spent quite a bit of
-> effort to remove these. The __REG stuff is not portable.
-> 
-> Please use ioremap and then __raw_read/write instead.
-> 
-[Shah, Hardik] Hi Tony,
-Please let me know if there are any other obvious issues you can see for pushing onto git.  I will clear this all the send you the final version for pushing.
+radio-mr800: remove warn-, err- and info-messages
 
-Regards,
-Hardik 
+Patch removes warn(), err() and info() statements in radio/radio-mr800.c,
+and place dev_warn, dev_info in right places.
+Printk changed on pr_info and pr_err macro.
 
-> Regards,
-> 
-> Tony
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
+---
+
+diff -r 0b2679b688fe linux/drivers/media/radio/radio-mr800.c
+--- a/linux/drivers/media/radio/radio-mr800.c	Tue Oct 28 14:15:21 2008 +0300
++++ b/linux/drivers/media/radio/radio-mr800.c	Tue Oct 28 20:49:54 2008 +0300
+@@ -362,7 +362,8 @@
+ 
+ 	radio->curfreq = f->frequency;
+ 	if (amradio_setfreq(radio, radio->curfreq) < 0)
+-		warn("Set frequency failed");
++		dev_warn(&radio->videodev->dev,
++			KBUILD_MODNAME " - set frequency failed\n");
+ 	return 0;
+ }
+ 
+@@ -385,8 +386,7 @@
+ 
+ 	for (i = 0; i < ARRAY_SIZE(radio_qctrl); i++) {
+ 		if (qc->id && qc->id == radio_qctrl[i].id) {
+-			memcpy(qc, &(radio_qctrl[i]),
+-						sizeof(*qc));
++			memcpy(qc, &(radio_qctrl[i]), sizeof(*qc));
+ 			return 0;
+ 		}
+ 	}
+@@ -417,12 +417,16 @@
+ 	case V4L2_CID_AUDIO_MUTE:
+ 		if (ctrl->value) {
+ 			if (amradio_stop(radio) < 0) {
+-				warn("amradio_stop() failed");
++				dev_warn(&radio->videodev->dev,
++					KBUILD_MODNAME
++						" - amradio_stop failed\n");
+ 				return -1;
+ 			}
+ 		} else {
+ 			if (amradio_start(radio) < 0) {
+-				warn("amradio_start() failed");
++				dev_warn(&radio->videodev->dev,
++					KBUILD_MODNAME
++						" - amradio_start failed\n");
+ 				return -1;
+ 			}
+ 		}
+@@ -478,13 +482,15 @@
+ 	radio->muted = 1;
+ 
+ 	if (amradio_start(radio) < 0) {
+-		warn("Radio did not start up properly");
++		dev_warn(&radio->videodev->dev,
++			KBUILD_MODNAME " - radio did not start up properly\n");
+ 		radio->users = 0;
+ 		unlock_kernel();
+ 		return -EIO;
+ 	}
+ 	if (amradio_setfreq(radio, radio->curfreq) < 0)
+-		warn("Set frequency failed");
++		dev_warn(&radio->videodev->dev,
++			KBUILD_MODNAME " - set frequency failed\n");
+ 
+ 	unlock_kernel();
+ 	return 0;
+@@ -511,9 +517,9 @@
+ 	struct amradio_device *radio = usb_get_intfdata(intf);
+ 
+ 	if (amradio_stop(radio) < 0)
+-		warn("amradio_stop() failed");
++		dev_warn(&intf->dev, "amradio_stop failed\n");
+ 
+-	info("radio-mr800: Going into suspend..");
++	dev_info(&intf->dev, "going into suspend..\n");
+ 
+ 	return 0;
+ }
+@@ -524,9 +530,9 @@
+ 	struct amradio_device *radio = usb_get_intfdata(intf);
+ 
+ 	if (amradio_start(radio) < 0)
+-		warn("amradio_start() failed");
++		dev_warn(&intf->dev, "amradio_start failed\n");
+ 
+-	info("radio-mr800: Coming out of suspend..");
++	dev_info(&intf->dev, "coming out of suspend..\n");
+ 
+ 	return 0;
+ }
+@@ -605,7 +611,7 @@
+ 
+ 	video_set_drvdata(radio->videodev, radio);
+ 	if (video_register_device(radio->videodev, VFL_TYPE_RADIO, radio_nr)) {
+-		warn("Could not register video device");
++		dev_warn(&intf->dev, "could not register video device\n");
+ 		video_device_release(radio->videodev);
+ 		kfree(radio->buffer);
+ 		kfree(radio);
+@@ -620,9 +626,13 @@
+ {
+ 	int retval = usb_register(&usb_amradio_driver);
+ 
+-	info(DRIVER_VERSION " " DRIVER_DESC);
++	pr_info(KBUILD_MODNAME
++		": version " DRIVER_VERSION " " DRIVER_DESC "\n");
++
+ 	if (retval)
+-		err("usb_register failed. Error number %d", retval);
++		pr_err(KBUILD_MODNAME
++			": usb_register failed. Error number %d\n", retval);
++
+ 	return retval;
+ }
+ 
+--
+
+-- 
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
