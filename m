@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1.radix.net ([207.192.128.31])
+Received: from djamil.net ([88.177.154.16] helo=localhost)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <awalls@radix.net>) id 1KqItm-0005V5-Qy
-	for linux-dvb@linuxtv.org; Thu, 16 Oct 2008 04:47:41 +0200
-From: Andy Walls <awalls@radix.net>
-To: Tom Moore <htmoore@comcast.net>
-In-Reply-To: <001501c92f36$a7112d30$f5338790$@net>
-References: <001501c92e56$a4903870$edb0a950$@net>
-	<1224029752.3248.34.camel@palomino.walls.org>
-	<003101c92e68$fe5e5000$fb1af000$@net>
-	<1224067873.5059.15.camel@morgan.walls.org>
-	<001501c92f36$a7112d30$f5338790$@net>
-Date: Wed, 15 Oct 2008 22:49:15 -0400
-Message-Id: <1224125355.3124.113.camel@palomino.walls.org>
+	(envelope-from <djamil@djamil.net>) id 1KvGeV-0004pf-CA
+	for linux-dvb@linuxtv.org; Wed, 29 Oct 2008 20:24:25 +0100
+Received: from [192.168.1.13] by localhost with esmtp (Exim 4.69)
+	(envelope-from <djamil@djamil.net>) id 1KvGcv-0002uq-Ia
+	for linux-dvb@linuxtv.org; Wed, 29 Oct 2008 20:22:47 +0100
+From: djamil <djamil@djamil.net>
+To: linux-dvb@linuxtv.org
+Date: Wed, 29 Oct 2008 20:24:16 +0100
+Message-Id: <1225308256.7562.0.camel@toptop>
 Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Duel Hauppauge HVR-1600
+Subject: [linux-dvb] hauppauge hvr 1400
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,38 +19,60 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0291847635=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wed, 2008-10-15 at 21:26 -0500, Tom Moore wrote:
 
- 
-> Andy,
-> > Thanks Andy for all your help. Instead of headache of TRYING to build a
-> custom kernel, I swopped-out hard drives and installed Mythbuntu. After
-> installing the cx18 drivers it also only initialized one card. I then
-> modified the bootloader with "vmalloc=256M" and it worked like a champ. I
-> think I will put my other hard drive back in and try to update the kernel in
-> Mythdora 5 (even though the docs recommend against it). Anyway I posted at
-> the bottom as you said and I REALLY appreciate you taking the time to help
-> me.
-
-You're welcome.  I'm glad you found a path to a solution.
-
-Regards,
-Andy
-
->  Maybe one day I can return the favor.
-> 
-> Have a great day,
-> Tom
+--===============0291847635==
+Content-Type: multipart/alternative; boundary="=-q53xTNeNbj3bI1LvoIk5"
 
 
+--=-q53xTNeNbj3bI1LvoIk5
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+hi
+ i have a question
+ i am buying an hvr 1400 with looks like a clone of 1500 which is ntsc
+ mine is poal
+ pal-secam for europe
+ will the driver see it or should i mod the sources ?
+
+--=-q53xTNeNbj3bI1LvoIk5
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
+  <META NAME="GENERATOR" CONTENT="GtkHTML/3.24.1">
+</HEAD>
+<BODY>
+hi<BR>
+ i have a question<BR>
+ i am buying an hvr 1400 with looks like a clone of 1500 which is ntsc<BR>
+ mine is poal<BR>
+ pal-secam for europe<BR>
+ will the driver see it or should i mod the sources ?
+</BODY>
+</HTML>
+
+--=-q53xTNeNbj3bI1LvoIk5--
+
+
+
+--===============0291847635==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0291847635==--
