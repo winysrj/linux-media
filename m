@@ -1,16 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qb-out-0506.google.com ([72.14.204.226])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <a.s.zakharin@gmail.com>) id 1Kpogj-00083v-FM
-	for linux-dvb@linuxtv.org; Tue, 14 Oct 2008 20:32:12 +0200
-Received: by qb-out-0506.google.com with SMTP id e11so2163374qbe.25
-	for <linux-dvb@linuxtv.org>; Tue, 14 Oct 2008 11:32:05 -0700 (PDT)
-Message-ID: <48F4E5A2.7080509@gmail.com>
-Date: Tue, 14 Oct 2008 22:32:02 +0400
-From: =?UTF-8?B?0JDQvdGC0L7QvQ==?= <a.s.zakharin@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <stefan.gehrer@gmx.de>) id 1KvFyG-00010l-G0
+	for linux-dvb@linuxtv.org; Wed, 29 Oct 2008 19:40:45 +0100
+Message-ID: <4908ADFD.6040502@gmx.de>
+Date: Wed, 29 Oct 2008 19:39:57 +0100
+From: Stefan Gehrer <stefan.gehrer@gmx.de>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb]  AverMedia AverTV Hybrid Express Slim
+Subject: [linux-dvb] Key map for new remote control that came with Terratec
+ Cinergy T USB XXS
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,24 +23,81 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello to all.
+Hi all,
 
-I also have this card:
-http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Hybrid_Express_Slim_HC81R
+I recently bought a Terratec Cinergy T USB XXS device
+and found that the remote control doesn't work correctly
+with kernel 2.7.27, so I had to make the below key table
+to get it to work.
+In function dib0700_rc_query() in file dib0700_devices.c,
+I then activate this keymap with
 
-I found all kernel modules for chips in this card (CX23885 XC3028 AF9013)
-But nothing happened when I load them. For example when I load tuner-xc2028 or tuner-xc3028,
-it seems that firmware doesn't loaded.
-Only when I load cx23885 card=2 I found video0 and video1 in /dev
-And if card=4 there is dvb/adapter0 folder and  "demux0  dvr0  frontend0  net0" on it.
-They doesn't work in tvtime/kdetv. May be I do something wrong? It is my first tuner.
-Can I test it otherwise?
+     if(dvb_usb_dib0700_ir_proto == 1)
+         keymap = xxs_new_rc_keys;
 
-P.S. Sorry for bad English.
+Something like this is necessary as otherwise key codes
+overlap with the key table already in the driver.
+But if other remotes also have dvb_usb_dib0700_ir_proto
+equal to one this is obviously a problem.
+Please advise me if you need any further information
+for getting support for that remote into the driver.
 
-Best regards,
-Anton
+And one small problem my approach currently has:
+I see neither key repeats nor a key release, so there
+is no way to register long presses. So maybe some more
+changes are required for proper support.
 
+Best regards
+Stefan Gehrer
+
+static struct dvb_usb_rc_key xxs_new_rc_keys[] = {
+     { 0x0f, 0x7e, KEY_POWER },
+     { 0x07, 0x7c, KEY_1 },
+     { 0x08, 0x40, KEY_2 },
+     { 0x03, 0x7d, KEY_3 },
+     { 0x0c, 0x41, KEY_4 },
+     { 0x04, 0x43, KEY_5 },
+     { 0x0b, 0x7f, KEY_6 },
+     { 0x01, 0x7d, KEY_7 },
+     { 0x0e, 0x41, KEY_8 },
+     { 0x06, 0x43, KEY_9 },
+     { 0x02, 0x42, KEY_0 },
+     { 0x0f, 0x71, KEY_HOME },
+     { 0x07, 0x73, KEY_MENU }, /* DVD Menu */
+     { 0x08, 0x4f, KEY_SUBTITLE },
+     { 0x03, 0x72, KEY_TEXT }, /* Teletext */
+     { 0x0c, 0x4e, KEY_DELETE },
+     { 0x04, 0x4c, KEY_TV },
+     { 0x0b, 0x70, KEY_DVD },
+     { 0x0e, 0x4e, KEY_VIDEO },
+     { 0x06, 0x4c, KEY_AUDIO }, /* Music */
+     { 0x09, 0x700, KEY_SCREEN }, /* Pic */
+     { 0x00, 0x7d, KEY_UP },
+     { 0x0f, 0x41, KEY_LEFT },
+     { 0x07, 0x43, KEY_OK },
+     { 0x08, 0x7f, KEY_RIGHT },
+     { 0x03, 0x42, KEY_DOWN },
+     { 0x0a, 0x40, KEY_EPG },
+     { 0x04, 0x7c, KEY_INFO },
+     { 0x0d, 0x71, KEY_BACK },
+     { 0x02, 0x7d, KEY_VOLUMEUP },
+     { 0x05, 0x43, KEY_VOLUMEDOWN },
+     { 0x02, 0x4d, KEY_PLAY },
+     { 0x0d, 0x41, KEY_MUTE },
+     { 0x09, 0x40, KEY_CHANNELUP },
+     { 0x0a, 0x7f, KEY_CHANNELDOWN },
+     { 0x0b, 0x40, KEY_RED },
+     { 0x01, 0x42, KEY_GREEN },
+     { 0x0e, 0x7e, KEY_YELLOW },
+     { 0x06, 0x7c, KEY_BLUE },
+     { 0x01, 0x4d, KEY_RECORD },
+     { 0x01, 0x72, KEY_STOP },
+     { 0x00, 0x4d, KEY_PAUSE },
+     { 0x03, 0x4d, KEY_LAST },
+     { 0x05, 0x73, KEY_REWIND },
+     { 0x0a, 0x4f, KEY_FASTFORWARD },
+     { 0x02, 0x72, KEY_NEXT }
+};
 
 _______________________________________________
 linux-dvb mailing list
