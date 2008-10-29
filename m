@@ -1,22 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m96B8U2U002993
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 07:08:30 -0400
-Received: from mgw-mx09.nokia.com (smtp.nokia.com [192.100.105.134])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m96B8KpJ008046
-	for <video4linux-list@redhat.com>; Mon, 6 Oct 2008 07:08:20 -0400
-From: Sakari Ailus <sakari.ailus@nokia.com>
-To: video4linux-list@redhat.com
-Date: Mon,  6 Oct 2008 14:07:51 +0300
-Message-Id: <12232912721018-git-send-email-sakari.ailus@nokia.com>
-In-Reply-To: <1223291272973-git-send-email-sakari.ailus@nokia.com>
-References: <48E9F178.50507@nokia.com>
-	<12232912722008-git-send-email-sakari.ailus@nokia.com>
-	<12232912722050-git-send-email-sakari.ailus@nokia.com>
-	<12232912721943-git-send-email-sakari.ailus@nokia.com>
-	<1223291272973-git-send-email-sakari.ailus@nokia.com>
-Cc: vimarsh.zutshi@nokia.com, tuukka.o.toivonen@nokia.com, hnagalla@ti.com
-Subject: [PATCH] V4L: Int if: Export more interfaces to modules
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9T3I4cv026281
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 23:18:04 -0400
+Received: from mail-gx0-f12.google.com (mail-gx0-f12.google.com
+	[209.85.217.12])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9T3HNv5022893
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 23:17:23 -0400
+Received: by gxk5 with SMTP id 5so5241702gxk.3
+	for <video4linux-list@redhat.com>; Tue, 28 Oct 2008 20:17:23 -0700 (PDT)
+Message-ID: <68cac7520810282017i454905a5y561ad9f0b1a0e876@mail.gmail.com>
+Date: Wed, 29 Oct 2008 01:17:22 -0200
+From: "Douglas Schilling Landgraf" <dougsland@gmail.com>
+To: "Alexey Klimov" <klimov.linux@gmail.com>, david@identd.dyndns.org
+In-Reply-To: <20081028180552.GA2677@tux>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
+	<208cbae30810190758x2f0c70f5m5856ce9ea84b26ae@mail.gmail.com>
+	<30353c3d0810191711y7be7c7f2i83d6a3a8ff46b6a0@mail.gmail.com>
+	<20081028180552.GA2677@tux>
+Cc: video4linux-list@redhat.com
+Subject: Re: [patch] radio-mr800: remove warn- and err- messages
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,69 +34,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Export v4l2_int_device_try_attach_all. This allows initiating the
-initialisation of int if device after the drivers have been registered.
+Hello guys,
 
-Also allow drivers to call ioctls if v4l2-int-if was compiled as
-module.
+On Tue, Oct 28, 2008 at 4:05 PM, Alexey Klimov <klimov.linux@gmail.com> wrote:
+> Hello, all
+>
+> Here is new patch, reformatted. Also KBUILD_MODNAME added.
+>
+> radio-mr800: remove warn-, err- and info-messages
+>
+> Patch removes warn(), err() and info() statements in radio/radio-mr800.c,
+> and place dev_warn, dev_info in right places.
+> Printk changed on pr_info and pr_err macro.
+>
+> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
----
- drivers/media/video/v4l2-int-device.c |    5 ++++-
- include/media/v4l2-int-device.h       |    2 ++
- 2 files changed, 6 insertions(+), 1 deletions(-)
+Seems sane to my eyes.
 
-diff --git a/drivers/media/video/v4l2-int-device.c b/drivers/media/video/v4l2-int-device.c
-index 0e45499..a935bae 100644
---- a/drivers/media/video/v4l2-int-device.c
-+++ b/drivers/media/video/v4l2-int-device.c
-@@ -32,7 +32,7 @@
- static DEFINE_MUTEX(mutex);
- static LIST_HEAD(int_list);
- 
--static void v4l2_int_device_try_attach_all(void)
-+void v4l2_int_device_try_attach_all(void)
- {
- 	struct v4l2_int_device *m, *s;
- 
-@@ -66,6 +66,7 @@ static void v4l2_int_device_try_attach_all(void)
- 		}
- 	}
- }
-+EXPORT_SYMBOL_GPL(v4l2_int_device_try_attach_all);
- 
- static int ioctl_sort_cmp(const void *a, const void *b)
- {
-@@ -144,6 +145,7 @@ int v4l2_int_ioctl_0(struct v4l2_int_device *d, int cmd)
- 		find_ioctl(d->u.slave, cmd,
- 			   (v4l2_int_ioctl_func *)no_such_ioctl_0))(d);
- }
-+EXPORT_SYMBOL_GPL(v4l2_int_ioctl_0);
- 
- static int no_such_ioctl_1(struct v4l2_int_device *d, void *arg)
- {
-@@ -156,5 +158,6 @@ int v4l2_int_ioctl_1(struct v4l2_int_device *d, int cmd, void *arg)
- 		find_ioctl(d->u.slave, cmd,
- 			   (v4l2_int_ioctl_func *)no_such_ioctl_1))(d, arg);
- }
-+EXPORT_SYMBOL_GPL(v4l2_int_ioctl_1);
- 
- MODULE_LICENSE("GPL");
-diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index bf11de7..9b7b008 100644
---- a/include/media/v4l2-int-device.h
-+++ b/include/media/v4l2-int-device.h
-@@ -84,6 +84,8 @@ struct v4l2_int_device {
- 	void *priv;
- };
- 
-+void v4l2_int_device_try_attach_all(void);
-+
- int v4l2_int_device_register(struct v4l2_int_device *d);
- void v4l2_int_device_unregister(struct v4l2_int_device *d);
- 
--- 
-1.5.0.6
+Cheers,
+Douglas
 
 --
 video4linux-list mailing list
