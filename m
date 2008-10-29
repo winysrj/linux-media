@@ -1,25 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9G2LWtB005116
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 22:21:33 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9G2LMw8016797
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 22:21:22 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so2957818wfc.6
-	for <video4linux-list@redhat.com>; Wed, 15 Oct 2008 19:21:21 -0700 (PDT)
-Message-ID: <aec7e5c30810151921v53ab947aq8e1dd6c6ee834eaa@mail.gmail.com>
-Date: Thu, 16 Oct 2008 11:21:21 +0900
-From: "Magnus Damm" <magnus.damm@gmail.com>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-In-Reply-To: <Pine.LNX.4.64.0810160041250.8535@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9TH9GnK032275
+	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 13:09:16 -0400
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9TH8RTh026086
+	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 13:08:30 -0400
+Received: by ey-out-2122.google.com with SMTP id 4so41845eyf.39
+	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 10:08:27 -0700 (PDT)
+Message-ID: <30353c3d0810291008mc73e3ady3fdabc5adc0eacd5@mail.gmail.com>
+Date: Wed, 29 Oct 2008 13:08:26 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Alexey Klimov" <klimov.linux@gmail.com>
+In-Reply-To: <20081028180552.GA2677@tux>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <uskqyqg58.wl%morimoto.kuninori@renesas.com>
-	<Pine.LNX.4.64.0810160041250.8535@axis700.grange>
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [PATCH] Add ov772x driver
+References: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
+	<208cbae30810190758x2f0c70f5m5856ce9ea84b26ae@mail.gmail.com>
+	<30353c3d0810191711y7be7c7f2i83d6a3a8ff46b6a0@mail.gmail.com>
+	<20081028180552.GA2677@tux>
+Cc: video4linux-list@redhat.com
+Subject: Re: [patch] radio-mr800: remove warn- and err- messages
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,121 +33,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Guennadi,
-
-On Thu, Oct 16, 2008 at 8:41 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi, and thanks for the patch! A couple of notes:
+On Tue, Oct 28, 2008 at 1:05 PM, Alexey Klimov <klimov.linux@gmail.com> wrote:
+> Hello, all
 >
-> (Magnus, see a note for you at the bottom:-))
+> Here is new patch, reformatted. Also KBUILD_MODNAME added.
 >
-> first, you didn't add an ID for your sensor to
-> include/media/v4l2-chip-ident.h, it is not reqlly required for your driver
-> functionality, but you can use it to provide as a reply to the
-> .vidioc_g_chip_ident request (.get_chip_id in struct soc_camera_ops).
+> radio-mr800: remove warn-, err- and info-messages
 >
-> On Wed, 15 Oct 2008, Kuninori Morimoto wrote:
+> Patch removes warn(), err() and info() statements in radio/radio-mr800.c,
+> and place dev_warn, dev_info in right places.
+> Printk changed on pr_info and pr_err macro.
 >
->> This patch adds ov772x driver that use soc_camera framework.
->> It was tested on SH Migo-r board.
->>
->> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-
-[snip]
-
->> +static struct regval_list ov772x_default_regs[] =
->> +{
->> +     { COM3,  ZERO },
->> +     { COM4,  PLL_4x | 0x01 },
->> +     { 0x16,  0x00 },  /* Mystery */
->> +     { COM11, B4 },    /* Mystery */
->> +     { 0x28,  0x00 },  /* Mystery */
->> +     { HREF,  0x00 },
->> +     { COM13, 0xe2 },  /* Mystery */
+> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 >
-> Those "Mystery" register - are they not documented, or has the driver been
-> reverse-engineered?
 
-The data sheet does not cover them, but I think they come from the
-magic init sequence in the Migo-R board code.
+NACK. KBIULD_MODNAME should not be used except from within module
+specific function (IE module_init and module_exit routines). It is my
+understanding that KBUILD_MODNAME expands to the name module when the
+driver is compiled as a module and the name of the file otherwise.
+While I understand this is how the previous warn() and err() macros
+were defined in usb.h I don't believe it's the right thing to do. If
+you want my ack, you have the following options:
 
->> +     /*
->> +      * color bar mode
->> +      */
->> +     if (priv->info->color_bar) {
->> +             ret = ov772x_mask_set(priv->client,
->> +                             DSP_CTRL3, CBAR_MASK  , CBAR_ON);
->> +             if (ret < 0)
->> +                     goto start_end;
->> +     }
->
-> What is this "color bar mode" and why do you think you need it to be
-> specified by the platform data (also see below)?
+1. Use the same name used in the usb_driver struct
+2. Remove the name altogether
 
-The color bar mode is a camera test mode where color bars similar to
-the vivi driver are output instead of the camera image. It's very
-useful for testing and getting byte order issues resolved. Ideally I'd
-like to have it as a second output, but I have to extend the SoC
-camera framework first to get that in place.
+If I were writing it, I'd do the following:
 
-I'm not sure if platform data is the best place to enable this, but I
-guess it's good enough.
+#define DRVNAME "radio-mr800"
+#define amradio_dev_err(dev, fmt, arg...) dev_err(dev, DRVNAME fmt, ##arg)
+#define amradio_dev_warn(dev, fmt, arg...) dev_warn(dev, DRVNAME fmt, ##arg)
 
->> +static int ov772x_set_bus_param(struct soc_camera_device *icd,
->> +                             unsigned long             flags)
->> +{
->> +     int ret = 0;
->> +
->> +     /*
->> +      * check bus width
->> +      */
->> +     switch (flags & SOCAM_DATAWIDTH_MASK) {
->> +     case SOCAM_DATAWIDTH_10:
->> +     case SOCAM_DATAWIDTH_8:
->
-> How does it work in both 8- and 10-bit modes without any reconfiguration?
-> Are then just the upper 8 bits connected to the interface? Is it
-> hard-wired, or software-switchable at runtime?
+Update the name member of the usb_driver struct to use DRVNAME rather
+than the constant string it has there.
+Use amradio_dev_err and amradio_dev_warn wherever dev_err or dev_warn is needed.
 
-The device has 10 data pins but we use 8 on Migo-R. I think some extra
-pixel formats are available with 10-bit interface but I'm not sure.
-The data sheet is not very clear.
+By doing it this way, the code stays clean, consistent and easily maintainable.
 
->> +
->> +struct ov772x_camera_info {
->> +     int             iface;
->> +     unsigned long   buswidth;
->> +     int             color_bar;
->> +     void (*power)(int);
->> +};
->
-> Now, this one. Please, use struct soc_camera_link. It also provides bus_id
-> (your iface), power, ok, I admit, the inclusion of the "gpio" member in it
-> was a mistake of mine, it is too specific, we might remove it at some
-> point. I am not sure you really need color_bar and bus_width. I think,
-> cameras are more or less exchangeable parts, and if they need some
-> parameters, that cannot be autoprobed and do not belong to the camera
-> itself, it might be better to make them module parameters, like the
-> sensor_type parameter in mt9v022. Even if in your case the sensor chip is
-> soldered on the board, in another configuration it might not be.
+-------------
+On a related note, the name stored in the usb_driver struct gets
+transferred to a device struct by the usb subsystem. In a perfect
+world, I believe this struct would be the right one to pass to dev_err
+and dev_warn directly. Unfortunately though, that device struct is
+buried within usb specific structures and gaining access to is
+difficult and could be problematic in the future. It is for this
+reason I don't advocate its use. Having said that, I think it would be
+OK to use pr_err and pr_warn instead of dev_err and dev_warn here
+since we really don't have access to the appropriate device struct.
+That said, I'd also ack a patch which redefined the above macros to
+use pr_err and pr_warning rather than dev_err and dev_warn and renamed
+them appropriately.
 
-Using soc_camera_link sounds like a good idea. I don't agree with you
-regarding the module parameters - doing that removes the
-per-camera-instance configuration that the platform data gives us.
+Regards,
 
-> Magnus, I think, we should switch soc_camera_platform to use
-> soc_camera_link too.
-
-Sure.
-
-> In both ov772x and soc_camera_platform cases, if you do need extra
-> platform information, just embed soc_camera_link in your struct.
-
-That seems the best way forward.
-
-Cheers,
-
-/ magnus
+David Ellingsworth
 
 --
 video4linux-list mailing list
