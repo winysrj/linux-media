@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 217-112-173-73.cust.avonet.cz ([217.112.173.73]
-	helo=podzimek.org) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <andrej@podzimek.org>) id 1KsQ39-0002yz-6q
-	for linux-dvb@linuxtv.org; Wed, 22 Oct 2008 00:50:05 +0200
-Message-ID: <48FE5C78.2030301@podzimek.org>
-Date: Wed, 22 Oct 2008 00:49:28 +0200
-From: Andrej Podzimek <andrej@podzimek.org>
+Received: from ik-out-1112.google.com ([66.249.90.177])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mkrufky@gmail.com>) id 1KvGgT-0005Pz-EI
+	for linux-dvb@linuxtv.org; Wed, 29 Oct 2008 20:26:26 +0100
+Received: by ik-out-1112.google.com with SMTP id c28so173807ika.1
+	for <linux-dvb@linuxtv.org>; Wed, 29 Oct 2008 12:26:22 -0700 (PDT)
+Message-ID: <37219a840810291226k4b489c5aq94ab9ee455fa5ce9@mail.gmail.com>
+Date: Wed, 29 Oct 2008 15:26:21 -0400
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: djamil <djamil@djamil.net>
+In-Reply-To: <1225308256.7562.0.camel@toptop>
 MIME-Version: 1.0
-To: Sebastian Marskamp <SebastianMarskamp@web.de>
-References: <1550114954@web.de>
-In-Reply-To: <1550114954@web.de>
-Cc: Antti Palosaari <crope@iki.fi>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] MSI DigiVox mini II V3.0 stopped working
+Content-Disposition: inline
+References: <1225308256.7562.0.camel@toptop>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] hauppauge hvr 1400
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,29 +28,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Sebastian Marskamp wrote:
-> Same here  ..Problem occures with Kernel  	2.6.27   . Firmware is installed correct , hardware is working under windows . No error Message at all. 
-> 
-> [ 2696.610565] af9015_usb_probe: interface:0
-> [ 2696.611970] af9015_read_config: IR mode:1
-> [ 2696.614463] af9015_read_config: TS mode:0
-> [ 2696.615839] af9015_read_config: [0] xtal:2 set adc_clock:28000
-> [ 2696.618595] af9015_read_config: [0] IF1:43000
-> [ 2696.621344] af9015_read_config: [0] MT2060 IF1:0
-> [ 2696.622718] af9015_read_config: [0] tuner id:156
-> [ 2696.623093] af9015_identify_state: reply:01
-> [ 2696.623097] dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in cold state, will try to load a firmware
-> [ 2696.623100] firmware: requesting dvb-usb-af9015.fw
-> [ 2696.634547] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-> [ 2696.634552] af9015_download_firmware:
-> [ 2696.701890] usbcore: registered new interface driver dvb_usb_af9015
-> 
-> Its just not working anymore 
+2008/10/29 djamil <djamil@djamil.net>:
+> hi
+> i have a question
+> i am buying an hvr 1400 with looks like a clone of 1500 which is ntsc
+> mine is poal
+> pal-secam for europe
+> will the driver see it or should i mod the sources ?
 
-Well, in my case, it *did* work just normally. I watched TV for about three hours yesterday evening, using exactly the same SW and machine as now. Will try to set debug=3 for that module in modprobe.conf.
 
-Andrej
+HVR-1400 is *not* a clone of the HVR-1500, but it is supported by the
+Linux CX23885 driver.
 
+DVB-T is working, analog not yet available.
+
+Regards,
+Mike
 
 _______________________________________________
 linux-dvb mailing list
