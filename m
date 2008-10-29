@@ -1,27 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9GKB4Ms012404
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 16:11:04 -0400
-Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9GKAp3p027060
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 16:10:52 -0400
-Received: by wa-out-1112.google.com with SMTP id j4so136456wah.19
-	for <video4linux-list@redhat.com>; Thu, 16 Oct 2008 13:10:51 -0700 (PDT)
-From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-To: stuart <stuart@xnet.com>, video4linux-list@redhat.com
-Date: Thu, 16 Oct 2008 15:10:48 -0500
-References: <48CD6F11.8020900@xnet.com>
-	<1224140231.3577.5.camel@pc10.localdom.local>
-	<48F753FC.4030901@xnet.com>
-In-Reply-To: <48F753FC.4030901@xnet.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9THCxtF003086
+	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 13:12:59 -0400
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.172])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9THC75S028722
+	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 13:12:07 -0400
+Received: by ug-out-1314.google.com with SMTP id j30so1552713ugc.13
+	for <video4linux-list@redhat.com>; Wed, 29 Oct 2008 10:12:06 -0700 (PDT)
+Message-ID: <30353c3d0810291012y5c9a4c54x480fdb0fa807dd0c@mail.gmail.com>
+Date: Wed, 29 Oct 2008 13:12:06 -0400
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Alexey Klimov" <klimov.linux@gmail.com>
+In-Reply-To: <30353c3d0810291008mc73e3ady3fdabc5adc0eacd5@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200810161510.48208.vanessaezekowitz@gmail.com>
-Cc: 
-Subject: Re: KWorld 120 IR control?
+References: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
+	<208cbae30810190758x2f0c70f5m5856ce9ea84b26ae@mail.gmail.com>
+	<30353c3d0810191711y7be7c7f2i83d6a3a8ff46b6a0@mail.gmail.com>
+	<20081028180552.GA2677@tux>
+	<30353c3d0810291008mc73e3ady3fdabc5adc0eacd5@mail.gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: [patch] radio-mr800: remove warn- and err- messages
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,38 +34,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thursday 16 October 2008 9:47:24 am stuart wrote:
-> 
-> [off list - as this doesn't add much additional info]
-> 
-> >> I looked and found an 8 and 16 pin SMD IC on my kworld 120.  The 16 pin 
-> >> device turned out to be a multi-bit A/D converter, not an I2C 
-> >> controller.  After reading the above again I believe I understand what 
-> >> 20 pin device you are talking about.  Just right of the composite video 
-> >> input past the Xtl in this photo:
-> >> http://c1.neweggimages.com/NeweggImage/productimage/15-260-007-15.jpg
-> >> ...I'll have to take another look.
-> 
-> Interesting, I can not read any writing on that chip.  All I see is a 
-> green dot probably identifying pin 1.  If this is a common i2c 
-> controller - why bother? Or are the KS003 and KS007 custom chips?
-> 
-> > Does any unknown device show up with cx88xx i2c_scan=1?
+On Wed, Oct 29, 2008 at 1:08 PM, David Ellingsworth
+<david@identd.dyndns.org> wrote:
+> On Tue, Oct 28, 2008 at 1:05 PM, Alexey Klimov <klimov.linux@gmail.com> wrote:
+>> Hello, all
+>>
+>> Here is new patch, reformatted. Also KBUILD_MODNAME added.
+>>
+>> radio-mr800: remove warn-, err- and info-messages
+>>
+>> Patch removes warn(), err() and info() statements in radio/radio-mr800.c,
+>> and place dev_warn, dev_info in right places.
+>> Printk changed on pr_info and pr_err macro.
+>>
+>> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+>>
+>
+> NACK. KBIULD_MODNAME should not be used except from within module
+> specific function (IE module_init and module_exit routines). It is my
+> understanding that KBUILD_MODNAME expands to the name module when the
+> driver is compiled as a module and the name of the file otherwise.
+> While I understand this is how the previous warn() and err() macros
+> were defined in usb.h I don't believe it's the right thing to do. If
+> you want my ack, you have the following options:
+>
+> 1. Use the same name used in the usb_driver struct
+> 2. Remove the name altogether
+>
+> If I were writing it, I'd do the following:
+>
+> #define DRVNAME "radio-mr800"
+> #define amradio_dev_err(dev, fmt, arg...) dev_err(dev, DRVNAME fmt, ##arg)
+> #define amradio_dev_warn(dev, fmt, arg...) dev_warn(dev, DRVNAME fmt, ##arg)
+Minor correction here ^^^^^
 
-If by this you mean to add an appropriate line to /etc/modprobe.d/options...  Here's what I got in dmesg when I did this (after a clean reboot with no cx88-related modules loaded):
+It should be:
+#define amradio_dev_err(dev, fmt, arg...) dev_err(dev, DRVNAME ": " fmt, ##arg)
+#define amradio_dev_warn(dev, fmt, arg...) dev_warn(dev, DRVNAME ": "
+fmt, ##arg)
 
-cx88[0]: i2c scan: found device @ 0x32  [???]
-cx88[0]: i2c scan: found device @ 0x34  [???]
-cx88[0]: i2c scan: found device @ 0x66  [???]
-cx88[0]: i2c scan: found device @ 0xa0  [eeprom]
-cx88[0]: i2c scan: found device @ 0xc2  [tuner (analog/dvb)]
-
-If you need more from the dmesg output, let me know.
-
--- 
-"Life is full of positive and negative events.  Spend
-your time considering the former, not the latter."
-Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+- David Ellingsworth
 
 --
 video4linux-list mailing list
