@@ -1,19 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from vds2011.yellis.net ([79.170.233.11])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1Kpt1L-0003il-M0
-	for linux-dvb@linuxtv.org; Wed, 15 Oct 2008 01:09:44 +0200
-Message-ID: <48F526B1.8040807@gmail.com>
-Date: Wed, 15 Oct 2008 03:09:37 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <frederic.cand@anevia.com>) id 1KvC9k-000627-UA
+	for linux-dvb@linuxtv.org; Wed, 29 Oct 2008 15:36:21 +0100
+Received: from goliath.anevia.com (cac94-10-88-170-236-224.fbx.proxad.net
+	[88.170.236.224])
+	by vds2011.yellis.net (Postfix) with ESMTP id 67ACE2FA894
+	for <linux-dvb@linuxtv.org>; Wed, 29 Oct 2008 15:36:17 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by goliath.anevia.com (Postfix) with ESMTP id E3DA51300139
+	for <linux-dvb@linuxtv.org>; Wed, 29 Oct 2008 15:36:14 +0100 (CET)
+Received: from goliath.anevia.com ([127.0.0.1])
+	by localhost (goliath.anevia.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id jpvueqOvvUtd for <linux-dvb@linuxtv.org>;
+	Wed, 29 Oct 2008 15:36:10 +0100 (CET)
+Received: from [10.0.1.25] (fcand.anevia.com [10.0.1.25])
+	by goliath.anevia.com (Postfix) with ESMTP id 315B3130010E
+	for <linux-dvb@linuxtv.org>; Wed, 29 Oct 2008 15:36:10 +0100 (CET)
+Message-ID: <490874D9.6080708@anevia.com>
+Date: Wed, 29 Oct 2008 15:36:09 +0100
+From: Frederic CAND <frederic.cand@anevia.com>
 MIME-Version: 1.0
-To: Emmanuel ALLAUD <eallaud@yahoo.fr>
-References: <c74595dc0810012238p6eb5ea9fg30d8cc296a803a32@mail.gmail.com>	<1223212383l.6064l.0l@manu-laptop>	<c74595dc0810050654j1e4519cbn2c4a996cb5c3d03c@mail.gmail.com>	<1223254834l.7216l.0l@manu-laptop>	<c74595dc0810060333x80a0472n5e9779fb16446b35@mail.gmail.com>
-	<1224014045l.11287l.1l@manu-laptop>
-In-Reply-To: <1224014045l.11287l.1l@manu-laptop>
-Cc: Linux DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Re : Re : Re : Re : Twinhan 1041 (SP 400) lock and
- scan problems - the solution [not quite :(]
+To: Linux DVB Mailing List <linux-dvb@linuxtv.org>
+References: <4906E9CA.90003@anevia.com>
+In-Reply-To: <4906E9CA.90003@anevia.com>
+Subject: Re: [linux-dvb] cx88-blackbird mailbox timeout
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,51 +38,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Frederic CAND a =E9crit :
+> Dear all,
+> I'm using one of the latest snapshots with my hauppauge hvr1300. I'm =
 
-Emmanuel ALLAUD wrote:
-> Le 06.10.2008 06:33:56, Alex Betis a =E9crit :
->> Emmanuel,
->>
->> As I wrote:
->>> Just to clarify it, the changes mostly affect DVB-S channels
->>> scanning,
->>> it
->>> doesn't help with DVB-S2 locking problem since the code is totally
->>> different
->>> for S and S2 signal search.
->> The 11495 channel you reported as bad is DVB-S2, so my changes =
+> encoutering an issue, where randomly the mpeg ps device does not contain =
 
->> doesn't
->> help
->> for that channel.
->>
->> I hope Manu will find a solution since I don't have any documentation
->> for
->> that chip and solving the DVB-S2 problem needs knowledge in chip
->> internals.
+> any sound track at all. I insist on the random side of the thing. If I =
+
+> completly power off my computer, no card can be affected by this bug, or =
+
+> any other card can be. But when a card is affected, it is until the =
+
+> computer is powered off. Unloading / reloading the modules won't fix.
 > =
 
-> OK so here are the 2 logs using simpledvbtune, one using dvb-s2 and the =
+> Other thing, on closing an mpeg device affected by this bug, the dmesg =
 
-> other dvb-s (and I check the tables from the other transponders of this =
+> will contain :
+> =
 
-> sat, this transponder is declared as DVB-S).
-> In any case you will see that something is picked up in both cases but =
+> cx88[2]/2-bb: ERROR: API Mailbox timeout
+> =
 
-> nothing comes out fine finally.
-> I CCed Manu to see if he can shed some light!
-> This is done with a clean multiproto tree IIRC, verbose=3D5 for both =
+> then, opening the device again will show this message :
+> [62153.237112] cx88[2]/2-bb: ERROR: Mailbox appears to be in use (7)
+> [62155.868701] cx88[2]/2-bb: Firmware upload successful.
+> [62155.872299] cx88[2]/2-bb: Firmware version is 0x02060039
+> =
 
-> stbxxxx modules.
+> Any idea ?
+> =
 
+So if anyone is interested, the cause of this issue is the following "fix" :
 
-I will take a look at this. BTW, any idea what FEC you are using for the
-  transponder you are trying to tune to ?
+http://linuxtv.org/hg/v4l-dvb/rev/93e265de2a56
 
+when reverse applying it, I got the sound track in all my mpeg devices, =
 
-Regards,
-Manu
+and then "api mailbox timeout" message never appeared afterwards.
+
+I can prepare a patch if you want. Who should I send it to ?
+-- =
+
+CAND Frederic
+Product Manager
+ANEVIA
 
 _______________________________________________
 linux-dvb mailing list
