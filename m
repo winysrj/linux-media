@@ -1,29 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from anchor-post-36.mail.demon.net ([194.217.242.86])
+Received: from ey-out-2122.google.com ([74.125.78.26])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1Kl5Gb-00009g-CX
-	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 19:13:38 +0200
-Received: from youmustbejoking.demon.co.uk ([80.176.152.238]
-	helo=pentagram.youmustbejoking.demon.co.uk)
-	by anchor-post-36.mail.demon.net with esmtp (Exim 4.67)
-	id 1Kl5GX-000J5u-MD
-	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 17:13:33 +0000
-Received: from [192.168.0.5] (helo=flibble.youmustbejoking.demon.co.uk)
-	by pentagram.youmustbejoking.demon.co.uk with esmtp (Exim 4.63)
-	(envelope-from <linux@youmustbejoking.demon.co.uk>)
-	id 1Kl4tt-0000Xk-1y
-	for linux-dvb@linuxtv.org; Wed, 01 Oct 2008 17:50:15 +0100
-Date: Wed, 01 Oct 2008 17:49:10 +0100
-From: Darren Salt <linux@youmustbejoking.demon.co.uk>
-To: linux-dvb@linuxtv.org
-Message-ID: <4FECF60EC8%linux@youmustbejoking.demon.co.uk>
-In-Reply-To: <4FEC93ECE8%linux@youmustbejoking.demon.co.uk>
-References: <c362cb880809301158t27afbe1fqd9c5d391e46ffdbe@mail.gmail.com>
-	<alpine.DEB.2.00.0809302137380.4242@ybpnyubfg.ybpnyqbznva>
-	<4FEC93ECE8%linux@youmustbejoking.demon.co.uk>
+	(envelope-from <devin.heitmueller@gmail.com>) id 1KvXPQ-0006Kt-8t
+	for linux-dvb@linuxtv.org; Thu, 30 Oct 2008 14:17:57 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so220656eya.17
+	for <linux-dvb@linuxtv.org>; Thu, 30 Oct 2008 06:17:53 -0700 (PDT)
+Message-ID: <412bdbff0810300617j54ffc088we2885e9936a34d66@mail.gmail.com>
+Date: Thu, 30 Oct 2008 09:17:52 -0400
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Vedran Rodic" <vrodic@gmail.com>
+In-Reply-To: <8ccf2e9c0810300245v64954641yafe9e7b29f243e84@mail.gmail.com>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] Trouble with tuning on Lifeview FlyDVB-T
+Content-Disposition: inline
+References: <8ccf2e9c0810300245v64954641yafe9e7b29f243e84@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Gigabyte U7000 (dvb_usb_dib0700) power management
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,14 +28,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Will people NOT CC mail to me? Mail-Followup-To is set for a reason...
+On Thu, Oct 30, 2008 at 5:45 AM, Vedran Rodic <vrodic@gmail.com> wrote:
+> Hello.
+>
+> I have a gigabyte u7000 USB dvb-t receiver with dib0700 and mt2060.
+>
+> It's working fine (debian linux 2.6.26-1 stock kernel, firmware
+> dvb-usb-dib0700-1.10.fw or dvb-usb-dib0700-03-pre1.fw), but the device
+> is not powering down when the frontend and other device files are
+> closed.
+> The device has a LED diode indicating power state and it's warm all
+> the time in Linux after the driver has been loaded. In  Windows the
+> LED is only on when the TV Viewing software is used, and the device is
+> cold when not used.
+>
+> I've tried unloading all dvb/dib/tuner etc modules but the LED is
+> still on. Are there any sysfs/proc control files to power it down when
+> not used? Should I try the latest v4l-dvb tree?
+
+Verdan,
+
+I don't know about the mt2060, but this is actually really common for
+USB tuners in linux-dvb.  I have patches pending for both the xc5000
+and xc3028 to properly power down the tuner properly.  It's also
+possible that the tuner is being powered down but the demodulator is
+not (I submitted a patch for the s5h1411 last week in fact).
+
+>From an end-user perspective, you shouldn't have to take any special
+measures other than closing the application that uses the device (the
+tuner and demod are put to sleep a couple of seconds after the
+frontend is closed).  If the driver properly implements the
+foo_sleep() callback, it should "just work".
+
+Devin
 
 -- 
-| Darren Salt    | linux or ds at              | nr. Ashington, | Toon
-| RISC OS, Linux | youmustbejoking,demon,co,uk | Northumberland | Army
-| + Buy less and make it last longer.         INDUSTRY CAUSES GLOBAL WARMING.
-
-"Bother", said Pooh, as he received his telephone bill.
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb mailing list
