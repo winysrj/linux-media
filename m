@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9K0CMWh031655
-	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 20:12:22 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9K0BauD028565
-	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 20:11:36 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so1231694fga.7
-	for <video4linux-list@redhat.com>; Sun, 19 Oct 2008 17:11:35 -0700 (PDT)
-Message-ID: <30353c3d0810191711y7be7c7f2i83d6a3a8ff46b6a0@mail.gmail.com>
-Date: Sun, 19 Oct 2008 20:11:35 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Alexey Klimov" <klimov.linux@gmail.com>
-In-Reply-To: <208cbae30810190758x2f0c70f5m5856ce9ea84b26ae@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
-	<208cbae30810190758x2f0c70f5m5856ce9ea84b26ae@mail.gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: [patch] radio-mr800: remove warn- and err- messages
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9UBppKw024043
+	for <video4linux-list@redhat.com>; Thu, 30 Oct 2008 07:51:51 -0400
+Received: from sa-ex-tn.Skyangel.com (skyangel.com [208.45.247.98] (may be
+	forged))
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9UBpgoP017845
+	for <video4linux-list@redhat.com>; Thu, 30 Oct 2008 07:51:42 -0400
+From: Sherrod Munday <sherrod.munday@SkyAngel.com>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+In-Reply-To: <49075401.3070403@mibroadcastservices.nl>
+References: <49075401.3070403@mibroadcastservices.nl>
+Content-Type: text/plain; charset=UTF-8
+Date: Thu, 30 Oct 2008 07:51:38 -0400
+Message-Id: <1225367498.26870.11.camel@smunday.skyangel.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: Osprey 530
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,30 +27,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-2008/10/19 Alexey Klimov <klimov.linux@gmail.com>:
-> Hello, all
-> Thanks for input.
-> This is re-created version of patch. What do you think about this version ?
->
-> radio-mr800: remove warn-, err- and info-messages
->
-> Patch removes warn(), err() and info() statements in
-> radio/radio-mr800.c, and place dev_warn, dev_info in right places.
-> Printk changed on pr_info and pr_err macro.
->
-> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+On Tue, 2008-10-28 at 19:03 +0100, Wiebe Hageman wrote:
+> Hello,
+> 
+> Has anybody experience with the Osprey 530 (or 500 serie at all) ? I 
+> like to use the SDI input. The manufacture said that it is supported 
+> from kernel 2.6.x
+> But a lot of forums are complaining about only capturing blue screens.
+> 
+> Or can somebody tell about other capture boards with SDI.
 
-In the future, please inline the patch as well so it's easier to
-review and comment on. That said, it looks better than the last.
-Although, I'm still a bit undecided about this patch as it includes
-the module/driver name directly in some of the dev_warn calls. I
-understand why this was done due to how dev_warn behaves, but I think
-the name should either be defined in a macro or removed entirely. It
-would be nice to hear what others think about this.
+We have a bunch of 530's (well over 100) for encoding a bunch of video
+content into an IPTV system -- but unfortunately, the encoding computers
+all run Windows.
 
-Regards,
+I spent some time trying to make a 530 work in Linux - with the results
+you describe above.  
 
-David Ellingsworth
+I would love for the SDI input to work in Linux - but since I'm using
+openSuSE the default kernel on the OS is customized.  I previously
+pulled down a "supported" kernel from kernel.org and installed it, but
+even after doing that I was still unable to see the BTTV stuff work
+properly.
+
+When I inquired of them previously, here was their response:
+
+﻿On Wed, 2007-10-03 at 14:25 -0500, Bobby Wrenn at ViewCast Support
+wrote:
+> For Linux questions we need to defer to the Linux developers
+> linuxtv.org. Because you are using custom kernels you cannot expect
+> out of the box support to work. You will need to make changes every
+> time you compile a new kernel. The folks at linuxtv.org know what they
+> are doing and how to configure the kernel. VeiwCast is not involved in
+> the development or implementation of Linux drivers. So our support of
+> this platform is necessarliy limited. Please direct Linux questions to
+> linuxtv.org.
+
+In other words, I got the typical manufacturer's brush-off of "go to the
+community for support with the community software - we aren't interested
+enough to really get involved."
+
+
+To date, I have not heard of anyone successfully running the Osprey 530
+in Linux with normal ability to capture composite, S-Video, and SDI
+inputs.
+
+Similarly, I have not heard of any other SDI capture card working in
+Linux, but due to the quantity of Osprey 530 cards we have I'd much
+rather see this card work.
+
+Good luck.
+
+-- 
+
+Sherrod Munday
+Senior VP, Engineering
+Sky Angel U.S., LLC
+<sherrod.munday@skyangel.com>
+(423) 303-7026 (W)
 
 --
 video4linux-list mailing list
