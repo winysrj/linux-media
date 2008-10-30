@@ -1,24 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m95Aqvne002993
-	for <video4linux-list@redhat.com>; Sun, 5 Oct 2008 06:52:57 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m95AqaEu010498
-	for <video4linux-list@redhat.com>; Sun, 5 Oct 2008 06:52:45 -0400
-Date: Sun, 5 Oct 2008 07:52:28 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <20081005075228.202bdfc7@pedra.chehab.org>
-In-Reply-To: <200810031652.00222.hverkuil@xs4all.nl>
-References: <200810031313.36607.hverkuil@xs4all.nl>
-	<200810031431.23882.hverkuil@xs4all.nl>
-	<1223043826.9691.54.camel@palomino.walls.org>
-	<200810031652.00222.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9UHYj26029132
+	for <video4linux-list@redhat.com>; Thu, 30 Oct 2008 13:34:45 -0400
+Received: from smtp0.lie-comtel.li (smtp0.lie-comtel.li [217.173.238.80])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9UHYXdl015867
+	for <video4linux-list@redhat.com>; Thu, 30 Oct 2008 13:34:33 -0400
+Received: from localhost (localhost.lie-comtel.li [127.0.0.1])
+	by smtp0.lie-comtel.li (Postfix) with ESMTP id 704A59FEC1B
+	for <video4linux-list@redhat.com>;
+	Thu, 30 Oct 2008 18:34:33 +0100 (GMT-1)
+Received: from [192.168.0.16] (217-173-228-198.cmts.powersurf.li
+	[217.173.228.198])
+	by smtp0.lie-comtel.li (Postfix) with ESMTP id 5210C9FEC13
+	for <video4linux-list@redhat.com>;
+	Thu, 30 Oct 2008 18:34:33 +0100 (GMT-1)
+Message-ID: <4909F027.6010000@kaiser-linux.li>
+Date: Thu, 30 Oct 2008 18:34:31 +0100
+From: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+MIME-Version: 1.0
+To: Video 4 Linux <video4linux-list@redhat.com>
+References: <4900DA6B.4050902@kaiser-linux.li>	<1224831699.1761.13.camel@localhost>
+	<49021251.8020402@kaiser-linux.li> <4902DB0F.4000401@hhs.nl>
+In-Reply-To: <4902DB0F.4000401@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: RFC: move zoran/core/i2c drivers to separate directories
+Subject: Re: gspca, what do I am wrong?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,87 +36,99 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 3 Oct 2008 16:52:00 +0200
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
-
-> > >  What about clients? Since these are all
-> > > (i2c) clients on a (usually i2c) bus.
-> >
-> > "Clients" comes from a software command/control vs hardware support
-> > perspective.  That's certainly valid, but I think the term "client"
-> > is overloaded semantically. 
-
-> Actually, no. You made me realize that i2c was probably not the best 
-> name to use for that directory. The media_client struct I have in mind 
-> is actually bus-agnostic. Since 99% of all ancillary drivers are i2c 
-> and i2c has an i2c_client struct, the usage of 'client' make sense 
-> (sort of).
-
-media_client for i2c ancilary drivers? This sounds wrong to me. The model of
-client/server assumes that the client is the piece of software that requests
-services from the other piece of software (the server).
-
-In this case, the bridge devices are requesting services for the i2c drivers.
-So, the bridges are the clients, and the ancilary drivers are the servers.
-
-> > > 1) Moving zoran sources into a zoran directory reflects current
-> > > practice.
-> >
-> > Yup.  Good idea.
-
-Seems ok to me.
-
-> >
-> > > 2) We could prefix all core files with a common prefix (v4l2_) as
-> > > an alternative. But I think it is cleaner to have a core directory
-> > > instead.
-> >
-> > Agree, don't do the prefix.  A core directory is better.
-
-On almost all other subsystems (dvb is one of the exceptions), the core is at
-drivers/<subsystem>. I don't see why we shouldn't keep all the core stuff there.
-
-> > > 3) Ditto for all i2c drivers, but there are so many that I think
-> > > these really should be moved to their own directory.
-> >
-> > Agree.  The name is not all that important either (although easy to
-> > argue about).
-> >
-> > One cost I'd like to avoid is in terms of recursive descent searches
-> > and diff's.  Don't move the files up out of media/video without good
-> > reason, to keep the file count for lazy searches (grep -R 'foo' video
-> > ) the same.  But you said that was your plan anyway.
+Hans de Goede wrote:
+> Thomas Kaiser wrote:
+>> Hello Jean-Francois
+>>
+>> I got some time and I would like to test the new gspca V2 v4l2 driver 
+>> but with this issues I will get up soon :-(
+>>
+>> I have about 20 webcams laying around which I would like to test with 
+>> the new gspca V2 "in kernel" drive with a "stock distribution 
+>> (Ubuntu)" kernel.
+>>
 > 
-> Yes.
+> Please don't give up we would really like to have you onboard, you did a 
+> greta job with the gspcav1 pixart drivers and I'm sure you will make a 
+> valuable contributor!
+> 
+> The problem is that gspca now is part of the v4l-dvb tree, so when you 
+> build it now you rebuild the entire v4l subsystem really, this means 
+> that you must make sure that all v4l modules, including videodev.ko are 
+> unloaded before trying to modprobe for example gspca_pac207, so that the 
+> new version of videodev.ko gets loaded.
+> 
+> This has been working fine for me both with older and newer kernels (on 
+> Fedora), so if you are really sure no old modules are loaded, it might 
+> be there is something funny / weird going on with the way your 
+> distribution provides kernel sources for building out of tree modules 
+> (as Thierry hints at).
+> 
+> To give you an idea, here is how I test gspca:
+> 
+> --- begin test.sh ---
+> #!/bin/bash
+> 
+> set -e
+> 
+> make
+> sudo make install
+> 
+> sudo rmmod gspca_sonixb || :
+> sudo rmmod gspca_spca501 || :
+> sudo rmmod gspca_spca561 || :
+> sudo rmmod gspca_pac207 || :
+> sudo rmmod gspca_pac7311 || :
+> sudo rmmod gspca_ov519 || :
+> sudo rmmod gspca_zc3xx || :
+> sudo rmmod gspca_main || :
+> sudo rmmod tuner || :
+> sudo rmmod msp3400 || :
+> sudo rmmod bttv || :
+> sudo rmmod compat_ioctl32 || :
+> sudo rmmod videodev || :
+> sudo rmmod v4l1_compat || :
+> sudo rmmod ir_common || :
+> 
+> sudo modprobe gspca_main debug=15
+> sudo modprobe gspca_sonixb
+> sudo modprobe gspca_spca501
+> sudo modprobe gspca_spca561
+> sudo modprobe gspca_pac207
+> sudo modprobe gspca_pac7311
+> sudo modprobe gspca_ov519
+> sudo modprobe gspca_zc3xx
+> sudo modprobe bttv
+> --- end test.sh ---
+> 
+> Regards,
+> 
+> Hans
+> 
 
-If you want to do grep, then have a copy of my -git tree. Then, you can simply
-use "git grep" that it is a way faster than doing a recursive grep.
+Hello Hans
 
-Every time we move things from one directory to another, this breaks things and
-cause some mess. This is expecially valid for drivers that are under
-development.
+I didn't gave up, yet ;-)
 
-We already did one such big rearrangements for the last kernel version, with
-the common tuners. In the case of tuners, this had a good reason, since the
-Kconfig rules were being very confusing due to dvb drivers needing to access
-tuners. Yet, it required me extra care when merging drivers, since several ones
-broke or caused merge conflicts, since they were developed with the old model
-in mind.
+Recently, there was a kernel upgrade for Ubuntu. I updated and built the 
+v4l-dvb tree new, without doing a "make install". After that I insmoded 
+the needed modules (videodev, gspac_main, gspca_....) by hand and the 
+cam worked :-)
 
-We should really avoid this, unless we have a really good reason. And we
-shouldn't do it on every next kernel cycle.
+After that I check the kernel log and found "Unknown symbol" from gspca 
+again! But now I recognized that these errors are coming from the old 
+gspca module which ubuntu tried to load as I plugged the cam.
 
-If you really want to to this, I think that the better would be to start
-discussing this for the 2.6.29 merge window.
+I blacklist the gspca module, did a "make install", rebooted, plugged 
+the cam and it was working with the new gspca module. No "Unknown 
+symbol" messages anymore in the kernel log :-)
 
-IMO, the better is to have a TODO file with the planned core changes. I had to
-postpone some important driver fixes to 2.6.28 simply because the patches
-didn't apply on my "fixes" branch (I remember that I had to re-tag several cx18
-changes, and an important s2255drv change), due to the changes at the KABI on
-V4L core introduced early at 2.6.28 development cycle.
+But I still don't know why it did not work before. Anyway I am happy at 
+the moment :-)
 
-Cheers,
-Mauro.
+Thomas
+
+
 
 --
 video4linux-list mailing list
