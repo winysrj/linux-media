@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m99CWika031235
-	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 08:32:44 -0400
-Received: from mu-out-0910.google.com (mu-out-0910.google.com [209.85.134.184])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m99CWVZ6002492
-	for <video4linux-list@redhat.com>; Thu, 9 Oct 2008 08:32:31 -0400
-Received: by mu-out-0910.google.com with SMTP id g7so3651441muf.1
-	for <video4linux-list@redhat.com>; Thu, 09 Oct 2008 05:32:30 -0700 (PDT)
-Message-ID: <d3f26e0b0810090532y1bd6595ay1ffdd40cc801ac15@mail.gmail.com>
-Date: Thu, 9 Oct 2008 18:02:28 +0530
-From: "vinothkumar raman" <vinocit@gmail.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9UJU7F8004785
+	for <video4linux-list@redhat.com>; Thu, 30 Oct 2008 15:30:07 -0400
+Received: from unifiedpaging.messagenetsystems.com
+	(www.digitalsignage.messagenetsystems.com [24.123.23.170] (may
+	be forged))
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9UJTIWU021149
+	for <video4linux-list@redhat.com>; Thu, 30 Oct 2008 15:29:19 -0400
+Message-ID: <490A0B3D.70108@messagenetsystems.com>
+Date: Thu, 30 Oct 2008 15:30:05 -0400
+From: Robert Vincent Krakora <rob.krakora@messagenetsystems.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: video4linux-list@redhat.com, geisj@messagenetsystems.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: My azure wave camera has got some issue
+Cc: 
+Subject: mplayer, v4l2 and closed captioning scan lines (how do I crop the
+ display image properly to get rid of these)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,20 +28,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hello,
 
-I am using a VGA camera from azure wave . I am trying to use Java Media
-Framework to access it. It uses v4l(not v4l2).
-Its unable to recognize it. The same program works in Windows XP. Its able
-to detect it but not recognize it. When i use xawtv. Its saying that
-v4l-conf has got some trouble. when i run v4l-conf its showing up that the
-device doesnt have a overlay support. luvc vies says that the format is not
-support and v4l_init failed. In the same system i used a logitech Quick Cam
-go it worked pretty fine with everything. But tha azure wave's camera doesnt
-work. Could anyone help me out. I want it to get it working urgently.
+How does one crop an mplayer output display to prevent the displaying 
+all 525 NTSC scan lines?  The row 11 line 21 closed caption scan lines 
+are particularly annoying.  I am using mplayer, v4l and HVR950 
+(em28xx-based).  Thanks in advance.
 
-Thanks,
-R.Vinoth Kumar
+Best Regards,
+
+-- 
+Rob Krakora
+Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
