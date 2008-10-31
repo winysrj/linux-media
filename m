@@ -1,19 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9VHff0U002094
-	for <video4linux-list@redhat.com>; Fri, 31 Oct 2008 13:41:41 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id m9VHeZJq009643
-	for <video4linux-list@redhat.com>; Fri, 31 Oct 2008 13:40:36 -0400
-Date: Fri, 31 Oct 2008 18:40:49 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <87mygkof3j.fsf@free.fr>
-Message-ID: <Pine.LNX.4.64.0810311839470.9711@axis700.grange>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9VHLOMp023413
+	for <video4linux-list@redhat.com>; Fri, 31 Oct 2008 13:21:24 -0400
+Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id m9VHLM8E018775
+	for <video4linux-list@redhat.com>; Fri, 31 Oct 2008 13:21:22 -0400
+To: Antonio Ospite <ospite@studenti.unina.it>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 References: <20081029232544.661b8f17.ospite@studenti.unina.it>
-	<87mygkof3j.fsf@free.fr>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Fri, 31 Oct 2008 18:21:20 +0100
+In-Reply-To: <20081029232544.661b8f17.ospite@studenti.unina.it> (Antonio
+	Ospite's message of "Wed\, 29 Oct 2008 23\:25\:44 +0100")
+Message-ID: <87mygkof3j.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Cc: video4linux-list@redhat.com
 Subject: Re: [PATCH] mt9m111: Fix YUYV format for pxa-camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
@@ -27,40 +28,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 31 Oct 2008, Robert Jarzmik wrote:
+Antonio Ospite <ospite@studenti.unina.it> writes:
 
-> Antonio Ospite <ospite@studenti.unina.it> writes:
-> 
-> > Use 16 bit depth for YUYV so the pxa-camera image buffer has the correct size,
-> > see the formula:
-> >
-> > 	*size = icd->width * icd->height *
-> > 		((icd->current_fmt->depth + 7) >> 3);
-> >
-> > in drivers/media/video/pxa_camera.c: pxa_videobuf_setup().
-> >
-> > Don't swap Cb and Cr components, to respect PXA Quick Capture Interface
-> > data format.
-> >
-> > Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
-> Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> 
-> As a side note, I wonder how you found the right swap :
->  - I based the code on Intel PXA Developer Manual, table 27-19 (page 1127)
->  - and on MT9M111 specification sheet, table 3 (page 14)
-> My guess is that the PXA manual is wrong somehow ...
-> 
-> Anyway, I'm happy with the patch. Guennadi, could you add this patch to your
-> queue please ?
+> Use 16 bit depth for YUYV so the pxa-camera image buffer has the correct size,
+> see the formula:
+>
+> 	*size = icd->width * icd->height *
+> 		((icd->current_fmt->depth + 7) >> 3);
+>
+> in drivers/media/video/pxa_camera.c: pxa_videobuf_setup().
+>
+> Don't swap Cb and Cr components, to respect PXA Quick Capture Interface
+> data format.
+>
+> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-Do I understand it right, that although this wasn't a regression, this is 
-a bug-fix, right? If so, it should go into 2.6.28. I'll take care of it.
+As a side note, I wonder how you found the right swap :
+ - I based the code on Intel PXA Developer Manual, table 27-19 (page 1127)
+ - and on MT9M111 specification sheet, table 3 (page 14)
+My guess is that the PXA manual is wrong somehow ...
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Anyway, I'm happy with the patch. Guennadi, could you add this patch to your
+queue please ?
+
+--
+Robert
 
 --
 video4linux-list mailing list
