@@ -1,26 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9ECFdMT011645
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:15:39 -0400
-Received: from ik-out-1112.google.com (ik-out-1112.google.com [66.249.90.177])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9ECF1jH019245
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 08:15:23 -0400
-Received: by ik-out-1112.google.com with SMTP id c29so1616596ika.3
-	for <video4linux-list@redhat.com>; Tue, 14 Oct 2008 05:15:01 -0700 (PDT)
-Message-ID: <30353c3d0810140515i10bba955w847af1058071b1d@mail.gmail.com>
-Date: Tue, 14 Oct 2008 08:15:01 -0400
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Thierry Merle" <thierry.merle@free.fr>
-In-Reply-To: <48F3AAC7.7050402@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Disposition: inline
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02D61A0CC2@dbde02.ent.ti.com>
-	<48F3AAC7.7050402@free.fr>
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Cloning the V4L2 branch
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id m9VHjaUk004460
+	for <video4linux-list@redhat.com>; Fri, 31 Oct 2008 13:45:36 -0400
+Received: from smtp-out114.alice.it (smtp-out114.alice.it [85.37.17.114])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id m9VHjPGT012691
+	for <video4linux-list@redhat.com>; Fri, 31 Oct 2008 13:45:25 -0400
+Date: Fri, 31 Oct 2008 18:45:18 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: video4linux-list@redhat.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-Id: <20081031184518.4ab857b2.ospite@studenti.unina.it>
+In-Reply-To: <87mygkof3j.fsf@free.fr>
+References: <20081029232544.661b8f17.ospite@studenti.unina.it>
+	<87mygkof3j.fsf@free.fr>
+Mime-Version: 1.0
+Cc: 
+Subject: Re: [PATCH] mt9m111: Fix YUYV format for pxa-camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,43 +22,79 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1544457031=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Oct 13, 2008 at 4:08 PM, Thierry Merle <thierry.merle@free.fr> wrote:
-> Hello,
+--===============1544457031==
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+	micalg="PGP-SHA1";
+	boundary="Signature=_Fri__31_Oct_2008_18_45_18_+0100_F6bbvCrV1/BxeO4E"
+
+--Signature=_Fri__31_Oct_2008_18_45_18_+0100_F6bbvCrV1/BxeO4E
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, 31 Oct 2008 18:21:20 +0100
+Robert Jarzmik <robert.jarzmik@free.fr> wrote:
+
+> Antonio Ospite <ospite@studenti.unina.it> writes:
 >
-> Shah, Hardik a écrit :
->> Sorry forgot to mention the error,
->> Error coming is
->>
->> Initialize master/.git
->> Initialized empty Git repository in /db/psp_git/users/a0393759/master/.git/
->> warning: remote HEAD refers to nonexistent ref, unable to checkout.
->>
-> Right, I have the same error with git-1.6.0.2 (please upgrade your git version):
-> git clone http://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git
-> Initialized empty Git repository in /home/tmerle/v4l-dvb/.git/
-> fatal: http://master.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git/info/refs not found: did you run git update-server-info on the server?
->
-> The little I know from git is that at least this directory:
-> http://www.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git/objects/pack/
-> should not be empty on the server...
->
-> Cheers,
-> Thierry
+> >
+> > Don't swap Cb and Cr components, to respect PXA Quick Capture Interface
+> > data format.
+> >
+> > Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+> Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+>=20
+> As a side note, I wonder how you found the right swap :
+>  - I based the code on Intel PXA Developer Manual, table 27-19 (page 1127)
+>  - and on MT9M111 specification sheet, table 3 (page 14)
+> My guess is that the PXA manual is wrong somehow ...
 >
 
-Use "git clone git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/v4l-dvb.git"
-but note that this repository doesn't contain all of the latest
-patches.
+Hi Robert,
+
+I used the old scientific method: trial and error :)
+I dumped the data to a file with a test app and then I tried different
+combinations converting it from yuyv to rgb.
 
 Regards,
+   Antonio Ospite
 
-David Ellingsworth
+--=20
+A: Because it messes up the order in which people normally read text.
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+  Web site: http://www.studenti.unina.it/~ospite
+Public key: http://www.studenti.unina.it/~ospite/aopubkey.asc
+
+--Signature=_Fri__31_Oct_2008_18_45_18_+0100_F6bbvCrV1/BxeO4E
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkkLRC4ACgkQ5xr2akVTsAEmmACeNOgAVH9X7aIH+G0Ho6rDU+S1
+acIAnAzolsL7SFLTciXOCuch3AsxCjSo
+=yRii
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__31_Oct_2008_18_45_18_+0100_F6bbvCrV1/BxeO4E--
+
+
+--===============1544457031==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--===============1544457031==--
