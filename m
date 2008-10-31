@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mu-out-0910.google.com ([209.85.134.184])
+Received: from mx38.mail.ru ([194.67.23.16])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <damien@damienandlaurel.com>) id 1KuJ0E-0005vf-K2
-	for linux-dvb@linuxtv.org; Mon, 27 Oct 2008 04:42:51 +0100
-Received: by mu-out-0910.google.com with SMTP id g7so1606707muf.1
-	for <linux-dvb@linuxtv.org>; Sun, 26 Oct 2008 20:42:46 -0700 (PDT)
-Message-ID: <ee0ad0230810262042n58c8fe4cp87c84b70e0107338@mail.gmail.com>
-Date: Mon, 27 Oct 2008 14:42:46 +1100
-From: "Damien Morrissey" <damien@damienandlaurel.com>
-To: "hbomb ustc" <hbomb.ustc@gmail.com>, linux-dvb@linuxtv.org
-In-Reply-To: <1130eaa20810262014x1198875dldb6dec672ae16c3e@mail.gmail.com>
-MIME-Version: 1.0
-References: <1130eaa20810262014x1198875dldb6dec672ae16c3e@mail.gmail.com>
-Subject: Re: [linux-dvb] How to contribute my driver code to V4L-DVB or
-	Kernel
+	(envelope-from <goga777@bk.ru>) id 1KvsfF-0002p0-BO
+	for linux-dvb@linuxtv.org; Fri, 31 Oct 2008 12:59:44 +0100
+Date: Fri, 31 Oct 2008 14:58:53 +0300
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org, "oleg roitburd" <oroitburd@gmail.com>, "Alex
+	Betis" <alex.betis@gmail.com>
+Message-ID: <20081031145853.2b722c9f@bk.ru>
+In-Reply-To: <c74595dc0810301510t5ae3df6fg28c6a62e999aed83@mail.gmail.com>
+References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
+	<b42fca4d0810280227n44d53f03hfaa8237793fc1db9@mail.gmail.com>
+	<c74595dc0810281223j25d78c9eqbcbed70a1b495b43@mail.gmail.com>
+	<b42fca4d0810281305l6e741c25ia25e1f3f348761d5@mail.gmail.com>
+	<c74595dc0810281320r9ef1a1cw172a36738c8a4e8@mail.gmail.com>
+	<c74595dc0810301510t5ae3df6fg28c6a62e999aed83@mail.gmail.com>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,77 +24,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0899203899=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0899203899==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_103074_17754245.1225078966502"
-
-------=_Part_103074_17754245.1225078966502
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-2008/10/27 hbomb ustc <hbomb.ustc@gmail.com>
-
-> Hello,
->
-> I have written the V4L-DVB driver of DTV/ATV receiver for my company. And I
-> want to contribute the soure code of it to V4L-DVB or linux kernel. Could
-> someone tell me how to do this?  Thanks.
->
-> Hbomb
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-
-Outstanding work. I am pleased to see this sort of cooperation from product
-manufacturers.
-
-Thanks for your contribution.
-
-Damien.
-
-PS: I have no idea how to go about it, however I thought your offer and work
-was worth thanks.
-
-------=_Part_103074_17754245.1225078966502
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-<br><br><div class="gmail_quote">2008/10/27 hbomb ustc <span dir="ltr">&lt;<a href="mailto:hbomb.ustc@gmail.com">hbomb.ustc@gmail.com</a>&gt;</span><br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<div>Hello, </div>
-<div>&nbsp;</div>
-<div>I have written the V4L-DVB driver of DTV/ATV receiver for my company. And I want to contribute the soure code of it to V4L-DVB or linux kernel. Could someone tell me how to do this?&nbsp; Thanks.</div>
-<div>&nbsp;</div><font color="#888888">
-<div>Hbomb</div>
-<div>&nbsp;</div>
-</font><br>_______________________________________________<br>
-linux-dvb mailing list<br>
-<a href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a><br>
-<a href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb" target="_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a><br></blockquote></div><br>Outstanding work. I am pleased to see this sort of cooperation from product manufacturers.<br>
-<br>Thanks for your contribution.<br><br>Damien.<br><br>PS: I have no idea how to go about it, however I thought your offer and work was worth thanks.<br>
-
-------=_Part_103074_17754245.1225078966502--
-
-
---===============0899203899==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0899203899==--
+8NLJ18XU09TX1cAsIEFsZXgKCnRoYW5rcyBmb3IgeW91IHdvcmsuIEJ1dCBmb3IgbWUgc2Nhbi1z
+MiB3b3JrcyBzdHJhbmdlIC0gc2Nhbi1zMiBjb3VsZG4ndCBmaW5kIGEgbG90IG9mIGR2Yi1zMiAm
+IGR2Yi1zIGNoYW5uZWxzIGZyb20gQXN0cmEKMTllCgpJIGhhdmUgYSBsb3Qgb2YgY29waWVzIG9m
+IDR0aCBjaGFubmVscyB3aXRoIGRpZmZlcmVudCBmcmVxCgpQUkVNSUVSRSBIRDtQUkVNSUVSRTox
+MTcyMDpoUzBDMzQ6UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6MzI6MDoxMjk6MDowOjAKRElTQ09W
+RVJZIEhEO1BSRU1JRVJFOjExNzIwOmhTMEMzNDpTMC4wVzoyNzUwMDoxMDIzOjEwMjc7MTAyNzoz
+MjowOjEzMDowOjA6MApBU1RSQSBIRCs7QmV0YURpZ2l0YWw6MTE3MjA6aFMwQzM0OlMwLjBXOjI3
+NTAwOjEyNzk6MTI4MzsxMjgzOjA6MDoxMzE6MDowOjAKQU5JWEUgSEQ7QmV0YURpZ2l0YWw6MTE3
+MjA6aFMwQzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUzOTsxNTM5OjA6MDoxMzI6MDowOjAKCmR1bXBp
+bmcgbGlzdHMgKDEwOCBzZXJ2aWNlcykKUFJFTUlFUkUgSEQ7UFJFTUlFUkU6MTE3MjA6aFMwQzM0
+OlMwLjBXOjI3NTAwOjc2Nzo3NzI7NzcyOjMyOjA6MTI5OjA6MDowCkRJU0NPVkVSWSBIRDtQUkVN
+SUVSRToxMTcyMDpoUzBDMzQ6UzAuMFc6Mjc1MDA6MTAyMzoxMDI3OzEwMjc6MzI6MDoxMzA6MDow
+OjAKQVNUUkEgSEQrO0JldGFEaWdpdGFsOjExNzIwOmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5OjEy
+ODM7MTI4MzowOjA6MTMxOjA6MDowCkFOSVhFIEhEO0JldGFEaWdpdGFsOjExNzIwOmhTMEMzNDpT
+MC4wVzoyNzUwMDoxNTM1OjE1Mzk7MTUzOTowOjA6MTMyOjA6MDowClBSRU1JRVJFIEhEO1BSRU1J
+RVJFOjExNzU4OmhTMEMzNDpTMC4wVzoyNzUwMDo3Njc6NzcyOzc3MjozMjowOjEyOTowOjA6MApE
+SVNDT1ZFUlkgSEQ7UFJFTUlFUkU6MTE3NTg6aFMwQzM0OlMwLjBXOjI3NTAwOjEwMjM6MTAyNzsx
+MDI3OjMyOjA6MTMwOjA6MDowCkFTVFJBIEhEKztCZXRhRGlnaXRhbDoxMTc1ODpoUzBDMzQ6UzAu
+MFc6Mjc1MDA6MTI3OToxMjgzOzEyODM6MDowOjEzMTowOjA6MApBTklYRSBIRDtCZXRhRGlnaXRh
+bDoxMTc1ODpoUzBDMzQ6UzAuMFc6Mjc1MDA6MTUzNToxNTM5OzE1Mzk6MDowOjEzMjowOjA6MApQ
+UkVNSUVSRSBIRDtQUkVNSUVSRToxMTc5ODpoUzBDMzQ6UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6
+MzI6MDoxMjk6MDowOjAKRElTQ09WRVJZIEhEO1BSRU1JRVJFOjExNzk4OmhTMEMzNDpTMC4wVzoy
+NzUwMDoxMDIzOjEwMjc7MTAyNzozMjowOjEzMDowOjA6MApBU1RSQSBIRCs7QmV0YURpZ2l0YWw6
+MTE3OTg6aFMwQzM0OlMwLjBXOjI3NTAwOjEyNzk6MTI4MzsxMjgzOjA6MDoxMzE6MDowOjAKQU5J
+WEUgSEQ7QmV0YURpZ2l0YWw6MTE3OTg6aFMwQzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUzOTsxNTM5
+OjA6MDoxMzI6MDowOjAKUFJFTUlFUkUgSEQ7UFJFTUlFUkU6MTE4MzY6aFMwQzM0OlMwLjBXOjI3
+NTAwOjc2Nzo3NzI7NzcyOjMyOjA6MTI5OjA6MDowCgp0aGUgZnVsbCBsb2cgaW4gCmh0dHA6Ly9w
+YXN0ZS5vcmcucnUvP2cwYjBwbgoKSSB0aGluayBzY2FuLXMyIGlzIHNjYW5uaW5nIG9ubHkgY3Vy
+cmVudCAxMTkxNCB0cmFuc3BvbmRlciAoaW4gbXkgY2FzZSkuIFdpdGggdGhpcyB0cmFuc3BvbmRl
+ciBJIHdvcmtlZCB3aXRoIHZkciBiZWZvcmUKc2NhbjIgc3RhcnRlZC4KCgoKR29nYQoKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxp
+bmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2kt
+YmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
