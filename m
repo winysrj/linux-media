@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]
-	helo=shogun.pilppa.org) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lamikr@pilppa.org>) id 1KvIZv-0005aZ-8u
-	for linux-dvb@linuxtv.org; Wed, 29 Oct 2008 22:27:47 +0100
-Date: Wed, 29 Oct 2008 23:27:35 +0200 (EET)
-From: Mika Laitio <lamikr@pilppa.org>
-To: Alex Betis <alex.betis@gmail.com>
-In-Reply-To: <c74595dc0810291219i520e3e9fv1769374f2e61a6de@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0810292320260.13931@shogun.pilppa.org>
-References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
-	<Pine.LNX.4.64.0810291745410.13299@shogun.pilppa.org>
-	<c74595dc0810291219i520e3e9fv1769374f2e61a6de@mail.gmail.com>
-MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <jan.burgmeier@gmx.de>) id 1Kvr2k-0006GU-Ui
+	for linux-dvb@linuxtv.org; Fri, 31 Oct 2008 11:15:51 +0100
+Received: from [193.196.7.49] (helo=[172.16.125.240])
+	by router.archaon.ath.cx with esmtpsa (SSLv3:CAMELLIA256-SHA:256)
+	(Exim 4.69) (envelope-from <jan@archaon.ath.cx>) id 1Kvr2B-0000xn-Sx
+	for linux-dvb@linuxtv.org; Fri, 31 Oct 2008 11:15:16 +0100
+From: Jan Burgmeier <jan@archaon.ath.cx>
+To: linux-dvb@linuxtv.org
+Date: Fri, 31 Oct 2008 11:15:08 +0100
+Message-Id: <1225448108.5202.12.camel@archaon-laptop>
+Mime-Version: 1.0
+Subject: [linux-dvb] TechnoTrend C-1501 timed out waiting for end of xfer
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,30 +26,40 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I'm not aware of dvb-apps that use S2API, can you point me to that version?
+Hello,
 
-I meant that because S2API drivers are backward compatible and supports 
-also the older driver API, the old apps works also with S2API version of 
-drivers.
+I own a TechnoTrend C-1501 budget card. I'am using the driver in the
+kernel. My kernel version is gentoo-sources-2.6.27-r2 which is based on
+the 2.6.27.4 release.
 
-> S2 channels are found with old scan version using mantis driver as well.
-> The output of scan-s2 is a bit different to support S2, there are few more
-> parameters that will appear in the output such as:
-> Sx - used delivery system
-> Mx - modulation
-> Rx - rolloff
-> Cx - FEC rate
->
-> Some of those are not yet ready, but I'm adding them right now.
-> The frequencies files will be also extended to support those parameters as
-> inputs.
+I think the TechnoTren C-1501 should be supported upstream since the
+2.6.27 release is this correct?
 
-Ok. Do you have time to add to README some words listing the 
-names and order for all parameters that scan-s2 requires to be in the 
-input files. That would be very helpful, when one later try to add 
-information from other satellite frequencies to those files.
+I use these models:
 
-Mika
+tda826x
+tda10023
+budget_ci
+budget_core
+dvb_core
+saa7146
+ttpci_eeprom
+
+the modules get loaded automaticly at boot time.
+
+After boot my logs get flooded with these message:
+saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of
+xfer
+
+I'm using mythTV to watch TV but i don't get any picture or audio. I get
+error message about "chanel lock" or something like that.
+
+When you need some more information feel free to ask.
+
+Greetings
+Jan Burgmeier
+
+
 
 _______________________________________________
 linux-dvb mailing list
