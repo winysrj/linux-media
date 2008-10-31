@@ -1,13 +1,30 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <48F5F57C.1090403@linuxtv.org>
-Date: Wed, 15 Oct 2008 09:51:56 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from node01.cambriumhosting.nl ([217.19.16.162])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jelledejong@powercraft.nl>) id 1Kw044-0006VM-4S
+	for linux-dvb@linuxtv.org; Fri, 31 Oct 2008 20:53:48 +0100
+Received: from localhost (localhost [127.0.0.1])
+	by node01.cambriumhosting.nl (Postfix) with ESMTP id 7DE6FB0002C5
+	for <linux-dvb@linuxtv.org>; Fri, 31 Oct 2008 20:53:44 +0100 (CET)
+Received: from node01.cambriumhosting.nl ([127.0.0.1])
+	by localhost (node01.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id Ga5G8U8y7f87 for <linux-dvb@linuxtv.org>;
+	Fri, 31 Oct 2008 20:53:38 +0100 (CET)
+Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
+	[84.245.3.195])
+	by node01.cambriumhosting.nl (Postfix) with ESMTP id 94737B0000E4
+	for <linux-dvb@linuxtv.org>; Fri, 31 Oct 2008 20:53:38 +0100 (CET)
+Received: from [192.168.1.180] (unknown [192.168.1.180])
+	by ashley.powercraft.nl (Postfix) with ESMTPSA id 6041023BC352
+	for <linux-dvb@linuxtv.org>; Fri, 31 Oct 2008 20:53:38 +0100 (CET)
+Message-ID: <490B6241.7020102@powercraft.nl>
+Date: Fri, 31 Oct 2008 20:53:37 +0100
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-To: korey_avail@yahoo.com
-References: <687344.54367.qm@web57506.mail.re1.yahoo.com>
-In-Reply-To: <687344.54367.qm@web57506.mail.re1.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Dvico HDTV7 Dual Express signal strength
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="------------010109040601070000050201"
+Subject: [linux-dvb] automated w_scan,
+	duplicated channels and signal strength filtering
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -15,102 +32,170 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Korey ODell wrote:
-> --- On *Tue, 10/14/08, Michael Krufky /<mkrufky@linuxtv.org>/* wrote:
->
->     From: Michael Krufky <mkrufky@linuxtv.org>
->     Subject: Re: [linux-dvb] Dvico HDTV7 Dual Express signal strength
->     To: korey_avail@yahoo.com
->     Cc: linux-dvb@linuxtv.org
->     Date: Tuesday, October 14, 2008, 6:33 PM
->
->     Korey ODell wrote:
->     > Does reading this card's signal strength work for anyone? I've
->     tried femon, azap with the latest v4l drivers and a 2.6.26 kernel. Card reports
->     a lock and otherwise works fine but basically reports 0 for a strength reading.
->
->
->     There are two versions of this card -- one that uses a s5h1409, and the other
->     uses a s5h1411.  Which version do you have?
->
->     (dmesg output will indicate which
->      board you have)
->
->     -Mike
->               
->
->
->
-> --- On *Tue, 10/14/08, Michael Krufky /<mkrufky@linuxtv.org>/* wrote:
->
->     From: Michael Krufky <mkrufky@linuxtv.org>
->     Subject: Re: [linux-dvb] Dvico HDTV7 Dual Express signal strength
->     To: korey_avail@yahoo.com
->     Cc: linux-dvb@linuxtv.org
->     Date: Tuesday, October 14, 2008, 6:33 PM
->
->     Korey ODell wrote:
->     > Does reading this card's signal strength work for anyone? I've
->     tried femon, azap with the latest v4l drivers and a 2.6.26 kernel. Card reports
->     a lock and otherwise works fine but basically reports 0 for a strength reading.
->
->
->     There are two versions of this card -- one that uses a s5h1409, and the other
->     uses a s5h1411.  Which version do you have?
->
->     (dmesg output will indicate which board you
->      have)
->
->     -Mike
->               
->
-> I actually have both.
-> The DViCO FusionHDTV 7 Gold [card=65] has the 1411 and the
-> DViCO FusionHDTV7 Dual Express [card=10,autodetected] has the 1409.
->
-> I can not read the signal strength on either of them.
-> Here is what femon yields on the Gold card (1411)
-> status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-> FE_HAS_LOCK
-> status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-> FE_HAS_LOCK
-> status SCVYL | signal 012c | snr 012c | ber 00000000 | unc 00000000 | 
-> FE_HAS_LOCK
->
-> recabling this same RF to a HDTV5 Gold card reports ~90-95% signal 
-> strength.
->
-> Thanks for any help.
-Korey,
+This is a multi-part message in MIME format.
+--------------010109040601070000050201
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Policy on this mailing list is to post your reply below the quoted text 
--- please stick to this quoting style.
+Hello everybody,
 
-You say that you are not able to read signal strength -- but your femon 
-output above indicates a very nice SNR of 30.0  ( 0x012c == 300 decimal 
-/ 10 = 30.0 dB )
+I am using a tool called w_scan [1] to automate scanning for dvb-t
+signals, this kind of works, but its still not enough to be usable for
+non computer literate people. I got the following issues:
 
+When a scan is completed it list all found channels, in the file, (see
+attachment) however this also include duplicated channels with other
+frequencies and strange channels that are from local unusable broadcast.
 
-The FusionHDTV 5 Gold uses an LG DT3303 demodulator, which reports its 
-signal status a bit differently.
+The issue here is that signal strength is not used to filter out
+duplicated channels, only the best strongest signal should come in the
+channel list, and channels without identifiers should be removed.
 
-Unfortunately, we dont have good open specs that we can use to improve 
-the readouts from the lgdt330x driver any better than it is currently.
+How can we do this? Is somebody able to fix these issues?
 
-Everything is fine with both of your cards, its just that the snr 
-readings are not comparable between different frontends.
+Thank in advance for any repose,
 
-HTH,
+Best regards,
 
-Mike
+Jelle
+
+[1] http://wirbel.htpc-forum.de/w_scan/index2.html
+
+ps. I can't find any contact info for the developer of w_scan.
+
+--------------010109040601070000050201
+Content-Type: text/plain;
+ name="example-channels.conf"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="example-channels.conf"
+
+TmVkZXJsYW5kIDEoRGlnaXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJ
+RFRIXzhfTUhaOkZFQ18xXzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6
+R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjcwMTE6NzAxMjoxMTAxCk5lZGVy
+bGFuZCAyKERpZ2l0ZW5uZSk6NDc0MDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84
+X01IWjpGRUNfMV8yOkZFQ18xXzI6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJE
+X0lOVEVSVkFMXzFfNDpISUVSQVJDSFlfTk9ORTo3MDIxOjcwMjI6MTEwMgpOZWRlcmxhbmQg
+MyhEaWdpdGVubmUpOjQ3NDAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6
+RkVDXzFfMjpGRUNfMV8yOlFBTV82NDpUUkFOU01JU1NJT05fTU9ERV84SzpHVUFSRF9JTlRF
+UlZBTF8xXzQ6SElFUkFSQ0hZX05PTkU6NzAzMTo3MDMyOjExMDMKVFYgUmlqbm1vbmQoRGln
+aXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18x
+XzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxf
+MV80OkhJRVJBUkNIWV9OT05FOjcwNDE6NzA0MjoxMTA0ClJhZGlvIFJpam5tb25kKERpZ2l0
+ZW5uZSk6NDc0MDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfMV8y
+OkZFQ18xXzI6UUFNXzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFf
+NDpISUVSQVJDSFlfTk9ORTowOjcxMTI6MTExMQpSYWRpbyAxKERpZ2l0ZW5uZSk6NDc0MDAw
+MDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfMV8yOkZFQ18xXzI6UUFN
+XzY0OlRSQU5TTUlTU0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfNDpISUVSQVJDSFlf
+Tk9ORTowOjcxMjI6MTExMgpSYWRpbyAyKERpZ2l0ZW5uZSk6NDc0MDAwMDAwOklOVkVSU0lP
+Tl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfMV8yOkZFQ18xXzI6UUFNXzY0OlRSQU5TTUlT
+U0lPTl9NT0RFXzhLOkdVQVJEX0lOVEVSVkFMXzFfNDpISUVSQVJDSFlfTk9ORTowOjcxMzI6
+MTExMwozRk0oRGlnaXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRI
+XzhfTUhaOkZFQ18xXzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VB
+UkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjA6NzE0MjoxMTE0ClJhZGlvIDQoRGln
+aXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18x
+XzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxf
+MV80OkhJRVJBUkNIWV9OT05FOjA6NzE1MjoxMTE1ClJhZGlvIDUoRGlnaXRlbm5lKTo0NzQw
+MDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18xXzI6RkVDXzFfMjpR
+QU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNI
+WV9OT05FOjA6NzE2MjoxMTE2ClJhZGlvIDYoRGlnaXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJT
+SU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ18xXzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNN
+SVNTSU9OX01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjA6NzE3
+MjoxMTE3CkNvbmNlcnR6ZW5kZXIoRGlnaXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FV
+VE86QkFORFdJRFRIXzhfTUhaOkZFQ18xXzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9O
+X01PREVfOEs6R1VBUkRfSU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjA6NzE4MjoxMTE4
+CkZ1blgoRGlnaXRlbm5lKTo0NzQwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhf
+TUhaOkZFQ18xXzI6RkVDXzFfMjpRQU1fNjQ6VFJBTlNNSVNTSU9OX01PREVfOEs6R1VBUkRf
+SU5URVJWQUxfMV80OkhJRVJBUkNIWV9OT05FOjA6NzE5MjoxMTE5ClswMDFmXTo0OTgwMDAw
+MDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRPOkZFQ19BVVRPOlFB
+TV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJWQUxfQVVUTzpISUVS
+QVJDSFlfQVVUTzozMDExOjMwMTI6MzEKWzAwMjBdOjQ5ODAwMDAwMDpJTlZFUlNJT05fQVVU
+TzpCQU5EV0lEVEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFNX0FVVE86VFJBTlNNSVNT
+SU9OX01PREVfQVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNIWV9BVVRPOjMwMjE6
+MzAyMjozMgpbMDAyMV06NDk4MDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01I
+WjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1fQVVUTzpUUkFOU01JU1NJT05fTU9ERV9BVVRPOkdV
+QVJEX0lOVEVSVkFMX0FVVE86SElFUkFSQ0hZX0FVVE86MzAzMTozMDMyOjMzClswMDIyXTo0
+OTgwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRPOkZFQ19B
+VVRPOlFBTV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJWQUxfQVVU
+TzpISUVSQVJDSFlfQVVUTzozMDQxOjMwNDI6MzQKWzAwMjNdOjQ5ODAwMDAwMDpJTlZFUlNJ
+T05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFNX0FVVE86VFJB
+TlNNSVNTSU9OX01PREVfQVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNIWV9BVVRP
+OjMwNTE6MzA1MjozNQpbMDAyNF06NDk4MDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURU
+SF84X01IWjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1fQVVUTzpUUkFOU01JU1NJT05fTU9ERV9B
+VVRPOkdVQVJEX0lOVEVSVkFMX0FVVE86SElFUkFSQ0hZX0FVVE86MzA2MTozMDYyOjM2Clsw
+MDI1XTo0OTgwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRP
+OkZFQ19BVVRPOlFBTV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJW
+QUxfQVVUTzpISUVSQVJDSFlfQVVUTzozMDcxOjMwNzI6MzcKWzAwMjZdOjQ5ODAwMDAwMDpJ
+TlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFNX0FV
+VE86VFJBTlNNSVNTSU9OX01PREVfQVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNI
+WV9BVVRPOjMwODE6MzA4MjozOApOZWRlcmxhbmQgMShEaWdpdGVubmUpOjcyMjAwMDAwMDpJ
+TlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFNX0FV
+VE86VFJBTlNNSVNTSU9OX01PREVfQVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNI
+WV9BVVRPOjcwMTE6NzAxMjoxMTAxCk5lZGVybGFuZCAyKERpZ2l0ZW5uZSk6NzIyMDAwMDAw
+OklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1f
+QVVUTzpUUkFOU01JU1NJT05fTU9ERV9BVVRPOkdVQVJEX0lOVEVSVkFMX0FVVE86SElFUkFS
+Q0hZX0FVVE86NzAyMTo3MDIyOjExMDIKTmVkZXJsYW5kIDMoRGlnaXRlbm5lKTo3MjIwMDAw
+MDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRPOkZFQ19BVVRPOlFB
+TV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJWQUxfQVVUTzpISUVS
+QVJDSFlfQVVUTzo3MDMxOjcwMzI6MTEwMwpUViBXZXN0KERpZ2l0ZW5uZSk6NzIyMDAwMDAw
+OklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1f
+QVVUTzpUUkFOU01JU1NJT05fTU9ERV9BVVRPOkdVQVJEX0lOVEVSVkFMX0FVVE86SElFUkFS
+Q0hZX0FVVE86NzA0MTo3MDQyOjExMDQKUmFkaW8gV2VzdChEaWdpdGVubmUpOjcyMjAwMDAw
+MDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFN
+X0FVVE86VFJBTlNNSVNTSU9OX01PREVfQVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJB
+UkNIWV9BVVRPOjA6NzExMjoxMTExClJhZGlvIDEoRGlnaXRlbm5lKTo3MjIwMDAwMDA6SU5W
+RVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRPOkZFQ19BVVRPOlFBTV9BVVRP
+OlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJWQUxfQVVUTzpISUVSQVJDSFlf
+QVVUTzowOjcxMjI6MTExMgpSYWRpbyAyKERpZ2l0ZW5uZSk6NzIyMDAwMDAwOklOVkVSU0lP
+Tl9BVVRPOkJBTkRXSURUSF84X01IWjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1fQVVUTzpUUkFO
+U01JU1NJT05fTU9ERV9BVVRPOkdVQVJEX0lOVEVSVkFMX0FVVE86SElFUkFSQ0hZX0FVVE86
+MDo3MTMyOjExMTMKM0ZNKERpZ2l0ZW5uZSk6NzIyMDAwMDAwOklOVkVSU0lPTl9BVVRPOkJB
+TkRXSURUSF84X01IWjpGRUNfQVVUTzpGRUNfQVVUTzpRQU1fQVVUTzpUUkFOU01JU1NJT05f
+TU9ERV9BVVRPOkdVQVJEX0lOVEVSVkFMX0FVVE86SElFUkFSQ0hZX0FVVE86MDo3MTQyOjEx
+MTQKUmFkaW8gNChEaWdpdGVubmUpOjcyMjAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lE
+VEhfOF9NSFo6RkVDX0FVVE86RkVDX0FVVE86UUFNX0FVVE86VFJBTlNNSVNTSU9OX01PREVf
+QVVUTzpHVUFSRF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNIWV9BVVRPOjA6NzE1MjoxMTE1ClJh
+ZGlvIDUoRGlnaXRlbm5lKTo3MjIwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhf
+TUhaOkZFQ19BVVRPOkZFQ19BVVRPOlFBTV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86
+R1VBUkRfSU5URVJWQUxfQVVUTzpISUVSQVJDSFlfQVVUTzowOjcxNjI6MTExNgpSYWRpbyA2
+KERpZ2l0ZW5uZSk6NzIyMDAwMDAwOklOVkVSU0lPTl9BVVRPOkJBTkRXSURUSF84X01IWjpG
+RUNfQVVUTzpGRUNfQVVUTzpRQU1fQVVUTzpUUkFOU01JU1NJT05fTU9ERV9BVVRPOkdVQVJE
+X0lOVEVSVkFMX0FVVE86SElFUkFSQ0hZX0FVVE86MDo3MTcyOjExMTcKQ29uY2VydHplbmRl
+cihEaWdpdGVubmUpOjcyMjAwMDAwMDpJTlZFUlNJT05fQVVUTzpCQU5EV0lEVEhfOF9NSFo6
+RkVDX0FVVE86RkVDX0FVVE86UUFNX0FVVE86VFJBTlNNSVNTSU9OX01PREVfQVVUTzpHVUFS
+RF9JTlRFUlZBTF9BVVRPOkhJRVJBUkNIWV9BVVRPOjA6NzE4MjoxMTE4CkZ1blgoRGlnaXRl
+bm5lKTo3MjIwMDAwMDA6SU5WRVJTSU9OX0FVVE86QkFORFdJRFRIXzhfTUhaOkZFQ19BVVRP
+OkZFQ19BVVRPOlFBTV9BVVRPOlRSQU5TTUlTU0lPTl9NT0RFX0FVVE86R1VBUkRfSU5URVJW
+QUxfQVVUTzpISUVSQVJDSFlfQVVUTzowOjcxOTI6MTExOQo=
+--------------010109040601070000050201
+Content-Type: application/x-sh;
+ name="setup-free-to-air-channels.sh"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="setup-free-to-air-channels.sh"
+
+#!/bin/bash
+
+~/.wscan/wscan -t 3 -E 0 -O 0 -X tzap > ~/.wscan/channels.conf
+geany --new-instance --no-msgwin --no-ctags --no-plugins ~/.wscan/channels.conf
+
+cp --verbose ~/.wscan/channels.conf ~/.tzap/channels.conf
+cp --verbose ~/.wscan/channels.conf ~/.xine/channels.conf
+cp --verbose ~/.wscan/channels.conf ~/.gstreamer-0.10/dvb-channels.conf
+cp --verbose ~/.wscan/channels.conf ~/.mplayer/channels.conf
+
+--------------010109040601070000050201
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------010109040601070000050201--
