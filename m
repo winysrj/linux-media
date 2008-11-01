@@ -1,22 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1001.centrum.cz ([90.183.38.131])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hoppik@centrum.cz>) id 1L18dp-0004tO-AZ
-	for linux-dvb@linuxtv.org; Sat, 15 Nov 2008 01:03:58 +0100
-Received: by mail1001.centrum.cz id S805461087AbYKOADu (ORCPT
-	<rfc822;linux-dvb@linuxtv.org>); Sat, 15 Nov 2008 01:03:50 +0100
-Date: Sat, 15 Nov 2008 01:03:50 +0100
-From: " =?UTF-8?Q?SKO=C4=8CDOPOLE?= =?UTF-8?Q?=20Tom=C3=A1=C5=A1?="
-	<hoppik@centrum.cz>
-To: <linux-dvb@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <handygewinnspiel@gmx.de>) id 1KwDdR-00030y-7r
+	for linux-dvb@linuxtv.org; Sat, 01 Nov 2008 11:23:14 +0100
+Message-ID: <490C2DE9.9090809@gmx.de>
+Date: Sat, 01 Nov 2008 11:22:33 +0100
+From: wk <handygewinnspiel@gmx.de>
 MIME-Version: 1.0
-Message-ID: <200811150103.6270@centrum.cz>
-References: <200811150055.1169@centrum.cz> <200811150056.2998@centrum.cz>
-	<200811150057.15665@centrum.cz> <200811150059.10919@centrum.cz>
-	<200811150100.884@centrum.cz> <200811150101.16760@centrum.cz>
-	<200811150102.22526@centrum.cz> <200811150103.22880@centrum.cz>
-In-Reply-To: <200811150103.22880@centrum.cz>
-Subject: [linux-dvb] S2API, TT S2-3200, getstream
+To: Jelle de Jong <jelledejong@powercraft.nl>
+References: <490B6241.7020102@powercraft.nl>
+In-Reply-To: <490B6241.7020102@powercraft.nl>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] automated w_scan,
+ duplicated channels and signal strength filtering
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,22 +26,48 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello, 
+Hello Jelle,
+> When a scan is completed it list all found channels, in the file, (see
+> attachment) however this also include duplicated channels with other
+> frequencies and strange channels that are from local unusable broadcast.
+>   
+That's most probably what your provider sends inside NIT (network 
+information table).
+w_scan reads it's informations from there. Sometimes these informations 
+are wrong.
+> The issue here is that signal strength is not used to filter out
+> duplicated channels, only the best strongest signal should come in the
+> channel list, and channels without identifiers should be removed.
+>
+> How can we do this? Is somebody able to fix these issues?
+>
+>   
+It's not possible to use signal information since nearly every dvb cards 
+sends other information for signal strength,
+please read the discussion regarding SNR/strength some days ago here on 
+the list. From application point of view
+the signal strength information doesnt contain any useful data as long 
+it's not standardized and reliable across all frontends.
+Therefore i decided not to use signal strength. Otherwise some frontends 
+would not work.
 
-I have got a TT S2-3200 card, kernel version 2.6.27. 
-Now I am trying S2API drivers from Igor M. Liplianin - compiled without any problems.
+Signals without identifiers will not be removed, since some of them have 
+their channel names inside EIT information or
+inside private data (i.e. Prmiere) and deleting these channels would 
+make other users really unhappy. ;)
+Most of these channels are encrypted, so try to avoid them with -E 0 .
+But channels without video *and* audio will be removed instead.
 
-I have compiled latest getstream too. It works fine with DVB-S channels (I tested 4 channels this time).
-I want to try DVB-S2 channels too, but after run getstream I give this error message:
- 2008-11-15 00:37:32.189 fe: Adapter 0 is an DVB-S card - config is not for DVB-S
+> [1] http://wirbel.htpc-forum.de/w_scan/index2.html
+>
+> ps. I can't find any contact info for the developer of w_scan.
+>   
+email contact is included in the header of each source file. 
+Nevertheless, should be inside README too, you're right.
 
-I use same configuration file when I have old drivers - it was without any problems. 
-So I think conf. file should be written without errors.
+Regards,
+Winfried
 
-I have parabola directed to 23.5E, so I could try locking on some channels and scan-s2 utility.
-Are there (23.5) any problematic channels?
-
-Regards, Thomas
 
 
 _______________________________________________
