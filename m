@@ -1,17 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.hauppauge.com ([167.206.143.4])
+Received: from mx27.mail.ru ([194.67.23.23])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@linuxtv.org>) id 1KyXSn-0004dd-Sk
-	for linux-dvb@linuxtv.org; Fri, 07 Nov 2008 20:57:50 +0100
-Message-ID: <49149DAE.1050405@linuxtv.org>
-Date: Fri, 07 Nov 2008 14:57:34 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: Paul Guzowski <guzowskip@linuxmail.org>
-References: <20081107195616.65673233EB@ws5-3.us4.outblaze.com>
-In-Reply-To: <20081107195616.65673233EB@ws5-3.us4.outblaze.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Channel configuration files....
+	(envelope-from <goga777@bk.ru>) id 1KwIkt-0003zu-1M
+	for linux-dvb@linuxtv.org; Sat, 01 Nov 2008 16:51:15 +0100
+Date: Sat, 1 Nov 2008 18:50:45 +0300
+From: Goga777 <goga777@bk.ru>
+To: Michel Verbraak <michel@verbraak.org>, linux-dvb@linuxtv.org
+Message-ID: <20081101185045.1616b5c6@bk.ru>
+In-Reply-To: <490C7958.8050902@verbraak.org>
+References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
+	<490C7194.8060603@verbraak.org> <20081101182051.3ac22972@bk.ru>
+	<490C7958.8050902@verbraak.org>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,169 +20,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Paul Guzowski wrote:
->> ----- Original Message -----
->> From: "Michael Krufky" <mkrufky@linuxtv.org>
->> To: "Paul Guzowski" <guzowskip@linuxmail.org>
->> Cc: linux-dvb@linuxtv.org
->> Subject: Re: [linux-dvb] Channel configuration files....
->> Date: Fri, 7 Nov 2008 12:23:05 -0500
->>
->>
->> On Fri, Nov 7, 2008 at 12:21 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
->>     
->>> Paul -- please see my response below.
->>>
->>>       
->>>> Paul in NW Florida
->>>>         
->>>>> ----- Original Message -----
->>>>> From: "Michael Krufky" <mkrufky@linuxtv.org>
->>>>> To: "Paul Guzowski" <guzowskip@linuxmail.org>
->>>>> Cc: linux-dvb@linuxtv.org
->>>>> Subject: Re: [linux-dvb] Channel configuration files....
->>>>> Date: Wed, 5 Nov 2008 11:41:27 -0500
->>>>>
->>>>>
->>>>> On Wed, Nov 5, 2008 at 6:58 AM, Paul Guzowski 
->>>>> <guzowskip@linuxmail.org> wrote:
->>>>>           
->>>>>> Greetings,
->>>>>>
->>>>>> Does anyone on this list have a sample channel.conf file for
->>>>>> Brighthouse Networks cable or can anyone give enough information
->>>>>> (frequencies, transponders, etc) so that I can try to build one?
->>>>>> Thanks in advance.
->>>>>>
->>>>>> Paul in NW Florida
->>>>>>             
->>>>> Paul,
->>>>>
->>>>> You can use "scan" from dvb-apps, using the scan file,
->>>>> "us-Cable-Standard-center-frequencies-QAM256" ...  If that doesn't
->>>>> work, you can try the other QAM256 cable scan files, located in the
->>>>> util/scan/atsc/ directory of dvb-apps.
->>>>>
->>>>> Alternatively, you can use the latest version of w_scan WITHOUT any
->>>>> scan file.  This should produce the best results.
->>>>>
->>>>> The latest version of w_scan with atsc / qam scanning support can be
->>>>> downloaded from here:
->>>>>
->>>>> http://wirbel.htpc-forum.de/w_scan/w_scan-20080815.tar.bz2
->>>>>
->>>>> You can scan cable using this command:
->>>>>
->>>>> w_scan -A2 -X > channels.conf
->>>>>
->>>>> Good luck.
->>>>>
->>>>> -Mike Krufky
->>>>>           
->>> On Fri, Nov 7, 2008 at 9:05 AM, Paul Guzowski 
->>> <guzowskip@linuxmail.org> wrote:
->>>       
->>>> Greetings Mike,
->>>>
->>>> I tried your suggestion and didn't have any success.  I know 
->>>> there are cable signals coming over the line because two other 
->>>> TVs in the house (one analog and one HDTV-capable) can tune 
->>>> channels.  If I connect to the RF-out from the digital set-top 
->>>> box, I can use mplayer tuned to channel 3 to watch TV but I'd 
->>>> like to be able to tune from the cable directly. Not sure what 
->>>> to try next.  Here's the results of my test:
->>>>
->>>> paul@Kris-desktop:/media/Data/Computer/Downloads/Linux/Multimedia/w_scan-20080815$ w_scan -a0 -X > 
->>>> channels.conf
->>>> w_scan version 20080105
->>>> -_-_-_-_ Getting frontend capabilities-_-_-_-_
->>>> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
->>>> ERROR: Sorry - i couldn't get any working frequency/transponder
->>>>  Nothing to scan!!
->>>> dumping lists (0 services)
->>>> Done.
->>>> paul@Kris-desktop:/media/Data/Computer/Downloads/Linux/Multimedia/w_scan-20080815$
->>>>
->>>>         
->>> Paul,
->>>
->>> The policy of this mailing list, and almost all linux mailing lists,
->>> is to enter your replies BELOW the quoted text.  Do not top-post.
->>>
->>> Please notice above, that I instructed you to pass " -A2 -X " into the
->>> w_scan command line.  You passed " -a0 -X " ..  The -a? and -A? are
->>> two entirely different command line switches.  If you're trying to
->>> scan QAM, then you must pass -A2
->>>
->>> -Mike
->>>
->>>       
->> Also,  do NOT use the rf out from the cablebox -- you wont get any
->> digital services that way.  You must use the cable feed coming in
->> directly from the wall / street.
->>
->> -Mike
->>     
->
-> Mike,
->
-> I failed to say in the prior note that I had already tried your suggested command.  Here's the result:
->
-> paul@Kris-desktop:~/Desktop$ w_scan -A2 -X > channels.conf
-> w_scan: invalid option -- 'A'
->
-> usage: w_scan [options...] 
-> 	-a N	use device /dev/dvb/adapterN/ [default: auto detect]
-> 	-f type	frontend type
-> 		What programs do you want to search for?
-> 		c = cable
-> 		t = terrestrian [default]
-> 	-i N	spectral inversion setting for cable TV
-> 		DVB-T: always off
-> 		DVB-C (0: off, 1: on, 2: auto [default])
-> 	-F	use long filter timeout
-> 	-t N	tuning timeout
-> 		1 = fastest [default]
-> 		2 = medium
-> 		3 = slowest
-> 	-k	generate channels.dvb for kaffeine
-> 	-o N	VDR version / channels.conf format
-> 		2 = VDR-1.2.x (depriciated)
-> 		3 = VDR-1.3.x (depriciated)
-> 		4 = VDR-1.4.x/VDR-1.5.x (default)
-> 	-R N	radio channels
-> 		0 = don't search radio channels
-> 		1 = search radio channels [default]
-> 	-T N	TV channels
-> 		0 = don't search TV channels
-> 		1 = search radio TV [default]
-> 	-O N	Other Services
-> 		0 = don't search other services [default]
-> 		1 = search other services
-> 	-E N	Conditional Access (encrypted channels)
-> 		N=0 gets only Free TV channels
-> 		N=1 search also encrypted channels [default]
-> 	-X	tzap/czap/xine output instead of vdr channels.conf
-> 	-x	generate initial tuning data for (dvb-)scan
-> 	-v 	verbose (repeat for more)
-> 	-q 	quiet   (repeat for less)
-> paul@Kris-desktop:~/Desktop$ 
->
-> Paul
-
-Paul,
-
-w_scan version 20080815 or later!!!
-
--Mike
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+PiA+IPDSydfF1NPU19XALCBNaWNoZWwKPiA+Cj4gPiBidXQgY3gyNDExNiBiYXNlZCBjYXJkcyBk
+b24ndCB3b3JrIHdpdGggZmVjPWF1dG8gZm9yIGR2Yi1zMiAKPiA+Cj4gPiBJJ20gbm90IHN1cmUg
+LSBtYXkgYmUgZm9yIGN4MjQxMTYgY2FyZHMgdGhlIHBhcmFtZXRlcnMgcm9sbCBvZmYgJiBtb2R1
+bGF0aW9uIGFyZSBvYmxpZ2F0b3J5IChub3Qgb3B0aW9uYWwpCj4gPgo+ID4KPiA+Cj4gPiAgIAo+
+ID4+IFRlc3RlZCB5b3VyIHNjYW4tczIgd2l0aCBhIFRlY2huaXNhdCBIRDIgY2FyZC4KPiA+Pgo+
+ID4+IFNjYW5uaW5nIHdvcmtzLiBCdXQgc29tZSBjaGFubmVscyBhcmUgcmVwb3J0ZWQgdHdpY2Ug
+d2l0aCBkaWZmZXJlbnQgCj4gPj4gZnJlcXVlbmN5LiBJIGZvdW5kIGFuIGVycm9yIHdoaWNoIGlz
+IGZpeGVkIGJ5IHRoZSBwYXRjaCBmaWxlIG5hbWVkIAo+ID4+IHNjYW4uYy5kaWZmMS4KPiA+Pgo+
+ID4+IEkgd291bGQgYWxzbyBsaWtlIHRvIHByb3Bvc2UgdGhlIGZvbGxvd2luZyBjaGFuZ2UgKHNl
+ZSBmaWxlIHNjYW4uYy5kaWZmMiAKPiA+PiBvciBzY2FuLmMuZGlmZiB3aGljaCBpbmNsdWRlcyBi
+b3RoIHBhdGNoZXMpLiBUaGlzIGNoYW5nZSBtYWtlcyBpdCAKPiA+PiBwb3NzaWJsZSB0byBvbmx5
+IHNjYW4gZm9yIERWQi1TIGNoYW5uZWxzIG9yIERWQi1TMiBjaGFubmVscyBvciBib3RoLiAKPiA+
+PiBUaGlzIGlzIGRvbmUgYnkgc3BlY2lmeWluZyBsaW5lcyBzdGFydGluZyB3aXRoIFMgb3IgUzIg
+aW4gdGhlIGlucHV0IGZpbGUuCj4gPj4KPiA+PiBleGFtcGxlIGlucHV0IGZpbGU6Cj4gPj4gIyBB
+c3RyYSAxOS4yRSBTRFQgaW5mbyBzZXJ2aWNlIHRyYW5zcG9uZGVyCj4gPj4gIyBmcmVxIHBvbCBz
+ciBmZWMKPiA+PiBTIDEyNTIyMDAwIEggMjIwMDAwMDAgMi8zICAgICAgIDxvbmx5IERWQi1TIGNo
+YW5uZWxzIGFyZSBzY2FubmVkPgo+ID4+IFMgMTE5MTQwMDAgSCAyNzUwMDAwMCBBVVRPCj4gPj4g
+UyAxMDc0Mzc1MCBIIDIyMDAwMDAwIDUvNgo+ID4+IFMgMTIxODc1MDAgSCAyNzUwMDAwMCAzLzQK
+PiA+PiBTIDEyMzQzNTAwIEggMjc1MDAwMDAgMy80Cj4gPj4gUyAxMjUxNTI1MCBIIDIyMDAwMDAw
+IDUvNgo+ID4+IFMgMTI1NzQyNTAgSCAyMjAwMDAwMCA1LzYKPiA+PiBTMiAxMjUyMjAwMCBIIDIy
+MDAwMDAwIEFVVE8gICAgPG9ubHkgRFZCLVMyIGNoYW5uZWxzIGFyZSBzY2FubmVkPgo+ID4+IFMy
+IDExOTE0MDAwIEggMjc1MDAwMDAgQVVUTwo+ID4+Cj4gPj4gSSBob3BlIHRoaXMgaXMgdXNlZnVs
+bC4KPiA+Pgo+ID4+IFJlZ2FyZHMsCj4gPj4KPiA+PiBNaWNoZWwuCj4gPj4gICAgIAo+ID4KPiA+
+Cj4gPiAgIAo+IAo+IEdvZ2EsCj4gCj4gQVVUTyBmZWMgZG9lcyB3b3JrIGJlY2F1c2UgdGhlIGZv
+bGxvd2luZyBpcyB0aGUgcmVzdWx0IGZvciB0aGUgRFZCLVMyIAo+IGNoYW5uZWxzIEkgZ2V0IHdp
+dGggdGhlIGFib3ZlIGlucHV0Ogo+IAo+IFBSRU1JRVJFIEhEOjExOTE0Omg6MDoyNzUwMDo3Njc6
+NzcyOjEyOTo2Cj4gRElTQ09WRVJZIEhEOjExOTE0Omg6MDoyNzUwMDoxMDIzOjEwMjc6MTMwOjYK
+PiBBU1RSQSBIRCs6MTE5MTQ6aDowOjI3NTAwOjEyNzk6MTI4MzoxMzE6Ngo+IEFOSVhFIEhEOjEx
+OTE0Omg6MDoyNzUwMDoxNTM1OjE1Mzk6MTMyOjYKCnlvdSBoYXZlIHN0YjA4OTkgYmFzZWQgY2Fy
+ZCwgYnV0IEkgaGF2ZSBtZWFuIGN4MjQxMTYgYmFzZWQgY2FyZC4KCkdvZ2EKCgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBs
+aXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4v
+bWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
