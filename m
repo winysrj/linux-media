@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.123])
+Received: from fk-out-0910.google.com ([209.85.128.189])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <FlyMyPG@gmail.com>) id 1L40K7-0002cz-Qy
-	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 22:47:28 +0100
-Received: from cpe-24-165-6-130.san.res.rr.com ([24.165.6.130])
-	by cdptpa-omta04.mail.rr.com with ESMTP id
-	<20081122214653.BEZI24754.cdptpa-omta04.mail.rr.com@cpe-24-165-6-130.san.res.rr.com>
-	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 21:46:53 +0000
-Message-ID: <49287DCC.9040004@gmail.com>
-Date: Sat, 22 Nov 2008 13:46:52 -0800
-From: Bob Cunningham <FlyMyPG@gmail.com>
-MIME-Version: 1.0
+	(envelope-from <filippo.argiolas@gmail.com>) id 1KwKZO-0004mr-49
+	for linux-dvb@linuxtv.org; Sat, 01 Nov 2008 18:47:31 +0100
+Received: by fk-out-0910.google.com with SMTP id f40so761199fka.1
+	for <linux-dvb@linuxtv.org>; Sat, 01 Nov 2008 10:47:26 -0700 (PDT)
+From: Filippo Argiolas <filippo.argiolas@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] AnyTV AUTV002 USB ATSC/QAM Tuner Stick
+In-Reply-To: <1225560392.3982.91.camel@tux>
+References: <1225560392.3982.91.camel@tux>
+Date: Sat, 01 Nov 2008 18:47:19 +0100
+Message-Id: <1225561639.3982.94.camel@tux>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] [PATCH] Emtec S810 (1164:2edc) support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,58 +20,50 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0459528384=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
 
-I just bought an AnyTV AUTV002 USB Tuner Stick from DealExtreme.  When plugged in, lsusb provides the following:
-
-   Bus 001 Device 011: ID 05e1:0400 Syntek Semiconductor Co., Ltd 
-
-A quick search revealed that the au0828 driver had recently been updated (10 Nov) to support this USB ID.
-
-Following instructions on the wiki, I obtained the latest v4l-dvb source via Mercurial, and built/installed it without error.  Next I did "modprobe au0828", and dmesg provided the following:
-
-    au0828 driver loaded
-    usbcore: registered new interface driver au0828
-
-Next I did "lsmod | grep au0828", which provides the following:
-
-   au0828                 20384  0 
-   dvb_core               68673  1 au0828
-   tveeprom               14917  1 au0828
-   i2c_core               20949  4 au0828,tveeprom,nvidia,i2c_i801
-
-dmesg provides the following when the device is plugged in:
-
-   usb 1-2: new high speed USB device using ehci_hcd and address 10
-   usb 1-2: configuration #1 chosen from 1 choice
-   usb 1-2: New USB device found, idVendor=05e1, idProduct=0400
-   usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-   usb 1-2: Product: USB 2.0 Video Capture Controller
-   usb 1-2: Manufacturer: Syntek Semiconductor
-
-However, I have no /dev/dvb.  I unplugged/replugged several times, with no change.
-
-I rebooted and repeated the modprobe and the unplug/replug, with no different results.
-
-My guess is that udev isn't making the connection from the USB ID, but I'm not sure what to do about it.  
-
-I'm running a fully updated FC8 on a Dell dual Xeon-HT server with kernel 2.6.26.6-49.fc8 #1 SMP.
-
-Did I miss something basic?
+--===============0459528384==
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-EchiCeTIKEtoQz4BCrLM"
 
 
-Thanks,
+--=-EchiCeTIKEtoQz4BCrLM
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
--BobC
+On sab, 2008-11-01 at 18:26 +0100, Filippo Argiolas wrote:
+> Thanks to Luca Borore (the device owner) for the help and feedback given
 
+Sorry, mispelled the name. Thanks to Luca Boncore :)
+
+--=-EchiCeTIKEtoQz4BCrLM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkkMliYACgkQDNBLuf7fMcFt9QCfX7rNBAG6InfPA3Myhh/Daq2e
+cGIAn0yfxcK9XWi1q2Ayp1+G7DcKjsLL
+=yz35
+-----END PGP SIGNATURE-----
+
+--=-EchiCeTIKEtoQz4BCrLM--
+
+
+
+--===============0459528384==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0459528384==--
