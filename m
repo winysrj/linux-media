@@ -1,26 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAHLSPoc005830
-	for <video4linux-list@redhat.com>; Mon, 17 Nov 2008 16:28:25 -0500
-Received: from tomts47-srv.bellnexxia.net (tomts47-srv.bellnexxia.net
-	[209.226.175.191])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAHLRUbB019646
-	for <video4linux-list@redhat.com>; Mon, 17 Nov 2008 16:27:30 -0500
-From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
-To: Thomas Reiter <x535.01@gmail.com>, "video4linux-list@redhat.com"
-	<video4linux-list@redhat.com>
-Date: Mon, 17 Nov 2008 16:23:50 -0500
-Message-ID: <09CD2F1A09A6ED498A24D850EB101208165C79D3AB@Colmatec004.COLMATEC.INT>
-References: <1226943947.6362.10.camel@ivan>
-	<09CD2F1A09A6ED498A24D850EB101208165C79D39F@Colmatec004.COLMATEC.INT>,
-	<1226955828.6699.28.camel@ivan>
-In-Reply-To: <1226955828.6699.28.camel@ivan>
-Content-Language: fr-CA
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: RE : RE : DVB-T2 (Mpeg4) in Norway
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA1A5bAf001572
+	for <video4linux-list@redhat.com>; Sat, 1 Nov 2008 06:05:37 -0400
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.234])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA1A5PIT005431
+	for <video4linux-list@redhat.com>; Sat, 1 Nov 2008 06:05:25 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so1849820rvb.51
+	for <video4linux-list@redhat.com>; Sat, 01 Nov 2008 03:05:24 -0700 (PDT)
+From: shawn <instigatorirc@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <mailman.0.1225533379.22056.video4linux-list@redhat.com>
+References: <mailman.0.1225533379.22056.video4linux-list@redhat.com>
+Content-Type: text/plain
+Date: Sat, 01 Nov 2008 03:05:18 -0700
+Message-Id: <1225533918.19255.5.camel@shawn-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: Re: Welcome to the "video4linux-list" mailing list
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,44 +28,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Look at the usbvideo page,
+I got this error trying to use fbtv
+
+shawn@dvr:/dev$ fbtv
+can't find console font file
+unable to open server "unix/:7100"
+no font available
 
 
-in other words, record at least 200-300 meg
+im testing my bt878 capture card for zonminder and also would be nice to
+use the c-out without having to install the whole X11, also xawtv
+installed all its dependancies but still didnt work for me, said it
+oculdnt find display when starting from tty.
 
-pres resume, pause to get the size
-
-or by default in your windows repository the name of file inside usbsniff usbsnoop.log SIZE
-
-Me, I unplug the signal during the log record, change video standard and resolution, dont know if this could help more but I could bet this could be usefull to detect exactly what you cahnge u will recognize as is inside the log !! ( some kind of message box for debugging info or log file... comments) u can find yourself
-________________________________________
-De : video4linux-list-bounces@redhat.com [video4linux-list-bounces@redhat.com] de la part de Thomas Reiter [x535.01@gmail.com]
-Date d'envoi : 17 novembre 2008 16:03
-À : video4linux-list@redhat.com
-Objet : Re: RE : DVB-T2 (Mpeg4) in Norway
-
-ma., 17.11.2008 kl. 13.23 -0500, skrev Jonathan Lafontaine:
-> use usbreplay
-
-Ok, I took now usbreplay and it seems that at the beginning of the log
-(after rebooting) some 40 byte packages were send to the USB-device. How
-could I get out the firmware?
-
-Thanks
-
-Thomas
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
---
-
-This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN
-Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com)
-www.solulan.com
-
+Im on ubuntu 8.04.1 server
 
 --
 video4linux-list mailing list
