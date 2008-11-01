@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAAF9Nnx014711
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 10:09:23 -0500
-Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAAF9CeN006950
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 10:09:12 -0500
-Received: by ti-out-0910.google.com with SMTP id 24so1678613tim.7
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 07:09:11 -0800 (PST)
-Message-ID: <1cf807b00811100709p5c70701aoa11043e4d12388c8@mail.gmail.com>
-Date: Mon, 10 Nov 2008 23:09:11 +0800
-From: "Kris Huang" <imaborg@gmail.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA1EZQOJ014027
+	for <video4linux-list@redhat.com>; Sat, 1 Nov 2008 10:35:26 -0400
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA1EZEZB023996
+	for <video4linux-list@redhat.com>; Sat, 1 Nov 2008 10:35:14 -0400
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200811011505.51716.hverkuil@xs4all.nl>
+References: <200811011505.51716.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sat, 01 Nov 2008 10:36:02 -0400
+Message-Id: <1225550162.3129.7.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: How to stop driver from loading to prevent from hanging during
-	booting
+Cc: em28xx <em28xx@mcentral.de>, linux-dvb@linuxtv.org,
+	v4l <video4linux-list@redhat.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [linux-dvb] [PATCH 1/7] Adding empia base driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,18 +29,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Sat, 2008-11-01 at 15:05 +0100, Hans Verkuil wrote:
 
- Good day.
- In order to get my Compro T750F channel switch working, I use hg and
-download the latest v4l drivers. After make install and reboot, my Ubuntu
-Intrepid box just hanged. I am not that familiar with Ubuntu, so I don't
-know how to stop the trouble driver from being loaded during the boot
-process.
- Any ideas?
- Thanks.
+> Hi Markus,
+> 
+> As promised I've done a review of your empia driver and looked at what 
+> needs to be done to get it into the kernel.
+> 
+> First of all, I've no doubt that your empia driver is better and 
+> supports more devices than the current em28xx driver. I also have no 
+> problem adding your driver separate from the current driver. It's been 
+> done before (certain networking drivers spring to mind) and while 
+> obviously not ideal I expect that the older em28xx driver can probably 
+> be removed after a year or something like that.
 
-Kris
+[snip]
+
+> So my recommendation would be to:
+
+[snip]
+
+> 3) Switch to video_ioctl2 in the empia driver. You can do that, but we 
+> can probably find a volunteer as well.
+> 
+> 4) Conform the code to the coding style. If several people can help with 
+> this we can get it done pretty quickly.
+
+I can support these two portions of the effort, if what Hans' proposes
+is the agreed plan.
+
+Point me to the target directories in the repo, and suggest desired
+completion dates for whatever tasks.
+
+Standing by...
+
+Regards,
+Andy
+
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
