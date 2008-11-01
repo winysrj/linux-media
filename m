@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from node01.cambriumhosting.nl ([217.19.16.162])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stev391@email.com>) id 1L4pWz-0007HY-43
-	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 05:28:11 +0100
-Received: from wfilter3.us4.outblaze.com.int (wfilter3.us4.outblaze.com.int
-	[192.168.8.242])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	946AC1800314
-	for <linux-dvb@linuxtv.org>; Tue, 25 Nov 2008 04:28:02 +0000 (GMT)
-Content-Disposition: inline
+	(envelope-from <jelledejong@powercraft.nl>) id 1KwLPf-0008A4-E2
+	for linux-dvb@linuxtv.org; Sat, 01 Nov 2008 19:41:32 +0100
+Message-ID: <490CA2D0.7070001@powercraft.nl>
+Date: Sat, 01 Nov 2008 19:41:20 +0100
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-From: stev391@email.com
-To: "Igor M. Liplianin" <liplianin@tut.by>
-Date: Tue, 25 Nov 2008 14:27:59 +1000
-Message-Id: <20081125042759.767D11642C3@ws1-4.us4.outblaze.com>
+To: wk <handygewinnspiel@gmx.de>
+References: <490B6241.7020102@powercraft.nl> <490C2DE9.9090809@gmx.de>
+In-Reply-To: <490C2DE9.9090809@gmx.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add Compro VideoMate E650F (DVB-T part only)
+Subject: Re: [linux-dvb] automated w_scan,
+ duplicated channels and signal strength filtering
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,96 +20,78 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Cj4gLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLQo+IEZyb206ICJJZ29yIE0uIExpcGxpYW5p
-biIgPGxpcGxpYW5pbkB0dXQuYnk+Cj4gVG86IHN0ZXYzOTFAZW1haWwuY29tCj4gQ2M6IGxpbnV4
-LWR2YkBsaW51eHR2Lm9yZwo+IFN1YmplY3Q6IFJlOiBbbGludXgtZHZiXSBbUEFUQ0hdIEFkZCBD
-b21wcm8gVmlkZW9NYXRlIEU2NTBGIChEVkItVCBwYXJ0IG9ubHkpCj4gRGF0ZTogVHVlLCAyNSBO
-b3YgMjAwOCAwNTowNjo1NSArMDIwMAo+IAo+IAo+IPcg08/Pwt3FzsnJIM/UIDI1IE5vdmVtYmVy
-IDIwMDggMDQ6MDA6MDAgc3RldjM5MUBlbWFpbC5jb20gzsHQydPBzCjBKToKPiA+ID4gLS0tLS0g
-T3JpZ2luYWwgTWVzc2FnZSAtLS0tLQo+ID4gPiBGcm9tOiAiSWdvciBNLiBMaXBsaWFuaW4iIDxs
-aXBsaWFuaW5AdHV0LmJ5Pgo+ID4gPiBUbzogc3RldjM5MUBlbWFpbC5jb20KPiA+ID4gQ2M6IGxp
-bnV4LWR2YkBsaW51eHR2Lm9yZywgc3RvdGhAbGludXh0di5vcmcKPiA+ID4gU3ViamVjdDogUmU6
-IFtsaW51eC1kdmJdIFtQQVRDSF0gQWRkIENvbXBybyBWaWRlb01hdGUgRTY1MEYgKERWQi1UIHBh
-cnQKPiA+ID4gb25seSkgRGF0ZTogVHVlLCAyNSBOb3YgMjAwOCAwMTo1NzozMyArMDIwMAo+ID4g
-Pgo+ID4gPiD3INPPz8Ldxc7JySDP1CAyNCBOb3ZlbWJlciAyMDA4IDIzOjUxOjM1IHN0ZXYzOTFA
-ZW1haWwuY29tIM7B0MnTwcwowSk6Cj4gPiA+ID4gPiBNZXNzYWdlOiAyCj4gPiA+ID4gPiBEYXRl
-OiBTdW4sIDIzIE5vdiAyMDA4IDEzOjQ3OjQxICswMjAwCj4gPiA+ID4gPiBGcm9tOiAiSWdvciBN
-LiBMaXBsaWFuaW4iIDxsaXBsaWFuaW5AdHV0LmJ5Pgo+ID4gPiA+ID4gU3ViamVjdDogW2xpbnV4
-LWR2Yl0gW1BBVENIXSBBZGQgQ29tcHJvIFZpZGVvTWF0ZSBFNjUwRiAoRFZCLVQgcGFydAo+ID4g
-PiA+ID4gCW9ubHkpCj4gPiA+ID4gPiBUbzogbGludXgtZHZiQGxpbnV4dHYub3JnLCB2aWRlbzRs
-aW51eC1saXN0QHJlZGhhdC5jb20KPiA+ID4gPiA+IE1lc3NhZ2UtSUQ6IDwyMDA4MTEyMzEzNDcu
-NDE0NTIubGlwbGlhbmluQHR1dC5ieT4KPiA+ID4gPiA+IENvbnRlbnQtVHlwZTogdGV4dC9wbGFp
-bjsgIGNoYXJzZXQ9ImtvaTgtciIKPiA+ID4gPiA+Cj4gPiA+ID4gPiBGcm9tOiBJZ29yIE0uIExp
-cGxpYW5pbiA8bGlwbGlhbmluQG1lLmJ5Pgo+ID4gPiA+ID4KPiA+ID4gPiA+IEFkZCBDb21wcm8g
-VmlkZW9NYXRlIEU2NTBGIChEVkItVCBwYXJ0IG9ubHkpLgo+ID4gPiA+ID4gVGhlIGNhcmQgYmFz
-ZWQgb24gY3gyMzg4NSBQQ0ktRXhwcmVzcyBjaGlwLCB4YzMwMjggdHVuZXIgYW5kIGNlNjM1Mwo+
-ID4gPiA+ID4gZGVtb2R1bGF0b3IuCj4gPiA+ID4gPgo+ID4gPiA+ID4gU2lnbmVkLW9mZi1ieTog
-SWdvciBNLiBMaXBsaWFuaW4gPGxpcGxpYW5pbkBtZS5ieT4KPiA+ID4gPgo+ID4gPiA+IC0tLS1T
-bmlwLS0tCj4gPiA+ID4KPiA+ID4gPiBJZ29yLAo+ID4gPiA+Cj4gPiA+ID4gSXMgdGhpcyBiYXNl
-ZCBvbiBteSBlYXJsaWVyIHBhdGNoZXMgc2VudCB0byB0aGUgbWFpbGluZyBsaXN0Pwo+ID4gPiA+
-IGh0dHA6Ly9saW51eHR2Lm9yZy9waXBlcm1haWwvbGludXgtZHZiLzIwMDgtQXVndXN0LzAyODM0
-MS5odG1sCj4gPiA+Cj4gPiA+IEhpIFN0ZXBoZW4KPiA+ID4gU29ycnksIEkgbWlzc2VkIHRoYXQg
-cG9zdCAuCj4gPiA+IFNvIHlvdSBhcmUgdGhlIGZpcnN0IDopCj4gPiA+IEkgZGlkbid0IHNlZSBh
-bnkgZnVuY3Rpb25hbCBkaWZmZXJlbmNlIGJldHdlZW4gYm90aCBwYXRjaGVzCj4gPiA+Cj4gPiA+
-ID4gSWYgc28gaGF2ZSB5b3UgaGFkIHRoaXMgd29ya2luZyBjb3JyZWN0bHk/Cj4gPiA+Cj4gPiA+
-IEFjdHVhbGx5LCBJIGJvdWdodCB0aGlzIGNhcmQgY291cGxlIGRheXMgYWdvIGZvciBleHBlcmlt
-ZW5zLgo+ID4gPiBUaGVuIEkgdHlwZQo+ID4gPiAJbW9kcHJvYmUgY3gyMzg4NSBjYXJkPTEyCj4g
-PiA+IEFuZCBpdCB3b3JrcyBpbW1lZGlhdGVseSA6KQo+ID4gPiBCdXQgSSBkaWRuJ3QgZm9yZ2V0
-IHRoZSBmaXJtd2FyZSBmb3IgeGMzMDI4IDspCj4gPiA+IE90aGVycyBpcyB0ZWNobmljLgo+ID4g
-PiBTbywgSXQgd29ya3MgcmlnaHQgbm93IGluIG15IGNvbXB1dGVyLgo+ID4gPiBXaXRoIEthZmZl
-aW5lIEknbSBhYmxlIHNlYXJjaCBmb3IgY2hhbm5lbHMgYW5kIHdhdGNoIHRoZW0uCj4gPiA+Cj4g
-PiA+ID4gV2hhdCBoYXBwZW5zIGlmIHlvdSBkbyBub3cgcmVxdWVzdCB0aGUgbW9kdWxlIGN4MjU4
-NDA/Cj4gPiA+Cj4gPiA+IEl0IGxvYWRzOikKPiA+ID4KPiA+ID4gPiBNeSBwYXRjaGVzIHdlcmUg
-cHJldmlvdXNseSBub3QgY29tbWl0dGVkIGR1ZSB0bzoKPiA+ID4gPiAqIEkgb25seSBoYWQgdHdv
-IHBlb3BsZSB3aG8gaGFkIHRoaXMgY2FyZCAoc2FtZSBwY2kgaWRzKSBhbmQgYm90aCBnYXZlCj4g
-PiA+ID4gbWUgY29uZmxpY2l0bmcgcmVzdWx0cy4gKHJlZ2FyZGluZyB0aGUgbmVlZCBmb3IgY3gy
-NTg0MCwgaWYgeW91IHNlYXJjaAo+ID4gPiA+IHRoZSBtYWlsaW5nIGxpc3QgYXJjaGl2ZXMgZnJv
-bSBhYm91dCBBdWd1c3QgdGhyb3VnaCBTZXB0ZW1iZXIgdGhpcyB5ZWFyCj4gPiA+ID4geW91IHdp
-bGwgZmluZCB0aGUgY29udmVyc2F0aW9ucykuICogVGhlIHBjaSBpZHMgYXJlIHNoYXJlZCBhY3Jv
-c3MKPiA+ID4gPiB2YXJpb3VzIGNhcmRzIGZyb20gQ29tcHJvIFZpZGVvTWF0ZSBTZXJpZXMgYW5k
-IHRoZXJlZm9yZSB0aGUgY2FyZHMgYXJlCj4gPiA+ID4gZGV0ZWN0ZWQgaW5jb3JyZWN0bHksIHRo
-ZSBlZXByb20gZHVtcHMgZm9yIGVhY2ggY2FyZCB0aGF0IHBlb3BsZSBoYXZlCj4gPiA+ID4gY29u
-dGFjdGVkIHRoZSBsaXN0IGFib3V0IHByZXZpb3VzbHkgYXJlIG9uIHRoZSB3aWtpIHBhZ2VzLgo+
-ID4gPiA+Cj4gPiA+ID4gS2VlcCB1cCB0aGUgZWZmb3J0IGluIHN1cHBvcnRpbmcgRFZCIGNhcmRz
-IGluIGxpbnV4Lgo+ID4gPiA+Cj4gPiA+ID4gUmVnYXJkcywKPiA+ID4gPiBTdGVwaGVuLgo+ID4g
-Pgo+ID4gPiBCZXN0IFJlZ2FyZHMKPiA+ID4gSWdvcgo+ID4KPiA+IElnb3IsCj4gPgo+ID4gU29y
-cnkgSSBoYWQgYSB0eXBvIGluIG15IHByZXZpb3VzIGVtYWlsOgo+ID4gV2hhdCBoYXBwZW5zIGlm
-IHlvdSBkbyBOT1QgcmVxdWVzdCB0aGUgbW9kdWxlIGN4MjU4NDA/IERvZXMgaXQgc3RpbGwgd29y
-az8KPiBJdCBkZWZpbml0ZWx5IHdvcmtzLiBJIHN1cHBvc2UsIHRoZSBtb2R1bGUgaXMgbmVlZGVk
-IGZvciBmdXR1cmUgYW5hbG9nIHN1cHBvcnQuCj4gCj4gPgo+ID4gSWYgaXQgZG9lc24ndDogcmVx
-dWVzdCB0aGUgbW9kdWxlLCBidXQgY29tbWVudCBvdXQgdGhlc2UgbGluZXMgaW4KPiA+IGN4MjU4
-NDAtY29yZS5jOiBpZiAoc3RhdGUtPmlzX2N4MjM4ODUpIHsKPiA+ICAJCS8qIERyaXZlIEdQSU8y
-IGRpcmVjdGlvbiBhbmQgdmFsdWVzICovCj4gPiAJCWN4MjU4NDBfd3JpdGUoY2xpZW50LCAweDE2
-MCwgMHgxZCk7Cj4gPiAJCWN4MjU4NDBfd3JpdGUoY2xpZW50LCAweDE2NCwgMHgwMCk7Cj4gPiAJ
-fQo+ID4gV2hhdCBJIG5lZWQgdG8ga25vdyBpcyBpZiB0aGVzZSB3cml0ZXMgYXJlIGVuYWJsaW5n
-IHRoZSBjYXJkIHRvIHdvcmsKPiA+IGNvcnJlY3RseS4KPiAgRnJvbSBjeDIzODg1LXJlZy5oCj4g
-LyogR1BJT1syMzoxOV0gT3V0cHV0IEVuYWJsZSAqLwo+ICNkZWZpbmUgR1BJTzJfT1VUX0VOX1JF
-RwkweDAwMDAwMTYwCj4gLyogR1BJT1syMzoxOV0gRGF0YSBSZWdpc3RlcnMgKi8KPiAjZGVmaW5l
-IEdQSU8yCQkJMHgwMDAwMDE2NAo+IAo+IFNvIHlvdSBuZWVkIHRvIGtub3csIHdoYXQgaXMgb24g
-dGhpcyBsaW5lcy4KPiAKPiA+Cj4gPiBOT1RFOiBhZnRlciBlYWNoIGNoYW5nZSBtZW50aW9uZWQg
-aW4gdGhpcyBlbWFpbCBwZXJmb3JtIGEgaGFyZCByZXNldCBvZiB0aGUKPiA+IGNvbXB1dGVyIChP
-ciBldmVuIGJldHRlciByZW1vdmUgcG93ZXIgdG8gdGhlIGNvbXB1dGVyIGNvbXBsZXRlbHkgZm9y
-IGEKPiA+IHNob3J0IHBlcmlvZCkgYXMgdGhlIGNhcmQncyByZWdpc3RlcnMgZG8gbm90IGdldCBy
-ZXNldCBhbGwgdGhlIHRpbWUsIHRoaXMKPiA+IHB1dHMgaXQgaW4gYSBrbm93biBzdGF0ZS4KPiBI
-YXJkIHJlc2V0IHdpbGwgYmUgZW5vdWdoLgo+IAo+ID4KPiA+IFJlZ2FyZHMsCj4gPiBTdGVwaGVu
-Lgo+IEkga25vdywgRTgwMCBoYXZlIGhhcmR3YXJlIG1wZWcgZW5jb2RlciBvbiBib2FyZC4KPiBB
-bmQgaXQgaXMgc3VwcG9ydGVkIGluIExpbnV4IHRvbyA6KQo+IAo+IAo+IEJlc3QgUmVnYXJkcwo+
-IC0tCj4gSWdvciBNLiBMaXBsaWFuaW4KPiBNaWNyb3NvZnQgV2luZG93cyBGcmVlIFpvbmUgLSBM
-aW51eCB1c2VkIGZvciBhbGwgQ29tcHV0aW5nIFRhc2tzCgo+Cklnb3IsCgpTbyB5b3UgZG8gbm90
-IG5lZWQgdGhlIGN4MjU4NDAgbW9kdWxlIHRoZW4/CgpJZiB5b3UgZG8gbm90IG5lZWQgaXQgdGhl
-biBkbyBub3Qgd29ycnkgYWJvdXQgY29tbWVudGluZyBvdXQgdGhlIGNvZGUgSSBtZW50aW9uZWQg
-cHJldmlvdXNseS4gKEkgZG8gbm90IGhhdmUgdGhpcyBjYXJkLCBidXQgaGF2ZSB3b3JrZWQgcHJl
-dmlvdXNseSB3aXRoIHBlb3BsZSB3aG8gaGF2ZSBpdCB0byBnZXQgaXQgc3VwcG9ydGVkIG91dCBv
-ZiB0aGUgYm94KS4KClRoZSBzdXBwb3J0IGZvciB0aGUgbXBlZyBlbmNvZGVyIG9uIHRoZSBFODAw
-IGlzIGV4cGVyaW1lbnRhbCBhbmQgaXMgY3VycmVudGx5IG5vdCBzZXQgdXAgZm9yIHRoaXMgY2Fy
-ZC4KClJlZ2FyZHMsClN0ZXBoZW4uCgoKLS0gCkJlIFlvdXJzZWxmIEAgbWFpbC5jb20hCkNob29z
-ZSBGcm9tIDIwMCsgRW1haWwgQWRkcmVzc2VzCkdldCBhIEZyZWUgQWNjb3VudCBhdCB3d3cubWFp
-bC5jb20KCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwps
-aW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3Lmxp
-bnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+wk wrote:
+> Hello Jelle,
+>> When a scan is completed it list all found channels, in the file, (see
+>> attachment) however this also include duplicated channels with other
+>> frequencies and strange channels that are from local unusable broadcast.
+>>   
+> That's most probably what your provider sends inside NIT (network 
+> information table).
+> w_scan reads it's informations from there. Sometimes these informations 
+> are wrong.
+>> The issue here is that signal strength is not used to filter out
+>> duplicated channels, only the best strongest signal should come in the
+>> channel list, and channels without identifiers should be removed.
+>>
+>> How can we do this? Is somebody able to fix these issues?
+>>
+>>   
+> It's not possible to use signal information since nearly every dvb cards 
+> sends other information for signal strength,
+> please read the discussion regarding SNR/strength some days ago here on 
+> the list. From application point of view
+> the signal strength information doesn't contain any useful data as long 
+> it's not standardized and reliable across all frontends.
+> Therefore i decided not to use signal strength. Otherwise some frontends 
+> would not work.
+> 
+> Signals without identifiers will not be removed, since some of them have 
+> their channel names inside EIT information or
+> inside private data (i.e. Prmiere) and deleting these channels would 
+> make other users really unhappy. ;)
+> Most of these channels are encrypted, so try to avoid them with -E 0 .
+> But channels without video *and* audio will be removed instead.
+> 
+>> [1] http://wirbel.htpc-forum.de/w_scan/index2.html
+>>
+>> ps. I can't find any contact info for the developer of w_scan.
+>>   
+> email contact is included in the header of each source file. 
+> Nevertheless, should be inside README too, you're right.
+> 
+> Regards,
+> Winfried
+
+Thank you Winfried for both creating the program and to response and
+clear op my questions.
+
+I followed the SNR/strength messages and read the thread again, I was
+hopping some drivers where already using some system that could be used,
+like polling the capabilities of the frontends. I would also suggest
+some way of translating the dB to a min(0)(red) and max(100)(green)
+value so a decimal number can also be used for representation.
+
+I was also hopping w_scan was going into debian sid repositories, I
+would like this for my users, maybe I can find some time next year to
+fix this.
+
+Sadly it seems my usability issues can not be fixed in an easy way, lets
+hope SNR support and some logic using it during channel scanning will be
+coming soon :-p. I can donate 40 euro, dutch stroopwafels, or  some
+plushy tux mascots for some extra motivation.
+
+Thanks in advance,
+
+Jelle
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
