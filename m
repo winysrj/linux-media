@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from imo-m27.mx.aol.com ([64.12.137.8])
+Received: from smtp-1.orange.nl ([193.252.22.241])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dbox2alpha@netscape.net>) id 1L6Mpd-0005kj-O1
-	for linux-dvb@linuxtv.org; Sat, 29 Nov 2008 11:13:46 +0100
-Received: from dbox2alpha@netscape.net
-	by imo-m27.mx.aol.com  (mail_out_v39.1.) id m.be0.4a43a045 (37118)
-	for <linux-dvb@linuxtv.org>; Sat, 29 Nov 2008 05:13:05 -0500 (EST)
-To: linux-dvb@linuxtv.org
-Date: Sat, 29 Nov 2008 05:13:00 -0500
+	(envelope-from <michel@verbraak.org>) id 1KwI8q-000061-9c
+	for linux-dvb@linuxtv.org; Sat, 01 Nov 2008 16:11:56 +0100
+Message-ID: <490C7194.8060603@verbraak.org>
+Date: Sat, 01 Nov 2008 16:11:16 +0100
+From: Michel Verbraak <michel@verbraak.org>
 MIME-Version: 1.0
-From: dbox2alpha@netscape.net
-Message-Id: <8CB2022318A0220-1E84-15EE@WEBMAIL-MZ13.sysops.aol.com>
-Subject: [linux-dvb] technotrend s2-3600: i2c error w/ kernel 2.6.28-rc6 on
- big endian system (ps3)
+To: linux-dvb@linuxtv.org, Alex Betis <alex.betis@gmail.com>
+References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
+In-Reply-To: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
+Content-Type: multipart/mixed; boundary="------------070906020500030301010803"
+Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,131 +19,256 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2018545565=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
---===============2018545565==
-Content-Type: multipart/alternative;
- boundary="--------MB_8CB2022318C6476_1E84_2D36_WEBMAIL-MZ13.sysops.aol.com"
-
-
-----------MB_8CB2022318C6476_1E84_2D36_WEBMAIL-MZ13.sysops.aol.com
+This is a multi-part message in MIME format.
+--------------070906020500030301010803
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"
 
-what's wrong? thanks.
+Alex,
 
-usb 1-2.4: new high speed USB device using ps3-ehci-driver and address 8
-usb 1-2.4: configuration #1 chosen from 1 choice
-dvb-usb: found a 'Technotrend TT Connect S2-3600' in warm state.
-pctv452e_power_ctrl: 1
-i2c-adapter i2c-0: adapter [Technotrend TT Connect S2-3600] registered
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-DVB: registering new adapter (Technotrend TT Connect S2-3600)
-pctv452e: I2C error -121; AA 02? A0 01 14 -> 55 02? A0 00 00.
-dvb-usb: MAC address: 00:d0:5c:64:75:3c
-pctv452e_frontend_attach Enter
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
-i2c-adapter i2c-0: master_xfer[1] R, addr=0x68, len=1
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4
-stb0899_attach: Attaching STB0899
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x08, len=4
-pctv452e_frontend_attach Leave Ok
-DVB: registering adapter 0 frontend 0 (STB0899 Multistandard)...
-pctv452e_tuner_attach Enter
-stb6100_attach: Attaching STB6100
-pctv452e_tuner_attach Leave
-input: IR-receiver inside an USB DVB receiver as /class/input/input1
-dvb-usb: schedule remote query interval to 500 msecs.
-pctv452e_power_ctrl: 0
-dvb-usb: Technotrend TT Connect S2-3600 successfully initialized and connected.
+Tested your scan-s2 with a Technisat HD2 card.
 
-----------MB_8CB2022318C6476_1E84_2D36_WEBMAIL-MZ13.sysops.aol.com
+Scanning works. But some channels are reported twice with different 
+frequency. I found an error which is fixed by the patch file named 
+scan.c.diff1.
+
+I would also like to propose the following change (see file scan.c.diff2 
+or scan.c.diff which includes both patches). This change makes it 
+possible to only scan for DVB-S channels or DVB-S2 channels or both. 
+This is done by specifying lines starting with S or S2 in the input file.
+
+example input file:
+# Astra 19.2E SDT info service transponder
+# freq pol sr fec
+S 12522000 H 22000000 2/3       <only DVB-S channels are scanned>
+S 11914000 H 27500000 AUTO
+S 10743750 H 22000000 5/6
+S 12187500 H 27500000 3/4
+S 12343500 H 27500000 3/4
+S 12515250 H 22000000 5/6
+S 12574250 H 22000000 5/6
+S2 12522000 H 22000000 AUTO    <only DVB-S2 channels are scanned>
+S2 11914000 H 27500000 AUTO
+
+I hope this is usefull.
+
+Regards,
+
+Michel.
+
+--------------070906020500030301010803
+Content-Type: text/plain;
+ name="scan.c.diff"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/html; charset="us-ascii"
+Content-Disposition: inline;
+ filename="scan.c.diff"
 
-<font face="Arial, Helvetica, sans-serif">what's wrong? thanks.<br>
-<br>
-usb 1-2.4: new high speed USB device using ps3-ehci-driver and address 8<br>
-usb 1-2.4: configuration #1 chosen from 1 choice<br>
-dvb-usb: found a 'Technotrend TT Connect S2-3600' in warm state.<br>
-pctv452e_power_ctrl: 1<br>
-i2c-adapter i2c-0: adapter [Technotrend TT Connect S2-3600] registered<br>
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.<br>
-DVB: registering new adapter (Technotrend TT Connect S2-3600)<br>
-pctv452e: I2C error -121; AA 02&nbsp; A0 01 14 -&gt; 55 02&nbsp; A0 00 00.<br>
-dvb-usb: MAC address: 00:d0:5c:64:75:3c<br>
-pctv452e_frontend_attach Enter<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=3<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
-i2c-adapter i2c-0: master_xfer[1] R, addr=0x68, len=1<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=6<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x68, len=2<br>
-i2c-adapter i2c-0: master_xfer[0] R, addr=0x68, len=4<br>
-stb0899_attach: Attaching STB0899<br>
-i2c-adapter i2c-0: master_xfer[0] W, addr=0x08, len=4<br>
-pctv452e_frontend_attach Leave Ok<br>
-DVB: registering adapter 0 frontend 0 (STB0899 Multistandard)...<br>
-pctv452e_tuner_attach Enter<br>
-stb6100_attach: Attaching STB6100<br>
-pctv452e_tuner_attach Leave<br>
-input: IR-receiver inside an USB DVB receiver as /class/input/input1<br>
-dvb-usb: schedule remote query interval to 500 msecs.<br>
-pctv452e_power_ctrl: 0<br>
-dvb-usb: Technotrend TT Connect S2-3600 successfully initialized and connected.<br>
-</font><div id='MAILCIAMA014-5c61493115ad388' class='aol_ad_footer'><BR/><FONT style="color: black; font: normal 10pt ARIAL, SAN-SERIF;"><HR style="MARGIN-TOP: 10px"></HR> Tis the season to save your money!  <a href="http://toolbar.aol.com/holiday/download.html?ncid=emlweusdown00000008">Get the new AOL Holiday Toolbar</a> for money saving offers and gift ideas. </div>
+--- scan-s2-88afcf030566/scan.c.orig	2008-11-01 10:09:43.000000000 +0100
++++ scan-s2-88afcf030566/scan.c	2008-11-01 15:55:14.000000000 +0100
+@@ -906,10 +906,7 @@
+ 				// New transponder
+ 				t = alloc_transponder(tn.frequency);
+ 
+-				// For sattelites start with DVB-S, it will switch to DVB-S2 if DVB-S gives no results
+-				if(current_tp->delivery_system == SYS_DVBS || current_tp->delivery_system == SYS_DVBS2) {
+-					tn.delivery_system = SYS_DVBS;
+-				}
++				tn.delivery_system = current_tp->delivery_system;
+ 
+ 				copy_transponder(t, &tn);
+ 			}
+@@ -1578,7 +1575,10 @@
+ 			if_freq = abs(t->frequency - lnb_type.low_val);
+ 		}
+ 		if (verbosity >= 2)
++                   if (t->delivery_system == SYS_DVBS)
+ 			dprintf(1,"DVB-S IF freq is %d\n", if_freq);
++                  else if (t->delivery_system == SYS_DVBS2)
++			dprintf(1,"DVB-S2 IF freq is %d\n", if_freq);
+ 	}
+ 
+ 
+@@ -1640,7 +1640,8 @@
+ 			// get the actual parameters from the driver for that channel
+ 			if ((ioctl(frontend_fd, FE_GET_PROPERTY, &cmdseq)) == -1) {
+ 				perror("FE_GET_PROPERTY failed");
+-				return;
++        			t->last_tuning_failed = 1;
++				return -1;
+ 			}
+ 
+ 			t->delivery_system = p[0].u.data;
+@@ -1722,12 +1723,6 @@
+ 
+ 		rc = tune_to_transponder(frontend_fd, t);
+ 
+-		// If scan failed and it's a DVB-S system, try DVB-S2 before giving up
+-		if (rc != 0 && t->delivery_system == SYS_DVBS) {
+-			t->delivery_system = SYS_DVBS2;
+-			rc = tune_to_transponder(frontend_fd, t);
+-		}
+-
+ 		if (rc == 0) {
+ 			return 0;
+ 		}
+@@ -1992,6 +1987,42 @@
+ 				t->frequency,
+ 				pol[0], t->symbol_rate, fec2str(t->fec), rolloff2str(t->rolloff), qam2str(t->modulation));
+ 		}
++		else if (sscanf(buf, "S2 %u %1[HVLR] %u %4s %4s %6s\n", &f, pol, &sr, fec, rolloff, qam) >= 3) {
++			t = alloc_transponder(f);
++			t->delivery_system = SYS_DVBS2;
++			t->modulation = QAM_AUTO;
++			t->rolloff = ROLLOFF_AUTO;
++			t->fec = FEC_AUTO;
++			switch(pol[0]) 
++			{
++			case 'H':
++			case 'L':
++				t->polarisation = POLARISATION_HORIZONTAL;
++				break;
++			default:
++				t->polarisation = POLARISATION_VERTICAL;;
++				break;
++			}
++			t->inversion = spectral_inversion;
++			t->symbol_rate = sr;
++
++			// parse optional parameters
++			if(strlen(fec) > 0) {
++				t->fec = str2fec(fec);
++			}
++
++			if(strlen(rolloff) > 0) {
++				t->rolloff = str2rolloff(rolloff);
++			}
++
++			if(strlen(qam) > 0) {
++				t->modulation = str2qam(qam);
++			}
++
++			info("initial transponder %u %c %d %s %s %s\n",
++				t->frequency,
++				pol[0], t->symbol_rate, fec2str(t->fec), rolloff2str(t->rolloff), qam2str(t->modulation));
++		}
+ 		else if (sscanf(buf, "C %u %u %4s %6s\n", &f, &sr, fec, qam) >= 2) {
+ 			t = alloc_transponder(f);
+ 			t->delivery_system = SYS_DVBC_ANNEX_AC;
 
-----------MB_8CB2022318C6476_1E84_2D36_WEBMAIL-MZ13.sysops.aol.com--
+--------------070906020500030301010803
+Content-Type: text/plain;
+ name="scan.c.diff1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="scan.c.diff1"
 
+--- scan-s2-88afcf030566/scan.c.orig	2008-11-01 10:09:43.000000000 +0100
++++ scan-s2-88afcf030566/scan.c	2008-11-01 15:55:14.000000000 +0100
+@@ -1640,7 +1640,8 @@
+ 			// get the actual parameters from the driver for that channel
+ 			if ((ioctl(frontend_fd, FE_GET_PROPERTY, &cmdseq)) == -1) {
+ 				perror("FE_GET_PROPERTY failed");
+-				return;
++        			t->last_tuning_failed = 1;
++				return -1;
+ 			}
+ 
+ 			t->delivery_system = p[0].u.data;
 
---===============2018545565==
+--------------070906020500030301010803
+Content-Type: text/plain;
+ name="scan.c.diff2"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="scan.c.diff2"
+
+--- scan-s2-88afcf030566/scan.c.orig	2008-11-01 10:09:43.000000000 +0100
++++ scan-s2-88afcf030566/scan.c	2008-11-01 15:55:14.000000000 +0100
+@@ -906,10 +906,7 @@
+ 				// New transponder
+ 				t = alloc_transponder(tn.frequency);
+ 
+-				// For sattelites start with DVB-S, it will switch to DVB-S2 if DVB-S gives no results
+-				if(current_tp->delivery_system == SYS_DVBS || current_tp->delivery_system == SYS_DVBS2) {
+-					tn.delivery_system = SYS_DVBS;
+-				}
++				tn.delivery_system = current_tp->delivery_system;
+ 
+ 				copy_transponder(t, &tn);
+ 			}
+@@ -1578,7 +1575,10 @@
+ 			if_freq = abs(t->frequency - lnb_type.low_val);
+ 		}
+ 		if (verbosity >= 2)
++                   if (t->delivery_system == SYS_DVBS)
+ 			dprintf(1,"DVB-S IF freq is %d\n", if_freq);
++                  else if (t->delivery_system == SYS_DVBS2)
++			dprintf(1,"DVB-S2 IF freq is %d\n", if_freq);
+ 	}
+ 
+ 
+@@ -1722,12 +1723,6 @@
+ 
+ 		rc = tune_to_transponder(frontend_fd, t);
+ 
+-		// If scan failed and it's a DVB-S system, try DVB-S2 before giving up
+-		if (rc != 0 && t->delivery_system == SYS_DVBS) {
+-			t->delivery_system = SYS_DVBS2;
+-			rc = tune_to_transponder(frontend_fd, t);
+-		}
+-
+ 		if (rc == 0) {
+ 			return 0;
+ 		}
+@@ -1992,6 +1987,42 @@
+ 				t->frequency,
+ 				pol[0], t->symbol_rate, fec2str(t->fec), rolloff2str(t->rolloff), qam2str(t->modulation));
+ 		}
++		else if (sscanf(buf, "S2 %u %1[HVLR] %u %4s %4s %6s\n", &f, pol, &sr, fec, rolloff, qam) >= 3) {
++			t = alloc_transponder(f);
++			t->delivery_system = SYS_DVBS2;
++			t->modulation = QAM_AUTO;
++			t->rolloff = ROLLOFF_AUTO;
++			t->fec = FEC_AUTO;
++			switch(pol[0]) 
++			{
++			case 'H':
++			case 'L':
++				t->polarisation = POLARISATION_HORIZONTAL;
++				break;
++			default:
++				t->polarisation = POLARISATION_VERTICAL;;
++				break;
++			}
++			t->inversion = spectral_inversion;
++			t->symbol_rate = sr;
++
++			// parse optional parameters
++			if(strlen(fec) > 0) {
++				t->fec = str2fec(fec);
++			}
++
++			if(strlen(rolloff) > 0) {
++				t->rolloff = str2rolloff(rolloff);
++			}
++
++			if(strlen(qam) > 0) {
++				t->modulation = str2qam(qam);
++			}
++
++			info("initial transponder %u %c %d %s %s %s\n",
++				t->frequency,
++				pol[0], t->symbol_rate, fec2str(t->fec), rolloff2str(t->rolloff), qam2str(t->modulation));
++		}
+ 		else if (sscanf(buf, "C %u %u %4s %6s\n", &f, &sr, fec, qam) >= 2) {
+ 			t = alloc_transponder(f);
+ 			t->delivery_system = SYS_DVBC_ANNEX_AC;
+
+--------------070906020500030301010803
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -154,4 +278,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2018545565==--
+--------------070906020500030301010803--
