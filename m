@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.26])
+Received: from smtp-4.orange.nl ([193.252.22.249])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <yoshi314@gmail.com>) id 1L3eJN-0006FP-Tf
-	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 23:17:17 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so467183eya.17
-	for <linux-dvb@linuxtv.org>; Fri, 21 Nov 2008 14:17:10 -0800 (PST)
-Message-ID: <51029ae90811211417x75e042d1tf247ae8e2387ee15@mail.gmail.com>
-Date: Fri, 21 Nov 2008 23:17:09 +0100
-From: "yoshi watanabe" <yoshi314@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <617be8890811211110j40d57609u1ced5301298c34a8@mail.gmail.com>
+	(envelope-from <michel@verbraak.org>) id 1KwIeq-0002uJ-3f
+	for linux-dvb@linuxtv.org; Sat, 01 Nov 2008 16:45:02 +0100
+Message-ID: <490C7958.8050902@verbraak.org>
+Date: Sat, 01 Nov 2008 16:44:24 +0100
+From: Michel Verbraak <michel@verbraak.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>
-	<29500.1227284783@kewl.org>
-	<617be8890811211110j40d57609u1ced5301298c34a8@mail.gmail.com>
-Subject: Re: [linux-dvb] Distorted analog sound when using an HVR-3000
+To: Goga777 <goga777@bk.ru>, linux-dvb@linuxtv.org
+References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>	<490C7194.8060603@verbraak.org>
+	<20081101182051.3ac22972@bk.ru>
+In-Reply-To: <20081101182051.3ac22972@bk.ru>
+Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,77 +19,171 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0073475483=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 11/21/08, Eduard Huguet <eduardhc@gmail.com> wrote:
-> Thanks for your info. I'll give it a test next Monday and post here the
-> results.
->
-> Best regards,
->   Eduard Huguet
->
->
->
-> 2008/11/21 Darron Broad <darron@kewl.org>
->
->> In message <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>,
->> "Eduard Huguet" wrote:
->>
->> LO
->>
->> >Hi,
->> >    I'm testing a Hauppauge HVR-3000 for its use with MythTV, and I'm
->> >observing that I have a completely distorted sound when using any of the
->> >analog inputs (TV, S-Video or Composite). The sound is completely
->> > crackly,
->> >not understanble at all, just noise. I've teste 2 different cards, so I'm
->> >pretty sure it's not a "faulty card" issue.
->> >
->> >This happens both in MythTV or when using directly mplayer to capture
->> video
->> >& audio.
->> >
->> >I'm using an up-to-date HG DVB repository.
->>
->> There are some known problem with cards using the WM8775 codec.
->>
->> Use this repo here:
->>        http://hg.kewl.org/v4l-dvb/
->>
->> It changes how the WM8775 operates and you will be able to
->> control the input levels using v4l2-ctl.
->>
->> Please tell me if this solves your problems.
->>
->> Good luck
->>
->> --
->>
->>  // /
->> {:)==={ Darron Broad <darron@kewl.org>
->>  \\ \
->>
->>
->
-hi there, just wanted to pop in and inform that audio finally works
-perfectly on hvr-1300 with analog tv antenna input (europe, poland,
-PAL-DK) when using drivers from that branch.
+This is a multi-part message in MIME format.
+--===============0073475483==
+Content-Type: multipart/alternative;
+ boundary="------------030101060300080600050906"
 
-i still have to do the  arecord | aplay trick, though. (
-http://godard.b.free.fr/dotclear/index.php?2007/04/04/13-hauppauge-wintv-hvr1300-under-linux
-).
+This is a multi-part message in MIME format.
+--------------030101060300080600050906
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: quoted-printable
 
-mixer control does not seem to be working with tvtime, but i can still
-use the audio card on my box - so no big problem here.
+Goga777 schreef:
+> =F0=D2=C9=D7=C5=D4=D3=D4=D7=D5=C0, Michel
+>
+> but cx24116 based cards don't work with fec=3Dauto for dvb-s2=20
+>
+> I'm not sure - may be for cx24116 cards the parameters roll off & modul=
+ation are obligatory (not optional)
+>
+>
+>
+>  =20
+>> Tested your scan-s2 with a Technisat HD2 card.
+>>
+>> Scanning works. But some channels are reported twice with different=20
+>> frequency. I found an error which is fixed by the patch file named=20
+>> scan.c.diff1.
+>>
+>> I would also like to propose the following change (see file scan.c.dif=
+f2=20
+>> or scan.c.diff which includes both patches). This change makes it=20
+>> possible to only scan for DVB-S channels or DVB-S2 channels or both.=20
+>> This is done by specifying lines starting with S or S2 in the input fi=
+le.
+>>
+>> example input file:
+>> # Astra 19.2E SDT info service transponder
+>> # freq pol sr fec
+>> S 12522000 H 22000000 2/3       <only DVB-S channels are scanned>
+>> S 11914000 H 27500000 AUTO
+>> S 10743750 H 22000000 5/6
+>> S 12187500 H 27500000 3/4
+>> S 12343500 H 27500000 3/4
+>> S 12515250 H 22000000 5/6
+>> S 12574250 H 22000000 5/6
+>> S2 12522000 H 22000000 AUTO    <only DVB-S2 channels are scanned>
+>> S2 11914000 H 27500000 AUTO
+>>
+>> I hope this is usefull.
+>>
+>> Regards,
+>>
+>> Michel.
+>>    =20
+>
+>
+>  =20
 
-i'll test s-video later with playstation2, but i think things are
-finally looking quite good for hvr-1300 linux users ;-)
+Goga,
+
+AUTO fec does work because the following is the result for the DVB-S2=20
+channels I get with the above input:
+
+PREMIERE HD:11914:h:0:27500:767:772:129:6
+DISCOVERY HD:11914:h:0:27500:1023:1027:130:6
+ASTRA HD+:11914:h:0:27500:1279:1283:131:6
+ANIXE HD:11914:h:0:27500:1535:1539:132:6
+
+Regards,
+
+Michel.
+
+--------------030101060300080600050906
+Content-Type: text/html; charset=KOI8-R
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content=3D"text/html;charset=3DKOI8-R" http-equiv=3D"Content-Type=
+">
+</head>
+<body bgcolor=3D"#ffffff" text=3D"#000000">
+Goga777 schreef:
+<blockquote cite=3D"mid:20081101182051.3ac22972@bk.ru" type=3D"cite">
+  <pre wrap=3D"">=F0=D2=C9=D7=C5=D4=D3=D4=D7=D5=C0, Michel
+
+but cx24116 based cards don't work with fec=3Dauto for dvb-s2=20
+
+I'm not sure - may be for cx24116 cards the parameters roll off &amp; mod=
+ulation are obligatory (not optional)
+
+
+
+  </pre>
+  <blockquote type=3D"cite">
+    <pre wrap=3D"">Tested your scan-s2 with a Technisat HD2 card.
+
+Scanning works. But some channels are reported twice with different=20
+frequency. I found an error which is fixed by the patch file named=20
+scan.c.diff1.
+
+I would also like to propose the following change (see file scan.c.diff2=20
+or scan.c.diff which includes both patches). This change makes it=20
+possible to only scan for DVB-S channels or DVB-S2 channels or both.=20
+This is done by specifying lines starting with S or S2 in the input file.
+
+example input file:
+# Astra 19.2E SDT info service transponder
+# freq pol sr fec
+S 12522000 H 22000000 2/3       &lt;only DVB-S channels are scanned&gt;
+S 11914000 H 27500000 AUTO
+S 10743750 H 22000000 5/6
+S 12187500 H 27500000 3/4
+S 12343500 H 27500000 3/4
+S 12515250 H 22000000 5/6
+S 12574250 H 22000000 5/6
+S2 12522000 H 22000000 AUTO    &lt;only DVB-S2 channels are scanned&gt;
+S2 11914000 H 27500000 AUTO
+
+I hope this is usefull.
+
+Regards,
+
+Michel.
+    </pre>
+  </blockquote>
+  <pre wrap=3D""><!---->
+
+  </pre>
+</blockquote>
+<br>
+Goga,<br>
+<br>
+AUTO fec does work because the following is the result for the DVB-S2
+channels I get with the above input:<br>
+<br>
+PREMIERE HD:11914:h:0:27500:767:772:129:6<br>
+DISCOVERY HD:11914:h:0:27500:1023:1027:130:6<br>
+ASTRA HD+:11914:h:0:27500:1279:1283:131:6<br>
+ANIXE HD:11914:h:0:27500:1535:1539:132:6<br>
+<br>
+Regards,<br>
+<br>
+Michel.<br>
+</body>
+</html>
+
+--------------030101060300080600050906--
+
+
+
+--===============0073475483==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0073475483==--
