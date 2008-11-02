@@ -1,21 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nskntmtas06p.mx.bigpond.com ([61.9.168.152])
+Received: from qw-out-2122.google.com ([74.125.92.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jhhummel@bigpond.com>) id 1L6cUh-0008GB-10
-	for linux-dvb@linuxtv.org; Sun, 30 Nov 2008 03:57:13 +0100
-From: Jonathan <jhhummel@bigpond.com>
-To: Mirek =?iso-8859-2?q?Sluge=F2?= <thunder.m@email.cz>
-Date: Sun, 30 Nov 2008 13:56:33 +1100
-References: <4675AD3E.3090608@email.cz>
-	<200811292353.00677.jhhummel@bigpond.com>
-	<493151F9.2040904@email.cz>
-In-Reply-To: <493151F9.2040904@email.cz>
+	(envelope-from <alex.betis@gmail.com>) id 1KwVAS-0001BX-Fq
+	for linux-dvb@linuxtv.org; Sun, 02 Nov 2008 06:06:29 +0100
+Received: by qw-out-2122.google.com with SMTP id 9so816683qwb.17
+	for <linux-dvb@linuxtv.org>; Sat, 01 Nov 2008 22:06:24 -0700 (PDT)
+Message-ID: <c74595dc0811012206y36de5783w544fb701a922fda6@mail.gmail.com>
+Date: Sun, 2 Nov 2008 07:06:23 +0200
+From: "Alex Betis" <alex.betis@gmail.com>
+To: "Michel Verbraak" <michel@verbraak.org>
+In-Reply-To: <490C7CEB.6030704@verbraak.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200811301356.33461.jhhummel@bigpond.com>
+References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
+	<490C7194.8060603@verbraak.org> <20081101182051.3ac22972@bk.ru>
+	<490C7958.8050902@verbraak.org> <20081101185045.1616b5c6@bk.ru>
+	<490C7CEB.6030704@verbraak.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Patch for Leadtek DTV1800H, DTV2000H (rev I, J),
-	and (not working yet) DTV2000H Plus
+Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,89 +24,175 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-2"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============1004937326=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+--===============1004937326==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_35515_23929507.1225602383995"
 
-Yea I did, I even checked it by plugging the cable into the cd, and then =
+------=_Part_35515_23929507.1225602383995
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-recording within the radio programme, successfully. Which basically narrowe=
-d =
+SSB3aWxsIGFkZCA5LzEwIHN1cHBvcnQgdG8gc2Nhbi1zMiB3aGVuIEknbGwgaGF2ZSBteSBzeXN0
+ZW0gd29ya2luZyBhZ2Fpbi4uLgoKCjIwMDgvMTEvMSBNaWNoZWwgVmVyYnJhYWsgPG1pY2hlbEB2
+ZXJicmFhay5vcmc+Cgo+ICBHb2dhNzc3IHNjaHJlZWY6Cj4KPiAg8NLJ18XU09TX1cAsIE1pY2hl
+bAo+Cj4gYnV0IGN4MjQxMTYgYmFzZWQgY2FyZHMgZG9uJ3Qgd29yayB3aXRoIGZlYz1hdXRvIGZv
+ciBkdmItczIKPgo+IEknbSBub3Qgc3VyZSAtIG1heSBiZSBmb3IgY3gyNDExNiBjYXJkcyB0aGUg
+cGFyYW1ldGVycyByb2xsIG9mZiAmIG1vZHVsYXRpb24gYXJlIG9ibGlnYXRvcnkgKG5vdCBvcHRp
+b25hbCkKPgo+Cj4KPgo+Cj4KPiAgVGVzdGVkIHlvdXIgc2Nhbi1zMiB3aXRoIGEgVGVjaG5pc2F0
+IEhEMiBjYXJkLgo+Cj4gU2Nhbm5pbmcgd29ya3MuIEJ1dCBzb21lIGNoYW5uZWxzIGFyZSByZXBv
+cnRlZCB0d2ljZSB3aXRoIGRpZmZlcmVudAo+IGZyZXF1ZW5jeS4gSSBmb3VuZCBhbiBlcnJvciB3
+aGljaCBpcyBmaXhlZCBieSB0aGUgcGF0Y2ggZmlsZSBuYW1lZAo+IHNjYW4uYy5kaWZmMS4KPgo+
+IEkgd291bGQgYWxzbyBsaWtlIHRvIHByb3Bvc2UgdGhlIGZvbGxvd2luZyBjaGFuZ2UgKHNlZSBm
+aWxlIHNjYW4uYy5kaWZmMgo+IG9yIHNjYW4uYy5kaWZmIHdoaWNoIGluY2x1ZGVzIGJvdGggcGF0
+Y2hlcykuIFRoaXMgY2hhbmdlIG1ha2VzIGl0Cj4gcG9zc2libGUgdG8gb25seSBzY2FuIGZvciBE
+VkItUyBjaGFubmVscyBvciBEVkItUzIgY2hhbm5lbHMgb3IgYm90aC4KPiBUaGlzIGlzIGRvbmUg
+Ynkgc3BlY2lmeWluZyBsaW5lcyBzdGFydGluZyB3aXRoIFMgb3IgUzIgaW4gdGhlIGlucHV0IGZp
+bGUuCj4KPiBleGFtcGxlIGlucHV0IGZpbGU6Cj4gIyBBc3RyYSAxOS4yRSBTRFQgaW5mbyBzZXJ2
+aWNlIHRyYW5zcG9uZGVyCj4gIyBmcmVxIHBvbCBzciBmZWMKPiBTIDEyNTIyMDAwIEggMjIwMDAw
+MDAgMi8zICAgICAgIDxvbmx5IERWQi1TIGNoYW5uZWxzIGFyZSBzY2FubmVkPgo+IFMgMTE5MTQw
+MDAgSCAyNzUwMDAwMCBBVVRPCj4gUyAxMDc0Mzc1MCBIIDIyMDAwMDAwIDUvNgo+IFMgMTIxODc1
+MDAgSCAyNzUwMDAwMCAzLzQKPiBTIDEyMzQzNTAwIEggMjc1MDAwMDAgMy80Cj4gUyAxMjUxNTI1
+MCBIIDIyMDAwMDAwIDUvNgo+IFMgMTI1NzQyNTAgSCAyMjAwMDAwMCA1LzYKPiBTMiAxMjUyMjAw
+MCBIIDIyMDAwMDAwIEFVVE8gICAgPG9ubHkgRFZCLVMyIGNoYW5uZWxzIGFyZSBzY2FubmVkPgo+
+IFMyIDExOTE0MDAwIEggMjc1MDAwMDAgQVVUTwo+Cj4gSSBob3BlIHRoaXMgaXMgdXNlZnVsbC4K
+Pgo+IFJlZ2FyZHMsCj4KPiBNaWNoZWwuCj4KPgo+Cj4KPiAgICAgICAgR29nYSwKPgo+IEFVVE8g
+ZmVjIGRvZXMgd29yayBiZWNhdXNlIHRoZSBmb2xsb3dpbmcgaXMgdGhlIHJlc3VsdCBmb3IgdGhl
+IERWQi1TMgo+IGNoYW5uZWxzIEkgZ2V0IHdpdGggdGhlIGFib3ZlIGlucHV0Ogo+Cj4gUFJFTUlF
+UkUgSEQ6MTE5MTQ6aDowOjI3NTAwOjc2Nzo3NzI6MTI5OjYKPiBESVNDT1ZFUlkgSEQ6MTE5MTQ6
+aDowOjI3NTAwOjEwMjM6MTAyNzoxMzA6Ngo+IEFTVFJBIEhEKzoxMTkxNDpoOjA6Mjc1MDA6MTI3
+OToxMjgzOjEzMTo2Cj4gQU5JWEUgSEQ6MTE5MTQ6aDowOjI3NTAwOjE1MzU6MTUzOToxMzI6Ngo+
+Cj4KPiAgeW91IGhhdmUgc3RiMDg5OSBiYXNlZCBjYXJkLCBidXQgSSBoYXZlIG1lYW4gY3gyNDEx
+NiBiYXNlZCBjYXJkLgo+Cj4gR29nYQo+Cj4KPgo+ICBHb2dhLAo+Cj4gU29ycnkgSSBtaXMgdW5k
+ZXJzdG9vZCB5b3UuIEkgdXNlZCBBVVRPIGZlYyBiZWNhdXNlIHRoZSBEVkItUzIgY2hhbm5lbCBv
+bgo+IEFzdHJhIDE5LjIgYW5kIGZyZXF1ZW5jeSAxMTkxNCB1c2UgRkVDIDkvMTAgYWNjb3JkaW5n
+IHRvIHRoZSB3ZWJwYWdlCj4ga2luZ29mc2F0IChodHRwOi8vbmwua2luZ29mc2F0Lm5ldC9wb3Mt
+MTkuMkUucGhwKS4gQmVjYXVzZSBjdXJyZW50IHNjYW4tczIKPiBkb2VzIG5vdCBoYW5kbGUgdGhp
+cyBJIGNoYW5nZWQgaXQgdG8gQVVUTy4KPgo+IGZlYyB0YWJsZSBhY2NvcmRpbmcgdG8gc2Nhbi5j
+Cj4gc3RydWN0IHN0cnRhYiBmZWN0YWJbXSA9IHsKPiAgICAgICAgIHsgIk5PTkUiLCBGRUNfTk9O
+RSB9LAo+ICAgICAgICAgeyAiMS8yIiwgIEZFQ18xXzIgfSwKPiAgICAgICAgIHsgIjIvMyIsICBG
+RUNfMl8zIH0sCj4gICAgICAgICB7ICIzLzQiLCAgRkVDXzNfNCB9LAo+ICAgICAgICAgeyAiNC81
+IiwgIEZFQ180XzUgfSwKPiAgICAgICAgIHsgIjUvNiIsICBGRUNfNV82IH0sCj4gICAgICAgICB7
+ICI2LzciLCAgRkVDXzZfNyB9LAo+ICAgICAgICAgeyAiNy84IiwgIEZFQ183XzggfSwKPiAgICAg
+ICAgIHsgIjgvOSIsICBGRUNfOF85IH0sCj4gICAgICAgICB7ICJBVVRPIiwgRkVDX0FVVE8gfSwK
+PiAgICAgICAgIHsgTlVMTCwgMCB9Cj4gfTsKPgo+IE5ldyBEVkIgQVBJIGNhbiBoYW5kbGUgRkVD
+IDkvMTAgKGluY2x1ZGUvbGludXgvZHZiL2Zyb250ZW5kLmgpCj4gdHlwZWRlZiBlbnVtIGZlX2Nv
+ZGVfcmF0ZSB7Cj4gICAgICAgICBGRUNfTk9ORSA9IDAsCj4gICAgICAgICBGRUNfMV8yLAo+ICAg
+ICAgICAgRkVDXzJfMywKPiAgICAgICAgIEZFQ18zXzQsCj4gICAgICAgICBGRUNfNF81LAo+ICAg
+ICAgICAgRkVDXzVfNiwKPiAgICAgICAgIEZFQ182XzcsCj4gICAgICAgICBGRUNfN184LAo+ICAg
+ICAgICAgRkVDXzhfOSwKPiAgICAgICAgIEZFQ19BVVRPLAo+ICAgICAgICAgRkVDXzNfNSwKPiAg
+ICAgICAgIEZFQ185XzEwLAo+IH0gZmVfY29kZV9yYXRlX3Q7Cj4KPiBXaWxsIGNyZWF0ZSBhIHBh
+dGNoIGZvciB0aGlzIGFzIHNvb24gYXMgcG9zc2libGUuCj4KPiBSZWdhcmRzCj4KPiBNaWNoZWwu
+Cj4KPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IGxp
+bnV4LWR2YiBtYWlsaW5nIGxpc3QKPiBsaW51eC1kdmJAbGludXh0di5vcmcKPiBodHRwOi8vd3d3
+LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmIKPgo=
+------=_Part_35515_23929507.1225602383995
+Content-Type: text/html; charset=KOI8-R
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
 
-it down to the TV card in some capacity. The last update to this card didn'=
-t =
+PGRpdiBkaXI9Imx0ciI+SSB3aWxsIGFkZCA5LzEwIHN1cHBvcnQgdG8gc2Nhbi1zMiB3aGVuIEkm
+IzM5O2xsIGhhdmUgbXkgc3lzdGVtIHdvcmtpbmcgYWdhaW4uLi48YnI+PGJyPjxicj48ZGl2IGNs
+YXNzPSJnbWFpbF9xdW90ZSI+MjAwOC8xMS8xIE1pY2hlbCBWZXJicmFhayA8c3BhbiBkaXI9Imx0
+ciI+Jmx0OzxhIGhyZWY9Im1haWx0bzptaWNoZWxAdmVyYnJhYWsub3JnIj5taWNoZWxAdmVyYnJh
+YWsub3JnPC9hPiZndDs8L3NwYW4+PGJyPgo8YmxvY2txdW90ZSBjbGFzcz0iZ21haWxfcXVvdGUi
+IHN0eWxlPSJib3JkZXItbGVmdDogMXB4IHNvbGlkIHJnYigyMDQsIDIwNCwgMjA0KTsgbWFyZ2lu
+OiAwcHQgMHB0IDBwdCAwLjhleDsgcGFkZGluZy1sZWZ0OiAxZXg7Ij4KCgogIAoKPGRpdiBiZ2Nv
+bG9yPSIjZmZmZmZmIiB0ZXh0PSIjMDAwMDAwIj4KR29nYTc3NyBzY2hyZWVmOgo8ZGl2PjxkaXY+
+PC9kaXY+PGRpdiBjbGFzcz0iV2ozQzdjIj48YmxvY2txdW90ZSB0eXBlPSJjaXRlIj4KICA8Ymxv
+Y2txdW90ZSB0eXBlPSJjaXRlIj4KICAgIDxibG9ja3F1b3RlIHR5cGU9ImNpdGUiPgogICAgICA8
+cHJlPvDSydfF1NPU19XALCBNaWNoZWwKCmJ1dCBjeDI0MTE2IGJhc2VkIGNhcmRzIGRvbiYjMzk7
+dCB3b3JrIHdpdGggZmVjPWF1dG8gZm9yIGR2Yi1zMiAKCkkmIzM5O20gbm90IHN1cmUgLSBtYXkg
+YmUgZm9yIGN4MjQxMTYgY2FyZHMgdGhlIHBhcmFtZXRlcnMgcm9sbCBvZmYgJmFtcDsgbW9kdWxh
+dGlvbiBhcmUgb2JsaWdhdG9yeSAobm90IG9wdGlvbmFsKQoKCgogIAogICAgICA8L3ByZT4KICAg
+ICAgPGJsb2NrcXVvdGUgdHlwZT0iY2l0ZSI+CiAgICAgICAgPHByZT5UZXN0ZWQgeW91ciBzY2Fu
+LXMyIHdpdGggYSBUZWNobmlzYXQgSEQyIGNhcmQuCgpTY2FubmluZyB3b3Jrcy4gQnV0IHNvbWUg
+Y2hhbm5lbHMgYXJlIHJlcG9ydGVkIHR3aWNlIHdpdGggZGlmZmVyZW50IApmcmVxdWVuY3kuIEkg
+Zm91bmQgYW4gZXJyb3Igd2hpY2ggaXMgZml4ZWQgYnkgdGhlIHBhdGNoIGZpbGUgbmFtZWQgCnNj
+YW4uYy5kaWZmMS4KCkkgd291bGQgYWxzbyBsaWtlIHRvIHByb3Bvc2UgdGhlIGZvbGxvd2luZyBj
+aGFuZ2UgKHNlZSBmaWxlIHNjYW4uYy5kaWZmMiAKb3Igc2Nhbi5jLmRpZmYgd2hpY2ggaW5jbHVk
+ZXMgYm90aCBwYXRjaGVzKS4gVGhpcyBjaGFuZ2UgbWFrZXMgaXQgCnBvc3NpYmxlIHRvIG9ubHkg
+c2NhbiBmb3IgRFZCLVMgY2hhbm5lbHMgb3IgRFZCLVMyIGNoYW5uZWxzIG9yIGJvdGguIApUaGlz
+IGlzIGRvbmUgYnkgc3BlY2lmeWluZyBsaW5lcyBzdGFydGluZyB3aXRoIFMgb3IgUzIgaW4gdGhl
+IGlucHV0IGZpbGUuCgpleGFtcGxlIGlucHV0IGZpbGU6CiMgQXN0cmEgMTkuMkUgU0RUIGluZm8g
+c2VydmljZSB0cmFuc3BvbmRlcgojIGZyZXEgcG9sIHNyIGZlYwpTIDEyNTIyMDAwIEggMjIwMDAw
+MDAgMi8zICAgICAgICZsdDtvbmx5IERWQi1TIGNoYW5uZWxzIGFyZSBzY2FubmVkJmd0OwpTIDEx
+OTE0MDAwIEggMjc1MDAwMDAgQVVUTwpTIDEwNzQzNzUwIEggMjIwMDAwMDAgNS82ClMgMTIxODc1
+MDAgSCAyNzUwMDAwMCAzLzQKUyAxMjM0MzUwMCBIIDI3NTAwMDAwIDMvNApTIDEyNTE1MjUwIEgg
+MjIwMDAwMDAgNS82ClMgMTI1NzQyNTAgSCAyMjAwMDAwMCA1LzYKUzIgMTI1MjIwMDAgSCAyMjAw
+MDAwMCBBVVRPICAgICZsdDtvbmx5IERWQi1TMiBjaGFubmVscyBhcmUgc2Nhbm5lZCZndDsKUzIg
+MTE5MTQwMDAgSCAyNzUwMDAwMCBBVVRPCgpJIGhvcGUgdGhpcyBpcyB1c2VmdWxsLgoKUmVnYXJk
+cywKCk1pY2hlbC4KICAgIAogICAgICAgIDwvcHJlPgogICAgICA8L2Jsb2NrcXVvdGU+CiAgICAg
+IDxwcmU+ICAKICAgICAgPC9wcmU+CiAgICA8L2Jsb2NrcXVvdGU+CiAgICA8cHJlPkdvZ2EsCgpB
+VVRPIGZlYyBkb2VzIHdvcmsgYmVjYXVzZSB0aGUgZm9sbG93aW5nIGlzIHRoZSByZXN1bHQgZm9y
+IHRoZSBEVkItUzIgCmNoYW5uZWxzIEkgZ2V0IHdpdGggdGhlIGFib3ZlIGlucHV0OgoKUFJFTUlF
+UkUgSEQ6MTE5MTQ6aDowOjI3NTAwOjc2Nzo3NzI6MTI5OjYKRElTQ09WRVJZIEhEOjExOTE0Omg6
+MDoyNzUwMDoxMDIzOjEwMjc6MTMwOjYKQVNUUkEgSEQrOjExOTE0Omg6MDoyNzUwMDoxMjc5OjEy
+ODM6MTMxOjYKQU5JWEUgSEQ6MTE5MTQ6aDowOjI3NTAwOjE1MzU6MTUzOToxMzI6NgogICAgPC9w
+cmU+CiAgPC9ibG9ja3F1b3RlPgogIDxwcmU+eW91IGhhdmUgc3RiMDg5OSBiYXNlZCBjYXJkLCBi
+dXQgSSBoYXZlIG1lYW4gY3gyNDExNiBiYXNlZCBjYXJkLgoKR29nYQoKICA8L3ByZT4KPC9ibG9j
+a3F1b3RlPjwvZGl2PjwvZGl2PgpHb2dhLDxicj4KPGJyPgpTb3JyeSBJIG1pcyB1bmRlcnN0b29k
+IHlvdS4gSSB1c2VkIEFVVE8gZmVjIGJlY2F1c2UgdGhlIERWQi1TMiBjaGFubmVsCm9uIEFzdHJh
+IDE5LjIgYW5kIGZyZXF1ZW5jeSAxMTkxNCB1c2UgRkVDIDkvMTAgYWNjb3JkaW5nIHRvIHRoZSB3
+ZWJwYWdlCmtpbmdvZnNhdCAoPGEgaHJlZj0iaHR0cDovL25sLmtpbmdvZnNhdC5uZXQvcG9zLTE5
+LjJFLnBocCIgdGFyZ2V0PSJfYmxhbmsiPmh0dHA6Ly9ubC5raW5nb2ZzYXQubmV0L3Bvcy0xOS4y
+RS5waHA8L2E+KS4gQmVjYXVzZSBjdXJyZW50CnNjYW4tczIgZG9lcyBub3QgaGFuZGxlIHRoaXMg
+SSBjaGFuZ2VkIGl0IHRvIEFVVE8uPGJyPgo8YnI+CmZlYyB0YWJsZSBhY2NvcmRpbmcgdG8gc2Nh
+bi5jPGJyPgpzdHJ1Y3Qgc3RydGFiIGZlY3RhYltdID0gezxicj4KJm5ic3A7Jm5ic3A7Jm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IHsgJnF1b3Q7Tk9ORSZxdW90OywgRkVDX05PTkUgfSw8
+YnI+CiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyB7ICZxdW90OzEv
+MiZxdW90OywmbmJzcDsgRkVDXzFfMiB9LDxicj4KJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5i
+c3A7Jm5ic3A7Jm5ic3A7IHsgJnF1b3Q7Mi8zJnF1b3Q7LCZuYnNwOyBGRUNfMl8zIH0sPGJyPgom
+bmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgeyAmcXVvdDszLzQmcXVv
+dDssJm5ic3A7IEZFQ18zXzQgfSw8YnI+CiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOyB7ICZxdW90OzQvNSZxdW90OywmbmJzcDsgRkVDXzRfNSB9LDxicj4KJm5ic3A7
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IHsgJnF1b3Q7NS82JnF1b3Q7LCZu
+YnNwOyBGRUNfNV82IH0sPGJyPgombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsm
+bmJzcDsgeyAmcXVvdDs2LzcmcXVvdDssJm5ic3A7IEZFQ182XzcgfSw8YnI+CiZuYnNwOyZuYnNw
+OyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyB7ICZxdW90OzcvOCZxdW90OywmbmJzcDsg
+RkVDXzdfOCB9LDxicj4KJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7
+IHsgJnF1b3Q7OC85JnF1b3Q7LCZuYnNwOyBGRUNfOF85IH0sPGJyPgombmJzcDsmbmJzcDsmbmJz
+cDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgeyAmcXVvdDtBVVRPJnF1b3Q7LCBGRUNfQVVUTyB9
+LDxicj4KJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IHsgTlVMTCwg
+MCB9PGJyPgp9Ozxicj4KPGJyPgpOZXcgRFZCIEFQSSBjYW4gaGFuZGxlIEZFQyA5LzEwIChpbmNs
+dWRlL2xpbnV4L2R2Yi9mcm9udGVuZC5oKTxicj4KdHlwZWRlZiBlbnVtIGZlX2NvZGVfcmF0ZSB7
+PGJyPgombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgRkVDX05PTkUg
+PSAwLDxicj4KJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IEZFQ18x
+XzIsPGJyPgombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgRkVDXzJf
+Myw8YnI+CiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBGRUNfM180
+LDxicj4KJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IEZFQ180XzUs
+PGJyPgombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgRkVDXzVfNiw8
+YnI+CiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBGRUNfNl83LDxi
+cj4KJm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IEZFQ183XzgsPGJy
+PgombmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsmbmJzcDsgRkVDXzhfOSw8YnI+
+CiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBGRUNfQVVUTyw8YnI+
+CiZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyZuYnNwOyBGRUNfM181LDxicj4K
+Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7Jm5ic3A7IEZFQ185XzEwLDxicj4K
+fSBmZV9jb2RlX3JhdGVfdDs8YnI+Cjxicj4KV2lsbCBjcmVhdGUgYSBwYXRjaCBmb3IgdGhpcyBh
+cyBzb29uIGFzIHBvc3NpYmxlLjxicj4KPGJyPgpSZWdhcmRzPGJyPgo8YnI+Ck1pY2hlbC48YnI+
+CjwvZGl2PgoKPGJyPl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fPGJyPgpsaW51eC1kdmIgbWFpbGluZyBsaXN0PGJyPgo8YSBocmVmPSJtYWlsdG86bGludXgt
+ZHZiQGxpbnV4dHYub3JnIj5saW51eC1kdmJAbGludXh0di5vcmc8L2E+PGJyPgo8YSBocmVmPSJo
+dHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmIi
+IHRhcmdldD0iX2JsYW5rIj5odHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1kdmI8L2E+PGJyPjwvYmxvY2txdW90ZT48L2Rpdj48YnI+PC9kaXY+Cg==
+------=_Part_35515_23929507.1225602383995--
 
-support PAL terribly well.
 
-cheers
-
-Jon
-
-
-On Sun, 30 Nov 2008 01:30:17 am Mirek Sluge=F2 wrote:
-> Hi, you should connect internal cable from your TV card to your sound
-> card, or use "arecord -D hw:1 -f dat 2>/dev/null | aplay -f dat
-> 2>/dev/null"
->
-> Mirek
->
-> Jonathan napsal(a):
-> > On Fri, 28 Nov 2008 10:45:44 pm Mirek Sluge=F2 wrote:
-> >> Hi, all 3 patches are in one file, they depend on each other.
-> >>
-> >> All GPIOs spoted from Windows with original APs
-> >>
-> >> DTV1800H - there is patch pending in this thread from Miroslav Sustek,
-> >> this is only modification of his patch, difference should be only in
-> >> GPIOs (I think it is better to use GPIOs from Windows).
-> >>
-> >> DTV2000H (rev. I) - Only renamed from original old DTV2000H
-> >>
-> >> DTV2000H (rev. J) - Almost everything is working, I have problem only
-> >> with FM radio (no sound).
-> >>
-> >> DTV2000H Plus - added pci id, GPIOs, sadly Tuner is XC4000, so it is n=
-ot
-> >> working yet.
-> >>
-> >> Mirek Slugen
-> >
-> > Hi Mirek,
-> >
-> > Nice work with the patch!
-> >
-> > I gave it a go and found that I still can't get sound for analogue TV a=
-nd
-> > radio.
-> > I have a DTV2000H rev J
-> > Tried:
-> >  - KdeTV
-> >  - TVtime
-> >  - Gnome radio
-> >
-> > I'm in Australia with PAL format TV
-> >
-> > Attached is the dmesg output
-> >
-> > What ya think?
-> >
-> > Jon
-> >
-> >
-> > ------------------------------------------------------------------------
-> >
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
-
+--===============1004937326==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1004937326==--
