@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ug-out-1314.google.com ([66.249.92.171])
+Received: from helios.cedo.cz ([193.165.198.226] helo=postak.cedo.cz)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1L1Vl1-0001FQ-HV
-	for linux-dvb@linuxtv.org; Sun, 16 Nov 2008 01:44:56 +0100
-Received: by ug-out-1314.google.com with SMTP id x30so162392ugc.16
-	for <linux-dvb@linuxtv.org>; Sat, 15 Nov 2008 16:44:52 -0800 (PST)
-Message-ID: <412bdbff0811151644t428cc7d0nce5039dafe278f16@mail.gmail.com>
-Date: Sat, 15 Nov 2008 19:44:52 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: Linux-dvb <linux-dvb@linuxtv.org>
+	(envelope-from <linux-dvb@drajsajtl.cz>) id 1Kwc7d-0005QP-Dv
+	for linux-dvb@linuxtv.org; Sun, 02 Nov 2008 13:32:04 +0100
+Received: from pixle (pixle.cedo.cz [193.165.198.235])
+	by postak.cedo.cz (Postfix) with SMTP id AA3AC225749
+	for <linux-dvb@linuxtv.org>; Sun,  2 Nov 2008 13:31:26 +0100 (CET)
+Message-ID: <001101c93ce7$23bcfdb0$7f79a8c0@tommy>
+From: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
+To: <linux-dvb@linuxtv.org>
+Date: Sun, 2 Nov 2008 13:32:58 +0100
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_11032_16171258.1226796292100"
-Subject: [linux-dvb] [PATCH] Make sure the i2c gate is open before powering
-	down tuner
+Subject: [linux-dvb] Any DVB-C tuner with working CAM?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,65 +19,62 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-------=_Part_11032_16171258.1226796292100
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hello,
+I have bought and tested two DVB-C cards which are supported according to
+http://www.linuxtv.org/wiki/index.php/DVB-C_PCI_Cards
+Both are perfectly working with FTA but none with the CAM.
 
-The following patch addresses an condition where the dvb_frontend
-attempts to power down the tuner, but there is no guarantee that the
-gate is open at that phase (in fact, in a properly written demod it
-should have been closed at this phase).
+1. TechnoTrend Premium DVB-C 2300
 
-Tested on the HVR-950Q.
+DVB: registering new adapter (Technotrend/Hauppauge WinTV Nexus-CA rev1.X)
+adapter has MAC addr = ....
+dvb-ttpci: gpioirq unknown type=0 len=0
+dvb-ttpci: info @ card 3: firm f0240009, rtsl b0250018, vid 71010068, app
+80002622
+dvb-ttpci: firmware @ card 3 supports CI link layer interface
+dvb-ttpci: DVB-C analog module @ card 3 detected, initializing MSP3415
+dvb_ttpci: saa7113 not accessible.
+saa7146_vv: saa7146 (0): registered device video2 [v4l2]
+saa7146_vv: saa7146 (0): registered device vbi2 [v4l2]
+DVB: registering frontend 3 (ST STV0297 DVB-C)...
 
-Regards,
+Applications detect the inserted CAM even if the CAM is not inserted ;-) but
+even when it is, no scrambled channel is decrypted.
 
-Devin
+2. Technisat CableStar HD2
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+found a VP-2040 PCI DVB-C device on (01:02.0),
+    Mantis Rev 1 [1ae4:0002], irq: 18, latency: 64
+    memory: 0xefeff000, mmio: 0xffffc20000aee000
+    MAC Address=[....]
+mantis_alloc_buffers (0): DMA=0x7d820000 cpu=0xffff81007d820000 size=65536
+mantis_alloc_buffers (0): RISC=0x7e50e000 cpu=0xffff81007e50e000 size=1000
+DVB: registering new adapter (Mantis dvb adapter)
 
-------=_Part_11032_16171258.1226796292100
-Content-Type: text/x-diff; name=tuner_sleep_i2cgate.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fnkyt6xj0
-Content-Disposition: attachment; filename=tuner_sleep_i2cgate.patch
+It says that an unsupported CAM is inserted. :-( Then I found in this
+mailing list that the mantis CI-CAM support is not finalized yet. I
+appreciate the work that Manu does with the mantis driver and I trust that
+it will be supported in the comming months but I would expect that the Wiki
+page mentioned above will have also the information about not yet supported
+CI! :-(
 
-T3BlbiB0aGUgaTJjIGdhdGUgYmVmb3JlIGlzc3VpbmcgYXR0ZW1wdGluZyB0byBwdXQgdGhlIHR1
-bmVyIHRvIHNsZWVwCgpGcm9tOiBEZXZpbiBIZWl0bXVlbGxlciA8ZGV2aW4uaGVpdG11ZWxsZXJA
-Z21haWwuY29tPgoKSXQgaXMgbm90IHNhZmUgdG8gYXNzdW1lIHRoYXQgdGhlIGkyYyBnYXRlIHdp
-bGwgYmUgb3BlbiBiZWZvcmUgaXNzdWluZyB0aGUKY29tbWFuZCB0byBwb3dlciBkb3duIHRoZSB0
-dW5lci4gIEluIGZhY3QsIG1hbnkgZGVtb2RzIG9ubHkgb3BlbiB0aGUgZ2F0ZQpsb25nIGVub3Vn
-aCB0byBpc3N1ZSB0aGUgdHVuaW5nIGNvbW1hbmQuCgpUaGlzIGZpeCBhbGxvd3MgcG93ZXIgbWFu
-YWdlbWVudCB0byB3b3JrIHByb3Blcmx5IGZvciB0aG9zZSB0dW5lcnMgYmVoaW5kIGFuCmkyYyBn
-YXRlIChpbiBteSBjYXNlIHRoZSBwcm9ibGVtIHdhcyB3aXRoIHRoZSBIVlItOTUwUSkKClNpZ25l
-ZC1vZmYtYnk6IERldmluIEhlaXRtdWVsbGVyIDxkZXZpbi5oZWl0bXVlbGxlckBnbWFpbC5jb20+
-CkluZGV4OiB2NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9u
-dGVuZC5jCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT0KLS0tIHY0bC1kdmIub3JpZy9saW51eC9kcml2ZXJzL21lZGlhL2R2
-Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYwkyMDA4LTExLTE1IDE5OjM3OjE1LjAwMDAwMDAwMCAt
-MDUwMAorKysgdjRsLWR2Yi9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJv
-bnRlbmQuYwkyMDA4LTExLTE1IDE5OjM3OjUxLjAwMDAwMDAwMCAtMDUwMApAQCAtNjU2LDYgKzY1
-Niw4IEBACiAJCWlmIChmZS0+b3BzLnNldF92b2x0YWdlKQogCQkJZmUtPm9wcy5zZXRfdm9sdGFn
-ZShmZSwgU0VDX1ZPTFRBR0VfT0ZGKTsKIAkJaWYgKGZlLT5vcHMudHVuZXJfb3BzLnNsZWVwKSB7
-CisJCQlpZiAoZmUtPm9wcy5pMmNfZ2F0ZV9jdHJsKQorCQkJCWZlLT5vcHMuaTJjX2dhdGVfY3Ry
-bChmZSwgMSk7CiAJCQlmZS0+b3BzLnR1bmVyX29wcy5zbGVlcChmZSk7CiAJCQlpZiAoZmUtPm9w
-cy5pMmNfZ2F0ZV9jdHJsKQogCQkJCWZlLT5vcHMuaTJjX2dhdGVfY3RybChmZSwgMCk7Cg==
-------=_Part_11032_16171258.1226796292100
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+So I have the CAM, two DVB-C cards but can't watch the channels I pay every
+month... I spent many days with Google to find out a working solution with
+these two or another card but unsuccessfully. Can somebody please advice me
+a DVB-C card with CI which _is on market_ and does work with Technisat Conax
+CAM?
+
+Thanks in advance,
+Tomas
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-------=_Part_11032_16171258.1226796292100--
