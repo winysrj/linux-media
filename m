@@ -1,18 +1,31 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from tuc.ic3s.de ([80.146.164.30])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thomas@ic3s.de>) id 1KzvPK-0004Xp-TJ
-	for linux-dvb@linuxtv.org; Tue, 11 Nov 2008 16:44:00 +0100
-Message-ID: <4919A82D.5060707@ic3s.de>
-Date: Tue, 11 Nov 2008 16:43:41 +0100
-From: Thomas <thomas@ic3s.de>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-References: <491980CC.3000708@ic3s.de> <4919A1B3.4060304@iki.fi>
-In-Reply-To: <4919A1B3.4060304@iki.fi>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] af9015 problem on fedora rawhide 9.93 with 2.6.27x
- kernel
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+0c317467cf5bb4e87def+1897+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1KwUaI-0008Bt-0P
+	for linux-dvb@linuxtv.org; Sun, 02 Nov 2008 05:29:06 +0100
+Date: Sun, 2 Nov 2008 02:27:28 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <20081102022728.68e5e564@pedra.chehab.org>
+In-Reply-To: <200811011459.17706.hverkuil@xs4all.nl>
+References: <d9def9db0810221414w5348acf3re31a033ea7179462@mail.gmail.com>
+	<200811011459.17706.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Cc: Vitaly Wool <vwool@ru.mvista.com>,
+	Dan Kreiser <kreiser@informatik.hu-berlin.de>,
+	Lukas Kuna <lukas.kuna@evkanet.net>,
+	Andre Kelmanson <akelmanson@gmail.com>, acano@fastmail.fm,
+	John Stowers <john.stowers.lists@gmail.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Thomas Giesecke <thomas.giesecke@ibgmbh-naumburg.de>,
+	Zhenyu Wang <zhen78@gmail.com>,
+	v4l <video4linux-list@redhat.com>, linux-dvb@linuxtv.org,
+	em28xx <em28xx@mcentral.de>, greg@kroah.com,
+	Stefan Vonolfen <stefan.vonolfen@gmail.com>,
+	Stephan Berberig <s.berberig@arcor.de>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>, Frank Neuber <fn@kernelport.de>
+Subject: Re: [linux-dvb] [PATCH 1/7] Adding empia base driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,89 +39,41 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Antti,
+On Sat, 1 Nov 2008 14:59:17 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-> I think good place
-> to test fix is add some sleep (msleep(100)) before/after RECONNECT_USB
-> -command around line 685 in af9015.c file. 
-
-thank you, that helps.
-
-i have added two lines:
-
-	msleep(1000);
-        req.cmd = RECONNECT_USB;
-	msleep(1000);
-
-maybe some fine tunnig is required :)
-but for me it works fine.
-
-Regards
-
-Thomas
-
-Antti Palosaari schrieb:
-> hello
+> Hi Markus,
 > 
+> As promised I've done a review of your empia driver and looked at what 
+> needs to be done to get it into the kernel.
 > 
-> Thomas wrote:
->> Hi List,
->>
->>
->> since fedora use 2.6.27 kernels this
->> is all what happens when i plug in the stick:
->>
->> Nov 11 13:24:56 thomas-lt kernel: usb 2-6: new high speed USB device
->> using ehci_hcd and address 3
->> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: configuration #1 chosen
->> from 1 choice
->> Nov 11 13:24:57 thomas-lt kernel: Afatech DVB-T 2: Fixing fullspeed to
->> highspeed interval: 16 -> 8
->> Nov 11 13:24:57 thomas-lt kernel: input: Afatech DVB-T 2 as
->> /devices/pci0000:00/0000:00:1d.7/usb2/2-6/2-6:1.1/input/input9
->> Nov 11 13:24:57 thomas-lt kernel: input,hidraw0: USB HID v1.01
->> Keyboard [Afatech DVB-T 2] on usb-0000:00:1d.7-6
->> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: New USB device found,
->> idVendor=15a4, idProduct=9016
->> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: New USB device strings:
->> Mfr=1, Product=2, SerialNumber=3
->> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: Product: DVB-T 2
->> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: Manufacturer: Afatech
->> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: SerialNumber: 010101010600001
->> Nov 11 13:24:57 thomas-lt kernel: dvb-usb: found a 'Afatech AF9015
->> DVB-T USB2.0 stick' in cold state, will try to load a firmware
->> Nov 11 13:24:57 thomas-lt kernel: firmware: requesting dvb-usb-af9015.fw
->> Nov 11 13:24:57 thomas-lt kernel: dvb-usb: downloading firmware from
->> file 'dvb-usb-af9015.fw'
->> Nov 11 13:24:57 thomas-lt kernel: usbcore: registered new interface
->> driver dvb_usb_af9015
->>
->>
->> if the stick is connected at boot time everything is working correctly.
->>
->> can someone please give me a hint where to look for the problem?
->>
->> version is af9015-e0e0e4ee5b33
+> First of all, I've no doubt that your empia driver is better and 
+> supports more devices than the current em28xx driver. I also have no 
+> problem adding your driver separate from the current driver. It's been 
+> done before (certain networking drivers spring to mind) and while 
+> obviously not ideal I expect that the older em28xx driver can probably 
+> be removed after a year or something like that.
 > 
-> you are not alone with this problem. It only happens 2.6.27 kernels.
-> Looks like it does not reconnect device in the USB-bus as it should. I
-> don't have access to 2.6.27 kernel yet, so I cannot examine it more.
-> Hopefully there is someone who could fix that soon... I think good place
-> to test fix is add some sleep (msleep(100)) before/after RECONNECT_USB
-> -command around line 685 in af9015.c file. The other solution could be
-> to remove whole RECONNECT_USB (after firmware download) and set
-> no_reconnect -flag.
+> In my opinion it's pretty much hopeless trying to convert the current 
+> em28xx driver into what you have. It's a huge amount of work that no 
+> one wants to do and (in this case) with very little benefit. Of course, 
+> Mauro has the final say in this.
 > 
->>
->>
->> Best Regards
->> Thomas
-> 
-> regards
-> Antti
 
--- 
-[:O]###[O:]
+Both upstream and the 4 duplicated drivers have similar functionality. Also,
+the upstream driver is actively maintained. So, there's no sense on accepting
+those duplicated drivers.
+
+Also, just replacing one existing driver by a newer one will cause regressions
+on some already fixed bugs and remove some improvements that the upstream driver
+suffered.
+
+If there's a bug or a lack of functionality on em28xx, cx25843, xc5000 or
+tuner-xc2028, it is just a matter of submitting patches fixing those bugs or
+adding newer features.
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
