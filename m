@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.25])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1Ky0qk-00018k-Td
-	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 10:08:24 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so186983eya.17
-	for <linux-dvb@linuxtv.org>; Thu, 06 Nov 2008 01:08:19 -0800 (PST)
-Date: Thu, 6 Nov 2008 10:08:12 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <49124960.6070101@andrei.myip.org>
-Message-ID: <alpine.DEB.2.00.0811060903100.22461@ybpnyubfg.ybpnyqbznva>
-References: <491236F2.4050101@andrei.myip.org>
-	<200811060153.37102.hftom@free.fr>
-	<49124960.6070101@andrei.myip.org>
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] HD over satellite? (h.264)
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+0c317467cf5bb4e87def+1897+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1KwVF2-0001kc-G7
+	for linux-dvb@linuxtv.org; Sun, 02 Nov 2008 06:11:12 +0100
+Date: Sun, 2 Nov 2008 03:11:02 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Markus Rechberger" <mrechberger@gmail.com>
+Message-ID: <20081102031102.361d4ffd@pedra.chehab.org>
+In-Reply-To: <d9def9db0811011046t58a03e3aj612cdcb06d042ca1@mail.gmail.com>
+References: <490B7EE5.5030701@powercraft.nl> <490C2432.40804@free.fr>
+	<d9def9db0811011046t58a03e3aj612cdcb06d042ca1@mail.gmail.com>
+Mime-Version: 1.0
+Cc: akpm@osdl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	em28xx@mcentral.de, greg@kroah.com, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] em28xx merge process issues with linuxtv and
+ upstream kernel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,84 +29,118 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Mojn,
+On Sat, 1 Nov 2008 18:46:40 +0100
+"Markus Rechberger" <mrechberger@gmail.com> wrote:
 
-You have given no clue that I can see without research in your
-message as to which particular services are of interest to you,
-and a hint to your location, so I will have to generalise about
-things here...
-
-On Wed, 5 Nov 2008, Florin Andrei wrote:
-
-> A quick search on the Eutelsat website revealed that they transmit using =
-> DVB-S. So a DVB-S card like the Hauppauge WinTV-NOVA-S-Plus which I plan =
-> to purchase should be able to receive it, is that right?
+> > The last attempt was rejected because the patches were adding duplicate drivers rather than improving the existing ones.
+> > In the same project, 2 drivers managing the same hardware is not correct.
+> > Markus (or another people, why Markus may be the only person to do that?) should propose patches of the existing drivers, without breaking the v4l-dvb APIs.
+> > - First, the tuners and video decoders modifications shall be merged since they are used by several existing drivers.
+> > - Then the em28xx driver shall be improved.
+> > And this is what Markus started (thanks for this initiative) but this is hard to spend time on these minor things while supporting problems because of being out-of-kernel.
+> >
 > 
-> (I can't receive Eutelsat from my area, but if they start broadcasting =
-> their HD channels on Galaxy 25, the way they do already with SD, then =
-> I'll be able to receive them.)
+> In case of the cx25843 I discussed it with Hans Verkuil, there's more
+> or less no option since it collides with the existing inkernel driver
+> and disables support for other
+> cx25843 drivers, so as for the kernel it should be merged to the
+> existing one yes.
 
-In most cases I've seen, when DVB-S is used to trasmit H.264
-HDTV, it's in order to share a transponder between conventional
-MPEG-2 broadcasts.  Usually, when a transponder gets converted
-to HDTV only, it uses DVB-S2.
+The same kind of collision exists if we keep both the upstream and your version
+of the em28xx driver. This is also true for xc5000 and xc3028 drivers.
 
-I would not rely on a particular transponder remaining DVB-S
-if you have interest in any HDTV -- particularly if you are
-planning an initial investment in a card.  I would suggest
-getting a DVB-S2 card, capable of DVB-S, and avoiding unpleasant
-surprises later, future-proofing yourself for some time.
+> The em28xx driver, the one in the kernel has taken a few patches from
+> my repository, and it has some additional custom patches, it would
+> make more sense to work those
+> few patches into the new em28xx driver which is tested with most devices
+> 
+> (compared with the driver which is in the kernel which is likely
+> tested with 5-10% of the devices which are in the cardlist).
 
+The patches should be generated against the upstream driver, not against the
+out-of-tree.
 
-As a concrete example of what I mean, BBC-HD presently shares
-a transponder with two SD BBC services which must be received
-by existing non-S2-able Sky and FTA receivers.  The german
-EinsFestival HD showcases shared a transponder with existing
-SD services.  The present arte-HD and coming ARD and ZDF HD
-services have their dedicated transponder, no SD services,
-and use -S2.  The Hotbird Hungarian and Swiss HD services
-share space with SD and use DVB-S.
+You might use an strategy of first patching the out-of-tree, then patching back the
+upstream. This may eventually be used as an intermediate step, but I suspect it
+will just make things harder.
 
-There do exist transponders which use the more efficient
-DVB-S2 yet carry a payload of MPEG-2 services, just as there
-are H.264 services on DVB-S.  One does not require the other.
-Generally, HD services do not need to be concerned with
-consumer equipment that cannot receive DVB-S2, and are able
-to use that without concern.  While nearly all SD-only
-consumer equipment has no DVB-S2 ability and is stuck with
-DVB-S2.
+Anyway, no matter what process used to generate the patchset, it should be
+generated in a way that it won't cause regressions upstream, and submitted as
+incremental patches properly describing what each patch of the series is doing
+(and not just a diff <version a> <version b>).
 
+> As for some reasons why not to merge it back then:
+> * the driver relied on reverse engineered code, which made some
+> devices extremly hot (not even xc3028/xc3028L related). Wrong gpio
+> settings also enable the device to draw more power and affect the
+> signal strength for analog TV/dvb-t, those settings can be custom for
+> every designed device. I have had one pinnacle device which had a
+> slightly melted package because of that mess.
 
+The gpio logic is just a very few lines of code. A simple patch probably can
+fix the issues.
 
-> Right. OTOH, I expect the satellite stuff to be transmitted at a pretty =
-> low bitrate, also perhaps with the more complex encoding features turned =
+> There are additional em28xx based chipdrivers which only work with
+> em28xx based devices (eg. videology cam).
 
-The services which use lower bitrates (for HD, less than,
-say, 10Mbit/sec where the broadcasts I know of start), if
-what I see on SD is a guide, are likely to be budget-tight
-commercial broadcasts or niche programming that is highly
-unlikely to be contemplating HD, adverts that push to the
-limits the frequency of keyframes or entropy of the content
-in order to trickle ``moving'' pictures on a budget.  Or
-pr0n that looks to be modelled by airbrushed Lego blocks.
+A patch adding videology cam support would add this functionality upstream.
 
-Argh, speaking of which, the HD-pr0n that I wanted to see
-bitrate (technical meaning thereof) has disappeared, so I
-have no clue what they used while it existed, purely for
-research purposes, you know...
+> The input layer actually fully works although I disabled it because it
+> needs a redesign and shouldn't be exposed to userland like this, also
+> the polling code shouldn't be used (linux timing causes
+> alot trouble at low intervals - especially the deinitialization of
+> such timers, I sent an email to the ML about a possible race condition
+> in ir-kbd-i2c a couple of months ago.
+> netBSD developers discovered that interrupt polling works fine even
+> for remote controls. Practically since I worked alot with remote
+> controls during the last half year returning keyboard input keys
+> to userland is a mess, there was a discussion also with netbsd people
+> about a more generic interface because the IR support of the device
+> should be seen as RC5/RC6/NEC/.. protocol support
+> and not as one interface where the device is bound to a certain remote
+> and only supporting that remote control.
+> (that's just the reason why IR support is disabled :)
 
-If you wanted to name the service, we could tell you what
-bitrate is used (and many of the auto-scanning DX websites
-list this as well, if you want to look yourself)...  Else
-my examples of well-funded quality-concerned Public Service
-Broadcasters, or of subscriber-financed subscription
-packages, might be inapplicable -- I pay attention to both
-technical and content quality where interested, and have
-no idea what you may have to suffer where you are.
+Since it is disabled, there's no sense on currently trying to merge your IR
+code. This would be a regression.
 
+> > v4l-dvb people and Markus would be glad to see his drivers in the mainstream kernel.
+> >
+> >> I am going to ask for understanding of both the side of Markus that
+> >> worked very hard on his code, and that of the upstream developers. There
+> >> are both valid reasons on how they did there things.
+> >>
+> >> But we need a solution to get all the code back into the upstream
+> >> project so it can go into the kernel project and eventually be delivered
+> >> at the Linux distributions and all there users, so no custom compiling,
+> >> custom package install are required and non transparent bug reports can
+> >> be stopped.
+> >>
+> >> Is it possible for an upstream developer to step forward and take on the
+> >> task of merging the code of Markus back into mainstream, all questions
+> >> on the code can be discuses on several mailing-list [2] of choice.
+> >>
+> > Well, I would say: "Make it so!" ;)
+> >
+> >> Current the situation is kind of a hold-of, the issues are not being
+> >> discussed, the problem is not addressed, so no process is made and
+> >> during this time users are suffering from non working nor good supported
+> >> devices for there hybrid dvb-t/analog broadcast experiences under Linux.
+> >>
+> >> I hope this lead to a productive discussion that will get the code to
+> >> the end users through there main distribution systems.
+> >>
+> > I hope so, just to stop these useless discussions that do not discuss on patches.
+> >
+> 
+> the code is there :-)
 
-thanks
-barry bouwsma
+If you are comfortable of having people converting your code on incremental
+patches and submitting upstream, please stop making personal attacks to the
+ones that are actually doing that ;)
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
