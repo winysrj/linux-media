@@ -1,29 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQKR0UU015120
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 15:27:00 -0500
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQKQhFp002409
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 15:26:44 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so355295nfc.21
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 12:26:43 -0800 (PST)
-Message-ID: <412bdbff0811261226l478e3d4eg2f0551239e56540a@mail.gmail.com>
-Date: Wed, 26 Nov 2008 15:26:43 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
-In-Reply-To: <alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA2Mr3GV018678
+	for <video4linux-list@redhat.com>; Sun, 2 Nov 2008 17:53:03 -0500
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.188])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA2Mqp5A013468
+	for <video4linux-list@redhat.com>; Sun, 2 Nov 2008 17:52:51 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so871144nfc.21
+	for <video4linux-list@redhat.com>; Sun, 02 Nov 2008 14:52:50 -0800 (PST)
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: David Ellingsworth <david@identd.dyndns.org>
+In-Reply-To: <30353c3d0810291012y5c9a4c54x480fdb0fa807dd0c@mail.gmail.com>
+References: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
+	<208cbae30810190758x2f0c70f5m5856ce9ea84b26ae@mail.gmail.com>
+	<30353c3d0810191711y7be7c7f2i83d6a3a8ff46b6a0@mail.gmail.com>
+	<20081028180552.GA2677@tux>
+	<30353c3d0810291008mc73e3ady3fdabc5adc0eacd5@mail.gmail.com>
+	<30353c3d0810291012y5c9a4c54x480fdb0fa807dd0c@mail.gmail.com>
+Content-Type: text/plain
+Date: Mon, 03 Nov 2008 01:52:44 +0300
+Message-Id: <1225666364.16097.24.camel@tux.localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
-	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
-	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
-	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
-	<alpine.DEB.1.10.0811262054050.10867@bakacsin.ki.iif.hu>
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [video4linux] Attention em28xx users
+Cc: video4linux-list@redhat.com
+Subject: Re: [patch] radio-mr800: remove warn- and err- messages
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,61 +34,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Nov 26, 2008 at 3:00 PM, Kiss Gabor (Bitman)
-<kissg@ssg.ki.iif.hu> wrote:
->> Hello Gabor,
->>
->> Playing with the "card=" argument is probably not such a good idea.
->> I should consider taking that functionality out, since setting to the
->> wrong card number can damage the device (by setting the wrong GPIOs).
->>
->> If somebody can get me a USB trace of the device starting up under
->> Windows, I can probably make this card work.
->
-> Dear Devin,
->
-> We could get two USB traces (some 2-4 GB each uncompressed).
-> File http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-tv.rar shows
-> what happened during setup and the first few seconds of scanning
-> for TV channels. (Unfortunately we had no good antenna signal.)
-> http://bakacsin.ki.iif.hu/~kissg/tmp/UsbSnoop-svideo.rar is recorded
-> during setup and  shor use of S-video input.
->
-> And http://bakacsin.ki.iif.hu/~kissg/tmp/connect-UsbSnoop.log.txt
-> is the log of USB connection.
->
-> I hope this can provide you enough information.
->
-> Device is ADS Tech "Instant TV USB"
-> http://www.adstech.com/Support/ProductSupport.asp?productId=USBAV-704&productName=Instant%20TV
->
-> Regards
->
-> Gabor
+Hello, all
 
-Hello Gabor,
+On Wed, 2008-10-29 at 13:12 -0400, David Ellingsworth wrote:
+> > you want my ack, you have the following options:
+> >
+> > 1. Use the same name used in the usb_driver struct
+> > 2. Remove the name altogether
+> >
+> > If I were writing it, I'd do the following:
+> >
+> > #define DRVNAME "radio-mr800"
+> > #define amradio_dev_err(dev, fmt, arg...) dev_err(dev, DRVNAME fmt, ##arg)
+> > #define amradio_dev_warn(dev, fmt, arg...) dev_warn(dev, DRVNAME fmt, ##arg)
+> Minor correction here ^^^^^
+> 
+> It should be:
+> #define amradio_dev_err(dev, fmt, arg...) dev_err(dev, DRVNAME ": " fmt, ##arg)
+> #define amradio_dev_warn(dev, fmt, arg...) dev_warn(dev, DRVNAME ": "
+> fmt, ##arg)
+> 
+> - David Ellingsworth
 
-I hate to admit it, but I got confused since two different people
-named "Gabor" have been sending me email in regards to different
-em28xx based devices.
+You idea is great. I made patch, but have few questions.
 
-Could you please clarify the exact model number of the device in
-question?  ADS makes multiple products, some with very similar names
-and it is important that I am focusing on the correct product.
+May i use " - " in amradio_dev_info for example, instead of
+using ..DRVNAME ": " fmt.. in defined macros? There are a lot of ":" in
+messages if using ":".
 
-Also, you can run the files through the parser.pl that Markus
-Rechberger's ships with his very useful "usbreplay" tool.  This will
-make them *much* smaller.
+May i use amradio_dev_info for cases where i want
+&radio->videodev->dev ? And may i use usual dev_warn where intf->dev is
+more apropriate ? Or you want me to use amradio_dev_warn macroses
+everywhere ?
 
-Thanks,
+David, what do you think ?
 
-Devin
-
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Best regards,
+Alexey Klimov
 
 --
 video4linux-list mailing list
