@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.154])
+Received: from ey-out-2122.google.com ([74.125.78.24])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1L06Kh-0003ig-9g
-	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 04:23:57 +0100
-Received: by fg-out-1718.google.com with SMTP id e21so228564fga.25
-	for <linux-dvb@linuxtv.org>; Tue, 11 Nov 2008 19:23:51 -0800 (PST)
-Message-ID: <37219a840811111923p68a2916fkc8844809197ffd5@mail.gmail.com>
-Date: Tue, 11 Nov 2008 22:23:50 -0500
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: CityK <cityk@rogers.com>
-In-Reply-To: <491A3E6E.6020303@rogers.com>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KwVNj-0002uZ-Oh
+	for linux-dvb@linuxtv.org; Sun, 02 Nov 2008 06:20:13 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so654127eya.17
+	for <linux-dvb@linuxtv.org>; Sat, 01 Nov 2008 22:20:08 -0700 (PDT)
+Date: Sun, 2 Nov 2008 06:20:00 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: linux-dvb@linuxtv.org
+Message-ID: <alpine.DEB.2.00.0811020532490.14582@ybpnyubfg.ybpnyqbznva>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <11925882.1226435183455.JavaMail.root@elwamui-ovcar.atl.sa.earthlink.net>
-	<491A3E6E.6020303@rogers.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] FusionHDTV7 RT Gold
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-1274729070-1225603203=:14582"
+Subject: [linux-dvb] Updates to scanfiles for Germany in November
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,38 +19,91 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Nov 11, 2008 at 9:24 PM, CityK <cityk@rogers.com> wrote:
-> William Melgaard wrote:
->> I have a DViCO FusionHDTV7 RT Gold PCI card in my posession. To date, I cannot make it work with my AMD64 Debian (stable) box. This card is not to be confused with the Dual Express or the USB cards
->>
->> I am getting mixed answers to request for support.
->> I have been told that the card is supported. I downloaded the latest Mercurial, and installed it. As far as I can tell, the FusionHDTV7 RT Gold is NOT supported by the latest Mercurial. If it is, please provide configuration instructions.
->>
->> If the RT Gold is not yet supported, what can I do to aid in providing support? I have some c programming skills, but have never dealt with a driver.
->>
-> see: http://marc.info/?l=linux-dvb&m=120165779828786&w=2
->
-> I don't know if Steve submitted the drivers or not ... they may reside
-> in one of his development repositories
->
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I added analog support for this card on Feb 25 of this year.  Digital
-support was merged shortly thereafter.
+--8323328-1274729070-1225603203=:14582
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 
-Most likely, you are simply missing the firmware.  If you check your
-kernel logs, it is more than likely that this will be mentioned there.
+Moin moin,
 
-You can fetch the firmware from http://steventoth.net/linux/xc5000
+During the month of November 2008, there will be some changes
+made in several areas of Germany to the DVB-T transmitters,
+including switching over some remaining analogue transmitters,
+but also some shuffling of frequencies to agree to the Geneve
+2006 international frequency coordination.
 
--Mike
+Before the end of this (coming) week, on 05.11.2008, one existing
+scanfile for Stuttgart (Baden-Wuerttemberg) will be completely
+incorrect.  For this, I submit a new scanfile that should
+replace the existing one sometime this week -- exactly when
+will determine what sort of period of limbo users will
+suffer, depending how they get their scanfile...
+
+In any case, also affected is Heidelberg, for which there
+exists no scanfile.  Therefore, I've decided to create an
+initial scanfile for all of Baden-Wuerttemberg to cover
+all frequencies as of 05.11, and to address the issue of
+additional nearby frequencies which can be received -- near
+Heidelberg, one likely also sees signals from Hessen and
+Rheinland-Pfalz, at least.
+
+I hope to post that much longer scanfile in time for the
+frequency changes, and try to do the same for other
+Bundeslaender (Rheinland-Pfalz a week later; Bayern near
+the end of the month).
+
+Even with such an all-encompassing scanfile, I still think
+de-Stuttgart should continue to exist, being a large city
+with its own transmitter and no nearby transmitters with any
+additional programming, for people who know they are in
+Stuttgart but have no idea what Bundesland it is.
+
+However, de-Baden-Baden, de-Freiburg, de-Loerrach, and
+de-Ravensburg should disappear, being better served (in
+my opinion) by the combined all-encompassing all-dancing
+regional scanfile...
+
+As I'll submit it, the regional scanfile will by default
+scan all 16 frequencies (one of which will be obsolete
+after some months) used by all trasmitters, and will
+allow power-users to customise it to uncomment nearby
+frequencies, assuming they know where they are.  If,
+though, it's better to by default scan all possibly
+nearby frequencies, be they from Hessen or Austria,
+I could uncomment them, roughly tripling frequencies
+and greatly increasing scan time.  Your call...
+
+
+thanks,
+barry bouwsma
+
+--8323328-1274729070-1225603203=:14582
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=de-Stuttgart
+Content-Transfer-Encoding: BASE64
+Content-ID: <alpine.DEB.2.00.0811020620000.14582@ybpnyubfg.ybpnyqbznva>
+Content-Description: New frequencies 05.Nov Stuttgart
+Content-Disposition: attachment; filename=de-Stuttgart
+
+IyBEVkItVCBTdHV0dGdhcnQgKGZyb20gMDUuMTEuMjAwOCkNCiMgYnkgSm9l
+cmcgTWFyaGVua2UgKGpvZXJnLm1hcmhlbmtlQHVuaS11bG0uZGUpDQoNClQg
+NDkwMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYgOGsgMS80IE5PTkUJIyBL
+MjMgWkRGbW9iaWwNClQgNTE0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNMTYg
+OGsgMS80IE5PTkUJIyBLMjYgQVJEDQpUIDcwNjAwMDAwMCA4TUh6IDIvMyBO
+T05FIFFBTTE2IDhrIDEvNCBOT05FCSMgSzUwIFNXUg0K
+
+--8323328-1274729070-1225603203=:14582
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--8323328-1274729070-1225603203=:14582--
