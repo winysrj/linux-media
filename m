@@ -1,22 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mASH0kVZ028670
-	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 12:00:46 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mASH0Xap028761
-	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 12:00:33 -0500
-Date: Fri, 28 Nov 2008 18:00:47 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Maik Steuer <Maik.Steuer@gmx.de>
-In-Reply-To: <20081128162609.107740@gmx.net>
-Message-ID: <Pine.LNX.4.64.0811281755510.4430@axis700.grange>
-References: <20081128145844.244860@gmx.net>
-	<Pine.LNX.4.64.0811281613160.4430@axis700.grange>
-	<20081128162609.107740@gmx.net>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA3MW7GK005635
+	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 17:32:08 -0500
+Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA3MVvVi015720
+	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 17:31:57 -0500
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <20081029232544.661b8f17.ospite@studenti.unina.it>
+	<87mygkof3j.fsf@free.fr>
+	<Pine.LNX.4.64.0811022048430.14486@axis700.grange>
+	<87skq87mgp.fsf@free.fr>
+	<Pine.LNX.4.64.0811031944340.7744@axis700.grange>
+	<87mygg4l5l.fsf@free.fr>
+	<Pine.LNX.4.64.0811032131410.7744@axis700.grange>
+	<Pine.LNX.4.64.0811032322420.7744@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Mon, 03 Nov 2008 23:31:55 +0100
+In-Reply-To: <Pine.LNX.4.64.0811032322420.7744@axis700.grange> (Guennadi
+	Liakhovetski's message of "Mon\,
+	3 Nov 2008 23\:26\:43 +0100 \(CET\)")
+Message-ID: <87k5bk30h0.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com, kernel@pengutronix.de
-Subject: Re: testing soc_camera with mt9m001 on pxa270
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] mt9m111: Fix YUYV format for pxa-camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,32 +35,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 28 Nov 2008, Maik Steuer wrote:
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-> > I would suggest you tell us what camera you are going to use, maybe 
-> > someone is already working on a driver for it. If not - you write a driver
-> > yourself and start working with a real hardware.
-> 
-> At the moment the camera is only a FPGA which sends 8 Bit dummy data 
-> with hsync, vsync and pixclock. So I can change all necessary parameters 
-> for pxa requirements.
-> 
-> I throught that the ioctl (fd, VIDIOC_REQBUFS, &req) starts 
-> soc_camera_reqbufs() but it isn't so.
+> Ok, just thinking one step further - Antonio most certainly was testing 
+> V4L2_PIX_FMT_YUYV, i.e., packed with his application, any other YCbCr 
+> format would be rejected by mt9m111 and YUYV _is_ packed. So, I think this 
+> is indeed the case - there are mo errors in datasheets, we just named the 
+> formats wrongly in pxa-camera and mt9m111 drivers.
 
-Yes, this is indeed what should happen: see __video_do_ioctl() and around 
-it. You're saying, that VIDIOC_REQBUFS is the first failing ioctl? Then 
-just check what error code it returns, activate the 
+I don't agree. This has nothing to do with naming, this has to do with byte
+order on qif bus and out of mt9m111 sensor.
 
-	dev_dbg(&icd->dev, "%s: %d\n", __func__, p->memory);
+But you can change my mind : just tell me where my thinking was
+wrong in the previous mail where I stated bytes order (out of mt9m111 and in pxa
+qif bus).
 
-in soc_camera.c::soc_camera_reqbufs(), etc.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+--
+Robert
 
 --
 video4linux-list mailing list
