@@ -1,14 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailhost.terions.de ([81.16.53.101] helo=pm1.terions.de)
+Received: from viefep18-int.chello.at ([213.46.255.22])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alles@bredde.de>) id 1L5pPS-0007Yi-PT
-	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 23:32:32 +0100
-Message-ID: <492F1FF4.7030600@bredde.de>
-Date: Thu, 27 Nov 2008 23:32:20 +0100
-From: br <alles@bredde.de>
-MIME-Version: 1.0
+	(envelope-from <basq@bitklub.hu>) id 1Kwx2U-0003Pj-78
+	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 11:52:09 +0100
+Received: from edge03.upc.biz ([192.168.13.238]) by viefep19-int.chello.at
+	(InterMail vM.7.08.02.02 201-2186-121-104-20070414) with ESMTP
+	id <20081103105132.OAWT7421.viefep19-int.chello.at@edge03.upc.biz>
+	for <linux-dvb@linuxtv.org>; Mon, 3 Nov 2008 11:51:32 +0100
+Date: Mon, 3 Nov 2008 11:51:16 +0100
+From: Kovacs Balazs <basq@bitklub.hu>
+Message-ID: <167586304.20081103115116@bitklub.hu>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Cinergy Hybrid XE with tm6010 chip
+MIME-Version: 1.0
+Subject: [linux-dvb] S2API + TT3200 + Amos4w 10.723 S2 problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,32 +26,56 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-I've got a Cinergy Hybrid XE DVB-T USB Stick, which has got a tm6010
-chip inside (I opened the case just to get sure). Quite fast I realized,
-that there are no stable Linux drivers out there, so i tried the
-unstable one.
+Hi All!
 
-So I checked out the repo at http://linuxtv.org/hg/~mchehab/tm6010/ and
-compiled (without DVB), installed, loaded the module and then inserted
-the stick and well.. nothing happened, because the driver did not knew
-about my device. To fix this, i added the line
-{ USB_DEVICE(0x0ccd, 0x0086), .driver_info = TM6010_BOARD_GENERIC },
-to file tm6000-cards.c (my lsusb output is 'Bus 008 Device 004: ID
-0ccd:0086 TerraTec Electronic GmbH'). I do not know, whether
-TM6010_BOARD_GENERIC is the correct one, but for me it seemed to be the
-best solution.
-Afterward, the driver recognized my stick and began to work:
-http://pastebin.com/f79722ed2 . In short: The firmware's missing. So I
-extracted the firmware with help of a python script I found on the
-internet and put it to the right place. Here's the (long) result:
-http://pastebin.com/f6c853b43
+  I tried a few variation, but without any success:
 
-I'm not surprised that my journey has failed, because I do not really
-know what my added line does (good old try'n'error), so my question:
-Where to go from here?
+  I try to lock (stable! :)) on our new transponders at Amos 4W:
 
-Mark
+10,723(V) GHz, DVB-S2/8PSK, SR:30000, FEC:2/3, MPEG-4/Conax
+10,759(V) GHz, DVB-S2/8PSK, SR:30000, FEC:2/3, MPEG-4/Conax
+10,842(V) GHz, DVB-S2/8PSK, SR:30000, FEC:2/3, MPEG-4/Conax
+
+with a TT3200 card + Debian etch with 2.4.24 etchnhalf kernel + the current V4L-DVB mercurial drivers compiled.
+
+  The drivers recognizes my card, and for example it works good with Premiere's S2 transponders at Astra 19.2E. 
+
+But it won't lock stable on our Amos's transponders.
+
+  FYI: on these TP's there's a pilot signal and rolloff set to 0.20. I tried to push these parameters to scan-s2 and szap-s2, but scan-s2 sometimes lock and sometimes won't on these transponders and also szap-s2 (after a few try to lock with scan-s2 and get the channels.conf from these transponders) sometimes locks, but it's not stable, it lost lock after a few seconds.
+
+  What I recognized also: if i run szap-s2 on our transponders it gives me the status message lines much slower than on other TP's.
+
+it almost always looks like this:
+
+/usr/src/dvb/s2api/szap-s2# ./szap-s2-thome.sh
+reading channels from file '/root/.szap/channels.conf'
+zapping to 1 '1':
+delivery DVB-S2, modulation 8PSK
+sat 0, frequency 10723 MHz V, symbolrate 30000000, coderate 2/3, rolloff 0.20
+vpid 0x00b3, apid 0x00b1, sid 0x00b4
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
+status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
+status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
+status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
+status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
+status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
+status 00 | signal 00b1 | snr 0000 | ber 00000000 | unc fffffffe |
+
+but sometimes it can lock, very rare...
+
+please, help me.
+
+thanks,
+
+Basq
+
+
+
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
