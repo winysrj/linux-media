@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAPILMVX021573
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 13:21:22 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAPIL7R1012450
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 13:21:09 -0500
-Date: Tue, 25 Nov 2008 19:21:18 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <1227554928-25471-1-git-send-email-robert.jarzmik@free.fr>
-Message-ID: <Pine.LNX.4.64.0811251914260.6290@axis700.grange>
-References: <Pine.LNX.4.64.0811202055210.8290@axis700.grange>
-	<1227554928-25471-1-git-send-email-robert.jarzmik@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA33OeFu028880
+	for <video4linux-list@redhat.com>; Sun, 2 Nov 2008 22:24:40 -0500
+Received: from QMTA09.westchester.pa.mail.comcast.net
+	(qmta09.westchester.pa.mail.comcast.net [76.96.62.96])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA33NlwD001653
+	for <video4linux-list@redhat.com>; Sun, 2 Nov 2008 22:23:47 -0500
+Message-ID: <490E6EC3.7030408@personnelware.com>
+Date: Sun, 02 Nov 2008 21:23:47 -0600
+From: Carl Karsten <carl@personnelware.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 1/2] soc_camera: add format translation structure
+To: Andy Walls <awalls@radix.net>
+References: <47C90994.8040304@personnelware.com>	<20080304113834.0140884d@gaivota>
+	<490E468A.6090200@personnelware.com>
+	<1225675203.3116.12.camel@palomino.walls.org>
+In-Reply-To: <1225675203.3116.12.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: v4l2 api compliance test
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,212 +30,76 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 24 Nov 2008, Robert Jarzmik wrote:
+Andy Walls wrote:
+> On Sun, 2008-11-02 at 18:32 -0600, Carl Karsten wrote:
+>> Mauro Carvalho Chehab wrote:
+>>> On Sat, 01 Mar 2008 01:45:24 -0600
+>>> Carl Karsten <carl@personnelware.com> wrote:
+>>>
+>>>
+>>> Please, feel free to improve the tools. Unfortunately, nobody yet had time to
+>>> dedicate on improving the testing tools.
+>> These 2 issues are thwarting my efforts to write my tester:
+>>
+>> 1. memory leak:
+>> valgrind ./capture --userp -d /dev/video1
+>> ==17153== malloc/free: in use at exit: 2,457,632 bytes in 5 blocks.
+>>
+>> 2. capabilities mismatch:
+>> ./capture --userp -d /dev/video1
+>> VIDIOC_QBUF error 22, Invalid argument
+>>
+>> details: http://linuxtv.org/v4lwiki/index.php/Test_Suite#Bugs_in_Examples
+>
+> I'm not sure why a memory leak on abnormal termination is worrisome for
+> you.  It looks like init_userp() allocated a bunch of "buffers", which
+> has to happen for a program to use user pointer mode of v4l2.  The
+> function errno_exit() doesn't bother to clean up when the VIDIOC_QBUF
+> ioctl() call fails.  free() is only called by uninit_device().  Since
+> the alternate flow of the program through errno_exit() to termination
+> doesn't call free() on "buffers", you should have a process heap memory
+> leak on error exit.
+>
+> Since this is userspace, a memory leak from the process heap doesn't
+> hang around when the process terminates - no big deal.
 
-> Camera hosts rely on sensor formats available, as well as
-> host specific translations. We add a structure so that hosts
-> can define a translation table and use it for format check
-> and setup.
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
->  drivers/media/video/soc_camera.c |   42 ++++++++++++++++++++++++++-----------
->  include/media/soc_camera.h       |   23 ++++++++++++++++++--
->  2 files changed, 49 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index f5a1e5a..c7c1ae5 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -47,6 +47,18 @@ const struct soc_camera_data_format *soc_camera_format_by_fourcc(
->  }
->  EXPORT_SYMBOL(soc_camera_format_by_fourcc);
->  
-> +const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
-> +	struct soc_camera_device *icd, unsigned int fourcc)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < icd->num_user_formats; i++)
-> +		if (icd->user_formats[i].host_fmt->fourcc == fourcc)
-> +			return icd->user_formats + i;
-> +	return NULL;
-> +}
-> +EXPORT_SYMBOL(soc_camera_xlate_by_fourcc);
-> +
->  static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
->  				      struct v4l2_format *f)
->  {
-> @@ -183,8 +195,8 @@ static int soc_camera_init_user_formats(struct soc_camera_device *icd)
->  	if (!fmts)
->  		return -ENXIO;
->  
-> -	icd->user_formats = vmalloc(sizeof(struct soc_camera_data_format *) *
-> -				    fmts);
-> +	icd->user_formats =
-> +		vmalloc(fmts * sizeof(struct soc_camera_format_xlate));
->  	if (!icd->user_formats)
->  		return -ENOMEM;
->  
-> @@ -195,13 +207,16 @@ static int soc_camera_init_user_formats(struct soc_camera_device *icd)
->  
->  	/* Second pass - actually fill data formats */
->  	for (i = 0; i < icd->num_formats; i++)
-> -		if (!ici->ops->get_formats)
-> -			icd->user_formats[i] = icd->formats + i;
-> -		else
-> +		if (!ici->ops->get_formats) {
-> +			icd->user_formats[i].host_fmt = icd->formats + i;
-> +			icd->user_formats[i].cam_fmt = icd->formats + i;
-> +			icd->user_formats[i].buswidth = icd->formats[i].depth;
-> +		} else {
->  			fmts += ici->ops->get_formats(icd, i,
->  						      &icd->user_formats[fmts]);
-> +		}
->  
-> -	icd->current_fmt = icd->user_formats[0];
-> +	icd->current_fmt = &icd->user_formats[0];
+Are you sure about that?
 
-Well, no. You cannot do this - not in this patch. In general, I guess, you 
-want current_fmt to point to the xlate object for debugging, etc. But this 
-has to be a separate patch, changing the define in the header, 
-soc_camera.c and _all_ host-drivers, including SuperH, which you left 
-broken with your two patches. So, please leave current_fmt at its old 
-meaning for these two patches. We can convert it later - if we really want 
-to.
+if I run
+./capture --userp -d /dev/video1
+VIDIOC_QBUF error 22, Invalid argument
 
->  
->  	return 0;
->  }
-> @@ -368,6 +383,7 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
->  	struct soc_camera_device *icd = icf->icd;
->  	struct soc_camera_host *ici =
->  		to_soc_camera_host(icd->dev.parent);
-> +	__u32 pixfmt = f->fmt.pix.pixelformat;
->  	int ret;
->  	struct v4l2_rect rect;
->  
-> @@ -385,7 +401,7 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
->  	if (ret < 0) {
->  		return ret;
->  	} else if (!icd->current_fmt ||
-> -		   icd->current_fmt->fourcc != f->fmt.pix.pixelformat) {
-> +		   icd->current_fmt->host_fmt->fourcc != pixfmt) {
->  		dev_err(&ici->dev,
->  			"Host driver hasn't set up current format correctly!\n");
->  		return -EINVAL;
-> @@ -402,7 +418,7 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
->  		icd->width, icd->height);
->  
->  	/* set physical bus parameters */
-> -	return ici->ops->set_bus_param(icd, f->fmt.pix.pixelformat);
-> +	return ici->ops->set_bus_param(icd, pixfmt);
->  }
->  
->  static int soc_camera_enum_fmt_vid_cap(struct file *file, void  *priv,
-> @@ -417,7 +433,7 @@ static int soc_camera_enum_fmt_vid_cap(struct file *file, void  *priv,
->  	if (f->index >= icd->num_user_formats)
->  		return -EINVAL;
->  
-> -	format = icd->user_formats[f->index];
-> +	format = icd->user_formats[f->index].host_fmt;
->  
->  	strlcpy(f->description, format->name, sizeof(f->description));
->  	f->pixelformat = format->fourcc;
-> @@ -435,12 +451,12 @@ static int soc_camera_g_fmt_vid_cap(struct file *file, void *priv,
->  	f->fmt.pix.width	= icd->width;
->  	f->fmt.pix.height	= icd->height;
->  	f->fmt.pix.field	= icf->vb_vidq.field;
-> -	f->fmt.pix.pixelformat	= icd->current_fmt->fourcc;
-> +	f->fmt.pix.pixelformat	= icd->current_fmt->host_fmt->fourcc;
->  	f->fmt.pix.bytesperline	= f->fmt.pix.width *
-> -		DIV_ROUND_UP(icd->current_fmt->depth, 8);
-> +		DIV_ROUND_UP(icd->current_fmt->host_fmt->depth, 8);
->  	f->fmt.pix.sizeimage	= f->fmt.pix.height * f->fmt.pix.bytesperline;
-> -	dev_dbg(&icd->dev, "current_fmt->fourcc: 0x%08x\n",
-> -		icd->current_fmt->fourcc);
-> +	dev_dbg(&icd->dev, "current_fmt->host_fmt->fourcc: 0x%08x\n",
-> +		icd->current_fmt->host_fmt->fourcc);
->  	return 0;
->  }
->  
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index d6333a0..19fa2f7 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-> @@ -38,10 +38,10 @@ struct soc_camera_device {
->  	unsigned char buswidth;		/* See comment in .c */
->  	struct soc_camera_ops *ops;
->  	struct video_device *vdev;
-> -	const struct soc_camera_data_format *current_fmt;
-> +	const struct soc_camera_format_xlate *current_fmt;
->  	const struct soc_camera_data_format *formats;
->  	int num_formats;
-> -	const struct soc_camera_data_format **user_formats;
-> +	struct soc_camera_format_xlate *user_formats;
->  	int num_user_formats;
->  	struct module *owner;
->  	void *host_priv;		/* per-device host private data */
-> @@ -70,7 +70,7 @@ struct soc_camera_host_ops {
->  	int (*suspend)(struct soc_camera_device *, pm_message_t);
->  	int (*resume)(struct soc_camera_device *);
->  	int (*get_formats)(struct soc_camera_device *, int,
-> -			   const struct soc_camera_data_format **);
-> +			   struct soc_camera_format_xlate *);
->  	int (*set_fmt)(struct soc_camera_device *, __u32, struct v4l2_rect *);
->  	int (*try_fmt)(struct soc_camera_device *, struct v4l2_format *);
->  	void (*init_videobuf)(struct videobuf_queue *,
-> @@ -111,6 +111,8 @@ extern void soc_camera_video_stop(struct soc_camera_device *icd);
->  
->  extern const struct soc_camera_data_format *soc_camera_format_by_fourcc(
->  	struct soc_camera_device *icd, unsigned int fourcc);
-> +extern const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
-> +	struct soc_camera_device *icd, unsigned int fourcc);
->  
->  struct soc_camera_data_format {
->  	const char *name;
-> @@ -119,6 +121,21 @@ struct soc_camera_data_format {
->  	enum v4l2_colorspace colorspace;
->  };
->  
-> +/**
-> + * struct soc_camera_format_xlate - match between host and sensor formats
-> + * @cam_fmt: sensor format provided by the sensor
-> + * @host_fmt: host format after host translation from cam_fmt
-> + * @buswidth: bus width for this format
-> + *
-> + * Table of host and sensor formats matchings. A host can generate this list, in
-> + * camera registation, and use it for format checks and format setup.
-> + */
+enough I can't run the valid modes:
 
-This comment doesn't look quite right - this is not a table, this is just 
-one element thereof. And "host can generate this list" is also not quite 
-precise - the list is generated by the soc_camera.c, the host can override 
-the default one-to-one mapping.
+juser@dhcp186:~/vga2usb/v4l.org/examples$ ./capture --read -d /dev/video1
+read error 12, Cannot allocate memory
 
-> +struct soc_camera_format_xlate {
-> +	const struct soc_camera_data_format *cam_fmt;
-> +	const struct soc_camera_data_format *host_fmt;
-> +	unsigned char buswidth;
-> +};
-> +
->  struct soc_camera_ops {
->  	struct module *owner;
->  	int (*probe)(struct soc_camera_device *);
-> -- 
-> 1.5.6.5
+juser@dhcp186:~/vga2usb/v4l.org/examples$ ./capture --mmap -d /dev/video1
+mmap error 12, Cannot allocate memory
 
-Otherwise looks ok. I would suggest you remove the current_fmt change, fix 
-the comment and submit integrated into my previous patch - not as 
-incremental.
+although free still shows lots:
 
-A review to the pxa-patch will follow later...
+juser@dhcp186:~/vga2usb/v4l.org/examples$ free
+             total       used       free     shared    buffers     cached
+Mem:       1033388     282340     751048          0      31012      98208
+-/+ buffers/cache:     153120     880268
+Swap:       859436          0     859436
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+
+> You could
+> equally gripe that the program didn't close it's file descriptors with
+> the driver on errno_exit() - but process termination cleans those up
+> too.
+
+I am personally interested in anything that makes it harder for me to determine
+if a driver is misbehaving.
+
+In addition, I would think that the API's example code should be a squeaky clean
+example of how real code should be written, given it is often used as a starting
+point.  If problems are identified, they should at least be noted, better yet
+removed.
+
+Carl K
 
 --
 video4linux-list mailing list
