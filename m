@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
+Received: from outmailhost.telefonica.net ([213.4.149.242]
+	helo=ctsmtpout4.frontal.correo)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1L3wUq-0000j9-CG
-	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 18:42:16 +0100
-Received: from [213.184.224.41] (account liplianin@tut.by HELO
-	dynamic-vpdn-128-2-82.telecom.by)
-	by speedy.tutby.com (CommuniGate Pro SMTP 5.1.12)
-	with ESMTPA id 98410638 for linux-dvb@linuxtv.org;
-	Sat, 22 Nov 2008 19:42:09 +0200
-Content-Disposition: inline
-From: "Igor M. Liplianin" <liplianin@tut.by>
+	(envelope-from <jareguero@telefonica.net>) id 1Kx6jJ-00010E-9V
+	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 22:12:58 +0100
+From: Jose Alberto Reguero <jareguero@telefonica.net>
 To: linux-dvb@linuxtv.org
-Date: Sat, 22 Nov 2008 19:41:56 +0200
+Date: Mon, 3 Nov 2008 22:11:40 +0100
 MIME-Version: 1.0
-Message-Id: <200811221941.56111.liplianin@tut.by>
-Subject: Re: [linux-dvb] [PATCH] TT S2-3200: Support for high symbol rates.
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_Nk2DJEdqqc8vKcc"
+Message-Id: <200811032211.41760.jareguero@telefonica.net>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [linux-dvb] [PATCH] Add suport for AverMedia Volar X remote
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,45 +20,143 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-PiBJZ29yIE0uIExpcGxpYW5pbiB3cm90ZToKPiA+IFRUIFMyLTMyMDA6IFN1cHBvcnQgZm9yIGhp
-Z2ggc3ltYm9sIHJhdGVzLgo+ID4KPiA+IEZyb206IElnb3IgTS4gTGlwbGlhbmluIDxsaXBsaWFu
-aW5AbWUuYnk+Cj4gPgo+ID4gVFQgUzItMzIwMDogU3VwcG9ydCBmb3IgaGlnaCBzeW1ib2wgcmF0
-ZXMuCj4gPiBTdWNjZXNzZnVsbHkgdGVzdGVkIGZvciA0NDk0OCBrU3ltL3MKPiA+Cj4gPiBTaWdu
-ZWQtb2ZmLWJ5OiBJZ29yIE0uIExpcGxpYW5pbiA8bGlwbGlhbmluQG1lLmJ5Pgo+ID4KPiA+Cj4g
-PiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0KPiA+Cj4gPiAjIEhHIGNoYW5nZXNldCBwYXRjaAo+ID4gIyBVc2Vy
-IElnb3IgTS4gTGlwbGlhbmluIDxsaXBsaWFuaW5AbWUuYnk+Cj4gPiAjIERhdGUgMTIyNjE4MDAx
-NCAtNzIwMAo+ID4gIyBOb2RlIElEIDFjNGQ2M2U1ODllMDQyMGQ5NWQ5NmJmODFkM2JmYmIyY2Qz
-OWE5Y2YKPiA+ICMgUGFyZW50ICA1NGIxMjhkNjM4NDM4MDM3YzdjYjQ0MTcwNDVjMGQ3NzNjMjFk
-OWU3Cj4gPiBUVCBTMi0zMjAwOiBTdXBwb3J0IGZvciBoaWdoIHN5bWJvbCByYXRlcy4KPiA+Cj4g
-PiBGcm9tOiBJZ29yIE0uIExpcGxpYW5pbiA8bGlwbGlhbmluQG1lLmJ5Pgo+ID4KPiA+IFRUIFMy
-LTMyMDA6IFN1cHBvcnQgZm9yIGhpZ2ggc3ltYm9sIHJhdGVzLgo+ID4gU3VjY2Vzc2Z1bGx5IHRl
-c3RlZCBmb3IgNDQ5NDgga1N5bS9zCj4gPgo+ID4gU2lnbmVkLW9mZi1ieTogSWdvciBNLiBMaXBs
-aWFuaW4gPGxpcGxpYW5pbkBtZS5ieT4KPiA+Cj4gPiBkaWZmIC1yIDU0YjEyOGQ2Mzg0MyAtciAx
-YzRkNjNlNTg5ZTAKPiA+IGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL3R0cGNpL2J1ZGdldC1jaS5j
-IC0tLQo+ID4gYS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi90dHBjaS9idWRnZXQtY2kuYwlTdW4g
-Tm92IDA5IDE2OjM1OjEzIDIwMDgKPiA+ICswMjAwICsrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEv
-ZHZiL3R0cGNpL2J1ZGdldC1jaS5jCVNhdCBOb3YgMDggMjM6MzM6MzQKPiA+IDIwMDggKzAyMDAg
-QEAgLTEzMjEsNyArMTMyMSw3IEBACj4gPiAgCS5pbnZlcnNpb24JCT0gSVFfU1dBUF9PTiwgLyog
-MSAqLwo+ID4KPiA+ICAJLmxvX2NsawkJCT0gNzY1MDAwMDAsCj4gPiAtCS5oaV9jbGsJCQk9IDk5
-MDAwMDAwLAo+ID4gKwkuaGlfY2xrCQkJPSAxMzUwMDAwMDAsCj4gPgo+ID4gIAkuZXNub19hdmUJ
-CT0gU1RCMDg5OV9EVkJTMl9FU05PX0FWRSwKPiA+ICAJLmVzbm9fcXVhbnQJCT0gU1RCMDg5OV9E
-VkJTMl9FU05PX1FVQU5ULAo+Cj4gVGhlIFNUQjA4OTkgaXMgbmV2ZXIgcmF0ZWQgdG8gcnVuIGF0
-IDEzNU1IeiBjbG9jay4gU29tZSBvbGRlciBkaWUgY3V0cwo+IHdvdWxkIGV2ZW4gY2F1c2UgY2xv
-Y2sgcmFjZSBhcm91bmRzIGF0IGV2ZW4gMTA4TUh6LiBUaGUgcmVjb21tZW5kZWQKPiBtYXhpbXVt
-IGNsb2NrIGlzIDk5IE1IeiBhdCBtYXhpbXVtLgo+Cj4gSXMgeW91ciBTVEIwODk5IGRlbW9kdWxh
-dG9yIHN0aWxsIGZ1bmN0aW9uYWwsIHdoYXQgaW5zY3JpcHRpb25zIGFyZQo+IHRoZXJlIG9uIHRo
-ZSBkZW1vZHVsYXRvciA/IEkgbWVhbiBjb250aW51b3VzbHkgcnVubmluZyB3aXRoIHRoaXMgQ2xv
-Y2sKPiBmb3IgYSBkYXkgb3IgdHdvIGF0IGxlYXN0IC4uID8KPgo+IFJlZ2FyZHMsCj4gTWFudQoK
-T25seSBjb3VwbGUgaG91cnMgcGVyIGRheS4g93V0IGV2ZXJ5IGRheQpBbmQgc3RpbGwgZnVuY3Rp
-b25hbCA6KQoKLS0gCklnb3IgTS4gTGlwbGlhbmluCk1pY3Jvc29mdCBXaW5kb3dzIEZyZWUgWm9u
-ZSAtIExpbnV4IHVzZWQgZm9yIGFsbCBDb21wdXRpbmcgVGFza3MKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGlu
-dXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LWR2Yg==
+--Boundary-00=_Nk2DJEdqqc8vKcc
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+This patch add support for AverMedia Volar X remote.
+
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+
+Jose Alberto
+
+--Boundary-00=_Nk2DJEdqqc8vKcc
+Content-Type: text/x-patch;
+  charset="us-ascii";
+  name="af9015.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="af9015.diff"
+
+diff -r 55f8fcf70843 linux/drivers/media/dvb/dvb-usb/af9015.c
+--- a/linux/drivers/media/dvb/dvb-usb/af9015.c	Thu Oct 30 08:07:44 2008 +0000
++++ b/linux/drivers/media/dvb/dvb-usb/af9015.c	Mon Nov 03 22:08:27 2008 +0100
+@@ -806,6 +806,16 @@
+ 					  ARRAY_SIZE(af9015_ir_table_msi);
+ 				}
+ 				break;
++			case USB_VID_AVERMEDIA:
++				af9015_properties[i].rc_key_map =
++			 	  af9015_rc_keys_avermedia;
++				af9015_properties[i].rc_key_map_size =
++				  ARRAY_SIZE(af9015_rc_keys_avermedia);	
++				af9015_config.ir_table =
++				  af9015_ir_table_avermedia;
++				af9015_config.ir_table_size =
++				  ARRAY_SIZE(af9015_ir_table_avermedia);
++				break;
+ 			}
+ 		}
+ 	}
+diff -r 55f8fcf70843 linux/drivers/media/dvb/dvb-usb/af9015.h
+--- a/linux/drivers/media/dvb/dvb-usb/af9015.h	Thu Oct 30 08:07:44 2008 +0000
++++ b/linux/drivers/media/dvb/dvb-usb/af9015.h	Mon Nov 03 22:08:27 2008 +0100
+@@ -521,4 +521,80 @@
+ 	0x86, 0x6b, 0x23, 0xdc, 0x45, 0x07, 0x00,
+ };
+ 
++/* AverMedia Volar X */
++static struct dvb_usb_rc_key af9015_rc_keys_avermedia[] = {
++	{ 0x05, 0x3d, KEY_PROG1 },       /* SOURCE */
++	{ 0x05, 0x12, KEY_POWER },       /* POWER */
++	{ 0x05, 0x1e, KEY_1 },           /* 1 */
++	{ 0x05, 0x1f, KEY_2 },           /* 2 */
++	{ 0x05, 0x20, KEY_3 },           /* 3 */
++	{ 0x05, 0x21, KEY_4 },           /* 4 */
++	{ 0x05, 0x22, KEY_5 },           /* 5 */
++	{ 0x05, 0x23, KEY_6 },           /* 6 */
++	{ 0x05, 0x24, KEY_7 },           /* 7 */
++	{ 0x05, 0x25, KEY_8 },           /* 8 */
++	{ 0x05, 0x26, KEY_9 },           /* 9 */
++	{ 0x05, 0x3f, KEY_LEFT },        /* L / DISPLAY */
++	{ 0x05, 0x27, KEY_0 },           /* 0 */
++	{ 0x05, 0x0f, KEY_RIGHT },       /* R / CH RTN */
++	{ 0x05, 0x18, KEY_PROG2 },       /* SNAP SHOT */
++	{ 0x05, 0x1c, KEY_PROG3 },       /* 16-CH PREV */
++	{ 0x05, 0x2d, KEY_VOLUMEDOWN },  /* VOL DOWN */
++	{ 0x05, 0x3e, KEY_ZOOM },        /* FULL SCREEN */
++	{ 0x05, 0x2e, KEY_VOLUMEUP },    /* VOL UP */
++	{ 0x05, 0x10, KEY_MUTE },        /* MUTE */
++	{ 0x05, 0x04, KEY_AUDIO },       /* AUDIO */
++	{ 0x05, 0x15, KEY_RECORD },      /* RECORD */
++	{ 0x05, 0x11, KEY_PLAY },        /* PLAY */
++	{ 0x05, 0x16, KEY_STOP },        /* STOP */
++	{ 0x05, 0x0c, KEY_PLAYPAUSE },   /* TIMESHIFT / PAUSE */
++	{ 0x05, 0x05, KEY_BACK },        /* << / RED */
++	{ 0x05, 0x09, KEY_FORWARD },     /* >> / YELLOW */
++	{ 0x05, 0x17, KEY_TEXT },        /* TELETEXT */
++	{ 0x05, 0x0a, KEY_EPG },         /* EPG */
++	{ 0x05, 0x13, KEY_MENU },        /* MENU */
++
++	{ 0x05, 0x0e, KEY_CHANNELUP },   /* CH UP */
++	{ 0x05, 0x0d, KEY_CHANNELDOWN }, /* CH DOWN */
++	{ 0x05, 0x19, KEY_FIRST },       /* |<< / GREEN */
++	{ 0x05, 0x08, KEY_LAST },        /* >>| / BLUE */
++};
++
++static u8 af9015_ir_table_avermedia[] = {
++	0x02, 0xfd, 0x00, 0xff, 0x12, 0x05, 0x00,
++	0x02, 0xfd, 0x01, 0xfe, 0x3d, 0x05, 0x00,
++	0x02, 0xfd, 0x03, 0xfc, 0x17, 0x05, 0x00,
++	0x02, 0xfd, 0x04, 0xfb, 0x0a, 0x05, 0x00,
++	0x02, 0xfd, 0x05, 0xfa, 0x1e, 0x05, 0x00,
++	0x02, 0xfd, 0x06, 0xf9, 0x1f, 0x05, 0x00,
++	0x02, 0xfd, 0x07, 0xf8, 0x20, 0x05, 0x00,
++	0x02, 0xfd, 0x09, 0xf6, 0x21, 0x05, 0x00,
++	0x02, 0xfd, 0x0a, 0xf5, 0x22, 0x05, 0x00,
++	0x02, 0xfd, 0x0b, 0xf4, 0x23, 0x05, 0x00,
++	0x02, 0xfd, 0x0d, 0xf2, 0x24, 0x05, 0x00,
++	0x02, 0xfd, 0x0e, 0xf1, 0x25, 0x05, 0x00,
++	0x02, 0xfd, 0x0f, 0xf0, 0x26, 0x05, 0x00,
++	0x02, 0xfd, 0x11, 0xee, 0x27, 0x05, 0x00,
++	0x02, 0xfd, 0x08, 0xf7, 0x04, 0x05, 0x00,
++	0x02, 0xfd, 0x0c, 0xf3, 0x3e, 0x05, 0x00,
++	0x02, 0xfd, 0x10, 0xef, 0x1c, 0x05, 0x00,
++	0x02, 0xfd, 0x12, 0xed, 0x3f, 0x05, 0x00,
++	0x02, 0xfd, 0x13, 0xec, 0x0f, 0x05, 0x00,
++	0x02, 0xfd, 0x14, 0xeb, 0x10, 0x05, 0x00,
++	0x02, 0xfd, 0x15, 0xea, 0x13, 0x05, 0x00,
++	0x02, 0xfd, 0x17, 0xe8, 0x18, 0x05, 0x00,
++	0x02, 0xfd, 0x18, 0xe7, 0x11, 0x05, 0x00,
++	0x02, 0xfd, 0x19, 0xe6, 0x15, 0x05, 0x00,
++	0x02, 0xfd, 0x1a, 0xe5, 0x0c, 0x05, 0x00,
++	0x02, 0xfd, 0x1b, 0xe4, 0x16, 0x05, 0x00,
++	0x02, 0xfd, 0x1c, 0xe3, 0x09, 0x05, 0x00,
++	0x02, 0xfd, 0x1d, 0xe2, 0x05, 0x05, 0x00,
++	0x02, 0xfd, 0x1e, 0xe1, 0x2d, 0x05, 0x00,
++	0x02, 0xfd, 0x1f, 0xe0, 0x2e, 0x05, 0x00,
++	0x03, 0xfc, 0x00, 0xff, 0x08, 0x05, 0x00,  
++	0x03, 0xfc, 0x01, 0xfe, 0x19, 0x05, 0x00,
++	0x03, 0xfc, 0x02, 0xfd, 0x0d, 0x05, 0x00,
++	0x03, 0xfc, 0x03, 0xfc, 0x0e, 0x05, 0x00,
++};
++
+ #endif
+
+--Boundary-00=_Nk2DJEdqqc8vKcc
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_Nk2DJEdqqc8vKcc--
