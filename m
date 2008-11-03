@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from crow.cadsoft.de ([217.86.189.86] helo=raven.cadsoft.de)
+Received: from helios.cedo.cz ([193.165.198.226] helo=postak.cedo.cz)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Klaus.Schmidinger@cadsoft.de>) id 1L4XOx-0002rJ-Mk
-	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 10:06:41 +0100
-Received: from [192.168.1.71] (falcon.cadsoft.de [192.168.1.71])
-	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id mAO96ZXM003591
-	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 10:06:35 +0100
-Message-ID: <492A6E9B.7030906@cadsoft.de>
-Date: Mon, 24 Nov 2008 10:06:35 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+	(envelope-from <linux-dvb@drajsajtl.cz>) id 1KwtH5-0003MZ-7c
+	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 07:50:58 +0100
+Message-ID: <001201c93d80$a9df4620$7f79a8c0@tommy>
+From: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
+To: "Ruediger Dohmhardt" <ruediger.dohmhardt@freenet.de>
+References: <001101c93ce7$23bcfdb0$7f79a8c0@tommy>
+	<490E19B3.9090701@freenet.de>
+Date: Mon, 3 Nov 2008 07:51:56 +0100
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
-In-Reply-To: <492A53C4.5030509@makhutov.org>
-Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT DVB-C 2300 and CAM,
+	Was: Any DVB-C tuner with working CAM?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,63 +26,54 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 24.11.2008 08:12, Artem Makhutov wrote:
-> Hello,
-> 
-> Klaus Schmidinger schrieb:
->> The attached patch adds a capability flag that allows an application
->> to determine whether a particular device can handle "second generation
->> modulation" transponders. This is necessary in order for applications
->> to be able to decide which device to use for a given channel in
->> a multi device environment, where DVB-S and DVB-S2 devices are mixed.
->>
->> It is assumed that a device capable of handling "second generation
->> modulation" can implicitly handle "first generation modulation".
->> The flag is not named anything with DVBS2 in order to allow its
->> use with future DVBT2 devices as well (should they ever come).
->>
->> Signed-off by: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
-> 
-> Wouldn't it be better to add something like this:
-> 
-> FE_CAN_8PSK
-> FE_CAN_16APSK
-> FE_CAN_32APSK
-> 
-> or
-> 
-> FE_CAN_DVBS2
-> 
-> Instead of FE_CAN_2ND_GEN_MODULATION ? It is too generic for me.
+> > Hello,
+> > I have bought and tested two DVB-C cards which are supported according
+to
+> > http://www.linuxtv.org/wiki/index.php/DVB-C_PCI_Cards
+> > Both are perfectly working with FTA but none with the CAM.
+> >
+> > 1. TechnoTrend Premium DVB-C 2300
+> >
+> TT DVB-C 2300 works fine here with  AlphaCrypt -Light. This card has
+> CI/CAM support for several years already.
+> And it has worked here for several years with CI/CAM.
 
-Well, it's bad enough that we have to "guess" which kind of
-delivery system it is by looking at feinfo.type. If it's FE_QPSK
-then it's DVB-S (or DVB-S2), if it's FE_OFDM then it's DVB-T etc.,
-etc. The "multiproto" API had this cleaned up and introduced a
-clean way of finding out the delivery systems(!) a particular device
-can handle. Unfortunately, as we all know, this approach has been
-dismissed.
+Interesting. I have Technisat Technicrypt CXV (Conax) inserted and none of
+the channels is decrypted. Tried czap, vlc, vdr.
 
-Using some additional flags for "guessing" whether it's DVB-S2
-doesn't seem like a clean solution to me. Why not simply state
-the obvious? After all, the DVB standard for DVB-S2 speaks of
-"second generation modulation", that's why I named this flag
-that way. And since S2API can only handle a single delivery system
-at a time (as opposed to multiproto, where the delivery systems
-were flags, so a device could support several of them), it
-somehow made sense to me to have a flag that could later also
-be used for "second generation DVB-T" devices.
+uname -a:
+Linux pvr 2.6.23.17-88.fc7 #1 SMP Thu May 15 00:02:29 EDT 2008 x86_64 x86_64
+x86_64 GNU/Linux
 
-But I don't want to start another political fight here. All I need
-is a way to determine whether or not a device supports DVB-S2.
-If the commonly agreed on way to do this is to guess it by
-looking at FE_CAN_xyPSK capability flags, so be it. However, so
-far none of the "experts" cared about answering my initial
-question "How to determine DVB-S2 capability in S2API?", so
-I guessed the only way to get something to work was doing something
-about it ;-)
+lspci -nvv:
+01:00.0 0480: 1131:7146 (rev 01)
+        Subsystem: 13c2:000a
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR- FastB2B-
+        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+        Latency: 64 (3750ns min, 9500ns max)
+        Interrupt: pin A routed to IRQ 16
+        Region 0: Memory at eedff400 (32-bit, non-prefetchable) [size=512]
 
-Klaus
+czap - no errors reported but no useful data output
+
+vlc - reports detected CAM doesn't matter if it's really inserted or not:
+[00000338] dvb access debug: Opening device /dev/dvb/adapter0/ca0
+[00000338] dvb access debug: CAMInit: CA interface with 2 slots
+[00000338] dvb access debug: CAMInit: CI link layer level interface type
+[00000338] dvb access debug: CAMInit: built-in descrambler detected
+[00000338] dvb access debug: CAMInit: 16 available descramblers (keys)
+[00000338] dvb access debug: CAMInit: ECD scrambling system supported
+
+vdr - says only
+Nov  3 07:42:33 pvr vdr: [16467] ERROR: no useful data seen within 10627076
+byte of video stream
+I know that vdr should report something about detected CAM but nothing in
+it's log file...
+
+Tomas
+
 
 _______________________________________________
 linux-dvb mailing list
