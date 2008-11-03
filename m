@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAAIu5xg005110
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 13:56:05 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAAItg1X006200
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 13:55:49 -0500
-Date: Mon, 10 Nov 2008 19:55:53 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Antonio Ospite <ospite@studenti.unina.it>
-In-Reply-To: <20081109235940.4c009a68.ospite@studenti.unina.it>
-Message-ID: <Pine.LNX.4.64.0811101946200.8315@axis700.grange>
-References: <20081107125919.ddf028a6.ospite@studenti.unina.it>
-	<874p2jbegl.fsf@free.fr>
-	<Pine.LNX.4.64.0811082119280.8956@axis700.grange>
-	<20081109235940.4c009a68.ospite@studenti.unina.it>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA3Iw840031189
+	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 13:58:08 -0500
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA3Iw63T015898
+	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 13:58:07 -0500
+Message-ID: <490F4ABB.1050608@hhs.nl>
+Date: Mon, 03 Nov 2008 20:02:19 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Colin Brace <cb@lim.nl>
+References: <490F2730.9090703@lim.nl>
+In-Reply-To: <490F2730.9090703@lim.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH, RFC] mt9m111: allow data to be received on pixelclock
- falling edge?
+Subject: Re: xawtv 'webcam' & uvcvideo webcam: ioctl error
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,45 +27,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-(please, use reply-to-all, thanks)
-
-On Sun, 9 Nov 2008, Antonio Ospite wrote:
-
-> > So, shall we add inverter flags?
+Colin Brace wrote:
+> Hi all,
 > 
-> Would you accept this change instead?
+> I am trying to get the 'webcam' utility of xwatv working with my uvcvide 
+> webcam, a Creative Optia. My Fedora 9 system recognizes the webcam fine; 
+> here is the dmesg line:
 > 
-> --- a/drivers/media/video/pxa_camera.c
-> +++ b/drivers/media/video/pxa_camera.c
-> @@ -845,7 +845,7 @@ static int pxa_camera_set_bus_param(struct
-> soc_camera_device *icd, __u32 pixfmt) cicr4 |= CICR4_PCLK_EN;
->   if (pcdev->platform_flags & PXA_CAMERA_MCLK_EN)
->     cicr4 |= CICR4_MCLK_EN;
-> - if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
-> + if (pcdev->platform_flags & PXA_CAMERA_PCP)
->     cicr4 |= CICR4_PCP;
->   if (common_flags & SOCAM_HSYNC_ACTIVE_LOW)
->     cicr4 |= CICR4_HSP;
+> uvcvideo: Found UVC 1.00 device Live! Cam Optia (041e:4057)
 > 
-> and maybe for other cicr4 bits too, in the spirit of using the SOCAM_
-> defines only for icd set_bus_param() but still giving preference to
-> platform data for host settings.
+> The webcam works with apps like Skype.
 > 
-> It is kind of tricky I know, but it would allow to overcome unexpected
-> hardware setups.
+> I'd like to configure it to upload images periodically to my website 
+> using the xawtv 'webcam' utility. I create ~/.webcamrc as indicated in 
+> the man page, but when I run it, it return an error message:
+> 
+> $ webcam
+> reading config file: /home/colin/.webcamrc
+> video4linux webcam v1.5 - (c) 1998-2002 Gerd Knorr
+> grabber config:
+>  size 320x240 [16 bit YUV 4:2:2 (packed, YUYV)]
+>  input Camera 1, norm (null), jpeg quality 75
+>  rotate=0, top=0, left=0, bottom=240, right=320
+> write config [ftp]:
+>  local transfer ~/Desktop/uploading.jpeg => ~/Desktop/webcam.jpeg
+> ioctl: VIDIOC_DQBUF(index=0;type=VIDEO_CAPTURE;bytesused=0;flags=0x0 
+> [];field=ANY;;timecode.type=0;timecode.flags=0;timecode.frames=0;timecode.seconds=0;timecode.minutes=0;timecode.hours=0;timecode.userbits="";sequence=0;memory=unknown): 
+> Invalid argument
+> capturing image failed
+> 
+> Any ideas what is going wrong here?
 
-I would prefer not to disregard camera flags. If we don't find a better 
-solution, I would introduce platform inverter flags, and, I think, we 
-better put them in camera platform data - not host platform data, to 
-provide a finer granularity. In the end, inverters can also be located on 
-camera boards, then you plug-in a different camera and, if your 
-inverter-flags were in host platform data, it doesn't work again.
+I think I do, xawtv contains a few v4l2 handling bugs. This patch fixes them 
+and most likely fixes your issue:
+http://cvs.fedoraproject.org/viewvc/devel/xawtv/xawtv-3.95-fixes.patch?revision=1.1
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Regards,
+
+Hans
+
+
+> 
+> TIA
+> 
 
 --
 video4linux-list mailing list
