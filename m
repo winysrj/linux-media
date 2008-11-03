@@ -1,17 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1005.centrum.cz ([90.183.38.135])
+Received: from an-out-0708.google.com ([209.85.132.243])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <hoppik@centrum.cz>) id 1L3Snx-0004xi-Sb
-	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 11:00:03 +0100
-Received: by mail1005.centrum.cz id S738597898AbYKUJ74 (ORCPT
-	<rfc822;linux-dvb@linuxtv.org>); Fri, 21 Nov 2008 10:59:56 +0100
-Date: Fri, 21 Nov 2008 10:59:56 +0100
-From: " =?UTF-8?Q?SKO=C4=8CDOPOLE?= =?UTF-8?Q?=20Tom=C3=A1=C5=A1?="
-	<hoppik@centrum.cz>
-To: <linux-dvb@linuxtv.org>
+	(envelope-from <jeisom@gmail.com>) id 1Kx00H-0001uC-PT
+	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 15:02:02 +0100
+Received: by an-out-0708.google.com with SMTP id b38so21243ana.41
+	for <linux-dvb@linuxtv.org>; Mon, 03 Nov 2008 06:01:55 -0800 (PST)
+Message-ID: <1767e6740811030601g3c5f9b3aw9e93f878703b644d@mail.gmail.com>
+Date: Mon, 3 Nov 2008 08:01:55 -0600
+From: "Jonathan Isom" <jeisom@gmail.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <38dc7fce0811030052i1eb70355v8b18df3dd9d3ac5c@mail.gmail.com>
 MIME-Version: 1.0
-Message-ID: <200811211059.29650@centrum.cz>
-Subject: [linux-dvb] Example program for V4L
+Content-Disposition: inline
+References: <38dc7fce0811030052i1eb70355v8b18df3dd9d3ac5c@mail.gmail.com>
+Subject: Re: [linux-dvb] buffer overflow error.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,19 +27,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+On Mon, Nov 3, 2008 at 2:52 AM, YD <ydgoo9@gmail.com> wrote:
+> Hello, All
+>
+> I got a error. "dmxdev: buffer overflow" sometimes. especially
+> recording the files from 2 frontend devices.
+> My modification is that I changed the buffer size 10*188*1024 --> 20*188*1024.
+> But I still gets this error.
+> It is caused from the system load or performance ? I do not understand
+> why this happen.
+>
+> Please give me some comments or help.
 
-I want to ask you for this situation:
-I have got a Leadtek WinFast 2000XP, where is a S-Video input. To this S-Video input is connected a analog camera.
+It may help if you supply info about the cards used, and drivers versions used.
 
-Exists any "example program" for programming with v4l drivers? I only need get single picture from the camera. It should be BMP, JPEG, TIFF or some other formats.
+Later
 
-If any example program doesn't exist, where can I find some informations?
+Janathan
 
-Thank you for help.
-
-Regards Tomas
-
+> Thanks,
+> youngduk
+>
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
 _______________________________________________
 linux-dvb mailing list
