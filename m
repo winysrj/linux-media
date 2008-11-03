@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web23206.mail.ird.yahoo.com ([217.146.189.61])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <newspaperman_germany@yahoo.com>) id 1KzrcT-0005Yo-RF
-	for linux-dvb@linuxtv.org; Tue, 11 Nov 2008 12:41:19 +0100
-Date: Tue, 11 Nov 2008 11:40:44 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
+Received: from mx34.mail.ru ([194.67.23.200])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <goga777@bk.ru>) id 1Kwz1Z-0005RB-E6
+	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 13:59:18 +0100
+Received: from [92.101.128.247] (port=15415 helo=localhost.localdomain)
+	by mx34.mail.ru with asmtp id 1Kwz10-0004qk-00
+	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 15:58:43 +0300
+Date: Mon, 3 Nov 2008 15:59:03 +0300
+From: Goga777 <goga777@bk.ru>
 To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Message-ID: <232099.57049.qm@web23206.mail.ird.yahoo.com>
-Subject: [linux-dvb]  S2API + TT3200 + Amos4w 10.723 S2 problem
-Reply-To: newspaperman_germany@yahoo.com
+Message-ID: <20081103155903.245267fe@bk.ru>
+In-Reply-To: <167586304.20081103115116@bitklub.hu>
+References: <167586304.20081103115116@bitklub.hu>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] S2API + TT3200 + Amos4w 10.723 S2 problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,33 +21,17 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I thougt Igors patch for high SR is for dvb-s(1) only.
+>   FYI: on these TP's there's a pilot signal and rolloff set to 0.20. 
 
-anybody can confirm that dvb-s2 with SR 30000 and Fec 3/4 would now work? T=
-ransponders are at Thor 1=B0W or Hispasat 30=B0W (Meo)
+I'm wondering - how did you observe it ?
 
-regards =
-
-
-Newsy
-
-Kovacs Balazs basq at bitklub.hu
-Tue Nov 11 10:41:35 CET 2008
-
->I installed the latest s2-liplianin with the patches igor released last >w=
-eekend. Now it works OK for me!!!
->
->thx
->basq
-
-
-      =
+Goga
 
 
 _______________________________________________
