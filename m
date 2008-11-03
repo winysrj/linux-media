@@ -1,21 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from relay-pt2.poste.it ([62.241.5.253])
+Received: from ug-out-1314.google.com ([66.249.92.171])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nicola.sabbi@poste.it>) id 1KyoF2-0003ls-AT
-	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 14:52:45 +0100
-Received: from [192.168.1.116] (79.47.51.8) by relay-pt2.poste.it (7.3.122)
-	(authenticated as nicola.sabbi@poste.it)
-	id 4914D701000065A3 for linux-dvb@linuxtv.org;
-	Sat, 8 Nov 2008 14:52:40 +0100
-From: Nico Sabbi <nicola.sabbi@poste.it>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <49150AF1.5060601@rongage.org>
-References: <49150AF1.5060601@rongage.org>
-Date: Sat, 08 Nov 2008 14:53:50 +0100
-Message-Id: <1226152430.3766.0.camel@suse.site>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] crash issue with dvbstream
-Reply-To: nicola.sabbi@poste.it
+	(envelope-from <2manybills@gmail.com>) id 1Kx1ET-0008Em-G2
+	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 16:20:48 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so1745163ugc.16
+	for <linux-dvb@linuxtv.org>; Mon, 03 Nov 2008 07:20:42 -0800 (PST)
+Message-ID: <157f4a8c0811030720s309f53a6v4e127b97926c110a@mail.gmail.com>
+Date: Mon, 3 Nov 2008 15:20:41 +0000
+From: "hudo kkow" <2manybills@gmail.com>
+To: "Alex Betis" <alex.betis@gmail.com>
+In-Reply-To: <c74595dc0811012206y36de5783w544fb701a922fda6@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
+	<490C7194.8060603@verbraak.org> <20081101182051.3ac22972@bk.ru>
+	<490C7958.8050902@verbraak.org> <20081101185045.1616b5c6@bk.ru>
+	<490C7CEB.6030704@verbraak.org>
+	<c74595dc0811012206y36de5783w544fb701a922fda6@mail.gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,36 +26,75 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Il giorno ven, 07/11/2008 alle 22.43 -0500, Ron Gage ha scritto:
-> I am having problems with dvbstream segfaulting.  The segfaults are 
-> occurring at line 635 of dvbstream.c - PAT.entries[] are basically NULL 
-> causing the segfault.
-> 
-> I was asked by mrec on the IRC channel to make a ts dump of the video 
-> signal I am trying to stream.  That stream is at 
-> http://www.mi-connect.com/crash.ts.  This dump file is roughly 224 meg 
-> in size.
-> 
-> Let me know if I can help in finding this problem.
-> 
-> Ron Gage
-> Westland, MI
-> 
-> 
-
-what version of dvbstream? Always use a cvs checkout, there are
-important bugfixes in there
-
-
-
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+T24gRnJpLCBPY3QgMzEsIDIwMDggYXQgMTE6NTggQU0sIEdvZ2E3NzcgPGdvZ2E3NzdAYmsucnU+
+IHdyb3RlOgo+IPDSydfF1NPU19XALCBBbGV4Cj4KPiB0aGFua3MgZm9yIHlvdSB3b3JrLiBCdXQg
+Zm9yIG1lIHNjYW4tczIgd29ya3Mgc3RyYW5nZSAtIHNjYW4tczIgY291bGRuJ3QgZmluZCBhIGxv
+dCBvZiBkdmItczIgJiBkdmItcyBjaGFubmVscyBmcm9tIEFzdHJhCj4gMTllCj4KPiBJIGhhdmUg
+YSBsb3Qgb2YgY29waWVzIG9mIDR0aCBjaGFubmVscyB3aXRoIGRpZmZlcmVudCBmcmVxCj4KPiBQ
+UkVNSUVSRSBIRDtQUkVNSUVSRToxMTcyMDpoUzBDMzQ6UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6
+MzI6MDoxMjk6MDowOjAKPiBESVNDT1ZFUlkgSEQ7UFJFTUlFUkU6MTE3MjA6aFMwQzM0OlMwLjBX
+OjI3NTAwOjEwMjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6MDowCj4gQVNUUkEgSEQrO0JldGFEaWdp
+dGFsOjExNzIwOmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5OjEyODM7MTI4MzowOjA6MTMxOjA6MDow
+Cj4gQU5JWEUgSEQ7QmV0YURpZ2l0YWw6MTE3MjA6aFMwQzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUz
+OTsxNTM5OjA6MDoxMzI6MDowOjAKPgo+IGR1bXBpbmcgbGlzdHMgKDEwOCBzZXJ2aWNlcykKPiBQ
+UkVNSUVSRSBIRDtQUkVNSUVSRToxMTcyMDpoUzBDMzQ6UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6
+MzI6MDoxMjk6MDowOjAKPiBESVNDT1ZFUlkgSEQ7UFJFTUlFUkU6MTE3MjA6aFMwQzM0OlMwLjBX
+OjI3NTAwOjEwMjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6MDowCj4gQVNUUkEgSEQrO0JldGFEaWdp
+dGFsOjExNzIwOmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5OjEyODM7MTI4MzowOjA6MTMxOjA6MDow
+Cj4gQU5JWEUgSEQ7QmV0YURpZ2l0YWw6MTE3MjA6aFMwQzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUz
+OTsxNTM5OjA6MDoxMzI6MDowOjAKPiBQUkVNSUVSRSBIRDtQUkVNSUVSRToxMTc1ODpoUzBDMzQ6
+UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6MzI6MDoxMjk6MDowOjAKPiBESVNDT1ZFUlkgSEQ7UFJF
+TUlFUkU6MTE3NTg6aFMwQzM0OlMwLjBXOjI3NTAwOjEwMjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6
+MDowCj4gQVNUUkEgSEQrO0JldGFEaWdpdGFsOjExNzU4OmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5
+OjEyODM7MTI4MzowOjA6MTMxOjA6MDowCj4gQU5JWEUgSEQ7QmV0YURpZ2l0YWw6MTE3NTg6aFMw
+QzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUzOTsxNTM5OjA6MDoxMzI6MDowOjAKPiBQUkVNSUVSRSBI
+RDtQUkVNSUVSRToxMTc5ODpoUzBDMzQ6UzAuMFc6Mjc1MDA6NzY3Ojc3Mjs3NzI6MzI6MDoxMjk6
+MDowOjAKPiBESVNDT1ZFUlkgSEQ7UFJFTUlFUkU6MTE3OTg6aFMwQzM0OlMwLjBXOjI3NTAwOjEw
+MjM6MTAyNzsxMDI3OjMyOjA6MTMwOjA6MDowCj4gQVNUUkEgSEQrO0JldGFEaWdpdGFsOjExNzk4
+OmhTMEMzNDpTMC4wVzoyNzUwMDoxMjc5OjEyODM7MTI4MzowOjA6MTMxOjA6MDowCj4gQU5JWEUg
+SEQ7QmV0YURpZ2l0YWw6MTE3OTg6aFMwQzM0OlMwLjBXOjI3NTAwOjE1MzU6MTUzOTsxNTM5OjA6
+MDoxMzI6MDowOjAKPiBQUkVNSUVSRSBIRDtQUkVNSUVSRToxMTgzNjpoUzBDMzQ6UzAuMFc6Mjc1
+MDA6NzY3Ojc3Mjs3NzI6MzI6MDoxMjk6MDowOjAKPgo+IHRoZSBmdWxsIGxvZyBpbgo+IGh0dHA6
+Ly9wYXN0ZS5vcmcucnUvP2cwYjBwbgo+Cj4gSSB0aGluayBzY2FuLXMyIGlzIHNjYW5uaW5nIG9u
+bHkgY3VycmVudCAxMTkxNCB0cmFuc3BvbmRlciAoaW4gbXkgY2FzZSkuIFdpdGggdGhpcyB0cmFu
+c3BvbmRlciBJIHdvcmtlZCB3aXRoIHZkciBiZWZvcmUKPiBzY2FuMiBzdGFydGVkLgo+Cj4KPgo+
+IEdvZ2EKCkhpLgpGb3IgbWUgaXMgYWxzbyB3b3JraW5nIHN0cmFuZ2Ugc2Nhbm5pbmcgMzBXIE1l
+byBwcm92aWRlciA+PgpodHRwOi8vcHQua2luZ29mc2F0Lm5ldC9wYWNrLW1lby5waHAKQXMgeW91
+IGNhbiBzZWUgZnJvbSB0aGUgbGluayBhYm92ZSwgYWxsIGNoYW5uZWxzIGFyZSBvbiBEVkItUzIg
+OFBTSwphbmQgc29tZXRpbWVzIHNjYW4gcGlja3MgdXAgZXZlcnkgY2hhbm5lbCBhbmQgb3RoZXIg
+dGltZXMgaXQgZG9lc24ndC4KCkFmdGVyIGEgZmV3IHRyaWVzLCBldmVyeSBjaGFubmVsIHdhcyBw
+aWNrZWQgdXAsIGJ1dCBzb21lIHBhcmFtZXRlcnMgYXJlIG1pc3NpbmcuCgpUaGlzIGlzIGEgc2Nh
+bm5lZCBjaGFubmVsIGxpc3QuCihudWxsKSAtIFswMDAtMDA2NV07OjEyMDEyOmhTMTozMFc6MzAw
+MDA6NDA5Nzo0MDk4OjQxMDA6MTAwOjEwMTowOjA6MAoobnVsbCkgLSBbMDAxLTAwNjZdOzoxMjAx
+MjpoUzE6MzBXOjMwMDAwOjQxMDU6NDEwNjo0MTAwOjEwMDoxMDI6MDowOjAKKG51bGwpIC0gWzAw
+Mi0wMDY3XTs6MTIwMTI6aFMxOjMwVzozMDAwMDo0MTEzOjQxMTQ6NDEwMDoxMDA6MTAzOjA6MDow
+CihudWxsKSAtIFswMDMtMDA2OF07OjEyMDEyOmhTMTozMFc6MzAwMDA6NDEyMTo0MTIyOjQxMDA6
+MTAwOjEwNDowOjA6MAoobnVsbCkgLSBbMDA0LTAwNjldOzoxMjAxMjpoUzE6MzBXOjMwMDAwOjQx
+Mjk6NDEzMDo0MTAwOjEwMDoxMDU6MDowOjAKKG51bGwpIC0gWzAwNS0wMDZhXTs6MTIwMTI6aFMx
+OjMwVzozMDAwMDo0MTM3OjQxMzg6NDEwMDoxMDA6MTA2OjA6MDowCihudWxsKSAtIFswMDYtMDA2
+Yl07OjEyMDEyOmhTMTozMFc6MzAwMDA6NDE0NTo0MTQ2OjQxMDA6MTAwOjEwNzowOjA6MAoobnVs
+bCkgLSBbMDA3LTAwNmNdOzoxMjAxMjpoUzE6MzBXOjMwMDAwOjQxNTM6NDE1NDowOjEwMDoxMDg6
+MDowOjAKKG51bGwpIC0gWzAwOC0wMDZkXTs6MTIwMTI6aFMxOjMwVzozMDAwMDo0MTYxOjQxNjI6
+MDoxMDA6MTA5OjA6MDowCihudWxsKSAtIFswMDktMDA2ZV07OjEyMDEyOmhTMTozMFc6MzAwMDA6
+NDE2OTo0MTcwOjA6MTAwOjExMDowOjA6MAoobnVsbCkgLSBbMDBhLTAwNmZdOzoxMjAxMjpoUzE6
+MzBXOjMwMDAwOjQxNzc6NDE3ODowOjEwMDoxMTE6MDowOjAKKG51bGwpIC0gWzAwYi0wMDcwXTs6
+MTIwMTI6aFMxOjMwVzozMDAwMDo0MTg1OjQxODY6MDoxMDA6MTEyOjA6MDowCihudWxsKSAtIFsw
+MGMtMDA3MV07OjEyMDEyOmhTMTozMFc6MzAwMDA6NDE5Mzo0MTk0OjA6MTAwOjExMzowOjA6MAoK
+QXMgeW91IGNhbiBzZWUsIG5vIG5ldHdvcmsgYW5kIHByb3ZpZGVyIGFyZSBrbm93biwgYWxvbmcg
+d2l0aCBvdGhlcgpwYXJhbWV0ZXJzLCBhbGRvIEkgc2Nhbm5lZCB3aXRoCgouL3NjYW4tczIgLU8g
+MzBXIC14IC0yIC10IDEgLXAgLW8gdmRyIC1zMyAtdiAtVSBIaXNwYU9ubHlNRU8gPiBNZW9fM190
+ZXN0CgpJIGhhdmUgdHJpZWQgd2l0aCBGRUMgMy80CgojIDMwVwpTIDEyMDEyMDAwIEggMzAwMDAw
+MDAgMy80ClMgMTIwNTIwMDAgSCAzMDAwMDAwMCAzLzQKUyAxMjA5MjAwMCBIIDMwMDAwMDAwIDMv
+NAoKYW5kIEZFQyBBVVRPCgojIDMwVwpTIDEyMDEyMDAwIEggMzAwMDAwMDAgQVVUTwpTIDEyMDUy
+MDAwIEggMzAwMDAwMDAgQVVUTwpTIDEyMDkyMDAwIEggMzAwMDAwMDAgQVVUTwoKQXV0byBzZWVt
+cyB0byB3b3JrIGJldHRlci4KCklmIGFueW9uZSB3YW50cyB0byBnaXZlIGl0IGEgdHJ5LCBnbyBh
+aGVhZCBhbmQgbGVhdmUgZmVlZGJhY2suCgpVc2luZyBhIFRULTMyMDAgb24gdWJ1bnR1IDY0Lgpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIg
+bWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3Jn
+L2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
