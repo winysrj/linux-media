@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx38.mail.ru ([194.67.23.16])
+Received: from col0-omc3-s16.col0.hotmail.com ([65.55.34.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1KzExU-0000d7-Ok
-	for linux-dvb@linuxtv.org; Sun, 09 Nov 2008 19:24:27 +0100
-Received: from [92.101.157.18] (port=22593 helo=localhost.localdomain)
-	by mx38.mail.ru with asmtp id 1KzEww-000ChH-00
-	for linux-dvb@linuxtv.org; Sun, 09 Nov 2008 21:23:50 +0300
-Date: Sun, 9 Nov 2008 21:25:26 +0300
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20081109212526.677d5c76@bk.ru>
-In-Reply-To: <1a297b360811081323k61c0dd44vf3834ba965b20466@mail.gmail.com>
-References: <20081106124730.16840@gmx.net> <20081106144319.268390@gmx.net>
-	<200811081130.21951.liplianin@tut.by>
-	<1a297b360811081323k61c0dd44vf3834ba965b20466@mail.gmail.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] [PATCH] stb0899: Set min symbol rate to 1000000
+	(envelope-from <db260179@hotmail.com>) id 1Kx1rS-0003Ba-Lk
+	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 17:01:03 +0100
+Message-ID: <COL112-W38E1A1472DFA0BFD87C370C21D0@phx.gbl>
+From: dabby bentam <db260179@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Mon, 3 Nov 2008 16:00:23 +0000
+In-Reply-To: <mailman.1.1225710001.17334.linux-dvb@linuxtv.org>
+References: <mailman.1.1225710001.17334.linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] [PATCH] saa7134: add support for IR interface on
+ the > Avermedia Super 007
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,40 +19,88 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0096645730=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-8NLJ18XU09TX1cAsIE1hbnUKPiBPbiBTYXQsIE5vdiA4LCAyMDA4IGF0IDE6MzAgUE0sIElnb3Ig
-TS4gTGlwbGlhbmluIDxsaXBsaWFuaW5AdHV0LmJ5PiB3cm90ZToKPiA+IEkgY2FuIHJlY2VpdmUg
-MyBtU3ltL3Mgc3RyZWFtcy4gU28gd2h5IGRvIHlvdSBsaW1pdCBmcm9udGVuZAo+ID4gY2FwYWJp
-bGl0aWVzIHRvIDU/Cj4gCj4gTG93ZXIgdGhhbiA1TVNQUyBnb2VzIGJlbG93IHRoZSBIYWxmIFBv
-d2VyIGJhbmR3aWR0aCBjaGFyYWN0ZXJpc3RpY3MuCj4gVXN1YWxseSB3ZSBoYXZlIGxpbWl0cyBk
-ZWZpbmVkIHdpdGhpbiB0aGUgY2hhcmFjdGVyaXN0aWMgcmVnaW9uLAo+IHJhdGhlciB0aGFuIGFi
-c29sdXRlIGxpbWl0cyBhdCB3aGljaCB0dW5pbmcgZmFpbHMKCgp0aGF0IGlzIHN0cmFuZ2UgbGlt
-aXRhdGlvbiAsIHRoZXJlJ3MgYSBsb3Qgb2YgZHZiIGNoYW5uZWxzIHdpdGggc3RyZWFtcyBsZXNz
-IHRoYW4gMyBtU3ltL3MKZm9yIGV4YW1wbGUgb24gY3gyNDExNiAmIEhlbGxhc1NhdCAzOUUgd2Ug
-aGF2ZSBmb2xsb3cgcmVzdWx0cyB3aXRoIHhtbHNjYW4gZnJvbSBEYXJyb24gCmh0dHA6Ly9oZy5r
-ZXdsLm9yZy94bWxkdmIvCgoxPUFSTSAxO0ZUIEdMT0JFQ0FTVDoxMTEwOTpWQzIzTTJPMzVTMDow
-OjM0MTg6MTIzNToxMzM1OjEKMTAxNzA9QUwtSVJBUUlBIEFUWUFGO0lNTiBCQUdIREFEOjExNjQy
-OlZDMzRNMk8zNVMwOjA6MjE3NTozMzozNjoxMDE3MAoxMDE4MD1BTEZPUnFhbjtJTU4gQkFHSERB
-RDoxMTY0NTpWQzM0TTJPMzVTMDowOjIxODA6MzA4OjI1NjoxMDE4MAoxMDE4MD1BTC1JUkFRSUEg
-U1BPUlQ7SU1OIEJBR0hEQUQ6MTE2NTI6VkMzNE0yTzM1UzA6MDoyNTM1OjIwMDc6MzY6MTAxODAK
-MT1MSURFUiBUViBBWkVSQkFJSkFOO1RBTkRCRVJHOjEyNTIwOkhDMTJNMk8zNVMwOjA6NDM0MDo1
-MTM6MjU2OjEKNjY9RU1PVElPTiBBUlQ7RU1PVElPTiBBUlQ6MTI1NDM6VkMyM00yTzM1UzA6MDoz
-MzMzOjQ4OjQ5OjY2CjE9TWVkaTFTQVQ7VGFuZGJlcmdUVjoxMjU0NTpIQzU2TTJPMzVTMDowOjI3
-MzQ6MzA4OjI1NjoxCjE3MDk9RVVST05FV1MtRlJBTkNFO0dMT0JFQ0FTVDoxMjU1ODpWQzIzTTJP
-MzVTMDowOjgxMzg6OTIwOjkzMDoxNzA5CjQyMDE9RVVST05FV1MtQUZSSUNBO1NFU0FUOjEyNTU4
-OlZDMjNNMk8zNVMwOjA6ODEzODo0MjIxOjQyMzE6NDIwMQoxPVRhbmRiZXJnIFNlcnZpY2U7VGFu
-ZGJlcmdUVjoxMjU5MTpWQzM0TTJPMzVTMDowOjIxNzA6MzA4OjI1NjoxCjE9VklERU9MSU5BIFNB
-VDtUYWRpcmFuIFNjb3B1czoxMjU5NjpWQzIzTTJPMzVTMDowOjI1MDA6NDE5NDo0MTk1OjEKMT1K
-U0MgQ29udHJpYnV0aW9uO1NlcnZpY2UgUHJvdmlkZXI6MTI2MTA6VkMzNE0yTzM1UzA6MDoyODk0
-OjIwMDoyMDE6MQoxPUFsIEphemVlcmE7QXJxaXZhOjEyNjE0OlZDMzRNMk8zNVMwOjA6Mjg5NDoz
-MTE6MjU2OjEKMj1aQUdST1M7VW5uYW1lZDoxMjYyNTpWQzM0TTJPMzVTMDowOjI2Njg6MzM6MzY6
-MgoKd2lsbCBiZSBuaWNlIGlmIHN0YjA4OTkgY2FyZHMgYWxzbyBjYW4gTE9DSyBsb3cgc3ltYm9s
-IHJhdGUgY2hhbm5lbHMKCkdvZ2EKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3Jn
-Cmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2
-Yg==
+--===============0096645730==
+Content-Type: multipart/alternative;
+	boundary="_c08af740-5826-4798-bb69-fa7ebc308e37_"
+
+--_c08af740-5826-4798-bb69-fa7ebc308e37_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+> > Ok=2C will try. Thanks=2C i'll drop the comments.
+>=20
+> Drop the whole analog TV/tuner stuff section=2C if not supported.
+>=20
+> > Is that 0x0000013f
+>=20
+> The driver is aware of the 28 gpio pins anyway.
+> The last pin is 0x8000000.
+>=20
+> If the above doesn't work=2C it must be a limitation within the new nec
+> remote stuff.
+>=20
+> Please stop to drop lists/people in CC.
+>=20
+> I already asked for that.
+>=20
+> Cheers=2C
+> Hermann
+
+Ok=2C sorry (sorry people)
+
+_________________________________________________________________
+See the most popular videos on the web=20
+http://clk.atdmt.com/GBL/go/115454061/direct/01/=
+
+--_c08af740-5826-4798-bb69-fa7ebc308e37_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+FONT-SIZE: 10pt=3B
+FONT-FAMILY:Tahoma
+}
+</style>
+</head>
+<body class=3D'hmmessage'>&gt=3B &gt=3B Ok=2C will try. Thanks=2C i'll drop=
+ the comments.<br>&gt=3B <br>&gt=3B Drop the whole analog TV/tuner stuff se=
+ction=2C if not supported.<br>&gt=3B <br>&gt=3B &gt=3B Is that 0x0000013f<b=
+r>&gt=3B <br>&gt=3B The driver is aware of the 28 gpio pins anyway.<br>&gt=
+=3B The last pin is 0x8000000.<br>&gt=3B <br>&gt=3B If the above doesn't wo=
+rk=2C it must be a limitation within the new nec<br>&gt=3B remote stuff.<br=
+>&gt=3B <br>&gt=3B Please stop to drop lists/people in CC.<br>&gt=3B <br>&g=
+t=3B I already asked for that.<br>&gt=3B <br>&gt=3B Cheers=2C<br>&gt=3B Her=
+mann<br><br>Ok=2C sorry (sorry people)<br><br /><hr />For the best free wal=
+lpapers from MSN  <a href=3D'http://wallpapers.msn.com/?ocid=3D[B001MSN42A0=
+716B]' target=3D'_new'>Click here!</a></body>
+</html>=
+
+--_c08af740-5826-4798-bb69-fa7ebc308e37_--
+
+
+--===============0096645730==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0096645730==--
