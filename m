@@ -1,16 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joan.kewl.org ([212.161.35.248])
+Received: from out5.smtp.messagingengine.com ([66.111.4.29])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <darron@kewl.org>) id 1L0MjR-0004z9-Pv
-	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 21:54:35 +0100
-From: Darron Broad <darron@kewl.org>
-To: "Alex Betis" <alex.betis@gmail.com>
-In-reply-to: <c74595dc0811121232s48a95a14v93edf27360ed5c21@mail.gmail.com> 
-References: <c74595dc0811121232s48a95a14v93edf27360ed5c21@mail.gmail.com>
-Date: Wed, 12 Nov 2008 20:54:29 +0000
-Message-ID: <30422.1226523269@kewl.org>
-Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] S2API tune return code - potential problem?
+	(envelope-from <linuxtv@hotair.fastmail.co.uk>) id 1KxNbw-0003lk-VT
+	for linux-dvb@linuxtv.org; Tue, 04 Nov 2008 16:14:31 +0100
+Received: from compute1.internal (compute1.internal [10.202.2.41])
+	by out1.messagingengine.com (Postfix) with ESMTP id 2F8591A1BB6
+	for <linux-dvb@linuxtv.org>; Tue,  4 Nov 2008 10:14:23 -0500 (EST)
+Message-Id: <1225811663.1701.1282927225@webmail.messagingengine.com>
+From: "petercarm" <linuxtv@hotair.fastmail.co.uk>
+To: linux-dvb@linuxtv.org
+Content-Disposition: inline
+MIME-Version: 1.0
+References: <200811032211.41760.jareguero@telefonica.net>
+	<49104A4D.2040609@iki.fi>
+In-Reply-To: <49104A4D.2040609@iki.fi>
+Date: Tue, 04 Nov 2008 15:14:23 +0000
+Subject: [linux-dvb] Nova-TD and I2C read/write failed
+Reply-To: linuxtv@hotair.fastmail.co.uk
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,69 +24,26 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <c74595dc0811121232s48a95a14v93edf27360ed5c21@mail.gmail.com>, "Alex Betis" wrote:
->
->Hi All,
+My build is gentoo with 2.6.25 kernel and mercurial V4L using
+dvb-usb-dib0700-1.10.fw   The Hauppauge Nova-TD USB stick shows a USB ID
+of 2040:5200.
 
-Hi.
+The card works for a few hours and then floods dmesg with "DiB0070 I2C
+write failed" messages.
 
->A question regarding the error code returned from the driver when using
->DTV_TUNE property.
->Following the code I came to dvb_frontend_ioctl_legacy function and reached
->the FE_SET_FRONTEND case.
->Looking on the logic I couldn't see any handling of error tuning, an event
->is added to the frontend and zero is returned:
->
->        fepriv->state = FESTATE_RETUNE;
->        dvb_frontend_wakeup(fe);
->        dvb_frontend_add_event(fe, 0);
->        fepriv->status = 0;
->        err = 0;
->        break;
->
->How should an application know that DTV_TUNE command succeed?
->Monitoring the LOCK bit is not good, here's an example why I ask the
->question:
->
->Assuming the cx24116 driver is locked on a channel. Application sends tune
->command to another channel while specifying
->AUTO settings for modulation and FEC. The driver for that chip cant handle
->AUTO settings and return error, while its still connected
->to previous channel. So in that case LOCK bit will be ON, while the tune
->command was ignored.
->
->I thought of an workaround to query the driver for locked frequency and
->check whenever its in bounds of frequency that was ordered
->to be tuned + - some delta, but that's a very dirty solution.
->
->Any thoughts? Or I'm missing something?
+I've found plenty of passing references to this problem, but what do I
+need to do to get this working? 
 
-Correct me if I am wrong, but I remember looking at this before...
+Do I need to change to the 1.20 firmware?
 
-The problem is that no capabilities are available for S2API demods as yet
-so TUNE always succeeds whether the parameters are wrong or right.
-
-What is needed is:
-1. caps for s2api aware demods.
-2. extend dvb_frontend_check_parameters() for s2api aware demods.
-
-This hasn't been done as yet.
-
-cya
-
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
-
+Where does dib0700_new_i2c_api.patch exist?  It is mentioned on the wiki
+but I haven't been able to find it anywhere.
 
 _______________________________________________
 linux-dvb mailing list
