@@ -1,19 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from djamil.net ([88.177.154.16] helo=route.djamil.net)
+Received: from smtp-out1.iol.cz ([194.228.2.86])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <djamil@djamil.net>) id 1KyjmH-0001mi-4z
-	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 10:06:45 +0100
-Received: from [192.168.1.10] (toptop.djamil.net [192.168.1.10])
-	by route.djamil.net (Postfix) with ESMTP id 4EA6914240
-	for <linux-dvb@linuxtv.org>; Sat,  8 Nov 2008 10:05:50 +0100 (CET)
-From: djamil <djamil@djamil.net>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1226135032.7882.1.camel@toptop>
-References: <49150AF1.5060601@rongage.org>  <1226135032.7882.1.camel@toptop>
-Date: Sat, 08 Nov 2008 10:06:11 +0100
-Message-Id: <1226135171.7882.2.camel@toptop>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] HVR 1400
+	(envelope-from <ajurik@quick.cz>) id 1KxI8r-0008NG-Do
+	for linux-dvb@linuxtv.org; Tue, 04 Nov 2008 10:24:06 +0100
+Received: from ales-debian.local (unknown [88.103.120.47])
+	by smtp-out1.iol.cz (Postfix) with ESMTP id B1D2310C059
+	for <linux-dvb@linuxtv.org>; Tue,  4 Nov 2008 10:18:27 +0100 (CET)
+From: Ales Jurik <ajurik@quick.cz>
+To: linux-dvb@linuxtv.org
+Date: Tue, 4 Nov 2008 10:18:27 +0100
+References: <167586304.20081103115116@bitklub.hu>
+	<20081103155903.245267fe@bk.ru>
+	<54283792.20081104090010@bitklub.hu>
+In-Reply-To: <54283792.20081104090010@bitklub.hu>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200811041018.27417.ajurik@quick.cz>
+Subject: Re: [linux-dvb] S2API + TT3200 + Amos4w 10.723 S2 problem
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,90 +25,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0877483079=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
---===============0877483079==
-Content-Type: multipart/alternative; boundary="=-xgbEbYh7wVAjPqtJd9xo"
-
-
---=-xgbEbYh7wVAjPqtJd9xo
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
-
-sorry for the pollution
-
-I thaught seeing it in the sources ...
-
-Regards
-
-
-
-Le samedi 08 novembre 2008 =E0 10:03 +0100, djamil a =E9crit :
-
-> Hello gentlemen=20
->=20
-> I still cant use svideo / composite with WinTv hvr1400 ?
->=20
-> best regards=20
->=20
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
---=-xgbEbYh7wVAjPqtJd9xo
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
-<HTML>
-<HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/3.24.1">
-</HEAD>
-<BODY>
-sorry for the pollution<BR>
-<BR>
-I thaught seeing it in the sources ...<BR>
-<BR>
-Regards<BR>
-<BR>
-<BR>
-<BR>
-Le samedi 08 novembre 2008 &#224; 10:03 +0100, djamil a &#233;crit :<BR>
-<BLOCKQUOTE TYPE=CITE>
-    Hello gentlemen <BR>
-    <BR>
-    I still cant use svideo / composite with WinTv hvr1400 ?<BR>
-    <BR>
-    best regards 
-<PRE>
-_______________________________________________
-linux-dvb mailing list
-<A HREF="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A>
-<A HREF="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</A>
-</PRE>
-</BLOCKQUOTE>
-</BODY>
-</HTML>
-
---=-xgbEbYh7wVAjPqtJd9xo--
-
-
-
---===============0877483079==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0877483079==--
+T24gVHVlc2RheSAwNCBvZiBOb3ZlbWJlciAyMDA4LCBLb3ZhY3MgQmFsYXpzIHdyb3RlOgo+ID4+
+ICAgRllJOiBvbiB0aGVzZSBUUCdzIHRoZXJlJ3MgYSBwaWxvdCBzaWduYWwgYW5kIHJvbGxvZmYg
+c2V0IHRvIDAuMjAuCj4gPgo+ID4gSSdtIHdvbmRlcmluZyAtIGhvdyBkaWQgeW91IG9ic2VydmUg
+aXQgPwo+Cj4gSSBhc2tlZCBteSBjb2xsZWFndWVzIHdobyBzZXQgdXAgdGhpcyBtb2R1bGF0b3Ig
+YXQgdXBsaW5rIHNpdGUsIGJlY2F1c2Ugd2UKPiBhcmUgd29ya2luZyBvbiB0aGVzZSBzYXRlbGxp
+dGUgRFRIIHN5c3RlbS4KPgo+IElzIGFueWJvZHkgY2FuIHN1Z2dlc3QgYSB3b3JraW5nIERWQi1T
+MiBjYXJkICsgbGludXggZHJpdmVyIHdoaWNoIGlzCj4gY2FwYWJsZSB0byBsb2NrIGhlcmUgc3Rh
+YmxlPyAoQU1PUyA0LjBXLCAxMC43MjNHaHogViwgMzAwMDApCj4KPiB0aGFuayB5b3UsCj4KPiBi
+YXNxCgpJIGRvbid0IGhhdmUgYW55IHByb2JsZW0gd2l0aCBsb2NrIHdpdGggbXkgbGFzdCBkdmIt
+bGlwbGlhbmluIGRyaXZlcnMgCihtdWx0aXByb3RvKSBhbmQgSFZSLTQwMDAuCgpCdXQgdGhlIHJv
+bGxvZmYgaXMgYXV0b21hdGljYWxseSBzZXQgYnkgdGhlIGRyaXZlciB0byAwLjM1LgoKSGVyZSBp
+cyB0aGUgYXV0b21hdGljYWxseSBkb25lIHNjYW4gZnJvbSB2ZHItMS43LjAuIEkndmUgZWRpdGVk
+IHRoZSByb2xsb2ZmIHRvIAowLjIwIGJ1dCBpdCBkb2Vzbid0IHNlZW1zIHRvIGhlYXZlIGFueSBp
+bmZsdWVuY2UgZXZlbiBpZiBJIGRpc2FibGUgdXBkYXRlIG9mIApjaGFubmVscy4gCgpUaGUgdmlk
+ZW8gb24gRlRBIGNoYW5uZWxzIGlzIHNvbWV0aGluZyBsaWtlIG5vdCBmbHVlbnQgKG9ubHkgUlRM
+IGRvZXNuJ3QgaGF2ZSAKdGhpcyBwcm9ibGVtKSAtIGJ1dCBpdCBjb3VsZCBiZSB0aGF0IG5vIHNv
+dW5kIG9uZSB0aGF0IGNoYW5uZWxzIGlzIApicm9hZGNhc3RlZC4KCkJSLAoKQWxlcwoKUlRMIEts
+dWI7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTc5OjE3Nz1odW46MTgw
+OkIwMDoxOjEwMDoxOjAKdHYyO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAw
+OjE3NDoxNzI9aHVuOjE3NTpCMDA6MjoxMDA6MTowCm0xO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8y
+MFMxOlM0LjBXOjMwMDAwOjE2OTowOjE3MDpCMDA6MzoxMDA6MTowCm0yO1QtS8OGYmVsOjEwNzIz
+OnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjE2NDowOjE2NTpCMDA6NDoxMDA6MTowClRWIERla287
+VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTU5OjA6MDpCMDA6NToxMDA6
+MTowClRWIFBhcHJpa2E7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTU0
+OjA6MDpCMDA6NjoxMDA6MTowCktpZHNjbztULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4w
+VzozMDAwMDoxNDk6MDowOkIwMDo3OjEwMDoxOjAKTWluaW1heDtULUvDhmJlbDoxMDcyMzp2QzIz
+TTVPMjBTMTpTNC4wVzozMDAwMDoxNDQ6MDowOkIwMDo4OjEwMDoxOjAKWFhYdHJlbWU7VC1Lw4Zi
+ZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MDowOjA6MDo5OjEwMDoxOjAKTVRWIEh1
+bmdhcnk7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTM0OjA6MDpCMDA6
+MTA6MTAwOjE6MApWSDE7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTI5
+OjA6MDpCMDA6MTE6MTAwOjE6MApNYWd5YXIgQVRWO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMx
+OlM0LjBXOjMwMDAwOjEyNDowOjA6QjAwOjEyOjEwMDoxOjAKUGxheWJveSBUVjtULUvDhmJlbDox
+MDcyMzp2QzIzTTVPMjBTMTpTNC4wVzozMDAwMDowOjA6MDowOjEzOjEwMDoxOjAKRWNobyBUVjtU
+LUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4wVzozMDAwMDoxMTQ6MDowOkIwMDoxNDoxMDA6
+MTowCkjDhmzDsHphdCBUVjtULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4wVzozMDAwMDox
+MDk6MDowOkIwMDoxNToxMDA6MTowCk1UVjI7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQu
+MFc6MzAwMDA6MTA0OjA6MDpCMDA6MTY6MTAwOjE6MApSZWZsZWt0b3I7VC1Lw4ZiZWw6MTA3MjM6
+dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6OTk6MDowOkIwMDoxNzoxMDA6MTowCmZpbG0yKztULUvD
+hmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4wVzozMDAwMDo5NDowOjA6QjAwOjE4OjEwMDoxOjAK
+Q29vbDtULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4wVzozMDAwMDo4OTowOjA6QjAwOjE5
+OjEwMDoxOjAKUG/DmG47VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6ODQ6
+MDowOkIwMDoyMDoxMDA6MTowCnNvcm96YXQrO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0
+LjBXOjMwMDAwOjc5OjA6MDpCMDA6MjE6MTAwOjE6MApmaWxtKztULUvDhmJlbDoxMDcyMzp2QzIz
+TTVPMjBTMTpTNC4wVzozMDAwMDo3NDowOjA6QjAwOjIyOjEwMDoxOjAKRmlzaGluZyBhbmQgCkh1
+bnRpbmc7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6Njk6MDowOkIwMDoy
+MzoxMDA6MTowClNwb3J0IEtsdWI7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAw
+MDA6NjQ6MDowOkIwMDoyNDoxMDA6MTowClNwb3J0IEtsdWIrO1QtS8OGYmVsOjEwNzIzOnZDMjNN
+NU8yMFMxOlM0LjBXOjMwMDAwOjU5OjA6MDpCMDA6MjU6MTAwOjE6MApEb3E7VC1Lw4ZiZWw6MTA3
+MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6NTQ6MDowOkIwMDoyNjoxMDA6MTowCnRlc3QxO1Qt
+S8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjA6MDowOjA6Mjc6MTAwOjE6MAp0
+ZXN0MjtULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4wVzozMDAwMDowOjA6MDowOjI4OjEw
+MDoxOjAKdGVzdDM7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6Mzk6MDow
+OkIwMDoyOToxMDA6MTowCkjFpnIgVFY7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6
+MzAwMDA6MzQ6MDowOkIwMDozMDoxMDA6MTowCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGlu
+dXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8v
+bGludXgtZHZi
