@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAOAl8eN001713
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 05:47:08 -0500
-Received: from comal.ext.ti.com (comal.ext.ti.com [198.47.26.152])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAOAktc7001476
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 05:46:55 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Mon, 24 Nov 2008 16:16:39 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403E8E680BD@dbde02.ent.ti.com>
-In-Reply-To: <24968.62.70.2.252.1227519143.squirrel@webmail.xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: David Brownell <david-b@pacbell.net>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"davinci-linux-open-source-bounces@linux.davincidsp.com"
-	<davinci-linux-open-source-bounces@linux.davincidsp.com>
-Subject: RE: [PATCH 2/2] TVP514x V4L int device driver support
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA41X6Nl021987
+	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 20:33:06 -0500
+Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA41Wl98009939
+	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 20:32:47 -0500
+From: Andy Walls <awalls@radix.net>
+To: Carl Karsten <carl@personnelware.com>
+In-Reply-To: <490E6EC3.7030408@personnelware.com>
+References: <47C90994.8040304@personnelware.com>
+	<20080304113834.0140884d@gaivota> <490E468A.6090200@personnelware.com>
+	<1225675203.3116.12.camel@palomino.walls.org>
+	<490E6EC3.7030408@personnelware.com>
+Content-Type: text/plain
+Date: Mon, 03 Nov 2008 20:34:30 -0500
+Message-Id: <1225762470.3198.23.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: v4l2 api compliance test
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,163 +30,109 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-
-Thanks,
-Vaibhav Hiremath
-
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Monday, November 24, 2008 3:02 PM
-> To: Hiremath, Vaibhav
-> Cc: David Brownell; video4linux-list@redhat.com; linux-
-> omap@vger.kernel.org; davinci-linux-open-source-
-> bounces@linux.davincidsp.com
-> Subject: RE: [PATCH 2/2] TVP514x V4L int device driver support
-> 
+On Sun, 2008-11-02 at 21:23 -0600, Carl Karsten wrote:
+> Andy Walls wrote:
+> > On Sun, 2008-11-02 at 18:32 -0600, Carl Karsten wrote:
+> >> Mauro Carvalho Chehab wrote:
+> >>> On Sat, 01 Mar 2008 01:45:24 -0600
+> >>> Carl Karsten <carl@personnelware.com> wrote:
+> >>>
+> >>>
+> >>> Please, feel free to improve the tools. Unfortunately, nobody yet had time to
+> >>> dedicate on improving the testing tools.
+> >> These 2 issues are thwarting my efforts to write my tester:
+> >>
+> >> 1. memory leak:
+> >> valgrind ./capture --userp -d /dev/video1
+> >> ==17153== malloc/free: in use at exit: 2,457,632 bytes in 5 blocks.
+> >>
+> >> 2. capabilities mismatch:
+> >> ./capture --userp -d /dev/video1
+> >> VIDIOC_QBUF error 22, Invalid argument
+> >>
+> >> details: http://linuxtv.org/v4lwiki/index.php/Test_Suite#Bugs_in_Examples
 > >
+> > I'm not sure why a memory leak on abnormal termination is worrisome for
+> > you.  It looks like init_userp() allocated a bunch of "buffers", which
+> > has to happen for a program to use user pointer mode of v4l2.  The
+> > function errno_exit() doesn't bother to clean up when the VIDIOC_QBUF
+> > ioctl() call fails.  free() is only called by uninit_device().  Since
+> > the alternate flow of the program through errno_exit() to termination
+> > doesn't call free() on "buffers", you should have a process heap memory
+> > leak on error exit.
 > >
-> > Thanks,
-> > Vaibhav Hiremath
-> >
-> >> -----Original Message-----
-> >> From: video4linux-list-bounces@redhat.com [mailto:video4linux-
-> list-
-> >> bounces@redhat.com] On Behalf Of Hans Verkuil
-> >> Sent: Monday, November 24, 2008 1:24 PM
-> >> To: David Brownell
-> >> Cc: video4linux-list@redhat.com; linux-omap@vger.kernel.org;
-> >> davinci-linux-open-source-bounces@linux.davincidsp.com
-> >> Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
-> >>
-> >> On Monday 24 November 2008 07:32:31 David Brownell wrote:
-> >> > On Sunday 23 November 2008, Trilok Soni wrote:
-> >> > > > 2) Please use the media/v4l2-i2c-drv.h or
-> >> > > > media/v4l2-i2c-drv-legacy.h header to hide some of the i2c
-> >> > > > complexity (again, see e.g. saa7115.c). The i2c API tends
-> to
-> >> > > > change a lot (and some changes are upcoming) so
-> >> >
-> >> > What "changes" do you mean?  Since this is not a legacy-style
-> >> > driver (yay!), the upcoming changes won't affect it at all.
-> >>
-> >> Oops, sorry. I thought it was a legacy driver, but it isn't.
-> There
-> >> are
-> >> changes upcoming for legacy drivers, but not for new-style
-> drivers.
-> >>
-> >> > > > using this header will mean that i2c driver changes will be
-> >> > > > minimal in the future. In addition it will ensure that this
-> >> > > > driver can be compiled with older kernels as well once it
-> is
-> >> part
-> >> > > > of the v4l-dvb repository.
-> >> > >
-> >> > > I don't agree with having support to compile with older
-> kernels.
-> >> >
-> >> > Right.  Folk wanting legacy tvp5146 and tvp5140 support could
-> >> > try to use the legacy drivers from the DaVinci tree.
-> >>
-> >> The v4l-dvb mercurial tree at www.linuxtv.org/hg which is the
-> main
-> >> v4l-dvb repository can support kernels >= 2.6.16. Before new
-> stuff
-> >> is
-> >> merged with the git kernel all the compatibility stuff for old
-> >> kernels
-> >> is stripped out, so you don't see it in the actual kernel code.
-> >> Using
-> >> the media/v4l2-i2c-drv.h header makes it much easier to support
-> >> these
-> >> older kernels and it actually reduces the code size as well. Most
-> >> v4l
-> >> i2c drivers are already converted or will be converted soon. It's
-> a
-> >> v4l
-> >> thing.
-> >>
-> >> > > Even though I2C APIs change as lot it is for good, and
-> creating
-> >> > > abstractions doesn't help as saa7xxx is family of chips where
-> I
-> >> > > don't see the case here. Once this driver is mainlined if
-> >> someone
-> >> > > does i2c subsystem change which breaks this driver from
-> building
-> >> > > then he/she has to make changes to all the code affecting it.
-> >> >
-> >> > And AFAIK no such change is anticipated.  The conversion from
-> >> > legacy style I2C drivers to "new style" driver-model friendly
-> >> > drivers is progressing fairly well, so that legacy support can
-> >> > be completely removed.
-> >> >
-> >> > > I am not in favour of adding support to compile with older
-> >> kernels.
-> >> >
-> >> > My two cents:  I'm not in favor either.  In fact that's the
-> >> > general policy for mainline drivers, and I'm surprised to hear
-> >> > any maintainer suggest it be added.
-> >>
-> >> Again, it's specific to v4l drivers. You don't have to do it, but
-> it
-> >> makes it consistent with the other v4l i2c drivers and when the
-> >> driver
-> >> is in the v4l-dvb repository you get support for older kernels
-> for
-> >> free.
-> >>
-> > [Hiremath, Vaibhav] Again only to maintain consistency, supporting
-> legacy
-> > wrapper is not good practice (In my opinion). Why can't we have
-> new driver
-> > coming with new interface and old drivers still can have legacy
-> wrappers?
+> > Since this is userspace, a memory leak from the process heap doesn't
+> > hang around when the process terminates - no big deal.
 > 
-> It's no big deal for me, it was just a suggestion. We have noticed
-> that a
-> lot of people actually use the v4l-dvb repository to be able to get
-> the
-> latest v4l-dvb drivers for older kernels. Using these wrappers makes
-> it
-> trivial to provide that service, that's all. Just concentrate on
-> points 1
-> (trivial to fix) and 4 (the only really important and 'must fix'
-> issue).
+> Are you sure about that?
+
+About the process heap, yes.
+
+> if I run
+> ./capture --userp -d /dev/video1
+> VIDIOC_QBUF error 22, Invalid argument
 > 
-[Hiremath, Vaibhav] Thanks Hans.
-Point 1 - I completely agree to your point and will fix this.
-
-Point 4 - If I understand it correctly, you are referring to parameters, functions exported from board specific file. 
-
-Let me explain the TVP514x driver interface -
-
-Board specific file (for me arch/arm/mach-omap2/board-omap3evm-dc.c) exports Default register list (tvp514x_reg), input list supported (tvp514x_input_info), etc... 
-The platform specific structure for tvp514x is looking like - 
-
-static struct tvp514x_platform_data tvp5146_pdata = {
-        .power_set = tvp5146_power_set,
-        .priv_data_set = tvp5146_set_prv_data,
-        .ifparm = tvp5146_ifparm,
-
-        /* TVP5146 regsiter list, contains default values */
-        .reg_list = tvp5146_reg_list,
-
-        /* Number of supported inputs */
-        .num_inputs = TVP5146_NUM_INPUTS,
-        .input_list = tvp5146_input_list,
-};
-
-
-Are you talking about the dependency for default register list and input list on board specific file? 
-I believe we can very well move it to tvp driver file, actually I found it easy to have complete default configuration list coming from board specific file instead of asking/taking some (required) params only.
-
-> Regards,
+> enough I can't run the valid modes:
 > 
->         Hans
+> juser@dhcp186:~/vga2usb/v4l.org/examples$ ./capture --read -d /dev/video1
+> read error 12, Cannot allocate memory
+
+The capture app would output "Out of memory" if the calloc() call for
+the --read option buffers failed.  This is some global/kernel resource
+that has been exhausted.
+
+
+> juser@dhcp186:~/vga2usb/v4l.org/examples$ ./capture --mmap -d /dev/video1
+> mmap error 12, Cannot allocate memory
+
+Ditto for this.  This message can only happen at the end of init_mmap()
+when the mmap call fails.  Thus an allocation of some sort of kernel
+global resource/space failed.
+
+
+I don't know what could be exhausting those kernel resources when using
+the userp option.  The failed ioctl()'s calls to the vivi driver would
+be a place to start looking.
+
+
+> although free still shows lots:
+> 
+> juser@dhcp186:~/vga2usb/v4l.org/examples$ free
+>              total       used       free     shared    buffers     cached
+> Mem:       1033388     282340     751048          0      31012      98208
+> -/+ buffers/cache:     153120     880268
+> Swap:       859436          0     859436
 > 
 
+Perhaps you could look at /proc/meminfo between runs and see if
+something is gradually being exhausted.  Vmalloc address space
+exhaustion is what I'd look for.
+
+
+
+> > You could
+> > equally gripe that the program didn't close it's file descriptors with
+> > the driver on errno_exit() - but process termination cleans those up
+> > too.
+> 
+> I am personally interested in anything that makes it harder for me to determine
+> if a driver is misbehaving.
+
+Ah, eliminating unknowns.  OK.
+
+
+> In addition, I would think that the API's example code should be a squeaky clean
+> example of how real code should be written, given it is often used as a starting
+> point.  If problems are identified, they should at least be noted, better yet
+> removed.
+
+I can't say I disagree. 
+
+Regards,
+Andy
+
+> Carl K
+> 
 
 --
 video4linux-list mailing list
