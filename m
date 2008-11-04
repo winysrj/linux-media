@@ -1,14 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from outbound.icp-qv1-irony-out2.iinet.net.au ([203.59.1.107])
+Received: from fg-out-1718.google.com ([72.14.220.158])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dvb-t@iinet.com.au>) id 1L5wr1-0003Ra-0F
-	for linux-dvb@linuxtv.org; Fri, 28 Nov 2008 07:29:28 +0100
-Message-ID: <A06AD3E8520F4A5F8F201C165BBEB10C@mce>
-From: "David" <dvb-t@iinet.com.au>
-To: <linux-dvb@linuxtv.org>
-Date: Fri, 28 Nov 2008 16:29:15 +1000
+	(envelope-from <christophpfister@gmail.com>) id 1KxOFm-0008DH-T3
+	for linux-dvb@linuxtv.org; Tue, 04 Nov 2008 16:55:39 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so2851111fga.25
+	for <linux-dvb@linuxtv.org>; Tue, 04 Nov 2008 07:55:35 -0800 (PST)
+Message-ID: <19a3b7a80811040755v3f2a28cam1333daf27e6dea03@mail.gmail.com>
+Date: Tue, 4 Nov 2008 16:55:35 +0100
+From: "Christoph Pfister" <christophpfister@gmail.com>
+To: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
+In-Reply-To: <002e01c93d9e$247def90$f4c6a5c1@tommy>
 MIME-Version: 1.0
-Subject: [linux-dvb] Supported / Recommended USB2.0 based Dual DVB-T Tuner ?
+Content-Disposition: inline
+References: <002e01c93d9e$247def90$f4c6a5c1@tommy>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Actual DVB-T scan file cz-Brno
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,15 +28,19 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello List,
+Hi,
 
-Does anyone have any recommendations about such a product?
-I'm particularly interested in something with with general availability in 
-Australia.
+2008/11/3 Tomas Drajsajtl <linux-dvb@drajsajtl.cz>:
+> Hello,
+> since last Friday the DVB-T networks are reorganized here in Czech Republic.
+> Please find the updated cz-Brno file in the attachment.
 
-Thanks & regards
-David 
+Updated, thanks!
 
+> Greetings,
+> Tomas
+
+Christoph
 
 _______________________________________________
 linux-dvb mailing list
