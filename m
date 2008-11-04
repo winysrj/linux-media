@@ -1,26 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAO7sbGY028725
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 02:54:37 -0500
-Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAO7riNe023873
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 02:53:44 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: David Brownell <david-b@pacbell.net>
-Date: Mon, 24 Nov 2008 08:53:35 +0100
-References: <hvaibhav@ti.com>
-	<5d5443650811232216x6c9a77a4p2945f87e1ab65a67@mail.gmail.com>
-	<200811232232.31646.david-b@pacbell.net>
-In-Reply-To: <200811232232.31646.david-b@pacbell.net>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200811240853.35650.hverkuil@xs4all.nl>
-Cc: video4linux-list@redhat.com, linux-omap@vger.kernel.org,
-	davinci-linux-open-source-bounces@linux.davincidsp.com
-Subject: Re: [PATCH 2/2] TVP514x V4L int device driver support
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA4HM7m9021640
+	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 12:22:07 -0500
+Received: from smtp-out28.alice.it (smtp-out28.alice.it [85.33.2.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA4HLU7H029480
+	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 12:21:52 -0500
+Date: Tue, 4 Nov 2008 18:21:22 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: video4linux-list@redhat.com
+Message-Id: <20081104182122.a1bfe6ed.ospite@studenti.unina.it>
+In-Reply-To: <Pine.LNX.4.64.0811040020330.7744@axis700.grange>
+References: <20081029232544.661b8f17.ospite@studenti.unina.it>
+	<87mygkof3j.fsf@free.fr>
+	<Pine.LNX.4.64.0811022048430.14486@axis700.grange>
+	<87skq87mgp.fsf@free.fr>
+	<Pine.LNX.4.64.0811031944340.7744@axis700.grange>
+	<87mygg4l5l.fsf@free.fr>
+	<Pine.LNX.4.64.0811032131410.7744@axis700.grange>
+	<Pine.LNX.4.64.0811032322420.7744@axis700.grange>
+	<87k5bk30h0.fsf@free.fr>
+	<Pine.LNX.4.64.0811040020330.7744@axis700.grange>
+Mime-Version: 1.0
+Subject: Re: [PATCH] mt9m111: Fix YUYV format for pxa-camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,72 +29,146 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============0247684334=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Monday 24 November 2008 07:32:31 David Brownell wrote:
-> On Sunday 23 November 2008, Trilok Soni wrote:
-> > > 2) Please use the media/v4l2-i2c-drv.h or
-> > > media/v4l2-i2c-drv-legacy.h header to hide some of the i2c
-> > > complexity (again, see e.g. saa7115.c). The i2c API tends to
-> > > change a lot (and some changes are upcoming) so
+--===============0247684334==
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+	micalg="PGP-SHA1";
+	boundary="Signature=_Tue__4_Nov_2008_18_21_22_+0100_s_SA_SJo81a9pDp/"
+
+--Signature=_Tue__4_Nov_2008_18_21_22_+0100_s_SA_SJo81a9pDp/
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, 4 Nov 2008 15:42:59 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+
+> On Mon, 3 Nov 2008, Robert Jarzmik wrote:
+>=20
+> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> >=20
+> > > Ok, just thinking one step further - Antonio most certainly was testi=
+ng=20
+> > > V4L2_PIX_FMT_YUYV, i.e., packed with his application, any other YCbCr=
+=20
+> > > format would be rejected by mt9m111 and YUYV _is_ packed. So, I think=
+ this=20
+> > > is indeed the case - there are mo errors in datasheets, we just named=
+ the=20
+> > > formats wrongly in pxa-camera and mt9m111 drivers.
+> >=20
+> > I don't agree. This has nothing to do with naming, this has to do with =
+byte
+> > order on qif bus and out of mt9m111 sensor.
 >
-> What "changes" do you mean?  Since this is not a legacy-style
-> driver (yay!), the upcoming changes won't affect it at all.
 
-Oops, sorry. I thought it was a legacy driver, but it isn't. There are 
-changes upcoming for legacy drivers, but not for new-style drivers.
+Indeed I only played with packet formats.
 
-> > > using this header will mean that i2c driver changes will be
-> > > minimal in the future. In addition it will ensure that this
-> > > driver can be compiled with older kernels as well once it is part
-> > > of the v4l-dvb repository.
-> >
-> > I don't agree with having support to compile with older kernels.
->
-> Right.  Folk wanting legacy tvp5146 and tvp5140 support could
-> try to use the legacy drivers from the DaVinci tree.
+> We agree, that YCbCr _in_ _memory_ format as defined in pxa270 datasheet=
+=20
+> table 27-21 is UYVY, right?
+>=20
+> To get that byte-order in memory data should appear on the camera bus as=
+=20
+> specified in Table 27-19. This order is also the default order for=20
+> mt9m111. So, I think, it is reasonable to expect, that when a user=20
+> application requests a UYVY format, we have to configure the camera to it=
+s=20
+> defaults and the PXA will work as documented.
+>=20
+> Instead, this configuration in the current mainline state is called YUYV,=
+=20
+> so, we provide data in UYUV format to an application, requesting YUYV.=20
+> Then, of course, corrupted image result as in Antonio's test.
+>=20
+> Hence, the first thing we shouldn't lie to applications - the format we=20
+> currently provide is UYUV and this is how we should advertise it. That's=
+=20
+> why it _is_ a naming issue.
+>=20
+> And, according to PXA documentation, pxa270 doesn't support any other=20
+> byte-order variants on the camera bus, so, in principle one could stop=20
+> here. Note, I think, this restriction is imposed to make image=20
+> post-processing possible (see 7.4.9.2)
+>=20
+> Next, what we observe, I think, is that in this mode pxa acts just in a=20
+> pass-through mode with 16-bit pixels packing bytes as they arrive in the=
+=20
+> FIFO in RAM buffers. So, if we don't use post-processing, we can (ab)use=
+=20
+> this mode for other 16-bit YCbCr formats, e.g., YUYV. For this we leave=20
+> PXA as it is, and just configure the sensor to provide YUYV. This is what=
+=20
+> essentially Antonio's patch does. In this sense it is "correct" - mt9m111=
+=20
+> is indeed configured for YUYV and it is the only YCbCr format it=20
+> advertises, and pxa pretends to support YUYV. But, that's exactly why I a=
+m=20
+> not quite happy about it - we abandon mt9m111's default UYUV format and=20
+> switch it unconditionally to YUYV and we leave PXA270 lying about its=20
+> supported pixel format. Instead, extending mt9m111 to claim support for=20
+> all 4 formats, switching between them dynamically, and fixing pxa-camera=
+=20
+> to support all these four formats, and providing a comment, that we just=
+=20
+> use PXA270's UYUV as 16-bit pass-through, is a more complete fix and,=20
+> probably, would have taken less time than this discussion:-)
+>=20
+> > But you can change my mind : just tell me where my thinking was
+> > wrong in the previous mail where I stated bytes order (out of mt9m111 a=
+nd in pxa
+> > qif bus).
+>=20
+> Let's see if I managed...
+>=20
+> Thanks
+> Guennadi
 
-The v4l-dvb mercurial tree at www.linuxtv.org/hg which is the main 
-v4l-dvb repository can support kernels >= 2.6.16. Before new stuff is 
-merged with the git kernel all the compatibility stuff for old kernels 
-is stripped out, so you don't see it in the actual kernel code. Using 
-the media/v4l2-i2c-drv.h header makes it much easier to support these 
-older kernels and it actually reduces the code size as well. Most v4l 
-i2c drivers are already converted or will be converted soon. It's a v4l 
-thing.
+Very interesting discussion especially from a new learner point of view.
+Of course I aimed at the correct end result not at the correct solution
+as you stated.
 
-> > Even though I2C APIs change as lot it is for good, and creating
-> > abstractions doesn't help as saa7xxx is family of chips where I
-> > don't see the case here. Once this driver is mainlined if someone
-> > does i2c subsystem change which breaks this driver from building
-> > then he/she has to make changes to all the code affecting it.
->
-> And AFAIK no such change is anticipated.  The conversion from
-> legacy style I2C drivers to "new style" driver-model friendly
-> drivers is progressing fairly well, so that legacy support can
-> be completely removed.
->
-> > I am not in favour of adding support to compile with older kernels.
->
-> My two cents:  I'm not in favor either.  In fact that's the
-> general policy for mainline drivers, and I'm surprised to hear
-> any maintainer suggest it be added.
-
-Again, it's specific to v4l drivers. You don't have to do it, but it 
-makes it consistent with the other v4l i2c drivers and when the driver 
-is in the v4l-dvb repository you get support for older kernels for 
-free.
-
-Whether it is good or bad that the v4l-dvb repo works this way is a 
-completely different discussion.
+I'll be very happy to promptly test the "complete" fix as soon as you
+have something cooked.
 
 Regards,
+   Antonio Ospite
 
-	Hans
+--=20
+A: Because it messes up the order in which people normally read text.
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+  Web site: http://www.studenti.unina.it/~ospite
+Public key: http://www.studenti.unina.it/~ospite/aopubkey.asc
+
+--Signature=_Tue__4_Nov_2008_18_21_22_+0100_s_SA_SJo81a9pDp/
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkkQhJIACgkQ5xr2akVTsAF7ZQCfY5uVbCXVkfZt7JhM19ZcQMsl
+TNIAn3ULUtw3r7j2UU2mu654Fqahb5tv
+=8UC9
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__4_Nov_2008_18_21_22_+0100_s_SA_SJo81a9pDp/--
+
+
+--===============0247684334==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--===============0247684334==--
