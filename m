@@ -1,30 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from as-10.de ([212.112.241.2] helo=mail.as-10.de)
+Received: from helios.cedo.cz ([193.165.198.226] helo=postak.cedo.cz)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <halim.sahin@t-online.de>) id 1L3vpY-0003Ol-Hq
-	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 17:59:38 +0100
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.as-10.de (Postfix) with ESMTP id 1921C33A726
-	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 17:59:33 +0100 (CET)
-Received: from mail.as-10.de ([127.0.0.1])
-	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id cFbolaWiyeMF for <linux-dvb@linuxtv.org>;
-	Sat, 22 Nov 2008 17:59:32 +0100 (CET)
-Received: from halim.local (p54AE3EF9.dip.t-dialin.net [84.174.62.249])
-	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-	(No client certificate requested) (Authenticated sender: web11p28)
-	by mail.as-10.de (Postfix) with ESMTPSA id D98A233A6E2
-	for <linux-dvb@linuxtv.org>; Sat, 22 Nov 2008 17:59:32 +0100 (CET)
-Date: Sat, 22 Nov 2008 17:59:02 +0100
-From: Halim Sahin <halim.sahin@t-online.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20081122165902.GA17484@halim.local>
-References: <20081122145820.183450@gmx.net>
+	(envelope-from <linux-dvb@drajsajtl.cz>) id 1KxL1p-0000Wo-A5
+	for linux-dvb@linuxtv.org; Tue, 04 Nov 2008 13:29:03 +0100
+Message-ID: <00cf01c93e79$0f3f6e70$f4c6a5c1@tommy>
+From: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
+To: "Ruediger Dohmhardt" <ruediger.dohmhardt@freenet.de>
+References: <001101c93ce7$23bcfdb0$7f79a8c0@tommy>
+	<490E19B3.9090701@freenet.de>
+	<001201c93d80$a9df4620$7f79a8c0@tommy>
+	<490F732A.8060505@freenet.de>
+Date: Tue, 4 Nov 2008 13:30:02 +0100
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <20081122145820.183450@gmx.net>
-Subject: Re: [linux-dvb] errormessages skystar2 rev 2.8b with latest	v4l-dvb
-	branch
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT DVB-C 2300 and CAM,
+	Was: Any DVB-C tuner with working CAM?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,79 +22,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Dear Ruediger,
+thanks for the reply!
 
-I am not using a skystar rev 2.8!!
-My question was why these messages are shown with this card wich worked fine
-in the past (without) any errormessages during module loading.
-THanks for your response.
-Halim
+I tried to upgrade from vdr 1.4.7 to 1.6.0 and see some difference:
+Nov  4 12:00:45 pvr vdr: [4375] CAM 1: module present
+Nov  4 12:01:23 pvr vdr: [4375] CAM 1: no module present
+Nov  4 12:01:23 pvr vdr: [4375] CAM 1: module present
+Nov  4 12:02:01 pvr vdr: [4375] CAM 1: no module present
+Nov  4 12:02:02 pvr vdr: [4375] CAM 1: module present
+Nov  4 12:02:14 pvr vdr: [4375] CAM 1: no module present
+.... and so on.
 
+And still no output from the scrambled channels. I saw some CAM timeout fix
+in the 1.6.0-1 patch but no change when applied. Also 1.6.0-2 didn't help.
 
-On Sa, Nov 22, 2008 at 03:58:20 +0100, sinter.mann@gmx.de wrote:
-> Hello Halim,
-> =
+Regards,
+Tomas
 
-> Forget about the Mercurial tree........
-> =
+> Dear Tomas
+> 
+> Attached you find part of my
+> /var/log/boot.msg
+> 
+> and
+> 
+> /var/log/messages
+> 
+> One hint: When switching from vdr 1.4.x to 1.5/1.6/1.7  the channel.conf
+> must be adapted with respect to decrypted channels.
+> 
+> Ciao Ruediger D.
+> 
+> 
+> 
 
-> 1. Get a vanilla kernel 2.6.27 plus patch 2.6.28-rc6 from =
-
-> http://www.eu.kernel.org/
-> =
-
-> 2. Prepare a kernel linux-2.6.28-rc6.
-> =
-
-> 3. Download the appended patchset: http://www.htpc-
-> forum.de/forum/index.php?showtopic=3D4944&st=3D0&#entry31527
-> =
-
-> 4. Unpack the patchset to /usr/src/linux.
-> =
-
-> 5. Move all files in /usr/src/linux/skystarxyz to /usr/src/linux.
-> =
-
-> 6. For a 32-bit architecture execute: ./sky28 32, for a 64-bit one ./sky2=
-8 64.
-> =
-
-> 7. Then move on with "make xconfig", make your config, then continue with=
- "make =
-
-> modules && make bzlilo, make modules_install.....
-> =
-
-> Enjoy!
-> =
-
-> Cheers
-> =
-
-> Uwe
-> =
-
-> -- =
-
-> Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen=
-: http://www.gmx.net/de/go/multimessenger
-> =
-
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-Halim Sahin
-E-Mail:				=
-
-halim.sahin (at) t-online.de
 
 _______________________________________________
 linux-dvb mailing list
