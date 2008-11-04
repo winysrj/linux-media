@@ -1,27 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA65NWWY030226
-	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 00:23:32 -0500
-Received: from namebay.info (mail.namebay.info [80.247.68.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA65NJp7002831
-	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 00:23:20 -0500
-Received: from localhost by namebay.info (MDaemon PRO v9.6.2)
-	with ESMTP id md50003734385.msg
-	for <video4linux-list@redhat.com>; Thu, 06 Nov 2008 06:23:17 +0100
-Message-ID: <20081106062638.luzmcyhgcgkcwsww@webmail.hebergement.com>
-Date: Thu, 06 Nov 2008 06:26:38 +0100
-From: fpantaleao@mobisensesystems.com
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA4Eh1KF029961
+	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 09:43:01 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mA4EgmrP018901
+	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 09:42:49 -0500
+Date: Tue, 4 Nov 2008 15:42:59 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87k5bk30h0.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0811040020330.7744@axis700.grange>
+References: <20081029232544.661b8f17.ospite@studenti.unina.it>
+	<87mygkof3j.fsf@free.fr>
+	<Pine.LNX.4.64.0811022048430.14486@axis700.grange>
+	<87skq87mgp.fsf@free.fr>
+	<Pine.LNX.4.64.0811031944340.7744@axis700.grange>
+	<87mygg4l5l.fsf@free.fr>
+	<Pine.LNX.4.64.0811032131410.7744@axis700.grange>
+	<Pine.LNX.4.64.0811032322420.7744@axis700.grange>
+	<87k5bk30h0.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: About CITOR register value for pxa_camera
-Reply-To: fpantaleao@mobisensesystems.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] mt9m111: Fix YUYV format for pxa-camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,92 +34,68 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Mon, 3 Nov 2008, Robert Jarzmik wrote:
 
-Sure we can do it that way if the sensor is clocked by MCLK and no  
-prescale is done by the sensor.
-In other cases, PCLK is controlled by sensor:
-  - sensor has its own clock
-  - MCLK is prescaled by the sensor.
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> > Ok, just thinking one step further - Antonio most certainly was testing 
+> > V4L2_PIX_FMT_YUYV, i.e., packed with his application, any other YCbCr 
+> > format would be rejected by mt9m111 and YUYV _is_ packed. So, I think this 
+> > is indeed the case - there are mo errors in datasheets, we just named the 
+> > formats wrongly in pxa-camera and mt9m111 drivers.
+> 
+> I don't agree. This has nothing to do with naming, this has to do with byte
+> order on qif bus and out of mt9m111 sensor.
 
-Florian
+We agree, that YCbCr _in_ _memory_ format as defined in pxa270 datasheet 
+table 27-21 is UYVY, right?
 
------ Original Message -----
-From: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-To: <fpantaleao@mobisensesystems.com>
-Cc: <video4linux-list@redhat.com>
-Sent: Wednesday, November 05, 2008 8:31 PM
-Subject: Re: About CITOR register value for pxa_camera
+To get that byte-order in memory data should appear on the camera bus as 
+specified in Table 27-19. This order is also the default order for 
+mt9m111. So, I think, it is reasonable to expect, that when a user 
+application requests a UYVY format, we have to configure the camera to its 
+defaults and the PXA will work as documented.
 
+Instead, this configuration in the current mainline state is called YUYV, 
+so, we provide data in UYUV format to an application, requesting YUYV. 
+Then, of course, corrupted image result as in Antonio's test.
 
-> On Wed, 5 Nov 2008, fpantaleao@mobisensesystems.com wrote:
->
-> > Thank you for your answer.
-> > I have tested with "67 x 1" resolution (and many others), I can't  
-> with "1619 x
-> > 1".
-> > I don't get overruns with CITOR != 0.
-> > > Before submitting a patch, I would like to have the opinion of other
-> > developpers about the CITOR value.
-> > The resulting time-out is CITOR/CICLK. What we need is a time-out a bit
-> > longer than 1 pixel period (1/PCLK).
-> > The condition for CITOR is then: CITOR > CICLK/PCLK.
-> > Since PCLK is a platform dependent value, I suggest to add a field in
-> > pxacamera_platform_data.
-> > If no value is assigned, a value of 16 can be used which equals 2 pixel
-> > periods when PCLK=13MHz ("slow" sensor) and CICLK=104MHz (highest  
-> CI clock).
-> > CITOR can be set in pxa_camera_activate.
->
-> Don't think we need any extra fields in pxacamera_platform_data,  
-> look at mclk_get_divisor() - it gets already the lcdclk frequency,  
-> which is the same as CICLK, and our target MCLK frequency is set in  
-> platform_mclk_10khz, so, you should have all the data you need...
->
-> Thanks
-> Guennadi
->
-> > > Best regards
-> > > Florian
-> > > > fpantaleao@mobisensesystems.com writes:
-> > > > > > Hi all,
-> > > > > > > While testing, I think I have found one reason why  
-> overruns occur with
-> > > > pxa_camera.
-> > > > I propose to set CITOR to a non-null value.
-> > > Yes, seconded.
-> > > > > > I would appreciate any comment about this.
-> > > Well, at first sight I would advice to test some corner case to  
-> see if DMA
-> > > trailing bytes are handled well. I know this can be a pain, but you seem
-> > to be
-> > > testing thouroughly ..
-> > > > > So, if your configuration/sensor is able to, try some funny  
-> resolution
-> > like
-> > > "1619 x 1", and then "67 x 1", and see what happens. If you  
-> don't have any
-> > > capture issue, you're done, and post a patch (only CITOR or CITOR +
-> > trailling
-> > > bytes handling).
-> > > > > Have fun.
-> > > > > --
-> > > Robert
-> > > > ----------------------------------------------------------------
-> > This message was sent using IMP, the Internet Messaging Program.
-> > > > > > --
-> > video4linux-list mailing list
-> > Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> > https://www.redhat.com/mailman/listinfo/video4linux-list
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
+Hence, the first thing we shouldn't lie to applications - the format we 
+currently provide is UYUV and this is how we should advertise it. That's 
+why it _is_ a naming issue.
 
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
+And, according to PXA documentation, pxa270 doesn't support any other 
+byte-order variants on the camera bus, so, in principle one could stop 
+here. Note, I think, this restriction is imposed to make image 
+post-processing possible (see 7.4.9.2)
 
+Next, what we observe, I think, is that in this mode pxa acts just in a 
+pass-through mode with 16-bit pixels packing bytes as they arrive in the 
+FIFO in RAM buffers. So, if we don't use post-processing, we can (ab)use 
+this mode for other 16-bit YCbCr formats, e.g., YUYV. For this we leave 
+PXA as it is, and just configure the sensor to provide YUYV. This is what 
+essentially Antonio's patch does. In this sense it is "correct" - mt9m111 
+is indeed configured for YUYV and it is the only YCbCr format it 
+advertises, and pxa pretends to support YUYV. But, that's exactly why I am 
+not quite happy about it - we abandon mt9m111's default UYUV format and 
+switch it unconditionally to YUYV and we leave PXA270 lying about its 
+supported pixel format. Instead, extending mt9m111 to claim support for 
+all 4 formats, switching between them dynamically, and fixing pxa-camera 
+to support all these four formats, and providing a comment, that we just 
+use PXA270's UYUV as 16-bit pass-through, is a more complete fix and, 
+probably, would have taken less time than this discussion:-)
 
+> But you can change my mind : just tell me where my thinking was
+> wrong in the previous mail where I stated bytes order (out of mt9m111 and in pxa
+> qif bus).
 
+Let's see if I managed...
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
