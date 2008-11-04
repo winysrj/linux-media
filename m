@@ -1,22 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail1010.centrum.cz ([90.183.38.140])
+Received: from yw-out-2324.google.com ([74.125.46.31])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <sustmidown@centrum.cz>) id 1L1RBo-00041c-8l
-	for linux-dvb@linuxtv.org; Sat, 15 Nov 2008 20:52:16 +0100
-Received: by mail1010.centrum.cz id S1074430988AbYKOTwJ (ORCPT
-	<rfc822;linux-dvb@linuxtv.org>); Sat, 15 Nov 2008 20:52:09 +0100
-Date: Sat, 15 Nov 2008 20:52:09 +0100
-From: "Miroslav  =?UTF-8?Q?=20=C5=A0ustek?=" <sustmidown@centrum.cz>
-To: <linux-dvb@linuxtv.org>
+	(envelope-from <andreacimino@gmail.com>) id 1KxSEJ-0002Bs-85
+	for linux-dvb@linuxtv.org; Tue, 04 Nov 2008 21:10:27 +0100
+Received: by yw-out-2324.google.com with SMTP id 3so1237318ywj.41
+	for <linux-dvb@linuxtv.org>; Tue, 04 Nov 2008 12:10:19 -0800 (PST)
+Message-ID: <3db0f14b0811041210r68083176r3f7c8db9fdcd934e@mail.gmail.com>
+Date: Tue, 4 Nov 2008 21:10:17 +0100
+From: "Andrea Cimino" <andreacimino@gmail.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Message-ID: <200811152052.29002@centrum.cz>
-References: <200811152044.831@centrum.cz> <200811152045.12993@centrum.cz>
-	<200811152046.1974@centrum.cz> <200811152047.27466@centrum.cz>
-	<200811152048.8070@centrum.cz> <200811152049.21802@centrum.cz>
-	<200811152050.12707@centrum.cz> <200811152051.22775@centrum.cz>
-In-Reply-To: <200811152051.22775@centrum.cz>
-Content-Type: multipart/mixed; boundary="-------=_2EC4317C.6A40D3"
-Subject: [linux-dvb] [PATCH] [resent] Leadtek WinFast DTV-1800H support
+Content-Disposition: inline
+Subject: [linux-dvb] Support for VP3020 Board
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,138 +19,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format
+Hello to everyone, hoping that this is the right place to post.
+I have almost from 2 years a VP3020 CARD (
+http://www.bttv-gallery.de/high/IMG_6748.JPG_vp3020_a.jpg),
+and seems to be supported as seen on BTTV Gallery
+This reports:
+[
 
----------=_2EC4317C.6A40D3
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+chips: 25878-13 et al.
+tuner: TU1216/I H P   3112 297 13641D#
+pcb: VP3020 V1.0
 
-Hello,
+Feb  9 20:36:42 localhost kernel:
+Feb  9 20:36:42 localhost kernel: DST type flags : 0x10 firmware version = 2
+Feb  9 20:36:42 localhost kernel: DVB: registering frontend 0 (DST DVB-T)...
 
-Here is patch for Leadtek WinFast DTV-1800H.
-It enables support for digital TV, analogue TV and radio.
-I have already sent it here, but as I am newbie the patch wasn't
-compatible with "Linux Kernel Coding Style".
+]
 
-That's probably the reason why the patch hasn't been pushed
-into the repository yet.
+Well, some time ago it worked nicely with a Gentoo system.
+ Some time ago i upgraded to ubuntu 8.10 and now simply doesn't work,
+the interface
+dvb frontend does not come up
 
-Now the patch meets the LKCS requirements.
-(checked using: linux/scripts/checkpatch.pl)
+Here is the log from dmesg:
 
-Thanks for the advice.
-I hope everything is correct now.
+[ 3949.259468] bttv1: Bt878 (rev 17) at 0000:01:0a.0, irq: 18,
+latency: 32, mmio: 0xbfffd000
+[ 3949.262776] bttv1: subsystem: ffff:0001 (UNKNOWN)
+[ 3949.262785] please mail id, board name and the correct card= insmod
+option to video4linux-list@redhat.com
+[ 3949.262791] bttv1: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
+[ 3949.262846] bttv1: gpio: en=00000000, out=00000000 in=00f500ff [init]
+[ 3949.324149] bttv1: tuner type unset
+[ 3949.324164] bttv1: i2c: checking for MSP34xx @ 0x80... not found
+[ 3949.326059] bttv1: i2c: checking for TDA9875 @ 0xb0... <4>tuner'
+2-0060: tuner type not set
+[ 3949.329104] not found
+[ 3949.329114] bttv1: i2c: checking for TDA7432 @ 0x8a... not found
+[ 3949.332159] bttv1: registered device video1
+[ 3949.333385] bttv1: registered device vbi1
+[ 3949.346064] bt878: AUDIO driver version 0.0.0 loaded
 
-- Miroslav Šustek
+I know that it worked under linux, maybe i am missing something? I spent a lot
+of time googling but i couldn't find anything interesting.
 
 
----------=_2EC4317C.6A40D3
-Content-Type: text/x-patch; name="leadtek_winfast_dtv1800h.patch"
-Content-Transfer-Encoding: base64
-
-ZGlmZiAtciAzMTJkZWY1NjgyNzYgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4
-ODgtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1j
-YXJkcy5jCUZyaSBOb3YgMTQgMTQ6Mzg6NDYgMjAwOCAtMDIwMAorKysgYi9saW51eC9kcml2
-ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCVNhdCBOb3YgMTUgMjA6MTE6NTgg
-MjAwOCArMDEwMApAQCAtMTk2Nyw2ICsxOTY3LDQ3IEBACiAJCX0gfSwKIAkJLm1wZWcgICAg
-ICAgICAgID0gQ1g4OF9NUEVHX0RWQiwKIAl9LAorCVtDWDg4X0JPQVJEX1dJTkZBU1RfRFRW
-MTgwMEhdID0geworCQkubmFtZSAgICAgICAgICAgPSAiTGVhZHRlayBXaW5GYXN0IERUVjE4
-MDAgSHlicmlkIiwKKwkJLnR1bmVyX3R5cGUgICAgID0gVFVORVJfWEMyMDI4LAorCQkucmFk
-aW9fdHlwZSAgICAgPSBUVU5FUl9YQzIwMjgsCisJCS50dW5lcl9hZGRyICAgICA9IDB4NjEs
-CisJCS5yYWRpb19hZGRyICAgICA9IDB4NjEsCisJCS8qCisJCSAqIEdQSU8gc2V0dGluZwor
-CQkgKgorCQkgKiAgMjogbXV0ZSAoMD1vZmYsMT1vbikKKwkJICogMTI6IHR1bmVyIHJlc2V0
-IHBpbgorCQkgKiAxMzogYXVkaW8gc291cmNlICgwPXR1bmVyIGF1ZGlvLDE9bGluZSBpbikK
-KwkJICogMTQ6IEZNICgwPW9uLDE9b2ZmID8/PykKKwkJICovCisJCS5pbnB1dCAgICAgICAg
-ICA9IHt7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCisJCQkudm11eCAg
-ID0gMCwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAgICAgIC8qIHBpbiAyID0gMCAqLworCQkJ
-LmdwaW8xICA9IDB4NjA0MCwgICAgICAgLyogcGluIDEzID0gMCwgcGluIDE0ID0gMSAqLwor
-CQkJLmdwaW8yICA9IDB4MDAwMCwKKwkJfSwgeworCQkJLnR5cGUgICA9IENYODhfVk1VWF9D
-T01QT1NJVEUxLAorCQkJLnZtdXggICA9IDEsCisJCQkuZ3BpbzAgID0gMHgwNDAwLCAgICAg
-ICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDYwNjAsICAgICAgIC8qIHBpbiAx
-MyA9IDEsIHBpbiAxNCA9IDEgKi8KKwkJCS5ncGlvMiAgPSAweDAwMDAsCisJCX0sIHsKKwkJ
-CS50eXBlICAgPSBDWDg4X1ZNVVhfU1ZJREVPLAorCQkJLnZtdXggICA9IDIsCisJCQkuZ3Bp
-bzAgID0gMHgwNDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDYw
-NjAsICAgICAgIC8qIHBpbiAxMyA9IDEsIHBpbiAxNCA9IDEgKi8KKwkJCS5ncGlvMiAgPSAw
-eDAwMDAsCisJCX0gfSwKKwkJLnJhZGlvID0geworCQkJLnR5cGUgICA9IENYODhfUkFESU8s
-CisJCQkuZ3BpbzAgID0gMHgwNDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlv
-MSAgPSAweDYwMDAsICAgICAgIC8qIHBpbiAxMyA9IDAsIHBpbiAxNCA9IDAgKi8KKwkJCS5n
-cGlvMiAgPSAweDAwMDAsCisJCX0sCisJCS5tcGVnICAgICAgICAgICA9IENYODhfTVBFR19E
-VkIsCisJfSwKIH07CiAKIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwpAQCAtMjM3Niw2ICsyNDE3LDEw
-IEBACiAJCS5zdWJ2ZW5kb3IgPSAweGIyMDAsCiAJCS5zdWJkZXZpY2UgPSAweDQyMDAsCiAJ
-CS5jYXJkICAgICAgPSBDWDg4X0JPQVJEX1NBVFRSQURFX1NUNDIwMCwKKwl9LCB7CisJCS5z
-dWJ2ZW5kb3IgPSAweDEwN2QsCisJCS5zdWJkZXZpY2UgPSAweDY2NTQsCisJCS5jYXJkICAg
-ICAgPSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEgsCiAJfSwKIH07CiAKQEAgLTI1NzMs
-NiArMjYxOCwyMyBAQAogCXJldHVybiAtRUlOVkFMOwogfQogCitzdGF0aWMgaW50IGN4ODhf
-eGMzMDI4X3dpbmZhc3QxODAwaF9jYWxsYmFjayhzdHJ1Y3QgY3g4OF9jb3JlICpjb3JlLAor
-CQkJCQkgICAgIGludCBjb21tYW5kLCBpbnQgYXJnKQoreworCXN3aXRjaCAoY29tbWFuZCkg
-eworCWNhc2UgWEMyMDI4X1RVTkVSX1JFU0VUOgorCQkvKiBHUElPIDEyICh4YzMwMjggdHVu
-ZXIgcmVzZXQpICovCisJCWN4X3NldChNT19HUDFfSU8sIDB4MTAxMCk7CisJCW1kZWxheSg1
-MCk7CisJCWN4X2NsZWFyKE1PX0dQMV9JTywgMHgxMCk7CisJCW1kZWxheSg1MCk7CisJCWN4
-X3NldChNT19HUDFfSU8sIDB4MTApOworCQltZGVsYXkoNTApOworCQlyZXR1cm4gMDsKKwl9
-CisJcmV0dXJuIC1FSU5WQUw7Cit9CisKIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KIC8qIHNvbWUg
-RGl2Y28gc3BlY2lmaWMgc3R1ZmYgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgKi8KIHN0YXRpYyBpbnQgY3g4OF9wdl84MDAwZ3RfY2FsbGJhY2soc3RydWN0
-IGN4ODhfY29yZSAqY29yZSwKQEAgLTI2NDUsNiArMjcwNyw4IEBACiAJY2FzZSBDWDg4X0JP
-QVJEX0RWSUNPX0ZVU0lPTkhEVFZfRFZCX1RfUFJPOgogCWNhc2UgQ1g4OF9CT0FSRF9EVklD
-T19GVVNJT05IRFRWXzVfUENJX05BTk86CiAJCXJldHVybiBjeDg4X2R2aWNvX3hjMjAyOF9j
-YWxsYmFjayhjb3JlLCBjb21tYW5kLCBhcmcpOworCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNU
-X0RUVjE4MDBIOgorCQlyZXR1cm4gY3g4OF94YzMwMjhfd2luZmFzdDE4MDBoX2NhbGxiYWNr
-KGNvcmUsIGNvbW1hbmQsIGFyZyk7CiAJfQogCiAJc3dpdGNoIChjb21tYW5kKSB7CkBAIC0y
-ODE5LDYgKzI4ODMsMTYgQEAKIAkJY3hfc2V0KE1PX0dQMF9JTywgMHgwMDAwMDA4MCk7IC8q
-IDcwMiBvdXQgb2YgcmVzZXQgKi8KIAkJdWRlbGF5KDEwMDApOwogCQlicmVhazsKKworCWNh
-c2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIOgorCQkvKiBHUElPIDEyICh4YzMwMjgg
-dHVuZXIgcmVzZXQpICovCisJCWN4X3NldChNT19HUDFfSU8sIDB4MTAxMCk7CisJCW1kZWxh
-eSg1MCk7CisJCWN4X2NsZWFyKE1PX0dQMV9JTywgMHgxMCk7CisJCW1kZWxheSg1MCk7CisJ
-CWN4X3NldChNT19HUDFfSU8sIDB4MTApOworCQltZGVsYXkoNTApOworCQlicmVhazsKIAl9
-CiB9CiAKQEAgLTI4MzksNiArMjkxMyw3IEBACiAJCQljb3JlLT5pMmNfYWxnby51ZGVsYXkg
-PSAxNjsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfRFZC
-X1RfUFJPOgorCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIOgogCQljdGwtPmRl
-bW9kID0gWEMzMDI4X0ZFX1pBUkxJTks0NTY7CiAJCWJyZWFrOwogCWNhc2UgQ1g4OF9CT0FS
-RF9LV09STERfQVRTQ18xMjA6CmRpZmYgLXIgMzEyZGVmNTY4Mjc2IGxpbnV4L2RyaXZlcnMv
-bWVkaWEvdmlkZW8vY3g4OC9jeDg4LWR2Yi5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEv
-dmlkZW8vY3g4OC9jeDg4LWR2Yi5jCUZyaSBOb3YgMTQgMTQ6Mzg6NDYgMjAwOCAtMDIwMAor
-KysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYwlTYXQgTm92
-IDE1IDIwOjExOjU4IDIwMDggKzAxMDAKQEAgLTk2NSw2ICs5NjUsNyBAQAogCQl9CiAJCWJy
-ZWFrOwogCSBjYXNlIENYODhfQk9BUkRfUElOTkFDTEVfSFlCUklEX1BDVFY6CisJY2FzZSBD
-WDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEg6CiAJCWZlMC0+ZHZiLmZyb250ZW5kID0gZHZi
-X2F0dGFjaCh6bDEwMzUzX2F0dGFjaCwKIAkJCQkJICAgICAgICZjeDg4X3Bpbm5hY2xlX2h5
-YnJpZF9wY3R2LAogCQkJCQkgICAgICAgJmNvcmUtPmkyY19hZGFwKTsKZGlmZiAtciAzMTJk
-ZWY1NjgyNzYgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYwot
-LS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1pbnB1dC5jCUZyaSBO
-b3YgMTQgMTQ6Mzg6NDYgMjAwOCAtMDIwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3Zp
-ZGVvL2N4ODgvY3g4OC1pbnB1dC5jCVNhdCBOb3YgMTUgMjA6MTE6NTggMjAwOCArMDEwMApA
-QCAtOTMsNiArOTMsNyBAQAogCQlncGlvPShncGlvICYgMHg3ZmQpICsgKGF1eGdwaW8gJiAw
-eGVmKTsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTAwMDoKKwlj
-YXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSDoKIAkJZ3BpbyA9IChncGlvICYgMHg2
-ZmYpIHwgKChjeF9yZWFkKE1PX0dQMV9JTykgPDwgOCkgJiAweDkwMCk7CiAJCWF1eGdwaW8g
-PSBncGlvOwogCQlicmVhazsKQEAgLTI0NCw2ICsyNDUsNyBAQAogCQlpci0+c2FtcGxpbmcg
-PSAxOwogCQlicmVhazsKIAljYXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYyMDAwSDoKKwlj
-YXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSDoKIAkJaXJfY29kZXMgPSBpcl9jb2Rl
-c193aW5mYXN0OwogCQlpci0+Z3Bpb19hZGRyID0gTU9fR1AwX0lPOwogCQlpci0+bWFza19r
-ZXljb2RlID0gMHg4Zjg7CmRpZmYgLXIgMzEyZGVmNTY4Mjc2IGxpbnV4L2RyaXZlcnMvbWVk
-aWEvdmlkZW8vY3g4OC9jeDg4LmgKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9j
-eDg4L2N4ODguaAlGcmkgTm92IDE0IDE0OjM4OjQ2IDIwMDggLTAyMDAKKysrIGIvbGludXgv
-ZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaAlTYXQgTm92IDE1IDIwOjExOjU4IDIw
-MDggKzAxMDAKQEAgLTIzMiw2ICsyMzIsNyBAQAogI2RlZmluZSBDWDg4X0JPQVJEX1NBVFRS
-QURFX1NUNDIwMCAgICAgICAgIDc2CiAjZGVmaW5lIENYODhfQk9BUkRfVEJTXzg5MTAgICAg
-ICAgICAgICAgICAgNzcKICNkZWZpbmUgQ1g4OF9CT0FSRF9QUk9GXzYyMDAgICAgICAgICAg
-ICAgICA3OAorI2RlZmluZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEggICAgICAgIDc5
-CiAKIGVudW0gY3g4OF9pdHlwZSB7CiAJQ1g4OF9WTVVYX0NPTVBPU0lURTEgPSAxLAr=
-
----------=_2EC4317C.6A40D3
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Regards,
+Andrea
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
----------=_2EC4317C.6A40D3--
