@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp127.rog.mail.re2.yahoo.com ([206.190.53.32])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cityk@rogers.com>) id 1L592R-0005rk-BG
-	for linux-dvb@linuxtv.org; Wed, 26 Nov 2008 02:17:56 +0100
-Message-ID: <492CA3A1.7060007@rogers.com>
-Date: Tue, 25 Nov 2008 20:17:21 -0500
-From: CityK <cityk@rogers.com>
+Received: from el-out-1112.google.com ([209.85.162.177])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mkrufky@gmail.com>) id 1KxlRm-0004uY-2G
+	for linux-dvb@linuxtv.org; Wed, 05 Nov 2008 17:41:35 +0100
+Received: by el-out-1112.google.com with SMTP id p32so59596elf.14
+	for <linux-dvb@linuxtv.org>; Wed, 05 Nov 2008 08:41:29 -0800 (PST)
+Message-ID: <37219a840811050841g22108414g2db73b65ed759e75@mail.gmail.com>
+Date: Wed, 5 Nov 2008 11:41:27 -0500
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Paul Guzowski" <guzowskip@linuxmail.org>
+In-Reply-To: <20081105115844.626E8CBBCF@ws5-11.us4.outblaze.com>
 MIME-Version: 1.0
-To: sonofzev@iinet.net.au
-References: <55839.1227600386@iinet.net.au>
-In-Reply-To: <55839.1227600386@iinet.net.au>
+Content-Disposition: inline
+References: <20081105115844.626E8CBBCF@ws5-11.us4.outblaze.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DViCO FusionHDTV5 USB Gold
+Subject: Re: [linux-dvb] Channel configuration files....
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,42 +28,35 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi Allan,
+On Wed, Nov 5, 2008 at 6:58 AM, Paul Guzowski <guzowskip@linuxmail.org> wrote:
+> Greetings,
+>
+> Does anyone on this list have a sample channel.conf file for Brighthouse Networks cable or can anyone give enough information (frequencies, transponders, etc) so that I can try to build one?  Thanks in advance.
+>
+> Paul in NW Florida
 
-sonofzev@iinet.net.au wrote:
->
-> Hi All,
->
-> Does this mean that  analog support for the similar  Dvico Dual
-> Express (Australian and European) (cx 23885 with xc3028 tuners) ma ybe
-> available.
->
-> cheers
->
-> Allan
->
->
-> On Tue Nov 25 15:36 , Steve Havelka sent:
->
->     Hi all,
->
->     I see on the wiki page for this device that analog support is
->     forthcoming:
->
->     http://linuxtv.org/wiki/index.php/DViCO_FusionHDTV5_USB_Gold
->     <parse.pl?redirect=http%3A%2F%2Flinuxtv.org%2Fwiki%2Findex.php%2FDViCO_FusionHDTV5_USB_Gold>
->
->     I'm writing to ask, who is working on the analog support, and if there
->     is anything I can do to help in this development?
->
->     Thanks,
->     Steve
->
+Paul,
 
-a) please don't top post
+You can use "scan" from dvb-apps, using the scan file,
+"us-Cable-Standard-center-frequencies-QAM256" ...  If that doesn't
+work, you can try the other QAM256 cable scan files, located in the
+util/scan/atsc/ directory of dvb-apps.
 
-b) no, the devices/components are completely dissimilar.
+Alternatively, you can use the latest version of w_scan WITHOUT any
+scan file.  This should produce the best results.
 
+The latest version of w_scan with atsc / qam scanning support can be
+downloaded from here:
+
+http://wirbel.htpc-forum.de/w_scan/w_scan-20080815.tar.bz2
+
+You can scan cable using this command:
+
+w_scan -A2 -X > channels.conf
+
+Good luck.
+
+-Mike Krufky
 
 _______________________________________________
 linux-dvb mailing list
