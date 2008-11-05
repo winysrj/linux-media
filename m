@@ -1,27 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALKrV2S026459
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 15:53:31 -0500
-Received: from smtp1-g19.free.fr (smtp1-g19.free.fr [212.27.42.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALKrIji031578
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 15:53:18 -0500
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
-	<Pine.LNX.4.64.0811182010460.8628@axis700.grange>
-	<87y6zf76aw.fsf@free.fr>
-	<Pine.LNX.4.64.0811202055210.8290@axis700.grange>
-	<8763mg28bf.fsf@free.fr>
-	<Pine.LNX.4.64.0811212051360.8956@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Fri, 21 Nov 2008 21:53:16 +0100
-In-Reply-To: <Pine.LNX.4.64.0811212051360.8956@axis700.grange> (Guennadi
-	Liakhovetski's message of "Fri\,
-	21 Nov 2008 21\:03\:23 +0100 \(CET\)")
-Message-ID: <878wrcztqb.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA51FlkL024540
+	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 20:15:47 -0500
+Received: from QMTA08.emeryville.ca.mail.comcast.net
+	(qmta08.emeryville.ca.mail.comcast.net [76.96.30.80])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA51FQw4001609
+	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 20:15:28 -0500
+Message-ID: <4910F39E.9060604@personnelware.com>
+Date: Tue, 04 Nov 2008 19:15:10 -0600
+From: Carl Karsten <carl@personnelware.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 2/2 v3] pxa-camera: pixel format negotiation
+To: Mauro Carvalho Chehab <mchehab@infradead.org>, video4linux-list@redhat.com
+References: <47C90994.8040304@personnelware.com>	<20080304113834.0140884d@gaivota>
+	<490E468A.6090200@personnelware.com>	<1225675203.3116.12.camel@palomino.walls.org>	<490E6EC3.7030408@personnelware.com>
+	<1225762470.3198.23.camel@palomino.walls.org>
+In-Reply-To: <1225762470.3198.23.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: Re: v4l2 api compliance test
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,38 +30,106 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+>>>> details: http://linuxtv.org/v4lwiki/index.php/Test_Suite#Bugs_in_Examples
+>>> I'm not sure why a memory leak on abnormal termination is worrisome for
+>>> you.  It looks like init_userp() allocated a bunch of "buffers", which
+>>> has to happen for a program to use user pointer mode of v4l2.  The
+>>> function errno_exit() doesn't bother to clean up when the VIDIOC_QBUF
+>>> ioctl() call fails.  free() is only called by uninit_device().  Since
+>>> the alternate flow of the program through errno_exit() to termination
+>>> doesn't call free() on "buffers", you should have a process heap memory
+>>> leak on error exit.
+>>>
+>>> Since this is userspace, a memory leak from the process heap doesn't
+>>> hang around when the process terminates - no big deal.
+>> Are you sure about that?
+> 
+> About the process heap, yes.
+> 
+>> if I run
+>> ./capture --userp -d /dev/video1
+>> VIDIOC_QBUF error 22, Invalid argument
+>>
+>> enough I can't run the valid modes:
+>>
+>> juser@dhcp186:~/vga2usb/v4l.org/examples$ ./capture --read -d /dev/video1
+>> read error 12, Cannot allocate memory
+> 
+> The capture app would output "Out of memory" if the calloc() call for
+> the --read option buffers failed.  This is some global/kernel resource
+> that has been exhausted.
 
->> > Yes, I do not know how to pass a 16-bit format in a pass-through mode, and 
->> > I don't have a test-case for it. Do you?
->> BYR2 I think (12bit Bayer in 16bit words), and Bxxx (10bit Bayer in 16bit
->> words).
->> 
->> And I can test the 10bit Bayer on 16bit words on mt9m111, and will do.
->
-> Wait, don't understand. 10-bit Bayer should have depth = 10, so it will 
-> pass. 12-bit Bayer will have depth 12 and will not pass, and I do not know 
-> how we can accept it on PXA27x.
-I should have been clearer.
 
-It's called 8+2 bypass Bayer. Here is the layout :
- - first byte : <B9, B8, B7, B6, B5, B4, B3, B2>
- - second byte : <0, 0, 0, 0, 0, 0, B1, B0>
- => 2 bytes of 8 bits are sent over 8 bits of QIF interface
- => gives a Bayer Code of <0, 0, 0, 0, 0, 0, B9 - B0>
+> 
+> 
+>> juser@dhcp186:~/vga2usb/v4l.org/examples$ ./capture --mmap -d /dev/video1
+>> mmap error 12, Cannot allocate memory
+> 
+> Ditto for this.  This message can only happen at the end of init_mmap()
+> when the mmap call fails.  Thus an allocation of some sort of kernel
+> global resource/space failed.
 
-I think it is documented in Micron MT9M111 datasheet, table 6, page 14.
-My understanding is that it has a buswidth=8, and depth=16. But I may be wrong,
-have a look with your trained eye and tell me please.
 
-> Good, I think, we can use the next week, as long as Linus is scuba 
-> diving, to finish this transition:-)
-Lucky him :) It's rainy, snowy here ... but ... it gives time to write code :)
+so more likely a driver problem?
 
-Cheers.
+> 
+> 
+> I don't know what could be exhausting those kernel resources when using
+> the userp option.  The failed ioctl()'s calls to the vivi driver would
+> be a place to start looking.
+> 
+> 
+>> although free still shows lots:
+>>
+>> juser@dhcp186:~/vga2usb/v4l.org/examples$ free
+>>              total       used       free     shared    buffers     cached
+>> Mem:       1033388     282340     751048          0      31012      98208
+>> -/+ buffers/cache:     153120     880268
+>> Swap:       859436          0     859436
+>>
+> 
+> Perhaps you could look at /proc/meminfo between runs and see if
+> something is gradually being exhausted.  Vmalloc address space
+> exhaustion is what I'd look for.
+> 
 
---
-Robert
+I ran this script:
+
+http://linuxtv.org/v4lwiki/index.php/Test_Suite#memory_leak_2
+
+and put all the meminfo's into a spreadsheet:
+
+http://spreadsheets.google.com/ccc?key=pIfz0wOzPtW1-oZkXXbvcLA&hl=en
+
+I don't see any columns growing or shrinking, so not sure what to make of it.
+
+> 
+> 
+>>> You could
+>>> equally gripe that the program didn't close it's file descriptors with
+>>> the driver on errno_exit() - but process termination cleans those up
+>>> too.
+>> I am personally interested in anything that makes it harder for me to determine
+>> if a driver is misbehaving.
+> 
+> Ah, eliminating unknowns.  OK.
+> 
+
+bingo.
+
+> 
+>> In addition, I would think that the API's example code should be a squeaky clean
+>> example of how real code should be written, given it is often used as a starting
+>> point.  If problems are identified, they should at least be noted, better yet
+>> removed.
+> 
+> I can't say I disagree. 
+> 
+
+so assuming the problem is with capture.c, who do I tell?  (i know where to send
+anything else it might be: v4l list.
+
+Carl K
 
 --
 video4linux-list mailing list
