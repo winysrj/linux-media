@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <sinter.mann@gmx.de>) id 1L3xKx-0006re-V1
-	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 19:36:10 +0100
-From: sinter <sinter.mann@gmx.de>
-To: linux-dvb@linuxtv.org
-Date: Sat, 22 Nov 2008 19:33:34 +0100
-References: <20081122145820.183450@gmx.net>
-	<20081122165902.GA17484@halim.local>
-	<20081122171756.GA4452@halim.local>
-In-Reply-To: <20081122171756.GA4452@halim.local>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200811221933.34287.sinter.mann@gmx.de>
-Subject: Re: [linux-dvb]
- =?iso-8859-1?q?corrected_subject=3A_Re=3A_errormessag?=
- =?iso-8859-1?q?es_skystar2_rev_2=2E6b=09with_latest_v4l-dvb_branch?=
+Received: from joan.kewl.org ([212.161.35.248])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <darron@kewl.org>) id 1Kxn2T-0001gb-4P
+	for linux-dvb@linuxtv.org; Wed, 05 Nov 2008 19:23:34 +0100
+From: Darron Broad <darron@kewl.org>
+To: Steve Thro <stevthro@hotmail.fr>
+In-reply-to: <BLU126-W211E02BF45832661F2020BAF1F0@phx.gbl> 
+References: <BLU126-W211E02BF45832661F2020BAF1F0@phx.gbl>
+Date: Wed, 05 Nov 2008 18:23:29 +0000
+Message-ID: <14964.1225909409@kewl.org>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] no lock on 3/4 with cx24116
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,35 +18,41 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Am Samstag 22 November 2008 18:17:56 schrieb Halim Sahin:
-> Sorry Folks,
-> I wrote wrong card revision.
-> The mentioned errors are from my old skystar rev 2.6.
+In message <BLU126-W211E02BF45832661F2020BAF1F0@phx.gbl>, Steve Thro wrote:
 >
-> [91664.058433] b2c2-flexcop: i2c master_xfer failed
-> [91664.058734] b2c2-flexcop: i2c master_xfer failed
-> [91664.058793] CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
-> [91664.058851] CX24123: wrong demod revision: 87
-> BR.
-> Halim
->
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>Hi,
 
-I think you do not comprehend anything that you are doing, plus you are giving 
-us all wrong and incomplete data.
-That way you're spoiling that list......
+LO
 
-So I chose to ignore you from now on.....
+>I'am using a TBS 8920 on 2.6.27.2 kernel with s2-liplianin-8c4f85bfc115 dvb=
+> drivers.
+>
+>I could not lock any dvb-s2 channel  with FEC 3/4 on Astra 28.2E.
+>
+>I have an TT 3200 which lock fine on 3/4 using the same dvb driver.
+>
+>What information could I provide you to debug?
+
+I don't know what a s2-liplianin-8c4f85bfc115 driver is but
+if you apply this patch:
+http://hg.kewl.org/v4l-dvb/raw-rev/8d6d8974b33d
+
+then it may solve your problem?
+
+bye
+
+--
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
 
 
 _______________________________________________
