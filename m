@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA776j9q022648
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 02:06:46 -0500
-Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id mA776ZdD011526
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 02:06:36 -0500
-Message-ID: <4913E9DB.8040801@hhs.nl>
-Date: Fri, 07 Nov 2008 08:10:19 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA57KdR0011027
+	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 02:20:39 -0500
+Received: from smtp-vbr7.xs4all.nl (smtp-vbr7.xs4all.nl [194.109.24.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA57JF3k017703
+	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 02:19:15 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Wed, 5 Nov 2008 08:19:12 +0100
+References: <87bpwvyx19.fsf@free.fr>
+	<1225835978-14548-1-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1225835978-14548-1-git-send-email-robert.jarzmik@free.fr>
 MIME-Version: 1.0
-To: David Ellingsworth <david@identd.dyndns.org>
-References: <491339D9.2010504@personnelware.com>
-	<30353c3d0811061553h4c1a77e0t597bd394fa0ebdf1@mail.gmail.com>
-In-Reply-To: <30353c3d0811061553h4c1a77e0t597bd394fa0ebdf1@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: weeding out v4l ver 1 stuff
+Content-Disposition: inline
+Message-Id: <200811050819.12560.hverkuil@xs4all.nl>
+Cc: g.liakhovetski@gmx.de
+Subject: Re: [PATCH] Add new pixel format VYUY 16 bits wide.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,50 +30,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-David Ellingsworth wrote:
-> On Thu, Nov 6, 2008 at 1:39 PM, Carl Karsten <carl@personnelware.com> wrote:
->> Given v4l version 1 is being dropped in December 08, we should remove stuff that
->> targets that api, right?
->>
->> For instance:
->>
->> http://linuxtv.org/hg/v4l-dvb/file/b45ffc93fb82/v4l2-apps/test/v4lgrab.c
->>
->>      94 #ifdef CONFIG_VIDEO_V4L1_COMPAT
->>      194 #else
->>
->>      195       fprintf(stderr, "V4L1 API is not configured!\n");
->>
->> I'll let someone else figure out if the whole file should be removed, or if it
->> has some value to v2.
->>
->> And assuming someone agrees we should week out v1 stuff, where is the right
->> place to log this too?  http://bugzilla.kernel.org does not seem right.
->>
->> Carl K
->>
+On Tuesday 04 November 2008 22:59:37 Robert Jarzmik wrote:
+> There were already 3 YUV formats defined :
+>  - YUYV
+>  - YVYU
+>  - UYVY
+> The only left combination is VYUY, which is added in this
+> patch.
 > 
-> With v4l1 going away, it would be nice to convert any drivers still
-> using the v4l1 interface to v4l2. Drivers using usbvideo spring to
-> mind. I've mentioned in the past, I've started a rewrite of ibmcam
-> over to the v4l2 interface but I currently don't have much time to
-> work on it and could use some assistance from the community. While
-> Mauro suggested it be written against the gspca framework, I hesitate
-> to do so since gspca does it's own memory management and will probably
-> become somewhat obsolete once the new media framework is put together.
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-? What new media framework ? You mean the planned changes to the v4l2 API for 
-multifunction devices? Anyways this won't make gspca obsolete, gspca is a 
-framework for writing usb webcam drivers, as such it tries to do things common 
-to all usb webcam drivers inside the gspca-core. If the v4l2 core changes the 
-gspca-core will adapt and in most cases of v4l2-core changes, the gspca 
-subdrivers will not need to change at all. So if anything using gspca makes 
-your driver more future proof against v4l2-core changes as in most cases the 
-necessary changes for all gspca drivers only need to be made once in gspca-core
+It's fine by me, but since you are making a change anyway, can you move the
+V4L2_PIX_FMT_YVYU define up and put it after V4L2_PIX_FMT_YUYV? Then all
+four combinations are together.
+
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
 Regards,
 
-Hans
+	Hans
+
+> ---
+>  include/linux/videodev2.h |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 4669d7e..ec311d4 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -293,6 +293,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2') /* 12  YVU 4:2:0     */
+>  #define V4L2_PIX_FMT_YUYV    v4l2_fourcc('Y', 'U', 'Y', 'V') /* 16  YUV 4:2:2     */
+>  #define V4L2_PIX_FMT_UYVY    v4l2_fourcc('U', 'Y', 'V', 'Y') /* 16  YUV 4:2:2     */
+> +#define V4L2_PIX_FMT_VYUY    v4l2_fourcc('V', 'Y', 'U', 'Y') /* 16  YUV 4:2:2     */
+>  #define V4L2_PIX_FMT_YUV422P v4l2_fourcc('4', '2', '2', 'P') /* 16  YVU422 planar */
+>  #define V4L2_PIX_FMT_YUV411P v4l2_fourcc('4', '1', '1', 'P') /* 16  YVU411 planar */
+>  #define V4L2_PIX_FMT_Y41P    v4l2_fourcc('Y', '4', '1', 'P') /* 12  YUV 4:1:1     */
+> -- 
+> 1.5.6.5
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
+> 
+
 
 --
 video4linux-list mailing list
