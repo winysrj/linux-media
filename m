@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQHxLcH028680
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 12:59:21 -0500
-Received: from smtp-vbr4.xs4all.nl (smtp-vbr4.xs4all.nl [194.109.24.24])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQHxJlE010213
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 12:59:19 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Wed, 26 Nov 2008 18:59:17 +0100
-References: <19F8576C6E063C45BE387C64729E739403E904E83D@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403E904E83D@dbde02.ent.ti.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA5M4jMq009945
+	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 17:04:45 -0500
+Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA5M4UYp010615
+	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 17:04:31 -0500
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <87bpwvyx19.fsf@free.fr>
+	<1225835978-14548-1-git-send-email-robert.jarzmik@free.fr>
+	<1225835978-14548-2-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0811042329330.8208@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Wed, 05 Nov 2008 23:04:28 +0100
+In-Reply-To: <Pine.LNX.4.64.0811042329330.8208@axis700.grange> (Guennadi
+	Liakhovetski's message of "Tue\,
+	4 Nov 2008 23\:40\:17 +0100 \(CET\)")
+Message-ID: <873ai5ommr.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200811261859.17232.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: v4l2_device/v4l2_subdev: please review
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] mt9m111: add all yuv format combinations.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,61 +31,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wednesday 26 November 2008 18:47:08 Hiremath, Vaibhav wrote:
-> Thanks,
-> Vaibhav Hiremath
->
-> > -----Original Message-----
-> > From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-
-> > bounces@redhat.com] On Behalf Of Hans Verkuil
-> > Sent: Tuesday, November 25, 2008 3:40 AM
-> > To: v4l
-> > Subject: v4l2_device/v4l2_subdev: please review
-> >
-> > Hi all,
-> >
-> > I've finally tracked down the last oops so I could make a new tree
-> > with
-> > all the latest changes.
-> >
-> > My http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng tree contains the
-> > following:
->
-> [Hiremath, Vaibhav] Some quick comments I came across -
->
-> 	- No support for enumerating/getting the input/output list. We do
-> have entry for s_routing, but how master driver will be able to know
-> about the input and output supported for sub-devices? I believe the
-> input and output supported should come from board specific file (from
-> bridge).
->
-> Although I am not aware of sa7115 driver, but after looking to code
-> it looks like master driver knows about the indexes (input and
-> output) part. That should not be the case.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-The s_input and s_output ioctls deal with user level inputs and outputs 
-(i.e. the actual connectors like HDMI, S-Video, etc.). The i2c video 
-chip deals with input and output pins. How the two match up can *only* 
-be decided by the master driver. Typically it will determine which 
-board/card it is and do a lookup in some table to find the right 
-mapping. The i2c driver definitely doesn't know. All it needs to know 
-are the pins it has to select.
+> Would you also like to make the third patch - updating pxa-camera with the 
+> three further YCbCr formats and adding a comment, that although the docs 
+> only claim support for UYUV the others can be used too, as long as we 
+> don't use post-processing. Can you also test other formats?
+Yes, give me a couple of days. Y*Y* and *Y*Y are tested already, I just want to
+try the planar format, and I'll post.
 
->
-> 	- Again, in my opinion it would carry more information if we use
-> v4l2_input struct for input and output.
->
-> What is your opinion here?
->
-> Still looking into it, may get some more points while migrating to
-> it.
-
-It's really important not to confuse the user-level inputs and the 
-chip-level inputs.
-
-Regards,
-
-	Hans
+--
+Robert
 
 --
 video4linux-list mailing list
