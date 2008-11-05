@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA6208hh017560
-	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 21:00:08 -0500
-Received: from mail-in-16.arcor-online.net (mail-in-16.arcor-online.net
-	[151.189.21.56])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA61waMu018202
-	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 20:58:37 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Ricardo Cerqueira <v4l@cerqueira.org>
-In-Reply-To: <1225932395.13472.19.camel@frolic>
-References: <c41ce8440810310231gdb614bcred3f4386de883abb@mail.gmail.com>
-	<1225586521.2642.7.camel@pc10.localdom.local>
-	<c41ce8440811040609v591ae268y80d6669dccf55862@mail.gmail.com>
-	<1225930171.3338.8.camel@pc10.localdom.local>
-	<1225932395.13472.19.camel@frolic>
-Content-Type: text/plain
-Date: Thu, 06 Nov 2008 02:56:53 +0100
-Message-Id: <1225936613.3602.24.camel@pc10.localdom.local>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA56l1Ox031057
+	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 01:47:01 -0500
+Received: from QMTA04.emeryville.ca.mail.comcast.net
+	(qmta04.emeryville.ca.mail.comcast.net [76.96.30.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA56khN3004781
+	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 01:46:43 -0500
+Message-ID: <4911414E.2050801@personnelware.com>
+Date: Wed, 05 Nov 2008 00:46:38 -0600
+From: Carl Karsten <carl@personnelware.com>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com, Andy Walls <awalls@radix.net>
+References: <47C90994.8040304@personnelware.com>	<20080304113834.0140884d@gaivota>
+	<490E468A.6090200@personnelware.com>	<1225675203.3116.12.camel@palomino.walls.org>	<490E6EC3.7030408@personnelware.com>
+	<1225762470.3198.23.camel@palomino.walls.org>
+In-Reply-To: <1225762470.3198.23.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Pinnacle PCTV 310i Remote: i2c 'ERROR: NO_DEVICE'
+Cc: 
+Subject: Re: v4l2 api compliance test
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,89 +30,93 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Ricardo,
-
-Am Donnerstag, den 06.11.2008, 00:46 +0000 schrieb Ricardo Cerqueira:
-> Hi all;
+Andy Walls wrote:
+> On Sun, 2008-11-02 at 21:23 -0600, Carl Karsten wrote:
+>> Andy Walls wrote:
+>>> On Sun, 2008-11-02 at 18:32 -0600, Carl Karsten wrote:
+>>>> Mauro Carvalho Chehab wrote:
+>>>>> On Sat, 01 Mar 2008 01:45:24 -0600
+>>>>> Carl Karsten <carl@personnelware.com> wrote:
+>>>>>
+>>>>>
+>>>>> Please, feel free to improve the tools. Unfortunately, nobody yet had time to
+>>>>> dedicate on improving the testing tools.
+>>>> These 2 issues are thwarting my efforts to write my tester:
+>>>>
+>>>> 1. memory leak:
+>>>> valgrind ./capture --userp -d /dev/video1
+>>>> ==17153== malloc/free: in use at exit: 2,457,632 bytes in 5 blocks.
+>>>>
+>>>> 2. capabilities mismatch:
+>>>> ./capture --userp -d /dev/video1
+>>>> VIDIOC_QBUF error 22, Invalid argument
+>>>>
+>>>> details: http://linuxtv.org/v4lwiki/index.php/Test_Suite#Bugs_in_Examples
+>>> I'm not sure why a memory leak on abnormal termination is worrisome for
+>>> you.  It looks like init_userp() allocated a bunch of "buffers", which
+>>> has to happen for a program to use user pointer mode of v4l2.  The
+>>> function errno_exit() doesn't bother to clean up when the VIDIOC_QBUF
+>>> ioctl() call fails.  free() is only called by uninit_device().  Since
+>>> the alternate flow of the program through errno_exit() to termination
+>>> doesn't call free() on "buffers", you should have a process heap memory
+>>> leak on error exit.
+>>>
+>>> Since this is userspace, a memory leak from the process heap doesn't
+>>> hang around when the process terminates - no big deal.
+>> Are you sure about that?
 > 
-> On Thu, 2008-11-06 at 01:09 +0100, hermann pitton wrote:
-> > Hi Matteo,
-> > 
-> > Am Dienstag, den 04.11.2008, 15:09 +0100 schrieb picciuX:
-> > > 2008/11/2 hermann pitton <hermann-pitton@arcor.de>:
-> > > 
-> > > > don't have that remote, but also enable ir-kbd-i2c debug=1.
-> > > >
-> > > > ir-kbd-i2c: probe 0x7a @ saa7133[0]: no
-> > > > ir-kbd-i2c: probe 0x47 @ saa7133[0]: no
-> > > > ir-kbd-i2c: probe 0x71 @ saa7133[0]: no
-> > > > ir-kbd-i2c: probe 0x2d @ saa7133[0]: no
-> > > > ir-kbd-i2c: probe 0x7a @ saa7133[1]: no
-> > > > ir-kbd-i2c: probe 0x47 @ saa7133[1]: no
-> > > > ir-kbd-i2c: probe 0x71 @ saa7133[1]: no
-> > > > ir-kbd-i2c: probe 0x2d @ saa7133[1]: no
-> > > >
+> About the process heap, yes.
+> 
+>> if I run
+>> ./capture --userp -d /dev/video1
+>> VIDIOC_QBUF error 22, Invalid argument
+>>
+>> enough I can't run the valid modes:
+>>
+>> juser@dhcp186:~/vga2usb/v4l.org/examples$ ./capture --read -d /dev/video1
+>> read error 12, Cannot allocate memory
+> 
+> The capture app would output "Out of memory" if the calloc() call for
+> the --read option buffers failed.  This is some global/kernel resource
+> that has been exhausted.
 > 
 > 
-> Sorry, I missed the rest of the thread;
+>> juser@dhcp186:~/vga2usb/v4l.org/examples$ ./capture --mmap -d /dev/video1
+>> mmap error 12, Cannot allocate memory
 > 
-> In any case, from the above paste, it looks as if you have 2 saa713x
-> boards in the system, right?
+> Ditto for this.  This message can only happen at the end of init_mmap()
+> when the mmap call fails.  Thus an allocation of some sort of kernel
+> global resource/space failed.
+> 
+> 
+> I don't know what could be exhausting those kernel resources when using
+> the userp option.  The failed ioctl()'s calls to the vivi driver would
+> be a place to start looking.
+> 
+> 
+>> although free still shows lots:
+>>
+>> juser@dhcp186:~/vga2usb/v4l.org/examples$ free
+>>              total       used       free     shared    buffers     cached
+>> Mem:       1033388     282340     751048          0      31012      98208
+>> -/+ buffers/cache:     153120     880268
+>> Swap:       859436          0     859436
+>>
+> 
+> Perhaps you could look at /proc/meminfo between runs and see if
+> something is gradually being exhausted.  Vmalloc address space
+> exhaustion is what I'd look for.
+> 
 
-sorry, that was me to illustrate how the difference should look like.
-Must be taken from the quadro md8800 machine.
+I forgot to sort it - now I see:
 
-I'm playing around with some other requests concerning remote behaviors,
-but have to admit that getting some old PCs running on recent again is
-not that much fun and I'm slow.
+HighFree go from 72608 to 252
+VmallocUsed from 6440 to 109724
+VmallocChunk from 103620 to 336
 
-We have a case, where Asus stuff is not reliable on PCI subsystem IDs.
-We can detect the different cards by a difference in the eeprom readout,
-but this needs running i2c on saa7134 init2.
+I hope this sheds some light on where to look.
 
-However, since input_init is on saa7134 init1, we fail here being too
-late. Maybe we should have input init on saa7134 init2 in saa7134-core.
-Roman with such a card mailed to me about that. At least I should be
-close to be able to test it, but no i2c remote stuff is here.
-
-> I suspect the bug is somehow related to that (ir-kbd-i2c is getting the
-> events, but sending them to the wrong board). Have you tried removing
-> one of them?
-
-Maybe the card is even flaky in the PCI slot, that's why a second
-confirmation would be nice.
-
-Thanks,
-Hermann
-
-> --
-> RC
-> > > > You should have the device found at 0x47.
-> > > >
-> > > 
-> > > In fact i see:
-> > > 
-> > > ir-kbd-i2c: probe 0x47 @ saa7133[0]: yes
-> > > 
-> > > So everything seemed to go well. But, same story for the rest: ERROR:
-> > > NO_DEVICE when i press buttons on the remote.
-> > > What seems strange to me is the fact that the driver *reacts* to
-> > > remote key presses, but reacts with an error.
-> > > 
-> > > Cheers
-> > > Matteo
-> > > 
-> > 
-> > since you reported the trouble was already visible for you on earlier
-> > kernels, we might try to get a second confirmation at first.
-> > 
-> > Anyone out there? I'm sending a copy to Ricardo too, who added the
-> > support, not sure if he currently has time to read the list.
-> > 
-> > Cheers,
-> > Hermann
-> > 
-
+Carl K
 
 --
 video4linux-list mailing list
