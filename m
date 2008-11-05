@@ -1,21 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from webmail-outgoing.us4.outblaze.com ([205.158.62.67])
+Received: from blu0-omc1-s15.blu0.hotmail.com ([65.55.116.26])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <guzowskip@linuxmail.org>) id 1KyXRN-00046l-Tj
-	for linux-dvb@linuxtv.org; Fri, 07 Nov 2008 20:56:24 +0100
-Received: from wfilter.us4.outblaze.com.int (wfilter.us4.outblaze.com.int
-	[192.168.9.180])
-	by webmail-outgoing.us4.outblaze.com (Postfix) with QMQP id
-	79F44180020C
-	for <linux-dvb@linuxtv.org>; Fri,  7 Nov 2008 19:56:16 +0000 (GMT)
-Content-Disposition: inline
+	(envelope-from <stevthro@hotmail.fr>) id 1KxnEM-0002cp-NW
+	for linux-dvb@linuxtv.org; Wed, 05 Nov 2008 19:35:53 +0100
+Message-ID: <BLU126-W1455E0B6279BBF11D1BDD4AF1F0@phx.gbl>
+From: Steve Thro <stevthro@hotmail.fr>
+To: <darron@kewl.org>
+Date: Wed, 5 Nov 2008 19:35:15 +0100
+In-Reply-To: <14964.1225909409@kewl.org>
+References: <BLU126-W211E02BF45832661F2020BAF1F0@phx.gbl>
+	<14964.1225909409@kewl.org>
 MIME-Version: 1.0
-From: "Paul Guzowski" <guzowskip@linuxmail.org>
-To: "Michael Krufky" <mkrufky@linuxtv.org>
-Date: Fri, 7 Nov 2008 13:56:16 -0600
-Message-Id: <20081107195616.65673233EB@ws5-3.us4.outblaze.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Channel configuration files....
+Subject: Re: [linux-dvb] no lock on 3/4 with cx24116
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,173 +20,81 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1096237190=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============1096237190==
+Content-Type: multipart/alternative;
+	boundary="_d6a10573-1516-4270-82e9-751a7a25c8e3_"
 
-> ----- Original Message -----
-> From: "Michael Krufky" <mkrufky@linuxtv.org>
-> To: "Paul Guzowski" <guzowskip@linuxmail.org>
-> Cc: linux-dvb@linuxtv.org
-> Subject: Re: [linux-dvb] Channel configuration files....
-> Date: Fri, 7 Nov 2008 12:23:05 -0500
-> 
-> 
-> On Fri, Nov 7, 2008 at 12:21 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> > Paul -- please see my response below.
-> >
-> >> Paul in NW Florida
-> >>> ----- Original Message -----
-> >>> From: "Michael Krufky" <mkrufky@linuxtv.org>
-> >>> To: "Paul Guzowski" <guzowskip@linuxmail.org>
-> >>> Cc: linux-dvb@linuxtv.org
-> >>> Subject: Re: [linux-dvb] Channel configuration files....
-> >>> Date: Wed, 5 Nov 2008 11:41:27 -0500
-> >>>
-> >>>
-> >>> On Wed, Nov 5, 2008 at 6:58 AM, Paul Guzowski 
-> >>> <guzowskip@linuxmail.org> wrote:
-> >>> > Greetings,
-> >>> >
-> >>> > Does anyone on this list have a sample channel.conf file for
-> >>> > Brighthouse Networks cable or can anyone give enough information
-> >>> > (frequencies, transponders, etc) so that I can try to build one?
-> >>> > Thanks in advance.
-> >>> >
-> >>> > Paul in NW Florida
-> >>>
-> >>> Paul,
-> >>>
-> >>> You can use "scan" from dvb-apps, using the scan file,
-> >>> "us-Cable-Standard-center-frequencies-QAM256" ...  If that doesn't
-> >>> work, you can try the other QAM256 cable scan files, located in the
-> >>> util/scan/atsc/ directory of dvb-apps.
-> >>>
-> >>> Alternatively, you can use the latest version of w_scan WITHOUT any
-> >>> scan file.  This should produce the best results.
-> >>>
-> >>> The latest version of w_scan with atsc / qam scanning support can be
-> >>> downloaded from here:
-> >>>
-> >>> http://wirbel.htpc-forum.de/w_scan/w_scan-20080815.tar.bz2
-> >>>
-> >>> You can scan cable using this command:
-> >>>
-> >>> w_scan -A2 -X > channels.conf
-> >>>
-> >>> Good luck.
-> >>>
-> >>> -Mike Krufky
-> >
-> >
-> > On Fri, Nov 7, 2008 at 9:05 AM, Paul Guzowski 
-> > <guzowskip@linuxmail.org> wrote:
-> >> Greetings Mike,
-> >>
-> >> I tried your suggestion and didn't have any success.  I know 
-> >> there are cable signals coming over the line because two other 
-> >> TVs in the house (one analog and one HDTV-capable) can tune 
-> >> channels.  If I connect to the RF-out from the digital set-top 
-> >> box, I can use mplayer tuned to channel 3 to watch TV but I'd 
-> >> like to be able to tune from the cable directly. Not sure what 
-> >> to try next.  Here's the results of my test:
-> >>
-> >> paul@Kris-desktop:/media/Data/Computer/Downloads/Linux/Multimedia/w_scan-20080815$ w_scan -a0 -X > 
-> >> channels.conf
-> >> w_scan version 20080105
-> >> -_-_-_-_ Getting frontend capabilities-_-_-_-_
-> >> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-> >> ERROR: Sorry - i couldn't get any working frequency/transponder
-> >>  Nothing to scan!!
-> >> dumping lists (0 services)
-> >> Done.
-> >> paul@Kris-desktop:/media/Data/Computer/Downloads/Linux/Multimedia/w_scan-20080815$
-> >>
-> >
-> >
-> > Paul,
-> >
-> > The policy of this mailing list, and almost all linux mailing lists,
-> > is to enter your replies BELOW the quoted text.  Do not top-post.
-> >
-> > Please notice above, that I instructed you to pass " -A2 -X " into the
-> > w_scan command line.  You passed " -a0 -X " ..  The -a? and -A? are
-> > two entirely different command line switches.  If you're trying to
-> > scan QAM, then you must pass -A2
-> >
-> > -Mike
-> >
-> 
-> Also,  do NOT use the rf out from the cablebox -- you wont get any
-> digital services that way.  You must use the cable feed coming in
-> directly from the wall / street.
-> 
-> -Mike
-
-Mike,
-
-I failed to say in the prior note that I had already tried your suggested command.  Here's the result:
-
-paul@Kris-desktop:~/Desktop$ w_scan -A2 -X > channels.conf
-w_scan: invalid option -- 'A'
-
-usage: w_scan [options...] 
-	-a N	use device /dev/dvb/adapterN/ [default: auto detect]
-	-f type	frontend type
-		What programs do you want to search for?
-		c = cable
-		t = terrestrian [default]
-	-i N	spectral inversion setting for cable TV
-		DVB-T: always off
-		DVB-C (0: off, 1: on, 2: auto [default])
-	-F	use long filter timeout
-	-t N	tuning timeout
-		1 = fastest [default]
-		2 = medium
-		3 = slowest
-	-k	generate channels.dvb for kaffeine
-	-o N	VDR version / channels.conf format
-		2 = VDR-1.2.x (depriciated)
-		3 = VDR-1.3.x (depriciated)
-		4 = VDR-1.4.x/VDR-1.5.x (default)
-	-R N	radio channels
-		0 = don't search radio channels
-		1 = search radio channels [default]
-	-T N	TV channels
-		0 = don't search TV channels
-		1 = search radio TV [default]
-	-O N	Other Services
-		0 = don't search other services [default]
-		1 = search other services
-	-E N	Conditional Access (encrypted channels)
-		N=0 gets only Free TV channels
-		N=1 search also encrypted channels [default]
-	-X	tzap/czap/xine output instead of vdr channels.conf
-	-x	generate initial tuning data for (dvb-)scan
-	-v 	verbose (repeat for more)
-	-q 	quiet   (repeat for less)
-paul@Kris-desktop:~/Desktop$ 
-
-Paul
+--_d6a10573-1516-4270-82e9-751a7a25c8e3_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
 
+> I don't know what a s2-liplianin-8c4f85bfc115 driver is but
 
->
+It's the latest one from http://mercurial.intuxication.org/hg/s2-liplianin
+
+> if you apply this patch:
+> http://hg.kewl.org/v4l-dvb/raw-rev/8d6d8974b33d=20
+applied with no reject
+
+> then it may solve your problem?
+
+Same problem no lock :(
+
+steve=2C
+
+_________________________________________________________________
+In=E9dit ! Des Emotic=F4nes D=E9jant=E9es! Installez les dans votre Messeng=
+er !=20
+http://www.ilovemessenger.fr/Emoticones/EmoticonesDejantees.aspx=
+
+--_d6a10573-1516-4270-82e9-751a7a25c8e3_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt=3B
+font-family:Verdana
+}
+</style>
+</head>
+<body class=3D'hmmessage'>
+&gt=3B I don't know what a s2-liplianin-8c4f85bfc115 driver is but<br><br>I=
+t's the latest one from http://mercurial.intuxication.org/hg/s2-liplianin<b=
+r><br>&gt=3B if you apply this patch:<br>&gt=3B http://hg.kewl.org/v4l-dvb/=
+raw-rev/8d6d8974b33d <br>applied with no reject<br><br>&gt=3B then it may s=
+olve your problem?<br><br>Same problem no lock :(<br><br>steve=2C<br><br />=
+<hr />T=E9l=E9phonez gratuitement =E0 tous vos proches avec Windows Live Me=
+ssenger=A0 !=A0 <a href=3D'http://www.windowslive.fr/messenger/1.asp' targe=
+t=3D'_new'>T=E9l=E9chargez-le maintenant !</a></body>
+</html>=
+
+--_d6a10573-1516-4270-82e9-751a7a25c8e3_--
 
 
-=
-Time Tracking System
-Unitime Automated Time Keeping System for sale at Aphotoid.com. We also provide ID card systems and accessories, ID badging software, PVC card printers and more. Contact us today.
-http://a8-asy.a8ww.net/a8-ads/adftrclick?redirectid=47f2e344d8d6292519d87ad047e2c1d3
-
-
--- 
-Powered by Outblaze
+--===============1096237190==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1096237190==--
