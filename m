@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1KxLgD-0004JX-8B
-	for linux-dvb@linuxtv.org; Tue, 04 Nov 2008 14:10:47 +0100
-Message-ID: <491049CF.2030304@iki.fi>
-Date: Tue, 04 Nov 2008 15:10:39 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1Ky65R-0005Fn-6i
+	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 15:43:54 +0100
+Date: Thu, 06 Nov 2008 15:43:19 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <20081106124730.16840@gmx.net>
+Message-ID: <20081106144319.268390@gmx.net>
 MIME-Version: 1.0
-To: =?windows-1252?Q?J=E1chym_Luke=9A?= <jachym.lukes@gmail.com>
-References: <dc5a18230811040504l45889c5ck11a3b3bc90b212a1@mail.gmail.com>
-In-Reply-To: <dc5a18230811040504l45889c5ck11a3b3bc90b212a1@mail.gmail.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] EC168
+References: <20081106124730.16840@gmx.net>
+To: linux-dvb@linuxtv.org, handygewinnspiel@gmx.de
+Subject: Re: [linux-dvb] [PATCH] wscan: improved frontend autodetection
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,37 +18,37 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-J=E1chym Luke=9A wrote:
-> Hi,
-> would it be possible for somebody to make Linux driver for EC168 chipset =
+> Currently wscan will not autodetect frontends which which have frontend !=
+> 0,
+> i.e. it only detects /dev/dvb/adapterN/frontend0 where N=0-3.
+> 
+> Since multiple frontends per adapter are supported in 2.6.28, this means
+> the correct
+> frontend may not be found. For example with the HVR4000, DVB-T is always
+> at frontend1.
+> 
+> The attached patch fixes this, searching for frontend 0-3 for each adapter
+> 0-3.
+> 
+> Signed-off-by: Hans Werner <hwerner4@gmx.de>.
 
-> based USB DVB-T dongles? They are very common and affordable, I think =
+Of course it's called w_scan, not wscan, sorry.
 
-> that it would be a great thing for Linux community. This could bring =
+Suggestion: how about setting -t 3 (long tuning timeout) and -O 1 (search other services)
+as the *default* options to give the program the best chance of finding all channels without
+having to play with the options? They do make a difference.
 
-> digital TV to many people's desktops!
+-- 
+Release early, release often.
 
-Yes, those are very common. I think there is no developer who has for =
-
-this device and reverse-engineering demodulator is real pain.
-
-> =
-
-> Any suggestions?
-> The most usual is I think
-> ID 18b4:1689 (lsusb output)
-
-regards
-Antti
--- =
-
-http://palosaari.fi/
+"Feel free" - 10 GB Mailbox, 100 FreeSMS/Monat ...
+Jetzt GMX TopMail testen: http://www.gmx.net/de/go/topmail
 
 _______________________________________________
 linux-dvb mailing list
