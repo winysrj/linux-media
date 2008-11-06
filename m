@@ -1,15 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 93-96-168-136.zone4.bethere.co.uk ([93.96.168.136]
-	helo=mail.glcweb.co.uk) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <michael.curtis@glcweb.co.uk>) id 1L38I3-0002pY-So
-	for linux-dvb@linuxtv.org; Thu, 20 Nov 2008 13:05:47 +0100
-From: "Michael J. Curtis" <michael.curtis@glcweb.co.uk>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Date: Thu, 20 Nov 2008 12:05:07 +0000
-Message-ID: <3C276393607085468A28782D978BA5EEECB30B5F24@w2k8svr1.glcdomain8.local>
-Content-Language: en-US
+Received: from smtp-out2.iol.cz ([194.228.2.87])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ajurik@quick.cz>) id 1Ky0um-0001mg-Ab
+	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 10:12:35 +0100
+From: Ales Jurik <ajurik@quick.cz>
+To: Kovacs Balazs <basq@bitklub.hu>
+Date: Thu, 6 Nov 2008 10:11:52 +0100
+References: <167586304.20081103115116@bitklub.hu>
+	<200811041018.27417.ajurik@quick.cz>
+	<1745079361.20081106090111@bitklub.hu>
+In-Reply-To: <1745079361.20081106090111@bitklub.hu>
 MIME-Version: 1.0
-Subject: [linux-dvb] Status of TT 3200 S2 card and Mythtv
+Content-Disposition: inline
+Message-Id: <200811061011.52353.ajurik@quick.cz>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] S2API + TT3200 + Amos4w 10.723 S2 problem
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,23 +23,66 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi all
-
-Many thanks to all those who contribute to this list ...........but as a keen linux user I need help in understanding where we are at in respect of a working HD system with the TT3200 S2 card and then, is Mythtv working with the required drivers?
-
-I do realize that this is not really the correct forum for discussing mythtv but I am certain there are other like me who are struggling with getting a Mythtv system up and running with this card
-
-Regards
-
-Michael Curtis
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+T24gVGh1cnNkYXkgMDYgb2YgTm92ZW1iZXIgMjAwOCwgS292YWNzIEJhbGF6cyB3cm90ZToKPiBB
+bGVzLCBjYW4geW91IHRlc3QgbWUgd2hhdCBoYXBwZW5zIGlmIHlvdSBqdXN0IHdhbnQgdG8gbG9j
+ayBvbiB0aGVzZSBUUCdzPwo+IElzIGl0IHN0YWJsZSBmb3IgeW91Pwo+Cj4gQ2FuIHlvdSB0dW4g
+YSBzemFwIGFuZCB3YXRjaCBpdCBpZiB0aGUgY2FyZCBsb3N0IHRoZSBsb2NrIG9yIGlzIGl0IGxv
+Y2tlZAo+IHN0YWJsZT8KPgo+IEkndmUgdHJpZWQgYSBTa3lzdGFyIEhEMiBjYXJkIHdpdGggczIt
+bGlwbGlhbmluIGRyaXZlcnMgYnV0IHRoZSByZXN1bHQgaXMKPiB0aGUgc2FtZS4gU29tZXRpbWVz
+IEkgY2FuIHNjYW4gdGhlIFRQJ3MgaWYgdGhlIGNhcmQgaXMgbG9ja2VkIGZvciBhIDEtMgo+IHNl
+Y29uZCBwZXJpb2QsIHRoZW4gaXQgbG9zdHMgdGhlIGxvY2suCj4KPiBUaGlzIGNvdWxkIGJlIGEg
+ZHJpdmVyIGlzc3VlLCBiZWNhdXNlIHVuZGVyIFdpbmRvd3Mgd2l0aCB0aGUgb3JpZ2luYWwgVFQK
+PiBXRE0gb3IgQkRBIGRyaXZlcnMgdGhlIFRUMzIwMCB3b3JrcyBwZXJmZWN0IG9uIHRoZXNlIFRQ
+J3MuCj4KPiB0aGFueCwKPgo+IGJhc3EKPgoKSGkgQmFsYXN6LAoKdGhlIHJlY2VwdGlvbiBpcyBz
+dGFibGUgYW5kIHdpdGhvdXQgYW55IHByb2JsZW0uIEl0IGlzIHBvc3NpYmxlIHRvIHdhdGNoIAoo
+dGVzdGVkIG9uIFJUTCBLbHViKS4gCgpJJ20gYWZyYWlkIGl0IGlzIGEgcHJvYmxlbSB3aXRoIHN0
+YjA4OTkgbGludXggZHJpdmVyLiBJJ3ZlIGFsc28gdGhpcyBjYXJkLCAKdHJpZWQgdG8gZmluZCB0
+aGUgYnVnIChJJ3ZlIGZvdW5kIG9uZSBpbiBzdGI2MTAwLmMgdHVuaW5nIHByb2NlZHVyZSkgYnV0
+IGl0IAp3YXMgbm90IHN1ZmZpY2llbnQuIEFsc28gdW5kZXIgV2luZG93cyBpdCB3YXMgd2l0aG91
+dCBwcm9ibGVtLiBBZnRlciBtYW55IApob3VycyBzcGVudCB3aXRoIHRoaXMgY2FyZCBJJ3ZlIGJv
+dWd0aCBIVlItNDAwMCwgcHV0IFRUIFMyLTMyMDAgaW50byBteSB0YWJsZSAKYW5kIGRvbid0IGhh
+dmUgcHJvYmxlbSBhbnltb3JlLgoKSWYgeW91IHdhbnQgdG8gZG8gc29tZSBtb3JlIHRlc3QgeW91
+IGNvdWxkIGNvbnRhY3QgbWUgb2ZmLWxpc3QuCgpCZWxvdyBvdXRwdXQgZnJvbSBzemFwLgoKQlIs
+CgpBbGVzCgoKJCAuL3N6YXAyIC1jIC4vY2hhbm5lbHMuY29uZiAtbiAxCnJlYWRpbmcgY2hhbm5l
+bHMgZnJvbSBmaWxlICcuL2NoYW5uZWxzLmNvbmYnCnphcHBpbmcgdG8gMSAnUlRMIEtsdWI7VC1L
+w4ZiZWwnOgpkZWxpdmVyeSBEVkItUzIsIG1vZHVsYXRpb24gOFBTSwpzYXQgMywgZnJlcXVlbmN5
+IDEwNzIzIE1IeiBWLCBzeW1ib2xyYXRlIDMwMDAwMDAwLCBjb2RlcmF0ZSAyLzMsIHJvbGxvZmYg
+MC4yMAp2cGlkIDB4MDBiMywgYXBpZCAweDAwYjEsIHNpZCAweDAwYjQKdXNpbmcgJy9kZXYvZHZi
+L2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAnCnN0YXR1
+cyAwMSB8IHNpZ25hbCBjNDQwIHwgc25yIDAwMDAgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAw
+MDAgfApzdGF0dXMgMWYgfCBzaWduYWwgYzNjMCB8IHNuciBjNjY2IHwgYmVyIDAwMDAwMDAwIHwg
+dW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sKc3RhdHVzIDFmIHwgc2lnbmFsIGMzYzAgfCBzbnIg
+YzY2NiB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLCnN0YXR1cyAx
+ZiB8IHNpZ25hbCBjM2MwIHwgc25yIGM2NjYgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAg
+fCBGRV9IQVNfTE9DSwpzdGF0dXMgMWYgfCBzaWduYWwgYzQ0MCB8IHNuciBjNjY2IHwgYmVyIDAw
+MDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sKc3RhdHVzIDFmIHwgc2lnbmFsIGMz
+YzAgfCBzbnIgYzdmZiB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NL
+CnN0YXR1cyAxZiB8IHNpZ25hbCBjNDQwIHwgc25yIGM3ZmYgfCBiZXIgMDAwMDAwMDAgfCB1bmMg
+MDAwMDAwMDAgfCBGRV9IQVNfTE9DSwpzdGF0dXMgMWYgfCBzaWduYWwgYzQ0MCB8IHNuciBjN2Zm
+IHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sKc3RhdHVzIDFmIHwg
+c2lnbmFsIGMzYzAgfCBzbnIgYzdmZiB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IEZF
+X0hBU19MT0NLCnN0YXR1cyAxZiB8IHNpZ25hbCBjNDQwIHwgc25yIGM3ZmYgfCBiZXIgMDAwMDAw
+MDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSwpzdGF0dXMgMWYgfCBzaWduYWwgYzQ0MCB8
+IHNuciBjN2ZmIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sKc3Rh
+dHVzIDFmIHwgc2lnbmFsIGM0NDAgfCBzbnIgYzdmZiB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAw
+MDAwMCB8IEZFX0hBU19MT0NLCnN0YXR1cyAxZiB8IHNpZ25hbCBjNDQwIHwgc25yIGM3ZmYgfCBi
+ZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSwpzdGF0dXMgMWYgfCBzaWdu
+YWwgYzQ0MCB8IHNuciBjNjY2IHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFT
+X0xPQ0sKc3RhdHVzIDFmIHwgc2lnbmFsIGM0NDAgfCBzbnIgYzdmZiB8IGJlciAwMDAwMDAwMCB8
+IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLCnN0YXR1cyAxZiB8IHNpZ25hbCBjNDQwIHwgc25y
+IGM2NjYgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSwpzdGF0dXMg
+MWYgfCBzaWduYWwgYzQ0MCB8IHNuciBjN2ZmIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAw
+IHwgRkVfSEFTX0xPQ0sKc3RhdHVzIDFmIHwgc2lnbmFsIGM0NDAgfCBzbnIgYzdmZiB8IGJlciAw
+MDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLCnN0YXR1cyAxZiB8IHNpZ25hbCBj
+NDQwIHwgc25yIGM3ZmYgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9D
+SwpzdGF0dXMgMWYgfCBzaWduYWwgYzQ0MCB8IHNuciBjNjY2IHwgYmVyIDAwMDAwMDAwIHwgdW5j
+IDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYu
+b3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LWR2Yg==
