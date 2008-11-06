@@ -1,26 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nschwmtas01p.mx.bigpond.com ([61.9.189.137])
+Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jhhummel@bigpond.com>) id 1KzKyf-0000OH-Iz
-	for linux-dvb@linuxtv.org; Mon, 10 Nov 2008 01:50:02 +0100
-Received: from nschwotgx01p.mx.bigpond.com ([58.173.115.237])
-	by nschwmtas01p.mx.bigpond.com with ESMTP id
-	<20081110004918.YEIH23566.nschwmtas01p.mx.bigpond.com@nschwotgx01p.mx.bigpond.com>
-	for <linux-dvb@linuxtv.org>; Mon, 10 Nov 2008 00:49:18 +0000
-Received: from harriet.localdomain ([58.173.115.237])
-	by nschwotgx01p.mx.bigpond.com with ESMTP id
-	<20081110004917.RJXO15831.nschwotgx01p.mx.bigpond.com@harriet.localdomain>
-	for <linux-dvb@linuxtv.org>; Mon, 10 Nov 2008 00:49:17 +0000
-From: Jonathan <jhhummel@bigpond.com>
-To: linux-dvb@linuxtv.org
-Date: Mon, 10 Nov 2008 11:49:17 +1100
-References: <200811091437.13920.plr.vincent@gmail.com>
-In-Reply-To: <200811091437.13920.plr.vincent@gmail.com>
+	(envelope-from <lindsay@softlog.com.au>) id 1KxwsC-00036o-II
+	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 05:53:39 +0100
+Received: from [127.0.0.1] by softlog.com.au (MDaemon PRO v9.5.6)
+	with ESMTP id 04-md50000009988.msg
+	for <linux-dvb@linuxtv.org>; Thu, 06 Nov 2008 14:52:33 +1000
+Message-ID: <4912780C.8010106@softlog.com.au>
+Date: Thu, 06 Nov 2008 14:52:28 +1000
+From: Lindsay Mathieson <lindsay@softlog.com.au>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200811101149.17244.jhhummel@bigpond.com>
-Subject: Re: [linux-dvb] [PATCH] WinFast DTV2000 H: add support for missing
-	analog inputs
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Dvico Fusion Pro
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,32 +25,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-THAT'S GREAT VINCENT!!!!
+Hi All, I have a Fusion Pro I'm testing with. Have installed the latest 
+v4l-dvb drivers as per the wiki and the board is recognised correctly on 
+boot and registers a /dev/dvb/adaptor0 device. However it is uable to 
+tune anything - a "scan < au-Brisbane" runs with no errors, but finds no 
+stations.
 
-Just out of interest, does anyone know how long it takes these to flow through 
-to distributions such as Ubuntu?
+However if I install the pascoe drivers:
+  http://www.itee.uq.edu.au/~chrisp/Linux-DVB/DVICO/
+  http://linuxtv.org/hg/~pascoe/xc-test/
 
-Thanks
+Its works fine - picks up the brisbane stations and displays them via mythtv
 
-Jon
+I thought the pascoe drivers were merged into the trunk ages ago - am I 
+mistaken?
 
-On Mon, 10 Nov 2008 12:37:13 am Vincent Pelletier wrote:
-> WinFast DTV2000 H: add support for missing analog inputs
->
-> From: Vincent Pelletier <plr.vincent@gmail.com>
->
-> Add support for the following inputs:
->  - radio tuner
->  - composite 1 & 2 (only 1 is physically available, but composite 2 is also
->    advertised by windows driver)
->  - svideo
->
-> Signed-off-by: Vincent Pelletier <plr.vincent@gmail.com>
->
-> ---
->
-> GPIO values retrieved using RegSpy under Windows XP with vendor's driver &
-> software.
+Thanks,
+
+Lindsay
+
+p.s My setup is a test PC and I can run tests as needed - doesn't matter 
+if it breaks.
+
+-- 
+Lindsay
+Softlog Systems
 
 
 
