@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA21BtsL010777
-	for <video4linux-list@redhat.com>; Sat, 1 Nov 2008 21:11:55 -0400
-Received: from mail-in-14.arcor-online.net (mail-in-14.arcor-online.net
-	[151.189.21.54])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA21Be7U010653
-	for <video4linux-list@redhat.com>; Sat, 1 Nov 2008 21:11:40 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: =?ISO-8859-1?Q?M=E1rcio?= Pedroso <sarrafocapoeira@gmail.com>
-In-Reply-To: <c931de3d0810291317h742a2f28i9e44400f80abf624@mail.gmail.com>
-References: <c931de3d0810291317h742a2f28i9e44400f80abf624@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Date: Sun, 02 Nov 2008 02:11:09 +0100
-Message-Id: <1225588269.2642.21.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: card =?iso-8859-1?q?n=BA?= for AOP V8001 philips
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA6MXnfg026392
+	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 17:33:49 -0500
+Received: from ras.rastos.org (dial-78-141-81-242-orange.orange.sk
+	[78.141.81.242])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA6MWMGO008341
+	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 17:32:46 -0500
+Received: from [192.168.2.221] (ras.rastos.org [192.168.2.221])
+	by ras.rastos.org (8.14.2/8.13.3) with ESMTP id mA6MWAo3015757
+	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 23:32:10 +0100
+Message-ID: <4913706A.5090202@rastos.org>
+Date: Thu, 06 Nov 2008 23:32:10 +0100
+From: rs_v4l@rastos.org
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Subject: TV @nywhere Plus
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,31 +28,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Marcio,
+Hi.
 
-Am Mittwoch, den 29.10.2008, 18:17 -0200 schrieb Márcio Pedroso:
-> I am struggling to find the number of cards referring to this card any tips
-> 
-> 00:13.0 Multimedia controller: Philips Semiconductors SAA7130 Video
-> Broadcast Decoder (rev 01)
-> 
-> chipset saa7130hl
+I would appreciate if anybody can tell me how do I get remote control
+working for "MSI TV @nywhere Plus" TV-card
 
-we have lots of saa7130 cards, which are clones of previously known
-ones, but they also often have no eeprom with specific PCI subvendor and
-subdevice IDs stored there and can't be identified.
+http://global.msi.com.tw/index.php?func=proddesc&maincat_no=132&prod_no=616
 
-The absolute minimum is to provide relevant "dmesg" output on loading
-the driver and setting the tuner type.
 
-See also here.
-http://linuxtv.org/v4lwiki/index.php/Development:_How_to_add_support_for_a_device
+The card is supported by saa7134 and the tuner itself is (as far as I
+can tell) is TDA827X
+lspci -v -n says
+    02:08.0 0480: 1131:7133 (rev d1)
+            Subsystem: 1462:6231
+    ....
 
-Just saa7130 and AOP V8001 Philips means nothing so far.
+I run self-configured and compiled vanilla kernel 2.6.27 .
+I was not able to find out whether the remote is supported by Linux.
+Neither dmesg output nor boot messages talk about anything related to
+remote control.
+I also don't recognize whether any entries in /dev or /sys have
+something to do with it.
 
-Cheers,
-Hermann
+Googling yields some old patches that worked for some people and did
+not work for others - but they definitely can't be applied to current
+source code.
 
+So is there any chance? What should I be looking for?
+--
+    Thanks
+       rastos
 
 --
 video4linux-list mailing list
