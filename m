@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.188])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1KyV1z-00052X-SN
-	for linux-dvb@linuxtv.org; Fri, 07 Nov 2008 18:22:01 +0100
-Received: by nf-out-0910.google.com with SMTP id g13so757230nfb.11
-	for <linux-dvb@linuxtv.org>; Fri, 07 Nov 2008 09:21:56 -0800 (PST)
-Message-ID: <37219a840811070921se5be4adk72de45140002b804@mail.gmail.com>
-Date: Fri, 7 Nov 2008 12:21:55 -0500
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: "Paul Guzowski" <guzowskip@linuxmail.org>
-In-Reply-To: <20081107140513.4DCE87BD53@ws5-10.us4.outblaze.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1Ky8o7-0006DB-76
+	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 18:38:12 +0100
+Content-Type: multipart/mixed; boundary="========GMX1685122599305747776"
+Date: Thu, 06 Nov 2008 18:37:37 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <49131C19.1080404@gmx.de>
+Message-ID: <20081106173737.16850@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <20081107140513.4DCE87BD53@ws5-10.us4.outblaze.com>
+References: <20081106124730.16840@gmx.net> <49131C19.1080404@gmx.de>
+To: wk <handygewinnspiel@gmx.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Channel configuration files....
+Subject: Re: [linux-dvb] [PATCH] wscan: improved frontend autodetection
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,87 +20,157 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Paul -- please see my response below.
+--========GMX1685122599305747776
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-> Paul in NW Florida
->> ----- Original Message -----
->> From: "Michael Krufky" <mkrufky@linuxtv.org>
->> To: "Paul Guzowski" <guzowskip@linuxmail.org>
->> Cc: linux-dvb@linuxtv.org
->> Subject: Re: [linux-dvb] Channel configuration files....
->> Date: Wed, 5 Nov 2008 11:41:27 -0500
->>
->>
->> On Wed, Nov 5, 2008 at 6:58 AM, Paul Guzowski <guzowskip@linuxmail.org> wrote:
->> > Greetings,
->> >
->> > Does anyone on this list have a sample channel.conf file for
->> > Brighthouse Networks cable or can anyone give enough information
->> > (frequencies, transponders, etc) so that I can try to build one?
->> > Thanks in advance.
->> >
->> > Paul in NW Florida
->>
->> Paul,
->>
->> You can use "scan" from dvb-apps, using the scan file,
->> "us-Cable-Standard-center-frequencies-QAM256" ...  If that doesn't
->> work, you can try the other QAM256 cable scan files, located in the
->> util/scan/atsc/ directory of dvb-apps.
->>
->> Alternatively, you can use the latest version of w_scan WITHOUT any
->> scan file.  This should produce the best results.
->>
->> The latest version of w_scan with atsc / qam scanning support can be
->> downloaded from here:
->>
->> http://wirbel.htpc-forum.de/w_scan/w_scan-20080815.tar.bz2
->>
->> You can scan cable using this command:
->>
->> w_scan -A2 -X > channels.conf
->>
->> Good luck.
->>
->> -Mike Krufky
-
-
-On Fri, Nov 7, 2008 at 9:05 AM, Paul Guzowski <guzowskip@linuxmail.org> wrote:
-> Greetings Mike,
->
-> I tried your suggestion and didn't have any success.  I know there are cable signals coming over the line because two other TVs in the house (one analog and one HDTV-capable) can tune channels.  If I connect to the RF-out from the digital set-top box, I can use mplayer tuned to channel 3 to watch TV but I'd like to be able to tune from the cable directly. Not sure what to try next.  Here's the results of my test:
->
-> paul@Kris-desktop:/media/Data/Computer/Downloads/Linux/Multimedia/w_scan-20080815$ w_scan -a0 -X > channels.conf
-> w_scan version 20080105
+> Hi,
+> 
+> Hans Werner wrote:
+> > Currently wscan will not autodetect frontends which which have frontend
+> != 0,
+> > i.e. it only detects /dev/dvb/adapterN/frontend0 where N=0-3.
+> >
+> > Since multiple frontends per adapter are supported in 2.6.28, this means
+> the correct
+> > frontend may not be found. For example with the HVR4000, DVB-T is always
+> at frontend1.
+> >
+> > The attached patch fixes this, searching for frontend 0-3 for each
+> adapter 0-3.
+> >
+> > Signed-off-by: Hans Werner <hwerner4@gmx.de>
+> Good idea. :)
+> But while testing your patch it seems that it doesn't work as expected. 
+> Here some example:
+> 
+> w_scan version 20081106
+> Info: using DVB adapter auto detection.
+>    Found DVB-C frontend. Using adapter /dev/dvb/adapter0/frontend0
+>    Found DVB-C frontend. Using adapter /dev/dvb/adapter1/frontend0
+>    Found DVB-C frontend. Using adapter /dev/dvb/adapter2/frontend0
+> Info: unable to open frontend /dev/dvb/adapter3/frontend1'
+> Info: unable to open frontend /dev/dvb/adapter3/frontend2'
+> Info: unable to open frontend /dev/dvb/adapter3/frontend3'
 > -_-_-_-_ Getting frontend capabilities-_-_-_-_
-> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-> ERROR: Sorry - i couldn't get any working frequency/transponder
->  Nothing to scan!!
-> dumping lists (0 services)
-> Done.
-> paul@Kris-desktop:/media/Data/Computer/Downloads/Linux/Multimedia/w_scan-20080815$
->
+> 
+> I'm using three dvb-c frontends.
+> The detection doesnt stop anymore with your patch if a matching frontend 
+> was found, because it doesnt leave the outer loop.
+> Normally this search has to stop at /dev/dvb/adapter0/frontend0.
 
+OK I see, you want to use the first usable card found, not the last as in my patch.
 
-Paul,
+> That means we have to change your patch a little. I also increased the 
+> number of adapters to 8, since i use more than 4.
+> 
+> Can you please test the attached patch and give some feedback? If it 
+> works fine for you, i would apply to w_scan.
+> 
+> -Winfried
+> 
+> PS: What is actually the maximum number of adapters and frontends per 
+> adapter? Can anybody give some hint?
 
-The policy of this mailing list, and almost all linux mailing lists,
-is to enter your replies BELOW the quoted text.  Do not top-post.
+Your patch works fine for me. I would add one thing though: close the frontend if it
+is the wrong type. I have attached a new patch.
 
-Please notice above, that I instructed you to pass " -A2 -X " into the
-w_scan command line.  You passed " -a0 -X " ..  The -a? and -A? are
-two entirely different command line switches.  If you're trying to
-scan QAM, then you must pass -A2
+Thanks,
+Hans
+-- 
+Release early, release often.
 
--Mike
+"Feel free" - 5 GB Mailbox, 50 FreeSMS/Monat ...
+Jetzt GMX ProMail testen: http://www.gmx.net/de/go/promail
+
+--========GMX1685122599305747776
+Content-Type: text/x-patch;
+ charset="iso-8859-15";
+ name="patch_wscan_fixautodetection3.diff"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment; filename="patch_wscan_fixautodetection3.diff"
+
+diff -Nur w_scan-20080815/scan.c w_scan-20080815_patch3/scan.c
+--- w_scan-20080815/scan.c	2008-08-16 09:02:01.000000000 +0100
++++ w_scan-20080815_patch3/scan.c	2008-11-06 17:31:23.000000000 +0000
+@@ -77,7 +77,7 @@
+ 	.type = -1
+ };
+ 
+-uint version = 20080815;
++uint version = 20081106;
+ int verbosity = 2;
+ 
+ #define ATSC_VSB	0x01
+@@ -2579,7 +2579,7 @@
+ {
+ 	char frontend_devname [80];
+ 	int adapter = 999, frontend = 0, demux = 0;
+-	int opt, i;
++	int opt, i, j;
+ 	int frontend_fd;
+ 	int fe_open_mode;
+ 	int frontend_type = FE_OFDM;
+@@ -2715,19 +2715,20 @@
+ 	if ( adapter == 999 ) {
+ 		info("Info: using DVB adapter auto detection.\n");
+ 		fe_open_mode = O_RDWR | O_NONBLOCK;
+-		for (i=0; i < 4; i++) {
+-		  snprintf (frontend_devname, sizeof(frontend_devname),  		"/dev/dvb/adapter%i/frontend0", i);
+-		  if ((frontend_fd = open (frontend_devname, fe_open_mode)) < 0) {
+-		  	info("Info: unable to open frontend %s'\n", frontend_devname);
++
++		for (i=0; i < 8; i++) {
++		  for (j=0; j < 4; j++) {
++		    snprintf (frontend_devname, sizeof(frontend_devname), "/dev/dvb/adapter%i/frontend%i", i, j);
++		    if ((frontend_fd = open (frontend_devname, fe_open_mode)) < 0) {
+ 			continue;
+ 			}
+-		/* determine FE type and caps */
+-		if (ioctl(frontend_fd, FE_GET_INFO, &fe_info) == -1) {
++		    /* determine FE type and caps */
++		    if (ioctl(frontend_fd, FE_GET_INFO, &fe_info) == -1) {
+ 			info("   ERROR: unable to determine frontend type\n");
+ 			close (frontend_fd);
+ 			continue;
+-			}		  
+-		if (fe_info.type==frontend_type) {
++			}
++		    if (fe_info.type == frontend_type) {
+ 			if (fe_info.type == FE_OFDM) 
+ 			  info("   Found DVB-T frontend. Using adapter %s\n",frontend_devname);
+                         else if (fe_info.type == FE_ATSC)
+@@ -2736,9 +2737,16 @@
+ 			  info("   Found DVB-C frontend. Using adapter %s\n",frontend_devname);                     
+ 			close (frontend_fd);
+ 			adapter=i;
++			frontend=j;
++			i=999;
+ 			break;
+-			} 		
++			}
++                     else {
++ 			info("   Wrong type, ignoring frontend %s\n",frontend_devname);
++			close (frontend_fd);
++			}
+ 
++		  }
+ 		}
+ 	}
+ 	snprintf (frontend_devname, sizeof(frontend_devname),
+
+--========GMX1685122599305747776
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--========GMX1685122599305747776--
