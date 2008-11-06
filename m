@@ -1,20 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from em-p00-ob.rzone.de ([81.169.146.225])
+Received: from smtp.seznam.cz ([77.75.72.43])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <lester@kortenhoeven.de>) id 1KyQKG-0006Zb-92
-	for linux-dvb@linuxtv.org; Fri, 07 Nov 2008 13:20:33 +0100
-Received: from post.webmailer.de (hat.store [192.168.40.68])
-	by bjorn-em-01.store (RZmta 17.17) with ESMTP id a018cekA7AoF9P
-	for <linux-dvb@linuxtv.org>; Fri, 7 Nov 2008 13:20:28 +0100 (MET)
-Received: (from httpd@localhost)
-	by post.webmailer.de (8.13.7/8.13.6) id mA7C7bS6001364
-	for linux-dvb@linuxtv.org; Fri, 7 Nov 2008 13:07:37 +0100 (MET)
-Date: Fri, 7 Nov 2008 13:07:37 +0100 (MET)
-Message-Id: <200811071207.mA7C7bS6001364@post.webmailer.de>
+	(envelope-from <oldium.pro@seznam.cz>) id 1KyB9C-0005xn-CN
+	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 21:08:07 +0100
+From: Oldrich Jedlicka <oldium.pro@seznam.cz>
 To: linux-dvb@linuxtv.org
-From: "Lester Kortenhoeven" <lester@kortenhoeven.de>
+Date: Thu, 6 Nov 2008 21:06:17 +0100
 MIME-Version: 1.0
-Subject: [linux-dvb] Hauppauge Nova-S-USB2 (HCW WinTV Model 47xxx)
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_540EJaxoL3Hliy3"
+Message-Id: <200811062106.17834.oldium.pro@seznam.cz>
+Subject: [linux-dvb] Updated DVB-T scan file cz-Plzen
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,20 +18,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--Boundary-00=_540EJaxoL3Hliy3
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
 Hi,
 
-I own a Hauppauge Nova-S-USB2 (HCW WinTV Model 47xxx) and would like to help with the development for this device. I have some experience in application development, but no experience in driver development. But maybe I can help with testing experimental drivers and posting bug-reports. Is there an experimental driver for this device? How can I help?
+Here is updated DVB-T frequency table cz-Plzen (new channel).
 
+Regards,
+Oldrich.
 
-Lester Kortenhoeven
+--Boundary-00=_540EJaxoL3Hliy3
+Content-Type: text/plain;
+  charset="utf-8";
+  name="cz-Plzen"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename="cz-Plzen"
+
+# DVB-T Plzen (Pilsen, Czech Republic)
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+# MUX 1 Ceska televize
+T 578000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+# MUX 2 Ceske Radiokomunikace
+T 690000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+# MUX 3 Czech Digital Group
+T 722000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+
+--Boundary-00=_540EJaxoL3Hliy3
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_540EJaxoL3Hliy3--
