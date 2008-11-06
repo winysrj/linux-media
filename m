@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.24])
+Received: from ey-out-2122.google.com ([74.125.78.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <dans.spam@gmail.com>) id 1L1cTb-0006lF-W9
-	for linux-dvb@linuxtv.org; Sun, 16 Nov 2008 08:55:24 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so792590eya.17
-	for <linux-dvb@linuxtv.org>; Sat, 15 Nov 2008 23:55:20 -0800 (PST)
-Message-ID: <cda0e2660811152355m32a391b0x187d75497a1f2d9c@mail.gmail.com>
-Date: Sat, 15 Nov 2008 23:55:20 -0800
-From: "Dan Sanders" <dans.spam@gmail.com>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1Ky0qk-00018k-Td
+	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 10:08:24 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so186983eya.17
+	for <linux-dvb@linuxtv.org>; Thu, 06 Nov 2008 01:08:19 -0800 (PST)
+Date: Thu, 6 Nov 2008 10:08:12 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
 To: linux-dvb@linuxtv.org
+In-Reply-To: <49124960.6070101@andrei.myip.org>
+Message-ID: <alpine.DEB.2.00.0811060903100.22461@ybpnyubfg.ybpnyqbznva>
+References: <491236F2.4050101@andrei.myip.org>
+	<200811060153.37102.hftom@free.fr>
+	<49124960.6070101@andrei.myip.org>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] WinTV-HVR-1500 analog - firmware loading problem
+Subject: Re: [linux-dvb] HD over satellite? (h.264)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,67 +28,84 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Mojn,
 
-I am trying to get my WinTV-HVR-1500 working. I am using the
-~stoth/cx23885-audio repository, which seems to be the only one with
-HVR-1500 analog support, but I am getting an error in the firmware
-step for the tuner chip.
+You have given no clue that I can see without research in your
+message as to which particular services are of interest to you,
+and a hint to your location, so I will have to generalise about
+things here...
 
-dmesg looks like this:
+On Wed, 5 Nov 2008, Florin Andrei wrote:
 
-[ 1099.493745] Linux video capture interface: v2.00
-[ 1099.503677] cx23885 driver version 0.0.1 loaded
-[ 1099.503732] cx23885 0000:03:00.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
-[ 1099.503810] CORE cx23885[0]: subsystem: 0070:7790, board: Hauppauge
-WinTV-HVR1500 [card=6,insmod option]
-[ 1099.612900] cx23885[0]: i2c bus 0 registered
-[ 1099.613604] cx23885[0]: i2c bus 1 registered
-[ 1099.614250] cx23885[0]: i2c bus 2 registered
-[ 1099.642338] tveeprom 0-0050: Encountered bad packet header [ff].
-Corrupt or not a Hauppauge eeprom.
-[ 1099.642344] cx23885[0]: warning: unknown hauppauge model #0
-[ 1099.642346] cx23885[0]: hauppauge eeprom: model=0
-[ 1099.651724] cx25840' 2-0044: cx25  0-21 found @ 0x88 (cx23885[0])
-[ 1099.666656] tuner' 1-0061: chip found @ 0xc2 (cx23885[0])
-[ 1099.687281] xc2028 1-0061: creating new instance
-[ 1099.687288] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-[ 1099.692057] xc2028 1-0061: destroying instance
-[ 1099.692142] xc2028 1-0061: creating new instance
-[ 1099.692144] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-[ 1099.692280] cx23885[0]/0: registered device video0 [v4l2]
-[ 1099.692610] cx23885[0]/1: registered ALSA audio device
-[ 1099.692616] firmware: requesting xc3028-v27.fw
-[ 1099.848072] xc2028 1-0061: Loading 80 firmware images from
-xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-[ 1100.046592] xc2028 1-0061: Loading firmware for type=BASE (1), id
-0000000000000000.
-[ 1100.667376] xc2028 1-0061: i2c output error: rc = -5 (should be 64)
-[ 1100.667384] xc2028 1-0061: -5 returned from send
-[ 1100.667388] xc2028 1-0061: Error -22 while loading base firmware
-[ 1100.918459] xc2028 1-0061: Loading firmware for type=BASE (1), id
-0000000000000000.
-[ 1101.487794] xc2028 1-0061: i2c output error: rc = -5 (should be 64)
-[ 1101.487803] xc2028 1-0061: -5 returned from send
-[ 1101.487807] xc2028 1-0061: Error -22 while loading base firmware
-[ 1101.491986] firmware: requesting v4l-cx23885-avcore-01.fw
-[ 1102.220875] cx25840' 2-0044: loaded v4l-cx23885-avcore-01.fw
-firmware (16382 bytes)
-[ 1102.235880] cx23885[0]: cx23885 based dvb card
-[ 1102.287830] xc2028 1-0061: attaching existing instance
-[ 1102.287839] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-[ 1102.289726] DVB: registering new adapter (cx23885[0])
-[ 1102.290448] DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB
-Frontend)...
-[ 1102.319882] cx23885_dev_checkrevision() Hardware revision = 0xb0
-[ 1102.319899] cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 18,
-latency: 0, mmio: 0xa8400000
-[ 1102.319911] cx23885 0000:03:00.0: setting latency timer to 64
+> A quick search on the Eutelsat website revealed that they transmit using =
+> DVB-S. So a DVB-S card like the Hauppauge WinTV-NOVA-S-Plus which I plan =
+> to purchase should be able to receive it, is that right?
+> 
+> (I can't receive Eutelsat from my area, but if they start broadcasting =
+> their HD channels on Galaxy 25, the way they do already with SD, then =
+> I'll be able to receive them.)
 
-Thanks for any help!
+In most cases I've seen, when DVB-S is used to trasmit H.264
+HDTV, it's in order to share a transponder between conventional
+MPEG-2 broadcasts.  Usually, when a transponder gets converted
+to HDTV only, it uses DVB-S2.
+
+I would not rely on a particular transponder remaining DVB-S
+if you have interest in any HDTV -- particularly if you are
+planning an initial investment in a card.  I would suggest
+getting a DVB-S2 card, capable of DVB-S, and avoiding unpleasant
+surprises later, future-proofing yourself for some time.
 
 
-- Dan
+As a concrete example of what I mean, BBC-HD presently shares
+a transponder with two SD BBC services which must be received
+by existing non-S2-able Sky and FTA receivers.  The german
+EinsFestival HD showcases shared a transponder with existing
+SD services.  The present arte-HD and coming ARD and ZDF HD
+services have their dedicated transponder, no SD services,
+and use -S2.  The Hotbird Hungarian and Swiss HD services
+share space with SD and use DVB-S.
+
+There do exist transponders which use the more efficient
+DVB-S2 yet carry a payload of MPEG-2 services, just as there
+are H.264 services on DVB-S.  One does not require the other.
+Generally, HD services do not need to be concerned with
+consumer equipment that cannot receive DVB-S2, and are able
+to use that without concern.  While nearly all SD-only
+consumer equipment has no DVB-S2 ability and is stuck with
+DVB-S2.
+
+
+
+> Right. OTOH, I expect the satellite stuff to be transmitted at a pretty =
+> low bitrate, also perhaps with the more complex encoding features turned =
+
+The services which use lower bitrates (for HD, less than,
+say, 10Mbit/sec where the broadcasts I know of start), if
+what I see on SD is a guide, are likely to be budget-tight
+commercial broadcasts or niche programming that is highly
+unlikely to be contemplating HD, adverts that push to the
+limits the frequency of keyframes or entropy of the content
+in order to trickle ``moving'' pictures on a budget.  Or
+pr0n that looks to be modelled by airbrushed Lego blocks.
+
+Argh, speaking of which, the HD-pr0n that I wanted to see
+bitrate (technical meaning thereof) has disappeared, so I
+have no clue what they used while it existed, purely for
+research purposes, you know...
+
+If you wanted to name the service, we could tell you what
+bitrate is used (and many of the auto-scanning DX websites
+list this as well, if you want to look yourself)...  Else
+my examples of well-funded quality-concerned Public Service
+Broadcasters, or of subscriber-financed subscription
+packages, might be inapplicable -- I pay attention to both
+technical and content quality where interested, and have
+no idea what you may have to suffer where you are.
+
+
+thanks
+barry bouwsma
 
 _______________________________________________
 linux-dvb mailing list
