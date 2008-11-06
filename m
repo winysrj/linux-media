@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGIt48v000836
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 13:55:04 -0500
-Received: from smtp104.rog.mail.re2.yahoo.com (smtp104.rog.mail.re2.yahoo.com
-	[206.190.36.82])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAGIsqlA025420
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 13:54:52 -0500
-Message-ID: <49206C7B.1070609@rogers.com>
-Date: Sun, 16 Nov 2008 13:54:51 -0500
-From: CityK <cityk@rogers.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-References: <491CC096.7090107@rogers.com>	
-	<f3ae23390811140559i5e235c3bvabe8d5004d57165@mail.gmail.com>	
-	<4920603D.20906@rogers.com>
-	<412bdbff0811161016w91fc6c1s67e84519e2505b05@mail.gmail.com>
-	<49206A4C.6080602@rogers.com>
-In-Reply-To: <49206A4C.6080602@rogers.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA60BZO1010938
+	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 19:11:35 -0500
+Received: from mail-in-09.arcor-online.net (mail-in-09.arcor-online.net
+	[151.189.21.49])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA60BL2J007403
+	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 19:11:22 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: picciuX <matteo@picciux.it>, Ricardo Cerqueira <v4l@cerqueira.org>
+In-Reply-To: <c41ce8440811040609v591ae268y80d6669dccf55862@mail.gmail.com>
+References: <c41ce8440810310231gdb614bcred3f4386de883abb@mail.gmail.com>
+	<1225586521.2642.7.camel@pc10.localdom.local>
+	<c41ce8440811040609v591ae268y80d6669dccf55862@mail.gmail.com>
+Content-Type: text/plain
+Date: Thu, 06 Nov 2008 01:09:31 +0100
+Message-Id: <1225930171.3338.8.camel@pc10.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: AVerMedia EZMaker USB Gold
+Cc: video4linux-list@redhat.com
+Subject: Re: Pinnacle PCTV 310i Remote: i2c 'ERROR: NO_DEVICE'
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,19 +30,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Just a quick add on:
+Hi Matteo,
 
-CityK wrote:
-> Looking at the pics, I now recall that the interesting thing about the
-> 7136 in that case is that it isn't the bridge, just the decoder 
+Am Dienstag, den 04.11.2008, 15:09 +0100 schrieb picciuX:
+> 2008/11/2 hermann pitton <hermann-pitton@arcor.de>:
+> 
+> > don't have that remote, but also enable ir-kbd-i2c debug=1.
+> >
+> > ir-kbd-i2c: probe 0x7a @ saa7133[0]: no
+> > ir-kbd-i2c: probe 0x47 @ saa7133[0]: no
+> > ir-kbd-i2c: probe 0x71 @ saa7133[0]: no
+> > ir-kbd-i2c: probe 0x2d @ saa7133[0]: no
+> > ir-kbd-i2c: probe 0x7a @ saa7133[1]: no
+> > ir-kbd-i2c: probe 0x47 @ saa7133[1]: no
+> > ir-kbd-i2c: probe 0x71 @ saa7133[1]: no
+> > ir-kbd-i2c: probe 0x2d @ saa7133[1]: no
+> >
+> > You should have the device found at 0x47.
+> >
+> 
+> In fact i see:
+> 
+> ir-kbd-i2c: probe 0x47 @ saa7133[0]: yes
+> 
+> So everything seemed to go well. But, same story for the rest: ERROR:
+> NO_DEVICE when i press buttons on the remote.
+> What seems strange to me is the fact that the driver *reacts* to
+> remote key presses, but reacts with an error.
+> 
+> Cheers
+> Matteo
+> 
 
-Which is, of course, the same as in the Pinnacle stick you're working on.
+since you reported the trouble was already visible for you on earlier
+kernels, we might try to get a second confirmation at first.
 
-I could be wrong, but IIRC, there might be a version of the 7136 that
-does contain a PCI bridge  .... I think the bridgeless one is designated
-as "7136CE"
+Anyone out there? I'm sending a copy to Ricardo too, who added the
+support, not sure if he currently has time to read the list.
 
-Cheers
+Cheers,
+Hermann
+
+
+
+
 
 --
 video4linux-list mailing list
