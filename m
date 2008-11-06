@@ -1,22 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.26])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L0F8e-0006IC-66
-	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 13:48:08 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so158616eya.17
-	for <linux-dvb@linuxtv.org>; Wed, 12 Nov 2008 04:48:00 -0800 (PST)
-Date: Wed, 12 Nov 2008 13:47:45 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Alex Betis <alex.betis@gmail.com>
-In-Reply-To: <c74595dc0811120408l4ef3cf92g9b1efc850e3b0b48@mail.gmail.com>
-Message-ID: <alpine.DEB.2.00.0811121332240.22461@ybpnyubfg.ybpnyqbznva>
-References: <20081112023112.94740@gmx.net>
-	<c74595dc0811120243m4819b86bk84a5d23c8e00e467@mail.gmail.com>
-	<alpine.DEB.2.00.0811121212280.22461@ybpnyubfg.ybpnyqbznva>
-	<c74595dc0811120408l4ef3cf92g9b1efc850e3b0b48@mail.gmail.com>
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <florin@andrei.myip.org>) id 1KxsWw-0007Qn-40
+	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 01:15:23 +0100
+Received: from localhost (weiqi.home.local [127.0.0.1])
+	by weiqi.home.local (Postfix) with ESMTP id 3A52C576EE4
+	for <linux-dvb@linuxtv.org>; Wed,  5 Nov 2008 16:14:45 -0800 (PST)
+Received: from weiqi.home.local ([127.0.0.1])
+	by localhost (andrei.myip.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Xw0+jPWNfzB3 for <linux-dvb@linuxtv.org>;
+	Wed,  5 Nov 2008 16:14:43 -0800 (PST)
+Received: from [10.123.0.253] (unknown [10.123.0.253])
+	by weiqi.home.local (Postfix) with ESMTP id 63FB357711E
+	for <linux-dvb@linuxtv.org>; Wed,  5 Nov 2008 16:14:43 -0800 (PST)
+Message-ID: <491236F2.4050101@andrei.myip.org>
+Date: Wed, 05 Nov 2008 16:14:42 -0800
+From: Florin Andrei <florin@andrei.myip.org>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] HD over satellite? (h.264)
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,46 +27,28 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-7"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gV2VkLCAxMiBOb3YgMjAwOCwgQWxleCBCZXRpcyB3cm90ZToKCj4gQlRXLCB5b3UgZ2l2ZSBo
-ZXJlIGV4YW1wbGUgb2YgTklUIHBhcnNpbmcsIGRvIHlvdSBrbm93IHRoZSBmb3JtYXQgb2YgdGhl
-Cj4gbWVzc2FnZSBhbmQgd2hhdCBmaWVsZCBzcGVjaWZpZXMgdGhhdCB0aGUgZGVsaXZlcnkgc3lz
-dGVtIGlzIERWQi1TMj8gc2Nhbgo+IHV0aWxpdHkgY29kZSBkb2Vzbid0IHBhcnNlIGl0LCBzbyBJ
-IGp1c3QgYWRkIGJvdGggRFZCLVMgYW5kIERWQi1TMiBzY2FucyBmb3IKCkkndmUgc3BlbnQgeWVz
-dGVyZGF5IGhhY2tpbmcgVVRGLTggb3V0cHV0IGludG8gbXkgb2xkIGNvcHkKb2YgZHZiLWFwcHMg
-YW5kIHRoZW4gZmluZGluZyB0aGF0IHRoZSBHcmVlayAxM0UgSG90YmlyZHMKY2hhbm5lbCBgwu/1
-6946MTIxNjg6aDoyOjI3NTAwOjUxNzo3MDA6Mzg0JyBbVVRGLTggZW5jb2RlZCwKaG9wZSBteSBN
-SU1FIGhlYWRlcnMgYW5kIEVTTVRQIGFyZSBjb3JyZWN0XSBpcyBub3Qgc2VudCBhcwpsYXRpbi1n
-cmVlayBjaGFyc2V0LCBhbmQgdGh1cyBkb2Vzbid0IGFwcGVhciBwcm9wZXJseSBmb3IKbWUsIGJ1
-dCBhbnl3YXksIGhlcmUgaXMgYSBjb2RlIHNuaXBwZXQgb2YgbXkgYHNjYW4nIHRoYXQgc2VuZHMK
-dGhlIE5JVCBkdW1wIG9mIHRoZSBzY2FubmVkIHRyYW5zcG9uZGVyIHRvIHN0ZGVyciwgdGhhdCBJ
-CnVzZSB3aGVuIG5lZWRlZC4gIEN1dCduJ3Bhc3RlOyBhbHNvIHBhcnQgb2YgYSBtdWNoIGxhcmdl
-cgpzZXQgb2YgaGFja3MsIHNvIGl0J3MgbWVhbnQgYXMgYW4gZXhhbXBsZSwgYW5kIG5vdCB0byBi
-ZQp1c2VkIGFzIGBgdXNlZnVsJycgY29kZToKCisKK2NoYXIgKmZlY1sxMF0gPSB7Ik5PTkUiLCAi
-MS8yIiwgIjIvMyIsICIzLzQiLCAiNC81IiwgIjUvNiIsICI2LzciLCAiNy84IiwgIjgvOSIsICJB
-VVRPIiB9IDsKK2lmICh0bi50eXBlID09IDApIHsKKyAgaWYgKGR1bXBfbml0cyA9PSAxKSB7Cisg
-ICAgcHJpbnRmKCJOSVQgcmVzdWx0OiAgJWQgJXMgJWQgICBwb3MgICUuMWYlcyAgIiwgdG4ucGFy
-YW0uZnJlcXVlbmN5LCB0bi5wb2xhcmlzYXRpb24gPyAiViIgOiAiSCIsIHRuLnBhcmFtLnUucXBz
-ay5zeW1ib2xfcmF0ZSwgKGZsb2F0KXRuLm9yYml0YWxfcG9zLzEwLCB0bi53ZV9mbGFnID8gIkUi
-IDogIlciKTsKKyAgICBwcmludGYoIiAgRkVDICVzIiwgIGZlY1t0bi5wYXJhbS51LnFwc2suZmVj
-X2lubmVyXSApOworaWYgKHRuLm1vZHVsYXRpb24gJiAweDA0KSB7CisgICAgICAgcHJpbnRmKCIg
-IERWQi1TMiIpOworICBpZiAoKHRuLm1vZHVsYXRpb24gJiAweDAzKSA9PSAweDAxKSBwcmludGYg
-KCIgUVBTSyIpOworICBpZiAoKHRuLm1vZHVsYXRpb24gJiAweDAzKSA9PSAweDAyKSBwcmludGYg
-KCIgOFBTSyIpOworCit9CitpZiAodG4ucGFyYW0uaW52ZXJzaW9uICE9IDIpCisgICAgICAgcHJp
-bnRmKCIgIGludiAlcyIsICB0bi5wYXJhbS5pbnZlcnNpb24gPyAiT0ZGIiA6ICJPTiIgLypYWFgg
-RklYTUUgKi8pOworcHJpbnRmKCJcbiIpOworICB9Cit9CisKCgpBbHNvLCBJIGJlbGlldmUgdGhh
-dCB0aGUgcmVjZW50IGBkdmJzbm9vcCcgaW52b2tlZCB3aXRoCmAtcyB0cyAtdHNzdWJkZWNvZGUn
-IG9uIHRoZSBOSVQgUElEIHdpbGwgdmVyYm9zZWx5IHBhcnNlCnRoZSBjb21wb25lbnRzIGFuZCBk
-aXNwbGF5IGV2ZXJ5dGhpbmcgLS0gSSBiZWxpZXZlIEkgdXNlZAp0aGF0IHNvdXJjZSBjb2RlIGFz
-IHRoZSBiYXNpcyBmb3IgdGhlIGFib3ZlIGhhY2suCgpJIHdvbmRlciBpZiBhbnkgb2YgbXkgb3Ro
-ZXIgZHZiLWFwcHMvc2NhbiBoYWNrcyB3b3VsZCBiZQpvZiBpbnRlcmVzdCBmb3Igc29tZW9uZSB0
-byBjbGVhbiB1cCAoZm9yIG1lLCBmdW5jdGlvbgpiZWZvcmUgZm9ybSwgZXNwZWNpYWxseSB3aGVu
-IEkgZG9uJ3QgaGF2ZSBhIGNsdWUgYXMgdG8Kd2hhdCBJIGFtIGRvaW5nKS4uLgoKCmJhcnJ5IGJv
-dXdzbWEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
-bnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGlu
-dXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+I am currently receiving SD programs, MPEG2 encoded, with a small 
+receiver, and I plan to use a DVB-S card pretty soon with my MythTV box.
+
+But I noticed that the european TV network that I watch over satellite 
+is now doing experiments with HD. They are testing HD broadcast over 
+satellite, encoded with h.264. They call it DVB-S HD.
+
+Question: Are you aware of any receiver that can be used with Linux to 
+capture DVB-S HD?
+
+-- 
+Florin Andrei
+
+http://florin.myip.org/
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
