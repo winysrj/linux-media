@@ -1,22 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from blu0-omc1-s12.blu0.hotmail.com ([65.55.116.23])
+Received: from viefep18-int.chello.at ([213.46.255.22])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stevthro@hotmail.fr>) id 1Ky4SB-0007W2-OE
-	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 13:59:21 +0100
-Message-ID: <BLU126-W6957B65360F3DA0A48FDEAF1E0@phx.gbl>
-From: Steve Thro <stevthro@hotmail.fr>
-To: <darron@kewl.org>
-Date: Thu, 6 Nov 2008 13:58:41 +0100
-In-Reply-To: <15933.1225913396@kewl.org>
-References: <BLU126-W211E02BF45832661F2020BAF1F0@phx.gbl>
-	<14964.1225909409@kewl.org>
-	<BLU126-W1455E0B6279BBF11D1BDD4AF1F0@phx.gbl>
-	<15308.1225910609@kewl.org>
-	<BLU126-W53DD1C6541585D37293AC1AF1F0@phx.gbl>
-	<15933.1225913396@kewl.org>
+	(envelope-from <basq@bitklub.hu>) id 1Kxzoa-00055h-2h
+	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 09:02:08 +0100
+Date: Thu, 6 Nov 2008 09:01:11 +0100
+From: Kovacs Balazs <basq@bitklub.hu>
+Message-ID: <1745079361.20081106090111@bitklub.hu>
+To: Ales Jurik <ajurik@quick.cz>
+In-Reply-To: <200811041018.27417.ajurik@quick.cz>
+References: <167586304.20081103115116@bitklub.hu>
+	<20081103155903.245267fe@bk.ru>
+	<54283792.20081104090010@bitklub.hu>
+	<200811041018.27417.ajurik@quick.cz>
 MIME-Version: 1.0
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] no lock on 3/4 with cx24116
+Subject: Re: [linux-dvb] S2API + TT3200 + Amos4w 10.723 S2 problem
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,38 +22,79 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
->>There are some difference between your output and mine:
->>yours:
->>rolloff 0.35
->>sid 0x0edb
->>
->>mine=3D3B
->>rolloff auto
->>sid 0x0000
->>
-
-It's locking now changing the rolloff value from 0 to 35
-
-Discovery HD;BSkyB:12324:VC34M2O35S1:S28.2E:29500:514=3D27:0;662=3Deng:0:0:=
-3803:2:2032:0
-
-Thanks Darron for the patch,
-
-Steve,
-
-_________________________________________________________________
-In=E9dit ! Des Emotic=F4nes D=E9jant=E9es! Installez les dans votre Messeng=
-er ! =
-
-http://www.ilovemessenger.fr/Emoticones/EmoticonesDejantees.aspx
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+QWxlcywgY2FuIHlvdSB0ZXN0IG1lIHdoYXQgaGFwcGVucyBpZiB5b3UganVzdCB3YW50IHRvIGxv
+Y2sgb24gdGhlc2UgVFAncz8gSXMgaXQgc3RhYmxlIGZvciB5b3U/CgpDYW4geW91IHR1biBhIHN6
+YXAgYW5kIHdhdGNoIGl0IGlmIHRoZSBjYXJkIGxvc3QgdGhlIGxvY2sgb3IgaXMgaXQgbG9ja2Vk
+IHN0YWJsZT8KCkkndmUgdHJpZWQgYSBTa3lzdGFyIEhEMiBjYXJkIHdpdGggczItbGlwbGlhbmlu
+IGRyaXZlcnMgYnV0IHRoZSByZXN1bHQgaXMgdGhlIHNhbWUuIFNvbWV0aW1lcyBJIGNhbiBzY2Fu
+IHRoZSBUUCdzIGlmIHRoZSBjYXJkIGlzIGxvY2tlZCBmb3IgYSAxLTIgc2Vjb25kIHBlcmlvZCwg
+dGhlbiBpdCBsb3N0cyB0aGUgbG9jay4KClRoaXMgY291bGQgYmUgYSBkcml2ZXIgaXNzdWUsIGJl
+Y2F1c2UgdW5kZXIgV2luZG93cyB3aXRoIHRoZSBvcmlnaW5hbCBUVCBXRE0gb3IgQkRBIGRyaXZl
+cnMgdGhlIFRUMzIwMCB3b3JrcyBwZXJmZWN0IG9uIHRoZXNlIFRQJ3MuCgp0aGFueCwKCmJhc3EK
+Cj4gT24gVHVlc2RheSAwNCBvZiBOb3ZlbWJlciAyMDA4LCBLb3ZhY3MgQmFsYXpzIHdyb3RlOgo+
+PiA+PiAgIEZZSTogb24gdGhlc2UgVFAncyB0aGVyZSdzIGEgcGlsb3Qgc2lnbmFsIGFuZCByb2xs
+b2ZmIHNldCB0byAwLjIwLgo+PiA+Cj4+ID4gSSdtIHdvbmRlcmluZyAtIGhvdyBkaWQgeW91IG9i
+c2VydmUgaXQgPwoKPj4gSSBhc2tlZCBteSBjb2xsZWFndWVzIHdobyBzZXQgdXAgdGhpcyBtb2R1
+bGF0b3IgYXQgdXBsaW5rIHNpdGUsIGJlY2F1c2Ugd2UKPj4gYXJlIHdvcmtpbmcgb24gdGhlc2Ug
+c2F0ZWxsaXRlIERUSCBzeXN0ZW0uCgo+PiBJcyBhbnlib2R5IGNhbiBzdWdnZXN0IGEgd29ya2lu
+ZyBEVkItUzIgY2FyZCArIGxpbnV4IGRyaXZlciB3aGljaCBpcwo+PiBjYXBhYmxlIHRvIGxvY2sg
+aGVyZSBzdGFibGU/IChBTU9TIDQuMFcsIDEwLjcyM0doeiBWLCAzMDAwMCkKCj4+IHRoYW5rIHlv
+dSwKCj4+IGJhc3EKCj4gSSBkb24ndCBoYXZlIGFueSBwcm9ibGVtIHdpdGggbG9jayB3aXRoIG15
+IGxhc3QgZHZiLWxpcGxpYW5pbiBkcml2ZXJzIAo+IChtdWx0aXByb3RvKSBhbmQgSFZSLTQwMDAu
+Cgo+IEJ1dCB0aGUgcm9sbG9mZiBpcyBhdXRvbWF0aWNhbGx5IHNldCBieSB0aGUgZHJpdmVyIHRv
+IDAuMzUuCgo+IEhlcmUgaXMgdGhlIGF1dG9tYXRpY2FsbHkgZG9uZSBzY2FuIGZyb20gdmRyLTEu
+Ny4wLiBJJ3ZlIGVkaXRlZCB0aGUgcm9sbG9mZiB0bwo+IDAuMjAgYnV0IGl0IGRvZXNuJ3Qgc2Vl
+bXMgdG8gaGVhdmUgYW55IGluZmx1ZW5jZSBldmVuIGlmIEkgZGlzYWJsZSB1cGRhdGUgb2YKPiBj
+aGFubmVscy4gCgo+IFRoZSB2aWRlbyBvbiBGVEEgY2hhbm5lbHMgaXMgc29tZXRoaW5nIGxpa2Ug
+bm90IGZsdWVudCAob25seSBSVEwgZG9lc24ndCBoYXZlCj4gdGhpcyBwcm9ibGVtKSAtIGJ1dCBp
+dCBjb3VsZCBiZSB0aGF0IG5vIHNvdW5kIG9uZSB0aGF0IGNoYW5uZWxzIGlzIAo+IGJyb2FkY2Fz
+dGVkLgoKPiBCUiwKCj4gQWxlcwoKPiBSVEwKPiBLbHViO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8y
+MFMxOlM0LjBXOjMwMDAwOjE3OToxNzc9aHVuOjE4MDpCMDA6MToxMDA6MTowCj4gdHYyO1QtS8OG
+YmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjE3NDoxNzI9aHVuOjE3NTpCMDA6Mjox
+MDA6MTowCj4gbTE7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTY5OjA6
+MTcwOkIwMDozOjEwMDoxOjAKPiBtMjtULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4wVzoz
+MDAwMDoxNjQ6MDoxNjU6QjAwOjQ6MTAwOjE6MAo+IFRWIERla287VC1Lw4ZiZWw6MTA3MjM6dkMy
+M001TzIwUzE6UzQuMFc6MzAwMDA6MTU5OjA6MDpCMDA6NToxMDA6MTowCj4gVFYgUGFwcmlrYTtU
+LUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4wVzozMDAwMDoxNTQ6MDowOkIwMDo2OjEwMDox
+OjAKPiBLaWRzY287VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTQ5OjA6
+MDpCMDA6NzoxMDA6MTowCj4gTWluaW1heDtULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4w
+VzozMDAwMDoxNDQ6MDowOkIwMDo4OjEwMDoxOjAKPiBYWFh0cmVtZTtULUvDhmJlbDoxMDcyMzp2
+QzIzTTVPMjBTMTpTNC4wVzozMDAwMDowOjA6MDowOjk6MTAwOjE6MAo+IE1UVgo+IEh1bmdhcnk7
+VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTM0OjA6MDpCMDA6MTA6MTAw
+OjE6MAo+IFZIMTtULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBTMTpTNC4wVzozMDAwMDoxMjk6MDow
+OkIwMDoxMToxMDA6MTowCj4gTWFneWFyCj4gQVRWO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMx
+OlM0LjBXOjMwMDAwOjEyNDowOjA6QjAwOjEyOjEwMDoxOjAKPiBQbGF5Ym95IFRWO1QtS8OGYmVs
+OjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjA6MDowOjA6MTM6MTAwOjE6MAo+IEVjaG8g
+VFY7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MTE0OjA6MDpCMDA6MTQ6
+MTAwOjE6MAo+IEjDhmzDsHphdAo+IFRWO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBX
+OjMwMDAwOjEwOTowOjA6QjAwOjE1OjEwMDoxOjAKPiBNVFYyO1QtS8OGYmVsOjEwNzIzOnZDMjNN
+NU8yMFMxOlM0LjBXOjMwMDAwOjEwNDowOjA6QjAwOjE2OjEwMDoxOjAKPiBSZWZsZWt0b3I7VC1L
+w4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6OTk6MDowOkIwMDoxNzoxMDA6MTow
+Cj4gZmlsbTIrO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjk0OjA6MDpC
+MDA6MTg6MTAwOjE6MAo+IENvb2w7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAw
+MDA6ODk6MDowOkIwMDoxOToxMDA6MTowCj4gUG/DmG47VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIw
+UzE6UzQuMFc6MzAwMDA6ODQ6MDowOkIwMDoyMDoxMDA6MTowCj4gc29yb3phdCs7VC1Lw4ZiZWw6
+MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6Nzk6MDowOkIwMDoyMToxMDA6MTowCj4gZmls
+bSs7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6NzQ6MDowOkIwMDoyMjox
+MDA6MTowCj4gRmlzaGluZyBhbmQgCj4gSHVudGluZztULUvDhmJlbDoxMDcyMzp2QzIzTTVPMjBT
+MTpTNC4wVzozMDAwMDo2OTowOjA6QjAwOjIzOjEwMDoxOjAKPiBTcG9ydCBLbHViO1QtS8OGYmVs
+OjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjY0OjA6MDpCMDA6MjQ6MTAwOjE6MAo+IFNw
+b3J0Cj4gS2x1Yis7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6NTk6MDow
+OkIwMDoyNToxMDA6MTowCj4gRG9xO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMw
+MDAwOjU0OjA6MDpCMDA6MjY6MTAwOjE6MAo+IHRlc3QxO1QtS8OGYmVsOjEwNzIzOnZDMjNNNU8y
+MFMxOlM0LjBXOjMwMDAwOjA6MDowOjA6Mjc6MTAwOjE6MAo+IHRlc3QyO1QtS8OGYmVsOjEwNzIz
+OnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjA6MDowOjA6Mjg6MTAwOjE6MAo+IHRlc3QzO1QtS8OG
+YmVsOjEwNzIzOnZDMjNNNU8yMFMxOlM0LjBXOjMwMDAwOjM5OjA6MDpCMDA6Mjk6MTAwOjE6MAo+
+IEjFpnIgVFY7VC1Lw4ZiZWw6MTA3MjM6dkMyM001TzIwUzE6UzQuMFc6MzAwMDA6MzQ6MDowOkIw
+MDozMDoxMDA6MTowCgoKPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwo+IGxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKPiBsaW51eC1kdmJAbGludXh0di5vcmcK
+PiBodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1k
+dmIKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51
+eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4
+dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
