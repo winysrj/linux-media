@@ -1,16 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp.seznam.cz ([77.75.72.43])
+Received: from mail.ukfsn.org ([77.75.108.10])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <oldium.pro@seznam.cz>) id 1L0imC-00081j-Gh
-	for linux-dvb@linuxtv.org; Thu, 13 Nov 2008 21:26:53 +0100
-From: Oldrich Jedlicka <oldium.pro@seznam.cz>
+	(envelope-from <h@realh.co.uk>) id 1Ky4MY-0006qB-Nc
+	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 13:53:27 +0100
+Received: from localhost (smtp-filter.ukfsn.org [192.168.54.205])
+	by mail.ukfsn.org (Postfix) with ESMTP id A2857DF0E0
+	for <linux-dvb@linuxtv.org>; Thu,  6 Nov 2008 12:53:25 +0000 (GMT)
+Received: from mail.ukfsn.org ([192.168.54.25])
+	by localhost (smtp-filter.ukfsn.org [192.168.54.205]) (amavisd-new,
+	port 10024) with ESMTP id kDkVxXvejC+Y for <linux-dvb@linuxtv.org>;
+	Thu,  6 Nov 2008 12:32:46 +0000 (GMT)
+Received: from realh.co.uk (unknown [84.45.223.215])
+	by mail.ukfsn.org (Postfix) with ESMTP id 478C5DF14C
+	for <linux-dvb@linuxtv.org>; Thu,  6 Nov 2008 12:53:25 +0000 (GMT)
+Date: Thu, 6 Nov 2008 12:53:21 +0000
+From: Tony Houghton <h@realh.co.uk>
 To: linux-dvb@linuxtv.org
-Date: Thu, 13 Nov 2008 21:25:07 +0100
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_j0IHJza+imCeSpl"
-Message-Id: <200811132125.07574.oldium.pro@seznam.cz>
-Subject: [linux-dvb] [PATCH] Fixed typo in sizeof() causing NULL pointer OOPS
+Message-ID: <20081106125321.1c0417e9@realh.co.uk>
+In-Reply-To: <1225939087.3602.41.camel@pc10.localdom.local>
+References: <491236F2.4050101@andrei.myip.org>
+	<200811060153.37102.hftom@free.fr>
+	<49124960.6070101@andrei.myip.org>
+	<1225939087.3602.41.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Subject: Re: [linux-dvb] HD over satellite? (h.264)
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,70 +31,29 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---Boundary-00=_j0IHJza+imCeSpl
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Thu, 06 Nov 2008 03:38:07 +0100
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
-Hi,
+> But people should know, as far I can say, that future HD broadcasts will
+> be DVB-S2 and to buy now something not capable of it will be, well,
+> Lehman and Iceland BS*, and nobody will compensate you. It is already
+> trash.
 
-I've found problem with memset() method in saa7134-cards.c. It causes "BUG: 
-unable to handle kernel NULL pointer dereference at 00000000" during 
-saa7134/xc2028 initialization.
+OTOH you can get a used DVB-S card now for 20ukp and by the time you
+really need DVB-S2 you should be able to get a better card that will be
+working with Linux by then (eg PCI-e, multiple tuners) or the price of
+single tuner PCI DVB-S2 cards may have dropped by as much as 20ukp.
 
-The solution is simple: use correct sizeof() in memset().
-
-Patch attached. I created it against 
-git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git tree.
-
-Regards,
-Oldrich.
-
---Boundary-00=_j0IHJza+imCeSpl
-Content-Type: text/x-diff;
-  charset="us-ascii";
-  name="saa7134-sizeof-typo.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline;
-	filename="saa7134-sizeof-typo.patch"
-
-commit 0d996babd6046b54d5a9194ea94ec7971adb0d17
-Author: Old=C5=99ich Jedli=C4=8Dka <oldium.pro@seznam.cz>
-Date:   Thu Nov 13 20:50:31 2008 +0100
-
-    Fixed typo in sizeof() causing NULL pointer OOPS
-   =20
-    Signed-off-by: Old=C5=99ich Jedli=C4=8Dka <oldium.pro@seznam.cz>
-
-diff --git a/drivers/media/video/saa7134/saa7134-cards.c b/drivers/media/vi=
-deo/saa7134/saa7134-cards.c
-index ddc5402..8635228 100644
-=2D-- a/drivers/media/video/saa7134/saa7134-cards.c
-+++ b/drivers/media/video/saa7134/saa7134-cards.c
-@@ -6048,7 +6048,7 @@ static void saa7134_tuner_setup(struct saa7134_dev *d=
-ev)
- 		struct v4l2_priv_tun_config  xc2028_cfg;
- 		struct xc2028_ctrl           ctl;
-=20
-=2D		memset(&xc2028_cfg, 0, sizeof(ctl));
-+		memset(&xc2028_cfg, 0, sizeof(xc2028_cfg));
- 		memset(&ctl, 0, sizeof(ctl));
-=20
- 		ctl.fname   =3D XC2028_DEFAULT_FIRMWARE;
-
---Boundary-00=_j0IHJza+imCeSpl
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+TH * http://www.realh.co.uk
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---Boundary-00=_j0IHJza+imCeSpl--
