@@ -1,24 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA60kmhh023603
-	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 19:46:48 -0500
-Received: from mail.isp.novis.pt (onyx.ip.pt [195.23.92.252])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA60kZvm022237
-	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 19:46:35 -0500
-From: Ricardo Cerqueira <v4l@cerqueira.org>
-To: hermann pitton <hermann-pitton@arcor.de>
-In-Reply-To: <1225930171.3338.8.camel@pc10.localdom.local>
-References: <c41ce8440810310231gdb614bcred3f4386de883abb@mail.gmail.com>
-	<1225586521.2642.7.camel@pc10.localdom.local>
-	<c41ce8440811040609v591ae268y80d6669dccf55862@mail.gmail.com>
-	<1225930171.3338.8.camel@pc10.localdom.local>
-Date: Thu, 06 Nov 2008 00:46:35 +0000
-Message-Id: <1225932395.13472.19.camel@frolic>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA6Nvo8O026387
+	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 18:57:50 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id mA6Nvafc030071
+	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 18:57:36 -0500
+Date: Fri, 7 Nov 2008 00:57:39 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: fpantaleao@mobisensesystems.com
+In-Reply-To: <20081106062638.luzmcyhgcgkcwsww@webmail.hebergement.com>
+Message-ID: <Pine.LNX.4.64.0811070054330.8681@axis700.grange>
+References: <20081106062638.luzmcyhgcgkcwsww@webmail.hebergement.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Pinnacle PCTV 310i Remote: i2c 'ERROR: NO_DEVICE'
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: Re: About CITOR register value for pxa_camera
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,68 +26,106 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all;
+On Thu, 6 Nov 2008, fpantaleao@mobisensesystems.com wrote:
 
-On Thu, 2008-11-06 at 01:09 +0100, hermann pitton wrote:
-> Hi Matteo,
+> Sure we can do it that way if the sensor is clocked by MCLK and no prescale is
+> done by the sensor.
+> In other cases, PCLK is controlled by sensor:
+> - sensor has its own clock
+> - MCLK is prescaled by the sensor.
+
+Right, then maybe we should request the sensor what quotient it's running 
+its pixel clock respective our master clock? In the master mode, of 
+course.
+
+(Please, don't top-post)
+
+Thanks
+Guennadi
+
 > 
-> Am Dienstag, den 04.11.2008, 15:09 +0100 schrieb picciuX:
-> > 2008/11/2 hermann pitton <hermann-pitton@arcor.de>:
+> Florian
+> 
+> ----- Original Message -----
+> From: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+> To: <fpantaleao@mobisensesystems.com>
+> Cc: <video4linux-list@redhat.com>
+> Sent: Wednesday, November 05, 2008 8:31 PM
+> Subject: Re: About CITOR register value for pxa_camera
+> 
+> 
+> > On Wed, 5 Nov 2008, fpantaleao@mobisensesystems.com wrote:
 > > 
-> > > don't have that remote, but also enable ir-kbd-i2c debug=1.
-> > >
-> > > ir-kbd-i2c: probe 0x7a @ saa7133[0]: no
-> > > ir-kbd-i2c: probe 0x47 @ saa7133[0]: no
-> > > ir-kbd-i2c: probe 0x71 @ saa7133[0]: no
-> > > ir-kbd-i2c: probe 0x2d @ saa7133[0]: no
-> > > ir-kbd-i2c: probe 0x7a @ saa7133[1]: no
-> > > ir-kbd-i2c: probe 0x47 @ saa7133[1]: no
-> > > ir-kbd-i2c: probe 0x71 @ saa7133[1]: no
-> > > ir-kbd-i2c: probe 0x2d @ saa7133[1]: no
-> > >
-
-
-Sorry, I missed the rest of the thread;
-
-In any case, from the above paste, it looks as if you have 2 saa713x
-boards in the system, right?
-
-I suspect the bug is somehow related to that (ir-kbd-i2c is getting the
-events, but sending them to the wrong board). Have you tried removing
-one of them?
-
---
-RC
-> > > You should have the device found at 0x47.
-> > >
+> > > Thank you for your answer.
+> > > I have tested with "67 x 1" resolution (and many others), I can't with
+> > > "1619 x
+> > > 1".
+> > > I don't get overruns with CITOR != 0.
+> > > > Before submitting a patch, I would like to have the opinion of other
+> > > developpers about the CITOR value.
+> > > The resulting time-out is CITOR/CICLK. What we need is a time-out a bit
+> > > longer than 1 pixel period (1/PCLK).
+> > > The condition for CITOR is then: CITOR > CICLK/PCLK.
+> > > Since PCLK is a platform dependent value, I suggest to add a field in
+> > > pxacamera_platform_data.
+> > > If no value is assigned, a value of 16 can be used which equals 2 pixel
+> > > periods when PCLK=13MHz ("slow" sensor) and CICLK=104MHz (highest CI
+> > > clock).
+> > > CITOR can be set in pxa_camera_activate.
 > > 
-> > In fact i see:
+> > Don't think we need any extra fields in pxacamera_platform_data, look at
+> > mclk_get_divisor() - it gets already the lcdclk frequency, which is the same
+> > as CICLK, and our target MCLK frequency is set in platform_mclk_10khz, so,
+> > you should have all the data you need...
 > > 
-> > ir-kbd-i2c: probe 0x47 @ saa7133[0]: yes
+> > Thanks
+> > Guennadi
 > > 
-> > So everything seemed to go well. But, same story for the rest: ERROR:
-> > NO_DEVICE when i press buttons on the remote.
-> > What seems strange to me is the fact that the driver *reacts* to
-> > remote key presses, but reacts with an error.
+> > > > Best regards
+> > > > Florian
+> > > > > fpantaleao@mobisensesystems.com writes:
+> > > > > > > Hi all,
+> > > > > > > > While testing, I think I have found one reason why overruns
+> > > occur with
+> > > > > pxa_camera.
+> > > > > I propose to set CITOR to a non-null value.
+> > > > Yes, seconded.
+> > > > > > > I would appreciate any comment about this.
+> > > > Well, at first sight I would advice to test some corner case to see if
+> > > DMA
+> > > > trailing bytes are handled well. I know this can be a pain, but you seem
+> > > to be
+> > > > testing thouroughly ..
+> > > > > > So, if your configuration/sensor is able to, try some funny
+> > > resolution
+> > > like
+> > > > "1619 x 1", and then "67 x 1", and see what happens. If you don't have
+> > > any
+> > > > capture issue, you're done, and post a patch (only CITOR or CITOR +
+> > > trailling
+> > > > bytes handling).
+> > > > > > Have fun.
+> > > > > > --
+> > > > Robert
+> > > > > ----------------------------------------------------------------
+> > > This message was sent using IMP, the Internet Messaging Program.
+> > > > > > > --
+> > > video4linux-list mailing list
+> > > Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> > > https://www.redhat.com/mailman/listinfo/video4linux-list
 > > 
-> > Cheers
-> > Matteo
-> > 
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
 > 
-> since you reported the trouble was already visible for you on earlier
-> kernels, we might try to get a second confirmation at first.
-> 
-> Anyone out there? I'm sending a copy to Ricardo too, who added the
-> support, not sure if he currently has time to read the list.
-> 
-> Cheers,
-> Hermann
-> 
-> 
-> 
+> ----------------------------------------------------------------
+> This message was sent using IMP, the Internet Messaging Program.
 > 
 > 
 
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
