@@ -1,19 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Thu, 27 Nov 2008 15:26:03 +0100
-References: <200811032103.36711.laurent.pinchart@skynet.be>
-	<200811260105.03177.laurent.pinchart@skynet.be>
-	<200811260833.45485.hverkuil@xs4all.nl>
-In-Reply-To: <200811260833.45485.hverkuil@xs4all.nl>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA6J88b9013344
+	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 14:08:10 -0500
+Received: from QMTA06.emeryville.ca.mail.comcast.net
+	(qmta06.emeryville.ca.mail.comcast.net [76.96.30.56])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA6IdWVx029483
+	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 13:39:49 -0500
+Message-ID: <491339D9.2010504@personnelware.com>
+Date: Thu, 06 Nov 2008 12:39:21 -0600
+From: Carl Karsten <carl@personnelware.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200811271526.03215.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, mchehab@redhat.com
-Subject: Re: [PATCH 2/2] v4l2: Add camera privacy control.
+Subject: weeding out v4l ver 1 stuff
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,39 +25,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
+Given v4l version 1 is being dropped in December 08, we should remove stuff that
+targets that api, right?
 
-On Wednesday 26 November 2008, Hans Verkuil wrote:
-> On Wednesday 26 November 2008 01:05:02 Laurent Pinchart wrote:
-> > On Tuesday 04 November 2008, Hans Verkuil wrote:
+For instance:
 
-[snip]
+http://linuxtv.org/hg/v4l-dvb/file/b45ffc93fb82/v4l2-apps/test/v4lgrab.c
 
-> > Regarding v4l2_ctrl_query_fill_std(), the UVC specification doesn't
-> > specify boundaries for most controls so I can't fill the required
-> > values.
->
-> How is that handled in practice? If you have an integer control without
-> min-max values, then how can you present that to the user in a control
-> panel?
+      94 #ifdef CONFIG_VIDEO_V4L1_COMPAT
+      194 #else
 
-UVC-compliant devices can be queried for their boundaries at runtime.
+      195 	fprintf(stderr, "V4L1 API is not configured!\n");
 
-> A simple 0-15 control can be represented by e.g. a slider, but 
-> not a 0-INT_MAX control.
+I'll let someone else figure out if the whole file should be removed, or if it
+has some value to v2.
 
-Btw, speaking of sliders, I believe the V4L2_CTRL_FLAG_SLIDER was a mistake in 
-the first place.
+And assuming someone agrees we should week out v1 stuff, where is the right
+place to log this too?  http://bugzilla.kernel.org does not seem right.
 
-> If the min/max are completely unknown, then you can always fill in the
-> INT_MIN and INT_MAX values.
-
-They are not completely unknown, they just have no fixed value at compile 
-time.
-
-Best regards,
-
-Laurent Pinchart
+Carl K
 
 --
 video4linux-list mailing list
