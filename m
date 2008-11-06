@@ -1,19 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAIFaXJH007272
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 10:36:34 -0500
-Received: from smtp-vbr11.xs4all.nl (smtp-vbr11.xs4all.nl [194.109.24.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAIFaBhn018209
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 10:36:23 -0500
-Message-ID: <22206.62.70.2.252.1227022561.squirrel@webmail.xs4all.nl>
-Date: Tue, 18 Nov 2008 16:36:01 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA60gjYW022321
+	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 19:42:45 -0500
+Received: from mailrelay011.isp.belgacom.be (mailrelay011.isp.belgacom.be
+	[195.238.6.178])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA60gZiQ020456
+	for <video4linux-list@redhat.com>; Wed, 5 Nov 2008 19:42:35 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: video4linux-list@redhat.com
+Date: Thu, 6 Nov 2008 01:42:48 +0100
+References: <26aa882f0810280714u1b3964b9t1440369d2d2a36b7@mail.gmail.com>
+In-Reply-To: <26aa882f0810280714u1b3964b9t1440369d2d2a36b7@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org
-Subject: Re: [v4l-dvb-maintainer] [RFC] Zoom controls in V4L2
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200811060142.48227.laurent.pinchart@skynet.be>
+Cc: 
+Subject: Re: Testing Requested: Python Bindings for Video4linux2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,149 +30,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Laurent,
+Hi,
 
-> Hi everybody,
+first of all, sorry for the late reply.
+
+On Tuesday 28 October 2008, Jackson Yee wrote:
+> For anyone who is a fellow python fan and has a video4linux2 capture
+> card, please try out
 >
-> I haven't received any answer so far. Is everybody busy or just not
-> interested
-> in zoom support ? Please don't let the length of the mail scare you :-)
-
-Ah yes, I read it at the time, but forgot to reply. Not that there is much
-to say, since I pretty much agree with this RFC. Just go for it!
-
-Regards,
-
-         Hans
-
-> On Tuesday 04 November 2008, Laurent Pinchart wrote:
->> Hi everybody,
->>
->> USB cameras with integrated optical zoom support are hitting the market.
->> V4L2 currently lacks the necessary controls to support zoom. This RFC
->> tries
->> to define zoom-related controls.
->>
->> As few camera models currently support optical zoom, only a subset of
->> zoom
->> functions are implemented in existing products, making it a bit harder
->> to
->> define a future proof zoom API in V4L2. To gather more usecases I've
->> taken
->> all zoom controls defined in the USB Video Class specification into
->> account, even if they are not all implemented in existing products.
->>
->> Zoom in digital cameras is implemented as optical zoom, digital zoom or
->> a
->> combination of both. V4L2 supports digital zoom through cropping and
->> scaling (section 1.11). Digital cameras often implement digital zoom
->> through a single linear control, providing a subset of the scaling
->> capabilities of V4L2 with no easy way to map between both. Still,
->> defining
->> a new digital zoom API in addition to the V4L2 cropping and scaling
->> mechanism would confuse developers and users and should be avoided. We
->> should instead concentrate on defining a clear mapping between linear
->> digital zoom and crop/scale.
->>
->> As I don't own any UVC device with digital zoom support, and as I'm not
->> knowledgeable about digital zoom support in non-UVC webcams, ideas for a
->> mapping between linear digital zoom and crop/scale are welcome. In case
->> of
->> lack of feedback on the subject, I propose to concentrate on optical
->> zoom
->> only, except when digital zoom interacts with optical zoom.
->>
->> The UVC specification approximates the optical magnification factor as
->> the
->> ratio between the ocular lens focal length and the objective lens focal
->> length. Although lens groups can be much more sophisticated than that,
->> the
->> model can approximate most lens groups that are likely to be encountered
->> in
->> practice. Zoom can then be expressed either as the magnification factor
->> or
->> as the objective lens focal lens. To support both representations V4L2
->> should let the device set its minimum and maximum zoom values. In both
->> cases the zoom is either an unsigned integer or an unsigned rational
->> number
->> that can be expressed with a fixed-point representation.
->>
->> Optical zoom can be controlled in an absolute or relative fashion.
->> Absolute
->> zoom can easily be handled with a single unsigned integer control
->> mapping
->> to the magnification factor or objective lens focal length as described
->> above. The absolute zoom control should not interact with any digital
->> zoom
->> function implemented in the device, if any. I suggest naming the control
->> V4L2_CID_ZOOM_ABSOLUTE.
->>
->> Relative zoom is a tad more complex. To begin with, there are two
->> relative
->> zoom implementations I can think of: incremental or continuous.
->> Incremental
->> relative zoom moves the optical zoom level by a fixed amount. This is
->> how
->> the relative pan, tilt and focus controls are specified in V4L2.
->> However,
->> this is not how relative zoom is specified in UVC.
->>
->> UVC specifies relative zoom as a control that starts a zoom focal length
->> modification at a given speed in the given direction until interrupted
->> by
->> the user (through the relative zoom control) or by a limit in the range
->> of
->> motion. This behaviour is closer to what a user would expect when
->> controlling the zoom relatively : pressing a button would start zooming
->> in
->> or out, and releasing the button would stop zooming. A single V4L2
->> control
->> encoded as a signed integer can set the speed and direction. The speed
->> range should be device dependant.
->>
->> We are thus facing a situation where three types of zoom controls can be
->> implemented, among which two are of the relative type. The UVC
->> specification specifies a continuous relative zoom only, but V4L2
->> already
->> uses the _RELATIVE suffix for incremental relative pan, tilt and focus
->> controls. Using V4L2_CID_ZOOM_RELATIVE for continuous relative zoom
->> would
->> not be consistent with the V4L2 pan, tilt and focus controls, while
->> using
->> V4L2_CID_ZOOM_RELATIVE for incremental relative zoom would not be
->> consistent with the UVC specification. As the V4L2 specification is
->> already
->> not consistent with the UVC specification when it comes to relative pan,
->> tilt and focus, I propose to call the incremental relative zoom control
->> V4L2_CID_ZOOM_RELATIVE and use a different name for the continuous
->> control.
->> Comments are welcome, as well as suggestions for the control name.
->>
->> Continuous relative zoom also suffers from another issue. While absolute
->> and incremental relative zoom do not interact with digital zoom (when
->> implemented by the device), it might be interesting to let the
->> continuous
->> relative zoom use digital zoom as an option when reaching the end of the
->> optical zoom capabilities. This would give the user a large zoom range
->> combining optical and digital zoom that can be navigated using a single
->> control. This is how the UVC specification defines the relative zoom
->> control. We would then need an additional control to enable or disable
->> digital zoom when using the continuous relative zoom. Both the digital
->> zoom
->> enable and continuous relative zoom (sign + speed) values should then be
->> set in a single operation through the extended controls API. Comments on
->> this subject are welcome as well.
+> http://code.google.com/p/python-video4linux2/
 >
-> Best regards,
->
-> Laurent Pinchart
->
-> _______________________________________________
-> v4l-dvb-maintainer mailing list
-> v4l-dvb-maintainer@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/v4l-dvb-maintainer
->
+> and let me know if the samples work out for you. I'd like to see how
+> this performs on cards other than my Happugage ImpactVCB.
 
+I'm testing your bindings with a Quickcam Pro for Notebooks (using the 
+uvcvideo driver).
+
+$ ./pyv4l2.py
+Available devices:  ['/dev/video0', '/dev/video1394-0']
+        /dev/video0
+Capabilities:
+        Capture
+        Streaming
+Input 0:
+                Name:   Camera 1
+                Type:   camera
+                Standards: []
+Traceback (most recent call last):
+  File "./pyv4l2.py", line 755, in <module>
+    d.SetStandard(d.standards['NTSC'])
+  File "./pyv4l2.py", line 456, in SetStandard
+    (FindKey(self.standards, std, 'Unknown'),
+NameError: global name 'FindKey' is not defined
+
+The uvcvideo driver doesn't implement the standard ioctls. This should not be 
+fatal (and you probably want to define FindKeyas well).
+
+$ ./streampics.py /dev/video0 0 MJPG 640 480 testpics
+Traceback (most recent call last):
+  File "./streampics.py", line 94, in <module>
+    Run()
+  File "./streampics.py", line 59, in Run
+    d.SetResolution( int(options.width), int(options.height) )
+  File "/home/laurent/src/kernel/uvc/python-v4l2/pyv4l2.py", line 551, in 
+SetResolution
+    self.SetFormat()
+  File "/home/laurent/src/kernel/uvc/python-v4l2/pyv4l2.py", line 492, in 
+SetFormat
+    lib.Error()
+Exception: Could not set format:        22: Invalid argument
+
+The problem comes from a bad alignment in the PixFormat structure. At least on 
+my architecture (x86) the type field is 32 bits wide.
+
+Best regards,
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
