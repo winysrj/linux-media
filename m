@@ -1,31 +1,16 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAEFpKGB002834
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 10:51:20 -0500
-Received: from mu-out-0910.google.com (mu-out-0910.google.com [209.85.134.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAEFoRit013475
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 10:50:28 -0500
-Received: by mu-out-0910.google.com with SMTP id g7so1434168muf.1
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 07:50:27 -0800 (PST)
-Message-ID: <d9def9db0811140750s15969a1fh1272402de897944d@mail.gmail.com>
-Date: Fri, 14 Nov 2008 16:50:27 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Keith Lawson" <lawsonk@lawson-tech.com>
-In-Reply-To: <alpine.DEB.1.10.0811141033000.23321@vegas>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <491339D9.2010504@personnelware.com>
-	<30353c3d0811061553h4c1a77e0t597bd394fa0ebdf1@mail.gmail.com>
-	<4913E9DB.8040801@hhs.nl> <200811071050.25149.hverkuil@xs4all.nl>
-	<20081107161956.c096dd03.ospite@studenti.unina.it>
-	<alpine.DEB.1.10.0811071416380.25756@vegas>
-	<alpine.DEB.1.10.0811130651170.2643@vegas>
-	<d9def9db0811130440t17b05c58q603a14e446e417e5@mail.gmail.com>
-	<alpine.DEB.1.10.0811141033000.23321@vegas>
-Cc: video4linux-list@redhat.com
-Subject: Re: USB Capture device
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA6N4oWl006845
+	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 18:04:50 -0500
+Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA6N4Iqr023023
+	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 18:04:35 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: video4linux-list@redhat.com, g.liakhovetski@gmx.de
+Date: Fri,  7 Nov 2008 00:04:16 +0100
+Message-Id: <1226012656-17334-1-git-send-email-robert.jarzmik@free.fr>
+Cc: 
+Subject: [PATCH] pxa_camera: Fix YUV format handling.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,79 +22,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Nov 14, 2008 at 4:37 PM, Keith Lawson <lawsonk@lawson-tech.com> wrote:
->
->
-> On Thu, 13 Nov 2008, Markus Rechberger wrote:
-> <snip>
->>
->> are you sure this device is tm6000 based? I just remember the same
->> product package used for em2820 based devices.
->>
->> http://mcentral.de/wiki/index.php5/Em2880#Devices
->
-> It's a TM5600 device. I've been able to capture video from it using the
-> tm5600/tm6000/tm6010 module from Mauro's mercurial repository
-> but I'm having an issue with green flickering a the top of the video, I'm
-> not sure if that's a driver issue or an mplayer issue.
->
-> Are you aware of a em2820 based USB "dongle" device? I don't require a
-> tuner, I'm just trying to capture input from S-video and composite (RCA).
->
+Allows all YUV formats on pxa interface. Even if PXA capture
+interface expects data in UYVY format, we allow all formats
+considering the pxa bus is not making any translation.
 
-I just had a rough look right now, the prices vary alot between
-different manufacturers.
-I haven't seen a price advantage for devices without tuner actually.
-You might pick a few devices from that site and compare.
+For the special YUV planar format, we translate the pixel
+format asked to the sensor to VYUY, which is the bus byte
+order necessary (out of the sensor) for the pxa to make the
+correct translation.
 
-br,
-Markus
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/video/pxa_camera.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
->>
->> br,
->> Markus
->>
->>> Thanks,
->>> Keith.
->>>
->>> On Fri, 7 Nov 2008, Keith Lawson wrote:
->>>
->>>> Hello,
->>>>
->>>> Can anyone suggest a good USB catpure device that has S-Video input and
->>>> a
->>>> stable kernel driver? I've been playing with this device:
->>>>
->>>> http://www.diamondmm.com/VC500.php
->>>>
->>>> using the development drivers from
->>>> http://linuxtv.org/hg/~mchehab/tm6010/
->>>> but I haven't had any luck with S-Video (only composite).
->>>>
->>>> Can anyone suggest a device with stable drivers in 2.6.27.5?
->>>>
->>>> Thanks, Keith.
->>>>
->>>> --
->>>> video4linux-list mailing list
->>>> Unsubscribe
->>>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>>
->>>
->>> --
->>> video4linux-list mailing list
->>> Unsubscribe
->>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>
->>
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index eb6be58..863e0df 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -862,7 +862,15 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+ 	case V4L2_PIX_FMT_YUV422P:
+ 		pcdev->channels = 3;
+ 		cicr1 |= CICR1_YCBCR_F;
++		/*
++		 * Normally, pxa bus wants as input VYUY format.
++		 * We allow all YUV formats, as no translation is used, and the
++		 * YUV stream is just passed through without any transformation.
++		 */
++	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_VYUY:
+ 	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_YVYU:
+ 		cicr1 |= CICR1_COLOR_SP_VAL(2);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB555:
+@@ -907,6 +915,13 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+ static int pxa_camera_set_fmt_cap(struct soc_camera_device *icd,
+ 				  __u32 pixfmt, struct v4l2_rect *rect)
+ {
++	/*
++	 * The YUV 4:2:2 planar format is translated by the pxa assuming its
++	 * input (ie. camera device output) is VYUV.
++	 * We fix the pixel format asked to the camera device.
++	 */
++	if (pixfmt == V4L2_PIX_FMT_YUV422P)
++		pixfmt = V4L2_PIX_FMT_VYUY;
+ 	return icd->ops->set_fmt_cap(icd, pixfmt, rect);
+ }
+ 
+-- 
+1.5.6.5
 
 --
 video4linux-list mailing list
