@@ -1,17 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bane.moelleritberatung.de ([77.37.2.25])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artem@makhutov.org>) id 1L4Vc3-00064f-Lo
-	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 08:12:05 +0100
-Message-ID: <492A53C4.5030509@makhutov.org>
-Date: Mon, 24 Nov 2008 08:12:04 +0100
-From: Artem Makhutov <artem@makhutov.org>
-MIME-Version: 1.0
-To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
-References: <49293640.10808@cadsoft.de>
-In-Reply-To: <49293640.10808@cadsoft.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+Received: from a-sasl-fastnet.sasl.smtp.pobox.com ([207.106.133.19]
+	helo=sasl.smtp.pobox.com) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <torgeir@pobox.com>) id 1Ky4Ry-0007V6-C4
+	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 13:59:03 +0100
+Received: from localhost.localdomain (unknown [127.0.0.1])
+	by a-sasl-fastnet.sasl.smtp.pobox.com (Postfix) with ESMTP id
+	DB1D679DBA
+	for <linux-dvb@linuxtv.org>; Thu,  6 Nov 2008 07:58:17 -0500 (EST)
+Received: from [192.168.1.12] (unknown [118.208.2.50]) (using TLSv1 with
+	cipher AES128-SHA (128/128 bits)) (No client certificate requested) by
+	a-sasl-fastnet.sasl.smtp.pobox.com (Postfix) with ESMTPSA id 0D2D179DB8
+	for <linux-dvb@linuxtv.org>; Thu,  6 Nov 2008 07:58:15 -0500 (EST)
+Message-Id: <F5E23E92-61F6-4A23-A7AA-4F0F9E502793@pobox.com>
+From: Torgeir Veimo <torgeir@pobox.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+In-Reply-To: <1225968119.5453.43.camel@ip6-localhost>
+Mime-Version: 1.0 (Apple Message framework v929.2)
+Date: Thu, 6 Nov 2008 22:57:58 +1000
+References: <BF8F0D96-3ED8-4D3D-8EF7-899FCAC4514E@pobox.com>
+	<4912BA94.8060809@kipdola.com> <1225968119.5453.43.camel@ip6-localhost>
+Subject: Re: [linux-dvb] dvbloopback:
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,35 +33,38 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
 
-Klaus Schmidinger schrieb:
-> The attached patch adds a capability flag that allows an application
-> to determine whether a particular device can handle "second generation
-> modulation" transponders. This is necessary in order for applications
-> to be able to decide which device to use for a given channel in
-> a multi device environment, where DVB-S and DVB-S2 devices are mixed.
-> 
-> It is assumed that a device capable of handling "second generation
-> modulation" can implicitly handle "first generation modulation".
-> The flag is not named anything with DVBS2 in order to allow its
-> use with future DVBT2 devices as well (should they ever come).
-> 
-> Signed-off by: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+On 6 Nov 2008, at 20:41, Per Heldal wrote:
 
-Wouldn't it be better to add something like this:
+> On Thu, 2008-11-06 at 10:36 +0100, Jelle De Loecker wrote:
+>> In my case it must be an S2API thing, because when I was using
+>> Multiproto everything worked fine.
+>>
+>> Or maybe it's a regression in the latest revision (r53?) I should  
+>> find
+>> out ...
+>
+> dvbloopback copies a number of functions from the dvb source which
+> aren't exported through the API of which some may have been altered,  
+> nor
+> is it afics prepared to carry the additional tuning attributes. It is
+> thus a fair assumption that it may need a bit of attention to fully
+> support tuning via DVB-API v5.
 
-FE_CAN_8PSK
-FE_CAN_16APSK
-FE_CAN_32APSK
 
-or
+Using the hg sources from around end of September fixed the problem  
+for me.
 
-FE_CAN_DVBS2
+I guess dvbloopback would need to be updated to current DVB v5 with  
+S2API support eventually..
 
-Instead of FE_CAN_2ND_GEN_MODULATION ? It is too generic for me.
+-- 
+Torgeir Veimo
+torgeir@pobox.com
 
-Regards, Artem
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
