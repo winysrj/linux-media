@@ -1,26 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.27])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mkrufky@gmail.com>) id 1L5mXm-0006xK-56
-	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 20:28:55 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so741678eya.17
-	for <linux-dvb@linuxtv.org>; Thu, 27 Nov 2008 11:28:50 -0800 (PST)
-Message-ID: <37219a840811271128u2b424571of946181958788ff7@mail.gmail.com>
-Date: Thu, 27 Nov 2008 14:28:49 -0500
-From: "Michael Krufky" <mkrufky@linuxtv.org>
-To: CityK <cityk@rogers.com>
-In-Reply-To: <492EC6BE.6090407@rogers.com>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <handygewinnspiel@gmx.de>) id 1KyBfZ-00082m-3b
+	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 21:41:33 +0100
+Message-ID: <49135655.5070806@gmx.de>
+Date: Thu, 06 Nov 2008 21:40:53 +0100
+From: wk <handygewinnspiel@gmx.de>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <49287DCC.9040004@gmail.com>
-	<37219a840811231121u1350bf61n57109a1600f6dd92@mail.gmail.com>
-	<4929B192.8050707@rogers.com> <4929FE90.2050008@gmail.com>
-	<492A328A.7090502@rogers.com> <492B9B98.5060603@gmail.com>
-	<492CA816.7000400@rogers.com> <492CF843.5040807@gmail.com>
-	<492EC6BE.6090407@rogers.com>
-Cc: Bob Cunningham <FlyMyPG@gmail.com>, Mark Kimsal <mark@metrofindings.com>,
-	linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] AnyTV AUTV002 USB ATSC/QAM Tuner Stick
+To: Hans Werner <HWerner4@gmx.de>
+References: <20081106124730.16840@gmx.net> <20081106144319.268390@gmx.net>
+In-Reply-To: <20081106144319.268390@gmx.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] wscan: improved frontend autodetection
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -34,86 +25,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, Nov 27, 2008 at 11:11 AM, CityK <cityk@rogers.com> wrote:
-> Bob Cunningham wrote:
->> What are the next steps?
->> 1. How much effort will be needed to make this driver work?
->> 2. Do all of the pieces already exist?  (All the chips seem to be
->> mentioned somewhere in the DVB tree.)
->> 3. What new code is needed?
->> 4. How much reverse-engineering needs to be done?  Will a full
->> schematic be needed?
->>
->> Most importantly:
->> 5. How can I help?
->>
->> I'm a real-time embedded systems programmer with 25 years experience,
->> though most of what I've written runs on "bare metal", often without
->> an OS.  I know nothing about Linux device drivers.  However, I am very
->> good at getting local hardware to "play nice", first by poking it with
->> a debugger, then generally by scripting through /dev/port.
->> I've never worked with hardware across the USB bus, though I have
->> brought up USB interface hardware from the CPU side, and have had to
->> snoop USB traffic to diagnose problems.  Unfortunately, I don't have a
->> Windows system available to use to snoop the USB traffic from the
->> driver provided by the vendor, though I haven't yet tried to get
->> anything to work via Wine.
->>
->> I'll be taking lots of time off in December, and should have some time
->> to put toward this project.
->>
->> If anyone else is curious, or wants to help, the product is here:
->> http://www.dealextreme.com/details.dx/sku.15569
->>
->> I also found a brief description of a reference design here:
->> http://www.auvitek.com/AU8522%20MT%20USB%20TV%20Stick%20Design%20Brief_R1.0.pdf
+Hans Werner schrieb:
+> Of course it's called w_scan, not wscan, sorry.
 >
-> 1 - probably not a lot
-> 2 - sounds like it, but I do not know how far developed the MT2131
-> driver is
-> 3 - probably just the "glue code" to tie all the pieces together
-> 4 - likely none (there may be a chance the the components are wired up
-> slightly differently, such as in the case with GPIO pins, in which case
-> you'd have to try to discover the true configuration....schematics would
-> obviously help, but probably 99.99% of cases are resolved without such
-> aide )
-> 5 - you can add the support for the device !  :P    Because of the
-> advanced state (component drivers already exist) you won't need any in
-> depth knowledge about the developing device drivers.  At this point, all
-> you will need to do is figure out where to insert the necessary glue
-> code in the existing modules - have a look in the source code of the
-> respective components (eg. /linux/drivers/media/video/au0828/ ;
-> /linux/drivers/media/dvb/frontends/ ; .... ).  Note that the AU0828 does
-> not currently support analog
-> (http://marc.info/?l=linux-video&m=122459807631633&w=2).
+> Suggestion: how about setting -t 3 (long tuning timeout) and -O 1 (search other services)
+> as the *default* options to give the program the best chance of finding all channels without
+> having to play with the options? They do make a difference.
 >
-> I suspect that solving the EEPROM issue is just a matter of adjusting
-> the code so that it is not specifically expecting a Hauppauge
-> signature.  Getting the device to attach the correct tuner should be, I
-> imagine, fairly straight forward too .  It would appear that this device
-> is highly similar to the Woodbury  (see:
-> http://marc.info/?l=linux-dvb&m=122617795121243&w=2); I do not know
-> whether there is significant difference between the respective MT parts
-> -- might be trivial, then again it might not be
+>   
+Long timeout prolonges scan time without guarantee for any improvement - 
+i don't like that idea.
+This option is more or less only useful for frontends with really bad 
+reception or problematic drivers.
 
-I am hosting experimental support for these devices in the following
-mercurial repository:
+Other services should effect output after scan only, but not scan 
+itself. Otherwise a lot of useless services will put into channels.conf.
 
-http://linuxtv.org/hg/~mkrufky/teledongle
 
-Please generate any patches, if any, against the above tree.
 
-If you read the comments that I wrote in the changesets in that tree,
-it explains what I know about these devices.
-
-Ignore the "syntek teledongle" name for now -- there are so many of
-these different devices floating around with the same USB ID that the
-name really doesnt matter.
-
-If this works for you, please let me know.  So far, the tda18271
-version works, but the mt2131 version does not.
-
--Mike
 
 _______________________________________________
 linux-dvb mailing list
