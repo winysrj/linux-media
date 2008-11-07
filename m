@@ -1,15 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web38801.mail.mud.yahoo.com ([209.191.125.92])
+Received: from mail.gmx.net ([213.165.64.20])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <urishk@yahoo.com>) id 1L2iyO-0002xt-T3
-	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 10:03:47 +0100
-Date: Wed, 19 Nov 2008 01:03:10 -0800 (PST)
-From: Uri Shkolnik <urishk@yahoo.com>
-To: Linux-dvb <linux-dvb@linuxtv.org>
+	(envelope-from <markus.o.hahn@gmx.de>) id 1KyMQV-0005PE-QN
+	for linux-dvb@linuxtv.org; Fri, 07 Nov 2008 09:10:45 +0100
+From: Markus Hahn <markus.o.hahn@gmx.de>
+To: linux-dvb@linuxtv.org
+Date: Fri, 7 Nov 2008 09:10:04 +0100
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-1900201972-1227085390=:95476"
-Message-ID: <766150.95476.qm@web38801.mail.mud.yahoo.com>
-Subject: [linux-dvb] [PATCH 4/5] Kconfig and Makefile update
+Content-Disposition: inline
+Message-Id: <200811070910.05576.markus.o.hahn@gmx.de>
+Subject: [linux-dvb]  TT  C-1501 budget : no device files
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,181 +17,52 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---0-1900201972-1227085390=:95476
-Content-Type: text/plain; charset=us-ascii
 
-This patch provides the following:
+-- Hi there, 
+I now, I  had this card already running, 
+but since two month,  when I load the drivers the device files woun`t  be created 
 
-A) SPI and SDIO interfaces driver support
+System: kubuntu 8.04 Linux mars 2.6.24-21-38
+drivers: both: multiproto  http://linuxtv.org/hg  or kernel driver. 
 
-B) DVB-API v5 (S2) and Siano's subsystems support
-
-C) Dynamic configuration for single module
-
-
-
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
+00:13.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+        Subsystem: Technotrend Systemtechnik GmbH Unknown device 101a
+        Control: I/O- Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
+        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
+        Latency: 32 (3750ns min, 9500ns max)
+        Interrupt: pin A routed to IRQ 255
+        Region 0: Memory at d9000000 (32-bit, non-prefetchable) [disabled] [size=512]
 
 
-      
---0-1900201972-1227085390=:95476
-Content-Type: text/x-diff; name="smsbuild_patch.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smsbuild_patch.diff"
+I load the (tt)budget  driver :
 
-VGhpcyBwYXRjaCBwcm92aWRlcyB0aGUgZm9sbG93aW5nOg0KQSkgU1BJIGFu
-ZCBTRElPIGludGVyZmFjZXMgZHJpdmVyIHN1cHBvcnQNCkIpIERWQi1BUEkg
-djUgKFMyKSBhbmQgU2lhbm8ncyBzdWJzeXN0ZW1zIHN1cHBvcnQNCkMpIER5
-bmFtaWMgY29uZmlndXJhdGlvbiBmb3Igc2luZ2xlIG1vZHVsZQ0KDQoKU2ln
-bmVkLW9mZi1ieTogVXJpIFNoa29sbmlrIDx1cmlzQHNpYW5vLW1zLmNvbT4K
-CgpkaWZmIC11TnIgdjRsLWR2Yi1jNWY5NzZjYWIwMTEvbGludXgvZHJpdmVy
-cy9tZWRpYS9kdmIvc2lhbm8vS2NvbmZpZyB2NGwtZHZiLWM1Zjk3NmNhYjAx
-MV8wMDAzL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL3NpYW5vL0tjb25maWcK
-LS0tIHY0bC1kdmItYzVmOTc2Y2FiMDExL2xpbnV4L2RyaXZlcnMvbWVkaWEv
-ZHZiL3NpYW5vL0tjb25maWcJMjAwOC0xMS0xNiAxNTo0MDoyMS4wMDAwMDAw
-MDAgKzAyMDAKKysrIHY0bC1kdmItYzVmOTc2Y2FiMDExXzAwMDMvbGludXgv
-ZHJpdmVycy9tZWRpYS9kdmIvc2lhbm8vS2NvbmZpZwkyMDA4LTExLTE5IDEw
-OjMzOjEzLjAwMDAwMDAwMCArMDIwMApAQCAtMiwyNSArMiw2OSBAQAogIyBT
-aWFubyBNb2JpbGUgU2lsaWNvbiBEaWdpdGFsIFRWIGRldmljZSBjb25maWd1
-cmF0aW9uCiAjCiAKLWNvbmZpZyBEVkJfU0lBTk9fU01TMVhYWAotCXRyaXN0
-YXRlICJTaWFubyBTTVMxWFhYIFVTQiBkb25nbGUgc3VwcG9ydCIKLQlkZXBl
-bmRzIG9uIERWQl9DT1JFICYmIFVTQgotCS0tLWhlbHAtLS0KLQkgIENob29z
-ZSBZIGhlcmUgaWYgeW91IGhhdmUgYSBVU0IgZG9uZ2xlIHdpdGggYSBTTVMx
-WFhYIGNoaXBzZXQuCi0KLQkgIFRvIGNvbXBpbGUgdGhpcyBkcml2ZXIgYXMg
-YSBtb2R1bGUsIGNob29zZSBNIGhlcmU6IHRoZQotCSAgbW9kdWxlIHdpbGwg
-YmUgY2FsbGVkIHNtczF4eHguCi0KLWNvbmZpZyBEVkJfU0lBTk9fU01TMVhY
-WF9TTVNfSURTCi0JYm9vbCAiRW5hYmxlIHN1cHBvcnQgZm9yIFNpYW5vIE1v
-YmlsZSBTaWxpY29uIGRlZmF1bHQgVVNCIElEcyIKLQlkZXBlbmRzIG9uIERW
-Ql9TSUFOT19TTVMxWFhYCitjb25maWcgU01TX1NJQU5PX01EVFYKKwl0cmlz
-dGF0ZSAiU2lhbm8gTURUViByZWNlaXZlciIKKwlkZWZhdWx0IG0KKwktLS1o
-ZWxwLS0tCisJQ2hvb3NlIFkgb3IgTSBoZXJlIGlmIHlvdSBoYXZlIE1EVFYg
-cmVjZWl2ZXIgd2l0aCBhIFNpYW5vIGNoaXBzZXQuCisKKwlUbyBjb21waWxl
-IHRoaXMgZHJpdmVyIGFzIGEgbW9kdWxlLCBjaG9vc2UgTSBoZXJlCisJKFRo
-ZSBtb2R1bGVzIHdpbGwgYmUgY2FsbGVkIHNtc21kdHYpLgorCisJTm90ZTog
-QWxsIGRlcGVuZGVudHMsIGlmIHNlbGVjdGVkLCB3aWxsIGJlIHBhcnQgb2Yg
-dGhpcyBtb2R1bGUuCisKKwlGdXJ0aGVyIGRvY3VtZW50YXRpb24gb24gdGhp
-cyBkcml2ZXIgY2FuIGJlIGZvdW5kIG9uIHRoZSBXV1cgYXQgaHR0cDovL3d3
-dy5zaWFuby1tcy5jb20vCisKK2lmIFNNU19TSUFOT19NRFRWCisKKyMgS2Vy
-bmVsIHN1YiBzeXN0ZW1zIHN1cHBvcnQKKworY29uZmlnIFNNU19EVkIzX1NV
-QlNZUworCWJvb2wgIkRWQiB2LjMgU3Vic3lzdGVtIHN1cHBvcnQiCiAJZGVm
-YXVsdCB5CiAJLS0taGVscC0tLQotCSAgQ2hvb3NlIFkgaGVyZSBpZiB5b3Ug
-aGF2ZSBhIFVTQiBkb25nbGUgd2l0aCBhIFNNUzFYWFggY2hpcHNldAotCSAg
-dGhhdCB1c2VzIFNpYW5vIE1vYmlsZSBTaWxpY29uJ3MgZGVmYXVsdCB1c2Ig
-dmlkOnBpZC4KKwlDaG9vc2UgaWYgeW91IHdvdWxkIGxpa2UgdG8gaGF2ZSBE
-VkIgdi4zIGtlcm5lbCBzdWItc3lzdGVtIHN1cHBvcnQuCisKK2NvbmZpZyBT
-TVNfRFZCNV9TMkFQSV9TVUJTWVMKKwlib29sICJEVkIgdi41IChTMiBBUEkp
-IFN1YnN5c3RlbSBzdXBwb3J0IgorCWRlZmF1bHQgbgorCS0tLWhlbHAtLS0K
-KwlDaG9vc2UgaWYgeW91IHdvdWxkIGxpa2UgdG8gaGF2ZSBEVkIgdi41IChT
-MiBBUEkpIGtlcm5lbCBzdWItc3lzdGVtIHN1cHBvcnQuCisKK2NvbmZpZyBT
-TVNfSE9TVExJQl9TVUJTWVMKKwlib29sICJIb3N0IExpYnJhcnkgU3Vic3lz
-dGVtIHN1cHBvcnQiCisJZGVmYXVsdCBuCisJLS0taGVscC0tLQorCUNob29z
-ZSBpZiB5b3Ugd291bGQgbGlrZSB0byBoYXZlIFNpYW5vJ3MgaG9zdCBsaWJy
-YXJ5IGtlcm5lbCBzdWItc3lzdGVtIHN1cHBvcnQuCiAKLQkgIENob29zZSBO
-IGhlcmUgaWYgeW91IHdvdWxkIHByZWZlciB0byB1c2UgU2lhbm8ncyBleHRl
-cm5hbCBkcml2ZXIuCitpZiBTTVNfSE9TVExJQl9TVUJTWVMKIAotCSAgRnVy
-dGhlciBkb2N1bWVudGF0aW9uIG9uIHRoaXMgZHJpdmVyIGNhbiBiZSBmb3Vu
-ZCBvbiB0aGUgV1dXIGF0Ci0JICA8aHR0cDovL3d3dy5zaWFuby1tcy5jb20v
-Pi4KK2NvbmZpZyBTTVNfTkVUX1NVQlNZUworCWJvb2wgIlNpYW5vIE5ldHdv
-cmsgQWRhcHRlciIKKwlkZWZhdWx0IG4KKwktLS1oZWxwLS0tCisJQ2hvb3Nl
-IGlmIHlvdSB3b3VsZCBsaWtlIHRvIGhhdmUgU2lhbm8ncyBuZXR3b3JrIGFk
-YXB0ZXIgc3VwcG9ydC4KKworZW5kaWYgIyBTTVNfSE9TVExJQl9TVUJTWVMK
-KworIyBIYXJkd2FyZSBpbnRlcmZhY2VzIHN1cHBvcnQKKworY29uZmlnIFNN
-U19VU0JfRFJWCisJYm9vbCAiVVNCIGludGVyZmFjZSBzdXBwb3J0IgorCWRl
-ZmF1bHQgeQorCS0tLWhlbHAtLS0KKwlDaG9vc2UgaWYgeW91IHdvdWxkIGxp
-a2UgdG8gaGF2ZSBTaWFubydzIHN1cHBvcnQgZm9yIFVTQiBpbnRlcmZhY2UK
-KworY29uZmlnIFNNU19TRElPX0RSVgorCWJvb2wgIlNESU8gaW50ZXJmYWNl
-IHN1cHBvcnQiCisJZGVmYXVsdCBuCisJLS0taGVscC0tLQorCUNob29zZSBp
-ZiB5b3Ugd291bGQgbGlrZSB0byBoYXZlIFNpYW5vJ3Mgc3VwcG9ydCBmb3Ig
-U0RJTyBpbnRlcmZhY2UKKworY29uZmlnIFNNU19TUElfUFhBMzEwX0RSVgor
-CWJvb2wgIlBYQSAzMTAgU1BJIGludGVyZmFjZSBzdXBwb3J0IgorCWRlZmF1
-bHQgbgorCS0tLWhlbHAtLS0KKwlDaG9vc2UgaWYgeW91IHdvdWxkIGxpa2Ug
-dG8gaGF2ZSBTaWFubydzIHN1cHBvcnQgZm9yIFBYQSAzMTAgU1BJIGludGVy
-ZmFjZQogCitlbmRpZiAjIFNNU19TSUFOT19NRFRWCmRpZmYgLXVOciB2NGwt
-ZHZiLWM1Zjk3NmNhYjAxMS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9zaWFu
-by9NYWtlZmlsZSB2NGwtZHZiLWM1Zjk3NmNhYjAxMV8wMDAzL2xpbnV4L2Ry
-aXZlcnMvbWVkaWEvZHZiL3NpYW5vL01ha2VmaWxlCi0tLSB2NGwtZHZiLWM1
-Zjk3NmNhYjAxMS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9zaWFuby9NYWtl
-ZmlsZQkyMDA4LTExLTE2IDE1OjQwOjIxLjAwMDAwMDAwMCArMDIwMAorKysg
-djRsLWR2Yi1jNWY5NzZjYWIwMTFfMDAwMy9saW51eC9kcml2ZXJzL21lZGlh
-L2R2Yi9zaWFuby9NYWtlZmlsZQkyMDA4LTExLTE5IDEwOjMzOjE4LjAwMDAw
-MDAwMCArMDIwMApAQCAtMSw4ICsxLDEwMiBAQAotc21zMXh4eC1vYmpzIDo9
-IHNtc2NvcmVhcGkubyBzbXN1c2IubyBzbXNkdmIubyBzbXMtY2FyZHMubwor
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIworIworIyBTaWFu
-byBNb2JpbGUgU2lsaWNvbiwgSW5jLgorIyBNRFRWIHJlY2VpdmVyIGtlcm5l
-bCBtb2R1bGVzLgorIyBDb3B5cmlnaHQgKEMpIDIwMDYtMjAwOCwgVXJpIFNo
-a29sbmlrCisjCisjIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOiB5
-b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CisjIGl0IHVu
-ZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vu
-c2UgYXMgcHVibGlzaGVkIGJ5CisjIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5k
-YXRpb24sIGVpdGhlciB2ZXJzaW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yCisj
-IChhdCB5b3VyIG9wdGlvbikgYW55IGxhdGVyIHZlcnNpb24uCisjCisjIFRo
-aXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRlZCBpbiB0aGUgaG9wZSB0aGF0IGl0
-IHdpbGwgYmUgdXNlZnVsLAorIyBidXQgV0lUSE9VVCBBTlkgV0FSUkFOVFk7
-IHdpdGhvdXQgZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZgorIyBNRVJD
-SEFOVEFCSUxJVFkgb3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBP
-U0UuICBTZWUgdGhlCisjIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZv
-ciBtb3JlIGRldGFpbHMuCisjCisjIFlvdSBzaG91bGQgaGF2ZSByZWNlaXZl
-ZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisj
-IGFsb25nIHdpdGggdGhpcyBwcm9ncmFtLiAgSWYgbm90LCBzZWUgPGh0dHA6
-Ly93d3cuZ251Lm9yZy9saWNlbnNlcy8+LgorIworIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIwogCi1vYmotJChDT05GSUdfRFZCX1NJQU5P
-X1NNUzFYWFgpICs9IHNtczF4eHgubwogCi1FWFRSQV9DRkxBR1MgKz0gLUlk
-cml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZQorIyBMb2NhbCB2YXJpYWJsZXMg
-aW5pdGlhbGl6YXRpb24KK1NNU19EVkIzX1NVQlNZUyA6PSAwCitTTVNfRFZC
-NV9TMkFQSV9TVUJTWVMgOj0gMAorU01TX0hPU1RMSUJfU1VCU1lTIDo9IDAK
-KworU01TX1VTQl9EUlYgOj0gMAorU01TX1NESU9fRFJWIDo9IDAKK1NNU19T
-UElfUFhBMzEwX0RSViA6PSAwCisKKworIyBEZWZhdWx0IG9iamVjdCwgaW5j
-bHVkZSBpbiBldmVyeSBidWlsZCB2YXJpYW50CitTTVNPQkogOj0gc21zY29y
-ZWFwaS5vIHNtcy1jYXJkcy5vCiAKIEVYVFJBX0NGTEFHUyArPSAkKGV4dHJh
-LWNmbGFncy15KSAkKGV4dHJhLWNmbGFncy1tKQogCisKKyMgS2VybmVsIHN1
-YnN5c3RlbXMgc3VwcG9ydAoraWZkZWYgQ09ORklHX1NNU19EVkIzX1NVQlNZ
-UworaWZuZXEgKCQoQ09ORklHX1NNU19EVkIzX1NVQlNZUyksbikKK1NNU19E
-VkIzX1NVQlNZUyA6PSAxCitFWFRSQV9DRkxBR1MgKz0gLURTTVNfRFZCM19T
-VUJTWVMgLUlkcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZQorU01TT0JKICs9
-IHNtc2R2Yi5vCitlbmRpZgorZW5kaWYKKworaWZkZWYgQ09ORklHX1NNU19E
-VkI1X1MyQVBJX1NVQlNZUworaWZuZXEgKCQoQ09ORklHX1NNU19EVkI1X1My
-QVBJX1NVQlNZUyksbikKK1NNU19EVkI1X1MyQVBJX1NVQlNZUyA6PSAxCitF
-WFRSQV9DRkxBR1MgKz0gLURTTVNfRFZCNV9TMkFQSV9TVUJTWVMKK2VuZGlm
-CitlbmRpZgorCitpZmRlZiBDT05GSUdfU01TX0hPU1RMSUJfU1VCU1lTCitp
-Zm5lcSAoJChDT05GSUdfU01TX0hPU1RMSUJfU1VCU1lTKSxuKQorU01TX0hP
-U1RMSUJfU1VCU1lTIDo9IDEKK0VYVFJBX0NGTEFHUyArPSAtRFNNU19IT1NU
-TElCX1NVQlNZUworU01TT0JKICs9IHNtc2NoYXIubworZW5kaWYKK2VuZGlm
-CisKK2lmZGVmIENPTkZJR19TTVNfTkVUX1NVQlNZUworaWZuZXEgKCQoQ09O
-RklHX1NNU19ORVRfU1VCU1lTKSxuKQorU01TX05FVF9TVUJTWVMgOj0gMQor
-RVhUUkFfQ0ZMQUdTICs9IC1EU01TX05FVF9TVUJTWVMKK1NNU09CSiArPSBz
-bXNuZXQubworZW5kaWYKK2VuZGlmCisKKyMgSGFyZHdhcmUgKGhvc3QpIGlu
-dGVyZmFjZXMgc3VwcG9ydAoraWZkZWYgQ09ORklHX1NNU19VU0JfRFJWCitp
-Zm5lcSAoJChDT05GSUdfU01TX1VTQl9EUlYpLG4pCitTTVNfVVNCX0RSViA6
-PSAxCitFWFRSQV9DRkxBR1MgKz0gLURTTVNfVVNCX0RSVgorU01TT0JKICs9
-IHNtc3VzYi5vCitlbmRpZgorZW5kaWYKKworaWZkZWYgQ09ORklHX1NNU19T
-RElPX0RSVgoraWZuZXEgKCQoQ09ORklHX1NNU19TRElPX0RSViksbikKK1NN
-U19TRElPX0RSViA6PSAxCitFWFRSQV9DRkxBR1MgKz0gLURTTVNfU0RJT19E
-UlYKK1NNU09CSiArPSBzbXNzZGlvLm8KK2VuZGlmCitlbmRpZgorCitpZmRl
-ZiBDT05GSUdfU01TX1NQSV9QWEEzMTBfRFJWCitpZm5lcSAoJChDT05GSUdf
-U01TX1NQSV9QWEEzMTBfRFJWKSxuKQorU01TX1NQSV9QWEEzMTBfRFJWIDo9
-IDEKK0VYVFJBX0NGTEFHUyArPSAtRFNNU19TUElfUFhBMzEwX0RSVgorU01T
-T0JKICs9IHNtc3NwaWxvZy5vIHNtc3NwaWNvbW1vbi5vIHNtc3NwaXBoeV9w
-eGEubworZW5kaWYKK2VuZGlmCisKKyMgQWxsIHNlbGVjdGVkIGluIG9uZSBt
-b2R1bGUgbmFtZWQgc21zbWR0dgorc21zbWR0di1vYmpzIDo9ICQoU01TT0JK
-KQorCitvYmotJChDT05GSUdfU01TX1NJQU5PX01EVFYpIDo9IHNtc21kdHYu
-bworCisKKwo=
 
---0-1900201972-1227085390=:95476
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+budget                 12804  0
+budget_core            11396  1 budget
+saa7146                19464  2 budget,budget_core
+ttpci_eeprom            2560  1 budget_core
+dvb_core               79612  3 budget,budget_core,videobuf_dvb
+i2c_core               23696  10 budget,budget_core,ttpci_eeprom,dvb_pll,tveeprom,i2c_viapro,i2c_algo_bit
+
+No erros but also no dvb/frontendx device files
+
+The second dvb-card Terratec DVB-T 1400 runns perfectly. (with device files of course )
+
+
+
+
+regards markus 
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---0-1900201972-1227085390=:95476--
