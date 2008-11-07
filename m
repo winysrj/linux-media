@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGMNo5f027264
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 17:23:50 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAGMNO7H025699
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 17:23:24 -0500
-Date: Sun, 16 Nov 2008 23:23:26 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>, Robert Jarzmik <robert.jarzmik@free.fr>
-In-Reply-To: <874p2jlaqb.fsf@free.fr>
-Message-ID: <Pine.LNX.4.64.0811162320410.16868@axis700.grange>
-References: <1226012656-17334-1-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0811070040130.8681@axis700.grange>
-	<874p2jlaqb.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] Add new pixel format VYUY 16 bits wide.
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA7Bxap2017253
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 06:59:36 -0500
+Received: from smtp-out26.alice.it (smtp-out26.alice.it [85.33.2.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA7BxL6d015009
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 06:59:21 -0500
+Date: Fri, 7 Nov 2008 12:59:19 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: video4linux-list@redhat.com
+Message-Id: <20081107125919.ddf028a6.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Subject: [PATCH, RFC] mt9m111: allow data to be received on pixelclock
+ falling edge?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,77 +25,90 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 7 Nov 2008, Robert Jarzmik wrote:
+Hi,
 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+with the attached patch I can work around a problem I had adding camera
+support to the Motorola A780 phone, but I again don't know if it is a
+proper fix. Could you help me to find out, please?
 
-[snip]
+Using the same pxa-camera working setup I have for A910 (the other
+phone which I am working on) I got incorrect data, see[1]. It turned
+out to be because pxa CIF was getting data on pixelclock rising edge
+but the sensor hardware on A780 wanted otherwise. So I tried to set
+PXA_CAMERA_PCP in pxacamera_platform_data flags, but the sensor bus
+config prevented pxa-camera to honour this setting. With the attached
+patch I can set PCP high in pxa-camera and get the right data[2] out of
+CIF, using this platform config:
 
-> > So, let's just get the naming consistent. Are you also planning to update 
-> > your "Add new pixel format VYUY 16 bits wide" patch as requested by Hans 
-> > Verkuil? Then you could put all these patches in a patch series to make it 
-> > easier to manage them:-)
-> I didn't get that mail, either on direct destination or from the mailing
-> list. I'll look into the archives.
+struct pxacamera_platform_data a780_pxacamera_platform_data = {
+	.init	= a780_pxacamera_init,
+	.flags  = PXA_CAMERA_MASTER | PXA_CAMERA_DATAWIDTH_8 |
+		PXA_CAMERA_PCLK_EN | PXA_CAMERA_MCLK_EN |
+		PXA_CAMERA_PCP,
+	.mclk_10khz = 1000,
+};
 
-Here's his mail again quoted below.
+Now I have many questions:
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+* Can the same sensor model have different default hardwired values?
+  I am referring to IO/Timings differences between mt9m111 on A910
+  and A780
+* Should I change the sensor setup instead of changing its advertised
+  capabilities? Maybe modifying mt9m111 so it can use platform data?
+* Is the pxa-camera code dealing with PXA_CAMERA_PCP too conservative?
+  Shouldn't PXA_CAMERA_PCP be independent from the specific sensor
+  capabilities? it is a valid pxa-camera setting even if it produces
+  wrong results with the specific sensor.
+
+Note that the two phones set up a different set of GPIOs as data
+lines between mt9m111 and pxa.
+
+Please let me know if you need more details.
+
+Thanks,
+   Antonio Ospite
+
+[1] http://people.openezx.org/ao2/a780-not-yet.jpg
+[2] http://people.openezx.org/ao2/a780-finally-works.jpg
 
 
-On Wed, 5 Nov 2008, Hans Verkuil wrote:
+Pixeldata can be sent on pixelclock falling edge, allow this option in
+mt9m111 so pxa-camera can honour PXA_CAMERA_PCP platform data flag.
 
-> On Tuesday 04 November 2008 22:59:37 Robert Jarzmik wrote:
-> > There were already 3 YUV formats defined :
-> >  - YUYV
-> >  - YVYU
-> >  - UYVY
-> > The only left combination is VYUY, which is added in this
-> > patch.
-> > 
-> > Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> 
-> It's fine by me, but since you are making a change anyway, can you move the
-> V4L2_PIX_FMT_YVYU define up and put it after V4L2_PIX_FMT_YUYV? Then all
-> four combinations are together.
-> 
-> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > ---
-> >  include/linux/videodev2.h |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index 4669d7e..ec311d4 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -293,6 +293,7 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2') /* 12  YVU 4:2:0     */
-> >  #define V4L2_PIX_FMT_YUYV    v4l2_fourcc('Y', 'U', 'Y', 'V') /* 16  YUV 4:2:2     */
-> >  #define V4L2_PIX_FMT_UYVY    v4l2_fourcc('U', 'Y', 'V', 'Y') /* 16  YUV 4:2:2     */
-> > +#define V4L2_PIX_FMT_VYUY    v4l2_fourcc('V', 'Y', 'U', 'Y') /* 16  YUV 4:2:2     */
-> >  #define V4L2_PIX_FMT_YUV422P v4l2_fourcc('4', '2', '2', 'P') /* 16  YVU422 planar */
-> >  #define V4L2_PIX_FMT_YUV411P v4l2_fourcc('4', '1', '1', 'P') /* 16  YVU411 planar */
-> >  #define V4L2_PIX_FMT_Y41P    v4l2_fourcc('Y', '4', '1', 'P') /* 12  YUV 4:1:1     */
-> > -- 
-> > 1.5.6.5
-> > 
-> > --
-> > video4linux-list mailing list
-> > Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> > https://www.redhat.com/mailman/listinfo/video4linux-list
-> > 
-> > 
-> 
-> 
+See pxa-camera.c, pxa_camera_set_bus_param():
+
+	if ((common_flags & SOCAM_PCLK_SAMPLE_RISING) &&
+	    (common_flags & SOCAM_PCLK_SAMPLE_FALLING)) {
+		if (pcdev->platform_flags & PXA_CAMERA_PCP)
+			common_flags &= ~SOCAM_PCLK_SAMPLE_RISING;
+		else
+			common_flags &= ~SOCAM_PCLK_SAMPLE_FALLING;
+	}
+
+...
+
+	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
+		cicr4 |= CICR4_PCP;
+
+
+I needed this patch to make camera work properly on Motorola A780 phone.
+
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 76fb0cb..69e103c 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -410,7 +410,8 @@ static int mt9m111_stop_capture(struct soc_camera_device *icd)
+
+ static unsigned long mt9m111_query_bus_param(struct soc_camera_device *icd)
+ {
+- return SOCAM_MASTER | SOCAM_PCLK_SAMPLE_RISING |
++ return SOCAM_MASTER |
++   SOCAM_PCLK_SAMPLE_RISING | SOCAM_PCLK_SAMPLE_FALLING |
+    SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH |
+    SOCAM_DATAWIDTH_8;
+ }
 
 --
 video4linux-list mailing list
