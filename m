@@ -1,19 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAFBSrWq007592
-	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 06:28:53 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAFBSdb0019911
-	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 06:28:39 -0500
-Date: Sat, 15 Nov 2008 12:28:43 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <Pine.LNX.4.64.0811151223510.3783@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA7KuVQM024747
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 15:56:31 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA7KuJo6016469
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 15:56:19 -0500
+Date: Fri, 7 Nov 2008 18:56:23 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Carl Karsten <carl@personnelware.com>
+Message-ID: <20081107185623.1b807254@pedra.chehab.org>
+In-Reply-To: <4910F39E.9060604@personnelware.com>
+References: <47C90994.8040304@personnelware.com>
+	<20080304113834.0140884d@gaivota>
+	<490E468A.6090200@personnelware.com>
+	<1225675203.3116.12.camel@palomino.walls.org>
+	<490E6EC3.7030408@personnelware.com>
+	<1225762470.3198.23.camel@palomino.walls.org>
+	<4910F39E.9060604@personnelware.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Any moderators alive? (was: Your message to video4linux-list awaits
- moderator approval)
+Subject: Re: v4l2 api compliance test
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,44 +33,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
+On Tue, 04 Nov 2008 19:15:10 -0600
+Carl Karsten <carl@personnelware.com> wrote:
 
-got the bounce below in reply to my patch to the list. The mail has never 
-been posted to the list, even not after I have sent an additional email to 
-the list: http://marc.info/?l=linux-video&m=122644300223385&w=2
-and I don't find any way to contact moderators directly - neither in ML 
-management information, nor on the ML web-page. Do you by chance know who 
-moderates the list and if they are still active? How can they be 
-contacted? The situation seems suboptimal:-(
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+> 
+> so assuming the problem is with capture.c, who do I tell?  (i know where to send
+> anything else it might be: v4l list.
 
----------- Forwarded message ----------
-Date: Mon, 10 Nov 2008 07:37:37 -0500
-From: video4linux-list-bounces@redhat.com
-To: g.liakhovetski@gmx.de
-Subject: Your message to video4linux-list awaits moderator approval
+Carl,
 
-Your mail to 'video4linux-list' with the subject
+If you find a trouble, please feel free to submit us a fix.
 
-    [PATCH 3/5] soc-camera: add a per-camera device host private data
-pointer
-
-Is being held until the list moderator can review it for approval.
-
-The reason it is being held:
-
-    Message has a suspicious header
-
-Either the message will get posted to the list, or you will receive
-notification of the moderator's decision.  If you would like to cancel
-this posting, please visit the following URL:
-
-    https://www.redhat.com/mailman/confirm/video4linux-list/4d7b4853bdff783f5672edd93fd621182611c060
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
