@@ -1,22 +1,13 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.184])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <devin.heitmueller@gmail.com>) id 1KxNlt-0004uS-Cg
-	for linux-dvb@linuxtv.org; Tue, 04 Nov 2008 16:24:46 +0100
-Received: by nf-out-0910.google.com with SMTP id g13so1508020nfb.11
-	for <linux-dvb@linuxtv.org>; Tue, 04 Nov 2008 07:24:42 -0800 (PST)
-Message-ID: <412bdbff0811040724x6118e213h4f4bc2900dcc31bb@mail.gmail.com>
-Date: Tue, 4 Nov 2008 10:24:42 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: linuxtv@hotair.fastmail.co.uk
-In-Reply-To: <1225811663.1701.1282927225@webmail.messagingengine.com>
+Message-ID: <49143F68.2060902@osp.fi>
+Date: Fri, 07 Nov 2008 15:15:20 +0200
+From: Markus Ingalsuo <markus.ingalsuo@osp.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <200811032211.41760.jareguero@telefonica.net>
-	<49104A4D.2040609@iki.fi>
-	<1225811663.1701.1282927225@webmail.messagingengine.com>
+To: Steven Toth <stoth@linuxtv.org>
+References: <48E4E175.90403@julianfamily.org> <48E510BC.7040902@linuxtv.org>
+In-Reply-To: <48E510BC.7040902@linuxtv.org>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Nova-TD and I2C read/write failed
+Subject: Re: [linux-dvb] HVR2250 / HVR2200 / SAA7164 status
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,45 +21,63 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Nov 4, 2008 at 10:14 AM, petercarm
-<linuxtv@hotair.fastmail.co.uk> wrote:
-> My build is gentoo with 2.6.25 kernel and mercurial V4L using
-> dvb-usb-dib0700-1.10.fw   The Hauppauge Nova-TD USB stick shows a USB ID
-> of 2040:5200.
+Steven Toth wrote:
+> Joe Julian wrote:
+>   
+>> Steven Toth wrote:
+>>
+>>     As you know, I'm writing a driver for the SAA7164 chipset, for the
+>>     HVR2200 DVB-T and HVR2250 ATSC/QAM products.
+>>
+>>     People have been asking for status, here's where I am.
+>>
+>>     Do I have anything to share with people yet? Not yet.
+>>
+>>       
+>>
+>>     The basic driver framework is done. Firmware is loading, I can
+>>     talking to the silicon through the proprietary PCIe ring buffer
+>>     interface. I2C is working, eeprom and tuner/demod access is done.
+>>     The HVR2250 is responding to azap commands, the tuners and demods
+>>     are locking, snr looks pretty good... it's going to be a popular
+>>     board for people. The HVR2200 (DVB-T Version) should also worked
+>>     with tzap, it's untested and I can't comment on SNR at this stage. I
+>>     need to add the DMA/buffering code, this is the missing pieces
+>>     before a first public release. When I have anything to share I'll
+>>     put up a tree and post a 'testers required' message here. 
+>>
+>>
+>> We're a couple episodes into this fall television season and I'm missing 
+>> my shows. ;)
+>>
+>> Having another month down, I wanted to send a friendly nudge your 
+>> direction, Steve, to see how this is progressing.
+>>     
 >
-> The card works for a few hours and then floods dmesg with "DiB0070 I2C
-> write failed" messages.
+> :)
 >
-> I've found plenty of passing references to this problem, but what do I
-> need to do to get this working?
+> I hear you!
 >
-> Do I need to change to the 1.20 firmware?
+> Nothing to report lately. The S2API and the Plumbers conf took a lot of 
+> my time, I'm only now getting back into a regular linux schedule.
 >
-> Where does dib0700_new_i2c_api.patch exist?  It is mentioned on the wiki
-> but I haven't been able to find it anywhere.
+> Feel free to ping me through this mailing list every few weeks.
+>
+> - Steve
 >
 > _______________________________________________
 > linux-dvb mailing list
 > linux-dvb@linuxtv.org
 > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+>   
 
-Hello Peter,
+Hi!
 
-The new i2c API is merged into the v4l-dvb mainline, so there is no
-need for a patch.  Also, the mainline requires 1.20 firmware, although
-it turns out the remote control support is broken (Patrick and myself
-are actively investigating this issue).
+I'm going to go ahead and feel free to ask if you have made any progress 
+with the HVR2200? :)
 
-It would be worthwhile for you to update to the lastest v4l-dvb tree
-and see if your situation improves.
 
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+//Markus
 
 _______________________________________________
 linux-dvb mailing list
