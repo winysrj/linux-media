@@ -1,26 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA9LMHCA000347
-	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 16:22:17 -0500
-Received: from mailrelay010.isp.belgacom.be (mailrelay010.isp.belgacom.be
-	[195.238.6.177])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA9LM6to031260
-	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 16:22:06 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Bryan Wu <cooloney@kernel.org>
-Date: Sun, 9 Nov 2008 22:22:17 +0100
-References: <1225963130-6784-1-git-send-email-cooloney@kernel.org>
-In-Reply-To: <1225963130-6784-1-git-send-email-cooloney@kernel.org>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA7BwLx0016894
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 06:58:22 -0500
+Received: from namebay.info (mail.namebay.info [80.247.68.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA7Bw9O4014537
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 06:58:10 -0500
+Received: from localhost by namebay.info (MDaemon PRO v9.6.2)
+	with ESMTP id md50003740607.msg
+	for <video4linux-list@redhat.com>; Fri, 07 Nov 2008 12:58:06 +0100
+Message-ID: <20081107130136.fkdeaklvs40ocsws@webmail.hebergement.com>
+Date: Fri, 07 Nov 2008 13:01:36 +0100
+From: fpantaleao@mobisensesystems.com
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
 Content-Disposition: inline
-Message-Id: <200811092222.18047.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, linux-uvc-devel@lists.berlios.de,
-	linux-kernel@vger.kernel.org,
-	Michael Hennerich <michael.hennerich@analog.com>
-Subject: Re: [PATCH] Video/UVC: Port mainlined uvc video driver to NOMMU
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: Re: About CITOR register value for pxa_camera
+Reply-To: fpantaleao@mobisensesystems.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,64 +33,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Bryan, Michael,
+On Fri, 7 Nov 2008, g.liakhovetski@gmx.de wrote:
 
-On Thursday 06 November 2008, Bryan Wu wrote:
-> From: Michael Hennerich <michael.hennerich@analog.com>
+> On Fri, 7 Nov 2008, fpantaleao@mobisensesystems.com wrote:
 >
-> Add NOMMU mmap support.
+> > To be more general (sensor clocked by MCLK or not), I think we  
+> should request
+> > the sensor its PCLK, by adding a get_pclk member in soc_camera_ops for
+> > example.
 >
-> Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-> Signed-off-by: Bryan Wu <cooloney@kernel.org>
-> ---
->  drivers/media/video/uvc/uvc_v4l2.c |   14 ++++++++++++++
->  1 files changed, 14 insertions(+), 0 deletions(-)
+> Yes, that should be even better, and pass master-clock frequency as  
+> a parameter? What shall we take for default? pclk == mclk or some  
+> safe conservative value? Don't think requiring every camera driver  
+> to provide this method would be very good.
+
+MCLK as a parameter is fine.
+For the default, I suggest:
+   PCLK = MCLK when MCLK is enabled,
+   13MHz otherwise which is a low value for PCLK.
+
+I agree we must keep things simple even if a correct value for CITOR  
+really improves acquisition performance.
+
 >
-> diff --git a/drivers/media/video/uvc/uvc_v4l2.c
-> b/drivers/media/video/uvc/uvc_v4l2.c index 758dfef..2237f5e 100644
-> --- a/drivers/media/video/uvc/uvc_v4l2.c
-> +++ b/drivers/media/video/uvc/uvc_v4l2.c
-> @@ -1050,6 +1050,7 @@ static int uvc_v4l2_mmap(struct file *file, struct
-> vm_area_struct *vma) break;
->  	}
->
-> +#ifdef CONFIG_MMU
->  	if (i == video->queue.count || size != video->queue.buf_size) {
->  		ret = -EINVAL;
->  		goto done;
-> @@ -1071,7 +1072,20 @@ static int uvc_v4l2_mmap(struct file *file, struct
-> vm_area_struct *vma) addr += PAGE_SIZE;
->  		size -= PAGE_SIZE;
->  	}
-> +#else
-> +	if (i == video->queue.count ||
-> +		PAGE_ALIGN(size) != video->queue.buf_size) {
+> Another question, are there situations, when a sensor might decide  
+> to change its pixelclock dynamically? Then it might need to inform  
+> the host driver about the change?
 
-Just out of curiosity, why do you need to PAGE_ALIGN size for non-MMU 
-platforms ?
+PCLK changes dynamically with sensor resolution, subsampling, pixel  
+format and so on. Every time a format change occurs, CITOR could be  
+updated in 2 steps:
+1. PCLK value should be updated by the camera driver.
+The computation is based on the sensor input clock (provided by  
+platform data) and current settings.
+To make things more simple, the camera driver can use a constant equal  
+to the lowest possible value.
+2. PCLK value should be read to compute the new CITOR value.
 
-> +		ret = -EINVAL;
-> +		goto done;
-> +	}
-> +
-> +	vma->vm_flags |= VM_IO | VM_MAYSHARE; /* documentation/nommu-mmap.txt */
+Best regards.
 
-VM_MAYSHARE is not documented anywhere in Documentation/ in Linux 2.6.28-rc3. 
-Why is it needed for non-MMU architectures only ?
+Florian
 
-> +
-> +	addr = (unsigned long)video->queue.mem + buffer->buf.m.offset;
->
-> +	vma->vm_start = addr;
-> +	vma->vm_end = addr +  video->queue.buf_size;
-> +#endif
->  	vma->vm_ops = &uvc_vm_ops;
->  	vma->vm_private_data = buffer;
->  	uvc_vm_open(vma);
 
-Best regards,
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
 
-Laurent Pinchart
+
+
 
 --
 video4linux-list mailing list
