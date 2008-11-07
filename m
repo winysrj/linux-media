@@ -1,27 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALJOI84012413
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 14:24:18 -0500
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALJO3JW022340
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 14:24:03 -0500
-Received: by ug-out-1314.google.com with SMTP id j30so208861ugc.13
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 11:24:02 -0800 (PST)
-Message-ID: <412bdbff0811211124t21332eaer602fa807f0436a9d@mail.gmail.com>
-Date: Fri, 21 Nov 2008 14:24:02 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
-In-Reply-To: <alpine.DEB.1.10.0811212015070.29615@bakacsin.ki.iif.hu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA7KiDYJ015664
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 15:44:13 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA7KhoeM008915
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 15:43:56 -0500
+Date: Fri, 7 Nov 2008 18:43:58 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "David Ellingsworth" <david@identd.dyndns.org>
+Message-ID: <20081107184358.3e28577e@pedra.chehab.org>
+In-Reply-To: <30353c3d0811061553h4c1a77e0t597bd394fa0ebdf1@mail.gmail.com>
+References: <491339D9.2010504@personnelware.com>
+	<30353c3d0811061553h4c1a77e0t597bd394fa0ebdf1@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
-	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
-	<alpine.DEB.1.10.0811212015070.29615@bakacsin.ki.iif.hu>
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [video4linux] Attention em28xx users
+Cc: video4linux-list@redhat.com
+Subject: Re: weeding out v4l ver 1 stuff
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,36 +28,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Nov 21, 2008 at 2:20 PM, Kiss Gabor (Bitman)
-<kissg@ssg.ki.iif.hu> wrote:
-> Uhm.... every time I tried to snoop USB traffic windows machine
-> got frozen or slowed veeeeeeeeeeery down.
-> So I could not run TV software bundled with device.
-> A very short (182 kB) capture about device connection is here:
->
-> http://bakacsin.ki.iif.hu/~kissg/tmp/connect-UsbSnoop.log.txt
+Hi David,
 
-I'll look at this and see if enough is here to debug the issue.
+On Thu, 6 Nov 2008 18:53:42 -0500
+"David Ellingsworth" <david@identd.dyndns.org> wrote:
 
-> A question:
-> Where should I download latest em28xx driver from?
-> http://linuxtv.org/hg/ or http://mcentral.de/hg/ ?
 
-There are actually two different em28xx drivers.  The driver on
-linuxtv.org is maintained by the linux-dvb project and is the driver
-that currently appears in the mainline kernel.  The mcentral.de driver
-is maintained by Markus Rechberger and any questions regarding that
-driver should be sent to his "em28xx" mailing list hosted on
-mcentral.de.
+> With v4l1 going away, it would be nice to convert any drivers still
+> using the v4l1 interface to v4l2. Drivers using usbvideo spring to
+> mind. I've mentioned in the past, I've started a rewrite of ibmcam
+> over to the v4l2 interface but I currently don't have much time to
+> work on it and could use some assistance from the community. While
+> Mauro suggested it be written against the gspca framework, I hesitate
+> to do so since gspca does it's own memory management and will probably
+> become somewhat obsolete once the new media framework is put together.
+> If anyone is interested in helping, I'll happily set up a public git
+> repository for contributions.
 
-Thanks for the additional testing,
+In general, sharing common code is a good idea. That's why I think it would be
+better if you use gspca as the basis for your driver. That's also why I think
+it would be better for gspca to use videobuf.
 
-Devin
+Reusing existing core components generally means less compatibility issues with
+userspace apps. As you know, most of the webcam troubles we're currently facing
+are related to some app developed for webcam A (or tv board A), that doesn't
+work well if you use webcam B.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+I think if all drivers would use the same memory management and core stuff, and
+if we improve the core stuf more, those problems would disappear.
+
+Yet, I prefer to commit a driver that doesn't share the common code, but adds
+support for newer stuff and are compliant with V4L2 API than not supporting
+that hardware at all.
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
