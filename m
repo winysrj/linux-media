@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQ0D42V018561
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 19:13:04 -0500
-Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQ0CoEX006993
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 19:12:50 -0500
-To: Mike Rapoport <mike@compulab.co.il>
-References: <87prl4x28e.fsf@free.fr> <491C002F.4070804@compulab.co.il>
-	<87ljvktqtv.fsf@free.fr> <491FCBFF.9060208@compulab.co.il>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Tue, 25 Nov 2008 22:18:46 +0100
-In-Reply-To: <491FCBFF.9060208@compulab.co.il> (Mike Rapoport's message of
-	"Sun\, 16 Nov 2008 09\:30\:07 +0200")
-Message-ID: <87ljv7a4i1.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA75iSS5030229
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 00:44:28 -0500
+Received: from QMTA06.emeryville.ca.mail.comcast.net
+	(qmta06.emeryville.ca.mail.comcast.net [76.96.30.56])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA75hTx5018490
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 00:43:30 -0500
+Message-ID: <4913D57F.5010003@personnelware.com>
+Date: Thu, 06 Nov 2008 23:43:27 -0600
+From: Carl Karsten <carl@personnelware.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: pxa_camera: DMA alignment requirement
+To: video4linux-list@redhat.com
+References: <47C90994.8040304@personnelware.com>	<20080304113834.0140884d@gaivota>	<490E468A.6090200@personnelware.com>	<1225675203.3116.12.camel@palomino.walls.org>	<490E6EC3.7030408@personnelware.com>	<1225762470.3198.23.camel@palomino.walls.org>
+	<4911414E.2050801@personnelware.com>
+In-Reply-To: <4911414E.2050801@personnelware.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Matthew Bettencourt <matt@mail.bettencourt.info>
+Subject: Re: v4l2 api compliance test
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,30 +29,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mike Rapoport <mike@compulab.co.il> writes:
+I missed this: capture --read, a valid mode of vivi (at least it was not
+reporting an error) is what is eating the memory.  guessing vivi, because I
+don't think a user app can do what was happening.
 
->>>From what I read on the PXA manual, the only constraint is 16bytes
->> alignement. Would you also remember who wrote the code, so that I can ask him
->> where he read about page alignement constraint please ?
->
-> Just by coincidence it was me :)
-> I used pxafb_overlay from [1], and my (mis)understanding of what it does added
-> the page alignment constrain. Now looking at the overlay code once more, I'm not
-> sure if it's necessary.
->
-> ---
-> [1] http://www.rpsys.net/openzaurus/patches/archive/pxa27x_overlay-r8.patch
+A ubuntu dev has asked that I report it against the ubuntu kernel, so here it
+is:  https://bugs.launchpad.net/ubuntu/+source/linux/+bug/294951
 
-Just for the record, I made a try or two, changing the alignment from page (4096
-bytes) into 16 bytes (PAGE_ALIGN -> ALIGN(x,16)). And surprise, I get a lot of
-DMA bus errors ...
+Carl K
 
-I'm still investigating, there's something weird in there ...
 
-Cheers.
 
---
-Robert
+
+
+
+
 
 --
 video4linux-list mailing list
