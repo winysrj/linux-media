@@ -1,28 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAP6phgM015218
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 01:51:43 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.168])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAP6pQ0l029638
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 01:51:26 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so2518543wfc.6
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 22:51:25 -0800 (PST)
-Message-ID: <5d5443650811242251g5ddda028q9413b0ff47fc08a8@mail.gmail.com>
-Date: Tue, 25 Nov 2008 12:21:25 +0530
-From: "Trilok Soni" <soni.trilok@gmail.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-In-Reply-To: <200811242309.37489.hverkuil@xs4all.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA76JFHC007574
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 01:19:15 -0500
+Received: from namebay.info (mail.namebay.info [80.247.68.40])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA76J2as000741
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 01:19:03 -0500
+Received: from localhost by namebay.info (MDaemon PRO v9.6.2)
+	with ESMTP id md50003739537.msg
+	for <video4linux-list@redhat.com>; Fri, 07 Nov 2008 07:18:57 +0100
+Message-ID: <20081107072226.4sfvw4jxssckckgo@webmail.hebergement.com>
+Date: Fri, 07 Nov 2008 07:22:26 +0100
+From: fpantaleao@mobisensesystems.com
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
 Content-Disposition: inline
-References: <200811242309.37489.hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: v4l2_device/v4l2_subdev: please review
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: Re: About CITOR register value for pxa_camera
+Reply-To: fpantaleao@mobisensesystems.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,23 +33,120 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Hans,
-
-On Tue, Nov 25, 2008 at 3:39 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi all,
+> On Thu, 6 Nov 2008, fpantaleao@mobisensesystems.com wrote:
 >
-> I've finally tracked down the last oops so I could make a new tree with
-> all the latest changes.
+> > Sure we can do it that way if the sensor is clocked by MCLK and no  
+> prescale is
+> > done by the sensor.
+> > In other cases, PCLK is controlled by sensor:
+> > - sensor has its own clock
+> > - MCLK is prescaled by the sensor.
 >
+> Right, then maybe we should request the sensor what quotient it's  
+> running its pixel clock respective our master clock? In the master  
+> mode, of course.
 
-Please send these patches to mailing list (git-send-email?) for easy
-review. Also CCing LKML for wider view is also good, as we are doing
-some core changes right?
+To be more general (sensor clocked by MCLK or not), I think we should  
+request the sensor its PCLK, by adding a get_pclk member in  
+soc_camera_ops for example.
+Then CITOR value can be computed.
+On the sensor side, PCLK value can be defined in its platform data. I  
+agree this is redundant for a MT9V022 clocked by MCLK but to my point  
+of view, this is not the general case.
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+Best regards
+
+Florian
+
+>
+> (Please, don't top-post)
+>
+> Thanks
+> Guennadi
+>
+> > > Florian
+> > > ----- Original Message -----
+> > From: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+> > To: <fpantaleao@mobisensesystems.com>
+> > Cc: <video4linux-list@redhat.com>
+> > Sent: Wednesday, November 05, 2008 8:31 PM
+> > Subject: Re: About CITOR register value for pxa_camera
+> > > > > On Wed, 5 Nov 2008, fpantaleao@mobisensesystems.com wrote:
+> > > > > > Thank you for your answer.
+> > > > I have tested with "67 x 1" resolution (and many others), I can't with
+> > > > "1619 x
+> > > > 1".
+> > > > I don't get overruns with CITOR != 0.
+> > > > > Before submitting a patch, I would like to have the opinion of other
+> > > > developpers about the CITOR value.
+> > > > The resulting time-out is CITOR/CICLK. What we need is a time-out a bit
+> > > > longer than 1 pixel period (1/PCLK).
+> > > > The condition for CITOR is then: CITOR > CICLK/PCLK.
+> > > > Since PCLK is a platform dependent value, I suggest to add a field in
+> > > > pxacamera_platform_data.
+> > > > If no value is assigned, a value of 16 can be used which equals 2 pixel
+> > > > periods when PCLK=13MHz ("slow" sensor) and CICLK=104MHz (highest CI
+> > > > clock).
+> > > > CITOR can be set in pxa_camera_activate.
+> > > > > Don't think we need any extra fields in  
+> pxacamera_platform_data, look at
+> > > mclk_get_divisor() - it gets already the lcdclk frequency, which  
+> is the same
+> > > as CICLK, and our target MCLK frequency is set in  
+> platform_mclk_10khz, so,
+> > > you should have all the data you need...
+> > > > > Thanks
+> > > Guennadi
+> > > > > > > Best regards
+> > > > > Florian
+> > > > > > fpantaleao@mobisensesystems.com writes:
+> > > > > > > > Hi all,
+> > > > > > > > > While testing, I think I have found one reason why overruns
+> > > > occur with
+> > > > > > pxa_camera.
+> > > > > > I propose to set CITOR to a non-null value.
+> > > > > Yes, seconded.
+> > > > > > > > I would appreciate any comment about this.
+> > > > > Well, at first sight I would advice to test some corner case  
+> to see if
+> > > > DMA
+> > > > > trailing bytes are handled well. I know this can be a pain,  
+> but you seem
+> > > > to be
+> > > > > testing thouroughly ..
+> > > > > > > So, if your configuration/sensor is able to, try some funny
+> > > > resolution
+> > > > like
+> > > > > "1619 x 1", and then "67 x 1", and see what happens. If you  
+> don't have
+> > > > any
+> > > > > capture issue, you're done, and post a patch (only CITOR or CITOR +
+> > > > trailling
+> > > > > bytes handling).
+> > > > > > > Have fun.
+> > > > > > > --
+> > > > > Robert
+> > > > > > ----------------------------------------------------------------
+> > > > This message was sent using IMP, the Internet Messaging Program.
+> > > > > > > > --
+> > > > video4linux-list mailing list
+> > > > Unsubscribe  
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> > > > https://www.redhat.com/mailman/listinfo/video4linux-list
+> > > > > ---
+> > > Guennadi Liakhovetski, Ph.D.
+> > > Freelance Open-Source Software Developer
+> > > ----------------------------------------------------------------
+> > This message was sent using IMP, the Internet Messaging Program.
+> > > ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
+
+
+
 
 --
 video4linux-list mailing list
