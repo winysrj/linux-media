@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.24])
+Received: from ey-out-2122.google.com ([74.125.78.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L0Dpl-0008Sz-P5
-	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 12:24:31 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so142961eya.17
-	for <linux-dvb@linuxtv.org>; Wed, 12 Nov 2008 03:24:26 -0800 (PST)
-Date: Wed, 12 Nov 2008 12:24:09 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Alex Betis <alex.betis@gmail.com>
-In-Reply-To: <c74595dc0811120243m4819b86bk84a5d23c8e00e467@mail.gmail.com>
-Message-ID: <alpine.DEB.2.00.0811121212280.22461@ybpnyubfg.ybpnyqbznva>
-References: <20081112023112.94740@gmx.net>
-	<c74595dc0811120243m4819b86bk84a5d23c8e00e467@mail.gmail.com>
+	(envelope-from <mkrufky@gmail.com>) id 1KyV37-0005WW-IM
+	for linux-dvb@linuxtv.org; Fri, 07 Nov 2008 18:23:11 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so539536eya.17
+	for <linux-dvb@linuxtv.org>; Fri, 07 Nov 2008 09:23:06 -0800 (PST)
+Message-ID: <37219a840811070923o7aa7e91do1780dd20145c72c8@mail.gmail.com>
+Date: Fri, 7 Nov 2008 12:23:05 -0500
+From: "Michael Krufky" <mkrufky@linuxtv.org>
+To: "Paul Guzowski" <guzowskip@linuxmail.org>
+In-Reply-To: <37219a840811070921se5be4adk72de45140002b804@mail.gmail.com>
 MIME-Version: 1.0
+Content-Disposition: inline
+References: <20081107140513.4DCE87BD53@ws5-10.us4.outblaze.com>
+	<37219a840811070921se5be4adk72de45140002b804@mail.gmail.com>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
+Subject: Re: [linux-dvb] Channel configuration files....
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,33 +29,87 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Howdy, this is probably a stupid question, as I neither
-have DVB-S2 hardware nor have attempted to use anything
-but a rather hacked scan from dvb-apps, but...
+On Fri, Nov 7, 2008 at 12:21 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> Paul -- please see my response below.
+>
+>> Paul in NW Florida
+>>> ----- Original Message -----
+>>> From: "Michael Krufky" <mkrufky@linuxtv.org>
+>>> To: "Paul Guzowski" <guzowskip@linuxmail.org>
+>>> Cc: linux-dvb@linuxtv.org
+>>> Subject: Re: [linux-dvb] Channel configuration files....
+>>> Date: Wed, 5 Nov 2008 11:41:27 -0500
+>>>
+>>>
+>>> On Wed, Nov 5, 2008 at 6:58 AM, Paul Guzowski <guzowskip@linuxmail.org> wrote:
+>>> > Greetings,
+>>> >
+>>> > Does anyone on this list have a sample channel.conf file for
+>>> > Brighthouse Networks cable or can anyone give enough information
+>>> > (frequencies, transponders, etc) so that I can try to build one?
+>>> > Thanks in advance.
+>>> >
+>>> > Paul in NW Florida
+>>>
+>>> Paul,
+>>>
+>>> You can use "scan" from dvb-apps, using the scan file,
+>>> "us-Cable-Standard-center-frequencies-QAM256" ...  If that doesn't
+>>> work, you can try the other QAM256 cable scan files, located in the
+>>> util/scan/atsc/ directory of dvb-apps.
+>>>
+>>> Alternatively, you can use the latest version of w_scan WITHOUT any
+>>> scan file.  This should produce the best results.
+>>>
+>>> The latest version of w_scan with atsc / qam scanning support can be
+>>> downloaded from here:
+>>>
+>>> http://wirbel.htpc-forum.de/w_scan/w_scan-20080815.tar.bz2
+>>>
+>>> You can scan cable using this command:
+>>>
+>>> w_scan -A2 -X > channels.conf
+>>>
+>>> Good luck.
+>>>
+>>> -Mike Krufky
+>
+>
+> On Fri, Nov 7, 2008 at 9:05 AM, Paul Guzowski <guzowskip@linuxmail.org> wrote:
+>> Greetings Mike,
+>>
+>> I tried your suggestion and didn't have any success.  I know there are cable signals coming over the line because two other TVs in the house (one analog and one HDTV-capable) can tune channels.  If I connect to the RF-out from the digital set-top box, I can use mplayer tuned to channel 3 to watch TV but I'd like to be able to tune from the cable directly. Not sure what to try next.  Here's the results of my test:
+>>
+>> paul@Kris-desktop:/media/Data/Computer/Downloads/Linux/Multimedia/w_scan-20080815$ w_scan -a0 -X > channels.conf
+>> w_scan version 20080105
+>> -_-_-_-_ Getting frontend capabilities-_-_-_-_
+>> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+>> ERROR: Sorry - i couldn't get any working frequency/transponder
+>>  Nothing to scan!!
+>> dumping lists (0 services)
+>> Done.
+>> paul@Kris-desktop:/media/Data/Computer/Downloads/Linux/Multimedia/w_scan-20080815$
+>>
+>
+>
+> Paul,
+>
+> The policy of this mailing list, and almost all linux mailing lists,
+> is to enter your replies BELOW the quoted text.  Do not top-post.
+>
+> Please notice above, that I instructed you to pass " -A2 -X " into the
+> w_scan command line.  You passed " -a0 -X " ..  The -a? and -A? are
+> two entirely different command line switches.  If you're trying to
+> scan QAM, then you must pass -A2
+>
+> -Mike
+>
 
-On Wed, 12 Nov 2008, Alex Betis wrote:
+Also,  do NOT use the rf out from the cablebox -- you wont get any
+digital services that way.  You must use the cable feed coming in
+directly from the wall / street.
 
-> DVB-S2 by specifying S1 or S2 in freq file, also if you implicitly specify
-> QPSK in frequency file the utility will not scan DVB-S2, same logic also for
-> 8PSK that will scan only DVB-S2 and will not try to scan DVB-S.
-(implicitly -> explicitly?)
-
-I can see the logic for 8PSK=>DVB-S2, but as far as I
-can see, QPSK does not imply purely DVB-S...
-NIT result:  12324000 V 29500000   pos  28.2E    FEC 3/4  DVB-S2 QPSK
-one of eight such transponders, based on parsing the NIT
-tables.  Also, a note from my inital 19E2 scan file to
-remind me why it failed:
-S 11914500      h       27500   ##      DVB-S2 QPSK (0x05)
-May be no longer up-to-date.
-
-Of course, if I'm misunderstanding, or failing to grasp
-something obvious if I actually laid my hands on the
-code, please feel free to slap me hard and tell me to
-shove off.
-
-thanks
-barry bouwsma
+-Mike
 
 _______________________________________________
 linux-dvb mailing list
