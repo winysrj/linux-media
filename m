@@ -1,31 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAM0nfQj029511
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 19:49:41 -0500
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.175])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAM0nRBY023486
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 19:49:27 -0500
-Received: by wf-out-1314.google.com with SMTP id 25so1214939wfc.6
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 16:49:26 -0800 (PST)
-Message-ID: <d7e40be30811211649s79047226ne2f79a4dced9c7c7@mail.gmail.com>
-Date: Sat, 22 Nov 2008 11:49:25 +1100
-From: "Ben Klein" <shacklein@gmail.com>
-To: "Devin Heitmueller" <devin.heitmueller@gmail.com>,
-	V4L <video4linux-list@redhat.com>
-In-Reply-To: <412bdbff0811211615r4ed250f8q12b28eda3a352778@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA79prK8023837
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 04:51:53 -0500
+Received: from smtp-vbr10.xs4all.nl (smtp-vbr10.xs4all.nl [194.109.24.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA79pXnk006602
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 04:51:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Fri, 7 Nov 2008 10:50:25 +0100
+References: <491339D9.2010504@personnelware.com>
+	<30353c3d0811061553h4c1a77e0t597bd394fa0ebdf1@mail.gmail.com>
+	<4913E9DB.8040801@hhs.nl>
+In-Reply-To: <4913E9DB.8040801@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
-	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
-	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
-	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
-	<d7e40be30811211600u354bf1ebg57567ebd3cd375a@mail.gmail.com>
-	<412bdbff0811211615r4ed250f8q12b28eda3a352778@mail.gmail.com>
-Cc: 
-Subject: Re: [video4linux] Attention em28xx users
+Message-Id: <200811071050.25149.hverkuil@xs4all.nl>
+Cc: David Ellingsworth <david@identd.dyndns.org>
+Subject: Re: weeding out v4l ver 1 stuff
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,44 +31,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-2008/11/22 Devin Heitmueller <devin.heitmueller@gmail.com>:
-> On Fri, Nov 21, 2008 at 7:00 PM, Ben Klein <shacklein@gmail.com> wrote:
->>
->> 2008/11/20 Devin Heitmueller <devin.heitmueller@gmail.com>
->>>
->>> Playing with the "card=" argument is probably not such a good idea.
->>> I should consider taking that functionality out, since setting to the
->>> wrong card number can damage the device (by setting the wrong GPIOs).
->>
->> What about us folk who currently can't get em28xx working without the
->> "card=" option? With no card= option, my "Tevion High Speed DVD Maker"
->> device (eb1a:2861) is detected but reports no inputs (the inputs should be
->> S-Video and Composite). dmesg snippet:
--- snip --
->> So far, the only card= values I've found also report a TV tuner (10, 13, 38,
->> 39, 58), but I haven't tested every single value.
->>
+On Friday 07 November 2008 08:10:19 Hans de Goede wrote:
+> David Ellingsworth wrote:
+> > On Thu, Nov 6, 2008 at 1:39 PM, Carl Karsten 
+<carl@personnelware.com> wrote:
+> >> Given v4l version 1 is being dropped in December 08, we should
+> >> remove stuff that targets that api, right?
+> >>
+> >> For instance:
+> >>
+> >> http://linuxtv.org/hg/v4l-dvb/file/b45ffc93fb82/v4l2-apps/test/v4l
+> >>grab.c
+> >>
+> >>      94 #ifdef CONFIG_VIDEO_V4L1_COMPAT
+> >>      194 #else
+> >>
+> >>      195       fprintf(stderr, "V4L1 API is not configured!\n");
+> >>
+> >> I'll let someone else figure out if the whole file should be
+> >> removed, or if it has some value to v2.
+> >>
+> >> And assuming someone agrees we should week out v1 stuff, where is
+> >> the right place to log this too?  http://bugzilla.kernel.org does
+> >> not seem right.
+> >>
+> >> Carl K
+> >
+> > With v4l1 going away, it would be nice to convert any drivers still
+> > using the v4l1 interface to v4l2. Drivers using usbvideo spring to
+> > mind. I've mentioned in the past, I've started a rewrite of ibmcam
+> > over to the v4l2 interface but I currently don't have much time to
+> > work on it and could use some assistance from the community. While
+> > Mauro suggested it be written against the gspca framework, I
+> > hesitate to do so since gspca does it's own memory management and
+> > will probably become somewhat obsolete once the new media framework
+> > is put together.
 >
-> I can add a device profile so you don't need to specify a "card="
-> entry in the future.  Please send me a link to the product page if
-> possible and I will look at it this weekend.  If there isn't a page
-> you can refer me to, send me as much information about the device that
-> you can (what inputs are available for it [composite, tuner, s-video]
-> and whether it has a remote control).
+> ? What new media framework ? You mean the planned changes to the v4l2
+> API for multifunction devices? Anyways this won't make gspca
+> obsolete, gspca is a framework for writing usb webcam drivers, as
+> such it tries to do things common to all usb webcam drivers inside
+> the gspca-core. If the v4l2 core changes the gspca-core will adapt
+> and in most cases of v4l2-core changes, the gspca subdrivers will not
+> need to change at all. So if anything using gspca makes your driver
+> more future proof against v4l2-core changes as in most cases the
+> necessary changes for all gspca drivers only need to be made once in
+> gspca-core
 
-I don't think it'd be easy if possible at all to find technical
-details about it, but this is the device:
-http://www.unisupport.net/lang/au/dvd-grabber.htm
+That's right. If possible, then I definitely recommend moving away from 
+separate webcam drivers to gspca where possible. The planned new v4l2 
+core framework enhancements have nothing to do with this.
 
-Audio is usb-audio, inputs are S-Video and Composite. No TV tuner (or
-at least nowhere to stick an antenna) and no remote control.
+Regards,
 
-Thanks for your help :) If you need more information (like lsusb
-output), just let me know
-
-> Cheers,
->
-> Devin
+	Hans
 
 --
 video4linux-list mailing list
