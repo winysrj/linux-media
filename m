@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA90GNGZ029942
-	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 19:16:23 -0500
-Received: from smtp120.rog.mail.re2.yahoo.com (smtp120.rog.mail.re2.yahoo.com
-	[68.142.224.75])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mA90G9Pp004094
-	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 19:16:09 -0500
-Message-ID: <49162BBD.8030408@rogers.com>
-Date: Sat, 08 Nov 2008 19:15:57 -0500
-From: CityK <cityk@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA81LAH0026760
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 20:21:10 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.175])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA81KxTv017140
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 20:21:00 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so1479808wfc.6
+	for <video4linux-list@redhat.com>; Fri, 07 Nov 2008 17:20:59 -0800 (PST)
+Message-ID: <208cbae30811071720h3ea4c07di7b94c82f0a0098a7@mail.gmail.com>
+Date: Sat, 8 Nov 2008 04:20:59 +0300
+From: "Alexey Klimov" <klimov.linux@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-To: mpapet@yahoo.com
-References: <930913.9606.qm@web62004.mail.re1.yahoo.com>
-In-Reply-To: <930913.9606.qm@web62004.mail.re1.yahoo.com>
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: V4L <video4linux-list@redhat.com>, linux-dvb@linuxtv.org
-Subject: Re: Subject: [linux-dvb] Announcement: wiki merger and some loose
- ends
+Content-Disposition: inline
+Subject: [Q] does dsbr100 should be renamed to radio-dsbr100?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,66 +27,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Michael, sorry for the delay in response,
+Hello all.
 
-Michael Papet wrote:
-> As a  sometime contributor to both wikis, may I suggest you pause a moment and be sure you can use "LinuxTV" without the copyright holder on the name Linux coming after you with Cease and Desist (C&D) orders.  Could they?  Yes.  Linux is trademarked in Germany and the U.S. by Linus Torvalds.  Would they?  To generate some billable hours and defend their mark, sure.  This could be a case whereby bad things happen to people with good intentions.  We have all seen it before.
->
-> I know it is opening a new can of worms, but in order to run the wiki/project as professionally as possible, I suggest coordinating with the Trademark owner lawyers on this one now, rather than later under more negative circumstances when the results of your improved wiki are already committed.
+If you take a look under drivers/media/radio/  you can see that all
+radio-drivers called "radio-something" beside one driver - dsbr100.
+Is it good idea to rename it in radio-dsbr100 ? Will it be useful ?
+Or (this driver supports two usb-radio models - dsbr and gemtek) in
+something more appropriate to chip-model on which this two devices
+based ?
 
-"LinuxTV" was created by Convergence approx. 10 years ago. I do not know
-if it was trademarked or not. Seeing as Convergence, and subsequently
-Galaxis (who had acquired Convergence) are both no longer going
-concerns, I'm uncertain as to whom the IP now belongs. Johannes or Ralph
-are the most likely candidates for a quick answer as to that matter.
-
-Do I think that some non-scrupulous entity would ever try to take
-ownership of the "LinuxTV" moniker? Sure, that's possible. But:
-
-a) "LinuxTV" is just the hosting project site for the DVB and V4L
-subsystems, and is a non-profit organization. Given that its not a
-commercial venture, there wouldn't be any much point in coming after us
-except for defending "their" mark.
-
-b) in defending "their" mark
-- 10 years of precedence and history rests on our side, so I say that
-any potential usurper would have an uphill battle convincing anyone (or
-court) that it was "their" mark that we (the community surrounding
-LinuxTV.org) are imposing upon.
-- it strikes me that anyone/entity attempting to usurp the name
-"LinuxTV" would likely be involved somehow with the Linux OS and
-television. I can also surmise that such folk, in attempting to usurp
-the "LinuxTV" name, would be greatly undervaluing the negative attention
-they would generate for themselves from within the greater Linux
-community. In fact, it sounds exactly like something the likes of
-Slashdot and others salivate over ... (in other words, I'm quite willing
-to beat the galley drum and watch its effect snowball)
-- And given, as you say, the name Linux is Trademarked and held by Linux
-Torvalds, such usurpers would be subject to the same usage constraints
-as we ourselves are ... and I'd hazard a guess that Linus would prefer
-that we use the name as opposed to some opportunistic usurping
-commercial venture.
-- And lastly, if such an entity was NOT in anyway involved with the
-Linux OS (e.g. Microsoft), they would be (in my opinion) embarking upon
-either squatting or unfair competitive trade practices. And I'm willing
-to bet that any court would see that too.
-
-
-Now, with that all said, having to go through such a useless legal
-battle is indeed time consuming and upfront costly (as you wouldn't
-recover costs until the summary judgement and any appeals process are
-complete). So, just to cut_down_upon/mitigate any future aggravations *
-, I deem what you have said is a valid suggestion. I personally,
-however, I have no interest in pursuing such an endeavour. Though this
-aspect might greatly appeal to someone else, so I don't want to
-discourage anyone from investigating on this matter. I have spent enough
-time on the legal mumbo jumbo already, so will opine no further.
-
-* Note: obtaining a trademark for LinuxTV would still not prevent
-someone from trying to usurp/infringe upon the name; though, having such
-a trademark in place would greatly cut down time and upfront expense
-surrounding any such legal defence if things progressed much further
-then a wag of the finger.
+-- 
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
