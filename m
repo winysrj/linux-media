@@ -1,17 +1,27 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <8567605f0811241156xc855543p82e5d455fc84256@mail.gmail.com>
-Date: Mon, 24 Nov 2008 20:56:51 +0100
-From: "kevinlux -" <kevinlux@gmail.com>
-To: "hermann pitton" <hermann-pitton@arcor.de>
-In-Reply-To: <1227479368.4665.42.camel@pc10.localdom.local>
-MIME-Version: 1.0
-Content-Disposition: inline
-References: <8567605f0811160257i66ea44a1i8b16a45c1580d5a9@mail.gmail.com>
-	<8567605f0811231027w4bca54dej414d353e31ff1e5f@mail.gmail.com>
-	<1227479368.4665.42.camel@pc10.localdom.local>
-Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
-	video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] pinnacle 310i doesn't works very well
+Date: Sat, 8 Nov 2008 08:15:08 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Andre Kelmanson" <akelmanson@gmail.com>
+Message-ID: <20081108081508.496f6582@pedra.chehab.org>
+In-Reply-To: <a2aa6e3a0811072150t535e802cge3375a7b88ee6287@mail.gmail.com>
+References: <d9def9db0810221414w5348acf3re31a033ea7179462@mail.gmail.com>
+	<200811011459.17706.hverkuil@xs4all.nl>
+	<20081102022728.68e5e564@pedra.chehab.org>
+	<a2aa6e3a0811072150t535e802cge3375a7b88ee6287@mail.gmail.com>
+Mime-Version: 1.0
+Cc: Vitaly Wool <vwool@ru.mvista.com>, Dan
+	Kreiser <kreiser@informatik.hu-berlin.de>,
+	Lukas Kuna <lukas.kuna@evkanet.net>, acano@fastmail.fm, John
+	Stowers <john.stowers.lists@gmail.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Thomas Giesecke <thomas.giesecke@ibgmbh-naumburg.de>,
+	Zhenyu Wang <zhen78@gmail.com>,
+	v4l <video4linux-list@redhat.com>, linux-dvb@linuxtv.org,
+	em28xx <em28xx@mcentral.de>, greg@kroah.com,
+	Stefan Vonolfen <stefan.vonolfen@gmail.com>,
+	Stephan Berberig <s.berberig@arcor.de>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>, Frank Neuber <fn@kernelport.de>
+Subject: Re: [linux-dvb] [PATCH 1/7] Adding empia base driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,82 +29,65 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
-i'm talking about this tv tuner card : My Cinema-P7131 Hybrid
-http://www.asus.com/products.aspx?l1=18&l2=83&l3=252&l4=0&model=547&modelmenu=1
+On Sat, 8 Nov 2008 03:50:20 -0200
+"Andre Kelmanson" <akelmanson@gmail.com> wrote:
 
-I'm sorry but i have to confirm that both cards (the asus  p7131 and
-pinnacle 310i ) stilii not working correctly with the last mercurial
-(also in analog mode).
-Otherwise i also have an usb Pinnacle dvb stick that works perfecty
-under win and linux (with the driver em28xx from mcentral.de
-(http://mcentral.de/hg/~mrec/v4l-dvb-kernel)). If there's something
-that i can do (testing and something like that) don't esitate to
-ask... you will be welcome.
-Best regards and thanks
+> Dears,
+> =
 
-kev
+> I'm using this version of em28xx for a long time and it's working fine. It
+> has three very important features for me. The first one is Kaiomy device,
+> the second one is the new em28xx-audoep module and the third one is PAL-M
+> support. Kaiomy and PAL-M support were developed based on my support on t=
+he
+> em28xx mailinglist.
+> =
 
-2008/11/23, hermann pitton <hermann-pitton@arcor.de>:
+> Now I can use my device (Kaiomy) outside Windows with sound (em28xx-audio=
+ep)
+> and colors (PAL-M)! I'm using this version everyday with no problems.
+> =
 
->
-> Kevin, I saw your previous post, but I can't test on something like the
->  310i with tda827x_config/tuner_config = 1 and I was waiting for some
->  confirmation. Maybe someone on the video4linux-list can test on it.
->
->  Which of the P7131 Dual cards you have. The Dual Hybrid with LNA ?
->
->  This one uses tda827x/tuner config = 2.
->
->  This configuration I can test on the recently added Asus Tiger 3in1.
->
->  We partly have heavy snowfall currently, but on the same DVB-T RF feed,
->  with the most critical transponder for me in upper UHF, an Asus Tiger
->  Revision 1 fails completely, too many errors, on a Medion Quad mplayer
->  starts, but picture and sound are totally distorted and unusable
->  currently.
->
->  On the Tiger 3in1 almost all is fine, except some rare small artifacts
->  from time to time. That means the LNA works for sure.
->
->  The same goes for analog TV. It is easy to recognize if the LNA is
->  active, since else sync issues after channel switching, a black bar
->  passes the screen for a while and also some slight audio issues. Others
->  reported sometimes flashing picture and humming noise on analog without
->  correctly configured LNA.
->
->  "hg head" on this machine is:
->
->  changeset:   9575:d5e211683345
->  tag:         tip
->  parent:      9573:1251a4091b89
->  parent:      9574:2ab0045eb27b
->  user:        Mauro Carvalho Chehab <mchehab@redhat.com>
->  date:        Tue Nov 11 07:42:37 2008 -0200
->  summary:     merge: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-backport
->
->  We are only 4 days apart, if LNA config = 2 should be broken at all
->  later.
->
->  ---
->  Few minutes later with the current v4l-dvb installed on that one.
->
->  Sorry, I seem not to be able to confirm your observation, at least the
->  Asus Tiger 3in1 is still fine on that critical transponder.
->
->  If I change the LNA config to 0, mplayer fails to start with only three
->  good and 27 bad packages. Means for me the LNA works for sure.
->
->  Cheers,
->
-> Hermann
->
+> Because of this, it will be nice if this work could be included in the
+> kernel code. What do you (other users) think about having that driver in
+> kernel?
+
+Andr=E9,
+
+First of all, the big issue why we aren't merging em28xx improvements from
+Markus is that he is not following the rules.
+
+For example, you said that you've contributed with Markus tree.
+
+However, on Markus pull request, I see no patch from you on his series of p=
+atches. =
+
+
+The correct procedure would be just to forward your patch as-is, adding wit=
+h his SOB bellow yours.
+
+Not doing this, he would be considered as the author of your patch. IANAL, =
+but
+this doesn't seem to be right, from GPL's perspective. Probably, there are
+other patches there not authored by Markus that are just merged inside his =
+big patch.
+
+About PAL-M, this always worked at the upstream driver. I have myself lots =
+of
+em28xx devices, all working in colors with PAL-M, and with audio. I live in
+Brazil, so I always check if PAL-M is ok ;)
+
+If you want to have your device supported, just send us a patch against the
+upstream driver.
+
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
