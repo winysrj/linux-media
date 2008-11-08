@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from crow.cadsoft.de ([217.86.189.86] helo=raven.cadsoft.de)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Klaus.Schmidinger@cadsoft.de>) id 1L6nCx-0003Dh-8U
-	for linux-dvb@linuxtv.org; Sun, 30 Nov 2008 15:23:36 +0100
-Received: from [192.168.100.10] (hawk.cadsoft.de [192.168.100.10])
-	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id mAUENVOW019934
-	for <linux-dvb@linuxtv.org>; Sun, 30 Nov 2008 15:23:31 +0100
-Message-ID: <4932A1E2.5060606@cadsoft.de>
-Date: Sun, 30 Nov 2008 15:23:30 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <Bitte_antworten@will-hier-weg.de>)
+	id 1KyofS-0005Ce-Ui
+	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 15:20:06 +0100
+Date: Sat, 08 Nov 2008 15:19:29 +0100
+From: Bitte_antworten@will-hier-weg.de
+Message-ID: <20081108141929.113700@gmx.net>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Problem with TT-Budget-T-CI PCI firmware
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Cc: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Fwd: Re:  stb0899 drivers Pinnacle PCTV452
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,43 +24,60 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I'm trying to use the latest s2API driver from http://linuxtv.org/hg/v4l-dvb
-(7100e78482d7) with a TT-Budget-T-CI PCI card:
+Hi Igor,
 
-Nov 30 15:13:45 vdr2 kernel: DVB: registering new adapter (TT-Budget-T-CI PCI)
-Nov 30 15:13:45 vdr2 kernel: adapter has MAC addr = 00:d0:5c:07:d7:39
-Nov 30 15:13:45 vdr2 kernel: input: Budget-CI dvb ir receiver saa7146 (3) as /devices/pci0000:00/0000:00:1e.0/0000:01:05.0/input/input11
-Nov 30 15:13:45 vdr2 kernel: DVB: registering adapter 3 frontend 0 (Philips TDA10046H DVB-T)...
-Nov 30 15:13:45 vdr2 kernel: saa7130/34: v4l2 driver version 0.2.14 loaded
+I just want to let you know that Dominik Kuhlen's patches  for Pinnacle's PCTV452 are just working fine for me.
 
-I ran
+Dirk
+-------- Original-Nachricht --------
+Datum: Mon, 3 Nov 2008 17:46:50 +0100
+Von: "Faruk A" <fa@elwak.com>
+An: Bitte_antworten@will-hier-weg.de
+Betreff: Re: [linux-dvb] cinergyT2 renamed drivers (was Re: stb0899 drivers)
 
-  linux/Documentation/dvb/get_dvb_firmware tda10045
+On Mon, Nov 3, 2008 at 3:07 PM,  <Bitte_antworten@will-hier-weg.de> wrote:
+> Thanks Faruk.
+> I've tried this version and it works (except NDR and MDR on Astra 19.2E) like multiproto does.
+> Are there any plans to add this patch to the main repository or Igor's repository?
+>
+> Dirk
 
-to get the firmware file dvb-fe-tda10045.fw and copied it to
-/lib/firmware. The driver then told me to rename that file to
-dvb-fe-tda10046.fw, which I did. When starting the application
-I get
+Hi!
 
-Nov 30 15:14:00 vdr2 kernel: tda1004x: timeout waiting for DSP ready
-Nov 30 15:14:00 vdr2 kernel: tda1004x: found firmware revision 0 -- invalid
-Nov 30 15:14:00 vdr2 kernel: tda1004x: trying to boot from eeprom
-Nov 30 15:14:02 vdr2 kernel: tda1004x: timeout waiting for DSP ready
-Nov 30 15:14:02 vdr2 kernel: tda1004x: found firmware revision 0 -- invalid
-Nov 30 15:14:02 vdr2 kernel: tda1004x: waiting for firmware upload...
-Nov 30 15:14:05 vdr2 kernel: tda1004x: timeout waiting for DSP ready
-Nov 30 15:14:05 vdr2 kernel: tda1004x: found firmware revision 0 -- invalid
-Nov 30 15:14:05 vdr2 kernel: tda1004x: firmware upload failed
+I'm glad it worked for you, Igor knows about this patch but he is not
+adding this because it changes other files
+like stb0899, stb6100 ... which other cards uses like the popular s2-3200 card.
+Here is quoted mail from Igor when testing the patch against his s2-3200.
 
-in the log file, which seems to indicate that the firmware file was
-found, but isn't acceptable.
+"To me, nothing changed. There is no lock for 3255 and 44948 kSym/s
+and there is packet losses for
+27500 from time to time."
 
-The file that got downloaded was tt_budget_217g.zip, and the dvb-fe-tda10045.fw
-has a size of 30555 byte and an md5sum of 2105fd5bf37842fbcdfa4bfd58f3594a.
+What they need is feedback from people like us, Please email Igor and
+others or to the mailing list that the patch is working
+fine with your device and it should be merged.
 
-Am I doing something wrong here?
+I only tested once i wrote some good stuff and some negative stuff, my
+bad because i did'nt know that my card
+was broken i think because of that Igor did'nt merged. I was the only
+one who made feedback about the patch.
 
-Klaus
+I have returned my card to where i bought it, when i get it back I'll
+do more testing.
+
+
+
+Dominik Kuhlen's Original mail:
+http://www.linuxtv.org/pipermail/linux-dvb/2008-October/029830.html
+
+Direct link to the patch: my_s2api_pctv452e.patch.bz2
+http://www.linuxtv.org/pipermail/linux-dvb/attachments/20081018/032ac808/attachment-0001.bin
+
+Faruk
+
+-- 
+"Feel free" - 5 GB Mailbox, 50 FreeSMS/Monat ...
+Jetzt GMX ProMail testen: http://www.gmx.net/de/go/promail
 
 _______________________________________________
 linux-dvb mailing list
