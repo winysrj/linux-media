@@ -1,15 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <markus.o.hahn@gmx.de>) id 1KyMQV-0005PE-QN
-	for linux-dvb@linuxtv.org; Fri, 07 Nov 2008 09:10:45 +0100
-From: Markus Hahn <markus.o.hahn@gmx.de>
+Received: from wp074.webpack.hosteurope.de ([80.237.132.81])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mail@JuergenBrunenberg.de>) id 1KysQB-0004Es-LL
+	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 19:20:32 +0100
+From: =?ISO-8859-1?Q?J=FCrgen?= Brunenberg <mail@JuergenBrunenberg.de>
 To: linux-dvb@linuxtv.org
-Date: Fri, 7 Nov 2008 09:10:04 +0100
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200811070910.05576.markus.o.hahn@gmx.de>
-Subject: [linux-dvb]  TT  C-1501 budget : no device files
+In-Reply-To: 200811060012.57024.liplianin@tut.by
+Date: Sat, 08 Nov 2008 19:19:53 +0100
+Message-Id: <1226168393.7004.18.camel@nb-d830-lx>
+Mime-Version: 1.0
+Subject: [linux-dvb]  [linuxtv][PATCH] Cinergy S Usb
+Reply-To: mail@JuergenBrunenberg.de
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,43 +24,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-
--- Hi there, 
-I now, I  had this card already running, 
-but since two month,  when I load the drivers the device files woun`t  be created 
-
-System: kubuntu 8.04 Linux mars 2.6.24-21-38
-drivers: both: multiproto  http://linuxtv.org/hg  or kernel driver. 
-
-00:13.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-        Subsystem: Technotrend Systemtechnik GmbH Unknown device 101a
-        Control: I/O- Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR-
-        Latency: 32 (3750ns min, 9500ns max)
-        Interrupt: pin A routed to IRQ 255
-        Region 0: Memory at d9000000 (32-bit, non-prefetchable) [disabled] [size=512]
-
-
-I load the (tt)budget  driver :
-
-
-budget                 12804  0
-budget_core            11396  1 budget
-saa7146                19464  2 budget,budget_core
-ttpci_eeprom            2560  1 budget_core
-dvb_core               79612  3 budget,budget_core,videobuf_dvb
-i2c_core               23696  10 budget,budget_core,ttpci_eeprom,dvb_pll,tveeprom,i2c_viapro,i2c_algo_bit
-
-No erros but also no dvb/frontendx device files
-
-The second dvb-card Terratec DVB-T 1400 runns perfectly. (with device files of course )
-
-
-
-
-regards markus 
-
-
+hello together,
+I although have the Cinergy S USB, and i mad some tests with the dw2102
+driver. I patched the driver for the right VID/PID following the
+description from Thorsten Leupold. With the result, TV works but the
+remote control not. I made some further tests, then i extracted the
+firmware from terratec. With this and a other keymap the rc works fine.
+So, how to continue ? I just start working with Linux, and not know what
+is the next step. Is it a good solution to integrate this in the
+existing dw2102 driver from Igor Liplianin or is ist better to make a
+new one based on Igor's ?   
 
 
 _______________________________________________
