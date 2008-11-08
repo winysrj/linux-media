@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from a-sasl-fastnet.sasl.smtp.pobox.com ([207.106.133.19]
-	helo=sasl.smtp.pobox.com) by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <torgeir@pobox.com>) id 1Ky2H9-0007cW-St
-	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 11:39:45 +0100
-Message-Id: <C2D0EF7E-95E6-40B5-9FFE-BF1292F25DF3@pobox.com>
-From: Torgeir Veimo <torgeir@pobox.com>
-To: Jelle De Loecker <skerit@kipdola.com>
-In-Reply-To: <4912BA94.8060809@kipdola.com>
-Mime-Version: 1.0 (Apple Message framework v929.2)
-Date: Thu, 6 Nov 2008 20:38:52 +1000
-References: <BF8F0D96-3ED8-4D3D-8EF7-899FCAC4514E@pobox.com>
-	<4912BA94.8060809@kipdola.com>
-Cc: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] dvbloopback:
+Received: from smtp-2.orange.nl ([193.252.22.242])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <michel@verbraak.org>) id 1Kyot9-0006De-BX
+	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 15:34:13 +0100
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf6103.online.nl (SMTP Server) with ESMTP id 954751C00085
+	for <linux-dvb@linuxtv.org>; Sat,  8 Nov 2008 15:33:37 +0100 (CET)
+Received: from asterisk.verbraak.thuis (s55939d86.adsl.wanadoo.nl
+	[85.147.157.134])
+	by mwinf6103.online.nl (SMTP Server) with ESMTP id 681411C00082
+	for <linux-dvb@linuxtv.org>; Sat,  8 Nov 2008 15:33:35 +0100 (CET)
+Message-ID: <4915A33D.3050504@verbraak.org>
+Date: Sat, 08 Nov 2008 15:33:33 +0100
+From: Michel Verbraak <michel@verbraak.org>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary="------------010206090100010406050407"
+Subject: [linux-dvb] [PATCH] duplicate define in frontend.h
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,36 +24,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+This is a multi-part message in MIME format.
+--------------010206090100010406050407
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On 6 Nov 2008, at 19:36, Jelle De Loecker wrote:
+Found a duplicate define in frontend.h for DTV_API_VERSION
 
-> Are you using S2API and the S2API patch found on open-sasc-ng's trac?
-> Because I have the same problem ("error 14", I don't get the  
-> "private data" bit, though) with kernel 2.6.26 (which came with  
-> Debian Lenny) AND with my own compiled 2.6.27
->
-> In my case it must be an S2API thing, because when I was using  
-> Multiproto everything worked fine.
+Signed-Off-By: M. Verbraak (michel@verbraak.org)
 
+--------------010206090100010406050407
+Content-Type: text/plain;
+ name="frontend.h.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="frontend.h.diff"
 
-I am using a pretty recent version of the hg code yes. DVB version is  
-set to 5. I guess I need to find a less recent version.
+*** linux/include/linux/dvb/frontend.h.orig	2008-11-08 15:28:29.000000000 +0100
+--- linux/include/linux/dvb/frontend.h	2008-11-08 15:29:42.000000000 +0100
+*************** struct dvb_frontend_event {
+*** 300,306 ****
+  #define DTV_ISDB_LAYERC_TIME_INTERLEAVING	34
+  #endif
+  #define DTV_API_VERSION				35
+- #define DTV_API_VERSION				35
+  #define DTV_CODE_RATE_HP			36
+  #define DTV_CODE_RATE_LP			37
+  #define DTV_GUARD_INTERVAL			38
+--- 300,305 ----
 
--- 
-Torgeir Veimo
-torgeir@pobox.com
-
-
-
-
+--------------010206090100010406050407
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--------------010206090100010406050407--
