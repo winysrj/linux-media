@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from crow.cadsoft.de ([217.86.189.86] helo=raven.cadsoft.de)
+Received: from qw-out-2122.google.com ([74.125.92.27])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Klaus.Schmidinger@cadsoft.de>) id 1L4CbF-0004Eg-Fm
-	for linux-dvb@linuxtv.org; Sun, 23 Nov 2008 11:54:00 +0100
-Received: from [192.168.100.10] (hawk.cadsoft.de [192.168.100.10])
-	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id mANArr7g006932
-	for <linux-dvb@linuxtv.org>; Sun, 23 Nov 2008 11:53:53 +0100
-Message-ID: <49293640.10808@cadsoft.de>
-Date: Sun, 23 Nov 2008 11:53:52 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
-MIME-Version: 1.0
+	(envelope-from <alex.betis@gmail.com>) id 1KyuTB-0006NC-QU
+	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 21:31:46 +0100
+Received: by qw-out-2122.google.com with SMTP id 9so1085317qwb.17
+	for <linux-dvb@linuxtv.org>; Sat, 08 Nov 2008 12:31:40 -0800 (PST)
+Message-ID: <c74595dc0811081231s6caeba51o5612cb992edb94b6@mail.gmail.com>
+Date: Sat, 8 Nov 2008 22:31:40 +0200
+From: "Alex Betis" <alex.betis@gmail.com>
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------020806030200010908080909"
-Subject: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+MIME-Version: 1.0
+Subject: [linux-dvb] stb0899 buffer is not cleaned on tunning
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,74 +18,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1333554026=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------020806030200010908080909
+--===============1333554026==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_71207_1480223.1226176300702"
+
+------=_Part_71207_1480223.1226176300702
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-The attached patch adds a capability flag that allows an application
-to determine whether a particular device can handle "second generation
-modulation" transponders. This is necessary in order for applications
-to be able to decide which device to use for a given channel in
-a multi device environment, where DVB-S and DVB-S2 devices are mixed.
+Hi all,
 
-It is assumed that a device capable of handling "second generation
-modulation" can implicitly handle "first generation modulation".
-The flag is not named anything with DVBS2 in order to allow its
-use with future DVBT2 devices as well (should they ever come).
+While working on scan-s2 utility I paid attention that after tuning the
+driver still pass the
+messages from previously tuned channel. I believe there is some kind of
+buffering in device
+or driver that is not cleaned after tuning.
+The problem is probably not seen when watching the content of the channel,
+but affects the scanning
+since channels are assigned to a wrong frequency or create some other
+anomalies.
 
-Signed-off by: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+When working on my Linux machine via VNC I can see this old content in VDR
+too since the
+screen is updated slower.
 
+Can someone take a look on that?
 
-PS: why an API named *S2*API didn't contain this in the first place
-    is totally beyond me...
+Thanks.
 
---------------020806030200010908080909
-Content-Type: text/x-patch;
- name="v4l-dvb-s2api-add-s2-capability.diff"
+------=_Part_71207_1480223.1226176300702
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="v4l-dvb-s2api-add-s2-capability.diff"
+Content-Disposition: inline
 
-diff -ru v4l-dvb-17754ef554b0/linux/drivers/media/dvb/frontends/cx24116.c v4l-dvb-2008-11-22-17754ef554b0/linux/drivers/media/dvb/frontends/cx24116.c
---- v4l-dvb-17754ef554b0/linux/drivers/media/dvb/frontends/cx24116.c	2008-11-21 23:00:55.000000000 +0100
-+++ v4l-dvb-2008-11-22-17754ef554b0/linux/drivers/media/dvb/frontends/cx24116.c	2008-11-23 11:36:31.000000000 +0100
-@@ -1459,6 +1459,7 @@
- 			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
- 			FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
- 			FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-+			FE_CAN_2ND_GEN_MODULATION |
- 			FE_CAN_QPSK | FE_CAN_RECOVER
- 	},
- 
-diff -ru v4l-dvb-17754ef554b0/linux/drivers/media/dvb/frontends/stb0899_drv.c v4l-dvb-2008-11-22-17754ef554b0/linux/drivers/media/dvb/frontends/stb0899_drv.c
---- v4l-dvb-17754ef554b0/linux/drivers/media/dvb/frontends/stb0899_drv.c	2008-11-21 23:00:55.000000000 +0100
-+++ v4l-dvb-2008-11-22-17754ef554b0/linux/drivers/media/dvb/frontends/stb0899_drv.c	2008-11-23 11:37:01.000000000 +0100
-@@ -1913,6 +1913,7 @@
- 
- 		.caps 			= FE_CAN_INVERSION_AUTO	|
- 					  FE_CAN_FEC_AUTO	|
-+					  FE_CAN_2ND_GEN_MODULATION |
- 					  FE_CAN_QPSK
- 	},
- 
-diff -ru v4l-dvb-17754ef554b0/linux/include/linux/dvb/frontend.h v4l-dvb-2008-11-22-17754ef554b0/linux/include/linux/dvb/frontend.h
---- v4l-dvb-17754ef554b0/linux/include/linux/dvb/frontend.h	2008-11-21 23:00:55.000000000 +0100
-+++ v4l-dvb-2008-11-22-17754ef554b0/linux/include/linux/dvb/frontend.h	2008-11-23 11:27:21.000000000 +0100
-@@ -63,6 +63,7 @@
- 	FE_CAN_8VSB			= 0x200000,
- 	FE_CAN_16VSB			= 0x400000,
- 	FE_HAS_EXTENDED_CAPS		= 0x800000,   // We need more bitspace for newer APIs, indicate this.
-+        FE_CAN_2ND_GEN_MODULATION       = 0x10000000, // frontend supports "2nd generation modulation" (DVB-S2)
- 	FE_NEEDS_BENDING		= 0x20000000, // not supported anymore, don't use (frontend requires frequency bending)
- 	FE_CAN_RECOVER			= 0x40000000, // frontend can recover from a cable unplug automatically
- 	FE_CAN_MUTE_TS			= 0x80000000  // frontend can stop spurious TS data output
+<div dir="ltr">Hi all,<br><br>While working on scan-s2 utility I paid attention that after tuning the driver still pass the <br>messages from previously tuned channel. I believe there is some kind of buffering in device <br>
+or driver that is not cleaned after tuning.<br>The problem is probably not seen when watching the content of the channel, but affects the scanning<br>since channels are assigned to a wrong frequency or create some other anomalies.<br>
+<br>When working on my Linux machine via VNC I can see this old content in VDR too since the<br>screen is updated slower.<br><br>Can someone take a look on that?<br><br>Thanks.<br><br></div>
 
---------------020806030200010908080909
+------=_Part_71207_1480223.1226176300702--
+
+
+--===============1333554026==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -97,4 +75,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------020806030200010908080909--
+--===============1333554026==--
