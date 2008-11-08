@@ -1,20 +1,34 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hs-out-0708.google.com ([64.233.178.248])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <eduardhc@gmail.com>) id 1L3bON-00049V-KC
-	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 20:10:14 +0100
-Received: by hs-out-0708.google.com with SMTP id 4so622108hsl.1
-	for <linux-dvb@linuxtv.org>; Fri, 21 Nov 2008 11:10:06 -0800 (PST)
-Message-ID: <617be8890811211110j40d57609u1ced5301298c34a8@mail.gmail.com>
-Date: Fri, 21 Nov 2008 20:10:06 +0100
-From: "Eduard Huguet" <eduardhc@gmail.com>
-To: "Darron Broad" <darron@kewl.org>
-In-Reply-To: <29500.1227284783@kewl.org>
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+6fd8abdcad2e3524d151+1903+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1KylCt-0007Qs-P2
+	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 11:38:20 +0100
+Date: Sat, 8 Nov 2008 05:37:45 -0500 (EST)
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Markus Rechberger <mrechberger@gmail.com>
+In-Reply-To: <d9def9db0811080222l57e9db9fwb835395d6069571@mail.gmail.com>
+Message-ID: <alpine.LFD.2.00.0811080529000.7489@bombadil.infradead.org>
+References: <d9def9db0810221414w5348acf3re31a033ea7179462@mail.gmail.com>
+	<200811011459.17706.hverkuil@xs4all.nl>
+	<20081102022728.68e5e564@pedra.chehab.org>
+	<a2aa6e3a0811072150t535e802cge3375a7b88ee6287@mail.gmail.com>
+	<20081108081508.496f6582@pedra.chehab.org>
+	<d9def9db0811080222l57e9db9fwb835395d6069571@mail.gmail.com>
 MIME-Version: 1.0
-References: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>
-	<29500.1227284783@kewl.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Distorted analog sound when using an HVR-3000
+Cc: v4l <video4linux-list@redhat.com>, Vitaly Wool <vwool@ru.mvista.com>,
+	Dan Kreiser <kreiser@informatik.hu-berlin.de>,
+	Lukas Kuna <lukas.kuna@evkanet.net>,
+	Andre Kelmanson <akelmanson@gmail.com>, acano@fastmail.fm,
+	John Stowers <john.stowers.lists@gmail.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Thomas Giesecke <thomas.giesecke@ibgmbh-naumburg.de>,
+	Zhenyu Wang <zhen78@gmail.com>, linux-dvb@linuxtv.org,
+	em28xx <em28xx@mcentral.de>, greg@kroah.com,
+	Stefan Vonolfen <stefan.vonolfen@gmail.com>,
+	Stephan Berberig <s.berberig@arcor.de>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>, Frank Neuber <fn@kernelport.de>
+Subject: Re: [linux-dvb] [PATCH 1/7] Adding empia base driver
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,123 +36,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0369227935=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0369227935==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_97962_4364785.1227294606198"
+On Sat, 8 Nov 2008, Markus Rechberger wrote:
 
-------=_Part_97962_4364785.1227294606198
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-Thanks for your info. I'll give it a test next Monday and post here the
-results.
-
-Best regards,
-  Eduard Huguet
-
-
-
-2008/11/21 Darron Broad <darron@kewl.org>
-
-> In message <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>,
-> "Eduard Huguet" wrote:
+> As written earlier already I don't think that I didn't follow any
+> rules here since I provided single
+> patches at the very first beginning
 >
-> LO
+> http://mcentral.de/v4l-dvb/
+> (this is all kernel code and only kernel code).
 >
-> >Hi,
-> >    I'm testing a Hauppauge HVR-3000 for its use with MythTV, and I'm
-> >observing that I have a completely distorted sound when using any of the
-> >analog inputs (TV, S-Video or Composite). The sound is completely crackly,
-> >not understanble at all, just noise. I've teste 2 different cards, so I'm
-> >pretty sure it's not a "faulty card" issue.
-> >
-> >This happens both in MythTV or when using directly mplayer to capture
-> video
-> >& audio.
-> >
-> >I'm using an up-to-date HG DVB repository.
->
-> There are some known problem with cards using the WM8775 codec.
->
-> Use this repo here:
->        http://hg.kewl.org/v4l-dvb/
->
-> It changes how the WM8775 operates and you will be able to
-> control the input levels using v4l2-ctl.
->
-> Please tell me if this solves your problems.
->
-> Good luck
->
-> --
->
->  // /
-> {:)==={ Darron Broad <darron@kewl.org>
->  \\ \
->
->
+> That work didn't get attention and due a different decision of
+> framework changes (which that codebase relied
+> on) it all had to be rebased, I doubt that anyone
+> would have reworked all that patch for patch. Instead it went into one
+> repository and finally got modified to work again
+> with the available framework rather than relying onto any such modifications.
 
-------=_Part_97962_4364785.1227294606198
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+One thing is to rebase a tree, another is to merge all patches into a big 
+one, not preserving the original authorships.
 
-Thanks for your info. I&#39;ll give it a test next Monday and post here the results.<br><br>Best regards, <br>&nbsp; Eduard Huguet<br><br><br><br><div class="gmail_quote">2008/11/21 Darron Broad <span dir="ltr">&lt;<a href="mailto:darron@kewl.org">darron@kewl.org</a>&gt;</span><br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">In message &lt;<a href="mailto:617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com">617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com</a>&gt;, &quot;Eduard Huguet&quot; wrote:<br>
+Development trees sometimes need rebase. This is done by popping all newer 
+patches from the tree, applying the upstream patches, and then pushing 
+again every individual patches, fixing the ones that don't apply well, but 
+preserving their authorships.
 
-<br>
-LO<br>
-<div><div></div><div class="Wj3C7c"><br>
-&gt;Hi,<br>
-&gt; &nbsp; &nbsp;I&#39;m testing a Hauppauge HVR-3000 for its use with MythTV, and I&#39;m<br>
-&gt;observing that I have a completely distorted sound when using any of the<br>
-&gt;analog inputs (TV, S-Video or Composite). The sound is completely crackly,<br>
-&gt;not understanble at all, just noise. I&#39;ve teste 2 different cards, so I&#39;m<br>
-&gt;pretty sure it&#39;s not a &quot;faulty card&quot; issue.<br>
-&gt;<br>
-&gt;This happens both in MythTV or when using directly mplayer to capture video<br>
-&gt;&amp; audio.<br>
-&gt;<br>
-&gt;I&#39;m using an up-to-date HG DVB repository.<br>
-<br>
-</div></div>There are some known problem with cards using the WM8775 codec.<br>
-<br>
-Use this repo here:<br>
- &nbsp; &nbsp; &nbsp; &nbsp;<a href="http://hg.kewl.org/v4l-dvb/" target="_blank">http://hg.kewl.org/v4l-dvb/</a><br>
-<br>
-It changes how the WM8775 operates and you will be able to<br>
-control the input levels using v4l2-ctl.<br>
-<br>
-Please tell me if this solves your problems.<br>
-<br>
-Good luck<br>
-<font color="#888888"><br>
---<br>
-<br>
-&nbsp;// /<br>
-{:)==={ Darron Broad &lt;<a href="mailto:darron@kewl.org">darron@kewl.org</a>&gt;<br>
-&nbsp;\\ \<br>
-<br>
-</font></blockquote></div><br>
+The modified patches should receive a special tag before the 
+maintainer's SOB, like:
 
-------=_Part_97962_4364785.1227294606198--
+[me@mymail: I did this to apply this patch]
 
+as stated at the kernel docs.
 
---===============0369227935==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+This method will reduce a lot the risk of breaking improvements and other 
+fixes that happened upstream, and will properly preserve authorship of 
+individual patches.
+
+If you were doing a rebase, your patches would likely be accepted.
+
+-- 
+Cheers,
+Mauro
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0369227935==--
