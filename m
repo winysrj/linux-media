@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp4.tech.numericable.fr ([82.216.111.40])
+Received: from dd16712.kasserver.com ([85.13.137.159])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tanguy.pruvot@gmail.com>) id 1L4E5Q-0004Kh-Gc
-	for linux-dvb@linuxtv.org; Sun, 23 Nov 2008 13:29:14 +0100
-Received: from EPSYLON (ip-128.net-89-2-80.rev.numericable.fr [89.2.80.128])
-	by smtp4.tech.numericable.fr (Postfix) with ESMTP id 2C75812A813
-	for <linux-dvb@linuxtv.org>; Sun, 23 Nov 2008 13:29:09 +0100 (CET)
-Date: Sun, 23 Nov 2008 13:29:06 +0100
-From: Tanguy Pruvot <tanguy.pruvot@gmail.com>
-Message-ID: <347752131.20081123132906@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <457563803.20081123042151@gmail.com>
-References: <457563803.20081123042151@gmail.com>
+	(envelope-from <vdr@helmutauer.de>) id 1Kyqjs-0003uz-Np
+	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 17:32:49 +0100
+Received: from [192.168.178.120] (p50813FFD.dip0.t-ipconnect.de
+	[80.129.63.253])
+	by dd16712.kasserver.com (Postfix) with ESMTP id 2FEC8180D461D
+	for <linux-dvb@linuxtv.org>; Sat,  8 Nov 2008 17:32:45 +0100 (CET)
+Message-ID: <4915BF3A.3010807@helmutauer.de>
+Date: Sat, 08 Nov 2008 17:32:58 +0100
+From: Helmut Auer <vdr@helmutauer.de>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] EC168
-Reply-To: Tanguy Pruvot <tanguy.pruvot@gmail.com>
+To: linux-dvb@linuxtv.org
+References: <4914C482.8010306@helmutauer.de> <4914C4E6.1060305@helmutauer.de>
+In-Reply-To: <4914C4E6.1060305@helmutauer.de>
+Subject: Re: [linux-dvb] tbs 8920 / cx24116 not working
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,29 +22,61 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="windows-1250"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-DQo+PiBK4WNoeW0gTHVrZZogd3JvdGU6Cj4+ID4gSGksCj4+ID4gd291bGQgaXQgYmUgcG9zc2li
-bGUgZm9yIHNvbWVib2R5IHRvIG1ha2UgTGludXggZHJpdmVyIGZvciBFQzE2OCBjaGlwc2V0Cj4+
-ID4gYmFzZWQgVVNCIERWQi1UIGRvbmdsZXM/IFRoZXkgYXJlIHZlcnkgY29tbW9uIGFuZCBhZmZv
-cmRhYmxlLCBJIHRoaW5rCj4+ID4gdGhhdCBpdCB3b3VsZCBiZSBhIGdyZWF0IHRoaW5nIGZvciBM
-aW51eCBjb21tdW5pdHkuIFRoaXMgY291bGQgYnJpbmcKPj4gPiBkaWdpdGFsIFRWIHRvIG1hbnkg
-cGVvcGxlJ3MgZGVza3RvcHMhCj4+Cj4+IFllcywgdGhvc2UgYXJlIHZlcnkgY29tbW9uLiBJIHRo
-aW5rIHRoZXJlIGlzIG5vIGRldmVsb3BlciB3aG8gaGFzIGZvcgo+PiB0aGlzIGRldmljZSBhbmQg
-cmV2ZXJzZS1lbmdpbmVlcmluZyBkZW1vZHVsYXRvciBpcyByZWFsIHBhaW4uCgo+IEknbSBkZXZl
-bG9wZXIsIGJ1dCBuZXcgb25lIGluIGxpbnV4Li4uCgo+IEkndmUgICBhbm90aGVyICBkdmIgIGtl
-eSAgd2l0aCAgRUMxNjggIGFuZCAgaSd2ZSB3cm90ZSBhIHRvb2wgYmFzZWQgb24KPiBsaWJ1c2Ig
-dG8gdXBsb2FkIGZpcm13YXJlLi4uIHRoZSBsZWQgb2YgdGhlIGtleSBpcyBsaWdodGluZy4uLgoK
-PiBCdXQgIGkgIGhhdmUgIGRpZmZpY3VsdGllcyAgdG8gIHJlcGVhdCAgdGhpcyAgaW4gIGEgIGRy
-aXZlci4uLiBmb3IgdGhlCj4gbW9tZW50Li4uCgoKWW91IGNhbiBmaW5kIHRoZSB0b29sIHNvdXJj
-ZXMgYW5kIGZpcm13YXJlIGhlcmUgOgoKICAgaHR0cDovL3Rhbmd1eS5hdGguY3gvaW5kZXgucGhw
-P3E9RUMxNjgKCkFuZCBpIHdpbGwgZWRpdCBXaWtpIHdoZW4gdGhlIHR1bmVyIGRyaXZlciB3aWxs
-IGJlIHdvcmtpbmcKCiAgIGh0dHA6Ly93d3cubGludXh0di5vcmcvd2lraS9pbmRleC5waHAvRTND
-X0VDMTY4I0dSVE5UVVNCVjRfVVNCX1ROVF9CYXNpY19MSUdIVAoKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGlu
-dXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LWR2Yg==
+Hello Igor
+
+Thanks for your patch from here:
+http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030207.html
+
+I do not get the email for this answer :(
+
+Now DVB-S works, but when I switch to a HDTV channel I get this messages:
+
+> cx24108 debug: entering SetTunerFreq, freq=1612000
+> cx24108 debug: select vco #7 (f=1612000)
+> cx24108 debug: pump=1, n=49, a=26
+> cx24108 debug: entering SetTunerFreq, freq=1613375
+> cx24108 debug: select vco #7 (f=1613375)
+> cx24108 debug: pump=1, n=49, a=27
+> cx24108 debug: entering SetTunerFreq, freq=1610625
+> cx24108 debug: select vco #7 (f=1610625)
+> cx24108 debug: pump=1, n=49, a=24
+> cx24108 debug: entering SetTunerFreq, freq=1614750
+> cx24108 debug: select vco #7 (f=1614750)
+> cx24108 debug: pump=1, n=49, a=29
+> cx24108 debug: entering SetTunerFreq, freq=1609250
+> cx24108 debug: select vco #7 (f=1609250)
+> cx24108 debug: pump=1, n=49, a=23
+> cx24108 debug: entering SetTunerFreq, freq=1616125
+> cx24108 debug: select vco #7 (f=1616125)
+> cx24108 debug: pump=1, n=49, a=30
+> cx24108 debug: entering SetTunerFreq, freq=1607875
+> cx24108 debug: select vco #7 (f=1607875)
+> cx24108 debug: pump=1, n=49, a=22
+> cx24108 debug: entering SetTunerFreq, freq=1617500
+> cx24108 debug: select vco #7 (f=1617500)
+> cx24108 debug: pump=1, n=49, a=31
+> cx24108 debug: entering SetTunerFreq, freq=1606500
+> cx24108 debug: select vco #7 (f=1606500)
+> cx24108 debug: pump=1, n=49, a=20
+> cx24108 debug: entering SetTunerFreq, freq=1618875
+And nothing woll be received.
+Tested with:
+
+ANIXE HD;BetaDigital:11914:hC910M2O35S1:S19.2E:27500:1535:0;1539=deu:0:0:132:133:6:0
+and
+ARTE HD;ZDFvision:11362:hC23M2O35S1:S19.2E:22000:6210:6221=deu,6222=fra:6230:0:11120:1:1011:0
+
+-- 
+Helmut Auer, helmut@helmutauer.de 
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
