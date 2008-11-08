@@ -1,15 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <sinter.mann@gmx.de>) id 1L3twj-0007py-Tt
-	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 15:58:54 +0100
-Date: Sat, 22 Nov 2008 15:58:20 +0100
-From: sinter.mann@gmx.de
-Message-ID: <20081122145820.183450@gmx.net>
+Received: from smtp-1.orange.nl ([193.252.22.241])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <michel@verbraak.org>) id 1KysTl-0004sa-QE
+	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 19:24:14 +0100
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf6007.online.nl (SMTP Server) with ESMTP id 388F27000085
+	for <linux-dvb@linuxtv.org>; Sat,  8 Nov 2008 19:23:40 +0100 (CET)
+Received: from asterisk.verbraak.thuis (s55939d86.adsl.wanadoo.nl
+	[85.147.157.134])
+	by mwinf6007.online.nl (SMTP Server) with ESMTP id E46737000083
+	for <linux-dvb@linuxtv.org>; Sat,  8 Nov 2008 19:23:37 +0100 (CET)
+Message-ID: <4915D927.1000806@verbraak.org>
+Date: Sat, 08 Nov 2008 19:23:35 +0100
+From: Michel Verbraak <michel@verbraak.org>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] errormessages skystar2 rev 2.8b with latest v4l-dvb
- branch
+References: <4915C608.9000709@verbraak.org> <18991.1226167267@kewl.org>
+In-Reply-To: <18991.1226167267@kewl.org>
+Subject: Re: [linux-dvb] How to find which command generates error in
+	FE_SET_PROPERTY
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,49 +26,208 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============0430533164=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello Halim,
+This is a multi-part message in MIME format.
+--===============0430533164==
+Content-Type: multipart/alternative;
+ boundary="------------070009010104070307060909"
 
-Forget about the Mercurial tree........
+This is a multi-part message in MIME format.
+--------------070009010104070307060909
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-1. Get a vanilla kernel 2.6.27 plus patch 2.6.28-rc6 from =
+Darron Broad schreef:
+> In message <4915C608.9000709@verbraak.org>, Michel Verbraak wrote:
+>
+> LO
+>
+>   
+>> I'm trying to modify one of my applications to use the new S2API. With 
+>> this application I control my dvb-t and dvb-s/s2 receivers.
+>>
+>> I'm using szap-s2 as an example but I run into a problem that the ioctl 
+>> FE_SET_PROPERTY always returns -1 and variable errno is set to 14.
+>>
+>> My question is. How do I determine which of the commands in the command 
+>> queue given to FE_SET_PROPERTY is producing this error. I did not try 
+>> yet to devide my command queue up into one command queue per command.
+>>     
+>
+> The only commands as such as CLEAR and TUNE, the rest are tuning
+> parameters. The way this works is that the TUNE command informs
+> the kernel to retune using the parameters specified. This occurs
+> outside of the IOCTL call itself and you don't directly know
+> if a paramater was wrong, it just doesn't work.
+>
+> The error you have:
+>   
+>> grep 14 /usr/include/asm-generic/errno-base.h
+>>     
+> #define EFAULT          14      /* Bad address */
+>
+> Suggests a problem in your code...
+>
+>   
+>> Regards,
+>>
+>> Michel.
+>>
+>> Part of source code for dvb-s/s2:
+>>
+>> #ifdef S2API
+>> int TDVBDevice::SetProperty(struct dtv_property *cmdseq)
+>>     
+>
+> This should something like SetProperties(struct dtv_properties cmdseq[])
+> and then call ioctl(fefd, FE_SET_PROPERTY, cmdseq)
+> This sends of your args at the same time.
+>
+>   
+>>      if (SetProperty(&p[0]) == 0)
+>>     
+>
+> That needs to be more like:
+> 	SetProperties(&cmdseq)
+>
+> I hope that helps.
+>
+> cya!
+>
+> --
+>
+>  // /
+> {:)==={ Darron Broad <darron@kewl.org>
+>  \\ \ 
+>
+>   
 
-http://www.eu.kernel.org/
+Darron,
 
-2. Prepare a kernel linux-2.6.28-rc6.
+You were right. The error I had to solve was to change 
+SetProperty(&p[0]) into SetProperty(&cmdseq).
 
-3. Download the appended patchset: http://www.htpc-
-forum.de/forum/index.php?showtopic=3D4944&st=3D0&#entry31527
+I have been coding all day and missed this one.
 
-4. Unpack the patchset to /usr/src/linux.
+Thanks,
 
-5. Move all files in /usr/src/linux/skystarxyz to /usr/src/linux.
+Michel.
 
-6. For a 32-bit architecture execute: ./sky28 32, for a 64-bit one ./sky28 =
-64.
+--------------070009010104070307060909
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-7. Then move on with "make xconfig", make your config, then continue with "=
-make =
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
+</head>
+<body bgcolor="#ffffff" text="#000000">
+Darron Broad schreef:
+<blockquote cite="mid:18991.1226167267@kewl.org" type="cite">
+  <pre wrap="">In message <a class="moz-txt-link-rfc2396E" href="mailto:4915C608.9000709@verbraak.org">&lt;4915C608.9000709@verbraak.org&gt;</a>, Michel Verbraak wrote:
 
-modules && make bzlilo, make modules_install.....
+LO
 
-Enjoy!
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">I'm trying to modify one of my applications to use the new S2API. With 
+this application I control my dvb-t and dvb-s/s2 receivers.
 
-Cheers
+I'm using szap-s2 as an example but I run into a problem that the ioctl 
+FE_SET_PROPERTY always returns -1 and variable errno is set to 14.
 
-Uwe
+My question is. How do I determine which of the commands in the command 
+queue given to FE_SET_PROPERTY is producing this error. I did not try 
+yet to devide my command queue up into one command queue per command.
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+The only commands as such as CLEAR and TUNE, the rest are tuning
+parameters. The way this works is that the TUNE command informs
+the kernel to retune using the parameters specified. This occurs
+outside of the IOCTL call itself and you don't directly know
+if a paramater was wrong, it just doesn't work.
 
--- =
+The error you have:
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">grep 14 /usr/include/asm-generic/errno-base.h
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->#define EFAULT          14      /* Bad address */
 
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
-http://www.gmx.net/de/go/multimessenger
+Suggests a problem in your code...
+
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">Regards,
+
+Michel.
+
+Part of source code for dvb-s/s2:
+
+#ifdef S2API
+int TDVBDevice::SetProperty(struct dtv_property *cmdseq)
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+This should something like SetProperties(struct dtv_properties cmdseq[])
+and then call ioctl(fefd, FE_SET_PROPERTY, cmdseq)
+This sends of your args at the same time.
+
+  </pre>
+  <blockquote type="cite">
+    <pre wrap="">     if (SetProperty(&amp;p[0]) == 0)
+    </pre>
+  </blockquote>
+  <pre wrap=""><!---->
+That needs to be more like:
+	SetProperties(&amp;cmdseq)
+
+I hope that helps.
+
+cya!
+
+--
+
+ // /
+{:)==={ Darron Broad <a class="moz-txt-link-rfc2396E" href="mailto:darron@kewl.org">&lt;darron@kewl.org&gt;</a>
+ \\ \ 
+
+  </pre>
+</blockquote>
+<br>
+Darron,<br>
+<br>
+You were right. The error I had to solve was to change
+SetProperty(&amp;p[0]) into SetProperty(&amp;cmdseq).<br>
+<br>
+I have been coding all day and missed this one.<br>
+<br>
+Thanks,<br>
+<br>
+Michel.<br>
+</body>
+</html>
+
+--------------070009010104070307060909--
+
+
+
+--===============0430533164==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0430533164==--
