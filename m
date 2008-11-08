@@ -1,34 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA4F2vup011865
-	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 10:02:57 -0500
-Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA4F2l3U002497
-	for <video4linux-list@redhat.com>; Tue, 4 Nov 2008 10:02:47 -0500
-Received: by ug-out-1314.google.com with SMTP id j30so346224ugc.13
-	for <video4linux-list@redhat.com>; Tue, 04 Nov 2008 07:02:47 -0800 (PST)
-From: Alexey Klimov <klimov.linux@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA84u4Cd011368
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 23:56:04 -0500
+Received: from QMTA06.emeryville.ca.mail.comcast.net
+	(qmta06.emeryville.ca.mail.comcast.net [76.96.30.56])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA84tnqa021765
+	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 23:55:49 -0500
+Message-ID: <49151BD0.70604@personnelware.com>
+Date: Fri, 07 Nov 2008 22:55:44 -0600
+From: Carl Karsten <carl@personnelware.com>
+MIME-Version: 1.0
 To: video4linux-list@redhat.com
-In-Reply-To: <30353c3d0811031021m28645ccbq69a53a35dbbd8e4@mail.gmail.com>
-References: <208cbae30810161146g69d5d04dq4539de378d2dba7f@mail.gmail.com>
-	<30353c3d0810191711y7be7c7f2i83d6a3a8ff46b6a0@mail.gmail.com>
-	<20081028180552.GA2677@tux>
-	<30353c3d0810291008mc73e3ady3fdabc5adc0eacd5@mail.gmail.com>
-	<30353c3d0810291012y5c9a4c54x480fdb0fa807dd0c@mail.gmail.com>
-	<1225728173.20921.6.camel@tux.localhost>
-	<30353c3d0811030819k4e6610d6u4188b940a40b02f5@mail.gmail.com>
-	<1225733048.20921.11.camel@tux.localhost>
-	<30353c3d0811030936n744a55b2hb33b9300a4030106@mail.gmail.com>
-	<1225734693.20921.15.camel@tux.localhost>
-	<30353c3d0811031021m28645ccbq69a53a35dbbd8e4@mail.gmail.com>
-Content-Type: text/plain
-Date: Tue, 04 Nov 2008 18:02:36 +0300
-Message-Id: <1225810956.25675.6.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: David Ellingsworth <david@identd.dyndns.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/1] radio-mr800: remove warn, info and err messages
+References: <4909F85E.4060900@personnelware.com>
+In-Reply-To: <4909F85E.4060900@personnelware.com>
+Content-Type: multipart/mixed; boundary="------------080002090800060204050100"
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [patch] test code tweaks
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,153 +27,147 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+This is a multi-part message in MIME format.
+--------------080002090800060204050100
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
+I have mods to 3 files that are all independent.  Should they be split into
+separate patches/posts, or is adding them here fine?
 
-Patch removes warn(), err() and info() statements in
-drivers/media/radio/radio-mr800.c, and place dev_warn, dev_info in right
-places.
-Printk changed on pr_info and pr_err macro. Also new macro
-amradio_dev_warn defined. Name in usb driver struct changed on
-MR800_DRIVER_NAME.
+And, what is the procedure to deal with a patch that supersedes a patch posted
+but not applied?
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+v4l2_tests.diff
 
---
+vivi: New features have been added, so VIVI_MINOR_VERSION gets bumped.
 
-diff -r db5374be1876 linux/drivers/media/radio/radio-mr800.c
---- a/linux/drivers/media/radio/radio-mr800.c	Mon Nov 03 04:26:47 2008 +0300
-+++ b/linux/drivers/media/radio/radio-mr800.c	Tue Nov 04 17:55:24 2008 +0300
-@@ -72,6 +72,11 @@
+tests/Makefile: given this is for testing, it makes sense for debug symbols to
+be included.
+
+capture_example.c: Added command line option for number of frames to grab,
+changed the default to 70, show the defaults in help, added a Version (1.3
+because I consider the original to be 1.0 and at least 2 changes have been made.)
+
+Signed-off-by: Carl Karsten  <carl@personnelware.com>
+
+Carl K
+
+--------------080002090800060204050100
+Content-Type: text/x-patch;
+ name="v4l2_tests.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="v4l2_tests.diff"
+
+diff -r 46604f47fca1 linux/drivers/media/video/vivi.c
+--- a/linux/drivers/media/video/vivi.c	Fri Nov 07 15:24:18 2008 -0200
++++ b/linux/drivers/media/video/vivi.c	Fri Nov 07 22:40:30 2008 -0600
+@@ -53,7 +53,7 @@
+ #include "font.h"
  
- #define USB_AMRADIO_VENDOR 0x07ca
- #define USB_AMRADIO_PRODUCT 0xb800
-+
-+/* dev_warn macro with driver name */
-+#define MR800_DRIVER_NAME "radio-mr800"
-+#define amradio_dev_warn(dev, fmt, arg...)				\
-+		dev_warn(dev, MR800_DRIVER_NAME " - " fmt, ##arg)
+ #define VIVI_MAJOR_VERSION 0
+-#define VIVI_MINOR_VERSION 5
++#define VIVI_MINOR_VERSION 6
+ #define VIVI_RELEASE 0
+ #define VIVI_VERSION \
+ 	KERNEL_VERSION(VIVI_MAJOR_VERSION, VIVI_MINOR_VERSION, VIVI_RELEASE)
+diff -r 46604f47fca1 v4l2-apps/test/Makefile
+--- a/v4l2-apps/test/Makefile	Fri Nov 07 15:24:18 2008 -0200
++++ b/v4l2-apps/test/Makefile	Fri Nov 07 22:40:30 2008 -0600
+@@ -1,6 +1,7 @@
+ # Makefile for linuxtv.org v4l2-apps/test
  
- /* Probably USB_TIMEOUT should be modified in module parameter */
- #define BUFFER_LENGTH 8
-@@ -155,7 +160,7 @@
+ CPPFLAGS += -I../include
++CFLAGS = -g
  
- /* USB subsystem interface */
- static struct usb_driver usb_amradio_driver = {
--	.name			= "radio-mr800",
-+	.name			= MR800_DRIVER_NAME,
- 	.probe			= usb_amradio_probe,
- 	.disconnect		= usb_amradio_disconnect,
- 	.suspend		= usb_amradio_suspend,
-@@ -362,7 +367,8 @@
+ binaries = ioctl-test 		\
+ 	   sliced-vbi-test 	\
+@@ -26,6 +27,6 @@
+ driver-test: driver-test.o ../lib/libv4l2.a
  
- 	radio->curfreq = f->frequency;
- 	if (amradio_setfreq(radio, radio->curfreq) < 0)
--		warn("Set frequency failed");
-+		amradio_dev_warn(&radio->videodev->dev,
-+			"set frequency failed\n");
- 	return 0;
- }
+ pixfmt-test: pixfmt-test.o
+-	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@ -lX11
++	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(CFLAGS) -o $@ -lX11
  
-@@ -385,8 +391,7 @@
+ include ../Make.rules
+diff -r 46604f47fca1 v4l2-apps/test/capture_example.c
+--- a/v4l2-apps/test/capture_example.c	Fri Nov 07 15:24:18 2008 -0200
++++ b/v4l2-apps/test/capture_example.c	Fri Nov 07 22:40:30 2008 -0600
+@@ -47,6 +47,7 @@
+ static unsigned int     n_buffers;
+ static int		out_buf;
+ static int              force_format;
++static int              frame_count = 70;
  
- 	for (i = 0; i < ARRAY_SIZE(radio_qctrl); i++) {
- 		if (qc->id && qc->id == radio_qctrl[i].id) {
--			memcpy(qc, &(radio_qctrl[i]),
--						sizeof(*qc));
-+			memcpy(qc, &(radio_qctrl[i]), sizeof(*qc));
- 			return 0;
- 		}
- 	}
-@@ -417,12 +422,14 @@
- 	case V4L2_CID_AUDIO_MUTE:
- 		if (ctrl->value) {
- 			if (amradio_stop(radio) < 0) {
--				warn("amradio_stop() failed");
-+				amradio_dev_warn(&radio->videodev->dev,
-+					"amradio_stop failed\n");
- 				return -1;
- 			}
- 		} else {
- 			if (amradio_start(radio) < 0) {
--				warn("amradio_start() failed");
-+				amradio_dev_warn(&radio->videodev->dev,
-+					"amradio_start failed\n");
- 				return -1;
- 			}
- 		}
-@@ -478,13 +485,15 @@
- 	radio->muted = 1;
- 
- 	if (amradio_start(radio) < 0) {
--		warn("Radio did not start up properly");
-+		amradio_dev_warn(&radio->videodev->dev,
-+			"radio did not start up properly\n");
- 		radio->users = 0;
- 		unlock_kernel();
- 		return -EIO;
- 	}
- 	if (amradio_setfreq(radio, radio->curfreq) < 0)
--		warn("Set frequency failed");
-+		amradio_dev_warn(&radio->videodev->dev,
-+			"set frequency failed\n");
- 
- 	unlock_kernel();
- 	return 0;
-@@ -511,9 +520,9 @@
- 	struct amradio_device *radio = usb_get_intfdata(intf);
- 
- 	if (amradio_stop(radio) < 0)
--		warn("amradio_stop() failed");
-+		dev_warn(&intf->dev, "amradio_stop failed\n");
- 
--	info("radio-mr800: Going into suspend..");
-+	dev_info(&intf->dev, "going into suspend..\n");
- 
- 	return 0;
- }
-@@ -524,9 +533,9 @@
- 	struct amradio_device *radio = usb_get_intfdata(intf);
- 
- 	if (amradio_start(radio) < 0)
--		warn("amradio_start() failed");
-+		dev_warn(&intf->dev, "amradio_start failed\n");
- 
--	info("radio-mr800: Coming out of suspend..");
-+	dev_info(&intf->dev, "coming out of suspend..\n");
- 
- 	return 0;
- }
-@@ -605,7 +614,7 @@
- 
- 	video_set_drvdata(radio->videodev, radio);
- 	if (video_register_device(radio->videodev, VFL_TYPE_RADIO, radio_nr)) {
--		warn("Could not register video device");
-+		dev_warn(&intf->dev, "could not register video device\n");
- 		video_device_release(radio->videodev);
- 		kfree(radio->buffer);
- 		kfree(radio);
-@@ -620,9 +629,13 @@
+ static void errno_exit(const char *s)
  {
- 	int retval = usb_register(&usb_amradio_driver);
+@@ -171,7 +172,7 @@
+ {
+ 	unsigned int count;
  
--	info(DRIVER_VERSION " " DRIVER_DESC);
-+	pr_info(KBUILD_MODNAME
-+		": version " DRIVER_VERSION " " DRIVER_DESC "\n");
-+
- 	if (retval)
--		err("usb_register failed. Error number %d", retval);
-+		pr_err(KBUILD_MODNAME
-+			": usb_register failed. Error number %d\n", retval);
-+
- 	return retval;
+-	count = 1000;
++	count = frame_count;
+ 
+ 	while (count-- > 0) {
+ 		for (;;) {
+@@ -558,19 +559,21 @@
+ {
+ 	fprintf(fp,
+ 		 "Usage: %s [options]\n\n"
++		 "Version 1.3\n"
+ 		 "Options:\n"
+-		 "-d | --device name   Video device name [/dev/video0]\n"
++		 "-d | --device name   Video device name [%s]\n"
+ 		 "-h | --help          Print this message\n"
+-		 "-m | --mmap          Use memory mapped buffers\n"
++		 "-m | --mmap          Use memory mapped buffers [default]\n"
+ 		 "-r | --read          Use read() calls\n"
+ 		 "-u | --userp         Use application allocated buffers\n"
+ 		 "-o | --output        Outputs stream to stdout\n"
+ 		 "-f | --format        Force format to 640x480 YUYV\n"
++		 "-c | --count         Number of frames to grab [%i]\n"
+ 		 "",
+-		 argv[0]);
++		 argv[0],dev_name,frame_count );
  }
  
+-static const char short_options[] = "d:hmruof";
++static const char short_options[] = "d:hmruofc:";
+ 
+ static const struct option
+ long_options[] = {
+@@ -581,6 +584,7 @@
+ 	{ "userp",  no_argument,       NULL, 'u' },
+ 	{ "output", no_argument,       NULL, 'o' },
+ 	{ "format", no_argument,       NULL, 'f' },
++	{ "count",  required_argument, NULL, 'c' },
+ 	{ 0, 0, 0, 0 }
+ };
+ 
+@@ -630,6 +634,13 @@
+ 			force_format++;
+ 			break;
+ 
++		case 'c':
++		        errno = 0;
++			frame_count = strtol(optarg, NULL, 0);
++			if (errno)
++				errno_exit(optarg);
++			break;
++
+ 		default:
+ 			usage(stderr, argc, argv);
+ 			exit(EXIT_FAILURE);
 
-
--- 
-Best regards, Klimov Alexey
+--------------080002090800060204050100
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------080002090800060204050100--
