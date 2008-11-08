@@ -1,24 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAHIOe53002503
-	for <video4linux-list@redhat.com>; Mon, 17 Nov 2008 13:24:40 -0500
-Received: from tomts23-srv.bellnexxia.net (tomts23.bellnexxia.net
-	[209.226.175.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAHIOO0G017350
-	for <video4linux-list@redhat.com>; Mon, 17 Nov 2008 13:24:24 -0500
-From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
-To: Thomas Reiter <x535.01@gmail.com>, "video4linux-list@redhat.com"
-	<video4linux-list@redhat.com>
-Date: Mon, 17 Nov 2008 13:23:45 -0500
-Message-ID: <09CD2F1A09A6ED498A24D850EB101208165C79D39F@Colmatec004.COLMATEC.INT>
-References: <1226943947.6362.10.camel@ivan>
-In-Reply-To: <1226943947.6362.10.camel@ivan>
-Content-Language: fr-CA
-Content-Type: text/plain; charset="iso-8859-1"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA8IiXFV014466
+	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 13:44:33 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mA8IiNnu015165
+	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 13:44:23 -0500
+Date: Sat, 8 Nov 2008 19:44:36 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: video4linux-list@redhat.com
+Message-ID: <Pine.LNX.4.64.0811081915300.8956@axis700.grange>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: 
-Subject: RE : DVB-T2 (Mpeg4) in Norway
+Subject: [PATCH 1/3] soc-camera: merge .try_bus_param() into .try_fmt_cap()
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,57 +24,96 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-use usbreplay
+.try_bus_param() method from struct soc_camera_host_ops is only called at one
+location immediately before .try_fmt_cap(), there is no value in keeping these
+two methods separate, merge them.
 
+Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
+---
+ drivers/media/video/pxa_camera.c           |    6 +++++-
+ drivers/media/video/sh_mobile_ceu_camera.c |    6 +++++-
+ drivers/media/video/soc_camera.c           |    5 -----
+ include/media/soc_camera.h                 |    1 -
+ 4 files changed, 10 insertions(+), 8 deletions(-)
 
-just in case :
-
-First use this version inside windows ( no refresh anoying)
-
-  If you are using Windows XP or later
-
- Download 32 bits here
- Official homepage: http://www.pcausa.com/Utilities/UsbSnoop/
-
- from page http://linuxtv.org/v4lwiki/index.php/Usbsnoop
-
-instead of the version specified here
-http://mcentral.de/wiki/index.php5/USBVideo
-
-
-USbreplay for extract ( what u want)
-
-http://mcentral.de/wiki/index.php5/Usbreplay
-________________________________________
-De : video4linux-list-bounces@redhat.com [video4linux-list-bounces@redhat.com] de la part de Thomas Reiter [x535.01@gmail.com]
-Date d'envoi : 17 novembre 2008 12:45
-À : video4linux-list@redhat.com
-Objet : DVB-T2 (Mpeg4) in Norway
-
-I bought a Pinnacle Nano USB stick and checked that this stick is OK
-with the software from Pinnacle. Here in Norway DVB-T is coded with
-Mpeg4, so it's a new experience.
-
-With Ubuntu I tried something with "scan" and "Kaffeine" but both
-programs were not able to detect some programs. It must be the old
-firmware. Is someone able to help me to extract the firmware from my
-snoopusb log?
-
-Thanks
-
-Thomas
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
---
-
-This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN
-Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com)
-www.solulan.com
-
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index eb6be58..2a811f8 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -913,6 +913,11 @@ static int pxa_camera_set_fmt_cap(struct soc_camera_device *icd,
+ static int pxa_camera_try_fmt_cap(struct soc_camera_device *icd,
+ 				  struct v4l2_format *f)
+ {
++	int ret = pxa_camera_try_bus_param(icd, f->fmt.pix.pixelformat);
++
++	if (ret < 0)
++		return ret;
++
+ 	/* limit to pxa hardware capabilities */
+ 	if (f->fmt.pix.height < 32)
+ 		f->fmt.pix.height = 32;
+@@ -1039,7 +1044,6 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+ 	.reqbufs	= pxa_camera_reqbufs,
+ 	.poll		= pxa_camera_poll,
+ 	.querycap	= pxa_camera_querycap,
+-	.try_bus_param	= pxa_camera_try_bus_param,
+ 	.set_bus_param	= pxa_camera_set_bus_param,
+ };
+ 
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 2407607..a6b29a4 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -453,6 +453,11 @@ static int sh_mobile_ceu_set_fmt_cap(struct soc_camera_device *icd,
+ static int sh_mobile_ceu_try_fmt_cap(struct soc_camera_device *icd,
+ 				     struct v4l2_format *f)
+ {
++	int ret = sh_mobile_ceu_try_bus_param(icd, f->fmt.pix.pixelformat);
++
++	if (ret < 0)
++		return ret;
++
+ 	/* FIXME: calculate using depth and bus width */
+ 
+ 	if (f->fmt.pix.height < 4)
+@@ -540,7 +545,6 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
+ 	.reqbufs	= sh_mobile_ceu_reqbufs,
+ 	.poll		= sh_mobile_ceu_poll,
+ 	.querycap	= sh_mobile_ceu_querycap,
+-	.try_bus_param	= sh_mobile_ceu_try_bus_param,
+ 	.set_bus_param	= sh_mobile_ceu_set_bus_param,
+ 	.init_videobuf	= sh_mobile_ceu_init_videobuf,
+ };
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 66ebe59..f406042 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -77,11 +77,6 @@ static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	}
+ 
+-	/* test physical bus parameters */
+-	ret = ici->ops->try_bus_param(icd, f->fmt.pix.pixelformat);
+-	if (ret)
+-		return ret;
+-
+ 	/* limit format to hardware capabilities */
+ 	ret = ici->ops->try_fmt_cap(icd, f);
+ 
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index c5de7bb..5eb9540 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -73,7 +73,6 @@ struct soc_camera_host_ops {
+ 			      struct soc_camera_device *);
+ 	int (*reqbufs)(struct soc_camera_file *, struct v4l2_requestbuffers *);
+ 	int (*querycap)(struct soc_camera_host *, struct v4l2_capability *);
+-	int (*try_bus_param)(struct soc_camera_device *, __u32);
+ 	int (*set_bus_param)(struct soc_camera_device *, __u32);
+ 	unsigned int (*poll)(struct file *, poll_table *);
+ };
+-- 
+1.5.4
 
 --
 video4linux-list mailing list
