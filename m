@@ -1,22 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGN72Kt006075
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 18:07:02 -0500
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.189])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAGN6mOo006778
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 18:06:48 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so1045966nfc.21
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 15:06:48 -0800 (PST)
-Message-ID: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-Date: Sun, 16 Nov 2008 18:06:47 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: Linux-dvb <linux-dvb@linuxtv.org>, V4L <video4linux-list@redhat.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA92S8Js030291
+	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 21:28:08 -0500
+Received: from smtp130.rog.mail.re2.yahoo.com (smtp130.rog.mail.re2.yahoo.com
+	[206.190.53.35])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mA92R1xK007452
+	for <video4linux-list@redhat.com>; Sat, 8 Nov 2008 21:27:49 -0500
+Message-ID: <49164A6F.50904@rogers.com>
+Date: Sat, 08 Nov 2008 21:26:55 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Johannes Stezenbach <js@linuxtv.org>
+References: <490525EA.4020608@rogers.com> <20081028152152.GA22100@linuxtv.org>
+In-Reply-To: <20081028152152.GA22100@linuxtv.org>
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Cc: 
-Subject: Attention em28xx users
+Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Subject: Re: [Bulk] Re: [linux-dvb] Announcement: wiki merger and some loose
+ ends
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,46 +29,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello there,
+Hi Johannes, sorry for the delay in replying:
 
-Over the last few days I have been been pushing a number of
-fixes/improvements into the mainline em28xx driver.  These include
-remote control fixes, em2874 device support, and other cleanups.  I
-look forward to continuing to improve the driver now that Empia has
-been so kind to provide me with datasheets.
+Johannes Stezenbach wrote:
+> I also hope the design drafts on User:CityK will manifest itself on the main page
+> sometime.
+>   
 
-One concern about the mainline em28xx driver expressed has to do with
-device support.  There are many, many devices out there, and I need
-help ensuring that they work properly with the driver.  Now is the
-time for users who have non-working em28xx-based devices to come
-forward.
+I hope so too. Though, going to definitely need the help of a graphic
+artist to transfer the rough ideas into something a little more
+refined (like a nice scalable graphic and icon set). Such talents are
+beyond my current skill set, and I don't really have the time or
+interest to pick them up.
 
-I am willing to debug any ATSC/NTSC em28xx based device a user cannot
-get to work under Linux, for the cost of shipping me the device for
-one week (I'll pay return shipping).  We're at the point now where
-most of them are pretty easy to get working, but I cannot afford to
-buy every $50 device out there.
+M.Krufky once expressed interest in helping in that regard, but I
+suspect he has enough on his plate as it is. But it shouldn't be too
+hard to find someone who can work on this aspect.
 
-The only condition I'm restricting this to at this point is the em28xx
-based device needs to have pre-existing chipset support for the other
-components (such as the video decoder, demodulator, and tuner).
-However, this does represent a vast majority of the em28xx based
-devices out there.  Also, I'm keeping it to ATSC/NTSC because I don't
-have any access to a DVB based signal.
+> BTW, don't hesitate to ask for technical assistance directly,
+> although I can't promise anything since we are moving our office
+> this week so there's little time left for linuxtv...
+>   
 
-Users of em28xx based devices that want to see them supported:  Now is
-the time to contact me.  If you're interested, please email me the
-product name, the list of chips in the device, and I will work with
-you to get it supported.
+Okay, thanks. First request: When you have some free time, can you look
+into setting up a "V4L:" namespace please. See relevant pages below (I
+'ve tried, but I can't figure out how to edit the LocalSettings.php file
+-- apparently I'm not the only one; see last link).
 
-Regards,
+http://www.mediawiki.org/wiki/Manual:Namespace
+http://www.mediawiki.org/wiki/Manual:Using_custom_namespaces
+http://www.mediawiki.org/wiki/Manual:$wgExtraNamespaces
+http://www.mediawiki.org/wiki/Manual:LocalSettings.php
+http://www.mediawiki.org/wiki/Manual_talk:LocalSettings.php#Where_is_this_file.3F
 
-Devin
+I'll get back to you in the near future on a few other points.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
 
 --
 video4linux-list mailing list
