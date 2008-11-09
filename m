@@ -1,32 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALLKWLN007090
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 16:20:32 -0500
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALLKHaT011535
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 16:20:17 -0500
-Message-ID: <49272762.80304@hhs.nl>
-Date: Fri, 21 Nov 2008 22:25:54 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA9CtaGn027948
+	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 07:55:36 -0500
+Received: from mailrelay010.isp.belgacom.be (mailrelay010.isp.belgacom.be
+	[195.238.6.177])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA9CsqYA022721
+	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 07:54:53 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Bryan Wu <cooloney@kernel.org>
+Date: Sun, 9 Nov 2008 13:55:04 +0100
+References: <1225963052-6657-1-git-send-email-cooloney@kernel.org>
+In-Reply-To: <1225963052-6657-1-git-send-email-cooloney@kernel.org>
 MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
-	<Pine.LNX.4.64.0811181216270.2778@banach.math.auburn.edu>
-	<200811190020.15663.linux@baker-net.org.uk>
-	<4923D159.9070204@hhs.nl>
-	<alpine.LNX.1.10.0811192005020.2980@banach.math.auburn.edu>
-	<49253004.4010504@hhs.nl>
-	<Pine.LNX.4.64.0811201130410.3570@banach.math.auburn.edu>
-	<4925BC94.7090008@hhs.nl>
-	<Pine.LNX.4.64.0811202306360.3930@banach.math.auburn.edu>
-	<49269369.90805@hhs.nl>
-	<Pine.LNX.4.64.0811211244120.4475@banach.math.auburn.edu>
-In-Reply-To: <Pine.LNX.4.64.0811211244120.4475@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
-	driver
+Content-Disposition: inline
+Message-Id: <200811091355.05074.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, linux-uvc-devel@lists.berlios.de,
+	linux-kernel@vger.kernel.org,
+	Michael Hennerich <michael.hennerich@analog.com>
+Subject: Re: [PATCH] Video/UVC: Fix unaligned exceptions in uvc video driver.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,184 +32,158 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-kilgota@banach.math.auburn.edu wrote:
-> 
-<snip>
+Hi Bryan, Michael,
 
->> Uhg, with 352x288 @ 30 fps (and yes some cams can do 30 fps at 
->> 352x288) this translates to 792 ms of each second being used just for 
->> the demosaic phase.
-> 
-> Yes, I know that some cameras can do 30 fps. I would also assume there 
-> are cameras which can do much more than that. So one needs to be more 
-> clever.
+Thanks for the patch.
 
-Well assuming 352x288 @ 30 fps for cams *which send raw bayer* seems like a 
-good assumption, anything higher resolution usually uses jpg.
+On Thursday 06 November 2008, Bryan Wu wrote:
+> From: Michael Hennerich <michael.hennerich@analog.com>
+>
+> buffer can be odd aligned on some NOMMU machine such as Blackfin
 
-<snip>
+The comment is a bit misleading. Buffers can be odd-aligned independently off 
+the machine type. The issue comes from machines that can't access unaligned 
+memory. Something like "Fix access to unaligned memory" would be better.
 
->>
->>> Relative image quality of the methods:
->>>
->>> 1. straight bilinear interpolation is lousy on this image. Lots of 
->>> zippering.
->>>
->>
->> Ok, then maybe we do need to get something better.
-> 
-> If you want to see the results of this on the same photo that I was 
-> using for the test, then you should go to my web page 
-> www.auburn.edu/~kilgota and look at the comparison photos and also have 
-> a look at the article which has done comparisons of the various methods 
-> on the same photos, too.
-> 
+> Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
+> Signed-off-by: Bryan Wu <cooloney@kernel.org>
+> ---
+>  drivers/media/video/uvc/uvc_driver.c |   37
+> +++++++++++++++++---------------- 1 files changed, 19 insertions(+), 18
+> deletions(-)
+>
+> diff --git a/drivers/media/video/uvc/uvc_driver.c
+> b/drivers/media/video/uvc/uvc_driver.c index d7ad060..9b4f469 100644
+> --- a/drivers/media/video/uvc/uvc_driver.c
+> +++ b/drivers/media/video/uvc/uvc_driver.c
+> @@ -31,6 +31,7 @@
+>  #include <linux/videodev2.h>
+>  #include <linux/vmalloc.h>
+>  #include <linux/wait.h>
+> +#include <asm/unaligned.h>
+>  #include <asm/atomic.h>
+>
+>  #include <media/v4l2-common.h>
+> @@ -432,20 +433,20 @@ static int uvc_parse_format(struct uvc_device *dev,
+>
+>  		frame->bFrameIndex = buffer[3];
+>  		frame->bmCapabilities = buffer[4];
+> -		frame->wWidth = le16_to_cpup((__le16 *)&buffer[5]);
+> -		frame->wHeight = le16_to_cpup((__le16 *)&buffer[7]);
+> -		frame->dwMinBitRate = le32_to_cpup((__le32 *)&buffer[9]);
+> -		frame->dwMaxBitRate = le32_to_cpup((__le32 *)&buffer[13]);
+> +		frame->wWidth = le16_to_cpu(get_unaligned((__le16 *) &buffer[5]));
 
-Ok, I went and looked at the article, I do see there is a huge difference 
-between plain bi-linear and bi-linear with acrue edge detection. I must say the 
-difference between bi-linear with acrue edge detection, and ahd is less 
-convincing though.
+What about using get_unaligned_le16 and get_unaligned_le32 directly ? Lines 
+would be shorter and could be kept behind the 80 columns limit more easily.
 
->> It might just be that your system is slow, but if it turns out that 
->> bayer.c from libv4l is much faster then the bilinear code from 
->> libgphoto2, then IMHO going to AHD is speedwise not a good idea.
-> 
-> My system is an AMD Sempron 2600+ or 2800+ (forget which, and I am at 
-> work, not at home) with 1 M of RAM. Not the fastest thing around, but 
-> not slow at all, actually. We will just have to see what the libv4l code 
-> does. I don't know yet.
+Tell me if you want to resubmit or if I should make the modification myself 
+(including the patch description).
 
-Ok, that should actually be pretty comparable to one of the 2 cores of my dual 
-core amd64 when clocked at 1Ghz (the default setting when not more is required, 
-yeah for speedstep). So I think that libv4l's bilinear is much faster than, but 
-that is not strange as it was written with speed in mind.
+> +		frame->wHeight = le16_to_cpu(get_unaligned((__le16 *) &buffer[7]));
+> +		frame->dwMinBitRate = le32_to_cpu(get_unaligned((__le32 *) &buffer[9]));
+> +		frame->dwMaxBitRate = le32_to_cpu(get_unaligned((__le32 *)
+> &buffer[13])); if (ftype != VS_FRAME_FRAME_BASED) {
+>  			frame->dwMaxVideoFrameBufferSize =
+> -				le32_to_cpup((__le32 *)&buffer[17]);
+> +				le32_to_cpu(get_unaligned((__le32 *) &buffer[17]));
+>  			frame->dwDefaultFrameInterval =
+> -				le32_to_cpup((__le32 *)&buffer[21]);
+> +				le32_to_cpu(get_unaligned((__le32 *) &buffer[21]));
+>  			frame->bFrameIntervalType = buffer[25];
+>  		} else {
+>  			frame->dwMaxVideoFrameBufferSize = 0;
+>  			frame->dwDefaultFrameInterval =
+> -				le32_to_cpup((__le32 *)&buffer[17]);
+> +				le32_to_cpu(get_unaligned((__le32 *) &buffer[17]));
+>  			frame->bFrameIntervalType = buffer[21];
+>  		}
+>  		frame->dwFrameInterval = *intervals;
+> @@ -468,7 +469,7 @@ static int uvc_parse_format(struct uvc_device *dev,
+>  		 * some other divisions by zero which could happen.
+>  		 */
+>  		for (i = 0; i < n; ++i) {
+> -			interval = le32_to_cpup((__le32 *)&buffer[26+4*i]);
+> +			interval = le32_to_cpu(get_unaligned((__le32 *) &buffer[26+4*i]));
+>  			*(*intervals)++ = interval ? interval : 1;
+>  		}
+>
+> @@ -814,7 +815,7 @@ static int uvc_parse_vendor_control(struct uvc_device
+> *dev, memcpy(unit->extension.guidExtensionCode, &buffer[4], 16);
+>  		unit->extension.bNumControls = buffer[20];
+>  		unit->extension.bNrInPins =
+> -			le16_to_cpup((__le16 *)&buffer[21]);
+> +			le16_to_cpu(get_unaligned((__le16 *) &buffer[21]));
+>  		unit->extension.baSourceID = (__u8 *)unit + sizeof *unit;
+>  		memcpy(unit->extension.baSourceID, &buffer[22], p);
+>  		unit->extension.bControlSize = buffer[22+p];
+> @@ -858,8 +859,8 @@ static int uvc_parse_standard_control(struct uvc_device
+> *dev, return -EINVAL;
+>  		}
+>
+> -		dev->uvc_version = le16_to_cpup((__le16 *)&buffer[3]);
+> -		dev->clock_frequency = le32_to_cpup((__le32 *)&buffer[7]);
+> +		dev->uvc_version = le16_to_cpu(get_unaligned((__le16 *) &buffer[3]));
+> +		dev->clock_frequency = le32_to_cpu(get_unaligned((__le32 *)
+> &buffer[7]));
+>
+>  		/* Parse all USB Video Streaming interfaces. */
+>  		for (i = 0; i < n; ++i) {
+> @@ -886,7 +887,7 @@ static int uvc_parse_standard_control(struct uvc_device
+> *dev, /* Make sure the terminal type MSB is not null, otherwise it
+>  		 * could be confused with a unit.
+>  		 */
+> -		type = le16_to_cpup((__le16 *)&buffer[4]);
+> +		type = le16_to_cpu(get_unaligned((__le16 *) &buffer[4]));
+>  		if ((type & 0xff00) == 0) {
+>  			uvc_trace(UVC_TRACE_DESCR, "device %d videocontrol "
+>  				"interface %d INPUT_TERMINAL %d has invalid "
+> @@ -928,11 +929,11 @@ static int uvc_parse_standard_control(struct
+> uvc_device *dev, term->camera.bControlSize = n;
+>  			term->camera.bmControls = (__u8 *)term + sizeof *term;
+>  			term->camera.wObjectiveFocalLengthMin =
+> -				le16_to_cpup((__le16 *)&buffer[8]);
+> +				le16_to_cpu(get_unaligned((__le16 *) &buffer[8]));
+>  			term->camera.wObjectiveFocalLengthMax =
+> -				le16_to_cpup((__le16 *)&buffer[10]);
+> +				le16_to_cpu(get_unaligned((__le16 *) &buffer[10]));
+>  			term->camera.wOcularFocalLength =
+> -				le16_to_cpup((__le16 *)&buffer[12]);
+> +				le16_to_cpu(get_unaligned((__le16 *) &buffer[12]));
+>  			memcpy(term->camera.bmControls, &buffer[15], n);
+>  		} else if (UVC_ENTITY_TYPE(term) == ITT_MEDIA_TRANSPORT_INPUT) {
+>  			term->media.bControlSize = n;
+> @@ -968,7 +969,7 @@ static int uvc_parse_standard_control(struct uvc_device
+> *dev, /* Make sure the terminal type MSB is not null, otherwise it
+>  		 * could be confused with a unit.
+>  		 */
+> -		type = le16_to_cpup((__le16 *)&buffer[4]);
+> +		type = le16_to_cpu(get_unaligned((__le16 *) &buffer[4]));
+>  		if ((type & 0xff00) == 0) {
+>  			uvc_trace(UVC_TRACE_DESCR, "device %d videocontrol "
+>  				"interface %d OUTPUT_TERMINAL %d has invalid "
+> @@ -1042,7 +1043,7 @@ static int uvc_parse_standard_control(struct
+> uvc_device *dev, unit->type = buffer[2];
+>  		unit->processing.bSourceID = buffer[4];
+>  		unit->processing.wMaxMultiplier =
+> -			le16_to_cpup((__le16 *)&buffer[5]);
+> +			le16_to_cpu(get_unaligned((__le16 *) &buffer[5]));
+>  		unit->processing.bControlSize = buffer[7];
+>  		unit->processing.bmControls = (__u8 *)unit + sizeof *unit;
+>  		memcpy(unit->processing.bmControls, &buffer[8], n);
+> @@ -1078,7 +1079,7 @@ static int uvc_parse_standard_control(struct
+> uvc_device *dev, memcpy(unit->extension.guidExtensionCode, &buffer[4], 16);
+>  		unit->extension.bNumControls = buffer[20];
+>  		unit->extension.bNrInPins =
+> -			le16_to_cpup((__le16 *)&buffer[21]);
+> +			le16_to_cpu(get_unaligned((__le16 *) &buffer[21]));
+>  		unit->extension.baSourceID = (__u8 *)unit + sizeof *unit;
+>  		memcpy(unit->extension.baSourceID, &buffer[22], p);
+>  		unit->extension.bControlSize = buffer[22+p];
 
+Cheers,
 
-> Where I am coming from is, libgphoto2 uses libusb. When a kernel module 
-> has "taken over" the device, then as things currently stand, or have 
-> stood until recently, libgphoto2 has no access to the device unless and 
-> until the kernel module has been rmmod-ed. I understand that there is a 
-> partial solution for this. I am trying to figure out how there is a 
-> complete solution which would make everyone happy, including users who 
-> just want to plug in their cameras.
-> 
-
-I understand, but I'm afraid I don't have any answers here, I'm not familiar 
-enough with the relevant usb stuff.
-
->> Basicly whenever we have a video input device, we want to have a 
->> kernel driver, so as to present a standard /dev/videoX device to 
->> userspace, so that all apps written for v4l can use the device.
-> 
-> Yes, that is quite clear. But insofar as the act of loading the kernel 
-> module which creates that device causes the still camera functionality 
-> of the same camera to be simultaneously inaccessible to the usual apps 
-> which deal with stillcam mode stuff, we have a problem. The worst aspect 
-> of the problem is, of course, that we have a bunch of people whom we 
-> would like to convince to use our nice operating system, and they do not 
-> understand why there has to be a problem because they do not face that 
-> kind of problem if they are not using Linux.
-> 
-
-All I can say is: again I understand.
-
->>
->> However we do not want to do video format conversion (let alone 
->> decompression) in kernel space, so if the data is in an exotic format 
->> we simply indicate this in the pixelformat member of the exchanged 
->> structs, and let userspace deal with it.
->>
->> This is where libv4l comes in into play, libv4l is a convenience lib 
->> for applications, which can do conversion for them so that the app 
->> writers do not have to add support for each exotic webcam format 
->> themselves.
-> 
-> This is obviously a good idea. I can't imagine that anyone would have a 
-> problem with it. Certainly, I don't. But my questions were about how to 
-> address the userspace-kernelspace conflict which takes place when we try 
-> to support dual-purpose devices, in which one of the modes requires 
-> kernel support and the other mode does not.
-> 
-
-All I can say is: again I understand.
-
->> libusb does not interact with a kernel module for a specific device, 
->> it interacts directly with the device through the usb subsystem,
-> 
-> Indeed. The two lines above capture precisely what needs to be 
-> addressed. The current situation certainly is described by 'does not.' I 
-> am well aware of the 'does not.' Otherwise, I probably would not ask 
-> 'why not' or, more precisely, 'what prevents.' So, back to the original 
-> problem:
-> 
-> For a dual-mode device such as most of the cameras that I support in 
-> libgphoto2 in stillcam mode, and you are trying to support in webcam 
-> mode, this 'does not' causes nasty problems for the user, doesn't it?
-
-Agreed.
-
-> So 
-> we should not ignore such difficulties but try to figure out how to 
-> avoid them or work around them.
-
-Agreed.
-
-> Thus, possible solutions (at least so I 
-> could imagine) are that libusb is changed, so that it is willing to 
-> interact with the kernel module, or that the kernel module is so 
-> constructed that it can run in some kind of 'pass-through' mode and 
-> libusb can go ahead and access the device anyway, or libgphoto2 camera 
-> drivers are changed so as to address a kernel module if it is present 
-> instead of addressing the device directly through libusb.
-
-I agree (and still understand) but I'm not aware of a way for a device driver 
-to give up his claim on an usb device, perhaps such an option exists in the 
-kernel usb subsystem, then adding an API to ask v4l to release the device 
-should be possible, although IMHO not the best way forward, how I envision this 
-to work is:
-
-usb-drivers get 2 new optional driver callbacks which the usb-subsystem can 
-call, called :
-
-1) release_device() this returns 0 if the device is not in use, and disallows 
-any new users from using the device through the driver (iow disallow new open's 
-of /dev/videoX in our case).
-
-2) reclaim_device(), the driver may now use the device again and allow users to 
-open it.
-
-
-The usb kernel<->userspace API used by libusb gets a new API, which makes it 
-possible for libusb to send a release request to a driver holding a device
-
-If the driver has release_device implemented and returns 0, the usb subsystem 
-will allow libusb to use the device even though there is a driver for it,
-
-When libusb is done with the device (closes the relevant filedescriptors, the 
-drivers resume_access() method gets called.
-
-Notes:
-1 this is all a figment of my imagination / vaporware.
-2 I think we must come up with something more KISS
-
-
-Ok, so looking for a simpler solution, there is an kernel usb subsystem method 
-called:
-usb_driver_release_interface()
-
-And another called :
-usb_driver_claim_interface()
-
-Using these 2 a driver could release a device when requested and then later 
-(when told to) reclaim it.
-
-No idea how well this will work though, and when we solve this completely at 
-the driver level we will need some (none generic) driver API for libgphoto2 to 
-ask us to release the device (and tell us whem it is ok to reclaim it).
-
-Regards,
-
-Hans
+Laurent Pinchart
 
 --
 video4linux-list mailing list
