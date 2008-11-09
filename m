@@ -1,21 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARE8Zaf030540
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 09:08:35 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mARE8M4L029012
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 09:08:23 -0500
-Date: Thu, 27 Nov 2008 12:08:14 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Message-ID: <20081127120814.14f25c1b@pedra.chehab.org>
-In-Reply-To: <11380.62.70.2.252.1227781392.squirrel@webmail.xs4all.nl>
-References: <11380.62.70.2.252.1227781392.squirrel@webmail.xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA9LMHCA000347
+	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 16:22:17 -0500
+Received: from mailrelay010.isp.belgacom.be (mailrelay010.isp.belgacom.be
+	[195.238.6.177])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA9LM6to031260
+	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 16:22:06 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Bryan Wu <cooloney@kernel.org>
+Date: Sun, 9 Nov 2008 22:22:17 +0100
+References: <1225963130-6784-1-git-send-email-cooloney@kernel.org>
+In-Reply-To: <1225963130-6784-1-git-send-email-cooloney@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: RFC: drop support for kernels < 2.6.22
+Content-Disposition: inline
+Message-Id: <200811092222.18047.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, linux-uvc-devel@lists.berlios.de,
+	linux-kernel@vger.kernel.org,
+	Michael Hennerich <michael.hennerich@analog.com>
+Subject: Re: [PATCH] Video/UVC: Port mainlined uvc video driver to NOMMU
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,51 +32,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 27 Nov 2008 11:23:12 +0100 (CET)
-"Hans Verkuil" <hverkuil@xs4all.nl> wrote:
+Hi Bryan, Michael,
 
-> > On Thu, 27 Nov 2008 08:32:22 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> >> Hi all,
-> >>
-> >> It been my opinion for quite some time now that we are too generous in
-> >> the number of kernel versions we support. I think that the benefits no
-> >> longer outweight the effort we have to put in.
-> >>
-> >> This is true in particular for the i2c support since that changed a lot
-> >> over time. Kernel 2.6.22 is a major milestone for that since it
-> >> introduced the new-style i2c API.
-> >
-> > I prefer to keep backward compat with older kernels. Enterprise distros
-> > like
-> > RHEL is shipped with older kernels (for example RHEL5 uses kernel 2.6.18).
-> > We
-> > should support those kernels.
-> 
-> Is RHEL (or anyone else for that matter) actually using our tree? I never
-> see any postings about problems or requests for these old kernels on the
-> v4l list.
+On Thursday 06 November 2008, Bryan Wu wrote:
+> From: Michael Hennerich <michael.hennerich@analog.com>
+>
+> Add NOMMU mmap support.
+>
+> Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
+> Signed-off-by: Bryan Wu <cooloney@kernel.org>
+> ---
+>  drivers/media/video/uvc/uvc_v4l2.c |   14 ++++++++++++++
+>  1 files changed, 14 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/video/uvc/uvc_v4l2.c
+> b/drivers/media/video/uvc/uvc_v4l2.c index 758dfef..2237f5e 100644
+> --- a/drivers/media/video/uvc/uvc_v4l2.c
+> +++ b/drivers/media/video/uvc/uvc_v4l2.c
+> @@ -1050,6 +1050,7 @@ static int uvc_v4l2_mmap(struct file *file, struct
+> vm_area_struct *vma) break;
+>  	}
+>
+> +#ifdef CONFIG_MMU
+>  	if (i == video->queue.count || size != video->queue.buf_size) {
+>  		ret = -EINVAL;
+>  		goto done;
+> @@ -1071,7 +1072,20 @@ static int uvc_v4l2_mmap(struct file *file, struct
+> vm_area_struct *vma) addr += PAGE_SIZE;
+>  		size -= PAGE_SIZE;
+>  	}
+> +#else
+> +	if (i == video->queue.count ||
+> +		PAGE_ALIGN(size) != video->queue.buf_size) {
 
-RHEL bugs come to redhat bugzilla. Generated patches there should be tested
-against the latest version and applied upstream.
+Just out of curiosity, why do you need to PAGE_ALIGN size for non-MMU 
+platforms ?
 
-> If you know of a distro or big customer that is actually using v4l-dvb on
-> old kernels, then I think we should keep it, but otherwise it is my
-> opinion that it is not worth the (substantial) hassle. I also have my
-> doubts about people using enterprise distros together with v4l. Doesn't
-> seem very likely to me.
+> +		ret = -EINVAL;
+> +		goto done;
+> +	}
+> +
+> +	vma->vm_flags |= VM_IO | VM_MAYSHARE; /* documentation/nommu-mmap.txt */
 
-Yes, there are customers with enterprise distros using V4L drivers.
+VM_MAYSHARE is not documented anywhere in Documentation/ in Linux 2.6.28-rc3. 
+Why is it needed for non-MMU architectures only ?
 
-Also, I am using V4L/DVB tree with a 2.6.18 kernel on some machines. Removing
-support for 2.6.18 will be a pain for me. 
+> +
+> +	addr = (unsigned long)video->queue.mem + buffer->buf.m.offset;
+>
+> +	vma->vm_start = addr;
+> +	vma->vm_end = addr +  video->queue.buf_size;
+> +#endif
+>  	vma->vm_ops = &uvc_vm_ops;
+>  	vma->vm_private_data = buffer;
+>  	uvc_vm_open(vma);
 
-I suspect that Laurent is also using RHEL (or some uvc users), since he sent
-some patches fixing compilation with RHEL.
+Best regards,
 
-Cheers,
-Mauro
+Laurent Pinchart
 
 --
 video4linux-list mailing list
