@@ -1,26 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mABGPERF008126
-	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 11:25:14 -0500
-Received: from mail11d.verio-web.com (mail11d.verio-web.com [204.202.242.86])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mABGP27v014687
-	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 11:25:02 -0500
-Received: from mx102.stngva01.us.mxservers.net (198.173.112.39)
-	by mail11d.verio-web.com (RS ver 1.0.95vs) with SMTP id 1-087681701
-	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 11:25:01 -0500 (EST)
-From: Pete Eberlein <pete@sensoray.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20081111122306.0bb05431@pedra.chehab.org>
-References: <1226357539.8035.20.camel@pete-desktop>
-	<1226367478.2493.39.camel@pc10.localdom.local>
-	<20081111122306.0bb05431@pedra.chehab.org>
-Content-Type: text/plain
-Date: Tue, 11 Nov 2008 08:28:25 -0800
-Message-Id: <1226420905.6231.31.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: Greg KH <greg@kroah.com>, video4linux-list@redhat.com
-Subject: Re: [PATCH] saa7134: Add new cards
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA9BECEg005338
+	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 06:14:12 -0500
+Received: from smtp7-g19.free.fr (smtp7-g19.free.fr [212.27.42.64])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA9BDxHt021691
+	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 06:13:59 -0500
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <Pine.LNX.4.64.0811081917070.8956@axis700.grange>
+	<87tzahwwr1.fsf@free.fr>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sun, 09 Nov 2008 12:13:57 +0100
+In-Reply-To: <87tzahwwr1.fsf@free.fr> (Robert Jarzmik's message of "Sun\,
+	09 Nov 2008 01\:47\:46 +0100")
+Message-ID: <87y6ztxibu.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 3/3] soc-camera: let camera host drivers decide upon
+	pixel format
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,31 +29,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 2008-11-11 at 12:23 -0200, Mauro Carvalho Chehab wrote:
-> On Tue, 11 Nov 2008 02:37:58 +0100
-> hermann pitton <hermann-pitton@arcor.de> wrote:
 
-Hermann, thanks for the catching the input duplication in the struct.
+Guennadi,
 
-> > I probably missed it and there is a plan, but if this should go to
-> > v4l-dvb now and SAA7134_MPEG_GO7007 support comes only with staging,
-> > should we not #if 0 it until all is merged?
-> > 
-> > Thanks for your work.
-> 
-> It is better to hold the patch until go7007 driver enters at v4l/dvb tree and
-> go outside staging.
+I thought a bit about pixel format negociation.
 
-Thanks.  The saa7134-go7007.c portion of the go7007 driver in staging
-doesn't compile without the changes to the saa7134 headers, but I'll
-talk with Greg and find a way to make it work.  It would be helpful to
-have the saa7134 changes in first, though.
+The thing that came to my mind is that it is not the sensor that can tell all
+the pixel formats available, it's the camera host. That means that icd->formats
+should be filled in by the host, not the sensor.
 
--- 
-Pete Eberlein
-Sensoray Co., Inc.
-Email: pete@sensoray.com
-http://www.sensoray.com
+What I would see is a generic call in soc_camera (or a structure), called by
+each sensor to declare the pixel formats it handles. This call (or structure)
+will be used by camera host driver to fill in icd->formats, deduced from what
+the sensors offers, and the host possible translations.
+
+Tell me you opinion about it please.
+
+--
+Robert
 
 --
 video4linux-list mailing list
