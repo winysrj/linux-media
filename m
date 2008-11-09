@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from dd16712.kasserver.com ([85.13.137.159])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vdr@helmutauer.de>) id 1L4bcu-00022t-4q
-	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 14:37:21 +0100
-Received: from dd16712.kasserver.com (kasmail1.kasserver.com [85.13.137.172])
-	by dd16712.kasserver.com (Postfix) with SMTP id 1EC71180F7ED4
-	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 14:37:20 +0100 (CET)
-In-Reply-To: <492A6E9B.7030906@cadsoft.de>
-from: vdr@helmutauer.de
-to: linux-dvb@linuxtv.org
+Received: from smtp116.rog.mail.re2.yahoo.com ([68.142.225.232])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1Kyy02-0005Tf-SZ
+	for linux-dvb@linuxtv.org; Sun, 09 Nov 2008 01:17:56 +0100
+Message-ID: <49162C0F.4020405@rogers.com>
+Date: Sat, 08 Nov 2008 19:17:19 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Message-Id: <20081124133720.1EC71180F7ED4@dd16712.kasserver.com>
-Date: Mon, 24 Nov 2008 14:37:20 +0100 (CET)
-Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+To: djamil <djamil@djamil.net>
+References: <49150AF1.5060601@rongage.org>
+	<1226135032.7882.1.camel@toptop>	<1226135171.7882.2.camel@toptop>
+	<1226140296.7671.1.camel@toptop>	<1226162432.7651.2.camel@toptop>
+	<1226172914.10629.0.camel@toptop>
+In-Reply-To: <1226172914.10629.0.camel@toptop>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] HVR 1400
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,19 +28,10 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> 
-> However, so far none of the "experts" cared about answering my initial
-> question "How to determine DVB-S2 capability in S2API?", so
-> I guessed the only way to get something to work was doing something
-> about it ;-)
-> 
-Luckily I am not the only one with this problem :)
-I can ask questions, post patches and tell the list about being frustrated that no one cares about it,
-and the last item will ever be confirmed ;)
+djamil wrote:
+> am I in the wrong list ?
 
-
-
-
+No, but you are being impatient.  Please don't top post either.
 
 _______________________________________________
 linux-dvb mailing list
