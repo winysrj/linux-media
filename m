@@ -1,20 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp-out2.iol.cz ([194.228.2.87])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ajurik@quick.cz>) id 1L0Ehk-00046p-V2
-	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 13:20:20 +0100
-From: Ales Jurik <ajurik@quick.cz>
-To: linux-dvb@linuxtv.org
-Date: Wed, 12 Nov 2008 12:44:53 +0100
-References: <20081112023112.94740@gmx.net>
-	<c74595dc0811120243m4819b86bk84a5d23c8e00e467@mail.gmail.com>
-	<alpine.DEB.2.00.0811121212280.22461@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.00.0811121212280.22461@ybpnyubfg.ybpnyqbznva>
+Received: from smtp104.rog.mail.re2.yahoo.com ([206.190.36.82])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1Kz1Oj-00073B-Sm
+	for linux-dvb@linuxtv.org; Sun, 09 Nov 2008 04:55:38 +0100
+Message-ID: <49165F17.2020908@rogers.com>
+Date: Sat, 08 Nov 2008 22:55:03 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200811121244.53182.ajurik@quick.cz>
-Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
-Reply-To: ajurik@quick.cz
+CC: linux-dvb@linuxtv.org
+References: <20081105142144.2d44ba9a@realh.co.uk>	<20081105143003.GA9384@moelleritberatung.de>
+	<18705.45767.717127.606762@valen.metzler>
+In-Reply-To: <18705.45767.717127.606762@valen.metzler>
+Subject: Re: [linux-dvb] PCI-e drivers
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,33 +25,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Wednesday 12 of November 2008, BOUWSMA Barry wrote:
-> I can see the logic for 8PSK=>DVB-S2, but as far as I
-> can see, QPSK does not imply purely DVB-S...
-> NIT result:  12324000 V 29500000   pos  28.2E    FEC 3/4  DVB-S2 QPSK
-> one of eight such transponders, based on parsing the NIT
-> tables.  Also, a note from my inital 19E2 scan file to
-> remind me why it failed:
-> S 11914500      h       27500   ##      DVB-S2 QPSK (0x05)
-> May be no longer up-to-date.
+rjkm wrote:
+> Artem Makhutov writes:
+>  > Hi,
+>  > 
+>  > On Wed, Nov 05, 2008 at 02:21:44PM +0000, Tony Houghton wrote:
+>  > > Sorry to ask such an awkward question, but is it realistic to hope that
+>  > > Linux will have working drivers for PCI-e DVB cards within the next year
+>  > > or two?
 >
-> Of course, if I'm misunderstanding, or failing to grasp
-> something obvious if I actually laid my hands on the
-> code, please feel free to slap me hard and tell me to
-> shove off.
+> Yes.
 >
+> There are drivers for the Micronas dual PCIe DVB-S2 prototype and a
+> new card loosely based on this design (but e.g. with new tuners/demod)
+> might be available in a couple of months.
+>
+>
+> AFAIK, Manu has also been working on cards based on the Philips/NXP 
+> PCIe bridge. 
+>
+>
+> Ralph
+>   
 
-You are right, it is working for me with this two lines from channels.conf 
-(with vdr), both DVB-S2, QPSK:
-
-ASTRA 
-HD+;BetaDigital:11914:hC910M2O35S1:S19.2E:27500:1279:0;1283=deu:0:0:131:133:6:0
-HD Retail 
-Info;BSkyB:12324:vC34M2O35S1:S28.2E:29500:512:640=NAR;660=eng:2305:960,961,963:3801:2:2032:0
-
-BR,
-
-Ales
+And least we not forget, there has been a working driver for the
+Conexant PCIe bridge for a good while now, supporting several cards!
 
 _______________________________________________
 linux-dvb mailing list
