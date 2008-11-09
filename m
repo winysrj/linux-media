@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARI2Umv013157
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 13:02:30 -0500
-Received: from smtp1.versatel.nl (smtp1.versatel.nl [62.58.50.88])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mARI20MK028125
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 13:02:01 -0500
-Message-ID: <492EE208.7010903@hhs.nl>
-Date: Thu, 27 Nov 2008 19:08:08 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA9NLhWV000355
+	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 18:21:43 -0500
+Received: from cinke.fazekas.hu (cinke.fazekas.hu [195.199.244.225])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA9NLUuL004099
+	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 18:21:30 -0500
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-References: <492B15E1.2080207@gmail.com> <20081125082002.GC18787@m500.domain>	
-	<492E7906.905@redhat.com>
-	<62e5edd40811270351o7ae92605ra2e46ec5e9ee94fa@mail.gmail.com>
-In-Reply-To: <62e5edd40811270351o7ae92605ra2e46ec5e9ee94fa@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: Hans de Goede <hdegoede@redhat.com>, video4linux-list@redhat.com,
-	noodles@earth.li, qce-ga-devel@lists.sourceforge.net
-Subject: Re: Please test the gspca-stv06xx branch
+Content-Transfer-Encoding: 7bit
+Message-Id: <45eba6ab2f4cdcaf7aeb.1226272762@roadrunner.athome>
+In-Reply-To: <patchbomb.1226272760@roadrunner.athome>
+Date: Mon, 10 Nov 2008 00:19:22 +0100
+From: Marton Balint <cus@fazekas.hu>
+To: video4linux-list@redhat.com
+Cc: mchehab@infradead.org
+Subject: [PATCH 2 of 2] cx88: add optional stereo detection to PAL-BG mode
+	with A2 sound system
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,44 +27,132 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Erik Andrén wrote:
-> 2008/11/27 Hans de Goede <hdegoede@redhat.com>:
+# HG changeset patch
+# User Marton Balint <cus@fazekas.hu>
+# Date 1226268742 -3600
+# Node ID 45eba6ab2f4cdcaf7aebd707e1ac545b66ae66bc
+# Parent  e9f7514f435ad89666cd12e8384d88114c21b5ee
+cx88: add optional stereo detection to PAL-BG mode with A2 sound system
 
-<snip>
+From: Marton Balint <cus@fazekas.hu>
 
->> I've solved this be creating 2 separate stv06xx_write_sensor functions:
->> typedef u8 u8_pair[2];
->> typedef u16 u16_pair[2];
->>
->> int stv06xx_write_sensor_bytes(struct sd *sd, const u8_pair *data, int len);
->> int stv06xx_write_sensor_words(struct sd *sd, const u16_pair *data, int
->> len);
->>
->> These functions get passed one or more u8 / u16  pairs where pair[0] is an
->> register-address and pair[1] is the value to write to that register, note
->> that for stv06xx_write_sensor_words() the addresses are in reality still 8
->> bits, they are gettings stored in an u16 for easier coding.
-> 
-> This is an alternate way of solving the same problem. I think this
-> approach is more convoluted without any real gain.
-> First you must multiplex the data and addresses by putting them
-> together and then demultiplex them in the function.
-> Not ideal but also not a big deal.
-> 
+This patch adds a module parameter detect_stereo which can be used to
+enable stereo detection for PAL-BG mode, using the following method:
 
+AUD_NICAM_STATUS1 and AUD_NICAM_STATUS2 registers change randomly if and only
+if the second audio channel is missing, so if these registers are constant
+(Usually 0x0000 and 0x01), we can assume that the tv channel has two audio
+channels, so we can use STEREO mode. This method seems a bit ugly, but nicam
+detection works the same way.
 
-The gain here is that it is easy to define a single table with address, value 
-pairs to init the sensor. Like you've done in stv06xx_vv6410.h, my patch now 
-uses that table directly and unmodifed. Imagine what this table would look like 
-if you had 2 separate tables for addresses and values, then the resulting table 
-declaration_S_ in stv06xx_vv6410.h would make it very hard to see which value 
-gets written to which register, so IMHO there is a real and big gain here.
+This stereo detection method is not perfect. For example, it works quite well
+for me using tvtime, but it misdetects some of the channels using mplayer.
+Since the stereo detection is disabled by default, it should not harm the
+average user, but an advanced user may try setting the parameter and may have
+mostly working stereo detection.
 
-<snip>
+Priority: normal
 
-Regards,
+Signed-off-by: Marton Balint <cus@fazekas.hu>
 
-Hans
+diff -r e9f7514f435a -r 45eba6ab2f4c linux/drivers/media/video/cx88/cx88-tvaudio.c
+--- a/linux/drivers/media/video/cx88/cx88-tvaudio.c	Wed Jul 30 22:50:09 2008 +0200
++++ b/linux/drivers/media/video/cx88/cx88-tvaudio.c	Sun Nov 09 23:12:22 2008 +0100
+@@ -69,6 +69,11 @@
+ module_param(radio_deemphasis,int,0644);
+ MODULE_PARM_DESC(radio_deemphasis, "Radio deemphasis time constant, "
+ 		 "0=None, 1=50us (elsewhere), 2=75us (USA)");
++
++static unsigned int detect_stereo;
++module_param(detect_stereo,int,0644);
++MODULE_PARM_DESC(detect_stereo,"enable unreliable but often working "
++		 "stereo detection code for PAL-BG audio");
+ 
+ #define dprintk(fmt, arg...)	if (audio_debug) \
+ 	printk(KERN_DEBUG "%s/0: " fmt, core->name , ## arg)
+@@ -718,31 +723,52 @@
+ 
+ /* ----------------------------------------------------------- */
+ 
+-static int cx88_detect_nicam(struct cx88_core *core)
++static int cx88_detect_nicam_or_stereo(struct cx88_core *core)
+ {
+-	int i, j = 0;
++	int i, stereo = 0;
++	u32 status1, status2;
++	u32 last_status1, last_status2;
+ 
+ 	dprintk("start nicam autodetect.\n");
++	last_status1 = cx_read(AUD_NICAM_STATUS1);
++	last_status2 = cx_read(AUD_NICAM_STATUS2);
+ 
+-	for (i = 0; i < 6; i++) {
++	/* wait here max 50 ms or if stereo is ambigous then max 70 ms */
++	for (i = 0; i < 5 || (stereo > 0 && stereo < 3 && i < 7); i++) {
++		/* wait a little bit for next reading status */
++		msleep(10);
++
++		status1 = cx_read(AUD_NICAM_STATUS1);
++		status2 = cx_read(AUD_NICAM_STATUS2);
++
+ 		/* if bit1=1 then nicam is detected */
+-		j += ((cx_read(AUD_NICAM_STATUS2) & 0x02) >> 1);
+-
+-		if (j == 1) {
++		if (status2 & 0x02) {
+ 			dprintk("nicam is detected.\n");
+ 			return 1;
+ 		}
+ 
+-		/* wait a little bit for next reading status */
+-		msleep(10);
++		/* try stereo detection only for PAL-BG */
++		if (core->tvaudio == WW_BG && detect_stereo) {
++			if (last_status1 == status1 && last_status2 == status2)
++				stereo++;
++			else
++				stereo = 0;
++			last_status1 = status1;
++			last_status2 = status2;
++		}
+ 	}
+ 
+ 	dprintk("nicam is not detected.\n");
+-	return 0;
++	if (core->tvaudio == WW_BG && detect_stereo)
++		dprintk("stereo detection result: %d\n", stereo);
++
++	return stereo >= 3 ? 2 : 0;
+ }
+ 
+ void cx88_set_tvaudio(struct cx88_core *core)
+ {
++	int nicam_or_stereo;
++
+ 	switch (core->tvaudio) {
+ 	case WW_BTSC:
+ 		set_audio_standard_BTSC(core, 0, EN_BTSC_AUTO_STEREO);
+@@ -757,12 +783,15 @@
+ 		/* set nicam mode - otherwise
+ 		   AUD_NICAM_STATUS2 contains wrong values */
+ 		set_audio_standard_NICAM(core, EN_NICAM_AUTO_STEREO);
+-		if (0 == cx88_detect_nicam(core)) {
+-			/* fall back to fm / am mono */
+-			set_audio_standard_A2(core, EN_A2_FORCE_MONO1);
++		nicam_or_stereo = cx88_detect_nicam_or_stereo(core);
++		if (nicam_or_stereo == 1) {
++			core->use_nicam = 1;
++		} else {
++			/* fall back to fm / am stereo or mono */
++			set_audio_standard_A2(core, (nicam_or_stereo == 2)
++						    ? EN_A2_FORCE_STEREO
++						    : EN_A2_FORCE_MONO1);
+ 			core->use_nicam = 0;
+-		} else {
+-			core->use_nicam = 1;
+ 		}
+ 		break;
+ 	case WW_EIAJ:
 
 --
 video4linux-list mailing list
