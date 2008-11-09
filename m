@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAIA1gIu032156
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 05:01:42 -0500
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.225])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAIA0UQl013216
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 05:00:30 -0500
-Received: by rv-out-0506.google.com with SMTP id f6so3057862rvb.51
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 02:00:30 -0800 (PST)
-Message-ID: <62e5edd40811180200q614d0a32l68c0e47f043d225d@mail.gmail.com>
-Date: Tue, 18 Nov 2008 11:00:29 +0100
-From: "=?ISO-8859-1?Q?Erik_Andr=E9n?=" <erik.andren@gmail.com>
-To: "Hans de Goede" <j.w.r.degoede@hhs.nl>
-In-Reply-To: <4922924B.8050302@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA9M7PCc013544
+	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 17:07:25 -0500
+Received: from mailrelay010.isp.belgacom.be (mailrelay010.isp.belgacom.be
+	[195.238.6.177])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA9M78fr013032
+	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 17:07:08 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: "Jackson Yee" <jackson@gotpossum.com>
+Date: Sun, 9 Nov 2008 23:07:20 +0100
+References: <26aa882f0810280714u1b3964b9t1440369d2d2a36b7@mail.gmail.com>
+	<200811060142.48227.laurent.pinchart@skynet.be>
+	<26aa882f0811061612r1419b6a1p9dd8f17333be09ba@mail.gmail.com>
+In-Reply-To: <26aa882f0811061612r1419b6a1p9dd8f17333be09ba@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-References: <200811172253.33396.linux@baker-net.org.uk>
-	<4922924B.8050302@hhs.nl>
-Cc: video4linux-list@redhat.com, sqcam-devel@lists.sourceforge.net
-Subject: Re: Advice wanted on producing an in kernel sq905 driver
+Message-Id: <200811092307.20932.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com
+Subject: Re: Testing Requested: Python Bindings for Video4linux2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,159 +32,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-2008/11/18 Hans de Goede <j.w.r.degoede@hhs.nl>:
-> <note resend with different From address for the video4linux-list>
->
-> Adam Baker wrote:
->>
->> Hi V4L readers,
->>
->
-> Hi Adam,
->
-> Nice to meet you.
->
->> There currently exists an out of kernel driver for the SQ technologies
->> sq905 USB webcam chipset used by a number of low cost webcams. This driver
->> has a number of issues which would count against it being included in kernel
->> as is but I'm considering trying to create something that could be suitable.
->
-> Great, thats very good news!
->
->> I have a number of questions on how best to proceed.
->>
->
-> Good, keep asking asking questions!
->
->> Note that this refers only to the sq905, USB ID 0x2770:0x9120 the sq905c
->> is a substantially different chip.
->>
->> (If anyone wants to check out the current driver it is at
->> http://sqcam.cvs.sourceforge.net/viewvc/sqcam/sqcam26/ )
->>
->> First off some thoughts on how I'd like to proceed.
->>
->> The chip exposes the Bayer sensor output directly to the driver so the
->> current driver uses code borrowed from libgphoto2 to do the Bayer decode in
->> kernel. Obviously this is wrong and now we have libv4l it should use that
->> instead.
->>
->
-> Correct, there is nothing special you need to do for that, just pass frames
-> with the raw bayer data to userspace and set the pixelformat to one of:
-> V4L2_PIX_FMT_SBGGR8 /* v4l2_fourcc('B', 'A', '8', '1'), 8 bit BGBG.. GRGR..
-> */
-> V4L2_PIX_FMT_SGBRG8 /* v4l2_fourcc('G', 'B', 'R', 'G'), 8 bit GBGB.. RGRG..
-> */
-> V4L2_PIX_FMT_SGRBG8 /* v4l2_fourcc('G','R','B','G'), 8 bit GRGR.. BGBG.. */
-> V4L2_PIX_FMT_SRGGB8 /* v4l2_fourcc('R','G','G','B'), 8 bit RGRG.. GBGB.. */
->
-> Note the last 2 currently are only defined internally in libv4l and not in
-> linux/videodev2.h as no drivers use them yet, but if you need one of them
-> adding it to linux/videodev2.h is fine.
+Hi,
 
-I'm currently developing a driver where I need the two lower ones in
-order to get a correct bayer decoding.
-Would it possible to add them into the linux/videodev2.h?
+On Friday 07 November 2008, Jackson Yee wrote:
+> Lauren,
+>
+> On Wed, Nov 5, 2008 at 7:42 PM, Laurent Pinchart
+>
+> <laurent.pinchart@skynet.be> wrote:
+> > The uvcvideo driver doesn't implement the standard ioctls. This should
+> > not be fatal (and you probably want to define FindKeyas well).
+>
+> The standard ioctls are, unfortunately, all I have to go by since I'm
+> testing on my amd64 box with a bttv card. If a function does not
+> succeed though, it should throw an exception and let the user code
+> sort things out.
 
-I can send a patch tonight if required.
+That's right. But your sample application should handle that.
 
-Thanks,
-Erik
+> Do you have a link for the uncvideo driver so I could add support for it?
 
+Sure. http://linux-uvc.berlios.de/
+
+> FindKey looks to be Carl's code. ;-) I've added the function now.
 >
-> And then make sure your applications are either patched to use libv4l, or
-> use
-> the LD_PRELOAD libc wrapper (see libv4l docs).
+> > The problem comes from a bad alignment in the PixFormat structure. At
+> > least on my architecture (x86) the type field is 32 bits wide.
 >
->> I don't have masses of time to work on this so I need an approach that
->> isn't going to require writing loads of code.
+> I've updated the type field on PixFormat to c_long, which should come
+> out to be the right size on both x86 and amd64 platforms now.
 >
-> Actually, the plan is to remove lots of code :)
->
->> Considering the mess the current
->> driver is in it is probably going to be better to make it a sub driver of
->> gspca rather than try to re-use the existing code (which should also make
->> life easier from a long term maintenance PoV).
->>
->
-> Yes please make it a subdriver of gspca, then all you need to lift from the
-> current driver are the chip specific initalization sequences, and the isoc
-> frame parsing for detecting the beginning and ending of frames.
->
->> Now my questions
->>
->> 1) What kernel should I base any patches I produce on? The obvious choice
->> would seem to be
->> git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git but it
->> seems as if Linus's 2.6 tree is more up to date for gspca.
->
-> Please use:
-> http://linuxtv.org/hg/~jfrancois/gspca/
->
-> Note that like al v4l-dvb trees this is a standalone tree, not a complete
-> kernel, assuming you've got the headers installed for your current kernel
-> you
-> can just do make menuconfig, make, make install from this tree (from the
-> main
-> dir, not from the linux subdir) to update your current kernels video4linux
-> modules to the latest, then add your own driver and rince repeat :)
->
->> 2) The existing driver needed to perform a gamma adjustment after
->> performing the Bayer decode. I couldn't find anything in libv4l that
->> obviously did that so I'm guessing it isn't needed for existing devices -
->> should that be added to libv4l if needed and if so how should the driver
->> indicate it is needed - could it be indicated with a new value for
->> v4l2_colorspace?
->
-> Hmm interesting for now lets ignore this and first get it up and running
-> without this, and the revisit this. I'm asking for this because gamma
-> correction might be interesting for other cams too, so I would like to see a
-> generic solution for this, which will take some design work, etc.
->
->> 3) The current driver needs to do some up/down and left/right flips of the
->> data to get it in the right order to do the Bayer decode that depend on the
->> version info the camera returns to its init sequence. Should that code
->> remain in the driver and if not how should the driver communicate what is
->> needed.
->>
->
-> It should communicate what is needed all possible bayer orders are covered
-> by
-> the 4 formats I gave above, and libv4l knows how to handle all 4 of them,
-> for
-> the defines of the last 2 see libv4lconvert/libv4lconvert-priv.h
->
->> 4) The current driver doesn't support streaming mode for V4L2 (only V4L1)
->> and libv4l doesn't support cameras that don't support streaming so is there
->> an easy way to test out if the camera output will work well with libv4l
->> before starting work?
->
-> This should not be a problem. gspca now can work with both bulk and
-> isochronyous usb transfers using cams, although your cam most likely is an
-> isoc
-> one (bulk mode cams are rare).
->
->> 5) Is there anything else I should know before starting.
->
-> Not that I know, go for it!
->
-> Regards,
->
-> Hans
->
->
-> p.s.
->
-> In case it isn't clear  I'm the author of libv4l and a contributer to gspca,
-> as
-> said before: go for it and keep asking questions!
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+> Thanks for the test. I'm working on adding libavcodec/libavformat
+> support so that we can capture straight to video instead of jpegs like
+> we're doing now. Please let me know if we have any other issues.
+
+Best regards,
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
