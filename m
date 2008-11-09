@@ -1,27 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from fg-out-1718.google.com ([72.14.220.156])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1L4DBJ-0007fT-0s
-	for linux-dvb@linuxtv.org; Sun, 23 Nov 2008 12:31:13 +0100
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1L4DBD-0001FW-EG
-	for linux-dvb@linuxtv.org; Sun, 23 Nov 2008 11:31:07 +0000
-Received: from 81.210.216.21 ([81.210.216.21])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sun, 23 Nov 2008 11:31:07 +0000
-Received: from chris.ace by 81.210.216.21 with local (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Sun, 23 Nov 2008 11:31:07 +0000
+	(envelope-from <plr.vincent@gmail.com>) id 1KzATg-0006iC-Ct
+	for linux-dvb@linuxtv.org; Sun, 09 Nov 2008 14:37:21 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so1816690fga.25
+	for <linux-dvb@linuxtv.org>; Sun, 09 Nov 2008 05:37:16 -0800 (PST)
 To: linux-dvb@linuxtv.org
-From: Christian Tramnitz <chris.ace@gmx.net>
-Date: Sun, 23 Nov 2008 12:30:57 +0100
-Message-ID: <ggbetk$2pc$1@ger.gmane.org>
-References: <E1KvSWe-0000jN-8W@www.linuxtv.org>	<200810302359.11772.liplianin@tut.by>	<200811091656.03941.liplianin@tut.by>
-	<49271FB5.1040805@gmail.com>
-Mime-Version: 1.0
-In-Reply-To: <49271FB5.1040805@gmail.com>
-Subject: Re: [linux-dvb] [PATCH] TT S2-3200: Support for high symbol rates.
+From: Vincent Pelletier <plr.vincent@gmail.com>
+Date: Sun, 9 Nov 2008 14:37:13 +0100
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_JeuFJHeWHvgVM4i"
+Message-Id: <200811091437.13920.plr.vincent@gmail.com>
+Cc: khali@linux-fr.org
+Subject: [linux-dvb] [PATCH] WinFast DTV2000 H: add support for missing
+	analog inputs
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,30 +22,100 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Manu Abraham wrote:
-> The STB0899 is never rated to run at 135MHz clock. Some older die cuts
-> would even cause clock race arounds at even 108MHz. The recommended
-> maximum clock is 99 MHz at maximum.
+--Boundary-00=_JeuFJHeWHvgVM4i
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hi Manu,
+WinFast DTV2000 H: add support for missing analog inputs
 
-do you have more detailed information about this, i.e. how to find out 
-the hw revision that would be affected?
+From: Vincent Pelletier <plr.vincent@gmail.com>
 
-Igor, are there any dependencies in your repository on the higher clock 
-rate or can we just lower it so 99 again to be on the safe side?
+Add support for the following inputs:
+ - radio tuner
+ - composite 1 & 2 (only 1 is physically available, but composite 2 is also
+   advertised by windows driver)
+ - svideo
 
-Best regards,
-    Christian
+Signed-off-by: Vincent Pelletier <plr.vincent@gmail.com>
 
+---
+
+GPIO values retrieved using RegSpy under Windows XP with vendor's driver & 
+software.
+
+-- 
+Vincent Pelletier
+
+--Boundary-00=_JeuFJHeWHvgVM4i
+Content-Type: text/x-diff;
+  charset="iso 8859-15";
+  name="cx88-cards.c.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="cx88-cards.c.diff"
+
+diff -r 46604f47fca1 linux/drivers/media/video/cx88/cx88-cards.c
+--- a/linux/drivers/media/video/cx88/cx88-cards.c	Fri Nov 07 15:24:18 2008 -0200
++++ b/linux/drivers/media/video/cx88/cx88-cards.c	Sun Nov 09 14:31:26 2008 +0100
+@@ -1270,7 +1270,6 @@
+ 		},
+ 	},
+ 	[CX88_BOARD_WINFAST_DTV2000H] = {
+-		/* video inputs and radio still in testing */
+ 		.name           = "WinFast DTV2000 H",
+ 		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
+ 		.radio_type     = UNSET,
+@@ -1284,7 +1283,35 @@
+ 			.gpio1  = 0x00008203,
+ 			.gpio2  = 0x00017304,
+ 			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_COMPOSITE1,
++			.vmux   = 1,
++			.gpio0  = 0x0001d701,
++			.gpio1  = 0x0000b207,
++			.gpio2  = 0x0001d701,
++			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_COMPOSITE2,
++			.vmux   = 2,
++			.gpio0  = 0x0001d503,
++			.gpio1  = 0x0000b207,
++			.gpio2  = 0x0001d503,
++			.gpio3  = 0x02000000,
++		},{
++			.type   = CX88_VMUX_SVIDEO,
++			.vmux   = 3,
++			.gpio0  = 0x0001d701,
++			.gpio1  = 0x0000b207,
++			.gpio2  = 0x0001d701,
++			.gpio3  = 0x02000000,
+ 		}},
++		.radio = {
++			 .type  = CX88_RADIO,
++			 .gpio0 = 0x00015702,
++			 .gpio1 = 0x0000f207,
++			 .gpio2 = 0x00015702,
++			 .gpio3 = 0x02000000,
++		},
+ 		.mpeg           = CX88_MPEG_DVB,
+ 	},
+ 	[CX88_BOARD_GENIATECH_DVBS] = {
+
+--Boundary-00=_JeuFJHeWHvgVM4i
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_JeuFJHeWHvgVM4i--
