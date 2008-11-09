@@ -1,29 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.ukfsn.org ([77.75.108.10])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <h@realh.co.uk>) id 1Ky4MY-0006qB-Nc
-	for linux-dvb@linuxtv.org; Thu, 06 Nov 2008 13:53:27 +0100
-Received: from localhost (smtp-filter.ukfsn.org [192.168.54.205])
-	by mail.ukfsn.org (Postfix) with ESMTP id A2857DF0E0
-	for <linux-dvb@linuxtv.org>; Thu,  6 Nov 2008 12:53:25 +0000 (GMT)
-Received: from mail.ukfsn.org ([192.168.54.25])
-	by localhost (smtp-filter.ukfsn.org [192.168.54.205]) (amavisd-new,
-	port 10024) with ESMTP id kDkVxXvejC+Y for <linux-dvb@linuxtv.org>;
-	Thu,  6 Nov 2008 12:32:46 +0000 (GMT)
-Received: from realh.co.uk (unknown [84.45.223.215])
-	by mail.ukfsn.org (Postfix) with ESMTP id 478C5DF14C
-	for <linux-dvb@linuxtv.org>; Thu,  6 Nov 2008 12:53:25 +0000 (GMT)
-Date: Thu, 6 Nov 2008 12:53:21 +0000
-From: Tony Houghton <h@realh.co.uk>
-To: linux-dvb@linuxtv.org
-Message-ID: <20081106125321.1c0417e9@realh.co.uk>
-In-Reply-To: <1225939087.3602.41.camel@pc10.localdom.local>
-References: <491236F2.4050101@andrei.myip.org>
-	<200811060153.37102.hftom@free.fr>
-	<49124960.6070101@andrei.myip.org>
-	<1225939087.3602.41.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] HD over satellite? (h.264)
+Received: from smtp132.rog.mail.re2.yahoo.com ([206.190.53.37])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1Kz1mP-0008PS-3J
+	for linux-dvb@linuxtv.org; Sun, 09 Nov 2008 05:20:06 +0100
+Message-ID: <491664D2.90203@rogers.com>
+Date: Sat, 08 Nov 2008 23:19:30 -0500
+From: CityK <cityk@rogers.com>
+MIME-Version: 1.0
+To: larrykathy3@verizon.net
+References: <759163.14018.qm@web84101.mail.mud.yahoo.com>
+In-Reply-To: <759163.14018.qm@web84101.mail.mud.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Geniatech x8000 thriller
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -37,21 +25,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Thu, 06 Nov 2008 03:38:07 +0100
-hermann pitton <hermann-pitton@arcor.de> wrote:
+Ruth Fernandez wrote:
+> I have a Geniatech x8000 thriller ATSC card. The only way Ubuntu will
+> see it is with the ismod option in the etc/modprobe.d/option file. The
+> ATSC part is not recognized. Plus there is no sound. Can you help.
+> Larry -dmesg below
+>
+>  44.901324] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+> [   44.901560] cx88[0]: subsystem: 14f1:1419, board: Geniatech
+> X8000-MT DVBT [card=63,insmod option], frontend(s): 1
+>
 
-> But people should know, as far I can say, that future HD broadcasts will
-> be DVB-S2 and to buy now something not capable of it will be, well,
-> Lehman and Iceland BS*, and nobody will compensate you. It is already
-> trash.
+Wrong card option; card 63 is for the DVB-T version of the card and,
+consequently, explains why the wrong components are being loaded.  Use
+card=67 instead.  There may be further info for you in: 
+http://www.linuxtv.org/wiki/index.php/KWorld_ATSC_120
 
-OTOH you can get a used DVB-S card now for 20ukp and by the time you
-really need DVB-S2 you should be able to get a better card that will be
-working with Linux by then (eg PCI-e, multiple tuners) or the price of
-single tuner PCI DVB-S2 cards may have dropped by as much as 20ukp.
-
--- 
-TH * http://www.realh.co.uk
+Can you report your success on the matter and also supply the output of
+"lspci -vn" (to see what the PCI subsystem ID for the card is, and as to
+whether it differs from the KWorld card).  Thanks.
 
 _______________________________________________
 linux-dvb mailing list
