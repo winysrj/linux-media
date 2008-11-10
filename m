@@ -1,30 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAKIvhQL013833
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 13:57:43 -0500
-Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.191])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAKIvVFL014844
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 13:57:32 -0500
-Received: by fk-out-0910.google.com with SMTP id e30so620884fke.3
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 10:57:30 -0800 (PST)
-Message-ID: <30353c3d0811201057o2244ca80of033e3bead96c779@mail.gmail.com>
-Date: Thu, 20 Nov 2008 13:57:30 -0500
-From: "David Ellingsworth" <david@identd.dyndns.org>
-To: "Jean-Francois Moine" <moinejf@free.fr>
-In-Reply-To: <1227205179.1708.47.camel@localhost>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAAIu5xg005110
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 13:56:05 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAAItg1X006200
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 13:55:49 -0500
+Date: Mon, 10 Nov 2008 19:55:53 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Antonio Ospite <ospite@studenti.unina.it>
+In-Reply-To: <20081109235940.4c009a68.ospite@studenti.unina.it>
+Message-ID: <Pine.LNX.4.64.0811101946200.8315@axis700.grange>
+References: <20081107125919.ddf028a6.ospite@studenti.unina.it>
+	<874p2jbegl.fsf@free.fr>
+	<Pine.LNX.4.64.0811082119280.8956@axis700.grange>
+	<20081109235940.4c009a68.ospite@studenti.unina.it>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <200811151218.45664.m.kozlowski@tuxland.pl>
-	<30353c3d0811190552y2ef78b53s833182da377a5046@mail.gmail.com>
-	<492439AE.1070903@redhat.com>
-	<200811192256.09361.m.kozlowski@tuxland.pl>
-	<1227205179.1708.47.camel@localhost>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Mariusz Kozlowski <m.kozlowski@tuxland.pl>, video4linux-list@redhat.com
-Subject: Re: [v4l-dvb-maintainer] [BUG] zc3xx oopses on unplug: unable to
-	handle kernel paging request
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH, RFC] mt9m111: allow data to be received on pixelclock
+ falling edge?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,60 +30,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Nov 20, 2008 at 1:19 PM, Jean-Francois Moine <moinejf@free.fr> wrote:
-> On Wed, 2008-11-19 at 22:56 +0100, Mariusz Kozlowski wrote:
->> > Here is a patch fixing this by using the ref counting already built
->> > into the
->> > v4l2-core. Jean-Francois, this is to be applied after reverting your
->> > fix for this.
->>
->> Not sure I understand what should be applied where. I applied your -
->> Hans - patch to
->> 2.6.28-rc5-00117-g7f0f598. As you see my HEAD in linux-2.6 is at
->> 7f0f598a0069d1ab072375965a4b69137233169c and I can reproduce the oops
->> easily.
->> I turned on all possible debuging in gspca as well. If it should be
->> applied to
->> some other tree which contains some more fixes for this - my fault.
->> Please let me know.
->
-> Hi Hans (de Goede) and Hans (Verkuil),
->
-> As you saw, the patch does not work.
->
-> Looking at the modules, when a webcam is streaming, the module refcount
-> of the gspca_main is 3: 1 for the subdriver dependancies, and 2 for one
-> open. Why 2?
->
-> I did not look carefully at the I/O system, but it seems there are two
-> objects / operations associated to the device. When a disconnection
-> occurs while the device is opened, at close time, there is:
-> - a first object put of the device which makes it to be released,
-> - this release should do a first module_put and then
-> - calls the gspca_release (see the patch) which frees the gspca device
->  (and also the video device which is embedded),
-> - then, the close job is not finished: a second module_put is called
->  with the fops of the device,
-> - as this one is in a non allocated memory and as the slab debug is
->  active: oops!
->
-> All this is may be found in the function __fput of fs/file_table.c.
->
-> I was wondering if the gspca device could not be freed by the release of
-> the video device, i.e. what happens if there is no 'kfree(gspca_dev)' in
-> the gspca_release()?
+(please, use reply-to-all, thanks)
 
-I'm not entirely sure what's going on in the gspca driver. It seems as
-though the module count is wrong. Unfortunately, I don't have a camera
-which uses this driver so it's a little hard for me to do any
-debugging with it at this time. Technically though, freeing the
-gspca_dev in the release callback of the video_device struct should be
-possible and that is how it was intended to be used. The stk-webcam
-driver has no issues using it this way either.
+On Sun, 9 Nov 2008, Antonio Ospite wrote:
 
-Regards,
+> > So, shall we add inverter flags?
+> 
+> Would you accept this change instead?
+> 
+> --- a/drivers/media/video/pxa_camera.c
+> +++ b/drivers/media/video/pxa_camera.c
+> @@ -845,7 +845,7 @@ static int pxa_camera_set_bus_param(struct
+> soc_camera_device *icd, __u32 pixfmt) cicr4 |= CICR4_PCLK_EN;
+>   if (pcdev->platform_flags & PXA_CAMERA_MCLK_EN)
+>     cicr4 |= CICR4_MCLK_EN;
+> - if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
+> + if (pcdev->platform_flags & PXA_CAMERA_PCP)
+>     cicr4 |= CICR4_PCP;
+>   if (common_flags & SOCAM_HSYNC_ACTIVE_LOW)
+>     cicr4 |= CICR4_HSP;
+> 
+> and maybe for other cicr4 bits too, in the spirit of using the SOCAM_
+> defines only for icd set_bus_param() but still giving preference to
+> platform data for host settings.
+> 
+> It is kind of tricky I know, but it would allow to overcome unexpected
+> hardware setups.
 
-David Ellingsworth
+I would prefer not to disregard camera flags. If we don't find a better 
+solution, I would introduce platform inverter flags, and, I think, we 
+better put them in camera platform data - not host platform data, to 
+provide a finer granularity. In the end, inverters can also be located on 
+camera boards, then you plug-in a different camera and, if your 
+inverter-flags were in host platform data, it doesn't work again.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
