@@ -1,13 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Message-ID: <13858.62.70.2.252.1227797591.squirrel@webmail.xs4all.nl>
-Date: Thu, 27 Nov 2008 15:53:11 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
+Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAAJerng019628
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 14:40:53 -0500
+Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
+	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id mAAJecwL007980
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 14:40:38 -0500
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <Pine.LNX.4.64.0811101323490.4248@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Mon, 10 Nov 2008 20:39:36 +0100
+In-Reply-To: <Pine.LNX.4.64.0811101323490.4248@axis700.grange> (Guennadi
+	Liakhovetski's message of "Mon\,
+	10 Nov 2008 13\:36\:38 +0100 \(CET\)")
+Message-ID: <87fxlz8j5z.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, mchehab@redhat.com
-Subject: Re: [PATCH 2/2] v4l2: Add camera privacy control.
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 0/5] pixel format handling in camera host drivers - part
+	2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -19,56 +29,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Hi Hans,
->
-> On Wednesday 26 November 2008, Hans Verkuil wrote:
->> On Wednesday 26 November 2008 01:05:02 Laurent Pinchart wrote:
->> > On Tuesday 04 November 2008, Hans Verkuil wrote:
->
-> [snip]
->
->> > Regarding v4l2_ctrl_query_fill_std(), the UVC specification doesn't
->> > specify boundaries for most controls so I can't fill the required
->> > values.
->>
->> How is that handled in practice? If you have an integer control without
->> min-max values, then how can you present that to the user in a control
->> panel?
->
-> UVC-compliant devices can be queried for their boundaries at runtime.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Ah, now I understand. Just fill in 0 to 255 as the default min/max values.
-They'll be overridden in any case for UVC.
+> These patches should finish the necessary preparations for the pxa-camera 
+> driver to finally correctly present its planar YUV format and to be able 
+> to select camera formats, it actually can support, and perform further 
+> format conversions as they emerge.
 
->> A simple 0-15 control can be represented by e.g. a slider, but
->> not a 0-INT_MAX control.
->
-> Btw, speaking of sliders, I believe the V4L2_CTRL_FLAG_SLIDER was a
-> mistake in
-> the first place.
+Hi Guennadi,
 
-Why? When I made the qv4l2 control panel it was the one thing that was
-missing. Usually it is pretty obvious what type of control is best
-represented as a slider (volume, brightness, hue, etc) and if you are not
-sure, then you can leave it out. It prevents applications from having to
-keep a hardcoded list of controls that should be shown as a slider instead
-of a numeric input field.
+Would you tell me against what tree you're based (a git URL would be wonderful)
+?  Because I got rejects, having not the ov7272.c file in my git tree
+(mainline), which would mean you're ahead and I'm late ...
 
-Regards,
+Cheers.
 
-        Hans
-
->> If the min/max are completely unknown, then you can always fill in the
->> INT_MIN and INT_MAX values.
->
-> They are not completely unknown, they just have no fixed value at compile
-> time.
->
-> Best regards,
->
-> Laurent Pinchart
->
-
+--
+Robert
 
 --
 video4linux-list mailing list
