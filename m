@@ -1,20 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from djamil.net ([88.177.154.16] helo=route.djamil.net)
+Received: from nschwmtas01p.mx.bigpond.com ([61.9.189.137])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <djamil@djamil.net>) id 1Kyl6w-0006k7-OX
-	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 11:32:11 +0100
-Received: from [192.168.1.10] (toptop.djamil.net [192.168.1.10])
-	by route.djamil.net (Postfix) with ESMTP id A24AE14240
-	for <linux-dvb@linuxtv.org>; Sat,  8 Nov 2008 11:31:15 +0100 (CET)
-From: djamil <djamil@djamil.net>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1226135171.7882.2.camel@toptop>
-References: <49150AF1.5060601@rongage.org>  <1226135032.7882.1.camel@toptop>
-	<1226135171.7882.2.camel@toptop>
-Date: Sat, 08 Nov 2008 11:31:36 +0100
-Message-Id: <1226140296.7671.1.camel@toptop>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] HVR 1400
+	(envelope-from <jhhummel@bigpond.com>) id 1KzKyf-0000OH-Iz
+	for linux-dvb@linuxtv.org; Mon, 10 Nov 2008 01:50:02 +0100
+Received: from nschwotgx01p.mx.bigpond.com ([58.173.115.237])
+	by nschwmtas01p.mx.bigpond.com with ESMTP id
+	<20081110004918.YEIH23566.nschwmtas01p.mx.bigpond.com@nschwotgx01p.mx.bigpond.com>
+	for <linux-dvb@linuxtv.org>; Mon, 10 Nov 2008 00:49:18 +0000
+Received: from harriet.localdomain ([58.173.115.237])
+	by nschwotgx01p.mx.bigpond.com with ESMTP id
+	<20081110004917.RJXO15831.nschwotgx01p.mx.bigpond.com@harriet.localdomain>
+	for <linux-dvb@linuxtv.org>; Mon, 10 Nov 2008 00:49:17 +0000
+From: Jonathan <jhhummel@bigpond.com>
+To: linux-dvb@linuxtv.org
+Date: Mon, 10 Nov 2008 11:49:17 +1100
+References: <200811091437.13920.plr.vincent@gmail.com>
+In-Reply-To: <200811091437.13920.plr.vincent@gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200811101149.17244.jhhummel@bigpond.com>
+Subject: Re: [linux-dvb] [PATCH] WinFast DTV2000 H: add support for missing
+	analog inputs
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,127 +28,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0812078874=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+THAT'S GREAT VINCENT!!!!
 
---===============0812078874==
-Content-Type: multipart/alternative; boundary="=-hNoVjqgvLnCVpHzoMpvo"
+Just out of interest, does anyone know how long it takes these to flow through 
+to distributions such as Ubuntu?
 
+Thanks
 
---=-hNoVjqgvLnCVpHzoMpvo
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Jon
 
-Hello
-
-I have just installed the CVS version, modinfo talks about a video DEV
-but no /dev/video are created
-Can you help ?
-
-
-regards
-
-
-
-Le samedi 08 novembre 2008 =E0 10:06 +0100, djamil a =E9crit :
-
-> sorry for the pollution
->=20
-> I thaught seeing it in the sources ...
->=20
-> Regards
->=20
->=20
->=20
-> Le samedi 08 novembre 2008 =E0 10:03 +0100, djamil a =E9crit :
->=20
-> > Hello gentlemen=20
-> >=20
-> > I still cant use svideo / composite with WinTv hvr1400 ?
-> >=20
-> > best regards=20
-> >=20
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->=20
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
---=-hNoVjqgvLnCVpHzoMpvo
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
-<HTML>
-<HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/3.24.1">
-</HEAD>
-<BODY>
-Hello<BR>
-<BR>
-I have just installed the CVS version, modinfo talks about a video DEV but no /dev/video are created<BR>
-Can you help ?<BR>
-<BR>
-<BR>
-regards<BR>
-<BR>
-<BR>
-<BR>
-Le samedi 08 novembre 2008 &#224; 10:06 +0100, djamil a &#233;crit :<BR>
-<BLOCKQUOTE TYPE=CITE>
-    sorry for the pollution<BR>
-    <BR>
-    I thaught seeing it in the sources ...<BR>
-    <BR>
-    Regards<BR>
-    <BR>
-    <BR>
-    <BR>
-    Le samedi 08 novembre 2008 &#224; 10:03 +0100, djamil a &#233;crit :<BR>
-    <BLOCKQUOTE TYPE=CITE>
-        Hello gentlemen <BR>
-        <BR>
-        I still cant use svideo / composite with WinTv hvr1400 ?<BR>
-        <BR>
-        best regards 
-<PRE>
-_______________________________________________
-linux-dvb mailing list
-<A HREF="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A>
-<A HREF="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</A>
-</PRE>
-    </BLOCKQUOTE>
-<PRE>
-_______________________________________________
-linux-dvb mailing list
-<A HREF="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A>
-<A HREF="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</A>
-</PRE>
-</BLOCKQUOTE>
-</BODY>
-</HTML>
-
---=-hNoVjqgvLnCVpHzoMpvo--
+On Mon, 10 Nov 2008 12:37:13 am Vincent Pelletier wrote:
+> WinFast DTV2000 H: add support for missing analog inputs
+>
+> From: Vincent Pelletier <plr.vincent@gmail.com>
+>
+> Add support for the following inputs:
+>  - radio tuner
+>  - composite 1 & 2 (only 1 is physically available, but composite 2 is also
+>    advertised by windows driver)
+>  - svideo
+>
+> Signed-off-by: Vincent Pelletier <plr.vincent@gmail.com>
+>
+> ---
+>
+> GPIO values retrieved using RegSpy under Windows XP with vendor's driver &
+> software.
 
 
-
---===============0812078874==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0812078874==--
