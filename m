@@ -1,25 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mASIYZNH032512
-	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 13:34:35 -0500
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mASIYOuj013023
-	for <video4linux-list@redhat.com>; Fri, 28 Nov 2008 13:34:24 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: David Brownell <david-b@pacbell.net>
-Date: Sat, 29 Nov 2008 00:04:10 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403E904ECE1@dbde02.ent.ti.com>
-In-Reply-To: <200811280833.30868.david-b@pacbell.net>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAA9UvT2012081
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 04:30:57 -0500
+Received: from redneck.websupport.sk (redneck.websupport.sk [82.119.226.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAA9UiRr015192
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 04:30:44 -0500
+Received: from redneck.websupport.sk (localhost [127.0.0.1])
+	by clamsmtp.websupport.sk (Postfix) with ESMTP id 39F451C04C206
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 10:30:44 +0100 (CET)
+Received: from [192.168.1.52] (static-dsl-170.87-197-103.telecom.sk
+	[87.197.103.170]) (Authenticated sender: peter.v@datagate.sk)
+	by redneck.websupport.sk (Postfix) with ESMTPA id 0DED41C04C202
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 10:30:44 +0100 (CET)
+Message-ID: <4917FF40.6080500@datagate.sk>
+Date: Mon, 10 Nov 2008 10:30:40 +0100
+From: =?UTF-8?B?UGV0ZXIgVsOhZ25lcg==?= <peter.v@datagate.sk>
 MIME-Version: 1.0
+To: video4linux-list@redhat.com
+References: <patchbomb.1226272760@roadrunner.athome>
+In-Reply-To: <patchbomb.1226272760@roadrunner.athome>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"davinci-linux-open-source-bounces@linux.davincidsp.com"
-	<davinci-linux-open-source-bounces@linux.davincidsp.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: RE: [PATCH 2/2] TVP514x Driver with Review comments fixed
+Subject: Re: [PATCH 0 of 2] cx88: add optional stereo detection to PAL-BG
+ mode	with A2 sound system
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,62 +34,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hello,
 
+On 10.11.2008 0:19, Marton Balint wrote:
+> This patchset adds support for optional stereo detection for PAL-BG mode. This
+> is a slightly modified version of the original patch I sent to this list
+> earlier this year.  The first patch disables the audio thread in cx88, and the
+> second implements stereo detection.
+>
+> The audio thread in the cx88 code is totally useless, because cx88_get_stereo
+> is not implemented correctly. Because of this, the audio thread occaisonally
+> sets the audio to MONO after starting a TV application, and unfortuantely this
+> may happen after the stereo detection.
+>
+> Stereo detection is optional, and is not enabled by default, because it is not
+> always reliable, the actual results may depend on your TV application and your
+> provider. It works 100% for me using tvtime, and another guy reported success
+> earlier, as a result of my original posting.
+>
+I am the one who has tried original Marton's patches this year.
+After applying I was able to get stereo working with Aver TV Studio 303 
+using mplayer / mencoder. When there were multiple audio streams 
+broadcasted I was getting them in the respective channels I.E. I had no 
+mono sound.
+I am using this setup for recording only so actually this is great for 
+me as I can do multidub rips when available.
 
-Thanks,
-Vaibhav Hiremath
+Do you recommend to update to latest V4L and apply new patches?
 
-> -----Original Message-----
-> From: David Brownell [mailto:david-b@pacbell.net]
-> Sent: Friday, November 28, 2008 10:04 PM
-> To: Hiremath, Vaibhav
-> Cc: video4linux-list@redhat.com; davinci-linux-open-source-
-> bounces@linux.davincidsp.com; linux-omap@vger.kernel.org; Jadav,
-> Brijesh R; Shah, Hardik; Hadli, Manjunath; R, Sivaraj; Karicheri,
-> Muralidharan
-> Subject: Re: [PATCH 2/2] TVP514x Driver with Review comments fixed
-> 
-> On Friday 28 November 2008, hvaibhav@ti.com wrote:
-> > +/*
-> > + * Supported standards - These must be ordered according to enum
-> tvp514x_std
-> > + * order.
-> 
-> In this case it'd be easy to remove that restriction...
-> 
-> 
-[Hiremath, Vaibhav] Very true, I never thought this of while implementing. I will change this in next patch.
+Regards
 
-> > + * Currently supports two standards only, need to add support for
-> rest of the
-> > + * modes, like SECAM, etc...
-> > + */
-> > +static struct tvp514x_std_info tvp514x_std_list[] = {
-> > +       {
-> 
-> 	[STD_NTSC_MJ] = {
-> 
-> > +        .width = NTSC_NUM_ACTIVE_PIXELS,
-> > +        .height = NTSC_NUM_ACTIVE_LINES,
-> > +        .video_std = VIDEO_STD_NTSC_MJ_BIT,
-> > +        .standard = {
-> > +                     .index = 0,
-> > +                     .id = V4L2_STD_NTSC,
-> > +                     .name = "NTSC",
-> > +                     .frameperiod = {1001, 30000},
-> > +                     .framelines = 525
-> > +                    },
-> > +       }, {
-> 
-> 	[STD_PAL_BDGHIN] = { ...
-> 
-> ... for clarity.  Though it's more conventional to have
-> the "undefined" value be zero, and thus what kzalloc or
-> static initialization provides, than have NTSC be zero.  :)
-> 
-> 
-> 
-
+Peter VÃ¡gner
 
 --
 video4linux-list mailing list
