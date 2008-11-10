@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1KybWp-0007xz-0j
-	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 01:18:16 +0100
-Received: from [91.149.190.211] (account liplianin@tut.by HELO
-	useri.liplianin.net)
-	by speedy.tutby.com (CommuniGate Pro SMTP 5.1.12)
-	with ESMTPA id 89947847 for linux-dvb@linuxtv.org;
-	Sat, 08 Nov 2008 02:18:02 +0200
-Resent-Message-ID: <200811080216.13083.liplianin@tut.by>
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org
-Date: Sat, 8 Nov 2008 02:17:57 +0200
-References: <4914C482.8010306@helmutauer.de>
-In-Reply-To: <4914C482.8010306@helmutauer.de>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200811080211.31414.liplianin@tut.by>
-Subject: Re: [linux-dvb] tbs 8920 / cx24116 not working
+Received: from bombadil.infradead.org ([18.85.46.34])
+	by www.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<SRS0+0e7636a4d0cb1b228670+1905+infradead.org+mchehab@bombadil.srs.infradead.org>)
+	id 1KzeLE-0007Jh-0j
+	for linux-dvb@linuxtv.org; Mon, 10 Nov 2008 22:30:36 +0100
+Date: Mon, 10 Nov 2008 18:16:43 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Igor M. Liplianin" <liplianin@tut.by>
+Message-ID: <20081110181643.55f49a5a@pedra.chehab.org>
+In-Reply-To: <200811091726.25428.liplianin@tut.by>
+References: <200811091726.25428.liplianin@tut.by>
+Mime-Version: 1.0
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH 3/3] cx88-dvb: Add new cards.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,79 +20,36 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gOCDOz9HC0tEgMjAwOCwgbGludXgtZHZiQGxpbnV4dHYub3JnIHdyb3RlOgo+IEhlbGxvIExp
-c3QsCj4KPiBJIGp1c3QgdHJpZWQgdG8gZ2V0IG15IHRicyA4OTIwIHJ1bm5pbmcgd2l0aCBjdXJy
-ZW50IFMyQVBJIGFuZCBWRFIgYW5kCj4gYWxzbyB3aXRoIHRoZSBtdWx0aXByb3RvIGRyaXZlcnMg
-YW5kIGEgcGF0Y2ggZm9yIHRoaXMgY2FyZC4KPiBCb3RoIHZlcnNpb25zIGFyZSBmYWlsaW5nLCB3
-aXRoIHRoaXMgZXJyb3I6Cj4KPiBOb3YgIDcgMjM6Mzk6MjYgW2tlcm5lbF0gTE5CIFZvbHRhZ2Ug
-U0VDX1ZPTFRBR0VfMTgKPiBOb3YgIDcgMjM6Mzk6MjYgW3Zkcl0gWzIzMTM4XSBFUlJPUiAoZHZi
-ZGV2aWNlLmMsMjgyKTogRGllIE9wZXJhdGlvbgo+IHdpcmQgbmljaHQgdW50ZXJzdPx0enQKPiBO
-b3YgIDcgMjM6Mzk6MzUgW3Zkcl0gWzIzMTM4XSBmcm9udGVuZCAwIHRpbWVkIG91dCB3aGlsZSB0
-dW5pbmcgdG8KPiBjaGFubmVsIDMsIHRwIDExMjE4Nwo+IE5vdiAgNyAyMzozOTozNSBbdmRyXSBb
-MjMxMzhdIEVSUk9SIChkdmJkZXZpY2UuYywyODIpOiBEaWUgT3BlcmF0aW9uCj4gd2lyZCBuaWNo
-dCB1bnRlcnN0/HR6dAo+IE5vdiAgNyAyMzozOTozNSBba2VybmVsXSBMTkIgVm9sdGFnZSBTRUNf
-Vk9MVEFHRV8xOAo+IE5vdiAgNyAyMzozOTo0NCBbdmRyXSBbMjMxMzhdIEVSUk9SIChkdmJkZXZp
-Y2UuYywyODIpOiBEaWUgT3BlcmF0aW9uCj4gd2lyZCBuaWNodCB1bnRlcnN0/HR6dAo+IE5vdiAg
-NyAyMzozOTo0NCBba2VybmVsXSBMTkIgVm9sdGFnZSBTRUNfVk9MVEFHRV8xOAo+Cj4gZG1lc2cg
-c2hvd3M6Cj4KPiBMTkIgVm9sdGFnZSBTRUNfVk9MVEFHRV9vZmYKPiBBQ1BJOiBQQ0kgaW50ZXJy
-dXB0IGZvciBkZXZpY2UgMDAwMDowMTowOS4wIGRpc2FibGVkCj4gY3g4OC8yOiB1bnJlZ2lzdGVy
-aW5nIGN4ODgwMiBkcml2ZXIsIHR5cGU6IGR2YiBhY2Nlc3M6IHNoYXJlZAo+IGN4ODhbMF0vMjog
-c3Vic3lzdGVtOiA4OTIwOjg4ODgsIGJvYXJkOiBUQlMgODkyMCBEVkItUy9TMiBbY2FyZD03MV0K
-PiBBQ1BJOiBQQ0kgaW50ZXJydXB0IGZvciBkZXZpY2UgMDAwMDowMTowOS4yIGRpc2FibGVkCj4g
-TGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAwCj4gY3g4OC8wOiBjeDIzODh4IHY0
-bDIgZHJpdmVyIHZlcnNpb24gMC4wLjYgbG9hZGVkCj4gQUNQSTogUENJIEludGVycnVwdCAwMDAw
-OjAxOjA5LjBbQV0gLT4gTGluayBbTE5LQ10gLT4gR1NJIDExIChsZXZlbCwKPiBsb3cpIC0+IElS
-USAxMQo+IGN4ODhbMF06IHN1YnN5c3RlbTogODkyMDo4ODg4LCBib2FyZDogVEJTIDg5MjAgRFZC
-LVMvUzIKPiBbY2FyZD03MixhdXRvZGV0ZWN0ZWRdLCBmcm9udGVuZChzKTogMQo+IGN4ODhbMF06
-IFRWIHR1bmVyIHR5cGUgNCwgUmFkaW8gdHVuZXIgdHlwZSAtMQo+IGN4ODhbMF0vMDogZm91bmQg
-YXQgMDAwMDowMTowOS4wLCByZXY6IDUsIGlycTogMTEsIGxhdGVuY3k6IDE2NSwgbW1pbzoKPiAw
-eGZjMDAwMDAwCj4gY3g4OFswXS8wOiByZWdpc3RlcmVkIGRldmljZSB2aWRlbzAgW3Y0bDJdCj4g
-Y3g4OFswXS8wOiByZWdpc3RlcmVkIGRldmljZSB2YmkwCj4gY3g4OC8yOiBjeDIzODh4IE1QRUct
-VFMgRHJpdmVyIE1hbmFnZXIgdmVyc2lvbiAwLjAuNiBsb2FkZWQKPiBjeDg4WzBdLzI6IGN4MjM4
-OHggODgwMiBEcml2ZXIgTWFuYWdlcgo+IEFDUEk6IFBDSSBJbnRlcnJ1cHQgMDAwMDowMTowOS4y
-W0FdIC0+IExpbmsgW0xOS0NdIC0+IEdTSSAxMSAobGV2ZWwsCj4gbG93KSAtPiBJUlEgMTEKPiBj
-eDg4WzBdLzI6IGZvdW5kIGF0IDAwMDA6MDE6MDkuMiwgcmV2OiA1LCBpcnE6IDExLCBsYXRlbmN5
-OiA2NCwgbW1pbzoKPiAweGZkMDAwMDAwCj4gY3g4ODAyX3Byb2JlKCkgYWxsb2NhdGluZyAxIGZy
-b250ZW5kKHMpCj4gY3g4OC8yOiBjeDIzODh4IGR2YiBkcml2ZXIgdmVyc2lvbiAwLjAuNiBsb2Fk
-ZWQKPiBjeDg4LzI6IHJlZ2lzdGVyaW5nIGN4ODgwMiBkcml2ZXIsIHR5cGU6IGR2YiBhY2Nlc3M6
-IHNoYXJlZAo+IGN4ODhbMF0vMjogc3Vic3lzdGVtOiA4OTIwOjg4ODgsIGJvYXJkOiBUQlMgODky
-MCBEVkItUy9TMiBbY2FyZD03Ml0KPiBjeDg4WzBdLzI6IGN4MjM4OHggYmFzZWQgRFZCL0FUU0Mg
-Y2FyZAo+IERWQjogcmVnaXN0ZXJpbmcgbmV3IGFkYXB0ZXIgKGN4ODhbMF0pCj4gRFZCOiByZWdp
-c3RlcmluZyBhZGFwdGVyIDAgZnJvbnRlbmQgMCAoQ29uZXhhbnQgQ1gyNDExNi9DWDI0MTE4KS4u
-Lgo+IGN4MjQxMTZfZmlybXdhcmVfb25kZW1hbmQ6IFdhaXRpbmcgZm9yIGZpcm13YXJlIHVwbG9h
-ZAo+IChkdmItZmUtY3gyNDExNi5mdykuLi4KPiBjeDI0MTE2X2Zpcm13YXJlX29uZGVtYW5kOiBX
-YWl0aW5nIGZvciBmaXJtd2FyZSB1cGxvYWQoMikuLi4KPiBjeDI0MTE2X2xvYWRfZmlybXdhcmU6
-IEZXIHZlcnNpb24gMS4yMi44Mi4wCj4gY3gyNDExNl9maXJtd2FyZV9vbmRlbWFuZDogRmlybXdh
-cmUgdXBsb2FkIGNvbXBsZXRlCj4gTE5CIFZvbHRhZ2UgU0VDX1ZPTFRBR0VfMTMKPiBMTkIgVm9s
-dGFnZSBTRUNfVk9MVEFHRV8xOAo+Cj4gSSBhbHNvIHRlc3RlZCB0aGlzIHBhdGNoOgo+IGh0dHA6
-Ly9oZy5rZXdsLm9yZy92NGwtZHZiL3Jhdy1yZXYvOGQ2ZDg5NzRiMzNkCj4KPiBidXQgd2l0aG91
-dCBhbnkgY2hhbmdlLgo+Cj4gQW55IGhpbnRzIHdoYXRzIGdvaW5nIHdyb25nIGhlcmUgPwoKIFF1
-aWNrIHdvcmthcm91bmQ6IGN4MjQxMTYuYzoKCnN0YXRpYyBpbnQgY3gyNDExNl9zZXRfdm9sdGFn
-ZShzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSwKICAgICAgICBmZV9zZWNfdm9sdGFnZV90IHZvbHRh
-Z2UpCnsKICAgICAgICAvKiBUaGUgaXNsNjQyMSBtb2R1bGUgd2lsbCBvdmVycmlkZSB0aGlzIGZ1
-bmN0aW9uIGluIHRoZSBmb3BzLiAqLwogICAgICAgIGRwcmludGsoIiVzKCkgVGhpcyBzaG91bGQg
-bmV2ZXIgYXBwZWFyIGlmIHRoZSBpc2w2NDIxIG1vZHVsZSAiCiAgICAgICAgICAgICAgICAiaXMg
-bG9hZGVkIGNvcnJlY3RseVxuIiwgX19mdW5jX18pOwoKLSAgICAgICAgcmV0dXJuIC1FT1BOT1RT
-VVBQOworICAgICAgICByZXR1cm4gMDsKCn0KCk9yIG90aGVyIHdheTogY3g4OC1kdmI6CgogICAg
-ICAgIGNhc2UgQ1g4OF9CT0FSRF9UQlNfODkyMDoKICAgICAgICBjYXNlIENYODhfQk9BUkRfUFJP
-Rl83MzAwOgogICAgICAgICAgICAgICAgZmUwLT5kdmIuZnJvbnRlbmQgPSBkdmJfYXR0YWNoKGN4
-MjQxMTZfYXR0YWNoLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICZoYXVwcGF1Z2VfaHZyNDAwMF9jb25maWcsCiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgJmNvcmUtPmkyY19hZGFwKTsKICAgICAgICAgICAgICAgIGlm
-IChmZTAtPmR2Yi5mcm9udGVuZCAhPSBOVUxMKSB7Ci0gICAgICAgICAgICAgICAgICAgICAgICBj
-b3JlLT5wcmV2X3NldF92b2x0YWdlID0gZmUwLT5kdmIuZnJvbnRlbmQtPm9wcy5zZXRfdm9sdGFn
-ZTsKKyAgICAgICAgICAgICAgICAgICAgICAgIC8vY29yZS0+cHJldl9zZXRfdm9sdGFnZSA9IGZl
-MC0+ZHZiLmZyb250ZW5kLT5vcHMuc2V0X3ZvbHRhZ2U7CiAgICAgICAgICAgICAgICAgICAgICAg
-IGZlMC0+ZHZiLmZyb250ZW5kLT5vcHMuc2V0X3ZvbHRhZ2UgPSB0ZXZpaV9kdmJzX3NldF92b2x0
-YWdlOwogICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgYnJlYWs7CgoKLS0gCklnb3Ig
-TS4gTGlwbGlhbmluCk1pY3Jvc29mdCBXaW5kb3dzIEZyZWUgWm9uZSAtIExpbnV4IHVzZWQgZm9y
-IGFsbCBDb21wdXRpbmcgVGFza3MKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3Jn
-Cmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2
-Yg==
+On Sun, 9 Nov 2008 17:26:25 +0200
+"Igor M. Liplianin" <liplianin@tut.by> wrote:
+
+> Add support for Prof 6200 DVB-S PCI card
+> 
+> From: Igor M. Liplianin <liplianin@me.by>
+> 
+> Add support for Prof 6200 DVB-S PCI card
+> The card based on stv0299 or stv0288 demodulators.
+> 
+> Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+
+
+Ok, I've applied the 3 patches. Please, prefer to send the patch as inline,
+since this makes easier for people to review and comment. Also, on your patch,
+you have the same comment as on the body of the email. This may cause troubles,
+since the commit script may try to merge both comments and SOB's.
+
+
+
+Cheers,
+Mauro
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
