@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADKXp4t011241
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 15:33:51 -0500
-Received: from proxy3.bredband.net (proxy3.bredband.net [195.54.101.73])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mADKWasD015477
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 15:32:36 -0500
-Received: from ironport2.bredband.com (195.54.101.122) by proxy3.bredband.net
-	(7.3.127) id 48DC49FD00EEC9C5 for video4linux-list@redhat.com;
-	Thu, 13 Nov 2008 21:32:35 +0100
-Message-ID: <491C8EE1.5050203@home.se>
-Date: Thu, 13 Nov 2008 21:32:33 +0100
-From: Andreas Lunderhage <lunderhage@home.se>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAACbRZK028192
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 07:37:27 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAACabkj012092
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 07:36:37 -0500
+Date: Mon, 10 Nov 2008 13:36:48 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: video4linux-list@redhat.com
+In-Reply-To: <Pine.LNX.4.64.0811101323490.4248@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0811101332310.4248@axis700.grange>
+References: <Pine.LNX.4.64.0811101323490.4248@axis700.grange>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Sel=E1f_Szabolcs?= <selu88@gmail.com>
-References: <491726CF.4050008@home.se>
-	<da493cc0811110526k49afdebtf278c9255de4791d@mail.gmail.com>
-In-Reply-To: <da493cc0811110526k49afdebtf278c9255de4791d@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Failing to build em28xx-new
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: 
+Subject: [PATCH 2/5] soc-camera: move pixel format handling to host drivers
+ (part 2)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,267 +27,128 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Great!
+Just letting camera host drivers handle the choice of a pixel format in
+.vidioc_s_fmt_vid_cap() is not enough, pixel format enumeration should be
+handled by host drivers too.
 
-Now it was just a matter of make, make install, plugin the receiver and 
-start watching TV. Thanks!
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/pxa_camera.c           |   17 +++++++++++++++++
+ drivers/media/video/sh_mobile_ceu_camera.c |   17 +++++++++++++++++
+ drivers/media/video/soc_camera.c           |   12 +++---------
+ include/media/soc_camera.h                 |    1 +
+ 4 files changed, 38 insertions(+), 9 deletions(-)
 
-But I'm suprised those header files wheren't in the linux-headers 
-package in Ubuntu... Since not many dvb receivers are in the kernel, 
-those headers are needed in linux-headers. Maybe I should file a bug on 
-it...
-
-Regards
-/Andreas
-
-Seláf Szabolcs wrote:
-> Hi,
->
-> I found same issue. To resolve put your kernel source into
-> /lib/modules/`uname -r`/source directory or just create a link like me:
-> ln -sf /lib/modules/2.6.26-1-amd64/source /usr/src/linux-source-2.6.26
->
-> Regards,
-> Selu
->
-> On Sun, Nov 9, 2008 at 7:07 PM, Andreas Lunderhage <lunderhage@home.se>wrote:
->
->   
->> Hi,
->>
->> I fail to build the em28xx-new driver due to missing files.
->>
->> dmxdev.h, dvb_demux.h, dvb_net.h and dvb_frontend.h.
->>
->> Where are these files? I have searched the whole repository of Ubuntu
->> 8.10 and only found them one time in a package that did seem to be too
->> old for use with this code.
->>
->> My question is: How do you build em28xx-new in Ubuntu 8.10?
->>
->> BR
->> /Lunderhage
->>
->> I attach the output of trying to build this module:
->>
->> lunderhage@Lunsectop:~/em28xx-new$ ./build.sh build
->> rm -rf Module.symvers;
->> make -C /lib/modules/`if [ -d /lib/modules/2.6.21.4-eeepc ]; then echo
->> 2.6.21.4-eeepc; else uname -r; fi`/build SUBDIRS=`pwd` modules
->> make[1]: Entering directory `/usr/src/linux-headers-2.6.27-7-generic'
->> CC [M] /home/lunderhage/em28xx-new/em2880-dvb.o
->> In file included from /home/lunderhage/em28xx-new/em2880-dvb.c:33:
->> /home/lunderhage/em28xx-new/em28xx.h:32:20: error: dmxdev.h: No such
->> file or directory
->> /home/lunderhage/em28xx-new/em28xx.h:33:23: error: dvb_demux.h: No such
->> file or directory
->> /home/lunderhage/em28xx-new/em28xx.h:34:21: error: dvb_net.h: No such
->> file or directory
->> /home/lunderhage/em28xx-new/em28xx.h:35:26: error: dvb_frontend.h: No
->> such file or directory
->> In file included from /home/lunderhage/em28xx-new/em2880-dvb.c:33:
->> /home/lunderhage/em28xx-new/em28xx.h:553: error: field 'demux' has
->> incomplete type
->> /home/lunderhage/em28xx-new/em28xx.h:561: error: field 'adapter' has
->> incomplete type
->> /home/lunderhage/em28xx-new/em28xx.h:564: error: field 'dmxdev' has
->> incomplete type
->> /home/lunderhage/em28xx-new/em28xx.h:566: error: field 'dvbnet' has
->> incomplete type
->> In file included from /home/lunderhage/em28xx-new/em2880-dvb.c:40:
->> /home/lunderhage/em28xx-new/mt352/mt352.h: In function 'mt352_write':
->> /home/lunderhage/em28xx-new/mt352/mt352.h:68: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/mt352/mt352.h:69: error: dereferencing
->> pointer to incomplete type
->> In file included from /home/lunderhage/em28xx-new/em2880-dvb.c:42:
->> /home/lunderhage/em28xx-new/drx3973d/drx3973d_demod.h: At top level:
->> /home/lunderhage/em28xx-new/drx3973d/drx3973d_demod.h:9: error: field
->> 'frontend' has incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:48:22: error: lgdt330x.h: No
->> such file or directory
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->> 'em2880_complete_irq':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:256: error: implicit
->> declaration of function 'dvb_dmx_swfilter'
->> /home/lunderhage/em28xx-new/em2880-dvb.c: At top level:
->> /home/lunderhage/em28xx-new/em2880-dvb.c:365: warning: 'struct
->> dvb_demux_feed' declared inside parameter list
->> /home/lunderhage/em28xx-new/em2880-dvb.c:365: warning: its scope is only
->> this definition or declaration, which is probably not what you want
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em2880_start_feed':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:367: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:368: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: At top level:
->> /home/lunderhage/em28xx-new/em2880-dvb.c:382: warning: 'struct
->> dvb_demux_feed' declared inside parameter list
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em2880_stop_feed':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:384: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:385: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em28xx_ts_bus_ctrl':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:411: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->> 'mt352_pinnacle_init':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:462: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: At top level:
->> /home/lunderhage/em28xx-new/em2880-dvb.c:488: error: variable
->> 'em2880_lgdt3303_dev' has initializer but incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:489: error: unknown field
->> 'demod_address' specified in initializer
->> /home/lunderhage/em28xx-new/em2880-dvb.c:489: warning: excess elements
->> in struct initializer
->> /home/lunderhage/em28xx-new/em2880-dvb.c:489: warning: (near
->> initialization for 'em2880_lgdt3303_dev')
->> /home/lunderhage/em28xx-new/em2880-dvb.c:490: error: unknown field
->> 'demod_chip' specified in initializer
->> /home/lunderhage/em28xx-new/em2880-dvb.c:490: error: 'LGDT3303'
->> undeclared here (not in a function)
->> /home/lunderhage/em28xx-new/em2880-dvb.c:491: warning: excess elements
->> in struct initializer
->> /home/lunderhage/em28xx-new/em2880-dvb.c:491: warning: (near
->> initialization for 'em2880_lgdt3303_dev')
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->> 'kworld355u_i2c_gate_ctrl':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:505: error: field 'frontend'
->> has incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:511: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em28xx_set_params':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:525: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:534: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->> 'em28xx_get_frequency':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:652: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->> 'em28xx_get_bandwidth':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:659: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em28xx_dvb_init':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:667: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em28xx_s921_init':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:723: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->> 'em28xx_zl10353_init':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:740: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function
->> 'em28xx_zl10353_sleep':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:785: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em28xx_dvb_sleep':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:797: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em2880_dvb_init':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:866: error: implicit
->> declaration of function 'dvb_attach'
->> /home/lunderhage/em28xx-new/em2880-dvb.c:870: warning: assignment makes
->> pointer from integer without a cast
->> /home/lunderhage/em28xx-new/em2880-dvb.c:889: warning: assignment makes
->> pointer from integer without a cast
->> /home/lunderhage/em28xx-new/em2880-dvb.c:892: warning: assignment makes
->> pointer from integer without a cast
->> /home/lunderhage/em28xx-new/em2880-dvb.c:897: warning: assignment makes
->> pointer from integer without a cast
->> /home/lunderhage/em28xx-new/em2880-dvb.c:903: error: 'lgdt330x_attach'
->> undeclared (first use in this function)
->> /home/lunderhage/em28xx-new/em2880-dvb.c:903: error: (Each undeclared
->> identifier is reported only once
->> /home/lunderhage/em28xx-new/em2880-dvb.c:903: error: for each function
->> it appears in.)
->> /home/lunderhage/em28xx-new/em2880-dvb.c:904: warning: assignment makes
->> pointer from integer without a cast
->> /home/lunderhage/em28xx-new/em2880-dvb.c:913: warning: assignment makes
->> pointer from integer without a cast
->> /home/lunderhage/em28xx-new/em2880-dvb.c:918: warning: assignment makes
->> pointer from integer without a cast
->> /home/lunderhage/em28xx-new/em2880-dvb.c:924: warning: assignment makes
->> pointer from integer without a cast
->> /home/lunderhage/em28xx-new/em2880-dvb.c:927: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:928: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:929: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:950: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:951: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:953: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:955: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:959: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:961: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:970: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:984: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:986: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:987: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1005: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1008: error: implicit
->> declaration of function 'dvb_register_adapter'
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1026: error: implicit
->> declaration of function 'dvb_register_frontend'
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1033: error: 'DMX_TS_FILTERING'
->> undeclared (first use in this function)
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1034: error:
->> 'DMX_SECTION_FILTERING' undeclared (first use in this function)
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1035: error:
->> 'DMX_MEMORY_BASED_FILTERING' undeclared (first use in this function)
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1037: error: implicit
->> declaration of function 'dvb_dmx_init'
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1048: error: implicit
->> declaration of function 'dvb_dmxdev_init'
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1052: error: implicit
->> declaration of function 'dvb_dmxdev_release'
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1063: error: implicit
->> declaration of function 'dvb_net_init'
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1063: error: dereferencing
->> pointer to incomplete type
->> /home/lunderhage/em28xx-new/em2880-dvb.c: In function 'em2880_dvb_fini':
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1083: error: implicit
->> declaration of function 'dvb_net_release'
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1084: error: implicit
->> declaration of function 'dvb_unregister_frontend'
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1085: error: implicit
->> declaration of function 'dvb_frontend_detach'
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1089: error: implicit
->> declaration of function 'dvb_dmx_release'
->> /home/lunderhage/em28xx-new/em2880-dvb.c:1091: error: implicit
->> declaration of function 'dvb_unregister_adapter'
->> make[2]: *** [/home/lunderhage/em28xx-new/em2880-dvb.o] Error 1
->> make[1]: *** [_module_/home/lunderhage/em28xx-new] Error 2
->> make[1]: Leaving directory `/usr/src/linux-headers-2.6.27-7-generic'
->> make: *** [default] Error 2
->> lunderhage@Lunsectop:~/em28xx-new$
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->>     
->
->
->
->   
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 665eef2..f7f621c 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -963,6 +963,22 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+ 	return icd->ops->try_fmt(icd, f);
+ }
+ 
++static int pxa_camera_enum_fmt(struct soc_camera_device *icd,
++			       struct v4l2_fmtdesc *f)
++{
++	const struct soc_camera_data_format *format;
++
++	if (f->index >= icd->num_formats)
++		return -EINVAL;
++
++	format = &icd->formats[f->index];
++
++	strlcpy(f->description, format->name, sizeof(f->description));
++	f->pixelformat = format->fourcc;
++
++	return 0;
++}
++
+ static int pxa_camera_reqbufs(struct soc_camera_file *icf,
+ 			      struct v4l2_requestbuffers *p)
+ {
+@@ -1070,6 +1086,7 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+ 	.resume		= pxa_camera_resume,
+ 	.set_fmt	= pxa_camera_set_fmt,
+ 	.try_fmt	= pxa_camera_try_fmt,
++	.enum_fmt	= pxa_camera_enum_fmt,
+ 	.init_videobuf	= pxa_camera_init_videobuf,
+ 	.reqbufs	= pxa_camera_reqbufs,
+ 	.poll		= pxa_camera_poll,
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 367c4eb..fdfe04f 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -505,6 +505,22 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+ 	return icd->ops->try_fmt(icd, f);
+ }
+ 
++static int sh_mobile_ceu_enum_fmt(struct soc_camera_device *icd,
++				  struct v4l2_fmtdesc *f)
++{
++	const struct soc_camera_data_format *format;
++
++	if (f->index >= icd->num_formats)
++		return -EINVAL;
++
++	format = &icd->formats[f->index];
++
++	strlcpy(f->description, format->name, sizeof(f->description));
++	f->pixelformat = format->fourcc;
++
++	return 0;
++}
++
+ static int sh_mobile_ceu_reqbufs(struct soc_camera_file *icf,
+ 				 struct v4l2_requestbuffers *p)
+ {
+@@ -572,6 +588,7 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
+ 	.remove		= sh_mobile_ceu_remove_device,
+ 	.set_fmt	= sh_mobile_ceu_set_fmt,
+ 	.try_fmt	= sh_mobile_ceu_try_fmt,
++	.enum_fmt	= sh_mobile_ceu_enum_fmt,
+ 	.reqbufs	= sh_mobile_ceu_reqbufs,
+ 	.poll		= sh_mobile_ceu_poll,
+ 	.querycap	= sh_mobile_ceu_querycap,
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 7304e73..f5a1a86 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -355,18 +355,12 @@ static int soc_camera_enum_fmt_vid_cap(struct file *file, void  *priv,
+ {
+ 	struct soc_camera_file *icf = file->private_data;
+ 	struct soc_camera_device *icd = icf->icd;
+-	const struct soc_camera_data_format *format;
++	struct soc_camera_host *ici =
++		to_soc_camera_host(icd->dev.parent);
+ 
+ 	WARN_ON(priv != file->private_data);
+ 
+-	if (f->index >= icd->num_formats)
+-		return -EINVAL;
+-
+-	format = &icd->formats[f->index];
+-
+-	strlcpy(f->description, format->name, sizeof(f->description));
+-	f->pixelformat = format->fourcc;
+-	return 0;
++	return ici->ops->enum_fmt(icd, f);
+ }
+ 
+ static int soc_camera_g_fmt_vid_cap(struct file *file, void *priv,
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 64eb4b5..9c3734c 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -68,6 +68,7 @@ struct soc_camera_host_ops {
+ 	int (*resume)(struct soc_camera_device *);
+ 	int (*set_fmt)(struct soc_camera_device *, __u32, struct v4l2_rect *);
+ 	int (*try_fmt)(struct soc_camera_device *, struct v4l2_format *);
++	int (*enum_fmt)(struct soc_camera_device *, struct v4l2_fmtdesc *);
+ 	void (*init_videobuf)(struct videobuf_queue *,
+ 			      struct soc_camera_device *);
+ 	int (*reqbufs)(struct soc_camera_file *, struct v4l2_requestbuffers *);
+-- 
+1.5.4
 
 --
 video4linux-list mailing list
