@@ -1,19 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAOJT9j2021943
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 14:29:09 -0500
-Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAOJSu1R024779
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 14:28:56 -0500
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: g.liakhovetski@gmx.de
-Date: Mon, 24 Nov 2008 20:28:48 +0100
-Message-Id: <1227554928-25471-2-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1227554928-25471-1-git-send-email-robert.jarzmik@free.fr>
-References: <Pine.LNX.4.64.0811202055210.8290@axis700.grange>
-	<1227554928-25471-1-git-send-email-robert.jarzmik@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mABKGoA0023355
+	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 15:16:50 -0500
+Received: from vms173001pub.verizon.net (vms173001pub.verizon.net
+	[206.46.173.1])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mABKGPl6008847
+	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 15:16:35 -0500
+Received: from [192.168.0.100] ([71.162.94.77]) by vms173001.mailsrvcs.net
+	(Sun Java System Messaging Server 6.2-6.01 (built Apr  3 2006))
+	with ESMTPA id <0KA6007PEQZ765Q7@vms173001.mailsrvcs.net> for
+	video4linux-list@redhat.com; Tue, 11 Nov 2008 14:16:21 -0600 (CST)
+Date: Tue, 11 Nov 2008 15:16:54 -0500
+From: Asher Glaun <asher@glaun.com>
+In-reply-to: <1226366807.2493.28.camel@pc10.localdom.local>
+To: hermann pitton <hermann-pitton@arcor.de>
+Message-id: <1226434614.5955.8.camel@UbuntuAMD>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 8BIT
+References: <20081110214550.M62106@glaun.com>
+	<1226366807.2493.28.camel@pc10.localdom.local>
 Cc: video4linux-list@redhat.com
-Subject: [PATCH 2/2] pxa_camera: use the new translation structure
+Subject: Re: saa7134  Sabrent TVFM. Changes to radio?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,278 +33,138 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-The new translation structure enables to build the format
-list with buswidth, depth, host format and camera format
-checked, so that it's not done anymore on try_fmt nor
-set_fmt.
+SOLVED
+Thanks Hermann, I'm not sure if the tuner is different but changing the
+card works ...
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/video/pxa_camera.c |  170 +++++++++++++++----------------------
- 1 files changed, 69 insertions(+), 101 deletions(-)
+to play TV
+rmmod saa7134_alsa 
+rmmod saa7134
+modprobe saa7134 card=42 tuner=68   (gives me all 100 channels, audio)
 
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index 1bcdb5d..bdea201 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -156,7 +156,7 @@ static int pxa_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
- 		*size += PAGE_ALIGN(icd->width * icd->height / 2); /* V pages */
- 	} else {
- 		*size = icd->width * icd->height *
--			((icd->current_fmt->depth + 7) >> 3);
-+			((icd->current_fmt->host_fmt->depth + 7) >> 3);
- 	}
- 
- 	if (0 == *count)
-@@ -273,11 +273,11 @@ static int pxa_videobuf_prepare(struct videobuf_queue *vq,
- 	 * the actual buffer is yours */
- 	buf->inwork = 1;
- 
--	if (buf->fmt	!= icd->current_fmt ||
-+	if (buf->fmt	!= icd->current_fmt->host_fmt ||
- 	    vb->width	!= icd->width ||
- 	    vb->height	!= icd->height ||
- 	    vb->field	!= field) {
--		buf->fmt	= icd->current_fmt;
-+		buf->fmt	= icd->current_fmt->host_fmt;
- 		vb->width	= icd->width;
- 		vb->height	= icd->height;
- 		vb->field	= field;
-@@ -940,18 +940,44 @@ static bool depth_supported(struct soc_camera_device *icd, int depth)
- 	return false;
- }
- 
-+static int required_buswidth(const struct soc_camera_data_format *fmt)
-+{
-+	switch (fmt->fourcc) {
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_VYUY:
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_YVYU:
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_RGB555:
-+		return 8;
-+	default:
-+		return fmt->depth;
-+	}
-+}
-+
- static int pxa_camera_get_formats(struct soc_camera_device *icd, int idx,
--				  const struct soc_camera_data_format **fmt)
-+				  struct soc_camera_format_xlate *xlate)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
--	struct pxa_camera_dev *pcdev = ici->priv;
--	int formats = 0;
-+	int formats = 0, buswidth, ret;
-+
-+	buswidth = required_buswidth(icd->formats + idx);
-+
-+	if (!depth_supported(icd, buswidth))
-+		return 0;
-+
-+	ret = pxa_camera_try_bus_param(icd, buswidth);
-+	if (ret < 0)
-+		return 0;
- 
- 	switch (icd->formats[idx].fourcc) {
- 	case V4L2_PIX_FMT_UYVY:
- 		formats++;
--		if (fmt && (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
--			*fmt++ = &pxa_camera_formats[0];
-+		if (xlate) {
-+			xlate->host_fmt = &pxa_camera_formats[0];
-+			xlate->cam_fmt = icd->formats + idx;
-+			xlate->buswidth = buswidth;
-+			xlate++;
- 			dev_dbg(&ici->dev, "Providing format %s using %s\n",
- 				pxa_camera_formats[0].name,
- 				icd->formats[idx].name);
-@@ -962,76 +988,57 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, int idx,
- 	case V4L2_PIX_FMT_RGB565:
- 	case V4L2_PIX_FMT_RGB555:
- 		formats++;
--		if (fmt && (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
--			*fmt++ = &icd->formats[idx];
-+		if (xlate) {
-+			xlate->host_fmt = icd->formats + idx;
-+			xlate->cam_fmt = icd->formats + idx;
-+			xlate->buswidth = buswidth;
-+			xlate++;
- 			dev_dbg(&ici->dev, "Providing format %s packed\n",
- 				icd->formats[idx].name);
- 		}
- 		break;
- 	default:
- 		/* Generic pass-through */
--		if (depth_supported(icd, icd->formats[idx].depth)) {
--			formats++;
--			if (fmt) {
--				*fmt++ = &icd->formats[idx];
--				dev_dbg(&ici->dev,
--					"Providing format %s in pass-through mode\n",
--					icd->formats[idx].name);
--			}
-+		formats++;
-+		if (xlate) {
-+			xlate->host_fmt = icd->formats + idx;
-+			xlate->cam_fmt = icd->formats + idx;
-+			xlate->buswidth = icd->formats[idx].depth;
-+			xlate++;
-+			dev_dbg(&ici->dev,
-+				"Providing format %s in pass-through mode\n",
-+				icd->formats[idx].name);
- 		}
- 	}
- 
- 	return formats;
- }
- 
-+
- static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 			      __u32 pixfmt, struct v4l2_rect *rect)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
--	struct pxa_camera_dev *pcdev = ici->priv;
--	const struct soc_camera_data_format *host_fmt = NULL;
-+	const struct soc_camera_data_format *host_fmt, *cam_fmt = NULL;
-+	const struct soc_camera_format_xlate *xlate;
- 	int ret, buswidth;
- 
--	switch (pixfmt) {
--	case V4L2_PIX_FMT_YUV422P:
--		host_fmt = &pxa_camera_formats[0];
--		pixfmt = V4L2_PIX_FMT_UYVY;
--	case V4L2_PIX_FMT_UYVY:
--	case V4L2_PIX_FMT_VYUY:
--	case V4L2_PIX_FMT_YUYV:
--	case V4L2_PIX_FMT_YVYU:
--	case V4L2_PIX_FMT_RGB565:
--	case V4L2_PIX_FMT_RGB555:
--		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
--			dev_warn(&ici->dev,
--				 "8 bit bus unsupported, but required for format %x\n",
--				 pixfmt);
--			return -EINVAL;
--		}
-+	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
-+	if (!xlate) {
-+		dev_warn(&ici->dev, "Format %x not found\n", pixfmt);
-+		return -EINVAL;
-+	}
- 
--		if (!host_fmt)
--			host_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
-+	buswidth = xlate->buswidth;
-+	host_fmt = xlate->host_fmt;
-+	cam_fmt = xlate->cam_fmt;
- 
--		if (!host_fmt) {
--			dev_warn(&ici->dev, "Format %x not found\n", pixfmt);
--			return -EINVAL;
--		}
--		buswidth = 8;
-+	switch (pixfmt) {
- 	case 0:				/* Only geometry change */
- 		ret = icd->ops->set_fmt(icd, pixfmt, rect);
- 		break;
- 	default:
--		/* Generic pass-through */
--		host_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
--		if (!host_fmt || !depth_supported(icd, host_fmt->depth)) {
--			dev_warn(&ici->dev,
--				 "Format %x unsupported in pass-through mode\n",
--				 pixfmt);
--			return -EINVAL;
--		}
--
--		buswidth = host_fmt->depth;
--		ret = icd->ops->set_fmt(icd, pixfmt, rect);
-+		ret = icd->ops->set_fmt(icd, cam_fmt->fourcc, rect);
- 	}
- 
- 	if (ret < 0)
-@@ -1040,7 +1047,7 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 
- 	if (pixfmt && !ret) {
- 		icd->buswidth = buswidth;
--		icd->current_fmt = host_fmt;
-+		icd->current_fmt = xlate;
- 	}
- 
- 	return ret;
-@@ -1050,54 +1057,14 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
- 			      struct v4l2_format *f)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
--	struct pxa_camera_dev *pcdev = ici->priv;
--	const struct soc_camera_data_format *cam_fmt;
-+	const struct soc_camera_format_xlate *xlate;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	__u32 pixfmt = pix->pixelformat;
--	unsigned char buswidth;
--	int ret;
--
--	switch (pixfmt) {
--	case V4L2_PIX_FMT_YUV422P:
--		pixfmt = V4L2_PIX_FMT_UYVY;
--	case V4L2_PIX_FMT_UYVY:
--	case V4L2_PIX_FMT_VYUY:
--	case V4L2_PIX_FMT_YUYV:
--	case V4L2_PIX_FMT_YVYU:
--	case V4L2_PIX_FMT_RGB565:
--	case V4L2_PIX_FMT_RGB555:
--		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
--			dev_warn(&ici->dev,
--				 "try-fmt: 8 bit bus unsupported for format %x\n",
--				 pixfmt);
--			return -EINVAL;
--		}
- 
--		cam_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
--		if (!cam_fmt) {
--			dev_warn(&ici->dev, "try-fmt: format %x not found\n",
--				 pixfmt);
--			return -EINVAL;
--		}
--		buswidth = 8;
--		break;
--	default:
--		/* Generic pass-through */
--		cam_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
--		if (!cam_fmt || !depth_supported(icd, cam_fmt->depth)) {
--			dev_warn(&ici->dev,
--				 "try-fmt: Format %x unsupported in pass-through\n",
--				 pixfmt);
--			return -EINVAL;
--		}
--		buswidth = cam_fmt->depth;
--	}
--
--	ret = pxa_camera_try_bus_param(icd, buswidth);
--
--	if (ret < 0) {
--		dev_warn(&ici->dev, "Incompatible bus parameters!\n");
--		return ret;
-+	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
-+	if (!xlate) {
-+		dev_warn(&ici->dev, "Format %x not found\n", pixfmt);
-+		return -EINVAL;
- 	}
- 
- 	/* limit to pxa hardware capabilities */
-@@ -1111,7 +1078,8 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
- 		pix->width = 2048;
- 	pix->width &= ~0x01;
- 
--	pix->bytesperline = pix->width * DIV_ROUND_UP(cam_fmt->depth, 8);
-+	pix->bytesperline = pix->width *
-+		DIV_ROUND_UP(xlate->host_fmt->depth, 8);
- 	pix->sizeimage = pix->height * pix->bytesperline;
- 
- 	/* limit to sensor capabilities */
--- 
-1.5.6.5
+to play radio
+rmmod saa7134_alsa 
+rmmod saa7134
+modprobe saa7134 card=67 radio_nr=0   (radio works beatifully
+through /dev/radio0)
+
+I've created 2 launchers on my gnome desktop which run the commands
+above and then launch 'radio' or 'tvtime' depending on what I want. 
+
+I works, I'm happy.
+
+Asher.
+
+
+
+
+
+
+On Tue, 2008-11-11 at 02:26 +0100, hermann pitton wrote:
+> Hi Asher,
+> 
+> Am Montag, den 10.11.2008, 17:45 -0400 schrieb Asher Glaun:
+> > Everything but radio works, i.e. all inputs, TV tuner, audio etc. Command line
+> > client “radio” and “gnomeradio” both show signal strength and audio is FM
+> > static hiss so I’m sure I’m receiving a signal but cannot tune the card.
+> > Changing the frequency in the clients does nothing.
+> > 
+> > I load modprobe saa7134 card=42 tuner=68 radio_nr=0. This creates /dev/radio0
+> > which is where I point “radio” and “gnomeradio”.  Wrote a script to cycle
+> > through all the tuners, still the same static. Dual boot machine and radio
+> > works flawlessly in MS Vista.
+> > 
+> > I contacted to Michael Rodríguez-Torrent, an original developer of
+> > saa7134-cards.c and he says that the radio was the first thing he got working
+> > and that since everything else works he might suspect some changes that are
+> > causing problems.  He writes ..
+> > 
+> > “Your best shot might be a post to the mailing list asking what could have
+> > changed with regards to the handling of radios in the module and how the board
+> > definition can be updated to reflect that.”
+> 
+> you most likely have a different tuner on the board.
+> 
+> On old tin can tuners are only five known different tuner APIs to get
+> them into radio mode.
+> 
+> >From tuner-simple.c.
+> 
+> static int simple_radio_bandswitch(struct dvb_frontend *fe, u8 *buffer)
+> {
+> 	struct tuner_simple_priv *priv = fe->tuner_priv;
+> 
+> 	switch (priv->type) {
+> 	case TUNER_TENA_9533_DI:
+> 	case TUNER_YMEC_TVF_5533MF:
+> 		tuner_dbg("This tuner doesn't have FM. "
+> 			  "Most cards have a TEA5767 for FM\n");
+> 		return 0;
+> 	case TUNER_PHILIPS_FM1216ME_MK3:
+> 	case TUNER_PHILIPS_FM1236_MK3:
+> 	case TUNER_PHILIPS_FMD1216ME_MK3:
+> 	case TUNER_PHILIPS_FMD1216MEX_MK3:
+> 	case TUNER_LG_NTSC_TAPE:
+> 	case TUNER_PHILIPS_FM1256_IH3:
+> 	case TUNER_TCL_MF02GIP_5N:
+> 		buffer[3] = 0x19;
+> 		break;
+> 	case TUNER_TNF_5335MF:
+> 		buffer[3] = 0x11;
+> 		break;
+> 	case TUNER_LG_PAL_FM:
+> 		buffer[3] = 0xa5;
+> 		break;
+> 	case TUNER_THOMSON_DTT761X:
+> 		buffer[3] = 0x39;
+> 		break;
+> 	case TUNER_MICROTUNE_4049FM5:
+> 	default:
+> 		buffer[3] = 0xa4;
+> 		break;
+> 	}
+> 
+> 	return 0;
+> }
+> 
+> And from Documentation/bttv/Tuners.
+> 
+> 1) Tuner Programming
+> ====================
+> There are some flavors of Tuner programming APIs.
+> These differ mainly by the bandswitch byte.
+> 
+>     L= LG_API       (VHF_LO=0x01, VHF_HI=0x02, UHF=0x08, radio=0x04)
+>     P= PHILIPS_API  (VHF_LO=0xA0, VHF_HI=0x90, UHF=0x30, radio=0x04)
+>     T= TEMIC_API    (VHF_LO=0x02, VHF_HI=0x04, UHF=0x01)
+>     A= ALPS_API     (VHF_LO=0x14, VHF_HI=0x12, UHF=0x11)
+>     M= PHILIPS_MK3  (VHF_LO=0x01, VHF_HI=0x02, UHF=0x04, radio=0x19)
+> 
+> 
+> If the default tuner=17 with old Philips API doesn't work for TV and
+> radio, most common for new types is tuner=69 TUNER_TNF_5335MF and
+> similar with TI PLLs.
+> 
+> The Philips MK3 API you currently use expects a tda9887 analog IF
+> demodulator with radio support. If that chip exists, it would show up as
+> detected in "dmesg" on loading the driver.
+> 
+> Do you mean you have tested already on tuner=69 too for radio and you
+> have TV reception with the UHF=0x04 MK3 switch in that ranges?
+> 
+> Tuner=68 is very unlikely.
+> 
+> So, what kind of tuner/components do you have not covered by the
+> above ;)
+> 
+> Cheers,
+> Hermann
+> 
+> 
+> 
+> 
+> 
+> 
 
 --
 video4linux-list mailing list
