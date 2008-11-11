@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAIE8iMh015336
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 09:08:44 -0500
-Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
-	[195.238.6.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAIE8VMj001879
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 09:08:32 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: video4linux-list@redhat.com
-Date: Tue, 18 Nov 2008 15:08:41 +0100
-References: <200811040019.17211.laurent.pinchart@skynet.be>
-In-Reply-To: <200811040019.17211.laurent.pinchart@skynet.be>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mABGPERF008126
+	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 11:25:14 -0500
+Received: from mail11d.verio-web.com (mail11d.verio-web.com [204.202.242.86])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mABGP27v014687
+	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 11:25:02 -0500
+Received: from mx102.stngva01.us.mxservers.net (198.173.112.39)
+	by mail11d.verio-web.com (RS ver 1.0.95vs) with SMTP id 1-087681701
+	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 11:25:01 -0500 (EST)
+From: Pete Eberlein <pete@sensoray.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20081111122306.0bb05431@pedra.chehab.org>
+References: <1226357539.8035.20.camel@pete-desktop>
+	<1226367478.2493.39.camel@pc10.localdom.local>
+	<20081111122306.0bb05431@pedra.chehab.org>
+Content-Type: text/plain
+Date: Tue, 11 Nov 2008 08:28:25 -0800
+Message-Id: <1226420905.6231.31.camel@pete-desktop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200811181508.42017.laurent.pinchart@skynet.be>
-Cc: v4l-dvb-maintainer@linuxtv.org
-Subject: Re: [RFC] Zoom controls in V4L2
+Cc: Greg KH <greg@kroah.com>, video4linux-list@redhat.com
+Subject: Re: [PATCH] saa7134: Add new cards
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,101 +32,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi everybody,
+On Tue, 2008-11-11 at 12:23 -0200, Mauro Carvalho Chehab wrote:
+> On Tue, 11 Nov 2008 02:37:58 +0100
+> hermann pitton <hermann-pitton@arcor.de> wrote:
 
-I haven't received any answer so far. Is everybody busy or just not interested 
-in zoom support ? Please don't let the length of the mail scare you :-)
+Hermann, thanks for the catching the input duplication in the struct.
 
-On Tuesday 04 November 2008, Laurent Pinchart wrote:
-> Hi everybody,
->
-> USB cameras with integrated optical zoom support are hitting the market.
-> V4L2 currently lacks the necessary controls to support zoom. This RFC tries
-> to define zoom-related controls.
->
-> As few camera models currently support optical zoom, only a subset of zoom
-> functions are implemented in existing products, making it a bit harder to
-> define a future proof zoom API in V4L2. To gather more usecases I've taken
-> all zoom controls defined in the USB Video Class specification into
-> account, even if they are not all implemented in existing products.
->
-> Zoom in digital cameras is implemented as optical zoom, digital zoom or a
-> combination of both. V4L2 supports digital zoom through cropping and
-> scaling (section 1.11). Digital cameras often implement digital zoom
-> through a single linear control, providing a subset of the scaling
-> capabilities of V4L2 with no easy way to map between both. Still, defining
-> a new digital zoom API in addition to the V4L2 cropping and scaling
-> mechanism would confuse developers and users and should be avoided. We
-> should instead concentrate on defining a clear mapping between linear
-> digital zoom and crop/scale.
->
-> As I don't own any UVC device with digital zoom support, and as I'm not
-> knowledgeable about digital zoom support in non-UVC webcams, ideas for a
-> mapping between linear digital zoom and crop/scale are welcome. In case of
-> lack of feedback on the subject, I propose to concentrate on optical zoom
-> only, except when digital zoom interacts with optical zoom.
->
-> The UVC specification approximates the optical magnification factor as the
-> ratio between the ocular lens focal length and the objective lens focal
-> length. Although lens groups can be much more sophisticated than that, the
-> model can approximate most lens groups that are likely to be encountered in
-> practice. Zoom can then be expressed either as the magnification factor or
-> as the objective lens focal lens. To support both representations V4L2
-> should let the device set its minimum and maximum zoom values. In both
-> cases the zoom is either an unsigned integer or an unsigned rational number
-> that can be expressed with a fixed-point representation.
->
-> Optical zoom can be controlled in an absolute or relative fashion. Absolute
-> zoom can easily be handled with a single unsigned integer control mapping
-> to the magnification factor or objective lens focal length as described
-> above. The absolute zoom control should not interact with any digital zoom
-> function implemented in the device, if any. I suggest naming the control
-> V4L2_CID_ZOOM_ABSOLUTE.
->
-> Relative zoom is a tad more complex. To begin with, there are two relative
-> zoom implementations I can think of: incremental or continuous. Incremental
-> relative zoom moves the optical zoom level by a fixed amount. This is how
-> the relative pan, tilt and focus controls are specified in V4L2. However,
-> this is not how relative zoom is specified in UVC.
->
-> UVC specifies relative zoom as a control that starts a zoom focal length
-> modification at a given speed in the given direction until interrupted by
-> the user (through the relative zoom control) or by a limit in the range of
-> motion. This behaviour is closer to what a user would expect when
-> controlling the zoom relatively : pressing a button would start zooming in
-> or out, and releasing the button would stop zooming. A single V4L2 control
-> encoded as a signed integer can set the speed and direction. The speed
-> range should be device dependant.
->
-> We are thus facing a situation where three types of zoom controls can be
-> implemented, among which two are of the relative type. The UVC
-> specification specifies a continuous relative zoom only, but V4L2 already
-> uses the _RELATIVE suffix for incremental relative pan, tilt and focus
-> controls. Using V4L2_CID_ZOOM_RELATIVE for continuous relative zoom would
-> not be consistent with the V4L2 pan, tilt and focus controls, while using
-> V4L2_CID_ZOOM_RELATIVE for incremental relative zoom would not be
-> consistent with the UVC specification. As the V4L2 specification is already
-> not consistent with the UVC specification when it comes to relative pan,
-> tilt and focus, I propose to call the incremental relative zoom control
-> V4L2_CID_ZOOM_RELATIVE and use a different name for the continuous control.
-> Comments are welcome, as well as suggestions for the control name.
->
-> Continuous relative zoom also suffers from another issue. While absolute
-> and incremental relative zoom do not interact with digital zoom (when
-> implemented by the device), it might be interesting to let the continuous
-> relative zoom use digital zoom as an option when reaching the end of the
-> optical zoom capabilities. This would give the user a large zoom range
-> combining optical and digital zoom that can be navigated using a single
-> control. This is how the UVC specification defines the relative zoom
-> control. We would then need an additional control to enable or disable
-> digital zoom when using the continuous relative zoom. Both the digital zoom
-> enable and continuous relative zoom (sign + speed) values should then be
-> set in a single operation through the extended controls API. Comments on
-> this subject are welcome as well.
+> > I probably missed it and there is a plan, but if this should go to
+> > v4l-dvb now and SAA7134_MPEG_GO7007 support comes only with staging,
+> > should we not #if 0 it until all is merged?
+> > 
+> > Thanks for your work.
+> 
+> It is better to hold the patch until go7007 driver enters at v4l/dvb tree and
+> go outside staging.
 
-Best regards,
+Thanks.  The saa7134-go7007.c portion of the go7007 driver in staging
+doesn't compile without the changes to the saa7134 headers, but I'll
+talk with Greg and find a way to make it work.  It would be helpful to
+have the saa7134 changes in first, though.
 
-Laurent Pinchart
+-- 
+Pete Eberlein
+Sensoray Co., Inc.
+Email: pete@sensoray.com
+http://www.sensoray.com
 
 --
 video4linux-list mailing list
