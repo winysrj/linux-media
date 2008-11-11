@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAAKm1F1007713
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 15:48:01 -0500
-Received: from QMTA09.westchester.pa.mail.comcast.net
-	(qmta09.westchester.pa.mail.comcast.net [76.96.62.96])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAAKlirb013735
-	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 15:47:44 -0500
-Message-ID: <49189DEE.3000409@personnelware.com>
-Date: Mon, 10 Nov 2008 14:47:42 -0600
-From: Carl Karsten <carl@personnelware.com>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <4916255E.8020303@personnelware.com>
-	<20081110183013.16a00f7c@pedra.chehab.org>
-In-Reply-To: <20081110183013.16a00f7c@pedra.chehab.org>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH]  command line: added --frames, touched up defaults
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAB1TEYL006326
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 20:29:14 -0500
+Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
+	[151.189.21.52])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAB1T2qM022332
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 20:29:02 -0500
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Asher Glaun <asher@glaun.com>
+In-Reply-To: <20081110214550.M62106@glaun.com>
+References: <20081110214550.M62106@glaun.com>
+Content-Type: text/plain; charset=utf-8
+Date: Tue, 11 Nov 2008 02:26:47 +0100
+Message-Id: <1226366807.2493.28.camel@pc10.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: saa7134  Sabrent TVFM. Changes to radio?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,245 +28,109 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Mauro Carvalho Chehab wrote:
-> Hi Carl,
-> 
-> On Sat, 08 Nov 2008 17:48:46 -0600
-> Carl Karsten <carl@personnelware.com> wrote:
-> 
-> I found several troubles on your email:
-> 
-> 1) It is a mime message. This generally cause lots of troubles on scripts.
-> Please send it as a plain old text-only messages.
-> 
-> 2) Your SOB is after the patch. SOB is part of the description, being the last
-> line. All lines after the patch are discarded;
-> 
-> 3) Your patch is inside 2 mime types: it is at text/plain part of your email,
-> and _also_ at a separate section:
-> 
-> Content-Type: text/x-patch;
->  name="capture_example.c.diff"
-> Content-Transfer-Encoding: 7bit
-> Content-Disposition: inline;
->  filename="capture_example.c.diff"
-> 
-> Due to that, your patch is applied twice, causing errors with the second version of the patch:
-> 
-> Reversed (or previously applied) patch detected!  Skipping patch.
-> 5 out of 5 hunks ignored -- saving rejects to file v4l2-apps/test/capture_example.c.rej
-> *** ERROR at: patch -s -t -p1 -l -N -d . -i /tmp/mailimport16584/patch.diff
-> 
-> 4) Your patch is adding whitespaces instead of tabs, or adding after the file.
-> To remove it, just do:
-> 
-> $ make whitespace
-> Cleaning bad whitespaces
-> patching file v4l2-apps/test/capture_example.c
-> 
-> I've corrected the problems and committed. Please avoid those on next patches.
+Hi Asher,
 
-Thanks.
+Am Montag, den 10.11.2008, 17:45 -0400 schrieb Asher Glaun:
+> Everything but radio works, i.e. all inputs, TV tuner, audio etc. Command line
+> client “radio” and “gnomeradio” both show signal strength and audio is FM
+> static hiss so I’m sure I’m receiving a signal but cannot tune the card.
+> Changing the frequency in the clients does nothing.
+> 
+> I load modprobe saa7134 card=42 tuner=68 radio_nr=0. This creates /dev/radio0
+> which is where I point “radio” and “gnomeradio”.  Wrote a script to cycle
+> through all the tuners, still the same static. Dual boot machine and radio
+> works flawlessly in MS Vista.
+> 
+> I contacted to Michael Rodríguez-Torrent, an original developer of
+> saa7134-cards.c and he says that the radio was the first thing he got working
+> and that since everything else works he might suspect some changes that are
+> causing problems.  He writes ..
+> 
+> “Your best shot might be a post to the mailing list asking what could have
+> changed with regards to the handling of radios in the module and how the board
+> definition can be updated to reflect that.”
 
-Last time I was told thunderbird messed up inline patches and I should also
-attach them.  looks like that problem has been fixed.  the other issues.. er..
-yeah, I remember reading those, and realizing after I had sent that I may not
-have done it right.
+you most likely have a different tuner on the board.
 
-I am taking notes targeted at someone like me who is submitting patches to the
-list (as opposed to having a repo that can be pulled from.)  Would
-http://linuxtv.org/v4lwiki be right place to post it?
+On old tin can tuners are only five known different tuner APIs to get
+them into radio mode.
 
-Thanks again for your tolerance,
+>From tuner-simple.c.
 
-Carl K
+static int simple_radio_bandswitch(struct dvb_frontend *fe, u8 *buffer)
+{
+	struct tuner_simple_priv *priv = fe->tuner_priv;
 
-> 
-> For reference, I'm enclosing your msg as seen by the scripts.
-> 
-> Thanks,
-> Mauro.
-> 
-> ---
-> 
-> Date: Sat, 08 Nov 2008 17:48:46 -0600
-> From: Carl Karsten <carl@personnelware.com>
-> User-Agent: Thunderbird 2.0.0.17 (X11/20080925)
-> MIME-Version: 1.0
-> To: video4linux-list@redhat.com
-> CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Subject: [PATCH]  command line: added --frames, touched up defaults
-> Content-Type: multipart/mixed;
->  boundary="------------050907030809040302080205"
-> X-Spam-Score: 0.0 (/)
-> 
-> This is a multi-part message in MIME format.
-> --------------050907030809040302080205
-> Content-Type: text/plain; charset=ISO-8859-1
-> Content-Transfer-Encoding: 7bit
-> 
-> 1. Added command line option -f --frames for number of frames to grab
-> 
-> 2. changed the default -f from 1000 to 70
-> 
-> 3. show defaults in --help
-> 
-> 4. added a Version, picked 1.3 as the current ver because I consider the
-> original to be 1.0 and at least 2 changes have been made.
-> 
-> diff -r 46604f47fca1 v4l2-apps/test/capture_example.c
-> --- a/v4l2-apps/test/capture_example.c	Fri Nov 07 15:24:18 2008 -0200
-> +++ b/v4l2-apps/test/capture_example.c	Fri Nov 07 22:40:30 2008 -0600
-> @@ -47,6 +47,7 @@
->  static unsigned int     n_buffers;
->  static int		out_buf;
->  static int              force_format;
-> +static int              frame_count = 70;
-> 
->  static void errno_exit(const char *s)
->  {
-> @@ -171,7 +172,7 @@
->  {
->  	unsigned int count;
-> 
-> -	count = 1000;
-> +	count = frame_count;
-> 
->  	while (count-- > 0) {
->  		for (;;) {
-> @@ -558,19 +559,21 @@
->  {
->  	fprintf(fp,
->  		 "Usage: %s [options]\n\n"
-> +		 "Version 1.3\n"
->  		 "Options:\n"
-> -		 "-d | --device name   Video device name [/dev/video0]\n"
-> +		 "-d | --device name   Video device name [%s]\n"
->  		 "-h | --help          Print this message\n"
-> -		 "-m | --mmap          Use memory mapped buffers\n"
-> +		 "-m | --mmap          Use memory mapped buffers [default]\n"
->  		 "-r | --read          Use read() calls\n"
->  		 "-u | --userp         Use application allocated buffers\n"
->  		 "-o | --output        Outputs stream to stdout\n"
->  		 "-f | --format        Force format to 640x480 YUYV\n"
-> +		 "-c | --count         Number of frames to grab [%i]\n"
->  		 "",
-> -		 argv[0]);
-> +		 argv[0],dev_name,frame_count );
->  }
-> 
-> -static const char short_options[] = "d:hmruof";
-> +static const char short_options[] = "d:hmruofc:";
-> 
->  static const struct option
->  long_options[] = {
-> @@ -581,6 +584,7 @@
->  	{ "userp",  no_argument,       NULL, 'u' },
->  	{ "output", no_argument,       NULL, 'o' },
->  	{ "format", no_argument,       NULL, 'f' },
-> +	{ "count",  required_argument, NULL, 'c' },
->  	{ 0, 0, 0, 0 }
->  };
-> 
-> @@ -630,6 +634,13 @@
->  			force_format++;
->  			break;
-> 
-> +		case 'c':
-> +		        errno = 0;
-> +			frame_count = strtol(optarg, NULL, 0);
-> +			if (errno)
-> +				errno_exit(optarg);
-> +			break;
-> +
->  		default:
->  			usage(stderr, argc, argv);
->  			exit(EXIT_FAILURE);
-> 
-> 
-> 
-> Signed-off-by: Carl Karsten  <carl@personnelware.com>
-> 
-> 
-> --------------050907030809040302080205
-> Content-Type: text/x-patch;
->  name="capture_example.c.diff"
-> Content-Transfer-Encoding: 7bit
-> Content-Disposition: inline;
->  filename="capture_example.c.diff"
-> 
-> diff -r 46604f47fca1 v4l2-apps/test/capture_example.c
-> --- a/v4l2-apps/test/capture_example.c	Fri Nov 07 15:24:18 2008 -0200
-> +++ b/v4l2-apps/test/capture_example.c	Fri Nov 07 22:40:30 2008 -0600
-> @@ -47,6 +47,7 @@
->  static unsigned int     n_buffers;
->  static int		out_buf;
->  static int              force_format;
-> +static int              frame_count = 70;
->  
->  static void errno_exit(const char *s)
->  {
-> @@ -171,7 +172,7 @@
->  {
->  	unsigned int count;
->  
-> -	count = 1000;
-> +	count = frame_count;
->  
->  	while (count-- > 0) {
->  		for (;;) {
-> @@ -558,19 +559,21 @@
->  {
->  	fprintf(fp,
->  		 "Usage: %s [options]\n\n"
-> +		 "Version 1.3\n"
->  		 "Options:\n"
-> -		 "-d | --device name   Video device name [/dev/video0]\n"
-> +		 "-d | --device name   Video device name [%s]\n"
->  		 "-h | --help          Print this message\n"
-> -		 "-m | --mmap          Use memory mapped buffers\n"
-> +		 "-m | --mmap          Use memory mapped buffers [default]\n"
->  		 "-r | --read          Use read() calls\n"
->  		 "-u | --userp         Use application allocated buffers\n"
->  		 "-o | --output        Outputs stream to stdout\n"
->  		 "-f | --format        Force format to 640x480 YUYV\n"
-> +		 "-c | --count         Number of frames to grab [%i]\n"
->  		 "",
-> -		 argv[0]);
-> +		 argv[0],dev_name,frame_count );
->  }
->  
-> -static const char short_options[] = "d:hmruof";
-> +static const char short_options[] = "d:hmruofc:";
->  
->  static const struct option
->  long_options[] = {
-> @@ -581,6 +584,7 @@
->  	{ "userp",  no_argument,       NULL, 'u' },
->  	{ "output", no_argument,       NULL, 'o' },
->  	{ "format", no_argument,       NULL, 'f' },
-> +	{ "count",  required_argument, NULL, 'c' },
->  	{ 0, 0, 0, 0 }
->  };
->  
-> @@ -630,6 +634,13 @@
->  			force_format++;
->  			break;
->  
-> +		case 'c':
-> +		        errno = 0;
-> +			frame_count = strtol(optarg, NULL, 0);
-> +			if (errno)
-> +				errno_exit(optarg);
-> +			break;
-> +
->  		default:
->  			usage(stderr, argc, argv);
->  			exit(EXIT_FAILURE);
-> 
-> --------------050907030809040302080205--
-> 
-> 
+	switch (priv->type) {
+	case TUNER_TENA_9533_DI:
+	case TUNER_YMEC_TVF_5533MF:
+		tuner_dbg("This tuner doesn't have FM. "
+			  "Most cards have a TEA5767 for FM\n");
+		return 0;
+	case TUNER_PHILIPS_FM1216ME_MK3:
+	case TUNER_PHILIPS_FM1236_MK3:
+	case TUNER_PHILIPS_FMD1216ME_MK3:
+	case TUNER_PHILIPS_FMD1216MEX_MK3:
+	case TUNER_LG_NTSC_TAPE:
+	case TUNER_PHILIPS_FM1256_IH3:
+	case TUNER_TCL_MF02GIP_5N:
+		buffer[3] = 0x19;
+		break;
+	case TUNER_TNF_5335MF:
+		buffer[3] = 0x11;
+		break;
+	case TUNER_LG_PAL_FM:
+		buffer[3] = 0xa5;
+		break;
+	case TUNER_THOMSON_DTT761X:
+		buffer[3] = 0x39;
+		break;
+	case TUNER_MICROTUNE_4049FM5:
+	default:
+		buffer[3] = 0xa4;
+		break;
+	}
+
+	return 0;
+}
+
+And from Documentation/bttv/Tuners.
+
+1) Tuner Programming
+====================
+There are some flavors of Tuner programming APIs.
+These differ mainly by the bandswitch byte.
+
+    L= LG_API       (VHF_LO=0x01, VHF_HI=0x02, UHF=0x08, radio=0x04)
+    P= PHILIPS_API  (VHF_LO=0xA0, VHF_HI=0x90, UHF=0x30, radio=0x04)
+    T= TEMIC_API    (VHF_LO=0x02, VHF_HI=0x04, UHF=0x01)
+    A= ALPS_API     (VHF_LO=0x14, VHF_HI=0x12, UHF=0x11)
+    M= PHILIPS_MK3  (VHF_LO=0x01, VHF_HI=0x02, UHF=0x04, radio=0x19)
+
+
+If the default tuner=17 with old Philips API doesn't work for TV and
+radio, most common for new types is tuner=69 TUNER_TNF_5335MF and
+similar with TI PLLs.
+
+The Philips MK3 API you currently use expects a tda9887 analog IF
+demodulator with radio support. If that chip exists, it would show up as
+detected in "dmesg" on loading the driver.
+
+Do you mean you have tested already on tuner=69 too for radio and you
+have TV reception with the UHF=0x04 MK3 switch in that ranges?
+
+Tuner=68 is very unlikely.
+
+So, what kind of tuner/components do you have not covered by the
+above ;)
+
+Cheers,
+Hermann
+
+
+
+
+
 
 --
 video4linux-list mailing list
