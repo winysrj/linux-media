@@ -1,21 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mARII7G5018780
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 13:18:07 -0500
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.247])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mARIHuX2002834
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 13:17:56 -0500
-Received: by an-out-0708.google.com with SMTP id b2so417124ana.36
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 10:17:55 -0800 (PST)
-Message-ID: <2df568dc0811271017h1598b038g6f21e92b005538a@mail.gmail.com>
-Date: Thu, 27 Nov 2008 11:17:55 -0700
-From: "Gordon Smith" <spider.karma+video4linux-list@gmail.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mABAjBn0010096
+	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 05:45:11 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mABAirKg017262
+	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 05:44:53 -0500
+Date: Tue, 11 Nov 2008 08:45:01 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Message-ID: <20081111084501.38f2917a@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Subject: Advice needed: gspca IR LED control
+Cc: Video <video4linux-list@redhat.com>
+Subject: Section mismatch on dm1105 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,22 +25,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello everyone,
+Hi Igor,
 
-I have a Z-Star Microelectronics Corp. ZC0305 USB WebCam that works fine
-during daylight with the gspca webcam driver.
-I'd like to turn on the IR LED's on the webcam for nighttime capture and it
-looks like the driver doesn't have that capability.
+Upstream compilation causes a section mismatch on dm1105. Please fix.
 
-Any advice on how to find out how to control the LED's?
+WARNING: drivers/media/built-in.o(.text+0x1bbd2d): Section mismatch in reference from the function dm1105dvb_start_feed() to the function .devinit.text:dm1105dvb_enable_irqs()
+The function dm1105dvb_start_feed() references
+the function __devinit dm1105dvb_enable_irqs().
+This is often because dm1105dvb_start_feed lacks a __devinit 
+annotation or the annotation of dm1105dvb_enable_irqs is wrong.
 
-In addition to Linux, I have a windows machine with the capture software
-that came with the webcam that turns on the LED's during capture.
-Would it be difficult to capture and interpret USB traffic on the windows
-machine?
+
+
 
 Cheers,
-Gordon
+Mauro
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
