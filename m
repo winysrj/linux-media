@@ -1,18 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from helios.cedo.cz ([193.165.198.226] helo=postak.cedo.cz)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linux-dvb@drajsajtl.cz>) id 1KwtH5-0003MZ-7c
-	for linux-dvb@linuxtv.org; Mon, 03 Nov 2008 07:50:58 +0100
-Message-ID: <001201c93d80$a9df4620$7f79a8c0@tommy>
-From: "Tomas Drajsajtl" <linux-dvb@drajsajtl.cz>
-To: "Ruediger Dohmhardt" <ruediger.dohmhardt@freenet.de>
-References: <001101c93ce7$23bcfdb0$7f79a8c0@tommy>
-	<490E19B3.9090701@freenet.de>
-Date: Mon, 3 Nov 2008 07:51:56 +0100
+Received: from n75.bullet.mail.sp1.yahoo.com ([98.136.44.51])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <free_beer_for_all@yahoo.com>) id 1KzoxW-0002Mh-S2
+	for linux-dvb@linuxtv.org; Tue, 11 Nov 2008 09:50:54 +0100
+Date: Tue, 11 Nov 2008 00:50:14 -0800 (PST)
+From: barry bouwsma <free_beer_for_all@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT DVB-C 2300 and CAM,
-	Was: Any DVB-C tuner with working CAM?
+Message-ID: <212220.52318.qm@web46107.mail.sp1.yahoo.com>
+Subject: [linux-dvb] Fw: Re:  dvb-t receiver sturm ns-06
+Reply-To: free_beer_for_all@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,53 +23,181 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> > Hello,
-> > I have bought and tested two DVB-C cards which are supported according
-to
-> > http://www.linuxtv.org/wiki/index.php/DVB-C_PCI_Cards
-> > Both are perfectly working with FTA but none with the CAM.
+Cleaning out an old mail account, I discovered this, which
+I don't recall seeing appearing on the mailing list...
+
+As I'm not a developer, you need to post to the list, not
+to me, to get the attention of people who are developers.
+
+But in any case, the vendor ID 0x15A4 happens to be listed
+as `Afatech', and product ID 0x9016 is listed in the af9015.c
+source file, so you may well have a rebrand of a device
+which is already supported, and you merely need to enable
+the correct kernel configuration to support your device.
+
+
+Sodding webmail, I try to `forward' this message to the
+list but it's formatted as a quoted reply.  That's it.
+I'm off webmail.  Grrr.  Raw SMTP for me...  Darned
+newfangled Web 2.0 horseless carriage technology on
+these here ARPAtubes...
+
+
+barry bouwsma
+
+
+--- On Tue, 11/4/08, alberto sarcletti <alberto@sarcletti.it> wrote:
+
+> From: alberto sarcletti <alberto@sarcletti.it>
+> Subject: Re: [linux-dvb] dvb-t receiver sturm ns-06
+> To: free_beer_for_all@yahoo.com
+> Date: Tuesday, November 4, 2008, 10:51 PM
+> hi, sorry for the delay to replay
+> lsusb give me  15a4:9016
+> 
+> following some instruction I obtained that but no idea how
+> to use it
+> 
+> less@kless-desktop:~$ lsusb -vd 15a4:9016
+> 
+> Bus 006 Device 008: ID 15a4:9016
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0
+>   bDeviceProtocol         0
+>   bMaxPacketSize0        64
+>   idVendor           0x15a4
+>   idProduct          0x9016
+>   bcdDevice            2.00
+>   iManufacturer           1
+>   iProduct                2
+>   iSerial                 3
+>   bNumConfigurations      1
+>   Configuration Descriptor:
+>     bLength                 9
+>     bDescriptorType         2
+>     wTotalLength           71
+>     bNumInterfaces          2
+>     bConfigurationValue     1
+>     iConfiguration          0
+>     bmAttributes         0x80
+>       (Bus Powered)
+>     MaxPower              500mA
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       0
+>       bNumEndpoints           4
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0
+>       bInterfaceProtocol      0
+>       iInterface              0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x02  EP 2 OUT
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x85  EP 5 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        1
+>       bAlternateSetting       0
+>       bNumEndpoints           1
+>       bInterfaceClass         3 Human Interface Device
+>       bInterfaceSubClass      0 No Subclass
+>       bInterfaceProtocol      1 Keyboard
+>       iInterface              0
+>         HID Device Descriptor:
+>           bLength                 9
+>           bDescriptorType        33
+>           bcdHID               1.01
+>           bCountryCode            0 Not supported
+>           bNumDescriptors         1
+>           bDescriptorType        34 Report
+>           wDescriptorLength      65
+>          Report Descriptors:
+>            ** UNAVAILABLE **
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x83  EP 3 IN
+>         bmAttributes            3
+>           Transfer Type            Interrupt
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0040  1x 64 bytes
+>         bInterval              16
+> can't get device qualifier: Operation not permitted
+> can't get debug descriptor: Operation not permitted
+> cannot read device status, Operation not permitted (1)
+> 
+> 
+> 2008/9/19 barry bouwsma <free_beer_for_all@yahoo.com>
+> 
+> > --- On Thu, 9/18/08, kless
+> <wunderkless@gmail.com> wrote:
 > >
-> > 1. TechnoTrend Premium DVB-C 2300
+> > > I would like to use my dvb-t usb on linux, is a
+> dvb-t
+> > > receiver sturm ns-06 .
+> > > I can find nothing about it, no producer website
+> nothing. I
 > >
-> TT DVB-C 2300 works fine here with  AlphaCrypt -Light. This card has
-> CI/CAM support for several years already.
-> And it has worked here for several years with CI/CAM.
+> > For starters, what do you see when you plug it in?
+> >
+> > Also, vendor and product ID will be helpful (if not
+> shown
+> > as above, then `lsusb' will show this...
+> >
+> >
+> > barry bouwsma
+> >
+> >
+> >
+> >
+> >
 
-Interesting. I have Technisat Technicrypt CXV (Conax) inserted and none of
-the channels is decrypted. Tried czap, vlc, vdr.
 
-uname -a:
-Linux pvr 2.6.23.17-88.fc7 #1 SMP Thu May 15 00:02:29 EDT 2008 x86_64 x86_64
-x86_64 GNU/Linux
-
-lspci -nvv:
-01:00.0 0480: 1131:7146 (rev 01)
-        Subsystem: 13c2:000a
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B-
-        Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR-
-        Latency: 64 (3750ns min, 9500ns max)
-        Interrupt: pin A routed to IRQ 16
-        Region 0: Memory at eedff400 (32-bit, non-prefetchable) [size=512]
-
-czap - no errors reported but no useful data output
-
-vlc - reports detected CAM doesn't matter if it's really inserted or not:
-[00000338] dvb access debug: Opening device /dev/dvb/adapter0/ca0
-[00000338] dvb access debug: CAMInit: CA interface with 2 slots
-[00000338] dvb access debug: CAMInit: CI link layer level interface type
-[00000338] dvb access debug: CAMInit: built-in descrambler detected
-[00000338] dvb access debug: CAMInit: 16 available descramblers (keys)
-[00000338] dvb access debug: CAMInit: ECD scrambling system supported
-
-vdr - says only
-Nov  3 07:42:33 pvr vdr: [16467] ERROR: no useful data seen within 10627076
-byte of video stream
-I know that vdr should report something about detected CAM but nothing in
-it's log file...
-
-Tomas
+      
 
 
 _______________________________________________
