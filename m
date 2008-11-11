@@ -1,20 +1,28 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from crow.cadsoft.de ([217.86.189.86] helo=raven.cadsoft.de)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <Klaus.Schmidinger@cadsoft.de>) id 1L4tOM-0005r8-2E
-	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 09:35:31 +0100
-Received: from [192.168.1.71] (falcon.cadsoft.de [192.168.1.71])
-	by raven.cadsoft.de (8.14.3/8.14.3) with ESMTP id mAP8ZQdT017515
-	for <linux-dvb@linuxtv.org>; Tue, 25 Nov 2008 09:35:26 +0100
-Message-ID: <492BB8CE.4010008@cadsoft.de>
-Date: Tue, 25 Nov 2008 09:35:26 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
+Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <florin@andrei.myip.org>) id 1Kzy5I-00078A-Um
+	for linux-dvb@linuxtv.org; Tue, 11 Nov 2008 19:35:30 +0100
+Received: from localhost (weiqi.home.local [127.0.0.1])
+	by weiqi.home.local (Postfix) with ESMTP id AF74D5771C4
+	for <linux-dvb@linuxtv.org>; Tue, 11 Nov 2008 10:34:52 -0800 (PST)
+Received: from weiqi.home.local ([127.0.0.1])
+	by localhost (andrei.myip.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id ZISZCDbezdtq for <linux-dvb@linuxtv.org>;
+	Tue, 11 Nov 2008 10:34:51 -0800 (PST)
+Received: from [10.123.0.253] (unknown [10.123.0.253])
+	by weiqi.home.local (Postfix) with ESMTP id F3684576EF9
+	for <linux-dvb@linuxtv.org>; Tue, 11 Nov 2008 10:34:50 -0800 (PST)
+Message-ID: <4919D04A.2090105@andrei.myip.org>
+Date: Tue, 11 Nov 2008 10:34:50 -0800
+From: Florin Andrei <florin@andrei.myip.org>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-References: <13077.130.36.62.140.1227542142.squirrel@webmail.xs4all.nl>
-	<492AD583.4040809@cadsoft.de> <492B0182.2030602@gmail.com>
-In-Reply-To: <492B0182.2030602@gmail.com>
-Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+References: <491236F2.4050101@andrei.myip.org>	<200811060153.37102.hftom@free.fr>	<49124960.6070101@andrei.myip.org>	<alpine.DEB.2.00.0811060903100.22461@ybpnyubfg.ybpnyqbznva>	<4918BC54.5030304@andrei.myip.org>
+	<alpine.DEB.2.00.0811110403000.22461@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.00.0811110403000.22461@ybpnyubfg.ybpnyqbznva>
+Subject: Re: [linux-dvb] HD over satellite? (h.264)
+Reply-To: linux-dvb@linuxtv.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -28,41 +36,25 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On 24.11.2008 20:33, Manu Abraham wrote:
-> Klaus Schmidinger wrote:
->> On 24.11.2008 16:55, Niels Wagenaar wrote:
->>> ...
->>> For the time being I have only two options which will work without any
->>> additional patching in S2API:
->>>
->>> - Let the user set this as an option
->>> - Use my VUP (very ugly patch) by checking the deliverystem for the string
->>> "DVBS2".
->> Both are ugly workarounds and any reasonable API requiring them instead
->> of simply reporting the -S2 capability of a device should
->> be ashamed, go home and do its homework.
-> 
-> ACK
-> 
->> For the time being I'll work with my suggested FE_CAN_2ND_GEN_MODULATION
->> patch - until somebody can suggest a different way of doing this (without
->> parsing strings or requiring the user to do it).
-> 
-> ACK.
-> 
-> That is a saner way of doing it rather than anything else, as it stands.
-> 
-> Anyway, we won't be seeing professional device support as it stands with
-> the current API anytime soon, so as it stands the better alternative is
-> thus.
-> 
-> But it would be nice to have something shorter: say FE_IS_2G or
-> something that way, for the minimal typing.
+Thank you for the detailed analysis of the situation.
 
-Well, I don't really care about the actual name - as long as I can
-get the information... ;-)
+Looks like I'll get a Hauppauge Nova-S-Plus for the moment and just use 
+it to receive TVRi with the MythTV system I'm building - there's nothing 
+else I'm watching via satellite and don't really plan to expand the 
+number of channels I'm viewing. I don't watch live TV at all, just put a 
+few things on MythTV to watch whenever.
 
-Klaus
+If the Nova-S-Plus can also receive some of the radio stations on Galaxy 
+25, then so much better. If not, no big deal.
+
+If and when HD stuff that's interesting to me becomes available, I'll 
+probably look at a DVB-S2 card. Until then, the Linux and MythTV support 
+for S2 will no doubt improve.
+
+-- 
+Florin Andrei
+
+http://florin.myip.org/
 
 _______________________________________________
 linux-dvb mailing list
