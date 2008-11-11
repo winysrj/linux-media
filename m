@@ -1,21 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mABL7JH8021542
-	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 16:07:19 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mABL7E4n005934
-	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 16:07:14 -0500
-Date: Tue, 11 Nov 2008 16:07:13 -0500 (EST)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-In-Reply-To: <200811111753.03430.laurent.pinchart@skynet.be>
-Message-ID: <alpine.LFD.2.00.0811111559550.5321@bombadil.infradead.org>
-References: <200811111753.03430.laurent.pinchart@skynet.be>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAB5v8Aj027118
+	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 00:57:08 -0500
+Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.226])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAB5uhiQ024152
+	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 00:56:43 -0500
+Received: by rv-out-0506.google.com with SMTP id f6so2939641rvb.51
+	for <video4linux-list@redhat.com>; Mon, 10 Nov 2008 21:56:43 -0800 (PST)
+Message-ID: <208cbae30811102156r452c849i6dc149736ad89328@mail.gmail.com>
+Date: Tue, 11 Nov 2008 08:56:43 +0300
+From: "Alexey Klimov" <klimov.linux@gmail.com>
+To: "Kris Huang" <imaborg@gmail.com>
+In-Reply-To: <1cf807b00811101842k1ce60474rd9ed17f28ae5772f@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <1cf807b00811100709p5c70701aoa11043e4d12388c8@mail.gmail.com>
+	<49185431.2070701@verizonbusiness.com>
+	<1cf807b00811101842k1ce60474rd9ed17f28ae5772f@mail.gmail.com>
 Cc: video4linux-list@redhat.com
-Subject: Re: [RFC] Add usb_endpoint_*, list_first_entry and uninitialized_var
- to compat.h
+Subject: Re: How to stop driver from loading to prevent from hanging during
+	booting
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,113 +33,86 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 11 Nov 2008, Laurent Pinchart wrote:
+Hello, all
 
-> Hi everybody,
+On Tue, Nov 11, 2008 at 5:42 AM, Kris Huang <imaborg@gmail.com> wrote:
+>    Thanks Mark.
+>    I've downloaded a copy of the missing firmware file but have no luck.
+>    In dmesg, it shows having problem when trying to use the firmware file.
+>    Though I still can't switch channel in tvtime, but the video is working*
+> *alright.*
+>   *I am seriously considering opening the tin box to see what exactly the
+> tuner chip is.
+>   (I can find the decoder chip which is saa7135 actually, but didn't see
+> the tuner chip)*
 >
-> This patch adds support for the usb_endpoint_* functions as well as
-> list_first_entry and uninitialized_var macros to compat.h. The uvcvideo
-> driver requires it to compile on kernels older than 2.6.22.
+>  *  It's very kind of you also provided me a way to modify the blacklist
+> file when the file system is under read-only status.
+>   The funny thing is I can still boot into system by using the previously
+> built kernel. ( 2.6.24-21-generic is still in the Grub menu)
+>   So I still have access to modify the blacklist and disable the saa7134
+> driver from loading.
+>   It's really appreciated.
+>   Thank you.
+>   Kris.
+> *
+> *
+> On Mon, Nov 10, 2008 at 11:33 PM, Mark Paulus <
+> mark.paulus@verizonbusiness.com> wrote:
 >
-> As the usb_endpoint_* functions needs struct usb_endpoint_descriptor, they are
-> only defined if linux/usb.h has been included before compat.h. This avoids
-> including linux/usb.h unconditionally. I've tested the patch by compiling the
-> v4l-dvb tree on 2.6.16 and 2.6.27 and didn't get any warning or error.
+>>
+>>
+>> Kris Huang wrote:
+>>
+>>> Hi,
+>>>
+>>>  Good day.
+>>>  In order to get my Compro T750F channel switch working, I use hg and
+>>> download the latest v4l drivers. After make install and reboot, my Ubuntu
+>>> Intrepid box just hanged. I am not that familiar with Ubuntu, so I don't
+>>> know how to stop the trouble driver from being loaded during the boot
+>>> process.
+>>>  Any ideas?
+>>>  Thanks.
+>>>
+>>>
+>> looks like you need to add a file to /etc/modprobe.d directory,
+>> something called, maybe, v4l-blacklist, and in it, put in the driver name
+>> that is hanging....  (looks like saa7134).
+>>
+>> Have you downloaded firmware for this card, and put it into
+>> /lib/firmware?
+>> There looks to be a bit of info in this post:
+>> http://www.linuxtv.org/pipermail/linux-dvb/2007-April/017433.html
+>>
+>> BTW, if booting into single user mode still tries to load the
+>> driver, then you will need to boot off of a CD or floppy.  Your
+>> Install media might have a "Go to Shell" option where you can
+>> mount your hard drive and then edit your files, or something like
+>> Tomsrtbt disk, or "The Ultimate Boot CD (UBCD)), or even
+>> Mythubuntu or Knoppix/Mythknoppix.  Basically
+>> you need to boot any kind of linux kernel/system that will allow you to go
+>> to a shell, mount your hard drive,
+>> and then have vi or some other editor that will allow you to create the
+>> file(s) you need.
+>>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 >
-> If nobody objects I'll include the changes in my tree with the related
-> uvcvideo changes and send a pull request.
 
-I didn't test it here, but it seems OK to me.
+Kris, can you log in as root and run such command in command line:
+"mount -no remount,rw /"
+or, for example:
+"mount -o remount,rw /" ?
 
-Maybe instead of testing for a specific version, you may use 
-make_config_compat.pl script to do some test at some include file, finding 
-for some specific API call, like we did for some KABI changes that 
-happened without incrementing kernel minor revision.
-  >
-> Cheers,
->
-> Laurent Pinchart
->
-> diff -r 54319724a6d1 v4l/compat.h
-> --- a/v4l/compat.h	Sat Nov 08 23:14:50 2008 +0100
-> +++ b/v4l/compat.h	Tue Nov 11 17:48:53 2008 +0100
-> @@ -258,4 +258,69 @@
-> #define PCI_DEVICE_ID_MARVELL_88ALP01_CCIC     0x4102
-> #endif
->
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
-> +#ifdef __LINUX_USB_H
-> +/*
-> + * usb_endpoint_* functions
-> + *
-> + * Included in Linux 2.6.19
-> + * Backported to 2.6.18 in Red Hat Enterprise Linux 5.2
-> + */
-> +
-> +#ifdef RHEL_RELEASE_CODE
-> +#if RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(5, 2)
-> +#define RHEL_HAS_USB_ENDPOINT
-> #endif
-> +#endif
-> +
-> +#ifndef RHEL_HAS_USB_ENDPOINT
-> +static inline int
-> +usb_endpoint_dir_in(const struct usb_endpoint_descriptor *epd)
-> +{
-> +	return (epd->bEndpointAddress & USB_ENDPOINT_DIR_MASK) == USB_DIR_IN;
-> +}
-> +
-> +static inline int
-> +usb_endpoint_xfer_int(const struct usb_endpoint_descriptor *epd)
-> +{
-> +	return (epd->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) ==
-> +		USB_ENDPOINT_XFER_INT;
-> +}
-> +
-> +static inline int
-> +usb_endpoint_xfer_isoc(const struct usb_endpoint_descriptor *epd)
-> +{
-> +	return (epd->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) ==
-> +		USB_ENDPOINT_XFER_ISOC;
-> +}
-> +
-> +static inline int
-> +usb_endpoint_xfer_bulk(const struct usb_endpoint_descriptor *epd)
-> +{
-> +	return (epd->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK) ==
-> +		USB_ENDPOINT_XFER_BULK;
-> +}
-> +
-> +static inline int
-> +usb_endpoint_is_int_in(const struct usb_endpoint_descriptor *epd)
-> +{
-> +	return usb_endpoint_xfer_int(epd) && usb_endpoint_dir_in(epd);
-> +}
-> +#endif /* RHEL_HAS_USB_ENDPOINT */
-> +#endif /* __LINUX_USB_H */
-> +#endif
-> +
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 22)
-> +/*
-> + * Linked list API
-> + */
-> +#define list_first_entry(ptr, type, member) \
-> +	list_entry((ptr)->next, type, member)
-> +
-> +/*
-> + * uninitialized_var() macro
-> + */
-> +#define uninitialized_var(x) x
-> +#endif
-> +
-> +#endif
->
+This should re-mount you rootfs with read-write access.
+(Also, you can use man to read about mount)
+And next time, please add you answer in end of the letter, not in the beginning.
 
 -- 
-Cheers,
-Mauro Carvalho Chehab
-http://linuxtv.org
-mchehab@infradead.org
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
