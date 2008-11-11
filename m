@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.27])
+Received: from tuc.ic3s.de ([80.146.164.30])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alex.betis@gmail.com>) id 1L0MtG-0006bA-BQ
-	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 22:04:42 +0100
-Received: by qw-out-2122.google.com with SMTP id 9so416577qwb.17
-	for <linux-dvb@linuxtv.org>; Wed, 12 Nov 2008 13:04:37 -0800 (PST)
-Message-ID: <c74595dc0811121304o44e4270am67173ed5857f6945@mail.gmail.com>
-Date: Wed, 12 Nov 2008 23:04:37 +0200
-From: "Alex Betis" <alex.betis@gmail.com>
-To: "Darron Broad" <darron@kewl.org>
-In-Reply-To: <30422.1226523269@kewl.org>
+	(envelope-from <thomas@ic3s.de>) id 1KzvPK-0004Xp-TJ
+	for linux-dvb@linuxtv.org; Tue, 11 Nov 2008 16:44:00 +0100
+Message-ID: <4919A82D.5060707@ic3s.de>
+Date: Tue, 11 Nov 2008 16:43:41 +0100
+From: Thomas <thomas@ic3s.de>
 MIME-Version: 1.0
-References: <c74595dc0811121232s48a95a14v93edf27360ed5c21@mail.gmail.com>
-	<30422.1226523269@kewl.org>
-Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] S2API tune return code - potential problem?
+To: Antti Palosaari <crope@iki.fi>
+References: <491980CC.3000708@ic3s.de> <4919A1B3.4060304@iki.fi>
+In-Reply-To: <4919A1B3.4060304@iki.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] af9015 problem on fedora rawhide 9.93 with 2.6.27x
+ kernel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,172 +20,97 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0880870676=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0880870676==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_13484_26999517.1226523877911"
+Hi Antti,
 
-------=_Part_13484_26999517.1226523877911
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> I think good place
+> to test fix is add some sleep (msleep(100)) before/after RECONNECT_USB
+> -command around line 685 in af9015.c file. 
 
-On Wed, Nov 12, 2008 at 10:54 PM, Darron Broad <darron@kewl.org> wrote:
+thank you, that helps.
 
-> In message <c74595dc0811121232s48a95a14v93edf27360ed5c21@mail.gmail.com>,
-> "Alex Betis" wrote:
-> >
-> >Hi All,
->
-> Hi.
->
-> >A question regarding the error code returned from the driver when using
-> >DTV_TUNE property.
-> >Following the code I came to dvb_frontend_ioctl_legacy function and
-> reached
-> >the FE_SET_FRONTEND case.
-> >Looking on the logic I couldn't see any handling of error tuning, an event
-> >is added to the frontend and zero is returned:
-> >
-> >        fepriv->state = FESTATE_RETUNE;
-> >        dvb_frontend_wakeup(fe);
-> >        dvb_frontend_add_event(fe, 0);
-> >        fepriv->status = 0;
-> >        err = 0;
-> >        break;
-> >
-> >How should an application know that DTV_TUNE command succeed?
-> >Monitoring the LOCK bit is not good, here's an example why I ask the
-> >question:
-> >
-> >Assuming the cx24116 driver is locked on a channel. Application sends tune
-> >command to another channel while specifying
-> >AUTO settings for modulation and FEC. The driver for that chip cant handle
-> >AUTO settings and return error, while its still connected
-> >to previous channel. So in that case LOCK bit will be ON, while the tune
-> >command was ignored.
-> >
-> >I thought of an workaround to query the driver for locked frequency and
-> >check whenever its in bounds of frequency that was ordered
-> >to be tuned + - some delta, but that's a very dirty solution.
-> >
-> >Any thoughts? Or I'm missing something?
->
-> Correct me if I am wrong, but I remember looking at this before...
->
-> The problem is that no capabilities are available for S2API demods as yet
-> so TUNE always succeeds whether the parameters are wrong or right.
->
-> What is needed is:
-> 1. caps for s2api aware demods.
-> 2. extend dvb_frontend_check_parameters() for s2api aware demods.
->
-You mean passing the parameter to the demods to be checked before performing
-the tuning?
-Is there an example of that usage?
-What about some unexpected failures that can't be checked before the tuning?
-Can't think of a real example since I'm not too familiar with
-the code.
-I thought about a property of "last error code" that can be queried from the
-driver, but in that case the application has to be aware when
-the tuning is finished.
+i have added two lines:
 
+	msleep(1000);
+        req.cmd = RECONNECT_USB;
+	msleep(1000);
 
->
-> This hasn't been done as yet.
->
-> cya
->
-> --
->
->  // /
-> {:)==={ Darron Broad <darron@kewl.org>
->  \\ \
->
->
+maybe some fine tunnig is required :)
+but for me it works fine.
 
-------=_Part_13484_26999517.1226523877911
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Regards
 
-<div dir="ltr"><br><br><div class="gmail_quote">On Wed, Nov 12, 2008 at 10:54 PM, Darron Broad <span dir="ltr">&lt;<a href="mailto:darron@kewl.org">darron@kewl.org</a>&gt;</span> wrote:<br><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-In message &lt;<a href="mailto:c74595dc0811121232s48a95a14v93edf27360ed5c21@mail.gmail.com">c74595dc0811121232s48a95a14v93edf27360ed5c21@mail.gmail.com</a>&gt;, &quot;Alex Betis&quot; wrote:<br>
-&gt;<br>
-&gt;Hi All,<br>
-<br>
-Hi.<br>
-<div><div></div><div class="Wj3C7c"><br>
-&gt;A question regarding the error code returned from the driver when using<br>
-&gt;DTV_TUNE property.<br>
-&gt;Following the code I came to dvb_frontend_ioctl_legacy function and reached<br>
-&gt;the FE_SET_FRONTEND case.<br>
-&gt;Looking on the logic I couldn&#39;t see any handling of error tuning, an event<br>
-&gt;is added to the frontend and zero is returned:<br>
-&gt;<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp;fepriv-&gt;state = FESTATE_RETUNE;<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp;dvb_frontend_wakeup(fe);<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp;dvb_frontend_add_event(fe, 0);<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp;fepriv-&gt;status = 0;<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp;err = 0;<br>
-&gt; &nbsp; &nbsp; &nbsp; &nbsp;break;<br>
-&gt;<br>
-&gt;How should an application know that DTV_TUNE command succeed?<br>
-&gt;Monitoring the LOCK bit is not good, here&#39;s an example why I ask the<br>
-&gt;question:<br>
-&gt;<br>
-&gt;Assuming the cx24116 driver is locked on a channel. Application sends tune<br>
-&gt;command to another channel while specifying<br>
-&gt;AUTO settings for modulation and FEC. The driver for that chip cant handle<br>
-&gt;AUTO settings and return error, while its still connected<br>
-&gt;to previous channel. So in that case LOCK bit will be ON, while the tune<br>
-&gt;command was ignored.<br>
-&gt;<br>
-&gt;I thought of an workaround to query the driver for locked frequency and<br>
-&gt;check whenever its in bounds of frequency that was ordered<br>
-&gt;to be tuned + - some delta, but that&#39;s a very dirty solution.<br>
-&gt;<br>
-&gt;Any thoughts? Or I&#39;m missing something?<br>
-<br>
-</div></div>Correct me if I am wrong, but I remember looking at this before...<br>
-<br>
-The problem is that no capabilities are available for S2API demods as yet<br>
-so TUNE always succeeds whether the parameters are wrong or right.<br>
-<br>
-What is needed is:<br>
-1. caps for s2api aware demods.<br>
-2. extend dvb_frontend_check_parameters() for s2api aware demods.<br>
-</blockquote><div>You mean passing the parameter to the demods to be checked before performing the tuning?<br>Is there an example of that usage?<br>What about some unexpected failures that can&#39;t be checked before the tuning? Can&#39;t think of a real example since I&#39;m not too familiar with<br>
-the code. <br>I thought about a property of &quot;last error code&quot; that can be queried from the driver, but in that case the application has to be aware when<br>the tuning is finished.<br>&nbsp;<br></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-<br>
-This hasn&#39;t been done as yet.<br>
-<br>
-cya<br>
-<font color="#888888"><br>
---<br>
-<br>
-&nbsp;// /<br>
-{:)==={ Darron Broad &lt;<a href="mailto:darron@kewl.org">darron@kewl.org</a>&gt;<br>
-&nbsp;\\ \<br>
-<br>
-</font></blockquote></div><br></div>
+Thomas
 
-------=_Part_13484_26999517.1226523877911--
+Antti Palosaari schrieb:
+> hello
+> 
+> 
+> Thomas wrote:
+>> Hi List,
+>>
+>>
+>> since fedora use 2.6.27 kernels this
+>> is all what happens when i plug in the stick:
+>>
+>> Nov 11 13:24:56 thomas-lt kernel: usb 2-6: new high speed USB device
+>> using ehci_hcd and address 3
+>> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: configuration #1 chosen
+>> from 1 choice
+>> Nov 11 13:24:57 thomas-lt kernel: Afatech DVB-T 2: Fixing fullspeed to
+>> highspeed interval: 16 -> 8
+>> Nov 11 13:24:57 thomas-lt kernel: input: Afatech DVB-T 2 as
+>> /devices/pci0000:00/0000:00:1d.7/usb2/2-6/2-6:1.1/input/input9
+>> Nov 11 13:24:57 thomas-lt kernel: input,hidraw0: USB HID v1.01
+>> Keyboard [Afatech DVB-T 2] on usb-0000:00:1d.7-6
+>> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: New USB device found,
+>> idVendor=15a4, idProduct=9016
+>> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: New USB device strings:
+>> Mfr=1, Product=2, SerialNumber=3
+>> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: Product: DVB-T 2
+>> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: Manufacturer: Afatech
+>> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: SerialNumber: 010101010600001
+>> Nov 11 13:24:57 thomas-lt kernel: dvb-usb: found a 'Afatech AF9015
+>> DVB-T USB2.0 stick' in cold state, will try to load a firmware
+>> Nov 11 13:24:57 thomas-lt kernel: firmware: requesting dvb-usb-af9015.fw
+>> Nov 11 13:24:57 thomas-lt kernel: dvb-usb: downloading firmware from
+>> file 'dvb-usb-af9015.fw'
+>> Nov 11 13:24:57 thomas-lt kernel: usbcore: registered new interface
+>> driver dvb_usb_af9015
+>>
+>>
+>> if the stick is connected at boot time everything is working correctly.
+>>
+>> can someone please give me a hint where to look for the problem?
+>>
+>> version is af9015-e0e0e4ee5b33
+> 
+> you are not alone with this problem. It only happens 2.6.27 kernels.
+> Looks like it does not reconnect device in the USB-bus as it should. I
+> don't have access to 2.6.27 kernel yet, so I cannot examine it more.
+> Hopefully there is someone who could fix that soon... I think good place
+> to test fix is add some sleep (msleep(100)) before/after RECONNECT_USB
+> -command around line 685 in af9015.c file. The other solution could be
+> to remove whole RECONNECT_USB (after firmware download) and set
+> no_reconnect -flag.
+> 
+>>
+>>
+>> Best Regards
+>> Thomas
+> 
+> regards
+> Antti
 
-
---===============0880870676==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+[:O]###[O:]
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0880870676==--
