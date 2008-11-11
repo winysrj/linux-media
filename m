@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp1.dbmail.com ([160.92.190.1])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <cricky@dbmail.com>) id 1Kwif2-0006Hw-V9
-	for linux-dvb@linuxtv.org; Sun, 02 Nov 2008 20:30:58 +0100
-Received: from [192.168.1.212] (152.250-226-89.dsl.completel.net
-	[89.226.250.152])
-	by mwumf0204.dbmail.com (Postfix) with ESMTP id 1E31320000A3
-	for <linux-dvb@linuxtv.org>; Sun,  2 Nov 2008 20:30:22 +0100 (CET)
-Message-ID: <490DFFD3.3030806@dbmail.com>
-Date: Sun, 02 Nov 2008 20:30:27 +0100
-From: CRicky <cricky@dbmail.com>
+	(envelope-from <crope@iki.fi>) id 1KzuyN-0002TH-OF
+	for linux-dvb@linuxtv.org; Tue, 11 Nov 2008 16:16:09 +0100
+Message-ID: <4919A1B3.4060304@iki.fi>
+Date: Tue, 11 Nov 2008 17:16:03 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Bad firmware download link for TDA10046
+To: Thomas <thomas@ic3s.de>
+References: <491980CC.3000708@ic3s.de>
+In-Reply-To: <491980CC.3000708@ic3s.de>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] af9015 problem on fedora rawhide 9.93 with 2.6.27x
+ kernel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,30 +26,56 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
-I have a pinnacle PCTV PCI 310i, and after installing new linux, I 
-wanted to download firmware TDA10045 and TDA10046. For the first, no 
-issue, zip is donwloaded, and file is correctly extracted, but for 
-TDA10046, I get a HTTP 404 error.
-It seems that they changed the link to the file. So I have checked and 
-found the new one:
-http://www.technotrend.de/Dokumente/87/software/219/TT_PCI_2.19h_28_11_2006.zip
-(seen from http://www.technotrend.de/2755/Downloads.html)
-
-So, in the get_dvb_firmware script, I have replaced (for TDA10046 
-subroutine), the bad following link by the one I indicated above:
-
-my $url = "http://technotrend-online.com/download/software/219/$sourcefile";
-=>
-my $url = "http://technotrend.de/Dokumente/87/software/219/$sourcefile";
+hello
 
 
-Sorry, I did not get it from CVS, so I did not make any patch.
+Thomas wrote:
+> Hi List,
+> 
+> 
+> since fedora use 2.6.27 kernels this
+> is all what happens when i plug in the stick:
+> 
+> Nov 11 13:24:56 thomas-lt kernel: usb 2-6: new high speed USB device using ehci_hcd and address 3
+> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: configuration #1 chosen from 1 choice
+> Nov 11 13:24:57 thomas-lt kernel: Afatech DVB-T 2: Fixing fullspeed to highspeed interval: 16 -> 8
+> Nov 11 13:24:57 thomas-lt kernel: input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:1d.7/usb2/2-6/2-6:1.1/input/input9
+> Nov 11 13:24:57 thomas-lt kernel: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:1d.7-6
+> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: New USB device found, idVendor=15a4, idProduct=9016
+> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: Product: DVB-T 2
+> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: Manufacturer: Afatech
+> Nov 11 13:24:57 thomas-lt kernel: usb 2-6: SerialNumber: 010101010600001
+> Nov 11 13:24:57 thomas-lt kernel: dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in cold state, will try to load a firmware
+> Nov 11 13:24:57 thomas-lt kernel: firmware: requesting dvb-usb-af9015.fw
+> Nov 11 13:24:57 thomas-lt kernel: dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+> Nov 11 13:24:57 thomas-lt kernel: usbcore: registered new interface driver dvb_usb_af9015
+> 
+> 
+> if the stick is connected at boot time everything is working correctly.
+> 
+> can someone please give me a hint where to look for the problem?
+> 
+> version is af9015-e0e0e4ee5b33
 
-Best regards,
-CRicky.
+you are not alone with this problem. It only happens 2.6.27 kernels. 
+Looks like it does not reconnect device in the USB-bus as it should. I 
+don't have access to 2.6.27 kernel yet, so I cannot examine it more. 
+Hopefully there is someone who could fix that soon... I think good place 
+to test fix is add some sleep (msleep(100)) before/after RECONNECT_USB 
+-command around line 685 in af9015.c file. The other solution could be 
+to remove whole RECONNECT_USB (after firmware download) and set 
+no_reconnect -flag.
 
+> 
+> 
+> Best Regards
+> Thomas
+
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
