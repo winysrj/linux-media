@@ -1,24 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mtaout01-winn.ispmail.ntl.com ([81.103.221.47])
+Received: from u15184586.onlinehome-server.com ([82.165.244.70])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <techno-mole@ntlworld.com>) id 1L5K69-0003ls-Rf
-	for linux-dvb@linuxtv.org; Wed, 26 Nov 2008 14:06:31 +0100
-Received: from aamtaout03-winn.ispmail.ntl.com ([81.103.221.35])
-	by mtaout01-winn.ispmail.ntl.com
-	(InterMail vM.7.08.04.00 201-2186-134-20080326) with ESMTP id
-	<20081126130553.XVAG1869.mtaout01-winn.ispmail.ntl.com@aamtaout03-winn.ispmail.ntl.com>
-	for <linux-dvb@linuxtv.org>; Wed, 26 Nov 2008 13:05:53 +0000
-Received: from [192.168.0.100] (really [82.21.151.49])
-	by aamtaout03-winn.ispmail.ntl.com
-	(InterMail vG.2.02.00.01 201-2161-120-102-20060912) with ESMTP id
-	<20081126130552.GNQL2093.aamtaout03-winn.ispmail.ntl.com@[192.168.0.100]>
-	for <linux-dvb@linuxtv.org>; Wed, 26 Nov 2008 13:05:52 +0000
-Message-ID: <492D49AE.7070103@ntlworld.com>
-Date: Wed, 26 Nov 2008 13:05:50 +0000
-From: dan <techno-mole@ntlworld.com>
+	(envelope-from <mark@metrofindings.com>) id 1KzhUd-0005MO-BP
+	for linux-dvb@linuxtv.org; Tue, 11 Nov 2008 01:52:32 +0100
+From: Mark Kimsal <mark@metrofindings.com>
+To: "Michael Krufky" <mkrufky@linuxtv.org>
+Date: Mon, 10 Nov 2008 19:51:53 -0500
+References: <200810160925.51556.mark@metrofindings.com>
+	<200810170957.39975.mark@metrofindings.com>
+	<37219a840811081258t484f4bc8ib86111e080bff1e2@mail.gmail.com>
+In-Reply-To: <37219a840811081258t484f4bc8ib86111e080bff1e2@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Kworld Plus TV Hybrid pci card (model dvb-t 210se)
+Content-Disposition: inline
+Message-Id: <200811101951.53108.mark@metrofindings.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] Add syntek corp device to au0828
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,54 +28,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello.
+On Saturday 08 November 08, Michael Krufky wrote:
+> On Fri, Oct 17, 2008 at 8:57 AM, Mark Kimsal <mark@metrofindings.com> wrote:
+> > On Thursday 16 October 2008 11:11:39 am you wrote:
+> >> I thought this stick had an MT2130 inside -- looks like you've got
+> >> another revision with a TDA18271... very interesting :-)
+> >>
+> It's definitely not a "woodbury", but if the woodbury configuration is
+> working for you, then it could be similar.
+>
+> The really strange thing is that I have a device in my hand with usb
+> ID 05e1:0400 .  I opened it up, and there is an mt2130 and an au8502.
+>
+> This is _not_ a tda18271c2 and an au8522.  So, the fact that the
+> tda18271c2 + au8522 driver combination is working for you tells us
+> that multiple configurations are out there that all have the same usb
+> ID.
+> Would it be possible for you to open up the device and take some
+> hi-res digital photos?
 
-I have recently purchased a Kworld pci tv card (Kworld PLus Tv Hybrid
-pci card, model dvb-t 10se)
-Now although I have it working on kubuntu 8.10 (intrepid) using kaffeine
-(that was the only one that it did actually work on) Im wondering about
-drivers for the card as I am having some small picture quality issues.
+I have updated the wiki with a hi-res photo.  I can e-mail an even higher 
+resolution image off-list if it is required.  Contact my directly for shots 
+of the back of the device (nothing interesting), my stock photos are twice as 
+large as what's on the wiki.
 
-Ive been tweaking the de-interlacing and various other settings, but the
-picture is choppy at best.
-Im using the card on a desktop system, the card is using the arial on
-the roof and its also passing through a booster (one compatible with
-digital tv signals as well as analogue)
-
-As I have a dual boot set up I also use the tv card on xp, and it works
-fine and the picture quality is good, and very rarely changes from being
-good.
-
-But I just cant seem to get the same picture quality on kubuntu, the
-only kworld card supported according to the dvb-t wiki is the dvb-t 220
-which uses a philips saa7134 chip, my card (if i run lspci in a
-terminal) comes up as -
-
-" 01:05.0 Multimedia controller: Philips Semiconductors
-SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1) "
-
-So I am wondering if there are drivers for this specific card ? maybe I
-would need to compile them myself ? and also if anyone has the same card
-and how it runs for them.
-I have also thought that the transmitter info might be a little off, I
-live in norfolk (uk) and the nearest tv transmitter is Tacolneston (Im
-too far from sandy heath, which is the nearest after Tacolneston) I did
-have some trouble finding the info for this transmitter, and although if
-I use it (eg - with kaffeine in the dvb-t file as uk-Tacolneston)
-kaffeine does pick up all the channels Im wondering if the frequencies
-are out a little this may affect the reception ?
-
-The other curious thing is that as I mentioned Im using kaffeine as I
-found mythtv almost impossible to setup and kaffeine worked more less
-straight away, the kaffeine version im using is in the repos for kubuntu
-and it comes up as 0.8.6, according to a user on the kaffeine forums I
-should be able to set kaffeine to " auto " scan, which as far as I can
-tell makes it perform a blind scan and in theory should pick up any
-channels it finds, but I dont have the " auto " scan feature, so does
-nayone else use kaffeine and have they run into this problem ?
-
-cheers in advance for any help.
-
+http://linuxtv.org/wiki/index.php/Sabrent_TV-USBHD
 
 _______________________________________________
 linux-dvb mailing list
