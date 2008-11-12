@@ -1,19 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADMvmAj026742
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 17:57:48 -0500
-Received: from QMTA01.westchester.pa.mail.comcast.net
-	(qmta01.westchester.pa.mail.comcast.net [76.96.62.16])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mADMueTG024639
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 17:56:41 -0500
-Message-ID: <491CB0A6.9080509@personnelware.com>
-Date: Thu, 13 Nov 2008 16:56:38 -0600
-From: Carl Karsten <carl@personnelware.com>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Subject: minimum v4l2 api 
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mACKVxU8022727
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 15:31:59 -0500
+Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mACKVZtj027066
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 15:31:49 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de, video4linux-list@redhat.com
+Date: Wed, 12 Nov 2008 21:29:42 +0100
+Message-Id: <1226521783-19806-12-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1226521783-19806-11-git-send-email-robert.jarzmik@free.fr>
+References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-2-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-3-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-4-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-5-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-6-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-7-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-8-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-9-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-10-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-11-git-send-email-robert.jarzmik@free.fr>
+Cc: 
+Subject: [PATCH 11/13] pxa_camera: check that YUV formats are always 8 bit
+	wide
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,26 +35,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Apparently vivi is messed up enough that maybe it makes sense to write a new
-test driver.
+The pxa only accepts YUV formats only when 8 bit bus mode is
+selected. Add a check to ensure the right bus mode was
+selected when trying to use 8 bit mode.
 
-What is the minimum interface a v4l2 driver could have?
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/video/pxa_camera.c |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
 
-Something like: it registers itself as /dev/videoN, and
-QueryCaps returns nothing.
-It does not return any image. (yeah ?)
-It can be unloaded.
-
-and anything else that someone thinks is required for a well behaved driver that
-follows the spec.
-
-The plan is to start with that, get it and my tester working in harmony, then
-start adding things to both sides of the fence.  I am thinking additional
-features will be enabled via module parameters, so that it can always be dumbed
-down back to it's minimum.
-
-Carl K
-
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 3e7ce6f..cd9d09e 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -781,12 +781,34 @@ static int test_platform_param(struct pxa_camera_dev *pcdev,
+ 	return 0;
+ }
+ 
++static int is_yuv_format(__u32 pixfmt)
++{
++	switch (pixfmt) {
++	case V4L2_PIX_FMT_YVYU:
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_VYUY:
++	case V4L2_PIX_FMT_YUV422P:
++		return 1;
++	default:
++		return 0;
++	}
++}
++
+ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+ {
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+ 	struct pxa_camera_dev *pcdev = ici->priv;
+ 	unsigned long dw, bpp, bus_flags, camera_flags, common_flags;
+ 	u32 cicr0, cicr1, cicr4 = 0;
++
++	/*
++	 * As stated in PXA developer's manual, YUV formats only accept 8 bit
++	 * wide buswidth.
++	 */
++	if (is_yuv_format(pixfmt))
++		icd->buswidth = 8;
++
+ 	int ret = test_platform_param(pcdev, icd->buswidth, &bus_flags);
+ 
+ 	if (ret < 0)
+-- 
+1.5.6.5
 
 --
 video4linux-list mailing list
