@@ -1,26 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAEGXQc7032429
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 11:33:26 -0500
-Received: from tomts33-srv.bellnexxia.net (tomts33-srv.bellnexxia.net
-	[209.226.175.107])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAEGXAqR014240
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 11:33:10 -0500
-Received: from toip38-bus.srvr.bell.ca ([67.69.240.39])
-	by tomts33-srv.bellnexxia.net
-	(InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP id
-	<20081114163310.VDGX1087.tomts33-srv.bellnexxia.net@toip38-bus.srvr.bell.ca>
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 11:33:10 -0500
-From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
-To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Date: Fri, 14 Nov 2008 11:32:39 -0500
-Message-ID: <09CD2F1A09A6ED498A24D850EB101208165C79D399@Colmatec004.COLMATEC.INT>
-Content-Language: fr-CA
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Subject: crop problem... or scaling with em28xx with 2860empiatech chipset
- kworld usb device
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mACKW3MA022779
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 15:32:03 -0500
+Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mACKVsMf027304
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 15:31:54 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de, video4linux-list@redhat.com
+Date: Wed, 12 Nov 2008 21:29:43 +0100
+Message-Id: <1226521783-19806-13-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1226521783-19806-12-git-send-email-robert.jarzmik@free.fr>
+References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-2-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-3-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-4-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-5-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-6-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-7-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-8-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-9-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-10-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-11-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-12-git-send-email-robert.jarzmik@free.fr>
+Cc: 
+Subject: [PATCH 12/13] pxa_camera: Fix YUV format handling.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,83 +35,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-HI, I got a KWORLD usb 28000d
+Allows all YUV formats on pxa interface. Even if PXA capture
+interface expects data in UYVY format, we allow all formats
+considering the pxa bus is not making any translation.
 
-detected by lspci 2860 emphia tec chipset.
+For the special YUV planar format, we translate the pixel
+format asked to the sensor to UYVY, which is the bus byte
+order necessary (out of the sensor) for the pxa to make the
+correct translation.
 
-Bus 006 Device 011: ID eb1a:2860 eMPIA Technology, Inc.
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/video/pxa_camera.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-
-When I use V4L2 with experimental drivers OR NOT ex from mcentral, I want to get NTSC 640 X 480 pictures
-
-(at least 720x480 --> full crop cap size from v4l2 application)
-
-But, unfortunately, If I use this standard I have some lines at the bottom of the pictures empty (black)
-
-If I Use PAL_M, theres black lines at the right (12 pixel)
-
-i use this for video treatment and I dont want to use scaling options... cause I will lose precision, accuracy
-
-My device with standard modprobe launch is detected like a card=53 -> Typhoon DVD Maker
-
-I used others like generic 2860
-
-I got no picture or same problem
-
-I think theres no eeprom in this version of the dvd maker. maybe correct me
-
-but thats why the driver with standard modprobe command choose to use typhoon really similar video grabber (external physical look )
-
-http://www.rueducommerce.fr/Photo-Video-Numerique/Acquisition/Boitier-Externe/TYPHOON/376625-DVD-Maker-Boitier-d-acquisition-Video-pour-cassettes-VHS.htm
-
-
-Can u explain me how to use the not experimental version of the driver or it will change nothing... question mark
-
-http://mcentral.de/screenshots/full/xgl_pinnacle_pctv_usb2_analog.jpg
-
-look this picture similar problem
-
-I<M from canada, I think my produtcs were ordered by tiger direct
-
-http://www.kworlduk.com/products/usb2800d/index.php
-
-I only found the dvd maker on the uk site
-
-but have a look at http://www.kworldcomputer.com/
-
-IF any details I can add to this email me back!
-
-
-[10339.953650] saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-[10339.966602] attach_inform: saa7113 detected.
-[10339.977444] em28xx #0: found i2c device @ 0x4a [saa7113h]
-[10340.000810] em28xx #0: V4L2 device registered as /dev/video0
-[10340.000813] em28xx #0: Found Hauppauge WinTV USB 2
-[10340.000831] usbcore: registered new interface driver em28xx
-[10427.436411] usbcore: deregistering interface driver em28xx
-[10427.436452] em28xx #0: disconnecting em28xx#0 video
-[10427.436454] em28xx #0: V4L2 VIDEO devices /dev/video0 deregistered
-[10428.442900] Linux video capture interface: v2.00
-[10428.450875] em28xx v4l2 driver version 0.0.1 loaded
-[10428.450915] em28xx new video device (eb1a:2860): interface 0, class 255
-[10428.450918] em28xx: device is attached to a USB 2.0 bus
-[10428.450920] em28xx: you're using the experimental/unstable tree from mcentral.de
-[10428.450922] em28xx: there's also a stable tree available but which is limited to
-[10428.450923] em28xx: linux <=2.6.19.2
-[10428.450924] em28xx: it's fine to use this driver but keep in mind that it will move
-[10428.450926] em28xx: to http://mcentral.de/hg/~mrec/v4l-dvb-kernel as soon as it's
-[10428.450927] em28xx: proved to be stable
-[10428.450930] em28xx #0: Alternate settings: 8
-[10428.450931] em28xx #0: Alternate setting 0, max size= 0
-[10428.450933] em28xx #0: Alternate setting 1, max size= 0
-[10428.450934] em28xx #0: Alternate setting 2, max size= 1448
-[10428.450936] em28xx #0: Alternate setting 3, max size= 2048
-[10428.450938] em28xx #0: Alternate setting 4, max size= 2304
-[10428.450939] em28xx #0: Alternate setting 5, max size= 2580
-[10428.450941] em28xx #0: Alternate setting 6, max size= 2892
-[10428.450942] em28xx #0: Alternate setting 7, max size= 3072
-[10428.500907] saa7115 1-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-[10428.513857] attach_inform: saa7113 detected.
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index cd9d09e..fde14e7 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -894,7 +894,17 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+ 	case V4L2_PIX_FMT_YUV422P:
+ 		pcdev->channels = 3;
+ 		cicr1 |= CICR1_YCBCR_F;
++		/*
++		 * Normally, pxa bus wants as input UYVY format.
++		 * We allow all YUV formats, as no translation is used, and the
++		 * YUV stream is just passed through without any transformation.
++		 * Note that UYVY is the only format that should be used if pxa
++		 * framebuffer Overlay2 is used.
++		 */
++	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_VYUY:
+ 	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_YVYU:
+ 		cicr1 |= CICR1_COLOR_SP_VAL(2);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB555:
+-- 
+1.5.6.5
 
 --
 video4linux-list mailing list
