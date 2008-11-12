@@ -1,25 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f11.google.com ([209.85.217.11])
+Received: from qw-out-2122.google.com ([74.125.92.25])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <eduardhc@gmail.com>) id 1L4eWC-0001Jh-4j
-	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 17:42:37 +0100
-Received: by gxk4 with SMTP id 4so1937218gxk.17
-	for <linux-dvb@linuxtv.org>; Mon, 24 Nov 2008 08:42:02 -0800 (PST)
-Message-ID: <617be8890811240823x51995503jd1de6337e11bd90@mail.gmail.com>
-Date: Mon, 24 Nov 2008 17:23:45 +0100
-From: "Eduard Huguet" <eduardhc@gmail.com>
-To: "Darron Broad" <darron@kewl.org>
-In-Reply-To: <20093.1227537387@kewl.org>
+	(envelope-from <alex.betis@gmail.com>) id 1L0MlD-0005YM-CO
+	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 21:56:25 +0100
+Received: by qw-out-2122.google.com with SMTP id 9so414095qwb.17
+	for <linux-dvb@linuxtv.org>; Wed, 12 Nov 2008 12:56:18 -0800 (PST)
+Message-ID: <c74595dc0811121256h505d71e1q3468e061dfefc3df@mail.gmail.com>
+Date: Wed, 12 Nov 2008 22:56:18 +0200
+From: "Alex Betis" <alex.betis@gmail.com>
+To: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <20081112023112.94740@gmx.net>
 MIME-Version: 1.0
-References: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>
-	<29500.1227284783@kewl.org>
-	<617be8890811240346r3aae6f31rfab45804419bfade@mail.gmail.com>
-	<18885.1227529079@kewl.org>
-	<617be8890811240423o6b8fc2e4jc94021cb14ec271a@mail.gmail.com>
-	<617be8890811240626y6452709bk34b276c21a9ea5c6@mail.gmail.com>
-	<20093.1227537387@kewl.org>
+References: <20081112023112.94740@gmx.net>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Fwd: Distorted analog sound when using an HVR-3000
+Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,111 +21,113 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0467346737=="
+Content-Type: multipart/mixed; boundary="===============0587610837=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0467346737==
+--===============0587610837==
 Content-Type: multipart/alternative;
-	boundary="----=_Part_121719_2975681.1227543825911"
+	boundary="----=_Part_13327_10211020.1226523378917"
 
-------=_Part_121719_2975681.1227543825911
+------=_Part_13327_10211020.1226523378917
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hi,
-    I've tested you driver compared to the offcial LinuxTV HG tree, and I
-**think** (can be wrong, though...) that I'm getting "correct" audio when
-using a higher input volume. I mean, both drivers delivers crackly sound
-when given a high volume input, but yours seems to hold up a higher volume
-level before starting to fail.
+On Wed, Nov 12, 2008 at 4:31 AM, Hans Werner <HWerner4@gmx.de> wrote:
 
-I hope this means anything to you... :D
+> I have attached two patches for scan-s2 at
+> http://mercurial.intuxication.org/hg/scan-s2.
+>
+> Patch1: Some fixes for problems I found. QAM_AUTO is not supported by all
+> drivers,
+> in particular the HVR-4000, so one needs to use QPSK as the default and
+> ensure that
+> settings are parsed properly from the network information -- the new S2
+> FECs and
+> modulations were not handled.
+>
+> Patch2: Add DiSEqC 1.2 rotor support. Use it like this to move the dish to
+> the correct
+> position for the scan:
+>  scan-s2 -r 19.2E -n dvb-s/Astra-19.2E
+>  or
+>  scan-s2 -R 2 -n dvb-s/Astra-19.2E
+>
+> A file (rotor.conf) listing the rotor positions is used (NB: rotors vary --
+> do check your
+> rotor manual).
+>
+Hans,
+I'm looking on your QPSK diff and I disagree with the changes.
+I think the concept of having all missing parameters as AUTO values should
+have modulation, rolloff and FEC set to AUTO enumeration.
+If your card can't handle the AUTO setting, so you have to specify it in the
+frequency file.
+Applying your changes will break scaning S2 channels for a freq file with
+the following line:
+S 11258000 H 27500000
+or even
+S2 11258000 H 27500000
 
-Regards,
-  Eduard
+Since it will order the driver to use QPSK modulation, while there should be
+8PSK or AUTO.
+I don't really know how rolloff=35 will affect since its the default in some
+drivers, but again, AUTO setting was intended for that purpose,
+to let the card/driver decide what parameters should be used.
 
 
-
-2008/11/24 Darron Broad <darron@kewl.org>
-
-> In message <617be8890811240626y6452709bk34b276c21a9ea5c6@mail.gmail.com>,
-> "Eduard Huguet" wrote:
->
-> hiya.
->
-> >Ok, problem solved: I needed to define a V4L "recording profile" in
-> MythTV,
-> >so sound gets correctly sampled at 48000. Once done, the sound is perfect.
->
-> okay good.
->
-> >Thank you very much for your help. Kind regards,
->
-> no problem.
->
-> BTW, do I understand that you needed these changes
-> for S-VIDEO/COMPOSITE LINE-IN or did you solve the problem by
-> just lowering the input volume from your input device? I don't
-> have that opportunity personally with one DVD player.
->
-> >  Eduard Huguet
->
-> bye
+> Regards,
+> Hans
 >
 > --
+> Release early, release often.
 >
->  // /
-> {:)==={ Darron Broad <darron@kewl.org>
->  \\ \
->
+> Ist Ihr Browser Vista-kompatibel? Jetzt die neuesten
+> Browser-Versionen downloaden: http://www.gmx.net/de/go/browser
 >
 
-------=_Part_121719_2975681.1227543825911
+------=_Part_13327_10211020.1226523378917
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hi, <br>&nbsp;&nbsp;&nbsp; I&#39;ve tested you driver compared to the offcial LinuxTV HG tree, and I **think** (can be wrong, though...) that I&#39;m getting &quot;correct&quot; audio when using a higher input volume. I mean, both drivers delivers crackly sound when given a high volume input, but yours seems to hold up a higher volume level before starting to fail.<br>
-<br>I hope this means anything to you... :D<br><br>Regards, <br>&nbsp; Eduard<br><br><br><br><div class="gmail_quote">2008/11/24 Darron Broad <span dir="ltr">&lt;<a href="mailto:darron@kewl.org">darron@kewl.org</a>&gt;</span><br>
-<blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">In message &lt;<a href="mailto:617be8890811240626y6452709bk34b276c21a9ea5c6@mail.gmail.com">617be8890811240626y6452709bk34b276c21a9ea5c6@mail.gmail.com</a>&gt;, &quot;Eduard Huguet&quot; wrote:<br>
-
+<div dir="ltr">On Wed, Nov 12, 2008 at 4:31 AM, Hans Werner <span dir="ltr">&lt;<a href="mailto:HWerner4@gmx.de">HWerner4@gmx.de</a>&gt;</span> wrote:<br><div class="gmail_quote"><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
+I have attached two patches for scan-s2 at <a href="http://mercurial.intuxication.org/hg/scan-s2" target="_blank">http://mercurial.intuxication.org/hg/scan-s2</a>.<br>
 <br>
-hiya.<br>
-<div class="Ih2E3d"><br>
-&gt;Ok, problem solved: I needed to define a V4L &quot;recording profile&quot; in MythTV,<br>
-&gt;so sound gets correctly sampled at 48000. Once done, the sound is perfect.<br>
+Patch1: Some fixes for problems I found. QAM_AUTO is not supported by all drivers,<br>
+in particular the HVR-4000, so one needs to use QPSK as the default and ensure that<br>
+settings are parsed properly from the network information -- the new S2 FECs and<br>
+modulations were not handled.<br>
 <br>
-</div>okay good.<br>
-<div class="Ih2E3d"><br>
-&gt;Thank you very much for your help. Kind regards,<br>
+Patch2: Add DiSEqC 1.2 rotor support. Use it like this to move the dish to the correct<br>
+position for the scan:<br>
+&nbsp;scan-s2 -r 19.2E -n dvb-s/Astra-19.2E<br>
+&nbsp;or<br>
+&nbsp;scan-s2 -R 2 -n dvb-s/Astra-19.2E<br>
 <br>
-</div>no problem.<br>
-<br>
-BTW, do I understand that you needed these changes<br>
-for S-VIDEO/COMPOSITE LINE-IN or did you solve the problem by<br>
-just lowering the input volume from your input device? I don&#39;t<br>
-have that opportunity personally with one DVD player.<br>
-<br>
-&gt; &nbsp;Eduard Huguet<br>
-<br>
-bye<br>
+A file (rotor.conf) listing the rotor positions is used (NB: rotors vary -- do check your<br>
+rotor manual).<br>
+</blockquote><div>Hans,<br>I&#39;m looking on your QPSK diff and I disagree with the changes.<br>I think the concept of having all missing parameters as AUTO values should have modulation, rolloff and FEC set to AUTO enumeration.<br>
+If your card can&#39;t handle the AUTO setting, so you have to specify it in the frequency file.<br>Applying your changes will break scaning S2 channels for a freq file with the following line:<br>S 11258000 H 27500000<br>
+or even<br>S2 11258000 H 27500000<br><br>Since it will order the driver to use QPSK modulation, while there should be 8PSK or AUTO.<br>I don&#39;t really know how rolloff=35 will affect since its the default in some drivers, but again, AUTO setting was intended for that purpose,<br>
+to let the card/driver decide what parameters should be used.<br><br></div><blockquote class="gmail_quote" style="border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;"><br>
+Regards,<br>
+Hans<br>
 <font color="#888888"><br>
 --<br>
+Release early, release often.<br>
 <br>
-&nbsp;// /<br>
-{:)==={ Darron Broad &lt;<a href="mailto:darron@kewl.org">darron@kewl.org</a>&gt;<br>
-&nbsp;\\ \<br>
-<br>
-</font></blockquote></div><br>
+Ist Ihr Browser Vista-kompatibel? Jetzt die neuesten<br>
+Browser-Versionen downloaden: <a href="http://www.gmx.net/de/go/browser" target="_blank">http://www.gmx.net/de/go/browser</a><br>
+</font></blockquote></div><br></div>
 
-------=_Part_121719_2975681.1227543825911--
+------=_Part_13327_10211020.1226523378917--
 
 
---===============0467346737==
+--===============0587610837==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -141,4 +137,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0467346737==--
+--===============0587610837==--
