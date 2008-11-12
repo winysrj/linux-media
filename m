@@ -1,18 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from ug-out-1314.google.com ([66.249.92.170])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1L4hBh-0005GG-LT
-	for linux-dvb@linuxtv.org; Mon, 24 Nov 2008 20:33:38 +0100
-Message-ID: <492B0182.2030602@gmail.com>
-Date: Mon, 24 Nov 2008 23:33:22 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L0FeD-0001VP-DZ
+	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 14:20:43 +0100
+Received: by ug-out-1314.google.com with SMTP id x30so1056032ugc.16
+	for <linux-dvb@linuxtv.org>; Wed, 12 Nov 2008 05:20:38 -0800 (PST)
+Date: Wed, 12 Nov 2008 14:20:24 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Alex Betis <alex.betis@gmail.com>
+In-Reply-To: <c74595dc0811120459w430cdamf92318e39eaae88d@mail.gmail.com>
+Message-ID: <alpine.DEB.2.00.0811121404280.22461@ybpnyubfg.ybpnyqbznva>
+References: <20081112023112.94740@gmx.net>
+	<c74595dc0811120243m4819b86bk84a5d23c8e00e467@mail.gmail.com>
+	<alpine.DEB.2.00.0811121212280.22461@ybpnyubfg.ybpnyqbznva>
+	<c74595dc0811120408l4ef3cf92g9b1efc850e3b0b48@mail.gmail.com>
+	<alpine.DEB.2.00.0811121332240.22461@ybpnyubfg.ybpnyqbznva>
+	<c74595dc0811120459w430cdamf92318e39eaae88d@mail.gmail.com>
 MIME-Version: 1.0
-To: Klaus Schmidinger <Klaus.Schmidinger@cadsoft.de>
-References: <13077.130.36.62.140.1227542142.squirrel@webmail.xs4all.nl>
-	<492AD583.4040809@cadsoft.de>
-In-Reply-To: <492AD583.4040809@cadsoft.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,41 +32,69 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Klaus Schmidinger wrote:
-> On 24.11.2008 16:55, Niels Wagenaar wrote:
->> ...
->> For the time being I have only two options which will work without any
->> additional patching in S2API:
->>
->> - Let the user set this as an option
->> - Use my VUP (very ugly patch) by checking the deliverystem for the string
->> "DVBS2".
-> 
-> Both are ugly workarounds and any reasonable API requiring them instead
-> of simply reporting the -S2 capability of a device should
-> be ashamed, go home and do its homework.
+On Wed, 12 Nov 2008, Alex Betis wrote:
 
-ACK
+> > +if (tn.modulation & 0x04) {
+> > +       printf("  DVB-S2");
+> > +  if ((tn.modulation & 0x03) == 0x01) printf (" QPSK");
+> > +  if ((tn.modulation & 0x03) == 0x02) printf (" 8PSK");
 
-> For the time being I'll work with my suggested FE_CAN_2ND_GEN_MODULATION
-> patch - until somebody can suggest a different way of doing this (without
-> parsing strings or requiring the user to do it).
+> I must be missing something... How this code is aligned to the following
+> modulation enumeration?
+> QPSK enumeration has value 0, 8PSK value 9.
 
-ACK.
+I don't think it is; it's based on parsing the NIT tables.
 
-That is a saner way of doing it rather than anything else, as it stands.
+Now that I look more at my code, this part of which was
+hacked many months ago and which has since passed from my
+conscious memory (damn you, beer, solution to and cause of
+all my problems), the following code snippets appear to be
+needed for context.  Sorry, I honestly can't remember what
+I needed to hack into dvb-apps/scan to get this, and what
+was already present but unused...
 
-Anyway, we won't be seeing professional device support as it stands with
-the current API anytime soon, so as it stands the better alternative is
-thus.
-
-But it would be nice to have something shorter: say FE_IS_2G or
-something that way, for the minimal typing.
+@@ -143,6 +150,7 @@
+        unsigned int wrong_frequency      : 1;  /* DVB-T with other_frequency_flag */
+        int n_other_f;
+        uint32_t *other_f;                      /* DVB-T freqeuency-list descriptor */
++       int modulation; /* XXX HACK */
+ };
 
 
-Regards,
-Manu
 
+@@ -433,6 +449,7 @@
+                                                         buf[10],
+                                                         buf[11],
+                                                         buf[12] & 
+0xf0);
++       t->modulation = buf[8] & 0x07;
+
+        t->polarisation = (buf[8] >> 5) & 0x03;
+        t->param.inversion = spectral_inversion;
+
+
+
+Sorry for the omission.  Even though I did sleep twelve
+hours last night, it hasn't made up for only sleeping
+two to three hours nightly for the past weeks...
+
+
+Unfortunately, a hex dump of the NIT data isn't so easy
+to follow, but here's a short example of how `dvbsnoop'
+spews out data for one select transponder from the tables:
+
+                  Frequency: 19234969 (=  12.58099 GHz)
+                  Orbital_position: 402 (=  19.2)
+                  West_East_flag: 1 (0x01)  [= EAST]
+                  Polarisation: 1 (0x01)  [= linear - vertical]
+                  Kind: 1 (0x01)  [= DVB-S2]
+                  Roll Off Faktor: 0 (0x00)  [= Alpha 0.35]
+                  Modulation_type: 2 (0x02)  [= 8PSK]
+                  Symbol_rate: 2228224 (=  22.0000)
+                  FEC_inner: 2 (0x02)  [= 2/3 conv. code rate]
+
+
+baryr bouwsma
 
 _______________________________________________
 linux-dvb mailing list
