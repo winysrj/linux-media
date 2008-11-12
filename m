@@ -1,18 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAD7hiTK028185
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 02:43:44 -0500
-Received: from wa-out-1112.google.com (wa-out-1112.google.com [209.85.146.176])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAD7hVQi032178
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 02:43:32 -0500
-Received: by wa-out-1112.google.com with SMTP id j4so396462wah.19
-	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 23:43:31 -0800 (PST)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: video4linux-list@redhat.com
-Date: Thu, 13 Nov 2008 16:42:19 +0900
-Message-Id: <20081113074219.6786.65651.sendpatchset@rx1.opensource.se>
-Cc: g.liakhovetski@gmx.de
-Subject: [PATCH] video: nv12/nv21 support for the sh_mobile_ceu driver
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mACLKmed018733
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 16:20:48 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mACLJe5J024523
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 16:19:41 -0500
+Date: Wed, 12 Nov 2008 22:19:40 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <1226521783-19806-10-git-send-email-robert.jarzmik@free.fr>
+Message-ID: <Pine.LNX.4.64.0811122216520.9188@axis700.grange>
+References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-2-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-3-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-4-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-5-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-6-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-7-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-8-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-9-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-10-git-send-email-robert.jarzmik@free.fr>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 09/13] pxa_camera: use the translation framework
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,278 +35,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Magnus Damm <damm@igel.co.jp>
+Hi Robert,
 
-This patch adds nv12/nv21 mode support to the SuperH Mobile CEU driver.
-These modes are translated by the hardware, and added to the list of
-available modes if the connected camera can output one of the supported
-input modes. Other modes are just handled using data transfer as usual.
+a detailed review will follow, I will need some time for it. Just a couple 
+of quick notes to this one:
 
-The hardware also supports nv16/nv61 which is trivial to add on top of this.
+On Wed, 12 Nov 2008, Robert Jarzmik wrote:
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+no, this one is not from me:-)
+
+> 
+> Use the newly created translation framework for pxa camera
+> host.
+> 
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+>  drivers/media/video/pxa_camera.c |   89 ++++++++++++++++++++++----------------
+>  1 files changed, 52 insertions(+), 37 deletions(-)
+> 
+> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+> index 56aeb07..3e7ce6f 100644
+> --- a/drivers/media/video/pxa_camera.c
+> +++ b/drivers/media/video/pxa_camera.c
+
+[snip]
+
+> +static struct soc_camera_format_translate pxa_pixfmt_translations[] = {
+> +	{ JPG_FMT("CbYCrY 16 bit", 16, V4L2_PIX_FMT_UYVY), V4L2_PIX_FMT_UYVY },
+> +	{ JPG_FMT("CrYCbY 16 bit", 16, V4L2_PIX_FMT_VYUY), V4L2_PIX_FMT_VYUY },
+> +	{ JPG_FMT("YCbYCr 16 bit", 16, V4L2_PIX_FMT_YUYV), V4L2_PIX_FMT_YUYV },
+> +	{ JPG_FMT("YCrYCb 16 bit", 16, V4L2_PIX_FMT_YVYU), V4L2_PIX_FMT_YVYU },
+> +	{ JPG_FMT("YUV planar", 16, V4L2_PIX_FMT_YUV422P), V4L2_PIX_FMT_UYVY },
+> +	{ RGB_FMT("RGB 555", 16, V4L2_PIX_FMT_RGB555), V4L2_PIX_FMT_RGB555 },
+> +	{ RGB_FMT("RGB 565", 16, V4L2_PIX_FMT_RGB565), V4L2_PIX_FMT_RGB565 },
+> +	LAST_FMT_TRANSLATION
+> +};
+> +
+>  /* Should be allocated dynamically too, but we have only one. */
+>  static struct soc_camera_host pxa_soc_camera_host = {
+>  	.drv_name		= PXA_CAM_DRV_NAME,
+>  	.ops			= &pxa_soc_camera_host_ops,
+> +	.translate_fmt		= pxa_pixfmt_translations,
+>  };
+
+Do I understand it right, that with this all Bayer and monochrome formats 
+will stop working with pxa? If so - not good. Remember what we discussed 
+about a default "pass-through" case?
+
+Thanks
+Guennadi
 ---
-
- Depends on the VYUY fourcc.
- I suspect that this change may conflict with at least 4 other patches. =)
-
- drivers/media/video/sh_mobile_ceu_camera.c |  165 +++++++++++++++++++++++++---
- 1 file changed, 150 insertions(+), 15 deletions(-)
-
---- 0001/drivers/media/video/sh_mobile_ceu_camera.c
-+++ work/drivers/media/video/sh_mobile_ceu_camera.c	2008-11-13 16:13:06.000000000 +0900
-@@ -97,6 +97,10 @@ struct sh_mobile_ceu_dev {
- 	struct videobuf_buffer *active;
- 
- 	struct sh_mobile_ceu_info *pdata;
-+
-+	const struct soc_camera_data_format *camera_formats;
-+	int camera_num_formats;
-+	unsigned int camera_fourcc;
- };
- 
- static void ceu_write(struct sh_mobile_ceu_dev *priv,
-@@ -156,6 +160,9 @@ static void free_buffer(struct videobuf_
- 
- static void sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
- {
-+	struct soc_camera_device *icd = pcdev->icd;
-+	unsigned long phys_addr;
-+
- 	ceu_write(pcdev, CEIER, ceu_read(pcdev, CEIER) & ~1);
- 	ceu_write(pcdev, CETCR, ~ceu_read(pcdev, CETCR) & 0x0317f313);
- 	ceu_write(pcdev, CEIER, ceu_read(pcdev, CEIER) | 1);
-@@ -164,11 +171,21 @@ static void sh_mobile_ceu_capture(struct
- 
- 	ceu_write(pcdev, CETCR, 0x0317f313 ^ 0x10);
- 
--	if (pcdev->active) {
--		pcdev->active->state = VIDEOBUF_ACTIVE;
--		ceu_write(pcdev, CDAYR, videobuf_to_dma_contig(pcdev->active));
--		ceu_write(pcdev, CAPSR, 0x1); /* start capture */
-+	if (!pcdev->active)
-+		return;
-+
-+	phys_addr = videobuf_to_dma_contig(pcdev->active);
-+	ceu_write(pcdev, CDAYR, phys_addr);
-+
-+	switch (icd->current_fmt->fourcc) {
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV21:
-+		phys_addr += (icd->width * icd->height);
-+		ceu_write(pcdev, CDACR, phys_addr);
- 	}
-+
-+	pcdev->active->state = VIDEOBUF_ACTIVE;
-+	ceu_write(pcdev, CAPSR, 0x1); /* start capture */
- }
- 
- static int sh_mobile_ceu_videobuf_prepare(struct videobuf_queue *vq,
-@@ -295,6 +312,9 @@ static int sh_mobile_ceu_add_device(stru
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 	int ret = -EBUSY;
-+	const struct soc_camera_data_format *format;
-+	struct soc_camera_data_format *fmt;
-+	int k, yuv_mode_possible;
- 
- 	mutex_lock(&camera_lock);
- 
-@@ -314,6 +334,60 @@ static int sh_mobile_ceu_add_device(stru
- 		msleep(1);
- 
- 	pcdev->icd = icd;
-+
-+	/* check if we can enable NVxx modes and
-+	 * remember the last supported camera fourcc mode
-+	 */
-+
-+	format = NULL;
-+	yuv_mode_possible = 0;
-+	for (k = 0; k < icd->num_formats; k++) {
-+		format = &icd->formats[k];
-+
-+		switch (format->fourcc) {
-+		case V4L2_PIX_FMT_UYVY:
-+		case V4L2_PIX_FMT_VYUY:
-+		case V4L2_PIX_FMT_YUYV:
-+		case V4L2_PIX_FMT_YVYU:
-+			yuv_mode_possible = 1;
-+			pcdev->camera_fourcc = format->fourcc;
-+			break;
-+		}
-+	}
-+
-+	/* override list with translated yuv formats if possible */
-+	if (yuv_mode_possible && format) {
-+		k = icd->num_formats + 2; /* camera formats + NV12 + NV21 */
-+
-+		fmt = kzalloc(sizeof(*icd->formats) * k, GFP_KERNEL);
-+		if (fmt) {
-+			pcdev->camera_formats = icd->formats;
-+			pcdev->camera_num_formats = icd->num_formats;
-+
-+			memcpy(fmt, icd->formats,
-+			       icd->num_formats * sizeof(*fmt));
-+
-+			icd->formats = fmt;
-+			icd->num_formats = k;
-+			icd->current_fmt = &icd->formats[0];
-+
-+			fmt += pcdev->camera_num_formats;
-+			fmt->fourcc = V4L2_PIX_FMT_NV12;
-+			fmt->name = "NV12";
-+			fmt->depth = 12;
-+			fmt->colorspace = format->colorspace;
-+
-+			fmt++;
-+			fmt->fourcc = V4L2_PIX_FMT_NV21;
-+			fmt->name = "NV21";
-+			fmt->depth = 12;
-+			fmt->colorspace = format->colorspace;
-+		} else {
-+			dev_err(&icd->dev, "Unable to add NVxx formats.\n");
-+			ici->ops->remove(icd);
-+			ret = -ENOMEM;
-+		}
-+	}
- err:
- 	mutex_unlock(&camera_lock);
- 
-@@ -342,6 +416,16 @@ static void sh_mobile_ceu_remove_device(
- 	}
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- 
-+	/* restore formats */
-+	if (pcdev->camera_num_formats) {
-+		icd->current_fmt = &pcdev->camera_formats[0];
-+		kfree(icd->formats);
-+		icd->formats = pcdev->camera_formats;
-+		icd->num_formats = pcdev->camera_num_formats;
-+		pcdev->camera_formats = NULL;
-+		pcdev->camera_num_formats = 0;
-+	}
-+
- 	icd->ops->release(icd);
- 
- 	dev_info(&icd->dev,
-@@ -358,6 +442,7 @@ static int sh_mobile_ceu_set_bus_param(s
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 	int ret, buswidth, width, cfszr_width, cdwdr_width;
- 	unsigned long camera_flags, common_flags, value;
-+	int yuv_mode, yuv_lineskip;
- 
- 	camera_flags = icd->ops->query_bus_param(icd);
- 	common_flags = soc_camera_bus_param_compatible(camera_flags,
-@@ -383,7 +468,35 @@ static int sh_mobile_ceu_set_bus_param(s
- 	ceu_write(pcdev, CRCNTR, 0);
- 	ceu_write(pcdev, CRCMPR, 0);
- 
--	value = 0x00000010;
-+	value = 0x00000010; /* data fetch by default */
-+	yuv_mode = yuv_lineskip = 0;
-+
-+	switch (icd->current_fmt->fourcc) {
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV21:
-+		yuv_lineskip = 1; /* skip for NV12/21, no skip for NV16/61 */
-+		yuv_mode = 1;
-+		switch (pcdev->camera_fourcc) {
-+		case V4L2_PIX_FMT_UYVY:
-+			value = 0x00000000; /* Cb0, Y0, Cr0, Y1 */
-+			break;
-+		case V4L2_PIX_FMT_VYUY:
-+			value = 0x00000100; /* Cr0, Y0, Cb0, Y1 */
-+			break;
-+		case V4L2_PIX_FMT_YUYV:
-+			value = 0x00000200; /* Y0, Cb0, Y1, Cr0 */
-+			break;
-+		case V4L2_PIX_FMT_YVYU:
-+			value = 0x00000300; /* Y0, Cr0, Y1, Cb0 */
-+			break;
-+		default:
-+			BUG();
-+		}
-+	}
-+
-+	if (icd->current_fmt->fourcc == V4L2_PIX_FMT_NV21)
-+		value ^= 0x00000100; /* swap U, V to change from NV12->NV21 */
-+
- 	value |= (common_flags & SOCAM_VSYNC_ACTIVE_LOW) ? (1 << 1) : 0;
- 	value |= (common_flags & SOCAM_HSYNC_ACTIVE_LOW) ? (1 << 0) : 0;
- 	value |= (buswidth == 16) ? (1 << 12) : 0;
-@@ -394,16 +507,22 @@ static int sh_mobile_ceu_set_bus_param(s
- 
- 	mdelay(1);
- 
--	width = icd->width * (icd->current_fmt->depth / 8);
--	width = (buswidth == 16) ? width / 2 : width;
--	cfszr_width = (buswidth == 8) ? width / 2 : width;
--	cdwdr_width = (buswidth == 16) ? width * 2 : width;
-+	if (yuv_mode) {
-+		width = icd->width * 2;
-+		width = (buswidth == 16) ? width / 2 : width;
-+		cfszr_width = cdwdr_width = icd->width;
-+	} else {
-+		width = icd->width * ((icd->current_fmt->depth + 7) >> 3);
-+		width = (buswidth == 16) ? width / 2 : width;
-+		cfszr_width = (buswidth == 8) ? width / 2 : width;
-+		cdwdr_width = (buswidth == 16) ? width * 2 : width;
-+	}
- 
- 	ceu_write(pcdev, CAMOR, 0);
- 	ceu_write(pcdev, CAPWR, (icd->height << 16) | width);
--	ceu_write(pcdev, CFLCR, 0); /* data fetch mode - no scaling */
-+	ceu_write(pcdev, CFLCR, 0); /* no scaling */
- 	ceu_write(pcdev, CFSZR, (icd->height << 16) | cfszr_width);
--	ceu_write(pcdev, CLFCR, 0); /* data fetch mode - no lowpass filter */
-+	ceu_write(pcdev, CLFCR, 0); /* no lowpass filter */
- 
- 	/* A few words about byte order (observed in Big Endian mode)
- 	 *
-@@ -417,14 +536,16 @@ static int sh_mobile_ceu_set_bus_param(s
- 	 * using 7 we swap the data bytes to match the incoming order:
- 	 * D0, D1, D2, D3, D4, D5, D6, D7
- 	 */
--	ceu_write(pcdev, CDOCR, 0x00000017);
-+	value = 0x00000017;
-+	if (yuv_lineskip)
-+		value &= ~0x00000010; /* convert 4:2:2 -> 4:2:0 */
-+
-+	ceu_write(pcdev, CDOCR, value);
- 
- 	ceu_write(pcdev, CDWDR, cdwdr_width);
- 	ceu_write(pcdev, CFWCR, 0); /* keep "datafetch firewall" disabled */
- 
- 	/* not in bundle mode: skip CBDSR, CDAYR2, CDACR2, CDBYR2, CDBCR2 */
--	/* in data fetch mode: no need for CDACR, CDBYR, CDBCR */
--
- 	return 0;
- }
- 
-@@ -447,7 +568,21 @@ static int sh_mobile_ceu_try_bus_param(s
- static int sh_mobile_ceu_set_fmt_cap(struct soc_camera_device *icd,
- 				     __u32 pixfmt, struct v4l2_rect *rect)
- {
--	return icd->ops->set_fmt_cap(icd, pixfmt, rect);
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+	__u32 camera_fourcc;
-+
-+	/* for NVxx modes configure camera with fourcc determined earlier */
-+	switch (pixfmt) {
-+	case V4L2_PIX_FMT_NV12:
-+	case V4L2_PIX_FMT_NV21:
-+		camera_fourcc = pcdev->camera_fourcc;
-+		break;
-+	default:
-+		camera_fourcc = pixfmt;
-+	}
-+
-+	return icd->ops->set_fmt_cap(icd, camera_fourcc, rect);
- }
- 
- static int sh_mobile_ceu_try_fmt_cap(struct soc_camera_device *icd,
+Guennadi Liakhovetski
 
 --
 video4linux-list mailing list
