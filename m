@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from node01.cambriumhosting.nl ([217.19.16.162])
+Received: from out5.smtp.messagingengine.com ([66.111.4.29])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <jelledejong@powercraft.nl>) id 1KwLPf-0008A4-E2
-	for linux-dvb@linuxtv.org; Sat, 01 Nov 2008 19:41:32 +0100
-Message-ID: <490CA2D0.7070001@powercraft.nl>
-Date: Sat, 01 Nov 2008 19:41:20 +0100
-From: Jelle de Jong <jelledejong@powercraft.nl>
-MIME-Version: 1.0
-To: wk <handygewinnspiel@gmx.de>
-References: <490B6241.7020102@powercraft.nl> <490C2DE9.9090809@gmx.de>
-In-Reply-To: <490C2DE9.9090809@gmx.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] automated w_scan,
- duplicated channels and signal strength filtering
+	(envelope-from <heldal@eml.cc>) id 1L0Cr7-0003mU-9Y
+	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 11:21:50 +0100
+From: Per Heldal <heldal@eml.cc>
+To: Goga777 <goga777@bk.ru>
+In-Reply-To: <E1L09Ud-000GW2-00.goga777-bk-ru@f149.mail.ru>
+References: <20081112023112.94740@gmx.net>
+	<E1L09Ud-000GW2-00.goga777-bk-ru@f149.mail.ru>
+Date: Wed, 12 Nov 2008 11:21:35 +0100
+Message-Id: <1226485295.19990.28.camel@obelix>
+Mime-Version: 1.0
+Cc: Hans Werner <HWerner4@gmx.de>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,70 +26,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-wk wrote:
-> Hello Jelle,
->> When a scan is completed it list all found channels, in the file, (see
->> attachment) however this also include duplicated channels with other
->> frequencies and strange channels that are from local unusable broadcast.
->>   
-> That's most probably what your provider sends inside NIT (network 
-> information table).
-> w_scan reads it's informations from there. Sometimes these informations 
-> are wrong.
->> The issue here is that signal strength is not used to filter out
->> duplicated channels, only the best strongest signal should come in the
->> channel list, and channels without identifiers should be removed.
->>
->> How can we do this? Is somebody able to fix these issues?
->>
->>   
-> It's not possible to use signal information since nearly every dvb cards 
-> sends other information for signal strength,
-> please read the discussion regarding SNR/strength some days ago here on 
-> the list. From application point of view
-> the signal strength information doesn't contain any useful data as long 
-> it's not standardized and reliable across all frontends.
-> Therefore i decided not to use signal strength. Otherwise some frontends 
-> would not work.
+On Wed, 2008-11-12 at 09:46 +0300, Goga777 wrote:
+> thanks for your patch.
 > 
-> Signals without identifiers will not be removed, since some of them have 
-> their channel names inside EIT information or
-> inside private data (i.e. Prmiere) and deleting these channels would 
-> make other users really unhappy. ;)
-> Most of these channels are encrypted, so try to avoid them with -E 0 .
-> But channels without video *and* audio will be removed instead.
+> btw - could you scan dvb-s2 (qpsk & 8psk) channels with scan-s2 and
+> hvr4000 ? with which drivers ?
 > 
->> [1] http://wirbel.htpc-forum.de/w_scan/index2.html
->>
->> ps. I can't find any contact info for the developer of w_scan.
->>   
-> email contact is included in the header of each source file. 
-> Nevertheless, should be inside README too, you're right.
-> 
-> Regards,
-> Winfried
 
-Thank you Winfried for both creating the program and to response and
-clear op my questions.
+I seem to be able to scan some transponders, but not all, using current
+code from the repos at http://linuxtv.org/hg/v4l-dvb/ and
+http://mercurial.intuxication.org/hg/scan-s2 
 
-I followed the SNR/strength messages and read the thread again, I was
-hopping some drivers where already using some system that could be used,
-like polling the capabilities of the frontends. I would also suggest
-some way of translating the dB to a min(0)(red) and max(100)(green)
-value so a decimal number can also be used for representation.
+I run scan-s2 on the following list of HD-transponders on 0.8w :
 
-I was also hopping w_scan was going into debian sid repositories, I
-would like this for my users, maybe I can find some time next year to
-fix this.
+S 11938000 H 25000000 3/4 35 8PSK
+S 12015000 H 30000000 3/4 35 8PSK
+S 12130000 H 30000000 3/4 35 8PSK
+S 12188000 V 25000000 3/4 35 8PSK
 
-Sadly it seems my usability issues can not be fixed in an easy way, lets
-hope SNR support and some logic using it during channel scanning will be
-coming soon :-p. I can donate 40 euro, dutch stroopwafels, or  some
-plushy tux mascots for some extra motivation.
+(a selection of transponders from
+http://lyngsat.com/packages/canaldigital.html)
 
-Thanks in advance,
+With rolloff set to AUTO scan-s2 will not lock to any transponder.
+Instead it will appear to repeatedly re-scan sources on any transponder
+the tuner previously was tuned to.
 
-Jelle
+With rolloff set to 35 as above scan-s2 will lock and find channels on
+both transponders with SR=25000000, but for the 2 in the middle with
+SR=30000000 it simply repeats the channel-list of the previous
+transponder. I've been playing with alternatives for rolloff and
+modulation with no result.
+
+
+
+-- 
+
+
+Per Heldal - http://heldal.eml.cc/
+
 
 _______________________________________________
 linux-dvb mailing list
