@@ -1,23 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from harpoon.unitedhosting.co.uk ([83.223.124.227])
+Received: from qw-out-2122.google.com ([74.125.92.26])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <robert@watkin5.net>) id 1L5o0W-0006kM-Ey
-	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 22:02:42 +0100
-From: Robert Watkins <robert@watkin5.net>
-To: Holger Rusch <holger@rusch.name>
-In-Reply-To: <492E5EC9.30308@rusch.name>
-References: <RCbI1iFQ0HKJFw8A@onasticksoftware.net>
-	<492A8A43.4060001@rusch.name> <u0lnYVBoGwKJFwJg@onasticksoftware.net>
-	<1227556939.16187.0.camel@youkaida>
-	<100c0ba70811241329s594e3112h467e1deff9d3c1ac@mail.gmail.com>
-	<1227644366.6949.18.camel@watkins-desktop>
-	<412bdbff0811251229m7e36ed33jade32457a4c37185@mail.gmail.com>
-	<492E5EC9.30308@rusch.name>
-Date: Thu, 27 Nov 2008 21:02:27 +0000
-Message-Id: <1227819747.7014.58.camel@watkins-desktop>
-Mime-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Nova/dib0700/i2C write failed
+	(envelope-from <alex.betis@gmail.com>) id 1L0MOV-00032Q-GG
+	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 21:32:55 +0100
+Received: by qw-out-2122.google.com with SMTP id 9so406189qwb.17
+	for <linux-dvb@linuxtv.org>; Wed, 12 Nov 2008 12:32:51 -0800 (PST)
+Message-ID: <c74595dc0811121232s48a95a14v93edf27360ed5c21@mail.gmail.com>
+Date: Wed, 12 Nov 2008 22:32:51 +0200
+From: "Alex Betis" <alex.betis@gmail.com>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>,
+	"Igor M. Liplianin" <liplianin@tut.by>
+MIME-Version: 1.0
+Subject: [linux-dvb] S2API tune return code - potential problem?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,144 +19,75 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0823094691=="
+Content-Type: multipart/mixed; boundary="===============0272270832=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============0272270832==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_12832_30572124.1226521971352"
 
---===============0823094691==
-Content-Type: multipart/alternative; boundary="=-+xXaUh0GOSLmVSXFM5v4"
-
-
---=-+xXaUh0GOSLmVSXFM5v4
-Content-Type: text/plain
+------=_Part_12832_30572124.1226521971352
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Thu, 2008-11-27 at 09:48 +0100, Holger Rusch wrote:
+Hi All,
 
-> Hi,
-> 
-> Devin Heitmueller schrieb:
-> >> I also occasionally get
-> >>  dib0700: firmware download failed at 17248 with -110
-> >> My PC's got ATI's IXP SB400 USB2 Host Controllers.
-> >> Rob Watkins
-> 
-> > Hello Robert,
-> > Are you running dib0700 firmware version 1.10 or 1.20?
-> > Devin
-> 
-> As written before.
-> 
-> I got an MB with SB700 USB Chipset and it seems to have the same 
-> problems as the SB600 with the USB ports (disconnects here and then). 
-> The SB400 seems to have them also?
-> 
-> I use a
-> http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_DT_USB_XS_Diversity
-> which is nearly the same as the Nova.
-> 
-> Now my system got a NEC-Chip USB PCIcard and everything works fine with
-> the Cinergy connected there.
+A question regarding the error code returned from the driver when using
+DTV_TUNE property.
+Following the code I came to dvb_frontend_ioctl_legacy function and reached
+the FE_SET_FRONTEND case.
+Looking on the logic I couldn't see any handling of error tuning, an event
+is added to the frontend and zero is returned:
 
+        fepriv->state = FESTATE_RETUNE;
+        dvb_frontend_wakeup(fe);
+        dvb_frontend_add_event(fe, 0);
+        fepriv->status = 0;
+        err = 0;
+        break;
 
-My Hauppauge Nova-T 500 Dual DVB-T is a PCI card with built in VIA USB
-controller.
+How should an application know that DTV_TUNE command succeed?
+Monitoring the LOCK bit is not good, here's an example why I ask the
+question:
 
-watkins@watkins-desktop:~$ lspci -vv | grep -i usb
-00:13.0 USB Controller: ATI Technologies Inc IXP SB400 USB Host
-Controller (rev 80) (prog-if 10 [OHCI])
-00:13.1 USB Controller: ATI Technologies Inc IXP SB400 USB Host
-Controller (rev 80) (prog-if 10 [OHCI])
-00:13.2 USB Controller: ATI Technologies Inc IXP SB400 USB2 Host
-Controller (rev 80) (prog-if 20 [EHCI])
-02:01.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
-Controller (rev 62) (prog-if 00 [UHCI])
-	Subsystem: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller
-02:01.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
-Controller (rev 62) (prog-if 00 [UHCI])
-	Subsystem: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller
-02:01.2 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 65) (prog-if
-20 [EHCI])
-	Subsystem: VIA Technologies, Inc. USB 2.0
+Assuming the cx24116 driver is locked on a channel. Application sends tune
+command to another channel while specifying
+AUTO settings for modulation and FEC. The driver for that chip cant handle
+AUTO settings and return error, while its still connected
+to previous channel. So in that case LOCK bit will be ON, while the tune
+command was ignored.
 
-The WinTV Nova-DT is connected to the USB 2.0 VIA Hub.
-The USB 1.1 VIA hubs don't appear to have devices connected to them.
+I thought of an workaround to query the driver for locked frequency and
+check whenever its in bounds of frequency that was ordered
+to be tuned + - some delta, but that's a very dirty solution.
 
-Regards,
-Rob
+Any thoughts? Or I'm missing something?
 
+Thanks.
 
---=-+xXaUh0GOSLmVSXFM5v4
-Content-Type: text/html; charset=utf-8
+------=_Part_12832_30572124.1226521971352
+Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
-<HTML>
-<HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/3.18.3">
-</HEAD>
-<BODY>
-On Thu, 2008-11-27 at 09:48 +0100, Holger Rusch wrote:
-<BLOCKQUOTE TYPE=CITE>
-<PRE>
-Hi,
+<div dir="ltr">Hi All,<br><br>A question regarding the error code returned from the driver when using DTV_TUNE property.<br>Following the code I came to dvb_frontend_ioctl_legacy function and reached the FE_SET_FRONTEND case.<br>
 
-Devin Heitmueller schrieb:
-&gt;&gt; I also occasionally get
-&gt;&gt;  dib0700: firmware download failed at 17248 with -110
-&gt;&gt; My PC's got ATI's IXP SB400 USB2 Host Controllers.
-&gt;&gt; Rob Watkins
+Looking on the logic I couldn&#39;t see any handling of error tuning, an event is added to the frontend and zero is returned:<br><br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; fepriv-&gt;state = FESTATE_RETUNE;<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; dvb_frontend_wakeup(fe);<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; dvb_frontend_add_event(fe, 0);<br>
 
-&gt; Hello Robert,
-&gt; Are you running dib0700 firmware version 1.10 or 1.20?
-&gt; Devin
+&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; fepriv-&gt;status = 0;<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; err = 0;<br>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; break;<br><br>How should an application know that DTV_TUNE command succeed?<br>Monitoring the LOCK bit is not good, here&#39;s an example why I ask the question:<br>
 
-As written before.
+<br>Assuming the cx24116 driver is locked on a channel. Application sends tune command to another channel while specifying<br>AUTO settings for modulation and FEC. The driver for that chip cant handle AUTO settings and return error, while its still connected<br>
+to previous channel. So in that case LOCK bit will be ON, while the tune command was ignored.<br><br>I thought of an workaround to query the driver for locked frequency and check whenever its in bounds of frequency that was ordered <br>
+to be tuned + - some delta, but that&#39;s a very dirty solution.<br><br>Any thoughts? Or I&#39;m missing something?<br><br>Thanks.<br><br><h1 class="YfMhcb"><span id=":186" class="VrHWId"><br></span></h1></div>
 
-I got an MB with SB700 USB Chipset and it seems to have the same 
-problems as the SB600 with the USB ports (disconnects here and then). 
-The SB400 seems to have them also?
-
-I use a
-<A HREF="http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_DT_USB_XS_Diversity">http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_DT_USB_XS_Diversity</A>
-which is nearly the same as the Nova.
-
-Now my system got a NEC-Chip USB PCIcard and everything works fine with
-the Cinergy connected there.
-</PRE>
-</BLOCKQUOTE>
-<BR>
-My Hauppauge Nova-T 500 Dual DVB-T is a PCI card with built in VIA USB controller.<BR>
-<BR>
-watkins@watkins-desktop:~$ lspci -vv | grep -i usb<BR>
-00:13.0 USB Controller: ATI Technologies Inc IXP SB400 USB Host Controller (rev 80) (prog-if 10 [OHCI])<BR>
-00:13.1 USB Controller: ATI Technologies Inc IXP SB400 USB Host Controller (rev 80) (prog-if 10 [OHCI])<BR>
-00:13.2 USB Controller: ATI Technologies Inc IXP SB400 USB2 Host Controller (rev 80) (prog-if 20 [EHCI])<BR>
-02:01.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 62) (prog-if 00 [UHCI])<BR>
-	Subsystem: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller<BR>
-02:01.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller (rev 62) (prog-if 00 [UHCI])<BR>
-	Subsystem: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1 Controller<BR>
-02:01.2 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 65) (prog-if 20 [EHCI])<BR>
-	Subsystem: VIA Technologies, Inc. USB 2.0<BR>
-<BR>
-The WinTV Nova-DT is connected to the USB 2.0 VIA Hub.<BR>
-The USB 1.1 VIA hubs don't appear to have devices connected to them.<BR>
-<BR>
-Regards,<BR>
-Rob<BR>
-<BR>
-</BODY>
-</HTML>
-
---=-+xXaUh0GOSLmVSXFM5v4--
+------=_Part_12832_30572124.1226521971352--
 
 
-
---===============0823094691==
+--===============0272270832==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -172,4 +97,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0823094691==--
+--===============0272270832==--
