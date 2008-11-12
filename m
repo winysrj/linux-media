@@ -1,27 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAU2n64h030105
-	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 21:49:06 -0500
-Received: from mail1.radix.net (mail1.radix.net [207.192.128.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAU2msoq004903
-	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 21:48:54 -0500
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200811300140.44322.hverkuil@xs4all.nl>
-References: <200811291852.41794.hverkuil@xs4all.nl>
-	<1228001498.4615.28.camel@palomino.walls.org>
-	<200811300140.44322.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Sat, 29 Nov 2008 21:49:45 -0500
-Message-Id: <1228013385.4615.143.camel@palomino.walls.org>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mACAhm0c023682
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 05:43:48 -0500
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mACAhbbp010944
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 05:43:37 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Wed, 12 Nov 2008 11:43:50 +0100
+References: <200811111753.03430.laurent.pinchart@skynet.be>
+	<200811120214.55330.laurent.pinchart@skynet.be>
+	<20081112005617.3b8df573@pedra.chehab.org>
+In-Reply-To: <20081112005617.3b8df573@pedra.chehab.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] v4l2_device/v4l2_subdev: final (?) version
+Content-Disposition: inline
+Message-Id: <200811121143.50233.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com
+Subject: Re: [RFC] Add usb_endpoint_*,
+	list_first_entry and uninitialized_var to compat.h
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,148 +33,67 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 2008-11-30 at 01:40 +0100, Hans Verkuil wrote:
-> On Sunday 30 November 2008 00:31:38 Andy Walls wrote:
-> > On Sat, 2008-11-29 at 18:52 +0100, Hans Verkuil wrote:
-> > > Hi all,
+Hi Mauro,
+
+On Wednesday 12 November 2008, Mauro Carvalho Chehab wrote:
+> On Wed, 12 Nov 2008 02:14:55 +0100
+>
+> Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+> > Hi Mauro,
+> >
+> > On Tuesday 11 November 2008, Mauro Carvalho Chehab wrote:
+> > > On Tue, 11 Nov 2008, Laurent Pinchart wrote:
+> > > > Hi everybody,
+> > > >
+> > > > This patch adds support for the usb_endpoint_* functions as well as
+> > > > list_first_entry and uninitialized_var macros to compat.h. The
+> > > > uvcvideo driver requires it to compile on kernels older than 2.6.22.
+> > > >
+> > > > As the usb_endpoint_* functions needs struct usb_endpoint_descriptor,
+> > > > they are only defined if linux/usb.h has been included before
+> > > > compat.h. This avoids including linux/usb.h unconditionally. I've
+> > > > tested the patch by compiling the v4l-dvb tree on 2.6.16 and 2.6.27
+> > > > and didn't get any warning or error.
+> > > >
+> > > > If nobody objects I'll include the changes in my tree with the
+> > > > related uvcvideo changes and send a pull request.
 > > >
-> > > This is hopefully the final version. All earlier comments have been
-> > > incorporated into this patch. I also made a new change: the mutex
-> > > has been replaced by a spinlock and I no longer lock when walking
-> > > the list of subdevs.
+> > > I didn't test it here, but it seems OK to me.
 > > >
-> > > So the assumption is that subdevs only added during initialization
-> > > of the device and removed during the destruction of the device, and
-> > > not in between. I cannot think of any reason why this you would
-> > > want to do this, but should this ever happen then the list should
-> > > be replaced by a klist. I consider this overkill, esp. since
-> > > walking the subdev list should be as fast as possible.
+> > > Maybe instead of testing for a specific version, you may use
+> > > make_config_compat.pl script to do some test at some include file,
+> > > finding for some specific API call, like we did for some KABI changes
+> > > that happened without incrementing kernel minor revision.
 > >
-> > I don't have a problem with not locking during a list walk as long as
-> > you can ensure the register and unregister calls can't happen in the
-> > middle of a walk.  I haven't taken a hard look to see if this is the
-> > case.  I'd imagine a walk while registration is going on is the only
-> > case that has a remote chance of happening.
-> 
-> A driver that would do register or unregister calls in the middle of a 
-> walk is very badly written. I can't even imagine how that can happen.
-> 
-> That said, I'll add a comment in the header making it explicit that no 
-> locking is taking place.
+> > Are you referring to the test for a specific Redhat kernel version ?
+>
+> Yes.
+>
+> > When should compat.h test for a specific kernel version, and when should
+> > make_config_compat.pl be used ?
+>
+> There's no rule.
+>
+> Using make_config_compat.pl works better than just checking for a specific
+> kernel version, since it will run a small script to check for the presence
+> (or absense) of a given function, but adding things at compat.h is more
+> direct, so it requires less time to add things there.
+>
+> On the other hand, make_config_compat.pl allows a more robust compatibility
+> code, as time goes by, especially for vendor patched kernels.
+>
+> Feel free to implement on the way that better fits on your needs.
 
-Ah.
+If you don't mind I'll go for kernel version checking in this case, as I've 
+already committed several changes on top of that one to my local tree and 
+mercurial seems to support a single level of rollback only :-/ (if I ever 
+want to restart a flame war I'll send a mail about another version control 
+system starting with G ;-)). If anyone encounters an issue with a vendor 
+kernel it will be easy to move the check to make_config_compat.pl.
 
+Cheers,
 
-> > Although I think I've just answered my own next question I'll ask
-> > anyway: why are register & unregister such time critical operations
-> > that we have to spin instead of risk sleeping in a mutex?  To greatly
-> > reduce the probability a walk happens while registering?  If that's
-> > the case it sounds like we're knowingly building in a race.
-> 
-> In the register function it only needs to lock the list momentarily in 
-> case two registrations happen at the same time. A mutex is overkill for 
-> that. Perhaps having locking at all is overkill as well for this, but 
-> for now I feel safer with the lock. In addition, I might well change 
-> the way subdevices are registered. Right now the bridge driver loads 
-> and registers a subdevice, but an alternative approach would be that 
-> the i2c driver can register itself with the bridge driver when loaded. 
-> There are actually some advantages to that approach, but if I do that, 
-> then the lock is definitely needed.
-> 
-> > This comment kind of bugged me too:
-> > >/* Iterate over all subdevs. The next item is prefetched, so you can
-> > > +   delete the current item if necessary. */
-> > > +#define v4l2_device_for_each_subdev(sd, dev)
-> >
-> > It implies it's safe to remove things from the list that we're not
-> > locking.
-> 
-> Oops, that was a bogus comment. Actually, the whole macro is a bit bogus 
-> and can simply be replaced by this:
-> 
-> /* Iterate over all subdevs. */
-> #define v4l2_device_for_each_subdev(sd, dev) \
->         list_for_each_entry(sd, &(dev)->subdevs, list)
-> 
-> > I can appreciate the desire for being able to walk the list and issue
-> > commands to various subdevs with high concurrency.  I know spinlocks
-> > are optimized for the common case of the lock being available (well
-> > at least the underlying __raw_spin_lock() is optimized, if preemption
-> > is enabled there's a little overhead added).  So they give the safety
-> > with a minor penalty at the micro level, but kill concurrency of
-> > common operations at the macro level.
-> >
-> > So how about a rwlock_t and using read_lock() and write_lock(), locks
-> > that provide safety and allow high concurrency at the macro level?  I
-> > don't know if there's an analog of a read/write mutex.
-> 
-> Note that I can't use spinlocks while walking the subdevs list since the 
-> subdev ops that you call can sleep which is not allowed with spinlocks 
-> (as I very quickly found out when I tried it :-) ).
-
-Ah.
-
-> The only way to safely walk over it is to switch to a klist, but I 
-> really like to keep __v4l2_device_call_subdevs as fast as possible. 
-> Since the registration/unregistration of subdevs is fully controlled by 
-> the driver it is trivial for the driver to ensure that there are no 
-> (un)registrations while the subdev list is being walked. There are no 
-> external events that can cause this to happen.
-> 
-> In addition, there is also no point for a driver to begin issuing 
-> commands to subdevs while some of them are not yet registered. So I 
-> feel confident about my approach.
-
-Just playing a little more devil's advocate:
-
-I have a recollection that the lirc_pvr150 module calls an ivtv function
-directly to reset the IR blaster chip on PVR-150's.  I'd imagine in the
-future, the GPIO subdev in ivtv might implement some sort of reset_ops
-or ir_ops for a cleaner interface for an updated lirc_pvr150 module to
-call in on. There's my one contrived example, contingent on assumed
-changes, of a bridge chip driver not being strictly in control of when a
-subdev could be called.
-
-(It's moot in this case though as lirc_pvr150 would need ivtv to init
-i2c before gpio, which ivtv doesn't do, before lirc_pvr150 would attempt
-a reset of the IR blaster.)
-
-I think you're safe for now. :)
-
-
-
-On a more philosophical note is GPIO really a single subdev or a
-collection of independent serial & discrete buses to a collection of
-subdevs?  In cx18 depending on the board, GPIO can reset chips, change
-audio mux paths, change the state of LED's, and in the future be used as
-a serial line (if I ever get that soft-UART to the IR blaster
-implemented).
-
-
-> But if it turns out to be a problem after all in the future, then it 
-> will be easy to replace the list with a klist.
-
-Well my one contrived example is between two modules who usage is
-tightly coupled at least in one direction, even if source code changes
-are not tightly coordinated.  In that case I'd predict problems will
-simply be avoided due to the tight coupling.
-
-Regards,
-Andy
-
-> > Did I totally miss the concept?
-> 
-> Not at all, and once again thanks for the comments.
-> 
-> I've updated my tree with the changes mentioned above.
-> 
-> Regards,
-> 
->           Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
-> 
+Laurent Pinchart
 
 --
 video4linux-list mailing list
