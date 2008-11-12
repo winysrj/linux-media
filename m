@@ -1,21 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp7-g19.free.fr ([212.27.42.64])
+Received: from smtp-out2.iol.cz ([194.228.2.87])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ttk22@free.fr>) id 1L2AqZ-0006YQ-6K
-	for linux-dvb@linuxtv.org; Mon, 17 Nov 2008 21:37:24 +0100
-Received: from smtp7-g19.free.fr (localhost [127.0.0.1])
-	by smtp7-g19.free.fr (Postfix) with ESMTP id 6C485B0706
-	for <linux-dvb@linuxtv.org>; Mon, 17 Nov 2008 21:37:17 +0100 (CET)
-Received: from [192.168.0.2] (lns-bzn-47f-62-147-251-209.adsl.proxad.net
-	[62.147.251.209])
-	by smtp7-g19.free.fr (Postfix) with ESMTP id DB61AB0E3C
-	for <linux-dvb@linuxtv.org>; Mon, 17 Nov 2008 21:37:16 +0100 (CET)
-Message-ID: <4921D5F8.4090403@free.fr>
-Date: Mon, 17 Nov 2008 21:37:12 +0100
-From: Roland HAMON <ttk22@free.fr>
-MIME-Version: 1.0
+	(envelope-from <ajurik@quick.cz>) id 1L0Ehk-00046p-V2
+	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 13:20:20 +0100
+From: Ales Jurik <ajurik@quick.cz>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Hi, hauppauge win tv Nova-s plus won't tune
+Date: Wed, 12 Nov 2008 12:44:53 +0100
+References: <20081112023112.94740@gmx.net>
+	<c74595dc0811120243m4819b86bk84a5d23c8e00e467@mail.gmail.com>
+	<alpine.DEB.2.00.0811121212280.22461@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.00.0811121212280.22461@ybpnyubfg.ybpnyqbznva>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200811121244.53182.ajurik@quick.cz>
+Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
+Reply-To: ajurik@quick.cz
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,50 +28,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+On Wednesday 12 of November 2008, BOUWSMA Barry wrote:
+> I can see the logic for 8PSK=>DVB-S2, but as far as I
+> can see, QPSK does not imply purely DVB-S...
+> NIT result:  12324000 V 29500000   pos  28.2E    FEC 3/4  DVB-S2 QPSK
+> one of eight such transponders, based on parsing the NIT
+> tables.  Also, a note from my inital 19E2 scan file to
+> remind me why it failed:
+> S 11914500      h       27500   ##      DVB-S2 QPSK (0x05)
+> May be no longer up-to-date.
+>
+> Of course, if I'm misunderstanding, or failing to grasp
+> something obvious if I actually laid my hands on the
+> code, please feel free to slap me hard and tell me to
+> shove off.
+>
 
-(I'm new to the list, hope I won't infringe any rule on my first post)
+You are right, it is working for me with this two lines from channels.conf 
+(with vdr), both DVB-S2, QPSK:
 
-I have a hauppauge win tv nova-s plus PCI card, connected to a simple
-dish wich is pointed to hotbird3. Under windows wintv works fine: I get
-160+ free to air tv channels as expected.
+ASTRA 
+HD+;BetaDigital:11914:hC910M2O35S1:S19.2E:27500:1279:0;1283=deu:0:0:131:133:6:0
+HD Retail 
+Info;BSkyB:12324:vC34M2O35S1:S28.2E:29500:512:640=NAR;660=eng:2305:960,961,963:3801:2:2032:0
 
-Under ubuntu intrepid 64 bits (2.6.27 kernel) vdr fails to tune any
-channel. I tried dvb-apps 'scan' with no success:
+BR,
 
-scanning Hotbird-13.0E
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 12539000 H 27500000 3
-initial transponder 10892000 H 27500000 3
-initial transponder 10853000 H 27500000 3
-initial transponder 10992000 V 27500000 2
-initial transponder 11334000 H 27500000 2
-initial transponder 11373000 H 27500000 2
-initial transponder 12460000 V 27500000 3
->>> tune to: 12539:h:0:27500
-DiSEqC: switch pos 0, 18V, hiband (index 3)
->>> tuning status == 0x01
->>> tuning status == 0x01
->>> tuning status == 0x01
->>> tuning status == 0x01
->>> tuning status == 0x01
->>> tuning status == 0x01
->>> tuning status == 0x01
->>> tuning status == 0x01
-
-
-femon -H gives 60% signal and 40% snr. (quite bad!)
-Then when I poweroff my computer hangs and the motherboards beeps
-repeatedly until I hard swith it off.
-
-Any help greatly appreciated.
-(btw, http://bugzilla.kernel.org/show_bug.cgi?id=9476 ...
- I might be having the same bug but I did not try any previous kernel
-version with this card)
-
-Bye
--- 
- TTK
+Ales
 
 _______________________________________________
 linux-dvb mailing list
