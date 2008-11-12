@@ -1,15 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp.seznam.cz ([77.75.72.43])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thunder.m@email.cz>) id 1L61q6-00079z-NU
-	for linux-dvb@linuxtv.org; Fri, 28 Nov 2008 12:48:52 +0100
-Message-ID: <492FDA9A.3060206@email.cz>
-Date: Fri, 28 Nov 2008 12:48:42 +0100
-From: =?UTF-8?B?TWlyZWsgU2x1Z2XFiA==?= <thunder.m@email.cz>
+Received: from mail.gmx.net ([213.165.64.20])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <HWerner4@gmx.de>) id 1L0GKU-0003wg-GD
+	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 15:04:23 +0100
+Date: Wed, 12 Nov 2008 15:03:47 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <200811121404.26185.hftom@free.fr>
+Message-ID: <20081112140347.217190@gmx.net>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------000500000801010800070400"
-Subject: [linux-dvb] Patch for select frontends in system with multiple cards
+References: <20081112023112.94740@gmx.net> <200811121353.47705.hftom@free.fr>
+	<c74595dc0811120501h36c129a2wf85202263274c453@mail.gmail.com>
+	<200811121404.26185.hftom@free.fr>
+To: Christophe Thommeret <hftom@free.fr>, alex.betis@gmail.com
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -17,88 +21,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------000500000801010800070400
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+> Le mercredi 12 novembre 2008 14:01:11 Alex Betis, vous avez =E9crit :
+> > On Wed, Nov 12, 2008 at 2:53 PM, Christophe Thommeret <hftom@free.fr>
+> wrote:
+> > > > BTW, you give here example of NIT parsing, do you know the format of
+> > > > the message and what field specifies that the delivery system is
+> > > > DVB-S2? scan utility code doesn't parse it, so I just add both DVB-S
+> > > > and DVB-S2 scans for newly added transponder from NITmessage.
+> > >
+> > > It's specified in Satellite Descriptor:
+> > > modulation_system=3D=3D1, =3D>S2
+> > > modulation_system=3D=3D0, =3D>S
+> >
+> > Thanks, but it doesn't help in my case.
+> > NIT can specify new transponders, when adding them to the scan list I
+> have
+> > to know whenever they are DVB-S or DVB-S2.
+> > Satellte descriptor is received after locking to the transponder.
+> =
 
-Hi, this patch add support for define frontend (satellite or 
-terrestrial) in system with more than one cards.
+> The satellite descriptor is part of NIT.
+> See EN-300468
 
-example usage: saa7134-dvb use_frontend=0,1,0,1,1
+Also look at the Kaffeine code + S2 patch as I did when writing my patches.
+Many thanks Christophe.
 
-Mirek Slugen
+-- =
 
---------------000500000801010800070400
-Content-Type: text/x-patch;
- name="satellite.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="satellite.diff"
+Release early, release often.
 
-diff -Naur v4l-dvb-24bc99070e97.old/linux/drivers/media/video/saa7134/saa7134-dvb.c v4l-dvb-24bc99070e97/linux/drivers/media/video/saa7134/saa7134-dvb.c
---- v4l-dvb-24bc99070e97.old/linux/drivers/media/video/saa7134/saa7134-dvb.c	2008-09-29 07:25:40.000000000 +0200
-+++ v4l-dvb-24bc99070e97/linux/drivers/media/video/saa7134/saa7134-dvb.c	2008-10-01 10:25:05.000000000 +0200
-@@ -57,8 +57,8 @@
- module_param(antenna_pwr, int, 0444);
- MODULE_PARM_DESC(antenna_pwr,"enable antenna power (Pinnacle 300i)");
- 
--static int use_frontend;
--module_param(use_frontend, int, 0644);
-+static unsigned int use_frontend[]     = {[0 ... (SAA7134_MAXBOARDS - 1)] = 0 };
-+module_param_array(use_frontend, int, NULL, 0644);
- MODULE_PARM_DESC(use_frontend,"for cards with multiple frontends (0: terrestrial, 1: satellite)");
- 
- static int debug;
-@@ -1061,7 +1061,7 @@
- 			goto dettach_frontend;
- 		break;
- 	case SAA7134_BOARD_FLYDVB_TRIO:
--		if (!use_frontend) {	/* terrestrial */
-+		if (!use_frontend[dev->nr]) {	/* terrestrial */
- 			if (configure_tda827x_fe(dev, &lifeview_trio_config,
- 						 &tda827x_cfg_0) < 0)
- 				goto dettach_frontend;
-@@ -1103,7 +1103,7 @@
- 			goto dettach_frontend;
- 		break;
- 	case SAA7134_BOARD_MEDION_MD8800_QUADRO:
--		if (!use_frontend) {     /* terrestrial */
-+		if (!use_frontend[dev->nr]) {     /* terrestrial */
- 			if (configure_tda827x_fe(dev, &md8800_dvbt_config,
- 						 &tda827x_cfg_0) < 0)
- 				goto dettach_frontend;
-@@ -1315,7 +1315,7 @@
- 		attach_xc3028 = 1;
- 		break;
- 	case SAA7134_BOARD_ASUSTeK_TIGER_3IN1:
--		if (!use_frontend) {     /* terrestrial */
-+		if (!use_frontend[dev->nr]) {     /* terrestrial */
- 			if (configure_tda827x_fe(dev, &asus_tiger_3in1_config,
- 							&tda827x_cfg_2) < 0)
- 				goto dettach_frontend;
-@@ -1410,7 +1410,7 @@
- 		/* otherwise we don't detect the tuner on next insmod */
- 		saa7134_i2c_call_clients(dev, TUNER_SET_CONFIG, &tda9887_cfg);
- 	} else if (dev->board == SAA7134_BOARD_MEDION_MD8800_QUADRO) {
--		if ((dev->eedata[2] == 0x07) && use_frontend) {
-+		if ((dev->eedata[2] == 0x07) && use_frontend[dev->nr]) {
- 			/* turn off the 2nd lnb supply */
- 			u8 data = 0x80;
- 			struct i2c_msg msg = {.addr = 0x08, .buf = &data, .flags = 0, .len = 1};
-
---------------000500000801010800070400
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+"Feel free" - 5 GB Mailbox, 50 FreeSMS/Monat ...
+Jetzt GMX ProMail testen: http://www.gmx.net/de/go/promail
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------000500000801010800070400--
