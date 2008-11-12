@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAP2CIq6008646
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 21:12:18 -0500
-Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net
-	[151.189.21.42])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAP2C2hf020410
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 21:12:02 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: kevinlux - <kevinlux@gmail.com>
-In-Reply-To: <8567605f0811241156xc855543p82e5d455fc84256@mail.gmail.com>
-References: <8567605f0811160257i66ea44a1i8b16a45c1580d5a9@mail.gmail.com>
-	<8567605f0811231027w4bca54dej414d353e31ff1e5f@mail.gmail.com>
-	<1227479368.4665.42.camel@pc10.localdom.local>
-	<8567605f0811241156xc855543p82e5d455fc84256@mail.gmail.com>
-Content-Type: text/plain
-Date: Tue, 25 Nov 2008 03:08:43 +0100
-Message-Id: <1227578923.4289.13.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] pinnacle 310i doesn't works very well
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mACKVv1v022653
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 15:31:57 -0500
+Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mACKVl1X027209
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 15:31:47 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de, video4linux-list@redhat.com
+Date: Wed, 12 Nov 2008 21:29:40 +0100
+Message-Id: <1226521783-19806-10-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1226521783-19806-9-git-send-email-robert.jarzmik@free.fr>
+References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-2-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-3-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-4-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-5-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-6-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-7-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-8-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-9-git-send-email-robert.jarzmik@free.fr>
+Cc: 
+Subject: [PATCH 09/13] pxa_camera: use the translation framework
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,98 +32,192 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-Am Montag, den 24.11.2008, 20:56 +0100 schrieb kevinlux -:
-> Hi all,
-> i'm talking about this tv tuner card : My Cinema-P7131 Hybrid
-> http://www.asus.com/products.aspx?l1=18&l2=83&l3=252&l4=0&model=547&modelmenu=1
+Use the newly created translation framework for pxa camera
+host.
 
-did you notice that on the enlarged picture that current revision seems
-to have a firmware eeprom again in opposite to yours?
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/video/pxa_camera.c |   89 ++++++++++++++++++++++----------------
+ 1 files changed, 52 insertions(+), 37 deletions(-)
 
-Might come more.
-
-> I'm sorry but i have to confirm that both cards (the asus  p7131 and
-> pinnacle 310i ) stilii not working correctly with the last mercurial
-> (also in analog mode).
-> Otherwise i also have an usb Pinnacle dvb stick that works perfecty
-> under win and linux (with the driver em28xx from mcentral.de
-> (http://mcentral.de/hg/~mrec/v4l-dvb-kernel)). If there's something
-> that i can do (testing and something like that) don't esitate to
-> ask... you will be welcome.
-> Best regards and thanks
-> 
-> kev
-> 
-
-Hmm, sounds slightly strange at the moment, since the exact same LNA
-config on the Tiger 3in1 works for me, but fails on your P7131 Dual
-Hybrid LNA.
-
-If we don't get confirmation from others, to live on the saa7134 was not
-always easy during the last kernel releases, and you can confirm that
-the P7131 Dual hybrid is fine for you on a 2.6.24 too, then I firstly
-try to repeat my testing on the Tiger 3in1, but definitely should fail
-if I try to implement DVB-T LNA support for it on a 2.6.24 I guess ...
-
-Cheers,
-Hermann
-
-> 2008/11/23, hermann pitton <hermann-pitton@arcor.de>:
-> 
-> >
-> > Kevin, I saw your previous post, but I can't test on something like the
-> >  310i with tda827x_config/tuner_config = 1 and I was waiting for some
-> >  confirmation. Maybe someone on the video4linux-list can test on it.
-> >
-> >  Which of the P7131 Dual cards you have. The Dual Hybrid with LNA ?
-> >
-> >  This one uses tda827x/tuner config = 2.
-> >
-> >  This configuration I can test on the recently added Asus Tiger 3in1.
-> >
-> >  We partly have heavy snowfall currently, but on the same DVB-T RF feed,
-> >  with the most critical transponder for me in upper UHF, an Asus Tiger
-> >  Revision 1 fails completely, too many errors, on a Medion Quad mplayer
-> >  starts, but picture and sound are totally distorted and unusable
-> >  currently.
-> >
-> >  On the Tiger 3in1 almost all is fine, except some rare small artifacts
-> >  from time to time. That means the LNA works for sure.
-> >
-> >  The same goes for analog TV. It is easy to recognize if the LNA is
-> >  active, since else sync issues after channel switching, a black bar
-> >  passes the screen for a while and also some slight audio issues. Others
-> >  reported sometimes flashing picture and humming noise on analog without
-> >  correctly configured LNA.
-> >
-> >  "hg head" on this machine is:
-> >
-> >  changeset:   9575:d5e211683345
-> >  tag:         tip
-> >  parent:      9573:1251a4091b89
-> >  parent:      9574:2ab0045eb27b
-> >  user:        Mauro Carvalho Chehab <mchehab@redhat.com>
-> >  date:        Tue Nov 11 07:42:37 2008 -0200
-> >  summary:     merge: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-backport
-> >
-> >  We are only 4 days apart, if LNA config = 2 should be broken at all
-> >  later.
-> >
-> >  ---
-> >  Few minutes later with the current v4l-dvb installed on that one.
-> >
-> >  Sorry, I seem not to be able to confirm your observation, at least the
-> >  Asus Tiger 3in1 is still fine on that critical transponder.
-> >
-> >  If I change the LNA config to 0, mplayer fails to start with only three
-> >  good and 27 bad packages. Means for me the LNA works for sure.
-> >
-> >  Cheers,
-> >
-> > Hermann
-> >
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 56aeb07..3e7ce6f 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -27,6 +27,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
+ #include <linux/clk.h>
++#include <linux/vmalloc.h>
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
+@@ -693,10 +694,17 @@ static int pxa_camera_add_device(struct soc_camera_device *icd)
+ 
+ 	pxa_camera_activate(pcdev);
+ 	ret = icd->ops->init(icd);
++	if (ret < 0)
++		goto einit;
++
++	pcdev->icd = icd;
+ 
+-	if (!ret)
+-		pcdev->icd = icd;
++	mutex_unlock(&camera_lock);
++
++	return 0;
+ 
++einit:
++	pxa_camera_deactivate(pcdev);
+ ebusy:
+ 	mutex_unlock(&camera_lock);
+ 
+@@ -713,6 +721,8 @@ static void pxa_camera_remove_device(struct soc_camera_device *icd)
+ 	dev_info(&icd->dev, "PXA Camera driver detached from camera %d\n",
+ 		 icd->devnum);
+ 
++	mutex_lock(&camera_lock);
++
+ 	/* disable capture, disable interrupts */
+ 	CICR0 = 0x3ff;
+ 
+@@ -725,7 +735,12 @@ static void pxa_camera_remove_device(struct soc_camera_device *icd)
+ 
+ 	pxa_camera_deactivate(pcdev);
+ 
++	vfree(icd->host_priv);
++	icd->host_priv = NULL;
++
+ 	pcdev->icd = NULL;
++
++	mutex_unlock(&camera_lock);
+ }
+ 
+ static int test_platform_param(struct pxa_camera_dev *pcdev,
+@@ -898,23 +913,30 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+ 	return soc_camera_bus_param_compatible(camera_flags, bus_flags) ? 0 : -EINVAL;
+ }
+ 
++static struct soc_camera_data_format *
++pxa_camera_find_sensor_fmt(struct soc_camera_device *icd, __u32 pixfmt)
++{
++	int i;
++
++	if (pixfmt) {
++		for (i = 0; i < icd->num_available_fmts; i++)
++			if (icd->available_fmts[i].host_fmt->fourcc == pixfmt)
++				return icd->available_fmts[i].sensor_fmt;
++	}
++	return NULL;
++}
++
+ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+ 			      __u32 pixfmt, struct v4l2_rect *rect)
+ {
+-	const struct soc_camera_data_format *cam_fmt;
++	const struct soc_camera_data_format *cam_fmt = NULL;
+ 	int ret;
+ 
+-	/*
+-	 * TODO: find a suitable supported by the SoC output format, check
+-	 * whether the sensor supports one of acceptable input formats.
+-	 */
+-	if (pixfmt) {
+-		cam_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
+-		if (!cam_fmt)
+-			return -EINVAL;
+-	}
++	cam_fmt = pxa_camera_find_sensor_fmt(icd, pixfmt);
++	if (!cam_fmt)
++		return -EINVAL;
+ 
+-	ret = icd->ops->set_fmt(icd, pixfmt, rect);
++	ret = icd->ops->set_fmt(icd, cam_fmt->fourcc, rect);
+ 	if (pixfmt && !ret)
+ 		icd->current_fmt = cam_fmt;
+ 
+@@ -924,18 +946,16 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+ 			      struct v4l2_format *f)
+ {
+-	const struct soc_camera_data_format *cam_fmt;
++	const struct soc_camera_data_format *cam_fmt = NULL;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+-	int ret = pxa_camera_try_bus_param(icd, pix->pixelformat);
++	__u32 pixfmt = pix->pixelformat;
++	int ret = pxa_camera_try_bus_param(icd, pixfmt);
+ 
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	/*
+-	 * TODO: find a suitable supported by the SoC output format, check
+-	 * whether the sensor supports one of acceptable input formats.
+-	 */
+-	cam_fmt = soc_camera_format_by_fourcc(icd, pix->pixelformat);
++	cam_fmt = pxa_camera_find_sensor_fmt(icd, pixfmt);
++
+ 	if (!cam_fmt)
+ 		return -EINVAL;
+ 
+@@ -958,22 +978,6 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+ 	return icd->ops->try_fmt(icd, f);
+ }
+ 
+-static int pxa_camera_enum_fmt(struct soc_camera_device *icd,
+-			       struct v4l2_fmtdesc *f)
+-{
+-	const struct soc_camera_data_format *format;
+-
+-	if (f->index >= icd->num_formats)
+-		return -EINVAL;
+-
+-	format = &icd->formats[f->index];
+-
+-	strlcpy(f->description, format->name, sizeof(f->description));
+-	f->pixelformat = format->fourcc;
+-
+-	return 0;
+-}
+-
+ static int pxa_camera_reqbufs(struct soc_camera_file *icf,
+ 			      struct v4l2_requestbuffers *p)
+ {
+@@ -1079,7 +1083,6 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+ 	.resume		= pxa_camera_resume,
+ 	.set_fmt	= pxa_camera_set_fmt,
+ 	.try_fmt	= pxa_camera_try_fmt,
+-	.enum_fmt	= pxa_camera_enum_fmt,
+ 	.init_videobuf	= pxa_camera_init_videobuf,
+ 	.reqbufs	= pxa_camera_reqbufs,
+ 	.poll		= pxa_camera_poll,
+@@ -1087,10 +1090,22 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+ 	.set_bus_param	= pxa_camera_set_bus_param,
+ };
+ 
++static struct soc_camera_format_translate pxa_pixfmt_translations[] = {
++	{ JPG_FMT("CbYCrY 16 bit", 16, V4L2_PIX_FMT_UYVY), V4L2_PIX_FMT_UYVY },
++	{ JPG_FMT("CrYCbY 16 bit", 16, V4L2_PIX_FMT_VYUY), V4L2_PIX_FMT_VYUY },
++	{ JPG_FMT("YCbYCr 16 bit", 16, V4L2_PIX_FMT_YUYV), V4L2_PIX_FMT_YUYV },
++	{ JPG_FMT("YCrYCb 16 bit", 16, V4L2_PIX_FMT_YVYU), V4L2_PIX_FMT_YVYU },
++	{ JPG_FMT("YUV planar", 16, V4L2_PIX_FMT_YUV422P), V4L2_PIX_FMT_UYVY },
++	{ RGB_FMT("RGB 555", 16, V4L2_PIX_FMT_RGB555), V4L2_PIX_FMT_RGB555 },
++	{ RGB_FMT("RGB 565", 16, V4L2_PIX_FMT_RGB565), V4L2_PIX_FMT_RGB565 },
++	LAST_FMT_TRANSLATION
++};
++
+ /* Should be allocated dynamically too, but we have only one. */
+ static struct soc_camera_host pxa_soc_camera_host = {
+ 	.drv_name		= PXA_CAM_DRV_NAME,
+ 	.ops			= &pxa_soc_camera_host_ops,
++	.translate_fmt		= pxa_pixfmt_translations,
+ };
+ 
+ static int pxa_camera_probe(struct platform_device *pdev)
+-- 
+1.5.6.5
 
 --
 video4linux-list mailing list
