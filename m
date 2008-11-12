@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.238])
+Received: from ns1.nijcomplesk5.nl ([83.172.148.40])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <yellowplantain@gmail.com>) id 1L5bew-0001zO-2J
-	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 08:51:35 +0100
-Received: by rv-out-0506.google.com with SMTP id b25so804618rvf.41
-	for <linux-dvb@linuxtv.org>; Wed, 26 Nov 2008 23:51:28 -0800 (PST)
-Message-ID: <492E517B.2090409@gmail.com>
-Date: Thu, 27 Nov 2008 18:21:23 +1030
-From: Plantain <yellowplantain@gmail.com>
+	(envelope-from <jean-paul@goedee.nl>) id 1L0Gan-0005US-6U
+	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 15:21:14 +0100
+Message-ID: <20081112152114.3gtf6zf3ggw40kwk@webmail.goedee.nl>
+Date: Wed, 12 Nov 2008 15:21:14 +0100
+From: jean-paul@goedee.nl
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: Joe <kjjordans@hotmail.com>
-References: <COL0-DAV54C91F77A0AEAF8A64729FA1050@phx.gbl>
-In-Reply-To: <COL0-DAV54C91F77A0AEAF8A64729FA1050@phx.gbl>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DTV 1000 S driver support
+Content-Disposition: inline
+Subject: [linux-dvb] TT3200/VDR 1.7.0/Streamdev running with S2API?
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,34 +23,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Joe wrote:
->
-> Hi, i was wondering if anyone knows if i can get linux drivers for a
-> leadtek winfast DTV 1000 s
->
-> Thanks,
->
-> Joe
->
->  
->
-> ------------------------------------------------------------------------
->
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-If you read the archives, you'll see I botched an attempt at a patch.
-I've the time, but sadly not the expertise to develop the driver ;)
->From what I can tell, there's nothing really holding it back beyond a
-catch-22ish situation
-Those with the ability and time, don't have the card
-Those with the ability and the card, don't have the time
-Those with the card and the time, haven't the ability
+Hello,
 
-Good luck!
+What doe I need to make TT3200/VDR 1.7.0/Streamdev running with  
+S2API?. This moment I using TT3200 with Multiproto drivers from Manu  
+and it running well but I know it will change  in the future.
 
-~Matthew~
+I have trying to make it running with S2 drivers from  
+http://mercurial.intuxication.org/hg/s2-liplianin/ en vdr with some  
+patches but not a success.
+
+HDTV only with TS and SDTV with PES. Does someone have it working?
+
+Thanks
+
+JP
+
+
+
 
 _______________________________________________
 linux-dvb mailing list
