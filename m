@@ -1,20 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAR9co1Z030999
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 04:38:50 -0500
-Received: from smtp1-g19.free.fr (smtp1-g19.free.fr [212.27.42.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAR9cbGB009902
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 04:38:37 -0500
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Antonio Ospite <ospite@studenti.unina.it>
-In-Reply-To: <20081125235249.d45b50f4.ospite@studenti.unina.it>
-References: <20081125235249.d45b50f4.ospite@studenti.unina.it>
-Content-Type: multipart/mixed; boundary="=-0El3OZtRtdo7wKxGoUEi"
-Date: Thu, 27 Nov 2008 10:23:04 +0100
-Message-Id: <1227777784.1752.20.camel@localhost>
-Mime-Version: 1.0
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] gspca_ov534: Print only frame_rate actually used.
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mACKVkB8022457
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 15:31:46 -0500
+Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mACKVYnf027053
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 15:31:34 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de, video4linux-list@redhat.com
+Date: Wed, 12 Nov 2008 21:29:33 +0100
+Message-Id: <1226521783-19806-3-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1226521783-19806-2-git-send-email-robert.jarzmik@free.fr>
+References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-2-git-send-email-robert.jarzmik@free.fr>
+Cc: 
+Subject: [PATCH 02/13] soc-camera: formatting fixes
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,129 +25,89 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
---=-0El3OZtRtdo7wKxGoUEi
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Minor formatting fixes
 
-On Tue, 2008-11-25 at 23:52 +0100, Antonio Ospite wrote:
-> Print only frame_rate actually used.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/soc_camera.c |   16 +++++++---------
+ 1 files changed, 7 insertions(+), 9 deletions(-)
 
-Hello Antonio,
-
-This may be simplified as in the attached patch (the frame_rate in the
-sd structure was not used).
-
-The patch also includes removing the bulk_size setting at streamon time:
-the value is already used at this time, and also, there is only one
-resolution.
-
-I found a real problem: for USB read and write, you have a 16-bits
-variable in/from which you read/write only one byte. This will fail with
-big-endian machines. Anyway, it is safer to use the usb_buf from the
-gspca structure.
-
-Cheers.
-
--- 
-Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-Jef             |               http://moinejf.free.fr/
-
-
---=-0El3OZtRtdo7wKxGoUEi
-Content-Disposition: attachment; filename=ov534.patch
-Content-Type: text/x-patch; name=ov534.patch; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-diff -r 3e0ba0a8e47f linux/drivers/media/video/gspca/ov534.c
---- a/linux/drivers/media/video/gspca/ov534.c	Wed Nov 26 20:17:13 2008 +0100
-+++ b/linux/drivers/media/video/gspca/ov534.c	Thu Nov 27 10:15:08 2008 +0100
-@@ -48,7 +48,6 @@
- /* specific webcam descriptor */
- struct sd {
- 	struct gspca_dev gspca_dev;	/* !! must be the first item */
--	__u8 frame_rate;
- };
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index f406042..2d1f474 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -35,8 +35,8 @@ static LIST_HEAD(devices);
+ static DEFINE_MUTEX(list_lock);
+ static DEFINE_MUTEX(video_lock);
  
- /* V4L2 controls supported by the driver */
-@@ -59,7 +58,7 @@
- 	{640, 480, V4L2_PIX_FMT_YUYV, V4L2_FIELD_NONE,
- 	 .bytesperline = 640 * 2,
- 	 .sizeimage = 640 * 480 * 2,
--	 .colorspace = V4L2_COLORSPACE_JPEG,
-+	 .colorspace = V4L2_COLORSPACE_SRGB,
- 	 .priv = 0},
- };
- 
-@@ -359,14 +358,13 @@
- static int sd_init(struct gspca_dev *gspca_dev)
+-const static struct soc_camera_data_format*
+-format_by_fourcc(struct soc_camera_device *icd, unsigned int fourcc)
++const static struct soc_camera_data_format *format_by_fourcc(
++	struct soc_camera_device *icd, unsigned int fourcc)
  {
- 	struct sd *sd = (struct sd *)gspca_dev;
-+	int fr;
-+
- 	ov534_setup(gspca_dev->dev);
+ 	unsigned int i;
  
--	if (frame_rate > 0)
--		sd->frame_rate = frame_rate;
-+	fr = frame_rate;
- 
--	PDEBUG(D_PROBE, "frame_rate = %d", sd->frame_rate);
--
--	switch (sd->frame_rate) {
-+	switch (fr) {
- 	case 50:
- 		sccb_reg_write(gspca_dev->dev, 0x11, 0x01);
- 		sccb_check_status(gspca_dev->dev);
-@@ -381,8 +379,9 @@
- 		sccb_check_status(gspca_dev->dev);
- 		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x04);
- 		break;
--	case 30:
-+/*	case 30: */
- 	default:
-+		fr = 30;
- 		sccb_reg_write(gspca_dev->dev, 0x11, 0x04);
- 		sccb_check_status(gspca_dev->dev);
- 		sccb_reg_write(gspca_dev->dev, 0x0d, 0x81);
-@@ -396,18 +395,15 @@
- 		sccb_check_status(gspca_dev->dev);
- 		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x04);
- 		break;
--	};
-+	}
-+
-+	PDEBUG(D_PROBE, "frame_rate: %d", fr);
- 
- 	return 0;
+@@ -47,7 +47,7 @@ format_by_fourcc(struct soc_camera_device *icd, unsigned int fourcc)
  }
  
- static int sd_start(struct gspca_dev *gspca_dev)
+ static int soc_camera_try_fmt_vid_cap(struct file *file, void *priv,
+-				  struct v4l2_format *f)
++				      struct v4l2_format *f)
  {
--	PDEBUG(D_PROBE, "width = %d, height = %d",
--	       gspca_dev->width, gspca_dev->height);
--
--	gspca_dev->cam.bulk_size = gspca_dev->width * gspca_dev->height * 2;
--
- 	/* start streaming data */
- 	ov534_set_led(gspca_dev->dev, 1);
- 	ov534_reg_write(gspca_dev->dev, 0xe0, 0x00);
-@@ -433,7 +429,6 @@
- 	int framesize = gspca_dev->cam.bulk_size;
+ 	struct soc_camera_file *icf = file->private_data;
+ 	struct soc_camera_device *icd = icf->icd;
+@@ -260,7 +260,7 @@ static int soc_camera_close(struct inode *inode, struct file *file)
+ }
  
- 	if (len == framesize - 4) {
--		frame =
- 		    gspca_frame_add(gspca_dev, FIRST_PACKET, frame, data, len);
- 		frame =
- 		    gspca_frame_add(gspca_dev, LAST_PACKET, frame, last_pixel,
-
---=-0El3OZtRtdo7wKxGoUEi
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+ static ssize_t soc_camera_read(struct file *file, char __user *buf,
+-			   size_t count, loff_t *ppos)
++			       size_t count, loff_t *ppos)
+ {
+ 	struct soc_camera_file *icf = file->private_data;
+ 	struct soc_camera_device *icd = icf->icd;
+@@ -305,7 +305,6 @@ static unsigned int soc_camera_poll(struct file *file, poll_table *pt)
+ 	return ici->ops->poll(file, pt);
+ }
+ 
+-
+ static struct file_operations soc_camera_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= soc_camera_open,
+@@ -317,9 +316,8 @@ static struct file_operations soc_camera_fops = {
+ 	.llseek		= no_llseek,
+ };
+ 
+-
+ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
+-				struct v4l2_format *f)
++				    struct v4l2_format *f)
+ {
+ 	struct soc_camera_file *icf = file->private_data;
+ 	struct soc_camera_device *icd = icf->icd;
+@@ -366,7 +364,7 @@ static int soc_camera_s_fmt_vid_cap(struct file *file, void *priv,
+ }
+ 
+ static int soc_camera_enum_fmt_vid_cap(struct file *file, void  *priv,
+-				   struct v4l2_fmtdesc *f)
++				       struct v4l2_fmtdesc *f)
+ {
+ 	struct soc_camera_file *icf = file->private_data;
+ 	struct soc_camera_device *icd = icf->icd;
+@@ -385,7 +383,7 @@ static int soc_camera_enum_fmt_vid_cap(struct file *file, void  *priv,
+ }
+ 
+ static int soc_camera_g_fmt_vid_cap(struct file *file, void *priv,
+-				struct v4l2_format *f)
++				    struct v4l2_format *f)
+ {
+ 	struct soc_camera_file *icf = file->private_data;
+ 	struct soc_camera_device *icd = icf->icd;
+-- 
+1.5.6.5
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---=-0El3OZtRtdo7wKxGoUEi--
