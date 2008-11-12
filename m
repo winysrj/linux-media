@@ -1,25 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from tuc.ic3s.de ([80.146.164.30])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <thomas@ic3s.de>) id 1Kzsmj-0001QJ-C6
-	for linux-dvb@linuxtv.org; Tue, 11 Nov 2008 13:55:58 +0100
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by tuc.ic3s.de (Postfix) with ESMTP id A75F71440E2
-	for <linux-dvb@linuxtv.org>; Tue, 11 Nov 2008 13:55:53 +0100 (CET)
-Received: from tuc.ic3s.de ([127.0.0.1])
-	by localhost (tuc.ic3s.de [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id 02093-08 for <linux-dvb@linuxtv.org>;
-	Tue, 11 Nov 2008 13:55:40 +0100 (CET)
-Received: from [172.17.33.64] (thomasws2.dhcp.ic3s.de [172.17.33.64])
-	by tuc.ic3s.de (Postfix) with ESMTP id 666C5144023
-	for <linux-dvb@linuxtv.org>; Tue, 11 Nov 2008 13:55:40 +0100 (CET)
-Message-ID: <491980CC.3000708@ic3s.de>
-Date: Tue, 11 Nov 2008 13:55:40 +0100
-From: Thomas <thomas@ic3s.de>
+Received: from smtp109.rog.mail.re2.yahoo.com ([68.142.225.207])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1L05Q3-0000w5-R7
+	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 03:25:25 +0100
+Message-ID: <491A3E6E.6020303@rogers.com>
+Date: Tue, 11 Nov 2008 21:24:46 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] af9015 problem on fedora rawhide 9.93 with 2.6.27x
-	kernel
+To: William Melgaard <piobair@mindspring.com>
+References: <11925882.1226435183455.JavaMail.root@elwamui-ovcar.atl.sa.earthlink.net>
+In-Reply-To: <11925882.1226435183455.JavaMail.root@elwamui-ovcar.atl.sa.earthlink.net>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] FusionHDTV7 RT Gold
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,44 +25,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi List,
+William Melgaard wrote:
+> I have a DViCO FusionHDTV7 RT Gold PCI card in my posession. To date, I cannot make it work with my AMD64 Debian (stable) box. This card is not to be confused with the Dual Express or the USB cards
+>
+> I am getting mixed answers to request for support.
+> I have been told that the card is supported. I downloaded the latest Mercurial, and installed it. As far as I can tell, the FusionHDTV7 RT Gold is NOT supported by the latest Mercurial. If it is, please provide configuration instructions.
+>
+> If the RT Gold is not yet supported, what can I do to aid in providing support? I have some c programming skills, but have never dealt with a driver.
+>   
+see: http://marc.info/?l=linux-dvb&m=120165779828786&w=2
 
-
-since fedora use 2.6.27 kernels this
-is all what happens when i plug in the stick:
-
-Nov 11 13:24:56 thomas-lt kernel: usb 2-6: new high speed USB device using ehci_hcd and address 3
-Nov 11 13:24:57 thomas-lt kernel: usb 2-6: configuration #1 chosen from 1 choice
-Nov 11 13:24:57 thomas-lt kernel: Afatech DVB-T 2: Fixing fullspeed to highspeed interval: 16 -> 8
-Nov 11 13:24:57 thomas-lt kernel: input: Afatech DVB-T 2 as /devices/pci0000:00/0000:00:1d.7/usb2/2-6/2-6:1.1/input/input9
-Nov 11 13:24:57 thomas-lt kernel: input,hidraw0: USB HID v1.01 Keyboard [Afatech DVB-T 2] on usb-0000:00:1d.7-6
-Nov 11 13:24:57 thomas-lt kernel: usb 2-6: New USB device found, idVendor=15a4, idProduct=9016
-Nov 11 13:24:57 thomas-lt kernel: usb 2-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-Nov 11 13:24:57 thomas-lt kernel: usb 2-6: Product: DVB-T 2
-Nov 11 13:24:57 thomas-lt kernel: usb 2-6: Manufacturer: Afatech
-Nov 11 13:24:57 thomas-lt kernel: usb 2-6: SerialNumber: 010101010600001
-Nov 11 13:24:57 thomas-lt kernel: dvb-usb: found a 'Afatech AF9015 DVB-T USB2.0 stick' in cold state, will try to load a firmware
-Nov 11 13:24:57 thomas-lt kernel: firmware: requesting dvb-usb-af9015.fw
-Nov 11 13:24:57 thomas-lt kernel: dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-Nov 11 13:24:57 thomas-lt kernel: usbcore: registered new interface driver dvb_usb_af9015
-
-
-if the stick is connected at boot time everything is working correctly.
-
-can someone please give me a hint where to look for the problem?
-
-version is af9015-e0e0e4ee5b33
-
-
-Best Regards
-Thomas
-
-
-
--- 
-[:O]###[O:]
-
-
+I don't know if Steve submitted the drivers or not ... they may reside
+in one of his development repositories
 
 _______________________________________________
 linux-dvb mailing list
