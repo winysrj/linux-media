@@ -1,19 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADNwTdH019479
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 18:58:29 -0500
-Received: from smtp103.rog.mail.re2.yahoo.com (smtp103.rog.mail.re2.yahoo.com
-	[206.190.36.81])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mADNwGk9016706
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 18:58:16 -0500
-Message-ID: <491CBF15.90401@rogers.com>
-Date: Thu, 13 Nov 2008 18:58:13 -0500
-From: CityK <cityk@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAC1Ergd003755
+	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 20:14:53 -0500
+Received: from mailrelay003.isp.belgacom.be (mailrelay003.isp.belgacom.be
+	[195.238.6.53])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAC1EhXe001818
+	for <video4linux-list@redhat.com>; Tue, 11 Nov 2008 20:14:43 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Wed, 12 Nov 2008 02:14:55 +0100
+References: <200811111753.03430.laurent.pinchart@skynet.be>
+	<alpine.LFD.2.00.0811111559550.5321@bombadil.infradead.org>
+In-Reply-To: <alpine.LFD.2.00.0811111559550.5321@bombadil.infradead.org>
 MIME-Version: 1.0
-To: V4L <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Subject: USB Capture device
+Content-Disposition: inline
+Message-Id: <200811120214.55330.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com
+Subject: Re: [RFC] Add usb_endpoint_*,
+	list_first_entry and uninitialized_var to compat.h
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,25 +32,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Keith Lawson wrote:
-> I've been on this list for a while now and have noticed that it's pretty 
-> well strictly developer related. Most user questions about supported 
-> devices seem to go unanswered. Is there a better forum for users to ask 
-> questions about Linux support for video devices?
+Hi Mauro,
 
-Developers are in short supply.  Users tend to just ask their particular
-question and never return.  So unanswered support questions are the
-unfortunate consequence.      (A lot of users seem to expect a lot too
---- some how I think that they may have an image of an elf workshop,
-were developers go about working for no other apparent reason then just
-to produce drivers)     
+On Tuesday 11 November 2008, Mauro Carvalho Chehab wrote:
+> On Tue, 11 Nov 2008, Laurent Pinchart wrote:
+> > Hi everybody,
+> >
+> > This patch adds support for the usb_endpoint_* functions as well as
+> > list_first_entry and uninitialized_var macros to compat.h. The uvcvideo
+> > driver requires it to compile on kernels older than 2.6.22.
+> >
+> > As the usb_endpoint_* functions needs struct usb_endpoint_descriptor,
+> > they are only defined if linux/usb.h has been included before compat.h.
+> > This avoids including linux/usb.h unconditionally. I've tested the patch
+> > by compiling the v4l-dvb tree on 2.6.16 and 2.6.27 and didn't get any
+> > warning or error.
+> >
+> > If nobody objects I'll include the changes in my tree with the related
+> > uvcvideo changes and send a pull request.
+>
+> I didn't test it here, but it seems OK to me.
+>
+> Maybe instead of testing for a specific version, you may use
+> make_config_compat.pl script to do some test at some include file, finding
+> for some specific API call, like we did for some KABI changes that
+> happened without incrementing kernel minor revision.
 
-> I didn't catch the final descision on splitting the mailing list. Is a 
-> video4linux-users list coming?
->   
+Are you referring to the test for a specific Redhat kernel version ? When 
+should compat.h test for a specific kernel version, and when should 
+make_config_compat.pl be used ?
 
-There has been no further discussion on the matter.....things make wide
-turns around here, as opposed to on a dime
+Best regards,
+
+Laurent Pinchart
 
 --
 video4linux-list mailing list
