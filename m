@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp111.rog.mail.re2.yahoo.com ([206.190.37.1])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cityk@rogers.com>) id 1L5mQ7-0005w4-81
-	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 20:21:00 +0100
-Message-ID: <492EF2F7.105@rogers.com>
-Date: Thu, 27 Nov 2008 14:20:23 -0500
-From: CityK <cityk@rogers.com>
+Received: from qw-out-2122.google.com ([74.125.92.24])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <alex.betis@gmail.com>) id 1L0DDZ-0005y2-Dq
+	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 11:45:04 +0100
+Received: by qw-out-2122.google.com with SMTP id 9so227257qwb.17
+	for <linux-dvb@linuxtv.org>; Wed, 12 Nov 2008 02:44:57 -0800 (PST)
+Message-ID: <c74595dc0811120244o7a44495el33188765c6a2cc80@mail.gmail.com>
+Date: Wed, 12 Nov 2008 12:44:57 +0200
+From: "Alex Betis" <alex.betis@gmail.com>
+To: "Per Heldal" <heldal@eml.cc>
+In-Reply-To: <1226485295.19990.28.camel@obelix>
 MIME-Version: 1.0
-CC: linux-dvb@linuxtv.org
-References: <49293640.10808@cadsoft.de>
-	<492A53C4.5030509@makhutov.org>	<492DC5F5.3060501@gmx.de>	<20081127123505.GI13103@titan.makhutov-it.de>	<a3ef07920811270608v12999195k533d552fd059f24@mail.gmail.com>	<1227799293.5677.10.camel@palomino.walls.org>
-	<a3ef07920811270919t77c40c0cv64c96675ce147a5@mail.gmail.com>
-In-Reply-To: <a3ef07920811270919t77c40c0cv64c96675ce147a5@mail.gmail.com>
-Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+References: <20081112023112.94740@gmx.net>
+	<E1L09Ud-000GW2-00.goga777-bk-ru@f149.mail.ru>
+	<1226485295.19990.28.camel@obelix>
+Cc: Hans Werner <HWerner4@gmx.de>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,119 +23,90 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0962804447=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-VDR User wrote:
-> This conversation is about addressing and finding a solution
-> to a problem.  
+--===============0962804447==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_3655_2076193.1226486697056"
 
-Agreed.
+------=_Part_3655_2076193.1226486697056
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-> I'm not even the person who originally brought up the
-> solution used in multiproto but as far as I can see, it does seem to
-> be a great solution so I question why that method shouldn't be
-> adopted.
->   
+On Wed, Nov 12, 2008 at 12:21 PM, Per Heldal <heldal@eml.cc> wrote:
 
-Fair enough, and upon casual inspection, it sounds like the multiproto
-method is done well and can be adopted ... so lets move towards that
-direction with that in mind and with whatever other good suggestions can
-be fleshed out of the discussion.
+> On Wed, 2008-11-12 at 09:46 +0300, Goga777 wrote:
+> > thanks for your patch.
+> >
+> > btw - could you scan dvb-s2 (qpsk & 8psk) channels with scan-s2 and
+> > hvr4000 ? with which drivers ?
+> >
+>
+> I seem to be able to scan some transponders, but not all, using current
+> code from the repos at http://linuxtv.org/hg/v4l-dvb/ and
+> http://mercurial.intuxication.org/hg/scan-s2
+>
+> I run scan-s2 on the following list of HD-transponders on 0.8w :
+>
+> S 11938000 H 25000000 3/4 35 8PSK
+> S 12015000 H 30000000 3/4 35 8PSK
+> S 12130000 H 30000000 3/4 35 8PSK
+> S 12188000 V 25000000 3/4 35 8PSK
+>
+> (a selection of transponders from
+> http://lyngsat.com/packages/canaldigital.html)
+>
+> With rolloff set to AUTO scan-s2 will not lock to any transponder.
+> Instead it will appear to repeatedly re-scan sources on any transponder
+> the tuner previously was tuned to.
+>
+> With rolloff set to 35 as above scan-s2 will lock and find channels on
+> both transponders with SR=25000000, but for the 2 in the middle with
+> SR=30000000 it simply repeats the channel-list of the previous
+> transponder. I've been playing with alternatives for rolloff and
+> modulation with no result.
+>
 
-> I hope you don't expect to be taken seriously after your absurd
-> comment. 
-> ....
-> It's ridiculous I need to point any of this out to you but one
-> possible reason is that _you_ are in fact the one trolling here.
-> Afterall, the only posting you've made has absolutely nothing to do
-> with the subject, while all of mine do.  
-> ... 
-> And by the way, most of us have accepted the outcome of the
-> s2api/multiproto controversy.  Maybe it's about time you find a way to
-> move on as well. 
->   
+The problem will probably be solved with new scan-s2, hopefully I'll have
+time to update it today.
+I'll send an update to the list when I'll update the repository.
 
-Andy's comment might have been harsh, but your earlier comments (
-http://marc.info/?l=linux-dvb&m=122763079609781&w=2) have, shall we say,
-been a touch on the harsh side too and there is plenty of reason why
-those might have drawn the ire of someone like Andy; specifically:
+------=_Part_3655_2076193.1226486697056
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-a) "How could you possibly miss such a fundamental element?!"
+<div dir="ltr"><br><br>
+<div class="gmail_quote">On Wed, Nov 12, 2008 at 12:21 PM, Per Heldal <span dir="ltr">&lt;heldal@eml.cc&gt;</span> wrote:<br>
+<blockquote class="gmail_quote" style="PADDING-LEFT: 1ex; MARGIN: 0px 0px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid">
+<div class="Ih2E3d">On Wed, 2008-11-12 at 09:46 +0300, Goga777 wrote:<br>&gt; thanks for your patch.<br>&gt;<br>&gt; btw - could you scan dvb-s2 (qpsk &amp; 8psk) channels with scan-s2 and<br>&gt; hvr4000 ? with which drivers ?<br>
+&gt;<br><br></div>I seem to be able to scan some transponders, but not all, using current<br>code from the repos at <a href="http://linuxtv.org/hg/v4l-dvb/" target="_blank">http://linuxtv.org/hg/v4l-dvb/</a> and<br>
+<div class="Ih2E3d"><a href="http://mercurial.intuxication.org/hg/scan-s2" target="_blank">http://mercurial.intuxication.org/hg/scan-s2</a><br><br></div>I run scan-s2 on the following list of HD-transponders on 0.8w :<br>
+<br>S 11938000 H 25000000 3/4 35 8PSK<br>S 12015000 H 30000000 3/4 35 8PSK<br>S 12130000 H 30000000 3/4 35 8PSK<br>S 12188000 V 25000000 3/4 35 8PSK<br><br>(a selection of transponders from<br><a href="http://lyngsat.com/packages/canaldigital.html" target="_blank">http://lyngsat.com/packages/canaldigital.html</a>)<br>
+<br>With rolloff set to AUTO scan-s2 will not lock to any transponder.<br>Instead it will appear to repeatedly re-scan sources on any transponder<br>the tuner previously was tuned to.<br><br>With rolloff set to 35 as above scan-s2 will lock and find channels on<br>
+both transponders with SR=25000000, but for the 2 in the middle with<br>SR=30000000 it simply repeats the channel-list of the previous<br>transponder. I&#39;ve been playing with alternatives for rolloff and<br>modulation with no result.<br>
+</blockquote>
+<div>&nbsp;</div>
+<div>The problem will probably be solved with new scan-s2, hopefully I&#39;ll have time to update it today.</div>
+<div>I&#39;ll send an update to the list when I&#39;ll update the repository.</div>
+<div>&nbsp;</div></div></div>
 
-Retort: As has already been pointed out: stuff happens, gets overlooked
-... Second, from a developers perspective (like Andy's), it gets
-exceedingly annoying when users bitch and complain about how lacking or
-(as a gross exaggeration) "brain dead" some developer's code is ... such
-cases are obviously not ripe with constructive commentary, nor do they
-provide much incentive for developers to continue with projects if the
-users prove to be ungrateful for the free lunch
+------=_Part_3655_2076193.1226486697056--
 
-b) "I have yet to hear any response from any of them about this
-issue.Seems as though when the issue was beating multiproto,
-communication was at the peak. Now that the decision has been made, good
-luck to get a reply. :\"
 
-Retort: By its very nature, this is a provocative comment.
-
-In addition to the point made by Andy (and I too am not lining up on
-either side of the Multiproto vs S2API holy war), I will note the
-inherent contextual error in "the silence is deafening" stance and why
-it doesn't float squat:
-
-Manu was absent from the lists and activity, for personal reasons, for a
-sustained period (5-6 months?). That's not a knock on him, its just a
-fact. Steven has been absent from the lists and activity for, what, 3-4
-weeks? Suddenly this is an international incident that demands immediate
-resolve? Come on! Fact of the matter is, the whole S2 thing is long in
-coming, and likely has a number of areas that will need to be ironed out
-in future -- this would be the case regardless of whether it is
-Multiproto or S2API that is pressed forth. Things WILL get resolved.
-Give them time. Tone back expectations.
-
-As a second point of issue, perhaps you have not noticed, but meaningful
-traffic on the mail lists would appear to be down substantially over the
-last while -- though, on the flip side, the number of "is this device
-supported" and "can someone write a driver for this" posts is increasing
-disproportionately to the number of interested or available developers.
-So, the point (once again), is that the absence of discussion, even upon
-meaningful subject matters, is not necessarily indicative of anything
-further then there being a lack of discussion at this point in time.
-Silence does not a conspiracy make.
-
-c) "Hey, stranger things have happened. Not much surprised me these days."
-
-Retort: This, of course, was in response to Klaus', self described,
-sarcastic conspiracy comment. Though your own later comment ("most of us
-have accepted the outcome of the s2api/multiproto controversy") does not
-specifically indicate that you include yourself within that group of
-accepting individuals, it strikes me that if you truly were a member,
-then you would have passed up on providing such a response to Klaus --
-instead, you availed yourself to the opportunity to stoke the flame.
-
-[For the record -- I don't particularly like the way the whole S2
-situation played out. BUT I see it as a case of where there is blame on
-both sides. However, being a pragmatist, I (like many others) would like
-to see that whole issue put to rest and, instead, press forth in a
-progressive manner. I believe that the best of both works can be or
-should be adopted. Perhaps it is naive on my part, but I can't see why
-one is inherently or universally better than the other -- then again,
-that argument is relatively moot to me -- there is no singular solution
-other than to adapt and continuously try to improve. I hate rigidity,
-whether it is idealogical or otherwise.]
-
-> Please contribute something relevant or find some other thread to infect.
-
-Andy is a developer and contributes to the v4l-dvb code base on a
-regular basis. That's pretty darn relevant to me. If you did not like
-his comment, then perhaps you could have ignored it, or perhaps you
-could have reflected inwards upon how your own loose comments, as
-illustrated above, might have been viewed as contemptuous by some.
+--===============0962804447==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0962804447==--
