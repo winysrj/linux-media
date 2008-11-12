@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vds2011.yellis.net ([79.170.233.11])
+Received: from ey-out-2122.google.com ([74.125.78.26])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <alexis@via.ecp.fr>) id 1KwhmF-0002Tl-RI
-	for linux-dvb@linuxtv.org; Sun, 02 Nov 2008 19:34:20 +0100
-Received: from [192.168.0.2] (def92-11-88-170-64-159.fbx.proxad.net
-	[88.170.64.159])
-	by vds2011.yellis.net (Postfix) with ESMTP id DA3312FA8A2
-	for <linux-dvb@linuxtv.org>; Sun,  2 Nov 2008 19:34:15 +0100 (CET)
-Message-ID: <490DF2A8.9020603@via.ecp.fr>
-Date: Sun, 02 Nov 2008 19:34:16 +0100
-From: Alexis de Lattre <alexis@via.ecp.fr>
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1L0F8e-0006IC-66
+	for linux-dvb@linuxtv.org; Wed, 12 Nov 2008 13:48:08 +0100
+Received: by ey-out-2122.google.com with SMTP id 25so158616eya.17
+	for <linux-dvb@linuxtv.org>; Wed, 12 Nov 2008 04:48:00 -0800 (PST)
+Date: Wed, 12 Nov 2008 13:47:45 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Alex Betis <alex.betis@gmail.com>
+In-Reply-To: <c74595dc0811120408l4ef3cf92g9b1efc850e3b0b48@mail.gmail.com>
+Message-ID: <alpine.DEB.2.00.0811121332240.22461@ybpnyubfg.ybpnyqbznva>
+References: <20081112023112.94740@gmx.net>
+	<c74595dc0811120243m4819b86bk84a5d23c8e00e467@mail.gmail.com>
+	<alpine.DEB.2.00.0811121212280.22461@ybpnyubfg.ybpnyqbznva>
+	<c74595dc0811120408l4ef3cf92g9b1efc850e3b0b48@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary="------------060303010501040903000001"
-Subject: [linux-dvb] Fix for fr-Paris scan file
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH] scan-s2: fixes and diseqc rotor support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,48 +24,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-7"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---------------060303010501040903000001
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Here is a small fix on the fr-Paris scan file for the new R5 multiplex 
-which officially carries the new free-to-air HD channels since Thursday.
-
--- 
-Alexis de Lattre
-
---------------060303010501040903000001
-Content-Type: text/x-diff;
- name="patch-dvb-t-fr_Paris.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="patch-dvb-t-fr_Paris.diff"
-
---- util/scan/dvb-t/fr-Paris.old	2008-11-02 19:16:40.000000000 +0100
-+++ util/scan/dvb-t/fr-Paris	2008-11-02 19:22:02.000000000 +0100
-@@ -11,7 +11,7 @@
- T 538166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
- T 562166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
- T 586166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
--T 714166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-+T 714166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
- T 738166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
- T 754166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
- T 762166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-
---------------060303010501040903000001
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---------------060303010501040903000001--
+T24gV2VkLCAxMiBOb3YgMjAwOCwgQWxleCBCZXRpcyB3cm90ZToKCj4gQlRXLCB5b3UgZ2l2ZSBo
+ZXJlIGV4YW1wbGUgb2YgTklUIHBhcnNpbmcsIGRvIHlvdSBrbm93IHRoZSBmb3JtYXQgb2YgdGhl
+Cj4gbWVzc2FnZSBhbmQgd2hhdCBmaWVsZCBzcGVjaWZpZXMgdGhhdCB0aGUgZGVsaXZlcnkgc3lz
+dGVtIGlzIERWQi1TMj8gc2Nhbgo+IHV0aWxpdHkgY29kZSBkb2Vzbid0IHBhcnNlIGl0LCBzbyBJ
+IGp1c3QgYWRkIGJvdGggRFZCLVMgYW5kIERWQi1TMiBzY2FucyBmb3IKCkkndmUgc3BlbnQgeWVz
+dGVyZGF5IGhhY2tpbmcgVVRGLTggb3V0cHV0IGludG8gbXkgb2xkIGNvcHkKb2YgZHZiLWFwcHMg
+YW5kIHRoZW4gZmluZGluZyB0aGF0IHRoZSBHcmVlayAxM0UgSG90YmlyZHMKY2hhbm5lbCBgwu/1
+6946MTIxNjg6aDoyOjI3NTAwOjUxNzo3MDA6Mzg0JyBbVVRGLTggZW5jb2RlZCwKaG9wZSBteSBN
+SU1FIGhlYWRlcnMgYW5kIEVTTVRQIGFyZSBjb3JyZWN0XSBpcyBub3Qgc2VudCBhcwpsYXRpbi1n
+cmVlayBjaGFyc2V0LCBhbmQgdGh1cyBkb2Vzbid0IGFwcGVhciBwcm9wZXJseSBmb3IKbWUsIGJ1
+dCBhbnl3YXksIGhlcmUgaXMgYSBjb2RlIHNuaXBwZXQgb2YgbXkgYHNjYW4nIHRoYXQgc2VuZHMK
+dGhlIE5JVCBkdW1wIG9mIHRoZSBzY2FubmVkIHRyYW5zcG9uZGVyIHRvIHN0ZGVyciwgdGhhdCBJ
+CnVzZSB3aGVuIG5lZWRlZC4gIEN1dCduJ3Bhc3RlOyBhbHNvIHBhcnQgb2YgYSBtdWNoIGxhcmdl
+cgpzZXQgb2YgaGFja3MsIHNvIGl0J3MgbWVhbnQgYXMgYW4gZXhhbXBsZSwgYW5kIG5vdCB0byBi
+ZQp1c2VkIGFzIGBgdXNlZnVsJycgY29kZToKCisKK2NoYXIgKmZlY1sxMF0gPSB7Ik5PTkUiLCAi
+MS8yIiwgIjIvMyIsICIzLzQiLCAiNC81IiwgIjUvNiIsICI2LzciLCAiNy84IiwgIjgvOSIsICJB
+VVRPIiB9IDsKK2lmICh0bi50eXBlID09IDApIHsKKyAgaWYgKGR1bXBfbml0cyA9PSAxKSB7Cisg
+ICAgcHJpbnRmKCJOSVQgcmVzdWx0OiAgJWQgJXMgJWQgICBwb3MgICUuMWYlcyAgIiwgdG4ucGFy
+YW0uZnJlcXVlbmN5LCB0bi5wb2xhcmlzYXRpb24gPyAiViIgOiAiSCIsIHRuLnBhcmFtLnUucXBz
+ay5zeW1ib2xfcmF0ZSwgKGZsb2F0KXRuLm9yYml0YWxfcG9zLzEwLCB0bi53ZV9mbGFnID8gIkUi
+IDogIlciKTsKKyAgICBwcmludGYoIiAgRkVDICVzIiwgIGZlY1t0bi5wYXJhbS51LnFwc2suZmVj
+X2lubmVyXSApOworaWYgKHRuLm1vZHVsYXRpb24gJiAweDA0KSB7CisgICAgICAgcHJpbnRmKCIg
+IERWQi1TMiIpOworICBpZiAoKHRuLm1vZHVsYXRpb24gJiAweDAzKSA9PSAweDAxKSBwcmludGYg
+KCIgUVBTSyIpOworICBpZiAoKHRuLm1vZHVsYXRpb24gJiAweDAzKSA9PSAweDAyKSBwcmludGYg
+KCIgOFBTSyIpOworCit9CitpZiAodG4ucGFyYW0uaW52ZXJzaW9uICE9IDIpCisgICAgICAgcHJp
+bnRmKCIgIGludiAlcyIsICB0bi5wYXJhbS5pbnZlcnNpb24gPyAiT0ZGIiA6ICJPTiIgLypYWFgg
+RklYTUUgKi8pOworcHJpbnRmKCJcbiIpOworICB9Cit9CisKCgpBbHNvLCBJIGJlbGlldmUgdGhh
+dCB0aGUgcmVjZW50IGBkdmJzbm9vcCcgaW52b2tlZCB3aXRoCmAtcyB0cyAtdHNzdWJkZWNvZGUn
+IG9uIHRoZSBOSVQgUElEIHdpbGwgdmVyYm9zZWx5IHBhcnNlCnRoZSBjb21wb25lbnRzIGFuZCBk
+aXNwbGF5IGV2ZXJ5dGhpbmcgLS0gSSBiZWxpZXZlIEkgdXNlZAp0aGF0IHNvdXJjZSBjb2RlIGFz
+IHRoZSBiYXNpcyBmb3IgdGhlIGFib3ZlIGhhY2suCgpJIHdvbmRlciBpZiBhbnkgb2YgbXkgb3Ro
+ZXIgZHZiLWFwcHMvc2NhbiBoYWNrcyB3b3VsZCBiZQpvZiBpbnRlcmVzdCBmb3Igc29tZW9uZSB0
+byBjbGVhbiB1cCAoZm9yIG1lLCBmdW5jdGlvbgpiZWZvcmUgZm9ybSwgZXNwZWNpYWxseSB3aGVu
+IEkgZG9uJ3QgaGF2ZSBhIGNsdWUgYXMgdG8Kd2hhdCBJIGFtIGRvaW5nKS4uLgoKCmJhcnJ5IGJv
+dXdzbWEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
+bnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGlu
+dXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
