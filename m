@@ -1,19 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALFLhcS017522
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 10:21:43 -0500
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALFLWSW029482
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 10:21:32 -0500
-From: hvaibhav@ti.com
-To: video4linux-list@redhat.com
-Date: Fri, 21 Nov 2008 20:51:19 +0530
-Message-Id: <1227280879-31440-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org,
-	davinci-linux-open-source-bounces@linux.davincidsp.com
-Subject: [PATCH 1/2] Add Input/Output related ioctl support
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mACKVmY7022469
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 15:31:48 -0500
+Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mACKVaXQ027070
+	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 15:31:36 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: g.liakhovetski@gmx.de, video4linux-list@redhat.com
+Date: Wed, 12 Nov 2008 21:29:36 +0100
+Message-Id: <1226521783-19806-6-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1226521783-19806-5-git-send-email-robert.jarzmik@free.fr>
+References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-2-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-3-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-4-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-5-git-send-email-robert.jarzmik@free.fr>
+Cc: 
+Subject: [PATCH 05/13] soc-camera: move pixel format handling to host
+	drivers (part 2)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,65 +29,130 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-Added ioctl support for query std, set std, enum input,
-get input, set input, enum output, get output and set output.
+Just letting camera host drivers handle the choice of a pixel format in
+.vidioc_s_fmt_vid_cap() is not enough, pixel format enumeration should be
+handled by host drivers too.
 
-For sensor kind of slave drivers v4l2-int-device.h provides
-necessary ioctl support, but the ioctls required to interface
-with decoders and encoders are missing. Most of the decoders
-and encoders supports multiple inputs and outputs, like
-S-Video or Composite.
-
-With these ioctl''s user can select the specific input/output.
-
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-		Hardik Shah <hardik.shah@ti.com>
-		Manjunath Hadli <mrh@ti.com>
-		R Sivaraj <sivaraj@ti.com>
-		Vaibhav Hiremath <hvaibhav@ti.com>
-		Karicheri Muralidharan <m-karicheri2@ti.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- include/media/v4l2-int-device.h |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+ drivers/media/video/pxa_camera.c           |   17 +++++++++++++++++
+ drivers/media/video/sh_mobile_ceu_camera.c |   17 +++++++++++++++++
+ drivers/media/video/soc_camera.c           |   12 +++---------
+ include/media/soc_camera.h                 |    1 +
+ 4 files changed, 38 insertions(+), 9 deletions(-)
 
-diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index 9c2df41..d73a11b 100644
---- a/include/media/v4l2-int-device.h
-+++ b/include/media/v4l2-int-device.h
-@@ -183,6 +183,14 @@ enum v4l2_int_ioctl_num {
- 	vidioc_int_s_crop_num,
- 	vidioc_int_g_parm_num,
- 	vidioc_int_s_parm_num,
-+	vidioc_int_querystd_num,
-+	vidioc_int_s_std_num,
-+	vidioc_int_enum_input_num,
-+	vidioc_int_g_input_num,
-+	vidioc_int_s_input_num,
-+	vidioc_int_enumoutput_num,
-+	vidioc_int_g_output_num,
-+	vidioc_int_s_output_num,
-
- 	/*
- 	 *
-@@ -284,6 +292,14 @@ V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
- V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
- V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
- V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
-+V4L2_INT_WRAPPER_1(querystd, v4l2_std_id, *);
-+V4L2_INT_WRAPPER_1(s_std, v4l2_std_id, *);
-+V4L2_INT_WRAPPER_1(enum_input, struct v4l2_input, *);
-+V4L2_INT_WRAPPER_1(g_input, int, *);
-+V4L2_INT_WRAPPER_1(s_input, int, );
-+V4L2_INT_WRAPPER_1(enumoutput, struct v4l2_output, *);
-+V4L2_INT_WRAPPER_1(g_output, int, *);
-+V4L2_INT_WRAPPER_1(s_output, int, );
-
- V4L2_INT_WRAPPER_0(dev_init);
- V4L2_INT_WRAPPER_0(dev_exit);
---
-1.5.6
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 665eef2..f7f621c 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -963,6 +963,22 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+ 	return icd->ops->try_fmt(icd, f);
+ }
+ 
++static int pxa_camera_enum_fmt(struct soc_camera_device *icd,
++			       struct v4l2_fmtdesc *f)
++{
++	const struct soc_camera_data_format *format;
++
++	if (f->index >= icd->num_formats)
++		return -EINVAL;
++
++	format = &icd->formats[f->index];
++
++	strlcpy(f->description, format->name, sizeof(f->description));
++	f->pixelformat = format->fourcc;
++
++	return 0;
++}
++
+ static int pxa_camera_reqbufs(struct soc_camera_file *icf,
+ 			      struct v4l2_requestbuffers *p)
+ {
+@@ -1070,6 +1086,7 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
+ 	.resume		= pxa_camera_resume,
+ 	.set_fmt	= pxa_camera_set_fmt,
+ 	.try_fmt	= pxa_camera_try_fmt,
++	.enum_fmt	= pxa_camera_enum_fmt,
+ 	.init_videobuf	= pxa_camera_init_videobuf,
+ 	.reqbufs	= pxa_camera_reqbufs,
+ 	.poll		= pxa_camera_poll,
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 367c4eb..fdfe04f 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -505,6 +505,22 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+ 	return icd->ops->try_fmt(icd, f);
+ }
+ 
++static int sh_mobile_ceu_enum_fmt(struct soc_camera_device *icd,
++				  struct v4l2_fmtdesc *f)
++{
++	const struct soc_camera_data_format *format;
++
++	if (f->index >= icd->num_formats)
++		return -EINVAL;
++
++	format = &icd->formats[f->index];
++
++	strlcpy(f->description, format->name, sizeof(f->description));
++	f->pixelformat = format->fourcc;
++
++	return 0;
++}
++
+ static int sh_mobile_ceu_reqbufs(struct soc_camera_file *icf,
+ 				 struct v4l2_requestbuffers *p)
+ {
+@@ -572,6 +588,7 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
+ 	.remove		= sh_mobile_ceu_remove_device,
+ 	.set_fmt	= sh_mobile_ceu_set_fmt,
+ 	.try_fmt	= sh_mobile_ceu_try_fmt,
++	.enum_fmt	= sh_mobile_ceu_enum_fmt,
+ 	.reqbufs	= sh_mobile_ceu_reqbufs,
+ 	.poll		= sh_mobile_ceu_poll,
+ 	.querycap	= sh_mobile_ceu_querycap,
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 7304e73..f5a1a86 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -355,18 +355,12 @@ static int soc_camera_enum_fmt_vid_cap(struct file *file, void  *priv,
+ {
+ 	struct soc_camera_file *icf = file->private_data;
+ 	struct soc_camera_device *icd = icf->icd;
+-	const struct soc_camera_data_format *format;
++	struct soc_camera_host *ici =
++		to_soc_camera_host(icd->dev.parent);
+ 
+ 	WARN_ON(priv != file->private_data);
+ 
+-	if (f->index >= icd->num_formats)
+-		return -EINVAL;
+-
+-	format = &icd->formats[f->index];
+-
+-	strlcpy(f->description, format->name, sizeof(f->description));
+-	f->pixelformat = format->fourcc;
+-	return 0;
++	return ici->ops->enum_fmt(icd, f);
+ }
+ 
+ static int soc_camera_g_fmt_vid_cap(struct file *file, void *priv,
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 64eb4b5..9c3734c 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -68,6 +68,7 @@ struct soc_camera_host_ops {
+ 	int (*resume)(struct soc_camera_device *);
+ 	int (*set_fmt)(struct soc_camera_device *, __u32, struct v4l2_rect *);
+ 	int (*try_fmt)(struct soc_camera_device *, struct v4l2_format *);
++	int (*enum_fmt)(struct soc_camera_device *, struct v4l2_fmtdesc *);
+ 	void (*init_videobuf)(struct videobuf_queue *,
+ 			      struct soc_camera_device *);
+ 	int (*reqbufs)(struct soc_camera_file *, struct v4l2_requestbuffers *);
+-- 
+1.5.6.5
 
 --
 video4linux-list mailing list
