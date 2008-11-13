@@ -1,28 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAUDxGj6022882
-	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 08:59:16 -0500
-Received: from smtp-vbr16.xs4all.nl (smtp-vbr16.xs4all.nl [194.109.24.36])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAUDwQ5j027528
-	for <video4linux-list@redhat.com>; Sun, 30 Nov 2008 08:58:27 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date: Sun, 30 Nov 2008 14:58:22 +0100
-References: <200811242309.37489.hverkuil@xs4all.nl>
-	<200811291519.39549.hverkuil@xs4all.nl>
-	<Pine.LNX.4.64.0811292002300.8352@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0811292002300.8352@axis700.grange>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADHcA8Z003953
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 12:38:10 -0500
+Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mADHbwkl001852
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 12:37:58 -0500
+To: "Magnus Damm" <magnus.damm@gmail.com>
+References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-3-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-4-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-5-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-6-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-7-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-8-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-9-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-10-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0811122216520.9188@axis700.grange>
+	<aec7e5c30811122346t4de9fe6eke16260e820a34864@mail.gmail.com>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Thu, 13 Nov 2008 18:37:26 +0100
+In-Reply-To: <aec7e5c30811122346t4de9fe6eke16260e820a34864@mail.gmail.com>
+	(Magnus Damm's message of "Thu\, 13 Nov 2008 16\:46\:54 +0900")
+Message-ID: <87y6znh6i1.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200811301458.23184.hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, video4linux-list@redhat.com,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: v4l2_device/v4l2_subdev: please review (PATCH 1/3)
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 09/13] pxa_camera: use the translation framework
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,61 +37,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Saturday 29 November 2008 20:08:44 Guennadi Liakhovetski wrote:
-> On Sat, 29 Nov 2008, Hans Verkuil wrote:
-> > > > +Introduction
-> > > > +------------
-> > > > +
-> > > > +The V4L2 drivers tend to be very complex due to the complexity
-> > > > of the +hardware: most devices have multiple ICs, export
-> > > > multiple device nodes in +/dev, and create also non-V4L2
-> > > > devices such as DVB, ALSA, FB, I2C and input +(IR) devices.
-> > > > +
-> > > > +Especially the fact that V4L2 drivers have to setup supporting
-> > > > ICs to +do audio/video muxing/encoding/decoding makes it more
-> > > > complex than most. +Usually these ICs are connected to the main
-> > > > bridge driver through one or +more I2C busses, but other busses
-> > > > can also be used. Such devices are +called 'sub-devices'.
-> > >
-> > > Do you know of other busses being used in (Linux supported) real
-> > > video hardware, or is it currently theoretical only ?
-> >
-> > The pxa_camera driver is one example of that. Also devices driven
-> > by GPIO pins can be implemented this way. I did that in ivtv for
-> > example: most cards use i2c audio muxers, but some have audio
-> > muxers that are commanded through GPIO so I created a v4l2_subdev
-> > that uses GPIO to drive these chips. Works very well indeed.
+"Magnus Damm" <magnus.damm@gmail.com> writes:
+
+> Hi guys,
 >
-> I think pxa-camera (as well as sh-mobile-ceu and other soc-camera
-> host drivers in the works) is not a very good example here. Sensors
-> connected to embedded controllers like PXA indeed use a dedicated
-> camera bus but only for data exchange. This bus comprises of data and
-> synchronisation lines only. Sensors are still connected over an i2c
-> bus for control and configuration, also been open to other busses, I
-> haven't seen such examples as yet. I might have misunderstood what
-> has been discussed here though.
+> Yeah, I'd like to have a default "pass-through" case for the SuperH
+> CEU driver as well. The host driver is totally unaware of all data
+> formats, with the exception of a few formats that can be translated
+> into NV12/NV21/NV16/NV61.
 
-I agree that it not the best example, although it is perfectly possible 
-to see this as a controller sub-device. Having the same mechanism to 
-talk to any type of hardware involved in video capture and display has 
-definite advantages.
+For the SuperH, the "pass-through" was kept if I coded correctly. The
+translation API is not used at all, and the host driver should behave just as
+before.
 
-Once these patches are in I would definitely recommend that people start 
-experimenting with them. Also be aware that this is just the first 
-step. I'm going to improve on these two fundamental structs 
-(v4l2_device and v4l2_subdev) to add much improved support for 
-controls. Currently drivers have to spend way too much effort on 
-implementing all the control handling code.
+BTW, if you have the hardware, it would be good, when the review will be
+advanced enough, to make some tests (thinking non-regression here).
 
-And there are many more things one can do with these structures. I'll 
-just take it step by step.
-
-Regards,
-
-         Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+--
+Robert
 
 --
 video4linux-list mailing list
