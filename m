@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJ9ZL9s000858
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 04:35:21 -0500
-Received: from smtp4.versatel.nl (smtp4.versatel.nl [62.58.50.91])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJ9Z8kx012977
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 04:35:08 -0500
-Message-ID: <4923DF13.4090609@hhs.nl>
-Date: Wed, 19 Nov 2008 10:40:35 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
-MIME-Version: 1.0
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
-Cc: Elmar Kleijn <elmar_kleijn@hotmail.com>,
-	"radjnies@gmail.com" <radjnies@gmail.com>,
-	=?windows-1252?Q?Luk=E1=9A_Karas?= <lukas.karas@centrum.cz>,
-	"need4weed@gmail.com" <need4weed@gmail.com>
-Subject: RFC: add emulated controls to libv4l
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADHRYjd029855
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 12:27:34 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mADHQS1n027034
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 12:26:28 -0500
+Date: Thu, 13 Nov 2008 15:26:22 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Mike Isely <isely@isely.net>
+Message-ID: <20081113152622.6f6b7092@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Video <video4linux-list@redhat.com>, Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH] missdetection on pvrusb2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,52 +25,69 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-<resend from other mail address, which is actually subscribed to the list>
+Hi Mike,
 
-Hi all,
+There's a report on kernelops.org about an issue with pvrusb2 and tvaudio.
 
-As discussed in my previous mail, various people (including me) want to add
-things like software whitebalancing, etc. to libv4l.
+I'm currently working on fixing some issues there, but it seems that tvaudio is
+sometimes being miss-detected. So, it seems a good idea to blacklist the driver
+in the cases that we're sure it can't be there.
 
-When this is added, it would be nice for the user to be able to control this
-(turn on/off) using a standard v4l control panel application as for example
-v4l2ucp.
+If ok for you, I'll apply this one on my tree.
 
-The question I want to discuss here is how to implement this. We want this to
-work as much as possible as real controls, so:
+Cheers,
+Mauro.
 
--Settings can be changed by one app (control panel), influencing the picture
-  seen by another app which is streaming
--Settings are remembered even when no app has the device open
--Settings are reset acros a driver unload / load (typically a reboot)
+--
 
+tvaudio: fix a missdetection with pvrusb2 driver
 
-There are 3 possible solutions here:
-1) Add an API to the driver to store and retreive "fake" settings
-2) Use shared memory
-3) Use shared memory by creating shared memory mappings of a (binary) file
+As reported on [1], tvaudio is called for pvrusb2, but, according with 
+Michael Krufky, there's no pvrusb2 device needing tvaudio. So, the 
+better is to exclude it from being probed at tvaudio.
 
-So which one to use
-1) Has the advantage of the resulting behavior matching that of real controls
-exactly, but requires adding code to the kernel, lets no do that.
+[1] http://article.gmane.org/gmane.linux.kernel/723516
 
-2) IIRC it is possible to keep a shared memory segment around (until reboot)
-even if no app is using it, this will then pretty closely match the behavior of
-normal controls. Also Lukáš Karas has already submitted a patch implementing
-this, which is a pre too :)
-
-3) This is only usefull if it turns out to not be possible to keep a shared
-memory segment around even if no app is using it. This has the disadvantage of
-keeping settings even across reboots, which could be seen as an advantage, but
-if we want to do this (which I believe we do) we should write an utility
-program to do this.
-
-
-So my vote clearly goes to option 2, what do others here on the list think?
-
-Regards,
-
-Hans
+diff -r f33ef5bce695 linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
+--- a/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	Thu Nov 13 15:07:54 2008 -0200
++++ b/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	Thu Nov 13 15:14:44 2008 -0200
+@@ -1018,7 +1018,7 @@
+ static struct i2c_adapter pvr2_i2c_adap_template = {
+ 	.owner         = THIS_MODULE,
+ 	.class	   = I2C_CLASS_TV_ANALOG,
+-	.id            = I2C_HW_B_BT848,
++	.id            = I2C_HW_B_PVRUSB2,
+ 	.client_register = pvr2_i2c_attach_inform,
+ 	.client_unregister = pvr2_i2c_detach_inform,
+ };
+diff -r f33ef5bce695 linux/drivers/media/video/tvaudio.c
+--- a/linux/drivers/media/video/tvaudio.c	Thu Nov 13 15:07:54 2008 -0200
++++ b/linux/drivers/media/video/tvaudio.c	Thu Nov 13 15:14:44 2008 -0200
+@@ -1865,9 +1865,10 @@
+ 
+ static int chip_legacy_probe(struct i2c_adapter *adap)
+ {
+-	/* don't attach on saa7146 based cards,
+-	   because dedicated drivers are used */
+-	if ((adap->id == I2C_HW_SAA7146))
++	/* don't attach on saa7146 or pvrusb2 based cards,
++	   because other drivers are used */
++	if ((adap->id == I2C_HW_SAA7146) ||
++	    (adap->id == I2C_HW_B_PVRUSB2))
+ 		return 0;
+ 	if (adap->class & I2C_CLASS_TV_ANALOG)
+ 		return 1;
+diff -r f33ef5bce695 linux/include/linux/i2c-id.h
+--- a/linux/include/linux/i2c-id.h	Thu Nov 13 15:07:54 2008 -0200
++++ b/linux/include/linux/i2c-id.h	Thu Nov 13 15:14:44 2008 -0200
+@@ -110,6 +110,7 @@
+ #define I2C_HW_B_INTELFB	0x010021 /* intel framebuffer driver */
+ #define I2C_HW_B_CX23885	0x010022 /* conexant 23885 based tv cards (bus1) */
+ #define I2C_HW_B_AU0828		0x010023 /* auvitek au0828 usb bridge */
++#define I2C_HW_B_PVRUSB2	0x010024 /* pvrusb2 video boards */
+ 
+ /* --- PCF 8584 based algorithms					*/
+ #define I2C_HW_P_ELEK		0x020002 /* Elektor ISA Bus inteface card */
 
 --
 video4linux-list mailing list
