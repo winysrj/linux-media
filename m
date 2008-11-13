@@ -1,27 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.185])
+Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <user.vdr@gmail.com>) id 1L5yFB-0000gu-Th
-	for linux-dvb@linuxtv.org; Fri, 28 Nov 2008 08:58:31 +0100
-Received: by nf-out-0910.google.com with SMTP id g13so775168nfb.11
-	for <linux-dvb@linuxtv.org>; Thu, 27 Nov 2008 23:58:26 -0800 (PST)
-Message-ID: <a3ef07920811272358p6c1cbe6bt8e0361db2e79671d@mail.gmail.com>
-Date: Thu, 27 Nov 2008 23:58:26 -0800
-From: "VDR User" <user.vdr@gmail.com>
-To: "hermann pitton" <hermann-pitton@arcor.de>
-In-Reply-To: <1227839691.2590.7.camel@pc10.localdom.local>
+	(envelope-from <crope@iki.fi>) id 1L0eJR-0004Ko-6y
+	for linux-dvb@linuxtv.org; Thu, 13 Nov 2008 16:40:53 +0100
+Message-ID: <491C4A81.8020700@iki.fi>
+Date: Thu, 13 Nov 2008 17:40:49 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
-	<492DC5F5.3060501@gmx.de>
-	<20081127123505.GI13103@titan.makhutov-it.de>
-	<a3ef07920811270608v12999195k533d552fd059f24@mail.gmail.com>
-	<1227799293.5677.10.camel@palomino.walls.org>
-	<a3ef07920811270919t77c40c0cv64c96675ce147a5@mail.gmail.com>
-	<492EF2F7.105@rogers.com>
-	<1227839691.2590.7.camel@pc10.localdom.local>
+To: Sebastian Marskamp <SebastianMarskamp@web.de>
+References: <1587493004@web.de>
+In-Reply-To: <1587493004@web.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+Subject: Re: [linux-dvb] af9015 problem on fedora rawhide 9.93 with 2.6.27x
+ kernel
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -35,27 +26,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Considering that writing my own retorts to quotes will only bring this
-discussion further off-topic, I'll refrain by only saying that anyone
-who finds my opinions too abrasive for their ears should elect to
-ignore my posts.  I don't think people should be expected to censor
-themselves or walk on eggshells for fear of someone taking it the
-wrong way.  Of course unless people engage in name-calling, excessive
-profanity, etc.  Aside of the "troll" word being tossed around a
-couple times, I don't see that happening.  That being said, no harm no
-foul.. Let's move on.
+Sebastian Marskamp wrote:
+> Theres also a patch   , which works fine for me.
+> 
+> http://www.linuxtv.org/pipermail/linux-dvb/attachments/20081022/94261bbc/attachment.diff 
 
-CityK said it best:
+This patch is not OK because it still sends reconnect USB-command. It 
+may lead to situation stick reconnects but driver does not except that.
 
-"Fair enough, and upon casual inspection, it sounds like the multiproto
-method is done well and can be adopted ... so lets move towards that
-direction with that in mind and with whatever other good suggestions can
-be fleshed out of the discussion."
+It seems like problem is that it sends USB-reconnect command to the 
+stick firmware immediately after firmware is downloaded. Sometimes 
+(especially Kernel 2.6.27) USB-reconnect command will be rejected by 
+stick firmware because firmware is not started yet. Small sleep just 
+before USB-reconnect is needed to ensure stick firmware is running.
 
-Agreed.
+Is there anyone who has this problem and can make & test patch?
 
-With regard,
--Derek
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 _______________________________________________
 linux-dvb mailing list
