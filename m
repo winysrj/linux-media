@@ -1,34 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAEFc9kH026876
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 10:38:09 -0500
-Received: from d1.scratchtelecom.com (69.42.52.179.scratchtelecom.com
-	[69.42.52.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAEFbtqq004363
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 10:37:55 -0500
-Received: from vegas (CPE00a02477ff82-CM001225d885d8.cpe.net.cable.rogers.com
-	[99.249.154.65])
-	by d1.scratchtelecom.com (8.13.8/8.13.8/Debian-3) with ESMTP id
-	mAEFbt6H013628
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 10:37:55 -0500
-Received: from lawsonk (helo=localhost)
-	by vegas with local-esmtp (Exim 3.36 #1 (Debian)) id 1L10k4-00066n-00
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 10:37:52 -0500
-Date: Fri, 14 Nov 2008 10:37:52 -0500 (EST)
-From: Keith Lawson <lawsonk@lawson-tech.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <d9def9db0811130440t17b05c58q603a14e446e417e5@mail.gmail.com>
-Message-ID: <alpine.DEB.1.10.0811141033000.23321@vegas>
-References: <491339D9.2010504@personnelware.com>
-	<30353c3d0811061553h4c1a77e0t597bd394fa0ebdf1@mail.gmail.com>
-	<4913E9DB.8040801@hhs.nl> <200811071050.25149.hverkuil@xs4all.nl>
-	<20081107161956.c096dd03.ospite@studenti.unina.it>
-	<alpine.DEB.1.10.0811071416380.25756@vegas>
-	<alpine.DEB.1.10.0811130651170.2643@vegas>
-	<d9def9db0811130440t17b05c58q603a14e446e417e5@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Subject: Re: USB Capture device
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADBbO8a000937
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 06:37:24 -0500
+Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mADBbC7j025300
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 06:37:12 -0500
+Received: from smtp6-g19.free.fr (localhost.localdomain [127.0.0.1])
+	by smtp6-g19.free.fr (Postfix) with ESMTP id 18F271977B
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 12:37:12 +0100 (CET)
+Received: from [192.168.0.13] (lns-bzn-39-82-255-26-50.adsl.proxad.net
+	[82.255.26.50])
+	by smtp6-g19.free.fr (Postfix) with ESMTP id D7CEC19779
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 12:37:08 +0100 (CET)
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Video 4 Linux <video4linux-list@redhat.com>
+In-Reply-To: <20081112191736.bcbc1e37.ospite@studenti.unina.it>
+References: <20080816050023.GB30725@thumper>
+	<20080816083613.51071257@mchehab.chehab.org>
+	<7813ee860808160513g2f0e3602q9f3aed45d66ef165@mail.gmail.com>
+	<20081105203114.213b599a@pedra.chehab.org>
+	<20081111184200.cb9a2ba4.ospite@studenti.unina.it>
+	<20081111191516.20febe64.ospite@studenti.unina.it>
+	<4919E47E.4000603@hhs.nl>
+	<20081112191736.bcbc1e37.ospite@studenti.unina.it>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Thu, 13 Nov 2008 12:33:58 +0100
+Message-Id: <1226576038.2040.42.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH] Add support for OmniVision OV534 based USB cameras.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,58 +40,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Wed, 2008-11-12 at 19:17 +0100, Antonio Ospite wrote:
+> Well, with my hacks to gspca.c the ov534 driver has become really
+> trivial. The source has shrunk from 33K to 13K. But these hacks could
+> not be accepted though :) But, yes, the opinion on gspca is positive.
 
+Hello Antonio,
 
-On Thu, 13 Nov 2008, Markus Rechberger wrote:
-<snip>
-> are you sure this device is tm6000 based? I just remember the same
-> product package used for em2820 based devices.
->
-> http://mcentral.de/wiki/index.php5/Em2880#Devices
+Thank you for your opinion.
 
-It's a TM5600 device. I've been able to capture video from it 
-using the tm5600/tm6000/tm6010 module from Mauro's mercurial repository
-but I'm having an issue with green flickering a the top of the video, I'm 
-not sure if that's a driver issue or an mplayer issue.
+I looked again at your subdriver, and it seems good to me. So forget
+about mine which is too buggy.
 
-Are you aware of a em2820 based USB "dongle" device? I don't require a 
-tuner, I'm just trying to capture input from S-video and composite (RCA).
+About your hacks to gspca, there are good and bad ideas. The good idea
+is to have the bulk_nurbs parameter. The bad idea is to force it to one
+when no set. To preserve the compatibility, the bulk_nurbs may be set to
+some value for webcams which accept permanent bulk read, the submit
+being done by gspca. For the other webcams, as those in finepix, a null
+bulk_nurbs will indicate that the bulk read requests are done by the
+subdriver. Is it OK for you?
 
->
-> br,
-> Markus
->
->> Thanks,
->> Keith.
->>
->> On Fri, 7 Nov 2008, Keith Lawson wrote:
->>
->>> Hello,
->>>
->>> Can anyone suggest a good USB catpure device that has S-Video input and a
->>> stable kernel driver? I've been playing with this device:
->>>
->>> http://www.diamondmm.com/VC500.php
->>>
->>> using the development drivers from http://linuxtv.org/hg/~mchehab/tm6010/
->>> but I haven't had any luck with S-Video (only composite).
->>>
->>> Can anyone suggest a device with stable drivers in 2.6.27.5?
->>>
->>> Thanks, Keith.
->>>
->>> --
->>> video4linux-list mailing list
->>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->
+Also, I saw a little problem in your subdriver: in pkt_scan, you use a
+static variable (count). This does not work with many active webcams and
+also after stop / restart streaming. Instead, you may know the current
+byte count using the frame values data and data_end.
+
+> The improvement that I always dream to see is to have bridge and
+> sensor
+> drivers split, so sensor drivers can be shared, a-la soc_camera, I
+> mean.
+
+There were many threads about this subject, but I could not find many
+common values for a same sensor with different bridges in gspca...
+
+> Bringing that idea to the extreme, one could think even to share
+> sensor
+> drivers with the soc_camera framework itself, but I only have this
+> abstract suggestion, no idea at all about how it can be done, sorry.
+> Could it be a GSoC project for next summer?
+
+Why not?
+
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
 
 --
 video4linux-list mailing list
