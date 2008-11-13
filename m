@@ -1,16 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA6N4oWl006845
-	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 18:04:50 -0500
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADJAipX026929
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 14:10:44 -0500
 Received: from smtp2-g19.free.fr (smtp2-g19.free.fr [212.27.42.28])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA6N4Iqr023023
-	for <video4linux-list@redhat.com>; Thu, 6 Nov 2008 18:04:35 -0500
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mADJAVTk025183
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 14:10:31 -0500
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-2-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-3-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-4-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-5-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-6-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-7-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-8-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-9-git-send-email-robert.jarzmik@free.fr>
+	<1226521783-19806-10-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0811122216520.9188@axis700.grange>
 From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: video4linux-list@redhat.com, g.liakhovetski@gmx.de
-Date: Fri,  7 Nov 2008 00:04:16 +0100
-Message-Id: <1226012656-17334-1-git-send-email-robert.jarzmik@free.fr>
-Cc: 
-Subject: [PATCH] pxa_camera: Fix YUV format handling.
+Date: Thu, 13 Nov 2008 20:10:29 +0100
+In-Reply-To: <Pine.LNX.4.64.0811122216520.9188@axis700.grange> (Guennadi
+	Liakhovetski's message of "Wed\,
+	12 Nov 2008 22\:19\:40 +0100 \(CET\)")
+Message-ID: <878wrnv3ve.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 09/13] pxa_camera: use the translation framework
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,56 +38,17 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Allows all YUV formats on pxa interface. Even if PXA capture
-interface expects data in UYVY format, we allow all formats
-considering the pxa bus is not making any translation.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-For the special YUV planar format, we translate the pixel
-format asked to the sensor to VYUY, which is the bus byte
-order necessary (out of the sensor) for the pxa to make the
-correct translation.
+> Do I understand it right, that with this all Bayer and monochrome formats 
+> will stop working with pxa? If so - not good. Remember what we discussed 
+> about a default "pass-through" case?
+Oh yes, right. I'm an ass. To be more precise, a git ass.
+I added the missing patch 13/13 ... sorry. This was the one which provided the
+"pass-through".
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/video/pxa_camera.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index eb6be58..863e0df 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -862,7 +862,15 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
- 	case V4L2_PIX_FMT_YUV422P:
- 		pcdev->channels = 3;
- 		cicr1 |= CICR1_YCBCR_F;
-+		/*
-+		 * Normally, pxa bus wants as input VYUY format.
-+		 * We allow all YUV formats, as no translation is used, and the
-+		 * YUV stream is just passed through without any transformation.
-+		 */
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_VYUY:
- 	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_YVYU:
- 		cicr1 |= CICR1_COLOR_SP_VAL(2);
- 		break;
- 	case V4L2_PIX_FMT_RGB555:
-@@ -907,6 +915,13 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
- static int pxa_camera_set_fmt_cap(struct soc_camera_device *icd,
- 				  __u32 pixfmt, struct v4l2_rect *rect)
- {
-+	/*
-+	 * The YUV 4:2:2 planar format is translated by the pxa assuming its
-+	 * input (ie. camera device output) is VYUV.
-+	 * We fix the pixel format asked to the camera device.
-+	 */
-+	if (pixfmt == V4L2_PIX_FMT_YUV422P)
-+		pixfmt = V4L2_PIX_FMT_VYUY;
- 	return icd->ops->set_fmt_cap(icd, pixfmt, rect);
- }
- 
--- 
-1.5.6.5
+--
+Robert
 
 --
 video4linux-list mailing list
