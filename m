@@ -1,21 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Adam Baker <linux@baker-net.org.uk>
-To: sqcam-devel@lists.sourceforge.net
-Date: Tue, 25 Nov 2008 20:57:37 +0000
-References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
-	<200811250002.36951.linux@baker-net.org.uk>
-	<Pine.LNX.4.64.0811241929420.7049@banach.math.auburn.edu>
-In-Reply-To: <Pine.LNX.4.64.0811241929420.7049@banach.math.auburn.edu>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADCfEKP028920
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 07:41:14 -0500
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.170])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mADCeudG027081
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 07:40:56 -0500
+Received: by ug-out-1314.google.com with SMTP id j30so1344353ugc.13
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 04:40:56 -0800 (PST)
+Message-ID: <d9def9db0811130440t17b05c58q603a14e446e417e5@mail.gmail.com>
+Date: Thu, 13 Nov 2008 13:40:55 +0100
+From: "Markus Rechberger" <mrechberger@gmail.com>
+To: "Keith Lawson" <lawsonk@lawson-tech.com>
+In-Reply-To: <alpine.DEB.1.10.0811130651170.2643@vegas>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200811252057.38162.linux@baker-net.org.uk>
-Cc: Hans de Goede <hdegoede@redhat.com>, video4linux-list@redhat.com,
-	kilgota@banach.math.auburn.edu
-Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
-	driver
+References: <491339D9.2010504@personnelware.com>
+	<30353c3d0811061553h4c1a77e0t597bd394fa0ebdf1@mail.gmail.com>
+	<4913E9DB.8040801@hhs.nl> <200811071050.25149.hverkuil@xs4all.nl>
+	<20081107161956.c096dd03.ospite@studenti.unina.it>
+	<alpine.DEB.1.10.0811071416380.25756@vegas>
+	<alpine.DEB.1.10.0811130651170.2643@vegas>
+Cc: video4linux-list@redhat.com
+Subject: Re: USB Capture device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,78 +35,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tuesday 25 November 2008, kilgota@banach.math.auburn.edu wrote:
-> On Tue, 25 Nov 2008, Adam Baker wrote:
-<snip>
-> > This approach can even cope with the complex case that no-one has yet
-> > considered, wanting to use one sq905 based camera to record video while
-> > you download stills from another.
+On Thu, Nov 13, 2008 at 12:57 PM, Keith Lawson <lawsonk@lawson-tech.com> wrote:
+> Hello,
 >
-> That is interesting if it works, yes. But how could a thing like that
-> work?
-
-Because it the libusb detach call doesn't unload the driver, just detach it 
-from the usb device supplied as an argument. If there were another device 
-using the same driver it would remain attached.
-
-> If the kernel is without V4L support, then clearly no module will get
-> loaded. But I would say that
+> I've been on this list for a while now and have noticed that it's pretty
+> well strictly developer related. Most user questions about supported devices
+> seem to go unanswered. Is there a better forum for users to ask questions
+> about Linux support for video devices?
 >
-> "embedded system or small system" != "don't want camera drivers"
-
-Certainly there exist embedded systems that may want camera drivers but then 
-they have to have the memory to support them so there is no benefit to not 
-loading the driver.
-
+> I didn't catch the final descision on splitting the mailing list. Is a
+> video4linux-users list coming?
 >
-> > To hopefully convince you this can easily provide all the functionality
-> > you want I've attempted to do some testing and in order to avoid changing
-> > libgphoto I've written a little standalone app (attached) to do the
-> > cleanup. I'm taking advantage of the fact I know we want ifno 0 for this
-> > cam but libgphoto2 has already found the correct value.
-> >
-<snip>
-> >
-> > If I now run up gphoto2 again all my images have gone as I actually used
-> > the webcam functionality.
+
+are you sure this device is tm6000 based? I just remember the same
+product package used for em2820 based devices.
+
+http://mcentral.de/wiki/index.php5/Em2880#Devices
+
+br,
+Markus
+
+> Thanks,
+> Keith.
 >
-> Convincing, yes.
+> On Fri, 7 Nov 2008, Keith Lawson wrote:
 >
-> > I've changed the ioctl's in the patch from using libusb private values to
-> > values from a kernel provided header file.
+>> Hello,
+>>
+>> Can anyone suggest a good USB catpure device that has S-Video input and a
+>> stable kernel driver? I've been playing with this device:
+>>
+>> http://www.diamondmm.com/VC500.php
+>>
+>> using the development drivers from http://linuxtv.org/hg/~mchehab/tm6010/
+>> but I haven't had any luck with S-Video (only composite).
+>>
+>> Can anyone suggest a device with stable drivers in 2.6.27.5?
+>>
+>> Thanks, Keith.
+>>
+>> --
+>> video4linux-list mailing list
+>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>
 >
-> All right, I will have a look. Unfortunately, I understand that in order
-> really to test it I need to have some piece of hardware which is supported
-> through libgphoto2 in one mode and by a module in the other mode. An old
-> SQ905 camera will do that, but what module are you using to support it
-> right now? The old one? Is it compatible with recent kernels? Or is it
-> rewritten somewhere? Sorry, but while I can easily understand the
-> underlying problems here I am not up to speed at all about webcam apps or,
-> for that matter, the latest status of V4L.
-
-Yes, I am using the existing sqcam driver from 
-http://sqcam.cvs.sourceforge.net/viewvc/sqcam/sqcam26/
-
-I think the newest kernel I've tested it with is 2.6.26. I've certainly tried 
-with one where V4L1 support is optional which I think started from 2.6.26 but 
-I never committed the changes needed to allow the driver to build if V4L1 
-support is disabled so you need to check CONFIG_VIDEO_V4L1 is set on recent 
-kernels.
-
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 >
->
-> So what I understand is this code will re-scan the USB bus, and, when it
-> does, the module gets reloaded if the camera is plugged in. It seems to me
-> that a very logical place to put code like this would be in a webcam app,
-> not in libgphoto2. I suspect that this is not what you want me to say.
-> But, as I said, I will have a look at the code.
-
-It doesn't re-scan the whole bus, just rescan the driver list to see if one 
-matches that device.
-
-Regards
-
-Adam
 
 --
 video4linux-list mailing list
