@@ -1,19 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADHRYjd029855
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 12:27:34 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mADHQS1n027034
-	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 12:26:28 -0500
-Date: Thu, 13 Nov 2008 15:26:22 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Mike Isely <isely@isely.net>
-Message-ID: <20081113152622.6f6b7092@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mADFcBmU014635
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 10:43:07 -0500
+Received: from ti-out-0910.google.com (ti-out-0910.google.com [209.85.142.191])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mADFIatc006671
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 10:18:39 -0500
+Received: by ti-out-0910.google.com with SMTP id 24so641224tim.7
+	for <video4linux-list@redhat.com>; Thu, 13 Nov 2008 07:18:35 -0800 (PST)
+Message-ID: <1cf807b00811130718l24ccb052v33e84e992e4d6a28@mail.gmail.com>
+Date: Thu, 13 Nov 2008 23:18:34 +0800
+From: "Kris Huang" <imaborg@gmail.com>
+To: "Alexey Klimov" <klimov.linux@gmail.com>
+In-Reply-To: <208cbae30811102156r452c849i6dc149736ad89328@mail.gmail.com>
+MIME-Version: 1.0
+References: <1cf807b00811100709p5c70701aoa11043e4d12388c8@mail.gmail.com>
+	<49185431.2070701@verizonbusiness.com>
+	<1cf807b00811101842k1ce60474rd9ed17f28ae5772f@mail.gmail.com>
+	<208cbae30811102156r452c849i6dc149736ad89328@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Video <video4linux-list@redhat.com>, Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH] missdetection on pvrusb2
+Content-Disposition: inline
+Cc: video4linux-list@redhat.com
+Subject: Re: How to stop driver from loading to prevent from hanging during
+	booting
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,70 +34,112 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mike,
+Hello,
 
-There's a report on kernelops.org about an issue with pvrusb2 and tvaudio.
+On Tue, Nov 11, 2008 at 1:56 PM, Alexey Klimov <klimov.linux@gmail.com>wrote:
 
-I'm currently working on fixing some issues there, but it seems that tvaudio is
-sometimes being miss-detected. So, it seems a good idea to blacklist the driver
-in the cases that we're sure it can't be there.
+> Hello, all
+>
+> On Tue, Nov 11, 2008 at 5:42 AM, Kris Huang <imaborg@gmail.com> wrote:
+> >    Thanks Mark.
+> >    I've downloaded a copy of the missing firmware file but have no luck.
+> >    In dmesg, it shows having problem when trying to use the firmware
+> file.
+> >    Though I still can't switch channel in tvtime, but the video is
+> working*
+> > *alright.*
+> >   *I am seriously considering opening the tin box to see what exactly the
+> > tuner chip is.
+> >   (I can find the decoder chip which is saa7135 actually, but didn't see
+> > the tuner chip)*
+> >
+> >  *  It's very kind of you also provided me a way to modify the blacklist
+> > file when the file system is under read-only status.
+> >   The funny thing is I can still boot into system by using the previously
+> > built kernel. ( 2.6.24-21-generic is still in the Grub menu)
+> >   So I still have access to modify the blacklist and disable the saa7134
+> > driver from loading.
+> >   It's really appreciated.
+> >   Thank you.
+> >   Kris.
+> > *
+> > *
+> > On Mon, Nov 10, 2008 at 11:33 PM, Mark Paulus <
+> > mark.paulus@verizonbusiness.com> wrote:
+> >
+> >>
+> >>
+> >> Kris Huang wrote:
+> >>
+> >>> Hi,
+> >>>
+> >>>  Good day.
+> >>>  In order to get my Compro T750F channel switch working, I use hg and
+> >>> download the latest v4l drivers. After make install and reboot, my
+> Ubuntu
+> >>> Intrepid box just hanged. I am not that familiar with Ubuntu, so I
+> don't
+> >>> know how to stop the trouble driver from being loaded during the boot
+> >>> process.
+> >>>  Any ideas?
+> >>>  Thanks.
+> >>>
+> >>>
+> >> looks like you need to add a file to /etc/modprobe.d directory,
+> >> something called, maybe, v4l-blacklist, and in it, put in the driver
+> name
+> >> that is hanging....  (looks like saa7134).
+> >>
+> >> Have you downloaded firmware for this card, and put it into
+> >> /lib/firmware?
+> >> There looks to be a bit of info in this post:
+> >> http://www.linuxtv.org/pipermail/linux-dvb/2007-April/017433.html
+> >>
+> >> BTW, if booting into single user mode still tries to load the
+> >> driver, then you will need to boot off of a CD or floppy.  Your
+> >> Install media might have a "Go to Shell" option where you can
+> >> mount your hard drive and then edit your files, or something like
+> >> Tomsrtbt disk, or "The Ultimate Boot CD (UBCD)), or even
+> >> Mythubuntu or Knoppix/Mythknoppix.  Basically
+> >> you need to boot any kind of linux kernel/system that will allow you to
+> go
+> >> to a shell, mount your hard drive,
+> >> and then have vi or some other editor that will allow you to create the
+> >> file(s) you need.
+> >>
+> > --
+> > video4linux-list mailing list
+> > Unsubscribe mailto:video4linux-list-request@redhat.com
+> ?subject=unsubscribe
+> > https://www.redhat.com/mailman/listinfo/video4linux-list
+> >
+>
+> Kris, can you log in as root and run such command in command line:
+> "mount -no remount,rw /"
+> or, for example:
+> "mount -o remount,rw /" ?
+>
+> This should re-mount you rootfs with read-write access.
+> (Also, you can use man to read about mount)
+> And next time, please add you answer in end of the letter, not in the
+> beginning.
+>
+> --
+> Best regards, Klimov Alexey
+>
 
-If ok for you, I'll apply this one on my tree.
+    I can drop to a shell with as a root, run the command you mentioned, the
+file looks changed and
+    no error messages, but after reboot, it's not changed.
+   Anyway, I am able to boot normally with saa7134 in the blacklist.
+   I am wondering how can we tell which tuner chip was used on the tv card.
+   Because the tuner chip seems to be sealed in the metal box and I don't
+want to solder it.
+   I've been trying the options with modprobe command from 1 to 80 but have
+no luck.
+   Thanks for you response.
 
-Cheers,
-Mauro.
-
---
-
-tvaudio: fix a missdetection with pvrusb2 driver
-
-As reported on [1], tvaudio is called for pvrusb2, but, according with 
-Michael Krufky, there's no pvrusb2 device needing tvaudio. So, the 
-better is to exclude it from being probed at tvaudio.
-
-[1] http://article.gmane.org/gmane.linux.kernel/723516
-
-diff -r f33ef5bce695 linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
---- a/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	Thu Nov 13 15:07:54 2008 -0200
-+++ b/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	Thu Nov 13 15:14:44 2008 -0200
-@@ -1018,7 +1018,7 @@
- static struct i2c_adapter pvr2_i2c_adap_template = {
- 	.owner         = THIS_MODULE,
- 	.class	   = I2C_CLASS_TV_ANALOG,
--	.id            = I2C_HW_B_BT848,
-+	.id            = I2C_HW_B_PVRUSB2,
- 	.client_register = pvr2_i2c_attach_inform,
- 	.client_unregister = pvr2_i2c_detach_inform,
- };
-diff -r f33ef5bce695 linux/drivers/media/video/tvaudio.c
---- a/linux/drivers/media/video/tvaudio.c	Thu Nov 13 15:07:54 2008 -0200
-+++ b/linux/drivers/media/video/tvaudio.c	Thu Nov 13 15:14:44 2008 -0200
-@@ -1865,9 +1865,10 @@
- 
- static int chip_legacy_probe(struct i2c_adapter *adap)
- {
--	/* don't attach on saa7146 based cards,
--	   because dedicated drivers are used */
--	if ((adap->id == I2C_HW_SAA7146))
-+	/* don't attach on saa7146 or pvrusb2 based cards,
-+	   because other drivers are used */
-+	if ((adap->id == I2C_HW_SAA7146) ||
-+	    (adap->id == I2C_HW_B_PVRUSB2))
- 		return 0;
- 	if (adap->class & I2C_CLASS_TV_ANALOG)
- 		return 1;
-diff -r f33ef5bce695 linux/include/linux/i2c-id.h
---- a/linux/include/linux/i2c-id.h	Thu Nov 13 15:07:54 2008 -0200
-+++ b/linux/include/linux/i2c-id.h	Thu Nov 13 15:14:44 2008 -0200
-@@ -110,6 +110,7 @@
- #define I2C_HW_B_INTELFB	0x010021 /* intel framebuffer driver */
- #define I2C_HW_B_CX23885	0x010022 /* conexant 23885 based tv cards (bus1) */
- #define I2C_HW_B_AU0828		0x010023 /* auvitek au0828 usb bridge */
-+#define I2C_HW_B_PVRUSB2	0x010024 /* pvrusb2 video boards */
- 
- /* --- PCF 8584 based algorithms					*/
- #define I2C_HW_P_ELEK		0x020002 /* Elektor ISA Bus inteface card */
-
+Kris
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
