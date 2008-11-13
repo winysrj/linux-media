@@ -1,28 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <florin@andrei.myip.org>) id 1Kzy5I-00078A-Um
-	for linux-dvb@linuxtv.org; Tue, 11 Nov 2008 19:35:30 +0100
-Received: from localhost (weiqi.home.local [127.0.0.1])
-	by weiqi.home.local (Postfix) with ESMTP id AF74D5771C4
-	for <linux-dvb@linuxtv.org>; Tue, 11 Nov 2008 10:34:52 -0800 (PST)
-Received: from weiqi.home.local ([127.0.0.1])
-	by localhost (andrei.myip.org [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id ZISZCDbezdtq for <linux-dvb@linuxtv.org>;
-	Tue, 11 Nov 2008 10:34:51 -0800 (PST)
-Received: from [10.123.0.253] (unknown [10.123.0.253])
-	by weiqi.home.local (Postfix) with ESMTP id F3684576EF9
-	for <linux-dvb@linuxtv.org>; Tue, 11 Nov 2008 10:34:50 -0800 (PST)
-Message-ID: <4919D04A.2090105@andrei.myip.org>
-Date: Tue, 11 Nov 2008 10:34:50 -0800
-From: Florin Andrei <florin@andrei.myip.org>
+Received: from cp-out4.libero.it ([212.52.84.104])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <ferrarir@libero.it>) id 1L0lJN-0000Qs-9K
+	for linux-dvb@linuxtv.org; Fri, 14 Nov 2008 00:09:18 +0100
+Received: from libero.it (192.168.17.9) by cp-out4.libero.it (8.5.016.1)
+	id 491979DC0050CC28 for linux-dvb@linuxtv.org;
+	Fri, 14 Nov 2008 00:08:40 +0100
+Date: Fri, 14 Nov 2008 00:08:40 +0100
+Message-Id: <KAAOAG$CEA59BC3D735B9AA0A1D487608AA9862@libero.it>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <491236F2.4050101@andrei.myip.org>	<200811060153.37102.hftom@free.fr>	<49124960.6070101@andrei.myip.org>	<alpine.DEB.2.00.0811060903100.22461@ybpnyubfg.ybpnyqbznva>	<4918BC54.5030304@andrei.myip.org>
-	<alpine.DEB.2.00.0811110403000.22461@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.00.0811110403000.22461@ybpnyubfg.ybpnyqbznva>
-Subject: Re: [linux-dvb] HD over satellite? (h.264)
-Reply-To: linux-dvb@linuxtv.org
+From: "ferrarir\@libero\.it" <ferrarir@libero.it>
+To: "dvb linux" <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Help with multiproto and myth
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -36,25 +25,64 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thank you for the detailed analysis of the situation.
+Thank you for your reply!
+Can you tell me if is there a way dump a dvb-s2 stream to a file?
+I'm able to lock dvb-s2 channels using szap2 (i got FE_HAS_LOCK) but don't know how to watch them...
+Do i need particular codecs? (I'm able to watch h.264/avc1 files.)
+(i want to be sure that my multiproto drivers are ok before going to mythtv ml)
 
-Looks like I'll get a Hauppauge Nova-S-Plus for the moment and just use 
-it to receive TVRi with the MythTV system I'm building - there's nothing 
-else I'm watching via satellite and don't really plan to expand the 
-number of channels I'm viewing. I don't watch live TV at all, just put a 
-few things on MythTV to watch whenever.
+thanks
 
-If the Nova-S-Plus can also receive some of the radio stations on Galaxy 
-25, then so much better. If not, no big deal.
+---------- Initial Header -----------
 
-If and when HD stuff that's interesting to me becomes available, I'll 
-probably look at a DVB-S2 card. Until then, the Linux and MythTV support 
-for S2 will no doubt improve.
+>From      : "Per Heldal" heldal@eml.cc
+To          : "ferrarir@libero.it" ferrarir@libero.it
+Cc          : 
+Date      : Thu, 13 Nov 2008 00:02:31 +0100
+Subject : Re: [linux-dvb] Help with multiproto and myth
 
--- 
-Florin Andrei
 
-http://florin.myip.org/
+
+
+
+
+
+> On Wed, 2008-11-12 at 19:42 +0100, ferrarir@libero.it wrote:
+> > Hello,
+> > i'm having problem watching dvb-s2 channels using multiproto drivers
+> > and mythtv.
+> > i've compiled multiproto drivers and mythtv 0.21 patched with this
+> > patch:
+> > http://svn.mythtv.org/trac/raw-attachment/ticket/5403/mythtv_multiproto.5.patch
+> > i'm able to scan dvb-s2 transponders after updating
+> > mythconverg.dtv_multiplex table to '8psk' (modulation field) but i'm
+> > not able to watch hd channels ...
+> > Mythfrontend complains about "no lock"
+> 
+> You're more likely to find help about mythtv on one of their
+> mailinglists.  See http://mythtv.org/modules.php?name=MythInfo
+> 
+> Patience is probably the key right now when it comes to linux and
+> DVB-based HDTV. In case you haven't noticed; the community has agreed
+> that S2API, and not multiproto, is the way forward. The new API and a
+> collection of hardware drivers to go with it is intended for inclusion
+> with linux kernel release 2.6.28 some time next year. In the meantime
+> there's only experimental code available. Some application developers
+> have started coding for the new API, but there's no working patches for
+> mythtv yet. There is experimental code for VDR and Kaffeine.
+> 
+> S2API source: http://linuxtv.org/repo/   (v4l-dvb source tree)
+> About S2API: http://linuxtv.org/wiki/index.php/S2API
+> 
+> 
+> 
+> -- 
+> 
+> 
+> Per Heldal - http://heldal.eml.cc/
+> 
+> 
+
 
 _______________________________________________
 linux-dvb mailing list
