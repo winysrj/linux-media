@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALJMSeY011422
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 14:22:28 -0500
-Received: from smtp3-g19.free.fr (smtp3-g19.free.fr [212.27.42.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALJMEkA021322
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 14:22:15 -0500
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
-	<Pine.LNX.4.64.0811182010460.8628@axis700.grange>
-	<87y6zf76aw.fsf@free.fr>
-	<Pine.LNX.4.64.0811202055210.8290@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Fri, 21 Nov 2008 20:22:12 +0100
-In-Reply-To: <Pine.LNX.4.64.0811202055210.8290@axis700.grange> (Guennadi
-	Liakhovetski's message of "Thu\,
-	20 Nov 2008 21\:43\:40 +0100 \(CET\)")
-Message-ID: <8763mg28bf.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAENTmsj015083
+	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 18:29:48 -0500
+Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.168])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAENTTcp007856
+	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 18:29:29 -0500
+Received: by wf-out-1314.google.com with SMTP id 25so1594970wfc.6
+	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 15:29:28 -0800 (PST)
+Message-ID: <d7e40be30811141529r51a06a2cyba004588bd10a4f4@mail.gmail.com>
+Date: Sat, 15 Nov 2008 10:29:28 +1100
+From: "Ben Klein" <shacklein@gmail.com>
+To: "Jonathan Lafontaine" <jlafontaine@ctecworld.com>,
+	video4linux-list@redhat.com
+In-Reply-To: <09CD2F1A09A6ED498A24D850EB101208165C85C81B@Colmatec004.COLMATEC.INT>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 2/2 v3] pxa-camera: pixel format negotiation
+References: <d9def9db0811140750s15969a1fh1272402de897944d@mail.gmail.com>
+	<09CD2F1A09A6ED498A24D850EB101208165C85C81B@Colmatec004.COLMATEC.INT>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Cc: 
+Subject: Re: MODRPOBE RMMOD
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,95 +32,144 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+You can't unload a module if it's in use without forcing it (if your kernel
+supports this, and if the driver doesn't mind, and if the wind's blowing the
+right way). But forcing module unloads is a *BAD* idea.
 
->> If we're in pass-through mode, and depth is 16 (example: a today unknown RYB
->> format), we return -EINVAL. Is that on purpose ?
+The main reason is that most (all?) hardware devices have some state that
+they would not be able to recover from if the driver suddenly disappeared.
+The worst case would be harddrives, where a file would suddenly stop being
+read or written to, stuffing up both the filesystem and the application at
+the same time.
+
+Another reason is that applications tend to assume that if it works once it
+will keep on working while it's needed. Take the example of X; can you
+imagine what would happen if you started up X and then suddenly your video
+driver dissappeared from memory? (This is particularly pertinent for the
+nvidia and ati/amd drivers that have kernel modules.) It's not just X that
+would explode, but all the applications running under X.
+
+2008/11/15 Jonathan Lafontaine <jlafontaine@ctecworld.com>
+
+> How to disable  a module (em28xx) that is in use and if possible without
+> wait params...
 >
-> Yes, I do not know how to pass a 16-bit format in a pass-through mode, and 
-> I don't have a test-case for it. Do you?
-BYR2 I think (12bit Bayer in 16bit words), and Bxxx (10bit Bayer in 16bit
-words).
-
-And I can test the 10bit Bayer on 16bit words on mt9m111, and will do.
-
->> > -	int ret = test_platform_param(pcdev, icd->buswidth, &bus_flags);
->> > +	int ret = test_platform_param(pcdev, buswidth, &bus_flags);
-<snip>
->> Likewise, is bus param matching necessary here, or should it be done at format
->> generation ? Can that be really be dynamic, or is it constrained by hardware,
->> and thus only necessary at startup, and not at each format try ?
+> Like on the fly, live!! Without reboot...
 >
-> Hm, ok, so far I don't have any cases, where bus parameters can change at 
-> run-time. So, yes, I think, we could shift it into 
-> pxa_camera_get_formats().
-Right. Roger.
-
->> What if pcdev->platform_flags is 9 bits wide and sensor provides RGB565 ?
->> Variable formats will be incremented, but fmt will never be filled in. So there
->> will be holes in fmt. Shouldn't the formats++ depend on platform_flags &
->> PXA_CAMERA_DATAWIDTH_8 ?
+> -command line solution?
 >
-> Right, that's a bug, will fix, thanks. Same as above for 
-> V4L2_PIX_FMT_UYVY.
-OK.
-
->> > +	default:
->> > +		/* Generic pass-through */
->> > +		if (depth_supported(icd, icd->formats[idx].depth)) {
->> > +			formats++;
->> > +			if (fmt) {
-<snip>
+> -refind file descriptor  and close device with v4l2 ???
 >
-> No, this looks correct - it first checks for depth_supported().
-You're right, sorry.
-
-> I know this code repeats, and it is not nice. But as I was writing it I 
-> didn't see another possibility. Or more precisely, I did see it, but I 
-> couldn't compare the two versions well without having at least one of them 
-> in code in front of my eyes:-) Now that I see it, I think, yes, there is a 
-> way to do this only once by using a translation struct similar to what you 
-> have proposed. Now _this_ would be a possibly important advantage, so it 
-> is useful not _only_ for debugging:-) But we would have to extend it with 
-> at least a buswidth. Like
+> -----Original Message-----
+> From: video4linux-list-bounces@redhat.com [mailto:
+> video4linux-list-bounces@redhat.com] On Behalf Of Markus Rechberger
+> Sent: 14 novembre 2008 10:50
+> To: Keith Lawson
+> Cc: video4linux-list@redhat.com
+> Subject: Re: USB Capture device
 >
-> 	const struct soc_camera_data_format *cam_fmt;
-> 	const struct soc_camera_data_format *host_fmt;
-> 	unsigned char buswidth;
+> On Fri, Nov 14, 2008 at 4:37 PM, Keith Lawson <lawsonk@lawson-tech.com>
+> wrote:
+> >
+> >
+> > On Thu, 13 Nov 2008, Markus Rechberger wrote:
+> > <snip>
+> >>
+> >> are you sure this device is tm6000 based? I just remember the same
+> >> product package used for em2820 based devices.
+> >>
+> >> http://mcentral.de/wiki/index.php5/Em2880#Devices
+> >
+> > It's a TM5600 device. I've been able to capture video from it using the
+> > tm5600/tm6000/tm6010 module from Mauro's mercurial repository
+> > but I'm having an issue with green flickering a the top of the video, I'm
+> > not sure if that's a driver issue or an mplayer issue.
+> >
+> > Are you aware of a em2820 based USB "dongle" device? I don't require a
+> > tuner, I'm just trying to capture input from S-video and composite (RCA).
+> >
 >
-> Now this _seems_ to provide the complete information so far... In 
-> pxa_camera_get_formats() we would
+> I just had a rough look right now, the prices vary alot between
+> different manufacturers.
+> I haven't seen a price advantage for devices without tuner actually.
+> You might pick a few devices from that site and compare.
 >
-> 1. compute camera- and host-formats and buswidth
-> 2. call pxa_camera_try_bus_param() to check bus-parameter compatibility
+> br,
+> Markus
 >
-> and then in try_fmt() and set_fmt() just traverse the list of translation 
-> structs and adjust geometry?
-That sounds great. I'm on it.
-
->> All in all, I wonder why we need that many tests, and if we could reduce them at
->> format generation (under hypothesis that platform_flags are constant and sensor
->> flags are constant).
+> >>
+> >> br,
+> >> Markus
+> >>
+> >>> Thanks,
+> >>> Keith.
+> >>>
+> >>> On Fri, 7 Nov 2008, Keith Lawson wrote:
+> >>>
+> >>>> Hello,
+> >>>>
+> >>>> Can anyone suggest a good USB catpure device that has S-Video input
+> and
+> >>>> a
+> >>>> stable kernel driver? I've been playing with this device:
+> >>>>
+> >>>> http://www.diamondmm.com/VC500.php
+> >>>>
+> >>>> using the development drivers from
+> >>>> http://linuxtv.org/hg/~mchehab/tm6010/<http://linuxtv.org/hg/%7Emchehab/tm6010/>
+> >>>> but I haven't had any luck with S-Video (only composite).
+> >>>>
+> >>>> Can anyone suggest a device with stable drivers in 2.6.27.5?
+> >>>>
+> >>>> Thanks, Keith.
+> >>>>
+> >>>> --
+> >>>> video4linux-list mailing list
+> >>>> Unsubscribe
+> >>>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> >>>> https://www.redhat.com/mailman/listinfo/video4linux-list
+> >>>>
+> >>>
+> >>> --
+> >>> video4linux-list mailing list
+> >>> Unsubscribe
+> >>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> >>> https://www.redhat.com/mailman/listinfo/video4linux-list
+> >>>
+> >>
+> >
+> > --
+> > video4linux-list mailing list
+> > Unsubscribe mailto:video4linux-list-request@redhat.com
+> ?subject=unsubscribe
+> > https://www.redhat.com/mailman/listinfo/video4linux-list
+> >
 >
-> Ok, I propose you make the next round:-) I would be pleased if you base 
-> your new patches on these my two, and just replace the user_formats with a 
-> translation list, and modify pxa try_fmt() and set_fmt() as discussed 
-> above. I would be quite happy if you mark them "From: <you>". Or if you do 
-> not want to - let me know, I'll do it. And please do not make 13 patches 
-> this time:-) I think, two should be enough.
-I'll be happy to make the next round.
-
-Give me a couple of days, and I'll post the 2 patches, on top of your serie
-(serie which will end with your 2 patches). After review, you can either merge
-each one of them with yours, or take them apart.
-
-Don't worry, I won't flood the list anymore :)
-
-Cheers.
-
---
-Robert
-
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+> --
+>
+> This message has been verified by LastSpam (http://www.lastspam.com) eMail
+> security service, provided by SoluLAN
+> Ce courriel a ete verifie par le service de securite pour courriels
+> LastSpam (http://www.lastspam.com), fourni par SoluLAN (
+> http://www.solulan.com)
+> www.solulan.com
+>
+>
+> No virus found in this incoming message.
+> Checked by AVG - http://www.avg.com
+> Version: 8.0.175 / Virus Database: 270.9.2/1785 - Release Date: 2008-11-14
+> 08:32
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
