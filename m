@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx39.mail.ru ([194.67.23.35])
+Received: from fg-out-1718.google.com ([72.14.220.154])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1Kya7M-0001l7-TD
-	for linux-dvb@linuxtv.org; Fri, 07 Nov 2008 23:47:54 +0100
-Received: from [92.101.135.83] (port=30603 helo=localhost.localdomain)
-	by mx39.mail.ru with asmtp id 1Kya6o-0009ZO-00
-	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 01:47:18 +0300
-Date: Sat, 8 Nov 2008 01:48:35 +0300
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20081108014835.43012122@bk.ru>
-In-Reply-To: <4914C482.8010306@helmutauer.de>
-References: <4914C482.8010306@helmutauer.de>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] tbs 8920 / cx24116 not working
+	(envelope-from <oroitburd@gmail.com>) id 1L0zww-00046a-2a
+	for linux-dvb@linuxtv.org; Fri, 14 Nov 2008 15:47:08 +0100
+Received: by fg-out-1718.google.com with SMTP id e21so1131923fga.25
+	for <linux-dvb@linuxtv.org>; Fri, 14 Nov 2008 06:47:02 -0800 (PST)
+Message-ID: <b42fca4d0811140647u783d94a2l6c3112d8b9d9d96d@mail.gmail.com>
+Date: Fri, 14 Nov 2008 15:47:02 +0100
+From: "oleg roitburd" <oroitburd@gmail.com>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Calibrating of TT S2-3200
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,74 +19,26 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-0J/RgNC40LLQtdGC0YHRgtCy0YPRjiwgSGVsbXV0Cj4gSGVsbG8gTGlzdCwKPiAKPiBJIGp1c3Qg
-dHJpZWQgdG8gZ2V0IG15IHRicyA4OTIwIHJ1bm5pbmcgd2l0aCBjdXJyZW50IFMyQVBJIGFuZCBW
-RFIgYW5kIAo+IGFsc28gd2l0aCB0aGUgbXVsdGlwcm90byBkcml2ZXJzIGFuZCBhIHBhdGNoIGZv
-ciB0aGlzIGNhcmQuCj4gQm90aCB2ZXJzaW9ucyBhcmUgZmFpbGluZywgd2l0aCB0aGlzIGVycm9y
-Ogo+IAo+IE5vdiAgNyAyMzozOToyNiBba2VybmVsXSBMTkIgVm9sdGFnZSBTRUNfVk9MVEFHRV8x
-OAo+IE5vdiAgNyAyMzozOToyNiBbdmRyXSBbMjMxMzhdIEVSUk9SIChkdmJkZXZpY2UuYywyODIp
-OiBEaWUgT3BlcmF0aW9uIAo+IHdpcmQgbmljaHQgdW50ZXJzdMO8dHp0Cj4gTm92ICA3IDIzOjM5
-OjM1IFt2ZHJdIFsyMzEzOF0gZnJvbnRlbmQgMCB0aW1lZCBvdXQgd2hpbGUgdHVuaW5nIHRvIAo+
-IGNoYW5uZWwgMywgdHAgMTEyMTg3Cj4gTm92ICA3IDIzOjM5OjM1IFt2ZHJdIFsyMzEzOF0gRVJS
-T1IgKGR2YmRldmljZS5jLDI4Mik6IERpZSBPcGVyYXRpb24gCj4gd2lyZCBuaWNodCB1bnRlcnN0
-w7x0enQKPiBOb3YgIDcgMjM6Mzk6MzUgW2tlcm5lbF0gTE5CIFZvbHRhZ2UgU0VDX1ZPTFRBR0Vf
-MTgKPiBOb3YgIDcgMjM6Mzk6NDQgW3Zkcl0gWzIzMTM4XSBFUlJPUiAoZHZiZGV2aWNlLmMsMjgy
-KTogRGllIE9wZXJhdGlvbiAKPiB3aXJkIG5pY2h0IHVudGVyc3TDvHR6dAo+IE5vdiAgNyAyMzoz
-OTo0NCBba2VybmVsXSBMTkIgVm9sdGFnZSBTRUNfVk9MVEFHRV8xOAo+IAo+IGRtZXNnIHNob3dz
-Ogo+IAo+IExOQiBWb2x0YWdlIFNFQ19WT0xUQUdFX29mZgo+IEFDUEk6IFBDSSBpbnRlcnJ1cHQg
-Zm9yIGRldmljZSAwMDAwOjAxOjA5LjAgZGlzYWJsZWQKPiBjeDg4LzI6IHVucmVnaXN0ZXJpbmcg
-Y3g4ODAyIGRyaXZlciwgdHlwZTogZHZiIGFjY2Vzczogc2hhcmVkCj4gY3g4OFswXS8yOiBzdWJz
-eXN0ZW06IDg5MjA6ODg4OCwgYm9hcmQ6IFRCUyA4OTIwIERWQi1TL1MyIFtjYXJkPTcxXQo+IEFD
-UEk6IFBDSSBpbnRlcnJ1cHQgZm9yIGRldmljZSAwMDAwOjAxOjA5LjIgZGlzYWJsZWQKPiBMaW51
-eCB2aWRlbyBjYXB0dXJlIGludGVyZmFjZTogdjIuMDAKPiBjeDg4LzA6IGN4MjM4OHggdjRsMiBk
-cml2ZXIgdmVyc2lvbiAwLjAuNiBsb2FkZWQKPiBBQ1BJOiBQQ0kgSW50ZXJydXB0IDAwMDA6MDE6
-MDkuMFtBXSAtPiBMaW5rIFtMTktDXSAtPiBHU0kgMTEgKGxldmVsLCAKPiBsb3cpIC0+IElSUSAx
-MQo+IGN4ODhbMF06IHN1YnN5c3RlbTogODkyMDo4ODg4LCBib2FyZDogVEJTIDg5MjAgRFZCLVMv
-UzIgCj4gW2NhcmQ9NzIsYXV0b2RldGVjdGVkXSwgZnJvbnRlbmQocyk6IDEKPiBjeDg4WzBdOiBU
-ViB0dW5lciB0eXBlIDQsIFJhZGlvIHR1bmVyIHR5cGUgLTEKPiBjeDg4WzBdLzA6IGZvdW5kIGF0
-IDAwMDA6MDE6MDkuMCwgcmV2OiA1LCBpcnE6IDExLCBsYXRlbmN5OiAxNjUsIG1taW86IAo+IDB4
-ZmMwMDAwMDAKPiBjeDg4WzBdLzA6IHJlZ2lzdGVyZWQgZGV2aWNlIHZpZGVvMCBbdjRsMl0KPiBj
-eDg4WzBdLzA6IHJlZ2lzdGVyZWQgZGV2aWNlIHZiaTAKPiBjeDg4LzI6IGN4MjM4OHggTVBFRy1U
-UyBEcml2ZXIgTWFuYWdlciB2ZXJzaW9uIDAuMC42IGxvYWRlZAo+IGN4ODhbMF0vMjogY3gyMzg4
-eCA4ODAyIERyaXZlciBNYW5hZ2VyCj4gQUNQSTogUENJIEludGVycnVwdCAwMDAwOjAxOjA5LjJb
-QV0gLT4gTGluayBbTE5LQ10gLT4gR1NJIDExIChsZXZlbCwgCj4gbG93KSAtPiBJUlEgMTEKPiBj
-eDg4WzBdLzI6IGZvdW5kIGF0IDAwMDA6MDE6MDkuMiwgcmV2OiA1LCBpcnE6IDExLCBsYXRlbmN5
-OiA2NCwgbW1pbzogCj4gMHhmZDAwMDAwMAo+IGN4ODgwMl9wcm9iZSgpIGFsbG9jYXRpbmcgMSBm
-cm9udGVuZChzKQo+IGN4ODgvMjogY3gyMzg4eCBkdmIgZHJpdmVyIHZlcnNpb24gMC4wLjYgbG9h
-ZGVkCj4gY3g4OC8yOiByZWdpc3RlcmluZyBjeDg4MDIgZHJpdmVyLCB0eXBlOiBkdmIgYWNjZXNz
-OiBzaGFyZWQKPiBjeDg4WzBdLzI6IHN1YnN5c3RlbTogODkyMDo4ODg4LCBib2FyZDogVEJTIDg5
-MjAgRFZCLVMvUzIgW2NhcmQ9NzJdCj4gY3g4OFswXS8yOiBjeDIzODh4IGJhc2VkIERWQi9BVFND
-IGNhcmQKPiBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChjeDg4WzBdKQo+IERWQjogcmVn
-aXN0ZXJpbmcgYWRhcHRlciAwIGZyb250ZW5kIDAgKENvbmV4YW50IENYMjQxMTYvQ1gyNDExOCku
-Li4KPiBjeDI0MTE2X2Zpcm13YXJlX29uZGVtYW5kOiBXYWl0aW5nIGZvciBmaXJtd2FyZSB1cGxv
-YWQgCj4gKGR2Yi1mZS1jeDI0MTE2LmZ3KS4uLgo+IGN4MjQxMTZfZmlybXdhcmVfb25kZW1hbmQ6
-IFdhaXRpbmcgZm9yIGZpcm13YXJlIHVwbG9hZCgyKS4uLgo+IGN4MjQxMTZfbG9hZF9maXJtd2Fy
-ZTogRlcgdmVyc2lvbiAxLjIyLjgyLjAKPiBjeDI0MTE2X2Zpcm13YXJlX29uZGVtYW5kOiBGaXJt
-d2FyZSB1cGxvYWQgY29tcGxldGUKPiBMTkIgVm9sdGFnZSBTRUNfVk9MVEFHRV8xMwo+IExOQiBW
-b2x0YWdlIFNFQ19WT0xUQUdFXzE4Cj4gCj4gSSBhbHNvIHRlc3RlZCB0aGlzIHBhdGNoOgo+IGh0
-dHA6Ly9oZy5rZXdsLm9yZy92NGwtZHZiL3Jhdy1yZXYvOGQ2ZDg5NzRiMzNkCj4gCj4gYnV0IHdp
-dGhvdXQgYW55IGNoYW5nZS4KPiAKPiBBbnkgaGludHMgd2hhdHMgZ29pbmcgd3JvbmcgaGVyZSA/
-CgpodHRwOi8vbWVyY3VyaWFsLmludHV4aWNhdGlvbi5vcmcvaGcvczItbGlwbGlhbmluL2ZpbGUv
-ZDQyM2I3ODg3ZWM4L2xpbnV4L0RvY3VtZW50YXRpb24vdmlkZW80bGludXgvQ0FSRExJU1QuY3g4
-OAogNjkgIDY4IC0+IEhhdXBwYXVnZSBXaW5UVi1IVlI0MDAwIERWQi1TL1MyL1QvSHlicmlkICAg
-ICAgICAgICBbMDA3MDo2OTAwLDAwNzA6NjkwNCwwMDcwOjY5MDJdCiAgICA3MCAgNjkgLT4gSGF1
-cHBhdWdlIFdpblRWLUhWUjQwMDAoTGl0ZSkgRFZCLVMvUzIgICAgICAgICAgICAgIFswMDcwOjY5
-MDUsMDA3MDo2OTA2XQogICAgNzEgIDcwIC0+IFRlVmlpIFM0NjAgRFZCLVMvUzIgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBbZDQ2MDo5MDIyXQogICAgNzIgIDcxIC0+IE9taWNvbSBT
-UzQgRFZCLVMvUzIgUENJICAgICAgICAgICAgICAgICAgICAgICAgICAgICBbQTA0NDoyMDExXQog
-ICAgNzMgIDcyIC0+IFRCUyA4OTIwIERWQi1TL1MyICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBbODkyMDo4ODg4XQogICAgNzQgIDczIC0+IFRlVmlpIFM0MjAgRFZCLVMgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBbZDQyMDo5MDIyXQogICAgNzUgIDc0IC0+IFBy
-b2xpbmsgUGl4ZWx2aWV3IEdsb2JhbCBFeHRyZW1lICAgICAgICAgICAgICAgICAgICBbMTU1NDo0
-OTc2XQogICAgNzYgIDc1IC0+IFBST0YgNzMwMCBEVkItUy9TMiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICBbQjAzMzozMDMzXQoKcGxlYXNlIHRyeSBodHRwOi8vbWVyY3VyaWFsLmlu
-dHV4aWNhdGlvbi5vcmcvaGcvczItbGlwbGlhbmluCgpHb2dhCgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgbWFpbGluZyBsaXN0CmxpbnV4
-LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9s
-aXN0aW5mby9saW51eC1kdmI=
+Hi Manu and Mailing List,
+
+some times ago I have read this mail
+http://www.spinics.net/lists/vdr/msg15339.html
+>Currently, the STB0899 is _not_ calibrated for actual statistics. I have
+>requested Azurewave for some sample devices to be sent to STM for proper
+>calibration of the LUT's for the statistics.
+
+Is any news? Is it possible to see statistics in femon?
+
+Regards
+Oleg Roitburd
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
