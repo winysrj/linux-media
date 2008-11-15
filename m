@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ey-out-2122.google.com ([74.125.78.27])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <user.vdr@gmail.com>) id 1L50qO-0005wY-8Z
-	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 17:32:59 +0100
-Received: by ey-out-2122.google.com with SMTP id 25so24539eya.17
-	for <linux-dvb@linuxtv.org>; Tue, 25 Nov 2008 08:32:53 -0800 (PST)
-Message-ID: <a3ef07920811250832g35f4670ft4e14c942c3eef990@mail.gmail.com>
-Date: Tue, 25 Nov 2008 08:32:52 -0800
-From: "VDR User" <user.vdr@gmail.com>
-To: "Klaus Schmidinger" <Klaus.Schmidinger@cadsoft.de>
-In-Reply-To: <492BBFD9.50909@cadsoft.de>
+Received: from the145744-1.gw.connect.com.au ([210.11.79.12]
+	helo=digivation.com.au) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mark@digivation.com.au>) id 1L1SKJ-0007cl-5z
+	for linux-dvb@linuxtv.org; Sat, 15 Nov 2008 22:05:08 +0100
+Message-ID: <7CF5D6343D2A4E07B3922A28123E16BD@digivation.com.au>
+From: "Mark Spieth" <mark@digivation.com.au>
+To: "Antti Palosaari" <crope@iki.fi>, "Rasjid Wilcox" <rasjidw@gmail.com>
+References: <bf82ea70811110306v345c9061sc6d49f6a961647c@mail.gmail.com>	<bf82ea70811110312y487610d8v9656c3e76bf44e0@mail.gmail.com>	<49199510.6040809@iki.fi><bf82ea70811150303p4d6517b2qce1345dd707a315c@mail.gmail.com>
+	<491ECF8B.6060009@iki.fi>
+Date: Sun, 16 Nov 2008 08:04:48 +1100
 MIME-Version: 1.0
-Content-Disposition: inline
-References: <8622.130.36.62.139.1227602799.squirrel@webmail.xs4all.nl>
-	<492BBFD9.50909@cadsoft.de>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+Subject: Re: [linux-dvb] DigitalNow TinyTwin second tuner support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -29,44 +25,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, Nov 25, 2008 at 1:05 AM, Klaus Schmidinger
-<Klaus.Schmidinger@cadsoft.de> wrote:
-> I find it a completely unacceptable thing to have the user tell
-> the application what type of DVB devices the hardware provides.
-> This is pretty much the first and simplest thing the *DRIVER* has
-> to do. If a driver (API) doesn't allow this in a clean way, it's
-> worthless!
->
-> I don't care if this is a specific or a general flag, as long as
-> it allows the application to clearly find out the kind of hardware
-> that's available. It leaves me dumbfounded that this is suddenly
-> such a big problem...
+> Rasjid Wilcox wrote:
+>> 2008/11/12 Antti Palosaari <crope@iki.fi>:
+>>> I disabled 2nd tuner by default due to bad performance I faced up with 
+>>> my
+>>> hardware. Anyhow, you can enable it by module param, use modprobe
+>>> dvb-usb-af9015 dual_mode=1 . Test it and please report.
+>>
+>> I have enabled dual mode, and now have an extra adaptor in /dev/dvb.
+>>
+>> However, when I try to set the new card up in the Myth backend in
+>> Capture Card Setup, I get an error on the Frontend ID: "Could not get
+>> card info for the card #1", and for Subtype: Unknown error.
+>>
+>> dmesg also has an error message:
+>>
+>> af9015: firmware copy to 2nd frontend failed, will disable it
+>>
 
-You are not alone in that boat my friend.  Especially after reading
-the comments about how "thought out" the api is.  How could you
-possibly miss such a fundamental element?!
+I also currently get this with my kworld 399u
 
-> If my proposal is not acceptable, then please can one of the S2API
-> experts come up with a solution that better fits the S2API way of
-> thinking?
+I suspect a small delay I had originally after 2nd firmware copy and check 
+is not being done but havent had time to check yet.
 
-I have yet to hear any response from any of them about this issue.
-Seems as though when the issue was beating multiproto, communication
-was at the peak.  Now that the decision has been made, good luck to
-get a reply.  :\
+mark 
 
-> <conspiracy_theory><sarcasm>
-> Or is the S2API already "dead", and it's sole purpose was to
-> prevent "multiproto" to make its way into the kernel? And now that
-> this has been achieved, nodody really cares whether it can be used
-> in real life?
-> </sarcasm></conspiracy_theory>
-
-Hey, stranger things have happened.  Not much surprised me these days.
- Hopefully somebody will get this sorted out and fixed very soon as it
-shouldn't even be an issue at this point!!
-
--Derek
 
 _______________________________________________
 linux-dvb mailing list
