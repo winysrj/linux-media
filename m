@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from joan.kewl.org ([212.161.35.248])
+Received: from mail1010.centrum.cz ([90.183.38.140])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <darron@kewl.org>) id 1L3fTG-0002l1-Vz
-	for linux-dvb@linuxtv.org; Sat, 22 Nov 2008 00:31:32 +0100
-From: Darron Broad <darron@kewl.org>
-To: "yoshi watanabe" <yoshi314@gmail.com>
-In-reply-to: <51029ae90811211417x75e042d1tf247ae8e2387ee15@mail.gmail.com> 
-References: <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>
-	<29500.1227284783@kewl.org>
-	<617be8890811211110j40d57609u1ced5301298c34a8@mail.gmail.com>
-	<51029ae90811211417x75e042d1tf247ae8e2387ee15@mail.gmail.com>
-Date: Fri, 21 Nov 2008 23:31:27 +0000
-Message-ID: <32000.1227310287@kewl.org>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Distorted analog sound when using an HVR-3000
+	(envelope-from <sustmidown@centrum.cz>) id 1L1RBo-00041c-8l
+	for linux-dvb@linuxtv.org; Sat, 15 Nov 2008 20:52:16 +0100
+Received: by mail1010.centrum.cz id S1074430988AbYKOTwJ (ORCPT
+	<rfc822;linux-dvb@linuxtv.org>); Sat, 15 Nov 2008 20:52:09 +0100
+Date: Sat, 15 Nov 2008 20:52:09 +0100
+From: "Miroslav  =?UTF-8?Q?=20=C5=A0ustek?=" <sustmidown@centrum.cz>
+To: <linux-dvb@linuxtv.org>
+MIME-Version: 1.0
+Message-ID: <200811152052.29002@centrum.cz>
+References: <200811152044.831@centrum.cz> <200811152045.12993@centrum.cz>
+	<200811152046.1974@centrum.cz> <200811152047.27466@centrum.cz>
+	<200811152048.8070@centrum.cz> <200811152049.21802@centrum.cz>
+	<200811152050.12707@centrum.cz> <200811152051.22775@centrum.cz>
+In-Reply-To: <200811152051.22775@centrum.cz>
+Content-Type: multipart/mixed; boundary="-------=_2EC4317C.6A40D3"
+Subject: [linux-dvb] [PATCH] [resent] Leadtek WinFast DTV-1800H support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,110 +24,138 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-In message <51029ae90811211417x75e042d1tf247ae8e2387ee15@mail.gmail.com>, "yoshi watanabe" wrote:
+This is a multi-part message in MIME format
 
-lo
+---------=_2EC4317C.6A40D3
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
->On 11/21/08, Eduard Huguet <eduardhc@gmail.com> wrote:
->> Thanks for your info. I'll give it a test next Monday and post here the
->> results.
->>
->> Best regards,
->>   Eduard Huguet
->>
->>
->>
->> 2008/11/21 Darron Broad <darron@kewl.org>
->>
->>> In message <617be8890811210115x46b99879l7b78fcf7a1d59357@mail.gmail.com>,
->>> "Eduard Huguet" wrote:
->>>
->>> LO
->>>
->>> >Hi,
->>> >    I'm testing a Hauppauge HVR-3000 for its use with MythTV, and I'm
->>> >observing that I have a completely distorted sound when using any of the
->>> >analog inputs (TV, S-Video or Composite). The sound is completely
->>> > crackly,
->>> >not understanble at all, just noise. I've teste 2 different cards, so I'm
->>> >pretty sure it's not a "faulty card" issue.
->>> >
->>> >This happens both in MythTV or when using directly mplayer to capture
->>> video
->>> >& audio.
->>> >
->>> >I'm using an up-to-date HG DVB repository.
->>>
->>> There are some known problem with cards using the WM8775 codec.
->>>
->>> Use this repo here:
->>>        http://hg.kewl.org/v4l-dvb/
->>>
->>> It changes how the WM8775 operates and you will be able to
->>> control the input levels using v4l2-ctl.
->>>
->>> Please tell me if this solves your problems.
->>>
->>> Good luck
->>>
->>> --
->>>
->>>  // /
->>> {:)==={ Darron Broad <darron@kewl.org>
->>>  \\ \
->>>
->>>
->>
->hi there, just wanted to pop in and inform that audio finally works
->perfectly on hvr-1300 with analog tv antenna input (europe, poland,
->PAL-DK) when using drivers from that branch.
+Hello,
 
-Ok good news. Thanks for sharing this information.
+Here is patch for Leadtek WinFast DTV-1800H.
+It enables support for digital TV, analogue TV and radio.
+I have already sent it here, but as I am newbie the patch wasn't
+compatible with "Linux Kernel Coding Style".
 
->i still have to do the  arecord | aplay trick, though. (
->http://godard.b.free.fr/dotclear/index.php?2007/04/04/13-hauppauge-wintv-hvr1300-under-linux
->).
+That's probably the reason why the patch hasn't been pushed
+into the repository yet.
 
-This isn't so much a trick as more a requirement. AFAIK tvtime
-only adjusts the audio level of your sound card and doesn't
-actually sample audio and play it back.
+Now the patch meets the LKCS requirements.
+(checked using: linux/scripts/checkpatch.pl)
 
->mixer control does not seem to be working with tvtime, but i can still
->use the audio card on my box - so no big problem here.
+Thanks for the advice.
+I hope everything is correct now.
 
-You could alternatively use mplayer to view TV.
-See under Audio/Video capture here:
-	http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000
+- Miroslav Šustek
 
-BTW, don't try to tune TV with mplayer on the MPEG device node
-as it will produce an OOPS.
 
-MPEG tv playback and capture should also work now in MYTHTV. At
-least it does for me.
+---------=_2EC4317C.6A40D3
+Content-Type: text/x-patch; name="leadtek_winfast_dtv1800h.patch"
+Content-Transfer-Encoding: base64
 
->i'll test s-video later with playstation2, but i think things are
->finally looking quite good for hvr-1300 linux users ;-)
+ZGlmZiAtciAzMTJkZWY1NjgyNzYgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4
+ODgtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1j
+YXJkcy5jCUZyaSBOb3YgMTQgMTQ6Mzg6NDYgMjAwOCAtMDIwMAorKysgYi9saW51eC9kcml2
+ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCVNhdCBOb3YgMTUgMjA6MTE6NTgg
+MjAwOCArMDEwMApAQCAtMTk2Nyw2ICsxOTY3LDQ3IEBACiAJCX0gfSwKIAkJLm1wZWcgICAg
+ICAgICAgID0gQ1g4OF9NUEVHX0RWQiwKIAl9LAorCVtDWDg4X0JPQVJEX1dJTkZBU1RfRFRW
+MTgwMEhdID0geworCQkubmFtZSAgICAgICAgICAgPSAiTGVhZHRlayBXaW5GYXN0IERUVjE4
+MDAgSHlicmlkIiwKKwkJLnR1bmVyX3R5cGUgICAgID0gVFVORVJfWEMyMDI4LAorCQkucmFk
+aW9fdHlwZSAgICAgPSBUVU5FUl9YQzIwMjgsCisJCS50dW5lcl9hZGRyICAgICA9IDB4NjEs
+CisJCS5yYWRpb19hZGRyICAgICA9IDB4NjEsCisJCS8qCisJCSAqIEdQSU8gc2V0dGluZwor
+CQkgKgorCQkgKiAgMjogbXV0ZSAoMD1vZmYsMT1vbikKKwkJICogMTI6IHR1bmVyIHJlc2V0
+IHBpbgorCQkgKiAxMzogYXVkaW8gc291cmNlICgwPXR1bmVyIGF1ZGlvLDE9bGluZSBpbikK
+KwkJICogMTQ6IEZNICgwPW9uLDE9b2ZmID8/PykKKwkJICovCisJCS5pbnB1dCAgICAgICAg
+ICA9IHt7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCisJCQkudm11eCAg
+ID0gMCwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAgICAgIC8qIHBpbiAyID0gMCAqLworCQkJ
+LmdwaW8xICA9IDB4NjA0MCwgICAgICAgLyogcGluIDEzID0gMCwgcGluIDE0ID0gMSAqLwor
+CQkJLmdwaW8yICA9IDB4MDAwMCwKKwkJfSwgeworCQkJLnR5cGUgICA9IENYODhfVk1VWF9D
+T01QT1NJVEUxLAorCQkJLnZtdXggICA9IDEsCisJCQkuZ3BpbzAgID0gMHgwNDAwLCAgICAg
+ICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDYwNjAsICAgICAgIC8qIHBpbiAx
+MyA9IDEsIHBpbiAxNCA9IDEgKi8KKwkJCS5ncGlvMiAgPSAweDAwMDAsCisJCX0sIHsKKwkJ
+CS50eXBlICAgPSBDWDg4X1ZNVVhfU1ZJREVPLAorCQkJLnZtdXggICA9IDIsCisJCQkuZ3Bp
+bzAgID0gMHgwNDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDYw
+NjAsICAgICAgIC8qIHBpbiAxMyA9IDEsIHBpbiAxNCA9IDEgKi8KKwkJCS5ncGlvMiAgPSAw
+eDAwMDAsCisJCX0gfSwKKwkJLnJhZGlvID0geworCQkJLnR5cGUgICA9IENYODhfUkFESU8s
+CisJCQkuZ3BpbzAgID0gMHgwNDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlv
+MSAgPSAweDYwMDAsICAgICAgIC8qIHBpbiAxMyA9IDAsIHBpbiAxNCA9IDAgKi8KKwkJCS5n
+cGlvMiAgPSAweDAwMDAsCisJCX0sCisJCS5tcGVnICAgICAgICAgICA9IENYODhfTVBFR19E
+VkIsCisJfSwKIH07CiAKIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwpAQCAtMjM3Niw2ICsyNDE3LDEw
+IEBACiAJCS5zdWJ2ZW5kb3IgPSAweGIyMDAsCiAJCS5zdWJkZXZpY2UgPSAweDQyMDAsCiAJ
+CS5jYXJkICAgICAgPSBDWDg4X0JPQVJEX1NBVFRSQURFX1NUNDIwMCwKKwl9LCB7CisJCS5z
+dWJ2ZW5kb3IgPSAweDEwN2QsCisJCS5zdWJkZXZpY2UgPSAweDY2NTQsCisJCS5jYXJkICAg
+ICAgPSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEgsCiAJfSwKIH07CiAKQEAgLTI1NzMs
+NiArMjYxOCwyMyBAQAogCXJldHVybiAtRUlOVkFMOwogfQogCitzdGF0aWMgaW50IGN4ODhf
+eGMzMDI4X3dpbmZhc3QxODAwaF9jYWxsYmFjayhzdHJ1Y3QgY3g4OF9jb3JlICpjb3JlLAor
+CQkJCQkgICAgIGludCBjb21tYW5kLCBpbnQgYXJnKQoreworCXN3aXRjaCAoY29tbWFuZCkg
+eworCWNhc2UgWEMyMDI4X1RVTkVSX1JFU0VUOgorCQkvKiBHUElPIDEyICh4YzMwMjggdHVu
+ZXIgcmVzZXQpICovCisJCWN4X3NldChNT19HUDFfSU8sIDB4MTAxMCk7CisJCW1kZWxheSg1
+MCk7CisJCWN4X2NsZWFyKE1PX0dQMV9JTywgMHgxMCk7CisJCW1kZWxheSg1MCk7CisJCWN4
+X3NldChNT19HUDFfSU8sIDB4MTApOworCQltZGVsYXkoNTApOworCQlyZXR1cm4gMDsKKwl9
+CisJcmV0dXJuIC1FSU5WQUw7Cit9CisKIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KIC8qIHNvbWUg
+RGl2Y28gc3BlY2lmaWMgc3R1ZmYgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgKi8KIHN0YXRpYyBpbnQgY3g4OF9wdl84MDAwZ3RfY2FsbGJhY2soc3RydWN0
+IGN4ODhfY29yZSAqY29yZSwKQEAgLTI2NDUsNiArMjcwNyw4IEBACiAJY2FzZSBDWDg4X0JP
+QVJEX0RWSUNPX0ZVU0lPTkhEVFZfRFZCX1RfUFJPOgogCWNhc2UgQ1g4OF9CT0FSRF9EVklD
+T19GVVNJT05IRFRWXzVfUENJX05BTk86CiAJCXJldHVybiBjeDg4X2R2aWNvX3hjMjAyOF9j
+YWxsYmFjayhjb3JlLCBjb21tYW5kLCBhcmcpOworCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNU
+X0RUVjE4MDBIOgorCQlyZXR1cm4gY3g4OF94YzMwMjhfd2luZmFzdDE4MDBoX2NhbGxiYWNr
+KGNvcmUsIGNvbW1hbmQsIGFyZyk7CiAJfQogCiAJc3dpdGNoIChjb21tYW5kKSB7CkBAIC0y
+ODE5LDYgKzI4ODMsMTYgQEAKIAkJY3hfc2V0KE1PX0dQMF9JTywgMHgwMDAwMDA4MCk7IC8q
+IDcwMiBvdXQgb2YgcmVzZXQgKi8KIAkJdWRlbGF5KDEwMDApOwogCQlicmVhazsKKworCWNh
+c2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIOgorCQkvKiBHUElPIDEyICh4YzMwMjgg
+dHVuZXIgcmVzZXQpICovCisJCWN4X3NldChNT19HUDFfSU8sIDB4MTAxMCk7CisJCW1kZWxh
+eSg1MCk7CisJCWN4X2NsZWFyKE1PX0dQMV9JTywgMHgxMCk7CisJCW1kZWxheSg1MCk7CisJ
+CWN4X3NldChNT19HUDFfSU8sIDB4MTApOworCQltZGVsYXkoNTApOworCQlicmVhazsKIAl9
+CiB9CiAKQEAgLTI4MzksNiArMjkxMyw3IEBACiAJCQljb3JlLT5pMmNfYWxnby51ZGVsYXkg
+PSAxNjsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfRFZC
+X1RfUFJPOgorCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIOgogCQljdGwtPmRl
+bW9kID0gWEMzMDI4X0ZFX1pBUkxJTks0NTY7CiAJCWJyZWFrOwogCWNhc2UgQ1g4OF9CT0FS
+RF9LV09STERfQVRTQ18xMjA6CmRpZmYgLXIgMzEyZGVmNTY4Mjc2IGxpbnV4L2RyaXZlcnMv
+bWVkaWEvdmlkZW8vY3g4OC9jeDg4LWR2Yi5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3g4OC9jeDg4LWR2Yi5jCUZyaSBOb3YgMTQgMTQ6Mzg6NDYgMjAwOCAtMDIwMAor
+KysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYwlTYXQgTm92
+IDE1IDIwOjExOjU4IDIwMDggKzAxMDAKQEAgLTk2NSw2ICs5NjUsNyBAQAogCQl9CiAJCWJy
+ZWFrOwogCSBjYXNlIENYODhfQk9BUkRfUElOTkFDTEVfSFlCUklEX1BDVFY6CisJY2FzZSBD
+WDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEg6CiAJCWZlMC0+ZHZiLmZyb250ZW5kID0gZHZi
+X2F0dGFjaCh6bDEwMzUzX2F0dGFjaCwKIAkJCQkJICAgICAgICZjeDg4X3Bpbm5hY2xlX2h5
+YnJpZF9wY3R2LAogCQkJCQkgICAgICAgJmNvcmUtPmkyY19hZGFwKTsKZGlmZiAtciAzMTJk
+ZWY1NjgyNzYgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYwot
+LS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1pbnB1dC5jCUZyaSBO
+b3YgMTQgMTQ6Mzg6NDYgMjAwOCAtMDIwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3Zp
+ZGVvL2N4ODgvY3g4OC1pbnB1dC5jCVNhdCBOb3YgMTUgMjA6MTE6NTggMjAwOCArMDEwMApA
+QCAtOTMsNiArOTMsNyBAQAogCQlncGlvPShncGlvICYgMHg3ZmQpICsgKGF1eGdwaW8gJiAw
+eGVmKTsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTAwMDoKKwlj
+YXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSDoKIAkJZ3BpbyA9IChncGlvICYgMHg2
+ZmYpIHwgKChjeF9yZWFkKE1PX0dQMV9JTykgPDwgOCkgJiAweDkwMCk7CiAJCWF1eGdwaW8g
+PSBncGlvOwogCQlicmVhazsKQEAgLTI0NCw2ICsyNDUsNyBAQAogCQlpci0+c2FtcGxpbmcg
+PSAxOwogCQlicmVhazsKIAljYXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYyMDAwSDoKKwlj
+YXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSDoKIAkJaXJfY29kZXMgPSBpcl9jb2Rl
+c193aW5mYXN0OwogCQlpci0+Z3Bpb19hZGRyID0gTU9fR1AwX0lPOwogCQlpci0+bWFza19r
+ZXljb2RlID0gMHg4Zjg7CmRpZmYgLXIgMzEyZGVmNTY4Mjc2IGxpbnV4L2RyaXZlcnMvbWVk
+aWEvdmlkZW8vY3g4OC9jeDg4LmgKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9j
+eDg4L2N4ODguaAlGcmkgTm92IDE0IDE0OjM4OjQ2IDIwMDggLTAyMDAKKysrIGIvbGludXgv
+ZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaAlTYXQgTm92IDE1IDIwOjExOjU4IDIw
+MDggKzAxMDAKQEAgLTIzMiw2ICsyMzIsNyBAQAogI2RlZmluZSBDWDg4X0JPQVJEX1NBVFRS
+QURFX1NUNDIwMCAgICAgICAgIDc2CiAjZGVmaW5lIENYODhfQk9BUkRfVEJTXzg5MTAgICAg
+ICAgICAgICAgICAgNzcKICNkZWZpbmUgQ1g4OF9CT0FSRF9QUk9GXzYyMDAgICAgICAgICAg
+ICAgICA3OAorI2RlZmluZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEggICAgICAgIDc5
+CiAKIGVudW0gY3g4OF9pdHlwZSB7CiAJQ1g4OF9WTVVYX0NPTVBPU0lURTEgPSAxLAr=
 
-It should work okay. This is the kind of thing I have tested except
-in my case with an ancient commodore PLUS/4 and not a PS2 :-) 
-
-cya!
-
---
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \ 
-
+---------=_2EC4317C.6A40D3
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+---------=_2EC4317C.6A40D3--
