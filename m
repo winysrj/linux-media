@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from cp-out4.libero.it ([212.52.84.104])
+Received: from rv-out-0506.google.com ([209.85.198.228])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ferrarir@libero.it>) id 1L0lJN-0000Qs-9K
-	for linux-dvb@linuxtv.org; Fri, 14 Nov 2008 00:09:18 +0100
-Received: from libero.it (192.168.17.9) by cp-out4.libero.it (8.5.016.1)
-	id 491979DC0050CC28 for linux-dvb@linuxtv.org;
-	Fri, 14 Nov 2008 00:08:40 +0100
-Date: Fri, 14 Nov 2008 00:08:40 +0100
-Message-Id: <KAAOAG$CEA59BC3D735B9AA0A1D487608AA9862@libero.it>
+	(envelope-from <rasjidw@gmail.com>) id 1L1Ivo-00040I-W6
+	for linux-dvb@linuxtv.org; Sat, 15 Nov 2008 12:03:14 +0100
+Received: by rv-out-0506.google.com with SMTP id b25so1760390rvf.41
+	for <linux-dvb@linuxtv.org>; Sat, 15 Nov 2008 03:03:07 -0800 (PST)
+Message-ID: <bf82ea70811150303p4d6517b2qce1345dd707a315c@mail.gmail.com>
+Date: Sat, 15 Nov 2008 22:03:07 +1100
+From: "Rasjid Wilcox" <rasjidw@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+In-Reply-To: <49199510.6040809@iki.fi>
 MIME-Version: 1.0
-From: "ferrarir\@libero\.it" <ferrarir@libero.it>
-To: "dvb linux" <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Help with multiproto and myth
+Content-Disposition: inline
+References: <bf82ea70811110306v345c9061sc6d49f6a961647c@mail.gmail.com>
+	<bf82ea70811110312y487610d8v9656c3e76bf44e0@mail.gmail.com>
+	<49199510.6040809@iki.fi>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DigitalNow TinyTwin second tuner support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,64 +30,26 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Thank you for your reply!
-Can you tell me if is there a way dump a dvb-s2 stream to a file?
-I'm able to lock dvb-s2 channels using szap2 (i got FE_HAS_LOCK) but don't know how to watch them...
-Do i need particular codecs? (I'm able to watch h.264/avc1 files.)
-(i want to be sure that my multiproto drivers are ok before going to mythtv ml)
+2008/11/12 Antti Palosaari <crope@iki.fi>:
+> I disabled 2nd tuner by default due to bad performance I faced up with my
+> hardware. Anyhow, you can enable it by module param, use modprobe
+> dvb-usb-af9015 dual_mode=1 . Test it and please report.
 
-thanks
+I have enabled dual mode, and now have an extra adaptor in /dev/dvb.
 
----------- Initial Header -----------
+However, when I try to set the new card up in the Myth backend in
+Capture Card Setup, I get an error on the Frontend ID: "Could not get
+card info for the card #1", and for Subtype: Unknown error.
 
->From      : "Per Heldal" heldal@eml.cc
-To          : "ferrarir@libero.it" ferrarir@libero.it
-Cc          : 
-Date      : Thu, 13 Nov 2008 00:02:31 +0100
-Subject : Re: [linux-dvb] Help with multiproto and myth
+dmesg also has an error message:
 
+af9015: firmware copy to 2nd frontend failed, will disable it
 
+Any suggestions?
 
+Cheers,
 
-
-
-
-> On Wed, 2008-11-12 at 19:42 +0100, ferrarir@libero.it wrote:
-> > Hello,
-> > i'm having problem watching dvb-s2 channels using multiproto drivers
-> > and mythtv.
-> > i've compiled multiproto drivers and mythtv 0.21 patched with this
-> > patch:
-> > http://svn.mythtv.org/trac/raw-attachment/ticket/5403/mythtv_multiproto.5.patch
-> > i'm able to scan dvb-s2 transponders after updating
-> > mythconverg.dtv_multiplex table to '8psk' (modulation field) but i'm
-> > not able to watch hd channels ...
-> > Mythfrontend complains about "no lock"
-> 
-> You're more likely to find help about mythtv on one of their
-> mailinglists.  See http://mythtv.org/modules.php?name=MythInfo
-> 
-> Patience is probably the key right now when it comes to linux and
-> DVB-based HDTV. In case you haven't noticed; the community has agreed
-> that S2API, and not multiproto, is the way forward. The new API and a
-> collection of hardware drivers to go with it is intended for inclusion
-> with linux kernel release 2.6.28 some time next year. In the meantime
-> there's only experimental code available. Some application developers
-> have started coding for the new API, but there's no working patches for
-> mythtv yet. There is experimental code for VDR and Kaffeine.
-> 
-> S2API source: http://linuxtv.org/repo/   (v4l-dvb source tree)
-> About S2API: http://linuxtv.org/wiki/index.php/S2API
-> 
-> 
-> 
-> -- 
-> 
-> 
-> Per Heldal - http://heldal.eml.cc/
-> 
-> 
-
+Rasjid.
 
 _______________________________________________
 linux-dvb mailing list
