@@ -1,27 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJL5W2p001033
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 16:05:32 -0500
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.190])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJL5IYk006846
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 16:05:19 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so78746nfc.21
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 13:05:18 -0800 (PST)
-Message-ID: <412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
-Date: Wed, 19 Nov 2008 16:05:18 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
-In-Reply-To: <alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAFBSrWq007592
+	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 06:28:53 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAFBSdb0019911
+	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 06:28:39 -0500
+Date: Sat, 15 Nov 2008 12:28:43 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <Pine.LNX.4.64.0811151223510.3783@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
-	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
-	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [video4linux] Attention em28xx users
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Any moderators alive? (was: Your message to video4linux-list awaits
+ moderator approval)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,37 +25,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Nov 19, 2008 at 3:38 PM, Kiss Gabor (Bitman)
-<kissg@ssg.ki.iif.hu> wrote:
-> Unfortunately I cannot do this.
-> I have no Windows machine.
->
-> Some month ago we tried to install Windows drivers on my brother's
-> XP but we were unsuccesful.
->
->
-> Yesterday I tried to load em28xx module with different card numbers
-> and two or three times I had nice picture. With card=3 and card=7.
-> However after a few tests it seems to be crashed and since then it
-> does not work any more.
->
-> Gabor
+Hi Mauro,
 
-Hello Gabor,
+got the bounce below in reply to my patch to the list. The mail has never 
+been posted to the list, even not after I have sent an additional email to 
+the list: http://marc.info/?l=linux-video&m=122644300223385&w=2
+and I don't find any way to contact moderators directly - neither in ML 
+management information, nor on the ML web-page. Do you by chance know who 
+moderates the list and if they are still active? How can they be 
+contacted? The situation seems suboptimal:-(
 
-Playing with the "card=" argument is probably not such a good idea.
-I should consider taking that functionality out, since setting to the
-wrong card number can damage the device (by setting the wrong GPIOs).
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
-If somebody can get me a USB trace of the device starting up under
-Windows, I can probably make this card work.
+---------- Forwarded message ----------
+Date: Mon, 10 Nov 2008 07:37:37 -0500
+From: video4linux-list-bounces@redhat.com
+To: g.liakhovetski@gmx.de
+Subject: Your message to video4linux-list awaits moderator approval
 
-Devin
+Your mail to 'video4linux-list' with the subject
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+    [PATCH 3/5] soc-camera: add a per-camera device host private data
+pointer
+
+Is being held until the list moderator can review it for approval.
+
+The reason it is being held:
+
+    Message has a suspicious header
+
+Either the message will get posted to the list, or you will receive
+notification of the moderator's decision.  If you would like to cancel
+this posting, please visit the following URL:
+
+    https://www.redhat.com/mailman/confirm/video4linux-list/4d7b4853bdff783f5672edd93fd621182611c060
 
 --
 video4linux-list mailing list
