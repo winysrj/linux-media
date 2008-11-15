@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA9NLgWd000350
-	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 18:21:42 -0500
-Received: from cinke.fazekas.hu (cinke.fazekas.hu [195.199.244.225])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA9NLUtV004097
-	for <video4linux-list@redhat.com>; Sun, 9 Nov 2008 18:21:30 -0500
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-Id: <patchbomb.1226272760@roadrunner.athome>
-Date: Mon, 10 Nov 2008 00:19:20 +0100
-From: Marton Balint <cus@fazekas.hu>
-To: video4linux-list@redhat.com
-Cc: mchehab@infradead.org
-Subject: [PATCH 0 of 2] cx88: add optional stereo detection to PAL-BG mode
-	with A2 sound system
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAFIsBcV000872
+	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 13:54:11 -0500
+Received: from smtp1-g19.free.fr (smtp1-g19.free.fr [212.27.42.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAFIrxjl024631
+	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 13:53:59 -0500
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+In-Reply-To: <200811151218.45664.m.kozlowski@tuxland.pl>
+References: <200811151218.45664.m.kozlowski@tuxland.pl>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Sat, 15 Nov 2008 19:48:33 +0100
+Message-Id: <1226774913.1706.3.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org
+Subject: Re: [BUG] zc3xx oopses on unplug: unable to handle kernel paging
+	request
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,23 +28,32 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This patchset adds support for optional stereo detection for PAL-BG mode. This
-is a slightly modified version of the original patch I sent to this list
-earlier this year.  The first patch disables the audio thread in cx88, and the
-second implements stereo detection.
+On Sat, 2008-11-15 at 12:18 +0100, Mariusz Kozlowski wrote:
+> Hi,
+> 
+> 	Recently I bought one of these cheap usb cameras. This would be
+> Logitech e1000 identified as 046d:08af Logitech, Inc. It doesn't quite
+> work but that's another story. On unplug though it causes oops
+> while /dev/video is open. 
+> 
+> Steps to reproduce: 
+> 
+> a) plug the camera in (zc3xx as a module)
+> b) wait for it to settle down
+> c) cat /dev/video > /dev/null
+> d) unplug the camera
 
-The audio thread in the cx88 code is totally useless, because cx88_get_stereo
-is not implemented correctly. Because of this, the audio thread occaisonally
-sets the audio to MONO after starting a TV application, and unfortuantely this
-may happen after the stereo detection.
+Hi Mariusz,
 
-Stereo detection is optional, and is not enabled by default, because it is not
-always reliable, the actual results may depend on your TV application and your
-provider. It works 100% for me using tvtime, and another guy reported success
-earlier, as a result of my original posting.
+Do you have the same oops when streaming by mmap (most apps) or by
+userptr (svv)?
 
-Regards,
-  Marton Balint
+Cheers.
+
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
 
 --
 video4linux-list mailing list
