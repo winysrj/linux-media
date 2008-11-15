@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA3KJtDP032289
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 15:19:55 -0500
-Received: from smtp8-g19.free.fr (smtp8-g19.free.fr [212.27.42.65])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA3KJsF7002636
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 15:19:54 -0500
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <20081029232544.661b8f17.ospite@studenti.unina.it>
-	<87mygkof3j.fsf@free.fr>
-	<Pine.LNX.4.64.0811022048430.14486@axis700.grange>
-	<87skq87mgp.fsf@free.fr>
-	<Pine.LNX.4.64.0811031944340.7744@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Mon, 03 Nov 2008 21:19:50 +0100
-In-Reply-To: <Pine.LNX.4.64.0811031944340.7744@axis700.grange> (Guennadi
-	Liakhovetski's message of "Mon\,
-	3 Nov 2008 20\:09\:53 +0100 \(CET\)")
-Message-ID: <87mygg4l5l.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAFM8kSe014221
+	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 17:08:46 -0500
+Received: from smtp-vbr4.xs4all.nl (smtp-vbr4.xs4all.nl [194.109.24.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAFM845w026834
+	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 17:08:28 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: video4linux-list@redhat.com
+Date: Sat, 15 Nov 2008 23:07:58 +0100
+References: <491CB0A6.9080509@personnelware.com>
+	<491F3840.4030301@personnelware.com>
+In-Reply-To: <491F3840.4030301@personnelware.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] mt9m111: Fix YUYV format for pxa-camera
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200811152307.58719.hverkuil@xs4all.nl>
+Cc: 
+Subject: Re: minimum v4l2 api - framework
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,60 +30,80 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+On Saturday 15 November 2008 21:59:44 Carl Karsten wrote:
+> Tomorrow (Nov 16) I will be at a Linuxfest, where I am going to try
+> to find someone up for writing this driver.
+>
+> I am assuming there is some code they should use as a starting point.
+> Either
+> A) "This is the generic/abstract code that can be extended to make a
+> specific/concrete driver" (what I would call a framework)
+> B) "driver foo.c is a good example of how a V4L2 driver should be
+> written; copy it and swap out the hardware specific code."
+> C) "vivi.c is close enough.  you should really just work on fixing
+> it."
+>
+> I am hoping the correct answer is:
+> http://linuxtv.org/hg/~hverkuil/v4l-dvb-media2/file/6292505ca617/linu
+>x/Documentation/video4linux/v4l2-framework.txt
 
-> Hm, wondering how you know?:-) I agree most probably there are about 2 
-> users of this driver in the world:-), but who knows?
-Yes, who knows ...
+Hopefully this will be the correct answer in the near future, but now it 
+refers to structs that do not yet exist. I've reserved next weekend to 
+continue work on this.
 
-> I don't see why 27-19 should be wrong - it specifies exactly the byte 
-> order CbYCrY, i.r., UYVY (I think, this is what you meant by "UYUV".)
-Well, the one working configuration known, Antonio's is :
- - pxa CPU
- - mt9m111, with OUTPUT_FORMAT_CTRL[1]=1
+It's probably a good idea for me to create a template driver that can be 
+used as a proper starting point, however nothing will be available soon 
+enough for you. I don't think we have a 'perfect' driver right now. All 
+drivers have their own problems. It's one of the main reasons I'm 
+working on a better framework.
 
-According to the mt9m111 datasheet, table 3, page 14, when OUTPUT_FORMAT_CTRL[1]
-= 1 and OUTPUT_FORMAT_CTRL[0] = 0, the MT9M111 sensor outputs data as follows :
- - byte1 = Y1
- - byte2 = Cb1
- - byte3 = Y2
- - byte4 = Cr1
- - and so on ...
+In any case, I don't think vivi is a good example, it's not written as a 
+template driver, that was never the intention of vivi.
 
-According to PXA27x datasheet, table 27-19, input bytes from the sensor should
-be :
- - byte1 = Cb1
- - byte2 = Y1
- - byte3 = Cr1
- - byte4 = Y2
- - and so on ...
+Regards,
 
-Do you see the discrepancy now ? Either pxa27x datasheet of mt9m111 datasheet is
-wrong, or else Antonio's setup wouldn't work.
+	Hans
 
-> Good, then this is the fix that I'd like to have. It seems pretty simple, 
-> it will preserve behaviour of mt9m111. It will change the behaviour of 
-> pxa-camera for the YUYV format, to be precise, it will stop supporting 
-> this format. So, I would print out a warning, explaining that this format 
-> is not supported by pxa270 and the user should use UYVY instead. I 
-> suggested to add only one format to mt9m111 so far, just because this is 
-> the easiest as a bug-fix. But if you prefer, you can add all four, yes.
-Right, so be it for the 4 formats.
+>
+> If someone can give me a rough stub to start with, that would make
+> tomorrow's work more promising.
+>
+> Carl K
+>
+> Carl Karsten wrote:
+> > Apparently vivi is messed up enough that maybe it makes sense to
+> > write a new test driver.
+> >
+> > What is the minimum interface a v4l2 driver could have?
+> >
+> > Something like: it registers itself as /dev/videoN, and
+> > QueryCaps returns nothing.
+> > It does not return any image. (yeah ?)
+> > It can be unloaded.
+> >
+> > and anything else that someone thinks is required for a well
+> > behaved driver that follows the spec.
+> >
+> > The plan is to start with that, get it and my tester working in
+> > harmony, then start adding things to both sides of the fence.  I am
+> > thinking additional features will be enabled via module parameters,
+> > so that it can always be dumbed down back to it's minimum.
+> >
+> > Carl K
+> >
+> >
+> > --
+> > video4linux-list mailing list
+> > Unsubscribe
+> > mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> > https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
-> Still, I would really prefer to see the version described above - add more 
-> formats to mt9m111 and fix pxa270 to claim the correct format and print a 
-> warning for YUYV. This shouldn't be much more difficult to make than the 
-> proposed patch, and it will be correct. I made enough bad experiences with 
-> "temporary fixes" to try to avoid them as much as possible:-)
-
-If you wish so. I'll watch you pushing the fix in the stable branch to see how
-you convince people that changing the pxa camera driver is only a "fix" and not
-an evolution :) Too bad for a quick working fix.
-
-Cheers.
-
---
-Robert
 
 --
 video4linux-list mailing list
