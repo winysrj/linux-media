@@ -1,25 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGEN2dm024487
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 09:23:02 -0500
-Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAGEMopU002281
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 09:22:50 -0500
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0811160142140.21494@axis700.grange>
-	<8763mo6irz.fsf@free.fr>
-	<Pine.LNX.4.64.0811161409350.4368@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Sun, 16 Nov 2008 15:22:39 +0100
-In-Reply-To: <Pine.LNX.4.64.0811161409350.4368@axis700.grange> (Guennadi
-	Liakhovetski's message of "Sun\,
-	16 Nov 2008 14\:24\:31 +0100 \(CET\)")
-Message-ID: <87abbz698w.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGIHEL4022974
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 13:17:14 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAGIGxsb013548
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 13:16:59 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so761902eyf.39
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 10:16:58 -0800 (PST)
+Message-ID: <412bdbff0811161016w91fc6c1s67e84519e2505b05@mail.gmail.com>
+Date: Sun, 16 Nov 2008 13:16:58 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: CityK <cityk@rogers.com>
+In-Reply-To: <4920603D.20906@rogers.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: soc-camera: pixelfmt translation serie
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <491CC096.7090107@rogers.com>
+	<f3ae23390811140559i5e235c3bvabe8d5004d57165@mail.gmail.com>
+	<4920603D.20906@rogers.com>
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: AVerMedia EZMaker USB Gold
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,53 +32,45 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-
-> On Sun, 16 Nov 2008, Robert Jarzmik wrote:
+On Sun, Nov 16, 2008 at 1:02 PM, CityK <cityk@rogers.com> wrote:
+> Re: 7136
 >
->> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> Yes, I saw this, and although it does look useful, I tend not to add the 
-> whole host format - sensor format infrastructure alone for this debug 
-> feature. I would restrict this generated format list to user (host) 
-> formats only - without exposing which sensor format the host has decided 
-> to use for it. We can either add this debug functionality either on a 
-> per-host basis, or implement a debug hook in host drivers? In any case I 
-> would prefer not to make this a part of the infrastructure for debugging 
-> alone.
-
-Ah, but I think it is neceesary. The true purpose of soc_camera is to provide a
-generic infrastructure to match sensors to hosts, isn't it ? So there should be
-a way to dynamically display all available formats, and where they come from
-(ie. which sensor provides it, and with which of its own formats => thinking
-debugfs here).
-
-Ideally, you will have a debugfs part telling what are the available formats, to
-which (host format, sensor format) they refer, and which couple is the current
-one.
-
->> Would you also duplicate current_fmt, so that the current host format and sensor
->> current format are available at sight ?
+> Currently there haven't been many reports of devices using this IC.
+> Last spring, Janneg obtained a device using the 7136 and this lead to a
+> brief discussion on irc about it.  IIRC, Manu Abrahams, who had access
+> to the datasheet at the time and upon a cursory inspection of its info,
+> thought that it was likely that support for the chip could be
+> incorporated into the existing 713x driver.  I forget any specifics
+> about the chip, but I seem to recall that there is something unique
+> about it.  (I also seem to recall that it has component input that is
+> good enough for capturing full res HDTV...not that many vendors would
+> ever implement access to that though).
 >
-> Why? Give me a real reason (apart from debugging) why we need to know in 
-> soc_camera.c which formats the host requests from the sensor for a 
-> specific output format or which format is currently configured on the 
-> sensor?
-Exactly what you said, debug and tracability.
+> Anyway, I haven't seen much mention of the chip since, but did happen to
+> coincidently catch this post just the other day:
+> * http://marc.info/?l=linux-video&m=122675953217105&w=2
+> The importance of which becomes clear when seeing:
+> *
+> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Ultimate_Stick_(808e)
+>
+> So I have cc'ed Devin in on the message as perhaps you two could
+> collaborate on this, and I imagine Devin would appreciate any help once
+> all the "fun" legal aspect is settled with NXP.
 
-> Well, would it be enough if I put the current state somewhere up as a 
-> quilt patch series, for instance? I don't want to repost all patches on 
-> each iteration.
-Very well, so just in the cover which of the previous patches should be applied
-before your new serie. Or a git repository if you have one ...
+Yes.  I am working on getting the datasheet for this device, and will
+definitely be doing driver support for it (unless somebody manages to
+beat me to it).  It's good to know what other devices are using this
+chip, so I can pick one up and make sure I don't do anything that is
+specific to the Pinnacle 808e.
 
-Ah, and before I forget. The original idea behind the translation API was to
-have the less code in each host for format list creation. I hope you keep in
-mind that purpose. The less code in pxa_camera and sh_mobile_ceu_camera.c, the
-better. Anyway, I'll see it in your post, and compare to the translation
-framework, it's always easier to compare code than specifications :)
+Regards,
 
---
-Robert
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
