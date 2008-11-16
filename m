@@ -1,19 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mACJWEcw019845
-	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 14:32:14 -0500
-Received: from bay0-omc1-s8.bay0.hotmail.com (bay0-omc1-s8.bay0.hotmail.com
-	[65.54.246.80])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mACJV2Ra021454
-	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 14:31:02 -0500
-Message-ID: <BAY102-W4754924DCE9B9B9C1A9ED6E5140@phx.gbl>
-From: Jim Goddard <monkeys_typing@hotmail.com>
-To: <video4linux-list@redhat.com>
-Date: Wed, 12 Nov 2008 11:30:59 -0800
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGJ0vTG002219
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 14:00:57 -0500
+Received: from smtp114.rog.mail.re2.yahoo.com (smtp114.rog.mail.re2.yahoo.com
+	[68.142.225.230])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAGJ0h8h027324
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 14:00:43 -0500
+Message-ID: <49206DDA.1090808@rogers.com>
+Date: Sun, 16 Nov 2008 14:00:42 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Subject: Update (and volunteer for testing) to the SAA7164 driver?
+To: V4L <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Subject: WinTV HVR 1200 analog
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,24 +25,12 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Its not implemented yet.  Though, there has been some success by NTSC
+users.  See my message here:
+* http://marc.info/?l=linux-dvb&m=122685718500989&w=2
 
-I am very interested in the Hauppauge 2250 capture cards=2C but I don't wan=
-t to buy one until I know that drivers are close.  I am running Xubuntu=2C =
-and would LOVE to turn my machine into a MythBuntu box.  I have pretty dece=
-nt knowledge of Linux and Ubuntu=2C might even be able to contribute some c=
-ode on this.
+Perhaps you guys can coordinate and get it working for the PAL , SECAM.
 
-If there is a driver that I could work with=2C please let me know and I wil=
-l jump on the Newegg deal for this card.
-
-Thanks=2C
-
-Jim
-
-_________________________________________________________________
-Windows Live Hotmail now works up to 70% faster.
-http://windowslive.com/Explore/Hotmail?ocid=3DTXT_TAGLM_WL_hotmail_acq_fast=
-er_112008=
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
