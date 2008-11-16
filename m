@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAFEVtsi021865
-	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 09:31:55 -0500
-Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.26])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAFEUuDb018035
-	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 09:30:57 -0500
-Received: by ey-out-2122.google.com with SMTP id 4so664229eyf.39
-	for <video4linux-list@redhat.com>; Sat, 15 Nov 2008 06:30:56 -0800 (PST)
-Message-ID: <412bdbff0811150630n1e0bd95bkdbc51790b7b47cdc@mail.gmail.com>
-Date: Sat, 15 Nov 2008 09:30:56 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Irv Kooris" <ikooris@gmail.com>
-In-Reply-To: <491E784F.9000506@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGMXVmb029701
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 17:33:31 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAGMXHqT029162
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 17:33:18 -0500
+Date: Sun, 16 Nov 2008 20:33:09 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <20081116203309.462c0cdb@pedra.chehab.org>
+In-Reply-To: <Pine.LNX.4.64.0811151223510.3783@axis700.grange>
+References: <Pine.LNX.4.64.0811151223510.3783@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <491E784F.9000506@gmail.com>
 Cc: video4linux-list@redhat.com
-Subject: Re: Pinnacle PCTV HD Ultimate Stick TV Tuner
+Subject: Re: Any moderators alive? (was: Your message to video4linux-list
+ awaits moderator approval)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,26 +28,57 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Nov 15, 2008 at 2:20 AM, Irv Kooris <ikooris@gmail.com> wrote:
-> Has anyone found a way to get this to work in Ubuntu
+On Sat, 15 Nov 2008 12:28:43 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-Pinnacle sent me with the hardware sample last week and I am working
-out the NDA issues with Broadcom (formerly the divison of ATI that
-made the demod).  They (Pinnacle) are also actively working on
-introducing me to the right people at NXP so I can get the necessary
-datasheets.
+> Hi Mauro,
+> 
+> got the bounce below in reply to my patch to the list. The mail has never 
+> been posted to the list, even not after I have sent an additional email to 
+> the list: http://marc.info/?l=linux-video&m=122644300223385&w=2
+> and I don't find any way to contact moderators directly - neither in ML 
+> management information, nor on the ML web-page. Do you by chance know who 
+> moderates the list and if they are still active? How can they be 
+> contacted? The situation seems suboptimal:-(
 
-This one is going to be a bit of a pain since we don't have a driver
-for the decoder or the demodulator.
+I've forwarded your email to someone at Red Hat. He is not the maintainer of
+the ML, but I hope he will help me to find the right person. I'll likely have
+some return from him on monday.
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> 
+> ---------- Forwarded message ----------
+> Date: Mon, 10 Nov 2008 07:37:37 -0500
+> From: video4linux-list-bounces@redhat.com
+> To: g.liakhovetski@gmx.de
+> Subject: Your message to video4linux-list awaits moderator approval
+> 
+> Your mail to 'video4linux-list' with the subject
+> 
+>     [PATCH 3/5] soc-camera: add a per-camera device host private data
+> pointer
+> 
+> Is being held until the list moderator can review it for approval.
+> 
+> The reason it is being held:
+> 
+>     Message has a suspicious header
+> 
+> Either the message will get posted to the list, or you will receive
+> notification of the moderator's decision.  If you would like to cancel
+> this posting, please visit the following URL:
+> 
+>     https://www.redhat.com/mailman/confirm/video4linux-list/4d7b4853bdff783f5672edd93fd621182611c060
+
+
+
 
 Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Mauro
 
 --
 video4linux-list mailing list
