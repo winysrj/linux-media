@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAOM9pjR031485
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 17:09:51 -0500
-Received: from smtp-vbr14.xs4all.nl (smtp-vbr14.xs4all.nl [194.109.24.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAOM9eIC010837
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 17:09:40 -0500
-Received: from tschai.lan (cm-84.208.85.194.getinternet.no [84.208.85.194])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id mAOM9cFl025027
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <video4linux-list@redhat.com>; Mon, 24 Nov 2008 23:09:39 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: v4l <video4linux-list@redhat.com>
-Date: Mon, 24 Nov 2008 23:09:37 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGIt48v000836
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 13:55:04 -0500
+Received: from smtp104.rog.mail.re2.yahoo.com (smtp104.rog.mail.re2.yahoo.com
+	[206.190.36.82])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAGIsqlA025420
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 13:54:52 -0500
+Message-ID: <49206C7B.1070609@rogers.com>
+Date: Sun, 16 Nov 2008 13:54:51 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <491CC096.7090107@rogers.com>	
+	<f3ae23390811140559i5e235c3bvabe8d5004d57165@mail.gmail.com>	
+	<4920603D.20906@rogers.com>
+	<412bdbff0811161016w91fc6c1s67e84519e2505b05@mail.gmail.com>
+	<49206A4C.6080602@rogers.com>
+In-Reply-To: <49206A4C.6080602@rogers.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200811242309.37489.hverkuil@xs4all.nl>
-Subject: v4l2_device/v4l2_subdev: please review
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: AVerMedia EZMaker USB Gold
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,48 +32,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+Just a quick add on:
 
-I've finally tracked down the last oops so I could make a new tree with 
-all the latest changes.
+CityK wrote:
+> Looking at the pics, I now recall that the interesting thing about the
+> 7136 in that case is that it isn't the bridge, just the decoder 
 
-My http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-ng tree contains the 
-following:
+Which is, of course, the same as in the Pinnacle stick you're working on.
 
-- v4l2: add v4l2_device and v4l2_subdev structs to the v4l2 framework.
-- v4l2-common: add i2c helper functions
-- cs53l32a: convert to v4l2_subdev.
-- cx25840: convert to v4l2_subdev.
-- m52790: convert to v4l2_subdev.
-- msp3400: convert to v4l2_subdev.
-- saa7115: convert to v4l2_subdev.
-- saa7127: convert to v4l2_subdev.
-- saa717x: convert to v4l2_subdev.
-- tuner: convert to v4l2_subdev.
-- upd64031a: convert to v4l2_subdev.
-- upd64083: convert to v4l2_subdev.
-- vp27smpx: convert to v4l2_subdev.
-- wm8739: convert to v4l2_subdev.
-- wm8775: convert to v4l2_subdev.
-- ivtv: convert to v4l2_device/v4l2_subdev.
+I could be wrong, but IIRC, there might be a version of the 7136 that
+does contain a PCI bridge  .... I think the bridgeless one is designated
+as "7136CE"
 
-These files are the most important ones to look at:
-
-linux/Documentation/video4linux/v4l2-framework.txt
-linux/drivers/media/video/v4l2-device.c
-linux/drivers/media/video/v4l2-subdev.c
-linux/include/media/v4l2-device.h
-linux/include/media/v4l2-subdev.h
-
-In addition, I've converted all the i2c modules used by ivtv and also 
-ivtv itself.
-
-If there is no new feedback then I'll make a pull request for this on 
-Friday. Once it is in I'll start converting other drivers.
-
-Regards,
-
-	Hans
+Cheers
 
 --
 video4linux-list mailing list
