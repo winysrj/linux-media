@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from harpoon.unitedhosting.co.uk ([83.223.124.227])
+Received: from mail1007.centrum.cz ([90.183.38.137])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <robert@watkin5.net>) id 1L5nNW-0003D2-7e
-	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 21:22:24 +0100
-From: Robert Watkins <robert@watkin5.net>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0811251229m7e36ed33jade32457a4c37185@mail.gmail.com>
-References: <RCbI1iFQ0HKJFw8A@onasticksoftware.net>
-	<492A8A43.4060001@rusch.name> <u0lnYVBoGwKJFwJg@onasticksoftware.net>
-	<1227556939.16187.0.camel@youkaida>
-	<100c0ba70811241329s594e3112h467e1deff9d3c1ac@mail.gmail.com>
-	<1227644366.6949.18.camel@watkins-desktop>
-	<412bdbff0811251229m7e36ed33jade32457a4c37185@mail.gmail.com>
-Date: Thu, 27 Nov 2008 20:21:48 +0000
-Message-Id: <1227817308.7014.41.camel@watkins-desktop>
-Mime-Version: 1.0
+	(envelope-from <sustmidown@centrum.cz>) id 1L1oEN-0005wG-Rf
+	for linux-dvb@linuxtv.org; Sun, 16 Nov 2008 21:28:30 +0100
+Received: by mail1007.centrum.cz id S738223645AbYKPU2R (ORCPT
+	<rfc822;linux-dvb@linuxtv.org>); Sun, 16 Nov 2008 21:28:17 +0100
+Date: Sun, 16 Nov 2008 21:28:17 +0100
+From: "Miroslav  =?UTF-8?Q?=20=C5=A0ustek?=" <sustmidown@centrum.cz>
+To: <cityk@rogers.com>
+MIME-Version: 1.0
+Message-ID: <200811162128.22108@centrum.cz>
+References: <200811152044.831@centrum.cz> <200811152045.12993@centrum.cz>
+	<200811152052.29002@centrum.cz> <4920661C.9020601@rogers.com>
+In-Reply-To: <4920661C.9020601@rogers.com>
+Content-Type: multipart/mixed; boundary="-------=_1FA23EAE.77105F66"
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Nova/dib0700/i2C write failed
+Subject: Re: [linux-dvb] [Bulk] [PATCH] [resent] Leadtek WinFast DTV-1800H
+	support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -24,135 +24,153 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 2008-11-25 at 15:29 -0500, Devin Heitmueller wrote:
-> On Tue, Nov 25, 2008 at 3:19 PM, Robert Watkins <robert@watkin5.net> wrote:
-> > On Mon, 2008-11-24 at 21:29 +0000, Richard Palmer wrote:
-> >> Hi,
-> >>
-> >> On Mon, Nov 24, 2008 at 8:02 PM, Nicolas Will <nico@youplala.net> wrote:
-> >> > On Mon, 2008-11-24 at 19:34 +0000, jon bird wrote:
-> >> >> could be although on perusing the mailing list archives this seemed
-> >> >> to
-> >> >> be a recurring problem of which various attempts have been made to
-> >> >> investigate/fix but there didn't seem to be a conclusion to it all.
-> >> >> Hence I just thought I'd see what the latest state of play was and
-> >> >> report back anything potentially useful.....
-> >> >
-> >> > Well, this has normally been solved. Your report is the first one in a
-> >> > long time.
-> >>
-> >> I'll second the report. Also with a VIA motherboard, so the USB ports
-> >> could be the
-> >> culprit. Running Mythbuntu with kernel 2.6.24 and using the new
-> >> firmware still gives
-> >> i2c errors.
-> >>
-> >
-> > I've found Unbuntu 2.6.24-21-386 worked reasonable well with errors
-> > requiring a shut down and cold start once or twice a week.
-> >
-> > After an upgrade, I found 2.6.27-7-generic fails within seconds of
-> > starting to record on two tuners.
-> >  dvb-usb: error while enabling fifo.
-> >
-> > The current v4l-dvb drivers have the same issue.
-> >
-> > I also occasionally get
-> >  dib0700: firmware download failed at 17248 with -110
-> >
-> > My PC's got ATI's IXP SB400 USB2 Host Controllers.
-> >
-> > Rob Watkins
-> 
-> Hello Robert,
-> 
-> Are you running dib0700 firmware version 1.10 or 1.20?
+This is a multi-part message in MIME format
 
-Hello Devin,
+---------=_1FA23EAE.77105F66
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-I switched to 1.10 after having problems with the 1.20 firmware. I
-swapped the files back yesterday, and tried running with the current
-drivers and the 1.20 firmware after a cold boot. You are right. The 1.20
-firmware is significantly better than 1.10. 
+CityK wrote:
+>Miroslav Šustek wrote:
+>> Hello,
+>>
+>> Here is patch for Leadtek WinFast DTV-1800H.
+>> It enables support for digital TV, analogue TV and radio.
+>> I have already sent it here, but as I am newbie the patch wasn't
+>> compatible with "Linux Kernel Coding Style".
+>>
+>> That's probably the reason why the patch hasn't been pushed
+>> into the repository yet.
+>>   
+>
+>Likely something much more benign -- simply overlooked or hasn't been
+>spotted yet ... (I believe Mauro is pretty  busy recently and, in
+>general, traffic on the lists is way down :(  ).
+>
+>> Now the patch meets the LKCS requirements.
+>> (checked using: linux/scripts/checkpatch.pl)
+>>
+>> Thanks for the advice.
+>> I hope everything is correct now.
+>
+>Mauro will want you to add your "signed of by "  ... for further details
+>see: http://linuxtv.org/hg/v4l-dvb/file/0f7686e28ff5/README.patches
+>
 
-A one point the 1.20 firmware ran for almost 2 hours before I noticed
-problems. I shut down and restarted a couple of times after that, and
-got errors within minutes.
-
-The number the firmware download fails at changed each time but the
-"with -110" was the same.
-
-Best Wishes,
-Rob
-
-<snip>
-[   23.538141] dib0700: loaded with support for 8 different device-types
-[   23.539042] dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in
-cold state, will try to load a firmware
-[   23.539051] firmware: requesting dvb-usb-dib0700-1.20.fw
-[   24.890408] lirc_dev: IR Remote Control driver registered, major 61 
-[   25.090680] Linux video capture interface: v2.00
-[   25.214298] dvb-usb: downloading firmware from file
-'dvb-usb-dib0700-1.20.fw'
-[   26.368174] dib0700: firmware download failed at 20146 with -110
-[   26.368380] usbcore: registered new interface driver dvb_usb_dib0700
-
-<snip>
-
-[   76.840589] usbcore: deregistering interface driver dvb_usb_dib0700
-[   76.949087] dib0700: loaded with support for 8 different device-types
-[   76.951065] dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in
-cold state, will try to load a firmware
-[   76.951079] firmware: requesting dvb-usb-dib0700-1.20.fw
-[   76.955490] dvb-usb: downloading firmware from file
-'dvb-usb-dib0700-1.20.fw'
-[   77.166854] dib0700: firmware started successfully.
-[   77.668057] dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in
-warm state.
-[   77.668149] dvb-usb: will pass the complete MPEG2 transport stream to
-the software demuxer.
-[   77.668495] DVB: registering new adapter (Hauppauge Nova-T 500 Dual
-DVB-T)
-[   77.800034] DVB: registering adapter 0 frontend 0 (DiBcom
-3000MC/P)...
-[   77.888529] MT2060: successfully identified (IF1 = 1229)
-[   78.383196] dvb-usb: will pass the complete MPEG2 transport stream to
-the software demuxer.
-[   78.383469] DVB: registering new adapter (Hauppauge Nova-T 500 Dual
-DVB-T)
-[   78.390786] DVB: registering adapter 1 frontend 0 (DiBcom
-3000MC/P)...
-[   78.417569] MT2060: successfully identified (IF1 = 1217)
-[   78.974397] dvb-usb: Hauppauge Nova-T 500 Dual DVB-T successfully
-initialized and connected.
-[   78.977954] usbcore: registered new interface driver dvb_usb_dib0700
-[  230.456120] dvb-usb: error while enabling fifo.
-[ 1958.525133] dvb-usb: error while stopping stream.
-[ 1976.092180] mt2060 I2C write failed
-[ 2281.908116] mt2060 I2C write failed
-[ 2676.912186] mt2060 I2C write failed
-[ 2806.924148] mt2060 I2C write failed (len=2)
-[ 2811.924179] mt2060 I2C write failed (len=6)
-[ 2816.924849] mt2060 I2C read failed
-[ 2821.932136] mt2060 I2C read failed
-[ 2826.940180] mt2060 I2C read failed
-[ 2831.949212] mt2060 I2C read failed
-[ 2836.957124] mt2060 I2C read failed
-[ 2841.968042] mt2060 I2C read failed
-[ 2846.976207] mt2060 I2C read failed
-[ 2851.985868] mt2060 I2C read failed
-[ 2856.993026] mt2060 I2C read failed
-[ 2862.000703] mt2060 I2C read failed
+New (signed) patch attached.
+Third time and last time. :)
 
 
+---------=_1FA23EAE.77105F66
+Content-Type: text/x-patch; name="leadtek_winfast_dtv1800h.patch"
+Content-Transfer-Encoding: base64
+
+QWRkcyBTdXBwb3J0IGZvciBMZWFkdGVrIFdpbkZhc3QgRFRWLTE4MDBICgpGcm9tOiBNaXJv
+c2xhdiBTdXN0ZWsgPHN1c3RtaWRvd25AY2VudHJ1bS5jej4KU2lnbmVkLW9mZi1ieTogTWly
+b3NsYXYgU3VzdGVrIDxzdXN0bWlkb3duQGNlbnRydW0uY3o+CgpkaWZmIC1yIDMxMmRlZjU2
+ODI3NiBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCi0tLSBh
+L2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMJRnJpIE5vdiAx
+NCAxNDozODo0NiAyMDA4IC0wMjAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8v
+Y3g4OC9jeDg4LWNhcmRzLmMJU2F0IE5vdiAxNSAyMDoxMTo1OCAyMDA4ICswMTAwCkBAIC0x
+OTY3LDYgKzE5NjcsNDcgQEAKIAkJfSB9LAogCQkubXBlZyAgICAgICAgICAgPSBDWDg4X01Q
+RUdfRFZCLAogCX0sCisJW0NYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSF0gPSB7CisJCS5u
+YW1lICAgICAgICAgICA9ICJMZWFkdGVrIFdpbkZhc3QgRFRWMTgwMCBIeWJyaWQiLAorCQku
+dHVuZXJfdHlwZSAgICAgPSBUVU5FUl9YQzIwMjgsCisJCS5yYWRpb190eXBlICAgICA9IFRV
+TkVSX1hDMjAyOCwKKwkJLnR1bmVyX2FkZHIgICAgID0gMHg2MSwKKwkJLnJhZGlvX2FkZHIg
+ICAgID0gMHg2MSwKKwkJLyoKKwkJICogR1BJTyBzZXR0aW5nCisJCSAqCisJCSAqICAyOiBt
+dXRlICgwPW9mZiwxPW9uKQorCQkgKiAxMjogdHVuZXIgcmVzZXQgcGluCisJCSAqIDEzOiBh
+dWRpbyBzb3VyY2UgKDA9dHVuZXIgYXVkaW8sMT1saW5lIGluKQorCQkgKiAxNDogRk0gKDA9
+b24sMT1vZmYgPz8/KQorCQkgKi8KKwkJLmlucHV0ICAgICAgICAgID0ge3sKKwkJCS50eXBl
+ICAgPSBDWDg4X1ZNVVhfVEVMRVZJU0lPTiwKKwkJCS52bXV4ICAgPSAwLAorCQkJLmdwaW8w
+ICA9IDB4MDQwMCwgICAgICAgLyogcGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg2MDQw
+LCAgICAgICAvKiBwaW4gMTMgPSAwLCBwaW4gMTQgPSAxICovCisJCQkuZ3BpbzIgID0gMHgw
+MDAwLAorCQl9LCB7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX0NPTVBPU0lURTEsCisJCQku
+dm11eCAgID0gMSwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAgICAgIC8qIHBpbiAyID0gMCAq
+LworCQkJLmdwaW8xICA9IDB4NjA2MCwgICAgICAgLyogcGluIDEzID0gMSwgcGluIDE0ID0g
+MSAqLworCQkJLmdwaW8yICA9IDB4MDAwMCwKKwkJfSwgeworCQkJLnR5cGUgICA9IENYODhf
+Vk1VWF9TVklERU8sCisJCQkudm11eCAgID0gMiwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAg
+ICAgIC8qIHBpbiAyID0gMCAqLworCQkJLmdwaW8xICA9IDB4NjA2MCwgICAgICAgLyogcGlu
+IDEzID0gMSwgcGluIDE0ID0gMSAqLworCQkJLmdwaW8yICA9IDB4MDAwMCwKKwkJfSB9LAor
+CQkucmFkaW8gPSB7CisJCQkudHlwZSAgID0gQ1g4OF9SQURJTywKKwkJCS5ncGlvMCAgPSAw
+eDA0MDAsICAgICAgIC8qIHBpbiAyID0gMCAqLworCQkJLmdwaW8xICA9IDB4NjAwMCwgICAg
+ICAgLyogcGluIDEzID0gMCwgcGluIDE0ID0gMCAqLworCQkJLmdwaW8yICA9IDB4MDAwMCwK
+KwkJfSwKKwkJLm1wZWcgICAgICAgICAgID0gQ1g4OF9NUEVHX0RWQiwKKwl9LAogfTsKIAog
+LyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tICovCkBAIC0yMzc2LDYgKzI0MTcsMTAgQEAKIAkJLnN1YnZlbmRv
+ciA9IDB4YjIwMCwKIAkJLnN1YmRldmljZSA9IDB4NDIwMCwKIAkJLmNhcmQgICAgICA9IENY
+ODhfQk9BUkRfU0FUVFJBREVfU1Q0MjAwLAorCX0sIHsKKwkJLnN1YnZlbmRvciA9IDB4MTA3
+ZCwKKwkJLnN1YmRldmljZSA9IDB4NjY1NCwKKwkJLmNhcmQgICAgICA9IENYODhfQk9BUkRf
+V0lORkFTVF9EVFYxODAwSCwKIAl9LAogfTsKIApAQCAtMjU3Myw2ICsyNjE4LDIzIEBACiAJ
+cmV0dXJuIC1FSU5WQUw7CiB9CiAKK3N0YXRpYyBpbnQgY3g4OF94YzMwMjhfd2luZmFzdDE4
+MDBoX2NhbGxiYWNrKHN0cnVjdCBjeDg4X2NvcmUgKmNvcmUsCisJCQkJCSAgICAgaW50IGNv
+bW1hbmQsIGludCBhcmcpCit7CisJc3dpdGNoIChjb21tYW5kKSB7CisJY2FzZSBYQzIwMjhf
+VFVORVJfUkVTRVQ6CisJCS8qIEdQSU8gMTIgKHhjMzAyOCB0dW5lciByZXNldCkgKi8KKwkJ
+Y3hfc2V0KE1PX0dQMV9JTywgMHgxMDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfY2xlYXIo
+TU9fR1AxX0lPLCAweDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfc2V0KE1PX0dQMV9JTywg
+MHgxMCk7CisJCW1kZWxheSg1MCk7CisJCXJldHVybiAwOworCX0KKwlyZXR1cm4gLUVJTlZB
+TDsKK30KKwogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwogLyogc29tZSBEaXZjbyBzcGVjaWZpYyBz
+dHVmZiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAqLwogc3Rh
+dGljIGludCBjeDg4X3B2XzgwMDBndF9jYWxsYmFjayhzdHJ1Y3QgY3g4OF9jb3JlICpjb3Jl
+LApAQCAtMjY0NSw2ICsyNzA3LDggQEAKIAljYXNlIENYODhfQk9BUkRfRFZJQ09fRlVTSU9O
+SERUVl9EVkJfVF9QUk86CiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfNV9Q
+Q0lfTkFOTzoKIAkJcmV0dXJuIGN4ODhfZHZpY29feGMyMDI4X2NhbGxiYWNrKGNvcmUsIGNv
+bW1hbmQsIGFyZyk7CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEg6CisJCXJl
+dHVybiBjeDg4X3hjMzAyOF93aW5mYXN0MTgwMGhfY2FsbGJhY2soY29yZSwgY29tbWFuZCwg
+YXJnKTsKIAl9CiAKIAlzd2l0Y2ggKGNvbW1hbmQpIHsKQEAgLTI4MTksNiArMjg4MywxNiBA
+QAogCQljeF9zZXQoTU9fR1AwX0lPLCAweDAwMDAwMDgwKTsgLyogNzAyIG91dCBvZiByZXNl
+dCAqLwogCQl1ZGVsYXkoMTAwMCk7CiAJCWJyZWFrOworCisJY2FzZSBDWDg4X0JPQVJEX1dJ
+TkZBU1RfRFRWMTgwMEg6CisJCS8qIEdQSU8gMTIgKHhjMzAyOCB0dW5lciByZXNldCkgKi8K
+KwkJY3hfc2V0KE1PX0dQMV9JTywgMHgxMDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfY2xl
+YXIoTU9fR1AxX0lPLCAweDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfc2V0KE1PX0dQMV9J
+TywgMHgxMCk7CisJCW1kZWxheSg1MCk7CisJCWJyZWFrOwogCX0KIH0KIApAQCAtMjgzOSw2
+ICsyOTEzLDcgQEAKIAkJCWNvcmUtPmkyY19hbGdvLnVkZWxheSA9IDE2OwogCQlicmVhazsK
+IAljYXNlIENYODhfQk9BUkRfRFZJQ09fRlVTSU9OSERUVl9EVkJfVF9QUk86CisJY2FzZSBD
+WDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEg6CiAJCWN0bC0+ZGVtb2QgPSBYQzMwMjhfRkVf
+WkFSTElOSzQ1NjsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX0tXT1JMRF9BVFNDXzEy
+MDoKZGlmZiAtciAzMTJkZWY1NjgyNzYgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4
+L2N4ODgtZHZiLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgt
+ZHZiLmMJRnJpIE5vdiAxNCAxNDozODo0NiAyMDA4IC0wMjAwCisrKyBiL2xpbnV4L2RyaXZl
+cnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWR2Yi5jCVNhdCBOb3YgMTUgMjA6MTE6NTggMjAw
+OCArMDEwMApAQCAtOTY1LDYgKzk2NSw3IEBACiAJCX0KIAkJYnJlYWs7CiAJIGNhc2UgQ1g4
+OF9CT0FSRF9QSU5OQUNMRV9IWUJSSURfUENUVjoKKwljYXNlIENYODhfQk9BUkRfV0lORkFT
+VF9EVFYxODAwSDoKIAkJZmUwLT5kdmIuZnJvbnRlbmQgPSBkdmJfYXR0YWNoKHpsMTAzNTNf
+YXR0YWNoLAogCQkJCQkgICAgICAgJmN4ODhfcGlubmFjbGVfaHlicmlkX3BjdHYsCiAJCQkJ
+CSAgICAgICAmY29yZS0+aTJjX2FkYXApOwpkaWZmIC1yIDMxMmRlZjU2ODI3NiBsaW51eC9k
+cml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1pbnB1dC5jCi0tLSBhL2xpbnV4L2RyaXZl
+cnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWlucHV0LmMJRnJpIE5vdiAxNCAxNDozODo0NiAy
+MDA4IC0wMjAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWlu
+cHV0LmMJU2F0IE5vdiAxNSAyMDoxMTo1OCAyMDA4ICswMTAwCkBAIC05Myw2ICs5Myw3IEBA
+CiAJCWdwaW89KGdwaW8gJiAweDdmZCkgKyAoYXV4Z3BpbyAmIDB4ZWYpOwogCQlicmVhazsK
+IAljYXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYxMDAwOgorCWNhc2UgQ1g4OF9CT0FSRF9X
+SU5GQVNUX0RUVjE4MDBIOgogCQlncGlvID0gKGdwaW8gJiAweDZmZikgfCAoKGN4X3JlYWQo
+TU9fR1AxX0lPKSA8PCA4KSAmIDB4OTAwKTsKIAkJYXV4Z3BpbyA9IGdwaW87CiAJCWJyZWFr
+OwpAQCAtMjQ0LDYgKzI0NSw3IEBACiAJCWlyLT5zYW1wbGluZyA9IDE7CiAJCWJyZWFrOwog
+CWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjIwMDBIOgorCWNhc2UgQ1g4OF9CT0FSRF9X
+SU5GQVNUX0RUVjE4MDBIOgogCQlpcl9jb2RlcyA9IGlyX2NvZGVzX3dpbmZhc3Q7CiAJCWly
+LT5ncGlvX2FkZHIgPSBNT19HUDBfSU87CiAJCWlyLT5tYXNrX2tleWNvZGUgPSAweDhmODsK
+ZGlmZiAtciAzMTJkZWY1NjgyNzYgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4
+ODguaAotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC5oCUZyaSBO
+b3YgMTQgMTQ6Mzg6NDYgMjAwOCAtMDIwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3Zp
+ZGVvL2N4ODgvY3g4OC5oCVNhdCBOb3YgMTUgMjA6MTE6NTggMjAwOCArMDEwMApAQCAtMjMy
+LDYgKzIzMiw3IEBACiAjZGVmaW5lIENYODhfQk9BUkRfU0FUVFJBREVfU1Q0MjAwICAgICAg
+ICAgNzYKICNkZWZpbmUgQ1g4OF9CT0FSRF9UQlNfODkxMCAgICAgICAgICAgICAgICA3Nwog
+I2RlZmluZSBDWDg4X0JPQVJEX1BST0ZfNjIwMCAgICAgICAgICAgICAgIDc4CisjZGVmaW5l
+IENYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSCAgICAgICAgNzkKIAogZW51bSBjeDg4X2l0
+eXBlIHsKIAlDWDg4X1ZNVVhfQ09NUE9TSVRFMSA9IDEsCq==
+
+---------=_1FA23EAE.77105F66
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+---------=_1FA23EAE.77105F66--
