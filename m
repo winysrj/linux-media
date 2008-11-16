@@ -1,20 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA2Kwv5Z020751
-	for <video4linux-list@redhat.com>; Sun, 2 Nov 2008 15:58:57 -0500
-Received: from QMTA08.westchester.pa.mail.comcast.net
-	(qmta08.westchester.pa.mail.comcast.net [76.96.62.80])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA2KwhFh008656
-	for <video4linux-list@redhat.com>; Sun, 2 Nov 2008 15:58:43 -0500
-Message-ID: <490E1482.7080107@personnelware.com>
-Date: Sun, 02 Nov 2008 14:58:42 -0600
-From: Carl Karsten <carl@personnelware.com>
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: videotechmag@gmail.com, Michael H Schimek <mschimek@gmx.at>
-Subject: Where do I post these bugs?
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGMXNlG029686
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 17:33:23 -0500
+Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAGMXBpE029128
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 17:33:11 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: hverkuil@xs4all.nl, g.liakhovetski@gmx.de
+Date: Sun, 16 Nov 2008 23:33:05 +0100
+Message-Id: <1226874785-29073-1-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <Pine.LNX.4.64.0811162320410.16868@axis700.grange>
+References: <Pine.LNX.4.64.0811162320410.16868@axis700.grange>
+Cc: video4linux-list@redhat.com
+Subject: [PATCH v2] Add new pixel format VYUY 16 bits wide.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,21 +24,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-both are example code:  1 is from the Video for Linux v2 API spec.  2nd is
-vivi.c (part of vanilla kernel)  I would post the vivi one to
-http://bugzilla.kernel.org but it may really be part of capture.
+There were already 3 YUV formats defined :
+ - YUYV
+ - YVYU
+ - UYVY
+The only left combination is VYUY, which is added in this
+patch.
 
-1. memory leak:
-valgrind ./capture --userp -d /dev/video1
-==17153== malloc/free: in use at exit: 2,457,632 bytes in 5 blocks.
+As suggested by Hans Verkuil, all YUV 4:2:2 packet formats
+were grouped together.
 
-2. capabilities mismatch:
-./capture --userp -d /dev/video1
-VIDIOC_QBUF error 22, Invalid argument
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ include/linux/videodev2.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-details: http://linuxtv.org/v4lwiki/index.php/Test_Suite#Bugs_in_Examples
-
-Carl K
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 4669d7e..615b05f 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -292,7 +292,9 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_YVU410  v4l2_fourcc('Y', 'V', 'U', '9') /*  9  YVU 4:1:0     */
+ #define V4L2_PIX_FMT_YVU420  v4l2_fourcc('Y', 'V', '1', '2') /* 12  YVU 4:2:0     */
+ #define V4L2_PIX_FMT_YUYV    v4l2_fourcc('Y', 'U', 'Y', 'V') /* 16  YUV 4:2:2     */
++#define V4L2_PIX_FMT_YVYU    v4l2_fourcc('Y', 'V', 'Y', 'U') /* 16  YVU 4:2:2     */
+ #define V4L2_PIX_FMT_UYVY    v4l2_fourcc('U', 'Y', 'V', 'Y') /* 16  YUV 4:2:2     */
++#define V4L2_PIX_FMT_VYUY    v4l2_fourcc('V', 'Y', 'U', 'Y') /* 16  YUV 4:2:2     */
+ #define V4L2_PIX_FMT_YUV422P v4l2_fourcc('4', '2', '2', 'P') /* 16  YVU422 planar */
+ #define V4L2_PIX_FMT_YUV411P v4l2_fourcc('4', '1', '1', 'P') /* 16  YVU411 planar */
+ #define V4L2_PIX_FMT_Y41P    v4l2_fourcc('Y', '4', '1', 'P') /* 12  YUV 4:1:1     */
+@@ -342,7 +344,6 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SPCA561  v4l2_fourcc('S', '5', '6', '1') /* compressed GBRG bayer */
+ #define V4L2_PIX_FMT_PAC207   v4l2_fourcc('P', '2', '0', '7') /* compressed BGGR bayer */
+ #define V4L2_PIX_FMT_PJPG     v4l2_fourcc('P', 'J', 'P', 'G') /* Pixart 73xx JPEG */
+-#define V4L2_PIX_FMT_YVYU    v4l2_fourcc('Y', 'V', 'Y', 'U') /* 16  YVU 4:2:2     */
+ 
+ /*
+  *	F O R M A T   E N U M E R A T I O N
+-- 
+1.5.6.5
 
 --
 video4linux-list mailing list
