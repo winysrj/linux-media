@@ -1,18 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tut.by ([195.137.160.40] helo=speedy.tutby.com)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <liplianin@tut.by>) id 1L4oGn-0004DU-Nx
-	for linux-dvb@linuxtv.org; Tue, 25 Nov 2008 04:07:23 +0100
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: stev391@email.com
-Date: Tue, 25 Nov 2008 05:06:55 +0200
-References: <20081125020000.8A72F1642A6@ws1-4.us4.outblaze.com>
-In-Reply-To: <20081125020000.8A72F1642A6@ws1-4.us4.outblaze.com>
+Received: from smtp122.rog.mail.re2.yahoo.com ([206.190.53.27])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <cityk@rogers.com>) id 1L1lak-0003pn-1A
+	for linux-dvb@linuxtv.org; Sun, 16 Nov 2008 18:39:24 +0100
+Message-ID: <49205A99.5050902@rogers.com>
+Date: Sun, 16 Nov 2008 12:38:33 -0500
+From: CityK <cityk@rogers.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200811250506.56183.liplianin@tut.by>
+To: djamil <djamil@djamil.net>
+References: <1226593203.7542.5.camel@martin> <491CBB23.9000904@rogers.com>
+	<1226645235.9539.8.camel@toptop>
+In-Reply-To: <1226645235.9539.8.camel@toptop>
 Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add Compro VideoMate E650F (DVB-T part only)
+Subject: Re: [linux-dvb] hvr 1400
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,79 +20,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-9yDTz8/C3cXOyckgz9QgMjUgTm92ZW1iZXIgMjAwOCAwNDowMDowMCBzdGV2MzkxQGVtYWlsLmNv
-bSDOwdDJ08HMKMEpOgo+ID4gLS0tLS0gT3JpZ2luYWwgTWVzc2FnZSAtLS0tLQo+ID4gRnJvbTog
-Iklnb3IgTS4gTGlwbGlhbmluIiA8bGlwbGlhbmluQHR1dC5ieT4KPiA+IFRvOiBzdGV2MzkxQGVt
-YWlsLmNvbQo+ID4gQ2M6IGxpbnV4LWR2YkBsaW51eHR2Lm9yZywgc3RvdGhAbGludXh0di5vcmcK
-PiA+IFN1YmplY3Q6IFJlOiBbbGludXgtZHZiXSBbUEFUQ0hdIEFkZCBDb21wcm8gVmlkZW9NYXRl
-IEU2NTBGIChEVkItVCBwYXJ0Cj4gPiBvbmx5KSBEYXRlOiBUdWUsIDI1IE5vdiAyMDA4IDAxOjU3
-OjMzICswMjAwCj4gPgo+ID4g9yDTz8/C3cXOyckgz9QgMjQgTm92ZW1iZXIgMjAwOCAyMzo1MToz
-NSBzdGV2MzkxQGVtYWlsLmNvbSDOwdDJ08HMKMEpOgo+ID4gPiA+IE1lc3NhZ2U6IDIKPiA+ID4g
-PiBEYXRlOiBTdW4sIDIzIE5vdiAyMDA4IDEzOjQ3OjQxICswMjAwCj4gPiA+ID4gRnJvbTogIkln
-b3IgTS4gTGlwbGlhbmluIiA8bGlwbGlhbmluQHR1dC5ieT4KPiA+ID4gPiBTdWJqZWN0OiBbbGlu
-dXgtZHZiXSBbUEFUQ0hdIEFkZCBDb21wcm8gVmlkZW9NYXRlIEU2NTBGIChEVkItVCBwYXJ0Cj4g
-PiA+ID4gCW9ubHkpCj4gPiA+ID4gVG86IGxpbnV4LWR2YkBsaW51eHR2Lm9yZywgdmlkZW80bGlu
-dXgtbGlzdEByZWRoYXQuY29tCj4gPiA+ID4gTWVzc2FnZS1JRDogPDIwMDgxMTIzMTM0Ny40MTQ1
-Mi5saXBsaWFuaW5AdHV0LmJ5Pgo+ID4gPiA+IENvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjsgIGNo
-YXJzZXQ9ImtvaTgtciIKPiA+ID4gPgo+ID4gPiA+IEZyb206IElnb3IgTS4gTGlwbGlhbmluIDxs
-aXBsaWFuaW5AbWUuYnk+Cj4gPiA+ID4KPiA+ID4gPiBBZGQgQ29tcHJvIFZpZGVvTWF0ZSBFNjUw
-RiAoRFZCLVQgcGFydCBvbmx5KS4KPiA+ID4gPiBUaGUgY2FyZCBiYXNlZCBvbiBjeDIzODg1IFBD
-SS1FeHByZXNzIGNoaXAsIHhjMzAyOCB0dW5lciBhbmQgY2U2MzUzCj4gPiA+ID4gZGVtb2R1bGF0
-b3IuCj4gPiA+ID4KPiA+ID4gPiBTaWduZWQtb2ZmLWJ5OiBJZ29yIE0uIExpcGxpYW5pbiA8bGlw
-bGlhbmluQG1lLmJ5Pgo+ID4gPgo+ID4gPiAtLS0tU25pcC0tLQo+ID4gPgo+ID4gPiBJZ29yLAo+
-ID4gPgo+ID4gPiBJcyB0aGlzIGJhc2VkIG9uIG15IGVhcmxpZXIgcGF0Y2hlcyBzZW50IHRvIHRo
-ZSBtYWlsaW5nIGxpc3Q/Cj4gPiA+IGh0dHA6Ly9saW51eHR2Lm9yZy9waXBlcm1haWwvbGludXgt
-ZHZiLzIwMDgtQXVndXN0LzAyODM0MS5odG1sCj4gPgo+ID4gSGkgU3RlcGhlbgo+ID4gU29ycnks
-IEkgbWlzc2VkIHRoYXQgcG9zdCAuCj4gPiBTbyB5b3UgYXJlIHRoZSBmaXJzdCA6KQo+ID4gSSBk
-aWRuJ3Qgc2VlIGFueSBmdW5jdGlvbmFsIGRpZmZlcmVuY2UgYmV0d2VlbiBib3RoIHBhdGNoZXMK
-PiA+Cj4gPiA+IElmIHNvIGhhdmUgeW91IGhhZCB0aGlzIHdvcmtpbmcgY29ycmVjdGx5Pwo+ID4K
-PiA+IEFjdHVhbGx5LCBJIGJvdWdodCB0aGlzIGNhcmQgY291cGxlIGRheXMgYWdvIGZvciBleHBl
-cmltZW5zLgo+ID4gVGhlbiBJIHR5cGUKPiA+IAltb2Rwcm9iZSBjeDIzODg1IGNhcmQ9MTIKPiA+
-IEFuZCBpdCB3b3JrcyBpbW1lZGlhdGVseSA6KQo+ID4gQnV0IEkgZGlkbid0IGZvcmdldCB0aGUg
-ZmlybXdhcmUgZm9yIHhjMzAyOCA7KQo+ID4gT3RoZXJzIGlzIHRlY2huaWMuCj4gPiBTbywgSXQg
-d29ya3MgcmlnaHQgbm93IGluIG15IGNvbXB1dGVyLgo+ID4gV2l0aCBLYWZmZWluZSBJJ20gYWJs
-ZSBzZWFyY2ggZm9yIGNoYW5uZWxzIGFuZCB3YXRjaCB0aGVtLgo+ID4KPiA+ID4gV2hhdCBoYXBw
-ZW5zIGlmIHlvdSBkbyBub3cgcmVxdWVzdCB0aGUgbW9kdWxlIGN4MjU4NDA/Cj4gPgo+ID4gSXQg
-bG9hZHM6KQo+ID4KPiA+ID4gTXkgcGF0Y2hlcyB3ZXJlIHByZXZpb3VzbHkgbm90IGNvbW1pdHRl
-ZCBkdWUgdG86Cj4gPiA+ICogSSBvbmx5IGhhZCB0d28gcGVvcGxlIHdobyBoYWQgdGhpcyBjYXJk
-IChzYW1lIHBjaSBpZHMpIGFuZCBib3RoIGdhdmUKPiA+ID4gbWUgY29uZmxpY2l0bmcgcmVzdWx0
-cy4gKHJlZ2FyZGluZyB0aGUgbmVlZCBmb3IgY3gyNTg0MCwgaWYgeW91IHNlYXJjaAo+ID4gPiB0
-aGUgbWFpbGluZyBsaXN0IGFyY2hpdmVzIGZyb20gYWJvdXQgQXVndXN0IHRocm91Z2ggU2VwdGVt
-YmVyIHRoaXMgeWVhcgo+ID4gPiB5b3Ugd2lsbCBmaW5kIHRoZSBjb252ZXJzYXRpb25zKS4gKiBU
-aGUgcGNpIGlkcyBhcmUgc2hhcmVkIGFjcm9zcwo+ID4gPiB2YXJpb3VzIGNhcmRzIGZyb20gQ29t
-cHJvIFZpZGVvTWF0ZSBTZXJpZXMgYW5kIHRoZXJlZm9yZSB0aGUgY2FyZHMgYXJlCj4gPiA+IGRl
-dGVjdGVkIGluY29ycmVjdGx5LCB0aGUgZWVwcm9tIGR1bXBzIGZvciBlYWNoIGNhcmQgdGhhdCBw
-ZW9wbGUgaGF2ZQo+ID4gPiBjb250YWN0ZWQgdGhlIGxpc3QgYWJvdXQgcHJldmlvdXNseSBhcmUg
-b24gdGhlIHdpa2kgcGFnZXMuCj4gPiA+Cj4gPiA+IEtlZXAgdXAgdGhlIGVmZm9ydCBpbiBzdXBw
-b3J0aW5nIERWQiBjYXJkcyBpbiBsaW51eC4KPiA+ID4KPiA+ID4gUmVnYXJkcywKPiA+ID4gU3Rl
-cGhlbi4KPiA+Cj4gPiBCZXN0IFJlZ2FyZHMKPiA+IElnb3IKPgo+IElnb3IsCj4KPiBTb3JyeSBJ
-IGhhZCBhIHR5cG8gaW4gbXkgcHJldmlvdXMgZW1haWw6Cj4gV2hhdCBoYXBwZW5zIGlmIHlvdSBk
-byBOT1QgcmVxdWVzdCB0aGUgbW9kdWxlIGN4MjU4NDA/IERvZXMgaXQgc3RpbGwgd29yaz8KSXQg
-ZGVmaW5pdGVseSB3b3Jrcy4gSSBzdXBwb3NlLCB0aGUgbW9kdWxlIGlzIG5lZWRlZCBmb3IgZnV0
-dXJlIGFuYWxvZyBzdXBwb3J0LgoKPgo+IElmIGl0IGRvZXNuJ3Q6IHJlcXVlc3QgdGhlIG1vZHVs
-ZSwgYnV0IGNvbW1lbnQgb3V0IHRoZXNlIGxpbmVzIGluCj4gY3gyNTg0MC1jb3JlLmM6IGlmIChz
-dGF0ZS0+aXNfY3gyMzg4NSkgewo+ICAJCS8qIERyaXZlIEdQSU8yIGRpcmVjdGlvbiBhbmQgdmFs
-dWVzICovCj4gCQljeDI1ODQwX3dyaXRlKGNsaWVudCwgMHgxNjAsIDB4MWQpOwo+IAkJY3gyNTg0
-MF93cml0ZShjbGllbnQsIDB4MTY0LCAweDAwKTsKPiAJfQo+IFdoYXQgSSBuZWVkIHRvIGtub3cg
-aXMgaWYgdGhlc2Ugd3JpdGVzIGFyZSBlbmFibGluZyB0aGUgY2FyZCB0byB3b3JrCj4gY29ycmVj
-dGx5LgpGcm9tIGN4MjM4ODUtcmVnLmgKLyogR1BJT1syMzoxOV0gT3V0cHV0IEVuYWJsZSAqLwoj
-ZGVmaW5lIEdQSU8yX09VVF9FTl9SRUcJMHgwMDAwMDE2MAovKiBHUElPWzIzOjE5XSBEYXRhIFJl
-Z2lzdGVycyAqLwojZGVmaW5lIEdQSU8yCQkJMHgwMDAwMDE2NAoKU28geW91IG5lZWQgdG8ga25v
-dywgd2hhdCBpcyBvbiB0aGlzIGxpbmVzLgoKPgo+IE5PVEU6IGFmdGVyIGVhY2ggY2hhbmdlIG1l
-bnRpb25lZCBpbiB0aGlzIGVtYWlsIHBlcmZvcm0gYSBoYXJkIHJlc2V0IG9mIHRoZQo+IGNvbXB1
-dGVyIChPciBldmVuIGJldHRlciByZW1vdmUgcG93ZXIgdG8gdGhlIGNvbXB1dGVyIGNvbXBsZXRl
-bHkgZm9yIGEKPiBzaG9ydCBwZXJpb2QpIGFzIHRoZSBjYXJkJ3MgcmVnaXN0ZXJzIGRvIG5vdCBn
-ZXQgcmVzZXQgYWxsIHRoZSB0aW1lLCB0aGlzCj4gcHV0cyBpdCBpbiBhIGtub3duIHN0YXRlLgpI
-YXJkIHJlc2V0IHdpbGwgYmUgZW5vdWdoLgoKPgo+IFJlZ2FyZHMsCj4gU3RlcGhlbi4KSSBrbm93
-LCBFODAwIGhhdmUgaGFyZHdhcmUgbXBlZyBlbmNvZGVyIG9uIGJvYXJkLgpBbmQgaXQgaXMgc3Vw
-cG9ydGVkIGluIExpbnV4IHRvbyA6KQoKCkJlc3QgUmVnYXJkcwotLSAKSWdvciBNLiBMaXBsaWFu
-aW4KTWljcm9zb2Z0IFdpbmRvd3MgRnJlZSBab25lIC0gTGludXggdXNlZCBmb3IgYWxsIENvbXB1
-dGluZyBUYXNrcwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KbGludXgtZHZiIG1haWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3
-dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+djamil wrote:
+> hello  again
+>
+> gents, i wrote in 96 the first X11 application to drive a radio card
+> in florida ...
+>
+> so can anyone tell me about spying proramms under windows to reverse
+> engeneer what wintv does ant the drivers
+>
+> so i can get analog working in linux ?
+>
+> best regards
+
+Hi again,
+
+I missed your earlier thread (
+http://marc.info/?l=linux-dvb&m=122530861931653&w=2 ), but as you know
+from it, this is a cx23885 based device.
+
+There have been a couple reports of success with NTSC analogue with that
+part I believe.  Anyway, read through these two threads which will
+likely provided some direction:
+
+* http://marc.info/?l=linux-dvb&m=122238944905049&w=2
+* http://marc.info/?l=linux-dvb&m=122169029925610&w=2
+
+There is a post from today that might be of interest too:
+* http://marc.info/?l=linux-dvb&m=122682215128088&w=2
+
+
+
+
+_______________________________________________
+linux-dvb mailing list
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
