@@ -1,31 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAM4IgL5021152
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 23:18:42 -0500
-Received: from ik-out-1112.google.com (ik-out-1112.google.com [66.249.90.177])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAM4IRoV012935
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 23:18:27 -0500
-Received: by ik-out-1112.google.com with SMTP id c21so1035491ika.3
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 20:18:26 -0800 (PST)
-Message-ID: <412bdbff0811212018ycee33f9obdd171bda2a77ff7@mail.gmail.com>
-Date: Fri, 21 Nov 2008 23:18:26 -0500
-From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
-To: "Ben Klein" <shacklein@gmail.com>
-In-Reply-To: <d7e40be30811211649s79047226ne2f79a4dced9c7c7@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGFUO2U009899
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 10:30:24 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAGFUBgd022833
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 10:30:12 -0500
+Date: Sun, 16 Nov 2008 16:30:22 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87abbz698w.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0811161612430.16868@axis700.grange>
+References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0811160142140.21494@axis700.grange>
+	<8763mo6irz.fsf@free.fr>
+	<Pine.LNX.4.64.0811161409350.4368@axis700.grange>
+	<87abbz698w.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
-	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
-	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
-	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
-	<412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
-	<d7e40be30811211600u354bf1ebg57567ebd3cd375a@mail.gmail.com>
-	<412bdbff0811211615r4ed250f8q12b28eda3a352778@mail.gmail.com>
-	<d7e40be30811211649s79047226ne2f79a4dced9c7c7@mail.gmail.com>
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: [video4linux] Attention em28xx users
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: soc-camera: pixelfmt translation serie
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,29 +30,85 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Nov 21, 2008 at 7:49 PM, Ben Klein <shacklein@gmail.com> wrote:
-> 2008/11/22 Devin Heitmueller <devin.heitmueller@gmail.com>:
-> I don't think it'd be easy if possible at all to find technical
-> details about it, but this is the device:
-> http://www.unisupport.net/lang/au/dvd-grabber.htm
->
-> Audio is usb-audio, inputs are S-Video and Composite. No TV tuner (or
-> at least nowhere to stick an antenna) and no remote control.
->
-> Thanks for your help :) If you need more information (like lsusb
-> output), just let me know
+On Sun, 16 Nov 2008, Robert Jarzmik wrote:
 
-That, combined with the dmesg output you sent previously, should be
-enough for me to add a device profile.
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> > On Sun, 16 Nov 2008, Robert Jarzmik wrote:
+> >
+> >> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> > Yes, I saw this, and although it does look useful, I tend not to add the 
+> > whole host format - sensor format infrastructure alone for this debug 
+> > feature. I would restrict this generated format list to user (host) 
+> > formats only - without exposing which sensor format the host has decided 
+> > to use for it. We can either add this debug functionality either on a 
+> > per-host basis, or implement a debug hook in host drivers? In any case I 
+> > would prefer not to make this a part of the infrastructure for debugging 
+> > alone.
+> 
+> Ah, but I think it is neceesary. The true purpose of soc_camera is to provide a
+> generic infrastructure to match sensors to hosts, isn't it ?
 
-Thanks,
+Exactly - within v4l2 infrastructure.
 
-Devin
+> So there should be
+> a way to dynamically display all available formats, and where they come from
+> (ie. which sensor provides it, and with which of its own formats => thinking
+> debugfs here).
+> 
+> Ideally, you will have a debugfs part telling what are the available formats, to
+> which (host format, sensor format) they refer, and which couple is the current
+> one.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Well, the thing is, the end user is only interested in "what can I get," 
+not really "how this is going to be done" - at least not normally. And 
+this is what the v4l2 API provides an answer to (what can I get) with the 
+VIDIOC_ENUM_FMT ioctl. If you now impose this model: sensor provides 
+format A, it is converted to format B by the host driver, and we present A 
+and B for debugging, it might very well come to a point, where a host will 
+have multi-stage image processing chain from A to B to C... What do you do 
+then? And even now in many cases A == B, so in this case this information 
+is superfluous. So, I think, this model sensor:A -> host:B is not generic 
+enough to be exported to the user. Besides, we can always add it, so, for 
+the beginning I would just try to get this conversions right with as 
+little code and API modifications as possible.
+
+> >> Would you also duplicate current_fmt, so that the current host format and sensor
+> >> current format are available at sight ?
+> >
+> > Why? Give me a real reason (apart from debugging) why we need to know in 
+> > soc_camera.c which formats the host requests from the sensor for a 
+> > specific output format or which format is currently configured on the 
+> > sensor?
+> Exactly what you said, debug and tracability.
+> 
+> > Well, would it be enough if I put the current state somewhere up as a 
+> > quilt patch series, for instance? I don't want to repost all patches on 
+> > each iteration.
+> Very well, so just in the cover which of the previous patches should be applied
+> before your new serie. Or a git repository if you have one ...
+> 
+> Ah, and before I forget. The original idea behind the translation API was to
+> have the less code in each host for format list creation. I hope you keep in
+> mind that purpose. The less code in pxa_camera and sh_mobile_ceu_camera.c, the
+> better.
+
+...but also avoid putting code, that is too specific and restrictive in 
+the core. So, I would rather put stuff in hardware drivers, then see - it 
+is generic, let's make it once for all, than first put it centrally, and 
+then see - it is not generic enough, we have to shift it down to hardware 
+drivers.
+
+> Anyway, I'll see it in your post, and compare to the translation
+> framework, it's always easier to compare code than specifications :)
+
+Yep, let's do that:-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
