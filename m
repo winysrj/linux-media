@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAP8Oo8m015898
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 03:24:50 -0500
-Received: from smtp-vbr9.xs4all.nl (smtp-vbr9.xs4all.nl [194.109.24.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAP8OcbR005357
-	for <video4linux-list@redhat.com>; Tue, 25 Nov 2008 03:24:38 -0500
-Message-ID: <17655.62.70.2.252.1227601475.squirrel@webmail.xs4all.nl>
-Date: Tue, 25 Nov 2008 09:24:35 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Trilok Soni" <soni.trilok@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGAvDcR023143
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 05:57:13 -0500
+Received: from smtp6-g19.free.fr (smtp6-g19.free.fr [212.27.42.36])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAGAv0LV006998
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 05:57:00 -0500
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1226521783-19806-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0811160142140.21494@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sun, 16 Nov 2008 11:56:48 +0100
+In-Reply-To: <Pine.LNX.4.64.0811160142140.21494@axis700.grange> (Guennadi
+	Liakhovetski's message of "Sun\,
+	16 Nov 2008 02\:55\:26 +0100 \(CET\)")
+Message-ID: <8763mo6irz.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: v4l <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: v4l2_device/v4l2_subdev: please review
+Content-Type: text/plain; charset=us-ascii
+Cc: video4linux-list@redhat.com
+Subject: Re: soc-camera: pixelfmt translation serie
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,45 +29,74 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> Hi Hans,
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+
+> Ok, I looked at your patches, I even have reviewed #8 and #9 (at least 
+> partially.) But I think I won't send those reviews. I have a different 
+> idea now:-) Don't worry, it probably won't mean more work for you. It will 
+> mean some more work for me, and some work for you too, but, simpler than 
+> what you have done in your patches, if we agree to my idea, of course:
 >
->>
->> I'm not going to spam the list with these quite big patches. Just go to
->> http://linuxtv.org/hg/~hverkuil/v4l-dvb-ng/ and click on the 'raw' link
->> after each change to see the patch. Most of these changes are just
->> boring i2c driver conversions.
+> 1. On the first call to soc_camera_open() we generate a list of possible 
+> pixel formats.
+Ack.
+
+> 2. on format enumeration we just walk the generated above list, so, I 
+> don't see a need to let host drivers overload this function. If we agree, 
+> this can stay central in soc_camera.c for all, then we drop my patch 
+> "soc-camera: move pixel format handling to host drivers (part 2)," adding 
+> .enum_fmt method to struct soc_camera_host_ops.
+Ack.
+
+> 3. try_fmt and set_fmt are handled by the host driver, and that one 
+> decides which format to request from the sensor.
 >
-> It is hard to review these patches from this link, as if you submit
-> the patch to ML then someone can just give inline comments to your
-> patch, otherwise reviewer has to copy that code which he/she wants to
-> comment while replying and not easy to track too. I don't know size
-> limit of this v4l2 ML, but linux-kernel ML can receive somewhat big
-> patches I believe.
-
-The V4L2 ML is fairly limited. I'm pretty sure it can't handle the ivtv
-change (70+ kB). I can do this for the two changes that actually add the
-new code and for one of the i2c conversion tonight (this webmail client
-messes up the layout).
-
-Personally I dislike reviewing large patches that are part of an email.
-Smaller ones are OK, but large patches are hard to read. Much easier to
-review with a decent editor.
-
+> Now, seeing all the complexity in your patch-series, I would like to 
+> simplify it. I don't think we need to export to struct soc_camera_device 
+> the list of host-provided format conversions (your
 >
->>
->> We are adding to the v4l core, but the changes do not affect existing
->> v4l drivers let alone other subsystems. Although I should probably have
->> added the omap list.
+> 	const struct soc_camera_format_translate *translate_fmt;
 >
-> OMAP + soc-camera + v4l2-int-* community would be more interested to
-> see these patches as they need to change their sensor/controller
-> drivers to adapt your changes.
+> pointer.) So I would drop soc_camera_format_generate() and let host's 
+> ->add_extra_formats() method do all the work - add both format types 
+> "special" and "pass-through." And because it now would handle not only 
+> extra formats, it should be called just "add_formats" or "get_formats" or 
+> "generate_formats"... Then available_formats I would just make a list of 
+> pointers to struct soc_camera_data_format, so the host driver would just 
+> either assign a pointer to a sensor provided format struct in case of 
+> pass-through, or a pointer to its own struct. Hosts would then just define 
+> a static array of these "extra" structs, similar to sensors. And we don't 
+> need your struct soc_camera_computed_format - how the host generates the 
+> required format and which format it requests from the sensor is their 
+> intimate business, we don't want to intrude in their private life:-)
+>
+> How does this sound? If this is accepted, I would resend my patch-series 
+> without the above patch. And you can decide if you want to code this new 
+> patch or I shall do it.
 
-I'll add the linux-omap mailinglist when I repost tonight.
+Sounds good. Let me add one constraint though. There should be somewhere (at
+format generation for example) a debug way to show (printk, ...) each format
+translation between host format and sensor format.
 
-Regards,
+This was in the patch serie if soc_camera format generation function, and
+provided tracability to the translation process.
 
-          Hans
+Would you also duplicate current_fmt, so that the current host format and sensor
+current format are available at sight ?
+
+> If you do it, please, only do this one patch at first. After we have got 
+> it right, then we can add support to PXA and SuperH. Also we should 
+> preserve the current behaviour at least until the drivers are ported - 
+> just assign pointers to all sensor-provided formats to the newly-allocated 
+> list if the host doesn't provide an .add_formats method.
+I'll wait for your patches this time, and won't generate a new one. Would you
+please, once your first throw is ready, post a full serie as I did, so that I
+can apply it all for test and review ? ;)
+
+Cheers.
+
+--
+Robert
 
 --
 video4linux-list mailing list
