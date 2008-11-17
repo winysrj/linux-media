@@ -1,27 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA76JFHC007574
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 01:19:15 -0500
-Received: from namebay.info (mail.namebay.info [80.247.68.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA76J2as000741
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 01:19:03 -0500
-Received: from localhost by namebay.info (MDaemon PRO v9.6.2)
-	with ESMTP id md50003739537.msg
-	for <video4linux-list@redhat.com>; Fri, 07 Nov 2008 07:18:57 +0100
-Message-ID: <20081107072226.4sfvw4jxssckckgo@webmail.hebergement.com>
-Date: Fri, 07 Nov 2008 07:22:26 +0100
-From: fpantaleao@mobisensesystems.com
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAHKsYaT017761
+	for <video4linux-list@redhat.com>; Mon, 17 Nov 2008 15:54:34 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.27])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAHKsO4I000838
+	for <video4linux-list@redhat.com>; Mon, 17 Nov 2008 15:54:25 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so942665eyf.39
+	for <video4linux-list@redhat.com>; Mon, 17 Nov 2008 12:54:24 -0800 (PST)
+Message-ID: <412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
+Date: Mon, 17 Nov 2008 15:54:24 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
+In-Reply-To: <alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: About CITOR register value for pxa_camera
-Reply-To: fpantaleao@mobisensesystems.com
+References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
+	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: [video4linux] Attention em28xx users
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,120 +31,75 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-> On Thu, 6 Nov 2008, fpantaleao@mobisensesystems.com wrote:
+On Mon, Nov 17, 2008 at 3:45 PM, Kiss Gabor (Bitman)
+<kissg@ssg.ki.iif.hu> wrote:
+> Dear Devin,
 >
-> > Sure we can do it that way if the sensor is clocked by MCLK and no  
-> prescale is
-> > done by the sensor.
-> > In other cases, PCLK is controlled by sensor:
-> > - sensor has its own clock
-> > - MCLK is prescaled by the sensor.
+> I have the same device as it was mentioned in
+> https://www.redhat.com/mailman/private/video4linux-list/2008-July/msg00383.html
+> http://www.spinics.net/lists/vfl/msg37855.html
 >
-> Right, then maybe we should request the sensor what quotient it's  
-> running its pixel clock respective our master clock? In the master  
-> mode, of course.
-
-To be more general (sensor clocked by MCLK or not), I think we should  
-request the sensor its PCLK, by adding a get_pclk member in  
-soc_camera_ops for example.
-Then CITOR value can be computed.
-On the sensor side, PCLK value can be defined in its platform data. I  
-agree this is redundant for a MT9V022 clocked by MCLK but to my point  
-of view, this is not the general case.
-
-Best regards
-
-Florian
-
+> With unpatched 2.6.27.6 kernel:
 >
-> (Please, don't top-post)
+> [   76.909729] Linux video capture interface: v2.00
+> [   76.918166] em28xx v4l2 driver version 0.1.0 loaded
+> [   76.918203] em28xx new video device (eb1a:2821): interface 0, class 255
+> [   76.918210] em28xx Has usb audio class
+> [   76.918212] em28xx #0: Alternate settings: 8
+> [   76.918215] em28xx #0: Alternate setting 0, max size= 0
+> ...
+> [   76.918234] em28xx #0: Alternate setting 7, max size= 3072
+> [   76.919015] em28xx #0: em28xx chip ID = 18
+> [   77.158764] em28xx #0: found i2c device @ 0x4a [saa7113h]
+> [   77.161884] em28xx #0: found i2c device @ 0x60 [remote IR sensor]
+> [   77.167637] em28xx #0: found i2c device @ 0x86 [tda9887]
+> [   77.176886] em28xx #0: found i2c device @ 0xc6 [tuner (analog)]
+> [   77.185386] em28xx #0: Your board has no unique USB ID and thus need a hint to be detected.
+> [   77.185392] em28xx #0: You may try to use card=<n> insmod option to workaround that.
+> [   77.185396] em28xx #0: Please send an email with this log to:
+> [   77.185398] em28xx #0:       V4L Mailing List <video4linux-list@redhat.com>
+> [   77.185400] em28xx #0: Board eeprom hash is 0x00000000
+> [   77.185404] em28xx #0: Board i2c devicelist hash is 0x8cad00a0
+> [   77.185406] em28xx #0: Here is a list of valid choices for the card=<n> insmod option:
+> [   77.185410] em28xx #0:     card=0 -> Unknown EM2800 video grabber
+> [   77.185412] em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber
+> ...
+> [   77.185555] em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
+> [   77.185557] em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
+> [   77.742766] em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
+> [   77.742773] em28xx #0: Found Unknown EM2750/28xx video grabber
+> [   77.742796] em28xx audio device (eb1a:2821): interface 1, class 1
+> [   77.742808] em28xx audio device (eb1a:2821): interface 2, class 1
+> [   77.742836] usbcore: registered new interface driver em28xx
 >
-> Thanks
-> Guennadi
 >
-> > > Florian
-> > > ----- Original Message -----
-> > From: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-> > To: <fpantaleao@mobisensesystems.com>
-> > Cc: <video4linux-list@redhat.com>
-> > Sent: Wednesday, November 05, 2008 8:31 PM
-> > Subject: Re: About CITOR register value for pxa_camera
-> > > > > On Wed, 5 Nov 2008, fpantaleao@mobisensesystems.com wrote:
-> > > > > > Thank you for your answer.
-> > > > I have tested with "67 x 1" resolution (and many others), I can't with
-> > > > "1619 x
-> > > > 1".
-> > > > I don't get overruns with CITOR != 0.
-> > > > > Before submitting a patch, I would like to have the opinion of other
-> > > > developpers about the CITOR value.
-> > > > The resulting time-out is CITOR/CICLK. What we need is a time-out a bit
-> > > > longer than 1 pixel period (1/PCLK).
-> > > > The condition for CITOR is then: CITOR > CICLK/PCLK.
-> > > > Since PCLK is a platform dependent value, I suggest to add a field in
-> > > > pxacamera_platform_data.
-> > > > If no value is assigned, a value of 16 can be used which equals 2 pixel
-> > > > periods when PCLK=13MHz ("slow" sensor) and CICLK=104MHz (highest CI
-> > > > clock).
-> > > > CITOR can be set in pxa_camera_activate.
-> > > > > Don't think we need any extra fields in  
-> pxacamera_platform_data, look at
-> > > mclk_get_divisor() - it gets already the lcdclk frequency, which  
-> is the same
-> > > as CICLK, and our target MCLK frequency is set in  
-> platform_mclk_10khz, so,
-> > > you should have all the data you need...
-> > > > > Thanks
-> > > Guennadi
-> > > > > > > Best regards
-> > > > > Florian
-> > > > > > fpantaleao@mobisensesystems.com writes:
-> > > > > > > > Hi all,
-> > > > > > > > > While testing, I think I have found one reason why overruns
-> > > > occur with
-> > > > > > pxa_camera.
-> > > > > > I propose to set CITOR to a non-null value.
-> > > > > Yes, seconded.
-> > > > > > > > I would appreciate any comment about this.
-> > > > > Well, at first sight I would advice to test some corner case  
-> to see if
-> > > > DMA
-> > > > > trailing bytes are handled well. I know this can be a pain,  
-> but you seem
-> > > > to be
-> > > > > testing thouroughly ..
-> > > > > > > So, if your configuration/sensor is able to, try some funny
-> > > > resolution
-> > > > like
-> > > > > "1619 x 1", and then "67 x 1", and see what happens. If you  
-> don't have
-> > > > any
-> > > > > capture issue, you're done, and post a patch (only CITOR or CITOR +
-> > > > trailling
-> > > > > bytes handling).
-> > > > > > > Have fun.
-> > > > > > > --
-> > > > > Robert
-> > > > > > ----------------------------------------------------------------
-> > > > This message was sent using IMP, the Internet Messaging Program.
-> > > > > > > > --
-> > > > video4linux-list mailing list
-> > > > Unsubscribe  
-> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> > > > https://www.redhat.com/mailman/listinfo/video4linux-list
-> > > > > ---
-> > > Guennadi Liakhovetski, Ph.D.
-> > > Freelance Open-Source Software Developer
-> > > ----------------------------------------------------------------
-> > This message was sent using IMP, the Internet Messaging Program.
-> > > ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
+> I wonder what to with it?
+> No TV software found a receiver to tune.
+> Have you ever tested this device?
+>
+> Can you give me any hint? What to test?
 
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
+Hello Gabor,
 
+The action item for the thread you referenced was for the user to
+capture a USB trace on a Windows system so we can compare the register
+operations.  If you want to pick up where the original user left off,
+please use SniffUSB to get a capture after plugging in the device and
+starting a capture session.
 
+http://www.pcausa.com/Utilities/UsbSnoop/default.htm
 
+If you can provide a USB capture, I can fix the code so this device
+starts working.
+
+Regards,
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
