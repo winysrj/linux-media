@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALIrSVe026143
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 13:53:28 -0500
-Received: from devils.ext.ti.com (devils.ext.ti.com [198.47.26.153])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALIrCZ1004364
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 13:53:12 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Trilok Soni <soni.trilok@gmail.com>
-Date: Sat, 22 Nov 2008 00:22:58 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403E8E67E5B@dbde02.ent.ti.com>
-In-Reply-To: <5d5443650811210924w30bafc36ge041ec4d1a6016db@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAHIOe53002503
+	for <video4linux-list@redhat.com>; Mon, 17 Nov 2008 13:24:40 -0500
+Received: from tomts23-srv.bellnexxia.net (tomts23.bellnexxia.net
+	[209.226.175.185])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAHIOO0G017350
+	for <video4linux-list@redhat.com>; Mon, 17 Nov 2008 13:24:24 -0500
+From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
+To: Thomas Reiter <x535.01@gmail.com>, "video4linux-list@redhat.com"
+	<video4linux-list@redhat.com>
+Date: Mon, 17 Nov 2008 13:23:45 -0500
+Message-ID: <09CD2F1A09A6ED498A24D850EB101208165C79D39F@Colmatec004.COLMATEC.INT>
+References: <1226943947.6362.10.camel@ivan>
+In-Reply-To: <1226943947.6362.10.camel@ivan>
+Content-Language: fr-CA
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"davinci-linux-open-source-bounces@linux.davincidsp.com"
-	<davinci-linux-open-source-bounces@linux.davincidsp.com>
-Subject: RE: [PATCH 1/2] Add Input/Output related ioctl support
+Cc: 
+Subject: RE : DVB-T2 (Mpeg4) in Norway
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,49 +30,56 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+use usbreplay
 
 
-Thanks,
-Vaibhav Hiremath
-Platform Support Products
-Texas Instruments Inc
-Ph: +91-80-25099927
+just in case :
 
-> -----Original Message-----
-> From: Trilok Soni [mailto:soni.trilok@gmail.com]
-> Sent: Friday, November 21, 2008 10:54 PM
-> To: Hiremath, Vaibhav
-> Cc: video4linux-list@redhat.com; linux-omap@vger.kernel.org;
-> davinci-linux-open-source-bounces@linux.davincidsp.com
-> Subject: Re: [PATCH 1/2] Add Input/Output related ioctl support
-> 
-> Hi Vaibhav
-> 
-> On Fri, Nov 21, 2008 at 8:51 PM,  <hvaibhav@ti.com> wrote:
-> >
-> > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> >                Hardik Shah <hardik.shah@ti.com>
-> >                Manjunath Hadli <mrh@ti.com>
-> >                R Sivaraj <sivaraj@ti.com>
-> >                Vaibhav Hiremath <hvaibhav@ti.com>
-> >                Karicheri Muralidharan <m-karicheri2@ti.com>
-> 
-> Each line should include Singed-off-by, like this:
-> 
-> > Signed-off-by:  Brijesh Jadav <brijesh.j@ti.com>
-> > Signed-off-by:  Hardik Shah <hardik.shah@ti.com>
-> > Signed-off-by:  Manjunath Hadli <mrh@ti.com>
-> > Signed-off-by:  R Sivaraj <sivaraj@ti.com>
-> > Signed-off-by:  Vaibhav Hiremath <hvaibhav@ti.com>
-> > Signed-off-by:  Karicheri Muralidharan <m-karicheri2@ti.com>
-> 
-[Hiremath, Vaibhav] point taken. Will update and post it again.
+First use this version inside windows ( no refresh anoying)
 
-> 
-> --
-> ---Trilok Soni
-> http://triloksoni.wordpress.com
-> http://www.linkedin.com/in/triloksoni
+  If you are using Windows XP or later
+
+ Download 32 bits here
+ Official homepage: http://www.pcausa.com/Utilities/UsbSnoop/
+
+ from page http://linuxtv.org/v4lwiki/index.php/Usbsnoop
+
+instead of the version specified here
+http://mcentral.de/wiki/index.php5/USBVideo
+
+
+USbreplay for extract ( what u want)
+
+http://mcentral.de/wiki/index.php5/Usbreplay
+________________________________________
+De : video4linux-list-bounces@redhat.com [video4linux-list-bounces@redhat.com] de la part de Thomas Reiter [x535.01@gmail.com]
+Date d'envoi : 17 novembre 2008 12:45
+À : video4linux-list@redhat.com
+Objet : DVB-T2 (Mpeg4) in Norway
+
+I bought a Pinnacle Nano USB stick and checked that this stick is OK
+with the software from Pinnacle. Here in Norway DVB-T is coded with
+Mpeg4, so it's a new experience.
+
+With Ubuntu I tried something with "scan" and "Kaffeine" but both
+programs were not able to detect some programs. It must be the old
+firmware. Is someone able to help me to extract the firmware from my
+snoopusb log?
+
+Thanks
+
+Thomas
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
+
+--
+
+This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN
+Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com)
+www.solulan.com
 
 
 --
