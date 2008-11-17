@@ -1,18 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.231])
+Received: from smtp7-g19.free.fr ([212.27.42.64])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <nog0odd3ed@gmail.com>) id 1L0kjo-0006TP-Dn
-	for linux-dvb@linuxtv.org; Thu, 13 Nov 2008 23:32:32 +0100
-Received: by rv-out-0506.google.com with SMTP id b25so1092714rvf.41
-	for <linux-dvb@linuxtv.org>; Thu, 13 Nov 2008 14:32:27 -0800 (PST)
-Message-ID: <7d4a9cde0811131432n12e5c0cep8db59a562f140555@mail.gmail.com>
-Date: Thu, 13 Nov 2008 16:32:27 -0600
-From: "Luis Rico Jr" <nog0odd3ed@gmail.com>
-To: linux-dvb@linuxtv.org
-In-Reply-To: <mailman.118.1226613885.883.linux-dvb@linuxtv.org>
+	(envelope-from <ttk22@free.fr>) id 1L2AqZ-0006YQ-6K
+	for linux-dvb@linuxtv.org; Mon, 17 Nov 2008 21:37:24 +0100
+Received: from smtp7-g19.free.fr (localhost [127.0.0.1])
+	by smtp7-g19.free.fr (Postfix) with ESMTP id 6C485B0706
+	for <linux-dvb@linuxtv.org>; Mon, 17 Nov 2008 21:37:17 +0100 (CET)
+Received: from [192.168.0.2] (lns-bzn-47f-62-147-251-209.adsl.proxad.net
+	[62.147.251.209])
+	by smtp7-g19.free.fr (Postfix) with ESMTP id DB61AB0E3C
+	for <linux-dvb@linuxtv.org>; Mon, 17 Nov 2008 21:37:16 +0100 (CET)
+Message-ID: <4921D5F8.4090403@free.fr>
+Date: Mon, 17 Nov 2008 21:37:12 +0100
+From: Roland HAMON <ttk22@free.fr>
 MIME-Version: 1.0
-References: <mailman.118.1226613885.883.linux-dvb@linuxtv.org>
-Subject: [linux-dvb] Avermedia HC 80 support ?
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Hi, hauppauge win tv Nova-s plus won't tune
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -20,43 +23,58 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0033246609=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0033246609==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_9579_6708013.1226615547862"
+Hi
 
-------=_Part_9579_6708013.1226615547862
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+(I'm new to the list, hope I won't infringe any rule on my first post)
 
-I know this may have been asked before, but any word on support for the
-Avermedia HC80 express card tuner? Pretty please...
+I have a hauppauge win tv nova-s plus PCI card, connected to a simple
+dish wich is pointed to hotbird3. Under windows wintv works fine: I get
+160+ free to air tv channels as expected.
 
-------=_Part_9579_6708013.1226615547862
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Under ubuntu intrepid 64 bits (2.6.27 kernel) vdr fails to tune any
+channel. I tried dvb-apps 'scan' with no success:
 
-I know this may have been asked before, but any word on support for the Avermedia HC80 express card tuner? Pretty please...<br><div class="gmail_quote">
-<br></div><br>
+scanning Hotbird-13.0E
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 12539000 H 27500000 3
+initial transponder 10892000 H 27500000 3
+initial transponder 10853000 H 27500000 3
+initial transponder 10992000 V 27500000 2
+initial transponder 11334000 H 27500000 2
+initial transponder 11373000 H 27500000 2
+initial transponder 12460000 V 27500000 3
+>>> tune to: 12539:h:0:27500
+DiSEqC: switch pos 0, 18V, hiband (index 3)
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
+>>> tuning status == 0x01
 
-------=_Part_9579_6708013.1226615547862--
 
+femon -H gives 60% signal and 40% snr. (quite bad!)
+Then when I poweroff my computer hangs and the motherboards beeps
+repeatedly until I hard swith it off.
 
---===============0033246609==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Any help greatly appreciated.
+(btw, http://bugzilla.kernel.org/show_bug.cgi?id=9476 ...
+ I might be having the same bug but I did not try any previous kernel
+version with this card)
+
+Bye
+-- 
+ TTK
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0033246609==--
