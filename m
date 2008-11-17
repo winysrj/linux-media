@@ -1,18 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: video4linux-list@redhat.com
-Date: Tue, 4 Nov 2008 07:09:28 +0100
-References: <200811032103.36711.laurent.pinchart@skynet.be>
-	<200811032147.04546.laurent.pinchart@skynet.be>
-In-Reply-To: <200811032147.04546.laurent.pinchart@skynet.be>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAH4CP3T021812
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 23:12:25 -0500
+Received: from cdptpa-omtalb.mail.rr.com (cdptpa-omtalb.mail.rr.com
+	[75.180.132.120])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAH3uOVG020437
+	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 22:56:37 -0500
+Message-ID: <4920EB66.50805@foks.us>
+Date: Sun, 16 Nov 2008 22:56:22 -0500
+From: Jelle Foks <jelle-v4l@foks.us>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200811040709.29024.hverkuil@xs4all.nl>
-Cc: mchehab@redhat.com
-Subject: Re: [PATCH 2/2] v4l2: Add camera privacy control.
+Cc: mchehab@infradead.org
+Subject: [PATCH] new email address
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,64 +26,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Laurent,
+Please accept this patch to refer to my new email address
 
-Can you also patch v4l2-common.c to add support for this new control?
+Signed-off-by Jelle Foks <jelle@foks.us>
 
-Actually, it would be great if the other missing controls (e.g. FOCUS 
-controls) are also added.
+diff -r c5f976cab011 linux/drivers/media/video/cx23885/cx23885-417.c
+--- a/linux/drivers/media/video/cx23885/cx23885-417.c	Sun Nov 16 11:40:21 2008 -0200
++++ b/linux/drivers/media/video/cx23885/cx23885-417.c	Sun Nov 16 22:49:23 2008 -0500
+@@ -2,7 +2,7 @@
+   *
+   *  Support for a cx23417 mpeg encoder via cx23885 host port.
+   *
+- *    (c) 2004 Jelle Foks <jelle@foks.8m.com>
++ *    (c) 2004 Jelle Foks <jelle@foks.us>
+   *    (c) 2004 Gerd Knorr <kraxel@bytesex.org>
+   *    (c) 2008 Steven Toth <stoth@linuxtv.org>
+   *      - CX23885/7/8 support
+diff -r c5f976cab011 linux/drivers/media/video/cx88/cx88-blackbird.c
+--- a/linux/drivers/media/video/cx88/cx88-blackbird.c	Sun Nov 16 11:40:21 2008 -0200
++++ b/linux/drivers/media/video/cx88/cx88-blackbird.c	Sun Nov 16 22:49:23 2008 -0500
+@@ -3,7 +3,7 @@
+   *  Support for a cx23416 mpeg encoder via cx2388x host port.
+   *  "blackbird" reference design.
+   *
+- *    (c) 2004 Jelle Foks <jelle@foks.8m.com>
++ *    (c) 2004 Jelle Foks <jelle@foks.us>
+   *    (c) 2004 Gerd Knorr <kraxel@bytesex.org>
+   *
+   *    (c) 2005-2006 Mauro Carvalho Chehab <mchehab@infradead.org>
+@@ -39,7 +39,7 @@
+  #include "cx88.h"
 
-Regards,
+  MODULE_DESCRIPTION("driver for cx2388x/cx23416 based mpeg encoder cards");
+-MODULE_AUTHOR("Jelle Foks <jelle@foks.8m.com>, Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
++MODULE_AUTHOR("Jelle Foks <jelle@foks.us>, Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
+  MODULE_LICENSE("GPL");
 
-	Hans
+  static unsigned int mpegbufs = 32;
+diff -r c5f976cab011 linux/drivers/media/video/cx88/cx88-mpeg.c
+--- a/linux/drivers/media/video/cx88/cx88-mpeg.c	Sun Nov 16 11:40:21 2008 -0200
++++ b/linux/drivers/media/video/cx88/cx88-mpeg.c	Sun Nov 16 22:49:23 2008 -0500
+@@ -3,7 +3,7 @@
+   *  Support for the mpeg transport stream transfers
+   *  PCI function #2 of the cx2388x.
+   *
+- *    (c) 2004 Jelle Foks <jelle@foks.8m.com>
++ *    (c) 2004 Jelle Foks <jelle@foks.us>
+   *    (c) 2004 Chris Pascoe <c.pascoe@itee.uq.edu.au>
+   *    (c) 2004 Gerd Knorr <kraxel@bytesex.org>
+   *
+@@ -34,7 +34,7 @@
+  /* ------------------------------------------------------------------ */
 
-On Monday 03 November 2008 21:47:04 Laurent Pinchart wrote:
-> Documentation part of the patch. As I haven't found any repository in
-> which the source was stored, I've generated a diff against the 0.24
-> tarball.
->
-> Laurent Pinchart
->
-> diff -Naur v4l2spec-0.24/controls.sgml v4l2spec-0.24/controls.sgml
-> --- v4l2spec-0.24/controls.sgml	2008-03-06 16:42:11.000000000 +0100
-> +++ v4l2spec-0.24/controls.sgml	2008-11-03 17:11:25.000000000 +0100
-> @@ -1644,6 +1644,15 @@
->  adjustments. The effect of manual focus adjustments while this
-> feature is enabled is undefined, drivers should ignore such
-> requests.</entry> </row>
-> +
-> +          <row>
-> +            <entry
-> spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry> +  
->          <entry>boolean</entry>
-> +          </row><row><entry spanname="descr">Prevent video from
-> being acquired +by the camera sensor. A true value indicates that no
-> image can be captured by +the sensor. Devices that implement the
-> privacy control must support read access +and may support write
-> access.
-> +          </row>
->            <row><entry></entry></row>
->          </tbody>
->        </tgroup>
-> diff -Naur v4l2spec-0.24/videodev2.h v4l2spec-0.24/videodev2.h
-> --- v4l2spec-0.24/videodev2.h	2008-03-06 16:42:11.000000000 +0100
-> +++ v4l2spec-0.24/videodev2.h	2008-11-03 17:01:35.000000000 +0100
-> @@ -1093,6 +1093,8 @@
->  #define V4L2_CID_FOCUS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+11)
->  #define V4L2_CID_FOCUS_AUTO			(V4L2_CID_CAMERA_CLASS_BASE+12)
->
-> +#define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+13)
-> +
->  /*
->   *	T U N I N G
->   */
->
-> --
-> video4linux-list mailing list
-> Unsubscribe
-> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
-
+  MODULE_DESCRIPTION("mpeg driver for cx2388x based TV cards");
+-MODULE_AUTHOR("Jelle Foks <jelle@foks.8m.com>");
++MODULE_AUTHOR("Jelle Foks <jelle@foks.us>");
+  MODULE_AUTHOR("Chris Pascoe <c.pascoe@itee.uq.edu.au>");
+  MODULE_AUTHOR("Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]");
+  MODULE_LICENSE("GPL");
 
 --
 video4linux-list mailing list
