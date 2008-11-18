@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAK8aCbk028184
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 03:36:12 -0500
-Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAK8ZhBa016934
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 03:35:55 -0500
-Message-ID: <492522AA.8020807@hhs.nl>
-Date: Thu, 20 Nov 2008 09:41:14 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAIIB1lq011588
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 13:11:02 -0500
+Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.188])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAIIAlDv014451
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 13:10:47 -0500
+Received: by rn-out-0910.google.com with SMTP id k32so2753638rnd.7
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 10:10:47 -0800 (PST)
+Message-ID: <ea3b75ed0811181010k3287581ew612a98ddf7a53ef6@mail.gmail.com>
+Date: Tue, 18 Nov 2008 13:10:46 -0500
+From: "Brian Phelps" <lm317t@gmail.com>
+To: video4linux-list@redhat.com
+In-Reply-To: <ea3b75ed0811180953g4846fc80lf9d0018703486838@mail.gmail.com>
 MIME-Version: 1.0
-To: Adam Baker <linux@baker-net.org.uk>
-References: <4923DC47.6010101@hhs.nl>
-	<200811200000.25760.linux@baker-net.org.uk>
-In-Reply-To: <200811200000.25760.linux@baker-net.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com,
-	=?windows-1252?Q?Luk=E1=9A_Karas?= <lukas.karas@centrum.cz>
-Subject: Re: RFC: API to query webcams for various webcam specific properties
+Content-Disposition: inline
+References: <ea3b75ed0811180953g4846fc80lf9d0018703486838@mail.gmail.com>
+Subject: Re: Pre-crash log
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,98 +29,115 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Adam Baker wrote:
-> On Wednesday 19 November 2008, Hans de Goede wrote:
->> Hi All,
->>
-> <snip>
->> This has been discussed at the plumbers conference, and there the solution
->> we came up with for "does this cam need software whitebalance?" was
->> (AFAIK), check if has a V4L2_CID_AUTO_WHITE_BALANCE, if it does not do
->> software whitebalance. This of course means we will be doing software
->> whitebalance on things like framefrabbers etc. too, so the plan was to
->> combine this with an "is_webcam" flag in the capabilities struct. The
->> is_webcam workaround, already shows what is wrong with this approach, we
->> are checking for something not being there, were we should be checking for
->> the driver asking something actively,
-> 
-> There also seem to be so many things we might want to control that such an 
-> inference based system is going to hit other limitations.
-> 
->> So we need an extensible mechanism to query devices if they could benefit
->> from certain additional processing being done on the generated image data.
->>
->> This sounds a lot like the existing mechanism for v4l2 controls, except
->> that these are all read only controls, and not controls which we want to
->> show up in v4l control panels like v4l2ucp.
->>
->> Still I think that using the existing controls mechanism is the best way
->> todo this, so therefor I propose to add a number of standard CID's to query
->> the things listed above. All these CID's will always be shown by the driver
->> as readonly and disabled (as they are not really controls).
->>
-> 
-> I can see this leading to a lot of drivers having to implement a whole bunch 
-> of cases in a switch statement to handle these values. Could a simpler 
-> approach be to have a single ioctl to query the set of controls the driver 
-> would like to have implemented and the driver then responds with the list of 
-> tags and default values for the controls it would like implemented.
-> 
-> Someting like:
-> 
-> struct tag
-> {
-> u32	tag_id;
-> u32	tag_value;
-> };
-> 
-> const tag default_tags[] = { {LIBV4L_CTL_GAMMA, 0x34}, 
-> {LIBV4L_CTL_LRFLIP,1} };
-> 
+I know 8 feeds of 640*480 @ 30fps is pushing it to the limits on the
+pci bus, but this shouldn't cause the system to crash should it?
 
-Yes, implementing v4l2 controls in drivers can take up quite a bit of code. 
-This is a general problem though, not limited to my proposal for new CID's for 
-the device/driver to be able to give hints to userspace that certain 
-post-processing would be good todo.
+On Tue, Nov 18, 2008 at 12:53 PM, Brian Phelps <lm317t@gmail.com> wrote:
+> Hi all,
+> I am using the capture example on a quad core machine with kernel 2.6.27.6
+>
+> I added another 4 input card to see if that might decrease stability
+> and create some errors, and it did:
+>
+> [  566.820822] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.820934] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.824338] bttv2: next set: top=ffff8800120e0800
+> bottom=ffff8800120e0800 [screen=0000000000000000,irq=1,0]
+> [  566.824411] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.824555] bttv2: next set: top=ffff8800120e0a00
+> bottom=ffff8800120e0a00 [screen=0000000000000000,irq=1,0]
+> [  566.825539] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.825577] bttv1: next set: top=ffff880010499600
+> bottom=ffff880010499600 [screen=0000000000000000,irq=1,0]
+> [  566.825582] bttv5: next set: top=ffff8800189ea800
+> bottom=ffff8800189ea800 [screen=0000000000000000,irq=1,0]
+> [  566.825666] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.825676] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.825738] bttv2: OCERR @ 1a937000,bits: HSYNC FDSR OCERR*
+> [  566.825749]   main: 1a937000
+> [  566.825751]   vbi : o=00000000 e=00000000
+> [  566.825752]   cap : o=1a734000 e=1a736000
+> [  566.825754]   scr : o=00000000 e=00000000
+> [  566.825755] bttv2: risc disasm: ffff88001a937000 [dma=0x1a937000]
+> [  566.825757] bttv2:   0x1a937000: 0x80008004 [ sync be3/resync count=4 ]
+> [  566.825761] bttv2:   0x1a937004: 0x00000000 [ arg #1 ]
+> [  566.825762] bttv2:   0x1a937008: 0x70000000 [ jump count=0 ]
+> [  566.825765] bttv2:   0x1a93700c: 0x1a937010 [ arg #1 ]
+> [  566.825766] bttv2:   0x1a937010: 0x70000000 [ jump count=0 ]
+> [  566.825769] bttv2:   0x1a937014: 0x1a937018 [ arg #1 ]
+> [  566.825770] bttv2:   0x1a937018: 0x70000000 [ jump count=0 ]
+> [  566.825772] bttv2:   0x1a93701c: 0x1a734000 [ arg #1 ]
+> [  566.825774] bttv2:   0x1a937020: 0x8000800c [ sync be3/resync count=12 ]
+> [  566.825777] bttv2:   0x1a937024: 0x00000000 [ arg #1 ]
+> [  566.825778] bttv2:   0x1a937028: 0x70000000 [ jump count=0 ]
+> [  566.825781] bttv2:   0x1a93702c: 0x1a937030 [ arg #1 ]
+> [  566.825782] bttv2:   0x1a937030: 0x70000000 [ jump count=0 ]
+> [  566.825784] bttv2:   0x1a937034: 0x1a736000 [ arg #1 ]
+> [  566.825786] bttv2:   0x1a937038: 0x70000000 [ jump count=0 ]
+> [  566.825788] bttv2:   0x1a93703c: 0x1a937000 [ arg #1 ]
+> [  566.825789] bttv2:   0x1a937040: 0x00000000 [ INVALID count=0 ]
+> [  566.827594] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.827639] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.828306] bttv6: next set: top=ffff880010501400
+> bottom=ffff880010501400 [screen=0000000000000000,irq=1,0]
+> [  566.832424] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.834617] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.834987] bttv4: next set: top=ffff8800125a7200
+> bottom=ffff8800125a7200 [screen=0000000000000000,irq=1,0]
+> [  566.835086] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.836781] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.850350] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.851008] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.853023] bttv0: next set: top=ffff880010598c00
+> bottom=ffff880010598c00 [screen=0000000000000000,irq=1,0]
+> [  566.853027] bttv3: next set: top=ffff88001059cc00
+> bottom=ffff88001059cc00 [screen=0000000000000000,irq=1,0]
+> [  566.853101] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.853111] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.854760] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.854773] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.858940] bttv1: next set: top=ffff8800105d7600
+> bottom=ffff8800105d7600 [screen=0000000000000000,irq=1,0]
+> [  566.858959] bttv5: next set: top=ffff8800189eae00
+> bottom=ffff8800189eae00 [screen=0000000000000000,irq=1,0]
+> [  566.859079] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.860846] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.861678] bttv6: next set: top=ffff88001047ca00
+> bottom=ffff88001047ca00 [screen=0000000000000000,irq=1,0]
+> [  566.862357] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.864038] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.866056] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.868343] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.868363] bttv4: next set: top=ffff880010598e00
+> bottom=ffff880010598e00 [screen=0000000000000000,irq=1,0]
+> [  566.868607] BT878 video (ProVideo PV150): VIDIOC_DQBUF
+> [  566.870052] BT878 video (ProVideo PV150): VIDIOC_QBUF
+> [  566.880434] swap_free: Bad swap file entry 4000000000101010
+> [  566.886390] bttv0: next set: top=ffff880010598a00
+> bottom=ffff880010598a00 [screen=0000000000000000,irq=1,0]
+> [  566.886395] bttv3: next set: top=ffff8800125a4600
+> bottom=ffff8800125a4600 [screen=0000000000000000,irq=1,0]
+> [  566.891075] bttv2: next set: top=ffff8800105d4a00
+> bottom=ffff8800105d4a00 [screen=0000000000000000,irq=1,0]
+>
+> After the above, one of the processes dies:
+>
+> VIDIOC_DQBUF error 5, Input/output error
+>
+> Can someone tell me what I can do next? thanks!
+>
+> --
+> Brian Phelps
+> Got e- ?
+> http://electronjunkie.wordpress.com
+>
 
-We really need to add some framework code to the v4l2 core to make handling 
-controls at the driver level easier.
 
-What I envision is at the end having something like you propose above in the 
-driver, and then have the v4l2 core do the translating to / from v4l2 control 
-calls.
 
-> This could also be a mechanism to address your other RFC as to how to store 
-> the current settings. The fact that you are already adding code to the kernel 
-> to provide the list of controls somewhat argues against your point that you 
-> don't want to add code to the kernel to store the current control settings.
-> The driver could therefore copy the default control values into somewhere in 
-> it's device struct to provide a per device instance volatile storage for the 
-> data.
-> 
-> The reason I prefer in driver storage is that it simplifies the task of 
-> associating the data with the device. If you have a machine with multiple 
-> webcams they need to have independent sets of controls per device and you 
-> shouldn't retain the previous values if the user unplugs one webcam and plugs 
-> in another that gets the same /dev/videox name.
-> 
-> If you do use shared memory have you considered wheter to use the SysV or 
-> Posix variant? Both variants provide the required retain while not in use 
-> functionality but have different naming rules.
-> 
-> Is it necessary to provide a mechanism to notify other libv4l instances that 
-> the set values have changed? With driver stored values I think it is but if 
-> you use shared memory they could simply be read each time a frame is 
-> received.
-
-Yes, the idea is to simply read the values each frame, which is why shared 
-memory is prefered as a solution to this. Your worries can be solved by simply 
-putting the "card" member of the v4l2_capability struct + the minor no in the 
-shared memory segment name / id.
-
-Regards,
-
-Hans
+-- 
+Brian Phelps
+Got e- ?
+http://electronjunkie.wordpress.com
 
 --
 video4linux-list mailing list
