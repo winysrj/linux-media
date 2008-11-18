@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA3NJEOC028988
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 18:19:14 -0500
-Received: from mailrelay006.isp.belgacom.be (mailrelay006.isp.belgacom.be
-	[195.238.6.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA3NJ3cp008720
-	for <video4linux-list@redhat.com>; Mon, 3 Nov 2008 18:19:03 -0500
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: video4linux-list@redhat.com
-Date: Tue, 4 Nov 2008 00:19:17 +0100
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAI9uY0m030008
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 04:56:34 -0500
+Received: from smtp3.versatel.nl (smtp3.versatel.nl [62.58.50.90])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAI9tNsN011345
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 04:55:24 -0500
+Message-ID: <4922924B.8050302@hhs.nl>
+Date: Tue, 18 Nov 2008 11:00:43 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: Adam Baker <linux@baker-net.org.uk>
+References: <200811172253.33396.linux@baker-net.org.uk>
+In-Reply-To: <200811172253.33396.linux@baker-net.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200811040019.17211.laurent.pinchart@skynet.be>
-Subject: [RFC] Zoom controls in V4L2
+Cc: video4linux-list@redhat.com, sqcam-devel@lists.sourceforge.net
+Subject: Re: Advice wanted on producing an in kernel sq905 driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,94 +27,130 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi everybody,
+<note resend with different From address for the video4linux-list>
 
-USB cameras with integrated optical zoom support are hitting the market. V4L2 
-currently lacks the necessary controls to support zoom. This RFC tries to 
-define zoom-related controls.
+Adam Baker wrote:
+> Hi V4L readers,
+> 
 
-As few camera models currently support optical zoom, only a subset of zoom 
-functions are implemented in existing products, making it a bit harder to 
-define a future proof zoom API in V4L2. To gather more usecases I've taken 
-all zoom controls defined in the USB Video Class specification into account, 
-even if they are not all implemented in existing products.
+Hi Adam,
 
-Zoom in digital cameras is implemented as optical zoom, digital zoom or a 
-combination of both. V4L2 supports digital zoom through cropping and scaling 
-(section 1.11). Digital cameras often implement digital zoom through a single 
-linear control, providing a subset of the scaling capabilities of V4L2 with 
-no easy way to map between both. Still, defining a new digital zoom API in 
-addition to the V4L2 cropping and scaling mechanism would confuse developers 
-and users and should be avoided. We should instead concentrate on defining a 
-clear mapping between linear digital zoom and crop/scale.
+Nice to meet you.
 
-As I don't own any UVC device with digital zoom support, and as I'm not 
-knowledgeable about digital zoom support in non-UVC webcams, ideas for a 
-mapping between linear digital zoom and crop/scale are welcome. In case of 
-lack of feedback on the subject, I propose to concentrate on optical zoom 
-only, except when digital zoom interacts with optical zoom.
+> There currently exists an out of kernel driver for the SQ technologies sq905 
+> USB webcam chipset used by a number of low cost webcams. This driver has a 
+> number of issues which would count against it being included in kernel as is 
+> but I'm considering trying to create something that could be suitable.
 
-The UVC specification approximates the optical magnification factor as the 
-ratio between the ocular lens focal length and the objective lens focal 
-length. Although lens groups can be much more sophisticated than that, the 
-model can approximate most lens groups that are likely to be encountered in 
-practice. Zoom can then be expressed either as the magnification factor or as 
-the objective lens focal lens. To support both representations V4L2 should 
-let the device set its minimum and maximum zoom values. In both cases the 
-zoom is either an unsigned integer or an unsigned rational number that can be 
-expressed with a fixed-point representation.
+Great, thats very good news!
 
-Optical zoom can be controlled in an absolute or relative fashion. Absolute 
-zoom can easily be handled with a single unsigned integer control mapping to 
-the magnification factor or objective lens focal length as described above. 
-The absolute zoom control should not interact with any digital zoom function 
-implemented in the device, if any. I suggest naming the control 
-V4L2_CID_ZOOM_ABSOLUTE.
+> I have 
+> a number of questions on how best to proceed.
+>
 
-Relative zoom is a tad more complex. To begin with, there are two relative 
-zoom implementations I can think of: incremental or continuous. Incremental 
-relative zoom moves the optical zoom level by a fixed amount. This is how the 
-relative pan, tilt and focus controls are specified in V4L2. However, this is 
-not how relative zoom is specified in UVC.
+Good, keep asking asking questions!
 
-UVC specifies relative zoom as a control that starts a zoom focal length 
-modification at a given speed in the given direction until interrupted by the 
-user (through the relative zoom control) or by a limit in the range of 
-motion. This behaviour is closer to what a user would expect when controlling 
-the zoom relatively : pressing a button would start zooming in or out, and 
-releasing the button would stop zooming. A single V4L2 control encoded as a 
-signed integer can set the speed and direction. The speed range should be 
-device dependant.
+> Note that this refers only to the sq905, USB ID 0x2770:0x9120 the sq905c is a 
+> substantially different chip.
+> 
+> (If anyone wants to check out the current driver it is at 
+> http://sqcam.cvs.sourceforge.net/viewvc/sqcam/sqcam26/ )
+> 
+> First off some thoughts on how I'd like to proceed.
+> 
+> The chip exposes the Bayer sensor output directly to the driver so the current 
+> driver uses code borrowed from libgphoto2 to do the Bayer decode in kernel. 
+> Obviously this is wrong and now we have libv4l it should use that instead.
+> 
 
-We are thus facing a situation where three types of zoom controls can be 
-implemented, among which two are of the relative type. The UVC specification 
-specifies a continuous relative zoom only, but V4L2 already uses the 
-_RELATIVE suffix for incremental relative pan, tilt and focus controls. Using 
-V4L2_CID_ZOOM_RELATIVE for continuous relative zoom would not be consistent 
-with the V4L2 pan, tilt and focus controls, while using 
-V4L2_CID_ZOOM_RELATIVE for incremental relative zoom would not be consistent 
-with the UVC specification. As the V4L2 specification is already not 
-consistent with the UVC specification when it comes to relative pan, tilt and 
-focus, I propose to call the incremental relative zoom control 
-V4L2_CID_ZOOM_RELATIVE and use a different name for the continuous control. 
-Comments are welcome, as well as suggestions for the control name.
+Correct, there is nothing special you need to do for that, just pass frames
+with the raw bayer data to userspace and set the pixelformat to one of:
+V4L2_PIX_FMT_SBGGR8 /* v4l2_fourcc('B', 'A', '8', '1'), 8 bit BGBG.. GRGR.. */
+V4L2_PIX_FMT_SGBRG8 /* v4l2_fourcc('G', 'B', 'R', 'G'), 8 bit GBGB.. RGRG.. */
+V4L2_PIX_FMT_SGRBG8 /* v4l2_fourcc('G','R','B','G'), 8 bit GRGR.. BGBG.. */
+V4L2_PIX_FMT_SRGGB8 /* v4l2_fourcc('R','G','G','B'), 8 bit RGRG.. GBGB.. */
 
-Continuous relative zoom also suffers from another issue. While absolute and 
-incremental relative zoom do not interact with digital zoom (when implemented 
-by the device), it might be interesting to let the continuous relative zoom 
-use digital zoom as an option when reaching the end of the optical zoom 
-capabilities. This would give the user a large zoom range combining optical 
-and digital zoom that can be navigated using a single control. This is how 
-the UVC specification defines the relative zoom control. We would then need 
-an additional control to enable or disable digital zoom when using the 
-continuous relative zoom. Both the digital zoom enable and continuous 
-relative zoom (sign + speed) values should then be set in a single operation 
-through the extended controls API. Comments on this subject are welcome as 
-well.
+Note the last 2 currently are only defined internally in libv4l and not in
+linux/videodev2.h as no drivers use them yet, but if you need one of them
+adding it to linux/videodev2.h is fine.
 
-Best regards,
+And then make sure your applications are either patched to use libv4l, or use
+the LD_PRELOAD libc wrapper (see libv4l docs).
 
-Laurent Pinchart
+> I don't have masses of time to work on this so I need an approach that isn't 
+> going to require writing loads of code.
+
+Actually, the plan is to remove lots of code :)
+
+> Considering the mess the current
+> driver is in it is probably going to be better to make it a sub driver of 
+> gspca rather than try to re-use the existing code (which should also make 
+> life easier from a long term maintenance PoV).
+> 
+
+Yes please make it a subdriver of gspca, then all you need to lift from the
+current driver are the chip specific initalization sequences, and the isoc
+frame parsing for detecting the beginning and ending of frames.
+
+> Now my questions
+> 
+> 1) What kernel should I base any patches I produce on? The obvious choice 
+> would seem to be 
+> git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git but it 
+> seems as if Linus's 2.6 tree is more up to date for gspca.
+
+Please use:
+http://linuxtv.org/hg/~jfrancois/gspca/
+
+Note that like al v4l-dvb trees this is a standalone tree, not a complete
+kernel, assuming you've got the headers installed for your current kernel you
+can just do make menuconfig, make, make install from this tree (from the main
+dir, not from the linux subdir) to update your current kernels video4linux
+modules to the latest, then add your own driver and rince repeat :)
+
+> 2) The existing driver needed to perform a gamma adjustment after performing 
+> the Bayer decode. I couldn't find anything in libv4l that obviously did that 
+> so I'm guessing it isn't needed for existing devices - should that be added 
+> to libv4l if needed and if so how should the driver indicate it is needed - 
+> could it be indicated with a new value for v4l2_colorspace?
+
+Hmm interesting for now lets ignore this and first get it up and running
+without this, and the revisit this. I'm asking for this because gamma
+correction might be interesting for other cams too, so I would like to see a
+generic solution for this, which will take some design work, etc.
+
+> 3) The current driver needs to do some up/down and left/right flips of the 
+> data to get it in the right order to do the Bayer decode that depend on the 
+> version info the camera returns to its init sequence. Should that code remain 
+> in the driver and if not how should the driver communicate what is needed.
+> 
+
+It should communicate what is needed all possible bayer orders are covered by
+the 4 formats I gave above, and libv4l knows how to handle all 4 of them, for
+the defines of the last 2 see libv4lconvert/libv4lconvert-priv.h
+
+> 4) The current driver doesn't support streaming mode for V4L2 (only V4L1) and 
+> libv4l doesn't support cameras that don't support streaming so is there an 
+> easy way to test out if the camera output will work well with libv4l before 
+> starting work?
+
+This should not be a problem. gspca now can work with both bulk and
+isochronyous usb transfers using cams, although your cam most likely is an isoc
+one (bulk mode cams are rare).
+
+> 5) Is there anything else I should know before starting.
+
+Not that I know, go for it!
+
+Regards,
+
+Hans
+
+
+p.s.
+
+In case it isn't clear  I'm the author of libv4l and a contributer to gspca, as
+said before: go for it and keep asking questions!
 
 --
 video4linux-list mailing list
