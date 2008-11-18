@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAGMXVmb029701
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 17:33:31 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAGMXHqT029162
-	for <video4linux-list@redhat.com>; Sun, 16 Nov 2008 17:33:18 -0500
-Date: Sun, 16 Nov 2008 20:33:09 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Message-ID: <20081116203309.462c0cdb@pedra.chehab.org>
-In-Reply-To: <Pine.LNX.4.64.0811151223510.3783@axis700.grange>
-References: <Pine.LNX.4.64.0811151223510.3783@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Any moderators alive? (was: Your message to video4linux-list
- awaits moderator approval)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAIFaXJH007272
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 10:36:34 -0500
+Received: from smtp-vbr11.xs4all.nl (smtp-vbr11.xs4all.nl [194.109.24.31])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAIFaBhn018209
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 10:36:23 -0500
+Message-ID: <22206.62.70.2.252.1227022561.squirrel@webmail.xs4all.nl>
+Date: Tue, 18 Nov 2008 16:36:01 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
+MIME-Version: 1.0
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org
+Subject: Re: [v4l-dvb-maintainer] [RFC] Zoom controls in V4L2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,57 +25,149 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, 15 Nov 2008 12:28:43 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+Hi Laurent,
 
-> Hi Mauro,
-> 
-> got the bounce below in reply to my patch to the list. The mail has never 
-> been posted to the list, even not after I have sent an additional email to 
-> the list: http://marc.info/?l=linux-video&m=122644300223385&w=2
-> and I don't find any way to contact moderators directly - neither in ML 
-> management information, nor on the ML web-page. Do you by chance know who 
-> moderates the list and if they are still active? How can they be 
-> contacted? The situation seems suboptimal:-(
+> Hi everybody,
+>
+> I haven't received any answer so far. Is everybody busy or just not
+> interested
+> in zoom support ? Please don't let the length of the mail scare you :-)
 
-I've forwarded your email to someone at Red Hat. He is not the maintainer of
-the ML, but I hope he will help me to find the right person. I'll likely have
-some return from him on monday.
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> 
-> ---------- Forwarded message ----------
-> Date: Mon, 10 Nov 2008 07:37:37 -0500
-> From: video4linux-list-bounces@redhat.com
-> To: g.liakhovetski@gmx.de
-> Subject: Your message to video4linux-list awaits moderator approval
-> 
-> Your mail to 'video4linux-list' with the subject
-> 
->     [PATCH 3/5] soc-camera: add a per-camera device host private data
-> pointer
-> 
-> Is being held until the list moderator can review it for approval.
-> 
-> The reason it is being held:
-> 
->     Message has a suspicious header
-> 
-> Either the message will get posted to the list, or you will receive
-> notification of the moderator's decision.  If you would like to cancel
-> this posting, please visit the following URL:
-> 
->     https://www.redhat.com/mailman/confirm/video4linux-list/4d7b4853bdff783f5672edd93fd621182611c060
+Ah yes, I read it at the time, but forgot to reply. Not that there is much
+to say, since I pretty much agree with this RFC. Just go for it!
 
+Regards,
 
+         Hans
 
+> On Tuesday 04 November 2008, Laurent Pinchart wrote:
+>> Hi everybody,
+>>
+>> USB cameras with integrated optical zoom support are hitting the market.
+>> V4L2 currently lacks the necessary controls to support zoom. This RFC
+>> tries
+>> to define zoom-related controls.
+>>
+>> As few camera models currently support optical zoom, only a subset of
+>> zoom
+>> functions are implemented in existing products, making it a bit harder
+>> to
+>> define a future proof zoom API in V4L2. To gather more usecases I've
+>> taken
+>> all zoom controls defined in the USB Video Class specification into
+>> account, even if they are not all implemented in existing products.
+>>
+>> Zoom in digital cameras is implemented as optical zoom, digital zoom or
+>> a
+>> combination of both. V4L2 supports digital zoom through cropping and
+>> scaling (section 1.11). Digital cameras often implement digital zoom
+>> through a single linear control, providing a subset of the scaling
+>> capabilities of V4L2 with no easy way to map between both. Still,
+>> defining
+>> a new digital zoom API in addition to the V4L2 cropping and scaling
+>> mechanism would confuse developers and users and should be avoided. We
+>> should instead concentrate on defining a clear mapping between linear
+>> digital zoom and crop/scale.
+>>
+>> As I don't own any UVC device with digital zoom support, and as I'm not
+>> knowledgeable about digital zoom support in non-UVC webcams, ideas for a
+>> mapping between linear digital zoom and crop/scale are welcome. In case
+>> of
+>> lack of feedback on the subject, I propose to concentrate on optical
+>> zoom
+>> only, except when digital zoom interacts with optical zoom.
+>>
+>> The UVC specification approximates the optical magnification factor as
+>> the
+>> ratio between the ocular lens focal length and the objective lens focal
+>> length. Although lens groups can be much more sophisticated than that,
+>> the
+>> model can approximate most lens groups that are likely to be encountered
+>> in
+>> practice. Zoom can then be expressed either as the magnification factor
+>> or
+>> as the objective lens focal lens. To support both representations V4L2
+>> should let the device set its minimum and maximum zoom values. In both
+>> cases the zoom is either an unsigned integer or an unsigned rational
+>> number
+>> that can be expressed with a fixed-point representation.
+>>
+>> Optical zoom can be controlled in an absolute or relative fashion.
+>> Absolute
+>> zoom can easily be handled with a single unsigned integer control
+>> mapping
+>> to the magnification factor or objective lens focal length as described
+>> above. The absolute zoom control should not interact with any digital
+>> zoom
+>> function implemented in the device, if any. I suggest naming the control
+>> V4L2_CID_ZOOM_ABSOLUTE.
+>>
+>> Relative zoom is a tad more complex. To begin with, there are two
+>> relative
+>> zoom implementations I can think of: incremental or continuous.
+>> Incremental
+>> relative zoom moves the optical zoom level by a fixed amount. This is
+>> how
+>> the relative pan, tilt and focus controls are specified in V4L2.
+>> However,
+>> this is not how relative zoom is specified in UVC.
+>>
+>> UVC specifies relative zoom as a control that starts a zoom focal length
+>> modification at a given speed in the given direction until interrupted
+>> by
+>> the user (through the relative zoom control) or by a limit in the range
+>> of
+>> motion. This behaviour is closer to what a user would expect when
+>> controlling the zoom relatively : pressing a button would start zooming
+>> in
+>> or out, and releasing the button would stop zooming. A single V4L2
+>> control
+>> encoded as a signed integer can set the speed and direction. The speed
+>> range should be device dependant.
+>>
+>> We are thus facing a situation where three types of zoom controls can be
+>> implemented, among which two are of the relative type. The UVC
+>> specification specifies a continuous relative zoom only, but V4L2
+>> already
+>> uses the _RELATIVE suffix for incremental relative pan, tilt and focus
+>> controls. Using V4L2_CID_ZOOM_RELATIVE for continuous relative zoom
+>> would
+>> not be consistent with the V4L2 pan, tilt and focus controls, while
+>> using
+>> V4L2_CID_ZOOM_RELATIVE for incremental relative zoom would not be
+>> consistent with the UVC specification. As the V4L2 specification is
+>> already
+>> not consistent with the UVC specification when it comes to relative pan,
+>> tilt and focus, I propose to call the incremental relative zoom control
+>> V4L2_CID_ZOOM_RELATIVE and use a different name for the continuous
+>> control.
+>> Comments are welcome, as well as suggestions for the control name.
+>>
+>> Continuous relative zoom also suffers from another issue. While absolute
+>> and incremental relative zoom do not interact with digital zoom (when
+>> implemented by the device), it might be interesting to let the
+>> continuous
+>> relative zoom use digital zoom as an option when reaching the end of the
+>> optical zoom capabilities. This would give the user a large zoom range
+>> combining optical and digital zoom that can be navigated using a single
+>> control. This is how the UVC specification defines the relative zoom
+>> control. We would then need an additional control to enable or disable
+>> digital zoom when using the continuous relative zoom. Both the digital
+>> zoom
+>> enable and continuous relative zoom (sign + speed) values should then be
+>> set in a single operation through the extended controls API. Comments on
+>> this subject are welcome as well.
+>
+> Best regards,
+>
+> Laurent Pinchart
+>
+> _______________________________________________
+> v4l-dvb-maintainer mailing list
+> v4l-dvb-maintainer@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/v4l-dvb-maintainer
+>
 
-Cheers,
-Mauro
 
 --
 video4linux-list mailing list
