@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAO4UYWe031695
-	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 23:30:34 -0500
-Received: from smtp131.rog.mail.re2.yahoo.com (smtp131.rog.mail.re2.yahoo.com
-	[206.190.53.36])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAO4UIYl018732
-	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 23:30:18 -0500
-Message-ID: <492A2DD9.7090500@rogers.com>
-Date: Sun, 23 Nov 2008 23:30:17 -0500
-From: CityK <cityk@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAINcWAg003480
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 18:38:32 -0500
+Received: from ey-out-2122.google.com (ey-out-2122.google.com [74.125.78.24])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAINcG7R020287
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 18:38:16 -0500
+Received: by ey-out-2122.google.com with SMTP id 4so1166472eyf.39
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 15:38:15 -0800 (PST)
+Message-ID: <9ff7a3bc0811181538w120aa6bm7ae42395b92d3559@mail.gmail.com>
+Date: Wed, 19 Nov 2008 05:08:14 +0530
+From: "Joel Fernandes" <agnel.joel@gmail.com>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-To: "daniel.perzynski" <daniel.perzynski@aster.pl>
-References: <6367380D4484A05418484321130E6EE212273045156E0FF6E4617EF3586D@webmail.aster.pl>
-In-Reply-To: <6367380D4484A05418484321130E6EE212273045156E0FF6E4617EF3586D@webmail.aster.pl>
-Content-Type: text/plain; charset=iso-8859-2
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Subject: Re: Avermedia A312 wiki page
+Content-Disposition: inline
+Subject: v4l-dvb doesn't detect device : PixelView PlayTV USB 415
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,57 +27,368 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-daniel.perzynski wrote:
-> CityK wrote:
->> This thing (mini pci card) has an usb interface?  Strange.
-> What is concerning mini pci having usb interface I can say only that on
-> Avermedia webpage that card is in Mini PCI & Mini Card category.
->   
+Hi,
+I bought a pixelview PlayTV USB a couple of months back.
 
-On quick glance the "Mini PCI" part threw me off ... but it is indeed of
-the later category instead: a PCIe Mini Card
-(http://en.wikipedia.org/wiki/PCI_Express_Mini_Card)
+Device Details:
+PV-A5600U1(RN)-F
+PixelView PlayTV USB 415
+Device URL: http://www.prolink.com.tw/style/content/CN-08-2cp2/product_detail.asp?lang=2&customer_id=1470&name_id=36165&rid=17007&id=135713
+
+The device is like a thumb drive. Unfortunately, it doesn't get
+detected on usb connection. I have been reading quite some source code
+and thinking off ways to get it to work. After fighting the device
+alot, and even opening it up, I was thinking if anyone has already got
+it to work?
+
+Things I tried:
+Inorder to see if drivers for similar devices supported would work, I
+tried adding my device into the em28xx usb device table, though the
+driver would detect, it would result in several errors. I soon figured
+out that the chip/board must be different, (as the vendor/product id
+was so different) so I somehow took the courage to open up the little
+device, and found that the board was named 'U6010'.
+I also found that the vendor ID of the device is present in
+connexant's v4l drivers (cx88xx) card list. and product ID numbers for
+my vendor in that list are very close to mine. This led me to think
+that my device's board is very similar in behavior to the connexant
+boards except that cx88xx is only for PCI, and mine is a USB.
+To add to the confusion, the driver on windows seems to be from
+Trident, who is also apparently the manufacturer of my device.
+So we have a device that is owned by Prolink, manufactured by Trident,
+and the drivers on linux are similar to Connexant's. :-) voila! a
+device driver developers night mare :-)
+
+dmesg on connect gives only the following:
+[  800.907706] usb 5-3: new high speed USB device using ehci_hcd and address 4
+[  801.337477] usb 5-3: configuration #1 chosen from 1 choice
+
+lsusb -v gives the following for my usb device:
+--------------------------------------------------------------------------------------------
+Bus 005 Device 003: ID 1554:4966 Prolink Microsystems Corp.
+Device Descriptor:
+ bLength                18
+ bDescriptorType         1
+ bcdUSB               2.00
+ bDeviceClass            0 (Defined at Interface level)
+ bDeviceSubClass         0
+ bDeviceProtocol         0
+ bMaxPacketSize0        64
+ idVendor           0x1554 Prolink Microsystems Corp.
+ idProduct          0x4966
+ bcdDevice            0.01
+ iManufacturer          16 Trident
+ iProduct               32 USB2.0 TV BOX
+ iSerial                64 2004090820040908
+ bNumConfigurations      1
+ Configuration Descriptor:
+   bLength                 9
+   bDescriptorType         2
+   wTotalLength           78
+   bNumInterfaces          1
+   bConfigurationValue     1
+   iConfiguration         48 2.0
+   bmAttributes         0x80
+     (Bus Powered)
+   MaxPower              500mA
+   Interface Descriptor:
+     bLength                 9
+     bDescriptorType         4
+     bInterfaceNumber        0
+     bAlternateSetting       0
+     bNumEndpoints           2
+     bInterfaceClass       255 Vendor Specific Class
+     bInterfaceSubClass      0
+     bInterfaceProtocol    255
+     iInterface              0
+     Endpoint Descriptor:
+       bLength                 7
+       bDescriptorType         5
+       bEndpointAddress     0x81  EP 1 IN
+       bmAttributes            1
+         Transfer Type            Isochronous
+         Synch Type               None
+         Usage Type               Data
+       wMaxPacketSize     0x0000  1x 0 bytes
+       bInterval               1
+     Endpoint Descriptor:
+       bLength                 7
+       bDescriptorType         5
+       bEndpointAddress     0x82  EP 2 IN
+       bmAttributes            2
+         Transfer Type            Bulk
+         Synch Type               None
+         Usage Type               Data
+       wMaxPacketSize     0x0200  1x 512 bytes
+       bInterval               0
+   Interface Descriptor:
+     bLength                 9
+     bDescriptorType         4
+     bInterfaceNumber        0
+     bAlternateSetting       1
+     bNumEndpoints           2
+     bInterfaceClass       255 Vendor Specific Class
+     bInterfaceSubClass      0
+     bInterfaceProtocol    255
+     iInterface              0
+     Endpoint Descriptor:
+       bLength                 7
+       bDescriptorType         5
+       bEndpointAddress     0x81  EP 1 IN
+       bmAttributes            1
+         Transfer Type            Isochronous
+         Synch Type               None
+         Usage Type               Data
+       wMaxPacketSize     0x1400  3x 1024 bytes
+       bInterval               1
+     Endpoint Descriptor:
+       bLength                 7
+       bDescriptorType         5
+       bEndpointAddress     0x82  EP 2 IN
+       bmAttributes            2
+         Transfer Type            Bulk
+         Synch Type               None
+         Usage Type               Data
+       wMaxPacketSize     0x0200  1x 512 bytes
+       bInterval               0
+   Interface Descriptor:
+     bLength                 9
+     bDescriptorType         4
+     bInterfaceNumber        0
+     bAlternateSetting       2
+     bNumEndpoints           2
+     bInterfaceClass       255 Vendor Specific Class
+     bInterfaceSubClass      0
+     bInterfaceProtocol    255
+     iInterface              0
+     Endpoint Descriptor:
+       bLength                 7
+       bDescriptorType         5
+       bEndpointAddress     0x81  EP 1 IN
+       bmAttributes            1
+         Transfer Type            Isochronous
+         Synch Type               None
+         Usage Type               Data
+       wMaxPacketSize     0x1400  3x 1024 bytes
+       bInterval               1
+     Endpoint Descriptor:
+       bLength                 7
+       bDescriptorType         5
+       bEndpointAddress     0x82  EP 2 IN
+       bmAttributes            2
+         Transfer Type            Bulk
+         Synch Type               None
+         Usage Type               Data
+       wMaxPacketSize     0x0200  1x 512 bytes
+       bInterval               0
+Device Qualifier (for other device speed):
+ bLength                10
+ bDescriptorType         6
+ bcdUSB               2.00
+ bDeviceClass            0 (Defined at Interface level)
+ bDeviceSubClass         0
+ bDeviceProtocol         0
+ bMaxPacketSize0        64
+ bNumConfigurations      1
+Device Status:     0x0002
+ (Bus Powered)
+ Remote Wakeup Enabled
+
+Bus 005 Device 001: ID 0000:0000
+Device Descriptor:
+ bLength                18
+ bDescriptorType         1
+ bcdUSB               2.00
+ bDeviceClass            9 Hub
+ bDeviceSubClass         0 Unused
+ bDeviceProtocol         1 Single TT
+ bMaxPacketSize0        64
+ idVendor           0x0000
+ idProduct          0x0000
+ bcdDevice            2.06
+ iManufacturer           3 Linux 2.6.24-16-generic ehci_hcd
+ iProduct                2 EHCI Host Controller
+ iSerial                 1 0000:00:1d.7
+ bNumConfigurations      1
+ Configuration Descriptor:
+   bLength                 9
+   bDescriptorType         2
+   wTotalLength           25
+   bNumInterfaces          1
+   bConfigurationValue     1
+   iConfiguration          0
+   bmAttributes         0xe0
+     Self Powered
+     Remote Wakeup
+   MaxPower                0mA
+   Interface Descriptor:
+     bLength                 9
+     bDescriptorType         4
+     bInterfaceNumber        0
+     bAlternateSetting       0
+     bNumEndpoints           1
+     bInterfaceClass         9 Hub
+     bInterfaceSubClass      0 Unused
+     bInterfaceProtocol      0 Full speed (or root) hub
+     iInterface              0
+     Endpoint Descriptor:
+       bLength                 7
+       bDescriptorType         5
+       bEndpointAddress     0x81  EP 1 IN
+       bmAttributes            3
+         Transfer Type            Interrupt
+         Synch Type               None
+         Usage Type               Data
+       wMaxPacketSize     0x0004  1x 4 bytes
+       bInterval              12
+Hub Descriptor:
+ bLength              11
+ bDescriptorType      41
+ nNbrPorts             8
+ wHubCharacteristic 0x000a
+   No power switching (usb 1.0)
+   Per-port overcurrent protection
+   TT think time 8 FS bits
+ bPwrOn2PwrGood       10 * 2 milli seconds
+ bHubContrCurrent      0 milli Ampere
+ DeviceRemovable    0x00 0x00
+ PortPwrCtrlMask    0xff 0xff
+Hub Port Status:
+  Port 1: 0000.0100 power
+  Port 2: 0000.0100 power
+  Port 3: 0000.0503 highspeed power enable connect
+  Port 4: 0000.0100 power
+  Port 5: 0000.0100 power
+  Port 6: 0000.0100 power
+  Port 7: 0000.0100 power
+  Port 8: 0000.0100 power
+Device Status:     0x0003
+ Self Powered
+ Remote Wakeup Enabled
+
+Bus 004 Device 001: ID 0000:0000
+Device Descriptor:
+ bLength                18
+ bDescriptorType         1
+ bcdUSB               1.10
+ bDeviceClass            9 Hub
+ bDeviceSubClass         0 Unused
+ bDeviceProtocol         0 Full speed (or root) hub
+ bMaxPacketSize0        64
+ idVendor           0x0000
+ idProduct          0x0000
+ bcdDevice            2.06
+ iManufacturer           3 Linux 2.6.24-16-generic uhci_hcd
+ iProduct                2 UHCI Host Controller
+ iSerial                 1 0000:00:1d.3
+ bNumConfigurations      1
+ Configuration Descriptor:
+   bLength                 9
+   bDescriptorType         2
+   wTotalLength           25
+   bNumInterfaces          1
+   bConfigurationValue     1
+   iConfiguration          0
+   bmAttributes         0xe0
+     Self Powered
+     Remote Wakeup
+   MaxPower                0mA
+   Interface Descriptor:
+     bLength                 9
+     bDescriptorType         4
+     bInterfaceNumber        0
+     bAlternateSetting       0
+     bNumEndpoints           1
+     bInterfaceClass         9 Hub
+     bInterfaceSubClass      0 Unused
+     bInterfaceProtocol      0 Full speed (or root) hub
+     iInterface              0
+     Endpoint Descriptor:
+       bLength                 7
+       bDescriptorType         5
+       bEndpointAddress     0x81  EP 1 IN
+       bmAttributes            3
+         Transfer Type            Interrupt
+         Synch Type               None
+         Usage Type               Data
+       wMaxPacketSize     0x0002  1x 2 bytes
+       bInterval             255
+Hub Descriptor:
+ bLength               9
+ bDescriptorType      41
+ nNbrPorts             2
+ wHubCharacteristic 0x000a
+   No power switching (usb 1.0)
+   Per-port overcurrent protection
+ bPwrOn2PwrGood        1 * 2 milli seconds
+ bHubContrCurrent      0 milli Ampere
+ DeviceRemovable    0x00
+ PortPwrCtrlMask    0xff
+Hub Port Status:
+  Port 1: 0000.0100 power
+  Port 2: 0000.0100 power
+Device Status:     0x0003
+ Self Powered
+ Remote Wakeup Enabled
+
+Bus 003 Device 001: ID 0000:0000
+Device Descriptor:
+ bLength                18
+ bDescriptorType         1
+ bcdUSB               1.10
+ bDeviceClass            9 Hub
+ bDeviceSubClass         0 Unused
+ bDeviceProtocol         0 Full speed (or root) hub
+ bMaxPacketSize0        64
+ idVendor           0x0000
+ idProduct          0x0000
+ bcdDevice            2.06
+ iManufacturer           3 Linux 2.6.24-16-generic uhci_hcd
+ iProduct                2 UHCI Host Controller
+ iSerial                 1 0000:00:1d.2
+ bNumConfigurations      1
+ Configuration Descriptor:
+   bLength                 9
+   bDescriptorType         2
+   wTotalLength           25
+   bNumInterfaces          1
+   bConfigurationValue     1
+   iConfiguration          0
+   bmAttributes         0xe0
+     Self Powered
+     Remote Wakeup
+   MaxPower                0mA
+   Interface Descriptor:
+     bLength                 9
+     bDescriptorType         4
+     bInterfaceNumber        0
+     bAlternateSetting       0
+     bNumEndpoints           1
+     bInterfaceClass         9 Hub
+     bInterfaceSubClass      0 Unused
+     bInterfaceProtocol      0 Full speed (or root) hub
+     iInterface              0
+     Endpoint Descriptor:
+       bLength                 7
+       bDescriptorType         5
+       bEndpointAddress     0x81  EP 1 IN
+       bmAttributes            3
+         Transfer Type            Interrupt
+         Synch Type               None
+         Usage Type               Data
+       wMaxPacketSize     0x0002  1x 2 bytes
+       bInterval             255
+--------------------------------------------------------------------------------------------
 
 
-daniel.perzynski wrote:
-> I've updated Avermedia A312 wiki page. Here is the link:
-> http://www.linuxtv.org/wiki/index.php/AVerMedia_A312_%28ATSC%29
->   
+I would appreciate any help on getting it to work, or hints on writing
+a driver for the device with the v4l framework (like what to reuse -
+because right now I am totally confused about which existing driver in
+v4l is similar to my device, which I can use as a starting point,
+though I wouldn't mind writing a driver from scratch)
 
-thanks
-
-> Can someone please provide me with the information which kernel modules
-> I should try to load to proceed further with checking if card can be supported?
-
-you're going to need:
-
-- the Xceive XC3028 driver and firmware ... see the wiki
-(http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028), in
-particular about the necessary code requirements for the IC and related
-bridge
-
-- the lgdt330x module ... there is also a lgdt3304 module, which I
-believe was recently submitted ... I'm not sure why there are two
-modules, as I believe the original lgdt330x is capable of handling the
-3304 ... perhaps the second, more recent, is something specific to one
-of mrec's projects.
-
-- cxusb looks to be appropriate for this device ... I'm not sure whether
-or not this will require something like the bluebird firmware as well,
-someone else will have to comment ...  not sure whether analog support
-(through the cx25843) has been realized for either (e.g. the DViCO
-FusionHDTV5 USB Gold for example)
-
-- have no idea what module for the Wolfson audio IC ... I know Hans was
-doing some conversion of drivers (in regards to i2c handling IIRC) and
-this may or may not have been affected
-
-Overall, the device looks to be a strong candidate for obtaining support
-... however, how much of a pain in the butt that will turn out to be is
-another matter altogether :)
-
-
-
+Thanks,
+Joel
 
 --
 video4linux-list mailing list
