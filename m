@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAD1KUd7025405
-	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 20:20:30 -0500
-Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
-	[151.189.21.51])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAD1KEDc007956
-	for <video4linux-list@redhat.com>; Wed, 12 Nov 2008 20:20:15 -0500
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dirk Heer <D.Heer@phytec.de>, Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <OF45DBB1DF.D820068E-ONC12574FD.002E8F63-C12574FD.00310D0D@phytec.de>
-References: <OF45DBB1DF.D820068E-ONC12574FD.002E8F63-C12574FD.00310D0D@phytec.de>
-Content-Type: text/plain; charset=UTF-8
-Date: Thu, 13 Nov 2008 02:17:57 +0100
-Message-Id: <1226539077.3996.36.camel@pc10.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH] bttv
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAIFpBHN017883
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 10:51:11 -0500
+Received: from mailrelay005.isp.belgacom.be (mailrelay005.isp.belgacom.be
+	[195.238.6.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAIFnrSj026090
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 10:49:54 -0500
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Date: Tue, 18 Nov 2008 16:50:00 +0100
+References: <22206.62.70.2.252.1227022561.squirrel@webmail.xs4all.nl>
+In-Reply-To: <22206.62.70.2.252.1227022561.squirrel@webmail.xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200811181650.00595.laurent.pinchart@skynet.be>
+Cc: video4linux-list@redhat.com, v4l-dvb-maintainer@linuxtv.org
+Subject: Re: [v4l-dvb-maintainer] [RFC] Zoom controls in V4L2
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,225 +30,112 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Dirk,
+Hi Hans,
 
-Am Montag, den 10.11.2008, 09:55 +0100 schrieb Dirk Heer:
-> Hello,
-> 
-> hear i have a patch for v4l. 
-> I hope someone can put them into the Kernel.
-> 
+On Tuesday 18 November 2008, Hans Verkuil wrote:
+> > I haven't received any answer so far. Is everybody busy or just not
+> > interested
+> > in zoom support ? Please don't let the length of the mail scare you :-)
+>
+> Ah yes, I read it at the time, but forgot to reply. Not that there is much
+> to say, since I pretty much agree with this RFC. Just go for it!
 
-always post a copy directly to Mauro too, if you think a patch is ready
-for bttv. Done now.
+I'll work on a code+documentation patch. Control name proposals for the 
+relative continuous zoom control (both direction+speed and digital zoom 
+enable/disable) are still welcome if you feel imaginative :-)
 
-Only posted to the list it can get lost for review.
+> > On Tuesday 04 November 2008, Laurent Pinchart wrote:
+> >> Hi everybody,
+> >>
+> >> USB cameras with integrated optical zoom support are hitting the market.
+> >> V4L2 currently lacks the necessary controls to support zoom. This RFC
+> >> tries to define zoom-related controls.
+> >>
+> >> As few camera models currently support optical zoom, only a subset of
+> >> zoom functions are implemented in existing products, making it a bit
+> >> harder to define a future proof zoom API in V4L2. To gather more usecases
+> >> I've taken all zoom controls defined in the USB Video Class specification
+> >> into account, even if they are not all implemented in existing products.
+> >>
+> >> Zoom in digital cameras is implemented as optical zoom, digital zoom or
+> >> a combination of both. V4L2 supports digital zoom through cropping and
+> >> scaling (section 1.11). Digital cameras often implement digital zoom
+> >> through a single linear control, providing a subset of the scaling
+> >> capabilities of V4L2 with no easy way to map between both. Still,
+> >> defining a new digital zoom API in addition to the V4L2 cropping and
+> >> scaling mechanism would confuse developers and users and should be
+> >> avoided. We should instead concentrate on defining a clear mapping
+> >> between linear digital zoom and crop/scale.
+> >>
+> >> As I don't own any UVC device with digital zoom support, and as I'm not
+> >> knowledgeable about digital zoom support in non-UVC webcams, ideas for a
+> >> mapping between linear digital zoom and crop/scale are welcome. In case
+> >> of lack of feedback on the subject, I propose to concentrate on optical
+> >> zoom only, except when digital zoom interacts with optical zoom.
+> >>
+> >> The UVC specification approximates the optical magnification factor as
+> >> the ratio between the ocular lens focal length and the objective lens
+> >> focal length. Although lens groups can be much more sophisticated than
+> >> that, the model can approximate most lens groups that are likely to be
+> >> encountered in practice. Zoom can then be expressed either as the
+> >> magnification factor or as the objective lens focal lens. To support both
+> >> representations V4L2 should let the device set its minimum and maximum
+> >> zoom values. In both cases the zoom is either an unsigned integer or an
+> >> unsigned rational number that can be expressed with a fixed-point
+> >> representation. 
+> >>
+> >> Optical zoom can be controlled in an absolute or relative fashion.
+> >> Absolute zoom can easily be handled with a single unsigned integer
+> >> control mapping to the magnification factor or objective lens focal
+> >> length as described above. The absolute zoom control should not interact
+> >> with any digital zoom function implemented in the device, if any. I
+> >> suggest naming the control V4L2_CID_ZOOM_ABSOLUTE.
+> >>
+> >> Relative zoom is a tad more complex. To begin with, there are two
+> >> relative zoom implementations I can think of: incremental or continuous.
+> >> Incremental relative zoom moves the optical zoom level by a fixed amount.
+> >> This is how the relative pan, tilt and focus controls are specified in
+> >> V4L2. However, this is not how relative zoom is specified in UVC.
+> >>
+> >> UVC specifies relative zoom as a control that starts a zoom focal length
+> >> modification at a given speed in the given direction until interrupted
+> >> by the user (through the relative zoom control) or by a limit in the
+> >> range of motion. This behaviour is closer to what a user would expect
+> >> when controlling the zoom relatively : pressing a button would start
+> >> zooming in or out, and releasing the button would stop zooming. A single
+> >> V4L2 control encoded as a signed integer can set the speed and direction.
+> >> The speed range should be device dependant.
+> >>
+> >> We are thus facing a situation where three types of zoom controls can be
+> >> implemented, among which two are of the relative type. The UVC
+> >> specification specifies a continuous relative zoom only, but V4L2
+> >> already uses the _RELATIVE suffix for incremental relative pan, tilt and
+> >> focus controls. Using V4L2_CID_ZOOM_RELATIVE for continuous relative zoom
+> >> would not be consistent with the V4L2 pan, tilt and focus controls, while
+> >> using V4L2_CID_ZOOM_RELATIVE for incremental relative zoom would not be
+> >> consistent with the UVC specification. As the V4L2 specification is
+> >> already not consistent with the UVC specification when it comes to
+> >> relative pan, tilt and focus, I propose to call the incremental relative
+> >> zoom control V4L2_CID_ZOOM_RELATIVE and use a different name for the
+> >> continuous control. Comments are welcome, as well as suggestions for the
+> >> control name. 
+> >>
+> >> Continuous relative zoom also suffers from another issue. While absolute
+> >> and incremental relative zoom do not interact with digital zoom (when
+> >> implemented by the device), it might be interesting to let the
+> >> continuous relative zoom use digital zoom as an option when reaching the
+> >> end of the optical zoom capabilities. This would give the user a large
+> >> zoom range combining optical and digital zoom that can be navigated using
+> >> a single control. This is how the UVC specification defines the relative
+> >> zoom control. We would then need an additional control to enable or
+> >> disable digital zoom when using the continuous relative zoom. Both the
+> >> digital zoom enable and continuous relative zoom (sign + speed) values
+> >> should then be set in a single operation through the extended controls
+> >> API. Comments on this subject are welcome as well.
 
-Inline you have some broken lines and the attachment should have better
-a .patch format to enable preview in mail clients.
+Best regards,
 
-Else it looks OK, except of a new empty line in bttv.h,
-but did not try to apply it yet and no further checks.
-
-Might be a start if Mauro finds some time.
-Consider to use "hg diff > my.patch" with "mercurial" installed.
-
-Cheers,
-Hermann
-
-
-> **************************************************************************************************************************************
-> 
-> 
-> From:
-> Dirk Heer
-> Phytec Messtechnik GmbH
-> Email: d.heer@phytec.de
-> http://www.phytec.de
-> 
-> This Patch does modify the bttv-cards.c and bttc.h so that the driver 
-> supports VD-011, VD-012, VD-012-X1 and VD-012-X2 Framegrabber from Phytec 
-> Messtechnik GmbH.
-> 
-> Priority: normal
-> 
-> Signed-off-by: Dirk Heer <d.heer@phytec.de>
-> 
-> diff -u -r 
-> v4l-dvb-8486cbf6af4e/linux/drivers/media/video/bt8xx/bttv-cards.c 
-> v4l-dvb-8486cbf6af4e_patched//linux/drivers/media/video/bt8xx/bttv-cards.c
-> --- v4l-dvb-8486cbf6af4e/linux/drivers/media/video/bt8xx/bttv-cards.c 
-> 2008-10-27 00:25:21.000000000 +0100
-> +++ 
-> v4l-dvb-8486cbf6af4e_patched//linux/drivers/media/video/bt8xx/bttv-cards.c 
-> 2008-10-28 13:09:15.000000000 +0100
-> @@ -2240,9 +2240,9 @@
->                 .tuner_addr     = ADDR_UNSET,
->                 .radio_addr     = ADDR_UNSET,
->         },
-> -       [BTTV_BOARD_VD009X1_MINIDIN] = {
-> +       [BTTV_BOARD_VD009X1_VD011_MINIDIN] = {
->                 /* M.Klahr@phytec.de */
-> -               .name           = "PHYTEC VD-009-X1 MiniDIN (bt878)",
-> +               .name           = "PHYTEC VD-009-X1 VD-011 MiniDIN 
-> (bt878)",
->                 .video_inputs   = 4,
->                 .audio_inputs   = 0,
->                 .tuner          = UNSET, /* card has no tuner */
-> @@ -2250,14 +2250,14 @@
->                 .gpiomask       = 0x00,
->                 .muxsel         = { 2, 3, 1, 0 },
->                 .gpiomux        = { 0, 0, 0, 0 }, /* card has no audio */
-> -               .needs_tvaudio  = 1,
-> +               .needs_tvaudio  = 0,
->                 .pll            = PLL_28,
->                 .tuner_type     = UNSET,
->                 .tuner_addr     = ADDR_UNSET,
->                 .radio_addr     = ADDR_UNSET,
->         },
-> -       [BTTV_BOARD_VD009X1_COMBI] = {
-> -               .name           = "PHYTEC VD-009-X1 Combi (bt878)",
-> +       [BTTV_BOARD_VD009X1_VD011_COMBI] = {
-> +               .name           = "PHYTEC VD-009-X1 VD-011 Combi (bt878)",
->                 .video_inputs   = 4,
->                 .audio_inputs   = 0,
->                 .tuner          = UNSET, /* card has no tuner */
-> @@ -2265,7 +2265,7 @@
->                 .gpiomask       = 0x00,
->                 .muxsel         = { 2, 3, 1, 1 },
->                 .gpiomux        = { 0, 0, 0, 0 }, /* card has no audio */
-> -               .needs_tvaudio  = 1,
-> +               .needs_tvaudio  = 0,
->                 .pll            = PLL_28,
->                 .tuner_type     = UNSET,
->                 .tuner_addr     = ADDR_UNSET,
-> @@ -3093,6 +3093,54 @@
->                 .pll            = PLL_28,
->                 .has_radio      = 1,
->                 .has_remote     = 1,
-> +       },
-> +               [BTTV_BOARD_VD012] = {
-> +               /* D.Heer@Phytec.de */
-> +               .name           = "PHYTEC VD-012 (bt878)",
-> +               .video_inputs   = 4,
-> +               .audio_inputs   = 0,
-> +               .tuner          = UNSET, /* card has no tuner */
-> +               .svhs           = UNSET, /* card has no s-video */
-> +               .gpiomask       = 0x00,
-> +               .muxsel         = { 0, 2, 3, 1 },
-> +               .gpiomux        = { 0, 0, 0, 0 }, /* card has no audio */
-> +               .needs_tvaudio  = 0,
-> +               .pll            = PLL_28,
-> +               .tuner_type     = UNSET,
-> +               .tuner_addr     = ADDR_UNSET,
-> +               .radio_addr     = ADDR_UNSET,
-> +       },
-> +               [BTTV_BOARD_VD012_X1] = {
-> +               /* D.Heer@Phytec.de */
-> +               .name           = "PHYTEC VD-012-X1 (bt878)",
-> +               .video_inputs   = 4,
-> +               .audio_inputs   = 0,
-> +               .tuner          = UNSET, /* card has no tuner */
-> +               .svhs           = 3,
-> +               .gpiomask       = 0x00,
-> +               .muxsel         = { 2, 3, 1 },
-> +               .gpiomux        = { 0, 0, 0, 0 }, /* card has no audio */
-> +               .needs_tvaudio  = 0,
-> +               .pll            = PLL_28,
-> +               .tuner_type     = UNSET,
-> +               .tuner_addr     = ADDR_UNSET,
-> +               .radio_addr     = ADDR_UNSET,
-> +       },
-> +               [BTTV_BOARD_VD012_X2] = {
-> +               /* D.Heer@Phytec.de */
-> +               .name           = "PHYTEC VD-012-X2 (bt878)",
-> +               .video_inputs   = 4,
-> +               .audio_inputs   = 0,
-> +               .tuner          = UNSET, /* card has no tuner */
-> +               .svhs           = 3,
-> +               .gpiomask       = 0x00,
-> +               .muxsel         = { 3, 2, 1 },
-> +               .gpiomux        = { 0, 0, 0, 0 }, /* card has no audio */
-> +               .needs_tvaudio  = 0,
-> +               .pll            = PLL_28,
-> +               .tuner_type     = UNSET,
-> +               .tuner_addr     = ADDR_UNSET,
-> +               .radio_addr     = ADDR_UNSET,
->         }
->  };
->  
-> diff -u -r v4l-dvb-8486cbf6af4e/linux/drivers/media/video/bt8xx/bttv.h 
-> v4l-dvb-8486cbf6af4e_patched//linux/drivers/media/video/bt8xx/bttv.h
-> --- v4l-dvb-8486cbf6af4e/linux/drivers/media/video/bt8xx/bttv.h 2008-10-27 
-> 00:25:21.000000000 +0100
-> +++ v4l-dvb-8486cbf6af4e_patched//linux/drivers/media/video/bt8xx/bttv.h 
-> 2008-10-28 12:35:44.000000000 +0100
-> @@ -131,8 +131,8 @@
->  #define BTTV_BOARD_XGUARD                  0x67
->  #define BTTV_BOARD_NEBULA_DIGITV           0x68
->  #define BTTV_BOARD_PV143                   0x69
-> -#define BTTV_BOARD_VD009X1_MINIDIN         0x6a
-> -#define BTTV_BOARD_VD009X1_COMBI           0x6b
-> +#define BTTV_BOARD_VD009X1_VD011_MINIDIN   0x6a
-> +#define BTTV_BOARD_VD009X1_VD011_COMBI     0x6b
->  #define BTTV_BOARD_VD009_MINIDIN           0x6c
->  #define BTTV_BOARD_VD009_COMBI             0x6d
->  #define BTTV_BOARD_IVC100                  0x6e
-> @@ -178,6 +178,10 @@
->  #define BTTV_BOARD_GEOVISION_GV600        0x96
->  #define BTTV_BOARD_KOZUMI_KTV_01C          0x97
->  #define BTTV_BOARD_ENLTV_FM_2             0x98
-> +#define BTTV_BOARD_VD012                  0x99
-> +#define BTTV_BOARD_VD012_X1               0x9a
-> +#define BTTV_BOARD_VD012_X2               0x9b
-> +
->  
->  /* more card-specific defines */
->  #define PT2254_L_CHANNEL 0x10
-> Nur in v4l-dvb-8486cbf6af4e_patched/: phytec_bttv_patch.
-> Nur in v4l-dvb-8486cbf6af4e_patched//v4l: .config.
-> Nur in v4l-dvb-8486cbf6af4e_patched//v4l: Kconfig.
-> Nur in v4l-dvb-8486cbf6af4e_patched//v4l: .kconfig.dep.
-> Nur in v4l-dvb-8486cbf6af4e_patched//v4l: Kconfig.kern.
-> Nur in v4l-dvb-8486cbf6af4e_patched//v4l: Makefile.media.
-> Nur in v4l-dvb-8486cbf6af4e_patched//v4l: modules.order.
-> Nur in v4l-dvb-8486cbf6af4e_patched//v4l: .myconfig.
-> Nur in v4l-dvb-8486cbf6af4e_patched//v4l: oss.
-> Nur in v4l-dvb-8486cbf6af4e_patched//v4l: .tmp_versions.
-> Nur in v4l-dvb-8486cbf6af4e_patched//v4l: .version.
-> 
-> 
-> 
-> 
-> **************************************************************************************************************************************
-> 
-> 
-> 
-> 
-> 
-> 
-> Yours faithfully / Mit freundlichen Grüßen
-> 
-> Dipl.-Ing. (FH) Dirk Heer
-> 
-> 
-> ++++++++++++++++++++++++++
-> PHYTEC Messtechnik GmbH
-> Abteilung Bildverarbeitung
-> Robert-Koch-Str. 39
-> D-55129 Mainz
-> 
-> Tel:   +49 (6131) / 9221-0
-> Fax:  +49 (6131) / 9221-33
-> 
-> E-Mail: d.heer@phytec.de
-> Internet: http://www.phytec.de
-> 
-> Handelsregister Mainz HRB 4656
-> Geschäftsführer: Dipl.-Ing. Michael Mitezki
-> +++++++++++++++++++++++++
-> 
-
+Laurent Pinchart
 
 --
 video4linux-list mailing list
