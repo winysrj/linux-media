@@ -1,24 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from nf-out-0910.google.com ([64.233.182.185])
+Received: from an-out-0708.google.com ([209.85.132.246])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1KzzQg-0004VA-Fx
-	for linux-dvb@linuxtv.org; Tue, 11 Nov 2008 21:01:40 +0100
-Received: by nf-out-0910.google.com with SMTP id g13so37307nfb.11
-	for <linux-dvb@linuxtv.org>; Tue, 11 Nov 2008 12:01:34 -0800 (PST)
-Date: Tue, 11 Nov 2008 21:01:22 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+	(envelope-from <richard.palmer@gmail.com>) id 1L2Ypf-0005T7-3t
+	for linux-dvb@linuxtv.org; Tue, 18 Nov 2008 23:14:06 +0100
+Received: by an-out-0708.google.com with SMTP id b38so1195934ana.41
+	for <linux-dvb@linuxtv.org>; Tue, 18 Nov 2008 14:13:58 -0800 (PST)
+Message-ID: <100c0ba70811181413p57abe7daw1f2ac4a89881d2f8@mail.gmail.com>
+Date: Tue, 18 Nov 2008 22:13:58 +0000
+From: "Richard Palmer" <richard.palmer@gmail.com>
 To: linux-dvb@linuxtv.org
-In-Reply-To: <4919D04A.2090105@andrei.myip.org>
-Message-ID: <alpine.DEB.2.00.0811112033390.22461@ybpnyubfg.ybpnyqbznva>
-References: <491236F2.4050101@andrei.myip.org>
-	<200811060153.37102.hftom@free.fr>
-	<49124960.6070101@andrei.myip.org>
-	<alpine.DEB.2.00.0811060903100.22461@ybpnyubfg.ybpnyqbznva>
-	<4918BC54.5030304@andrei.myip.org>
-	<alpine.DEB.2.00.0811110403000.22461@ybpnyubfg.ybpnyqbznva>
-	<4919D04A.2090105@andrei.myip.org>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] HD over satellite? (h.264)
+Content-Disposition: inline
+Subject: [linux-dvb] Reception problems with af9015 based USB stick
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -32,47 +25,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Tue, 11 Nov 2008, Florin Andrei wrote:
+Hi,
 
-> If the Nova-S-Plus can also receive some of the radio stations on Galaxy 
-> 25, then so much better. If not, no big deal.
+  After abandoning my nova-t pci card due to the never ending usb
+  disconnect/i2c problems, I thought I'd try a cheap dvb stick from
+  Maplin's (Twinhan af9015 based).
 
-There are a few encrypted radios there, as well as a pay-radio
-package.
+  Whilst it works well in single mode (in dual mode neither tuner
+  worked), there seem to be a lot more 'pops' in the sound and blocks
+  appearing in the picture. Are there any more tuning options I can try when
+  loading the module?. I have re-scanned the channels in MythTV but no
+  improvement. I know it's not a signal strength problem as both a set-top box
+  and the nova-t ran from the same aerial without these problems.
 
-Any free radios that you can receive with your present set-top 
-receiver, can also be received with any DVB-S card.  As
-my constant listening to time-shifted programming proves...
-Cursed sat radio.  Were it not for that, I might be doing
-something completely different and useful with my life
-instead.
+  I'm running Mythbuntu on a 2.6.24-19 kernel.
 
+Many thanks,
 
-Looks as if the majority of programming on this bird is
-comparable to what can be seen from europe on the Hotbirds
-satellites -- minus the italian platform and some european
-broadcasters.  No doubt with compression/quality levels
-that match -- just in case any readers in europe have any
-interest in the content carried.
-
-
-I don't know how the penetration of FTA DVB-S boxes in
-the target markets of this satellite compares with that
-in parts of Europe -- the satellite carriers can profit
-from the increased bitrate they would see with DVB-S2
-while still carrying highly-compressed SD MPEG2, or more
-likely they could practically triple the number of
-programmes per transponder by combining DVB-S2 and H.264,
-and my finger is far removed from the pulse of what any
-broadcasters, carriers, or playout centres might plan
-as a migration to more efficient standards in your part
-of the world.  This may be sooner if there is not a large
-installed base of customer-owned equipment to be obsoleted.
-
-
-Good luck with your card...
-
-barry bouwsma
+Richard
 
 _______________________________________________
 linux-dvb mailing list
