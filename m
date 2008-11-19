@@ -1,28 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAKKuktX027433
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 15:56:46 -0500
-Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.188])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAKKuXbE026223
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 15:56:33 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so329218nfc.21
-	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 12:56:33 -0800 (PST)
-From: Thomas Reiter <x535.01@gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-In-Reply-To: <412bdbff0811201051u22fc5a32if0b241c36ddf81b3@mail.gmail.com>
-References: <1226943947.6362.10.camel@ivan>
-	<09CD2F1A09A6ED498A24D850EB101208165C79D3B1@Colmatec004.COLMATEC.INT>
-	<b24afa610811180959q285f52abv7eb196e26e8d5c6b@mail.gmail.com>
-	<412bdbff0811190550i607a740bgae6348ac69253d7d@mail.gmail.com>
-	<1227206911.6617.6.camel@ivan>
-	<412bdbff0811201051u22fc5a32if0b241c36ddf81b3@mail.gmail.com>
-Content-Type: text/plain
-Date: Thu, 20 Nov 2008 21:56:29 +0100
-Message-Id: <1227214589.7054.6.camel@ivan>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJJl5vB023358
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 14:47:05 -0500
+Received: from smtp4-g19.free.fr (smtp4-g19.free.fr [212.27.42.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJJkrSM023280
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 14:46:54 -0500
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+In-Reply-To: <20081119181018.bf483949.ospite@studenti.unina.it>
+References: <20081119163009.25f0b377.ospite@studenti.unina.it>
+	<62e5edd40811190750o2792293ei6e32fb25d3819218@mail.gmail.com>
+	<20081119181018.bf483949.ospite@studenti.unina.it>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Wed, 19 Nov 2008 20:37:13 +0100
+Message-Id: <1227123433.1709.39.camel@localhost>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: RE : DVB-T2 (Mpeg4) in Norway
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH] gspca: ov534 camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,21 +29,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-to., 20.11.2008 kl. 13.51 -0500, skrev Devin Heitmueller:
-
+On Wed, 2008-11-19 at 18:10 +0100, Antonio Ospite wrote:
+> On Wed, 19 Nov 2008 16:50:20 +0100
+> "Erik Andrén" <erik.andren@gmail.com> wrote:
+	[snip]
+> > I would collect all the data to be written in tables and loop over
+> > them instead of having large sets of write calls.
 > 
-> Your system is still trying to load version 1.10 of the firmware.
-> Have you installed the latest v4l-dvb code by following the directions
-> on http://linuxtv.org/repo ?  If so, have you rebooted the computer
-> since then (so modules get unloaded).
+> I'd do that way too, normally.
+> But I wanted to respect the original form of the reverse engineered
+> code. If the driver really needs to be revolutionized, then it may be
+> worth copying/sharing stuff with the (non-gspca) ov772x driver.
 > 
-> Devin
+> I know that the driver is in a suboptimal state, the bridge chip
+> datasheet is not available, so I thought that as a first version it
+> could be still accepted.
 
-Thanks, I've got a list with stations now. It was my fault not to
-upgrade v4l and the docs for "scan" aren't very helpful. So I tried to
-scan without a startup scan file with one single frequency. After I
-realized that was the problem I've got a bunch of stations. 
+I think so. We have the original working driver. It may be optimized
+later.
 
+	[snip]
+> > When would you not like to have the maximum frame rate?
+> 
+> I just thought that capturing at 25fps is a typical case, and using a
+> default frame_rate near to that value would be sane, but please give
+> advices here.
+
+It seems fine to me.
+
+Cheers.
+
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
 
 
 --
