@@ -1,20 +1,29 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from djamil.net ([88.177.154.16] helo=route.djamil.net)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <djamil@djamil.net>) id 1Kyqry-0004rk-Ll
-	for linux-dvb@linuxtv.org; Sat, 08 Nov 2008 17:41:07 +0100
-Received: from [192.168.1.10] (toptop.djamil.net [192.168.1.10])
-	by route.djamil.net (Postfix) with ESMTP id 9726014331
-	for <linux-dvb@linuxtv.org>; Sat,  8 Nov 2008 17:40:10 +0100 (CET)
-From: djamil <djamil@djamil.net>
-To: linux-dvb <linux-dvb@linuxtv.org>
-In-Reply-To: <1226140296.7671.1.camel@toptop>
-References: <49150AF1.5060601@rongage.org>  <1226135032.7882.1.camel@toptop>
-	<1226135171.7882.2.camel@toptop>  <1226140296.7671.1.camel@toptop>
-Date: Sat, 08 Nov 2008 17:40:32 +0100
-Message-Id: <1226162432.7651.2.camel@toptop>
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]
+	helo=mail.wilsonet.com) by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <jarod@wilsonet.com>) id 1L2dM4-0007ez-RB
+	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 04:03:50 +0100
+Received: from mail.wilsonet.com (chronos.wilsonet.com [127.0.0.1])
+	by mail.wilsonet.com (Postfix) with ESMTP id 65A2017B12
+	for <linux-dvb@linuxtv.org>; Tue, 18 Nov 2008 22:03:42 -0500 (EST)
+Received: from mail.wilsonet.com ([127.0.0.1])
+	by mail.wilsonet.com (mail.wilsonet.com [127.0.0.1]) (amavisd-maia,
+	port 10024) with ESMTP id 27033-01 for <linux-dvb@linuxtv.org>;
+	Tue, 18 Nov 2008 22:03:38 -0500 (EST)
+Received: from [172.31.27.12] (static-72-93-233-5.bstnma.fios.verizon.net
+	[72.93.233.5])
+	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested) (Authenticated sender: jarod)
+	by mail.wilsonet.com (Postfix) with ESMTPSA id B02FF17B11
+	for <linux-dvb@linuxtv.org>; Tue, 18 Nov 2008 22:03:38 -0500 (EST)
+From: Jarod Wilson <jarod@wilsonet.com>
+To: linux-dvb@linuxtv.org
+In-Reply-To: <e246419f0811181722i2b614e3aj623f07909e7f7744@mail.gmail.com>
+References: <e246419f0811181722i2b614e3aj623f07909e7f7744@mail.gmail.com>
+Date: Tue, 18 Nov 2008 22:03:37 -0500
+Message-Id: <1227063817.3167.10.camel@icarus.wilsonet.com>
 Mime-Version: 1.0
-Subject: Re: [linux-dvb] HVR 1400
+Subject: Re: [linux-dvb] HVR-850 (HVR-950Q?) NTSC Analog Video
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -22,185 +31,40 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0404224660=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On Tue, 2008-11-18 at 20:22 -0500, Tom Wambold wrote:
+> Hello all:
+> 
+> I have a Hauppauge HVR-850, and I am trying to get it to work with
+> Linux.  I am able to use the au0828 drivers in the 2.6.27 kernel to
+> get digital signals from my 850, but I can't seem to find any way to
+> get an analog signal.  I have searched all around and could not find a
+> solution.  Does anyone have any information on this?
+> 
+> To clarify, my kernel version is 2.6.27, the HVR-850's USB ID is
+> 2040:7240.  I found some links saying that the 850 is similar to the
+> 950Q, if so, any information on that might help too.
 
---===============0404224660==
-Content-Type: multipart/alternative; boundary="=-WcvhHukmMEPBwXrvrVq6"
+I believe the HVR-850 is actually a rebadge of the original HVR-950,
+which didn't do QAM. The 950Q does QAM and uses a completely different
+chipset than the 850.
 
+> I know the hardware supports analog, as the Windows software is able
+> to get a signal.
 
---=-WcvhHukmMEPBwXrvrVq6
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
+I vaguely recall analog support being missing at one point, dunno if its
+been added. Don't know much of anything about it beyond that.
 
-hello
-
-I have cvs'd=20
-
-
-drwxr-sr-x 7 root src 4096 2008-11-08 17:01 cx23885-audio
-drwxr-sr-x 7 root src 4096 2008-11-08 17:27 cx23885-leadtek
-drwxr-sr-x 7 root src 4096 2008-11-08 17:21 cx23885-sram
-drwxr-sr-x 7 root src 4096 2008-11-08 17:09 cx23885-video
-
-from =20
-http://linuxtv.org/hg/~stoth/*
-
-
-unluckyly   the video part wont compile,  sram neither ,=20
-
-any one want to join me ?
+--jarod
 
 
-
-
-Le samedi 08 novembre 2008 =E0 11:31 +0100, djamil a =E9crit :
-
-> Hello
->=20
-> I have just installed the CVS version, modinfo talks about a video DEV
-> but no /dev/video are created
-> Can you help ?
->=20
->=20
-> regards
->=20
->=20
->=20
-> Le samedi 08 novembre 2008 =E0 10:06 +0100, djamil a =E9crit :
->=20
-> > sorry for the pollution
-> >=20
-> > I thaught seeing it in the sources ...
-> >=20
-> > Regards
-> >=20
-> >=20
-> >=20
-> > Le samedi 08 novembre 2008 =E0 10:03 +0100, djamil a =E9crit :
-> >=20
-> > > Hello gentlemen=20
-> > >=20
-> > > I still cant use svideo / composite with WinTv hvr1400 ?
-> > >=20
-> > > best regards=20
-> > >=20
-> > > _______________________________________________
-> > > linux-dvb mailing list
-> > > linux-dvb@linuxtv.org
-> > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> >=20
-> > _______________________________________________
-> > linux-dvb mailing list
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->=20
-> _______________________________________________
-> linux-dvb mailing list
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
---=-WcvhHukmMEPBwXrvrVq6
-Content-Type: text/html; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
-<HTML>
-<HEAD>
-  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=UTF-8">
-  <META NAME="GENERATOR" CONTENT="GtkHTML/3.24.1">
-</HEAD>
-<BODY>
-hello<BR>
-<BR>
-I have cvs'd <BR>
-<BR>
-<BR>
-drwxr-sr-x 7 root src 4096 2008-11-08 17:01 cx23885-audio<BR>
-drwxr-sr-x 7 root src 4096 2008-11-08 17:27 cx23885-leadtek<BR>
-drwxr-sr-x 7 root src 4096 2008-11-08 17:21 cx23885-sram<BR>
-drwxr-sr-x 7 root src 4096 2008-11-08 17:09 cx23885-video<BR>
-<BR>
-from&nbsp; <BR>
-<A HREF="http://linuxtv.org/hg/~stoth/*">http://linuxtv.org/hg/~stoth/*</A><BR>
-<BR>
-<BR>
-unluckyly&nbsp;&nbsp; the video part wont compile,&nbsp; sram neither , <BR>
-<BR>
-any one want to join me ?<BR>
-<BR>
-<BR>
-<BR>
-<BR>
-Le samedi 08 novembre 2008 &#224; 11:31 +0100, djamil a &#233;crit :<BR>
-<BLOCKQUOTE TYPE=CITE>
-    Hello<BR>
-    <BR>
-    I have just installed the CVS version, modinfo talks about a video DEV but no /dev/video are created<BR>
-    Can you help ?<BR>
-    <BR>
-    <BR>
-    regards<BR>
-    <BR>
-    <BR>
-    <BR>
-    Le samedi 08 novembre 2008 &#224; 10:06 +0100, djamil a &#233;crit :<BR>
-    <BLOCKQUOTE TYPE=CITE>
-        sorry for the pollution<BR>
-        <BR>
-        I thaught seeing it in the sources ...<BR>
-        <BR>
-        Regards<BR>
-        <BR>
-        <BR>
-        <BR>
-        Le samedi 08 novembre 2008 &#224; 10:03 +0100, djamil a &#233;crit :<BR>
-        <BLOCKQUOTE TYPE=CITE>
-            Hello gentlemen <BR>
-            <BR>
-            I still cant use svideo / composite with WinTv hvr1400 ?<BR>
-            <BR>
-            best regards 
-<PRE>
-_______________________________________________
-linux-dvb mailing list
-<A HREF="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A>
-<A HREF="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</A>
-</PRE>
-        </BLOCKQUOTE>
-<PRE>
-_______________________________________________
-linux-dvb mailing list
-<A HREF="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A>
-<A HREF="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</A>
-</PRE>
-    </BLOCKQUOTE>
-<PRE>
-_______________________________________________
-linux-dvb mailing list
-<A HREF="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</A>
-<A HREF="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</A>
-</PRE>
-</BLOCKQUOTE>
-</BODY>
-</HTML>
-
---=-WcvhHukmMEPBwXrvrVq6--
-
-
-
---===============0404224660==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0404224660==--
