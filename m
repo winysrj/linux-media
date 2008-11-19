@@ -1,19 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ns1.in-cube.fr ([81.91.64.63])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <simon.g.morin@gmail.com>) id 1L5IQX-0005LL-7b
-	for linux-dvb@linuxtv.org; Wed, 26 Nov 2008 12:19:26 +0100
-Received: from yoda.localnet
-	(LAubervilliers-151-11-33-138.w193-251.abo.wanadoo.fr
-	[193.251.65.138])
-	by ns1.in-cube.fr (Postfix) with ESMTP id DFF214E02E2
-	for <linux-dvb@linuxtv.org>; Wed, 26 Nov 2008 12:44:38 +0100 (CET)
-From: Simon MORIN <simon.g.morin@gmail.com>
-To: linux-dvb@linuxtv.org
-Date: Wed, 26 Nov 2008 12:18:48 +0100
+Received: from web38801.mail.mud.yahoo.com ([209.191.125.92])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <urishk@yahoo.com>) id 1L2iyO-0002xt-T3
+	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 10:03:47 +0100
+Date: Wed, 19 Nov 2008 01:03:10 -0800 (PST)
+From: Uri Shkolnik <urishk@yahoo.com>
+To: Linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Message-Id: <200811261218.49367.simon.g.morin@gmail.com>
-Subject: [linux-dvb] WinTV HVR 1700 cannot scan (DVB-T)
+Content-Type: multipart/mixed; boundary="0-1900201972-1227085390=:95476"
+Message-ID: <766150.95476.qm@web38801.mail.mud.yahoo.com>
+Subject: [linux-dvb] [PATCH 4/5] Kconfig and Makefile update
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,263 +17,174 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0303302191=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0303302191==
-Content-Type: multipart/alternative;
-  boundary="Boundary-00=_ZCTLJoDdTCTRS9W"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--0-1900201972-1227085390=:95476
+Content-Type: text/plain; charset=us-ascii
 
---Boundary-00=_ZCTLJoDdTCTRS9W
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+This patch provides the following:
 
-Hello everyone !
+A) SPI and SDIO interfaces driver support
 
-I have a problem  with a WinTV HVR 1700
-I installed the latest available driver via mercurial and the firmware (dvb-fe-
-tda10048-1.0.fw).
+B) DVB-API v5 (S2) and Siano's subsystems support
 
-The card seems to be well detected by its module (cx23885) as you can see in 
-the dmesg output.
-I saw there [1] that some others firmware were used (v4l-cx23885-avcore-01.fw 
-and v4l-cx23885-enc.fw). I installed them, but I don't see when they are 
-loaded.
-
-I am sure of the frequencies I used because I have successfully tested on the 
-same antenna, with the same frequencies with a WinTV Nova-T.
-
-I do not see where the problem can come from.
-
-[1] http://marc.info/?l=linux-dvb&m=120951119026705&w=2
-
-Thank you very much for any help.
-
-Simon MORIN
-
-------
-
-dmesg output :
-
-Linux video capture interface: v2.00                                                                                                                         
-cx23885 driver version 0.0.1 loaded                                                                                                                          
-ACPI: PCI Interrupt 0000:0e:00.0[A] -> GSI 17 (level, low) -> IRQ 17                                                                                         
-cx23885[0]/0: cx23885_dev_setup() Memory configured for PCIe bridge type 885                                                                                 
-cx23885[0]/0: cx23885_init_tsport(portno=2)                                                                                                                  
-CORE cx23885[0]: subsystem: 0070:8101, board: Hauppauge WinTV-HVR1700 
-[card=8,autodetected]                                                                  
-cx23885[0]/0: cx23885_pci_quirks()                                                                                                                           
-cx23885[0]/0: cx23885_dev_setup() tuner_type = 0x0 tuner_addr = 0x0                                                                                          
-cx23885[0]/0: cx23885_dev_setup() radio_type = 0x0 radio_addr = 0x0                                                                                          
-cx23885[0]/0: cx23885_reset()                                                                                                                                
-cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [VID A]                                                                                       
-cx23885[0]/0: cx23885_sram_channel_setup() 0x000104c0 <- 0x00000040                                                                                          
-cx23885[0]/0: cx23885_sram_channel_setup() 0x000104d0 <- 0x00000b80                                                                                          
-cx23885[0]/0: cx23885_sram_channel_setup() 0x000104e0 <- 0x000016c0                                                                                          
-cx23885[0]/0: [bridge 885] sram setup VID A: bpl=2880 lines=3                                                                                                
-cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch2]                                                                                             
-cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [TS1 B]                                                                                       
-cx23885[0]/0: cx23885_sram_channel_setup() 0x00010580 <- 0x00005000                                                                                          
-cx23885[0]/0: cx23885_sram_channel_setup() 0x00010590 <- 0x000052f0                                                                                          
-cx23885[0]/0: cx23885_sram_channel_setup() 0x000105a0 <- 0x000055e0                                                                                          
-cx23885[0]/0: cx23885_sram_channel_setup() 0x000105b0 <- 0x000058d0
-cx23885[0]/0: cx23885_sram_channel_setup() 0x000105c0 <- 0x00005bc0
-cx23885[0]/0: [bridge 885] sram setup TS1 B: bpl=752 lines=5
-cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch4]
-cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch5]
-cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [TS2 C]
-cx23885[0]/0: cx23885_sram_channel_setup() 0x000105e0 <- 0x00006000
-cx23885[0]/0: cx23885_sram_channel_setup() 0x000105f0 <- 0x000062f0
-cx23885[0]/0: cx23885_sram_channel_setup() 0x00010600 <- 0x000065e0
-cx23885[0]/0: cx23885_sram_channel_setup() 0x00010610 <- 0x000068d0
-cx23885[0]/0: cx23885_sram_channel_setup() 0x00010620 <- 0x00006bc0
-cx23885[0]/0: [bridge 885] sram setup TS2 C: bpl=752 lines=5
-cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch7]
-cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch8]
-cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch9]
-cx23885[0]: i2c scan: found device @ 0x10  [tda10048]
-cx23885[0]: i2c scan: found device @ 0xa0  [eeprom]
-cx23885[0]: i2c scan: found device @ 0x84  [tda8295]
-cx25840' 2-0044: cx25  0-21 found @ 0x88 (cx23885[0])
-cx23885[0]: i2c scan: found device @ 0x66  [???]
-cx23885[0]: i2c scan: found device @ 0x88  [cx25837]
-cx23885[0]: i2c scan: found device @ 0x98  [???]
-tveeprom 0-0050: Hauppauge model 81519, rev B2E9, serial# 3473167
-tveeprom 0-0050: MAC address is 00-0D-FE-34-FF-0F
-tveeprom 0-0050: tuner model is Philips 18271_8295 (idx 149, type 54)
-tveeprom 0-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB 
-Digital (eeprom 0xf4)
-tveeprom 0-0050: audio processor is CX23885 (idx 39)
-tveeprom 0-0050: decoder processor is CX23885 (idx 33)
-tveeprom 0-0050: has no radio
-cx23885[0]: hauppauge eeprom: model=81519
-cx23885_dvb_register() allocating 1 frontend(s)
-cx23885[0]: cx23885 based dvb card
-tda829x 1-0042: type set to tda8295
-tda18271 1-0060: creating new instance
-TDA18271HD/C1 detected @ 1-0060
-DVB: registering new adapter (cx23885[0])
-DVB: registering adapter 0 frontend 0 (NXP TDA10048HN DVB-T)...
-cx23885_dev_checkrevision() Hardware revision = 0xb0
-cx23885[0]/0: found at 0000:0e:00.0, rev: 2, irq: 17, latency: 0, mmio: 
-0xfde00000
-PCI: Setting latency timer of device 0000:0e:00.0 to 64
-tda10048_firmware_upload: waiting for firmware upload (dvb-fe-
-tda10048-1.0.fw)...
-firmware: requesting dvb-fe-tda10048-1.0.fw
-tda10048_firmware_upload: firmware read 24878 bytes.
-tda10048_firmware_upload: firmware uploading
-tda10048_firmware_upload: firmware uploaded
------
-
-Modules loaded :
-
-#$ modprobe  -v cx23885                                                                                                                                           
-insmod /lib/modules/2.6.26-bpo.1-686-
-bigmem/kernel/drivers/media/video/tveeprom.ko                                                                                          
-insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/btcx-
-risc.ko                                                                                         
-insmod /lib/modules/2.6.26-bpo.1-686-
-bigmem/kernel/drivers/media/video/videobuf-core.ko                                                                                     
-insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/dvb/dvb-
-core/dvb-core.ko                                                                                   
-insmod /lib/modules/2.6.26-bpo.1-686-
-bigmem/kernel/drivers/media/video/videobuf-dvb.ko                                                                                      
-insmod /lib/modules/2.6.26-bpo.1-686-
-bigmem/kernel/drivers/media/video/videobuf-dma-sg.ko                                                                                   
-insmod /lib/modules/2.6.26-bpo.1-686-
-bigmem/kernel/drivers/media/video/cx2341x.ko                                                                                           
-insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/v4l2-
-compat-ioctl32.ko                                                                               
-insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/v4l1-
-compat.ko                                                                                       
-insmod /lib/modules/2.6.26-bpo.1-686-
-bigmem/kernel/drivers/media/video/videodev.ko                                                                                          
-insmod /lib/modules/2.6.26-bpo.1-686-
-bigmem/kernel/drivers/media/video/cx23885/cx23885.ko debug=5 i2c_scan=1
-
---Boundary-00=_ZCTLJoDdTCTRS9W
-Content-Type: text/html;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
-<html><head><meta name="qrichtext" content="1" /><style type="text/css">
-p, li { white-space: pre-wrap; }
-</style></head><body style=" font-family:'DejaVu Sans'; font-size:10pt; font-weight:400; font-style:normal;">
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">Hello everyone !</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">I have a problem  with a WinTV HVR 1700</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">I installed the latest available driver via mercurial and the firmware (dvb-fe-tda10048-1.0.fw).</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">The card seems to be well detected by its module (cx23885) as you can see in the dmesg output.</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">I saw there [1] that some others firmware were used (v4l-cx23885-avcore-01.fw and v4l-cx23885-enc.fw). I installed them, but I don't see when they are loaded.</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">I am sure of the frequencies I used because I have successfully tested on the same antenna, with the same frequencies with a WinTV Nova-T.</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">I do not see where the problem can come from.</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">[1] http://marc.info/?l=linux-dvb&amp;m=120951119026705&amp;w=2</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">Thank you very much for any help.</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">Simon MORIN</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">------</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">dmesg output :</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">Linux video capture interface: v2.00                                                                                                                         </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885 driver version 0.0.1 loaded                                                                                                                          </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">ACPI: PCI Interrupt 0000:0e:00.0[A] -&gt; GSI 17 (level, low) -&gt; IRQ 17                                                                                         </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_dev_setup() Memory configured for PCIe bridge type 885                                                                                 </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_init_tsport(portno=2)                                                                                                                  </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">CORE cx23885[0]: subsystem: 0070:8101, board: Hauppauge WinTV-HVR1700 [card=8,autodetected]                                                                  </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_pci_quirks()                                                                                                                           </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_dev_setup() tuner_type = 0x0 tuner_addr = 0x0                                                                                          </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_dev_setup() radio_type = 0x0 radio_addr = 0x0                                                                                          </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_reset()                                                                                                                                </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [VID A]                                                                                       </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x000104c0 &lt;- 0x00000040                                                                                          </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x000104d0 &lt;- 0x00000b80                                                                                          </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x000104e0 &lt;- 0x000016c0                                                                                          </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: [bridge 885] sram setup VID A: bpl=2880 lines=3                                                                                                </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch2]                                                                                             </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [TS1 B]                                                                                       </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x00010580 &lt;- 0x00005000                                                                                          </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x00010590 &lt;- 0x000052f0                                                                                          </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x000105a0 &lt;- 0x000055e0                                                                                          </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x000105b0 &lt;- 0x000058d0</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x000105c0 &lt;- 0x00005bc0</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: [bridge 885] sram setup TS1 B: bpl=752 lines=5</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch4]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch5]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() Configuring channel [TS2 C]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x000105e0 &lt;- 0x00006000</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x000105f0 &lt;- 0x000062f0</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x00010600 &lt;- 0x000065e0</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x00010610 &lt;- 0x000068d0</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() 0x00010620 &lt;- 0x00006bc0</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: [bridge 885] sram setup TS2 C: bpl=752 lines=5</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch7]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch8]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: cx23885_sram_channel_setup() Erasing channel [ch9]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]: i2c scan: found device @ 0x10  [tda10048]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]: i2c scan: found device @ 0xa0  [eeprom]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]: i2c scan: found device @ 0x84  [tda8295]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx25840' 2-0044: cx25  0-21 found @ 0x88 (cx23885[0])</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]: i2c scan: found device @ 0x66  [???]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]: i2c scan: found device @ 0x88  [cx25837]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]: i2c scan: found device @ 0x98  [???]</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tveeprom 0-0050: Hauppauge model 81519, rev B2E9, serial# 3473167</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tveeprom 0-0050: MAC address is 00-0D-FE-34-FF-0F</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tveeprom 0-0050: tuner model is Philips 18271_8295 (idx 149, type 54)</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tveeprom 0-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tveeprom 0-0050: audio processor is CX23885 (idx 39)</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tveeprom 0-0050: decoder processor is CX23885 (idx 33)</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tveeprom 0-0050: has no radio</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]: hauppauge eeprom: model=81519</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885_dvb_register() allocating 1 frontend(s)</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]: cx23885 based dvb card</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tda829x 1-0042: type set to tda8295</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tda18271 1-0060: creating new instance</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">TDA18271HD/C1 detected @ 1-0060</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">DVB: registering new adapter (cx23885[0])</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">DVB: registering adapter 0 frontend 0 (NXP TDA10048HN DVB-T)...</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885_dev_checkrevision() Hardware revision = 0xb0</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">cx23885[0]/0: found at 0000:0e:00.0, rev: 2, irq: 17, latency: 0, mmio: 0xfde00000</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">PCI: Setting latency timer of device 0000:0e:00.0 to 64</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tda10048_firmware_upload: waiting for firmware upload (dvb-fe-tda10048-1.0.fw)...</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">firmware: requesting dvb-fe-tda10048-1.0.fw</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tda10048_firmware_upload: firmware read 24878 bytes.</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tda10048_firmware_upload: firmware uploading</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">tda10048_firmware_upload: firmware uploaded</p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">-----</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">Modules loaded :</p>
-<p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;"></p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">#$ modprobe  -v cx23885                                                                                                                                           </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/tveeprom.ko                                                                                          </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/btcx-risc.ko                                                                                         </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/videobuf-core.ko                                                                                     </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/dvb/dvb-core/dvb-core.ko                                                                                   </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/videobuf-dvb.ko                                                                                      </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/videobuf-dma-sg.ko                                                                                   </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/cx2341x.ko                                                                                           </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/v4l2-compat-ioctl32.ko                                                                               </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/v4l1-compat.ko                                                                                       </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/videodev.ko                                                                                          </p>
-<p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; -qt-user-state:0;">insmod /lib/modules/2.6.26-bpo.1-686-bigmem/kernel/drivers/media/video/cx23885/cx23885.ko debug=5 i2c_scan=1</p></body></html>
---Boundary-00=_ZCTLJoDdTCTRS9W--
+C) Dynamic configuration for single module
 
 
---===============0303302191==
+
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+
+
+      
+--0-1900201972-1227085390=:95476
+Content-Type: text/x-diff; name="smsbuild_patch.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smsbuild_patch.diff"
+
+VGhpcyBwYXRjaCBwcm92aWRlcyB0aGUgZm9sbG93aW5nOg0KQSkgU1BJIGFu
+ZCBTRElPIGludGVyZmFjZXMgZHJpdmVyIHN1cHBvcnQNCkIpIERWQi1BUEkg
+djUgKFMyKSBhbmQgU2lhbm8ncyBzdWJzeXN0ZW1zIHN1cHBvcnQNCkMpIER5
+bmFtaWMgY29uZmlndXJhdGlvbiBmb3Igc2luZ2xlIG1vZHVsZQ0KDQoKU2ln
+bmVkLW9mZi1ieTogVXJpIFNoa29sbmlrIDx1cmlzQHNpYW5vLW1zLmNvbT4K
+CgpkaWZmIC11TnIgdjRsLWR2Yi1jNWY5NzZjYWIwMTEvbGludXgvZHJpdmVy
+cy9tZWRpYS9kdmIvc2lhbm8vS2NvbmZpZyB2NGwtZHZiLWM1Zjk3NmNhYjAx
+MV8wMDAzL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL3NpYW5vL0tjb25maWcK
+LS0tIHY0bC1kdmItYzVmOTc2Y2FiMDExL2xpbnV4L2RyaXZlcnMvbWVkaWEv
+ZHZiL3NpYW5vL0tjb25maWcJMjAwOC0xMS0xNiAxNTo0MDoyMS4wMDAwMDAw
+MDAgKzAyMDAKKysrIHY0bC1kdmItYzVmOTc2Y2FiMDExXzAwMDMvbGludXgv
+ZHJpdmVycy9tZWRpYS9kdmIvc2lhbm8vS2NvbmZpZwkyMDA4LTExLTE5IDEw
+OjMzOjEzLjAwMDAwMDAwMCArMDIwMApAQCAtMiwyNSArMiw2OSBAQAogIyBT
+aWFubyBNb2JpbGUgU2lsaWNvbiBEaWdpdGFsIFRWIGRldmljZSBjb25maWd1
+cmF0aW9uCiAjCiAKLWNvbmZpZyBEVkJfU0lBTk9fU01TMVhYWAotCXRyaXN0
+YXRlICJTaWFubyBTTVMxWFhYIFVTQiBkb25nbGUgc3VwcG9ydCIKLQlkZXBl
+bmRzIG9uIERWQl9DT1JFICYmIFVTQgotCS0tLWhlbHAtLS0KLQkgIENob29z
+ZSBZIGhlcmUgaWYgeW91IGhhdmUgYSBVU0IgZG9uZ2xlIHdpdGggYSBTTVMx
+WFhYIGNoaXBzZXQuCi0KLQkgIFRvIGNvbXBpbGUgdGhpcyBkcml2ZXIgYXMg
+YSBtb2R1bGUsIGNob29zZSBNIGhlcmU6IHRoZQotCSAgbW9kdWxlIHdpbGwg
+YmUgY2FsbGVkIHNtczF4eHguCi0KLWNvbmZpZyBEVkJfU0lBTk9fU01TMVhY
+WF9TTVNfSURTCi0JYm9vbCAiRW5hYmxlIHN1cHBvcnQgZm9yIFNpYW5vIE1v
+YmlsZSBTaWxpY29uIGRlZmF1bHQgVVNCIElEcyIKLQlkZXBlbmRzIG9uIERW
+Ql9TSUFOT19TTVMxWFhYCitjb25maWcgU01TX1NJQU5PX01EVFYKKwl0cmlz
+dGF0ZSAiU2lhbm8gTURUViByZWNlaXZlciIKKwlkZWZhdWx0IG0KKwktLS1o
+ZWxwLS0tCisJQ2hvb3NlIFkgb3IgTSBoZXJlIGlmIHlvdSBoYXZlIE1EVFYg
+cmVjZWl2ZXIgd2l0aCBhIFNpYW5vIGNoaXBzZXQuCisKKwlUbyBjb21waWxl
+IHRoaXMgZHJpdmVyIGFzIGEgbW9kdWxlLCBjaG9vc2UgTSBoZXJlCisJKFRo
+ZSBtb2R1bGVzIHdpbGwgYmUgY2FsbGVkIHNtc21kdHYpLgorCisJTm90ZTog
+QWxsIGRlcGVuZGVudHMsIGlmIHNlbGVjdGVkLCB3aWxsIGJlIHBhcnQgb2Yg
+dGhpcyBtb2R1bGUuCisKKwlGdXJ0aGVyIGRvY3VtZW50YXRpb24gb24gdGhp
+cyBkcml2ZXIgY2FuIGJlIGZvdW5kIG9uIHRoZSBXV1cgYXQgaHR0cDovL3d3
+dy5zaWFuby1tcy5jb20vCisKK2lmIFNNU19TSUFOT19NRFRWCisKKyMgS2Vy
+bmVsIHN1YiBzeXN0ZW1zIHN1cHBvcnQKKworY29uZmlnIFNNU19EVkIzX1NV
+QlNZUworCWJvb2wgIkRWQiB2LjMgU3Vic3lzdGVtIHN1cHBvcnQiCiAJZGVm
+YXVsdCB5CiAJLS0taGVscC0tLQotCSAgQ2hvb3NlIFkgaGVyZSBpZiB5b3Ug
+aGF2ZSBhIFVTQiBkb25nbGUgd2l0aCBhIFNNUzFYWFggY2hpcHNldAotCSAg
+dGhhdCB1c2VzIFNpYW5vIE1vYmlsZSBTaWxpY29uJ3MgZGVmYXVsdCB1c2Ig
+dmlkOnBpZC4KKwlDaG9vc2UgaWYgeW91IHdvdWxkIGxpa2UgdG8gaGF2ZSBE
+VkIgdi4zIGtlcm5lbCBzdWItc3lzdGVtIHN1cHBvcnQuCisKK2NvbmZpZyBT
+TVNfRFZCNV9TMkFQSV9TVUJTWVMKKwlib29sICJEVkIgdi41IChTMiBBUEkp
+IFN1YnN5c3RlbSBzdXBwb3J0IgorCWRlZmF1bHQgbgorCS0tLWhlbHAtLS0K
+KwlDaG9vc2UgaWYgeW91IHdvdWxkIGxpa2UgdG8gaGF2ZSBEVkIgdi41IChT
+MiBBUEkpIGtlcm5lbCBzdWItc3lzdGVtIHN1cHBvcnQuCisKK2NvbmZpZyBT
+TVNfSE9TVExJQl9TVUJTWVMKKwlib29sICJIb3N0IExpYnJhcnkgU3Vic3lz
+dGVtIHN1cHBvcnQiCisJZGVmYXVsdCBuCisJLS0taGVscC0tLQorCUNob29z
+ZSBpZiB5b3Ugd291bGQgbGlrZSB0byBoYXZlIFNpYW5vJ3MgaG9zdCBsaWJy
+YXJ5IGtlcm5lbCBzdWItc3lzdGVtIHN1cHBvcnQuCiAKLQkgIENob29zZSBO
+IGhlcmUgaWYgeW91IHdvdWxkIHByZWZlciB0byB1c2UgU2lhbm8ncyBleHRl
+cm5hbCBkcml2ZXIuCitpZiBTTVNfSE9TVExJQl9TVUJTWVMKIAotCSAgRnVy
+dGhlciBkb2N1bWVudGF0aW9uIG9uIHRoaXMgZHJpdmVyIGNhbiBiZSBmb3Vu
+ZCBvbiB0aGUgV1dXIGF0Ci0JICA8aHR0cDovL3d3dy5zaWFuby1tcy5jb20v
+Pi4KK2NvbmZpZyBTTVNfTkVUX1NVQlNZUworCWJvb2wgIlNpYW5vIE5ldHdv
+cmsgQWRhcHRlciIKKwlkZWZhdWx0IG4KKwktLS1oZWxwLS0tCisJQ2hvb3Nl
+IGlmIHlvdSB3b3VsZCBsaWtlIHRvIGhhdmUgU2lhbm8ncyBuZXR3b3JrIGFk
+YXB0ZXIgc3VwcG9ydC4KKworZW5kaWYgIyBTTVNfSE9TVExJQl9TVUJTWVMK
+KworIyBIYXJkd2FyZSBpbnRlcmZhY2VzIHN1cHBvcnQKKworY29uZmlnIFNN
+U19VU0JfRFJWCisJYm9vbCAiVVNCIGludGVyZmFjZSBzdXBwb3J0IgorCWRl
+ZmF1bHQgeQorCS0tLWhlbHAtLS0KKwlDaG9vc2UgaWYgeW91IHdvdWxkIGxp
+a2UgdG8gaGF2ZSBTaWFubydzIHN1cHBvcnQgZm9yIFVTQiBpbnRlcmZhY2UK
+KworY29uZmlnIFNNU19TRElPX0RSVgorCWJvb2wgIlNESU8gaW50ZXJmYWNl
+IHN1cHBvcnQiCisJZGVmYXVsdCBuCisJLS0taGVscC0tLQorCUNob29zZSBp
+ZiB5b3Ugd291bGQgbGlrZSB0byBoYXZlIFNpYW5vJ3Mgc3VwcG9ydCBmb3Ig
+U0RJTyBpbnRlcmZhY2UKKworY29uZmlnIFNNU19TUElfUFhBMzEwX0RSVgor
+CWJvb2wgIlBYQSAzMTAgU1BJIGludGVyZmFjZSBzdXBwb3J0IgorCWRlZmF1
+bHQgbgorCS0tLWhlbHAtLS0KKwlDaG9vc2UgaWYgeW91IHdvdWxkIGxpa2Ug
+dG8gaGF2ZSBTaWFubydzIHN1cHBvcnQgZm9yIFBYQSAzMTAgU1BJIGludGVy
+ZmFjZQogCitlbmRpZiAjIFNNU19TSUFOT19NRFRWCmRpZmYgLXVOciB2NGwt
+ZHZiLWM1Zjk3NmNhYjAxMS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9zaWFu
+by9NYWtlZmlsZSB2NGwtZHZiLWM1Zjk3NmNhYjAxMV8wMDAzL2xpbnV4L2Ry
+aXZlcnMvbWVkaWEvZHZiL3NpYW5vL01ha2VmaWxlCi0tLSB2NGwtZHZiLWM1
+Zjk3NmNhYjAxMS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9zaWFuby9NYWtl
+ZmlsZQkyMDA4LTExLTE2IDE1OjQwOjIxLjAwMDAwMDAwMCArMDIwMAorKysg
+djRsLWR2Yi1jNWY5NzZjYWIwMTFfMDAwMy9saW51eC9kcml2ZXJzL21lZGlh
+L2R2Yi9zaWFuby9NYWtlZmlsZQkyMDA4LTExLTE5IDEwOjMzOjE4LjAwMDAw
+MDAwMCArMDIwMApAQCAtMSw4ICsxLDEwMiBAQAotc21zMXh4eC1vYmpzIDo9
+IHNtc2NvcmVhcGkubyBzbXN1c2IubyBzbXNkdmIubyBzbXMtY2FyZHMubwor
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIworIworIyBTaWFu
+byBNb2JpbGUgU2lsaWNvbiwgSW5jLgorIyBNRFRWIHJlY2VpdmVyIGtlcm5l
+bCBtb2R1bGVzLgorIyBDb3B5cmlnaHQgKEMpIDIwMDYtMjAwOCwgVXJpIFNo
+a29sbmlrCisjCisjIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOiB5
+b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CisjIGl0IHVu
+ZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vu
+c2UgYXMgcHVibGlzaGVkIGJ5CisjIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5k
+YXRpb24sIGVpdGhlciB2ZXJzaW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yCisj
+IChhdCB5b3VyIG9wdGlvbikgYW55IGxhdGVyIHZlcnNpb24uCisjCisjIFRo
+aXMgcHJvZ3JhbSBpcyBkaXN0cmlidXRlZCBpbiB0aGUgaG9wZSB0aGF0IGl0
+IHdpbGwgYmUgdXNlZnVsLAorIyBidXQgV0lUSE9VVCBBTlkgV0FSUkFOVFk7
+IHdpdGhvdXQgZXZlbiB0aGUgaW1wbGllZCB3YXJyYW50eSBvZgorIyBNRVJD
+SEFOVEFCSUxJVFkgb3IgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBP
+U0UuICBTZWUgdGhlCisjIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIGZv
+ciBtb3JlIGRldGFpbHMuCisjCisjIFlvdSBzaG91bGQgaGF2ZSByZWNlaXZl
+ZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlCisj
+IGFsb25nIHdpdGggdGhpcyBwcm9ncmFtLiAgSWYgbm90LCBzZWUgPGh0dHA6
+Ly93d3cuZ251Lm9yZy9saWNlbnNlcy8+LgorIworIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIwogCi1vYmotJChDT05GSUdfRFZCX1NJQU5P
+X1NNUzFYWFgpICs9IHNtczF4eHgubwogCi1FWFRSQV9DRkxBR1MgKz0gLUlk
+cml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZQorIyBMb2NhbCB2YXJpYWJsZXMg
+aW5pdGlhbGl6YXRpb24KK1NNU19EVkIzX1NVQlNZUyA6PSAwCitTTVNfRFZC
+NV9TMkFQSV9TVUJTWVMgOj0gMAorU01TX0hPU1RMSUJfU1VCU1lTIDo9IDAK
+KworU01TX1VTQl9EUlYgOj0gMAorU01TX1NESU9fRFJWIDo9IDAKK1NNU19T
+UElfUFhBMzEwX0RSViA6PSAwCisKKworIyBEZWZhdWx0IG9iamVjdCwgaW5j
+bHVkZSBpbiBldmVyeSBidWlsZCB2YXJpYW50CitTTVNPQkogOj0gc21zY29y
+ZWFwaS5vIHNtcy1jYXJkcy5vCiAKIEVYVFJBX0NGTEFHUyArPSAkKGV4dHJh
+LWNmbGFncy15KSAkKGV4dHJhLWNmbGFncy1tKQogCisKKyMgS2VybmVsIHN1
+YnN5c3RlbXMgc3VwcG9ydAoraWZkZWYgQ09ORklHX1NNU19EVkIzX1NVQlNZ
+UworaWZuZXEgKCQoQ09ORklHX1NNU19EVkIzX1NVQlNZUyksbikKK1NNU19E
+VkIzX1NVQlNZUyA6PSAxCitFWFRSQV9DRkxBR1MgKz0gLURTTVNfRFZCM19T
+VUJTWVMgLUlkcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZQorU01TT0JKICs9
+IHNtc2R2Yi5vCitlbmRpZgorZW5kaWYKKworaWZkZWYgQ09ORklHX1NNU19E
+VkI1X1MyQVBJX1NVQlNZUworaWZuZXEgKCQoQ09ORklHX1NNU19EVkI1X1My
+QVBJX1NVQlNZUyksbikKK1NNU19EVkI1X1MyQVBJX1NVQlNZUyA6PSAxCitF
+WFRSQV9DRkxBR1MgKz0gLURTTVNfRFZCNV9TMkFQSV9TVUJTWVMKK2VuZGlm
+CitlbmRpZgorCitpZmRlZiBDT05GSUdfU01TX0hPU1RMSUJfU1VCU1lTCitp
+Zm5lcSAoJChDT05GSUdfU01TX0hPU1RMSUJfU1VCU1lTKSxuKQorU01TX0hP
+U1RMSUJfU1VCU1lTIDo9IDEKK0VYVFJBX0NGTEFHUyArPSAtRFNNU19IT1NU
+TElCX1NVQlNZUworU01TT0JKICs9IHNtc2NoYXIubworZW5kaWYKK2VuZGlm
+CisKK2lmZGVmIENPTkZJR19TTVNfTkVUX1NVQlNZUworaWZuZXEgKCQoQ09O
+RklHX1NNU19ORVRfU1VCU1lTKSxuKQorU01TX05FVF9TVUJTWVMgOj0gMQor
+RVhUUkFfQ0ZMQUdTICs9IC1EU01TX05FVF9TVUJTWVMKK1NNU09CSiArPSBz
+bXNuZXQubworZW5kaWYKK2VuZGlmCisKKyMgSGFyZHdhcmUgKGhvc3QpIGlu
+dGVyZmFjZXMgc3VwcG9ydAoraWZkZWYgQ09ORklHX1NNU19VU0JfRFJWCitp
+Zm5lcSAoJChDT05GSUdfU01TX1VTQl9EUlYpLG4pCitTTVNfVVNCX0RSViA6
+PSAxCitFWFRSQV9DRkxBR1MgKz0gLURTTVNfVVNCX0RSVgorU01TT0JKICs9
+IHNtc3VzYi5vCitlbmRpZgorZW5kaWYKKworaWZkZWYgQ09ORklHX1NNU19T
+RElPX0RSVgoraWZuZXEgKCQoQ09ORklHX1NNU19TRElPX0RSViksbikKK1NN
+U19TRElPX0RSViA6PSAxCitFWFRSQV9DRkxBR1MgKz0gLURTTVNfU0RJT19E
+UlYKK1NNU09CSiArPSBzbXNzZGlvLm8KK2VuZGlmCitlbmRpZgorCitpZmRl
+ZiBDT05GSUdfU01TX1NQSV9QWEEzMTBfRFJWCitpZm5lcSAoJChDT05GSUdf
+U01TX1NQSV9QWEEzMTBfRFJWKSxuKQorU01TX1NQSV9QWEEzMTBfRFJWIDo9
+IDEKK0VYVFJBX0NGTEFHUyArPSAtRFNNU19TUElfUFhBMzEwX0RSVgorU01T
+T0JKICs9IHNtc3NwaWxvZy5vIHNtc3NwaWNvbW1vbi5vIHNtc3NwaXBoeV9w
+eGEubworZW5kaWYKK2VuZGlmCisKKyMgQWxsIHNlbGVjdGVkIGluIG9uZSBt
+b2R1bGUgbmFtZWQgc21zbWR0dgorc21zbWR0di1vYmpzIDo9ICQoU01TT0JK
+KQorCitvYmotJChDT05GSUdfU01TX1NJQU5PX01EVFYpIDo9IHNtc21kdHYu
+bworCisKKwo=
+
+--0-1900201972-1227085390=:95476
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -287,4 +194,4 @@ _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0303302191==--
+--0-1900201972-1227085390=:95476--
