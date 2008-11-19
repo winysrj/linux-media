@@ -1,19 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Sat, 29 Nov 2008 00:39:40 +0100
-References: <200811271536.46779.laurent.pinchart@skynet.be>
-	<200811281730.55232.laurent.pinchart@skynet.be>
-	<20081128164707.2c0889c9@pedra.chehab.org>
-In-Reply-To: <20081128164707.2c0889c9@pedra.chehab.org>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJDqpYQ020084
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 08:52:51 -0500
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJDqbbi020503
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 08:52:37 -0500
+Received: by ug-out-1314.google.com with SMTP id j30so537580ugc.13
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 05:52:35 -0800 (PST)
+Message-ID: <30353c3d0811190552y2ef78b53s833182da377a5046@mail.gmail.com>
+Date: Wed, 19 Nov 2008 08:52:35 -0500
+From: "David Ellingsworth" <david@identd.dyndns.org>
+To: "Jean-Francois Moine" <moinejf@free.fr>
+In-Reply-To: <1227090732.2998.8.camel@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200811290039.41099.laurent.pinchart@skynet.be>
-Cc: video4linux-list@redhat.com, Michael Schimek <mschimek@gmx.at>
-Subject: Re: [PATCH 4/4] v4l2: Document zoom and privacy controls
+References: <200811151218.45664.m.kozlowski@tuxland.pl>
+	<200811162224.47885.m.kozlowski@tuxland.pl>
+	<1227034668.1703.4.camel@localhost>
+	<200811182219.38925.m.kozlowski@tuxland.pl>
+	<1227090732.2998.8.camel@localhost>
+Cc: v4l-dvb-maintainer@linuxtv.org, Mariusz Kozlowski <m.kozlowski@tuxland.pl>,
+	video4linux-list@redhat.com
+Subject: Re: [BUG] zc3xx oopses on unplug: unable to handle kernel paging
+	request
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,46 +36,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Mauro,
-
-On Friday 28 November 2008, Mauro Carvalho Chehab wrote:
-> On Fri, 28 Nov 2008 17:30:55 +0100
-> Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
-> > On Friday 28 November 2008, Mauro Carvalho Chehab wrote:
-> > > On Thu, 27 Nov 2008 15:48:31 +0100
-> > > Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
-> > > > +
-> > > > +          <row>
-> > > > +            <entry
-> > > > spanname="id"><constant>V4L2_CID_ZOOM_ABSOLUTE</constant>&nbsp;</entr
-> > > >y> + <entry>integer</entry>
-> > > > +          </row><row><entry spanname="descr">Specify the objective
-> > > > lens +focal length as an absolute value. The zoom unit is
-> > > > driver-specific and its +value should be a positive integer.</entry>
-> > >
-> > > Hmm... I think it would be better to have some unit for the controls,
-> > > or at least a way to report the unit to userspace.
-> >
-> > Why ? Does it matter if the zoom is expressed as an absolute focal lens
-> > in millimetres or mils, or as a relative value between 0 an 255 ? Most
-> > devices will use an arbitrary scale, probably 0-255, to cover the whole
-> > zoom range. There is no unit associated with that.
+> Hi Mariusz,
 >
-> This may matter on professional cameras, like those used on surveillance,
-> and special-purpose cameras like microscope cams, dental cams and cameras
-> used in robotics.
+> You have the oops thanks to poison and it is not enabled in my kernel.
+>
+> I found the real bug: the device structure was part of the gspca device
+> and it was freed on close after webcam unplug while streaming.
 
-Cameras (or rather drivers) will report the zoom minimum and maximum values 
-through VIDIOC_QUERY_CTRL. The vast majority of devices will use an arbitrary 
-scale. As long as the userspace application knows the zoom boundaries, which 
-would it need a unit ? What added value would that bring, beside just being 
-displayed on a GUI label ? Specialised applications performing complex 
-computation on the focal length involving units will need to be device-aware 
-anyway.
+Jean-Francois,
 
-Best regards,
+I reviewed your patch and in my opinion it is the wrong thing to do.
+With the recent modifications to v4l2 it is very safe and practical to
+embed the video_device struct within a driver struct. The containing
+structure however should not be freed until the release callback in
+the video_device structure is called. This callback is called after
+all open handles have been closed, it is no longer called immediately
+after video_unregister_device is called.
 
-Laurent Pinchart
+The v4l2 subsystem was changed since every driver using v4l2 would
+have needed to implement a reference count in order to properly insure
+any structure containing the video_device struct was not freed at
+inappropriate times. Removing this responsibility from every
+sub-driver was a very practical thing to do since it helped reduce
+redundant code and increase readability.
+
+For an example of how this should be done, please review the
+stk-webcam driver in the v4l-dvb hg repository. I updated it not to
+long ago to take advantage of the changes made to the v4l2 subsystem.
+The net effect of the changes was a reduction of about 80 lines of
+code from the stk-webcam driver, while far less than that were needed
+in the v4l2 subsystem.
+
+Regards,
+
+David Ellingsworth
+
+>
+> I join a patch I merged from the linux-2.6.28-rc5 source (not compiled -
+> the original patch is the last one in my mercurial repository).
+>
+> Thanks again.
 
 --
 video4linux-list mailing list
