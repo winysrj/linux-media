@@ -1,32 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAF4uYFD003275
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 23:56:34 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAF4uGpB015033
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 23:56:19 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so1395201fga.7
-	for <video4linux-list@redhat.com>; Fri, 14 Nov 2008 20:56:16 -0800 (PST)
-Message-ID: <d9def9db0811142056p79a1fc3br5ee1830365fc89b9@mail.gmail.com>
-Date: Sat, 15 Nov 2008 05:56:16 +0100
-From: "Markus Rechberger" <mrechberger@gmail.com>
-To: "Ben Klein" <shacklein@gmail.com>, video4linux-list@redhat.com
-In-Reply-To: <d7e40be30811141517p5700f803t731ec578f1cabd59@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJ9NQwQ027887
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 04:23:26 -0500
+Received: from smtp4.versatel.nl (smtp4.versatel.nl [62.58.50.91])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJ9NDVF006259
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 04:23:14 -0500
+Message-ID: <4923DC47.6010101@hhs.nl>
+Date: Wed, 19 Nov 2008 10:28:39 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <491339D9.2010504@personnelware.com> <4913E9DB.8040801@hhs.nl>
-	<200811071050.25149.hverkuil@xs4all.nl>
-	<20081107161956.c096dd03.ospite@studenti.unina.it>
-	<alpine.DEB.1.10.0811071416380.25756@vegas>
-	<alpine.DEB.1.10.0811130651170.2643@vegas>
-	<d9def9db0811130440t17b05c58q603a14e446e417e5@mail.gmail.com>
-	<alpine.DEB.1.10.0811141033000.23321@vegas>
-	<d9def9db0811140750s15969a1fh1272402de897944d@mail.gmail.com>
-	<d7e40be30811141517p5700f803t731ec578f1cabd59@mail.gmail.com>
-Cc: 
-Subject: Re: USB Capture device
+Cc: =?windows-1252?Q?Luk=E1=9A_Karas?= <lukas.karas@centrum.cz>
+Subject: RFC: API to query webcams for various webcam specific properties
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -38,130 +25,77 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, Nov 15, 2008 at 12:17 AM, Ben Klein <shacklein@gmail.com> wrote:
-> In general, there is no price advantage with getting a capture device
-> without a tuner. There are at least two reasons for this:
->
-> 1) Less demand for just a capture device. People want to turn their
-> computers into idiot boxes
->
-> 2) Most capture-only cards are (probably) TV tuners with the tuner disabled.
-> It's cheaper for them to make that way.
->
-> I got a cheap-and-nasty USB em28xx that pretty much *just* works, but it's
-> enough for me. It has a usb-audio device in it which seems to not sync up
-> with the video. The only em28xx card= options that work with it are for
-> cards with tuners (though that doesn't necessarily mean that the card has a
-> tuner).
->
+Hi All,
 
-I'm improving this right now actually. Most applications are just
-decoupled in that area
-processing audio and video separated. I'll see how much can be done.
-I think it can end up in a quite acceptable result.
-I also got around to change the whole audio detection for these
-devices in userland.
-Some interesting things will come up in that area within the next weeks.
+With libv4l giving us the ability to do some much needed image conversion in 
+userspace, it has become clear that for (some) webcams more processing then 
+just format conversion is necessary.
 
-br,
-Markus
+So far I've been keeping various proposed patches for doing things like 
+software white balance correction out of libv4l as I first want a proper API 
+for drivers to signal they need this to libv4l.
 
-> I also have a PCI K-World Vstream Xpert DVB-T (cx88), which I selected due
-> to it having a good price and analogue capture. Turns out I've used the
-> analogue capture more than the digital reception. :) The analogue capture
-> *looks like* a full TV tuner with the tuner disabled, but I could be wrong
-> about this too.
->
+Part of the problem is that various cams needs various additional processing 
+steps for best results, and currently there is no way to ask a driver which 
+additional steps should be done (and using which values). Another part is that 
+we do not have a complete picture of all possible existing processing steps we 
+want to do, so what ever we come up with needs to be extensible.
+
+To give an idea, here are a few things which libv4l should know about an video 
+input source:
+-does this cam need software whitebalance
+-does this cam need software auto exposure
+-does this cam need gamma correction, and what initial gamma to use
+-if the sensor is mounted upside down, and the hardware cannot flip the image
+  itself
+
+This has been discussed at the plumbers conference, and there the solution we 
+came up with for "does this cam need software whitebalance?" was (AFAIK), check 
+if has a V4L2_CID_AUTO_WHITE_BALANCE, if it does not do software whitebalance. 
+This of course means we will be doing software whitebalance on things like 
+framefrabbers etc. too, so the plan was to combine this with an "is_webcam" 
+flag in the capabilities struct. The is_webcam workaround, already shows what 
+is wrong with this approach, we are checking for something not being there, 
+were we should be checking for the driver asking something actively,
+
+So we need an extensible mechanism to query devices if they could benefit from 
+certain additional processing being done on the generated image data.
+
+This sounds a lot like the existing mechanism for v4l2 controls, except that 
+these are all read only controls, and not controls which we want to show up in 
+v4l control panels like v4l2ucp.
+
+Still I think that using the existing controls mechanism is the best way todo 
+this, so therefor I propose to add a number of standard CID's to query the 
+things listed above. All these CID's will always be shown by the driver as 
+readonly and disabled (as they are not really controls).
+
+Here is an initial proposal for the new CID's, I'm sure the list will grow this 
+is just a first revision:
+
+#define V4L2_CTRL_CLASS_CAMERA_PROPERTY 0x009b0000
+
+#define V4L2_CID_CAMERA_PROPERTY_CLASS_BASE \
+	(V4L2_CTRL_CLASS_CAMERA_PROPERTY | 0x900)
+#define V4L2_CID_CAMERA_PROPERTY_CLASS \
+	(V4L2_CTRL_CLASS_CAMERA_PROPERTY | 1)
+
+/* Booleans */
+#define V4L2_CID_WANTS_SW_WHITEBALANCE  (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+1)
+#define V4L2_CID_WANTS_SW_AUTO_EXPOSURE (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+2)
+#define V4L2_CID_WANTS_SW_GAMMA_CORRECT (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+3)
+#define V4L2_CID_SENSOR_UPSIDE_DOWN     (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+4)
+
+/* Fixed point, 16.16 stored in 32 bit integer */
+#define V4L2_CID_DEF_GAMMA_CORR_FACTOR  (V4L2_CID_CAMERA_PROPERTY_CLASS_BASE+5)
 
 
+Please let me know what you think of this proposal, as I would like to move 
+forward with this soon.
 
-> 2008/11/15 Markus Rechberger <mrechberger@gmail.com>
->>
->> On Fri, Nov 14, 2008 at 4:37 PM, Keith Lawson <lawsonk@lawson-tech.com>
->> wrote:
->> >
->> >
->> > On Thu, 13 Nov 2008, Markus Rechberger wrote:
->> > <snip>
->> >>
->> >> are you sure this device is tm6000 based? I just remember the same
->> >> product package used for em2820 based devices.
->> >>
->> >> http://mcentral.de/wiki/index.php5/Em2880#Devices
->> >
->> > It's a TM5600 device. I've been able to capture video from it using the
->> > tm5600/tm6000/tm6010 module from Mauro's mercurial repository
->> > but I'm having an issue with green flickering a the top of the video,
->> > I'm
->> > not sure if that's a driver issue or an mplayer issue.
->> >
->> > Are you aware of a em2820 based USB "dongle" device? I don't require a
->> > tuner, I'm just trying to capture input from S-video and composite
->> > (RCA).
->> >
->>
->> I just had a rough look right now, the prices vary alot between
->> different manufacturers.
->> I haven't seen a price advantage for devices without tuner actually.
->> You might pick a few devices from that site and compare.
->>
->> br,
->> Markus
->>
->> >>
->> >> br,
->> >> Markus
->> >>
->> >>> Thanks,
->> >>> Keith.
->> >>>
->> >>> On Fri, 7 Nov 2008, Keith Lawson wrote:
->> >>>
->> >>>> Hello,
->> >>>>
->> >>>> Can anyone suggest a good USB catpure device that has S-Video input
->> >>>> and
->> >>>> a
->> >>>> stable kernel driver? I've been playing with this device:
->> >>>>
->> >>>> http://www.diamondmm.com/VC500.php
->> >>>>
->> >>>> using the development drivers from
->> >>>> http://linuxtv.org/hg/~mchehab/tm6010/
->> >>>> but I haven't had any luck with S-Video (only composite).
->> >>>>
->> >>>> Can anyone suggest a device with stable drivers in 2.6.27.5?
->> >>>>
->> >>>> Thanks, Keith.
->> >>>>
->> >>>> --
->> >>>> video4linux-list mailing list
->> >>>> Unsubscribe
->> >>>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> >>>> https://www.redhat.com/mailman/listinfo/video4linux-list
->> >>>>
->> >>>
->> >>> --
->> >>> video4linux-list mailing list
->> >>> Unsubscribe
->> >>> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> >>> https://www.redhat.com/mailman/listinfo/video4linux-list
->> >>>
->> >>
->> >
->> > --
->> > video4linux-list mailing list
->> > Unsubscribe
->> > mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> > https://www.redhat.com/mailman/listinfo/video4linux-list
->> >
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->
->
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
