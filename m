@@ -1,22 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
+Received: from web38803.mail.mud.yahoo.com ([209.191.125.94])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <HWerner4@gmx.de>) id 1L0QXR-0005nq-Nf
-	for linux-dvb@linuxtv.org; Thu, 13 Nov 2008 01:58:26 +0100
-Date: Thu, 13 Nov 2008 01:57:52 +0100
-From: "Hans Werner" <HWerner4@gmx.de>
-In-Reply-To: <c74595dc0811121131k2a6f35dfm9da8de305dfd199b@mail.gmail.com>
-Message-ID: <20081113005752.36210@gmx.net>
+	(envelope-from <urishk@yahoo.com>) id 1L2ld6-0006RW-Lq
+	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 12:53:57 +0100
+Date: Wed, 19 Nov 2008 03:53:22 -0800 (PST)
+From: Uri Shkolnik <urishk@yahoo.com>
+To: linux-dvb@linuxtv.org, Christophe Thommeret <hftom@free.fr>
+In-Reply-To: <200811191124.37315.hftom@free.fr>
 MIME-Version: 1.0
-References: <c74595dc0810251452s65154902td934e87560cad9f0@mail.gmail.com>
-	<b42fca4d0810280227n44d53f03hfaa8237793fc1db9@mail.gmail.com>
-	<c74595dc0810281223j25d78c9eqbcbed70a1b495b43@mail.gmail.com>
-	<b42fca4d0810281305l6e741c25ia25e1f3f348761d5@mail.gmail.com>
-	<c74595dc0810281320r9ef1a1cw172a36738c8a4e8@mail.gmail.com>
-	<c74595dc0810301510t5ae3df6fg28c6a62e999aed83@mail.gmail.com>
-	<c74595dc0811121131k2a6f35dfm9da8de305dfd199b@mail.gmail.com>
-To: "Alex Betis" <alex.betis@gmail.com>, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [ANNOUNCE] scan-s2 is available, please test
+Message-ID: <352865.62863.qm@web38803.mail.mud.yahoo.com>
+Subject: Re: [linux-dvb] [PATCH 2/5] SPI interface driver for Siano's SMS
+	chip-set based devices.
+Reply-To: urishk@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,71 +25,52 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> Some more updates for scan-s2:
-> - Fixed skip count specified by "-k" option (skipped one message less than
-> specified).
-> - Removed dumping (null) provider name.
-> - Fixed DVB-T tuning. Thanks to Hans Werner.
-> - Fixed some network ID output problems. Thanks to Oleg Roitburd.
-> - Added options to specify "S1" and "S2" entries in frequency file that
-> will
-> use DVB-S and DVB-S2 scan modes respectively.
-> - Added "-D" option to disable scanning of some modes. "-D S1" will
-> disable
-> DVB-S scan, "-D S2" will disable DVB-S2 scan.
-> - Added 3/5 and 9/10 FEC options. Thanks to Michael Verbraak.
+Please note that this specific patch should be ignored (the diff file conta=
+ins temporary files)
+I submit a new patch.
+
+Sorry about this silly silly mistake
+
+Uri
+
+
+--- On Wed, 11/19/08, Christophe Thommeret <hftom@free.fr> wrote:
+
+> From: Christophe Thommeret <hftom@free.fr>
+> Subject: Re: [linux-dvb] [PATCH 2/5] SPI interface driver for Siano's SMS=
+ chip-set based devices.
+> To: linux-dvb@linuxtv.org
+> Cc: "Uri Shkolnik" <urishk@yahoo.com>
+> Date: Wednesday, November 19, 2008, 12:24 PM
+> Le mercredi 19 novembre 2008 10:03:04 Uri Shkolnik, vous
+> avez =E9crit=A0:
+> > This patch provides SPI interface driver for SMS
+> chip-set based devices.
+> > The patch includes common SMS SPI code, and adapter
+> driver for PXA310
+> >
+> >
+> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 > =
 
-> In my TODO list so far:
-> - Revise and add diseqc motor support patch from Hans Werner.
-
-Thanks.
-
-> - Revise and add few more patches sent by different people.
-> - Revise NIT message parsing to figure out why it doesn't add transponders
-> with correct delivery system.
-
-Does this fix it?
-
-diff -r 40368fdba59a scan.c
---- a/scan.c
-+++ b/scan.c
-@@ -403,7 +403,7 @@ static void parse_satellite_delivery_sys
-                return;
-        }
-
--       if(((buf[8] >> 1) & 0x01) =3D=3D 0) {
-+       if(((buf[8] >> 2) & 0x01) =3D=3D 0) {
-                t->delivery_system =3D SYS_DVBS;
-        }
-        else {
-
-In the first patch I sent yesterday I used an equivalent switch statement i=
-nstead:
-       switch ( getBits(buf,69,1) ) {
-
-> - Add UTF-8 channels encoding support.
+> Hi Uri,
 > =
 
-> Please test the latest version of scan-s2 from:
-> http://mercurial.intuxication.org/hg/scan-s2/
+> This patch also adds backup files ( e.g. smsspicommon.c~ )
+> !
+> Maybe others do also, haven't checked.
 > =
 
-> Let me know if something doesn't work as it should.
+> So, i guess it will be rejected :)
 > =
 
-> Thanks.
-> Alex.
-> =
+> -- =
+
+> Christophe Thommeret
 
 
--- =
+      =
 
-Release early, release often.
-
-Der GMX SmartSurfer hilft bis zu 70% Ihrer Onlinekosten zu sparen! =
-
-Ideal f=FCr Modem und ISDN: http://www.gmx.net/de/go/smartsurfer
 
 _______________________________________________
 linux-dvb mailing list
