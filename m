@@ -1,17 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Wed, 19 Nov 2008 08:46:23 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Adam Baker <linux@baker-net.org.uk>
-Message-Id: <20081119084623.f4d9b08c.ospite@studenti.unina.it>
-In-Reply-To: <200811190020.15663.linux@baker-net.org.uk>
-References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
-	<Pine.LNX.4.64.0811181216270.2778@banach.math.auburn.edu>
-	<200811190020.15663.linux@baker-net.org.uk>
-Mime-Version: 1.0
-Cc: Hans de Goede <hdegoede@redhat.com>, video4linux-list@redhat.com,
-	sqcam-devel@lists.sourceforge.net, kilgota@banach.math.auburn.edu
-Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
- driver
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJDpWOn019355
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 08:51:32 -0500
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.188])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJDoC0A019056
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 08:50:13 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so1669619nfc.21
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 05:50:12 -0800 (PST)
+Message-ID: <412bdbff0811190550i607a740bgae6348ac69253d7d@mail.gmail.com>
+Date: Wed, 19 Nov 2008 08:50:12 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "thomas reiter" <x535.01@gmail.com>
+In-Reply-To: <b24afa610811180959q285f52abv7eb196e26e8d5c6b@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <1226943947.6362.10.camel@ivan>
+	<09CD2F1A09A6ED498A24D850EB101208165C79D3B1@Colmatec004.COLMATEC.INT>
+	<b24afa610811180959q285f52abv7eb196e26e8d5c6b@mail.gmail.com>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: Re: RE : DVB-T2 (Mpeg4) in Norway
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -19,96 +28,28 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1443628165=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---===============1443628165==
-Content-Type: multipart/signed; protocol="application/pgp-signature";
-	micalg="PGP-SHA1";
-	boundary="Signature=_Wed__19_Nov_2008_08_46_23_+0100_+S8kZUHimBu8n_7M"
+On Tue, Nov 18, 2008 at 12:59 PM, thomas reiter <x535.01@gmail.com> wrote:
+> Sorry but  I'm needing a firmware for the dib0700 driver.
 
---Signature=_Wed__19_Nov_2008_08_46_23_+0100_+S8kZUHimBu8n_7M
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+If you're running the latest v4l-dvb, then you need the dib0700 1.20
+firmware, and it's available here.
 
-On Wed, 19 Nov 2008 00:20:15 +0000
-Adam Baker <linux@baker-net.org.uk> wrote:
+ http://devinheitmueller.com/801e/dvb-usb-dib0700-1.20.fw
 
-> On Tuesday 18 November 2008, kilgota@banach.math.auburn.edu wrote:
->=20
-> >
-> > 3. Even so, you should both take seriously the question whether these
-> > cameras actually need a kernel driver, or whether it would actually be
-> > useful. Perhaps it would be a better idea to do something totally in
-> > userspace and figure out how to hook that into a frontend program like
-> > xawtv or some other program which is associated with V4L instead of
-> > getting input from a kernel-supported device? The reasons I say this ar=
-e:
-> >
-> > a. There is IMHO a too big proliferation of kernel modules especially in
-> > this area of video. It seems every new device that comes along needs its
-> > own separate module. It would be nice if it is possible to slow down on
-> > this. In general, I think it is a *good idea* if more is done in usersp=
-ace
-> > and as little as is needed is done in the kernel.
->=20
-> I've been thinking about that for quite a while now. The problem is that=
-=20
-> applications are written to use V4L2 and a V4L2 camera has a device node.=
- I=20
-> did consider for a while the idea of creating a kernel space driver that =
-just=20
-> exposed an interface that a user space libusb app could provide video dat=
-a to=20
-> but concluded it seemed like a lot of work for little benefit.
->=20
+Cheers,
 
-There were some v4l1 solutions for that already, but nothing that can
-go to linux mainline without rewriting. See:
-http://www.lavrsen.dk/twiki/bin/view/Motion/VideoFourLinuxLoopbackDevice
+Devin
 
-There is also a v4l2 solution, but I've never tried it:
-http://sourceforge.net/projects/v4l2vd/
-
-Having such a virtual device in mainline would be very good.
-
-Regards,
-   Antonio Ospite
-
---=20
-A: Because it messes up the order in which people normally read text.
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
-
-  Web site: http://www.studenti.unina.it/~ospite
-Public key: http://www.studenti.unina.it/~ospite/aopubkey.asc
-
---Signature=_Wed__19_Nov_2008_08_46_23_+0100_+S8kZUHimBu8n_7M
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkkjxE8ACgkQ5xr2akVTsAFj6QCeKE/7rkoyzEUUzRw5jKOkjDnZ
-fusAoKezAsV7nl1M1QwClqb+4qXPdnEz
-=6nun
------END PGP SIGNATURE-----
-
---Signature=_Wed__19_Nov_2008_08_46_23_+0100_+S8kZUHimBu8n_7M--
-
-
---===============1443628165==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---===============1443628165==--
