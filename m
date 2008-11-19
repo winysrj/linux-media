@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web38801.mail.mud.yahoo.com ([209.191.125.92])
+Received: from web38805.mail.mud.yahoo.com ([209.191.125.96])
 	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <urishk@yahoo.com>) id 1L38Xx-0005Ca-Fj
-	for linux-dvb@linuxtv.org; Thu, 20 Nov 2008 13:22:11 +0100
-Date: Thu, 20 Nov 2008 04:21:34 -0800 (PST)
+	(envelope-from <urishk@yahoo.com>) id 1L2iyQ-0002xa-95
+	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 10:03:50 +0100
+Date: Wed, 19 Nov 2008 01:03:01 -0800 (PST)
 From: Uri Shkolnik <urishk@yahoo.com>
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-In-Reply-To: <alpine.DEB.2.00.0811201243160.6408@ybpnyubfg.ybpnyqbznva>
+To: Linux-dvb <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Message-ID: <209003.46457.qm@web38801.mail.mud.yahoo.com>
-Cc: Linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH 5/5] Siano's SMS core system upgrade
-Reply-To: urishk@yahoo.com
+Content-Type: multipart/mixed; boundary="0-1213253415-1227085381=:64121"
+Message-ID: <106183.64121.qm@web38805.mail.mud.yahoo.com>
+Subject: [linux-dvb] [PATCH 1/5] SDIO interface driver for Siano's SMS
+	chip-set based devices.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,101 +18,242 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--0-1213253415-1227085381=:64121
+Content-Type: text/plain; charset=us-ascii
+
+This patch provides SDIO interface driver for SMS chip-set based devices.
+
+The patch includes SMS high level SDIO driver and requires patching the kernel SDIO stack.
+
+I would like to thank Pierre Ossman, MMC maintainer, who wrote this driver.
 
 
+Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 
---- On Thu, 11/20/08, BOUWSMA Barry <freebeer.bouwsma@gmail.com> wrote:
-
-> From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-> Subject: Re: [linux-dvb] [PATCH 5/5] Siano's SMS core system upgrade
-> To: "Uri Shkolnik" <urishk@yahoo.com>
-> Cc: "Linux-dvb" <linux-dvb@linuxtv.org>
-> Date: Thursday, November 20, 2008, 2:03 PM
-> Hello Uri, and thanks for all the patches!
-> 
-> On Wed, 19 Nov 2008, Uri Shkolnik wrote:
-> 
-> > This patch provides the following:
-> [smscore_patch.diff]
-> 
-> Part of this patch appears to give problems, thanks to the
-> use of 8-bit characters in the original smscoreapi.h file.
-> 
-> This may be made worse for me by my use of UTF8 encoding
-> and possibly by data getting massaged by my mailer in ways
-> that I do not know about.  I haven't tried to solve
-> that,
-> as it would require thinking an' stuff.  Anyway:
-> 
-> The part of the patch which failed for me appears to be
-> limited to whitespace cleanup surrounding these lines
-> (cut and pasted here):
-> 
-> -       u8              FirmwareId; /* 0xFF ??? ROM,
-> otherwise the
-> -                                    * value indicated by
-> -                                    *
-> SMSHOSTLIB_DEVICE_MODES_E */
-> 
-> +       u8 FirmwareId;          /* 0xFF ??? ROM, otherwise
-> the
-> +                                * value indicated by
-> +                                *
-> SMSHOSTLIB_DEVICE_MODES_E */
-> 
-> The original source file which I have contains three
-> bytes with 8th-bit-set where they are shown above as
-> `???'.  The original file passed through `hd' gives
-> 00000030  64 3b 20 2f 2a 20 30 78  46 46 20 ef bf bd 20 52 
-> |d; /* 0xFF ... R|
->                                             ^^^^^^^^
-> A quick google search shows this could be `U+FFFD'
-> which
-> is `REPLACEMENT CHARACTER' -- which means nothing to
-> me,
-> nor is displayed in my fonts, but it might be meaningful
-> to someone else here.
-> 
-> Since I don't know how to preserve the intended meaning
-> of the original author, I'll just suggest that if
-> anyone runs into this problem and wants a quick workaround,
-> to edit beforehand the original smscoreapi.h file, search
-> for `ROM', and replace the above series of 8-bit or
-> single
-> UTF8 character(s) with the series of three ASCII `?'
-> question marks, then the patch should apply.
-> 
-> Whereupon the above character can be restored or replaced
-> with an ASCII-equivalent to preserve its original meaning.
-> 
-> 
-> Just a FYI for anyone else.
-> 
-> thanks!
-> barry bouwsma
-
-Hi Barry,
-
-Thanks for the feedback, you are absolutely right. 
-Anyway, the original string is "0xFF - ROM" (just space dash space)
-I'll commit a fix next week for this issue.
-
-
-Thanks again,
-Regards,
-
-Uri
 
 
       
+--0-1213253415-1227085381=:64121
+Content-Type: text/x-diff; name="smssdio_patch.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smssdio_patch.diff"
+
+VGhpcyBwYXRjaCBwcm92aWRlcyBTRElPIGludGVyZmFjZSBkcml2ZXIgZm9y
+IFNNUyBjaGlwLXNldCBiYXNlZCBkZXZpY2VzLgoKVGhlIHBhdGNoIGluY2x1
+ZGVzIFNNUyBoaWdoIGxldmVsIFNESU8gZHJpdmVyIGFuZCByZXF1aXJlcyBw
+YXRjaGluZyB0aGUga2VybmVsIFNESU8gc3RhY2suCgpJIHdvdWxkIGxpa2Ug
+dG8gdGhhbmsgUGllcnJlIE9zc21hbiwgTU1DIG1haW50YWluZXIsIHdobyB3
+cm90ZSB0aGlzIGRyaXZlci4KCgpTaWduZWQtb2ZmLWJ5OiBQaWVycmUgT3Nz
+bWFuIDxkcnpldXNAZHJ6ZXVzLmN4PgpTaWduZWQtb2ZmLWJ5OiBVcmkgU2hr
+b2xuaWsgPHVyaXNAc2lhbm8tbXMuY29tPgoKZGlmZiAtdU5yIHY0bC1kdmIt
+YzVmOTc2Y2FiMDExL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL3NpYW5vL3Nt
+c3NkaW8uYyB2NGwtZHZiLWM1Zjk3NmNhYjAxMV8wMDAzL2xpbnV4L2RyaXZl
+cnMvbWVkaWEvZHZiL3NpYW5vL3Ntc3NkaW8uYwotLS0gdjRsLWR2Yi1jNWY5
+NzZjYWIwMTEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvc2lhbm8vc21zc2Rp
+by5jCTE5NzAtMDEtMDEgMDI6MDA6MDAuMDAwMDAwMDAwICswMjAwCisrKyB2
+NGwtZHZiLWM1Zjk3NmNhYjAxMV8wMDAzL2xpbnV4L2RyaXZlcnMvbWVkaWEv
+ZHZiL3NpYW5vL3Ntc3NkaW8uYwkyMDA4LTExLTE4IDE3OjUzOjA1LjAwMDAw
+MDAwMCArMDIwMApAQCAtMCwwICsxLDM1NCBAQAorLyoKKyAqICBzbXNzZGlv
+LmMgLSBTaWFubyAxeHh4IFNESU8gaW50ZXJmYWNlIGRyaXZlcgorICoKKyAq
+ICBDb3B5cmlnaHQgMjAwOCBQaWVycmUgT3NzbWFuCisgKgorICogQmFzZWQg
+b24gY29kZSBieSBTaWFubyBNb2JpbGUgU2lsaWNvbiwgSW5jLiwKKyAqIENv
+cHlyaWdodCAoQykgMjAwNi0yMDA4LCBVcmkgU2hrb2xuaWsKKyAqCisgKiBU
+aGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3Ry
+aWJ1dGUgaXQgYW5kL29yIG1vZGlmeQorICogaXQgdW5kZXIgdGhlIHRlcm1z
+IG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNo
+ZWQgYnkKKyAqIHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb247IGVpdGhl
+ciB2ZXJzaW9uIDIgb2YgdGhlIExpY2Vuc2UsIG9yIChhdAorICogeW91ciBv
+cHRpb24pIGFueSBsYXRlciB2ZXJzaW9uLgorICoKKyAqCisgKiBUaGlzIGhh
+cmR3YXJlIGlzIGEgYml0IG9kZCBpbiB0aGF0IGFsbCB0cmFuc2ZlcnMgc2hv
+dWxkIGJlIGRvbmUKKyAqIHRvL2Zyb20gdGhlIFNNU1NESU9fREFUQSByZWdp
+c3RlciwgeWV0IHRoZSAiaW5jcmVhc2UgYWRkcmVzcyIgYml0CisgKiBhbHdh
+eXMgbmVlZHMgdG8gYmUgc2V0LgorICoKKyAqIEFsc28sIGJ1ZmZlcnMgZnJv
+bSB0aGUgY2FyZCBhcmUgYWx3YXlzIGFsaWduZWQgdG8gMTI4IGJ5dGUKKyAq
+IGJvdW5kYXJpZXMuCisgKi8KKworLyoKKyAqIEdlbmVyYWwgY2xlYW51cCBu
+b3RlczoKKyAqCisgKiAtIG9ubHkgdHlwZWRlZnMgc2hvdWxkIGJlIG5hbWUg
+Kl90CisgKgorICogLSB1c2UgRVJSX1BUUiBhbmQgZnJpZW5kcyBmb3Igc21z
+Y29yZV9yZWdpc3Rlcl9kZXZpY2UoKQorICoKKyAqIC0gc21zY29yZV9nZXRi
+dWZmZXIgc2hvdWxkIHplcm8gZmllbGRzCisgKgorICogRml4IHN0b3AgY29t
+bWFuZAorICovCisKKyNpbmNsdWRlIDxsaW51eC9tb2R1bGVwYXJhbS5oPgor
+I2luY2x1ZGUgPGxpbnV4L2Zpcm13YXJlLmg+CisjaW5jbHVkZSA8bGludXgv
+ZGVsYXkuaD4KKyNpbmNsdWRlIDxsaW51eC9tbWMvY2FyZC5oPgorI2luY2x1
+ZGUgPGxpbnV4L21tYy9zZGlvX2Z1bmMuaD4KKyNpbmNsdWRlIDxsaW51eC9t
+bWMvc2Rpb19pZHMuaD4KKworI2luY2x1ZGUgInNtc2NvcmVhcGkuaCIKKyNp
+bmNsdWRlICJzbXMtY2FyZHMuaCIKKworLyogUmVnaXN0ZXJzICovCisKKyNk
+ZWZpbmUgU01TU0RJT19EQVRBCQkweDAwCisjZGVmaW5lIFNNU1NESU9fSU5U
+CQkweDA0CisKK3N0YXRpYyBjb25zdCBzdHJ1Y3Qgc2Rpb19kZXZpY2VfaWQg
+c21zc2Rpb19pZHNbXSA9IHsKKwl7U0RJT19ERVZJQ0UoU0RJT19WRU5ET1Jf
+SURfU0lBTk8sIFNESU9fREVWSUNFX0lEX1NJQU5PX1NURUxMQVIpLAorCSAu
+ZHJpdmVyX2RhdGEgPSBTTVMxWFhYX0JPQVJEX1NJQU5PX1NURUxMQVJ9LAor
+CXtTRElPX0RFVklDRShTRElPX1ZFTkRPUl9JRF9TSUFOTywgU0RJT19ERVZJ
+Q0VfSURfU0lBTk9fTk9WQV9BMCksCisJIC5kcml2ZXJfZGF0YSA9IFNNUzFY
+WFhfQk9BUkRfU0lBTk9fTk9WQV9BfSwKKwl7U0RJT19ERVZJQ0UoU0RJT19W
+RU5ET1JfSURfU0lBTk8sIFNESU9fREVWSUNFX0lEX1NJQU5PX05PVkFfQjAp
+LAorCSAuZHJpdmVyX2RhdGEgPSBTTVMxWFhYX0JPQVJEX1NJQU5PX05PVkFf
+Qn0sCisJe1NESU9fREVWSUNFKFNESU9fVkVORE9SX0lEX1NJQU5PLCBTRElP
+X0RFVklDRV9JRF9TSUFOT19WRUdBX0EwKSwKKwkgLmRyaXZlcl9kYXRhID0g
+U01TMVhYWF9CT0FSRF9TSUFOT19WRUdBfSwKKwl7IC8qIGVuZDogYWxsIHpl
+cm9lcyAqLyB9LAorfTsKKworTU9EVUxFX0RFVklDRV9UQUJMRShzZGlvLCBz
+bXNzZGlvX2lkcyk7CisKK3N0cnVjdCBzbXNzZGlvX2RldmljZSB7CisJc3Ry
+dWN0IHNkaW9fZnVuYyAqZnVuYzsKKworCXN0cnVjdCBzbXNjb3JlX2Rldmlj
+ZV90ICpjb3JlZGV2OworCisJc3RydWN0IHNtc2NvcmVfYnVmZmVyX3QgKnNw
+bGl0X2NiOworfTsKKworLyoqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiovCisvKiBT
+aWFubyBjb3JlIGNhbGxiYWNrcyAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgKi8KKy8qKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+LworCitzdGF0aWMgaW50IHNtc3NkaW9fc2VuZHJlcXVlc3Qodm9pZCAqY29u
+dGV4dCwgdm9pZCAqYnVmZmVyLCBzaXplX3Qgc2l6ZSkKK3sKKwlpbnQgcmV0
+OworCXN0cnVjdCBzbXNzZGlvX2RldmljZSAqc21zZGV2OworCisJc21zZGV2
+ID0gY29udGV4dDsKKworCXNkaW9fY2xhaW1faG9zdChzbXNkZXYtPmZ1bmMp
+OworCisJd2hpbGUgKHNpemUgPj0gc21zZGV2LT5mdW5jLT5jdXJfYmxrc2l6
+ZSkgeworCQlyZXQgPSBzZGlvX3dyaXRlX2Jsb2NrcyhzbXNkZXYtPmZ1bmMs
+IFNNU1NESU9fREFUQSwgYnVmZmVyLCAxKTsKKwkJaWYgKHJldCkKKwkJCWdv
+dG8gb3V0OworCisJCWJ1ZmZlciArPSBzbXNkZXYtPmZ1bmMtPmN1cl9ibGtz
+aXplOworCQlzaXplIC09IHNtc2Rldi0+ZnVuYy0+Y3VyX2Jsa3NpemU7CisJ
+fQorCisJaWYgKHNpemUpIHsKKwkJcmV0ID0gc2Rpb193cml0ZV9ieXRlcyhz
+bXNkZXYtPmZ1bmMsIFNNU1NESU9fREFUQSwKKwkJCQkgICAgICAgYnVmZmVy
+LCBzaXplKTsKKwkJaWYgKHJldCkKKwkJCWdvdG8gb3V0OworCX0KKworb3V0
+OgorCXNkaW9fcmVsZWFzZV9ob3N0KHNtc2Rldi0+ZnVuYyk7CisKKwlyZXR1
+cm4gcmV0OworfQorCisvKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKi8KKy8qIFNE
+SU8gY2FsbGJhY2tzICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAqLworLyoqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiov
+CisKK3N0YXRpYyB2b2lkIHNtc3NkaW9faW50ZXJydXB0KHN0cnVjdCBzZGlv
+X2Z1bmMgKmZ1bmMpCit7CisJaW50IHJldCwgaXNyOworCisJc3RydWN0IHNt
+c3NkaW9fZGV2aWNlICpzbXNkZXY7CisJc3RydWN0IHNtc2NvcmVfYnVmZmVy
+X3QgKmNiOworCXN0cnVjdCBTbXNNc2dIZHJfU1QgKmhkcjsKKwlzaXplX3Qg
+c2l6ZTsKKworCXNtc2RldiA9IHNkaW9fZ2V0X2RydmRhdGEoZnVuYyk7CisK
+KwkvKgorCSAqIFRoZSBpbnRlcnJ1cHQgcmVnaXN0ZXIgaGFzIG5vIGRlZmlu
+ZWQgbWVhbmluZy4gSXQgaXMganVzdAorCSAqIGEgd2F5IG9mIHR1cm5pbmcg
+b2YgdGhlIGxldmVsIHRyaWdnZXJlZCBpbnRlcnJ1cHQuCisJICovCisJaXNy
+ID0gc2Rpb19yZWFkYihmdW5jLCBTTVNTRElPX0lOVCwgJnJldCk7CisJaWYg
+KHJldCkgeworCQlkZXZfZXJyKCZzbXNkZXYtPmZ1bmMtPmRldiwKKwkJCSJV
+bmFibGUgdG8gcmVhZCBpbnRlcnJ1cHQgcmVnaXN0ZXIhXG4iKTsKKwkJcmV0
+dXJuOworCX0KKworCWlmIChzbXNkZXYtPnNwbGl0X2NiID09IE5VTEwpIHsK
+KwkJY2IgPSBzbXNjb3JlX2dldGJ1ZmZlcihzbXNkZXYtPmNvcmVkZXYpOwor
+CQlpZiAoIWNiKSB7CisJCQlkZXZfZXJyKCZzbXNkZXYtPmZ1bmMtPmRldiwK
+KwkJCQkiVW5hYmxlIHRvIGFsbG9jYXRlIGRhdGEgYnVmZmVyIVxuIik7CisJ
+CQlyZXR1cm47CisJCX0KKworCQlyZXQgPSBzZGlvX3JlYWRfYmxvY2tzKHNt
+c2Rldi0+ZnVuYywgY2ItPnAsIFNNU1NESU9fREFUQSwgMSk7CisJCWlmIChy
+ZXQpIHsKKwkJCWRldl9lcnIoJnNtc2Rldi0+ZnVuYy0+ZGV2LAorCQkJCSJF
+cnJvciAlZCByZWFkaW5nIGluaXRpYWwgYmxvY2shXG4iLCByZXQpOworCQkJ
+cmV0dXJuOworCQl9CisKKwkJaGRyID0gY2ItPnA7CisKKwkJaWYgKGhkci0+
+bXNnRmxhZ3MgJiBNU0dfSERSX0ZMQUdfU1BMSVRfTVNHKSB7CisJCQlzbXNk
+ZXYtPnNwbGl0X2NiID0gY2I7CisJCQlyZXR1cm47CisJCX0KKworCQlzaXpl
+ID0gaGRyLT5tc2dMZW5ndGggLSBzbXNkZXYtPmZ1bmMtPmN1cl9ibGtzaXpl
+OworCX0gZWxzZSB7CisJCWNiID0gc21zZGV2LT5zcGxpdF9jYjsKKwkJaGRy
+ID0gY2ItPnA7CisKKwkJc2l6ZSA9IGhkci0+bXNnTGVuZ3RoIC0gc2l6ZW9m
+KHN0cnVjdCBTbXNNc2dIZHJfU1QpOworCisJCXNtc2Rldi0+c3BsaXRfY2Ig
+PSBOVUxMOworCX0KKworCWlmIChoZHItPm1zZ0xlbmd0aCA+IHNtc2Rldi0+
+ZnVuYy0+Y3VyX2Jsa3NpemUpIHsKKwkJdm9pZCAqYnVmZmVyOworCisJCXNp
+emUgPSBBTElHTihzaXplLCAxMjgpOworCQlidWZmZXIgPSBjYi0+cCArIGhk
+ci0+bXNnTGVuZ3RoOworCisJCUJVR19PTihzbXNkZXYtPmZ1bmMtPmN1cl9i
+bGtzaXplICE9IDEyOCk7CisKKwkJLyoKKwkJICogRmlyc3QgYXR0ZW1wdCB0
+byB0cmFuc2ZlciBhbGwgb2YgaXQgaW4gb25lIGdvLi4uCisJCSAqLworCQly
+ZXQgPSBzZGlvX3JlYWRfYmxvY2tzKHNtc2Rldi0+ZnVuYywgYnVmZmVyLAor
+CQkJCSAgICAgICBTTVNTRElPX0RBVEEsIHNpemUgLyAxMjgpOworCQlpZiAo
+cmV0ICYmIHJldCAhPSAtRUlOVkFMKSB7CisJCQlzbXNjb3JlX3B1dGJ1ZmZl
+cihzbXNkZXYtPmNvcmVkZXYsIGNiKTsKKwkJCWRldl9lcnIoJnNtc2Rldi0+
+ZnVuYy0+ZGV2LAorCQkJCSJFcnJvciAlZCByZWFkaW5nIGRhdGEgZnJvbSBj
+YXJkIVxuIiwgcmV0KTsKKwkJCXJldHVybjsKKwkJfQorCisJCS8qCisJCSAq
+IC4udGhlbiBmYWxsIGJhY2sgdG8gb25lIGJsb2NrIGF0IGEgdGltZSBpZiB0
+aGF0IGlzCisJCSAqIG5vdCBwb3NzaWJsZS4uLgorCQkgKgorCQkgKiAod2Ug
+aGF2ZSB0byBkbyB0aGlzIG1hbnVhbGx5IGJlY2F1c2Ugb2YgdGhlCisJCSAq
+IHByb2JsZW0gd2l0aCB0aGUgImluY3JlYXNlIGFkZHJlc3MiIGJpdCkKKwkJ
+ICovCisJCWlmIChyZXQgPT0gLUVJTlZBTCkgeworCQkJd2hpbGUgKHNpemUp
+IHsKKwkJCQlyZXQgPSBzZGlvX3JlYWRfYmxvY2tzKHNtc2Rldi0+ZnVuYywK
+KwkJCQkJCSAgICAgICBidWZmZXIsIFNNU1NESU9fREFUQSwgMSk7CisJCQkJ
+aWYgKHJldCkgeworCQkJCQlzbXNjb3JlX3B1dGJ1ZmZlcihzbXNkZXYtPmNv
+cmVkZXYsIGNiKTsKKwkJCQkJZGV2X2Vycigmc21zZGV2LT5mdW5jLT5kZXYs
+CisJCQkJCQkiRXJyb3IgJWQgcmVhZGluZyAiCisJCQkJCQkiZGF0YSBmcm9t
+IGNhcmQhXG4iLCByZXQpOworCQkJCQlyZXR1cm47CisJCQkJfQorCisJCQkJ
+YnVmZmVyICs9IHNtc2Rldi0+ZnVuYy0+Y3VyX2Jsa3NpemU7CisJCQkJaWYg
+KHNpemUgPiBzbXNkZXYtPmZ1bmMtPmN1cl9ibGtzaXplKQorCQkJCQlzaXpl
+IC09IHNtc2Rldi0+ZnVuYy0+Y3VyX2Jsa3NpemU7CisJCQkJZWxzZQorCQkJ
+CQlzaXplID0gMDsKKwkJCX0KKwkJfQorCX0KKworCWNiLT5zaXplID0gaGRy
+LT5tc2dMZW5ndGg7CisJY2ItPm9mZnNldCA9IDA7CisKKwlzbXNjb3JlX29u
+cmVzcG9uc2Uoc21zZGV2LT5jb3JlZGV2LCBjYik7Cit9CisKK3N0YXRpYyBp
+bnQgc21zc2Rpb19wcm9iZShzdHJ1Y3Qgc2Rpb19mdW5jICpmdW5jLAorCQkJ
+IGNvbnN0IHN0cnVjdCBzZGlvX2RldmljZV9pZCAqaWQpCit7CisJaW50IHJl
+dDsKKworCWludCBib2FyZF9pZDsKKwlzdHJ1Y3Qgc21zc2Rpb19kZXZpY2Ug
+KnNtc2RldjsKKwlzdHJ1Y3Qgc21zZGV2aWNlX3BhcmFtc190IHBhcmFtczsK
+KworCWJvYXJkX2lkID0gaWQtPmRyaXZlcl9kYXRhOworCisJc21zZGV2ID0g
+a3phbGxvYyhzaXplb2Yoc3RydWN0IHNtc3NkaW9fZGV2aWNlKSwgR0ZQX0tF
+Uk5FTCk7CisJaWYgKCFzbXNkZXYpCisJCXJldHVybiAtRU5PTUVNOworCisJ
+c21zZGV2LT5mdW5jID0gZnVuYzsKKworCW1lbXNldCgmcGFyYW1zLCAwLCBz
+aXplb2Yoc3RydWN0IHNtc2RldmljZV9wYXJhbXNfdCkpOworCisJcGFyYW1z
+LmRldmljZSA9ICZmdW5jLT5kZXY7CisJcGFyYW1zLmJ1ZmZlcl9zaXplID0g
+MHg1MDAwOwkvKiA/PyAqLworCXBhcmFtcy5udW1fYnVmZmVycyA9IDIyOwkv
+KiA/PyAqLworCXBhcmFtcy5jb250ZXh0ID0gc21zZGV2OworCisJc25wcmlu
+dGYocGFyYW1zLmRldnBhdGgsIHNpemVvZihwYXJhbXMuZGV2cGF0aCksCisJ
+CSAic2Rpb1xcJXMiLCBzZGlvX2Z1bmNfaWQoZnVuYykpOworCisJcGFyYW1z
+LnNlbmRyZXF1ZXN0X2hhbmRsZXIgPSBzbXNzZGlvX3NlbmRyZXF1ZXN0Owor
+CisJcGFyYW1zLmRldmljZV90eXBlID0gc21zX2dldF9ib2FyZChib2FyZF9p
+ZCktPnR5cGU7CisKKwlpZiAocGFyYW1zLmRldmljZV90eXBlICE9IFNNU19T
+VEVMTEFSKQorCQlwYXJhbXMuZmxhZ3MgfD0gU01TX0RFVklDRV9GQU1JTFky
+OworCWVsc2UgeworCQkvKgorCQkgKiBGSVhNRTogU3RlbGxhciBuZWVkcyBz
+cGVjaWFsIGhhbmRsaW5nLi4uCisJCSAqLworCQlyZXQgPSAtRU5PREVWOwor
+CQlnb3RvIGZyZWU7CisJfQorCisJcmV0ID0gc21zY29yZV9yZWdpc3Rlcl9k
+ZXZpY2UoJnBhcmFtcywgJnNtc2Rldi0+Y29yZWRldik7CisJaWYgKHJldCA8
+IDApCisJCWdvdG8gZnJlZTsKKworCXNtc2NvcmVfc2V0X2JvYXJkX2lkKHNt
+c2Rldi0+Y29yZWRldiwgYm9hcmRfaWQpOworCisJc2Rpb19jbGFpbV9ob3N0
+KGZ1bmMpOworCisJcmV0ID0gc2Rpb19lbmFibGVfZnVuYyhmdW5jKTsKKwlp
+ZiAocmV0KQorCQlnb3RvIHJlbGVhc2U7CisKKwlyZXQgPSBzZGlvX3NldF9i
+bG9ja19zaXplKGZ1bmMsIDEyOCk7CisJaWYgKHJldCkKKwkJZ290byBkaXNh
+YmxlOworCisJcmV0ID0gc2Rpb19jbGFpbV9pcnEoZnVuYywgc21zc2Rpb19p
+bnRlcnJ1cHQpOworCWlmIChyZXQpCisJCWdvdG8gZGlzYWJsZTsKKworCXNk
+aW9fc2V0X2RydmRhdGEoZnVuYywgc21zZGV2KTsKKworCXNkaW9fcmVsZWFz
+ZV9ob3N0KGZ1bmMpOworCisJcmV0ID0gc21zY29yZV9zdGFydF9kZXZpY2Uo
+c21zZGV2LT5jb3JlZGV2KTsKKwlpZiAocmV0IDwgMCkKKwkJZ290byByZWNs
+YWltOworCisJcmV0dXJuIDA7CisKK3JlY2xhaW06CisJc2Rpb19jbGFpbV9o
+b3N0KGZ1bmMpOworCXNkaW9fcmVsZWFzZV9pcnEoZnVuYyk7CitkaXNhYmxl
+OgorCXNkaW9fZGlzYWJsZV9mdW5jKGZ1bmMpOworcmVsZWFzZToKKwlzZGlv
+X3JlbGVhc2VfaG9zdChmdW5jKTsKKwlzbXNjb3JlX3VucmVnaXN0ZXJfZGV2
+aWNlKHNtc2Rldi0+Y29yZWRldik7CitmcmVlOgorCWtmcmVlKHNtc2Rldik7
+CisKKwlyZXR1cm4gcmV0OworfQorCitzdGF0aWMgdm9pZCBzbXNzZGlvX3Jl
+bW92ZShzdHJ1Y3Qgc2Rpb19mdW5jICpmdW5jKQoreworCXN0cnVjdCBzbXNz
+ZGlvX2RldmljZSAqc21zZGV2OworCisJc21zZGV2ID0gc2Rpb19nZXRfZHJ2
+ZGF0YShmdW5jKTsKKworCS8qIEZJWE1FOiByYWN5ISAqLworCWlmIChzbXNk
+ZXYtPnNwbGl0X2NiKQorCQlzbXNjb3JlX3B1dGJ1ZmZlcihzbXNkZXYtPmNv
+cmVkZXYsIHNtc2Rldi0+c3BsaXRfY2IpOworCisJc21zY29yZV91bnJlZ2lz
+dGVyX2RldmljZShzbXNkZXYtPmNvcmVkZXYpOworCisJc2Rpb19jbGFpbV9o
+b3N0KGZ1bmMpOworCXNkaW9fcmVsZWFzZV9pcnEoZnVuYyk7CisJc2Rpb19k
+aXNhYmxlX2Z1bmMoZnVuYyk7CisJc2Rpb19yZWxlYXNlX2hvc3QoZnVuYyk7
+CisKKwlrZnJlZShzbXNkZXYpOworfQorCitzdGF0aWMgc3RydWN0IHNkaW9f
+ZHJpdmVyIHNtc3NkaW9fZHJpdmVyID0geworCS5uYW1lID0gInNtc3NkaW8i
+LAorCS5pZF90YWJsZSA9IHNtc3NkaW9faWRzLAorCS5wcm9iZSA9IHNtc3Nk
+aW9fcHJvYmUsCisJLnJlbW92ZSA9IHNtc3NkaW9fcmVtb3ZlLAorfTsKKwor
+LyoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKiovCisvKiBNb2R1bGUgZnVuY3Rpb25z
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgKi8KKy8qKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqLworCitpbnQgc21zc2Rp
+b19yZWdpc3Rlcih2b2lkKQoreworCWludCByZXQgPSAwOworCisJcHJpbnRr
+KEtFUk5fSU5GTyAic21zc2RpbzogU2lhbm8gU01TMXh4eCBTRElPIGRyaXZl
+clxuIik7CisJcHJpbnRrKEtFUk5fSU5GTyAic21zc2RpbzogQ29weXJpZ2h0
+IFBpZXJyZSBPc3NtYW5cbiIpOworCisJcmV0ID0gc2Rpb19yZWdpc3Rlcl9k
+cml2ZXIoJnNtc3NkaW9fZHJpdmVyKTsKKworCXJldHVybiByZXQ7Cit9CisK
+K3ZvaWQgc21zc2Rpb191bnJlZ2lzdGVyKHZvaWQpCit7CisJc2Rpb191bnJl
+Z2lzdGVyX2RyaXZlcigmc21zc2Rpb19kcml2ZXIpOworfQorCitNT0RVTEVf
+REVTQ1JJUFRJT04oIlNpYW5vIFNNUzF4eHggU0RJTyBkcml2ZXIiKTsKK01P
+RFVMRV9BVVRIT1IoIlBpZXJyZSBPc3NtYW4iKTsKK01PRFVMRV9MSUNFTlNF
+KCJHUEwiKTsK
+
+--0-1213253415-1227085381=:64121
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb mailing list
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--0-1213253415-1227085381=:64121--
