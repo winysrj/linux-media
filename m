@@ -1,19 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.work.de ([212.12.32.20])
+Received: from smtp21.orange.fr ([80.12.242.46])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <abraham.manu@gmail.com>) id 1L3csg-0004nX-K6
-	for linux-dvb@linuxtv.org; Fri, 21 Nov 2008 21:45:36 +0100
-Message-ID: <49271DE7.4020809@gmail.com>
-Date: Sat, 22 Nov 2008 00:45:27 +0400
-From: Manu Abraham <abraham.manu@gmail.com>
+	(envelope-from <hftom@free.fr>) id 1L2kF2-0000SM-VU
+	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 11:25:01 +0100
+From: Christophe Thommeret <hftom@free.fr>
+To: linux-dvb@linuxtv.org
+Date: Wed, 19 Nov 2008 11:24:37 +0100
+References: <270647.42507.qm@web38807.mail.mud.yahoo.com>
+In-Reply-To: <270647.42507.qm@web38807.mail.mud.yahoo.com>
 MIME-Version: 1.0
-To: Goga777 <goga777@bk.ru>
-References: <20081106124730.16840@gmx.net>
-	<20081106144319.268390@gmx.net>	<200811081130.21951.liplianin@tut.by>	<1a297b360811081323k61c0dd44vf3834ba965b20466@mail.gmail.com>
-	<20081109212526.677d5c76@bk.ru>
-In-Reply-To: <20081109212526.677d5c76@bk.ru>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] stb0899: Set min symbol rate to 1000000
+Content-Disposition: inline
+Message-Id: <200811191124.37315.hftom@free.fr>
+Subject: Re: [linux-dvb] [PATCH 2/5] SPI interface driver for Siano's SMS
+	chip-set based devices.
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -21,52 +20,20 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="koi8-r"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-R29nYTc3NyB3cm90ZToKPiDw0snXxdTT1NfVwCwgTWFudQo+PiBPbiBTYXQsIE5vdiA4LCAyMDA4
-IGF0IDE6MzAgUE0sIElnb3IgTS4gTGlwbGlhbmluIDxsaXBsaWFuaW5AdHV0LmJ5PiB3cm90ZToK
-Pj4+IEkgY2FuIHJlY2VpdmUgMyBtU3ltL3Mgc3RyZWFtcy4gU28gd2h5IGRvIHlvdSBsaW1pdCBm
-cm9udGVuZAo+Pj4gY2FwYWJpbGl0aWVzIHRvIDU/Cj4+IExvd2VyIHRoYW4gNU1TUFMgZ29lcyBi
-ZWxvdyB0aGUgSGFsZiBQb3dlciBiYW5kd2lkdGggY2hhcmFjdGVyaXN0aWNzLgo+PiBVc3VhbGx5
-IHdlIGhhdmUgbGltaXRzIGRlZmluZWQgd2l0aGluIHRoZSBjaGFyYWN0ZXJpc3RpYyByZWdpb24s
-Cj4+IHJhdGhlciB0aGFuIGFic29sdXRlIGxpbWl0cyBhdCB3aGljaCB0dW5pbmcgZmFpbHMKPiAK
-PiAKPiB0aGF0IGlzIHN0cmFuZ2UgbGltaXRhdGlvbiAsIHRoZXJlJ3MgYSBsb3Qgb2YgZHZiIGNo
-YW5uZWxzIHdpdGggc3RyZWFtcyBsZXNzIHRoYW4gMyBtU3ltL3MKPiBmb3IgZXhhbXBsZSBvbiBj
-eDI0MTE2ICYgSGVsbGFzU2F0IDM5RSB3ZSBoYXZlIGZvbGxvdyByZXN1bHRzIHdpdGggeG1sc2Nh
-biBmcm9tIERhcnJvbiAKPiBodHRwOi8vaGcua2V3bC5vcmcveG1sZHZiLwo+IAo+IDE9QVJNIDE7
-RlQgR0xPQkVDQVNUOjExMTA5OlZDMjNNMk8zNVMwOjA6MzQxODoxMjM1OjEzMzU6MQo+IDEwMTcw
-PUFMLUlSQVFJQSBBVFlBRjtJTU4gQkFHSERBRDoxMTY0MjpWQzM0TTJPMzVTMDowOjIxNzU6MzM6
-MzY6MTAxNzAKPiAxMDE4MD1BTEZPUnFhbjtJTU4gQkFHSERBRDoxMTY0NTpWQzM0TTJPMzVTMDow
-OjIxODA6MzA4OjI1NjoxMDE4MAo+IDEwMTgwPUFMLUlSQVFJQSBTUE9SVDtJTU4gQkFHSERBRDox
-MTY1MjpWQzM0TTJPMzVTMDowOjI1MzU6MjAwNzozNjoxMDE4MAo+IDE9TElERVIgVFYgQVpFUkJB
-SUpBTjtUQU5EQkVSRzoxMjUyMDpIQzEyTTJPMzVTMDowOjQzNDA6NTEzOjI1NjoxCj4gNjY9RU1P
-VElPTiBBUlQ7RU1PVElPTiBBUlQ6MTI1NDM6VkMyM00yTzM1UzA6MDozMzMzOjQ4OjQ5OjY2Cj4g
-MT1NZWRpMVNBVDtUYW5kYmVyZ1RWOjEyNTQ1OkhDNTZNMk8zNVMwOjA6MjczNDozMDg6MjU2OjEK
-PiAxNzA5PUVVUk9ORVdTLUZSQU5DRTtHTE9CRUNBU1Q6MTI1NTg6VkMyM00yTzM1UzA6MDo4MTM4
-OjkyMDo5MzA6MTcwOQo+IDQyMDE9RVVST05FV1MtQUZSSUNBO1NFU0FUOjEyNTU4OlZDMjNNMk8z
-NVMwOjA6ODEzODo0MjIxOjQyMzE6NDIwMQo+IDE9VGFuZGJlcmcgU2VydmljZTtUYW5kYmVyZ1RW
-OjEyNTkxOlZDMzRNMk8zNVMwOjA6MjE3MDozMDg6MjU2OjEKPiAxPVZJREVPTElOQSBTQVQ7VGFk
-aXJhbiBTY29wdXM6MTI1OTY6VkMyM00yTzM1UzA6MDoyNTAwOjQxOTQ6NDE5NToxCj4gMT1KU0Mg
-Q29udHJpYnV0aW9uO1NlcnZpY2UgUHJvdmlkZXI6MTI2MTA6VkMzNE0yTzM1UzA6MDoyODk0OjIw
-MDoyMDE6MQo+IDE9QWwgSmF6ZWVyYTtBcnFpdmE6MTI2MTQ6VkMzNE0yTzM1UzA6MDoyODk0OjMx
-MToyNTY6MQo+IDI9WkFHUk9TO1VubmFtZWQ6MTI2MjU6VkMzNE0yTzM1UzA6MDoyNjY4OjMzOjM2
-OjIKPiAKPiB3aWxsIGJlIG5pY2UgaWYgc3RiMDg5OSBjYXJkcyBhbHNvIGNhbiBMT0NLIGxvdyBz
-eW1ib2wgcmF0ZSBjaGFubmVscwoKVGhlIFNUQjA4OTkgYW5kIGZhbWlseSBkbyB1c2UgdGhlIHR1
-bmluZyBhbGdvcml0aG0gY29tcGxldGVseSBpbgpzb2Z0d2FyZSwgcmF0aGVyIHRoYW4gYSBoYXJk
-d2FyZSBpbXBsZW1lbnRhdGlvbi4gVGhlIGFsZ29yaXRobSBpcyBiYXNlZApvbiBtYW55IHBhcmFt
-ZXRlcnMgYmFzZWQgd2l0aGluIHRoZSBkcml2ZXIgcGFyYW1ldGVycy4KCkN1cnJlbnRseSB0aGUg
-U1RCMDg5OSBkcml2ZXIgZG9lc24ndCB1c2UgYSB0dW5pbmcgYWxnb3JpdGhtIHdoaWNoIGRvZXMK
-d29yayBhdCBsb3cgc3ltYm9sIHJhdGVzLiBUaGVyZSBpcyBhbiBhbGdvcml0aG0gc3BlY2lmaWVk
-IGJ5IFNUTSBmb3IgdGhlCmRlbW9kdWxhdG9yIHRvIGdvIGRvd24gYXMgZmFyIGFzIDJNU1BTIGF0
-IEhhbGYgcG93ZXIsIGJ1dCB0aGlzIG5lZWRzCnNvbWUgbW9yZSBjaGFuZ2VzIGluIHRoZSB0dW5p
-bmcgYWxnb3JpdGhtLiBUaGVyZSB3YXNuJ3QgYW55IHNpZ25pZmljYW50CmludGVyZXN0IG9uIHRo
-aXMgYnkgYW55IG9mIHRoZSB1c2VycyBhbmQgdGhpcyBsb3cgYml0cmF0ZSBhbGdvcml0aG0gd2Fz
-Cm5ldmVyIGRlcGxveWVkLiBJZiB0aGVyZSBpcyBzaWduaWZpY2FudCBpbnRlcmVzdCwgdGhlIGxv
-dyBiaXRyYXRlCmFsZ29yaXRobSBjYW4gYmUgZGVwbG95ZWQuCgoKUmVnYXJkcywKTWFudQoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1h
-aWxpbmcgbGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9j
-Z2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+TGUgbWVyY3JlZGkgMTkgbm92ZW1icmUgMjAwOCAxMDowMzowNCBVcmkgU2hrb2xuaWssIHZvdXMg
+YXZleiDDqWNyaXTCoDoKPiBUaGlzIHBhdGNoIHByb3ZpZGVzIFNQSSBpbnRlcmZhY2UgZHJpdmVy
+IGZvciBTTVMgY2hpcC1zZXQgYmFzZWQgZGV2aWNlcy4KPiBUaGUgcGF0Y2ggaW5jbHVkZXMgY29t
+bW9uIFNNUyBTUEkgY29kZSwgYW5kIGFkYXB0ZXIgZHJpdmVyIGZvciBQWEEzMTAKPgo+Cj4gU2ln
+bmVkLW9mZi1ieTogVXJpIFNoa29sbmlrIDx1cmlzQHNpYW5vLW1zLmNvbT4KCkhpIFVyaSwKClRo
+aXMgcGF0Y2ggYWxzbyBhZGRzIGJhY2t1cCBmaWxlcyAoIGUuZy4gc21zc3BpY29tbW9uLmN+ICkg
+IQpNYXliZSBvdGhlcnMgZG8gYWxzbywgaGF2ZW4ndCBjaGVja2VkLgoKU28sIGkgZ3Vlc3MgaXQg
+d2lsbCBiZSByZWplY3RlZCA6KQoKLS0gCkNocmlzdG9waGUgVGhvbW1lcmV0CgoKX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZiIG1haWxpbmcg
+bGlzdApsaW51eC1kdmJAbGludXh0di5vcmcKaHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmlu
+L21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
