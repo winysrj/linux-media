@@ -1,31 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA7JQHjx010558
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 14:26:17 -0500
-Received: from d1.scratchtelecom.com (69.42.52.179.scratchtelecom.com
-	[69.42.52.179])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA7JQ58A028502
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 14:26:05 -0500
-Received: from vegas (CPE00a02477ff82-CM001225d885d8.cpe.net.cable.rogers.com
-	[99.249.154.65])
-	by d1.scratchtelecom.com (8.13.8/8.13.8/Debian-3) with ESMTP id
-	mA7JQ4nl030860
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 14:26:04 -0500
-Received: from lawsonk (helo=localhost)
-	by vegas with local-esmtp (Exim 3.36 #1 (Debian)) id 1KyWy0-0006kE-00
-	for <video4linux-list@redhat.com>; Fri, 07 Nov 2008 14:26:00 -0500
-Date: Fri, 7 Nov 2008 14:26:00 -0500 (EST)
-From: Keith Lawson <lawsonk@lawson-tech.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJ0anpG026221
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 19:36:49 -0500
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.174])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJ0aGm4015108
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 19:36:36 -0500
+Received: by ug-out-1314.google.com with SMTP id j30so398189ugc.13
+	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 16:36:16 -0800 (PST)
+From: Alexey Klimov <klimov.linux@gmail.com>
 To: video4linux-list@redhat.com
-In-Reply-To: <20081107161956.c096dd03.ospite@studenti.unina.it>
-Message-ID: <alpine.DEB.1.10.0811071416380.25756@vegas>
-References: <491339D9.2010504@personnelware.com>
-	<30353c3d0811061553h4c1a77e0t597bd394fa0ebdf1@mail.gmail.com>
-	<4913E9DB.8040801@hhs.nl> <200811071050.25149.hverkuil@xs4all.nl>
-	<20081107161956.c096dd03.ospite@studenti.unina.it>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
-Subject: USB Capture device
+Content-Type: text/plain
+Date: Wed, 19 Nov 2008 03:36:29 +0300
+Message-Id: <1227054989.2389.33.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 1/1] radio-mr800: fix unplug
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -37,20 +27,182 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
 
-Can anyone suggest a good USB catpure device that has S-Video input and a 
-stable kernel driver? I've been playing with this device:
+This patch fixes problems(kernel oopses) with unplug of device while
+it's working.
+Patch adds disconnect_lock mutex, changes usb_amradio_close and
+usb_amradio_disconnect functions and adds a lot of safety checks.
 
-http://www.diamondmm.com/VC500.php
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-using the development drivers from http://linuxtv.org/hg/~mchehab/tm6010/ 
-but I haven't had any luck with S-Video (only composite).
+---
 
-Can anyone suggest a device with stable drivers in 2.6.27.5?
+diff -r 1536e16ffdf1 linux/drivers/media/radio/radio-mr800.c
+--- a/linux/drivers/media/radio/radio-mr800.c	Tue Nov 18 15:51:08 2008 -0200
++++ b/linux/drivers/media/radio/radio-mr800.c	Wed Nov 19 03:27:59 2008 +0300
+@@ -142,6 +142,7 @@
+ 
+ 	unsigned char *buffer;
+ 	struct mutex lock;	/* buffer locking */
++	struct mutex disconnect_lock;
+ 	int curfreq;
+ 	int stereo;
+ 	int users;
+@@ -210,6 +211,10 @@
+ 	int retval;
+ 	int size;
+ 
++	/* safety check */
++	if (radio->removed)
++		return -EIO;
++
+ 	mutex_lock(&radio->lock);
+ 
+ 	radio->buffer[0] = 0x00;
+@@ -242,6 +247,10 @@
+ 	int retval;
+ 	int size;
+ 	unsigned short freq_send = 0x13 + (freq >> 3) / 25;
++
++	/* safety check */
++	if (radio->removed)
++		return -EIO;
+ 
+ 	mutex_lock(&radio->lock);
+ 
+@@ -296,18 +305,16 @@
+ {
+ 	struct amradio_device *radio = usb_get_intfdata(intf);
+ 
++	mutex_lock(&radio->disconnect_lock);
++	radio->removed = 1;
+ 	usb_set_intfdata(intf, NULL);
+ 
+-	if (radio) {
++	if (radio->users == 0) {
+ 		video_unregister_device(radio->videodev);
+-		radio->videodev = NULL;
+-		if (radio->users) {
+-			kfree(radio->buffer);
+-			kfree(radio);
+-		} else {
+-			radio->removed = 1;
+-		}
++		kfree(radio->buffer);
++		kfree(radio);
+ 	}
++	mutex_unlock(&radio->disconnect_lock);
+ }
+ 
+ /* vidioc_querycap - query device capabilities */
+@@ -327,6 +334,10 @@
+ 				struct v4l2_tuner *v)
+ {
+ 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++
++	/* safety check */
++	if (radio->removed)
++		return -EIO;
+ 
+ 	if (v->index > 0)
+ 		return -EINVAL;
+@@ -354,6 +365,12 @@
+ static int vidioc_s_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
++	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++
++	/* safety check */
++	if (radio->removed)
++		return -EIO;
++
+ 	if (v->index > 0)
+ 		return -EINVAL;
+ 	return 0;
+@@ -364,6 +381,10 @@
+ 				struct v4l2_frequency *f)
+ {
+ 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++
++	/* safety check */
++	if (radio->removed)
++		return -EIO;
+ 
+ 	radio->curfreq = f->frequency;
+ 	if (amradio_setfreq(radio, radio->curfreq) < 0)
+@@ -377,6 +398,10 @@
+ 				struct v4l2_frequency *f)
+ {
+ 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++
++	/* safety check */
++	if (radio->removed)
++		return -EIO;
+ 
+ 	f->type = V4L2_TUNER_RADIO;
+ 	f->frequency = radio->curfreq;
+@@ -404,6 +429,10 @@
+ {
+ 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
+ 
++	/* safety check */
++	if (radio->removed)
++		return -EIO;
++
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+ 		ctrl->value = radio->muted;
+@@ -417,6 +446,10 @@
+ 				struct v4l2_control *ctrl)
+ {
+ 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++
++	/* safety check */
++	if (radio->removed)
++		return -EIO;
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+@@ -503,14 +536,26 @@
+ static int usb_amradio_close(struct inode *inode, struct file *file)
+ {
+ 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
++	int retval;
+ 
+ 	if (!radio)
+ 		return -ENODEV;
++
++	mutex_lock(&radio->disconnect_lock);
+ 	radio->users = 0;
+ 	if (radio->removed) {
++		video_unregister_device(radio->videodev);
+ 		kfree(radio->buffer);
+ 		kfree(radio);
++
++	} else {
++		retval = amradio_stop(radio);
++		if (retval < 0)
++			amradio_dev_warn(&radio->videodev->dev,
++				"amradio_stop failed\n");
+ 	}
++
++	mutex_unlock(&radio->disconnect_lock);
+ 	return 0;
+ }
+ 
+@@ -610,6 +655,7 @@
+ 	radio->usbdev = interface_to_usbdev(intf);
+ 	radio->curfreq = 95.16 * FREQ_MUL;
+ 
++	mutex_init(&radio->disconnect_lock);
+ 	mutex_init(&radio->lock);
+ 
+ 	video_set_drvdata(radio->videodev, radio);
 
-Thanks, 
-Keith.
+
+
+-- 
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
