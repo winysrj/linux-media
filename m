@@ -1,19 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bane.moelleritberatung.de ([77.37.2.25])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <artem@moelleritberatung.de>) id 1L5g5U-0004Aw-DR
-	for linux-dvb@linuxtv.org; Thu, 27 Nov 2008 13:35:17 +0100
-Date: Thu, 27 Nov 2008 13:35:05 +0100
-From: Artem Makhutov <artem@makhutov.org>
-To: Udo Richter <udo_richter@gmx.de>
-Message-ID: <20081127123505.GI13103@titan.makhutov-it.de>
-References: <49293640.10808@cadsoft.de> <492A53C4.5030509@makhutov.org>
-	<492DC5F5.3060501@gmx.de>
+Received: from smtpd4.aruba.it ([62.149.128.209] helo=smtp5.aruba.it)
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <a.venturi@avalpa.com>) id 1L2q2X-0000Wh-VB
+	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 17:36:32 +0100
+Message-ID: <49244E4F.3000901@avalpa.com>
+Date: Wed, 19 Nov 2008 18:35:11 +0100
+From: Andrea Venturi <a.venturi@avalpa.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <492DC5F5.3060501@gmx.de>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] [PATCH] Add missing S2 caps flag to S2API
+CC: linux-dvb@linuxtv.org
+References: <911565.38943.qm@web38801.mail.mud.yahoo.com>
+In-Reply-To: <911565.38943.qm@web38801.mail.mud.yahoo.com>
+Subject: Re: [linux-dvb] [PATCH 1/2] Siano's SMS subsystems API - SmsHost
+ support
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -27,58 +25,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+Uri Shkolnik wrote:
+> Siano DTV module works with three subsystem API (DVB-API v3, DVB-API v5 (S2) and SmsHost)
+>
+> Until now, only the DVB-API v3 has been supported.
+> The following two patch's parts add the support for the two other APIs.
+>
+> The first adds the SmsHost API support. This API supports DTV standards yet to be fully supported by the DVB-API (CMMB, T-DMB and more).
+>   
 
-On Wed, Nov 26, 2008 at 10:56:05PM +0100, Udo Richter wrote:
-> Artem Makhutov wrote:
-> > Klaus Schmidinger schrieb:
-> >> The attached patch adds a capability flag that allows an application
-> >> to determine whether a particular device can handle "second generation
-> >> modulation" transponders. 
-> > Wouldn't it be better to add something like this:
-> > 
-> > FE_CAN_8PSK
-> > FE_CAN_16APSK
-> > FE_CAN_32APSK
-> 
-> Without knowing enough about the differences between -S and -S2 tuners 
-> and whatever cards are on the market, I'll try to step back and give 
-> this my 2c point of view:
-> 
-> What does a DVB app need to know? A DVB app probably just needs to know 
-> "What devices are capable of tuning to channel XYZ?". The API could 
-> answer this the same way as it would tune to channel XYZ, just without 
-> actually doing it. Try-before-you-buy.
-> 
-> This would also give maximum flexibility to the driver, as a device that 
-> supports some -S2 features could offer these, or a device that has known 
-> bugs on some tuning modes could also deny these. Non-standard modes 
-> could be offered without requiring yet another FE_CAN_XYZ.
+hi, as i live in italy under one of the few trials of T-DMB network,  
+i'm interested in the T-DMB support.
+i happen to own a Cinergy Terratec Piranha based on a SMS 100x chipset 
+and under another OS i can lock and see the T-DMB services. i'd like to 
+do the same under linux.
 
-If I understand you correct you would like to call an function like:
+is there some public spec about this SmsHost API to hack a simple 
+application to dump the TS from a T-DMB network?
+google doesn't return with much interesting..
 
-bool ItWorks = DoFakeTune(a lot of Paramters);
+thanx
 
-Sure, this would work, but it would make the implementation more
-difficult for both the driver and the application.
+andrea venturi
 
-So in this case the application would have to call DoFakeTune() for a lot of
-different modulations, FEC's and so on and interprete the results.
-
-The application must then call
-
-DoFakeTune(DVB-S,FEC_AUTO);
-DoFakeTune(DVB-S,FEC_3_4);
-DoFakeTune(DVB-S,FEC_2_4);
-DoFakeTune(DVB-S,FEC_4_5);
-DoFakeTune(DVB-S2,FEC_AUTO);
-[...]
-DoFakeTune(DVB-T,FEC_XYZ);
-DoFakeTune(DVB-T2,FEC_XYZ);
-
-This would not make much fun and this could be achieved much easier using some kind of capability flags.
-
-Regards, Artem
 
 _______________________________________________
 linux-dvb mailing list
