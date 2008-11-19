@@ -1,24 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAR9ZOd6029688
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 04:35:24 -0500
-Received: from mgw-mx03.nokia.com (smtp.nokia.com [192.100.122.230])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAR9ZCGE007807
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 04:35:13 -0500
-Message-ID: <492E69C9.9080904@nokia.com>
-Date: Thu, 27 Nov 2008 11:35:05 +0200
-From: Sakari Ailus <sakari.ailus@nokia.com>
-MIME-Version: 1.0
-To: ext Trilok Soni <soni.trilok@gmail.com>
-References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>	
-	<200811262116.42364.hverkuil@xs4all.nl>
-	<5d5443650811262323l759d8c02s835c9a7454508b85@mail.gmail.com>
-In-Reply-To: <5d5443650811262323l759d8c02s835c9a7454508b85@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJFUWeh024954
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 10:30:32 -0500
+Received: from smtp-out113.alice.it (smtp-out113.alice.it [85.37.17.113])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJFUFCW025367
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 10:30:16 -0500
+Date: Wed, 19 Nov 2008 16:30:09 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: video4linux-list@redhat.com
+Message-Id: <20081119163009.25f0b377.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com,
-	"linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH] Add OMAP2 camera driver
+Cc: 
+Subject: [PATCH] gspca: ov534 camera driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,62 +25,565 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-ext Trilok Soni wrote:
-> Hi Hans,
+The OmniVision OV534 is the USB bridge chip used in Sony Playstation EYE,
+it is found also in other webcams like Hercules Blog Webcam and
+Hercules Dualpix HD.
 
-Hello, Hans and Soni!
+This driver is the port to gspca of a prototype driver by Mark Ferrell
+based on vivi. The original code to initialize the camera and start the
+capture is from Jim Paris on ps2dev.org, here integrated with the analysis
+of the USB communications taken by the windows driver.
 
->> 2) The Kconfig is probably missing a ARCH_OMAP dependency (sounds
->> reasonable, at least), so now it also compiles for the i686 but that
->> architecture doesn't have a clk_get function.
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
 
-It *might* be possible that the same camera block would be used in 
-non-OMAP CPUs as well but I guess it is safe to assume that it depends 
-on ARCH_OMAP now.
-
->> 4) I get a bunch of compile warnings (admittedly when compiling for
->> i686) that you might want to look at. Compiled against the 2.6.27
->> kernel with gcc-4.3.1. It might be bogus since I didn't compile for the
->> omap architecture.
-> 
-> I will update my toolchain to gcc-4.3.x for ARM and see if it
-> generates the warnings like below. But I think we are fine once we add
-> ARCH_OMAP dependency to this driver.
-> 
-> Thanks for the review comments. I will resubmit the patch.
-
-Is this exactly the same code that was removed from linux-omap a while ago?
-
----
-commit ebdae9abf598ae8a3ee1c8c477138f82b40e7809
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Mon Oct 27 13:33:13 2008 -0700
-
-     REMOVE OMAP LEGACY CODE: Delete all old omap specific v4l drivers
-
-     All v4l development must be done on the v4l mailing list with 
-linux-omap
-     list cc'd.
-
-     Signed-off-by: Tony Lindgren <tony@atomide.com>
-
----
-
-Although I haven't had time to discuss this anywhere, I though a 
-possible reason of for the removal was that some parts of the code are 
-not that pretty (e.g. DMA) and those parts should be rewritten.
-
-But yes, the OMAP 2 camera driver does actually work and I would suppose 
-it has users, too (think N800/N810).
-
-I'm in if the aim is to get this back to linux-omap. :-) (Waiting for 
-the next patch from Trilok.)
-
-Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@nokia.com
+diff -r 8c3ff2341474 linux/drivers/media/video/gspca/Kconfig
+--- a/linux/drivers/media/video/gspca/Kconfig	Wed Nov 19 12:16:56 2008 +0100
++++ b/linux/drivers/media/video/gspca/Kconfig	Wed Nov 19 16:25:48 2008 +0100
+@@ -63,6 +63,16 @@
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called gspca_ov519.
++
++config USB_GSPCA_OV534
++	tristate "OV534 USB Camera Driver"
++	depends on VIDEO_V4L2 && USB_GSPCA
++	help
++	  Say Y here if you want support for cameras based on the OV534 chip.
++	  (e.g. Sony Playstation EYE)
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called gspca_ov534.
+ 
+ config USB_GSPCA_PAC207
+ 	tristate "Pixart PAC207 USB Camera Driver"
+diff -r 8c3ff2341474 linux/drivers/media/video/gspca/Makefile
+--- a/linux/drivers/media/video/gspca/Makefile	Wed Nov 19 12:16:56 2008 +0100
++++ b/linux/drivers/media/video/gspca/Makefile	Wed Nov 19 16:25:48 2008 +0100
+@@ -4,6 +4,7 @@
+ obj-$(CONFIG_USB_GSPCA_FINEPIX)	+= gspca_finepix.o
+ obj-$(CONFIG_USB_GSPCA_MARS)	+= gspca_mars.o
+ obj-$(CONFIG_USB_GSPCA_OV519)	+= gspca_ov519.o
++obj-$(CONFIG_USB_GSPCA_OV534)	+= gspca_ov534.o
+ obj-$(CONFIG_USB_GSPCA_PAC207)	+= gspca_pac207.o
+ obj-$(CONFIG_USB_GSPCA_PAC7311) += gspca_pac7311.o
+ obj-$(CONFIG_USB_GSPCA_SONIXB)	+= gspca_sonixb.o
+@@ -27,6 +28,7 @@
+ gspca_finepix-objs		:= finepix.o
+ gspca_mars-objs			:= mars.o
+ gspca_ov519-objs		:= ov519.o
++gspca_ov534-objs		:= ov534.o
+ gspca_pac207-objs		:= pac207.o
+ gspca_pac7311-objs		:= pac7311.o
+ gspca_sonixb-objs		:= sonixb.o
+diff -r 8c3ff2341474 linux/drivers/media/video/gspca/ov534.c
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/linux/drivers/media/video/gspca/ov534.c	Wed Nov 19 16:25:48 2008 +0100
+@@ -0,0 +1,505 @@
++/*
++ * ov534/ov772x gspca driver
++ * Copyright (C) 2008 Antonio Ospite <ospite@studenti.unina.it>
++ *
++ * Based on a prototype written by Mark Ferrell <majortrips@gmail.com>
++ * USB protocol reverse engineered by Jim Paris <jim@jtan.com>
++ * https://jim.sh/svn/jim/devl/playstation/ps3/eye/test/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ */
++
++#define MODULE_NAME "ov534"
++
++#include "gspca.h"
++
++#define OV534_REG_ADDRESS	0xf1	/* ? */
++#define OV534_REG_SUBADDR	0xf2
++#define OV534_REG_WRITE		0xf3
++#define OV534_REG_READ		0xf4
++#define OV534_REG_OPERATION	0xf5
++#define OV534_REG_STATUS	0xf6
++
++#define OV534_OP_WRITE_3	0x37
++#define OV534_OP_WRITE_2	0x33
++#define OV534_OP_READ_2		0xf9
++
++#define CTRL_TIMEOUT 500
++
++MODULE_AUTHOR("Antonio Ospite <ospite@studenti.unina.it>");
++MODULE_DESCRIPTION("GSPCA/OV534 USB Camera Driver");
++MODULE_LICENSE("GPL");
++
++/* global parameters */
++static int frame_rate;
++
++/* specific webcam descriptor */
++struct sd {
++	struct gspca_dev gspca_dev;	/* !! must be the first item */
++	__u8 frame_rate;
++};
++
++/* V4L2 controls supported by the driver */
++static struct ctrl sd_ctrls[] = {
++};
++
++static struct v4l2_pix_format vga_mode[] = {
++	{640, 480, V4L2_PIX_FMT_YUYV, V4L2_FIELD_NONE,
++	 .bytesperline = 640 * 2,
++	 .sizeimage = 640 * 480 * 2,
++	 .colorspace = V4L2_COLORSPACE_JPEG,
++	 .priv = 0},
++};
++
++static void ov534_reg_write(struct usb_device *udev, u16 reg, u16 val)
++{
++	u16 data = val;
++	int ret;
++
++	PDEBUG(D_USBO, "reg=0x%04x, val=0%04x", reg, val);
++	ret = usb_control_msg(udev,
++			      usb_sndctrlpipe(udev, 0),
++			      0x1,
++			      USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++			      0x0, reg, &data, 1, CTRL_TIMEOUT);
++	if (ret < 0)
++		PDEBUG(D_ERR, "write failed");
++}
++
++static u16 ov534_reg_read(struct usb_device *udev, u16 reg)
++{
++	u16 data;
++	int ret;
++
++	ret = usb_control_msg(udev,
++			      usb_rcvctrlpipe(udev, 0),
++			      0x1,
++			      USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++			      0x0, reg, &data, 1, CTRL_TIMEOUT);
++	PDEBUG(D_USBI, "reg=0x%04x, data=0x%04x", reg, data);
++	if (ret < 0)
++		PDEBUG(D_ERR, "read failed");
++	return data;
++}
++
++static void ov534_reg_verify_write(struct usb_device *udev, u16 reg, u16 val)
++{
++	u16 data;
++
++	ov534_reg_write(udev, reg, val);
++	data = ov534_reg_read(udev, reg);
++	if (data != val) {
++		PDEBUG(D_ERR | D_USBO,
++		       "unexpected result from read: 0x%04x != 0x%04x", val,
++		       data);
++	}
++}
++
++/* Two bits control LED: 0x21 bit 7 and 0x23 bit 7.
++ * (direction and output)? */
++static void ov534_set_led(struct usb_device *udev, int status)
++{
++	u16 data;
++
++	PDEBUG(D_CONF, "led status: %d", status);
++
++	data = ov534_reg_read(udev, 0x21);
++	data |= 0x80;
++	ov534_reg_write(udev, 0x21, data);
++
++	data = ov534_reg_read(udev, 0x23);
++	if (status)
++		data |= 0x80;
++	else
++		data &= ~(0x80);
++
++	ov534_reg_write(udev, 0x23, data);
++}
++
++static int sccb_check_status(struct usb_device *udev)
++{
++	u16 data;
++	int i;
++
++	for (i = 0; i < 5; i++) {
++		data = ov534_reg_read(udev, OV534_REG_STATUS);
++
++		switch (data & 0xFF) {
++		case 0x00:
++			return 1;
++		case 0x04:
++			return 0;
++		case 0x03:
++			break;
++		default:
++			PDEBUG(D_ERR, "sccb status 0x%02x, attempt %d/5\n",
++			       data, i + 1);
++		}
++	}
++	return 0;
++}
++
++static void sccb_reg_write(struct usb_device *udev, u16 reg, u16 val)
++{
++	PDEBUG(D_USBO, "reg: 0x%04x, val: 0x%04x", reg, val);
++	ov534_reg_write(udev, OV534_REG_SUBADDR, reg);
++	ov534_reg_write(udev, OV534_REG_WRITE, val);
++	ov534_reg_write(udev, OV534_REG_OPERATION, OV534_OP_WRITE_3);
++
++	if (!sccb_check_status(udev))
++		PDEBUG(D_ERR, "sccb_reg_write failed");
++}
++
++/* setup method */
++static void ov534_setup(struct usb_device *udev)
++{
++	ov534_reg_verify_write(udev, 0xe7, 0x3a);
++
++	ov534_reg_write(udev, OV534_REG_ADDRESS, 0x60);
++	ov534_reg_write(udev, OV534_REG_ADDRESS, 0x60);
++	ov534_reg_write(udev, OV534_REG_ADDRESS, 0x60);
++	ov534_reg_write(udev, OV534_REG_ADDRESS, 0x42);
++
++	ov534_reg_verify_write(udev, 0xc2, 0x0c);
++	ov534_reg_verify_write(udev, 0x88, 0xf8);
++	ov534_reg_verify_write(udev, 0xc3, 0x69);
++	ov534_reg_verify_write(udev, 0x89, 0xff);
++	ov534_reg_verify_write(udev, 0x76, 0x03);
++	ov534_reg_verify_write(udev, 0x92, 0x01);
++	ov534_reg_verify_write(udev, 0x93, 0x18);
++	ov534_reg_verify_write(udev, 0x94, 0x10);
++	ov534_reg_verify_write(udev, 0x95, 0x10);
++	ov534_reg_verify_write(udev, 0xe2, 0x00);
++	ov534_reg_verify_write(udev, 0xe7, 0x3e);
++
++	ov534_reg_write(udev, 0x1c, 0x0a);
++	ov534_reg_write(udev, 0x1d, 0x22);
++	ov534_reg_write(udev, 0x1d, 0x06);
++
++	ov534_reg_verify_write(udev, 0x96, 0x00);
++
++	ov534_reg_write(udev, 0x97, 0x20);
++	ov534_reg_write(udev, 0x97, 0x20);
++	ov534_reg_write(udev, 0x97, 0x20);
++	ov534_reg_write(udev, 0x97, 0x0a);
++	ov534_reg_write(udev, 0x97, 0x3f);
++	ov534_reg_write(udev, 0x97, 0x4a);
++	ov534_reg_write(udev, 0x97, 0x20);
++	ov534_reg_write(udev, 0x97, 0x15);
++	ov534_reg_write(udev, 0x97, 0x0b);
++
++	ov534_reg_verify_write(udev, 0x8e, 0x40);
++	ov534_reg_verify_write(udev, 0x1f, 0x81);
++	ov534_reg_verify_write(udev, 0x34, 0x05);
++	ov534_reg_verify_write(udev, 0xe3, 0x04);
++	ov534_reg_verify_write(udev, 0x88, 0x00);
++	ov534_reg_verify_write(udev, 0x89, 0x00);
++	ov534_reg_verify_write(udev, 0x76, 0x00);
++	ov534_reg_verify_write(udev, 0xe7, 0x2e);
++	ov534_reg_verify_write(udev, 0x31, 0xf9);
++	ov534_reg_verify_write(udev, 0x25, 0x42);
++	ov534_reg_verify_write(udev, 0x21, 0xf0);
++
++	ov534_reg_write(udev, 0x1c, 0x00);
++	ov534_reg_write(udev, 0x1d, 0x40);
++	ov534_reg_write(udev, 0x1d, 0x02);
++	ov534_reg_write(udev, 0x1d, 0x00);
++	ov534_reg_write(udev, 0x1d, 0x02);
++	ov534_reg_write(udev, 0x1d, 0x57);
++	ov534_reg_write(udev, 0x1d, 0xff);
++
++	ov534_reg_verify_write(udev, 0x8d, 0x1c);
++	ov534_reg_verify_write(udev, 0x8e, 0x80);
++	ov534_reg_verify_write(udev, 0xe5, 0x04);
++
++	ov534_set_led(udev, 1);
++
++	sccb_reg_write(udev, 0x12, 0x80);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x11, 0x01);
++
++	ov534_set_led(udev, 0);
++
++	sccb_reg_write(udev, 0x3d, 0x03);
++	sccb_reg_write(udev, 0x17, 0x26);
++	sccb_reg_write(udev, 0x18, 0xa0);
++	sccb_reg_write(udev, 0x19, 0x07);
++	sccb_reg_write(udev, 0x1a, 0xf0);
++	sccb_reg_write(udev, 0x32, 0x00);
++	sccb_reg_write(udev, 0x29, 0xa0);
++	sccb_reg_write(udev, 0x2c, 0xf0);
++	sccb_reg_write(udev, 0x65, 0x20);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x42, 0x7f);
++	sccb_reg_write(udev, 0x63, 0xe0);
++	sccb_reg_write(udev, 0x64, 0xff);
++	sccb_reg_write(udev, 0x66, 0x00);
++	sccb_reg_write(udev, 0x13, 0xf0);
++	sccb_reg_write(udev, 0x0d, 0x41);
++	sccb_reg_write(udev, 0x0f, 0xc5);
++	sccb_reg_write(udev, 0x14, 0x11);
++
++	ov534_set_led(udev, 1);
++
++	sccb_reg_write(udev, 0x22, 0x7f);
++	sccb_reg_write(udev, 0x23, 0x03);
++	sccb_reg_write(udev, 0x24, 0x40);
++	sccb_reg_write(udev, 0x25, 0x30);
++	sccb_reg_write(udev, 0x26, 0xa1);
++	sccb_reg_write(udev, 0x2a, 0x00);
++	sccb_reg_write(udev, 0x2b, 0x00);
++	sccb_reg_write(udev, 0x6b, 0xaa);
++	sccb_reg_write(udev, 0x13, 0xff);
++
++	ov534_set_led(udev, 0);
++
++	sccb_reg_write(udev, 0x90, 0x05);
++	sccb_reg_write(udev, 0x91, 0x01);
++	sccb_reg_write(udev, 0x92, 0x03);
++	sccb_reg_write(udev, 0x93, 0x00);
++	sccb_reg_write(udev, 0x94, 0x60);
++	sccb_reg_write(udev, 0x95, 0x3c);
++	sccb_reg_write(udev, 0x96, 0x24);
++	sccb_reg_write(udev, 0x97, 0x1e);
++	sccb_reg_write(udev, 0x98, 0x62);
++	sccb_reg_write(udev, 0x99, 0x80);
++	sccb_reg_write(udev, 0x9a, 0x1e);
++	sccb_reg_write(udev, 0x9b, 0x08);
++	sccb_reg_write(udev, 0x9c, 0x20);
++	sccb_reg_write(udev, 0x9e, 0x81);
++
++	ov534_set_led(udev, 1);
++
++	sccb_reg_write(udev, 0xa6, 0x04);
++	sccb_reg_write(udev, 0x7e, 0x0c);
++	sccb_reg_write(udev, 0x7f, 0x16);
++	sccb_reg_write(udev, 0x80, 0x2a);
++	sccb_reg_write(udev, 0x81, 0x4e);
++	sccb_reg_write(udev, 0x82, 0x61);
++	sccb_reg_write(udev, 0x83, 0x6f);
++	sccb_reg_write(udev, 0x84, 0x7b);
++	sccb_reg_write(udev, 0x85, 0x86);
++	sccb_reg_write(udev, 0x86, 0x8e);
++	sccb_reg_write(udev, 0x87, 0x97);
++	sccb_reg_write(udev, 0x88, 0xa4);
++	sccb_reg_write(udev, 0x89, 0xaf);
++	sccb_reg_write(udev, 0x8a, 0xc5);
++	sccb_reg_write(udev, 0x8b, 0xd7);
++	sccb_reg_write(udev, 0x8c, 0xe8);
++	sccb_reg_write(udev, 0x8d, 0x20);
++
++	sccb_reg_write(udev, 0x0c, 0x90);
++
++	ov534_reg_verify_write(udev, 0xc0, 0x50);
++	ov534_reg_verify_write(udev, 0xc1, 0x3c);
++	ov534_reg_verify_write(udev, 0xc2, 0x0c);
++
++	ov534_set_led(udev, 1);
++
++	sccb_reg_write(udev, 0x2b, 0x00);
++	sccb_reg_write(udev, 0x22, 0x7f);
++	sccb_reg_write(udev, 0x23, 0x03);
++	sccb_reg_write(udev, 0x11, 0x01);
++	sccb_reg_write(udev, 0x0c, 0xd0);
++	sccb_reg_write(udev, 0x64, 0xff);
++	sccb_reg_write(udev, 0x0d, 0x41);
++
++	sccb_reg_write(udev, 0x14, 0x41);
++	sccb_reg_write(udev, 0x0e, 0xcd);
++	sccb_reg_write(udev, 0xac, 0xbf);
++	sccb_reg_write(udev, 0x8e, 0x00);
++	sccb_reg_write(udev, 0x0c, 0xd0);
++
++	ov534_reg_write(udev, 0xe0, 0x09);
++	ov534_set_led(udev, 0);
++}
++
++/* this function is called at probe time */
++static int sd_config(struct gspca_dev *gspca_dev,
++		     const struct usb_device_id *id)
++{
++	struct cam *cam;
++
++	cam = &gspca_dev->cam;
++
++	cam->epaddr = 0x01;
++	cam->cam_mode = vga_mode;
++	cam->nmodes = ARRAY_SIZE(vga_mode);
++
++	cam->bulk_size = vga_mode[0].sizeimage;
++	cam->bulk_nurbs = 2;
++
++	PDEBUG(D_PROBE, "bulk_size = %d", cam->bulk_size);
++
++	return 0;
++}
++
++/* this function is called at probe and resume time */
++static int sd_init(struct gspca_dev *gspca_dev)
++{
++	struct sd *sd = (struct sd *)gspca_dev;
++	ov534_setup(gspca_dev->dev);
++
++	if (frame_rate > 0)
++		sd->frame_rate = frame_rate;
++
++	PDEBUG(D_PROBE, "frame_rate = %d", sd->frame_rate);
++
++	switch (sd->frame_rate) {
++	case 50:
++		sccb_reg_write(gspca_dev->dev, 0x11, 0x01);
++		sccb_check_status(gspca_dev->dev);
++		sccb_reg_write(gspca_dev->dev, 0x0d, 0x41);
++		sccb_check_status(gspca_dev->dev);
++		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x02);
++		break;
++	case 40:
++		sccb_reg_write(gspca_dev->dev, 0x11, 0x02);
++		sccb_check_status(gspca_dev->dev);
++		sccb_reg_write(gspca_dev->dev, 0x0d, 0xc1);
++		sccb_check_status(gspca_dev->dev);
++		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x04);
++		break;
++	case 30:
++	default:
++		sccb_reg_write(gspca_dev->dev, 0x11, 0x04);
++		sccb_check_status(gspca_dev->dev);
++		sccb_reg_write(gspca_dev->dev, 0x0d, 0x81);
++		sccb_check_status(gspca_dev->dev);
++		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x02);
++		break;
++	case 15:
++		sccb_reg_write(gspca_dev->dev, 0x11, 0x03);
++		sccb_check_status(gspca_dev->dev);
++		sccb_reg_write(gspca_dev->dev, 0x0d, 0x41);
++		sccb_check_status(gspca_dev->dev);
++		ov534_reg_verify_write(gspca_dev->dev, 0xe5, 0x04);
++		break;
++	};
++
++	return 0;
++}
++
++static int sd_start(struct gspca_dev *gspca_dev)
++{
++	PDEBUG(D_PROBE, "width = %d, height = %d",
++	       gspca_dev->width, gspca_dev->height);
++
++	gspca_dev->cam.bulk_size = gspca_dev->width * gspca_dev->height * 2;
++
++	/* start streaming data */
++	ov534_set_led(gspca_dev->dev, 1);
++	ov534_reg_write(gspca_dev->dev, 0xe0, 0x00);
++
++	return 0;
++}
++
++static void sd_stopN(struct gspca_dev *gspca_dev)
++{
++	/* stop streaming data */
++	ov534_reg_write(gspca_dev->dev, 0xe0, 0x09);
++	ov534_set_led(gspca_dev->dev, 0);
++}
++
++static void sd_pkt_scan(struct gspca_dev *gspca_dev, struct gspca_frame *frame,
++			__u8 *data, int len)
++{
++	/*
++	 * The current camera setup doesn't stream the last pixel, so we set it
++	 * to a dummy value
++	 */
++	__u8 last_pixel[4] = { 0, 0, 0, 0 };
++	int framesize = gspca_dev->cam.bulk_size;
++
++	if (len == framesize - 4) {
++		frame =
++		    gspca_frame_add(gspca_dev, FIRST_PACKET, frame, data, len);
++		frame =
++		    gspca_frame_add(gspca_dev, LAST_PACKET, frame, last_pixel,
++				    4);
++	} else
++		PDEBUG(D_PACK, "packet len = %d, framesize = %d", len,
++		       framesize);
++}
++
++/* sub-driver description */
++static const struct sd_desc sd_desc = {
++	.name     = MODULE_NAME,
++	.ctrls    = sd_ctrls,
++	.nctrls   = ARRAY_SIZE(sd_ctrls),
++	.config   = sd_config,
++	.init     = sd_init,
++	.start    = sd_start,
++	.stopN    = sd_stopN,
++	.pkt_scan = sd_pkt_scan,
++};
++
++/* -- module initialisation -- */
++static const __devinitdata struct usb_device_id device_table[] = {
++	{USB_DEVICE(0x06f8, 0x3002)},	/* Hercules Blog Webcam */
++	{USB_DEVICE(0x06f8, 0x3003)},	/* Hercules Dualpix HD Weblog */
++	{USB_DEVICE(0x1415, 0x2000)},	/* Sony HD Eye for PS3 (SLEH 00201) */
++	{}
++};
++
++MODULE_DEVICE_TABLE(usb, device_table);
++
++/* -- device connect -- */
++static int sd_probe(struct usb_interface *intf, const struct usb_device_id *id)
++{
++	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
++			       THIS_MODULE);
++}
++
++static struct usb_driver sd_driver = {
++	.name       = MODULE_NAME,
++	.id_table   = device_table,
++	.probe      = sd_probe,
++	.disconnect = gspca_disconnect,
++#ifdef CONFIG_PM
++	.suspend    = gspca_suspend,
++	.resume     = gspca_resume,
++#endif
++};
++
++/* -- module insert / remove -- */
++static int __init sd_mod_init(void)
++{
++	if (usb_register(&sd_driver) < 0)
++		return -1;
++	PDEBUG(D_PROBE, "registered");
++	return 0;
++}
++
++static void __exit sd_mod_exit(void)
++{
++	usb_deregister(&sd_driver);
++	PDEBUG(D_PROBE, "deregistered");
++}
++
++module_init(sd_mod_init);
++module_exit(sd_mod_exit);
++
++module_param(frame_rate, int, 0644);
++MODULE_PARM_DESC(frame_rate, "Frame rate (15, 30, 40, 50)");
 
 --
 video4linux-list mailing list
