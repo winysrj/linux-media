@@ -1,15 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Message-ID: <4929FE90.2050008@gmail.com>
-Date: Sun, 23 Nov 2008 17:08:32 -0800
-From: Bob Cunningham <FlyMyPG@gmail.com>
+Received: from web38802.mail.mud.yahoo.com ([209.191.125.93])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <urishk@yahoo.com>) id 1L2rM7-0005mO-7p
+	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 19:00:48 +0100
+Date: Wed, 19 Nov 2008 10:00:12 -0800 (PST)
+From: Uri Shkolnik <urishk@yahoo.com>
+To: Andrea Venturi <a.venturi@avalpa.com>
+In-Reply-To: <49244E4F.3000901@avalpa.com>
 MIME-Version: 1.0
-To: CityK <cityk@rogers.com>
-References: <49287DCC.9040004@gmail.com>
-	<37219a840811231121u1350bf61n57109a1600f6dd92@mail.gmail.com>
-	<4929B192.8050707@rogers.com>
-In-Reply-To: <4929B192.8050707@rogers.com>
-Cc: linux-dvb@linuxtv.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [linux-dvb] AnyTV AUTV002 USB ATSC/QAM Tuner Stick
+Message-ID: <101205.71076.qm@web38802.mail.mud.yahoo.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] [PATCH 1/2] Siano's SMS subsystems API - SmsHost
+	support
+Reply-To: urishk@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,48 +26,66 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-CityK wrote:
-> Michael Krufky wrote:
->> On Sat, Nov 22, 2008 at 4:46 PM, Bob Cunningham <FlyMyPG@gmail.com> wrote:
->>   
->>> Hi,
->>>
->>> I just bought an AnyTV AUTV002 USB Tuner Stick from DealExtreme.  When plugged in, lsusb provides the following:
->>>
->>>   Bus 001 Device 011: ID 05e1:0400 Syntek Semiconductor Co., Ltd
->>>
->>> A quick search revealed that the au0828 driver ....
->>>     
->> Bob,
->>
->> A patch was submitted that adds support for a device with usb ID
->> 05e1:0400, but it did not get merged yet.
->>
->> The reason why I didn't merge the patch yet, is that there are
->> multiple devices out there using this USB id but they have different
->> internal components and no way to differentiate between the two.
->>
->> If you can open up your stick and tell us what is printed on each
->> chip, then I can help you get yours working.
+
+
+
+--- On Wed, 11/19/08, Andrea Venturi <a.venturi@avalpa.com> wrote:
+
+> From: Andrea Venturi <a.venturi@avalpa.com>
+> Subject: Re: [linux-dvb] [PATCH 1/2] Siano's SMS subsystems API - SmsHost support
+> To: 
+> Cc: linux-dvb@linuxtv.org
+> Date: Wednesday, November 19, 2008, 7:35 PM
+> Uri Shkolnik wrote:
+> > Siano DTV module works with three subsystem API
+> (DVB-API v3, DVB-API v5 (S2) and SmsHost)
+> >
+> > Until now, only the DVB-API v3 has been supported.
+> > The following two patch's parts add the support
+> for the two other APIs.
+> >
+> > The first adds the SmsHost API support. This API
+> supports DTV standards yet to be fully supported by the
+> DVB-API (CMMB, T-DMB and more).
+> >   
 > 
-> Likely (as mentioned in the related discussion/thread:
-> http://marc.info/?l=linux-dvb&m=122472907625204&w=2):
+> hi, as i live in italy under one of the few trials of T-DMB
+> network,  
+> i'm interested in the T-DMB support.
+> i happen to own a Cinergy Terratec Piranha based on a SMS
+> 100x chipset 
+> and under another OS i can lock and see the T-DMB services.
+> i'd like to 
+> do the same under linux.
 > 
-> - Microtune MT213x (tuner)
-> - Auvitek AU850x (demod)
-> - Auvitek AU0828 (usb)
+> is there some public spec about this SmsHost API to hack a
+> simple 
+> application to dump the TS from a T-DMB network?
+> google doesn't return with much interesting..
 > 
+> thanx
+> 
+> andrea venturi
+> 
+> 
+> _______________________________________________
+> linux-dvb mailing list
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-There are 3 chips, from the USB to the cable connector they are:
-AU0828A
-AU8522AA
-MT2131F
+Hi Andrea,
 
-The silk screen text on the PC board reads "AUTV002_Ver1.0c"
+In order to use T-DMB you need FIB parser to start with. Do you have such parser? Later on you'll need service and components manager and some other stuff as well.
 
-Pictures soon!
+Maybe I can provide you with user-space C library (binary, not source code) that does that and many other T-DMB tasks, if you'll provide me with you system characteristics.
 
--BobC
+
+Regards,
+
+Uri
+
+
+      
 
 _______________________________________________
 linux-dvb mailing list
