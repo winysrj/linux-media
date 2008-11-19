@@ -1,21 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAR9fw3o000571
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 04:41:58 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAR9fkc1012005
-	for <video4linux-list@redhat.com>; Thu, 27 Nov 2008 04:41:46 -0500
-Date: Thu, 27 Nov 2008 07:41:39 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <20081127074139.25d2c576@pedra.chehab.org>
-In-Reply-To: <200811270832.22341.hverkuil@xs4all.nl>
-References: <200811270832.22341.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJL5W2p001033
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 16:05:32 -0500
+Received: from nf-out-0910.google.com (nf-out-0910.google.com [64.233.182.190])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJL5IYk006846
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 16:05:19 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so78746nfc.21
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 13:05:18 -0800 (PST)
+Message-ID: <412bdbff0811191305y320d6620vfe28c0577709ea66@mail.gmail.com>
+Date: Wed, 19 Nov 2008 16:05:18 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Kiss Gabor (Bitman)" <kissg@ssg.ki.iif.hu>
+In-Reply-To: <alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: v4l <video4linux-list@redhat.com>
-Subject: Re: RFC: drop support for kernels < 2.6.22
+Content-Disposition: inline
+References: <412bdbff0811161506j3566ad4dsae09a3e1d7559e3@mail.gmail.com>
+	<alpine.DEB.1.10.0811172119370.855@bakacsin.ki.iif.hu>
+	<412bdbff0811171254s5e732ce4p839168f22d3a387@mail.gmail.com>
+	<alpine.DEB.1.10.0811192133380.32523@bakacsin.ki.iif.hu>
+Cc: V4L <video4linux-list@redhat.com>
+Subject: Re: [video4linux] Attention em28xx users
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,35 +33,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 27 Nov 2008 08:32:22 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Wed, Nov 19, 2008 at 3:38 PM, Kiss Gabor (Bitman)
+<kissg@ssg.ki.iif.hu> wrote:
+> Unfortunately I cannot do this.
+> I have no Windows machine.
+>
+> Some month ago we tried to install Windows drivers on my brother's
+> XP but we were unsuccesful.
+>
+>
+> Yesterday I tried to load em28xx module with different card numbers
+> and two or three times I had nice picture. With card=3 and card=7.
+> However after a few tests it seems to be crashed and since then it
+> does not work any more.
+>
+> Gabor
 
-> Hi all,
-> 
-> It been my opinion for quite some time now that we are too generous in 
-> the number of kernel versions we support. I think that the benefits no 
-> longer outweight the effort we have to put in.
-> 
-> This is true in particular for the i2c support since that changed a lot 
-> over time. Kernel 2.6.22 is a major milestone for that since it 
-> introduced the new-style i2c API.
+Hello Gabor,
 
-I prefer to keep backward compat with older kernels. Enterprise distros like
-RHEL is shipped with older kernels (for example RHEL5 uses kernel 2.6.18). We
-should support those kernels.
+Playing with the "card=" argument is probably not such a good idea.
+I should consider taking that functionality out, since setting to the
+wrong card number can damage the device (by setting the wrong GPIOs).
 
-> In order to keep the #ifdefs to a minimum I introduced the 
-> v4l2-i2c-drv.h and v4l2-i2c-drv-legacy.h headers. These make sense when 
-> used in the v4l-dvb tree context, but when they are stripped and used 
-> in the actual kernel source they look very weird.
+If somebody can get me a USB trace of the device starting up under
+Windows, I can probably make this card work.
 
-We may use a different approach for the above files. For example, we may
-include the headers just for older kernels, like we did in the past with i2c
-backward compat with kernel 2.4. gentree can easily remove a #include line from
-the upstream patch.
+Devin
 
-Cheers,
-Mauro
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
