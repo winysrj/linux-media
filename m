@@ -1,19 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAQH57rX028577
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 12:05:07 -0500
-Received: from arroyo.ext.ti.com (arroyo.ext.ti.com [192.94.94.40])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAQH4uvR006251
-	for <video4linux-list@redhat.com>; Wed, 26 Nov 2008 12:04:56 -0500
-From: hvaibhav@ti.com
-To: video4linux-list@redhat.com
-Date: Wed, 26 Nov 2008 22:34:39 +0530
-Message-Id: <1227719079-19459-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
-Cc: davinci-linux-open-source-bounces@linux.davincidsp.com,
-	Karicheri Muralidharan <m-karicheri2@ti.com>, linux-omap@vger.kernel.org
-Subject: [PATCH 1/2] Add Input/Output related ioctl support
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJFmfdQ004678
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 10:48:41 -0500
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.28])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJFmRBP005966
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 10:48:27 -0500
+Received: by yw-out-2324.google.com with SMTP id 5so3790ywb.81
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 07:48:27 -0800 (PST)
+Message-ID: <ea3b75ed0811190748o44a26a45kb38b9bca24e6bda5@mail.gmail.com>
+Date: Wed, 19 Nov 2008 10:48:26 -0500
+From: "Brian Phelps" <lm317t@gmail.com>
+To: "David Ellingsworth" <david@identd.dyndns.org>, video4linux-list@redhat.com
+In-Reply-To: <ea3b75ed0811181343k48a7e4f1n2a32015c09ad5677@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <ea3b75ed0811180953g4846fc80lf9d0018703486838@mail.gmail.com>
+	<ea3b75ed0811181010k3287581ew612a98ddf7a53ef6@mail.gmail.com>
+	<ea3b75ed0811181244p713c7246ga06d91eceb7c56ad@mail.gmail.com>
+	<30353c3d0811181327h58e76eafl5237754284f96843@mail.gmail.com>
+	<ea3b75ed0811181343k48a7e4f1n2a32015c09ad5677@mail.gmail.com>
+Cc: 
+Subject: Re: Pre-crash log
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,75 +34,96 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+V4L2_PIX_FMT_YUV420 seems to be the culprit!
 
-Note - Resending again with TVP driver for completeness.
+The bug that I am running into is on an intel quad core machine, 2x4
+input chip bt878 based pci capture cards with /dev/video0-7
 
-Added ioctl support for query std, set std, enum input,
-get input, set input, enum output, get output and set output.
+All you have to do is change "count" from 100 to something large like
+10million or so and change:
+fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 
-For sensor kind of slave drivers v4l2-int-device.h provides
-necessary ioctl support, but the ioctls required to interface
-with decoders and encoders are missing. Most of the decoders
-and encoders supports multiple inputs and outputs, like
-S-Video or Composite.
+to:
+fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;
 
-With these ioctl''s user can select the specific input/output.
+then gcc capture.c -o capture and run:
+capture   -d /dev/video0 -m &  capture   -d /dev/video1 -m  &
+...<repeat> ......capture   -d /dev/video7 -m
 
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-Signed-off-by: Manjunath Hadli <mrh@ti.com>
-Signed-off-by: R Sivaraj <sivaraj@ti.com>
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Karicheri Muralidharan <m-karicheri2@ti.com>
----
- include/media/v4l2-int-device.h |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+It takes 1-2 minutes for me to get:
+[ 1177.822768] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1177.862730] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1177.902699] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1177.942667] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1177.982627] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1178.022594] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1178.062559] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1178.102526] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1178.142490] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1178.182454] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1178.222425] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1178.262387] bttv7: OCERR @ 1c9b1000,bits: HSYNC FDSR OCERR*
+[ 1178.300027] bttv7: timeout: drop=12 irq=53332/105941,
+risc=1c9b103c, bits: HSYNC
 
-diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index 9c2df41..2325b2a 100644
---- a/include/media/v4l2-int-device.h
-+++ b/include/media/v4l2-int-device.h
-@@ -102,6 +102,7 @@ enum v4l2_power {
- 	V4L2_POWER_OFF = 0,
- 	V4L2_POWER_ON,
- 	V4L2_POWER_STANDBY,
-+	V4L2_POWER_RESUME,
- };
+using:
 
- /* Slave interface type. */
-@@ -183,6 +184,14 @@ enum v4l2_int_ioctl_num {
- 	vidioc_int_s_crop_num,
- 	vidioc_int_g_parm_num,
- 	vidioc_int_s_parm_num,
-+	vidioc_int_querystd_num,
-+	vidioc_int_s_std_num,
-+	vidioc_int_enum_input_num,
-+	vidioc_int_g_input_num,
-+	vidioc_int_s_input_num,
-+	vidioc_int_enumoutput_num,
-+	vidioc_int_g_output_num,
-+	vidioc_int_s_output_num,
+fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 
- 	/*
- 	 *
-@@ -284,6 +293,14 @@ V4L2_INT_WRAPPER_1(g_crop, struct v4l2_crop, *);
- V4L2_INT_WRAPPER_1(s_crop, struct v4l2_crop, *);
- V4L2_INT_WRAPPER_1(g_parm, struct v4l2_streamparm, *);
- V4L2_INT_WRAPPER_1(s_parm, struct v4l2_streamparm, *);
-+V4L2_INT_WRAPPER_1(querystd, v4l2_std_id, *);
-+V4L2_INT_WRAPPER_1(s_std, v4l2_std_id, *);
-+V4L2_INT_WRAPPER_1(enum_input, struct v4l2_input, *);
-+V4L2_INT_WRAPPER_1(g_input, int, *);
-+V4L2_INT_WRAPPER_1(s_input, int, );
-+V4L2_INT_WRAPPER_1(enumoutput, struct v4l2_output, *);
-+V4L2_INT_WRAPPER_1(g_output, int, *);
-+V4L2_INT_WRAPPER_1(s_output, int, );
+does not cause this.
+Weird!
 
- V4L2_INT_WRAPPER_0(dev_init);
- V4L2_INT_WRAPPER_0(dev_exit);
---
-1.5.6
+Does anyone have any suggestions?  Do you guys think this is a kernel
+bug or v4l bug?
+
+On Tue, Nov 18, 2008 at 4:43 PM, Brian Phelps <lm317t@gmail.com> wrote:
+> Thanks for replying David, please see my responses below.
+>
+> On Tue, Nov 18, 2008 at 4:27 PM, David Ellingsworth
+> <david@identd.dyndns.org> wrote:
+>> On Tue, Nov 18, 2008 at 3:44 PM, Brian Phelps <lm317t@gmail.com> wrote:
+>>> Anyone know what this means?
+>>> [  768.998408] swap_dup: Bad swap file entry 4080000000101010
+>>> [  768.998418] VM: killing process monitor
+>>> [  768.998730] swap_free: Bad swap file entry 4080000000101010
+>>
+>> Brian,
+>>
+>> As Alexey Klimov suggested earlier, your logs seem to indicate a bug
+>> in the memory management subsystem of the kernel. I suggest you post
+>> this information to the linux-kernel mailing list since it more than
+>> likely affects every other kernel subsystem. I don't know the
+>> particulars of the above message, but it appears to be coming from the
+>> part of the memory management subsystem that deals with virtual memory
+>> and swap space. You might want to try turning off all available swap
+>> space to see if the bug persists.
+> I will try posting this to the kernel list.
+>
+> BTW Swap is off, I never turned it on, don't even have a swap partition/file.
+>>
+>> Since you keep hitting this bug while using the bttv driver it is
+>> possible that there is a memory leak in the bttv driver which helps to
+>> induce the bug. It is also possible and more likely that there is a
+>> memory leak in the application you are using to stream video. In
+>> either case, watching memory usage while stream should reveal if a
+>> leak exists and if it's driver related or software related.
+>
+> According to top, no leaks exist, not even a drip.  I am using
+> multiple instances of capture.c BTW.  One for each of eight video card
+> inputs.
+>>
+>> Regards,
+>>
+>> David Ellingsworth
+>>
+>
+>
+>
+> --
+> Brian Phelps
+> Got e- ?
+> http://electronjunkie.wordpress.com
+>
 
 --
 video4linux-list mailing list
