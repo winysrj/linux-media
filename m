@@ -1,17 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp132.rog.mail.re2.yahoo.com ([206.190.53.37])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <cityk@rogers.com>) id 1Kz1mP-0008PS-3J
-	for linux-dvb@linuxtv.org; Sun, 09 Nov 2008 05:20:06 +0100
-Message-ID: <491664D2.90203@rogers.com>
-Date: Sat, 08 Nov 2008 23:19:30 -0500
-From: CityK <cityk@rogers.com>
+Received: from smtp1.voila.fr ([193.252.22.174])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <abdouniang@voila.fr>) id 1L2rTX-0006bd-Fg
+	for linux-dvb@linuxtv.org; Wed, 19 Nov 2008 19:08:29 +0100
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf4003.voila.fr (SMTP Server) with ESMTP id 296C3240023D
+	for <linux-dvb@linuxtv.org>; Wed, 19 Nov 2008 19:07:52 +0100 (CET)
+Received: from wwinf4604 (wwinf4604 [10.232.13.31])
+	by mwinf4003.voila.fr (SMTP Server) with ESMTP id 12BD224001E2
+	for <linux-dvb@linuxtv.org>; Wed, 19 Nov 2008 19:07:52 +0100 (CET)
+From: Abdou NIANG <abdouniang@voila.fr>
+To: linux-dvb@linuxtv.org
+Message-ID: <11375960.101291227118072067.JavaMail.www@wwinf4604>
 MIME-Version: 1.0
-To: larrykathy3@verizon.net
-References: <759163.14018.qm@web84101.mail.mud.yahoo.com>
-In-Reply-To: <759163.14018.qm@web84101.mail.mud.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Geniatech x8000 thriller
+Date: Wed, 19 Nov 2008 19:07:52 +0100 (CET)
+Subject: [linux-dvb] Hauppauge Win TV Nova T PCI not working after
+	re-installation.
+Reply-To: abdouniang@voila.fr
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -19,33 +24,35 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Ruth Fernandez wrote:
-> I have a Geniatech x8000 thriller ATSC card. The only way Ubuntu will
-> see it is with the ismod option in the etc/modprobe.d/option file. The
-> ATSC part is not recognized. Plus there is no sound. Can you help.
-> Larry -dmesg below
->
->  44.901324] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
-> [   44.901560] cx88[0]: subsystem: 14f1:1419, board: Geniatech
-> X8000-MT DVBT [card=63,insmod option], frontend(s): 1
->
-
-Wrong card option; card 63 is for the DVB-T version of the card and,
-consequently, explains why the wrong components are being loaded.  Use
-card=67 instead.  There may be further info for you in: 
-http://www.linuxtv.org/wiki/index.php/KWorld_ATSC_120
-
-Can you report your success on the matter and also supply the output of
-"lspci -vn" (to see what the PCI subsystem ID for the card is, and as to
-whether it differs from the KWorld card).  Thanks.
-
-_______________________________________________
-linux-dvb mailing list
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGksCgpJJ20gdW5kZXIgVWJ1bnR1IDguMDQsIGtlcm5lbCAyLjYuMjQgYW5kIGkgd291bGQgbGlr
+ZSB0byBoYXZlIG15IEhhdXBwYXVnZSBXaW4gVFYgTm92YSBUIFBDSSBjYXJkIHdvcmluZy4KCkkn
+dmUgcmUtaW5zdGFsbGVkIHVidW50dSA4LjA0IHllc3RlcmRheSBiZWNhdXNlIG9mIGVycm9ycyBh
+dCBwb3dlciBvbiBhbmQgc2luY2UgdGhhdCBpIGNhbid0IGNvbmZpZ3VyZSBteSBjYXJkLiAKCkJl
+Zm9yZSBpIHByb2NlZWQgdG8gbmV3IGluc3RhbGwgdGhlIGNhcmQgd2FzIHdvcmtpbmcgd2VsbC4g
+ZHZiLXV0aWxzIHBhY2thZ2VzICwgZHZic3RyZWFtLCBrYWZmZWluZSwgd2VyZSB3b3JraW5nIHdl
+bGwuCgpGaXJzdCBpJ3ZlIGFkZGVkIHRoZSByaWdodCBtb2R1bGVzIChjeDg4MDIsIGN4ODgtZHZi
+KSBpbiAvZXRjL21vZHVsZXMuCldoZW4gaSBpbnN0YWxsIGR2Yi11dGlscyBhbmQgZHZic3RyZWFt
+IGkndmUgdGhpcyB1ZGV2IG1lc3NhZ2UgOiJ1ZGV2IGFjdGl2ZSwgLi4uIGluc3RhbGxlZCBpbiAv
+ZGV2Ly5zdGF0aWMvZGV2LyIKU28gZHZiIGZvbGRlciBpcyBpbiAvZGV2Ly5zdGF0aWMvZGV2L2R2
+YiBpbnN0ZWFkIG9mIGJlaW5nIGluIC9kZXYuCgpJIGRpc2FibGUgdGhlIC5zdGF0aWMgY3JlYXRp
+b24gYXQgc3RhcnRpbmcgc3lzdGVtIHNvIGR2YiBmb2xkZXIgaXMgY3JlYXRlZCBpbiAvZGV2IGJ1
+dCB3aGVuIGkgdHJ5IHRvIHNjYW4gZnJlcXVlbmNpZXMgaSBoYXZlIHRoaXMgZXJyb3I6CgoiRkFU
+QUw6L2Rldi9kdmIvYWRhcHRlcjAvZnJvbnRlbmQwOiBObyBzdWNoIGZpbGUgb3IgZGV2aWNlIi4K
+Ci9kZXYvZHZiIGZvbGRlciBpcyB3ZWxsIHBvcHVsYXRlZCBpJ3ZlIC9kZXYvZHZiL2FkYXB0ZXIw
+L2Zyb250ZW5kMCwgZGVtdXgwLC4uLgoKSSd2ZSB0cmllZCByZS1pbnN0YWxsIG9uZSBtb3JlIHRp
+bWUgYW5kIHRyeSB0byB1cGdyYWRlIHRvIFVidW50dSA4LjEwIHdpdGgga2VybmVsIDIuNi4yNyBh
+bmQgaSBoYXZlIHRoZSBzYW1lIHByb2JsZW0uCgpEb2VzIGFueW9uZSBoYXZlIGtub3dzIGhvdyB0
+byBzb2x2ZSBteSBwcm9ibGVtID8KCnRoYW5rcwoKCgoKCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KCsOJY291dGV6IGdyYXR1aXRlbWVudCBsZSBu
+b3V2ZWF1IHNpbmdsZSBkZSBOb2lyIETDqXNpciBldCBkw6ljb3V2cmV6IGQnYXV0cmVzIHRpdHJl
+cyBlbiBhZmZpbml0w6kgYXZlYyB2b3MgZ2/Du3RzIG11c2ljYXV4ICHCoGh0dHA6Ly9tdXNpbGlu
+ZS52b2lsYS5mci9wbGF5ZXIvZ2VuZXJhdGUvNC8xNS8zMTc3NC8/aW50aXR1bGU9R2FnbmFudHMr
+JTJGK1BlcmRhbnRzCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCmxpbnV4LWR2YiBtYWlsaW5nIGxpc3QKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6
+Ly93d3cubGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
