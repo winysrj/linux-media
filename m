@@ -1,23 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJHtoPY024786
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 12:55:50 -0500
-Received: from smtp116.rog.mail.re2.yahoo.com (smtp116.rog.mail.re2.yahoo.com
-	[68.142.225.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAJHtnCk023380
-	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 12:55:49 -0500
-Message-ID: <49245323.8010505@rogers.com>
-Date: Wed, 19 Nov 2008 12:55:47 -0500
-From: CityK <cityk@rogers.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAJ9ZL9s000858
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 04:35:21 -0500
+Received: from smtp4.versatel.nl (smtp4.versatel.nl [62.58.50.91])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAJ9Z8kx012977
+	for <video4linux-list@redhat.com>; Wed, 19 Nov 2008 04:35:08 -0500
+Message-ID: <4923DF13.4090609@hhs.nl>
+Date: Wed, 19 Nov 2008 10:40:35 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: Alan Cox <alan@redhat.com>
-References: <4920726F.8050902@rogers.com>
-	<20081116212824.GA23460@shell.devel.redhat.com>
-In-Reply-To: <20081116212824.GA23460@shell.devel.redhat.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: V4L <video4linux-list@redhat.com>
-Subject: Re: Any moderators alive?
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: Elmar Kleijn <elmar_kleijn@hotmail.com>,
+	"radjnies@gmail.com" <radjnies@gmail.com>,
+	=?windows-1252?Q?Luk=E1=9A_Karas?= <lukas.karas@centrum.cz>,
+	"need4weed@gmail.com" <need4weed@gmail.com>
+Subject: RFC: add emulated controls to libv4l
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,26 +28,52 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Alan Cox wrote:
-> On Sun, Nov 16, 2008 at 02:20:15PM -0500, CityK wrote:
->   
->> I'm not sure why Red Hat hosts the V4L list (my guess is because its
->> Alan Cox's baby, and Alan, who does pop up from time to time, works for
->> RH).  In any regard, unfortunately I don't think there are any current
->> administrators/moderators per se, and suspect that the list is running
->> solely on autopilot.
->>     
->
-> That was its accidental history, and I don't know of any moderators for it.
->   
+<resend from other mail address, which is actually subscribed to the list>
 
-Thanks for the confirmation Alan.
+Hi all,
 
-> Might make sense to move it to kernel.org so it fits in with the other lists
-> to be honest. That would also help with the confusion sometimes seen where
-> people assume its a list for v4l stuff on Red Hat products
+As discussed in my previous mail, various people (including me) want to add
+things like software whitebalancing, etc. to libv4l.
 
-Agreed. Maybe a project in the new year.
+When this is added, it would be nice for the user to be able to control this
+(turn on/off) using a standard v4l control panel application as for example
+v4l2ucp.
+
+The question I want to discuss here is how to implement this. We want this to
+work as much as possible as real controls, so:
+
+-Settings can be changed by one app (control panel), influencing the picture
+  seen by another app which is streaming
+-Settings are remembered even when no app has the device open
+-Settings are reset acros a driver unload / load (typically a reboot)
+
+
+There are 3 possible solutions here:
+1) Add an API to the driver to store and retreive "fake" settings
+2) Use shared memory
+3) Use shared memory by creating shared memory mappings of a (binary) file
+
+So which one to use
+1) Has the advantage of the resulting behavior matching that of real controls
+exactly, but requires adding code to the kernel, lets no do that.
+
+2) IIRC it is possible to keep a shared memory segment around (until reboot)
+even if no app is using it, this will then pretty closely match the behavior of
+normal controls. Also Lukáš Karas has already submitted a patch implementing
+this, which is a pre too :)
+
+3) This is only usefull if it turns out to not be possible to keep a shared
+memory segment around even if no app is using it. This has the disadvantage of
+keeping settings even across reboots, which could be seen as an advantage, but
+if we want to do this (which I believe we do) we should write an utility
+program to do this.
+
+
+So my vote clearly goes to option 2, what do others here on the list think?
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
