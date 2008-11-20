@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAIIB1lq011588
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 13:11:02 -0500
-Received: from rn-out-0910.google.com (rn-out-0910.google.com [64.233.170.188])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAIIAlDv014451
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 13:10:47 -0500
-Received: by rn-out-0910.google.com with SMTP id k32so2753638rnd.7
-	for <video4linux-list@redhat.com>; Tue, 18 Nov 2008 10:10:47 -0800 (PST)
-Message-ID: <ea3b75ed0811181010k3287581ew612a98ddf7a53ef6@mail.gmail.com>
-Date: Tue, 18 Nov 2008 13:10:46 -0500
-From: "Brian Phelps" <lm317t@gmail.com>
-To: video4linux-list@redhat.com
-In-Reply-To: <ea3b75ed0811180953g4846fc80lf9d0018703486838@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAK9Ww3X024974
+	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 04:32:58 -0500
+Received: from smtp4.versatel.nl (smtp4.versatel.nl [62.58.50.91])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAK9WgLi016226
+	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 04:32:42 -0500
+Message-ID: <49253004.4010504@hhs.nl>
+Date: Thu, 20 Nov 2008 10:38:12 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+To: kilgota@banach.math.auburn.edu
+References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
+	<Pine.LNX.4.64.0811181216270.2778@banach.math.auburn.edu>
+	<200811190020.15663.linux@baker-net.org.uk>
+	<4923D159.9070204@hhs.nl>
+	<alpine.LNX.1.10.0811192005020.2980@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.1.10.0811192005020.2980@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-References: <ea3b75ed0811180953g4846fc80lf9d0018703486838@mail.gmail.com>
-Subject: Re: Pre-crash log
+Cc: video4linux-list@redhat.com, sqcam-devel@lists.sourceforge.net
+Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
+	driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,115 +32,122 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I know 8 feeds of 640*480 @ 30fps is pushing it to the limits on the
-pci bus, but this shouldn't cause the system to crash should it?
+kilgota@banach.math.auburn.edu wrote:
 
-On Tue, Nov 18, 2008 at 12:53 PM, Brian Phelps <lm317t@gmail.com> wrote:
-> Hi all,
-> I am using the capture example on a quad core machine with kernel 2.6.27.6
->
-> I added another 4 input card to see if that might decrease stability
-> and create some errors, and it did:
->
-> [  566.820822] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.820934] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.824338] bttv2: next set: top=ffff8800120e0800
-> bottom=ffff8800120e0800 [screen=0000000000000000,irq=1,0]
-> [  566.824411] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.824555] bttv2: next set: top=ffff8800120e0a00
-> bottom=ffff8800120e0a00 [screen=0000000000000000,irq=1,0]
-> [  566.825539] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.825577] bttv1: next set: top=ffff880010499600
-> bottom=ffff880010499600 [screen=0000000000000000,irq=1,0]
-> [  566.825582] bttv5: next set: top=ffff8800189ea800
-> bottom=ffff8800189ea800 [screen=0000000000000000,irq=1,0]
-> [  566.825666] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.825676] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.825738] bttv2: OCERR @ 1a937000,bits: HSYNC FDSR OCERR*
-> [  566.825749]   main: 1a937000
-> [  566.825751]   vbi : o=00000000 e=00000000
-> [  566.825752]   cap : o=1a734000 e=1a736000
-> [  566.825754]   scr : o=00000000 e=00000000
-> [  566.825755] bttv2: risc disasm: ffff88001a937000 [dma=0x1a937000]
-> [  566.825757] bttv2:   0x1a937000: 0x80008004 [ sync be3/resync count=4 ]
-> [  566.825761] bttv2:   0x1a937004: 0x00000000 [ arg #1 ]
-> [  566.825762] bttv2:   0x1a937008: 0x70000000 [ jump count=0 ]
-> [  566.825765] bttv2:   0x1a93700c: 0x1a937010 [ arg #1 ]
-> [  566.825766] bttv2:   0x1a937010: 0x70000000 [ jump count=0 ]
-> [  566.825769] bttv2:   0x1a937014: 0x1a937018 [ arg #1 ]
-> [  566.825770] bttv2:   0x1a937018: 0x70000000 [ jump count=0 ]
-> [  566.825772] bttv2:   0x1a93701c: 0x1a734000 [ arg #1 ]
-> [  566.825774] bttv2:   0x1a937020: 0x8000800c [ sync be3/resync count=12 ]
-> [  566.825777] bttv2:   0x1a937024: 0x00000000 [ arg #1 ]
-> [  566.825778] bttv2:   0x1a937028: 0x70000000 [ jump count=0 ]
-> [  566.825781] bttv2:   0x1a93702c: 0x1a937030 [ arg #1 ]
-> [  566.825782] bttv2:   0x1a937030: 0x70000000 [ jump count=0 ]
-> [  566.825784] bttv2:   0x1a937034: 0x1a736000 [ arg #1 ]
-> [  566.825786] bttv2:   0x1a937038: 0x70000000 [ jump count=0 ]
-> [  566.825788] bttv2:   0x1a93703c: 0x1a937000 [ arg #1 ]
-> [  566.825789] bttv2:   0x1a937040: 0x00000000 [ INVALID count=0 ]
-> [  566.827594] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.827639] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.828306] bttv6: next set: top=ffff880010501400
-> bottom=ffff880010501400 [screen=0000000000000000,irq=1,0]
-> [  566.832424] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.834617] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.834987] bttv4: next set: top=ffff8800125a7200
-> bottom=ffff8800125a7200 [screen=0000000000000000,irq=1,0]
-> [  566.835086] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.836781] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.850350] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.851008] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.853023] bttv0: next set: top=ffff880010598c00
-> bottom=ffff880010598c00 [screen=0000000000000000,irq=1,0]
-> [  566.853027] bttv3: next set: top=ffff88001059cc00
-> bottom=ffff88001059cc00 [screen=0000000000000000,irq=1,0]
-> [  566.853101] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.853111] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.854760] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.854773] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.858940] bttv1: next set: top=ffff8800105d7600
-> bottom=ffff8800105d7600 [screen=0000000000000000,irq=1,0]
-> [  566.858959] bttv5: next set: top=ffff8800189eae00
-> bottom=ffff8800189eae00 [screen=0000000000000000,irq=1,0]
-> [  566.859079] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.860846] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.861678] bttv6: next set: top=ffff88001047ca00
-> bottom=ffff88001047ca00 [screen=0000000000000000,irq=1,0]
-> [  566.862357] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.864038] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.866056] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.868343] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.868363] bttv4: next set: top=ffff880010598e00
-> bottom=ffff880010598e00 [screen=0000000000000000,irq=1,0]
-> [  566.868607] BT878 video (ProVideo PV150): VIDIOC_DQBUF
-> [  566.870052] BT878 video (ProVideo PV150): VIDIOC_QBUF
-> [  566.880434] swap_free: Bad swap file entry 4000000000101010
-> [  566.886390] bttv0: next set: top=ffff880010598a00
-> bottom=ffff880010598a00 [screen=0000000000000000,irq=1,0]
-> [  566.886395] bttv3: next set: top=ffff8800125a4600
-> bottom=ffff8800125a4600 [screen=0000000000000000,irq=1,0]
-> [  566.891075] bttv2: next set: top=ffff8800105d4a00
-> bottom=ffff8800105d4a00 [screen=0000000000000000,irq=1,0]
->
-> After the above, one of the processes dies:
->
-> VIDIOC_DQBUF error 5, Input/output error
->
-> Can someone tell me what I can do next? thanks!
->
-> --
-> Brian Phelps
-> Got e- ?
-> http://electronjunkie.wordpress.com
->
+<snip>
+
+> 
+>> libv4l currently uses linear interpolated demosaicing, the 4 (or 2) 
+>> surrounding pixels with the missing color components are taken and 
+>> then straight forward averaged. At the borders only those pixels which 
+>> are actually present get used ofcourse.
+> 
+> Perhaps you ought at least to use what is in gp_bayer_accrue() as well 
+> (see libgphoto2/libgphoto2/bayer.c) because it cuts down on the zipper 
+> effect.
+> 
+
+Interesting, although I must say the libgphoto code certainly is not written 
+with speed in mind, but we can fix that. Still doing something like 
+gp_bayer_accrue() will cause a significant additional CPU load, please keep in 
+mind that:
+1) We often also need to decompress the bayer data first using some form of
+    Huffman decompression as usb11 bandwidth is not enough for raw bayer
+2) Then we have 352x288 (luckily all raw bayer cams seem to be this low) at
+    30 fps
+3) Which we then need to demosaic
+4) And do white balance *
+5) And normalize *
+6) And gamma correct *
+7) And flip / rotate the image
+8) And the app may want to do stuff with it like display it, which might
+    involve pixelformat conversion, and / or software scaling
+9) And if the app wants to record broadcast, the app often also needs to do
+    some form of framerate modification to get a steady framerate (webcam
+    framerate is exposure setting dependend)
+10) And the app may do even more such as HG264 compression for video
+    conferencing
+11) And this may all be part of the user just having a chat window open, while
+    he is mostly using his PC for something else.
+
+*) Not yet implemented
+
+So all in all we need to be carefull with CPU usage here.
 
 
+>> I'm always open for convincing examples of differences in algorithms, 
+>> esp. when backed up with a proposed patch and benchmarks showing the 
+>> additional costs.
+> 
+> The algorithm in libgphoto2/libgphoto2/ahd_bayer.c requires 3X the time 
+> which is required for the old algorithm in bayer.c
 
--- 
-Brian Phelps
-Got e- ?
-http://electronjunkie.wordpress.com
+Ugh, and I'm quite sure the algorithm in bayer.c is much much slower then what 
+is in libv4l, not only because of gp_bayer_accrue(), but because it is not 
+written very efficient in general IMHO (lots of if's instead of seperate 
+methods for different cases like borders, different bayer orders).
+
+> . For still photos 
+> with some rather low quality cameras, it gives much better results. I 
+> have written a paper about this algorithm, and also some demonstration 
+> photos from some different cameras, and you can find the paper and the 
+> demonstration photos at www.auburn.edu/~kilgota. As to whether the speed 
+> hit of 3X is crucial for a webcam, I am not sure.
+
+Nor am I, but I think we should be careful with not causing too much cpuload, 
+also think of things like netbooks, which do not come with a very powerful cpu.
+
+
+<snip>
+
+>>> I clearly have to read the version and either flip the data myself or 
+>>> inform libv4l that it needs to be flipped. The do as much work in 
+>>> userspace as possible argument says I should just provide an 
+>>> indicator that it needs flipping but I don't know how to do that.
+>>>
+>>
+>> Ah interesting, 2 things:
+>>
+>> 1) Do not do the flipping in the kernel libv4l already has all the 
+>> necessary
+>>   code.
+>>
+>> 2) Currently there is no API for telling libv4l to do the flipping, 
+>> but I think
+>>   we should design one. Currently for the few cams which need software
+>>   flipping (or rather software rotate 180 as that is what libv4l 
+>> does), are
+>>   detected by libv4l by doing string comparisons on the 
+>> v4l2_capability struct
+>>   card string. We could cheat and let the sq905 driver put something 
+>> special
+>>   in there for cams with upside down mounted sensors, but given that 
+>> this is a
+>>   re-occuring problem, defining a proper API for this would be good I 
+>> think.
+> 
+> 
+> Well, for these particular cameras the problem is twofold. First, the 
+> image is always upside down (and the way to fix that is with a byte 
+> reversal of the raw image). Second, it is also true for *some* of them 
+> that the image has reversed left and right. So what you have to do is 
+> read the firmware, know which firmware number corresponds to what, and 
+> then have a standard way to tell the app precisely what it should do. 
+> Something like a variable called "orientation" and then the appropriate 
+> one of the bitmap values 00, 01, 10, or 11, or, in ordinary numbers
+> 
+> 0    oriented correctly, no action needed
+> 1    reversal of byte string needed (giving 180 degree rotation)
+> 2    reverse bytes on lines (i. e. do de-mirroring)
+> 3    do both 1 and 2 (notice that 3 = 1|2)
+> 
+
+Erm, 3 just boils down to only doing vflip, rotate 180 == vflip + hflip,
+so rotate180 + hflip == vflip + hflip + hflip == vflip
+
+Regards,
+
+Hans
 
 --
 video4linux-list mailing list
