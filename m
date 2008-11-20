@@ -1,23 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mALJXXOY017586
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 14:33:33 -0500
-Received: from tomts23-srv.bellnexxia.net (tomts23-srv.bellnexxia.net
-	[209.226.175.185])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mALJXF7g026744
-	for <video4linux-list@redhat.com>; Fri, 21 Nov 2008 14:33:15 -0500
-From: Jonathan Lafontaine <jlafontaine@ctecworld.com>
-To: "'Kiss Gabor (Bitman)'" <kissg@ssg.ki.iif.hu>, Devin Heitmueller
-	<devin.heitmueller@gmail.com>
-Date: Fri, 21 Nov 2008 14:33:01 -0500
-Message-ID: <09CD2F1A09A6ED498A24D850EB101208165C85C823@Colmatec004.COLMATEC.INT>
-In-Reply-To: <alpine.DEB.1.10.0811212015070.29615@bakacsin.ki.iif.hu>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAKJWafG005297
+	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 14:32:36 -0500
+Received: from smtp4.versatel.nl (smtp4.versatel.nl [62.58.50.91])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAKJWN1B008647
+	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 14:32:24 -0500
+Message-ID: <4925BC94.7090008@hhs.nl>
+Date: Thu, 20 Nov 2008 20:37:56 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Cc: V4L <video4linux-list@redhat.com>
-Subject: RE: [video4linux] Attention em28xx users
+To: kilgota@banach.math.auburn.edu
+References: <mailman.208512.1227000563.24145.sqcam-devel@lists.sourceforge.net>
+	<Pine.LNX.4.64.0811181216270.2778@banach.math.auburn.edu>
+	<200811190020.15663.linux@baker-net.org.uk>
+	<4923D159.9070204@hhs.nl>
+	<alpine.LNX.1.10.0811192005020.2980@banach.math.auburn.edu>
+	<49253004.4010504@hhs.nl>
+	<Pine.LNX.4.64.0811201130410.3570@banach.math.auburn.edu>
+In-Reply-To: <Pine.LNX.4.64.0811201130410.3570@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, sqcam-devel@lists.sourceforge.net
+Subject: Re: [sqcam-devel] Advice wanted on producing an in kernel sq905
+	driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,73 +34,93 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-You have to put 200-300 mb of sniff log
+kilgota@banach.math.auburn.edu wrote:
+> 
 
-Whats your windows machine
+<snip>
 
-Prefer use wxp but if it's a old machine u could try W2000 less memory usage
+>>>
+>>> 0    oriented correctly, no action needed
+>>> 1    reversal of byte string needed (giving 180 degree rotation)
+>>> 2    reverse bytes on lines (i. e. do de-mirroring)
+>>> 3    do both 1 and 2 (notice that 3 = 1|2)
+>>>
+>>
+>> Erm, 3 just boils down to only doing vflip, rotate 180 == vflip + hflip,
+>> so rotate180 + hflip == vflip + hflip + hflip == vflip
+> 
+> Yeah, right. In a still photo processing it does not matter, of course, 
+> so I was not paying attention to such things. Well, then, instead of 
+> using 0, 1, 2, and 3 one could use 0, 1, 2 and so on, in which
+>     0    do nothing
+>     1    vflip
+>     2    hflip
+>     3    rotate 180    (1|2)
+>     4    apply decompression
+>     5    4|1
+>     6    4|2
+>     7    4|3
+>     upper nibble gives Bayer tiling code of 0 thru 7.
+>     If upper nibble is 8 or more, this could signify one of several
+>     ways that the data could have already been processed, such as if
+>     a camera emits finished JPEG frames. Or, this could have been
+>     done, too, with using 8 or more in the lower nibble.
+> 
+> So one way to do this kind of thing might be to create in the kernel 
+> module a bitmapped char variable, similar to the above, and send it out 
+> to the app, during initialization, and the app is supposed to understand 
+> it.
+> 
 
-Remove max services, applications running with msconfig or taskmgr.
+Eh, no you are confusing different things now and stuffing them all into 1 byte.
 
-Its normal usbsniff freeze your pc, it focus on I/O northbrigde chipset interruption operations witch have priority on cpu usage
+We already have a pixelformat integer in the API, which can contain things like 
+"this is raw bayer, first line rgrg second line gbgb" or like:
+"this is bayer compressed by the spca561 bridge, compression level 1" or like:
+"this is jpeg data without a quantization table", etc.
 
+We call all this pixelformat, a pixelformat should contain all info to get from 
+the raw data to say plain rgb. The image may then still be upside down / 
+mirrored / whatever.
 
-Make your tv app or usbsniff priority process in taskmgr under normal priority , ( try this after)
+Currently we have no clear API to allow a driver to tell userspace that it is 
+sending out upside down images, I've send a proposal for this to the 
+video4linux-list@redhat.com
 
-Or if u got a dua lcopre set affinity of both process ( tv and usb sniff) each on different core
+> OK, so I will look again at the Bayer algorithm and see if my suspicion 
+> is correct, that it is possible to come out with something which is both 
+> faster than the ahd_bayer.c code and gives better results than straight 
+> bilinear interpolation, which can give such ugly artifacting. Probably, 
+> the most effective use of my time right now is to work on that, because 
+> I am pretty familiar with the code that I wrote.
+> 
+> As far as the rest of things are concerned, it would probably help if I 
+> know where to go and look for your existing code about this stuff.
 
-IF nothing better comeback to me, im busy right now
+Easiest way to get my latest code is here:
+http://people.atrpms.net/~hdegoede/libv4l-0.5.5.tar.gz
 
------Original Message-----
-From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-bounces@redhat.com] On Behalf Of Kiss Gabor (Bitman)
-Sent: 21 novembre 2008 14:21
-To: Devin Heitmueller
-Cc: V4L
-Subject: Re: [video4linux] Attention em28xx users
+You are looking for libv4lconvert/bayer.c
 
-Dear Devin,
+As you can see I've got separate code to render the borders and to render the 
+center. I think it would be interesting to use an optimized version of your 
+gp_bayer_accrue() for the center rendering. Optimalizations I'm thinking about are:
+1) no need to check for having all 4 pixels, you always do
+2) just pass in the 4 pixel values instead of passing in coordinates
+3) make separate green and blue_red versions.
 
-> The action item for the thread you referenced was for the user to
-> capture a USB trace on a Windows system so we can compare the register
-> operations.  If you want to pick up where the original user left off,
-> please use SniffUSB to get a capture after plugging in the device and
-> starting a capture session.
->
-> http://www.pcausa.com/Utilities/UsbSnoop/default.htm
->
-> If you can provide a USB capture, I can fix the code so this device
-> starts working.
+Maybe also only do the horizontal / vertical line detection for green without 
+the fallback to the red_blue code when no line is detected (in that case just 
+return the avg of all 4).
 
-Uhm.... every time I tried to snoop USB traffic windows machine
-got frozen or slowed veeeeeeeeeeery down.
-So I could not run TV software bundled with device.
-A very short (182 kB) capture about device connection is here:
+Regards,
 
-http://bakacsin.ki.iif.hu/~kissg/tmp/connect-UsbSnoop.log.txt
+Hans
 
-A question:
-Where should I download latest em28xx driver from?
-http://linuxtv.org/hg/ or http://mcentral.de/hg/ ?
+p.s.
 
-Regards
-
-Gabor
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
---
-
-This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN
-Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com)
-www.solulan.com
-
-
-No virus found in this incoming message.
-Checked by AVG - http://www.avg.com
-Version: 8.0.175 / Virus Database: 270.9.9/1803 - Release Date: 2008-11-21 09:37
+If you are experienced with reverse engineering decompression algorithms 9for 
+raw bayer), I've got multiple issues where you could help me.
 
 --
 video4linux-list mailing list
