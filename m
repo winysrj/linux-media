@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mA84u4Cd011368
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 23:56:04 -0500
-Received: from QMTA06.emeryville.ca.mail.comcast.net
-	(qmta06.emeryville.ca.mail.comcast.net [76.96.30.56])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mA84tnqa021765
-	for <video4linux-list@redhat.com>; Fri, 7 Nov 2008 23:55:49 -0500
-Message-ID: <49151BD0.70604@personnelware.com>
-Date: Fri, 07 Nov 2008 22:55:44 -0600
-From: Carl Karsten <carl@personnelware.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAKKiNwW020055
+	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 15:44:23 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAKKheAv019487
+	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 15:44:04 -0500
+Date: Thu, 20 Nov 2008 21:43:40 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+In-Reply-To: <87y6zf76aw.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0811202055210.8290@axis700.grange>
+References: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
+	<Pine.LNX.4.64.0811182010460.8628@axis700.grange>
+	<87y6zf76aw.fsf@free.fr>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <4909F85E.4060900@personnelware.com>
-In-Reply-To: <4909F85E.4060900@personnelware.com>
-Content-Type: multipart/mixed; boundary="------------080002090800060204050100"
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [patch] test code tweaks
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: video4linux-list@redhat.com
+Subject: Re: [PATCH 2/2 v3] pxa-camera: pixel format negotiation
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,147 +28,241 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------080002090800060204050100
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Wed, 19 Nov 2008, Robert Jarzmik wrote:
 
-I have mods to 3 files that are all independent.  Should they be split into
-separate patches/posts, or is adding them here fine?
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> > Use the new format-negotiation infrastructure, support all four YUV422 
+> > packed and the planar formats.
+> >
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >
+> > ---
+> Hi Guennadi,
+> 
+> Please find my review here.
+> 
+> > diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+> > index 37afdfa..1bcdb5d 100644
+> > --- a/drivers/media/video/pxa_camera.c
+> > +++ b/drivers/media/video/pxa_camera.c
+> > @@ -765,6 +765,9 @@ static int test_platform_param(struct pxa_camera_dev *pcdev,
+> >  		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8))
+> >  			return -EINVAL;
+> >  		*flags |= SOCAM_DATAWIDTH_8;
+> > +		break;
+> > +	default:
+> > +		return -EINVAL;
+> If we're in pass-through mode, and depth is 16 (example: a today unknown RYB
+> format), we return -EINVAL. Is that on purpose ?
 
-And, what is the procedure to deal with a patch that supersedes a patch posted
-but not applied?
+Yes, I do not know how to pass a 16-bit format in a pass-through mode, and 
+I don't have a test-case for it. Do you?
 
-v4l2_tests.diff
+> > -static int pxa_camera_try_bus_param(struct soc_camera_device *icd, __u32 pixfmt)
+> > +static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
+> > +				    unsigned char buswidth)
+> >  {
+> >  	struct soc_camera_host *ici =
+> >  		to_soc_camera_host(icd->dev.parent);
+> >  	struct pxa_camera_dev *pcdev = ici->priv;
+> >  	unsigned long bus_flags, camera_flags;
+> > -	int ret = test_platform_param(pcdev, icd->buswidth, &bus_flags);
+> > +	int ret = test_platform_param(pcdev, buswidth, &bus_flags);
+> Why do we bother testing it ? If format negociation was done before, a format
+> asked for is necessarily available, otherwise it should have been removed at
+> format generation.
+> 
+> Likewise, is bus param matching necessary here, or should it be done at format
+> generation ? Can that be really be dynamic, or is it constrained by hardware,
+> and thus only necessary at startup, and not at each format try ?
 
-vivi: New features have been added, so VIVI_MINOR_VERSION gets bumped.
+Hm, ok, so far I don't have any cases, where bus parameters can change at 
+run-time. So, yes, I think, we could shift it into 
+pxa_camera_get_formats().
 
-tests/Makefile: given this is for testing, it makes sense for debug symbols to
-be included.
+> <snip>
+> > +static int pxa_camera_get_formats(struct soc_camera_device *icd, int idx,
+> > +				  const struct soc_camera_data_format **fmt)
+> > +{
+> > +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> > +	struct pxa_camera_dev *pcdev = ici->priv;
+> > +	int formats = 0;
+> > +
+> > +	switch (icd->formats[idx].fourcc) {
+> > +	case V4L2_PIX_FMT_UYVY:
+> > +		formats++;
+> > +		if (fmt && (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
+> > +			*fmt++ = &pxa_camera_formats[0];
+> > +			dev_dbg(&ici->dev, "Providing format %s using %s\n",
+> > +				pxa_camera_formats[0].name,
+> > +				icd->formats[idx].name);
+> > +		}
+> > +	case V4L2_PIX_FMT_VYUY:
+> > +	case V4L2_PIX_FMT_YUYV:
+> > +	case V4L2_PIX_FMT_YVYU:
+> > +	case V4L2_PIX_FMT_RGB565:
+> > +	case V4L2_PIX_FMT_RGB555:
+> > +		formats++;
+> > +		if (fmt && (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
+> > +			*fmt++ = &icd->formats[idx];
+> > +			dev_dbg(&ici->dev, "Providing format %s packed\n",
+> > +				icd->formats[idx].name);
+> > +		}
+> > +		break;
+> What if pcdev->platform_flags is 9 bits wide and sensor provides RGB565 ?
+> Variable formats will be incremented, but fmt will never be filled in. So there
+> will be holes in fmt. Shouldn't the formats++ depend on platform_flags &
+> PXA_CAMERA_DATAWIDTH_8 ?
 
-capture_example.c: Added command line option for number of frames to grab,
-changed the default to 70, show the defaults in help, added a Version (1.3
-because I consider the original to be 1.0 and at least 2 changes have been made.)
+Right, that's a bug, will fix, thanks. Same as above for 
+V4L2_PIX_FMT_UYVY.
 
-Signed-off-by: Carl Karsten  <carl@personnelware.com>
+> > +	default:
+> > +		/* Generic pass-through */
+> > +		if (depth_supported(icd, icd->formats[idx].depth)) {
+> > +			formats++;
+> > +			if (fmt) {
+> > +				*fmt++ = &icd->formats[idx];
+> > +				dev_dbg(&ici->dev,
+> > +					"Providing format %s in pass-through mode\n",
+> > +					icd->formats[idx].name);
+> > +			}
+> > +		}
+> > +	}
+> Dito for formats++.
 
-Carl K
+No, this looks correct - it first checks for depth_supported().
 
---------------080002090800060204050100
-Content-Type: text/x-patch;
- name="v4l2_tests.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="v4l2_tests.diff"
+> >  static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+> >  			      __u32 pixfmt, struct v4l2_rect *rect)
+> <snip>
+> > +	case V4L2_PIX_FMT_UYVY:
+> > +	case V4L2_PIX_FMT_VYUY:
+> > +	case V4L2_PIX_FMT_YUYV:
+> > +	case V4L2_PIX_FMT_YVYU:
+> > +	case V4L2_PIX_FMT_RGB565:
+> > +	case V4L2_PIX_FMT_RGB555:
+> > +		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
+> > +			dev_warn(&ici->dev,
+> > +				 "8 bit bus unsupported, but required for format %x\n",
+> > +				 pixfmt);
+> > +			return -EINVAL;
+> Shouldn't that be already computed by format generation ?
+> 
+> > +		/* Generic pass-through */
+> > +		host_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
+> > +		if (!host_fmt || !depth_supported(icd, host_fmt->depth)) {
+> > +			dev_warn(&ici->dev,
+> > +				 "Format %x unsupported in pass-through mode\n",
+> > +				 pixfmt);
+> > +			return -EINVAL;
+> > +		}
+> Ditto.
 
-diff -r 46604f47fca1 linux/drivers/media/video/vivi.c
---- a/linux/drivers/media/video/vivi.c	Fri Nov 07 15:24:18 2008 -0200
-+++ b/linux/drivers/media/video/vivi.c	Fri Nov 07 22:40:30 2008 -0600
-@@ -53,7 +53,7 @@
- #include "font.h"
- 
- #define VIVI_MAJOR_VERSION 0
--#define VIVI_MINOR_VERSION 5
-+#define VIVI_MINOR_VERSION 6
- #define VIVI_RELEASE 0
- #define VIVI_VERSION \
- 	KERNEL_VERSION(VIVI_MAJOR_VERSION, VIVI_MINOR_VERSION, VIVI_RELEASE)
-diff -r 46604f47fca1 v4l2-apps/test/Makefile
---- a/v4l2-apps/test/Makefile	Fri Nov 07 15:24:18 2008 -0200
-+++ b/v4l2-apps/test/Makefile	Fri Nov 07 22:40:30 2008 -0600
-@@ -1,6 +1,7 @@
- # Makefile for linuxtv.org v4l2-apps/test
- 
- CPPFLAGS += -I../include
-+CFLAGS = -g
- 
- binaries = ioctl-test 		\
- 	   sliced-vbi-test 	\
-@@ -26,6 +27,6 @@
- driver-test: driver-test.o ../lib/libv4l2.a
- 
- pixfmt-test: pixfmt-test.o
--	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@ -lX11
-+	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) $(CFLAGS) -o $@ -lX11
- 
- include ../Make.rules
-diff -r 46604f47fca1 v4l2-apps/test/capture_example.c
---- a/v4l2-apps/test/capture_example.c	Fri Nov 07 15:24:18 2008 -0200
-+++ b/v4l2-apps/test/capture_example.c	Fri Nov 07 22:40:30 2008 -0600
-@@ -47,6 +47,7 @@
- static unsigned int     n_buffers;
- static int		out_buf;
- static int              force_format;
-+static int              frame_count = 70;
- 
- static void errno_exit(const char *s)
- {
-@@ -171,7 +172,7 @@
- {
- 	unsigned int count;
- 
--	count = 1000;
-+	count = frame_count;
- 
- 	while (count-- > 0) {
- 		for (;;) {
-@@ -558,19 +559,21 @@
- {
- 	fprintf(fp,
- 		 "Usage: %s [options]\n\n"
-+		 "Version 1.3\n"
- 		 "Options:\n"
--		 "-d | --device name   Video device name [/dev/video0]\n"
-+		 "-d | --device name   Video device name [%s]\n"
- 		 "-h | --help          Print this message\n"
--		 "-m | --mmap          Use memory mapped buffers\n"
-+		 "-m | --mmap          Use memory mapped buffers [default]\n"
- 		 "-r | --read          Use read() calls\n"
- 		 "-u | --userp         Use application allocated buffers\n"
- 		 "-o | --output        Outputs stream to stdout\n"
- 		 "-f | --format        Force format to 640x480 YUYV\n"
-+		 "-c | --count         Number of frames to grab [%i]\n"
- 		 "",
--		 argv[0]);
-+		 argv[0],dev_name,frame_count );
- }
- 
--static const char short_options[] = "d:hmruof";
-+static const char short_options[] = "d:hmruofc:";
- 
- static const struct option
- long_options[] = {
-@@ -581,6 +584,7 @@
- 	{ "userp",  no_argument,       NULL, 'u' },
- 	{ "output", no_argument,       NULL, 'o' },
- 	{ "format", no_argument,       NULL, 'f' },
-+	{ "count",  required_argument, NULL, 'c' },
- 	{ 0, 0, 0, 0 }
- };
- 
-@@ -630,6 +634,13 @@
- 			force_format++;
- 			break;
- 
-+		case 'c':
-+		        errno = 0;
-+			frame_count = strtol(optarg, NULL, 0);
-+			if (errno)
-+				errno_exit(optarg);
-+			break;
-+
- 		default:
- 			usage(stderr, argc, argv);
- 			exit(EXIT_FAILURE);
+I know this code repeats, and it is not nice. But as I was writing it I 
+didn't see another possibility. Or more precisely, I did see it, but I 
+couldn't compare the two versions well without having at least one of them 
+in code in front of my eyes:-) Now that I see it, I think, yes, there is a 
+way to do this only once by using a translation struct similar to what you 
+have proposed. Now _this_ would be a possibly important advantage, so it 
+is useful not _only_ for debugging:-) But we would have to extend it with 
+at least a buswidth. Like
 
---------------080002090800060204050100
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+	const struct soc_camera_data_format *cam_fmt;
+	const struct soc_camera_data_format *host_fmt;
+	unsigned char buswidth;
+
+Now this _seems_ to provide the complete information so far... In 
+pxa_camera_get_formats() we would
+
+1. compute camera- and host-formats and buswidth
+2. call pxa_camera_try_bus_param() to check bus-parameter compatibility
+
+and then in try_fmt() and set_fmt() just traverse the list of translation 
+structs and adjust geometry?
+
+> > @@ -930,34 +1049,70 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
+> >  static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+> >  			      struct v4l2_format *f)
+> >  {
+> > +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> > +	struct pxa_camera_dev *pcdev = ici->priv;
+> >  	const struct soc_camera_data_format *cam_fmt;
+> > -	int ret = pxa_camera_try_bus_param(icd, f->fmt.pix.pixelformat);
+> > +	struct v4l2_pix_format *pix = &f->fmt.pix;
+> > +	__u32 pixfmt = pix->pixelformat;
+> > +	unsigned char buswidth;
+> > +	int ret;
+> >  
+> > -	if (ret < 0)
+> > -		return ret;
+> > +	switch (pixfmt) {
+> > +	case V4L2_PIX_FMT_YUV422P:
+> > +		pixfmt = V4L2_PIX_FMT_UYVY;
+> > +	case V4L2_PIX_FMT_UYVY:
+> > +	case V4L2_PIX_FMT_VYUY:
+> > +	case V4L2_PIX_FMT_YUYV:
+> > +	case V4L2_PIX_FMT_YVYU:
+> > +	case V4L2_PIX_FMT_RGB565:
+> > +	case V4L2_PIX_FMT_RGB555:
+> > +		if (!(pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)) {
+> > +			dev_warn(&ici->dev,
+> > +				 "try-fmt: 8 bit bus unsupported for format %x\n",
+> > +				 pixfmt);
+> > +			return -EINVAL;
+> > +		}
+> Ditto.
+> 
+> >  
+> > -	/*
+> > -	 * TODO: find a suitable supported by the SoC output format, check
+> > -	 * whether the sensor supports one of acceptable input formats.
+> > -	 */
+> > -	cam_fmt = soc_camera_format_by_fourcc(icd, f->fmt.pix.pixelformat);
+> > -	if (!cam_fmt)
+> > -		return -EINVAL;
+> > +		cam_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
+> > +		if (!cam_fmt) {
+> > +			dev_warn(&ici->dev, "try-fmt: format %x not found\n",
+> > +				 pixfmt);
+> > +			return -EINVAL;
+> > +		}
+> > +		buswidth = 8;
+> > +		break;
+> > +	default:
+> > +		/* Generic pass-through */
+> > +		cam_fmt = soc_camera_format_by_fourcc(icd, pixfmt);
+> > +		if (!cam_fmt || !depth_supported(icd, cam_fmt->depth)) {
+> > +			dev_warn(&ici->dev,
+> > +				 "try-fmt: Format %x unsupported in pass-through\n",
+> > +				 pixfmt);
+> > +			return -EINVAL;
+> > +		}
+> > +		buswidth = cam_fmt->depth;
+> > +	}
+> > +
+> > +	ret = pxa_camera_try_bus_param(icd, buswidth);
+> Ditto.
+> 
+> All in all, I wonder why we need that many tests, and if we could reduce them at
+> format generation (under hypothesis that platform_flags are constant and sensor
+> flags are constant).
+
+Ok, I propose you make the next round:-) I would be pleased if you base 
+your new patches on these my two, and just replace the user_formats with a 
+translation list, and modify pxa try_fmt() and set_fmt() as discussed 
+above. I would be quite happy if you mark them "From: <you>". Or if you do 
+not want to - let me know, I'll do it. And please do not make 13 patches 
+this time:-) I think, two should be enough.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------080002090800060204050100--
