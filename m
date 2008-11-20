@@ -1,25 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mANFRGLP013890
-	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 10:27:16 -0500
-Received: from smtp1-g19.free.fr (smtp1-g19.free.fr [212.27.42.27])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mANFQRAo026362
-	for <video4linux-list@redhat.com>; Sun, 23 Nov 2008 10:26:27 -0500
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <Pine.LNX.4.64.0811181945410.8628@axis700.grange>
-	<Pine.LNX.4.64.0811182010460.8628@axis700.grange>
-	<87y6zf76aw.fsf@free.fr>
-	<Pine.LNX.4.64.0811202055210.8290@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Sun, 23 Nov 2008 16:26:25 +0100
-In-Reply-To: <Pine.LNX.4.64.0811202055210.8290@axis700.grange> (Guennadi
-	Liakhovetski's message of "Thu\,
-	20 Nov 2008 21\:43\:40 +0100 \(CET\)")
-Message-ID: <87wseuihum.fsf@free.fr>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAKIq3nQ010074
+	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 13:52:03 -0500
+Received: from ug-out-1314.google.com (ug-out-1314.google.com [66.249.92.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id mAKIpm5r010646
+	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 13:51:49 -0500
+Received: by ug-out-1314.google.com with SMTP id j30so376202ugc.13
+	for <video4linux-list@redhat.com>; Thu, 20 Nov 2008 10:51:48 -0800 (PST)
+Message-ID: <412bdbff0811201051u22fc5a32if0b241c36ddf81b3@mail.gmail.com>
+Date: Thu, 20 Nov 2008 13:51:48 -0500
+From: "Devin Heitmueller" <devin.heitmueller@gmail.com>
+To: "Thomas Reiter" <x535.01@gmail.com>
+In-Reply-To: <1227206911.6617.6.camel@ivan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: video4linux-list@redhat.com
-Subject: Re: [PATCH 2/2 v3] pxa-camera: pixel format negotiation
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+References: <1226943947.6362.10.camel@ivan>
+	<09CD2F1A09A6ED498A24D850EB101208165C79D3B1@Colmatec004.COLMATEC.INT>
+	<b24afa610811180959q285f52abv7eb196e26e8d5c6b@mail.gmail.com>
+	<412bdbff0811190550i607a740bgae6348ac69253d7d@mail.gmail.com>
+	<1227206911.6617.6.camel@ivan>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: Re: RE : DVB-T2 (Mpeg4) in Norway
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,59 +34,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-
-> I know this code repeats, and it is not nice. But as I was writing it I 
-> didn't see another possibility. Or more precisely, I did see it, but I 
-> couldn't compare the two versions well without having at least one of them 
-> in code in front of my eyes:-) Now that I see it, I think, yes, there is a 
-> way to do this only once by using a translation struct similar to what you 
-> have proposed. Now _this_ would be a possibly important advantage, so it 
-> is useful not _only_ for debugging:-) But we would have to extend it with 
-> at least a buswidth. Like
+On Thu, Nov 20, 2008 at 1:48 PM, Thomas Reiter <x535.01@gmail.com> wrote:
+> on., 19.11.2008 kl. 08.50 -0500, skrev Devin Heitmueller:
+>> If you're running the latest v4l-dvb, then you need the dib0700 1.20
+>> firmware, and it's available here.
+>>
+>>  http://devinheitmueller.com/801e/dvb-usb-dib0700-1.20.fw
 >
-> 	const struct soc_camera_data_format *cam_fmt;
-> 	const struct soc_camera_data_format *host_fmt;
-> 	unsigned char buswidth;
 >
-> Now this _seems_ to provide the complete information so far... In 
-> pxa_camera_get_formats() we would
+> I tried this firmware but a scan gave the following result for my
+> Pinnacle Nano (73e):
 >
-> 1. compute camera- and host-formats and buswidth
-> 2. call pxa_camera_try_bus_param() to check bus-parameter compatibility
+>>  scan -c -a 0 -f 0 -d 0 -l 45000000,800000000
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0000
+> dumping lists (0 services)
+> Done.
 >
-> and then in try_fmt() and set_fmt() just traverse the list of translation 
-> structs and adjust geometry?
+>
+>
+> dmesg has the output (the firmware file is  a link to 1.20):
+>
+> [ 1675.457804] dvb-usb: found a 'Pinnacle PCTV 73e' in cold state, will
+> try to load a firmware
+> [ 1675.457812] firmware: requesting dvb-usb-dib0700-1.10.fw
+> [ 1675.460700] dvb-usb: downloading firmware from file
+> 'dvb-usb-dib0700-1.10.fw'
+> [ 1675.685934] dib0700: firmware started successfully.
+> [ 1676.188024] dvb-usb: found a 'Pinnacle PCTV 73e' in warm state.
+> [ 1676.188076] dvb-usb: will pass the complete MPEG2 transport stream to
+> the software demuxer.
+> [ 1676.188455] DVB: registering new adapter (Pinnacle PCTV 73e)
+> [ 1676.398963] DVB: registering frontend 0 (DiBcom 7000PC)...
+> [ 1676.571841] DiB0070: successfully identified
+>
+> My system is an Unbuntu 8.10
 
-Hi Guennadi,
+Your system is still trying to load version 1.10 of the firmware.
+Have you installed the latest v4l-dvb code by following the directions
+on http://linuxtv.org/repo ?  If so, have you rebooted the computer
+since then (so modules get unloaded).
 
-I began the work. I have a pending question here. Do you want to have the
-translation structure fully contained into pxa_camera (in host_priv for
-example), or do you want to replace the user formats by translation structure
-(ie. soc_camera_init_user_formats() would generate a list of
-soc_camera_format_translate instead of a list of soc_camera_data format) ?
+Devin
 
-I'm asking because in pxa_camera, there is no easy way to "guess" the size of
-the array of translations. And as vmalloc() is done in
-soc_camera_init_user_formats(), and allocates only soc_camera_data_format
-structures, I see no easy way to generate the list of translations in
-pxa_camera.c.
 
-I thought I would modify soc_camera.c in this way :
-static int soc_camera_init_user_formats(struct soc_camera_device *icd)
-{
-<snip>
--       icd->user_formats = vmalloc(sizeof(struct soc_camera_data_format *) *
--                                   fmts);
-+       icd->user_formats =
-+               vmalloc(sizeof(struct soc_camera_format_translate *) * fmts);
-<snip>
-
-Is that what you had in mind ? If not, how do you allocate the
-soc_camera_format_translate array in pxa_camera.c ?
-
---
-Robert
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
