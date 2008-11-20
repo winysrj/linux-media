@@ -1,20 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id mAT8RVNW026754
-	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 03:27:31 -0500
-Received: from web39708.mail.mud.yahoo.com (web39708.mail.mud.yahoo.com
-	[209.191.106.54])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id mAT8RGVZ023323
-	for <video4linux-list@redhat.com>; Sat, 29 Nov 2008 03:27:17 -0500
-Date: Sat, 29 Nov 2008 00:27:16 -0800 (PST)
-From: wei kin <kin2031@yahoo.com>
-To: video4linux-list@redhat.com
-MIME-Version: 1.0
-Message-ID: <368069.23199.qm@web39708.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Subject: Re: Unable to achieve 30fps using 'read()' in C
-Reply-To: kin2031@yahoo.com
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <200811192256.09361.m.kozlowski@tuxland.pl>
+References: <200811151218.45664.m.kozlowski@tuxland.pl>
+	<30353c3d0811190552y2ef78b53s833182da377a5046@mail.gmail.com>
+	<492439AE.1070903@redhat.com>
+	<200811192256.09361.m.kozlowski@tuxland.pl>
+Content-Type: text/plain; charset=ISO-8859-1
+Date: Thu, 20 Nov 2008 19:19:39 +0100
+Message-Id: <1227205179.1708.47.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: Mariusz Kozlowski <m.kozlowski@tuxland.pl>,
+	David Ellingsworth <david@identd.dyndns.org>, video4linux-list@redhat.com
+Subject: Re: [v4l-dvb-maintainer] [BUG] zc3xx oopses on unplug: unable to
+	handle kernel paging request
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,53 +26,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I installed qc-usb-0.6.6 and gspca-modules-2.6.18-5-xen-686 in my debian 2.=
-6.18-5-xen. Below are what I got:
+On Wed, 2008-11-19 at 22:56 +0100, Mariusz Kozlowski wrote:
+> > Here is a patch fixing this by using the ref counting already built
+> > into the 
+> > v4l2-core. Jean-Francois, this is to be applied after reverting your
+> > fix for this.
+> 
+> Not sure I understand what should be applied where. I applied your -
+> Hans - patch to
+> 2.6.28-rc5-00117-g7f0f598. As you see my HEAD in linux-2.6 is at
+> 7f0f598a0069d1ab072375965a4b69137233169c and I can reproduce the oops
+> easily.
+> I turned on all possible debuging in gspca as well. If it should be
+> applied to
+> some other tree which contains some more fixes for this - my fault.
+> Please let me know.
 
-lsusb
-Bus 004 Device 004: ID 046d:0920 Logitech, Inc. QuickCam Express
+Hi Hans (de Goede) and Hans (Verkuil),
 
-dmesg | grep usb
-usbcore: registered new driver usbfs
-usbcore: registered new driver hub
-usb usb1: configuration #1 chosen from 1 choice
-usb usb2: configuration #1 chosen from 1 choice
-usb usb3: configuration #1 chosen from 1 choice
-usb usb4: configuration #1 chosen from 1 choice
-usb 4-1: new full speed USB device using uhci_hcd and address 2
-usb 4-1: configuration #1 chosen from 1 choice
-usb usb5: configuration #1 chosen from 1 choice
-=A0sda:<6>usb 4-1: USB disconnect, address 2
-usb 4-1: new full speed USB device using uhci_hcd and address 3
-usb 4-1: configuration #1 chosen from 1 choice
-usbcore: registered new driver gspca
-usb 4-1: USB disconnect, address 3
-usb 4-1: new full speed USB device using uhci_hcd and address 4
-usb 4-1: configuration #1 chosen from 1 choice
+As you saw, the patch does not work.
 
-dmesg | grep Logitech
-input: ImPS/2 Logitech Wheel Mouse as /class/input/input2
+Looking at the modules, when a webcam is streaming, the module refcount
+of the gspca_main is 3: 1 for the subdriver dependancies, and 2 for one
+open. Why 2?
 
-I did try out the API example in http://www.linuxtv.org/downloads/video4lin=
-ux/API/V4L2_API/spec/a16706.htm. However, I get error message stated that=
-=A0 '/dev/video0 is no V4L2 device'.
+I did not look carefully at the I/O system, but it seems there are two
+objects / operations associated to the device. When a disconnection
+occurs while the device is opened, at close time, there is:
+- a first object put of the device which makes it to be released,
+- this release should do a first module_put and then
+- calls the gspca_release (see the patch) which frees the gspca device
+  (and also the video device which is embedded),
+- then, the close job is not finished: a second module_put is called
+  with the fops of the device,
+- as this one is in a non allocated memory and as the slab debug is
+  active: oops!
 
-Do anyone have any idea?
-Thanks,
-Rgds
-nik2031
+All this is may be found in the function __fput of fs/file_table.c.
 
-On Fri, Nov 28, 2008 at 3:02 AM, wei kin <kin2031@yahoo.com> wrote:
->
-Hi all, I am new in v4l programming. What I did in my code is I used
-'read( )' in C programming to read images from my Logitech Quickcam
-Express. My problem is I can't get 30frames per second, what I got is
-just 5fps when I loop and read for 200times. Do anyone know why is it
-under performance? Thanks
->
-> Rgds,
-> nik2031
-=0A=0A=0A      
+I was wondering if the gspca device could not be freed by the release of
+the video device, i.e. what happens if there is no 'kfree(gspca_dev)' in
+the gspca_release()?
+
+Cheers.
+
+-- 
+Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+Jef             |               http://moinejf.free.fr/
+
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
